@@ -3,7 +3,7 @@ CXX		?= g++
 CXXFLAGS	+= -std=c++14 -Werror -Wall -Wextra -MMD
 CXXFLAGS	+= -g
 
-MODEL_SRC	= $(wildcard src/models/*.cpp src/models/*/*.cpp)
+MODEL_SRC	= $(wildcard src/models/*.cpp src/models/*/*.cpp src/models/*/*/*.cpp)
 MODEL_OBJ	= $(patsubst src/%.cpp,obj/%.o,$(MODEL_SRC))
 
 OBJS		= $(MODEL_OBJ)
