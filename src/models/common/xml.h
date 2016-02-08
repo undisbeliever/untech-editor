@@ -29,7 +29,9 @@ std::string escape(const std::string& text, bool intag = true);
 class XmlReader {
 
 public:
-    XmlReader(const std::string& xml);
+    XmlReader(const std::string& xml, const std::string& filename = "");
+
+    static std::unique_ptr<XmlReader> fromFile(const std::string& filename);
 
     /** restart processing from the beginning */
     void parseDocument();
@@ -49,6 +51,16 @@ public:
     /** the current line number of the cursor */
     inline unsigned lineNo() const { return _lineNo; }
 
+    /** The filename of the XML file, may be empty */
+    inline std::string filename() const { return _filename; }
+
+    /** The directory part of the filename.
+     * Is either empty of ends in a slash. */
+    inline std::string dirname() const { return _dirname; }
+
+    /** the file part of the filename. */
+    inline std::string filepart() const { return _filepart; }
+
 private:
     void skipWhitespace();
     void skipText();
@@ -61,6 +73,9 @@ private:
     std::stack<std::string> _tagStack;
     bool _inSelfClosingTag;
     unsigned _lineNo;
+    std::string _filename;
+    std::string _filepart;
+    std::string _dirname;
 };
 }
 }

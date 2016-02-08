@@ -19,11 +19,9 @@ namespace SpriteImporter {
 namespace Serializer {
 
 struct FrameSetReader {
-    FrameSetReader(NamedList<FrameSet>& framesetContainer, XmlReader& xml, const std::string& fileDir, const std::string& fileName)
+    FrameSetReader(NamedList<FrameSet>& framesetContainer, XmlReader& xml)
         : framesetContainer(framesetContainer)
         , xml(xml)
-        , fileDir(fileDir)
-        , fileName(fileName)
         , frameset()
         , framesetGridSet(false)
     {
@@ -37,18 +35,28 @@ private:
 
     NamedList<FrameSet>& framesetContainer;
     XmlReader& xml;
-    const std::string& fileDir;
-    const std::string& fileName;
 
     std::shared_ptr<FrameSet> frameset;
     bool framesetGridSet;
 };
 
-void readSpriteImporter(NamedList<FrameSet>& framesetContainer, XmlReader& xml, const XmlTag* tag, const std::string& fileDir, const std::string& fileName)
+void readFile(NamedList<FrameSet>& frameSetContainer, const std::string& filename)
+{
+    auto xml = XmlReader::fromFile(filename);
+    std::unique_ptr<XmlTag> tag = xml->parseTag();
+
+    if (tag->name != "spriteimporter") {
+        throw("Not a sprite importer file");
+    }
+
+    readSpriteImporter(frameSetContainer, *xml, tag.get());
+}
+
+void readSpriteImporter(NamedList<FrameSet>& framesetContainer, XmlReader& xml, const XmlTag* tag)
 {
     assert(tag->name == "spriteimporter");
 
-    FrameSetReader reader(framesetContainer, xml, fileDir, fileName);
+    FrameSetReader reader(framesetContainer, xml);
 
     std::unique_ptr<XmlTag> childTag;
     while (childTag = xml.parseTag()) {
@@ -79,8 +87,7 @@ void FrameSetReader::readFrameSet(const XmlTag* tag)
     frameset = framesetContainer.create(id);
     framesetGridSet = false;
 
-    std::string imageFilename = tag->getAttribute("image");
-    // ::TODO add dir to imageFilename::
+    std::string imageFilename = xml.dirname() + tag->getAttribute("image");
     frameset->setImageFilename(imageFilename);
     // ::TODO verify image was loaded correctly::
 

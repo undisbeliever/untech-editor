@@ -1,5 +1,6 @@
 #include "../xml.h"
 #include "../string.h"
+#include "../file.h"
 #include <algorithm>
 #include <cstring>
 
@@ -71,14 +72,23 @@ inline std::string unescapeXmlString(const char* start, const char* end)
 }
 using namespace UnTech::XmlPrivate;
 
-XmlReader::XmlReader(const std::string& xml)
+XmlReader::XmlReader(const std::string& xml, const std::string& filename)
     : _inputString(xml)
+    , _filename(filename)
 {
     if (xml.empty()) {
-        throw("Empty String");
+        throw("No XML");
     }
 
+    std::tie(_dirname, _filepart) = File::splitFilename(filename);
+
     parseDocument();
+}
+
+std::unique_ptr<XmlReader> XmlReader::fromFile(const std::string& filename)
+{
+    std::string xml = File::readUtf8TextFile(filename);
+    return std::make_unique<XmlReader>(xml, filename);
 }
 
 void XmlReader::parseDocument()

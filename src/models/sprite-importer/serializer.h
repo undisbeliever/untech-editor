@@ -17,7 +17,8 @@ class FrameSet;
 
 namespace Serializer {
 
-void readSpriteImporter(NamedList<FrameSet>& framesetContainer, Xml::XmlReader& xml, const Xml::XmlTag* tag, const std::string& fileDir, const std::string& fileName);
+void readFile(NamedList<FrameSet>& frameSetContainer, const std::string& filename);
+void readSpriteImporter(NamedList<FrameSet>& frameSetContainer, Xml::XmlReader& xml, const Xml::XmlTag* currentTag);
 }
 }
 }

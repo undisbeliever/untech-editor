@@ -3,10 +3,13 @@
 #include <string>
 #include <fstream>
 
-using namespace UnTech;
-using namespace UnTech::File;
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#define PLATFORM_WINDOWS
+#endif
 
-std::string readUtf8TextFile(const std::string& filename)
+using namespace UnTech;
+
+std::string File::readUtf8TextFile(const std::string& filename)
 {
     std::ifstream in(filename, std::ios::in | std::ios::binary);
     if (in) {
@@ -39,4 +42,25 @@ std::string readUtf8TextFile(const std::string& filename)
         return (ret);
     }
     throw("Cannot open file");
+}
+
+std::pair<std::string, std::string> File::splitFilename(const std::string& filename)
+{
+    if (filename.empty()) {
+        return { std::string(), std::string() };
+    }
+
+#ifdef PLATFORM_WINDOWS
+    // search both types of slash in windows.
+    auto i = filename.find_last_of("\\/");
+#else
+    auto i = filename.find_last_of('/');
+#endif
+
+    if (i == std::string::npos) {
+        return { std::string(), filename };
+    }
+    else {
+        return { filename.substr(0, i + 1), filename.substr(i + 1) };
+    }
 }
