@@ -3,8 +3,8 @@
 #include "../file.h"
 #include <algorithm>
 #include <cstring>
-
-// ::TODO clean up exceptions, include line no::
+#include <stdexcept>
+#include <sstream>
 
 using namespace UnTech;
 using namespace UnTech::Xml;
@@ -68,8 +68,58 @@ inline std::string unescapeXmlString(const char* start, const char* end)
 
     return ret;
 }
+
+std::string xmlFilepart(const XmlReader* xml)
+{
+    auto fp = xml->filepart();
+    if (fp.empty()) {
+        return "XML";
+    }
+    return fp;
+}
+
+auto buildXmlParseError(const XmlReader* xml, const char* msg)
+{
+    std::stringstream stream;
+
+    stream << xmlFilepart(xml) << ":" << xml->lineNo() << ": " << msg;
+    return std::runtime_error(stream.str());
+}
+
+auto buildXmlParseError(const XmlReader* xml, const std::string& tagName, const char* msg)
+{
+    std::stringstream stream;
+
+    stream << xmlFilepart(xml) << ":" << xml->lineNo() << " (" << tagName << "): " << msg;
+    return std::runtime_error(stream.str());
+}
+
+auto buildXmlParseError(const XmlReader* xml, const std::string& tagName, const std::string& attributeName, const char* msg)
+{
+    std::stringstream stream;
+
+    stream << xmlFilepart(xml) << ":" << xml->lineNo() << " (" << tagName << " " << attributeName << "): " << msg;
+    return std::runtime_error(stream.str());
+}
+
+auto buildXmlParseError(const XmlReader* xml, const std::string& tagName, const char* msg, const std::string& after)
+{
+    std::stringstream stream;
+
+    stream << xmlFilepart(xml) << ":" << xml->lineNo() << " (" << tagName << "): " << msg << " '" << after << "'";
+    return std::runtime_error(stream.str());
+}
+
+auto buildXmlParseError(const XmlReader* xml, const std::string& tagName, const char* msg, const char c)
+{
+    std::stringstream stream;
+
+    stream << xmlFilepart(xml) << ":" << xml->lineNo() << " (" << tagName << "): " << msg << " '" << c << "'";
+    return std::runtime_error(stream.str());
 }
 }
+}
+
 using namespace UnTech::XmlPrivate;
 
 XmlReader::XmlReader(const std::string& xml, const std::string& filename)
@@ -77,7 +127,7 @@ XmlReader::XmlReader(const std::string& xml, const std::string& filename)
     , _filename(filename)
 {
     if (xml.empty()) {
-        throw("No XML");
+        throw std::runtime_error("Empty XML file");
     }
 
     std::tie(_dirname, _filepart) = File::splitFilename(filename);
@@ -106,7 +156,7 @@ void XmlReader::parseDocument()
 
         while (*_pos != '>') {
             if (*_pos == 0) {
-                throw("Unclosed XML header");
+                throw buildXmlParseError(this, "Unclosed XML header");
             }
             if (*_pos == '\n') {
                 _lineNo++;
@@ -124,7 +174,7 @@ void XmlReader::parseDocument()
 
         while (*_pos != '>') {
             if (*_pos == 0) {
-                throw("Unclosed DOCTYPE header");
+                throw buildXmlParseError(this, "Unclosed DOCTYPE header");
             }
             if (*_pos == '\n') {
                 _lineNo++;
@@ -149,10 +199,10 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
     }
 
     if (*_pos == 0) {
-        throw("Unexpected end of file");
+        throw buildXmlParseError(this, "Unexpected end of file");
     }
     if (*_pos != '<') {
-        throw("Not a tag");
+        throw std::logic_error("Not a tag");
     }
     _pos++;
 
@@ -162,16 +212,16 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
     if (!(isWhitespace(*_pos)
           || (_pos[0] == '>')
           || (_pos[0] == '/' || _pos[1] != '>'))) {
-        throw("Invalid tag name");
+        throw buildXmlParseError(this, "Invalid tag name");
     }
 
-    auto tag = std::make_unique<XmlTag>(tagName, _lineNo);
+    auto tag = std::make_unique<XmlTag>(this, tagName, _lineNo);
 
     while (*_pos) {
         skipWhitespace();
 
         if (*_pos == 0) {
-            throw("Unclosed tag");
+            throw buildXmlParseError(this, tagName, "Unclosed tag");
         }
 
         if (isName(*_pos)) {
@@ -182,7 +232,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
             skipWhitespace();
 
             if (*_pos != '=') {
-                throw("Missing attribute value");
+                throw buildXmlParseError(this, tagName, attributeName, "Missing attribute value");
             }
             _pos++;
 
@@ -196,7 +246,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
         else if (*_pos == '?' || *_pos == '/') {
             // end of self closing tag
             if (_pos[1] != '>') {
-                throw("Unknown end of tag");
+                throw buildXmlParseError(this, tagName, "Missing '>'");
             }
             _pos += 2;
 
@@ -212,11 +262,11 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
             return std::move(tag);
         }
         else {
-            throw("Unknown character");
+            throw buildXmlParseError(this, tagName, "Unknown character", *_pos);
         }
     }
 
-    throw("Incomplete tag");
+    throw buildXmlParseError(this, tagName, "Incomplete tag");
 }
 
 std::string XmlReader::parseText()
@@ -235,7 +285,7 @@ std::string XmlReader::parseText()
             // skip comment
             while (memcmp(_pos, "-->", 4) != 0) {
                 if (*_pos == 0) {
-                    throw("Unclosed comment");
+                    throw buildXmlParseError(this, "Unclosed comment");
                 }
                 if (*_pos == '\n') {
                     _lineNo++;
@@ -254,7 +304,7 @@ std::string XmlReader::parseText()
 
             while (memcmp(_pos, "]]>", 3) != 0) {
                 if (*_pos == 0) {
-                    throw("Unclosed CDATA");
+                    throw buildXmlParseError(this, "Unclosed CDATA");
                 }
                 if (*_pos == '\n') {
                     _lineNo++;
@@ -307,16 +357,17 @@ void XmlReader::parseCloseTag()
 
     _pos += 2;
     auto closeTagName = parseName();
+    auto expectedTagName = _tagStack.top();
 
-    if (closeTagName != _tagStack.top()) {
-        throw("Close tag mismatch");
+    if (closeTagName != expectedTagName) {
+        throw buildXmlParseError(this, expectedTagName, "Close tag mismatch");
     }
     _tagStack.pop();
 
     skipWhitespace();
 
     if (*_pos != '>') {
-        throw("Expected >");
+        throw buildXmlParseError(this, closeTagName, "Expected '>'");
     }
 }
 
@@ -341,7 +392,7 @@ void XmlReader::skipText()
             // skip comment
             while (memcmp(_pos, "-->", 4) != 0) {
                 if (*_pos == 0) {
-                    throw("Unclosed comment");
+                    throw buildXmlParseError(this, "Unclosed comment");
                 }
                 if (*_pos == '\n') {
                     _lineNo++;
@@ -355,7 +406,7 @@ void XmlReader::skipText()
             _pos += 9;
             while (memcmp(_pos, "]]>", 3) != 0) {
                 if (*_pos == 0) {
-                    throw("Unclosed CDATA");
+                    throw buildXmlParseError(this, "Unclosed CDATA");
                 }
                 if (*_pos == '\n') {
                     _lineNo++;
@@ -386,7 +437,7 @@ inline std::string XmlReader::parseName()
     }
 
     if (nameStart == _pos) {
-        throw("Missing element name");
+        throw buildXmlParseError(this, "Missing identifier");
     }
 
     std::string ret(nameStart, _pos - nameStart);
@@ -398,7 +449,7 @@ inline std::string XmlReader::parseName()
 inline std::string XmlReader::parseAttributeValue()
 {
     if (*_pos != '\'' && *_pos != '\"') {
-        throw("Attribute not quoted");
+        throw buildXmlParseError(this, "Attribute not quoted");
     }
 
     const char terminator = *_pos;
@@ -407,7 +458,7 @@ inline std::string XmlReader::parseAttributeValue()
     const char* valueStart = _pos;
     while (*_pos != terminator) {
         if (*_pos == 0) {
-            throw("Incomplete attribute value");
+            throw buildXmlParseError(this, "Incomplete attribute value");
         }
         if (*_pos == '\n') {
             _lineNo++;

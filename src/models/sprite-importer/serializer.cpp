@@ -7,8 +7,7 @@
 #include "entityhitbox.h"
 #include "../common/xml.h"
 #include <cassert>
-
-// ::TODO improve error reporting::
+#include <stdexcept>
 
 using namespace UnTech;
 using namespace UnTech::Xml;
@@ -46,7 +45,7 @@ void readFile(NamedList<FrameSet>& frameSetContainer, const std::string& filenam
     std::unique_ptr<XmlTag> tag = xml->parseTag();
 
     if (tag->name != "spriteimporter") {
-        throw("Not a sprite importer file");
+        throw std::runtime_error(filename + ": Not a sprite importer file");
     }
 
     readSpriteImporter(frameSetContainer, *xml, tag.get());
@@ -64,7 +63,7 @@ void readSpriteImporter(NamedList<FrameSet>& framesetContainer, XmlReader& xml, 
             reader.readFrameSet(childTag.get());
         }
         else {
-            throw("Unknown tag");
+            throw tag->buildUnknownTagError();
         }
 
         xml.parseCloseTag();
@@ -75,13 +74,14 @@ void readSpriteImporter(NamedList<FrameSet>& framesetContainer, XmlReader& xml, 
  * FRAME SET READER
  * ================
  */
+
 void FrameSetReader::readFrameSet(const XmlTag* tag)
 {
     assert(tag->name == "frameset");
 
     std::string id = tag->getAttributeId("id");
     if (framesetContainer.nameExists(id)) {
-        throw("frameset id already exists");
+        throw tag->buildError("frameset id already exists");
     }
 
     frameset = framesetContainer.create(id);
@@ -100,7 +100,7 @@ void FrameSetReader::readFrameSet(const XmlTag* tag)
             readFrame(childTag.get());
         }
         else {
-            throw("Unknown tag");
+            throw childTag->buildUnknownTagError();
         }
 
         xml.parseCloseTag();
@@ -125,7 +125,7 @@ void FrameSetReader::readFrame(const XmlTag* tag)
 
     std::string id = tag->getAttributeId("id");
     if (frameset->frames().nameExists(id)) {
-        throw("frame id already exists");
+        throw tag->buildError("frame id already exists");
     }
 
     auto frame = frameset->frames().create(id);
@@ -143,17 +143,17 @@ void FrameSetReader::readFrame(const XmlTag* tag)
         }
         if (childTag->name == "gridlocation") {
             if (framesetGridSet == false) {
-                throw("Frameset grid is not set.");
+                throw childTag->buildError("Frameset grid is not set.");
             }
             frame->setGridLocation(childTag->getAttributeUpoint());
         }
         else {
-            throw("location or gridlocation tag must be the first child of frame");
+            throw tag->buildError("location or gridlocation tag must be the first child of frame");
         }
         xml.parseCloseTag();
     }
     else {
-        throw("location or gridlocation tag must be the first child of frame");
+        throw tag->buildError("location or gridlocation tag must be the first child of frame");
     }
 
     const urect frameLocation = frame->location();
@@ -173,7 +173,7 @@ void FrameSetReader::readFrame(const XmlTag* tag)
                 obj->setSize(FrameObject::ObjectSize::LARGE);
             }
             else {
-                throw("Unknown size");
+                throw childTag->buildError("Can only have one tilehitbox per frame");
             }
 
             obj->setLocation(childTag->getAttributeUpointInside(frameLocation, obj->sizePx()));
@@ -195,7 +195,7 @@ void FrameSetReader::readFrame(const XmlTag* tag)
 
         else if (childTag->name == "tilehitbox") {
             if (processedTileHitbox) {
-                throw("Can only have one tilehitbox per frame");
+                throw xml.buildError("Can only have one tilehitbox per frame");
             }
             frame->setTileHitbox(childTag->getAttributeUrectInside(frameLocation));
             processedTileHitbox = true;
@@ -203,13 +203,13 @@ void FrameSetReader::readFrame(const XmlTag* tag)
 
         else if (childTag->name == "origin") {
             if (processedOrigin) {
-                throw("Can only have one tilehitbox per frame");
+                throw childTag->buildError("Can only have one tilehitbox per frame");
             }
             frame->setOrigin(childTag->getAttributeUpoint("x", "y"));
             processedOrigin = true;
         }
         else {
-            throw("Unknown tag");
+            throw childTag->buildUnknownTagError();
         }
 
         xml.parseCloseTag();

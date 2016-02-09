@@ -1,21 +1,22 @@
 #ifndef _UNTECH_MODELS_COMMON_XML_XMLTAG_H_
 #define _UNTECH_MODELS_COMMON_XML_XMLTAG_H_
 
-// ::TODO clean up exceptions, include tag name and line no::
-
+#include "../namedlist.h"
 #include <climits>
 #include <memory>
+#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
-#include "../namedlist.h"
 
 namespace UnTech {
 namespace Xml {
 
 struct XmlTag {
-    XmlTag(std::string tagName, unsigned lineNo)
+    XmlTag(const XmlReader* xml, std::string tagName, unsigned lineNo)
         : name(tagName)
         , attributes()
+        , xml(xml)
         , lineNo(lineNo)
     {
     }
@@ -32,7 +33,7 @@ struct XmlTag {
             return it->second;
         }
         else {
-            throw("Missing attribute");
+            throw buildError(aName, "Missing attribute");
         }
     }
 
@@ -44,7 +45,7 @@ struct XmlTag {
             return id;
         }
         else {
-            throw("Invalid id");
+            throw buildError(aName, "Invalid id");
         }
     }
 
@@ -64,7 +65,7 @@ struct XmlTag {
         auto v = String::toInt(getAttribute(aName));
 
         if (!v.second) {
-            throw("Not a number");
+            throw buildError(aName, "Not a number");
         }
         return v.first;
     }
@@ -74,10 +75,10 @@ struct XmlTag {
         int i = getAttributeInteger(aName);
 
         if (i < min) {
-            throw("Number too small");
+            throw buildError(aName, "Number too small");
         }
         if (i > max) {
-            throw("Number too small");
+            throw buildError(aName, "Number too small");
         }
         return i;
     }
@@ -87,16 +88,16 @@ struct XmlTag {
         auto v = String::toLong(getAttribute(aName));
 
         if (!v.second) {
-            throw("Not a number");
+            throw buildError(aName, "Not a number");
         }
         if (v.first < 0) {
-            throw("Only positive numbers allowed");
+            throw buildError(aName, "Only positive numbers allowed");
         }
         if ((unsigned long)v.first < min) {
-            throw("Number too small");
+            throw buildError(aName, "Number too small");
         }
         if ((unsigned long)v.first > max) {
-            throw("Number too large");
+            throw buildError(aName, "Number too large");
         }
         return (unsigned)v.first;
     }
@@ -123,7 +124,7 @@ struct XmlTag {
                 return false;
             }
             else {
-                throw("Expected true or false");
+                throw buildError(aName, "Expected true or false");
             }
         }
 
@@ -157,7 +158,7 @@ struct XmlTag {
     inline upoint getAttributeUpointInside(const urect& container, unsigned squareSize, const std::string& xName = "x", const std::string& yName = "y") const
     {
         if (container.width < squareSize || container.height < squareSize) {
-            throw("Container too small");
+            throw std::logic_error("Container too small");
         }
         unsigned x = getAttributeUnsigned(xName, 0, container.width - squareSize);
         unsigned y = getAttributeUnsigned(yName, 0, container.height - squareSize);
@@ -198,9 +199,49 @@ struct XmlTag {
         return { x, y, width, height };
     }
 
+    std::runtime_error buildError(const char* msg) const
+    {
+        std::stringstream stream;
+
+        auto fp = xml->filepart();
+        if (fp.empty()) {
+            fp = "XML";
+        }
+
+        stream << fp << ":" << xml->lineNo() << " <" << name << ">: " << msg;
+        return std::runtime_error(stream.str());
+    }
+
+    std::runtime_error buildError(const std::string& aName, const char* msg) const
+    {
+        std::stringstream stream;
+
+        auto fp = xml->filepart();
+        if (fp.empty()) {
+            fp = "XML";
+        }
+
+        stream << fp << ":" << lineNo << " <" << name << " " << aName << ">: " << msg;
+        return std::runtime_error(stream.str());
+    }
+
+    std::runtime_error buildUnknownTagError() const
+    {
+        std::stringstream stream;
+
+        auto fp = xml->filepart();
+        if (fp.empty()) {
+            fp = "XML";
+        }
+
+        stream << fp << ":" << xml->lineNo() << ": Unknown tag '" << name << "'";
+        return std::runtime_error(stream.str());
+    }
+
     std::string name;
     std::unordered_map<std::string, std::string> attributes;
-    unsigned lineNo;
+    const XmlReader* xml;
+    const unsigned lineNo;
 };
 }
 }

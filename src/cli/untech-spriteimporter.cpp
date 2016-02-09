@@ -21,15 +21,8 @@ int main(int argc, char* argv[])
 
     NamedList<SI::FrameSet> framesetContainer;
 
-    try {
-        for (int i = 1; i < argc; i++) {
-            SI::Serializer::readFile(framesetContainer, argv[i]);
-        }
-    }
-    catch (const char* message) {
-        // ::TODO improve::
-        std::cerr << "ERROR: " << message << std::endl;
-        return EXIT_FAILURE;
+    for (int i = 1; i < argc; i++) {
+        SI::Serializer::readFile(framesetContainer, argv[i]);
     }
 
     // ::DEBUG print all of the frames in the framesets::

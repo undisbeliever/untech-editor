@@ -2,6 +2,7 @@
 #include "string.h"
 #include <string>
 #include <fstream>
+#include <stdexcept>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define PLATFORM_WINDOWS
@@ -36,12 +37,12 @@ std::string File::readUtf8TextFile(const std::string& filename)
         in.close();
 
         if (!String::checkUtf8WellFormed(ret)) {
-            throw("File is not UTF-8 Well Formed");
+            throw std::runtime_error("File is not UTF-8 Well Formed");
         }
 
         return (ret);
     }
-    throw("Cannot open file");
+    throw std::runtime_error("Cannot open file");
 }
 
 std::pair<std::string, std::string> File::splitFilename(const std::string& filename)
