@@ -25,13 +25,7 @@ int main(int argc, char* argv[])
     }
 
     // ::DEBUG print all of the frames in the framesets::
-    for (auto fs : framesetContainer) {
-        std::cout << fs.first << ":\n";
-
-        for (auto f : fs.second->frames()) {
-            std::cout << "\t" << f.first << "\n";
-        }
-    }
+    SI::Serializer::writeFile(framesetContainer, std::cout);
 
     return EXIT_SUCCESS;
 }

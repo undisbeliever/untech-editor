@@ -24,6 +24,9 @@ public:
     inline auto& frames() { return _frames; }
     inline auto& grid() { return _grid; }
 
+    inline const auto& frames() const { return _frames; }
+    inline const auto& grid() const { return _grid; }
+
     bool setImageFilename(const std::string& filename);
 
 private:

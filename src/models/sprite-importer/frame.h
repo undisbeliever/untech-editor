@@ -32,6 +32,10 @@ public:
     inline auto& actionPoints() { return _actionPoints; }
     inline auto& entityHitboxes() { return _entityHitboxes; }
 
+    inline const auto& objects() const { return _objects; }
+    inline const auto& actionPoints() const { return _actionPoints; }
+    inline const auto& entityHitboxes() const { return _entityHitboxes; }
+
     bool useGridLocation() const { return _useGridLocation; }
     upoint gridLocation() const { return _gridLocation; }
     urect location() const { return _location; }
