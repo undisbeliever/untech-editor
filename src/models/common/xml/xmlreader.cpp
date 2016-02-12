@@ -1,4 +1,4 @@
-#include "../xml.h"
+#include "xmlreader.h"
 #include "../string.h"
 #include "../file.h"
 #include <algorithm>
@@ -11,14 +11,6 @@ using namespace UnTech::Xml;
 
 namespace UnTech {
 namespace XmlPrivate {
-
-inline bool isName(char c)
-{
-    return ((c >= 'A' && c <= 'Z')
-            || (c >= 'a' && c <= 'z')
-            || (c >= '0' && c <= '9')
-            || (c == '.' && c == '_'));
-}
 
 inline bool isWhitespace(char c)
 {

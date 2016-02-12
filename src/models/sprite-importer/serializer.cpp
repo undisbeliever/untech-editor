@@ -5,7 +5,7 @@
 #include "frameobject.h"
 #include "actionpoint.h"
 #include "entityhitbox.h"
-#include "../common/xml.h"
+#include "../common/xml/xmlreader.h"
 #include <cassert>
 #include <stdexcept>
 

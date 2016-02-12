@@ -1,8 +1,9 @@
-#ifndef _UNTECH_MODELS_COMMON_XML_H_
-#define _UNTECH_MODELS_COMMON_XML_H_
+#ifndef _UNTECH_MODELS_COMMON_XML_XMLREADER_H_
+#define _UNTECH_MODELS_COMMON_XML_XMLREADER_H_
 
-#include "aabb.h"
-#include "string.h"
+#include "xml.h"
+#include "../aabb.h"
+#include "../string.h"
 #include <memory>
 #include <stack>
 #include <string>
@@ -10,8 +11,6 @@
 
 namespace UnTech {
 namespace Xml {
-
-std::string escape(const std::string& text, bool intag = true);
 
 class XmlTag;
 
@@ -104,7 +103,6 @@ private:
 };
 }
 }
-
-#include "xml/xmltag.h"
+#include "xmltag.h"
 
 #endif

@@ -1,6 +1,5 @@
 #include "../models/sprite-importer.h"
 #include "../models/common/file.h"
-#include "../models/common/xml.h"
 #include "../models/common/namedlist.h"
 #include <iostream>
 #include <cstdlib>
