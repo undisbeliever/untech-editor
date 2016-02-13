@@ -26,6 +26,8 @@ public:
 
     unsigned sizePx() const { return (unsigned)_size; }
 
+    std::weak_ptr<Frame> frame() const { return _frame; }
+
     void setLocation(const upoint& location);
     void setSize(ObjectSize size);
 

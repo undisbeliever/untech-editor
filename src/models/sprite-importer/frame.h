@@ -39,6 +39,7 @@ public:
     bool useGridLocation() const { return _useGridLocation; }
     upoint gridLocation() const { return _gridLocation; }
     urect location() const { return _location; }
+    usize locationSize() const { return _location.size(); }
 
     bool useGridOrigin() const { return _useGridOrigin; }
     upoint origin() const { return _origin; }
