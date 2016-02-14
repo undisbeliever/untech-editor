@@ -72,6 +72,16 @@ public:
         }
     }
 
+    bool isFirst(std::shared_ptr<T> e)
+    {
+        return _list.size() > 0 && _list.front() == e;
+    }
+
+    bool isLast(std::shared_ptr<T> e)
+    {
+        return _list.size() > 0 && _list.back() == e;
+    }
+
     // Expose the list
     inline auto size() const { return _list.size(); }
     inline auto begin() const { return _list.begin(); }

@@ -59,7 +59,7 @@ public:
             typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
 
             if (_frameObject) {
-                _frameObject->setSize(_sizeCombo.get_active() == 0 ? OS::SMALL : OS::LARGE);
+                _frameObject->setSize(_sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE);
             }
         });
     }
