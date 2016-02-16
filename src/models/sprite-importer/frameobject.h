@@ -2,6 +2,7 @@
 #define _UNTECH_MODELS_SPRITEIMPORTER_FRAMEOBJECT_H
 
 #include "../common/aabb.h"
+#include "../common/orderedlist.h"
 #include <memory>
 
 namespace UnTech {
@@ -12,11 +13,14 @@ class Frame;
 class FrameObject {
 
 public:
+    typedef OrderedList<Frame, FrameObject> list_t;
+
     enum class ObjectSize {
         SMALL = 8,
         LARGE = 16
     };
 
+public:
     FrameObject() = delete;
     FrameObject(std::shared_ptr<Frame> frame);
     FrameObject(const FrameObject& object, std::shared_ptr<Frame> frame);

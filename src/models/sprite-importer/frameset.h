@@ -15,6 +15,9 @@ class Frame;
 class FrameSet : public std::enable_shared_from_this<FrameSet> {
 
 public:
+    typedef NamedList<FrameSet> list_t;
+
+public:
     FrameSet();
 
     std::shared_ptr<FrameSet> ptr() { return shared_from_this(); }

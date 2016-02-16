@@ -11,7 +11,7 @@
 namespace UnTech {
 namespace Widgets {
 
-template <class P, class T, class ModelColumnsT>
+template <class T, class ModelColumnsT>
 class OrderedListView {
 
 public:
@@ -28,12 +28,12 @@ public:
         treeView.set_sensitive(false);
     }
 
-    inline void setList(UnTech::OrderedList<P, T>& newList)
+    inline void setList(typename T::list_t& newList)
     {
         setList(&newList);
     }
 
-    void setList(UnTech::OrderedList<P, T>* newList)
+    void setList(typename T::list_t* newList)
     {
         if (list != newList) {
             // ::TODO remove signallistChanged from list::
@@ -145,15 +145,15 @@ protected:
     ModelColumnsT columns;
     Glib::RefPtr<Gtk::ListStore> treeModel;
 
-    UnTech::OrderedList<P, T>* list;
+    typename T::list_t* list;
 };
 
-template <class P, class T, class ModelColumnsT>
-class OrderedListEditor : public OrderedListView<P, T, ModelColumnsT> {
+template <class T, class ModelColumnsT>
+class OrderedListEditor : public OrderedListView<T, ModelColumnsT> {
 
 public:
     OrderedListEditor()
-        : OrderedListView<P, T, ModelColumnsT>()
+        : OrderedListView<T, ModelColumnsT>()
         , widget(Gtk::ORIENTATION_VERTICAL)
         , _treeContainer()
         , _buttonBox(Gtk::ORIENTATION_HORIZONTAL)
@@ -218,16 +218,14 @@ public:
         this->signal_selected_changed().connect(sigc::mem_fun(*this, &OrderedListEditor::updateButtonState));
     }
 
-    inline void setList(UnTech::OrderedList<P, T>& newList)
+    inline void setList(typename T::list_t& newList)
     {
         setList(&newList);
-
-        updateButtonState();
     }
 
-    inline void setList(UnTech::OrderedList<P, T>* newList)
+    inline void setList(typename T::list_t* newList)
     {
-        OrderedListView<P, T, ModelColumnsT>::setList(newList);
+        OrderedListView<T, ModelColumnsT>::setList(newList);
 
         updateButtonState();
     }

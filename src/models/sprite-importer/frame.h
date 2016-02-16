@@ -3,6 +3,7 @@
 
 #include "../common/aabb.h"
 #include "../common/orderedlist.h"
+#include "../common/namedlist.h"
 #include <memory>
 
 namespace UnTech {
@@ -21,6 +22,8 @@ public:
 
     const static unsigned SPRITE_ORDER_MASK = 3;
     const static unsigned DEFAULT_SPRITE_ORDER = 2;
+
+    typedef NamedList<FrameSet, Frame> list_t;
 
 public:
     Frame(std::shared_ptr<FrameSet> frameSet);

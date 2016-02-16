@@ -48,7 +48,7 @@ public:
 };
 }
 
-typedef OrderedListEditor<SI::Frame, SI::FrameObject, Private::FrameObjectModelColumns> FrameObjectListEditor;
+typedef OrderedListEditor<SI::FrameObject, Private::FrameObjectModelColumns> FrameObjectListEditor;
 }
 }
 }

@@ -2,6 +2,7 @@
 #define _UNTECH_MODELS_SPRITEIMPORTER_ACTIONPOINT_H
 
 #include "../common/aabb.h"
+#include "../common/orderedlist.h"
 #include <cstdint>
 #include <memory>
 
@@ -13,8 +14,11 @@ class Frame;
 class ActionPoint {
 
 public:
+    typedef OrderedList<Frame, ActionPoint> list_t;
+
     typedef uint8_t parameter_t;
 
+public:
     ActionPoint() = delete;
     ActionPoint(std::shared_ptr<Frame> frame);
     ActionPoint(const ActionPoint& point, std::shared_ptr<Frame> frame);
