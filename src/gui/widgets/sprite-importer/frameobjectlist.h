@@ -1,6 +1,7 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEOBJECTLIST_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEOBJECTLIST_H_
 
+#include "signals.h"
 #include "gui/widgets/common/orderedlist.h"
 #include "models/sprite-importer/frameobject.h"
 
@@ -37,14 +38,17 @@ public:
         treeView.append_column("Size", col_size);
     }
 
-    inline void setRowData(Gtk::TreeRow& row, unsigned id, std::shared_ptr<SI::FrameObject> obj)
+    inline void setRowData(Gtk::TreeRow& row, std::shared_ptr<SI::FrameObject> obj)
     {
         typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
 
-        row[col_id] = id;
         row[col_location] = Glib::ustring::compose("%1, %2", obj->location().x, obj->location().y);
         row[col_size] = obj->size() == OS::SMALL ? "Small" : "Large";
     }
+
+    inline static auto& signal_itemChanged() { return signal_frameObjectChanged; }
+
+    inline static auto& signal_listChanged() { return signal_frameObjectListChanged; }
 };
 }
 

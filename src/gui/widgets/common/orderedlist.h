@@ -3,6 +3,7 @@
 
 #include "models/common/orderedlist.h"
 #include "gui/widgets/defaults.h"
+#include "gui/widgets/sprite-importer/signals.h"
 
 #include <memory>
 
@@ -26,6 +27,22 @@ public:
 
         treeView.set_model(treeModel);
         treeView.set_sensitive(false);
+
+        /*
+         * SLOTS
+         * =====
+         */
+
+        /* Update GUI if item has changed */
+        columns.signal_itemChanged().connect(sigc::mem_fun(
+            *this, &OrderedListView::onItemChanged));
+
+        /* Rebuild table if list has changed */
+        columns.signal_listChanged().connect([this](const typename T::list_t* list) {
+            if (this->list == list) {
+                rebuildTable();
+            }
+        });
     }
 
     inline void setList(typename T::list_t& newList)
@@ -36,16 +53,9 @@ public:
     void setList(typename T::list_t* newList)
     {
         if (list != newList) {
-            // ::TODO remove signallistChanged from list::
-            // ::TODO remove item changed signal to list items::
-
             list = newList;
             if (list != nullptr) {
                 rebuildTable();
-
-                // ::TODO add signallistChanged -> rebuildTable::
-                // ::TODO add signal_newElement -> create signal, rebuldTable::
-                // ::TODO add item changed signal::
 
                 treeView.set_sensitive(true);
             }
@@ -98,7 +108,22 @@ public:
     inline auto signal_selected_changed() { return treeView.get_selection()->signal_changed(); }
 
 protected:
-    inline void buildTreeViewColumns();
+    inline void emitListChangedSignal()
+    {
+        columns.signal_listChanged().emit(list);
+    }
+
+    /**
+     * Called when an item has changed, updates the field.
+     */
+    auto onItemChanged(std::shared_ptr<T> item)
+    {
+        for (auto row : treeModel->children()) {
+            if (row.get_value(columns.col_item) == item) {
+                columns.setRowData(row, item);
+            }
+        }
+    }
 
     void rebuildTable()
     {
@@ -128,7 +153,8 @@ protected:
                 auto rowIt = treeModel->children().begin();
                 for (auto item : *list) {
                     auto row = *rowIt;
-                    columns.setRowData(row, id, item);
+                    columns.setRowData(row, item);
+                    row[columns.col_id] = id;
                     row[columns.col_item] = item;
 
                     ++id;
@@ -183,21 +209,25 @@ public:
          * SIGNALS
          */
         _createButton.signal_clicked().connect([this](void) {
-            this->list->create();
-            this->rebuildTable(); // ::DEBUG::
+            auto item = this->list->create();
+
+            this->emitListChangedSignal();
+            this->selectItem(item);
         });
 
         _cloneButton.signal_clicked().connect([this](void) {
-            this->list->clone(this->getSelected());
-            this->rebuildTable(); // ::DEBUG::
+            auto item = this->list->clone(this->getSelected());
+
+            this->emitListChangedSignal();
+            this->selectItem(item);
         });
 
         _moveUpButton.signal_clicked().connect([this](void) {
             auto item = this->getSelected();
 
             this->list->moveUp(this->getSelected());
-            this->rebuildTable();
 
+            this->emitListChangedSignal();
             this->selectItem(item);
         });
 
@@ -205,14 +235,14 @@ public:
             auto item = this->getSelected();
 
             this->list->moveDown(this->getSelected());
-            this->rebuildTable();
 
+            this->emitListChangedSignal();
             this->selectItem(item);
         });
 
         _removeButton.signal_clicked().connect([this](void) {
             this->list->remove(this->getSelected());
-            this->rebuildTable(); // ::DEBUG::
+            this->emitListChangedSignal();
         });
 
         this->signal_selected_changed().connect(sigc::mem_fun(*this, &OrderedListEditor::updateButtonState));

@@ -1,6 +1,7 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEOBJECTEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEOBJECTEDITOR_H_
 
+#include "signals.h"
 #include "models/sprite-importer/frameobject.h"
 #include "models/sprite-importer/frame.h"
 #include "gui/widgets/common/aabb.h"
@@ -51,6 +52,7 @@ public:
         _locationSpinButtons.signal_valueChanged.connect([this](void) {
             if (_frameObject) {
                 _frameObject->setLocation(_locationSpinButtons.value());
+                signal_frameObjectChanged.emit(_frameObject);
             }
         });
 
@@ -60,20 +62,27 @@ public:
 
             if (_frameObject) {
                 _frameObject->setSize(_sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE);
+                signal_frameObjectChanged.emit(_frameObject);
+            }
+        });
+
+        /*
+         * SLOTS
+         * =====
+         */
+
+        /* Update gui if object has changed */
+        signal_frameObjectChanged.connect([this](const std::shared_ptr<SI::FrameObject> obj) {
+            if (_frameObject == obj) {
+                updateGuiValues();
             }
         });
     }
 
     void setFrameObject(std::shared_ptr<UnTech::SpriteImporter::FrameObject> frameObject)
     {
-        // ::TODO remove frameObject->signal_changed signal::
-        // ::TODO remove updateLocationSize if frame size changes::
-
         _frameObject = frameObject;
         updateGuiValues();
-
-        // ::TODO add frameObject->signal_changed
-        // ::TODO signal when frameObject->frame->locationSize changes::
     }
 
 protected:
