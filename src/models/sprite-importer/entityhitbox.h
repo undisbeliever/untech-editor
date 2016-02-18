@@ -26,6 +26,8 @@ public:
     urect aabb() const { return _aabb; }
     parameter_t parameter() const { return _parameter; }
 
+    std::weak_ptr<Frame> frame() const { return _frame; }
+
     void setAabb(const urect& aabb);
     void setParameter(parameter_t parameter);
 

@@ -52,6 +52,8 @@ public:
 
     unsigned spriteOrder() const { return _spriteOrder; }
 
+    std::weak_ptr<FrameSet> frameSet() const { return _frameSet; }
+
     void setUseGridLocation(bool useGridLocation);
     void setGridLocation(upoint gridLocation);
     void setLocation(const urect& location);

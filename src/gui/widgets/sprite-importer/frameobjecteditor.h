@@ -24,9 +24,9 @@ public:
         , _frameObject()
         , _locationSpinButtons()
         , _sizeCombo()
-        , _locationLabel(_("Location:"))
-        , _locationCommaLabel(", ")
-        , _sizeLabel(_("Size:"))
+        , _locationLabel(_("Location:"), Gtk::ALIGN_START)
+        , _locationCommaLabel(" ,  ")
+        , _sizeLabel(_("Size:"), Gtk::ALIGN_START)
     {
         _sizeCombo.append(_("small"));
         _sizeCombo.append(_("large"));
@@ -45,8 +45,8 @@ public:
         widget.set_sensitive(false);
 
         /*
-         * SIGNALS
-         * =======
+         * SLOTS
+         * =====
          */
 
         /** Set location signal */
@@ -67,15 +67,30 @@ public:
             }
         });
 
-        /*
-         * SLOTS
-         * =====
-         */
-
         /* Update gui if object has changed */
         signal_frameObjectChanged.connect([this](const std::shared_ptr<SI::FrameObject> obj) {
             if (_frameObject == obj) {
                 updateGuiValues();
+            }
+        });
+
+        /* Update location range if necessary */
+        signal_frameLocationChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
+            if (_frameObject) {
+                const auto f = _frameObject->frame().lock();
+                if (frame == f) {
+                    _locationSpinButtons.set_range(frame->locationSize());
+                }
+            }
+        });
+
+        /* Update location range if necessary */
+        signal_frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
+            if (_frameObject) {
+                const auto frame = _frameObject->frame().lock();
+                if (frame->frameSet().lock() == fs) {
+                    _locationSpinButtons.set_range(frame->locationSize());
+                }
             }
         });
     }

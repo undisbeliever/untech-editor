@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstdlib>
+#include <cstdint>
 
 namespace UnTech {
 namespace String {
@@ -34,7 +35,6 @@ static inline std::string& trim(std::string& s)
 
 /* Convert a string to an integer.
  * String may be encased in spaces.
- * Raises `std::invalid_argument` if the entire string is not a number.
  */
 static inline std::pair<int, bool> toInt(const std::string& s)
 {
@@ -48,6 +48,24 @@ static inline std::pair<int, bool> toInt(const std::string& s)
         return { 0, false };
     }
     return { ret, true };
+}
+
+/* Convert a string to an uint8.
+ * String may be encased in spaces.
+ */
+static inline std::pair<uint8_t, bool> toUint8(const std::string& s)
+{
+    const char* cstr = s.c_str();
+    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
+    char* parseEnd;
+
+    long ret = strtol(cstr, &parseEnd, 0);
+
+    if (parseEnd == cstr || parseEnd != last + 1
+        || ret < 0 || ret > UINT8_MAX) {
+        return { 0, false };
+    }
+    return { (uint8_t)ret, true };
 }
 
 /* Convert a string to an integer.
