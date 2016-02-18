@@ -8,6 +8,7 @@
 #include <memory>
 
 #include <gtkmm.h>
+#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -183,11 +184,11 @@ public:
         , widget(Gtk::ORIENTATION_VERTICAL)
         , _treeContainer()
         , _buttonBox(Gtk::ORIENTATION_HORIZONTAL)
-        , _createButton("Create")
-        , _cloneButton("Clone")
-        , _moveUpButton("Up")
-        , _moveDownButton("Down")
-        , _removeButton("Remove")
+        , _createButton(_("Create"))
+        , _cloneButton(_("Clone"))
+        , _moveUpButton(_("Up"))
+        , _moveDownButton(_("Down"))
+        , _removeButton(_("Remove"))
     {
         // ::TODO button icons and tool tips::
 

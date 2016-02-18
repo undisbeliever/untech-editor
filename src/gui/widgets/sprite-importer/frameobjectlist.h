@@ -6,6 +6,7 @@
 #include "models/sprite-importer/frameobject.h"
 
 #include <gtkmm.h>
+#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -33,9 +34,9 @@ public:
 
     inline void buildTreeViewColumns(Gtk::TreeView& treeView)
     {
-        treeView.append_column("id", col_id);
-        treeView.append_column("Location", col_location);
-        treeView.append_column("Size", col_size);
+        treeView.append_column(_("id"), col_id);
+        treeView.append_column(_("Location"), col_location);
+        treeView.append_column(_("Size"), col_size);
     }
 
     inline void setRowData(Gtk::TreeRow& row, std::shared_ptr<SI::FrameObject> obj)
@@ -43,7 +44,7 @@ public:
         typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
 
         row[col_location] = Glib::ustring::compose("%1, %2", obj->location().x, obj->location().y);
-        row[col_size] = obj->size() == OS::SMALL ? "Small" : "Large";
+        row[col_size] = obj->size() == OS::SMALL ? _("small") : _("large");
     }
 
     inline static auto& signal_itemChanged() { return signal_frameObjectChanged; }

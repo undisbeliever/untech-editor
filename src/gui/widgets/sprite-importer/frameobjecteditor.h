@@ -11,6 +11,7 @@
 #include <memory>
 
 #include <gtkmm.h>
+#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -23,12 +24,12 @@ public:
         , _frameObject()
         , _locationSpinButtons()
         , _sizeCombo()
-        , _locationLabel("Location:")
+        , _locationLabel(_("Location:"))
         , _locationCommaLabel(", ")
-        , _sizeLabel("Size:")
+        , _sizeLabel(_("Size:"))
     {
-        _sizeCombo.append("small");
-        _sizeCombo.append("large");
+        _sizeCombo.append(_("small"));
+        _sizeCombo.append(_("large"));
         _sizeCombo.set_active(0);
 
         widget.set_row_spacing(DEFAULT_ROW_SPACING);
