@@ -43,7 +43,7 @@ public:
         widget.attach(_parameterLabel, 0, 2, 1, 1);
         widget.attach(_parameterEntry, 1, 2, 3, 1);
 
-        widget.set_sensitive(false);
+        updateGuiValues();
 
         /*
          * SLOTS
@@ -117,6 +117,11 @@ protected:
             widget.set_sensitive(true);
         }
         else {
+            static const urect zeroRect = { 0, 0, 0, 0 };
+
+            _aabbSpinButtons.set_value(zeroRect);
+            _parameterEntry.set_text("");
+
             widget.set_sensitive(false);
         }
     }

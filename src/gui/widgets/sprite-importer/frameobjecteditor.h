@@ -42,7 +42,7 @@ public:
         widget.attach(_sizeLabel, 0, 1, 1, 1);
         widget.attach(_sizeCombo, 1, 1, 3, 1);
 
-        widget.set_sensitive(false);
+        updateGuiValues();
 
         /*
          * SLOTS
@@ -118,6 +118,11 @@ protected:
             widget.set_sensitive(true);
         }
         else {
+            static const upoint zeroPoint = { 0, 0 };
+
+            _locationSpinButtons.set_value(zeroPoint);
+            _sizeCombo.set_active_text("");
+
             widget.set_sensitive(false);
         }
     }
