@@ -65,6 +65,12 @@ struct UpointSpinButtons {
         ySpin.set_range(min, s.height);
     }
 
+    void set_sensitive(bool s)
+    {
+        xSpin.set_sensitive(s);
+        ySpin.set_sensitive(s);
+    }
+
     Glib::RefPtr<Gtk::Adjustment> xAdjustment, yAdjustment;
     Gtk::SpinButton xSpin, ySpin;
 
@@ -110,6 +116,12 @@ struct UsizeSpinButtons {
         heightSpin.set_range(min.height, max.height);
     }
 
+    void set_sensitive(bool s)
+    {
+        widthSpin.set_sensitive(s);
+        heightSpin.set_sensitive(s);
+    }
+
     Glib::RefPtr<Gtk::Adjustment> widthAdjustment, heightAdjustment;
     Gtk::SpinButton widthSpin, heightSpin;
 
@@ -128,6 +140,8 @@ struct UrectSpinButtons {
         , widthSpin(widthAdjustment)
         , heightSpin(heightAdjustment)
         , _range({ 255, 255 })
+        , _minSize({ 1, 1 })
+        , _maxSize({ 255, 255 })
     {
         // the signal handler will prevent size
         xSpin.signal_value_changed().connect(sigc::mem_fun(this, &UrectSpinButtons::on_valueChanged));
@@ -170,6 +184,26 @@ struct UrectSpinButtons {
         updateRanges();
     }
 
+    void set_minSize(const usize& s)
+    {
+        _minSize = s;
+        updateRanges();
+    }
+
+    void set_maxSize(const usize& s)
+    {
+        _maxSize = s;
+        updateRanges();
+    }
+
+    void set_sensitive(bool s)
+    {
+        xSpin.set_sensitive(s);
+        ySpin.set_sensitive(s);
+        widthSpin.set_sensitive(s);
+        heightSpin.set_sensitive(s);
+    }
+
     Glib::RefPtr<Gtk::Adjustment> xAdjustment, yAdjustment;
     Glib::RefPtr<Gtk::Adjustment> widthAdjustment, heightAdjustment;
     Gtk::SpinButton xSpin, ySpin;
@@ -178,7 +212,7 @@ struct UrectSpinButtons {
     sigc::signal<void> signal_valueChanged;
 
 private:
-    usize _range;
+    usize _range, _minSize, _maxSize;
 
     inline void updateRanges()
     {
@@ -186,8 +220,8 @@ private:
 
         xSpin.set_range(0, _range.width - r.width);
         ySpin.set_range(0, _range.height - r.height);
-        widthSpin.set_range(1, _range.width - r.x);
-        heightSpin.set_range(1, _range.height - r.y);
+        widthSpin.set_range(_minSize.width, std::min(_maxSize.width, _range.width - r.x));
+        heightSpin.set_range(_minSize.height, std::min(_maxSize.height, _range.height - r.y));
     }
 
     void on_valueChanged()

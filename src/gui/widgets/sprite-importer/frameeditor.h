@@ -1,12 +1,13 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEDITOR_H_
 
-#include "frameobjecteditor.h"
-#include "frameobjectlist.h"
 #include "actionpointeditor.h"
 #include "actionpointlist.h"
 #include "entityhitboxeditor.h"
 #include "entityhitboxlist.h"
+#include "frameobjecteditor.h"
+#include "frameobjectlist.h"
+#include "framepropertieseditor.h"
 #include "models/sprite-importer.h"
 #include "gui/widgets/defaults.h"
 
@@ -35,7 +36,7 @@ public:
         , _entityHitboxList()
         , _entityHitboxEditor()
     {
-        widget.append_page(_frameParameterEditor, _("Frame"));
+        widget.append_page(_frameParameterEditor.widget, _("Frame"));
 
         _frameObjectBox.set_border_width(DEFAULT_BORDER);
         _frameObjectBox.pack_start(_frameObjectList.widget, Gtk::PACK_EXPAND_WIDGET);
@@ -71,6 +72,9 @@ public:
     {
         if (_selectedFrame != frame) {
             _selectedFrame = frame;
+
+            _frameParameterEditor.setFrame(frame);
+
             if (frame) {
                 _frameObjectList.setList(frame->objects());
                 _actionPointList.setList(frame->actionPoints());
@@ -121,7 +125,7 @@ public:
 private:
     std::shared_ptr<SI::Frame> _selectedFrame;
 
-    Gtk::TextView _frameParameterEditor; // ::TODO implement::
+    FramePropertiesEditor _frameParameterEditor;
 
     Gtk::Box _frameObjectBox;
     FrameObjectListEditor _frameObjectList;

@@ -75,7 +75,7 @@ public:
         });
 
         /* Update location range if necessary */
-        signal_frameLocationChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
+        signal_frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
             if (_frameObject) {
                 const auto f = _frameObject->frame().lock();
                 if (frame == f) {

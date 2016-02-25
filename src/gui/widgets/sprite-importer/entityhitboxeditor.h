@@ -77,7 +77,7 @@ public:
         });
 
         /* Update aabb range if necessary */
-        signal_frameLocationChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
+        signal_frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
             if (_entityHitbox) {
                 const auto f = _entityHitbox->frame().lock();
                 if (frame == f) {
