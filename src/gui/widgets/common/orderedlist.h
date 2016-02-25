@@ -141,8 +141,8 @@ protected:
             else if (nItems < nRows) {
                 // shrink model
                 auto rowIt = treeModel->children().end();
-                --rowIt;
                 for (size_t i = 0; i < (nRows - nItems); i++) {
+                    --rowIt;
                     rowIt = treeModel->erase(rowIt);
                 }
             }
