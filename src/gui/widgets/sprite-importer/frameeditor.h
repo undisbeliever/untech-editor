@@ -84,8 +84,13 @@ public:
             else {
                 _frameObjectList.setList(nullptr);
                 _actionPointList.setList(nullptr);
+                _entityHitboxList.setList(nullptr);
                 widget.set_sensitive(false);
             }
+
+            setFrameObject(nullptr);
+            setActionPoint(nullptr);
+            setEntityHitbox(nullptr);
         }
     }
 
@@ -96,6 +101,7 @@ public:
             widget.set_current_page(FRAME_OBJECT_PAGE);
         }
 
+        _frameObjectList.selectItem(frameObject);
         _frameObjectEditor.setFrameObject(frameObject);
     }
 
@@ -106,6 +112,7 @@ public:
             widget.set_current_page(ACTION_POINT_PAGE);
         }
 
+        _actionPointList.selectItem(actionPoint);
         _actionPointEditor.setActionPoint(actionPoint);
     }
 
@@ -116,6 +123,7 @@ public:
             widget.set_current_page(ENTITY_HITBOX_PAGE);
         }
 
+        _entityHitboxList.selectItem(entityHitbox);
         _entityHitboxEditor.setEntityHitbox(entityHitbox);
     }
 

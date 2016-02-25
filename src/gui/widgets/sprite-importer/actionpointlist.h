@@ -48,6 +48,8 @@ public:
     inline static auto& signal_itemChanged() { return signal_actionPointChanged; }
 
     inline static auto& signal_listChanged() { return signal_actionPointListChanged; }
+
+    inline static const char* itemTypeName() { return "Action Point"; }
 };
 }
 

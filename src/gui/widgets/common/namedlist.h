@@ -182,20 +182,30 @@ public:
         , widget(Gtk::ORIENTATION_VERTICAL)
         , _treeContainer()
         , _buttonBox(Gtk::ORIENTATION_HORIZONTAL)
-        , _createButton(_("Create"))
-        , _cloneButton(_("Clone"))
-        , _renameButton(_("Rename"))
-        , _removeButton(_("Remove"))
+        , _createButton()
+        , _cloneButton()
+        , _renameButton()
+        , _removeButton()
     {
-        // ::TODO button icons and tool tips::
+        _createButton.set_image_from_icon_name("list-add");
+        _cloneButton.set_image_from_icon_name("edit-copy");
+        _renameButton.set_image_from_icon_name("insert-text");
+        _removeButton.set_image_from_icon_name("list-remove");
 
-        updateButtonState();
+        _createButton.set_tooltip_text(Glib::ustring::compose(_("Add %1"), this->columns.itemTypeName()));
+        _cloneButton.set_tooltip_text(Glib::ustring::compose(_("Clone %1"), this->columns.itemTypeName()));
+        _renameButton.set_tooltip_text(Glib::ustring::compose(_("Rename %1"), this->columns.itemTypeName()));
+        _removeButton.set_tooltip_text(Glib::ustring::compose(_("Remove %1"), this->columns.itemTypeName()));
+
         _buttonBox.set_border_width(DEFAULT_BORDER);
+        _buttonBox.set_layout(Gtk::BUTTONBOX_END);
         _buttonBox.add(_createButton);
         _buttonBox.add(_cloneButton);
         _buttonBox.add(_renameButton);
         _buttonBox.add(_removeButton);
         widget.pack_start(_buttonBox, Gtk::PACK_SHRINK);
+
+        updateButtonState();
 
         _treeContainer.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
         _treeContainer.add(this->treeView);

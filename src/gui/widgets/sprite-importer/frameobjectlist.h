@@ -50,6 +50,8 @@ public:
     inline static auto& signal_itemChanged() { return signal_frameObjectChanged; }
 
     inline static auto& signal_listChanged() { return signal_frameObjectListChanged; }
+
+    inline static const char* itemTypeName() { return "Object"; }
 };
 }
 

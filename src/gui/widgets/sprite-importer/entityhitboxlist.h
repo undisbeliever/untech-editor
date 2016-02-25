@@ -50,6 +50,8 @@ public:
     inline static auto& signal_itemChanged() { return signal_entityHitboxChanged; }
 
     inline static auto& signal_listChanged() { return signal_entityHitboxListChanged; }
+
+    inline static const char* itemTypeName() { return "Hitbox"; }
 };
 }
 
