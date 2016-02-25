@@ -243,7 +243,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
             _pos += 2;
 
             _inSelfClosingTag = true;
-            return std::move(tag);
+            return tag;
         }
 
         else if (*_pos == '>') {
@@ -251,7 +251,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
             _pos++;
 
             _tagStack.push(tagName);
-            return std::move(tag);
+            return tag;
         }
         else {
             throw buildXmlParseError(this, tagName, "Unknown character", *_pos);

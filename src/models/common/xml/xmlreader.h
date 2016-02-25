@@ -12,7 +12,7 @@
 namespace UnTech {
 namespace Xml {
 
-class XmlTag;
+struct XmlTag;
 
 /**
  * The `XmlReader` class allows for the parsing of a subset of the XML spec.

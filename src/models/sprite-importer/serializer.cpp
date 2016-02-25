@@ -59,7 +59,7 @@ public:
         // ::TODO verify image was loaded correctly::
 
         std::unique_ptr<XmlTag> childTag;
-        while (childTag = xml.parseTag()) {
+        while ((childTag = xml.parseTag())) {
             if (childTag->name == "grid") {
                 readFrameSetGrid(childTag.get());
             }
@@ -128,7 +128,7 @@ private:
         bool processedTileHitbox = false;
         bool processedOrigin = false;
 
-        while (childTag = xml.parseTag()) {
+        while ((childTag = xml.parseTag())) {
             if (childTag->name == "object") {
                 auto obj = frame->objects().create();
 
@@ -335,7 +335,7 @@ void readSpriteImporter(NamedList<FrameSet>& framesetContainer, XmlReader& xml, 
     FrameSetReader reader(framesetContainer, xml);
 
     std::unique_ptr<XmlTag> childTag;
-    while (childTag = xml.parseTag()) {
+    while ((childTag = xml.parseTag())) {
         if (childTag->name == "frameset") {
             reader.readFrameSet(childTag.get());
         }

@@ -10,7 +10,7 @@ namespace UnTech {
 namespace Xml {
 class XmlReader;
 class XmlWriter;
-class XmlTag;
+struct XmlTag;
 }
 
 namespace SpriteImporter {
