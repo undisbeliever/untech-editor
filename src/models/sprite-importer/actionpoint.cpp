@@ -22,6 +22,11 @@ ActionPoint::ActionPoint(const ActionPoint& point, std::shared_ptr<Frame> frame)
 {
 }
 
+std::shared_ptr<ActionPoint> ActionPoint::clone(std::shared_ptr<Frame> frame)
+{
+    return std::make_shared<ActionPoint>(*this, frame);
+}
+
 void ActionPoint::setLocation(const upoint& location)
 {
     auto frame = _frame.lock();

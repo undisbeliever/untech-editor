@@ -43,15 +43,25 @@ Frame::Frame(const Frame& frame, std::shared_ptr<FrameSet> frameSet)
     , _tileHitbox(frame._tileHitbox)
     , _spriteOrder(frame._spriteOrder)
 {
-    for (const auto obj : frame._objects) {
-        _objects.clone(obj);
+}
+
+// Have to do this outside the constructor or else I get
+// a bad_weak_ref exception
+std::shared_ptr<Frame> Frame::clone(std::shared_ptr<FrameSet> frameSet)
+{
+    std::shared_ptr<Frame> frame(new Frame(*this, frameSet));
+
+    for (const auto obj : this->_objects) {
+        frame->_objects.clone(obj);
     }
-    for (const auto ap : frame._actionPoints) {
-        _actionPoints.clone(ap);
+    for (const auto ap : this->_actionPoints) {
+        frame->_actionPoints.clone(ap);
     }
-    for (const auto eh : frame._entityHitboxes) {
-        _entityHitboxes.clone(eh);
+    for (const auto eh : this->_entityHitboxes) {
+        frame->_entityHitboxes.clone(eh);
     }
+
+    return frame;
 }
 
 void Frame::setUseGridLocation(bool useGridLocation)

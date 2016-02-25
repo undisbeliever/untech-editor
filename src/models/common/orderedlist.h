@@ -31,7 +31,7 @@ public:
     std::shared_ptr<T> clone(std::shared_ptr<T> e)
     {
         std::shared_ptr<P> owner = _owner.ptr();
-        auto newElem = std::make_shared<T>(*e, owner);
+        auto newElem = e->clone(owner);
         _list.push_back(newElem);
 
         return newElem;

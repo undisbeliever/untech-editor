@@ -22,6 +22,11 @@ FrameObject::FrameObject(const FrameObject& object, std::shared_ptr<Frame> frame
 {
 }
 
+std::shared_ptr<FrameObject> FrameObject::clone(std::shared_ptr<Frame> frame)
+{
+    return std::make_shared<FrameObject>(*this, frame);
+}
+
 void FrameObject::setLocation(const upoint& location)
 {
     auto frame = _frame.lock();

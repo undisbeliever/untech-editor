@@ -15,6 +15,14 @@ FrameSetGrid::FrameSetGrid(FrameSet& frameSet)
 {
 }
 
+void FrameSetGrid::copyFrom(const FrameSetGrid& grid)
+{
+    setFrameSize(grid._frameSize);
+    setOffset(grid._offset);
+    setPadding(grid._padding);
+    setOrigin(grid._origin);
+}
+
 void FrameSetGrid::setFrameSize(usize frameSize)
 {
     if (_frameSize != frameSize) {

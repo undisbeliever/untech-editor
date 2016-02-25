@@ -19,6 +19,8 @@ public:
 protected:
     FrameSetGrid(FrameSet& frameSet);
 
+    void copyFrom(const FrameSetGrid& grid);
+
 public:
     usize frameSize() const { return _frameSize; }
     upoint offset() const { return _offset; }

@@ -62,7 +62,7 @@ public:
     std::shared_ptr<T> clone(std::shared_ptr<T> e, const std::string& newName)
     {
         if (isNameListNameValid(newName) && !nameExists(newName)) {
-            auto newElem = std::make_shared<T>(*e);
+            auto newElem = e->clone();
 
             _values.insert({ newName, newElem });
             _names.insert({ newElem, newName });
@@ -168,7 +168,7 @@ public:
     {
         if (isNameListNameValid(newName) && !nameExists(newName)) {
             std::shared_ptr<P> owner = _owner.ptr();
-            auto newElem = std::make_shared<T>(*e, owner);
+            auto newElem = e->clone(owner);
 
             _values.insert({ newName, newElem });
             _names.insert({ newElem, newName });

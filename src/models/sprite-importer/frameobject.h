@@ -25,6 +25,8 @@ public:
     FrameObject(std::shared_ptr<Frame> frame);
     FrameObject(const FrameObject& object, std::shared_ptr<Frame> frame);
 
+    std::shared_ptr<FrameObject> clone(std::shared_ptr<Frame> frame);
+
     upoint location() const { return _location; }
     ObjectSize size() const { return _size; }
 

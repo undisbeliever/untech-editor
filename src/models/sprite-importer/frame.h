@@ -27,9 +27,13 @@ public:
 
 public:
     Frame(std::shared_ptr<FrameSet> frameSet);
+
+private:
     Frame(const Frame& frame, std::shared_ptr<FrameSet> frameSet);
 
+public:
     std::shared_ptr<Frame> ptr() { return shared_from_this(); }
+    std::shared_ptr<Frame> clone(std::shared_ptr<FrameSet> frameSet);
 
     inline auto& objects() { return _objects; }
     inline auto& actionPoints() { return _actionPoints; }

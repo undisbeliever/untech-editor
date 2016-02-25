@@ -23,6 +23,8 @@ public:
     ActionPoint(std::shared_ptr<Frame> frame);
     ActionPoint(const ActionPoint& point, std::shared_ptr<Frame> frame);
 
+    std::shared_ptr<ActionPoint> clone(std::shared_ptr<Frame> frame);
+
     upoint location() const { return _location; }
     parameter_t parameter() const { return _parameter; }
 

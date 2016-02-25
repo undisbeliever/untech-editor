@@ -21,6 +21,7 @@ public:
     FrameSet();
 
     std::shared_ptr<FrameSet> ptr() { return shared_from_this(); }
+    std::shared_ptr<FrameSet> clone();
 
     inline auto imageFilename() const { return _imageFilename; }
 

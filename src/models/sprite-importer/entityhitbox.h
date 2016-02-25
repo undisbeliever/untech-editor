@@ -23,6 +23,8 @@ public:
     EntityHitbox(std::shared_ptr<Frame> frame);
     EntityHitbox(const EntityHitbox& hitbox, std::shared_ptr<Frame> frame);
 
+    std::shared_ptr<EntityHitbox> clone(std::shared_ptr<Frame> frame);
+
     urect aabb() const { return _aabb; }
     parameter_t parameter() const { return _parameter; }
 

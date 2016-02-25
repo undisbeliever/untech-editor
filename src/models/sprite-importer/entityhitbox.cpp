@@ -22,6 +22,11 @@ EntityHitbox::EntityHitbox(const EntityHitbox& hitbox, std::shared_ptr<Frame> fr
 {
 }
 
+std::shared_ptr<EntityHitbox> EntityHitbox::clone(std::shared_ptr<Frame> frame)
+{
+    return std::make_shared<EntityHitbox>(*this, frame);
+}
+
 void EntityHitbox::setAabb(const urect& aabb)
 {
     auto frame = _frame.lock();
