@@ -1,7 +1,8 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_ORDEREDLIST_H
-#define _UNTECH_GUI_WIDGETS_COMMON_ORDEREDLIST_H
+#ifndef _UNTECH_GUI_WIDGETS_COMMON_NAMEDLIST_H
+#define _UNTECH_GUI_WIDGETS_COMMON_NAMEDLIST_H
 
-#include "models/common/orderedlist.h"
+#include "namedlistdialog.h"
+#include "models/common/namedlist.h"
 #include "gui/widgets/defaults.h"
 
 #include <memory>
@@ -13,10 +14,10 @@ namespace UnTech {
 namespace Widgets {
 
 template <class T, class ModelColumnsT>
-class OrderedListView {
+class NamedListView {
 
 public:
-    OrderedListView()
+    NamedListView()
         : treeView()
         , columns()
         , list(nullptr)
@@ -35,7 +36,7 @@ public:
 
         /* Update GUI if item has changed */
         columns.signal_itemChanged().connect(sigc::mem_fun(
-            *this, &OrderedListView::onItemChanged));
+            *this, &NamedListView::onItemChanged));
 
         /* Rebuild table if list has changed */
         columns.signal_listChanged().connect([this](const typename T::list_t* list) {
@@ -149,15 +150,13 @@ protected:
 
             // fill with data
             if (nItems > 0) {
-                int id = 0;
                 auto rowIt = treeModel->children().begin();
-                for (auto item : *list) {
+                for (const auto it : *list) {
                     auto row = *rowIt;
-                    columns.setRowData(row, item);
-                    row[columns.col_id] = id;
-                    row[columns.col_item] = item;
+                    columns.setRowData(row, it.second);
+                    row[columns.col_id] = it.first;
+                    row[columns.col_item] = it.second;
 
-                    ++id;
                     ++rowIt;
                 }
             }
@@ -175,29 +174,26 @@ protected:
 };
 
 template <class T, class ModelColumnsT>
-class OrderedListEditor : public OrderedListView<T, ModelColumnsT> {
+class NamedListEditor : public NamedListView<T, ModelColumnsT> {
 
 public:
-    OrderedListEditor()
-        : OrderedListView<T, ModelColumnsT>()
+    NamedListEditor()
+        : NamedListView<T, ModelColumnsT>()
         , widget(Gtk::ORIENTATION_VERTICAL)
         , _treeContainer()
         , _buttonBox(Gtk::ORIENTATION_HORIZONTAL)
         , _createButton(_("Create"))
         , _cloneButton(_("Clone"))
-        , _moveUpButton(_("Up"))
-        , _moveDownButton(_("Down"))
+        , _renameButton(_("Rename"))
         , _removeButton(_("Remove"))
     {
         // ::TODO button icons and tool tips::
 
         updateButtonState();
         _buttonBox.set_border_width(DEFAULT_BORDER);
-        _buttonBox.set_layout(Gtk::BUTTONBOX_END);
         _buttonBox.add(_createButton);
         _buttonBox.add(_cloneButton);
-        _buttonBox.add(_moveUpButton);
-        _buttonBox.add(_moveDownButton);
+        _buttonBox.add(_renameButton);
         _buttonBox.add(_removeButton);
         widget.pack_start(_buttonBox, Gtk::PACK_SHRINK);
 
@@ -209,35 +205,51 @@ public:
          * SIGNALS
          */
         _createButton.signal_clicked().connect([this](void) {
-            auto item = this->list->create();
+            NamedListDialog<T> dialog(
+                Glib::ustring::compose(_("Input name of new %1:"), this->columns.itemTypeName()),
+                widget);
+            dialog.setList(this->list);
 
-            this->emitListChangedSignal();
-            this->selectItem(item);
+            auto ret = dialog.run();
+            if (ret == Gtk::RESPONSE_ACCEPT) {
+                auto item = this->list->create(dialog.get_text());
+
+                this->emitListChangedSignal();
+                this->selectItem(item);
+            }
         });
 
         _cloneButton.signal_clicked().connect([this](void) {
-            auto item = this->list->clone(this->getSelected());
+            auto toCopy = this->getSelected();
 
-            this->emitListChangedSignal();
-            this->selectItem(item);
+            NamedListDialog<T> dialog(
+                Glib::ustring::compose(_("Input new name of cloned %1:"), this->columns.itemTypeName()),
+                widget);
+            dialog.setList(this->list);
+
+            auto ret = dialog.run();
+            if (ret == Gtk::RESPONSE_ACCEPT) {
+                auto item = this->list->clone(toCopy, dialog.get_text());
+
+                this->emitListChangedSignal();
+                this->selectItem(item);
+            }
         });
 
-        _moveUpButton.signal_clicked().connect([this](void) {
-            auto item = this->getSelected();
+        _renameButton.signal_clicked().connect([this](void) {
+            auto toRename = this->getSelected();
 
-            this->list->moveUp(this->getSelected());
+            NamedListDialog<T> dialog(
+                Glib::ustring::compose(_("Rename %1 to:"), this->columns.itemTypeName()),
+                widget);
+            dialog.setItem(this->list, toRename);
 
-            this->emitListChangedSignal();
-            this->selectItem(item);
-        });
+            auto ret = dialog.run();
+            if (ret == Gtk::RESPONSE_ACCEPT) {
+                this->list->changeName(toRename, dialog.get_text());
 
-        _moveDownButton.signal_clicked().connect([this](void) {
-            auto item = this->getSelected();
-
-            this->list->moveDown(this->getSelected());
-
-            this->emitListChangedSignal();
-            this->selectItem(item);
+                this->emitListChangedSignal();
+            }
         });
 
         _removeButton.signal_clicked().connect([this](void) {
@@ -245,7 +257,7 @@ public:
             this->emitListChangedSignal();
         });
 
-        this->signal_selected_changed().connect(sigc::mem_fun(*this, &OrderedListEditor::updateButtonState));
+        this->signal_selected_changed().connect(sigc::mem_fun(*this, &NamedListEditor::updateButtonState));
     }
 
     inline void setList(typename T::list_t& newList)
@@ -255,7 +267,7 @@ public:
 
     inline void setList(typename T::list_t* newList)
     {
-        OrderedListView<T, ModelColumnsT>::setList(newList);
+        NamedListView<T, ModelColumnsT>::setList(newList);
 
         updateButtonState();
     }
@@ -272,8 +284,6 @@ protected:
 
             _createButton.set_sensitive(true);
             _cloneButton.set_sensitive(enabled);
-            _moveUpButton.set_sensitive(enabled && !(this->list->isFirst(item)));
-            _moveDownButton.set_sensitive(enabled && !(this->list->isLast(item)));
             _removeButton.set_sensitive(enabled);
         }
         else {
@@ -290,8 +300,7 @@ private:
     Gtk::ButtonBox _buttonBox;
     Gtk::Button _createButton;
     Gtk::Button _cloneButton;
-    Gtk::Button _moveUpButton;
-    Gtk::Button _moveDownButton;
+    Gtk::Button _renameButton;
     Gtk::Button _removeButton;
 };
 }

@@ -9,6 +9,14 @@
 
 namespace UnTech {
 
+inline static bool isNameListCharValid(const char c)
+{
+    return ((c == '_'
+             || (c >= '0' && c <= '9')
+             || (c >= 'A' && c <= 'Z')
+             || (c >= 'a' && c <= 'z')));
+}
+
 inline static bool isNameListNameValid(const std::string& name)
 {
     if (name.empty()) {
@@ -16,8 +24,7 @@ inline static bool isNameListNameValid(const std::string& name)
     }
 
     for (const char& c : name) {
-        if (!(c == '_' || (c >= '0' && c <= '9')
-              || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))) {
+        if (!isNameListCharValid(c)) {
             return false;
         }
     }
@@ -55,7 +62,7 @@ public:
     std::shared_ptr<T> clone(std::shared_ptr<T> e, const std::string& newName)
     {
         if (isNameListNameValid(newName) && !nameExists(newName)) {
-            auto newElem = std::make_shared<T>(e);
+            auto newElem = std::make_shared<T>(*e);
 
             _values.insert({ newName, newElem });
             _names.insert({ newElem, newName });
@@ -111,7 +118,7 @@ public:
     {
         auto it = _names.find(e);
         if (it != _names.end()) {
-            return { it->first, true };
+            return { it->second, true };
         }
 
         return { std::string(), false };
@@ -161,7 +168,7 @@ public:
     {
         if (isNameListNameValid(newName) && !nameExists(newName)) {
             std::shared_ptr<P> owner = _owner.ptr();
-            auto newElem = std::make_shared<T>(owner, e);
+            auto newElem = std::make_shared<T>(*e, owner);
 
             _values.insert({ newName, newElem });
             _names.insert({ newElem, newName });
@@ -217,7 +224,7 @@ public:
     {
         auto it = _names.find(e);
         if (it != _names.end()) {
-            return { it->first, true };
+            return { it->second, true };
         }
 
         return { std::string(), false };
