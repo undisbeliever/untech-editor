@@ -24,9 +24,11 @@ public:
         , selected(nullptr)
     {
         treeModel = Gtk::ListStore::create(columns);
+
+        sortedModel = Gtk::TreeModelSort::create(treeModel);
         columns.buildTreeViewColumns(treeView);
 
-        treeView.set_model(treeModel);
+        treeView.set_model(sortedModel);
         treeView.set_sensitive(false);
 
         /*
@@ -88,7 +90,7 @@ public:
      */
     void selectItem(std::shared_ptr<T> item)
     {
-        const auto children = treeModel->children();
+        const auto children = sortedModel->children();
 
         for (auto iter = children.begin(); iter != children.end(); ++iter) {
             auto row = *iter;
@@ -97,7 +99,7 @@ public:
                 treeView.get_selection()->select(row);
 
                 // scroll to selection
-                treeView.scroll_to_row(treeModel->get_path(iter));
+                treeView.scroll_to_row(sortedModel->get_path(iter));
                 return;
             }
         }
@@ -169,6 +171,7 @@ public:
 protected:
     ModelColumnsT columns;
     Glib::RefPtr<Gtk::ListStore> treeModel;
+    Glib::RefPtr<Gtk::TreeModelSort> sortedModel;
 
     typename T::list_t* list;
 };
