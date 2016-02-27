@@ -63,7 +63,13 @@ public:
                 treeView.set_sensitive(true);
             }
             else {
+                // BUGFIX: Calling treeModel->clear() segfaults
+                // have to disconnect sortedModel first.
+
+                treeView.unset_model();
                 treeModel->clear();
+                treeView.set_model(sortedModel);
+
                 treeView.set_sensitive(false);
             }
         }
