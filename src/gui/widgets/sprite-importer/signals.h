@@ -11,6 +11,9 @@ namespace SpriteImporter {
 
 namespace SI = UnTech::SpriteImporter;
 
+static sigc::signal<void, const std::shared_ptr<SI::FrameSet>> signal_frameSetChanged;
+static sigc::signal<void, const SI::FrameSet::list_t*> signal_frameSetListChanged;
+
 static sigc::signal<void, const std::shared_ptr<SI::FrameSet>> signal_frameSetGridChanged;
 
 static sigc::signal<void, const std::shared_ptr<SI::Frame>> signal_frameChanged;
