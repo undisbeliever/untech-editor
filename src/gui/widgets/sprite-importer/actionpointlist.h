@@ -45,9 +45,9 @@ public:
         row[col_parameter] = ap->parameter();
     }
 
-    inline static auto& signal_itemChanged() { return signal_actionPointChanged; }
+    inline static auto& signal_itemChanged() { return Signals::actionPointChanged; }
 
-    inline static auto& signal_listChanged() { return signal_actionPointListChanged; }
+    inline static auto& signal_listChanged() { return Signals::actionPointListChanged; }
 
     inline static const char* itemTypeName() { return "Action Point"; }
 };

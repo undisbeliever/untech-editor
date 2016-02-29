@@ -62,44 +62,44 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     _imageFilenameButton.signal_clicked().connect([this](void) {
         if (_frameSet) {
             // ::TODO implement::
-            signal_frameSetChanged.emit(_frameSet);
+            Signals::frameSetChanged.emit(_frameSet);
         }
     });
 
     _gridFrameSizeSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet) {
             _frameSet->grid().setFrameSize(_gridFrameSizeSpinButtons.value());
-            signal_frameSetGridChanged.emit(_frameSet);
-            signal_frameSetChanged.emit(_frameSet);
+            Signals::frameSetGridChanged.emit(_frameSet);
+            Signals::frameSetChanged.emit(_frameSet);
         }
     });
 
     _gridOffsetSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet) {
             _frameSet->grid().setOffset(_gridOffsetSpinButtons.value());
-            signal_frameSetChanged.emit(_frameSet);
-            signal_frameSetGridChanged.emit(_frameSet);
+            Signals::frameSetChanged.emit(_frameSet);
+            Signals::frameSetGridChanged.emit(_frameSet);
         }
     });
 
     _gridPaddingSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet) {
             _frameSet->grid().setPadding(_gridPaddingSpinButtons.value());
-            signal_frameSetChanged.emit(_frameSet);
-            signal_frameSetGridChanged.emit(_frameSet);
+            Signals::frameSetChanged.emit(_frameSet);
+            Signals::frameSetGridChanged.emit(_frameSet);
         }
     });
 
     _gridOriginSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet) {
             _frameSet->grid().setOrigin(_gridOriginSpinButtons.value());
-            signal_frameSetChanged.emit(_frameSet);
-            signal_frameSetGridChanged.emit(_frameSet);
+            Signals::frameSetChanged.emit(_frameSet);
+            Signals::frameSetGridChanged.emit(_frameSet);
         }
     });
 
     /** FrameSet Updated signal */
-    signal_frameSetChanged.connect([this](const std::shared_ptr<SI::FrameSet> frameSet) {
+    Signals::frameSetChanged.connect([this](const std::shared_ptr<SI::FrameSet> frameSet) {
         if (_frameSet == frameSet) {
             updateGuiValues();
         }

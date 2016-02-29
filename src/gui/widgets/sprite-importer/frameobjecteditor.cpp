@@ -37,7 +37,7 @@ FrameObjectEditor::FrameObjectEditor()
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameObject) {
             _frameObject->setLocation(_locationSpinButtons.value());
-            signal_frameObjectChanged.emit(_frameObject);
+            Signals::frameObjectChanged.emit(_frameObject);
         }
     });
 
@@ -47,19 +47,19 @@ FrameObjectEditor::FrameObjectEditor()
 
         if (_frameObject) {
             _frameObject->setSize(_sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE);
-            signal_frameObjectChanged.emit(_frameObject);
+            Signals::frameObjectChanged.emit(_frameObject);
         }
     });
 
     /* Update gui if object has changed */
-    signal_frameObjectChanged.connect([this](const std::shared_ptr<SI::FrameObject> obj) {
+    Signals::frameObjectChanged.connect([this](const std::shared_ptr<SI::FrameObject> obj) {
         if (_frameObject == obj) {
             updateGuiValues();
         }
     });
 
     /* Update location range if necessary */
-    signal_frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
+    Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
         if (_frameObject) {
             const auto f = _frameObject->frame().lock();
             if (frame == f) {
@@ -69,7 +69,7 @@ FrameObjectEditor::FrameObjectEditor()
     });
 
     /* Update location range if necessary */
-    signal_frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
+    Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
         if (_frameObject) {
             const auto frame = _frameObject->frame().lock();
             if (frame->frameSet().lock() == fs) {

@@ -33,8 +33,8 @@ ActionPointEditor::ActionPointEditor()
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_actionPoint) {
             _actionPoint->setLocation(_locationSpinButtons.value());
-            signal_actionPointChanged.emit(_actionPoint);
-            signal_actionPointLocationChanged.emit(_actionPoint);
+            Signals::actionPointChanged.emit(_actionPoint);
+            Signals::actionPointLocationChanged.emit(_actionPoint);
         }
     });
 
@@ -49,14 +49,14 @@ ActionPointEditor::ActionPointEditor()
     });
 
     /* Update gui if object has changed */
-    signal_actionPointChanged.connect([this](const std::shared_ptr<SI::ActionPoint> obj) {
+    Signals::actionPointChanged.connect([this](const std::shared_ptr<SI::ActionPoint> obj) {
         if (_actionPoint == obj) {
             updateGuiValues();
         }
     });
 
     /* Update location range if necessary */
-    signal_frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
+    Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
         if (_actionPoint) {
             const auto f = _actionPoint->frame().lock();
             if (frame == f) {
@@ -65,7 +65,7 @@ ActionPointEditor::ActionPointEditor()
         }
     });
 
-    signal_frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
+    Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
         if (_actionPoint) {
             const auto frame = _actionPoint->frame().lock();
             if (frame->frameSet().lock() == fs) {
@@ -105,6 +105,6 @@ void ActionPointEditor::onParameterFinishedEditing()
         if (value.second) {
             _actionPoint->setParameter(value.first);
         }
-        signal_actionPointChanged.emit(_actionPoint);
+        Signals::actionPointChanged.emit(_actionPoint);
     }
 }

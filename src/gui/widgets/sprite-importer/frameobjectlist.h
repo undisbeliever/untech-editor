@@ -47,9 +47,9 @@ public:
         row[col_size] = obj->size() == OS::SMALL ? _("small") : _("large");
     }
 
-    inline static auto& signal_itemChanged() { return signal_frameObjectChanged; }
+    inline static auto& signal_itemChanged() { return Signals::frameObjectChanged; }
 
-    inline static auto& signal_listChanged() { return signal_frameObjectListChanged; }
+    inline static auto& signal_listChanged() { return Signals::frameObjectListChanged; }
 
     inline static const char* itemTypeName() { return "Object"; }
 };

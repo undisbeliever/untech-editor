@@ -51,9 +51,9 @@ public:
         row[col_image] = frameset->imageFilename();
     }
 
-    inline static auto& signal_itemChanged() { return signal_frameSetChanged; }
+    inline static auto& signal_itemChanged() { return Signals::frameSetChanged; }
 
-    inline static auto& signal_listChanged() { return signal_frameSetListChanged; }
+    inline static auto& signal_listChanged() { return Signals::frameSetListChanged; }
 
     inline static const char* itemTypeName() { return "Frameset"; }
 };

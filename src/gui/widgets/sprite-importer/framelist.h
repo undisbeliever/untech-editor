@@ -56,9 +56,9 @@ public:
         row[col_y] = frame->location().y;
     }
 
-    inline static auto& signal_itemChanged() { return signal_frameChanged; }
+    inline static auto& signal_itemChanged() { return Signals::frameChanged; }
 
-    inline static auto& signal_listChanged() { return signal_frameListChanged; }
+    inline static auto& signal_listChanged() { return Signals::frameListChanged; }
 
     inline static const char* itemTypeName() { return "Frame"; }
 };

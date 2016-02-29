@@ -37,8 +37,8 @@ EntityHitboxEditor::EntityHitboxEditor()
     _aabbSpinButtons.signal_valueChanged.connect([this](void) {
         if (_entityHitbox) {
             _entityHitbox->setAabb(_aabbSpinButtons.value());
-            signal_entityHitboxChanged.emit(_entityHitbox);
-            signal_entityHitboxLocationChanged.emit(_entityHitbox);
+            Signals::entityHitboxChanged.emit(_entityHitbox);
+            Signals::entityHitboxLocationChanged.emit(_entityHitbox);
         }
     });
 
@@ -53,14 +53,14 @@ EntityHitboxEditor::EntityHitboxEditor()
     });
 
     /* Update gui if object has changed */
-    signal_entityHitboxChanged.connect([this](const std::shared_ptr<SI::EntityHitbox> obj) {
+    Signals::entityHitboxChanged.connect([this](const std::shared_ptr<SI::EntityHitbox> obj) {
         if (_entityHitbox == obj) {
             updateGuiValues();
         }
     });
 
     /* Update aabb range if necessary */
-    signal_frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
+    Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
         if (_entityHitbox) {
             const auto f = _entityHitbox->frame().lock();
             if (frame == f) {
@@ -69,7 +69,7 @@ EntityHitboxEditor::EntityHitboxEditor()
         }
     });
 
-    signal_frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
+    Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
         if (_entityHitbox) {
             const auto frame = _entityHitbox->frame().lock();
             if (frame->frameSet().lock() == fs) {
@@ -109,6 +109,6 @@ void EntityHitboxEditor::onParameterFinishedEditing()
         if (value.second) {
             _entityHitbox->setParameter(value.first);
         }
-        signal_entityHitboxChanged.emit(_entityHitbox);
+        Signals::entityHitboxChanged.emit(_entityHitbox);
     }
 }

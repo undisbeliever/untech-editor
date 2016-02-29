@@ -78,7 +78,7 @@ FramePropertiesEditor::FramePropertiesEditor()
     _gridLocationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame) {
             _frame->setGridLocation(_gridLocationSpinButtons.value());
-            signal_frameChanged.emit(_frame);
+            Signals::frameChanged.emit(_frame);
         }
     });
     /** Location signal */
@@ -87,10 +87,10 @@ FramePropertiesEditor::FramePropertiesEditor()
             auto oldLocationSize = _frame->location().size();
 
             _frame->setLocation(_locationSpinButtons.value());
-            signal_frameChanged.emit(_frame);
+            Signals::frameChanged.emit(_frame);
 
             if (_frame->location().size() != oldLocationSize) {
-                signal_frameSizeChanged.emit(_frame);
+                Signals::frameSizeChanged.emit(_frame);
             }
         }
     });
@@ -98,14 +98,14 @@ FramePropertiesEditor::FramePropertiesEditor()
     _originSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame) {
             _frame->setOrigin(_originSpinButtons.value());
-            signal_frameChanged.emit(_frame);
+            Signals::frameChanged.emit(_frame);
         }
     });
     /** Tile hitbox signal */
     _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame) {
             _frame->setTileHitbox(_tileHitboxSpinButtons.value());
-            signal_frameChanged.emit(_frame);
+            Signals::frameChanged.emit(_frame);
         }
     });
     /** Sprite Order Signal */
@@ -116,45 +116,45 @@ FramePropertiesEditor::FramePropertiesEditor()
 
         if (_frame) {
             _frame->setSpriteOrder((unsigned)i);
-            signal_frameChanged.emit(_frame);
+            Signals::frameChanged.emit(_frame);
         }
     });
     /** Use Grid Location Checkbox signal */
     _useGridLocationCB.signal_clicked().connect([this](void) {
         if (_frame) {
             _frame->setUseGridLocation(_useGridLocationCB.get_active());
-            signal_frameChanged.emit(_frame);
-            signal_frameSizeChanged.emit(_frame);
+            Signals::frameChanged.emit(_frame);
+            Signals::frameSizeChanged.emit(_frame);
         }
     });
     /** Use Custom Origin Checkbox signal */
     _useCustomOriginCB.signal_clicked().connect([this](void) {
         if (_frame) {
             _frame->setUseGridOrigin(!(_useCustomOriginCB.get_active()));
-            signal_frameChanged.emit(_frame);
+            Signals::frameChanged.emit(_frame);
         }
     });
     /** Solid Checkbox signal */
     _solidCB.signal_clicked().connect([this](void) {
         if (_frame) {
             _frame->setSolid(_solidCB.get_active());
-            signal_frameChanged.emit(_frame);
+            Signals::frameChanged.emit(_frame);
         }
     });
 
     /** Frame Updated signal */
-    signal_frameChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
+    Signals::frameChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
         if (_frame == frame) {
             updateGuiValues();
         }
     });
 
     /** FrameSet Grid Updated signal */
-    signal_frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
+    Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
         if (_frame) {
             if (_frame->frameSet().lock() == fs) {
                 updateGuiValues();
-                signal_frameSizeChanged.emit(_frame);
+                Signals::frameSizeChanged.emit(_frame);
             }
         }
     });

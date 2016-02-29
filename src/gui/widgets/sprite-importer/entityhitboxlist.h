@@ -47,9 +47,9 @@ public:
         row[col_parameter] = eh->parameter();
     }
 
-    inline static auto& signal_itemChanged() { return signal_entityHitboxChanged; }
+    inline static auto& signal_itemChanged() { return Signals::entityHitboxChanged; }
 
-    inline static auto& signal_listChanged() { return signal_entityHitboxListChanged; }
+    inline static auto& signal_listChanged() { return Signals::entityHitboxListChanged; }
 
     inline static const char* itemTypeName() { return "Hitbox"; }
 };

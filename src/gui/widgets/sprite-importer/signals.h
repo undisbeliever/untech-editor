@@ -9,27 +9,37 @@ namespace UnTech {
 namespace Widgets {
 namespace SpriteImporter {
 
+/**
+ * Global signals that are used to notify the GUI when the data has
+ * changed.
+ *
+ * This is done globally so that windows/tabs that require the same data
+ * are updated. The overhead of doing things this way is minimal.
+ */
+namespace Signals {
+
 namespace SI = UnTech::SpriteImporter;
 
-extern sigc::signal<void, const std::shared_ptr<SI::FrameSet>> signal_frameSetChanged;
-extern sigc::signal<void, const SI::FrameSet::list_t*> signal_frameSetListChanged;
+extern sigc::signal<void, const std::shared_ptr<SI::FrameSet>> frameSetChanged;
+extern sigc::signal<void, const SI::FrameSet::list_t*> frameSetListChanged;
 
-extern sigc::signal<void, const std::shared_ptr<SI::FrameSet>> signal_frameSetGridChanged;
+extern sigc::signal<void, const std::shared_ptr<SI::FrameSet>> frameSetGridChanged;
 
-extern sigc::signal<void, const std::shared_ptr<SI::Frame>> signal_frameChanged;
-extern sigc::signal<void, const std::shared_ptr<SI::Frame>> signal_frameSizeChanged;
-extern sigc::signal<void, const SI::Frame::list_t*> signal_frameListChanged;
+extern sigc::signal<void, const std::shared_ptr<SI::Frame>> frameChanged;
+extern sigc::signal<void, const std::shared_ptr<SI::Frame>> frameSizeChanged;
+extern sigc::signal<void, const SI::Frame::list_t*> frameListChanged;
 
-extern sigc::signal<void, const std::shared_ptr<SI::FrameObject>> signal_frameObjectChanged;
-extern sigc::signal<void, const SI::FrameObject::list_t*> signal_frameObjectListChanged;
+extern sigc::signal<void, const std::shared_ptr<SI::FrameObject>> frameObjectChanged;
+extern sigc::signal<void, const SI::FrameObject::list_t*> frameObjectListChanged;
 
-extern sigc::signal<void, const std::shared_ptr<SI::ActionPoint>> signal_actionPointChanged;
-extern sigc::signal<void, const std::shared_ptr<SI::ActionPoint>> signal_actionPointLocationChanged;
-extern sigc::signal<void, const SI::ActionPoint::list_t*> signal_actionPointListChanged;
+extern sigc::signal<void, const std::shared_ptr<SI::ActionPoint>> actionPointChanged;
+extern sigc::signal<void, const std::shared_ptr<SI::ActionPoint>> actionPointLocationChanged;
+extern sigc::signal<void, const SI::ActionPoint::list_t*> actionPointListChanged;
 
-extern sigc::signal<void, const std::shared_ptr<SI::EntityHitbox>> signal_entityHitboxChanged;
-extern sigc::signal<void, const std::shared_ptr<SI::EntityHitbox>> signal_entityHitboxLocationChanged;
-extern sigc::signal<void, const SI::EntityHitbox::list_t*> signal_entityHitboxListChanged;
+extern sigc::signal<void, const std::shared_ptr<SI::EntityHitbox>> entityHitboxChanged;
+extern sigc::signal<void, const std::shared_ptr<SI::EntityHitbox>> entityHitboxLocationChanged;
+extern sigc::signal<void, const SI::EntityHitbox::list_t*> entityHitboxListChanged;
+}
 }
 }
 }
