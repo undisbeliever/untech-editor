@@ -2,6 +2,7 @@
 #define _UNTECH_GUI_WIDGETS_COMMON_NAMEDLIST_H
 
 #include "namedlistdialog.h"
+#include "deleteconfirmationdialog.h"
 #include "models/common/namedlist.h"
 #include "gui/widgets/defaults.h"
 
@@ -272,8 +273,17 @@ public:
         });
 
         _removeButton.signal_clicked().connect([this](void) {
-            this->list->remove(this->getSelected());
-            this->emitListChangedSignal();
+            auto toDelete = this->getSelected();
+
+            DeleteConfirmationDialog dialog(
+                this->list->getName(toDelete).first,
+                widget);
+
+            auto ret = dialog.run();
+            if (ret == Gtk::RESPONSE_ACCEPT) {
+                this->list->remove(toDelete);
+                this->emitListChangedSignal();
+            }
         });
 
         this->signal_selected_changed().connect(sigc::mem_fun(*this, &NamedListEditor::updateButtonState));
