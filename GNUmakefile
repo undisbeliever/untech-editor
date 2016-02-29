@@ -32,9 +32,15 @@ define app-models
 $(filter $(patsubst %,obj/models/%/$(PERCENT),$1), $(MODEL_OBJ))
 endef
 
+PERCENT = %
+define gui-widgets
+$(filter $(patsubst %,obj/gui/widgets/%/$(PERCENT),$1), $(GUI_OBJ))
+endef
+
 # Select the models used by the apps
 bin/untech-spriteimporter: $(call app-models, common sprite-importer)
 bin/untech-spriteimporter-gui: $(call app-models, common sprite-importer)
+bin/untech-spriteimporter-gui: $(call gui-widgets, common sprite-importer)
 
 
 
