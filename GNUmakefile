@@ -20,7 +20,7 @@ GUI_SRC		= $(wildcard src/gui/*.cpp src/gui/*/*.cpp src/gui/*/*/*.cpp)
 GUI_OBJ		= $(patsubst src/gui/%.cpp,obj/gui/%.o,$(GUI_SRC))
 GUI_APPS	= $(patsubst src/gui/%.cpp,bin/%-gui,$(wildcard src/gui/*.cpp))
 
-OBJS		= $(MODEL_OBJ) $(CLI_OBJ) $(GUI_OBJ)
+OBJS		= $(MODEL_OBJ) $(CLI_OBJ) $(GUI_OBJ) $(THIRD_PARTY)
 DEPS		= $(OBJS:.o=.d)
 
 .PHONY: all
@@ -32,16 +32,17 @@ define app-models
 $(filter $(patsubst %,obj/models/%/$(PERCENT),$1), $(MODEL_OBJ))
 endef
 
-PERCENT = %
 define gui-widgets
 $(filter $(patsubst %,obj/gui/widgets/%/$(PERCENT),$1), $(GUI_OBJ))
 endef
+
+# Third party libs
+THIRD_PARTY = obj/vendor/lodepng/lodepng.o
 
 # Select the models used by the apps
 bin/untech-spriteimporter: $(call app-models, common sprite-importer)
 bin/untech-spriteimporter-gui: $(call app-models, common sprite-importer)
 bin/untech-spriteimporter-gui: $(call gui-widgets, common sprite-importer)
-
 
 
 # Disable Builtin rules
@@ -78,5 +79,5 @@ clean:
 
 .PHONY: style
 style:
-	find src/ \( -name '*.h' -or -name '*.cpp' \) -print0 | xargs -0 clang-format -i
+	find src/ -path src/vendor -prune -o \( -name '*.h' -or -name '*.cpp' \) -print0 | xargs -0 clang-format -i
 
