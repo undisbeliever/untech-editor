@@ -110,6 +110,7 @@ void FrameSetPropertiesEditor::updateGuiValues()
 {
     if (_frameSet) {
         _imageFilenameEntry.set_text(_frameSet->imageFilename());
+        _imageFilenameEntry.set_position(-1); // right align text
 
         _gridFrameSizeSpinButtons.set_value(_frameSet->grid().frameSize());
         _gridOffsetSpinButtons.set_value(_frameSet->grid().offset());

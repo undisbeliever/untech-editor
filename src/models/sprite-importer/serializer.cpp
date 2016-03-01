@@ -53,8 +53,8 @@ public:
         frameset = framesetContainer.create(id);
         framesetGridSet = false;
 
-        // ::TODO join filename with xml.dirname()::
-        std::string imageFilename = tag->getAttribute("image");
+        std::string imageAttribute = tag->getAttribute("image");
+        std::string imageFilename = xml.dirname() + imageAttribute;
         frameset->setImageFilename(imageFilename);
         // ::TODO verify image was loaded correctly::
 
