@@ -3,9 +3,12 @@
 
 #include "framesetgrid.h"
 #include "../common/aabb.h"
+#include "../common/image.h"
 #include "../common/namedlist.h"
 #include <memory>
 #include <string>
+
+// FrameSet images are lazily loaded.
 
 namespace UnTech {
 namespace SpriteImporter {
@@ -31,13 +34,23 @@ public:
     inline const auto& frames() const { return _frames; }
     inline const auto& grid() const { return _grid; }
 
-    bool setImageFilename(const std::string& filename);
+    void setImageFilename(const std::string& filename);
+
+    inline UnTech::Image& image()
+    {
+        if (_image.empty() && !_imageFilename.empty()) {
+            reloadImage();
+        }
+        return _image;
+    }
+
+    bool reloadImage();
 
 private:
     // ::TODO parent::
 
     std::string _imageFilename;
-    // ::TODO image::
+    UnTech::Image _image;
 
     NamedList<FrameSet, Frame> _frames;
     FrameSetGrid _grid;

@@ -5,6 +5,7 @@ using namespace UnTech::SpriteImporter;
 
 FrameSet::FrameSet()
     : _imageFilename()
+    , _image()
     , _frames(*this)
     , _grid(*this)
 {
@@ -24,12 +25,20 @@ std::shared_ptr<FrameSet> FrameSet::clone()
     return fs;
 }
 
-bool FrameSet::setImageFilename(const std::string& filename)
+void FrameSet::setImageFilename(const std::string& filename)
 {
     if (_imageFilename != filename) {
-        // ::TODO load image::
         _imageFilename = filename;
+        _image.erase();
     }
+}
 
-    return true;
+bool FrameSet::reloadImage()
+{
+    if (!_imageFilename.empty()) {
+        return _image.loadPngImage(_imageFilename);
+    }
+    else {
+        return false;
+    }
 }

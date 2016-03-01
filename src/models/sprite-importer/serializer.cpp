@@ -56,7 +56,6 @@ public:
         std::string imageAttribute = tag->getAttribute("image");
         std::string imageFilename = xml.dirname() + imageAttribute;
         frameset->setImageFilename(imageFilename);
-        // ::TODO verify image was loaded correctly::
 
         std::unique_ptr<XmlTag> childTag;
         while ((childTag = xml.parseTag())) {
