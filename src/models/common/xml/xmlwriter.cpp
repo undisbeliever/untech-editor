@@ -2,8 +2,9 @@
 #include "../string.h"
 #include "../file.h"
 #include <algorithm>
-#include <cstring>
 #include <cassert>
+#include <cstring>
+#include <iomanip>
 #include <sstream>
 
 using namespace UnTech;
@@ -85,6 +86,18 @@ void XmlWriter::writeTagAttribute(const std::string& name, const unsigned value)
     assert((_file.flags() & std::ios_base::basefield) == std::ios_base::dec);
 
     _file << ' ' << name << "=\"" << value << '"';
+}
+
+void XmlWriter::writeTagAttributeHex(const std::string& name, const unsigned value, unsigned width)
+{
+    assert(_inTag);
+    assert(isName(name));
+
+    _file << ' ' << name << "=\""
+          << std::hex << std::setw(width) << std::setfill('0')
+          << value
+          << std::dec << std::setw(0)
+          << '"';
 }
 
 void XmlWriter::writeText(const std::string& text)

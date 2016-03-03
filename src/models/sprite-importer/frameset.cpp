@@ -6,6 +6,7 @@ using namespace UnTech::SpriteImporter;
 FrameSet::FrameSet()
     : _imageFilename()
     , _image()
+    , _transparentColor(0)
     , _frames(*this)
     , _grid(*this)
 {
@@ -36,7 +37,13 @@ void FrameSet::setImageFilename(const std::string& filename)
 bool FrameSet::reloadImage()
 {
     if (!_imageFilename.empty()) {
-        return _image.loadPngImage(_imageFilename);
+        auto ret = _image.loadPngImage(_imageFilename);
+
+        if (ret && !transparentColorValid()) {
+            _transparentColor = _image.getPixel(0, 0);
+        }
+
+        return ret;
     }
     else {
         return false;

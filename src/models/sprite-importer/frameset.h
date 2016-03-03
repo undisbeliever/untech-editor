@@ -3,6 +3,7 @@
 
 #include "framesetgrid.h"
 #include "../common/aabb.h"
+#include "../common/rgba.h"
 #include "../common/image.h"
 #include "../common/namedlist.h"
 #include <memory>
@@ -30,11 +31,22 @@ public:
 
     inline auto& frames() { return _frames; }
     inline auto& grid() { return _grid; }
+    inline auto& transparentColor() const { return _transparentColor; }
 
     inline const auto& frames() const { return _frames; }
     inline const auto& grid() const { return _grid; }
 
     void setImageFilename(const std::string& filename);
+
+    void setTransparentColor(const UnTech::rgba transparentColor)
+    {
+        _transparentColor = transparentColor;
+    }
+
+    bool transparentColorValid() const
+    {
+        return _transparentColor.value != 0 && _transparentColor.alpha == 0xFF;
+    }
 
     inline UnTech::Image& image()
     {
@@ -51,6 +63,7 @@ private:
 
     std::string _imageFilename;
     UnTech::Image _image;
+    UnTech::rgba _transparentColor;
 
     NamedList<FrameSet, Frame> _frames;
     FrameSetGrid _grid;

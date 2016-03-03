@@ -1,9 +1,10 @@
 #ifndef _UNTECH_MODELS_COMMON_STRING_H_
 #define _UNTECH_MODELS_COMMON_STRING_H_
 
-#include <string>
-#include <cstdlib>
+#include <climits>
 #include <cstdint>
+#include <cstdlib>
+#include <string>
 
 namespace UnTech {
 namespace String {
@@ -112,6 +113,21 @@ static inline long toLong(const std::string& s, long def)
         return def;
     }
     return ret;
+}
+
+static inline std::pair<unsigned, bool> hexToUnsigned(const std::string& s)
+{
+    const char* cstr = s.c_str();
+    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
+    char* parseEnd;
+
+    unsigned ret = strtoul(cstr, &parseEnd, 16);
+
+    if (parseEnd == cstr || parseEnd != last + 1
+        || ret > UINT_MAX) {
+        return { 0, false };
+    }
+    return { ret, true };
 }
 }
 }

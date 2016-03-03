@@ -26,6 +26,7 @@ public:
     void writeTagAttribute(const std::string& name, const char* value);
     void writeTagAttribute(const std::string& name, const int value);
     void writeTagAttribute(const std::string& name, const unsigned value);
+    void writeTagAttributeHex(const std::string& name, const unsigned value, unsigned width);
 
     void writeText(const std::string& text);
 

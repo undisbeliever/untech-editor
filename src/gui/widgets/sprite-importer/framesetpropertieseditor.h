@@ -38,12 +38,17 @@ private:
     Gtk::Entry _imageFilenameEntry;
     Gtk::Button _imageFilenameButton;
 
+    Gtk::Box _transparentColorBox;
+    Gtk::Entry _transparentColorEntry;
+    Gtk::Button _transparentColorButton;
+
     UsizeSpinButtons _gridFrameSizeSpinButtons;
     UpointSpinButtons _gridOffsetSpinButtons;
     UsizeSpinButtons _gridPaddingSpinButtons;
     UpointSpinButtons _gridOriginSpinButtons;
 
     Gtk::Label _imageFilenameLabel;
+    Gtk::Label _transparentColorLabel;
     Gtk::Label _gridFrameSizeLabel, _gridFrameSizeCrossLabel;
     Gtk::Label _gridOffsetLabel, _gridOffsetCommaLabel;
     Gtk::Label _gridPaddingLabel, _gridPaddingCrossLabel;

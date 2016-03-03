@@ -26,6 +26,11 @@ union rgba {
         , alpha(a)
     {
     }
+
+    uint32_t rgb() const
+    {
+        return value & 0xFFFFFF;
+    }
 };
 }
 #endif

@@ -57,6 +57,14 @@ public:
         std::string imageFilename = xml.dirname() + imageAttribute;
         frameset->setImageFilename(imageFilename);
 
+        if (tag->hasAttribute("transparent")) {
+            static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
+
+            UnTech::rgba color(tag->getAttributeUnsignedHex("transparent"));
+            color.alpha = 0xFF;
+            frameset->setTransparentColor(color);
+        }
+
         std::unique_ptr<XmlTag> childTag;
         while ((childTag = xml.parseTag())) {
             if (childTag->name == "grid") {
@@ -288,6 +296,13 @@ inline void writeFrameSet(XmlWriter& xml, const std::string& framesetName, const
     // ::TODO get relative image filename::
     std::string imageFilename = frameset->imageFilename();
     xml.writeTagAttribute("image", imageFilename);
+
+    if (frameset->transparentColorValid()) {
+        static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
+
+        unsigned rgb = frameset->transparentColor().rgb();
+        xml.writeTagAttributeHex("transparent", rgb, 6);
+    }
 
     writeFrameSetGrid(xml, frameset->grid());
 

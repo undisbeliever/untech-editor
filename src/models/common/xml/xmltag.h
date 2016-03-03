@@ -131,6 +131,16 @@ struct XmlTag {
         return def;
     }
 
+    inline unsigned getAttributeUnsignedHex(const std::string& aName) const
+    {
+        auto v = String::hexToUnsigned(getAttribute(aName));
+
+        if (!v.second) {
+            throw buildError(aName, "Not a hexadecimal number");
+        }
+        return v.first;
+    }
+
     inline upoint getAttributeUpoint(const std::string& xName = "x", const std::string& yName = "y") const
     {
         unsigned x = getAttributeUnsigned(xName);
