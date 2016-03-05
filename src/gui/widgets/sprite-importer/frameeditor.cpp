@@ -17,6 +17,9 @@ FrameEditor::FrameEditor()
     , _entityHitboxList()
     , _entityHitboxEditor()
 {
+    widget.set_scrollable(true);
+    widget.popup_enable();
+
     widget.append_page(_frameParameterEditor.widget, _("Frame"));
 
     _frameObjectBox.set_border_width(DEFAULT_BORDER);

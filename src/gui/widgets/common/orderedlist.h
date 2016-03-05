@@ -204,11 +204,18 @@ public:
 
         _buttonBox.set_border_width(DEFAULT_BORDER);
         _buttonBox.set_layout(Gtk::BUTTONBOX_END);
-        _buttonBox.add(_createButton);
-        _buttonBox.add(_cloneButton);
-        _buttonBox.add(_moveUpButton);
-        _buttonBox.add(_moveDownButton);
-        _buttonBox.add(_removeButton);
+        _buttonBox.pack_start(_createButton, Gtk::PACK_SHRINK);
+        _buttonBox.pack_start(_cloneButton, Gtk::PACK_SHRINK);
+        _buttonBox.pack_start(_moveUpButton, Gtk::PACK_SHRINK);
+        _buttonBox.pack_start(_moveDownButton, Gtk::PACK_SHRINK);
+        _buttonBox.pack_start(_removeButton, Gtk::PACK_SHRINK);
+
+        _buttonBox.set_child_non_homogeneous(_createButton, true);
+        _buttonBox.set_child_non_homogeneous(_cloneButton, true);
+        _buttonBox.set_child_non_homogeneous(_moveUpButton, true);
+        _buttonBox.set_child_non_homogeneous(_moveDownButton, true);
+        _buttonBox.set_child_non_homogeneous(_removeButton, true);
+
         widget.pack_start(_buttonBox, Gtk::PACK_SHRINK);
 
         updateButtonState();

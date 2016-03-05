@@ -213,6 +213,12 @@ public:
         _buttonBox.add(_cloneButton);
         _buttonBox.add(_renameButton);
         _buttonBox.add(_removeButton);
+
+        _buttonBox.set_child_non_homogeneous(_createButton, true);
+        _buttonBox.set_child_non_homogeneous(_cloneButton, true);
+        _buttonBox.set_child_non_homogeneous(_renameButton, true);
+        _buttonBox.set_child_non_homogeneous(_removeButton, true);
+
         widget.pack_start(_buttonBox, Gtk::PACK_SHRINK);
 
         updateButtonState();
