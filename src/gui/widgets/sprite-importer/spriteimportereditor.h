@@ -1,5 +1,5 @@
-#ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SIDEBAR_H_
-#define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SIDEBAR_H_
+#ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTEREDITOR_H_
+#define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTEREDITOR_H_
 
 #include "frameeditor.h"
 #include "framelist.h"
@@ -17,9 +17,9 @@ namespace SpriteImporter {
 
 namespace SI = UnTech::SpriteImporter;
 
-class Sidebar {
+class SpriteImporterEditor {
 public:
-    Sidebar();
+    SpriteImporterEditor();
 
     void setFrameSetList(SI::FrameSet::list_t* frameSetList);
     void setFrameSet(std::shared_ptr<SI::FrameSet> frameSet);
@@ -29,9 +29,12 @@ public:
     void setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox);
 
 public:
-    Gtk::Notebook widget;
+    Gtk::Paned widget;
 
 private:
+    Gtk::Box _graphicalEditor;
+
+    Gtk::Notebook _sidebar;
     std::shared_ptr<SI::FrameSet> _selectedFrameSet;
     std::shared_ptr<SI::Frame> _selectedFrame;
 

@@ -1,10 +1,12 @@
-#include "sidebar.h"
+#include "spriteimportereditor.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
-Sidebar::Sidebar()
-    : widget()
+SpriteImporterEditor::SpriteImporterEditor()
+    : widget(Gtk::ORIENTATION_HORIZONTAL)
+    , _graphicalEditor()
+    , _sidebar()
     , _selectedFrameSet(nullptr)
     , _selectedFrame(nullptr)
     , _frameSetPane(Gtk::ORIENTATION_VERTICAL)
@@ -14,8 +16,8 @@ Sidebar::Sidebar()
     , _frameList()
     , _frameEditor()
 {
-    widget.append_page(_frameSetPane, _("Frame Set"));
-    widget.append_page(_framePane, _("Frames"));
+    _sidebar.append_page(_frameSetPane, _("Frame Set"));
+    _sidebar.append_page(_framePane, _("Frames"));
 
     _frameSetPane.set_border_width(DEFAULT_BORDER);
     _frameSetPane.pack1(_frameSetList.widget, true, false);
@@ -24,6 +26,10 @@ Sidebar::Sidebar()
     _framePane.set_border_width(DEFAULT_BORDER);
     _framePane.pack1(_frameList.widget, true, false);
     _framePane.pack2(_frameEditor.widget, false, false);
+
+    // ::TODO frameset graphical editor widget::
+    widget.pack1(_graphicalEditor, true, false);
+    widget.pack2(_sidebar, false, false);
 
     /*
      * SLOTS
@@ -37,14 +43,14 @@ Sidebar::Sidebar()
     });
 }
 
-void Sidebar::setFrameSetList(SI::FrameSet::list_t* frameSetList)
+void SpriteImporterEditor::setFrameSetList(SI::FrameSet::list_t* frameSetList)
 {
     // No need to test if changed, will only be called on new/load.
     _frameSetList.setList(frameSetList);
     setFrame(nullptr);
 }
 
-void Sidebar::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
+void SpriteImporterEditor::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
 {
     if (_selectedFrameSet != frameSet) {
         _selectedFrameSet = frameSet;
@@ -58,31 +64,27 @@ void Sidebar::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
             _frameList.setList(nullptr);
         }
 
-        widget.set_current_page(FRAMESET_PAGE);
+        _sidebar.set_current_page(FRAMESET_PAGE);
     }
 }
 
-void Sidebar::setFrame(std::shared_ptr<SI::Frame> frame)
+void SpriteImporterEditor::setFrame(std::shared_ptr<SI::Frame> frame)
 {
     if (_selectedFrame != frame) {
         _selectedFrame = frame;
 
         if (frame) {
-            auto fs = frame->frameSet().lock();
-            if (fs) {
-                _selectedFrameSet = fs;
-                _frameList.setList(fs->frames());
-            }
+            setFrameSet(frame->frameSet().lock());
         }
 
         _frameEditor.setFrame(frame);
         _frameList.selectItem(frame);
 
-        widget.set_current_page(FRAME_PAGE);
+        _sidebar.set_current_page(FRAME_PAGE);
     }
 }
 
-void Sidebar::setFrameObject(std::shared_ptr<SI::FrameObject> frameObject)
+void SpriteImporterEditor::setFrameObject(std::shared_ptr<SI::FrameObject> frameObject)
 {
     if (frameObject) {
         setFrame(frameObject->frame().lock());
@@ -94,7 +96,7 @@ void Sidebar::setFrameObject(std::shared_ptr<SI::FrameObject> frameObject)
     _frameEditor.setFrameObject(frameObject);
 }
 
-void Sidebar::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
+void SpriteImporterEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
 {
     if (actionPoint) {
         setFrame(actionPoint->frame().lock());
@@ -106,7 +108,7 @@ void Sidebar::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
     _frameEditor.setActionPoint(actionPoint);
 }
 
-void Sidebar::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox)
+void SpriteImporterEditor::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox)
 {
     if (entityHitbox) {
         setFrame(entityHitbox->frame().lock());
