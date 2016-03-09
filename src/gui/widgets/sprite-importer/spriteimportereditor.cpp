@@ -5,6 +5,7 @@ namespace SI = UnTech::SpriteImporter;
 
 SpriteImporterEditor::SpriteImporterEditor()
     : widget(Gtk::ORIENTATION_HORIZONTAL)
+    , _graphicalWindow()
     , _graphicalEditor()
     , _sidebar()
     , _selectedFrameSet(nullptr)
@@ -16,6 +17,9 @@ SpriteImporterEditor::SpriteImporterEditor()
     , _frameList()
     , _frameEditor()
 {
+    _graphicalWindow.add(_graphicalEditor);
+    _graphicalWindow.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_ALWAYS);
+
     _sidebar.append_page(_frameSetPane, _("Frame Set"));
     _sidebar.append_page(_framePane, _("Frames"));
 
@@ -27,8 +31,7 @@ SpriteImporterEditor::SpriteImporterEditor()
     _framePane.pack1(_frameList.widget, true, false);
     _framePane.pack2(_frameEditor.widget, false, false);
 
-    // ::TODO frameset graphical editor widget::
-    widget.pack1(_graphicalEditor, true, false);
+    widget.pack1(_graphicalWindow, true, false);
     widget.pack2(_sidebar, false, false);
 
     /*
@@ -56,6 +59,7 @@ void SpriteImporterEditor::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
         _selectedFrameSet = frameSet;
 
         _frameSetPropertiesEditor.setFrameSet(frameSet);
+        _graphicalEditor.setFrameSet(frameSet);
 
         if (frameSet != nullptr) {
             _frameList.setList(frameSet->frames());
@@ -79,6 +83,7 @@ void SpriteImporterEditor::setFrame(std::shared_ptr<SI::Frame> frame)
 
         _frameEditor.setFrame(frame);
         _frameList.selectItem(frame);
+        _graphicalEditor.setFrame(frame);
 
         _sidebar.set_current_page(FRAME_PAGE);
     }
@@ -94,6 +99,7 @@ void SpriteImporterEditor::setFrameObject(std::shared_ptr<SI::FrameObject> frame
     }
 
     _frameEditor.setFrameObject(frameObject);
+    _graphicalEditor.setFrameObject(frameObject);
 }
 
 void SpriteImporterEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
@@ -106,6 +112,7 @@ void SpriteImporterEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> actio
     }
 
     _frameEditor.setActionPoint(actionPoint);
+    _graphicalEditor.setActionPoint(actionPoint);
 }
 
 void SpriteImporterEditor::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox)
@@ -118,4 +125,5 @@ void SpriteImporterEditor::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> ent
     }
 
     _frameEditor.setEntityHitbox(entityHitbox);
+    _graphicalEditor.setEntityHitbox(entityHitbox);
 }

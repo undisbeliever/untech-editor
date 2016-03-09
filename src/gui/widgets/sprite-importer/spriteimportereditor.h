@@ -3,6 +3,7 @@
 
 #include "frameeditor.h"
 #include "framelist.h"
+#include "framesetgraphicaleditor.h"
 #include "framesetlist.h"
 #include "framesetpropertieseditor.h"
 #include "models/sprite-importer.h"
@@ -32,7 +33,8 @@ public:
     Gtk::Paned widget;
 
 private:
-    Gtk::Box _graphicalEditor;
+    Gtk::ScrolledWindow _graphicalWindow;
+    FrameSetGraphicalEditor _graphicalEditor;
 
     Gtk::Notebook _sidebar;
     std::shared_ptr<SI::FrameSet> _selectedFrameSet;
