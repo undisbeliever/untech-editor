@@ -33,6 +33,20 @@ public:
          * SLOTS
          * =====
          */
+        /* Handle change in selection */
+        treeView.get_selection()->signal_changed().connect([this](void) {
+            std::shared_ptr<T> item = nullptr;
+
+            auto rowIt = treeView.get_selection()->get_selected();
+            if (rowIt) {
+                auto row = *rowIt;
+                item = row[columns.col_item];
+            }
+            if (selected != item) {
+                selected = item;
+                _signal_selected_changed.emit();
+            }
+        });
 
         /* Update GUI if item has changed */
         columns.signal_itemChanged().connect(sigc::mem_fun(
@@ -55,14 +69,20 @@ public:
     {
         if (list != newList) {
             list = newList;
-            if (list != nullptr) {
+
+            // Prevent race condition.
+            // Select NULL item before updating model
+            selectItem(nullptr);
+
+            if (list != nullptr && list->size() > 0) {
                 rebuildTable();
 
                 treeView.set_sensitive(true);
             }
             else {
                 treeModel->clear();
-                treeView.set_sensitive(false);
+
+                treeView.set_sensitive(list != nullptr);
             }
         }
     }
@@ -72,14 +92,7 @@ public:
      */
     std::shared_ptr<T> getSelected()
     {
-        auto rowIt = treeView.get_selection()->get_selected();
-        if (rowIt) {
-            auto row = *rowIt;
-            return row[columns.col_item];
-        }
-        else {
-            return nullptr;
-        }
+        return selected;
     }
 
     /**
@@ -88,25 +101,37 @@ public:
      */
     void selectItem(std::shared_ptr<T> item)
     {
-        const auto children = treeModel->children();
+        if (item != selected) {
+            if (item != nullptr) {
+                const auto children = treeModel->children();
 
-        for (auto iter = children.begin(); iter != children.end(); ++iter) {
-            auto row = *iter;
+                for (auto iter = children.begin(); iter != children.end(); ++iter) {
+                    auto row = *iter;
 
-            if (row.get_value(columns.col_item) == item) {
-                treeView.get_selection()->select(row);
+                    if (row.get_value(columns.col_item) == item) {
+                        selected = item;
 
-                // scroll to selection
-                treeView.scroll_to_row(treeModel->get_path(iter));
-                return;
+                        treeView.get_selection()->select(row);
+
+                        // scroll to selection
+                        treeView.scroll_to_row(treeModel->get_path(iter));
+                        _signal_selected_changed.emit();
+                        return;
+                    }
+                }
+            }
+
+            // not found
+            if (selected != nullptr) {
+                selected = nullptr;
+
+                treeView.get_selection()->unselect_all();
+                _signal_selected_changed.emit();
             }
         }
-
-        // not found
-        treeView.get_selection()->unselect_all();
     }
 
-    inline auto signal_selected_changed() { return treeView.get_selection()->signal_changed(); }
+    inline auto signal_selected_changed() { return _signal_selected_changed; }
 
 protected:
     inline void emitListChangedSignal()
@@ -173,6 +198,9 @@ protected:
     Glib::RefPtr<Gtk::ListStore> treeModel;
 
     typename T::list_t* list;
+
+    std::shared_ptr<T> selected;
+    sigc::signal<void> _signal_selected_changed;
 };
 
 template <class T, class ModelColumnsT>
