@@ -58,7 +58,7 @@ ActionPointEditor::ActionPointEditor()
     /* Update location range if necessary */
     Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
         if (_actionPoint) {
-            const auto f = _actionPoint->frame().lock();
+            const auto f = _actionPoint->frame();
             if (frame == f) {
                 _locationSpinButtons.set_range(frame->locationSize());
             }
@@ -67,8 +67,8 @@ ActionPointEditor::ActionPointEditor()
 
     Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
         if (_actionPoint) {
-            const auto frame = _actionPoint->frame().lock();
-            if (frame->frameSet().lock() == fs) {
+            const auto frame = _actionPoint->frame();
+            if (frame->frameSet() == fs) {
                 _locationSpinButtons.set_range(frame->locationSize());
             }
         }
@@ -78,7 +78,7 @@ ActionPointEditor::ActionPointEditor()
 void ActionPointEditor::updateGuiValues()
 {
     if (_actionPoint) {
-        auto frame = _actionPoint->frame().lock();
+        auto frame = _actionPoint->frame();
 
         if (frame) {
             _locationSpinButtons.set_range(frame->locationSize());

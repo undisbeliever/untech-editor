@@ -62,7 +62,7 @@ EntityHitboxEditor::EntityHitboxEditor()
     /* Update aabb range if necessary */
     Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
         if (_entityHitbox) {
-            const auto f = _entityHitbox->frame().lock();
+            const auto f = _entityHitbox->frame();
             if (frame == f) {
                 _aabbSpinButtons.set_range(frame->locationSize());
             }
@@ -71,8 +71,8 @@ EntityHitboxEditor::EntityHitboxEditor()
 
     Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
         if (_entityHitbox) {
-            const auto frame = _entityHitbox->frame().lock();
-            if (frame->frameSet().lock() == fs) {
+            const auto frame = _entityHitbox->frame();
+            if (frame->frameSet() == fs) {
                 _aabbSpinButtons.set_range(frame->locationSize());
             }
         }
@@ -82,7 +82,7 @@ EntityHitboxEditor::EntityHitboxEditor()
 void EntityHitboxEditor::updateGuiValues()
 {
     if (_entityHitbox) {
-        auto frame = _entityHitbox->frame().lock();
+        auto frame = _entityHitbox->frame();
 
         if (frame) {
             _aabbSpinButtons.set_range(frame->locationSize());

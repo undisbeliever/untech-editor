@@ -27,22 +27,22 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor()
         }
     });
     Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
-        if (frame && frame->frameSet().lock() == _frameSet) {
+        if (frame && frame->frameSet() == _frameSet) {
             queue_draw();
         }
     });
     Signals::frameObjectChanged.connect([this](const std::shared_ptr<SI::FrameObject> obj) {
-        if (obj && obj->frame().lock()->frameSet().lock() == _frameSet) {
+        if (obj && obj->frame()->frameSet() == _frameSet) {
             queue_draw();
         }
     });
     Signals::actionPointLocationChanged.connect([this](const std::shared_ptr<SI::ActionPoint> ap) {
-        if (ap && ap->frame().lock()->frameSet().lock() == _frameSet) {
+        if (ap && ap->frame()->frameSet() == _frameSet) {
             queue_draw();
         }
     });
     Signals::entityHitboxLocationChanged.connect([this](const std::shared_ptr<SI::EntityHitbox> eh) {
-        if (eh && eh->frame().lock()->frameSet().lock() == _frameSet) {
+        if (eh && eh->frame()->frameSet() == _frameSet) {
             queue_draw();
         }
     });

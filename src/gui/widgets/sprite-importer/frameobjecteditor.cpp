@@ -61,7 +61,7 @@ FrameObjectEditor::FrameObjectEditor()
     /* Update location range if necessary */
     Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
         if (_frameObject) {
-            const auto f = _frameObject->frame().lock();
+            const auto f = _frameObject->frame();
             if (frame == f) {
                 _locationSpinButtons.set_range(frame->locationSize());
             }
@@ -71,8 +71,8 @@ FrameObjectEditor::FrameObjectEditor()
     /* Update location range if necessary */
     Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
         if (_frameObject) {
-            const auto frame = _frameObject->frame().lock();
-            if (frame->frameSet().lock() == fs) {
+            const auto frame = _frameObject->frame();
+            if (frame->frameSet() == fs) {
                 _locationSpinButtons.set_range(frame->locationSize());
             }
         }
@@ -84,7 +84,7 @@ void FrameObjectEditor::updateGuiValues()
     typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
 
     if (_frameObject) {
-        auto frame = _frameObject->frame().lock();
+        auto frame = _frameObject->frame();
 
         if (frame) {
             _locationSpinButtons.set_range(frame->locationSize(), _frameObject->sizePx());

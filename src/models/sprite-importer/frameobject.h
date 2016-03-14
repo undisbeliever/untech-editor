@@ -32,7 +32,7 @@ public:
 
     unsigned sizePx() const { return (unsigned)_size; }
 
-    std::weak_ptr<Frame> frame() const { return _frame; }
+    inline std::shared_ptr<Frame> frame() const { return _frame.lock(); }
 
     void setLocation(const upoint& location);
     void setSize(ObjectSize size);

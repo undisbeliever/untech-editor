@@ -152,7 +152,7 @@ FramePropertiesEditor::FramePropertiesEditor()
     /** FrameSet Grid Updated signal */
     Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
         if (_frame) {
-            if (_frame->frameSet().lock() == fs) {
+            if (_frame->frameSet() == fs) {
                 updateGuiValues();
                 Signals::frameSizeChanged.emit(_frame);
             }

@@ -56,7 +56,7 @@ public:
 
     unsigned spriteOrder() const { return _spriteOrder; }
 
-    std::weak_ptr<FrameSet> frameSet() const { return _frameSet; }
+    inline std::shared_ptr<FrameSet> frameSet() const { return _frameSet.lock(); }
 
     void setUseGridLocation(bool useGridLocation);
     void setGridLocation(upoint gridLocation);

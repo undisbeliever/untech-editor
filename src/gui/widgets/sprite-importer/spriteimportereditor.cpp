@@ -117,7 +117,7 @@ void SpriteImporterEditor::setFrame(std::shared_ptr<SI::Frame> frame)
         _selectedFrame = frame;
 
         if (frame) {
-            setFrameSet(frame->frameSet().lock());
+            setFrameSet(frame->frameSet());
 
             _frameObjectList.setList(frame->objects());
             _actionPointList.setList(frame->actionPoints());
@@ -147,7 +147,7 @@ void SpriteImporterEditor::setFrame(std::shared_ptr<SI::Frame> frame)
 void SpriteImporterEditor::setFrameObject(std::shared_ptr<SI::FrameObject> frameObject)
 {
     if (frameObject) {
-        setFrame(frameObject->frame().lock());
+        setFrame(frameObject->frame());
         _frameNotebook.set_current_page(FRAME_OBJECT_PAGE);
     }
 
@@ -159,7 +159,7 @@ void SpriteImporterEditor::setFrameObject(std::shared_ptr<SI::FrameObject> frame
 void SpriteImporterEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
 {
     if (actionPoint) {
-        setFrame(actionPoint->frame().lock());
+        setFrame(actionPoint->frame());
         _frameNotebook.set_current_page(ACTION_POINT_PAGE);
     }
 
@@ -171,7 +171,7 @@ void SpriteImporterEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> actio
 void SpriteImporterEditor::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox)
 {
     if (entityHitbox) {
-        setFrame(entityHitbox->frame().lock());
+        setFrame(entityHitbox->frame());
         _frameNotebook.set_current_page(ENTITY_HITBOX_PAGE);
     }
 
