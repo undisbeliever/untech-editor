@@ -99,15 +99,15 @@ inline void FrameSetGraphicalEditor::cr_zoom_rectangle(const Cairo::RefPtr<Cairo
                                                        unsigned x, unsigned y,
                                                        unsigned width, unsigned height)
 {
-    cr->rectangle(x * _zoomX, y * _zoomY,
-                  width * _zoomX, height * _zoomY);
+    cr->rectangle(x * _zoomX - 1, y * _zoomY - 1,
+                  width * _zoomX + 1, height * _zoomY + 1);
 }
 
 bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
     // ::TODO move::
     const double FRAME_BORDER_WIDTH = 1;
-    const cr_rgba frameBorderColor = { 0.5, 0.5, 0.5, 0.5 };
+    const cr_rgba frameBorderColor = { 0.5, 0.5, 0.5, 1.0 };
     const cr_rgba frameSelectedClipColor = { 0.7, 0.7, 0.7, 0.7 };
 
     const double TILE_HITBOX_WIDTH = 1;
