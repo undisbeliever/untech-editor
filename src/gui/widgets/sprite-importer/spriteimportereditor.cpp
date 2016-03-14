@@ -5,18 +5,48 @@ namespace SI = UnTech::SpriteImporter;
 
 SpriteImporterEditor::SpriteImporterEditor()
     : widget(Gtk::ORIENTATION_HORIZONTAL)
+    , _selectedFrameSet(nullptr)
+    , _selectedFrame(nullptr)
     , _graphicalWindow()
     , _graphicalEditor()
     , _sidebar()
-    , _selectedFrameSet(nullptr)
-    , _selectedFrame(nullptr)
     , _frameSetPane(Gtk::ORIENTATION_VERTICAL)
     , _framePane(Gtk::ORIENTATION_VERTICAL)
     , _frameSetList()
     , _frameSetPropertiesEditor()
     , _frameList()
-    , _frameEditor()
+    , _frameNotebook()
+    , _frameParameterEditor()
+    , _frameObjectBox(Gtk::ORIENTATION_VERTICAL)
+    , _frameObjectList()
+    , _frameObjectEditor()
+    , _actionPointBox(Gtk::ORIENTATION_VERTICAL)
+    , _actionPointList()
+    , _actionPointEditor()
+    , _entityHitboxBox(Gtk::ORIENTATION_VERTICAL)
+    , _entityHitboxList()
+    , _entityHitboxEditor()
 {
+    _frameNotebook.set_scrollable(true);
+    _frameNotebook.popup_enable();
+
+    _frameNotebook.append_page(_frameParameterEditor.widget, _("Frame"));
+
+    _frameObjectBox.set_border_width(DEFAULT_BORDER);
+    _frameObjectBox.pack_start(_frameObjectList.widget, Gtk::PACK_EXPAND_WIDGET);
+    _frameObjectBox.pack_start(_frameObjectEditor.widget, Gtk::PACK_SHRINK);
+    _frameNotebook.append_page(_frameObjectBox, _("Objects"));
+
+    _actionPointBox.set_border_width(DEFAULT_BORDER);
+    _actionPointBox.pack_start(_actionPointList.widget, Gtk::PACK_EXPAND_WIDGET);
+    _actionPointBox.pack_start(_actionPointEditor.widget, Gtk::PACK_SHRINK);
+    _frameNotebook.append_page(_actionPointBox, _("Action Points"));
+
+    _entityHitboxBox.set_border_width(DEFAULT_BORDER);
+    _entityHitboxBox.pack_start(_entityHitboxList.widget, Gtk::PACK_EXPAND_WIDGET);
+    _entityHitboxBox.pack_start(_entityHitboxEditor.widget, Gtk::PACK_SHRINK);
+    _frameNotebook.append_page(_entityHitboxBox, _("Entity Hitboxes"));
+
     _graphicalWindow.add(_graphicalEditor);
     _graphicalWindow.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_ALWAYS);
 
@@ -29,7 +59,7 @@ SpriteImporterEditor::SpriteImporterEditor()
 
     _framePane.set_border_width(DEFAULT_BORDER);
     _framePane.pack1(_frameList.widget, true, false);
-    _framePane.pack2(_frameEditor.widget, false, false);
+    _framePane.pack2(_frameNotebook, false, false);
 
     widget.pack1(_graphicalWindow, true, false);
     widget.pack2(_sidebar, false, false);
@@ -43,6 +73,15 @@ SpriteImporterEditor::SpriteImporterEditor()
     });
     _frameList.signal_selected_changed().connect([this](void) {
         setFrame(_frameList.getSelected());
+    });
+    _frameObjectList.signal_selected_changed().connect([this](void) {
+        setFrameObject(_frameObjectList.getSelected());
+    });
+    _actionPointList.signal_selected_changed().connect([this](void) {
+        setActionPoint(_actionPointList.getSelected());
+    });
+    _entityHitboxList.signal_selected_changed().connect([this](void) {
+        setEntityHitbox(_entityHitboxList.getSelected());
     });
 }
 
@@ -58,15 +97,15 @@ void SpriteImporterEditor::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
     if (_selectedFrameSet != frameSet) {
         _selectedFrameSet = frameSet;
 
-        _frameSetPropertiesEditor.setFrameSet(frameSet);
-        _graphicalEditor.setFrameSet(frameSet);
-
-        if (frameSet != nullptr) {
+        if (frameSet) {
             _frameList.setList(frameSet->frames());
         }
         else {
             _frameList.setList(nullptr);
         }
+
+        _frameSetPropertiesEditor.setFrameSet(frameSet);
+        _graphicalEditor.setFrameSet(frameSet);
 
         _sidebar.set_current_page(FRAMESET_PAGE);
     }
@@ -79,9 +118,25 @@ void SpriteImporterEditor::setFrame(std::shared_ptr<SI::Frame> frame)
 
         if (frame) {
             setFrameSet(frame->frameSet().lock());
+
+            _frameObjectList.setList(frame->objects());
+            _actionPointList.setList(frame->actionPoints());
+            _entityHitboxList.setList(frame->entityHitboxes());
+
+            _frameNotebook.set_sensitive(true);
+        }
+        else {
+            _frameObjectList.setList(nullptr);
+            _actionPointList.setList(nullptr);
+            _entityHitboxList.setList(nullptr);
+
+            _frameNotebook.set_sensitive(false);
         }
 
-        _frameEditor.setFrame(frame);
+        setFrameObject(nullptr);
+        setActionPoint(nullptr);
+        setEntityHitbox(nullptr);
+
         _frameList.selectItem(frame);
         _graphicalEditor.setFrame(frame);
 
@@ -93,12 +148,11 @@ void SpriteImporterEditor::setFrameObject(std::shared_ptr<SI::FrameObject> frame
 {
     if (frameObject) {
         setFrame(frameObject->frame().lock());
-    }
-    else {
-        setFrame(nullptr);
+        _frameNotebook.set_current_page(FRAME_OBJECT_PAGE);
     }
 
-    _frameEditor.setFrameObject(frameObject);
+    _frameObjectList.selectItem(frameObject);
+    _frameObjectEditor.setFrameObject(frameObject);
     _graphicalEditor.setFrameObject(frameObject);
 }
 
@@ -106,12 +160,11 @@ void SpriteImporterEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> actio
 {
     if (actionPoint) {
         setFrame(actionPoint->frame().lock());
-    }
-    else {
-        setFrame(nullptr);
+        _frameNotebook.set_current_page(ACTION_POINT_PAGE);
     }
 
-    _frameEditor.setActionPoint(actionPoint);
+    _actionPointList.selectItem(actionPoint);
+    _actionPointEditor.setActionPoint(actionPoint);
     _graphicalEditor.setActionPoint(actionPoint);
 }
 
@@ -119,11 +172,10 @@ void SpriteImporterEditor::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> ent
 {
     if (entityHitbox) {
         setFrame(entityHitbox->frame().lock());
-    }
-    else {
-        setFrame(nullptr);
+        _frameNotebook.set_current_page(ENTITY_HITBOX_PAGE);
     }
 
-    _frameEditor.setEntityHitbox(entityHitbox);
+    _entityHitboxList.selectItem(entityHitbox);
+    _entityHitboxEditor.setEntityHitbox(entityHitbox);
     _graphicalEditor.setEntityHitbox(entityHitbox);
 }

@@ -1,8 +1,14 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTEREDITOR_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTEREDITOR_H_
 
-#include "frameeditor.h"
+#include "actionpointeditor.h"
+#include "actionpointlist.h"
+#include "entityhitboxeditor.h"
+#include "entityhitboxlist.h"
 #include "framelist.h"
+#include "frameobjecteditor.h"
+#include "frameobjectlist.h"
+#include "framepropertieseditor.h"
 #include "framesetgraphicaleditor.h"
 #include "framesetlist.h"
 #include "framesetpropertieseditor.h"
@@ -33,12 +39,14 @@ public:
     Gtk::Paned widget;
 
 private:
+    std::shared_ptr<SI::FrameSet> _selectedFrameSet;
+    std::shared_ptr<SI::Frame> _selectedFrame;
+    std::shared_ptr<SI::FrameObject> _selectedFrameObject;
+
     Gtk::ScrolledWindow _graphicalWindow;
     FrameSetGraphicalEditor _graphicalEditor;
 
     Gtk::Notebook _sidebar;
-    std::shared_ptr<SI::FrameSet> _selectedFrameSet;
-    std::shared_ptr<SI::Frame> _selectedFrame;
 
     Gtk::Paned _frameSetPane, _framePane;
 
@@ -46,11 +54,32 @@ private:
     FrameSetPropertiesEditor _frameSetPropertiesEditor;
 
     FrameListEditor _frameList;
-    FrameEditor _frameEditor;
 
-    enum {
+    Gtk::Notebook _frameNotebook;
+    FramePropertiesEditor _frameParameterEditor;
+
+    Gtk::Box _frameObjectBox;
+    FrameObjectListEditor _frameObjectList;
+    FrameObjectEditor _frameObjectEditor;
+
+    Gtk::Box _actionPointBox;
+    ActionPointListEditor _actionPointList;
+    ActionPointEditor _actionPointEditor;
+
+    Gtk::Box _entityHitboxBox;
+    EntityHitboxListEditor _entityHitboxList;
+    EntityHitboxEditor _entityHitboxEditor;
+
+    enum FrameSetPages {
         FRAMESET_PAGE,
         FRAME_PAGE
+    };
+
+    enum FramePages {
+        FRAME_PARAMETERS_PAGE,
+        FRAME_OBJECT_PAGE,
+        ACTION_POINT_PAGE,
+        ENTITY_HITBOX_PAGE,
     };
 };
 }
