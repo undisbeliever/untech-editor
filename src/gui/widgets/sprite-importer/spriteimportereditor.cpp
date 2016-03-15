@@ -83,6 +83,11 @@ SpriteImporterEditor::SpriteImporterEditor()
     _entityHitboxList.signal_selected_changed().connect([this](void) {
         setEntityHitbox(_entityHitboxList.getSelected());
     });
+
+    _graphicalEditor.signal_selectFrame.connect(sigc::mem_fun(*this, &SpriteImporterEditor::setFrame));
+    _graphicalEditor.signal_selectFrameObject.connect(sigc::mem_fun(*this, &SpriteImporterEditor::setFrameObject));
+    _graphicalEditor.signal_selectActionPoint.connect(sigc::mem_fun(*this, &SpriteImporterEditor::setActionPoint));
+    _graphicalEditor.signal_selectEntityHitbox.connect(sigc::mem_fun(*this, &SpriteImporterEditor::setEntityHitbox));
 }
 
 void SpriteImporterEditor::setFrameSetList(SI::FrameSet::list_t* frameSetList)

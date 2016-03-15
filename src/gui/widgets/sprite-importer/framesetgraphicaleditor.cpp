@@ -2,6 +2,8 @@
 #include "signals.h"
 #include "../common/cr_rgba.h"
 
+#include <cmath>
+
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
@@ -14,6 +16,8 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor()
     , _zoomY(3.0)
     , _frameSetImage()
 {
+    add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
+
     // SLOTS
     // =====
     Signals::frameListChanged.connect(sigc::hide(sigc::mem_fun(this, &FrameSetGraphicalEditor::queue_draw)));
@@ -212,6 +216,166 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     cr->restore();
 
+    return true;
+}
+
+bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton*)
+{
+    // ::TODO code::
+    return false;
+}
+
+bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
+{
+    if (_frameSet == nullptr) {
+        return false;
+    }
+
+    if (event->button == 1) {
+        int x = std::lround(event->x / _zoomX);
+        int y = std::lround(event->y / _zoomY);
+
+        if (x >= 0 && y >= 0) {
+            upoint mouse = { (unsigned)x, (unsigned)y };
+
+            if (_selectedFrame && _selectedFrame->location().contains(mouse)) {
+                const auto frameLoc = _selectedFrame->location();
+                const upoint frameMouse = { mouse.x - frameLoc.x, mouse.y - frameLoc.y };
+
+                /*
+                 * Select a given item.
+                 *
+                 * This code cycles through the given selections.
+                 * On click, the next item is selected. If the last item
+                 * was the previously selected one then the first match
+                 * is selected.
+                 */
+                struct Selection {
+                    enum class Type {
+                        NONE = 0,
+                        FRAME_OBJECT,
+                        ACTION_POINT,
+                        ENTITY_HITBOX
+                    };
+                    Type type = Type::NONE;
+                    std::shared_ptr<SI::FrameObject> frameObject = nullptr;
+                    std::shared_ptr<SI::ActionPoint> actionPoint = nullptr;
+                    std::shared_ptr<SI::EntityHitbox> entityHitbox = nullptr;
+                };
+
+                Selection selection;
+                Selection firstMatch;
+
+                for (const auto obj : _selectedFrame->objects()) {
+                    const auto loc = obj->location();
+
+                    if (frameMouse.x >= loc.x && frameMouse.x < (loc.x + obj->sizePx())
+                        && frameMouse.y >= loc.y && frameMouse.y < (loc.y + obj->sizePx())) {
+                        if (selection.type == Selection::Type::NONE) {
+                            selection.frameObject = obj;
+                            selection.type = Selection::Type::FRAME_OBJECT;
+
+                            if (firstMatch.type == Selection::Type::NONE) {
+                                firstMatch.frameObject = obj;
+                                firstMatch.type = Selection::Type::FRAME_OBJECT;
+                            }
+                        }
+                        if (obj.get() == _selectedItem) {
+                            selection.type = Selection::Type::NONE;
+                        }
+                    }
+                }
+
+                for (const auto ap : _selectedFrame->actionPoints()) {
+                    const auto loc = ap->location();
+
+                    if (frameMouse == loc) {
+                        if (selection.type == Selection::Type::NONE) {
+                            selection.actionPoint = ap;
+                            selection.type = Selection::Type::ACTION_POINT;
+
+                            if (firstMatch.type == Selection::Type::NONE) {
+                                firstMatch.actionPoint = ap;
+                                firstMatch.type = Selection::Type::ACTION_POINT;
+                            }
+                        }
+                        if (ap.get() == _selectedItem) {
+                            selection.type = Selection::Type::NONE;
+                        }
+                    }
+                }
+
+                for (const auto eh : _selectedFrame->entityHitboxes()) {
+                    const auto aabb = eh->aabb();
+
+                    if (aabb.contains(frameMouse)) {
+                        if (selection.type == Selection::Type::NONE) {
+                            selection.entityHitbox = eh;
+                            selection.type = Selection::Type::ENTITY_HITBOX;
+
+                            if (firstMatch.type == Selection::Type::NONE) {
+                                firstMatch.entityHitbox = eh;
+                                firstMatch.type = Selection::Type::ENTITY_HITBOX;
+                            }
+                        }
+                        if (eh.get() == _selectedItem) {
+                            selection.type = Selection::Type::NONE;
+                        }
+                    }
+                }
+
+                if (selection.type == Selection::Type::NONE) {
+                    // handle wrap around.
+                    selection = firstMatch;
+                }
+
+                switch (selection.type) {
+                case Selection::Type::NONE:
+                    // unselect everything
+                    setFrameObject(nullptr);
+                    setActionPoint(nullptr);
+                    setEntityHitbox(nullptr);
+                    signal_selectFrameObject.emit(nullptr);
+                    signal_selectActionPoint.emit(nullptr);
+                    signal_selectEntityHitbox.emit(nullptr);
+                    break;
+
+                case Selection::Type::FRAME_OBJECT:
+                    setFrameObject(selection.frameObject);
+                    signal_selectFrameObject.emit(selection.frameObject);
+                    break;
+
+                case Selection::Type::ACTION_POINT:
+                    setActionPoint(selection.actionPoint);
+                    signal_selectActionPoint.emit(selection.actionPoint);
+                    break;
+
+                case Selection::Type::ENTITY_HITBOX:
+                    setEntityHitbox(selection.entityHitbox);
+                    signal_selectEntityHitbox.emit(selection.entityHitbox);
+                    break;
+                }
+
+                return true;
+            }
+            else {
+                for (const auto fIt : _frameSet->frames()) {
+                    const auto frameLoc = fIt.second->location();
+
+                    if (frameLoc.contains(mouse)) {
+                        setFrame(fIt.second);
+                        signal_selectFrame.emit(fIt.second);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    // click is not inside a frame
+    // unselect current frame.
+    setFrame(nullptr);
+    signal_selectFrame.emit(nullptr);
     return true;
 }
 

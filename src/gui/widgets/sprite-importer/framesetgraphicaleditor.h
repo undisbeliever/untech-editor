@@ -25,11 +25,19 @@ public:
 
     void setZoom(double x, double y);
 
+    sigc::signal<void, std::shared_ptr<SI::Frame>> signal_selectFrame;
+    sigc::signal<void, std::shared_ptr<SI::FrameObject>> signal_selectFrameObject;
+    sigc::signal<void, std::shared_ptr<SI::ActionPoint>> signal_selectActionPoint;
+    sigc::signal<void, std::shared_ptr<SI::EntityHitbox>> signal_selectEntityHitbox;
+
 protected:
     void resizeWidget();
     void loadAndScaleImage();
 
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
+
+    bool on_button_press_event(GdkEventButton* event) override;
+    bool on_button_release_event(GdkEventButton* event) override;
 
     void cr_zoom_rectangle(const Cairo::RefPtr<Cairo::Context>& cr,
                            unsigned x, unsigned y,
