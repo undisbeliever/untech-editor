@@ -24,6 +24,8 @@ public:
     void setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox);
     void unselectAll();
 
+    void enableSelectTransparentColor();
+
     void setZoom(double x, double y);
 
     sigc::signal<void, std::shared_ptr<SI::Frame>> signal_selectFrame;
@@ -32,27 +34,6 @@ public:
     sigc::signal<void, std::shared_ptr<SI::EntityHitbox>> signal_selectEntityHitbox;
 
 protected:
-    void resizeWidget();
-    void loadAndScaleImage();
-
-    bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
-
-    bool on_button_press_event(GdkEventButton* event) override;
-    bool on_button_release_event(GdkEventButton* event) override;
-
-    void cr_zoom_rectangle(const Cairo::RefPtr<Cairo::Context>& cr,
-                           unsigned x, unsigned y,
-                           unsigned width, unsigned height);
-
-private:
-    std::shared_ptr<SI::FrameSet> _frameSet;
-    std::shared_ptr<SI::Frame> _selectedFrame;
-
-    double _zoomX, _zoomY;
-
-    // A pre-scaled copy of the frameset image.
-    Glib::RefPtr<Gdk::Pixbuf> _frameSetImage;
-
     struct Selection {
         enum class Type {
             NONE = 0,
@@ -65,18 +46,50 @@ private:
         std::shared_ptr<SI::FrameObject> frameObject = nullptr;
         std::shared_ptr<SI::ActionPoint> actionPoint = nullptr;
         std::shared_ptr<SI::EntityHitbox> entityHitbox = nullptr;
-    } _selection;
+    };
 
     struct Action {
         enum State {
             NONE = 0,
-            CLICK
+            CLICK,
+            SELECT_TRANSPARENT_COLOR
         };
 
         State state = NONE;
         upoint pressLocation;
+    };
 
-    } _action;
+    void resizeWidget();
+    void loadAndScaleImage();
+
+    bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
+
+    bool on_button_press_event(GdkEventButton* event) override;
+    bool on_button_release_event(GdkEventButton* event) override;
+
+    void handleRelease_Click(const upoint& mouse);
+    void handleRelease_SelectTransparentColor(const upoint& mouse);
+
+    bool on_enter_notify_event(GdkEventCrossing* event) override;
+    bool on_leave_notify_event(GdkEventCrossing* event) override;
+
+    void cr_zoom_rectangle(const Cairo::RefPtr<Cairo::Context>& cr,
+                           unsigned x, unsigned y,
+                           unsigned width, unsigned height);
+
+    void set_cursor_for_state(Action::State state);
+
+private:
+    std::shared_ptr<SI::FrameSet> _frameSet;
+    std::shared_ptr<SI::Frame> _selectedFrame;
+
+    double _zoomX, _zoomY;
+
+    // A pre-scaled copy of the frameset image.
+    Glib::RefPtr<Gdk::Pixbuf> _frameSetImage;
+
+    Selection _selection;
+    Action _action;
 };
 }
 }

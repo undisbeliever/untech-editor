@@ -110,9 +110,6 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
         }
     });
 
-    // ::TODO _transparentColorButton clicked signal::
-    // ::: select color from image::
-
     /** FrameSet Updated signal */
     Signals::frameSetChanged.connect([this](const std::shared_ptr<SI::FrameSet> frameSet) {
         if (_frameSet == frameSet) {

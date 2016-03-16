@@ -25,6 +25,11 @@ public:
         updateGuiValues();
     }
 
+    auto signal_selectTransparentClicked()
+    {
+        return _transparentColorButton.signal_clicked();
+    }
+
 protected:
     void updateGuiValues();
 

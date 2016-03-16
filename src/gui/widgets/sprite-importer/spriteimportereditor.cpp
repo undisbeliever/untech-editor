@@ -68,6 +68,9 @@ SpriteImporterEditor::SpriteImporterEditor()
      * SLOTS
      * =====
      */
+    _frameSetPropertiesEditor.signal_selectTransparentClicked().connect(
+        sigc::mem_fun(_graphicalEditor, &FrameSetGraphicalEditor::enableSelectTransparentColor));
+
     _frameSetList.signal_selected_changed().connect([this](void) {
         setFrameSet(_frameSetList.getSelected());
     });
