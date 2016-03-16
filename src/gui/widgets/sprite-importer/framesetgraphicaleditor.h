@@ -66,6 +66,17 @@ private:
         std::shared_ptr<SI::ActionPoint> actionPoint = nullptr;
         std::shared_ptr<SI::EntityHitbox> entityHitbox = nullptr;
     } _selection;
+
+    struct Action {
+        enum State {
+            NONE = 0,
+            CLICK
+        };
+
+        State state = NONE;
+        upoint pressLocation;
+
+    } _action;
 };
 }
 }

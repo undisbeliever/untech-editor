@@ -219,10 +219,24 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     return true;
 }
 
-bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton*)
+bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 {
-    // ::TODO code::
-    return false;
+    if (_frameSet == nullptr) {
+        return false;
+    }
+
+    if (event->button == 1) {
+        if (_action.state == Action::NONE) {
+            int x = std::lround(event->x / _zoomX);
+            int y = std::lround(event->y / _zoomY);
+
+            if (x >= 0 && y >= 0) {
+                _action.state = Action::CLICK;
+                _action.pressLocation = { (unsigned)x, (unsigned)y };
+            }
+        }
+    }
+    return true;
 }
 
 bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
@@ -235,8 +249,20 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
         int x = std::lround(event->x / _zoomX);
         int y = std::lround(event->y / _zoomY);
 
-        if (x >= 0 && y >= 0) {
-            upoint mouse = { (unsigned)x, (unsigned)y };
+        if (x < 0 || y < 0) {
+            _action.state = Action::NONE;
+            return false;
+        }
+
+        upoint mouse = { (unsigned)x, (unsigned)y };
+
+        if (_action.state == Action::CLICK) {
+            // only select item if mouse didn't move.
+            _action.state = Action::NONE;
+
+            if (mouse != _action.pressLocation) {
+                return true;
+            }
 
             if (_selectedFrame && _selectedFrame->location().contains(mouse)) {
                 const auto frameLoc = _selectedFrame->location();
@@ -350,13 +376,13 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
                     }
                 }
             }
+
+            // click is not inside a frame
+            // unselect current frame.
+            setFrame(nullptr);
+            signal_selectFrame.emit(nullptr);
         }
     }
-
-    // click is not inside a frame
-    // unselect current frame.
-    setFrame(nullptr);
-    signal_selectFrame.emit(nullptr);
     return true;
 }
 
@@ -389,6 +415,8 @@ void FrameSetGraphicalEditor::setFrameObject(std::shared_ptr<SI::FrameObject> fr
     _selection.actionPoint = nullptr;
     _selection.entityHitbox = nullptr;
 
+    _action.state = Action::NONE;
+
     queue_draw();
 }
 
@@ -398,6 +426,8 @@ void FrameSetGraphicalEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> ac
     _selection.frameObject = nullptr;
     _selection.actionPoint = actionPoint;
     _selection.entityHitbox = nullptr;
+
+    _action.state = Action::NONE;
 
     queue_draw();
 }
@@ -409,6 +439,8 @@ void FrameSetGraphicalEditor::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> 
     _selection.actionPoint = nullptr;
     _selection.entityHitbox = entityHitbox;
 
+    _action.state = Action::NONE;
+
     queue_draw();
 }
 
@@ -418,6 +450,8 @@ void FrameSetGraphicalEditor::unselectAll()
     _selection.frameObject = nullptr;
     _selection.actionPoint = nullptr;
     _selection.entityHitbox = nullptr;
+
+    _action.state = Action::NONE;
 
     queue_draw();
 }
