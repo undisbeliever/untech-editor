@@ -11,10 +11,10 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor()
     : Gtk::DrawingArea()
     , _frameSet(nullptr)
     , _selectedFrame(nullptr)
-    , _selectedItem(nullptr)
     , _zoomX(3.0)
     , _zoomY(3.0)
     , _frameSetImage()
+    , _selection()
 {
     add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK);
 
@@ -250,19 +250,6 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
                  * was the previously selected one then the first match
                  * is selected.
                  */
-                struct Selection {
-                    enum class Type {
-                        NONE = 0,
-                        FRAME_OBJECT,
-                        ACTION_POINT,
-                        ENTITY_HITBOX
-                    };
-                    Type type = Type::NONE;
-                    std::shared_ptr<SI::FrameObject> frameObject = nullptr;
-                    std::shared_ptr<SI::ActionPoint> actionPoint = nullptr;
-                    std::shared_ptr<SI::EntityHitbox> entityHitbox = nullptr;
-                };
-
                 Selection selection;
                 Selection firstMatch;
 
@@ -280,7 +267,7 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
                                 firstMatch.type = Selection::Type::FRAME_OBJECT;
                             }
                         }
-                        if (obj.get() == _selectedItem) {
+                        if (obj == _selection.frameObject) {
                             selection.type = Selection::Type::NONE;
                         }
                     }
@@ -299,7 +286,7 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
                                 firstMatch.type = Selection::Type::ACTION_POINT;
                             }
                         }
-                        if (ap.get() == _selectedItem) {
+                        if (ap == _selection.actionPoint) {
                             selection.type = Selection::Type::NONE;
                         }
                     }
@@ -318,7 +305,7 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
                                 firstMatch.type = Selection::Type::ENTITY_HITBOX;
                             }
                         }
-                        if (eh.get() == _selectedItem) {
+                        if (eh == _selection.entityHitbox) {
                             selection.type = Selection::Type::NONE;
                         }
                     }
@@ -331,13 +318,7 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
 
                 switch (selection.type) {
                 case Selection::Type::NONE:
-                    // unselect everything
-                    setFrameObject(nullptr);
-                    setActionPoint(nullptr);
-                    setEntityHitbox(nullptr);
-                    signal_selectFrameObject.emit(nullptr);
-                    signal_selectActionPoint.emit(nullptr);
-                    signal_selectEntityHitbox.emit(nullptr);
+                    unselectAll();
                     break;
 
                 case Selection::Type::FRAME_OBJECT:
@@ -384,7 +365,7 @@ void FrameSetGraphicalEditor::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet
     if (_frameSet != frameSet) {
         _frameSet = frameSet;
         _selectedFrame = nullptr;
-        _selectedItem = nullptr;
+        unselectAll();
 
         loadAndScaleImage();
         resizeWidget();
@@ -395,7 +376,7 @@ void FrameSetGraphicalEditor::setFrame(std::shared_ptr<SI::Frame> frame)
 {
     if (_selectedFrame != frame) {
         _selectedFrame = frame;
-        _selectedItem = nullptr;
+        unselectAll();
 
         queue_draw();
     }
@@ -403,19 +384,41 @@ void FrameSetGraphicalEditor::setFrame(std::shared_ptr<SI::Frame> frame)
 
 void FrameSetGraphicalEditor::setFrameObject(std::shared_ptr<SI::FrameObject> frameObject)
 {
-    _selectedItem = frameObject.get();
+    _selection.type = Selection::Type::FRAME_OBJECT;
+    _selection.frameObject = frameObject;
+    _selection.actionPoint = nullptr;
+    _selection.entityHitbox = nullptr;
+
     queue_draw();
 }
 
 void FrameSetGraphicalEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
 {
-    _selectedItem = actionPoint.get();
+    _selection.type = Selection::Type::ACTION_POINT;
+    _selection.frameObject = nullptr;
+    _selection.actionPoint = actionPoint;
+    _selection.entityHitbox = nullptr;
+
     queue_draw();
 }
 
 void FrameSetGraphicalEditor::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox)
 {
-    _selectedItem = entityHitbox.get();
+    _selection.type = Selection::Type::ENTITY_HITBOX;
+    _selection.frameObject = nullptr;
+    _selection.actionPoint = nullptr;
+    _selection.entityHitbox = entityHitbox;
+
+    queue_draw();
+}
+
+void FrameSetGraphicalEditor::unselectAll()
+{
+    _selection.type = Selection::Type::NONE;
+    _selection.frameObject = nullptr;
+    _selection.actionPoint = nullptr;
+    _selection.entityHitbox = nullptr;
+
     queue_draw();
 }
 

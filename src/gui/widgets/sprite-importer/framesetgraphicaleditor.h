@@ -22,6 +22,7 @@ public:
     void setFrameObject(std::shared_ptr<SI::FrameObject> frameObject);
     void setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint);
     void setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox);
+    void unselectAll();
 
     void setZoom(double x, double y);
 
@@ -47,14 +48,24 @@ private:
     std::shared_ptr<SI::FrameSet> _frameSet;
     std::shared_ptr<SI::Frame> _selectedFrame;
 
-    // Currently void because its only used for highlighting.
-    // actual control is handled by other widgets.
-    const void* _selectedItem;
-
     double _zoomX, _zoomY;
 
     // A pre-scaled copy of the frameset image.
     Glib::RefPtr<Gdk::Pixbuf> _frameSetImage;
+
+    struct Selection {
+        enum class Type {
+            NONE = 0,
+            FRAME_OBJECT,
+            ACTION_POINT,
+            ENTITY_HITBOX
+        };
+
+        Type type = Type::NONE;
+        std::shared_ptr<SI::FrameObject> frameObject = nullptr;
+        std::shared_ptr<SI::ActionPoint> actionPoint = nullptr;
+        std::shared_ptr<SI::EntityHitbox> entityHitbox = nullptr;
+    } _selection;
 };
 }
 }
