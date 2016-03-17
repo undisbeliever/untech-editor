@@ -102,70 +102,90 @@ void FrameSetGraphicalEditor::loadAndScaleImage()
     queue_draw();
 }
 
-inline void FrameSetGraphicalEditor::cr_zoom_rectangle(const Cairo::RefPtr<Cairo::Context>& cr,
-                                                       unsigned x, unsigned y,
-                                                       unsigned width, unsigned height)
-{
-    cr->rectangle(x * _zoomX - 1, y * _zoomY - 1,
-                  width * _zoomX + 1, height * _zoomY + 1);
-}
-
 bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
     // ::TODO move::
-    const double FRAME_BORDER_WIDTH = 1;
+    const double FRAME_BORDER_WIDTH = 1.0;
+    const double ITEM_WIDTH = 1.0;
+    const double ACTION_POINT_SIZE = 1.5;
     const cr_rgba frameBorderColor = { 0.5, 0.5, 0.5, 1.0 };
     const cr_rgba frameSelectedClipColor = { 0.7, 0.7, 0.7, 0.7 };
-
-    const double TILE_HITBOX_WIDTH = 1;
-    const cr_rgba frameTileHitboxColor = { 0.8, 0.0, 0.0, 0.8 };
-
-    const double FRAME_OBJECT_WIDTH = 0.5;
-    const cr_rgba frameObjectColor = { 0.3, 0.9, 0.3, 0.8 };
-
-    const double ACTION_POINT_WIDTH = 1.5;
-    const double ACTION_POINT_SIZE = 1;
-    const cr_rgba actionPointColor = { 0.7, 0.7, 0.2, 0.8 };
-
-    const double ENTITY_HITBOX_WIDTH = 1;
-    const cr_rgba entityHitboxColor = { 0.2, 0.0, 0.8, 0.8 };
+    const cr_rgba frameTileHitboxColor = { 0.8, 0.0, 0.0, 0.7 };
+    const cr_rgba frameObjectColor = { 0.3, 0.9, 0.3, 0.7 };
+    const cr_rgba actionPointColor = { 0.7, 0.7, 0.2, 0.7 };
+    const cr_rgba entityHitboxColor = { 0.2, 0.0, 0.8, 0.7 };
 
     if (_frameSet == nullptr) {
         return true;
     }
 
+    auto draw_rectangle = [this, cr](unsigned x, unsigned y, unsigned width, unsigned height) {
+        cr->rectangle(x * _zoomX, y * _zoomY,
+                      width * _zoomX, height * _zoomY);
+    };
+
     cr->save();
+    cr->set_antialias(Cairo::ANTIALIAS_NONE);
 
     Gdk::Cairo::set_source_pixbuf(cr, _frameSetImage, 0, 0);
     cr->paint();
 
     for (const auto frameIt : _frameSet->frames()) {
         const auto frame = frameIt.second;
-        const auto loc = frame->location();
+        const auto frameLoc = frame->location();
 
-        cr_zoom_rectangle(cr, loc.x, loc.y, loc.width, loc.height);
+        auto draw_frame_rectangle = [this, cr, frameLoc](unsigned x, unsigned y,
+                                                         unsigned width, unsigned height) {
+            cr->rectangle((frameLoc.x + x) * _zoomX + 1,
+                          (frameLoc.y + y) * _zoomY + 1,
+                          width * _zoomX - 1, height * _zoomY - 1);
+        };
+
+        draw_rectangle(frameLoc.x, frameLoc.y, frameLoc.width, frameLoc.height);
 
         frameBorderColor.apply(cr);
         cr->set_line_width(FRAME_BORDER_WIDTH);
         cr->stroke();
 
+        cr->set_line_width(ITEM_WIDTH);
+
         if (frame->solid()) {
             const auto& hb = frame->tileHitbox();
 
-            cr_zoom_rectangle(cr, loc.x + hb.x, loc.y + hb.y,
-                              hb.width, hb.height);
+            draw_frame_rectangle(hb.x, hb.y,
+                                 hb.width, hb.height);
             frameTileHitboxColor.apply(cr);
-            cr->set_line_width(TILE_HITBOX_WIDTH);
+            cr->stroke();
+        }
+
+        for (const auto eh : frame->entityHitboxes()) {
+            const auto aabb = eh->aabb();
+
+            draw_frame_rectangle(aabb.x, aabb.y,
+                                 aabb.width, aabb.height);
+
+            // ::SHOULDO different color lines depending on type::
+            entityHitboxColor.apply(cr);
+            cr->stroke();
+        }
+
+        for (const auto obj : frame->objects()) {
+            const auto oloc = obj->location();
+
+            draw_frame_rectangle(oloc.x, oloc.y,
+                                 obj->sizePx(), obj->sizePx());
+            frameObjectColor.apply(cr);
             cr->stroke();
         }
 
         for (const auto ap : frame->actionPoints()) {
             const auto aLoc = ap->location();
 
-            double aWidth = ACTION_POINT_SIZE * _zoomX;
-            double aHeight = ACTION_POINT_SIZE * _zoomY;
-            double x = (loc.x + aLoc.x) * _zoomX;
-            double y = (loc.y + aLoc.y) * _zoomY;
+            // TODO: align with frames
+            double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
+            double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
+            double x = (frameLoc.x + aLoc.x + 0.5) * _zoomX;
+            double y = (frameLoc.y + aLoc.y + 0.5) * _zoomY;
 
             cr->move_to(x, y - aHeight);
             cr->line_to(x, y + aHeight);
@@ -174,29 +194,6 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
             // ::SHOULDO different color lines depending on type::
             actionPointColor.apply(cr);
-            cr->set_line_width(ACTION_POINT_WIDTH);
-            cr->stroke();
-        }
-
-        for (const auto eh : frame->entityHitboxes()) {
-            const auto aabb = eh->aabb();
-
-            cr_zoom_rectangle(cr, loc.x + aabb.x, loc.y + aabb.y,
-                              aabb.width, aabb.height);
-
-            // ::SHOULDO different color lines depending on type::
-            entityHitboxColor.apply(cr);
-            cr->set_line_width(ENTITY_HITBOX_WIDTH);
-            cr->stroke();
-        }
-
-        for (const auto obj : frame->objects()) {
-            const auto oloc = obj->location();
-
-            cr_zoom_rectangle(cr, loc.x + oloc.x, loc.y + oloc.y,
-                              obj->sizePx(), obj->sizePx());
-            frameObjectColor.apply(cr);
-            cr->set_line_width(FRAME_OBJECT_WIDTH);
             cr->stroke();
         }
     }
@@ -208,10 +205,10 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         const unsigned aWidth = allocation.get_width();
         const unsigned aHeight = allocation.get_height();
 
-        cr_zoom_rectangle(cr, 0, 0, sLoc.x, aHeight);
-        cr_zoom_rectangle(cr, 0, 0, aWidth, sLoc.y);
-        cr_zoom_rectangle(cr, sLoc.right(), 0, aWidth - sLoc.right(), aHeight);
-        cr_zoom_rectangle(cr, 0, sLoc.bottom(), aWidth, aHeight - sLoc.bottom());
+        draw_rectangle(0, 0, sLoc.x, aHeight);
+        draw_rectangle(0, 0, aWidth, sLoc.y);
+        draw_rectangle(sLoc.right(), 0, aWidth - sLoc.right(), aHeight);
+        draw_rectangle(0, sLoc.bottom(), aWidth, aHeight - sLoc.bottom());
 
         frameSelectedClipColor.apply(cr);
         cr->fill();

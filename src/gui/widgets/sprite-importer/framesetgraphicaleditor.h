@@ -73,10 +73,6 @@ protected:
     bool on_enter_notify_event(GdkEventCrossing* event) override;
     bool on_leave_notify_event(GdkEventCrossing* event) override;
 
-    void cr_zoom_rectangle(const Cairo::RefPtr<Cairo::Context>& cr,
-                           unsigned x, unsigned y,
-                           unsigned width, unsigned height);
-
     void set_cursor_for_state(Action::State state);
 
 private:
