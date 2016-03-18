@@ -14,8 +14,8 @@ std::string File::readUtf8TextFile(const std::string& filename)
 {
     std::ifstream in(filename, std::ios::in | std::ios::binary);
     if (in) {
-        char bom[3];
-        in.read(bom, sizeof(bom));
+        uint8_t bom[3];
+        in.read((char*)bom, sizeof(bom));
 
         in.seekg(0, std::ios::end);
         size_t size = in.tellg();
