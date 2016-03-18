@@ -43,6 +43,8 @@ private:
     Gtk::Entry _parameterEntry;
 
     Gtk::Label _locationLabel, _locationCommaLabel, _parameterLabel;
+
+    bool _updatingValues;
 };
 }
 }

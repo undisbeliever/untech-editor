@@ -27,6 +27,7 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     , _gridPaddingCrossLabel(_(" x "))
     , _gridOriginLabel(_("Grid Origin:"), Gtk::ALIGN_START)
     , _gridOriginCommaLabel(_(" , "))
+    , _updatingValues(false)
 {
     widget.set_row_spacing(DEFAULT_ROW_SPACING);
 
@@ -72,14 +73,14 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
      */
 
     _imageFilenameButton.signal_clicked().connect([this](void) {
-        if (_frameSet) {
+        if (_frameSet && !_updatingValues) {
             // ::TODO implement::
             Signals::frameSetChanged.emit(_frameSet);
         }
     });
 
     _gridFrameSizeSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameSet) {
+        if (_frameSet && !_updatingValues) {
             _frameSet->grid().setFrameSize(_gridFrameSizeSpinButtons.value());
             Signals::frameSetGridChanged.emit(_frameSet);
             Signals::frameSetChanged.emit(_frameSet);
@@ -87,7 +88,7 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     });
 
     _gridOffsetSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameSet) {
+        if (_frameSet && !_updatingValues) {
             _frameSet->grid().setOffset(_gridOffsetSpinButtons.value());
             Signals::frameSetChanged.emit(_frameSet);
             Signals::frameSetGridChanged.emit(_frameSet);
@@ -95,7 +96,7 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     });
 
     _gridPaddingSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameSet) {
+        if (_frameSet && !_updatingValues) {
             _frameSet->grid().setPadding(_gridPaddingSpinButtons.value());
             Signals::frameSetChanged.emit(_frameSet);
             Signals::frameSetGridChanged.emit(_frameSet);
@@ -103,7 +104,7 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     });
 
     _gridOriginSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameSet) {
+        if (_frameSet && !_updatingValues) {
             _frameSet->grid().setOrigin(_gridOriginSpinButtons.value());
             Signals::frameSetChanged.emit(_frameSet);
             Signals::frameSetGridChanged.emit(_frameSet);
@@ -121,6 +122,8 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
 void FrameSetPropertiesEditor::updateGuiValues()
 {
     if (_frameSet) {
+        _updatingValues = true;
+
         _imageFilenameEntry.set_text(_frameSet->imageFilename());
         _imageFilenameEntry.set_position(-1); // right align text
 
@@ -144,6 +147,8 @@ void FrameSetPropertiesEditor::updateGuiValues()
         _gridOffsetSpinButtons.set_value(_frameSet->grid().offset());
         _gridPaddingSpinButtons.set_value(_frameSet->grid().padding());
         _gridOriginSpinButtons.set_value(_frameSet->grid().origin());
+
+        _updatingValues = false;
 
         widget.set_sensitive(true);
     }

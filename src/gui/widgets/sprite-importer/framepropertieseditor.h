@@ -51,6 +51,8 @@ private:
     Gtk::Label _originLabel, _originCommaLabel;
     Gtk::Label _tileHitboxLabel, _tileHitboxCommaLabel, _tileHitboxCrossLabel;
     Gtk::Label _spriteOrderLabel;
+
+    bool _updatingValues;
 };
 }
 }

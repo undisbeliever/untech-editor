@@ -12,6 +12,7 @@ EntityHitboxEditor::EntityHitboxEditor()
     , _aabbCommaLabel(" ,  ")
     , _aabbCrossLabel(" x ")
     , _parameterLabel(_("Parameter:"), Gtk::ALIGN_START)
+    , _updatingValues(false)
 {
     widget.set_row_spacing(DEFAULT_ROW_SPACING);
 
@@ -35,7 +36,7 @@ EntityHitboxEditor::EntityHitboxEditor()
 
     /** Set aabb signal */
     _aabbSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_entityHitbox) {
+        if (_entityHitbox && !_updatingValues) {
             _entityHitbox->setAabb(_aabbSpinButtons.value());
             Signals::entityHitboxChanged.emit(_entityHitbox);
             Signals::entityHitboxLocationChanged.emit(_entityHitbox);
@@ -84,11 +85,15 @@ void EntityHitboxEditor::updateGuiValues()
     if (_entityHitbox) {
         auto frame = _entityHitbox->frame();
 
+        _updatingValues = true;
+
         if (frame) {
             _aabbSpinButtons.set_range(frame->locationSize());
         }
         _aabbSpinButtons.set_value(_entityHitbox->aabb());
         _parameterEntry.set_text(Glib::ustring::compose("%1", _entityHitbox->parameter()));
+
+        _updatingValues = false;
 
         widget.set_sensitive(true);
     }
@@ -104,7 +109,7 @@ void EntityHitboxEditor::updateGuiValues()
 
 void EntityHitboxEditor::onParameterFinishedEditing()
 {
-    if (_entityHitbox) {
+    if (_entityHitbox && !_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
             _entityHitbox->setParameter(value.first);

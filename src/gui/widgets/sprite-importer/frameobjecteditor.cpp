@@ -11,6 +11,7 @@ FrameObjectEditor::FrameObjectEditor()
     , _locationLabel(_("Location:"), Gtk::ALIGN_START)
     , _locationCommaLabel(" ,  ")
     , _sizeLabel(_("Size:"), Gtk::ALIGN_START)
+    , _updatingValues(false)
 {
     _sizeCombo.append(_("small"));
     _sizeCombo.append(_("large"));
@@ -35,7 +36,7 @@ FrameObjectEditor::FrameObjectEditor()
 
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameObject) {
+        if (_frameObject && !_updatingValues) {
             _frameObject->setLocation(_locationSpinButtons.value());
             Signals::frameObjectChanged.emit(_frameObject);
         }
@@ -45,7 +46,7 @@ FrameObjectEditor::FrameObjectEditor()
     _sizeCombo.signal_changed().connect([this](void) {
         typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
 
-        if (_frameObject) {
+        if (_frameObject && !_updatingValues) {
             _frameObject->setSize(_sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE);
             Signals::frameObjectChanged.emit(_frameObject);
         }
@@ -86,11 +87,15 @@ void FrameObjectEditor::updateGuiValues()
     if (_frameObject) {
         auto frame = _frameObject->frame();
 
+        _updatingValues = true;
+
         if (frame) {
             _locationSpinButtons.set_range(frame->locationSize(), _frameObject->sizePx());
         }
         _locationSpinButtons.set_value(_frameObject->location());
         _sizeCombo.set_active(_frameObject->size() == OS::LARGE ? 1 : 0);
+
+        _updatingValues = false;
 
         widget.set_sensitive(true);
     }

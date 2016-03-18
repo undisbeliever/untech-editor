@@ -43,6 +43,8 @@ private:
     Gtk::Entry _parameterEntry;
 
     Gtk::Label _aabbLabel, _aabbCommaLabel, _aabbCrossLabel, _parameterLabel;
+
+    bool _updatingValues;
 };
 }
 }

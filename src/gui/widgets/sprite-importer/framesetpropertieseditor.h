@@ -58,6 +58,8 @@ private:
     Gtk::Label _gridOffsetLabel, _gridOffsetCommaLabel;
     Gtk::Label _gridPaddingLabel, _gridPaddingCrossLabel;
     Gtk::Label _gridOriginLabel, _gridOriginCommaLabel;
+
+    bool _updatingValues;
 };
 }
 }

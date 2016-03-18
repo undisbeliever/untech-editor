@@ -27,6 +27,7 @@ FramePropertiesEditor::FramePropertiesEditor()
     , _tileHitboxCommaLabel(" , ")
     , _tileHitboxCrossLabel(" x ")
     , _spriteOrderLabel(_("Sprite Order:"))
+    , _updatingValues(false)
 {
     _emptySpace.set_size_request(GRID_CHILD_MARGIN_WIDTH, 2);
 
@@ -76,14 +77,14 @@ FramePropertiesEditor::FramePropertiesEditor()
 
     /** Grid location signal */
     _gridLocationSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frame) {
+        if (_frame && !_updatingValues) {
             _frame->setGridLocation(_gridLocationSpinButtons.value());
             Signals::frameChanged.emit(_frame);
         }
     });
     /** Location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frame) {
+        if (_frame && !_updatingValues) {
             auto oldLocationSize = _frame->location().size();
 
             _frame->setLocation(_locationSpinButtons.value());
@@ -96,14 +97,14 @@ FramePropertiesEditor::FramePropertiesEditor()
     });
     /** Origin signal */
     _originSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frame) {
+        if (_frame && !_updatingValues) {
             _frame->setOrigin(_originSpinButtons.value());
             Signals::frameChanged.emit(_frame);
         }
     });
     /** Tile hitbox signal */
     _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frame) {
+        if (_frame && !_updatingValues) {
             _frame->setTileHitbox(_tileHitboxSpinButtons.value());
             Signals::frameChanged.emit(_frame);
         }
@@ -114,14 +115,14 @@ FramePropertiesEditor::FramePropertiesEditor()
         assert(i >= 0);
         assert(i <= 3);
 
-        if (_frame) {
+        if (_frame && !_updatingValues) {
             _frame->setSpriteOrder((unsigned)i);
             Signals::frameChanged.emit(_frame);
         }
     });
     /** Use Grid Location Checkbox signal */
     _useGridLocationCB.signal_clicked().connect([this](void) {
-        if (_frame) {
+        if (_frame && !_updatingValues) {
             _frame->setUseGridLocation(_useGridLocationCB.get_active());
             Signals::frameChanged.emit(_frame);
             Signals::frameSizeChanged.emit(_frame);
@@ -129,14 +130,14 @@ FramePropertiesEditor::FramePropertiesEditor()
     });
     /** Use Custom Origin Checkbox signal */
     _useCustomOriginCB.signal_clicked().connect([this](void) {
-        if (_frame) {
+        if (_frame && !_updatingValues) {
             _frame->setUseGridOrigin(!(_useCustomOriginCB.get_active()));
             Signals::frameChanged.emit(_frame);
         }
     });
     /** Solid Checkbox signal */
     _solidCB.signal_clicked().connect([this](void) {
-        if (_frame) {
+        if (_frame && !_updatingValues) {
             _frame->setSolid(_solidCB.get_active());
             Signals::frameChanged.emit(_frame);
         }
@@ -163,6 +164,8 @@ FramePropertiesEditor::FramePropertiesEditor()
 void FramePropertiesEditor::updateGuiValues()
 {
     if (_frame) {
+        _updatingValues = true;
+
         _gridLocationSpinButtons.set_value(_frame->gridLocation());
         _locationSpinButtons.set_value(_frame->location());
         _originSpinButtons.set_value(_frame->origin());
@@ -201,6 +204,8 @@ void FramePropertiesEditor::updateGuiValues()
         _tileHitboxLabel.set_sensitive(solid);
         _tileHitboxCommaLabel.set_sensitive(solid);
         _tileHitboxCrossLabel.set_sensitive(solid);
+
+        _updatingValues = false;
 
         widget.set_sensitive(true);
     }

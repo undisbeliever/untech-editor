@@ -40,6 +40,8 @@ private:
     Gtk::ComboBoxText _sizeCombo;
 
     Gtk::Label _locationLabel, _locationCommaLabel, _sizeLabel;
+
+    bool _updatingValues;
 };
 }
 }

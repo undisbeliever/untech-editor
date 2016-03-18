@@ -11,6 +11,7 @@ ActionPointEditor::ActionPointEditor()
     , _locationLabel(_("Location:"), Gtk::ALIGN_START)
     , _locationCommaLabel(" ,  ")
     , _parameterLabel(_("Parameter:"), Gtk::ALIGN_START)
+    , _updatingValues(false)
 {
     widget.set_row_spacing(DEFAULT_ROW_SPACING);
 
@@ -31,7 +32,7 @@ ActionPointEditor::ActionPointEditor()
 
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_actionPoint) {
+        if (_actionPoint && !_updatingValues) {
             _actionPoint->setLocation(_locationSpinButtons.value());
             Signals::actionPointChanged.emit(_actionPoint);
             Signals::actionPointLocationChanged.emit(_actionPoint);
@@ -80,11 +81,15 @@ void ActionPointEditor::updateGuiValues()
     if (_actionPoint) {
         auto frame = _actionPoint->frame();
 
+        _updatingValues = true;
+
         if (frame) {
             _locationSpinButtons.set_range(frame->locationSize());
         }
         _locationSpinButtons.set_value(_actionPoint->location());
         _parameterEntry.set_text(Glib::ustring::compose("%1", _actionPoint->parameter()));
+
+        _updatingValues = false;
 
         widget.set_sensitive(true);
     }
@@ -100,7 +105,7 @@ void ActionPointEditor::updateGuiValues()
 
 void ActionPointEditor::onParameterFinishedEditing()
 {
-    if (_actionPoint) {
+    if (_actionPoint && !_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
             _actionPoint->setParameter(value.first);
