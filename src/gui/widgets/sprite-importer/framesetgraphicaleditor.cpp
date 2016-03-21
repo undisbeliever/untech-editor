@@ -151,22 +151,37 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->set_antialias(Cairo::ANTIALIAS_DEFAULT);
     }
 
+    frameBorderColor.apply(cr);
+    cr->set_line_width(FRAME_BORDER_WIDTH);
     for (const auto frameIt : _frameSet->frames()) {
         const auto frame = frameIt.second;
         const auto frameLoc = frame->location();
 
-        auto draw_frame_rectangle = [this, cr, frameLoc](unsigned x, unsigned y,
-                                                         unsigned width, unsigned height) {
-            cr->rectangle((frameLoc.x + x) * _zoomX + 1,
-                          (frameLoc.y + y) * _zoomY + 1,
-                          width * _zoomX - 1, height * _zoomY - 1);
-        };
-
         draw_rectangle(frameLoc.x, frameLoc.y, frameLoc.width, frameLoc.height);
-
-        frameBorderColor.apply(cr);
-        cr->set_line_width(FRAME_BORDER_WIDTH);
         cr->stroke();
+    }
+
+    for (const auto frameIt : _frameSet->frames()) {
+        const auto frame = frameIt.second;
+        const auto frameLoc = frame->location();
+
+        auto draw_frame_rectangle = [&](unsigned x, unsigned y,
+                                        unsigned width, unsigned height) {
+            double rw = width * _zoomX - ITEM_WIDTH;
+            double rh = height * _zoomY - ITEM_WIDTH;
+
+            // Shrink rectangle 1px so it fits **inside** the frame rectangle.
+            if (x + width >= frameLoc.width) {
+                rw -= ITEM_WIDTH;
+            }
+            if (y + height >= frameLoc.height) {
+                rh -= ITEM_WIDTH;
+            }
+
+            cr->rectangle((frameLoc.x + x) * _zoomX + ITEM_WIDTH,
+                          (frameLoc.y + y) * _zoomY + ITEM_WIDTH,
+                          rw, rh);
+        };
 
         cr->set_line_width(ITEM_WIDTH);
 
