@@ -112,8 +112,10 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     const cr_rgba frameSelectedClipColor = { 0.7, 0.7, 0.7, 0.7 };
     const cr_rgba frameTileHitboxColor = { 0.8, 0.0, 0.0, 0.7 };
     const cr_rgba frameObjectColor = { 0.3, 0.9, 0.3, 0.7 };
-    const cr_rgba actionPointColor = { 0.7, 0.7, 0.2, 0.7 };
+    const cr_rgba actionPointColor = { 0.7, 1.0, 0.5, 0.95 };
     const cr_rgba entityHitboxColor = { 0.2, 0.0, 0.8, 0.7 };
+    const cr_rgba selectionInnerColor = { 1.0, 1.0, 1.0, 1.0 };
+    const cr_rgba selectionOuterColor = { 0.0, 0.0, 0.0, 1.0 };
 
     if (_frameSet == nullptr) {
         return true;
@@ -212,6 +214,99 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
         frameSelectedClipColor.apply(cr);
         cr->fill();
+    }
+
+    auto draw_selected_rectangle = [&](const urect& frameLoc,
+                                       unsigned x, unsigned y,
+                                       unsigned width, unsigned height) {
+        cr->set_line_width(1);
+
+        const double zX = (frameLoc.x + x) * _zoomX + 1;
+        const double zY = (frameLoc.y + y) * _zoomY + 1;
+        const double zWidth = width * _zoomX - 1;
+        const double zHeight = height * _zoomY - 1;
+
+        cr->rectangle(zX, zY, zWidth, zHeight);
+        cr->stroke();
+
+        selectionInnerColor.apply(cr);
+        cr->rectangle(zX + 1, zY + 1, zWidth - 2, zHeight - 2);
+        cr->stroke();
+
+        selectionOuterColor.apply(cr);
+        cr->rectangle(zX - 1, zY - 1, zWidth + 2, zHeight + 2);
+        cr->stroke();
+    };
+
+    switch (_selection.type) {
+    case Selection::Type::NONE:
+        break;
+
+    case Selection::Type::FRAME_OBJECT:
+        if (_selection.frameObject) {
+            const auto frame = _selection.frameObject->frame();
+            if (frame) {
+                const auto oLoc = _selection.frameObject->location();
+                const unsigned oSize = _selection.frameObject->sizePx();
+
+                frameObjectColor.apply(cr);
+                draw_selected_rectangle(frame->location(),
+                                        oLoc.x, oLoc.y, oSize, oSize);
+            }
+        }
+        break;
+
+    case Selection::Type::ENTITY_HITBOX:
+        if (_selection.entityHitbox) {
+            const auto frame = _selection.entityHitbox->frame();
+            if (frame) {
+                const auto aabb = _selection.entityHitbox->aabb();
+
+                // ::SHOULDO different color lines depending on type::
+                entityHitboxColor.apply(cr);
+                draw_selected_rectangle(frame->location(),
+                                        aabb.x, aabb.y, aabb.width, aabb.height);
+            }
+        }
+        break;
+
+    case Selection::Type::ACTION_POINT:
+        if (_selection.actionPoint) {
+            const auto frame = _selection.actionPoint->frame();
+            if (frame) {
+                const auto frameLoc = frame->location();
+                const auto aLoc = _selection.actionPoint->location();
+
+                cr->save();
+
+                // TODO: align with frames
+                double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
+                double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
+                double x = (frameLoc.x + aLoc.x + 0.5) * _zoomX;
+                double y = (frameLoc.y + aLoc.y + 0.5) * _zoomY;
+
+                cr->move_to(x, y - aHeight - 1.0);
+                cr->line_to(x, y + aHeight + 1.0);
+                cr->move_to(x - aWidth - 1.0, y);
+                cr->line_to(x + aWidth + 1.0, y);
+
+                selectionOuterColor.apply(cr);
+                cr->set_line_width(3.0);
+                cr->stroke();
+
+                cr->move_to(x, y - aHeight);
+                cr->line_to(x, y + aHeight);
+                cr->move_to(x - aWidth, y);
+                cr->line_to(x + aWidth, y);
+
+                selectionInnerColor.apply(cr);
+                cr->set_line_width(1.0);
+                cr->stroke();
+
+                cr->restore();
+            }
+        }
+        break;
     }
 
     cr->restore();
