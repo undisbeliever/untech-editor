@@ -13,6 +13,7 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor()
     , _selectedFrame(nullptr)
     , _zoomX(3.0)
     , _zoomY(3.0)
+    , _displayZoom(NAN)
     , _frameSetImage()
     , _selection()
 {
@@ -58,11 +59,11 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor()
 // ::TODO call on signal_frameSetImageChanged signal::
 void FrameSetGraphicalEditor::resizeWidget()
 {
-    if (_frameSet && !_frameSet->image().empty()) {
+    if (_frameSet && !_frameSet->image().empty() && _displayZoom > 0.0) {
         const auto imgSize = _frameSet->image().size();
 
-        this->set_size_request(imgSize.width * _zoomX,
-                               imgSize.height * _zoomY);
+        this->set_size_request(imgSize.width * _zoomX * _displayZoom,
+                               imgSize.height * _zoomY * _displayZoom);
     }
     else {
         this->set_size_request(-1, -1);
@@ -85,6 +86,7 @@ void FrameSetGraphicalEditor::loadAndScaleImage()
                                                         img.size().width, img.size().height,
                                                         img.size().width * 4);
 
+            // Scaling is done by GTK not Cairo, as it results in sharp pixels
             _frameSetImage = pixbuf->scale_simple(width, height, Gdk::InterpType::INTERP_NEAREST);
         }
         else {
@@ -121,6 +123,18 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         return true;
     }
 
+    if (std::isnan(_displayZoom)) {
+        auto screen = get_screen();
+
+        if (screen) {
+            _displayZoom = std::floor(screen->get_width() / 1500) + 1.0;
+            resizeWidget();
+        }
+        else {
+            _displayZoom = 1.0;
+        }
+    }
+
     auto draw_rectangle = [this, cr](unsigned x, unsigned y, unsigned width, unsigned height) {
         cr->rectangle(x * _zoomX, y * _zoomY,
                       width * _zoomX, height * _zoomY);
@@ -128,9 +142,14 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     cr->save();
     cr->set_antialias(Cairo::ANTIALIAS_NONE);
+    cr->scale(_displayZoom, _displayZoom);
 
     Gdk::Cairo::set_source_pixbuf(cr, _frameSetImage, 0, 0);
     cr->paint();
+
+    if (_displayZoom > 1.0) {
+        cr->set_antialias(Cairo::ANTIALIAS_DEFAULT);
+    }
 
     for (const auto frameIt : _frameSet->frames()) {
         const auto frame = frameIt.second;
@@ -183,7 +202,6 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         for (const auto ap : frame->actionPoints()) {
             const auto aLoc = ap->location();
 
-            // TODO: align with frames
             double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
             double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
             double x = (frameLoc.x + aLoc.x + 0.5) * _zoomX;
@@ -279,7 +297,6 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
                 cr->save();
 
-                // TODO: align with frames
                 double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
                 double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
                 double x = (frameLoc.x + aLoc.x + 0.5) * _zoomX;
@@ -322,8 +339,8 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
     if (event->button == 1) {
         if (_action.state == Action::NONE) {
-            int x = std::lround(event->x / _zoomX);
-            int y = std::lround(event->y / _zoomY);
+            int x = std::lround(event->x / (_zoomX * _displayZoom));
+            int y = std::lround(event->y / (_zoomY * _displayZoom));
 
             if (x >= 0 && y >= 0) {
                 _action.state = Action::CLICK;
@@ -341,8 +358,8 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
     }
 
     if (event->button == 1) {
-        int x = std::lround(event->x / _zoomX);
-        int y = std::lround(event->y / _zoomY);
+        int x = std::lround(event->x / (_zoomX * _displayZoom));
+        int y = std::lround(event->y / (_zoomY * _displayZoom));
 
         if (x >= 0 && y >= 0) {
             upoint mouse = { (unsigned)x, (unsigned)y };
