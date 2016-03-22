@@ -52,11 +52,16 @@ protected:
         enum State {
             NONE = 0,
             CLICK,
-            SELECT_TRANSPARENT_COLOR
+            SELECT_TRANSPARENT_COLOR,
+            DRAG
         };
 
         State state = NONE;
         upoint pressLocation;
+        upoint previousLocation;
+
+        bool canDrag;
+        urect dragAabb;
     };
 
     void resizeWidget();
@@ -65,10 +70,12 @@ protected:
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
 
     bool on_button_press_event(GdkEventButton* event) override;
+    bool on_motion_notify_event(GdkEventMotion* event) override;
     bool on_button_release_event(GdkEventButton* event) override;
 
     void handleRelease_Click(const upoint& mouse);
     void handleRelease_SelectTransparentColor(const upoint& mouse);
+    void handleRelease_Drag();
 
     bool on_enter_notify_event(GdkEventCrossing* event) override;
     bool on_leave_notify_event(GdkEventCrossing* event) override;

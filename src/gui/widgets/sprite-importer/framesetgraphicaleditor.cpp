@@ -20,7 +20,8 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor()
     add_events(Gdk::BUTTON_PRESS_MASK
                | Gdk::BUTTON_RELEASE_MASK
                | Gdk::ENTER_NOTIFY_MASK
-               | Gdk::LEAVE_NOTIFY_MASK);
+               | Gdk::LEAVE_NOTIFY_MASK
+               | Gdk::BUTTON1_MOTION_MASK);
 
     // SLOTS
     // =====
@@ -118,6 +119,7 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     const cr_rgba entityHitboxColor = { 0.2, 0.0, 0.8, 0.7 };
     const cr_rgba selectionInnerColor = { 1.0, 1.0, 1.0, 1.0 };
     const cr_rgba selectionOuterColor = { 0.0, 0.0, 0.0, 1.0 };
+    const cr_rgba selectionDragColor = { 0.5, 0.5, 0.5, 0.5 };
 
     if (_frameSet == nullptr) {
         return true;
@@ -341,6 +343,18 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         break;
     }
 
+    if (_action.state == Action::DRAG) {
+        const urect aabb = _action.dragAabb;
+        const urect fLoc = _selectedFrame->location();
+
+        // ::SHOULDDO checkerboard pattern::
+
+        draw_rectangle(fLoc.x + aabb.x, fLoc.y + aabb.y,
+                       aabb.width, aabb.height);
+        selectionDragColor.apply(cr);
+        cr->fill();
+    }
+
     cr->restore();
 
     return true;
@@ -352,6 +366,8 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
         return false;
     }
 
+    _action.canDrag = false;
+
     if (event->button == 1) {
         if (_action.state == Action::NONE) {
             int x = std::lround(event->x / (_zoomX * _displayZoom));
@@ -360,6 +376,113 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
             if (x >= 0 && y >= 0) {
                 _action.state = Action::CLICK;
                 _action.pressLocation = { (unsigned)x, (unsigned)y };
+                urect aabb;
+
+                switch (_selection.type) {
+                case Selection::Type::NONE:
+                    break;
+
+                case Selection::Type::FRAME_OBJECT:
+                    if (_selection.frameObject) {
+                        const auto fo = _selection.frameObject;
+
+                        if (fo->frame()) {
+                            const auto foLoc = fo->location();
+                            aabb = { foLoc.x, foLoc.y, fo->sizePx(), fo->sizePx() };
+                            _action.canDrag = true;
+                        }
+                    }
+                    break;
+
+                case Selection::Type::ACTION_POINT:
+                    if (_selection.actionPoint) {
+                        const auto ap = _selection.actionPoint;
+
+                        if (ap->frame()) {
+                            const auto apLoc = ap->location();
+                            aabb = { apLoc.x, apLoc.y, 1, 1 };
+                            _action.canDrag = true;
+                        }
+                    }
+                    break;
+
+                case Selection::Type::ENTITY_HITBOX:
+                    if (_selection.entityHitbox) {
+                        const auto eh = _selection.entityHitbox;
+
+                        if (eh->frame()) {
+                            aabb = eh->aabb();
+                            _action.canDrag = true;
+                        }
+                    }
+                    break;
+                }
+
+                if (_action.canDrag) {
+                    _action.dragAabb = aabb;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
+{
+    if (_selectedFrame == nullptr) {
+        _action.state = Action::NONE;
+        return true;
+    }
+
+    if (_action.state != Action::NONE) {
+        auto allocation = get_allocation();
+
+        int x = std::lround((event->x - allocation.get_x()) / (_zoomX * _displayZoom));
+        int y = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom));
+
+        if (x >= 0 && y >= 0) {
+            upoint mouse = { (unsigned)x, (unsigned)y };
+
+            if (_action.state == Action::CLICK && _action.canDrag) {
+                if (_action.pressLocation != mouse) {
+                    _action.state = Action::DRAG;
+                    _action.previousLocation = _action.pressLocation;
+
+                    set_cursor_for_state(_action.state);
+                }
+            }
+
+            if (_action.state == Action::DRAG) {
+                // move dragAbbb to new location.
+                if (_action.previousLocation != mouse) {
+                    int dx = mouse.x - _action.previousLocation.x;
+                    int dy = mouse.y - _action.previousLocation.y;
+
+                    urect newAabb = _action.dragAabb;
+
+                    // handle underflow
+                    if (dx >= 0 || newAabb.x > (unsigned)(-dx)) {
+                        newAabb.x += dx;
+                    }
+                    else {
+                        newAabb.x = 0;
+                    }
+                    if (dy >= 0 || newAabb.y > (unsigned)(-dy)) {
+                        newAabb.y += dy;
+                    }
+                    else {
+                        newAabb.y = 0;
+                    }
+
+                    newAabb = _selectedFrame->location().clipInside(newAabb, _action.dragAabb);
+
+                    if (_action.dragAabb != newAabb) {
+                        _action.dragAabb = newAabb;
+                        queue_draw();
+                    }
+
+                    _action.previousLocation = mouse;
+                }
             }
         }
     }
@@ -386,6 +509,10 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
 
             case Action::SELECT_TRANSPARENT_COLOR:
                 handleRelease_SelectTransparentColor(mouse);
+                break;
+
+            case Action::DRAG:
+                handleRelease_Drag();
                 break;
 
             case Action::NONE:
@@ -530,7 +657,7 @@ void FrameSetGraphicalEditor::handleRelease_Click(const upoint& mouse)
 void FrameSetGraphicalEditor::handleRelease_SelectTransparentColor(const upoint& mouse)
 {
     _action.state = Action::NONE;
-    set_cursor_for_state(_action.state);
+    set_cursor_for_state(Action::NONE);
 
     const auto& image = _frameSet->image();
     if (!image.empty()) {
@@ -542,6 +669,42 @@ void FrameSetGraphicalEditor::handleRelease_SelectTransparentColor(const upoint&
             Signals::frameSetChanged.emit(_frameSet);
         }
     }
+}
+
+void FrameSetGraphicalEditor::handleRelease_Drag()
+{
+    _action.state = Action::NONE;
+    set_cursor_for_state(Action::NONE);
+
+    const auto aabb = _action.dragAabb;
+
+    switch (_selection.type) {
+    case Selection::Type::NONE:
+        break;
+
+    case Selection::Type::FRAME_OBJECT:
+        if (_selection.frameObject) {
+            _selection.frameObject->setLocation({ aabb.x, aabb.y });
+            Signals::frameObjectChanged(_selection.frameObject);
+        }
+        break;
+
+    case Selection::Type::ACTION_POINT:
+        if (_selection.actionPoint) {
+            _selection.actionPoint->setLocation({ aabb.x, aabb.y });
+            Signals::actionPointChanged(_selection.actionPoint);
+        }
+        break;
+
+    case Selection::Type::ENTITY_HITBOX:
+        if (_selection.entityHitbox) {
+            _selection.entityHitbox->setAabb(aabb);
+            Signals::entityHitboxChanged(_selection.entityHitbox);
+        }
+        break;
+    }
+
+    queue_draw();
 }
 
 bool FrameSetGraphicalEditor::on_enter_notify_event(GdkEventCrossing*)
@@ -562,6 +725,10 @@ void FrameSetGraphicalEditor::set_cursor_for_state(Action::State state)
 
         case Action::SELECT_TRANSPARENT_COLOR:
             win->set_cursor(Gdk::Cursor::create(get_display(), "cell"));
+            break;
+
+        case Action::DRAG:
+            win->set_cursor(Gdk::Cursor::create(get_display(), "move"));
             break;
         }
     }
