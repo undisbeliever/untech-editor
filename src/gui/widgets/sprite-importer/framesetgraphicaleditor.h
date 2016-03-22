@@ -60,8 +60,13 @@ protected:
         upoint pressLocation;
         upoint previousLocation;
 
-        bool canDrag;
         urect dragAabb;
+        bool canDrag;
+        bool resize;
+        bool resizeLeft;
+        bool resizeRight;
+        bool resizeTop;
+        bool resizeBottom;
     };
 
     void resizeWidget();
@@ -80,7 +85,7 @@ protected:
     bool on_enter_notify_event(GdkEventCrossing* event) override;
     bool on_leave_notify_event(GdkEventCrossing* event) override;
 
-    void set_cursor_for_state(Action::State state);
+    void update_pointer_cursor();
 
 private:
     std::shared_ptr<SI::FrameSet> _frameSet;

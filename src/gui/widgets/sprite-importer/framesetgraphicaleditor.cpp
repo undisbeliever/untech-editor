@@ -370,12 +370,12 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
     if (event->button == 1) {
         if (_action.state == Action::NONE) {
-            int x = std::lround(event->x / (_zoomX * _displayZoom));
-            int y = std::lround(event->y / (_zoomY * _displayZoom));
+            int mouseX = std::lround(event->x / (_zoomX * _displayZoom));
+            int mouseY = std::lround(event->y / (_zoomY * _displayZoom));
 
-            if (x >= 0 && y >= 0) {
+            if (mouseX >= 0 && mouseY >= 0) {
                 _action.state = Action::CLICK;
-                _action.pressLocation = { (unsigned)x, (unsigned)y };
+                _action.pressLocation = { (unsigned)mouseX, (unsigned)mouseY };
                 urect aabb;
 
                 switch (_selection.type) {
@@ -420,6 +420,29 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
                 if (_action.canDrag) {
                     _action.dragAabb = aabb;
+
+                    const auto fLoc = _selectedFrame->location();
+                    const upoint fm = { mouseX - fLoc.x, mouseY - fLoc.y };
+
+                    // make sure click is inside the item
+                    if (aabb.contains(fm)) {
+                        if (_selection.type == Selection::Type::ENTITY_HITBOX) {
+
+                            _action.resizeLeft = fm.x == aabb.left();
+                            _action.resizeRight = fm.x == aabb.right();
+                            _action.resizeTop = fm.y == aabb.top();
+                            _action.resizeBottom = fm.y == aabb.bottom();
+
+                            _action.resize = _action.resizeLeft | _action.resizeRight
+                                             | _action.resizeTop | _action.resizeBottom;
+                        }
+                        else {
+                            _action.resize = false;
+                        }
+                    }
+                    else {
+                        _action.canDrag = false;
+                    }
                 }
             }
         }
@@ -437,47 +460,89 @@ bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
     if (_action.state != Action::NONE) {
         auto allocation = get_allocation();
 
-        int x = std::lround((event->x - allocation.get_x()) / (_zoomX * _displayZoom));
-        int y = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom));
+        int mouseX = std::lround((event->x - allocation.get_x()) / (_zoomX * _displayZoom));
+        int mouseY = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom));
 
-        if (x >= 0 && y >= 0) {
-            upoint mouse = { (unsigned)x, (unsigned)y };
+        if (mouseX >= 0 && mouseY >= 0) {
+            upoint mouse = { (unsigned)mouseX, (unsigned)mouseY };
 
             if (_action.state == Action::CLICK && _action.canDrag) {
                 if (_action.pressLocation != mouse) {
                     _action.state = Action::DRAG;
                     _action.previousLocation = _action.pressLocation;
 
-                    set_cursor_for_state(_action.state);
+                    update_pointer_cursor();
                 }
             }
 
             if (_action.state == Action::DRAG) {
                 // move dragAbbb to new location.
                 if (_action.previousLocation != mouse) {
-                    int dx = mouse.x - _action.previousLocation.x;
-                    int dy = mouse.y - _action.previousLocation.y;
+                    urect aabb = _action.dragAabb;
 
-                    urect newAabb = _action.dragAabb;
+                    if (!_action.resize) {
+                        // move
+                        int dx = mouseX - _action.previousLocation.x;
+                        int dy = mouseY - _action.previousLocation.y;
 
-                    // handle underflow
-                    if (dx >= 0 || newAabb.x > (unsigned)(-dx)) {
-                        newAabb.x += dx;
+                        // handle underflow
+                        if (dx >= 0 || aabb.x > (unsigned)(-dx)) {
+                            aabb.x += dx;
+                        }
+                        else {
+                            aabb.x = 0;
+                        }
+                        if (dy >= 0 || aabb.y > (unsigned)(-dy)) {
+                            aabb.y += dy;
+                        }
+                        else {
+                            aabb.y = 0;
+                        }
                     }
                     else {
-                        newAabb.x = 0;
-                    }
-                    if (dy >= 0 || newAabb.y > (unsigned)(-dy)) {
-                        newAabb.y += dy;
-                    }
-                    else {
-                        newAabb.y = 0;
+                        // resize
+                        const auto& fLoc = _selectedFrame->location();
+                        int fmx = mouse.x - fLoc.x;
+                        if (fmx < 0) {
+                            fmx = 0;
+                        }
+                        if (_action.resizeLeft) {
+                            if ((unsigned)fmx >= aabb.right()) {
+                                fmx = aabb.right() - 1;
+                            }
+                            aabb.width = aabb.right() - fmx;
+                            aabb.x = fmx;
+                        }
+                        else if (_action.resizeRight) {
+                            if ((unsigned)fmx <= aabb.left()) {
+                                fmx = aabb.left() + 1;
+                            }
+                            aabb.width = fmx - aabb.x;
+                        }
+
+                        int fmy = mouse.y - fLoc.y;
+                        if (fmy < 0) {
+                            fmy = 0;
+                        }
+                        if (_action.resizeTop) {
+                            if ((unsigned)fmy >= aabb.bottom()) {
+                                fmy = aabb.bottom() - 1;
+                            }
+                            aabb.height = aabb.bottom() - fmy;
+                            aabb.y = fmy;
+                        }
+                        else if (_action.resizeBottom) {
+                            if ((unsigned)fmy <= aabb.top()) {
+                                fmy = aabb.top() + 1;
+                            }
+                            aabb.height = fmy - aabb.y;
+                        }
                     }
 
-                    newAabb = _selectedFrame->location().clipInside(newAabb, _action.dragAabb);
+                    aabb = _selectedFrame->location().clipInside(aabb, _action.dragAabb);
 
-                    if (_action.dragAabb != newAabb) {
-                        _action.dragAabb = newAabb;
+                    if (_action.dragAabb != aabb) {
+                        _action.dragAabb = aabb;
                         queue_draw();
                     }
 
@@ -657,7 +722,7 @@ void FrameSetGraphicalEditor::handleRelease_Click(const upoint& mouse)
 void FrameSetGraphicalEditor::handleRelease_SelectTransparentColor(const upoint& mouse)
 {
     _action.state = Action::NONE;
-    set_cursor_for_state(Action::NONE);
+    update_pointer_cursor();
 
     const auto& image = _frameSet->image();
     if (!image.empty()) {
@@ -674,7 +739,7 @@ void FrameSetGraphicalEditor::handleRelease_SelectTransparentColor(const upoint&
 void FrameSetGraphicalEditor::handleRelease_Drag()
 {
     _action.state = Action::NONE;
-    set_cursor_for_state(Action::NONE);
+    update_pointer_cursor();
 
     const auto aabb = _action.dragAabb;
 
@@ -709,15 +774,15 @@ void FrameSetGraphicalEditor::handleRelease_Drag()
 
 bool FrameSetGraphicalEditor::on_enter_notify_event(GdkEventCrossing*)
 {
-    set_cursor_for_state(_action.state);
+    update_pointer_cursor();
     return true;
 }
 
-void FrameSetGraphicalEditor::set_cursor_for_state(Action::State state)
+void FrameSetGraphicalEditor::update_pointer_cursor()
 {
     auto win = get_window();
     if (win) {
-        switch (state) {
+        switch (_action.state) {
         case Action::NONE:
         case Action::CLICK:
             win->set_cursor();
@@ -728,7 +793,28 @@ void FrameSetGraphicalEditor::set_cursor_for_state(Action::State state)
             break;
 
         case Action::DRAG:
-            win->set_cursor(Gdk::Cursor::create(get_display(), "move"));
+            if (!_action.resize) {
+                win->set_cursor(Gdk::Cursor::create(get_display(), "move"));
+            }
+            else {
+                bool horizontal = _action.resizeLeft | _action.resizeRight;
+                bool vertical = _action.resizeTop | _action.resizeBottom;
+
+                if (horizontal && !vertical) {
+                    win->set_cursor(Gdk::Cursor::create(get_display(), "ew-resize"));
+                }
+                else if (vertical && !horizontal) {
+                    win->set_cursor(Gdk::Cursor::create(get_display(), "ns-resize"));
+                }
+                else if ((_action.resizeLeft && _action.resizeTop)
+                         || (_action.resizeRight && _action.resizeBottom)) {
+                    win->set_cursor(Gdk::Cursor::create(get_display(), "nwse-resize"));
+                }
+                else if ((_action.resizeRight && _action.resizeTop)
+                         || (_action.resizeLeft && _action.resizeBottom)) {
+                    win->set_cursor(Gdk::Cursor::create(get_display(), "nesw-resize"));
+                }
+            }
             break;
         }
     }
@@ -817,7 +903,7 @@ void FrameSetGraphicalEditor::unselectAll()
 void FrameSetGraphicalEditor::enableSelectTransparentColor()
 {
     _action.state = Action::SELECT_TRANSPARENT_COLOR;
-    set_cursor_for_state(_action.state);
+    update_pointer_cursor();
 }
 
 inline double limit(double v, double min, double max)
