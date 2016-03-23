@@ -12,6 +12,7 @@
 #include "framesetgraphicaleditor.h"
 #include "framesetlist.h"
 #include "framesetpropertieseditor.h"
+#include "selection.h"
 #include "models/sprite-importer.h"
 #include "gui/widgets/defaults.h"
 
@@ -29,19 +30,12 @@ public:
     SpriteImporterEditor();
 
     void setFrameSetList(SI::FrameSet::list_t* frameSetList);
-    void setFrameSet(std::shared_ptr<SI::FrameSet> frameSet);
-    void setFrame(std::shared_ptr<SI::Frame> frame);
-    void setFrameObject(std::shared_ptr<SI::FrameObject> frameObject);
-    void setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint);
-    void setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox);
 
 public:
     Gtk::Paned widget;
 
 private:
-    std::shared_ptr<SI::FrameSet> _selectedFrameSet;
-    std::shared_ptr<SI::Frame> _selectedFrame;
-    std::shared_ptr<SI::FrameObject> _selectedFrameObject;
+    Selection _selection;
 
     Gtk::ScrolledWindow _graphicalWindow;
     FrameSetGraphicalEditor _graphicalEditor;

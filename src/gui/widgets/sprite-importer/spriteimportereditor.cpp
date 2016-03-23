@@ -5,10 +5,9 @@ namespace SI = UnTech::SpriteImporter;
 
 SpriteImporterEditor::SpriteImporterEditor()
     : widget(Gtk::ORIENTATION_HORIZONTAL)
-    , _selectedFrameSet(nullptr)
-    , _selectedFrame(nullptr)
+    , _selection()
     , _graphicalWindow()
-    , _graphicalEditor()
+    , _graphicalEditor(_selection)
     , _sidebar()
     , _frameSetPane(Gtk::ORIENTATION_VERTICAL)
     , _framePane(Gtk::ORIENTATION_VERTICAL)
@@ -68,70 +67,35 @@ SpriteImporterEditor::SpriteImporterEditor()
      * SLOTS
      * =====
      */
-    _frameSetPropertiesEditor.signal_selectTransparentClicked().connect(
-        sigc::mem_fun(_graphicalEditor, &FrameSetGraphicalEditor::enableSelectTransparentColor));
-
-    _frameSetList.signal_selected_changed().connect([this](void) {
-        setFrameSet(_frameSetList.getSelected());
-    });
-    _frameList.signal_selected_changed().connect([this](void) {
-        setFrame(_frameList.getSelected());
-    });
-    _frameObjectList.signal_selected_changed().connect([this](void) {
-        setFrameObject(_frameObjectList.getSelected());
-    });
-    _actionPointList.signal_selected_changed().connect([this](void) {
-        setActionPoint(_actionPointList.getSelected());
-    });
-    _entityHitboxList.signal_selected_changed().connect([this](void) {
-        setEntityHitbox(_entityHitboxList.getSelected());
-    });
-
-    _graphicalEditor.signal_selectFrame.connect(sigc::mem_fun(*this, &SpriteImporterEditor::setFrame));
-    _graphicalEditor.signal_selectFrameObject.connect(sigc::mem_fun(*this, &SpriteImporterEditor::setFrameObject));
-    _graphicalEditor.signal_selectActionPoint.connect(sigc::mem_fun(*this, &SpriteImporterEditor::setActionPoint));
-    _graphicalEditor.signal_selectEntityHitbox.connect(sigc::mem_fun(*this, &SpriteImporterEditor::setEntityHitbox));
-}
-
-void SpriteImporterEditor::setFrameSetList(SI::FrameSet::list_t* frameSetList)
-{
-    // No need to test if changed, will only be called on new/load.
-    _frameSetList.setList(frameSetList);
-    setFrame(nullptr);
-}
-
-void SpriteImporterEditor::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
-{
-    if (_selectedFrameSet != frameSet) {
-        _selectedFrameSet = frameSet;
+    _selection.signal_frameSetChanged.connect([this](void) {
+        auto frameSet = _selection.frameSet();
 
         if (frameSet) {
             _frameList.setList(frameSet->frames());
+
+            _sidebar.set_current_page(FRAMESET_PAGE);
         }
         else {
             _frameList.setList(nullptr);
         }
 
         _frameSetPropertiesEditor.setFrameSet(frameSet);
-        _graphicalEditor.setFrameSet(frameSet);
 
-        _sidebar.set_current_page(FRAMESET_PAGE);
-    }
-}
+    });
 
-void SpriteImporterEditor::setFrame(std::shared_ptr<SI::Frame> frame)
-{
-    if (_selectedFrame != frame) {
-        _selectedFrame = frame;
+    _selection.signal_frameChanged.connect([this](void) {
+        auto frame = _selection.frame();
 
         if (frame) {
-            setFrameSet(frame->frameSet());
+            _frameList.selectItem(frame);
 
             _frameObjectList.setList(frame->objects());
             _actionPointList.setList(frame->actionPoints());
             _entityHitboxList.setList(frame->entityHitboxes());
 
             _frameNotebook.set_sensitive(true);
+
+            _sidebar.set_current_page(FRAME_PAGE);
         }
         else {
             _frameObjectList.setList(nullptr);
@@ -141,49 +105,66 @@ void SpriteImporterEditor::setFrame(std::shared_ptr<SI::Frame> frame)
             _frameNotebook.set_sensitive(false);
         }
 
-        setFrameObject(nullptr);
-        setActionPoint(nullptr);
-        setEntityHitbox(nullptr);
+        _frameParameterEditor.setFrame(frame);
+    });
 
-        _frameList.selectItem(frame);
-        _graphicalEditor.setFrame(frame);
+    _selection.signal_frameObjectChanged.connect([this](void) {
+        _frameObjectList.selectItem(_selection.frameObject());
+        _frameObjectEditor.setFrameObject(_selection.frameObject());
+    });
 
-        _sidebar.set_current_page(FRAME_PAGE);
-    }
+    _selection.signal_actionPointChanged.connect([this](void) {
+        _actionPointList.selectItem(_selection.actionPoint());
+        _actionPointEditor.setActionPoint(_selection.actionPoint());
+    });
+
+    _selection.signal_entityHitboxChanged.connect([this](void) {
+        _entityHitboxList.selectItem(_selection.entityHitbox());
+        _entityHitboxEditor.setEntityHitbox(_selection.entityHitbox());
+    });
+
+    /** Change active tab depending on selection */
+    _selection.signal_selectionChanged.connect([this](void) {
+        switch (_selection.type()) {
+        case Selection::Type::FRAME_OBJECT:
+            _frameNotebook.set_current_page(FramePages::FRAME_OBJECT_PAGE);
+            break;
+        case Selection::Type::ACTION_POINT:
+            _frameNotebook.set_current_page(FramePages::ACTION_POINT_PAGE);
+            break;
+
+        case Selection::Type::ENTITY_HITBOX:
+            _frameNotebook.set_current_page(FramePages::ENTITY_HITBOX_PAGE);
+            break;
+
+        default:
+            break;
+        }
+    });
+
+    _frameSetPropertiesEditor.signal_selectTransparentClicked().connect(
+        sigc::mem_fun(_graphicalEditor, &FrameSetGraphicalEditor::enableSelectTransparentColor));
+
+    _frameSetList.signal_selected_changed().connect([this](void) {
+        _selection.setFrameSet(_frameSetList.getSelected());
+    });
+    _frameList.signal_selected_changed().connect([this](void) {
+        _selection.setFrame(_frameList.getSelected());
+    });
+    _frameObjectList.signal_selected_changed().connect([this](void) {
+        _selection.setFrameObject(_frameObjectList.getSelected());
+    });
+    _actionPointList.signal_selected_changed().connect([this](void) {
+        _selection.setActionPoint(_actionPointList.getSelected());
+    });
+    _entityHitboxList.signal_selected_changed().connect([this](void) {
+        _selection.setEntityHitbox(_entityHitboxList.getSelected());
+    });
 }
 
-void SpriteImporterEditor::setFrameObject(std::shared_ptr<SI::FrameObject> frameObject)
+void SpriteImporterEditor::setFrameSetList(SI::FrameSet::list_t* frameSetList)
 {
-    if (frameObject) {
-        setFrame(frameObject->frame());
-        _frameNotebook.set_current_page(FRAME_OBJECT_PAGE);
-    }
-
-    _frameObjectList.selectItem(frameObject);
-    _frameObjectEditor.setFrameObject(frameObject);
-    _graphicalEditor.setFrameObject(frameObject);
-}
-
-void SpriteImporterEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
-{
-    if (actionPoint) {
-        setFrame(actionPoint->frame());
-        _frameNotebook.set_current_page(ACTION_POINT_PAGE);
-    }
-
-    _actionPointList.selectItem(actionPoint);
-    _actionPointEditor.setActionPoint(actionPoint);
-    _graphicalEditor.setActionPoint(actionPoint);
-}
-
-void SpriteImporterEditor::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox)
-{
-    if (entityHitbox) {
-        setFrame(entityHitbox->frame());
-        _frameNotebook.set_current_page(ENTITY_HITBOX_PAGE);
-    }
-
-    _entityHitboxList.selectItem(entityHitbox);
-    _entityHitboxEditor.setEntityHitbox(entityHitbox);
-    _graphicalEditor.setEntityHitbox(entityHitbox);
+    // No need to test if changed, will only be called on new/load.
+    _frameSetList.setList(frameSetList);
+    _selection.setFrameSet(nullptr);
 }

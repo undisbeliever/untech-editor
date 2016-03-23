@@ -297,6 +297,7 @@ public:
             if (ret == Gtk::RESPONSE_ACCEPT) {
                 this->list->remove(toDelete);
                 this->emitListChangedSignal();
+                this->selectItem(nullptr);
             }
         });
 

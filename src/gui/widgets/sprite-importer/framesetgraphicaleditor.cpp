@@ -7,15 +7,13 @@
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
-FrameSetGraphicalEditor::FrameSetGraphicalEditor()
+FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection)
     : Gtk::DrawingArea()
-    , _frameSet(nullptr)
-    , _selectedFrame(nullptr)
     , _zoomX(3.0)
     , _zoomY(3.0)
     , _displayZoom(NAN)
     , _frameSetImage()
-    , _selection()
+    , _selection(selection)
 {
     add_events(Gdk::BUTTON_PRESS_MASK
                | Gdk::BUTTON_RELEASE_MASK
@@ -30,28 +28,39 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor()
     Signals::actionPointListChanged.connect(sigc::hide(sigc::mem_fun(this, &FrameSetGraphicalEditor::queue_draw)));
     Signals::entityHitboxListChanged.connect(sigc::hide(sigc::mem_fun(this, &FrameSetGraphicalEditor::queue_draw)));
 
+    _selection.signal_frameSetChanged.connect([this](void) {
+        loadAndScaleImage();
+        resizeWidget();
+    });
+
+    _selection.signal_selectionChanged.connect([this](void) {
+        // reset action
+        _action.state = Action::NONE;
+        queue_draw();
+    });
+
     Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> frameSet) {
-        if (frameSet == _frameSet) {
+        if (frameSet == _selection.frameSet()) {
             queue_draw();
         }
     });
     Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
-        if (frame && frame->frameSet() == _frameSet) {
+        if (frame && frame->frameSet() == _selection.frameSet()) {
             queue_draw();
         }
     });
     Signals::frameObjectChanged.connect([this](const std::shared_ptr<SI::FrameObject> obj) {
-        if (obj && obj->frame()->frameSet() == _frameSet) {
+        if (obj && obj->frame()->frameSet() == _selection.frameSet()) {
             queue_draw();
         }
     });
     Signals::actionPointLocationChanged.connect([this](const std::shared_ptr<SI::ActionPoint> ap) {
-        if (ap && ap->frame()->frameSet() == _frameSet) {
+        if (ap && ap->frame()->frameSet() == _selection.frameSet()) {
             queue_draw();
         }
     });
     Signals::entityHitboxLocationChanged.connect([this](const std::shared_ptr<SI::EntityHitbox> eh) {
-        if (eh && eh->frame()->frameSet() == _frameSet) {
+        if (eh && eh->frame()->frameSet() == _selection.frameSet()) {
             queue_draw();
         }
     });
@@ -60,8 +69,8 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor()
 // ::TODO call on signal_frameSetImageChanged signal::
 void FrameSetGraphicalEditor::resizeWidget()
 {
-    if (_frameSet && !_frameSet->image().empty() && _displayZoom > 0.0) {
-        const auto imgSize = _frameSet->image().size();
+    if (_selection.frameSet() && !_selection.frameSet()->image().empty() && _displayZoom > 0.0) {
+        const auto imgSize = _selection.frameSet()->image().size();
 
         this->set_size_request(imgSize.width * _zoomX * _displayZoom,
                                imgSize.height * _zoomY * _displayZoom);
@@ -75,8 +84,8 @@ void FrameSetGraphicalEditor::resizeWidget()
 
 void FrameSetGraphicalEditor::loadAndScaleImage()
 {
-    if (_frameSet) {
-        const auto& img = _frameSet->image();
+    if (_selection.frameSet()) {
+        const auto& img = _selection.frameSet()->image();
 
         if (!img.empty()) {
             int width = img.size().width * _zoomX;
@@ -121,7 +130,7 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     const cr_rgba selectionOuterColor = { 0.0, 0.0, 0.0, 1.0 };
     const cr_rgba selectionDragColor = { 0.5, 0.5, 0.5, 0.5 };
 
-    if (_frameSet == nullptr) {
+    if (_selection.frameSet() == nullptr) {
         return true;
     }
 
@@ -155,7 +164,7 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     frameBorderColor.apply(cr);
     cr->set_line_width(FRAME_BORDER_WIDTH);
-    for (const auto frameIt : _frameSet->frames()) {
+    for (const auto frameIt : _selection.frameSet()->frames()) {
         const auto frame = frameIt.second;
         const auto frameLoc = frame->location();
 
@@ -163,7 +172,7 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->stroke();
     }
 
-    for (const auto frameIt : _frameSet->frames()) {
+    for (const auto frameIt : _selection.frameSet()->frames()) {
         const auto frame = frameIt.second;
         const auto frameLoc = frame->location();
 
@@ -235,9 +244,9 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         }
     }
 
-    if (_selectedFrame) {
+    if (_selection.frame()) {
         // highlight everything that is not the selected frame.
-        const auto sLoc = _selectedFrame->location();
+        const auto sLoc = _selection.frame()->location();
         auto allocation = get_allocation();
         const unsigned aWidth = allocation.get_width();
         const unsigned aHeight = allocation.get_height();
@@ -273,16 +282,16 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->stroke();
     };
 
-    switch (_selection.type) {
+    switch (_selection.type()) {
     case Selection::Type::NONE:
         break;
 
     case Selection::Type::FRAME_OBJECT:
-        if (_selection.frameObject) {
-            const auto frame = _selection.frameObject->frame();
+        if (_selection.frameObject()) {
+            const auto frame = _selection.frameObject()->frame();
             if (frame) {
-                const auto oLoc = _selection.frameObject->location();
-                const unsigned oSize = _selection.frameObject->sizePx();
+                const auto oLoc = _selection.frameObject()->location();
+                const unsigned oSize = _selection.frameObject()->sizePx();
 
                 frameObjectColor.apply(cr);
                 draw_selected_rectangle(frame->location(),
@@ -292,10 +301,10 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         break;
 
     case Selection::Type::ENTITY_HITBOX:
-        if (_selection.entityHitbox) {
-            const auto frame = _selection.entityHitbox->frame();
+        if (_selection.entityHitbox()) {
+            const auto frame = _selection.entityHitbox()->frame();
             if (frame) {
-                const auto aabb = _selection.entityHitbox->aabb();
+                const auto aabb = _selection.entityHitbox()->aabb();
 
                 // ::SHOULDO different color lines depending on type::
                 entityHitboxColor.apply(cr);
@@ -306,11 +315,11 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         break;
 
     case Selection::Type::ACTION_POINT:
-        if (_selection.actionPoint) {
-            const auto frame = _selection.actionPoint->frame();
+        if (_selection.actionPoint()) {
+            const auto frame = _selection.actionPoint()->frame();
             if (frame) {
                 const auto frameLoc = frame->location();
-                const auto aLoc = _selection.actionPoint->location();
+                const auto aLoc = _selection.actionPoint()->location();
 
                 cr->save();
 
@@ -345,7 +354,7 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     if (_action.state == Action::DRAG) {
         const urect aabb = _action.dragAabb;
-        const urect fLoc = _selectedFrame->location();
+        const urect fLoc = _selection.frame()->location();
 
         // ::SHOULDDO checkerboard pattern::
 
@@ -362,29 +371,29 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
 bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 {
-    if (_frameSet == nullptr) {
+    if (_selection.frameSet() == nullptr) {
         return false;
     }
-
-    _action.canDrag = false;
 
     if (event->button == 1) {
         if (_action.state == Action::NONE) {
             int mouseX = std::lround(event->x / (_zoomX * _displayZoom));
             int mouseY = std::lround(event->y / (_zoomY * _displayZoom));
 
+            _action.canDrag = false;
+
             if (mouseX >= 0 && mouseY >= 0) {
                 _action.state = Action::CLICK;
                 _action.pressLocation = { (unsigned)mouseX, (unsigned)mouseY };
                 urect aabb;
 
-                switch (_selection.type) {
+                switch (_selection.type()) {
                 case Selection::Type::NONE:
                     break;
 
                 case Selection::Type::FRAME_OBJECT:
-                    if (_selection.frameObject) {
-                        const auto fo = _selection.frameObject;
+                    if (_selection.frameObject()) {
+                        const auto fo = _selection.frameObject();
 
                         if (fo->frame()) {
                             const auto foLoc = fo->location();
@@ -395,8 +404,8 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
                     break;
 
                 case Selection::Type::ACTION_POINT:
-                    if (_selection.actionPoint) {
-                        const auto ap = _selection.actionPoint;
+                    if (_selection.actionPoint()) {
+                        const auto ap = _selection.actionPoint();
 
                         if (ap->frame()) {
                             const auto apLoc = ap->location();
@@ -407,8 +416,8 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
                     break;
 
                 case Selection::Type::ENTITY_HITBOX:
-                    if (_selection.entityHitbox) {
-                        const auto eh = _selection.entityHitbox;
+                    if (_selection.entityHitbox()) {
+                        const auto eh = _selection.entityHitbox();
 
                         if (eh->frame()) {
                             aabb = eh->aabb();
@@ -421,28 +430,25 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
                 if (_action.canDrag) {
                     _action.dragAabb = aabb;
 
-                    const auto fLoc = _selectedFrame->location();
+                    const auto fLoc = _selection.frame()->location();
                     const upoint fm = { mouseX - fLoc.x, mouseY - fLoc.y };
 
-                    // make sure click is inside the item
-                    if (aabb.contains(fm)) {
-                        if (_selection.type == Selection::Type::ENTITY_HITBOX) {
+                    if (_selection.type() == Selection::Type::ENTITY_HITBOX) {
 
-                            _action.resizeLeft = fm.x == aabb.left();
-                            _action.resizeRight = fm.x == aabb.right();
-                            _action.resizeTop = fm.y == aabb.top();
-                            _action.resizeBottom = fm.y == aabb.bottom();
+                        _action.resizeLeft = fm.x == aabb.left();
+                        _action.resizeRight = fm.x == aabb.right();
+                        _action.resizeTop = fm.y == aabb.top();
+                        _action.resizeBottom = fm.y == aabb.bottom();
 
-                            _action.resize = _action.resizeLeft | _action.resizeRight
-                                             | _action.resizeTop | _action.resizeBottom;
-                        }
-                        else {
-                            _action.resize = false;
-                        }
+                        _action.resize = _action.resizeLeft | _action.resizeRight
+                                         | _action.resizeTop | _action.resizeBottom;
                     }
                     else {
-                        _action.canDrag = false;
+                        _action.resize = false;
                     }
+
+                    // make sure click is inside the item
+                    _action.canDrag = aabb.contains(fm) || _action.resize;
                 }
             }
         }
@@ -452,7 +458,7 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
 bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
 {
-    if (_selectedFrame == nullptr) {
+    if (_selection.frame() == nullptr) {
         _action.state = Action::NONE;
         return true;
     }
@@ -501,7 +507,7 @@ bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
                     }
                     else {
                         // resize
-                        const auto& fLoc = _selectedFrame->location();
+                        const auto& fLoc = _selection.frame()->location();
                         int fmx = mouse.x - fLoc.x;
                         if (fmx < 0) {
                             fmx = 0;
@@ -539,7 +545,7 @@ bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
                         }
                     }
 
-                    aabb = _selectedFrame->location().clipInside(aabb, _action.dragAabb);
+                    aabb = _selection.frame()->location().clipInside(aabb, _action.dragAabb);
 
                     if (_action.dragAabb != aabb) {
                         _action.dragAabb = aabb;
@@ -556,7 +562,7 @@ bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
 
 bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
 {
-    if (_frameSet == nullptr) {
+    if (_selection.frameSet() == nullptr) {
         return false;
     }
 
@@ -600,9 +606,11 @@ void FrameSetGraphicalEditor::handleRelease_Click(const upoint& mouse)
         return;
     }
 
-    if (_selectedFrame && _selectedFrame->location().contains(mouse)) {
-        const auto frameLoc = _selectedFrame->location();
-        const upoint frameMouse = { mouse.x - frameLoc.x, mouse.y - frameLoc.y };
+    const auto& sFrame = _selection.frame();
+
+    if (sFrame && sFrame->location().contains(mouse)) {
+        const auto sFrameLoc = sFrame->location();
+        const upoint frameMouse = { mouse.x - sFrameLoc.x, mouse.y - sFrameLoc.y };
 
         /*
          * Select a given item.
@@ -612,110 +620,112 @@ void FrameSetGraphicalEditor::handleRelease_Click(const upoint& mouse)
          * was the previously selected one then the first match
          * is selected.
          */
-        Selection selection;
-        Selection firstMatch;
+        struct SelHandler {
+            Selection::Type type = Selection::Type::NONE;
+            std::shared_ptr<SI::FrameObject> frameObject = nullptr;
+            std::shared_ptr<SI::ActionPoint> actionPoint = nullptr;
+            std::shared_ptr<SI::EntityHitbox> entityHitbox = nullptr;
+        };
+        SelHandler current;
+        SelHandler firstMatch;
 
-        for (const auto obj : _selectedFrame->objects()) {
+        for (const auto obj : sFrame->objects()) {
             const auto loc = obj->location();
 
             if (frameMouse.x >= loc.x && frameMouse.x < (loc.x + obj->sizePx())
                 && frameMouse.y >= loc.y && frameMouse.y < (loc.y + obj->sizePx())) {
-                if (selection.type == Selection::Type::NONE) {
-                    selection.frameObject = obj;
-                    selection.type = Selection::Type::FRAME_OBJECT;
+                if (current.type == Selection::Type::NONE) {
+                    current.frameObject = obj;
+                    current.type = Selection::Type::FRAME_OBJECT;
 
                     if (firstMatch.type == Selection::Type::NONE) {
                         firstMatch.frameObject = obj;
                         firstMatch.type = Selection::Type::FRAME_OBJECT;
                     }
                 }
-                if (obj == _selection.frameObject) {
-                    selection.type = Selection::Type::NONE;
+                if (obj == _selection.frameObject()
+                    && _selection.type() == Selection::Type::FRAME_OBJECT) {
+                    current.type = Selection::Type::NONE;
                 }
             }
         }
 
-        for (const auto ap : _selectedFrame->actionPoints()) {
+        for (const auto ap : sFrame->actionPoints()) {
             const auto loc = ap->location();
 
             if (frameMouse == loc) {
-                if (selection.type == Selection::Type::NONE) {
-                    selection.actionPoint = ap;
-                    selection.type = Selection::Type::ACTION_POINT;
+                if (current.type == Selection::Type::NONE) {
+                    current.actionPoint = ap;
+                    current.type = Selection::Type::ACTION_POINT;
 
                     if (firstMatch.type == Selection::Type::NONE) {
                         firstMatch.actionPoint = ap;
                         firstMatch.type = Selection::Type::ACTION_POINT;
                     }
                 }
-                if (ap == _selection.actionPoint) {
-                    selection.type = Selection::Type::NONE;
+                if (ap == _selection.actionPoint()
+                    && _selection.type() == Selection::Type::ACTION_POINT) {
+                    current.type = Selection::Type::NONE;
                 }
             }
         }
 
-        for (const auto eh : _selectedFrame->entityHitboxes()) {
+        for (const auto eh : sFrame->entityHitboxes()) {
             const auto aabb = eh->aabb();
 
             if (aabb.contains(frameMouse)) {
-                if (selection.type == Selection::Type::NONE) {
-                    selection.entityHitbox = eh;
-                    selection.type = Selection::Type::ENTITY_HITBOX;
+                if (current.type == Selection::Type::NONE) {
+                    current.entityHitbox = eh;
+                    current.type = Selection::Type::ENTITY_HITBOX;
 
                     if (firstMatch.type == Selection::Type::NONE) {
                         firstMatch.entityHitbox = eh;
                         firstMatch.type = Selection::Type::ENTITY_HITBOX;
                     }
                 }
-                if (eh == _selection.entityHitbox) {
-                    selection.type = Selection::Type::NONE;
+                if (eh == _selection.entityHitbox()
+                    && _selection.type() == Selection::Type::ENTITY_HITBOX) {
+                    current.type = Selection::Type::NONE;
                 }
             }
         }
 
-        if (selection.type == Selection::Type::NONE) {
+        if (current.type == Selection::Type::NONE) {
             // handle wrap around.
-            selection = firstMatch;
+            current = firstMatch;
         }
 
-        switch (selection.type) {
+        switch (current.type) {
         case Selection::Type::NONE:
-            unselectAll();
+            _selection.unselectAll();
             break;
 
         case Selection::Type::FRAME_OBJECT:
-            setFrameObject(selection.frameObject);
-            signal_selectFrameObject.emit(selection.frameObject);
+            _selection.setFrameObject(current.frameObject);
             break;
 
         case Selection::Type::ACTION_POINT:
-            setActionPoint(selection.actionPoint);
-            signal_selectActionPoint.emit(selection.actionPoint);
+            _selection.setActionPoint(current.actionPoint);
             break;
 
         case Selection::Type::ENTITY_HITBOX:
-            setEntityHitbox(selection.entityHitbox);
-            signal_selectEntityHitbox.emit(selection.entityHitbox);
+            _selection.setEntityHitbox(current.entityHitbox);
             break;
         }
-
-        return;
     }
     else {
-        for (const auto fIt : _frameSet->frames()) {
+        for (const auto fIt : _selection.frameSet()->frames()) {
             const auto frameLoc = fIt.second->location();
 
             if (frameLoc.contains(mouse)) {
-                setFrame(fIt.second);
-                signal_selectFrame.emit(fIt.second);
+                _selection.setFrame(fIt.second);
                 return;
             }
         }
 
         // click is not inside a frame
         // unselect current frame.
-        setFrame(nullptr);
-        signal_selectFrame.emit(nullptr);
+        _selection.setFrame(nullptr);
     }
 }
 
@@ -724,14 +734,14 @@ void FrameSetGraphicalEditor::handleRelease_SelectTransparentColor(const upoint&
     _action.state = Action::NONE;
     update_pointer_cursor();
 
-    const auto& image = _frameSet->image();
+    const auto& image = _selection.frameSet()->image();
     if (!image.empty()) {
         auto size = image.size();
         if (mouse.x < size.width && mouse.y < size.height) {
-            auto color = _frameSet->image().getPixel(mouse.x, mouse.y);
-            _frameSet->setTransparentColor(color);
+            auto color = _selection.frameSet()->image().getPixel(mouse.x, mouse.y);
+            _selection.frameSet()->setTransparentColor(color);
 
-            Signals::frameSetChanged.emit(_frameSet);
+            Signals::frameSetChanged.emit(_selection.frameSet());
         }
     }
 }
@@ -743,28 +753,28 @@ void FrameSetGraphicalEditor::handleRelease_Drag()
 
     const auto aabb = _action.dragAabb;
 
-    switch (_selection.type) {
+    switch (_selection.type()) {
     case Selection::Type::NONE:
         break;
 
     case Selection::Type::FRAME_OBJECT:
-        if (_selection.frameObject) {
-            _selection.frameObject->setLocation({ aabb.x, aabb.y });
-            Signals::frameObjectChanged(_selection.frameObject);
+        if (_selection.frameObject()) {
+            _selection.frameObject()->setLocation({ aabb.x, aabb.y });
+            Signals::frameObjectChanged(_selection.frameObject());
         }
         break;
 
     case Selection::Type::ACTION_POINT:
-        if (_selection.actionPoint) {
-            _selection.actionPoint->setLocation({ aabb.x, aabb.y });
-            Signals::actionPointChanged(_selection.actionPoint);
+        if (_selection.actionPoint()) {
+            _selection.actionPoint()->setLocation({ aabb.x, aabb.y });
+            Signals::actionPointChanged(_selection.actionPoint());
         }
         break;
 
     case Selection::Type::ENTITY_HITBOX:
-        if (_selection.entityHitbox) {
-            _selection.entityHitbox->setAabb(aabb);
-            Signals::entityHitboxChanged(_selection.entityHitbox);
+        if (_selection.entityHitbox()) {
+            _selection.entityHitbox()->setAabb(aabb);
+            Signals::entityHitboxChanged(_selection.entityHitbox());
         }
         break;
     }
@@ -828,76 +838,6 @@ bool FrameSetGraphicalEditor::on_leave_notify_event(GdkEventCrossing*)
     }
 
     return true;
-}
-
-void FrameSetGraphicalEditor::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
-{
-    if (_frameSet != frameSet) {
-        _frameSet = frameSet;
-        _selectedFrame = nullptr;
-        unselectAll();
-
-        loadAndScaleImage();
-        resizeWidget();
-    }
-}
-
-void FrameSetGraphicalEditor::setFrame(std::shared_ptr<SI::Frame> frame)
-{
-    if (_selectedFrame != frame) {
-        _selectedFrame = frame;
-        unselectAll();
-
-        queue_draw();
-    }
-}
-
-void FrameSetGraphicalEditor::setFrameObject(std::shared_ptr<SI::FrameObject> frameObject)
-{
-    _selection.type = Selection::Type::FRAME_OBJECT;
-    _selection.frameObject = frameObject;
-    _selection.actionPoint = nullptr;
-    _selection.entityHitbox = nullptr;
-
-    _action.state = Action::NONE;
-
-    queue_draw();
-}
-
-void FrameSetGraphicalEditor::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
-{
-    _selection.type = Selection::Type::ACTION_POINT;
-    _selection.frameObject = nullptr;
-    _selection.actionPoint = actionPoint;
-    _selection.entityHitbox = nullptr;
-
-    _action.state = Action::NONE;
-
-    queue_draw();
-}
-
-void FrameSetGraphicalEditor::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox)
-{
-    _selection.type = Selection::Type::ENTITY_HITBOX;
-    _selection.frameObject = nullptr;
-    _selection.actionPoint = nullptr;
-    _selection.entityHitbox = entityHitbox;
-
-    _action.state = Action::NONE;
-
-    queue_draw();
-}
-
-void FrameSetGraphicalEditor::unselectAll()
-{
-    _selection.type = Selection::Type::NONE;
-    _selection.frameObject = nullptr;
-    _selection.actionPoint = nullptr;
-    _selection.entityHitbox = nullptr;
-
-    _action.state = Action::NONE;
-
-    queue_draw();
 }
 
 void FrameSetGraphicalEditor::enableSelectTransparentColor()
