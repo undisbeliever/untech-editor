@@ -1,10 +1,55 @@
 #include "framepropertieseditor.h"
+#include "signals.h"
+#include "gui/undo/actionhelper.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
-namespace SI = UnTech::SpriteImporter;
 
-FramePropertiesEditor::FramePropertiesEditor()
+// ::SHOULDO add a Boolean type::
+// ::: would need undo and redo messages in Undo::Action ::
+
+SIMPLE_UNDO_ACTION(frame_setGridLocation,
+                   SI::Frame, UnTech::upoint, gridLocation, setGridLocation,
+                   Signals::frameChanged,
+                   "Change Grid Location")
+
+SIMPLE_UNDO_ACTION2(frame_setUseGridLocation,
+                    SI::Frame, bool, useGridLocation, setUseGridLocation,
+                    Signals::frameChanged, Signals::frameSizeChanged,
+                    "Change Use Grid Location")
+
+SIMPLE_UNDO_ACTION2(frame_setLocation,
+                    SI::Frame, UnTech::urect, location, setLocation,
+                    Signals::frameChanged, Signals::frameSizeChanged,
+                    "Change Frame Location")
+
+SIMPLE_UNDO_ACTION(frame_setUseGridOrigin,
+                   SI::Frame, bool, useGridOrigin, setUseGridOrigin,
+                   Signals::frameChanged,
+                   "Change Use Grid Origin")
+
+SIMPLE_UNDO_ACTION(frame_setOrigin,
+                   SI::Frame, UnTech::upoint, origin, setOrigin,
+                   Signals::frameChanged,
+                   "Change Frame Origin")
+
+SIMPLE_UNDO_ACTION(frame_setSolid,
+                   SI::Frame, bool, solid, setSolid,
+                   Signals::frameChanged,
+                   "Change Frame Solid")
+
+SIMPLE_UNDO_ACTION(frame_setTileHitbox,
+                   SI::Frame, UnTech::urect, tileHitbox, setTileHitbox,
+                   Signals::frameChanged,
+                   "Change Frame Tile Hitbox")
+
+SIMPLE_UNDO_ACTION(frame_setSpriteOrder,
+                   SI::Frame, unsigned, spriteOrder, setSpriteOrder,
+                   Signals::frameChanged,
+                   "Change Frame Sprite Order")
+
+FramePropertiesEditor::FramePropertiesEditor(Undo::UndoStack& undoStack)
     : widget()
+    , _undoStack(undoStack)
     , _frame(nullptr)
     , _gridLocationSpinButtons()
     , _locationSpinButtons()
@@ -78,35 +123,25 @@ FramePropertiesEditor::FramePropertiesEditor()
     /** Grid location signal */
     _gridLocationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            _frame->setGridLocation(_gridLocationSpinButtons.value());
-            Signals::frameChanged.emit(_frame);
+            frame_setGridLocation(_undoStack, _frame, _gridLocationSpinButtons.value());
         }
     });
     /** Location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            auto oldLocationSize = _frame->location().size();
-
-            _frame->setLocation(_locationSpinButtons.value());
-            Signals::frameChanged.emit(_frame);
-
-            if (_frame->location().size() != oldLocationSize) {
-                Signals::frameSizeChanged.emit(_frame);
-            }
+            frame_setLocation(_undoStack, _frame, _locationSpinButtons.value());
         }
     });
     /** Origin signal */
     _originSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            _frame->setOrigin(_originSpinButtons.value());
-            Signals::frameChanged.emit(_frame);
+            frame_setOrigin(_undoStack, _frame, _originSpinButtons.value());
         }
     });
     /** Tile hitbox signal */
     _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            _frame->setTileHitbox(_tileHitboxSpinButtons.value());
-            Signals::frameChanged.emit(_frame);
+            frame_setTileHitbox(_undoStack, _frame, _tileHitboxSpinButtons.value());
         }
     });
     /** Sprite Order Signal */
@@ -116,30 +151,25 @@ FramePropertiesEditor::FramePropertiesEditor()
         assert(i <= 3);
 
         if (_frame && !_updatingValues) {
-            _frame->setSpriteOrder((unsigned)i);
-            Signals::frameChanged.emit(_frame);
+            frame_setSpriteOrder(_undoStack, _frame, (unsigned)i);
         }
     });
     /** Use Grid Location Checkbox signal */
     _useGridLocationCB.signal_clicked().connect([this](void) {
         if (_frame && !_updatingValues) {
-            _frame->setUseGridLocation(_useGridLocationCB.get_active());
-            Signals::frameChanged.emit(_frame);
-            Signals::frameSizeChanged.emit(_frame);
+            frame_setUseGridLocation(_undoStack, _frame, _useGridLocationCB.get_active());
         }
     });
     /** Use Custom Origin Checkbox signal */
     _useCustomOriginCB.signal_clicked().connect([this](void) {
         if (_frame && !_updatingValues) {
-            _frame->setUseGridOrigin(!(_useCustomOriginCB.get_active()));
-            Signals::frameChanged.emit(_frame);
+            frame_setUseGridOrigin(_undoStack, _frame, !(_useCustomOriginCB.get_active()));
         }
     });
     /** Solid Checkbox signal */
     _solidCB.signal_clicked().connect([this](void) {
         if (_frame && !_updatingValues) {
-            _frame->setSolid(_solidCB.get_active());
-            Signals::frameChanged.emit(_frame);
+            frame_setSolid(_undoStack, _frame, _solidCB.get_active());
         }
     });
 

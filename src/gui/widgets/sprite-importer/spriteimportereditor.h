@@ -14,6 +14,7 @@
 #include "framesetpropertieseditor.h"
 #include "selection.h"
 #include "models/sprite-importer.h"
+#include "gui/undo/undostack.h"
 #include "gui/widgets/defaults.h"
 
 #include <gtkmm.h>
@@ -36,6 +37,7 @@ public:
 
 private:
     Selection _selection;
+    Undo::UndoStack _undoStack;
 
     Gtk::ScrolledWindow _graphicalWindow;
     FrameSetGraphicalEditor _graphicalEditor;

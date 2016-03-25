@@ -1,10 +1,22 @@
 #include "actionpointeditor.h"
+#include "gui/undo/actionhelper.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
-ActionPointEditor::ActionPointEditor()
+SIMPLE_UNDO_ACTION(actionPoint_setLocation,
+                   SI::ActionPoint, UnTech::upoint, location, setLocation,
+                   Signals::actionPointChanged,
+                   "Move Action Point")
+
+SIMPLE_UNDO_ACTION(actionPoint_setParameter,
+                   SI::ActionPoint, unsigned, parameter, setParameter,
+                   Signals::actionPointChanged,
+                   "Change Action Point Parameter")
+
+ActionPointEditor::ActionPointEditor(Undo::UndoStack& undoStack)
     : widget()
+    , _undoStack(undoStack)
     , _actionPoint()
     , _locationSpinButtons()
     , _parameterEntry()
@@ -33,9 +45,7 @@ ActionPointEditor::ActionPointEditor()
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_actionPoint && !_updatingValues) {
-            _actionPoint->setLocation(_locationSpinButtons.value());
-            Signals::actionPointChanged.emit(_actionPoint);
-            Signals::actionPointLocationChanged.emit(_actionPoint);
+            actionPoint_setLocation(_undoStack, _actionPoint, _locationSpinButtons.value());
         }
     });
 
@@ -108,8 +118,10 @@ void ActionPointEditor::onParameterFinishedEditing()
     if (_actionPoint && !_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
-            _actionPoint->setParameter(value.first);
+            actionPoint_setParameter(_undoStack, _actionPoint, value.first);
         }
-        Signals::actionPointChanged.emit(_actionPoint);
+        else {
+            updateGuiValues();
+        }
     }
 }

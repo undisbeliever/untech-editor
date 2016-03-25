@@ -33,11 +33,9 @@ extern sigc::signal<void, const std::shared_ptr<SI::FrameObject>> frameObjectCha
 extern sigc::signal<void, const SI::FrameObject::list_t*> frameObjectListChanged;
 
 extern sigc::signal<void, const std::shared_ptr<SI::ActionPoint>> actionPointChanged;
-extern sigc::signal<void, const std::shared_ptr<SI::ActionPoint>> actionPointLocationChanged;
 extern sigc::signal<void, const SI::ActionPoint::list_t*> actionPointListChanged;
 
 extern sigc::signal<void, const std::shared_ptr<SI::EntityHitbox>> entityHitboxChanged;
-extern sigc::signal<void, const std::shared_ptr<SI::EntityHitbox>> entityHitboxLocationChanged;
 extern sigc::signal<void, const SI::EntityHitbox::list_t*> entityHitboxListChanged;
 }
 }

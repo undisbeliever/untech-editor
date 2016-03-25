@@ -27,9 +27,19 @@ union rgba {
     {
     }
 
-    uint32_t rgb() const
+    inline uint32_t rgb() const
     {
         return value & 0xFFFFFF;
+    }
+
+    inline bool operator==(const rgba& o) const
+    {
+        return value == o.value;
+    }
+
+    inline bool operator!=(const rgba& o) const
+    {
+        return value != o.value;
     }
 };
 }

@@ -9,6 +9,13 @@
 
 namespace UnTech {
 
+namespace Undo {
+namespace Private {
+template <class T>
+class NamedListAddRemove;
+}
+}
+
 inline static bool isNameListCharValid(const char c)
 {
     return ((c == '_'
@@ -37,6 +44,8 @@ class NamedList;
 
 template <class T>
 class NamedList<T> {
+
+    friend class UnTech::Undo::Private::NamedListAddRemove<T>;
 
 public:
     NamedList()
@@ -131,6 +140,18 @@ public:
     inline auto cbegin() const { return _values.cbegin(); }
     inline auto cend() const { return _values.cend(); }
 
+protected:
+    // Only allow these methods to be accessible by the undo module.
+    // Prevent me from doing something stupid.
+
+    void insertInto(std::shared_ptr<T> e, const std::string& name)
+    {
+        if (isNameListNameValid(name) && !nameExists(name)) {
+            _values.insert({ name, e });
+            _names.insert({ e, name });
+        }
+    }
+
 private:
     std::map<std::string, std::shared_ptr<T>> _values;
     std::unordered_map<std::shared_ptr<T>, std::string> _names;
@@ -138,6 +159,8 @@ private:
 
 template <class P, class T>
 class NamedList<P, T> {
+
+    friend class UnTech::Undo::Private::NamedListAddRemove<T>;
 
 public:
     NamedList() = default;
@@ -236,6 +259,18 @@ public:
     inline auto end() const { return _values.end(); }
     inline auto cbegin() const { return _values.cbegin(); }
     inline auto cend() const { return _values.cend(); }
+
+protected:
+    // Only allow these methods to be accessible by the undo module.
+    // Prevent me from doing something stupid.
+
+    void insertInto(std::shared_ptr<T> e, const std::string& name)
+    {
+        if (isNameListNameValid(name) && !nameExists(name)) {
+            _values.insert({ name, e });
+            _names.insert({ e, name });
+        }
+    }
 
 private:
     P& _owner;

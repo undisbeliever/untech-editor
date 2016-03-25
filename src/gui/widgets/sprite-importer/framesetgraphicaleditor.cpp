@@ -1,14 +1,35 @@
 #include "framesetgraphicaleditor.h"
 #include "signals.h"
+#include "gui/undo/actionhelper.h"
 #include "../common/cr_rgba.h"
 
 #include <cmath>
 
 using namespace UnTech::Widgets::SpriteImporter;
-namespace SI = UnTech::SpriteImporter;
 
-FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection)
+SIMPLE_UNDO_ACTION(frameObject_setLocation,
+                   SI::FrameObject, UnTech::upoint, location, setLocation,
+                   Signals::frameObjectChanged,
+                   "Move Frame Object")
+
+SIMPLE_UNDO_ACTION(actionPoint_setLocation,
+                   SI::ActionPoint, UnTech::upoint, location, setLocation,
+                   Signals::actionPointChanged,
+                   "Move Action Point")
+
+SIMPLE_UNDO_ACTION(entityHitbox_setAabb,
+                   SI::EntityHitbox, UnTech::urect, aabb, setAabb,
+                   Signals::entityHitboxChanged,
+                   "Move Entity Hitbox")
+
+SIMPLE_UNDO_ACTION(frameSet_setTransparentColor,
+                   SI::FrameSet, UnTech::rgba, transparentColor, setTransparentColor,
+                   Signals::frameSetChanged,
+                   "Set Transparent Color")
+
+FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection, Undo::UndoStack& undoStack)
     : Gtk::DrawingArea()
+    , _undoStack(undoStack)
     , _zoomX(3.0)
     , _zoomY(3.0)
     , _displayZoom(NAN)
@@ -39,12 +60,18 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection)
         queue_draw();
     });
 
+    Signals::frameSetChanged.connect([this](const std::shared_ptr<SI::FrameSet> frameSet) {
+        if (frameSet == _selection.frameSet()) {
+            queue_draw();
+        }
+    });
+
     Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> frameSet) {
         if (frameSet == _selection.frameSet()) {
             queue_draw();
         }
     });
-    Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
+    Signals::frameChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
         if (frame && frame->frameSet() == _selection.frameSet()) {
             queue_draw();
         }
@@ -54,12 +81,12 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection)
             queue_draw();
         }
     });
-    Signals::actionPointLocationChanged.connect([this](const std::shared_ptr<SI::ActionPoint> ap) {
+    Signals::actionPointChanged.connect([this](const std::shared_ptr<SI::ActionPoint> ap) {
         if (ap && ap->frame()->frameSet() == _selection.frameSet()) {
             queue_draw();
         }
     });
-    Signals::entityHitboxLocationChanged.connect([this](const std::shared_ptr<SI::EntityHitbox> eh) {
+    Signals::entityHitboxChanged.connect([this](const std::shared_ptr<SI::EntityHitbox> eh) {
         if (eh && eh->frame()->frameSet() == _selection.frameSet()) {
             queue_draw();
         }
@@ -739,9 +766,8 @@ void FrameSetGraphicalEditor::handleRelease_SelectTransparentColor(const upoint&
         auto size = image.size();
         if (mouse.x < size.width && mouse.y < size.height) {
             auto color = _selection.frameSet()->image().getPixel(mouse.x, mouse.y);
-            _selection.frameSet()->setTransparentColor(color);
 
-            Signals::frameSetChanged.emit(_selection.frameSet());
+            frameSet_setTransparentColor(_undoStack, _selection.frameSet(), color);
         }
     }
 }
@@ -759,22 +785,21 @@ void FrameSetGraphicalEditor::handleRelease_Drag()
 
     case Selection::Type::FRAME_OBJECT:
         if (_selection.frameObject()) {
-            _selection.frameObject()->setLocation({ aabb.x, aabb.y });
-            Signals::frameObjectChanged(_selection.frameObject());
+            frameObject_setLocation(_undoStack, _selection.frameObject(),
+                                    { aabb.x, aabb.y });
         }
         break;
 
     case Selection::Type::ACTION_POINT:
         if (_selection.actionPoint()) {
-            _selection.actionPoint()->setLocation({ aabb.x, aabb.y });
-            Signals::actionPointChanged(_selection.actionPoint());
+            actionPoint_setLocation(_undoStack, _selection.actionPoint(),
+                                    { aabb.x, aabb.y });
         }
         break;
 
     case Selection::Type::ENTITY_HITBOX:
         if (_selection.entityHitbox()) {
-            _selection.entityHitbox()->setAabb(aabb);
-            Signals::entityHitboxChanged(_selection.entityHitbox());
+            entityHitbox_setAabb(_undoStack, _selection.entityHitbox(), aabb);
         }
         break;
     }

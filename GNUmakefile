@@ -32,6 +32,10 @@ define app-models
 $(filter $(patsubst %,obj/models/%/$(PERCENT),$1), $(MODEL_OBJ))
 endef
 
+define gui-modules
+$(filter $(patsubst %,obj/gui/%/$(PERCENT),$1), $(GUI_OBJ))
+endef
+
 define gui-widgets
 $(filter $(patsubst %,obj/gui/widgets/%/$(PERCENT),$1), $(GUI_OBJ))
 endef
@@ -43,6 +47,7 @@ THIRD_PARTY = obj/vendor/lodepng/lodepng.o
 bin/untech-spriteimporter: $(call app-models, common sprite-importer) $(THIRD_PARTY)
 bin/untech-spriteimporter-gui: $(call app-models, common sprite-importer) $(THIRD_PARTY)
 bin/untech-spriteimporter-gui: $(call gui-widgets, common sprite-importer)
+bin/untech-spriteimporter-gui: $(call gui-modules, undo)
 
 
 # Disable Builtin rules

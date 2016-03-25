@@ -1,30 +1,33 @@
 #include "spriteimportereditor.h"
 
+// ::TODO Remember to clear the undostack on file load::
+
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
 SpriteImporterEditor::SpriteImporterEditor()
     : widget(Gtk::ORIENTATION_HORIZONTAL)
     , _selection()
+    , _undoStack()
     , _graphicalWindow()
-    , _graphicalEditor(_selection)
+    , _graphicalEditor(_selection, _undoStack)
     , _sidebar()
     , _frameSetPane(Gtk::ORIENTATION_VERTICAL)
     , _framePane(Gtk::ORIENTATION_VERTICAL)
-    , _frameSetList()
-    , _frameSetPropertiesEditor()
-    , _frameList()
+    , _frameSetList(_undoStack)
+    , _frameSetPropertiesEditor(_undoStack)
+    , _frameList(_undoStack)
     , _frameNotebook()
-    , _frameParameterEditor()
+    , _frameParameterEditor(_undoStack)
     , _frameObjectBox(Gtk::ORIENTATION_VERTICAL)
-    , _frameObjectList()
-    , _frameObjectEditor()
+    , _frameObjectList(_undoStack)
+    , _frameObjectEditor(_undoStack)
     , _actionPointBox(Gtk::ORIENTATION_VERTICAL)
-    , _actionPointList()
-    , _actionPointEditor()
+    , _actionPointList(_undoStack)
+    , _actionPointEditor(_undoStack)
     , _entityHitboxBox(Gtk::ORIENTATION_VERTICAL)
-    , _entityHitboxList()
-    , _entityHitboxEditor()
+    , _entityHitboxList(_undoStack)
+    , _entityHitboxEditor(_undoStack)
 {
     _frameNotebook.set_scrollable(true);
     _frameNotebook.popup_enable();

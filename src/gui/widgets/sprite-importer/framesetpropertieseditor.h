@@ -3,6 +3,7 @@
 
 #include "signals.h"
 #include "models/sprite-importer/frameset.h"
+#include "gui/undo/undostack.h"
 #include "gui/widgets/common/aabb.h"
 #include "gui/widgets/defaults.h"
 
@@ -17,7 +18,7 @@ namespace SI = UnTech::SpriteImporter;
 
 class FrameSetPropertiesEditor {
 public:
-    FrameSetPropertiesEditor();
+    FrameSetPropertiesEditor(Undo::UndoStack& undoStack);
 
     void setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
     {
@@ -37,6 +38,8 @@ public:
     Gtk::Grid widget;
 
 private:
+    Undo::UndoStack& _undoStack;
+
     std::shared_ptr<SI::FrameSet> _frameSet;
 
     Gtk::Box _imageFilenameBox;

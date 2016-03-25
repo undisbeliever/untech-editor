@@ -2,8 +2,8 @@
 #define _UNTECH_GUI_WIDGETS_COMMON_NAMEDLIST_H
 
 #include "namedlistdialog.h"
-#include "deleteconfirmationdialog.h"
 #include "models/common/namedlist.h"
+#include "gui/undo/namedlistactions.h"
 #include "gui/widgets/defaults.h"
 
 #include <memory>
@@ -161,6 +161,8 @@ protected:
 
     void rebuildTable()
     {
+        Gtk::TreeModel::iterator selectedRowIt;
+
         if (list != nullptr) {
             // resize model
             size_t nItems = list->size();
@@ -190,7 +192,30 @@ protected:
                     row[columns.col_id] = it.first;
                     row[columns.col_item] = it.second;
 
+                    if (it.second == selected) {
+                        selectedRowIt = rowIt;
+                    }
+
                     ++rowIt;
+                }
+            }
+
+            // Highlight the selected item in the treeView
+            if (selected) {
+                if (selectedRowIt) {
+                    auto row = sortedModel->convert_child_iter_to_iter(selectedRowIt);
+
+                    treeView.get_selection()->select(row);
+
+                    // scroll to selection
+                    treeView.scroll_to_row(sortedModel->get_path(row));
+                    _signal_selected_changed.emit();
+                }
+                else {
+                    // If here then the item has been deleted
+                    selected = nullptr;
+                    treeView.get_selection()->unselect_all();
+                    _signal_selected_changed.emit();
                 }
             }
         }
@@ -214,9 +239,10 @@ template <class T, class ModelColumnsT>
 class NamedListEditor : public NamedListView<T, ModelColumnsT> {
 
 public:
-    NamedListEditor()
+    NamedListEditor(Undo::UndoStack& undoStack)
         : NamedListView<T, ModelColumnsT>()
         , widget(Gtk::ORIENTATION_VERTICAL)
+        , _undoStack(undoStack)
         , _treeContainer()
         , _buttonBox(Gtk::ORIENTATION_HORIZONTAL)
         , _createButton()
@@ -265,9 +291,10 @@ public:
 
             auto ret = dialog.run();
             if (ret == Gtk::RESPONSE_ACCEPT) {
-                auto item = this->list->create(dialog.get_text());
-
-                this->emitListChangedSignal();
+                auto item = Undo::namedList_create<T>(_undoStack,
+                                                      this->list, dialog.get_text(),
+                                                      this->columns.signal_listChanged(),
+                                                      _createButton.get_tooltip_text());
                 this->selectItem(item);
             }
         });
@@ -282,9 +309,11 @@ public:
 
             auto ret = dialog.run();
             if (ret == Gtk::RESPONSE_ACCEPT) {
-                auto item = this->list->clone(toCopy, dialog.get_text());
-
-                this->emitListChangedSignal();
+                auto newName = dialog.get_text();
+                auto item = Undo::namedList_clone(_undoStack,
+                                                  this->list, toCopy, dialog.get_text(),
+                                                  this->columns.signal_listChanged(),
+                                                  _cloneButton.get_tooltip_text());
                 this->selectItem(item);
             }
         });
@@ -299,24 +328,23 @@ public:
 
             auto ret = dialog.run();
             if (ret == Gtk::RESPONSE_ACCEPT) {
-                this->list->changeName(toRename, dialog.get_text());
-
-                this->emitListChangedSignal();
+                Undo::namedList_rename(_undoStack,
+                                       this->list, toRename, dialog.get_text(),
+                                       this->columns.signal_listChanged(),
+                                       _renameButton.get_tooltip_text());
             }
         });
 
         _removeButton.signal_clicked().connect([this](void) {
-            auto toDelete = this->getSelected();
+            Undo::namedList_remove(_undoStack,
+                                   this->list, this->getSelected(),
+                                   this->columns.signal_listChanged(),
+                                   _removeButton.get_tooltip_text());
+        });
 
-            DeleteConfirmationDialog dialog(
-                this->list->getName(toDelete).first,
-                widget);
-
-            auto ret = dialog.run();
-            if (ret == Gtk::RESPONSE_ACCEPT) {
-                this->list->remove(toDelete);
-                this->emitListChangedSignal();
-                this->selectItem(nullptr);
+        this->columns.signal_listChanged().connect([this](const typename T::list_t* list) {
+            if (list == this->list) {
+                updateButtonState();
             }
         });
 
@@ -358,6 +386,8 @@ public:
     Gtk::Box widget;
 
 private:
+    Undo::UndoStack& _undoStack;
+
     Gtk::ScrolledWindow _treeContainer;
 
     Gtk::ButtonBox _buttonBox;

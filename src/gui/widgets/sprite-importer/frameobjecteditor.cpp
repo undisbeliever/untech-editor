@@ -1,10 +1,80 @@
 #include "frameobjecteditor.h"
+#include "gui/undo/actionhelper.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
-FrameObjectEditor::FrameObjectEditor()
+SIMPLE_UNDO_ACTION(frameObject_setLocation,
+                   SI::FrameObject, UnTech::upoint, location, setLocation,
+                   Signals::frameObjectChanged,
+                   "Move Frame Object")
+
+// Cannot use simple undo action for FrameObject::setSize
+// Changing the size can change the location.
+inline void frameObject_setSize(UnTech::Undo::UndoStack& undoStack,
+                                std::shared_ptr<SI::FrameObject> item,
+                                const SI::FrameObject::ObjectSize& newSize)
+{
+    class Action : public ::UnTech::Undo::Action {
+    public:
+        Action() = delete;
+        Action(std::shared_ptr<SI::FrameObject> item,
+               const SI::FrameObject::ObjectSize& oldSize,
+               const UnTech::upoint& oldLocation,
+               const SI::FrameObject::ObjectSize& newSize)
+            : _item(item)
+            , _oldSize(oldSize)
+            , _oldLocation(oldLocation)
+            , _newSize(newSize)
+        {
+        }
+
+        virtual ~Action() override = default;
+
+        virtual void undo() override
+        {
+            _item->setSize(_oldSize);
+            _item->setLocation(_oldLocation);
+            Signals::frameObjectChanged.emit(_item);
+        }
+
+        virtual void redo() override
+        {
+            _item->setSize(_newSize);
+            Signals::frameObjectChanged.emit(_item);
+        }
+
+        virtual const Glib::ustring& message() const override
+        {
+            const static Glib::ustring message = _("Resize Frame Object");
+            return message;
+        }
+
+    private:
+        std::shared_ptr<SI::FrameObject> _item;
+
+        SI::FrameObject::ObjectSize _oldSize;
+        UnTech::upoint _oldLocation;
+
+        SI::FrameObject::ObjectSize _newSize;
+    };
+
+    SI::FrameObject::ObjectSize oldSize = item->size();
+
+    if (oldSize != newSize) {
+        UnTech::upoint oldLocation = item->location();
+
+        item->setSize(newSize);
+        Signals::frameObjectChanged.emit(item);
+
+        std::unique_ptr<Action> a(new Action(item, oldSize, oldLocation, newSize));
+        undoStack.add_undo(std::move(a));
+    }
+}
+
+FrameObjectEditor::FrameObjectEditor(Undo::UndoStack& undoStack)
     : widget()
+    , _undoStack(undoStack)
     , _frameObject()
     , _locationSpinButtons()
     , _sizeCombo()
@@ -37,8 +107,7 @@ FrameObjectEditor::FrameObjectEditor()
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameObject && !_updatingValues) {
-            _frameObject->setLocation(_locationSpinButtons.value());
-            Signals::frameObjectChanged.emit(_frameObject);
+            frameObject_setLocation(_undoStack, _frameObject, _locationSpinButtons.value());
         }
     });
 
@@ -47,8 +116,8 @@ FrameObjectEditor::FrameObjectEditor()
         typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
 
         if (_frameObject && !_updatingValues) {
-            _frameObject->setSize(_sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE);
-            Signals::frameObjectChanged.emit(_frameObject);
+            auto size = _sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE;
+            frameObject_setSize(_undoStack, _frameObject, size);
         }
     });
 

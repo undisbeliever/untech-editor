@@ -1,8 +1,8 @@
 #ifndef _UNTECH_GUI_WIDGETS_COMMON_ORDEREDLIST_H
 #define _UNTECH_GUI_WIDGETS_COMMON_ORDEREDLIST_H
 
-#include "deleteconfirmationdialog.h"
 #include "models/common/orderedlist.h"
+#include "gui/undo/orderedlistactions.h"
 #include "gui/widgets/defaults.h"
 
 #include <memory>
@@ -154,6 +154,8 @@ protected:
     void rebuildTable()
     {
         if (list != nullptr) {
+            bool found = false;
+
             // resize model
             size_t nItems = list->size();
             size_t nRows = treeModel->children().size();
@@ -174,6 +176,7 @@ protected:
             }
 
             // fill with data
+            // change selection if necessary
             if (nItems > 0) {
                 int id = 0;
                 auto rowIt = treeModel->children().begin();
@@ -183,8 +186,21 @@ protected:
                     row[columns.col_id] = id;
                     row[columns.col_item] = item;
 
+                    if (item == selected) {
+                        treeView.get_selection()->select(rowIt);
+                        found = true;
+                    }
+
                     ++id;
                     ++rowIt;
+                }
+            }
+
+            if (!found) {
+                treeView.get_selection()->unselect_all();
+                if (selected) {
+                    selected = nullptr;
+                    _signal_selected_changed.emit();
                 }
             }
         }
@@ -207,9 +223,10 @@ template <class T, class ModelColumnsT>
 class OrderedListEditor : public OrderedListView<T, ModelColumnsT> {
 
 public:
-    OrderedListEditor()
+    OrderedListEditor(Undo::UndoStack& undoStack)
         : OrderedListView<T, ModelColumnsT>()
         , widget(Gtk::ORIENTATION_VERTICAL)
+        , _undoStack(undoStack)
         , _treeContainer()
         , _buttonBox(Gtk::ORIENTATION_HORIZONTAL)
         , _createButton()
@@ -256,52 +273,51 @@ public:
          * SIGNALS
          */
         _createButton.signal_clicked().connect([this](void) {
-            auto item = this->list->create();
+            auto item = Undo::orderedList_create<T>(_undoStack, this->list,
+                                                    this->columns.signal_listChanged(),
+                                                    _createButton.get_tooltip_text());
 
-            this->emitListChangedSignal();
             this->selectItem(item);
         });
 
         _cloneButton.signal_clicked().connect([this](void) {
-            auto item = this->list->clone(this->getSelected());
+            auto item = Undo::orderedList_clone(_undoStack,
+                                                this->list, this->getSelected(),
+                                                this->columns.signal_listChanged(),
+                                                _cloneButton.get_tooltip_text());
 
-            this->emitListChangedSignal();
             this->selectItem(item);
         });
 
         _moveUpButton.signal_clicked().connect([this](void) {
-            auto item = this->getSelected();
-
-            this->list->moveUp(this->getSelected());
-
-            this->emitListChangedSignal();
-            this->selectItem(item);
+            Undo::orderedList_moveUp(_undoStack,
+                                     this->list, this->getSelected(),
+                                     this->columns.signal_listChanged(),
+                                     _moveUpButton.get_tooltip_text());
         });
 
         _moveDownButton.signal_clicked().connect([this](void) {
-            auto item = this->getSelected();
-
-            this->list->moveDown(this->getSelected());
-
-            this->emitListChangedSignal();
-            this->selectItem(item);
+            Undo::orderedList_moveDown(_undoStack,
+                                       this->list, this->getSelected(),
+                                       this->columns.signal_listChanged(),
+                                       _moveDownButton.get_tooltip_text());
         });
 
         _removeButton.signal_clicked().connect([this](void) {
-            auto toDelete = this->getSelected();
+            Undo::orderedList_remove(_undoStack,
+                                     this->list, this->getSelected(),
+                                     this->columns.signal_listChanged(),
+                                     _removeButton.get_tooltip_text());
+        });
 
-            DeleteConfirmationDialog dialog(
-                this->columns.itemTypeName(), widget);
-
-            auto ret = dialog.run();
-            if (ret == Gtk::RESPONSE_ACCEPT) {
-                this->list->remove(toDelete);
-                this->emitListChangedSignal();
-                this->selectItem(nullptr);
+        this->columns.signal_listChanged().connect([this](const typename T::list_t* list) {
+            if (list == this->list) {
+                updateButtonState();
             }
         });
 
-        this->signal_selected_changed().connect(sigc::mem_fun(*this, &OrderedListEditor::updateButtonState));
+        this->signal_selected_changed().connect(sigc::mem_fun(*this,
+                                                              &OrderedListEditor::updateButtonState));
     }
 
     inline void setList(typename T::list_t& newList)
@@ -341,6 +357,8 @@ public:
     Gtk::Box widget;
 
 private:
+    Undo::UndoStack& _undoStack;
+
     Gtk::ScrolledWindow _treeContainer;
 
     Gtk::ButtonBox _buttonBox;

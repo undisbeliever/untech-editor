@@ -7,8 +7,17 @@
 
 namespace UnTech {
 
+namespace Undo {
+namespace Private {
+template <class T>
+class OrderedListAddRemove;
+}
+}
+
 template <class P, class T>
 class OrderedList {
+
+    friend class UnTech::Undo::Private::OrderedListAddRemove<T>;
 
 public:
     OrderedList() = default;
@@ -46,7 +55,7 @@ public:
         }
     }
 
-    void moveUp(std::shared_ptr<T> e)
+    bool moveUp(std::shared_ptr<T> e)
     {
         auto it = std::find(_list.begin(), _list.end(), e);
 
@@ -55,11 +64,13 @@ public:
                 auto other = it - 1;
 
                 iter_swap(it, other);
+                return true;
             }
         }
+        return false;
     }
 
-    void moveDown(std::shared_ptr<T> e)
+    bool moveDown(std::shared_ptr<T> e)
     {
         auto it = std::find(_list.begin(), _list.end(), e);
 
@@ -68,8 +79,10 @@ public:
 
             if (other != _list.end()) {
                 iter_swap(it, other);
+                return true;
             }
         }
+        return false;
     }
 
     bool isFirst(std::shared_ptr<T> e)
@@ -82,12 +95,42 @@ public:
         return _list.size() > 0 && _list.back() == e;
     }
 
+    bool contains(std::shared_ptr<T> e)
+    {
+        auto it = std::find(_list.begin(), _list.end(), e);
+        return it != _list.end();
+    }
+
     // Expose the list
     inline auto size() const { return _list.size(); }
     inline auto begin() const { return _list.begin(); }
     inline auto end() const { return _list.end(); }
     inline auto cbegin() const { return _list.cbegin(); }
     inline auto cend() const { return _list.cend(); }
+
+protected:
+    // Only allow these methods to be accessible by the undo module.
+    // Prevent me from doing something stupid.
+
+    int indexOf(const std::shared_ptr<T>& e) const
+    {
+        auto it = std::find(_list.begin(), _list.end(), e);
+
+        if (it != _list.end()) {
+            return std::distance(_list.begin(), it);
+        }
+        else {
+            return -1;
+        }
+    }
+
+    void insertAtIndex(std::shared_ptr<T> e, int index)
+    {
+        if (index > 0) {
+            auto it = _list.begin() + index;
+            _list.insert(it, e);
+        }
+    }
 
 private:
     P& _owner;

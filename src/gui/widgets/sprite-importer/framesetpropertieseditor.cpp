@@ -1,11 +1,32 @@
 #include "framesetpropertieseditor.h"
+#include "gui/undo/actionhelper.h"
 #include <iomanip>
 
 using namespace UnTech::Widgets::SpriteImporter;
-namespace SI = UnTech::SpriteImporter;
 
-FrameSetPropertiesEditor::FrameSetPropertiesEditor()
+PARAMETER_UNDO_ACTION2(frameSet_Grid_setFrameSize,
+                       SI::FrameSet, grid, UnTech::usize, frameSize, setFrameSize,
+                       Signals::frameSetChanged, Signals::frameSetGridChanged,
+                       "Change Grid Frame Size")
+
+PARAMETER_UNDO_ACTION2(frameSet_Grid_setOffset,
+                       SI::FrameSet, grid, UnTech::upoint, offset, setOffset,
+                       Signals::frameSetChanged, Signals::frameSetGridChanged,
+                       "Change Grid Offset")
+
+PARAMETER_UNDO_ACTION2(frameSet_Grid_setPadding,
+                       SI::FrameSet, grid, UnTech::usize, padding, setPadding,
+                       Signals::frameSetChanged, Signals::frameSetGridChanged,
+                       "Change Grid Padding")
+
+PARAMETER_UNDO_ACTION2(frameSet_Grid_setOrigin,
+                       SI::FrameSet, grid, UnTech::upoint, origin, setOrigin,
+                       Signals::frameSetChanged, Signals::frameSetGridChanged,
+                       "Change Grid Origin")
+
+FrameSetPropertiesEditor::FrameSetPropertiesEditor(Undo::UndoStack& undoStack)
     : widget()
+    , _undoStack(undoStack)
     , _frameSet(nullptr)
     , _imageFilenameBox(Gtk::ORIENTATION_HORIZONTAL)
     , _imageFilenameEntry()
@@ -75,39 +96,30 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     _imageFilenameButton.signal_clicked().connect([this](void) {
         if (_frameSet && !_updatingValues) {
             // ::TODO implement::
-            Signals::frameSetChanged.emit(_frameSet);
         }
     });
 
     _gridFrameSizeSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            _frameSet->grid().setFrameSize(_gridFrameSizeSpinButtons.value());
-            Signals::frameSetGridChanged.emit(_frameSet);
-            Signals::frameSetChanged.emit(_frameSet);
+            frameSet_Grid_setFrameSize(_undoStack, _frameSet, _gridFrameSizeSpinButtons.value());
         }
     });
 
     _gridOffsetSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            _frameSet->grid().setOffset(_gridOffsetSpinButtons.value());
-            Signals::frameSetChanged.emit(_frameSet);
-            Signals::frameSetGridChanged.emit(_frameSet);
+            frameSet_Grid_setOffset(_undoStack, _frameSet, _gridOffsetSpinButtons.value());
         }
     });
 
     _gridPaddingSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            _frameSet->grid().setPadding(_gridPaddingSpinButtons.value());
-            Signals::frameSetChanged.emit(_frameSet);
-            Signals::frameSetGridChanged.emit(_frameSet);
+            frameSet_Grid_setPadding(_undoStack, _frameSet, _gridPaddingSpinButtons.value());
         }
     });
 
     _gridOriginSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            _frameSet->grid().setOrigin(_gridOriginSpinButtons.value());
-            Signals::frameSetChanged.emit(_frameSet);
-            Signals::frameSetGridChanged.emit(_frameSet);
+            frameSet_Grid_setOrigin(_undoStack, _frameSet, _gridOriginSpinButtons.value());
         }
     });
 

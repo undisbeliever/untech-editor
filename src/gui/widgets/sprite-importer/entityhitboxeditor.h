@@ -5,6 +5,7 @@
 #include "models/sprite-importer/entityhitbox.h"
 #include "models/sprite-importer/frame.h"
 #include "models/common/string.h"
+#include "gui/undo/undostack.h"
 #include "gui/widgets/common/aabb.h"
 #include "gui/widgets/defaults.h"
 
@@ -20,7 +21,7 @@ namespace SpriteImporter {
 
 class EntityHitboxEditor {
 public:
-    EntityHitboxEditor();
+    EntityHitboxEditor(Undo::UndoStack& undoStack);
 
     void setEntityHitbox(std::shared_ptr<UnTech::SpriteImporter::EntityHitbox> entityHitbox)
     {
@@ -37,6 +38,8 @@ public:
     Gtk::Grid widget;
 
 private:
+    Undo::UndoStack& _undoStack;
+
     std::shared_ptr<UnTech::SpriteImporter::EntityHitbox> _entityHitbox;
 
     UrectSpinButtons _aabbSpinButtons;

@@ -1,8 +1,8 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEPROPERTIESEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEPROPERTIESEDITOR_H_
 
-#include "signals.h"
 #include "models/sprite-importer/frame.h"
+#include "gui/undo/undostack.h"
 #include "gui/widgets/common/aabb.h"
 #include "gui/widgets/defaults.h"
 
@@ -17,7 +17,7 @@ namespace SI = UnTech::SpriteImporter;
 
 class FramePropertiesEditor {
 public:
-    FramePropertiesEditor();
+    FramePropertiesEditor(Undo::UndoStack& undoStack);
 
     void setFrame(std::shared_ptr<SI::Frame> frame)
     {
@@ -32,6 +32,8 @@ public:
     Gtk::Grid widget;
 
 private:
+    Undo::UndoStack& _undoStack;
+
     std::shared_ptr<SI::Frame> _frame;
 
     UpointSpinButtons _gridLocationSpinButtons;

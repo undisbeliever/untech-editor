@@ -1,10 +1,22 @@
 #include "entityhitboxeditor.h"
+#include "gui/undo/actionhelper.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
-EntityHitboxEditor::EntityHitboxEditor()
+SIMPLE_UNDO_ACTION(entityHitbox_setAabb,
+                   SI::EntityHitbox, UnTech::urect, aabb, setAabb,
+                   Signals::entityHitboxChanged,
+                   "Move Entity Hitbox")
+
+SIMPLE_UNDO_ACTION(entityHitbox_setParameter,
+                   SI::EntityHitbox, unsigned, parameter, setParameter,
+                   Signals::entityHitboxChanged,
+                   "Change Entity Hitbox Parameter")
+
+EntityHitboxEditor::EntityHitboxEditor(Undo::UndoStack& undoStack)
     : widget()
+    , _undoStack(undoStack)
     , _entityHitbox()
     , _aabbSpinButtons()
     , _parameterEntry()
@@ -37,9 +49,7 @@ EntityHitboxEditor::EntityHitboxEditor()
     /** Set aabb signal */
     _aabbSpinButtons.signal_valueChanged.connect([this](void) {
         if (_entityHitbox && !_updatingValues) {
-            _entityHitbox->setAabb(_aabbSpinButtons.value());
-            Signals::entityHitboxChanged.emit(_entityHitbox);
-            Signals::entityHitboxLocationChanged.emit(_entityHitbox);
+            entityHitbox_setAabb(_undoStack, _entityHitbox, _aabbSpinButtons.value());
         }
     });
 
@@ -112,8 +122,10 @@ void EntityHitboxEditor::onParameterFinishedEditing()
     if (_entityHitbox && !_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
-            _entityHitbox->setParameter(value.first);
+            entityHitbox_setParameter(_undoStack, _entityHitbox, value.first);
         }
-        Signals::entityHitboxChanged.emit(_entityHitbox);
+        else {
+            updateGuiValues();
+        }
     }
 }
