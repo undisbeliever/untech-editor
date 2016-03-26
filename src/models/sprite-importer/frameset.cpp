@@ -3,8 +3,9 @@
 
 using namespace UnTech::SpriteImporter;
 
-FrameSet::FrameSet()
-    : _imageFilename()
+FrameSet::FrameSet(Document& document)
+    : _document(document)
+    , _imageFilename()
     , _image()
     , _transparentColor(0)
     , _frames(*this)
@@ -12,9 +13,9 @@ FrameSet::FrameSet()
 {
 }
 
-std::shared_ptr<FrameSet> FrameSet::clone()
+std::shared_ptr<FrameSet> FrameSet::clone(Document& document)
 {
-    auto fs = std::make_shared<FrameSet>();
+    auto fs = std::make_shared<FrameSet>(document);
 
     fs->setImageFilename(this->_imageFilename);
     fs->_grid.copyFrom(this->_grid);

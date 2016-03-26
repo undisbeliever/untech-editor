@@ -25,7 +25,7 @@ namespace Serializer {
  */
 
 struct FrameSetReader {
-    FrameSetReader(NamedList<FrameSet>& framesetContainer, XmlReader& xml)
+    FrameSetReader(FrameSet::list_t& framesetContainer, XmlReader& xml)
         : framesetContainer(framesetContainer)
         , xml(xml)
         , frameset()
@@ -34,7 +34,7 @@ struct FrameSetReader {
     }
 
 private:
-    NamedList<FrameSet>& framesetContainer;
+    FrameSet::list_t& framesetContainer;
     XmlReader& xml;
 
     std::shared_ptr<FrameSet> frameset;
@@ -313,7 +313,7 @@ inline void writeFrameSet(XmlWriter& xml, const std::string& framesetName, const
     xml.writeCloseTag();
 }
 
-inline void writeFrameSetList(XmlWriter& xml, const NamedList<FrameSet>& framesetContainer)
+inline void writeFrameSetList(XmlWriter& xml, const FrameSet::list_t& framesetContainer)
 {
     xml.writeTag("spriteimporter");
 
@@ -330,7 +330,7 @@ inline void writeFrameSetList(XmlWriter& xml, const NamedList<FrameSet>& framese
  * ===
  */
 
-void readFile(NamedList<FrameSet>& frameSetContainer, const std::string& filename)
+void readFile(FrameSet::list_t& frameSetContainer, const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     std::unique_ptr<XmlTag> tag = xml->parseTag();
@@ -342,7 +342,7 @@ void readFile(NamedList<FrameSet>& frameSetContainer, const std::string& filenam
     readSpriteImporter(frameSetContainer, *xml, tag.get());
 }
 
-void readSpriteImporter(NamedList<FrameSet>& framesetContainer, XmlReader& xml, const XmlTag* tag)
+void readSpriteImporter(FrameSet::list_t& framesetContainer, XmlReader& xml, const XmlTag* tag)
 {
     assert(tag->name == "spriteimporter");
 
@@ -361,14 +361,14 @@ void readSpriteImporter(NamedList<FrameSet>& framesetContainer, XmlReader& xml, 
     }
 }
 
-void writeFile(const NamedList<FrameSet>& frameSetContainer, std::ostream& file)
+void writeFile(const FrameSet::list_t& frameSetContainer, std::ostream& file)
 {
     XmlWriter xml(file, "untech");
 
     FrameSetWriter::writeFrameSetList(xml, frameSetContainer);
 }
 
-void writeFile(const NamedList<FrameSet>& frameSetContainer, const std::string& filename)
+void writeFile(const FrameSet::list_t& frameSetContainer, const std::string& filename)
 {
     // ::TODO implement Qt SaveFile class for atomicity::
 
@@ -376,7 +376,7 @@ void writeFile(const NamedList<FrameSet>& frameSetContainer, const std::string& 
     writeFile(frameSetContainer, file);
 }
 
-void writeSpriteImporter(const NamedList<FrameSet>& frameSetContainer, XmlWriter& xml)
+void writeSpriteImporter(const FrameSet::list_t& frameSetContainer, XmlWriter& xml)
 {
     FrameSetWriter::writeFrameSetList(xml, frameSetContainer);
 }

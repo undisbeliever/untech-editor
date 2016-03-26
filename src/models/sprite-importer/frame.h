@@ -1,15 +1,18 @@
 #ifndef _UNTECH_MODELS_SPRITEIMPORTER_FRAME_H
 #define _UNTECH_MODELS_SPRITEIMPORTER_FRAME_H
 
+#include "frameset.h"
 #include "../common/aabb.h"
 #include "../common/orderedlist.h"
 #include "../common/namedlist.h"
 #include <memory>
 
 namespace UnTech {
+
+class Document;
+
 namespace SpriteImporter {
 
-class FrameSet;
 class FrameObject;
 class ActionPoint;
 class EntityHitbox;
@@ -57,6 +60,7 @@ public:
     unsigned spriteOrder() const { return _spriteOrder; }
 
     inline std::shared_ptr<FrameSet> frameSet() const { return _frameSet.lock(); }
+    inline Document& document() const { return frameSet()->document(); }
 
     void setUseGridLocation(bool useGridLocation);
     void setGridLocation(upoint gridLocation);

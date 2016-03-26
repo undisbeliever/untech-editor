@@ -1,5 +1,4 @@
 #include "entityhitbox.h"
-#include "frame.h"
 
 using namespace UnTech;
 using namespace SpriteImporter;

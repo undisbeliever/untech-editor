@@ -1,5 +1,5 @@
-#ifndef _UNTECH_MODELS_COMMON_NAMEDLIST_H_
-#define _UNTECH_MODELS_COMMON_NAMEDLIST_H_
+#ifndef _UNTECH_MODELS_COMMON_NAMEDLISTREF_H_
+#define _UNTECH_MODELS_COMMON_NAMEDLISTREF_H_
 
 #include "namechecks.h"
 #include <map>
@@ -17,15 +17,19 @@ class NamedListAddRemove;
 }
 }
 
+/**
+ * Operates the same as `NamedList` except it passes a reference
+ * instead of a `std::shared_ptr` to the parent constructor.
+ */
 template <class P, class T>
-class NamedList {
+class NamedListRef {
 
     friend class UnTech::Undo::Private::NamedListAddRemove<T>;
 
 public:
-    NamedList() = delete;
+    NamedListRef() = delete;
 
-    NamedList(P& owner)
+    NamedListRef(P& owner)
         : _owner(owner)
         , _values()
         , _names()
@@ -35,8 +39,7 @@ public:
     std::shared_ptr<T> create(const std::string& name)
     {
         if (isNameListNameValid(name) && !nameExists(name)) {
-            std::shared_ptr<P> owner = _owner.ptr();
-            auto e = std::make_shared<T>(owner);
+            auto e = std::make_shared<T>(_owner);
 
             _values.insert({ name, e });
             _names.insert({ e, name });
@@ -50,8 +53,7 @@ public:
     std::shared_ptr<T> clone(std::shared_ptr<T> e, const std::string& newName)
     {
         if (isNameListNameValid(newName) && !nameExists(newName)) {
-            std::shared_ptr<P> owner = _owner.ptr();
-            auto newElem = e->clone(owner);
+            auto newElem = e->clone(_owner);
 
             _values.insert({ newName, newElem });
             _names.insert({ newElem, newName });

@@ -1,15 +1,17 @@
 #ifndef _UNTECH_MODELS_SPRITEIMPORTER_ACTIONPOINT_H
 #define _UNTECH_MODELS_SPRITEIMPORTER_ACTIONPOINT_H
 
+#include "frame.h"
 #include "../common/aabb.h"
 #include "../common/orderedlist.h"
 #include <cstdint>
 #include <memory>
 
 namespace UnTech {
-namespace SpriteImporter {
 
-class Frame;
+class Document;
+
+namespace SpriteImporter {
 
 class ActionPoint {
 
@@ -29,6 +31,7 @@ public:
     parameter_t parameter() const { return _parameter; }
 
     inline std::shared_ptr<Frame> frame() const { return _frame.lock(); }
+    inline Document& document() const { return frame()->frameSet()->document(); }
 
     void setLocation(const upoint& location);
     void setParameter(parameter_t parameter);

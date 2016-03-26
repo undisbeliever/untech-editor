@@ -1,5 +1,4 @@
 #include "frame.h"
-#include "frameset.h"
 #include "frameobject.h"
 #include "actionpoint.h"
 #include "entityhitbox.h"

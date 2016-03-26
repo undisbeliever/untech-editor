@@ -6,12 +6,17 @@
 #include "../common/rgba.h"
 #include "../common/image.h"
 #include "../common/namedlist.h"
+#include "../common/namedlistref.h"
+#include "../document.h"
 #include <memory>
 #include <string>
 
 // FrameSet images are lazily loaded.
 
 namespace UnTech {
+
+class Document;
+
 namespace SpriteImporter {
 
 class Frame;
@@ -19,13 +24,13 @@ class Frame;
 class FrameSet : public std::enable_shared_from_this<FrameSet> {
 
 public:
-    typedef NamedList<FrameSet> list_t;
+    typedef NamedListRef<Document, FrameSet> list_t;
 
 public:
-    FrameSet();
+    FrameSet(Document& _document);
 
     std::shared_ptr<FrameSet> ptr() { return shared_from_this(); }
-    std::shared_ptr<FrameSet> clone();
+    std::shared_ptr<FrameSet> clone(Document& _document);
 
     inline auto imageFilename() const { return _imageFilename; }
 
@@ -35,6 +40,8 @@ public:
 
     inline const auto& frames() const { return _frames; }
     inline const auto& grid() const { return _grid; }
+
+    inline Document& document() const { return _document; }
 
     void setImageFilename(const std::string& filename);
 
@@ -59,7 +66,7 @@ public:
     bool reloadImage();
 
 private:
-    // ::TODO parent::
+    Document& _document;
 
     std::string _imageFilename;
     UnTech::Image _image;

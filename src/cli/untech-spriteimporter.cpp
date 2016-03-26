@@ -18,14 +18,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    NamedList<SI::FrameSet> framesetContainer;
+    // Does not use the document's read/write functions
+    // as this app just combines the documents in one sitting.
+
+    SI::SpriteImporterDocument document;
 
     for (int i = 1; i < argc; i++) {
-        SI::Serializer::readFile(framesetContainer, argv[i]);
+        SI::Serializer::readFile(document.spriteImporterFramesets(), argv[i]);
     }
 
-    // ::DEBUG print all of the frames in the framesets::
-    SI::Serializer::writeFile(framesetContainer, std::cout);
+    SI::Serializer::writeFile(document.spriteImporterFramesets(), std::cout);
 
     return EXIT_SUCCESS;
 }

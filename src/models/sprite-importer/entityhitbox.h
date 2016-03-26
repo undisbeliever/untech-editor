@@ -1,6 +1,7 @@
 #ifndef _UNTECH_MODELS_SPRITEIMPORTER_ENTITYHITBOX_H
 #define _UNTECH_MODELS_SPRITEIMPORTER_ENTITYHITBOX_H
 
+#include "frame.h"
 #include "../common/aabb.h"
 #include "../common/orderedlist.h"
 #include <cstdint>
@@ -29,6 +30,7 @@ public:
     parameter_t parameter() const { return _parameter; }
 
     inline std::shared_ptr<Frame> frame() const { return _frame.lock(); }
+    inline Document& document() const { return frame()->frameSet()->document(); }
 
     void setAabb(const urect& aabb);
     void setParameter(parameter_t parameter);
