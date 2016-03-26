@@ -4,7 +4,6 @@
 #include "signals.h"
 #include "models/sprite-importer/frameobject.h"
 #include "models/sprite-importer/frame.h"
-#include "gui/undo/undostack.h"
 #include "gui/widgets/common/aabb.h"
 #include "gui/widgets/defaults.h"
 
@@ -20,7 +19,7 @@ namespace SpriteImporter {
 
 class FrameObjectEditor {
 public:
-    FrameObjectEditor(Undo::UndoStack& undoStack);
+    FrameObjectEditor();
 
     void setFrameObject(std::shared_ptr<UnTech::SpriteImporter::FrameObject> frameObject)
     {
@@ -35,8 +34,6 @@ public:
     Gtk::Grid widget;
 
 private:
-    Undo::UndoStack& _undoStack;
-
     std::shared_ptr<UnTech::SpriteImporter::FrameObject> _frameObject;
 
     UpointSpinButtons _locationSpinButtons;

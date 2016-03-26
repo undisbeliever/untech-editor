@@ -2,17 +2,14 @@
 #define _UNTECH_GUI_UNDO_ACTIONHELPER_H_
 
 #include "undostack.h"
-
-// ::TODO get undo stack from the item.;:
-// ::: I suggest adding it to a project class ::
+#include "undodocument.h"
 
 // ::ANNOY cannot template a method name::
 
 #define SIMPLE_UNDO_ACTION(name, cls, type, getter, setter,                  \
                            signal, actionText)                               \
                                                                              \
-    inline void name(UnTech::Undo::UndoStack& undoStack,                     \
-                     const std::shared_ptr<cls>& item, const type& value)    \
+    inline void name(const std::shared_ptr<cls>& item, const type& value)    \
     {                                                                        \
         class Action : public ::UnTech::Undo::Action {                       \
         public:                                                              \
@@ -59,16 +56,17 @@
         type newValue = item->getter();                                      \
                                                                              \
         if (oldValue != newValue) {                                          \
+            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(        \
+                &(item->document()));                                        \
             std::unique_ptr<Action> a(new Action(item, oldValue, newValue)); \
-            undoStack.add_undo(std::move(a));                                \
+            undoDoc->undoStack().add_undo(std::move(a));                     \
         }                                                                    \
     }
 
 #define SIMPLE_UNDO_ACTION2(name, cls, type, getter, setter,                 \
                             signal1, signal2, actionText)                    \
                                                                              \
-    inline void name(UnTech::Undo::UndoStack& undoStack,                     \
-                     const std::shared_ptr<cls>& item, const type& value)    \
+    inline void name(const std::shared_ptr<cls>& item, const type& value)    \
     {                                                                        \
         class Action : public ::UnTech::Undo::Action {                       \
         public:                                                              \
@@ -118,16 +116,17 @@
         type newValue = item->getter();                                      \
                                                                              \
         if (oldValue != newValue) {                                          \
+            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(        \
+                &(item->document()));                                        \
             std::unique_ptr<Action> a(new Action(item, oldValue, newValue)); \
-            undoStack.add_undo(std::move(a));                                \
+            undoDoc->undoStack().add_undo(std::move(a));                     \
         }                                                                    \
     }
 
 #define PARAMETER_UNDO_ACTION2(name, cls, parameter, type, getter, setter,   \
                                signal1, signal2, actionText)                 \
                                                                              \
-    inline void name(UnTech::Undo::UndoStack& undoStack,                     \
-                     const std::shared_ptr<cls>& item, const type& value)    \
+    inline void name(const std::shared_ptr<cls>& item, const type& value)    \
     {                                                                        \
         class Action : public ::UnTech::Undo::Action {                       \
         public:                                                              \
@@ -177,8 +176,10 @@
         type newValue = item->parameter().getter();                          \
                                                                              \
         if (oldValue != newValue) {                                          \
+            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(        \
+                &(item->document()));                                        \
             std::unique_ptr<Action> a(new Action(item, oldValue, newValue)); \
-            undoStack.add_undo(std::move(a));                                \
+            undoDoc->undoStack().add_undo(std::move(a));                     \
         }                                                                    \
     }
 

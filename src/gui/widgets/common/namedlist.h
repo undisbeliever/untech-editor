@@ -239,10 +239,9 @@ template <class T, class ModelColumnsT>
 class NamedListEditor : public NamedListView<T, ModelColumnsT> {
 
 public:
-    NamedListEditor(Undo::UndoStack& undoStack)
+    NamedListEditor()
         : NamedListView<T, ModelColumnsT>()
         , widget(Gtk::ORIENTATION_VERTICAL)
-        , _undoStack(undoStack)
         , _treeContainer()
         , _buttonBox(Gtk::ORIENTATION_HORIZONTAL)
         , _createButton()
@@ -291,8 +290,7 @@ public:
 
             auto ret = dialog.run();
             if (ret == Gtk::RESPONSE_ACCEPT) {
-                auto item = Undo::namedList_create<T>(_undoStack,
-                                                      this->list, dialog.get_text(),
+                auto item = Undo::namedList_create<T>(this->list, dialog.get_text(),
                                                       this->columns.signal_listChanged(),
                                                       _createButton.get_tooltip_text());
                 this->selectItem(item);
@@ -310,8 +308,7 @@ public:
             auto ret = dialog.run();
             if (ret == Gtk::RESPONSE_ACCEPT) {
                 auto newName = dialog.get_text();
-                auto item = Undo::namedList_clone(_undoStack,
-                                                  this->list, toCopy, dialog.get_text(),
+                auto item = Undo::namedList_clone(this->list, toCopy, dialog.get_text(),
                                                   this->columns.signal_listChanged(),
                                                   _cloneButton.get_tooltip_text());
                 this->selectItem(item);
@@ -328,16 +325,14 @@ public:
 
             auto ret = dialog.run();
             if (ret == Gtk::RESPONSE_ACCEPT) {
-                Undo::namedList_rename(_undoStack,
-                                       this->list, toRename, dialog.get_text(),
+                Undo::namedList_rename(this->list, toRename, dialog.get_text(),
                                        this->columns.signal_listChanged(),
                                        _renameButton.get_tooltip_text());
             }
         });
 
         _removeButton.signal_clicked().connect([this](void) {
-            Undo::namedList_remove(_undoStack,
-                                   this->list, this->getSelected(),
+            Undo::namedList_remove(this->list, this->getSelected(),
                                    this->columns.signal_listChanged(),
                                    _removeButton.get_tooltip_text());
         });
@@ -386,8 +381,6 @@ public:
     Gtk::Box widget;
 
 private:
-    Undo::UndoStack& _undoStack;
-
     Gtk::ScrolledWindow _treeContainer;
 
     Gtk::ButtonBox _buttonBox;

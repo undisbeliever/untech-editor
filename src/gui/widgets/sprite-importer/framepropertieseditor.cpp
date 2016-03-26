@@ -47,9 +47,8 @@ SIMPLE_UNDO_ACTION(frame_setSpriteOrder,
                    Signals::frameChanged,
                    "Change Frame Sprite Order")
 
-FramePropertiesEditor::FramePropertiesEditor(Undo::UndoStack& undoStack)
+FramePropertiesEditor::FramePropertiesEditor()
     : widget()
-    , _undoStack(undoStack)
     , _frame(nullptr)
     , _gridLocationSpinButtons()
     , _locationSpinButtons()
@@ -123,25 +122,25 @@ FramePropertiesEditor::FramePropertiesEditor(Undo::UndoStack& undoStack)
     /** Grid location signal */
     _gridLocationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setGridLocation(_undoStack, _frame, _gridLocationSpinButtons.value());
+            frame_setGridLocation(_frame, _gridLocationSpinButtons.value());
         }
     });
     /** Location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setLocation(_undoStack, _frame, _locationSpinButtons.value());
+            frame_setLocation(_frame, _locationSpinButtons.value());
         }
     });
     /** Origin signal */
     _originSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setOrigin(_undoStack, _frame, _originSpinButtons.value());
+            frame_setOrigin(_frame, _originSpinButtons.value());
         }
     });
     /** Tile hitbox signal */
     _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setTileHitbox(_undoStack, _frame, _tileHitboxSpinButtons.value());
+            frame_setTileHitbox(_frame, _tileHitboxSpinButtons.value());
         }
     });
     /** Sprite Order Signal */
@@ -151,25 +150,25 @@ FramePropertiesEditor::FramePropertiesEditor(Undo::UndoStack& undoStack)
         assert(i <= 3);
 
         if (_frame && !_updatingValues) {
-            frame_setSpriteOrder(_undoStack, _frame, (unsigned)i);
+            frame_setSpriteOrder(_frame, (unsigned)i);
         }
     });
     /** Use Grid Location Checkbox signal */
     _useGridLocationCB.signal_clicked().connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setUseGridLocation(_undoStack, _frame, _useGridLocationCB.get_active());
+            frame_setUseGridLocation(_frame, _useGridLocationCB.get_active());
         }
     });
     /** Use Custom Origin Checkbox signal */
     _useCustomOriginCB.signal_clicked().connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setUseGridOrigin(_undoStack, _frame, !(_useCustomOriginCB.get_active()));
+            frame_setUseGridOrigin(_frame, !(_useCustomOriginCB.get_active()));
         }
     });
     /** Solid Checkbox signal */
     _solidCB.signal_clicked().connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setSolid(_undoStack, _frame, _solidCB.get_active());
+            frame_setSolid(_frame, _solidCB.get_active());
         }
     });
 

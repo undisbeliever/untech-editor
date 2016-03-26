@@ -3,6 +3,7 @@
 
 #include "actionpointeditor.h"
 #include "actionpointlist.h"
+#include "document.h"
 #include "entityhitboxeditor.h"
 #include "entityhitboxlist.h"
 #include "framelist.h"
@@ -14,9 +15,9 @@
 #include "framesetpropertieseditor.h"
 #include "selection.h"
 #include "models/sprite-importer.h"
-#include "gui/undo/undostack.h"
 #include "gui/widgets/defaults.h"
 
+#include <memory>
 #include <gtkmm.h>
 #include <glibmm/i18n.h>
 
@@ -30,14 +31,15 @@ class SpriteImporterEditor {
 public:
     SpriteImporterEditor();
 
-    void setFrameSetList(SI::FrameSet::list_t* frameSetList);
+    void setDocument(std::unique_ptr<Document> document);
 
 public:
     Gtk::Paned widget;
 
 private:
+    std::unique_ptr<Document> _document;
+
     Selection _selection;
-    Undo::UndoStack _undoStack;
 
     Gtk::ScrolledWindow _graphicalWindow;
     FrameSetGraphicalEditor _graphicalEditor;

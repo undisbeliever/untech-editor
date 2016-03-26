@@ -3,7 +3,6 @@
 
 #include "selection.h"
 #include "models/sprite-importer.h"
-#include "gui/undo/undostack.h"
 #include "gui/widgets/defaults.h"
 
 #include <gtkmm.h>
@@ -16,7 +15,7 @@ namespace SI = UnTech::SpriteImporter;
 
 class FrameSetGraphicalEditor : public Gtk::DrawingArea {
 public:
-    FrameSetGraphicalEditor(Selection& selection, Undo::UndoStack& undostack);
+    FrameSetGraphicalEditor(Selection& selection);
 
     ~FrameSetGraphicalEditor() = default;
 
@@ -65,8 +64,6 @@ protected:
     void update_pointer_cursor();
 
 private:
-    Undo::UndoStack& _undoStack;
-
     double _zoomX, _zoomY;
 
     /**

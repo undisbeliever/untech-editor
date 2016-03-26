@@ -24,9 +24,8 @@ PARAMETER_UNDO_ACTION2(frameSet_Grid_setOrigin,
                        Signals::frameSetChanged, Signals::frameSetGridChanged,
                        "Change Grid Origin")
 
-FrameSetPropertiesEditor::FrameSetPropertiesEditor(Undo::UndoStack& undoStack)
+FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     : widget()
-    , _undoStack(undoStack)
     , _frameSet(nullptr)
     , _imageFilenameBox(Gtk::ORIENTATION_HORIZONTAL)
     , _imageFilenameEntry()
@@ -101,25 +100,25 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Undo::UndoStack& undoStack)
 
     _gridFrameSizeSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            frameSet_Grid_setFrameSize(_undoStack, _frameSet, _gridFrameSizeSpinButtons.value());
+            frameSet_Grid_setFrameSize(_frameSet, _gridFrameSizeSpinButtons.value());
         }
     });
 
     _gridOffsetSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            frameSet_Grid_setOffset(_undoStack, _frameSet, _gridOffsetSpinButtons.value());
+            frameSet_Grid_setOffset(_frameSet, _gridOffsetSpinButtons.value());
         }
     });
 
     _gridPaddingSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            frameSet_Grid_setPadding(_undoStack, _frameSet, _gridPaddingSpinButtons.value());
+            frameSet_Grid_setPadding(_frameSet, _gridPaddingSpinButtons.value());
         }
     });
 
     _gridOriginSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            frameSet_Grid_setOrigin(_undoStack, _frameSet, _gridOriginSpinButtons.value());
+            frameSet_Grid_setOrigin(_frameSet, _gridOriginSpinButtons.value());
         }
     });
 

@@ -27,9 +27,8 @@ SIMPLE_UNDO_ACTION(frameSet_setTransparentColor,
                    Signals::frameSetChanged,
                    "Set Transparent Color")
 
-FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection, Undo::UndoStack& undoStack)
+FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection)
     : Gtk::DrawingArea()
-    , _undoStack(undoStack)
     , _zoomX(3.0)
     , _zoomY(3.0)
     , _displayZoom(NAN)
@@ -767,7 +766,7 @@ void FrameSetGraphicalEditor::handleRelease_SelectTransparentColor(const upoint&
         if (mouse.x < size.width && mouse.y < size.height) {
             auto color = _selection.frameSet()->image().getPixel(mouse.x, mouse.y);
 
-            frameSet_setTransparentColor(_undoStack, _selection.frameSet(), color);
+            frameSet_setTransparentColor(_selection.frameSet(), color);
         }
     }
 }
@@ -785,21 +784,21 @@ void FrameSetGraphicalEditor::handleRelease_Drag()
 
     case Selection::Type::FRAME_OBJECT:
         if (_selection.frameObject()) {
-            frameObject_setLocation(_undoStack, _selection.frameObject(),
+            frameObject_setLocation(_selection.frameObject(),
                                     { aabb.x, aabb.y });
         }
         break;
 
     case Selection::Type::ACTION_POINT:
         if (_selection.actionPoint()) {
-            actionPoint_setLocation(_undoStack, _selection.actionPoint(),
+            actionPoint_setLocation(_selection.actionPoint(),
                                     { aabb.x, aabb.y });
         }
         break;
 
     case Selection::Type::ENTITY_HITBOX:
         if (_selection.entityHitbox()) {
-            entityHitbox_setAabb(_undoStack, _selection.entityHitbox(), aabb);
+            entityHitbox_setAabb(_selection.entityHitbox(), aabb);
         }
         break;
     }

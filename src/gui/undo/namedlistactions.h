@@ -11,6 +11,7 @@
  */
 
 #include "undostack.h"
+#include "undodocument.h"
 #include "models/common/namedlist.h"
 
 #include <cassert>
@@ -53,8 +54,7 @@ private:
 }
 
 template <class T>
-inline std::shared_ptr<T> namedList_create(UnTech::Undo::UndoStack& undoStack,
-                                           typename T::list_t* list,
+inline std::shared_ptr<T> namedList_create(typename T::list_t* list,
                                            const std::string name,
                                            const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                                            const Glib::ustring& message)
@@ -102,8 +102,10 @@ inline std::shared_ptr<T> namedList_create(UnTech::Undo::UndoStack& undoStack,
 
             Private::NamedListAddRemove<T> handler(list, name, newItem);
 
-            std::unique_ptr<Action> a(new Action(handler, listChangedSignal, message));
-            undoStack.add_undo(std::move(a));
+            auto a = std::make_unique<Action>(handler, listChangedSignal, message);
+
+            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
+            undoDoc->undoStack().add_undo(std::move(a));
 
             return newItem;
         }
@@ -113,8 +115,7 @@ inline std::shared_ptr<T> namedList_create(UnTech::Undo::UndoStack& undoStack,
 }
 
 template <class T>
-inline std::shared_ptr<T> namedList_clone(UnTech::Undo::UndoStack& undoStack,
-                                          typename T::list_t* list, std::shared_ptr<T> item,
+inline std::shared_ptr<T> namedList_clone(typename T::list_t* list, std::shared_ptr<T> item,
                                           const std::string& name,
                                           const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                                           const Glib::ustring& message)
@@ -162,8 +163,10 @@ inline std::shared_ptr<T> namedList_clone(UnTech::Undo::UndoStack& undoStack,
 
             Private::NamedListAddRemove<T> handler(list, name, newItem);
 
-            std::unique_ptr<Action> a(new Action(handler, listChangedSignal, message));
-            undoStack.add_undo(std::move(a));
+            auto a = std::make_unique<Action>(handler, listChangedSignal, message);
+
+            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
+            undoDoc->undoStack().add_undo(std::move(a));
 
             return newItem;
         }
@@ -173,8 +176,7 @@ inline std::shared_ptr<T> namedList_clone(UnTech::Undo::UndoStack& undoStack,
 }
 
 template <class T>
-inline void namedList_remove(UnTech::Undo::UndoStack& undoStack,
-                             typename T::list_t* list, std::shared_ptr<T> item,
+inline void namedList_remove(typename T::list_t* list, std::shared_ptr<T> item,
                              const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                              const Glib::ustring& message)
 {
@@ -222,15 +224,16 @@ inline void namedList_remove(UnTech::Undo::UndoStack& undoStack,
             handler.remove();
             listChangedSignal.emit(list);
 
-            std::unique_ptr<Action> a(new Action(handler, listChangedSignal, message));
-            undoStack.add_undo(std::move(a));
+            auto a = std::make_unique<Action>(handler, listChangedSignal, message);
+
+            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
+            undoDoc->undoStack().add_undo(std::move(a));
         }
     }
 }
 
 template <class T>
-inline void namedList_rename(UnTech::Undo::UndoStack& undoStack,
-                             typename T::list_t* list,
+inline void namedList_rename(typename T::list_t* list,
                              const std::shared_ptr<T>& item, const std::string& newName,
                              const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                              const Glib::ustring& message)
@@ -285,9 +288,11 @@ inline void namedList_rename(UnTech::Undo::UndoStack& undoStack,
             if (r) {
                 listChangedSignal.emit(list);
 
-                std::unique_ptr<Action> a(new Action(list, item, oldName.first, newName,
-                                                     listChangedSignal, message));
-                undoStack.add_undo(std::move(a));
+                auto a = std::make_unique<Action>(list, item, oldName.first, newName,
+                                                  listChangedSignal, message);
+
+                auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
+                undoDoc->undoStack().add_undo(std::move(a));
             }
         }
     }

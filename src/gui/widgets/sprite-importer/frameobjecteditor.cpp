@@ -11,8 +11,7 @@ SIMPLE_UNDO_ACTION(frameObject_setLocation,
 
 // Cannot use simple undo action for FrameObject::setSize
 // Changing the size can change the location.
-inline void frameObject_setSize(UnTech::Undo::UndoStack& undoStack,
-                                std::shared_ptr<SI::FrameObject> item,
+inline void frameObject_setSize(std::shared_ptr<SI::FrameObject> item,
                                 const SI::FrameObject::ObjectSize& newSize)
 {
     class Action : public ::UnTech::Undo::Action {
@@ -67,14 +66,15 @@ inline void frameObject_setSize(UnTech::Undo::UndoStack& undoStack,
         item->setSize(newSize);
         Signals::frameObjectChanged.emit(item);
 
-        std::unique_ptr<Action> a(new Action(item, oldSize, oldLocation, newSize));
-        undoStack.add_undo(std::move(a));
+        auto a = std::make_unique<Action>(item, oldSize, oldLocation, newSize);
+
+        auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
+        undoDoc->undoStack().add_undo(std::move(a));
     }
 }
 
-FrameObjectEditor::FrameObjectEditor(Undo::UndoStack& undoStack)
+FrameObjectEditor::FrameObjectEditor()
     : widget()
-    , _undoStack(undoStack)
     , _frameObject()
     , _locationSpinButtons()
     , _sizeCombo()
@@ -107,7 +107,7 @@ FrameObjectEditor::FrameObjectEditor(Undo::UndoStack& undoStack)
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameObject && !_updatingValues) {
-            frameObject_setLocation(_undoStack, _frameObject, _locationSpinButtons.value());
+            frameObject_setLocation(_frameObject, _locationSpinButtons.value());
         }
     });
 
@@ -117,7 +117,7 @@ FrameObjectEditor::FrameObjectEditor(Undo::UndoStack& undoStack)
 
         if (_frameObject && !_updatingValues) {
             auto size = _sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE;
-            frameObject_setSize(_undoStack, _frameObject, size);
+            frameObject_setSize(_frameObject, size);
         }
     });
 

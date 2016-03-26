@@ -223,10 +223,9 @@ template <class T, class ModelColumnsT>
 class OrderedListEditor : public OrderedListView<T, ModelColumnsT> {
 
 public:
-    OrderedListEditor(Undo::UndoStack& undoStack)
+    OrderedListEditor()
         : OrderedListView<T, ModelColumnsT>()
         , widget(Gtk::ORIENTATION_VERTICAL)
-        , _undoStack(undoStack)
         , _treeContainer()
         , _buttonBox(Gtk::ORIENTATION_HORIZONTAL)
         , _createButton()
@@ -273,7 +272,7 @@ public:
          * SIGNALS
          */
         _createButton.signal_clicked().connect([this](void) {
-            auto item = Undo::orderedList_create<T>(_undoStack, this->list,
+            auto item = Undo::orderedList_create<T>(this->list,
                                                     this->columns.signal_listChanged(),
                                                     _createButton.get_tooltip_text());
 
@@ -281,8 +280,7 @@ public:
         });
 
         _cloneButton.signal_clicked().connect([this](void) {
-            auto item = Undo::orderedList_clone(_undoStack,
-                                                this->list, this->getSelected(),
+            auto item = Undo::orderedList_clone(this->list, this->getSelected(),
                                                 this->columns.signal_listChanged(),
                                                 _cloneButton.get_tooltip_text());
 
@@ -290,22 +288,19 @@ public:
         });
 
         _moveUpButton.signal_clicked().connect([this](void) {
-            Undo::orderedList_moveUp(_undoStack,
-                                     this->list, this->getSelected(),
+            Undo::orderedList_moveUp(this->list, this->getSelected(),
                                      this->columns.signal_listChanged(),
                                      _moveUpButton.get_tooltip_text());
         });
 
         _moveDownButton.signal_clicked().connect([this](void) {
-            Undo::orderedList_moveDown(_undoStack,
-                                       this->list, this->getSelected(),
+            Undo::orderedList_moveDown(this->list, this->getSelected(),
                                        this->columns.signal_listChanged(),
                                        _moveDownButton.get_tooltip_text());
         });
 
         _removeButton.signal_clicked().connect([this](void) {
-            Undo::orderedList_remove(_undoStack,
-                                     this->list, this->getSelected(),
+            Undo::orderedList_remove(this->list, this->getSelected(),
                                      this->columns.signal_listChanged(),
                                      _removeButton.get_tooltip_text());
         });
@@ -357,8 +352,6 @@ public:
     Gtk::Box widget;
 
 private:
-    Undo::UndoStack& _undoStack;
-
     Gtk::ScrolledWindow _treeContainer;
 
     Gtk::ButtonBox _buttonBox;

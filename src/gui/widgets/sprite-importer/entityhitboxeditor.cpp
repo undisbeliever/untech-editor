@@ -14,9 +14,8 @@ SIMPLE_UNDO_ACTION(entityHitbox_setParameter,
                    Signals::entityHitboxChanged,
                    "Change Entity Hitbox Parameter")
 
-EntityHitboxEditor::EntityHitboxEditor(Undo::UndoStack& undoStack)
+EntityHitboxEditor::EntityHitboxEditor()
     : widget()
-    , _undoStack(undoStack)
     , _entityHitbox()
     , _aabbSpinButtons()
     , _parameterEntry()
@@ -49,7 +48,7 @@ EntityHitboxEditor::EntityHitboxEditor(Undo::UndoStack& undoStack)
     /** Set aabb signal */
     _aabbSpinButtons.signal_valueChanged.connect([this](void) {
         if (_entityHitbox && !_updatingValues) {
-            entityHitbox_setAabb(_undoStack, _entityHitbox, _aabbSpinButtons.value());
+            entityHitbox_setAabb(_entityHitbox, _aabbSpinButtons.value());
         }
     });
 
@@ -122,7 +121,7 @@ void EntityHitboxEditor::onParameterFinishedEditing()
     if (_entityHitbox && !_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
-            entityHitbox_setParameter(_undoStack, _entityHitbox, value.first);
+            entityHitbox_setParameter(_entityHitbox, value.first);
         }
         else {
             updateGuiValues();

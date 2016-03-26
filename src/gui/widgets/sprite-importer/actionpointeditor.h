@@ -5,7 +5,6 @@
 #include "models/sprite-importer/actionpoint.h"
 #include "models/sprite-importer/frame.h"
 #include "models/common/string.h"
-#include "gui/undo/undostack.h"
 #include "gui/widgets/common/aabb.h"
 #include "gui/widgets/defaults.h"
 
@@ -21,7 +20,7 @@ namespace SpriteImporter {
 
 class ActionPointEditor {
 public:
-    ActionPointEditor(Undo::UndoStack& undoStack);
+    ActionPointEditor();
 
     void setActionPoint(std::shared_ptr<UnTech::SpriteImporter::ActionPoint> actionPoint)
     {
@@ -38,8 +37,6 @@ public:
     Gtk::Grid widget;
 
 private:
-    Undo::UndoStack& _undoStack;
-
     std::shared_ptr<UnTech::SpriteImporter::ActionPoint> _actionPoint;
 
     UpointSpinButtons _locationSpinButtons;

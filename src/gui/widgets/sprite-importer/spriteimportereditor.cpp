@@ -1,33 +1,31 @@
 #include "spriteimportereditor.h"
 
-// ::TODO Remember to clear the undostack on file load::
-
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
 SpriteImporterEditor::SpriteImporterEditor()
     : widget(Gtk::ORIENTATION_HORIZONTAL)
+    , _document()
     , _selection()
-    , _undoStack()
     , _graphicalWindow()
-    , _graphicalEditor(_selection, _undoStack)
+    , _graphicalEditor(_selection)
     , _sidebar()
     , _frameSetPane(Gtk::ORIENTATION_VERTICAL)
     , _framePane(Gtk::ORIENTATION_VERTICAL)
-    , _frameSetList(_undoStack)
-    , _frameSetPropertiesEditor(_undoStack)
-    , _frameList(_undoStack)
+    , _frameSetList()
+    , _frameSetPropertiesEditor()
+    , _frameList()
     , _frameNotebook()
-    , _frameParameterEditor(_undoStack)
+    , _frameParameterEditor()
     , _frameObjectBox(Gtk::ORIENTATION_VERTICAL)
-    , _frameObjectList(_undoStack)
-    , _frameObjectEditor(_undoStack)
+    , _frameObjectList()
+    , _frameObjectEditor()
     , _actionPointBox(Gtk::ORIENTATION_VERTICAL)
-    , _actionPointList(_undoStack)
-    , _actionPointEditor(_undoStack)
+    , _actionPointList()
+    , _actionPointEditor()
     , _entityHitboxBox(Gtk::ORIENTATION_VERTICAL)
-    , _entityHitboxList(_undoStack)
-    , _entityHitboxEditor(_undoStack)
+    , _entityHitboxList()
+    , _entityHitboxEditor()
 {
     _frameNotebook.set_scrollable(true);
     _frameNotebook.popup_enable();
@@ -165,9 +163,15 @@ SpriteImporterEditor::SpriteImporterEditor()
     });
 }
 
-void SpriteImporterEditor::setFrameSetList(SI::FrameSet::list_t* frameSetList)
+void SpriteImporterEditor::setDocument(std::unique_ptr<Document> document)
 {
-    // No need to test if changed, will only be called on new/load.
-    _frameSetList.setList(frameSetList);
     _selection.setFrameSet(nullptr);
+
+    if (document) {
+        _frameSetList.setList(document->spriteImporterFramesets());
+    }
+    else {
+        _frameSetList.setList(nullptr);
+    }
+    _document = std::move(document);
 }

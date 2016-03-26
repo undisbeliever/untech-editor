@@ -14,9 +14,8 @@ SIMPLE_UNDO_ACTION(actionPoint_setParameter,
                    Signals::actionPointChanged,
                    "Change Action Point Parameter")
 
-ActionPointEditor::ActionPointEditor(Undo::UndoStack& undoStack)
+ActionPointEditor::ActionPointEditor()
     : widget()
-    , _undoStack(undoStack)
     , _actionPoint()
     , _locationSpinButtons()
     , _parameterEntry()
@@ -45,7 +44,7 @@ ActionPointEditor::ActionPointEditor(Undo::UndoStack& undoStack)
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_actionPoint && !_updatingValues) {
-            actionPoint_setLocation(_undoStack, _actionPoint, _locationSpinButtons.value());
+            actionPoint_setLocation(_actionPoint, _locationSpinButtons.value());
         }
     });
 
@@ -118,7 +117,7 @@ void ActionPointEditor::onParameterFinishedEditing()
     if (_actionPoint && !_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
-            actionPoint_setParameter(_undoStack, _actionPoint, value.first);
+            actionPoint_setParameter(_actionPoint, value.first);
         }
         else {
             updateGuiValues();
