@@ -31,6 +31,10 @@ class SpriteImporterEditor {
 public:
     SpriteImporterEditor();
 
+    Document* document() const { return _document.get(); }
+    Selection& selection() { return _selection; }
+    const Selection& selection() const { return _selection; }
+
     void setDocument(std::unique_ptr<Document> document);
 
 public:

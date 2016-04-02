@@ -39,6 +39,16 @@ public:
     std::shared_ptr<SI::ActionPoint> actionPoint() const { return _actionPoint; }
     std::shared_ptr<SI::EntityHitbox> entityHitbox() const { return _entityHitbox; }
 
+    bool canCrudSelected() const { return _type != Type::NONE; }
+    bool canMoveSelectedUp() const;
+    bool canMoveSelectedDown() const;
+
+    void createNewOfSelectedType();
+    void cloneSelected();
+    void removeSelected();
+    void moveSelectedUp();
+    void moveSelectedDown();
+
     sigc::signal<void> signal_selectionChanged;
     sigc::signal<void> signal_frameSetChanged;
     sigc::signal<void> signal_frameChanged;

@@ -1,4 +1,6 @@
 #include "selection.h"
+#include "signals.h"
+#include "gui/undo/orderedlistactions.h"
 #include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::SpriteImporter;
@@ -186,5 +188,193 @@ Glib::ustring Selection::typeString() const
 
     default:
         return "";
+    }
+}
+
+bool Selection::canMoveSelectedUp() const
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        return !_frame->objects().isFirst(_frameObject);
+
+    case Type::ACTION_POINT:
+        return !_frame->actionPoints().isFirst(_actionPoint);
+
+    case Type::ENTITY_HITBOX:
+        return !_frame->entityHitboxes().isFirst(_entityHitbox);
+
+    default:
+        return false;
+    }
+}
+
+bool Selection::canMoveSelectedDown() const
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        return !_frame->objects().isLast(_frameObject);
+
+    case Type::ACTION_POINT:
+        return !_frame->actionPoints().isLast(_actionPoint);
+
+    case Type::ENTITY_HITBOX:
+        return !_frame->entityHitboxes().isLast(_entityHitbox);
+
+    default:
+        return false;
+    }
+}
+
+void Selection::createNewOfSelectedType()
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        setFrameObject(
+            Undo::orderedList_create<SI::FrameObject>(
+                &_frame->objects(),
+                Signals::frameObjectListChanged,
+                _("Create new Frame Object")));
+        break;
+
+    case Type::ACTION_POINT:
+        setActionPoint(
+            Undo::orderedList_create<SI::ActionPoint>(
+                &_frame->actionPoints(),
+                Signals::actionPointListChanged,
+                _("Create new Action Point")));
+        break;
+
+    case Type::ENTITY_HITBOX:
+        setEntityHitbox(
+            Undo::orderedList_create<SI::EntityHitbox>(
+                &_frame->entityHitboxes(),
+                Signals::entityHitboxListChanged,
+                _("Create new Entity Hitbox")));
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Selection::cloneSelected()
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        setFrameObject(
+            Undo::orderedList_clone<SI::FrameObject>(
+                &_frame->objects(), _frameObject,
+                Signals::frameObjectListChanged,
+                _("Clone Frame Object")));
+        break;
+
+    case Type::ACTION_POINT:
+        setActionPoint(
+            Undo::orderedList_clone<SI::ActionPoint>(
+                &_frame->actionPoints(), _actionPoint,
+                Signals::actionPointListChanged,
+                _("Clone Action Point")));
+        break;
+
+    case Type::ENTITY_HITBOX:
+        setEntityHitbox(
+            Undo::orderedList_clone<SI::EntityHitbox>(
+                &_frame->entityHitboxes(), _entityHitbox,
+                Signals::entityHitboxListChanged,
+                _("Clone Entity Hitbox")));
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Selection::removeSelected()
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        Undo::orderedList_remove<SI::FrameObject>(
+            &_frame->objects(), _frameObject,
+            Signals::frameObjectListChanged,
+            _("Remove Frame Object"));
+        setFrameObject(nullptr);
+        break;
+
+    case Type::ACTION_POINT:
+        Undo::orderedList_remove<SI::ActionPoint>(
+            &_frame->actionPoints(), _actionPoint,
+            Signals::actionPointListChanged,
+            _("Remove Action Point"));
+        setActionPoint(nullptr);
+        break;
+
+    case Type::ENTITY_HITBOX:
+        Undo::orderedList_remove<SI::EntityHitbox>(
+            &_frame->entityHitboxes(), _entityHitbox,
+            Signals::entityHitboxListChanged,
+            _("Remove Entity Hitbox"));
+        setEntityHitbox(nullptr);
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Selection::moveSelectedUp()
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        Undo::orderedList_moveUp<SI::FrameObject>(
+            &_frame->objects(), _frameObject,
+            Signals::frameObjectListChanged,
+            _("Move Frame Object up"));
+        break;
+
+    case Type::ACTION_POINT:
+        Undo::orderedList_moveUp<SI::ActionPoint>(
+            &_frame->actionPoints(), _actionPoint,
+            Signals::actionPointListChanged,
+            _("Move Action Point up"));
+        break;
+
+    case Type::ENTITY_HITBOX:
+        Undo::orderedList_moveUp<SI::EntityHitbox>(
+            &_frame->entityHitboxes(), _entityHitbox,
+            Signals::entityHitboxListChanged,
+            _("Move Entity Hitbox up"));
+        break;
+
+    default:
+        break;
+    }
+}
+
+void Selection::moveSelectedDown()
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        Undo::orderedList_moveDown<SI::FrameObject>(
+            &_frame->objects(), _frameObject,
+            Signals::frameObjectListChanged,
+            _("Move Frame Object down"));
+        break;
+
+    case Type::ACTION_POINT:
+        Undo::orderedList_moveDown<SI::ActionPoint>(
+            &_frame->actionPoints(), _actionPoint,
+            Signals::actionPointListChanged,
+            _("Move Action Point down"));
+        break;
+
+    case Type::ENTITY_HITBOX:
+        Undo::orderedList_moveDown<SI::EntityHitbox>(
+            &_frame->entityHitboxes(), _entityHitbox,
+            Signals::entityHitboxListChanged,
+            _("Move Entity Hitbox down"));
+        break;
+
+    default:
+        break;
     }
 }

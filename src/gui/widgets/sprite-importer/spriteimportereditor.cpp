@@ -4,8 +4,7 @@ using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
 SpriteImporterEditor::SpriteImporterEditor()
-    : widget(Gtk::ORIENTATION_HORIZONTAL)
-    , _document()
+    : _document()
     , _selection()
     , _graphicalWindow()
     , _graphicalEditor(_selection)
@@ -165,13 +164,15 @@ SpriteImporterEditor::SpriteImporterEditor()
 
 void SpriteImporterEditor::setDocument(std::unique_ptr<Document> document)
 {
-    _selection.setFrameSet(nullptr);
+    if (_document != document) {
+        _selection.setFrameSet(nullptr);
 
-    if (document) {
-        _frameSetList.setList(document->spriteImporterFramesets());
+        if (document) {
+            _frameSetList.setList(document->spriteImporterFramesets());
+        }
+        else {
+            _frameSetList.setList(nullptr);
+        }
+        _document = std::move(document);
     }
-    else {
-        _frameSetList.setList(nullptr);
-    }
-    _document = std::move(document);
 }
