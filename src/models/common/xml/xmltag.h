@@ -41,7 +41,7 @@ struct XmlTag {
     {
         std::string id = getAttribute(aName);
 
-        if (isNameListNameValid(id)) {
+        if (isNameValid(id)) {
             return id;
         }
         else {

@@ -18,16 +18,14 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // Does not use the document's read/write functions
+    // Does not use the document's write functions
     // as this app just combines the documents in one sitting.
 
-    SI::SpriteImporterDocument document;
-
     for (int i = 1; i < argc; i++) {
-        SI::Serializer::readFile(document.spriteImporterFramesets(), argv[i]);
-    }
+        SI::SpriteImporterDocument document(argv[i]);
 
-    SI::Serializer::writeFile(document.spriteImporterFramesets(), std::cout);
+        SI::Serializer::writeFile(*document.frameSet(), std::cout);
+    }
 
     return EXIT_SUCCESS;
 }

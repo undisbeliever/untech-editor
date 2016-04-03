@@ -25,44 +25,40 @@ namespace Serializer {
  */
 
 struct FrameSetReader {
-    FrameSetReader(FrameSet::list_t& framesetContainer, XmlReader& xml)
-        : framesetContainer(framesetContainer)
+    FrameSetReader(std::shared_ptr<FrameSet> frameSet, XmlReader& xml)
+        : frameSet(frameSet)
         , xml(xml)
-        , frameset()
-        , framesetGridSet(false)
+        , frameSetGridSet(false)
     {
     }
 
 private:
-    FrameSet::list_t& framesetContainer;
+    std::shared_ptr<FrameSet> frameSet;
     XmlReader& xml;
 
-    std::shared_ptr<FrameSet> frameset;
-    bool framesetGridSet;
+    bool frameSetGridSet;
 
 public:
     inline void readFrameSet(const XmlTag* tag)
     {
-        assert(tag->name == "frameset");
+        assert(tag->name == "spriteimporter");
+        assert(frameSet->frames().size() == 0);
 
         std::string id = tag->getAttributeId("id");
-        if (framesetContainer.nameExists(id)) {
-            throw tag->buildError("frameset id already exists");
-        }
+        frameSet->setName(id);
 
-        frameset = framesetContainer.create(id);
-        framesetGridSet = false;
+        frameSetGridSet = false;
 
         std::string imageAttribute = tag->getAttribute("image");
         std::string imageFilename = xml.dirname() + imageAttribute;
-        frameset->setImageFilename(imageFilename);
+        frameSet->setImageFilename(imageFilename);
 
         if (tag->hasAttribute("transparent")) {
             static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
 
             UnTech::rgba color(tag->getAttributeUnsignedHex("transparent"));
             color.alpha = 0xFF;
-            frameset->setTransparentColor(color);
+            frameSet->setTransparentColor(color);
         }
 
         std::unique_ptr<XmlTag> childTag;
@@ -86,12 +82,12 @@ private:
     {
         assert(tag->name == "grid");
 
-        frameset->grid().setFrameSize(tag->getAttributeUsize("width", "height"));
-        frameset->grid().setOffset(tag->getAttributeUpoint("xoffset", "yoffset"));
-        frameset->grid().setPadding(tag->getAttributeUsize("xpadding", "ypadding"));
-        frameset->grid().setOrigin(tag->getAttributeUpoint("xorigin", "yorigin"));
+        frameSet->grid().setFrameSize(tag->getAttributeUsize("width", "height"));
+        frameSet->grid().setOffset(tag->getAttributeUpoint("xoffset", "yoffset"));
+        frameSet->grid().setPadding(tag->getAttributeUsize("xpadding", "ypadding"));
+        frameSet->grid().setOrigin(tag->getAttributeUpoint("xorigin", "yorigin"));
 
-        framesetGridSet = true;
+        frameSetGridSet = true;
     }
 
     inline void readFrame(const XmlTag* tag)
@@ -99,11 +95,11 @@ private:
         assert(tag->name == "frame");
 
         std::string id = tag->getAttributeId("id");
-        if (frameset->frames().nameExists(id)) {
+        if (frameSet->frames().nameExists(id)) {
             throw tag->buildError("frame id already exists");
         }
 
-        auto frame = frameset->frames().create(id);
+        auto frame = frameSet->frames().create(id);
 
         if (tag->hasAttribute("order")) {
             frame->setSpriteOrder(tag->getAttributeUnsigned("order", 0, 3));
@@ -117,7 +113,7 @@ private:
                 frame->setLocation(location);
             }
             if (childTag->name == "gridlocation") {
-                if (framesetGridSet == false) {
+                if (frameSetGridSet == false) {
                     throw childTag->buildError("Frameset grid is not set.");
                 }
                 frame->setGridLocation(childTag->getAttributeUpoint());
@@ -287,38 +283,27 @@ inline void writeFrameSetGrid(XmlWriter& xml, const FrameSetGrid& grid)
     xml.writeCloseTag();
 }
 
-inline void writeFrameSet(XmlWriter& xml, const std::string& framesetName, const FrameSet* frameset)
-{
-    xml.writeTag("frameset");
-
-    xml.writeTagAttribute("id", framesetName);
-
-    // ::TODO get relative image filename::
-    std::string imageFilename = frameset->imageFilename();
-    xml.writeTagAttribute("image", imageFilename);
-
-    if (frameset->transparentColorValid()) {
-        static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
-
-        unsigned rgb = frameset->transparentColor().rgb();
-        xml.writeTagAttributeHex("transparent", rgb, 6);
-    }
-
-    writeFrameSetGrid(xml, frameset->grid());
-
-    for (const auto& f : frameset->frames()) {
-        writeFrame(xml, f.first, f.second.get());
-    }
-
-    xml.writeCloseTag();
-}
-
-inline void writeFrameSetList(XmlWriter& xml, const FrameSet::list_t& framesetContainer)
+inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 {
     xml.writeTag("spriteimporter");
 
-    for (const auto& fs : framesetContainer) {
-        writeFrameSet(xml, fs.first, fs.second.get());
+    xml.writeTagAttribute("id", frameSet.name());
+
+    // ::TODO get relative image filename::
+    std::string imageFilename = frameSet.imageFilename();
+    xml.writeTagAttribute("image", imageFilename);
+
+    if (frameSet.transparentColorValid()) {
+        static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
+
+        unsigned rgb = frameSet.transparentColor().rgb();
+        xml.writeTagAttributeHex("transparent", rgb, 6);
+    }
+
+    writeFrameSetGrid(xml, frameSet.grid());
+
+    for (const auto& f : frameSet.frames()) {
+        writeFrame(xml, f.first, f.second.get());
     }
 
     xml.writeCloseTag();
@@ -330,7 +315,7 @@ inline void writeFrameSetList(XmlWriter& xml, const FrameSet::list_t& framesetCo
  * ===
  */
 
-void readFile(FrameSet::list_t& frameSetContainer, const std::string& filename)
+void readFile(std::shared_ptr<FrameSet> frameSet, const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     std::unique_ptr<XmlTag> tag = xml->parseTag();
@@ -339,46 +324,24 @@ void readFile(FrameSet::list_t& frameSetContainer, const std::string& filename)
         throw std::runtime_error(filename + ": Not a sprite importer file");
     }
 
-    readSpriteImporter(frameSetContainer, *xml, tag.get());
+    FrameSetReader reader(frameSet, *xml);
+
+    reader.readFrameSet(tag.get());
 }
 
-void readSpriteImporter(FrameSet::list_t& framesetContainer, XmlReader& xml, const XmlTag* tag)
-{
-    assert(tag->name == "spriteimporter");
-
-    FrameSetReader reader(framesetContainer, xml);
-
-    std::unique_ptr<XmlTag> childTag;
-    while ((childTag = xml.parseTag())) {
-        if (childTag->name == "frameset") {
-            reader.readFrameSet(childTag.get());
-        }
-        else {
-            throw tag->buildUnknownTagError();
-        }
-
-        xml.parseCloseTag();
-    }
-}
-
-void writeFile(const FrameSet::list_t& frameSetContainer, std::ostream& file)
+void writeFile(const FrameSet& frameSet, std::ostream& file)
 {
     XmlWriter xml(file, "untech");
 
-    FrameSetWriter::writeFrameSetList(xml, frameSetContainer);
+    FrameSetWriter::writeFrameSet(xml, frameSet);
 }
 
-void writeFile(const FrameSet::list_t& frameSetContainer, const std::string& filename)
+void writeFile(const FrameSet& frameSet, const std::string& filename)
 {
     // ::TODO implement Qt SaveFile class for atomicity::
 
     std::ofstream file(filename, std::ios_base::out);
-    writeFile(frameSetContainer, file);
-}
-
-void writeSpriteImporter(const FrameSet::list_t& frameSetContainer, XmlWriter& xml)
-{
-    FrameSetWriter::writeFrameSetList(xml, frameSetContainer);
+    writeFile(frameSet, file);
 }
 }
 }

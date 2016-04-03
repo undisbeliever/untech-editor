@@ -7,32 +7,26 @@
 #include "../common/image.h"
 #include "../common/namedlist.h"
 #include "../common/namedlistref.h"
-#include "../document.h"
 #include <memory>
 #include <string>
 
 // FrameSet images are lazily loaded.
 
 namespace UnTech {
-
-class Document;
-
 namespace SpriteImporter {
 
 class Frame;
+class SpriteImporterDocument;
 
 class FrameSet : public std::enable_shared_from_this<FrameSet> {
 
 public:
-    typedef NamedListRef<Document, FrameSet> list_t;
-
-public:
-    FrameSet(Document& _document);
+    FrameSet(SpriteImporterDocument& document);
 
     std::shared_ptr<FrameSet> ptr() { return shared_from_this(); }
-    std::shared_ptr<FrameSet> clone(Document& _document);
 
-    inline auto imageFilename() const { return _imageFilename; }
+    inline const std::string& name() const { return _name; }
+    inline const std::string& imageFilename() const { return _imageFilename; }
 
     inline auto& frames() { return _frames; }
     inline auto& grid() { return _grid; }
@@ -41,7 +35,9 @@ public:
     inline const auto& frames() const { return _frames; }
     inline const auto& grid() const { return _grid; }
 
-    inline Document& document() const { return _document; }
+    inline SpriteImporterDocument& document() const { return _document; }
+
+    void setName(const std::string& name);
 
     void setImageFilename(const std::string& filename);
 
@@ -66,8 +62,9 @@ public:
     bool reloadImage();
 
 private:
-    Document& _document;
+    SpriteImporterDocument& _document;
 
+    std::string _name;
     std::string _imageFilename;
     UnTech::Image _image;
     UnTech::rgba _transparentColor;

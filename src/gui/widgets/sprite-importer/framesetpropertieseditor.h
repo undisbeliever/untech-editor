@@ -4,6 +4,7 @@
 #include "signals.h"
 #include "models/sprite-importer/frameset.h"
 #include "gui/widgets/common/aabb.h"
+#include "gui/widgets/common/namedlistnameentry.h"
 #include "gui/widgets/defaults.h"
 
 #include <gtkmm.h>
@@ -39,6 +40,8 @@ public:
 private:
     std::shared_ptr<SI::FrameSet> _frameSet;
 
+    NamedListNameEntry _nameEntry;
+
     Gtk::Box _imageFilenameBox;
     Gtk::Entry _imageFilenameEntry;
     Gtk::Button _imageFilenameButton;
@@ -52,6 +55,7 @@ private:
     UsizeSpinButtons _gridPaddingSpinButtons;
     UpointSpinButtons _gridOriginSpinButtons;
 
+    Gtk::Label _nameLabel;
     Gtk::Label _imageFilenameLabel;
     Gtk::Label _transparentColorLabel;
     Gtk::Label _gridFrameSizeLabel, _gridFrameSizeCrossLabel;

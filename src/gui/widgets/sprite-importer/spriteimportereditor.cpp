@@ -9,9 +9,7 @@ SpriteImporterEditor::SpriteImporterEditor()
     , _graphicalWindow()
     , _graphicalEditor(_selection)
     , _sidebar()
-    , _frameSetPane(Gtk::ORIENTATION_VERTICAL)
     , _framePane(Gtk::ORIENTATION_VERTICAL)
-    , _frameSetList()
     , _frameSetPropertiesEditor()
     , _frameList()
     , _frameNotebook()
@@ -49,12 +47,8 @@ SpriteImporterEditor::SpriteImporterEditor()
     _graphicalWindow.add(_graphicalEditor);
     _graphicalWindow.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_ALWAYS);
 
-    _sidebar.append_page(_frameSetPane, _("Frame Set"));
+    _sidebar.append_page(_frameSetPropertiesEditor.widget, _("Frame Set"));
     _sidebar.append_page(_framePane, _("Frames"));
-
-    _frameSetPane.set_border_width(DEFAULT_BORDER);
-    _frameSetPane.pack1(_frameSetList.widget, true, false);
-    _frameSetPane.pack2(_frameSetPropertiesEditor.widget, false, false);
 
     _framePane.set_border_width(DEFAULT_BORDER);
     _framePane.pack1(_frameList.widget, true, false);
@@ -145,9 +139,6 @@ SpriteImporterEditor::SpriteImporterEditor()
     _frameSetPropertiesEditor.signal_selectTransparentClicked().connect(
         sigc::mem_fun(_graphicalEditor, &FrameSetGraphicalEditor::enableSelectTransparentColor));
 
-    _frameSetList.signal_selected_changed().connect([this](void) {
-        _selection.setFrameSet(_frameSetList.getSelected());
-    });
     _frameList.signal_selected_changed().connect([this](void) {
         _selection.setFrame(_frameList.getSelected());
     });
@@ -165,14 +156,8 @@ SpriteImporterEditor::SpriteImporterEditor()
 void SpriteImporterEditor::setDocument(std::unique_ptr<Document> document)
 {
     if (_document != document) {
-        _selection.setFrameSet(nullptr);
+        _selection.setFrameSet(document->frameSet());
 
-        if (document) {
-            _frameSetList.setList(document->spriteImporterFramesets());
-        }
-        else {
-            _frameSetList.setList(nullptr);
-        }
         _document = std::move(document);
     }
 }

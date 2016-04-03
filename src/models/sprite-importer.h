@@ -5,4 +5,3 @@
 #include "sprite-importer/frameobject.h"
 #include "sprite-importer/frameset.h"
 #include "sprite-importer/framesetgrid.h"
-#include "sprite-importer/serializer.h"

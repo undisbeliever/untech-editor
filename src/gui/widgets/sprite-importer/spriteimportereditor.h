@@ -11,7 +11,6 @@
 #include "frameobjectlist.h"
 #include "framepropertieseditor.h"
 #include "framesetgraphicaleditor.h"
-#include "framesetlist.h"
 #include "framesetpropertieseditor.h"
 #include "selection.h"
 #include "models/sprite-importer.h"
@@ -50,9 +49,8 @@ private:
 
     Gtk::Notebook _sidebar;
 
-    Gtk::Paned _frameSetPane, _framePane;
+    Gtk::Paned _framePane;
 
-    FrameSetListEditor _frameSetList;
     FrameSetPropertiesEditor _frameSetPropertiesEditor;
 
     FrameListEditor _frameList;

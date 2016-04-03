@@ -95,7 +95,7 @@ public:
                     return true;
                 }
             }
-            return (isNameListNameValid(text) && _list->nameExists(text));
+            return (isNameValid(text) && _list->nameExists(text));
         }
     }
 
@@ -112,7 +112,7 @@ protected:
                 return;
             }
 
-            if (!isNameListNameValid(text)) {
+            if (!isNameValid(text)) {
                 _errorLabel.set_text("Error: Invalid characters");
                 _inputText.set_icon_from_icon_name("dialog-error", Gtk::ENTRY_ICON_SECONDARY);
                 _okButton->set_sensitive(false);

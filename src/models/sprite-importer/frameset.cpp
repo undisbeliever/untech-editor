@@ -1,10 +1,12 @@
 #include "frameset.h"
 #include "frame.h"
+#include "../common/namechecks.h"
 
 using namespace UnTech::SpriteImporter;
 
-FrameSet::FrameSet(Document& document)
+FrameSet::FrameSet(SpriteImporterDocument& document)
     : _document(document)
+    , _name()
     , _imageFilename()
     , _image()
     , _transparentColor(0)
@@ -13,18 +15,11 @@ FrameSet::FrameSet(Document& document)
 {
 }
 
-std::shared_ptr<FrameSet> FrameSet::clone(Document& document)
+void FrameSet::setName(const std::string& name)
 {
-    auto fs = std::make_shared<FrameSet>(document);
-
-    fs->setImageFilename(this->_imageFilename);
-    fs->_grid.copyFrom(this->_grid);
-
-    for (const auto& f : _frames) {
-        fs->_frames.clone(f.second, f.first);
+    if (isNameValid(name)) {
+        _name = name;
     }
-
-    return fs;
 }
 
 void FrameSet::setImageFilename(const std::string& filename)

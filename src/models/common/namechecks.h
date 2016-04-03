@@ -5,7 +5,7 @@
 
 namespace UnTech {
 
-inline static bool isNameListCharValid(const char c)
+inline static bool isNameCharValid(const char c)
 {
     return ((c == '_'
              || (c >= '0' && c <= '9')
@@ -13,14 +13,14 @@ inline static bool isNameListCharValid(const char c)
              || (c >= 'a' && c <= 'z')));
 }
 
-inline static bool isNameListNameValid(const std::string& name)
+inline static bool isNameValid(const std::string& name)
 {
     if (name.empty()) {
         return false;
     }
 
     for (const char& c : name) {
-        if (!isNameListCharValid(c)) {
+        if (!isNameCharValid(c)) {
             return false;
         }
     }

@@ -9,10 +9,7 @@
 namespace UnTech {
 namespace SpriteImporter {
 
-class Frame;
-
 class FrameObject {
-
 public:
     typedef OrderedList<Frame, FrameObject> list_t;
 
@@ -34,7 +31,7 @@ public:
     unsigned sizePx() const { return (unsigned)_size; }
 
     inline std::shared_ptr<Frame> frame() const { return _frame.lock(); }
-    inline Document& document() const { return frame()->frameSet()->document(); }
+    inline SpriteImporterDocument& document() const { return frame()->frameSet()->document(); }
 
     void setLocation(const upoint& location);
     void setSize(ObjectSize size);

@@ -8,13 +8,9 @@
 #include <memory>
 
 namespace UnTech {
-
-class Document;
-
 namespace SpriteImporter {
 
 class ActionPoint {
-
 public:
     typedef OrderedList<Frame, ActionPoint> list_t;
 
@@ -31,7 +27,7 @@ public:
     parameter_t parameter() const { return _parameter; }
 
     inline std::shared_ptr<Frame> frame() const { return _frame.lock(); }
-    inline Document& document() const { return frame()->frameSet()->document(); }
+    inline SpriteImporterDocument& document() const { return frame()->frameSet()->document(); }
 
     void setLocation(const upoint& location);
     void setParameter(parameter_t parameter);

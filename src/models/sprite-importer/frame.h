@@ -8,9 +8,6 @@
 #include <memory>
 
 namespace UnTech {
-
-class Document;
-
 namespace SpriteImporter {
 
 class FrameObject;
@@ -60,7 +57,7 @@ public:
     unsigned spriteOrder() const { return _spriteOrder; }
 
     inline std::shared_ptr<FrameSet> frameSet() const { return _frameSet.lock(); }
-    inline Document& document() const { return frameSet()->document(); }
+    inline SpriteImporterDocument& document() const { return frameSet()->document(); }
 
     void setUseGridLocation(bool useGridLocation);
     void setGridLocation(upoint gridLocation);

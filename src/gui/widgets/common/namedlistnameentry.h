@@ -13,7 +13,7 @@ namespace UnTech {
 namespace Widgets {
 
 class NamedListNameEntry : public Gtk::Entry {
-    void on_insert_text(const Glib::ustring& text, int* position)
+    void on_insert_text(const Glib::ustring& text, int* position) override
     {
         if (text == " ") {
             // Convert spaces to underscore
@@ -22,7 +22,7 @@ class NamedListNameEntry : public Gtk::Entry {
         else {
             // allow only id characters
             for (const char c : text) {
-                if (!UnTech::isNameListCharValid(c)) {
+                if (!UnTech::isNameCharValid(c)) {
                     return;
                 }
             }

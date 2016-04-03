@@ -38,7 +38,7 @@ public:
 
     std::shared_ptr<T> create(const std::string& name)
     {
-        if (isNameListNameValid(name) && !nameExists(name)) {
+        if (isNameValid(name) && !nameExists(name)) {
             auto e = std::make_shared<T>(_owner);
 
             _values.insert({ name, e });
@@ -52,7 +52,7 @@ public:
 
     std::shared_ptr<T> clone(std::shared_ptr<T> e, const std::string& newName)
     {
-        if (isNameListNameValid(newName) && !nameExists(newName)) {
+        if (isNameValid(newName) && !nameExists(newName)) {
             auto newElem = e->clone(_owner);
 
             _values.insert({ newName, newElem });
@@ -82,7 +82,7 @@ public:
             const std::string currentName = it->second;
 
             if (newName != currentName) {
-                if (!isNameListNameValid(newName) || nameExists(newName)) {
+                if (!isNameValid(newName) || nameExists(newName)) {
                     return false;
                 }
 
@@ -128,7 +128,7 @@ protected:
 
     void insertInto(std::shared_ptr<T> e, const std::string& name)
     {
-        if (isNameListNameValid(name) && !nameExists(name)) {
+        if (isNameValid(name) && !nameExists(name)) {
             _values.insert({ name, e });
             _names.insert({ e, name });
         }
