@@ -24,7 +24,13 @@ OBJS		= $(MODEL_OBJ) $(CLI_OBJ) $(GUI_OBJ) $(THIRD_PARTY)
 DEPS		= $(OBJS:.o=.d)
 
 .PHONY: all
-all: dirs $(CLI_APPS) $(GUI_APPS)
+all: cli gui
+
+.PHONY: cli
+cli: dirs $(CLI_APPS)
+
+.PNONY: gui
+gui: dirs $(GUI_APPS)
 
 
 PERCENT = %
@@ -57,10 +63,10 @@ MAKEFLAGS += --no-builtin-rules
 
 -include $(DEPS)
 
-bin/%-gui: obj/gui/%.o
+$(GUI_APPS): bin/%-gui: obj/gui/%.o
 	$(CXX) $(LDFLAGS) $(GUI_LDFLAGS) -o $@ $^
 
-bin/%: obj/cli/%.o
+$(CLI_APPS): bin/%: obj/cli/%.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 obj/gui/%.o: src/gui/%.cpp
