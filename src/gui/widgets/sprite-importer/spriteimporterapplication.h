@@ -26,20 +26,17 @@ protected:
 
     void on_open(const type_vec_files& files, const Glib::ustring& hint) override;
 
-private:
-    void create_window(std::unique_ptr<Document> document);
-
-    void load_file(const std::string& filename);
+    void on_menu_open();
+    void on_menu_about();
 
     void on_window_hide(Gtk::Window* window);
 
-    void on_menu_about();
-    void on_menu_quit();
+private:
+    void create_window(std::unique_ptr<Document> document);
+    void load_file(const std::string& filename);
 
-    // ::TODO void on_menu_load();::
-
+private:
     Glib::RefPtr<Gtk::Builder> _uiBuilder;
-
     static const Glib::ustring _uiInfo;
 };
 }

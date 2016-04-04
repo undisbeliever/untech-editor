@@ -19,6 +19,8 @@ class SpriteImporterWindow : public Gtk::ApplicationWindow {
 public:
     SpriteImporterWindow();
 
+    Document* document() const { return _editor.document(); }
+
     void setDocument(std::unique_ptr<Document> document);
 
 protected:

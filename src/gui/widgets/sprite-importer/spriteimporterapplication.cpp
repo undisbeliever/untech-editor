@@ -22,8 +22,7 @@ void SpriteImporterApplication::on_startup()
 {
     Gtk::Application::on_startup();
 
-    // ::TODO add app actions::
-
+    add_action("open", sigc::mem_fun(*this, &SpriteImporterApplication::on_menu_open));
     add_action("about", sigc::mem_fun(*this, &SpriteImporterApplication::on_menu_about));
 
     _uiBuilder = Gtk::Builder::create();
@@ -80,6 +79,16 @@ void SpriteImporterApplication::create_window(std::unique_ptr<Document> document
 
 void SpriteImporterApplication::load_file(const std::string& filename)
 {
+    // ensure the file is not already loaded
+    for (auto* window : get_windows()) {
+        auto* siw = dynamic_cast<SpriteImporterWindow*>(window);
+        if (siw) {
+            if (siw->document()->filename() == filename) {
+                return;
+            }
+        }
+    }
+
     std::unique_ptr<Document> document;
 
     try {
@@ -102,13 +111,49 @@ void SpriteImporterApplication::on_window_hide(Gtk::Window* window)
     delete window;
 }
 
+/*
+ * MENU ACTIONS
+ * ============
+ */
+
+void SpriteImporterApplication::on_menu_open()
+{
+    Gtk::FileChooserDialog dialog(*get_active_window(),
+                                  _("Open File"),
+                                  Gtk::FILE_CHOOSER_ACTION_OPEN);
+
+    dialog.add_button(_("_Cancel"), Gtk::RESPONSE_CANCEL);
+    dialog.add_button(_("_Open"), Gtk::RESPONSE_OK);
+    dialog.set_default_response(Gtk::RESPONSE_OK);
+
+    auto filterUtsi = Gtk::FileFilter::create();
+    filterUtsi->set_name(_("UnTech Sprite Importer File"));
+    filterUtsi->add_pattern("*.utsi");
+    dialog.add_filter(filterUtsi);
+
+    auto filterAny = Gtk::FileFilter::create();
+    filterAny->set_name(_("All files"));
+    filterAny->add_pattern("*");
+    dialog.add_filter(filterAny);
+
+    int result = dialog.run();
+
+    if (result == Gtk::RESPONSE_OK) {
+        load_file(dialog.get_filename());
+    }
+}
+
 void SpriteImporterApplication::on_menu_about()
 {
     // ::TODO show about window::
     std::cout << "About" << std::endl;
 }
 
-//Layout the actions in a menubar and an application menu:
+/*
+ * UI
+ * ==
+ */
+
 const Glib::ustring SpriteImporterApplication::_uiInfo
     = "<interface>"
       "  <!-- menubar -->"
