@@ -131,6 +131,13 @@ struct XmlTag {
         return def;
     }
 
+    inline std::string getAttributeFilename(const std::string& aName) const
+    {
+        auto v = getAttribute(aName);
+
+        return xml->dirname() + v;
+    }
+
     inline unsigned getAttributeUnsignedHex(const std::string& aName) const
     {
         auto v = String::hexToUnsigned(getAttribute(aName));

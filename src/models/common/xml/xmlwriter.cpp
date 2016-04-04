@@ -10,10 +10,16 @@
 using namespace UnTech;
 using namespace UnTech::Xml;
 
-XmlWriter::XmlWriter(std::ostream& output, const std::string& doctype)
+XmlWriter::XmlWriter(std::ostream& output, const std::string& fileName, const std::string& doctype)
     : _file(output)
     , _tagStack()
+    , _filename(fileName)
 {
+    if (!_filename.empty()) {
+        auto dirname = File::splitFilename(fileName).first;
+        _dirname = File::fullPath(dirname);
+    }
+
     _file << "<?xml version=\"1.0\" encoding=\"UTF_8\"?>\n";
 
     if (!doctype.empty()) {
@@ -86,6 +92,12 @@ void XmlWriter::writeTagAttribute(const std::string& name, const unsigned value)
     assert((_file.flags() & std::ios_base::basefield) == std::ios_base::dec);
 
     _file << ' ' << name << "=\"" << value << '"';
+}
+
+void XmlWriter::writeTagAttributeFilename(const std::string& name, const std::string& filename)
+{
+    auto rel = File::relativePath(_dirname, filename);
+    writeTagAttribute(name, rel);
 }
 
 void XmlWriter::writeTagAttributeHex(const std::string& name, const unsigned value, unsigned width)

@@ -49,9 +49,10 @@ public:
 
         frameSetGridSet = false;
 
-        std::string imageAttribute = tag->getAttribute("image");
-        std::string imageFilename = xml.dirname() + imageAttribute;
-        frameSet->setImageFilename(imageFilename);
+        if (tag->hasAttribute("image")) {
+            std::string imageFilename = tag->getAttributeFilename("image");
+            frameSet->setImageFilename(imageFilename);
+        }
 
         if (tag->hasAttribute("transparent")) {
             static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
@@ -289,9 +290,9 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     xml.writeTagAttribute("id", frameSet.name());
 
-    // ::TODO get relative image filename::
-    std::string imageFilename = frameSet.imageFilename();
-    xml.writeTagAttribute("image", imageFilename);
+    if (!frameSet.imageFilename().empty()) {
+        xml.writeTagAttributeFilename("image", frameSet.imageFilename());
+    }
 
     if (frameSet.transparentColorValid()) {
         static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
@@ -338,10 +339,13 @@ void writeFile(const FrameSet& frameSet, std::ostream& file)
 
 void writeFile(const FrameSet& frameSet, const std::string& filename)
 {
-    // ::TODO implement Qt SaveFile class for atomicity::
+    // ::TODO implement Qt like SaveFile class for atomicity::
 
     std::ofstream file(filename, std::ios_base::out);
-    writeFile(frameSet, file);
+
+    XmlWriter xml(file, filename, "untech");
+
+    FrameSetWriter::writeFrameSet(xml, frameSet);
 }
 }
 }

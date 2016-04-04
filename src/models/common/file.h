@@ -25,6 +25,33 @@ std::string readUtf8TextFile(const std::string& filename);
  * concatenation.
  */
 std::pair<std::string, std::string> splitFilename(const std::string& filename);
+
+/**
+ * Returns the current working directory
+ */
+std::string cwd();
+
+/**
+ * Cleans the path, removing the ./ and ../ directories
+ */
+std::string cleanPath(const std::string& path);
+
+/**
+ * Returns the joined path of the current path.
+ */
+std::string joinPath(const std::string& dir, const std::string& path);
+
+/**
+ * Returns the full path of the current path.
+ *
+ * This does not expand symlinks in linux
+ */
+std::string fullPath(const std::string& path);
+
+/**
+ * Returns a path to destPath, relative to sourceDir
+ */
+std::string relativePath(const std::string& sourceDir, const std::string& destPath);
 }
 }
 #endif

@@ -1,11 +1,47 @@
 #include "file.h"
 #include "string.h"
+#include <cstdio>
 #include <string>
 #include <fstream>
 #include <stdexcept>
 
+// ::TODO compile in windows::
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define PLATFORM_WINDOWS
+#endif
+
+#ifdef PLAYFORM_WINDOWS
+#include <direct.h>
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+#ifdef PLATFORM_WINDOWS
+// This is the only module that requires windows character conversion
+
+std::string to_string(const wchar_t* str = L"")
+{
+    if (!str) {
+        str = L"";
+    }
+    auto length = WideCharToMultiByte(CP_UTF8, 0, s, -1, nullptr, 0, nullptr, nullptr);
+    char[length + 1] buffer;
+    WideCharToMultiByte(CP_UTF8, 0, s, -1, buffer, length, nullptr, nullptr);
+
+    return std::string(buffer);
+}
+
+// use unique_ptr to prevent memory leak with exceptions.
+inline std::unique_ptr<wchar_t*> to_wchar(const std::string str)
+{
+    auto length = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+    auto buffer = new wchar_t[length + 1]();
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, buffer, length);
+
+    return std::unique_ptr<wchar_t*>(buffer);
+}
 #endif
 
 using namespace UnTech;
@@ -64,4 +100,218 @@ std::pair<std::string, std::string> File::splitFilename(const std::string& filen
     else {
         return { filename.substr(0, i + 1), filename.substr(i + 1) };
     }
+}
+
+std::string File::cwd()
+{
+#ifdef PLATFORM_WINDOWS
+    wchar_t wpath[PATH_MAX + 1] = L"";
+
+    if (!_wgetcwd(wpath, PATH_MAX)) {
+        throw std::runtime_error("Error getting working directory");
+    }
+
+    return to_string(wpath);
+
+#else
+    char* dir = get_current_dir_name();
+
+    if (dir) {
+        std::string ret(dir);
+        free(dir);
+        return ret;
+    }
+    else {
+        throw std::runtime_error("Error with path");
+    }
+#endif
+}
+
+std::string File::cleanPath(const std::string& path)
+{
+    if (path.empty()) {
+        return path;
+    }
+
+#ifdef PLATFORM_WINDOWS
+    const char SEP = '\\';
+
+    std::string newPath = path;
+    std::replace(newPath.begin(), newPath.end(), '/', '\\');
+
+    const char* source = newPath.c_str();
+
+#else
+    const char SEP = '/';
+
+    const char* source = path.c_str();
+#endif
+
+    char ret[path.length() + 1];
+
+    char* pos = ret;
+    char* dirs[path.length() / 2];
+    size_t nDirs = 0;
+
+    while (*source != 0) {
+        // Start of a directory/file
+
+        if (source[0] == '.' && source[1] == SEP) {
+            // ignore all . directories
+            source += 2;
+        }
+
+        else if (source[0] == '.' && source[1] == '.' && source[2] == SEP) {
+            if (nDirs > 0) {
+                // shift pos to previous directory
+
+                nDirs--;
+                pos = dirs[nDirs];
+                source += 3;
+            }
+            else {
+                pos[0] = source[0];
+                pos[1] = source[1];
+                pos[2] = source[2];
+                pos += 3;
+                source += 3;
+            }
+        }
+
+        else {
+            // loop until end of directory separator
+
+            while (*source != 0 && *source != SEP) {
+                *(pos++) = *(source++);
+            }
+
+            // include terminator ('/' or '\0').
+            *(pos++) = *(source++);
+
+            if (*(source - 1) == 0) {
+                break;
+            }
+            else if (*(source - 1) == SEP) {
+                // remember previous dir position
+                dirs[nDirs] = pos;
+                nDirs++;
+            }
+        }
+
+#ifndef PLATFORM_WINDOWS
+        // ignore duplicate separators
+        while (*source == SEP) {
+            source++;
+        }
+#endif
+    }
+
+    return std::string(ret);
+}
+
+std::string File::joinPath(const std::string& dir, const std::string& path)
+{
+#ifdef PLATFORM_WINDOWS
+    auto wdir = to_wchar(dir);
+    auto wpath = to_wchar(path);
+    wchar_t wjoined[PATH_MAX] = L"";
+
+    PathCombineW(wjoined, wdir.get(), wpath.get());
+
+    return to_string(wjoined);
+
+#else
+    if (path.front() == '/') {
+        return path;
+    }
+
+    std::string join;
+    join.reserve(dir.length() + path.length() + 1);
+
+    if (!dir.empty() && dir.back() != '/') {
+        join = dir + '/' + path;
+    }
+    else {
+        join = dir + path;
+    }
+
+    return cleanPath(join);
+#endif
+}
+
+std::string File::fullPath(const std::string& path)
+{
+#ifdef PLATFORM_WINDOWS
+    wchar_t wfullpath[PATH_MAX] = L"";
+    auto wpath = to_wchar(path);
+
+    if (!_wfullpath(wfile_name, wpath.get(), PATH_MAX)) {
+        throw std::runtime_error("Error expanding path");
+    }
+
+    return to_string(wfullpath);
+
+#else
+    if (path.front() == '/') {
+        return path;
+    }
+
+    return joinPath(cwd(), path);
+#endif
+}
+
+std::string File::relativePath(const std::string& sourceDir, const std::string& destPath)
+{
+#ifdef PLATFORM_WINDOWS
+    wchar_t wrelpath[PATH_MAX] = L"";
+    auto wsource = to_wchar(sourceDir);
+    auto wdest = to_wchar(destPath);
+
+    if (!PathRelativePathToW(wrelpath, wsource.get(), FILE_ATTRIBUTE_DIRECTORY, wdest.get(), FILE_ATTRIBUTE_NORMAL)) {
+        throw std::runtime_error("Error expanding path");
+    }
+
+    return to_string(wrelpath);
+
+#else
+    std::string source = File::cleanPath(sourceDir);
+    std::string dest = File::cleanPath(destPath);
+
+    if (source.empty() || dest.empty()
+        || source.front() != '/' || dest.front() != '/') {
+
+        return dest;
+    }
+
+    std::string ret;
+
+    // Get common root directories
+    size_t lastCommonSep = 0;
+    {
+        size_t i = 0;
+        while (i < source.size() && i < dest.size() && source[i] == dest[i]) {
+            if (source[i] == '/') {
+                lastCommonSep = i;
+            }
+            i++;
+        }
+
+        if (i == source.size() && dest.size() > source.size() && dest[i] == '/') {
+            lastCommonSep = i;
+        }
+    }
+
+    if (source.size() > lastCommonSep) {
+        size_t p = lastCommonSep + 1;
+
+        while ((p = source.find('/', p)) != std::string::npos) {
+            ret += "../";
+            p += 1;
+        }
+    }
+
+    ret += dest.substr(lastCommonSep + 1);
+
+    return ret;
+#endif
 }

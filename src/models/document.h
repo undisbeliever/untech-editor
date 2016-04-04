@@ -2,6 +2,7 @@
 #define _UNTECH_MODELS_DOCUMENT_H_
 
 #include "common/namedlist.h"
+#include "common/file.h"
 #include <string>
 
 namespace UnTech {
@@ -21,18 +22,32 @@ class Document {
 public:
     Document() = default;
     Document(const std::string& filename)
-        : _filename(filename)
     {
+        _filename = File::fullPath(filename);
     }
+
     virtual ~Document() = default;
 
     std::string filename() const { return _filename; }
-    void setFilename(const std::string& filename) { _filename = filename; }
+    void setFilename(const std::string& filename)
+    {
+        _filename = File::fullPath(filename);
+    }
+
+    void write()
+    {
+        if (!_filename.empty()) {
+            writeDataFile(_filename);
+        }
+    }
 
     void writeFile(const std::string& filename)
     {
-        writeDataFile(filename);
-        _filename = filename;
+        auto newFilename = File::fullPath(filename);
+
+        writeDataFile(newFilename);
+
+        _filename = newFilename;
     }
 
 protected:

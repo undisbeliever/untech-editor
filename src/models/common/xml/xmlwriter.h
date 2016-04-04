@@ -17,8 +17,15 @@ namespace Xml {
 class XmlWriter {
 
 public:
-    XmlWriter(std::ostream& output, const std::string& doctype);
+    XmlWriter(std::ostream& output, const std::string& doctype)
+        : XmlWriter(output, "", doctype)
+    {
+    }
+    XmlWriter(std::ostream& output, const std::string& filename, const std::string& doctype);
     ~XmlWriter();
+
+    const std::string& filename() const { return _filename; }
+    const std::string& dirname() const { return _dirname; }
 
     void writeTag(const std::string& name);
 
@@ -31,6 +38,8 @@ public:
     void writeText(const std::string& text);
 
     void writeCloseTag();
+
+    void writeTagAttributeFilename(const std::string& name, const std::string& filename);
 
     inline void writeTagAttribute(const std::string& name, bool v)
     {
@@ -67,6 +76,8 @@ private:
 private:
     std::ostream& _file;
     std::stack<std::string> _tagStack;
+    std::string _filename;
+    std::string _dirname;
     bool _inTag;
 };
 }

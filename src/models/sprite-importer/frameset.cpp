@@ -1,5 +1,6 @@
 #include "frameset.h"
 #include "frame.h"
+#include "../common/file.h"
 #include "../common/namechecks.h"
 
 using namespace UnTech::SpriteImporter;
@@ -25,7 +26,9 @@ void FrameSet::setName(const std::string& name)
 void FrameSet::setImageFilename(const std::string& filename)
 {
     if (_imageFilename != filename) {
-        _imageFilename = filename;
+        std::string fpath = File::fullPath(filename);
+
+        _imageFilename = fpath;
         _image.erase();
     }
 }
