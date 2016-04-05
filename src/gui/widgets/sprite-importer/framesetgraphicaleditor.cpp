@@ -59,6 +59,13 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection)
         queue_draw();
     });
 
+    Signals::frameSetImageChanged.connect([this](const std::shared_ptr<SI::FrameSet> frameSet) {
+        if (frameSet == _selection.frameSet()) {
+            loadAndScaleImage();
+            resizeWidget();
+        }
+    });
+
     Signals::frameSetChanged.connect([this](const std::shared_ptr<SI::FrameSet> frameSet) {
         if (frameSet == _selection.frameSet()) {
             queue_draw();

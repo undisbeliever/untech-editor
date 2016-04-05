@@ -29,6 +29,11 @@ PARAMETER_UNDO_ACTION2(frameSet_Grid_setOrigin,
                        Signals::frameSetChanged, Signals::frameSetGridChanged,
                        "Change Grid Origin")
 
+SIMPLE_UNDO_ACTION2(frameSet_setImageFilename,
+                    SI::FrameSet, std::string, imageFilename, setImageFilename,
+                    Signals::frameSetChanged, Signals::frameSetImageChanged,
+                    "Change Image")
+
 FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     : widget()
     , _frameSet(nullptr)
@@ -118,11 +123,8 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
         return false;
     });
 
-    _imageFilenameButton.signal_clicked().connect([this](void) {
-        if (_frameSet && !_updatingValues) {
-            // ::TODO implement::
-        }
-    });
+    _imageFilenameButton.signal_clicked().connect(
+        sigc::mem_fun(*this, &FrameSetPropertiesEditor::on_imageFilenameButtonClicked));
 
     _gridFrameSizeSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
@@ -206,5 +208,45 @@ void FrameSetPropertiesEditor::updateGuiValues()
         _gridOriginSpinButtons.set_value(zeroPoint);
 
         widget.set_sensitive(false);
+    }
+}
+
+void FrameSetPropertiesEditor::on_imageFilenameButtonClicked()
+{
+    if (!_frameSet || _updatingValues) {
+        return;
+    }
+
+    Gtk::FileChooserDialog dialog(_("Select Image"),
+                                  Gtk::FILE_CHOOSER_ACTION_OPEN);
+
+    dialog.add_button(_("_Cancel"), Gtk::RESPONSE_CANCEL);
+    dialog.add_button(_("_Open"), Gtk::RESPONSE_OK);
+    dialog.set_default_response(Gtk::RESPONSE_OK);
+
+    auto filterPng = Gtk::FileFilter::create();
+    filterPng->set_name(_("PNG Imagess"));
+    filterPng->add_mime_type("image/png");
+    dialog.add_filter(filterPng);
+
+    auto filterAny = Gtk::FileFilter::create();
+    filterAny->set_name(_("All files"));
+    filterAny->add_pattern("*");
+    dialog.add_filter(filterAny);
+
+    if (!_frameSet->imageFilename().empty()) {
+        dialog.set_filename(_frameSet->imageFilename());
+    }
+
+    // Set transient parent from widget
+    // Could not derefernce RefPtr<Gtk::Window> for base-class constructor
+    // using C method instead
+    GtkWidget* toplevel = gtk_widget_get_toplevel(GTK_WIDGET(widget.gobj()));
+    gtk_window_set_transient_for(GTK_WINDOW(dialog.gobj()), GTK_WINDOW(toplevel));
+
+    int result = dialog.run();
+
+    if (result == Gtk::RESPONSE_OK) {
+        frameSet_setImageFilename(_frameSet, dialog.get_filename());
     }
 }

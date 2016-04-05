@@ -8,6 +8,7 @@ namespace Signals {
 namespace SI = UnTech::SpriteImporter;
 
 sigc::signal<void, const std::shared_ptr<SI::FrameSet>> frameSetChanged;
+sigc::signal<void, const std::shared_ptr<SI::FrameSet>> frameSetImageChanged;
 sigc::signal<void, const std::shared_ptr<SI::FrameSet>> frameSetGridChanged;
 
 sigc::signal<void, const std::shared_ptr<SI::Frame>> frameChanged;

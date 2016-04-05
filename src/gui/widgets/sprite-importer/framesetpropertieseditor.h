@@ -34,6 +34,8 @@ public:
 protected:
     void updateGuiValues();
 
+    void on_imageFilenameButtonClicked();
+
 public:
     Gtk::Grid widget;
 
