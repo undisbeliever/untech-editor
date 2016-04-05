@@ -1,4 +1,5 @@
 #include "spriteimporterwindow.h"
+#include "../common/errormessagedialog.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
@@ -176,8 +177,7 @@ void SpriteImporterWindow::do_save()
                 document->undoStack().markClean();
             }
             catch (const std::exception& ex) {
-                // ::TODO replace with error dialog::
-                std::cerr << "Unable to save file: " << ex.what() << std::endl;
+                showErrorMessage(this, "Unable to save file", ex);
             }
         }
 
@@ -231,8 +231,7 @@ void SpriteImporterWindow::do_saveAs()
                 document->undoStack().markClean();
             }
             catch (const std::exception& ex) {
-                // ::TODO replace with error dialog::
-                std::cerr << "Unable to save file: " << ex.what() << std::endl;
+                showErrorMessage(this, "Unable to save file", ex);
             }
 
             updateTitle();

@@ -1,5 +1,6 @@
 #include "spriteimporterapplication.h"
 #include "spriteimporterwindow.h"
+#include "../common/errormessagedialog.h"
 
 #include <iostream>
 #include <exception>
@@ -96,8 +97,7 @@ void SpriteImporterApplication::load_file(const std::string& filename)
         document = std::make_unique<Document>(filename);
     }
     catch (const std::exception& ex) {
-        // ::TODO replace with error dialog::
-        std::cerr << "Unable to open file: " << ex.what() << std::endl;
+        showErrorMessage(get_active_window(), "Unable to open file", ex);
 
         return;
     }
