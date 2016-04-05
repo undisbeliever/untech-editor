@@ -39,7 +39,7 @@ class UndoStack {
     const unsigned STACK_LIMIT = 100;
 
 public:
-    UndoStack() = default;
+    UndoStack();
     ~UndoStack() = default;
 
     void add_undo(std::unique_ptr<Action> action);
@@ -49,6 +49,11 @@ public:
 
     void clear();
 
+    bool isDirty() const { return _dirty; }
+
+    void markDirty();
+    void markClean();
+
     inline bool canUndo() const { return !_undoStack.empty(); }
     inline bool canRedo() const { return !_redoStack.empty(); }
 
@@ -56,11 +61,13 @@ public:
     const Glib::ustring& getRedoMessage() const;
 
     sigc::signal<void> signal_stackChanged;
+    sigc::signal<void> signal_dirtyChanged;
 
 private:
     // using list instead of stack so I can delete from the end.
     std::list<std::unique_ptr<Action>> _undoStack;
     std::list<std::unique_ptr<Action>> _redoStack;
+    bool _dirty;
 };
 }
 }

@@ -7,14 +7,19 @@ SpriteImporterWindow::SpriteImporterWindow()
     : Gtk::ApplicationWindow()
     , _editor()
     , _undoStackConnection()
+    , _updateTitleConnection()
 {
     add(_editor.widget);
     show_all_children();
 
     // Register actions with window
-    add_action("save", sigc::mem_fun(*this, &SpriteImporterWindow::do_save));
     add_action("save-as", sigc::mem_fun(*this, &SpriteImporterWindow::do_saveAs));
     add_action("exit", sigc::mem_fun(*this, &SpriteImporterWindow::close));
+
+    _saveAction = Gio::SimpleAction::create("save");
+    _saveAction->signal_activate().connect(
+        sigc::hide(sigc::mem_fun(*this, &SpriteImporterWindow::do_save)));
+    add_action(_saveAction);
 
     _undoAction = Gio::SimpleAction::create("undo");
     _undoAction->signal_activate().connect(
@@ -75,16 +80,36 @@ SpriteImporterWindow::SpriteImporterWindow()
 void SpriteImporterWindow::setDocument(std::unique_ptr<Document> document)
 {
     _undoStackConnection.disconnect();
+    _updateTitleConnection.disconnect();
 
     if (document) {
         _undoStackConnection = document->undoStack().signal_stackChanged.connect(
             sigc::mem_fun(*this, &SpriteImporterWindow::updateUndoActions));
+        _updateTitleConnection = document->undoStack().signal_stackChanged.connect(
+            sigc::mem_fun(*this, &SpriteImporterWindow::updateTitle));
     }
 
     _editor.setDocument(std::move(document));
 
+    updateTitle();
     updateItemActions();
     updateUndoActions();
+}
+
+void SpriteImporterWindow::updateTitle()
+{
+    auto* document = _editor.document();
+
+    if (document) {
+        if (document->undoStack().isDirty()) {
+            set_title("*" + document->frameSet()->name() + _("Untech Sprite Editor"));
+            _saveAction->set_enabled(true);
+        }
+        else {
+            set_title(document->frameSet()->name() + _("Untech Sprite Editor"));
+            _saveAction->set_enabled(false);
+        }
+    }
 }
 
 void SpriteImporterWindow::updateUndoActions()
@@ -100,6 +125,7 @@ void SpriteImporterWindow::updateUndoActions()
     else {
         _undoAction->set_enabled(false);
         _redoAction->set_enabled(false);
+        _saveAction->set_enabled(false);
     }
 }
 
@@ -147,12 +173,15 @@ void SpriteImporterWindow::do_save()
         else {
             try {
                 document->save();
+                document->undoStack().markClean();
             }
             catch (const std::exception& ex) {
                 // ::TODO replace with error dialog::
                 std::cerr << "Unable to save file: " << ex.what() << std::endl;
             }
         }
+
+        updateTitle();
     }
 }
 
@@ -199,11 +228,49 @@ void SpriteImporterWindow::do_saveAs()
 
             try {
                 document->saveFile(dialog.get_filename());
+                document->undoStack().markClean();
             }
             catch (const std::exception& ex) {
                 // ::TODO replace with error dialog::
                 std::cerr << "Unable to save file: " << ex.what() << std::endl;
             }
+
+            updateTitle();
         }
+    }
+}
+
+bool SpriteImporterWindow::on_delete_event(GdkEventAny*)
+{
+    auto* document = _editor.document();
+
+    if (document == nullptr) {
+        return false;
+    }
+
+    if (document->undoStack().isDirty()) {
+        Gtk::MessageDialog dialog(*this,
+                                  _("Do you want to save?"),
+                                  false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE);
+
+        dialog.set_secondary_text(_("If you close without saving, your changes will be discarded."));
+
+        dialog.add_button(_("Close without saving"), Gtk::RESPONSE_NO);
+        dialog.add_button(_("_Cancel"), Gtk::RESPONSE_CANCEL);
+        dialog.add_button(_("_Save"), Gtk::RESPONSE_OK);
+
+        dialog.set_default_response(Gtk::RESPONSE_OK);
+
+        int result = dialog.run();
+
+        if (result == Gtk::RESPONSE_OK) {
+            do_save();
+        };
+
+        // do not delete if response is cancel
+        return result == Gtk::RESPONSE_CANCEL;
+    }
+    else {
+        return false;
     }
 }

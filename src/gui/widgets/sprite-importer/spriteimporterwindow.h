@@ -24,6 +24,7 @@ public:
     void setDocument(std::unique_ptr<Document> document);
 
 protected:
+    void updateTitle();
     void updateUndoActions();
     void updateItemActions();
 
@@ -32,9 +33,12 @@ protected:
     void do_save();
     void do_saveAs();
 
+    bool on_delete_event(GdkEventAny* any_event);
+
 private:
     SpriteImporterEditor _editor;
 
+    Glib::RefPtr<Gio::SimpleAction> _saveAction;
     Glib::RefPtr<Gio::SimpleAction> _undoAction;
     Glib::RefPtr<Gio::SimpleAction> _redoAction;
 
@@ -45,6 +49,7 @@ private:
     Glib::RefPtr<Gio::SimpleAction> _moveSelectedDownAction;
 
     sigc::connection _undoStackConnection;
+    sigc::connection _updateTitleConnection;
 };
 }
 }

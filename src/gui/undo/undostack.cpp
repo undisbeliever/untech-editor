@@ -2,6 +2,13 @@
 
 using namespace UnTech::Undo;
 
+UndoStack::UndoStack()
+    : _undoStack()
+    , _redoStack()
+    , _dirty(false)
+{
+}
+
 void UndoStack::add_undo(std::unique_ptr<Action> action)
 {
     _undoStack.push_front(std::move(action));
@@ -13,6 +20,8 @@ void UndoStack::add_undo(std::unique_ptr<Action> action)
     _redoStack.clear();
 
     signal_stackChanged.emit();
+
+    markDirty();
 }
 
 void UndoStack::undo()
@@ -27,6 +36,8 @@ void UndoStack::undo()
         }
 
         signal_stackChanged.emit();
+
+        markDirty();
     }
 }
 
@@ -47,6 +58,22 @@ void UndoStack::clear()
     _redoStack.clear();
 
     signal_stackChanged.emit();
+}
+
+void UndoStack::markDirty()
+{
+    if (_dirty != true) {
+        _dirty = true;
+        signal_dirtyChanged.emit();
+    }
+}
+
+void UndoStack::markClean()
+{
+    if (_dirty != false) {
+        _dirty = false;
+        signal_dirtyChanged.emit();
+    }
 }
 
 static const Glib::ustring emptyString;
