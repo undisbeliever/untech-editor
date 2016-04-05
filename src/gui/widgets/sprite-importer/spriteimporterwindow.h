@@ -29,6 +29,8 @@ protected:
 
     void do_undo();
     void do_redo();
+    void do_save();
+    void do_saveAs();
 
 private:
     SpriteImporterEditor _editor;

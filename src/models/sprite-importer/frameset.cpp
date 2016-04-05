@@ -7,7 +7,7 @@ using namespace UnTech::SpriteImporter;
 
 FrameSet::FrameSet(SpriteImporterDocument& document)
     : _document(document)
-    , _name()
+    , _name("frameset")
     , _imageFilename()
     , _image()
     , _transparentColor(0)

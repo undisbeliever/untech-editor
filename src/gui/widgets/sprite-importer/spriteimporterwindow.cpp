@@ -11,7 +11,11 @@ SpriteImporterWindow::SpriteImporterWindow()
     add(_editor.widget);
     show_all_children();
 
-    // Register actions with windows
+    // Register actions with window
+    add_action("save", sigc::mem_fun(*this, &SpriteImporterWindow::do_save));
+    add_action("save-as", sigc::mem_fun(*this, &SpriteImporterWindow::do_saveAs));
+    add_action("exit", sigc::mem_fun(*this, &SpriteImporterWindow::close));
+
     _undoAction = Gio::SimpleAction::create("undo");
     _undoAction->signal_activate().connect(
         sigc::hide(sigc::mem_fun(*this, &SpriteImporterWindow::do_undo)));
@@ -129,5 +133,77 @@ void SpriteImporterWindow::do_redo()
 
     if (document) {
         document->undoStack().redo();
+    }
+}
+
+void SpriteImporterWindow::do_save()
+{
+    auto* document = _editor.document();
+
+    if (document) {
+        if (document->filename().empty()) {
+            return do_saveAs();
+        }
+        else {
+            try {
+                document->save();
+            }
+            catch (const std::exception& ex) {
+                // ::TODO replace with error dialog::
+                std::cerr << "Unable to save file: " << ex.what() << std::endl;
+            }
+        }
+    }
+}
+
+void SpriteImporterWindow::do_saveAs()
+{
+    auto* document = _editor.document();
+
+    if (document) {
+        Gtk::FileChooserDialog dialog(*this,
+                                      _("Save As"),
+                                      Gtk::FILE_CHOOSER_ACTION_SAVE);
+
+        dialog.add_button(_("_Cancel"), Gtk::RESPONSE_CANCEL);
+        dialog.add_button(_("_Open"), Gtk::RESPONSE_OK);
+        dialog.set_default_response(Gtk::RESPONSE_OK);
+
+        auto filterUtsi = Gtk::FileFilter::create();
+        filterUtsi->set_name(_("UnTech Sprite Importer File"));
+        filterUtsi->add_pattern("*.utsi");
+        dialog.add_filter(filterUtsi);
+
+        auto filterAny = Gtk::FileFilter::create();
+        filterAny->set_name(_("All files"));
+        filterAny->add_pattern("*");
+        dialog.add_filter(filterAny);
+
+        if (!document->filename().empty()) {
+            dialog.set_filename(document->filename());
+        }
+        else {
+            if (document->frameSet()) {
+                dialog.set_current_name(document->frameSet()->name() + ".utsi");
+            }
+        }
+
+        int result = dialog.run();
+
+        if (result == Gtk::RESPONSE_OK) {
+            // add extension if missing
+            auto name = dialog.get_current_name();
+            if (dialog.get_filter() == filterUtsi && name.find('.') == Glib::ustring::npos) {
+                dialog.set_current_name(name + ".utsi");
+            }
+
+            try {
+                document->saveFile(dialog.get_filename());
+            }
+            catch (const std::exception& ex) {
+                // ::TODO replace with error dialog::
+                std::cerr << "Unable to save file: " << ex.what() << std::endl;
+            }
+        }
     }
 }

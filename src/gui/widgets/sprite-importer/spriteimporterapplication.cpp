@@ -22,6 +22,7 @@ void SpriteImporterApplication::on_startup()
 {
     Gtk::Application::on_startup();
 
+    add_action("new", sigc::mem_fun(*this, &SpriteImporterApplication::on_menu_new));
     add_action("open", sigc::mem_fun(*this, &SpriteImporterApplication::on_menu_open));
     add_action("about", sigc::mem_fun(*this, &SpriteImporterApplication::on_menu_about));
 
@@ -115,6 +116,11 @@ void SpriteImporterApplication::on_window_hide(Gtk::Window* window)
  * MENU ACTIONS
  * ============
  */
+
+void SpriteImporterApplication::on_menu_new()
+{
+    create_window(std::make_unique<Document>());
+}
 
 void SpriteImporterApplication::on_menu_open()
 {

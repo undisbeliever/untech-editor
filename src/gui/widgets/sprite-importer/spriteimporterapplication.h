@@ -26,6 +26,7 @@ protected:
 
     void on_open(const type_vec_files& files, const Glib::ustring& hint) override;
 
+    void on_menu_new();
     void on_menu_open();
     void on_menu_about();
 

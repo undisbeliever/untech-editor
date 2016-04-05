@@ -34,14 +34,14 @@ public:
         _filename = File::fullPath(filename);
     }
 
-    void write()
+    void save()
     {
         if (!_filename.empty()) {
             writeDataFile(_filename);
         }
     }
 
-    void writeFile(const std::string& filename)
+    void saveFile(const std::string& filename)
     {
         auto newFilename = File::fullPath(filename);
 
