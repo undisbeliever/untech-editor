@@ -8,6 +8,8 @@ using namespace UnTech;
 
 namespace SI = UnTech::SpriteImporter;
 
+// ::TODO version argument::
+
 int main(int argc, char* argv[])
 {
     if (argc < 2) {

@@ -1,6 +1,8 @@
 #include "spriteimporterapplication.h"
 #include "spriteimporterwindow.h"
 #include "../common/errormessagedialog.h"
+#include "../common/aboutdialog.h"
+#include "version.h"
 
 #include <iostream>
 #include <exception>
@@ -11,7 +13,7 @@ SpriteImporterApplication::SpriteImporterApplication()
     : Gtk::Application("net.undisbeliever.untech.sprite-importer",
                        Gio::APPLICATION_HANDLES_OPEN)
 {
-    Glib::set_application_name("Sprite Importer");
+    Glib::set_application_name(UNTECH_NAME " Sprite Importer");
 }
 
 Glib::RefPtr<SpriteImporterApplication> SpriteImporterApplication::create()
@@ -151,8 +153,7 @@ void SpriteImporterApplication::on_menu_open()
 
 void SpriteImporterApplication::on_menu_about()
 {
-    // ::TODO show about window::
-    std::cout << "About" << std::endl;
+    showAboutDialog(get_active_window());
 }
 
 /*
@@ -239,7 +240,7 @@ const Glib::ustring SpriteImporterApplication::_uiInfo
       "      <section>"
       "        <item>"
       "          <attribute name='label' translatable='yes'>_About</attribute>"
-      "          <attribute name='action'>win.about</attribute>"
+      "          <attribute name='action'>app.about</attribute>"
       "        </item>"
       "      </section>"
       "    </submenu>"
