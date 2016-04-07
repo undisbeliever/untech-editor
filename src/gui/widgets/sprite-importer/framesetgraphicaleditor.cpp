@@ -163,6 +163,12 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     const cr_rgba selectionOuterColor = { 0.0, 0.0, 0.0, 1.0 };
     const cr_rgba selectionDragColor = { 0.5, 0.5, 0.5, 0.5 };
 
+    const double ORIGIN_WIDTH = 1.0;
+    const double ORIGIN_SIZE = 3.0;
+    const double ORIGIN_DASH = 1.0;
+    const cr_rgba originColor1 = { 0.0, 0.0, 0.0, 0.5 };
+    const cr_rgba originColor2 = { 1.0, 1.0, 1.0, 0.5 };
+
     if (_selection.frameSet() == nullptr) {
         return true;
     }
@@ -396,6 +402,34 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         selectionDragColor.apply(cr);
         cr->fill();
     }
+
+    // Draw Origins
+    static const std::vector<double> originDash({ ORIGIN_DASH, ORIGIN_DASH });
+
+    for (const auto frameIt : _selection.frameSet()->frames()) {
+        const auto frameLoc = frameIt.second->location();
+        const auto origin = frameIt.second->origin();
+
+        double oWidth = ORIGIN_SIZE * _zoomX / 2;
+        double oHeight = ORIGIN_SIZE * _zoomY / 2;
+        double x = (frameLoc.x + origin.x + 0.5) * _zoomX;
+        double y = (frameLoc.y + origin.y + 0.5) * _zoomY;
+
+        cr->move_to(x, y - oHeight);
+        cr->line_to(x, y + oHeight);
+        cr->move_to(x - oWidth, y);
+        cr->line_to(x + oWidth, y);
+    }
+
+    cr->set_line_width(ORIGIN_WIDTH);
+
+    originColor1.apply(cr);
+    cr->set_dash(originDash, 0.0);
+    cr->stroke_preserve();
+
+    originColor2.apply(cr);
+    cr->set_dash(originDash, ORIGIN_DASH);
+    cr->stroke();
 
     cr->restore();
 
