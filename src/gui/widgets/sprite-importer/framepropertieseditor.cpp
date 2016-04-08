@@ -239,8 +239,8 @@ void FramePropertiesEditor::updateGuiValues()
         widget.set_sensitive(true);
     }
     else {
-        static const upoint zeroPoint = { 0, 0 };
-        static const urect zeroRect = { 0, 0, 0, 0 };
+        static const upoint zeroPoint(0, 0);
+        static const urect zeroRect(0, 0, 0, 0);
 
         _gridLocationSpinButtons.set_value(zeroPoint);
         _locationSpinButtons.set_value(zeroRect);

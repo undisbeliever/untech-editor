@@ -107,7 +107,7 @@ void EntityHitboxEditor::updateGuiValues()
         widget.set_sensitive(true);
     }
     else {
-        static const urect zeroRect = { 0, 0, 0, 0 };
+        static const urect zeroRect(0, 0, 0, 0);
 
         _aabbSpinButtons.set_value(zeroRect);
         _parameterEntry.set_text("");

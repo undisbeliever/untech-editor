@@ -153,7 +153,7 @@ struct XmlTag {
         unsigned x = getAttributeUnsigned(xName);
         unsigned y = getAttributeUnsigned(yName);
 
-        return { x, y };
+        return upoint(x, y);
     }
 
     inline usize getAttributeUsize(const std::string& widthName = "width", const std::string& heightName = "height") const
@@ -161,7 +161,7 @@ struct XmlTag {
         unsigned width = getAttributeUnsigned(widthName);
         unsigned height = getAttributeUnsigned(heightName);
 
-        return { width, height };
+        return usize(width, height);
     }
 
     inline upoint getAttributeUpointInside(const urect& container, const std::string& xName = "x", const std::string& yName = "y") const
@@ -169,7 +169,7 @@ struct XmlTag {
         unsigned x = getAttributeUnsigned(xName, 0, container.width);
         unsigned y = getAttributeUnsigned(yName, 0, container.height);
 
-        return { x, y };
+        return upoint(x, y);
     }
 
     inline upoint getAttributeUpointInside(const urect& container, unsigned squareSize, const std::string& xName = "x", const std::string& yName = "y") const
@@ -180,7 +180,7 @@ struct XmlTag {
         unsigned x = getAttributeUnsigned(xName, 0, container.width - squareSize);
         unsigned y = getAttributeUnsigned(yName, 0, container.height - squareSize);
 
-        return { x, y };
+        return upoint(x, y);
     }
 
     inline urect getAttributeUrect(const std::string& xName = "x", const std::string yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
@@ -191,7 +191,7 @@ struct XmlTag {
         unsigned width = getAttributeUnsigned(widthName, 1, UINT_MAX);
         unsigned height = getAttributeUnsigned(heightName, 1, UINT_MAX);
 
-        return { x, y, width, height };
+        return urect(x, y, width, height);
     }
 
     inline urect getAttributeUrect(const usize& maximumSize, const std::string& xName = "x", const std::string yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
@@ -202,7 +202,7 @@ struct XmlTag {
         unsigned width = getAttributeUnsigned(widthName, 1, maximumSize.width);
         unsigned height = getAttributeUnsigned(heightName, 1, maximumSize.height);
 
-        return { x, y, width, height };
+        return urect(x, y, width, height);
     }
 
     inline urect getAttributeUrectInside(const urect& container, const std::string& xName = "x", const std::string& yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
@@ -213,7 +213,7 @@ struct XmlTag {
         unsigned width = getAttributeUnsigned(widthName, 1, container.width - x);
         unsigned height = getAttributeUnsigned(heightName, 1, container.height - y);
 
-        return { x, y, width, height };
+        return urect(x, y, width, height);
     }
 
     std::runtime_error buildError(const char* msg) const

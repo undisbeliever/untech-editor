@@ -5,7 +5,7 @@ using namespace SpriteImporter;
 
 FrameObject::FrameObject(std::shared_ptr<Frame> frame)
     : _frame(frame)
-    , _location({ 0, 0 })
+    , _location(0, 0)
     , _size(ObjectSize::SMALL)
 {
     const auto frameLocation = frame->location();

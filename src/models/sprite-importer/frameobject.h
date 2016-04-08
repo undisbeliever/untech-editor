@@ -41,7 +41,7 @@ public:
      */
     upoint bottomLeft() const
     {
-        return { _location.x + sizePx(), _location.y + sizePx() };
+        return upoint(_location.x + sizePx(), _location.y + sizePx());
     }
 
 protected:

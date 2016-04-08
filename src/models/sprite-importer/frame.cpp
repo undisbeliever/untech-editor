@@ -7,7 +7,7 @@
 using namespace UnTech;
 using namespace UnTech::SpriteImporter;
 
-const usize Frame::MIN_SIZE = { Frame::MIN_WIDTH, Frame::MIN_HEIGHT };
+const usize Frame::MIN_SIZE = usize(Frame::MIN_WIDTH, Frame::MIN_HEIGHT);
 
 Frame::Frame(std::shared_ptr<FrameSet> frameSet)
     : _frameSet(frameSet)
@@ -15,10 +15,10 @@ Frame::Frame(std::shared_ptr<FrameSet> frameSet)
     , _actionPoints(*this)
     , _entityHitboxes(*this)
     , _useGridLocation(true)
-    , _gridLocation({ 0, 0 })
+    , _gridLocation(0, 0)
     , _useGridOrigin(true)
     , _solid(true)
-    , _tileHitbox({ 0, 0, MIN_WIDTH, MIN_HEIGHT })
+    , _tileHitbox(0, 0, MIN_WIDTH, MIN_HEIGHT)
     , _spriteOrder(DEFAULT_SPRITE_ORDER)
 {
     recalculateLocation();
@@ -138,7 +138,7 @@ void Frame::setTileHitbox(const urect& tileHitbox)
 
 usize Frame::minimumViableSize() const
 {
-    usize limit = { MIN_WIDTH, MIN_HEIGHT };
+    usize limit = usize(MIN_WIDTH, MIN_HEIGHT);
 
     limit = limit.expand(_origin);
 

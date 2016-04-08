@@ -5,7 +5,7 @@ using namespace SpriteImporter;
 
 EntityHitbox::EntityHitbox(std::shared_ptr<Frame> frame)
     : _frame(frame)
-    , _aabb({ 0, 0, Frame::MIN_WIDTH, Frame::MIN_HEIGHT })
+    , _aabb(0, 0, Frame::MIN_WIDTH, Frame::MIN_HEIGHT)
     , _parameter(0)
 {
     const auto frameLocation = frame->location();

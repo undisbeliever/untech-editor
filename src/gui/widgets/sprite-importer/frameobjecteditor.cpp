@@ -169,7 +169,7 @@ void FrameObjectEditor::updateGuiValues()
         widget.set_sensitive(true);
     }
     else {
-        static const upoint zeroPoint = { 0, 0 };
+        static const upoint zeroPoint(0, 0);
 
         _locationSpinButtons.set_value(zeroPoint);
         _sizeCombo.set_active_text("");

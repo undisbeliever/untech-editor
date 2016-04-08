@@ -451,7 +451,7 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
             if (mouseX >= 0 && mouseY >= 0) {
                 _action.state = Action::CLICK;
-                _action.pressLocation = { (unsigned)mouseX, (unsigned)mouseY };
+                _action.pressLocation = upoint((unsigned)mouseX, (unsigned)mouseY);
                 urect aabb;
 
                 switch (_selection.type()) {
@@ -464,7 +464,7 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
                         if (fo->frame()) {
                             const auto foLoc = fo->location();
-                            aabb = { foLoc.x, foLoc.y, fo->sizePx(), fo->sizePx() };
+                            aabb = urect(foLoc.x, foLoc.y, fo->sizePx(), fo->sizePx());
                             _action.canDrag = true;
                         }
                     }
@@ -476,7 +476,7 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
                         if (ap->frame()) {
                             const auto apLoc = ap->location();
-                            aabb = { apLoc.x, apLoc.y, 1, 1 };
+                            aabb = urect(apLoc.x, apLoc.y, 1, 1);
                             _action.canDrag = true;
                         }
                     }
@@ -498,7 +498,7 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
                     _action.dragAabb = aabb;
 
                     const auto fLoc = _selection.frame()->location();
-                    const upoint fm = { mouseX - fLoc.x, mouseY - fLoc.y };
+                    const upoint fm(mouseX - fLoc.x, mouseY - fLoc.y);
 
                     if (_selection.type() == Selection::Type::ENTITY_HITBOX) {
 
@@ -537,7 +537,7 @@ bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
         int mouseY = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom));
 
         if (mouseX >= 0 && mouseY >= 0) {
-            upoint mouse = { (unsigned)mouseX, (unsigned)mouseY };
+            upoint mouse((unsigned)mouseX, (unsigned)mouseY);
 
             if (_action.state == Action::CLICK && _action.canDrag) {
                 if (_action.pressLocation != mouse) {
@@ -638,7 +638,7 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
         int y = std::lround(event->y / (_zoomY * _displayZoom));
 
         if (x >= 0 && y >= 0) {
-            upoint mouse = { (unsigned)x, (unsigned)y };
+            upoint mouse((unsigned)x, (unsigned)y);
 
             switch (_action.state) {
             case Action::CLICK:
@@ -677,7 +677,7 @@ void FrameSetGraphicalEditor::handleRelease_Click(const upoint& mouse)
 
     if (sFrame && sFrame->location().contains(mouse)) {
         const auto sFrameLoc = sFrame->location();
-        const upoint frameMouse = { mouse.x - sFrameLoc.x, mouse.y - sFrameLoc.y };
+        const upoint frameMouse(mouse.x - sFrameLoc.x, mouse.y - sFrameLoc.y);
 
         /*
          * Select a given item.
@@ -826,14 +826,14 @@ void FrameSetGraphicalEditor::handleRelease_Drag()
     case Selection::Type::FRAME_OBJECT:
         if (_selection.frameObject()) {
             frameObject_setLocation(_selection.frameObject(),
-                                    { aabb.x, aabb.y });
+                                    upoint(aabb.x, aabb.y));
         }
         break;
 
     case Selection::Type::ACTION_POINT:
         if (_selection.actionPoint()) {
             actionPoint_setLocation(_selection.actionPoint(),
-                                    { aabb.x, aabb.y });
+                                    upoint(aabb.x, aabb.y));
         }
         break;
 

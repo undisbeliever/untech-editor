@@ -5,7 +5,7 @@ using namespace SpriteImporter;
 
 ActionPoint::ActionPoint(std::shared_ptr<Frame> frame)
     : _frame(frame)
-    , _location({ 0, 0 })
+    , _location(0, 0)
     , _parameter(0)
 {
     const auto frameLocation = frame->location();

@@ -38,7 +38,7 @@ struct UpointSpinButtons {
         assert(xSpin.get_value_as_int() >= 0);
         assert(ySpin.get_value_as_int() >= 0);
 
-        return { (unsigned)xSpin.get_value_as_int(), (unsigned)ySpin.get_value_as_int() };
+        return upoint((unsigned)xSpin.get_value_as_int(), (unsigned)ySpin.get_value_as_int());
     }
 
     void set_value(const upoint& p)
@@ -95,7 +95,7 @@ struct UsizeSpinButtons {
         assert(widthSpin.get_value_as_int() >= 0);
         assert(heightSpin.get_value_as_int() >= 0);
 
-        return { (unsigned)widthSpin.get_value_as_int(), (unsigned)heightSpin.get_value_as_int() };
+        return usize((unsigned)widthSpin.get_value_as_int(), (unsigned)heightSpin.get_value_as_int());
     }
 
     void set_value(const usize& s)
@@ -139,8 +139,8 @@ struct UrectSpinButtons {
         , ySpin(yAdjustment)
         , widthSpin(widthAdjustment)
         , heightSpin(heightAdjustment)
-        , _range({ 255, 255 })
-        , _minSize({ 1, 1 })
+        , _range(255, 255)
+        , _minSize(1, 1)
         , _maxSize({ 255, 255 })
     {
         // the signal handler will prevent size
@@ -157,7 +157,8 @@ struct UrectSpinButtons {
         assert(widthSpin.get_value_as_int() >= 0);
         assert(heightSpin.get_value_as_int() >= 0);
 
-        return { (unsigned)xSpin.get_value_as_int(), (unsigned)ySpin.get_value_as_int(), (unsigned)widthSpin.get_value_as_int(), (unsigned)heightSpin.get_value_as_int() };
+        return urect((unsigned)xSpin.get_value_as_int(), (unsigned)ySpin.get_value_as_int(),
+                     (unsigned)widthSpin.get_value_as_int(), (unsigned)heightSpin.get_value_as_int());
     }
 
     usize size() const
@@ -165,7 +166,7 @@ struct UrectSpinButtons {
         assert(widthSpin.get_value_as_int() >= 0);
         assert(heightSpin.get_value_as_int() >= 0);
 
-        return { (unsigned)widthSpin.get_value_as_int(), (unsigned)heightSpin.get_value_as_int() };
+        return usize((unsigned)widthSpin.get_value_as_int(), (unsigned)heightSpin.get_value_as_int());
     }
 
     void set_value(const urect& r)

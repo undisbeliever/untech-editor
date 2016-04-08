@@ -7,7 +7,7 @@ using namespace UnTech;
 static_assert(sizeof(rgba) == 4, "rgba is the wrong size");
 
 Image::Image()
-    : _size({ 0, 0 })
+    : _size(0, 0)
     , _imageData()
     , _errorString()
 {
@@ -21,7 +21,7 @@ Image::Image(const usize& size)
 }
 
 Image::Image(unsigned width, unsigned height)
-    : _size({ width, height })
+    : _size(width, height)
     , _imageData(width * height * sizeof(rgba))
     , _errorString()
 {
@@ -29,7 +29,7 @@ Image::Image(unsigned width, unsigned height)
 
 void Image::erase()
 {
-    _size = { 0, 0 };
+    _size = usize(0, 0);
     _imageData.clear();
 }
 

@@ -103,7 +103,7 @@ void ActionPointEditor::updateGuiValues()
         widget.set_sensitive(true);
     }
     else {
-        static const upoint zeroPoint = { 0, 0 };
+        static const upoint zeroPoint(0, 0);
 
         _locationSpinButtons.set_value(zeroPoint);
         _parameterEntry.set_text("");

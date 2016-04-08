@@ -11,6 +11,18 @@ struct upoint {
     unsigned x;
     unsigned y;
 
+    upoint()
+        : x(0)
+        , y(0)
+    {
+    }
+
+    upoint(unsigned x, unsigned y)
+        : x(x)
+        , y(y)
+    {
+    }
+
     bool operator==(const upoint& o) const
     {
         return x == o.x && y == o.y;
@@ -26,21 +38,33 @@ struct usize {
     unsigned width;
     unsigned height;
 
+    usize()
+        : width(1)
+        , height(1)
+    {
+    }
+
+    usize(unsigned width, unsigned height)
+        : width(width)
+        , height(height)
+    {
+    }
+
     inline usize expand(const usize& s) const
     {
-        return { std::max(width, s.width), std::max(height, s.height) };
+        return usize(std::max(width, s.width), std::max(height, s.height));
     }
 
     inline usize expand(const upoint& p) const
     {
-        return { std::max(width, p.x), std::max(height, p.y) };
+        return usize(std::max(width, p.x), std::max(height, p.y));
     }
 
     inline usize expand(const urect& r) const;
 
     inline upoint clip(const upoint& p) const
     {
-        return { std::min(width, p.x), std::min(height, p.y) };
+        return upoint(std::min(width, p.x), std::min(height, p.y));
     }
 
     bool operator==(const usize& o) const
@@ -60,6 +84,22 @@ struct urect {
     unsigned width;
     unsigned height;
 
+    urect()
+        : x(0)
+        , y(0)
+        , width(1)
+        , height(1)
+    {
+    }
+
+    urect(unsigned x, unsigned y, unsigned width, unsigned height)
+        : x(x)
+        , y(y)
+        , width(width)
+        , height(height)
+    {
+    }
+
     inline unsigned left() const { return x; }
     inline unsigned right() const { return x + width; }
     inline unsigned top() const { return y; }
@@ -76,13 +116,13 @@ struct urect {
     // Clips the upoint within the width/height of the urect
     inline upoint clipInside(const upoint& p) const
     {
-        return { std::min(p.x, width), std::min(p.y, height) };
+        return upoint(std::min(p.x, width), std::min(p.y, height));
     }
 
     // Clips the upoint/usize within the width/height of the urect
     upoint clipInside(const upoint& p, unsigned squareSize) const
     {
-        upoint ret = { 0, 0 };
+        upoint ret(0, 0);
 
         if (width > squareSize) {
             ret.x = std::min(p.x, width - squareSize);
@@ -150,7 +190,7 @@ struct urect {
 
 inline usize usize::expand(const urect& r) const
 {
-    return { std::max(width, r.right()), std::max(height, r.bottom()) };
+    return usize(std::max(width, r.right()), std::max(height, r.bottom()));
 }
 }
 #endif

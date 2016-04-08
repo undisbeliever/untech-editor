@@ -194,8 +194,8 @@ void FrameSetPropertiesEditor::updateGuiValues()
         widget.set_sensitive(true);
     }
     else {
-        static const upoint zeroPoint = { 0, 0 };
-        static const usize zeroSize = { 0, 0 };
+        static const upoint zeroPoint(0, 0);
+        static const usize zeroSize(0, 0);
 
         _nameEntry.set_text("");
         _imageFilenameEntry.set_text("");
