@@ -2,6 +2,9 @@
 #define _UNTECH_MODELS_COMMON_XML_XMLTAG_H_
 
 #include "../namedlist.h"
+#include "../aabb.h"
+#include "../ms8aabb.h"
+#include "../int_ms8_t.h"
 #include <climits>
 #include <memory>
 #include <sstream>
@@ -112,6 +115,11 @@ struct XmlTag {
         return (uint8_t)getAttributeUnsigned(aName, 0, UINT8_MAX);
     }
 
+    inline int_ms8_t getAttributeIntMs8(const std::string& aName) const
+    {
+        return int_ms8_t(getAttributeInteger(aName, int_ms8_t::MIN, int_ms8_t::MAX));
+    }
+
     inline bool getAttributeBoolean(const std::string& aName, bool def = false) const
     {
         auto v = getOptionalAttribute(aName);
@@ -214,6 +222,24 @@ struct XmlTag {
         unsigned height = getAttributeUnsigned(heightName, 1, container.height - y);
 
         return urect(x, y, width, height);
+    }
+
+    inline ms8point getAttributeMs8point(const std::string& xName = "x", const std::string& yName = "y") const
+    {
+        int_ms8_t x = getAttributeIntMs8(xName);
+        int_ms8_t y = getAttributeIntMs8(yName);
+
+        return ms8point(x, y);
+    }
+
+    inline ms8rect getAttributeMs8rect(const std::string& xName = "x", const std::string yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
+    {
+        int_ms8_t x = getAttributeIntMs8(xName);
+        int_ms8_t y = getAttributeIntMs8(yName);
+        unsigned width = getAttributeUint8(widthName);
+        unsigned height = getAttributeUint8(heightName);
+
+        return ms8rect(x, y, width, height);
     }
 
     std::runtime_error buildError(const char* msg) const

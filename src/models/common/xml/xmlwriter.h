@@ -3,6 +3,7 @@
 
 #include "xml.h"
 #include "../aabb.h"
+#include "../ms8aabb.h"
 #include "../string.h"
 #include <stack>
 #include <string>
@@ -48,19 +49,33 @@ public:
         }
     }
 
-    inline void writeTagAttributeUpoint(upoint p, const std::string& xName = "x", const std::string& yName = "y")
+    inline void writeTagAttributeUpoint(const upoint& p, const std::string& xName = "x", const std::string& yName = "y")
     {
         writeTagAttribute(xName, p.x);
         writeTagAttribute(yName, p.y);
     }
 
-    inline void writeTagAttributeUsize(usize s, const std::string& widthName = "width", const std::string& heightName = "height")
+    inline void writeTagAttributeUsize(const usize& s, const std::string& widthName = "width", const std::string& heightName = "height")
     {
         writeTagAttribute(widthName, s.width);
         writeTagAttribute(heightName, s.height);
     }
 
     inline void writeTagAttributeUrect(const urect& r, const std::string& xName = "x", const std::string& yName = "y", const std::string& widthName = "width", const std::string& heightName = "height")
+    {
+        writeTagAttribute(xName, r.x);
+        writeTagAttribute(yName, r.y);
+        writeTagAttribute(widthName, r.width);
+        writeTagAttribute(heightName, r.height);
+    }
+
+    inline void writeTagAttributeMs8point(const ms8point& p, const std::string& xName = "x", const std::string& yName = "y")
+    {
+        writeTagAttribute(xName, p.x);
+        writeTagAttribute(yName, p.y);
+    }
+
+    inline void writeTagAttributeMs8rect(const ms8rect& r, const std::string& xName = "x", const std::string& yName = "y", const std::string& widthName = "width", const std::string& heightName = "height")
     {
         writeTagAttribute(xName, r.x);
         writeTagAttribute(yName, r.y);
