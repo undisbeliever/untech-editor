@@ -17,6 +17,9 @@ public:
     const static unsigned DEFAULT_HEIGHT = 32;
 
 protected:
+    FrameSetGrid() = delete;
+    FrameSetGrid(const FrameSetGrid&) = delete;
+
     FrameSetGrid(FrameSet& frameSet);
 
     void copyFrom(const FrameSetGrid& grid);

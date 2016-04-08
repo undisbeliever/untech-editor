@@ -26,6 +26,9 @@ public:
     typedef NamedList<FrameSet, Frame> list_t;
 
 public:
+    Frame() = delete;
+    Frame(const Frame&) = delete;
+
     Frame(std::shared_ptr<FrameSet> frameSet);
 
 private:

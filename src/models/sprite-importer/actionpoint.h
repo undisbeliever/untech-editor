@@ -18,6 +18,8 @@ public:
 
 public:
     ActionPoint() = delete;
+    ActionPoint(const ActionPoint&) = delete;
+
     ActionPoint(std::shared_ptr<Frame> frame);
     ActionPoint(const ActionPoint& point, std::shared_ptr<Frame> frame);
 

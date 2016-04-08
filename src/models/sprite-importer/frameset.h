@@ -21,6 +21,9 @@ class SpriteImporterDocument;
 class FrameSet : public std::enable_shared_from_this<FrameSet> {
 
 public:
+    FrameSet() = delete;
+    FrameSet(const FrameSet&) = delete;
+
     FrameSet(SpriteImporterDocument& document);
 
     std::shared_ptr<FrameSet> ptr() { return shared_from_this(); }

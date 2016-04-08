@@ -20,6 +20,8 @@ public:
 
 public:
     FrameObject() = delete;
+    FrameObject(const FrameObject&) = delete;
+
     FrameObject(std::shared_ptr<Frame> frame);
     FrameObject(const FrameObject& object, std::shared_ptr<Frame> frame);
 

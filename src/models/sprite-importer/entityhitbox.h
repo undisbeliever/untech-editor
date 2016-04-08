@@ -18,6 +18,8 @@ public:
 
 public:
     EntityHitbox() = delete;
+    EntityHitbox(const EntityHitbox&) = delete;
+
     EntityHitbox(std::shared_ptr<Frame> frame);
     EntityHitbox(const EntityHitbox& hitbox, std::shared_ptr<Frame> frame);
 
