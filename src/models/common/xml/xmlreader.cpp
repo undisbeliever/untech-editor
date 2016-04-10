@@ -1,6 +1,7 @@
 #include "xmlreader.h"
 #include "../string.h"
 #include "../file.h"
+#include "../base64.h"
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
@@ -324,6 +325,11 @@ std::string XmlReader::parseText()
     text += unescapeXmlString(startText, _pos);
 
     return text;
+}
+
+std::vector<uint8_t> XmlReader::parseBase64()
+{
+    return Base64::decode(parseText());
 }
 
 void XmlReader::parseCloseTag()

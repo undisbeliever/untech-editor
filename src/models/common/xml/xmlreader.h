@@ -4,10 +4,12 @@
 #include "xml.h"
 #include "../aabb.h"
 #include "../string.h"
+#include <cstdint>
 #include <memory>
 #include <stack>
 #include <string>
 #include <sstream>
+#include <vector>
 
 namespace UnTech {
 namespace Xml {
@@ -51,6 +53,9 @@ public:
 
     /** returns the text at the current cursor */
     std::string parseText();
+
+    /** returns the base64 data at the current cursor */
+    std::vector<uint8_t> parseBase64();
 
     /** This method will skip over any child/sibling text/tags in order to close the current tag */
     void parseCloseTag();

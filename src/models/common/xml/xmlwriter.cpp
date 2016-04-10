@@ -1,6 +1,7 @@
 #include "xmlwriter.h"
-#include "../string.h"
+#include "../base64.h"
 #include "../file.h"
+#include "../string.h"
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -137,6 +138,15 @@ void XmlWriter::writeText(const std::string& text)
             _file << c;
         }
     }
+}
+
+void XmlWriter::writeBase64(const std::vector<uint8_t>& data)
+{
+    if (_inTag) {
+        writeCloseTagHead();
+    }
+
+    Base64::encode(data, _file, _tagStack.size() * 2);
 }
 
 void XmlWriter::writeCloseTag()

@@ -5,9 +5,11 @@
 #include "../aabb.h"
 #include "../ms8aabb.h"
 #include "../string.h"
+#include <cstdint>
+#include <ostream>
 #include <stack>
 #include <string>
-#include <ostream>
+#include <vector>
 
 namespace UnTech {
 namespace Xml {
@@ -37,6 +39,7 @@ public:
     void writeTagAttributeHex(const std::string& name, const unsigned value, unsigned width);
 
     void writeText(const std::string& text);
+    void writeBase64(const std::vector<uint8_t>& data);
 
     void writeCloseTag();
 
