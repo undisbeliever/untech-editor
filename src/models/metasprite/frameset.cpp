@@ -9,6 +9,7 @@ using namespace UnTech::MetaSprite;
 FrameSet::FrameSet(MetaSpriteDocument& document)
     : _document(document)
     , _name("frameset")
+    , _palettes(*this)
     , _frames(*this)
 {
 }

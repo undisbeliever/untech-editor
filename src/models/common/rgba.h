@@ -41,6 +41,11 @@ union rgba {
     {
         return value != o.value;
     }
+
+    inline bool operator<(const rgba& o) const
+    {
+        return value < o.value;
+    }
 };
 }
 #endif

@@ -3,6 +3,9 @@
 
 #include "../common/ms8aabb.h"
 #include "../common/namedlist.h"
+#include "../common/orderedlist.h"
+#include <list>
+#include <array>
 #include <memory>
 #include <string>
 
@@ -11,6 +14,7 @@ namespace MetaSprite {
 
 class Frame;
 class MetaSpriteDocument;
+class Palette;
 
 class FrameSet : public std::enable_shared_from_this<FrameSet> {
 
@@ -24,6 +28,9 @@ public:
 
     inline const std::string& name() const { return _name; }
 
+    inline auto& palettes() { return _palettes; }
+    inline const auto& palettes() const { return _palettes; }
+
     inline auto& frames() { return _frames; }
     inline const auto& frames() const { return _frames; }
 
@@ -36,10 +43,10 @@ private:
 
     std::string _name;
 
-    NamedList<FrameSet, Frame> _frames;
-
-    // ::TODO palettes::
     // ::TODO tilesets::
+    OrderedList<FrameSet, Palette> _palettes;
+
+    NamedList<FrameSet, Frame> _frames;
 };
 }
 }

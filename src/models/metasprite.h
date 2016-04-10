@@ -1,0 +1,7 @@
+#include "metasprite/actionpoint.h"
+#include "metasprite/document.h"
+#include "metasprite/entityhitbox.h"
+#include "metasprite/frame.h"
+#include "metasprite/frameobject.h"
+#include "metasprite/frameset.h"
+#include "metasprite/palette.h"

@@ -1,9 +1,10 @@
 #include "serializer.h"
 #include "frameset.h"
 #include "frame.h"
-#include "frameobject.h"
 #include "actionpoint.h"
 #include "entityhitbox.h"
+#include "frameobject.h"
+#include "palette.h"
 #include "../common/xml/xmlreader.h"
 #include "../common/xml/xmlwriter.h"
 #include <cassert>
@@ -44,12 +45,14 @@ public:
         frameSet->setName(id);
 
         // ::TODO read tileset::
-        // ::TODO read palettes::
 
         std::unique_ptr<XmlTag> childTag;
         while ((childTag = xml.parseTag())) {
             if (childTag->name == "frame") {
                 readFrame(childTag.get());
+            }
+            else if (childTag->name == "palette") {
+                readPalette(childTag.get());
             }
             else {
                 throw childTag->buildUnknownTagError();
@@ -130,6 +133,24 @@ private:
         // Frame is solid only if tileHitbox exists.
         frame->setSolid(processedTileHitbox);
     }
+
+    inline void readPalette(const XmlTag* tag)
+    {
+        const static unsigned N_COLORS = 16;
+
+        assert(tag->name == "palette");
+
+        const auto data = xml.parseBase64();
+
+        if (data.size() != N_COLORS * 2) {
+            throw tag->buildError("Palette data must contain 32 bytes");
+        }
+
+        auto palette = frameSet->palettes().create();
+        palette->readPalette(data);
+
+        xml.parseCloseTag();
+    }
 };
 
 /*
@@ -193,6 +214,15 @@ inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame
     xml.writeCloseTag();
 }
 
+inline void writePalette(XmlWriter& xml, const Palette* palette)
+{
+    xml.writeTag("palette");
+
+    xml.writeBase64(palette->paletteData());
+
+    xml.writeCloseTag();
+}
+
 inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 {
     xml.writeTag("metasprite");
@@ -200,7 +230,10 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     xml.writeTagAttribute("id", frameSet.name());
 
     // ::TODO write tileset::
-    // ::TODO write palettes::
+
+    for (const auto& p : frameSet.palettes()) {
+        writePalette(xml, p.get());
+    }
 
     for (const auto& f : frameSet.frames()) {
         writeFrame(xml, f.first, f.second.get());
