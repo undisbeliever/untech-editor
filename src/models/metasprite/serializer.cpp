@@ -7,6 +7,7 @@
 #include "palette.h"
 #include "../common/xml/xmlreader.h"
 #include "../common/xml/xmlwriter.h"
+#include "../snes/palette.hpp"
 #include <cassert>
 #include <stdexcept>
 #include <fstream>

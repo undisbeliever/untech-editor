@@ -1,9 +1,14 @@
+#ifndef _UNTECH_MODELS_SNES_PALETTE_HPP
+#define _UNTECH_MODELS_SNES_PALETTE_HPP
+
 #include "palette.h"
 #include <stdexcept>
 
-using namespace UnTech::Snes;
+namespace UnTech {
+namespace Snes {
 
-std::vector<uint8_t> Palette::paletteData() const
+template <size_t BIT_DEPTH>
+inline std::vector<uint8_t> Palette<BIT_DEPTH>::paletteData() const
 {
     std::vector<uint8_t> data(N_COLORS * 2);
     auto* ptr = data.data();
@@ -16,7 +21,8 @@ std::vector<uint8_t> Palette::paletteData() const
     return data;
 }
 
-void Palette::readPalette(const std::vector<uint8_t>& data)
+template <size_t BIT_DEPTH>
+inline void Palette<BIT_DEPTH>::readPalette(const std::vector<uint8_t>& data)
 {
     if (data.size() != N_COLORS * 2) {
         throw std::runtime_error("Palette data must contain 32 bytes");
@@ -26,3 +32,7 @@ void Palette::readPalette(const std::vector<uint8_t>& data)
         _colors[i].setData((data[i * 2 + 1] << 8) | data[i * 2]);
     }
 }
+}
+}
+
+#endif

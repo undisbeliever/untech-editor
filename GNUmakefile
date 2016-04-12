@@ -90,5 +90,5 @@ clean:
 
 .PHONY: style
 style:
-	find src/ -path src/vendor -prune -o \( -name '*.h' -or -name '*.cpp' \) -print0 | xargs -0 clang-format -i
+	find src/ -path src/vendor -prune -o \( -name '*.h' -or -name '*.hpp' -or -name '*.cpp' \) -print0 | xargs -0 clang-format -i
 

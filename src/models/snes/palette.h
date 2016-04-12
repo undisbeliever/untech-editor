@@ -10,9 +10,12 @@
 namespace UnTech {
 namespace Snes {
 
+template <size_t BIT_DEPTH>
 class Palette {
 public:
-    const static size_t N_COLORS = 16;
+    static_assert(BIT_DEPTH <= 8, "BIT_DEPTH too large");
+
+    const static size_t N_COLORS = 1 << BIT_DEPTH;
 
     typedef std::array<SnesColor, N_COLORS> palette_t;
 
@@ -42,6 +45,10 @@ public:
 private:
     palette_t _colors;
 };
+
+typedef Palette<2> Palette2bpp;
+typedef Palette<4> Palette4bpp;
+typedef Palette<8> Palette8bpp;
 }
 }
 
