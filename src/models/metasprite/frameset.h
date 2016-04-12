@@ -4,6 +4,7 @@
 #include "../common/ms8aabb.h"
 #include "../common/namedlist.h"
 #include "../common/orderedlist.h"
+#include "../snes/tileset.h"
 #include <list>
 #include <array>
 #include <memory>
@@ -28,6 +29,12 @@ public:
 
     inline const std::string& name() const { return _name; }
 
+    inline auto& smallTileset() { return _smallTileset; }
+    inline const auto& smallTileset() const { return _smallTileset; }
+
+    inline auto& largeTileset() { return _largeTileset; }
+    inline const auto& largeTileset() const { return _largeTileset; }
+
     inline auto& palettes() { return _palettes; }
     inline const auto& palettes() const { return _palettes; }
 
@@ -43,7 +50,8 @@ private:
 
     std::string _name;
 
-    // ::TODO tilesets::
+    Snes::Tileset4bpp8px _smallTileset;
+    Snes::Tileset4bpp16px _largeTileset;
     OrderedList<FrameSet, Palette> _palettes;
 
     NamedList<FrameSet, Frame> _frames;
