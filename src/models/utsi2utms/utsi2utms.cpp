@@ -1,4 +1,5 @@
 #include "utsi2utms.h"
+#include "tilesetinserter.h"
 #include "models/metasprite.h"
 #include "models/sprite-importer.h"
 #include <cassert>
@@ -9,6 +10,8 @@
 const size_t PALETTE_COLORS = 16;
 
 using namespace UnTech;
+using namespace UnTech::Utsi2UtmsPrivate;
+
 namespace MS = UnTech::MetaSprite;
 namespace SI = UnTech::SpriteImporter;
 
@@ -118,10 +121,14 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImpor
         return nullptr;
     }
 
+    TilesetInserter<Snes::Tileset4bpp8px> smallTileset(msFrameSet->smallTileset());
+    TilesetInserter<Snes::Tileset4bpp16px> largeTileset(msFrameSet->largeTileset());
+
     // Process frames
     for (const auto frameIt : siFrameSet->frames()) {
         const auto siFrame = frameIt.second;
         const auto siFrameOrigin = siFrame->origin();
+        const auto siFrameLocation = siFrame->location();
 
         auto msFrame = msFrameSet->frames().create(frameIt.first);
 
@@ -132,28 +139,48 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImpor
                 // ::TODO find overlapping tiles and store in list::
                 // ::TODO warning if large tile is in front of and covers a small tile::
 
+                unsigned xOffset = siFrameLocation.x + siObj->location().x;
+                unsigned yOffset = siFrameLocation.y + siObj->location().y;
+
+                TilesetInserterOutput tilesetOutput;
+
                 if (siObj->size() == SI::FrameObject::ObjectSize::SMALL) {
                     msObj->setSize(MS::FrameObject::ObjectSize::SMALL);
 
-                    // ::TODO get tile from image::
+                    // Get image data
+                    std::array<uint8_t, 8 * 8> tile;
+                    uint8_t* tData = tile.data();
+                    for (unsigned y = 0; y < 8; y++) {
+                        const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
 
-                    // ::TODO insert tile data into tileset::
-                    msObj->setTileId(0);
-                    msObj->setHFlip(false);
-                    msObj->setVFlip(false);
+                        for (unsigned x = 0; x < 8; x++) {
+                            *tData++ = colorMap[*imgBits++];
+                        }
+                    }
+
+                    tilesetOutput = smallTileset.getOrInsert(tile);
                 }
                 else {
                     msObj->setSize(MS::FrameObject::ObjectSize::LARGE);
 
-                    // ::TODO get tile from image::
+                    // Get image data
+                    std::array<uint8_t, 16 * 16> tile;
+                    uint8_t* tData = tile.data();
+                    for (unsigned y = 0; y < 16; y++) {
+                        const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
 
-                    // ::TODO insert tile data into tileset::
-                    msObj->setTileId(0);
-                    msObj->setHFlip(false);
-                    msObj->setVFlip(false);
+                        for (unsigned x = 0; x < 16; x++) {
+                            *tData++ = colorMap[*imgBits++];
+                        }
+                    }
+
+                    tilesetOutput = largeTileset.getOrInsert(tile);
                 }
 
                 msObj->setLocation(ms8point::createFromOffset(siObj->location(), siFrameOrigin));
+                msObj->setTileId(tilesetOutput.tileId);
+                msObj->setHFlip(tilesetOutput.hFlip);
+                msObj->setVFlip(tilesetOutput.vFlip);
             }
 
             for (const auto siAp : siFrame->actionPoints()) {

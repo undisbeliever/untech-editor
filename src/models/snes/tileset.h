@@ -10,16 +10,19 @@
 namespace UnTech {
 namespace Snes {
 
-template <size_t BIT_DEPTH, size_t TILE_SIZE>
+template <size_t BIT_DEPTH, size_t TS>
 class Tileset {
     static_assert(BIT_DEPTH <= 8, "BIT_DEPTH is too high");
     static_assert((BIT_DEPTH & 1) == 0, "BIT_DEPTH must be a multiple of 2");
 
 public:
-    const static unsigned PIXEL_MASK = (1 << BIT_DEPTH) - 1;
-    const static unsigned SNES_DATA_SIZE = TILE_SIZE * TILE_SIZE * BIT_DEPTH / 8;
+    constexpr static unsigned TILE_SIZE = TS;
 
-    typedef std::array<uint8_t, TILE_SIZE * TILE_SIZE> tileData_t;
+    constexpr static unsigned PIXEL_MASK = (1 << BIT_DEPTH) - 1;
+    constexpr static unsigned TILE_DATA_SIZE = TILE_SIZE * TILE_SIZE;
+    constexpr static unsigned SNES_DATA_SIZE = TILE_DATA_SIZE * BIT_DEPTH / 8;
+
+    typedef std::array<uint8_t, TILE_DATA_SIZE> tileData_t;
 
 public:
     void drawTile(Image& imgage, const Palette<BIT_DEPTH>& palette,
