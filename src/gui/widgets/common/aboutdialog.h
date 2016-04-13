@@ -12,7 +12,9 @@ inline void showAboutDialog(Gtk::Window* parent)
 {
     Gtk::AboutDialog dialog;
 
-    dialog.set_transient_for(*parent);
+    if (parent) {
+        dialog.set_transient_for(*parent);
+    }
 
     // ::MAYDO logo::
 

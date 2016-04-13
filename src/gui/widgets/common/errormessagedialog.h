@@ -13,9 +13,12 @@ inline void showErrorMessage(Gtk::Window* window, const char* message, const std
 {
     std::cerr << message << ": " << error.what() << std::endl;
 
-    Gtk::MessageDialog dialog(*window,
-                              _(message), false,
+    Gtk::MessageDialog dialog(_(message), false,
                               Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK);
+
+    if (window) {
+        dialog.set_transient_for(*window);
+    }
 
     dialog.set_secondary_text(error.what());
 

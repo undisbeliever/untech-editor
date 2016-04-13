@@ -126,9 +126,13 @@ void SpriteImporterApplication::on_menu_new()
 
 void SpriteImporterApplication::on_menu_open()
 {
-    Gtk::FileChooserDialog dialog(*get_active_window(),
-                                  _("Open File"),
+    Gtk::FileChooserDialog dialog(_("Open File"),
                                   Gtk::FILE_CHOOSER_ACTION_OPEN);
+
+    auto* window = get_active_window();
+    if (window) {
+        dialog.set_transient_for(*window);
+    }
 
     dialog.add_button(_("_Cancel"), Gtk::RESPONSE_CANCEL);
     dialog.add_button(_("_Open"), Gtk::RESPONSE_OK);
