@@ -48,6 +48,12 @@ public:
     inline void setSolid(bool solid) { _solid = solid; }
     inline void setTileHitbox(const ms8rect& tileHitbox) { _tileHitbox = tileHitbox; }
 
+    struct Boundary {
+        int x, y;
+        unsigned width, height;
+    };
+    Boundary calcBoundary() const;
+
 private:
     std::weak_ptr<FrameSet> _frameSet;
     OrderedList<Frame, FrameObject> _objects;

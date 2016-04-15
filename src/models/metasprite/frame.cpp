@@ -45,3 +45,67 @@ std::shared_ptr<Frame> Frame::clone(std::shared_ptr<FrameSet> frameSet)
 
     return frame;
 }
+
+Frame::Boundary Frame::calcBoundary() const
+{
+    // These numbers are selected so that origin (0, 0) is always visible.
+    int left = -1;
+    int right = 1;
+    int top = -1;
+    int bottom = 1;
+
+    for (const auto obj : _objects) {
+        const auto& loc = obj->location();
+        const int size = obj->sizePx();
+
+        if (loc.x < left) {
+            left = loc.x;
+        }
+        if (loc.x + size > right) {
+            right = loc.x + size;
+        }
+        if (loc.y < top) {
+            top = loc.y;
+        }
+        if (loc.y + size > bottom) {
+            bottom = loc.y + size;
+        }
+    }
+
+    for (const auto ap : _actionPoints) {
+        const auto& loc = ap->location();
+
+        if (loc.x < left) {
+            left = loc.x;
+        }
+        if (loc.x > right) {
+            right = loc.x;
+        }
+        if (loc.y < top) {
+            top = loc.y;
+        }
+        if (loc.y > bottom) {
+            bottom = loc.y;
+        }
+    }
+    for (const auto eh : _entityHitboxes) {
+        const auto& aabb = eh->aabb();
+
+        if (aabb.x < left) {
+            left = aabb.x;
+        }
+        if (aabb.right() > right) {
+            right = aabb.right();
+        }
+        if (aabb.y < top) {
+            top = aabb.y;
+        }
+        if (aabb.bottom() > bottom) {
+            bottom = aabb.bottom();
+        }
+    }
+
+    return { left, top,
+             (unsigned)right - left,
+             (unsigned)top - bottom };
+}
