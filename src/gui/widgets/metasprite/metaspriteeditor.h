@@ -9,6 +9,7 @@
 #include "framelist.h"
 #include "frameobjecteditor.h"
 #include "frameobjectlist.h"
+#include "framegraphicaleditor.h"
 #include "framepropertieseditor.h"
 #include "framesetpropertieseditor.h"
 #include "selection.h"
@@ -43,9 +44,8 @@ private:
 
     Selection _selection;
 
-    // ::TODO graphics editor::
-    Gtk::ScrolledWindow _graphicalWindow;
-    Gtk::DrawingArea _graphicalEditor;
+    // ::TODO scrollbar::
+    FrameGraphicalEditor _graphicalEditor;
 
     Gtk::Notebook _sidebar;
 

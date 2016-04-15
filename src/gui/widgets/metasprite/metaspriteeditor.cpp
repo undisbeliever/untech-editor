@@ -6,8 +6,7 @@ namespace MS = UnTech::MetaSprite;
 MetaSpriteEditor::MetaSpriteEditor()
     : _document()
     , _selection()
-    , _graphicalWindow()
-    , _graphicalEditor()
+    , _graphicalEditor(_selection)
     , _sidebar()
     , _framePane(Gtk::ORIENTATION_VERTICAL)
     , _frameSetPropertiesEditor()
@@ -45,9 +44,6 @@ MetaSpriteEditor::MetaSpriteEditor()
     _entityHitboxBox.pack_start(_entityHitboxEditor.widget, Gtk::PACK_SHRINK);
     _frameNotebook.append_page(_entityHitboxBox, _("Entity Hitboxes"));
 
-    _graphicalWindow.add(_graphicalEditor);
-    _graphicalWindow.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_ALWAYS);
-
     _sidebar.append_page(_frameSetPropertiesEditor.widget, _("Frame Set"));
     _sidebar.append_page(_framePane, _("Frames"));
 
@@ -55,7 +51,7 @@ MetaSpriteEditor::MetaSpriteEditor()
     _framePane.pack1(_frameList.widget, true, false);
     _framePane.pack2(_frameNotebook, false, false);
 
-    widget.pack1(_graphicalWindow, true, false);
+    widget.pack1(_graphicalEditor, true, false);
     widget.pack2(_sidebar, false, false);
 
     /*
