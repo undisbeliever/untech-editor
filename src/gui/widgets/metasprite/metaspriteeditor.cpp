@@ -3,10 +3,17 @@
 using namespace UnTech::Widgets::MetaSprite;
 namespace MS = UnTech::MetaSprite;
 
+const int SCROLL_MAX = UnTech::int_ms8_t::MAX + 16;
+
 MetaSpriteEditor::MetaSpriteEditor()
     : _document()
     , _selection()
     , _graphicalEditor(_selection)
+    , _graphicalHScroll(Gtk::Adjustment::create(0.0, -SCROLL_MAX, SCROLL_MAX, 1.0, 16.0, 16.0),
+                        Gtk::ORIENTATION_HORIZONTAL)
+    , _graphicalVScroll(Gtk::Adjustment::create(0.0, -SCROLL_MAX, SCROLL_MAX, 1.0, 16.0, 16.0),
+                        Gtk::ORIENTATION_VERTICAL)
+    , _graphicalGrid()
     , _sidebar()
     , _framePane(Gtk::ORIENTATION_VERTICAL)
     , _frameSetPropertiesEditor()
@@ -23,6 +30,13 @@ MetaSpriteEditor::MetaSpriteEditor()
     , _entityHitboxList()
     , _entityHitboxEditor()
 {
+
+    // Graphical
+    _graphicalGrid.attach(_graphicalEditor, 0, 0, 1, 1);
+    _graphicalGrid.attach(_graphicalHScroll, 0, 1, 1, 1);
+    _graphicalGrid.attach(_graphicalVScroll, 1, 0, 1, 1);
+
+    // Sidebar
     _frameNotebook.set_size_request(-1, 350);
     _frameNotebook.set_scrollable(true);
     _frameNotebook.popup_enable();
@@ -51,13 +65,37 @@ MetaSpriteEditor::MetaSpriteEditor()
     _framePane.pack1(_frameList.widget, true, false);
     _framePane.pack2(_frameNotebook, false, false);
 
-    widget.pack1(_graphicalEditor, true, false);
+    widget.pack1(_graphicalGrid, true, true);
     widget.pack2(_sidebar, false, false);
 
     /*
      * SLOTS
      * =====
      */
+
+    // Reset scrollbars to 0 on right click
+    _graphicalHScroll.add_events(Gdk::BUTTON_RELEASE_MASK);
+    _graphicalHScroll.signal_button_release_event().connect([&](GdkEventButton* event) {
+        if (event->button == 3) {
+            _graphicalHScroll.set_value(0);
+            return true;
+        }
+        return false;
+    });
+    _graphicalVScroll.add_events(Gdk::BUTTON_RELEASE_MASK);
+    _graphicalVScroll.signal_button_release_event().connect([&](GdkEventButton* event) {
+        if (event->button == 3) {
+            _graphicalVScroll.set_value(0);
+            return true;
+        }
+        return false;
+    });
+
+    _graphicalHScroll.signal_value_changed().connect(
+        sigc::mem_fun(*this, &MetaSpriteEditor::on_scroll_changed));
+    _graphicalVScroll.signal_value_changed().connect(
+        sigc::mem_fun(*this, &MetaSpriteEditor::on_scroll_changed));
+
     _selection.signal_frameSetChanged.connect([this](void) {
         auto frameSet = _selection.frameSet();
 
@@ -154,4 +192,10 @@ void MetaSpriteEditor::setDocument(std::unique_ptr<Document> document)
 
         _document = std::move(document);
     }
+}
+
+void MetaSpriteEditor::on_scroll_changed()
+{
+    _graphicalEditor.setCenter(_graphicalHScroll.get_value(),
+                               _graphicalVScroll.get_value());
 }

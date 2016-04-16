@@ -36,6 +36,9 @@ public:
 
     void setDocument(std::unique_ptr<Document> document);
 
+protected:
+    void on_scroll_changed();
+
 public:
     Gtk::Paned widget;
 
@@ -44,8 +47,9 @@ private:
 
     Selection _selection;
 
-    // ::TODO scrollbar::
     FrameGraphicalEditor _graphicalEditor;
+    Gtk::Scrollbar _graphicalHScroll, _graphicalVScroll;
+    Gtk::Grid _graphicalGrid;
 
     Gtk::Notebook _sidebar;
 

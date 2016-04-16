@@ -20,9 +20,7 @@ public:
 
     void setZoom(double x, double y);
 
-    void setOffset(int x, int y);
-
-    // ::TODO get width/height of editor (in px, after zoom) for scrollbar::
+    void setCenter(int x, int y);
 
 protected:
     struct Action {
@@ -60,6 +58,8 @@ protected:
 
     void update_pointer_cursor();
 
+    void update_offsets();
+
 private:
     double _zoomX, _zoomY;
     int _xOffset, _yOffset;
@@ -70,6 +70,10 @@ private:
      * so that the borders of high-DPI displays are easily legible
      */
     double _displayZoom;
+
+    // The user supplied X/Y offset
+    // on zoom/resize the _xOffset/_yOffset variables are changed.
+    int _centerX, _centerY;
 
     Selection& _selection;
     Action _action;

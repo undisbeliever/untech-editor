@@ -26,11 +26,14 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     : Gtk::DrawingArea()
     , _zoomX(3.0)
     , _zoomY(3.0)
-    , _xOffset(64)
-    , _yOffset(64)
     , _displayZoom(NAN)
+    , _centerX()
+    , _centerY()
     , _selection(selection)
 {
+    set_hexpand(true);
+    set_vexpand(true);
+
     add_events(Gdk::BUTTON_PRESS_MASK
                | Gdk::BUTTON_RELEASE_MASK
                | Gdk::ENTER_NOTIFY_MASK
@@ -39,15 +42,26 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
 
     // SLOTS
     // =====
-    Signals::frameObjectListChanged.connect(sigc::hide(sigc::mem_fun(this, &FrameGraphicalEditor::queue_draw)));
-    Signals::actionPointListChanged.connect(sigc::hide(sigc::mem_fun(this, &FrameGraphicalEditor::queue_draw)));
-    Signals::entityHitboxListChanged.connect(sigc::hide(sigc::mem_fun(this, &FrameGraphicalEditor::queue_draw)));
+    Signals::frameObjectListChanged.connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::queue_draw)));
+    Signals::actionPointListChanged.connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::queue_draw)));
+    Signals::entityHitboxListChanged.connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::queue_draw)));
 
     _selection.signal_selectionChanged.connect([this](void) {
         // reset action
         _action.state = Action::NONE;
         queue_draw();
     });
+
+    // Update offsets on resize
+    signal_size_allocate().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::update_offsets)));
+
+    // BUGFIX: update_offsets were not called on first draw, fixed by calling on frameChange::
+    _selection.signal_frameChanged.connect(sigc::mem_fun(
+        this, &FrameGraphicalEditor::update_offsets));
 
     Signals::frameChanged.connect([this](const std::shared_ptr<MS::Frame> frame) {
         if (frame == _selection.frame()) {
@@ -89,10 +103,6 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     const cr_rgba originColor1 = { 0.0, 0.0, 0.0, 0.2 };
     const cr_rgba originColor2 = { 1.0, 1.0, 1.0, 0.2 };
 
-    if (_selection.frame() == nullptr) {
-        return true;
-    }
-
     if (std::isnan(_displayZoom)) {
         auto screen = get_screen();
 
@@ -102,6 +112,10 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         else {
             _displayZoom = 1.0;
         }
+    }
+
+    if (_selection.frame() == nullptr) {
+        return true;
     }
 
     auto draw_rectangle = [this, cr](unsigned x, unsigned y, unsigned width, unsigned height) {
@@ -718,16 +732,26 @@ void FrameGraphicalEditor::setZoom(double x, double y)
         _zoomX = limit(x, 1.0, 10.0);
         _zoomY = limit(y, 1.0, 10.0);
 
-        queue_draw();
+        update_offsets();
     }
 }
 
-void FrameGraphicalEditor::setOffset(int x, int y)
+void FrameGraphicalEditor::setCenter(int x, int y)
 {
-    if (_xOffset != x || _yOffset != y) {
-        _xOffset = x;
-        _yOffset = y;
+    if (_centerX != x || _centerY != y) {
+        _centerX = x;
+        _centerY = y;
 
-        queue_draw();
+        update_offsets();
     }
+}
+
+void FrameGraphicalEditor::update_offsets()
+{
+    const auto allocation = get_allocation();
+
+    _xOffset = allocation.get_width() / _zoomX / _displayZoom / 2 + _centerX;
+    _yOffset = allocation.get_height() / _zoomY / _displayZoom / 2 + _centerY;
+
+    queue_draw();
 }
