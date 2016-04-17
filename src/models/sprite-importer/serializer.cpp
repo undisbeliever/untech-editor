@@ -5,6 +5,7 @@
 #include "frameobject.h"
 #include "actionpoint.h"
 #include "entityhitbox.h"
+#include "../common/atomicofstream.h"
 #include "../common/xml/xmlreader.h"
 #include "../common/xml/xmlwriter.h"
 #include <cassert>
@@ -330,22 +331,15 @@ void readFile(std::shared_ptr<FrameSet> frameSet, const std::string& filename)
     reader.readFrameSet(tag.get());
 }
 
-void writeFile(const FrameSet& frameSet, std::ostream& file)
-{
-    XmlWriter xml(file, "untech");
-
-    FrameSetWriter::writeFrameSet(xml, frameSet);
-}
-
 void writeFile(const FrameSet& frameSet, const std::string& filename)
 {
-    // ::TODO implement Qt like SaveFile class for atomicity::
-
-    std::ofstream file(filename, std::ios_base::out);
+    UnTech::AtomicOfStream file(filename);
 
     XmlWriter xml(file, filename, "untech");
 
     FrameSetWriter::writeFrameSet(xml, frameSet);
+
+    file.commit();
 }
 }
 }

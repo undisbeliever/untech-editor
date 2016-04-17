@@ -5,6 +5,7 @@
 #include "entityhitbox.h"
 #include "frameobject.h"
 #include "palette.h"
+#include "../common/atomicofstream.h"
 #include "../common/xml/xmlreader.h"
 #include "../common/xml/xmlwriter.h"
 #include "../snes/palette.hpp"
@@ -298,6 +299,7 @@ void readFile(std::shared_ptr<FrameSet> frameSet, const std::string& filename)
     reader.readFrameSet(tag.get());
 }
 
+// ::TODO remove when completed utsi2utms command line argument parsing"
 void writeFile(const FrameSet& frameSet, std::ostream& file)
 {
     XmlWriter xml(file, "untech");
@@ -307,13 +309,13 @@ void writeFile(const FrameSet& frameSet, std::ostream& file)
 
 void writeFile(const FrameSet& frameSet, const std::string& filename)
 {
-    // ::TODO implement Qt like SaveFile class for atomicity::
-
-    std::ofstream file(filename, std::ios_base::out);
+    UnTech::AtomicOfStream file(filename);
 
     XmlWriter xml(file, filename, "untech");
 
     FrameSetWriter::writeFrameSet(xml, frameSet);
+
+    file.commit();
 }
 }
 }
