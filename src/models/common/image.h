@@ -27,6 +27,8 @@ public:
 
     void erase();
 
+    void fill(const rgba& color);
+
     /**
      * Loads a PNG image from a filename.
      *

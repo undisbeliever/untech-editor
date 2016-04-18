@@ -43,6 +43,8 @@ protected:
         bool resizeBottom;
     };
 
+    void redrawFramePixbuf();
+
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
 
     bool on_button_press_event(GdkEventButton* event) override;
@@ -70,6 +72,12 @@ private:
      * so that the borders of high-DPI displays are easily legible
      */
     double _displayZoom;
+
+    /** A placeholder image to draw the frame onto*/
+    UnTech::Image _frameImageBuffer;
+
+    /** A pre-scaled copy of the frame image. */
+    Glib::RefPtr<Gdk::Pixbuf> _framePixbuf;
 
     // The user supplied X/Y offset
     // on zoom/resize the _xOffset/_yOffset variables are changed.

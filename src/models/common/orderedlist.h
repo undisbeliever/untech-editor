@@ -107,6 +107,10 @@ public:
     inline auto end() const { return _list.end(); }
     inline auto cbegin() const { return _list.cbegin(); }
     inline auto cend() const { return _list.cend(); }
+    inline auto rbegin() const { return _list.rbegin(); }
+    inline auto rend() const { return _list.rend(); }
+    inline auto crbegin() const { return _list.crbegin(); }
+    inline auto crend() const { return _list.crend(); }
 
 protected:
     // Only allow these methods to be accessible by the undo module.

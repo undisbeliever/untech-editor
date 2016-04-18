@@ -7,6 +7,9 @@
 
 using namespace UnTech::Widgets::MetaSprite;
 
+const unsigned FRAME_IMAGE_SIZE = 256 + 16;
+const unsigned FRAME_IMAGE_OFFSET = -UnTech::int_ms8_t::MIN;
+
 SIMPLE_UNDO_ACTION(frameObject_setLocation,
                    MS::FrameObject, UnTech::ms8point, location, setLocation,
                    Signals::frameObjectChanged,
@@ -27,6 +30,8 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     , _zoomX(3.0)
     , _zoomY(3.0)
     , _displayZoom(NAN)
+    , _frameImageBuffer(FRAME_IMAGE_SIZE, FRAME_IMAGE_SIZE)
+    , _framePixbuf()
     , _centerX()
     , _centerY()
     , _selection(selection)
@@ -42,8 +47,6 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
 
     // SLOTS
     // =====
-    Signals::frameObjectListChanged.connect(sigc::hide(sigc::mem_fun(
-        this, &FrameGraphicalEditor::queue_draw)));
     Signals::actionPointListChanged.connect(sigc::hide(sigc::mem_fun(
         this, &FrameGraphicalEditor::queue_draw)));
     Signals::entityHitboxListChanged.connect(sigc::hide(sigc::mem_fun(
@@ -55,21 +58,8 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
         queue_draw();
     });
 
-    // Update offsets on resize
-    signal_size_allocate().connect(sigc::hide(sigc::mem_fun(
-        this, &FrameGraphicalEditor::update_offsets)));
-
-    // BUGFIX: update_offsets were not called on first draw, fixed by calling on frameChange::
-    _selection.signal_frameChanged.connect(sigc::mem_fun(
-        this, &FrameGraphicalEditor::update_offsets));
-
     Signals::frameChanged.connect([this](const std::shared_ptr<MS::Frame> frame) {
         if (frame == _selection.frame()) {
-            queue_draw();
-        }
-    });
-    Signals::frameObjectChanged.connect([this](const std::shared_ptr<MS::FrameObject> obj) {
-        if (obj && obj->frame() == _selection.frame()) {
             queue_draw();
         }
     });
@@ -83,6 +73,64 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
             queue_draw();
         }
     });
+
+    // Redraw image if necessary
+    _selection.signal_paletteChanged.connect(sigc::mem_fun(
+        this, &FrameGraphicalEditor::redrawFramePixbuf));
+
+    _selection.signal_frameChanged.connect(sigc::mem_fun(
+        this, &FrameGraphicalEditor::redrawFramePixbuf));
+
+    Signals::frameObjectListChanged.connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::redrawFramePixbuf)));
+
+    Signals::frameObjectChanged.connect([this](const std::shared_ptr<MS::FrameObject> obj) {
+        if (obj && obj->frame() == _selection.frame()) {
+            redrawFramePixbuf();
+        }
+    });
+
+    Signals::paletteChanged.connect([this](const std::shared_ptr<MS::Palette> palette) {
+        if (palette && palette == _selection.palette()) {
+            redrawFramePixbuf();
+        }
+    });
+
+    // Update offsets on resize
+    signal_size_allocate().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::update_offsets)));
+
+    // BUGFIX: update_offsets were not called on first draw, fixed by calling on frameChange::
+    _selection.signal_frameChanged.connect(sigc::mem_fun(
+        this, &FrameGraphicalEditor::update_offsets));
+}
+
+void FrameGraphicalEditor::redrawFramePixbuf()
+{
+    if (_selection.frame() && _selection.palette()) {
+        // ::SHOULDO see if it is possible to edit pixmap data in UnTech::image ::
+
+        // ::TODO fill with palette BG color?::
+
+        _frameImageBuffer.fill(0);
+        _selection.frame()->draw(_frameImageBuffer, _selection.palette().get(),
+                                 FRAME_IMAGE_OFFSET, FRAME_IMAGE_OFFSET);
+
+        auto pixbuf = Gdk::Pixbuf::create_from_data(reinterpret_cast<const guint8*>(_frameImageBuffer.data()),
+                                                    Gdk::Colorspace::COLORSPACE_RGB, true, 8,
+                                                    FRAME_IMAGE_SIZE, FRAME_IMAGE_SIZE,
+                                                    FRAME_IMAGE_SIZE * 4);
+
+        // Scaling is done by GTK not Cairo, as it results in sharp pixels
+        _framePixbuf = pixbuf->scale_simple(FRAME_IMAGE_SIZE * _zoomX,
+                                            FRAME_IMAGE_SIZE * _zoomY,
+                                            Gdk::InterpType::INTERP_NEAREST);
+    }
+    else {
+        _framePixbuf.reset();
+    }
+
+    queue_draw();
 }
 
 bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
@@ -124,11 +172,24 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     };
 
     cr->save();
-    cr->set_antialias(Cairo::ANTIALIAS_NONE);
+
     cr->scale(_displayZoom, _displayZoom);
+
+    if (_framePixbuf) {
+        cr->set_antialias(Cairo::ANTIALIAS_NONE);
+
+        Gdk::Cairo::set_source_pixbuf(cr, _framePixbuf,
+                                      (_xOffset - (int)FRAME_IMAGE_OFFSET) * _zoomX,
+                                      (_yOffset - (int)FRAME_IMAGE_OFFSET) * _zoomY);
+
+        cr->paint();
+    }
 
     if (_displayZoom > 1.0) {
         cr->set_antialias(Cairo::ANTIALIAS_DEFAULT);
+    }
+    else {
+        cr->set_antialias(Cairo::ANTIALIAS_NONE);
     }
 
     const auto frame = _selection.frame();
@@ -732,7 +793,7 @@ void FrameGraphicalEditor::setZoom(double x, double y)
         _zoomX = limit(x, 1.0, 10.0);
         _zoomY = limit(y, 1.0, 10.0);
 
-        update_offsets();
+        redrawFramePixbuf();
     }
 }
 

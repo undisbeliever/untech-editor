@@ -2,7 +2,8 @@
 #include "frameobject.h"
 #include "actionpoint.h"
 #include "entityhitbox.h"
-#include <algorithm>
+#include "palette.h"
+#include "../snes/tileset.hpp"
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
@@ -108,4 +109,30 @@ Frame::Boundary Frame::calcBoundary() const
     return { left, top,
              (unsigned)right - left,
              (unsigned)top - bottom };
+}
+
+void Frame::draw(Image& image, const Palette* palette, unsigned xOffset, unsigned yOffset) const
+{
+    auto fs = _frameSet.lock();
+
+    if (fs && palette) {
+        for (int order = 3; order >= 0; order--) {
+            for (auto it = _objects.crbegin(); it != _objects.crend(); ++it) {
+                const auto obj = it->get();
+
+                if (obj->order() == order) {
+                    if (obj->size() == FrameObject::ObjectSize::SMALL) {
+                        fs->smallTileset().drawTile(image, *palette,
+                                                    xOffset + obj->location().x, yOffset + obj->location().y,
+                                                    obj->tileId(), obj->hFlip(), obj->vFlip());
+                    }
+                    else {
+                        fs->largeTileset().drawTile(image, *palette,
+                                                    xOffset + obj->location().x, yOffset + obj->location().y,
+                                                    obj->tileId(), obj->hFlip(), obj->vFlip());
+                    }
+                }
+            }
+        }
+    }
 }

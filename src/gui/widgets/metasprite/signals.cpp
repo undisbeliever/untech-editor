@@ -12,6 +12,9 @@ sigc::signal<void, const std::shared_ptr<MS::FrameSet>> frameSetTilesetChanged;
 sigc::signal<void, const std::shared_ptr<MS::FrameSet>> frameSetTilesetCountChanged;
 sigc::signal<void, const std::shared_ptr<MS::FrameSet>> frameSetPaletteChanged;
 
+sigc::signal<void, const std::shared_ptr<MS::Palette>> paletteChanged;
+sigc::signal<void, const MS::Palette::list_t*> paletteListChanged;
+
 sigc::signal<void, const std::shared_ptr<MS::Frame>> frameChanged;
 sigc::signal<void, const std::shared_ptr<MS::Frame>> frameSizeChanged;
 sigc::signal<void, const MS::Frame::list_t*> frameListChanged;

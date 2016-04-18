@@ -33,6 +33,16 @@ void Image::erase()
     _imageData.clear();
 }
 
+void Image::fill(const rgba& color)
+{
+    auto* ptr = data();
+    auto* ptrEnd = scanline(_size.height);
+
+    while (ptr < ptrEnd) {
+        *ptr++ = color;
+    }
+}
+
 bool Image::loadPngImage(const std::string& filename)
 {
     auto error = lodepng::decode(_imageData, _size.width, _size.height, filename);

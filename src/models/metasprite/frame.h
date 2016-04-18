@@ -2,6 +2,7 @@
 #define _UNTECH_MODELS_METASPRITE_FRAME_H
 
 #include "frameset.h"
+#include "../common/image.h"
 #include "../common/ms8aabb.h"
 #include "../common/namedlist.h"
 #include "../common/orderedlist.h"
@@ -53,6 +54,9 @@ public:
         unsigned width, height;
     };
     Boundary calcBoundary() const;
+
+    void draw(Image& image, const Palette* palette,
+              unsigned xOffset = 0, unsigned yOffset = 0) const;
 
 private:
     std::weak_ptr<FrameSet> _frameSet;

@@ -25,6 +25,9 @@ extern sigc::signal<void, const std::shared_ptr<MS::FrameSet>> frameSetTilesetCh
 extern sigc::signal<void, const std::shared_ptr<MS::FrameSet>> frameSetTilesetCountChanged;
 extern sigc::signal<void, const std::shared_ptr<MS::FrameSet>> frameSetPaletteChanged;
 
+extern sigc::signal<void, const std::shared_ptr<MS::Palette>> paletteChanged;
+extern sigc::signal<void, const MS::Palette::list_t*> paletteListChanged;
+
 extern sigc::signal<void, const std::shared_ptr<MS::Frame>> frameChanged;
 extern sigc::signal<void, const std::shared_ptr<MS::Frame>> frameSizeChanged;
 extern sigc::signal<void, const MS::Frame::list_t*> frameListChanged;
