@@ -137,6 +137,7 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
     // ::TODO move::
     const double ITEM_WIDTH = 1.0;
+    const double OBJECT_DASH = 2.0;
     const double ACTION_POINT_SIZE = 1.5;
     const cr_rgba frameTileHitboxColor = { 0.8, 0.0, 0.0, 0.7 };
     const cr_rgba frameObjectColor = { 0.3, 0.9, 0.3, 0.7 };
@@ -216,13 +217,23 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->stroke();
     }
 
-    for (const auto obj : frame->objects()) {
-        const auto oloc = obj->location();
+    // outline objects
+    {
+        static const std::vector<double> objectDash({ OBJECT_DASH, OBJECT_DASH });
 
-        draw_rectangle(oloc.x, oloc.y,
-                       obj->sizePx(), obj->sizePx());
+        cr->save();
+
+        for (const auto obj : frame->objects()) {
+            const auto oloc = obj->location();
+
+            draw_rectangle(oloc.x, oloc.y,
+                           obj->sizePx(), obj->sizePx());
+        }
+
         frameObjectColor.apply(cr);
+        cr->set_dash(objectDash, 0);
         cr->stroke();
+        cr->restore();
     }
 
     for (const auto ap : frame->actionPoints()) {
