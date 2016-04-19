@@ -35,6 +35,10 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection)
     , _frameSetImage()
     , _selection(selection)
 {
+    set_hexpand(true);
+    set_vexpand(true);
+    set_can_focus(true);
+
     add_events(Gdk::BUTTON_PRESS_MASK
                | Gdk::BUTTON_RELEASE_MASK
                | Gdk::ENTER_NOTIFY_MASK
@@ -520,7 +524,7 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
             }
         }
     }
-    return true;
+    return false;
 }
 
 bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
@@ -629,6 +633,8 @@ bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
 
 bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
 {
+    grab_focus();
+
     if (_selection.frameSet() == nullptr) {
         return false;
     }
@@ -661,7 +667,7 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
             _action.state = Action::NONE;
         }
     }
-    return true;
+    return false;
 }
 
 void FrameSetGraphicalEditor::handleRelease_Click(const upoint& mouse)
