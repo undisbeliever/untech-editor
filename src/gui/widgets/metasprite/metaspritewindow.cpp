@@ -57,8 +57,18 @@ MetaSpriteWindow::MetaSpriteWindow()
         sigc::hide(sigc::mem_fun(_editor.selection(), &Selection::moveSelectedDown)));
     add_action(_moveSelectedDownAction);
 
+    _zoomAction = add_action_radio_integer(
+        "set-zoom", sigc::mem_fun(*this, &MetaSpriteWindow::do_setZoom), DEFAULT_ZOOM);
+
+    _aspectRatioAction = add_action_radio_integer(
+        "set-aspect-ratio", sigc::mem_fun(*this, &MetaSpriteWindow::do_setAspectRatio), 1);
+
+    _splitViewAction = add_action_bool(
+        "split-view", sigc::mem_fun(*this, &MetaSpriteWindow::do_splitView), false);
+
     updateItemActions();
     updateUndoActions();
+    updateGuiZoom();
 
     /*
      * SIGNALS
@@ -237,6 +247,56 @@ void MetaSpriteWindow::do_saveAs()
             updateTitle();
         }
     }
+}
+
+void MetaSpriteWindow::do_setZoom(int zoom)
+{
+    _zoomAction->change_state(zoom);
+
+    updateGuiZoom();
+}
+
+void MetaSpriteWindow::do_setAspectRatio(int state)
+{
+    _aspectRatioAction->change_state(state);
+
+    updateGuiZoom();
+}
+
+void MetaSpriteWindow::updateGuiZoom()
+{
+    int zoom;
+    _zoomAction->get_state(zoom);
+
+    double aspect;
+    int aState;
+    _aspectRatioAction->get_state(aState);
+    switch (aState) {
+    case 1:
+        aspect = NTSC_ASPECT;
+        break;
+
+    case 2:
+        aspect = PAL_ASPECT;
+        break;
+
+    default:
+        aspect = 1.0;
+    };
+
+    _editor.setZoom(zoom, aspect);
+}
+
+void MetaSpriteWindow::do_splitView()
+{
+    bool state;
+    _splitViewAction->get_state(state);
+
+    // have to invert state manually
+    state = !state;
+    _splitViewAction->change_state(state);
+
+    _editor.setShowTwoEditors(state);
 }
 
 bool MetaSpriteWindow::on_delete_event(GdkEventAny*)

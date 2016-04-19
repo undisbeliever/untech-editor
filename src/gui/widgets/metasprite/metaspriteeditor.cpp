@@ -243,3 +243,9 @@ void MetaSpriteEditor::on_scroll_changed()
     _graphicalEditor1.setCenter(_graphicalHScroll.get_value(),
                                 _graphicalVScroll.get_value());
 }
+
+void MetaSpriteEditor::setZoom(int zoom, double aspectRatio)
+{
+    _graphicalEditor0.setZoom(zoom * aspectRatio, zoom);
+    _graphicalEditor1.setZoom(zoom * aspectRatio, zoom);
+}

@@ -36,6 +36,8 @@ public:
 
     void setDocument(std::unique_ptr<Document> document);
 
+    void setZoom(int zoom, double aspectRatio);
+
 public:
     Gtk::Paned widget;
 

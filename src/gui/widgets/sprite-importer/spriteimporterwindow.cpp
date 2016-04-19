@@ -57,8 +57,15 @@ SpriteImporterWindow::SpriteImporterWindow()
         sigc::hide(sigc::mem_fun(_editor.selection(), &Selection::moveSelectedDown)));
     add_action(_moveSelectedDownAction);
 
+    _zoomAction = add_action_radio_integer(
+        "set-zoom", sigc::mem_fun(*this, &SpriteImporterWindow::do_setZoom), DEFAULT_ZOOM);
+
+    _aspectRatioAction = add_action_radio_integer(
+        "set-aspect-ratio", sigc::mem_fun(*this, &SpriteImporterWindow::do_setAspectRatio), 1);
+
     updateItemActions();
     updateUndoActions();
+    updateGuiZoom();
 
     /*
      * SIGNALS
@@ -237,6 +244,44 @@ void SpriteImporterWindow::do_saveAs()
             updateTitle();
         }
     }
+}
+
+void SpriteImporterWindow::do_setZoom(int zoom)
+{
+    _zoomAction->change_state(zoom);
+
+    updateGuiZoom();
+}
+
+void SpriteImporterWindow::do_setAspectRatio(int state)
+{
+    _aspectRatioAction->change_state(state);
+
+    updateGuiZoom();
+}
+
+void SpriteImporterWindow::updateGuiZoom()
+{
+    int zoom;
+    _zoomAction->get_state(zoom);
+
+    double aspect;
+    int aState;
+    _aspectRatioAction->get_state(aState);
+    switch (aState) {
+    case 1:
+        aspect = NTSC_ASPECT;
+        break;
+
+    case 2:
+        aspect = PAL_ASPECT;
+        break;
+
+    default:
+        aspect = 1.0;
+    };
+
+    _editor.setZoom(zoom, aspect);
 }
 
 bool SpriteImporterWindow::on_delete_event(GdkEventAny*)

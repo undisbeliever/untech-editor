@@ -29,8 +29,8 @@ SIMPLE_UNDO_ACTION(frameSet_setTransparentColor,
 
 FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection)
     : Gtk::DrawingArea()
-    , _zoomX(3.0)
-    , _zoomY(3.0)
+    , _zoomX(DEFAULT_ZOOM)
+    , _zoomY(DEFAULT_ZOOM)
     , _displayZoom(NAN)
     , _frameSetImage()
     , _selection(selection)

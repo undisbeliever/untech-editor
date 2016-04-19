@@ -27,8 +27,8 @@ SIMPLE_UNDO_ACTION(entityHitbox_setAabb,
 
 FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     : Gtk::DrawingArea()
-    , _zoomX(3.0)
-    , _zoomY(3.0)
+    , _zoomX(DEFAULT_ZOOM)
+    , _zoomY(DEFAULT_ZOOM)
     , _displayZoom(NAN)
     , _frameImageBuffer(FRAME_IMAGE_SIZE, FRAME_IMAGE_SIZE)
     , _framePixbuf()
@@ -813,6 +813,7 @@ void FrameGraphicalEditor::setZoom(double x, double y)
         _zoomX = limit(x, 1.0, 10.0);
         _zoomY = limit(y, 1.0, 10.0);
 
+        update_offsets();
         redrawFramePixbuf();
     }
 }

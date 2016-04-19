@@ -161,3 +161,8 @@ void SpriteImporterEditor::setDocument(std::unique_ptr<Document> document)
         _document = std::move(document);
     }
 }
+
+void SpriteImporterEditor::setZoom(int zoom, double aspectRatio)
+{
+    _graphicalEditor.setZoom(zoom * aspectRatio, zoom);
+}
