@@ -34,10 +34,12 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     , _framePixbuf()
     , _centerX()
     , _centerY()
+    , _selectedFrame()
     , _selection(selection)
 {
     set_hexpand(true);
     set_vexpand(true);
+    set_can_focus(true);
 
     add_events(Gdk::BUTTON_PRESS_MASK
                | Gdk::BUTTON_RELEASE_MASK
@@ -59,17 +61,17 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     });
 
     Signals::frameChanged.connect([this](const std::shared_ptr<MS::Frame> frame) {
-        if (frame == _selection.frame()) {
+        if (frame == _selectedFrame) {
             queue_draw();
         }
     });
     Signals::actionPointChanged.connect([this](const std::shared_ptr<MS::ActionPoint> ap) {
-        if (ap && ap->frame() == _selection.frame()) {
+        if (ap && ap->frame() == _selectedFrame) {
             queue_draw();
         }
     });
     Signals::entityHitboxChanged.connect([this](const std::shared_ptr<MS::EntityHitbox> eh) {
-        if (eh && eh->frame() == _selection.frame()) {
+        if (eh && eh->frame() == _selectedFrame) {
             queue_draw();
         }
     });
@@ -78,14 +80,11 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     _selection.signal_paletteChanged.connect(sigc::mem_fun(
         this, &FrameGraphicalEditor::redrawFramePixbuf));
 
-    _selection.signal_frameChanged.connect(sigc::mem_fun(
-        this, &FrameGraphicalEditor::redrawFramePixbuf));
-
     Signals::frameObjectListChanged.connect(sigc::hide(sigc::mem_fun(
         this, &FrameGraphicalEditor::redrawFramePixbuf)));
 
     Signals::frameObjectChanged.connect([this](const std::shared_ptr<MS::FrameObject> obj) {
-        if (obj && obj->frame() == _selection.frame()) {
+        if (obj && obj->frame() == _selectedFrame) {
             redrawFramePixbuf();
         }
     });
@@ -105,16 +104,24 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
         this, &FrameGraphicalEditor::update_offsets));
 }
 
+void FrameGraphicalEditor::setFrame(std::shared_ptr<MS::Frame> frame)
+{
+    if (_selectedFrame != frame) {
+        _selectedFrame = frame;
+        redrawFramePixbuf();
+    }
+}
+
 void FrameGraphicalEditor::redrawFramePixbuf()
 {
-    if (_selection.frame() && _selection.palette()) {
+    if (_selectedFrame && _selection.palette()) {
         // ::SHOULDO see if it is possible to edit pixmap data in UnTech::image ::
 
         // ::TODO fill with palette BG color?::
 
         _frameImageBuffer.fill(0);
-        _selection.frame()->draw(_frameImageBuffer, _selection.palette().get(),
-                                 FRAME_IMAGE_OFFSET, FRAME_IMAGE_OFFSET);
+        _selectedFrame->draw(_frameImageBuffer, _selection.palette().get(),
+                             FRAME_IMAGE_OFFSET, FRAME_IMAGE_OFFSET);
 
         auto pixbuf = Gdk::Pixbuf::create_from_data(reinterpret_cast<const guint8*>(_frameImageBuffer.data()),
                                                     Gdk::Colorspace::COLORSPACE_RGB, true, 8,
@@ -163,7 +170,7 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         }
     }
 
-    if (_selection.frame() == nullptr) {
+    if (_selectedFrame == nullptr) {
         return true;
     }
 
@@ -193,7 +200,7 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->set_antialias(Cairo::ANTIALIAS_NONE);
     }
 
-    const auto frame = _selection.frame();
+    const auto frame = _selectedFrame;
 
     cr->set_line_width(ITEM_WIDTH);
 
@@ -313,64 +320,64 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->stroke();
     };
 
-    switch (_selection.type()) {
-    case Selection::Type::NONE:
-        break;
+    if (_selection.frame() == _selectedFrame) {
+        switch (_selection.type()) {
+        case Selection::Type::NONE:
+            break;
 
-    case Selection::Type::FRAME_OBJECT:
-        if (_selection.frameObject()) {
-            const auto oLoc = _selection.frameObject()->location();
-            const unsigned oSize = _selection.frameObject()->sizePx();
+        case Selection::Type::FRAME_OBJECT:
+            if (_selection.frameObject()) {
+                const auto oLoc = _selection.frameObject()->location();
+                const unsigned oSize = _selection.frameObject()->sizePx();
 
-            // ::TODO draw Frame Object::
+                frameObjectColor.apply(cr);
+                draw_selected_rectangle(oLoc.x, oLoc.y, oSize, oSize);
+            }
+            break;
 
-            frameObjectColor.apply(cr);
-            draw_selected_rectangle(oLoc.x, oLoc.y, oSize, oSize);
+        case Selection::Type::ENTITY_HITBOX:
+            if (_selection.entityHitbox()) {
+                const auto aabb = _selection.entityHitbox()->aabb();
+
+                // ::SHOULDO different color lines depending on type::
+                entityHitboxColor.apply(cr);
+                draw_selected_rectangle(aabb.x, aabb.y, aabb.width, aabb.height);
+            }
+            break;
+
+        case Selection::Type::ACTION_POINT:
+            if (_selection.actionPoint()) {
+                const auto aLoc = _selection.actionPoint()->location();
+
+                cr->save();
+
+                double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
+                double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
+                double x = (aLoc.x + _xOffset + 0.5) * _zoomX;
+                double y = (aLoc.y + _yOffset + 0.5) * _zoomY;
+
+                cr->move_to(x, y - aHeight - 1.0);
+                cr->line_to(x, y + aHeight + 1.0);
+                cr->move_to(x - aWidth - 1.0, y);
+                cr->line_to(x + aWidth + 1.0, y);
+
+                selectionOuterColor.apply(cr);
+                cr->set_line_width(3.0);
+                cr->stroke();
+
+                cr->move_to(x, y - aHeight);
+                cr->line_to(x, y + aHeight);
+                cr->move_to(x - aWidth, y);
+                cr->line_to(x + aWidth, y);
+
+                selectionInnerColor.apply(cr);
+                cr->set_line_width(1.0);
+                cr->stroke();
+
+                cr->restore();
+            }
+            break;
         }
-        break;
-
-    case Selection::Type::ENTITY_HITBOX:
-        if (_selection.entityHitbox()) {
-            const auto aabb = _selection.entityHitbox()->aabb();
-
-            // ::SHOULDO different color lines depending on type::
-            entityHitboxColor.apply(cr);
-            draw_selected_rectangle(aabb.x, aabb.y, aabb.width, aabb.height);
-        }
-        break;
-
-    case Selection::Type::ACTION_POINT:
-        if (_selection.actionPoint()) {
-            const auto aLoc = _selection.actionPoint()->location();
-
-            cr->save();
-
-            double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
-            double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
-            double x = (aLoc.x + _xOffset + 0.5) * _zoomX;
-            double y = (aLoc.y + _yOffset + 0.5) * _zoomY;
-
-            cr->move_to(x, y - aHeight - 1.0);
-            cr->line_to(x, y + aHeight + 1.0);
-            cr->move_to(x - aWidth - 1.0, y);
-            cr->line_to(x + aWidth + 1.0, y);
-
-            selectionOuterColor.apply(cr);
-            cr->set_line_width(3.0);
-            cr->stroke();
-
-            cr->move_to(x, y - aHeight);
-            cr->line_to(x, y + aHeight);
-            cr->move_to(x - aWidth, y);
-            cr->line_to(x + aWidth, y);
-
-            selectionInnerColor.apply(cr);
-            cr->set_line_width(1.0);
-            cr->stroke();
-
-            cr->restore();
-        }
-        break;
     }
 
     if (_action.state == Action::DRAG) {
@@ -390,7 +397,7 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
 bool FrameGraphicalEditor::on_button_press_event(GdkEventButton* event)
 {
-    if (_selection.frame() == nullptr) {
+    if (_selectedFrame == nullptr) {
         return false;
     }
 
@@ -471,14 +478,14 @@ bool FrameGraphicalEditor::on_button_press_event(GdkEventButton* event)
             }
         }
     }
-    return true;
+    return false;
 }
 
 bool FrameGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
 {
-    if (_selection.frame() == nullptr) {
+    if (_selectedFrame == nullptr) {
         _action.state = Action::NONE;
-        return true;
+        return false;
     }
 
     if (_action.state != Action::NONE) {
@@ -550,12 +557,14 @@ bool FrameGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
             }
         }
     }
-    return true;
+    return false;
 }
 
 bool FrameGraphicalEditor::on_button_release_event(GdkEventButton* event)
 {
-    if (_selection.frame() == nullptr) {
+    grab_focus();
+
+    if (_selectedFrame == nullptr) {
         return false;
     }
 
@@ -580,7 +589,7 @@ bool FrameGraphicalEditor::on_button_release_event(GdkEventButton* event)
             break;
         }
     }
-    return true;
+    return false;
 }
 
 void FrameGraphicalEditor::handleRelease_Click(const ms8point& mouse)
@@ -609,7 +618,7 @@ void FrameGraphicalEditor::handleRelease_Click(const ms8point& mouse)
     SelHandler current;
     SelHandler firstMatch;
 
-    const auto sFrame = _selection.frame();
+    const auto sFrame = _selectedFrame;
 
     for (const auto obj : sFrame->objects()) {
         const auto loc = obj->location();

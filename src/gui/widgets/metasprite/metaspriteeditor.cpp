@@ -8,7 +8,10 @@ const int SCROLL_MAX = UnTech::int_ms8_t::MAX + 16;
 MetaSpriteEditor::MetaSpriteEditor()
     : _document()
     , _selection()
-    , _graphicalEditor(_selection)
+    , _selectedGraphicalEditor(0)
+    , _graphicalEditor0(_selection)
+    , _graphicalEditor1(_selection)
+    , _graphicalContainer(Gtk::ORIENTATION_HORIZONTAL)
     , _graphicalHScroll(Gtk::Adjustment::create(0.0, -SCROLL_MAX, SCROLL_MAX, 1.0, 16.0, 16.0),
                         Gtk::ORIENTATION_HORIZONTAL)
     , _graphicalVScroll(Gtk::Adjustment::create(0.0, -SCROLL_MAX, SCROLL_MAX, 1.0, 16.0, 16.0),
@@ -32,7 +35,9 @@ MetaSpriteEditor::MetaSpriteEditor()
 {
 
     // Graphical
-    _graphicalGrid.attach(_graphicalEditor, 0, 0, 1, 1);
+    _selectedGraphicalEditor = 0;
+    _graphicalContainer.pack1(_graphicalEditor0, true, true);
+    _graphicalGrid.attach(_graphicalContainer, 0, 0, 1, 1);
     _graphicalGrid.attach(_graphicalHScroll, 0, 1, 1, 1);
     _graphicalGrid.attach(_graphicalVScroll, 1, 0, 1, 1);
 
@@ -96,6 +101,15 @@ MetaSpriteEditor::MetaSpriteEditor()
     _graphicalVScroll.signal_value_changed().connect(
         sigc::mem_fun(*this, &MetaSpriteEditor::on_scroll_changed));
 
+    // Set _selectedGraphicalEditor when an editor is clicked
+    _graphicalEditor0.signal_grab_focus().connect([this](void) {
+        _selectedGraphicalEditor = 0;
+    });
+    // Set _selectedGraphicalEditor when an editor is clicked
+    _graphicalEditor1.signal_grab_focus().connect([this](void) {
+        _selectedGraphicalEditor = 1;
+    });
+
     _selection.signal_frameSetChanged.connect([this](void) {
         auto frameSet = _selection.frameSet();
 
@@ -114,6 +128,13 @@ MetaSpriteEditor::MetaSpriteEditor()
 
     _selection.signal_frameChanged.connect([this](void) {
         auto frame = _selection.frame();
+
+        if (_selectedGraphicalEditor == 0) {
+            _graphicalEditor0.setFrame(frame);
+        }
+        else {
+            _graphicalEditor1.setFrame(frame);
+        }
 
         if (frame) {
             _frameList.selectItem(frame);
@@ -194,8 +215,31 @@ void MetaSpriteEditor::setDocument(std::unique_ptr<Document> document)
     }
 }
 
+void MetaSpriteEditor::setShowTwoEditors(bool showTwoEditors)
+{
+    if (showTwoEditors == true) {
+        _graphicalContainer.pack1(_graphicalEditor0, true, true);
+        _graphicalContainer.pack2(_graphicalEditor1, true, true);
+
+        _graphicalContainer.show_all_children();
+    }
+    else {
+        // remove unused editor
+        if (_selectedGraphicalEditor == 0) {
+            _graphicalContainer.remove(_graphicalEditor1);
+            _graphicalEditor1.hide();
+        }
+        else {
+            _graphicalContainer.remove(_graphicalEditor0);
+            _graphicalEditor0.hide();
+        }
+    }
+}
+
 void MetaSpriteEditor::on_scroll_changed()
 {
-    _graphicalEditor.setCenter(_graphicalHScroll.get_value(),
-                               _graphicalVScroll.get_value());
+    _graphicalEditor0.setCenter(_graphicalHScroll.get_value(),
+                                _graphicalVScroll.get_value());
+    _graphicalEditor1.setCenter(_graphicalHScroll.get_value(),
+                                _graphicalVScroll.get_value());
 }

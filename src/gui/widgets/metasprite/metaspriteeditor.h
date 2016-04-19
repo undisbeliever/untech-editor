@@ -36,6 +36,8 @@ public:
 
     void setDocument(std::unique_ptr<Document> document);
 
+    void setShowTwoEditors(bool showTwoEditors);
+
 protected:
     void on_scroll_changed();
 
@@ -47,7 +49,9 @@ private:
 
     Selection _selection;
 
-    FrameGraphicalEditor _graphicalEditor;
+    unsigned _selectedGraphicalEditor;
+    FrameGraphicalEditor _graphicalEditor0, _graphicalEditor1;
+    Gtk::Paned _graphicalContainer;
     Gtk::Scrollbar _graphicalHScroll, _graphicalVScroll;
     Gtk::Grid _graphicalGrid;
 
