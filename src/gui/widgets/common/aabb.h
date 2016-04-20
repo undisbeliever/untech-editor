@@ -27,10 +27,19 @@ struct UpointSpinButtons {
         , yAdjustment(Gtk::Adjustment::create(0.0, 0.0, 255.0, 1.0, 4.0, 0.0))
         , xSpin(xAdjustment)
         , ySpin(yAdjustment)
+        , _updating(false)
     {
-        // pass the signal on
-        xSpin.signal_value_changed().connect(signal_valueChanged);
-        ySpin.signal_value_changed().connect(signal_valueChanged);
+        // pass the signal on if not updating
+        xSpin.signal_value_changed().connect([this](void) {
+            if (!_updating) {
+                signal_valueChanged.emit();
+            }
+        });
+        ySpin.signal_value_changed().connect([this](void) {
+            if (!_updating) {
+                signal_valueChanged.emit();
+            }
+        });
     }
 
     upoint value() const
@@ -43,26 +52,66 @@ struct UpointSpinButtons {
 
     void set_value(const upoint& p)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_value(p.x);
         ySpin.set_value(p.y);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_range(const usize& s)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_range(0, s.width);
         ySpin.set_range(0, s.height);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_range(const usize& s, unsigned squareSize)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_range(0, s.width - squareSize);
         ySpin.set_range(0, s.height - squareSize);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_range(unsigned min, const usize& s)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_range(min, s.width);
         ySpin.set_range(min, s.height);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_sensitive(bool s)
@@ -75,6 +124,9 @@ struct UpointSpinButtons {
     Gtk::SpinButton xSpin, ySpin;
 
     sigc::signal<void> signal_valueChanged;
+
+private:
+    bool _updating;
 };
 
 struct UsizeSpinButtons {
@@ -84,10 +136,19 @@ struct UsizeSpinButtons {
         , heightAdjustment(Gtk::Adjustment::create(1.0, 0.0, 255.0, 1.0, 4.0, 0.0))
         , widthSpin(widthAdjustment)
         , heightSpin(heightAdjustment)
+        , _updating(false)
     {
-        // pass the signal on
-        widthSpin.signal_value_changed().connect(signal_valueChanged);
-        heightSpin.signal_value_changed().connect(signal_valueChanged);
+        // pass the signal on if not updating
+        widthSpin.signal_value_changed().connect([this](void) {
+            if (!_updating) {
+                signal_valueChanged.emit();
+            }
+        });
+        heightSpin.signal_value_changed().connect([this](void) {
+            if (!_updating) {
+                signal_valueChanged.emit();
+            }
+        });
     }
 
     usize value() const
@@ -100,20 +161,50 @@ struct UsizeSpinButtons {
 
     void set_value(const usize& s)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         widthSpin.set_value(s.width);
         heightSpin.set_value(s.height);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_range(const usize& s)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         widthSpin.set_range(1, s.width);
         heightSpin.set_range(1, s.height);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_range(const usize& min, const usize& max)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         widthSpin.set_range(min.width, max.width);
         heightSpin.set_range(min.height, max.height);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_sensitive(bool s)
@@ -126,6 +217,9 @@ struct UsizeSpinButtons {
     Gtk::SpinButton widthSpin, heightSpin;
 
     sigc::signal<void> signal_valueChanged;
+
+private:
+    bool _updating;
 };
 
 struct UrectSpinButtons {
@@ -142,6 +236,7 @@ struct UrectSpinButtons {
         , _range(255, 255)
         , _minSize(1, 1)
         , _maxSize({ 255, 255 })
+        , _updating(false)
     {
         // the signal handler will prevent size
         xSpin.signal_value_changed().connect(sigc::mem_fun(this, &UrectSpinButtons::on_valueChanged));
@@ -171,12 +266,22 @@ struct UrectSpinButtons {
 
     void set_value(const urect& r)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_value(r.x);
         ySpin.set_value(r.y);
         widthSpin.set_value(r.width);
         heightSpin.set_value(r.height);
 
-        updateRanges();
+        updateRangesNoSignal();
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_range(const usize& s)
@@ -217,6 +322,21 @@ private:
 
     inline void updateRanges()
     {
+        const urect oldValue = value();
+
+        _updating = true;
+
+        updateRangesNoSignal();
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
+    }
+
+    inline void updateRangesNoSignal()
+    {
         const urect r = value();
 
         xSpin.set_range(0, _range.width - r.width);
@@ -227,9 +347,12 @@ private:
 
     void on_valueChanged()
     {
-        updateRanges();
+        updateRangesNoSignal();
         signal_valueChanged.emit();
     }
+
+private:
+    bool _updating;
 };
 }
 }

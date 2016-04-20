@@ -28,10 +28,19 @@ struct Ms8pointSpinButtons {
         , yAdjustment(Gtk::Adjustment::create(0.0, int_ms8_t::MIN, int_ms8_t::MAX, 1.0, 4.0, 0.0))
         , xSpin(xAdjustment)
         , ySpin(yAdjustment)
+        , _updating(false)
     {
-        // pass the signal on
-        xSpin.signal_value_changed().connect(signal_valueChanged);
-        ySpin.signal_value_changed().connect(signal_valueChanged);
+        // pass the signal on if not updating
+        xSpin.signal_value_changed().connect([this](void) {
+            if (!_updating) {
+                signal_valueChanged.emit();
+            }
+        });
+        ySpin.signal_value_changed().connect([this](void) {
+            if (!_updating) {
+                signal_valueChanged.emit();
+            }
+        });
     }
 
     ms8point value() const
@@ -44,26 +53,66 @@ struct Ms8pointSpinButtons {
 
     void set_value(const ms8point& p)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_value(p.x);
         ySpin.set_value(p.y);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_range(const usize& s)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_range(0, s.width);
         ySpin.set_range(0, s.height);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_range(const usize& s, unsigned squareSize)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_range(0, s.width - squareSize);
         ySpin.set_range(0, s.height - squareSize);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_range(unsigned min, const usize& s)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_range(min, s.width);
         ySpin.set_range(min, s.height);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_sensitive(bool s)
@@ -76,6 +125,9 @@ struct Ms8pointSpinButtons {
     Gtk::SpinButton xSpin, ySpin;
 
     sigc::signal<void> signal_valueChanged;
+
+private:
+    bool _updating;
 };
 
 struct Ms8rectSpinButtons {
@@ -89,6 +141,7 @@ struct Ms8rectSpinButtons {
         , ySpin(yAdjustment)
         , widthSpin(widthAdjustment)
         , heightSpin(heightAdjustment)
+        , _updating(false)
     {
         // the signal handler will prevent size
         xSpin.signal_value_changed().connect(sigc::mem_fun(this, &Ms8rectSpinButtons::on_valueChanged));
@@ -110,10 +163,20 @@ struct Ms8rectSpinButtons {
 
     void set_value(const ms8rect& r)
     {
+        const auto oldValue = value();
+
+        _updating = true;
+
         xSpin.set_value(r.x);
         ySpin.set_value(r.y);
         widthSpin.set_value(r.width);
         heightSpin.set_value(r.height);
+
+        _updating = false;
+
+        if (oldValue != value()) {
+            signal_valueChanged.emit();
+        }
     }
 
     void set_sensitive(bool s)
@@ -134,8 +197,12 @@ struct Ms8rectSpinButtons {
 private:
     void on_valueChanged()
     {
-        signal_valueChanged.emit();
+        if (!_updating) {
+            signal_valueChanged.emit();
+        }
     }
+
+    bool _updating;
 };
 }
 }
