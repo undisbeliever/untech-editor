@@ -18,7 +18,7 @@ class FramePropertiesEditor {
 public:
     FramePropertiesEditor();
 
-    void setFrame(std::shared_ptr<SI::Frame> frame)
+    void setFrame(SI::Frame* frame)
     {
         _frame = frame;
         updateGuiValues();
@@ -31,7 +31,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    std::shared_ptr<SI::Frame> _frame;
+    SI::Frame* _frame;
 
     UpointSpinButtons _gridLocationSpinButtons;
     UrectSpinButtons _locationSpinButtons;

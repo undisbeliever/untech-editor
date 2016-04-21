@@ -21,7 +21,7 @@ class FrameObjectEditor {
 public:
     FrameObjectEditor();
 
-    void setFrameObject(std::shared_ptr<UnTech::SpriteImporter::FrameObject> frameObject)
+    void setFrameObject(UnTech::SpriteImporter::FrameObject* frameObject)
     {
         _frameObject = frameObject;
         updateGuiValues();
@@ -34,7 +34,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    std::shared_ptr<UnTech::SpriteImporter::FrameObject> _frameObject;
+    UnTech::SpriteImporter::FrameObject* _frameObject;
 
     UpointSpinButtons _locationSpinButtons;
     Gtk::ComboBoxText _sizeCombo;

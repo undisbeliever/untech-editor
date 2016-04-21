@@ -26,7 +26,7 @@ namespace Serializer {
  */
 
 struct FrameSetReader {
-    FrameSetReader(std::shared_ptr<FrameSet> frameSet, XmlReader& xml)
+    FrameSetReader(FrameSet& frameSet, XmlReader& xml)
         : frameSet(frameSet)
         , xml(xml)
         , frameSetGridSet(false)
@@ -34,7 +34,7 @@ struct FrameSetReader {
     }
 
 private:
-    std::shared_ptr<FrameSet> frameSet;
+    FrameSet& frameSet;
     XmlReader& xml;
 
     bool frameSetGridSet;
@@ -43,16 +43,16 @@ public:
     inline void readFrameSet(const XmlTag* tag)
     {
         assert(tag->name == "spriteimporter");
-        assert(frameSet->frames().size() == 0);
+        assert(frameSet.frames().size() == 0);
 
         std::string id = tag->getAttributeId("id");
-        frameSet->setName(id);
+        frameSet.setName(id);
 
         frameSetGridSet = false;
 
         if (tag->hasAttribute("image")) {
             std::string imageFilename = tag->getAttributeFilename("image");
-            frameSet->setImageFilename(imageFilename);
+            frameSet.setImageFilename(imageFilename);
         }
 
         if (tag->hasAttribute("transparent")) {
@@ -60,7 +60,7 @@ public:
 
             UnTech::rgba color(tag->getAttributeUnsignedHex("transparent"));
             color.alpha = 0xFF;
-            frameSet->setTransparentColor(color);
+            frameSet.setTransparentColor(color);
         }
 
         std::unique_ptr<XmlTag> childTag;
@@ -84,10 +84,10 @@ private:
     {
         assert(tag->name == "grid");
 
-        frameSet->grid().setFrameSize(tag->getAttributeUsize("width", "height"));
-        frameSet->grid().setOffset(tag->getAttributeUpoint("xoffset", "yoffset"));
-        frameSet->grid().setPadding(tag->getAttributeUsize("xpadding", "ypadding"));
-        frameSet->grid().setOrigin(tag->getAttributeUpoint("xorigin", "yorigin"));
+        frameSet.grid().setFrameSize(tag->getAttributeUsize("width", "height"));
+        frameSet.grid().setOffset(tag->getAttributeUpoint("xoffset", "yoffset"));
+        frameSet.grid().setPadding(tag->getAttributeUsize("xpadding", "ypadding"));
+        frameSet.grid().setOrigin(tag->getAttributeUpoint("xorigin", "yorigin"));
 
         frameSetGridSet = true;
     }
@@ -97,14 +97,18 @@ private:
         assert(tag->name == "frame");
 
         std::string id = tag->getAttributeId("id");
-        if (frameSet->frames().nameExists(id)) {
+        if (frameSet.frames().nameExists(id)) {
             throw tag->buildError("frame id already exists");
         }
 
-        auto frame = frameSet->frames().create(id);
+        auto framePtr = frameSet.frames().create(id);
+        if (framePtr == nullptr) {
+            throw std::logic_error("Unable to create frame");
+        }
+        Frame& frame = *framePtr;
 
         if (tag->hasAttribute("order")) {
-            frame->setSpriteOrder(tag->getAttributeUnsigned("order", 0, 3));
+            frame.setSpriteOrder(tag->getAttributeUnsigned("order", 0, 3));
         }
 
         std::unique_ptr<XmlTag> childTag = xml.parseTag();
@@ -112,13 +116,13 @@ private:
             if (childTag->name == "location") {
                 auto location = childTag->getAttributeUrect(Frame::MIN_SIZE);
 
-                frame->setLocation(location);
+                frame.setLocation(location);
             }
             if (childTag->name == "gridlocation") {
                 if (frameSetGridSet == false) {
                     throw childTag->buildError("Frameset grid is not set.");
                 }
-                frame->setGridLocation(childTag->getAttributeUpoint());
+                frame.setGridLocation(childTag->getAttributeUpoint());
             }
             else {
                 throw tag->buildError("location or gridlocation tag must be the first child of frame");
@@ -129,48 +133,48 @@ private:
             throw tag->buildError("location or gridlocation tag must be the first child of frame");
         }
 
-        const urect frameLocation = frame->location();
+        const urect frameLocation = frame.location();
         bool processedTileHitbox = false;
         bool processedOrigin = false;
 
         while ((childTag = xml.parseTag())) {
             if (childTag->name == "object") {
-                auto obj = frame->objects().create();
+                FrameObject& obj = frame.objects().create();
 
                 std::string sizeStr = childTag->getAttribute("size");
 
                 if (sizeStr == "small") {
-                    obj->setSize(FrameObject::ObjectSize::SMALL);
+                    obj.setSize(FrameObject::ObjectSize::SMALL);
                 }
                 else if (sizeStr == "large") {
-                    obj->setSize(FrameObject::ObjectSize::LARGE);
+                    obj.setSize(FrameObject::ObjectSize::LARGE);
                 }
                 else {
-                    throw childTag->buildError("Can only have one tilehitbox per frame");
+                    throw childTag->buildError("Unknown object size");
                 }
 
-                obj->setLocation(childTag->getAttributeUpointInside(frameLocation, obj->sizePx()));
+                obj.setLocation(childTag->getAttributeUpointInside(frameLocation, obj.sizePx()));
             }
 
             else if (childTag->name == "actionpoint") {
-                auto ap = frame->actionPoints().create();
+                ActionPoint& ap = frame.actionPoints().create();
 
-                ap->setLocation(childTag->getAttributeUpointInside(frameLocation));
-                ap->setParameter(childTag->getAttributeUint8("parameter"));
+                ap.setLocation(childTag->getAttributeUpointInside(frameLocation));
+                ap.setParameter(childTag->getAttributeUint8("parameter"));
             }
 
             else if (childTag->name == "entityhitbox") {
-                auto eh = frame->entityHitboxes().create();
+                EntityHitbox& eh = frame.entityHitboxes().create();
 
-                eh->setAabb(childTag->getAttributeUrectInside(frameLocation));
-                eh->setParameter(childTag->getAttributeUint8("parameter"));
+                eh.setAabb(childTag->getAttributeUrectInside(frameLocation));
+                eh.setParameter(childTag->getAttributeUint8("parameter"));
             }
 
             else if (childTag->name == "tilehitbox") {
                 if (processedTileHitbox) {
                     throw xml.buildError("Can only have one tilehitbox per frame");
                 }
-                frame->setTileHitbox(childTag->getAttributeUrectInside(frameLocation));
+                frame.setTileHitbox(childTag->getAttributeUrectInside(frameLocation));
                 processedTileHitbox = true;
             }
 
@@ -178,7 +182,7 @@ private:
                 if (processedOrigin) {
                     throw childTag->buildError("Can only have one tilehitbox per frame");
                 }
-                frame->setOrigin(childTag->getAttributeUpoint("x", "y"));
+                frame.setOrigin(childTag->getAttributeUpoint("x", "y"));
                 processedOrigin = true;
             }
             else {
@@ -189,7 +193,7 @@ private:
         }
 
         // Frame is solid only if tileHitbox exists.
-        frame->setSolid(processedTileHitbox);
+        frame.setSolid(processedTileHitbox);
     }
 };
 
@@ -200,72 +204,72 @@ private:
 
 namespace FrameSetWriter {
 
-inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame* frame)
+inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame& frame)
 {
     xml.writeTag("frame");
 
     xml.writeTagAttribute("id", frameName);
-    xml.writeTagAttribute("order", frame->spriteOrder());
+    xml.writeTagAttribute("order", frame.spriteOrder());
 
-    if (frame->useGridLocation()) {
+    if (frame.useGridLocation()) {
         xml.writeTag("gridlocation");
 
-        xml.writeTagAttributeUpoint(frame->gridLocation());
+        xml.writeTagAttributeUpoint(frame.gridLocation());
 
         xml.writeCloseTag();
     }
     else {
         xml.writeTag("location");
 
-        xml.writeTagAttributeUrect(frame->location());
+        xml.writeTagAttributeUrect(frame.location());
 
         xml.writeCloseTag();
     }
 
-    if (frame->useGridOrigin() == false) {
+    if (frame.useGridOrigin() == false) {
         xml.writeTag("origin");
 
-        xml.writeTagAttributeUpoint(frame->origin());
+        xml.writeTagAttributeUpoint(frame.origin());
 
         xml.writeCloseTag();
     }
 
-    if (frame->solid()) {
+    if (frame.solid()) {
         xml.writeTag("tilehitbox");
 
-        xml.writeTagAttributeUrect(frame->tileHitbox());
+        xml.writeTagAttributeUrect(frame.tileHitbox());
 
         xml.writeCloseTag();
     }
 
-    for (const auto obj : frame->objects()) {
+    for (const FrameObject& obj : frame.objects()) {
         xml.writeTag("object");
 
-        if (obj->size() == FrameObject::ObjectSize::SMALL) {
+        if (obj.size() == FrameObject::ObjectSize::SMALL) {
             xml.writeTagAttribute("size", "small");
         }
         else {
             xml.writeTagAttribute("size", "large");
         }
-        xml.writeTagAttributeUpoint(obj->location());
+        xml.writeTagAttributeUpoint(obj.location());
 
         xml.writeCloseTag();
     }
 
-    for (const auto ap : frame->actionPoints()) {
+    for (const ActionPoint& ap : frame.actionPoints()) {
         xml.writeTag("actionpoint");
 
-        xml.writeTagAttribute("parameter", ap->parameter());
-        xml.writeTagAttributeUpoint(ap->location());
+        xml.writeTagAttribute("parameter", ap.parameter());
+        xml.writeTagAttributeUpoint(ap.location());
 
         xml.writeCloseTag();
     }
 
-    for (const auto eh : frame->entityHitboxes()) {
+    for (const EntityHitbox& eh : frame.entityHitboxes()) {
         xml.writeTag("entityhitbox");
 
-        xml.writeTagAttribute("parameter", eh->parameter());
-        xml.writeTagAttributeUrect(eh->aabb());
+        xml.writeTagAttribute("parameter", eh.parameter());
+        xml.writeTagAttributeUrect(eh.aabb());
 
         xml.writeCloseTag();
     }
@@ -304,8 +308,8 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     writeFrameSetGrid(xml, frameSet.grid());
 
-    for (const auto& f : frameSet.frames()) {
-        writeFrame(xml, f.first, f.second.get());
+    for (const auto f : frameSet.frames()) {
+        writeFrame(xml, f.first, f.second);
     }
 
     xml.writeCloseTag();
@@ -317,7 +321,7 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
  * ===
  */
 
-void readFile(std::shared_ptr<FrameSet> frameSet, const std::string& filename)
+void readFile(FrameSet& frameSet, const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     std::unique_ptr<XmlTag> tag = xml->parseTag();

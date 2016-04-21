@@ -26,7 +26,7 @@ public:
         add(col_y);
     }
 
-    Gtk::TreeModelColumn<std::shared_ptr<MS::Frame>> col_item;
+    Gtk::TreeModelColumn<MS::Frame*> col_item;
     Gtk::TreeModelColumn<std::string> col_id;
     Gtk::TreeModelColumn<unsigned int> col_x;
     Gtk::TreeModelColumn<unsigned int> col_y;
@@ -42,7 +42,7 @@ public:
         treeView.set_search_column(col_id);
     }
 
-    inline void setRowData(Gtk::TreeRow&, std::shared_ptr<MS::Frame>)
+    inline void setRowData(Gtk::TreeRow&, const MS::Frame*)
     {
     }
 

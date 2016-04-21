@@ -14,7 +14,7 @@ class FrameObject;
 class ActionPoint;
 class EntityHitbox;
 
-class Frame : public std::enable_shared_from_this<Frame> {
+class Frame {
 public:
     const static unsigned MIN_WIDTH = 16;
     const static unsigned MIN_HEIGHT = 16;
@@ -29,14 +29,11 @@ public:
     Frame() = delete;
     Frame(const Frame&) = delete;
 
-    Frame(std::shared_ptr<FrameSet> frameSet);
+    Frame(FrameSet& frameSet);
+    Frame(const Frame& frame, FrameSet& frameSet);
 
-private:
-    Frame(const Frame& frame, std::shared_ptr<FrameSet> frameSet);
-
-public:
-    std::shared_ptr<Frame> ptr() { return shared_from_this(); }
-    std::shared_ptr<Frame> clone(std::shared_ptr<FrameSet> frameSet);
+    inline FrameSet& frameSet() const { return _frameSet; }
+    inline SpriteImporterDocument& document() const { return _frameSet.document(); }
 
     inline auto& objects() { return _objects; }
     inline auto& actionPoints() { return _actionPoints; }
@@ -58,9 +55,6 @@ public:
     urect tileHitbox() const { return _tileHitbox; }
 
     unsigned spriteOrder() const { return _spriteOrder; }
-
-    inline std::shared_ptr<FrameSet> frameSet() const { return _frameSet.lock(); }
-    inline SpriteImporterDocument& document() const { return frameSet()->document(); }
 
     void setUseGridLocation(bool useGridLocation);
     void setGridLocation(upoint gridLocation);
@@ -90,7 +84,7 @@ public:
     void recalculateOrigin();
 
 private:
-    std::weak_ptr<FrameSet> _frameSet;
+    FrameSet& _frameSet;
     OrderedList<Frame, FrameObject> _objects;
     OrderedList<Frame, ActionPoint> _actionPoints;
     OrderedList<Frame, EntityHitbox> _entityHitboxes;

@@ -26,7 +26,7 @@ public:
         add(col_size);
     }
 
-    Gtk::TreeModelColumn<std::shared_ptr<SI::FrameObject>> col_item;
+    Gtk::TreeModelColumn<SI::FrameObject*> col_item;
     Gtk::TreeModelColumn<unsigned int> col_id;
     // ::TODO change to native types::
     Gtk::TreeModelColumn<Glib::ustring> col_location;
@@ -39,7 +39,7 @@ public:
         treeView.append_column(_("Size"), col_size);
     }
 
-    inline void setRowData(Gtk::TreeRow& row, std::shared_ptr<SI::FrameObject> obj)
+    inline void setRowData(Gtk::TreeRow& row, const SI::FrameObject* obj)
     {
         typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
 

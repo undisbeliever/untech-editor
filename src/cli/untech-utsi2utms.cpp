@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     UnTech::Utsi2Utms converter;
 
     SI::SpriteImporterDocument siDocument(filename);
-    std::unique_ptr<MS::MetaSpriteDocument> msDocument = converter.convert(&siDocument);
+    std::unique_ptr<MS::MetaSpriteDocument> msDocument = converter.convert(siDocument);
 
     for (const std::string& w : converter.warnings()) {
         std::cerr << "warning: " << w << '\n';
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 
     // Does not use the document's write functions ATM
     // as this app just combines the documents in one sitting.
-    MS::Serializer::writeFile(*msDocument->frameSet(), std::cout);
+    MS::Serializer::writeFile(msDocument->frameSet(), std::cout);
 
     return EXIT_SUCCESS;
 }

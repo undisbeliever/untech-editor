@@ -20,22 +20,20 @@ public:
     EntityHitbox() = delete;
     EntityHitbox(const EntityHitbox&) = delete;
 
-    EntityHitbox(std::shared_ptr<Frame> frame);
-    EntityHitbox(const EntityHitbox& hitbox, std::shared_ptr<Frame> frame);
+    EntityHitbox(Frame& frame);
+    EntityHitbox(const EntityHitbox& hitbox, Frame& frame);
 
-    std::shared_ptr<EntityHitbox> clone(std::shared_ptr<Frame> frame);
+    inline Frame& frame() const { return _frame; }
+    inline SpriteImporterDocument& document() const { return _frame.frameSet().document(); }
 
     urect aabb() const { return _aabb; }
     parameter_t parameter() const { return _parameter; }
-
-    inline std::shared_ptr<Frame> frame() const { return _frame.lock(); }
-    inline SpriteImporterDocument& document() const { return frame()->frameSet()->document(); }
 
     void setAabb(const urect& aabb);
     void setParameter(parameter_t parameter);
 
 private:
-    std::weak_ptr<Frame> _frame;
+    Frame& _frame;
     urect _aabb;
     parameter_t _parameter;
 };

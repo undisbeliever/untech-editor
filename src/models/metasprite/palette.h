@@ -16,28 +16,28 @@ public:
     Palette() = delete;
     Palette(const Palette&) = delete;
 
-    Palette(std::shared_ptr<FrameSet> frameSet)
+    Palette(FrameSet& frameSet)
         : UnTech::Snes::Palette4bpp()
         , _frameSet(frameSet)
     {
     }
 
-    Palette(const Palette& p, std::shared_ptr<FrameSet> frameSet)
+    Palette(const Palette& p, FrameSet& frameSet)
         : UnTech::Snes::Palette4bpp(p)
         , _frameSet(frameSet)
     {
     }
 
-    std::shared_ptr<Palette> clone(std::shared_ptr<FrameSet> frameSet)
+    std::shared_ptr<Palette> clone(FrameSet& frameSet)
     {
         return std::make_shared<Palette>(*this, frameSet);
     }
 
-    inline std::shared_ptr<FrameSet> frameSet() const { return _frameSet.lock(); }
-    inline MetaSpriteDocument& document() const { return frameSet()->document(); }
+    inline FrameSet& frameSet() const { return _frameSet; }
+    inline MetaSpriteDocument& document() const { return _frameSet.document(); }
 
 private:
-    std::weak_ptr<FrameSet> _frameSet;
+    FrameSet& _frameSet;
 };
 }
 }

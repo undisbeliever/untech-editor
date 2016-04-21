@@ -35,7 +35,7 @@ public:
          */
         /* Handle change in selection */
         treeView.get_selection()->signal_changed().connect([this](void) {
-            std::shared_ptr<T> item = nullptr;
+            T* item = nullptr;
 
             auto rowIt = treeView.get_selection()->get_selected();
             if (rowIt) {
@@ -60,11 +60,6 @@ public:
         });
     }
 
-    inline void setList(typename T::list_t& newList)
-    {
-        setList(&newList);
-    }
-
     void setList(typename T::list_t* newList)
     {
         if (list != newList) {
@@ -86,20 +81,18 @@ public:
             }
         }
     }
+    inline void setList(typename T::list_t& newList) { setList(&newList); }
 
     /**
      * Gets the first selected item, returns nullptr if none selected.
      */
-    std::shared_ptr<T> getSelected()
-    {
-        return selected;
-    }
+    T* getSelected() { return selected; }
 
     /**
      * Selects the given item.
      * Unselects everything if item is not in list.
      */
-    void selectItem(std::shared_ptr<T> item)
+    void selectItem(T* item)
     {
         if (item != selected) {
             if (item != nullptr) {
@@ -142,7 +135,7 @@ protected:
     /**
      * Called when an item has changed, updates the field.
      */
-    auto onItemChanged(std::shared_ptr<T> item)
+    auto onItemChanged(const T* item)
     {
         for (auto row : treeModel->children()) {
             if (row.get_value(columns.col_item) == item) {
@@ -180,8 +173,10 @@ protected:
             if (nItems > 0) {
                 int id = 0;
                 auto rowIt = treeModel->children().begin();
-                for (auto item : *list) {
+                for (T& itemRef : *list) {
                     auto row = *rowIt;
+                    T* item = &itemRef;
+
                     columns.setRowData(row, item);
                     row[columns.col_id] = id;
                     row[columns.col_item] = item;
@@ -215,7 +210,7 @@ protected:
 
     typename T::list_t* list;
 
-    std::shared_ptr<T> selected;
+    T* selected;
     sigc::signal<void> _signal_selected_changed;
 };
 
@@ -300,7 +295,11 @@ public:
         });
 
         _removeButton.signal_clicked().connect([this](void) {
-            Undo::orderedList_remove(this->list, this->getSelected(),
+            T* toRemove = this->getSelected();
+
+            this->selectItem(nullptr);
+
+            Undo::orderedList_remove(this->list, toRemove,
                                      this->columns.signal_listChanged(),
                                      _removeButton.get_tooltip_text());
         });
@@ -315,17 +314,13 @@ public:
                                                               &OrderedListEditor::updateButtonState));
     }
 
-    inline void setList(typename T::list_t& newList)
-    {
-        setList(&newList);
-    }
-
     inline void setList(typename T::list_t* newList)
     {
         OrderedListView<T, ModelColumnsT>::setList(newList);
 
         updateButtonState();
     }
+    inline void setList(typename T::list_t& newList) { setList(&newList); }
 
 protected:
     void updateButtonState()

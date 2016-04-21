@@ -156,9 +156,13 @@ SpriteImporterEditor::SpriteImporterEditor()
 void SpriteImporterEditor::setDocument(std::unique_ptr<Document> document)
 {
     if (_document != document) {
-        _selection.setFrameSet(document->frameSet());
+        _selection.setFrameSet(nullptr);
 
         _document = std::move(document);
+
+        if (_document) {
+            _selection.setFrameSet(&_document->frameSet());
+        }
     }
 }
 

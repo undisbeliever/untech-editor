@@ -26,47 +26,46 @@ template <class T>
 class NamedListAddRemove {
 public:
     NamedListAddRemove(typename T::list_t* list,
-                       const std::string& name,
-                       const std::shared_ptr<T>& item)
+                       const std::string& name)
         : _list(list)
         , _name(name)
-        , _item(item)
+        , _item(nullptr)
     {
     }
 
     void add()
     {
-        _list->insertInto(_item, _name);
+        _list->insertInto(std::move(_item), _name);
     }
 
     void remove()
     {
-        _list->remove(_item);
+        _item = _list->removeFrom(_name);
     }
 
-    auto list() const { return _list; }
+    typename T::list_t* list() const { return _list; }
 
 private:
     typename T::list_t* _list;
     const std::string _name;
-    const std::shared_ptr<T> _item;
+    std::unique_ptr<T> _item;
 };
 }
 
 template <class T>
-inline std::shared_ptr<T> namedList_create(typename T::list_t* list,
-                                           const std::string name,
-                                           const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
-                                           const Glib::ustring& message)
+inline T* namedList_create(typename T::list_t* list,
+                           const std::string name,
+                           const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
+                           const Glib::ustring& message)
 {
     class Action : public ::UnTech::Undo::Action {
     public:
         Action() = delete;
         Action(
-            Private::NamedListAddRemove<T>& handler,
+            typename T::list_t* list, const std::string& name,
             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
             const Glib::ustring& message)
-            : _handler(handler)
+            : _handler(list, name)
             , _listChangedSignal(listChangedSignal)
             , _message(message)
         {
@@ -95,39 +94,38 @@ inline std::shared_ptr<T> namedList_create(typename T::list_t* list,
     };
 
     if (list) {
-        auto newItem = list->create(name);
+        T* newItem = list->create(name);
 
         if (newItem != nullptr) {
             listChangedSignal.emit(list);
 
-            Private::NamedListAddRemove<T> handler(list, name, newItem);
-
-            auto a = std::make_unique<Action>(handler, listChangedSignal, message);
+            auto a = std::make_unique<Action>(list, name, listChangedSignal, message);
 
             auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
             undoDoc->undoStack().add_undo(std::move(a));
-
-            return newItem;
         }
-    }
 
-    return nullptr;
+        return newItem;
+    }
+    else {
+        return nullptr;
+    }
 }
 
 template <class T>
-inline std::shared_ptr<T> namedList_clone(typename T::list_t* list, std::shared_ptr<T> item,
-                                          const std::string& name,
-                                          const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
-                                          const Glib::ustring& message)
+inline T* namedList_clone(typename T::list_t* list, T* item,
+                          const std::string& name,
+                          const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
+                          const Glib::ustring& message)
 {
     class Action : public ::UnTech::Undo::Action {
     public:
         Action() = delete;
         Action(
-            Private::NamedListAddRemove<T>& handler,
+            typename T::list_t* list, const std::string& name,
             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
             const Glib::ustring& message)
-            : _handler(handler)
+            : _handler(list, name)
             , _listChangedSignal(listChangedSignal)
             , _message(message)
         {
@@ -155,28 +153,27 @@ inline std::shared_ptr<T> namedList_clone(typename T::list_t* list, std::shared_
         const Glib::ustring _message;
     };
 
-    if (list) {
-        auto newItem = list->clone(item, name);
+    if (list && item) {
+        T* newItem = list->clone(*item, name);
 
         if (newItem != nullptr) {
             listChangedSignal.emit(list);
 
-            Private::NamedListAddRemove<T> handler(list, name, newItem);
-
-            auto a = std::make_unique<Action>(handler, listChangedSignal, message);
+            auto a = std::make_unique<Action>(list, name, listChangedSignal, message);
 
             auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
             undoDoc->undoStack().add_undo(std::move(a));
-
-            return newItem;
         }
-    }
 
-    return nullptr;
+        return newItem;
+    }
+    else {
+        return nullptr;
+    }
 }
 
 template <class T>
-inline void namedList_remove(typename T::list_t* list, std::shared_ptr<T> item,
+inline void namedList_remove(typename T::list_t* list, T* item,
                              const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                              const Glib::ustring& message)
 {
@@ -184,10 +181,10 @@ inline void namedList_remove(typename T::list_t* list, std::shared_ptr<T> item,
     public:
         Action() = delete;
         Action(
-            Private::NamedListAddRemove<T>& handler,
+            typename T::list_t* list, const std::string& name,
             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
             const Glib::ustring& message)
-            : _handler(handler)
+            : _handler(list, name)
             , _listChangedSignal(listChangedSignal)
             , _message(message)
         {
@@ -215,16 +212,13 @@ inline void namedList_remove(typename T::list_t* list, std::shared_ptr<T> item,
         const Glib::ustring _message;
     };
 
-    if (list) {
-        auto name = list->getName(item);
+    if (list && item) {
+        const auto name = list->getName(item);
 
         if (name.second) {
-            // item exists
-            Private::NamedListAddRemove<T> handler(list, name.first, item);
-            handler.remove();
-            listChangedSignal.emit(list);
+            auto a = std::make_unique<Action>(list, name.first, listChangedSignal, message);
 
-            auto a = std::make_unique<Action>(handler, listChangedSignal, message);
+            a->redo();
 
             auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
             undoDoc->undoStack().add_undo(std::move(a));
@@ -234,14 +228,14 @@ inline void namedList_remove(typename T::list_t* list, std::shared_ptr<T> item,
 
 template <class T>
 inline void namedList_rename(typename T::list_t* list,
-                             const std::shared_ptr<T>& item, const std::string& newName,
+                             T* item, const std::string& newName,
                              const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                              const Glib::ustring& message)
 {
     class Action : public ::UnTech::Undo::Action {
     public:
         Action() = delete;
-        Action(typename T::list_t* list, const std::shared_ptr<T>& item,
+        Action(typename T::list_t* list, T* item,
                const std::string& oldName, const std::string& newName,
                const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                const Glib::ustring& message)
@@ -272,15 +266,15 @@ inline void namedList_rename(typename T::list_t* list,
 
     private:
         typename T::list_t* _list;
-        const std::shared_ptr<T>& _item;
+        T* _item;
         const std::string _oldName;
         const std::string _newName;
         const typename sigc::signal<void, const typename T::list_t*>& _listChangedSignal;
         const Glib::ustring _message;
     };
 
-    if (list) {
-        auto oldName = list->getName(item);
+    if (list && item) {
+        const auto oldName = list->getName(item);
 
         if (oldName.second) {
             bool r = list->changeName(item, newName);

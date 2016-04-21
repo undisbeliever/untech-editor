@@ -132,15 +132,15 @@ FrameObjectEditor::FrameObjectEditor()
     });
 
     /* Update gui if object has changed */
-    Signals::frameObjectChanged.connect([this](const std::shared_ptr<MS::FrameObject> obj) {
+    Signals::frameObjectChanged.connect([this](const MS::FrameObject* obj) {
         if (_frameObject == obj) {
             updateGuiValues();
         }
     });
 
     /* Update tileId range if The number of tiles in the tileset changed */
-    Signals::frameSetTilesetCountChanged.connect([this](const std::shared_ptr<MS::FrameSet> frameSet) {
-        if (_frameObject && _frameObject->frame()->frameSet() == frameSet) {
+    Signals::frameSetTilesetCountChanged.connect([this](const MS::FrameSet* frameSet) {
+        if (_frameObject && &_frameObject->frame().frameSet() == frameSet) {
             updateTileIdRange();
         }
     });
@@ -149,14 +149,14 @@ FrameObjectEditor::FrameObjectEditor()
 void FrameObjectEditor::updateTileIdRange()
 {
     if (_frameObject) {
-        auto frameSet = _frameObject->frame()->frameSet();
+        MS::FrameSet& frameSet = _frameObject->frame().frameSet();
 
         int nTiles;
         if (_frameObject->size() == MS::FrameObject::ObjectSize::SMALL) {
-            nTiles = frameSet->smallTileset().size();
+            nTiles = frameSet.smallTileset().size();
         }
         else {
-            nTiles = frameSet->largeTileset().size();
+            nTiles = frameSet.largeTileset().size();
         }
         _tileIdSpinButton.set_range(0, nTiles - 1);
     }

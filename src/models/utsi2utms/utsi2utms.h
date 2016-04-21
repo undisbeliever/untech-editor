@@ -13,18 +13,18 @@ class Utsi2Utms {
 public:
     Utsi2Utms();
 
-    std::unique_ptr<MetaSprite::MetaSpriteDocument> convert(const SpriteImporter::SpriteImporterDocument* si);
+    std::unique_ptr<MetaSprite::MetaSpriteDocument> convert(SpriteImporter::SpriteImporterDocument& si);
 
     const std::list<std::string>& errors() const { return _errors; }
     const std::list<std::string>& warnings() const { return _warnings; }
 
 protected:
     void addError(const std::string& message);
-    void addError(const std::shared_ptr<SpriteImporter::FrameSet> frameSet, const std::string& message);
-    void addError(const std::shared_ptr<SpriteImporter::Frame> frameSet, const std::string& message);
+    void addError(const SpriteImporter::FrameSet& frameSet, const std::string& message);
+    void addError(const SpriteImporter::Frame& frameSet, const std::string& message);
     void addWarning(const std::string& message);
-    void addWarning(const std::shared_ptr<SpriteImporter::FrameSet> frameSet, const std::string& message);
-    void addWarning(const std::shared_ptr<SpriteImporter::Frame> frameSet, const std::string& message);
+    void addWarning(const SpriteImporter::FrameSet& frameSet, const std::string& message);
+    void addWarning(const SpriteImporter::Frame& frameSet, const std::string& message);
 
 private:
     std::list<std::string> _errors;

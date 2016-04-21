@@ -59,7 +59,7 @@ ActionPointEditor::ActionPointEditor()
     });
 
     /* Update gui if object has changed */
-    Signals::actionPointChanged.connect([this](const std::shared_ptr<MS::ActionPoint> obj) {
+    Signals::actionPointChanged.connect([this](const MS::ActionPoint* obj) {
         if (_actionPoint == obj) {
             updateGuiValues();
         }
@@ -69,8 +69,6 @@ ActionPointEditor::ActionPointEditor()
 void ActionPointEditor::updateGuiValues()
 {
     if (_actionPoint) {
-        auto frame = _actionPoint->frame();
-
         _updatingValues = true;
 
         _locationSpinButtons.set_value(_actionPoint->location());

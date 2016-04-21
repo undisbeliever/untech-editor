@@ -9,7 +9,7 @@ using namespace UnTech::SpriteImporter;
 
 const usize Frame::MIN_SIZE = usize(Frame::MIN_WIDTH, Frame::MIN_HEIGHT);
 
-Frame::Frame(std::shared_ptr<FrameSet> frameSet)
+Frame::Frame(FrameSet& frameSet)
     : _frameSet(frameSet)
     , _objects(*this)
     , _actionPoints(*this)
@@ -28,7 +28,7 @@ Frame::Frame(std::shared_ptr<FrameSet> frameSet)
     _tileHitbox.y = (_location.height - _tileHitbox.height) / 2;
 }
 
-Frame::Frame(const Frame& frame, std::shared_ptr<FrameSet> frameSet)
+Frame::Frame(const Frame& frame, FrameSet& frameSet)
     : _frameSet(frameSet)
     , _objects(*this)
     , _actionPoints(*this)
@@ -42,25 +42,15 @@ Frame::Frame(const Frame& frame, std::shared_ptr<FrameSet> frameSet)
     , _tileHitbox(frame._tileHitbox)
     , _spriteOrder(frame._spriteOrder)
 {
-}
-
-// Have to do this outside the constructor or else I get
-// a bad_weak_ref exception
-std::shared_ptr<Frame> Frame::clone(std::shared_ptr<FrameSet> frameSet)
-{
-    std::shared_ptr<Frame> frame(new Frame(*this, frameSet));
-
-    for (const auto obj : this->_objects) {
-        frame->_objects.clone(obj);
+    for (const auto& obj : frame._objects) {
+        _objects.clone(obj);
     }
-    for (const auto ap : this->_actionPoints) {
-        frame->_actionPoints.clone(ap);
+    for (const auto& ap : frame._actionPoints) {
+        _actionPoints.clone(ap);
     }
-    for (const auto eh : this->_entityHitboxes) {
-        frame->_entityHitboxes.clone(eh);
+    for (const auto& eh : frame._entityHitboxes) {
+        _entityHitboxes.clone(eh);
     }
-
-    return frame;
 }
 
 void Frame::setUseGridLocation(bool useGridLocation)
@@ -136,22 +126,31 @@ void Frame::setTileHitbox(const urect& tileHitbox)
     }
 }
 
+void Frame::setSpriteOrder(unsigned spriteOrder)
+{
+    unsigned newOrder = spriteOrder & SPRITE_ORDER_MASK;
+
+    if (_spriteOrder != newOrder) {
+        _spriteOrder = newOrder;
+    }
+}
+
 usize Frame::minimumViableSize() const
 {
     usize limit = usize(MIN_WIDTH, MIN_HEIGHT);
 
     limit = limit.expand(_origin);
 
-    for (const auto obj : _objects) {
-        limit = limit.expand(obj->bottomLeft());
+    for (const auto& obj : _objects) {
+        limit = limit.expand(obj.bottomLeft());
     }
 
-    for (const auto ap : _actionPoints) {
-        limit = limit.expand(ap->location());
+    for (const auto& ap : _actionPoints) {
+        limit = limit.expand(ap.location());
     }
 
-    for (const auto eh : _entityHitboxes) {
-        limit = limit.expand(eh->aabb());
+    for (const auto& eh : _entityHitboxes) {
+        limit = limit.expand(eh.aabb());
     }
 
     return limit;
@@ -159,36 +158,21 @@ usize Frame::minimumViableSize() const
 
 void Frame::recalculateLocation()
 {
-    auto frameSet = _frameSet.lock();
-    const auto& grid = frameSet->grid();
+    const auto& grid = _frameSet.grid();
 
-    if (frameSet) {
-        if (_useGridLocation) {
-            _location.x = _gridLocation.x * (grid.frameSize().width + grid.padding().width) + grid.offset().x;
-            _location.y = _gridLocation.y * (grid.frameSize().height + grid.padding().height) + grid.offset().y;
-            _location.width = grid.frameSize().width;
-            _location.height = grid.frameSize().height;
-        }
+    if (_useGridLocation) {
+        _location.x = _gridLocation.x * (grid.frameSize().width + grid.padding().width) + grid.offset().x;
+        _location.y = _gridLocation.y * (grid.frameSize().height + grid.padding().height) + grid.offset().y;
+        _location.width = grid.frameSize().width;
+        _location.height = grid.frameSize().height;
     }
 }
 
 void Frame::recalculateOrigin()
 {
-    auto frameSet = _frameSet.lock();
-    const auto& grid = frameSet->grid();
+    const auto& grid = _frameSet.grid();
 
-    if (frameSet) {
-        if (_useGridOrigin) {
-            _origin = grid.origin();
-        }
-    }
-}
-
-void Frame::setSpriteOrder(unsigned spriteOrder)
-{
-    unsigned newOrder = spriteOrder & SPRITE_ORDER_MASK;
-
-    if (_spriteOrder != newOrder) {
-        _spriteOrder = newOrder;
+    if (_useGridOrigin) {
+        _origin = grid.origin();
     }
 }

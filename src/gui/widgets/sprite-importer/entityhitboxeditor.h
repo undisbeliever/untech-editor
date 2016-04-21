@@ -22,7 +22,7 @@ class EntityHitboxEditor {
 public:
     EntityHitboxEditor();
 
-    void setEntityHitbox(std::shared_ptr<UnTech::SpriteImporter::EntityHitbox> entityHitbox)
+    void setEntityHitbox(UnTech::SpriteImporter::EntityHitbox* entityHitbox)
     {
         _entityHitbox = entityHitbox;
         updateGuiValues();
@@ -37,7 +37,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    std::shared_ptr<UnTech::SpriteImporter::EntityHitbox> _entityHitbox;
+    UnTech::SpriteImporter::EntityHitbox* _entityHitbox;
 
     UrectSpinButtons _aabbSpinButtons;
     Gtk::Entry _parameterEntry;

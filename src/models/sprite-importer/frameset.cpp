@@ -1,5 +1,8 @@
 #include "frameset.h"
 #include "frame.h"
+#include "actionpoint.h"
+#include "entityhitbox.h"
+#include "frameobject.h"
 #include "../common/file.h"
 #include "../common/namechecks.h"
 

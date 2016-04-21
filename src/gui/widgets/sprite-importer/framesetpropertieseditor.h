@@ -20,7 +20,7 @@ class FrameSetPropertiesEditor {
 public:
     FrameSetPropertiesEditor();
 
-    void setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
+    void setFrameSet(SI::FrameSet* frameSet)
     {
         _frameSet = frameSet;
         updateGuiValues();
@@ -40,7 +40,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    std::shared_ptr<SI::FrameSet> _frameSet;
+    SI::FrameSet* _frameSet;
 
     NamedListNameEntry _nameEntry;
 

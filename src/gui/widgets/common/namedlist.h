@@ -38,7 +38,7 @@ public:
          */
         /* Handle change in selection */
         treeView.get_selection()->signal_changed().connect([this](void) {
-            std::shared_ptr<T> item = nullptr;
+            T* item = nullptr;
 
             auto rowIt = treeView.get_selection()->get_selected();
             if (rowIt) {
@@ -98,16 +98,13 @@ public:
     /**
      * Gets the first selected item, returns nullptr if none selected.
      */
-    std::shared_ptr<T> getSelected()
-    {
-        return selected;
-    }
+    T* getSelected() { return selected; }
 
     /**
      * Selects the given item.
      * Unselects everything if item is not in list.
      */
-    void selectItem(std::shared_ptr<T> item)
+    void selectItem(T* item)
     {
         if (item != selected) {
             if (item != nullptr) {
@@ -150,7 +147,7 @@ protected:
     /**
      * Called when an item has changed, updates the field.
      */
-    auto onItemChanged(std::shared_ptr<T> item)
+    auto onItemChanged(const T* item)
     {
         for (auto row : treeModel->children()) {
             if (row.get_value(columns.col_item) == item) {
@@ -188,11 +185,13 @@ protected:
                 auto rowIt = treeModel->children().begin();
                 for (const auto it : *list) {
                     auto row = *rowIt;
-                    columns.setRowData(row, it.second);
-                    row[columns.col_id] = it.first;
-                    row[columns.col_item] = it.second;
+                    T* item = &it.second;
 
-                    if (it.second == selected) {
+                    columns.setRowData(row, item);
+                    row[columns.col_id] = it.first;
+                    row[columns.col_item] = item;
+
+                    if (item == selected) {
                         selectedRowIt = rowIt;
                     }
 
@@ -231,7 +230,7 @@ protected:
 
     typename T::list_t* list;
 
-    std::shared_ptr<T> selected;
+    T* selected;
     sigc::signal<void> _signal_selected_changed;
 };
 
@@ -298,7 +297,7 @@ public:
         });
 
         _cloneButton.signal_clicked().connect([this](void) {
-            auto toCopy = this->getSelected();
+            T* toCopy = this->getSelected();
 
             NamedListDialog<T> dialog(
                 Glib::ustring::compose(_("Input new name of cloned %1:"), this->columns.itemTypeName()),
@@ -308,15 +307,15 @@ public:
             auto ret = dialog.run();
             if (ret == Gtk::RESPONSE_ACCEPT) {
                 auto newName = dialog.get_text();
-                auto item = Undo::namedList_clone(this->list, toCopy, dialog.get_text(),
-                                                  this->columns.signal_listChanged(),
-                                                  _cloneButton.get_tooltip_text());
+                auto item = Undo::namedList_clone<T>(this->list, toCopy, dialog.get_text(),
+                                                     this->columns.signal_listChanged(),
+                                                     _cloneButton.get_tooltip_text());
                 this->selectItem(item);
             }
         });
 
         _renameButton.signal_clicked().connect([this](void) {
-            auto toRename = this->getSelected();
+            T* toRename = this->getSelected();
 
             NamedListDialog<T> dialog(
                 Glib::ustring::compose(_("Rename %1 to:"), this->columns.itemTypeName()),
@@ -325,16 +324,20 @@ public:
 
             auto ret = dialog.run();
             if (ret == Gtk::RESPONSE_ACCEPT) {
-                Undo::namedList_rename(this->list, toRename, dialog.get_text(),
-                                       this->columns.signal_listChanged(),
-                                       _renameButton.get_tooltip_text());
+                Undo::namedList_rename<T>(this->list, toRename, dialog.get_text(),
+                                          this->columns.signal_listChanged(),
+                                          _renameButton.get_tooltip_text());
             }
         });
 
         _removeButton.signal_clicked().connect([this](void) {
-            Undo::namedList_remove(this->list, this->getSelected(),
-                                   this->columns.signal_listChanged(),
-                                   _removeButton.get_tooltip_text());
+            T* toRemove = this->getSelected();
+
+            this->selectItem(nullptr);
+
+            Undo::namedList_remove<T>(this->list, toRemove,
+                                      this->columns.signal_listChanged(),
+                                      _removeButton.get_tooltip_text());
         });
 
         this->columns.signal_listChanged().connect([this](const typename T::list_t* list) {

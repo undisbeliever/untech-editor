@@ -59,7 +59,7 @@ public:
         set_text("");
     }
 
-    void setItem(typename T::list_t* list, std::shared_ptr<T> item)
+    void setItem(typename T::list_t* list, T* item)
     {
         _list = list;
         _item = item;
@@ -140,7 +140,7 @@ private:
     NamedListNameEntry _inputText;
 
     typename T::list_t* _list;
-    std::shared_ptr<T> _item;
+    T* _item;
 
     Gtk::Button* _okButton;
 };

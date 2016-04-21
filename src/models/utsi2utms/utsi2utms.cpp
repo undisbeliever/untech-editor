@@ -22,24 +22,22 @@ Utsi2Utms::Utsi2Utms()
 {
 }
 
-std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImporterDocument* siDocument)
+std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDocument& siDocument)
 {
-    assert(siDocument != nullptr);
-
     _hasError = false;
 
-    const auto siFrameSet = siDocument->frameSet();
-    const auto& image = siFrameSet->image();
+    const SI::FrameSet& siFrameSet = siDocument.frameSet();
+    const UnTech::Image& image = siDocument.frameSet().image();
 
     // Validate siFrameSet
     {
         if (image.empty()) {
             addError(siFrameSet, "No Image");
         }
-        if (siFrameSet->frames().size() == 0) {
+        if (siFrameSet.frames().size() == 0) {
             addError(siFrameSet, "No Frames");
         }
-        if (siFrameSet->transparentColorValid() == false) {
+        if (siFrameSet.transparentColorValid() == false) {
             addError(siFrameSet, "Transparent color is invalid");
         }
     }
@@ -49,9 +47,9 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImpor
     }
 
     auto msDocument = std::make_unique<MS::MetaSpriteDocument>();
-    auto msFrameSet = msDocument->frameSet();
+    MS::FrameSet& msFrameSet = msDocument->frameSet();
 
-    msFrameSet->setName(siFrameSet->name());
+    msFrameSet.setName(siFrameSet.name());
 
     // Build map of rgba to palette color
     // Faster than std::unordered_map, only contains 16 elements
@@ -59,22 +57,22 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImpor
     {
         std::set<rgba> colors;
 
-        for (const auto siFrameIt : siFrameSet->frames()) {
-            const auto& siFrame = siFrameIt.second;
+        for (const auto siFrameIt : siFrameSet.frames()) {
+            const SI::Frame& siFrame = siFrameIt.second;
 
-            if (!image.size().contains(siFrame->location())) {
+            if (!image.size().contains(siFrame.location())) {
                 addError(siFrame, "Frame not inside image");
                 continue;
             }
 
-            for (const auto obj : siFrame->objects()) {
-                unsigned lx = siFrame->location().x + obj->location().x;
-                unsigned ly = siFrame->location().y + obj->location().y;
+            for (const SI::FrameObject& obj : siFrame.objects()) {
+                unsigned lx = siFrame.location().x + obj.location().x;
+                unsigned ly = siFrame.location().y + obj.location().y;
 
-                for (unsigned y = 0; y < obj->sizePx(); y++) {
+                for (unsigned y = 0; y < obj.sizePx(); y++) {
                     const rgba* p = image.scanline(ly + y) + lx;
 
-                    for (unsigned x = 0; x < obj->sizePx(); x++) {
+                    for (unsigned x = 0; x < obj.sizePx(); x++) {
                         colors.insert(*p++);
                     }
                 }
@@ -86,7 +84,7 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImpor
             }
         }
 
-        auto tIt = colors.find(siFrameSet->transparentColor());
+        auto tIt = colors.find(siFrameSet.transparentColor());
         if (tIt != colors.end()) {
             colors.erase(tIt);
         }
@@ -103,15 +101,15 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImpor
         // Store palette in MetaSprite
         // ::TODO handle user supplied palettes::
         {
-            auto palette = msFrameSet->palettes().create();
+            MS::Palette& palette = msFrameSet.palettes().create();
 
-            colorMap.insert({ siFrameSet->transparentColor(), 0 });
-            palette->color(0).setRgb(siFrameSet->transparentColor());
+            colorMap.insert({ siFrameSet.transparentColor(), 0 });
+            palette.color(0).setRgb(siFrameSet.transparentColor());
 
             int i = 1;
-            for (auto c : colors) {
+            for (auto& c : colors) {
                 colorMap.insert({ c, i });
-                palette->color(i).setRgb(c);
+                palette.color(i).setRgb(c);
                 i++;
             }
         }
@@ -121,31 +119,32 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImpor
         return nullptr;
     }
 
-    TilesetInserter<Snes::Tileset4bpp8px> smallTileset(msFrameSet->smallTileset());
-    TilesetInserter<Snes::Tileset4bpp16px> largeTileset(msFrameSet->largeTileset());
+    TilesetInserter<Snes::Tileset4bpp8px> smallTileset(msFrameSet.smallTileset());
+    TilesetInserter<Snes::Tileset4bpp16px> largeTileset(msFrameSet.largeTileset());
 
     // Process frames
-    for (const auto frameIt : siFrameSet->frames()) {
-        const auto siFrame = frameIt.second;
-        const auto siFrameOrigin = siFrame->origin();
-        const auto siFrameLocation = siFrame->location();
+    for (const auto frameIt : siFrameSet.frames()) {
+        const SI::Frame& siFrame = frameIt.second;
+        const auto& siFrameOrigin = siFrame.origin();
+        const auto& siFrameLocation = siFrame.location();
 
-        auto msFrame = msFrameSet->frames().create(frameIt.first);
+        MS::Frame* msFramePtr = msFrameSet.frames().create(frameIt.first);
+        MS::Frame& msFrame = *msFramePtr;
 
         try {
-            for (const auto siObj : siFrame->objects()) {
-                auto msObj = msFrame->objects().create();
+            for (const SI::FrameObject& siObj : siFrame.objects()) {
+                MS::FrameObject& msObj = msFrame.objects().create();
 
                 // ::TODO find overlapping tiles and store in list::
                 // ::TODO warning if large tile is in front of and covers a small tile::
 
-                unsigned xOffset = siFrameLocation.x + siObj->location().x;
-                unsigned yOffset = siFrameLocation.y + siObj->location().y;
+                unsigned xOffset = siFrameLocation.x + siObj.location().x;
+                unsigned yOffset = siFrameLocation.y + siObj.location().y;
 
                 TilesetInserterOutput tilesetOutput;
 
-                if (siObj->size() == SI::FrameObject::ObjectSize::SMALL) {
-                    msObj->setSize(MS::FrameObject::ObjectSize::SMALL);
+                if (siObj.size() == SI::FrameObject::ObjectSize::SMALL) {
+                    msObj.setSize(MS::FrameObject::ObjectSize::SMALL);
 
                     // Get image data
                     std::array<uint8_t, 8 * 8> tile;
@@ -161,7 +160,7 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImpor
                     tilesetOutput = smallTileset.getOrInsert(tile);
                 }
                 else {
-                    msObj->setSize(MS::FrameObject::ObjectSize::LARGE);
+                    msObj.setSize(MS::FrameObject::ObjectSize::LARGE);
 
                     // Get image data
                     std::array<uint8_t, 16 * 16> tile;
@@ -177,32 +176,32 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(const SI::SpriteImpor
                     tilesetOutput = largeTileset.getOrInsert(tile);
                 }
 
-                msObj->setLocation(ms8point::createFromOffset(siObj->location(), siFrameOrigin));
-                msObj->setTileId(tilesetOutput.tileId);
-                msObj->setHFlip(tilesetOutput.hFlip);
-                msObj->setVFlip(tilesetOutput.vFlip);
+                msObj.setLocation(ms8point::createFromOffset(siObj.location(), siFrameOrigin));
+                msObj.setTileId(tilesetOutput.tileId);
+                msObj.setHFlip(tilesetOutput.hFlip);
+                msObj.setVFlip(tilesetOutput.vFlip);
             }
 
-            for (const auto siAp : siFrame->actionPoints()) {
-                auto msAp = msFrame->actionPoints().create();
+            for (const SI::ActionPoint& siAp : siFrame.actionPoints()) {
+                MS::ActionPoint& msAp = msFrame.actionPoints().create();
 
-                msAp->setLocation(ms8point::createFromOffset(siAp->location(), siFrameOrigin));
-                msAp->setParameter(siAp->parameter());
+                msAp.setLocation(ms8point::createFromOffset(siAp.location(), siFrameOrigin));
+                msAp.setParameter(siAp.parameter());
             }
 
-            for (const auto siEh : siFrame->entityHitboxes()) {
-                auto msEh = msFrame->entityHitboxes().create();
+            for (const SI::EntityHitbox& siEh : siFrame.entityHitboxes()) {
+                MS::EntityHitbox& msEh = msFrame.entityHitboxes().create();
 
-                msEh->setAabb(ms8rect::createFromOffset(siEh->aabb(), siFrameOrigin));
-                msEh->setParameter(siEh->parameter());
+                msEh.setAabb(ms8rect::createFromOffset(siEh.aabb(), siFrameOrigin));
+                msEh.setParameter(siEh.parameter());
             }
 
-            if (siFrame->solid()) {
-                msFrame->setSolid(true);
-                msFrame->setTileHitbox(ms8rect::createFromOffset(siFrame->tileHitbox(), siFrameOrigin));
+            if (siFrame.solid()) {
+                msFrame.setSolid(true);
+                msFrame.setTileHitbox(ms8rect::createFromOffset(siFrame.tileHitbox(), siFrameOrigin));
             }
             else {
-                msFrame->setSolid(false);
+                msFrame.setSolid(false);
             }
         }
         catch (const std::out_of_range& ex) {
@@ -228,11 +227,11 @@ void Utsi2Utms::addError(const std::string& message)
     _hasError = true;
 }
 
-void Utsi2Utms::addError(const std::shared_ptr<SI::FrameSet> frameSet, const std::string& message)
+void Utsi2Utms::addError(const SI::FrameSet& frameSet, const std::string& message)
 {
     std::stringstream out;
 
-    out << frameSet->name()
+    out << frameSet.name()
         << ": "
         << message;
 
@@ -240,13 +239,13 @@ void Utsi2Utms::addError(const std::shared_ptr<SI::FrameSet> frameSet, const std
     _hasError = true;
 }
 
-void Utsi2Utms::addError(const std::shared_ptr<SI::Frame> frame, const std::string& message)
+void Utsi2Utms::addError(const SI::Frame& frame, const std::string& message)
 {
     std::stringstream out;
 
-    const auto fs = frame->frameSet();
+    const SI::FrameSet& fs = frame.frameSet();
 
-    out << fs->name() << "." << fs->frames().getName(frame).first
+    out << fs.name() << "." << fs.frames().getName(frame).first
         << ": " << message;
 
     _errors.push_back(out.str());
@@ -258,22 +257,22 @@ void Utsi2Utms::addWarning(const std::string& message)
     _warnings.push_back(message);
 }
 
-void Utsi2Utms::addWarning(const std::shared_ptr<SI::FrameSet> frameSet, const std::string& message)
+void Utsi2Utms::addWarning(const SI::FrameSet& frameSet, const std::string& message)
 {
     std::stringstream out;
 
-    out << frameSet->name() << ": " << message;
+    out << frameSet.name() << ": " << message;
 
     _warnings.push_back(out.str());
 }
 
-void Utsi2Utms::addWarning(const std::shared_ptr<SI::Frame> frame, const std::string& message)
+void Utsi2Utms::addWarning(const SI::Frame& frame, const std::string& message)
 {
     std::stringstream out;
 
-    const auto fs = frame->frameSet();
+    const SI::FrameSet& fs = frame.frameSet();
 
-    out << fs->name() << "." << fs->frames().getName(frame).first
+    out << fs.name() << "." << fs.frames().getName(frame).first
         << ": " << message;
 
     _warnings.push_back(out.str());

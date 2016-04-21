@@ -28,24 +28,24 @@ namespace Serializer {
  */
 
 struct FrameSetReader {
-    FrameSetReader(std::shared_ptr<FrameSet> frameSet, XmlReader& xml)
+    FrameSetReader(FrameSet& frameSet, XmlReader& xml)
         : frameSet(frameSet)
         , xml(xml)
     {
     }
 
 private:
-    std::shared_ptr<FrameSet> frameSet;
+    FrameSet& frameSet;
     XmlReader& xml;
 
 public:
     inline void readFrameSet(const XmlTag* tag)
     {
         assert(tag->name == "metasprite");
-        assert(frameSet->frames().size() == 0);
+        assert(frameSet.frames().size() == 0);
 
         std::string id = tag->getAttributeId("id");
-        frameSet->setName(id);
+        frameSet.setName(id);
 
         std::unique_ptr<XmlTag> childTag;
         while ((childTag = xml.parseTag())) {
@@ -75,11 +75,15 @@ private:
         assert(tag->name == "frame");
 
         std::string id = tag->getAttributeId("id");
-        if (frameSet->frames().nameExists(id)) {
+        if (frameSet.frames().nameExists(id)) {
             throw tag->buildError("frame id already exists");
         }
 
-        auto frame = frameSet->frames().create(id);
+        Frame* framePtr = frameSet.frames().create(id);
+        if (framePtr == nullptr) {
+            throw std::logic_error("Could not create Frame");
+        }
+        Frame& frame = *framePtr;
 
         std::unique_ptr<XmlTag> childTag;
 
@@ -87,46 +91,46 @@ private:
 
         while ((childTag = xml.parseTag())) {
             if (childTag->name == "object") {
-                auto obj = frame->objects().create();
+                FrameObject& obj = frame.objects().create();
 
                 std::string sizeStr = childTag->getAttribute("size");
 
                 if (sizeStr == "small") {
-                    obj->setSize(FrameObject::ObjectSize::SMALL);
+                    obj.setSize(FrameObject::ObjectSize::SMALL);
                 }
                 else if (sizeStr == "large") {
-                    obj->setSize(FrameObject::ObjectSize::LARGE);
+                    obj.setSize(FrameObject::ObjectSize::LARGE);
                 }
                 else {
                     throw childTag->buildError("size", "Unknown size");
                 }
 
-                obj->setLocation(childTag->getAttributeMs8point());
-                obj->setTileId(childTag->getAttributeUnsigned("tile"));
-                obj->setOrder(childTag->getAttributeUnsigned("order", 0, FrameObject::ORDER_MASK));
-                obj->setHFlip(childTag->getAttributeBoolean("hflip"));
-                obj->setVFlip(childTag->getAttributeBoolean("vflip"));
+                obj.setLocation(childTag->getAttributeMs8point());
+                obj.setTileId(childTag->getAttributeUnsigned("tile"));
+                obj.setOrder(childTag->getAttributeUnsigned("order", 0, FrameObject::ORDER_MASK));
+                obj.setHFlip(childTag->getAttributeBoolean("hflip"));
+                obj.setVFlip(childTag->getAttributeBoolean("vflip"));
             }
 
             else if (childTag->name == "actionpoint") {
-                auto ap = frame->actionPoints().create();
+                ActionPoint& ap = frame.actionPoints().create();
 
-                ap->setLocation(childTag->getAttributeMs8point());
-                ap->setParameter(childTag->getAttributeUint8("parameter"));
+                ap.setLocation(childTag->getAttributeMs8point());
+                ap.setParameter(childTag->getAttributeUint8("parameter"));
             }
 
             else if (childTag->name == "entityhitbox") {
-                auto eh = frame->entityHitboxes().create();
+                EntityHitbox& eh = frame.entityHitboxes().create();
 
-                eh->setAabb(childTag->getAttributeMs8rect());
-                eh->setParameter(childTag->getAttributeUint8("parameter"));
+                eh.setAabb(childTag->getAttributeMs8rect());
+                eh.setParameter(childTag->getAttributeUint8("parameter"));
             }
 
             else if (childTag->name == "tilehitbox") {
                 if (processedTileHitbox) {
                     throw xml.buildError("Can only have one tilehitbox per frame");
                 }
-                frame->setTileHitbox(childTag->getAttributeMs8rect());
+                frame.setTileHitbox(childTag->getAttributeMs8rect());
                 processedTileHitbox = true;
             }
 
@@ -138,7 +142,7 @@ private:
         }
 
         // Frame is solid only if tileHitbox exists.
-        frame->setSolid(processedTileHitbox);
+        frame.setSolid(processedTileHitbox);
     }
 
     inline void readSmallTileset(const XmlTag* tag)
@@ -152,7 +156,7 @@ private:
             throw tag->buildError("Small Tileset data must be a multiple of 32 bytes");
         }
 
-        frameSet->smallTileset().readSnesData(data);
+        frameSet.smallTileset().readSnesData(data);
     }
 
     inline void readLargeTileset(const XmlTag* tag)
@@ -166,7 +170,7 @@ private:
             throw tag->buildError("Large Tileset data must be a multiple of 128 bytes");
         }
 
-        frameSet->largeTileset().readSnesData(data);
+        frameSet.largeTileset().readSnesData(data);
     }
 
     inline void readPalette(const XmlTag* tag)
@@ -182,8 +186,8 @@ private:
             throw tag->buildError("Palette data must contain 32 bytes");
         }
 
-        auto palette = frameSet->palettes().create();
-        palette->readPalette(data);
+        Palette& palette = frameSet.palettes().create();
+        palette.readPalette(data);
     }
 };
 
@@ -194,53 +198,53 @@ private:
 
 namespace FrameSetWriter {
 
-inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame* frame)
+inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame& frame)
 {
     xml.writeTag("frame");
 
     xml.writeTagAttribute("id", frameName);
 
-    if (frame->solid()) {
+    if (frame.solid()) {
         xml.writeTag("tilehitbox");
 
-        xml.writeTagAttributeMs8rect(frame->tileHitbox());
+        xml.writeTagAttributeMs8rect(frame.tileHitbox());
 
         xml.writeCloseTag();
     }
 
-    for (const auto obj : frame->objects()) {
+    for (const FrameObject& obj : frame.objects()) {
         xml.writeTag("object");
 
-        if (obj->size() == FrameObject::ObjectSize::SMALL) {
+        if (obj.size() == FrameObject::ObjectSize::SMALL) {
             xml.writeTagAttribute("size", "small");
         }
         else {
             xml.writeTagAttribute("size", "large");
         }
 
-        xml.writeTagAttributeMs8point(obj->location());
-        xml.writeTagAttribute("tile", obj->tileId());
-        xml.writeTagAttribute("order", obj->order());
-        xml.writeTagAttribute("hflip", obj->hFlip());
-        xml.writeTagAttribute("vflip", obj->vFlip());
+        xml.writeTagAttributeMs8point(obj.location());
+        xml.writeTagAttribute("tile", obj.tileId());
+        xml.writeTagAttribute("order", obj.order());
+        xml.writeTagAttribute("hflip", obj.hFlip());
+        xml.writeTagAttribute("vflip", obj.vFlip());
 
         xml.writeCloseTag();
     }
 
-    for (const auto ap : frame->actionPoints()) {
+    for (const ActionPoint& ap : frame.actionPoints()) {
         xml.writeTag("actionpoint");
 
-        xml.writeTagAttribute("parameter", ap->parameter());
-        xml.writeTagAttributeMs8point(ap->location());
+        xml.writeTagAttribute("parameter", ap.parameter());
+        xml.writeTagAttributeMs8point(ap.location());
 
         xml.writeCloseTag();
     }
 
-    for (const auto eh : frame->entityHitboxes()) {
+    for (const EntityHitbox& eh : frame.entityHitboxes()) {
         xml.writeTag("entityhitbox");
 
-        xml.writeTagAttribute("parameter", eh->parameter());
-        xml.writeTagAttributeMs8rect(eh->aabb());
+        xml.writeTagAttribute("parameter", eh.parameter());
+        xml.writeTagAttributeMs8rect(eh.aabb());
 
         xml.writeCloseTag();
     }
@@ -266,14 +270,14 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
         xml.writeCloseTag();
     }
 
-    for (const auto p : frameSet.palettes()) {
+    for (const Palette& p : frameSet.palettes()) {
         xml.writeTag("palette");
-        xml.writeBase64(p->paletteData());
+        xml.writeBase64(p.paletteData());
         xml.writeCloseTag();
     }
 
-    for (const auto& f : frameSet.frames()) {
-        writeFrame(xml, f.first, f.second.get());
+    for (const auto fIt : frameSet.frames()) {
+        writeFrame(xml, fIt.first, fIt.second);
     }
 
     xml.writeCloseTag();
@@ -285,7 +289,7 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
  * ===
  */
 
-void readFile(std::shared_ptr<FrameSet> frameSet, const std::string& filename)
+void readFile(FrameSet& frameSet, const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     std::unique_ptr<XmlTag> tag = xml->parseTag();

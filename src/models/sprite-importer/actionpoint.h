@@ -20,22 +20,20 @@ public:
     ActionPoint() = delete;
     ActionPoint(const ActionPoint&) = delete;
 
-    ActionPoint(std::shared_ptr<Frame> frame);
-    ActionPoint(const ActionPoint& point, std::shared_ptr<Frame> frame);
+    ActionPoint(Frame& frame);
+    ActionPoint(const ActionPoint& point, Frame& frame);
 
-    std::shared_ptr<ActionPoint> clone(std::shared_ptr<Frame> frame);
+    inline Frame& frame() const { return _frame; }
+    inline SpriteImporterDocument& document() const { return _frame.frameSet().document(); }
 
     upoint location() const { return _location; }
     parameter_t parameter() const { return _parameter; }
-
-    inline std::shared_ptr<Frame> frame() const { return _frame.lock(); }
-    inline SpriteImporterDocument& document() const { return frame()->frameSet()->document(); }
 
     void setLocation(const upoint& location);
     void setParameter(parameter_t parameter);
 
 private:
-    std::weak_ptr<Frame> _frame;
+    Frame& _frame;
     upoint _location;
     parameter_t _parameter;
 };

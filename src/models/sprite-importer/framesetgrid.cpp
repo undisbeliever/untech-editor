@@ -32,8 +32,8 @@ void FrameSetGrid::setFrameSize(usize frameSize)
         for (const auto f : _frameSet.frames()) {
             const auto& frame = f.second;
 
-            if (frame->useGridLocation()) {
-                limit.expand(frame->minimumViableSize());
+            if (frame.useGridLocation()) {
+                limit.expand(frame.minimumViableSize());
             }
         }
 
@@ -43,7 +43,7 @@ void FrameSetGrid::setFrameSize(usize frameSize)
             _frameSize = newSize;
 
             for (const auto f : _frameSet.frames()) {
-                f.second->recalculateLocation();
+                f.second.recalculateLocation();
             }
         }
     }
@@ -55,7 +55,7 @@ void FrameSetGrid::setOffset(upoint offset)
         _offset = offset;
 
         for (const auto f : _frameSet.frames()) {
-            f.second->recalculateLocation();
+            f.second.recalculateLocation();
         }
     }
 }
@@ -66,7 +66,7 @@ void FrameSetGrid::setPadding(usize padding)
         _padding = padding;
 
         for (const auto f : _frameSet.frames()) {
-            f.second->recalculateLocation();
+            f.second.recalculateLocation();
         }
     }
 }
@@ -79,7 +79,7 @@ void FrameSetGrid::setOrigin(upoint origin)
         _origin = newOrigin;
 
         for (const auto f : _frameSet.frames()) {
-            f.second->recalculateOrigin();
+            f.second.recalculateOrigin();
         }
     }
 }

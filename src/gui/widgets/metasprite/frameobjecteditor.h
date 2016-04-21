@@ -20,7 +20,7 @@ class FrameObjectEditor {
 public:
     FrameObjectEditor();
 
-    void setFrameObject(std::shared_ptr<UnTech::MetaSprite::FrameObject> frameObject)
+    void setFrameObject(UnTech::MetaSprite::FrameObject* frameObject)
     {
         _frameObject = frameObject;
         updateGuiValues();
@@ -34,7 +34,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    std::shared_ptr<UnTech::MetaSprite::FrameObject> _frameObject;
+    UnTech::MetaSprite::FrameObject* _frameObject;
 
     Ms8pointSpinButtons _locationSpinButtons;
     Gtk::SpinButton _tileIdSpinButton;

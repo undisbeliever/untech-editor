@@ -21,11 +21,11 @@ public:
         ENTITY_HITBOX
     };
 
-    void setFrameSet(std::shared_ptr<SI::FrameSet> frameSet);
-    void setFrame(std::shared_ptr<SI::Frame> frame);
-    void setFrameObject(std::shared_ptr<SI::FrameObject> frameObject);
-    void setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint);
-    void setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox);
+    void setFrameSet(SI::FrameSet* frameSet);
+    void setFrame(SI::Frame* frame);
+    void setFrameObject(SI::FrameObject* frameObject);
+    void setActionPoint(SI::ActionPoint* actionPoint);
+    void setEntityHitbox(SI::EntityHitbox* entityHitbox);
 
     // WILL ALWAYS emit a selectionChanged
     void unselectAll();
@@ -33,11 +33,11 @@ public:
     Glib::ustring typeString() const;
 
     Type type() const { return _type; }
-    std::shared_ptr<SI::FrameSet> frameSet() const { return _frameSet; }
-    std::shared_ptr<SI::Frame> frame() const { return _frame; }
-    std::shared_ptr<SI::FrameObject> frameObject() const { return _frameObject; }
-    std::shared_ptr<SI::ActionPoint> actionPoint() const { return _actionPoint; }
-    std::shared_ptr<SI::EntityHitbox> entityHitbox() const { return _entityHitbox; }
+    SI::FrameSet* frameSet() const { return _frameSet; }
+    SI::Frame* frame() const { return _frame; }
+    SI::FrameObject* frameObject() const { return _frameObject; }
+    SI::ActionPoint* actionPoint() const { return _actionPoint; }
+    SI::EntityHitbox* entityHitbox() const { return _entityHitbox; }
 
     bool canCrudSelected() const { return _type != Type::NONE; }
     bool canMoveSelectedUp() const;
@@ -57,12 +57,18 @@ public:
     sigc::signal<void> signal_entityHitboxChanged;
 
 private:
+    // return true if the frame changed
+    // Does not unselect frameObject, actionPoint, entityHitbox
+    // caller has to do that.
+    bool updateFrameIfDifferent(SI::Frame& frame);
+
+private:
     Type _type = Type::NONE;
-    std::shared_ptr<SI::FrameSet> _frameSet = nullptr;
-    std::shared_ptr<SI::Frame> _frame = nullptr;
-    std::shared_ptr<SI::FrameObject> _frameObject = nullptr;
-    std::shared_ptr<SI::ActionPoint> _actionPoint = nullptr;
-    std::shared_ptr<SI::EntityHitbox> _entityHitbox = nullptr;
+    SI::FrameSet* _frameSet = nullptr;
+    SI::Frame* _frame = nullptr;
+    SI::FrameObject* _frameObject = nullptr;
+    SI::ActionPoint* _actionPoint = nullptr;
+    SI::EntityHitbox* _entityHitbox = nullptr;
 };
 }
 }

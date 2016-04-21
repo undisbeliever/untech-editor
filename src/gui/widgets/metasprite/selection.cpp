@@ -6,33 +6,38 @@
 using namespace UnTech::Widgets::MetaSprite;
 namespace MS = UnTech::MetaSprite;
 
-void Selection::updateFrameSet(std::shared_ptr<MS::FrameSet> frameSet)
+void Selection::setFrameSet(MS::FrameSet* frameSet)
 {
     if (_frameSet != frameSet) {
         _frameSet = frameSet;
+        signal_frameSetChanged.emit();
+    }
+
+    setPalette(nullptr);
+
+    if (_frame != nullptr) {
+        _frame = nullptr;
+        signal_frameSetChanged.emit();
+    }
+
+    unselectAll();
+}
+
+void Selection::updateFrameSet(MS::FrameSet& frameSet)
+{
+    if (_frameSet != &frameSet) {
+        _frameSet = &frameSet;
         signal_frameSetChanged.emit();
 
         setPalette(nullptr);
     }
 }
 
-void Selection::setFrameSet(std::shared_ptr<MS::FrameSet> frameSet)
-{
-    updateFrameSet(frameSet);
-
-    if (_frame != nullptr) {
-        _frame = nullptr;
-        signal_frameChanged.emit();
-    }
-
-    unselectAll();
-}
-
-void Selection::setPalette(std::shared_ptr<MS::Palette> palette)
+void Selection::setPalette(MS::Palette* palette)
 {
     if (palette == nullptr && _frameSet && _frameSet->palettes().size() > 0) {
         // auto select first palette
-        return setPalette(*(_frameSet->palettes().begin()));
+        return setPalette(&*(_frameSet->palettes().begin()));
     }
 
     if (_palette != palette) {
@@ -41,28 +46,33 @@ void Selection::setPalette(std::shared_ptr<MS::Palette> palette)
     }
 }
 
-void Selection::setFrame(std::shared_ptr<MS::Frame> frame)
+void Selection::setFrame(MS::Frame* frame)
 {
     if (_frame != frame) {
-        updateFrame(frame);
+        _frame = frame;
+
+        if (frame) {
+            updateFrameSet(frame->frameSet());
+        }
+
+        signal_frameChanged.emit();
 
         unselectAll();
     }
 }
 
-void Selection::updateFrame(std::shared_ptr<MS::Frame> frame)
+void Selection::updateFrame(MS::Frame& frame)
 {
-    if (_frame != frame) {
-        _frame = frame;
-        signal_frameChanged.emit();
+    if (_frame != &frame) {
+        _frame = &frame;
 
-        if (frame != nullptr) {
-            updateFrameSet(frame->frameSet());
-        }
+        updateFrameSet(frame.frameSet());
+
+        signal_frameChanged.emit();
     }
 }
 
-void Selection::setFrameObject(std::shared_ptr<MS::FrameObject> frameObject)
+void Selection::setFrameObject(MS::FrameObject* frameObject)
 {
     bool changed = _frameObject != frameObject;
     if (changed) {
@@ -93,7 +103,7 @@ void Selection::setFrameObject(std::shared_ptr<MS::FrameObject> frameObject)
     }
 }
 
-void Selection::setActionPoint(std::shared_ptr<MS::ActionPoint> actionPoint)
+void Selection::setActionPoint(MS::ActionPoint* actionPoint)
 {
     bool changed = _actionPoint != actionPoint;
     if (changed) {
@@ -124,7 +134,7 @@ void Selection::setActionPoint(std::shared_ptr<MS::ActionPoint> actionPoint)
     }
 }
 
-void Selection::setEntityHitbox(std::shared_ptr<MS::EntityHitbox> entityHitbox)
+void Selection::setEntityHitbox(MS::EntityHitbox* entityHitbox)
 {
     bool changed = _entityHitbox != entityHitbox;
     if (changed) {
@@ -293,29 +303,36 @@ void Selection::cloneSelected()
 void Selection::removeSelected()
 {
     switch (_type) {
-    case Type::FRAME_OBJECT:
+    case Type::FRAME_OBJECT: {
+        MS::FrameObject* obj = _frameObject;
+        setFrameObject(nullptr);
+
         Undo::orderedList_remove<MS::FrameObject>(
-            &_frame->objects(), _frameObject,
+            &_frame->objects(), obj,
             Signals::frameObjectListChanged,
             _("Remove Frame Object"));
-        setFrameObject(nullptr);
         break;
+    }
+    case Type::ACTION_POINT: {
+        MS::ActionPoint* ap = _actionPoint;
+        setActionPoint(nullptr);
 
-    case Type::ACTION_POINT:
         Undo::orderedList_remove<MS::ActionPoint>(
-            &_frame->actionPoints(), _actionPoint,
+            &_frame->actionPoints(), ap,
             Signals::actionPointListChanged,
             _("Remove Action Point"));
-        setActionPoint(nullptr);
         break;
+    }
+    case Type::ENTITY_HITBOX: {
+        MS::EntityHitbox* eh = _entityHitbox;
+        setEntityHitbox(nullptr);
 
-    case Type::ENTITY_HITBOX:
         Undo::orderedList_remove<MS::EntityHitbox>(
-            &_frame->entityHitboxes(), _entityHitbox,
+            &_frame->entityHitboxes(), eh,
             Signals::entityHitboxListChanged,
             _("Remove Entity Hitbox"));
-        setEntityHitbox(nullptr);
         break;
+    }
 
     default:
         break;

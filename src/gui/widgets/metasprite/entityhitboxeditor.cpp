@@ -63,7 +63,7 @@ EntityHitboxEditor::EntityHitboxEditor()
     });
 
     /* Update gui if object has changed */
-    Signals::entityHitboxChanged.connect([this](const std::shared_ptr<MS::EntityHitbox> obj) {
+    Signals::entityHitboxChanged.connect([this](const MS::EntityHitbox* obj) {
         if (_entityHitbox == obj) {
             updateGuiValues();
         }
@@ -73,8 +73,6 @@ EntityHitboxEditor::EntityHitboxEditor()
 void EntityHitboxEditor::updateGuiValues()
 {
     if (_entityHitbox) {
-        auto frame = _entityHitbox->frame();
-
         _updatingValues = true;
 
         _aabbSpinButtons.set_value(_entityHitbox->aabb());

@@ -18,7 +18,7 @@ public:
 
     ~FrameGraphicalEditor() = default;
 
-    void setFrame(std::shared_ptr<MS::Frame> frame);
+    void setFrame(MS::Frame* frame);
 
     void setZoom(double x, double y);
 
@@ -85,7 +85,7 @@ private:
     // on zoom/resize the _xOffset/_yOffset variables are changed.
     int _centerX, _centerY;
 
-    std::shared_ptr<MS::Frame> _selectedFrame;
+    MS::Frame* _selectedFrame;
     Selection& _selection;
     Action _action;
 };

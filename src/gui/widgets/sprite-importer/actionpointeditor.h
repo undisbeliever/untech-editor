@@ -22,7 +22,7 @@ class ActionPointEditor {
 public:
     ActionPointEditor();
 
-    void setActionPoint(std::shared_ptr<UnTech::SpriteImporter::ActionPoint> actionPoint)
+    void setActionPoint(UnTech::SpriteImporter::ActionPoint* actionPoint)
     {
         _actionPoint = actionPoint;
         updateGuiValues();
@@ -37,7 +37,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    std::shared_ptr<UnTech::SpriteImporter::ActionPoint> _actionPoint;
+    UnTech::SpriteImporter::ActionPoint* _actionPoint;
 
     UpointSpinButtons _locationSpinButtons;
     Gtk::Entry _parameterEntry;

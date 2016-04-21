@@ -19,7 +19,7 @@ class FrameSet;
 namespace Serializer {
 
 // NOTE: FrameSet MUST be empty
-void readFile(std::shared_ptr<FrameSet> frameSet, const std::string& filename);
+void readFile(FrameSet& frameSet, const std::string& filename);
 
 // ::TODO remove when completed utsi2utms command line argument parsing"
 void writeFile(const FrameSet& frameSet, std::ostream& file);

@@ -26,7 +26,7 @@ public:
         add(col_parameter);
     }
 
-    Gtk::TreeModelColumn<std::shared_ptr<MS::EntityHitbox>> col_item;
+    Gtk::TreeModelColumn<MS::EntityHitbox*> col_item;
     Gtk::TreeModelColumn<unsigned int> col_id;
     // ::TODO change to native types::
     Gtk::TreeModelColumn<Glib::ustring> col_aabb;
@@ -39,7 +39,7 @@ public:
         treeView.append_column(_("Parameter"), col_parameter);
     }
 
-    inline void setRowData(Gtk::TreeRow& row, std::shared_ptr<MS::EntityHitbox> eh)
+    inline void setRowData(Gtk::TreeRow& row, const MS::EntityHitbox* eh)
     {
         auto aabb = eh->aabb();
         row[col_aabb] = Glib::ustring::compose("%1, %2 : %3 x %4",

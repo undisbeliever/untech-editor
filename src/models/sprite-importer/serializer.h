@@ -26,7 +26,7 @@ class FrameSet;
 namespace Serializer {
 
 // NOTE: FrameSet MUST be empty
-void readFile(std::shared_ptr<FrameSet> frameSet, const std::string& filename);
+void readFile(FrameSet& frameSet, const std::string& filename);
 
 void writeFile(const FrameSet& frameSet, const std::string& filename);
 }

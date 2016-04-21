@@ -11,13 +11,13 @@ SIMPLE_UNDO_ACTION(frameObject_setLocation,
 
 // Cannot use simple undo action for FrameObject::setSize
 // Changing the size can change the location.
-inline void frameObject_setSize(std::shared_ptr<SI::FrameObject> item,
+inline void frameObject_setSize(SI::FrameObject* item,
                                 const SI::FrameObject::ObjectSize& newSize)
 {
     class Action : public ::UnTech::Undo::Action {
     public:
         Action() = delete;
-        Action(std::shared_ptr<SI::FrameObject> item,
+        Action(SI::FrameObject* item,
                const SI::FrameObject::ObjectSize& oldSize,
                const UnTech::upoint& oldLocation,
                const SI::FrameObject::ObjectSize& newSize)
@@ -50,7 +50,7 @@ inline void frameObject_setSize(std::shared_ptr<SI::FrameObject> item,
         }
 
     private:
-        std::shared_ptr<SI::FrameObject> _item;
+        SI::FrameObject* _item;
 
         SI::FrameObject::ObjectSize _oldSize;
         UnTech::upoint _oldLocation;
@@ -58,18 +58,20 @@ inline void frameObject_setSize(std::shared_ptr<SI::FrameObject> item,
         SI::FrameObject::ObjectSize _newSize;
     };
 
-    SI::FrameObject::ObjectSize oldSize = item->size();
+    if (item) {
+        SI::FrameObject::ObjectSize oldSize = item->size();
 
-    if (oldSize != newSize) {
-        UnTech::upoint oldLocation = item->location();
+        if (oldSize != newSize) {
+            UnTech::upoint oldLocation = item->location();
 
-        item->setSize(newSize);
-        Signals::frameObjectChanged.emit(item);
+            item->setSize(newSize);
+            Signals::frameObjectChanged.emit(item);
 
-        auto a = std::make_unique<Action>(item, oldSize, oldLocation, newSize);
+            auto a = std::make_unique<Action>(item, oldSize, oldLocation, newSize);
 
-        auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
-        undoDoc->undoStack().add_undo(std::move(a));
+            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
+            undoDoc->undoStack().add_undo(std::move(a));
+        }
     }
 }
 
@@ -122,28 +124,30 @@ FrameObjectEditor::FrameObjectEditor()
     });
 
     /* Update gui if object has changed */
-    Signals::frameObjectChanged.connect([this](const std::shared_ptr<SI::FrameObject> obj) {
+    Signals::frameObjectChanged.connect([this](const SI::FrameObject* obj) {
         if (_frameObject == obj) {
             updateGuiValues();
         }
     });
 
     /* Update location range if necessary */
-    Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
-        if (_frameObject) {
-            const auto f = _frameObject->frame();
-            if (frame == f) {
+    Signals::frameSizeChanged.connect([this](const SI::Frame* frame) {
+        if (frame && _frameObject) {
+            const SI::Frame& f = _frameObject->frame();
+
+            if (frame == &f) {
                 _locationSpinButtons.set_range(frame->locationSize());
             }
         }
     });
 
     /* Update location range if necessary */
-    Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
-        if (_frameObject) {
-            const auto frame = _frameObject->frame();
-            if (frame->frameSet() == fs) {
-                _locationSpinButtons.set_range(frame->locationSize());
+    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameSet) {
+        if (frameSet && _frameObject) {
+            const SI::Frame& f = _frameObject->frame();
+
+            if (frameSet == &f.frameSet()) {
+                _locationSpinButtons.set_range(f.locationSize());
             }
         }
     });
@@ -154,13 +158,9 @@ void FrameObjectEditor::updateGuiValues()
     typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
 
     if (_frameObject) {
-        auto frame = _frameObject->frame();
-
         _updatingValues = true;
 
-        if (frame) {
-            _locationSpinButtons.set_range(frame->locationSize(), _frameObject->sizePx());
-        }
+        _locationSpinButtons.set_range(_frameObject->frame().locationSize(), _frameObject->sizePx());
         _locationSpinButtons.set_value(_frameObject->location());
         _sizeCombo.set_active(_frameObject->size() == OS::LARGE ? 1 : 0);
 

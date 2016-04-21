@@ -60,18 +60,18 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
         queue_draw();
     });
 
-    Signals::frameChanged.connect([this](const std::shared_ptr<MS::Frame> frame) {
+    Signals::frameChanged.connect([this](const MS::Frame* frame) {
         if (frame == _selectedFrame) {
             queue_draw();
         }
     });
-    Signals::actionPointChanged.connect([this](const std::shared_ptr<MS::ActionPoint> ap) {
-        if (ap && ap->frame() == _selectedFrame) {
+    Signals::actionPointChanged.connect([this](const MS::ActionPoint* ap) {
+        if (ap && &ap->frame() == _selectedFrame) {
             queue_draw();
         }
     });
-    Signals::entityHitboxChanged.connect([this](const std::shared_ptr<MS::EntityHitbox> eh) {
-        if (eh && eh->frame() == _selectedFrame) {
+    Signals::entityHitboxChanged.connect([this](const MS::EntityHitbox* eh) {
+        if (eh && &eh->frame() == _selectedFrame) {
             queue_draw();
         }
     });
@@ -83,13 +83,13 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     Signals::frameObjectListChanged.connect(sigc::hide(sigc::mem_fun(
         this, &FrameGraphicalEditor::redrawFramePixbuf)));
 
-    Signals::frameObjectChanged.connect([this](const std::shared_ptr<MS::FrameObject> obj) {
-        if (obj && obj->frame() == _selectedFrame) {
+    Signals::frameObjectChanged.connect([this](const MS::FrameObject* obj) {
+        if (obj && &obj->frame() == _selectedFrame) {
             redrawFramePixbuf();
         }
     });
 
-    Signals::paletteChanged.connect([this](const std::shared_ptr<MS::Palette> palette) {
+    Signals::paletteChanged.connect([this](const MS::Palette* palette) {
         if (palette && palette == _selection.palette()) {
             redrawFramePixbuf();
         }
@@ -104,7 +104,7 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
         this, &FrameGraphicalEditor::update_offsets));
 }
 
-void FrameGraphicalEditor::setFrame(std::shared_ptr<MS::Frame> frame)
+void FrameGraphicalEditor::setFrame(MS::Frame* frame)
 {
     if (_selectedFrame != frame) {
         _selectedFrame = frame;
@@ -120,7 +120,7 @@ void FrameGraphicalEditor::redrawFramePixbuf()
         // ::TODO fill with palette BG color?::
 
         _frameImageBuffer.fill(0);
-        _selectedFrame->draw(_frameImageBuffer, _selection.palette().get(),
+        _selectedFrame->draw(_frameImageBuffer, *_selection.palette(),
                              FRAME_IMAGE_OFFSET, FRAME_IMAGE_OFFSET);
 
         auto pixbuf = Gdk::Pixbuf::create_from_data(reinterpret_cast<const guint8*>(_frameImageBuffer.data()),
@@ -200,7 +200,7 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->set_antialias(Cairo::ANTIALIAS_NONE);
     }
 
-    const auto frame = _selectedFrame;
+    const MS::Frame* frame = _selectedFrame;
 
     cr->set_line_width(ITEM_WIDTH);
 
@@ -213,8 +213,8 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->stroke();
     }
 
-    for (const auto eh : frame->entityHitboxes()) {
-        const auto aabb = eh->aabb();
+    for (const MS::EntityHitbox& eh : frame->entityHitboxes()) {
+        const auto& aabb = eh.aabb();
 
         draw_rectangle(aabb.x, aabb.y,
                        aabb.width, aabb.height);
@@ -230,11 +230,11 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
         cr->save();
 
-        for (const auto obj : frame->objects()) {
-            const auto oloc = obj->location();
+        for (const MS::FrameObject& obj : frame->objects()) {
+            const auto oloc = obj.location();
 
             draw_rectangle(oloc.x, oloc.y,
-                           obj->sizePx(), obj->sizePx());
+                           obj.sizePx(), obj.sizePx());
         }
 
         frameObjectColor.apply(cr);
@@ -243,8 +243,8 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->restore();
     }
 
-    for (const auto ap : frame->actionPoints()) {
-        const auto aLoc = ap->location();
+    for (const MS::ActionPoint& ap : frame->actionPoints()) {
+        const auto aLoc = ap.location();
 
         double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
         double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
@@ -420,36 +420,30 @@ bool FrameGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
             case Selection::Type::FRAME_OBJECT:
                 if (_selection.frameObject()) {
-                    const auto fo = _selection.frameObject();
+                    const MS::FrameObject* fo = _selection.frameObject();
+                    const auto foLoc = fo->location();
 
-                    if (fo->frame()) {
-                        const auto foLoc = fo->location();
-                        aabb = ms8rect(foLoc.x, foLoc.y, fo->sizePx(), fo->sizePx());
-                        _action.canDrag = true;
-                    }
+                    aabb = ms8rect(foLoc.x, foLoc.y, fo->sizePx(), fo->sizePx());
+                    _action.canDrag = true;
                 }
                 break;
 
             case Selection::Type::ACTION_POINT:
                 if (_selection.actionPoint()) {
-                    const auto ap = _selection.actionPoint();
+                    const MS::ActionPoint* ap = _selection.actionPoint();
+                    const auto apLoc = ap->location();
 
-                    if (ap->frame()) {
-                        const auto apLoc = ap->location();
-                        aabb = ms8rect(apLoc.x, apLoc.y, 1, 1);
-                        _action.canDrag = true;
-                    }
+                    aabb = ms8rect(apLoc.x, apLoc.y, 1, 1);
+                    _action.canDrag = true;
                 }
                 break;
 
             case Selection::Type::ENTITY_HITBOX:
                 if (_selection.entityHitbox()) {
-                    const auto eh = _selection.entityHitbox();
+                    const MS::EntityHitbox* eh = _selection.entityHitbox();
 
-                    if (eh->frame()) {
-                        aabb = eh->aabb();
-                        _action.canDrag = true;
-                    }
+                    aabb = eh->aabb();
+                    _action.canDrag = true;
                 }
                 break;
             }
@@ -611,70 +605,72 @@ void FrameGraphicalEditor::handleRelease_Click(const ms8point& mouse)
      */
     struct SelHandler {
         Selection::Type type = Selection::Type::NONE;
-        std::shared_ptr<MS::FrameObject> frameObject = nullptr;
-        std::shared_ptr<MS::ActionPoint> actionPoint = nullptr;
-        std::shared_ptr<MS::EntityHitbox> entityHitbox = nullptr;
+        MS::FrameObject* frameObject = nullptr;
+        MS::ActionPoint* actionPoint = nullptr;
+        MS::EntityHitbox* entityHitbox = nullptr;
     };
     SelHandler current;
     SelHandler firstMatch;
 
-    const auto sFrame = _selectedFrame;
+    const MS::Frame* sFrame = _selectedFrame;
 
-    for (const auto obj : sFrame->objects()) {
-        const auto loc = obj->location();
+    for (MS::FrameObject& obj : sFrame->objects()) {
+        const auto loc = obj.location();
 
-        if (mouse.x >= loc.x && mouse.x < (loc.x + (int)obj->sizePx())
-            && mouse.y >= loc.y && mouse.y < (loc.y + (int)obj->sizePx())) {
+        if (mouse.x >= loc.x && mouse.x < (loc.x + (int)obj.sizePx())
+            && mouse.y >= loc.y && mouse.y < (loc.y + (int)obj.sizePx())) {
             if (current.type == Selection::Type::NONE) {
-                current.frameObject = obj;
+                current.frameObject = &obj;
                 current.type = Selection::Type::FRAME_OBJECT;
 
                 if (firstMatch.type == Selection::Type::NONE) {
-                    firstMatch.frameObject = obj;
+                    firstMatch.frameObject = &obj;
                     firstMatch.type = Selection::Type::FRAME_OBJECT;
                 }
             }
-            if (obj == _selection.frameObject()
+            if (_selection.frameObject() == &obj
                 && _selection.type() == Selection::Type::FRAME_OBJECT) {
+
                 current.type = Selection::Type::NONE;
             }
         }
     }
 
-    for (const auto ap : sFrame->actionPoints()) {
-        const auto loc = ap->location();
+    for (MS::ActionPoint& ap : sFrame->actionPoints()) {
+        const auto loc = ap.location();
 
         if (mouse == loc) {
             if (current.type == Selection::Type::NONE) {
-                current.actionPoint = ap;
+                current.actionPoint = &ap;
                 current.type = Selection::Type::ACTION_POINT;
 
                 if (firstMatch.type == Selection::Type::NONE) {
-                    firstMatch.actionPoint = ap;
+                    firstMatch.actionPoint = &ap;
                     firstMatch.type = Selection::Type::ACTION_POINT;
                 }
             }
-            if (ap == _selection.actionPoint()
+            if (_selection.actionPoint() == &ap
                 && _selection.type() == Selection::Type::ACTION_POINT) {
+
                 current.type = Selection::Type::NONE;
             }
         }
     }
 
-    for (const auto eh : sFrame->entityHitboxes()) {
-        const auto aabb = eh->aabb();
+    for (MS::EntityHitbox& eh : sFrame->entityHitboxes()) {
+        const auto aabb = eh.aabb();
 
         if (aabb.contains(mouse)) {
             if (current.type == Selection::Type::NONE) {
-                current.entityHitbox = eh;
+                current.entityHitbox = &eh;
                 current.type = Selection::Type::ENTITY_HITBOX;
 
                 if (firstMatch.type == Selection::Type::NONE) {
-                    firstMatch.entityHitbox = eh;
+                    firstMatch.entityHitbox = &eh;
                     firstMatch.type = Selection::Type::ENTITY_HITBOX;
                 }
             }
-            if (eh == _selection.entityHitbox()
+            if (_selection.entityHitbox() == &eh
                 && _selection.type() == Selection::Type::ENTITY_HITBOX) {
                 current.type = Selection::Type::NONE;
             }

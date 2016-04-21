@@ -15,7 +15,7 @@ class FrameObject;
 class ActionPoint;
 class EntityHitbox;
 
-class Frame : public std::enable_shared_from_this<Frame> {
+class Frame {
 public:
     typedef NamedList<FrameSet, Frame> list_t;
 
@@ -23,14 +23,11 @@ public:
     Frame() = delete;
     Frame(const Frame&) = delete;
 
-    Frame(std::shared_ptr<FrameSet> frameSet);
+    Frame(FrameSet& frameSet);
+    Frame(const Frame& frame, FrameSet& frameSet);
 
-private:
-    Frame(const Frame& frame, std::shared_ptr<FrameSet> frameSet);
-
-public:
-    std::shared_ptr<Frame> ptr() { return shared_from_this(); }
-    std::shared_ptr<Frame> clone(std::shared_ptr<FrameSet> frameSet);
+    inline FrameSet& frameSet() const { return _frameSet; }
+    inline MetaSpriteDocument& document() const { return _frameSet.document(); }
 
     inline auto& objects() { return _objects; }
     inline auto& actionPoints() { return _actionPoints; }
@@ -43,9 +40,6 @@ public:
     inline bool solid() const { return _solid; }
     inline ms8rect tileHitbox() const { return _tileHitbox; }
 
-    inline std::shared_ptr<FrameSet> frameSet() const { return _frameSet.lock(); }
-    inline MetaSpriteDocument& document() const { return frameSet()->document(); }
-
     inline void setSolid(bool solid) { _solid = solid; }
     inline void setTileHitbox(const ms8rect& tileHitbox) { _tileHitbox = tileHitbox; }
 
@@ -55,11 +49,11 @@ public:
     };
     Boundary calcBoundary() const;
 
-    void draw(Image& image, const Palette* palette,
+    void draw(Image& image, const Palette& palette,
               unsigned xOffset = 0, unsigned yOffset = 0) const;
 
 private:
-    std::weak_ptr<FrameSet> _frameSet;
+    FrameSet& _frameSet;
     OrderedList<Frame, FrameObject> _objects;
     OrderedList<Frame, ActionPoint> _actionPoints;
     OrderedList<Frame, EntityHitbox> _entityHitboxes;

@@ -24,9 +24,9 @@ public:
 
 public:
     FrameObject() = delete;
-    FrameObject(const Frame&) = delete;
+    FrameObject(const FrameObject&) = delete;
 
-    FrameObject(std::shared_ptr<Frame> frame)
+    FrameObject(Frame& frame)
         : _frame(frame)
         , _location(-4, -4)
         , _size(ObjectSize::SMALL)
@@ -37,7 +37,7 @@ public:
     {
     }
 
-    FrameObject(const FrameObject& object, std::shared_ptr<Frame> frame)
+    FrameObject(const FrameObject& object, Frame& frame)
         : _frame(frame)
         , _location(object._location)
         , _size(object._size)
@@ -48,10 +48,8 @@ public:
     {
     }
 
-    std::shared_ptr<FrameObject> clone(std::shared_ptr<Frame> frame)
-    {
-        return std::make_shared<FrameObject>(*this, frame);
-    }
+    inline Frame& frame() const { return _frame; }
+    inline MetaSpriteDocument& document() const { return _frame.frameSet().document(); }
 
     inline ms8point location() const { return _location; }
     inline ObjectSize size() const { return _size; }
@@ -62,9 +60,6 @@ public:
 
     inline unsigned sizePx() const { return (unsigned)_size; }
 
-    inline std::shared_ptr<Frame> frame() const { return _frame.lock(); }
-    inline MetaSpriteDocument& document() const { return frame()->frameSet()->document(); }
-
     inline void setLocation(const ms8point& location) { _location = location; }
     inline void setSize(ObjectSize size) { _size = size; }
     inline void setTileId(unsigned tileId) { _tileId = tileId; }
@@ -73,7 +68,7 @@ public:
     inline void setVFlip(bool vFlip) { _vFlip = vFlip; }
 
 private:
-    std::weak_ptr<Frame> _frame;
+    Frame& _frame;
     ms8point _location;
     ObjectSize _size;
     unsigned _tileId;

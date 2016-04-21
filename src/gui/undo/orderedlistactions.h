@@ -4,10 +4,6 @@
 /*
  * This file is tightly coupled with the `UnTech::orderedlist` template and
  * the `UnTech::Widgets::OrderedListView` widgets.
- *
- * Using a raw pointer here is bad and wrong.
- * The list pointer will still exist in memory because of the way
- * the create/remove actions are handled.
  */
 
 #include "undostack.h"
@@ -26,46 +22,47 @@ template <class T>
 class OrderedListAddRemove {
 public:
     OrderedListAddRemove(typename T::list_t* list,
-                         const std::shared_ptr<T>& item)
+                         T* item)
         : _list(list)
-        , _item(item)
+        , _item(nullptr)
     {
-        _index = _list->indexOf(item);
-        assert(_index >= 0);
+        int index = _list->indexOf(item);
+        assert(index >= 0);
+        _index = (size_t)index;
     }
 
     void add()
     {
-        _list->insertAtIndex(_item, _index);
+        _list->insertAtIndex(std::move(_item), _index);
     }
 
     void remove()
     {
-        _list->remove(_item);
+        _item = _list->removeFromList(_index);
     }
 
-    auto list() const { return _list; }
+    typename T::list_t* list() const { return _list; }
 
 private:
     typename T::list_t* _list;
-    const std::shared_ptr<T> _item;
-    int _index;
+    std::unique_ptr<T> _item;
+    size_t _index;
 };
 }
 
 template <class T>
-inline std::shared_ptr<T> orderedList_create(typename T::list_t* list,
-                                             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
-                                             const Glib::ustring& message)
+inline T* orderedList_create(typename T::list_t* list,
+                             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
+                             const Glib::ustring& message)
 {
     class Action : public ::UnTech::Undo::Action {
     public:
         Action() = delete;
         Action(
-            Private::OrderedListAddRemove<T>& handler,
+            typename T::list_t* list, T* item,
             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
             const Glib::ustring& message)
-            : _handler(handler)
+            : _handler(list, item)
             , _listChangedSignal(listChangedSignal)
             , _message(message)
         {
@@ -93,39 +90,31 @@ inline std::shared_ptr<T> orderedList_create(typename T::list_t* list,
         const Glib::ustring _message;
     };
 
-    if (list) {
-        auto newItem = list->create();
+    T* newItem = &(list->create());
 
-        if (newItem != nullptr) {
-            listChangedSignal.emit(list);
+    listChangedSignal.emit(list);
 
-            Private::OrderedListAddRemove<T> handler(list, newItem);
+    auto a = std::make_unique<Action>(list, newItem, listChangedSignal, message);
 
-            auto a = std::make_unique<Action>(handler, listChangedSignal, message);
+    auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
+    undoDoc->undoStack().add_undo(std::move(a));
 
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
-
-            return newItem;
-        }
-    }
-
-    return nullptr;
+    return newItem;
 }
 
 template <class T>
-inline std::shared_ptr<T> orderedList_clone(typename T::list_t* list, std::shared_ptr<T> item,
-                                            const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
-                                            const Glib::ustring& message)
+inline T* orderedList_clone(typename T::list_t* list, T* item,
+                            const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
+                            const Glib::ustring& message)
 {
     class Action : public ::UnTech::Undo::Action {
     public:
         Action() = delete;
         Action(
-            Private::OrderedListAddRemove<T>& handler,
+            typename T::list_t* list, T* item,
             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
             const Glib::ustring& message)
-            : _handler(handler)
+            : _handler(list, item)
             , _listChangedSignal(listChangedSignal)
             , _message(message)
         {
@@ -153,28 +142,25 @@ inline std::shared_ptr<T> orderedList_clone(typename T::list_t* list, std::share
         const Glib::ustring _message;
     };
 
-    if (list) {
-        auto newItem = list->clone(item);
+    if (item) {
+        T* newItem = &(list->clone(*item));
 
-        if (newItem != nullptr) {
-            listChangedSignal.emit(list);
+        listChangedSignal.emit(list);
 
-            Private::OrderedListAddRemove<T> handler(list, newItem);
+        auto a = std::make_unique<Action>(list, newItem, listChangedSignal, message);
 
-            auto a = std::make_unique<Action>(handler, listChangedSignal, message);
+        auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
+        undoDoc->undoStack().add_undo(std::move(a));
 
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
-
-            return newItem;
-        }
+        return newItem;
     }
-
-    return nullptr;
+    else {
+        return nullptr;
+    }
 }
 
 template <class T>
-inline void orderedList_remove(typename T::list_t* list, std::shared_ptr<T> item,
+inline void orderedList_remove(typename T::list_t* list, T* item,
                                const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                                const Glib::ustring& message)
 {
@@ -182,10 +168,10 @@ inline void orderedList_remove(typename T::list_t* list, std::shared_ptr<T> item
     public:
         Action() = delete;
         Action(
-            Private::OrderedListAddRemove<T>& handler,
+            typename T::list_t* list, T* item,
             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
             const Glib::ustring& message)
-            : _handler(handler)
+            : _handler(list, item)
             , _listChangedSignal(listChangedSignal)
             , _message(message)
         {
@@ -213,23 +199,19 @@ inline void orderedList_remove(typename T::list_t* list, std::shared_ptr<T> item
         const Glib::ustring _message;
     };
 
-    if (list) {
-        if (list->contains(item)) {
-            Private::OrderedListAddRemove<T> handler(list, item);
-            handler.remove();
-            listChangedSignal.emit(list);
+    if (list->contains(item)) {
+        auto a = std::make_unique<Action>(list, item, listChangedSignal, message);
 
-            auto a = std::make_unique<Action>(handler, listChangedSignal, message);
+        a->redo();
 
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
-        }
+        auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
+        undoDoc->undoStack().add_undo(std::move(a));
     }
 }
 
 template <class T>
 inline void orderedList_moveUp(typename T::list_t* list,
-                               const std::shared_ptr<T>& item,
+                               T* item,
                                const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                                const Glib::ustring& message)
 {
@@ -238,7 +220,7 @@ inline void orderedList_moveUp(typename T::list_t* list,
         Action() = delete;
         Action(
             typename T::list_t* list,
-            const std::shared_ptr<T>& item,
+            T* item,
             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
             const Glib::ustring& message)
             : _list(list)
@@ -266,12 +248,12 @@ inline void orderedList_moveUp(typename T::list_t* list,
 
     private:
         typename T::list_t* _list;
-        const std::shared_ptr<T>& _item;
+        T* _item;
         const typename sigc::signal<void, const typename T::list_t*>& _listChangedSignal;
         const Glib::ustring _message;
     };
 
-    if (list) {
+    if (list && item) {
         bool r = list->moveUp(item);
 
         if (r) {
@@ -287,7 +269,7 @@ inline void orderedList_moveUp(typename T::list_t* list,
 
 template <class T>
 inline void orderedList_moveDown(typename T::list_t* list,
-                                 const std::shared_ptr<T>& item,
+                                 T* item,
                                  const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
                                  const Glib::ustring& message)
 {
@@ -296,7 +278,7 @@ inline void orderedList_moveDown(typename T::list_t* list,
         Action() = delete;
         Action(
             typename T::list_t* list,
-            const std::shared_ptr<T>& item,
+            T* item,
             const typename sigc::signal<void, const typename T::list_t*>& listChangedSignal,
             const Glib::ustring& message)
             : _list(list)
@@ -324,12 +306,12 @@ inline void orderedList_moveDown(typename T::list_t* list,
 
     private:
         typename T::list_t* _list;
-        const std::shared_ptr<T>& _item;
+        T* _item;
         const typename sigc::signal<void, const typename T::list_t*>& _listChangedSignal;
         const Glib::ustring _message;
     };
 
-    if (list) {
+    if (list && item) {
         bool r = list->moveDown(item);
 
         if (r) {

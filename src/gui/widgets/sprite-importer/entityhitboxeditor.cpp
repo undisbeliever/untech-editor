@@ -63,27 +63,29 @@ EntityHitboxEditor::EntityHitboxEditor()
     });
 
     /* Update gui if object has changed */
-    Signals::entityHitboxChanged.connect([this](const std::shared_ptr<SI::EntityHitbox> obj) {
-        if (_entityHitbox == obj) {
+    Signals::entityHitboxChanged.connect([this](const SI::EntityHitbox* eh) {
+        if (_entityHitbox == eh) {
             updateGuiValues();
         }
     });
 
     /* Update aabb range if necessary */
-    Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
-        if (_entityHitbox) {
-            const auto f = _entityHitbox->frame();
-            if (frame == f) {
-                _aabbSpinButtons.set_range(frame->locationSize());
+    Signals::frameSizeChanged.connect([this](const SI::Frame* frame) {
+        if (frame && _entityHitbox) {
+            const SI::Frame& f = _entityHitbox->frame();
+
+            if (frame == &f) {
+                _aabbSpinButtons.set_range(f.locationSize());
             }
         }
     });
 
-    Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
-        if (_entityHitbox) {
-            const auto frame = _entityHitbox->frame();
-            if (frame->frameSet() == fs) {
-                _aabbSpinButtons.set_range(frame->locationSize());
+    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameSet) {
+        if (frameSet && _entityHitbox) {
+            const SI::Frame& f = _entityHitbox->frame();
+
+            if (frameSet == &f.frameSet()) {
+                _aabbSpinButtons.set_range(f.locationSize());
             }
         }
     });
@@ -92,13 +94,9 @@ EntityHitboxEditor::EntityHitboxEditor()
 void EntityHitboxEditor::updateGuiValues()
 {
     if (_entityHitbox) {
-        auto frame = _entityHitbox->frame();
-
         _updatingValues = true;
 
-        if (frame) {
-            _aabbSpinButtons.set_range(frame->locationSize());
-        }
+        _aabbSpinButtons.set_range(_entityHitbox->frame().locationSize());
         _aabbSpinButtons.set_value(_entityHitbox->aabb());
         _parameterEntry.set_text(Glib::ustring::compose("%1", _entityHitbox->parameter()));
 

@@ -17,7 +17,7 @@ class Frame;
 class MetaSpriteDocument;
 class Palette;
 
-class FrameSet : public std::enable_shared_from_this<FrameSet> {
+class FrameSet {
 
 public:
     FrameSet() = delete;
@@ -25,7 +25,7 @@ public:
 
     FrameSet(MetaSpriteDocument& document);
 
-    std::shared_ptr<FrameSet> ptr() { return shared_from_this(); }
+    inline MetaSpriteDocument& document() const { return _document; }
 
     inline const std::string& name() const { return _name; }
 
@@ -40,8 +40,6 @@ public:
 
     inline auto& frames() { return _frames; }
     inline const auto& frames() const { return _frames; }
-
-    inline MetaSpriteDocument& document() const { return _document; }
 
     void setName(const std::string& name);
 

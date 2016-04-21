@@ -20,36 +20,31 @@ public:
     EntityHitbox() = delete;
     EntityHitbox(const EntityHitbox&) = delete;
 
-    EntityHitbox(std::shared_ptr<Frame> frame)
+    EntityHitbox(Frame& frame)
         : _frame(frame)
         , _aabb(-4, -4, 8, 8)
         , _parameter(0)
     {
     }
 
-    EntityHitbox(const EntityHitbox& hitbox, std::shared_ptr<Frame> frame)
+    EntityHitbox(const EntityHitbox& hitbox, Frame& frame)
         : _frame(frame)
         , _aabb(hitbox._aabb)
         , _parameter(hitbox._parameter)
     {
     }
 
-    std::shared_ptr<EntityHitbox> clone(std::shared_ptr<Frame> frame)
-    {
-        return std::make_shared<EntityHitbox>(*this, frame);
-    }
+    inline Frame& frame() const { return _frame; }
+    inline MetaSpriteDocument& document() const { return _frame.frameSet().document(); }
 
     inline ms8rect aabb() const { return _aabb; }
     inline parameter_t parameter() const { return _parameter; }
-
-    inline std::shared_ptr<Frame> frame() const { return _frame.lock(); }
-    inline MetaSpriteDocument& document() const { return frame()->frameSet()->document(); }
 
     inline void setAabb(const ms8rect& aabb) { _aabb = aabb; }
     inline void setParameter(parameter_t parameter) { _parameter = parameter; }
 
 private:
-    std::weak_ptr<Frame> _frame;
+    Frame& _frame;
     ms8rect _aabb;
     parameter_t _parameter;
 };

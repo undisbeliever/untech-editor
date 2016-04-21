@@ -59,27 +59,29 @@ ActionPointEditor::ActionPointEditor()
     });
 
     /* Update gui if object has changed */
-    Signals::actionPointChanged.connect([this](const std::shared_ptr<SI::ActionPoint> obj) {
+    Signals::actionPointChanged.connect([this](const SI::ActionPoint* obj) {
         if (_actionPoint == obj) {
             updateGuiValues();
         }
     });
 
     /* Update location range if necessary */
-    Signals::frameSizeChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
-        if (_actionPoint) {
-            const auto f = _actionPoint->frame();
-            if (frame == f) {
-                _locationSpinButtons.set_range(frame->locationSize());
+    Signals::frameSizeChanged.connect([this](const SI::Frame* frame) {
+        if (frame && _actionPoint) {
+            const SI::Frame& f = _actionPoint->frame();
+
+            if (frame == &f) {
+                _locationSpinButtons.set_range(f.locationSize());
             }
         }
     });
 
-    Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
-        if (_actionPoint) {
-            const auto frame = _actionPoint->frame();
-            if (frame->frameSet() == fs) {
-                _locationSpinButtons.set_range(frame->locationSize());
+    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameset) {
+        if (frameset && _actionPoint) {
+            const SI::Frame& f = _actionPoint->frame();
+
+            if (frameset == &f.frameSet()) {
+                _locationSpinButtons.set_range(f.locationSize());
             }
         }
     });
@@ -88,13 +90,9 @@ ActionPointEditor::ActionPointEditor()
 void ActionPointEditor::updateGuiValues()
 {
     if (_actionPoint) {
-        auto frame = _actionPoint->frame();
-
         _updatingValues = true;
 
-        if (frame) {
-            _locationSpinButtons.set_range(frame->locationSize());
-        }
+        _locationSpinButtons.set_range(_actionPoint->frame().locationSize());
         _locationSpinButtons.set_value(_actionPoint->location());
         _parameterEntry.set_text(Glib::ustring::compose("%1", _actionPoint->parameter()));
 

@@ -113,11 +113,11 @@ void MetaSpriteWindow::updateTitle()
 
     if (document) {
         if (document->undoStack().isDirty()) {
-            set_title("*" + document->frameSet()->name() + _("Untech Sprite Editor"));
+            set_title("*" + document->frameSet().name() + _("Untech Sprite Editor"));
             _saveAction->set_enabled(true);
         }
         else {
-            set_title(document->frameSet()->name() + _("Untech Sprite Editor"));
+            set_title(document->frameSet().name() + _("Untech Sprite Editor"));
             _saveAction->set_enabled(false);
         }
     }
@@ -222,9 +222,7 @@ void MetaSpriteWindow::do_saveAs()
             dialog.set_filename(document->filename());
         }
         else {
-            if (document->frameSet()) {
-                dialog.set_current_name(document->frameSet()->name() + ".utsi");
-            }
+            dialog.set_current_name(document->frameSet().name() + ".utsi");
         }
 
         int result = dialog.run();

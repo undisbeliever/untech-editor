@@ -11,33 +11,39 @@ namespace MetaSprite {
 
 class FrameSet;
 
+/**
+ * The root object of a MetaSprite data structure.
+ *
+ * MEMORY: all children will be deleted when the document is deleted.
+ */
 class MetaSpriteDocument : public ::UnTech::Document {
 public:
     MetaSpriteDocument()
         : Document()
-        , _frameSet(std::make_shared<FrameSet>(*this))
+        , _frameSet(*this)
     {
     }
 
     explicit MetaSpriteDocument(const std::string& filename)
         : Document(filename)
-        , _frameSet(std::make_shared<FrameSet>(*this))
+        , _frameSet(*this)
     {
         Serializer::readFile(_frameSet, filename);
     }
 
     virtual ~MetaSpriteDocument() = default;
 
-    const std::shared_ptr<FrameSet>& frameSet() const { return _frameSet; }
+    FrameSet& frameSet() { return _frameSet; }
+    const FrameSet& frameSet() const { return _frameSet; }
 
     virtual void writeDataFile(const std::string& filename) override
     {
-        Serializer::writeFile(*_frameSet, filename);
+        Serializer::writeFile(_frameSet, filename);
         setFilename(filename);
     }
 
 private:
-    std::shared_ptr<FrameSet> _frameSet;
+    FrameSet _frameSet;
 };
 }
 }

@@ -8,7 +8,7 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
-Frame::Frame(std::shared_ptr<FrameSet> frameSet)
+Frame::Frame(FrameSet& frameSet)
     : _frameSet(frameSet)
     , _objects(*this)
     , _actionPoints(*this)
@@ -18,7 +18,7 @@ Frame::Frame(std::shared_ptr<FrameSet> frameSet)
 {
 }
 
-Frame::Frame(const Frame& frame, std::shared_ptr<FrameSet> frameSet)
+Frame::Frame(const Frame& frame, FrameSet& frameSet)
     : _frameSet(frameSet)
     , _objects(*this)
     , _actionPoints(*this)
@@ -26,25 +26,15 @@ Frame::Frame(const Frame& frame, std::shared_ptr<FrameSet> frameSet)
     , _solid(frame._solid)
     , _tileHitbox(frame._tileHitbox)
 {
-}
-
-// Have to do this outside the constructor or else I get
-// a bad_weak_ref exception
-std::shared_ptr<Frame> Frame::clone(std::shared_ptr<FrameSet> frameSet)
-{
-    std::shared_ptr<Frame> frame(new Frame(*this, frameSet));
-
-    for (const auto obj : this->_objects) {
-        frame->_objects.clone(obj);
+    for (const auto& obj : frame._objects) {
+        _objects.clone(obj);
     }
-    for (const auto ap : this->_actionPoints) {
-        frame->_actionPoints.clone(ap);
+    for (const auto& ap : frame._actionPoints) {
+        _actionPoints.clone(ap);
     }
-    for (const auto eh : this->_entityHitboxes) {
-        frame->_entityHitboxes.clone(eh);
+    for (const auto& eh : frame._entityHitboxes) {
+        _entityHitboxes.clone(eh);
     }
-
-    return frame;
 }
 
 Frame::Boundary Frame::calcBoundary() const
@@ -55,9 +45,9 @@ Frame::Boundary Frame::calcBoundary() const
     int top = -1;
     int bottom = 1;
 
-    for (const auto obj : _objects) {
-        const auto& loc = obj->location();
-        const int size = obj->sizePx();
+    for (const FrameObject& obj : _objects) {
+        const auto& loc = obj.location();
+        const int size = obj.sizePx();
 
         if (loc.x < left) {
             left = loc.x;
@@ -73,8 +63,8 @@ Frame::Boundary Frame::calcBoundary() const
         }
     }
 
-    for (const auto ap : _actionPoints) {
-        const auto& loc = ap->location();
+    for (const ActionPoint& ap : _actionPoints) {
+        const auto& loc = ap.location();
 
         if (loc.x < left) {
             left = loc.x;
@@ -89,8 +79,8 @@ Frame::Boundary Frame::calcBoundary() const
             bottom = loc.y;
         }
     }
-    for (const auto eh : _entityHitboxes) {
-        const auto& aabb = eh->aabb();
+    for (const EntityHitbox& eh : _entityHitboxes) {
+        const auto& aabb = eh.aabb();
 
         if (aabb.x < left) {
             left = aabb.x;
@@ -111,26 +101,22 @@ Frame::Boundary Frame::calcBoundary() const
              (unsigned)top - bottom };
 }
 
-void Frame::draw(Image& image, const Palette* palette, unsigned xOffset, unsigned yOffset) const
+void Frame::draw(Image& image, const Palette& palette, unsigned xOffset, unsigned yOffset) const
 {
-    auto fs = _frameSet.lock();
+    for (int order = 0; order < 4; order++) {
+        for (auto it = _objects.rbegin(); it != _objects.rend(); ++it) {
+            const FrameObject& obj = *it;
 
-    if (fs && palette) {
-        for (int order = 3; order >= 0; order--) {
-            for (auto it = _objects.crbegin(); it != _objects.crend(); ++it) {
-                const auto obj = it->get();
-
-                if (obj->order() == order) {
-                    if (obj->size() == FrameObject::ObjectSize::SMALL) {
-                        fs->smallTileset().drawTile(image, *palette,
-                                                    xOffset + obj->location().x, yOffset + obj->location().y,
-                                                    obj->tileId(), obj->hFlip(), obj->vFlip());
-                    }
-                    else {
-                        fs->largeTileset().drawTile(image, *palette,
-                                                    xOffset + obj->location().x, yOffset + obj->location().y,
-                                                    obj->tileId(), obj->hFlip(), obj->vFlip());
-                    }
+            if (obj.order() == order) {
+                if (obj.size() == FrameObject::ObjectSize::SMALL) {
+                    _frameSet.smallTileset().drawTile(image, palette,
+                                                      xOffset + obj.location().x, yOffset + obj.location().y,
+                                                      obj.tileId(), obj.hFlip(), obj.vFlip());
+                }
+                else {
+                    _frameSet.largeTileset().drawTile(image, palette,
+                                                      xOffset + obj.location().x, yOffset + obj.location().y,
+                                                      obj.tileId(), obj.hFlip(), obj.vFlip());
                 }
             }
         }

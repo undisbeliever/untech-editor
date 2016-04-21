@@ -21,12 +21,12 @@ public:
         ENTITY_HITBOX
     };
 
-    void setFrameSet(std::shared_ptr<MS::FrameSet> frameSet);
-    void setPalette(std::shared_ptr<MS::Palette> palette);
-    void setFrame(std::shared_ptr<MS::Frame> frame);
-    void setFrameObject(std::shared_ptr<MS::FrameObject> frameObject);
-    void setActionPoint(std::shared_ptr<MS::ActionPoint> actionPoint);
-    void setEntityHitbox(std::shared_ptr<MS::EntityHitbox> entityHitbox);
+    void setFrameSet(MS::FrameSet* frameSet);
+    void setPalette(MS::Palette* palette);
+    void setFrame(MS::Frame* frame);
+    void setFrameObject(MS::FrameObject* frameObject);
+    void setActionPoint(MS::ActionPoint* actionPoint);
+    void setEntityHitbox(MS::EntityHitbox* entityHitbox);
 
     // WILL ALWAYS emit a selectionChanged
     void unselectAll();
@@ -34,12 +34,12 @@ public:
     Glib::ustring typeString() const;
 
     Type type() const { return _type; }
-    std::shared_ptr<MS::FrameSet> frameSet() const { return _frameSet; }
-    std::shared_ptr<MS::Palette> palette() const { return _palette; }
-    std::shared_ptr<MS::Frame> frame() const { return _frame; }
-    std::shared_ptr<MS::FrameObject> frameObject() const { return _frameObject; }
-    std::shared_ptr<MS::ActionPoint> actionPoint() const { return _actionPoint; }
-    std::shared_ptr<MS::EntityHitbox> entityHitbox() const { return _entityHitbox; }
+    MS::FrameSet* frameSet() const { return _frameSet; }
+    MS::Palette* palette() const { return _palette; }
+    MS::Frame* frame() const { return _frame; }
+    MS::FrameObject* frameObject() const { return _frameObject; }
+    MS::ActionPoint* actionPoint() const { return _actionPoint; }
+    MS::EntityHitbox* entityHitbox() const { return _entityHitbox; }
 
     bool canCrudSelected() const { return _type != Type::NONE; }
     bool canMoveSelectedUp() const;
@@ -61,16 +61,16 @@ public:
 
 private:
     // updates current without nulling child selection
-    void updateFrameSet(std::shared_ptr<MS::FrameSet> frameSet);
-    void updateFrame(std::shared_ptr<MS::Frame> frame);
+    void updateFrameSet(MS::FrameSet& frameSet);
+    void updateFrame(MS::Frame& frame);
 
     Type _type = Type::NONE;
-    std::shared_ptr<MS::FrameSet> _frameSet = nullptr;
-    std::shared_ptr<MS::Palette> _palette = nullptr;
-    std::shared_ptr<MS::Frame> _frame = nullptr;
-    std::shared_ptr<MS::FrameObject> _frameObject = nullptr;
-    std::shared_ptr<MS::ActionPoint> _actionPoint = nullptr;
-    std::shared_ptr<MS::EntityHitbox> _entityHitbox = nullptr;
+    MS::FrameSet* _frameSet = nullptr;
+    MS::Palette* _palette = nullptr;
+    MS::Frame* _frame = nullptr;
+    MS::FrameObject* _frameObject = nullptr;
+    MS::ActionPoint* _actionPoint = nullptr;
+    MS::EntityHitbox* _entityHitbox = nullptr;
 };
 }
 }

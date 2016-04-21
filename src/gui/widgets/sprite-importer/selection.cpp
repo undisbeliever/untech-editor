@@ -6,7 +6,7 @@
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
-void Selection::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
+void Selection::setFrameSet(SI::FrameSet* frameSet)
 {
     if (_frameSet != frameSet) {
         _frameSet = frameSet;
@@ -21,9 +21,18 @@ void Selection::setFrameSet(std::shared_ptr<SI::FrameSet> frameSet)
     }
 }
 
-void Selection::setFrame(std::shared_ptr<SI::Frame> frame)
+void Selection::setFrame(SI::Frame* frame)
 {
     if (_frame != frame) {
+        if (frame) {
+            SI::FrameSet* frameSet = &(frame->frameSet());
+
+            if (_frameSet != frameSet) {
+                _frameSet = frameSet;
+                signal_frameSetChanged.emit();
+            }
+        }
+
         _frame = frame;
         signal_frameChanged.emit();
 
@@ -31,22 +40,34 @@ void Selection::setFrame(std::shared_ptr<SI::Frame> frame)
     }
 }
 
-void Selection::setFrameObject(std::shared_ptr<SI::FrameObject> frameObject)
+inline bool Selection::updateFrameIfDifferent(SI::Frame& frame)
+{
+    if (_frame != &frame) {
+        SI::FrameSet* frameSet = &(frame.frameSet());
+
+        if (_frameSet != frameSet) {
+            _frameSet = frameSet;
+            signal_frameSetChanged.emit();
+        }
+
+        _frame = &frame;
+        signal_frameChanged.emit();
+
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+void Selection::setFrameObject(SI::FrameObject* frameObject)
 {
     bool changed = _frameObject != frameObject;
     if (changed) {
         if (frameObject) {
-            auto frame = frameObject->frame();
-            if (_frame != frame) {
-                auto frameSet = frame->frameSet();
-                if (_frameSet != frameSet) {
-                    _frameSet = frameSet;
-                    signal_frameSetChanged.emit();
-                }
+            bool f = updateFrameIfDifferent(frameObject->frame());
 
-                _frame = frame;
-                signal_frameChanged.emit();
-
+            if (f) {
                 if (_actionPoint != nullptr) {
                     _actionPoint = nullptr;
                     signal_actionPointChanged.emit();
@@ -72,22 +93,14 @@ void Selection::setFrameObject(std::shared_ptr<SI::FrameObject> frameObject)
     }
 }
 
-void Selection::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
+void Selection::setActionPoint(SI::ActionPoint* actionPoint)
 {
     bool changed = _actionPoint != actionPoint;
     if (changed) {
         if (actionPoint) {
-            auto frame = actionPoint->frame();
-            if (_frame != frame) {
-                auto frameSet = frame->frameSet();
-                if (_frameSet != frameSet) {
-                    _frameSet = frameSet;
-                    signal_frameSetChanged.emit();
-                }
+            bool f = updateFrameIfDifferent(actionPoint->frame());
 
-                _frame = frame;
-                signal_frameChanged.emit();
-
+            if (f) {
                 if (_frameObject != nullptr) {
                     _frameObject = nullptr;
                     signal_frameObjectChanged.emit();
@@ -113,22 +126,14 @@ void Selection::setActionPoint(std::shared_ptr<SI::ActionPoint> actionPoint)
     }
 }
 
-void Selection::setEntityHitbox(std::shared_ptr<SI::EntityHitbox> entityHitbox)
+void Selection::setEntityHitbox(SI::EntityHitbox* entityHitbox)
 {
     bool changed = _entityHitbox != entityHitbox;
     if (changed) {
         if (entityHitbox) {
-            auto frame = entityHitbox->frame();
-            if (_frame != frame) {
-                auto frameSet = frame->frameSet();
-                if (_frameSet != frameSet) {
-                    _frameSet = frameSet;
-                    signal_frameSetChanged.emit();
-                }
+            bool f = updateFrameIfDifferent(entityHitbox->frame());
 
-                _frame = frame;
-                signal_frameChanged.emit();
-
+            if (f) {
                 if (_frameObject != nullptr) {
                     _frameObject = nullptr;
                     signal_frameObjectChanged.emit();
@@ -292,29 +297,36 @@ void Selection::cloneSelected()
 void Selection::removeSelected()
 {
     switch (_type) {
-    case Type::FRAME_OBJECT:
+    case Type::FRAME_OBJECT: {
+        SI::FrameObject* obj = _frameObject;
+        setFrameObject(nullptr);
+
         Undo::orderedList_remove<SI::FrameObject>(
-            &_frame->objects(), _frameObject,
+            &_frame->objects(), obj,
             Signals::frameObjectListChanged,
             _("Remove Frame Object"));
-        setFrameObject(nullptr);
         break;
+    }
+    case Type::ACTION_POINT: {
+        SI::ActionPoint* ap = _actionPoint;
+        setActionPoint(nullptr);
 
-    case Type::ACTION_POINT:
         Undo::orderedList_remove<SI::ActionPoint>(
-            &_frame->actionPoints(), _actionPoint,
+            &_frame->actionPoints(), ap,
             Signals::actionPointListChanged,
             _("Remove Action Point"));
-        setActionPoint(nullptr);
         break;
+    }
+    case Type::ENTITY_HITBOX: {
+        SI::EntityHitbox* eh = _entityHitbox;
+        setEntityHitbox(nullptr);
 
-    case Type::ENTITY_HITBOX:
         Undo::orderedList_remove<SI::EntityHitbox>(
-            &_frame->entityHitboxes(), _entityHitbox,
+            &_frame->entityHitboxes(), eh,
             Signals::entityHitboxListChanged,
             _("Remove Entity Hitbox"));
-        setEntityHitbox(nullptr);
         break;
+    }
 
     default:
         break;

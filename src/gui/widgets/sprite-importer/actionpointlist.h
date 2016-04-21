@@ -26,7 +26,7 @@ public:
         add(col_parameter);
     }
 
-    Gtk::TreeModelColumn<std::shared_ptr<SI::ActionPoint>> col_item;
+    Gtk::TreeModelColumn<SI::ActionPoint*> col_item;
     Gtk::TreeModelColumn<unsigned int> col_id;
     // ::TODO change to native types::
     Gtk::TreeModelColumn<Glib::ustring> col_location;
@@ -39,7 +39,7 @@ public:
         treeView.append_column(_("Parameter"), col_parameter);
     }
 
-    inline void setRowData(Gtk::TreeRow& row, std::shared_ptr<SI::ActionPoint> ap)
+    inline void setRowData(Gtk::TreeRow& row, const SI::ActionPoint* ap)
     {
         row[col_location] = Glib::ustring::compose("%1, %2", ap->location().x, ap->location().y);
         row[col_parameter] = ap->parameter();

@@ -1,6 +1,10 @@
 #include "frameset.h"
 #include "document.h"
 #include "frame.h"
+#include "actionpoint.h"
+#include "frameobject.h"
+#include "entityhitbox.h"
+#include "palette.h"
 #include "../common/file.h"
 #include "../common/namechecks.h"
 

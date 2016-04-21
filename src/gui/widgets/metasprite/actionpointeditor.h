@@ -21,7 +21,7 @@ class ActionPointEditor {
 public:
     ActionPointEditor();
 
-    void setActionPoint(std::shared_ptr<UnTech::MetaSprite::ActionPoint> actionPoint)
+    void setActionPoint(UnTech::MetaSprite::ActionPoint* actionPoint)
     {
         _actionPoint = actionPoint;
         updateGuiValues();
@@ -36,7 +36,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    std::shared_ptr<UnTech::MetaSprite::ActionPoint> _actionPoint;
+    UnTech::MetaSprite::ActionPoint* _actionPoint;
 
     Ms8pointSpinButtons _locationSpinButtons;
     Gtk::Entry _parameterEntry;

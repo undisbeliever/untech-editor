@@ -20,21 +20,21 @@ namespace Signals {
 
 namespace SI = UnTech::SpriteImporter;
 
-extern sigc::signal<void, const std::shared_ptr<SI::FrameSet>> frameSetChanged;
-extern sigc::signal<void, const std::shared_ptr<SI::FrameSet>> frameSetImageChanged;
-extern sigc::signal<void, const std::shared_ptr<SI::FrameSet>> frameSetGridChanged;
+extern sigc::signal<void, const SI::FrameSet*> frameSetChanged;
+extern sigc::signal<void, const SI::FrameSet*> frameSetImageChanged;
+extern sigc::signal<void, const SI::FrameSet*> frameSetGridChanged;
 
-extern sigc::signal<void, const std::shared_ptr<SI::Frame>> frameChanged;
-extern sigc::signal<void, const std::shared_ptr<SI::Frame>> frameSizeChanged;
+extern sigc::signal<void, const SI::Frame*> frameChanged;
+extern sigc::signal<void, const SI::Frame*> frameSizeChanged;
 extern sigc::signal<void, const SI::Frame::list_t*> frameListChanged;
 
-extern sigc::signal<void, const std::shared_ptr<SI::FrameObject>> frameObjectChanged;
+extern sigc::signal<void, const SI::FrameObject*> frameObjectChanged;
 extern sigc::signal<void, const SI::FrameObject::list_t*> frameObjectListChanged;
 
-extern sigc::signal<void, const std::shared_ptr<SI::ActionPoint>> actionPointChanged;
+extern sigc::signal<void, const SI::ActionPoint*> actionPointChanged;
 extern sigc::signal<void, const SI::ActionPoint::list_t*> actionPointListChanged;
 
-extern sigc::signal<void, const std::shared_ptr<SI::EntityHitbox>> entityHitboxChanged;
+extern sigc::signal<void, const SI::EntityHitbox*> entityHitboxChanged;
 extern sigc::signal<void, const SI::EntityHitbox::list_t*> entityHitboxListChanged;
 }
 }

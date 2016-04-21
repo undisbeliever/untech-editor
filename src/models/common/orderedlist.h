@@ -2,8 +2,8 @@
 #define _UNTECH_MODELS_COMMON_ORDEREDLIST_H_
 
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace UnTech {
 
@@ -14,10 +14,36 @@ class OrderedListAddRemove;
 }
 }
 
+/**
+ * A basic list interface that enforces child-parent references.
+ *
+ * Internally uses std::unique_ptr so that:
+ *      * std::find is done on the pointer level.
+ *      * undo engine can remove and insert in place.
+ *
+ * MEMORY: The owner (parent) class MUST exist when while the list exists.
+ * THREADS: NOT THREAD SAFE
+ */
 template <class P, class T>
 class OrderedList {
 
     friend class UnTech::Undo::Private::OrderedListAddRemove<T>;
+
+public:
+    template <typename IT>
+    class dereference_iterator : public IT {
+    public:
+        dereference_iterator(IT it)
+            : IT(it)
+        {
+        }
+        T& operator*() const { return *(IT::operator*()); };
+    };
+
+    typedef dereference_iterator<typename std::vector<std::unique_ptr<T>>::iterator> iterator;
+    typedef dereference_iterator<typename std::vector<std::unique_ptr<T>>::const_iterator> const_iterator;
+    typedef dereference_iterator<typename std::vector<std::unique_ptr<T>>::reverse_iterator> reverse_iterator;
+    typedef dereference_iterator<typename std::vector<std::unique_ptr<T>>::const_reverse_iterator> const_reverse_iterator;
 
 public:
     OrderedList() = default;
@@ -28,36 +54,30 @@ public:
     {
     }
 
-    std::shared_ptr<T> create()
+    T& create()
     {
-        std::shared_ptr<P> owner = _owner.ptr();
-        auto e = std::make_shared<T>(owner);
-        _list.push_back(e);
-
-        return e;
+        _list.emplace_back(std::make_unique<T>(_owner));
+        return *(_list.back());
     }
 
-    std::shared_ptr<T> clone(std::shared_ptr<T> e)
+    T& clone(const T& e)
     {
-        std::shared_ptr<P> owner = _owner.ptr();
-        auto newElem = e->clone(owner);
-        _list.push_back(newElem);
-
-        return newElem;
+        _list.emplace_back(std::make_unique<T>(e, _owner));
+        return *(_list.back());
     }
 
-    void remove(std::shared_ptr<T> e)
+    void remove(T* e)
     {
-        auto it = std::find(_list.begin(), _list.end(), e);
+        auto it = findIt(e);
 
         if (it != _list.end()) {
             _list.erase(it);
         }
     }
 
-    bool moveUp(std::shared_ptr<T> e)
+    bool moveUp(T* e)
     {
-        auto it = std::find(_list.begin(), _list.end(), e);
+        auto it = findIt(e);
 
         if (it != _list.end()) {
             if (it != _list.begin()) {
@@ -70,9 +90,9 @@ public:
         return false;
     }
 
-    bool moveDown(std::shared_ptr<T> e)
+    bool moveDown(T* e)
     {
-        auto it = std::find(_list.begin(), _list.end(), e);
+        auto it = findIt(e);
 
         if (it != _list.end()) {
             auto other = it + 1;
@@ -85,40 +105,54 @@ public:
         return false;
     }
 
-    bool isFirst(std::shared_ptr<T> e)
+    bool isFirst(const T* e) const
     {
-        return _list.size() > 0 && _list.front() == e;
+        return _list.size() > 0 && _list.front().get() == e;
     }
 
-    bool isLast(std::shared_ptr<T> e)
+    bool isLast(const T* e) const
     {
-        return _list.size() > 0 && _list.back() == e;
+        return _list.size() > 0 && _list.back().get() == e;
     }
 
-    bool contains(std::shared_ptr<T> e)
+    bool contains(const T* e) const
     {
-        auto it = std::find(_list.begin(), _list.end(), e);
+        auto it = findIt(e);
         return it != _list.end();
     }
 
     // Expose the list
-    inline auto size() const { return _list.size(); }
-    inline auto begin() const { return _list.begin(); }
-    inline auto end() const { return _list.end(); }
-    inline auto cbegin() const { return _list.cbegin(); }
-    inline auto cend() const { return _list.cend(); }
-    inline auto rbegin() const { return _list.rbegin(); }
-    inline auto rend() const { return _list.rend(); }
-    inline auto crbegin() const { return _list.crbegin(); }
-    inline auto crend() const { return _list.crend(); }
+    inline size_t size() const { return _list.size(); }
+
+    inline iterator begin() noexcept { return _list.begin(); }
+    inline iterator end() noexcept { return _list.end(); }
+    inline const_iterator begin() const noexcept { return _list.begin(); }
+    inline const_iterator end() const noexcept { return _list.end(); }
+    inline reverse_iterator rbegin() noexcept { return _list.rbegin(); }
+    inline reverse_iterator rend() noexcept { return _list.rend(); }
+    inline const_reverse_iterator rbegin() const noexcept { return _list.rbegin(); }
+    inline const_reverse_iterator rend() const noexcept { return _list.rend(); }
+
+protected:
+    inline auto findIt(T* e)
+    {
+        return std::find_if(_list.begin(), _list.end(),
+                            [e](std::unique_ptr<T>& p) { return p.get() == e; });
+    }
+
+    inline auto findIt(const T* e) const
+    {
+        return std::find_if(_list.cbegin(), _list.cend(),
+                            [e](const std::unique_ptr<T>& p) { return p.get() == e; });
+    }
 
 protected:
     // Only allow these methods to be accessible by the undo module.
     // Prevent me from doing something stupid.
 
-    int indexOf(const std::shared_ptr<T>& e) const
+    int indexOf(T* e)
     {
-        auto it = std::find(_list.begin(), _list.end(), e);
+        auto it = findIt(e);
 
         if (it != _list.end()) {
             return std::distance(_list.begin(), it);
@@ -128,17 +162,30 @@ protected:
         }
     }
 
-    void insertAtIndex(std::shared_ptr<T> e, int index)
+    std::unique_ptr<T> removeFromList(size_t index)
     {
-        if (index > 0) {
+        if (index < _list.size()) {
             auto it = _list.begin() + index;
-            _list.insert(it, e);
+            std::unique_ptr<T> ret = std::move(*it);
+
+            _list.erase(it);
+
+            return std::move(ret);
         }
+        else {
+            return nullptr;
+        }
+    }
+
+    void insertAtIndex(std::unique_ptr<T> e, size_t index)
+    {
+        auto it = _list.begin() + index;
+        _list.insert(it, std::move(e));
     }
 
 private:
     P& _owner;
-    std::vector<std::shared_ptr<T>> _list;
+    std::vector<std::unique_ptr<T>> _list;
 };
 }
 

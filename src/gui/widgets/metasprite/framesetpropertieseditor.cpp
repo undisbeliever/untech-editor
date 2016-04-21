@@ -44,7 +44,7 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     });
 
     /** FrameSet Updated signal */
-    Signals::frameSetChanged.connect([this](const std::shared_ptr<MS::FrameSet> frameSet) {
+    Signals::frameSetChanged.connect([this](const MS::FrameSet* frameSet) {
         if (_frameSet == frameSet) {
             updateGuiValues();
         }

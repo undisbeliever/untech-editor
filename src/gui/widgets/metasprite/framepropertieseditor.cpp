@@ -65,7 +65,7 @@ FramePropertiesEditor::FramePropertiesEditor()
     });
 
     /** Frame Updated signal */
-    Signals::frameChanged.connect([this](const std::shared_ptr<MS::Frame> frame) {
+    Signals::frameChanged.connect([this](const MS::Frame* frame) {
         if (_frame == frame) {
             updateGuiValues();
         }

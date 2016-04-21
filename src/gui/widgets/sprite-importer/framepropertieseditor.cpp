@@ -173,16 +173,18 @@ FramePropertiesEditor::FramePropertiesEditor()
     });
 
     /** Frame Updated signal */
-    Signals::frameChanged.connect([this](const std::shared_ptr<SI::Frame> frame) {
+    Signals::frameChanged.connect([this](const SI::Frame* frame) {
         if (_frame == frame) {
             updateGuiValues();
         }
     });
 
     /** FrameSet Grid Updated signal */
-    Signals::frameSetGridChanged.connect([this](const std::shared_ptr<SI::FrameSet> fs) {
-        if (_frame) {
-            if (_frame->frameSet() == fs) {
+    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameset) {
+        if (frameset && _frame) {
+            const SI::FrameSet& fs = _frame->frameSet();
+
+            if (frameset == &fs) {
                 updateGuiValues();
                 Signals::frameSizeChanged.emit(_frame);
             }
