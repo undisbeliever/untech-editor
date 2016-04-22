@@ -30,6 +30,7 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     , _zoomX(DEFAULT_ZOOM)
     , _zoomY(DEFAULT_ZOOM)
     , _displayZoom(NAN)
+    , _frameNameFont("Monospace Bold")
     , _frameImageBuffer(FRAME_IMAGE_SIZE, FRAME_IMAGE_SIZE)
     , _framePixbuf()
     , _centerX()
@@ -174,6 +175,8 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         return true;
     }
 
+    const auto allocation = get_allocation();
+
     auto draw_rectangle = [this, cr](unsigned x, unsigned y, unsigned width, unsigned height) {
         cr->rectangle((x + _xOffset) * _zoomX, (y + _yOffset) * _zoomY,
                       width * _zoomX, height * _zoomY);
@@ -267,7 +270,6 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
         static const std::vector<double> originDash({ ORIGIN_DASH, ORIGIN_DASH });
 
-        auto allocation = get_allocation();
         const unsigned aWidth = allocation.get_width();
         const unsigned aHeight = allocation.get_height();
 
@@ -391,6 +393,32 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     }
 
     cr->restore();
+
+    // Draw frame name
+    {
+        auto name = _selectedFrame->frameSet().frames().getName(_selectedFrame);
+
+        if (name.second) {
+            cr->save();
+
+            // Use the default color of the current style
+            Gdk::Cairo::set_source_rgba(cr,
+                                        get_style_context()->get_color(Gtk::STATE_FLAG_NORMAL));
+
+            auto layout = create_pango_layout(name.first);
+            layout->set_font_description(_frameNameFont);
+
+            int textWidth, textHeight;
+            layout->get_pixel_size(textWidth, textHeight);
+
+            // Draw text in bottom left.
+            cr->move_to(DEFAULT_ROW_SPACING * 2,
+                        allocation.get_height() - textHeight - DEFAULT_ROW_SPACING);
+            layout->show_in_cairo_context(cr);
+
+            cr->restore();
+        }
+    }
 
     return true;
 }

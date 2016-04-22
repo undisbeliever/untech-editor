@@ -75,6 +75,8 @@ private:
      */
     double _displayZoom;
 
+    Pango::FontDescription _frameNameFont;
+
     /** A placeholder image to draw the frame onto*/
     UnTech::Image _frameImageBuffer;
 
