@@ -19,7 +19,9 @@ MetaSpriteEditor::MetaSpriteEditor()
     , _graphicalGrid()
     , _sidebar()
     , _framePane(Gtk::ORIENTATION_VERTICAL)
+    , _frameSetBox(Gtk::ORIENTATION_VERTICAL)
     , _frameSetPropertiesEditor()
+    , _paletteList()
     , _frameList()
     , _frameNotebook()
     , _frameParameterEditor()
@@ -46,6 +48,12 @@ MetaSpriteEditor::MetaSpriteEditor()
     _frameNotebook.set_scrollable(true);
     _frameNotebook.popup_enable();
 
+    // FrameSet
+    _frameSetBox.pack_start(_frameSetPropertiesEditor.widget, Gtk::PACK_SHRINK);
+    _frameSetBox.pack_start(_paletteList.widget, Gtk::PACK_EXPAND_WIDGET);
+    // ::TODO _palette editor::
+
+    // Frame
     _frameNotebook.append_page(_frameParameterEditor.widget, _("Frame"));
 
     _frameObjectBox.set_border_width(DEFAULT_BORDER);
@@ -63,7 +71,7 @@ MetaSpriteEditor::MetaSpriteEditor()
     _entityHitboxBox.pack_start(_entityHitboxEditor.widget, Gtk::PACK_SHRINK);
     _frameNotebook.append_page(_entityHitboxBox, _("Entity Hitboxes"));
 
-    _sidebar.append_page(_frameSetPropertiesEditor.widget, _("Frame Set"));
+    _sidebar.append_page(_frameSetBox, _("Frame Set"));
     _sidebar.append_page(_framePane, _("Frames"));
 
     _framePane.set_border_width(DEFAULT_BORDER);
@@ -115,15 +123,21 @@ MetaSpriteEditor::MetaSpriteEditor()
 
         if (frameSet) {
             _frameList.setList(frameSet->frames());
+            _paletteList.setList(frameSet->palettes());
 
             _sidebar.set_current_page(FRAMESET_PAGE);
         }
         else {
             _frameList.setList(nullptr);
+            _paletteList.setList(nullptr);
         }
 
         _frameSetPropertiesEditor.setFrameSet(frameSet);
+    });
 
+    _selection.signal_paletteChanged.connect([this](void) {
+        _paletteList.selectItem(_selection.palette());
+        // ::TODO palette editor::
     });
 
     _selection.signal_frameChanged.connect([this](void) {
@@ -192,6 +206,9 @@ MetaSpriteEditor::MetaSpriteEditor()
         }
     });
 
+    _paletteList.signal_selected_changed().connect([this](void) {
+        _selection.setPalette(_paletteList.getSelected());
+    });
     _frameList.signal_selected_changed().connect([this](void) {
         _selection.setFrame(_frameList.getSelected());
     });

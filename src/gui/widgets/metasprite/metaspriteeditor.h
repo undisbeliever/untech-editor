@@ -12,6 +12,7 @@
 #include "framegraphicaleditor.h"
 #include "framepropertieseditor.h"
 #include "framesetpropertieseditor.h"
+#include "palettelist.h"
 #include "selection.h"
 #include "models/metasprite.h"
 #include "gui/widgets/defaults.h"
@@ -63,7 +64,9 @@ private:
 
     Gtk::Paned _framePane;
 
+    Gtk::Box _frameSetBox;
     FrameSetPropertiesEditor _frameSetPropertiesEditor;
+    PaletteListEditor _paletteList;
 
     FrameListEditor _frameList;
 
