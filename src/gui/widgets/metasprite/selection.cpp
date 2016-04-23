@@ -13,7 +13,13 @@ void Selection::setFrameSet(MS::FrameSet* frameSet)
         signal_frameSetChanged.emit();
     }
 
-    setPalette(nullptr);
+    // auto select first palette if none if selected
+    if (frameSet && frameSet->palettes().size() > 0) {
+        return setPalette(&*(frameSet->palettes().begin()));
+    }
+    else {
+        setPalette(nullptr);
+    }
 
     if (_frame != nullptr) {
         _frame = nullptr;
@@ -28,20 +34,23 @@ void Selection::updateFrameSet(MS::FrameSet& frameSet)
     if (_frameSet != &frameSet) {
         _frameSet = &frameSet;
         signal_frameSetChanged.emit();
+    }
 
-        setPalette(nullptr);
+    // auto select first palette if none if selected
+    if (_palette == nullptr && frameSet.palettes().size() > 0) {
+        return setPalette(&*(frameSet.palettes().begin()));
     }
 }
 
 void Selection::setPalette(MS::Palette* palette)
 {
-    if (palette == nullptr && _frameSet && _frameSet->palettes().size() > 0) {
-        // auto select first palette
-        return setPalette(&*(_frameSet->palettes().begin()));
-    }
-
     if (_palette != palette) {
         _palette = palette;
+
+        if (palette) {
+            updateFrameSet(palette->frameSet());
+        }
+
         signal_paletteChanged.emit();
     }
 }
