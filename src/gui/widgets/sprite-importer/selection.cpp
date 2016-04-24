@@ -85,6 +85,8 @@ void Selection::setFrameObject(SI::FrameObject* frameObject)
         }
     }
 
+    setSelectTransparentMode(false);
+
     Type oldType = _type;
     _type = frameObject != nullptr ? Type::FRAME_OBJECT : Type::NONE;
 
@@ -117,6 +119,8 @@ void Selection::setActionPoint(SI::ActionPoint* actionPoint)
             signal_actionPointChanged();
         }
     }
+
+    setSelectTransparentMode(false);
 
     Type oldType = _type;
     _type = actionPoint != nullptr ? Type::ACTION_POINT : Type::NONE;
@@ -151,11 +155,21 @@ void Selection::setEntityHitbox(SI::EntityHitbox* entityHitbox)
         }
     }
 
+    setSelectTransparentMode(false);
+
     Type oldType = _type;
     _type = entityHitbox != nullptr ? Type::ENTITY_HITBOX : Type::NONE;
 
     if (changed || oldType != _type) {
         signal_selectionChanged.emit();
+    }
+}
+
+void Selection::setSelectTransparentMode(bool v)
+{
+    if (_selectTransparentMode != v) {
+        _selectTransparentMode = v;
+        signal_selectTransparentModeChanged.emit();
     }
 }
 
@@ -173,6 +187,8 @@ void Selection::unselectAll()
         _entityHitbox = nullptr;
         signal_entityHitboxChanged();
     }
+
+    setSelectTransparentMode(false);
 
     _type = Selection::Type::NONE;
 

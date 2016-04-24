@@ -19,8 +19,6 @@ public:
 
     ~FrameSetGraphicalEditor() = default;
 
-    void enableSelectTransparentColor();
-
     void setZoom(double x, double y);
 
 protected:

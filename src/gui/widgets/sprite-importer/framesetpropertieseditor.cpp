@@ -34,7 +34,7 @@ SIMPLE_UNDO_ACTION2(frameSet_setImageFilename,
                     Signals::frameSetChanged, Signals::frameSetImageChanged,
                     "Change Image")
 
-FrameSetPropertiesEditor::FrameSetPropertiesEditor()
+FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
     : widget()
     , _frameSet(nullptr)
     , _nameEntry()
@@ -43,7 +43,7 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     , _imageFilenameButton(_("..."))
     , _transparentColorBox(Gtk::ORIENTATION_HORIZONTAL)
     , _transparentColorEntry()
-    , _transparentColorButton("    ")
+    , _transparentColorButton()
     , _gridFrameSizeSpinButtons()
     , _gridOffsetSpinButtons()
     , _gridPaddingSpinButtons()
@@ -59,6 +59,7 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
     , _gridPaddingCrossLabel(_(" x "))
     , _gridOriginLabel(_("Grid Origin:"), Gtk::ALIGN_START)
     , _gridOriginCommaLabel(_(" , "))
+    , _selection(selection)
     , _updatingValues(false)
 {
     widget.set_border_width(DEFAULT_BORDER);
@@ -108,6 +109,10 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
      * SLOTS
      */
 
+    _selection.signal_selectTransparentModeChanged.connect([this](void) {
+        _transparentColorButton.set_active(_selection.selectTransparentMode());
+    });
+
     /* Set Parameter has finished editing */
     // signal_editing_done does not work
     // using activate and focus out instead.
@@ -150,6 +155,10 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor()
         }
     });
 
+    _transparentColorButton.signal_toggled().connect([this](void) {
+        _selection.setSelectTransparentMode(_transparentColorButton.get_active());
+    });
+
     /** FrameSet Updated signal */
     Signals::frameSetChanged.connect([this](const SI::FrameSet* frameSet) {
         if (_frameSet == frameSet) {
@@ -175,13 +184,11 @@ void FrameSetPropertiesEditor::updateGuiValues()
                                            transparent.rgb());
             _transparentColorEntry.set_text(c);
 
-            Gdk::RGBA rgba;
-            rgba.set_rgba(transparent.red / 255.0, transparent.green / 255.0, transparent.blue / 255.0, 1.0);
-            _transparentColorButton.get_children()[0]->override_background_color(rgba);
+            _transparentColorButton.set_color(transparent);
         }
         else {
             _transparentColorEntry.set_text("");
-            _transparentColorButton.get_children()[0]->unset_background_color();
+            _transparentColorButton.unset_color();
         }
 
         _gridFrameSizeSpinButtons.set_value(_frameSet->grid().frameSize());
@@ -200,7 +207,7 @@ void FrameSetPropertiesEditor::updateGuiValues()
         _nameEntry.set_text("");
         _imageFilenameEntry.set_text("");
         _transparentColorEntry.set_text("");
-        _transparentColorButton.get_children()[0]->unset_background_color();
+        _transparentColorButton.unset_color();
 
         _gridFrameSizeSpinButtons.set_value(zeroSize);
         _gridOffsetSpinButtons.set_value(zeroPoint);

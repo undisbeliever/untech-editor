@@ -27,6 +27,8 @@ public:
     void setActionPoint(SI::ActionPoint* actionPoint);
     void setEntityHitbox(SI::EntityHitbox* entityHitbox);
 
+    void setSelectTransparentMode(bool v);
+
     // WILL ALWAYS emit a selectionChanged
     void unselectAll();
 
@@ -38,6 +40,8 @@ public:
     SI::FrameObject* frameObject() const { return _frameObject; }
     SI::ActionPoint* actionPoint() const { return _actionPoint; }
     SI::EntityHitbox* entityHitbox() const { return _entityHitbox; }
+
+    bool selectTransparentMode() const { return _selectTransparentMode; }
 
     bool canCrudSelected() const { return _type != Type::NONE; }
     bool canMoveSelectedUp() const;
@@ -55,6 +59,7 @@ public:
     sigc::signal<void> signal_frameObjectChanged;
     sigc::signal<void> signal_actionPointChanged;
     sigc::signal<void> signal_entityHitboxChanged;
+    sigc::signal<void> signal_selectTransparentModeChanged;
 
 private:
     // return true if the frame changed
@@ -69,6 +74,8 @@ private:
     SI::FrameObject* _frameObject = nullptr;
     SI::ActionPoint* _actionPoint = nullptr;
     SI::EntityHitbox* _entityHitbox = nullptr;
+
+    bool _selectTransparentMode = false;
 };
 }
 }

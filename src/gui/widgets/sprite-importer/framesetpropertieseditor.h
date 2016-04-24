@@ -1,7 +1,9 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMESETPROPERTIESEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMESETPROPERTIESEDITOR_H_
 
+#include "selection.h"
 #include "signals.h"
+#include "../common/colortogglebutton.h"
 #include "models/sprite-importer/frameset.h"
 #include "gui/widgets/common/aabb.h"
 #include "gui/widgets/common/namedlistnameentry.h"
@@ -18,17 +20,12 @@ namespace SI = UnTech::SpriteImporter;
 
 class FrameSetPropertiesEditor {
 public:
-    FrameSetPropertiesEditor();
+    FrameSetPropertiesEditor(Selection& selection);
 
     void setFrameSet(SI::FrameSet* frameSet)
     {
         _frameSet = frameSet;
         updateGuiValues();
-    }
-
-    auto signal_selectTransparentClicked()
-    {
-        return _transparentColorButton.signal_clicked();
     }
 
 protected:
@@ -50,7 +47,7 @@ private:
 
     Gtk::Box _transparentColorBox;
     Gtk::Entry _transparentColorEntry;
-    Gtk::Button _transparentColorButton;
+    ColorToggleButton _transparentColorButton;
 
     UsizeSpinButtons _gridFrameSizeSpinButtons;
     UpointSpinButtons _gridOffsetSpinButtons;
@@ -64,6 +61,8 @@ private:
     Gtk::Label _gridOffsetLabel, _gridOffsetCommaLabel;
     Gtk::Label _gridPaddingLabel, _gridPaddingCrossLabel;
     Gtk::Label _gridOriginLabel, _gridOriginCommaLabel;
+
+    Selection& _selection;
 
     bool _updatingValues;
 };

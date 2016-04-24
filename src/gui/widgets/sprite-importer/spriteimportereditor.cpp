@@ -10,7 +10,7 @@ SpriteImporterEditor::SpriteImporterEditor()
     , _graphicalEditor(_selection)
     , _sidebar()
     , _framePane(Gtk::ORIENTATION_VERTICAL)
-    , _frameSetPropertiesEditor()
+    , _frameSetPropertiesEditor(_selection)
     , _frameList()
     , _frameNotebook()
     , _frameParameterEditor()
@@ -135,9 +135,6 @@ SpriteImporterEditor::SpriteImporterEditor()
             break;
         }
     });
-
-    _frameSetPropertiesEditor.signal_selectTransparentClicked().connect(
-        sigc::mem_fun(_graphicalEditor, &FrameSetGraphicalEditor::enableSelectTransparentColor));
 
     _frameList.signal_selected_changed().connect([this](void) {
         _selection.setFrame(_frameList.getSelected());

@@ -63,6 +63,16 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor(Selection& selection)
         queue_draw();
     });
 
+    _selection.signal_selectTransparentModeChanged.connect([this](void) {
+        if (_selection.selectTransparentMode()) {
+            _action.state = Action::SELECT_TRANSPARENT_COLOR;
+        }
+        else {
+            _action.state = Action::NONE;
+        }
+        update_pointer_cursor();
+    });
+
     Signals::frameSetImageChanged.connect([this](const SI::FrameSet* frameSet) {
         if (frameSet == _selection.frameSet()) {
             loadAndScaleImage();
@@ -795,20 +805,24 @@ void FrameSetGraphicalEditor::handleRelease_Click(const upoint& mouse)
 
 void FrameSetGraphicalEditor::handleRelease_SelectTransparentColor(const upoint& mouse)
 {
-    _action.state = Action::NONE;
-    update_pointer_cursor();
+    SI::FrameSet* frameSet = _selection.frameSet();
 
-    const auto& image = _selection.frameSet()->image();
-    if (!image.empty()) {
-        auto size = image.size();
-        if (mouse.x < size.width && mouse.y < size.height) {
-            auto color = _selection.frameSet()->image().getPixel(mouse.x, mouse.y);
+    if (frameSet) {
+        const auto& image = frameSet->image();
+        if (!image.empty()) {
+            auto size = image.size();
+            if (mouse.x < size.width && mouse.y < size.height) {
+                auto color = frameSet->image().getPixel(mouse.x, mouse.y);
 
-            if (!_selection.frameSet()) {
-                frameSet_setTransparentColor(_selection.frameSet(), color);
+                frameSet_setTransparentColor(frameSet, color);
             }
         }
     }
+
+    _action.state = Action::NONE;
+    update_pointer_cursor();
+
+    _selection.setSelectTransparentMode(false);
 }
 
 void FrameSetGraphicalEditor::handleRelease_Drag()
@@ -902,12 +916,6 @@ bool FrameSetGraphicalEditor::on_leave_notify_event(GdkEventCrossing*)
     }
 
     return true;
-}
-
-void FrameSetGraphicalEditor::enableSelectTransparentColor()
-{
-    _action.state = Action::SELECT_TRANSPARENT_COLOR;
-    update_pointer_cursor();
 }
 
 inline double limit(double v, double min, double max)
