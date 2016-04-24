@@ -12,6 +12,7 @@
 #include "framegraphicaleditor.h"
 #include "framepropertieseditor.h"
 #include "framesetpropertieseditor.h"
+#include "paletteeditor.h"
 #include "palettelist.h"
 #include "selection.h"
 #include "models/metasprite.h"
@@ -60,13 +61,13 @@ private:
     Gtk::Notebook _sidebar;
 
     // ::TODO tile selector::
-    // ::TODO palette editor::
 
     Gtk::Paned _framePane;
 
     Gtk::Box _frameSetBox;
     FrameSetPropertiesEditor _frameSetPropertiesEditor;
     PaletteListEditor _paletteList;
+    PaletteEditor _paletteEditor;
 
     FrameListEditor _frameList;
 

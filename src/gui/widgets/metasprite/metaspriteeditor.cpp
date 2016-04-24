@@ -22,6 +22,7 @@ MetaSpriteEditor::MetaSpriteEditor()
     , _frameSetBox(Gtk::ORIENTATION_VERTICAL)
     , _frameSetPropertiesEditor()
     , _paletteList()
+    , _paletteEditor()
     , _frameList()
     , _frameNotebook()
     , _frameParameterEditor()
@@ -51,7 +52,7 @@ MetaSpriteEditor::MetaSpriteEditor()
     // FrameSet
     _frameSetBox.pack_start(_frameSetPropertiesEditor.widget, Gtk::PACK_SHRINK);
     _frameSetBox.pack_start(_paletteList.widget, Gtk::PACK_EXPAND_WIDGET);
-    // ::TODO _palette editor::
+    _frameSetBox.pack_start(_paletteEditor.widget, Gtk::PACK_SHRINK);
 
     // Frame
     _frameNotebook.append_page(_frameParameterEditor.widget, _("Frame"));
@@ -118,6 +119,8 @@ MetaSpriteEditor::MetaSpriteEditor()
         _selectedGraphicalEditor = 1;
     });
 
+    // ::TODO palette editor state changed::
+
     _selection.signal_frameSetChanged.connect([this](void) {
         auto frameSet = _selection.frameSet();
 
@@ -137,7 +140,7 @@ MetaSpriteEditor::MetaSpriteEditor()
 
     _selection.signal_paletteChanged.connect([this](void) {
         _paletteList.selectItem(_selection.palette());
-        // ::TODO palette editor::
+        _paletteEditor.setPalette(_selection.palette());
     });
 
     _selection.signal_frameChanged.connect([this](void) {
