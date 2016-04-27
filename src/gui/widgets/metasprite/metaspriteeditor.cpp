@@ -8,6 +8,7 @@ const int SCROLL_MAX = UnTech::int_ms8_t::MAX + 16;
 MetaSpriteEditor::MetaSpriteEditor()
     : _document()
     , _selection()
+    , _rightSideBox(Gtk::ORIENTATION_VERTICAL)
     , _selectedGraphicalEditor(0)
     , _graphicalEditor0(_selection)
     , _graphicalEditor1(_selection)
@@ -17,6 +18,7 @@ MetaSpriteEditor::MetaSpriteEditor()
     , _graphicalVScroll(Gtk::Adjustment::create(0.0, -SCROLL_MAX, SCROLL_MAX, 1.0, 16.0, 16.0),
                         Gtk::ORIENTATION_VERTICAL)
     , _graphicalGrid()
+    , _tilesetEditor(_selection)
     , _sidebar()
     , _framePane(Gtk::ORIENTATION_VERTICAL)
     , _frameSetBox(Gtk::ORIENTATION_VERTICAL)
@@ -43,6 +45,10 @@ MetaSpriteEditor::MetaSpriteEditor()
     _graphicalGrid.attach(_graphicalContainer, 0, 0, 1, 1);
     _graphicalGrid.attach(_graphicalHScroll, 0, 1, 1, 1);
     _graphicalGrid.attach(_graphicalVScroll, 1, 0, 1, 1);
+
+    // Tileset
+    _rightSideBox.pack_start(_graphicalGrid, true, true);
+    _rightSideBox.pack_start(_tilesetEditor.widget, false, false);
 
     // Sidebar
     _frameNotebook.set_size_request(-1, 350);
@@ -79,7 +85,7 @@ MetaSpriteEditor::MetaSpriteEditor()
     _framePane.pack1(_frameList.widget, true, false);
     _framePane.pack2(_frameNotebook, false, false);
 
-    widget.pack1(_graphicalGrid, true, true);
+    widget.pack1(_rightSideBox, true, true);
     widget.pack2(_sidebar, false, false);
 
     /*
@@ -272,4 +278,5 @@ void MetaSpriteEditor::setZoom(int zoom, double aspectRatio)
 {
     _graphicalEditor0.setZoom(zoom * aspectRatio, zoom);
     _graphicalEditor1.setZoom(zoom * aspectRatio, zoom);
+    _tilesetEditor.setZoom(zoom * aspectRatio, zoom);
 }

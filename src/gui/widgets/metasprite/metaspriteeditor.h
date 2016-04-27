@@ -15,6 +15,7 @@
 #include "paletteeditor.h"
 #include "palettelist.h"
 #include "selection.h"
+#include "tileseteditor.h"
 #include "models/metasprite.h"
 #include "gui/widgets/defaults.h"
 
@@ -52,15 +53,17 @@ private:
 
     Selection _selection;
 
+    Gtk::Box _rightSideBox;
+
     unsigned _selectedGraphicalEditor;
     FrameGraphicalEditor _graphicalEditor0, _graphicalEditor1;
     Gtk::Paned _graphicalContainer;
     Gtk::Scrollbar _graphicalHScroll, _graphicalVScroll;
     Gtk::Grid _graphicalGrid;
 
-    Gtk::Notebook _sidebar;
+    TilesetEditor _tilesetEditor;
 
-    // ::TODO tile selector::
+    Gtk::Notebook _sidebar;
 
     Gtk::Paned _framePane;
 
