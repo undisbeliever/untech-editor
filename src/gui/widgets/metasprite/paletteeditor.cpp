@@ -18,12 +18,12 @@ PaletteEditor::PaletteEditor()
     widget.set_border_width(DEFAULT_BORDER);
     widget.set_row_spacing(DEFAULT_ROW_SPACING);
 
-    widget.attach(_paletteLabel, 0, 0, 2, 1);
-    widget.attach(_editSelectOption, 2, 0, 2, 1);
+    widget.attach(_paletteLabel, 0, 0, 6, 1);
+    widget.attach(_editSelectOption, 6, 0, 2, 1);
 
     for (unsigned i = 0; i < N_COLORS; i++) {
-        unsigned x = i % 4;
-        unsigned y = i / 4 + 1;
+        unsigned x = i % 8;
+        unsigned y = i / 8 + 1;
 
         widget.attach(_colorButtons[i], x, y, 1, 1);
     }
