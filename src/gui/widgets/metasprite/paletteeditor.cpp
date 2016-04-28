@@ -1,5 +1,5 @@
 #include "paletteeditor.h"
-#include "palettecolordialog.hpp"
+#include "palettecolordialog.h"
 #include "gui/undo/actionhelper.h"
 #include <iomanip>
 
