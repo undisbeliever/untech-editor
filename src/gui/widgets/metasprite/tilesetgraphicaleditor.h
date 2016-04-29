@@ -12,7 +12,7 @@ namespace MetaSprite {
 namespace MS = UnTech::MetaSprite;
 
 template <class TilesetT>
-class TilesetGraphicalEditor : public Gtk::DrawingArea {
+class TilesetGraphicalEditor : public Gtk::Layout {
 public:
     TilesetGraphicalEditor(Selection& selection);
 

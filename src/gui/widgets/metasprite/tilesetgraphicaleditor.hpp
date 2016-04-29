@@ -98,7 +98,7 @@ inline UnTech::Snes::Tileset4bpp16px& TilesetGraphicalEditor<UnTech::Snes::Tiles
 
 template <class TilesetT>
 TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(Selection& selection)
-    : Gtk::DrawingArea()
+    : Gtk::Layout()
     , _zoomX(DEFAULT_ZOOM)
     , _zoomY(DEFAULT_ZOOM)
     , _displayZoom(NAN)
@@ -144,8 +144,18 @@ TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(Selection& selection)
     _selection.signal_paletteChanged.connect(sigc::mem_fun(
         this, &TilesetGraphicalEditor::redrawTilesetPixbuf));
 
-    _selection.signal_frameObjectChanged.connect(sigc::mem_fun(
-        this, &TilesetGraphicalEditor::queue_draw));
+    _selection.signal_frameObjectChanged.connect([this](void) {
+        queue_draw();
+
+        // scroll to object
+        MS::FrameObject* obj = _selection.frameObject();
+        if (obj && obj->sizePx() == TilesetT::TILE_SIZE) {
+            double tileWidth = _zoomX * _displayZoom * TilesetT::TILE_SIZE;
+            double xPos = tileWidth * obj->tileId();
+
+            get_hadjustment()->clamp_page(xPos, xPos + tileWidth);
+        }
+    });
 }
 
 template <class TilesetT>
@@ -160,13 +170,18 @@ void TilesetGraphicalEditor<TilesetT>::redrawTilesetPixbuf()
         const unsigned height = TilesetT::TILE_SIZE;
 
         // resize widget
-        if (!std::isnan(_displayZoom)) {
-            set_size_request(width * _zoomX * _displayZoom,
-                             height * _zoomY * _displayZoom);
-        }
-        else {
-            set_size_request(width * _zoomX,
-                             height * _zoomY);
+        {
+            double fWidth, fHeight;
+            if (!std::isnan(_displayZoom)) {
+                fWidth = width * _zoomX * _displayZoom;
+                fHeight = height * _zoomY * _displayZoom;
+            }
+            else {
+                fWidth = width * _zoomX;
+                fHeight = height * _zoomY;
+            }
+            set_size(fWidth, fHeight);
+            set_size_request(fWidth, fHeight);
         }
 
         if (_tilesetImageBuffer.size().width != width) {
@@ -230,6 +245,7 @@ bool TilesetGraphicalEditor<TilesetT>::on_draw(const Cairo::RefPtr<Cairo::Contex
 
     cr->save();
 
+    cr->translate(-get_hadjustment()->get_value(), 0);
     cr->scale(_displayZoom, _displayZoom);
 
     if (_tilesetPixbuf) {
