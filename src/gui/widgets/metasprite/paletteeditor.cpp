@@ -5,11 +5,9 @@
 
 using namespace UnTech::Widgets::MetaSprite;
 
-// ::TODO index editor::
-
-PaletteEditor::PaletteEditor()
+PaletteEditor::PaletteEditor(Selection& selection)
     : widget()
-    , _palette(nullptr)
+    , _selection(selection)
     , _editSelectOption(_("Edit"))
     , _colorButtons()
     , _paletteLabel(_("Palette:"), Gtk::ALIGN_START)
@@ -34,9 +32,18 @@ PaletteEditor::PaletteEditor()
      * SLOTS
      */
 
+    _selection.signal_paletteChanged.connect([this](void) {
+        updateGuiValues();
+        _editSelectOption.set_active(true);
+        unselectAllColors();
+    });
+
+    _selection.signal_editTileColorChanged.connect(sigc::mem_fun(
+        *this, &PaletteEditor::updateGuiValues));
+
     /** Palette Updated signal */
     Signals::paletteChanged.connect([this](const MS::Palette* palette) {
-        if (_palette == palette) {
+        if (_selection.palette() == palette) {
             updateGuiValues();
         }
     });
@@ -54,20 +61,35 @@ PaletteEditor::PaletteEditor()
 
 void PaletteEditor::updateGuiValues()
 {
-    if (_palette) {
+    MS::Palette* palette = _selection.palette();
+
+    if (palette) {
         _updatingValues = true;
 
         for (unsigned i = 0; i < N_COLORS; i++) {
-            _colorButtons[i].set_color(_palette->color(i).rgb());
+            _colorButtons[i].set_color(palette->color(i).rgb());
         }
+
+        widget.set_sensitive(true);
 
         _updatingValues = false;
 
-        widget.set_sensitive(true);
+        int active = _selection.editTileColor();
+        if (active >= 0 && active < (int)N_COLORS) {
+            _editSelectOption.set_active(false);
+
+            if (_colorButtons[active].get_active() == false) {
+                _colorButtons[active].set_active(true);
+            }
+        }
+        else {
+            unselectAllColors();
+        }
     }
     else {
         for (auto& c : _colorButtons) {
             c.unset_color();
+            c.set_active(false);
         }
 
         widget.set_sensitive(false);
@@ -79,7 +101,9 @@ void PaletteEditor::on_color_toggled(int colorId)
     if (!_updatingValues) {
         _updatingValues = true;
 
-        if (_palette && colorId >= 0 && colorId < (int)N_COLORS) {
+        MS::Palette* palette = _selection.palette();
+
+        if (palette && colorId >= 0 && colorId < (int)N_COLORS) {
             auto& selectedColor = _colorButtons[colorId];
 
             if (selectedColor.get_active() == true) {
@@ -90,15 +114,17 @@ void PaletteEditor::on_color_toggled(int colorId)
                     }
                 }
 
-                // Bring up the menu if necessary
                 if (_editSelectOption.get_active() == true) {
-                    PaletteColorDialog dialog(*_palette, colorId, selectedColor);
+                    // Show dialog for editing colors
+                    // Dialog is responsible for setting up undo action.
+                    PaletteColorDialog dialog(*palette, colorId, selectedColor);
                     dialog.run();
 
                     unselectAllColors();
                 }
                 else {
-                    // ::TODO select color for editing tileset::
+                    // Set color to editing tiles
+                    _selection.setEditTileColor(colorId);
                 }
             }
             else {
@@ -123,7 +149,7 @@ void PaletteEditor::unselectAllColors()
         c.set_active(false);
     }
 
-    // ::TODO unselect color for editing tileset::
+    _selection.unsetEditTileColor();
 
     _updatingValues = oldState;
 }

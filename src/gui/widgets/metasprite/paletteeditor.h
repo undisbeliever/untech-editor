@@ -1,6 +1,7 @@
 #ifndef _UNTECH_GUI_WIDGETS_METASPRITE_PALETTEEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_METASPRITE_PALETTEEDITOR_H_
 
+#include "selection.h"
 #include "signals.h"
 #include "../common/colortogglebutton.h"
 #include "models/metasprite/palette.h"
@@ -20,14 +21,7 @@ public:
     static const unsigned N_COLORS = 16;
 
 public:
-    PaletteEditor();
-
-    void setPalette(MS::Palette* palette)
-    {
-        _palette = palette;
-        updateGuiValues();
-        unselectAllColors();
-    }
+    PaletteEditor(Selection& selection);
 
     void unselectAllColors();
 
@@ -44,7 +38,7 @@ public:
     sigc::signal<void, int> signal_selectColor();
 
 private:
-    MS::Palette* _palette;
+    Selection& _selection;
 
     Gtk::ToggleButton _editSelectOption;
 

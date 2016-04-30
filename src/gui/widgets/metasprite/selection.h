@@ -28,6 +28,17 @@ public:
     void setActionPoint(MS::ActionPoint* actionPoint);
     void setEntityHitbox(MS::EntityHitbox* entityHitbox);
 
+    /**
+     * Set the color to draw and edit tiles with.
+     * If negative then not in edit tile mode.
+     */
+    void setEditTileColor(int colorId);
+
+    inline void unsetEditTileColor()
+    {
+        setEditTileColor(-1);
+    }
+
     // WILL ALWAYS emit a selectionChanged
     void unselectAll();
 
@@ -40,6 +51,12 @@ public:
     MS::FrameObject* frameObject() const { return _frameObject; }
     MS::ActionPoint* actionPoint() const { return _actionPoint; }
     MS::EntityHitbox* entityHitbox() const { return _entityHitbox; }
+
+    /**
+     * The color to draw and edit tiles with
+     * If negative then not in edit tile mode.
+     */
+    int editTileColor() const { return _editTileColor; }
 
     bool canCrudSelected() const { return _type != Type::NONE; }
     bool canMoveSelectedUp() const;
@@ -58,6 +75,7 @@ public:
     sigc::signal<void> signal_frameObjectChanged;
     sigc::signal<void> signal_actionPointChanged;
     sigc::signal<void> signal_entityHitboxChanged;
+    sigc::signal<void> signal_editTileColorChanged;
 
 private:
     // updates current without nulling child selection
@@ -71,6 +89,7 @@ private:
     MS::FrameObject* _frameObject = nullptr;
     MS::ActionPoint* _actionPoint = nullptr;
     MS::EntityHitbox* _entityHitbox = nullptr;
+    int _editTileColor;
 };
 }
 }

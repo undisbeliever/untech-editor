@@ -24,7 +24,7 @@ MetaSpriteEditor::MetaSpriteEditor()
     , _frameSetBox(Gtk::ORIENTATION_VERTICAL)
     , _frameSetPropertiesEditor()
     , _paletteList()
-    , _paletteEditor()
+    , _paletteEditor(_selection)
     , _frameList()
     , _frameNotebook()
     , _frameParameterEditor()
@@ -146,7 +146,6 @@ MetaSpriteEditor::MetaSpriteEditor()
 
     _selection.signal_paletteChanged.connect([this](void) {
         _paletteList.selectItem(_selection.palette());
-        _paletteEditor.setPalette(_selection.palette());
     });
 
     _selection.signal_frameChanged.connect([this](void) {

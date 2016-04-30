@@ -174,6 +174,14 @@ void Selection::setEntityHitbox(MS::EntityHitbox* entityHitbox)
     }
 }
 
+void Selection::setEditTileColor(int colorId)
+{
+    if (_editTileColor != colorId) {
+        _editTileColor = colorId;
+        signal_editTileColorChanged.emit();
+    }
+}
+
 void Selection::unselectAll()
 {
     if (_frameObject != nullptr) {
@@ -188,6 +196,8 @@ void Selection::unselectAll()
         _entityHitbox = nullptr;
         signal_entityHitboxChanged();
     }
+
+    unsetEditTileColor();
 
     _type = Selection::Type::NONE;
 
