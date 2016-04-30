@@ -1,46 +1,48 @@
 #include "framepropertieseditor.h"
+#include "document.h"
 #include "signals.h"
 #include "gui/undo/actionhelper.h"
+#include "gui/undo/mergeactionhelper.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 
 // ::SHOULDO add a Boolean type::
 // ::: would need undo and redo messages in Undo::Action ::
 
-SIMPLE_UNDO_ACTION(frame_setGridLocation,
-                   SI::Frame, UnTech::upoint, gridLocation, setGridLocation,
-                   Signals::frameChanged,
-                   "Change Grid Location")
+SIMPLE_UNDO_MERGE_ACTION(frame_merge_setGridLocation,
+                         SI::Frame, UnTech::upoint, gridLocation, setGridLocation,
+                         Signals::frameChanged,
+                         "Change Grid Location")
 
 SIMPLE_UNDO_ACTION2(frame_setUseGridLocation,
                     SI::Frame, bool, useGridLocation, setUseGridLocation,
                     Signals::frameChanged, Signals::frameSizeChanged,
                     "Change Use Grid Location")
 
-SIMPLE_UNDO_ACTION2(frame_setLocation,
-                    SI::Frame, UnTech::urect, location, setLocation,
-                    Signals::frameChanged, Signals::frameSizeChanged,
-                    "Change Frame Location")
+SIMPLE_UNDO_MERGE_ACTION2(frame_merge_setLocation,
+                          SI::Frame, UnTech::urect, location, setLocation,
+                          Signals::frameChanged, Signals::frameSizeChanged,
+                          "Change Frame Location")
 
 SIMPLE_UNDO_ACTION(frame_setUseGridOrigin,
                    SI::Frame, bool, useGridOrigin, setUseGridOrigin,
                    Signals::frameChanged,
                    "Change Use Grid Origin")
 
-SIMPLE_UNDO_ACTION(frame_setOrigin,
-                   SI::Frame, UnTech::upoint, origin, setOrigin,
-                   Signals::frameChanged,
-                   "Change Frame Origin")
+SIMPLE_UNDO_MERGE_ACTION(frame_merge_setOrigin,
+                         SI::Frame, UnTech::upoint, origin, setOrigin,
+                         Signals::frameChanged,
+                         "Change Frame Origin")
 
 SIMPLE_UNDO_ACTION(frame_setSolid,
                    SI::Frame, bool, solid, setSolid,
                    Signals::frameChanged,
                    "Change Frame Solid")
 
-SIMPLE_UNDO_ACTION(frame_setTileHitbox,
-                   SI::Frame, UnTech::urect, tileHitbox, setTileHitbox,
-                   Signals::frameChanged,
-                   "Change Frame Tile Hitbox")
+SIMPLE_UNDO_MERGE_ACTION(frame_merge_setTileHitbox,
+                         SI::Frame, UnTech::urect, tileHitbox, setTileHitbox,
+                         Signals::frameChanged,
+                         "Change Frame Tile Hitbox")
 
 SIMPLE_UNDO_ACTION(frame_setSpriteOrder,
                    SI::Frame, unsigned, spriteOrder, setSpriteOrder,
@@ -122,27 +124,55 @@ FramePropertiesEditor::FramePropertiesEditor()
     /** Grid location signal */
     _gridLocationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setGridLocation(_frame, _gridLocationSpinButtons.value());
+            frame_merge_setGridLocation(_frame, _gridLocationSpinButtons.value());
         }
     });
+    _gridLocationSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frame) {
+            dontMergeNextUndoAction(_frame->document());
+        }
+        return false;
+    });
+
     /** Location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setLocation(_frame, _locationSpinButtons.value());
+            frame_merge_setLocation(_frame, _locationSpinButtons.value());
         }
     });
+    _locationSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frame) {
+            dontMergeNextUndoAction(_frame->document());
+        }
+        return false;
+    });
+
     /** Origin signal */
     _originSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setOrigin(_frame, _originSpinButtons.value());
+            frame_merge_setOrigin(_frame, _originSpinButtons.value());
         }
     });
+    _originSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frame) {
+            dontMergeNextUndoAction(_frame->document());
+        }
+        return false;
+    });
+
     /** Tile hitbox signal */
     _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setTileHitbox(_frame, _tileHitboxSpinButtons.value());
+            frame_merge_setTileHitbox(_frame, _tileHitboxSpinButtons.value());
         }
     });
+    _tileHitboxSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frame) {
+            dontMergeNextUndoAction(_frame->document());
+        }
+        return false;
+    });
+
     /** Sprite Order Signal */
     _spriteOrderSpinButton.signal_value_changed().connect([this](void) {
         int i = _spriteOrderSpinButton.get_value_as_int();

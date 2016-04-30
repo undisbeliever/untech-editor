@@ -22,6 +22,14 @@ public:
 
     virtual ~Document() = default;
 };
+
+inline void dontMergeNextUndoAction(UnTech::SpriteImporter::SpriteImporterDocument& document)
+{
+    auto* undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&document);
+    if (undoDoc) {
+        undoDoc->undoStack().dontMergeNextAction();
+    }
+}
 }
 }
 }

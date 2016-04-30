@@ -1,5 +1,7 @@
 #include "frameobjecteditor.h"
+#include "document.h"
 #include "gui/undo/actionhelper.h"
+#include "gui/undo/mergeactionhelper.h"
 
 using namespace UnTech::Widgets::MetaSprite;
 namespace MS = UnTech::MetaSprite;
@@ -7,15 +9,15 @@ namespace MS = UnTech::MetaSprite;
 // ::SHOULDO add a Boolean type::
 // ::: would need undo and redo messages in Undo::Action ::
 
-SIMPLE_UNDO_ACTION(frameObject_setLocation,
-                   MS::FrameObject, UnTech::ms8point, location, setLocation,
-                   Signals::frameObjectChanged,
-                   "Move Frame Object")
+SIMPLE_UNDO_MERGE_ACTION(frameObject_merge_setLocation,
+                         MS::FrameObject, UnTech::ms8point, location, setLocation,
+                         Signals::frameObjectChanged,
+                         "Move Frame Object")
 
-SIMPLE_UNDO_ACTION(frameObject_setTileId,
-                   MS::FrameObject, unsigned, tileId, setTileId,
-                   Signals::frameObjectChanged,
-                   "Change Frame Object Tile")
+SIMPLE_UNDO_MERGE_ACTION(frameObject_merge_setTileId,
+                         MS::FrameObject, unsigned, tileId, setTileId,
+                         Signals::frameObjectChanged,
+                         "Change Frame Object Tile")
 
 SIMPLE_UNDO_ACTION(frameObject_setSize,
                    MS::FrameObject, MS::FrameObject::ObjectSize, size, setSize,
@@ -89,15 +91,29 @@ FrameObjectEditor::FrameObjectEditor()
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameObject && !_updatingValues) {
-            frameObject_setLocation(_frameObject, _locationSpinButtons.value());
+            frameObject_merge_setLocation(_frameObject, _locationSpinButtons.value());
         }
+    });
+
+    _locationSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frameObject) {
+            dontMergeNextUndoAction(_frameObject->document());
+        }
+        return false;
     });
 
     /** Set Tile ID signal */
     _tileIdSpinButton.signal_value_changed().connect([this](void) {
         if (_frameObject && !_updatingValues) {
-            frameObject_setTileId(_frameObject, _tileIdSpinButton.get_value());
+            frameObject_merge_setTileId(_frameObject, _tileIdSpinButton.get_value());
         }
+    });
+
+    _tileIdSpinButton.signal_focus_out_event().connect([this](GdkEventFocus*) {
+        if (_frameObject) {
+            dontMergeNextUndoAction(_frameObject->document());
+        }
+        return false;
     });
 
     /** Set Size Signal */

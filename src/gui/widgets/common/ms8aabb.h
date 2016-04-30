@@ -36,11 +36,14 @@ struct Ms8pointSpinButtons {
                 signal_valueChanged.emit();
             }
         });
+        xSpin.signal_focus_out_event().connect(signal_focus_out_event);
+
         ySpin.signal_value_changed().connect([this](void) {
             if (!_updating) {
                 signal_valueChanged.emit();
             }
         });
+        ySpin.signal_focus_out_event().connect(signal_focus_out_event);
     }
 
     ms8point value() const
@@ -125,6 +128,7 @@ struct Ms8pointSpinButtons {
     Gtk::SpinButton xSpin, ySpin;
 
     sigc::signal<void> signal_valueChanged;
+    sigc::signal<bool, GdkEventFocus*> signal_focus_out_event;
 
 private:
     bool _updating;
@@ -145,9 +149,16 @@ struct Ms8rectSpinButtons {
     {
         // the signal handler will prevent size
         xSpin.signal_value_changed().connect(sigc::mem_fun(this, &Ms8rectSpinButtons::on_valueChanged));
+        xSpin.signal_focus_out_event().connect(signal_focus_out_event);
+
         ySpin.signal_value_changed().connect(sigc::mem_fun(this, &Ms8rectSpinButtons::on_valueChanged));
+        ySpin.signal_focus_out_event().connect(signal_focus_out_event);
+
         widthSpin.signal_value_changed().connect(sigc::mem_fun(this, &Ms8rectSpinButtons::on_valueChanged));
+        widthSpin.signal_focus_out_event().connect(signal_focus_out_event);
+
         heightSpin.signal_value_changed().connect(sigc::mem_fun(this, &Ms8rectSpinButtons::on_valueChanged));
+        heightSpin.signal_focus_out_event().connect(signal_focus_out_event);
     }
 
     ms8rect value() const
@@ -193,6 +204,7 @@ struct Ms8rectSpinButtons {
     Gtk::SpinButton widthSpin, heightSpin;
 
     sigc::signal<void> signal_valueChanged;
+    sigc::signal<bool, GdkEventFocus*> signal_focus_out_event;
 
 private:
     void on_valueChanged()

@@ -1,5 +1,7 @@
 #include "framesetpropertieseditor.h"
+#include "document.h"
 #include "gui/undo/actionhelper.h"
+#include "gui/undo/mergeactionhelper.h"
 #include <iomanip>
 
 using namespace UnTech::Widgets::SpriteImporter;
@@ -9,25 +11,25 @@ SIMPLE_UNDO_ACTION(frameSet_setName,
                    Signals::frameSetChanged,
                    "Change Name")
 
-PARAMETER_UNDO_ACTION2(frameSet_Grid_setFrameSize,
-                       SI::FrameSet, grid, UnTech::usize, frameSize, setFrameSize,
-                       Signals::frameSetChanged, Signals::frameSetGridChanged,
-                       "Change Grid Frame Size")
+PARAMETER_UNDO_MERGE_ACTION2(frameSet_Grid_merge_setFrameSize,
+                             SI::FrameSet, grid, UnTech::usize, frameSize, setFrameSize,
+                             Signals::frameSetChanged, Signals::frameSetGridChanged,
+                             "Change Grid Frame Size")
 
-PARAMETER_UNDO_ACTION2(frameSet_Grid_setOffset,
-                       SI::FrameSet, grid, UnTech::upoint, offset, setOffset,
-                       Signals::frameSetChanged, Signals::frameSetGridChanged,
-                       "Change Grid Offset")
+PARAMETER_UNDO_MERGE_ACTION2(frameSet_Grid_merge_setOffset,
+                             SI::FrameSet, grid, UnTech::upoint, offset, setOffset,
+                             Signals::frameSetChanged, Signals::frameSetGridChanged,
+                             "Change Grid Offset")
 
-PARAMETER_UNDO_ACTION2(frameSet_Grid_setPadding,
-                       SI::FrameSet, grid, UnTech::usize, padding, setPadding,
-                       Signals::frameSetChanged, Signals::frameSetGridChanged,
-                       "Change Grid Padding")
+PARAMETER_UNDO_MERGE_ACTION2(frameSet_Grid_merge_setPadding,
+                             SI::FrameSet, grid, UnTech::usize, padding, setPadding,
+                             Signals::frameSetChanged, Signals::frameSetGridChanged,
+                             "Change Grid Padding")
 
-PARAMETER_UNDO_ACTION2(frameSet_Grid_setOrigin,
-                       SI::FrameSet, grid, UnTech::upoint, origin, setOrigin,
-                       Signals::frameSetChanged, Signals::frameSetGridChanged,
-                       "Change Grid Origin")
+PARAMETER_UNDO_MERGE_ACTION2(frameSet_Grid_merge_setOrigin,
+                             SI::FrameSet, grid, UnTech::upoint, origin, setOrigin,
+                             Signals::frameSetChanged, Signals::frameSetGridChanged,
+                             "Change Grid Origin")
 
 SIMPLE_UNDO_ACTION2(frameSet_setImageFilename,
                     SI::FrameSet, std::string, imageFilename, setImageFilename,
@@ -133,26 +135,50 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
 
     _gridFrameSizeSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            frameSet_Grid_setFrameSize(_frameSet, _gridFrameSizeSpinButtons.value());
+            frameSet_Grid_merge_setFrameSize(_frameSet, _gridFrameSizeSpinButtons.value());
         }
+    });
+    _gridFrameSizeSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frameSet) {
+            dontMergeNextUndoAction(_frameSet->document());
+        }
+        return false;
     });
 
     _gridOffsetSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            frameSet_Grid_setOffset(_frameSet, _gridOffsetSpinButtons.value());
+            frameSet_Grid_merge_setOffset(_frameSet, _gridOffsetSpinButtons.value());
         }
+    });
+    _gridOffsetSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frameSet) {
+            dontMergeNextUndoAction(_frameSet->document());
+        }
+        return false;
     });
 
     _gridPaddingSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            frameSet_Grid_setPadding(_frameSet, _gridPaddingSpinButtons.value());
+            frameSet_Grid_merge_setPadding(_frameSet, _gridPaddingSpinButtons.value());
         }
+    });
+    _gridPaddingSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frameSet) {
+            dontMergeNextUndoAction(_frameSet->document());
+        }
+        return false;
     });
 
     _gridOriginSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameSet && !_updatingValues) {
-            frameSet_Grid_setOrigin(_frameSet, _gridOriginSpinButtons.value());
+            frameSet_Grid_merge_setOrigin(_frameSet, _gridOriginSpinButtons.value());
         }
+    });
+    _gridOriginSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frameSet) {
+            dontMergeNextUndoAction(_frameSet->document());
+        }
+        return false;
     });
 
     _transparentColorButton.signal_toggled().connect([this](void) {

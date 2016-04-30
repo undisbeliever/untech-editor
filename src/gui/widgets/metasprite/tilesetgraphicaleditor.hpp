@@ -2,6 +2,7 @@
 #define _UNTECH_GUI_WIDGETS_METASPRITE_TILESETGRAPHICALEDITOR_HPP_
 
 #include "tilesetgraphicaleditor.h"
+#include "document.h"
 #include "signals.h"
 #include "gui/widgets/defaults.h"
 #include "gui/widgets/common/cr_rgba.h"
@@ -237,7 +238,10 @@ TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(Selection& selection)
     _selection.signal_editTileColorChanged.connect([this](void) {
         _drawTileState = false;
         update_pointer_cursor();
-        _selection.dontMergeNextUndoAction();
+
+        if (_selection.frameSet()) {
+            dontMergeNextUndoAction(_selection.frameSet()->document());
+        }
     });
 
     _selection.signal_frameObjectChanged.connect([this](void) {
@@ -442,7 +446,9 @@ bool TilesetGraphicalEditor<TilesetT>::on_button_release_event(GdkEventButton* e
     grab_focus();
 
     if (_drawTileState && event->button == 1) {
-        _selection.dontMergeNextUndoAction();
+        if (_selection.frameSet()) {
+            dontMergeNextUndoAction(_selection.frameSet()->document());
+        }
     }
 
     _drawTileState = false;
@@ -493,7 +499,10 @@ bool TilesetGraphicalEditor<TilesetT>::on_leave_notify_event(GdkEventCrossing*)
     }
 
     _drawTileState = false;
-    _selection.dontMergeNextUndoAction();
+
+    if (_selection.frameSet()) {
+        dontMergeNextUndoAction(_selection.frameSet()->document());
+    }
 
     return true;
 }

@@ -1,13 +1,15 @@
 #include "actionpointeditor.h"
+#include "document.h"
 #include "gui/undo/actionhelper.h"
+#include "gui/undo/mergeactionhelper.h"
 
 using namespace UnTech::Widgets::MetaSprite;
 namespace MS = UnTech::MetaSprite;
 
-SIMPLE_UNDO_ACTION(actionPoint_setLocation,
-                   MS::ActionPoint, UnTech::ms8point, location, setLocation,
-                   Signals::actionPointChanged,
-                   "Move Action Point")
+SIMPLE_UNDO_MERGE_ACTION(actionPoint_merge_setLocation,
+                         MS::ActionPoint, UnTech::ms8point, location, setLocation,
+                         Signals::actionPointChanged,
+                         "Move Action Point")
 
 SIMPLE_UNDO_ACTION(actionPoint_setParameter,
                    MS::ActionPoint, unsigned, parameter, setParameter,
@@ -44,8 +46,15 @@ ActionPointEditor::ActionPointEditor()
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_actionPoint && !_updatingValues) {
-            actionPoint_setLocation(_actionPoint, _locationSpinButtons.value());
+            actionPoint_merge_setLocation(_actionPoint, _locationSpinButtons.value());
         }
+    });
+
+    _locationSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_actionPoint) {
+            dontMergeNextUndoAction(_actionPoint->document());
+        }
+        return false;
     });
 
     /* Set Parameter has finished editing */

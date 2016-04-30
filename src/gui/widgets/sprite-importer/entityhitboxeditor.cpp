@@ -1,13 +1,15 @@
 #include "entityhitboxeditor.h"
+#include "document.h"
 #include "gui/undo/actionhelper.h"
+#include "gui/undo/mergeactionhelper.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
-SIMPLE_UNDO_ACTION(entityHitbox_setAabb,
-                   SI::EntityHitbox, UnTech::urect, aabb, setAabb,
-                   Signals::entityHitboxChanged,
-                   "Move Entity Hitbox")
+SIMPLE_UNDO_MERGE_ACTION(entityHitbox_merge_setAabb,
+                         SI::EntityHitbox, UnTech::urect, aabb, setAabb,
+                         Signals::entityHitboxChanged,
+                         "Move Entity Hitbox")
 
 SIMPLE_UNDO_ACTION(entityHitbox_setParameter,
                    SI::EntityHitbox, unsigned, parameter, setParameter,
@@ -48,8 +50,15 @@ EntityHitboxEditor::EntityHitboxEditor()
     /** Set aabb signal */
     _aabbSpinButtons.signal_valueChanged.connect([this](void) {
         if (_entityHitbox && !_updatingValues) {
-            entityHitbox_setAabb(_entityHitbox, _aabbSpinButtons.value());
+            entityHitbox_merge_setAabb(_entityHitbox, _aabbSpinButtons.value());
         }
+    });
+
+    _aabbSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_entityHitbox) {
+            dontMergeNextUndoAction(_entityHitbox->document());
+        }
+        return false;
     });
 
     /* Set Parameter has finished editing */

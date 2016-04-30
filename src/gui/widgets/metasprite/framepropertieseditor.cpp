@@ -1,6 +1,8 @@
 #include "framepropertieseditor.h"
 #include "signals.h"
+#include "document.h"
 #include "gui/undo/actionhelper.h"
+#include "gui/undo/mergeactionhelper.h"
 
 using namespace UnTech::Widgets::MetaSprite;
 
@@ -12,10 +14,10 @@ SIMPLE_UNDO_ACTION(frame_setSolid,
                    Signals::frameChanged,
                    "Change Frame Solid")
 
-SIMPLE_UNDO_ACTION(frame_setTileHitbox,
-                   MS::Frame, UnTech::ms8rect, tileHitbox, setTileHitbox,
-                   Signals::frameChanged,
-                   "Change Frame Tile Hitbox")
+SIMPLE_UNDO_MERGE_ACTION(frame_merge_setTileHitbox,
+                         MS::Frame, UnTech::ms8rect, tileHitbox, setTileHitbox,
+                         Signals::frameChanged,
+                         "Change Frame Tile Hitbox")
 
 FramePropertiesEditor::FramePropertiesEditor()
     : widget()
@@ -54,9 +56,17 @@ FramePropertiesEditor::FramePropertiesEditor()
     /** Tile hitbox signal */
     _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frame && !_updatingValues) {
-            frame_setTileHitbox(_frame, _tileHitboxSpinButtons.value());
+            frame_merge_setTileHitbox(_frame, _tileHitboxSpinButtons.value());
         }
     });
+
+    _tileHitboxSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frame) {
+            dontMergeNextUndoAction(_frame->document());
+        }
+        return false;
+    });
+
     /** Solid Checkbox signal */
     _solidCB.signal_clicked().connect([this](void) {
         if (_frame && !_updatingValues) {

@@ -35,11 +35,14 @@ struct UpointSpinButtons {
                 signal_valueChanged.emit();
             }
         });
+        xSpin.signal_focus_out_event().connect(signal_focus_out_event);
+
         ySpin.signal_value_changed().connect([this](void) {
             if (!_updating) {
                 signal_valueChanged.emit();
             }
         });
+        ySpin.signal_focus_out_event().connect(signal_focus_out_event);
     }
 
     upoint value() const
@@ -124,6 +127,7 @@ struct UpointSpinButtons {
     Gtk::SpinButton xSpin, ySpin;
 
     sigc::signal<void> signal_valueChanged;
+    sigc::signal<bool, GdkEventFocus*> signal_focus_out_event;
 
 private:
     bool _updating;
@@ -144,11 +148,14 @@ struct UsizeSpinButtons {
                 signal_valueChanged.emit();
             }
         });
+        widthSpin.signal_focus_out_event().connect(signal_focus_out_event);
+
         heightSpin.signal_value_changed().connect([this](void) {
             if (!_updating) {
                 signal_valueChanged.emit();
             }
         });
+        heightSpin.signal_focus_out_event().connect(signal_focus_out_event);
     }
 
     usize value() const
@@ -217,6 +224,7 @@ struct UsizeSpinButtons {
     Gtk::SpinButton widthSpin, heightSpin;
 
     sigc::signal<void> signal_valueChanged;
+    sigc::signal<bool, GdkEventFocus*> signal_focus_out_event;
 
 private:
     bool _updating;
@@ -240,9 +248,16 @@ struct UrectSpinButtons {
     {
         // the signal handler will prevent size
         xSpin.signal_value_changed().connect(sigc::mem_fun(this, &UrectSpinButtons::on_valueChanged));
+        xSpin.signal_focus_out_event().connect(signal_focus_out_event);
+
         ySpin.signal_value_changed().connect(sigc::mem_fun(this, &UrectSpinButtons::on_valueChanged));
+        ySpin.signal_focus_out_event().connect(signal_focus_out_event);
+
         widthSpin.signal_value_changed().connect(sigc::mem_fun(this, &UrectSpinButtons::on_valueChanged));
+        widthSpin.signal_focus_out_event().connect(signal_focus_out_event);
+
         heightSpin.signal_value_changed().connect(sigc::mem_fun(this, &UrectSpinButtons::on_valueChanged));
+        heightSpin.signal_focus_out_event().connect(signal_focus_out_event);
     }
 
     urect value() const
@@ -316,6 +331,7 @@ struct UrectSpinButtons {
     Gtk::SpinButton widthSpin, heightSpin;
 
     sigc::signal<void> signal_valueChanged;
+    sigc::signal<bool, GdkEventFocus*> signal_focus_out_event;
 
 private:
     usize _range, _minSize, _maxSize;

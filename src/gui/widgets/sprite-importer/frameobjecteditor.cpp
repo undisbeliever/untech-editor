@@ -1,13 +1,14 @@
 #include "frameobjecteditor.h"
-#include "gui/undo/actionhelper.h"
+#include "document.h"
+#include "gui/undo/mergeactionhelper.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
 
-SIMPLE_UNDO_ACTION(frameObject_setLocation,
-                   SI::FrameObject, UnTech::upoint, location, setLocation,
-                   Signals::frameObjectChanged,
-                   "Move Frame Object")
+SIMPLE_UNDO_MERGE_ACTION(frameObject_merge_setLocation,
+                         SI::FrameObject, UnTech::upoint, location, setLocation,
+                         Signals::frameObjectChanged,
+                         "Move Frame Object")
 
 // Cannot use simple undo action for FrameObject::setSize
 // Changing the size can change the location.
@@ -109,8 +110,15 @@ FrameObjectEditor::FrameObjectEditor()
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (_frameObject && !_updatingValues) {
-            frameObject_setLocation(_frameObject, _locationSpinButtons.value());
+            frameObject_merge_setLocation(_frameObject, _locationSpinButtons.value());
         }
+    });
+
+    _locationSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
+        if (_frameObject) {
+            dontMergeNextUndoAction(_frameObject->document());
+        }
+        return false;
     });
 
     /** Set Size Signal */
