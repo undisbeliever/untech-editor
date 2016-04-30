@@ -57,6 +57,7 @@ public:
      * If negative then not in edit tile mode.
      */
     int editTileColor() const { return _editTileColor; }
+    bool inEditTileMode() const { return _editTileColor >= 0; }
 
     bool canCrudSelected() const { return _type != Type::NONE; }
     bool canMoveSelectedUp() const;

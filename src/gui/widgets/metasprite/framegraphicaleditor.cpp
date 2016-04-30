@@ -90,6 +90,12 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
         }
     });
 
+    Signals::frameSetTilesetChanged.connect([this](const MS::FrameSet* frameSet) {
+        if (_selectedFrame && &_selectedFrame->frameSet() == frameSet) {
+            redrawFramePixbuf();
+        }
+    });
+
     Signals::paletteChanged.connect([this](const MS::Palette* palette) {
         if (palette && palette == _selection.palette()) {
             redrawFramePixbuf();

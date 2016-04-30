@@ -84,6 +84,75 @@ inline void frameObject_setTileIdAndSize(MS::FrameObject* item,
     }
 }
 
+template <class TilesetT>
+inline void tileset_setPixel(MS::FrameSet* frameset,
+                             TilesetT* tileset,
+                             const unsigned tileId,
+                             unsigned x, unsigned y,
+                             unsigned value)
+{
+    class Action : public ::UnTech::Undo::Action {
+    public:
+        Action() = delete;
+        Action(MS::FrameSet* frameset,
+               TilesetT* tileset,
+               const unsigned tileId,
+               const typename TilesetT::tileData_t& oldTileData,
+               const typename TilesetT::tileData_t& newTileData)
+            : _frameset(frameset)
+            , _tileset(tileset)
+            , _tileId(tileId)
+            , _oldTileData(oldTileData)
+            , _newTileData(newTileData)
+        {
+        }
+
+        virtual ~Action() override = default;
+
+        virtual void undo() override
+        {
+            _tileset->tile(_tileId) = _oldTileData;
+            Signals::frameSetTilesetChanged.emit(_frameset);
+        }
+
+        virtual void redo() override
+        {
+            _tileset->tile(_tileId) = _oldTileData;
+            Signals::frameSetTilesetChanged.emit(_frameset);
+        }
+
+        virtual const Glib::ustring& message() const override
+        {
+            const static Glib::ustring message = _("Edit Tile");
+            return message;
+        }
+
+    private:
+        MS::FrameSet* _frameset;
+        TilesetT* _tileset;
+        unsigned _tileId;
+        const typename TilesetT::tileData_t _oldTileData;
+        const typename TilesetT::tileData_t _newTileData;
+    };
+
+    if (tileset && tileId < tileset->size()) {
+        typename TilesetT::tileData_t oldTileData = tileset->tile(tileId);
+
+        tileset->setTilePixel(tileId, x, y, value);
+
+        typename TilesetT::tileData_t newTileData = tileset->tile(tileId);
+
+        if (oldTileData != newTileData) {
+            Signals::frameSetTilesetChanged.emit(frameset);
+
+            auto a = std::make_unique<Action>(frameset, tileset, tileId, oldTileData, newTileData);
+
+            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(frameset->document()));
+            undoDoc->undoStack().add_undo(std::move(a));
+        }
+    }
+}
+
 template <>
 inline UnTech::Snes::Tileset4bpp8px& TilesetGraphicalEditor<UnTech::Snes::Tileset4bpp8px>::tileset() const
 {
@@ -105,11 +174,15 @@ TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(Selection& selection)
     , _tilesetImageBuffer()
     , _tilesetPixbuf()
     , _selection(selection)
+    , _drawTileState(false)
 {
     set_can_focus(true);
 
     add_events(Gdk::BUTTON_PRESS_MASK
-               | Gdk::BUTTON_RELEASE_MASK);
+               | Gdk::BUTTON_RELEASE_MASK
+               | Gdk::ENTER_NOTIFY_MASK
+               | Gdk::LEAVE_NOTIFY_MASK
+               | Gdk::BUTTON1_MOTION_MASK);
 
     // SLOTS
     // =====
@@ -143,6 +216,11 @@ TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(Selection& selection)
 
     _selection.signal_paletteChanged.connect(sigc::mem_fun(
         this, &TilesetGraphicalEditor::redrawTilesetPixbuf));
+
+    _selection.signal_editTileColorChanged.connect([this](void) {
+        _drawTileState = false;
+        update_pointer_cursor();
+    });
 
     _selection.signal_frameObjectChanged.connect([this](void) {
         queue_draw();
@@ -316,11 +394,44 @@ bool TilesetGraphicalEditor<TilesetT>::on_draw(const Cairo::RefPtr<Cairo::Contex
 }
 
 template <class TilesetT>
-bool TilesetGraphicalEditor<TilesetT>::on_button_release_event(GdkEventButton* event)
+bool TilesetGraphicalEditor<TilesetT>::on_button_press_event(GdkEventButton* event)
 {
     grab_focus();
 
+    if (event->button == 1) {
+        if (_selection.inEditTileMode()) {
+            _drawTileState = true;
+            setTilePixelForMouse(event->x, event->y);
+        }
+    }
+    return false;
+}
+
+template <class TilesetT>
+bool TilesetGraphicalEditor<TilesetT>::on_motion_notify_event(GdkEventMotion* event)
+{
+    if (_drawTileState) {
+        setTilePixelForMouse(event->x, event->y);
+    }
+    return false;
+}
+
+template <class TilesetT>
+bool TilesetGraphicalEditor<TilesetT>::on_button_release_event(GdkEventButton* event)
+{
+    typedef MS::FrameObject::ObjectSize OS;
+
+    grab_focus();
+
+    _drawTileState = false;
+
     if (_selection.frameSet() == nullptr) {
+        return false;
+    }
+
+    MS::FrameObject* obj = _selection.frameObject();
+
+    if (obj == nullptr) {
         return false;
     }
 
@@ -331,22 +442,74 @@ bool TilesetGraphicalEditor<TilesetT>::on_button_release_event(GdkEventButton* e
         int y = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom));
 
         if (x >= 0 && y >= 0) {
-            MS::FrameObject* obj = _selection.frameObject();
+            unsigned tileId = (unsigned)x / TilesetT::TILE_SIZE;
 
-            if (obj) {
-                typedef MS::FrameObject::ObjectSize OS;
-                unsigned tileId = (unsigned)x / TilesetT::TILE_SIZE;
-
-                if (TilesetT::TILE_SIZE == 8) {
-                    frameObject_setTileIdAndSize(obj, tileId, OS::SMALL);
-                }
-                else {
-                    frameObject_setTileIdAndSize(obj, tileId, OS::LARGE);
-                }
+            if (TilesetT::TILE_SIZE == 8) {
+                frameObject_setTileIdAndSize(obj, tileId, OS::SMALL);
+            }
+            else {
+                frameObject_setTileIdAndSize(obj, tileId, OS::LARGE);
             }
         }
     }
     return false;
+}
+
+template <class TilesetT>
+bool TilesetGraphicalEditor<TilesetT>::on_enter_notify_event(GdkEventCrossing*)
+{
+    update_pointer_cursor();
+    return true;
+}
+
+template <class TilesetT>
+bool TilesetGraphicalEditor<TilesetT>::on_leave_notify_event(GdkEventCrossing*)
+{
+    auto win = get_window();
+    if (win) {
+        win->set_cursor();
+    }
+
+    _drawTileState = false;
+
+    return true;
+}
+
+template <class TilesetT>
+void TilesetGraphicalEditor<TilesetT>::update_pointer_cursor()
+{
+    auto win = get_window();
+    if (win) {
+        if (_selection.inEditTileMode()) {
+            win->set_cursor(Gdk::Cursor::create(get_display(), "pencil"));
+        }
+        else {
+            win->set_cursor();
+        }
+    }
+}
+
+template <class TilesetT>
+void TilesetGraphicalEditor<TilesetT>::setTilePixelForMouse(double mouseX, double mouseY)
+{
+    if (_selection.frameSet() != nullptr && _selection.inEditTileMode()) {
+        const auto allocation = get_allocation();
+
+        const int x = std::lround((mouseX - allocation.get_x()) / (_zoomX * _displayZoom));
+        const int y = std::lround((mouseY - allocation.get_y()) / (_zoomY * _displayZoom));
+
+        if (x >= 0 && y >= 0 && y < (int)TilesetT::TILE_SIZE) {
+            const unsigned tileId = (unsigned)x / TilesetT::TILE_SIZE;
+
+            if (tileId < tileset().size()) {
+                const unsigned tileX = (unsigned)x % TilesetT::TILE_SIZE;
+
+                tileset_setPixel(_selection.frameSet(), &tileset(),
+                                 tileId, tileX, y,
+                                 (unsigned)_selection.editTileColor());
+            }
+        }
+    }
 }
 
 inline double limit(double v, double min, double max)
