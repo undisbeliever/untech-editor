@@ -32,6 +32,20 @@ public:
 };
 
 /**
+ * A virtual class whose subclasses can be merged to combine
+ * undo actions
+ */
+class MergeAction : public Action {
+public:
+    virtual ~MergeAction() = default;
+
+    /** Attempts to merges the other action with this one.
+     * Returns true if successful. The undostack will will delete it
+     */
+    virtual bool mergeWith(MergeAction* other) = 0;
+};
+
+/**
  * A simple undo stack that holds the Action subclasses, ready for the
  * undo and redo functions.
  */
@@ -43,6 +57,15 @@ public:
     ~UndoStack() = default;
 
     void add_undo(std::unique_ptr<Action> action);
+
+    void add_undoMerge(std::unique_ptr<MergeAction> action);
+
+    /**
+     * Prevent action merging in the next add_undoMerge.
+     *
+     * This should be called when the widget goes out of focus
+     */
+    void dontMergeNextAction();
 
     void undo();
     void redo();
@@ -68,6 +91,7 @@ private:
     std::list<std::unique_ptr<Action>> _undoStack;
     std::list<std::unique_ptr<Action>> _redoStack;
     bool _dirty;
+    bool _dontMerge;
 };
 }
 }

@@ -91,7 +91,7 @@ inline void tileset_setPixel(MS::FrameSet* frameset,
                              unsigned x, unsigned y,
                              unsigned value)
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public ::UnTech::Undo::MergeAction {
     public:
         Action() = delete;
         Action(MS::FrameSet* frameset,
@@ -121,6 +121,23 @@ inline void tileset_setPixel(MS::FrameSet* frameset,
             Signals::frameSetTilesetChanged.emit(_frameset);
         }
 
+        virtual bool mergeWith(::UnTech::Undo::MergeAction* o) override
+        {
+            Action* other = dynamic_cast<Action*>(o);
+
+            if (other != nullptr) {
+                if (this->_frameset == other->_frameset
+                    && this->_tileset == other->_tileset
+                    && this->_tileId == other->_tileId) {
+
+                    this->_newTileData = other->_newTileData;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         virtual const Glib::ustring& message() const override
         {
             const static Glib::ustring message = _("Edit Tile");
@@ -132,7 +149,7 @@ inline void tileset_setPixel(MS::FrameSet* frameset,
         TilesetT* _tileset;
         unsigned _tileId;
         const typename TilesetT::tileData_t _oldTileData;
-        const typename TilesetT::tileData_t _newTileData;
+        typename TilesetT::tileData_t _newTileData;
     };
 
     if (tileset && tileId < tileset->size()) {
@@ -148,7 +165,7 @@ inline void tileset_setPixel(MS::FrameSet* frameset,
             auto a = std::make_unique<Action>(frameset, tileset, tileId, oldTileData, newTileData);
 
             auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(frameset->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
+            undoDoc->undoStack().add_undoMerge(std::move(a));
         }
     }
 }
@@ -220,6 +237,7 @@ TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(Selection& selection)
     _selection.signal_editTileColorChanged.connect([this](void) {
         _drawTileState = false;
         update_pointer_cursor();
+        _selection.dontMergeNextUndoAction();
     });
 
     _selection.signal_frameObjectChanged.connect([this](void) {
@@ -423,6 +441,10 @@ bool TilesetGraphicalEditor<TilesetT>::on_button_release_event(GdkEventButton* e
 
     grab_focus();
 
+    if (_drawTileState && event->button == 1) {
+        _selection.dontMergeNextUndoAction();
+    }
+
     _drawTileState = false;
 
     if (_selection.frameSet() == nullptr) {
@@ -471,6 +493,7 @@ bool TilesetGraphicalEditor<TilesetT>::on_leave_notify_event(GdkEventCrossing*)
     }
 
     _drawTileState = false;
+    _selection.dontMergeNextUndoAction();
 
     return true;
 }

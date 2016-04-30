@@ -59,6 +59,9 @@ public:
     int editTileColor() const { return _editTileColor; }
     bool inEditTileMode() const { return _editTileColor >= 0; }
 
+    // Will call dontMergeNextAction on the frameSet's undo stack
+    void dontMergeNextUndoAction();
+
     bool canCrudSelected() const { return _type != Type::NONE; }
     bool canMoveSelectedUp() const;
     bool canMoveSelectedDown() const;

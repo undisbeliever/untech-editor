@@ -221,6 +221,16 @@ Glib::ustring Selection::typeString() const
     }
 }
 
+void Selection::dontMergeNextUndoAction()
+{
+    if (_frameSet) {
+        auto* undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(_frameSet->document()));
+        if (undoDoc) {
+            undoDoc->undoStack().dontMergeNextAction();
+        }
+    }
+}
+
 bool Selection::canMoveSelectedUp() const
 {
     switch (_type) {

@@ -6,6 +6,7 @@ UndoStack::UndoStack()
     : _undoStack()
     , _redoStack()
     , _dirty(false)
+    , _dontMerge(false)
 {
 }
 
@@ -17,11 +18,40 @@ void UndoStack::add_undo(std::unique_ptr<Action> action)
         _undoStack.pop_back();
     }
 
+    _dontMerge = false;
+
     _redoStack.clear();
 
     signal_stackChanged.emit();
 
     markDirty();
+}
+
+void UndoStack::add_undoMerge(std::unique_ptr<MergeAction> actionToMerge)
+{
+    if (_undoStack.empty() || _dontMerge == true || canRedo()) {
+        return add_undo(std::move(actionToMerge));
+    }
+
+    MergeAction* lastAction = dynamic_cast<UnTech::Undo::MergeAction*>(
+        _undoStack.front().get());
+
+    if (lastAction == nullptr) {
+        return add_undo(std::move(actionToMerge));
+    }
+
+    bool m = lastAction->mergeWith(actionToMerge.get());
+    if (m) {
+        markDirty();
+    }
+    else {
+        add_undo(std::move(actionToMerge));
+    }
+}
+
+void UndoStack::dontMergeNextAction()
+{
+    _dontMerge = true;
 }
 
 void UndoStack::undo()
