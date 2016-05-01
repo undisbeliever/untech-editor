@@ -1,8 +1,11 @@
 #include "framepropertieseditor.h"
-#include "signals.h"
 #include "document.h"
+#include "signals.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
+#include "gui/widgets/defaults.h"
+
+#include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::MetaSprite;
 
@@ -19,9 +22,9 @@ SIMPLE_UNDO_MERGE_ACTION(frame_merge_setTileHitbox,
                          Signals::frameChanged,
                          "Change Frame Tile Hitbox")
 
-FramePropertiesEditor::FramePropertiesEditor()
+FramePropertiesEditor::FramePropertiesEditor(Selection& selection)
     : widget()
-    , _frame(nullptr)
+    , _selection(selection)
     , _tileHitboxSpinButtons()
     , _solidCB(_("Solid Tile Hitbox"))
     , _emptySpace()
@@ -53,43 +56,46 @@ FramePropertiesEditor::FramePropertiesEditor()
      * SLOTS
      */
 
-    /** Tile hitbox signal */
-    _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frame && !_updatingValues) {
-            frame_merge_setTileHitbox(_frame, _tileHitboxSpinButtons.value());
-        }
-    });
-
-    _tileHitboxSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frame) {
-            dontMergeNextUndoAction(_frame->document());
-        }
-        return false;
-    });
-
-    /** Solid Checkbox signal */
-    _solidCB.signal_clicked().connect([this](void) {
-        if (_frame && !_updatingValues) {
-            frame_setSolid(_frame, _solidCB.get_active());
-        }
-    });
+    /** Selected frame changed signal */
+    _selection.signal_frameChanged.connect(sigc::mem_fun(
+        *this, &FramePropertiesEditor::updateGuiValues));
 
     /** Frame Updated signal */
     Signals::frameChanged.connect([this](const MS::Frame* frame) {
-        if (_frame == frame) {
+        if (frame == _selection.frame()) {
             updateGuiValues();
+        }
+    });
+
+    /** Tile hitbox signal */
+    _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
+        if (!_updatingValues) {
+            frame_merge_setTileHitbox(_selection.frame(),
+                                      _tileHitboxSpinButtons.value());
+        }
+    });
+    _tileHitboxSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
+
+    /** Solid Checkbox signal */
+    _solidCB.signal_clicked().connect([this](void) {
+        if (!_updatingValues) {
+            frame_setSolid(_selection.frame(),
+                           _solidCB.get_active());
         }
     });
 }
 
 void FramePropertiesEditor::updateGuiValues()
 {
-    if (_frame) {
+    const MS::Frame* frame = _selection.frame();
+
+    if (frame) {
         _updatingValues = true;
 
-        _tileHitboxSpinButtons.set_value(_frame->tileHitbox());
+        _tileHitboxSpinButtons.set_value(frame->tileHitbox());
 
-        bool solid = _frame->solid();
+        bool solid = frame->solid();
         _solidCB.set_active(solid);
 
         _tileHitboxSpinButtons.set_sensitive(solid);

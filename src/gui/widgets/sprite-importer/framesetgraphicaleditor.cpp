@@ -1,7 +1,10 @@
 #include "framesetgraphicaleditor.h"
+#include "document.h"
 #include "signals.h"
+#include "models/common/string.h"
 #include "gui/undo/actionhelper.h"
-#include "../common/cr_rgba.h"
+#include "gui/widgets/common/cr_rgba.h"
+#include "gui/widgets/defaults.h"
 
 #include <cmath>
 

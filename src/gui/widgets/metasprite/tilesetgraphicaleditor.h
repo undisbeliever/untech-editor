@@ -40,6 +40,8 @@ protected:
     void setTilePixelForMouse(double x, double y);
 
 private:
+    Selection& _selection;
+
     double _zoomX, _zoomY;
 
     /**
@@ -54,8 +56,6 @@ private:
 
     /** A pre-scaled copy of the tileset */
     Glib::RefPtr<Gdk::Pixbuf> _tilesetPixbuf;
-
-    Selection& _selection;
 
     // If true then in draw tile mode
     bool _drawTileState;

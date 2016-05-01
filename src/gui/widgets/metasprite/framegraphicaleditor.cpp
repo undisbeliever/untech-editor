@@ -27,6 +27,8 @@ SIMPLE_UNDO_ACTION(entityHitbox_setAabb,
 
 FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     : Gtk::DrawingArea()
+    , _selectedFrame(selection.frame())
+    , _selection(selection)
     , _zoomX(DEFAULT_ZOOM)
     , _zoomY(DEFAULT_ZOOM)
     , _displayZoom(NAN)
@@ -35,8 +37,6 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     , _framePixbuf()
     , _centerX()
     , _centerY()
-    , _selectedFrame()
-    , _selection(selection)
 {
     set_hexpand(true);
     set_vexpand(true);

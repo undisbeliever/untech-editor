@@ -186,12 +186,12 @@ inline UnTech::Snes::Tileset4bpp16px& TilesetGraphicalEditor<UnTech::Snes::Tiles
 template <class TilesetT>
 TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(Selection& selection)
     : Gtk::Layout()
+    , _selection(selection)
     , _zoomX(DEFAULT_ZOOM)
     , _zoomY(DEFAULT_ZOOM)
     , _displayZoom(NAN)
     , _tilesetImageBuffer()
     , _tilesetPixbuf()
-    , _selection(selection)
     , _drawTileState(false)
 {
     set_can_focus(true);

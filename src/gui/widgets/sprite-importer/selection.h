@@ -29,6 +29,10 @@ public:
 
     void setSelectTransparentMode(bool v);
 
+    // Will call dontMergeNextAction on the frameSet's undo stack
+    // Always returns false so it can connect to a signal_focus_out_event
+    bool dontMergeNextUndoAction();
+
     // WILL ALWAYS emit a selectionChanged
     void unselectAll();
 

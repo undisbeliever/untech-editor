@@ -61,7 +61,7 @@ PaletteEditor::PaletteEditor(Selection& selection)
 
 void PaletteEditor::updateGuiValues()
 {
-    MS::Palette* palette = _selection.palette();
+    const MS::Palette* palette = _selection.palette();
 
     if (palette) {
         _updatingValues = true;

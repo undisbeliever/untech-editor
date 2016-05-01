@@ -65,6 +65,9 @@ protected:
     void update_offsets();
 
 private:
+    MS::Frame* _selectedFrame;
+    Selection& _selection;
+
     double _zoomX, _zoomY;
     int _xOffset, _yOffset;
 
@@ -87,8 +90,6 @@ private:
     // on zoom/resize the _xOffset/_yOffset variables are changed.
     int _centerX, _centerY;
 
-    MS::Frame* _selectedFrame;
-    Selection& _selection;
     Action _action;
 };
 }

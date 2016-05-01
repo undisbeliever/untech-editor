@@ -1,7 +1,6 @@
 #include "spriteimportereditor.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
-namespace SI = UnTech::SpriteImporter;
 
 SpriteImporterEditor::SpriteImporterEditor()
     : _document()
@@ -13,16 +12,16 @@ SpriteImporterEditor::SpriteImporterEditor()
     , _frameSetPropertiesEditor(_selection)
     , _frameList()
     , _frameNotebook()
-    , _frameParameterEditor()
+    , _frameParameterEditor(_selection)
     , _frameObjectBox(Gtk::ORIENTATION_VERTICAL)
     , _frameObjectList()
-    , _frameObjectEditor()
+    , _frameObjectEditor(_selection)
     , _actionPointBox(Gtk::ORIENTATION_VERTICAL)
     , _actionPointList()
-    , _actionPointEditor()
+    , _actionPointEditor(_selection)
     , _entityHitboxBox(Gtk::ORIENTATION_VERTICAL)
     , _entityHitboxList()
-    , _entityHitboxEditor()
+    , _entityHitboxEditor(_selection)
 {
     _frameNotebook.set_scrollable(true);
     _frameNotebook.popup_enable();
@@ -72,9 +71,6 @@ SpriteImporterEditor::SpriteImporterEditor()
         else {
             _frameList.setList(nullptr);
         }
-
-        _frameSetPropertiesEditor.setFrameSet(frameSet);
-
     });
 
     _selection.signal_frameChanged.connect([this](void) {
@@ -98,23 +94,18 @@ SpriteImporterEditor::SpriteImporterEditor()
 
             _frameNotebook.set_sensitive(false);
         }
-
-        _frameParameterEditor.setFrame(frame);
     });
 
     _selection.signal_frameObjectChanged.connect([this](void) {
         _frameObjectList.selectItem(_selection.frameObject());
-        _frameObjectEditor.setFrameObject(_selection.frameObject());
     });
 
     _selection.signal_actionPointChanged.connect([this](void) {
         _actionPointList.selectItem(_selection.actionPoint());
-        _actionPointEditor.setActionPoint(_selection.actionPoint());
     });
 
     _selection.signal_entityHitboxChanged.connect([this](void) {
         _entityHitboxList.selectItem(_selection.entityHitbox());
-        _entityHitboxEditor.setEntityHitbox(_selection.entityHitbox());
     });
 
     /** Change active tab depending on selection */

@@ -1,8 +1,13 @@
 #include "framesetpropertieseditor.h"
 #include "document.h"
+#include "signals.h"
+#include "models/common/string.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
+#include "gui/widgets/defaults.h"
+
 #include <iomanip>
+#include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::SpriteImporter;
 
@@ -38,7 +43,7 @@ SIMPLE_UNDO_ACTION2(frameSet_setImageFilename,
 
 FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
     : widget()
-    , _frameSet(nullptr)
+    , _selection(selection)
     , _nameEntry()
     , _imageFilenameBox(Gtk::ORIENTATION_HORIZONTAL)
     , _imageFilenameEntry()
@@ -61,7 +66,6 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
     , _gridPaddingCrossLabel(_(" x "))
     , _gridOriginLabel(_("Grid Origin:"), Gtk::ALIGN_START)
     , _gridOriginCommaLabel(_(" , "))
-    , _selection(selection)
     , _updatingValues(false)
 {
     widget.set_border_width(DEFAULT_BORDER);
@@ -111,6 +115,18 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
      * SLOTS
      */
 
+    /* Update gui when selected frameSet changed */
+    _selection.signal_frameSetChanged.connect(sigc::mem_fun(
+        *this, &FrameSetPropertiesEditor::updateGuiValues));
+
+    /* Update gui if frameSet has changed */
+    Signals::frameSetChanged.connect([this](const SI::FrameSet* frameSet) {
+        if (frameSet == _selection.frameSet()) {
+            updateGuiValues();
+        }
+    });
+
+    /** Update transparent button when changed */
     _selection.signal_selectTransparentModeChanged.connect([this](void) {
         _transparentColorButton.set_active(_selection.selectTransparentMode());
     });
@@ -119,92 +135,83 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
     // signal_editing_done does not work
     // using activate and focus out instead.
     _nameEntry.signal_activate().connect([this](void) {
-        if (_frameSet && !_updatingValues) {
-            frameSet_setName(_frameSet, _nameEntry.get_text());
+        if (!_updatingValues) {
+            frameSet_setName(_selection.frameSet(),
+                             _nameEntry.get_text());
         }
     });
     _nameEntry.signal_focus_out_event().connect([this](GdkEventFocus*) {
-        if (_frameSet && !_updatingValues) {
-            frameSet_setName(_frameSet, _nameEntry.get_text());
+        if (!_updatingValues) {
+            frameSet_setName(_selection.frameSet(),
+                             _nameEntry.get_text());
         }
         return false;
     });
 
-    _imageFilenameButton.signal_clicked().connect(
-        sigc::mem_fun(*this, &FrameSetPropertiesEditor::on_imageFilenameButtonClicked));
-
-    _gridFrameSizeSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameSet && !_updatingValues) {
-            frameSet_Grid_merge_setFrameSize(_frameSet, _gridFrameSizeSpinButtons.value());
-        }
-    });
-    _gridFrameSizeSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frameSet) {
-            dontMergeNextUndoAction(_frameSet->document());
-        }
-        return false;
-    });
-
-    _gridOffsetSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameSet && !_updatingValues) {
-            frameSet_Grid_merge_setOffset(_frameSet, _gridOffsetSpinButtons.value());
-        }
-    });
-    _gridOffsetSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frameSet) {
-            dontMergeNextUndoAction(_frameSet->document());
-        }
-        return false;
-    });
-
-    _gridPaddingSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameSet && !_updatingValues) {
-            frameSet_Grid_merge_setPadding(_frameSet, _gridPaddingSpinButtons.value());
-        }
-    });
-    _gridPaddingSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frameSet) {
-            dontMergeNextUndoAction(_frameSet->document());
-        }
-        return false;
-    });
-
-    _gridOriginSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameSet && !_updatingValues) {
-            frameSet_Grid_merge_setOrigin(_frameSet, _gridOriginSpinButtons.value());
-        }
-    });
-    _gridOriginSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frameSet) {
-            dontMergeNextUndoAction(_frameSet->document());
-        }
-        return false;
-    });
-
+    /** Transparent button pressed signal */
     _transparentColorButton.signal_toggled().connect([this](void) {
         _selection.setSelectTransparentMode(_transparentColorButton.get_active());
     });
 
-    /** FrameSet Updated signal */
-    Signals::frameSetChanged.connect([this](const SI::FrameSet* frameSet) {
-        if (_frameSet == frameSet) {
-            updateGuiValues();
+    /** Set Image filename signal */
+    _imageFilenameButton.signal_clicked().connect(
+        sigc::mem_fun(*this, &FrameSetPropertiesEditor::on_imageFilenameButtonClicked));
+
+    /** Set Grid Frame Size signal */
+    _gridFrameSizeSpinButtons.signal_valueChanged.connect([this](void) {
+        if (!_updatingValues) {
+            frameSet_Grid_merge_setFrameSize(_selection.frameSet(),
+                                             _gridFrameSizeSpinButtons.value());
         }
     });
+    _gridFrameSizeSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
+
+    /** Set Grid Offset signal */
+    _gridOffsetSpinButtons.signal_valueChanged.connect([this](void) {
+        if (!_updatingValues) {
+            frameSet_Grid_merge_setOffset(_selection.frameSet(),
+                                          _gridOffsetSpinButtons.value());
+        }
+    });
+    _gridOffsetSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
+
+    /** Set Grid Padding signal */
+    _gridPaddingSpinButtons.signal_valueChanged.connect([this](void) {
+        if (!_updatingValues) {
+            frameSet_Grid_merge_setPadding(_selection.frameSet(),
+                                           _gridPaddingSpinButtons.value());
+        }
+    });
+    _gridPaddingSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
+
+    /** Set Grid Offset signal */
+    _gridOriginSpinButtons.signal_valueChanged.connect([this](void) {
+        if (!_updatingValues) {
+            frameSet_Grid_merge_setOrigin(_selection.frameSet(),
+                                          _gridOriginSpinButtons.value());
+        }
+    });
+    _gridOriginSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
 }
 
 void FrameSetPropertiesEditor::updateGuiValues()
 {
-    if (_frameSet) {
+    const SI::FrameSet* frameSet = _selection.frameSet();
+
+    if (frameSet) {
         _updatingValues = true;
 
-        _nameEntry.set_text(_frameSet->name());
+        _nameEntry.set_text(frameSet->name());
 
-        _imageFilenameEntry.set_text(_frameSet->imageFilename());
+        _imageFilenameEntry.set_text(frameSet->imageFilename());
         _imageFilenameEntry.set_position(-1); // right align text
 
-        if (_frameSet->transparentColorValid()) {
-            auto transparent = _frameSet->transparentColor();
+        if (frameSet->transparentColorValid()) {
+            auto transparent = frameSet->transparentColor();
 
             auto c = Glib::ustring::format(std::setfill(L'0'), std::setw(6), std::hex,
                                            transparent.rgb());
@@ -217,10 +224,10 @@ void FrameSetPropertiesEditor::updateGuiValues()
             _transparentColorButton.unset_color();
         }
 
-        _gridFrameSizeSpinButtons.set_value(_frameSet->grid().frameSize());
-        _gridOffsetSpinButtons.set_value(_frameSet->grid().offset());
-        _gridPaddingSpinButtons.set_value(_frameSet->grid().padding());
-        _gridOriginSpinButtons.set_value(_frameSet->grid().origin());
+        _gridFrameSizeSpinButtons.set_value(frameSet->grid().frameSize());
+        _gridOffsetSpinButtons.set_value(frameSet->grid().offset());
+        _gridPaddingSpinButtons.set_value(frameSet->grid().padding());
+        _gridOriginSpinButtons.set_value(frameSet->grid().origin());
 
         _updatingValues = false;
 
@@ -246,7 +253,9 @@ void FrameSetPropertiesEditor::updateGuiValues()
 
 void FrameSetPropertiesEditor::on_imageFilenameButtonClicked()
 {
-    if (!_frameSet || _updatingValues) {
+    SI::FrameSet* frameSet = _selection.frameSet();
+
+    if (!frameSet || _updatingValues) {
         return;
     }
 
@@ -267,8 +276,8 @@ void FrameSetPropertiesEditor::on_imageFilenameButtonClicked()
     filterAny->add_pattern("*");
     dialog.add_filter(filterAny);
 
-    if (!_frameSet->imageFilename().empty()) {
-        dialog.set_filename(_frameSet->imageFilename());
+    if (!frameSet->imageFilename().empty()) {
+        dialog.set_filename(frameSet->imageFilename());
     }
 
     // Set transient parent from widget
@@ -280,6 +289,6 @@ void FrameSetPropertiesEditor::on_imageFilenameButtonClicked()
     int result = dialog.run();
 
     if (result == Gtk::RESPONSE_OK) {
-        frameSet_setImageFilename(_frameSet, dialog.get_filename());
+        frameSet_setImageFilename(frameSet, dialog.get_filename());
     }
 }

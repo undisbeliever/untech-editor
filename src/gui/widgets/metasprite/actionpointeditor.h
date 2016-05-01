@@ -1,17 +1,10 @@
 #ifndef _UNTECH_GUI_WIDGETS_METASPRITE_ACTIONPOINTEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_METASPRITE_ACTIONPOINTEDITOR_H_
 
-#include "signals.h"
-#include "models/metasprite/actionpoint.h"
-#include "models/common/string.h"
+#include "selection.h"
 #include "gui/widgets/common/ms8aabb.h"
-#include "gui/widgets/defaults.h"
-
-#include <cassert>
-#include <memory>
 
 #include <gtkmm.h>
-#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -19,13 +12,7 @@ namespace MetaSprite {
 
 class ActionPointEditor {
 public:
-    ActionPointEditor();
-
-    void setActionPoint(UnTech::MetaSprite::ActionPoint* actionPoint)
-    {
-        _actionPoint = actionPoint;
-        updateGuiValues();
-    }
+    ActionPointEditor(Selection& selection);
 
 protected:
     void updateGuiValues();
@@ -36,7 +23,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    UnTech::MetaSprite::ActionPoint* _actionPoint;
+    Selection& _selection;
 
     Ms8pointSpinButtons _locationSpinButtons;
     Gtk::Entry _parameterEntry;

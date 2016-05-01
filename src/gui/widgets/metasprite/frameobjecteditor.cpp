@@ -1,10 +1,13 @@
 #include "frameobjecteditor.h"
 #include "document.h"
+#include "signals.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
+#include "gui/widgets/defaults.h"
+
+#include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::MetaSprite;
-namespace MS = UnTech::MetaSprite;
 
 // ::SHOULDO add a Boolean type::
 // ::: would need undo and redo messages in Undo::Action ::
@@ -39,16 +42,13 @@ SIMPLE_UNDO_ACTION(frameObject_setVFlip,
                    Signals::frameObjectChanged,
                    "Change Frame Object vFlip")
 
-static Glib::RefPtr<Gtk::Adjustment> orderAdjustment
-    = Gtk::Adjustment::create(2.0, 0.0, 3.0, 1.0, 1.0, 0.0);
-
-FrameObjectEditor::FrameObjectEditor()
+FrameObjectEditor::FrameObjectEditor(Selection& selection)
     : widget()
-    , _frameObject()
+    , _selection(selection)
     , _locationSpinButtons()
     , _tileIdSpinButton(Gtk::Adjustment::create(0.0, 0.0, 0.0, 1.0, 1.0, 0.0))
     , _sizeCombo()
-    , _orderSpinButton(orderAdjustment)
+    , _orderSpinButton(Gtk::Adjustment::create(2.0, 0.0, 3.0, 1.0, 1.0, 0.0))
     , _hFlipCB(_("hFlip"))
     , _vFlipCB(_("vFlip"))
     , _locationLabel(_("Location:"), Gtk::ALIGN_START)
@@ -88,87 +88,88 @@ FrameObjectEditor::FrameObjectEditor()
      * =====
      */
 
-    /** Set location signal */
-    _locationSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameObject && !_updatingValues) {
-            frameObject_merge_setLocation(_frameObject, _locationSpinButtons.value());
-        }
-    });
-
-    _locationSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frameObject) {
-            dontMergeNextUndoAction(_frameObject->document());
-        }
-        return false;
-    });
-
-    /** Set Tile ID signal */
-    _tileIdSpinButton.signal_value_changed().connect([this](void) {
-        if (_frameObject && !_updatingValues) {
-            frameObject_merge_setTileId(_frameObject, _tileIdSpinButton.get_value());
-        }
-    });
-
-    _tileIdSpinButton.signal_focus_out_event().connect([this](GdkEventFocus*) {
-        if (_frameObject) {
-            dontMergeNextUndoAction(_frameObject->document());
-        }
-        return false;
-    });
-
-    /** Set Size Signal */
-    _sizeCombo.signal_changed().connect([this](void) {
-        typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
-
-        if (_frameObject && !_updatingValues) {
-            auto size = _sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE;
-            frameObject_setSize(_frameObject, size);
-        }
-    });
-
-    /** Set Order signal */
-    _orderSpinButton.signal_value_changed().connect([this](void) {
-        if (_frameObject && !_updatingValues) {
-            frameObject_setOrder(_frameObject, _orderSpinButton.get_value());
-        }
-    });
-
-    /** Set hFlip signal */
-    _hFlipCB.signal_clicked().connect([this](void) {
-        if (_frameObject && !_updatingValues) {
-            frameObject_setHFlip(_frameObject, _hFlipCB.get_active());
-        }
-    });
-
-    /** Set vFlip signal */
-    _vFlipCB.signal_clicked().connect([this](void) {
-        if (_frameObject && !_updatingValues) {
-            frameObject_setVFlip(_frameObject, _vFlipCB.get_active());
-        }
-    });
+    /* Update gui when selected object changed */
+    _selection.signal_frameObjectChanged.connect(sigc::mem_fun(
+        *this, &FrameObjectEditor::updateGuiValues));
 
     /* Update gui if object has changed */
     Signals::frameObjectChanged.connect([this](const MS::FrameObject* obj) {
-        if (_frameObject == obj) {
+        if (obj == _selection.frameObject()) {
             updateGuiValues();
         }
     });
 
     /* Update tileId range if The number of tiles in the tileset changed */
     Signals::frameSetTilesetCountChanged.connect([this](const MS::FrameSet* frameSet) {
-        if (_frameObject && &_frameObject->frame().frameSet() == frameSet) {
+        if (frameSet == _selection.frameSet()) {
             updateTileIdRange();
+        }
+    });
+
+    /** Set location signal */
+    _locationSpinButtons.signal_valueChanged.connect([this](void) {
+        if (!_updatingValues) {
+            frameObject_merge_setLocation(_selection.frameObject(),
+                                          _locationSpinButtons.value());
+        }
+    });
+    _locationSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
+
+    /** Set Tile ID signal */
+    _tileIdSpinButton.signal_value_changed().connect([this](void) {
+        if (!_updatingValues) {
+            frameObject_merge_setTileId(_selection.frameObject(),
+                                        _tileIdSpinButton.get_value());
+        }
+    });
+    _tileIdSpinButton.signal_focus_out_event().connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
+
+    /** Set Size Signal */
+    _sizeCombo.signal_changed().connect([this](void) {
+        typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
+
+        if (!_updatingValues) {
+            auto size = _sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE;
+            frameObject_setSize(_selection.frameObject(), size);
+        }
+    });
+
+    /** Set Order signal */
+    _orderSpinButton.signal_value_changed().connect([this](void) {
+        if (!_updatingValues) {
+            frameObject_setOrder(_selection.frameObject(),
+                                 _orderSpinButton.get_value());
+        }
+    });
+
+    /** Set hFlip signal */
+    _hFlipCB.signal_clicked().connect([this](void) {
+        if (!_updatingValues) {
+            frameObject_setHFlip(_selection.frameObject(),
+                                 _hFlipCB.get_active());
+        }
+    });
+
+    /** Set vFlip signal */
+    _vFlipCB.signal_clicked().connect([this](void) {
+        if (!_updatingValues) {
+            frameObject_setVFlip(_selection.frameObject(),
+                                 _vFlipCB.get_active());
         }
     });
 }
 
 void FrameObjectEditor::updateTileIdRange()
 {
-    if (_frameObject) {
-        MS::FrameSet& frameSet = _frameObject->frame().frameSet();
+    MS::FrameObject* frameObject = _selection.frameObject();
+
+    if (frameObject) {
+        MS::FrameSet& frameSet = frameObject->frame().frameSet();
 
         int nTiles;
-        if (_frameObject->size() == MS::FrameObject::ObjectSize::SMALL) {
+        if (frameObject->size() == MS::FrameObject::ObjectSize::SMALL) {
             nTiles = frameSet.smallTileset().size();
         }
         else {
@@ -182,17 +183,19 @@ void FrameObjectEditor::updateGuiValues()
 {
     typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
 
-    if (_frameObject) {
+    const MS::FrameObject* frameObject = _selection.frameObject();
+
+    if (frameObject) {
         _updatingValues = true;
 
         updateTileIdRange();
 
-        _locationSpinButtons.set_value(_frameObject->location());
-        _tileIdSpinButton.set_value(_frameObject->tileId());
-        _sizeCombo.set_active(_frameObject->size() == OS::LARGE ? 1 : 0);
-        _orderSpinButton.set_value(_frameObject->order());
-        _hFlipCB.set_active(_frameObject->hFlip());
-        _vFlipCB.set_active(_frameObject->vFlip());
+        _locationSpinButtons.set_value(frameObject->location());
+        _tileIdSpinButton.set_value(frameObject->tileId());
+        _sizeCombo.set_active(frameObject->size() == OS::LARGE ? 1 : 0);
+        _orderSpinButton.set_value(frameObject->order());
+        _hFlipCB.set_active(frameObject->hFlip());
+        _vFlipCB.set_active(frameObject->vFlip());
 
         _updatingValues = false;
 

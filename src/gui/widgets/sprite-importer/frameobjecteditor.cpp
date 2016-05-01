@@ -1,9 +1,14 @@
 #include "frameobjecteditor.h"
 #include "document.h"
+#include "signals.h"
+#include "models/common/string.h"
+#include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
+#include "gui/widgets/defaults.h"
+
+#include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::SpriteImporter;
-namespace SI = UnTech::SpriteImporter;
 
 SIMPLE_UNDO_MERGE_ACTION(frameObject_merge_setLocation,
                          SI::FrameObject, UnTech::upoint, location, setLocation,
@@ -76,9 +81,9 @@ inline void frameObject_setSize(SI::FrameObject* item,
     }
 }
 
-FrameObjectEditor::FrameObjectEditor()
+FrameObjectEditor::FrameObjectEditor(Selection& selection)
     : widget()
-    , _frameObject()
+    , _selection(selection)
     , _locationSpinButtons()
     , _sizeCombo()
     , _locationLabel(_("Location:"), Gtk::ALIGN_START)
@@ -107,56 +112,48 @@ FrameObjectEditor::FrameObjectEditor()
      * =====
      */
 
-    /** Set location signal */
-    _locationSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frameObject && !_updatingValues) {
-            frameObject_merge_setLocation(_frameObject, _locationSpinButtons.value());
-        }
-    });
+    /* Update gui when selected frameObject changed */
+    _selection.signal_frameObjectChanged.connect(sigc::mem_fun(
+        *this, &FrameObjectEditor::updateGuiValues));
 
-    _locationSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frameObject) {
-            dontMergeNextUndoAction(_frameObject->document());
-        }
-        return false;
-    });
-
-    /** Set Size Signal */
-    _sizeCombo.signal_changed().connect([this](void) {
-        typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
-
-        if (_frameObject && !_updatingValues) {
-            auto size = _sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE;
-            frameObject_setSize(_frameObject, size);
-        }
-    });
-
-    /* Update gui if object has changed */
+    /* Update gui if frameObject has changed */
     Signals::frameObjectChanged.connect([this](const SI::FrameObject* obj) {
-        if (_frameObject == obj) {
+        if (obj == _selection.frameObject()) {
             updateGuiValues();
         }
     });
 
     /* Update location range if necessary */
     Signals::frameSizeChanged.connect([this](const SI::Frame* frame) {
-        if (frame && _frameObject) {
-            const SI::Frame& f = _frameObject->frame();
-
-            if (frame == &f) {
-                _locationSpinButtons.set_range(frame->locationSize());
-            }
+        if (_selection.frameObject() && frame == _selection.frame()) {
+            _locationSpinButtons.set_range(_selection.frame()->locationSize());
         }
     });
 
     /* Update location range if necessary */
-    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameSet) {
-        if (frameSet && _frameObject) {
-            const SI::Frame& f = _frameObject->frame();
+    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameset) {
+        if (_selection.frameObject() && frameset == _selection.frameSet()) {
+            _locationSpinButtons.set_range(_selection.frame()->locationSize());
+        }
+    });
 
-            if (frameSet == &f.frameSet()) {
-                _locationSpinButtons.set_range(f.locationSize());
-            }
+    /** Set location signal */
+    _locationSpinButtons.signal_valueChanged.connect([this](void) {
+        if (!_updatingValues) {
+            frameObject_merge_setLocation(_selection.frameObject(),
+                                          _locationSpinButtons.value());
+        }
+    });
+    _locationSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
+
+    /** Set Size Signal */
+    _sizeCombo.signal_changed().connect([this](void) {
+        typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
+
+        if (!_updatingValues) {
+            auto size = _sizeCombo.get_active_row_number() == 0 ? OS::SMALL : OS::LARGE;
+            frameObject_setSize(_selection.frameObject(), size);
         }
     });
 }
@@ -165,12 +162,14 @@ void FrameObjectEditor::updateGuiValues()
 {
     typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
 
-    if (_frameObject) {
+    const SI::FrameObject* frameObject = _selection.frameObject();
+
+    if (frameObject) {
         _updatingValues = true;
 
-        _locationSpinButtons.set_range(_frameObject->frame().locationSize(), _frameObject->sizePx());
-        _locationSpinButtons.set_value(_frameObject->location());
-        _sizeCombo.set_active(_frameObject->size() == OS::LARGE ? 1 : 0);
+        _locationSpinButtons.set_range(frameObject->frame().locationSize(), frameObject->sizePx());
+        _locationSpinButtons.set_value(frameObject->location());
+        _sizeCombo.set_active(frameObject->size() == OS::LARGE ? 1 : 0);
 
         _updatingValues = false;
 

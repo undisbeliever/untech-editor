@@ -2,15 +2,11 @@
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMESETPROPERTIESEDITOR_H_
 
 #include "selection.h"
-#include "signals.h"
-#include "../common/colortogglebutton.h"
-#include "models/sprite-importer/frameset.h"
 #include "gui/widgets/common/aabb.h"
+#include "gui/widgets/common/colortogglebutton.h"
 #include "gui/widgets/common/namedlistnameentry.h"
-#include "gui/widgets/defaults.h"
 
 #include <gtkmm.h>
-#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -22,12 +18,6 @@ class FrameSetPropertiesEditor {
 public:
     FrameSetPropertiesEditor(Selection& selection);
 
-    void setFrameSet(SI::FrameSet* frameSet)
-    {
-        _frameSet = frameSet;
-        updateGuiValues();
-    }
-
 protected:
     void updateGuiValues();
 
@@ -37,7 +27,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    SI::FrameSet* _frameSet;
+    Selection& _selection;
 
     NamedListNameEntry _nameEntry;
 
@@ -61,8 +51,6 @@ private:
     Gtk::Label _gridOffsetLabel, _gridOffsetCommaLabel;
     Gtk::Label _gridPaddingLabel, _gridPaddingCrossLabel;
     Gtk::Label _gridOriginLabel, _gridOriginCommaLabel;
-
-    Selection& _selection;
 
     bool _updatingValues;
 };

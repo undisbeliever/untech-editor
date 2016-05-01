@@ -1,10 +1,14 @@
 #include "entityhitboxeditor.h"
 #include "document.h"
+#include "signals.h"
+#include "models/common/string.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
+#include "gui/widgets/defaults.h"
+
+#include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::MetaSprite;
-namespace MS = UnTech::MetaSprite;
 
 SIMPLE_UNDO_MERGE_ACTION(entityHitbox_merge_setAabb,
                          MS::EntityHitbox, UnTech::ms8rect, aabb, setAabb,
@@ -16,9 +20,9 @@ SIMPLE_UNDO_ACTION(entityHitbox_setParameter,
                    Signals::entityHitboxChanged,
                    "Change Entity Hitbox Parameter")
 
-EntityHitboxEditor::EntityHitboxEditor()
+EntityHitboxEditor::EntityHitboxEditor(Selection& selection)
     : widget()
-    , _entityHitbox()
+    , _selection(selection)
     , _aabbSpinButtons()
     , _parameterEntry()
     , _aabbLabel(_("AABB:"), Gtk::ALIGN_START)
@@ -47,19 +51,26 @@ EntityHitboxEditor::EntityHitboxEditor()
      * =====
      */
 
-    /** Set aabb signal */
-    _aabbSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_entityHitbox && !_updatingValues) {
-            entityHitbox_merge_setAabb(_entityHitbox, _aabbSpinButtons.value());
+    /* Update gui when selected entityHitbox changed */
+    _selection.signal_entityHitboxChanged.connect(sigc::mem_fun(
+        *this, &EntityHitboxEditor::updateGuiValues));
+
+    /* Update gui if entityHitbox has changed */
+    Signals::entityHitboxChanged.connect([this](const MS::EntityHitbox* eh) {
+        if (eh == _selection.entityHitbox()) {
+            updateGuiValues();
         }
     });
 
-    _aabbSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_entityHitbox) {
-            dontMergeNextUndoAction(_entityHitbox->document());
+    /** Set aabb signal */
+    _aabbSpinButtons.signal_valueChanged.connect([this](void) {
+        if (!_updatingValues) {
+            entityHitbox_merge_setAabb(_selection.entityHitbox(),
+                                       _aabbSpinButtons.value());
         }
-        return false;
     });
+    _aabbSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
 
     /* Set Parameter has finished editing */
     // signal_editing_done does not work
@@ -70,22 +81,17 @@ EntityHitboxEditor::EntityHitboxEditor()
         this->onParameterFinishedEditing();
         return false;
     });
-
-    /* Update gui if object has changed */
-    Signals::entityHitboxChanged.connect([this](const MS::EntityHitbox* obj) {
-        if (_entityHitbox == obj) {
-            updateGuiValues();
-        }
-    });
 }
 
 void EntityHitboxEditor::updateGuiValues()
 {
-    if (_entityHitbox) {
+    const MS::EntityHitbox* entityHitbox = _selection.entityHitbox();
+
+    if (entityHitbox) {
         _updatingValues = true;
 
-        _aabbSpinButtons.set_value(_entityHitbox->aabb());
-        _parameterEntry.set_text(Glib::ustring::compose("%1", _entityHitbox->parameter()));
+        _aabbSpinButtons.set_value(entityHitbox->aabb());
+        _parameterEntry.set_text(Glib::ustring::compose("%1", entityHitbox->parameter()));
 
         _updatingValues = false;
 
@@ -103,10 +109,12 @@ void EntityHitboxEditor::updateGuiValues()
 
 void EntityHitboxEditor::onParameterFinishedEditing()
 {
-    if (_entityHitbox && !_updatingValues) {
+    MS::EntityHitbox* entityHitbox = _selection.entityHitbox();
+
+    if (entityHitbox && !_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
-            entityHitbox_setParameter(_entityHitbox, value.first);
+            entityHitbox_setParameter(entityHitbox, value.first);
         }
         else {
             updateGuiValues();

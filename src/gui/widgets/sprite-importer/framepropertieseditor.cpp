@@ -1,8 +1,12 @@
 #include "framepropertieseditor.h"
 #include "document.h"
 #include "signals.h"
+#include "models/common/string.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
+#include "gui/widgets/defaults.h"
+
+#include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::SpriteImporter;
 
@@ -49,9 +53,9 @@ SIMPLE_UNDO_ACTION(frame_setSpriteOrder,
                    Signals::frameChanged,
                    "Change Frame Sprite Order")
 
-FramePropertiesEditor::FramePropertiesEditor()
+FramePropertiesEditor::FramePropertiesEditor(Selection& selection)
     : widget()
-    , _frame(nullptr)
+    , _selection(selection)
     , _gridLocationSpinButtons()
     , _locationSpinButtons()
     , _originSpinButtons()
@@ -121,57 +125,64 @@ FramePropertiesEditor::FramePropertiesEditor()
      * SLOTS
      */
 
+    /* Update gui when selected frame changed */
+    _selection.signal_frameChanged.connect(sigc::mem_fun(
+        *this, &FramePropertiesEditor::updateGuiValues));
+
+    /* Update gui if frame has changed */
+    Signals::frameChanged.connect([this](const SI::Frame* frame) {
+        if (frame == _selection.frame()) {
+            updateGuiValues();
+        }
+    });
+
+    /** FrameSet Grid Updated signal */
+    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameset) {
+        if (frameset && frameset == _selection.frameSet()) {
+            updateGuiValues();
+            Signals::frameSizeChanged.emit(_selection.frame());
+        }
+    });
+
     /** Grid location signal */
     _gridLocationSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frame && !_updatingValues) {
-            frame_merge_setGridLocation(_frame, _gridLocationSpinButtons.value());
+        if (!_updatingValues) {
+            frame_merge_setGridLocation(_selection.frame(),
+                                        _gridLocationSpinButtons.value());
         }
     });
-    _gridLocationSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frame) {
-            dontMergeNextUndoAction(_frame->document());
-        }
-        return false;
-    });
+    _gridLocationSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
 
     /** Location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frame && !_updatingValues) {
-            frame_merge_setLocation(_frame, _locationSpinButtons.value());
+        if (!_updatingValues) {
+            frame_merge_setLocation(_selection.frame(),
+                                    _locationSpinButtons.value());
         }
     });
-    _locationSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frame) {
-            dontMergeNextUndoAction(_frame->document());
-        }
-        return false;
-    });
+    _locationSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
 
     /** Origin signal */
     _originSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frame && !_updatingValues) {
-            frame_merge_setOrigin(_frame, _originSpinButtons.value());
+        if (!_updatingValues) {
+            frame_merge_setOrigin(_selection.frame(),
+                                  _originSpinButtons.value());
         }
     });
-    _originSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frame) {
-            dontMergeNextUndoAction(_frame->document());
-        }
-        return false;
-    });
+    _originSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
 
     /** Tile hitbox signal */
     _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
-        if (_frame && !_updatingValues) {
-            frame_merge_setTileHitbox(_frame, _tileHitboxSpinButtons.value());
+        if (!_updatingValues) {
+            frame_merge_setTileHitbox(_selection.frame(),
+                                      _tileHitboxSpinButtons.value());
         }
     });
-    _tileHitboxSpinButtons.signal_focus_out_event.connect([this](GdkEventFocus*) {
-        if (_frame) {
-            dontMergeNextUndoAction(_frame->document());
-        }
-        return false;
-    });
+    _tileHitboxSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
+        _selection, &Selection::dontMergeNextUndoAction)));
 
     /** Sprite Order Signal */
     _spriteOrderSpinButton.signal_value_changed().connect([this](void) {
@@ -179,67 +190,56 @@ FramePropertiesEditor::FramePropertiesEditor()
         assert(i >= 0);
         assert(i <= 3);
 
-        if (_frame && !_updatingValues) {
-            frame_setSpriteOrder(_frame, (unsigned)i);
+        if (!_updatingValues) {
+            frame_setSpriteOrder(_selection.frame(), (unsigned)i);
         }
     });
+
     /** Use Grid Location Checkbox signal */
     _useGridLocationCB.signal_clicked().connect([this](void) {
-        if (_frame && !_updatingValues) {
-            frame_setUseGridLocation(_frame, _useGridLocationCB.get_active());
+        if (!_updatingValues) {
+            frame_setUseGridLocation(_selection.frame(),
+                                     _useGridLocationCB.get_active());
         }
     });
+
     /** Use Custom Origin Checkbox signal */
     _useCustomOriginCB.signal_clicked().connect([this](void) {
-        if (_frame && !_updatingValues) {
-            frame_setUseGridOrigin(_frame, !(_useCustomOriginCB.get_active()));
+        if (!_updatingValues) {
+            frame_setUseGridOrigin(_selection.frame(),
+                                   !(_useCustomOriginCB.get_active()));
         }
     });
+
     /** Solid Checkbox signal */
     _solidCB.signal_clicked().connect([this](void) {
-        if (_frame && !_updatingValues) {
-            frame_setSolid(_frame, _solidCB.get_active());
-        }
-    });
-
-    /** Frame Updated signal */
-    Signals::frameChanged.connect([this](const SI::Frame* frame) {
-        if (_frame == frame) {
-            updateGuiValues();
-        }
-    });
-
-    /** FrameSet Grid Updated signal */
-    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameset) {
-        if (frameset && _frame) {
-            const SI::FrameSet& fs = _frame->frameSet();
-
-            if (frameset == &fs) {
-                updateGuiValues();
-                Signals::frameSizeChanged.emit(_frame);
-            }
+        if (!_updatingValues) {
+            frame_setSolid(_selection.frame(),
+                           _solidCB.get_active());
         }
     });
 }
 
 void FramePropertiesEditor::updateGuiValues()
 {
-    if (_frame) {
+    const SI::Frame* frame = _selection.frame();
+
+    if (frame) {
         _updatingValues = true;
 
-        _gridLocationSpinButtons.set_value(_frame->gridLocation());
-        _locationSpinButtons.set_value(_frame->location());
-        _originSpinButtons.set_value(_frame->origin());
-        _spriteOrderSpinButton.set_value(_frame->spriteOrder());
-        _tileHitboxSpinButtons.set_value(_frame->tileHitbox());
+        _gridLocationSpinButtons.set_value(frame->gridLocation());
+        _locationSpinButtons.set_value(frame->location());
+        _originSpinButtons.set_value(frame->origin());
+        _spriteOrderSpinButton.set_value(frame->spriteOrder());
+        _tileHitboxSpinButtons.set_value(frame->tileHitbox());
 
         // ::TODO _gridLocationSpinButtons range based on image size::
         // ::TODO _locationSpinButtons range based on image size::
-        _locationSpinButtons.set_minSize(_frame->minimumViableSize());
-        _originSpinButtons.set_range(_frame->locationSize());
-        _tileHitboxSpinButtons.set_range(_frame->locationSize());
+        _locationSpinButtons.set_minSize(frame->minimumViableSize());
+        _originSpinButtons.set_range(frame->locationSize());
+        _tileHitboxSpinButtons.set_range(frame->locationSize());
 
-        bool useGridLocation = _frame->useGridLocation();
+        bool useGridLocation = frame->useGridLocation();
         _useGridLocationCB.set_active(useGridLocation);
 
         _gridLocationSpinButtons.set_sensitive(useGridLocation);
@@ -251,14 +251,14 @@ void FramePropertiesEditor::updateGuiValues()
         _locationCommaLabel.set_sensitive(!useGridLocation);
         _locationCrossLabel.set_sensitive(!useGridLocation);
 
-        bool useCustomOrigin = !_frame->useGridOrigin();
+        bool useCustomOrigin = !frame->useGridOrigin();
         _useCustomOriginCB.set_active(useCustomOrigin);
 
         _originSpinButtons.set_sensitive(useCustomOrigin);
         _originLabel.set_sensitive(useCustomOrigin);
         _originCommaLabel.set_sensitive(useCustomOrigin);
 
-        bool solid = _frame->solid();
+        bool solid = frame->solid();
         _solidCB.set_active(solid);
 
         _tileHitboxSpinButtons.set_sensitive(solid);

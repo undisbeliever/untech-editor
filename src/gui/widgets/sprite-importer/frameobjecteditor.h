@@ -1,17 +1,10 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEOBJECTEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMEOBJECTEDITOR_H_
 
-#include "signals.h"
-#include "models/sprite-importer/frameobject.h"
-#include "models/sprite-importer/frame.h"
+#include "selection.h"
 #include "gui/widgets/common/aabb.h"
-#include "gui/widgets/defaults.h"
-
-#include <cassert>
-#include <memory>
 
 #include <gtkmm.h>
-#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -19,13 +12,7 @@ namespace SpriteImporter {
 
 class FrameObjectEditor {
 public:
-    FrameObjectEditor();
-
-    void setFrameObject(UnTech::SpriteImporter::FrameObject* frameObject)
-    {
-        _frameObject = frameObject;
-        updateGuiValues();
-    }
+    FrameObjectEditor(Selection& selection);
 
 protected:
     void updateGuiValues();
@@ -34,7 +21,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    UnTech::SpriteImporter::FrameObject* _frameObject;
+    Selection& _selection;
 
     UpointSpinButtons _locationSpinButtons;
     Gtk::ComboBoxText _sizeCombo;

@@ -1,18 +1,10 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_ENTITYHITBOXEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_ENTITYHITBOXEDITOR_H_
 
-#include "signals.h"
-#include "models/sprite-importer/entityhitbox.h"
-#include "models/sprite-importer/frame.h"
-#include "models/common/string.h"
+#include "selection.h"
 #include "gui/widgets/common/aabb.h"
-#include "gui/widgets/defaults.h"
-
-#include <cassert>
-#include <memory>
 
 #include <gtkmm.h>
-#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -20,13 +12,7 @@ namespace SpriteImporter {
 
 class EntityHitboxEditor {
 public:
-    EntityHitboxEditor();
-
-    void setEntityHitbox(UnTech::SpriteImporter::EntityHitbox* entityHitbox)
-    {
-        _entityHitbox = entityHitbox;
-        updateGuiValues();
-    }
+    EntityHitboxEditor(Selection& selection);
 
 protected:
     void updateGuiValues();
@@ -37,7 +23,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    UnTech::SpriteImporter::EntityHitbox* _entityHitbox;
+    Selection& _selection;
 
     UrectSpinButtons _aabbSpinButtons;
     Gtk::Entry _parameterEntry;

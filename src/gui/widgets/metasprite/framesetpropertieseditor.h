@@ -1,14 +1,11 @@
 #ifndef _UNTECH_GUI_WIDGETS_METASPRITE_FRAMESETPROPERTIESEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_METASPRITE_FRAMESETPROPERTIESEDITOR_H_
 
-#include "signals.h"
-#include "models/metasprite/frameset.h"
+#include "selection.h"
 #include "gui/widgets/common/ms8aabb.h"
 #include "gui/widgets/common/namedlistnameentry.h"
-#include "gui/widgets/defaults.h"
 
 #include <gtkmm.h>
-#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -18,13 +15,7 @@ namespace MS = UnTech::MetaSprite;
 
 class FrameSetPropertiesEditor {
 public:
-    FrameSetPropertiesEditor();
-
-    void setFrameSet(MS::FrameSet* frameSet)
-    {
-        _frameSet = frameSet;
-        updateGuiValues();
-    }
+    FrameSetPropertiesEditor(Selection& selection);
 
 protected:
     void updateGuiValues();
@@ -33,7 +24,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    MS::FrameSet* _frameSet;
+    Selection& _selection;
 
     NamedListNameEntry _nameEntry;
 

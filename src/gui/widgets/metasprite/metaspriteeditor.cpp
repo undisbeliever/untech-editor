@@ -22,21 +22,21 @@ MetaSpriteEditor::MetaSpriteEditor()
     , _sidebar()
     , _framePane(Gtk::ORIENTATION_VERTICAL)
     , _frameSetBox(Gtk::ORIENTATION_VERTICAL)
-    , _frameSetPropertiesEditor()
+    , _frameSetPropertiesEditor(_selection)
     , _paletteList()
     , _paletteEditor(_selection)
     , _frameList()
     , _frameNotebook()
-    , _frameParameterEditor()
+    , _frameParameterEditor(_selection)
     , _frameObjectBox(Gtk::ORIENTATION_VERTICAL)
     , _frameObjectList()
-    , _frameObjectEditor()
+    , _frameObjectEditor(_selection)
     , _actionPointBox(Gtk::ORIENTATION_VERTICAL)
     , _actionPointList()
-    , _actionPointEditor()
+    , _actionPointEditor(_selection)
     , _entityHitboxBox(Gtk::ORIENTATION_VERTICAL)
     , _entityHitboxList()
-    , _entityHitboxEditor()
+    , _entityHitboxEditor(_selection)
 {
 
     // Graphical
@@ -125,8 +125,6 @@ MetaSpriteEditor::MetaSpriteEditor()
         _selectedGraphicalEditor = 1;
     });
 
-    // ::TODO palette editor state changed::
-
     _selection.signal_frameSetChanged.connect([this](void) {
         auto frameSet = _selection.frameSet();
 
@@ -140,8 +138,6 @@ MetaSpriteEditor::MetaSpriteEditor()
             _frameList.setList(nullptr);
             _paletteList.setList(nullptr);
         }
-
-        _frameSetPropertiesEditor.setFrameSet(frameSet);
     });
 
     _selection.signal_paletteChanged.connect([this](void) {
@@ -176,23 +172,18 @@ MetaSpriteEditor::MetaSpriteEditor()
 
             _frameNotebook.set_sensitive(false);
         }
-
-        _frameParameterEditor.setFrame(frame);
     });
 
     _selection.signal_frameObjectChanged.connect([this](void) {
         _frameObjectList.selectItem(_selection.frameObject());
-        _frameObjectEditor.setFrameObject(_selection.frameObject());
     });
 
     _selection.signal_actionPointChanged.connect([this](void) {
         _actionPointList.selectItem(_selection.actionPoint());
-        _actionPointEditor.setActionPoint(_selection.actionPoint());
     });
 
     _selection.signal_entityHitboxChanged.connect([this](void) {
         _entityHitboxList.selectItem(_selection.entityHitbox());
-        _entityHitboxEditor.setEntityHitbox(_selection.entityHitbox());
     });
 
     /** Change active tab depending on selection */

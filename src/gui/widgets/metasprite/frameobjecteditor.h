@@ -1,16 +1,10 @@
 #ifndef _UNTECH_GUI_WIDGETS_METASPRITE_FRAMEOBJECTEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_METASPRITE_FRAMEOBJECTEDITOR_H_
 
-#include "signals.h"
-#include "models/metasprite/frameobject.h"
+#include "selection.h"
 #include "gui/widgets/common/ms8aabb.h"
-#include "gui/widgets/defaults.h"
-
-#include <cassert>
-#include <memory>
 
 #include <gtkmm.h>
-#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -18,13 +12,7 @@ namespace MetaSprite {
 
 class FrameObjectEditor {
 public:
-    FrameObjectEditor();
-
-    void setFrameObject(UnTech::MetaSprite::FrameObject* frameObject)
-    {
-        _frameObject = frameObject;
-        updateGuiValues();
-    }
+    FrameObjectEditor(Selection& selection);
 
 protected:
     void updateTileIdRange();
@@ -34,7 +22,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    UnTech::MetaSprite::FrameObject* _frameObject;
+    Selection& _selection;
 
     Ms8pointSpinButtons _locationSpinButtons;
     Gtk::SpinButton _tileIdSpinButton;

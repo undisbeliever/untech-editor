@@ -3,7 +3,6 @@
 
 #include "selection.h"
 #include "models/sprite-importer.h"
-#include "gui/widgets/defaults.h"
 
 #include <gtkmm.h>
 

@@ -1,18 +1,10 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_ACTIONPOINTEDITOR_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_ACTIONPOINTEDITOR_H_
 
-#include "signals.h"
-#include "models/sprite-importer/actionpoint.h"
-#include "models/sprite-importer/frame.h"
-#include "models/common/string.h"
+#include "selection.h"
 #include "gui/widgets/common/aabb.h"
-#include "gui/widgets/defaults.h"
-
-#include <cassert>
-#include <memory>
 
 #include <gtkmm.h>
-#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -20,13 +12,7 @@ namespace SpriteImporter {
 
 class ActionPointEditor {
 public:
-    ActionPointEditor();
-
-    void setActionPoint(UnTech::SpriteImporter::ActionPoint* actionPoint)
-    {
-        _actionPoint = actionPoint;
-        updateGuiValues();
-    }
+    ActionPointEditor(Selection& selection);
 
 protected:
     void updateGuiValues();
@@ -37,7 +23,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    UnTech::SpriteImporter::ActionPoint* _actionPoint;
+    Selection& _selection;
 
     UpointSpinButtons _locationSpinButtons;
     Gtk::Entry _parameterEntry;
