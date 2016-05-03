@@ -126,6 +126,14 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
         }
     });
 
+    /* Update transparent color if image changed */
+    Signals::frameSetImageChanged.connect([this](const SI::FrameSet* frameSet) {
+        if (frameSet && frameSet == _selection.frameSet()) {
+            _selection.frameSet()->image();
+            updateGuiValues();
+        }
+    });
+
     /** Update transparent button when changed */
     _selection.signal_selectTransparentModeChanged.connect([this](void) {
         _transparentColorButton.set_active(_selection.selectTransparentMode());
