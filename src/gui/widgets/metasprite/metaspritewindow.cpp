@@ -113,11 +113,11 @@ void MetaSpriteWindow::updateTitle()
 
     if (document) {
         if (document->undoStack().isDirty()) {
-            set_title("*" + document->frameSet().name() + _("Untech Sprite Editor"));
+            set_title("*" + document->frameSet().name() + _(": Untech MetaSprite Editor"));
             _saveAction->set_enabled(true);
         }
         else {
-            set_title(document->frameSet().name() + _("Untech Sprite Editor"));
+            set_title(document->frameSet().name() + _(": Untech MetaSprite Editor"));
             _saveAction->set_enabled(false);
         }
     }
