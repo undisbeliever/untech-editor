@@ -10,7 +10,7 @@ FrameSetGrid::FrameSetGrid(FrameSet& frameSet)
     : _frameSet(frameSet)
     , _frameSize(Frame::MIN_SIZE)
     , _offset()
-    , _padding()
+    , _padding(0, 0)
     , _origin()
 {
 }
