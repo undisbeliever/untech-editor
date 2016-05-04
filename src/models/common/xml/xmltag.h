@@ -202,13 +202,13 @@ struct XmlTag {
         return urect(x, y, width, height);
     }
 
-    inline urect getAttributeUrect(const usize& maximumSize, const std::string& xName = "x", const std::string yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
+    inline urect getAttributeUrect(const usize& minimumSize, const std::string& xName = "x", const std::string yName = "y", const std::string& widthName = "width", const std::string& heightName = "height") const
     {
         unsigned x = getAttributeUnsigned(xName);
         unsigned y = getAttributeUnsigned(yName);
 
-        unsigned width = getAttributeUnsigned(widthName, 1, maximumSize.width);
-        unsigned height = getAttributeUnsigned(heightName, 1, maximumSize.height);
+        unsigned width = getAttributeUnsigned(widthName, minimumSize.width, UINT_MAX);
+        unsigned height = getAttributeUnsigned(heightName, minimumSize.height, UINT_MAX);
 
         return urect(x, y, width, height);
     }

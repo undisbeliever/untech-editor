@@ -116,12 +116,15 @@ private:
             if (childTag->name == "location") {
                 auto location = childTag->getAttributeUrect(Frame::MIN_SIZE);
 
+                frame.setUseGridLocation(false);
                 frame.setLocation(location);
             }
-            if (childTag->name == "gridlocation") {
+            else if (childTag->name == "gridlocation") {
                 if (frameSetGridSet == false) {
                     throw childTag->buildError("Frameset grid is not set.");
                 }
+
+                frame.setUseGridLocation(true);
                 frame.setGridLocation(childTag->getAttributeUpoint());
             }
             else {
@@ -182,6 +185,7 @@ private:
                 if (processedOrigin) {
                     throw childTag->buildError("Can only have one tilehitbox per frame");
                 }
+                frame.setUseGridOrigin(false);
                 frame.setOrigin(childTag->getAttributeUpoint("x", "y"));
                 processedOrigin = true;
             }
