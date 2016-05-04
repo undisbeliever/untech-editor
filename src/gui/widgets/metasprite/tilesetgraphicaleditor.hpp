@@ -263,7 +263,7 @@ void TilesetGraphicalEditor<TilesetT>::redrawTilesetPixbuf()
 {
     MS::Palette* palette = _selection.palette();
 
-    if (_selection.frameSet() && palette) {
+    if (_selection.frameSet() && palette && tileset().size() > 0) {
         const TilesetT& t = tileset();
 
         const unsigned width = t.size() * TilesetT::TILE_SIZE;
@@ -309,6 +309,20 @@ void TilesetGraphicalEditor<TilesetT>::redrawTilesetPixbuf()
     }
     else {
         _tilesetPixbuf.reset();
+
+        // resize widget
+        {
+            double fWidth, fHeight;
+            if (!std::isnan(_displayZoom)) {
+                fWidth = TilesetT::TILE_SIZE * _zoomX * _displayZoom;
+                fHeight = TilesetT::TILE_SIZE * _zoomY * _displayZoom;
+            }
+            else {
+                fWidth = TilesetT::TILE_SIZE * _zoomX;
+                fHeight = TilesetT::TILE_SIZE * _zoomY;
+            }
+            set_size_request(fWidth, fHeight);
+        }
     }
 
     queue_draw();
