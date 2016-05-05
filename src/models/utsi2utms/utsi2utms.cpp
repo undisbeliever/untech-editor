@@ -2,18 +2,119 @@
 #include "tilesetinserter.h"
 #include "models/metasprite.h"
 #include "models/sprite-importer.h"
+#include <algorithm>
 #include <cassert>
+#include <iterator>
 #include <map>
 #include <set>
 #include <sstream>
+#include <string>
+#include <unordered_set>
+
+#include <iostream>
 
 const size_t PALETTE_COLORS = 16;
 
-using namespace UnTech;
-using namespace UnTech::Utsi2UtmsPrivate;
+namespace UnTech {
+namespace Utsi2UtmsPrivate {
 
 namespace MS = UnTech::MetaSprite;
 namespace SI = UnTech::SpriteImporter;
+
+inline std::array<uint8_t, 8 * 8> getSmallTile(const Image& image,
+                                               const std::map<rgba, unsigned>& colorMap,
+                                               const SI::FrameObject& siObj)
+{
+    unsigned xOffset = siObj.frame().location().x + siObj.location().x;
+    unsigned yOffset = siObj.frame().location().y + siObj.location().y;
+
+    std::array<uint8_t, 8 * 8> tile;
+    uint8_t* tData = tile.data();
+    for (unsigned y = 0; y < 8; y++) {
+        const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
+
+        for (unsigned x = 0; x < 8; x++) {
+            *tData++ = colorMap.at(*imgBits++);
+        }
+    }
+
+    return tile;
+}
+
+inline std::array<uint8_t, 16 * 16> getLargeTile(const Image& image,
+                                                 const std::map<rgba, unsigned>& colorMap,
+                                                 const SI::FrameObject& siObj)
+{
+    unsigned xOffset = siObj.frame().location().x + siObj.location().x;
+    unsigned yOffset = siObj.frame().location().y + siObj.location().y;
+
+    std::array<uint8_t, 16 * 16> tile;
+    uint8_t* tData = tile.data();
+    for (unsigned y = 0; y < 16; y++) {
+        const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
+
+        for (unsigned x = 0; x < 16; x++) {
+            *tData++ = colorMap.at(*imgBits++);
+        }
+    }
+
+    return tile;
+}
+
+// mark the pixels in the undertile that are overlapped by the overtile
+template <unsigned OVER_SIZE, unsigned UNDER_SIZE>
+inline std::array<bool, UNDER_SIZE * UNDER_SIZE>
+markOverlappedPixels(const std::array<uint8_t, OVER_SIZE * OVER_SIZE>& overTile,
+                     int xOffset, int yOffset)
+{
+    std::array<bool, UNDER_SIZE* UNDER_SIZE> ret = {};
+
+    for (unsigned oY = 0; oY < OVER_SIZE; oY++) {
+        int uY = oY + yOffset;
+
+        if (uY >= 0 && uY < (int)UNDER_SIZE) {
+            for (unsigned oX = 0; oX < OVER_SIZE; oX++) {
+                int uX = oX + xOffset;
+
+                if (uX >= 0 && uX < (int)UNDER_SIZE) {
+                    if (overTile[oY * OVER_SIZE + oX] != 0) {
+                        ret[uY * UNDER_SIZE + uX] = true;
+                    }
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
+// clears the pixels in the overtile that match the undertile.
+template <unsigned OVER_SIZE, unsigned UNDER_SIZE>
+inline void clearCommonOverlappedTiles(std::array<uint8_t, OVER_SIZE * OVER_SIZE>& overTile,
+                                       const std::array<uint8_t, UNDER_SIZE * UNDER_SIZE>& underTile,
+                                       int xOffset, int yOffset)
+{
+    for (unsigned oY = 0; oY < OVER_SIZE; oY++) {
+        int uY = oY + yOffset;
+
+        if (uY >= 0 && uY < (int)UNDER_SIZE) {
+            for (unsigned oX = 0; oX < OVER_SIZE; oX++) {
+                int uX = oX + xOffset;
+
+                if (uX >= 0 && uX < (int)UNDER_SIZE) {
+                    if (overTile[oY * OVER_SIZE + oX] == underTile[uY * UNDER_SIZE + uX]) {
+                        overTile[oY * OVER_SIZE + oX] = 0;
+                    }
+                }
+            }
+        }
+    }
+}
+}
+}
+
+using namespace UnTech;
+using namespace UnTech::Utsi2UtmsPrivate;
 
 Utsi2Utms::Utsi2Utms()
     : _errors()
@@ -122,64 +223,69 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
     TilesetInserter<Snes::Tileset4bpp8px> smallTileset(msFrameSet.smallTileset());
     TilesetInserter<Snes::Tileset4bpp16px> largeTileset(msFrameSet.largeTileset());
 
+    auto getTilesetOutputFromImage = [&](const SI::FrameObject& siObj) {
+        if (siObj.size() == SI::FrameObject::ObjectSize::SMALL) {
+            return smallTileset.getOrInsert(getSmallTile(image, colorMap, siObj));
+        }
+        else {
+            return largeTileset.getOrInsert(getLargeTile(image, colorMap, siObj));
+        }
+    };
+
+    // A Mapping to store all the frame objects that overlap each other.
+    // Mapping of <frameName> -> <objectIDs> -> list<overlapping objectIDs>
+    std::map<const std::string,
+             std::map<unsigned, std::list<unsigned>>> overlappingFrameObjectsMap;
+
     // Process frames
     for (const auto frameIt : siFrameSet.frames()) {
         const SI::Frame& siFrame = frameIt.second;
         const auto& siFrameOrigin = siFrame.origin();
-        const auto& siFrameLocation = siFrame.location();
 
         MS::Frame* msFramePtr = msFrameSet.frames().create(frameIt.first);
         MS::Frame& msFrame = *msFramePtr;
+
+        std::unordered_set<const SI::FrameObject*> overlapping;
+
+        // Search for overlapping frame objects
+        {
+            typedef SI::FrameObject::list_t::const_iterator f_iterator;
+
+            const auto& fobjs = siFrame.objects();
+
+            for (f_iterator iIt = fobjs.begin(); iIt != fobjs.end(); ++iIt) {
+                const SI::FrameObject& iObj = *iIt;
+                const urect iRect(iObj.location(), iObj.sizePx());
+
+                for (f_iterator jIt = iIt + 1; jIt != fobjs.end(); ++jIt) {
+                    const SI::FrameObject& jObj = *jIt;
+
+                    if (iRect.overlaps(jObj.location(), jObj.sizePx())) {
+                        overlapping.insert(&iObj);
+                        overlapping.insert(&jObj);
+
+                        unsigned di = std::distance(fobjs.begin(), iIt);
+                        unsigned dj = std::distance(fobjs.begin(), jIt);
+                        overlappingFrameObjectsMap[frameIt.first][di].push_back(dj);
+                    }
+                }
+            }
+        }
 
         try {
             for (const SI::FrameObject& siObj : siFrame.objects()) {
                 MS::FrameObject& msObj = msFrame.objects().create();
 
-                // ::TODO find overlapping tiles and store in list::
-                // ::TODO warning if large tile is in front of and covers a small tile::
-
-                unsigned xOffset = siFrameLocation.x + siObj.location().x;
-                unsigned yOffset = siFrameLocation.y + siObj.location().y;
-
-                TilesetInserterOutput tilesetOutput;
-
-                if (siObj.size() == SI::FrameObject::ObjectSize::SMALL) {
-                    msObj.setSize(MS::FrameObject::ObjectSize::SMALL);
-
-                    // Get image data
-                    std::array<uint8_t, 8 * 8> tile;
-                    uint8_t* tData = tile.data();
-                    for (unsigned y = 0; y < 8; y++) {
-                        const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
-
-                        for (unsigned x = 0; x < 8; x++) {
-                            *tData++ = colorMap[*imgBits++];
-                        }
-                    }
-
-                    tilesetOutput = smallTileset.getOrInsert(tile);
-                }
-                else {
-                    msObj.setSize(MS::FrameObject::ObjectSize::LARGE);
-
-                    // Get image data
-                    std::array<uint8_t, 16 * 16> tile;
-                    uint8_t* tData = tile.data();
-                    for (unsigned y = 0; y < 16; y++) {
-                        const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
-
-                        for (unsigned x = 0; x < 16; x++) {
-                            *tData++ = colorMap[*imgBits++];
-                        }
-                    }
-
-                    tilesetOutput = largeTileset.getOrInsert(tile);
-                }
-
+                msObj.setSize(static_cast<MS::FrameObject::ObjectSize>(siObj.size()));
                 msObj.setLocation(ms8point::createFromOffset(siObj.location(), siFrameOrigin));
-                msObj.setTileId(tilesetOutput.tileId);
-                msObj.setHFlip(tilesetOutput.hFlip);
-                msObj.setVFlip(tilesetOutput.vFlip);
+
+                if (overlapping.count(&siObj) > 0) {
+                    // don't process overlapping tiles here
+                    continue;
+                }
+
+                auto to = getTilesetOutputFromImage(siObj);
+                to.apply(msObj);
             }
 
             for (const SI::ActionPoint& siAp : siFrame.actionPoints()) {
@@ -216,7 +322,148 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
         return nullptr;
     }
 
-    // ::TODO process overlapping tiles::
+    bool useSmall;
+    struct {
+        std::array<uint8_t, 8 * 8> small;
+        std::array<uint8_t, 16 * 16> large;
+    } overTile;
+
+    for (const auto overlappingFramesIt : overlappingFrameObjectsMap) {
+        const auto& frameObjectOverlaps = overlappingFramesIt.second;
+
+        const SI::Frame& siFrame = siFrameSet.frames().at(overlappingFramesIt.first);
+        MS::Frame& msFrame = msFrameSet.frames().at(overlappingFramesIt.first);
+
+        // Check that there is no triple overlapping tile
+        {
+            std::set<unsigned> matches;
+            for (auto foIt : frameObjectOverlaps) {
+                for (unsigned id : foIt.second) {
+                    auto ret = matches.insert(id);
+
+                    if (ret.second == false) {
+                        addError(siFrame, "Cannot have three or more overlapping tiles");
+                        return nullptr;
+                    }
+                }
+            }
+        }
+
+        std::set<MS::FrameObject*> emptyObjects;
+
+        // Process the overlapping tiles
+        for (auto foIt : frameObjectOverlaps) {
+            const SI::FrameObject& siOverObj = siFrame.objects().at(foIt.first);
+            MS::FrameObject& msOverObj = msFrame.objects().at(foIt.first);
+
+            if (siOverObj.size() == SI::FrameObject::ObjectSize::SMALL) {
+                overTile.small = getSmallTile(image, colorMap, siOverObj);
+                useSmall = true;
+            }
+            else {
+                overTile.large = getLargeTile(image, colorMap, siOverObj);
+                useSmall = false;
+            }
+
+            for (unsigned id : foIt.second) {
+                const SI::FrameObject& siUnderObj = siFrame.objects().at(id);
+                MS::FrameObject& msUnderObj = msFrame.objects().at(id);
+
+                int xOffset = siOverObj.location().x - siUnderObj.location().x;
+                int yOffset = siOverObj.location().y - siUnderObj.location().y;
+
+                /*
+                 * This:
+                 *   - Gets the undertile pixels
+                 *   - Mark the undertile pixels that are overlapped with 0xFF
+                 *   - Search for duplicate tiles, creating a new tile if necessary
+                 */
+                std::pair<TilesetInserterOutput, bool> tilesetOutput;
+                if (useSmall) {
+                    if (siUnderObj.size() == SI::FrameObject::ObjectSize::SMALL) {
+                        auto underTile = getSmallTile(image, colorMap, siUnderObj);
+                        auto overlaps = markOverlappedPixels<8, 8>(overTile.small, xOffset, yOffset);
+                        tilesetOutput = smallTileset.processOverlappedTile(underTile, overlaps);
+                    }
+                    else {
+                        auto underTile = getLargeTile(image, colorMap, siUnderObj);
+                        auto overlaps = markOverlappedPixels<8, 16>(overTile.small, xOffset, yOffset);
+                        tilesetOutput = largeTileset.processOverlappedTile(underTile, overlaps);
+                    }
+                }
+                else {
+                    if (siUnderObj.size() == SI::FrameObject::ObjectSize::SMALL) {
+                        auto underTile = getSmallTile(image, colorMap, siUnderObj);
+                        auto overlaps = markOverlappedPixels<16, 8>(overTile.large, xOffset, yOffset);
+                        tilesetOutput = smallTileset.processOverlappedTile(underTile, overlaps);
+                    }
+                    else {
+                        auto underTile = getLargeTile(image, colorMap, siUnderObj);
+                        auto overlaps = markOverlappedPixels<16, 16>(overTile.large, xOffset, yOffset);
+                        tilesetOutput = largeTileset.processOverlappedTile(underTile, overlaps);
+                    }
+                }
+                tilesetOutput.first.apply(msUnderObj);
+
+                if (tilesetOutput.second == false) {
+                    addWarning(siUnderObj, "Matching undertile not found");
+                }
+
+                // remove duplicate pixels in the overtile that match the processed undertile.
+                if (useSmall) {
+                    if (siUnderObj.size() == SI::FrameObject::ObjectSize::SMALL) {
+                        auto underTile = smallTileset.getTile(tilesetOutput.first);
+                        clearCommonOverlappedTiles<8, 8>(overTile.small, underTile, xOffset, yOffset);
+                    }
+                    else {
+                        auto underTile = largeTileset.getTile(tilesetOutput.first);
+                        clearCommonOverlappedTiles<8, 16>(overTile.small, underTile, xOffset, yOffset);
+                    }
+                }
+                else {
+                    if (siUnderObj.size() == SI::FrameObject::ObjectSize::SMALL) {
+                        auto underTile = smallTileset.getTile(tilesetOutput.first);
+                        clearCommonOverlappedTiles<16, 8>(overTile.large, underTile, xOffset, yOffset);
+                    }
+                    else {
+                        auto underTile = largeTileset.getTile(tilesetOutput.first);
+                        clearCommonOverlappedTiles<16, 16>(overTile.large, underTile, xOffset, yOffset);
+                    }
+                }
+            }
+
+            // create the overtile and add to the tileset
+            if (useSmall) {
+                static const std::array<uint8_t, 8 * 8> smallZero = {};
+
+                if (overTile.small != smallZero) {
+                    auto to = smallTileset.getOrInsert(overTile.small);
+                    to.apply(msOverObj);
+                }
+                else {
+                    addWarning(siOverObj, "Overtile is empty - skipping");
+                    emptyObjects.insert(&msOverObj);
+                }
+            }
+            else {
+                static const std::array<uint8_t, 16 * 16> largeZero = {};
+
+                if (overTile.large != largeZero) {
+                    auto to = largeTileset.getOrInsert(overTile.large);
+                    to.apply(msOverObj);
+                }
+                else {
+                    addWarning(siOverObj, "Overtile is empty - skipping");
+                    emptyObjects.insert(&msOverObj);
+                }
+            }
+        }
+
+        // remove empty frame objects
+        for (MS::FrameObject* obj : emptyObjects) {
+            msFrame.objects().remove(obj);
+        }
+    }
 
     return msDocument;
 }
@@ -273,6 +520,20 @@ void Utsi2Utms::addWarning(const SI::Frame& frame, const std::string& message)
     const SI::FrameSet& fs = frame.frameSet();
 
     out << fs.name() << "." << fs.frames().getName(frame).first
+        << ": " << message;
+
+    _warnings.push_back(out.str());
+}
+
+void Utsi2Utms::addWarning(const SI::FrameObject& frameObj, const std::string& message)
+{
+    std::stringstream out;
+
+    const SI::Frame& frame = frameObj.frame();
+    const SI::FrameSet& fs = frame.frameSet();
+
+    out << fs.name() << "." << fs.frames().getName(frame).first
+        << ":object-" << frame.objects().indexOf(frameObj)
         << ": " << message;
 
     _warnings.push_back(out.str());

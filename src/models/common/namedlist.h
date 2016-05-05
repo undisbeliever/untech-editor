@@ -151,6 +151,9 @@ public:
     std::pair<std::string, bool> getName(const T& e) const { return getName(&e); }
 
     // Expose the map
+    T& at(const std::string& name) { return *_values.at(name).get(); }
+    const T& at(const std::string& name) const { return *_values.at(name).get(); }
+
     inline size_t size() const { return _values.size(); }
 
     inline iterator begin() noexcept { return _values.begin(); }

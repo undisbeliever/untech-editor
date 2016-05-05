@@ -3,6 +3,7 @@
 
 #include "models/metasprite/document.h"
 #include "models/sprite-importer/document.h"
+#include "models/sprite-importer/frameobject.h"
 #include <list>
 #include <memory>
 #include <string>
@@ -24,7 +25,8 @@ protected:
     void addError(const SpriteImporter::Frame& frameSet, const std::string& message);
     void addWarning(const std::string& message);
     void addWarning(const SpriteImporter::FrameSet& frameSet, const std::string& message);
-    void addWarning(const SpriteImporter::Frame& frameSet, const std::string& message);
+    void addWarning(const SpriteImporter::Frame& frame, const std::string& message);
+    void addWarning(const SpriteImporter::FrameObject& frameObj, const std::string& message);
 
 private:
     std::list<std::string> _errors;

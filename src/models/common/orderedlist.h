@@ -121,7 +121,23 @@ public:
         return it != _list.end();
     }
 
+    int indexOf(const T* e) const
+    {
+        auto it = findIt(e);
+
+        if (it != _list.end()) {
+            return std::distance(_list.begin(), it);
+        }
+        else {
+            return -1;
+        }
+    }
+    int indexOf(const T& e) const { return indexOf(&e); }
+
     // Expose the list
+    T& at(size_t i) { return *_list.at(i).get(); }
+    const T& at(size_t i) const { return *_list.at(i).get(); }
+
     inline size_t size() const { return _list.size(); }
 
     inline iterator begin() noexcept { return _list.begin(); }
@@ -149,18 +165,6 @@ protected:
 protected:
     // Only allow these methods to be accessible by the undo module.
     // Prevent me from doing something stupid.
-
-    int indexOf(T* e)
-    {
-        auto it = findIt(e);
-
-        if (it != _list.end()) {
-            return std::distance(_list.begin(), it);
-        }
-        else {
-            return -1;
-        }
-    }
 
     std::unique_ptr<T> removeFromList(size_t index)
     {

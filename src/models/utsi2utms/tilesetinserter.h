@@ -2,6 +2,7 @@
 #define _UNTECH_MODELS_UTSI2UTMS_TILESETINSERTER_H_
 
 #include "../snes/tileset.h"
+#include "../metasprite/frameobject.h"
 #include <unordered_map>
 
 namespace UnTech {
@@ -34,6 +35,20 @@ struct TilesetInserterOutput {
     unsigned tileId;
     bool hFlip;
     bool vFlip;
+
+    void apply(MetaSprite::FrameObject& fo)
+    {
+        fo.setTileId(tileId);
+        fo.setHFlip(hFlip);
+        fo.setVFlip(vFlip);
+    }
+
+    bool operator==(const TilesetInserterOutput& o) const
+    {
+        return tileId == o.tileId
+               && hFlip == o.hFlip
+               && vFlip == o.vFlip;
+    }
 };
 
 template <class T>
@@ -56,19 +71,77 @@ public:
             return it->second;
         }
         else {
-            unsigned t = _tileset.size();
-            _tileset.addTile();
-            _tileset.tile(t) = tile;
+            return insertNewTile(tile);
+        }
+    }
 
-            addToMap(tile, t);
+    const typename T::tileData_t getTile(const TilesetInserterOutput& tio) const
+    {
+        static typename T::tileData_t zeroData = {};
 
-            return { t, false, false };
+        // ::TODO optimize::
+        // ::: - get tile from the tileset and preform a flip::
+
+        for (auto it : _map) {
+            if (it.second == tio) {
+                return it.first;
+            }
+        }
+        return zeroData;
+    }
+
+    const std::pair<TilesetInserterOutput, bool>
+    processOverlappedTile(const typename T::tileData_t& underTile,
+                          const typename std::array<bool, T::TILE_DATA_SIZE>& overlaps)
+    {
+        unsigned bestScore = 0;
+        TilesetInserterOutput ret = { 0, false, false };
+
+        for (auto it : _map) {
+            const typename T::tileData_t& other = it.first;
+            unsigned score = 0;
+            bool found = true;
+
+            for (unsigned i = 0; i < T::TILE_DATA_SIZE; i++) {
+                if (underTile[i] == other[i]) {
+                    score++;
+                }
+                else if (overlaps[i] == false) {
+                    found = false;
+                    break;
+                }
+            }
+
+            if (found && score > bestScore) {
+                bestScore = score;
+                ret = it.second;
+            }
+        }
+
+        if (bestScore != 0) {
+            return { ret, true };
+        }
+        else {
+            return { insertNewTile(underTile), false };
         }
     }
 
 private:
+    TilesetInserterOutput insertNewTile(const typename T::tileData_t& tile)
+    {
+        unsigned tileId = _tileset.size();
+        _tileset.addTile();
+        _tileset.tile(tileId) = tile;
+
+        addToMap(tile, tileId);
+
+        return { tileId, false, false };
+    }
+
     void addToMap(const typename T::tileData_t& tile, unsigned tileId)
     {
+        // ::TODO check how symmetrical tiles are handled::
+
         constexpr unsigned TILE_SIZE = T::TILE_SIZE;
 
         const uint8_t(*pixelData)[TILE_SIZE] = (uint8_t(*)[TILE_SIZE])tile.data();

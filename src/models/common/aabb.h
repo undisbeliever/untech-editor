@@ -102,6 +102,22 @@ struct urect {
     {
     }
 
+    urect(const upoint& point, unsigned size)
+        : x(point.x)
+        , y(point.y)
+        , width(size)
+        , height(size)
+    {
+    }
+
+    urect(const upoint& point, unsigned width, unsigned height)
+        : x(point.x)
+        , y(point.y)
+        , width(width)
+        , height(height)
+    {
+    }
+
     inline unsigned left() const { return x; }
     inline unsigned right() const { return x + width; }
     inline unsigned top() const { return y; }
@@ -113,6 +129,18 @@ struct urect {
     {
         return p.x >= left() && p.x < right()
                && p.y >= top() && p.y < bottom();
+    }
+
+    inline bool overlaps(const urect& r) const
+    {
+        return left() < r.right() && right() > r.left()
+               && top() < r.bottom() && bottom() > r.top();
+    }
+
+    inline bool overlaps(const upoint& p, unsigned size) const
+    {
+        return left() < (p.x + size) && right() > p.x
+               && top() < (p.y + size) && bottom() > p.y;
     }
 
     // Clips the upoint within the width/height of the urect
