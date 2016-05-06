@@ -483,14 +483,18 @@ bool TilesetGraphicalEditor<TilesetT>::on_button_release_event(GdkEventButton* e
         int x = std::lround((event->x - allocation.get_x()) / (_zoomX * _displayZoom));
         int y = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom));
 
-        if (x >= 0 && y >= 0) {
+        if (x >= 0 && y >= 0 && y < (int)TilesetT::TILE_SIZE) {
             unsigned tileId = (unsigned)x / TilesetT::TILE_SIZE;
 
             if (TilesetT::TILE_SIZE == 8) {
-                frameObject_setTileIdAndSize(obj, tileId, OS::SMALL);
+                if (tileId < _selection.frameSet()->smallTileset().size()) {
+                    frameObject_setTileIdAndSize(obj, tileId, OS::SMALL);
+                }
             }
             else {
-                frameObject_setTileIdAndSize(obj, tileId, OS::LARGE);
+                if (tileId < _selection.frameSet()->largeTileset().size()) {
+                    frameObject_setTileIdAndSize(obj, tileId, OS::LARGE);
+                }
             }
         }
     }
