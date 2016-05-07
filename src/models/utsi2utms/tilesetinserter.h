@@ -2,6 +2,7 @@
 #define _UNTECH_MODELS_UTSI2UTMS_TILESETINSERTER_H_
 
 #include "../snes/tileset.h"
+#include "../snes/tileset.hpp"
 #include "../metasprite/frameobject.h"
 #include <unordered_map>
 
@@ -59,7 +60,7 @@ public:
         , _map()
     {
         for (unsigned t = 0; t < tileset.size(); t++) {
-            addToMap(tileset.tile(t), t);
+            addToMap(t);
         }
     }
 
@@ -77,17 +78,7 @@ public:
 
     const typename T::tileData_t getTile(const TilesetInserterOutput& tio) const
     {
-        static typename T::tileData_t zeroData = {};
-
-        // ::TODO optimize::
-        // ::: - get tile from the tileset and preform a flip::
-
-        for (auto it : _map) {
-            if (it.second == tio) {
-                return it.first;
-            }
-        }
-        return zeroData;
+        return _tileset.tile(tio.tileId, tio.hFlip, tio.vFlip);
     }
 
     const std::pair<TilesetInserterOutput, bool>
@@ -130,55 +121,29 @@ private:
     TilesetInserterOutput insertNewTile(const typename T::tileData_t& tile)
     {
         unsigned tileId = _tileset.size();
-        _tileset.addTile();
-        _tileset.tile(tileId) = tile;
+        _tileset.addTile(tile);
 
-        addToMap(tile, tileId);
+        addToMap(tileId);
 
         return { tileId, false, false };
     }
 
-    void addToMap(const typename T::tileData_t& tile, unsigned tileId)
+    void addToMap(unsigned tileId)
     {
-        // ::TODO check how symmetrical tiles are handled::
+        // unordered_map will ignore insert if tile pattern already exists
+        // Thus symmetrical tiles will prefer the unflipped tile.
 
-        constexpr unsigned TILE_SIZE = T::TILE_SIZE;
+        _map.insert({ _tileset.tile(tileId),
+                      { tileId, false, false } });
 
-        const uint8_t(*pixelData)[TILE_SIZE] = (uint8_t(*)[TILE_SIZE])tile.data();
+        _map.insert({ _tileset.tileHFlip(tileId),
+                      { tileId, false, true } });
 
-        _map.insert({ tile, { tileId, false, false } });
+        _map.insert({ _tileset.tileVFlip(tileId),
+                      { tileId, true, false } });
 
-        // hflip
-        typename T::tileData_t hFlip;
-        uint8_t(*hData)[TILE_SIZE] = (uint8_t(*)[TILE_SIZE])hFlip.data();
-
-        for (unsigned y = 0; y < TILE_SIZE; y++) {
-            for (unsigned x = 0; x < TILE_SIZE; x++) {
-                hData[y][x] = pixelData[y][TILE_SIZE - x - 1];
-            }
-        }
-        _map.insert({ hFlip, { tileId, false, true } });
-
-        // vflip
-        typename T::tileData_t vFlip;
-        uint8_t(*vData)[TILE_SIZE] = (uint8_t(*)[TILE_SIZE])hFlip.data();
-
-        for (unsigned y = 0; y < TILE_SIZE; y++) {
-            for (unsigned x = 0; x < TILE_SIZE; x++) {
-                vData[y][x] = pixelData[TILE_SIZE - y - 1][x];
-            }
-        }
-        _map.insert({ vFlip, { tileId, false, true } });
-
-        // hvflip
-        typename T::tileData_t hvFlip;
-        uint8_t(*hvData)[TILE_SIZE] = (uint8_t(*)[TILE_SIZE])hFlip.data();
-        for (unsigned y = 0; y < TILE_SIZE; y++) {
-            for (unsigned x = 0; x < TILE_SIZE; x++) {
-                hvData[y][x] = pixelData[TILE_SIZE - y - 1][TILE_SIZE - x - 1];
-            }
-        }
-        _map.insert({ hvFlip, { tileId, true, true } });
+        _map.insert({ _tileset.tileHVFlip(tileId),
+                      { tileId, true, true } });
     }
 
 private:

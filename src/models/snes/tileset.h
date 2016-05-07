@@ -30,11 +30,18 @@ public:
                   unsigned tileId, bool hFlip = false, bool vFlip = false) const;
 
     void addTile() { _tiles.emplace_back(); }
+    void addTile(const tileData_t& tile) { _tiles.emplace_back(tile); }
 
     size_t size() const { return _tiles.size(); }
 
     tileData_t& tile(size_t n) { return _tiles.at(n); }
     const tileData_t& tile(size_t n) const { return _tiles.at(n); }
+
+    tileData_t tile(size_t n, bool hFlip, bool vFlip) const;
+
+    tileData_t tileHFlip(size_t n) const;
+    tileData_t tileVFlip(size_t n) const;
+    tileData_t tileHVFlip(size_t n) const;
 
     uint8_t tilePixel(unsigned tileId, unsigned x, unsigned y) const
     {

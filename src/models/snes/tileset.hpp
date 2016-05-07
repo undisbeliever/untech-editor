@@ -148,6 +148,76 @@ void Tileset<BIT_DEPTH, TILE_SIZE>::drawTile(Image& image, const Palette<BIT_DEP
     }
 }
 
+template <size_t BD, size_t TS>
+inline typename Tileset<BD, TS>::tileData_t Tileset<BD, TS>::tileHFlip(size_t n) const
+{
+    Tileset<BD, TS>::tileData_t hFlip;
+    uint8_t(*hData)[TS] = (uint8_t(*)[TS])hFlip.data();
+
+    const auto pixelData = (uint8_t(*)[TS])_tiles.at(n).data();
+
+    for (unsigned y = 0; y < TS; y++) {
+        for (unsigned x = 0; x < TS; x++) {
+            hData[y][x] = pixelData[y][TS - x - 1];
+        }
+    }
+    return hFlip;
+}
+
+template <size_t BD, size_t TS>
+inline typename Tileset<BD, TS>::tileData_t Tileset<BD, TS>::tileVFlip(size_t n) const
+{
+    Tileset<BD, TS>::tileData_t vFlip;
+    uint8_t(*vData)[TS] = (uint8_t(*)[TS])vFlip.data();
+
+    const auto pixelData = (uint8_t(*)[TS])_tiles.at(n).data();
+
+    for (unsigned y = 0; y < TS; y++) {
+        for (unsigned x = 0; x < TS; x++) {
+            vData[y][x] = pixelData[TILE_SIZE - y - 1][x];
+        }
+    }
+    return vFlip;
+}
+
+template <size_t BD, size_t TS>
+inline typename Tileset<BD, TS>::tileData_t Tileset<BD, TS>::tileHVFlip(size_t n) const
+{
+    Tileset<BD, TS>::tileData_t hvFlip;
+    uint8_t(*hvData)[TS] = (uint8_t(*)[TS])hvFlip.data();
+
+    const auto pixelData = (uint8_t(*)[TS])_tiles.at(n).data();
+
+    for (unsigned y = 0; y < TS; y++) {
+        for (unsigned x = 0; x < TS; x++) {
+            hvData[y][x] = pixelData[TILE_SIZE - y - 1][TILE_SIZE - x - 1];
+        }
+    }
+    return hvFlip;
+}
+
+template <size_t BD, size_t TS>
+typename Tileset<BD, TS>::tileData_t
+Tileset<BD, TS>::tile(size_t tileId, bool hFlip, bool vFlip) const
+{
+    if (hFlip == false) {
+        if (vFlip == false) {
+            return tile(tileId);
+        }
+        else {
+            return tileVFlip(tileId);
+        }
+    }
+    else {
+        if (vFlip == false) {
+            return tileHFlip(tileId);
+        }
+        else {
+            return tileHVFlip(tileId);
+        }
+    }
+}
+
 template <size_t BIT_DEPTH>
 inline std::vector<uint8_t> Tileset8px<BIT_DEPTH>::snesData() const
 {
