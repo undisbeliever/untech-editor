@@ -1,6 +1,7 @@
 #ifndef _UNTECH_MODELS_COMMON_ORDEREDLIST_H_
 #define _UNTECH_MODELS_COMMON_ORDEREDLIST_H_
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
