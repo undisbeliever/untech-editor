@@ -50,10 +50,16 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
 
     // SLOTS
     // =====
-    Signals::actionPointListChanged.connect(sigc::hide(sigc::mem_fun(
-        this, &FrameGraphicalEditor::queue_draw)));
-    Signals::entityHitboxListChanged.connect(sigc::hide(sigc::mem_fun(
-        this, &FrameGraphicalEditor::queue_draw)));
+    Signals::actionPointListChanged.connect([this](const MS::ActionPoint::list_t* list) {
+        if (_selectedFrame && list == &_selectedFrame->actionPoints()) {
+            queue_draw();
+        }
+    });
+    Signals::entityHitboxListChanged.connect([this](const MS::EntityHitbox::list_t* list) {
+        if (_selectedFrame && list == &_selectedFrame->entityHitboxes()) {
+            queue_draw();
+        }
+    });
 
     _selection.signal_selectionChanged.connect([this](void) {
         // reset action
@@ -81,8 +87,11 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
     _selection.signal_paletteChanged.connect(sigc::mem_fun(
         this, &FrameGraphicalEditor::redrawFramePixbuf));
 
-    Signals::frameObjectListChanged.connect(sigc::hide(sigc::mem_fun(
-        this, &FrameGraphicalEditor::redrawFramePixbuf)));
+    Signals::frameObjectListChanged.connect([this](const MS::FrameObject::list_t* list) {
+        if (_selectedFrame && list == &_selectedFrame->objects()) {
+            redrawFramePixbuf();
+        }
+    });
 
     Signals::frameObjectChanged.connect([this](const MS::FrameObject* obj) {
         if (obj && &obj->frame() == _selectedFrame) {
