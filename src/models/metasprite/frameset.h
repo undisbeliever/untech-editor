@@ -4,6 +4,7 @@
 #include "../common/ms8aabb.h"
 #include "../common/namedlist.h"
 #include "../common/orderedlist.h"
+#include "../metasprite-format/tilesettype.h"
 #include "../snes/tileset.h"
 #include <list>
 #include <array>
@@ -28,6 +29,7 @@ public:
     inline MetaSpriteDocument& document() const { return _document; }
 
     inline const std::string& name() const { return _name; }
+    inline const MetaSpriteFormat::TilesetType tilesetType() const { return _tilesetType; }
 
     inline auto& smallTileset() { return _smallTileset; }
     inline const auto& smallTileset() const { return _smallTileset; }
@@ -43,10 +45,13 @@ public:
 
     void setName(const std::string& name);
 
+    void setTilesetType(const MetaSpriteFormat::TilesetType& type) { _tilesetType = type; }
+
 private:
     MetaSpriteDocument& _document;
 
     std::string _name;
+    MetaSpriteFormat::TilesetType _tilesetType;
 
     Snes::Tileset4bpp8px _smallTileset;
     Snes::Tileset4bpp16px _largeTileset;

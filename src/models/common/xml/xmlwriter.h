@@ -52,6 +52,12 @@ public:
         }
     }
 
+    template <class T>
+    inline void writeTagAttributeSimpleClass(const std::string& name, const T& value)
+    {
+        writeTagAttribute(name, value.string());
+    }
+
     inline void writeTagAttributeUpoint(const upoint& p, const std::string& xName = "x", const std::string& yName = "y")
     {
         writeTagAttribute(xName, p.x);

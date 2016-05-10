@@ -4,6 +4,7 @@
 #include "selection.h"
 #include "gui/widgets/common/aabb.h"
 #include "gui/widgets/common/colortogglebutton.h"
+#include "gui/widgets/common/enumclasscombobox.h"
 #include "gui/widgets/common/namedlistnameentry.h"
 
 #include <gtkmm.h>
@@ -13,6 +14,7 @@ namespace Widgets {
 namespace SpriteImporter {
 
 namespace SI = UnTech::SpriteImporter;
+namespace MSF = UnTech::MetaSpriteFormat;
 
 class FrameSetPropertiesEditor {
 public:
@@ -30,6 +32,7 @@ private:
     Selection& _selection;
 
     NamedListNameEntry _nameEntry;
+    EnumClassComboBox<MSF::TilesetType> _tilesetTypeCombo;
 
     Gtk::Box _imageFilenameBox;
     Gtk::Entry _imageFilenameEntry;
@@ -45,6 +48,7 @@ private:
     UpointSpinButtons _gridOriginSpinButtons;
 
     Gtk::Label _nameLabel;
+    Gtk::Label _tilesetTypeLabel;
     Gtk::Label _imageFilenameLabel;
     Gtk::Label _transparentColorLabel;
     Gtk::Label _gridFrameSizeLabel, _gridFrameSizeCrossLabel;

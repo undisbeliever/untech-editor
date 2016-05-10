@@ -6,6 +6,7 @@
 #include "../common/rgba.h"
 #include "../common/image.h"
 #include "../common/namedlist.h"
+#include "../metasprite-format/tilesettype.h"
 #include <memory>
 #include <string>
 
@@ -28,6 +29,7 @@ public:
     inline SpriteImporterDocument& document() const { return _document; }
 
     inline const std::string& name() const { return _name; }
+    inline const MetaSpriteFormat::TilesetType tilesetType() const { return _tilesetType; }
     inline const std::string& imageFilename() const { return _imageFilename; }
 
     inline auto& frames() { return _frames; }
@@ -38,6 +40,8 @@ public:
     inline const auto& grid() const { return _grid; }
 
     void setName(const std::string& name);
+
+    void setTilesetType(const MetaSpriteFormat::TilesetType& type);
 
     void setImageFilename(const std::string& filename);
 
@@ -65,6 +69,7 @@ private:
     SpriteImporterDocument& _document;
 
     std::string _name;
+    MetaSpriteFormat::TilesetType _tilesetType;
     std::string _imageFilename;
     UnTech::Image _image;
     UnTech::rgba _transparentColor;

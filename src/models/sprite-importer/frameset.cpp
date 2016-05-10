@@ -7,10 +7,12 @@
 #include "../common/namechecks.h"
 
 using namespace UnTech::SpriteImporter;
+namespace MSF = UnTech::MetaSpriteFormat;
 
 FrameSet::FrameSet(SpriteImporterDocument& document)
     : _document(document)
     , _name("frameset")
+    , _tilesetType(MSF::TilesetType::Enum::ONE_VRAM_ROW)
     , _imageFilename()
     , _image()
     , _transparentColor(0)
@@ -24,6 +26,11 @@ void FrameSet::setName(const std::string& name)
     if (isNameValid(name)) {
         _name = name;
     }
+}
+
+void FrameSet::setTilesetType(const MSF::TilesetType& type)
+{
+    _tilesetType = type;
 }
 
 void FrameSet::setImageFilename(const std::string& filename)

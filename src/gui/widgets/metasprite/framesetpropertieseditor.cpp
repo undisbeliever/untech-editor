@@ -13,11 +13,18 @@ SIMPLE_UNDO_ACTION(frameSet_setName,
                    Signals::frameSetChanged,
                    "Change Name")
 
+SIMPLE_UNDO_ACTION(frameSet_setTilesetType,
+                   MS::FrameSet, MSF::TilesetType, tilesetType, setTilesetType,
+                   Signals::frameSetChanged,
+                   "Change Tileset Type")
+
 FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
     : widget()
     , _selection(selection)
     , _nameEntry()
+    , _tilesetTypeCombo()
     , _nameLabel(_("Name:"), Gtk::ALIGN_START)
+    , _tilesetTypeLabel(_("Tileset Type:"), Gtk::ALIGN_START)
     , _updatingValues(false)
 {
     widget.set_border_width(DEFAULT_BORDER);
@@ -25,6 +32,9 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
 
     widget.attach(_nameLabel, 0, 0, 1, 1);
     widget.attach(_nameEntry, 1, 0, 3, 1);
+
+    widget.attach(_tilesetTypeLabel, 0, 1, 1, 1);
+    widget.attach(_tilesetTypeCombo, 1, 1, 3, 1);
 
     updateGuiValues();
 
@@ -59,6 +69,14 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
         }
         return false;
     });
+
+    /** Tileset type signal */
+    _tilesetTypeCombo.signal_changed().connect([this](void) {
+        if (!_updatingValues) {
+            frameSet_setTilesetType(_selection.frameSet(),
+                                    _tilesetTypeCombo.get_value());
+        }
+    });
 }
 
 void FrameSetPropertiesEditor::updateGuiValues()
@@ -69,6 +87,7 @@ void FrameSetPropertiesEditor::updateGuiValues()
         _updatingValues = true;
 
         _nameEntry.set_text(frameSet->name());
+        _tilesetTypeCombo.set_value(frameSet->tilesetType());
 
         _updatingValues = false;
 
@@ -77,6 +96,7 @@ void FrameSetPropertiesEditor::updateGuiValues()
     else {
 
         _nameEntry.set_text("");
+        _tilesetTypeCombo.unset_value();
 
         widget.set_sensitive(false);
     }

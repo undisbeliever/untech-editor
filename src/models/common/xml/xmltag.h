@@ -146,6 +146,20 @@ struct XmlTag {
         return xml->dirname() + v;
     }
 
+    template <class T>
+    inline T getAttributeSimpleClass(const std::string& name) const
+    {
+        try {
+            return T(getAttribute(name));
+        }
+        catch (const std::out_of_range& ex) {
+            throw buildError(name, "Invalid");
+        }
+        catch (const std::exception& ex) {
+            throw buildError(name, ex.what());
+        }
+    }
+
     inline unsigned getAttributeUnsignedHex(const std::string& aName) const
     {
         auto v = String::hexToUnsigned(getAttribute(aName));

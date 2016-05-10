@@ -17,6 +17,7 @@
 using namespace UnTech;
 using namespace UnTech::Xml;
 using namespace UnTech::MetaSprite;
+namespace MSF = UnTech::MetaSpriteFormat;
 
 namespace UnTech {
 namespace MetaSprite {
@@ -46,6 +47,9 @@ public:
 
         std::string id = tag->getAttributeId("id");
         frameSet.setName(id);
+
+        frameSet.setTilesetType(
+            tag->getAttributeSimpleClass<MSF::TilesetType>("tilesettype"));
 
         std::unique_ptr<XmlTag> childTag;
         while ((childTag = xml.parseTag())) {
@@ -257,6 +261,8 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     xml.writeTag("metasprite");
 
     xml.writeTagAttribute("id", frameSet.name());
+
+    xml.writeTagAttributeSimpleClass("tilesettype", frameSet.tilesetType());
 
     if (frameSet.smallTileset().size()) {
         xml.writeTag("smalltileset");

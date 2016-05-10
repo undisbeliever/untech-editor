@@ -15,6 +15,7 @@
 using namespace UnTech;
 using namespace UnTech::Xml;
 using namespace UnTech::SpriteImporter;
+namespace MSF = UnTech::MetaSpriteFormat;
 
 namespace UnTech {
 namespace SpriteImporter {
@@ -47,6 +48,9 @@ public:
 
         std::string id = tag->getAttributeId("id");
         frameSet.setName(id);
+
+        frameSet.setTilesetType(
+            tag->getAttributeSimpleClass<MSF::TilesetType>("tilesettype"));
 
         frameSetGridSet = false;
 
@@ -298,6 +302,8 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     xml.writeTag("spriteimporter");
 
     xml.writeTagAttribute("id", frameSet.name());
+
+    xml.writeTagAttributeSimpleClass("tilesettype", frameSet.tilesetType());
 
     if (!frameSet.imageFilename().empty()) {
         xml.writeTagAttributeFilename("image", frameSet.imageFilename());

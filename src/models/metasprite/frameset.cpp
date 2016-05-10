@@ -9,10 +9,12 @@
 #include "../common/namechecks.h"
 
 using namespace UnTech::MetaSprite;
+namespace MSF = UnTech::MetaSpriteFormat;
 
 FrameSet::FrameSet(MetaSpriteDocument& document)
     : _document(document)
     , _name("frameset")
+    , _tilesetType()
     , _smallTileset()
     , _largeTileset()
     , _palettes(*this)
