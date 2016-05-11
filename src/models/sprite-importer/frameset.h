@@ -13,6 +13,13 @@
 // FrameSet images are lazily loaded.
 
 namespace UnTech {
+
+namespace MetaSpriteFormat {
+namespace FrameSetExportOrder {
+class ExportOrderDocument;
+}
+}
+
 namespace SpriteImporter {
 
 class Frame;
@@ -32,6 +39,8 @@ public:
     inline const MetaSpriteFormat::TilesetType tilesetType() const { return _tilesetType; }
     inline const std::string& imageFilename() const { return _imageFilename; }
 
+    inline auto& exportOrderDocument() const { return _exportOrderDocument; }
+
     inline auto& frames() { return _frames; }
     inline auto& grid() { return _grid; }
     inline auto& transparentColor() const { return _transparentColor; }
@@ -43,6 +52,10 @@ public:
 
     void setTilesetType(const MetaSpriteFormat::TilesetType& type);
 
+    // fails silently
+    void loadExportOrderDocument(const std::string& filename);
+
+    // fails silently
     void setImageFilename(const std::string& filename);
 
     void setTransparentColor(const UnTech::rgba transparentColor)
@@ -70,6 +83,8 @@ private:
 
     std::string _name;
     MetaSpriteFormat::TilesetType _tilesetType;
+    std::shared_ptr<const MetaSpriteFormat::FrameSetExportOrder::ExportOrderDocument> _exportOrderDocument;
+
     std::string _imageFilename;
     UnTech::Image _image;
     UnTech::rgba _transparentColor;

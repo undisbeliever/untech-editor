@@ -12,6 +12,13 @@
 #include <string>
 
 namespace UnTech {
+
+namespace MetaSpriteFormat {
+namespace FrameSetExportOrder {
+class ExportOrderDocument;
+}
+}
+
 namespace MetaSprite {
 
 class Frame;
@@ -31,6 +38,8 @@ public:
     inline const std::string& name() const { return _name; }
     inline const MetaSpriteFormat::TilesetType tilesetType() const { return _tilesetType; }
 
+    inline auto& exportOrderDocument() const { return _exportOrderDocument; }
+
     inline auto& smallTileset() { return _smallTileset; }
     inline const auto& smallTileset() const { return _smallTileset; }
 
@@ -47,11 +56,15 @@ public:
 
     void setTilesetType(const MetaSpriteFormat::TilesetType& type) { _tilesetType = type; }
 
+    // fails silently
+    void loadExportOrderDocument(const std::string& filename);
+
 private:
     MetaSpriteDocument& _document;
 
     std::string _name;
     MetaSpriteFormat::TilesetType _tilesetType;
+    std::shared_ptr<const MetaSpriteFormat::FrameSetExportOrder::ExportOrderDocument> _exportOrderDocument;
 
     Snes::Tileset4bpp8px _smallTileset;
     Snes::Tileset4bpp16px _largeTileset;

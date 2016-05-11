@@ -5,9 +5,10 @@
 #include "frameobject.h"
 #include "actionpoint.h"
 #include "entityhitbox.h"
-#include "../common/atomicofstream.h"
-#include "../common/xml/xmlreader.h"
-#include "../common/xml/xmlwriter.h"
+#include "models/common/atomicofstream.h"
+#include "models/common/xml/xmlreader.h"
+#include "models/common/xml/xmlwriter.h"
+#include "models/metasprite-format/framesetexportorder.h"
 #include <cassert>
 #include <stdexcept>
 #include <fstream>
@@ -72,6 +73,9 @@ public:
             if (childTag->name == "grid") {
                 readFrameSetGrid(childTag.get());
             }
+            else if (childTag->name == "exportorder") {
+                readExportOrder(childTag.get());
+            }
             else if (childTag->name == "frame") {
                 readFrame(childTag.get());
             }
@@ -94,6 +98,18 @@ private:
         frameSet.grid().setOrigin(tag->getAttributeUpoint("xorigin", "yorigin"));
 
         frameSetGridSet = true;
+    }
+
+    inline void readExportOrder(const XmlTag* tag)
+    {
+        assert(tag->name == "exportorder");
+
+        if (frameSet.exportOrderDocument() != nullptr) {
+            throw tag->buildError("Only one exportorder tag allowed per frameset");
+        }
+
+        const std::string src = tag->getAttributeFilename("src");
+        frameSet.loadExportOrderDocument(src);
     }
 
     inline void readFrame(const XmlTag* tag)
@@ -317,6 +333,16 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     }
 
     writeFrameSetGrid(xml, frameSet.grid());
+
+    if (frameSet.exportOrderDocument() != nullptr) {
+        const std::string& src = frameSet.exportOrderDocument()->filename();
+
+        if (!src.empty()) {
+            xml.writeTag("exportorder");
+            xml.writeTagAttributeFilename("src", src);
+            xml.writeCloseTag();
+        }
+    }
 
     for (const auto f : frameSet.frames()) {
         writeFrame(xml, f.first, f.second);

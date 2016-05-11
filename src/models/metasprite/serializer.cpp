@@ -5,11 +5,12 @@
 #include "entityhitbox.h"
 #include "frameobject.h"
 #include "palette.h"
-#include "../common/atomicofstream.h"
-#include "../common/xml/xmlreader.h"
-#include "../common/xml/xmlwriter.h"
-#include "../snes/palette.hpp"
-#include "../snes/tileset.hpp"
+#include "models/common/atomicofstream.h"
+#include "models/common/xml/xmlreader.h"
+#include "models/common/xml/xmlwriter.h"
+#include "models/metasprite-format/framesetexportorder.h"
+#include "models/snes/palette.hpp"
+#include "models/snes/tileset.hpp"
 #include <cassert>
 #include <stdexcept>
 #include <fstream>
@@ -64,6 +65,9 @@ public:
             }
             else if (childTag->name == "palette") {
                 readPalette(childTag.get());
+            }
+            else if (childTag->name == "exportorder") {
+                readExportOrder(childTag.get());
             }
             else {
                 throw childTag->buildUnknownTagError();
@@ -193,6 +197,18 @@ private:
         Palette& palette = frameSet.palettes().create();
         palette.readPalette(data);
     }
+
+    inline void readExportOrder(const XmlTag* tag)
+    {
+        assert(tag->name == "exportorder");
+
+        if (frameSet.exportOrderDocument() != nullptr) {
+            throw tag->buildError("Only one exportorder tag allowed per frameset");
+        }
+
+        const std::string src = tag->getAttributeFilename("src");
+        frameSet.loadExportOrderDocument(src);
+    }
 };
 
 /*
@@ -263,6 +279,16 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     xml.writeTagAttribute("id", frameSet.name());
 
     xml.writeTagAttributeSimpleClass("tilesettype", frameSet.tilesetType());
+
+    if (frameSet.exportOrderDocument() != nullptr) {
+        const std::string& src = frameSet.exportOrderDocument()->filename();
+
+        if (!src.empty()) {
+            xml.writeTag("exportorder");
+            xml.writeTagAttributeFilename("src", src);
+            xml.writeCloseTag();
+        }
+    }
 
     if (frameSet.smallTileset().size()) {
         xml.writeTag("smalltileset");

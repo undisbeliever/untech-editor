@@ -2,6 +2,7 @@
 #include "tilesetinserter.h"
 #include "models/metasprite.h"
 #include "models/sprite-importer.h"
+#include "models/metasprite-format/framesetexportorder.h"
 #include <algorithm>
 #include <cassert>
 #include <iterator>
@@ -152,6 +153,10 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
 
     msFrameSet.setName(siFrameSet.name());
     msFrameSet.setTilesetType(siFrameSet.tilesetType());
+
+    if (siFrameSet.exportOrderDocument()) {
+        msFrameSet.loadExportOrderDocument(siFrameSet.exportOrderDocument()->filename());
+    }
 
     // Build map of rgba to palette color
     // Faster than std::unordered_map, only contains 16 elements
