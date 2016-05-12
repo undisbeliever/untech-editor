@@ -11,6 +11,7 @@ sigc::signal<void, const MS::FrameSet*> frameSetChanged;
 sigc::signal<void, const MS::FrameSet*> frameSetTilesetChanged;
 sigc::signal<void, const MS::FrameSet*> frameSetTilesetCountChanged;
 sigc::signal<void, const MS::FrameSet*> frameSetPaletteChanged;
+sigc::signal<void, const MS::FrameSet*> frameSetExportOrderChanged;
 
 sigc::signal<void, const MS::Palette*> paletteChanged;
 sigc::signal<void, const MS::Palette::list_t*> paletteListChanged;

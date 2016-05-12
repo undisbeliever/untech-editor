@@ -25,6 +25,18 @@ FrameSet::FrameSet(SpriteImporterDocument& document)
 {
 }
 
+const std::string& FrameSet::exportOrderFilename() const
+{
+    const static std::string emptyString;
+
+    if (_exportOrderDocument) {
+        return _exportOrderDocument->filename();
+    }
+    else {
+        return emptyString;
+    }
+}
+
 void FrameSet::setName(const std::string& name)
 {
     if (isNameValid(name)) {

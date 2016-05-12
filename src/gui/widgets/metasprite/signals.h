@@ -24,6 +24,7 @@ extern sigc::signal<void, const MS::FrameSet*> frameSetChanged;
 extern sigc::signal<void, const MS::FrameSet*> frameSetTilesetChanged;
 extern sigc::signal<void, const MS::FrameSet*> frameSetTilesetCountChanged;
 extern sigc::signal<void, const MS::FrameSet*> frameSetPaletteChanged;
+extern sigc::signal<void, const MS::FrameSet*> frameSetExportOrderChanged;
 
 extern sigc::signal<void, const MS::Palette*> paletteChanged;
 extern sigc::signal<void, const MS::Palette::list_t*> paletteListChanged;

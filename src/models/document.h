@@ -28,7 +28,7 @@ public:
 
     virtual ~Document() = default;
 
-    std::string filename() const { return _filename; }
+    const std::string& filename() const { return _filename; }
     void setFilename(const std::string& filename)
     {
         _filename = File::fullPath(filename);

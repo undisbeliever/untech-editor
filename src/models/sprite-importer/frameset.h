@@ -40,6 +40,7 @@ public:
     inline const std::string& imageFilename() const { return _imageFilename; }
 
     inline auto& exportOrderDocument() const { return _exportOrderDocument; }
+    const std::string& exportOrderFilename() const;
 
     inline auto& frames() { return _frames; }
     inline auto& grid() { return _grid; }

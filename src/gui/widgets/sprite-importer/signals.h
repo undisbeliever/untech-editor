@@ -23,6 +23,7 @@ namespace SI = UnTech::SpriteImporter;
 extern sigc::signal<void, const SI::FrameSet*> frameSetChanged;
 extern sigc::signal<void, const SI::FrameSet*> frameSetImageChanged;
 extern sigc::signal<void, const SI::FrameSet*> frameSetGridChanged;
+extern sigc::signal<void, const SI::FrameSet*> frameSetExportOrderChanged;
 
 extern sigc::signal<void, const SI::Frame*> frameChanged;
 extern sigc::signal<void, const SI::Frame*> frameSizeChanged;

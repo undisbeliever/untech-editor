@@ -17,11 +17,10 @@
 #include "selection.h"
 #include "tileseteditor.h"
 #include "models/metasprite.h"
-#include "gui/widgets/defaults.h"
+#include "gui/widgets/metasprite-format/metaspriteformateditor.h"
 
 #include <memory>
 #include <gtkmm.h>
-#include <glibmm/i18n.h>
 
 namespace UnTech {
 namespace Widgets {
@@ -89,9 +88,12 @@ private:
     EntityHitboxListEditor _entityHitboxList;
     EntityHitboxEditor _entityHitboxEditor;
 
+    MetaSpriteFormat::MetaSpriteFormatEditor _metaSpriteFormatEditor;
+
     enum FrameSetPages {
         FRAMESET_PAGE,
-        FRAME_PAGE
+        FRAME_PAGE,
+        EXPORT_PAGE,
     };
 
     enum FramePages {

@@ -39,6 +39,7 @@ public:
     inline const MetaSpriteFormat::TilesetType tilesetType() const { return _tilesetType; }
 
     inline auto& exportOrderDocument() const { return _exportOrderDocument; }
+    const std::string& exportOrderFilename() const;
 
     inline auto& smallTileset() { return _smallTileset; }
     inline const auto& smallTileset() const { return _smallTileset; }
