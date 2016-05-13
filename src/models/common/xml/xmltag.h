@@ -1,10 +1,11 @@
 #ifndef _UNTECH_MODELS_COMMON_XML_XMLTAG_H_
 #define _UNTECH_MODELS_COMMON_XML_XMLTAG_H_
 
-#include "../namedlist.h"
 #include "../aabb.h"
-#include "../ms8aabb.h"
+#include "../file.h"
 #include "../int_ms8_t.h"
+#include "../ms8aabb.h"
+#include "../namedlist.h"
 #include <climits>
 #include <memory>
 #include <sstream>
@@ -143,7 +144,7 @@ struct XmlTag {
     {
         auto v = getAttribute(aName);
 
-        return xml->dirname() + v;
+        return File::joinPath(xml->dirname(), v);
     }
 
     template <class T>
