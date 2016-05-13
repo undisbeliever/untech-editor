@@ -1,6 +1,7 @@
 #ifndef _UNTECH_MODELS_SNES_TILESET_H_
 #define _UNTECH_MODELS_SNES_TILESET_H_
 
+#include "tile.h"
 #include "palette.h"
 #include "../common/image.h"
 #include <cstdint>
@@ -10,80 +11,44 @@
 namespace UnTech {
 namespace Snes {
 
-template <size_t BIT_DEPTH, size_t TS>
+// ::SHOULDO draw large tile (8, 16, 32) function::
+
+template <class TileT>
 class Tileset {
-    static_assert(BIT_DEPTH <= 8, "BIT_DEPTH is too high");
-    static_assert((BIT_DEPTH & 1) == 0, "BIT_DEPTH must be a multiple of 2");
+public:
+    typedef TileT tile_t;
 
 public:
-    constexpr static unsigned TILE_SIZE = TS;
-
-    constexpr static unsigned PIXEL_MASK = (1 << BIT_DEPTH) - 1;
-    constexpr static unsigned TILE_DATA_SIZE = TILE_SIZE * TILE_SIZE;
-    constexpr static unsigned SNES_DATA_SIZE = TILE_DATA_SIZE * BIT_DEPTH / 8;
-
-    typedef std::array<uint8_t, TILE_DATA_SIZE> tileData_t;
-
-public:
-    void drawTile(Image& imgage, const Palette<BIT_DEPTH>& palette,
+    // fails silently
+    void drawTile(Image& image, const Palette<TileT::BIT_DEPTH>& palette,
                   unsigned xOffset, unsigned yOffset,
                   unsigned tileId, bool hFlip = false, bool vFlip = false) const;
 
     void addTile() { _tiles.emplace_back(); }
-    void addTile(const tileData_t& tile) { _tiles.emplace_back(tile); }
+    void addTile(const TileT& tile) { _tiles.emplace_back(tile); }
 
+    TileT& tile(size_t n) { return _tiles.at(n); }
+    const TileT& tile(size_t n) const { return _tiles.at(n); }
+
+    std::vector<uint8_t> snesData() const;
+    void readSnesData(const std::vector<uint8_t>& data);
+
+    // expose vector
     size_t size() const { return _tiles.size(); }
-
-    tileData_t& tile(size_t n) { return _tiles.at(n); }
-    const tileData_t& tile(size_t n) const { return _tiles.at(n); }
-
-    tileData_t tile(size_t n, bool hFlip, bool vFlip) const;
-
-    tileData_t tileHFlip(size_t n) const;
-    tileData_t tileVFlip(size_t n) const;
-    tileData_t tileHVFlip(size_t n) const;
-
-    uint8_t tilePixel(unsigned tileId, unsigned x, unsigned y) const
-    {
-        return _tiles.at(tileId).at(y * TILE_SIZE + x);
-    }
-
-    void setTilePixel(unsigned tileId, unsigned x, unsigned y, uint8_t value)
-    {
-        _tiles.at(tileId).at(y * TILE_SIZE + x) = value & PIXEL_MASK;
-    }
+    auto begin() { return _tiles.begin(); }
+    auto begin() const { return _tiles.begin(); }
+    auto end() { return _tiles.begin(); }
+    auto end() const { return _tiles.begin(); }
 
 protected:
-    std::vector<tileData_t> _tiles;
+    std::vector<TileT> _tiles;
 };
 
-template <size_t BIT_DEPTH>
-class Tileset8px : public Tileset<BIT_DEPTH, 8> {
-public:
-    // ::SHOULDDO a drawTile16 method::
+typedef Tileset<Tile2bpp8px> Tileset2bpp8px;
+typedef Tileset<Tile4bpp8px> Tileset4bpp8px;
+typedef Tileset<Tile8bpp8px> Tileset8bpp8px;
 
-    void readSnesData(const std::vector<uint8_t>& data);
-    std::vector<uint8_t> snesData() const;
-};
-
-/**
- * NOTE: Tileset<N, 16> tiles are stored/loaded sequentially.
- *       This is the way 16px tiles are stored in UnTech engine ROM,
- *       not in the SNES' VRAM.
- *
- */
-template <size_t BIT_DEPTH>
-class Tileset16px : public Tileset<BIT_DEPTH, 16> {
-public:
-    void readSnesData(const std::vector<uint8_t>& data);
-    std::vector<uint8_t> snesData() const;
-};
-
-typedef Tileset8px<2> Tileset2bpp8px;
-typedef Tileset8px<4> Tileset4bpp8px;
-typedef Tileset8px<8> Tileset8bpp8px;
-
-typedef Tileset16px<4> Tileset4bpp16px;
+typedef Tileset<Tile4bpp16px> Tileset4bpp16px;
 }
 }
 #endif

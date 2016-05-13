@@ -14,6 +14,9 @@ namespace MS = UnTech::MetaSprite;
 template <class TilesetT>
 class TilesetGraphicalEditor : public Gtk::Layout {
 public:
+    static constexpr unsigned TILE_SIZE = TilesetT::tile_t::TILE_SIZE;
+
+public:
     TilesetGraphicalEditor(Selection& selection);
 
     ~TilesetGraphicalEditor() = default;

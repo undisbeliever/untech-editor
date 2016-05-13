@@ -7,6 +7,7 @@
 #include "gui/widgets/defaults.h"
 #include "gui/widgets/common/cr_rgba.h"
 #include "gui/undo/actionhelper.h"
+#include "models/snes/tile.hpp"
 
 #include <cmath>
 
@@ -98,13 +99,13 @@ inline void tileset_setPixel(MS::FrameSet* frameset,
         Action(MS::FrameSet* frameset,
                TilesetT* tileset,
                const unsigned tileId,
-               const typename TilesetT::tileData_t& oldTileData,
-               const typename TilesetT::tileData_t& newTileData)
+               const typename TilesetT::tile_t& oldTile,
+               const typename TilesetT::tile_t& newTile)
             : _frameset(frameset)
             , _tileset(tileset)
             , _tileId(tileId)
-            , _oldTileData(oldTileData)
-            , _newTileData(newTileData)
+            , _oldTile(oldTile)
+            , _newTile(newTile)
         {
         }
 
@@ -112,13 +113,13 @@ inline void tileset_setPixel(MS::FrameSet* frameset,
 
         virtual void undo() override
         {
-            _tileset->tile(_tileId) = _oldTileData;
+            _tileset->tile(_tileId) = _oldTile;
             Signals::frameSetTilesetChanged.emit(_frameset);
         }
 
         virtual void redo() override
         {
-            _tileset->tile(_tileId) = _oldTileData;
+            _tileset->tile(_tileId) = _oldTile;
             Signals::frameSetTilesetChanged.emit(_frameset);
         }
 
@@ -131,7 +132,7 @@ inline void tileset_setPixel(MS::FrameSet* frameset,
                     && this->_tileset == other->_tileset
                     && this->_tileId == other->_tileId) {
 
-                    this->_newTileData = other->_newTileData;
+                    this->_newTile = other->_newTile;
                     return true;
                 }
             }
@@ -149,21 +150,21 @@ inline void tileset_setPixel(MS::FrameSet* frameset,
         MS::FrameSet* _frameset;
         TilesetT* _tileset;
         unsigned _tileId;
-        const typename TilesetT::tileData_t _oldTileData;
-        typename TilesetT::tileData_t _newTileData;
+        const typename TilesetT::tile_t _oldTile;
+        typename TilesetT::tile_t _newTile;
     };
 
     if (tileset && tileId < tileset->size()) {
-        typename TilesetT::tileData_t oldTileData = tileset->tile(tileId);
+        typename TilesetT::tile_t oldTile = tileset->tile(tileId);
 
-        tileset->setTilePixel(tileId, x, y, value);
+        tileset->tile(tileId).setPixel(x, y, value);
 
-        typename TilesetT::tileData_t newTileData = tileset->tile(tileId);
+        typename TilesetT::tile_t newTile = tileset->tile(tileId);
 
-        if (oldTileData != newTileData) {
+        if (oldTile != newTile) {
             Signals::frameSetTilesetChanged.emit(frameset);
 
-            auto a = std::make_unique<Action>(frameset, tileset, tileId, oldTileData, newTileData);
+            auto a = std::make_unique<Action>(frameset, tileset, tileId, oldTile, newTile);
 
             auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(frameset->document()));
             undoDoc->undoStack().add_undoMerge(std::move(a));
@@ -249,8 +250,8 @@ TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(Selection& selection)
 
         // scroll to object
         MS::FrameObject* obj = _selection.frameObject();
-        if (obj && obj->sizePx() == TilesetT::TILE_SIZE) {
-            double tileWidth = _zoomX * _displayZoom * TilesetT::TILE_SIZE;
+        if (obj && obj->sizePx() == TILE_SIZE) {
+            double tileWidth = _zoomX * _displayZoom * TILE_SIZE;
             double xPos = tileWidth * obj->tileId();
 
             get_hadjustment()->clamp_page(xPos, xPos + tileWidth);
@@ -266,8 +267,8 @@ void TilesetGraphicalEditor<TilesetT>::redrawTilesetPixbuf()
     if (_selection.frameSet() && palette && tileset().size() > 0) {
         const TilesetT& t = tileset();
 
-        const unsigned width = t.size() * TilesetT::TILE_SIZE;
-        const unsigned height = TilesetT::TILE_SIZE;
+        const unsigned width = t.size() * TILE_SIZE;
+        const unsigned height = TILE_SIZE;
 
         // resize widget
         {
@@ -290,11 +291,10 @@ void TilesetGraphicalEditor<TilesetT>::redrawTilesetPixbuf()
 
         _tilesetImageBuffer.fill(palette->color(0).rgb());
 
-        // ::TODO handle hflip/vflip::
         for (unsigned i = 0; i < t.size(); i++) {
-            t.drawTile(_tilesetImageBuffer, *palette,
-                       i * TilesetT::TILE_SIZE, 0,
-                       i, false, false);
+            t.tile(i).draw(_tilesetImageBuffer, *palette,
+                           i * TILE_SIZE, 0,
+                           false, false);
         }
 
         auto pixbuf = Gdk::Pixbuf::create_from_data(reinterpret_cast<const guint8*>(_tilesetImageBuffer.data()),
@@ -314,12 +314,12 @@ void TilesetGraphicalEditor<TilesetT>::redrawTilesetPixbuf()
         {
             double fWidth, fHeight;
             if (!std::isnan(_displayZoom)) {
-                fWidth = TilesetT::TILE_SIZE * _zoomX * _displayZoom;
-                fHeight = TilesetT::TILE_SIZE * _zoomY * _displayZoom;
+                fWidth = TILE_SIZE * _zoomX * _displayZoom;
+                fHeight = TILE_SIZE * _zoomY * _displayZoom;
             }
             else {
-                fWidth = TilesetT::TILE_SIZE * _zoomX;
-                fHeight = TilesetT::TILE_SIZE * _zoomY;
+                fWidth = TILE_SIZE * _zoomX;
+                fHeight = TILE_SIZE * _zoomY;
             }
             set_size_request(fWidth, fHeight);
         }
@@ -384,10 +384,10 @@ bool TilesetGraphicalEditor<TilesetT>::on_draw(const Cairo::RefPtr<Cairo::Contex
         static const std::vector<double> tileBorderDash({ TILE_BORDER_DASH, TILE_BORDER_DASH });
         const TilesetT& ts = tileset();
 
-        const double height = TilesetT::TILE_SIZE * _zoomY;
+        const double height = TILE_SIZE * _zoomY;
 
         for (unsigned i = 1; i < ts.size(); i++) {
-            double x = TilesetT::TILE_SIZE * i * _zoomX;
+            double x = TILE_SIZE * i * _zoomX;
 
             cr->move_to(x, 0);
             cr->line_to(x, height);
@@ -408,12 +408,12 @@ bool TilesetGraphicalEditor<TilesetT>::on_draw(const Cairo::RefPtr<Cairo::Contex
 
     // draw selected tile
     const MS::FrameObject* frameObject = _selection.frameObject();
-    if (frameObject && frameObject->sizePx() == TilesetT::TILE_SIZE) {
+    if (frameObject && frameObject->sizePx() == TILE_SIZE) {
         cr->set_line_width(1);
 
-        const unsigned zX = frameObject->tileId() * TilesetT::TILE_SIZE * _zoomX;
-        const double zWidth = TilesetT::TILE_SIZE * _zoomX;
-        const double zHeight = TilesetT::TILE_SIZE * _zoomY;
+        const unsigned zX = frameObject->tileId() * TILE_SIZE * _zoomX;
+        const double zWidth = TILE_SIZE * _zoomX;
+        const double zHeight = TILE_SIZE * _zoomY;
 
         selectionInnerColor.apply(cr);
         cr->rectangle(zX + 1, 1, zWidth - 2, zHeight - 2);
@@ -483,10 +483,10 @@ bool TilesetGraphicalEditor<TilesetT>::on_button_release_event(GdkEventButton* e
         int x = std::lround((event->x - allocation.get_x()) / (_zoomX * _displayZoom));
         int y = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom));
 
-        if (x >= 0 && y >= 0 && y < (int)TilesetT::TILE_SIZE) {
-            unsigned tileId = (unsigned)x / TilesetT::TILE_SIZE;
+        if (x >= 0 && y >= 0 && y < (int)TILE_SIZE) {
+            unsigned tileId = (unsigned)x / TILE_SIZE;
 
-            if (TilesetT::TILE_SIZE == 8) {
+            if (TILE_SIZE == 8) {
                 if (tileId < _selection.frameSet()->smallTileset().size()) {
                     frameObject_setTileIdAndSize(obj, tileId, OS::SMALL);
                 }
@@ -548,11 +548,11 @@ void TilesetGraphicalEditor<TilesetT>::setTilePixelForMouse(double mouseX, doubl
         const int x = std::lround((mouseX - allocation.get_x()) / (_zoomX * _displayZoom));
         const int y = std::lround((mouseY - allocation.get_y()) / (_zoomY * _displayZoom));
 
-        if (x >= 0 && y >= 0 && y < (int)TilesetT::TILE_SIZE) {
-            const unsigned tileId = (unsigned)x / TilesetT::TILE_SIZE;
+        if (x >= 0 && y >= 0 && y < (int)TILE_SIZE) {
+            const unsigned tileId = (unsigned)x / TILE_SIZE;
 
             if (tileId < tileset().size()) {
-                const unsigned tileX = (unsigned)x % TilesetT::TILE_SIZE;
+                const unsigned tileX = (unsigned)x % TILE_SIZE;
 
                 tileset_setPixel(_selection.frameSet(), &tileset(),
                                  tileId, tileX, y,

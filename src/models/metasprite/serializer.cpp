@@ -159,7 +159,7 @@ private:
 
         const auto data = xml.parseBase64();
 
-        static_assert(Snes::Tileset4bpp8px::SNES_DATA_SIZE == 32, "Bad assumption");
+        static_assert(Snes::Tile4bpp8px::SNES_DATA_SIZE == 32, "Bad assumption");
         if ((data.size() % 32) != 0) {
             throw tag->buildError("Small Tileset data must be a multiple of 32 bytes");
         }
@@ -173,7 +173,7 @@ private:
 
         const auto data = xml.parseBase64();
 
-        static_assert(Snes::Tileset4bpp16px::SNES_DATA_SIZE == 128, "Bad assumption");
+        static_assert(Snes::Tile4bpp16px::SNES_DATA_SIZE == 128, "Bad assumption");
         if ((data.size() % 128) != 0) {
             throw tag->buildError("Large Tileset data must be a multiple of 128 bytes");
         }

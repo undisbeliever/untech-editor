@@ -9,29 +9,6 @@
 namespace UnTech {
 namespace Utsi2UtmsPrivate {
 
-template <size_t ASIZE>
-struct TileHash {
-    size_t operator()(std::array<uint8_t, ASIZE> const& tile) const
-    {
-        constexpr unsigned BLOCK_SIZE = 4;
-        constexpr unsigned LOOP_COUNT = (ASIZE - sizeof(size_t)) / BLOCK_SIZE;
-
-        static_assert(sizeof(size_t) >= BLOCK_SIZE, "Bad assumption");
-        static_assert(sizeof(size_t) % BLOCK_SIZE == 0, "Bad assumption");
-
-        size_t seed = 0;
-        const uint8_t* ptr = tile.data();
-
-        for (unsigned i = 0; i < LOOP_COUNT; i++) {
-            // Numbers from boost
-            seed ^= (*(const size_t*)ptr) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            ptr += BLOCK_SIZE;
-        }
-
-        return seed;
-    }
-};
-
 struct TilesetInserterOutput {
     unsigned tileId;
     bool hFlip;
@@ -64,7 +41,7 @@ public:
         }
     }
 
-    const TilesetInserterOutput getOrInsert(const typename T::tileData_t& tile)
+    const TilesetInserterOutput getOrInsert(const typename T::tile_t& tile)
     {
         auto it = _map.find(tile);
 
@@ -76,25 +53,28 @@ public:
         }
     }
 
-    const typename T::tileData_t getTile(const TilesetInserterOutput& tio) const
+    const typename T::tile_t getTile(const TilesetInserterOutput& tio) const
     {
-        return _tileset.tile(tio.tileId, tio.hFlip, tio.vFlip);
+        return _tileset.tile(tio.tileId).flip(tio.hFlip, tio.vFlip);
     }
 
     const std::pair<TilesetInserterOutput, bool>
-    processOverlappedTile(const typename T::tileData_t& underTile,
-                          const typename std::array<bool, T::TILE_DATA_SIZE>& overlaps)
+    processOverlappedTile(const typename T::tile_t& underTile,
+                          const typename std::array<bool, T::tile_t::TILE_ARRAY_SIZE>& overlaps)
     {
         unsigned bestScore = 0;
         TilesetInserterOutput ret = { 0, false, false };
 
+        const uint8_t* underTileData = underTile.rawData();
+
         for (auto it : _map) {
-            const typename T::tileData_t& other = it.first;
+            const uint8_t* other = it.first.rawData();
+
             unsigned score = 0;
             bool found = true;
 
-            for (unsigned i = 0; i < T::TILE_DATA_SIZE; i++) {
-                if (underTile[i] == other[i]) {
+            for (unsigned i = 0; i < T::tile_t::TILE_ARRAY_SIZE; i++) {
+                if (underTileData[i] == other[i]) {
                     score++;
                 }
                 else if (overlaps[i] == false) {
@@ -118,7 +98,7 @@ public:
     }
 
 private:
-    TilesetInserterOutput insertNewTile(const typename T::tileData_t& tile)
+    TilesetInserterOutput insertNewTile(const typename T::tile_t& tile)
     {
         unsigned tileId = _tileset.size();
         _tileset.addTile(tile);
@@ -133,24 +113,25 @@ private:
         // unordered_map will ignore insert if tile pattern already exists
         // Thus symmetrical tiles will prefer the unflipped tile.
 
-        _map.insert({ _tileset.tile(tileId),
+        const auto& tile = _tileset.tile(tileId);
+
+        _map.insert({ tile,
                       { tileId, false, false } });
 
-        _map.insert({ _tileset.tileHFlip(tileId),
+        _map.insert({ tile.hFlip(),
                       { tileId, false, true } });
 
-        _map.insert({ _tileset.tileVFlip(tileId),
+        _map.insert({ tile.vFlip(),
                       { tileId, true, false } });
 
-        _map.insert({ _tileset.tileHVFlip(tileId),
+        _map.insert({ tile.hvFlip(),
                       { tileId, true, true } });
     }
 
 private:
     T& _tileset;
 
-    std::unordered_map<typename T::tileData_t, TilesetInserterOutput,
-                       TileHash<T::TILE_DATA_SIZE>> _map;
+    std::unordered_map<typename T::tile_t, TilesetInserterOutput> _map;
 };
 }
 }

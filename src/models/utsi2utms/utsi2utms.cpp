@@ -22,15 +22,15 @@ namespace Utsi2UtmsPrivate {
 namespace MS = UnTech::MetaSprite;
 namespace SI = UnTech::SpriteImporter;
 
-inline std::array<uint8_t, 8 * 8> getSmallTile(const Image& image,
-                                               const std::map<rgba, unsigned>& colorMap,
-                                               const SI::FrameObject& siObj)
+inline Snes::Tile4bpp8px getSmallTile(const Image& image,
+                                      const std::map<rgba, unsigned>& colorMap,
+                                      const SI::FrameObject& siObj)
 {
     unsigned xOffset = siObj.frame().location().x + siObj.location().x;
     unsigned yOffset = siObj.frame().location().y + siObj.location().y;
 
-    std::array<uint8_t, 8 * 8> tile;
-    uint8_t* tData = tile.data();
+    Snes::Tile4bpp8px tile;
+    uint8_t* tData = tile.rawData();
     for (unsigned y = 0; y < 8; y++) {
         const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
 
@@ -42,15 +42,16 @@ inline std::array<uint8_t, 8 * 8> getSmallTile(const Image& image,
     return tile;
 }
 
-inline std::array<uint8_t, 16 * 16> getLargeTile(const Image& image,
-                                                 const std::map<rgba, unsigned>& colorMap,
-                                                 const SI::FrameObject& siObj)
+inline Snes::Tile4bpp16px getLargeTile(const Image& image,
+                                       const std::map<rgba, unsigned>& colorMap,
+                                       const SI::FrameObject& siObj)
 {
     unsigned xOffset = siObj.frame().location().x + siObj.location().x;
     unsigned yOffset = siObj.frame().location().y + siObj.location().y;
 
-    std::array<uint8_t, 16 * 16> tile;
-    uint8_t* tData = tile.data();
+    Snes::Tile4bpp16px tile;
+    uint8_t* tData = tile.rawData();
+
     for (unsigned y = 0; y < 16; y++) {
         const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
 
@@ -65,9 +66,11 @@ inline std::array<uint8_t, 16 * 16> getLargeTile(const Image& image,
 // mark the pixels in the undertile that are overlapped by the overtile
 template <unsigned OVER_SIZE, unsigned UNDER_SIZE>
 inline std::array<bool, UNDER_SIZE * UNDER_SIZE>
-markOverlappedPixels(const std::array<uint8_t, OVER_SIZE * OVER_SIZE>& overTile,
+markOverlappedPixels(const Snes::Tile<4, OVER_SIZE>& overTile,
                      int xOffset, int yOffset)
 {
+    const uint8_t* overTileData = overTile.rawData();
+
     std::array<bool, UNDER_SIZE* UNDER_SIZE> ret = {};
 
     for (unsigned oY = 0; oY < OVER_SIZE; oY++) {
@@ -78,7 +81,7 @@ markOverlappedPixels(const std::array<uint8_t, OVER_SIZE * OVER_SIZE>& overTile,
                 int uX = oX + xOffset;
 
                 if (uX >= 0 && uX < (int)UNDER_SIZE) {
-                    if (overTile[oY * OVER_SIZE + oX] != 0) {
+                    if (overTileData[oY * OVER_SIZE + oX] != 0) {
                         ret[uY * UNDER_SIZE + uX] = true;
                     }
                 }
@@ -91,10 +94,13 @@ markOverlappedPixels(const std::array<uint8_t, OVER_SIZE * OVER_SIZE>& overTile,
 
 // clears the pixels in the overtile that match the undertile.
 template <unsigned OVER_SIZE, unsigned UNDER_SIZE>
-inline void clearCommonOverlappedTiles(std::array<uint8_t, OVER_SIZE * OVER_SIZE>& overTile,
-                                       const std::array<uint8_t, UNDER_SIZE * UNDER_SIZE>& underTile,
+inline void clearCommonOverlappedTiles(Snes::Tile<4, OVER_SIZE>& overTile,
+                                       Snes::Tile<4, UNDER_SIZE>& underTile,
                                        int xOffset, int yOffset)
 {
+    uint8_t* overTileData = overTile.rawData();
+    uint8_t* underTileData = underTile.rawData();
+
     for (unsigned oY = 0; oY < OVER_SIZE; oY++) {
         int uY = oY + yOffset;
 
@@ -103,8 +109,8 @@ inline void clearCommonOverlappedTiles(std::array<uint8_t, OVER_SIZE * OVER_SIZE
                 int uX = oX + xOffset;
 
                 if (uX >= 0 && uX < (int)UNDER_SIZE) {
-                    if (overTile[oY * OVER_SIZE + oX] == underTile[uY * UNDER_SIZE + uX]) {
-                        overTile[oY * OVER_SIZE + oX] = 0;
+                    if (overTileData[oY * OVER_SIZE + oX] == underTileData[uY * UNDER_SIZE + uX]) {
+                        overTileData[oY * OVER_SIZE + oX] = 0;
                     }
                 }
             }
@@ -330,8 +336,8 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
 
     bool useSmall;
     struct {
-        std::array<uint8_t, 8 * 8> small;
-        std::array<uint8_t, 16 * 16> large;
+        Snes::Tile4bpp8px small;
+        Snes::Tile4bpp16px large;
     } overTile;
 
     for (const auto overlappingFramesIt : overlappingFrameObjectsMap) {
@@ -440,7 +446,7 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
 
             // create the overtile and add to the tileset
             if (useSmall) {
-                static const std::array<uint8_t, 8 * 8> smallZero = {};
+                static const Snes::Tile4bpp8px smallZero{};
 
                 if (overTile.small != smallZero) {
                     auto to = smallTileset.getOrInsert(overTile.small);
@@ -452,7 +458,7 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
                 }
             }
             else {
-                static const std::array<uint8_t, 16 * 16> largeZero = {};
+                static const Snes::Tile4bpp16px largeZero{};
 
                 if (overTile.large != largeZero) {
                     auto to = largeTileset.getOrInsert(overTile.large);
