@@ -11,16 +11,6 @@
 
 using namespace UnTech::Widgets::SpriteImporter;
 
-SIMPLE_UNDO_ACTION(frameSet_setName,
-                   SI::FrameSet, std::string, name, setName,
-                   Signals::frameSetChanged,
-                   "Change Name")
-
-SIMPLE_UNDO_ACTION(frameSet_setTilesetType,
-                   SI::FrameSet, MSF::TilesetType, tilesetType, setTilesetType,
-                   Signals::frameSetChanged,
-                   "Change Tileset Type")
-
 PARAMETER_UNDO_MERGE_ACTION2(frameSet_Grid_merge_setFrameSize,
                              SI::FrameSet, grid, UnTech::usize, frameSize, setFrameSize,
                              Signals::frameSetChanged, Signals::frameSetGridChanged,
@@ -47,10 +37,10 @@ SIMPLE_UNDO_ACTION2(frameSet_setImageFilename,
                     "Change Image")
 
 FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
-    : widget()
+    : widget(Gtk::ORIENTATION_VERTICAL)
     , _selection(selection)
-    , _nameEntry()
-    , _tilesetTypeCombo()
+    , _abstractEditor(selection)
+    , _wgrid()
     , _imageFilenameBox(Gtk::ORIENTATION_HORIZONTAL)
     , _imageFilenameEntry()
     , _imageFilenameButton(_("..."))
@@ -61,8 +51,6 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
     , _gridOffsetSpinButtons()
     , _gridPaddingSpinButtons()
     , _gridOriginSpinButtons()
-    , _nameLabel(_("Name:"), Gtk::ALIGN_START)
-    , _tilesetTypeLabel(_("Tileset Type:"), Gtk::ALIGN_START)
     , _imageFilenameLabel(_("Image:"), Gtk::ALIGN_START)
     , _transparentColorLabel(_("Transparent:"), Gtk::ALIGN_START)
     , _gridFrameSizeLabel(_("Grid Size:"), Gtk::ALIGN_START)
@@ -75,49 +63,46 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
     , _gridOriginCommaLabel(_(" , "))
     , _updatingValues(false)
 {
-    widget.set_border_width(DEFAULT_BORDER);
-    widget.set_row_spacing(DEFAULT_ROW_SPACING);
-
-    widget.attach(_nameLabel, 0, 0, 1, 1);
-    widget.attach(_nameEntry, 1, 0, 3, 1);
-
-    widget.attach(_tilesetTypeLabel, 0, 1, 1, 1);
-    widget.attach(_tilesetTypeCombo, 1, 1, 3, 1);
+    _wgrid.set_border_width(DEFAULT_BORDER);
+    _wgrid.set_row_spacing(DEFAULT_ROW_SPACING);
 
     _imageFilenameEntry.set_sensitive(false);
 
     _imageFilenameBox.add(_imageFilenameEntry);
     _imageFilenameBox.add(_imageFilenameButton);
 
-    widget.attach(_imageFilenameLabel, 0, 2, 1, 1);
-    widget.attach(_imageFilenameBox, 1, 2, 3, 1);
+    _wgrid.attach(_imageFilenameLabel, 0, 2, 1, 1);
+    _wgrid.attach(_imageFilenameBox, 1, 2, 3, 1);
 
     _transparentColorEntry.set_sensitive(false);
     _transparentColorBox.add(_transparentColorEntry);
     _transparentColorBox.add(_transparentColorButton);
 
-    widget.attach(_transparentColorLabel, 0, 3, 1, 1);
-    widget.attach(_transparentColorBox, 1, 3, 3, 1);
+    _wgrid.attach(_transparentColorLabel, 0, 3, 1, 1);
+    _wgrid.attach(_transparentColorBox, 1, 3, 3, 1);
 
-    widget.attach(_gridFrameSizeLabel, 0, 4, 1, 1);
-    widget.attach(_gridFrameSizeSpinButtons.widthSpin, 1, 4, 1, 1);
-    widget.attach(_gridFrameSizeCrossLabel, 2, 4, 1, 1);
-    widget.attach(_gridFrameSizeSpinButtons.heightSpin, 3, 4, 1, 1);
+    _wgrid.attach(_gridFrameSizeLabel, 0, 4, 1, 1);
+    _wgrid.attach(_gridFrameSizeSpinButtons.widthSpin, 1, 4, 1, 1);
+    _wgrid.attach(_gridFrameSizeCrossLabel, 2, 4, 1, 1);
+    _wgrid.attach(_gridFrameSizeSpinButtons.heightSpin, 3, 4, 1, 1);
 
-    widget.attach(_gridOffsetLabel, 0, 5, 1, 1);
-    widget.attach(_gridOffsetSpinButtons.xSpin, 1, 5, 1, 1);
-    widget.attach(_gridOffsetCommaLabel, 2, 5, 1, 1);
-    widget.attach(_gridOffsetSpinButtons.ySpin, 3, 5, 1, 1);
+    _wgrid.attach(_gridOffsetLabel, 0, 5, 1, 1);
+    _wgrid.attach(_gridOffsetSpinButtons.xSpin, 1, 5, 1, 1);
+    _wgrid.attach(_gridOffsetCommaLabel, 2, 5, 1, 1);
+    _wgrid.attach(_gridOffsetSpinButtons.ySpin, 3, 5, 1, 1);
 
-    widget.attach(_gridPaddingLabel, 0, 6, 1, 1);
-    widget.attach(_gridPaddingSpinButtons.widthSpin, 1, 6, 1, 1);
-    widget.attach(_gridPaddingCrossLabel, 2, 6, 1, 1);
-    widget.attach(_gridPaddingSpinButtons.heightSpin, 3, 6, 1, 1);
+    _wgrid.attach(_gridPaddingLabel, 0, 6, 1, 1);
+    _wgrid.attach(_gridPaddingSpinButtons.widthSpin, 1, 6, 1, 1);
+    _wgrid.attach(_gridPaddingCrossLabel, 2, 6, 1, 1);
+    _wgrid.attach(_gridPaddingSpinButtons.heightSpin, 3, 6, 1, 1);
 
-    widget.attach(_gridOriginLabel, 0, 7, 1, 1);
-    widget.attach(_gridOriginSpinButtons.xSpin, 1, 7, 1, 1);
-    widget.attach(_gridOriginCommaLabel, 2, 7, 1, 1);
-    widget.attach(_gridOriginSpinButtons.ySpin, 3, 7, 1, 1);
+    _wgrid.attach(_gridOriginLabel, 0, 7, 1, 1);
+    _wgrid.attach(_gridOriginSpinButtons.xSpin, 1, 7, 1, 1);
+    _wgrid.attach(_gridOriginCommaLabel, 2, 7, 1, 1);
+    _wgrid.attach(_gridOriginSpinButtons.ySpin, 3, 7, 1, 1);
+
+    widget.pack_start(_abstractEditor.widget, true, true);
+    widget.pack_start(_wgrid, true, true);
 
     updateGuiValues();
 
@@ -147,31 +132,6 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
     /** Update transparent button when changed */
     _selection.signal_selectTransparentModeChanged.connect([this](void) {
         _transparentColorButton.set_active(_selection.selectTransparentMode());
-    });
-
-    /* Set Parameter has finished editing */
-    // signal_editing_done does not work
-    // using activate and focus out instead.
-    _nameEntry.signal_activate().connect([this](void) {
-        if (!_updatingValues) {
-            frameSet_setName(_selection.frameSet(),
-                             _nameEntry.get_text());
-        }
-    });
-    _nameEntry.signal_focus_out_event().connect([this](GdkEventFocus*) {
-        if (!_updatingValues) {
-            frameSet_setName(_selection.frameSet(),
-                             _nameEntry.get_text());
-        }
-        return false;
-    });
-
-    /** Tileset type signal */
-    _tilesetTypeCombo.signal_changed().connect([this](void) {
-        if (!_updatingValues) {
-            frameSet_setTilesetType(_selection.frameSet(),
-                                    _tilesetTypeCombo.get_value());
-        }
     });
 
     /** Transparent button pressed signal */
@@ -231,9 +191,6 @@ void FrameSetPropertiesEditor::updateGuiValues()
     if (frameSet) {
         _updatingValues = true;
 
-        _nameEntry.set_text(frameSet->name());
-        _tilesetTypeCombo.set_value(frameSet->tilesetType());
-
         _imageFilenameEntry.set_text(frameSet->imageFilename());
         _imageFilenameEntry.set_position(-1); // right align text
 
@@ -264,8 +221,6 @@ void FrameSetPropertiesEditor::updateGuiValues()
         static const upoint zeroPoint(0, 0);
         static const usize zeroSize(0, 0);
 
-        _nameEntry.set_text("");
-        _tilesetTypeCombo.unset_value();
         _imageFilenameEntry.set_text("");
         _transparentColorEntry.set_text("");
         _transparentColorButton.unset_color();

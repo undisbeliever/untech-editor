@@ -14,7 +14,6 @@
 #include "framesetpropertieseditor.h"
 #include "selection.h"
 #include "models/sprite-importer.h"
-#include "gui/widgets/metasprite-format/metaspriteformateditor.h"
 
 #include <memory>
 #include <gtkmm.h>
@@ -71,12 +70,9 @@ private:
     EntityHitboxListEditor _entityHitboxList;
     EntityHitboxEditor _entityHitboxEditor;
 
-    MetaSpriteFormat::MetaSpriteFormatEditor _metaSpriteFormatEditor;
-
     enum FrameSetPages {
         FRAMESET_PAGE,
         FRAME_PAGE,
-        EXPORT_PAGE,
     };
 
     enum FramePages {

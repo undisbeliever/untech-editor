@@ -2,6 +2,7 @@
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SELECTION_H_
 
 #include "models/sprite-importer.h"
+#include "gui/widgets/metasprite-format/selection.h"
 
 #include <glibmm/ustring.h>
 #include <sigc++/signal.h>
@@ -12,7 +13,7 @@ namespace SpriteImporter {
 
 namespace SI = UnTech::SpriteImporter;
 
-class Selection {
+class Selection : public MetaSpriteFormat::Selection {
 public:
     enum class Type {
         NONE = 0,
@@ -58,7 +59,6 @@ public:
     void moveSelectedDown();
 
     sigc::signal<void> signal_selectionChanged;
-    sigc::signal<void> signal_frameSetChanged;
     sigc::signal<void> signal_frameChanged;
     sigc::signal<void> signal_frameObjectChanged;
     sigc::signal<void> signal_actionPointChanged;

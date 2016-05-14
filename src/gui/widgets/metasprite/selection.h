@@ -2,6 +2,7 @@
 #define _UNTECH_GUI_WIDGETS_METASPRITE_SELECTION_H_
 
 #include "models/metasprite.h"
+#include "gui/widgets/metasprite-format/selection.h"
 
 #include <glibmm/ustring.h>
 #include <sigc++/signal.h>
@@ -12,7 +13,7 @@ namespace MetaSprite {
 
 namespace MS = UnTech::MetaSprite;
 
-class Selection {
+class Selection : public MetaSpriteFormat::Selection {
 public:
     enum class Type {
         NONE = 0,
@@ -74,7 +75,6 @@ public:
     void moveSelectedDown();
 
     sigc::signal<void> signal_selectionChanged;
-    sigc::signal<void> signal_frameSetChanged;
     sigc::signal<void> signal_paletteChanged;
     sigc::signal<void> signal_frameChanged;
     sigc::signal<void> signal_frameObjectChanged;

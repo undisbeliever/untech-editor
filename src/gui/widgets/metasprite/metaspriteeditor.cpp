@@ -7,11 +7,6 @@ using namespace UnTech::Widgets::MetaSprite;
 
 const int SCROLL_MAX = UnTech::int_ms8_t::MAX + 16;
 
-SIMPLE_UNDO_ACTION(frameSet_setExportOrderFilename,
-                   MS::FrameSet, std::string, exportOrderFilename, loadExportOrderDocument,
-                   Signals::frameSetExportOrderChanged,
-                   "Change Export Order")
-
 MetaSpriteEditor::MetaSpriteEditor()
     : _document()
     , _selection()
@@ -30,6 +25,8 @@ MetaSpriteEditor::MetaSpriteEditor()
     , _framePane(Gtk::ORIENTATION_VERTICAL)
     , _frameSetBox(Gtk::ORIENTATION_VERTICAL)
     , _frameSetPropertiesEditor(_selection)
+    , _paletteFrame(_("Palettes:"))
+    , _paletteBox(Gtk::ORIENTATION_VERTICAL)
     , _paletteList()
     , _paletteEditor(_selection)
     , _frameList()
@@ -62,12 +59,19 @@ MetaSpriteEditor::MetaSpriteEditor()
     _frameNotebook.set_scrollable(true);
     _frameNotebook.popup_enable();
 
-    // FrameSet
-    _frameSetBox.pack_start(_frameSetPropertiesEditor.widget, Gtk::PACK_SHRINK);
-    _frameSetBox.pack_start(_paletteList.widget, Gtk::PACK_EXPAND_WIDGET);
-    _frameSetBox.pack_start(_paletteEditor.widget, Gtk::PACK_SHRINK);
+    // FrameSet Pane
+    _paletteBox.pack_start(_paletteList.widget, Gtk::PACK_EXPAND_WIDGET);
+    _paletteBox.pack_start(_paletteEditor.widget, Gtk::PACK_SHRINK);
 
-    // Frame
+    _paletteFrame.set_shadow_type(Gtk::SHADOW_ETCHED_OUT);
+    _paletteFrame.add(_paletteBox);
+
+    _frameSetBox.set_border_width(DEFAULT_BORDER);
+    _frameSetBox.set_spacing(DEFAULT_ROW_SPACING);
+    _frameSetBox.pack_start(_frameSetPropertiesEditor.widget, Gtk::PACK_EXPAND_WIDGET);
+    _frameSetBox.pack_start(_paletteFrame, Gtk::PACK_EXPAND_WIDGET);
+
+    // Frame Pane
     _frameNotebook.append_page(_frameParameterEditor.widget, _("Frame"));
 
     _frameObjectBox.set_border_width(DEFAULT_BORDER);
@@ -87,7 +91,6 @@ MetaSpriteEditor::MetaSpriteEditor()
 
     _sidebar.append_page(_frameSetBox, _("Frame Set"));
     _sidebar.append_page(_framePane, _("Frames"));
-    _sidebar.append_page(_metaSpriteFormatEditor, _("Export"));
 
     _framePane.set_border_width(DEFAULT_BORDER);
     _framePane.pack1(_frameList.widget, true, false);
@@ -139,14 +142,12 @@ MetaSpriteEditor::MetaSpriteEditor()
         if (frameSet) {
             _frameList.setList(frameSet->frames());
             _paletteList.setList(frameSet->palettes());
-            _metaSpriteFormatEditor.setFrameSetExportOrderDocument(frameSet->exportOrderDocument());
 
             _sidebar.set_current_page(FRAMESET_PAGE);
         }
         else {
             _frameList.setList(nullptr);
             _paletteList.setList(nullptr);
-            _metaSpriteFormatEditor.setFrameSetExportOrderDocument(nullptr);
         }
     });
 
@@ -230,20 +231,6 @@ MetaSpriteEditor::MetaSpriteEditor()
     _entityHitboxList.signal_selected_changed().connect([this](void) {
         _selection.setEntityHitbox(_entityHitboxList.getSelected());
     });
-
-    /** Export Order updated signal */
-    _metaSpriteFormatEditor.signal_frameSetExportOrderLoaded.connect([this](void) {
-        frameSet_setExportOrderFilename(_selection.frameSet(),
-                                        _metaSpriteFormatEditor.exportOrderFilename());
-    });
-
-    /** Export Order changed signal */
-    Signals::frameSetExportOrderChanged.connect([this](const MS::FrameSet* fs) {
-        _metaSpriteFormatEditor.setFrameSetExportOrderDocument(fs->exportOrderDocument());
-    });
-
-    // ::TODO update metaspriteFormatEditor check images::
-    //Signals::frameListChanged
 }
 
 void MetaSpriteEditor::setDocument(std::unique_ptr<Document> document)

@@ -10,7 +10,7 @@ void Selection::setFrameSet(SI::FrameSet* frameSet)
 {
     if (_frameSet != frameSet) {
         _frameSet = frameSet;
-        signal_frameSetChanged.emit();
+        setAbstractFrameSet(frameSet);
 
         if (_frame != nullptr) {
             _frame = nullptr;

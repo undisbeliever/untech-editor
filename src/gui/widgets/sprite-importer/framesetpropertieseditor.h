@@ -6,6 +6,7 @@
 #include "gui/widgets/common/colortogglebutton.h"
 #include "gui/widgets/common/enumclasscombobox.h"
 #include "gui/widgets/common/namedlistnameentry.h"
+#include "gui/widgets/metasprite-format/abstractframesetpropertieseditor.h"
 
 #include <gtkmm.h>
 
@@ -26,13 +27,14 @@ protected:
     void on_imageFilenameButtonClicked();
 
 public:
-    Gtk::Grid widget;
+    Gtk::Box widget;
 
 private:
     Selection& _selection;
 
-    NamedListNameEntry _nameEntry;
-    EnumClassComboBox<MSF::TilesetType> _tilesetTypeCombo;
+    MetaSpriteFormat::AbstractFrameSetPropertiesEditor _abstractEditor;
+
+    Gtk::Grid _wgrid;
 
     Gtk::Box _imageFilenameBox;
     Gtk::Entry _imageFilenameEntry;
@@ -47,8 +49,6 @@ private:
     UsizeSpinButtons _gridPaddingSpinButtons;
     UpointSpinButtons _gridOriginSpinButtons;
 
-    Gtk::Label _nameLabel;
-    Gtk::Label _tilesetTypeLabel;
     Gtk::Label _imageFilenameLabel;
     Gtk::Label _transparentColorLabel;
     Gtk::Label _gridFrameSizeLabel, _gridFrameSizeCrossLabel;

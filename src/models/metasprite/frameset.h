@@ -1,45 +1,40 @@
 #ifndef _UNTECH_MODELS_METASPRITE_FRAMESET_H
 #define _UNTECH_MODELS_METASPRITE_FRAMESET_H
 
-#include "../common/ms8aabb.h"
-#include "../common/namedlist.h"
-#include "../common/orderedlist.h"
-#include "../metasprite-format/tilesettype.h"
-#include "../snes/tileset.h"
+#include "models/common/ms8aabb.h"
+#include "models/common/namedlist.h"
+#include "models/common/orderedlist.h"
+#include "models/metasprite-format/abstractframeset.h"
+#include "models/snes/tileset.h"
 #include <list>
 #include <array>
 #include <memory>
 #include <string>
 
 namespace UnTech {
-
-namespace MetaSpriteFormat {
-namespace FrameSetExportOrder {
-class ExportOrderDocument;
-}
-}
-
 namespace MetaSprite {
 
 class Frame;
-class MetaSpriteDocument;
 class Palette;
+class MetaSpriteDocument;
 
-class FrameSet {
+class FrameSet : public MetaSpriteFormat::AbstractFrameSet {
 
 public:
     FrameSet() = delete;
     FrameSet(const FrameSet&) = delete;
 
-    FrameSet(MetaSpriteDocument& document);
+    FrameSet(MetaSpriteDocument& document)
+        : MetaSpriteFormat::AbstractFrameSet((::UnTech::Document&)(document))
+        , _document(document)
+        , _smallTileset()
+        , _largeTileset()
+        , _palettes(*this)
+        , _frames(*this)
+    {
+    }
 
     inline MetaSpriteDocument& document() const { return _document; }
-
-    inline const std::string& name() const { return _name; }
-    inline const MetaSpriteFormat::TilesetType tilesetType() const { return _tilesetType; }
-
-    inline auto& exportOrderDocument() const { return _exportOrderDocument; }
-    const std::string& exportOrderFilename() const;
 
     inline auto& smallTileset() { return _smallTileset; }
     inline const auto& smallTileset() const { return _smallTileset; }
@@ -53,19 +48,8 @@ public:
     inline auto& frames() { return _frames; }
     inline const auto& frames() const { return _frames; }
 
-    void setName(const std::string& name);
-
-    void setTilesetType(const MetaSpriteFormat::TilesetType& type) { _tilesetType = type; }
-
-    // fails silently
-    void loadExportOrderDocument(const std::string& filename);
-
 private:
     MetaSpriteDocument& _document;
-
-    std::string _name;
-    MetaSpriteFormat::TilesetType _tilesetType;
-    std::shared_ptr<const MetaSpriteFormat::FrameSetExportOrder::ExportOrderDocument> _exportOrderDocument;
 
     Snes::Tileset4bpp8px _smallTileset;
     Snes::Tileset4bpp16px _largeTileset;

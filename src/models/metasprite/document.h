@@ -9,8 +9,6 @@
 namespace UnTech {
 namespace MetaSprite {
 
-class FrameSet;
-
 /**
  * The root object of a MetaSprite data structure.
  *

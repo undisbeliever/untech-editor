@@ -11,13 +11,12 @@
 #include "frameobjectlist.h"
 #include "framegraphicaleditor.h"
 #include "framepropertieseditor.h"
-#include "framesetpropertieseditor.h"
 #include "paletteeditor.h"
 #include "palettelist.h"
 #include "selection.h"
 #include "tileseteditor.h"
 #include "models/metasprite.h"
-#include "gui/widgets/metasprite-format/metaspriteformateditor.h"
+#include "gui/widgets/metasprite-format/abstractframesetpropertieseditor.h"
 
 #include <memory>
 #include <gtkmm.h>
@@ -67,7 +66,10 @@ private:
     Gtk::Paned _framePane;
 
     Gtk::Box _frameSetBox;
-    FrameSetPropertiesEditor _frameSetPropertiesEditor;
+    MetaSpriteFormat::AbstractFrameSetPropertiesEditor _frameSetPropertiesEditor;
+
+    Gtk::Frame _paletteFrame;
+    Gtk::Box _paletteBox;
     PaletteListEditor _paletteList;
     PaletteEditor _paletteEditor;
 
@@ -88,12 +90,9 @@ private:
     EntityHitboxListEditor _entityHitboxList;
     EntityHitboxEditor _entityHitboxEditor;
 
-    MetaSpriteFormat::MetaSpriteFormatEditor _metaSpriteFormatEditor;
-
     enum FrameSetPages {
         FRAMESET_PAGE,
         FRAME_PAGE,
-        EXPORT_PAGE,
     };
 
     enum FramePages {

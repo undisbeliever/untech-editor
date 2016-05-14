@@ -10,7 +10,7 @@ void Selection::setFrameSet(MS::FrameSet* frameSet)
 {
     if (_frameSet != frameSet) {
         _frameSet = frameSet;
-        signal_frameSetChanged.emit();
+        setAbstractFrameSet(frameSet);
     }
 
     // auto select first palette if none if selected
@@ -33,7 +33,7 @@ void Selection::updateFrameSet(MS::FrameSet& frameSet)
 {
     if (_frameSet != &frameSet) {
         _frameSet = &frameSet;
-        signal_frameSetChanged.emit();
+        setAbstractFrameSet(&frameSet);
     }
 
     // auto select first palette if none if selected

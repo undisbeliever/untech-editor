@@ -2,11 +2,11 @@
 #define _UNTECH_MODELS_SPRITEIMPORTER_FRAMESET_H
 
 #include "framesetgrid.h"
-#include "../common/aabb.h"
-#include "../common/rgba.h"
-#include "../common/image.h"
-#include "../common/namedlist.h"
-#include "../metasprite-format/tilesettype.h"
+#include "models/common/aabb.h"
+#include "models/common/image.h"
+#include "models/common/namedlist.h"
+#include "models/common/rgba.h"
+#include "models/metasprite-format/abstractframeset.h"
 #include <memory>
 #include <string>
 
@@ -25,7 +25,7 @@ namespace SpriteImporter {
 class Frame;
 class SpriteImporterDocument;
 
-class FrameSet {
+class FrameSet : public MetaSpriteFormat::AbstractFrameSet {
 
 public:
     FrameSet() = delete;
@@ -35,26 +35,13 @@ public:
 
     inline SpriteImporterDocument& document() const { return _document; }
 
-    inline const std::string& name() const { return _name; }
-    inline const MetaSpriteFormat::TilesetType tilesetType() const { return _tilesetType; }
-    inline const std::string& imageFilename() const { return _imageFilename; }
-
-    inline auto& exportOrderDocument() const { return _exportOrderDocument; }
-    const std::string& exportOrderFilename() const;
-
     inline auto& frames() { return _frames; }
     inline auto& grid() { return _grid; }
+    inline const std::string& imageFilename() const { return _imageFilename; }
     inline auto& transparentColor() const { return _transparentColor; }
 
     inline const auto& frames() const { return _frames; }
     inline const auto& grid() const { return _grid; }
-
-    void setName(const std::string& name);
-
-    void setTilesetType(const MetaSpriteFormat::TilesetType& type);
-
-    // fails silently
-    void loadExportOrderDocument(const std::string& filename);
 
     // fails silently
     void setImageFilename(const std::string& filename);
@@ -81,10 +68,6 @@ public:
 
 private:
     SpriteImporterDocument& _document;
-
-    std::string _name;
-    MetaSpriteFormat::TilesetType _tilesetType;
-    std::shared_ptr<const MetaSpriteFormat::FrameSetExportOrder::ExportOrderDocument> _exportOrderDocument;
 
     std::string _imageFilename;
     UnTech::Image _image;
