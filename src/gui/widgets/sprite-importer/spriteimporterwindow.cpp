@@ -1,8 +1,11 @@
 #include "spriteimporterwindow.h"
+#include "../metasprite-format/signals.h"
 #include "../common/errormessagedialog.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;
+namespace MSF = UnTech::MetaSpriteFormat;
+namespace WMSF = UnTech::Widgets::MetaSpriteFormat;
 
 SpriteImporterWindow::SpriteImporterWindow()
     : Gtk::ApplicationWindow()
@@ -88,6 +91,14 @@ SpriteImporterWindow::SpriteImporterWindow()
 
     Signals::entityHitboxListChanged.connect(sigc::hide(
         sigc::mem_fun(*this, &SpriteImporterWindow::updateItemActions)));
+
+    // Update title when frameset name changes
+    WMSF::Signals::abstractFrameSetNameChanged.connect([this](const MSF::AbstractFrameSet* frameSet) {
+        auto* document = _editor.document();
+        if (document && frameSet == &document->frameSet()) {
+            updateTitle();
+        }
+    });
 }
 
 void SpriteImporterWindow::setDocument(std::unique_ptr<SI::SpriteImporterDocument> document)

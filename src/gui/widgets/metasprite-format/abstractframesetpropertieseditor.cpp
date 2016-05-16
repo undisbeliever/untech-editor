@@ -8,10 +8,10 @@
 using namespace UnTech::Widgets::MetaSpriteFormat;
 namespace FSEO = UnTech::MetaSpriteFormat::FrameSetExportOrder;
 
-SIMPLE_UNDO_ACTION(frameSet_setName,
-                   MSF::AbstractFrameSet, std::string, name, setName,
-                   Signals::abstractFrameSetChanged,
-                   "Change Name")
+SIMPLE_UNDO_ACTION2(frameSet_setName,
+                    MSF::AbstractFrameSet, std::string, name, setName,
+                    Signals::abstractFrameSetChanged, Signals::abstractFrameSetNameChanged,
+                    "Change Name")
 
 SIMPLE_UNDO_ACTION(frameSet_setTilesetType,
                    MSF::AbstractFrameSet, MSF::TilesetType, tilesetType, setTilesetType,

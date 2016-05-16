@@ -21,6 +21,7 @@ namespace Signals {
 namespace MSF = UnTech::MetaSpriteFormat;
 
 extern sigc::signal<void, const MSF::AbstractFrameSet*> abstractFrameSetChanged;
+extern sigc::signal<void, const MSF::AbstractFrameSet*> abstractFrameSetNameChanged;
 extern sigc::signal<void, const MSF::AbstractFrameSet*> abstractFrameSetExportOrderChanged;
 }
 }
