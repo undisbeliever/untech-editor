@@ -3,7 +3,6 @@
 #include "models/metasprite/palette.h"
 #include "gui/widgets/defaults.h"
 #include "gui/undo/undostack.h"
-#include "gui/undo/undodocument.h"
 
 #include <glibmm/i18n.h>
 
@@ -56,10 +55,11 @@ inline void palette_setColor(MS::Palette& item, unsigned colorId,
     };
 
     if (oldColor != newColor) {
-        auto a = std::make_unique<Action>(item, colorId, oldColor, newColor);
-
-        auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item.document()));
-        undoDoc->undoStack().add_undo(std::move(a));
+        Undo::UndoStack* undoStack = item.document().undoStack();
+        if (undoStack) {
+            undoStack->add_undo(std::make_unique<Action>(
+                item, colorId, oldColor, newColor));
+        }
     }
 }
 

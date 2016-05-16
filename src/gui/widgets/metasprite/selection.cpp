@@ -185,9 +185,10 @@ void Selection::setEditTileColor(int colorId)
 bool Selection::dontMergeNextUndoAction()
 {
     if (_frameSet) {
-        auto* undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(_frameSet->document()));
-        if (undoDoc) {
-            undoDoc->undoStack().dontMergeNextAction();
+        Undo::UndoStack* undoStack = _frameSet->document().undoStack();
+
+        if (undoStack) {
+            undoStack->dontMergeNextAction();
         }
     }
     return false;

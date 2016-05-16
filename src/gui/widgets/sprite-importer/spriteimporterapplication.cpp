@@ -50,7 +50,7 @@ void SpriteImporterApplication::on_startup()
 
 void SpriteImporterApplication::on_activate()
 {
-    create_window(std::make_unique<Document>());
+    create_window(std::make_unique<SI::SpriteImporterDocument>());
 }
 
 void SpriteImporterApplication::on_open(const type_vec_files& files, const Glib::ustring& hint)
@@ -64,7 +64,7 @@ void SpriteImporterApplication::on_open(const type_vec_files& files, const Glib:
     Gtk::Application::on_open(files, hint);
 }
 
-void SpriteImporterApplication::create_window(std::unique_ptr<Document> document)
+void SpriteImporterApplication::create_window(std::unique_ptr<SI::SpriteImporterDocument> document)
 {
     if (document) {
         auto window = new SpriteImporterWindow();
@@ -93,10 +93,10 @@ void SpriteImporterApplication::load_file(const std::string& filename)
         }
     }
 
-    std::unique_ptr<Document> document;
+    std::unique_ptr<SI::SpriteImporterDocument> document;
 
     try {
-        document = std::make_unique<Document>(filename);
+        document = std::make_unique<SI::SpriteImporterDocument>(filename);
     }
     catch (const std::exception& ex) {
         showErrorMessage(get_active_window(), "Unable to open file", ex);
@@ -121,7 +121,7 @@ void SpriteImporterApplication::on_window_hide(Gtk::Window* window)
 
 void SpriteImporterApplication::on_menu_new()
 {
-    create_window(std::make_unique<Document>());
+    create_window(std::make_unique<SI::SpriteImporterDocument>());
 }
 
 void SpriteImporterApplication::on_menu_open()

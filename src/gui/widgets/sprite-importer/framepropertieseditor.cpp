@@ -1,5 +1,4 @@
 #include "framepropertieseditor.h"
-#include "document.h"
 #include "signals.h"
 #include "models/common/string.h"
 #include "gui/undo/actionhelper.h"

@@ -2,7 +2,7 @@
 #define _UNTECH_GUI_UNDO_MERGE_ACTIONHELPER_H_
 
 #include "undostack.h"
-#include "undodocument.h"
+#include "models/document.h"
 
 // ::ANNOY cannot template a method name::
 
@@ -11,6 +11,8 @@
                                                                             \
     inline void name(cls* item, const type& value)                          \
     {                                                                       \
+        typedef ::UnTech::Undo::UndoStack UndoStack;                        \
+                                                                            \
         class Action : public ::UnTech::Undo::MergeAction {                 \
         public:                                                             \
             Action() = delete;                                              \
@@ -73,10 +75,11 @@
             type newValue = item->getter();                                 \
                                                                             \
             if (oldValue != newValue) {                                     \
-                auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(   \
-                    &(item->document()));                                   \
-                undoDoc->undoStack().add_undoMerge(                         \
-                    std::make_unique<Action>(item, oldValue, newValue));    \
+                UndoStack* undoStack = item->document().undoStack();        \
+                if (undoStack) {                                            \
+                    undoStack->add_undoMerge(std::make_unique<Action>(      \
+                        item, oldValue, newValue));                         \
+                }                                                           \
             }                                                               \
         }                                                                   \
     }
@@ -86,6 +89,8 @@
                                                                             \
     inline void name(cls* item, const type& value)                          \
     {                                                                       \
+        typedef ::UnTech::Undo::UndoStack UndoStack;                        \
+                                                                            \
         class Action : public ::UnTech::Undo::MergeAction {                 \
         public:                                                             \
             Action() = delete;                                              \
@@ -151,10 +156,11 @@
             type newValue = item->getter();                                 \
                                                                             \
             if (oldValue != newValue) {                                     \
-                auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(   \
-                    &(item->document()));                                   \
-                undoDoc->undoStack().add_undoMerge(                         \
-                    std::make_unique<Action>(item, oldValue, newValue));    \
+                UndoStack* undoStack = item->document().undoStack();        \
+                if (undoStack) {                                            \
+                    undoStack->add_undoMerge(std::make_unique<Action>(      \
+                        item, oldValue, newValue));                         \
+                }                                                           \
             }                                                               \
         }                                                                   \
     }
@@ -164,6 +170,8 @@
                                                                                  \
     inline void name(cls* item, const type& value)                               \
     {                                                                            \
+        typedef ::UnTech::Undo::UndoStack UndoStack;                             \
+                                                                                 \
         class Action : public ::UnTech::Undo::MergeAction {                      \
         public:                                                                  \
             Action() = delete;                                                   \
@@ -229,10 +237,11 @@
             type newValue = item->parameter().getter();                          \
                                                                                  \
             if (oldValue != newValue) {                                          \
-                auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(        \
-                    &(item->document()));                                        \
-                undoDoc->undoStack().add_undoMerge(                              \
-                    std::make_unique<Action>(item, oldValue, newValue));         \
+                UndoStack* undoStack = item->document().undoStack();             \
+                if (undoStack) {                                                 \
+                    undoStack->add_undoMerge(std::make_unique<Action>(           \
+                        item, oldValue, newValue));                              \
+                }                                                                \
             }                                                                    \
         }                                                                        \
     }

@@ -7,7 +7,7 @@
  */
 
 #include "undostack.h"
-#include "undodocument.h"
+#include "models/document.h"
 #include "models/common/orderedlist.h"
 
 #include <cassert>
@@ -94,10 +94,11 @@ inline T* orderedList_create(typename T::list_t* list,
 
     listChangedSignal.emit(list);
 
-    auto a = std::make_unique<Action>(list, newItem, listChangedSignal, message);
-
-    auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
-    undoDoc->undoStack().add_undo(std::move(a));
+    UndoStack* undoStack = newItem->document().undoStack();
+    if (undoStack) {
+        undoStack->add_undo(std::make_unique<Action>(
+            list, newItem, listChangedSignal, message));
+    }
 
     return newItem;
 }
@@ -147,10 +148,11 @@ inline T* orderedList_clone(typename T::list_t* list, T* item,
 
         listChangedSignal.emit(list);
 
-        auto a = std::make_unique<Action>(list, newItem, listChangedSignal, message);
-
-        auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
-        undoDoc->undoStack().add_undo(std::move(a));
+        UndoStack* undoStack = newItem->document().undoStack();
+        if (undoStack) {
+            undoStack->add_undo(std::make_unique<Action>(
+                list, newItem, listChangedSignal, message));
+        }
 
         return newItem;
     }
@@ -204,8 +206,10 @@ inline void orderedList_remove(typename T::list_t* list, T* item,
 
         a->redo();
 
-        auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
-        undoDoc->undoStack().add_undo(std::move(a));
+        UndoStack* undoStack = item->document().undoStack();
+        if (undoStack) {
+            undoStack->add_undo(std::move(a));
+        }
     }
 }
 
@@ -259,10 +263,11 @@ inline void orderedList_moveUp(typename T::list_t* list,
         if (r) {
             listChangedSignal.emit(list);
 
-            auto a = std::make_unique<Action>(list, item, listChangedSignal, message);
-
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
+            UndoStack* undoStack = item->document().undoStack();
+            if (undoStack) {
+                undoStack->add_undo(std::make_unique<Action>(
+                    list, item, listChangedSignal, message));
+            }
         }
     }
 }
@@ -317,10 +322,11 @@ inline void orderedList_moveDown(typename T::list_t* list,
         if (r) {
             listChangedSignal.emit(list);
 
-            auto a = std::make_unique<Action>(list, item, listChangedSignal, message);
-
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
+            UndoStack* undoStack = item->document().undoStack();
+            if (undoStack) {
+                undoStack->add_undo(std::make_unique<Action>(
+                    list, item, listChangedSignal, message));
+            }
         }
     }
 }

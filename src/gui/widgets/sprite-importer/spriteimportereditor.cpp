@@ -144,7 +144,7 @@ SpriteImporterEditor::SpriteImporterEditor()
     });
 }
 
-void SpriteImporterEditor::setDocument(std::unique_ptr<Document> document)
+void SpriteImporterEditor::setDocument(std::unique_ptr<SI::SpriteImporterDocument> document)
 {
     if (_document != document) {
         _selection.setFrameSet(nullptr);

@@ -1,5 +1,4 @@
 #include "frameobjecteditor.h"
-#include "document.h"
 #include "signals.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"

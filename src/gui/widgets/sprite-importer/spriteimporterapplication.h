@@ -1,7 +1,7 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERAPPLICATION_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERAPPLICATION_H_
 
-#include "document.h"
+#include "models/sprite-importer/document.h"
 
 #include <memory>
 #include <gtkmm.h>
@@ -33,7 +33,7 @@ protected:
     void on_window_hide(Gtk::Window* window);
 
 private:
-    void create_window(std::unique_ptr<Document> document);
+    void create_window(std::unique_ptr<SI::SpriteImporterDocument> document);
     void load_file(const std::string& filename);
 
 private:

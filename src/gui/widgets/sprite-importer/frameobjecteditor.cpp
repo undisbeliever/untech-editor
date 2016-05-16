@@ -1,7 +1,7 @@
 #include "frameobjecteditor.h"
-#include "document.h"
 #include "signals.h"
 #include "models/common/string.h"
+#include "models/sprite-importer/document.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
 #include "gui/widgets/defaults.h"
@@ -73,10 +73,11 @@ inline void frameObject_setSize(SI::FrameObject* item,
             item->setSize(newSize);
             Signals::frameObjectChanged.emit(item);
 
-            auto a = std::make_unique<Action>(item, oldSize, oldLocation, newSize);
-
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
+            UnTech::Undo::UndoStack* undoStack = item->document().undoStack();
+            if (undoStack) {
+                undoStack->add_undo(std::make_unique<Action>(
+                    item, oldSize, oldLocation, newSize));
+            }
         }
     }
 }

@@ -3,7 +3,6 @@
 
 #include "actionpointeditor.h"
 #include "actionpointlist.h"
-#include "document.h"
 #include "entityhitboxeditor.h"
 #include "entityhitboxlist.h"
 #include "framelist.h"
@@ -28,11 +27,11 @@ class SpriteImporterEditor {
 public:
     SpriteImporterEditor();
 
-    Document* document() const { return _document.get(); }
+    SI::SpriteImporterDocument* document() const { return _document.get(); }
     Selection& selection() { return _selection; }
     const Selection& selection() const { return _selection; }
 
-    void setDocument(std::unique_ptr<Document> document);
+    void setDocument(std::unique_ptr<SI::SpriteImporterDocument> document);
 
     void setZoom(int zoom, double aspectRatio);
 
@@ -40,7 +39,7 @@ public:
     Gtk::Paned widget;
 
 private:
-    std::unique_ptr<Document> _document;
+    std::unique_ptr<SI::SpriteImporterDocument> _document;
 
     Selection _selection;
 

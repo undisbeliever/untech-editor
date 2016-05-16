@@ -3,7 +3,6 @@
 
 #include "actionpointeditor.h"
 #include "actionpointlist.h"
-#include "document.h"
 #include "entityhitboxeditor.h"
 #include "entityhitboxlist.h"
 #include "framelist.h"
@@ -31,11 +30,11 @@ class MetaSpriteEditor {
 public:
     MetaSpriteEditor();
 
-    Document* document() const { return _document.get(); }
+    MS::MetaSpriteDocument* document() const { return _document.get(); }
     Selection& selection() { return _selection; }
     const Selection& selection() const { return _selection; }
 
-    void setDocument(std::unique_ptr<Document> document);
+    void setDocument(std::unique_ptr<MS::MetaSpriteDocument> document);
 
     void setShowTwoEditors(bool showTwoEditors);
     void setZoom(int zoom, double aspectRatio);
@@ -47,7 +46,7 @@ public:
     Gtk::Paned widget;
 
 private:
-    std::unique_ptr<Document> _document;
+    std::unique_ptr<MS::MetaSpriteDocument> _document;
 
     Selection _selection;
 

@@ -233,7 +233,7 @@ MetaSpriteEditor::MetaSpriteEditor()
     });
 }
 
-void MetaSpriteEditor::setDocument(std::unique_ptr<Document> document)
+void MetaSpriteEditor::setDocument(std::unique_ptr<MS::MetaSpriteDocument> document)
 {
     if (_document != document) {
         _selection.setFrameSet(nullptr);

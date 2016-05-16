@@ -7,8 +7,7 @@ namespace MS = UnTech::MetaSprite;
 MetaSpriteWindow::MetaSpriteWindow()
     : Gtk::ApplicationWindow()
     , _editor()
-    , _undoStackConnection()
-    , _updateTitleConnection()
+    , _undoStack()
 {
     add(_editor.widget);
     show_all_children();
@@ -78,6 +77,12 @@ MetaSpriteWindow::MetaSpriteWindow()
     _editor.selection().signal_selectionChanged.connect(
         sigc::mem_fun(*this, &MetaSpriteWindow::updateItemActions));
 
+    _undoStack.signal_stackChanged.connect(
+        sigc::mem_fun(*this, &MetaSpriteWindow::updateUndoActions));
+
+    _undoStack.signal_dirtyBitChanged.connect(
+        sigc::mem_fun(*this, &MetaSpriteWindow::updateTitle));
+
     Signals::frameObjectListChanged.connect(sigc::hide(
         sigc::mem_fun(*this, &MetaSpriteWindow::updateItemActions)));
 
@@ -88,22 +93,23 @@ MetaSpriteWindow::MetaSpriteWindow()
         sigc::mem_fun(*this, &MetaSpriteWindow::updateItemActions)));
 }
 
-void MetaSpriteWindow::setDocument(std::unique_ptr<Document> document)
+void MetaSpriteWindow::setDocument(std::unique_ptr<MS::MetaSpriteDocument> document)
 {
-    _undoStackConnection.disconnect();
-    _updateTitleConnection.disconnect();
+    auto* oldDocument = _editor.document();
+    if (oldDocument) {
+        oldDocument->setUndoStack(nullptr);
+    }
+
+    _undoStack.clear();
 
     if (document) {
-        _undoStackConnection = document->undoStack().signal_stackChanged.connect(
-            sigc::mem_fun(*this, &MetaSpriteWindow::updateUndoActions));
-        _updateTitleConnection = document->undoStack().signal_stackChanged.connect(
-            sigc::mem_fun(*this, &MetaSpriteWindow::updateTitle));
+        document->setUndoStack(&_undoStack);
     }
 
     _editor.setDocument(std::move(document));
 
-    updateTitle();
     updateItemActions();
+    updateTitle();
     updateUndoActions();
 }
 
@@ -112,7 +118,7 @@ void MetaSpriteWindow::updateTitle()
     auto* document = _editor.document();
 
     if (document) {
-        if (document->undoStack().isDirty()) {
+        if (_undoStack.isDirty()) {
             set_title("*" + document->frameSet().name() + _(": Untech MetaSprite Editor"));
             _saveAction->set_enabled(true);
         }
@@ -121,6 +127,10 @@ void MetaSpriteWindow::updateTitle()
             _saveAction->set_enabled(false);
         }
     }
+    else {
+        set_title(_(": Untech Sprite Importer"));
+        _saveAction->set_enabled(false);
+    }
 }
 
 void MetaSpriteWindow::updateUndoActions()
@@ -128,10 +138,9 @@ void MetaSpriteWindow::updateUndoActions()
     auto* document = _editor.document();
 
     if (document) {
-        const auto& undoStack = document->undoStack();
-
-        _undoAction->set_enabled(undoStack.canUndo());
-        _redoAction->set_enabled(undoStack.canRedo());
+        _undoAction->set_enabled(_undoStack.canUndo());
+        _redoAction->set_enabled(_undoStack.canRedo());
+        _saveAction->set_enabled(_undoStack.isDirty());
     }
     else {
         _undoAction->set_enabled(false);
@@ -157,20 +166,12 @@ void MetaSpriteWindow::updateItemActions()
 
 void MetaSpriteWindow::do_undo()
 {
-    auto* document = _editor.document();
-
-    if (document) {
-        document->undoStack().undo();
-    }
+    _undoStack.undo();
 }
 
 void MetaSpriteWindow::do_redo()
 {
-    auto* document = _editor.document();
-
-    if (document) {
-        document->undoStack().redo();
-    }
+    _undoStack.redo();
 }
 
 void MetaSpriteWindow::do_save()
@@ -184,7 +185,7 @@ void MetaSpriteWindow::do_save()
         else {
             try {
                 document->save();
-                document->undoStack().markClean();
+                _undoStack.markClean();
             }
             catch (const std::exception& ex) {
                 showErrorMessage(this, "Unable to save file", ex);
@@ -236,7 +237,7 @@ void MetaSpriteWindow::do_saveAs()
 
             try {
                 document->saveFile(dialog.get_filename());
-                document->undoStack().markClean();
+                _undoStack.markClean();
             }
             catch (const std::exception& ex) {
                 showErrorMessage(this, "Unable to save file", ex);
@@ -305,7 +306,7 @@ bool MetaSpriteWindow::on_delete_event(GdkEventAny*)
         return false;
     }
 
-    if (document->undoStack().isDirty()) {
+    if (_undoStack.isDirty()) {
         Gtk::MessageDialog dialog(*this,
                                   _("Do you want to save?"),
                                   false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE);

@@ -11,7 +11,7 @@
  */
 
 #include "undostack.h"
-#include "undodocument.h"
+#include "models/document.h"
 #include "models/common/namedlist.h"
 
 #include <cassert>
@@ -99,10 +99,11 @@ inline T* namedList_create(typename T::list_t* list,
         if (newItem != nullptr) {
             listChangedSignal.emit(list);
 
-            auto a = std::make_unique<Action>(list, name, listChangedSignal, message);
-
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
+            UndoStack* undoStack = newItem->document().undoStack();
+            if (undoStack) {
+                undoStack->add_undo(std::make_unique<Action>(
+                    list, name, listChangedSignal, message));
+            }
         }
 
         return newItem;
@@ -159,10 +160,11 @@ inline T* namedList_clone(typename T::list_t* list, T* item,
         if (newItem != nullptr) {
             listChangedSignal.emit(list);
 
-            auto a = std::make_unique<Action>(list, name, listChangedSignal, message);
-
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(newItem->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
+            UndoStack* undoStack = newItem->document().undoStack();
+            if (undoStack) {
+                undoStack->add_undo(std::make_unique<Action>(
+                    list, name, listChangedSignal, message));
+            }
         }
 
         return newItem;
@@ -220,8 +222,10 @@ inline void namedList_remove(typename T::list_t* list, T* item,
 
             a->redo();
 
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
+            UndoStack* undoStack = item->document().undoStack();
+            if (undoStack) {
+                undoStack->add_undo(std::move(a));
+            }
         }
     }
 }
@@ -282,11 +286,12 @@ inline void namedList_rename(typename T::list_t* list,
             if (r) {
                 listChangedSignal.emit(list);
 
-                auto a = std::make_unique<Action>(list, item, oldName.first, newName,
-                                                  listChangedSignal, message);
-
-                auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
-                undoDoc->undoStack().add_undo(std::move(a));
+                UndoStack* undoStack = item->document().undoStack();
+                if (undoStack) {
+                    undoStack->add_undo(std::make_unique<Action>(
+                        list, item, oldName.first, newName,
+                        listChangedSignal, message));
+                }
             }
         }
     }

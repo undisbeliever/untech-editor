@@ -88,13 +88,15 @@ void UndoStack::clear()
     _redoStack.clear();
 
     signal_stackChanged.emit();
+
+    markClean();
 }
 
 void UndoStack::markDirty()
 {
     if (_dirty != true) {
         _dirty = true;
-        signal_dirtyChanged.emit();
+        signal_dirtyBitChanged.emit();
     }
 }
 
@@ -102,7 +104,7 @@ void UndoStack::markClean()
 {
     if (_dirty != false) {
         _dirty = false;
-        signal_dirtyChanged.emit();
+        signal_dirtyBitChanged.emit();
     }
 }
 

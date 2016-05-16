@@ -84,7 +84,7 @@ public:
     const Glib::ustring& getRedoMessage() const;
 
     sigc::signal<void> signal_stackChanged;
-    sigc::signal<void> signal_dirtyChanged;
+    sigc::signal<void> signal_dirtyBitChanged;
 
 private:
     // using list instead of stack so I can delete from the end.

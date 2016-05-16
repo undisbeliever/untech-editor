@@ -50,7 +50,7 @@ void MetaSpriteApplication::on_startup()
 
 void MetaSpriteApplication::on_activate()
 {
-    create_window(std::make_unique<Document>());
+    create_window(std::make_unique<MS::MetaSpriteDocument>());
 }
 
 void MetaSpriteApplication::on_open(const type_vec_files& files, const Glib::ustring& hint)
@@ -64,7 +64,7 @@ void MetaSpriteApplication::on_open(const type_vec_files& files, const Glib::ust
     Gtk::Application::on_open(files, hint);
 }
 
-void MetaSpriteApplication::create_window(std::unique_ptr<Document> document)
+void MetaSpriteApplication::create_window(std::unique_ptr<MS::MetaSpriteDocument> document)
 {
     if (document) {
         auto window = new MetaSpriteWindow();
@@ -93,10 +93,10 @@ void MetaSpriteApplication::load_file(const std::string& filename)
         }
     }
 
-    std::unique_ptr<Document> document;
+    std::unique_ptr<MS::MetaSpriteDocument> document;
 
     try {
-        document = std::make_unique<Document>(filename);
+        document = std::make_unique<MS::MetaSpriteDocument>(filename);
     }
     catch (const std::exception& ex) {
         showErrorMessage(get_active_window(), "Unable to open file", ex);
@@ -121,7 +121,7 @@ void MetaSpriteApplication::on_window_hide(Gtk::Window* window)
 
 void MetaSpriteApplication::on_menu_new()
 {
-    create_window(std::make_unique<Document>());
+    create_window(std::make_unique<MS::MetaSpriteDocument>());
 }
 
 void MetaSpriteApplication::on_menu_open()

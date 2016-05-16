@@ -2,7 +2,6 @@
 #define _UNTECH_GUI_WIDGETS_METASPRITE_TILESETGRAPHICALEDITOR_HPP_
 
 #include "tilesetgraphicaleditor.h"
-#include "document.h"
 #include "signals.h"
 #include "gui/widgets/defaults.h"
 #include "gui/widgets/common/cr_rgba.h"
@@ -78,10 +77,11 @@ inline void frameObject_setTileIdAndSize(MS::FrameObject* item,
             item->setSize(newSize);
             Signals::frameObjectChanged.emit(item);
 
-            auto a = std::make_unique<Action>(item, oldTileId, oldSize, newTileId, newSize);
-
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(item->document()));
-            undoDoc->undoStack().add_undo(std::move(a));
+            Undo::UndoStack* undoStack = item->document().undoStack();
+            if (undoStack) {
+                undoStack->add_undo(std::make_unique<Action>(
+                    item, oldTileId, oldSize, newTileId, newSize));
+            }
         }
     }
 }
@@ -164,10 +164,11 @@ inline void tileset_setPixel(MS::FrameSet* frameset,
         if (oldTile != newTile) {
             Signals::frameSetTilesetChanged.emit(frameset);
 
-            auto a = std::make_unique<Action>(frameset, tileset, tileId, oldTile, newTile);
-
-            auto undoDoc = dynamic_cast<UnTech::Undo::UndoDocument*>(&(frameset->document()));
-            undoDoc->undoStack().add_undoMerge(std::move(a));
+            Undo::UndoStack* undoStack = frameset->document().undoStack();
+            if (undoStack) {
+                undoStack->add_undoMerge(std::make_unique<Action>(
+                    frameset, tileset, tileId, oldTile, newTile));
+            }
         }
     }
 }
@@ -240,9 +241,7 @@ TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(Selection& selection)
         _drawTileState = false;
         update_pointer_cursor();
 
-        if (_selection.frameSet()) {
-            dontMergeNextUndoAction(_selection.frameSet()->document());
-        }
+        _selection.dontMergeNextUndoAction();
     });
 
     _selection.signal_frameObjectChanged.connect([this](void) {
@@ -460,9 +459,7 @@ bool TilesetGraphicalEditor<TilesetT>::on_button_release_event(GdkEventButton* e
     grab_focus();
 
     if (_drawTileState && event->button == 1) {
-        if (_selection.frameSet()) {
-            dontMergeNextUndoAction(_selection.frameSet()->document());
-        }
+        _selection.dontMergeNextUndoAction();
     }
 
     _drawTileState = false;
@@ -518,9 +515,7 @@ bool TilesetGraphicalEditor<TilesetT>::on_leave_notify_event(GdkEventCrossing*)
 
     _drawTileState = false;
 
-    if (_selection.frameSet()) {
-        dontMergeNextUndoAction(_selection.frameSet()->document());
-    }
+    _selection.dontMergeNextUndoAction();
 
     return true;
 }

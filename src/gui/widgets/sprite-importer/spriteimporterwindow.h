@@ -1,10 +1,10 @@
-#ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERACTIONS_H_
-#define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERACTIONS_H_
+#ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERWINDOW_H_
+#define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERWINDOW_H_
 
 #include "spriteimportereditor.h"
 #include "selection.h"
-#include "document.h"
 #include "models/sprite-importer.h"
+#include "gui/undo/undostack.h"
 #include "gui/widgets/defaults.h"
 
 #include <memory>
@@ -15,13 +15,15 @@ namespace UnTech {
 namespace Widgets {
 namespace SpriteImporter {
 
+namespace SI = UnTech::SpriteImporter;
+
 class SpriteImporterWindow : public Gtk::ApplicationWindow {
 public:
     SpriteImporterWindow();
 
-    Document* document() const { return _editor.document(); }
+    SI::SpriteImporterDocument* document() const { return _editor.document(); }
 
-    void setDocument(std::unique_ptr<Document> document);
+    void setDocument(std::unique_ptr<SI::SpriteImporterDocument> document);
 
 protected:
     void updateTitle();
@@ -42,6 +44,7 @@ protected:
 
 private:
     SpriteImporterEditor _editor;
+    Undo::UndoStack _undoStack;
 
     Glib::RefPtr<Gio::SimpleAction> _saveAction;
     Glib::RefPtr<Gio::SimpleAction> _undoAction;
@@ -54,9 +57,6 @@ private:
     Glib::RefPtr<Gio::SimpleAction> _moveSelectedDownAction;
     Glib::RefPtr<Gio::SimpleAction> _zoomAction;
     Glib::RefPtr<Gio::SimpleAction> _aspectRatioAction;
-
-    sigc::connection _undoStackConnection;
-    sigc::connection _updateTitleConnection;
 };
 }
 }

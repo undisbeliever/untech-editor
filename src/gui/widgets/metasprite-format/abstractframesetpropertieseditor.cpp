@@ -93,8 +93,10 @@ AbstractFrameSetPropertiesEditor::AbstractFrameSetPropertiesEditor(Selection& se
     });
 
     /** Selected FrameSet changed signal */
-    _selection.signal_frameSetChanged.connect(sigc::mem_fun(
-        *this, &AbstractFrameSetPropertiesEditor::updateGuiValues));
+    _selection.signal_frameSetChanged.connect([this](void) {
+        updateGuiValues();
+        updateGuiTree();
+    });
 
     /** FrameSet Updated signal */
     // ::TODO move this to _selection::

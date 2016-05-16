@@ -7,6 +7,10 @@
 
 namespace UnTech {
 
+namespace Undo {
+class UndoStack;
+}
+
 /**
  * The Document abstract class is the root class of a document.
  *
@@ -50,11 +54,15 @@ public:
         _filename = newFilename;
     }
 
+    Undo::UndoStack* undoStack() const { return _undoStack; }
+    void setUndoStack(Undo::UndoStack* undoStack) { _undoStack = undoStack; }
+
 protected:
     virtual void writeDataFile(const std::string& filename) = 0;
 
 private:
     std::string _filename;
+    Undo::UndoStack* _undoStack;
 };
 }
 #endif
