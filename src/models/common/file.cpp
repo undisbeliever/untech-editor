@@ -162,11 +162,11 @@ std::string File::cleanPath(const std::string& path)
         }
 
         else if (source[0] == '.' && source[1] == '.' && source[2] == SEP) {
-            if (nDirs > 0) {
+            if (nDirs > 1) {
                 // shift pos to previous directory
 
+                pos = dirs[nDirs - 2];
                 nDirs--;
-                pos = dirs[nDirs];
                 source += 3;
             }
             else {
@@ -274,8 +274,8 @@ std::string File::relativePath(const std::string& sourceDir, const std::string& 
     return to_string(wrelpath);
 
 #else
-    std::string source = File::cleanPath(sourceDir);
-    std::string dest = File::cleanPath(destPath);
+    std::string source = File::fullPath(sourceDir);
+    std::string dest = File::fullPath(destPath);
 
     if (source.empty() || dest.empty()
         || source.front() != '/' || dest.front() != '/') {
