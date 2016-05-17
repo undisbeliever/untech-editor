@@ -1,14 +1,14 @@
 #ifndef _UNTECH_GUI_WIDGETS_COMMON_ORDEREDLIST_H
 #define _UNTECH_GUI_WIDGETS_COMMON_ORDEREDLIST_H
 
-#include "models/common/orderedlist.h"
 #include "gui/undo/orderedlistactions.h"
 #include "gui/widgets/defaults.h"
+#include "models/common/orderedlist.h"
 
 #include <memory>
 
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
 
 namespace UnTech {
 namespace Widgets {

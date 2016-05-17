@@ -5,8 +5,8 @@
 #include "gui/widgets/common/namedlist.h"
 #include "models/sprite-importer/frame.h"
 
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
 
 namespace UnTech {
 namespace Widgets {

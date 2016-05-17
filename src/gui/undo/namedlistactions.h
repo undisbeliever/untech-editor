@@ -11,8 +11,8 @@
  */
 
 #include "undostack.h"
-#include "models/document.h"
 #include "models/common/namedlist.h"
+#include "models/document.h"
 
 #include <cassert>
 #include <sigc++/signal.h>

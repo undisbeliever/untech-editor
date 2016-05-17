@@ -1,7 +1,7 @@
 #include "framegraphicaleditor.h"
 #include "signals.h"
-#include "gui/undo/actionhelper.h"
 #include "../common/cr_rgba.h"
+#include "gui/undo/actionhelper.h"
 
 #include <cmath>
 

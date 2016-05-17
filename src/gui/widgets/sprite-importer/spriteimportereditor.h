@@ -14,8 +14,8 @@
 #include "selection.h"
 #include "models/sprite-importer.h"
 
-#include <memory>
 #include <gtkmm.h>
+#include <memory>
 
 namespace UnTech {
 namespace Widgets {

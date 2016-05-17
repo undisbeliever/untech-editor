@@ -1,6 +1,6 @@
 #include "framesetexportorderrotreeview.h"
-#include "gui/widgets/defaults.h"
 #include "gui/widgets/common/errormessagedialog.h"
+#include "gui/widgets/defaults.h"
 #include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::MetaSpriteFormat;

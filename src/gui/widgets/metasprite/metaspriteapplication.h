@@ -3,9 +3,9 @@
 
 #include "models/metasprite/document.h"
 
-#include <memory>
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
+#include <memory>
 
 namespace UnTech {
 namespace Widgets {

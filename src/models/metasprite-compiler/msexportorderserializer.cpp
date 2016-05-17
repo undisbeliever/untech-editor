@@ -1,12 +1,12 @@
 #include "msexportorderserializer.h"
 #include "msexportorder.h"
-#include "models/metasprite/document.h"
 #include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
+#include "models/metasprite/document.h"
 #include <cassert>
-#include <stdexcept>
 #include <fstream>
+#include <stdexcept>
 
 using namespace UnTech;
 using namespace UnTech::Xml;

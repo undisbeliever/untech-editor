@@ -1,9 +1,9 @@
 #ifndef _UNTECH_MODELS_SPRITEIMPORTER_DOCUMENT_H_
 #define _UNTECH_MODELS_SPRITEIMPORTER_DOCUMENT_H_
 
+#include "frameset.h"
 #include "serializer.h"
 #include "../document.h"
-#include "frameset.h"
 #include <string>
 
 namespace UnTech {

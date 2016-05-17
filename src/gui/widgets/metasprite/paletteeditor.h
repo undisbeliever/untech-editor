@@ -4,11 +4,11 @@
 #include "selection.h"
 #include "signals.h"
 #include "../common/colortogglebutton.h"
-#include "models/metasprite/palette.h"
 #include "gui/widgets/defaults.h"
+#include "models/metasprite/palette.h"
 
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
 
 namespace UnTech {
 namespace Widgets {

@@ -1,6 +1,6 @@
 #include "metaspritewindow.h"
-#include "../metasprite-format/signals.h"
 #include "../common/errormessagedialog.h"
+#include "../metasprite-format/signals.h"
 
 using namespace UnTech::Widgets::MetaSprite;
 namespace MS = UnTech::MetaSprite;

@@ -1,11 +1,11 @@
 #include "spriteimporterapplication.h"
 #include "spriteimporterwindow.h"
-#include "../common/errormessagedialog.h"
-#include "../common/aboutdialog.h"
 #include "version.h"
+#include "../common/aboutdialog.h"
+#include "../common/errormessagedialog.h"
 
-#include <iostream>
 #include <exception>
+#include <iostream>
 
 using namespace UnTech::Widgets::SpriteImporter;
 

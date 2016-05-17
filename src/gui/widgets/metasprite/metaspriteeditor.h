@@ -5,20 +5,20 @@
 #include "actionpointlist.h"
 #include "entityhitboxeditor.h"
 #include "entityhitboxlist.h"
+#include "framegraphicaleditor.h"
 #include "framelist.h"
 #include "frameobjecteditor.h"
 #include "frameobjectlist.h"
-#include "framegraphicaleditor.h"
 #include "framepropertieseditor.h"
 #include "paletteeditor.h"
 #include "palettelist.h"
 #include "selection.h"
 #include "tileseteditor.h"
-#include "models/metasprite.h"
 #include "gui/widgets/metasprite-format/abstractframesetpropertieseditor.h"
+#include "models/metasprite.h"
 
-#include <memory>
 #include <gtkmm.h>
+#include <memory>
 
 namespace UnTech {
 namespace Widgets {

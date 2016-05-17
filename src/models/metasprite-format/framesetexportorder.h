@@ -2,10 +2,10 @@
 #define _UNTECH_MODELS_METASPRITEFORMAT_FRAMESETEXPORTORDER_H
 
 #include "framesetexportorderserializer.h"
-#include "models/document.h"
 #include "models/common/namedlist.h"
 #include "models/common/orderedlist.h"
 #include "models/common/orderednamedlist.h"
+#include "models/document.h"
 #include <string>
 
 namespace UnTech {

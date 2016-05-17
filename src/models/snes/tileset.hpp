@@ -1,8 +1,8 @@
 #ifndef _UNTECH_MODELS_SNES_TILESET_HPP_
 #define _UNTECH_MODELS_SNES_TILESET_HPP_
 
-#include "tileset.h"
 #include "tile.hpp"
+#include "tileset.h"
 #include <cstring>
 
 namespace UnTech {

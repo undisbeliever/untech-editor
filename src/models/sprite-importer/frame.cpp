@@ -1,7 +1,7 @@
 #include "frame.h"
-#include "frameobject.h"
 #include "actionpoint.h"
 #include "entityhitbox.h"
+#include "frameobject.h"
 #include <algorithm>
 
 using namespace UnTech;

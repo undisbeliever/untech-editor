@@ -10,8 +10,8 @@
  * in grids/boxes properly.
  */
 
-#include "models/common/ms8aabb.h"
 #include "models/common/int_ms8_t.h"
+#include "models/common/ms8aabb.h"
 
 #include <cassert>
 #include <gtkmm/spinbutton.h>

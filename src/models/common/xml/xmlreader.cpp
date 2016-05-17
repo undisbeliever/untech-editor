@@ -1,11 +1,11 @@
 #include "xmlreader.h"
-#include "../string.h"
-#include "../file.h"
 #include "../base64.h"
+#include "../file.h"
+#include "../string.h"
 #include <algorithm>
 #include <cstring>
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
 
 using namespace UnTech;
 using namespace UnTech::Xml;

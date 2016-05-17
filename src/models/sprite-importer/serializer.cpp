@@ -1,17 +1,17 @@
 #include "serializer.h"
-#include "frameset.h"
-#include "framesetgrid.h"
-#include "frame.h"
-#include "frameobject.h"
 #include "actionpoint.h"
 #include "entityhitbox.h"
+#include "frame.h"
+#include "frameobject.h"
+#include "frameset.h"
+#include "framesetgrid.h"
 #include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include "models/metasprite-format/framesetexportorder.h"
 #include <cassert>
-#include <stdexcept>
 #include <fstream>
+#include <stdexcept>
 
 using namespace UnTech;
 using namespace UnTech::Xml;

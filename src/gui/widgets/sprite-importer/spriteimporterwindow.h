@@ -1,15 +1,15 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERWINDOW_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERWINDOW_H_
 
-#include "spriteimportereditor.h"
 #include "selection.h"
-#include "models/sprite-importer.h"
+#include "spriteimportereditor.h"
 #include "gui/undo/undostack.h"
 #include "gui/widgets/defaults.h"
+#include "models/sprite-importer.h"
 
-#include <memory>
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
+#include <memory>
 
 namespace UnTech {
 namespace Widgets {

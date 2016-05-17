@@ -6,9 +6,9 @@
 #include "../string.h"
 #include <cstdint>
 #include <memory>
+#include <sstream>
 #include <stack>
 #include <string>
-#include <sstream>
 #include <vector>
 
 namespace UnTech {

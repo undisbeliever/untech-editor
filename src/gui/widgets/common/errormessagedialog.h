@@ -1,10 +1,10 @@
 #ifndef _UNTECH_GUI_WIDGETS_COMMON_ERRORMESSAGEDIALOG_H
 #define _UNTECH_GUI_WIDGETS_COMMON_ERRORMESSAGEDIALOG_H
 
-#include <stdexcept>
-#include <iostream>
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
+#include <iostream>
+#include <stdexcept>
 
 namespace UnTech {
 namespace Widgets {

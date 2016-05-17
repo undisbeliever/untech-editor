@@ -2,8 +2,8 @@
 #define _UNTECH_MODELS_METASPRITE_PALETTE_H
 
 #include "frameset.h"
-#include "../snes/palette.h"
 #include "../common/orderedlist.h"
+#include "../snes/palette.h"
 
 namespace UnTech {
 namespace MetaSprite {

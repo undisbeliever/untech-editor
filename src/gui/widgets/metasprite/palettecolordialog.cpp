@@ -1,8 +1,8 @@
 #include "palettecolordialog.h"
 #include "signals.h"
-#include "models/metasprite/palette.h"
-#include "gui/widgets/defaults.h"
 #include "gui/undo/undostack.h"
+#include "gui/widgets/defaults.h"
+#include "models/metasprite/palette.h"
 
 #include <glibmm/i18n.h>
 

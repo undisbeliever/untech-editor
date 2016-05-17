@@ -1,9 +1,9 @@
 #ifndef _UNTECH_MODELS_UTSI2UTMS_TILESETINSERTER_H_
 #define _UNTECH_MODELS_UTSI2UTMS_TILESETINSERTER_H_
 
+#include "../metasprite/frameobject.h"
 #include "../snes/tileset.h"
 #include "../snes/tileset.hpp"
-#include "../metasprite/frameobject.h"
 #include <unordered_map>
 
 namespace UnTech {

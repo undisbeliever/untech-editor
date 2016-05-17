@@ -1,10 +1,10 @@
-#include "../models/sprite-importer.h"
-#include "../models/metasprite.h"
-#include "../models/utsi2utms/utsi2utms.h"
 #include "../models/common/file.h"
 #include "../models/common/namedlist.h"
-#include <iostream>
+#include "../models/metasprite.h"
+#include "../models/sprite-importer.h"
+#include "../models/utsi2utms/utsi2utms.h"
 #include <cstdlib>
+#include <iostream>
 
 using namespace UnTech;
 

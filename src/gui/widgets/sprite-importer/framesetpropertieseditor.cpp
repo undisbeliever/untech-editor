@@ -1,12 +1,12 @@
 #include "framesetpropertieseditor.h"
 #include "signals.h"
-#include "models/common/string.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
 #include "gui/widgets/defaults.h"
+#include "models/common/string.h"
 
-#include <iomanip>
 #include <glibmm/i18n.h>
+#include <iomanip>
 
 using namespace UnTech::Widgets::SpriteImporter;
 

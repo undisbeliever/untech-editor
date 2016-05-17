@@ -3,9 +3,9 @@
 
 #include "framesetexportorderrotreeview.h"
 #include "selection.h"
-#include "models/metasprite-format/abstractframeset.h"
 #include "gui/widgets/common/enumclasscombobox.h"
 #include "gui/widgets/common/namedlistnameentry.h"
+#include "models/metasprite-format/abstractframeset.h"
 
 #include <gtkmm.h>
 

@@ -1,7 +1,7 @@
 #include "frame.h"
-#include "frameobject.h"
 #include "actionpoint.h"
 #include "entityhitbox.h"
+#include "frameobject.h"
 #include "palette.h"
 #include "../snes/tileset.hpp"
 

@@ -1,6 +1,6 @@
 #include "spriteimporterwindow.h"
-#include "../metasprite-format/signals.h"
 #include "../common/errormessagedialog.h"
+#include "../metasprite-format/signals.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 namespace SI = UnTech::SpriteImporter;

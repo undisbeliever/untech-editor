@@ -3,10 +3,10 @@
 
 // This is a quick job. I may expand on it later.
 
-#include "models/metasprite.h"
 #include "models/document.h"
-#include <vector>
+#include "models/metasprite.h"
 #include <memory>
+#include <vector>
 
 namespace UnTech {
 namespace MetaSpriteCompiler {

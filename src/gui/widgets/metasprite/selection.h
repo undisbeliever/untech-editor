@@ -1,8 +1,8 @@
 #ifndef _UNTECH_GUI_WIDGETS_METASPRITE_SELECTION_H_
 #define _UNTECH_GUI_WIDGETS_METASPRITE_SELECTION_H_
 
-#include "models/metasprite.h"
 #include "gui/widgets/metasprite-format/selection.h"
+#include "models/metasprite.h"
 
 #include <glibmm/ustring.h>
 #include <sigc++/signal.h>

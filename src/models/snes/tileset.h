@@ -1,12 +1,12 @@
 #ifndef _UNTECH_MODELS_SNES_TILESET_H_
 #define _UNTECH_MODELS_SNES_TILESET_H_
 
-#include "tile.h"
 #include "palette.h"
+#include "tile.h"
 #include "../common/image.h"
+#include <array>
 #include <cstdint>
 #include <vector>
-#include <array>
 
 namespace UnTech {
 namespace Snes {

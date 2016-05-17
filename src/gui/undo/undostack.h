@@ -1,10 +1,10 @@
 #ifndef _UNTECH_GUI_UNDO_UNDOSTACK_H_
 #define _UNTECH_GUI_UNDO_UNDOSTACK_H_
 
-#include <list>
-#include <memory>
 #include <glibmm/i18n.h>
 #include <glibmm/ustring.h>
+#include <list>
+#include <memory>
 #include <sigc++/signal.h>
 
 namespace UnTech {

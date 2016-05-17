@@ -1,8 +1,8 @@
 #include "utsi2utms.h"
 #include "tilesetinserter.h"
+#include "models/metasprite-format/framesetexportorder.h"
 #include "models/metasprite.h"
 #include "models/sprite-importer.h"
-#include "models/metasprite-format/framesetexportorder.h"
 #include <algorithm>
 #include <cassert>
 #include <iterator>
@@ -246,8 +246,7 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
 
     // A Mapping to store all the frame objects that overlap each other.
     // Mapping of <frameName> -> <objectIDs> -> list<overlapping objectIDs>
-    std::map<const std::string,
-             std::map<unsigned, std::list<unsigned>>> overlappingFrameObjectsMap;
+    std::map<const std::string, std::map<unsigned, std::list<unsigned>>> overlappingFrameObjectsMap;
 
     // Process frames
     for (const auto frameIt : siFrameSet.frames()) {

@@ -3,13 +3,13 @@
 
 #include "metaspriteeditor.h"
 #include "selection.h"
-#include "models/metasprite/document.h"
 #include "gui/undo/undostack.h"
 #include "gui/widgets/defaults.h"
+#include "models/metasprite/document.h"
 
-#include <memory>
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
+#include <memory>
 
 namespace UnTech {
 namespace Widgets {

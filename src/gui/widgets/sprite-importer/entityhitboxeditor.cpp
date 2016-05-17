@@ -1,9 +1,9 @@
 #include "entityhitboxeditor.h"
 #include "signals.h"
-#include "models/common/string.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
 #include "gui/widgets/defaults.h"
+#include "models/common/string.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 

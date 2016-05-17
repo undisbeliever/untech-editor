@@ -6,8 +6,8 @@
 #include "models/common/orderedlist.h"
 #include "models/metasprite-format/abstractframeset.h"
 #include "models/snes/tileset.h"
-#include <list>
 #include <array>
+#include <list>
 #include <memory>
 #include <string>
 

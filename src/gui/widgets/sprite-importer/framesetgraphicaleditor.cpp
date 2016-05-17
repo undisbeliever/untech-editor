@@ -1,9 +1,9 @@
 #include "framesetgraphicaleditor.h"
 #include "signals.h"
-#include "models/common/string.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/widgets/common/cr_rgba.h"
 #include "gui/widgets/defaults.h"
+#include "models/common/string.h"
 
 #include <cmath>
 

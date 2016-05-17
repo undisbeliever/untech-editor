@@ -1,10 +1,10 @@
 #include "frameobjecteditor.h"
 #include "signals.h"
-#include "models/common/string.h"
-#include "models/sprite-importer/document.h"
 #include "gui/undo/actionhelper.h"
 #include "gui/undo/mergeactionhelper.h"
 #include "gui/widgets/defaults.h"
+#include "models/common/string.h"
+#include "models/sprite-importer/document.h"
 
 #include <glibmm/i18n.h>
 

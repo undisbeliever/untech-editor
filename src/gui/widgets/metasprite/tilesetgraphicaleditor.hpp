@@ -1,11 +1,11 @@
 #ifndef _UNTECH_GUI_WIDGETS_METASPRITE_TILESETGRAPHICALEDITOR_HPP_
 #define _UNTECH_GUI_WIDGETS_METASPRITE_TILESETGRAPHICALEDITOR_HPP_
 
-#include "tilesetgraphicaleditor.h"
 #include "signals.h"
-#include "gui/widgets/defaults.h"
-#include "gui/widgets/common/cr_rgba.h"
+#include "tilesetgraphicaleditor.h"
 #include "gui/undo/actionhelper.h"
+#include "gui/widgets/common/cr_rgba.h"
+#include "gui/widgets/defaults.h"
 #include "models/snes/tile.hpp"
 
 #include <cmath>

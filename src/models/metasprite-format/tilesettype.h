@@ -1,9 +1,9 @@
 #ifndef _UNTECH_MODELS_METASPRITEFORMAT_TILESETTYPE_H
 #define _UNTECH_MODELS_METASPRITEFORMAT_TILESETTYPE_H
 
+#include <cstdint>
 #include <map>
 #include <string>
-#include <cstdint>
 
 namespace UnTech {
 namespace MetaSpriteFormat {

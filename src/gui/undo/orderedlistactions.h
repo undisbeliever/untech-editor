@@ -7,8 +7,8 @@
  */
 
 #include "undostack.h"
-#include "models/document.h"
 #include "models/common/orderedlist.h"
+#include "models/document.h"
 
 #include <cassert>
 #include <sigc++/signal.h>

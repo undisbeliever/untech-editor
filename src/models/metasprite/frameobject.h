@@ -4,8 +4,8 @@
 #include "frame.h"
 #include "../common/ms8aabb.h"
 #include "../common/orderedlist.h"
-#include <memory>
 #include <cstdint>
+#include <memory>
 
 namespace UnTech {
 namespace MetaSprite {

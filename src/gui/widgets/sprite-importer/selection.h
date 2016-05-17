@@ -1,8 +1,8 @@
 #ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SELECTION_H_
 #define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SELECTION_H_
 
-#include "models/sprite-importer.h"
 #include "gui/widgets/metasprite-format/selection.h"
+#include "models/sprite-importer.h"
 
 #include <glibmm/ustring.h>
 #include <sigc++/signal.h>

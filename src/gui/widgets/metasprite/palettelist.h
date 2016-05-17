@@ -7,8 +7,8 @@
 
 #include <cassert>
 #include <cstring>
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
 
 namespace UnTech {
 namespace Widgets {

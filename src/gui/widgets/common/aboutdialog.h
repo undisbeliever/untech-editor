@@ -2,8 +2,8 @@
 #define _UNTECH_GUI_WIDGETS_COMMON_ABOUTDIALOG_H
 
 #include "version.h"
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
 
 namespace UnTech {
 namespace Widgets {

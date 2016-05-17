@@ -2,11 +2,11 @@
 #define _UNTECH_GUI_WIDGETS_COMMON_NAMEDLISTDIALOG_H
 
 #include "namedlistnameentry.h"
-#include "models/common/namedlist.h"
 #include "gui/widgets/defaults.h"
+#include "models/common/namedlist.h"
 
-#include <gtkmm.h>
 #include <glibmm/i18n.h>
+#include <gtkmm.h>
 
 namespace UnTech {
 namespace Widgets {
