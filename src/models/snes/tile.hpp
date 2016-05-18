@@ -286,20 +286,12 @@ template <size_t BD>
 struct hash<::UnTech::Snes::Tile8px<BD>> {
     inline size_t operator()(const ::UnTech::Snes::Tile8px<BD>& tile) const
     {
-        constexpr unsigned ASIZE = ::UnTech::Snes::Tile8px<BD>::TILE_ARRAY_SIZE;
-        constexpr unsigned BLOCK_SIZE = 4;
-        constexpr unsigned LOOP_COUNT = (ASIZE - sizeof(size_t)) / BLOCK_SIZE;
-
-        static_assert(sizeof(size_t) >= BLOCK_SIZE, "Bad assumption");
-        static_assert(sizeof(size_t) % BLOCK_SIZE == 0, "Bad assumption");
+        const uint8_t* data = tile.rawData();
 
         size_t seed = 0;
-        const uint8_t* ptr = tile.rawData();
-
-        for (unsigned i = 0; i < LOOP_COUNT; i++) {
+        for (unsigned i = 0; i < tile.TILE_ARRAY_SIZE; i++) {
             // Numbers from boost
-            seed ^= (*(const size_t*)ptr) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            ptr += BLOCK_SIZE;
+            seed ^= data[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
 
         return seed;
@@ -310,20 +302,12 @@ template <size_t BD>
 struct hash<::UnTech::Snes::Tile16px<BD>> {
     inline size_t operator()(const ::UnTech::Snes::Tile16px<BD>& tile) const
     {
-        constexpr unsigned ASIZE = ::UnTech::Snes::Tile16px<BD>::TILE_ARRAY_SIZE;
-        constexpr unsigned BLOCK_SIZE = 4;
-        constexpr unsigned LOOP_COUNT = (ASIZE - sizeof(size_t)) / BLOCK_SIZE;
-
-        static_assert(sizeof(size_t) >= BLOCK_SIZE, "Bad assumption");
-        static_assert(sizeof(size_t) % BLOCK_SIZE == 0, "Bad assumption");
+        const uint8_t* data = tile.rawData();
 
         size_t seed = 0;
-        const uint8_t* ptr = tile.rawData();
-
-        for (unsigned i = 0; i < LOOP_COUNT; i++) {
+        for (unsigned i = 0; i < tile.TILE_ARRAY_SIZE; i++) {
             // Numbers from boost
-            seed ^= (*(const size_t*)ptr) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            ptr += BLOCK_SIZE;
+            seed ^= data[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         }
 
         return seed;
