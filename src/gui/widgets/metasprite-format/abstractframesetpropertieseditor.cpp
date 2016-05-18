@@ -18,10 +18,95 @@ SIMPLE_UNDO_ACTION(frameSet_setTilesetType,
                    Signals::abstractFrameSetChanged,
                    "Change Tileset Type")
 
-SIMPLE_UNDO_ACTION2(frameSet_setExportOrderFilename,
-                    MSF::AbstractFrameSet, std::string, exportOrderFilename, loadExportOrderDocument,
-                    Signals::abstractFrameSetChanged, Signals::abstractFrameSetExportOrderChanged,
-                    "Change Export Order")
+/*
+ *  Cannot use a simple action because loadExportDocument may raise an exception.
+ *  Currently fails silently and displays error in stderr
+ *  Not sure if I should get it to display an error message dialog
+ *  (and I probably only want to show it once anyways)
+ *  ::SHOULDO think about this::
+ */
+void frameSet_setExportOrderFilename(MSF::AbstractFrameSet* frameSet, const std::string& filename)
+{
+    class Action : public ::UnTech::Undo::Action {
+    public:
+        Action() = delete;
+        Action(MSF::AbstractFrameSet* frameSet,
+               const std::string& oldFilename,
+               const std::string& newFilename)
+            : _frameSet(frameSet)
+            , _oldFilename(oldFilename)
+            , _newFilename(newFilename)
+        {
+        }
+
+        virtual ~Action() override = default;
+
+        virtual void undo() override
+        {
+            try {
+                _frameSet->loadExportOrderDocument(_oldFilename);
+            }
+            catch (const std::exception& ex) {
+                std::cerr << "Error loading export order document: " << _oldFilename
+                          << "\n\t" << ex.what() << std::endl;
+            }
+
+            Signals::abstractFrameSetChanged.emit(_frameSet);
+            Signals::abstractFrameSetExportOrderChanged.emit(_frameSet);
+        }
+
+        virtual void redo() override
+        {
+            try {
+                _frameSet->loadExportOrderDocument(_newFilename);
+            }
+            catch (const std::exception& ex) {
+                std::cerr << "Error loading export order document: " << _newFilename
+                          << "\n\t" << ex.what() << std::endl;
+            }
+
+            Signals::abstractFrameSetChanged.emit(_frameSet);
+            Signals::abstractFrameSetExportOrderChanged.emit(_frameSet);
+        }
+
+        virtual const Glib::ustring& message() const override
+        {
+            const static Glib::ustring message = _("Load Export Order Document");
+            return message;
+        }
+
+    private:
+        MSF::AbstractFrameSet* _frameSet;
+        const std::string _oldFilename;
+        const std::string _newFilename;
+    };
+
+    if (frameSet) {
+        const std::string& oldFilename = frameSet->exportOrderFilename();
+
+        if (oldFilename != filename) {
+            try {
+                frameSet->loadExportOrderDocument(filename);
+            }
+            catch (const std::exception& ex) {
+                std::cerr << "Error loading export order document: " << filename
+                          << "\n\t" << ex.what() << std::endl;
+            }
+
+            const std::string& newFilename = frameSet->exportOrderFilename();
+            if (oldFilename != newFilename) {
+                Signals::abstractFrameSetChanged.emit(frameSet);
+                Signals::abstractFrameSetExportOrderChanged.emit(frameSet);
+
+                UnTech::Undo::UndoStack* undoStack = frameSet->document().undoStack();
+                if (undoStack) {
+                    undoStack->add_undo(std::make_unique<Action>(
+                        frameSet, oldFilename, newFilename));
+                }
+            }
+        }
+    }
+}
 
 AbstractFrameSetPropertiesEditor::AbstractFrameSetPropertiesEditor(Selection& selection)
     : widget(Gtk::ORIENTATION_VERTICAL)

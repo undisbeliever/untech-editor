@@ -34,7 +34,7 @@ public:
 
     void setTilesetType(const MetaSpriteFormat::TilesetType& type) { _tilesetType = type; }
 
-    // fails silently
+    // This may cause an exception if there is an error loading filename.
     void loadExportOrderDocument(const std::string& filename);
 
 private:

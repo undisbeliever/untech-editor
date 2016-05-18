@@ -37,9 +37,9 @@ void AbstractFrameSet::loadExportOrderDocument(const std::string& filename)
         try {
             _exportOrderDocument = FrameSetExportOrder::ExportOrderDocument::loadReadOnly(filename);
         }
-        catch (std::exception& ex) {
-            std::cerr << "Error loading " << filename << ": " << ex.what() << std::endl;
+        catch (const std::exception&) {
             _exportOrderDocument = nullptr;
+            throw;
         }
     }
     else {
