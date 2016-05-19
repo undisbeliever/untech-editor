@@ -16,6 +16,8 @@ public:
 
     typedef uint8_t parameter_t;
 
+    const static unsigned MAX_HITBOXES = 8;
+
 public:
     EntityHitbox() = delete;
     EntityHitbox(const EntityHitbox&) = delete;

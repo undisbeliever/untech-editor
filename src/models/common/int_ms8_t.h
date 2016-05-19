@@ -78,7 +78,7 @@ public:
         return *this;
     }
 
-    inline uint8_t romData() { return data + OFFSET; }
+    inline uint8_t romData() const { return data + OFFSET; }
 };
 }
 #endif

@@ -16,6 +16,8 @@ public:
 
     typedef uint8_t parameter_t;
 
+    const static unsigned MAX_ACTION_POINTS = 12;
+
 public:
     ActionPoint() = delete;
     ActionPoint(const ActionPoint&) = delete;

@@ -1,4 +1,5 @@
 #include "tilesettype.h"
+#include <stdexcept>
 
 using namespace UnTech::MetaSpriteFormat;
 
@@ -23,6 +24,25 @@ const std::map<std::string, TilesetType::Enum> TilesetType::stringMap = {
     { "ONE_VRAM_ROW_FIXED", TilesetType::Enum::ONE_VRAM_ROW_FIXED },
     { "TWO_VRAM_ROWS_FIXED", TilesetType::Enum::TWO_VRAM_ROWS_FIXED },
 };
+
+TilesetType TilesetType::smallestFixedTileset(unsigned tilesetSize)
+{
+    if (tilesetSize > 16) {
+        throw std::invalid_argument("too many tiles");
+    }
+    else if (tilesetSize > 8) {
+        return TilesetType(Enum::TWO_VRAM_ROWS_FIXED);
+    }
+    else if (tilesetSize > 2) {
+        return TilesetType(Enum::ONE_VRAM_ROW_FIXED);
+    }
+    else if (tilesetSize == 2) {
+        return TilesetType(Enum::TWO_16_TILES_FIXED);
+    }
+    else {
+        return TilesetType(Enum::ONE_16_TILE_FIXED);
+    }
+}
 
 unsigned TilesetType::nTiles() const
 {

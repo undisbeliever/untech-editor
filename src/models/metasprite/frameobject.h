@@ -22,6 +22,8 @@ public:
     const static unsigned ORDER_MASK = 3;
     const static unsigned DEFAULT_ORDER = 2;
 
+    const static unsigned MAX_FRAME_OBJECTS = 32;
+
 public:
     FrameObject() = delete;
     FrameObject(const FrameObject&) = delete;

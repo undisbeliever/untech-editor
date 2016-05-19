@@ -50,6 +50,7 @@ endef
 THIRD_PARTY = obj/vendor/lodepng/lodepng.o
 
 # Select the models used by the apps
+bin/untech-msc: $(call app-models, common snes metasprite metasprite-format metasprite-compiler) $(THIRD_PARTY)
 bin/untech-utsi2utms: $(call app-models, common snes sprite-importer metasprite metasprite-format utsi2utms) $(THIRD_PARTY)
 
 bin/untech-spriteimporter-gui: $(call app-models, common sprite-importer metasprite-format) $(THIRD_PARTY)

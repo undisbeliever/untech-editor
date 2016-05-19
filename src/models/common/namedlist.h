@@ -150,6 +150,18 @@ public:
     }
     std::pair<std::string, bool> getName(const T& e) const { return getName(&e); }
 
+    T* getPtr(const std::string& name) const
+    {
+        auto it = _values.find(name);
+
+        if (it != _values.end()) {
+            return it->second.get();
+        }
+        else {
+            return nullptr;
+        }
+    }
+
     // Expose the map
     T& at(const std::string& name) { return *_values.at(name).get(); }
     const T& at(const std::string& name) const { return *_values.at(name).get(); }

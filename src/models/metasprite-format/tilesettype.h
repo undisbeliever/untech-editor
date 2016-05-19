@@ -36,10 +36,14 @@ public:
 
     TilesetType(const TilesetType&) = default;
 
+    static TilesetType smallestFixedTileset(unsigned tilesetSize);
+
     unsigned nTiles() const;
     unsigned tilesetSplitPoint() const;
 
     Enum value() const { return _value; };
+    uint_fast8_t romValue() const { return (uint_fast8_t)_value; }
+
     const std::string& string() const { return enumMap.at(_value); }
     bool isFixed() const { return (unsigned)_value & 0x80; }
 

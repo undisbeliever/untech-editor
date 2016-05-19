@@ -100,6 +100,23 @@ struct ms8rect {
 
     inline usize size() const { return usize(width, height); }
 
+    // extends this m8rect so the inner ms8rect fits in it.
+    void extend(const ms8rect& inner)
+    {
+        if (inner.x < this->x) {
+            this->x = inner.x;
+        }
+        if (inner.y < this->y) {
+            this->y = inner.y;
+        }
+        if (inner.right() > this->right()) {
+            this->width = inner.right() - this->x;
+        }
+        if (inner.bottom() > this->bottom()) {
+            this->height = inner.bottom() - this->y;
+        }
+    }
+
     inline bool contains(const ms8point& p) const
     {
         return p.x >= left() && p.x < right()
