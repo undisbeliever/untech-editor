@@ -37,6 +37,65 @@ Frame::Frame(const Frame& frame, FrameSet& frameSet)
     }
 }
 
+std::unique_ptr<Frame> Frame::flip(bool hFlip, bool vFlip) const
+{
+    std::unique_ptr<Frame> ret = std::make_unique<Frame>(*this, this->_frameSet);
+
+    {
+        ms8rect r = ret->_tileHitbox;
+
+        if (hFlip) {
+            r.y = -r.y - r.height;
+        }
+        if (vFlip) {
+            r.x = -r.x - r.width;
+        }
+
+        ret->_tileHitbox = r;
+    }
+
+    for (auto& obj : ret->_objects) {
+        ms8point p = obj.location();
+
+        if (hFlip) {
+            p.y = -p.y - obj.sizePx();
+        }
+        if (vFlip) {
+            p.x = -p.x - obj.sizePx();
+        }
+
+        obj.setLocation(p);
+    }
+
+    for (auto& ap : ret->_actionPoints) {
+        ms8point p = ap.location();
+
+        if (hFlip) {
+            p.y = -p.y;
+        }
+        if (vFlip) {
+            p.x = -p.x;
+        }
+
+        ap.setLocation(p);
+    }
+
+    for (auto& eh : ret->_entityHitboxes) {
+        ms8rect r = eh.aabb();
+
+        if (hFlip) {
+            r.y = -r.y - r.height;
+        }
+        if (vFlip) {
+            r.x = -r.x - r.width;
+        }
+
+        eh.setAabb(r);
+    }
+
+    return ret;
+}
+
 Frame::Boundary Frame::calcBoundary() const
 {
     // These numbers are selected so that origin (0, 0) is always visible.

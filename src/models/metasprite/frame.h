@@ -52,6 +52,9 @@ public:
     void draw(Image& image, const Palette& palette,
               unsigned xOffset = 0, unsigned yOffset = 0) const;
 
+    // returns a unique_ptr so it can be easily inserted into a namedlist
+    std::unique_ptr<Frame> flip(bool hFlip, bool vFlip) const;
+
 private:
     FrameSet& _frameSet;
     OrderedList<Frame, FrameObject> _objects;

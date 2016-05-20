@@ -601,13 +601,15 @@ inline RomOffsetPtr Compiler::processFrameList(const std::vector<FrameListEntry>
         if (fle.frame != nullptr) {
             try {
                 uint32_t fo = 0;
+                const FrameTileset& frameTileset = tilesets.frameMap.at(fle.frame);
 
                 if (fle.hFlip == false && fle.vFlip == false) {
-                    fo = processFrame(*fle.frame, tilesets.frameMap.at(fle.frame));
+                    fo = processFrame(*fle.frame, frameTileset);
                 }
                 else {
-                    // ::TODO handle flipping::
-                    throw std::runtime_error("Flipping is not implemented");
+                    auto flippedFrame = fle.frame->flip(fle.hFlip, fle.vFlip);
+
+                    fo = processFrame(*flippedFrame, frameTileset);
                 }
 
                 frameOffsets.push_back(fo);
