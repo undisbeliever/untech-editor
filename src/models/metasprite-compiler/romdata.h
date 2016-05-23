@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITECOMPILER_ROMDATA_H
-#define _UNTECH_MODELS_METASPRITECOMPILER_ROMDATA_H
+#pragma once
 
 #include "models/common/hash.h"
 #include <algorithm>
@@ -298,5 +297,3 @@ private:
 };
 }
 }
-
-#endif

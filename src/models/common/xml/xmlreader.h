@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_XML_XMLREADER_H_
-#define _UNTECH_MODELS_COMMON_XML_XMLREADER_H_
+#pragma once
 
 #include "xml.h"
 #include "../aabb.h"
@@ -109,5 +108,3 @@ private:
 }
 }
 #include "xmltag.h"
-
-#endif

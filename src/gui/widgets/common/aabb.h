@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_AABB_H_
-#define _UNTECH_GUI_WIDGETS_AABB_H_
+#pragma once
 
 /*
  * A simple set of helper structs to reduce duplicate code holding a
@@ -372,5 +371,3 @@ private:
 };
 }
 }
-
-#endif

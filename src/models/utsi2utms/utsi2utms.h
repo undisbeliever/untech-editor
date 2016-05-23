@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_UTSI2UTMS_UTSI2UTMS_H
-#define _UNTECH_MODELS_UTSI2UTMS_UTSI2UTMS_H
+#pragma once
 
 #include "models/metasprite/document.h"
 #include "models/sprite-importer/document.h"
@@ -35,4 +34,3 @@ private:
     bool _hasError;
 };
 }
-#endif

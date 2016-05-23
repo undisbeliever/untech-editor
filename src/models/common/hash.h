@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_HASH_H
-#define _UNTECH_MODELS_COMMON_HASH_H
+#pragma once
 
 #include <cstdint>
 #include <vector>
@@ -21,5 +20,3 @@ struct hash<std::vector<uint8_t>> {
     }
 };
 }
-
-#endif

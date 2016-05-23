@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_METASPRITEWINDOW_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_METASPRITEWINDOW_H_
+#pragma once
 
 #include "metaspriteeditor.h"
 #include "selection.h"
@@ -63,5 +62,3 @@ private:
 }
 }
 }
-
-#endif

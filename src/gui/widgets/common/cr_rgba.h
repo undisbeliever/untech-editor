@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_CR_RGBA_H_
-#define _UNTECH_GUI_WIDGETS_COMMON_CR_RGBA_H_
+#pragma once
 
 #include <cairo.h>
 
@@ -14,5 +13,3 @@ struct cr_rgba {
         cr->set_source_rgba(red, green, blue, alpha);
     }
 };
-
-#endif

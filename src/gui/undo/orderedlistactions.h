@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_UNDO_ORDEREDLISTACTIONS_H_
-#define _UNTECH_GUI_UNDO_ORDEREDLISTACTIONS_H_
+#pragma once
 
 /*
  * This file is tightly coupled with the `UnTech::orderedlist` template and
@@ -332,5 +331,3 @@ inline void orderedList_moveDown(typename T::list_t* list,
 }
 }
 }
-
-#endif

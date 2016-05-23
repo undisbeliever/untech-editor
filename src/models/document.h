@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_DOCUMENT_H_
-#define _UNTECH_MODELS_DOCUMENT_H_
+#pragma once
 
 #include "common/file.h"
 #include "common/namedlist.h"
@@ -65,4 +64,3 @@ private:
     Undo::UndoStack* _undoStack;
 };
 }
-#endif

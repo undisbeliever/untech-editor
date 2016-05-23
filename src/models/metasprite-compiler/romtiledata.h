@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITECOMPILER_ROMTILEDATA_H
-#define _UNTECH_MODELS_METASPRITECOMPILER_ROMTILEDATA_H
+#pragma once
 
 #include "romdata.h"
 #include "models/snes/tile.h"
@@ -109,5 +108,3 @@ private:
 };
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_BASE64_H_
-#define _UNTECH_MODELS_COMMON_BASE64_H_
+#pragma once
 
 #include <cstdint>
 #include <string>
@@ -22,4 +21,3 @@ void encode(const std::vector<uint8_t>& data, std::ostream& file, unsigned inden
 std::vector<uint8_t> decode(const std::string& text);
 }
 }
-#endif

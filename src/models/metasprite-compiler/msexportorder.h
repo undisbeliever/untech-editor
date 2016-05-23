@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITEFORMAT_MSEXPORTORDER_H
-#define _UNTECH_MODELS_METASPRITEFORMAT_MSEXPORTORDER_H
+#pragma once
 
 // This is a quick job. I may expand on it later.
 
@@ -55,5 +54,3 @@ private:
 };
 }
 }
-
-#endif

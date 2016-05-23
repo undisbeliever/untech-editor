@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITEFORMAT_FRAMESETEXPORTORDER_H
-#define _UNTECH_MODELS_METASPRITEFORMAT_FRAMESETEXPORTORDER_H
+#pragma once
 
 #include "framesetexportorderserializer.h"
 #include "models/common/namedlist.h"
@@ -165,5 +164,3 @@ private:
 }
 }
 }
-
-#endif

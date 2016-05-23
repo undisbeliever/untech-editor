@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITE_DOCUMENT_H_
-#define _UNTECH_MODELS_METASPRITE_DOCUMENT_H_
+#pragma once
 
 #include "frameset.h"
 #include "serializer.h"
@@ -45,4 +44,3 @@ private:
 };
 }
 }
-#endif

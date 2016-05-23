@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_XML_XML_H_
-#define _UNTECH_MODELS_COMMON_XML_XML_H_
+#pragma once
 
 #include <string>
 
@@ -27,5 +26,3 @@ inline bool isName(const std::string& text)
 }
 }
 }
-
-#endif

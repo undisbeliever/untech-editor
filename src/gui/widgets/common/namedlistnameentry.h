@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_NAMEDLISTNAMEENTRY_H
-#define _UNTECH_GUI_WIDGETS_COMMON_NAMEDLISTNAMEENTRY_H
+#pragma once
 
 #include "gui/widgets/defaults.h"
 #include "models/common/namedlist.h"
@@ -33,5 +32,3 @@ class NamedListNameEntry : public Gtk::Entry {
 };
 }
 }
-
-#endif

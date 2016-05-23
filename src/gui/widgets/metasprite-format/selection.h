@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITEFORMAT_SELECTION_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITEFORMAT_SELECTION_H_
+#pragma once
 
 #include "models/metasprite-format/abstractframeset.h"
 
@@ -33,4 +32,3 @@ private:
 }
 }
 }
-#endif

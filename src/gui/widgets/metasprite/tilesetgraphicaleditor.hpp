@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_TILESETGRAPHICALEDITOR_HPP_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_TILESETGRAPHICALEDITOR_HPP_
+#pragma once
 
 #include "signals.h"
 #include "tilesetgraphicaleditor.h"
@@ -583,5 +582,3 @@ void TilesetGraphicalEditor<TilesetT>::setZoom(double x, double y)
 }
 }
 }
-
-#endif

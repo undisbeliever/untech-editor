@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITEFORMAT_SIGNALS_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITEFORMAT_SIGNALS_H_
+#pragma once
 
 #include "models/metasprite-format/abstractframeset.h"
 
@@ -27,5 +26,3 @@ extern sigc::signal<void, const MSF::AbstractFrameSet*> abstractFrameSetExportOr
 }
 }
 }
-
-#endif

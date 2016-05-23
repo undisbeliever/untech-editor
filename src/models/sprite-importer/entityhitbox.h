@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SPRITEIMPORTER_ENTITYHITBOX_H
-#define _UNTECH_MODELS_SPRITEIMPORTER_ENTITYHITBOX_H
+#pragma once
 
 #include "frame.h"
 #include "../common/aabb.h"
@@ -39,5 +38,3 @@ private:
 };
 }
 }
-
-#endif

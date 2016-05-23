@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_PALETTELIST_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_PALETTELIST_H_
+#pragma once
 
 #include "signals.h"
 #include "gui/widgets/common/orderedlist.h"
@@ -98,5 +97,3 @@ typedef OrderedListEditor<MS::Palette, Private::PaletteModelColumns> PaletteList
 }
 }
 }
-
-#endif

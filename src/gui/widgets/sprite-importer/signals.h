@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SIGNALS_H_
-#define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SIGNALS_H_
+#pragma once
 
 #include "models/sprite-importer.h"
 
@@ -41,5 +40,3 @@ extern sigc::signal<void, const SI::EntityHitbox::list_t*> entityHitboxListChang
 }
 }
 }
-
-#endif

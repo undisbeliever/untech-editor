@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SNES_PALETTE_HPP
-#define _UNTECH_MODELS_SNES_PALETTE_HPP
+#pragma once
 
 #include "palette.h"
 #include <stdexcept>
@@ -34,5 +33,3 @@ inline void Palette<BIT_DEPTH>::readPalette(const std::vector<uint8_t>& data)
 }
 }
 }
-
-#endif

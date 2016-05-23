@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_TILESETGRAPHICALEDITOR_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_TILESETGRAPHICALEDITOR_H_
+#pragma once
 
 #include "selection.h"
 
@@ -66,5 +65,3 @@ private:
 }
 }
 }
-
-#endif

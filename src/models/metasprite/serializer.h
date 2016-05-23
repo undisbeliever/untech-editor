@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITE_SERIALIZER_H
-#define _UNTECH_MODELS_METASPRITE_SERIALIZER_H
+#pragma once
 
 #include <memory>
 #include <ostream>
@@ -28,5 +27,3 @@ void writeFile(const FrameSet& frameSet, const std::string& filename);
 }
 }
 }
-
-#endif

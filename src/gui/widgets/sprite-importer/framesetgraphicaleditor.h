@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMESETGRAPHICALEDITOR_H_
-#define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMESETGRAPHICALEDITOR_H_
+#pragma once
 
 #include "selection.h"
 #include "models/sprite-importer.h"
@@ -79,5 +78,3 @@ private:
 }
 }
 }
-
-#endif

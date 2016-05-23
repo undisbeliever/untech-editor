@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_RGBA_H_
-#define _UNTECH_MODELS_COMMON_RGBA_H_
+#pragma once
 
 #include <cstdint>
 
@@ -48,4 +47,3 @@ union rgba {
     }
 };
 }
-#endif

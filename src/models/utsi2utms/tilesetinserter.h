@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_UTSI2UTMS_TILESETINSERTER_H_
-#define _UNTECH_MODELS_UTSI2UTMS_TILESETINSERTER_H_
+#pragma once
 
 #include "../metasprite/frameobject.h"
 #include "../snes/tileset.h"
@@ -135,5 +134,3 @@ private:
 };
 }
 }
-
-#endif

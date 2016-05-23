@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SPRITEIMPORTER_FRAMESETGRID_H
-#define _UNTECH_MODELS_SPRITEIMPORTER_FRAMESETGRID_H
+#pragma once
 
 #include "../common/aabb.h"
 #include <memory>
@@ -46,5 +45,3 @@ private:
 };
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_PALETTECOLORDIALOG_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_PALETTECOLORDIALOG_H_
+#pragma once
 
 #include "../common/colorarea.h"
 #include "models/metasprite/palette.h"
@@ -44,5 +43,3 @@ private:
 }
 }
 }
-
-#endif

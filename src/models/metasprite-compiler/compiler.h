@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITECOMPILER_COMPILER_H
-#define _UNTECH_MODELS_METASPRITECOMPILER_COMPILER_H
+#pragma once
 
 #include "romdata.h"
 #include "romtiledata.h"
@@ -131,5 +130,3 @@ private:
 };
 }
 }
-
-#endif

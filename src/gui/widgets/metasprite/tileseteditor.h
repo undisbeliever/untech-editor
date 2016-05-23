@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_TILESETEDITOR_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_TILESETEDITOR_H_
+#pragma once
 
 #include "tilesetgraphicaleditor.h"
 
@@ -32,5 +31,3 @@ private:
 }
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_SELECTION_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_SELECTION_H_
+#pragma once
 
 #include "gui/widgets/metasprite-format/selection.h"
 #include "models/metasprite.h"
@@ -99,4 +98,3 @@ private:
 }
 }
 }
-#endif

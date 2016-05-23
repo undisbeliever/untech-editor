@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_MS8AABB_H_
-#define _UNTECH_MODELS_COMMON_MS8AABB_H_
+#pragma once
 
 #include "aabb.h"
 #include "int_ms8_t.h"
@@ -134,4 +133,3 @@ struct ms8rect {
     }
 };
 }
-#endif

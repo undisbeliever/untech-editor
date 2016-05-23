@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SNES_SNESCOLOR_H_
-#define _UNTECH_MODELS_SNES_SNESCOLOR_H_
+#pragma once
 
 #include "models/common/rgba.h"
 #include <cstdint>
@@ -68,4 +67,3 @@ private:
 };
 }
 }
-#endif

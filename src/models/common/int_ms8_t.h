@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_INT_MS8_T_H_
-#define _UNTECH_MODELS_COMMON_INT_MS8_T_H_
+#pragma once
 
 #include <cstdint>
 
@@ -81,4 +80,3 @@ public:
     inline uint8_t romData() const { return data + OFFSET; }
 };
 }
-#endif

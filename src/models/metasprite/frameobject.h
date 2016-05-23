@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITE_FRAMEOBJECT_H
-#define _UNTECH_MODELS_METASPRITE_FRAMEOBJECT_H
+#pragma once
 
 #include "frame.h"
 #include "../common/ms8aabb.h"
@@ -80,5 +79,3 @@ private:
 };
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_METASPRITEAPPLICATION_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_METASPRITEAPPLICATION_H_
+#pragma once
 
 #include "models/metasprite/document.h"
 
@@ -43,5 +42,3 @@ private:
 }
 }
 }
-
-#endif

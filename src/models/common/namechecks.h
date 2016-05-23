@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_NAMEDCHECKS_H_
-#define _UNTECH_MODELS_COMMON_NAMEDCHECKS_H_
+#pragma once
 
 #include <string>
 
@@ -28,5 +27,3 @@ inline static bool isNameValid(const std::string& name)
     return true;
 }
 }
-
-#endif

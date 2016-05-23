@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SNES_PALETTE_H
-#define _UNTECH_MODELS_SNES_PALETTE_H
+#pragma once
 
 #include "snescolor.h"
 #include "../common/ms8aabb.h"
@@ -51,5 +50,3 @@ typedef Palette<4> Palette4bpp;
 typedef Palette<8> Palette8bpp;
 }
 }
-
-#endif

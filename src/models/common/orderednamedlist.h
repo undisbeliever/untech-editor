@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_NAMEDORDEREDLIST_H_
-#define _UNTECH_MODELS_COMMON_NAMEDORDEREDLIST_H_
+#pragma once
 
 #include "namechecks.h"
 #include <algorithm>
@@ -286,5 +285,3 @@ private:
     std::unordered_map<std::string, const T*> _nameMap;
 };
 }
-
-#endif

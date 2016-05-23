@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SNES_TILESET_HPP_
-#define _UNTECH_MODELS_SNES_TILESET_HPP_
+#pragma once
 
 #include "tile.hpp"
 #include "tileset.h"
@@ -50,4 +49,3 @@ inline void Tileset<TileT>::readSnesData(const std::vector<uint8_t>& in)
 }
 }
 }
-#endif

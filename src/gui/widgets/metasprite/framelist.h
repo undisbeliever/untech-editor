@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_FRAMELIST_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_FRAMELIST_H_
+#pragma once
 
 #include "signals.h"
 #include "gui/widgets/common/namedlist.h"
@@ -58,5 +57,3 @@ typedef NamedListEditor<MS::Frame, Private::FrameModelColumns> FrameListEditor;
 }
 }
 }
-
-#endif

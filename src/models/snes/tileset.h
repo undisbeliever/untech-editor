@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SNES_TILESET_H_
-#define _UNTECH_MODELS_SNES_TILESET_H_
+#pragma once
 
 #include "palette.h"
 #include "tile.h"
@@ -51,4 +50,3 @@ typedef Tileset<Tile8bpp8px> Tileset8bpp8px;
 typedef Tileset<Tile4bpp16px> Tileset4bpp16px;
 }
 }
-#endif

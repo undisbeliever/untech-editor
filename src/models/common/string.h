@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_STRING_H_
-#define _UNTECH_MODELS_COMMON_STRING_H_
+#pragma once
 
 #include <climits>
 #include <cstdint>
@@ -131,4 +130,3 @@ static inline std::pair<unsigned, bool> hexToUnsigned(const std::string& s)
 }
 }
 }
-#endif

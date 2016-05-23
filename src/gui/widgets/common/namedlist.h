@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_NAMEDLIST_H
-#define _UNTECH_GUI_WIDGETS_COMMON_NAMEDLIST_H
+#pragma once
 
 #include "namedlistdialog.h"
 #include "gui/undo/namedlistactions.h"
@@ -394,4 +393,3 @@ private:
 };
 }
 }
-#endif

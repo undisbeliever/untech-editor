@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SPRITEIMPORTER_FRAMEOBJECT_H
-#define _UNTECH_MODELS_SPRITEIMPORTER_FRAMEOBJECT_H
+#pragma once
 
 #include "frame.h"
 #include "../common/aabb.h"
@@ -54,5 +53,3 @@ private:
 };
 }
 }
-
-#endif

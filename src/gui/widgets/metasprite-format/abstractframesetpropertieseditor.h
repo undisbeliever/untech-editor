@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITEFORMAT_METASPRITEFORMATEDITOR_H
-#define _UNTECH_GUI_WIDGETS_METASPRITEFORMAT_METASPRITEFORMATEDITOR_H
+#pragma once
 
 #include "framesetexportorderrotreeview.h"
 #include "selection.h"
@@ -58,4 +57,3 @@ private:
 }
 }
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_ABOUTDIALOG_H
-#define _UNTECH_GUI_WIDGETS_COMMON_ABOUTDIALOG_H
+#pragma once
 
 #include "version.h"
 #include <glibmm/i18n.h>
@@ -40,4 +39,3 @@ inline void showAboutDialog(Gtk::Window* parent)
 }
 }
 }
-#endif

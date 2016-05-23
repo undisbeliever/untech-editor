@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERWINDOW_H_
-#define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_SPRITEIMPORTERWINDOW_H_
+#pragma once
 
 #include "selection.h"
 #include "spriteimportereditor.h"
@@ -61,5 +60,3 @@ private:
 }
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITEFORMAT_FRAMESETEXPORTORDERTROTREEVIEW_H
-#define _UNTECH_GUI_WIDGETS_METASPRITEFORMAT_FRAMESETEXPORTORDERTROTREEVIEW_H
+#pragma once
 
 #include "models/metasprite-format/framesetexportorder.h"
 
@@ -40,4 +39,3 @@ private:
 }
 }
 }
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_ENUMCLASSCOMBOBOX_H
-#define _UNTECH_GUI_WIDGETS_COMMON_ENUMCLASSCOMBOBOX_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -80,4 +79,3 @@ private:
 };
 }
 }
-#endif

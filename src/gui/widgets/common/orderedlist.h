@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_ORDEREDLIST_H
-#define _UNTECH_GUI_WIDGETS_COMMON_ORDEREDLIST_H
+#pragma once
 
 #include "gui/undo/orderedlistactions.h"
 #include "gui/widgets/defaults.h"
@@ -358,4 +357,3 @@ private:
 };
 }
 }
-#endif

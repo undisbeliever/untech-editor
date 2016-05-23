@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_ATOMICOFSTREAM_H
-#define _UNTECH_MODELS_COMMON_ATOMICOFSTREAM_H
+#pragma once
 
 #include <fstream>
 #include <string>
@@ -48,4 +47,3 @@ private:
     State _state;
 };
 }
-#endif

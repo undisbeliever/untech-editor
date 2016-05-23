@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_XML_XMLWRITER_H_
-#define _UNTECH_MODELS_COMMON_XML_XMLWRITER_H_
+#pragma once
 
 #include "xml.h"
 #include "../aabb.h"
@@ -106,5 +105,3 @@ private:
 };
 }
 }
-
-#endif

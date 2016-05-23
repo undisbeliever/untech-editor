@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_COMMON_COLORTOGGLEBUTTON_H_
-#define _UNTECH_GUI_COMMON_COLORTOGGLEBUTTON_H_
+#pragma once
 
 #include "colorarea.h"
 #include <gtkmm.h>
@@ -30,5 +29,3 @@ private:
 };
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_NAMEDLIST_H_
-#define _UNTECH_MODELS_COMMON_NAMEDLIST_H_
+#pragma once
 
 #include "namechecks.h"
 #include <map>
@@ -212,5 +211,3 @@ private:
     std::unordered_map<const T*, std::string> _names;
 };
 }
-
-#endif

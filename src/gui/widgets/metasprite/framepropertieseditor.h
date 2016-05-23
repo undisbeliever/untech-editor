@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_FRAMEPROPERTIESEDITOR_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_FRAMEPROPERTIESEDITOR_H_
+#pragma once
 
 #include "selection.h"
 #include "gui/widgets/common/ms8aabb.h"
@@ -39,5 +38,3 @@ private:
 }
 }
 }
-
-#endif

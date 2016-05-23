@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_UNDO_MERGE_ACTIONHELPER_H_
-#define _UNTECH_GUI_UNDO_MERGE_ACTIONHELPER_H_
+#pragma once
 
 #include "undostack.h"
 #include "models/document.h"
@@ -245,5 +244,3 @@
             }                                                                    \
         }                                                                        \
     }
-
-#endif

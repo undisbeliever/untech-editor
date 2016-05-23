@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_COLOR_AREA_H_
-#define _UNTECH_GUI_WIDGETS_COMMON_COLOR_AREA_H_
+#pragma once
 
 #include "models/common/rgba.h"
 
@@ -27,5 +26,3 @@ private:
 };
 }
 }
-
-#endif

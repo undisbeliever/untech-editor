@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITEFORMAT_TILESETTYPE_H
-#define _UNTECH_MODELS_METASPRITEFORMAT_TILESETTYPE_H
+#pragma once
 
 #include <cstdint>
 #include <map>
@@ -72,5 +71,3 @@ private:
 };
 }
 }
-
-#endif

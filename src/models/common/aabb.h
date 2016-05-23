@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_AABB_H_
-#define _UNTECH_MODELS_COMMON_AABB_H_
+#pragma once
 
 #include <algorithm>
 
@@ -228,4 +227,3 @@ inline bool usize::contains(const urect& r) const
     return r.right() <= width && r.bottom() <= height;
 }
 }
-#endif

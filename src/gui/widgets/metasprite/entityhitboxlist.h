@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_ENTITYHITBOXLIST_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_ENTITYHITBOXLIST_H_
+#pragma once
 
 #include "signals.h"
 #include "gui/widgets/common/orderedlist.h"
@@ -59,5 +58,3 @@ typedef OrderedListEditor<MS::EntityHitbox, Private::EntityHitboxModelColumns> E
 }
 }
 }
-
-#endif

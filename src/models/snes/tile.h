@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SNES_TILE_H_
-#define _UNTECH_MODELS_SNES_TILE_H_
+#pragma once
 
 #include "palette.h"
 #include "../common/image.h"
@@ -149,5 +148,3 @@ struct TileTraits<4, 16> {
 };
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_FILE_H_
-#define _UNTECH_MODELS_COMMON_FILE_H_
+#pragma once
 
 #include <string>
 #include <utility>
@@ -54,4 +53,3 @@ std::string fullPath(const std::string& path);
 std::string relativePath(const std::string& sourceDir, const std::string& destPath);
 }
 }
-#endif

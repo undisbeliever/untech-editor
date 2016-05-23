@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMELIST_H_
-#define _UNTECH_GUI_WIDGETS_SPRITEIMPORTER_FRAMELIST_H_
+#pragma once
 
 #include "signals.h"
 #include "gui/widgets/common/namedlist.h"
@@ -68,5 +67,3 @@ typedef NamedListEditor<SI::Frame, Private::FrameModelColumns> FrameListEditor;
 }
 }
 }
-
-#endif

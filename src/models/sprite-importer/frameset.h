@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SPRITEIMPORTER_FRAMESET_H
-#define _UNTECH_MODELS_SPRITEIMPORTER_FRAMESET_H
+#pragma once
 
 #include "framesetgrid.h"
 #include "models/common/aabb.h"
@@ -78,5 +77,3 @@ private:
 };
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_IMAGE_H_
-#define _UNTECH_MODELS_COMMON_IMAGE_H_
+#pragma once
 
 #include "aabb.h"
 #include "rgba.h"
@@ -77,4 +76,3 @@ private:
     std::string _errorString;
 };
 }
-#endif

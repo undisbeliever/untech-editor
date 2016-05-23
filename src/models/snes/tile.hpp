@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_SNES_TILE_HPP_
-#define _UNTECH_MODELS_SNES_TILE_HPP_
+#pragma once
 
 #include "tileset.h"
 #include <cstring>
@@ -314,5 +313,3 @@ struct hash<::UnTech::Snes::Tile16px<BD>> {
     }
 };
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITEFORMAT_FRAMESETEXPORTORDERSERIALIZER_H
-#define _UNTECH_MODELS_METASPRITEFORMAT_FRAMESETEXPORTORDERSERIALIZER_H
+#pragma once
 
 #include <string>
 
@@ -16,5 +15,3 @@ void writeFile(const ExportOrder& exportOrder, const std::string& filename);
 }
 }
 }
-
-#endif

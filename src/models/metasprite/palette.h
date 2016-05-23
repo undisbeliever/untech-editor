@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITE_PALETTE_H
-#define _UNTECH_MODELS_METASPRITE_PALETTE_H
+#pragma once
 
 #include "frameset.h"
 #include "../common/orderedlist.h"
@@ -41,5 +40,3 @@ private:
 };
 }
 }
-
-#endif

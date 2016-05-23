@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITE_FRAME_H
-#define _UNTECH_MODELS_METASPRITE_FRAME_H
+#pragma once
 
 #include "frameset.h"
 #include "../common/image.h"
@@ -66,5 +65,3 @@ private:
 };
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITEFORMAT_ABSTRACTFRAMESET_H
-#define _UNTECH_MODELS_METASPRITEFORMAT_ABSTRACTFRAMESET_H
+#pragma once
 
 #include "tilesettype.h"
 #include "models/document.h"
@@ -45,5 +44,3 @@ private:
 };
 }
 }
-
-#endif

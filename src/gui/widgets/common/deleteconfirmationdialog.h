@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_DELETECONFIRATIONDIALOG_H
-#define _UNTECH_GUI_WIDGETS_COMMON_DELETECONFIRATIONDIALOG_H
+#pragma once
 
 #include <glibmm/i18n.h>
 #include <gtkmm/messagedialog.h>
@@ -15,4 +14,3 @@ public:
 };
 }
 }
-#endif

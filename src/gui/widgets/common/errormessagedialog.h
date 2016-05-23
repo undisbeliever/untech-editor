@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_COMMON_ERRORMESSAGEDIALOG_H
-#define _UNTECH_GUI_WIDGETS_COMMON_ERRORMESSAGEDIALOG_H
+#pragma once
 
 #include <glibmm/i18n.h>
 #include <gtkmm.h>
@@ -44,4 +43,3 @@ inline void showErrorMessage(Gtk::Widget& parent, const char* message, const std
 }
 }
 }
-#endif

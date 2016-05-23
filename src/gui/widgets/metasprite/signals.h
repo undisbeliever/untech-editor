@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_MSGNALS_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_MSGNALS_H_
+#pragma once
 
 #include "models/metasprite.h"
 
@@ -45,5 +44,3 @@ extern sigc::signal<void, const MS::EntityHitbox::list_t*> entityHitboxListChang
 }
 }
 }
-
-#endif

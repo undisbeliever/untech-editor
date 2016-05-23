@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_METASPRITE_FRAMESET_H
-#define _UNTECH_MODELS_METASPRITE_FRAMESET_H
+#pragma once
 
 #include "models/common/ms8aabb.h"
 #include "models/common/namedlist.h"
@@ -59,5 +58,3 @@ private:
 };
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_GUI_WIDGETS_METASPRITE_METASPRITEEDITOR_H_
-#define _UNTECH_GUI_WIDGETS_METASPRITE_METASPRITEEDITOR_H_
+#pragma once
 
 #include "actionpointeditor.h"
 #include "actionpointlist.h"
@@ -104,5 +103,3 @@ private:
 }
 }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef _UNTECH_MODELS_COMMON_ORDEREDLIST_H_
-#define _UNTECH_MODELS_COMMON_ORDEREDLIST_H_
+#pragma once
 
 #include <algorithm>
 #include <memory>
@@ -193,5 +192,3 @@ private:
     std::vector<std::unique_ptr<T>> _list;
 };
 }
-
-#endif
