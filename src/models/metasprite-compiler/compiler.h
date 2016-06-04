@@ -118,12 +118,11 @@ private:
 
     RomTileData _tileData;
     RomIncData _tilesetData;
-    RomIncData _dmaData;
 
-    RomBinData _tileCollisionData;
     RomBinData _frameObjectData;
-    RomBinData _actionPointData;
+    RomBinData _tileHitboxData;
     RomBinData _entityHitboxData;
+    RomBinData _actionPointData;
 
     std::list<std::string> _errors;
     std::list<std::string> _warnings;

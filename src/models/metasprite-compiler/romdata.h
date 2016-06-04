@@ -64,11 +64,9 @@ public:
         _size += sizeOfType(type);
     }
 
-    void addField(Type type, const RomOffsetPtr& data)
+    void addAddr(const RomOffsetPtr& data)
     {
-        assert(type == Type::ADDR || type == Type::FARADDR);
-
-        writeType(type);
+        writeType(RomIncItem::ADDR);
 
         if (data.label != nullptr) {
             _stream << *data.label << " + " << data.offset;
@@ -77,7 +75,21 @@ public:
             _stream << data.offset;
         }
 
-        _size += sizeOfType(type);
+        _size += 2;
+    }
+
+    void addIndex(const RomOffsetPtr& data)
+    {
+        writeType(RomIncItem::ADDR);
+        _stream << data.offset;
+        _size += 2;
+    }
+
+    void addTilePtr(const RomOffsetPtr& data)
+    {
+        writeType(RomIncItem::ADDR);
+        _stream << "(" << *data.label << " + " << data.offset << ") >> 7";
+        _size += 2;
     }
 
 protected:
@@ -110,23 +122,23 @@ protected:
         else {
             switch (type) {
             case BYTE:
-                _stream << "\n\t.byte ";
+                _stream << "\n\tdb\t";
                 break;
 
             case WORD:
-                _stream << "\n\t.word ";
+                _stream << "\n\tdw\t";
                 break;
 
             case DWORD:
-                _stream << "\n\t.dword ";
+                _stream << "\n\tdd\t";
                 break;
 
             case ADDR:
-                _stream << "\n\t.addr ";
+                _stream << "\n\tdw\t";
                 break;
 
             case FARADDR:
-                _stream << "\n\t.faraddr ";
+                _stream << "\n\tdl\t";
                 break;
 
             default:
@@ -145,12 +157,14 @@ private:
 
 class RomIncData {
 public:
-    RomIncData(const std::string& label, const std::string& segmentName)
+    RomIncData(const std::string& label, const std::string& segmentName,
+               bool nullableType = false)
         : _label(label)
         , _segmentName(segmentName)
         , _size(0)
         , _map()
         , _stream()
+        , _nullableType(nullableType)
     {
     }
 
@@ -191,6 +205,7 @@ private:
     uint32_t _size;
     std::unordered_map<std::string, uint32_t> _map;
     std::stringstream _stream;
+    bool _nullableType;
 };
 
 class RomAddrTable {
@@ -198,11 +213,13 @@ public:
     static const unsigned ADDR_PER_LINE = 8;
 
 public:
-    RomAddrTable(const std::string& label, const std::string& segmentName, const std::string& dataLabel)
+    RomAddrTable(const std::string& label, const std::string& segmentName,
+                 const std::string& dataLabel, bool nullableType = false)
         : _label(label)
         , _segmentName(segmentName)
         , _dataLabel(dataLabel)
         , _offsets()
+        , _nullableType(nullableType)
     {
     }
 
@@ -249,6 +266,7 @@ private:
     const std::string _segmentName;
     const std::string _dataLabel;
     std::vector<uint32_t> _offsets;
+    bool _nullableType;
 };
 
 class RomBinData {
@@ -256,12 +274,14 @@ public:
     const unsigned BYTES_PER_LINE = 16;
 
 public:
-    RomBinData(const std::string& label, const std::string& segmentName)
+    RomBinData(const std::string& label, const std::string& segmentName,
+               bool nullableType = false)
         : _label(label)
         , _segmentName(segmentName)
         , _size(0)
         , _map()
         , _data()
+        , _nullableType(nullableType)
     {
     }
     RomBinData(const RomBinData&) = delete;
@@ -294,6 +314,7 @@ private:
     uint32_t _size;
     std::unordered_map<std::vector<uint8_t>, uint32_t> _map;
     std::vector<uint8_t> _data;
+    bool _nullableType;
 };
 }
 }

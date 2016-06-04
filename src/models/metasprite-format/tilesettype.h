@@ -10,20 +10,20 @@ namespace MetaSpriteFormat {
 class TilesetType {
 public:
     enum class Enum : uint_fast8_t {
-        ONE_16_TILE = 0x00,
-        TWO_16_TILES = 0x02,
-        ONE_VRAM_ROW = 0x04,
-        TWO_VRAM_ROWS = 0x06,
-        ONE_16_TILE_FIXED = 0x80,
-        TWO_16_TILES_FIXED = 0x82,
-        ONE_VRAM_ROW_FIXED = 0x84,
-        TWO_VRAM_ROWS_FIXED = 0x86
+        ONE_TILE = 0x00,
+        TWO_TILES = 0x02,
+        ONE_ROW = 0x04,
+        TWO_ROWS = 0x06,
+        ONE_TILE_FIXED = 0x80,
+        TWO_TILES_FIXED = 0x82,
+        ONE_ROW_FIXED = 0x84,
+        TWO_ROWS_FIXED = 0x86
     };
 
     static const std::map<Enum, std::string> enumMap;
     static const std::map<std::string, Enum> stringMap;
 
-    TilesetType(const Enum v = Enum::ONE_16_TILE)
+    TilesetType(const Enum v = Enum::ONE_TILE)
         : _value(v)
     {
     }

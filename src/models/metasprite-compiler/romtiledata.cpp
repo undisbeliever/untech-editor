@@ -19,7 +19,8 @@ void RomTileData::writeToIncFile(std::ostream& out) const
     const unsigned nBlocks = _tiles.size() / tilesPerBlock + 1;
 
     for (unsigned blockId = 0; blockId < nBlocks; blockId++) {
-        out << "\n.segment \"" << _segmentPrefix << '_' << blockId << "\"\n"
+        out << "\nrodata(" << _segmentPrefix << '_' << blockId << ")\n"
+            << "\tassert(pc() & 0x7f == 0)\n"
             << _blockPrefix << '_' << std::dec << blockId << ":\n";
 
         out << std::hex << std::setfill('0');
@@ -38,7 +39,7 @@ void RomTileData::writeToIncFile(std::ostream& out) const
             unsigned bPos = 0;
             unsigned lines = SNES_DATA_SIZE / BYTES_PER_LINE;
             for (unsigned l = 0; l < lines; l++) {
-                out << "\t.byte\t$" << std::setw(2) << (short)buffer[bPos];
+                out << "\tdb\t$" << std::setw(2) << (short)buffer[bPos];
                 bPos++;
 
                 for (unsigned j = 1; j < BYTES_PER_LINE; j++) {

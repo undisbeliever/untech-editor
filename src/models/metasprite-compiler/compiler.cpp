@@ -11,19 +11,18 @@ namespace MSF = UnTech::MetaSpriteFormat;
 // ::TODO generate debug file::
 
 Compiler::Compiler(unsigned tilesetBlockSize)
-    : _frameSetData("FSD", "METASPRITE_FRAMESET_DATA_BLOCK")
-    , _frameSetList("FSL", "METASPRITE_FRAMESET_LIST_BLOCK", "FSD")
-    , _frameData("FD", "METASPRITE_FRAME_DATA_BLOCK")
-    , _frameList("FL", "METASPRITE_FRAME_LIST_BLOCK", "FL")
-    , _paletteData("PD", "METASPRITE_PALETTE_DATA_BLOCK")
-    , _paletteList("PL", "METASPRITE_PALETTE_LIST_BLOCK", "PD")
-    , _tileData("TB", "METASPRITE_TILE_BLOCK", tilesetBlockSize)
-    , _tilesetData("TS", "METASPRITE_TILESET_TABLE_BLOCK")
-    , _dmaData("Dma", "METASPRITE_DMA_TABLE_BLOCK")
-    , _tileCollisionData("TC", "METASPRITE_TILE_COLLISION_BLOCK")
-    , _frameObjectData("FO", "METASPRITE_FRAME_OBJECTS_BLOCK")
-    , _actionPointData("AP", "METASPRITE_ACTION_POINT_BLOCK")
-    , _entityHitboxData("EH", "METASPRITE_ENTITY_HITBOX_BLOCK")
+    : _frameSetData("FSD", "MS_FrameSetData")
+    , _frameSetList("FSL", "MS_FrameSetList", "FSD")
+    , _frameData("FD", "MS_FrameData")
+    , _frameList("FL", "MS_FrameList", "FD")
+    , _paletteData("PD", "MS_PaletteData")
+    , _paletteList("PL", "MS_PaletteList", "PD")
+    , _tileData("TB", "MS_TileBlock", tilesetBlockSize)
+    , _tilesetData("TS", "DMA_Tile16Data")
+    , _frameObjectData("FO", "MS_FrameObjectsData", true)
+    , _tileHitboxData("TC", "MS_TileHitboxData", true)
+    , _entityHitboxData("EH", "MS_EntityHitboxData", true)
+    , _actionPointData("AP", "MS_ActionPointsData", true)
     , _errors()
     , _warnings()
 {
@@ -31,21 +30,19 @@ Compiler::Compiler(unsigned tilesetBlockSize)
 
 void Compiler::writeToIncFile(std::ostream& out) const
 {
-    out << ".include \"config.h\"\n\n"
-        << ".export MetaSpriteFrameSetTable : far := FSL\n"
-        << ".export MetaSpriteFrameSetTable_end : far := FSL_end\n\n";
-
     // ::TODO animation data::
+
+    out << "scope MetaSprite {\n"
+           "scope Data {\n";
 
     _paletteData.writeToIncFile(out);
     _paletteList.writeToIncFile(out);
 
     _tileData.writeToIncFile(out);
     _tilesetData.writeToIncFile(out);
-    _dmaData.writeToIncFile(out);
 
     _frameObjectData.writeToIncFile(out);
-    _tileCollisionData.writeToIncFile(out);
+    _tileHitboxData.writeToIncFile(out);
     _actionPointData.writeToIncFile(out);
     _entityHitboxData.writeToIncFile(out);
 
@@ -54,7 +51,10 @@ void Compiler::writeToIncFile(std::ostream& out) const
 
     _frameSetData.writeToIncFile(out);
     _frameSetList.writeToIncFile(out);
-    out << "FSL_end:\n";
+    out << "constant FrameSetListCount((pc() - FSL)/2)\n";
+
+    out << "}\n"
+           "}\n";
 }
 
 /*
@@ -131,35 +131,16 @@ void Compiler::buildTileset(FrameTileset& tileset,
     assert(tileCount > 0);
     assert(tileCount <= tilesetType.nTiles());
 
+    RomIncItem tilesetTable;
+    tilesetTable.addField(RomIncItem::BYTE, tileCount);
+
     unsigned tilePos = 0;
-    unsigned tilesetSplitPoint = tilesetType.tilesetSplitPoint();
-
-    RomIncItem dmaTable0;
-    RomIncItem dmaTable1;
-
-    // MetaSprite__DmaTable::transferType (byte - equal to (ntiles - 1) / 2)
-    {
-        unsigned nt = std::min(tileCount, tilesetSplitPoint);
-        dmaTable0.addField(RomIncItem::BYTE, (nt - 1) / 2);
-
-        if (tileCount >= tilesetSplitPoint) {
-            unsigned nt = tileCount - tilesetSplitPoint;
-            dmaTable1.addField(RomIncItem::BYTE, (nt - 1) / 2);
-        }
-    }
 
     // Process Tiles
     {
         auto addTile = [&](const Snes::Tile4bpp16px& tile) mutable {
             auto a = _tileData.addLargeTile(tile);
-
-            // MetaSprite__DmaTable::address FARADDR
-            if (tilePos < tilesetSplitPoint) {
-                dmaTable0.addField(RomIncItem::FARADDR, a.addr);
-            }
-            else {
-                dmaTable1.addField(RomIncItem::FARADDR, a.addr);
-            }
+            tilesetTable.addTilePtr(a.addr);
 
             tilePos++;
 
@@ -197,7 +178,7 @@ void Compiler::buildTileset(FrameTileset& tileset,
         };
 
         // Process Large Tiles
-        CharAttrPos charAttrPos(tilesetSplitPoint);
+        CharAttrPos charAttrPos(tilesetType.tilesetSplitPoint());
         charAttrPos.setLarge();
 
         for (unsigned tId : largeTiles) {
@@ -251,28 +232,7 @@ void Compiler::buildTileset(FrameTileset& tileset,
     }
 
     // Store the DMA data and tileset
-    {
-        RomIncItem tilesetTable;
-
-        // MetaSprite__tileset::count
-        tilesetTable.addField(RomIncItem::BYTE, tileCount);
-
-        // MetaSprite__tileset::dmaTable0
-        auto t0 = _dmaData.addData(dmaTable0);
-        tilesetTable.addField(RomIncItem::ADDR, t0);
-
-        // MetaSprite__tileset::dmaTable1
-        if (tileCount < tilesetSplitPoint) {
-            // no second dma table
-            tilesetTable.addField(RomIncItem::ADDR, 0);
-        }
-        else {
-            auto t1 = _dmaData.addData(dmaTable1);
-            tilesetTable.addField(RomIncItem::ADDR, t1);
-        }
-
-        tileset.tilesetOffset = _tilesetData.addData(tilesetTable);
-    }
+    tileset.tilesetOffset = _tilesetData.addData(tilesetTable);
 }
 
 inline Compiler::FrameTilesetList
@@ -543,7 +503,7 @@ inline RomOffsetPtr Compiler::processTileCollisionHitbox(const MS::Frame& frame)
     *(data++) = aabb.width;       // width
     *(data++) = aabb.height;      // height
 
-    return _tileCollisionData.addData(romData);
+    return _tileHitboxData.addData(romData);
 }
 
 inline RomOffsetPtr Compiler::processActionPoints(const MS::ActionPoint::list_t& actionPoints)
@@ -576,15 +536,15 @@ uint32_t Compiler::processFrame(const MS::Frame& frame, const FrameTileset& tile
 {
     RomOffsetPtr frameObjects = processFrameObjects(frame.objects(), tileset);
     RomOffsetPtr enityHitbox = processEntityHitboxes(frame.entityHitboxes());
-    RomOffsetPtr tileCollisionHitbox = processTileCollisionHitbox(frame);
+    RomOffsetPtr tileHitboxHitbox = processTileCollisionHitbox(frame);
     RomOffsetPtr actionPoints = processActionPoints(frame.actionPoints());
 
     RomIncItem data;
-    data.addField(RomIncItem::ADDR, frameObjects);
-    data.addField(RomIncItem::ADDR, enityHitbox);
-    data.addField(RomIncItem::ADDR, tileCollisionHitbox);
-    data.addField(RomIncItem::ADDR, actionPoints);
-    data.addField(RomIncItem::ADDR, tileset.tilesetOffset);
+    data.addAddr(frameObjects);
+    data.addAddr(enityHitbox);
+    data.addAddr(tileHitboxHitbox);
+    data.addAddr(actionPoints);
+    data.addAddr(tileset.tilesetOffset);
 
     return _frameData.addData(data).offset;
 }
@@ -662,15 +622,27 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
         RomOffsetPtr fsAnimations;
         unsigned nAnimations = 0;
 
+        // FRAMESET DATA
+        // -------------
         RomIncItem frameSet;
 
-        frameSet.addField(RomIncItem::ADDR, fsPalettes);                      // paletteList
-        frameSet.addField(RomIncItem::BYTE, nPalettes);                       // nPalettes
-        frameSet.addField(RomIncItem::BYTE, tilesets.tilesetType.romValue()); // tilesetType
-        frameSet.addField(RomIncItem::ADDR, fsFrames);                        // frameList
-        frameSet.addField(RomIncItem::BYTE, nFrames);                         // nFrames
-        frameSet.addField(RomIncItem::ADDR, fsAnimations);                    // animationsList
-        frameSet.addField(RomIncItem::BYTE, nAnimations);                     // nAnimations
+        frameSet.addIndex(fsPalettes);                  // paletteTable
+        frameSet.addField(RomIncItem::BYTE, nPalettes); // nPalettes
+
+        // tileset
+        if (tilesets.tilesets.size() == 1) {
+            frameSet.addAddr(tilesets.tilesets.front().tilesetOffset);
+        }
+        else {
+            frameSet.addField(RomIncItem::ADDR, 0);
+        }
+
+        frameSet.addField(RomIncItem::BYTE,
+                          tilesets.tilesetType.romValue()); // tilesetType
+        frameSet.addIndex(fsFrames);                        // frameTable
+        frameSet.addField(RomIncItem::BYTE, nFrames);       // nFrames
+        frameSet.addIndex(fsAnimations);                    // animationsTable
+        frameSet.addField(RomIncItem::BYTE, nAnimations);   // nAnimations
 
         RomOffsetPtr ptr = _frameSetData.addData(frameSet);
         _frameSetList.addOffset(ptr.offset);

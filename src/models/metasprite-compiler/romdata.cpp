@@ -9,18 +9,23 @@ void RomIncData::writeToIncFile(std::ostream& out) const
 {
     // Skip new line after _stream as the first char of stream is a newline
 
-    out << "\n.segment \"" << _segmentName << "\""
-        << "\n\t.assert .loword(*) != 0, lderror, \"" << _label << " must not start on .loword(0)\"\n"
-        << _label << ":"
+    out << "\nrodata(" << _segmentName << ")\n";
+
+    if (_nullableType) {
+        out << "\tassert(pc() & 0xffff != 0)\n";
+    }
+    out << _label << ":"
         << _stream.str()
         << '\n';
 }
 
 void RomAddrTable::writeToIncFile(std::ostream& out) const
 {
-    out << "\n.segment \"" << _segmentName << "\""
-        << "\n\t.assert .loword(*) != 0, lderror, \"" << _label << " must not start on .loword(0)\"\n"
-        << _label << ":";
+    out << "\nrodata(" << _segmentName << ")\n";
+    if (_nullableType) {
+        out << "\tassert(pc() & 0xffff != 0)\n";
+    }
+    out << _label << ":";
 
     auto oldWidth = out.width();
     auto oldFlags = out.flags();
@@ -37,7 +42,7 @@ void RomAddrTable::writeToIncFile(std::ostream& out) const
     };
 
     for (unsigned i = 0; i < _offsets.size(); i += ADDR_PER_LINE) {
-        out << "\n\t.addr\t";
+        out << "\n\tdw\t";
         writeOffset(i);
 
         const unsigned end = std::min<unsigned>(i + ADDR_PER_LINE,
@@ -58,9 +63,11 @@ void RomAddrTable::writeToIncFile(std::ostream& out) const
 
 void RomBinData::writeToIncFile(std::ostream& out) const
 {
-    out << "\n.segment \"" << _segmentName << "\""
-        << "\n\t.assert .loword(*) != 0, lderror, \"" << _label << " must not start on .loword(0)\"\n"
-        << _label << ":\n";
+    out << "\nrodata(" << _segmentName << ")\n";
+    if (_nullableType) {
+        out << "\tassert(pc() & 0xffff != 0)\n";
+    }
+    out << _label << ":\n";
 
     auto oldWidth = out.width();
     auto oldFlags = out.flags();
@@ -69,7 +76,7 @@ void RomBinData::writeToIncFile(std::ostream& out) const
     out << std::hex << std::setfill('0');
 
     for (unsigned i = 0; i < _data.size(); i += BYTES_PER_LINE) {
-        out << "\t.byte\t$" << std::setw(2) << (short)_data[i];
+        out << "\tdb\t$" << std::setw(2) << (short)_data[i];
 
         const unsigned end = std::min<unsigned>(i + BYTES_PER_LINE,
                                                 _data.size());
