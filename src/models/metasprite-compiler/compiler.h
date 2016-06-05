@@ -2,11 +2,13 @@
 
 #include "romdata.h"
 #include "romtiledata.h"
+#include "models/metasprite-format/framesetexportorder.h"
 #include "models/metasprite-format/tilesettype.h"
 #include "models/metasprite.h"
 #include <list>
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace UnTech {
@@ -22,6 +24,8 @@ public:
     Compiler(const Compiler&) = delete;
 
     void writeToIncFile(std::ostream& out) const;
+
+    void writeToReferencesFile(std::ostream& out) const;
 
     void processNullFrameSet();
     void processFrameSet(const MetaSprite::FrameSet& frameSet);
@@ -123,6 +127,30 @@ private:
     RomBinData _tileHitboxData;
     RomBinData _entityHitboxData;
     RomBinData _actionPointData;
+
+    struct FrameSetReference {
+        bool isNull;
+        const std::string name;
+        const std::string exportOrderName;
+
+        FrameSetReference()
+            : isNull(true)
+            , name()
+            , exportOrderName()
+        {
+        }
+
+        FrameSetReference(const std::string& name, const std::string& exportOrderName)
+            : isNull(false)
+            , name(name)
+            , exportOrderName(exportOrderName)
+        {
+        }
+    };
+    typedef MetaSpriteFormat::FrameSetExportOrder::ExportOrderDocument ExportOrderDocument;
+
+    std::vector<FrameSetReference> _frameSetReferences;
+    std::unordered_set<std::shared_ptr<const ExportOrderDocument>> _exportOrderDocuments;
 
     std::list<std::string> _errors;
     std::list<std::string> _warnings;

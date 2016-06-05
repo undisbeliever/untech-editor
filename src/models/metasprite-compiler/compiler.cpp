@@ -8,7 +8,7 @@ using namespace UnTech::MetaSpriteCompiler;
 namespace MS = UnTech::MetaSprite;
 namespace MSF = UnTech::MetaSpriteFormat;
 
-// ::TODO generate debug file::
+// ::TODO generate debug file - containing frame/frameset names::
 
 Compiler::Compiler(unsigned tilesetBlockSize)
     : _frameSetData("FSD", "MS_FrameSetData")
@@ -23,6 +23,8 @@ Compiler::Compiler(unsigned tilesetBlockSize)
     , _tileHitboxData("TC", "MS_TileHitboxData", true)
     , _entityHitboxData("EH", "MS_EntityHitboxData", true)
     , _actionPointData("AP", "MS_ActionPointsData", true)
+    , _frameSetReferences()
+    , _exportOrderDocuments()
     , _errors()
     , _warnings()
 {
@@ -57,6 +59,51 @@ void Compiler::writeToIncFile(std::ostream& out) const
            "}\n";
 }
 
+void Compiler::writeToReferencesFile(std::ostream& out) const
+{
+    out << "scope MSFS {\n";
+
+    for (unsigned i = 0; i < _frameSetReferences.size(); i++) {
+        const auto& r = _frameSetReferences[i];
+
+        if (!r.isNull) {
+            out << "\tconstant " << r.name << "(" << i << ")\n";
+            out << "\tdefine " << r.name << ".type(" << r.exportOrderName << ")\n";
+        }
+    }
+
+    out << "}\n"
+           "scope MSEO {\n";
+
+    for (const auto& eoDoc : _exportOrderDocuments) {
+        const auto& eo = eoDoc->exportOrder();
+
+        out << "\tscope " << eo.name() << " {\n";
+
+        if (eo.stillFrames().size() > 0) {
+            unsigned id = 0;
+            out << "\t\tscope Frames {\n";
+            for (const auto& sfIt : eo.stillFrames()) {
+                out << "\t\t\tconstant " << sfIt.first << "(" << id << ")\n";
+                id++;
+            }
+            out << "\t\t}\n";
+        }
+        if (eo.animations().size() > 0) {
+            unsigned id = 0;
+            out << "\t\tscope Animations {\n";
+            for (const auto& sfIt : eo.animations()) {
+                out << "\t\t\tconstant " << sfIt.first << "(" << id << ")\n";
+                id++;
+            }
+            out << "\t\t}\n";
+        }
+        out << "\t}\n";
+    }
+
+    out << "}\n";
+}
+
 /*
  * FRAME LIST
  * ==========
@@ -80,7 +127,6 @@ inline std::vector<Compiler::FrameListEntry> Compiler::generateFrameList(const M
 
         if (f != nullptr) {
             ret.emplace_back(f, false, false);
-            // ::TODO generate debug string::
         }
         else {
             bool success = false;
@@ -90,7 +136,6 @@ inline std::vector<Compiler::FrameListEntry> Compiler::generateFrameList(const M
 
                 if (af != nullptr) {
                     ret.emplace_back(af, alt.hFlip(), alt.vFlip());
-                    // ::TODO generate debug string::
 
                     success = true;
                     break;
@@ -608,6 +653,7 @@ inline RomOffsetPtr Compiler::processFrameList(const std::vector<FrameListEntry>
 void Compiler::processNullFrameSet()
 {
     _frameSetList.addNull();
+    _frameSetReferences.emplace_back();
 }
 
 void Compiler::processFrameSet(const MS::FrameSet& frameSet)
@@ -636,33 +682,36 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
 
         // FRAMESET DATA
         // -------------
-        RomIncItem frameSet;
+        RomIncItem frameSetItem;
 
-        frameSet.addIndex(fsPalettes);                  // paletteTable
-        frameSet.addField(RomIncItem::BYTE, nPalettes); // nPalettes
+        frameSetItem.addIndex(fsPalettes);                  // paletteTable
+        frameSetItem.addField(RomIncItem::BYTE, nPalettes); // nPalettes
 
         // tileset
         if (tilesets.tilesets.size() == 1) {
-            frameSet.addAddr(tilesets.tilesets.front().tilesetOffset);
+            frameSetItem.addAddr(tilesets.tilesets.front().tilesetOffset);
         }
         else {
-            frameSet.addField(RomIncItem::ADDR, 0);
+            frameSetItem.addField(RomIncItem::ADDR, 0);
         }
 
-        frameSet.addField(RomIncItem::BYTE,
-                          tilesets.tilesetType.romValue()); // tilesetType
-        frameSet.addIndex(fsFrames);                        // frameTable
-        frameSet.addField(RomIncItem::BYTE, nFrames);       // nFrames
-        frameSet.addIndex(fsAnimations);                    // animationsTable
-        frameSet.addField(RomIncItem::BYTE, nAnimations);   // nAnimations
+        frameSetItem.addField(RomIncItem::BYTE, tilesets.tilesetType.romValue()); // tilesetType
+        frameSetItem.addIndex(fsFrames);                                          // frameTable
+        frameSetItem.addField(RomIncItem::BYTE, nFrames);                         // nFrames
+        frameSetItem.addIndex(fsAnimations);                                      // animationsTable
+        frameSetItem.addField(RomIncItem::BYTE, nAnimations);                     // nAnimations
 
-        RomOffsetPtr ptr = _frameSetData.addData(frameSet);
+        RomOffsetPtr ptr = _frameSetData.addData(frameSetItem);
         _frameSetList.addOffset(ptr.offset);
+
+        // add to references
+        _frameSetReferences.emplace_back(frameSet.name(),
+                                         frameSet.exportOrderDocument()->exportOrder().name());
+        _exportOrderDocuments.insert(frameSet.exportOrderDocument());
     }
     catch (const std::exception& ex) {
         addError(frameSet, ex.what());
-
-        _frameSetList.addNull();
+        processNullFrameSet();
     }
 }
 

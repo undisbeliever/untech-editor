@@ -51,6 +51,7 @@ int main(int argc, char* argv[])
     }
 
     compiler.writeToIncFile(std::cout);
+    compiler.writeToReferencesFile(std::cout);
 
     return EXIT_SUCCESS;
 }
