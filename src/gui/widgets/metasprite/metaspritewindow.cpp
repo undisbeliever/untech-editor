@@ -236,7 +236,7 @@ void MetaSpriteWindow::do_saveAs()
             dialog.set_filename(document->filename());
         }
         else {
-            dialog.set_current_name(document->frameSet().name() + ".utsi");
+            dialog.set_current_name(document->frameSet().name() + ".utms");
         }
 
         int result = dialog.run();
