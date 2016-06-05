@@ -539,8 +539,9 @@ void TilesetGraphicalEditor<TilesetT>::setTilePixelForMouse(double mouseX, doubl
     if (_selection.frameSet() != nullptr && _selection.inEditTileMode()) {
         const auto allocation = get_allocation();
 
-        const int x = std::lround((mouseX - allocation.get_x()) / (_zoomX * _displayZoom));
-        const int y = std::lround((mouseY - allocation.get_y()) / (_zoomY * _displayZoom));
+        // No rounding, pen cursor is at the top-left of pixel
+        const int x = (mouseX - allocation.get_x()) / (_zoomX * _displayZoom);
+        const int y = (mouseY - allocation.get_y()) / (_zoomY * _displayZoom);
 
         if (x >= 0 && y >= 0 && y < (int)TILE_SIZE) {
             const unsigned tileId = (unsigned)x / TILE_SIZE;
