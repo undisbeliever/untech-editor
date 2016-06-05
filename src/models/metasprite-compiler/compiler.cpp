@@ -295,15 +295,27 @@ Compiler::generateTilesetList(const MS::FrameSet& frameSet,
         }
     }
 
+    // verify tileIds are valid
+    {
+        for (const auto& it : smallTileGraph) {
+            unsigned t = it.first;
+            if (t >= frameSet.smallTileset().size()) {
+                throw std::runtime_error("Invalid small tileId " + std::to_string(t));
+            }
+        }
+        for (const auto& it : largeTileGraph) {
+            unsigned t = it.first;
+            if (t >= frameSet.largeTileset().size()) {
+                throw std::runtime_error("Invalid large tileId " + std::to_string(t));
+            }
+        }
+    }
+
     unsigned tilesetSize = largeTileGraph.size() + (smallTileGraph.size() + 3) / 4;
     auto tilesetType = frameSet.tilesetType();
 
     if (tilesetSize == 0) {
         throw std::runtime_error("No tiles in tileset");
-    }
-
-    if (tilesetSize > tilesetType.nTiles()) {
-        throw std::runtime_error("Too many tiles in tileset");
     }
 
     if (tilesetSize <= tilesetType.nTiles() || tilesetType.isFixed()) {
