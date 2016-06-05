@@ -1,4 +1,5 @@
 #include "metaspritewindow.h"
+#include "addtilesdialog.h"
 #include "../common/errormessagedialog.h"
 #include "../metasprite-format/signals.h"
 
@@ -18,6 +19,7 @@ MetaSpriteWindow::MetaSpriteWindow()
     // Register actions with window
     add_action("save-as", sigc::mem_fun(*this, &MetaSpriteWindow::do_saveAs));
     add_action("exit", sigc::mem_fun(*this, &MetaSpriteWindow::close));
+    add_action("add-tiles", sigc::mem_fun(*this, &MetaSpriteWindow::do_addTiles));
 
     _saveAction = Gio::SimpleAction::create("save");
     _saveAction->signal_activate().connect(
@@ -256,6 +258,16 @@ void MetaSpriteWindow::do_saveAs()
 
             updateTitle();
         }
+    }
+}
+
+void MetaSpriteWindow::do_addTiles()
+{
+    auto* document = _editor.document();
+
+    if (document) {
+        AddTilesDialog dialog(document->frameSet(), *this);
+        dialog.run();
     }
 }
 

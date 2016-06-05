@@ -39,6 +39,14 @@ public:
     auto end() { return _tiles.begin(); }
     auto end() const { return _tiles.begin(); }
 
+    // Remove tile
+    void removeLastTile()
+    {
+        if (size() > 0) {
+            _tiles.pop_back();
+        }
+    }
+
 protected:
     std::vector<TileT> _tiles;
 };

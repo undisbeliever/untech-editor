@@ -36,6 +36,8 @@ protected:
     void do_save();
     void do_saveAs();
 
+    void do_addTiles();
+
     void do_setZoom(int zoom);
     void do_setAspectRatio(int state);
     void do_splitView();
