@@ -276,7 +276,7 @@ std::string XmlReader::parseText()
             text += unescapeXmlString(startText, _pos);
 
             // skip comment
-            while (memcmp(_pos, "-->", 4) != 0) {
+            while (memcmp(_pos, "-->", 3) != 0) {
                 if (*_pos == 0) {
                     throw buildXmlParseError(this, "Unclosed comment");
                 }
@@ -388,7 +388,7 @@ void XmlReader::skipText()
     while (*_pos) {
         if (memcmp(_pos, "<!--", 4) == 0) {
             // skip comment
-            while (memcmp(_pos, "-->", 4) != 0) {
+            while (memcmp(_pos, "-->", 3) != 0) {
                 if (*_pos == 0) {
                     throw buildXmlParseError(this, "Unclosed comment");
                 }
