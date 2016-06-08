@@ -5,14 +5,18 @@
 #include "models/metasprite-format/framesetexportorder.h"
 #include "models/metasprite-format/tilesettype.h"
 #include "models/metasprite.h"
+#include <array>
 #include <list>
 #include <map>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 namespace UnTech {
 namespace MetaSpriteCompiler {
+
+typedef std::unordered_map<unsigned, std::vector<const MetaSprite::Frame*>> TileGraph_t;
 
 class Compiler {
 public:
@@ -63,11 +67,15 @@ private:
         std::list<FrameTileset> tilesets;
         std::unordered_map<const MetaSprite::Frame*, FrameTileset&> frameMap;
     };
-    typedef std::unordered_map<unsigned, std::vector<const MetaSprite::Frame*>> TileGraph_t;
 
 private:
     FrameTilesetList generateTilesetList(const MetaSprite::FrameSet& frameSet,
                                          const std::vector<FrameListEntry>& frameList);
+
+    FrameTilesetList generateDynamicTilesets(const MetaSprite::FrameSet& frameSet,
+                                             const MetaSpriteFormat::TilesetType& tilesetType,
+                                             const TileGraph_t& largeTileGraph,
+                                             const TileGraph_t& smallTileGraph);
 
     FrameTilesetList generateFixedTileset(const MetaSprite::FrameSet& frameSet,
                                           const MetaSpriteFormat::TilesetType& tilesetType,
@@ -77,8 +85,14 @@ private:
     void buildTileset(FrameTileset& tileset,
                       const MetaSprite::FrameSet& frameSet,
                       const MetaSpriteFormat::TilesetType& tilesetType,
-                      const std::vector<unsigned>& largeTiles,
-                      const std::vector<unsigned>& smallTiles);
+                      const std::set<unsigned>& largeTiles,
+                      const std::set<std::array<unsigned, 4>>& smallTiles);
+
+    void buildTileset(FrameTileset& tileset,
+                      const MetaSprite::FrameSet& frameSet,
+                      const MetaSpriteFormat::TilesetType& tilesetType,
+                      const std::set<unsigned>& largeTiles,
+                      const std::set<unsigned>& smallTiles);
 
 private:
     RomOffsetPtr processFrameObjects(const MetaSprite::FrameObject::list_t&,
