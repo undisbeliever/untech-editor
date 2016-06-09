@@ -282,6 +282,20 @@ struct XmlTag {
         return std::runtime_error(stream.str());
     }
 
+    std::runtime_error buildError(const std::string& message, const std::exception& ex) const
+    {
+        std::stringstream stream;
+
+        auto fp = xml->filepart();
+        if (fp.empty()) {
+            fp = "XML";
+        }
+
+        stream << fp << ":" << lineNo << ' ' << message << "\n\t"
+               << ex.what();
+        return std::runtime_error(stream.str());
+    }
+
     std::runtime_error buildUnknownTagError() const
     {
         std::stringstream stream;

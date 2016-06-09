@@ -34,8 +34,6 @@ private:
 public:
     inline void readMsExportOrder(const XmlTag* tag)
     {
-        typedef UnTech::MetaSprite::MetaSpriteDocument MetaSpriteDocument;
-
         assert(tag->name == "metaspriteexport");
         assert(msExportOrder.frameSets().size() == 0);
 
@@ -43,21 +41,35 @@ public:
 
         while ((childTag = xml.parseTag())) {
             if (childTag->name == "frameset") {
-                if (childTag->hasAttribute("src")) {
-                    const std::string src = childTag->getAttributeFilename("src");
-
-                    msExportOrder.frameSets().emplace_back(
-                        std::make_shared<MetaSpriteDocument>(src));
-                }
-                else {
-                    msExportOrder.frameSets().emplace_back(nullptr);
-                }
+                readMetaSpriteDocument(childTag.get());
             }
             else {
                 throw childTag->buildUnknownTagError();
             }
 
             xml.parseCloseTag();
+        }
+    }
+
+private:
+    inline void readMetaSpriteDocument(const XmlTag* tag)
+    {
+        typedef UnTech::MetaSprite::MetaSpriteDocument MetaSpriteDocument;
+        assert(tag->name == "frameset");
+
+        if (tag->hasAttribute("src")) {
+            const std::string src = tag->getAttributeFilename("src");
+
+            try {
+                msExportOrder.frameSets().emplace_back(
+                    std::make_shared<MetaSpriteDocument>(src));
+            }
+            catch (const std::exception& ex) {
+                throw tag->buildError("Unable to open MetaSprite document", ex);
+            }
+        }
+        else {
+            msExportOrder.frameSets().emplace_back(nullptr);
         }
     }
 };

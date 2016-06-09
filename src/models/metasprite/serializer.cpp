@@ -207,7 +207,12 @@ private:
         }
 
         const std::string src = tag->getAttributeFilename("src");
-        frameSet.loadExportOrderDocument(src);
+        try {
+            frameSet.loadExportOrderDocument(src);
+        }
+        catch (const std::exception& ex) {
+            throw tag->buildError("Unable to open Export Order document", ex);
+        }
     }
 };
 
