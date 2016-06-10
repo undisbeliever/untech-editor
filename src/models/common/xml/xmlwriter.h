@@ -29,6 +29,8 @@ public:
     const std::string& filename() const { return _filename; }
     const std::string& dirname() const { return _dirname; }
 
+    void forceFullFilePaths() { _useRelativePaths = false; }
+
     void writeTag(const std::string& name);
 
     void writeTagAttribute(const std::string& name, const std::string& value);
@@ -102,6 +104,7 @@ private:
     std::string _filename;
     std::string _dirname;
     bool _inTag;
+    bool _useRelativePaths;
 };
 }
 }
