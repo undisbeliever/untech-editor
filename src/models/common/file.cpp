@@ -262,6 +262,10 @@ std::string File::fullPath(const std::string& path)
 
 std::string File::relativePath(const std::string& sourceDir, const std::string& destPath)
 {
+    if (sourceDir.empty()) {
+        return File::fullPath(destPath);
+    }
+
 #ifdef PLATFORM_WINDOWS
     wchar_t wrelpath[PATH_MAX] = L"";
     auto wsource = to_wchar(sourceDir);

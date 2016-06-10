@@ -48,7 +48,9 @@ std::string joinPath(const std::string& dir, const std::string& path);
 std::string fullPath(const std::string& path);
 
 /**
- * Returns a path to destPath, relative to sourceDir
+ * Returns a path to `destPath`, relative to `sourceDir`
+ *
+ * If `sourceDir` is empty then the full path of `destPath` is returned.
  */
 std::string relativePath(const std::string& sourceDir, const std::string& destPath);
 }
