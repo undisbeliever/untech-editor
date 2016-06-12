@@ -18,6 +18,8 @@ class Palette;
 class MetaSpriteDocument;
 
 class FrameSet : public MetaSpriteFormat::AbstractFrameSet {
+public:
+    static const char* TYPE_NAME;
 
 public:
     FrameSet() = delete;
@@ -47,6 +49,12 @@ public:
     inline auto& frames() { return _frames; }
     inline const auto& frames() const { return _frames; }
 
+    template <class TilesetT>
+    inline TilesetT& getTileset();
+
+    template <class TilesetT>
+    inline const TilesetT& getTileset() const;
+
 private:
     MetaSpriteDocument& _document;
 
@@ -56,5 +64,29 @@ private:
 
     NamedList<FrameSet, Frame> _frames;
 };
+
+template <>
+inline Snes::Tileset4bpp8px& FrameSet::getTileset<Snes::Tileset4bpp8px>()
+{
+    return _smallTileset;
+}
+
+template <>
+inline Snes::Tileset4bpp16px& FrameSet::getTileset<Snes::Tileset4bpp16px>()
+{
+    return _largeTileset;
+}
+
+template <>
+inline const Snes::Tileset4bpp8px& FrameSet::getTileset<Snes::Tileset4bpp8px>() const
+{
+    return _smallTileset;
+}
+
+template <>
+inline const Snes::Tileset4bpp16px& FrameSet::getTileset<Snes::Tileset4bpp16px>() const
+{
+    return _largeTileset;
+}
 }
 }

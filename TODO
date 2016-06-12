@@ -3,3 +3,6 @@ TODO
 
  * Add third party list to cli apps (--version)
 
+ * Remove GTKmm code from UndoStack
+ * Remove GTKmm code from Controller module
+

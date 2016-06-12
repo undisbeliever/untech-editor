@@ -25,6 +25,8 @@ class Frame;
 class SpriteImporterDocument;
 
 class FrameSet : public MetaSpriteFormat::AbstractFrameSet {
+public:
+    static const char* TYPE_NAME;
 
 public:
     FrameSet() = delete;

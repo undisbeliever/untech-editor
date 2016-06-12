@@ -46,6 +46,10 @@ define gui-widgets
 $(filter $(patsubst %,obj/gui/widgets/%/$(PERCENT),$1), $(GUI_OBJ))
 endef
 
+define gui-controllers
+$(patsubst %,obj/gui/controllers/$(PERCENT).o,$1) obj/gui/controllers/basecontroller.o
+endef
+
 # Third party libs
 THIRD_PARTY = obj/vendor/lodepng/lodepng.o
 
@@ -55,10 +59,12 @@ bin/untech-utsi2utms: $(call app-models, common snes sprite-importer metasprite 
 
 bin/untech-spriteimporter-gui: $(call app-models, common sprite-importer metasprite-format) $(THIRD_PARTY)
 bin/untech-spriteimporter-gui: $(call gui-widgets, common sprite-importer metasprite-format)
+bin/untech-spriteimporter-gui: $(call gui-controllers, sprite-importer metasprite-format)
 bin/untech-spriteimporter-gui: $(call gui-modules, undo)
 
 bin/untech-metasprite-gui: $(call app-models, common snes metasprite metasprite-format) $(THIRD_PARTY)
 bin/untech-metasprite-gui: $(call gui-widgets, common metasprite metasprite-format)
+bin/untech-metasprite-gui: $(call gui-controllers, metasprite metasprite-format)
 bin/untech-metasprite-gui: $(call gui-modules, undo)
 
 # Disable Builtin rules

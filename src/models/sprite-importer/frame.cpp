@@ -7,6 +7,8 @@
 using namespace UnTech;
 using namespace UnTech::SpriteImporter;
 
+const char* Frame::TYPE_NAME = "FrameSet";
+
 const usize Frame::MIN_SIZE = usize(Frame::MIN_WIDTH, Frame::MIN_HEIGHT);
 
 Frame::Frame(FrameSet& frameSet)

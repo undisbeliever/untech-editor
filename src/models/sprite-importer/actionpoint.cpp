@@ -3,6 +3,8 @@
 using namespace UnTech;
 using namespace SpriteImporter;
 
+const char* ActionPoint::TYPE_NAME = "Action Point";
+
 ActionPoint::ActionPoint(Frame& frame)
     : _frame(frame)
     , _location(0, 0)

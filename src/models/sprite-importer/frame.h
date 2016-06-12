@@ -23,6 +23,7 @@ public:
     const static unsigned DEFAULT_SPRITE_ORDER = 2;
 
     typedef NamedList<FrameSet, Frame> list_t;
+    static const char* TYPE_NAME;
 
 public:
     Frame() = delete;

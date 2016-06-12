@@ -7,6 +7,13 @@
 
 namespace UnTech {
 
+namespace Controller {
+namespace Private {
+template <class T>
+class OrderedListAddRemove;
+}
+}
+
 namespace Undo {
 namespace Private {
 template <class T>
@@ -28,6 +35,7 @@ template <class P, class T>
 class OrderedList {
 
     friend class UnTech::Undo::Private::OrderedListAddRemove<T>;
+    friend class UnTech::Controller::Private::OrderedListAddRemove<T>;
 
 public:
     template <typename IT>

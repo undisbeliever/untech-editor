@@ -9,6 +9,13 @@
 
 namespace UnTech {
 
+namespace Controller {
+namespace Private {
+template <class T>
+class NamedListAddRemove;
+}
+}
+
 namespace Undo {
 namespace Private {
 template <class T>
@@ -30,6 +37,7 @@ template <class P, class T>
 class NamedList {
 
     friend class UnTech::Undo::Private::NamedListAddRemove<T>;
+    friend class UnTech::Controller::Private::NamedListAddRemove<T>;
 
 public:
     template <typename IT>
@@ -130,12 +138,18 @@ public:
             return false;
         }
     }
-    bool changeName(T& e) { return changeName(&e); }
+    bool changeName(T& e, const std::string& newName) { return changeName(&e, newName); }
 
     bool nameExists(const std::string& name) const
     {
         auto it = _values.find(name);
         return it != _values.end();
+    }
+
+    bool contains(const T* e) const
+    {
+        const auto it = _names.find(e);
+        return it != _names.end();
     }
 
     std::pair<std::string, bool> getName(const T* e) const

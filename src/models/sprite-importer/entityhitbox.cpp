@@ -3,6 +3,8 @@
 using namespace UnTech;
 using namespace SpriteImporter;
 
+const char* EntityHitbox::TYPE_NAME = "Entity Hitbox";
+
 EntityHitbox::EntityHitbox(Frame& frame)
     : _frame(frame)
     , _aabb(0, 0, Frame::MIN_WIDTH, Frame::MIN_HEIGHT)

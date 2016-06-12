@@ -12,6 +12,7 @@ namespace SpriteImporter {
 class EntityHitbox {
 public:
     typedef OrderedList<Frame, EntityHitbox> list_t;
+    static const char* TYPE_NAME;
 
     typedef uint8_t parameter_t;
 

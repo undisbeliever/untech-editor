@@ -10,6 +10,7 @@ namespace MetaSprite {
 class Palette : public UnTech::Snes::Palette4bpp {
 public:
     typedef OrderedList<FrameSet, Palette> list_t;
+    static const char* TYPE_NAME;
 
 public:
     Palette() = delete;

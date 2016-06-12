@@ -12,6 +12,7 @@ namespace MetaSprite {
 class ActionPoint {
 public:
     typedef OrderedList<Frame, ActionPoint> list_t;
+    static const char* TYPE_NAME;
 
     typedef uint8_t parameter_t;
 

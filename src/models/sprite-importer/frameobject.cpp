@@ -3,6 +3,8 @@
 using namespace UnTech;
 using namespace SpriteImporter;
 
+const char* FrameObject::TYPE_NAME = "Frame Object";
+
 FrameObject::FrameObject(Frame& frame)
     : _frame(frame)
     , _location(0, 0)

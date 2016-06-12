@@ -11,6 +11,8 @@ using namespace UnTech::SpriteImporter;
 namespace MSF = UnTech::MetaSpriteFormat;
 namespace FSExportOrder = UnTech::MetaSpriteFormat::FrameSetExportOrder;
 
+const char* FrameSet::TYPE_NAME = "Frame";
+
 FrameSet::FrameSet(SpriteImporterDocument& document)
     : MetaSpriteFormat::AbstractFrameSet(document)
     , _document(document)

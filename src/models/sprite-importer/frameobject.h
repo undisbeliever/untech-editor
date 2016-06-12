@@ -11,6 +11,7 @@ namespace SpriteImporter {
 class FrameObject {
 public:
     typedef OrderedList<Frame, FrameObject> list_t;
+    static const char* TYPE_NAME;
 
     enum class ObjectSize {
         SMALL = 8,

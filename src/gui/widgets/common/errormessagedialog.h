@@ -8,6 +8,20 @@
 namespace UnTech {
 namespace Widgets {
 
+inline void showErrorMessage(Gtk::Window& window, const char* message, const std::exception& error)
+{
+    std::cerr << message << ": " << error.what() << std::endl;
+
+    Gtk::MessageDialog dialog(_(message), false,
+                              Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK);
+
+    dialog.set_transient_for(window);
+
+    dialog.set_secondary_text(error.what());
+
+    dialog.run();
+}
+
 inline void showErrorMessage(Gtk::Window* window, const char* message, const std::exception& error)
 {
     std::cerr << message << ": " << error.what() << std::endl;
