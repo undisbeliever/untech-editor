@@ -9,19 +9,18 @@ GUI_CXXFLAGS	= $(shell pkg-config --cflags gtkmm-3.0)
 GUI_LDFLAGS	= $(shell pkg-config --libs gtkmm-3.0)
 
 
-MODEL_SRC	= $(wildcard src/models/*.cpp src/models/*/*.cpp src/models/*/*/*.cpp)
-MODEL_OBJ	= $(patsubst src/%.cpp,obj/%.o,$(MODEL_SRC))
+SRCS		= $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
+OBJS		= $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 
 CLI_SRC		= $(wildcard src/cli/*.cpp)
-CLI_OBJ		= $(patsubst src/%.cpp,obj/%.o,$(CLI_SRC))
 CLI_APPS	= $(patsubst src/cli/%.cpp,bin/%,$(CLI_SRC))
 
-GUI_SRC		= $(wildcard src/gui/*.cpp src/gui/*/*.cpp src/gui/*/*/*.cpp)
-GUI_OBJ		= $(patsubst src/gui/%.cpp,obj/gui/%.o,$(GUI_SRC))
-GUI_APPS	= $(patsubst src/gui/%.cpp,bin/%-gui,$(wildcard src/gui/*.cpp))
+GUI_SRC		= $(wildcard src/gui/*.cpp)
+GUI_APPS	= $(patsubst src/gui/%.cpp,bin/%-gui,$(GUI_SRC))
 
-OBJS		= $(MODEL_OBJ) $(CLI_OBJ) $(GUI_OBJ) $(THIRD_PARTY)
-DEPS		= $(OBJS:.o=.d)
+# Third party libs
+THIRD_PARTY	= obj/vendor/lodepng/lodepng.o
+
 
 .PHONY: all
 all: cli gui
@@ -29,49 +28,39 @@ all: cli gui
 .PHONY: cli
 cli: dirs $(CLI_APPS)
 
-.PNONY: gui
+.PHONY: gui
 gui: dirs $(GUI_APPS)
 
 
 PERCENT = %
-define app-models
-$(filter $(patsubst %,obj/models/%/$(PERCENT),$1), $(MODEL_OBJ))
+define cli-modules
+  $(filter $(patsubst %,obj/models/%/$(PERCENT),$1), $(OBJS)) \
+  $(THIRD_PARTY)
 endef
 
 define gui-modules
-$(filter $(patsubst %,obj/gui/%/$(PERCENT),$1), $(GUI_OBJ))
+  $(filter $(patsubst %,obj/models/%/$(PERCENT),$1), $(OBJS)) \
+  $(filter $(patsubst %,obj/gui/widgets/%/$(PERCENT),$1), $(OBJS)) \
+  $(filter $(patsubst %,obj/gui/controllers/%.o,$1), $(OBJS)) \
+  $(filter $(patsubst %,obj/gui/controllers/%/$(PERCENT),$1), $(OBJS)) \
+  obj/gui/controllers/basecontroller.o \
+  $(filter obj/gui/undo/%, $(OBJS)) \
+  $(THIRD_PARTY)
 endef
 
-define gui-widgets
-$(filter $(patsubst %,obj/gui/widgets/%/$(PERCENT),$1), $(GUI_OBJ))
-endef
+# Select the modules used by the apps
+bin/untech-msc: $(call cli-modules, common snes metasprite metasprite-format metasprite-compiler)
+bin/untech-utsi2utms: $(call cli-modules, common snes sprite-importer metasprite metasprite-format utsi2utms)
 
-define gui-controllers
-$(patsubst %,obj/gui/controllers/$(PERCENT).o,$1) obj/gui/controllers/basecontroller.o
-endef
-
-# Third party libs
-THIRD_PARTY = obj/vendor/lodepng/lodepng.o
-
-# Select the models used by the apps
-bin/untech-msc: $(call app-models, common snes metasprite metasprite-format metasprite-compiler) $(THIRD_PARTY)
-bin/untech-utsi2utms: $(call app-models, common snes sprite-importer metasprite metasprite-format utsi2utms) $(THIRD_PARTY)
-
-bin/untech-spriteimporter-gui: $(call app-models, common sprite-importer metasprite-format) $(THIRD_PARTY)
-bin/untech-spriteimporter-gui: $(call gui-widgets, common sprite-importer metasprite-format)
-bin/untech-spriteimporter-gui: $(call gui-controllers, sprite-importer metasprite-format)
-bin/untech-spriteimporter-gui: $(call gui-modules, undo)
-
-bin/untech-metasprite-gui: $(call app-models, common snes metasprite metasprite-format) $(THIRD_PARTY)
-bin/untech-metasprite-gui: $(call gui-widgets, common metasprite metasprite-format)
-bin/untech-metasprite-gui: $(call gui-controllers, metasprite metasprite-format)
-bin/untech-metasprite-gui: $(call gui-modules, undo)
+bin/untech-spriteimporter-gui: $(call gui-modules, common sprite-importer metasprite-format)
+bin/untech-metasprite-gui: $(call gui-modules, common snes metasprite metasprite-format)
 
 # Disable Builtin rules
 .SUFFIXES:
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
+DEPS		= $(OBJS:.o=.d)
 -include $(DEPS)
 
 $(GUI_APPS): bin/%-gui: obj/gui/%.o
@@ -81,10 +70,10 @@ $(CLI_APPS): bin/%: obj/cli/%.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 obj/gui/%.o: src/gui/%.cpp
-	$(CXX) $(CXXFLAGS) $(GUI_CXXFLAGS) -o $@ -c $<
+	$(CXX) $(CXXFLAGS) $(GUI_CXXFLAGS) -c -o $@ $<
 
 obj/%.o: src/%.cpp
-	$(CXX) $(CXXFLAGS) -o $@ -c $<
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 
 .PHONY: dirs
