@@ -1,6 +1,6 @@
 #pragma once
 
-#include "selection.h"
+#include "gui/controllers/metasprite.h"
 #include "gui/widgets/common/ms8aabb.h"
 
 #include <gtkmm.h>
@@ -9,9 +9,11 @@ namespace UnTech {
 namespace Widgets {
 namespace MetaSprite {
 
+namespace MS = UnTech::MetaSprite;
+
 class FrameObjectEditor {
 public:
-    FrameObjectEditor(Selection& selection);
+    FrameObjectEditor(MS::MetaSpriteController& controller);
 
 protected:
     void updateTileIdRange();
@@ -21,7 +23,8 @@ public:
     Gtk::Grid widget;
 
 private:
-    Selection& _selection;
+    MS::FrameObjectController& _controller;
+    MS::FrameSetController& _fsController;
 
     Ms8pointSpinButtons _locationSpinButtons;
     Gtk::SpinButton _tileIdSpinButton;

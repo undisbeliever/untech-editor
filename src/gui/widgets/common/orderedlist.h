@@ -1,8 +1,7 @@
 #pragma once
 
-#include "gui/undo/orderedlistactions.h"
+#include "gui/controllers/helpers/orderedlistcontroller.h"
 #include "gui/widgets/defaults.h"
-#include "models/common/orderedlist.h"
 
 #include <memory>
 
@@ -14,13 +13,13 @@ namespace Widgets {
 
 template <class T, class ModelColumnsT>
 class OrderedListView {
+    typedef typename Controller::OrderedListController<T> OrderedListController;
 
 public:
-    OrderedListView()
+    OrderedListView(OrderedListController& controller)
         : treeView()
+        , _controller(controller)
         , columns()
-        , list(nullptr)
-        , selected(nullptr)
     {
         treeModel = Gtk::ListStore::create(columns);
         columns.buildTreeViewColumns(treeView);
@@ -32,171 +31,135 @@ public:
          * SLOTS
          * =====
          */
+
+        /* Controller */
+        _controller.signal_selectedChanged().connect(sigc::mem_fun(
+            *this, &OrderedListView::onItemSelected));
+
+        _controller.signal_dataChanged().connect(sigc::mem_fun(
+            *this, &OrderedListView::onItemChanged));
+
+        _controller.signal_listChanged().connect(sigc::mem_fun(
+            *this, &OrderedListView::rebuildTable));
+
+        _controller.signal_listDataChanged().connect(
+            [this](const typename T::list_t* list) {
+                if (list == _controller.list()) {
+                    this->rebuildTable();
+                }
+            });
+
         /* Handle change in selection */
         treeView.get_selection()->signal_changed().connect([this](void) {
-            T* item = nullptr;
+            const T* item = nullptr;
 
             auto rowIt = treeView.get_selection()->get_selected();
             if (rowIt) {
                 auto row = *rowIt;
                 item = row[columns.col_item];
             }
-            if (selected != item) {
-                selected = item;
-                _signal_selected_changed.emit();
-            }
-        });
-
-        /* Update GUI if item has changed */
-        columns.signal_itemChanged().connect(sigc::mem_fun(
-            *this, &OrderedListView::onItemChanged));
-
-        /* Rebuild table if list has changed */
-        columns.signal_listChanged().connect([this](const typename T::list_t* list) {
-            if (this->list == list) {
-                rebuildTable();
-            }
+            _controller.setSelected(item);
         });
     }
-
-    void setList(typename T::list_t* newList)
-    {
-        if (list != newList) {
-            list = newList;
-
-            // Prevent race condition.
-            // Select NULL item before updating model
-            selectItem(nullptr);
-
-            if (list != nullptr && list->size() > 0) {
-                rebuildTable();
-
-                treeView.set_sensitive(true);
-            }
-            else {
-                treeModel->clear();
-
-                treeView.set_sensitive(list != nullptr);
-            }
-        }
-    }
-    inline void setList(typename T::list_t& newList) { setList(&newList); }
-
-    /**
-     * Gets the first selected item, returns nullptr if none selected.
-     */
-    T* getSelected() { return selected; }
-
-    /**
-     * Selects the given item.
-     * Unselects everything if item is not in list.
-     */
-    void selectItem(T* item)
-    {
-        if (item != selected) {
-            if (item != nullptr) {
-                const auto children = treeModel->children();
-
-                for (auto iter = children.begin(); iter != children.end(); ++iter) {
-                    auto row = *iter;
-
-                    if (row.get_value(columns.col_item) == item) {
-                        selected = item;
-
-                        treeView.get_selection()->select(row);
-
-                        // scroll to selection
-                        treeView.scroll_to_row(treeModel->get_path(iter));
-                        _signal_selected_changed.emit();
-                        return;
-                    }
-                }
-            }
-
-            // not found
-            if (selected != nullptr) {
-                selected = nullptr;
-
-                treeView.get_selection()->unselect_all();
-                _signal_selected_changed.emit();
-            }
-        }
-    }
-
-    inline auto signal_selected_changed() { return _signal_selected_changed; }
 
 protected:
-    inline void emitListChangedSignal()
+    OrderedListController& controller() { return _controller; }
+
+    void onItemSelected()
     {
-        columns.signal_listChanged().emit(list);
+        const T* item = _controller.selected();
+
+        if (item != nullptr) {
+            const auto children = treeModel->children();
+
+            for (auto iter = children.begin(); iter != children.end(); ++iter) {
+                auto row = *iter;
+
+                if (row.get_value(columns.col_item) == item) {
+                    treeView.get_selection()->select(row);
+
+                    // scroll to selection
+                    treeView.scroll_to_row(treeModel->get_path(iter));
+                    return;
+                }
+            }
+        }
+
+        // not found
+        treeView.get_selection()->unselect_all();
     }
 
-    /**
-     * Called when an item has changed, updates the field.
-     */
     auto onItemChanged(const T* item)
     {
-        for (auto row : treeModel->children()) {
-            if (row.get_value(columns.col_item) == item) {
-                columns.setRowData(row, item);
+        if (_controller.list()) {
+            for (auto row : treeModel->children()) {
+                if (row.get_value(columns.col_item) == item) {
+                    columns.setRowData(row, item);
+                    return;
+                }
             }
         }
     }
 
     void rebuildTable()
     {
-        if (list != nullptr) {
-            bool found = false;
+        const typename T::list_t* list = _controller.list();
+        const T* selected = _controller.selected();
 
-            // resize model
-            size_t nItems = list->size();
-            size_t nRows = treeModel->children().size();
+        treeView.set_sensitive(list != nullptr);
 
-            if (nItems > nRows) {
-                // grow model
-                for (size_t i = 0; i < (nItems - nRows); i++) {
-                    treeModel->append();
-                }
+        if (list == nullptr || list->size() == 0) {
+            treeModel->clear();
+            treeView.set_sensitive(list != nullptr);
+            return;
+        }
+
+        // resize model
+        size_t nItems = list->size();
+        size_t nRows = treeModel->children().size();
+
+        if (nItems > nRows) {
+            // grow model
+            for (size_t i = 0; i < (nItems - nRows); i++) {
+                treeModel->append();
             }
-            else if (nItems < nRows) {
-                // shrink model
-                auto rowIt = treeModel->children().end();
-                for (size_t i = 0; i < (nRows - nItems); i++) {
-                    --rowIt;
-                    rowIt = treeModel->erase(rowIt);
-                }
+        }
+        else if (nItems < nRows) {
+            // shrink model
+            auto rowIt = treeModel->children().end();
+            for (size_t i = 0; i < (nRows - nItems); i++) {
+                --rowIt;
+                rowIt = treeModel->erase(rowIt);
             }
+        }
 
-            // fill with data
-            // change selection if necessary
-            if (nItems > 0) {
-                int id = 0;
-                auto rowIt = treeModel->children().begin();
-                for (T& itemRef : *list) {
-                    auto row = *rowIt;
-                    T* item = &itemRef;
+        // fill with data
+        // change selection if necessary
+        bool found = false;
 
-                    columns.setRowData(row, item);
-                    row[columns.col_id] = id;
-                    row[columns.col_item] = item;
+        if (nItems > 0) {
+            int id = 0;
+            auto rowIt = treeModel->children().begin();
+            for (T& itemRef : *list) {
+                auto row = *rowIt;
+                T* item = &itemRef;
 
-                    if (item == selected) {
-                        treeView.get_selection()->select(rowIt);
-                        found = true;
-                    }
+                columns.setRowData(row, item);
+                row[columns.col_id] = id;
+                row[columns.col_item] = item;
 
-                    ++id;
-                    ++rowIt;
+                if (item == selected) {
+                    treeView.get_selection()->select(rowIt);
+                    found = true;
                 }
-            }
 
-            if (!found) {
-                treeView.get_selection()->unselect_all();
-                if (selected) {
-                    selected = nullptr;
-                    _signal_selected_changed.emit();
-                }
+                ++id;
+                ++rowIt;
             }
+        }
+
+        if (!found) {
+            treeView.get_selection()->unselect_all();
         }
     }
 
@@ -204,21 +167,19 @@ public:
     Gtk::TreeView treeView;
 
 protected:
+    OrderedListController& _controller;
+
     ModelColumnsT columns;
     Glib::RefPtr<Gtk::ListStore> treeModel;
-
-    typename T::list_t* list;
-
-    T* selected;
-    sigc::signal<void> _signal_selected_changed;
 };
 
 template <class T, class ModelColumnsT>
 class OrderedListEditor : public OrderedListView<T, ModelColumnsT> {
+    typedef typename Controller::OrderedListController<T> OrderedListController;
 
 public:
-    OrderedListEditor()
-        : OrderedListView<T, ModelColumnsT>()
+    OrderedListEditor(OrderedListController& controller)
+        : OrderedListView<T, ModelColumnsT>(controller)
         , widget(Gtk::ORIENTATION_VERTICAL)
         , _treeContainer()
         , _buttonBox(Gtk::ORIENTATION_HORIZONTAL)
@@ -234,11 +195,16 @@ public:
         _moveDownButton.set_image_from_icon_name("go-down");
         _removeButton.set_image_from_icon_name("list-remove");
 
-        _createButton.set_tooltip_text(Glib::ustring::compose(_("Add %1"), this->columns.itemTypeName()));
-        _cloneButton.set_tooltip_text(Glib::ustring::compose(_("Clone %1"), this->columns.itemTypeName()));
-        _moveUpButton.set_tooltip_text(Glib::ustring::compose(_("Move %1 up"), this->columns.itemTypeName()));
-        _moveDownButton.set_tooltip_text(Glib::ustring::compose(_("Move %1 down"), this->columns.itemTypeName()));
-        _removeButton.set_tooltip_text(Glib::ustring::compose(_("Remove %1"), this->columns.itemTypeName()));
+        _createButton.set_tooltip_text(Glib::ustring::compose(
+            _("Add %1"), T::TYPE_NAME));
+        _cloneButton.set_tooltip_text(Glib::ustring::compose(
+            _("Clone %1"), T::TYPE_NAME));
+        _moveUpButton.set_tooltip_text(Glib::ustring::compose(
+            _("Move %1 up"), T::TYPE_NAME));
+        _moveDownButton.set_tooltip_text(Glib::ustring::compose(
+            _("Move %1 down"), T::TYPE_NAME));
+        _removeButton.set_tooltip_text(Glib::ustring::compose(
+            _("Remove %1"), T::TYPE_NAME));
 
         _buttonBox.set_border_width(DEFAULT_BORDER);
         _buttonBox.set_layout(Gtk::BUTTONBOX_END);
@@ -263,78 +229,50 @@ public:
         widget.pack_start(_treeContainer, Gtk::PACK_EXPAND_WIDGET);
 
         /**
-         * SIGNALS
+         * SLOTS
          */
-        _createButton.signal_clicked().connect([this](void) {
-            auto item = Undo::orderedList_create<T>(this->list,
-                                                    this->columns.signal_listChanged(),
-                                                    _createButton.get_tooltip_text());
+        /* Controller signals */
+        controller.signal_selectedChanged().connect(sigc::mem_fun(
+            *this, &OrderedListEditor::updateButtonState));
 
-            this->selectItem(item);
-        });
+        controller.signal_listChanged().connect(sigc::mem_fun(
+            *this, &OrderedListEditor::updateButtonState));
 
-        _cloneButton.signal_clicked().connect([this](void) {
-            auto item = Undo::orderedList_clone(this->list, this->getSelected(),
-                                                this->columns.signal_listChanged(),
-                                                _cloneButton.get_tooltip_text());
+        controller.signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
+            *this, &OrderedListEditor::updateButtonState)));
 
-            this->selectItem(item);
-        });
+        /* Button signals */
+        _createButton.signal_clicked().connect(sigc::mem_fun(
+            this->controller(), &OrderedListController::create));
 
-        _moveUpButton.signal_clicked().connect([this](void) {
-            Undo::orderedList_moveUp(this->list, this->getSelected(),
-                                     this->columns.signal_listChanged(),
-                                     _moveUpButton.get_tooltip_text());
-        });
+        _cloneButton.signal_clicked().connect(sigc::mem_fun(
+            this->controller(), &OrderedListController::selected_clone));
 
-        _moveDownButton.signal_clicked().connect([this](void) {
-            Undo::orderedList_moveDown(this->list, this->getSelected(),
-                                       this->columns.signal_listChanged(),
-                                       _moveDownButton.get_tooltip_text());
-        });
+        _moveUpButton.signal_clicked().connect(sigc::mem_fun(
+            this->controller(), &OrderedListController::selected_moveUp));
 
-        _removeButton.signal_clicked().connect([this](void) {
-            T* toRemove = this->getSelected();
+        _moveDownButton.signal_clicked().connect(sigc::mem_fun(
+            this->controller(), &OrderedListController::selected_moveDown));
 
-            this->selectItem(nullptr);
-
-            Undo::orderedList_remove(this->list, toRemove,
-                                     this->columns.signal_listChanged(),
-                                     _removeButton.get_tooltip_text());
-        });
-
-        this->columns.signal_listChanged().connect([this](const typename T::list_t* list) {
-            if (list == this->list) {
-                updateButtonState();
-            }
-        });
-
-        this->signal_selected_changed().connect(sigc::mem_fun(*this,
-                                                              &OrderedListEditor::updateButtonState));
+        _removeButton.signal_clicked().connect(sigc::mem_fun(
+            this->controller(), &OrderedListController::selected_remove));
     }
-
-    inline void setList(typename T::list_t* newList)
-    {
-        OrderedListView<T, ModelColumnsT>::setList(newList);
-
-        updateButtonState();
-    }
-    inline void setList(typename T::list_t& newList) { setList(&newList); }
 
 protected:
     void updateButtonState()
     {
-        if (this->list) {
-            _buttonBox.set_sensitive(true);
+        const typename T::list_t* list = this->controller().list();
+        const T* item = this->controller().selected();
 
-            auto item = this->getSelected();
+        if (list != nullptr) {
+            _buttonBox.set_sensitive(true);
 
             bool enabled = item != nullptr;
 
             _createButton.set_sensitive(true);
             _cloneButton.set_sensitive(enabled);
-            _moveUpButton.set_sensitive(enabled && !(this->list->isFirst(item)));
-            _moveDownButton.set_sensitive(enabled && !(this->list->isLast(item)));
+            _moveUpButton.set_sensitive(enabled && !(list->isFirst(item)));
+            _moveDownButton.set_sensitive(enabled && !(list->isLast(item)));
             _removeButton.set_sensitive(enabled);
         }
         else {

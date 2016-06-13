@@ -1,6 +1,4 @@
 #include "addtilesdialog.h"
-#include "signals.h"
-#include "gui/undo/undostack.h"
 #include "gui/widgets/defaults.h"
 #include "models/metasprite/palette.h"
 
@@ -9,73 +7,9 @@
 using namespace UnTech;
 using namespace UnTech::Widgets::MetaSprite;
 
-inline void frameSet_addTiles(MS::FrameSet& frameSet,
-                              unsigned nNewSmallTiles, unsigned nNewLargeTiles)
-{
-    class Action : public ::UnTech::Undo::Action {
-    public:
-        Action() = delete;
-        Action(MS::FrameSet& frameSet,
-               const unsigned nNewSmallTiles,
-               const unsigned nNewLargeTiles)
-            : _frameSet(frameSet)
-            , _nNewSmallTiles(nNewSmallTiles)
-            , _nNewLargeTiles(nNewLargeTiles)
-        {
-        }
-
-        virtual ~Action() override = default;
-
-        virtual void undo() override
-        {
-            for (unsigned t = 0; t < _nNewSmallTiles; t++) {
-                _frameSet.smallTileset().removeLastTile();
-            }
-            for (unsigned t = 0; t < _nNewLargeTiles; t++) {
-                _frameSet.largeTileset().removeLastTile();
-            }
-
-            Signals::frameSetTilesetCountChanged.emit(&_frameSet);
-        }
-
-        virtual void redo() override
-        {
-            for (unsigned t = 0; t < _nNewSmallTiles; t++) {
-                _frameSet.smallTileset().addTile();
-            }
-            for (unsigned t = 0; t < _nNewLargeTiles; t++) {
-                _frameSet.largeTileset().addTile();
-            }
-
-            Signals::frameSetTilesetCountChanged.emit(&_frameSet);
-        }
-
-        virtual const Glib::ustring& message() const override
-        {
-            const static Glib::ustring message = _("Add Tiles");
-            return message;
-        }
-
-    private:
-        MS::FrameSet& _frameSet;
-        unsigned _nNewSmallTiles;
-        unsigned _nNewLargeTiles;
-    };
-
-    if (nNewSmallTiles > 0 || nNewLargeTiles > 0) {
-        auto a = std::make_unique<Action>(frameSet, nNewSmallTiles, nNewLargeTiles);
-        a->redo();
-
-        Undo::UndoStack* undoStack = frameSet.document().undoStack();
-        if (undoStack) {
-            undoStack->add_undo(std::move(a));
-        }
-    }
-}
-
-AddTilesDialog::AddTilesDialog(MS::FrameSet& frameSet, Gtk::Window& parent)
+AddTilesDialog::AddTilesDialog(MS::FrameSetController& controller, Gtk::Window& parent)
     : Gtk::Dialog(_("Add Tiles"), parent, false)
-    , _frameSet(frameSet)
+    , _controller(controller)
     , _grid()
     , _nNewSmallTilesSpin(Gtk::Adjustment::create(0.0, 0.0, 64.0))
     , _nNewLargeTilesSpin(Gtk::Adjustment::create(0.0, 0.0, 16.0))
@@ -109,6 +43,7 @@ AddTilesDialog::AddTilesDialog(MS::FrameSet& frameSet, Gtk::Window& parent)
 
     // SIGNALS
     // =======
+
     _nNewSmallTilesSpin.signal_value_changed().connect(sigc::mem_fun(
         *this, &AddTilesDialog::updateGuiValues));
 
@@ -117,18 +52,22 @@ AddTilesDialog::AddTilesDialog(MS::FrameSet& frameSet, Gtk::Window& parent)
 
     signal_response().connect([this](int response) {
         if (response == Gtk::RESPONSE_ACCEPT) {
-            frameSet_addTiles(_frameSet,
-                              _nNewSmallTilesSpin.get_value(),
-                              _nNewLargeTilesSpin.get_value());
+            _controller.selected_addTiles(
+                _nNewSmallTilesSpin.get_value(),
+                _nNewLargeTilesSpin.get_value());
         }
     });
 }
 
 void AddTilesDialog::updateGuiValues()
 {
-    unsigned nSmall = _nNewSmallTilesSpin.get_value() + _frameSet.smallTileset().size();
-    unsigned nLarge = _nNewLargeTilesSpin.get_value() + _frameSet.largeTileset().size();
+    const MS::FrameSet* frameSet = _controller.selected();
 
-    _smallCount.set_text(Glib::ustring::compose("(%1 total)", nSmall));
-    _largeCount.set_text(Glib::ustring::compose("(%1 total)", nLarge));
+    if (frameSet) {
+        unsigned nSmall = _nNewSmallTilesSpin.get_value() + frameSet->smallTileset().size();
+        unsigned nLarge = _nNewLargeTilesSpin.get_value() + frameSet->largeTileset().size();
+
+        _smallCount.set_text(Glib::ustring::compose("(%1 total)", nSmall));
+        _largeCount.set_text(Glib::ustring::compose("(%1 total)", nLarge));
+    }
 }

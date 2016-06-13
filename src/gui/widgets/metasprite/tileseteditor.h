@@ -13,7 +13,7 @@ namespace MS = UnTech::MetaSprite;
 
 class TilesetEditor {
 public:
-    TilesetEditor(Selection& selection);
+    TilesetEditor(MS::MetaSpriteController& controller);
 
     ~TilesetEditor() = default;
 

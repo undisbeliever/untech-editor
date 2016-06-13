@@ -1,6 +1,6 @@
 #pragma once
 
-#include "selection.h"
+#include "gui/controllers/metasprite.h"
 #include "gui/widgets/defaults.h"
 
 #include <gtkmm.h>
@@ -13,11 +13,11 @@ namespace MS = UnTech::MetaSprite;
 
 class FrameGraphicalEditor : public Gtk::DrawingArea {
 public:
-    FrameGraphicalEditor(Selection& selection);
+    FrameGraphicalEditor(MS::MetaSpriteController& controller);
 
     ~FrameGraphicalEditor() = default;
 
-    void setFrame(MS::Frame* frame);
+    void setFrame(const MS::Frame* frame);
 
     void setZoom(double x, double y);
 
@@ -44,6 +44,7 @@ protected:
         bool resizeBottom;
     };
 
+    void on_nonPixmapDataChanged();
     void redrawFramePixbuf();
 
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
@@ -64,8 +65,8 @@ protected:
     void update_offsets();
 
 private:
-    MS::Frame* _selectedFrame;
-    Selection& _selection;
+    MS::MetaSpriteController& _controller;
+    const MS::Frame* _selectedFrame;
 
     double _zoomX, _zoomY;
     int _xOffset, _yOffset;

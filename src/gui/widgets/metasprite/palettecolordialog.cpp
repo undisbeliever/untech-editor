@@ -1,70 +1,14 @@
 #include "palettecolordialog.h"
-#include "signals.h"
-#include "gui/undo/undostack.h"
 #include "gui/widgets/defaults.h"
-#include "models/metasprite/palette.h"
 
 #include <glibmm/i18n.h>
 
 using namespace UnTech;
 using namespace UnTech::Widgets::MetaSprite;
 
-inline void palette_setColor(MS::Palette& item, unsigned colorId,
-                             const Snes::SnesColor& oldColor,
-                             const Snes::SnesColor& newColor)
-{
-    class Action : public ::UnTech::Undo::Action {
-    public:
-        Action() = delete;
-        Action(MS::Palette& item,
-               const unsigned colorId,
-               const Snes::SnesColor& oldColor,
-               const Snes::SnesColor& newColor)
-            : _item(item)
-            , _colorId(colorId)
-            , _oldColor(oldColor)
-            , _newColor(newColor)
-        {
-        }
-
-        virtual ~Action() override = default;
-
-        virtual void undo() override
-        {
-            _item.color(_colorId) = _oldColor;
-            Signals::paletteChanged.emit(&_item);
-        }
-
-        virtual void redo() override
-        {
-            _item.color(_colorId) = _newColor;
-            Signals::paletteChanged.emit(&_item);
-        }
-
-        virtual const Glib::ustring& message() const override
-        {
-            const static Glib::ustring message = _("Change color");
-            return message;
-        }
-
-    private:
-        MS::Palette& _item;
-        const unsigned _colorId;
-        const Snes::SnesColor _oldColor;
-        const Snes::SnesColor _newColor;
-    };
-
-    if (oldColor != newColor) {
-        Undo::UndoStack* undoStack = item.document().undoStack();
-        if (undoStack) {
-            undoStack->add_undo(std::make_unique<Action>(
-                item, colorId, oldColor, newColor));
-        }
-    }
-}
-
-PaletteColorDialog::PaletteColorDialog(MS::Palette& palette, unsigned colorId, Gtk::Widget& parent)
+PaletteColorDialog::PaletteColorDialog(MS::PaletteController& controller, unsigned colorId, Gtk::Widget& parent)
     : Gtk::Dialog(_("SNES Color"), false)
+    , _controller(controller)
     , _grid()
     , _blueScale(Gtk::Adjustment::create(0.0, 0.0, MAX_COLOR_VALUE, 1.0, 4.0, 0.0),
                  Gtk::ORIENTATION_HORIZONTAL)
@@ -72,13 +16,11 @@ PaletteColorDialog::PaletteColorDialog(MS::Palette& palette, unsigned colorId, G
                   Gtk::ORIENTATION_HORIZONTAL)
     , _redScale(Gtk::Adjustment::create(0.0, 0.0, MAX_COLOR_VALUE, 1.0, 4.0, 0.0),
                 Gtk::ORIENTATION_HORIZONTAL)
-    , _colorArea(palette.color(colorId).rgb())
+    , _colorArea()
     , _blueLabel(_("Blue:"), Gtk::ALIGN_START)
     , _greenLabel(_("Green:"), Gtk::ALIGN_START)
     , _redLabel(_("Red:"), Gtk::ALIGN_START)
-    , _palette(palette)
     , _colorId(colorId)
-    , _oldColor(palette.color(colorId))
     , _updatingValues(false)
 {
     set_default_response(Gtk::RESPONSE_ACCEPT);
@@ -124,59 +66,72 @@ PaletteColorDialog::PaletteColorDialog(MS::Palette& palette, unsigned colorId, G
     GtkWidget* toplevel = gtk_widget_get_toplevel(parent.gobj());
     gtk_window_set_transient_for(GTK_WINDOW(this->gobj()), GTK_WINDOW(toplevel));
 
-    // Signals
-    Signals::paletteChanged.connect([this](const MS::Palette* pal) {
-        if (pal == &_palette) {
-            updateGuiValues();
-            _colorArea.queue_draw();
-        }
-    });
+    /*
+     * SLOTS
+     * =====
+     */
 
+    /* Controller Signals */
+    _con1 = _controller.signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &PaletteColorDialog::updateGuiValues));
+
+    _con2 = _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &PaletteColorDialog::updateGuiValues));
+
+    /* Slider Signals */
     _blueScale.signal_value_changed().connect([this](void) {
         if (!_updatingValues) {
-            _palette.color(_colorId).setBlue(_blueScale.get_value());
-            Signals::paletteChanged.emit(&_palette);
+            _color.setBlue(_blueScale.get_value());
+            _controller.selected_setColor_merge(_colorId, _color);
         }
     });
     _greenScale.signal_value_changed().connect([this](void) {
         if (!_updatingValues) {
-            _palette.color(_colorId).setGreen(_greenScale.get_value());
-            Signals::paletteChanged.emit(&_palette);
+            _color.setGreen(_greenScale.get_value());
+            _controller.selected_setColor_merge(_colorId, _color);
         }
     });
     _redScale.signal_value_changed().connect([this](void) {
         if (!_updatingValues) {
-            _palette.color(_colorId).setRed(_redScale.get_value());
-            Signals::paletteChanged.emit(&_palette);
+            _color.setRed(_redScale.get_value());
+            _controller.selected_setColor_merge(_colorId, _color);
         }
     });
 
-    /** Reset color if necessary. */
+    /** Reset color on cancel. */
     signal_response().connect([this](int response) {
         if (response == Gtk::RESPONSE_ACCEPT) {
-            palette_setColor(_palette, _colorId,
-                             _oldColor,
-                             _palette.color(_colorId));
+            _controller.baseController().dontMergeNextAction();
         }
         else {
             // restore color.
-            _palette.color(_colorId) = _oldColor;
-            Signals::paletteChanged.emit(&_palette);
+            _controller.baseController().undoStack().undo();
         }
+        close();
     });
+}
+
+PaletteColorDialog::~PaletteColorDialog()
+{
+    _con1.disconnect();
+    _con2.disconnect();
 }
 
 void PaletteColorDialog::updateGuiValues()
 {
-    _updatingValues = true;
+    const MS::Palette* palette = _controller.selected();
 
-    auto& c = _palette.color(_colorId);
+    if (palette != nullptr) {
+        _updatingValues = true;
 
-    _blueScale.set_value(c.blue());
-    _greenScale.set_value(c.green());
-    _redScale.set_value(c.red());
+        _color = _controller.selected()->color(_colorId);
 
-    _colorArea.set_color(c.rgb());
+        _blueScale.set_value(_color.blue());
+        _greenScale.set_value(_color.green());
+        _redScale.set_value(_color.red());
 
-    _updatingValues = false;
+        _colorArea.set_color(_color.rgb());
+
+        _updatingValues = false;
+    }
 }

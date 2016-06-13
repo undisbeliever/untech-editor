@@ -70,7 +70,7 @@ void SpriteImporterApplication::create_window(std::unique_ptr<SI::SpriteImporter
         auto window = new SpriteImporterWindow();
 
         // ::DEBUG create a document::
-        window->setDocument(std::move(document));
+        window->controller().setDocument(std::move(document));
 
         add_window(*window);
 
@@ -87,7 +87,8 @@ void SpriteImporterApplication::load_file(const std::string& filename)
     for (auto* window : get_windows()) {
         auto* siw = dynamic_cast<SpriteImporterWindow*>(window);
         if (siw) {
-            if (siw->document()->filename() == filename) {
+            const auto* document = siw->controller().document();
+            if (document && document->filename() == filename) {
                 return;
             }
         }

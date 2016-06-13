@@ -1,8 +1,8 @@
 #include "metaspriteapplication.h"
 #include "metaspritewindow.h"
 #include "version.h"
-#include "../common/aboutdialog.h"
-#include "../common/errormessagedialog.h"
+#include "gui/widgets/common/aboutdialog.h"
+#include "gui/widgets/common/errormessagedialog.h"
 
 #include <exception>
 #include <iostream>
@@ -70,7 +70,7 @@ void MetaSpriteApplication::create_window(std::unique_ptr<MS::MetaSpriteDocument
         auto window = new MetaSpriteWindow();
 
         // ::DEBUG create a document::
-        window->setDocument(std::move(document));
+        window->controller().setDocument(std::move(document));
 
         add_window(*window);
 
@@ -85,9 +85,10 @@ void MetaSpriteApplication::load_file(const std::string& filename)
 {
     // ensure the file is not already loaded
     for (auto* window : get_windows()) {
-        auto* siw = dynamic_cast<MetaSpriteWindow*>(window);
-        if (siw) {
-            if (siw->document()->filename() == filename) {
+        auto* msw = dynamic_cast<MetaSpriteWindow*>(window);
+        if (msw) {
+            const auto* document = msw->controller().document();
+            if (document && document->filename() == filename) {
                 return;
             }
         }

@@ -1,7 +1,4 @@
 #include "framesetpropertieseditor.h"
-#include "signals.h"
-#include "gui/undo/actionhelper.h"
-#include "gui/undo/mergeactionhelper.h"
 #include "gui/widgets/defaults.h"
 #include "models/common/string.h"
 
@@ -10,35 +7,10 @@
 
 using namespace UnTech::Widgets::SpriteImporter;
 
-PARAMETER_UNDO_MERGE_ACTION2(frameSet_Grid_merge_setFrameSize,
-                             SI::FrameSet, grid, UnTech::usize, frameSize, setFrameSize,
-                             Signals::frameSetChanged, Signals::frameSetGridChanged,
-                             "Change Grid Frame Size")
-
-PARAMETER_UNDO_MERGE_ACTION2(frameSet_Grid_merge_setOffset,
-                             SI::FrameSet, grid, UnTech::upoint, offset, setOffset,
-                             Signals::frameSetChanged, Signals::frameSetGridChanged,
-                             "Change Grid Offset")
-
-PARAMETER_UNDO_MERGE_ACTION2(frameSet_Grid_merge_setPadding,
-                             SI::FrameSet, grid, UnTech::usize, padding, setPadding,
-                             Signals::frameSetChanged, Signals::frameSetGridChanged,
-                             "Change Grid Padding")
-
-PARAMETER_UNDO_MERGE_ACTION2(frameSet_Grid_merge_setOrigin,
-                             SI::FrameSet, grid, UnTech::upoint, origin, setOrigin,
-                             Signals::frameSetChanged, Signals::frameSetGridChanged,
-                             "Change Grid Origin")
-
-SIMPLE_UNDO_ACTION2(frameSet_setImageFilename,
-                    SI::FrameSet, std::string, imageFilename, setImageFilename,
-                    Signals::frameSetChanged, Signals::frameSetImageChanged,
-                    "Change Image")
-
-FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
+FrameSetPropertiesEditor::FrameSetPropertiesEditor(SI::SpriteImporterController& controller)
     : widget(Gtk::ORIENTATION_VERTICAL)
-    , _selection(selection)
-    , _abstractEditor(selection)
+    , _controller(controller)
+    , _abstractEditor(controller.abstractFrameSetController())
     , _wgrid()
     , _imageFilenameBox(Gtk::ORIENTATION_HORIZONTAL)
     , _imageFilenameEntry()
@@ -107,35 +79,24 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
 
     /**
      * SLOTS
+     * =====
      */
 
-    /* Update gui when selected frameSet changed */
-    _selection.signal_frameSetChanged.connect(sigc::mem_fun(
+    // Controller Signals
+    _controller.frameSetController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &FrameSetPropertiesEditor::updateGuiValues));
 
-    /* Update gui if frameSet has changed */
-    Signals::frameSetChanged.connect([this](const SI::FrameSet* frameSet) {
-        if (frameSet == _selection.frameSet()) {
-            updateGuiValues();
-        }
-    });
-
-    /* Update transparent color if image changed */
-    Signals::frameSetImageChanged.connect([this](const SI::FrameSet* frameSet) {
-        if (frameSet && frameSet == _selection.frameSet()) {
-            _selection.frameSet()->image();
-            updateGuiValues();
-        }
-    });
+    _controller.frameSetController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &FrameSetPropertiesEditor::updateGuiValues)));
 
     /** Update transparent button when changed */
-    _selection.signal_selectTransparentModeChanged.connect([this](void) {
-        _transparentColorButton.set_active(_selection.selectTransparentMode());
+    _controller.frameSetController().signal_selectTransparentModeChanged().connect([this](void) {
+        _transparentColorButton.set_active(_controller.frameSetController().selectTransparentMode());
     });
 
     /** Transparent button pressed signal */
     _transparentColorButton.signal_toggled().connect([this](void) {
-        _selection.setSelectTransparentMode(_transparentColorButton.get_active());
+        _controller.frameSetController().setSelectTransparentMode(_transparentColorButton.get_active());
     });
 
     /** Set Image filename signal */
@@ -145,47 +106,47 @@ FrameSetPropertiesEditor::FrameSetPropertiesEditor(Selection& selection)
     /** Set Grid Frame Size signal */
     _gridFrameSizeSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            frameSet_Grid_merge_setFrameSize(_selection.frameSet(),
-                                             _gridFrameSizeSpinButtons.value());
+            _controller.frameSetController().selected_setGridFrameSize_merge(
+                _gridFrameSizeSpinButtons.value());
         }
     });
     _gridFrameSizeSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 
     /** Set Grid Offset signal */
     _gridOffsetSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            frameSet_Grid_merge_setOffset(_selection.frameSet(),
-                                          _gridOffsetSpinButtons.value());
+            _controller.frameSetController().selected_setGridOffset_merge(
+                _gridOffsetSpinButtons.value());
         }
     });
     _gridOffsetSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 
     /** Set Grid Padding signal */
     _gridPaddingSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            frameSet_Grid_merge_setPadding(_selection.frameSet(),
-                                           _gridPaddingSpinButtons.value());
+            _controller.frameSetController().selected_setGridPadding_merge(
+                _gridPaddingSpinButtons.value());
         }
     });
     _gridPaddingSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 
     /** Set Grid Offset signal */
     _gridOriginSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            frameSet_Grid_merge_setOrigin(_selection.frameSet(),
-                                          _gridOriginSpinButtons.value());
+            _controller.frameSetController().selected_setGridOrigin_merge(
+                _gridOriginSpinButtons.value());
         }
     });
     _gridOriginSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 }
 
 void FrameSetPropertiesEditor::updateGuiValues()
 {
-    const SI::FrameSet* frameSet = _selection.frameSet();
+    const SI::FrameSet* frameSet = _controller.frameSetController().selected();
 
     if (frameSet) {
         _updatingValues = true;
@@ -235,7 +196,7 @@ void FrameSetPropertiesEditor::updateGuiValues()
 
 void FrameSetPropertiesEditor::on_imageFilenameButtonClicked()
 {
-    SI::FrameSet* frameSet = _selection.frameSet();
+    const SI::FrameSet* frameSet = _controller.frameSetController().selected();
 
     if (!frameSet || _updatingValues) {
         return;
@@ -271,6 +232,7 @@ void FrameSetPropertiesEditor::on_imageFilenameButtonClicked()
     int result = dialog.run();
 
     if (result == Gtk::RESPONSE_OK) {
-        frameSet_setImageFilename(frameSet, dialog.get_filename());
+        _controller.frameSetController().selected_setImageFilename(
+            dialog.get_filename());
     }
 }

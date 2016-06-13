@@ -1,8 +1,7 @@
 #pragma once
 
-#include "signals.h"
+#include "gui/controllers/sprite-importer.h"
 #include "gui/widgets/common/namedlist.h"
-#include "models/sprite-importer/frame.h"
 
 #include <glibmm/i18n.h>
 #include <gtkmm.h>
@@ -25,7 +24,7 @@ public:
         add(col_y);
     }
 
-    Gtk::TreeModelColumn<SI::Frame*> col_item;
+    Gtk::TreeModelColumn<const SI::Frame*> col_item;
     Gtk::TreeModelColumn<std::string> col_id;
     Gtk::TreeModelColumn<unsigned int> col_x;
     Gtk::TreeModelColumn<unsigned int> col_y;
@@ -54,12 +53,6 @@ public:
         row[col_x] = frame->location().x;
         row[col_y] = frame->location().y;
     }
-
-    inline static auto& signal_itemChanged() { return Signals::frameChanged; }
-
-    inline static auto& signal_listChanged() { return Signals::frameListChanged; }
-
-    inline static const char* itemTypeName() { return "Frame"; }
 };
 }
 

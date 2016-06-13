@@ -1,10 +1,8 @@
 #pragma once
 
 #include "metaspriteeditor.h"
-#include "selection.h"
-#include "gui/undo/undostack.h"
+#include "gui/controllers/metasprite.h"
 #include "gui/widgets/defaults.h"
-#include "models/metasprite/document.h"
 
 #include <glibmm/i18n.h>
 #include <gtkmm.h>
@@ -20,9 +18,7 @@ class MetaSpriteWindow : public Gtk::ApplicationWindow {
 public:
     MetaSpriteWindow();
 
-    MS::MetaSpriteDocument* document() const { return _editor.document(); }
-
-    void setDocument(std::unique_ptr<MS::MetaSpriteDocument> document);
+    auto& controller() { return _controller; }
 
 protected:
     void updateTitle();
@@ -45,8 +41,8 @@ protected:
     bool on_delete_event(GdkEventAny* any_event);
 
 private:
+    MS::MetaSpriteController _controller;
     MetaSpriteEditor _editor;
-    Undo::UndoStack _undoStack;
 
     Glib::RefPtr<Gio::SimpleAction> _saveAction;
     Glib::RefPtr<Gio::SimpleAction> _undoAction;

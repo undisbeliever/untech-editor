@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../common/colorarea.h"
-#include "models/metasprite/palette.h"
+#include "gui/controllers/metasprite.h"
 
 #include <gtkmm.h>
 
@@ -13,12 +12,12 @@ namespace MS = UnTech::MetaSprite;
 
 class AddTilesDialog : public Gtk::Dialog {
 public:
-    AddTilesDialog(MS::FrameSet& frameSet, Gtk::Window& parent);
+    AddTilesDialog(MS::FrameSetController& controller, Gtk::Window& parent);
 
     void updateGuiValues();
 
 private:
-    MS::FrameSet& _frameSet;
+    MS::FrameSetController& _controller;
 
     Gtk::Grid _grid;
 

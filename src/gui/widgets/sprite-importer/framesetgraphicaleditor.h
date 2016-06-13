@@ -1,7 +1,6 @@
 #pragma once
 
-#include "selection.h"
-#include "models/sprite-importer.h"
+#include "gui/controllers/sprite-importer.h"
 
 #include <gtkmm.h>
 
@@ -13,7 +12,7 @@ namespace SI = UnTech::SpriteImporter;
 
 class FrameSetGraphicalEditor : public Gtk::DrawingArea {
 public:
-    FrameSetGraphicalEditor(Selection& selection);
+    FrameSetGraphicalEditor(SI::SpriteImporterController& controller);
 
     ~FrameSetGraphicalEditor() = default;
 
@@ -42,6 +41,7 @@ protected:
     };
 
     void resizeWidget();
+    void on_dataChanged();
     void loadAndScaleImage();
 
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
@@ -60,6 +60,8 @@ protected:
     void update_pointer_cursor();
 
 private:
+    SI::SpriteImporterController& _controller;
+
     double _zoomX, _zoomY;
 
     /**
@@ -72,7 +74,6 @@ private:
     // A pre-scaled copy of the frameset image.
     Glib::RefPtr<Gdk::Pixbuf> _frameSetImage;
 
-    Selection& _selection;
     Action _action;
 };
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "selection.h"
+#include "gui/controllers/metasprite.h"
 
 #include <gtkmm.h>
 
@@ -16,17 +16,15 @@ public:
     static constexpr unsigned TILE_SIZE = TilesetT::tile_t::TILE_SIZE;
 
 public:
-    TilesetGraphicalEditor(Selection& selection);
+    TilesetGraphicalEditor(MS::MetaSpriteController& controller);
 
     ~TilesetGraphicalEditor() = default;
 
     void setZoom(double x, double y);
 
 protected:
-    // will always be called when a frameset is selected
-    inline TilesetT& tileset() const;
-
     void redrawTilesetPixbuf();
+    void clearPixbuf();
 
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
 
@@ -41,8 +39,10 @@ protected:
 
     void setTilePixelForMouse(double x, double y);
 
+    bool isColorSelected();
+
 private:
-    Selection& _selection;
+    MS::MetaSpriteController& _controller;
 
     double _zoomX, _zoomY;
 

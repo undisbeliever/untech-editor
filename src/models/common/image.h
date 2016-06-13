@@ -65,7 +65,7 @@ public:
         return data() + (y * _size.width);
     }
 
-    inline rgba getPixel(unsigned x, unsigned y)
+    inline rgba getPixel(unsigned x, unsigned y) const
     {
         return *(data() + x + (y * _size.width));
     }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "selection.h"
+#include "gui/controllers/sprite-importer.h"
 #include "gui/widgets/common/aabb.h"
 
 #include <gtkmm.h>
@@ -9,12 +9,15 @@ namespace UnTech {
 namespace Widgets {
 namespace SpriteImporter {
 
+namespace SI = UnTech::SpriteImporter;
+
 class EntityHitboxEditor {
 public:
-    EntityHitboxEditor(Selection& selection);
+    EntityHitboxEditor(SI::SpriteImporterController& controller);
 
 protected:
     void updateGuiValues();
+    void updateRange();
 
     void onParameterFinishedEditing();
 
@@ -22,7 +25,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    Selection& _selection;
+    SI::SpriteImporterController& _controller;
 
     UrectSpinButtons _aabbSpinButtons;
     Gtk::Entry _parameterEntry;

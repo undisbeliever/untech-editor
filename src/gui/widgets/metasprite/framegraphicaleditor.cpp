@@ -1,34 +1,19 @@
 #include "framegraphicaleditor.h"
-#include "signals.h"
 #include "../common/cr_rgba.h"
-#include "gui/undo/actionhelper.h"
 
 #include <cmath>
 
 using namespace UnTech::Widgets::MetaSprite;
 
+typedef MS::MetaSpriteController::SelectedTypeController::Type SelectedType;
+
 const unsigned FRAME_IMAGE_SIZE = 256 + 16;
 const unsigned FRAME_IMAGE_OFFSET = -UnTech::int_ms8_t::MIN;
 
-SIMPLE_UNDO_ACTION(frameObject_setLocation,
-                   MS::FrameObject, UnTech::ms8point, location, setLocation,
-                   Signals::frameObjectChanged,
-                   "Move Frame Object")
-
-SIMPLE_UNDO_ACTION(actionPoint_setLocation,
-                   MS::ActionPoint, UnTech::ms8point, location, setLocation,
-                   Signals::actionPointChanged,
-                   "Move Action Point")
-
-SIMPLE_UNDO_ACTION(entityHitbox_setAabb,
-                   MS::EntityHitbox, UnTech::ms8rect, aabb, setAabb,
-                   Signals::entityHitboxChanged,
-                   "Move Entity Hitbox")
-
-FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
+FrameGraphicalEditor::FrameGraphicalEditor(MS::MetaSpriteController& controller)
     : Gtk::DrawingArea()
-    , _selectedFrame(selection.frame())
-    , _selection(selection)
+    , _controller(controller)
+    , _selectedFrame(nullptr)
     , _zoomX(DEFAULT_ZOOM)
     , _zoomY(DEFAULT_ZOOM)
     , _displayZoom(NAN)
@@ -50,77 +35,79 @@ FrameGraphicalEditor::FrameGraphicalEditor(Selection& selection)
 
     // SLOTS
     // =====
-    Signals::actionPointListChanged.connect([this](const MS::ActionPoint::list_t* list) {
-        if (_selectedFrame && list == &_selectedFrame->actionPoints()) {
-            queue_draw();
-        }
-    });
-    Signals::entityHitboxListChanged.connect([this](const MS::EntityHitbox::list_t* list) {
-        if (_selectedFrame && list == &_selectedFrame->entityHitboxes()) {
-            queue_draw();
-        }
-    });
 
-    _selection.signal_selectionChanged.connect([this](void) {
-        // reset action
-        _action.state = Action::NONE;
-        queue_draw();
-    });
+    /* Controller Signals */
+    _controller.frameController().signal_listDataChanged().connect(
+        [this](const MS::Frame::list_t* list) {
+            if (list == nullptr || !list->contains(_selectedFrame)) {
+                setFrame(nullptr);
+            }
+        });
+    _controller.frameController().signal_listChanged().connect(
+        [this](void) {
+            auto list = _controller.frameController().list();
+            if (list == nullptr || !list->contains(_selectedFrame)) {
+                setFrame(nullptr);
+            }
+        });
 
-    Signals::frameChanged.connect([this](const MS::Frame* frame) {
-        if (frame == _selectedFrame) {
-            queue_draw();
-        }
-    });
-    Signals::actionPointChanged.connect([this](const MS::ActionPoint* ap) {
-        if (ap && &ap->frame() == _selectedFrame) {
-            queue_draw();
-        }
-    });
-    Signals::entityHitboxChanged.connect([this](const MS::EntityHitbox* eh) {
-        if (eh && &eh->frame() == _selectedFrame) {
-            queue_draw();
-        }
-    });
+    _controller.frameController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::on_nonPixmapDataChanged)));
 
-    // Redraw image if necessary
-    _selection.signal_paletteChanged.connect(sigc::mem_fun(
+    _controller.frameObjectController().signal_selectedChanged().connect(sigc::mem_fun(
+        this, &FrameGraphicalEditor::on_nonPixmapDataChanged));
+
+    _controller.entityHitboxController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::on_nonPixmapDataChanged)));
+    _controller.entityHitboxController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::on_nonPixmapDataChanged)));
+    _controller.entityHitboxController().signal_selectedChanged().connect(sigc::mem_fun(
+        this, &FrameGraphicalEditor::on_nonPixmapDataChanged));
+
+    _controller.actionPointController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::on_nonPixmapDataChanged)));
+    _controller.actionPointController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::on_nonPixmapDataChanged)));
+    _controller.actionPointController().signal_selectedChanged().connect(sigc::mem_fun(
+        this, &FrameGraphicalEditor::on_nonPixmapDataChanged));
+
+    _controller.selectedTypeController().signal_typeChanged().connect(sigc::mem_fun(
+        this, &FrameGraphicalEditor::on_nonPixmapDataChanged));
+
+    // Redraw buffer when obj/palette/tiles changed
+    _controller.frameObjectController().signal_dataChanged().connect(
+        [this](const MS::FrameObject* obj) {
+            if (obj && _selectedFrame == &obj->frame()) {
+                redrawFramePixbuf();
+            }
+        });
+
+    _controller.frameObjectController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::redrawFramePixbuf)));
+
+    _controller.paletteController().signal_selectedChanged().connect(sigc::mem_fun(
         this, &FrameGraphicalEditor::redrawFramePixbuf));
 
-    Signals::frameObjectListChanged.connect([this](const MS::FrameObject::list_t* list) {
-        if (_selectedFrame && list == &_selectedFrame->objects()) {
-            redrawFramePixbuf();
-        }
-    });
+    _controller.paletteController().signal_selectedDataChanged().connect(sigc::mem_fun(
+        this, &FrameGraphicalEditor::redrawFramePixbuf));
 
-    Signals::frameObjectChanged.connect([this](const MS::FrameObject* obj) {
-        if (obj && &obj->frame() == _selectedFrame) {
-            redrawFramePixbuf();
-        }
-    });
+    _controller.frameSetController().signal_smallTilesetChanged().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::redrawFramePixbuf)));
 
-    Signals::frameSetTilesetChanged.connect([this](const MS::FrameSet* frameSet) {
-        if (_selectedFrame && &_selectedFrame->frameSet() == frameSet) {
-            redrawFramePixbuf();
-        }
-    });
-
-    Signals::paletteChanged.connect([this](const MS::Palette* palette) {
-        if (palette && palette == _selection.palette()) {
-            redrawFramePixbuf();
-        }
-    });
+    _controller.frameSetController().signal_largeTilesetChanged().connect(sigc::hide(sigc::mem_fun(
+        this, &FrameGraphicalEditor::redrawFramePixbuf)));
 
     // Update offsets on resize
     signal_size_allocate().connect(sigc::hide(sigc::mem_fun(
         this, &FrameGraphicalEditor::update_offsets)));
 
-    // BUGFIX: update_offsets were not called on first draw, fixed by calling on frameChange::
-    _selection.signal_frameChanged.connect(sigc::mem_fun(
+    // BUGFIX: update_offsets were not called on first draw,
+    //         fixed by calling on frame change::
+    _controller.frameController().signal_selectedChanged().connect(sigc::mem_fun(
         this, &FrameGraphicalEditor::update_offsets));
 }
 
-void FrameGraphicalEditor::setFrame(MS::Frame* frame)
+void FrameGraphicalEditor::setFrame(const MS::Frame* frame)
 {
     if (_selectedFrame != frame) {
         _selectedFrame = frame;
@@ -128,15 +115,26 @@ void FrameGraphicalEditor::setFrame(MS::Frame* frame)
     }
 }
 
+void FrameGraphicalEditor::on_nonPixmapDataChanged()
+{
+    if (_action.state != Action::NONE) {
+        _action.state = Action::NONE;
+        update_pointer_cursor();
+    }
+    queue_draw();
+}
+
 void FrameGraphicalEditor::redrawFramePixbuf()
 {
-    if (_selectedFrame && _selection.palette()) {
+    const MS::Palette* palette = _controller.paletteController().selected();
+
+    if (_selectedFrame && palette) {
         // ::SHOULDO see if it is possible to edit pixmap data in UnTech::image ::
 
         // ::TODO fill with palette BG color?::
 
         _frameImageBuffer.fill(0);
-        _selectedFrame->draw(_frameImageBuffer, *_selection.palette(),
+        _selectedFrame->draw(_frameImageBuffer, *palette,
                              FRAME_IMAGE_OFFSET, FRAME_IMAGE_OFFSET);
 
         auto pixbuf = Gdk::Pixbuf::create_from_data(reinterpret_cast<const guint8*>(_frameImageBuffer.data()),
@@ -153,7 +151,7 @@ void FrameGraphicalEditor::redrawFramePixbuf()
         _framePixbuf.reset();
     }
 
-    queue_draw();
+    on_nonPixmapDataChanged();
 }
 
 bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
@@ -337,24 +335,25 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->stroke();
     };
 
-    if (_selection.frame() == _selectedFrame) {
-        switch (_selection.type()) {
-        case Selection::Type::NONE:
+    if (_selectedFrame == _controller.frameController().selected()) {
+        switch (_controller.selectedTypeController().type()) {
+        case SelectedType::NONE:
             break;
 
-        case Selection::Type::FRAME_OBJECT:
-            if (_selection.frameObject()) {
-                const auto oLoc = _selection.frameObject()->location();
-                const unsigned oSize = _selection.frameObject()->sizePx();
+        case SelectedType::FRAME_OBJECT:
+            if (const auto* fo = _controller.frameObjectController().selected()) {
+                const auto oLoc = fo->location();
+                const unsigned oSize = fo->sizePx();
 
                 frameObjectColor.apply(cr);
                 draw_selected_rectangle(oLoc.x, oLoc.y, oSize, oSize);
             }
             break;
 
-        case Selection::Type::ENTITY_HITBOX:
-            if (_selection.entityHitbox()) {
-                const auto aabb = _selection.entityHitbox()->aabb();
+        case SelectedType::ENTITY_HITBOX:
+            if (const auto* eh = _controller.entityHitboxController().selected()) {
+
+                const auto aabb = eh->aabb();
 
                 // ::SHOULDO different color lines depending on type::
                 entityHitboxColor.apply(cr);
@@ -362,9 +361,9 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
             }
             break;
 
-        case Selection::Type::ACTION_POINT:
-            if (_selection.actionPoint()) {
-                const auto aLoc = _selection.actionPoint()->location();
+        case SelectedType::ACTION_POINT:
+            if (const auto* ap = _controller.actionPointController().selected()) {
+                const auto aLoc = ap->location();
 
                 cr->save();
 
@@ -457,13 +456,14 @@ bool FrameGraphicalEditor::on_button_press_event(GdkEventButton* event)
             _action.pressLocation = ms8point(mouseX, mouseY);
             ms8rect aabb;
 
-            switch (_selection.type()) {
-            case Selection::Type::NONE:
+            const auto selectedType = _controller.selectedTypeController().type();
+
+            switch (selectedType) {
+            case SelectedType::NONE:
                 break;
 
-            case Selection::Type::FRAME_OBJECT:
-                if (_selection.frameObject()) {
-                    const MS::FrameObject* fo = _selection.frameObject();
+            case SelectedType::FRAME_OBJECT:
+                if (const auto* fo = _controller.frameObjectController().selected()) {
                     const auto foLoc = fo->location();
 
                     aabb = ms8rect(foLoc.x, foLoc.y, fo->sizePx(), fo->sizePx());
@@ -471,9 +471,8 @@ bool FrameGraphicalEditor::on_button_press_event(GdkEventButton* event)
                 }
                 break;
 
-            case Selection::Type::ACTION_POINT:
-                if (_selection.actionPoint()) {
-                    const MS::ActionPoint* ap = _selection.actionPoint();
+            case SelectedType::ACTION_POINT:
+                if (const auto* ap = _controller.actionPointController().selected()) {
                     const auto apLoc = ap->location();
 
                     aabb = ms8rect(apLoc.x, apLoc.y, 1, 1);
@@ -481,10 +480,8 @@ bool FrameGraphicalEditor::on_button_press_event(GdkEventButton* event)
                 }
                 break;
 
-            case Selection::Type::ENTITY_HITBOX:
-                if (_selection.entityHitbox()) {
-                    const MS::EntityHitbox* eh = _selection.entityHitbox();
-
+            case SelectedType::ENTITY_HITBOX:
+                if (const auto* eh = _controller.entityHitboxController().selected()) {
                     aabb = eh->aabb();
                     _action.canDrag = true;
                 }
@@ -496,7 +493,7 @@ bool FrameGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
                 const ms8point fm(mouseX, mouseY);
 
-                if (_selection.type() == Selection::Type::ENTITY_HITBOX) {
+                if (selectedType == SelectedType::ENTITY_HITBOX) {
 
                     _action.resizeLeft = fm.x == aabb.left();
                     _action.resizeRight = fm.x == aabb.right();
@@ -647,7 +644,7 @@ void FrameGraphicalEditor::handleRelease_Click(const ms8point& mouse)
      * is selected.
      */
     struct SelHandler {
-        Selection::Type type = Selection::Type::NONE;
+        SelectedType type = SelectedType::NONE;
         MS::FrameObject* frameObject = nullptr;
         MS::ActionPoint* actionPoint = nullptr;
         MS::EntityHitbox* entityHitbox = nullptr;
@@ -656,25 +653,27 @@ void FrameGraphicalEditor::handleRelease_Click(const ms8point& mouse)
     SelHandler firstMatch;
 
     const MS::Frame* sFrame = _selectedFrame;
+    const auto selectedType = _controller.selectedTypeController().type();
 
     for (MS::FrameObject& obj : sFrame->objects()) {
         const auto loc = obj.location();
 
         if (mouse.x >= loc.x && mouse.x < (loc.x + (int)obj.sizePx())
             && mouse.y >= loc.y && mouse.y < (loc.y + (int)obj.sizePx())) {
-            if (current.type == Selection::Type::NONE) {
+            if (current.type == SelectedType::NONE) {
                 current.frameObject = &obj;
-                current.type = Selection::Type::FRAME_OBJECT;
+                current.type = SelectedType::FRAME_OBJECT;
 
-                if (firstMatch.type == Selection::Type::NONE) {
+                if (firstMatch.type == SelectedType::NONE) {
                     firstMatch.frameObject = &obj;
-                    firstMatch.type = Selection::Type::FRAME_OBJECT;
+                    firstMatch.type = SelectedType::FRAME_OBJECT;
                 }
             }
-            if (_selection.frameObject() == &obj
-                && _selection.type() == Selection::Type::FRAME_OBJECT) {
 
-                current.type = Selection::Type::NONE;
+            if (&obj == _controller.frameObjectController().selected()
+                && selectedType == SelectedType::FRAME_OBJECT) {
+
+                current.type = SelectedType::NONE;
             }
         }
     }
@@ -683,19 +682,19 @@ void FrameGraphicalEditor::handleRelease_Click(const ms8point& mouse)
         const auto loc = ap.location();
 
         if (mouse == loc) {
-            if (current.type == Selection::Type::NONE) {
+            if (current.type == SelectedType::NONE) {
                 current.actionPoint = &ap;
-                current.type = Selection::Type::ACTION_POINT;
+                current.type = SelectedType::ACTION_POINT;
 
-                if (firstMatch.type == Selection::Type::NONE) {
+                if (firstMatch.type == SelectedType::NONE) {
                     firstMatch.actionPoint = &ap;
-                    firstMatch.type = Selection::Type::ACTION_POINT;
+                    firstMatch.type = SelectedType::ACTION_POINT;
                 }
             }
-            if (_selection.actionPoint() == &ap
-                && _selection.type() == Selection::Type::ACTION_POINT) {
+            if (&ap == _controller.actionPointController().selected()
+                && selectedType == SelectedType::ACTION_POINT) {
 
-                current.type = Selection::Type::NONE;
+                current.type = SelectedType::NONE;
             }
         }
     }
@@ -704,42 +703,45 @@ void FrameGraphicalEditor::handleRelease_Click(const ms8point& mouse)
         const auto aabb = eh.aabb();
 
         if (aabb.contains(mouse)) {
-            if (current.type == Selection::Type::NONE) {
+            if (current.type == SelectedType::NONE) {
                 current.entityHitbox = &eh;
-                current.type = Selection::Type::ENTITY_HITBOX;
+                current.type = SelectedType::ENTITY_HITBOX;
 
-                if (firstMatch.type == Selection::Type::NONE) {
+                if (firstMatch.type == SelectedType::NONE) {
                     firstMatch.entityHitbox = &eh;
-                    firstMatch.type = Selection::Type::ENTITY_HITBOX;
+                    firstMatch.type = SelectedType::ENTITY_HITBOX;
                 }
             }
-            if (_selection.entityHitbox() == &eh
-                && _selection.type() == Selection::Type::ENTITY_HITBOX) {
-                current.type = Selection::Type::NONE;
+            if (&eh == _controller.entityHitboxController().selected()
+                && selectedType == SelectedType::ACTION_POINT) {
+
+                current.type = SelectedType::NONE;
             }
         }
     }
 
-    if (current.type == Selection::Type::NONE) {
+    if (current.type == SelectedType::NONE) {
         // handle wrap around.
         current = firstMatch;
     }
 
     switch (current.type) {
-    case Selection::Type::NONE:
-        _selection.unselectAll();
+    case SelectedType::NONE:
+        _controller.frameObjectController().setSelected(nullptr);
+        _controller.actionPointController().setSelected(nullptr);
+        _controller.entityHitboxController().setSelected(nullptr);
         break;
 
-    case Selection::Type::FRAME_OBJECT:
-        _selection.setFrameObject(current.frameObject);
+    case SelectedType::FRAME_OBJECT:
+        _controller.frameObjectController().setSelected(current.frameObject);
         break;
 
-    case Selection::Type::ACTION_POINT:
-        _selection.setActionPoint(current.actionPoint);
+    case SelectedType::ACTION_POINT:
+        _controller.actionPointController().setSelected(current.actionPoint);
         break;
 
-    case Selection::Type::ENTITY_HITBOX:
-        _selection.setEntityHitbox(current.entityHitbox);
+    case SelectedType::ENTITY_HITBOX:
+        _controller.entityHitboxController().setSelected(current.entityHitbox);
         break;
     }
 }
@@ -749,30 +751,23 @@ void FrameGraphicalEditor::handleRelease_Drag()
     _action.state = Action::NONE;
     update_pointer_cursor();
 
+    const auto selectedType = _controller.selectedTypeController().type();
     const auto aabb = _action.dragAabb;
 
-    switch (_selection.type()) {
-    case Selection::Type::NONE:
+    switch (selectedType) {
+    case SelectedType::NONE:
         break;
 
-    case Selection::Type::FRAME_OBJECT:
-        if (_selection.frameObject()) {
-            frameObject_setLocation(_selection.frameObject(),
-                                    ms8point(aabb.x, aabb.y));
-        }
+    case SelectedType::FRAME_OBJECT:
+        _controller.frameObjectController().selected_setLocation(ms8point(aabb.x, aabb.y));
         break;
 
-    case Selection::Type::ACTION_POINT:
-        if (_selection.actionPoint()) {
-            actionPoint_setLocation(_selection.actionPoint(),
-                                    ms8point(aabb.x, aabb.y));
-        }
+    case SelectedType::ACTION_POINT:
+        _controller.actionPointController().selected_setLocation(ms8point(aabb.x, aabb.y));
         break;
 
-    case Selection::Type::ENTITY_HITBOX:
-        if (_selection.entityHitbox()) {
-            entityHitbox_setAabb(_selection.entityHitbox(), aabb);
-        }
+    case SelectedType::ENTITY_HITBOX:
+        _controller.entityHitboxController().selected_setAabb(aabb);
         break;
     }
 

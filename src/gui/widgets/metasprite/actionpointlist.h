@@ -1,6 +1,5 @@
 #pragma once
 
-#include "signals.h"
 #include "gui/widgets/common/orderedlist.h"
 #include "models/metasprite/actionpoint.h"
 
@@ -25,7 +24,7 @@ public:
         add(col_parameter);
     }
 
-    Gtk::TreeModelColumn<MS::ActionPoint*> col_item;
+    Gtk::TreeModelColumn<const MS::ActionPoint*> col_item;
     Gtk::TreeModelColumn<unsigned int> col_id;
     // ::TODO change to native types::
     Gtk::TreeModelColumn<Glib::ustring> col_location;
@@ -43,12 +42,6 @@ public:
         row[col_location] = Glib::ustring::compose("%1, %2", ap->location().x, ap->location().y);
         row[col_parameter] = ap->parameter();
     }
-
-    inline static auto& signal_itemChanged() { return Signals::actionPointChanged; }
-
-    inline static auto& signal_listChanged() { return Signals::actionPointListChanged; }
-
-    inline static const char* itemTypeName() { return "Action Point"; }
 };
 }
 

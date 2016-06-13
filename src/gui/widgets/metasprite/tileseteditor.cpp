@@ -4,12 +4,12 @@
 using namespace UnTech::Widgets::MetaSprite;
 namespace MS = UnTech::MetaSprite;
 
-TilesetEditor::TilesetEditor(Selection& selection)
+TilesetEditor::TilesetEditor(MS::MetaSpriteController& controller)
     : widget(Gtk::ORIENTATION_VERTICAL)
     , _smallTilesetWindow()
     , _largeTilesetWindow()
-    , _smallTilesetEditor(selection)
-    , _largeTilesetEditor(selection)
+    , _smallTilesetEditor(controller)
+    , _largeTilesetEditor(controller)
 {
     _smallTilesetWindow.add(_smallTilesetEditor);
     _smallTilesetWindow.set_policy(Gtk::POLICY_ALWAYS, Gtk::POLICY_NEVER);

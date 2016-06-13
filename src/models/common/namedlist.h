@@ -16,13 +16,6 @@ class NamedListAddRemove;
 }
 }
 
-namespace Undo {
-namespace Private {
-template <class T>
-class NamedListAddRemove;
-}
-}
-
 /**
  * A basic map that enforces id names and child-parent references.
  *
@@ -36,7 +29,6 @@ class NamedListAddRemove;
 template <class P, class T>
 class NamedList {
 
-    friend class UnTech::Undo::Private::NamedListAddRemove<T>;
     friend class UnTech::Controller::Private::NamedListAddRemove<T>;
 
 public:

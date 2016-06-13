@@ -1,30 +1,29 @@
 #include "spriteimportereditor.h"
-#include "gui/undo/actionhelper.h"
 #include "gui/widgets/defaults.h"
 #include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::SpriteImporter;
 
-SpriteImporterEditor::SpriteImporterEditor()
-    : _document()
-    , _selection()
+SpriteImporterEditor::SpriteImporterEditor(SI::SpriteImporterController& controller)
+    : widget()
+    , _controller(controller)
     , _graphicalWindow()
-    , _graphicalEditor(_selection)
+    , _graphicalEditor(controller)
     , _sidebar()
     , _framePane(Gtk::ORIENTATION_VERTICAL)
-    , _frameSetPropertiesEditor(_selection)
-    , _frameList()
+    , _frameSetPropertiesEditor(controller)
+    , _frameList(controller.frameController())
     , _frameNotebook()
-    , _frameParameterEditor(_selection)
+    , _frameParameterEditor(controller)
     , _frameObjectBox(Gtk::ORIENTATION_VERTICAL)
-    , _frameObjectList()
-    , _frameObjectEditor(_selection)
+    , _frameObjectList(controller.frameObjectController())
+    , _frameObjectEditor(controller)
     , _actionPointBox(Gtk::ORIENTATION_VERTICAL)
-    , _actionPointList()
-    , _actionPointEditor(_selection)
+    , _actionPointList(controller.actionPointController())
+    , _actionPointEditor(controller)
     , _entityHitboxBox(Gtk::ORIENTATION_VERTICAL)
-    , _entityHitboxList()
-    , _entityHitboxEditor(_selection)
+    , _entityHitboxList(controller.entityHitboxController())
+    , _entityHitboxEditor(controller)
 {
     _frameNotebook.set_scrollable(true);
     _frameNotebook.popup_enable();
@@ -63,98 +62,37 @@ SpriteImporterEditor::SpriteImporterEditor()
      * SLOTS
      * =====
      */
-    _selection.signal_frameSetChanged.connect([this](void) {
-        auto frameSet = _selection.frameSet();
 
-        if (frameSet) {
-            _frameList.setList(frameSet->frames());
-
-            _sidebar.set_current_page(FRAMESET_PAGE);
-        }
-        else {
-            _frameList.setList(nullptr);
-        }
+    // Controller Signals
+    _controller.frameSetController().signal_selectedChanged().connect([this](void) {
+        _sidebar.set_current_page(SidebarPages::FRAMESET_PAGE);
     });
 
-    _selection.signal_frameChanged.connect([this](void) {
-        auto frame = _selection.frame();
-
+    _controller.frameController().signal_selectedChanged().connect([this](void) {
+        const SI::Frame* frame = _controller.frameController().selected();
         if (frame) {
-            _frameList.selectItem(frame);
-
-            _frameObjectList.setList(frame->objects());
-            _actionPointList.setList(frame->actionPoints());
-            _entityHitboxList.setList(frame->entityHitboxes());
-
-            _frameNotebook.set_sensitive(true);
-
-            _sidebar.set_current_page(FRAME_PAGE);
-        }
-        else {
-            _frameObjectList.setList(nullptr);
-            _actionPointList.setList(nullptr);
-            _entityHitboxList.setList(nullptr);
-
-            _frameNotebook.set_sensitive(false);
+            _sidebar.set_current_page(SidebarPages::FRAME_PAGE);
+            _frameNotebook.set_current_page(FramePages::FRAME_PARAMETERS_PAGE);
         }
     });
 
-    _selection.signal_frameObjectChanged.connect([this](void) {
-        _frameObjectList.selectItem(_selection.frameObject());
-    });
-
-    _selection.signal_actionPointChanged.connect([this](void) {
-        _actionPointList.selectItem(_selection.actionPoint());
-    });
-
-    _selection.signal_entityHitboxChanged.connect([this](void) {
-        _entityHitboxList.selectItem(_selection.entityHitbox());
-    });
-
-    /** Change active tab depending on selection */
-    _selection.signal_selectionChanged.connect([this](void) {
-        switch (_selection.type()) {
-        case Selection::Type::FRAME_OBJECT:
+    _controller.frameObjectController().signal_selectedChanged().connect([this](void) {
+        if (_controller.frameObjectController().selected() != nullptr) {
             _frameNotebook.set_current_page(FramePages::FRAME_OBJECT_PAGE);
-            break;
-        case Selection::Type::ACTION_POINT:
-            _frameNotebook.set_current_page(FramePages::ACTION_POINT_PAGE);
-            break;
+        }
+    });
 
-        case Selection::Type::ENTITY_HITBOX:
+    _controller.actionPointController().signal_selectedChanged().connect([this](void) {
+        if (_controller.actionPointController().selected() != nullptr) {
+            _frameNotebook.set_current_page(FramePages::FRAME_OBJECT_PAGE);
+        }
+    });
+
+    _controller.entityHitboxController().signal_selectedChanged().connect([this](void) {
+        if (_controller.entityHitboxController().selected() != nullptr) {
             _frameNotebook.set_current_page(FramePages::ENTITY_HITBOX_PAGE);
-            break;
-
-        default:
-            break;
         }
     });
-
-    _frameList.signal_selected_changed().connect([this](void) {
-        _selection.setFrame(_frameList.getSelected());
-    });
-    _frameObjectList.signal_selected_changed().connect([this](void) {
-        _selection.setFrameObject(_frameObjectList.getSelected());
-    });
-    _actionPointList.signal_selected_changed().connect([this](void) {
-        _selection.setActionPoint(_actionPointList.getSelected());
-    });
-    _entityHitboxList.signal_selected_changed().connect([this](void) {
-        _selection.setEntityHitbox(_entityHitboxList.getSelected());
-    });
-}
-
-void SpriteImporterEditor::setDocument(std::unique_ptr<SI::SpriteImporterDocument> document)
-{
-    if (_document != document) {
-        _selection.setFrameSet(nullptr);
-
-        _document = std::move(document);
-
-        if (_document) {
-            _selection.setFrameSet(&_document->frameSet());
-        }
-    }
 }
 
 void SpriteImporterEditor::setZoom(int zoom, double aspectRatio)

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "signals.h"
 #include "gui/widgets/common/namedlist.h"
 #include "models/metasprite/frame.h"
 
@@ -25,7 +24,7 @@ public:
         add(col_y);
     }
 
-    Gtk::TreeModelColumn<MS::Frame*> col_item;
+    Gtk::TreeModelColumn<const MS::Frame*> col_item;
     Gtk::TreeModelColumn<std::string> col_id;
     Gtk::TreeModelColumn<unsigned int> col_x;
     Gtk::TreeModelColumn<unsigned int> col_y;
@@ -44,12 +43,6 @@ public:
     inline void setRowData(Gtk::TreeRow&, const MS::Frame*)
     {
     }
-
-    inline static auto& signal_itemChanged() { return Signals::frameChanged; }
-
-    inline static auto& signal_listChanged() { return Signals::frameListChanged; }
-
-    inline static const char* itemTypeName() { return "Frame"; }
 };
 }
 

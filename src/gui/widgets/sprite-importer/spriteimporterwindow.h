@@ -1,10 +1,7 @@
 #pragma once
 
-#include "selection.h"
 #include "spriteimportereditor.h"
-#include "gui/undo/undostack.h"
-#include "gui/widgets/defaults.h"
-#include "models/sprite-importer.h"
+#include "gui/controllers/sprite-importer.h"
 
 #include <glibmm/i18n.h>
 #include <gtkmm.h>
@@ -20,9 +17,7 @@ class SpriteImporterWindow : public Gtk::ApplicationWindow {
 public:
     SpriteImporterWindow();
 
-    SI::SpriteImporterDocument* document() const { return _editor.document(); }
-
-    void setDocument(std::unique_ptr<SI::SpriteImporterDocument> document);
+    auto& controller() { return _controller; }
 
 protected:
     void updateTitle();
@@ -42,8 +37,9 @@ protected:
     bool on_delete_event(GdkEventAny* any_event);
 
 private:
+    SI::SpriteImporterController _controller;
+
     SpriteImporterEditor _editor;
-    Undo::UndoStack _undoStack;
 
     Glib::RefPtr<Gio::SimpleAction> _saveAction;
     Glib::RefPtr<Gio::SimpleAction> _undoAction;

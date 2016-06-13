@@ -1,25 +1,12 @@
 #include "entityhitboxeditor.h"
-#include "signals.h"
-#include "gui/undo/actionhelper.h"
-#include "gui/undo/mergeactionhelper.h"
 #include "gui/widgets/defaults.h"
 #include "models/common/string.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
 
-SIMPLE_UNDO_MERGE_ACTION(entityHitbox_merge_setAabb,
-                         SI::EntityHitbox, UnTech::urect, aabb, setAabb,
-                         Signals::entityHitboxChanged,
-                         "Move Entity Hitbox")
-
-SIMPLE_UNDO_ACTION(entityHitbox_setParameter,
-                   SI::EntityHitbox, unsigned, parameter, setParameter,
-                   Signals::entityHitboxChanged,
-                   "Change Entity Hitbox Parameter")
-
-EntityHitboxEditor::EntityHitboxEditor(Selection& selection)
+EntityHitboxEditor::EntityHitboxEditor(SI::SpriteImporterController& controller)
     : widget()
-    , _selection(selection)
+    , _controller(controller)
     , _aabbSpinButtons()
     , _parameterEntry()
     , _aabbLabel(_("AABB:"), Gtk::ALIGN_START)
@@ -48,40 +35,28 @@ EntityHitboxEditor::EntityHitboxEditor(Selection& selection)
      * =====
      */
 
-    /* Update gui when selected entityHitbox changed */
-    _selection.signal_entityHitboxChanged.connect(sigc::mem_fun(
+    // Controller Signals
+    _controller.entityHitboxController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &EntityHitboxEditor::updateGuiValues));
 
-    /* Update gui if entityHitbox has changed */
-    Signals::entityHitboxChanged.connect([this](const SI::EntityHitbox* eh) {
-        if (eh == _selection.entityHitbox()) {
-            updateGuiValues();
-        }
-    });
+    _controller.entityHitboxController().signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &EntityHitboxEditor::updateGuiValues));
 
-    /* Update location range if necessary */
-    Signals::frameSizeChanged.connect([this](const SI::Frame* frame) {
-        if (_selection.entityHitbox() && frame == _selection.frame()) {
-            _aabbSpinButtons.set_range(_selection.frame()->locationSize());
-        }
-    });
+    _controller.frameController().signal_frameSizeChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &EntityHitboxEditor::updateRange)));
 
-    /* Update location range if necessary */
-    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameset) {
-        if (_selection.entityHitbox() && frameset == _selection.frameSet()) {
-            _aabbSpinButtons.set_range(_selection.frame()->locationSize());
-        }
-    });
+    _controller.frameSetController().signal_gridChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &EntityHitboxEditor::updateRange)));
 
     /** Set aabb signal */
     _aabbSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            entityHitbox_merge_setAabb(_selection.entityHitbox(),
-                                       _aabbSpinButtons.value());
+            _controller.entityHitboxController().selected_setAabb_merge(
+                _aabbSpinButtons.value());
         }
     });
     _aabbSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 
     /* Set Parameter has finished editing */
     // signal_editing_done does not work
@@ -96,7 +71,7 @@ EntityHitboxEditor::EntityHitboxEditor(Selection& selection)
 
 void EntityHitboxEditor::updateGuiValues()
 {
-    const SI::EntityHitbox* entityHitbox = _selection.entityHitbox();
+    const SI::EntityHitbox* entityHitbox = _controller.entityHitboxController().selected();
 
     if (entityHitbox) {
         _updatingValues = true;
@@ -119,14 +94,21 @@ void EntityHitboxEditor::updateGuiValues()
     }
 }
 
+void EntityHitboxEditor::updateRange()
+{
+    const SI::Frame* frame = _controller.frameController().selected();
+
+    if (frame) {
+        _aabbSpinButtons.set_range(frame->locationSize());
+    }
+}
+
 void EntityHitboxEditor::onParameterFinishedEditing()
 {
-    SI::EntityHitbox* entityHitbox = _selection.entityHitbox();
-
-    if (entityHitbox && !_updatingValues) {
+    if (!_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
-            entityHitbox_setParameter(entityHitbox, value.first);
+            _controller.entityHitboxController().selected_setParameter(value.first);
         }
         else {
             updateGuiValues();

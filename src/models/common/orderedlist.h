@@ -14,13 +14,6 @@ class OrderedListAddRemove;
 }
 }
 
-namespace Undo {
-namespace Private {
-template <class T>
-class OrderedListAddRemove;
-}
-}
-
 /**
  * A basic list interface that enforces child-parent references.
  *
@@ -34,7 +27,6 @@ class OrderedListAddRemove;
 template <class P, class T>
 class OrderedList {
 
-    friend class UnTech::Undo::Private::OrderedListAddRemove<T>;
     friend class UnTech::Controller::Private::OrderedListAddRemove<T>;
 
 public:

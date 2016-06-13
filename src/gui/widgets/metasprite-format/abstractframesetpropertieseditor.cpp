@@ -1,6 +1,4 @@
 #include "abstractframesetpropertieseditor.h"
-#include "signals.h"
-#include "gui/undo/actionhelper.h"
 #include "gui/widgets/common/errormessagedialog.h"
 #include "gui/widgets/defaults.h"
 #include <glibmm/i18n.h>
@@ -8,109 +6,11 @@
 using namespace UnTech::Widgets::MetaSpriteFormat;
 namespace FSEO = UnTech::MetaSpriteFormat::FrameSetExportOrder;
 
-SIMPLE_UNDO_ACTION2(frameSet_setName,
-                    MSF::AbstractFrameSet, std::string, name, setName,
-                    Signals::abstractFrameSetChanged, Signals::abstractFrameSetNameChanged,
-                    "Change Name")
+AbstractFrameSetPropertiesEditor::AbstractFrameSetPropertiesEditor(
+    MSF::AbstractFrameSetController& controller)
 
-SIMPLE_UNDO_ACTION(frameSet_setTilesetType,
-                   MSF::AbstractFrameSet, MSF::TilesetType, tilesetType, setTilesetType,
-                   Signals::abstractFrameSetChanged,
-                   "Change Tileset Type")
-
-/*
- *  Cannot use a simple action because loadExportDocument may raise an exception.
- *  Currently fails silently and displays error in stderr
- *  Not sure if I should get it to display an error message dialog
- *  (and I probably only want to show it once anyways)
- *  ::SHOULDO think about this::
- */
-void frameSet_setExportOrderFilename(MSF::AbstractFrameSet* frameSet, const std::string& filename)
-{
-    class Action : public ::UnTech::Undo::Action {
-    public:
-        Action() = delete;
-        Action(MSF::AbstractFrameSet* frameSet,
-               const std::string& oldFilename,
-               const std::string& newFilename)
-            : _frameSet(frameSet)
-            , _oldFilename(oldFilename)
-            , _newFilename(newFilename)
-        {
-        }
-
-        virtual ~Action() override = default;
-
-        virtual void undo() override
-        {
-            try {
-                _frameSet->loadExportOrderDocument(_oldFilename);
-            }
-            catch (const std::exception& ex) {
-                std::cerr << "Error loading export order document: " << _oldFilename
-                          << "\n\t" << ex.what() << std::endl;
-            }
-
-            Signals::abstractFrameSetChanged.emit(_frameSet);
-            Signals::abstractFrameSetExportOrderChanged.emit(_frameSet);
-        }
-
-        virtual void redo() override
-        {
-            try {
-                _frameSet->loadExportOrderDocument(_newFilename);
-            }
-            catch (const std::exception& ex) {
-                std::cerr << "Error loading export order document: " << _newFilename
-                          << "\n\t" << ex.what() << std::endl;
-            }
-
-            Signals::abstractFrameSetChanged.emit(_frameSet);
-            Signals::abstractFrameSetExportOrderChanged.emit(_frameSet);
-        }
-
-        virtual const Glib::ustring& message() const override
-        {
-            const static Glib::ustring message = _("Load Export Order Document");
-            return message;
-        }
-
-    private:
-        MSF::AbstractFrameSet* _frameSet;
-        const std::string _oldFilename;
-        const std::string _newFilename;
-    };
-
-    if (frameSet) {
-        const std::string& oldFilename = frameSet->exportOrderFilename();
-
-        if (oldFilename != filename) {
-            try {
-                frameSet->loadExportOrderDocument(filename);
-            }
-            catch (const std::exception& ex) {
-                std::cerr << "Error loading export order document: " << filename
-                          << "\n\t" << ex.what() << std::endl;
-            }
-
-            const std::string& newFilename = frameSet->exportOrderFilename();
-            if (oldFilename != newFilename) {
-                Signals::abstractFrameSetChanged.emit(frameSet);
-                Signals::abstractFrameSetExportOrderChanged.emit(frameSet);
-
-                UnTech::Undo::UndoStack* undoStack = frameSet->document().undoStack();
-                if (undoStack) {
-                    undoStack->add_undo(std::make_unique<Action>(
-                        frameSet, oldFilename, newFilename));
-                }
-            }
-        }
-    }
-}
-
-AbstractFrameSetPropertiesEditor::AbstractFrameSetPropertiesEditor(Selection& selection)
     : widget(Gtk::ORIENTATION_VERTICAL)
-    , _selection(selection)
+    , _controller(controller)
     , _grid()
     , _nameEntry()
     , _tilesetTypeCombo()
@@ -163,48 +63,30 @@ AbstractFrameSetPropertiesEditor::AbstractFrameSetPropertiesEditor(Selection& se
      * =====
      */
 
-    /** FrameSet Updated signal */
-    Signals::abstractFrameSetChanged.connect([this](const MSF::AbstractFrameSet* frameSet) {
-        if (frameSet == _selection.abstractFrameSet()) {
-            updateGuiValues();
-        }
-    });
+    /** Controller signals */
+    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &AbstractFrameSetPropertiesEditor::updateGuiValues));
 
-    Signals::abstractFrameSetExportOrderChanged.connect([this](const MSF::AbstractFrameSet* frameSet) {
-        if (frameSet == _selection.abstractFrameSet()) {
-            updateGuiValues();
-            updateGuiTree();
-        }
-    });
+    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &AbstractFrameSetPropertiesEditor::updateGuiTree));
 
-    /** Selected FrameSet changed signal */
-    _selection.signal_frameSetChanged.connect([this](void) {
-        updateGuiValues();
-        updateGuiTree();
-    });
+    _controller.signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &AbstractFrameSetPropertiesEditor::updateGuiValues)));
 
-    /** FrameSet Updated signal */
-    // ::TODO move this to _selection::
-    Signals::abstractFrameSetChanged.connect([this](const MSF::AbstractFrameSet* frameSet) {
-        if (frameSet == _selection.abstractFrameSet()) {
-            updateGuiValues();
-            updateGuiTree();
-        }
-    });
+    _controller.signal_exportOrderChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &AbstractFrameSetPropertiesEditor::updateGuiTree)));
 
     /* Set Parameter has finished editing */
     // signal_editing_done does not work
     // using activate and focus out instead.
     _nameEntry.signal_activate().connect([this](void) {
         if (!_updatingValues) {
-            frameSet_setName(_selection.abstractFrameSet(),
-                             _nameEntry.get_text());
+            _controller.selected_setName(_nameEntry.get_text());
         }
     });
     _nameEntry.signal_focus_out_event().connect([this](GdkEventFocus*) {
         if (!_updatingValues) {
-            frameSet_setName(_selection.abstractFrameSet(),
-                             _nameEntry.get_text());
+            _controller.selected_setName(_nameEntry.get_text());
         }
         return false;
     });
@@ -212,18 +94,18 @@ AbstractFrameSetPropertiesEditor::AbstractFrameSetPropertiesEditor(Selection& se
     /** Tileset type signal */
     _tilesetTypeCombo.signal_changed().connect([this](void) {
         if (!_updatingValues) {
-            frameSet_setTilesetType(_selection.abstractFrameSet(),
-                                    _tilesetTypeCombo.get_value());
+            _controller.selected_setTilesetType(_tilesetTypeCombo.get_value());
         }
     });
 
+    /** Show Dialog button signal */
     _fseoFilenameButton.signal_clicked().connect(sigc::mem_fun(
         *this, &AbstractFrameSetPropertiesEditor::on_fseoFilenameButtonClicked));
 }
 
 void AbstractFrameSetPropertiesEditor::updateGuiValues()
 {
-    const MSF::AbstractFrameSet* frameSet = _selection.abstractFrameSet();
+    const MSF::AbstractFrameSet* frameSet = _controller.selected();
 
     if (frameSet) {
         _updatingValues = true;
@@ -246,7 +128,7 @@ void AbstractFrameSetPropertiesEditor::updateGuiValues()
 
 void AbstractFrameSetPropertiesEditor::updateGuiTree()
 {
-    const MSF::AbstractFrameSet* frameSet = _selection.abstractFrameSet();
+    const MSF::AbstractFrameSet* frameSet = _controller.selected();
 
     if (frameSet && frameSet->exportOrderDocument()) {
         const auto& fseoDocument = frameSet->exportOrderDocument();
@@ -270,7 +152,7 @@ void AbstractFrameSetPropertiesEditor::updateGuiTree()
 
 void AbstractFrameSetPropertiesEditor::on_fseoFilenameButtonClicked()
 {
-    MSF::AbstractFrameSet* frameSet = _selection.abstractFrameSet();
+    const MSF::AbstractFrameSet* frameSet = _controller.selected();
 
     if (frameSet == nullptr) {
         return;
@@ -306,16 +188,6 @@ void AbstractFrameSetPropertiesEditor::on_fseoFilenameButtonClicked()
     int result = dialog.run();
 
     if (result == Gtk::RESPONSE_OK) {
-        std::shared_ptr<const MSF::FrameSetExportOrder::ExportOrderDocument> document;
-        try {
-            document = FSEO::ExportOrderDocument::loadReadOnly(dialog.get_filename());
-
-            frameSet_setExportOrderFilename(frameSet, document->filename());
-        }
-        catch (const std::exception& ex) {
-            showErrorMessage(widget, "Unable to open file", ex);
-
-            frameSet_setExportOrderFilename(frameSet, "");
-        }
+        _controller.selected_setExportOrderFilename(dialog.get_filename());
     }
 }

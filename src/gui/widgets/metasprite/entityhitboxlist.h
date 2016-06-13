@@ -1,6 +1,5 @@
 #pragma once
 
-#include "signals.h"
 #include "gui/widgets/common/orderedlist.h"
 #include "models/metasprite/actionpoint.h"
 
@@ -25,7 +24,7 @@ public:
         add(col_parameter);
     }
 
-    Gtk::TreeModelColumn<MS::EntityHitbox*> col_item;
+    Gtk::TreeModelColumn<const MS::EntityHitbox*> col_item;
     Gtk::TreeModelColumn<unsigned int> col_id;
     // ::TODO change to native types::
     Gtk::TreeModelColumn<Glib::ustring> col_aabb;
@@ -45,12 +44,6 @@ public:
                                                aabb.x, aabb.y, aabb.width, aabb.height);
         row[col_parameter] = eh->parameter();
     }
-
-    inline static auto& signal_itemChanged() { return Signals::entityHitboxChanged; }
-
-    inline static auto& signal_listChanged() { return Signals::entityHitboxListChanged; }
-
-    inline static const char* itemTypeName() { return "Hitbox"; }
 };
 }
 

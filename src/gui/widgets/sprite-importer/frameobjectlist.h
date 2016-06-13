@@ -1,8 +1,7 @@
 #pragma once
 
-#include "signals.h"
+#include "gui/controllers/sprite-importer.h"
 #include "gui/widgets/common/orderedlist.h"
-#include "models/sprite-importer/frameobject.h"
 
 #include <glibmm/i18n.h>
 #include <gtkmm.h>
@@ -25,7 +24,7 @@ public:
         add(col_size);
     }
 
-    Gtk::TreeModelColumn<SI::FrameObject*> col_item;
+    Gtk::TreeModelColumn<const SI::FrameObject*> col_item;
     Gtk::TreeModelColumn<unsigned int> col_id;
     // ::TODO change to native types::
     Gtk::TreeModelColumn<Glib::ustring> col_location;
@@ -45,12 +44,6 @@ public:
         row[col_location] = Glib::ustring::compose("%1, %2", obj->location().x, obj->location().y);
         row[col_size] = obj->size() == OS::SMALL ? _("small") : _("large");
     }
-
-    inline static auto& signal_itemChanged() { return Signals::frameObjectChanged; }
-
-    inline static auto& signal_listChanged() { return Signals::frameObjectListChanged; }
-
-    inline static const char* itemTypeName() { return "Object"; }
 };
 }
 

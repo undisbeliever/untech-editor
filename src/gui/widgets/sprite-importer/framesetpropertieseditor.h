@@ -1,6 +1,6 @@
 #pragma once
 
-#include "selection.h"
+#include "gui/controllers/sprite-importer.h"
 #include "gui/widgets/common/aabb.h"
 #include "gui/widgets/common/colortogglebutton.h"
 #include "gui/widgets/common/enumclasscombobox.h"
@@ -18,7 +18,7 @@ namespace MSF = UnTech::MetaSpriteFormat;
 
 class FrameSetPropertiesEditor {
 public:
-    FrameSetPropertiesEditor(Selection& selection);
+    FrameSetPropertiesEditor(SI::SpriteImporterController& controller);
 
 protected:
     void updateGuiValues();
@@ -29,7 +29,7 @@ public:
     Gtk::Box widget;
 
 private:
-    Selection& _selection;
+    SI::SpriteImporterController& _controller;
 
     MetaSpriteFormat::AbstractFrameSetPropertiesEditor _abstractEditor;
 

@@ -51,14 +51,14 @@ public:
 
     ~NamedListDialog() {}
 
-    void setList(typename T::list_t* list)
+    void setList(const typename T::list_t* list)
     {
         _list = list;
         _item = nullptr;
         set_text("");
     }
 
-    void setItem(typename T::list_t* list, T* item)
+    void setItem(const typename T::list_t* list, const T* item)
     {
         _list = list;
         _item = item;
@@ -138,8 +138,8 @@ private:
     Gtk::Label _label, _errorLabel;
     NamedListNameEntry _inputText;
 
-    typename T::list_t* _list;
-    T* _item;
+    const typename T::list_t* _list;
+    const T* _item;
 
     Gtk::Button* _okButton;
 };

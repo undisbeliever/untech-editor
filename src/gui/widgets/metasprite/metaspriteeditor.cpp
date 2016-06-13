@@ -1,46 +1,47 @@
 #include "metaspriteeditor.h"
-#include "gui/undo/actionhelper.h"
 #include "gui/widgets/defaults.h"
 #include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::MetaSprite;
 
+typedef MS::MetaSpriteController::SelectedTypeController::Type SelectionType;
+
 const int SCROLL_MAX = UnTech::int_ms8_t::MAX + 16;
 
-MetaSpriteEditor::MetaSpriteEditor()
-    : _document()
-    , _selection()
+MetaSpriteEditor::MetaSpriteEditor(MS::MetaSpriteController& controller)
+    : widget()
+    , _controller(controller)
     , _rightSideBox(Gtk::ORIENTATION_VERTICAL)
     , _selectedGraphicalEditor(0)
-    , _graphicalEditor0(_selection)
-    , _graphicalEditor1(_selection)
+    , _graphicalEditor0(_controller)
+    , _graphicalEditor1(_controller)
     , _graphicalContainer(Gtk::ORIENTATION_HORIZONTAL)
     , _graphicalHScroll(Gtk::Adjustment::create(0.0, -SCROLL_MAX, SCROLL_MAX, 1.0, 16.0, 16.0),
                         Gtk::ORIENTATION_HORIZONTAL)
     , _graphicalVScroll(Gtk::Adjustment::create(0.0, -SCROLL_MAX, SCROLL_MAX, 1.0, 16.0, 16.0),
                         Gtk::ORIENTATION_VERTICAL)
     , _graphicalGrid()
-    , _tilesetEditor(_selection)
+    , _tilesetEditor(_controller)
     , _sidebar()
     , _framePane(Gtk::ORIENTATION_VERTICAL)
     , _frameSetBox(Gtk::ORIENTATION_VERTICAL)
-    , _frameSetPropertiesEditor(_selection)
+    , _frameSetPropertiesEditor(_controller.abstractFrameSetController())
     , _paletteFrame(_("Palettes:"))
     , _paletteBox(Gtk::ORIENTATION_VERTICAL)
-    , _paletteList()
-    , _paletteEditor(_selection)
-    , _frameList()
+    , _paletteList(_controller.paletteController())
+    , _paletteEditor(_controller.paletteController())
+    , _frameList(_controller.frameController())
     , _frameNotebook()
-    , _frameParameterEditor(_selection)
+    , _frameParameterEditor(_controller.frameController())
     , _frameObjectBox(Gtk::ORIENTATION_VERTICAL)
-    , _frameObjectList()
-    , _frameObjectEditor(_selection)
+    , _frameObjectList(_controller.frameObjectController())
+    , _frameObjectEditor(_controller)
     , _actionPointBox(Gtk::ORIENTATION_VERTICAL)
-    , _actionPointList()
-    , _actionPointEditor(_selection)
+    , _actionPointList(_controller.actionPointController())
+    , _actionPointEditor(_controller.actionPointController())
     , _entityHitboxBox(Gtk::ORIENTATION_VERTICAL)
-    , _entityHitboxList()
-    , _entityHitboxEditor(_selection)
+    , _entityHitboxList(_controller.entityHitboxController())
+    , _entityHitboxEditor(_controller.entityHitboxController())
 {
 
     // Graphical
@@ -104,6 +105,49 @@ MetaSpriteEditor::MetaSpriteEditor()
      * =====
      */
 
+    // Controller Signals
+    _controller.frameSetController().signal_selectedChanged().connect([this](void) {
+        _sidebar.set_current_page(SidebarPages::FRAMESET_PAGE);
+    });
+
+    _controller.paletteController().signal_selectedChanged().connect([this](void) {
+        _sidebar.set_current_page(SidebarPages::FRAMESET_PAGE);
+    });
+
+    _controller.frameController().signal_selectedChanged().connect([this](void) {
+        const MS::Frame* frame = _controller.frameController().selected();
+
+        if (_selectedGraphicalEditor == 0) {
+            _graphicalEditor0.setFrame(frame);
+        }
+        else {
+            _graphicalEditor1.setFrame(frame);
+        }
+
+        if (frame) {
+            _sidebar.set_current_page(SidebarPages::FRAME_PAGE);
+            _frameNotebook.set_current_page(FramePages::FRAME_PARAMETERS_PAGE);
+        }
+    });
+
+    _controller.frameObjectController().signal_selectedChanged().connect([this](void) {
+        if (_controller.frameObjectController().selected() != nullptr) {
+            _frameNotebook.set_current_page(FramePages::FRAME_OBJECT_PAGE);
+        }
+    });
+
+    _controller.actionPointController().signal_selectedChanged().connect([this](void) {
+        if (_controller.actionPointController().selected() != nullptr) {
+            _frameNotebook.set_current_page(FramePages::FRAME_OBJECT_PAGE);
+        }
+    });
+
+    _controller.entityHitboxController().signal_selectedChanged().connect([this](void) {
+        if (_controller.entityHitboxController().selected() != nullptr) {
+            _frameNotebook.set_current_page(FramePages::ENTITY_HITBOX_PAGE);
+        }
+    });
+
     // Reset scrollbars to 0 on right click
     _graphicalHScroll.add_events(Gdk::BUTTON_RELEASE_MASK);
     _graphicalHScroll.signal_button_release_event().connect([&](GdkEventButton* event) {
@@ -135,115 +179,6 @@ MetaSpriteEditor::MetaSpriteEditor()
     _graphicalEditor1.signal_grab_focus().connect([this](void) {
         _selectedGraphicalEditor = 1;
     });
-
-    _selection.signal_frameSetChanged.connect([this](void) {
-        auto frameSet = _selection.frameSet();
-
-        if (frameSet) {
-            _frameList.setList(frameSet->frames());
-            _paletteList.setList(frameSet->palettes());
-
-            _sidebar.set_current_page(FRAMESET_PAGE);
-        }
-        else {
-            _frameList.setList(nullptr);
-            _paletteList.setList(nullptr);
-        }
-    });
-
-    _selection.signal_paletteChanged.connect([this](void) {
-        _paletteList.selectItem(_selection.palette());
-    });
-
-    _selection.signal_frameChanged.connect([this](void) {
-        auto frame = _selection.frame();
-
-        if (_selectedGraphicalEditor == 0) {
-            _graphicalEditor0.setFrame(frame);
-        }
-        else {
-            _graphicalEditor1.setFrame(frame);
-        }
-
-        if (frame) {
-            _frameList.selectItem(frame);
-
-            _frameObjectList.setList(frame->objects());
-            _actionPointList.setList(frame->actionPoints());
-            _entityHitboxList.setList(frame->entityHitboxes());
-
-            _frameNotebook.set_sensitive(true);
-
-            _sidebar.set_current_page(FRAME_PAGE);
-        }
-        else {
-            _frameObjectList.setList(nullptr);
-            _actionPointList.setList(nullptr);
-            _entityHitboxList.setList(nullptr);
-
-            _frameNotebook.set_sensitive(false);
-        }
-    });
-
-    _selection.signal_frameObjectChanged.connect([this](void) {
-        _frameObjectList.selectItem(_selection.frameObject());
-    });
-
-    _selection.signal_actionPointChanged.connect([this](void) {
-        _actionPointList.selectItem(_selection.actionPoint());
-    });
-
-    _selection.signal_entityHitboxChanged.connect([this](void) {
-        _entityHitboxList.selectItem(_selection.entityHitbox());
-    });
-
-    /** Change active tab depending on selection */
-    _selection.signal_selectionChanged.connect([this](void) {
-        switch (_selection.type()) {
-        case Selection::Type::FRAME_OBJECT:
-            _frameNotebook.set_current_page(FramePages::FRAME_OBJECT_PAGE);
-            break;
-        case Selection::Type::ACTION_POINT:
-            _frameNotebook.set_current_page(FramePages::ACTION_POINT_PAGE);
-            break;
-
-        case Selection::Type::ENTITY_HITBOX:
-            _frameNotebook.set_current_page(FramePages::ENTITY_HITBOX_PAGE);
-            break;
-
-        default:
-            break;
-        }
-    });
-
-    _paletteList.signal_selected_changed().connect([this](void) {
-        _selection.setPalette(_paletteList.getSelected());
-    });
-    _frameList.signal_selected_changed().connect([this](void) {
-        _selection.setFrame(_frameList.getSelected());
-    });
-    _frameObjectList.signal_selected_changed().connect([this](void) {
-        _selection.setFrameObject(_frameObjectList.getSelected());
-    });
-    _actionPointList.signal_selected_changed().connect([this](void) {
-        _selection.setActionPoint(_actionPointList.getSelected());
-    });
-    _entityHitboxList.signal_selected_changed().connect([this](void) {
-        _selection.setEntityHitbox(_entityHitboxList.getSelected());
-    });
-}
-
-void MetaSpriteEditor::setDocument(std::unique_ptr<MS::MetaSpriteDocument> document)
-{
-    if (_document != document) {
-        _selection.setFrameSet(nullptr);
-
-        _document = std::move(document);
-
-        if (_document) {
-            _selection.setFrameSet(&_document->frameSet());
-        }
-    }
 }
 
 void MetaSpriteEditor::setShowTwoEditors(bool showTwoEditors)

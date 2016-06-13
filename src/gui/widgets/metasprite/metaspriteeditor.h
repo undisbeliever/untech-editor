@@ -11,10 +11,9 @@
 #include "framepropertieseditor.h"
 #include "paletteeditor.h"
 #include "palettelist.h"
-#include "selection.h"
 #include "tileseteditor.h"
+#include "gui/controllers/metasprite.h"
 #include "gui/widgets/metasprite-format/abstractframesetpropertieseditor.h"
-#include "models/metasprite.h"
 
 #include <gtkmm.h>
 #include <memory>
@@ -27,13 +26,7 @@ namespace MS = UnTech::MetaSprite;
 
 class MetaSpriteEditor {
 public:
-    MetaSpriteEditor();
-
-    MS::MetaSpriteDocument* document() const { return _document.get(); }
-    Selection& selection() { return _selection; }
-    const Selection& selection() const { return _selection; }
-
-    void setDocument(std::unique_ptr<MS::MetaSpriteDocument> document);
+    MetaSpriteEditor(MS::MetaSpriteController& controller);
 
     void setShowTwoEditors(bool showTwoEditors);
     void setZoom(int zoom, double aspectRatio);
@@ -45,9 +38,7 @@ public:
     Gtk::Paned widget;
 
 private:
-    std::unique_ptr<MS::MetaSpriteDocument> _document;
-
-    Selection _selection;
+    MS::MetaSpriteController& _controller;
 
     Gtk::Box _rightSideBox;
 
@@ -88,7 +79,7 @@ private:
     EntityHitboxListEditor _entityHitboxList;
     EntityHitboxEditor _entityHitboxEditor;
 
-    enum FrameSetPages {
+    enum SidebarPages {
         FRAMESET_PAGE,
         FRAME_PAGE,
     };

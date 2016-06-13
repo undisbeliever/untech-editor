@@ -1,16 +1,17 @@
 #include "spriteimporterwindow.h"
-#include "../common/errormessagedialog.h"
-#include "../metasprite-format/signals.h"
+#include "gui/widgets/common/errormessagedialog.h"
+#include "gui/widgets/defaults.h"
 
 using namespace UnTech::Widgets::SpriteImporter;
-namespace SI = UnTech::SpriteImporter;
 namespace MSF = UnTech::MetaSpriteFormat;
-namespace WMSF = UnTech::Widgets::MetaSpriteFormat;
+
+typedef UnTech::Undo::UndoStack UndoStack;
+typedef SI::SpriteImporterController::SelectedTypeController SelectedTypeController;
 
 SpriteImporterWindow::SpriteImporterWindow()
     : Gtk::ApplicationWindow()
-    , _editor()
-    , _undoStack()
+    , _controller(*this)
+    , _editor(_controller)
 {
     add(_editor.widget);
     show_all_children();
@@ -25,38 +26,38 @@ SpriteImporterWindow::SpriteImporterWindow()
     add_action(_saveAction);
 
     _undoAction = Gio::SimpleAction::create("undo");
-    _undoAction->signal_activate().connect(
-        sigc::hide(sigc::mem_fun(*this, &SpriteImporterWindow::do_undo)));
+    _undoAction->signal_activate().connect(sigc::hide(sigc::mem_fun(
+        _controller.undoStack(), &UndoStack::undo)));
     add_action(_undoAction);
 
     _redoAction = Gio::SimpleAction::create("redo");
-    _redoAction->signal_activate().connect(
-        sigc::hide(sigc::mem_fun(*this, &SpriteImporterWindow::do_redo)));
+    _redoAction->signal_activate().connect(sigc::hide(sigc::mem_fun(
+        _controller.undoStack(), &UndoStack::redo)));
     add_action(_redoAction);
 
     _createSelectedAction = Gio::SimpleAction::create("create-selected");
-    _createSelectedAction->signal_activate().connect(
-        sigc::hide(sigc::mem_fun(_editor.selection(), &Selection::createNewOfSelectedType)));
+    _createSelectedAction->signal_activate().connect(sigc::hide(sigc::mem_fun(
+        _controller.selectedTypeController(), &SelectedTypeController::createNewOfSelectedType)));
     add_action(_createSelectedAction);
 
     _cloneSelectedAction = Gio::SimpleAction::create("clone-selected");
-    _cloneSelectedAction->signal_activate().connect(
-        sigc::hide(sigc::mem_fun(_editor.selection(), &Selection::cloneSelected)));
+    _cloneSelectedAction->signal_activate().connect(sigc::hide(sigc::mem_fun(
+        _controller.selectedTypeController(), &SelectedTypeController::cloneSelected)));
     add_action(_cloneSelectedAction);
 
     _removeSelectedAction = Gio::SimpleAction::create("remove-selected");
-    _removeSelectedAction->signal_activate().connect(
-        sigc::hide(sigc::mem_fun(_editor.selection(), &Selection::removeSelected)));
+    _removeSelectedAction->signal_activate().connect(sigc::hide(sigc::mem_fun(
+        _controller.selectedTypeController(), &SelectedTypeController::removeSelected)));
     add_action(_removeSelectedAction);
 
     _moveSelectedUpAction = Gio::SimpleAction::create("move-selected-up");
-    _moveSelectedUpAction->signal_activate().connect(
-        sigc::hide(sigc::mem_fun(_editor.selection(), &Selection::moveSelectedUp)));
+    _moveSelectedUpAction->signal_activate().connect(sigc::hide(sigc::mem_fun(
+        _controller.selectedTypeController(), &SelectedTypeController::moveSelectedUp)));
     add_action(_moveSelectedUpAction);
 
     _moveSelectedDownAction = Gio::SimpleAction::create("move-selected-down");
-    _moveSelectedDownAction->signal_activate().connect(
-        sigc::hide(sigc::mem_fun(_editor.selection(), &Selection::moveSelectedDown)));
+    _moveSelectedDownAction->signal_activate().connect(sigc::hide(sigc::mem_fun(
+        _controller.selectedTypeController(), &SelectedTypeController::moveSelectedDown)));
     add_action(_moveSelectedDownAction);
 
     _zoomAction = add_action_radio_integer(
@@ -74,64 +75,36 @@ SpriteImporterWindow::SpriteImporterWindow()
      * =======
      */
 
-    _editor.selection().signal_selectionChanged.connect(
-        sigc::mem_fun(*this, &SpriteImporterWindow::updateItemActions));
+    // Controller Signals
+    _controller.selectedTypeController().signal_typeChanged().connect(sigc::mem_fun(
+        *this, &SpriteImporterWindow::updateItemActions));
 
-    _undoStack.signal_stackChanged.connect(
-        sigc::mem_fun(*this, &SpriteImporterWindow::updateUndoActions));
+    _controller.selectedTypeController().signal_listChanged().connect(sigc::mem_fun(
+        *this, &SpriteImporterWindow::updateItemActions));
 
-    _undoStack.signal_dirtyBitChanged.connect(
-        sigc::mem_fun(*this, &SpriteImporterWindow::updateTitle));
+    _controller.undoStack().signal_stackChanged.connect(sigc::mem_fun(
+        *this, &SpriteImporterWindow::updateUndoActions));
 
-    Signals::frameObjectListChanged.connect(sigc::hide(
-        sigc::mem_fun(*this, &SpriteImporterWindow::updateItemActions)));
+    _controller.undoStack().signal_dirtyBitChanged.connect(sigc::mem_fun(
+        *this, &SpriteImporterWindow::updateTitle));
 
-    Signals::actionPointListChanged.connect(sigc::hide(
-        sigc::mem_fun(*this, &SpriteImporterWindow::updateItemActions)));
-
-    Signals::entityHitboxListChanged.connect(sigc::hide(
-        sigc::mem_fun(*this, &SpriteImporterWindow::updateItemActions)));
-
-    // Update title when frameset name changes
-    WMSF::Signals::abstractFrameSetNameChanged.connect([this](const MSF::AbstractFrameSet* frameSet) {
-        auto* document = _editor.document();
-        if (document && frameSet == &document->frameSet()) {
-            updateTitle();
-        }
-    });
-}
-
-void SpriteImporterWindow::setDocument(std::unique_ptr<SI::SpriteImporterDocument> document)
-{
-    auto* oldDocument = _editor.document();
-    if (oldDocument) {
-        oldDocument->setUndoStack(nullptr);
-    }
-
-    _undoStack.clear();
-
-    if (document) {
-        document->setUndoStack(&_undoStack);
-    }
-
-    _editor.setDocument(std::move(document));
-
-    updateItemActions();
-    updateTitle();
-    updateUndoActions();
+    _controller.abstractFrameSetController().signal_nameChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &SpriteImporterWindow::updateTitle)));
 }
 
 void SpriteImporterWindow::updateTitle()
 {
-    auto* document = _editor.document();
+    const auto* document = _controller.document();
+    const auto& undoStack = _controller.undoStack();
+    const auto* frameSet = _controller.frameSetController().selected();
 
     if (document) {
-        if (_undoStack.isDirty()) {
-            set_title("*" + document->frameSet().name() + _(": Untech Sprite Importer"));
+        if (undoStack.isDirty()) {
+            set_title("*" + frameSet->name() + _(": Untech Sprite Importer"));
             _saveAction->set_enabled(true);
         }
         else {
-            set_title(document->frameSet().name() + _(": Untech Sprite Importer"));
+            set_title(frameSet->name() + _(": Untech Sprite Importer"));
             _saveAction->set_enabled(false);
         }
     }
@@ -143,12 +116,13 @@ void SpriteImporterWindow::updateTitle()
 
 void SpriteImporterWindow::updateUndoActions()
 {
-    auto* document = _editor.document();
+    const auto* document = _controller.document();
+    const auto& undoStack = _controller.undoStack();
 
     if (document) {
-        _undoAction->set_enabled(_undoStack.canUndo());
-        _redoAction->set_enabled(_undoStack.canRedo());
-        _saveAction->set_enabled(_undoStack.isDirty());
+        _undoAction->set_enabled(undoStack.canUndo());
+        _redoAction->set_enabled(undoStack.canRedo());
+        _saveAction->set_enabled(undoStack.isDirty());
     }
     else {
         _undoAction->set_enabled(false);
@@ -159,11 +133,11 @@ void SpriteImporterWindow::updateUndoActions()
 
 void SpriteImporterWindow::updateItemActions()
 {
-    auto selection = _editor.selection();
+    auto& selectedType = _controller.selectedTypeController();
 
-    bool canCrud = selection.canCrudSelected();
-    bool canMoveUp = selection.canMoveSelectedUp();
-    bool canMoveDown = selection.canMoveSelectedDown();
+    bool canCrud = selectedType.canCrudSelected();
+    bool canMoveUp = selectedType.canMoveSelectedUp();
+    bool canMoveDown = selectedType.canMoveSelectedDown();
 
     _createSelectedAction->set_enabled(canCrud);
     _cloneSelectedAction->set_enabled(canCrud);
@@ -172,19 +146,9 @@ void SpriteImporterWindow::updateItemActions()
     _moveSelectedDownAction->set_enabled(canMoveDown);
 }
 
-void SpriteImporterWindow::do_undo()
-{
-    _undoStack.undo();
-}
-
-void SpriteImporterWindow::do_redo()
-{
-    _undoStack.redo();
-}
-
 void SpriteImporterWindow::do_save()
 {
-    auto* document = _editor.document();
+    auto* document = _controller.document();
 
     if (document) {
         if (document->filename().empty()) {
@@ -193,7 +157,8 @@ void SpriteImporterWindow::do_save()
         else {
             try {
                 document->save();
-                _undoStack.markClean();
+                // ::TODO move elsewhere::
+                _controller.undoStack().markClean();
             }
             catch (const std::exception& ex) {
                 showErrorMessage(this, "Unable to save file", ex);
@@ -206,7 +171,7 @@ void SpriteImporterWindow::do_save()
 
 void SpriteImporterWindow::do_saveAs()
 {
-    auto* document = _editor.document();
+    auto* document = _controller.document();
 
     if (document) {
         Gtk::FileChooserDialog dialog(*this,
@@ -245,7 +210,8 @@ void SpriteImporterWindow::do_saveAs()
 
             try {
                 document->saveFile(dialog.get_filename());
-                _undoStack.markClean();
+                // ::TODO move elsewhere::
+                _controller.undoStack().markClean();
             }
             catch (const std::exception& ex) {
                 showErrorMessage(this, "Unable to save file", ex);
@@ -296,13 +262,14 @@ void SpriteImporterWindow::updateGuiZoom()
 
 bool SpriteImporterWindow::on_delete_event(GdkEventAny*)
 {
-    auto* document = _editor.document();
+    auto* document = _controller.document();
+    const auto& undoStack = _controller.undoStack();
 
     if (document == nullptr) {
         return false;
     }
 
-    if (_undoStack.isDirty()) {
+    if (undoStack.isDirty()) {
         Gtk::MessageDialog dialog(*this,
                                   _("Do you want to save?"),
                                   false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "selection.h"
+#include "gui/controllers/sprite-importer.h"
 #include "gui/widgets/common/aabb.h"
 
 #include <gtkmm.h>
@@ -13,7 +13,7 @@ namespace SI = UnTech::SpriteImporter;
 
 class FramePropertiesEditor {
 public:
-    FramePropertiesEditor(Selection& selection);
+    FramePropertiesEditor(SI::SpriteImporterController& controller);
 
 protected:
     void updateGuiValues();
@@ -22,7 +22,7 @@ public:
     Gtk::Grid widget;
 
 private:
-    Selection& _selection;
+    SI::SpriteImporterController& _controller;
 
     UpointSpinButtons _gridLocationSpinButtons;
     UrectSpinButtons _locationSpinButtons;

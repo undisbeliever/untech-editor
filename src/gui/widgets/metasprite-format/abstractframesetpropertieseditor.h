@@ -1,10 +1,9 @@
 #pragma once
 
 #include "framesetexportorderrotreeview.h"
-#include "selection.h"
+#include "gui/controllers/metasprite-format.h"
 #include "gui/widgets/common/enumclasscombobox.h"
 #include "gui/widgets/common/namedlistnameentry.h"
-#include "models/metasprite-format/abstractframeset.h"
 
 #include <gtkmm.h>
 
@@ -16,7 +15,7 @@ namespace MSF = UnTech::MetaSpriteFormat;
 
 class AbstractFrameSetPropertiesEditor {
 public:
-    AbstractFrameSetPropertiesEditor(Selection& selection);
+    AbstractFrameSetPropertiesEditor(MSF::AbstractFrameSetController& controller);
 
 protected:
     void updateGuiValues();
@@ -30,7 +29,7 @@ public:
     Gtk::Box widget;
 
 private:
-    Selection& _selection;
+    MSF::AbstractFrameSetController& _controller;
 
     Gtk::Grid _grid;
 

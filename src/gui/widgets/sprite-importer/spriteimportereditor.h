@@ -10,8 +10,7 @@
 #include "framepropertieseditor.h"
 #include "framesetgraphicaleditor.h"
 #include "framesetpropertieseditor.h"
-#include "selection.h"
-#include "models/sprite-importer.h"
+#include "gui/controllers/sprite-importer.h"
 
 #include <gtkmm.h>
 #include <memory>
@@ -24,13 +23,7 @@ namespace SI = UnTech::SpriteImporter;
 
 class SpriteImporterEditor {
 public:
-    SpriteImporterEditor();
-
-    SI::SpriteImporterDocument* document() const { return _document.get(); }
-    Selection& selection() { return _selection; }
-    const Selection& selection() const { return _selection; }
-
-    void setDocument(std::unique_ptr<SI::SpriteImporterDocument> document);
+    SpriteImporterEditor(SI::SpriteImporterController& controller);
 
     void setZoom(int zoom, double aspectRatio);
 
@@ -38,9 +31,7 @@ public:
     Gtk::Paned widget;
 
 private:
-    std::unique_ptr<SI::SpriteImporterDocument> _document;
-
-    Selection _selection;
+    SI::SpriteImporterController& _controller;
 
     Gtk::ScrolledWindow _graphicalWindow;
     FrameSetGraphicalEditor _graphicalEditor;
@@ -68,7 +59,7 @@ private:
     EntityHitboxListEditor _entityHitboxList;
     EntityHitboxEditor _entityHitboxEditor;
 
-    enum FrameSetPages {
+    enum SidebarPages {
         FRAMESET_PAGE,
         FRAME_PAGE,
     };

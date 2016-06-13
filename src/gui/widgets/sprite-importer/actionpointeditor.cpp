@@ -1,7 +1,4 @@
 #include "actionpointeditor.h"
-#include "signals.h"
-#include "gui/undo/actionhelper.h"
-#include "gui/undo/mergeactionhelper.h"
 #include "gui/widgets/defaults.h"
 #include "models/common/string.h"
 
@@ -9,19 +6,9 @@
 
 using namespace UnTech::Widgets::SpriteImporter;
 
-SIMPLE_UNDO_MERGE_ACTION(actionPoint_merge_setLocation,
-                         SI::ActionPoint, UnTech::upoint, location, setLocation,
-                         Signals::actionPointChanged,
-                         "Move Action Point")
-
-SIMPLE_UNDO_ACTION(actionPoint_setParameter,
-                   SI::ActionPoint, unsigned, parameter, setParameter,
-                   Signals::actionPointChanged,
-                   "Change Action Point Parameter")
-
-ActionPointEditor::ActionPointEditor(Selection& selection)
+ActionPointEditor::ActionPointEditor(SI::SpriteImporterController& controller)
     : widget()
-    , _selection(selection)
+    , _controller(controller)
     , _locationSpinButtons()
     , _parameterEntry()
     , _locationLabel(_("Location:"), Gtk::ALIGN_START)
@@ -46,40 +33,28 @@ ActionPointEditor::ActionPointEditor(Selection& selection)
      * =====
      */
 
-    /* Update gui when selected actionPoint changed */
-    _selection.signal_actionPointChanged.connect(sigc::mem_fun(
+    // Controller Signals
+    _controller.actionPointController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &ActionPointEditor::updateGuiValues));
 
-    /* Update gui if actionPoint has changed */
-    Signals::actionPointChanged.connect([this](const SI::ActionPoint* ap) {
-        if (ap == _selection.actionPoint()) {
-            updateGuiValues();
-        }
-    });
+    _controller.actionPointController().signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &ActionPointEditor::updateGuiValues));
 
-    /* Update location range if necessary */
-    Signals::frameSizeChanged.connect([this](const SI::Frame* frame) {
-        if (_selection.actionPoint() && frame == _selection.frame()) {
-            _locationSpinButtons.set_range(_selection.frame()->locationSize());
-        }
-    });
+    _controller.frameController().signal_frameSizeChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &ActionPointEditor::updateRange)));
 
-    /* Update location range if necessary */
-    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameset) {
-        if (_selection.actionPoint() && frameset == _selection.frameSet()) {
-            _locationSpinButtons.set_range(_selection.frame()->locationSize());
-        }
-    });
+    _controller.frameSetController().signal_gridChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &ActionPointEditor::updateRange)));
 
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            actionPoint_merge_setLocation(_selection.actionPoint(),
-                                          _locationSpinButtons.value());
+            _controller.actionPointController().selected_setLocation_merge(
+                _locationSpinButtons.value());
         }
     });
     _locationSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 
     /* Set Parameter has finished editing */
     // signal_editing_done does not work
@@ -94,7 +69,7 @@ ActionPointEditor::ActionPointEditor(Selection& selection)
 
 void ActionPointEditor::updateGuiValues()
 {
-    const SI::ActionPoint* actionPoint = _selection.actionPoint();
+    const SI::ActionPoint* actionPoint = _controller.actionPointController().selected();
 
     if (actionPoint) {
         _updatingValues = true;
@@ -117,14 +92,21 @@ void ActionPointEditor::updateGuiValues()
     }
 }
 
+void ActionPointEditor::updateRange()
+{
+    const SI::Frame* frame = _controller.frameController().selected();
+
+    if (frame) {
+        _locationSpinButtons.set_range(frame->locationSize());
+    }
+}
+
 void ActionPointEditor::onParameterFinishedEditing()
 {
-    SI::ActionPoint* actionPoint = _selection.actionPoint();
-
-    if (actionPoint && !_updatingValues) {
+    if (_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
-            actionPoint_setParameter(actionPoint, value.first);
+            _controller.actionPointController().selected_setParameter(value.first);
         }
         else {
             updateGuiValues();

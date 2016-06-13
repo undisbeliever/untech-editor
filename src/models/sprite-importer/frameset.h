@@ -9,8 +9,6 @@
 #include <memory>
 #include <string>
 
-// FrameSet images are lazily loaded.
-
 namespace UnTech {
 
 namespace MetaSpriteFormat {
@@ -44,7 +42,6 @@ public:
     inline const auto& frames() const { return _frames; }
     inline const auto& grid() const { return _grid; }
 
-    // fails silently
     void setImageFilename(const std::string& filename);
 
     void setTransparentColor(const UnTech::rgba transparentColor)
@@ -57,13 +54,8 @@ public:
         return _transparentColor.value != 0 && _transparentColor.alpha == 0xFF;
     }
 
-    inline UnTech::Image& image()
-    {
-        if (_image.empty() && !_imageFilename.empty()) {
-            reloadImage();
-        }
-        return _image;
-    }
+    inline UnTech::Image& image() { return _image; }
+    inline const UnTech::Image& image() const { return _image; }
 
     bool reloadImage();
 

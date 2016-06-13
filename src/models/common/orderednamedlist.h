@@ -9,13 +9,6 @@
 
 namespace UnTech {
 
-namespace Undo {
-namespace Private {
-template <class T>
-class OrderedNamedListAddRemove;
-}
-}
-
 /**
  * A basic ordered map interface that enforces child-parent references.
  *
@@ -28,8 +21,6 @@ class OrderedNamedListAddRemove;
  */
 template <class P, class T>
 class OrderedNamedList {
-
-    friend class UnTech::Undo::Private::OrderedNamedListAddRemove<T>;
 
     typedef std::vector<std::pair<T*, std::string>> _nltype_t;
 

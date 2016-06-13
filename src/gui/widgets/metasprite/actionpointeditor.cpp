@@ -1,27 +1,15 @@
 #include "actionpointeditor.h"
-#include "signals.h"
-#include "gui/undo/actionhelper.h"
-#include "gui/undo/mergeactionhelper.h"
 #include "gui/widgets/defaults.h"
 #include "models/common/string.h"
 
 #include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::MetaSprite;
+typedef UnTech::Controller::BaseController BaseController;
 
-SIMPLE_UNDO_MERGE_ACTION(actionPoint_merge_setLocation,
-                         MS::ActionPoint, UnTech::ms8point, location, setLocation,
-                         Signals::actionPointChanged,
-                         "Move Action Point")
-
-SIMPLE_UNDO_ACTION(actionPoint_setParameter,
-                   MS::ActionPoint, unsigned, parameter, setParameter,
-                   Signals::actionPointChanged,
-                   "Change Action Point Parameter")
-
-ActionPointEditor::ActionPointEditor(Selection& selection)
+ActionPointEditor::ActionPointEditor(MS::ActionPointController& controller)
     : widget()
-    , _selection(selection)
+    , _controller(controller)
     , _locationSpinButtons()
     , _parameterEntry()
     , _locationLabel(_("Location:"), Gtk::ALIGN_START)
@@ -46,26 +34,21 @@ ActionPointEditor::ActionPointEditor(Selection& selection)
      * =====
      */
 
-    /* Update gui when selected actionPoint changed */
-    _selection.signal_actionPointChanged.connect(sigc::mem_fun(
+    /* Controller signals */
+    _controller.signal_selectedChanged().connect(sigc::mem_fun(
         *this, &ActionPointEditor::updateGuiValues));
 
-    /* Update gui if actionPoint has changed */
-    Signals::actionPointChanged.connect([this](const MS::ActionPoint* ap) {
-        if (ap == _selection.actionPoint()) {
-            updateGuiValues();
-        }
-    });
+    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &ActionPointEditor::updateGuiValues));
 
     /** Set location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            actionPoint_merge_setLocation(_selection.actionPoint(),
-                                          _locationSpinButtons.value());
+            _controller.selected_setLocation_merge(_locationSpinButtons.value());
         }
     });
     _locationSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller.baseController(), &BaseController::dontMergeNextAction)));
 
     /* Set Parameter has finished editing */
     // signal_editing_done does not work
@@ -80,7 +63,7 @@ ActionPointEditor::ActionPointEditor(Selection& selection)
 
 void ActionPointEditor::updateGuiValues()
 {
-    const MS::ActionPoint* actionPoint = _selection.actionPoint();
+    const MS::ActionPoint* actionPoint = _controller.selected();
 
     if (actionPoint) {
         _updatingValues = true;
@@ -104,12 +87,10 @@ void ActionPointEditor::updateGuiValues()
 
 void ActionPointEditor::onParameterFinishedEditing()
 {
-    MS::ActionPoint* actionPoint = _selection.actionPoint();
-
-    if (actionPoint && !_updatingValues) {
+    if (!_updatingValues) {
         auto value = UnTech::String::toUint8(_parameterEntry.get_text());
         if (value.second) {
-            actionPoint_setParameter(actionPoint, value.first);
+            _controller.selected_setParameter(value.first);
         }
         else {
             updateGuiValues();

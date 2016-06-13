@@ -1,7 +1,4 @@
 #include "framepropertieseditor.h"
-#include "signals.h"
-#include "gui/undo/actionhelper.h"
-#include "gui/undo/mergeactionhelper.h"
 #include "gui/widgets/defaults.h"
 #include "models/common/string.h"
 
@@ -9,52 +6,9 @@
 
 using namespace UnTech::Widgets::SpriteImporter;
 
-// ::SHOULDO add a Boolean type::
-// ::: would need undo and redo messages in Undo::Action ::
-
-SIMPLE_UNDO_MERGE_ACTION(frame_merge_setGridLocation,
-                         SI::Frame, UnTech::upoint, gridLocation, setGridLocation,
-                         Signals::frameChanged,
-                         "Change Grid Location")
-
-SIMPLE_UNDO_ACTION2(frame_setUseGridLocation,
-                    SI::Frame, bool, useGridLocation, setUseGridLocation,
-                    Signals::frameChanged, Signals::frameSizeChanged,
-                    "Change Use Grid Location")
-
-SIMPLE_UNDO_MERGE_ACTION2(frame_merge_setLocation,
-                          SI::Frame, UnTech::urect, location, setLocation,
-                          Signals::frameChanged, Signals::frameSizeChanged,
-                          "Change Frame Location")
-
-SIMPLE_UNDO_ACTION(frame_setUseGridOrigin,
-                   SI::Frame, bool, useGridOrigin, setUseGridOrigin,
-                   Signals::frameChanged,
-                   "Change Use Grid Origin")
-
-SIMPLE_UNDO_MERGE_ACTION(frame_merge_setOrigin,
-                         SI::Frame, UnTech::upoint, origin, setOrigin,
-                         Signals::frameChanged,
-                         "Change Frame Origin")
-
-SIMPLE_UNDO_ACTION(frame_setSolid,
-                   SI::Frame, bool, solid, setSolid,
-                   Signals::frameChanged,
-                   "Change Frame Solid")
-
-SIMPLE_UNDO_MERGE_ACTION(frame_merge_setTileHitbox,
-                         SI::Frame, UnTech::urect, tileHitbox, setTileHitbox,
-                         Signals::frameChanged,
-                         "Change Frame Tile Hitbox")
-
-SIMPLE_UNDO_ACTION(frame_setSpriteOrder,
-                   SI::Frame, unsigned, spriteOrder, setSpriteOrder,
-                   Signals::frameChanged,
-                   "Change Frame Sprite Order")
-
-FramePropertiesEditor::FramePropertiesEditor(Selection& selection)
+FramePropertiesEditor::FramePropertiesEditor(SI::SpriteImporterController& controller)
     : widget()
-    , _selection(selection)
+    , _controller(controller)
     , _gridLocationSpinButtons()
     , _locationSpinButtons()
     , _originSpinButtons()
@@ -124,64 +78,55 @@ FramePropertiesEditor::FramePropertiesEditor(Selection& selection)
      * SLOTS
      */
 
-    /* Update gui when selected frame changed */
-    _selection.signal_frameChanged.connect(sigc::mem_fun(
+    // Controller Signals
+    _controller.frameController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &FramePropertiesEditor::updateGuiValues));
 
-    /* Update gui if frame has changed */
-    Signals::frameChanged.connect([this](const SI::Frame* frame) {
-        if (frame == _selection.frame()) {
-            updateGuiValues();
-        }
-    });
+    _controller.frameController().signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &FramePropertiesEditor::updateGuiValues));
 
-    /** FrameSet Grid Updated signal */
-    Signals::frameSetGridChanged.connect([this](const SI::FrameSet* frameset) {
-        if (frameset && frameset == _selection.frameSet()) {
-            updateGuiValues();
-            Signals::frameSizeChanged.emit(_selection.frame());
-        }
-    });
+    _controller.frameSetController().signal_gridChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &FramePropertiesEditor::updateGuiValues)));
 
     /** Grid location signal */
     _gridLocationSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            frame_merge_setGridLocation(_selection.frame(),
-                                        _gridLocationSpinButtons.value());
+            _controller.frameController().selected_setGridLocation_merge(
+                _gridLocationSpinButtons.value());
         }
     });
     _gridLocationSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 
     /** Location signal */
     _locationSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            frame_merge_setLocation(_selection.frame(),
-                                    _locationSpinButtons.value());
+            _controller.frameController().selected_setLocation_merge(
+                _locationSpinButtons.value());
         }
     });
     _locationSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 
     /** Origin signal */
     _originSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            frame_merge_setOrigin(_selection.frame(),
-                                  _originSpinButtons.value());
+            _controller.frameController().selected_setOrigin_merge(
+                _originSpinButtons.value());
         }
     });
     _originSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 
     /** Tile hitbox signal */
     _tileHitboxSpinButtons.signal_valueChanged.connect([this](void) {
         if (!_updatingValues) {
-            frame_merge_setTileHitbox(_selection.frame(),
-                                      _tileHitboxSpinButtons.value());
+            _controller.frameController().selected_setTileHitbox_merge(
+                _tileHitboxSpinButtons.value());
         }
     });
     _tileHitboxSpinButtons.signal_focus_out_event.connect(sigc::hide(sigc::mem_fun(
-        _selection, &Selection::dontMergeNextUndoAction)));
+        _controller, &SI::SpriteImporterController::dontMergeNextAction)));
 
     /** Sprite Order Signal */
     _spriteOrderSpinButton.signal_value_changed().connect([this](void) {
@@ -190,38 +135,38 @@ FramePropertiesEditor::FramePropertiesEditor(Selection& selection)
         assert(i <= 3);
 
         if (!_updatingValues) {
-            frame_setSpriteOrder(_selection.frame(), (unsigned)i);
+            _controller.frameController().selected_setSpriteOrder((unsigned)i);
         }
     });
 
     /** Use Grid Location Checkbox signal */
     _useGridLocationCB.signal_clicked().connect([this](void) {
         if (!_updatingValues) {
-            frame_setUseGridLocation(_selection.frame(),
-                                     _useGridLocationCB.get_active());
+            _controller.frameController().selected_setUseGridLocation(
+                _useGridLocationCB.get_active());
         }
     });
 
     /** Use Custom Origin Checkbox signal */
     _useCustomOriginCB.signal_clicked().connect([this](void) {
         if (!_updatingValues) {
-            frame_setUseGridOrigin(_selection.frame(),
-                                   !(_useCustomOriginCB.get_active()));
+            _controller.frameController().selected_setUseGridOrigin(
+                !(_useCustomOriginCB.get_active()));
         }
     });
 
     /** Solid Checkbox signal */
     _solidCB.signal_clicked().connect([this](void) {
         if (!_updatingValues) {
-            frame_setSolid(_selection.frame(),
-                           _solidCB.get_active());
+            _controller.frameController().selected_setSolid(
+                _solidCB.get_active());
         }
     });
 }
 
 void FramePropertiesEditor::updateGuiValues()
 {
-    const SI::Frame* frame = _selection.frame();
+    const SI::Frame* frame = _controller.frameController().selected();
 
     if (frame) {
         _updatingValues = true;

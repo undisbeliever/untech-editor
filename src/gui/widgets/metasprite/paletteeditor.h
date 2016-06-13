@@ -1,10 +1,8 @@
 #pragma once
 
-#include "selection.h"
-#include "signals.h"
-#include "../common/colortogglebutton.h"
+#include "gui/controllers/metasprite.h"
+#include "gui/widgets/common/colortogglebutton.h"
 #include "gui/widgets/defaults.h"
-#include "models/metasprite/palette.h"
 
 #include <glibmm/i18n.h>
 #include <gtkmm.h>
@@ -20,7 +18,7 @@ public:
     static const unsigned N_COLORS = 16;
 
 public:
-    PaletteEditor(Selection& selection);
+    PaletteEditor(MS::PaletteController& controller);
 
     void unselectAllColors();
 
@@ -37,7 +35,7 @@ public:
     sigc::signal<void, int> signal_selectColor();
 
 private:
-    Selection& _selection;
+    MS::PaletteController& _controller;
 
     Gtk::ToggleButton _editSelectOption;
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "signals.h"
 #include "gui/widgets/common/orderedlist.h"
 #include "models/metasprite/palette.h"
 
@@ -31,7 +30,7 @@ public:
         add(col_pixbuf);
     }
 
-    Gtk::TreeModelColumn<MS::Palette*> col_item;
+    Gtk::TreeModelColumn<const MS::Palette*> col_item;
     Gtk::TreeModelColumn<unsigned int> col_id;
     Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf>> col_pixbuf;
 
@@ -84,12 +83,6 @@ public:
             }
         }
     }
-
-    inline static auto& signal_itemChanged() { return Signals::paletteChanged; }
-
-    inline static auto& signal_listChanged() { return Signals::paletteListChanged; }
-
-    inline static const char* itemTypeName() { return "Palette"; }
 };
 }
 

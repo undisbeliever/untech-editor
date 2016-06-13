@@ -30,22 +30,20 @@ void FrameSet::setImageFilename(const std::string& filename)
         std::string fpath = File::fullPath(filename);
 
         _imageFilename = fpath;
-        _image.erase();
+        reloadImage();
     }
 }
 
 bool FrameSet::reloadImage()
 {
     if (!_imageFilename.empty()) {
-        auto ret = _image.loadPngImage(_imageFilename);
-
-        if (ret && !transparentColorValid()) {
-            _transparentColor = _image.getPixel(0, 0);
-        }
-
-        return ret;
+        _image.erase();
     }
-    else {
-        return false;
+    auto ret = _image.loadPngImage(_imageFilename);
+
+    if (ret && !transparentColorValid()) {
+        _transparentColor = _image.getPixel(0, 0);
     }
+
+    return ret;
 }

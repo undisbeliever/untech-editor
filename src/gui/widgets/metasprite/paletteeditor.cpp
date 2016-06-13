@@ -1,13 +1,12 @@
 #include "paletteeditor.h"
 #include "palettecolordialog.h"
-#include "gui/undo/actionhelper.h"
 #include <iomanip>
 
 using namespace UnTech::Widgets::MetaSprite;
 
-PaletteEditor::PaletteEditor(Selection& selection)
+PaletteEditor::PaletteEditor(MS::PaletteController& controller)
     : widget()
-    , _selection(selection)
+    , _controller(controller)
     , _editSelectOption(_("Edit"))
     , _colorButtons()
     , _paletteLabel(_("Palette:"), Gtk::ALIGN_START)
@@ -32,21 +31,18 @@ PaletteEditor::PaletteEditor(Selection& selection)
      * SLOTS
      */
 
-    _selection.signal_paletteChanged.connect([this](void) {
+    /* Controller signals */
+    _controller.signal_selectedChanged().connect([this](void) {
         updateGuiValues();
-        _editSelectOption.set_active(true);
+        _editSelectOption.set_active(_controller.selected() != nullptr);
         unselectAllColors();
     });
 
-    _selection.signal_editTileColorChanged.connect(sigc::mem_fun(
+    _controller.signal_selectedColorChanged().connect(sigc::mem_fun(
         *this, &PaletteEditor::updateGuiValues));
 
-    /** Palette Updated signal */
-    Signals::paletteChanged.connect([this](const MS::Palette* palette) {
-        if (_selection.palette() == palette) {
-            updateGuiValues();
-        }
-    });
+    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &PaletteEditor::updateGuiValues));
 
     _editSelectOption.signal_toggled().connect([this](void) {
         unselectAllColors();
@@ -61,7 +57,7 @@ PaletteEditor::PaletteEditor(Selection& selection)
 
 void PaletteEditor::updateGuiValues()
 {
-    const MS::Palette* palette = _selection.palette();
+    const MS::Palette* palette = _controller.selected();
 
     if (palette) {
         _updatingValues = true;
@@ -74,7 +70,8 @@ void PaletteEditor::updateGuiValues()
 
         _updatingValues = false;
 
-        int active = _selection.editTileColor();
+        int active = _controller.selectedColorId();
+
         if (active >= 0 && active < (int)N_COLORS) {
             _editSelectOption.set_active(false);
 
@@ -101,7 +98,7 @@ void PaletteEditor::on_color_toggled(int colorId)
     if (!_updatingValues) {
         _updatingValues = true;
 
-        MS::Palette* palette = _selection.palette();
+        const MS::Palette* palette = _controller.selected();
 
         if (palette && colorId >= 0 && colorId < (int)N_COLORS) {
             auto& selectedColor = _colorButtons[colorId];
@@ -115,16 +112,14 @@ void PaletteEditor::on_color_toggled(int colorId)
                 }
 
                 if (_editSelectOption.get_active() == true) {
-                    // Show dialog for editing colors
-                    // Dialog is responsible for setting up undo action.
-                    PaletteColorDialog dialog(*palette, colorId, selectedColor);
+                    PaletteColorDialog dialog(_controller, colorId, widget);
                     dialog.run();
 
                     unselectAllColors();
                 }
                 else {
                     // Set color to editing tiles
-                    _selection.setEditTileColor(colorId);
+                    _controller.setSelectedColorId(colorId);
                 }
             }
             else {
@@ -149,7 +144,7 @@ void PaletteEditor::unselectAllColors()
         c.set_active(false);
     }
 
-    _selection.unsetEditTileColor();
+    _controller.unsetSelectedColor();
 
     _updatingValues = oldState;
 }
