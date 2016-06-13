@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gui/controllers/basecontroller.h"
-#include "gui/undo/undostack.h"
+#include "gui/controllers/undo/undostack.h"
 #include <memory>
 #include <stdexcept>
 
@@ -15,7 +15,7 @@
                                                                     \
     void ControllerCls::name(const type& value)                     \
     {                                                               \
-        typedef ::UnTech::Undo::MergeAction MergeAction;            \
+        typedef UnTech::Controller::Undo::MergeAction MergeAction;  \
         class Action : public MergeAction {                         \
         public:                                                     \
             Action() = delete;                                      \
@@ -95,7 +95,7 @@
                                                                     \
     void ControllerCls::name(const type& value)                     \
     {                                                               \
-        typedef ::UnTech::Undo::MergeAction MergeAction;            \
+        typedef UnTech::Controller::Undo::MergeAction MergeAction;  \
         class Action : public MergeAction {                         \
         public:                                                     \
             Action() = delete;                                      \
@@ -178,7 +178,7 @@
                                                                     \
     void ControllerCls::name(size_t index, const type& newValue)    \
     {                                                               \
-        typedef ::UnTech::Undo::MergeAction MergeAction;            \
+        typedef UnTech::Controller::Undo::MergeAction MergeAction;  \
         class Action : public MergeAction {                         \
         public:                                                     \
             Action() = delete;                                      \
@@ -260,7 +260,7 @@
                                                                     \
     void ControllerCls::name(const type& value)                     \
     {                                                               \
-        typedef ::UnTech::Undo::MergeAction MergeAction;            \
+        typedef UnTech::Controller::Undo::MergeAction MergeAction;  \
         class Action : public MergeAction {                         \
         public:                                                     \
             Action() = delete;                                      \

@@ -1,6 +1,6 @@
 #include "undostack.h"
 
-using namespace UnTech::Undo;
+using namespace UnTech::Controller::Undo;
 
 UndoStack::UndoStack()
     : _undoStack()
@@ -33,7 +33,7 @@ void UndoStack::add_undoMerge(std::unique_ptr<MergeAction> actionToMerge)
         return add_undo(std::move(actionToMerge));
     }
 
-    MergeAction* lastAction = dynamic_cast<UnTech::Undo::MergeAction*>(
+    MergeAction* lastAction = dynamic_cast<MergeAction*>(
         _undoStack.front().get());
 
     if (lastAction == nullptr) {

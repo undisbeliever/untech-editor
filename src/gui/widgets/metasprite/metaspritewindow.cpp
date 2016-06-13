@@ -5,7 +5,7 @@
 using namespace UnTech::Widgets::MetaSprite;
 namespace MSF = UnTech::MetaSpriteFormat;
 
-typedef UnTech::Undo::UndoStack UndoStack;
+typedef UnTech::Controller::Undo::UndoStack UndoStack;
 typedef MS::MetaSpriteController::SelectedTypeController SelectedTypeController;
 
 MetaSpriteWindow::MetaSpriteWindow()

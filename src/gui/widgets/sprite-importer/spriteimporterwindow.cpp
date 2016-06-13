@@ -5,7 +5,7 @@
 using namespace UnTech::Widgets::SpriteImporter;
 namespace MSF = UnTech::MetaSpriteFormat;
 
-typedef UnTech::Undo::UndoStack UndoStack;
+typedef UnTech::Controller::Undo::UndoStack UndoStack;
 typedef SI::SpriteImporterController::SelectedTypeController SelectedTypeController;
 
 SpriteImporterWindow::SpriteImporterWindow()

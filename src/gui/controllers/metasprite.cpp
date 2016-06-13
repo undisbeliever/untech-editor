@@ -268,7 +268,7 @@ void FrameSetController::selected_tileset_setPixel(const unsigned tileId,
                                                    unsigned x, unsigned y,
                                                    unsigned value)
 {
-    class Action : public ::UnTech::Undo::MergeAction {
+    class Action : public UnTech::Controller::Undo::MergeAction {
     public:
         Action() = delete;
         Action(FrameSet* frameSet,
@@ -298,7 +298,7 @@ void FrameSetController::selected_tileset_setPixel(const unsigned tileId,
             _signal.emit(_frameSet);
         }
 
-        virtual bool mergeWith(::UnTech::Undo::MergeAction* o) override
+        virtual bool mergeWith(UnTech::Controller::Undo::MergeAction* o) override
         {
             Action* other = dynamic_cast<Action*>(o);
 
@@ -370,7 +370,7 @@ void FrameSetController::selected_largeTileset_setPixel(const unsigned tileId,
 void FrameSetController::selected_addTiles(unsigned nNewSmallTiles,
                                            unsigned nNewLargeTiles)
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public UnTech::Controller::Undo::Action {
     public:
         Action() = delete;
         Action(FrameSet* frameSet,

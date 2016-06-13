@@ -2,7 +2,7 @@
 
 #include "orderedlistcontroller.h"
 
-#include "gui/undo/undostack.h"
+#include "gui/controllers/undo/undostack.h"
 #include "models/common/orderedlist.h"
 
 #include <cassert>
@@ -107,7 +107,7 @@ void OrderedListController<T>::setSelected(const T* item)
 template <class T>
 void OrderedListController<T>::create()
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public Undo::Action {
     public:
         Action() = delete;
         Action(OrderedListController<T>& controller,
@@ -152,7 +152,7 @@ void OrderedListController<T>::create()
 template <class T>
 void OrderedListController<T>::selected_clone()
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public Undo::Action {
     public:
         Action() = delete;
         Action(OrderedListController<T>& controller,
@@ -197,7 +197,7 @@ void OrderedListController<T>::selected_clone()
 template <class T>
 void OrderedListController<T>::selected_remove()
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public Undo::Action {
     public:
         Action() = delete;
         Action(OrderedListController<T>& controller,
@@ -243,7 +243,7 @@ void OrderedListController<T>::selected_remove()
 template <class T>
 void OrderedListController<T>::selected_moveUp()
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public Undo::Action {
     public:
         Action() = delete;
         Action(OrderedListController<T>& controller,
@@ -294,7 +294,7 @@ void OrderedListController<T>::selected_moveUp()
 template <class T>
 void OrderedListController<T>::selected_moveDown()
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public Undo::Action {
     public:
         Action() = delete;
         Action(OrderedListController<T>& controller,

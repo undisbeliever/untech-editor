@@ -1,14 +1,14 @@
 #pragma once
 
 #include "gui/controllers/basecontroller.h"
-#include "gui/undo/undostack.h"
+#include "gui/controllers/undo/undostack.h"
 #include <memory>
 #include <stdexcept>
 
 // ::ANNOY cannot template a method name::
 
 // ::SHOULDO add a Boolean action::
-// ::: would need undo and redo messages in Undo::Action ::
+// ::: would need undo and redo messages in UnTech::Controller::Undo::Action ::
 
 // ::TODO change return type of message to std::string::
 
@@ -18,7 +18,7 @@
                                                                     \
     void ControllerCls::name(const type& value)                     \
     {                                                               \
-        class Action : public ::UnTech::Undo::Action {              \
+        class Action : public UnTech::Controller::Undo::Action {    \
         public:                                                     \
             Action() = delete;                                      \
             Action(ControllerCls& controller,                       \
@@ -81,7 +81,7 @@
                                                                     \
     void ControllerCls::name(const type& value)                     \
     {                                                               \
-        class Action : public ::UnTech::Undo::Action {              \
+        class Action : public UnTech::Controller::Undo::Action {    \
         public:                                                     \
             Action() = delete;                                      \
             Action(ControllerCls& controller,                       \
@@ -149,7 +149,7 @@
     void ControllerCls::name(const type1& value1,                   \
                              const type2& value2)                   \
     {                                                               \
-        class Action : public ::UnTech::Undo::Action {              \
+        class Action : public UnTech::Controller::Undo::Action {    \
         public:                                                     \
             Action() = delete;                                      \
             Action(ControllerCls& controller,                       \
@@ -225,7 +225,7 @@
     void ControllerCls::name(const type1& value1,                   \
                              const type2& value2)                   \
     {                                                               \
-        class Action : public ::UnTech::Undo::Action {              \
+        class Action : public UnTech::Controller::Undo::Action {    \
         public:                                                     \
             Action() = delete;                                      \
             Action(ControllerCls& controller,                       \
@@ -304,7 +304,7 @@
                                                                     \
     void ControllerCls::name(const type& value)                     \
     {                                                               \
-        class Action : public ::UnTech::Undo::Action {              \
+        class Action : public UnTech::Controller::Undo::Action {    \
         public:                                                     \
             Action() = delete;                                      \
             Action(ControllerCls& controller,                       \
@@ -387,7 +387,7 @@
                                                                     \
     void ControllerCls::name(size_t index, const type& newValue)    \
     {                                                               \
-        class Action : public ::UnTech::Undo::Action {              \
+        class Action : public UnTech::Controller::Undo::Action {    \
         public:                                                     \
             Action() = delete;                                      \
             Action(ControllerCls& controller,                       \
@@ -451,7 +451,7 @@
                                                                     \
     void ControllerCls::name(const type& value)                     \
     {                                                               \
-        class Action : public ::UnTech::Undo::Action {              \
+        class Action : public UnTech::Controller::Undo::Action {    \
         public:                                                     \
             Action() = delete;                                      \
             Action(ControllerCls& controller,                       \

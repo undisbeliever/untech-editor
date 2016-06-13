@@ -7,6 +7,7 @@
 #include <sigc++/signal.h>
 
 namespace UnTech {
+namespace Controller {
 namespace Undo {
 
 /**
@@ -92,5 +93,6 @@ private:
     bool _dirty;
     bool _dontMerge;
 };
+}
 }
 }

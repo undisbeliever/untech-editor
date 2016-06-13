@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gui/undo/undostack.h"
+#include "gui/controllers/undo/undostack.h"
 #include <gtkmm/window.h>
 #include <sigc++/sigc++.h>
 #include <stdexcept>

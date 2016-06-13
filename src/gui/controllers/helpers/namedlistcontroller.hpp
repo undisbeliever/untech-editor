@@ -2,7 +2,7 @@
 
 #include "namedlistcontroller.h"
 
-#include "gui/undo/undostack.h"
+#include "gui/controllers/undo/undostack.h"
 #include "models/common/orderedlist.h"
 
 #include <cassert>
@@ -114,7 +114,7 @@ std::string NamedListController<T>::selectedName() const
 template <class T>
 void NamedListController<T>::create(const std::string& name)
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public Undo::Action {
     public:
         Action() = delete;
         Action(NamedListController<T>& controller,
@@ -161,7 +161,7 @@ void NamedListController<T>::create(const std::string& name)
 template <class T>
 void NamedListController<T>::selected_clone(const std::string& newName)
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public Undo::Action {
     public:
         Action() = delete;
         Action(NamedListController<T>& controller,
@@ -208,7 +208,7 @@ void NamedListController<T>::selected_clone(const std::string& newName)
 template <class T>
 void NamedListController<T>::selected_remove()
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public Undo::Action {
     public:
         Action() = delete;
         Action(NamedListController<T>& controller,
@@ -256,7 +256,7 @@ void NamedListController<T>::selected_remove()
 template <class T>
 void NamedListController<T>::selected_rename(const std::string& newName)
 {
-    class Action : public ::UnTech::Undo::Action {
+    class Action : public Undo::Action {
     public:
         Action() = delete;
         Action(NamedListController<T>& controller,
