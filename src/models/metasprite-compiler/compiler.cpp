@@ -166,7 +166,7 @@ inline std::vector<Compiler::FrameListEntry> Compiler::generateFrameList(const M
  * handling the tilesetSpitPoint as required.
  */
 struct CharAttrPos {
-    const static unsigned CHARATTR_SIZE_LARGE = 0x0100;
+    const static unsigned CHARATTR_SIZE_LARGE = 0x0200;
     const static unsigned CHARATTR_TILE_ID_MASK = 0x001F;
     const static unsigned CHARATTR_BLOCK_TWO = 0x0020;
     const static unsigned CHARATTR_HFLIP = 0x4000;
