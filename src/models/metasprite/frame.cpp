@@ -45,10 +45,10 @@ std::unique_ptr<Frame> Frame::flip(bool hFlip, bool vFlip) const
         ms8rect r = ret->_tileHitbox;
 
         if (hFlip) {
-            r.y = -r.y - r.height;
+            r.x = -r.x - r.width;
         }
         if (vFlip) {
-            r.x = -r.x - r.width;
+            r.y = -r.y - r.height;
         }
 
         ret->_tileHitbox = r;
@@ -58,10 +58,12 @@ std::unique_ptr<Frame> Frame::flip(bool hFlip, bool vFlip) const
         ms8point p = obj.location();
 
         if (hFlip) {
-            p.y = -p.y - obj.sizePx();
+            p.x = -p.x - obj.sizePx();
+            obj.setHFlip(!obj.hFlip());
         }
         if (vFlip) {
-            p.x = -p.x - obj.sizePx();
+            p.y = -p.y - obj.sizePx();
+            obj.setVFlip(!obj.vFlip());
         }
 
         obj.setLocation(p);
@@ -71,10 +73,10 @@ std::unique_ptr<Frame> Frame::flip(bool hFlip, bool vFlip) const
         ms8point p = ap.location();
 
         if (hFlip) {
-            p.y = -p.y;
+            p.x = -p.x;
         }
         if (vFlip) {
-            p.x = -p.x;
+            p.y = -p.y;
         }
 
         ap.setLocation(p);
@@ -84,10 +86,10 @@ std::unique_ptr<Frame> Frame::flip(bool hFlip, bool vFlip) const
         ms8rect r = eh.aabb();
 
         if (hFlip) {
-            r.y = -r.y - r.height;
+            r.x = -r.x - r.width;
         }
         if (vFlip) {
-            r.x = -r.x - r.width;
+            r.y = -r.y - r.height;
         }
 
         eh.setAabb(r);

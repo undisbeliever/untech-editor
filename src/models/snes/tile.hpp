@@ -35,14 +35,14 @@ void Tile<BD, TS>::draw(Image& image, const Palette<BD>& palette,
     const uint8_t* tilePos = rawData();
 
     for (unsigned y = 0; y < TILE_SIZE; y++) {
-        if (!hFlip) {
+        if (!vFlip) {
             imgBits = image.scanline(yOffset + y);
         }
         else {
             imgBits = image.scanline(yOffset + TILE_SIZE - y - 1);
         }
 
-        if (!vFlip) {
+        if (!hFlip) {
             imgBits += xOffset;
 
             for (unsigned x = 0; x < TILE_SIZE; x++) {
@@ -81,7 +81,7 @@ inline typename Tile<BD, TS>::Tile_t Tile<BD, TS>::hFlip() const
 
     for (unsigned y = 0; y < TS; y++) {
         for (unsigned x = 0; x < TS; x++) {
-            hData[y][x] = pixelData[y][TS - x - 1];
+            hData[y][x] = pixelData[TILE_SIZE - y - 1][x];
         }
     }
 
@@ -98,7 +98,7 @@ inline typename Tile<BD, TS>::Tile_t Tile<BD, TS>::vFlip() const
 
     for (unsigned y = 0; y < TS; y++) {
         for (unsigned x = 0; x < TS; x++) {
-            vData[y][x] = pixelData[TILE_SIZE - y - 1][x];
+            vData[y][x] = pixelData[y][TS - x - 1];
         }
     }
 
