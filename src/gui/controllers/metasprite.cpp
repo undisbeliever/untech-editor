@@ -314,9 +314,9 @@ void FrameSetController::selected_tileset_setPixel(const unsigned tileId,
             return false;
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            const static Glib::ustring message = _("Edit Tile");
+            const static std::string message = "Edit Tile";
             return message;
         }
 
@@ -420,9 +420,9 @@ void FrameSetController::selected_addTiles(unsigned nNewSmallTiles,
             _controller.signal_tileCountChanged().emit(_frameSet);
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            const static Glib::ustring message = _("Add Tiles");
+            const static std::string message = "Add Tiles";
             return message;
         }
 

@@ -1,5 +1,6 @@
 #include "spriteimportereditor.h"
 #include "gui/widgets/defaults.h"
+
 #include <glibmm/i18n.h>
 
 using namespace UnTech::Widgets::SpriteImporter;

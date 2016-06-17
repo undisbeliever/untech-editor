@@ -2,6 +2,8 @@
 #include "gui/widgets/defaults.h"
 #include "models/common/string.h"
 
+#include <glibmm/i18n.h>
+
 using namespace UnTech::Widgets::SpriteImporter;
 
 EntityHitboxEditor::EntityHitboxEditor(SI::SpriteImporterController& controller)

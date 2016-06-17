@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glibmm/i18n.h>
-#include <glibmm/ustring.h>
 #include <list>
 #include <memory>
 #include <sigc++/signal.h>
@@ -28,7 +26,7 @@ public:
     /** Called by UndoStack when user presses redo */
     virtual void redo() = 0;
 
-    virtual const Glib::ustring& message() const = 0;
+    virtual const std::string& message() const = 0;
 };
 
 /**
@@ -50,7 +48,7 @@ public:
  * undo and redo functions.
  */
 class UndoStack {
-    const unsigned STACK_LIMIT = 100;
+    const unsigned STACK_LIMIT = 250;
 
 public:
     UndoStack();
@@ -80,8 +78,8 @@ public:
     inline bool canUndo() const { return !_undoStack.empty(); }
     inline bool canRedo() const { return !_redoStack.empty(); }
 
-    const Glib::ustring& getUndoMessage() const;
-    const Glib::ustring& getRedoMessage() const;
+    const std::string& undoMessage() const;
+    const std::string& redoMessage() const;
 
     sigc::signal<void> signal_stackChanged;
     sigc::signal<void> signal_dirtyBitChanged;

@@ -128,9 +128,9 @@ void OrderedListController<T>::create()
             _handler.add();
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            static Glib::ustring message = Glib::ustring::compose(_("Create %1"), T::TYPE_NAME);
+            static std::string message = std::string("Create ") + T::TYPE_NAME;
             return message;
         }
 
@@ -173,9 +173,9 @@ void OrderedListController<T>::selected_clone()
             _handler.add();
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            static Glib::ustring message = Glib::ustring::compose(_("Clone %1"), T::TYPE_NAME);
+            static std::string message = std::string("Clone ") + T::TYPE_NAME;
             return message;
         }
 
@@ -218,9 +218,9 @@ void OrderedListController<T>::selected_remove()
             _handler.remove();
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            static Glib::ustring message = Glib::ustring::compose(_("Clone %1"), T::TYPE_NAME);
+            static std::string message = std::string("Remove ") + T::TYPE_NAME;
             return message;
         }
 
@@ -267,9 +267,9 @@ void OrderedListController<T>::selected_moveUp()
             _controller.signal_listDataChanged().emit(_list);
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            static Glib::ustring message = Glib::ustring::compose(_("Move %1 Up"), T::TYPE_NAME);
+            static std::string message = std::string("Move ") + T::TYPE_NAME + " Up";
             return message;
         }
 
@@ -319,9 +319,9 @@ void OrderedListController<T>::selected_moveDown()
             _controller.signal_listDataChanged().emit(_list);
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            static Glib::ustring message = Glib::ustring::compose(_("Move %1 Down"), T::TYPE_NAME);
+            static std::string message = std::string("Move ") + T::TYPE_NAME + " Down";
             return message;
         }
 

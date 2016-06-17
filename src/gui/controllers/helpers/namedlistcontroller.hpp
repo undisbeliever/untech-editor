@@ -135,9 +135,9 @@ void NamedListController<T>::create(const std::string& name)
             _handler.add();
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            static Glib::ustring message = Glib::ustring::compose(_("Create %1"), T::TYPE_NAME);
+            static std::string message = std::string("Create ") + T::TYPE_NAME;
             return message;
         }
 
@@ -182,9 +182,9 @@ void NamedListController<T>::selected_clone(const std::string& newName)
             _handler.add();
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            static Glib::ustring message = Glib::ustring::compose(_("Clone %1"), T::TYPE_NAME);
+            static std::string message = std::string("Clone ") + T::TYPE_NAME;
             return message;
         }
 
@@ -229,9 +229,9 @@ void NamedListController<T>::selected_remove()
             _handler.remove();
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            static Glib::ustring message = Glib::ustring::compose(_("Remove %1"), T::TYPE_NAME);
+            static std::string message = std::string("Remove ") + T::TYPE_NAME;
             return message;
         }
 
@@ -284,9 +284,9 @@ void NamedListController<T>::selected_rename(const std::string& newName)
             _controller.signal_itemRenamed().emit(_item);
         }
 
-        virtual const Glib::ustring& message() const override
+        virtual const std::string& message() const override
         {
-            static Glib::ustring message = Glib::ustring::compose(_("Rename %1"), T::TYPE_NAME);
+            static std::string message = std::string("Rename ") + T::TYPE_NAME;
             return message;
         }
 

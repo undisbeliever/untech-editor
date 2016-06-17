@@ -108,9 +108,9 @@ void UndoStack::markClean()
     }
 }
 
-static const Glib::ustring emptyString;
+static const std::string emptyString;
 
-const Glib::ustring& UndoStack::getUndoMessage() const
+const std::string& UndoStack::undoMessage() const
 {
     if (!_undoStack.empty()) {
         return _undoStack.front()->message();
@@ -120,7 +120,7 @@ const Glib::ustring& UndoStack::getUndoMessage() const
     }
 }
 
-const Glib::ustring& UndoStack::getRedoMessage() const
+const std::string& UndoStack::redoMessage() const
 {
     if (!_redoStack.empty()) {
         return _redoStack.front()->message();
