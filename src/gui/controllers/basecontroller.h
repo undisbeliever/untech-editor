@@ -1,30 +1,32 @@
 #pragma once
 
 #include "gui/controllers/undo/undostack.h"
-#include <gtkmm/window.h>
 #include <sigc++/sigc++.h>
 #include <stdexcept>
 
 namespace UnTech {
 namespace Controller {
 
-// ::TODO separate window from Controller::
+/**
+ * Pure virtual class for interfacing between the
+ * controller and the GUI.
+ */
+class ControllerInterface {
+public:
+    virtual void showError(const char* error, const std::exception& ex) = 0;
+};
 
 class BaseController {
 public:
-    BaseController(Gtk::Window& window)
-        : _undoStack()
-        , _window(window)
-    {
-    }
+    BaseController(std::unique_ptr<ControllerInterface>);
+
     BaseController(const BaseController&) = delete;
     ~BaseController() = default;
-
-    Gtk::Window& window() { return _window; }
 
     Undo::UndoStack& undoStack() { return _undoStack; }
     const Undo::UndoStack& undoStack() const { return _undoStack; }
 
+    // Prints the error to stderr, then calls `ControllerInterface::showError`
     void showError(const char* error, const std::exception& ex);
 
     // Always returns false
@@ -32,7 +34,7 @@ public:
 
 private:
     Undo::UndoStack _undoStack;
-    Gtk::Window& _window;
+    std::unique_ptr<ControllerInterface> _interface;
 };
 }
 }

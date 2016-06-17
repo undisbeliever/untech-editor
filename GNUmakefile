@@ -4,9 +4,10 @@ CXXFLAGS	+= -std=c++14 -Werror -Wall -Wextra -MMD -Isrc
 CXXFLAGS	+= -g
 LDFLAGS		+= -Werror -Wall -Wextra
 
-# gtkmm3
-GUI_CXXFLAGS	= $(shell pkg-config --cflags gtkmm-3.0)
-GUI_LDFLAGS	= $(shell pkg-config --libs gtkmm-3.0)
+VIEW_CXXFLAGS	= $(shell pkg-config --cflags gtkmm-3.0 sigc++-2.0)
+CONTROLLER_CXXFLAGS = $(shell pkg-config --cflags sigc++-2.0)
+
+GUI_LDFLAGS	= $(shell pkg-config --libs gtkmm-3.0 sigc++-2.0)
 
 
 SRCS		= $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
@@ -70,7 +71,13 @@ $(CLI_APPS): bin/%: obj/cli/%.o
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 obj/gui/%.o: src/gui/%.cpp
-	$(CXX) $(CXXFLAGS) $(GUI_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(VIEW_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+
+obj/gui/controllers/%.o: src/gui/controllers/%.cpp
+	$(CXX) $(CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+
+obj/gui/widgets/%.o: src/gui/widgets/%.cpp
+	$(CXX) $(CXXFLAGS) $(VIEW_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
 
 obj/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

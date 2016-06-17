@@ -15,8 +15,8 @@ template class UnTech::Controller::SpriteSelectedTypeController<SpriteImporterCo
  * ==========================
  */
 
-SpriteImporterController::SpriteImporterController(Gtk::Window& window)
-    : BaseController(window)
+SpriteImporterController::SpriteImporterController(std::unique_ptr<Controller::ControllerInterface> interface)
+    : BaseController(std::move(interface))
     , _document(nullptr)
     , _frameSetController(*this)
     , _abstractFrameSetController(*this)

@@ -15,8 +15,8 @@ template class UnTech::Controller::SpriteSelectedTypeController<MetaSpriteContro
  * ======================
  */
 
-MetaSpriteController::MetaSpriteController(Gtk::Window& window)
-    : BaseController(window)
+MetaSpriteController::MetaSpriteController(std::unique_ptr<Controller::ControllerInterface> interface)
+    : BaseController(std::move(interface))
     , _document(nullptr)
     , _frameSetController(*this)
     , _abstractFrameSetController(*this)

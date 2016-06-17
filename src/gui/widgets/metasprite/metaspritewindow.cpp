@@ -1,5 +1,6 @@
 #include "metaspritewindow.h"
 #include "addtilesdialog.h"
+#include "gui/widgets/common/controllerinterface.h"
 #include "gui/widgets/common/errormessagedialog.h"
 
 using namespace UnTech::Widgets::MetaSprite;
@@ -10,7 +11,7 @@ typedef MS::MetaSpriteController::SelectedTypeController SelectedTypeController;
 
 MetaSpriteWindow::MetaSpriteWindow()
     : Gtk::ApplicationWindow()
-    , _controller(*this)
+    , _controller(std::make_unique<UnTech::Widgets::ControllerInterface>(*this))
     , _editor(_controller)
 {
     add(_editor.widget);

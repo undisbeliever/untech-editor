@@ -157,7 +157,7 @@ public:
     typedef UnTech::Controller::SpriteSelectedTypeController<SpriteImporterController> SelectedTypeController;
 
 public:
-    SpriteImporterController(Gtk::Window&);
+    SpriteImporterController(std::unique_ptr<Controller::ControllerInterface>);
     SpriteImporterController(const SpriteImporterController&) = delete;
     ~SpriteImporterController() = default;
 

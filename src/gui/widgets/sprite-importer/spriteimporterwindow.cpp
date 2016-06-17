@@ -1,4 +1,5 @@
 #include "spriteimporterwindow.h"
+#include "gui/widgets/common/controllerinterface.h"
 #include "gui/widgets/common/errormessagedialog.h"
 #include "gui/widgets/defaults.h"
 
@@ -10,7 +11,7 @@ typedef SI::SpriteImporterController::SelectedTypeController SelectedTypeControl
 
 SpriteImporterWindow::SpriteImporterWindow()
     : Gtk::ApplicationWindow()
-    , _controller(*this)
+    , _controller(std::make_unique<UnTech::Widgets::ControllerInterface>(*this))
     , _editor(_controller)
 {
     add(_editor.widget);

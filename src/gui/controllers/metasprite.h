@@ -179,7 +179,7 @@ public:
     typedef UnTech::Controller::SpriteSelectedTypeController<MetaSpriteController> SelectedTypeController;
 
 public:
-    MetaSpriteController(Gtk::Window&);
+    MetaSpriteController(std::unique_ptr<Controller::ControllerInterface>);
     MetaSpriteController(const MetaSpriteController&) = delete;
     ~MetaSpriteController() = default;
 
