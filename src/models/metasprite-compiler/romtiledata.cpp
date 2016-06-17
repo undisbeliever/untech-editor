@@ -26,7 +26,7 @@ void RomTileData::writeToIncFile(std::ostream& out) const
         out << std::hex << std::setfill('0');
 
         const unsigned begin = tilesPerBlock * blockId;
-        const unsigned end = std::min<unsigned>(blockId + tilesPerBlock,
+        const unsigned end = std::min<unsigned>(begin + tilesPerBlock,
                                                 _tiles.size());
 
         for (unsigned t = begin; t < end; t++) {
