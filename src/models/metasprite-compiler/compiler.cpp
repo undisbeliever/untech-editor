@@ -203,7 +203,7 @@ void Compiler::buildTileset(FrameTileset& tileset,
                             const std::set<unsigned>& largeTiles,
                             const std::set<std::array<unsigned, 4>>& smallTiles)
 {
-    unsigned tileCount = largeTiles.size() + (smallTiles.size() + 3) / 4;
+    unsigned tileCount = largeTiles.size() + smallTiles.size();
     assert(tileCount > 0);
     assert(tileCount <= tilesetType.nTiles());
 
