@@ -1,5 +1,6 @@
 #include "sprite-importer.h"
 #include "gui/controllers/helpers/actionhelper.h"
+#include "gui/controllers/helpers/documentcontroller.hpp"
 #include "gui/controllers/helpers/mergeactionhelper.h"
 #include "gui/controllers/helpers/namedlistcontroller.hpp"
 #include "gui/controllers/helpers/orderedlistcontroller.hpp"
@@ -14,10 +15,10 @@ template class UnTech::Controller::SpriteSelectedTypeController<SpriteImporterCo
  * SPRITE IMPORTER CONTROLLER
  * ==========================
  */
+template class UnTech::Controller::DocumentController<SpriteImporterDocument>;
 
 SpriteImporterController::SpriteImporterController(std::unique_ptr<Controller::ControllerInterface> interface)
-    : BaseController(std::move(interface))
-    , _document(nullptr)
+    : DocumentController(std::move(interface))
     , _frameSetController(*this)
     , _abstractFrameSetController(*this)
     , _frameController(*this)
@@ -31,6 +32,17 @@ SpriteImporterController::SpriteImporterController(std::unique_ptr<Controller::C
      * SIGNALS
      * -------
      */
+    this->signal_documentChanged().connect([this](void) {
+        auto* document = this->document_editable();
+        if (document != nullptr) {
+            _frameSetController.setSelected(&document->frameSet());
+            _abstractFrameSetController.setSelected(&document->frameSet());
+        }
+        else {
+            _frameSetController.setSelected(nullptr);
+            _abstractFrameSetController.setSelected(nullptr);
+        }
+    });
     _frameSetController.signal_selectedChanged().connect([this](void) {
         auto* frameSet = _frameSetController.selected_editable();
         if (frameSet != nullptr) {
@@ -53,22 +65,6 @@ SpriteImporterController::SpriteImporterController(std::unique_ptr<Controller::C
             _frameObjectController.setList(nullptr);
         }
     });
-}
-
-void SpriteImporterController::setDocument(
-    std::unique_ptr<SpriteImporterDocument> document)
-{
-    undoStack().clear();
-
-    _frameSetController.setSelected(nullptr);
-    _abstractFrameSetController.setSelected(nullptr);
-
-    _document = std::move(document);
-
-    if (_document) {
-        _frameSetController.setSelected(&_document->frameSet());
-        _abstractFrameSetController.setSelected(&_document->frameSet());
-    }
 }
 
 /*

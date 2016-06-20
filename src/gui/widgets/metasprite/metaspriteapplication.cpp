@@ -50,7 +50,7 @@ void MetaSpriteApplication::on_startup()
 
 void MetaSpriteApplication::on_activate()
 {
-    create_window(std::make_unique<MS::MetaSpriteDocument>());
+    on_menu_new();
 }
 
 void MetaSpriteApplication::on_open(const type_vec_files& files, const Glib::ustring& hint)
@@ -64,48 +64,49 @@ void MetaSpriteApplication::on_open(const type_vec_files& files, const Glib::ust
     Gtk::Application::on_open(files, hint);
 }
 
-void MetaSpriteApplication::create_window(std::unique_ptr<MS::MetaSpriteDocument> document)
+MetaSpriteWindow* MetaSpriteApplication::create_window()
 {
-    if (document) {
-        auto window = new MetaSpriteWindow();
+    auto window = new MetaSpriteWindow();
 
-        // ::DEBUG create a document::
-        window->controller().setDocument(std::move(document));
+    add_window(*window);
 
-        add_window(*window);
+    window->signal_hide().connect(sigc::bind<Gtk::Window*>(
+        sigc::mem_fun(*this, &MetaSpriteApplication::on_window_hide), window));
 
-        window->signal_hide().connect(sigc::bind<Gtk::Window*>(
-            sigc::mem_fun(*this, &MetaSpriteApplication::on_window_hide), window));
+    window->show_all();
 
-        window->show_all();
+    return window;
+}
+
+MetaSpriteWindow* MetaSpriteApplication::empty_window()
+{
+    // Try and reuse current window if it has no document
+    MetaSpriteWindow* window = dynamic_cast<MetaSpriteWindow*>(get_active_window());
+    if (window != nullptr && window->controller().document() == nullptr) {
+        return window;
+    }
+    else {
+        return create_window();
     }
 }
 
 void MetaSpriteApplication::load_file(const std::string& filename)
 {
+    const std::string fullpath = File::fullPath(filename);
+
     // ensure the file is not already loaded
     for (auto* window : get_windows()) {
         auto* msw = dynamic_cast<MetaSpriteWindow*>(window);
         if (msw) {
             const auto* document = msw->controller().document();
-            if (document && document->filename() == filename) {
+            if (document && document->filename() == fullpath) {
                 return;
             }
         }
     }
 
-    std::unique_ptr<MS::MetaSpriteDocument> document;
-
-    try {
-        document = std::make_unique<MS::MetaSpriteDocument>(filename);
-    }
-    catch (const std::exception& ex) {
-        showErrorMessage(get_active_window(), "Unable to open file", ex);
-
-        return;
-    }
-
-    create_window(std::move(document));
+    auto* window = empty_window();
+    window->controller().openDocument(fullpath);
 }
 
 // Delete window when hidden
@@ -122,7 +123,8 @@ void MetaSpriteApplication::on_window_hide(Gtk::Window* window)
 
 void MetaSpriteApplication::on_menu_new()
 {
-    create_window(std::make_unique<MS::MetaSpriteDocument>());
+    auto* window = empty_window();
+    window->controller().newDocument();
 }
 
 void MetaSpriteApplication::on_menu_open()

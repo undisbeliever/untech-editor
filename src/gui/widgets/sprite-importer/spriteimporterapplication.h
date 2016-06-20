@@ -12,6 +12,8 @@ namespace SpriteImporter {
 
 namespace SI = UnTech::SpriteImporter;
 
+class SpriteImporterWindow;
+
 class SpriteImporterApplication : public Gtk::Application {
 protected:
     SpriteImporterApplication();
@@ -32,7 +34,9 @@ protected:
     void on_window_hide(Gtk::Window* window);
 
 private:
-    void create_window(std::unique_ptr<SI::SpriteImporterDocument> document);
+    SpriteImporterWindow* create_window();
+    SpriteImporterWindow* empty_window();
+
     void load_file(const std::string& filename);
 
 private:

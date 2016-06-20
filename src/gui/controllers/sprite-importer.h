@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui/controllers/basecontroller.h"
+#include "gui/controllers/helpers/documentcontroller.h"
 #include "gui/controllers/helpers/namedlistcontroller.h"
 #include "gui/controllers/helpers/orderedlistcontroller.h"
 #include "gui/controllers/helpers/spriteselectedtypecontroller.h"
@@ -152,7 +153,7 @@ private:
  * SPRITE IMPORTER CONTROLLER
  * ==========================
  */
-class SpriteImporterController : public Controller::BaseController {
+class SpriteImporterController : public Controller::DocumentController<SpriteImporterDocument> {
 public:
     typedef UnTech::Controller::SpriteSelectedTypeController<SpriteImporterController> SelectedTypeController;
 
@@ -169,12 +170,7 @@ public:
     auto& frameObjectController() { return _frameObjectController; }
     auto& selectedTypeController() { return _selectedTypeController; }
 
-    SpriteImporterDocument* document() { return _document.get(); }
-    void setDocument(std::unique_ptr<SpriteImporterDocument> document);
-
 private:
-    std::unique_ptr<SpriteImporterDocument> _document;
-
     FrameSetController _frameSetController;
     MetaSpriteFormat::AbstractFrameSetController _abstractFrameSetController;
     FrameController _frameController;

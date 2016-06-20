@@ -50,7 +50,7 @@ void SpriteImporterApplication::on_startup()
 
 void SpriteImporterApplication::on_activate()
 {
-    create_window(std::make_unique<SI::SpriteImporterDocument>());
+    on_menu_new();
 }
 
 void SpriteImporterApplication::on_open(const type_vec_files& files, const Glib::ustring& hint)
@@ -64,48 +64,49 @@ void SpriteImporterApplication::on_open(const type_vec_files& files, const Glib:
     Gtk::Application::on_open(files, hint);
 }
 
-void SpriteImporterApplication::create_window(std::unique_ptr<SI::SpriteImporterDocument> document)
+SpriteImporterWindow* SpriteImporterApplication::create_window()
 {
-    if (document) {
-        auto window = new SpriteImporterWindow();
+    auto window = new SpriteImporterWindow();
 
-        // ::DEBUG create a document::
-        window->controller().setDocument(std::move(document));
+    add_window(*window);
 
-        add_window(*window);
+    window->signal_hide().connect(sigc::bind<Gtk::Window*>(
+        sigc::mem_fun(*this, &SpriteImporterApplication::on_window_hide), window));
 
-        window->signal_hide().connect(sigc::bind<Gtk::Window*>(
-            sigc::mem_fun(*this, &SpriteImporterApplication::on_window_hide), window));
+    window->show_all();
 
-        window->show_all();
+    return window;
+}
+
+SpriteImporterWindow* SpriteImporterApplication::empty_window()
+{
+    // Try and reuse current window if it has no document
+    SpriteImporterWindow* window = dynamic_cast<SpriteImporterWindow*>(get_active_window());
+    if (window != nullptr && window->controller().document() == nullptr) {
+        return window;
+    }
+    else {
+        return create_window();
     }
 }
 
 void SpriteImporterApplication::load_file(const std::string& filename)
 {
+    const std::string fullpath = File::fullPath(filename);
+
     // ensure the file is not already loaded
     for (auto* window : get_windows()) {
         auto* siw = dynamic_cast<SpriteImporterWindow*>(window);
         if (siw) {
             const auto* document = siw->controller().document();
-            if (document && document->filename() == filename) {
+            if (document && document->filename() == fullpath) {
                 return;
             }
         }
     }
 
-    std::unique_ptr<SI::SpriteImporterDocument> document;
-
-    try {
-        document = std::make_unique<SI::SpriteImporterDocument>(filename);
-    }
-    catch (const std::exception& ex) {
-        showErrorMessage(get_active_window(), "Unable to open file", ex);
-
-        return;
-    }
-
-    create_window(std::move(document));
+    auto* window = empty_window();
+    window->controller().openDocument(fullpath);
 }
 
 // Delete window when hidden
@@ -122,7 +123,8 @@ void SpriteImporterApplication::on_window_hide(Gtk::Window* window)
 
 void SpriteImporterApplication::on_menu_new()
 {
-    create_window(std::make_unique<SI::SpriteImporterDocument>());
+    auto* window = empty_window();
+    window->controller().newDocument();
 }
 
 void SpriteImporterApplication::on_menu_open()

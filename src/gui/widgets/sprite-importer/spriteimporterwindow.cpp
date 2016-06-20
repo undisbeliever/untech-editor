@@ -149,21 +149,10 @@ void SpriteImporterWindow::updateItemActions()
 
 void SpriteImporterWindow::do_save()
 {
-    auto* document = _controller.document();
-
-    if (document) {
-        if (document->filename().empty()) {
+    if (_controller.document()) {
+        bool s = _controller.saveDocument();
+        if (!s) {
             return do_saveAs();
-        }
-        else {
-            try {
-                document->save();
-                // ::TODO move elsewhere::
-                _controller.undoStack().markClean();
-            }
-            catch (const std::exception& ex) {
-                showErrorMessage(this, "Unable to save file", ex);
-            }
         }
 
         updateTitle();
@@ -172,7 +161,7 @@ void SpriteImporterWindow::do_save()
 
 void SpriteImporterWindow::do_saveAs()
 {
-    auto* document = _controller.document();
+    const auto* document = _controller.document();
 
     if (document) {
         Gtk::FileChooserDialog dialog(*this,
@@ -209,14 +198,7 @@ void SpriteImporterWindow::do_saveAs()
                 dialog.set_current_name(name + ".utsi");
             }
 
-            try {
-                document->saveFile(dialog.get_filename());
-                // ::TODO move elsewhere::
-                _controller.undoStack().markClean();
-            }
-            catch (const std::exception& ex) {
-                showErrorMessage(this, "Unable to save file", ex);
-            }
+            _controller.saveDocumentAs(dialog.get_filename());
 
             updateTitle();
         }

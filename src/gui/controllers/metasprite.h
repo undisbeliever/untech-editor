@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui/controllers/basecontroller.h"
+#include "gui/controllers/helpers/documentcontroller.h"
 #include "gui/controllers/helpers/namedlistcontroller.h"
 #include "gui/controllers/helpers/orderedlistcontroller.h"
 #include "gui/controllers/helpers/spriteselectedtypecontroller.h"
@@ -174,7 +175,7 @@ private:
  * META SPRITE CONTROLLER
  * ======================
  */
-class MetaSpriteController : public Controller::BaseController {
+class MetaSpriteController : public Controller::DocumentController<MetaSpriteDocument> {
 public:
     typedef UnTech::Controller::SpriteSelectedTypeController<MetaSpriteController> SelectedTypeController;
 
@@ -192,12 +193,7 @@ public:
     auto& frameObjectController() { return _frameObjectController; }
     auto& selectedTypeController() { return _selectedTypeController; }
 
-    MetaSpriteDocument* document() { return _document.get(); }
-    void setDocument(std::unique_ptr<MetaSpriteDocument> document);
-
 private:
-    std::unique_ptr<MetaSpriteDocument> _document;
-
     FrameSetController _frameSetController;
     MetaSpriteFormat::AbstractFrameSetController _abstractFrameSetController;
     PaletteController _paletteController;

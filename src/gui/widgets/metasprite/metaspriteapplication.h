@@ -12,6 +12,8 @@ namespace MetaSprite {
 
 namespace MS = UnTech::MetaSprite;
 
+class MetaSpriteWindow;
+
 class MetaSpriteApplication : public Gtk::Application {
 protected:
     MetaSpriteApplication();
@@ -32,7 +34,9 @@ protected:
     void on_window_hide(Gtk::Window* window);
 
 private:
-    void create_window(std::unique_ptr<MS::MetaSpriteDocument> document);
+    MetaSpriteWindow* create_window();
+    MetaSpriteWindow* empty_window();
+
     void load_file(const std::string& filename);
 
 private:
