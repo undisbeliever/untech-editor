@@ -2,7 +2,7 @@
 #include "framesetexportorder.h"
 #include <iostream>
 
-using namespace UnTech::MetaSpriteFormat;
+using namespace UnTech::MetaSpriteCommon;
 
 AbstractFrameSet::AbstractFrameSet(::UnTech::Document& document)
     : _document(document)

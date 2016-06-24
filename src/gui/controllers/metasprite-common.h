@@ -3,7 +3,7 @@
 #include "gui/controllers/basecontroller.h"
 #include "gui/controllers/helpers/orderedlistcontroller.h"
 #include "gui/controllers/helpers/singleitemcontroller.h"
-#include "models/metasprite-format/abstractframeset.h"
+#include "models/metasprite-common/abstractframeset.h"
 
 namespace UnTech {
 
@@ -14,7 +14,7 @@ namespace SpriteImporter {
 class SpriteImporterController;
 }
 
-namespace MetaSpriteFormat {
+namespace MetaSpriteCommon {
 
 class AbstractFrameSetController : public Controller::SingleItemController<AbstractFrameSet> {
     friend class MetaSprite::MetaSpriteController;

@@ -5,7 +5,7 @@
 #include <string>
 
 namespace UnTech {
-namespace MetaSpriteFormat {
+namespace MetaSpriteCommon {
 
 class TilesetType {
 public:

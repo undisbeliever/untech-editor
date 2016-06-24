@@ -3,8 +3,8 @@
 #include "gui/widgets/defaults.h"
 #include <glibmm/i18n.h>
 
-using namespace UnTech::Widgets::MetaSpriteFormat;
-namespace FSEO = UnTech::MetaSpriteFormat::FrameSetExportOrder;
+using namespace UnTech::Widgets::MetaSpriteCommon;
+namespace FSEO = UnTech::MetaSpriteCommon::FrameSetExportOrder;
 
 FrameSetExportOrderRoTreeView::ModelColumns::ModelColumns()
 {

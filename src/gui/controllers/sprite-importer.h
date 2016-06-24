@@ -5,7 +5,7 @@
 #include "gui/controllers/helpers/namedlistcontroller.h"
 #include "gui/controllers/helpers/orderedlistcontroller.h"
 #include "gui/controllers/helpers/spriteselectedtypecontroller.h"
-#include "gui/controllers/metasprite-format.h"
+#include "gui/controllers/metasprite-common.h"
 #include "models/sprite-importer.h"
 
 namespace UnTech {
@@ -172,7 +172,7 @@ public:
 
 private:
     FrameSetController _frameSetController;
-    MetaSpriteFormat::AbstractFrameSetController _abstractFrameSetController;
+    MetaSpriteCommon::AbstractFrameSetController _abstractFrameSetController;
     FrameController _frameController;
     EntityHitboxController _entityHitboxController;
     ActionPointController _actionPointController;

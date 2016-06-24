@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 using namespace UnTech;
-using namespace UnTech::MetaSpriteFormat::FrameSetExportOrder;
+using namespace UnTech::MetaSpriteCommon::FrameSetExportOrder;
 
 ExportOrderDocument::ExportOrderDocument()
     : ::UnTech::Document()

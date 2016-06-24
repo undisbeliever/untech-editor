@@ -13,7 +13,7 @@
 #include "palettelist.h"
 #include "tileseteditor.h"
 #include "gui/controllers/metasprite.h"
-#include "gui/widgets/metasprite-format/abstractframesetpropertieseditor.h"
+#include "gui/widgets/metasprite-common/abstractframesetpropertieseditor.h"
 
 #include <gtkmm.h>
 #include <memory>
@@ -55,7 +55,7 @@ private:
     Gtk::Paned _framePane;
 
     Gtk::Box _frameSetBox;
-    MetaSpriteFormat::AbstractFrameSetPropertiesEditor _frameSetPropertiesEditor;
+    MetaSpriteCommon::AbstractFrameSetPropertiesEditor _frameSetPropertiesEditor;
 
     Gtk::Frame _paletteFrame;
     Gtk::Box _paletteBox;

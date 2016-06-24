@@ -8,7 +8,7 @@
 #include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
-#include "models/metasprite-format/framesetexportorder.h"
+#include "models/metasprite-common/framesetexportorder.h"
 #include <cassert>
 #include <fstream>
 #include <stdexcept>
@@ -16,7 +16,7 @@
 using namespace UnTech;
 using namespace UnTech::Xml;
 using namespace UnTech::SpriteImporter;
-namespace MSF = UnTech::MetaSpriteFormat;
+namespace MSC = UnTech::MetaSpriteCommon;
 
 namespace UnTech {
 namespace SpriteImporter {
@@ -51,7 +51,7 @@ public:
         frameSet.setName(id);
 
         frameSet.setTilesetType(
-            tag->getAttributeSimpleClass<MSF::TilesetType>("tilesettype"));
+            tag->getAttributeSimpleClass<MSC::TilesetType>("tilesettype"));
 
         frameSetGridSet = false;
 

@@ -4,7 +4,6 @@
 #include "gui/widgets/common/errormessagedialog.h"
 
 using namespace UnTech::Widgets::MetaSprite;
-namespace MSF = UnTech::MetaSpriteFormat;
 
 typedef UnTech::Controller::Undo::UndoStack UndoStack;
 typedef MS::MetaSpriteController::SelectedTypeController SelectedTypeController;

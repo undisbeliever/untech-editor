@@ -1,15 +1,15 @@
 #pragma once
 
-#include "models/metasprite-format/framesetexportorder.h"
+#include "models/metasprite-common/framesetexportorder.h"
 
 #include <gtkmm.h>
 
 namespace UnTech {
 namespace Widgets {
-namespace MetaSpriteFormat {
+namespace MetaSpriteCommon {
 
 namespace {
-namespace FSEO = UnTech::MetaSpriteFormat::FrameSetExportOrder;
+namespace FSEO = UnTech::MetaSpriteCommon::FrameSetExportOrder;
 }
 
 class FrameSetExportOrderRoTreeView : public Gtk::TreeView {

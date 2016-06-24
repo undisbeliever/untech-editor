@@ -8,7 +8,7 @@
 #include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
-#include "models/metasprite-format/framesetexportorder.h"
+#include "models/metasprite-common/framesetexportorder.h"
 #include "models/snes/palette.hpp"
 #include "models/snes/tileset.hpp"
 #include <cassert>
@@ -18,7 +18,7 @@
 using namespace UnTech;
 using namespace UnTech::Xml;
 using namespace UnTech::MetaSprite;
-namespace MSF = UnTech::MetaSpriteFormat;
+namespace MSC = UnTech::MetaSpriteCommon;
 
 namespace UnTech {
 namespace MetaSprite {
@@ -50,7 +50,7 @@ public:
         frameSet.setName(id);
 
         frameSet.setTilesetType(
-            tag->getAttributeSimpleClass<MSF::TilesetType>("tilesettype"));
+            tag->getAttributeSimpleClass<MSC::TilesetType>("tilesettype"));
 
         std::unique_ptr<XmlTag> childTag;
         while ((childTag = xml.parseTag())) {

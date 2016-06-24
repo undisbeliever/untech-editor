@@ -1,6 +1,6 @@
 #include "compiler.h"
 #include "combinesmalltilesets.h"
-#include "models/metasprite-format/framesetexportorder.h"
+#include "models/metasprite-common/framesetexportorder.h"
 #include "models/snes/palette.hpp"
 #include <algorithm>
 #include <climits>
@@ -8,7 +8,7 @@
 
 using namespace UnTech::MetaSpriteCompiler;
 namespace MS = UnTech::MetaSprite;
-namespace MSF = UnTech::MetaSpriteFormat;
+namespace MSC = UnTech::MetaSpriteCommon;
 
 // ::TODO generate debug file - containing frame/frameset names::
 
@@ -199,7 +199,7 @@ const uint16_t CharAttrPos::SMALL_TILE_OFFSETS[4] = { 0x0000, 0x0001, 0x0010, 0x
 
 void Compiler::buildTileset(FrameTileset& tileset,
                             const MS::FrameSet& frameSet,
-                            const MSF::TilesetType& tilesetType,
+                            const MSC::TilesetType& tilesetType,
                             const std::set<unsigned>& largeTiles,
                             const std::set<std::array<unsigned, 4>>& smallTiles)
 {
@@ -274,7 +274,7 @@ void Compiler::buildTileset(FrameTileset& tileset,
 
 void Compiler::buildTileset(FrameTileset& tileset,
                             const MS::FrameSet& frameSet,
-                            const MSF::TilesetType& tilesetType,
+                            const MSC::TilesetType& tilesetType,
                             const std::set<unsigned>& largeTiles,
                             const std::set<unsigned>& smallTiles)
 {
@@ -296,7 +296,7 @@ void Compiler::buildTileset(FrameTileset& tileset,
 
 inline Compiler::FrameTilesetList
 Compiler::generateDynamicTilesets(const MetaSprite::FrameSet& frameSet,
-                                  const MetaSpriteFormat::TilesetType& tilesetType,
+                                  const MetaSpriteCommon::TilesetType& tilesetType,
                                   const TileGraph_t& largeTileGraph,
                                   const TileGraph_t& smallTileGraph)
 {
@@ -386,7 +386,7 @@ Compiler::generateDynamicTilesets(const MetaSprite::FrameSet& frameSet,
 
 inline Compiler::FrameTilesetList
 Compiler::generateFixedTileset(const MetaSprite::FrameSet& frameSet,
-                               const MetaSpriteFormat::TilesetType& tilesetType,
+                               const MetaSpriteCommon::TilesetType& tilesetType,
                                const TileGraph_t& largeTileGraph,
                                const TileGraph_t& smallTileGraph)
 {
@@ -472,7 +472,7 @@ Compiler::generateTilesetList(const MS::FrameSet& frameSet,
         }
 
         // resize tileset if necessary
-        auto smallestType = MSF::TilesetType::smallestFixedTileset(tilesetSize);
+        auto smallestType = MSC::TilesetType::smallestFixedTileset(tilesetSize);
 
         if (tilesetType.nTiles() != smallestType.nTiles()) {
             addWarning(frameSet, std::string("TilesetType shrunk to ") + smallestType.string());

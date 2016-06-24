@@ -8,13 +8,12 @@
 #include "models/common/namechecks.h"
 
 using namespace UnTech::SpriteImporter;
-namespace MSF = UnTech::MetaSpriteFormat;
-namespace FSExportOrder = UnTech::MetaSpriteFormat::FrameSetExportOrder;
+namespace FSExportOrder = UnTech::MetaSpriteCommon::FrameSetExportOrder;
 
 const char* FrameSet::TYPE_NAME = "Frame";
 
 FrameSet::FrameSet(SpriteImporterDocument& document)
-    : MetaSpriteFormat::AbstractFrameSet(document)
+    : MetaSpriteCommon::AbstractFrameSet(document)
     , _document(document)
     , _imageFilename()
     , _image()

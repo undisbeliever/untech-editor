@@ -50,11 +50,11 @@ define gui-modules
 endef
 
 # Select the modules used by the apps
-bin/untech-msc: $(call cli-modules, common snes metasprite metasprite-format metasprite-compiler)
-bin/untech-utsi2utms: $(call cli-modules, common snes sprite-importer metasprite metasprite-format utsi2utms)
+bin/untech-msc: $(call cli-modules, common snes metasprite metasprite-common metasprite-compiler)
+bin/untech-utsi2utms: $(call cli-modules, common snes sprite-importer metasprite metasprite-common utsi2utms)
 
-bin/untech-spriteimporter-gui: $(call gui-modules, common sprite-importer metasprite-format)
-bin/untech-metasprite-gui: $(call gui-modules, common snes metasprite metasprite-format)
+bin/untech-spriteimporter-gui: $(call gui-modules, common sprite-importer metasprite-common)
+bin/untech-metasprite-gui: $(call gui-modules, common snes metasprite metasprite-common)
 
 # Disable Builtin rules
 .SUFFIXES:

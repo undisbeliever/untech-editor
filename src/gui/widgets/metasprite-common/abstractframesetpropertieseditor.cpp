@@ -3,11 +3,11 @@
 #include "gui/widgets/defaults.h"
 #include <glibmm/i18n.h>
 
-using namespace UnTech::Widgets::MetaSpriteFormat;
-namespace FSEO = UnTech::MetaSpriteFormat::FrameSetExportOrder;
+using namespace UnTech::Widgets::MetaSpriteCommon;
+namespace FSEO = UnTech::MetaSpriteCommon::FrameSetExportOrder;
 
 AbstractFrameSetPropertiesEditor::AbstractFrameSetPropertiesEditor(
-    MSF::AbstractFrameSetController& controller)
+    MSC::AbstractFrameSetController& controller)
 
     : widget(Gtk::ORIENTATION_VERTICAL)
     , _controller(controller)
@@ -105,7 +105,7 @@ AbstractFrameSetPropertiesEditor::AbstractFrameSetPropertiesEditor(
 
 void AbstractFrameSetPropertiesEditor::updateGuiValues()
 {
-    const MSF::AbstractFrameSet* frameSet = _controller.selected();
+    const MSC::AbstractFrameSet* frameSet = _controller.selected();
 
     if (frameSet) {
         _updatingValues = true;
@@ -128,7 +128,7 @@ void AbstractFrameSetPropertiesEditor::updateGuiValues()
 
 void AbstractFrameSetPropertiesEditor::updateGuiTree()
 {
-    const MSF::AbstractFrameSet* frameSet = _controller.selected();
+    const MSC::AbstractFrameSet* frameSet = _controller.selected();
 
     if (frameSet && frameSet->exportOrderDocument()) {
         const auto& fseoDocument = frameSet->exportOrderDocument();
@@ -152,7 +152,7 @@ void AbstractFrameSetPropertiesEditor::updateGuiTree()
 
 void AbstractFrameSetPropertiesEditor::on_fseoFilenameButtonClicked()
 {
-    const MSF::AbstractFrameSet* frameSet = _controller.selected();
+    const MSC::AbstractFrameSet* frameSet = _controller.selected();
 
     if (frameSet == nullptr) {
         return;

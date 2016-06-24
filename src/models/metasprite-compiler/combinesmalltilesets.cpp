@@ -13,7 +13,6 @@ namespace CombineSmallTilesets {
 // and then pairs them again.
 
 namespace MS = UnTech::MetaSprite;
-namespace MSF = UnTech::MetaSpriteFormat;
 
 struct FirstPassOutput {
     unsigned firstTile = UINT_MAX;

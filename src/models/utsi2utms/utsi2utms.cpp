@@ -1,6 +1,6 @@
 #include "utsi2utms.h"
 #include "tilesetinserter.h"
-#include "models/metasprite-format/framesetexportorder.h"
+#include "models/metasprite-common/framesetexportorder.h"
 #include "models/metasprite.h"
 #include "models/sprite-importer.h"
 #include <algorithm>

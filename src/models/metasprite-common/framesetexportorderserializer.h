@@ -3,7 +3,7 @@
 #include <string>
 
 namespace UnTech {
-namespace MetaSpriteFormat {
+namespace MetaSpriteCommon {
 namespace FrameSetExportOrder {
 
 class ExportOrder;

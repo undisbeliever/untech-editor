@@ -5,7 +5,7 @@
 #include "gui/widgets/common/colortogglebutton.h"
 #include "gui/widgets/common/enumclasscombobox.h"
 #include "gui/widgets/common/namedlistnameentry.h"
-#include "gui/widgets/metasprite-format/abstractframesetpropertieseditor.h"
+#include "gui/widgets/metasprite-common/abstractframesetpropertieseditor.h"
 
 #include <gtkmm.h>
 
@@ -14,7 +14,6 @@ namespace Widgets {
 namespace SpriteImporter {
 
 namespace SI = UnTech::SpriteImporter;
-namespace MSF = UnTech::MetaSpriteFormat;
 
 class FrameSetPropertiesEditor {
 public:
@@ -31,7 +30,7 @@ public:
 private:
     SI::SpriteImporterController& _controller;
 
-    MetaSpriteFormat::AbstractFrameSetPropertiesEditor _abstractEditor;
+    MetaSpriteCommon::AbstractFrameSetPropertiesEditor _abstractEditor;
 
     Gtk::Grid _wgrid;
 

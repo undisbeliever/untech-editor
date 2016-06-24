@@ -5,13 +5,13 @@
 #include "models/common/image.h"
 #include "models/common/namedlist.h"
 #include "models/common/rgba.h"
-#include "models/metasprite-format/abstractframeset.h"
+#include "models/metasprite-common/abstractframeset.h"
 #include <memory>
 #include <string>
 
 namespace UnTech {
 
-namespace MetaSpriteFormat {
+namespace MetaSpriteCommon {
 namespace FrameSetExportOrder {
 class ExportOrderDocument;
 }
@@ -22,7 +22,7 @@ namespace SpriteImporter {
 class Frame;
 class SpriteImporterDocument;
 
-class FrameSet : public MetaSpriteFormat::AbstractFrameSet {
+class FrameSet : public MetaSpriteCommon::AbstractFrameSet {
 public:
     static const char* TYPE_NAME;
 

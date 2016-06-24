@@ -9,10 +9,10 @@
 
 using namespace UnTech;
 using namespace UnTech::Xml;
-using namespace UnTech::MetaSpriteFormat;
+using namespace UnTech::MetaSpriteCommon;
 
 namespace UnTech {
-namespace MetaSpriteFormat {
+namespace MetaSpriteCommon {
 namespace FrameSetExportOrder {
 namespace Serializer {
 

@@ -3,7 +3,7 @@
 #include "models/common/ms8aabb.h"
 #include "models/common/namedlist.h"
 #include "models/common/orderedlist.h"
-#include "models/metasprite-format/abstractframeset.h"
+#include "models/metasprite-common/abstractframeset.h"
 #include "models/snes/tileset.h"
 #include <array>
 #include <list>
@@ -17,7 +17,7 @@ class Frame;
 class Palette;
 class MetaSpriteDocument;
 
-class FrameSet : public MetaSpriteFormat::AbstractFrameSet {
+class FrameSet : public MetaSpriteCommon::AbstractFrameSet {
 public:
     static const char* TYPE_NAME;
 
@@ -26,7 +26,7 @@ public:
     FrameSet(const FrameSet&) = delete;
 
     FrameSet(MetaSpriteDocument& document)
-        : MetaSpriteFormat::AbstractFrameSet((::UnTech::Document&)(document))
+        : MetaSpriteCommon::AbstractFrameSet((::UnTech::Document&)(document))
         , _document(document)
         , _smallTileset()
         , _largeTileset()

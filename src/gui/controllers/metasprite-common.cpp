@@ -1,8 +1,8 @@
-#include "metasprite-format.h"
+#include "metasprite-common.h"
 #include "gui/controllers/helpers/actionhelper.h"
-#include "models/metasprite-format/abstractframeset.h"
+#include "models/metasprite-common/abstractframeset.h"
 
-using namespace UnTech::MetaSpriteFormat;
+using namespace UnTech::MetaSpriteCommon;
 
 CREATE_SIMPLE_ACTION2(AbstractFrameSetController, selected_setName,
                       AbstractFrameSet,

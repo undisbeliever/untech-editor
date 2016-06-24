@@ -1,7 +1,7 @@
 #pragma once
 
 #include "framesetexportorderrotreeview.h"
-#include "gui/controllers/metasprite-format.h"
+#include "gui/controllers/metasprite-common.h"
 #include "gui/widgets/common/enumclasscombobox.h"
 #include "gui/widgets/common/namedlistnameentry.h"
 
@@ -9,13 +9,13 @@
 
 namespace UnTech {
 namespace Widgets {
-namespace MetaSpriteFormat {
+namespace MetaSpriteCommon {
 
-namespace MSF = UnTech::MetaSpriteFormat;
+namespace MSC = UnTech::MetaSpriteCommon;
 
 class AbstractFrameSetPropertiesEditor {
 public:
-    AbstractFrameSetPropertiesEditor(MSF::AbstractFrameSetController& controller);
+    AbstractFrameSetPropertiesEditor(MSC::AbstractFrameSetController& controller);
 
 protected:
     void updateGuiValues();
@@ -29,12 +29,12 @@ public:
     Gtk::Box widget;
 
 private:
-    MSF::AbstractFrameSetController& _controller;
+    MSC::AbstractFrameSetController& _controller;
 
     Gtk::Grid _grid;
 
     NamedListNameEntry _nameEntry;
-    EnumClassComboBox<MSF::TilesetType> _tilesetTypeCombo;
+    EnumClassComboBox<MSC::TilesetType> _tilesetTypeCombo;
 
     Gtk::Box _fseoFilenameBox;
     Gtk::Entry _fseoFilenameEntry;
