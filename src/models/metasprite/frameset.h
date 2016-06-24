@@ -25,17 +25,11 @@ public:
     FrameSet() = delete;
     FrameSet(const FrameSet&) = delete;
 
-    FrameSet(MetaSpriteDocument& document)
-        : MetaSpriteCommon::AbstractFrameSet((::UnTech::Document&)(document))
-        , _document(document)
-        , _smallTileset()
-        , _largeTileset()
-        , _palettes(*this)
-        , _frames(*this)
-    {
-    }
+    FrameSet(MetaSpriteDocument& document);
 
     inline MetaSpriteDocument& document() const { return _document; }
+
+    virtual bool containsFrameName(const std::string& name) const;
 
     inline auto& smallTileset() { return _smallTileset; }
     inline const auto& smallTileset() const { return _smallTileset; }

@@ -1,4 +1,5 @@
 #include "abstractframeset.h"
+#include "animation.h"
 #include "framesetexportorder.h"
 #include <iostream>
 
@@ -9,6 +10,7 @@ AbstractFrameSet::AbstractFrameSet(::UnTech::Document& document)
     , _name("frameset")
     , _tilesetType()
     , _exportOrderDocument()
+    , _animations(*this)
 {
 }
 

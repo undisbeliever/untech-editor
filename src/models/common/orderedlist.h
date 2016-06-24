@@ -110,10 +110,16 @@ public:
         return _list.size() > 0 && _list.front().get() == e;
     }
 
+    T& first() { return *_list.at(0).get(); }
+    const T& first() const { return *_list.at(0).get(); }
+
     bool isLast(const T* e) const
     {
         return _list.size() > 0 && _list.back().get() == e;
     }
+
+    T& last() { return *_list.at(_list.size() - 1).get(); }
+    const T& last() const { return *_list.at(_list.size() - 1).get(); }
 
     bool contains(const T* e) const
     {

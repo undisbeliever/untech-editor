@@ -8,6 +8,7 @@
 #include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
+#include "models/metasprite-common/animationserializer.h"
 #include "models/metasprite-common/framesetexportorder.h"
 #include <cassert>
 #include <fstream>
@@ -78,6 +79,9 @@ public:
             }
             else if (childTag->name == "frame") {
                 readFrame(childTag.get());
+            }
+            else if (childTag->name == "animation") {
+                MSC::readAnimation(xml, childTag.get(), frameSet.animations());
             }
             else {
                 throw childTag->buildUnknownTagError();
@@ -352,6 +356,8 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     for (const auto f : frameSet.frames()) {
         writeFrame(xml, f.first, f.second);
     }
+
+    MSC::writeAnimations(xml, frameSet.animations());
 
     xml.writeCloseTag();
 }

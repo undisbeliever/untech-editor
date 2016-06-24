@@ -34,6 +34,8 @@ public:
 
     inline SpriteImporterDocument& document() const { return _document; }
 
+    virtual bool containsFrameName(const std::string& name) const;
+
     inline auto& frames() { return _frames; }
     inline auto& grid() { return _grid; }
     inline const std::string& imageFilename() const { return _imageFilename; }

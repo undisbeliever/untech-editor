@@ -23,6 +23,11 @@ FrameSet::FrameSet(SpriteImporterDocument& document)
 {
 }
 
+bool FrameSet::containsFrameName(const std::string& name) const
+{
+    return _frames.nameExists(name);
+}
+
 void FrameSet::setImageFilename(const std::string& filename)
 {
     if (_imageFilename != filename) {

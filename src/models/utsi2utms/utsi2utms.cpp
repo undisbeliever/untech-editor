@@ -164,6 +164,10 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
         msFrameSet.loadExportOrderDocument(siFrameSet.exportOrderDocument()->filename());
     }
 
+    for (const auto& it : siFrameSet.animations()) {
+        msFrameSet.animations().clone(it.second, it.first);
+    }
+
     // Build map of rgba to palette color
     // Faster than std::unordered_map, only contains 16 elements
     std::map<rgba, unsigned> colorMap;
