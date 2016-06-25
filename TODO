@@ -3,6 +3,7 @@ TODO
 
  * Add third party list to cli apps (--version)
 
- * Remove GTKmm code from UndoStack
- * Remove GTKmm code from Controller module
+ * Refactor MetaSprite Compiler
+   * Move FrameSet code into separate class.
+     This would reduce the number of program arguments.
 

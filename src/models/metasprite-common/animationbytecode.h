@@ -45,6 +45,7 @@ public:
     bool usesParameter() const;
     bool parameterUnsigned() const;
 
+    Enum value() const { return _value; }
     const std::string& string() const { return enumMap.at(_value); }
     uint8_t engineValue() const { return (uint8_t)_value; }
 

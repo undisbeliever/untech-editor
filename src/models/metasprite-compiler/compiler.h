@@ -38,19 +38,26 @@ public:
     const std::list<std::string>& warnings() const { return _warnings; }
 
 private:
-    struct FrameListEntry {
-        FrameListEntry(const MetaSprite::Frame* frame, bool hFlip, bool vFlip)
-            : frame(frame)
-            , hFlip(hFlip)
-            , vFlip(vFlip)
-        {
-        }
+    struct AnimationListEntry {
+        const MetaSpriteCommon::Animation* animation;
+        const bool hFlip;
+        const bool vFlip;
 
+        bool operator==(const AnimationListEntry&) const;
+        bool operator<(const AnimationListEntry&) const;
+    };
+    struct FrameListEntry {
         const MetaSprite::Frame* frame;
         const bool hFlip;
         const bool vFlip;
+
+        bool operator==(const FrameListEntry&) const;
+        bool operator<(const FrameListEntry&) const;
     };
-    std::vector<FrameListEntry> generateFrameList(const MetaSprite::FrameSet&);
+
+    std::vector<AnimationListEntry> generateAnimationList(const MetaSprite::FrameSet&);
+    std::vector<FrameListEntry> generateFrameList(const MetaSprite::FrameSet&,
+                                                  const std::vector<AnimationListEntry>&);
 
 private:
     struct FrameTileset {
@@ -111,13 +118,24 @@ private:
     RomOffsetPtr processFrameList(const std::vector<FrameListEntry>& frameList,
                                   const FrameTilesetList& tilesets);
 
+    // Returns the data offset in `_animationData`
+    uint32_t processAnimation(const AnimationListEntry& animation,
+                              const MetaSprite::FrameSet&,
+                              const std::map<const FrameListEntry, unsigned>& frameMap,
+                              const std::map<const AnimationListEntry, unsigned>& animationMap);
+
+    RomOffsetPtr processAnimationList(const MetaSprite::FrameSet&,
+                                      const std::vector<AnimationListEntry>& animationList,
+                                      const std::vector<FrameListEntry>& frameList);
+
 private:
     RomOffsetPtr processPalette(const MetaSprite::FrameSet& frameSet);
 
 private:
     void addError(const std::string& message);
     void addError(const MetaSprite::FrameSet& frameSet, const std::string& message);
-    void addError(const MetaSprite::Frame& frameSet, const std::string& message);
+    void addError(const MetaSprite::Frame&, const std::string& message);
+    void addError(const MetaSpriteCommon::Animation&, const std::string& message);
     void addWarning(const std::string& message);
     void addWarning(const MetaSprite::FrameSet& frameSet, const std::string& message);
     void addWarning(const MetaSprite::Frame& frame, const std::string& message);
@@ -129,7 +147,8 @@ private:
     RomIncData _frameData;
     RomAddrTable _frameList;
 
-    // ::TODO animation data::
+    RomBinData _animationData;
+    RomAddrTable _animationList;
 
     RomBinData _paletteData;
     RomAddrTable _paletteList;

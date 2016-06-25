@@ -10,6 +10,26 @@ using namespace UnTech::MetaSpriteCompiler;
 namespace MS = UnTech::MetaSprite;
 namespace MSC = UnTech::MetaSpriteCommon;
 
+inline bool Compiler::AnimationListEntry::operator==(const Compiler::AnimationListEntry& o) const
+{
+    return animation == o.animation && hFlip == o.hFlip && vFlip == o.vFlip;
+}
+
+inline bool Compiler::AnimationListEntry::operator<(const Compiler::AnimationListEntry& o) const
+{
+    return std::tie(animation, hFlip, vFlip) < std::tie(o.animation, o.hFlip, o.vFlip);
+}
+
+inline bool Compiler::FrameListEntry::operator==(const Compiler::FrameListEntry& o) const
+{
+    return frame == o.frame && hFlip == o.hFlip && vFlip == o.vFlip;
+}
+
+inline bool Compiler::FrameListEntry::operator<(const Compiler::FrameListEntry& o) const
+{
+    return std::tie(frame, hFlip, vFlip) < std::tie(o.frame, o.hFlip, o.vFlip);
+}
+
 // ::TODO generate debug file - containing frame/frameset names::
 
 Compiler::Compiler(unsigned tilesetBlockSize)
@@ -17,6 +37,8 @@ Compiler::Compiler(unsigned tilesetBlockSize)
     , _frameSetList("FSL", "MS_FrameSetList", "FSD")
     , _frameData("FD", "MS_FrameData")
     , _frameList("FL", "MS_FrameList", "FD")
+    , _animationData("AD", "MS_AnimationData")
+    , _animationList("AL", "MS_AnimationList", "AD")
     , _paletteData("PD", "MS_PaletteData")
     , _paletteList("PL", "MS_PaletteList", "PD")
     , _tileData("TB", "MS_TileBlock", tilesetBlockSize)
@@ -34,10 +56,11 @@ Compiler::Compiler(unsigned tilesetBlockSize)
 
 void Compiler::writeToIncFile(std::ostream& out) const
 {
-    // ::TODO animation data::
-
     out << "scope MetaSprite {\n"
            "scope Data {\n";
+
+    _animationData.writeToIncFile(out);
+    _animationList.writeToIncFile(out);
 
     _paletteData.writeToIncFile(out);
     _paletteList.writeToIncFile(out);
@@ -107,11 +130,193 @@ void Compiler::writeToReferencesFile(std::ostream& out) const
 }
 
 /*
+ * ANIMATIONS
+ * ==========
+ */
+inline std::vector<Compiler::AnimationListEntry>
+Compiler::generateAnimationList(const MS::FrameSet& frameSet)
+{
+    assert(frameSet.exportOrderDocument() != nullptr);
+
+    std::vector<AnimationListEntry> ret;
+
+    const auto& exportOrder = frameSet.exportOrderDocument()->exportOrder();
+
+    ret.reserve(exportOrder.animations().size());
+
+    for (const auto& sfIt : exportOrder.animations()) {
+        const std::string& aname = sfIt.first;
+
+        MSC::Animation* ani = frameSet.animations().getPtr(aname);
+
+        if (ani != nullptr) {
+            ret.push_back({ ani, false, false });
+        }
+        else {
+            bool success = false;
+
+            for (const auto& alt : sfIt.second.alternativeNames()) {
+                MSC::Animation* altAni = frameSet.animations().getPtr(alt.name());
+
+                if (altAni != nullptr) {
+                    ret.push_back({ altAni, alt.hFlip(), alt.vFlip() });
+
+                    success = true;
+                    break;
+                }
+            }
+
+            if (success == false) {
+                throw std::runtime_error("Cannot find animation " + aname);
+            }
+        }
+    }
+
+    return ret;
+}
+
+inline uint32_t
+Compiler::processAnimation(const AnimationListEntry& aniEntry,
+                           const MS::FrameSet& frameSet,
+                           const std::map<const FrameListEntry, unsigned>& frameMap,
+                           const std::map<const AnimationListEntry, unsigned>& animationMap)
+{
+    typedef MSC::AnimationBytecode::Enum BC;
+
+    assert(aniEntry.animation != nullptr);
+    const MSC::Animation& animation = *aniEntry.animation;
+
+    std::vector<uint8_t> data;
+    data.reserve(animation.instructions().size() * 3);
+
+    const auto& instructions = animation.instructions();
+    for (auto instIt = instructions.begin(); instIt != instructions.end(); ++instIt) {
+        const auto& inst = *instIt;
+
+        data.push_back(inst.operation().engineValue());
+
+        switch (inst.operation().value()) {
+        case BC::GOTO_ANIMATION: {
+            const MSC::Animation* a = frameSet.animations().getPtr(inst.gotoLabel());
+
+            // Find animation Id
+            if (a == nullptr) {
+                throw std::runtime_error("Cannot find animation " + inst.gotoLabel());
+            }
+            auto it = animationMap.find({ a, aniEntry.hFlip, aniEntry.vFlip });
+            if (it == animationMap.end()) {
+                it = animationMap.find({ a, false, false });
+            }
+            if (it == animationMap.end()) {
+                throw std::runtime_error("Cannot find animation " + inst.gotoLabel());
+            }
+            data.push_back(it->second);
+
+            break;
+        }
+
+        case BC::GOTO_OFFSET: {
+            // will always succeed because inst is valid.
+
+            int p = inst.parameter();
+            UnTech::int_ms8_t offset = 0;
+
+            if (p < 0) {
+                assert(std::distance(instructions.begin(), instIt) >= -p);
+                assert(instIt + (p + 1) != instructions.begin());
+
+                for (auto gotoIt = instIt + p; gotoIt != instIt; ++gotoIt) {
+                    offset -= (*gotoIt)->operation().instructionSize();
+                }
+            }
+            else {
+                assert(std::distance(instIt, instructions.end()) >= p);
+                assert(instIt + p != instructions.end());
+
+                for (auto gotoIt = instIt + p; gotoIt != instIt; --gotoIt) {
+                    offset += (*gotoIt)->operation().instructionSize();
+                }
+            }
+
+            data.push_back(offset.romData());
+
+            break;
+        }
+
+        case BC::SET_FRAME_AND_WAIT_FRAMES:
+        case BC::SET_FRAME_AND_WAIT_TIME:
+        case BC::SET_FRAME_AND_WAIT_XVECL:
+        case BC::SET_FRAME_AND_WAIT_YVECL: {
+            const std::string& fname = inst.frame().frameName;
+
+            FrameListEntry f = { frameSet.frames().getPtr(fname),
+                                 static_cast<bool>(inst.frame().hFlip ^ aniEntry.hFlip),
+                                 static_cast<bool>(inst.frame().vFlip ^ aniEntry.vFlip) };
+
+            data.push_back(frameMap.at(f));
+
+            assert(inst.parameter() >= 0 && inst.parameter() < 256);
+            data.push_back(inst.parameter());
+
+            break;
+        }
+
+        case BC::STOP:
+        case BC::GOTO_START:
+            break;
+        }
+    }
+
+    return _animationData.addData(data).offset;
+}
+
+inline RomOffsetPtr
+Compiler::processAnimationList(const MS::FrameSet& frameSet,
+                               const std::vector<AnimationListEntry>& animationList,
+                               const std::vector<FrameListEntry>& frameList)
+{
+    if (animationList.size() >= 256) {
+        throw std::runtime_error("Too many animations");
+    }
+
+    std::map<const FrameListEntry, unsigned> frameMap;
+    for (unsigned i = 0; i < frameList.size(); i++) {
+        frameMap[frameList[i]] = i;
+    }
+
+    std::map<const AnimationListEntry, unsigned> animationMap;
+    for (unsigned i = 0; i < animationList.size(); i++) {
+        animationMap[animationList[i]] = i;
+    }
+
+    std::vector<uint32_t> animationOffsets;
+    animationOffsets.reserve(animationList.size());
+
+    for (const auto& ani : animationList) {
+        assert(ani.animation != nullptr);
+        uint32_t ao = ~0;
+
+        if (ani.animation->isValid()) {
+            ao = processAnimation(ani, frameSet, frameMap, animationMap);
+        }
+        else {
+            addError(*ani.animation, "animation is invalid");
+        }
+
+        animationOffsets.push_back(ao);
+    }
+
+    return _animationList.getOrInsertTable(animationOffsets);
+}
+
+/*
  * FRAME LIST
  * ==========
  */
 
-inline std::vector<Compiler::FrameListEntry> Compiler::generateFrameList(const MS::FrameSet& frameSet)
+inline std::vector<Compiler::FrameListEntry> Compiler::generateFrameList(
+    const MS::FrameSet& frameSet,
+    const std::vector<AnimationListEntry>& animationList)
 {
     assert(frameSet.exportOrderDocument() != nullptr);
 
@@ -128,7 +333,7 @@ inline std::vector<Compiler::FrameListEntry> Compiler::generateFrameList(const M
         MS::Frame* f = frames.getPtr(fname);
 
         if (f != nullptr) {
-            ret.emplace_back(f, false, false);
+            ret.push_back({ f, false, false });
         }
         else {
             bool success = false;
@@ -137,7 +342,7 @@ inline std::vector<Compiler::FrameListEntry> Compiler::generateFrameList(const M
                 MS::Frame* af = frames.getPtr(alt.name());
 
                 if (af != nullptr) {
-                    ret.emplace_back(af, alt.hFlip(), alt.vFlip());
+                    ret.push_back({ af, alt.hFlip(), alt.vFlip() });
 
                     success = true;
                     break;
@@ -145,10 +350,31 @@ inline std::vector<Compiler::FrameListEntry> Compiler::generateFrameList(const M
             }
 
             if (success == false) {
-                addWarning(frameSet, std::string("Cannot find frame ") + fname);
+                throw std::runtime_error("Cannot find frame " + fname);
+            }
+        }
+    }
 
-                ret.emplace_back(nullptr, false, false);
-                // ::TODO generate debug string::
+    // Add frames from animation.
+    // Ensure that the frames added are unique.
+    for (const AnimationListEntry& ani : animationList) {
+        for (const auto& inst : ani.animation->instructions()) {
+            if (inst.usesFrame()) {
+                const std::string& fname = inst.frame().frameName;
+
+                FrameListEntry e = { frames.getPtr(fname),
+                                     static_cast<bool>(inst.frame().hFlip ^ ani.hFlip),
+                                     static_cast<bool>(inst.frame().vFlip ^ ani.vFlip) };
+
+                if (e.frame == nullptr) {
+                    throw std::runtime_error("Cannot find frame " + fname);
+                }
+
+                auto it = std::find(ret.begin(), ret.end(), e);
+                if (it == ret.end()) {
+                    // new entry
+                    ret.push_back(e);
+                }
             }
         }
     }
@@ -707,6 +933,10 @@ uint32_t Compiler::processFrame(const MS::Frame& frame, const FrameTileset& tile
 inline RomOffsetPtr Compiler::processFrameList(const std::vector<FrameListEntry>& frameList,
                                                const FrameTilesetList& tilesets)
 {
+    if (frameList.size() >= 256) {
+        throw std::runtime_error("Too many frames");
+    }
+
     const uint32_t NULL_OFFSET = ~0;
 
     std::vector<uint32_t> frameOffsets;
@@ -715,7 +945,7 @@ inline RomOffsetPtr Compiler::processFrameList(const std::vector<FrameListEntry>
     for (const auto& fle : frameList) {
         if (fle.frame != nullptr) {
             try {
-                uint32_t fo = 0;
+                uint32_t fo = NULL_OFFSET;
                 const FrameTileset& frameTileset = tilesets.frameMap.at(fle.frame);
 
                 if (fle.hFlip == false && fle.vFlip == false) {
@@ -762,25 +992,20 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
     }
 
     try {
-        std::vector<FrameListEntry> frameList = generateFrameList(frameSet);
-        unsigned nFrames = frameList.size();
-
-        // ::TODO add frames in animations to frameList::
+        std::vector<AnimationListEntry> animationList = generateAnimationList(frameSet);
+        std::vector<FrameListEntry> frameList = generateFrameList(frameSet, animationList);
 
         FrameTilesetList tilesets = generateTilesetList(frameSet, frameList);
 
         RomOffsetPtr fsPalettes = processPalette(frameSet);
-        unsigned nPalettes = frameSet.palettes().size();
-
         RomOffsetPtr fsFrames = processFrameList(frameList, tilesets);
-
-        // ::TODO process Animations::
-        RomOffsetPtr fsAnimations;
-        unsigned nAnimations = 0;
+        RomOffsetPtr fsAnimations = processAnimationList(frameSet, animationList, frameList);
 
         // FRAMESET DATA
         // -------------
         RomIncItem frameSetItem;
+
+        unsigned nPalettes = frameSet.palettes().size();
 
         frameSetItem.addIndex(fsPalettes);                  // paletteTable
         frameSetItem.addField(RomIncItem::BYTE, nPalettes); // nPalettes
@@ -795,9 +1020,9 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
 
         frameSetItem.addField(RomIncItem::BYTE, tilesets.tilesetType.romValue()); // tilesetType
         frameSetItem.addIndex(fsFrames);                                          // frameTable
-        frameSetItem.addField(RomIncItem::BYTE, nFrames);                         // nFrames
+        frameSetItem.addField(RomIncItem::BYTE, frameList.size());                // nFrames
         frameSetItem.addIndex(fsAnimations);                                      // animationsTable
-        frameSetItem.addField(RomIncItem::BYTE, nAnimations);                     // nAnimations
+        frameSetItem.addField(RomIncItem::BYTE, animationList.size());            // nAnimations
 
         RomOffsetPtr ptr = _frameSetData.addData(frameSetItem);
         _frameSetList.addOffset(ptr.offset);
@@ -841,6 +1066,18 @@ void Compiler::addError(const MS::Frame& frame, const std::string& message)
     const MS::FrameSet& fs = frame.frameSet();
 
     out << fs.name() << "." << fs.frames().getName(frame).first
+        << ": " << message;
+
+    _errors.push_back(out.str());
+}
+
+void Compiler::addError(const MSC::Animation& ani, const std::string& message)
+{
+    std::stringstream out;
+
+    const auto& fs = ani.frameSet();
+
+    out << fs.name() << "." << fs.animations().getName(ani).first
         << ": " << message;
 
     _errors.push_back(out.str());
