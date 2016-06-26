@@ -16,6 +16,12 @@ MetaSpriteWindow::MetaSpriteWindow()
     add(_editor.widget);
     show_all_children();
 
+    // Start with a larger zoom level on larger screens
+    auto screen = get_screen();
+    if (screen) {
+        _controller.settings().setZoom((screen->get_width() / 1200 + 1) * 2 + 1);
+    }
+
     // Register actions with window
     add_action("save-as", sigc::mem_fun(*this, &MetaSpriteWindow::do_saveAs));
     add_action("exit", sigc::mem_fun(*this, &MetaSpriteWindow::close));

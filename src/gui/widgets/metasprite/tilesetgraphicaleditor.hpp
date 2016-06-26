@@ -15,7 +15,6 @@ template <class TilesetT>
 TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(MS::MetaSpriteController& controller)
     : Gtk::Layout()
     , _controller(controller)
-    , _displayZoom(NAN)
     , _tilesetImageBuffer()
     , _tilesetPixbuf()
     , _drawTileState(false)
@@ -75,7 +74,7 @@ TilesetGraphicalEditor<TilesetT>::TilesetGraphicalEditor(MS::MetaSpriteControlle
         if (obj && obj->sizePx() == TILE_SIZE) {
             const double zoomX = _controller.settings().zoomX();
 
-            double tileWidth = zoomX * _displayZoom * TILE_SIZE;
+            double tileWidth = zoomX * TILE_SIZE;
             double xPos = tileWidth * obj->tileId();
 
             get_hadjustment()->clamp_page(xPos, xPos + tileWidth);
@@ -113,15 +112,9 @@ void TilesetGraphicalEditor<TilesetT>::redrawTilesetPixbuf()
 
     // resize widget
     {
-        double fWidth, fHeight;
-        if (!std::isnan(_displayZoom)) {
-            fWidth = width * zoomX * _displayZoom;
-            fHeight = height * zoomY * _displayZoom;
-        }
-        else {
-            fWidth = width * zoomX;
-            fHeight = height * zoomY;
-        }
+        double fWidth = width * zoomX;
+        double fHeight = height * zoomY;
+
         set_size(fWidth, fHeight);
         set_size_request(fWidth, fHeight);
     }
@@ -159,18 +152,9 @@ void TilesetGraphicalEditor<TilesetT>::clearPixbuf()
 
     // resize widget
     {
-        const double zoomX = _controller.settings().zoomX();
-        const double zoomY = _controller.settings().zoomY();
+        double fWidth = TILE_SIZE * _controller.settings().zoomX();
+        double fHeight = TILE_SIZE * _controller.settings().zoomY();
 
-        double fWidth, fHeight;
-        if (!std::isnan(_displayZoom)) {
-            fWidth = TILE_SIZE * zoomX * _displayZoom;
-            fHeight = TILE_SIZE * zoomY * _displayZoom;
-        }
-        else {
-            fWidth = TILE_SIZE * zoomX;
-            fHeight = TILE_SIZE * zoomY;
-        }
         set_size_request(fWidth, fHeight);
     }
     queue_draw();
@@ -188,19 +172,6 @@ bool TilesetGraphicalEditor<TilesetT>::on_draw(const Cairo::RefPtr<Cairo::Contex
     const cr_rgba tileBorderColor1 = { 0.0, 0.0, 0.0, 0.9 };
     const cr_rgba tileBorderColor2 = { 1.0, 1.0, 1.0, 0.9 };
 
-    if (std::isnan(_displayZoom)) {
-        auto screen = get_screen();
-
-        if (screen) {
-            _displayZoom = std::floor(screen->get_width() / 1500) + 1.0;
-        }
-        else {
-            _displayZoom = 1.0;
-        }
-
-        redrawTilesetPixbuf();
-    }
-
     const MS::FrameSet* frameSet = _controller.frameSetController().selected();
 
     if (frameSet == nullptr) {
@@ -215,21 +186,18 @@ bool TilesetGraphicalEditor<TilesetT>::on_draw(const Cairo::RefPtr<Cairo::Contex
     cr->save();
 
     cr->translate(-get_hadjustment()->get_value(), 0);
-    cr->scale(_displayZoom, _displayZoom);
+
+    cr->set_antialias(Cairo::ANTIALIAS_NONE);
 
     if (_tilesetPixbuf) {
-        cr->set_antialias(Cairo::ANTIALIAS_NONE);
-
         Gdk::Cairo::set_source_pixbuf(cr, _tilesetPixbuf, 0, 0);
 
         cr->paint();
     }
 
-    if (_displayZoom > 1.0) {
+    // ::TODO check to see if I can improve this::
+    if (zoomX > 4.0) {
         cr->set_antialias(Cairo::ANTIALIAS_DEFAULT);
-    }
-    else {
-        cr->set_antialias(Cairo::ANTIALIAS_NONE);
     }
 
     // Draw Frame Border
@@ -333,8 +301,8 @@ bool TilesetGraphicalEditor<TilesetT>::on_button_release_event(GdkEventButton* e
     if (event->button == 1) {
         const auto allocation = get_allocation();
 
-        int x = std::lround((event->x - allocation.get_x()) / (zoomX * _displayZoom));
-        int y = std::lround((event->y - allocation.get_y()) / (zoomY * _displayZoom));
+        int x = std::lround((event->x - allocation.get_x()) / zoomX);
+        int y = std::lround((event->y - allocation.get_y()) / zoomY);
 
         if (x >= 0 && y >= 0 && y < (int)TILE_SIZE) {
             unsigned tileId = (unsigned)x / TILE_SIZE;
@@ -398,8 +366,8 @@ void TilesetGraphicalEditor<TilesetT>::setTilePixelForMouse(double mouseX, doubl
         const auto allocation = get_allocation();
 
         // No rounding, pen cursor is at the top-left of pixel
-        const int x = (mouseX - allocation.get_x()) / (zoomX * _displayZoom);
-        const int y = (mouseY - allocation.get_y()) / (zoomY * _displayZoom);
+        const int x = (mouseX - allocation.get_x()) / zoomX;
+        const int y = (mouseY - allocation.get_y()) / zoomY;
 
         if (x >= 0 && y >= 0 && y < (int)TILE_SIZE) {
             const TilesetT& tileset = frameSet->getTileset<TilesetT>();

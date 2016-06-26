@@ -42,13 +42,6 @@ protected:
 private:
     MS::MetaSpriteController& _controller;
 
-    /**
-     * _diaplayZoom is the global zoom used by Cairo.
-     * It is set automatically depending on screen width
-     * so that the borders of high-DPI displays are easily legible
-     */
-    double _displayZoom;
-
     /** A placeholder image to draw the tileset onto */
     UnTech::Image _tilesetImageBuffer;
 

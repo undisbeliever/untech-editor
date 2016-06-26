@@ -60,13 +60,6 @@ protected:
 private:
     SI::SpriteImporterController& _controller;
 
-    /**
-     * _diaplayZoom is the global zoom used by Cairo.
-     * It is set automatically depending on screen width
-     * so that the borders of high-DPI displays are easily legible
-     */
-    double _displayZoom;
-
     // A pre-scaled copy of the frameset image.
     Glib::RefPtr<Gdk::Pixbuf> _frameSetImage;
 

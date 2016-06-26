@@ -22,6 +22,7 @@ public:
 
     int zoom() const { return _zoom; }
     AspectRatio aspectRatio() const { return _aspectRatio; }
+    int lineWidth() const { return _lineWidth; }
     double zoomX() const { return _zoomX; }
     double zoomY() const { return _zoomY; }
 
@@ -34,6 +35,7 @@ private:
     // this is an int because of the way gtkmm menu's work
     int _zoom;
     AspectRatio _aspectRatio;
+    int _lineWidth;
     double _zoomX, _zoomY;
 
     sigc::signal<void> _signal_zoomChanged;

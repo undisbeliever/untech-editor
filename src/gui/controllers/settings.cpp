@@ -32,6 +32,8 @@ void Settings::updateZoomValues()
 
     _zoomY = _zoom;
 
+    _lineWidth = (_zoom / 4) + 1;
+
     _signal_zoomChanged.emit();
 }
 

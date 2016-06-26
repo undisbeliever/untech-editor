@@ -68,13 +68,6 @@ private:
 
     int _xOffset, _yOffset;
 
-    /**
-     * _diaplayZoom is the global zoom used by Cairo.
-     * It is set automatically depending on screen width
-     * so that the borders of high-DPI displays are easily legible
-     */
-    double _displayZoom;
-
     Pango::FontDescription _frameNameFont;
 
     /** A placeholder image to draw the frame onto*/

@@ -14,7 +14,6 @@ FrameGraphicalEditor::FrameGraphicalEditor(MS::MetaSpriteController& controller)
     : Gtk::DrawingArea()
     , _controller(controller)
     , _selectedFrame(nullptr)
-    , _displayZoom(NAN)
     , _frameNameFont("Monospace Bold")
     , _frameImageBuffer(FRAME_IMAGE_SIZE, FRAME_IMAGE_SIZE)
     , _framePixbuf()
@@ -162,10 +161,10 @@ void FrameGraphicalEditor::redrawFramePixbuf()
 
 bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
+    const double ORIGIN_WIDTH = 1.0;
+    const double ORIGIN_DASH = 3.0;
+
     // ::TODO move::
-    const double ITEM_WIDTH = 1.0;
-    const double OBJECT_DASH = 2.0;
-    const double ACTION_POINT_SIZE = 1.5;
     const cr_rgba frameTileHitboxColor = { 0.8, 0.0, 0.0, 0.7 };
     const cr_rgba frameObjectColor = { 0.3, 0.9, 0.3, 0.7 };
     const cr_rgba actionPointColor = { 0.7, 1.0, 0.5, 0.95 };
@@ -174,30 +173,20 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     const cr_rgba selectionOuterColor = { 0.0, 0.0, 0.0, 1.0 };
     const cr_rgba selectionDragColor = { 0.5, 0.5, 0.5, 0.5 };
 
-    const double ORIGIN_WIDTH = 1.0;
-    const double ORIGIN_DASH = 3.0;
+    const double lineWidth = _controller.settings().lineWidth();
+    const double actionPointSize = 1.5 * lineWidth;
+
     const cr_rgba originColor1 = { 0.0, 0.0, 0.0, 0.2 };
     const cr_rgba originColor2 = { 1.0, 1.0, 1.0, 0.2 };
 
-    if (std::isnan(_displayZoom)) {
-        auto screen = get_screen();
-
-        if (screen) {
-            _displayZoom = std::floor(screen->get_width() / 1500) + 1.0;
-        }
-        else {
-            _displayZoom = 1.0;
-        }
-    }
+    const double zoomX = _controller.settings().zoomX();
+    const double zoomY = _controller.settings().zoomY();
 
     if (_selectedFrame == nullptr) {
         return true;
     }
 
     const auto allocation = get_allocation();
-
-    const double zoomX = _controller.settings().zoomX();
-    const double zoomY = _controller.settings().zoomY();
 
     auto draw_rectangle = [&](unsigned x, unsigned y, unsigned width, unsigned height) {
         cr->rectangle((x + _xOffset) * zoomX, (y + _yOffset) * zoomY,
@@ -206,11 +195,9 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     cr->save();
 
-    cr->scale(_displayZoom, _displayZoom);
+    cr->set_antialias(Cairo::ANTIALIAS_NONE);
 
     if (_framePixbuf) {
-        cr->set_antialias(Cairo::ANTIALIAS_NONE);
-
         Gdk::Cairo::set_source_pixbuf(cr, _framePixbuf,
                                       (_xOffset - (int)FRAME_IMAGE_OFFSET) * zoomX,
                                       (_yOffset - (int)FRAME_IMAGE_OFFSET) * zoomY);
@@ -218,16 +205,13 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->paint();
     }
 
-    if (_displayZoom > 1.0) {
+    if (lineWidth > 1) {
         cr->set_antialias(Cairo::ANTIALIAS_DEFAULT);
-    }
-    else {
-        cr->set_antialias(Cairo::ANTIALIAS_NONE);
     }
 
     const MS::Frame* frame = _selectedFrame;
 
-    cr->set_line_width(ITEM_WIDTH);
+    cr->set_line_width(_controller.settings().lineWidth());
 
     if (frame->solid()) {
         const auto& hb = frame->tileHitbox();
@@ -251,9 +235,10 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     // outline objects
     {
-        static const std::vector<double> objectDash({ OBJECT_DASH, OBJECT_DASH });
-
         cr->save();
+
+        const double objectDashLength = lineWidth * 2;
+        const std::vector<double> objectDash({ objectDashLength, objectDashLength });
 
         for (const MS::FrameObject& obj : frame->objects()) {
             const auto oloc = obj.location();
@@ -271,8 +256,8 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     for (const MS::ActionPoint& ap : frame->actionPoints()) {
         const auto aLoc = ap.location();
 
-        double aWidth = ACTION_POINT_SIZE * zoomX / 2;
-        double aHeight = ACTION_POINT_SIZE * zoomY / 2;
+        double aWidth = actionPointSize * zoomX / 2;
+        double aHeight = actionPointSize * zoomY / 2;
         double x = (_xOffset + aLoc.x + 0.5) * zoomX;
         double y = (_yOffset + aLoc.y + 0.5) * zoomY;
 
@@ -317,7 +302,7 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->stroke_preserve();
 
         originColor2.apply(cr);
-        cr->set_dash(originDash, ORIGIN_DASH + ORIGIN_DASH / 2);
+        cr->set_dash(originDash, ORIGIN_DASH / 2 * 3);
         cr->stroke();
 
         cr->restore();
@@ -376,18 +361,18 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
                 cr->save();
 
-                double aWidth = ACTION_POINT_SIZE * zoomX / 2;
-                double aHeight = ACTION_POINT_SIZE * zoomY / 2;
+                double aWidth = actionPointSize * zoomX / 2;
+                double aHeight = actionPointSize * zoomY / 2;
                 double x = (aLoc.x + _xOffset + 0.5) * zoomX;
                 double y = (aLoc.y + _yOffset + 0.5) * zoomY;
 
-                cr->move_to(x, y - aHeight - 1.0);
-                cr->line_to(x, y + aHeight + 1.0);
-                cr->move_to(x - aWidth - 1.0, y);
-                cr->line_to(x + aWidth + 1.0, y);
+                cr->move_to(x, y - aHeight - lineWidth);
+                cr->line_to(x, y + aHeight + lineWidth);
+                cr->move_to(x - aWidth - lineWidth, y);
+                cr->line_to(x + aWidth + lineWidth, y);
 
                 selectionOuterColor.apply(cr);
-                cr->set_line_width(3.0);
+                cr->set_line_width(lineWidth * 3);
                 cr->stroke();
 
                 cr->move_to(x, y - aHeight);
@@ -396,7 +381,7 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                 cr->line_to(x + aWidth, y);
 
                 selectionInnerColor.apply(cr);
-                cr->set_line_width(1.0);
+                cr->set_line_width(lineWidth);
                 cr->stroke();
 
                 cr->restore();
@@ -459,8 +444,8 @@ bool FrameGraphicalEditor::on_button_press_event(GdkEventButton* event)
             const double zoomX = _controller.settings().zoomX();
             const double zoomY = _controller.settings().zoomY();
 
-            int mouseX = std::lround((event->x - allocation.get_x()) / (zoomX * _displayZoom)) - _xOffset;
-            int mouseY = std::lround((event->y - allocation.get_y()) / (zoomY * _displayZoom)) - _yOffset;
+            int mouseX = std::lround((event->x - allocation.get_x()) / zoomX) - _xOffset;
+            int mouseY = std::lround((event->y - allocation.get_y()) / zoomY) - _yOffset;
 
             _action.canDrag = false;
 
@@ -540,8 +525,8 @@ bool FrameGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
         const double zoomX = _controller.settings().zoomX();
         const double zoomY = _controller.settings().zoomY();
 
-        int mouseX = std::lround((event->x - allocation.get_x()) / (zoomX * _displayZoom)) - _xOffset;
-        int mouseY = std::lround((event->y - allocation.get_y()) / (zoomY * _displayZoom)) - _yOffset;
+        int mouseX = std::lround((event->x - allocation.get_x()) / zoomX) - _xOffset;
+        int mouseY = std::lround((event->y - allocation.get_y()) / zoomY) - _yOffset;
 
         ms8point mouse(mouseX, mouseY);
 
@@ -623,8 +608,8 @@ bool FrameGraphicalEditor::on_button_release_event(GdkEventButton* event)
         const double zoomX = _controller.settings().zoomX();
         const double zoomY = _controller.settings().zoomY();
 
-        int x = std::lround((event->x - allocation.get_x()) / (zoomX * _displayZoom)) - _xOffset;
-        int y = std::lround((event->y - allocation.get_y()) / (zoomY * _displayZoom)) - _yOffset;
+        int x = std::lround((event->x - allocation.get_x()) / zoomX) - _xOffset;
+        int y = std::lround((event->y - allocation.get_y()) / zoomY) - _yOffset;
 
         ms8point mouse(x, y);
 
@@ -863,8 +848,8 @@ void FrameGraphicalEditor::update_offsets()
     const double zoomX = _controller.settings().zoomX();
     const double zoomY = _controller.settings().zoomY();
 
-    _xOffset = allocation.get_width() / zoomX / _displayZoom / 2 + _centerX;
-    _yOffset = allocation.get_height() / zoomY / _displayZoom / 2 + _centerY;
+    _xOffset = allocation.get_width() / zoomX / 2 + _centerX;
+    _yOffset = allocation.get_height() / zoomY / 2 + _centerY;
 
     queue_draw();
 }

@@ -12,7 +12,6 @@ typedef SI::SpriteImporterController::SelectedTypeController::Type SelectedType;
 FrameSetGraphicalEditor::FrameSetGraphicalEditor(SI::SpriteImporterController& controller)
     : Gtk::DrawingArea()
     , _controller(controller)
-    , _displayZoom(NAN)
     , _frameSetImage()
 {
     set_hexpand(true);
@@ -94,14 +93,14 @@ void FrameSetGraphicalEditor::resizeWidget()
 {
     const SI::FrameSet* frameSet = _controller.frameSetController().selected();
 
-    if (frameSet && !frameSet->image().empty() && _displayZoom > 0.0) {
+    if (frameSet && !frameSet->image().empty()) {
         const auto imgSize = frameSet->image().size();
 
         const double zoomX = _controller.settings().zoomX();
         const double zoomY = _controller.settings().zoomY();
 
-        this->set_size_request(imgSize.width * zoomX * _displayZoom,
-                               imgSize.height * zoomY * _displayZoom);
+        this->set_size_request(imgSize.width * zoomX,
+                               imgSize.height * zoomY);
     }
     else {
         this->set_size_request(-1, -1);
@@ -158,10 +157,13 @@ void FrameSetGraphicalEditor::loadAndScaleImage()
 
 bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
-    // ::TODO move::
     const double FRAME_BORDER_WIDTH = 1.0;
-    const double ITEM_WIDTH = 1.0;
-    const double ACTION_POINT_SIZE = 1.5;
+
+    const double ORIGIN_WIDTH = 1.0;
+    const double ORIGIN_SIZE = 3.0;
+    const double ORIGIN_DASH = 3.0;
+
+    // ::TODO move::
     const cr_rgba frameBorderColor = { 0.5, 0.5, 0.5, 1.0 };
     const cr_rgba frameSelectedClipColor = { 0.7, 0.7, 0.7, 0.7 };
     const cr_rgba frameTileHitboxColor = { 0.8, 0.0, 0.0, 0.7 };
@@ -172,9 +174,9 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     const cr_rgba selectionOuterColor = { 0.0, 0.0, 0.0, 1.0 };
     const cr_rgba selectionDragColor = { 0.5, 0.5, 0.5, 0.5 };
 
-    const double ORIGIN_WIDTH = 1.0;
-    const double ORIGIN_SIZE = 3.0;
-    const double ORIGIN_DASH = 1.0;
+    const double lineWidth = _controller.settings().lineWidth();
+    const double actionPointSize = 1.5 * lineWidth;
+
     const cr_rgba originColor1 = { 0.0, 0.0, 0.0, 0.5 };
     const cr_rgba originColor2 = { 1.0, 1.0, 1.0, 0.5 };
 
@@ -182,18 +184,6 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     if (frameSet == nullptr) {
         return true;
-    }
-
-    if (std::isnan(_displayZoom)) {
-        auto screen = get_screen();
-
-        if (screen) {
-            _displayZoom = std::floor(screen->get_width() / 1500) + 1.0;
-            resizeWidget();
-        }
-        else {
-            _displayZoom = 1.0;
-        }
     }
 
     const double zoomX = _controller.settings().zoomX();
@@ -206,14 +196,9 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     cr->save();
     cr->set_antialias(Cairo::ANTIALIAS_NONE);
-    cr->scale(_displayZoom, _displayZoom);
 
     Gdk::Cairo::set_source_pixbuf(cr, _frameSetImage, 0, 0);
     cr->paint();
-
-    if (_displayZoom > 1.0) {
-        cr->set_antialias(Cairo::ANTIALIAS_DEFAULT);
-    }
 
     frameBorderColor.apply(cr);
     cr->set_line_width(FRAME_BORDER_WIDTH);
@@ -231,23 +216,23 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
         auto draw_frame_rectangle = [&](unsigned x, unsigned y,
                                         unsigned width, unsigned height) {
-            double rw = width * zoomX - ITEM_WIDTH;
-            double rh = height * zoomY - ITEM_WIDTH;
+            double rw = width * zoomX - lineWidth;
+            double rh = height * zoomY - lineWidth;
 
-            // Shrink rectangle 1px so it fits **inside** the frame rectangle.
+            // Shrink rectangle by line width so it fits **inside** the frame rectangle.
             if (x + width >= frameLoc.width) {
-                rw -= ITEM_WIDTH;
+                rw -= lineWidth;
             }
             if (y + height >= frameLoc.height) {
-                rh -= ITEM_WIDTH;
+                rh -= lineWidth;
             }
 
-            cr->rectangle((frameLoc.x + x) * zoomX + ITEM_WIDTH,
-                          (frameLoc.y + y) * zoomY + ITEM_WIDTH,
+            cr->rectangle((frameLoc.x + x) * zoomX + lineWidth,
+                          (frameLoc.y + y) * zoomY + lineWidth,
                           rw, rh);
         };
 
-        cr->set_line_width(ITEM_WIDTH);
+        cr->set_line_width(lineWidth);
 
         if (frame.solid()) {
             const auto& hb = frame.tileHitbox();
@@ -281,8 +266,8 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         for (const SI::ActionPoint& ap : frame.actionPoints()) {
             const auto aLoc = ap.location();
 
-            double aWidth = ACTION_POINT_SIZE * zoomX / 2;
-            double aHeight = ACTION_POINT_SIZE * zoomY / 2;
+            double aWidth = actionPointSize * zoomX / 2;
+            double aHeight = actionPointSize * zoomY / 2;
             double x = (frameLoc.x + aLoc.x + 0.5) * zoomX;
             double y = (frameLoc.y + aLoc.y + 0.5) * zoomY;
 
@@ -370,18 +355,18 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
                 cr->save();
 
-                double aWidth = ACTION_POINT_SIZE * zoomX / 2;
-                double aHeight = ACTION_POINT_SIZE * zoomY / 2;
+                double aWidth = actionPointSize * zoomX / 2;
+                double aHeight = actionPointSize * zoomY / 2;
                 double x = (frameLoc.x + aLoc.x + 0.5) * zoomX;
                 double y = (frameLoc.y + aLoc.y + 0.5) * zoomY;
 
-                cr->move_to(x, y - aHeight - 1.0);
-                cr->line_to(x, y + aHeight + 1.0);
-                cr->move_to(x - aWidth - 1.0, y);
-                cr->line_to(x + aWidth + 1.0, y);
+                cr->move_to(x, y - aHeight - lineWidth);
+                cr->line_to(x, y + aHeight + lineWidth);
+                cr->move_to(x - aWidth - lineWidth, y);
+                cr->line_to(x + aWidth + lineWidth, y);
 
                 selectionOuterColor.apply(cr);
-                cr->set_line_width(3.0);
+                cr->set_line_width(lineWidth * 3);
                 cr->stroke();
 
                 cr->move_to(x, y - aHeight);
@@ -390,7 +375,7 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                 cr->line_to(x + aWidth, y);
 
                 selectionInnerColor.apply(cr);
-                cr->set_line_width(1.0);
+                cr->set_line_width(lineWidth);
                 cr->stroke();
 
                 cr->restore();
@@ -457,8 +442,8 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
             const double zoomX = _controller.settings().zoomX();
             const double zoomY = _controller.settings().zoomY();
 
-            int mouseX = std::lround(event->x / (zoomX * _displayZoom));
-            int mouseY = std::lround(event->y / (zoomY * _displayZoom));
+            int mouseX = std::lround(event->x / zoomX);
+            int mouseY = std::lround(event->y / zoomY);
 
             _action.canDrag = false;
 
@@ -547,8 +532,8 @@ bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
 
         auto allocation = get_allocation();
 
-        int mouseX = std::lround((event->x - allocation.get_x()) / (zoomX * _displayZoom));
-        int mouseY = std::lround((event->y - allocation.get_y()) / (zoomY * _displayZoom));
+        int mouseX = std::lround((event->x - allocation.get_x()) / zoomX);
+        int mouseY = std::lround((event->y - allocation.get_y()) / zoomY);
 
         if (mouseX >= 0 && mouseY >= 0) {
             upoint mouse((unsigned)mouseX, (unsigned)mouseY);
@@ -655,8 +640,8 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
         const double zoomX = _controller.settings().zoomX();
         const double zoomY = _controller.settings().zoomY();
 
-        int x = std::lround(event->x / (zoomX * _displayZoom));
-        int y = std::lround(event->y / (zoomY * _displayZoom));
+        int x = std::lround(event->x / zoomX);
+        int y = std::lround(event->y / zoomY);
 
         if (x >= 0 && y >= 0) {
             upoint mouse((unsigned)x, (unsigned)y);
