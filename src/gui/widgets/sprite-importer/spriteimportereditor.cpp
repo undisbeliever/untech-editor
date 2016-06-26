@@ -95,8 +95,3 @@ SpriteImporterEditor::SpriteImporterEditor(SI::SpriteImporterController& control
         }
     });
 }
-
-void SpriteImporterEditor::setZoom(int zoom, double aspectRatio)
-{
-    _graphicalEditor.setZoom(zoom * aspectRatio, zoom);
-}

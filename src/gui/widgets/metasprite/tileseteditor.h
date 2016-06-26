@@ -17,8 +17,6 @@ public:
 
     ~TilesetEditor() = default;
 
-    void setZoom(double x, double y);
-
 public:
     Gtk::Box widget;
 

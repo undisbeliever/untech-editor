@@ -29,7 +29,6 @@ public:
     MetaSpriteEditor(MS::MetaSpriteController& controller);
 
     void setShowTwoEditors(bool showTwoEditors);
-    void setZoom(int zoom, double aspectRatio);
 
 protected:
     void on_scroll_changed();

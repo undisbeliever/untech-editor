@@ -62,17 +62,23 @@ MetaSpriteWindow::MetaSpriteWindow()
     add_action(_moveSelectedDownAction);
 
     _zoomAction = add_action_radio_integer(
-        "set-zoom", sigc::mem_fun(*this, &MetaSpriteWindow::do_setZoom), DEFAULT_ZOOM);
+        "set-zoom",
+        sigc::mem_fun(_controller.settings(), &Controller::Settings::setZoom),
+        _controller.settings().zoom());
 
     _aspectRatioAction = add_action_radio_integer(
-        "set-aspect-ratio", sigc::mem_fun(*this, &MetaSpriteWindow::do_setAspectRatio), 1);
+        "set-aspect-ratio",
+        [this](int state) {
+            _controller.settings().setAspectRatio(
+                static_cast<Controller::Settings::AspectRatio>(state));
+        },
+        (int)_controller.settings().aspectRatio());
 
     _splitViewAction = add_action_bool(
         "split-view", sigc::mem_fun(*this, &MetaSpriteWindow::do_splitView), false);
 
     updateItemActions();
     updateUndoActions();
-    updateGuiZoom();
 
     /*
      * SLOTS
@@ -94,6 +100,11 @@ MetaSpriteWindow::MetaSpriteWindow()
 
     _controller.abstractFrameSetController().signal_nameChanged().connect(sigc::hide(sigc::mem_fun(
         *this, &MetaSpriteWindow::updateTitle)));
+
+    _controller.settings().signal_zoomChanged().connect([this](void) {
+        _zoomAction->change_state(_controller.settings().zoom());
+        _aspectRatioAction->change_state((int)_controller.settings().aspectRatio());
+    });
 }
 
 void MetaSpriteWindow::updateTitle()
@@ -215,44 +226,6 @@ void MetaSpriteWindow::do_addTiles()
         AddTilesDialog dialog(frameSetController, *this);
         dialog.run();
     }
-}
-
-void MetaSpriteWindow::do_setZoom(int zoom)
-{
-    _zoomAction->change_state(zoom);
-
-    updateGuiZoom();
-}
-
-void MetaSpriteWindow::do_setAspectRatio(int state)
-{
-    _aspectRatioAction->change_state(state);
-
-    updateGuiZoom();
-}
-
-void MetaSpriteWindow::updateGuiZoom()
-{
-    int zoom;
-    _zoomAction->get_state(zoom);
-
-    double aspect;
-    int aState;
-    _aspectRatioAction->get_state(aState);
-    switch (aState) {
-    case 1:
-        aspect = NTSC_ASPECT;
-        break;
-
-    case 2:
-        aspect = PAL_ASPECT;
-        break;
-
-    default:
-        aspect = 1.0;
-    };
-
-    _editor.setZoom(zoom, aspect);
 }
 
 void MetaSpriteWindow::do_splitView()

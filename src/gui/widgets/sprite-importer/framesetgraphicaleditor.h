@@ -16,8 +16,6 @@ public:
 
     ~FrameSetGraphicalEditor() = default;
 
-    void setZoom(double x, double y);
-
 protected:
     struct Action {
         enum State {
@@ -61,8 +59,6 @@ protected:
 
 private:
     SI::SpriteImporterController& _controller;
-
-    double _zoomX, _zoomY;
 
     /**
      * _diaplayZoom is the global zoom used by Cairo.

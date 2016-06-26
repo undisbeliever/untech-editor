@@ -46,6 +46,7 @@ define gui-modules
   $(filter $(patsubst %,obj/gui/controllers/%/$(PERCENT),$1), $(OBJS)) \
   $(filter obj/gui/controllers/undo/%, $(OBJS)) \
   obj/gui/controllers/basecontroller.o \
+  obj/gui/controllers/settings.o \
   $(THIRD_PARTY)
 endef
 

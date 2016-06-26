@@ -19,8 +19,6 @@ public:
 
     void setFrame(const MS::Frame* frame);
 
-    void setZoom(double x, double y);
-
     void setCenter(int x, int y);
 
 protected:
@@ -68,7 +66,6 @@ private:
     MS::MetaSpriteController& _controller;
     const MS::Frame* _selectedFrame;
 
-    double _zoomX, _zoomY;
     int _xOffset, _yOffset;
 
     /**

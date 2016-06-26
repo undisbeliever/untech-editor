@@ -311,7 +311,7 @@ const Glib::ustring MetaSpriteApplication::_uiInfo
       "      <submenu>"
       "        <attribute name='label' translatable='yes'>_Aspect Ratio</attribute>"
       "        <item>"
-      "          <attribute name='label'>N_one</attribute>"
+      "          <attribute name='label'>_Square</attribute>"
       "          <attribute name='action'>win.set-aspect-ratio</attribute>"
       "          <attribute name='target' type='i'>0</attribute>"
       "          <attribute name='accel'>&lt;Alt&gt;0</attribute>"

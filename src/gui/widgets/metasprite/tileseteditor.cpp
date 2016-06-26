@@ -22,9 +22,3 @@ TilesetEditor::TilesetEditor(MS::MetaSpriteController& controller)
     widget.add(_smallTilesetWindow);
     widget.add(_largeTilesetWindow);
 }
-
-void TilesetEditor::setZoom(double x, double y)
-{
-    _smallTilesetEditor.setZoom(x, y);
-    _largeTilesetEditor.setZoom(x, y);
-}

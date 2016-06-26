@@ -12,8 +12,6 @@ typedef SI::SpriteImporterController::SelectedTypeController::Type SelectedType;
 FrameSetGraphicalEditor::FrameSetGraphicalEditor(SI::SpriteImporterController& controller)
     : Gtk::DrawingArea()
     , _controller(controller)
-    , _zoomX(DEFAULT_ZOOM)
-    , _zoomY(DEFAULT_ZOOM)
     , _displayZoom(NAN)
     , _frameSetImage()
 {
@@ -31,6 +29,11 @@ FrameSetGraphicalEditor::FrameSetGraphicalEditor(SI::SpriteImporterController& c
     // =====
 
     // Controller Signals
+
+    _controller.settings().signal_zoomChanged().connect([this](void) {
+        resizeWidget();
+        loadAndScaleImage();
+    });
 
     _controller.frameController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicalEditor::on_dataChanged));
@@ -94,8 +97,11 @@ void FrameSetGraphicalEditor::resizeWidget()
     if (frameSet && !frameSet->image().empty() && _displayZoom > 0.0) {
         const auto imgSize = frameSet->image().size();
 
-        this->set_size_request(imgSize.width * _zoomX * _displayZoom,
-                               imgSize.height * _zoomY * _displayZoom);
+        const double zoomX = _controller.settings().zoomX();
+        const double zoomY = _controller.settings().zoomY();
+
+        this->set_size_request(imgSize.width * zoomX * _displayZoom,
+                               imgSize.height * zoomY * _displayZoom);
     }
     else {
         this->set_size_request(-1, -1);
@@ -121,8 +127,11 @@ void FrameSetGraphicalEditor::loadAndScaleImage()
         const auto& img = frameSet->image();
 
         if (!img.empty()) {
-            int width = img.size().width * _zoomX;
-            int height = img.size().height * _zoomY;
+            const double zoomX = _controller.settings().zoomX();
+            const double zoomY = _controller.settings().zoomY();
+
+            int width = img.size().width * zoomX;
+            int height = img.size().height * zoomY;
 
             auto pixbuf = Gdk::Pixbuf::create_from_data(reinterpret_cast<const guint8*>(img.data()),
                                                         Gdk::Colorspace::COLORSPACE_RGB, true, 8,
@@ -187,9 +196,12 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         }
     }
 
-    auto draw_rectangle = [this, cr](unsigned x, unsigned y, unsigned width, unsigned height) {
-        cr->rectangle(x * _zoomX, y * _zoomY,
-                      width * _zoomX, height * _zoomY);
+    const double zoomX = _controller.settings().zoomX();
+    const double zoomY = _controller.settings().zoomY();
+
+    auto draw_rectangle = [&](unsigned x, unsigned y, unsigned width, unsigned height) {
+        cr->rectangle(x * zoomX, y * zoomY,
+                      width * zoomX, height * zoomY);
     };
 
     cr->save();
@@ -219,8 +231,8 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
         auto draw_frame_rectangle = [&](unsigned x, unsigned y,
                                         unsigned width, unsigned height) {
-            double rw = width * _zoomX - ITEM_WIDTH;
-            double rh = height * _zoomY - ITEM_WIDTH;
+            double rw = width * zoomX - ITEM_WIDTH;
+            double rh = height * zoomY - ITEM_WIDTH;
 
             // Shrink rectangle 1px so it fits **inside** the frame rectangle.
             if (x + width >= frameLoc.width) {
@@ -230,8 +242,8 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                 rh -= ITEM_WIDTH;
             }
 
-            cr->rectangle((frameLoc.x + x) * _zoomX + ITEM_WIDTH,
-                          (frameLoc.y + y) * _zoomY + ITEM_WIDTH,
+            cr->rectangle((frameLoc.x + x) * zoomX + ITEM_WIDTH,
+                          (frameLoc.y + y) * zoomY + ITEM_WIDTH,
                           rw, rh);
         };
 
@@ -269,10 +281,10 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         for (const SI::ActionPoint& ap : frame.actionPoints()) {
             const auto aLoc = ap.location();
 
-            double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
-            double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
-            double x = (frameLoc.x + aLoc.x + 0.5) * _zoomX;
-            double y = (frameLoc.y + aLoc.y + 0.5) * _zoomY;
+            double aWidth = ACTION_POINT_SIZE * zoomX / 2;
+            double aHeight = ACTION_POINT_SIZE * zoomY / 2;
+            double x = (frameLoc.x + aLoc.x + 0.5) * zoomX;
+            double y = (frameLoc.y + aLoc.y + 0.5) * zoomY;
 
             cr->move_to(x, y - aHeight);
             cr->line_to(x, y + aHeight);
@@ -308,10 +320,10 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                                            unsigned width, unsigned height) {
             cr->set_line_width(1);
 
-            const double zX = (frameLoc.x + x) * _zoomX + 1;
-            const double zY = (frameLoc.y + y) * _zoomY + 1;
-            const double zWidth = width * _zoomX - 1;
-            const double zHeight = height * _zoomY - 1;
+            const double zX = (frameLoc.x + x) * zoomX + 1;
+            const double zY = (frameLoc.y + y) * zoomY + 1;
+            const double zWidth = width * zoomX - 1;
+            const double zHeight = height * zoomY - 1;
 
             cr->rectangle(zX, zY, zWidth, zHeight);
             cr->stroke();
@@ -358,10 +370,10 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
                 cr->save();
 
-                double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
-                double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
-                double x = (frameLoc.x + aLoc.x + 0.5) * _zoomX;
-                double y = (frameLoc.y + aLoc.y + 0.5) * _zoomY;
+                double aWidth = ACTION_POINT_SIZE * zoomX / 2;
+                double aHeight = ACTION_POINT_SIZE * zoomY / 2;
+                double x = (frameLoc.x + aLoc.x + 0.5) * zoomX;
+                double y = (frameLoc.y + aLoc.y + 0.5) * zoomY;
 
                 cr->move_to(x, y - aHeight - 1.0);
                 cr->line_to(x, y + aHeight + 1.0);
@@ -406,10 +418,10 @@ bool FrameSetGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         const auto frameLoc = frameIt.second.location();
         const auto origin = frameIt.second.origin();
 
-        double oWidth = ORIGIN_SIZE * _zoomX / 2;
-        double oHeight = ORIGIN_SIZE * _zoomY / 2;
-        double x = (frameLoc.x + origin.x + 0.5) * _zoomX;
-        double y = (frameLoc.y + origin.y + 0.5) * _zoomY;
+        double oWidth = ORIGIN_SIZE * zoomX / 2;
+        double oHeight = ORIGIN_SIZE * zoomY / 2;
+        double x = (frameLoc.x + origin.x + 0.5) * zoomX;
+        double y = (frameLoc.y + origin.y + 0.5) * zoomY;
 
         cr->move_to(x, y - oHeight);
         cr->line_to(x, y + oHeight);
@@ -442,8 +454,11 @@ bool FrameSetGraphicalEditor::on_button_press_event(GdkEventButton* event)
 
     if (event->button == 1) {
         if (_action.state == Action::NONE) {
-            int mouseX = std::lround(event->x / (_zoomX * _displayZoom));
-            int mouseY = std::lround(event->y / (_zoomY * _displayZoom));
+            const double zoomX = _controller.settings().zoomX();
+            const double zoomY = _controller.settings().zoomY();
+
+            int mouseX = std::lround(event->x / (zoomX * _displayZoom));
+            int mouseY = std::lround(event->y / (zoomY * _displayZoom));
 
             _action.canDrag = false;
 
@@ -527,10 +542,13 @@ bool FrameSetGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
     }
 
     if (frame && _action.state != Action::NONE) {
+        const double zoomX = _controller.settings().zoomX();
+        const double zoomY = _controller.settings().zoomY();
+
         auto allocation = get_allocation();
 
-        int mouseX = std::lround((event->x - allocation.get_x()) / (_zoomX * _displayZoom));
-        int mouseY = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom));
+        int mouseX = std::lround((event->x - allocation.get_x()) / (zoomX * _displayZoom));
+        int mouseY = std::lround((event->y - allocation.get_y()) / (zoomY * _displayZoom));
 
         if (mouseX >= 0 && mouseY >= 0) {
             upoint mouse((unsigned)mouseX, (unsigned)mouseY);
@@ -634,8 +652,11 @@ bool FrameSetGraphicalEditor::on_button_release_event(GdkEventButton* event)
     }
 
     if (event->button == 1) {
-        int x = std::lround(event->x / (_zoomX * _displayZoom));
-        int y = std::lround(event->y / (_zoomY * _displayZoom));
+        const double zoomX = _controller.settings().zoomX();
+        const double zoomY = _controller.settings().zoomY();
+
+        int x = std::lround(event->x / (zoomX * _displayZoom));
+        int y = std::lround(event->y / (zoomY * _displayZoom));
 
         if (x >= 0 && y >= 0) {
             upoint mouse((unsigned)x, (unsigned)y);
@@ -912,28 +933,4 @@ bool FrameSetGraphicalEditor::on_leave_notify_event(GdkEventCrossing*)
     }
 
     return true;
-}
-
-inline double limit(double v, double min, double max)
-{
-    if (v < min) {
-        return min;
-    }
-    else if (v > max) {
-        return max;
-    }
-    else {
-        return v;
-    }
-}
-
-void FrameSetGraphicalEditor::setZoom(double x, double y)
-{
-    if (_zoomX != x || _zoomY != y) {
-        _zoomX = limit(x, 1.0, 10.0);
-        _zoomY = limit(y, 1.0, 10.0);
-
-        resizeWidget();
-        loadAndScaleImage();
-    }
 }

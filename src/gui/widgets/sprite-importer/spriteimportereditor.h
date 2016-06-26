@@ -25,8 +25,6 @@ class SpriteImporterEditor {
 public:
     SpriteImporterEditor(SI::SpriteImporterController& controller);
 
-    void setZoom(int zoom, double aspectRatio);
-
 public:
     Gtk::Paned widget;
 

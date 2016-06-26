@@ -24,15 +24,8 @@ protected:
     void updateUndoActions();
     void updateItemActions();
 
-    void updateGuiZoom();
-
-    void do_undo();
-    void do_redo();
     void do_save();
     void do_saveAs();
-
-    void do_setZoom(int zoom);
-    void do_setAspectRatio(int state);
 
     bool on_delete_event(GdkEventAny* any_event);
 

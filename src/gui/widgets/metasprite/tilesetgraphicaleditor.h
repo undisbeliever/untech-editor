@@ -20,8 +20,6 @@ public:
 
     ~TilesetGraphicalEditor() = default;
 
-    void setZoom(double x, double y);
-
 protected:
     void redrawTilesetPixbuf();
     void clearPixbuf();
@@ -43,8 +41,6 @@ protected:
 
 private:
     MS::MetaSpriteController& _controller;
-
-    double _zoomX, _zoomY;
 
     /**
      * _diaplayZoom is the global zoom used by Cairo.

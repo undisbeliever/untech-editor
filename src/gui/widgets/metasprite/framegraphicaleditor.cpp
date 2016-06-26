@@ -14,8 +14,6 @@ FrameGraphicalEditor::FrameGraphicalEditor(MS::MetaSpriteController& controller)
     : Gtk::DrawingArea()
     , _controller(controller)
     , _selectedFrame(nullptr)
-    , _zoomX(DEFAULT_ZOOM)
-    , _zoomY(DEFAULT_ZOOM)
     , _displayZoom(NAN)
     , _frameNameFont("Monospace Bold")
     , _frameImageBuffer(FRAME_IMAGE_SIZE, FRAME_IMAGE_SIZE)
@@ -37,6 +35,11 @@ FrameGraphicalEditor::FrameGraphicalEditor(MS::MetaSpriteController& controller)
     // =====
 
     /* Controller Signals */
+    _controller.settings().signal_zoomChanged().connect([this](void) {
+        update_offsets();
+        redrawFramePixbuf();
+    });
+
     _controller.frameController().signal_listDataChanged().connect(
         [this](const MS::Frame::list_t* list) {
             if (list == nullptr || !list->contains(_selectedFrame)) {
@@ -133,6 +136,9 @@ void FrameGraphicalEditor::redrawFramePixbuf()
 
         // ::TODO fill with palette BG color?::
 
+        const double zoomX = _controller.settings().zoomX();
+        const double zoomY = _controller.settings().zoomY();
+
         _frameImageBuffer.fill(0);
         _selectedFrame->draw(_frameImageBuffer, *palette,
                              FRAME_IMAGE_OFFSET, FRAME_IMAGE_OFFSET);
@@ -143,8 +149,8 @@ void FrameGraphicalEditor::redrawFramePixbuf()
                                                     FRAME_IMAGE_SIZE * 4);
 
         // Scaling is done by GTK not Cairo, as it results in sharp pixels
-        _framePixbuf = pixbuf->scale_simple(FRAME_IMAGE_SIZE * _zoomX,
-                                            FRAME_IMAGE_SIZE * _zoomY,
+        _framePixbuf = pixbuf->scale_simple(FRAME_IMAGE_SIZE * zoomX,
+                                            FRAME_IMAGE_SIZE * zoomY,
                                             Gdk::InterpType::INTERP_NEAREST);
     }
     else {
@@ -190,9 +196,12 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     const auto allocation = get_allocation();
 
-    auto draw_rectangle = [this, cr](unsigned x, unsigned y, unsigned width, unsigned height) {
-        cr->rectangle((x + _xOffset) * _zoomX, (y + _yOffset) * _zoomY,
-                      width * _zoomX, height * _zoomY);
+    const double zoomX = _controller.settings().zoomX();
+    const double zoomY = _controller.settings().zoomY();
+
+    auto draw_rectangle = [&](unsigned x, unsigned y, unsigned width, unsigned height) {
+        cr->rectangle((x + _xOffset) * zoomX, (y + _yOffset) * zoomY,
+                      width * zoomX, height * zoomY);
     };
 
     cr->save();
@@ -203,8 +212,8 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         cr->set_antialias(Cairo::ANTIALIAS_NONE);
 
         Gdk::Cairo::set_source_pixbuf(cr, _framePixbuf,
-                                      (_xOffset - (int)FRAME_IMAGE_OFFSET) * _zoomX,
-                                      (_yOffset - (int)FRAME_IMAGE_OFFSET) * _zoomY);
+                                      (_xOffset - (int)FRAME_IMAGE_OFFSET) * zoomX,
+                                      (_yOffset - (int)FRAME_IMAGE_OFFSET) * zoomY);
 
         cr->paint();
     }
@@ -262,10 +271,10 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     for (const MS::ActionPoint& ap : frame->actionPoints()) {
         const auto aLoc = ap.location();
 
-        double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
-        double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
-        double x = (_xOffset + aLoc.x + 0.5) * _zoomX;
-        double y = (_yOffset + aLoc.y + 0.5) * _zoomY;
+        double aWidth = ACTION_POINT_SIZE * zoomX / 2;
+        double aHeight = ACTION_POINT_SIZE * zoomY / 2;
+        double x = (_xOffset + aLoc.x + 0.5) * zoomX;
+        double y = (_yOffset + aLoc.y + 0.5) * zoomY;
 
         cr->move_to(x, y - aHeight);
         cr->line_to(x, y + aHeight);
@@ -286,8 +295,8 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
         const unsigned aWidth = allocation.get_width();
         const unsigned aHeight = allocation.get_height();
 
-        double x = _xOffset * _zoomX;
-        double y = _yOffset * _zoomY;
+        double x = _xOffset * zoomX;
+        double y = _yOffset * zoomY;
 
         cr->move_to(x, y);
         cr->line_to(0, y);
@@ -318,10 +327,10 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
                                        unsigned width, unsigned height) {
         cr->set_line_width(1);
 
-        const double zX = (x + _xOffset) * _zoomX + 1;
-        const double zY = (y + _yOffset) * _zoomY + 1;
-        const double zWidth = width * _zoomX - 1;
-        const double zHeight = height * _zoomY - 1;
+        const double zX = (x + _xOffset) * zoomX + 1;
+        const double zY = (y + _yOffset) * zoomY + 1;
+        const double zWidth = width * zoomX - 1;
+        const double zHeight = height * zoomY - 1;
 
         cr->rectangle(zX, zY, zWidth, zHeight);
         cr->stroke();
@@ -367,10 +376,10 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
                 cr->save();
 
-                double aWidth = ACTION_POINT_SIZE * _zoomX / 2;
-                double aHeight = ACTION_POINT_SIZE * _zoomY / 2;
-                double x = (aLoc.x + _xOffset + 0.5) * _zoomX;
-                double y = (aLoc.y + _yOffset + 0.5) * _zoomY;
+                double aWidth = ACTION_POINT_SIZE * zoomX / 2;
+                double aHeight = ACTION_POINT_SIZE * zoomY / 2;
+                double x = (aLoc.x + _xOffset + 0.5) * zoomX;
+                double y = (aLoc.y + _yOffset + 0.5) * zoomY;
 
                 cr->move_to(x, y - aHeight - 1.0);
                 cr->line_to(x, y + aHeight + 1.0);
@@ -447,8 +456,11 @@ bool FrameGraphicalEditor::on_button_press_event(GdkEventButton* event)
         if (_action.state == Action::NONE) {
             auto allocation = get_allocation();
 
-            int mouseX = std::lround((event->x - allocation.get_x()) / (_zoomX * _displayZoom)) - _xOffset;
-            int mouseY = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom)) - _yOffset;
+            const double zoomX = _controller.settings().zoomX();
+            const double zoomY = _controller.settings().zoomY();
+
+            int mouseX = std::lround((event->x - allocation.get_x()) / (zoomX * _displayZoom)) - _xOffset;
+            int mouseY = std::lround((event->y - allocation.get_y()) / (zoomY * _displayZoom)) - _yOffset;
 
             _action.canDrag = false;
 
@@ -525,8 +537,11 @@ bool FrameGraphicalEditor::on_motion_notify_event(GdkEventMotion* event)
     if (_action.state != Action::NONE) {
         auto allocation = get_allocation();
 
-        int mouseX = std::lround((event->x - allocation.get_x()) / (_zoomX * _displayZoom)) - _xOffset;
-        int mouseY = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom)) - _yOffset;
+        const double zoomX = _controller.settings().zoomX();
+        const double zoomY = _controller.settings().zoomY();
+
+        int mouseX = std::lround((event->x - allocation.get_x()) / (zoomX * _displayZoom)) - _xOffset;
+        int mouseY = std::lround((event->y - allocation.get_y()) / (zoomY * _displayZoom)) - _yOffset;
 
         ms8point mouse(mouseX, mouseY);
 
@@ -605,8 +620,11 @@ bool FrameGraphicalEditor::on_button_release_event(GdkEventButton* event)
     if (event->button == 1) {
         auto allocation = get_allocation();
 
-        int x = std::lround((event->x - allocation.get_x()) / (_zoomX * _displayZoom)) - _xOffset;
-        int y = std::lround((event->y - allocation.get_y()) / (_zoomY * _displayZoom)) - _yOffset;
+        const double zoomX = _controller.settings().zoomX();
+        const double zoomY = _controller.settings().zoomY();
+
+        int x = std::lround((event->x - allocation.get_x()) / (zoomX * _displayZoom)) - _xOffset;
+        int y = std::lround((event->y - allocation.get_y()) / (zoomY * _displayZoom)) - _yOffset;
 
         ms8point mouse(x, y);
 
@@ -828,30 +846,6 @@ bool FrameGraphicalEditor::on_leave_notify_event(GdkEventCrossing*)
     return true;
 }
 
-inline double limit(double v, double min, double max)
-{
-    if (v < min) {
-        return min;
-    }
-    else if (v > max) {
-        return max;
-    }
-    else {
-        return v;
-    }
-}
-
-void FrameGraphicalEditor::setZoom(double x, double y)
-{
-    if (_zoomX != x || _zoomY != y) {
-        _zoomX = limit(x, 1.0, 10.0);
-        _zoomY = limit(y, 1.0, 10.0);
-
-        update_offsets();
-        redrawFramePixbuf();
-    }
-}
-
 void FrameGraphicalEditor::setCenter(int x, int y)
 {
     if (_centerX != x || _centerY != y) {
@@ -866,8 +860,11 @@ void FrameGraphicalEditor::update_offsets()
 {
     const auto allocation = get_allocation();
 
-    _xOffset = allocation.get_width() / _zoomX / _displayZoom / 2 + _centerX;
-    _yOffset = allocation.get_height() / _zoomY / _displayZoom / 2 + _centerY;
+    const double zoomX = _controller.settings().zoomX();
+    const double zoomY = _controller.settings().zoomY();
+
+    _xOffset = allocation.get_width() / zoomX / _displayZoom / 2 + _centerX;
+    _yOffset = allocation.get_height() / zoomY / _displayZoom / 2 + _centerY;
 
     queue_draw();
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui/controllers/settings.h"
 #include "gui/controllers/undo/undostack.h"
 #include <sigc++/sigc++.h>
 #include <stdexcept>
@@ -23,6 +24,8 @@ public:
     BaseController(const BaseController&) = delete;
     ~BaseController() = default;
 
+    auto& settings() { return _settings; }
+
     Undo::UndoStack& undoStack() { return _undoStack; }
     const Undo::UndoStack& undoStack() const { return _undoStack; }
 
@@ -33,6 +36,7 @@ public:
     bool dontMergeNextAction();
 
 private:
+    Controller::Settings _settings;
     Undo::UndoStack _undoStack;
     std::unique_ptr<ControllerInterface> _interface;
 };
