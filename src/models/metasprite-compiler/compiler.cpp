@@ -359,7 +359,8 @@ inline std::vector<Compiler::FrameListEntry> Compiler::generateFrameList(
     // Ensure that the frames added are unique.
     for (const AnimationListEntry& ani : animationList) {
         for (const auto& inst : ani.animation->instructions()) {
-            if (inst.usesFrame()) {
+            const auto& op = inst.operation();
+            if (op.usesFrame()) {
                 const std::string& fname = inst.frame().frameName;
 
                 FrameListEntry e = { frames.getPtr(fname),

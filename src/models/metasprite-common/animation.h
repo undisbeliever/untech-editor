@@ -73,16 +73,12 @@ public:
     const AnimationBytecode& operation() const { return _operation; }
     void setOperation(const AnimationBytecode& operation) { _operation = operation; }
 
-    bool usesParameter() const { return _operation.usesParameter(); }
-    bool parameterUnsigned() const { return _operation.parameterUnsigned(); }
     int parameter() const { return _parameter; }
     void setParameter(int);
 
-    bool usesFrame() const { return _operation.usesFrame(); }
     const FrameReference& frame() const { return _frame; }
     void setFrame(const FrameReference&);
 
-    bool usesGotoLabel() const { return _operation.usesGotoLabel(); }
     const std::string& gotoLabel() const { return _gotoLabel; }
     void setGotoLabel(const std::string&);
 
