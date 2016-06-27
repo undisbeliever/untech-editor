@@ -42,6 +42,7 @@ MetaSpriteEditor::MetaSpriteEditor(MS::MetaSpriteController& controller)
     , _entityHitboxBox(Gtk::ORIENTATION_VERTICAL)
     , _entityHitboxList(_controller.entityHitboxController())
     , _entityHitboxEditor(_controller.entityHitboxController())
+    , _animationEditor(_controller.abstractFrameSetController())
 {
 
     // Graphical
@@ -92,6 +93,7 @@ MetaSpriteEditor::MetaSpriteEditor(MS::MetaSpriteController& controller)
 
     _sidebar.append_page(_frameSetBox, _("Frame Set"));
     _sidebar.append_page(_framePane, _("Frames"));
+    _sidebar.append_page(_animationEditor.widget, _("Animations"));
 
     _framePane.set_border_width(DEFAULT_BORDER);
     _framePane.pack1(_frameList.widget, true, false);

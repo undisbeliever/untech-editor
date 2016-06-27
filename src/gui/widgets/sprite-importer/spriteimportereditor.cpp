@@ -25,6 +25,7 @@ SpriteImporterEditor::SpriteImporterEditor(SI::SpriteImporterController& control
     , _entityHitboxBox(Gtk::ORIENTATION_VERTICAL)
     , _entityHitboxList(controller.entityHitboxController())
     , _entityHitboxEditor(controller)
+    , _animationEditor(_controller.abstractFrameSetController())
 {
     _frameNotebook.set_scrollable(true);
     _frameNotebook.popup_enable();
@@ -51,6 +52,7 @@ SpriteImporterEditor::SpriteImporterEditor(SI::SpriteImporterController& control
 
     _sidebar.append_page(_frameSetPropertiesEditor.widget, _("Frame Set"));
     _sidebar.append_page(_framePane, _("Frames"));
+    _sidebar.append_page(_animationEditor.widget, _("Animations"));
 
     _framePane.set_border_width(DEFAULT_BORDER);
     _framePane.pack1(_frameList.widget, true, false);

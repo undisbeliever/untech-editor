@@ -49,8 +49,6 @@ private:
     Gtk::Label _fseoFilenameLabel;
     Gtk::Label _fseoNameLabel;
 
-    // ::SHOULDDO animation selection::
-
     bool _updatingValues;
 };
 }

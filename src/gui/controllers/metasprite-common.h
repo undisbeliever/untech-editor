@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui/controllers/basecontroller.h"
+#include "gui/controllers/helpers/namedlistcontroller.h"
 #include "gui/controllers/helpers/orderedlistcontroller.h"
 #include "gui/controllers/helpers/singleitemcontroller.h"
 #include "models/metasprite-common/abstractframeset.h"
@@ -14,18 +15,39 @@ namespace SpriteImporter {
 class SpriteImporterController;
 }
 
+class AbstractFrameSetController;
+
 namespace MetaSpriteCommon {
+
+class AnimationInstructionController : public Controller::OrderedListController<AnimationInstruction> {
+public:
+    AnimationInstructionController(Controller::BaseController&);
+    ~AnimationInstructionController() = default;
+
+    void selected_setOperation(const AnimationBytecode&);
+    void selected_setParameter(const int&);
+    void selected_setFrame(const FrameReference&);
+    void selected_setGotoLabel(const std::string&);
+};
+
+class AnimationController : public Controller::NamedListController<Animation> {
+    friend class AbstractFrameSetController;
+
+public:
+    AnimationController(Controller::BaseController&);
+    ~AnimationController() = default;
+};
 
 class AbstractFrameSetController : public Controller::SingleItemController<AbstractFrameSet> {
     friend class MetaSprite::MetaSpriteController;
     friend class SpriteImporter::SpriteImporterController;
 
 public:
-    AbstractFrameSetController(Controller::BaseController& baseController)
-        : SingleItemController<AbstractFrameSet>(baseController)
-    {
-    }
+    AbstractFrameSetController(Controller::BaseController&);
     ~AbstractFrameSetController() = default;
+
+    auto& animationController() { return _animationController; }
+    auto& animationInstructionController() { return _animationInstructionController; }
 
     void selected_setName(const std::string& name);
     void selected_setTilesetType(const TilesetType&);
@@ -37,6 +59,9 @@ public:
 private:
     sigc::signal<void, const AbstractFrameSet*> _signal_nameChanged;
     sigc::signal<void, const AbstractFrameSet*> _signal_exportOrderChanged;
+
+    AnimationController _animationController;
+    AnimationInstructionController _animationInstructionController;
 };
 }
 }

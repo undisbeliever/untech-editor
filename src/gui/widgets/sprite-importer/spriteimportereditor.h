@@ -11,6 +11,8 @@
 #include "framesetgraphicaleditor.h"
 #include "framesetpropertieseditor.h"
 #include "gui/controllers/sprite-importer.h"
+#include "gui/widgets/metasprite-common/abstractframesetpropertieseditor.h"
+#include "gui/widgets/metasprite-common/animationeditor.h"
 
 #include <gtkmm.h>
 #include <memory>
@@ -57,9 +59,12 @@ private:
     EntityHitboxListEditor _entityHitboxList;
     EntityHitboxEditor _entityHitboxEditor;
 
+    MetaSpriteCommon::AnimationEditor _animationEditor;
+
     enum SidebarPages {
         FRAMESET_PAGE,
         FRAME_PAGE,
+        ANIMATION_PAGE,
     };
 
     enum FramePages {

@@ -14,6 +14,7 @@
 #include "tileseteditor.h"
 #include "gui/controllers/metasprite.h"
 #include "gui/widgets/metasprite-common/abstractframesetpropertieseditor.h"
+#include "gui/widgets/metasprite-common/animationeditor.h"
 
 #include <gtkmm.h>
 #include <memory>
@@ -54,6 +55,7 @@ private:
     Gtk::Paned _framePane;
 
     Gtk::Box _frameSetBox;
+
     MetaSpriteCommon::AbstractFrameSetPropertiesEditor _frameSetPropertiesEditor;
 
     Gtk::Frame _paletteFrame;
@@ -78,9 +80,12 @@ private:
     EntityHitboxListEditor _entityHitboxList;
     EntityHitboxEditor _entityHitboxEditor;
 
+    MetaSpriteCommon::AnimationEditor _animationEditor;
+
     enum SidebarPages {
         FRAMESET_PAGE,
         FRAME_PAGE,
+        ANIMATION_PAGE,
     };
 
     enum FramePages {
