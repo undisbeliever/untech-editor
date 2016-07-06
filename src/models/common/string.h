@@ -1,5 +1,6 @@
 #pragma once
 
+#include "optional.h"
 #include <climits>
 #include <cstdint>
 #include <cstdlib>
@@ -36,7 +37,7 @@ static inline std::string& trim(std::string& s)
 /* Convert a string to an integer.
  * String may be encased in spaces.
  */
-static inline std::pair<int, bool> toInt(const std::string& s)
+static inline optional<int> toInt(const std::string& s)
 {
     const char* cstr = s.c_str();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
@@ -45,15 +46,15 @@ static inline std::pair<int, bool> toInt(const std::string& s)
     int ret = strtol(cstr, &parseEnd, 0);
 
     if (parseEnd == cstr || parseEnd != last + 1) {
-        return { 0, false };
+        optional<int>();
     }
-    return { ret, true };
+    return ret;
 }
 
 /* Convert a string to an uint8.
  * String may be encased in spaces.
  */
-static inline std::pair<uint8_t, bool> toUint8(const std::string& s)
+static inline optional<uint8_t> toUint8(const std::string& s)
 {
     const char* cstr = s.c_str();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
@@ -63,9 +64,9 @@ static inline std::pair<uint8_t, bool> toUint8(const std::string& s)
 
     if (parseEnd == cstr || parseEnd != last + 1
         || ret < 0 || ret > UINT8_MAX) {
-        return { 0, false };
+        return optional<uint8_t>();
     }
-    return { (uint8_t)ret, true };
+    return (uint8_t)ret;
 }
 
 /* Convert a string to an integer.
@@ -86,7 +87,7 @@ static inline int toInt(const std::string& s, int def)
     return ret;
 }
 
-static inline std::pair<long, bool> toLong(const std::string& s)
+static inline optional<long> toLong(const std::string& s)
 {
     const char* cstr = s.c_str();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
@@ -95,9 +96,9 @@ static inline std::pair<long, bool> toLong(const std::string& s)
     long ret = strtol(cstr, &parseEnd, 0);
 
     if (parseEnd == cstr || parseEnd != last + 1) {
-        return { 0, false };
+        return optional<long>();
     }
-    return { ret, true };
+    return ret;
 }
 
 static inline long toLong(const std::string& s, long def)
@@ -114,7 +115,7 @@ static inline long toLong(const std::string& s, long def)
     return ret;
 }
 
-static inline std::pair<unsigned, bool> hexToUnsigned(const std::string& s)
+static inline optional<unsigned> hexToUnsigned(const std::string& s)
 {
     const char* cstr = s.c_str();
     const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
@@ -124,9 +125,9 @@ static inline std::pair<unsigned, bool> hexToUnsigned(const std::string& s)
 
     if (parseEnd == cstr || parseEnd != last + 1
         || ret > UINT_MAX) {
-        return { 0, false };
+        return optional<unsigned>();
     }
-    return { ret, true };
+    return ret;
 }
 }
 }

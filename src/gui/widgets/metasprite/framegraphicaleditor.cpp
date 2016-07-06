@@ -406,14 +406,14 @@ bool FrameGraphicalEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     {
         auto name = _selectedFrame->frameSet().frames().getName(_selectedFrame);
 
-        if (name.second) {
+        if (name) {
             cr->save();
 
             // Use the default color of the current style
             Gdk::Cairo::set_source_rgba(cr,
                                         get_style_context()->get_color(Gtk::STATE_FLAG_NORMAL));
 
-            auto layout = create_pango_layout(name.first);
+            auto layout = create_pango_layout(name.value());
             layout->set_font_description(_frameNameFont);
 
             int textWidth, textHeight;

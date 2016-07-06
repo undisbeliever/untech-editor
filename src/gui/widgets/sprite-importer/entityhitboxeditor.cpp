@@ -108,9 +108,9 @@ void EntityHitboxEditor::updateRange()
 void EntityHitboxEditor::onParameterFinishedEditing()
 {
     if (!_updatingValues) {
-        auto value = UnTech::String::toUint8(_parameterEntry.get_text());
-        if (value.second) {
-            _controller.entityHitboxController().selected_setParameter(value.first);
+        auto p = UnTech::String::toUint8(_parameterEntry.get_text());
+        if (p) {
+            _controller.entityHitboxController().selected_setParameter(p.value());
         }
         else {
             updateGuiValues();

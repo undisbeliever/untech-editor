@@ -1,6 +1,7 @@
 #pragma once
 
 #include "namechecks.h"
+#include "optional.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -144,16 +145,16 @@ public:
         return it != _names.end();
     }
 
-    std::pair<std::string, bool> getName(const T* e) const
+    optional<std::string> getName(const T* e) const
     {
         const auto it = _names.find(e);
         if (it != _names.end()) {
-            return { it->second, true };
+            return it->second;
         }
 
-        return { std::string(), false };
+        return optional<std::string>();
     }
-    std::pair<std::string, bool> getName(const T& e) const { return getName(&e); }
+    optional<std::string> getName(const T& e) const { return getName(&e); }
 
     T* getPtr(const std::string& name) const
     {

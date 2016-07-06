@@ -5,6 +5,7 @@
 #include "../int_ms8_t.h"
 #include "../ms8aabb.h"
 #include "../namedlist.h"
+#include "../optional.h"
 #include <climits>
 #include <memory>
 #include <sstream>
@@ -52,14 +53,14 @@ struct XmlTag {
         }
     }
 
-    inline std::pair<std::string, bool> getOptionalAttribute(const std::string& aName) const
+    inline optional<std::string> getOptionalAttribute(const std::string& aName) const
     {
         auto it = attributes.find(aName);
         if (it != attributes.end()) {
-            return { it->second, true };
+            return it->second;
         }
         else {
-            return { std::string(), false };
+            return optional<std::string>();
         }
     }
 
@@ -67,10 +68,10 @@ struct XmlTag {
     {
         auto v = String::toInt(getAttribute(aName));
 
-        if (!v.second) {
+        if (!v) {
             throw buildError(aName, "Not a number");
         }
-        return v.first;
+        return v.value();
     }
 
     inline int getAttributeInteger(const std::string& aName, int min, int max) const
@@ -90,19 +91,19 @@ struct XmlTag {
     {
         auto v = String::toLong(getAttribute(aName));
 
-        if (!v.second) {
+        if (!v) {
             throw buildError(aName, "Not a number");
         }
-        if (v.first < 0) {
+        if (v.value() < 0) {
             throw buildError(aName, "Only positive numbers allowed");
         }
-        if ((unsigned long)v.first < min) {
+        if ((unsigned long)v.value() < min) {
             throw buildError(aName, "Number too small");
         }
-        if ((unsigned long)v.first > max) {
+        if ((unsigned long)v.value() > max) {
             throw buildError(aName, "Number too large");
         }
-        return (unsigned)v.first;
+        return (unsigned)v.value();
     }
 
     inline int8_t getAttributeInt8(const std::string& aName) const
@@ -124,11 +125,11 @@ struct XmlTag {
     {
         auto v = getOptionalAttribute(aName);
 
-        if (v.second) {
-            if (v.first == "true") {
+        if (v) {
+            if (v.value() == "true") {
                 return true;
             }
-            else if (v.first == "false") {
+            else if (v.value() == "false") {
                 return false;
             }
             else {
@@ -164,10 +165,10 @@ struct XmlTag {
     {
         auto v = String::hexToUnsigned(getAttribute(aName));
 
-        if (!v.second) {
+        if (!v) {
             throw buildError(aName, "Not a hexadecimal number");
         }
-        return v.first;
+        return v.value();
     }
 
     inline upoint getAttributeUpoint(const std::string& xName = "x", const std::string& yName = "y") const

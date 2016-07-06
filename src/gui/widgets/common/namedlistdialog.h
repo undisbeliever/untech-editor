@@ -64,11 +64,11 @@ public:
         _item = item;
 
         if (_list && _item) {
-            set_text(_list->getName(_item).first);
+            set_text(_list->getName(_item).value_or(""));
         }
     }
 
-    Glib::ustring get_text()
+    std::string get_text()
     {
         return _inputText.get_text();
     }
@@ -102,7 +102,7 @@ protected:
     void on_text_changed()
     {
         if (_list) {
-            auto text = get_text();
+            std::string text = get_text();
 
             if (text.empty()) {
                 _errorLabel.set_text("Error: Empty String");
@@ -119,7 +119,9 @@ protected:
             }
 
             if (_list->nameExists(text)) {
-                if (_item == nullptr || _list->getName(_item).first != text) {
+                auto itemName = _list->getName(_item);
+
+                if (itemName.exists() && itemName.value() != text) {
                     _errorLabel.set_text("Error: Name already exists");
                     _inputText.set_icon_from_icon_name("dialog-error", Gtk::ENTRY_ICON_SECONDARY);
                     _okButton->set_sensitive(false);

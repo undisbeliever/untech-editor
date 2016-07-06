@@ -507,7 +507,7 @@ void Utsi2Utms::addError(const SI::Frame& frame, const std::string& message)
 
     const SI::FrameSet& fs = frame.frameSet();
 
-    out << fs.name() << "." << fs.frames().getName(frame).first
+    out << fs.name() << "." << fs.frames().getName(frame).value()
         << ": " << message;
 
     _errors.push_back(out.str());
@@ -534,7 +534,7 @@ void Utsi2Utms::addWarning(const SI::Frame& frame, const std::string& message)
 
     const SI::FrameSet& fs = frame.frameSet();
 
-    out << fs.name() << "." << fs.frames().getName(frame).first
+    out << fs.name() << "." << fs.frames().getName(frame).value()
         << ": " << message;
 
     _warnings.push_back(out.str());
@@ -547,7 +547,7 @@ void Utsi2Utms::addWarning(const SI::FrameObject& frameObj, const std::string& m
     const SI::Frame& frame = frameObj.frame();
     const SI::FrameSet& fs = frame.frameSet();
 
-    out << fs.name() << "." << fs.frames().getName(frame).first
+    out << fs.name() << "." << fs.frames().getName(frame).value()
         << ":object-" << frame.objects().indexOf(frameObj)
         << ": " << message;
 

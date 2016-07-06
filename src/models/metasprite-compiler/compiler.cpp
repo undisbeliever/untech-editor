@@ -598,7 +598,7 @@ Compiler::generateDynamicTilesets(const MetaSprite::FrameSet& frameSet,
                 buildTileset(tileset, frameSet, tilesetType, ft.largeTiles, ft.originalSmallTiles);
             }
             else {
-                const std::string fn = frameSet.frames().getName(ft.frames.front()).first;
+                const std::string fn = frameSet.frames().getName(ft.frames.front()).value();
                 throw std::runtime_error("Too many tiles in frame " + fn);
             }
 
@@ -1066,7 +1066,7 @@ void Compiler::addError(const MS::Frame& frame, const std::string& message)
 
     const MS::FrameSet& fs = frame.frameSet();
 
-    out << fs.name() << "." << fs.frames().getName(frame).first
+    out << fs.name() << "." << fs.frames().getName(frame).value()
         << ": " << message;
 
     _errors.push_back(out.str());
@@ -1078,7 +1078,7 @@ void Compiler::addError(const MSC::Animation& ani, const std::string& message)
 
     const auto& fs = ani.frameSet();
 
-    out << fs.name() << "." << fs.animations().getName(ani).first
+    out << fs.name() << "." << fs.animations().getName(ani).value()
         << ": " << message;
 
     _errors.push_back(out.str());
@@ -1104,7 +1104,7 @@ void Compiler::addWarning(const MS::Frame& frame, const std::string& message)
 
     const MS::FrameSet& fs = frame.frameSet();
 
-    out << fs.name() << "." << fs.frames().getName(frame).first
+    out << fs.name() << "." << fs.frames().getName(frame).value()
         << ": " << message;
 
     _warnings.push_back(out.str());

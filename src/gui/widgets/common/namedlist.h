@@ -102,10 +102,10 @@ protected:
         if (_controller.list()) {
             auto name = _controller.list()->getName(item);
 
-            if (name.second) {
+            if (name.exists()) {
                 for (auto row : treeModel->children()) {
                     if (row.get_value(columns.col_item) == item) {
-                        row[columns.col_id] = name.first;
+                        row[columns.col_id] = name.value();
                         columns.setRowData(row, item);
                         return;
                     }

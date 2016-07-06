@@ -104,9 +104,9 @@ void ActionPointEditor::updateRange()
 void ActionPointEditor::onParameterFinishedEditing()
 {
     if (_updatingValues) {
-        auto value = UnTech::String::toUint8(_parameterEntry.get_text());
-        if (value.second) {
-            _controller.actionPointController().selected_setParameter(value.first);
+        auto p = UnTech::String::toUint8(_parameterEntry.get_text());
+        if (p) {
+            _controller.actionPointController().selected_setParameter(p.value());
         }
         else {
             updateGuiValues();

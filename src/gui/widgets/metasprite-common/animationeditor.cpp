@@ -226,9 +226,9 @@ void AnimationEditor::instruction_setParameter()
         const MSC::AnimationBytecode& op = inst->operation();
 
         if (op.usesParameter()) {
-            auto value = UnTech::String::toInt(_parameterEntry.get_text());
-            if (value.second) {
-                _controller.animationInstructionController().selected_setParameter(value.first);
+            auto p = UnTech::String::toInt(_parameterEntry.get_text());
+            if (p) {
+                _controller.animationInstructionController().selected_setParameter(p.value());
             }
         }
         else if (op.usesGotoLabel()) {

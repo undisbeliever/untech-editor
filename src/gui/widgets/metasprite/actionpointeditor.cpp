@@ -88,9 +88,9 @@ void ActionPointEditor::updateGuiValues()
 void ActionPointEditor::onParameterFinishedEditing()
 {
     if (!_updatingValues) {
-        auto value = UnTech::String::toUint8(_parameterEntry.get_text());
-        if (value.second) {
-            _controller.selected_setParameter(value.first);
+        auto p = UnTech::String::toUint8(_parameterEntry.get_text());
+        if (p) {
+            _controller.selected_setParameter(p.value());
         }
         else {
             updateGuiValues();

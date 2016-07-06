@@ -1,6 +1,7 @@
 #pragma once
 
 #include "namechecks.h"
+#include "optional.h"
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -191,18 +192,18 @@ public:
         return it != _nameMap.end();
     }
 
-    std::pair<std::string, bool> getName(const T* e) const
+    optional<std::string> getName(const T* e) const
     {
         const auto nit = std::find_if(_nameList.begin(), _nameList.end(),
                                       [e](std::pair<T*, std::string>& v) { return v.first == e; });
 
         if (nit != _nameList.end()) {
-            return { nit->second, true };
+            return nit->second;
         }
 
-        return { std::string(), false };
+        return optional<std::string>();
     }
-    std::pair<std::string, bool> getName(const T& e) const { return getName(&e); }
+    optional<std::string> getName(const T& e) const { return getName(&e); }
 
     // Expose the list
     T& at(size_t i) { return *_list.at(i).get(); }

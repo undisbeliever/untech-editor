@@ -87,8 +87,8 @@ void NamedListController<T>::setSelected(const T* item)
 
             auto n = _list->getName(item);
 
-            if (n.second) {
-                _selected = &_list->at(n.first);
+            if (n) {
+                _selected = &_list->at(n.value());
                 signal_selectedChanged().emit();
                 return;
             }
@@ -108,7 +108,7 @@ std::string NamedListController<T>::selectedName() const
     if (_list == nullptr || _selected == nullptr) {
         return "";
     }
-    return _list->getName(_selected).first;
+    return _list->getName(_selected).value();
 }
 
 template <class T>
@@ -242,8 +242,8 @@ void NamedListController<T>::selected_remove()
     if (_selected && _list) {
         const auto name = _list->getName(_selected);
 
-        if (name.second) {
-            auto a = std::make_unique<Action>(*this, _list, name.first);
+        if (name) {
+            auto a = std::make_unique<Action>(*this, _list, name.value());
 
             setSelected(nullptr);
             a->redo();
@@ -301,7 +301,7 @@ void NamedListController<T>::selected_rename(const std::string& newName)
     if (_selected && _list) {
         const auto oldName = _list->getName(_selected);
 
-        if (oldName.second) {
+        if (oldName) {
             bool r = _list->changeName(_selected, newName);
 
             if (r) {
@@ -309,7 +309,7 @@ void NamedListController<T>::selected_rename(const std::string& newName)
 
                 _baseController.undoStack().add_undo(
                     std::make_unique<Action>(*this, _list, _selected,
-                                             oldName.first, newName));
+                                             oldName.value(), newName));
             }
         }
     }
