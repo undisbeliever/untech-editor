@@ -4,8 +4,10 @@
 
 using namespace UnTech::View::MetaSpriteCommon;
 
-AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID)
+AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
+                                             MSC::AbstractFrameSetController& controller)
     : wxPanel(parent, wxWindowID)
+    , _controller(controller)
 {
     auto* grid = new wxFlexGridSizer(4, 2, DEFAULT_HGAP, DEFAULT_VGAP);
     this->SetSizer(grid);
@@ -29,4 +31,37 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID)
     _frameSetType->Disable();
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("FrameSet Type:")));
     grid->Add(_frameSetType, 1, wxEXPAND);
+
+    updateGui();
+}
+
+void AbstractFrameSetPanel::updateGui()
+{
+    const MSC::AbstractFrameSet* frameSet = _controller.selected();
+
+    if (frameSet) {
+        this->Enable();
+
+        _name->ChangeValue(frameSet->name());
+        _tilesetType->SetSelection(0); // ::TODO::
+
+        const auto& fseoDocument = frameSet->exportOrderDocument();
+        if (fseoDocument) {
+            _exportOrderFilename->ChangeValue(fseoDocument->filename());
+            _frameSetType->ChangeValue(fseoDocument->exportOrder().name());
+        }
+        else {
+            _exportOrderFilename->ChangeValue("");
+            _frameSetType->ChangeValue("");
+        }
+    }
+    else {
+        this->Disable();
+
+        _name->ChangeValue("");
+        _tilesetType->SetSelection(wxNOT_FOUND);
+
+        _exportOrderFilename->ChangeValue("");
+        _frameSetType->ChangeValue("");
+    }
 }

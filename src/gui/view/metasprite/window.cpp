@@ -1,5 +1,6 @@
 #include "window.h"
 #include "sidebar.h"
+#include "gui/view/common/controllerinterface.h"
 #include "gui/view/defaults.h"
 
 namespace UnTech {
@@ -33,6 +34,7 @@ using namespace UnTech::View::MetaSprite;
 
 Window::Window()
     : wxFrame(NULL, wxID_ANY, "UnTech", wxDefaultPosition, wxSize(280, 180))
+    , _controller(std::make_unique<ControllerInterface>(this))
 {
     // Widgets
     // =======
@@ -43,7 +45,7 @@ Window::Window()
         auto* graphics = new wxPanel(this, wxID_ANY);
         graphics->SetBackgroundColour(wxColour("#4f5049"));
 
-        auto* sidebar = new Sidebar(this, wxID_ANY);
+        auto* sidebar = new Sidebar(this, wxID_ANY, _controller);
 
         sizer->Add(graphics, 4, wxEXPAND | wxALL, DEFAULT_BORDER);
         sizer->Add(sidebar, 0, wxEXPAND | (wxALL ^ wxLEFT), DEFAULT_BORDER);

@@ -3,9 +3,11 @@
 
 using namespace UnTech::View::MetaSprite;
 
-PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID)
+PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
+                           MS::PaletteController& controller)
 
     : wxPanel(parent, wxWindowID)
+    , _controller(controller)
 {
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(sizer);
@@ -26,9 +28,40 @@ PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID)
         grid->Add(_colors[i], 1);
     }
 
+    updateGui();
+
     // EVENTS
     // ======
     _editColor->Bind(wxEVT_TOGGLEBUTTON, &PalettePanel::on_editColorToggled, this);
+}
+
+void PalettePanel::updateGui()
+{
+    const MS::Palette* palette = _controller.selected();
+
+    if (palette) {
+        int active = _controller.selectedColorId();
+
+        if (active > 0) {
+            _editColor->SetValue(false);
+        }
+
+        for (unsigned i = 0; i < N_COLORS; i++) {
+            _colors[i]->SetBackgroundColour(wxColor(palette->color(i).rgb().value));
+            _colors[i]->SetValue((int)i == active);
+        }
+
+        this->Enable();
+    }
+    else {
+        _editColor->SetValue(false);
+        for (unsigned i = 0; i < N_COLORS; i++) {
+            _colors[i]->SetBackgroundColour(wxNullColour);
+            _colors[i]->SetValue(false);
+        }
+
+        this->Disable();
+    }
 }
 
 void PalettePanel::on_colorToggled(wxCommandEvent& e)

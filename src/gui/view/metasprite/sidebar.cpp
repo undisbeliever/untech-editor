@@ -12,18 +12,30 @@ namespace MetaSprite {
 
 class FramePanel : public wxPanel {
 public:
-    FramePanel(wxWindow* parent, int wxWindowID);
+    FramePanel(wxWindow* parent, int wxWindowID,
+               MS::FrameController& controller);
 
 private:
+    void UpdateGui();
+
+private:
+    MS::FrameController& _controller;
+
     wxCheckBox* _solid;
     Ms8RectCtrl* _tileHitbox;
 };
 
 class FrameObjectPanel : public wxPanel {
 public:
-    FrameObjectPanel(wxWindow* parent, int wxWindowID);
+    FrameObjectPanel(wxWindow* parent, int wxWindowID,
+                     MS::FrameObjectController& controller);
 
 private:
+    void UpdateGui();
+
+private:
+    MS::FrameObjectController& _controller;
+
     Ms8PointCtrl* _location;
     wxSpinCtrl* _tileId;
     wxChoice* _size;
@@ -34,18 +46,30 @@ private:
 
 class ActionPointPanel : public wxPanel {
 public:
-    ActionPointPanel(wxWindow* parent, int wxWindowID);
+    ActionPointPanel(wxWindow* parent, int wxWindowID,
+                     MS::ActionPointController& controller);
 
 private:
+    void UpdateGui();
+
+private:
+    MS::ActionPointController& _controller;
+
     Ms8PointCtrl* _location;
     wxSpinCtrl* _parameter;
 };
 
 class EntityHitboxPanel : public wxPanel {
 public:
-    EntityHitboxPanel(wxWindow* parent, int wxWindowID);
+    EntityHitboxPanel(wxWindow* parent, int wxWindowID,
+                      MS::EntityHitboxController& controller);
 
 private:
+    void UpdateGui();
+
+private:
+    MS::EntityHitboxController& _controller;
+
     Ms8RectCtrl* _aabb;
     wxSpinCtrl* _parameter;
 };
@@ -59,7 +83,8 @@ using namespace UnTech::View::MetaSpriteCommon;
 // SIDEBAR
 // =======
 
-Sidebar::Sidebar(wxWindow* parent, int wxWindowID)
+Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
+                 MS::MetaSpriteController& controller)
     : wxNotebook(parent, wxWindowID)
 {
     this->SetSizeHints(SIDEBAR_WIDTH, -1);
@@ -71,7 +96,7 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID)
         auto* sizer = new wxBoxSizer(wxVERTICAL);
         panel->SetSizer(sizer);
 
-        auto* afPanel = new AbstractFrameSetPanel(panel, wxID_ANY);
+        auto* afPanel = new AbstractFrameSetPanel(panel, wxID_ANY, controller.abstractFrameSetController());
         sizer->Add(afPanel, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
 
         auto* palSizer = new wxStaticBoxSizer(wxVERTICAL, panel, "Palette");
@@ -81,7 +106,7 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID)
         auto* paletteList = new wxPanel(panel);
         palSizer->Add(paletteList, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
 
-        auto* palPanel = new PalettePanel(panel, wxID_ANY);
+        auto* palPanel = new PalettePanel(panel, wxID_ANY, controller.paletteController());
         palSizer->Add(palPanel, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
 
         this->AddPage(panel, "FrameSet");
@@ -101,8 +126,9 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID)
         auto* frameNotepad = new wxNotebook(framePanel, wxID_ANY);
         frameSizer->Add(frameNotepad, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
 
-        frameNotepad->AddPage(new FramePanel(frameNotepad, wxID_ANY),
-                              "Frame");
+        frameNotepad->AddPage(
+            new FramePanel(frameNotepad, wxID_ANY, controller.frameController()),
+            "Frame");
 
         {
             auto* panel = new wxPanel(frameNotepad);
@@ -114,7 +140,7 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID)
             auto* list = new wxPanel(this);
             sizer->Add(list, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
 
-            auto* editor = new FrameObjectPanel(panel, wxID_ANY);
+            auto* editor = new FrameObjectPanel(panel, wxID_ANY, controller.frameObjectController());
             sizer->Add(editor, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
 
             frameNotepad->AddPage(panel, "Objects");
@@ -130,7 +156,7 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID)
             auto* list = new wxPanel(this);
             sizer->Add(list, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
 
-            auto* editor = new ActionPointPanel(panel, wxID_ANY);
+            auto* editor = new ActionPointPanel(panel, wxID_ANY, controller.actionPointController());
             sizer->Add(editor, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
 
             frameNotepad->AddPage(panel, "Action Points");
@@ -146,7 +172,7 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID)
             auto* list = new wxPanel(this);
             sizer->Add(list, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
 
-            auto* editor = new EntityHitboxPanel(panel, wxID_ANY);
+            auto* editor = new EntityHitboxPanel(panel, wxID_ANY, controller.entityHitboxController());
             sizer->Add(editor, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
 
             frameNotepad->AddPage(panel, "Hitboxes");
@@ -159,8 +185,10 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID)
 // FRAME
 // =====
 
-FramePanel::FramePanel(wxWindow* parent, int wxWindowID)
+FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
+                       MS::FrameController& controller)
     : wxPanel(parent, wxWindowID)
+    , _controller(controller)
 {
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(sizer);
@@ -178,20 +206,37 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID)
     grid->Add(new wxStaticText(this, wxID_ANY, "Tile Hitbox:"));
     grid->Add(_tileHitbox, 1, wxEXPAND);
 
-    // EVENTS
-    // ------
-    _tileHitbox->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        // ::DEBUG Example event::
-        auto r = _tileHitbox->GetValue();
-        printf("ms8rect(%i, %i : %ix%i)\n", int(r.x), int(r.y), r.width, r.height);
-    });
+    UpdateGui();
+}
+
+void FramePanel::UpdateGui()
+{
+    const MS::Frame* frame = _controller.selected();
+
+    if (frame) {
+        _tileHitbox->SetValue(frame->tileHitbox());
+
+        _solid->SetValue(frame->solid());
+        _tileHitbox->Enable(frame->solid());
+
+        this->Enable();
+    }
+    else {
+        static const ms8rect zeroRect(0, 0, 0, 0);
+
+        _solid->SetValue(false);
+        _tileHitbox->SetValue(zeroRect);
+        this->Disable();
+    }
 }
 
 // FRAME OBJECTS
 // =============
 
-FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID)
+FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
+                                   MS::FrameObjectController& controller)
     : wxPanel(parent, wxWindowID)
+    , _controller(controller)
 {
     auto* grid = new wxFlexGridSizer(5, 2, DEFAULT_HGAP, DEFAULT_VGAP);
     this->SetSizer(grid);
@@ -227,13 +272,56 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID)
     box->Add(_vFlip, 1, wxEXPAND, 0);
     grid->Add(new wxPanel(this, wxID_ANY));
     grid->Add(box, 1, wxEXPAND);
+
+    UpdateGui();
+}
+
+void FrameObjectPanel::UpdateGui()
+{
+    typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
+
+    const MS::FrameObject* obj = _controller.selected();
+
+    if (obj) {
+        const MS::FrameSet& frameSet = obj->frame().frameSet();
+
+        if (obj->size() == MS::FrameObject::ObjectSize::SMALL) {
+            _tileId->SetRange(0, frameSet.smallTileset().size() - 1);
+        }
+        else {
+            _tileId->SetRange(0, frameSet.largeTileset().size() - 1);
+        }
+
+        _location->SetValue(obj->location());
+        _tileId->SetValue(obj->tileId());
+        _size->SetSelection(obj->size() == OS::LARGE ? 1 : 0);
+        _order->SetValue(obj->order());
+        _hFlip->SetValue(obj->hFlip());
+        _vFlip->SetValue(obj->hFlip());
+
+        this->Enable();
+    }
+    else {
+        static const ms8point zeroPoint(0, 0);
+
+        _location->SetValue(zeroPoint);
+        _tileId->SetValue(0);
+        _size->SetSelection(wxNOT_FOUND);
+        _order->SetValue(0);
+        _hFlip->SetValue(false);
+        _vFlip->SetValue(false);
+
+        this->Disable();
+    }
 }
 
 // ACTION POINTS
 // =============
 
-ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID)
+ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID,
+                                   MS::ActionPointController& controller)
     : wxPanel(parent, wxWindowID)
+    , _controller(controller)
 {
     auto* grid = new wxFlexGridSizer(2, 2, DEFAULT_HGAP, DEFAULT_VGAP);
     this->SetSizer(grid);
@@ -249,13 +337,37 @@ ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID)
     _parameter->SetRange(0, 255);
     grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));
     grid->Add(_parameter, 1, wxEXPAND);
+
+    UpdateGui();
+}
+
+void ActionPointPanel::UpdateGui()
+{
+    const MS::ActionPoint* ap = _controller.selected();
+
+    if (ap) {
+        _location->SetValue(ap->location());
+        _parameter->SetValue(ap->parameter());
+
+        this->Enable();
+    }
+    else {
+        static const ms8point zeroPoint(0, 0);
+
+        _location->SetValue(zeroPoint);
+        _parameter->SetValue(0);
+
+        this->Disable();
+    }
 }
 
 // ENTITY HITBOXES
 // ===============
 
-EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID)
+EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
+                                     MS::EntityHitboxController& controller)
     : wxPanel(parent, wxWindowID)
+    , _controller(controller)
 {
     auto* grid = new wxFlexGridSizer(2, 2, DEFAULT_HGAP, DEFAULT_VGAP);
     this->SetSizer(grid);
@@ -271,4 +383,26 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID)
     _parameter->SetRange(0, 255);
     grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));
     grid->Add(_parameter, 1, wxEXPAND);
+
+    UpdateGui();
+}
+
+void EntityHitboxPanel::UpdateGui()
+{
+    const MS::EntityHitbox* eh = _controller.selected();
+
+    if (eh) {
+        _aabb->SetValue(eh->aabb());
+        _parameter->SetValue(eh->parameter());
+
+        this->Enable();
+    }
+    else {
+        static const ms8rect zeroRect(0, 0, 0, 0);
+
+        _aabb->SetValue(zeroRect);
+        _parameter->SetValue(0);
+
+        this->Disable();
+    }
 }
