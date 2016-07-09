@@ -105,6 +105,23 @@ void OrderedListController<T>::setSelected(const T* item)
 }
 
 template <class T>
+void OrderedListController<T>::setSelected(int index)
+{
+    if (_list != nullptr) {
+        T* item = nullptr;
+
+        if (index >= 0 && (unsigned)index < _list->size()) {
+            item = &_list->at(index);
+        }
+
+        if (_selected != item) {
+            _selected = item;
+            signal_selectedChanged().emit();
+        }
+    }
+}
+
+template <class T>
 void OrderedListController<T>::create()
 {
     class Action : public Undo::Action {

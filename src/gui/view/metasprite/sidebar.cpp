@@ -1,5 +1,6 @@
 #include "sidebar.h"
 #include "palettepanel.h"
+#include "sidebar-lists.hpp"
 #include "gui/view/common/ms8aabb.h"
 #include "gui/view/defaults.h"
 #include "gui/view/metasprite-common/abstractframesetpanel.h"
@@ -136,12 +137,20 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
 
-            // ::TODO list::
-            auto* list = new wxPanel(this);
-            sizer->Add(list, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
+            sizer->Add(new OrderedListToolBar<MS::FrameObject>(
+                           panel, wxID_ANY,
+                           controller.frameObjectController()),
+                       0, wxALIGN_RIGHT | wxALL, DEFAULT_BORDER);
 
-            auto* editor = new FrameObjectPanel(panel, wxID_ANY, controller.frameObjectController());
-            sizer->Add(editor, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
+            sizer->Add(new OrderedListCtrl<MS::FrameObject>(
+                           panel, wxID_ANY,
+                           controller.frameObjectController()),
+                       1, wxEXPAND | wxLEFT | wxRIGHT, DEFAULT_BORDER);
+
+            sizer->Add(new FrameObjectPanel(
+                           panel, wxID_ANY,
+                           controller.frameObjectController()),
+                       0, wxEXPAND | wxALL, DEFAULT_BORDER);
 
             frameNotepad->AddPage(panel, "Objects");
         }
@@ -152,12 +161,20 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
 
-            // ::TODO list::
-            auto* list = new wxPanel(this);
-            sizer->Add(list, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
+            sizer->Add(new OrderedListToolBar<MS::ActionPoint>(
+                           panel, wxID_ANY,
+                           controller.actionPointController()),
+                       0, wxALIGN_RIGHT | wxALL, DEFAULT_BORDER);
 
-            auto* editor = new ActionPointPanel(panel, wxID_ANY, controller.actionPointController());
-            sizer->Add(editor, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
+            sizer->Add(new OrderedListCtrl<MS::ActionPoint>(
+                           panel, wxID_ANY,
+                           controller.actionPointController()),
+                       1, wxEXPAND | wxLEFT | wxRIGHT, DEFAULT_BORDER);
+
+            sizer->Add(new ActionPointPanel(
+                           panel, wxID_ANY,
+                           controller.actionPointController()),
+                       0, wxEXPAND | wxALL, DEFAULT_BORDER);
 
             frameNotepad->AddPage(panel, "Action Points");
         }
@@ -168,12 +185,20 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
 
-            // ::TODO list::
-            auto* list = new wxPanel(this);
-            sizer->Add(list, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
+            sizer->Add(new OrderedListToolBar<MS::EntityHitbox>(
+                           panel, wxID_ANY,
+                           controller.entityHitboxController()),
+                       0, wxALIGN_RIGHT | wxALL, DEFAULT_BORDER);
 
-            auto* editor = new EntityHitboxPanel(panel, wxID_ANY, controller.entityHitboxController());
-            sizer->Add(editor, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
+            sizer->Add(new OrderedListCtrl<MS::EntityHitbox>(
+                           panel, wxID_ANY,
+                           controller.entityHitboxController()),
+                       1, wxEXPAND | wxLEFT | wxRIGHT, DEFAULT_BORDER);
+
+            sizer->Add(new EntityHitboxPanel(
+                           panel, wxID_ANY,
+                           controller.entityHitboxController()),
+                       0, wxEXPAND | wxALL, DEFAULT_BORDER);
 
             frameNotepad->AddPage(panel, "Hitboxes");
         }

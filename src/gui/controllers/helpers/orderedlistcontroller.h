@@ -20,6 +20,7 @@ public:
 
     const T* selected() const { return _selected; }
     void setSelected(const T* item);
+    void setSelected(int index);
 
     void create();
     void selected_clone();
