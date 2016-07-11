@@ -4,8 +4,10 @@
 #include "gui/view/common/ms8aabb.h"
 #include "gui/view/defaults.h"
 #include "gui/view/metasprite-common/abstractframesetpanel.h"
-
+#include "models/common/string.h"
 #include <wx/spinctrl.h>
+
+// ::TODO call _controller.dontMergeNextAction on wxSpinCtrl focus out::
 
 namespace UnTech {
 namespace View {
@@ -29,7 +31,7 @@ private:
 class FrameObjectPanel : public wxPanel {
 public:
     FrameObjectPanel(wxWindow* parent, int wxWindowID,
-                     MS::FrameObjectController& controller);
+                     MS::MetaSpriteController& controller);
 
 private:
     void UpdateGui();
@@ -155,7 +157,7 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
 
             sizer->Add(new FrameObjectPanel(
                            panel, wxID_ANY,
-                           controller.frameObjectController()),
+                           controller),
                        0, wxEXPAND | wxALL, DEFAULT_BORDER);
 
             frameNotepad->AddPage(panel, "Objects");
@@ -238,6 +240,24 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     grid->Add(_tileHitbox, 1, wxEXPAND);
 
     UpdateGui();
+
+    // Signals
+    // -------
+    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &FramePanel::UpdateGui));
+
+    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &FramePanel::UpdateGui));
+
+    // Events
+    // ------
+    _solid->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        _controller.selected_setSolid(_solid->GetValue());
+    });
+
+    _tileHitbox->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setTileHitbox_merge(_tileHitbox->GetValue());
+    });
 }
 
 void FramePanel::UpdateGui()
@@ -265,9 +285,9 @@ void FramePanel::UpdateGui()
 // =============
 
 FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
-                                   MS::FrameObjectController& controller)
+                                   MS::MetaSpriteController& controller)
     : wxPanel(parent, wxWindowID)
-    , _controller(controller)
+    , _controller(controller.frameObjectController())
 {
     auto* grid = new wxFlexGridSizer(5, 2, DEFAULT_HGAP, DEFAULT_VGAP);
     this->SetSizer(grid);
@@ -305,6 +325,57 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
     grid->Add(box, 1, wxEXPAND);
 
     UpdateGui();
+
+    // Signals
+    // -------
+    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &FrameObjectPanel::UpdateGui));
+
+    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &FrameObjectPanel::UpdateGui));
+
+    controller.frameSetController().signal_tileCountChanged().connect(
+        [this](const MS::FrameSet* frameSet) {
+            const MS::FrameObject* obj = _controller.selected();
+
+            if (obj && frameSet == &obj->frame().frameSet()) {
+                assert(frameSet != nullptr);
+
+                if (obj->size() == MS::FrameObject::ObjectSize::SMALL) {
+                    _tileId->SetRange(0, frameSet->smallTileset().size() - 1);
+                }
+                else {
+                    _tileId->SetRange(0, frameSet->largeTileset().size() - 1);
+                }
+            }
+        });
+
+    // Events
+    // ------
+    _location->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setLocation_merge(_location->GetValue());
+    });
+
+    _tileId->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setTileId_merge(_tileId->GetValue());
+    });
+
+    _size->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
+        typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
+        _controller.selected_setSize(_size->GetSelection() == 1 ? OS::LARGE : OS::SMALL);
+    });
+
+    _order->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setOrder(_order->GetValue());
+    });
+
+    _hFlip->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        _controller.selected_setHFlip(_hFlip->GetValue());
+    });
+
+    _vFlip->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        _controller.selected_setVFlip(_vFlip->GetValue());
+    });
 }
 
 void FrameObjectPanel::UpdateGui()
@@ -328,7 +399,7 @@ void FrameObjectPanel::UpdateGui()
         _size->SetSelection(obj->size() == OS::LARGE ? 1 : 0);
         _order->SetValue(obj->order());
         _hFlip->SetValue(obj->hFlip());
-        _vFlip->SetValue(obj->hFlip());
+        _vFlip->SetValue(obj->vFlip());
 
         this->Enable();
     }
@@ -370,6 +441,24 @@ ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID,
     grid->Add(_parameter, 1, wxEXPAND);
 
     UpdateGui();
+
+    // Signals
+    // -------
+    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &ActionPointPanel::UpdateGui));
+
+    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &ActionPointPanel::UpdateGui));
+
+    // Events
+    // ------
+    _location->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setLocation_merge(_location->GetValue());
+    });
+
+    _parameter->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setParameter_merge(_parameter->GetValue());
+    });
 }
 
 void ActionPointPanel::UpdateGui()
@@ -406,7 +495,7 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
     grid->AddGrowableCol(1, 1);
 
     _aabb = new Ms8RectCtrl(this, wxID_ANY);
-    grid->Add(new wxStaticText(this, wxID_ANY, "Location:"));
+    grid->Add(new wxStaticText(this, wxID_ANY, "AABB:"));
     grid->Add(_aabb, 1, wxEXPAND);
 
     // ::TODO replace with something better::
@@ -416,6 +505,24 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
     grid->Add(_parameter, 1, wxEXPAND);
 
     UpdateGui();
+
+    // Signals
+    // -------
+    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &EntityHitboxPanel::UpdateGui));
+
+    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &EntityHitboxPanel::UpdateGui));
+
+    // Events
+    // ------
+    _aabb->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setAabb_merge(_aabb->GetValue());
+    });
+
+    _parameter->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setParameter_merge(_parameter->GetValue());
+    });
 }
 
 void EntityHitboxPanel::UpdateGui()

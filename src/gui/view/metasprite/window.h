@@ -12,6 +12,8 @@ class Window : public wxFrame {
 public:
     Window();
 
+    MS::MetaSpriteController& Controller() { return _controller; }
+
 private:
     MS::MetaSpriteController _controller;
 };

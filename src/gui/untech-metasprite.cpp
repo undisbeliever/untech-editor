@@ -11,6 +11,7 @@ IMPLEMENT_APP(MyApp)
 bool MyApp::OnInit()
 {
     auto* window = new UnTech::View::MetaSprite::Window();
+    window->Controller().newDocument();
     window->Show(true);
 
     return true;

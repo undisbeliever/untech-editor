@@ -56,9 +56,10 @@ public:
     ~ActionPointController() = default;
 
     void selected_setLocation(const UnTech::ms8point& location);
-    void selected_setParameter(const unsigned& tileId);
+    void selected_setParameter(const unsigned& parameter);
 
     void selected_setLocation_merge(const UnTech::ms8point& location);
+    void selected_setParameter_merge(const unsigned& parameter);
 };
 
 /*
@@ -74,9 +75,10 @@ public:
     ~EntityHitboxController() = default;
 
     void selected_setAabb(const UnTech::ms8rect& aabb);
-    void selected_setParameter(const unsigned& tileId);
+    void selected_setParameter(const unsigned& parameter);
 
     void selected_setAabb_merge(const UnTech::ms8rect& aabb);
+    void selected_setParameter_merge(const unsigned& parameter);
 };
 
 /*

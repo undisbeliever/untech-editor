@@ -14,7 +14,7 @@ public:
                           MSC::AbstractFrameSetController& controller);
 
 private:
-    void updateGui();
+    void UpdateGui();
 
 private:
     MSC::AbstractFrameSetController& _controller;

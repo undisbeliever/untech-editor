@@ -14,7 +14,9 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
 
     grid->AddGrowableCol(1, 1);
 
-    _name = new wxTextCtrl(this, wxID_ANY);
+    _name = new wxTextCtrl(this, wxID_ANY,
+                           wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                           wxTE_PROCESS_ENTER);
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("Name:")));
     grid->Add(_name, 1, wxEXPAND);
 
@@ -32,10 +34,32 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("FrameSet Type:")));
     grid->Add(_frameSetType, 1, wxEXPAND);
 
-    updateGui();
+    UpdateGui();
+
+    // Signals
+    // -------
+    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &AbstractFrameSetPanel::UpdateGui));
+
+    _controller.signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &AbstractFrameSetPanel::UpdateGui)));
+
+    // Events
+    // ------
+    _name->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) {
+        _controller.selected_setName(_name->GetValue().ToStdString());
+        this->NavigateIn();
+    });
+    _name->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+        _controller.selected_setName(_name->GetValue().ToStdString());
+        e.Skip();
+    });
+
+    // ::TODO _tilesetType::
+    // ::TODO _exportOrderFilename::
 }
 
-void AbstractFrameSetPanel::updateGui()
+void AbstractFrameSetPanel::UpdateGui()
 {
     const MSC::AbstractFrameSet* frameSet = _controller.selected();
 

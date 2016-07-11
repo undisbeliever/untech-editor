@@ -156,12 +156,17 @@ CREATE_SIMPLE_ACTION(ActionPointController, selected_setLocation,
 CREATE_SIMPLE_ACTION(ActionPointController, selected_setParameter,
                      ActionPoint, unsigned, parameter, setParameter,
                      signal_dataChanged,
-                     "Set Action Point Tile")
+                     "Set Action Point Parameter")
 
 CREATE_MERGE_ACTION(ActionPointController, selected_setLocation_merge,
                     ActionPoint, UnTech::ms8point, location, setLocation,
                     signal_dataChanged,
                     "Set Action Point Location")
+
+CREATE_MERGE_ACTION(ActionPointController, selected_setParameter_merge,
+                    ActionPoint, unsigned, parameter, setParameter,
+                    signal_dataChanged,
+                    "Set Action Point Parameter")
 
 /*
  * ENTITY HITBOX CONTROLLER
@@ -177,12 +182,17 @@ CREATE_SIMPLE_ACTION(EntityHitboxController, selected_setAabb,
 CREATE_SIMPLE_ACTION(EntityHitboxController, selected_setParameter,
                      EntityHitbox, unsigned, parameter, setParameter,
                      signal_dataChanged,
-                     "Set Entity Hitbox Tile")
+                     "Set Entity Hitbox Parameter")
 
 CREATE_MERGE_ACTION(EntityHitboxController, selected_setAabb_merge,
                     EntityHitbox, UnTech::ms8rect, aabb, setAabb,
                     signal_dataChanged,
                     "Set Entity Hitbox AABB")
+
+CREATE_MERGE_ACTION(EntityHitboxController, selected_setParameter_merge,
+                    EntityHitbox, unsigned, parameter, setParameter,
+                    signal_dataChanged,
+                    "Set Entity Hitbox Parameter")
 
 /*
  * FRAME CONTROLLER
