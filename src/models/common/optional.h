@@ -46,6 +46,13 @@ public:
         }
     }
 
+    inline constexpr optional& operator=(const T& v)
+    {
+        _value = v;
+        _exists = true;
+        return *this;
+    }
+
 private:
     T _value;
     bool _exists;
