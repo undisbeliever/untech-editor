@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui/controllers/metasprite.h"
+#include "gui/view/common/namedlist.h"
 #include "gui/view/common/orderedlist.h"
 
 namespace UnTech {
@@ -9,6 +10,31 @@ namespace View {
 namespace MS = UnTech::MetaSprite;
 
 template class OrderedListCtrl<MS::FrameObject>;
+
+// FRAME
+// =====
+
+template <>
+void NamedListCtrl<MS::Frame>::CreateColumns()
+{
+    AppendColumn("Frame", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+}
+
+template <>
+wxString NamedListCtrl<MS::Frame>::OnGetItemText(long item, long column) const
+{
+    if (item < 0 || (unsigned)item >= _ptrList.size()) {
+        return wxEmptyString;
+    }
+
+    switch (column) {
+    case 0: {
+        return _nameList[item];
+    }
+    default:
+        return wxEmptyString;
+    }
+}
 
 // FRAME OBJECTS
 // =============

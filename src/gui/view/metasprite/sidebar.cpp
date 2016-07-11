@@ -120,9 +120,15 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         auto* frameSizer = new wxBoxSizer(wxVERTICAL);
         framePanel->SetSizer(frameSizer);
 
-        // ::TODO list::
-        auto* frameList = new wxPanel(framePanel);
-        frameSizer->Add(frameList, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
+        frameSizer->Add(new NamedListToolBar<MS::Frame>(
+                            framePanel, wxID_ANY,
+                            controller.frameController()),
+                        0, wxALIGN_RIGHT | wxALL, DEFAULT_BORDER);
+
+        frameSizer->Add(new NamedListCtrl<MS::Frame>(
+                            framePanel, wxID_ANY,
+                            controller.frameController()),
+                        1, wxEXPAND | wxLEFT | wxRIGHT, DEFAULT_BORDER);
 
         auto* frameNotepad = new wxNotebook(framePanel, wxID_ANY);
         frameSizer->Add(frameNotepad, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
