@@ -7,8 +7,6 @@
 #include "models/common/string.h"
 #include <wx/spinctrl.h>
 
-// ::TODO call _controller.dontMergeNextAction on wxSpinCtrl focus out::
-
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
@@ -281,6 +279,10 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
         _controller.selected_setSolid(_solid->GetValue());
     });
 
+    _tileHitbox->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
+        _controller.baseController().dontMergeNextAction();
+        e.Skip();
+    });
     _tileHitbox->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
         _controller.selected_setTileHitbox_merge(_tileHitbox->GetValue());
     });
@@ -376,10 +378,18 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
 
     // Events
     // ------
+    _location->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
+        _controller.baseController().dontMergeNextAction();
+        e.Skip();
+    });
     _location->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
         _controller.selected_setLocation_merge(_location->GetValue());
     });
 
+    _tileId->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
+        _controller.baseController().dontMergeNextAction();
+        e.Skip();
+    });
     _tileId->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
         _controller.selected_setTileId_merge(_tileId->GetValue());
     });
@@ -474,10 +484,18 @@ ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID,
 
     // Events
     // ------
+    _location->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
+        _controller.baseController().dontMergeNextAction();
+        e.Skip();
+    });
     _location->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
         _controller.selected_setLocation_merge(_location->GetValue());
     });
 
+    _parameter->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
+        _controller.baseController().dontMergeNextAction();
+        e.Skip();
+    });
     _parameter->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
         _controller.selected_setParameter_merge(_parameter->GetValue());
     });
@@ -536,10 +554,18 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
 
     // Events
     // ------
+    _aabb->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
+        _controller.baseController().dontMergeNextAction();
+        e.Skip();
+    });
     _aabb->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
         _controller.selected_setAabb_merge(_aabb->GetValue());
     });
 
+    _parameter->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
+        _controller.baseController().dontMergeNextAction();
+        e.Skip();
+    });
     _parameter->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
         _controller.selected_setParameter_merge(_parameter->GetValue());
     });
