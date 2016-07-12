@@ -89,6 +89,7 @@ using namespace UnTech::View::MetaSpriteCommon;
 Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                  MS::MetaSpriteController& controller)
     : wxNotebook(parent, wxWindowID)
+    , _controller(controller)
 {
     this->SetSizeHints(SIDEBAR_WIDTH, -1);
 
@@ -213,6 +214,33 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
 
         this->AddPage(framePanel, "Frame");
     }
+
+    // EVENTS
+    // ------
+
+    // BUGFIX: Force a GUI update on tab change
+    //
+    // Tab ordering is broken by a wxWindow->Disable() call
+    // in UpdateGui, which is called by the sidebar/list/toolbar
+    // constructors.
+    //
+    // Other attempts to fix this have failed.
+    // Currently tab order is still broken even if I:
+    //      * Call `UpdateGui` in constructor
+    //      * Call `UpdateGui` or `emitAllDataChanged` after show
+    //      * Call `emitAllDataChanged` in wxEVT_SHOW
+    //      * Call `emitAllDataChanged` in wxEVT_IDLE
+    //      * Change tab order in `UpdateGui`
+    //
+    // Ironically, after the wxFrame is shown and fully rendered,
+    // calls to Disable/Enable do not break tab ordering.
+    //
+    // This hack will get the controller to update the GUI on every
+    // tab change. Users will not notice because the broken widgets are
+    // on the second wxNotebook page.
+    this->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent&) {
+        _controller.emitAllDataChanged();
+    });
 }
 
 // FRAME
@@ -238,8 +266,6 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     _tileHitbox = new Ms8RectCtrl(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Tile Hitbox:"));
     grid->Add(_tileHitbox, 1, wxEXPAND);
-
-    UpdateGui();
 
     // Signals
     // -------
@@ -323,8 +349,6 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
     box->Add(_vFlip, 1, wxEXPAND, 0);
     grid->Add(new wxPanel(this, wxID_ANY));
     grid->Add(box, 1, wxEXPAND);
-
-    UpdateGui();
 
     // Signals
     // -------
@@ -440,8 +464,6 @@ ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));
     grid->Add(_parameter, 1, wxEXPAND);
 
-    UpdateGui();
-
     // Signals
     // -------
     _controller.signal_selectedChanged().connect(sigc::mem_fun(
@@ -503,8 +525,6 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
     _parameter->SetRange(0, 255);
     grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));
     grid->Add(_parameter, 1, wxEXPAND);
-
-    UpdateGui();
 
     // Signals
     // -------

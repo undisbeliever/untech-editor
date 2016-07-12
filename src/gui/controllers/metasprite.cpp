@@ -89,6 +89,23 @@ MetaSpriteController::MetaSpriteController(std::unique_ptr<Controller::Controlle
     });
 }
 
+void MetaSpriteController::emitAllDataChanged()
+{
+    _frameSetController.signal_selectedChanged().emit();
+    _abstractFrameSetController.signal_selectedChanged().emit();
+    _paletteController.signal_listChanged().emit();
+    _paletteController.signal_selectedChanged().emit();
+    _frameController.signal_listChanged().emit();
+    _frameController.signal_selectedChanged().emit();
+    _entityHitboxController.signal_listChanged().emit();
+    _entityHitboxController.signal_selectedChanged().emit();
+    _actionPointController.signal_listChanged().emit();
+    _actionPointController.signal_selectedChanged().emit();
+    _frameObjectController.signal_listChanged().emit();
+    _frameObjectController.signal_selectedChanged().emit();
+    _selectedTypeController.signal_typeChanged().emit();
+}
+
 /*
  * FRAME OBJECT CONTROLLER
  * =======================

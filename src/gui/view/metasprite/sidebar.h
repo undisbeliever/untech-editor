@@ -13,6 +13,9 @@ class Sidebar : public wxNotebook {
 public:
     Sidebar(wxWindow* parent, int wxWindowID,
             MS::MetaSpriteController& controller);
+
+private:
+    MS::MetaSpriteController& _controller;
 };
 }
 }

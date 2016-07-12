@@ -195,6 +195,10 @@ public:
     auto& frameObjectController() { return _frameObjectController; }
     auto& selectedTypeController() { return _selectedTypeController; }
 
+    // emits `signal_listChanged` and `signal_selectedChanged` for
+    // all child controllers.
+    void emitAllDataChanged();
+
 private:
     FrameSetController _frameSetController;
     MetaSpriteCommon::AbstractFrameSetController _abstractFrameSetController;

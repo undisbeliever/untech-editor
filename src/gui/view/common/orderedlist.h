@@ -21,7 +21,6 @@ public:
         , _controller(controller)
     {
         CreateColumns();
-        Disable();
 
         /*
          * EVENTS
@@ -158,8 +157,6 @@ public:
                 wxString("Remove ") + T::TYPE_NAME);
 
         Realize();
-
-        UpdateGui();
 
         /*
          * EVENTS

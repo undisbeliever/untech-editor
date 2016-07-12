@@ -34,8 +34,6 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("FrameSet Type:")));
     grid->Add(_frameSetType, 1, wxEXPAND);
 
-    UpdateGui();
-
     // Signals
     // -------
     _controller.signal_selectedChanged().connect(sigc::mem_fun(

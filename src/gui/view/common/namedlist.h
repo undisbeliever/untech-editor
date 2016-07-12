@@ -27,7 +27,6 @@ public:
         , _nameList()
     {
         CreateColumns();
-        Disable();
 
         /*
          * EVENTS
@@ -188,8 +187,6 @@ public:
                 wxString("Remove ") + T::TYPE_NAME);
 
         Realize();
-
-        UpdateGui();
 
         /*
          * EVENTS

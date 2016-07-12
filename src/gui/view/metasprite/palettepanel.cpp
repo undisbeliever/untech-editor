@@ -28,8 +28,6 @@ PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
         grid->Add(_colors[i], 1);
     }
 
-    updateGui();
-
     // EVENTS
     // ======
     _editColor->Bind(wxEVT_TOGGLEBUTTON, &PalettePanel::on_editColorToggled, this);
