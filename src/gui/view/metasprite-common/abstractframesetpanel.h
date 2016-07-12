@@ -1,5 +1,6 @@
 #pragma once
 #include "gui/controllers/metasprite-common.h"
+#include "gui/view/common/namedlistnamectrl.h"
 #include <wx/wx.h>
 
 namespace UnTech {
@@ -19,7 +20,7 @@ private:
 private:
     MSC::AbstractFrameSetController& _controller;
 
-    wxTextCtrl* _name;
+    NamedListNameCtrl* _name;
     wxChoice* _tilesetType;
     wxTextCtrl* _exportOrderFilename;
     wxTextCtrl* _frameSetType;

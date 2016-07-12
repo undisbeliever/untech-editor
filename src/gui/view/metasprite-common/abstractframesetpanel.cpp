@@ -14,9 +14,9 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
 
     grid->AddGrowableCol(1, 1);
 
-    _name = new wxTextCtrl(this, wxID_ANY,
-                           wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                           wxTE_PROCESS_ENTER);
+    _name = new NamedListNameCtrl(this, wxID_ANY,
+                                  wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                  wxTE_PROCESS_ENTER);
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("Name:")));
     grid->Add(_name, 1, wxEXPAND);
 
