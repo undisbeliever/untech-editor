@@ -1,4 +1,5 @@
 #pragma once
+#include "namedlistnamedialiog.h"
 #include "gui/controllers/helpers/namedlistcontroller.h"
 #include "gui/view/defaults.h"
 #include "models/common/optional.h"
@@ -203,11 +204,9 @@ public:
 
             switch (e.GetId()) {
             case ID_CREATE: {
-                wxTextEntryDialog dialog(this,
-                                         wxString("Input ") + T::TYPE_NAME + " name",
-                                         wxString("Input name of new ") + T::TYPE_NAME,
-                                         wxEmptyString,
-                                         wxOK | wxCANCEL | wxCENTER);
+                NamedListNameDialog dialog(this,
+                                           wxString("Input ") + T::TYPE_NAME + " name",
+                                           wxString("Input name of new ") + T::TYPE_NAME);
 
                 if (dialog.ShowModal() == wxID_OK) {
                     _controller.create(dialog.GetValue().ToStdString());
@@ -216,11 +215,10 @@ public:
             }
 
             case ID_CLONE: {
-                wxTextEntryDialog dialog(this,
-                                         wxString("Input ") + T::TYPE_NAME + " name",
-                                         wxString("Input new name of cloned ") + T::TYPE_NAME,
-                                         wxEmptyString,
-                                         wxOK | wxCANCEL | wxCENTER);
+                NamedListNameDialog dialog(this,
+                                           wxString("Input ") + T::TYPE_NAME + " name",
+                                           wxString("Input new name of cloned ") + T::TYPE_NAME);
+                dialog.SetValue(_controller.selectedName());
 
                 if (dialog.ShowModal() == wxID_OK) {
                     _controller.selected_clone(dialog.GetValue().ToStdString());
@@ -229,11 +227,10 @@ public:
             }
 
             case ID_RENAME: {
-                wxTextEntryDialog dialog(this,
-                                         wxString("Input ") + T::TYPE_NAME + " name",
-                                         wxString("Rename ") + T::TYPE_NAME + " to",
-                                         _controller.selectedName(),
-                                         wxOK | wxCANCEL | wxCENTER);
+                NamedListNameDialog dialog(this,
+                                           wxString("Input ") + T::TYPE_NAME + " name",
+                                           wxString("Rename ") + T::TYPE_NAME + " to");
+                dialog.SetValue(_controller.selectedName());
 
                 if (dialog.ShowModal() == wxID_OK) {
                     _controller.selected_rename(dialog.GetValue().ToStdString());
