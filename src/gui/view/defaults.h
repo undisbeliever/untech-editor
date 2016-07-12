@@ -3,10 +3,6 @@
 namespace UnTech {
 namespace View {
 
-const static int DEFAULT_BORDER = 5;
-const static int DEFAULT_HGAP = 4;
-const static int DEFAULT_VGAP = 9;
-
 const static int DIALOG_TEXT_WIDTH = 300;
 
 const static int SIDEBAR_WIDTH = 350;

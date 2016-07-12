@@ -47,8 +47,8 @@ Window::Window()
 
         auto* sidebar = new Sidebar(this, wxID_ANY, _controller);
 
-        sizer->Add(graphics, 4, wxEXPAND | wxALL, DEFAULT_BORDER);
-        sizer->Add(sidebar, 0, wxEXPAND | (wxALL ^ wxLEFT), DEFAULT_BORDER);
+        sizer->Add(graphics, wxSizerFlags(1).Expand().Border());
+        sizer->Add(sidebar, wxSizerFlags().Expand().Border(wxTOP | wxBOTTOM | wxRIGHT));
 
         this->SetSizer(sizer);
 

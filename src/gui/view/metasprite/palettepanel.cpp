@@ -13,10 +13,10 @@ PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
     this->SetSizer(sizer);
 
     _editColor = new wxToggleButton(this, wxID_ANY, "Edit");
-    sizer->Add(_editColor, 0, wxRIGHT | wxALIGN_RIGHT, DEFAULT_BORDER);
+    sizer->Add(_editColor, wxSizerFlags(0).Right().Border(wxBOTTOM));
 
     auto* grid = new wxGridSizer(2, 8, 0, 0);
-    sizer->Add(grid, 0, wxEXPAND | wxTOP, DEFAULT_BORDER);
+    sizer->Add(grid, wxSizerFlags(0).Center());
 
     wxSize buttonSize(SIDEBAR_WIDTH / 9, SIDEBAR_WIDTH / 9);
 

@@ -99,17 +99,17 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         panel->SetSizer(sizer);
 
         auto* afPanel = new AbstractFrameSetPanel(panel, wxID_ANY, controller.abstractFrameSetController());
-        sizer->Add(afPanel, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
+        sizer->Add(afPanel, wxSizerFlags().Expand().Border());
 
         auto* palSizer = new wxStaticBoxSizer(wxVERTICAL, panel, "Palette");
-        sizer->Add(palSizer, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
+        sizer->Add(palSizer, wxSizerFlags(1).Expand().Border());
 
         // ::TODO list::
         auto* paletteList = new wxPanel(panel);
-        palSizer->Add(paletteList, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
+        palSizer->Add(paletteList, wxSizerFlags(1).Expand().Border());
 
         auto* palPanel = new PalettePanel(panel, wxID_ANY, controller.paletteController());
-        palSizer->Add(palPanel, 0, wxEXPAND | wxALL, DEFAULT_BORDER);
+        palSizer->Add(palPanel, wxSizerFlags(0).Expand().Border());
 
         this->AddPage(panel, "FrameSet");
     }
@@ -124,15 +124,15 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         frameSizer->Add(new NamedListToolBar<MS::Frame>(
                             framePanel, wxID_ANY,
                             controller.frameController()),
-                        0, wxALIGN_RIGHT | wxALL, DEFAULT_BORDER);
+                        wxSizerFlags(0).Right().Border());
 
         frameSizer->Add(new NamedListCtrl<MS::Frame>(
                             framePanel, wxID_ANY,
                             controller.frameController()),
-                        1, wxEXPAND | wxLEFT | wxRIGHT, DEFAULT_BORDER);
+                        wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
 
         auto* frameNotepad = new wxNotebook(framePanel, wxID_ANY);
-        frameSizer->Add(frameNotepad, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
+        frameSizer->Add(frameNotepad, wxSizerFlags(1).Expand().Border());
 
         frameNotepad->AddPage(
             new FramePanel(frameNotepad, wxID_ANY, controller.frameController()),
@@ -147,17 +147,17 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             sizer->Add(new OrderedListToolBar<MS::FrameObject>(
                            panel, wxID_ANY,
                            controller.frameObjectController()),
-                       0, wxALIGN_RIGHT | wxALL, DEFAULT_BORDER);
+                       wxSizerFlags(0).Right().Border());
 
             sizer->Add(new OrderedListCtrl<MS::FrameObject>(
                            panel, wxID_ANY,
                            controller.frameObjectController()),
-                       1, wxEXPAND | wxLEFT | wxRIGHT, DEFAULT_BORDER);
+                       wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
 
             sizer->Add(new FrameObjectPanel(
                            panel, wxID_ANY,
                            controller),
-                       0, wxEXPAND | wxALL, DEFAULT_BORDER);
+                       wxSizerFlags(0).Expand().Border());
 
             frameNotepad->AddPage(panel, "Objects");
         }
@@ -171,17 +171,17 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             sizer->Add(new OrderedListToolBar<MS::ActionPoint>(
                            panel, wxID_ANY,
                            controller.actionPointController()),
-                       0, wxALIGN_RIGHT | wxALL, DEFAULT_BORDER);
+                       wxSizerFlags(0).Right().Border());
 
             sizer->Add(new OrderedListCtrl<MS::ActionPoint>(
                            panel, wxID_ANY,
                            controller.actionPointController()),
-                       1, wxEXPAND | wxLEFT | wxRIGHT, DEFAULT_BORDER);
+                       wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
 
             sizer->Add(new ActionPointPanel(
                            panel, wxID_ANY,
                            controller.actionPointController()),
-                       0, wxEXPAND | wxALL, DEFAULT_BORDER);
+                       wxSizerFlags(0).Expand().Border());
 
             frameNotepad->AddPage(panel, "Action Points");
         }
@@ -195,17 +195,17 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             sizer->Add(new OrderedListToolBar<MS::EntityHitbox>(
                            panel, wxID_ANY,
                            controller.entityHitboxController()),
-                       0, wxALIGN_RIGHT | wxALL, DEFAULT_BORDER);
+                       wxSizerFlags(0).Right().Border());
 
             sizer->Add(new OrderedListCtrl<MS::EntityHitbox>(
                            panel, wxID_ANY,
                            controller.entityHitboxController()),
-                       1, wxEXPAND | wxLEFT | wxRIGHT, DEFAULT_BORDER);
+                       wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
 
             sizer->Add(new EntityHitboxPanel(
                            panel, wxID_ANY,
                            controller.entityHitboxController()),
-                       0, wxEXPAND | wxALL, DEFAULT_BORDER);
+                       wxSizerFlags(0).Expand().Border());
 
             frameNotepad->AddPage(panel, "Hitboxes");
         }
@@ -252,8 +252,9 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(sizer);
 
-    auto* grid = new wxFlexGridSizer(2, 2, DEFAULT_HGAP, DEFAULT_VGAP);
-    sizer->Add(grid, 1, wxEXPAND | wxALL, DEFAULT_BORDER);
+    int defBorder = wxSizerFlags::GetDefaultBorder();
+    auto* grid = new wxFlexGridSizer(2, 2, defBorder, defBorder * 2);
+    sizer->Add(grid, wxSizerFlags(1).Expand().Border());
 
     grid->AddGrowableCol(1, 1);
 
@@ -263,7 +264,7 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
 
     _tileHitbox = new Ms8RectCtrl(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Tile Hitbox:"));
-    grid->Add(_tileHitbox, 1, wxEXPAND);
+    grid->Add(_tileHitbox, wxSizerFlags(1).Expand());
 
     // Signals
     // -------
@@ -317,18 +318,19 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
     : wxPanel(parent, wxWindowID)
     , _controller(controller.frameObjectController())
 {
-    auto* grid = new wxFlexGridSizer(5, 2, DEFAULT_HGAP, DEFAULT_VGAP);
+    int defBorder = wxSizerFlags::GetDefaultBorder();
+    auto* grid = new wxFlexGridSizer(5, 2, defBorder, defBorder * 2);
     this->SetSizer(grid);
 
     grid->AddGrowableCol(1, 1);
 
     _location = new Ms8PointCtrl(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Location:"));
-    grid->Add(_location, 1, wxEXPAND);
+    grid->Add(_location, wxSizerFlags(1).Expand());
 
     _tileId = new wxSpinCtrl(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Tile Id:"));
-    grid->Add(_tileId, 1, wxEXPAND);
+    grid->Add(_tileId, wxSizerFlags(1).Expand());
 
     wxArrayString sizeChoices;
     sizeChoices.Add("Small");
@@ -336,21 +338,21 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
 
     _size = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, sizeChoices);
     grid->Add(new wxStaticText(this, wxID_ANY, "Size:"));
-    grid->Add(_size, 1, wxEXPAND);
+    grid->Add(_size, wxSizerFlags(1).Expand());
 
     _order = new wxSpinCtrl(this, wxID_ANY);
     _order->SetRange(0, 3);
     grid->Add(new wxStaticText(this, wxID_ANY, "Order:"));
-    grid->Add(_order, 1, wxEXPAND);
+    grid->Add(_order, wxSizerFlags(1).Expand());
 
     _hFlip = new wxCheckBox(this, wxID_ANY, "hFlip");
     _vFlip = new wxCheckBox(this, wxID_ANY, "vFlip");
 
     auto* box = new wxBoxSizer(wxHORIZONTAL);
-    box->Add(_hFlip, 1, wxEXPAND, 0);
-    box->Add(_vFlip, 1, wxEXPAND, 0);
+    box->Add(_hFlip, wxSizerFlags(1).Expand());
+    box->Add(_vFlip, wxSizerFlags(1).Expand());
     grid->Add(new wxPanel(this, wxID_ANY));
-    grid->Add(box, 1, wxEXPAND);
+    grid->Add(box, wxSizerFlags(1).Expand());
 
     // Signals
     // -------
@@ -459,20 +461,21 @@ ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID,
     : wxPanel(parent, wxWindowID)
     , _controller(controller)
 {
-    auto* grid = new wxFlexGridSizer(2, 2, DEFAULT_HGAP, DEFAULT_VGAP);
+    int defBorder = wxSizerFlags::GetDefaultBorder();
+    auto* grid = new wxFlexGridSizer(2, 2, defBorder, defBorder * 2);
     this->SetSizer(grid);
 
     grid->AddGrowableCol(1, 1);
 
     _location = new Ms8PointCtrl(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Location:"));
-    grid->Add(_location, 1, wxEXPAND);
+    grid->Add(_location, wxSizerFlags(1).Expand());
 
     // ::TODO replace with something better::
     _parameter = new wxSpinCtrl(this, wxID_ANY);
     _parameter->SetRange(0, 255);
     grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));
-    grid->Add(_parameter, 1, wxEXPAND);
+    grid->Add(_parameter, wxSizerFlags(1).Expand());
 
     // Signals
     // -------
@@ -529,20 +532,21 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
     : wxPanel(parent, wxWindowID)
     , _controller(controller)
 {
-    auto* grid = new wxFlexGridSizer(2, 2, DEFAULT_HGAP, DEFAULT_VGAP);
+    int defBorder = wxSizerFlags::GetDefaultBorder();
+    auto* grid = new wxFlexGridSizer(2, 2, defBorder, defBorder * 2);
     this->SetSizer(grid);
 
     grid->AddGrowableCol(1, 1);
 
     _aabb = new Ms8RectCtrl(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "AABB:"));
-    grid->Add(_aabb, 1, wxEXPAND);
+    grid->Add(_aabb, wxSizerFlags(1).Expand());
 
     // ::TODO replace with something better::
     _parameter = new wxSpinCtrl(this, wxID_ANY);
     _parameter->SetRange(0, 255);
     grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));
-    grid->Add(_parameter, 1, wxEXPAND);
+    grid->Add(_parameter, wxSizerFlags(1).Expand());
 
     // Signals
     // -------

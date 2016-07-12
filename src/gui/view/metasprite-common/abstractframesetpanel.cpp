@@ -9,7 +9,8 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
     : wxPanel(parent, wxWindowID)
     , _controller(controller)
 {
-    auto* grid = new wxFlexGridSizer(4, 2, DEFAULT_HGAP, DEFAULT_VGAP);
+    int defBorder = wxSizerFlags::GetDefaultBorder();
+    auto* grid = new wxFlexGridSizer(4, 2, defBorder, defBorder * 2);
     this->SetSizer(grid);
 
     grid->AddGrowableCol(1, 1);
@@ -18,21 +19,21 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
                                   wxEmptyString, wxDefaultPosition, wxDefaultSize,
                                   wxTE_PROCESS_ENTER);
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("Name:")));
-    grid->Add(_name, 1, wxEXPAND);
+    grid->Add(_name, wxSizerFlags().Expand());
 
     _tilesetType = new wxChoice(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("Tileset Type:")));
-    grid->Add(_tilesetType, 1, wxEXPAND);
+    grid->Add(_tilesetType, wxSizerFlags(1).Expand());
 
     _exportOrderFilename = new wxTextCtrl(this, wxID_ANY);
     _exportOrderFilename->Disable();
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("Export Order:")));
-    grid->Add(_exportOrderFilename, 1, wxEXPAND);
+    grid->Add(_exportOrderFilename, wxSizerFlags(1).Expand());
 
     _frameSetType = new wxTextCtrl(this, wxID_ANY);
     _frameSetType->Disable();
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("FrameSet Type:")));
-    grid->Add(_frameSetType, 1, wxEXPAND);
+    grid->Add(_frameSetType, wxSizerFlags(1).Expand());
 
     // Signals
     // -------
