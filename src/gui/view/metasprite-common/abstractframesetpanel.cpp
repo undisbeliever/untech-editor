@@ -21,7 +21,7 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("Name:")));
     grid->Add(_name, wxSizerFlags().Expand());
 
-    _tilesetType = new wxChoice(this, wxID_ANY);
+    _tilesetType = new EnumClassChoice<MSC::TilesetType>(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("Tileset Type:")));
     grid->Add(_tilesetType, wxSizerFlags(1).Expand());
 
@@ -54,7 +54,10 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
         e.Skip();
     });
 
-    // ::TODO _tilesetType::
+    _tilesetType->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
+        _controller.selected_setTilesetType(_tilesetType->GetValue());
+    });
+
     // ::TODO _exportOrderFilename::
 }
 
@@ -66,7 +69,7 @@ void AbstractFrameSetPanel::UpdateGui()
         this->Enable();
 
         _name->ChangeValue(frameSet->name());
-        _tilesetType->SetSelection(0); // ::TODO::
+        _tilesetType->SetValue(frameSet->tilesetType());
 
         const auto& fseoDocument = frameSet->exportOrderDocument();
         if (fseoDocument) {

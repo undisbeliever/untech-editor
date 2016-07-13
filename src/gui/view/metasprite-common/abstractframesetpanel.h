@@ -1,5 +1,6 @@
 #pragma once
 #include "gui/controllers/metasprite-common.h"
+#include "gui/view/common/enumclasschoice.h"
 #include "gui/view/common/namedlistnamectrl.h"
 #include <wx/wx.h>
 
@@ -21,7 +22,7 @@ private:
     MSC::AbstractFrameSetController& _controller;
 
     NamedListNameCtrl* _name;
-    wxChoice* _tilesetType;
+    EnumClassChoice<MSC::TilesetType>* _tilesetType;
     wxTextCtrl* _exportOrderFilename;
     wxTextCtrl* _frameSetType;
 };
