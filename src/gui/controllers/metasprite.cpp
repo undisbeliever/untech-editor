@@ -91,8 +91,9 @@ MetaSpriteController::MetaSpriteController(std::unique_ptr<Controller::Controlle
 
 void MetaSpriteController::emitAllDataChanged()
 {
+    _abstractFrameSetController.emitAllDataChanged();
+
     _frameSetController.signal_selectedChanged().emit();
-    _abstractFrameSetController.signal_selectedChanged().emit();
     _paletteController.signal_listChanged().emit();
     _paletteController.signal_selectedChanged().emit();
     _frameController.signal_listChanged().emit();

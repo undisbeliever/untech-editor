@@ -49,6 +49,10 @@ public:
     auto& animationController() { return _animationController; }
     auto& animationInstructionController() { return _animationInstructionController; }
 
+    // emits `signal_listChanged` and `signal_selectedChanged` for
+    // all child controllers.
+    void emitAllDataChanged();
+
     void selected_setName(const std::string& name);
     void selected_setTilesetType(const TilesetType&);
     void selected_setExportOrderFilename(const std::string& filename);

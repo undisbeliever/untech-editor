@@ -4,6 +4,7 @@
 #include "gui/view/common/ms8aabb.h"
 #include "gui/view/defaults.h"
 #include "gui/view/metasprite-common/abstractframesetpanel.h"
+#include "gui/view/metasprite-common/animation-sidebarpage.h"
 #include "models/common/string.h"
 #include <wx/spinctrl.h>
 
@@ -211,6 +212,11 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         }
 
         this->AddPage(framePanel, "Frame");
+
+        this->AddPage(
+            new AnimationSidebarPage(this, wxID_ANY,
+                                     controller.abstractFrameSetController()),
+            "Animations");
     }
 
     // EVENTS

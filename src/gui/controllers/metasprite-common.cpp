@@ -42,6 +42,15 @@ AbstractFrameSetController::AbstractFrameSetController(Controller::BaseControlle
     });
 }
 
+void AbstractFrameSetController::emitAllDataChanged()
+{
+    signal_dataChanged().emit(selected());
+    _animationController.signal_selectedChanged().emit();
+    _animationController.signal_listChanged().emit();
+    _animationInstructionController.signal_selectedChanged().emit();
+    _animationInstructionController.signal_listChanged().emit();
+}
+
 CREATE_SIMPLE_ACTION2(AbstractFrameSetController, selected_setName,
                       AbstractFrameSet,
                       std::string, name, setName,
