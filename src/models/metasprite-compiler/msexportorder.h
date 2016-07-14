@@ -39,6 +39,9 @@ private:
 
 class MsExportOrderDocument : public ::UnTech::Document {
 public:
+    const static DocumentType DOCUMENT_TYPE;
+
+public:
     MsExportOrderDocument();
     explicit MsExportOrderDocument(const std::string& filename);
 
@@ -47,6 +50,9 @@ public:
     inline auto& exportOrder() { return _msExportOrder; }
     inline const auto& exportOrder() const { return _msExportOrder; }
 
+    virtual const DocumentType& documentType() const override;
+
+protected:
     virtual void writeDataFile(const std::string& filename) override;
 
 private:

@@ -2,6 +2,7 @@
 #include "gui/controllers/metasprite-common.h"
 #include "gui/view/common/enumclasschoice.h"
 #include "gui/view/common/namedlistnamectrl.h"
+#include <wx/tglbtn.h>
 #include <wx/wx.h>
 
 namespace UnTech {
@@ -24,6 +25,7 @@ private:
     NamedListNameCtrl* _name;
     EnumClassChoice<MSC::TilesetType>* _tilesetType;
     wxTextCtrl* _exportOrderFilename;
+    wxToggleButton* _exportOrderButton;
     wxTextCtrl* _frameSetType;
 };
 }

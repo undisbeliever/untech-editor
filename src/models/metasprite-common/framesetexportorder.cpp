@@ -6,6 +6,11 @@
 using namespace UnTech;
 using namespace UnTech::MetaSpriteCommon::FrameSetExportOrder;
 
+const UnTech::DocumentType ExportOrderDocument::DOCUMENT_TYPE = {
+    "UnTech FrameSet Type Document",
+    "utft"
+};
+
 ExportOrderDocument::ExportOrderDocument()
     : ::UnTech::Document()
     , _exportOrder(*this)
@@ -46,4 +51,9 @@ std::shared_ptr<const ExportOrderDocument> ExportOrderDocument::loadReadOnly(con
     openDocuments[fullPath] = ret;
 
     return ret;
+}
+
+const DocumentType& ExportOrderDocument::documentType() const
+{
+    return DOCUMENT_TYPE;
 }

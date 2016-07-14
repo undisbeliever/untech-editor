@@ -146,6 +146,9 @@ private:
 
 class ExportOrderDocument : public ::UnTech::Document {
 public:
+    const static DocumentType DOCUMENT_TYPE;
+
+public:
     ExportOrderDocument();
     explicit ExportOrderDocument(const std::string& filename);
 
@@ -154,9 +157,12 @@ public:
     inline auto& exportOrder() { return _exportOrder; }
     inline const auto& exportOrder() const { return _exportOrder; }
 
-    virtual void writeDataFile(const std::string& filename) override;
-
     static std::shared_ptr<const ExportOrderDocument> loadReadOnly(const std::string& filename);
+
+    virtual const DocumentType& documentType() const override;
+
+protected:
+    virtual void writeDataFile(const std::string& filename) override;
 
 private:
     ExportOrder _exportOrder;

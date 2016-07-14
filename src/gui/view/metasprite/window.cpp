@@ -1,6 +1,7 @@
 #include "window.h"
 #include "sidebar.h"
 #include "gui/view/common/controllerinterface.h"
+#include "gui/view/common/filedialogs.h"
 #include "gui/view/defaults.h"
 
 namespace UnTech {
@@ -108,6 +109,22 @@ Window::Window()
 
         // EVENTS
         // ------
+        menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
+                      &Window::OnMenuNew, this,
+                      wxID_NEW);
+
+        menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
+                      &Window::OnMenuOpen, this,
+                      wxID_OPEN);
+
+        menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
+                      &Window::OnMenuSave, this,
+                      wxID_SAVE);
+
+        menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
+                      &Window::OnMenuSaveAs, this,
+                      wxID_SAVEAS);
+
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
                 this->Close(true);
@@ -133,5 +150,59 @@ Window::Window()
                 printf("Set Aspect Ratio: %i\n", a);
             },
             ID_ASPECT_SQUARE, ID_ASPECT_PAL);
+    }
+}
+
+void Window::CreateOpen(const std::string& filename)
+{
+    auto* window = new Window();
+    bool s = window->Controller().openDocument(filename);
+
+    if (s) {
+        window->Show(true);
+    }
+    else {
+        window->Destroy();
+    }
+}
+
+void Window::OnMenuNew(wxCommandEvent&)
+{
+    Window* window = new Window();
+    window->Controller().newDocument();
+    window->Show(true);
+}
+
+void Window::OnMenuOpen(wxCommandEvent&)
+{
+    auto fn = openFileDialog(this,
+                             MS::MetaSpriteDocument::DOCUMENT_TYPE,
+                             _controller.document());
+
+    if (fn) {
+        CreateOpen(fn.value());
+    }
+}
+
+void Window::OnMenuSave(wxCommandEvent& e)
+{
+    if (_controller.document()) {
+        bool s = _controller.saveDocument();
+        if (!s) {
+            return OnMenuSaveAs(e);
+        }
+    }
+}
+
+void Window::OnMenuSaveAs(wxCommandEvent&)
+{
+    if (_controller.document()) {
+        auto fn = saveFileDialog(this,
+                                 MS::MetaSpriteDocument::DOCUMENT_TYPE,
+                                 _controller.document());
+
+        if (fn) {
+            _controller.saveDocumentAs(fn.value());
+        }
     }
 }

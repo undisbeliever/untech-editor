@@ -6,9 +6,13 @@
 
 namespace UnTech {
 
-namespace Undo {
-class UndoStack;
-}
+struct DocumentType {
+    // MUST NOT CONTAIN PIPE CHARACTER
+    const std::string name;
+
+    // MUST NOT CONTAIN PIPE OR START
+    const std::string extension;
+};
 
 /**
  * The Document abstract class is the root class of a document.
@@ -18,7 +22,7 @@ class UndoStack;
  * Subclasses MUST load the document if the filename is specified in the
  * constructor.
  *
- * This is to ensure a seperation of the various model types while providing
+ * This is to ensure a separation of the various model types while providing
  * a common pointer for extra functionality (ie, the Undo system).
  */
 class Document {
@@ -53,14 +57,12 @@ public:
         _filename = newFilename;
     }
 
-    Undo::UndoStack* undoStack() const { return _undoStack; }
-    void setUndoStack(Undo::UndoStack* undoStack) { _undoStack = undoStack; }
+    virtual const DocumentType& documentType() const = 0;
 
 protected:
     virtual void writeDataFile(const std::string& filename) = 0;
 
 private:
     std::string _filename;
-    Undo::UndoStack* _undoStack;
 };
 }

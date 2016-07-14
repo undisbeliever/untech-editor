@@ -1,8 +1,7 @@
 #pragma once
 
 #include "frameset.h"
-#include "serializer.h"
-#include "../document.h"
+#include "models/document.h"
 #include <string>
 
 namespace UnTech {
@@ -15,29 +14,21 @@ namespace MetaSprite {
  */
 class MetaSpriteDocument : public ::UnTech::Document {
 public:
-    MetaSpriteDocument()
-        : Document()
-        , _frameSet(*this)
-    {
-    }
+    const static DocumentType DOCUMENT_TYPE;
 
-    explicit MetaSpriteDocument(const std::string& filename)
-        : Document(filename)
-        , _frameSet(*this)
-    {
-        Serializer::readFile(_frameSet, filename);
-    }
+public:
+    MetaSpriteDocument();
+    explicit MetaSpriteDocument(const std::string& filename);
 
     virtual ~MetaSpriteDocument() = default;
 
     FrameSet& frameSet() { return _frameSet; }
     const FrameSet& frameSet() const { return _frameSet; }
 
-    virtual void writeDataFile(const std::string& filename) override
-    {
-        Serializer::writeFile(_frameSet, filename);
-        setFilename(filename);
-    }
+    virtual const DocumentType& documentType() const override;
+
+protected:
+    virtual void writeDataFile(const std::string& filename) override;
 
 private:
     FrameSet _frameSet;

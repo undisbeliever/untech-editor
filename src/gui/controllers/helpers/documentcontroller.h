@@ -19,7 +19,7 @@ public:
     auto signal_documentChanged() { return _signal_documentChanged; }
 
     void newDocument();
-    void openDocument(const std::string& filename);
+    bool openDocument(const std::string& filename);
     bool saveDocument();
     bool saveDocumentAs(const std::string& filename);
 

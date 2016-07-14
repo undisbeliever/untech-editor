@@ -1,14 +1,11 @@
 #pragma once
 
 #include "frameset.h"
-#include "serializer.h"
-#include "../document.h"
+#include "models/document.h"
 #include <string>
 
 namespace UnTech {
 namespace SpriteImporter {
-
-class FrameSet;
 
 /**
  * The root object of a SpriteImporter data structure.
@@ -17,29 +14,21 @@ class FrameSet;
  */
 class SpriteImporterDocument : public ::UnTech::Document {
 public:
-    SpriteImporterDocument()
-        : Document()
-        , _frameSet(*this)
-    {
-    }
+    const static DocumentType DOCUMENT_TYPE;
 
-    explicit SpriteImporterDocument(const std::string& filename)
-        : Document(filename)
-        , _frameSet(*this)
-    {
-        Serializer::readFile(_frameSet, filename);
-    }
+public:
+    SpriteImporterDocument();
+    explicit SpriteImporterDocument(const std::string& filename);
 
     virtual ~SpriteImporterDocument() = default;
 
     FrameSet& frameSet() { return _frameSet; }
     const FrameSet& frameSet() const { return _frameSet; }
 
-    virtual void writeDataFile(const std::string& filename) override
-    {
-        Serializer::writeFile(_frameSet, filename);
-        setFilename(filename);
-    }
+    virtual const DocumentType& documentType() const override;
+
+protected:
+    virtual void writeDataFile(const std::string& filename) override;
 
 private:
     FrameSet _frameSet;

@@ -1,6 +1,7 @@
 #include "../models/common/file.h"
 #include "../models/common/namedlist.h"
 #include "../models/metasprite.h"
+#include "../models/metasprite/serializer.h"
 #include "../models/sprite-importer.h"
 #include "../models/utsi2utms/utsi2utms.h"
 #include <cstdlib>

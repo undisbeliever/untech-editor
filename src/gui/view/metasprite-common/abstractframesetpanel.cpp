@@ -1,4 +1,5 @@
 #include "abstractframesetpanel.h"
+#include "gui/view/common/filedialogs.h"
 #include "gui/view/defaults.h"
 #include "models/metasprite-common/framesetexportorder.h"
 
@@ -23,17 +24,26 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
 
     _tilesetType = new EnumClassChoice<MSC::TilesetType>(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("Tileset Type:")));
-    grid->Add(_tilesetType, wxSizerFlags(1).Expand());
+    grid->Add(_tilesetType, wxSizerFlags().Expand());
+
+    grid->Add(new wxStaticText(this, wxID_ANY, wxT("Export Order:")));
+
+    auto* box = new wxBoxSizer(wxHORIZONTAL);
+    grid->Add(box, wxSizerFlags().Expand());
 
     _exportOrderFilename = new wxTextCtrl(this, wxID_ANY);
     _exportOrderFilename->Disable();
-    grid->Add(new wxStaticText(this, wxID_ANY, wxT("Export Order:")));
-    grid->Add(_exportOrderFilename, wxSizerFlags(1).Expand());
+    box->Add(_exportOrderFilename, wxSizerFlags(1).Expand());
+
+    _exportOrderButton = new wxToggleButton(this, wxID_ANY, " ... ",
+                                            wxDefaultPosition, wxDefaultSize,
+                                            wxBU_EXACTFIT);
+    box->Add(_exportOrderButton, wxSizerFlags().Expand().Border(wxLEFT));
 
     _frameSetType = new wxTextCtrl(this, wxID_ANY);
     _frameSetType->Disable();
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("FrameSet Type:")));
-    grid->Add(_frameSetType, wxSizerFlags(1).Expand());
+    grid->Add(_frameSetType, wxSizerFlags().Expand());
 
     // Signals
     // -------
@@ -58,7 +68,24 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
         _controller.selected_setTilesetType(_tilesetType->GetValue());
     });
 
-    // ::TODO _exportOrderFilename::
+    _exportOrderButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) {
+        namespace FSEO = MSC::FrameSetExportOrder;
+
+        const MSC::AbstractFrameSet* frameSet = _controller.selected();
+
+        _exportOrderButton->SetValue(true);
+
+        if (frameSet) {
+            auto fn = openFileDialog(this,
+                                     FSEO::ExportOrderDocument::DOCUMENT_TYPE,
+                                     frameSet->exportOrderDocument().get());
+            if (fn) {
+                _controller.selected_setExportOrderFilename(fn.value());
+            }
+        }
+
+        _exportOrderButton->SetValue(false);
+    });
 }
 
 void AbstractFrameSetPanel::UpdateGui()

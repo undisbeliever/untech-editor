@@ -34,7 +34,7 @@ void DocumentController<DocumentT>::newDocument()
 }
 
 template <class DocumentT>
-void DocumentController<DocumentT>::openDocument(const std::string& filename)
+bool DocumentController<DocumentT>::openDocument(const std::string& filename)
 {
     std::unique_ptr<DocumentT> document;
 
@@ -46,6 +46,8 @@ void DocumentController<DocumentT>::openDocument(const std::string& filename)
     }
 
     setDocument(std::move(document));
+
+    return _document != nullptr;
 }
 
 template <class DocumentT>
@@ -77,7 +79,7 @@ bool DocumentController<DocumentT>::saveDocumentAs(const std::string& filename)
         return true;
     }
 
-    if (_document->filename().empty()) {
+    if (filename.empty()) {
         return false;
     }
 
