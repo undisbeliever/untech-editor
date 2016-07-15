@@ -1,4 +1,5 @@
 #include "window.h"
+#include "addtilesdialog.h"
 #include "sidebar.h"
 #include "gui/view/common/controllerinterface.h"
 #include "gui/view/common/filedialogs.h"
@@ -9,7 +10,8 @@ namespace View {
 namespace MetaSprite {
 
 enum MENU_IDS {
-    ID_CREATE = 1000,
+    ID_ADD_TILES = 1000,
+    ID_CREATE,
     ID_CLONE,
     ID_REMOVE,
     ID_MOVE_UP,
@@ -73,6 +75,8 @@ Window::Window()
         edit->Append(wxID_UNDO);
         edit->Append(wxID_REDO);
         edit->AppendSeparator();
+        edit->Append(ID_ADD_TILES, "Add Tiles");
+        edit->AppendSeparator();
         edit->Append(ID_CREATE, "Create");
         edit->Append(ID_CLONE, "Clone Selected\tCTRL+D");
         edit->Append(ID_REMOVE, "Remove Selected");
@@ -109,6 +113,8 @@ Window::Window()
 
         // EVENTS
         // ------
+
+        // FILE
         menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
                       &Window::OnMenuNew, this,
                       wxID_NEW);
@@ -131,11 +137,27 @@ Window::Window()
             },
             wxID_EXIT);
 
+        // EDIT
+
         edit->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                this->Close(true);
+                auto& fsController = _controller.frameSetController();
+                const MS::FrameSet* frameSet = fsController.selected();
+
+                if (frameSet) {
+                    AddTilesDialog dialog(this,
+                                          frameSet->smallTileset().size(),
+                                          frameSet->largeTileset().size());
+
+                    if (dialog.ShowModal() == wxID_OK) {
+                        fsController.selected_addTiles(dialog.GetSmallToAdd(),
+                                                       dialog.GetLargeToAdd());
+                    }
+                }
             },
-            ID_REMOVE);
+            ID_ADD_TILES);
+
+        // VIEW
 
         zoom->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
