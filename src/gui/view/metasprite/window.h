@@ -19,8 +19,11 @@ public:
 protected:
     void OnMenuNew(wxCommandEvent&);
     void OnMenuOpen(wxCommandEvent&);
-    void OnMenuSave(wxCommandEvent&);
-    void OnMenuSaveAs(wxCommandEvent&);
+
+    bool SaveDocument();
+    bool SaveDocumentAs();
+
+    void OnClose(wxCloseEvent&);
 
 private:
     MS::MetaSpriteController _controller;

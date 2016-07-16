@@ -114,6 +114,9 @@ Window::Window()
         // EVENTS
         // ------
 
+        this->Bind(wxEVT_CLOSE_WINDOW,
+                   &Window::OnClose, this);
+
         // FILE
         menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
                       &Window::OnMenuNew, this,
@@ -123,17 +126,21 @@ Window::Window()
                       &Window::OnMenuOpen, this,
                       wxID_OPEN);
 
-        menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
-                      &Window::OnMenuSave, this,
-                      wxID_SAVE);
-
-        menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
-                      &Window::OnMenuSaveAs, this,
-                      wxID_SAVEAS);
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                SaveDocument();
+            },
+            wxID_SAVE);
 
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                this->Close(true);
+                SaveDocumentAs();
+            },
+            wxID_SAVEAS);
+
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                this->Close();
             },
             wxID_EXIT);
 
@@ -188,6 +195,33 @@ void Window::CreateOpen(const std::string& filename)
     }
 }
 
+void Window::OnClose(wxCloseEvent& event)
+{
+    if (event.CanVeto() && _controller.undoStack().isDirty()) {
+        int r = wxMessageBox("Do you want to save?\n\n"
+                             "If you close without saving, your changes will be discarded.",
+                             "Do you want to save?",
+                             wxICON_QUESTION | wxCANCEL | wxYES | wxNO,
+                             this);
+
+        if (r == wxYES) {
+            bool s = SaveDocument();
+            if (s == false) {
+                // keep window open
+                event.Veto();
+                return;
+            }
+        }
+        else if (r == wxCANCEL) {
+            // keep window open
+            event.Veto();
+            return;
+        }
+    }
+
+    event.Skip(); // close window
+}
+
 void Window::OnMenuNew(wxCommandEvent&)
 {
     Window* window = new Window();
@@ -206,17 +240,22 @@ void Window::OnMenuOpen(wxCommandEvent&)
     }
 }
 
-void Window::OnMenuSave(wxCommandEvent& e)
+bool Window::SaveDocument()
 {
     if (_controller.document()) {
         bool s = _controller.saveDocument();
-        if (!s) {
-            return OnMenuSaveAs(e);
+        if (s) {
+            return true;
+        }
+        else {
+            return SaveDocumentAs();
         }
     }
+
+    return false;
 }
 
-void Window::OnMenuSaveAs(wxCommandEvent&)
+bool Window::SaveDocumentAs()
 {
     if (_controller.document()) {
         auto fn = saveFileDialog(this,
@@ -224,7 +263,9 @@ void Window::OnMenuSaveAs(wxCommandEvent&)
                                  _controller.document());
 
         if (fn) {
-            _controller.saveDocumentAs(fn.value());
+            return _controller.saveDocumentAs(fn.value());
         }
     }
+
+    return false;
 }
