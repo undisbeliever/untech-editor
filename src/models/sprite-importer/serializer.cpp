@@ -64,7 +64,7 @@ public:
         if (tag->hasAttribute("transparent")) {
             static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
 
-            UnTech::rgba color(tag->getAttributeUnsignedHex("transparent"));
+            UnTech::rgba color = UnTech::rgba::fromRgba(tag->getAttributeUnsignedHex("transparent"));
             color.alpha = 0xFF;
             frameSet.setTransparentColor(color);
         }

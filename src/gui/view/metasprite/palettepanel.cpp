@@ -45,7 +45,7 @@ void PalettePanel::updateGui()
         }
 
         for (unsigned i = 0; i < N_COLORS; i++) {
-            _colors[i]->SetBackgroundColour(wxColor(palette->color(i).rgb().value));
+            _colors[i]->SetBackgroundColour(wxColor(palette->color(i).rgb().rgb()));
             _colors[i]->SetValue((int)i == active);
         }
 

@@ -138,7 +138,7 @@ void FrameGraphicalEditor::redrawFramePixbuf()
         const double zoomX = _controller.settings().zoomX();
         const double zoomY = _controller.settings().zoomY();
 
-        _frameImageBuffer.fill(0);
+        _frameImageBuffer.fill(UnTech::rgba::fromRgba(0));
         _selectedFrame->draw(_frameImageBuffer, *palette,
                              FRAME_IMAGE_OFFSET, FRAME_IMAGE_OFFSET);
 

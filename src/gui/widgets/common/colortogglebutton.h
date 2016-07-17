@@ -21,7 +21,7 @@ public:
 
     void unset_color()
     {
-        _area.set_color(0);
+        _area.set_color(UnTech::rgba::fromRgba(0));
     }
 
 private:

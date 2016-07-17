@@ -17,7 +17,7 @@ FrameSet::FrameSet(SpriteImporterDocument& document)
     , _document(document)
     , _imageFilename()
     , _image()
-    , _transparentColor(0)
+    , _transparentColor(rgba::fromRgba(0))
     , _frames(*this)
     , _grid(*this)
 {

@@ -53,7 +53,7 @@ public:
 
     bool transparentColorValid() const
     {
-        return _transparentColor.value != 0 && _transparentColor.alpha == 0xFF;
+        return _transparentColor.alpha == 0xFF;
     }
 
     inline UnTech::Image& image() { return _image; }

@@ -64,7 +64,7 @@ public:
 
             for (const Snes::SnesColor& c : pal->colors()) {
                 for (unsigned i = 0; i < PIXBUF_HEIGHT; i++) {
-                    *scanline++ = c.rgb().value;
+                    *scanline++ = c.rgb();
                 }
                 scanline += PIXBUF_SPACING;
                 ;

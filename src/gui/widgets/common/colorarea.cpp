@@ -4,7 +4,7 @@ using namespace UnTech::Widgets;
 
 ColorArea::ColorArea()
     : Gtk::DrawingArea()
-    , _color(0)
+    , _color(0, 0, 0, 0)
 {
 }
 
