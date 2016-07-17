@@ -1,4 +1,5 @@
 #include "sidebar.h"
+#include "palettelist.h"
 #include "palettepanel.h"
 #include "sidebar-lists.hpp"
 #include "gui/view/common/ms8aabb.h"
@@ -105,12 +106,20 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         auto* palSizer = new wxStaticBoxSizer(wxVERTICAL, panel, "Palette");
         sizer->Add(palSizer, wxSizerFlags(1).Expand().Border());
 
-        // ::TODO list::
-        auto* paletteList = new wxPanel(panel);
-        palSizer->Add(paletteList, wxSizerFlags(1).Expand().Border());
+        palSizer->Add(new OrderedListToolBar<MS::Palette>(
+                          panel, wxID_ANY,
+                          controller.paletteController()),
+                      wxSizerFlags(0).Right().Border());
 
-        auto* palPanel = new PalettePanel(panel, wxID_ANY, controller.paletteController());
-        palSizer->Add(palPanel, wxSizerFlags(0).Expand().Border());
+        palSizer->Add(new PaletteListCtrl(
+                          panel, wxID_ANY,
+                          controller.paletteController()),
+                      wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
+
+        palSizer->Add(new PalettePanel(
+                          panel, wxID_ANY,
+                          controller.paletteController()),
+                      wxSizerFlags(0).Expand().Border());
 
         this->AddPage(panel, "FrameSet");
     }

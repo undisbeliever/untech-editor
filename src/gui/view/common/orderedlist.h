@@ -61,6 +61,7 @@ public:
                 if (list && item) {
                     int i = list->indexOf(item);
                     if (i >= 0) {
+                        SetItemCount(list->size()); // BUGFIX
                         SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
                         EnsureVisible(i);
                     }

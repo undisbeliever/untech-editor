@@ -22,7 +22,7 @@ public:
                  MS::PaletteController& controller);
 
 private:
-    void updateGui();
+    void UpdateGui();
 
     void on_colorToggled(wxCommandEvent&);
     void on_editColorToggled(wxCommandEvent&);

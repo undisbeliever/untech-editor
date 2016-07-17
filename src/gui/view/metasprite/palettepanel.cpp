@@ -15,25 +15,34 @@ PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
     _editColor = new wxToggleButton(this, wxID_ANY, "Edit");
     sizer->Add(_editColor, wxSizerFlags(0).Right().Border(wxBOTTOM));
 
-    auto* grid = new wxGridSizer(2, 8, 0, 0);
+    auto* grid = new wxGridSizer(2, 8, 1, 1);
     sizer->Add(grid, wxSizerFlags(0).Center());
 
     wxSize buttonSize(SIDEBAR_WIDTH / 9, SIDEBAR_WIDTH / 9);
 
     for (unsigned i = 0; i < N_COLORS; i++) {
-        _colors[i] = new wxToggleButton(this, ID_COLOR_0 + i, "", wxDefaultPosition, buttonSize);
+        _colors[i] = new wxToggleButton(this, ID_COLOR_0 + i, "",
+                                        wxDefaultPosition, buttonSize);
 
         _colors[i]->Bind(wxEVT_TOGGLEBUTTON, &PalettePanel::on_colorToggled, this);
 
         grid->Add(_colors[i], 1);
     }
 
+    // Signals
+    // -------
+    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &PalettePanel::UpdateGui));
+
+    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+        *this, &PalettePanel::UpdateGui));
+
     // EVENTS
     // ======
     _editColor->Bind(wxEVT_TOGGLEBUTTON, &PalettePanel::on_editColorToggled, this);
 }
 
-void PalettePanel::updateGui()
+void PalettePanel::UpdateGui()
 {
     const MS::Palette* palette = _controller.selected();
 
