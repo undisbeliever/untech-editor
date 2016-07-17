@@ -89,7 +89,6 @@ using namespace UnTech::View::MetaSpriteCommon;
 Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                  MS::MetaSpriteController& controller)
     : wxNotebook(parent, wxWindowID)
-    , _controller(controller)
 {
     this->SetSizeHints(SIDEBAR_WIDTH, -1);
 
@@ -227,33 +226,6 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                                      controller.abstractFrameSetController()),
             "Animations");
     }
-
-    // EVENTS
-    // ------
-
-    // BUGFIX: Force a GUI update on tab change
-    //
-    // Tab ordering is broken by a wxWindow->Disable() call
-    // in UpdateGui, which is called by the sidebar/list/toolbar
-    // constructors.
-    //
-    // Other attempts to fix this have failed.
-    // Currently tab order is still broken even if I:
-    //      * Call `UpdateGui` in constructor
-    //      * Call `UpdateGui` or `emitAllDataChanged` after show
-    //      * Call `emitAllDataChanged` in wxEVT_SHOW
-    //      * Call `emitAllDataChanged` in wxEVT_IDLE
-    //      * Change tab order in `UpdateGui`
-    //
-    // Ironically, after the wxFrame is shown and fully rendered,
-    // calls to Disable/Enable do not break tab ordering.
-    //
-    // This hack will get the controller to update the GUI on every
-    // tab change. Users will not notice because the broken widgets are
-    // on the second wxNotebook page.
-    this->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent&) {
-        _controller.emitAllDataChanged();
-    });
 }
 
 // FRAME

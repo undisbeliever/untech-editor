@@ -28,6 +28,8 @@ enum MENU_IDS {
     ID_ASPECT_SQUARE,
     ID_ASPECT_NTSC,
     ID_ASPECT_PAL,
+
+    ID_INIT_TIMER,
 };
 }
 }
@@ -180,6 +182,49 @@ Window::Window()
             },
             ID_ASPECT_SQUARE, ID_ASPECT_PAL);
     }
+
+    /*
+     * BUGFIX:
+     *
+     * Tab ordering is broken by a wxWindow->Disable() call
+     * in UpdateGui, which is called by the sidebar/list/toolbar
+     * constructors.
+     *
+     * Other attempts to fix this have failed.
+     * Currently tab order is still broken even if I:
+     *      * Call `UpdateGui` in constructor
+     *      * Call `UpdateGui` or `emitAllDataChanged` after show in main/controller
+     *      * Call `emitAllDataChanged` in wxEVT_SHOW
+     *      * Call `emitAllDataChanged` in wxEVT_IDLE
+     *      * Change tab order in `UpdateGui`
+     *
+     * Ironically, after the wxFrame is shown and fully rendered,
+     * calls to Disable/Enable do not break tab ordering.
+     *
+     * This hack will get the controller to update the GUI 100 ms
+     * after it is displayed on the screen. Users should not notice
+     * because the broken widgets are on the second and third wxNotebook
+     * page.
+     *
+     * Previously the `emitAllDataChanged` call was in the Sidebar's
+     * wxEVT_NOTEBOOK_PAGE_CHANGING event, but it was intermittently
+     * segfaulting because wxNoteBook::Destroy was emitting the event if
+     * the user was not on the first notebook page.
+     */
+    _initBugfixTimer.SetOwner(this, ID_INIT_TIMER);
+
+    this->Bind(
+        wxEVT_TIMER, [this](wxTimerEvent&) {
+            _controller.emitAllDataChanged();
+        },
+        ID_INIT_TIMER);
+
+    this->Bind(
+        wxEVT_SHOW, [this](wxShowEvent&) {
+            this->CallAfter([this](void) {
+                _initBugfixTimer.StartOnce(100);
+            });
+        });
 }
 
 void Window::CreateOpen(const std::string& filename)

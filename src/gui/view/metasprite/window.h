@@ -27,6 +27,7 @@ protected:
 
 private:
     MS::MetaSpriteController _controller;
+    wxTimer _initBugfixTimer;
 };
 }
 }
