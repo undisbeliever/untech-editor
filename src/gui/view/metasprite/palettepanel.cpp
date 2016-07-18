@@ -1,4 +1,5 @@
 #include "palettepanel.h"
+#include "editcolordialog.h"
 #include "gui/view/defaults.h"
 
 using namespace UnTech::View::MetaSprite;
@@ -24,8 +25,6 @@ PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
         _colors[i] = new wxToggleButton(this, ID_COLOR_0 + i, "",
                                         wxDefaultPosition, buttonSize);
 
-        _colors[i]->Bind(wxEVT_TOGGLEBUTTON, &PalettePanel::on_colorToggled, this);
-
         grid->Add(_colors[i], 1);
     }
 
@@ -38,8 +37,10 @@ PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
         *this, &PalettePanel::UpdateGui));
 
     // EVENTS
-    // ======
+    // ------
     _editColor->Bind(wxEVT_TOGGLEBUTTON, &PalettePanel::on_editColorToggled, this);
+
+    this->Bind(wxEVT_TOGGLEBUTTON, &PalettePanel::on_colorToggled, this, ID_COLOR_0, ID_COLOR_15);
 }
 
 void PalettePanel::UpdateGui()
@@ -81,6 +82,25 @@ void PalettePanel::on_colorToggled(wxCommandEvent& e)
             _colors[i]->SetValue(false);
         }
     }
+
+    if (_editColor->GetValue() == false) {
+        // select color
+        if (_colors[c]->GetValue()) {
+            _controller.setSelectedColorId(c);
+        }
+        else {
+            _controller.setSelectedColorId(-1);
+        }
+    }
+    else {
+        // edit color
+        if (_colors[c]->GetValue() == true) {
+            EditColorDialog dialog(this, _controller, c);
+            dialog.ShowModal();
+
+            _colors[c]->SetValue(false);
+        }
+    }
 }
 
 void PalettePanel::on_editColorToggled(wxCommandEvent&)
@@ -89,4 +109,6 @@ void PalettePanel::on_editColorToggled(wxCommandEvent&)
     for (unsigned i = 0; i < N_COLORS; i++) {
         _colors[i]->SetValue(false);
     }
+
+    _controller.setSelectedColorId(-1);
 }

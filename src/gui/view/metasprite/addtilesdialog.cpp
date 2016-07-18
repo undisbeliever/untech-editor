@@ -49,7 +49,6 @@ AddTilesDialog::AddTilesDialog(wxWindow* parent,
                wxSizerFlags().Expand().DoubleBorder());
 
     SetAutoLayout(true);
-    sizer->SetSizeHints(this);
     sizer->Fit(this);
 
     UpdateGui();
