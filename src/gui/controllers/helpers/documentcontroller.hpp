@@ -31,6 +31,7 @@ template <class DocumentT>
 void DocumentController<DocumentT>::newDocument()
 {
     setDocument(std::make_unique<DocumentT>());
+    undoStack().markDirty();
 }
 
 template <class DocumentT>

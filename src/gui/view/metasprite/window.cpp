@@ -9,6 +9,8 @@ namespace UnTech {
 namespace View {
 namespace MetaSprite {
 
+const wxString Window::WINDOW_NAME = "UnTech MetaSprite Editor";
+
 enum MENU_IDS {
     ID_ADD_TILES = 1000,
     ID_CREATE,
@@ -38,7 +40,7 @@ enum MENU_IDS {
 using namespace UnTech::View::MetaSprite;
 
 Window::Window()
-    : wxFrame(NULL, wxID_ANY, "UnTech", wxDefaultPosition, wxSize(280, 180))
+    : wxFrame(NULL, wxID_ANY, WINDOW_NAME)
     , _controller(std::make_unique<ControllerInterface>(this))
 {
     // Widgets
@@ -116,9 +118,6 @@ Window::Window()
         // EVENTS
         // ------
 
-        this->Bind(wxEVT_CLOSE_WINDOW,
-                   &Window::OnClose, this);
-
         // FILE
         menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
                       &Window::OnMenuNew, this,
@@ -148,6 +147,18 @@ Window::Window()
 
         // EDIT
 
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                _controller.undoStack().undo();
+            },
+            wxID_UNDO);
+
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                _controller.undoStack().redo();
+            },
+            wxID_REDO);
+
         edit->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
                 auto& fsController = _controller.frameSetController();
@@ -166,22 +177,103 @@ Window::Window()
             },
             ID_ADD_TILES);
 
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                _controller.selectedTypeController().createNewOfSelectedType();
+            },
+            ID_CREATE);
+
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                _controller.selectedTypeController().cloneSelected();
+            },
+            ID_CLONE);
+
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                _controller.selectedTypeController().removeSelected();
+            },
+            ID_REMOVE);
+
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                _controller.selectedTypeController().moveSelectedUp();
+            },
+            ID_MOVE_UP);
+
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                _controller.selectedTypeController().moveSelectedDown();
+            },
+            ID_MOVE_DOWN);
+
         // VIEW
+
+        zoom->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                auto& settings = _controller.settings();
+                settings.setZoom(settings.zoom() + 1);
+            },
+            wxID_ZOOM_IN);
+
+        zoom->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                auto& settings = _controller.settings();
+                settings.setZoom(settings.zoom() - 1);
+            },
+            wxID_ZOOM_OUT);
 
         zoom->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
                 int z = e.GetId() - ID_ZOOM_1 + 1;
-                printf("Set Zoom: %i\n", z);
+                _controller.settings().setZoom(z);
             },
             ID_ZOOM_1, ID_ZOOM_9);
 
         aspectRatio->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
                 int a = e.GetId() - ID_ASPECT_SQUARE;
-                printf("Set Aspect Ratio: %i\n", a);
+                _controller.settings().setAspectRatio(
+                    static_cast<Controller::Settings::AspectRatio>(a));
+                ;
             },
             ID_ASPECT_SQUARE, ID_ASPECT_PAL);
     }
+
+    UpdateGuiUndo();
+    UpdateGuiMenu();
+    UpdateGuiZoom();
+
+    // Signals
+    // =======
+    _controller.selectedTypeController().signal_typeChanged().connect(sigc::mem_fun(
+        *this, &Window::UpdateGuiMenu));
+
+    _controller.selectedTypeController().signal_listChanged().connect(sigc::mem_fun(
+        *this, &Window::UpdateGuiMenu));
+
+    _controller.settings().signal_zoomChanged().connect(sigc::mem_fun(
+        *this, &Window::UpdateGuiZoom));
+
+    _controller.undoStack().signal_stackChanged().connect(sigc::mem_fun(
+        *this, &Window::UpdateGuiUndo));
+
+    _controller.undoStack().signal_dirtyBitChanged().connect(sigc::mem_fun(
+        *this, &Window::UpdateGuiTitle));
+
+    _controller.abstractFrameSetController().signal_nameChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &Window::UpdateGuiTitle)));
+
+    _controller.frameSetController().signal_selectedChanged().connect([this](void) {
+        UpdateGuiMenu();
+        UpdateGuiZoom();
+        UpdateGuiUndo();
+        UpdateGuiTitle();
+    });
+
+    // Events
+    // ======
+    this->Bind(wxEVT_CLOSE_WINDOW, &Window::OnClose, this);
 
     /*
      * BUGFIX:
@@ -265,6 +357,93 @@ void Window::OnClose(wxCloseEvent& event)
     }
 
     event.Skip(); // close window
+}
+
+void Window::UpdateGuiMenu()
+{
+    wxMenuBar* menuBar = GetMenuBar();
+
+    const auto* document = _controller.document();
+    if (document) {
+        menuBar->EnableTop(1, true);
+        menuBar->EnableTop(2, true);
+        menuBar->Enable(wxID_SAVEAS, true);
+        menuBar->Enable(ID_ADD_TILES, true);
+    }
+    else {
+        menuBar->EnableTop(1, false);
+        menuBar->EnableTop(2, false);
+        menuBar->Enable(wxID_SAVE, false);
+        menuBar->Enable(wxID_SAVEAS, false);
+        menuBar->Enable(ID_ADD_TILES, false);
+    }
+
+    auto& selectedType = _controller.selectedTypeController();
+
+    bool canCrud = selectedType.canCrudSelected();
+    bool canMoveUp = selectedType.canMoveSelectedUp();
+    bool canMoveDown = selectedType.canMoveSelectedDown();
+
+    menuBar->Enable(ID_CREATE, canCrud);
+    menuBar->Enable(ID_CLONE, canCrud);
+    menuBar->Enable(ID_REMOVE, canCrud);
+    menuBar->Enable(ID_MOVE_UP, canMoveUp);
+    menuBar->Enable(ID_MOVE_DOWN, canMoveDown);
+}
+
+void Window::UpdateGuiZoom()
+{
+    wxMenuBar* menuBar = GetMenuBar();
+    auto& settings = _controller.settings();
+
+    menuBar->Check(ID_ZOOM_1 - 1 + settings.zoom(), true);
+    menuBar->Check(ID_ASPECT_SQUARE + static_cast<int>(settings.aspectRatio()), true);
+}
+
+void Window::UpdateGuiUndo()
+{
+    wxMenuBar* menuBar = GetMenuBar();
+
+    const auto& undoStack = _controller.undoStack();
+    const auto* frameSet = _controller.frameSetController().selected();
+
+    if (frameSet && undoStack.canUndo()) {
+        menuBar->Enable(wxID_UNDO, true);
+        menuBar->SetLabel(wxID_UNDO, "&Undo " + undoStack.undoMessage() + "\tCTRL+Z");
+    }
+    else {
+        menuBar->Enable(wxID_UNDO, false);
+        menuBar->SetLabel(wxID_UNDO, "&Undo\tCTRL+Z");
+    }
+
+    if (frameSet && undoStack.canRedo()) {
+        menuBar->Enable(wxID_REDO, true);
+        menuBar->SetLabel(wxID_REDO, "&Redo " + undoStack.redoMessage() + "\tCTRL+SHIFT+Z");
+    }
+    else {
+        menuBar->Enable(wxID_REDO, false);
+        menuBar->SetLabel(wxID_REDO, "&Redo\tCTRL+SHIFT+Z");
+    }
+
+    menuBar->Enable(wxID_SAVE, frameSet && undoStack.isDirty());
+}
+
+void Window::UpdateGuiTitle()
+{
+    const auto& undoStack = _controller.undoStack();
+    const auto* frameSet = _controller.frameSetController().selected();
+
+    if (frameSet) {
+        if (undoStack.isDirty()) {
+            SetTitle("*" + frameSet->name() + ": " + WINDOW_NAME);
+        }
+        else {
+            SetTitle(frameSet->name() + ": " + WINDOW_NAME);
+        }
+    }
+    else {
+        SetTitle(WINDOW_NAME);
+    }
 }
 
 void Window::OnMenuNew(wxCommandEvent&)
