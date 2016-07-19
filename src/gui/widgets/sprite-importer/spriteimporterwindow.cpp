@@ -94,10 +94,10 @@ SpriteImporterWindow::SpriteImporterWindow()
     _controller.selectedTypeController().signal_listChanged().connect(sigc::mem_fun(
         *this, &SpriteImporterWindow::updateItemActions));
 
-    _controller.undoStack().signal_stackChanged.connect(sigc::mem_fun(
+    _controller.undoStack().signal_stackChanged().connect(sigc::mem_fun(
         *this, &SpriteImporterWindow::updateUndoActions));
 
-    _controller.undoStack().signal_dirtyBitChanged.connect(sigc::mem_fun(
+    _controller.undoStack().signal_dirtyBitChanged().connect(sigc::mem_fun(
         *this, &SpriteImporterWindow::updateTitle));
 
     _controller.abstractFrameSetController().signal_nameChanged().connect(sigc::hide(sigc::mem_fun(

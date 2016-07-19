@@ -98,10 +98,10 @@ MetaSpriteWindow::MetaSpriteWindow()
     _controller.selectedTypeController().signal_listChanged().connect(sigc::mem_fun(
         *this, &MetaSpriteWindow::updateItemActions));
 
-    _controller.undoStack().signal_stackChanged.connect(sigc::mem_fun(
+    _controller.undoStack().signal_stackChanged().connect(sigc::mem_fun(
         *this, &MetaSpriteWindow::updateUndoActions));
 
-    _controller.undoStack().signal_dirtyBitChanged.connect(sigc::mem_fun(
+    _controller.undoStack().signal_dirtyBitChanged().connect(sigc::mem_fun(
         *this, &MetaSpriteWindow::updateTitle));
 
     _controller.abstractFrameSetController().signal_nameChanged().connect(sigc::hide(sigc::mem_fun(

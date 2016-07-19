@@ -22,7 +22,7 @@ void UndoStack::add_undo(std::unique_ptr<Action> action)
 
     _redoStack.clear();
 
-    signal_stackChanged.emit();
+    _signal_stackChanged.emit();
 
     markDirty();
 }
@@ -65,7 +65,7 @@ void UndoStack::undo()
             _redoStack.pop_back();
         }
 
-        signal_stackChanged.emit();
+        _signal_stackChanged.emit();
 
         markDirty();
     }
@@ -78,7 +78,7 @@ void UndoStack::redo()
 
         _undoStack.splice(_undoStack.begin(), _redoStack, _redoStack.begin());
 
-        signal_stackChanged.emit();
+        _signal_stackChanged.emit();
     }
 }
 
@@ -87,7 +87,7 @@ void UndoStack::clear()
     _undoStack.clear();
     _redoStack.clear();
 
-    signal_stackChanged.emit();
+    _signal_stackChanged.emit();
 
     markClean();
 }
@@ -96,7 +96,7 @@ void UndoStack::markDirty()
 {
     if (_dirty != true) {
         _dirty = true;
-        signal_dirtyBitChanged.emit();
+        _signal_dirtyBitChanged.emit();
     }
 }
 
@@ -104,7 +104,7 @@ void UndoStack::markClean()
 {
     if (_dirty != false) {
         _dirty = false;
-        signal_dirtyBitChanged.emit();
+        _signal_dirtyBitChanged.emit();
     }
 }
 

@@ -81,10 +81,13 @@ public:
     const std::string& undoMessage() const;
     const std::string& redoMessage() const;
 
-    sigc::signal<void> signal_stackChanged;
-    sigc::signal<void> signal_dirtyBitChanged;
+    sigc::signal<void>& signal_stackChanged() { return _signal_stackChanged; }
+    sigc::signal<void>& signal_dirtyBitChanged() { return _signal_dirtyBitChanged; }
 
 private:
+    sigc::signal<void> _signal_stackChanged;
+    sigc::signal<void> _signal_dirtyBitChanged;
+
     // using list instead of stack so I can delete from the end.
     std::list<std::unique_ptr<Action>> _undoStack;
     std::list<std::unique_ptr<Action>> _redoStack;
