@@ -1,4 +1,5 @@
 #pragma once
+#include "mylistctrl.h"
 #include "namedlistnamedialiog.h"
 #include "gui/controllers/helpers/namedlistcontroller.h"
 #include "gui/view/defaults.h"
@@ -16,13 +17,13 @@ namespace View {
 // NOT RECOMMENDED FOR LARGE LISTS
 
 template <class T>
-class NamedListCtrl : public wxListCtrl {
+class NamedListCtrl : public MyListCtrl {
     typedef typename Controller::NamedListController<T> NamedListController;
 
 public:
     NamedListCtrl(wxWindow* parent, wxWindowID id,
                   NamedListController& controller)
-        : wxListCtrl(parent, id, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_VIRTUAL | wxLC_SINGLE_SEL)
+        : MyListCtrl(parent, id, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_VIRTUAL | wxLC_SINGLE_SEL)
         , _controller(controller)
         , _ptrList()
         , _nameList()

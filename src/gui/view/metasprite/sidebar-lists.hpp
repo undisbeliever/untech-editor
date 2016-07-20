@@ -17,7 +17,10 @@ template class OrderedListCtrl<MS::FrameObject>;
 template <>
 void NamedListCtrl<MS::Frame>::CreateColumns()
 {
-    AppendColumn("Frame", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    AppendColumn("Frame", wxLIST_FORMAT_LEFT);
+
+    HideHeader();
+    BindColumnsToEqualWidth();
 }
 
 template <>
@@ -42,8 +45,10 @@ wxString NamedListCtrl<MS::Frame>::OnGetItemText(long item, long column) const
 template <>
 void OrderedListCtrl<MS::FrameObject>::CreateColumns()
 {
-    AppendColumn("Location", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
-    AppendColumn("Size", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    AppendColumn("Location", wxLIST_FORMAT_LEFT);
+    AppendColumn("Size", wxLIST_FORMAT_LEFT);
+
+    BindColumnsToEqualWidth();
 }
 
 template <>
@@ -82,8 +87,10 @@ wxString OrderedListCtrl<MS::FrameObject>::OnGetItemText(long item, long column)
 template <>
 void OrderedListCtrl<MS::ActionPoint>::CreateColumns()
 {
-    AppendColumn("Location", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
-    AppendColumn("Parameter", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE_USEHEADER);
+    AppendColumn("Location", wxLIST_FORMAT_LEFT);
+    AppendColumn("Parameter", wxLIST_FORMAT_LEFT);
+
+    BindColumnsToEqualWidth();
 }
 
 template <>
@@ -118,9 +125,11 @@ wxString OrderedListCtrl<MS::ActionPoint>::OnGetItemText(long item, long column)
 template <>
 void OrderedListCtrl<MS::EntityHitbox>::CreateColumns()
 {
-    AppendColumn("Location", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
-    AppendColumn("Size", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
-    AppendColumn("Parameter", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE_USEHEADER);
+    AppendColumn("Location", wxLIST_FORMAT_LEFT);
+    AppendColumn("Size", wxLIST_FORMAT_LEFT);
+    AppendColumn("Parameter", wxLIST_FORMAT_LEFT);
+
+    BindColumnsToEqualWidth();
 }
 
 template <>

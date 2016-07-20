@@ -7,6 +7,8 @@ const static int DIALOG_TEXT_WIDTH = 300;
 
 const static int SIDEBAR_WIDTH = 350;
 
+const static int MIN_AUTO_COLUMN_WIDTH = 60;
+
 // size of comma and cross in the aabb structs
 const static int AABB_COMMA_WIDTH = 12;
 

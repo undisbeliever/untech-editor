@@ -11,13 +11,13 @@ namespace UnTech {
 namespace View {
 
 template <class T>
-class OrderedListCtrl : public wxListCtrl {
+class OrderedListCtrl : public MyListCtrl {
     typedef typename Controller::OrderedListController<T> OrderedListController;
 
 public:
     OrderedListCtrl(wxWindow* parent, wxWindowID id,
                     OrderedListController& controller)
-        : wxListCtrl(parent, id, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_VIRTUAL | wxLC_SINGLE_SEL)
+        : MyListCtrl(parent, id, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_VIRTUAL | wxLC_SINGLE_SEL)
         , _controller(controller)
     {
         CreateColumns();

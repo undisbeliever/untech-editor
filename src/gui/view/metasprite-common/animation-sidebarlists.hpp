@@ -15,7 +15,10 @@ namespace MSC = UnTech::MetaSpriteCommon;
 template <>
 void NamedListCtrl<MSC::Animation>::CreateColumns()
 {
-    AppendColumn("Animation", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    AppendColumn("Animation", wxLIST_FORMAT_LEFT);
+
+    HideHeader();
+    BindColumnsToEqualWidth();
 }
 
 template <>
@@ -41,9 +44,11 @@ template class OrderedListCtrl<MSC::AnimationInstruction>;
 template <>
 void OrderedListCtrl<MSC::AnimationInstruction>::CreateColumns()
 {
-    AppendColumn("Instruction", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
-    AppendColumn("Frame", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
-    AppendColumn("Parameter", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE);
+    AppendColumn("Instruction", wxLIST_FORMAT_LEFT);
+    AppendColumn("Frame", wxLIST_FORMAT_LEFT);
+    AppendColumn("Parameter", wxLIST_FORMAT_LEFT);
+
+    BindColumnsToEqualWidth();
 }
 
 template <>
