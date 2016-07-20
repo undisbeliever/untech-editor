@@ -448,9 +448,14 @@ void Frame::UpdateGuiTitle()
 
 void Frame::OnMenuNew(wxCommandEvent&)
 {
-    Frame* frame = new Frame();
-    frame->Controller().newDocument();
-    frame->Show(true);
+    if (_controller.document()) {
+        Frame* frame = new Frame();
+        frame->Controller().newDocument();
+        frame->Show(true);
+    }
+    else {
+        _controller.newDocument();
+    }
 }
 
 void Frame::OnMenuOpen(wxCommandEvent&)
@@ -460,7 +465,12 @@ void Frame::OnMenuOpen(wxCommandEvent&)
                              _controller.document());
 
     if (fn) {
-        CreateOpen(fn.value());
+        if (_controller.document()) {
+            CreateOpen(fn.value());
+        }
+        else {
+            _controller.openDocument(fn.value());
+        }
     }
 }
 
