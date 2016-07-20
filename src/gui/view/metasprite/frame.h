@@ -8,12 +8,12 @@ namespace MetaSprite {
 
 namespace MS = UnTech::MetaSprite;
 
-class Window : public wxFrame {
+class Frame : public wxFrame {
 public:
     const static wxString WINDOW_NAME;
 
 public:
-    Window();
+    Frame();
 
     MS::MetaSpriteController& Controller() { return _controller; }
 

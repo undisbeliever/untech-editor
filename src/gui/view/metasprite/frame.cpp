@@ -1,4 +1,4 @@
-#include "window.h"
+#include "frame.h"
 #include "addtilesdialog.h"
 #include "sidebar.h"
 #include "gui/view/common/controllerinterface.h"
@@ -9,7 +9,7 @@ namespace UnTech {
 namespace View {
 namespace MetaSprite {
 
-const wxString Window::WINDOW_NAME = "UnTech MetaSprite Editor";
+const wxString Frame::WINDOW_NAME = "UnTech MetaSprite Editor";
 
 enum MENU_IDS {
     ID_ADD_TILES = 1000,
@@ -39,7 +39,7 @@ enum MENU_IDS {
 
 using namespace UnTech::View::MetaSprite;
 
-Window::Window()
+Frame::Frame()
     : wxFrame(NULL, wxID_ANY, WINDOW_NAME)
     , _controller(std::make_unique<ControllerInterface>(this))
 {
@@ -120,11 +120,11 @@ Window::Window()
 
         // FILE
         menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
-                      &Window::OnMenuNew, this,
+                      &Frame::OnMenuNew, this,
                       wxID_NEW);
 
         menuBar->Bind(wxEVT_COMMAND_MENU_SELECTED,
-                      &Window::OnMenuOpen, this,
+                      &Frame::OnMenuOpen, this,
                       wxID_OPEN);
 
         menuBar->Bind(
@@ -247,22 +247,22 @@ Window::Window()
     // Signals
     // =======
     _controller.selectedTypeController().signal_typeChanged().connect(sigc::mem_fun(
-        *this, &Window::UpdateGuiMenu));
+        *this, &Frame::UpdateGuiMenu));
 
     _controller.selectedTypeController().signal_listChanged().connect(sigc::mem_fun(
-        *this, &Window::UpdateGuiMenu));
+        *this, &Frame::UpdateGuiMenu));
 
     _controller.settings().signal_zoomChanged().connect(sigc::mem_fun(
-        *this, &Window::UpdateGuiZoom));
+        *this, &Frame::UpdateGuiZoom));
 
     _controller.undoStack().signal_stackChanged().connect(sigc::mem_fun(
-        *this, &Window::UpdateGuiUndo));
+        *this, &Frame::UpdateGuiUndo));
 
     _controller.undoStack().signal_dirtyBitChanged().connect(sigc::mem_fun(
-        *this, &Window::UpdateGuiTitle));
+        *this, &Frame::UpdateGuiTitle));
 
     _controller.abstractFrameSetController().signal_nameChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &Window::UpdateGuiTitle)));
+        *this, &Frame::UpdateGuiTitle)));
 
     _controller.frameSetController().signal_selectedChanged().connect([this](void) {
         UpdateGuiMenu();
@@ -273,7 +273,7 @@ Window::Window()
 
     // Events
     // ======
-    this->Bind(wxEVT_CLOSE_WINDOW, &Window::OnClose, this);
+    this->Bind(wxEVT_CLOSE_WINDOW, &Frame::OnClose, this);
 
     /*
      * BUGFIX:
@@ -319,20 +319,20 @@ Window::Window()
         });
 }
 
-void Window::CreateOpen(const std::string& filename)
+void Frame::CreateOpen(const std::string& filename)
 {
-    auto* window = new Window();
-    bool s = window->Controller().openDocument(filename);
+    auto* frame = new Frame();
+    bool s = frame->Controller().openDocument(filename);
 
     if (s) {
-        window->Show(true);
+        frame->Show(true);
     }
     else {
-        window->Destroy();
+        frame->Destroy();
     }
 }
 
-void Window::OnClose(wxCloseEvent& event)
+void Frame::OnClose(wxCloseEvent& event)
 {
     if (event.CanVeto() && _controller.undoStack().isDirty()) {
         int r = wxMessageBox("Do you want to save?\n\n"
@@ -344,22 +344,22 @@ void Window::OnClose(wxCloseEvent& event)
         if (r == wxYES) {
             bool s = SaveDocument();
             if (s == false) {
-                // keep window open
+                // keep frame open
                 event.Veto();
                 return;
             }
         }
         else if (r == wxCANCEL) {
-            // keep window open
+            // keep frame open
             event.Veto();
             return;
         }
     }
 
-    event.Skip(); // close window
+    event.Skip(); // close frame
 }
 
-void Window::UpdateGuiMenu()
+void Frame::UpdateGuiMenu()
 {
     wxMenuBar* menuBar = GetMenuBar();
 
@@ -391,7 +391,7 @@ void Window::UpdateGuiMenu()
     menuBar->Enable(ID_MOVE_DOWN, canMoveDown);
 }
 
-void Window::UpdateGuiZoom()
+void Frame::UpdateGuiZoom()
 {
     wxMenuBar* menuBar = GetMenuBar();
     auto& settings = _controller.settings();
@@ -400,7 +400,7 @@ void Window::UpdateGuiZoom()
     menuBar->Check(ID_ASPECT_SQUARE + static_cast<int>(settings.aspectRatio()), true);
 }
 
-void Window::UpdateGuiUndo()
+void Frame::UpdateGuiUndo()
 {
     wxMenuBar* menuBar = GetMenuBar();
 
@@ -428,7 +428,7 @@ void Window::UpdateGuiUndo()
     menuBar->Enable(wxID_SAVE, frameSet && undoStack.isDirty());
 }
 
-void Window::UpdateGuiTitle()
+void Frame::UpdateGuiTitle()
 {
     const auto& undoStack = _controller.undoStack();
     const auto* frameSet = _controller.frameSetController().selected();
@@ -446,14 +446,14 @@ void Window::UpdateGuiTitle()
     }
 }
 
-void Window::OnMenuNew(wxCommandEvent&)
+void Frame::OnMenuNew(wxCommandEvent&)
 {
-    Window* window = new Window();
-    window->Controller().newDocument();
-    window->Show(true);
+    Frame* frame = new Frame();
+    frame->Controller().newDocument();
+    frame->Show(true);
 }
 
-void Window::OnMenuOpen(wxCommandEvent&)
+void Frame::OnMenuOpen(wxCommandEvent&)
 {
     auto fn = openFileDialog(this,
                              MS::MetaSpriteDocument::DOCUMENT_TYPE,
@@ -464,7 +464,7 @@ void Window::OnMenuOpen(wxCommandEvent&)
     }
 }
 
-bool Window::SaveDocument()
+bool Frame::SaveDocument()
 {
     if (_controller.document()) {
         bool s = _controller.saveDocument();
@@ -479,7 +479,7 @@ bool Window::SaveDocument()
     return false;
 }
 
-bool Window::SaveDocumentAs()
+bool Frame::SaveDocumentAs()
 {
     if (_controller.document()) {
         auto fn = saveFileDialog(this,

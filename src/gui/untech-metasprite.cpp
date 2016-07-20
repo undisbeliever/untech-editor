@@ -1,4 +1,4 @@
-#include "view/metasprite/window.h"
+#include "view/metasprite/frame.h"
 #include <wx/wx.h>
 
 class MyApp : public wxApp {
@@ -10,9 +10,9 @@ IMPLEMENT_APP(MyApp)
 
 bool MyApp::OnInit()
 {
-    auto* window = new UnTech::View::MetaSprite::Window();
-    window->Controller().newDocument();
-    window->Show(true);
+    auto* frame = new UnTech::View::MetaSprite::Frame();
+    frame->Controller().newDocument();
+    frame->Show(true);
 
     return true;
 }
