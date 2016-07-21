@@ -27,18 +27,8 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
     grid->Add(_tilesetType, wxSizerFlags().Expand());
 
     grid->Add(new wxStaticText(this, wxID_ANY, wxT("Export Order:")));
-
-    auto* box = new wxBoxSizer(wxHORIZONTAL);
-    grid->Add(box, wxSizerFlags().Expand());
-
-    _exportOrderFilename = new wxTextCtrl(this, wxID_ANY);
-    _exportOrderFilename->Disable();
-    box->Add(_exportOrderFilename, wxSizerFlags(1).Expand());
-
-    _exportOrderButton = new wxToggleButton(this, wxID_ANY, " ... ",
-                                            wxDefaultPosition, wxDefaultSize,
-                                            wxBU_EXACTFIT);
-    box->Add(_exportOrderButton, wxSizerFlags().Expand().Border(wxLEFT));
+    _exportOrder = new TextAndToggleButtonCtrl(this, wxID_ANY);
+    grid->Add(_exportOrder, wxSizerFlags().Expand());
 
     _frameSetType = new wxTextCtrl(this, wxID_ANY);
     _frameSetType->Disable();
@@ -68,23 +58,21 @@ AbstractFrameSetPanel::AbstractFrameSetPanel(wxWindow* parent, int wxWindowID,
         _controller.selected_setTilesetType(_tilesetType->GetValue());
     });
 
-    _exportOrderButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) {
+    _exportOrder->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) {
         namespace FSEO = MSC::FrameSetExportOrder;
 
         const MSC::AbstractFrameSet* frameSet = _controller.selected();
 
-        _exportOrderButton->SetValue(true);
-
-        if (frameSet) {
+        if (frameSet && _exportOrder->GetButtonValue()) {
             auto fn = openFileDialog(this,
                                      FSEO::ExportOrderDocument::DOCUMENT_TYPE,
                                      frameSet->exportOrderDocument().get());
             if (fn) {
                 _controller.selected_setExportOrderFilename(fn.value());
             }
-        }
 
-        _exportOrderButton->SetValue(false);
+            _exportOrder->SetButtonValue(false);
+        }
     });
 }
 
@@ -100,21 +88,21 @@ void AbstractFrameSetPanel::UpdateGui()
 
         const auto& fseoDocument = frameSet->exportOrderDocument();
         if (fseoDocument) {
-            _exportOrderFilename->ChangeValue(fseoDocument->filename());
+            _exportOrder->ChangeTextValue(fseoDocument->filename());
             _frameSetType->ChangeValue(fseoDocument->exportOrder().name());
         }
         else {
-            _exportOrderFilename->ChangeValue("");
-            _frameSetType->ChangeValue("");
+            _exportOrder->ChangeTextValue(wxEmptyString);
+            _frameSetType->ChangeValue(wxEmptyString);
         }
     }
     else {
         this->Disable();
 
-        _name->ChangeValue("");
+        _name->ChangeValue(wxEmptyString);
         _tilesetType->SetSelection(wxNOT_FOUND);
 
-        _exportOrderFilename->ChangeValue("");
-        _frameSetType->ChangeValue("");
+        _exportOrder->ChangeTextValue(wxEmptyString);
+        _frameSetType->ChangeValue(wxEmptyString);
     }
 }
