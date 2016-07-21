@@ -15,6 +15,10 @@ optional<std::string> openFileDialog(wxWindow* parent,
                                      const DocumentType& type,
                                      const Document* existing = nullptr);
 
+optional<std::string> openFileDialog(wxWindow* parent,
+                                     const DocumentType& type,
+                                     const std::string& filename = "");
+
 optional<std::string> saveFileDialog(wxWindow* parent,
                                      const DocumentType& type,
                                      const Document* existing = nullptr);

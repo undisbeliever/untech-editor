@@ -32,6 +32,27 @@ optional<std::string> View::openFileDialog(wxWindow* parent,
     }
 }
 
+optional<std::string> View::openFileDialog(wxWindow* parent,
+                                           const DocumentType& type,
+                                           const std::string& filename)
+{
+    wxFileDialog dialog(parent, "Open File",
+                        wxEmptyString, wxEmptyString,
+                        generateWildcard(type),
+                        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (!filename.empty()) {
+        dialog.SetPath(filename);
+    }
+
+    if (dialog.ShowModal() == wxID_OK && !dialog.GetPath().IsEmpty()) {
+        return dialog.GetPath().ToStdString();
+    }
+    else {
+        return optional<std::string>();
+    }
+}
+
 optional<std::string> View::saveFileDialog(wxWindow* parent,
                                            const DocumentType& type,
                                            const Document* existing)
