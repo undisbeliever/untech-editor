@@ -73,6 +73,7 @@ bin/untech-msc: $(call cli-modules, common snes metasprite metasprite-common met
 bin/untech-utsi2utms: $(call cli-modules, common snes sprite-importer metasprite metasprite-common utsi2utms)
 
 bin/untech-metasprite-gui: $(call gui-modules, common snes metasprite metasprite-common)
+bin/untech-spriteimporter-gui: $(call gui-modules, common snes sprite-importer metasprite-common)
 
 bin/untech-spriteimporter-gtk: $(call gtk-modules, common sprite-importer metasprite-common)
 bin/untech-metasprite-gtk: $(call gtk-modules, common snes metasprite metasprite-common)

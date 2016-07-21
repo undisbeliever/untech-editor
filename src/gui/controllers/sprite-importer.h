@@ -50,6 +50,7 @@ public:
     void selected_setParameter(const unsigned& tileId);
 
     void selected_setLocation_merge(const UnTech::upoint& location);
+    void selected_setParameter_merge(const unsigned& tileId);
 };
 
 /*
@@ -68,6 +69,7 @@ public:
     void selected_setParameter(const unsigned& tileId);
 
     void selected_setAabb_merge(const UnTech::urect& aabb);
+    void selected_setParameter_merge(const unsigned& tileId);
 };
 
 /*
@@ -169,6 +171,10 @@ public:
     auto& actionPointController() { return _actionPointController; }
     auto& frameObjectController() { return _frameObjectController; }
     auto& selectedTypeController() { return _selectedTypeController; }
+
+    // emits `signal_listChanged` and `signal_selectedChanged` for
+    // all child controllers.
+    void emitAllDataChanged();
 
 private:
     FrameSetController _frameSetController;

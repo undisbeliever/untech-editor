@@ -67,6 +67,22 @@ SpriteImporterController::SpriteImporterController(std::unique_ptr<Controller::C
     });
 }
 
+void SpriteImporterController::emitAllDataChanged()
+{
+    _abstractFrameSetController.emitAllDataChanged();
+
+    _frameSetController.signal_selectedChanged().emit();
+    _frameController.signal_listChanged().emit();
+    _frameController.signal_selectedChanged().emit();
+    _entityHitboxController.signal_listChanged().emit();
+    _entityHitboxController.signal_selectedChanged().emit();
+    _actionPointController.signal_listChanged().emit();
+    _actionPointController.signal_selectedChanged().emit();
+    _frameObjectController.signal_listChanged().emit();
+    _frameObjectController.signal_selectedChanged().emit();
+    _selectedTypeController.signal_typeChanged().emit();
+}
+
 /*
  * FRAME OBJECT CONTROLLER
  * =======================
@@ -104,12 +120,17 @@ CREATE_SIMPLE_ACTION(ActionPointController, selected_setLocation,
 CREATE_SIMPLE_ACTION(ActionPointController, selected_setParameter,
                      ActionPoint, unsigned, parameter, setParameter,
                      signal_dataChanged,
-                     "Set Action Point Tile")
+                     "Set Action Point Parameter")
 
 CREATE_MERGE_ACTION(ActionPointController, selected_setLocation_merge,
                     ActionPoint, UnTech::upoint, location, setLocation,
                     signal_dataChanged,
                     "Set Action Point Location")
+
+CREATE_MERGE_ACTION(ActionPointController, selected_setParameter_merge,
+                    ActionPoint, unsigned, parameter, setParameter,
+                    signal_dataChanged,
+                    "Set Action Point Parameter")
 
 /*
  * ENTITY HITBOX CONTROLLER
@@ -125,12 +146,17 @@ CREATE_SIMPLE_ACTION(EntityHitboxController, selected_setAabb,
 CREATE_SIMPLE_ACTION(EntityHitboxController, selected_setParameter,
                      EntityHitbox, unsigned, parameter, setParameter,
                      signal_dataChanged,
-                     "Set Entity Hitbox Tile")
+                     "Set Entity Hitbox Parameter")
 
 CREATE_MERGE_ACTION(EntityHitboxController, selected_setAabb_merge,
                     EntityHitbox, UnTech::urect, aabb, setAabb,
                     signal_dataChanged,
                     "Set Entity Hitbox AABB")
+
+CREATE_MERGE_ACTION(EntityHitboxController, selected_setParameter_merge,
+                    EntityHitbox, unsigned, parameter, setParameter,
+                    signal_dataChanged,
+                    "Set Entity Hitbox Parameter")
 
 /*
  * FRAME CONTROLLER

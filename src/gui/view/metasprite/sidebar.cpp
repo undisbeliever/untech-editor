@@ -13,6 +13,9 @@ namespace UnTech {
 namespace View {
 namespace MetaSprite {
 
+static const ms8point zeroPoint(0, 0);
+static const ms8rect zeroRect(0, 0, 0, 0);
+
 class FramePanel : public wxPanel {
 public:
     FramePanel(wxWindow* parent, int wxWindowID,
@@ -246,7 +249,7 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     grid->AddGrowableCol(1, 1);
 
     _solid = new wxCheckBox(this, wxID_ANY, "Solid");
-    grid->Add(_solid, 1);
+    grid->Add(_solid, wxSizerFlags(1));
     grid->Add(new wxPanel(this, wxID_ANY));
 
     _tileHitbox = new Ms8RectCtrl(this, wxID_ANY);
@@ -281,18 +284,16 @@ void FramePanel::UpdateGui()
     const MS::Frame* frame = _controller.selected();
 
     if (frame) {
-        _tileHitbox->SetValue(frame->tileHitbox());
-
         _solid->SetValue(frame->solid());
         _tileHitbox->Enable(frame->solid());
+        _tileHitbox->SetValue(frame->tileHitbox());
 
         this->Enable();
     }
     else {
-        static const ms8rect zeroRect(0, 0, 0, 0);
-
         _solid->SetValue(false);
         _tileHitbox->SetValue(zeroRect);
+
         this->Disable();
     }
 }
@@ -427,8 +428,6 @@ void FrameObjectPanel::UpdateGui()
         this->Enable();
     }
     else {
-        static const ms8point zeroPoint(0, 0);
-
         _location->SetValue(zeroPoint);
         _tileId->SetValue(0);
         _size->SetSelection(wxNOT_FOUND);
@@ -502,8 +501,6 @@ void ActionPointPanel::UpdateGui()
         this->Enable();
     }
     else {
-        static const ms8point zeroPoint(0, 0);
-
         _location->SetValue(zeroPoint);
         _parameter->SetValue(0);
 
@@ -573,8 +570,6 @@ void EntityHitboxPanel::UpdateGui()
         this->Enable();
     }
     else {
-        static const ms8rect zeroRect(0, 0, 0, 0);
-
         _aabb->SetValue(zeroRect);
         _parameter->SetValue(0);
 
