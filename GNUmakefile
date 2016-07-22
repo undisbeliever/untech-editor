@@ -4,30 +4,30 @@ CXXFLAGS	+= -std=c++14 -Werror -Wall -Wextra -MMD -Isrc
 CXXFLAGS	+= -O2
 LDFLAGS		+= -Werror -Wall -Wextra
 
-CONTROLLER_CXXFLAGS = $(shell pkg-config --cflags sigc++-2.0)
-CONTROLLER_LDFLAGS = $(shell pkg-config --libs sigc++-2.0)
+CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
+CONTROLLER_LDFLAGS := $(shell pkg-config --libs sigc++-2.0)
 
-GTK_CXXFLAGS	= $(shell pkg-config --cflags gtkmm-3.0)
-GTK_LDFLAGS	= $(shell pkg-config --libs gtkmm-3.0)
+GTK_CXXFLAGS	:= $(shell pkg-config --cflags gtkmm-3.0)
+GTK_LDFLAGS	:= $(shell pkg-config --libs gtkmm-3.0)
 
-VIEW_CXXFLAGS	= $(shell wx-config --cxxflags)
-VIEW_LDFLAGS	= $(shell wx-config --libs)
+VIEW_CXXFLAGS	:= $(shell wx-config --cxxflags)
+VIEW_LDFLAGS	:= $(shell wx-config --libs)
 
 
-SRCS		= $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
-OBJS		= $(patsubst src/%.cpp,obj/%.o,$(SRCS))
+SRCS		:= $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
+OBJS		:= $(patsubst src/%.cpp,obj/%.o,$(SRCS))
 
-CLI_SRC		= $(wildcard src/cli/*.cpp)
-CLI_APPS	= $(patsubst src/cli/%.cpp,bin/%,$(CLI_SRC))
+CLI_SRC		:= $(wildcard src/cli/*.cpp)
+CLI_APPS	:= $(patsubst src/cli/%.cpp,bin/%,$(CLI_SRC))
 
-GTK_SRC		= $(wildcard src/gui/*-gtk.cpp)
-GTK_APPS	= $(patsubst src/gui/%.cpp,bin/%,$(GTK_SRC))
+GTK_SRC		:= $(wildcard src/gui/*-gtk.cpp)
+GTK_APPS	:= $(patsubst src/gui/%.cpp,bin/%,$(GTK_SRC))
 
-GUI_SRC		= $(filter-out %-gtk.cpp, $(wildcard src/gui/*.cpp))
-GUI_APPS	= $(patsubst src/gui/%.cpp,bin/%-gui,$(GUI_SRC))
+GUI_SRC		:= $(filter-out %-gtk.cpp, $(wildcard src/gui/*.cpp))
+GUI_APPS	:= $(patsubst src/gui/%.cpp,bin/%-gui,$(GUI_SRC))
 
 # Third party libs
-THIRD_PARTY	= obj/vendor/lodepng/lodepng.o
+THIRD_PARTY	:= obj/vendor/lodepng/lodepng.o
 
 
 .PHONY: all
@@ -115,7 +115,7 @@ obj/%.o: src/%.cpp
 
 
 .PHONY: dirs
-OBJECT_DIRS = $(sort $(dir $(OBJS)))
+OBJECT_DIRS := $(sort $(dir $(OBJS)))
 dirs: bin/ $(OBJECT_DIRS)
 bin/ $(OBJECT_DIRS):
 	mkdir -p $@
