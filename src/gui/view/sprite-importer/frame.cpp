@@ -1,5 +1,6 @@
 #include "frame.h"
 #include "sidebar.h"
+#include "gui/view/common/aboutdialog.h"
 #include "gui/view/common/controllerinterface.h"
 #include "gui/view/common/filedialogs.h"
 #include "gui/view/defaults.h"
@@ -71,6 +72,8 @@ Frame::Frame()
         file->Append(wxID_SAVE, "&Save\tCTRL+S");
         file->Append(wxID_SAVEAS, "Save &As\tCTRL+SHIFT+S");
         file->AppendSeparator();
+        file->Append(wxID_ABOUT);
+        file->AppendSeparator();
         file->Append(wxID_EXIT, "&Exit\tALT+F4");
 
         auto* edit = new wxMenu();
@@ -134,6 +137,13 @@ Frame::Frame()
                 SaveDocumentAs();
             },
             wxID_SAVEAS);
+
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                AboutDialog dialog(this, WINDOW_NAME);
+                dialog.ShowModal();
+            },
+            wxID_ABOUT);
 
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
