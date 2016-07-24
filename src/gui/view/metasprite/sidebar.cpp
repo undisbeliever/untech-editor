@@ -6,6 +6,7 @@
 #include "gui/view/defaults.h"
 #include "gui/view/metasprite-common/abstractframesetpanel.h"
 #include "gui/view/metasprite-common/animation-sidebarpage.h"
+#include "gui/view/metasprite-common/export-sidebarpage.h"
 #include "models/common/string.h"
 #include <wx/spinctrl.h>
 
@@ -228,6 +229,11 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             new AnimationSidebarPage(this, wxID_ANY,
                                      controller.abstractFrameSetController()),
             "Animations");
+
+        this->AddPage(
+            new ExportSidebarPage(this, wxID_ANY,
+                                  controller.abstractFrameSetController()),
+            "Export");
     }
 }
 
