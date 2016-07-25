@@ -16,7 +16,14 @@ public:
                       MSC::AbstractFrameSetController& controller);
 
     void UpdateGui();
+    void UpdateGuiTree();
     void BuildGuiTree();
+
+    // This slot must be connected to:
+    //   frame list changed signal
+    //   frame item renamed signal
+    //   frame list data changed signal
+    auto& slot_frameNameChanged() { return _slot_frameNameChanged; }
 
 private:
     MSC::AbstractFrameSetController& _controller;
@@ -25,6 +32,8 @@ private:
     wxTextCtrl* _frameSetType;
 
     wxTreeCtrl* _exportTree;
+
+    sigc::signal<void> _slot_frameNameChanged;
 };
 }
 }

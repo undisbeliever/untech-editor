@@ -272,10 +272,20 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                                      controller.abstractFrameSetController()),
             "Animations");
 
-        this->AddPage(
-            new ExportSidebarPage(this, wxID_ANY,
-                                  controller.abstractFrameSetController()),
-            "Export");
+        auto* exportPage = new ExportSidebarPage(this, wxID_ANY,
+                                                 controller.abstractFrameSetController());
+        this->AddPage(exportPage, "Export");
+
+        // Signals
+        // -------
+        controller.frameController().signal_listChanged().connect(
+            exportPage->slot_frameNameChanged());
+
+        controller.frameController().signal_listDataChanged().connect(sigc::hide(
+            exportPage->slot_frameNameChanged()));
+
+        controller.frameController().signal_itemRenamed().connect(sigc::hide(
+            exportPage->slot_frameNameChanged()));
     }
 }
 
