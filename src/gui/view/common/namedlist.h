@@ -201,13 +201,18 @@ public:
                 return;
             }
 
+            auto validator = [list](const std::string& name) {
+                return isNameValid(name) && !list->nameExists(name);
+            };
+
             // ::TODO create custom dialog for NameList Ids::
 
             switch (e.GetId()) {
             case ID_CREATE: {
                 NamedListNameDialog dialog(this,
                                            wxString("Input ") + T::TYPE_NAME + " name",
-                                           wxString("Input name of new ") + T::TYPE_NAME);
+                                           wxString("Input name of new ") + T::TYPE_NAME,
+                                           validator);
 
                 if (dialog.ShowModal() == wxID_OK) {
                     _controller.create(dialog.GetValue().ToStdString());
@@ -218,7 +223,8 @@ public:
             case ID_CLONE: {
                 NamedListNameDialog dialog(this,
                                            wxString("Input ") + T::TYPE_NAME + " name",
-                                           wxString("Input new name of cloned ") + T::TYPE_NAME);
+                                           wxString("Input new name of cloned ") + T::TYPE_NAME,
+                                           validator);
                 dialog.SetValue(_controller.selectedName());
 
                 if (dialog.ShowModal() == wxID_OK) {
@@ -230,7 +236,8 @@ public:
             case ID_RENAME: {
                 NamedListNameDialog dialog(this,
                                            wxString("Input ") + T::TYPE_NAME + " name",
-                                           wxString("Rename ") + T::TYPE_NAME + " to");
+                                           wxString("Rename ") + T::TYPE_NAME + " to",
+                                           validator);
                 dialog.SetValue(_controller.selectedName());
 
                 if (dialog.ShowModal() == wxID_OK) {

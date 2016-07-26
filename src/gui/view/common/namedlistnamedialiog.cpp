@@ -4,10 +4,12 @@
 using namespace UnTech::View;
 
 NamedListNameDialog::NamedListNameDialog(wxWindow* parent,
-                                         const wxString& title, const wxString& caption)
+                                         const wxString& title, const wxString& caption,
+                                         std::function<bool(const std::string&)> validator)
     : wxDialog(parent, wxID_ANY, title,
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE | wxCAPTION | wxCENTRE)
+    , _validator(validator)
 {
     // layout and borders match that of wxWidgets' wxTextEntryDialog
 
@@ -28,13 +30,31 @@ NamedListNameDialog::NamedListNameDialog(wxWindow* parent,
     sizer->SetSizeHints(this);
     sizer->Fit(this);
 
+    OnTextChanged();
+
     this->Bind(wxEVT_SHOW, [this](wxShowEvent&) {
         _name->SelectAll();
         _name->SetFocus();
+    });
+
+    this->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
+        OnTextChanged();
     });
 }
 
 void NamedListNameDialog::SetValue(const wxString& text)
 {
-    _name->SetValue(text);
+    _name->ChangeValue(text);
+    OnTextChanged();
+}
+
+void NamedListNameDialog::OnTextChanged()
+{
+    bool v = _validator(_name->GetValue().ToStdString());
+
+    // not sure how to do this normally
+    wxWindow* ok = wxWindow::FindWindowById(wxID_OK, this);
+    if (ok) {
+        ok->Enable(v);
+    }
 }
