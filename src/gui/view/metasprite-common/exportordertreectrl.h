@@ -15,7 +15,8 @@ public:
                         MSC::AbstractFrameSetController& controller);
 
     void BuildTree();
-    void UpdateTree();
+    void UpdateTreeFrames();
+    void UpdateTreeAnimations();
 
     // This slot must be connected to:
     //   frame list changed signal

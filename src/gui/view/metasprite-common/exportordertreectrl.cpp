@@ -5,6 +5,12 @@
 
 using namespace UnTech::View::MetaSpriteCommon;
 
+enum TreeIcon {
+    CROSS_ICON,
+    TICK_ICON,
+    WARNING_ICON,
+};
+
 ExportOrderTreeCtrl::ExportOrderTreeCtrl(wxWindow* parent, int wxWindowID,
                                          MSC::AbstractFrameSetController& controller)
     : wxTreeCtrl(parent, wxWindowID,
@@ -18,6 +24,7 @@ ExportOrderTreeCtrl::ExportOrderTreeCtrl(wxWindow* parent, int wxWindowID,
 
     imageList->Add(wxArtProvider::GetBitmap("wxART_CROSS_MARK", wxART_TOOLBAR));
     imageList->Add(wxArtProvider::GetBitmap("wxART_TICK_MARK", wxART_TOOLBAR));
+    imageList->Add(wxArtProvider::GetBitmap("wxART_WARNING", wxART_TOOLBAR));
 
     this->AssignImageList(imageList);
 
@@ -30,18 +37,27 @@ ExportOrderTreeCtrl::ExportOrderTreeCtrl(wxWindow* parent, int wxWindowID,
         *this, &ExportOrderTreeCtrl::BuildTree)));
 
     controller.animationController().signal_listChanged().connect(sigc::mem_fun(
-        *this, &ExportOrderTreeCtrl::UpdateTree));
+        *this, &ExportOrderTreeCtrl::UpdateTreeAnimations));
 
     controller.animationController().signal_itemRenamed().connect(sigc::hide(sigc::mem_fun(
-        *this, &ExportOrderTreeCtrl::UpdateTree)));
+        *this, &ExportOrderTreeCtrl::UpdateTreeAnimations)));
 
     controller.animationController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &ExportOrderTreeCtrl::UpdateTree)));
+        *this, &ExportOrderTreeCtrl::UpdateTreeAnimations)));
+
+    controller.animationController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &ExportOrderTreeCtrl::UpdateTreeAnimations)));
+
+    controller.animationInstructionController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &ExportOrderTreeCtrl::UpdateTreeAnimations)));
+
+    controller.animationInstructionController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &ExportOrderTreeCtrl::UpdateTreeAnimations)));
 
     // Slots
     // -----
     _slot_frameNameChanged.connect(sigc::mem_fun(
-        *this, &ExportOrderTreeCtrl::UpdateTree));
+        *this, &ExportOrderTreeCtrl::UpdateTreeFrames));
 }
 
 void ExportOrderTreeCtrl::BuildTree()
@@ -54,7 +70,6 @@ void ExportOrderTreeCtrl::BuildTree()
 
     namespace FSEO = UnTech::MetaSpriteCommon::FrameSetExportOrder;
 
-    // REMEMBER: that ExportOrder is read only
     const MSC::AbstractFrameSet* frameSet = _controller.selected();
 
     if (frameSet && frameSet->exportOrderDocument()) {
@@ -94,19 +109,16 @@ void ExportOrderTreeCtrl::BuildTree()
 
         this->Thaw();
 
-        UpdateTree();
+        UpdateTreeFrames();
+        UpdateTreeAnimations();
     }
     else {
         this->DeleteAllItems();
     }
 }
 
-void ExportOrderTreeCtrl::UpdateTree()
+void ExportOrderTreeCtrl::UpdateTreeFrames()
 {
-    const int CROSS_ICON = 0;
-    const int TICK_ICON = 1;
-
-    // REMEMBER: that ExportOrder is read only
     const MSC::AbstractFrameSet* frameSet = _controller.selected();
 
     if (frameSet == nullptr) {
@@ -122,74 +134,103 @@ void ExportOrderTreeCtrl::UpdateTree()
 
     this->Freeze();
 
+    wxTreeItemIdValue rootCookie;
+    auto root = this->GetRootItem();
+
+    auto frameNode = this->GetFirstChild(root, rootCookie);
+
+    TreeIcon totalItemId = TICK_ICON;
+
+    wxTreeItemIdValue cookie;
+    auto node = this->GetFirstChild(frameNode, cookie);
+
     const auto& exportOrder = frameSet->exportOrderDocument()->exportOrder();
+
+    for (const auto& it : exportOrder.stillFrames()) {
+        TreeIcon itemId = CROSS_ICON;
+        if (frameSet->containsFrameName(it.first)) {
+            itemId = TICK_ICON;
+        }
+        else {
+            for (const auto& alt : it.second.alternativeNames()) {
+                if (frameSet->containsFrameName(alt.name())) {
+                    itemId = TICK_ICON;
+                    break;
+                }
+            }
+        }
+        this->SetItemImage(node, itemId);
+
+        if (itemId == CROSS_ICON) {
+            totalItemId = CROSS_ICON;
+        }
+
+        node = this->GetNextChild(frameNode, cookie);
+    }
+
+    this->SetItemImage(frameNode, totalItemId);
+
+    this->Thaw();
+}
+
+void ExportOrderTreeCtrl::UpdateTreeAnimations()
+{
+
+    const MSC::AbstractFrameSet* frameSet = _controller.selected();
+
+    if (frameSet == nullptr) {
+        return;
+    }
+    if (frameSet->exportOrderDocument() == nullptr) {
+        return;
+    }
+
+    if (this->IsEmpty()) {
+        BuildTree();
+    }
+
+    this->Freeze();
 
     wxTreeItemIdValue rootCookie;
     auto root = this->GetRootItem();
-    {
-        wxTreeItemIdValue cookie;
 
-        auto frameNode = this->GetFirstChild(root, rootCookie);
-        auto node = this->GetFirstChild(frameNode, cookie);
+    this->GetFirstChild(root, rootCookie);
+    auto aniNode = this->GetNextChild(root, rootCookie);
 
-        int totalItemId = TICK_ICON;
+    TreeIcon totalItemId = TICK_ICON;
 
-        for (const auto& it : exportOrder.stillFrames()) {
-            int itemId = CROSS_ICON;
-            if (frameSet->containsFrameName(it.first)) {
-                itemId = TICK_ICON;
-            }
-            else {
-                for (const auto& alt : it.second.alternativeNames()) {
-                    if (frameSet->containsFrameName(alt.name())) {
-                        itemId = TICK_ICON;
-                        break;
-                    }
+    wxTreeItemIdValue cookie;
+    auto node = this->GetFirstChild(aniNode, cookie);
+
+    const auto& exportOrder = frameSet->exportOrderDocument()->exportOrder();
+    const auto& animations = frameSet->animations();
+
+    for (const auto& it : exportOrder.animations()) {
+        TreeIcon itemId = CROSS_ICON;
+        if (animations.nameExists(it.first)) {
+            itemId = animations.at(it.first).isValid() ? TICK_ICON : WARNING_ICON;
+        }
+        else {
+            for (const auto& alt : it.second.alternativeNames()) {
+                if (animations.nameExists(alt.name())) {
+                    itemId = animations.at(alt.name()).isValid() ? TICK_ICON : WARNING_ICON;
+                    break;
                 }
             }
-            if (itemId == CROSS_ICON) {
-                totalItemId = CROSS_ICON;
-            }
-            this->SetItemImage(node, itemId);
+        }
+        this->SetItemImage(node, itemId);
 
-            node = this->GetNextChild(frameNode, cookie);
+        if (itemId == CROSS_ICON) {
+            totalItemId = CROSS_ICON;
+        }
+        else if (itemId == WARNING_ICON && totalItemId != CROSS_ICON) {
+            totalItemId = WARNING_ICON;
         }
 
-        this->SetItemImage(frameNode, totalItemId);
+        node = this->GetNextChild(aniNode, cookie);
     }
-    {
-        wxTreeItemIdValue cookie;
 
-        auto aniNode = this->GetNextChild(root, rootCookie);
-        auto node = this->GetFirstChild(aniNode, cookie);
-
-        const auto& animations = frameSet->animations();
-
-        int totalItemId = TICK_ICON;
-
-        for (const auto& it : exportOrder.animations()) {
-            int itemId = CROSS_ICON;
-            if (animations.nameExists(it.first)) {
-                itemId = TICK_ICON;
-            }
-            else {
-                for (const auto& alt : it.second.alternativeNames()) {
-                    if (animations.nameExists(alt.name())) {
-                        itemId = TICK_ICON;
-                        break;
-                    }
-                }
-            }
-            if (itemId == CROSS_ICON) {
-                totalItemId = CROSS_ICON;
-            }
-            this->SetItemImage(node, itemId);
-
-            node = this->GetNextChild(aniNode, cookie);
-        }
-
-        this->SetItemImage(aniNode, totalItemId);
-    }
+    this->SetItemImage(aniNode, totalItemId);
 
     this->Thaw();
 }
