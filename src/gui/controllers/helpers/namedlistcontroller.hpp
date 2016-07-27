@@ -68,10 +68,12 @@ NamedListController<T>::NamedListController(BaseController& baseController)
 template <class T>
 void NamedListController<T>::setList(typename T::list_t* list)
 {
-    if (list == nullptr) {
-        setSelected(nullptr);
-    }
     if (_list != list) {
+        if (_selected != nullptr) {
+            _selected = nullptr;
+            signal_selectedChanged().emit();
+        }
+
         _list = list;
         signal_listChanged().emit();
     }
