@@ -42,6 +42,11 @@ public:
               unsigned xOffset, unsigned yOffset,
               bool hFlip = false, bool vFlip = false) const;
 
+    // fails silently
+    void drawOpaque(Image& image, const Palette<BD>& palette,
+                    unsigned xOffset, unsigned yOffset,
+                    bool hFlip = false, bool vFlip = false) const;
+
     inline uint8_t* rawData() { return _data.data(); }
     inline const uint8_t* rawData() const { return _data.data(); }
 

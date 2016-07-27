@@ -1,6 +1,7 @@
 #include "frame.h"
 #include "addtilesdialog.h"
 #include "sidebar.h"
+#include "tilesetctrl.h"
 #include "gui/view/common/aboutdialog.h"
 #include "gui/view/common/controllerinterface.h"
 #include "gui/view/common/filedialogs.h"
@@ -49,14 +50,23 @@ Frame::Frame()
     {
         auto* sizer = new wxBoxSizer(wxHORIZONTAL);
 
-        // ::TODO replace::
-        auto* graphics = new wxPanel(this, wxID_ANY);
-        graphics->SetBackgroundColour(wxColour("#4f5049"));
+        // Graphics
+        auto* vSizer = new wxBoxSizer(wxVERTICAL);
+        {
+            // ::TODO replace::
+            auto* frame = new wxPanel(this, wxID_ANY);
+            frame->SetBackgroundColour(wxColour("#4f5049"));
+            vSizer->Add(frame, wxSizerFlags(1).Expand());
 
-        auto* sidebar = new Sidebar(this, wxID_ANY, _controller);
+            vSizer->Add(new TilesetCtrl(this, wxID_ANY,
+                                        _controller),
+                        wxSizerFlags(1).Expand().Border(wxTOP));
+        }
+        sizer->Add(vSizer, wxSizerFlags(1).Expand().Border());
 
-        sizer->Add(graphics, wxSizerFlags(1).Expand().Border());
-        sizer->Add(sidebar, wxSizerFlags().Expand().Border(wxTOP | wxBOTTOM | wxRIGHT));
+        sizer->Add(new Sidebar(this, wxID_ANY,
+                               _controller),
+                   wxSizerFlags().Expand().Border(wxTOP | wxBOTTOM | wxRIGHT));
 
         this->SetSizer(sizer);
 

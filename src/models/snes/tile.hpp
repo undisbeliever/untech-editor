@@ -72,6 +72,55 @@ void Tile<BD, TS>::draw(Image& image, const Palette<BD>& palette,
 }
 
 template <size_t BD, size_t TS>
+void Tile<BD, TS>::drawOpaque(Image& image, const Palette<BD>& palette,
+                              unsigned xOffset, unsigned yOffset,
+                              const bool hFlip, const bool vFlip) const
+{
+    if (image.size().width < (xOffset + TILE_SIZE)
+        || image.size().height < (yOffset + TILE_SIZE)) {
+
+        return;
+    }
+
+    // ::SHOULDO refactor and profile to see if faster::
+
+    rgba* imgBits;
+    const uint8_t* tilePos = rawData();
+
+    for (unsigned y = 0; y < TILE_SIZE; y++) {
+        if (!vFlip) {
+            imgBits = image.scanline(yOffset + y);
+        }
+        else {
+            imgBits = image.scanline(yOffset + TILE_SIZE - y - 1);
+        }
+
+        if (!hFlip) {
+            imgBits += xOffset;
+
+            for (unsigned x = 0; x < TILE_SIZE; x++) {
+                auto p = *tilePos & PIXEL_MASK;
+
+                *imgBits = palette.color(p).rgb();
+                imgBits++;
+                tilePos++;
+            }
+        }
+        else {
+            imgBits += xOffset + TILE_SIZE - 1;
+
+            for (unsigned x = 0; x < TILE_SIZE; x++) {
+                auto p = *tilePos & PIXEL_MASK;
+
+                *imgBits = palette.color(p).rgb();
+                imgBits--;
+                tilePos++;
+            }
+        }
+    }
+}
+
+template <size_t BD, size_t TS>
 inline typename Tile<BD, TS>::Tile_t Tile<BD, TS>::hFlip() const
 {
     typename Tile<BD, TS>::Tile_t hFlip;
