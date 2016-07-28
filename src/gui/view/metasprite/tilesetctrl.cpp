@@ -15,6 +15,10 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
     : wxPanel(parent, id, wxDefaultPosition, wxDefaultSize,
               wxBORDER_SUNKEN | wxHSCROLL | wxALWAYS_SHOW_SB)
     , _controller(controller)
+    , _smallTilesBitmap(wxNullBitmap)
+    , _largeTilesBitmap(wxNullBitmap)
+    , _mouseState(MouseState::NONE)
+    , _prevMouse()
 {
     SetAutoLayout(true);
     UpdateSize();
@@ -71,6 +75,17 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
     this->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
         UpdateScrollbar();
         Refresh();
+        e.Skip();
+    });
+
+    this->Bind(wxEVT_LEFT_UP,
+               &TilesetCtrl::OnMouseLeftUp, this);
+
+    this->Bind(wxEVT_LEFT_DOWN,
+               &TilesetCtrl::OnMouseLeftDown, this);
+
+    this->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+        ResetMouseState();
         e.Skip();
     });
 
@@ -283,4 +298,94 @@ void TilesetCtrl::Render(wxDC& dc)
         dc.SetPen(wxPen(*wxBLACK, 1, wxPENSTYLE_SOLID));
         dc.DrawRectangle(x, y, width + 1, height + 1);
     }
+}
+
+TilesetCtrl::MousePosition TilesetCtrl::GetMousePosition()
+{
+    MousePosition ret;
+    ret.isValid = false;
+
+    const MS::FrameSet* frameSet = _controller.frameSetController().selected();
+    if (frameSet == nullptr) {
+        return ret;
+    }
+
+    const wxPoint pt = ScreenToClient(wxGetMousePosition());
+    const wxSize size = GetClientSize();
+
+    if (pt.x < 0 || pt.y < 0 || pt.x >= size.GetWidth() || pt.y >= size.GetHeight()) {
+        return ret;
+    }
+
+    const double zoomX = _controller.settings().zoomX();
+    const double zoomY = _controller.settings().zoomY();
+
+    const unsigned px = (pt.x / zoomX) + GetScrollPos(wxHORIZONTAL);
+    const unsigned py = pt.y / zoomY;
+
+    if (py < SMALL_SIZE) {
+        // small tile
+        unsigned tileId = px / SMALL_SIZE;
+
+        if (tileId < frameSet->smallTileset().size()) {
+            ret.isValid = true;
+            ret.isSmall = true;
+            ret.tileId = px / SMALL_SIZE;
+            ret.tileX = px % SMALL_SIZE;
+            ret.tileY = py;
+        }
+    }
+    else if (py < (SMALL_SIZE + LARGE_SIZE)) {
+        // large tile
+        unsigned tileId = px / LARGE_SIZE;
+
+        if (tileId < frameSet->largeTileset().size()) {
+            ret.isValid = true;
+            ret.isSmall = false;
+            ret.tileId = px / LARGE_SIZE;
+            ret.tileX = px % LARGE_SIZE;
+            ret.tileY = py - SMALL_SIZE;
+        }
+    }
+
+    return ret;
+}
+
+void TilesetCtrl::OnMouseLeftDown(wxMouseEvent& event)
+{
+    MousePosition mouse = GetMousePosition();
+
+    if (mouse.isValid) {
+        _mouseState = MouseState::SELECT;
+        _prevMouse = mouse;
+    }
+    else {
+        _mouseState = MouseState::SELECT;
+    }
+
+    event.Skip();
+}
+
+void TilesetCtrl::OnMouseLeftUp(wxMouseEvent& event)
+{
+    typedef MS::FrameObject::ObjectSize OS;
+
+    MousePosition mouse = GetMousePosition();
+
+    if (mouse.isValid) {
+        if (_mouseState == MouseState::SELECT) {
+            if (mouse.isSmall == _prevMouse.isSmall && mouse.tileId == _prevMouse.tileId) {
+                OS size = mouse.isSmall ? OS::SMALL : OS::LARGE;
+                _controller.frameObjectController().selected_setSizeAndTileId(size, mouse.tileId);
+            }
+            _mouseState = MouseState::NONE;
+        }
+    }
+
+    event.Skip();
+}
+
+void TilesetCtrl::ResetMouseState()
+{
+    _mouseState = MouseState::NONE;
 }
