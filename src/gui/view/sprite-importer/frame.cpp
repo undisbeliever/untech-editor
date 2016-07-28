@@ -213,17 +213,20 @@ Frame::Frame()
 
         zoom->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
-                int z = e.GetId() - ID_ZOOM_1 + 1;
-                _controller.settings().setZoom(z);
+                if (e.IsChecked()) {
+                    int z = e.GetId() - ID_ZOOM_1 + 1;
+                    _controller.settings().setZoom(z);
+                }
             },
             ID_ZOOM_1, ID_ZOOM_9);
 
         aspectRatio->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
-                int a = e.GetId() - ID_ASPECT_SQUARE;
-                _controller.settings().setAspectRatio(
-                    static_cast<Controller::Settings::AspectRatio>(a));
-                ;
+                if (e.IsChecked()) {
+                    int a = e.GetId() - ID_ASPECT_SQUARE;
+                    _controller.settings().setAspectRatio(
+                        static_cast<Controller::Settings::AspectRatio>(a));
+                }
             },
             ID_ASPECT_SQUARE, ID_ASPECT_PAL);
     }
@@ -382,7 +385,10 @@ void Frame::UpdateGuiZoom()
     wxMenuBar* menuBar = GetMenuBar();
     auto& settings = _controller.settings();
 
-    menuBar->Check(ID_ZOOM_1 - 1 + settings.zoom(), true);
+    int zoom = settings.zoom();
+    if (zoom >= 0 && zoom <= 9) {
+        menuBar->Check(ID_ZOOM_1 - 1 + zoom, true);
+    }
     menuBar->Check(ID_ASPECT_SQUARE + static_cast<int>(settings.aspectRatio()), true);
 }
 

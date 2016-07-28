@@ -7,6 +7,8 @@ namespace Controller {
 
 class Settings {
 public:
+    int MAX_ZOOM = 9;
+
     enum AspectRatio {
         SQUARE,
         NTSC,

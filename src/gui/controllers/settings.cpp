@@ -42,8 +42,8 @@ void Settings::setZoom(int zoom)
     if (zoom <= 0) {
         zoom = 1;
     }
-    if (zoom > 15) {
-        zoom = 15;
+    if (zoom > MAX_ZOOM) {
+        zoom = MAX_ZOOM;
     }
 
     if (_zoom != zoom) {
