@@ -16,7 +16,8 @@ public:
 
     enum class MouseState {
         NONE,
-        SELECT
+        SELECT,
+        DRAW
     };
     struct MousePosition {
         bool isValid = false;
@@ -45,7 +46,10 @@ private:
 
     void OnMouseLeftDown(wxMouseEvent&);
     void OnMouseLeftUp(wxMouseEvent&);
+    void OnMouseMotion(wxMouseEvent&);
     void ResetMouseState();
+
+    void DrawTilePixel(const MousePosition&);
 
 private:
     MS::MetaSpriteController& _controller;

@@ -2,6 +2,7 @@
 #include "gui/view/common/image.h"
 #include "models/snes/tile.hpp"
 #include <algorithm>
+#include <cassert>
 #include <wx/dc.h>
 #include <wx/pen.h>
 
@@ -27,14 +28,35 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
     // Signals
     // -------
 
-    controller.paletteController().signal_selectedChanged().connect(sigc::mem_fun(
-        *this, &TilesetCtrl::CreateBitmaps));
+    controller.paletteController().signal_selectedChanged().connect([this](void) {
+        ResetMouseState();
+        CreateBitmaps();
+    });
 
-    controller.paletteController().signal_selectedDataChanged().connect(sigc::mem_fun(
-        *this, &TilesetCtrl::CreateBitmaps));
+    controller.frameSetController().signal_selectedChanged().connect([this](void) {
+        UpdateSize();
+        ResetMouseState();
+        CreateBitmaps();
+    });
+
+    controller.paletteController().signal_selectedDataChanged().connect([this](void) {
+        ResetMouseState();
+        CreateBitmaps();
+    });
+
+    _controller.paletteController().signal_selectedColorChanged().connect([this](void) {
+        if (_controller.paletteController().selectedColorId() >= 0) {
+            SetCursor(wxCursor(wxCURSOR_PENCIL));
+        }
+        else {
+            SetCursor(wxNullCursor);
+        }
+        ResetMouseState();
+    });
 
     controller.frameSetController().signal_tileCountChanged().connect([this](const MS::FrameSet* fs) {
         if (fs && fs == _controller.frameSetController().selected()) {
+            ResetMouseState();
             CreateBitmaps();
         }
     });
@@ -60,6 +82,7 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
     });
 
     _controller.settings().signal_zoomChanged().connect([this](void) {
+        ResetMouseState();
         UpdateSize();
         UpdateScrollbar();
         Refresh(true);
@@ -83,6 +106,9 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
 
     this->Bind(wxEVT_LEFT_DOWN,
                &TilesetCtrl::OnMouseLeftDown, this);
+
+    this->Bind(wxEVT_MOTION,
+               &TilesetCtrl::OnMouseMotion, this);
 
     this->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         ResetMouseState();
@@ -356,7 +382,15 @@ void TilesetCtrl::OnMouseLeftDown(wxMouseEvent& event)
     MousePosition mouse = GetMousePosition();
 
     if (mouse.isValid) {
-        _mouseState = MouseState::SELECT;
+        if (_controller.paletteController().selectedColorId() >= 0) {
+            _mouseState = MouseState::DRAW;
+
+            DrawTilePixel(mouse);
+            CaptureMouse();
+        }
+        else {
+            _mouseState = MouseState::SELECT;
+        }
         _prevMouse = mouse;
     }
     else {
@@ -378,7 +412,29 @@ void TilesetCtrl::OnMouseLeftUp(wxMouseEvent& event)
                 OS size = mouse.isSmall ? OS::SMALL : OS::LARGE;
                 _controller.frameObjectController().selected_setSizeAndTileId(size, mouse.tileId);
             }
-            _mouseState = MouseState::NONE;
+        }
+    }
+
+    ResetMouseState();
+
+    event.Skip();
+}
+
+void TilesetCtrl::OnMouseMotion(wxMouseEvent& event)
+{
+    if (_mouseState == MouseState::DRAW) {
+        MousePosition mouse = GetMousePosition();
+
+        if (mouse.isValid) {
+            if (mouse.isSmall == _prevMouse.isSmall) {
+                if (mouse.tileId != _prevMouse.tileId
+                    || mouse.tileX != _prevMouse.tileX
+                    || mouse.tileY != _prevMouse.tileY) {
+
+                    DrawTilePixel(mouse);
+                    _prevMouse = mouse;
+                }
+            }
         }
     }
 
@@ -387,5 +443,30 @@ void TilesetCtrl::OnMouseLeftUp(wxMouseEvent& event)
 
 void TilesetCtrl::ResetMouseState()
 {
+    if (_mouseState == MouseState::DRAW) {
+        _controller.dontMergeNextAction();
+        ReleaseMouse();
+    }
+
     _mouseState = MouseState::NONE;
+}
+
+void TilesetCtrl::DrawTilePixel(const MousePosition& mouse)
+{
+    assert(mouse.isValid);
+
+    if (mouse.isSmall) {
+        // small
+        _controller.frameSetController().selected_smallTileset_setPixel(
+            mouse.tileId,
+            mouse.tileX, mouse.tileY,
+            _controller.paletteController().selectedColorId());
+    }
+    else {
+        // large
+        _controller.frameSetController().selected_largeTileset_setPixel(
+            mouse.tileId,
+            mouse.tileX, mouse.tileY,
+            _controller.paletteController().selectedColorId());
+    }
 }
