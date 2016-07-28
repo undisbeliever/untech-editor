@@ -327,7 +327,7 @@ void FrameSetController::selected_tileset_setPixel(const unsigned tileId,
             Action* other = dynamic_cast<Action*>(o);
 
             if (other != nullptr) {
-                if (&this->_frameSet == &other->_frameSet
+                if (this->_frameSet == other->_frameSet
                     && this->_tileId == other->_tileId) {
 
                     this->_newTile = other->_newTile;
@@ -364,7 +364,7 @@ void FrameSetController::selected_tileset_setPixel(const unsigned tileId,
             typename TilesetT::tile_t newTile = tileset.tile(tileId);
 
             if (oldTile != newTile) {
-                auto signal = this->signal_tilesetChanged<TilesetT>();
+                auto& signal = this->signal_tilesetChanged<TilesetT>();
 
                 signal.emit(frameSet);
 
