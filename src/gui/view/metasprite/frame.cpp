@@ -1,5 +1,6 @@
 #include "frame.h"
 #include "addtilesdialog.h"
+#include "framegraphicsctrl.h"
 #include "sidebar.h"
 #include "tilesetctrl.h"
 #include "gui/view/common/aboutdialog.h"
@@ -53,10 +54,9 @@ Frame::Frame()
         // Graphics
         auto* vSizer = new wxBoxSizer(wxVERTICAL);
         {
-            // ::TODO replace::
-            auto* frame = new wxPanel(this, wxID_ANY);
-            frame->SetBackgroundColour(wxColour("#4f5049"));
-            vSizer->Add(frame, wxSizerFlags(1).Expand());
+            vSizer->Add(new FrameGraphicsCtrl(this, wxID_ANY,
+                                              _controller),
+                        wxSizerFlags(1).Expand());
 
             vSizer->Add(new TilesetCtrl(this, wxID_ANY,
                                         _controller),
