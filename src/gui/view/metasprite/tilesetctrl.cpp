@@ -1,4 +1,5 @@
 #include "tilesetctrl.h"
+#include "gui/view/common/drawing.hpp"
 #include "gui/view/common/image.h"
 #include "models/snes/tile.hpp"
 #include <algorithm>
@@ -277,7 +278,7 @@ void TilesetCtrl::Render(wxDC& dc)
     int width, height;
     dc.GetSize(&width, &height);
 
-    auto drawGrid = [=](wxDC& dc) {
+    DC::DashedPen(dc, [=](wxDC& dc) {
         dc.DrawLine(0, largeTilesOffset, width, largeTilesOffset);
 
         auto draw = [=](wxDC& dc, unsigned nTiles, int size, int yOffset) {
@@ -292,37 +293,18 @@ void TilesetCtrl::Render(wxDC& dc)
         };
         draw(dc, frameSet->smallTileset().size(), SMALL_SIZE, 0);
         draw(dc, frameSet->largeTileset().size(), LARGE_SIZE, largeTilesOffset);
-    };
-
-    dc.SetPen(wxPen(*wxBLACK, 1, wxPENSTYLE_SOLID));
-    drawGrid(dc);
-
-    dc.SetPen(wxPen(*wxWHITE, 1, wxPENSTYLE_SHORT_DASH));
-    drawGrid(dc);
+    });
 
     // Selected Tile
     // -------------
     const MS::FrameObject* obj = _controller.frameObjectController().selected();
     if (obj) {
         typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
+        const int x = obj->tileId() * obj->sizePx();
+        const int y = obj->size() == OS::SMALL ? 0 : SMALL_SIZE;
 
-        const int xT = obj->tileId() * obj->sizePx() - xOffset;
-
-        const int x = xT * zoomX;
-        const int xEnd = (xT + obj->sizePx()) * zoomX;
-
-        const int y = obj->size() == OS::SMALL ? 0 : largeTilesOffset;
-
-        const int width = xEnd - x;
-        const int height = obj->sizePx() * zoomY;
-
-        dc.SetBrush(wxNullBrush);
-
-        dc.SetPen(wxPen(*wxWHITE, 1, wxPENSTYLE_SOLID));
-        dc.DrawRectangle(x + 1, y + 1, width - 1, height - 1);
-
-        dc.SetPen(wxPen(*wxBLACK, 1, wxPENSTYLE_SOLID));
-        dc.DrawRectangle(x, y, width + 1, height + 1);
+        DC::DrawSelectedRectangleOffset(dc, zoomX, zoomY, xOffset, 0,
+                                        x, y, obj->sizePx(), obj->sizePx());
     }
 }
 
