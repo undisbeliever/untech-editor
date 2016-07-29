@@ -35,6 +35,7 @@ public:
     void moveSelectedUp();
     void moveSelectedDown();
 
+    auto& signal_selectedChanged() { return _signal_selectedChanged; }
     auto& signal_typeChanged() { return _signal_typeChanged; }
     auto& signal_listChanged() { return _signal_listChanged; }
 
@@ -45,6 +46,7 @@ private:
     BaseControllerT& _controller;
 
     Type _type = Type::NONE;
+    sigc::signal<void> _signal_selectedChanged;
     sigc::signal<void> _signal_typeChanged;
     sigc::signal<void> _signal_listChanged;
 };

@@ -20,6 +20,7 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
         else if (_type == Type::FRAME_OBJECT) {
             setType(Type::NONE);
         }
+        _signal_selectedChanged.emit();
     });
     _controller.frameObjectController().signal_listDataChanged().connect(sigc::hide([this](void) {
         if (_type == Type::FRAME_OBJECT) {
@@ -34,6 +35,7 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
         else if (_type == Type::ACTION_POINT) {
             setType(Type::NONE);
         }
+        _signal_selectedChanged.emit();
     });
     _controller.actionPointController().signal_listDataChanged().connect(sigc::hide([this](void) {
         if (_type == Type::ACTION_POINT) {
@@ -48,6 +50,7 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
         else if (_type == Type::ENTITY_HITBOX) {
             setType(Type::NONE);
         }
+        _signal_selectedChanged.emit();
     });
     _controller.entityHitboxController().signal_listDataChanged().connect(sigc::hide([this](void) {
         if (_type == Type::ENTITY_HITBOX) {
