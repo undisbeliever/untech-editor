@@ -207,14 +207,14 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
     clientWidth /= zoomX;
     clientHeight /= zoomY;
 
-    int xOffset = GetScrollPos(wxHORIZONTAL);
+    int xPos = GetScrollPos(wxHORIZONTAL);
     if (clientWidth > BITMAP_SIZE) {
-        xOffset -= (clientWidth - BITMAP_SIZE) / 2;
+        xPos -= (clientWidth - BITMAP_SIZE) / 2;
     }
 
-    int yOffset = GetScrollPos(wxVERTICAL);
+    int yPos = GetScrollPos(wxVERTICAL);
     if (clientHeight > BITMAP_SIZE) {
-        yOffset -= (clientHeight - BITMAP_SIZE) / 2;
+        yPos -= (clientHeight - BITMAP_SIZE) / 2;
     }
 
     // Draw Bitmap
@@ -223,12 +223,12 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
         wxMemoryDC tmpDc;
         tmpDc.SelectObjectAsSource(_bitmap);
 
-        int width = _bitmap.GetWidth() - xOffset;
-        int height = _bitmap.GetHeight() - yOffset;
+        int width = _bitmap.GetWidth() - xPos;
+        int height = _bitmap.GetHeight() - yPos;
 
         paintDc.StretchBlit(0, 0, width * zoomX, height * zoomY,
                             &tmpDc,
-                            xOffset, yOffset, width, height);
+                            xPos, yPos, width, height);
     }
 
     // This DC is used for transparency stuff
@@ -237,54 +237,41 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
     gc->SetAntialiasMode(wxANTIALIAS_NONE);
     gc->SetInterpolationQuality(wxINTERPOLATION_NONE);
 
-    xOffset = FRAME_IMAGE_OFFSET - xOffset;
-    yOffset = FRAME_IMAGE_OFFSET - yOffset;
+    DrawingHelper helper(dc, zoomX, zoomY,
+                         xPos - FRAME_IMAGE_OFFSET,
+                         yPos - FRAME_IMAGE_OFFSET);
 
     // Origin
     // ------
-    {
-        dc.SetPen(DC::ORIGIN_PEN);
-        dc.CrossHair(xOffset * zoomX, yOffset * zoomY);
-    }
+    dc.SetPen(ORIGIN_PEN);
+    dc.CrossHair((FRAME_IMAGE_OFFSET - xPos) * zoomX,
+                 (FRAME_IMAGE_OFFSET - yPos) * zoomY);
 
     // Boxes
     // -----
     dc.SetBrush(wxNullBrush);
-    dc.SetPen(DC::FRAME_OBJECTS_PEN);
+    dc.SetPen(FRAME_OBJECTS_PEN);
 
     for (const MS::FrameObject& obj : frame->objects()) {
-        const auto oLoc = obj.location();
-        const unsigned oSize = obj.sizePx();
-
-        DC::DrawRectangleOffset(dc, zoomX, zoomY, xOffset, yOffset,
-                                oLoc.x, oLoc.y, oSize, oSize);
+        helper.DrawSquare(obj.location(), obj.sizePx());
     }
 
-    dc.SetBrush(DC::ENTITY_HITBOX_BRUSH);
-    dc.SetPen(DC::ENTITY_HITBOX_PEN);
+    dc.SetBrush(ENTITY_HITBOX_BRUSH);
+    dc.SetPen(ENTITY_HITBOX_PEN);
     for (const MS::EntityHitbox& eh : frame->entityHitboxes()) {
-        const auto aabb = eh.aabb();
-
-        DC::DrawRectangleOffset(dc, zoomX, zoomY, xOffset, yOffset,
-                                aabb.x, aabb.y, aabb.width, aabb.height);
+        helper.DrawRectangle(eh.aabb());
     }
 
     if (frame->solid()) {
-        const auto aabb = frame->tileHitbox();
-
-        dc.SetBrush(DC::TILE_HITBOX_BRUSH);
-        dc.SetPen(DC::TILE_HITBOX_PEN);
-        DC::DrawRectangleOffset(dc, zoomX, zoomY, xOffset, yOffset,
-                                aabb.x, aabb.y, aabb.width, aabb.height);
+        dc.SetBrush(TILE_HITBOX_BRUSH);
+        dc.SetPen(TILE_HITBOX_PEN);
+        helper.DrawRectangle(frame->tileHitbox());
     }
 
     dc.SetBrush(wxNullBrush);
-    dc.SetPen(DC::ACTION_POINT_PEN);
+    dc.SetPen(ACTION_POINT_PEN);
     for (const MS::ActionPoint& ap : frame->actionPoints()) {
-        const auto aLoc = ap.location();
-
-        DC::DrawCrossOffset(dc, zoomX, zoomY, xOffset, yOffset,
-                            aLoc.x, aLoc.y);
+        helper.DrawCross(ap.location());
     }
 
     // Selected Item
@@ -295,29 +282,19 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 
     case SelectedType::FRAME_OBJECT:
         if (const auto* fo = _controller.frameObjectController().selected()) {
-            const auto oLoc = fo->location();
-            const unsigned oSize = fo->sizePx();
-
-            DC::DrawSelectedRectangleOffset(dc, zoomX, zoomY, xOffset, yOffset,
-                                            oLoc.x, oLoc.y, oSize, oSize);
+            helper.DrawSelectedSquare(fo->location(), fo->sizePx());
         }
         break;
 
     case SelectedType::ENTITY_HITBOX:
         if (const auto* eh = _controller.entityHitboxController().selected()) {
-            const auto aabb = eh->aabb();
-
-            DC::DrawSelectedRectangleOffset(dc, zoomX, zoomY, xOffset, yOffset,
-                                            aabb.x, aabb.y, aabb.width, aabb.height);
+            helper.DrawSelectedRectangle(eh->aabb());
         }
         break;
 
     case SelectedType::ACTION_POINT:
         if (const auto* ap = _controller.actionPointController().selected()) {
-            const auto aLoc = ap->location();
-
-            DC::DrawSelectedCrossOffset(dc, zoomX, zoomY, xOffset, yOffset,
-                                        aLoc.x, aLoc.y);
+            helper.DrawSelectedCross(ap->location());
         }
         break;
     }

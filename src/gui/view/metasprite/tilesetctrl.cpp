@@ -262,7 +262,7 @@ void TilesetCtrl::Render(wxDC& dc)
     const double zoomX = _controller.settings().zoomX();
     const double zoomY = _controller.settings().zoomY();
 
-    const int xOffset = GetScrollPos(wxHORIZONTAL);
+    const int xPos = GetScrollPos(wxHORIZONTAL);
     int largeTilesOffset = SMALL_SIZE * zoomY;
 
     auto drawScaledBitmap = [=](wxDC& dc, const wxBitmap& bitmap, int yOffset) {
@@ -270,12 +270,12 @@ void TilesetCtrl::Render(wxDC& dc)
             wxMemoryDC tmpDc;
             tmpDc.SelectObjectAsSource(bitmap);
 
-            int width = bitmap.GetWidth() - xOffset;
+            int width = bitmap.GetWidth() - xPos;
             int height = bitmap.GetHeight();
 
             dc.StretchBlit(0, yOffset, width * zoomX, height * zoomY,
                            &tmpDc,
-                           xOffset, 0, width, height);
+                           xPos, 0, width, height);
         }
     };
 
@@ -287,12 +287,12 @@ void TilesetCtrl::Render(wxDC& dc)
     int width, height;
     dc.GetSize(&width, &height);
 
-    DC::DashedPen(dc, [=](wxDC& dc) {
+    DashedPen(dc, [=](wxDC& dc) {
         dc.DrawLine(0, largeTilesOffset, width, largeTilesOffset);
 
         auto draw = [=](wxDC& dc, unsigned nTiles, int size, int yOffset) {
-            int start = (size - (xOffset % size));
-            int end = std::min((int)(nTiles * size - xOffset),
+            int start = (size - (xPos % size));
+            int end = std::min((int)(nTiles * size - xPos),
                                (int)(width / zoomX));
 
             for (int xPos = start; xPos <= end; xPos += size) {
@@ -308,12 +308,13 @@ void TilesetCtrl::Render(wxDC& dc)
     // -------------
     const MS::FrameObject* obj = _controller.frameObjectController().selected();
     if (obj) {
+        DrawingHelper helper(dc, zoomX, zoomY, xPos, 0);
+
         typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
         const int x = obj->tileId() * obj->sizePx();
         const int y = obj->size() == OS::SMALL ? 0 : SMALL_SIZE;
 
-        DC::DrawSelectedRectangleOffset(dc, zoomX, zoomY, xOffset, 0,
-                                        x, y, obj->sizePx(), obj->sizePx());
+        helper.DrawSelectedRectangle(x, y, obj->sizePx(), obj->sizePx());
     }
 }
 
