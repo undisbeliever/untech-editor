@@ -1,7 +1,6 @@
 #include "tilesetctrl.h"
 #include "gui/view/common/drawing.hpp"
-#include "gui/view/common/image.h"
-#include "models/snes/tile.hpp"
+#include "gui/view/snes/tile.hpp"
 #include <algorithm>
 #include <cassert>
 #include <wx/dc.h>
@@ -193,18 +192,23 @@ void TilesetCtrl::CreateSmallBitmap()
         return;
     }
 
-    const unsigned width = smallTileset.size() * SMALL_SIZE;
-    const unsigned height = SMALL_SIZE;
+    const int width = smallTileset.size() * SMALL_SIZE;
+    const int height = SMALL_SIZE;
 
-    UnTech::Image buffer(width, height);
+    if (!_smallTilesBitmap.IsOk()
+        || _smallTilesBitmap.GetWidth() != width
+        || _smallTilesBitmap.GetHeight() != height) {
 
-    for (unsigned i = 0; i < smallTileset.size(); i++) {
-        smallTileset.tile(i).drawOpaque(buffer, *palette,
-                                        i * SMALL_SIZE, 0,
-                                        false, false);
+        _smallTilesBitmap.Create(width, height, 24);
     }
 
-    _smallTilesBitmap = ImageToWxBitmap(buffer);
+    wxNativePixelData pData(_smallTilesBitmap);
+
+    for (unsigned i = 0; i < smallTileset.size(); i++) {
+        UnTech::View::Snes::DrawTileOpaque(
+            pData, smallTileset.tile(i), *palette,
+            i * SMALL_SIZE, 0, false, false);
+    }
 }
 
 void TilesetCtrl::CreateLargeBitmap()
@@ -225,18 +229,23 @@ void TilesetCtrl::CreateLargeBitmap()
         return;
     }
 
-    const unsigned width = largeTileset.size() * LARGE_SIZE;
-    const unsigned height = LARGE_SIZE;
+    const int width = largeTileset.size() * LARGE_SIZE;
+    const int height = LARGE_SIZE;
 
-    UnTech::Image buffer(width, height);
+    if (!_largeTilesBitmap.IsOk()
+        || _largeTilesBitmap.GetWidth() != width
+        || _largeTilesBitmap.GetHeight() != height) {
 
-    for (unsigned i = 0; i < largeTileset.size(); i++) {
-        largeTileset.tile(i).drawOpaque(buffer, *palette,
-                                        i * LARGE_SIZE, 0,
-                                        false, false);
+        _largeTilesBitmap.Create(width, height, 24);
     }
 
-    _largeTilesBitmap = ImageToWxBitmap(buffer);
+    wxNativePixelData pData(_largeTilesBitmap);
+
+    for (unsigned i = 0; i < largeTileset.size(); i++) {
+        UnTech::View::Snes::DrawTileOpaque(
+            pData, largeTileset.tile(i), *palette,
+            i * LARGE_SIZE, 0, false, false);
+    }
 }
 
 void TilesetCtrl::Render(wxDC& dc)
