@@ -8,6 +8,9 @@ namespace MetaSprite {
 
 namespace MS = UnTech::MetaSprite;
 
+class GraphicsPanel;
+class Sidebar;
+
 class Frame : public wxFrame {
 public:
     const static wxString WINDOW_NAME;
@@ -36,6 +39,9 @@ protected:
 private:
     MS::MetaSpriteController _controller;
     wxTimer _initBugfixTimer;
+
+    GraphicsPanel* _graphics;
+    Sidebar* _sidebar;
 };
 }
 }

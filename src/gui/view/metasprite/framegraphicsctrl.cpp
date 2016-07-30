@@ -27,10 +27,19 @@ FrameGraphicsCtrl::FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
 
     // Signals
     // -------
-    controller.frameController().signal_selectedChanged().connect(sigc::mem_fun(
-        *this, &FrameGraphicsCtrl::UpdateBitmap));
-    controller.frameController().signal_selectedDataChanged().connect(sigc::mem_fun(
-        *this, &FrameGraphicsCtrl::Refresh));
+    controller.frameController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
+        *this, &FrameGraphicsCtrl::Refresh)));
+
+    controller.frameController().signal_listChanged().connect([this](void) {
+        SetMetaSpriteFrame(nullptr);
+    });
+    controller.frameController().signal_listDataChanged().connect([this](const MS::Frame::list_t*) {
+        auto list = _controller.frameController().list();
+        if (!list || !list->contains(_currentFrame)) {
+            SetMetaSpriteFrame(nullptr);
+        }
+        Refresh();
+    });
 
     controller.paletteController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &FrameGraphicsCtrl::UpdateBitmap));
@@ -101,10 +110,20 @@ FrameGraphicsCtrl::FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
     this->Bind(wxEVT_SCROLLWIN_THUMBRELEASE, scrollEvent);
 }
 
+void FrameGraphicsCtrl::SetMetaSpriteFrame(const MS::Frame* frame)
+{
+    if (_currentFrame != frame) {
+        _currentFrame = frame;
+
+        if (frame == nullptr) {
+            UpdateScrollbar();
+        }
+        UpdateBitmap();
+    }
+}
+
 void FrameGraphicsCtrl::UpdateScrollbar()
 {
-    const MS::Frame* frame = _controller.frameController().selected();
-
     int clientWidth, clientHeight;
     GetClientSize(&clientWidth, &clientHeight);
 
@@ -115,7 +134,7 @@ void FrameGraphicsCtrl::UpdateScrollbar()
     int vThumbSize = std::min(clientHeight, BITMAP_SIZE);
 
     int hPos, vPos;
-    if (frame) {
+    if (_currentFrame) {
         hPos = GetScrollPos(wxHORIZONTAL) + GetScrollThumb(wxHORIZONTAL) / 2 - hThumbSize / 2;
         vPos = GetScrollPos(wxVERTICAL) + GetScrollThumb(wxVERTICAL) / 2 - vThumbSize / 2;
     }
@@ -146,7 +165,7 @@ void FrameGraphicsCtrl::UpdateBitmap()
     }
 
     // Draw the sprites
-    const MS::Frame* frame = _controller.frameController().selected();
+    const MS::Frame* frame = _currentFrame;
     const MS::Palette* palette = _controller.paletteController().selected();
     if (frame && palette) {
         const MS::FrameSet& frameSet = frame->frameSet();
@@ -192,7 +211,7 @@ void FrameGraphicsCtrl::UpdateBitmap()
 
 void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 {
-    const MS::Frame* frame = _controller.frameController().selected();
+    const MS::Frame* frame = _currentFrame;
 
     if (frame == nullptr || paintDc.IsOk() == false) {
         return;
@@ -279,26 +298,28 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 
     // Selected Item
     // -------------
-    switch (_controller.selectedTypeController().type()) {
-    case SelectedType::NONE:
-        break;
+    if (frame == _controller.frameController().selected()) {
+        switch (_controller.selectedTypeController().type()) {
+        case SelectedType::NONE:
+            break;
 
-    case SelectedType::FRAME_OBJECT:
-        if (const auto* fo = _controller.frameObjectController().selected()) {
-            helper.DrawSelectedSquare(fo->location(), fo->sizePx());
-        }
-        break;
+        case SelectedType::FRAME_OBJECT:
+            if (const auto* fo = _controller.frameObjectController().selected()) {
+                helper.DrawSelectedSquare(fo->location(), fo->sizePx());
+            }
+            break;
 
-    case SelectedType::ENTITY_HITBOX:
-        if (const auto* eh = _controller.entityHitboxController().selected()) {
-            helper.DrawSelectedRectangle(eh->aabb());
-        }
-        break;
+        case SelectedType::ENTITY_HITBOX:
+            if (const auto* eh = _controller.entityHitboxController().selected()) {
+                helper.DrawSelectedRectangle(eh->aabb());
+            }
+            break;
 
-    case SelectedType::ACTION_POINT:
-        if (const auto* ap = _controller.actionPointController().selected()) {
-            helper.DrawSelectedCross(ap->location());
+        case SelectedType::ACTION_POINT:
+            if (const auto* ap = _controller.actionPointController().selected()) {
+                helper.DrawSelectedCross(ap->location());
+            }
+            break;
         }
-        break;
     }
 }

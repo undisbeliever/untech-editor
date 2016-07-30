@@ -1,8 +1,7 @@
 #include "frame.h"
 #include "addtilesdialog.h"
-#include "framegraphicsctrl.h"
+#include "graphicspanel.h"
 #include "sidebar.h"
-#include "tilesetctrl.h"
 #include "gui/view/common/aboutdialog.h"
 #include "gui/view/common/controllerinterface.h"
 #include "gui/view/common/filedialogs.h"
@@ -33,6 +32,7 @@ enum MENU_IDS {
     ID_ASPECT_SQUARE,
     ID_ASPECT_NTSC,
     ID_ASPECT_PAL,
+    ID_SPLIT_VIEW,
 
     ID_INIT_TIMER,
 };
@@ -49,25 +49,12 @@ Frame::Frame()
     // Widgets
     // =======
     {
+        _graphics = new GraphicsPanel(this, wxID_ANY, _controller);
+        _sidebar = new Sidebar(this, wxID_ANY, _controller);
+
         auto* sizer = new wxBoxSizer(wxHORIZONTAL);
-
-        // Graphics
-        auto* vSizer = new wxBoxSizer(wxVERTICAL);
-        {
-            vSizer->Add(new FrameGraphicsCtrl(this, wxID_ANY,
-                                              _controller),
-                        wxSizerFlags(1).Expand());
-
-            vSizer->Add(new TilesetCtrl(this, wxID_ANY,
-                                        _controller),
-                        wxSizerFlags(1).Expand().Border(wxTOP));
-        }
-        sizer->Add(vSizer, wxSizerFlags(1).Expand().Border());
-
-        sizer->Add(new Sidebar(this, wxID_ANY,
-                               _controller),
-                   wxSizerFlags().Expand().Border(wxTOP | wxBOTTOM | wxRIGHT));
-
+        sizer->Add(_graphics, wxSizerFlags(1).Expand().Border());
+        sizer->Add(_sidebar, wxSizerFlags(0).Expand().Border(wxTOP | wxBOTTOM | wxRIGHT));
         this->SetSizer(sizer);
 
         Centre();
@@ -121,6 +108,7 @@ Frame::Frame()
         auto* view = new wxMenu();
         view->AppendSubMenu(zoom, "&Zoom");
         view->AppendSubMenu(aspectRatio, "&Aspect Ratio");
+        view->AppendCheckItem(ID_SPLIT_VIEW, "&Split View\tCTRL+T");
 
         menuBar->Append(file, "&File");
         menuBar->Append(edit, "&Edit");
@@ -261,6 +249,12 @@ Frame::Frame()
                 }
             },
             ID_ASPECT_SQUARE, ID_ASPECT_PAL);
+
+        view->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
+                _graphics->SetSplit(e.IsChecked());
+            },
+            ID_SPLIT_VIEW);
     }
 
     UpdateGuiUndo();
