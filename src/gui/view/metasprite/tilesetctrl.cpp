@@ -73,13 +73,16 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
         }
     });
 
-    controller.frameObjectController().signal_selectedChanged().connect([this](void) {
+    auto onObj = [this](void) {
         Refresh(true);
-    });
 
-    controller.frameObjectController().signal_selectedDataChanged().connect([this](void) {
-        Refresh(true);
-    });
+        const MS::FrameObject* obj = _controller.frameObjectController().selected();
+        if (obj) {
+            ScrollTo(int(obj->tileId() * obj->sizePx()), obj->sizePx());
+        }
+    };
+    controller.frameObjectController().signal_selectedChanged().connect(onObj);
+    controller.frameObjectController().signal_selectedDataChanged().connect(onObj);
 
     _controller.settings().signal_zoomChanged().connect([this](void) {
         ResetMouseState();
@@ -165,6 +168,17 @@ void TilesetCtrl::UpdateScrollbar()
     this->SetScrollbar(wxHORIZONTAL,
                        GetScrollPos(wxHORIZONTAL),
                        thumbSize, width);
+}
+
+void TilesetCtrl::ScrollTo(int x, unsigned width)
+{
+    int thumbSize = GetScrollThumb(wxHORIZONTAL);
+    int scrollPos = GetScrollPos(wxHORIZONTAL);
+
+    if (x < scrollPos || (x + int(width)) > (scrollPos + thumbSize)) {
+        int newPos = x + width / 2 - thumbSize / 2;
+        SetScrollPos(wxHORIZONTAL, newPos);
+    }
 }
 
 void TilesetCtrl::CreateBitmaps()

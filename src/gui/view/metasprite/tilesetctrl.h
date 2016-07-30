@@ -34,6 +34,7 @@ public:
 private:
     void UpdateSize();
     void UpdateScrollbar();
+    void ScrollTo(int x, unsigned width);
 
     void CreateBitmaps();
     void CreateSmallBitmap();
