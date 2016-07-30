@@ -194,7 +194,7 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 {
     const MS::Frame* frame = _controller.frameController().selected();
 
-    if (frame == nullptr) {
+    if (frame == nullptr || paintDc.IsOk() == false) {
         return;
     }
 
@@ -219,7 +219,7 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 
     // Draw Bitmap
     // -----------
-    {
+    if (_bitmap.IsOk()) {
         wxMemoryDC tmpDc;
         tmpDc.SelectObjectAsSource(_bitmap);
 
@@ -233,6 +233,9 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 
     // This DC is used for transparency stuff
     wxGCDC dc(paintDc);
+    if (dc.IsOk() == false) {
+        return;
+    }
     wxGraphicsContext* gc = dc.GetGraphicsContext();
     gc->SetAntialiasMode(wxANTIALIAS_NONE);
     gc->SetInterpolationQuality(wxINTERPOLATION_NONE);

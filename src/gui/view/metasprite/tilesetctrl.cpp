@@ -255,7 +255,7 @@ void TilesetCtrl::Render(wxDC& dc)
 
     const MS::FrameSet* frameSet = _controller.frameSetController().selected();
 
-    if (frameSet == nullptr) {
+    if (frameSet == nullptr || dc.IsOk() == false) {
         return;
     }
 
