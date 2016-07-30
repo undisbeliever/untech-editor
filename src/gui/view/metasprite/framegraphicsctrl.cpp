@@ -247,9 +247,11 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
         int width = _bitmap.GetWidth() - xPos;
         int height = _bitmap.GetHeight() - yPos;
 
-        paintDc.StretchBlit(0, 0, width * zoomX, height * zoomY,
-                            &tmpDc,
-                            xPos, yPos, width, height);
+        if (width > 0 && height > 0) {
+            paintDc.StretchBlit(0, 0, width * zoomX, height * zoomY,
+                                &tmpDc,
+                                xPos, yPos, width, height);
+        }
     }
 
     // This DC is used for transparency stuff

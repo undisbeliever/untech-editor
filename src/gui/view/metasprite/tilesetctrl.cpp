@@ -273,9 +273,11 @@ void TilesetCtrl::Render(wxDC& dc)
             int width = bitmap.GetWidth() - xPos;
             int height = bitmap.GetHeight();
 
-            dc.StretchBlit(0, yOffset, width * zoomX, height * zoomY,
-                           &tmpDc,
-                           xPos, 0, width, height);
+            if (width > 0 && height > 0) {
+                dc.StretchBlit(0, yOffset, width * zoomX, height * zoomY,
+                               &tmpDc,
+                               xPos, 0, width, height);
+            }
         }
     };
 
