@@ -116,13 +116,13 @@ void FrameGraphicsCtrl::SetMetaSpriteFrame(const MS::Frame* frame)
         _currentFrame = frame;
 
         if (frame == nullptr) {
-            UpdateScrollbar();
+            CenterScrollbar();
         }
         UpdateBitmap();
     }
 }
 
-void FrameGraphicsCtrl::UpdateScrollbar()
+void FrameGraphicsCtrl::UpdateScrollbar(bool center)
 {
     int clientWidth, clientHeight;
     GetClientSize(&clientWidth, &clientHeight);
@@ -134,7 +134,7 @@ void FrameGraphicsCtrl::UpdateScrollbar()
     int vThumbSize = std::min(clientHeight, BITMAP_SIZE);
 
     int hPos, vPos;
-    if (_currentFrame) {
+    if (_currentFrame && !center) {
         hPos = GetScrollPos(wxHORIZONTAL) + GetScrollThumb(wxHORIZONTAL) / 2 - hThumbSize / 2;
         vPos = GetScrollPos(wxVERTICAL) + GetScrollThumb(wxVERTICAL) / 2 - vThumbSize / 2;
     }
@@ -148,6 +148,8 @@ void FrameGraphicsCtrl::UpdateScrollbar()
 
     this->SetScrollbar(wxVERTICAL, vPos,
                        vThumbSize, BITMAP_SIZE);
+
+    Refresh();
 }
 
 void FrameGraphicsCtrl::UpdateBitmap()

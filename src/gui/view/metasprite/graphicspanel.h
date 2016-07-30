@@ -20,6 +20,7 @@ public:
                   MS::MetaSpriteController& controller);
 
     void SetSplit(bool enabled);
+    void CenterMetaSpriteFrames();
 
 private:
     MS::MetaSpriteController& _controller;

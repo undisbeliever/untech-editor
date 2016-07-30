@@ -33,6 +33,7 @@ enum MENU_IDS {
     ID_ASPECT_NTSC,
     ID_ASPECT_PAL,
     ID_SPLIT_VIEW,
+    ID_CENTER_VIEW,
 
     ID_INIT_TIMER,
 };
@@ -109,6 +110,7 @@ Frame::Frame()
         view->AppendSubMenu(zoom, "&Zoom");
         view->AppendSubMenu(aspectRatio, "&Aspect Ratio");
         view->AppendCheckItem(ID_SPLIT_VIEW, "&Split View\tCTRL+T");
+        view->Append(ID_CENTER_VIEW, "&Centre View\tCTRL+E");
 
         menuBar->Append(file, "&File");
         menuBar->Append(edit, "&Edit");
@@ -255,6 +257,12 @@ Frame::Frame()
                 _graphics->SetSplit(e.IsChecked());
             },
             ID_SPLIT_VIEW);
+
+        view->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                _graphics->CenterMetaSpriteFrames();
+            },
+            ID_CENTER_VIEW);
     }
 
     UpdateGuiUndo();

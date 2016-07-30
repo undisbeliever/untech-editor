@@ -18,10 +18,12 @@ public:
     const MS::Frame* GetMetaSpriteFrame() const { return _currentFrame; }
     void SetMetaSpriteFrame(const MS::Frame* frame);
 
+    void CenterScrollbar() { UpdateScrollbar(true); }
+
 private:
     void Refresh() { wxPanel::Refresh(true); }
 
-    void UpdateScrollbar();
+    void UpdateScrollbar(bool center = false);
 
     void UpdateBitmap();
 

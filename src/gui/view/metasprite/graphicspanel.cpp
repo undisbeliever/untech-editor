@@ -57,6 +57,7 @@ void GraphicsPanel::SetSplit(bool split)
         if (split) {
             for (auto* w : _frames) {
                 w->Show();
+                w->CenterScrollbar();
             }
         }
         else {
@@ -70,5 +71,12 @@ void GraphicsPanel::SetSplit(bool split)
         if (auto* parent = GetParent()) {
             parent->Layout();
         }
+    }
+}
+
+void GraphicsPanel::CenterMetaSpriteFrames()
+{
+    for (auto* w : _frames) {
+        w->CenterScrollbar();
     }
 }
