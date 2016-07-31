@@ -115,3 +115,41 @@ AnimationController::AnimationController(Controller::BaseController& baseControl
     : NamedListController(baseController)
 {
 }
+
+/*
+ * LAYERS CONTROLLER
+ * =================
+ */
+LayersController::LayersController()
+    : _origin(true)
+    , _tileHitbox(true)
+    , _frameObjects(true)
+    , _actionPoints(true)
+    , _entityHitboxes(true)
+{
+}
+
+void LayersController::showAll()
+{
+    _frameObjects = true;
+    _actionPoints = true;
+    _entityHitboxes = true;
+    _origin = true;
+    _tileHitbox = true;
+
+    _signal_layersChanged.emit();
+}
+
+#define LAYERS_SETTER(name, variable)     \
+    void LayersController::name(bool v)   \
+    {                                     \
+        if (variable != v) {              \
+            variable = v;                 \
+            _signal_layersChanged.emit(); \
+        }                                 \
+    }
+LAYERS_SETTER(setFrameObjects, _frameObjects)
+LAYERS_SETTER(setActionPoints, _actionPoints)
+LAYERS_SETTER(setEntityHitboxes, _entityHitboxes)
+LAYERS_SETTER(setOrigin, _origin)
+LAYERS_SETTER(setTileHitbox, _tileHitbox)

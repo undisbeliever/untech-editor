@@ -78,6 +78,9 @@ FrameGraphicsCtrl::FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
     controller.selectedTypeController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &FrameGraphicsCtrl::Refresh));
 
+    _controller.layersController().signal_layersChanged().connect(sigc::mem_fun(
+        *this, &FrameGraphicsCtrl::Refresh));
+
     _controller.settings().signal_zoomChanged().connect([this](void) {
         UpdateScrollbar();
         Refresh();
@@ -214,6 +217,7 @@ void FrameGraphicsCtrl::UpdateBitmap()
 void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 {
     const MS::Frame* frame = _currentFrame;
+    const auto& layers = _controller.layersController();
 
     if (frame == nullptr || paintDc.IsOk() == false) {
         return;
@@ -269,35 +273,43 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 
     // Origin
     // ------
-    dc.SetPen(ORIGIN_PEN);
-    dc.CrossHair((FRAME_IMAGE_OFFSET - xPos) * zoomX,
-                 (FRAME_IMAGE_OFFSET - yPos) * zoomY);
+    if (layers.origin()) {
+        dc.SetPen(ORIGIN_PEN);
+        dc.CrossHair((FRAME_IMAGE_OFFSET - xPos) * zoomX,
+                     (FRAME_IMAGE_OFFSET - yPos) * zoomY);
+    }
 
     // Boxes
     // -----
-    dc.SetBrush(wxNullBrush);
-    dc.SetPen(FRAME_OBJECTS_PEN);
+    if (layers.frameObjects()) {
+        dc.SetBrush(wxNullBrush);
+        dc.SetPen(FRAME_OBJECTS_PEN);
 
-    for (const MS::FrameObject& obj : frame->objects()) {
-        helper.DrawSquare(obj.location(), obj.sizePx());
+        for (const MS::FrameObject& obj : frame->objects()) {
+            helper.DrawSquare(obj.location(), obj.sizePx());
+        }
     }
 
-    dc.SetBrush(ENTITY_HITBOX_BRUSH);
-    dc.SetPen(ENTITY_HITBOX_PEN);
-    for (const MS::EntityHitbox& eh : frame->entityHitboxes()) {
-        helper.DrawRectangle(eh.aabb());
+    if (layers.entityHitboxes()) {
+        dc.SetBrush(ENTITY_HITBOX_BRUSH);
+        dc.SetPen(ENTITY_HITBOX_PEN);
+        for (const MS::EntityHitbox& eh : frame->entityHitboxes()) {
+            helper.DrawRectangle(eh.aabb());
+        }
     }
 
-    if (frame->solid()) {
+    if (frame->solid() && layers.tileHitbox()) {
         dc.SetBrush(TILE_HITBOX_BRUSH);
         dc.SetPen(TILE_HITBOX_PEN);
         helper.DrawRectangle(frame->tileHitbox());
     }
 
-    dc.SetBrush(wxNullBrush);
-    dc.SetPen(ACTION_POINT_PEN);
-    for (const MS::ActionPoint& ap : frame->actionPoints()) {
-        helper.DrawCross(ap.location());
+    if (layers.actionPoints()) {
+        dc.SetBrush(wxNullBrush);
+        dc.SetPen(ACTION_POINT_PEN);
+        for (const MS::ActionPoint& ap : frame->actionPoints()) {
+            helper.DrawCross(ap.location());
+        }
     }
 
     // Selected Item

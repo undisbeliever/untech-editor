@@ -171,6 +171,7 @@ public:
     auto& actionPointController() { return _actionPointController; }
     auto& frameObjectController() { return _frameObjectController; }
     auto& selectedTypeController() { return _selectedTypeController; }
+    auto& layersController() { return _layersController; }
 
     // emits `signal_listChanged` and `signal_selectedChanged` for
     // all child controllers.
@@ -183,6 +184,9 @@ private:
     EntityHitboxController _entityHitboxController;
     ActionPointController _actionPointController;
     FrameObjectController _frameObjectController;
+    MetaSpriteCommon::LayersController _layersController;
+
+    // must be last
     SelectedTypeController _selectedTypeController;
 };
 }

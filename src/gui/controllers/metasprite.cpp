@@ -26,6 +26,7 @@ MetaSpriteController::MetaSpriteController(std::unique_ptr<Controller::Controlle
     , _entityHitboxController(*this)
     , _actionPointController(*this)
     , _frameObjectController(*this)
+    , _layersController()
     , _selectedTypeController(*this)
 {
 

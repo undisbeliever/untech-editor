@@ -19,6 +19,39 @@ class AbstractFrameSetController;
 
 namespace MetaSpriteCommon {
 
+class LayersController {
+public:
+    LayersController();
+
+    bool frameObjects() const { return _frameObjects; }
+    void setFrameObjects(bool);
+
+    bool actionPoints() const { return _actionPoints; }
+    void setActionPoints(bool);
+
+    bool entityHitboxes() const { return _entityHitboxes; }
+    void setEntityHitboxes(bool);
+
+    bool origin() const { return _origin; }
+    void setOrigin(bool);
+
+    bool tileHitbox() const { return _tileHitbox; }
+    void setTileHitbox(bool);
+
+    void showAll();
+
+    auto& signal_layersChanged() { return _signal_layersChanged; }
+
+private:
+    sigc::signal<void> _signal_layersChanged;
+
+    bool _origin;
+    bool _tileHitbox;
+    bool _frameObjects;
+    bool _actionPoints;
+    bool _entityHitboxes;
+};
+
 class AnimationInstructionController : public Controller::OrderedListController<AnimationInstruction> {
 public:
     AnimationInstructionController(Controller::BaseController&);

@@ -25,6 +25,7 @@ public:
 protected:
     void UpdateGuiMenu();
     void UpdateGuiZoom();
+    void UpdateGuiLayers();
     void UpdateGuiUndo();
     void UpdateGuiTitle();
 

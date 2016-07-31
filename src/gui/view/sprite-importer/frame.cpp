@@ -29,6 +29,12 @@ enum MENU_IDS {
     ID_ASPECT_SQUARE,
     ID_ASPECT_NTSC,
     ID_ASPECT_PAL,
+    ID_LAYER_FRAME_OBJECTS,
+    ID_LAYER_ACTION_POINTS,
+    ID_LAYER_ENTITY_HITBOXES,
+    ID_LAYER_ORIGIN,
+    ID_LAYER_TILE_HITBOX,
+    ID_LAYER_SHOW_ALL,
 
     ID_INIT_TIMER,
 };
@@ -104,9 +110,18 @@ Frame::Frame()
         aspectRatio->AppendRadioItem(ID_ASPECT_NTSC, "&NTSC");
         aspectRatio->AppendRadioItem(ID_ASPECT_PAL, "&PAL");
 
+        auto* layers = new wxMenu();
+        layers->AppendCheckItem(ID_LAYER_FRAME_OBJECTS, "Frame &Objects\tALT+g");
+        layers->AppendCheckItem(ID_LAYER_ACTION_POINTS, "&Action Points\tALT+h");
+        layers->AppendCheckItem(ID_LAYER_ENTITY_HITBOXES, "&Entity Hitboxes\tALT+j");
+        layers->AppendCheckItem(ID_LAYER_ORIGIN, "O&rigin\tALT+k");
+        layers->AppendCheckItem(ID_LAYER_TILE_HITBOX, "&Tile Hitbox\tALT+l");
+        layers->Append(ID_LAYER_SHOW_ALL, "Show &All");
+
         auto* view = new wxMenu();
         view->AppendSubMenu(zoom, "&Zoom");
         view->AppendSubMenu(aspectRatio, "&Aspect Ratio");
+        view->AppendSubMenu(layers, "&Layers");
 
         menuBar->Append(file, "&File");
         menuBar->Append(edit, "&Edit");
@@ -229,11 +244,36 @@ Frame::Frame()
                 }
             },
             ID_ASPECT_SQUARE, ID_ASPECT_PAL);
+
+        layers->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
+                switch (e.GetId()) {
+                case ID_LAYER_ORIGIN:
+                    _controller.layersController().setOrigin(e.IsChecked());
+                    break;
+                case ID_LAYER_TILE_HITBOX:
+                    _controller.layersController().setTileHitbox(e.IsChecked());
+                    break;
+                case ID_LAYER_FRAME_OBJECTS:
+                    _controller.layersController().setFrameObjects(e.IsChecked());
+                    break;
+                case ID_LAYER_ACTION_POINTS:
+                    _controller.layersController().setActionPoints(e.IsChecked());
+                    break;
+                case ID_LAYER_ENTITY_HITBOXES:
+                    _controller.layersController().setEntityHitboxes(e.IsChecked());
+                    break;
+                case ID_LAYER_SHOW_ALL:
+                    _controller.layersController().showAll();
+                    break;
+                }
+            });
     }
 
     UpdateGuiUndo();
     UpdateGuiMenu();
     UpdateGuiZoom();
+    UpdateGuiLayers();
 
     // Signals
     // =======
@@ -245,6 +285,9 @@ Frame::Frame()
 
     _controller.settings().signal_zoomChanged().connect(sigc::mem_fun(
         *this, &Frame::UpdateGuiZoom));
+
+    _controller.layersController().signal_layersChanged().connect(sigc::mem_fun(
+        *this, &Frame::UpdateGuiLayers));
 
     _controller.undoStack().signal_stackChanged().connect(sigc::mem_fun(
         *this, &Frame::UpdateGuiUndo));
@@ -390,6 +433,18 @@ void Frame::UpdateGuiZoom()
         menuBar->Check(ID_ZOOM_1 - 1 + zoom, true);
     }
     menuBar->Check(ID_ASPECT_SQUARE + static_cast<int>(settings.aspectRatio()), true);
+}
+
+void Frame::UpdateGuiLayers()
+{
+    wxMenuBar* menuBar = GetMenuBar();
+    auto& layers = _controller.layersController();
+
+    menuBar->Check(ID_LAYER_FRAME_OBJECTS, layers.frameObjects());
+    menuBar->Check(ID_LAYER_ACTION_POINTS, layers.actionPoints());
+    menuBar->Check(ID_LAYER_ENTITY_HITBOXES, layers.entityHitboxes());
+    menuBar->Check(ID_LAYER_ORIGIN, layers.origin());
+    menuBar->Check(ID_LAYER_TILE_HITBOX, layers.tileHitbox());
 }
 
 void Frame::UpdateGuiUndo()

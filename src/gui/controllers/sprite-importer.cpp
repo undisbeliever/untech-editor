@@ -25,9 +25,9 @@ SpriteImporterController::SpriteImporterController(std::unique_ptr<Controller::C
     , _entityHitboxController(*this)
     , _actionPointController(*this)
     , _frameObjectController(*this)
+    , _layersController()
     , _selectedTypeController(*this)
 {
-
     /*
      * SIGNALS
      * -------

@@ -13,14 +13,27 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
     // =====
 
     /* Controller Signals */
-    _controller.frameObjectController().signal_selectedChanged().connect([this](void) {
-        if (_controller.frameObjectController().selected() != nullptr) {
-            setType(Type::FRAME_OBJECT);
-        }
-        else if (_type == Type::FRAME_OBJECT) {
+    _controller.layersController().signal_layersChanged().connect([this](void) {
+        // prevent selected from being shown on a disabled layer
+        if (_type != Type::NONE) {
             setType(Type::NONE);
+
+            _controller.frameObjectController().setSelected(nullptr);
+            _controller.actionPointController().setSelected(nullptr);
+            _controller.entityHitboxController().setSelected(nullptr);
         }
-        _signal_selectedChanged.emit();
+    });
+
+    _controller.frameObjectController().signal_selectedChanged().connect([this](void) {
+        if (_controller.layersController().frameObjects()) {
+            if (_controller.frameObjectController().selected() != nullptr) {
+                setType(Type::FRAME_OBJECT);
+            }
+            else {
+                setType(Type::NONE);
+            }
+            _signal_selectedChanged.emit();
+        }
     });
     _controller.frameObjectController().signal_listDataChanged().connect(sigc::hide([this](void) {
         if (_type == Type::FRAME_OBJECT) {
@@ -29,13 +42,15 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
     }));
 
     _controller.actionPointController().signal_selectedChanged().connect([this](void) {
-        if (_controller.actionPointController().selected() != nullptr) {
-            setType(Type::ACTION_POINT);
+        if (_controller.layersController().actionPoints()) {
+            if (_controller.actionPointController().selected() != nullptr) {
+                setType(Type::ACTION_POINT);
+            }
+            else {
+                setType(Type::NONE);
+            }
+            _signal_selectedChanged.emit();
         }
-        else if (_type == Type::ACTION_POINT) {
-            setType(Type::NONE);
-        }
-        _signal_selectedChanged.emit();
     });
     _controller.actionPointController().signal_listDataChanged().connect(sigc::hide([this](void) {
         if (_type == Type::ACTION_POINT) {
@@ -44,13 +59,15 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
     }));
 
     _controller.entityHitboxController().signal_selectedChanged().connect([this](void) {
-        if (_controller.entityHitboxController().selected() != nullptr) {
-            setType(Type::ENTITY_HITBOX);
+        if (_controller.layersController().entityHitboxes()) {
+            if (_controller.entityHitboxController().selected() != nullptr) {
+                setType(Type::ENTITY_HITBOX);
+            }
+            else {
+                setType(Type::NONE);
+            }
+            _signal_selectedChanged.emit();
         }
-        else if (_type == Type::ENTITY_HITBOX) {
-            setType(Type::NONE);
-        }
-        _signal_selectedChanged.emit();
     });
     _controller.entityHitboxController().signal_listDataChanged().connect(sigc::hide([this](void) {
         if (_type == Type::ENTITY_HITBOX) {
