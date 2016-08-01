@@ -1,4 +1,5 @@
 #include "frame.h"
+#include "framesetgraphicsctrl.h"
 #include "sidebar.h"
 #include "gui/view/common/aboutdialog.h"
 #include "gui/view/common/controllerinterface.h"
@@ -51,14 +52,10 @@ Frame::Frame()
     // Widgets
     // =======
     {
-        auto* sizer = new wxBoxSizer(wxHORIZONTAL);
-
-        // ::TODO replace::
-        auto* graphics = new wxPanel(this, wxID_ANY);
-        graphics->SetBackgroundColour(wxColour("#4f5049"));
-
+        auto* graphics = new FrameSetGraphicsCtrl(this, wxID_ANY, _controller);
         auto* sidebar = new Sidebar(this, wxID_ANY, _controller);
 
+        auto* sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(graphics, wxSizerFlags(1).Expand().Border());
         sizer->Add(sidebar, wxSizerFlags().Expand().Border(wxTOP | wxBOTTOM | wxRIGHT));
 

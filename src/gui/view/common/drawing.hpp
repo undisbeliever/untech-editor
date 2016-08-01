@@ -1,4 +1,5 @@
 #pragma once
+#include "models/common/aabb.h"
 #include "models/common/ms8aabb.h"
 #include <functional>
 #include <wx/dc.h>
@@ -10,7 +11,12 @@ namespace View {
 const static wxColour SELECTED_COLOR_OUTER(0, 0, 0);
 const static wxColour SELECTED_COLOR_INNER(255, 255, 255);
 
+const static wxBrush ANTI_HIGHLIGHT_BRUSH(wxColor(192, 192, 192, 192));
+
 const static wxPen ORIGIN_PEN(wxColor(112, 112, 112, 112), 1, wxPENSTYLE_SHORT_DASH);
+const static wxPen ORIGIN_OPAQUE_PEN(wxColor(112, 112, 112), 1, wxPENSTYLE_SHORT_DASH);
+
+const static wxPen FRAME_OUTLINE_PEN(wxColor(128, 128, 128, 240), 2);
 
 const static wxPen FRAME_OBJECTS_PEN(wxColor(64, 112, 64, 192), 1);
 const static wxPen ACTION_POINT_PEN(wxColor(192, 192, 192, 240), 2);
@@ -59,7 +65,17 @@ public:
         DrawRectangle(r.x, r.y, r.width, r.height);
     }
 
+    inline void DrawRectangle(const urect& r)
+    {
+        DrawRectangle(r.x, r.y, r.width, r.height);
+    }
+
     inline void DrawSquare(const ms8point& p, unsigned size)
+    {
+        DrawRectangle(p.x, p.y, size, size);
+    }
+
+    inline void DrawSquare(const upoint& p, unsigned size)
     {
         DrawRectangle(p.x, p.y, size, size);
     }
@@ -76,6 +92,36 @@ public:
     inline void DrawCross(const ms8point& p, int size = DEFAULT_CROSS_SIZE)
     {
         DrawCross(p.x, p.y, size);
+    }
+
+    inline void DrawCross(const upoint& p, int size = DEFAULT_CROSS_SIZE)
+    {
+        DrawCross(p.x, p.y, size);
+    }
+
+    inline void DrawCrossHair(int x, int y, unsigned boundaryWidth, unsigned boundaryHeight)
+    {
+        const int xStart = xOffset * zoomX;
+        const int yStart = yOffset * zoomY;
+
+        const int rx = (x + xOffset) * zoomX;
+        const int ry = (y + yOffset) * zoomY;
+
+        const int xEnd = (boundaryWidth + xOffset) * zoomX;
+        const int yEnd = (boundaryHeight + yOffset) * zoomY;
+
+        if (rx >= xStart && rx < xEnd) {
+            dc.DrawLine(rx, yStart, rx, yEnd);
+        }
+
+        if (ry >= yStart && ry < yEnd) {
+            dc.DrawLine(xStart, ry, xEnd, ry);
+        }
+    }
+
+    inline void DrawCrossHair(const upoint& p, const usize& boundary)
+    {
+        DrawCrossHair(p.x, p.y, boundary.width, boundary.height);
     }
 
     // Selected
@@ -106,7 +152,17 @@ public:
         DrawSelectedRectangle(r.x, r.y, r.width, r.height);
     }
 
+    inline void DrawSelectedRectangle(const urect& r)
+    {
+        DrawSelectedRectangle(r.x, r.y, r.width, r.height);
+    }
+
     inline void DrawSelectedSquare(const ms8point& p, unsigned size)
+    {
+        DrawSelectedRectangle(p.x, p.y, size, size);
+    }
+
+    inline void DrawSelectedSquare(const upoint& p, unsigned size)
     {
         DrawSelectedRectangle(p.x, p.y, size, size);
     }
@@ -129,6 +185,41 @@ public:
     inline void DrawSelectedCross(const ms8point& p)
     {
         DrawSelectedCross(p.x, p.y);
+    }
+
+    inline void DrawSelectedCross(const upoint& p)
+    {
+        DrawSelectedCross(p.x, p.y);
+    }
+
+    // Anti highlight rectangle
+    // ------------------------
+    inline void AntiHighlightRectangle(int x, int y, unsigned width, unsigned height)
+    {
+        // highlight everything that is not the rectangle
+        dc.SetPen(wxNullPen);
+        dc.SetBrush(ANTI_HIGHLIGHT_BRUSH);
+
+        int cWidth, cHeight;
+        dc.GetSize(&cWidth, &cHeight);
+
+        const int xStart = (x + xOffset) * zoomX;
+        const int xEnd = (x + xOffset + width) * zoomX;
+
+        const int yStart = (y + yOffset) * zoomY;
+        const int yEnd = (y + yOffset + height) * zoomY;
+
+        dc.DrawRectangle(0, 0, xStart - 1, cHeight);
+
+        dc.DrawRectangle(xStart - 1, 0, xEnd - xStart + 1, yStart - 1);
+        dc.DrawRectangle(xStart - 1, yEnd, xEnd - xStart + 1, cHeight - yEnd);
+
+        dc.DrawRectangle(xEnd, 0, cWidth - xEnd - 1, cHeight);
+    }
+
+    inline void AntiHighlightRectangle(const urect& r)
+    {
+        AntiHighlightRectangle(r.x, r.y, r.width, r.height);
     }
 };
 
