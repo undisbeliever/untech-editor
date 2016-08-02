@@ -13,6 +13,10 @@ class Sidebar : public wxNotebook {
 public:
     Sidebar(wxWindow* parent, int wxWindowID,
             SI::SpriteImporterController& controller);
+
+private:
+    SI::SpriteImporterController& _controller;
+    wxNotebook* _frameNotebook;
 };
 }
 }

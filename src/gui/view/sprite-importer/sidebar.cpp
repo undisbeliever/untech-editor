@@ -18,6 +18,21 @@ static const upoint zeroPoint(0, 0);
 static const usize zeroSize(0, 0);
 static const urect zeroRect(0, 0, 0, 0);
 
+typedef SI::SpriteImporterController::SelectedTypeController::Type SelectedType;
+
+enum class SidebarPages {
+    FRAMESET_PAGE,
+    FRAME_PAGE,
+    ANIMATION_PAGE,
+    EXPORT_PAGE
+};
+enum class FramePages {
+    FRAME_PAGE,
+    FRAME_OBJECT_PAGE,
+    ACTION_POINT_PAGE,
+    ENTITY_HITBOX_PAGE
+};
+
 const UnTech::DocumentType PNG_DOCUMENT_TYPE = {
     "PNG Image",
     "png"
@@ -139,6 +154,7 @@ using namespace UnTech::View::MetaSpriteCommon;
 Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                  SI::SpriteImporterController& controller)
     : wxNotebook(parent, wxWindowID)
+    , _controller(controller)
 {
     this->SetSizeHints(SIDEBAR_WIDTH, -1);
 
@@ -186,15 +202,15 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                             controller.frameController()),
                         wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
 
-        auto* frameNotepad = new wxNotebook(framePanel, wxID_ANY);
-        frameSizer->Add(frameNotepad, wxSizerFlags(1).Expand().Border());
+        _frameNotebook = new wxNotebook(framePanel, wxID_ANY);
+        frameSizer->Add(_frameNotebook, wxSizerFlags(1).Expand().Border());
 
-        frameNotepad->AddPage(
-            new FramePanel(frameNotepad, wxID_ANY, controller),
+        _frameNotebook->AddPage(
+            new FramePanel(_frameNotebook, wxID_ANY, controller),
             "Frame");
 
         {
-            auto* panel = new wxPanel(frameNotepad);
+            auto* panel = new wxPanel(_frameNotebook);
 
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
@@ -214,11 +230,11 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                            controller),
                        wxSizerFlags(0).Expand().Border());
 
-            frameNotepad->AddPage(panel, "Objects");
+            _frameNotebook->AddPage(panel, "Objects");
         }
 
         {
-            auto* panel = new wxPanel(frameNotepad);
+            auto* panel = new wxPanel(_frameNotebook);
 
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
@@ -238,11 +254,11 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                            controller),
                        wxSizerFlags(0).Expand().Border());
 
-            frameNotepad->AddPage(panel, "Action Points");
+            _frameNotebook->AddPage(panel, "Action Points");
         }
 
         {
-            auto* panel = new wxPanel(frameNotepad);
+            auto* panel = new wxPanel(_frameNotebook);
 
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
@@ -262,7 +278,7 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                            controller),
                        wxSizerFlags(0).Expand().Border());
 
-            frameNotepad->AddPage(panel, "Hitboxes");
+            _frameNotebook->AddPage(panel, "Hitboxes");
         }
 
         this->AddPage(framePanel, "Frame");
@@ -286,6 +302,31 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
 
         controller.frameController().signal_itemRenamed().connect(sigc::hide(
             exportPage->slot_frameNameChanged()));
+
+        controller.selectedTypeController().signal_selectedChanged().connect([this](void) {
+            const auto type = _controller.selectedTypeController().type();
+
+            if (type != SelectedType::NONE) {
+                this->SetSelection(int(SidebarPages::FRAME_PAGE));
+
+                switch (type) {
+                case SelectedType::NONE:
+                    break;
+
+                case SelectedType::FRAME_OBJECT:
+                    _frameNotebook->SetSelection(int(FramePages::FRAME_OBJECT_PAGE));
+                    break;
+
+                case SelectedType::ACTION_POINT:
+                    _frameNotebook->SetSelection(int(FramePages::ACTION_POINT_PAGE));
+                    break;
+
+                case SelectedType::ENTITY_HITBOX:
+                    _frameNotebook->SetSelection(int(FramePages::ENTITY_HITBOX_PAGE));
+                    break;
+                }
+            }
+        });
     }
 }
 
