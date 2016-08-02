@@ -1,5 +1,6 @@
 #pragma once
 #include "gui/controllers/metasprite.h"
+#include "models/common/optional.h"
 #include <wx/bitmap.h>
 #include <wx/wx.h>
 
@@ -10,6 +11,16 @@ namespace MetaSprite {
 namespace MS = UnTech::MetaSprite;
 
 class FrameGraphicsCtrl : public wxPanel {
+public:
+    enum class MouseState {
+        NONE,
+        SELECT
+    };
+    struct MousePosition {
+        // can't use ms8point because x/y can be > int_ms8_t::MAX
+        int x, y;
+        bool isValid = false;
+    };
 
 public:
     FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
@@ -21,7 +32,7 @@ public:
     void CenterScrollbar() { UpdateScrollbar(true); }
 
 private:
-    void Refresh() { wxPanel::Refresh(true); }
+    void OnNonBitmapDataChanged();
 
     void UpdateScrollbar(bool center = false);
 
@@ -29,11 +40,24 @@ private:
 
     void Render(wxPaintDC& dc);
 
+    MousePosition GetMousePosition();
+
+    void OnMouseLeftDown(wxMouseEvent&);
+    void OnMouseLeftUp(wxMouseEvent&);
+    void OnMouseLeftDClick(wxMouseEvent&);
+
+    void ResetMouseState();
+
+    void OnMouseLeftUp_Select(const MousePosition& mouse);
+
 private:
     MS::MetaSpriteController& _controller;
     const MS::Frame* _currentFrame;
 
     wxBitmap _bitmap;
+
+    MouseState _mouseState;
+    MousePosition _prevMouse;
 };
 }
 }

@@ -23,6 +23,10 @@ public:
     ~SpriteSelectedTypeController() = default;
 
     inline Type type() const { return _type; }
+    const void* selectedPtr() const;
+
+    // be careful with this one
+    void selectItem(Type type, const void* ptr);
 
     const std::string& typeString() const;
 

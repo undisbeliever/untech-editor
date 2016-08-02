@@ -22,12 +22,14 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
     });
 
     _controller.frameObjectController().signal_selectedChanged().connect([this](void) {
-        if (_controller.layersController().frameObjects()) {
-            if (_controller.frameObjectController().selected() != nullptr) {
-                setType(Type::FRAME_OBJECT);
-            }
-            else {
-                setType(Type::NONE);
+        if (_updatingType == false) {
+            if (_controller.layersController().frameObjects()) {
+                if (_controller.frameObjectController().selected() != nullptr) {
+                    setType(Type::FRAME_OBJECT);
+                }
+                else {
+                    setType(Type::NONE);
+                }
             }
         }
     });
@@ -38,12 +40,14 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
     }));
 
     _controller.actionPointController().signal_selectedChanged().connect([this](void) {
-        if (_controller.layersController().actionPoints()) {
-            if (_controller.actionPointController().selected() != nullptr) {
-                setType(Type::ACTION_POINT);
-            }
-            else {
-                setType(Type::NONE);
+        if (_updatingType == false) {
+            if (_controller.layersController().actionPoints()) {
+                if (_controller.actionPointController().selected() != nullptr) {
+                    setType(Type::ACTION_POINT);
+                }
+                else {
+                    setType(Type::NONE);
+                }
             }
         }
     });
@@ -54,12 +58,14 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
     }));
 
     _controller.entityHitboxController().signal_selectedChanged().connect([this](void) {
-        if (_controller.layersController().entityHitboxes()) {
-            if (_controller.entityHitboxController().selected() != nullptr) {
-                setType(Type::ENTITY_HITBOX);
-            }
-            else {
-                setType(Type::NONE);
+        if (_updatingType == false) {
+            if (_controller.layersController().entityHitboxes()) {
+                if (_controller.entityHitboxController().selected() != nullptr) {
+                    setType(Type::ENTITY_HITBOX);
+                }
+                else {
+                    setType(Type::NONE);
+                }
             }
         }
     });
@@ -101,6 +107,53 @@ inline void SpriteSelectedTypeController<T>::setType(Type type)
 
         _signal_selectedChanged.emit();
     }
+}
+
+template <class T>
+const void* SpriteSelectedTypeController<T>::selectedPtr() const
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        return _controller.frameObjectController().selected();
+
+    case Type::ACTION_POINT:
+        return _controller.actionPointController().selected();
+
+    case Type::ENTITY_HITBOX:
+        return _controller.entityHitboxController().selected();
+
+    default:
+        return nullptr;
+    }
+}
+
+template <class T>
+void SpriteSelectedTypeController<T>::selectItem(Type type, const void* ptr)
+{
+    switch (type) {
+    case Type::NONE:
+        _controller.frameObjectController().setSelected(nullptr);
+        _controller.actionPointController().setSelected(nullptr);
+        _controller.entityHitboxController().setSelected(nullptr);
+        break;
+
+    case Type::FRAME_OBJECT:
+        _controller.frameObjectController().setSelected(
+            static_cast<decltype(_controller.frameObjectController().selected())>(ptr));
+        break;
+
+    case Type::ACTION_POINT:
+        _controller.actionPointController().setSelected(
+            static_cast<decltype(_controller.actionPointController().selected())>(ptr));
+        break;
+
+    case Type::ENTITY_HITBOX:
+        _controller.entityHitboxController().setSelected(
+            static_cast<decltype(_controller.entityHitboxController().selected())>(ptr));
+        break;
+    }
+
+    setType(type);
 }
 
 template <class T>
