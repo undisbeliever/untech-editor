@@ -30,41 +30,41 @@ FrameSetGraphicsCtrl::FrameSetGraphicsCtrl(wxWindow* parent, wxWindowID id,
     controller.frameSetController().signal_imageChanged().connect(sigc::hide(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::UpdateBitmap)));
     controller.frameSetController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh)));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
 
     controller.frameController().signal_selectedChanged().connect([this](void) {
         ScrollToSelectedFrame();
-        Refresh();
+        OnNonBitmapDataChanged();
     });
     controller.frameController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh)));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
     controller.frameController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh)));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
 
     controller.frameObjectController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh)));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
     controller.frameObjectController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh)));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
 
     controller.actionPointController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh)));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
     controller.actionPointController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh)));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
 
     controller.entityHitboxController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh)));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
     controller.entityHitboxController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh)));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
 
     controller.selectedTypeController().signal_selectedChanged().connect(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
 
     _controller.layersController().signal_layersChanged().connect(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::Refresh));
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
 
     _controller.settings().signal_zoomChanged().connect([this](void) {
         UpdateScrollbar();
-        Refresh();
+        OnNonBitmapDataChanged();
     });
 
     // Events
@@ -76,12 +76,26 @@ FrameSetGraphicsCtrl::FrameSetGraphicsCtrl(wxWindow* parent, wxWindowID id,
 
     this->Bind(wxEVT_SIZE, [this](wxSizeEvent& e) {
         UpdateScrollbar();
-        Refresh();
+        OnNonBitmapDataChanged();
+        e.Skip();
+    });
+
+    this->Bind(wxEVT_LEFT_UP,
+               &FrameSetGraphicsCtrl::OnMouseLeftUp, this);
+
+    this->Bind(wxEVT_LEFT_DOWN,
+               &FrameSetGraphicsCtrl::OnMouseLeftDown, this);
+
+    this->Bind(wxEVT_LEFT_DCLICK,
+               &FrameSetGraphicsCtrl::OnMouseLeftDClick, this);
+
+    this->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+        ResetMouseState();
         e.Skip();
     });
 
     auto scrollEvent = [this](wxScrollWinEvent& e) {
-        Refresh();
+        OnNonBitmapDataChanged();
         e.Skip();
     };
     this->Bind(wxEVT_SCROLLWIN_TOP, scrollEvent);
@@ -130,7 +144,7 @@ void FrameSetGraphicsCtrl::UpdateScrollbar()
     this->SetScrollbar(wxHORIZONTAL, hPos, hThumbSize, width);
     this->SetScrollbar(wxVERTICAL, vPos, vThumbSize, height);
 
-    Refresh();
+    OnNonBitmapDataChanged();
 }
 
 void FrameSetGraphicsCtrl::ScrollToSelectedFrame()
@@ -154,6 +168,12 @@ void FrameSetGraphicsCtrl::ScrollToSelectedFrame()
     }
 }
 
+void FrameSetGraphicsCtrl::OnNonBitmapDataChanged()
+{
+    ResetMouseState();
+    Refresh(true);
+}
+
 void FrameSetGraphicsCtrl::UpdateBitmap()
 {
     const SI::FrameSet* frameSet = _controller.frameSetController().selected();
@@ -165,13 +185,12 @@ void FrameSetGraphicsCtrl::UpdateBitmap()
     }
 
     UpdateScrollbar();
-    Refresh();
+    OnNonBitmapDataChanged();
 }
 
 void FrameSetGraphicsCtrl::Render(wxPaintDC& paintDc)
 {
     const SI::FrameSet* frameSet = _controller.frameSetController().selected();
-    ;
     const auto& layers = _controller.layersController();
 
     if (frameSet == nullptr || paintDc.IsOk() == false) {
@@ -321,5 +340,190 @@ void FrameSetGraphicsCtrl::Render(wxPaintDC& paintDc)
             }
             break;
         }
+    }
+}
+
+FrameSetGraphicsCtrl::MousePosition FrameSetGraphicsCtrl::GetMousePosition()
+{
+    const SI::FrameSet* frameSet = _controller.frameSetController().selected();
+
+    MousePosition ret;
+    ret.isValid = false;
+    ret.isInFrame = false;
+
+    if (frameSet == nullptr || frameSet->image().empty()) {
+        return ret;
+    }
+
+    const wxPoint pt = ScreenToClient(wxGetMousePosition());
+    const wxSize size = GetClientSize();
+
+    if (pt.x < 0 || pt.y < 0 || pt.x >= size.GetWidth() || pt.y >= size.GetHeight()) {
+        return ret;
+    }
+
+    const double zoomX = _controller.settings().zoomX();
+    const double zoomY = _controller.settings().zoomY();
+
+    const unsigned x = (pt.x / zoomX) + GetScrollPos(wxHORIZONTAL);
+    const unsigned y = (pt.y / zoomY) + GetScrollPos(wxVERTICAL);
+
+    const usize& isize = frameSet->image().size();
+    if (x < isize.width && y < isize.height) {
+        ret.isValid = true;
+        ret.frameSetLoc = upoint(x, y);
+
+        const SI::Frame* frame = _controller.frameController().selected();
+        if (frame) {
+            const urect& loc = frame->location();
+            if (loc.contains(ret.frameSetLoc)) {
+                ret.isInFrame = true;
+                ret.frameLoc = upoint(x - loc.x, y - loc.y);
+            }
+        }
+    }
+
+    return ret;
+}
+
+void FrameSetGraphicsCtrl::OnMouseLeftDown(wxMouseEvent& event)
+{
+    MousePosition mouse = GetMousePosition();
+
+    if (_mouseState == MouseState::NONE) {
+        _mouseState = MouseState::SELECT;
+        _prevMouse = mouse;
+    }
+
+    event.Skip();
+}
+
+void FrameSetGraphicsCtrl::OnMouseLeftUp(wxMouseEvent& event)
+{
+    MousePosition mouse = GetMousePosition();
+
+    if (_mouseState == MouseState::SELECT) {
+        OnMouseLeftUp_Select(mouse);
+    }
+
+    ResetMouseState();
+
+    event.Skip();
+}
+
+void FrameSetGraphicsCtrl::OnMouseLeftDClick(wxMouseEvent& event)
+{
+    MousePosition mouse = GetMousePosition();
+
+    // treat double clicks as select item
+    OnMouseLeftUp_Select(mouse);
+
+    ResetMouseState();
+
+    event.Skip();
+}
+
+void FrameSetGraphicsCtrl::ResetMouseState()
+{
+    _mouseState = MouseState::NONE;
+}
+
+void FrameSetGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
+{
+    // only select if mouse did not move.
+    if (mouse.frameSetLoc != _prevMouse.frameSetLoc) {
+        return;
+    }
+
+    if (!mouse.isValid) {
+        _controller.frameController().setSelected(nullptr);
+        return;
+    }
+    else if (mouse.isInFrame) {
+        /*
+         * Select a given item inside frame.
+         *
+         * This code cycles through the given selections.
+         * On click, the next item is selected. If the last item
+         * was the previously selected one then the first match
+         * is selected.
+         */
+        const void* current = _controller.selectedTypeController().selectedPtr();
+
+        struct SelHandler {
+            SelectedType type = SelectedType::NONE;
+            const void* item = nullptr;
+        };
+        SelHandler match, firstMatch;
+
+        auto updateMatch = [&](SelectedType type, const void* item) mutable {
+            if (match.type == SelectedType::NONE) {
+                match.type = type;
+                match.item = item;
+
+                if (firstMatch.type == SelectedType::NONE) {
+                    firstMatch = match;
+                }
+            }
+            if (item == current) {
+                match.type = SelectedType::NONE;
+            }
+        };
+
+        const SI::Frame* frame = _controller.frameController().selected();
+        const auto& layers = _controller.layersController();
+        const auto& fMouse = mouse.frameLoc;
+
+        assert(frame != nullptr);
+
+        if (layers.frameObjects()) {
+            for (const SI::FrameObject& obj : frame->objects()) {
+                const upoint& loc = obj.location();
+
+                if (fMouse.x >= loc.x && fMouse.x < (loc.x + obj.sizePx())
+                    && fMouse.y >= loc.y && fMouse.y < (loc.y + obj.sizePx())) {
+
+                    updateMatch(SelectedType::FRAME_OBJECT, &obj);
+                }
+            }
+        }
+
+        if (layers.actionPoints()) {
+            for (const SI::ActionPoint& ap : frame->actionPoints()) {
+                if (fMouse == ap.location()) {
+                    updateMatch(SelectedType::ACTION_POINT, &ap);
+                }
+            }
+        }
+
+        if (layers.entityHitboxes()) {
+            for (const SI::EntityHitbox& eh : frame->entityHitboxes()) {
+                if (eh.aabb().contains(fMouse)) {
+                    updateMatch(SelectedType::ENTITY_HITBOX, &eh);
+                }
+            }
+        }
+
+        if (match.type == SelectedType::NONE) {
+            // handle wrap around.
+            match = firstMatch;
+        }
+        _controller.selectedTypeController().selectItem(match.type, match.item);
+    }
+    else {
+        // select frame
+        const SI::FrameSet* frameSet = _controller.frameSetController().selected();
+        assert(frameSet != nullptr);
+
+        for (const auto fIt : frameSet->frames()) {
+            const auto frameLoc = fIt.second.location();
+
+            if (frameLoc.contains(mouse.frameSetLoc)) {
+                _controller.frameController().setSelected(&fIt.second);
+                return;
+            }
+        }
+
+        _controller.frameController().setSelected(nullptr);
     }
 }
