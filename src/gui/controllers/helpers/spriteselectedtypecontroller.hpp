@@ -8,6 +8,7 @@ template <class T>
 SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
     : _controller(controller)
     , _type(Type::NONE)
+    , _updatingType(false)
 {
     // SLOTS
     // =====
@@ -17,10 +18,6 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
         // prevent selected from being shown on a disabled layer
         if (_type != Type::NONE) {
             setType(Type::NONE);
-
-            _controller.frameObjectController().setSelected(nullptr);
-            _controller.actionPointController().setSelected(nullptr);
-            _controller.entityHitboxController().setSelected(nullptr);
         }
     });
 
@@ -32,7 +29,6 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
             else {
                 setType(Type::NONE);
             }
-            _signal_selectedChanged.emit();
         }
     });
     _controller.frameObjectController().signal_listDataChanged().connect(sigc::hide([this](void) {
@@ -49,7 +45,6 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
             else {
                 setType(Type::NONE);
             }
-            _signal_selectedChanged.emit();
         }
     });
     _controller.actionPointController().signal_listDataChanged().connect(sigc::hide([this](void) {
@@ -66,7 +61,6 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
             else {
                 setType(Type::NONE);
             }
-            _signal_selectedChanged.emit();
         }
     });
     _controller.entityHitboxController().signal_listDataChanged().connect(sigc::hide([this](void) {
@@ -79,9 +73,33 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
 template <class T>
 inline void SpriteSelectedTypeController<T>::setType(Type type)
 {
-    if (_type != type) {
-        _type = type;
-        _signal_typeChanged.emit();
+    /*
+     * Unselect the items not of Type.
+     *
+     * Because of the way signals propagate we only want the
+     * first SetType call to be reconsigned.
+     */
+    if (_updatingType == false) {
+        if (_type != type) {
+            _updatingType = true;
+
+            _type = type;
+            _signal_typeChanged.emit();
+
+            if (type != Type::FRAME_OBJECT) {
+                _controller.frameObjectController().setSelected(nullptr);
+            }
+            if (type != Type::ACTION_POINT) {
+                _controller.actionPointController().setSelected(nullptr);
+            }
+            if (type != Type::ENTITY_HITBOX) {
+                _controller.entityHitboxController().setSelected(nullptr);
+            }
+
+            _updatingType = false;
+        }
+
+        _signal_selectedChanged.emit();
     }
 }
 

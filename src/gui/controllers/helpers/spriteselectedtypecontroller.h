@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <sigc++/signal.h>
 #include <string>
 
@@ -40,12 +41,16 @@ public:
     auto& signal_listChanged() { return _signal_listChanged; }
 
 protected:
+    // Will unselect all not of type
+    // Will emit a selectedChanged signal
     void setType(Type type);
 
 private:
     BaseControllerT& _controller;
 
     Type _type = Type::NONE;
+    std::atomic<bool> _updatingType;
+
     sigc::signal<void> _signal_selectedChanged;
     sigc::signal<void> _signal_typeChanged;
     sigc::signal<void> _signal_listChanged;
