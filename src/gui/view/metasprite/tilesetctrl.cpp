@@ -9,6 +9,8 @@
 using namespace UnTech;
 using namespace UnTech::View::MetaSprite;
 
+typedef MS::MetaSpriteController::SelectedTypeController::Type SelectedType;
+
 // ::TODO add UpdateSmallBitmap(tileId), UpdateLargeBitmap(tileId) functions::
 
 TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
@@ -83,6 +85,10 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
     };
     controller.frameObjectController().signal_selectedChanged().connect(onObj);
     controller.frameObjectController().signal_selectedDataChanged().connect(onObj);
+
+    controller.selectedTypeController().signal_selectedChanged().connect([this](void) {
+        Refresh(true);
+    });
 
     _controller.settings().signal_zoomChanged().connect([this](void) {
         ResetMouseState();
@@ -322,15 +328,17 @@ void TilesetCtrl::Render(wxDC& dc)
 
     // Selected Tile
     // -------------
-    const MS::FrameObject* obj = _controller.frameObjectController().selected();
-    if (obj) {
-        DrawingHelper helper(dc, zoomX, zoomY, xPos, 0);
+    if (_controller.selectedTypeController().type() == SelectedType::FRAME_OBJECT) {
+        const MS::FrameObject* obj = _controller.frameObjectController().selected();
+        if (obj) {
+            DrawingHelper helper(dc, zoomX, zoomY, xPos, 0);
 
-        typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
-        const int x = obj->tileId() * obj->sizePx();
-        const int y = obj->size() == OS::SMALL ? 0 : SMALL_SIZE;
+            typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
+            const int x = obj->tileId() * obj->sizePx();
+            const int y = obj->size() == OS::SMALL ? 0 : SMALL_SIZE;
 
-        helper.DrawSelectedRectangle(x, y, obj->sizePx(), obj->sizePx());
+            helper.DrawSelectedRectangle(x, y, obj->sizePx(), obj->sizePx());
+        }
     }
 }
 
