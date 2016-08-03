@@ -3,7 +3,7 @@
 #include <string>
 
 #define UNTECH_NAME "UnTech"
-#define UNTECH_VERSION "0.15"
+#define UNTECH_VERSION "0.18"
 #define UNTECH_LICENSE "The MIT License"
 #define UNTECH_LICENSE_URL "https://opensource.org/licenses/MIT"
 #define UNTECH_URL "http://undisbeliever.net/untech"

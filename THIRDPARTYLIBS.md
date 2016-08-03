@@ -11,7 +11,11 @@ directory:
 
 This project links the with the following third party libraries:
 
- * [GTKmm 3](http://www.gtkmm.org) -
-   Copyright 1999-2015 The gtkmm Development Team,
-   [LGPL 2.1 License](http://www.gtkmm.org/en/license.html)
+ * [wxWidgets](https://wxwidgets.org/) -
+   Copyright (c) 1992-2016 The wxWidgets Team,
+   [wxWidgets Library Licence](https://wxwidgets.org/about/licence/).
+
+ * [libsigc++](http://libsigc.sourceforge.net) -
+   Copyright 2003-2016 The libsigc++ Development Team,
+   [LGPL License](http://libsigc.sourceforge.net/license.shtml).
 
