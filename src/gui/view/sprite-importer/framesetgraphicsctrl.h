@@ -13,6 +13,7 @@ class FrameSetGraphicsCtrl : public wxPanel {
 public:
     enum class MouseState {
         NONE,
+        SELECT_TRANSPARENT_COLOR,
         SELECT,
         DRAG
     };
@@ -60,6 +61,7 @@ private:
     void ResetMouseState();
 
     void OnMouseLeftUp_Select(const MousePosition& mouse);
+    void OnMouseLeftUp_SelectTransparentColor(const MousePosition& mouse);
 
     void MouseDrag_MouseClick(const MousePosition& mouse);
     void MouseDrag_ActivateDrag();

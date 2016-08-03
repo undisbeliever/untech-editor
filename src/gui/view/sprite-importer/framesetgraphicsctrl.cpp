@@ -59,13 +59,16 @@ FrameSetGraphicsCtrl::FrameSetGraphicsCtrl(wxWindow* parent, wxWindowID id,
     controller.selectedTypeController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
 
-    _controller.layersController().signal_layersChanged().connect(sigc::mem_fun(
+    controller.layersController().signal_layersChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
 
-    _controller.settings().signal_zoomChanged().connect([this](void) {
+    controller.settings().signal_zoomChanged().connect([this](void) {
         UpdateScrollbar();
         OnNonBitmapDataChanged();
     });
+
+    controller.frameSetController().signal_selectTransparentModeChanged().connect(sigc::mem_fun(
+        *this, &FrameSetGraphicsCtrl::ResetMouseState));
 
     // Events
     // ------
@@ -420,6 +423,10 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp(wxMouseEvent& event)
     case MouseState::NONE:
         break;
 
+    case MouseState::SELECT_TRANSPARENT_COLOR:
+        OnMouseLeftUp_SelectTransparentColor(mouse);
+        break;
+
     case MouseState::SELECT:
         OnMouseLeftUp_Select(mouse);
         break;
@@ -454,10 +461,10 @@ void FrameSetGraphicsCtrl::OnMouseMotion(wxMouseEvent& event)
 
 void FrameSetGraphicsCtrl::OnMouseLeftDClick(wxMouseEvent& event)
 {
-    MousePosition mouse = GetMousePosition();
-
-    // treat double clicks as select item
-    OnMouseLeftUp_Select(mouse);
+    if (_mouseState == MouseState::SELECT || _mouseState == MouseState::NONE) {
+        MousePosition mouse = GetMousePosition();
+        OnMouseLeftUp_Select(mouse);
+    }
 
     ResetMouseState();
 
@@ -467,7 +474,15 @@ void FrameSetGraphicsCtrl::OnMouseLeftDClick(wxMouseEvent& event)
 void FrameSetGraphicsCtrl::ResetMouseState()
 {
     MouseDrag_Reset();
-    _mouseState = MouseState::NONE;
+
+    if (_controller.frameSetController().selectTransparentMode() == false) {
+        _mouseState = MouseState::NONE;
+        SetCursor(wxNullCursor);
+    }
+    else {
+        _mouseState = MouseState::SELECT_TRANSPARENT_COLOR;
+        SetCursor(wxCursor(wxCURSOR_CROSS));
+    }
 }
 
 void FrameSetGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
@@ -564,6 +579,25 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
 
         _controller.frameController().setSelected(nullptr);
     }
+}
+
+void FrameSetGraphicsCtrl::OnMouseLeftUp_SelectTransparentColor(const MousePosition& mouse)
+{
+    if (mouse.isValid) {
+        const SI::FrameSet* frameSet = _controller.frameSetController().selected();
+        assert(frameSet != nullptr);
+
+        const auto& image = frameSet->image();
+        if (!image.empty()) {
+            const auto& fsLoc = mouse.frameSetLoc;
+
+            auto color = image.getPixel(fsLoc.x, fsLoc.y);
+
+            _controller.frameSetController().selected_setTransparentColor(color);
+        }
+    }
+
+    _controller.frameSetController().setSelectTransparentMode(false);
 }
 
 // Mouse Drag
