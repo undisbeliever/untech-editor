@@ -4,30 +4,39 @@
 
 namespace UnTech {
 
-struct urect;
+template <typename T>
+struct _point;
+template <typename T>
+struct _rect;
 
-struct upoint {
-    unsigned x;
-    unsigned y;
+typedef _point<int> point;
+typedef _point<unsigned> upoint;
+typedef _rect<int> rect;
+typedef _rect<unsigned> urect;
 
-    upoint()
+template <typename T>
+struct _point {
+    T x;
+    T y;
+
+    _point()
         : x(0)
         , y(0)
     {
     }
 
-    upoint(unsigned x, unsigned y)
+    _point(T x, T y)
         : x(x)
         , y(y)
     {
     }
 
-    bool operator==(const upoint& o) const
+    bool operator==(const _point& o) const
     {
         return x == o.x && y == o.y;
     }
 
-    bool operator!=(const upoint& o) const
+    bool operator!=(const _point& o) const
     {
         return x != o.x || y != o.y;
     }
@@ -79,13 +88,14 @@ struct usize {
     }
 };
 
-struct urect {
-    unsigned x;
-    unsigned y;
+template <typename T>
+struct _rect {
+    T x;
+    T y;
     unsigned width;
     unsigned height;
 
-    urect()
+    _rect()
         : x(0)
         , y(0)
         , width(1)
@@ -93,7 +103,7 @@ struct urect {
     {
     }
 
-    urect(unsigned x, unsigned y, unsigned width, unsigned height)
+    _rect(T x, T y, unsigned width, unsigned height)
         : x(x)
         , y(y)
         , width(width)
@@ -101,7 +111,7 @@ struct urect {
     {
     }
 
-    urect(const upoint& point, unsigned size)
+    _rect(const _point<T>& point, unsigned size)
         : x(point.x)
         , y(point.y)
         , width(size)
@@ -109,7 +119,7 @@ struct urect {
     {
     }
 
-    urect(const upoint& point, unsigned width, unsigned height)
+    _rect(const _point<T>& point, unsigned width, unsigned height)
         : x(point.x)
         , y(point.y)
         , width(width)
@@ -117,41 +127,41 @@ struct urect {
     {
     }
 
-    inline unsigned left() const { return x; }
-    inline unsigned right() const { return x + width; }
-    inline unsigned top() const { return y; }
-    inline unsigned bottom() const { return y + height; }
+    inline T left() const { return x; }
+    inline T right() const { return x + width; }
+    inline T top() const { return y; }
+    inline T bottom() const { return y + height; }
 
     inline usize size() const { return { width, height }; }
 
-    inline bool contains(const upoint& p) const
+    inline bool contains(const _point<T>& p) const
     {
         return p.x >= left() && p.x < right()
                && p.y >= top() && p.y < bottom();
     }
 
-    inline bool overlaps(const urect& r) const
+    inline bool overlaps(const _rect& r) const
     {
         return left() < r.right() && right() > r.left()
                && top() < r.bottom() && bottom() > r.top();
     }
 
-    inline bool overlaps(const upoint& p, unsigned size) const
+    inline bool overlaps(const _point<T>& p, unsigned squareSize) const
     {
-        return left() < (p.x + size) && right() > p.x
-               && top() < (p.y + size) && bottom() > p.y;
+        return left() < (p.x + squareSize) && right() > p.x
+               && top() < (p.y + squareSize) && bottom() > p.y;
     }
 
-    // Clips the upoint within the width/height of the urect
-    inline upoint clipInside(const upoint& p) const
+    // Clips the _point within the width/height of the _rect
+    inline _point<T> clipInside(const _point<T>& p) const
     {
-        return upoint(std::min(p.x, width), std::min(p.y, height));
+        return _point<T>(std::min(p.x, width), std::min(p.y, height));
     }
 
-    // Clips the upoint/usize within the width/height of the urect
-    upoint clipInside(const upoint& p, unsigned squareSize) const
+    // Clips the _point within the width/height of the _rect
+    _point<T> clipInside(const _point<T>& p, unsigned squareSize) const
     {
-        upoint ret(0, 0);
+        _point<T> ret(0, 0);
 
         if (width > squareSize) {
             ret.x = std::min(p.x, width - squareSize);
@@ -165,17 +175,17 @@ struct urect {
 
     // clips the rectangle inside this one
     // The method of clipping depends on the state of the previous rectangle.
-    urect clipInside(const urect& r, const urect& prev) const
+    _rect clipInside(const _rect& r, const _rect& prev) const
     {
-        urect ret = r;
+        _rect ret = r;
 
         if (ret.right() > width) {
             if (ret.width == prev.width) {
-                // urect was moved out of boundary
+                // _rect was moved out of boundary
                 ret.x = width - ret.width;
             }
             else {
-                // urect was resized out of boundary
+                // _rect was resized out of boundary
                 if (ret.x <= width) {
                     ret.width = width - ret.x;
                 }
@@ -188,11 +198,11 @@ struct urect {
 
         if (ret.bottom() > height) {
             if (ret.height == prev.height) {
-                // urect was moved out of boundary
+                // _rect was moved out of boundary
                 ret.y = height - ret.height;
             }
             else {
-                // urect was resized out of boundary
+                // _rect was resized out of boundary
                 if (ret.y <= height) {
                     ret.height = height - ret.y;
                 }
@@ -206,12 +216,12 @@ struct urect {
         return ret;
     }
 
-    bool operator==(const urect& o) const
+    bool operator==(const _rect& o) const
     {
         return x == o.x && y == o.y && width == o.width && height == o.height;
     }
 
-    bool operator!=(const urect& o) const
+    bool operator!=(const _rect& o) const
     {
         return x != o.x || y != o.y || width != o.width || height != o.height;
     }

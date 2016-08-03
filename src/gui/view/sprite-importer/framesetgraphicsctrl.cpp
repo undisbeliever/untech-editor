@@ -478,11 +478,7 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
 
         if (layers.frameObjects()) {
             for (const SI::FrameObject& obj : frame->objects()) {
-                const upoint& loc = obj.location();
-
-                if (fMouse.x >= loc.x && fMouse.x < (loc.x + obj.sizePx())
-                    && fMouse.y >= loc.y && fMouse.y < (loc.y + obj.sizePx())) {
-
+                if (urect(obj.location(), obj.sizePx()).contains(fMouse)) {
                     updateMatch(SelectedType::FRAME_OBJECT, &obj);
                 }
             }

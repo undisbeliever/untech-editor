@@ -16,11 +16,6 @@ public:
         NONE,
         SELECT
     };
-    struct MousePosition {
-        // can't use ms8point because x/y can be > int_ms8_t::MAX
-        int x, y;
-        bool isValid = false;
-    };
 
 public:
     FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
@@ -40,7 +35,7 @@ private:
 
     void Render(wxPaintDC& dc);
 
-    MousePosition GetMousePosition();
+    optional<point> GetMousePosition();
 
     void OnMouseLeftDown(wxMouseEvent&);
     void OnMouseLeftUp(wxMouseEvent&);
@@ -48,7 +43,7 @@ private:
 
     void ResetMouseState();
 
-    void OnMouseLeftUp_Select(const MousePosition& mouse);
+    void OnMouseLeftUp_Select(const point& mouse);
 
 private:
     MS::MetaSpriteController& _controller;
@@ -57,7 +52,7 @@ private:
     wxBitmap _bitmap;
 
     MouseState _mouseState;
-    MousePosition _prevMouse;
+    point _prevMouse;
 };
 }
 }

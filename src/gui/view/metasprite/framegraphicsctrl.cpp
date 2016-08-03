@@ -360,27 +360,25 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
     }
 }
 
-FrameGraphicsCtrl::MousePosition FrameGraphicsCtrl::GetMousePosition()
+optional<point> FrameGraphicsCtrl::GetMousePosition()
 {
-    MousePosition ret;
-    ret.isValid = false;
-
     if (_currentFrame == nullptr) {
-        return ret;
+        return optional<point>();
     }
 
     const wxPoint pt = ScreenToClient(wxGetMousePosition());
     const wxSize size = GetClientSize();
 
     if (pt.x < 0 || pt.y < 0 || pt.x >= size.GetWidth() || pt.y >= size.GetHeight()) {
-        return ret;
+        return optional<point>();
     }
 
     const double zoomX = _controller.settings().zoomX();
     const double zoomY = _controller.settings().zoomY();
 
-    ret.x = (pt.x / zoomX) + GetScrollPos(wxHORIZONTAL) - FRAME_IMAGE_OFFSET;
-    ret.y = (pt.y / zoomY) + GetScrollPos(wxVERTICAL) - FRAME_IMAGE_OFFSET;
+    point ret(
+        (pt.x / zoomX) + GetScrollPos(wxHORIZONTAL) - FRAME_IMAGE_OFFSET,
+        (pt.y / zoomY) + GetScrollPos(wxVERTICAL) - FRAME_IMAGE_OFFSET);
 
     int clientWidth, clientHeight;
     GetClientSize(&clientWidth, &clientHeight);
@@ -397,19 +395,23 @@ FrameGraphicsCtrl::MousePosition FrameGraphicsCtrl::GetMousePosition()
     auto isValid = [](int v) {
         return v >= -FRAME_IMAGE_OFFSET && v < (BITMAP_SIZE - FRAME_IMAGE_OFFSET);
     };
-    ret.isValid = isValid(ret.x) && isValid(ret.y);
 
-    return ret;
+    if (isValid(ret.x) && isValid(ret.y)) {
+        return ret;
+    }
+    else {
+        return optional<point>();
+    }
 }
 
 void FrameGraphicsCtrl::OnMouseLeftDown(wxMouseEvent& event)
 {
-    MousePosition mouse = GetMousePosition();
+    auto mouse = GetMousePosition();
 
-    if (mouse.isValid) {
+    if (mouse) {
         if (_mouseState == MouseState::NONE) {
             _mouseState = MouseState::SELECT;
-            _prevMouse = mouse;
+            _prevMouse = mouse.value();
         }
     }
 
@@ -418,11 +420,11 @@ void FrameGraphicsCtrl::OnMouseLeftDown(wxMouseEvent& event)
 
 void FrameGraphicsCtrl::OnMouseLeftUp(wxMouseEvent& event)
 {
-    MousePosition mouse = GetMousePosition();
+    auto mouse = GetMousePosition();
 
-    if (mouse.isValid) {
+    if (mouse) {
         if (_mouseState == MouseState::SELECT) {
-            OnMouseLeftUp_Select(mouse);
+            OnMouseLeftUp_Select(mouse.value());
         }
     }
 
@@ -433,10 +435,10 @@ void FrameGraphicsCtrl::OnMouseLeftUp(wxMouseEvent& event)
 
 void FrameGraphicsCtrl::OnMouseLeftDClick(wxMouseEvent& event)
 {
-    MousePosition mouse = GetMousePosition();
+    auto mouse = GetMousePosition();
 
-    if (mouse.isValid) {
-        OnMouseLeftUp_Select(mouse);
+    if (mouse) {
+        OnMouseLeftUp_Select(mouse.value());
     }
 
     ResetMouseState();
@@ -449,13 +451,12 @@ void FrameGraphicsCtrl::ResetMouseState()
     _mouseState = MouseState::NONE;
 }
 
-void FrameGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
+void FrameGraphicsCtrl::OnMouseLeftUp_Select(const point& mouse)
 {
-    assert(mouse.isValid);
     assert(_currentFrame);
 
     // only select if mouse did not move.
-    if (mouse.x != _prevMouse.x || mouse.y != _prevMouse.y) {
+    if (mouse != _prevMouse) {
         return;
     }
 
@@ -493,11 +494,7 @@ void FrameGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
 
     if (layers.frameObjects()) {
         for (const MS::FrameObject& obj : _currentFrame->objects()) {
-            const auto loc = obj.location();
-
-            if (mouse.x >= loc.x && mouse.x < (loc.x + (int)obj.sizePx())
-                && mouse.y >= loc.y && mouse.y < (loc.y + (int)obj.sizePx())) {
-
+            if (ms8rect(obj.location(), obj.sizePx()).contains(mouse)) {
                 updateMatch(SelectedType::FRAME_OBJECT, &obj);
             }
         }
@@ -505,10 +502,7 @@ void FrameGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
 
     if (layers.actionPoints()) {
         for (const MS::ActionPoint& ap : _currentFrame->actionPoints()) {
-            const auto loc = ap.location();
-
-            if (mouse.x == loc.x && mouse.y == loc.y) {
-
+            if (mouse == ap.location()) {
                 updateMatch(SelectedType::ACTION_POINT, &ap);
             }
         }
@@ -516,11 +510,7 @@ void FrameGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
 
     if (layers.entityHitboxes()) {
         for (const MS::EntityHitbox& eh : _currentFrame->entityHitboxes()) {
-            const auto& aabb = eh.aabb();
-
-            if (mouse.x >= aabb.left() && mouse.x < aabb.right()
-                && mouse.y >= aabb.top() && mouse.y < aabb.bottom()) {
-
+            if (eh.aabb().contains(mouse)) {
                 updateMatch(SelectedType::ENTITY_HITBOX, &eh);
             }
         }

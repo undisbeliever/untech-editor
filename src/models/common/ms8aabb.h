@@ -47,7 +47,26 @@ struct ms8point {
     {
         return x != o.x || y != o.y;
     }
+
+    bool operator==(const point& o) const
+    {
+        return x == o.x && y == o.y;
+    }
+
+    bool operator!=(const point& o) const
+    {
+        return x != o.x || y != o.y;
+    }
 };
+
+inline bool operator==(const point& a, const ms8point& b)
+{
+    return b == a;
+}
+inline bool operator!=(const point& a, const ms8point& b)
+{
+    return b != a;
+}
 
 struct ms8rect {
     int_ms8_t x;
@@ -68,6 +87,14 @@ struct ms8rect {
         , y(y)
         , width(width)
         , height(height)
+    {
+    }
+
+    ms8rect(const ms8point& p, uint8_t squareSize)
+        : x(p.x)
+        , y(p.y)
+        , width(squareSize)
+        , height(squareSize)
     {
     }
 
@@ -122,6 +149,12 @@ struct ms8rect {
                && p.y >= top() && p.y < bottom();
     }
 
+    inline bool contains(const point& p) const
+    {
+        return p.x >= left() && p.x < right()
+               && p.y >= top() && p.y < bottom();
+    }
+
     bool operator==(const ms8rect& o) const
     {
         return x == o.x && y == o.y && width == o.width && height == o.height;
@@ -131,5 +164,24 @@ struct ms8rect {
     {
         return x != o.x || y != o.y || width != o.width || height != o.height;
     }
+
+    bool operator==(const rect& o) const
+    {
+        return x == o.x && y == o.y && width == o.width && height == o.height;
+    }
+
+    bool operator!=(const rect& o) const
+    {
+        return x != o.x || y != o.y || width != o.width || height != o.height;
+    }
 };
+
+inline bool operator==(const rect& a, const ms8rect& b)
+{
+    return b == a;
+}
+inline bool operator!=(const rect& a, const ms8rect& b)
+{
+    return b != a;
+}
 }
