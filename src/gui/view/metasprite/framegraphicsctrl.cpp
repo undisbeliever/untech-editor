@@ -108,6 +108,9 @@ FrameGraphicsCtrl::FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
     this->Bind(wxEVT_LEFT_DCLICK,
                &FrameGraphicsCtrl::OnMouseLeftDClick, this);
 
+    this->Bind(wxEVT_MOTION,
+               &FrameGraphicsCtrl::OnMouseMotion, this);
+
     this->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
         ResetMouseState();
         e.Skip();
@@ -358,6 +361,14 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
             break;
         }
     }
+
+    // Drag shadow
+    // -----------
+    if (_mouseState == MouseState::DRAG && _mouseDrag.isActive) {
+        dc.SetPen(DRAG_PEN);
+        dc.SetBrush(DRAG_BRUSH);
+        helper.DrawRectangle(_mouseDrag.aabb);
+    }
 }
 
 optional<point> FrameGraphicsCtrl::GetMousePosition()
@@ -410,6 +421,8 @@ void FrameGraphicsCtrl::OnMouseLeftDown(wxMouseEvent& event)
 
     if (mouse) {
         if (_mouseState == MouseState::NONE) {
+            MouseDrag_MouseClick(mouse.value());
+
             _mouseState = MouseState::SELECT;
             _prevMouse = mouse.value();
         }
@@ -423,8 +436,18 @@ void FrameGraphicsCtrl::OnMouseLeftUp(wxMouseEvent& event)
     auto mouse = GetMousePosition();
 
     if (mouse) {
-        if (_mouseState == MouseState::SELECT) {
+        switch (_mouseState) {
+        case MouseState::NONE:
+            break;
+
+        case MouseState::SELECT:
             OnMouseLeftUp_Select(mouse.value());
+            break;
+
+        case MouseState::DRAG:
+            MouseDrag_MouseMotion(mouse.value());
+            MouseDrag_Confirm();
+            break;
         }
     }
 
@@ -446,8 +469,28 @@ void FrameGraphicsCtrl::OnMouseLeftDClick(wxMouseEvent& event)
     event.Skip();
 }
 
+void FrameGraphicsCtrl::OnMouseMotion(wxMouseEvent& event)
+{
+    auto mouse = GetMousePosition();
+
+    if (mouse) {
+        if (_mouseState == MouseState::SELECT) {
+            if (_mouseDrag.canDrag) {
+                _mouseState = MouseState::DRAG;
+            }
+        }
+
+        if (_mouseState == MouseState::DRAG) {
+            MouseDrag_MouseMotion(mouse.value());
+        }
+    }
+
+    event.Skip();
+}
+
 void FrameGraphicsCtrl::ResetMouseState()
 {
+    MouseDrag_Reset();
     _mouseState = MouseState::NONE;
 }
 
@@ -522,4 +565,192 @@ void FrameGraphicsCtrl::OnMouseLeftUp_Select(const point& mouse)
     }
 
     _controller.selectedTypeController().selectItem(match.type, match.item);
+}
+
+// Mouse Drag
+// ==========
+
+void FrameGraphicsCtrl::MouseDrag_MouseClick(const point& mouse)
+{
+    auto& md = _mouseDrag;
+    bool canResize = false;
+
+    switch (_controller.selectedTypeController().type()) {
+    case SelectedType::NONE:
+        md.isActive = false;
+        md.canDrag = false;
+        return;
+
+    case SelectedType::FRAME_OBJECT:
+        if (const auto* fo = _controller.frameObjectController().selected()) {
+            md.aabb = ms8rect(fo->location(), fo->sizePx());
+        }
+        break;
+
+    case SelectedType::ACTION_POINT:
+        if (const auto* ap = _controller.actionPointController().selected()) {
+            md.aabb = ms8rect(ap->location(), 1);
+        }
+        break;
+
+    case SelectedType::ENTITY_HITBOX:
+        if (const auto* eh = _controller.entityHitboxController().selected()) {
+            md.aabb = eh->aabb();
+            canResize = true;
+        }
+        break;
+    }
+
+    if (canResize) {
+        md.resizeLeft = mouse.x <= md.aabb.left() + 1;
+        md.resizeRight = mouse.x == md.aabb.right() - 1 || mouse.x == md.aabb.right();
+
+        md.resizeTop = mouse.y <= md.aabb.top() + 1;
+        md.resizeBottom = mouse.y == md.aabb.bottom() - 1 || mouse.y == md.aabb.bottom();
+
+        md.resize = md.resizeLeft | md.resizeRight | md.resizeTop | md.resizeBottom;
+        md.canDrag = md.resize | md.aabb.contains(mouse);
+    }
+    else {
+        md.resize = false;
+        md.canDrag = md.aabb.contains(mouse);
+    }
+
+    md.prevMouse = mouse;
+}
+
+void FrameGraphicsCtrl::MouseDrag_MouseMotion(const point& mouse)
+{
+    auto& md = _mouseDrag;
+
+    if (md.canDrag == false) {
+        return;
+    }
+
+    if (md.isActive == false) {
+        MouseDrag_ActivateDrag();
+    }
+
+    if (md.prevMouse != mouse) {
+        ms8rect newAabb = md.aabb;
+
+        if (!md.resize) {
+            // move
+            newAabb.x += mouse.x - md.prevMouse.x;
+            newAabb.y += mouse.y - md.prevMouse.y;
+        }
+        else {
+            // resize
+            int rx = mouse.x;
+            if (md.resizeLeft) {
+                if (rx >= newAabb.right()) {
+                    rx = newAabb.right() - 1;
+                }
+                newAabb.width = newAabb.right() - rx;
+                newAabb.x = rx;
+            }
+            else if (md.resizeRight) {
+                if (rx <= newAabb.left()) {
+                    rx = newAabb.left() + 1;
+                }
+                newAabb.width = rx - newAabb.x;
+            }
+
+            int ry = mouse.y;
+            if (md.resizeTop) {
+                if (ry >= newAabb.bottom()) {
+                    ry = newAabb.bottom() - 1;
+                }
+                newAabb.height = newAabb.bottom() - ry;
+                newAabb.y = ry;
+            }
+            else if (md.resizeBottom) {
+                if (ry <= newAabb.top()) {
+                    ry = newAabb.top() + 1;
+                }
+                newAabb.height = ry - newAabb.y;
+            }
+        }
+
+        if (md.aabb != newAabb) {
+            md.aabb = newAabb;
+            Refresh(true);
+        }
+
+        md.prevMouse = mouse;
+    }
+}
+
+void FrameGraphicsCtrl::MouseDrag_ActivateDrag()
+{
+    auto& md = _mouseDrag;
+
+    if (md.isActive == false && md.canDrag) {
+        if (!md.resize) {
+            SetCursor(wxCursor(wxCURSOR_SIZING));
+        }
+        else {
+            bool horizontal = md.resizeLeft | md.resizeRight;
+            bool vertical = md.resizeTop | md.resizeBottom;
+
+            if (horizontal && !vertical) {
+                SetCursor(wxCursor(wxCURSOR_SIZEWE));
+            }
+            else if (vertical && !horizontal) {
+                SetCursor(wxCursor(wxCURSOR_SIZENS));
+            }
+            else if ((md.resizeLeft && md.resizeTop)
+                     || (md.resizeRight && md.resizeBottom)) {
+                SetCursor(wxCursor(wxCURSOR_SIZENWSE));
+            }
+            else if ((md.resizeRight && md.resizeTop)
+                     || (md.resizeLeft && md.resizeBottom)) {
+                SetCursor(wxCursor(wxCURSOR_SIZENESW));
+            }
+        }
+
+        CaptureMouse();
+    }
+
+    md.isActive = md.canDrag;
+}
+
+void FrameGraphicsCtrl::MouseDrag_Confirm()
+{
+    auto& md = _mouseDrag;
+
+    if (md.isActive) {
+        switch (_controller.selectedTypeController().type()) {
+        case SelectedType::NONE:
+            break;
+
+        case SelectedType::FRAME_OBJECT:
+            _controller.frameObjectController().selected_setLocation(ms8point(md.aabb.x, md.aabb.y));
+            break;
+
+        case SelectedType::ACTION_POINT:
+            _controller.actionPointController().selected_setLocation(ms8point(md.aabb.x, md.aabb.y));
+            break;
+
+        case SelectedType::ENTITY_HITBOX:
+            _controller.entityHitboxController().selected_setAabb(md.aabb);
+            break;
+        }
+
+        MouseDrag_Reset();
+    }
+}
+
+void FrameGraphicsCtrl::MouseDrag_Reset()
+{
+    auto& md = _mouseDrag;
+
+    if (md.isActive) {
+        md.isActive = false;
+        md.canDrag = false;
+
+        SetCursor(wxNullCursor);
+        ReleaseMouse();
+        Refresh(true);
+    }
 }

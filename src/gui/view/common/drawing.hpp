@@ -13,6 +13,9 @@ const static wxColour SELECTED_COLOR_INNER(255, 255, 255);
 
 const static wxBrush ANTI_HIGHLIGHT_BRUSH(wxColor(192, 192, 192, 192));
 
+const static wxPen DRAG_PEN(wxColor(192, 192, 192, 192), 1);
+const static wxBrush DRAG_BRUSH(wxColor(64, 64, 64, 64));
+
 const static wxPen ORIGIN_PEN(wxColor(112, 112, 112, 112), 1, wxPENSTYLE_SHORT_DASH);
 const static wxPen ORIGIN_OPAQUE_PEN(wxColor(112, 112, 112), 1, wxPENSTYLE_SHORT_DASH);
 

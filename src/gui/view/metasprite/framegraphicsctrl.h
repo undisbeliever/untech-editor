@@ -14,7 +14,20 @@ class FrameGraphicsCtrl : public wxPanel {
 public:
     enum class MouseState {
         NONE,
-        SELECT
+        SELECT,
+        DRAG
+    };
+    struct MouseDrag {
+        ms8rect aabb;
+        point prevMouse;
+
+        bool isActive = false;
+        bool canDrag;
+        bool resize;
+        bool resizeLeft;
+        bool resizeRight;
+        bool resizeTop;
+        bool resizeBottom;
     };
 
 public:
@@ -40,10 +53,17 @@ private:
     void OnMouseLeftDown(wxMouseEvent&);
     void OnMouseLeftUp(wxMouseEvent&);
     void OnMouseLeftDClick(wxMouseEvent&);
+    void OnMouseMotion(wxMouseEvent&);
 
     void ResetMouseState();
 
     void OnMouseLeftUp_Select(const point& mouse);
+
+    void MouseDrag_MouseClick(const point& mouse);
+    void MouseDrag_ActivateDrag();
+    void MouseDrag_MouseMotion(const point& mouse);
+    void MouseDrag_Confirm();
+    void MouseDrag_Reset();
 
 private:
     MS::MetaSpriteController& _controller;
@@ -53,6 +73,7 @@ private:
 
     MouseState _mouseState;
     point _prevMouse;
+    MouseDrag _mouseDrag;
 };
 }
 }
