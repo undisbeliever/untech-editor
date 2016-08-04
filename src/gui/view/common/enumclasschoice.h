@@ -8,20 +8,20 @@ namespace View {
 template <class T>
 class EnumClassChoice : public wxChoice {
 public:
-    static const std::vector<T> enumList;
-    static const wxArrayString nameList;
-
-public:
     EnumClassChoice(wxWindow* parent, wxWindowID id)
-        : wxChoice(parent, id, wxDefaultPosition, wxDefaultSize, nameList)
+        : wxChoice(parent, id, wxDefaultPosition, wxDefaultSize, buildNames())
     {
+        _enumList.reserve(T::stringMap.size());
+        for (const auto it : T::stringMap) {
+            _enumList.push_back(it.second);
+        }
     }
 
     T GetValue() const
     {
         int i = GetSelection();
-        if (i >= 0 && (unsigned)i < enumList.size()) {
-            return enumList[i];
+        if (i >= 0 && (unsigned)i < _enumList.size()) {
+            return _enumList[i];
         }
         else {
             return T();
@@ -30,8 +30,8 @@ public:
 
     void SetValue(const T& value)
     {
-        for (unsigned i = 0; i < enumList.size(); i++) {
-            if (enumList[i] == value) {
+        for (unsigned i = 0; i < _enumList.size(); i++) {
+            if (_enumList[i] == value) {
                 return SetSelection(i);
             }
         }
@@ -39,34 +39,23 @@ public:
     }
 
 private:
-    static const std::vector<T> __buildEnums()
+    static const wxArrayString buildNames()
     {
-        std::vector<T> ret;
-        ret.reserve(T::stringMap.size());
+        wxArrayString nameList;
 
-        for (const auto it : T::stringMap) {
-            ret.push_back(it.second);
+        if (nameList.size() == 0) {
+            nameList.Alloc(T::stringMap.size());
+
+            for (const auto it : T::stringMap) {
+                nameList.Add(it.first);
+            }
         }
 
-        return ret;
+        return nameList;
     }
-    static const wxArrayString __buildNames()
-    {
-        wxArrayString ret;
-        ret.Alloc(T::stringMap.size());
 
-        for (const auto it : T::stringMap) {
-            ret.Add(it.first);
-        }
-
-        return ret;
-    }
+private:
+    std::vector<T> _enumList;
 };
-
-template <typename T>
-const std::vector<T> EnumClassChoice<T>::enumList = EnumClassChoice<T>::__buildEnums();
-
-template <typename T>
-const wxArrayString EnumClassChoice<T>::nameList = EnumClassChoice<T>::__buildNames();
 }
 }
