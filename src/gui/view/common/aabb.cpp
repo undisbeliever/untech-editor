@@ -141,7 +141,7 @@ URectCtrl::URectCtrl(wxWindow* parent, int wxWindowID)
     });
 }
 
-void URectCtrl::SetMinSize(const usize& minSize)
+void URectCtrl::SetMinRectSize(const usize& minSize)
 {
     _minSize = minSize;
     UpdateRanges();

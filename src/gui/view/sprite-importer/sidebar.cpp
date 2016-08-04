@@ -644,7 +644,7 @@ void FramePanel::UpdateGui()
 {
     const SI::Frame* frame = _controller.selected();
     if (frame) {
-        _location->SetMinSize(frame->minimumViableSize());
+        _location->SetMinRectSize(frame->minimumViableSize());
         _origin->SetRange(frame->locationSize());
         _tileHitbox->SetRange(frame->locationSize());
 
@@ -668,7 +668,7 @@ void FramePanel::UpdateGui()
         this->Enable();
     }
     else {
-        _location->SetMinSize(zeroSize);
+        _location->SetMinRectSize(zeroSize);
         _origin->SetRange(zeroSize);
         _tileHitbox->SetRange(zeroSize);
 

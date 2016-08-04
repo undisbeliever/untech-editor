@@ -80,7 +80,7 @@ public:
         UpdateRanges();
     }
 
-    void SetMinSize(const usize& minSize);
+    void SetMinRectSize(const usize& minSize);
     void SetRange(const usize& range);
 
 private:
