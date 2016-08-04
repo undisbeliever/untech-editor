@@ -21,6 +21,7 @@ public:
     const T* selected() const { return _selected; }
     std::string selectedName() const;
     void setSelected(const T* item);
+    void setSelectedFromPtr(const void* item);
 
     void create(const std::string& name);
     void selected_clone(const std::string& newName);

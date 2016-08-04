@@ -152,24 +152,21 @@ void SpriteSelectedTypeController<T>::selectItem(Type type, const void* ptr)
         break;
 
     case Type::FRAME_OBJECT:
-        _controller.frameObjectController().setSelected(
-            static_cast<decltype(_controller.frameObjectController().selected())>(ptr));
+        _controller.frameObjectController().setSelectedFromPtr(ptr);
         break;
 
     case Type::ACTION_POINT:
-        _controller.actionPointController().setSelected(
-            static_cast<decltype(_controller.actionPointController().selected())>(ptr));
+        _controller.actionPointController().setSelectedFromPtr(ptr);
         break;
 
     case Type::ENTITY_HITBOX:
-        _controller.entityHitboxController().setSelected(
-            static_cast<decltype(_controller.entityHitboxController().selected())>(ptr));
+        _controller.entityHitboxController().setSelectedFromPtr(ptr);
         break;
 
     case Type::TILE_HITBOX:
-        _controller.frameController().setSelected(
-            static_cast<decltype(_controller.frameController().selected())>(ptr));
+        _controller.frameController().setSelectedFromPtr(ptr);
         selectTileHitbox();
+        break;
     }
 
     setType(type);

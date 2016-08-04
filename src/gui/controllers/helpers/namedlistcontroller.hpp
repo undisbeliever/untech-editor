@@ -105,6 +105,24 @@ void NamedListController<T>::setSelected(const T* item)
 }
 
 template <class T>
+void NamedListController<T>::setSelectedFromPtr(const void* item)
+{
+    if (_selected != item) {
+        if (item != nullptr && _list != nullptr) {
+            for (const auto& it : *_list) {
+                if (&it.second == item) {
+                    setSelected(&it.second);
+                    return;
+                }
+            }
+        }
+
+        // none found
+        setSelected(nullptr);
+    }
+}
+
+template <class T>
 std::string NamedListController<T>::selectedName() const
 {
     if (_list == nullptr || _selected == nullptr) {

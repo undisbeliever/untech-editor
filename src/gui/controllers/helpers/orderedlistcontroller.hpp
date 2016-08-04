@@ -107,6 +107,24 @@ void OrderedListController<T>::setSelected(const T* item)
 }
 
 template <class T>
+void OrderedListController<T>::setSelectedFromPtr(const void* item)
+{
+    if (_selected != item) {
+        if (item != nullptr && _list != nullptr) {
+            for (unsigned i = 0; i < _list->size(); i++) {
+                if (&_list->at(i) == item) {
+                    setSelected(int(i));
+                    return;
+                }
+            }
+        }
+
+        // none found
+        setSelected(nullptr);
+    }
+}
+
+template <class T>
 void OrderedListController<T>::setSelected(int index)
 {
     if (_list != nullptr) {
