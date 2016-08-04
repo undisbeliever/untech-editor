@@ -145,11 +145,6 @@ public:
     }
     ~FrameSetController() = default;
 
-    template <class TilesetT>
-    void selected_tileset_setPixel(const unsigned tileId,
-                                   unsigned x, unsigned y,
-                                   unsigned value);
-
     void selected_smallTileset_setPixel(const unsigned tileId,
                                         unsigned x, unsigned y,
                                         unsigned value);
@@ -159,9 +154,6 @@ public:
                                         unsigned value);
 
     void selected_addTiles(unsigned smallTiles, unsigned largeTiles);
-
-    template <class TilesetT>
-    sigc::signal<void, const FrameSet*>& signal_tilesetChanged();
 
     auto& signal_smallTilesetChanged() { return _signal_smallTilesetChanged; }
     auto& signal_largeTilesetChanged() { return _signal_largeTilesetChanged; }

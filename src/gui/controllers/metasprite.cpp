@@ -270,127 +270,101 @@ CREATE_MERGE_INDEXED_ACTION(PaletteController, selected_setColor_merge,
  * FRAME SET CONTROLLER
  * ====================
  */
-namespace UnTech {
-namespace MetaSprite {
-template <>
-sigc::signal<void, const FrameSet*>&
-FrameSetController::signal_tilesetChanged<UnTech::Snes::Tileset4bpp8px>()
-{
-    return _signal_smallTilesetChanged;
-}
 
-template <>
-sigc::signal<void, const FrameSet*>&
-FrameSetController::signal_tilesetChanged<UnTech::Snes::Tileset4bpp16px>()
-{
-    return _signal_largeTilesetChanged;
-}
-}
-}
-
-template <class TilesetT>
-void FrameSetController::selected_tileset_setPixel(const unsigned tileId,
-                                                   unsigned x, unsigned y,
-                                                   unsigned value)
-{
-    class Action : public UnTech::Controller::Undo::MergeAction {
-    public:
-        Action() = delete;
-        Action(FrameSet* frameSet,
-               const unsigned tileId,
-               const typename TilesetT::tile_t& oldTile,
-               const typename TilesetT::tile_t& newTile,
-               sigc::signal<void, const FrameSet*>& signal)
-            : _frameSet(frameSet)
-            , _tileId(tileId)
-            , _oldTile(oldTile)
-            , _newTile(newTile)
-            , _signal(signal)
-        {
-        }
-
-        virtual ~Action() override = default;
-
-        virtual void undo() override
-        {
-            _frameSet->getTileset<TilesetT>().tile(_tileId) = _oldTile;
-            _signal.emit(_frameSet);
-        }
-
-        virtual void redo() override
-        {
-            _frameSet->getTileset<TilesetT>().tile(_tileId) = _newTile;
-            _signal.emit(_frameSet);
-        }
-
-        virtual bool mergeWith(UnTech::Controller::Undo::MergeAction* o) override
-        {
-            Action* other = dynamic_cast<Action*>(o);
-
-            if (other != nullptr) {
-                if (this->_frameSet == other->_frameSet
-                    && this->_tileId == other->_tileId) {
-
-                    this->_newTile = other->_newTile;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        virtual const std::string& message() const override
-        {
-            const static std::string message = "Edit Tile";
-            return message;
-        }
-
-    private:
-        FrameSet* _frameSet;
-        unsigned _tileId;
-        const typename TilesetT::tile_t _oldTile;
-        typename TilesetT::tile_t _newTile;
-        sigc::signal<void, const FrameSet*>& _signal;
-    };
-
-    FrameSet* frameSet = this->selected_editable();
-    if (frameSet) {
-        TilesetT& tileset = frameSet->getTileset<TilesetT>();
-
-        if (tileId < tileset.size()) {
-            typename TilesetT::tile_t oldTile = tileset.tile(tileId);
-
-            tileset.tile(tileId).setPixel(x, y, value);
-
-            typename TilesetT::tile_t newTile = tileset.tile(tileId);
-
-            if (oldTile != newTile) {
-                auto& signal = this->signal_tilesetChanged<TilesetT>();
-
-                signal.emit(frameSet);
-
-                baseController().undoStack().add_undoMerge(std::make_unique<Action>(
-                    frameSet, tileId, oldTile, newTile, signal));
-            }
-        }
+#define TILESET_SETPIXEL(NAME, TILESET_T, TILESET_GETTER, SIGNAL)                     \
+    void FrameSetController::NAME(const unsigned tileId,                              \
+                                  unsigned x, unsigned y,                             \
+                                  unsigned value)                                     \
+    {                                                                                 \
+        class Action : public UnTech::Controller::Undo::MergeAction {                 \
+        public:                                                                       \
+            Action() = delete;                                                        \
+            Action(FrameSet* frameSet,                                                \
+                   const unsigned tileId,                                             \
+                   const TILESET_T::tile_t& oldTile,                                  \
+                   const TILESET_T::tile_t& newTile,                                  \
+                   sigc::signal<void, const FrameSet*>& signal)                       \
+                : _frameSet(frameSet)                                                 \
+                , _tileId(tileId)                                                     \
+                , _oldTile(oldTile)                                                   \
+                , _newTile(newTile)                                                   \
+                , _signal(signal)                                                     \
+            {                                                                         \
+            }                                                                         \
+                                                                                      \
+            virtual ~Action() override = default;                                     \
+                                                                                      \
+            virtual void undo() override                                              \
+            {                                                                         \
+                _frameSet->TILESET_GETTER().tile(_tileId) = _oldTile;                 \
+                _signal.emit(_frameSet);                                              \
+            }                                                                         \
+                                                                                      \
+            virtual void redo() override                                              \
+            {                                                                         \
+                _frameSet->TILESET_GETTER().tile(_tileId) = _newTile;                 \
+                _signal.emit(_frameSet);                                              \
+            }                                                                         \
+                                                                                      \
+            virtual bool mergeWith(UnTech::Controller::Undo::MergeAction* o) override \
+            {                                                                         \
+                Action* other = dynamic_cast<Action*>(o);                             \
+                                                                                      \
+                if (other != nullptr) {                                               \
+                    if (this->_frameSet == other->_frameSet                           \
+                        && this->_tileId == other->_tileId) {                         \
+                                                                                      \
+                        this->_newTile = other->_newTile;                             \
+                        return true;                                                  \
+                    }                                                                 \
+                }                                                                     \
+                                                                                      \
+                return false;                                                         \
+            }                                                                         \
+                                                                                      \
+            virtual const std::string& message() const override                       \
+            {                                                                         \
+                const static std::string message = "Edit Tile";                       \
+                return message;                                                       \
+            }                                                                         \
+                                                                                      \
+        private:                                                                      \
+            FrameSet* _frameSet;                                                      \
+            unsigned _tileId;                                                         \
+            const TILESET_T::tile_t _oldTile;                                         \
+            TILESET_T::tile_t _newTile;                                               \
+            sigc::signal<void, const FrameSet*>& _signal;                             \
+        };                                                                            \
+                                                                                      \
+        FrameSet* frameSet = this->selected_editable();                               \
+        if (frameSet) {                                                               \
+            TILESET_T& tileset = frameSet->TILESET_GETTER();                          \
+                                                                                      \
+            if (tileId < tileset.size()) {                                            \
+                TILESET_T::tile_t oldTile = tileset.tile(tileId);                     \
+                                                                                      \
+                tileset.tile(tileId).setPixel(x, y, value);                           \
+                                                                                      \
+                TILESET_T::tile_t newTile = tileset.tile(tileId);                     \
+                                                                                      \
+                if (oldTile != newTile) {                                             \
+                    SIGNAL.emit(frameSet);                                            \
+                                                                                      \
+                    baseController().undoStack().add_undoMerge(                       \
+                        std::make_unique<Action>(                                     \
+                            frameSet, tileId, oldTile, newTile, SIGNAL));             \
+                }                                                                     \
+            }                                                                         \
+        }                                                                             \
     }
-}
 
-void FrameSetController::selected_smallTileset_setPixel(const unsigned tileId,
-                                                        unsigned x, unsigned y,
-                                                        unsigned value)
-{
-    return selected_tileset_setPixel<UnTech::Snes::Tileset4bpp8px>(
-        tileId, x, y, value);
-}
+TILESET_SETPIXEL(selected_smallTileset_setPixel,
+                 Snes::Tileset4bpp8px, smallTileset,
+                 _signal_smallTilesetChanged)
 
-void FrameSetController::selected_largeTileset_setPixel(const unsigned tileId,
-                                                        unsigned x, unsigned y,
-                                                        unsigned value)
-{
-    return selected_tileset_setPixel<UnTech::Snes::Tileset4bpp16px>(
-        tileId, x, y, value);
-}
+TILESET_SETPIXEL(selected_largeTileset_setPixel,
+                 Snes::Tileset4bpp16px, largeTileset,
+                 _signal_largeTilesetChanged)
 
 void FrameSetController::selected_addTiles(unsigned nNewSmallTiles,
                                            unsigned nNewLargeTiles)
