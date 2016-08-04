@@ -15,7 +15,8 @@ public:
         NONE = 0,
         FRAME_OBJECT,
         ACTION_POINT,
-        ENTITY_HITBOX
+        ENTITY_HITBOX,
+        TILE_HITBOX
     };
 
 public:
@@ -27,6 +28,8 @@ public:
 
     // be careful with this one
     void selectItem(Type type, const void* ptr);
+
+    void selectTileHitbox();
 
     const std::string& typeString() const;
 

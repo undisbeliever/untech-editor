@@ -21,6 +21,17 @@ SpriteSelectedTypeController<T>::SpriteSelectedTypeController(T& controller)
         }
     });
 
+    _controller.frameController().signal_listDataChanged().connect(sigc::hide([this](void) {
+        if (_type == Type::TILE_HITBOX) {
+            setType(Type::NONE);
+        }
+    }));
+    _controller.frameController().signal_selectedChanged().connect([this](void) {
+        if (_type == Type::TILE_HITBOX) {
+            setType(Type::NONE);
+        }
+    });
+
     _controller.frameObjectController().signal_selectedChanged().connect([this](void) {
         if (_updatingType == false) {
             if (_controller.layersController().frameObjects()) {
@@ -122,6 +133,9 @@ const void* SpriteSelectedTypeController<T>::selectedPtr() const
     case Type::ENTITY_HITBOX:
         return _controller.entityHitboxController().selected();
 
+    case Type::TILE_HITBOX:
+        return _controller.frameController().selected();
+
     default:
         return nullptr;
     }
@@ -151,9 +165,27 @@ void SpriteSelectedTypeController<T>::selectItem(Type type, const void* ptr)
         _controller.entityHitboxController().setSelected(
             static_cast<decltype(_controller.entityHitboxController().selected())>(ptr));
         break;
+
+    case Type::TILE_HITBOX:
+        _controller.frameController().setSelected(
+            static_cast<decltype(_controller.frameController().selected())>(ptr));
+        selectTileHitbox();
     }
 
     setType(type);
+}
+
+template <class T>
+void SpriteSelectedTypeController<T>::selectTileHitbox()
+{
+    if (_controller.layersController().tileHitbox()) {
+        const auto* frame = _controller.frameController().selected();
+        if (frame != nullptr) {
+            if (frame->solid()) {
+                setType(Type::TILE_HITBOX);
+            }
+        }
+    }
 }
 
 template <class T>
@@ -163,6 +195,7 @@ const std::string& SpriteSelectedTypeController<T>::typeString() const
     const static std::string frameObjectString = "Frame Object";
     const static std::string actionPointString = "Action Point";
     const static std::string entityHitboxString = "Entity Hitbox";
+    const static std::string tileHitboxString = "Tile Hitbox";
 
     switch (_type) {
     case Type::FRAME_OBJECT:
@@ -173,6 +206,9 @@ const std::string& SpriteSelectedTypeController<T>::typeString() const
 
     case Type::ENTITY_HITBOX:
         return entityHitboxString;
+
+    case Type::TILE_HITBOX:
+        return tileHitboxString;
 
     default:
         return nullString;

@@ -80,6 +80,7 @@ private:
 
 private:
     SI::FrameController& _controller;
+    SI::SpriteImporterController& _siController;
 
     wxSpinCtrl* _spriteOrder;
 
@@ -324,6 +325,10 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                 case SelectedType::ENTITY_HITBOX:
                     _frameNotebook->SetSelection(int(FramePages::ENTITY_HITBOX_PAGE));
                     break;
+
+                case SelectedType::TILE_HITBOX:
+                    _frameNotebook->SetSelection(int(FramePages::FRAME_PAGE));
+                    break;
                 }
             }
         });
@@ -527,6 +532,7 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
                        SI::SpriteImporterController& controller)
     : wxPanel(parent, wxWindowID)
     , _controller(controller.frameController())
+    , _siController(controller)
 {
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(sizer);
@@ -621,10 +627,12 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
 
     _solid->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         _controller.selected_setSolid(_solid->GetValue());
+        _siController.selectedTypeController().selectTileHitbox();
     });
 
     _tileHitbox->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
         _controller.baseController().dontMergeNextAction();
+        _siController.selectedTypeController().selectTileHitbox();
         e.Skip();
     });
     _tileHitbox->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {

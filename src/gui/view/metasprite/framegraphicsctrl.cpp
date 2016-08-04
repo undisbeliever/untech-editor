@@ -359,6 +359,12 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
                 helper.DrawSelectedCross(ap->location());
             }
             break;
+
+        case SelectedType::TILE_HITBOX:
+            if (frame->solid()) {
+                helper.DrawSelectedRectangle(frame->tileHitbox());
+            }
+            break;
         }
     }
 
@@ -559,6 +565,14 @@ void FrameGraphicsCtrl::OnMouseLeftUp_Select(const point& mouse)
         }
     }
 
+    if (layers.tileHitbox()) {
+        if (_currentFrame->solid()) {
+            if (_currentFrame->tileHitbox().contains(mouse)) {
+                updateMatch(SelectedType::TILE_HITBOX, _currentFrame);
+            }
+        }
+    }
+
     if (match.type == SelectedType::NONE) {
         // handle wrap around.
         match = firstMatch;
@@ -597,6 +611,15 @@ void FrameGraphicsCtrl::MouseDrag_MouseClick(const point& mouse)
         if (const auto* eh = _controller.entityHitboxController().selected()) {
             md.aabb = eh->aabb();
             canResize = true;
+        }
+        break;
+
+    case SelectedType::TILE_HITBOX:
+        if (const auto* frame = _controller.frameController().selected()) {
+            if (frame->solid()) {
+                md.aabb = frame->tileHitbox();
+                canResize = true;
+            }
         }
         break;
     }
@@ -734,6 +757,10 @@ void FrameGraphicsCtrl::MouseDrag_Confirm()
 
         case SelectedType::ENTITY_HITBOX:
             _controller.entityHitboxController().selected_setAabb(md.aabb);
+            break;
+
+        case SelectedType::TILE_HITBOX:
+            _controller.frameController().selected_setTileHitbox(md.aabb);
             break;
         }
 

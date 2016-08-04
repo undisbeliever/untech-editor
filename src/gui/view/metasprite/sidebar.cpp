@@ -35,13 +35,14 @@ enum class FramePages {
 class FramePanel : public wxPanel {
 public:
     FramePanel(wxWindow* parent, int wxWindowID,
-               MS::FrameController& controller);
+               MS::MetaSpriteController& controller);
 
 private:
     void UpdateGui();
 
 private:
     MS::FrameController& _controller;
+    MS::MetaSpriteController& _msController;
 
     wxCheckBox* _solid;
     Ms8RectCtrl* _tileHitbox;
@@ -164,7 +165,7 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         frameSizer->Add(_frameNotebook, wxSizerFlags(1).Expand().Border());
 
         _frameNotebook->AddPage(
-            new FramePanel(_frameNotebook, wxID_ANY, controller.frameController()),
+            new FramePanel(_frameNotebook, wxID_ANY, controller),
             "Frame");
 
         {
@@ -282,6 +283,10 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                 case SelectedType::ENTITY_HITBOX:
                     _frameNotebook->SetSelection(int(FramePages::ENTITY_HITBOX_PAGE));
                     break;
+
+                case SelectedType::TILE_HITBOX:
+                    _frameNotebook->SetSelection(int(FramePages::FRAME_PAGE));
+                    break;
                 }
             }
         });
@@ -292,9 +297,10 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
 // =====
 
 FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
-                       MS::FrameController& controller)
+                       MS::MetaSpriteController& controller)
     : wxPanel(parent, wxWindowID)
-    , _controller(controller)
+    , _controller(controller.frameController())
+    , _msController(controller)
 {
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(sizer);
@@ -325,10 +331,12 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     // ------
     _solid->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         _controller.selected_setSolid(_solid->GetValue());
+        _msController.selectedTypeController().selectTileHitbox();
     });
 
     _tileHitbox->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
         _controller.baseController().dontMergeNextAction();
+        _msController.selectedTypeController().selectTileHitbox();
         e.Skip();
     });
     _tileHitbox->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
