@@ -9,10 +9,10 @@ namespace View {
 
 namespace MS = UnTech::MetaSprite;
 
-template class OrderedListCtrl<MS::FrameObject>;
-
 // FRAME
 // =====
+template <>
+void NamedListCtrl<MS::Frame>::CreateColumns();
 
 template <>
 void NamedListCtrl<MS::Frame>::CreateColumns()
@@ -41,6 +41,8 @@ wxString NamedListCtrl<MS::Frame>::OnGetItemText(long item, long column) const
 
 // FRAME OBJECTS
 // =============
+template <>
+void OrderedListCtrl<MS::FrameObject>::CreateColumns();
 
 template <>
 void OrderedListCtrl<MS::FrameObject>::CreateColumns()
@@ -83,6 +85,8 @@ wxString OrderedListCtrl<MS::FrameObject>::OnGetItemText(long item, long column)
 
 // ACTION POINTS
 // =============
+template <>
+void OrderedListCtrl<MS::ActionPoint>::CreateColumns();
 
 template <>
 void OrderedListCtrl<MS::ActionPoint>::CreateColumns()
@@ -121,6 +125,8 @@ wxString OrderedListCtrl<MS::ActionPoint>::OnGetItemText(long item, long column)
 
 // ENTITY HITBOXES
 // ===============
+template <>
+void OrderedListCtrl<MS::EntityHitbox>::CreateColumns();
 
 template <>
 void OrderedListCtrl<MS::EntityHitbox>::CreateColumns()

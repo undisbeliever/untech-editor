@@ -9,10 +9,10 @@ namespace View {
 
 namespace SI = UnTech::SpriteImporter;
 
-template class OrderedListCtrl<SI::FrameObject>;
-
 // FRAME
 // =====
+template <>
+void NamedListCtrl<SI::Frame>::CreateColumns();
 
 template <>
 void NamedListCtrl<SI::Frame>::CreateColumns()
@@ -41,6 +41,8 @@ wxString NamedListCtrl<SI::Frame>::OnGetItemText(long item, long column) const
 
 // FRAME OBJECTS
 // =============
+template <>
+void OrderedListCtrl<SI::FrameObject>::CreateColumns();
 
 template <>
 void OrderedListCtrl<SI::FrameObject>::CreateColumns()
@@ -83,6 +85,8 @@ wxString OrderedListCtrl<SI::FrameObject>::OnGetItemText(long item, long column)
 
 // ACTION POINTS
 // =============
+template <>
+void OrderedListCtrl<SI::ActionPoint>::CreateColumns();
 
 template <>
 void OrderedListCtrl<SI::ActionPoint>::CreateColumns()
@@ -121,6 +125,8 @@ wxString OrderedListCtrl<SI::ActionPoint>::OnGetItemText(long item, long column)
 
 // ENTITY HITBOXES
 // ===============
+template <>
+void OrderedListCtrl<SI::EntityHitbox>::CreateColumns();
 
 template <>
 void OrderedListCtrl<SI::EntityHitbox>::CreateColumns()

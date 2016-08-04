@@ -11,6 +11,8 @@ namespace MSC = UnTech::MetaSpriteCommon;
 
 // ANIMATIONS
 // ==========
+template <>
+void NamedListCtrl<MSC::Animation>::CreateColumns();
 
 template <>
 void NamedListCtrl<MSC::Animation>::CreateColumns()
@@ -39,7 +41,8 @@ wxString NamedListCtrl<MSC::Animation>::OnGetItemText(long item, long column) co
 
 // ANIMATION INSTRUCTIONS
 // ======================
-template class OrderedListCtrl<MSC::AnimationInstruction>;
+template <>
+void OrderedListCtrl<MSC::AnimationInstruction>::CreateColumns();
 
 template <>
 void OrderedListCtrl<MSC::AnimationInstruction>::CreateColumns()
