@@ -23,6 +23,11 @@ CONTROLLER_LDFLAGS := $(shell pkg-config --libs sigc++-2.0)
 VIEW_CXXFLAGS   := $(shell wx-config --cxxflags)
 VIEW_LDFLAGS    := $(shell wx-config --libs)
 
+ifneq ($(findstring clang,$(CXX)),)
+  # Prevent clang from spamming errors
+  VIEW_CXXFLAGS += -Wno-potentially-evaluated-expression
+endif
+
 SRCS            := $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
 OBJS            := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 
