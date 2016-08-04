@@ -13,7 +13,8 @@ namespace SpriteImporter {
 const wxString Frame::WINDOW_NAME = "UnTech Sprite Importer";
 
 enum MENU_IDS {
-    ID_CREATE = 1000,
+    ID_RELOAD_IMAGE = 1000,
+    ID_CREATE,
     ID_CLONE,
     ID_REMOVE,
     ID_MOVE_UP,
@@ -82,6 +83,8 @@ Frame::Frame()
         auto* edit = new wxMenu();
         edit->Append(wxID_UNDO);
         edit->Append(wxID_REDO);
+        edit->AppendSeparator();
+        edit->Append(ID_RELOAD_IMAGE, "Reload Image\tCTRL+R");
         edit->AppendSeparator();
         edit->Append(ID_CREATE, "Create");
         edit->Append(ID_CLONE, "Clone Selected\tCTRL+D");
@@ -176,6 +179,12 @@ Frame::Frame()
                 _controller.undoStack().redo();
             },
             wxID_REDO);
+
+        menuBar->Bind(
+            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+                _controller.frameSetController().selected_reloadImage();
+            },
+            ID_RELOAD_IMAGE);
 
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {

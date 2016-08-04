@@ -237,6 +237,15 @@ void FrameSetController::setSelectTransparentMode(bool mode)
     }
 }
 
+void FrameSetController::selected_reloadImage()
+{
+    auto* frameSet = selected_editable();
+    if (frameSet != nullptr) {
+        frameSet->reloadImage();
+        _signal_imageChanged.emit(frameSet);
+    }
+}
+
 CREATE_SIMPLE_ACTION(FrameSetController, selected_setTransparentColor,
                      FrameSet, UnTech::rgba, transparentColor, setTransparentColor,
                      signal_dataChanged,

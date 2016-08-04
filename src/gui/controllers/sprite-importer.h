@@ -126,6 +126,8 @@ public:
     bool selectTransparentMode() const { return _selectTransparentMode; }
     void setSelectTransparentMode(bool mode);
 
+    void selected_reloadImage();
+
     void selected_setTransparentColor(const UnTech::rgba& color);
     void selected_setImageFilename(const std::string& filename);
 
