@@ -6,6 +6,7 @@
 #include "gui/controllers/helpers/orderedlistcontroller.hpp"
 #include "gui/controllers/helpers/spriteselectedtypecontroller.hpp"
 #include "models/metasprite.h"
+#include <typeinfo>
 
 using namespace UnTech::MetaSprite;
 
@@ -308,9 +309,9 @@ CREATE_MERGE_INDEXED_ACTION(PaletteController, selected_setColor_merge,
                                                                                       \
             virtual bool mergeWith(UnTech::Controller::Undo::MergeAction* o) override \
             {                                                                         \
-                Action* other = dynamic_cast<Action*>(o);                             \
+                if (o != nullptr && typeid(*o) == typeid(*this)) {                    \
+                    Action* other = static_cast<Action*>(o);                          \
                                                                                       \
-                if (other != nullptr) {                                               \
                     if (this->_frameSet == other->_frameSet                           \
                         && this->_tileId == other->_tileId) {                         \
                                                                                       \

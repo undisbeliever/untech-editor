@@ -4,6 +4,7 @@
 #include "gui/controllers/undo/undostack.h"
 #include <memory>
 #include <stdexcept>
+#include <typeinfo>
 
 // ::ANNOY cannot template a method name::
 
@@ -43,9 +44,9 @@
                                                                    \
             virtual bool mergeWith(MergeAction* o) override        \
             {                                                      \
-                Action* other = dynamic_cast<Action*>(o);          \
+                if (o != nullptr && typeid(*o) == typeid(*this)) { \
+                    Action* other = static_cast<Action*>(o);       \
                                                                    \
-                if (other != nullptr) {                            \
                     if (this->_item == other->_item                \
                         && this->_newValue == other->_oldValue) {  \
                                                                    \
@@ -125,9 +126,9 @@
                                                                    \
             virtual bool mergeWith(MergeAction* o) override        \
             {                                                      \
-                Action* other = dynamic_cast<Action*>(o);          \
+                if (o != nullptr && typeid(*o) == typeid(*this)) { \
+                    Action* other = static_cast<Action*>(o);       \
                                                                    \
-                if (other != nullptr) {                            \
                     if (this->_item == other->_item                \
                         && this->_newValue == other->_oldValue) {  \
                                                                    \
@@ -207,9 +208,9 @@
                                                                    \
             virtual bool mergeWith(MergeAction* o) override        \
             {                                                      \
-                Action* other = dynamic_cast<Action*>(o);          \
+                if (o != nullptr && typeid(*o) == typeid(*this)) { \
+                    Action* other = static_cast<Action*>(o);       \
                                                                    \
-                if (other != nullptr) {                            \
                     if (this->_item == other->_item                \
                         && this->_index == other->_index           \
                         && this->_newValue == other->_oldValue) {  \
@@ -290,9 +291,9 @@
                                                                    \
             virtual bool mergeWith(MergeAction* o) override        \
             {                                                      \
-                Action* other = dynamic_cast<Action*>(o);          \
+                if (o != nullptr && typeid(*o) == typeid(*this)) { \
+                    Action* other = static_cast<Action*>(o);       \
                                                                    \
-                if (other != nullptr) {                            \
                     if (this->_item == other->_item                \
                         && this->_newValue == other->_oldValue) {  \
                                                                    \

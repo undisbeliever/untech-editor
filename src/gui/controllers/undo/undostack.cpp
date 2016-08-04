@@ -1,4 +1,5 @@
 #include "undostack.h"
+#include <typeinfo>
 
 using namespace UnTech::Controller::Undo;
 
