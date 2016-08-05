@@ -53,5 +53,15 @@ std::string fullPath(const std::string& path);
  * If `sourceDir` is empty then the full path of `destPath` is returned.
  */
 std::string relativePath(const std::string& sourceDir, const std::string& destPath);
+
+/**
+ * Preforms an atomic file write of a block of memory.
+ *
+ * Will raise an exception if an error occurred.
+ *
+ * This function will leave a tempfile on the disk (not modifying the
+ * original) if an error occurred while writing it.
+ */
+void atomicWrite(const std::string& filename, const void* data, size_t size);
 }
 }

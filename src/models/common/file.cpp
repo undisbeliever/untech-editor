@@ -1,11 +1,10 @@
 #include "file.h"
 #include "string.h"
 #include <cstdio>
+#include <cstring>
 #include <fstream>
 #include <stdexcept>
 #include <string>
-
-// ::TODO compile in windows::
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 #define PLATFORM_WINDOWS
@@ -15,6 +14,9 @@
 #include <direct.h>
 #include <windows.h>
 #else
+#include <fcntl.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #endif
 
@@ -319,3 +321,82 @@ std::string File::relativePath(const std::string& sourceDir, const std::string& 
     return ret;
 #endif
 }
+
+#ifdef PLAYFORM_WINDOWS
+#error "Implement File::atomicWrite in Windows"
+
+#else
+void File::atomicWrite(const std::string& filename, const void* data, size_t size)
+{
+    const size_t BLOCK_SIZE = 4096;
+
+    int fd;
+    char tmpFilename[filename.size() + 12];
+    strncpy(tmpFilename, filename.c_str(), filename.size() + 1);
+    strncpy(tmpFilename + filename.size(), "-tmpXXXXXX", 12);
+
+    struct stat statbuf;
+    if (stat(filename.c_str(), &statbuf) == 0) {
+        if (S_ISLNK(statbuf.st_mode)) {
+            throw std::runtime_error("Cannot write to a symbolic link");
+        }
+
+        // check if we can write to file
+        bool canWrite = ((getuid() == statbuf.st_uid) && (statbuf.st_mode & S_IWUSR))
+                        || ((getgid() == statbuf.st_gid) && (statbuf.st_mode & S_IWGRP))
+                        || (statbuf.st_mode & S_IWOTH);
+        if (!canWrite) {
+            throw std::runtime_error("User can not write to " + filename);
+        }
+
+        fd = mkostemp(tmpFilename, O_WRONLY);
+        if (fd < 0) {
+            throw std::system_error(errno, std::system_category());
+        }
+
+        // mkostemp sets file permission to 0600
+        // Set the permissions to match filename
+        chmod(tmpFilename, statbuf.st_mode);
+        chown(tmpFilename, statbuf.st_uid, statbuf.st_gid);
+    }
+    else {
+        fd = mkostemp(tmpFilename, O_WRONLY);
+        if (fd < 0) {
+            throw std::system_error(errno, std::system_category());
+        }
+
+        // mkostemp sets file permission to 0600
+        // Set the permissions what user would expect
+        mode_t mask = umask(0);
+        umask(mask);
+        chmod(tmpFilename, 0666 & ~mask);
+    }
+
+    const uint8_t* ptr = static_cast<const uint8_t*>(data);
+    size_t todo = size;
+    ssize_t done;
+
+    while (todo > 0) {
+        done = ::write(fd, ptr, std::min(BLOCK_SIZE, todo));
+        if (done < 0) {
+            auto err = errno;
+            close(fd);
+            throw std::system_error(err, std::system_category());
+        }
+
+        ptr += done;
+        todo -= done;
+    }
+
+    int r;
+    r = close(fd);
+    if (r != 0) {
+        throw std::system_error(errno, std::system_category());
+    }
+
+    r = rename(tmpFilename, filename.c_str());
+    if (r != 0) {
+        throw std::system_error(errno, std::system_category());
+    }
+}
+#endif

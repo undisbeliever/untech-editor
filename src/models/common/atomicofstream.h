@@ -1,39 +1,38 @@
 #pragma once
 
-#include <fstream>
+#include <sstream>
 #include <string>
 
 namespace UnTech {
 
 /**
- * AtomicOfStream provides a **BASIC** atomicity to a std::ofstream
+ * AtomicOfStream provides a **BASIC** atomicity to file writing.
  *
- * The class will write to a temporary file instead of filename
- * and reform a rename of the tmpfile to the filename on commit().
+ * The class will write to a memory instead of disk and upon commit will
+ * write to disk though a temporary file.
  *
- * Users must NOT call std::ofstream::open on this class.
+ * NOTE: Checking that the filename is valid is only preformed on
+ * `commit()`.
  */
-class AtomicOfStream : public std::ofstream {
+class AtomicOfStream : public std::ostringstream {
 public:
     AtomicOfStream() = delete;
     AtomicOfStream(const AtomicOfStream&) = delete;
     AtomicOfStream(const AtomicOfStream&&) = delete;
 
     AtomicOfStream(const std::string& filename,
-                   std::ios_base::openmode mode = std::ios_base::out);
+                   ios_base::openmode mode = ios_base::out | ios_base::binary);
 
     virtual ~AtomicOfStream() {}
 
-    /** closes the file but does not remove it */
-    void close();
-
-    /** Closes and removes the tmpfile */
+    /** Closes the stream and does not save to disk */
     void abort();
 
-    /** Closes the file and renames it to filename. */
+    /**
+     * Writes the stream to the filename and closes the stream.
+     * Raises an exception if an error occurred when writing the file.
+     */
     void commit();
-
-    inline const std::string& tmpFilename() const { return _tmpFilename; }
 
 private:
     enum State {
@@ -43,7 +42,7 @@ private:
     };
 
 private:
-    const std::string _filename, _tmpFilename;
+    const std::string _filename;
     State _state;
 };
 }
