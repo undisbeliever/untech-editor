@@ -51,6 +51,24 @@ static inline optional<int> toInt(const std::string& s)
     return ret;
 }
 
+/* Convert a string to an unsigned integer.
+ * String may be encased in spaces.
+ */
+static inline optional<unsigned> toUnsigned(const std::string& s)
+{
+    const char* cstr = s.c_str();
+    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
+    char* parseEnd;
+
+    long ret = strtol(cstr, &parseEnd, 0);
+
+    if (parseEnd == cstr || parseEnd != last + 1
+        || ret < 0 || ret > UINT_MAX) {
+        optional<unsigned>();
+    }
+    return ret;
+}
+
 /* Convert a string to an uint8.
  * String may be encased in spaces.
  */

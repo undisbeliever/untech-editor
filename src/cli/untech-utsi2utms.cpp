@@ -1,9 +1,10 @@
-#include "../models/common/file.h"
-#include "../models/common/namedlist.h"
-#include "../models/metasprite.h"
-#include "../models/metasprite/serializer.h"
-#include "../models/sprite-importer.h"
-#include "../models/utsi2utms/utsi2utms.h"
+#include "helpers/commandlineparser.h"
+#include "models/common/file.h"
+#include "models/common/namedlist.h"
+#include "models/metasprite.h"
+#include "models/metasprite/serializer.h"
+#include "models/sprite-importer.h"
+#include "models/utsi2utms/utsi2utms.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -12,24 +13,33 @@ using namespace UnTech;
 namespace SI = UnTech::SpriteImporter;
 namespace MS = UnTech::MetaSprite;
 
-// ::TODO version argument::
+typedef CommandLine::OptionType OT;
 
-int main(int argc, char* argv[])
-{
-    if (argc != 2) {
-        auto s = File::splitFilename(argv[0]);
-
-        std::cerr << "usage: " << s.second << " <input file>" << std::endl;
-
-        return EXIT_FAILURE;
+typedef CommandLine::OptionType OT;
+const CommandLine::Config COMMAND_LINE_CONFIG = {
+    "UnTech Sprite Importer",
+    true,
+    true,
+    false,
+    SI::SpriteImporterDocument::DOCUMENT_TYPE.extension + " file",
+    {
+        { 'o', "output", OT::STRING, true, {}, "output file" },
+        { 0, "version", OT::VERSION, false, {}, "display version information" },
+        { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
+};
 
-    const char* filename = argv[1];
+int main(int argc, const char* argv[])
+{
+    CommandLine::Parser args(COMMAND_LINE_CONFIG);
+    args.parse(argc, argv);
 
     UnTech::Utsi2Utms converter;
 
-    SI::SpriteImporterDocument siDocument(filename);
-    std::unique_ptr<MS::MetaSpriteDocument> msDocument = converter.convert(siDocument);
+    SI::SpriteImporterDocument siDocument(
+        args.filenames().front());
+
+    auto msDocument = converter.convert(siDocument);
 
     for (const std::string& w : converter.warnings()) {
         std::cerr << "warning: " << w << '\n';
@@ -48,9 +58,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    // Does not use the document's write functions ATM
-    // as this app just combines the documents in one sitting.
-    MS::Serializer::writeFile(msDocument->frameSet(), std::cout);
+    msDocument->saveFile(args.options().at("output").string());
 
     return EXIT_SUCCESS;
 }

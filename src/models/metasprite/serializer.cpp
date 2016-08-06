@@ -346,14 +346,6 @@ void readFile(FrameSet& frameSet, const std::string& filename)
     reader.readFrameSet(tag.get());
 }
 
-// ::TODO remove when completed utsi2utms command line argument parsing"
-void writeFile(const FrameSet& frameSet, std::ostream& file)
-{
-    XmlWriter xml(file, "untech");
-
-    FrameSetWriter::writeFrameSet(xml, frameSet);
-}
-
 void writeFile(const FrameSet& frameSet, const std::string& filename)
 {
     UnTech::AtomicOfStream file(filename);

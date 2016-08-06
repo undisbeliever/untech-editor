@@ -1,3 +1,5 @@
+#include "helpers/commandlineparser.h"
+#include "models/common/atomicofstream.h"
 #include "models/metasprite-compiler/compiler.h"
 #include "models/metasprite-compiler/msexportorder.h"
 #include "models/metasprite.h"
@@ -9,25 +11,33 @@ using namespace UnTech;
 namespace MS = UnTech::MetaSprite;
 namespace MSC = UnTech::MetaSpriteCompiler;
 
-// ::TODO version argument::
+const unsigned TBS = MSC::Compiler::DEFAULT_TILE_BLOCK_SIZE;
 
-int main(int argc, char* argv[])
-{
-    if (argc != 2) {
-        auto s = File::splitFilename(argv[0]);
-
-        std::cerr << "UnTech MetaSprite Compiler\n"
-                     "\n"
-                  << "usage: " << s.second << " <input file>" << std::endl;
-
-        return EXIT_FAILURE;
+typedef CommandLine::OptionType OT;
+const CommandLine::Config COMMAND_LINE_CONFIG = {
+    "UnTech MetaSprite Compiler",
+    true,
+    true,
+    false,
+    MSC::MsExportOrderDocument::DOCUMENT_TYPE.extension + " file",
+    {
+        { 'o', "output", OT::STRING, true, {}, "output file" },
+        { 't', "tileblock", OT::UNSIGNED, false, TBS, "tileset block size" },
+        { 0, "version", OT::VERSION, false, {}, "display version information" },
+        { 'h', "help", OT::HELP, false, {}, "display this help message" },
     }
+};
 
-    const char* filename = argv[1];
+int main(int argc, const char* argv[])
+{
+    CommandLine::Parser args(COMMAND_LINE_CONFIG);
+    args.parse(argc, argv);
 
-    MSC::MsExportOrderDocument eoDocument(filename);
+    MSC::Compiler compiler(
+        args.options().at("tileblock").uint());
 
-    MSC::Compiler compiler;
+    MSC::MsExportOrderDocument eoDocument(
+        args.filenames().front());
 
     for (auto& fsd : eoDocument.exportOrder().frameSets()) {
         if (fsd) {
@@ -50,8 +60,12 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    compiler.writeToIncFile(std::cout);
-    compiler.writeToReferencesFile(std::cout);
+    AtomicOfStream os(args.options().at("output").string());
+
+    compiler.writeToIncFile(os);
+    compiler.writeToReferencesFile(os);
+
+    os.commit();
 
     return EXIT_SUCCESS;
 }

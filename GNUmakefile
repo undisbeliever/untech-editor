@@ -54,6 +54,7 @@ gui: dirs $(GUI_APPS)
 PERCENT = %
 define cli-modules
   $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$1), $(OBJS)) \
+  $(filter $(OBJ_DIR)/cli/helpers/%, $(OBJS)) \
   $(THIRD_PARTY)
 endef
 

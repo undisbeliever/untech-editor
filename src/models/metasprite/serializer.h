@@ -20,9 +20,6 @@ namespace Serializer {
 // NOTE: FrameSet MUST be empty
 void readFile(FrameSet& frameSet, const std::string& filename);
 
-// ::TODO remove when completed utsi2utms command line argument parsing"
-void writeFile(const FrameSet& frameSet, std::ostream& file);
-
 void writeFile(const FrameSet& frameSet, const std::string& filename);
 }
 }

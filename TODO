@@ -1,8 +1,6 @@
 TODO
 ====
 
- * Add third party list to cli apps (--version)
-
  * Refactor MetaSprite Compiler
    * Move FrameSet code into separate class.
      This would reduce the number of program arguments.
