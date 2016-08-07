@@ -277,12 +277,18 @@ std::string File::relativePath(const std::string& sourceDir, const std::string& 
     auto wdest = to_wchar(destPath);
 
     if (!PathRelativePathToW(wrelpath, wsource.get(), FILE_ATTRIBUTE_DIRECTORY, wdest.get(), FILE_ATTRIBUTE_NORMAL)) {
-        throw std::runtime_error("Error expanding path");
+        return File::fullPath(destPath);
     }
 
-    return to_string(wrelpath);
+    if (wrelpath[0] != L'\\') {
+        return to_string(wrelpath);
+    }
+    else {
+        return to_string(wrelpath + 1);
+    }
 
 #else
+
     std::string source = File::fullPath(sourceDir);
     std::string dest = File::fullPath(destPath);
 
