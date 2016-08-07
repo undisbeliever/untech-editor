@@ -2,26 +2,51 @@
 PROFILE	?= release
 
 ifeq ($(PROFILE),release)
+  OBJ_DIR       := obj/release
+  BIN_DIR       := bin
+  BIN_EXT	:=
+
   CXX           ?= g++
   CXXFLAGS      += -std=c++14 -O2 -flto -Wall -Wextra -MMD -Isrc
   LDFLAGS       += -O2 -flto -Wall -Wextra
-  OBJ_DIR       := obj/release
-  BIN_DIR       := bin
+  LIBS	        :=
+  CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
+  CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
+  VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
+  VIEW_LIBS  := $(shell wx-config --libs)
 else ifeq ($(PROFILE),debug)
+  OBJ_DIR       := obj/debug
+  BIN_DIR       := bin/debug
+  BIN_EXT	:=
+
   CXX           ?= g++
   CXXFLAGS      += -std=c++14 -g -Werror -Wall -Wextra -MMD -Isrc
   LDFLAGS       += -g -Werror -Wall -Wextra
-  OBJ_DIR       := obj/debug
-  BIN_DIR       := bin/debug
+  LIBS	        :=
+  CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
+  CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
+  VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
+  VIEW_LIBS     := $(shell wx-config --libs)
+else ifeq ($(PROFILE),mingw)
+  # MinGW cross platform compiling
+  CXX_MINGW     ?= x86_64-w64-mingw32-g++
+  PREFIX	?= $(HOME)/.local/x86_64-w64-mingw32
+
+  OBJ_DIR       := obj/mingw
+  BIN_DIR       := bin/mingw
+  BIN_EXT	:= .exe
+
+  CXX           := $(CXX_MINGW)
+  CXXFLAGS      += -std=c++14 -O2 -flto -Wall -Wextra -MMD -Isrc
+  LDFLAGS       += -O2 -flto -Wall -Wextra
+  LIBS	        := -lshlwapi
+  CONTROLLER_CXXFLAGS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --cflags sigc++-2.0)
+  CONTROLLER_LIBS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --libs sigc++-2.0)
+  VIEW_CXXFLAGS := $(shell $(PREFIX)/bin/wx-config --cxxflags)
+  VIEW_LIBS  := $(shell $(PREFIX)/bin/wx-config --libs)
 else
   $(error unknown profile)
 endif
-
-CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
-CONTROLLER_LDFLAGS := $(shell pkg-config --libs sigc++-2.0)
-
-VIEW_CXXFLAGS   := $(shell wx-config --cxxflags)
-VIEW_LDFLAGS    := $(shell wx-config --libs)
 
 ifneq ($(findstring clang,$(CXX)),)
   # Prevent clang from spamming errors
@@ -32,10 +57,10 @@ SRCS            := $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
 OBJS            := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 
 CLI_SRC         := $(wildcard src/cli/*.cpp)
-CLI_APPS        := $(patsubst src/cli/%.cpp,$(BIN_DIR)/%,$(CLI_SRC))
+CLI_APPS        := $(patsubst src/cli/%.cpp,$(BIN_DIR)/%$(BIN_EXT),$(CLI_SRC))
 
 GUI_SRC         := $(filter-out %-gtk.cpp, $(wildcard src/gui/*.cpp))
-GUI_APPS        := $(patsubst src/gui/%.cpp,$(BIN_DIR)/%-gui,$(GUI_SRC))
+GUI_APPS        := $(patsubst src/gui/%.cpp,$(BIN_DIR)/%-gui$(BIN_EXT),$(GUI_SRC))
 
 # Third party libs
 THIRD_PARTY     := $(OBJ_DIR)/vendor/lodepng/lodepng.o
@@ -53,16 +78,18 @@ gui: dirs $(GUI_APPS)
 
 PERCENT = %
 define cli-modules
-  $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$1), $(OBJS)) \
+$(BIN_DIR)/$(strip $1)$(BIN_EXT): \
+  $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$2), $(OBJS)) \
   $(filter $(OBJ_DIR)/cli/helpers/%, $(OBJS)) \
   $(THIRD_PARTY)
 endef
 
 define gui-modules
-  $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$1), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui/view/%/$(PERCENT),$1), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui/controllers/%.o,$1), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui/controllers/%/$(PERCENT),$1), $(OBJS)) \
+$(BIN_DIR)/$(strip $1)$(BIN_EXT): \
+  $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$2), $(OBJS)) \
+  $(filter $(patsubst %,$(OBJ_DIR)/gui/view/%/$(PERCENT),$2), $(OBJS)) \
+  $(filter $(patsubst %,$(OBJ_DIR)/gui/controllers/%.o,$2), $(OBJS)) \
+  $(filter $(patsubst %,$(OBJ_DIR)/gui/controllers/%/$(PERCENT),$2), $(OBJS)) \
   $(filter $(OBJ_DIR)/gui/controllers/undo/%, $(OBJS)) \
   $(OBJ_DIR)/gui/controllers/basecontroller.o \
   $(OBJ_DIR)/gui/controllers/settings.o \
@@ -70,25 +97,25 @@ define gui-modules
 endef
 
 # Select the modules used by the apps
-$(BIN_DIR)/untech-msc: $(call cli-modules, common snes metasprite metasprite-common metasprite-compiler)
-$(BIN_DIR)/untech-utsi2utms: $(call cli-modules, common snes sprite-importer metasprite metasprite-common utsi2utms)
+$(call cli-modules, untech-msc,       common snes metasprite metasprite-common metasprite-compiler)
+$(call cli-modules, untech-utsi2utms, common snes sprite-importer metasprite metasprite-common utsi2utms)
 
-$(BIN_DIR)/untech-metasprite-gui: $(call gui-modules, common snes metasprite metasprite-common)
-$(BIN_DIR)/untech-spriteimporter-gui: $(call gui-modules, common snes sprite-importer metasprite-common)
+$(call gui-modules, untech-metasprite-gui,     common snes metasprite metasprite-common)
+$(call gui-modules, untech-spriteimporter-gui, common snes sprite-importer metasprite-common)
 
 # Disable Builtin rules
 .SUFFIXES:
 .DELETE_ON_ERROR:
 MAKEFLAGS += --no-builtin-rules
 
-DEPS		= $(OBJS:.o=.d)
+DEPS = $(OBJS:.o=.d)
 -include $(DEPS)
 
-$(GUI_APPS): $(BIN_DIR)/%-gui: $(OBJ_DIR)/gui/%.o
-	$(CXX) $(LDFLAGS) $(VIEW_LDFLAGS) $(CONTROLLER_LDFLAGS) -o $@ $^
+$(GUI_APPS): $(BIN_DIR)/%-gui$(BIN_EXT): $(OBJ_DIR)/gui/%.o
+	$(CXX) $(LDFLAGS) -o $@ $^ $(VIEW_LIBS) $(CONTROLLER_LIBS) $(LIBS)
 
-$(CLI_APPS): $(BIN_DIR)/%: $(OBJ_DIR)/cli/%.o
-	$(CXX) $(LDFLAGS) -o $@ $^
+$(CLI_APPS): $(BIN_DIR)/%$(BIN_EXT): $(OBJ_DIR)/cli/%.o
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 $(OBJ_DIR)/gui/%.o: src/gui/%.cpp
 	$(CXX) $(CXXFLAGS) $(VIEW_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
