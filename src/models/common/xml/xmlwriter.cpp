@@ -8,6 +8,10 @@
 #include <iomanip>
 #include <sstream>
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#define PLATFORM_WINDOWS
+#endif
+
 using namespace UnTech;
 using namespace UnTech::Xml;
 
@@ -101,6 +105,9 @@ void XmlWriter::writeTagAttributeFilename(const std::string& name, const std::st
 {
     if (_useRelativePaths) {
         auto rel = File::relativePath(_dirname, filename);
+#ifdef PLATFORM_WINDOWS
+        std::replace(rel.begin(), rel.end(), '\\', '/');
+#endif
         writeTagAttribute(name, rel);
     }
     else {
