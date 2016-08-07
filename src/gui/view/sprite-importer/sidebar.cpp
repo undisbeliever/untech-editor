@@ -14,9 +14,9 @@ namespace UnTech {
 namespace View {
 namespace SpriteImporter {
 
-static const upoint zeroPoint(0, 0);
-static const usize zeroSize(0, 0);
-static const urect zeroRect(0, 0, 0, 0);
+static const upoint emptyPoint(0, 0);
+static const usize emptySize(1, 1);
+static const urect emptyRect(0, 0, 1, 1);
 
 typedef SI::SpriteImporterController::SelectedTypeController::Type SelectedType;
 
@@ -516,10 +516,10 @@ void FrameSetGridPanel::UpdateGui()
         this->Enable();
     }
     else {
-        _frameSize->SetValue(zeroSize);
-        _offset->SetValue(zeroPoint);
-        _padding->SetValue(zeroSize);
-        _origin->SetValue(zeroPoint);
+        _frameSize->SetValue(emptySize);
+        _offset->SetValue(emptyPoint);
+        _padding->SetValue(emptySize);
+        _origin->SetValue(emptyPoint);
 
         this->Disable();
     }
@@ -668,21 +668,21 @@ void FramePanel::UpdateGui()
         this->Enable();
     }
     else {
-        _location->SetMinRectSize(zeroSize);
-        _origin->SetRange(zeroSize);
-        _tileHitbox->SetRange(zeroSize);
+        _location->SetMinRectSize(emptySize);
+        _origin->SetRange(emptySize);
+        _tileHitbox->SetRange(emptySize);
 
         _spriteOrder->SetValue(0);
 
         _useGridLocation->SetValue(false);
-        _gridLocation->SetValue(zeroPoint);
-        _location->SetValue(zeroRect);
+        _gridLocation->SetValue(emptyPoint);
+        _location->SetValue(emptyRect);
 
         _useCustomOrigin->SetValue(false);
-        _origin->SetValue(zeroPoint);
+        _origin->SetValue(emptyPoint);
 
         _solid->SetValue(false);
-        _tileHitbox->SetValue(zeroRect);
+        _tileHitbox->SetValue(emptyRect);
 
         this->Disable();
     }
@@ -760,7 +760,7 @@ void FrameObjectPanel::UpdateGui()
         this->Enable();
     }
     else {
-        _location->SetValue(zeroPoint);
+        _location->SetValue(emptyPoint);
         _size->SetSelection(wxNOT_FOUND);
 
         this->Disable();
@@ -774,7 +774,7 @@ void FrameObjectPanel::UpdateGuiRange()
         _location->SetRange(obj->frame().locationSize(), obj->sizePx());
     }
     else {
-        _location->SetRange(zeroSize);
+        _location->SetRange(emptySize);
     }
 }
 
@@ -847,7 +847,7 @@ void ActionPointPanel::UpdateGui()
         this->Enable();
     }
     else {
-        _location->SetValue(zeroPoint);
+        _location->SetValue(emptyPoint);
         _parameter->SetValue(0);
 
         this->Disable();
@@ -861,7 +861,7 @@ void ActionPointPanel::UpdateGuiRange()
         _location->SetRange(ap->frame().locationSize());
     }
     else {
-        _location->SetRange(zeroSize);
+        _location->SetRange(emptySize);
     }
 }
 
@@ -934,7 +934,7 @@ void EntityHitboxPanel::UpdateGui()
         this->Enable();
     }
     else {
-        _aabb->SetValue(zeroRect);
+        _aabb->SetValue(emptyRect);
         _parameter->SetValue(0);
 
         this->Disable();
@@ -948,6 +948,6 @@ void EntityHitboxPanel::UpdateGuiRange()
         _aabb->SetRange(eh->frame().locationSize());
     }
     else {
-        _aabb->SetRange(zeroSize);
+        _aabb->SetRange(emptySize);
     }
 }

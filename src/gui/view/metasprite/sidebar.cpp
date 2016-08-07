@@ -14,8 +14,8 @@ namespace UnTech {
 namespace View {
 namespace MetaSprite {
 
-static const ms8point zeroPoint(0, 0);
-static const ms8rect zeroRect(0, 0, 0, 0);
+static const ms8point emptyPoint(0, 0);
+static const ms8rect emptyRect(0, 0, 1, 1);
 
 typedef MS::MetaSpriteController::SelectedTypeController::Type SelectedType;
 
@@ -357,7 +357,7 @@ void FramePanel::UpdateGui()
     }
     else {
         _solid->SetValue(false);
-        _tileHitbox->SetValue(zeroRect);
+        _tileHitbox->SetValue(emptyRect);
 
         this->Disable();
     }
@@ -493,7 +493,7 @@ void FrameObjectPanel::UpdateGui()
         this->Enable();
     }
     else {
-        _location->SetValue(zeroPoint);
+        _location->SetValue(emptyPoint);
         _tileId->SetValue(0);
         _size->SetSelection(wxNOT_FOUND);
         _order->SetValue(0);
@@ -566,7 +566,7 @@ void ActionPointPanel::UpdateGui()
         this->Enable();
     }
     else {
-        _location->SetValue(zeroPoint);
+        _location->SetValue(emptyPoint);
         _parameter->SetValue(0);
 
         this->Disable();
@@ -635,7 +635,7 @@ void EntityHitboxPanel::UpdateGui()
         this->Enable();
     }
     else {
-        _aabb->SetValue(zeroRect);
+        _aabb->SetValue(emptyRect);
         _parameter->SetValue(0);
 
         this->Disable();
