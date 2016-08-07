@@ -63,7 +63,7 @@ static inline optional<unsigned> toUnsigned(const std::string& s)
     long ret = strtol(cstr, &parseEnd, 0);
 
     if (parseEnd == cstr || parseEnd != last + 1
-        || ret < 0 || ret > UINT_MAX) {
+        || ret < 0 || ret > long(UINT_MAX)) {
         optional<unsigned>();
     }
     return ret;

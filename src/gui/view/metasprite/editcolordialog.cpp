@@ -165,7 +165,7 @@ void EditColorDialog::OnTextChanged(wxCommandEvent& e)
     auto process = [&](wxTextCtrl* text, wxSlider* slider) {
         long v = 0;
         if (text->GetValue().ToLong(&v)) {
-            if (v >= 0 && v < COLOR_MAX) {
+            if (v >= 0 && v < long(COLOR_MAX)) {
                 slider->SetValue(v);
                 OnSliderChanged(e);
             }
