@@ -280,7 +280,7 @@ void Parser::printHelpText()
     }
 
     for (const auto& a : _config.arguments) {
-        int spacing = 16;
+        int spacing = 24;
 
         std::cout << "\n\t";
 
@@ -290,6 +290,19 @@ void Parser::printHelpText()
         }
         std::cout << "--" << a.longName;
         spacing -= a.longName.size();
+
+        if (a.type == OptionType::FILENAME) {
+            std::cout << " <file>";
+            spacing -= 7;
+        }
+        else if (a.type == OptionType::STRING) {
+            std::cout << " <str>";
+            spacing -= 6;
+        }
+        else if (a.type == OptionType::UNSIGNED) {
+            std::cout << " <uint>";
+            spacing -= 7;
+        }
 
         if (!a.helpText.empty()) {
             for (int i = 0; i < spacing; i++) {
