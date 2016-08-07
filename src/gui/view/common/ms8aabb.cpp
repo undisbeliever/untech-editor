@@ -27,7 +27,7 @@ Ms8PointCtrl::Ms8PointCtrl(wxWindow* parent, int wxWindowID)
     auto* comma = new wxStaticText(this, wxID_ANY, ",",
                                    wxDefaultPosition, commaSize,
                                    wxALIGN_CENTER_HORIZONTAL | wxST_NO_AUTORESIZE);
-    sizer->Add(comma, wxSizerFlags().Expand().Bottom().Border(wxALL, 1));
+    sizer->Add(comma, wxSizerFlags().Bottom().Border(wxALL, 1));
 
     _yPos = new wxSpinCtrl(this, wxID_ANY);
     _yPos->SetRange(int_ms8_t::MIN, int_ms8_t::MAX);
@@ -54,7 +54,7 @@ Ms8RectCtrl::Ms8RectCtrl(wxWindow* parent, int wxWindowID)
     auto* comma = new wxStaticText(this, wxID_ANY, ",",
                                    wxDefaultPosition, commaSize,
                                    wxALIGN_CENTER_HORIZONTAL | wxST_NO_AUTORESIZE);
-    posSizer->Add(comma, wxSizerFlags(0).Expand().Bottom().Border(wxALL, 1));
+    posSizer->Add(comma, wxSizerFlags(0).Bottom().Border(wxALL, 1));
 
     _yPos = new wxSpinCtrl(this, wxID_ANY);
     _yPos->SetRange(int_ms8_t::MIN, int_ms8_t::MAX);
@@ -75,7 +75,7 @@ Ms8RectCtrl::Ms8RectCtrl(wxWindow* parent, int wxWindowID)
     auto* cross = new wxStaticText(this, wxID_ANY, "x",
                                    wxDefaultPosition, commaSize,
                                    wxALIGN_CENTER_HORIZONTAL | wxST_NO_AUTORESIZE);
-    sizeSizer->Add(cross, wxSizerFlags(0).Expand().Bottom().Border(wxALL, 1));
+    sizeSizer->Add(cross, wxSizerFlags(0).Bottom().Border(wxALL, 1));
 
     _height = new wxSpinCtrl(this, wxID_ANY);
     _height->SetRange(0, UINT8_MAX);

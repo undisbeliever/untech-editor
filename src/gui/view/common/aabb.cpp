@@ -27,7 +27,7 @@ UPointCtrl::UPointCtrl(wxWindow* parent, int wxWindowID)
     auto* comma = new wxStaticText(this, wxID_ANY, ",",
                                    wxDefaultPosition, commaSize,
                                    wxALIGN_CENTER_HORIZONTAL | wxST_NO_AUTORESIZE);
-    sizer->Add(comma, wxSizerFlags().Expand().Bottom().Border(wxALL, 1));
+    sizer->Add(comma, wxSizerFlags().Bottom().Border(wxALL, 1));
 
     _yPos = new wxSpinCtrl(this, wxID_ANY);
     _yPos->SetRange(0, INT_MAX);
@@ -64,7 +64,7 @@ USizeCtrl::USizeCtrl(wxWindow* parent, int wxWindowID)
     auto* cross = new wxStaticText(this, wxID_ANY, "x",
                                    wxDefaultPosition, crossSize,
                                    wxALIGN_CENTER_HORIZONTAL | wxST_NO_AUTORESIZE);
-    sizer->Add(cross, wxSizerFlags().Expand().Bottom().Border(wxALL, 1));
+    sizer->Add(cross, wxSizerFlags().Bottom().Border(wxALL, 1));
 
     _height = new wxSpinCtrl(this, wxID_ANY);
     _height->SetRange(0, INT_MAX);
@@ -98,7 +98,7 @@ URectCtrl::URectCtrl(wxWindow* parent, int wxWindowID)
     auto* comma = new wxStaticText(this, wxID_ANY, ",",
                                    wxDefaultPosition, commaSize,
                                    wxALIGN_CENTER_HORIZONTAL | wxST_NO_AUTORESIZE);
-    posSizer->Add(comma, wxSizerFlags(0).Expand().Bottom().Border(wxALL, 1));
+    posSizer->Add(comma, wxSizerFlags(0).Bottom().Border(wxALL, 1));
 
     _yPos = new wxSpinCtrl(this, wxID_ANY);
     _yPos->SetSizeHints(MIN_SPIN_WIDTH, -1);
@@ -117,7 +117,7 @@ URectCtrl::URectCtrl(wxWindow* parent, int wxWindowID)
     auto* cross = new wxStaticText(this, wxID_ANY, "x",
                                    wxDefaultPosition, commaSize,
                                    wxALIGN_CENTER_HORIZONTAL | wxST_NO_AUTORESIZE);
-    sizeSizer->Add(cross, wxSizerFlags(0).Expand().Bottom().Border(wxALL, 1));
+    sizeSizer->Add(cross, wxSizerFlags(0).Bottom().Border(wxALL, 1));
 
     _height = new wxSpinCtrl(this, wxID_ANY);
     _height->SetSizeHints(MIN_SPIN_WIDTH, -1);
