@@ -1,8 +1,10 @@
 #include "file.h"
 #include "string.h"
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -10,8 +12,9 @@
 #define PLATFORM_WINDOWS
 #endif
 
-#ifdef PLAYFORM_WINDOWS
+#ifdef PLATFORM_WINDOWS
 #include <direct.h>
+#include <shlwapi.h>
 #include <windows.h>
 #else
 #include <fcntl.h>
@@ -28,21 +31,21 @@ std::string to_string(const wchar_t* str = L"")
     if (!str) {
         str = L"";
     }
-    auto length = WideCharToMultiByte(CP_UTF8, 0, s, -1, nullptr, 0, nullptr, nullptr);
-    char[length + 1] buffer;
-    WideCharToMultiByte(CP_UTF8, 0, s, -1, buffer, length, nullptr, nullptr);
+    auto length = WideCharToMultiByte(CP_UTF8, 0, str, -1, nullptr, 0, nullptr, nullptr);
+    std::unique_ptr<char[]> buffer(new char[length + 1]);
+    WideCharToMultiByte(CP_UTF8, 0, str, -1, buffer.get(), length, nullptr, nullptr);
 
-    return std::string(buffer);
+    return std::string(buffer.get());
 }
 
 // use unique_ptr to prevent memory leak with exceptions.
-inline std::unique_ptr<wchar_t*> to_wchar(const std::string str)
+inline std::unique_ptr<wchar_t[]> to_wchar(const std::string str)
 {
     auto length = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
-    auto buffer = new wchar_t[length + 1]();
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, buffer, length);
+    std::unique_ptr<wchar_t[]> buffer(new wchar_t[length + 1]);
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, buffer.get(), length);
 
-    return std::unique_ptr<wchar_t*>(buffer);
+    return std::move(buffer);
 }
 #endif
 
@@ -107,7 +110,7 @@ std::pair<std::string, std::string> File::splitFilename(const std::string& filen
 std::string File::cwd()
 {
 #ifdef PLATFORM_WINDOWS
-    wchar_t wpath[PATH_MAX + 1] = L"";
+    wchar_t wpath[PATH_MAX] = L"";
 
     if (!_wgetcwd(wpath, PATH_MAX)) {
         throw std::runtime_error("Error getting working directory");
@@ -247,7 +250,7 @@ std::string File::fullPath(const std::string& path)
     wchar_t wfullpath[PATH_MAX] = L"";
     auto wpath = to_wchar(path);
 
-    if (!_wfullpath(wfile_name, wpath.get(), PATH_MAX)) {
+    if (!_wfullpath(wfullpath, wpath.get(), PATH_MAX)) {
         throw std::runtime_error("Error expanding path");
     }
 
@@ -322,9 +325,56 @@ std::string File::relativePath(const std::string& sourceDir, const std::string& 
 #endif
 }
 
-#ifdef PLAYFORM_WINDOWS
-#error "Implement File::atomicWrite in Windows"
+#ifdef PLATFORM_WINDOWS
+void File::atomicWrite(const std::string& filename, const void* data, size_t size)
+{
+    const size_t BLOCK_SIZE = 4096;
 
+    // atomically creating a tempfile name is hard
+    // just simplify it by using a ~ temp file instead.
+    auto tmpFilename = to_wchar(filename + "~");
+
+    // open file normally.
+    // error out if file exists.
+    HANDLE hFile = CreateFileW(tmpFilename.get(), GENERIC_WRITE, 0, nullptr,
+                               CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
+
+    if (hFile == INVALID_HANDLE_VALUE) {
+        if (GetLastError() == ERROR_FILE_EXISTS) {
+            throw std::runtime_error("Temporary file already exists: " + filename + "~");
+        }
+        else {
+            throw std::runtime_error("Cannot open temporary file " + filename + "~");
+        }
+    }
+
+    const uint8_t* ptr = static_cast<const uint8_t*>(data);
+    size_t todo = size;
+
+    while (todo > 0) {
+        DWORD toWrite = std::min(BLOCK_SIZE, todo);
+        DWORD written = 0;
+
+        auto ret = WriteFile(hFile, ptr, toWrite, &written, NULL);
+
+        if (ret == FALSE || written != toWrite) {
+            CloseHandle(hFile);
+            throw std::runtime_error("Error writing file");
+        }
+
+        ptr += toWrite;
+        todo -= toWrite;
+    }
+
+    CloseHandle(hFile);
+
+    auto wFilename = to_wchar(filename);
+    bool s = MoveFileExW(tmpFilename.get(), wFilename.get(),
+                         MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
+    if (!s) {
+        throw std::runtime_error("MoveFileEx failed");
+    }
+}
 #else
 void File::atomicWrite(const std::string& filename, const void* data, size_t size)
 {
