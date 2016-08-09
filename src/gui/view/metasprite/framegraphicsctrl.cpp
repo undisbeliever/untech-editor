@@ -188,7 +188,7 @@ void FrameGraphicsCtrl::UpdateBitmap()
     {
         wxMemoryDC dc;
         dc.SelectObject(_bitmap);
-        dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND)));
+        dc.SetBackground(wxBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE)));
         dc.Clear();
     }
 

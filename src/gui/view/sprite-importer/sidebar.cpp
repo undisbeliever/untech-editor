@@ -412,7 +412,7 @@ void FrameSetImagePanel::UpdateGui()
         else {
             _transparentColor->ChangeTextValue(wxEmptyString);
             _transparentColor->GetButton()->SetBackgroundColour(
-                wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
+                wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
         }
         _transparentColor->Enable(!frameSet->image().empty());
 
@@ -423,7 +423,7 @@ void FrameSetImagePanel::UpdateGui()
 
         _transparentColor->ChangeTextValue(wxEmptyString);
         _transparentColor->GetButton()->SetBackgroundColour(
-            wxSystemSettings::GetColour(wxSYS_COLOUR_BACKGROUND));
+            wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 
         this->Disable();
     }
