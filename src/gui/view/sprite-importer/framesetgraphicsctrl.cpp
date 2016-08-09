@@ -21,6 +21,7 @@ FrameSetGraphicsCtrl::FrameSetGraphicsCtrl(wxWindow* parent, wxWindowID id,
     , _controller(controller)
     , _bitmap()
 {
+    SetDoubleBuffered(true);
     SetAutoLayout(true);
 
     // Signals

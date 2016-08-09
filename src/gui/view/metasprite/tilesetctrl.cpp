@@ -23,6 +23,7 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
     , _mouseState(MouseState::NONE)
     , _prevMouse()
 {
+    SetDoubleBuffered(true);
     SetAutoLayout(true);
     UpdateSize();
     CreateBitmaps();

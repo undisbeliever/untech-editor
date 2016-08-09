@@ -22,6 +22,7 @@ FrameGraphicsCtrl::FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
     , _controller(controller)
     , _bitmap(BITMAP_SIZE, BITMAP_SIZE, 24)
 {
+    SetDoubleBuffered(true);
     SetAutoLayout(true);
     UpdateBitmap();
 
