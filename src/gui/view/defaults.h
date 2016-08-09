@@ -1,7 +1,10 @@
 #pragma once
+#include <wx/wx.h>
 
 namespace UnTech {
 namespace View {
+
+const static wxSize MIN_FRAME_SIZE(900, 700);
 
 const static int DIALOG_TEXT_WIDTH = 300;
 

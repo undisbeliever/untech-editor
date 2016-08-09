@@ -53,6 +53,8 @@ Frame::Frame()
     : wxFrame(NULL, wxID_ANY, WINDOW_NAME)
     , _controller(std::make_unique<ControllerInterface>(this))
 {
+    SetMinSize(MIN_FRAME_SIZE);
+
     // Widgets
     // =======
     {
