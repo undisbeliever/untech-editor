@@ -13,7 +13,7 @@ PaletteListCtrl::PaletteListCtrl(wxWindow* parent, wxWindowID id,
                  wxLC_REPORT | wxLC_VIRTUAL | wxLC_SINGLE_SEL)
     , _controller(controller)
 {
-    AppendColumn("Id", wxLIST_FORMAT_LEFT, wxLIST_AUTOSIZE_USEHEADER);
+    AppendColumn("Id", wxLIST_FORMAT_LEFT, SIDEBAR_WIDTH - IMAGE_WIDTH - 50);
     AppendColumn("Palette", wxLIST_FORMAT_LEFT, IMAGE_WIDTH);
 
     /*
@@ -108,7 +108,8 @@ void PaletteListCtrl::RedrawImageList()
 {
     const typename MS::Palette::list_t* list = _controller.list();
     if (list && list->size() > 0) {
-        auto* imageList = new wxImageList();
+        auto* imageList = new wxImageList(IMAGE_WIDTH, IMAGE_HEIGHT,
+                                          false, list->size());
 
         wxImage image(IMAGE_WIDTH, IMAGE_HEIGHT, true);
 
