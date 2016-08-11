@@ -376,6 +376,18 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
         dc.SetBrush(DRAG_BRUSH);
         helper.DrawRectangle(_mouseDrag.aabb);
     }
+
+    // Frame name
+    // ----------
+    if (auto fName = frame->frameSet().frames().getName(frame)) {
+        dc.SetFont(wxSystemSettings::GetFont(wxSYS_ANSI_FIXED_FONT));
+
+        int defBorder = wxSizerFlags::GetDefaultBorder();
+        int cHeight = GetClientSize().GetHeight();
+        int charHeight = dc.GetCharHeight();
+
+        dc.DrawText(fName.value(), defBorder, cHeight - charHeight - defBorder);
+    }
 }
 
 optional<point> FrameGraphicsCtrl::GetMousePosition()
