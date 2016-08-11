@@ -18,14 +18,20 @@ ExportOrderTreeCtrl::ExportOrderTreeCtrl(wxWindow* parent, int wxWindowID,
                  wxTR_DEFAULT_STYLE | wxTR_SINGLE | wxTR_HIDE_ROOT)
     , _controller(controller)
 {
-    // Export Tree Icons
-    // -----------------
+// Export Tree Icons
+// -----------------
+#ifdef __WXMSW__
     const wxSize asize = wxArtProvider::GetNativeSizeHint(wxART_LIST);
     auto* imageList = new wxImageList(asize.GetWidth(), asize.GetHeight(), true, 3);
-
     imageList->Add(wxArtProvider::GetBitmap("wxART_CROSS_MARK", wxART_LIST, asize));
     imageList->Add(wxArtProvider::GetBitmap("wxART_TICK_MARK", wxART_LIST, asize));
     imageList->Add(wxArtProvider::GetBitmap("wxART_WARNING", wxART_LIST, asize));
+#else
+    auto* imageList = new wxImageList();
+    imageList->Add(wxArtProvider::GetBitmap("wxART_CROSS_MARK", wxART_LIST));
+    imageList->Add(wxArtProvider::GetBitmap("wxART_TICK_MARK", wxART_LIST));
+    imageList->Add(wxArtProvider::GetBitmap("wxART_WARNING", wxART_LIST));
+#endif
 
     this->AssignImageList(imageList);
 
