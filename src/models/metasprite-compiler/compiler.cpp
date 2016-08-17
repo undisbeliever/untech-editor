@@ -1,5 +1,6 @@
 #include "compiler.h"
 #include "combinesmalltilesets.h"
+#include "version.h"
 #include "models/metasprite-common/framesetexportorder.h"
 #include "models/snes/palette.hpp"
 #include <algorithm>
@@ -57,7 +58,9 @@ Compiler::Compiler(unsigned tilesetBlockSize)
 void Compiler::writeToIncFile(std::ostream& out) const
 {
     out << "scope MetaSprite {\n"
-           "scope Data {\n";
+           "scope Data {\n"
+           "\n"
+        << "constant EDITOR_VERSION(" << UNTECH_VERSION_INT << ")\n";
 
     _animationData.writeToIncFile(out);
     _animationList.writeToIncFile(out);
