@@ -171,11 +171,11 @@ bool Parser::parseShortSwitches(const char* currentArg, const char* nextArg)
 {
     const char* arg = currentArg;
 
-    if (*arg == 0) {
+    if (*arg == '\0') {
         error("Expected argument after -");
     }
 
-    while (*arg) {
+    while (*arg != '\0') {
         bool isValid = false;
 
         for (const auto& a : _config.arguments) {

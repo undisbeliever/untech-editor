@@ -158,7 +158,7 @@ std::string File::cleanPath(const std::string& path)
     char* dirs[path.length() / 2];
     size_t nDirs = 0;
 
-    while (*source != 0) {
+    while (*source != '\0') {
         // Start of a directory/file
 
         if (source[0] == '.' && source[1] == SEP) {
@@ -186,14 +186,14 @@ std::string File::cleanPath(const std::string& path)
         else {
             // loop until end of directory separator
 
-            while (*source != 0 && *source != SEP) {
+            while (*source != '\0' && *source != SEP) {
                 *(pos++) = *(source++);
             }
 
             // include terminator ('/' or '\0').
             *(pos++) = *(source++);
 
-            if (*(source - 1) == 0) {
+            if (*(source - 1) == '\0') {
                 break;
             }
             else if (*(source - 1) == SEP) {

@@ -148,7 +148,7 @@ void XmlReader::parseDocument()
         _pos += 5;
 
         while (*_pos != '>') {
-            if (*_pos == 0) {
+            if (*_pos == '\0') {
                 throw buildXmlParseError(this, "Unclosed XML header");
             }
             if (*_pos == '\n') {
@@ -166,7 +166,7 @@ void XmlReader::parseDocument()
         _pos += 9;
 
         while (*_pos != '>') {
-            if (*_pos == 0) {
+            if (*_pos == '\0') {
                 throw buildXmlParseError(this, "Unclosed DOCTYPE header");
             }
             if (*_pos == '\n') {
@@ -191,7 +191,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
         return nullptr;
     }
 
-    if (*_pos == 0) {
+    if (*_pos == '\0') {
         throw buildXmlParseError(this, "Unexpected end of file");
     }
     if (*_pos != '<') {
@@ -213,7 +213,7 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
     while (*_pos) {
         skipWhitespace();
 
-        if (*_pos == 0) {
+        if (*_pos == '\0') {
             throw buildXmlParseError(this, tagName, "Unclosed tag");
         }
 
@@ -277,7 +277,7 @@ std::string XmlReader::parseText()
 
             // skip comment
             while (memcmp(_pos, "-->", 3) != 0) {
-                if (*_pos == 0) {
+                if (*_pos == '\0') {
                     throw buildXmlParseError(this, "Unclosed comment");
                 }
                 if (*_pos == '\n') {
@@ -296,7 +296,7 @@ std::string XmlReader::parseText()
             const char* startCData = _pos;
 
             while (memcmp(_pos, "]]>", 3) != 0) {
-                if (*_pos == 0) {
+                if (*_pos == '\0') {
                     throw buildXmlParseError(this, "Unclosed CDATA");
                 }
                 if (*_pos == '\n') {
@@ -389,7 +389,7 @@ void XmlReader::skipText()
         if (memcmp(_pos, "<!--", 4) == 0) {
             // skip comment
             while (memcmp(_pos, "-->", 3) != 0) {
-                if (*_pos == 0) {
+                if (*_pos == '\0') {
                     throw buildXmlParseError(this, "Unclosed comment");
                 }
                 if (*_pos == '\n') {
@@ -403,7 +403,7 @@ void XmlReader::skipText()
         else if (memcmp(_pos, "<![CDATA[", 9) == 0) {
             _pos += 9;
             while (memcmp(_pos, "]]>", 3) != 0) {
-                if (*_pos == 0) {
+                if (*_pos == '\0') {
                     throw buildXmlParseError(this, "Unclosed CDATA");
                 }
                 if (*_pos == '\n') {
@@ -455,7 +455,7 @@ inline std::string XmlReader::parseAttributeValue()
 
     const char* valueStart = _pos;
     while (*_pos != terminator) {
-        if (*_pos == 0) {
+        if (*_pos == '\0') {
             throw buildXmlParseError(this, "Incomplete attribute value");
         }
         if (*_pos == '\n') {
