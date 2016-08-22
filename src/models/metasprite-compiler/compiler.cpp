@@ -901,7 +901,7 @@ inline RomOffsetPtr Compiler::processActionPoints(const MS::ActionPoint::list_t&
         throw std::runtime_error("Too many action points");
     }
 
-    std::vector<uint8_t> romData(1 + 3 * actionPoints.size());
+    std::vector<uint8_t> romData(3 * actionPoints.size() + 1);
     uint8_t* data = romData.data();
 
     *(data++) = actionPoints.size(); // count
@@ -909,10 +909,12 @@ inline RomOffsetPtr Compiler::processActionPoints(const MS::ActionPoint::list_t&
     for (const MS::ActionPoint& ap : actionPoints) {
         const ms8point loc = ap.location();
 
-        *(data++) = ap.parameter();  // Point::type
+        *(data++) = ap.parameter();  // Point::parameter
         *(data++) = loc.x.romData(); // Point::xOffset
         *(data++) = loc.y.romData(); // Point::yOffset
     }
+
+    *(data++) = 0;  // null terminator
 
     return _actionPointData.addData(romData);
 }
