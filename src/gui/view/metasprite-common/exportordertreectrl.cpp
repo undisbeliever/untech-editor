@@ -28,9 +28,9 @@ ExportOrderTreeCtrl::ExportOrderTreeCtrl(wxWindow* parent, int wxWindowID,
     imageList->Add(wxArtProvider::GetBitmap("wxART_WARNING", wxART_LIST, asize));
 #else
     auto* imageList = new wxImageList();
-    imageList->Add(wxArtProvider::GetBitmap("wxART_CROSS_MARK", wxART_LIST));
-    imageList->Add(wxArtProvider::GetBitmap("wxART_TICK_MARK", wxART_LIST));
-    imageList->Add(wxArtProvider::GetBitmap("wxART_WARNING", wxART_LIST));
+    imageList->Add(wxArtProvider::GetBitmap("wxART_CROSS_MARK", wxART_TOOLBAR));
+    imageList->Add(wxArtProvider::GetBitmap("wxART_TICK_MARK", wxART_TOOLBAR));
+    imageList->Add(wxArtProvider::GetBitmap("wxART_WARNING", wxART_TOOLBAR));
 #endif
 
     this->AssignImageList(imageList);
