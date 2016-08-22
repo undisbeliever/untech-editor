@@ -816,12 +816,12 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
     }
 
     unsigned count = entityHitboxes.size();
-    unsigned dataSize = 5 + 5 * count;
+    unsigned dataSize = 7 * count;
 
     // a Hitbox with a single aabb is a special case.
     if (count == 1) {
         count = 0;
-        dataSize = 6;
+        dataSize = 7 + 1;
     }
 
     std::vector<uint8_t> romData(dataSize);
@@ -842,7 +842,9 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
     *(data++) = outerAabb.x.romData(); // Outer::xOffset
     *(data++) = outerAabb.y.romData(); // Outer::yOffset
     *(data++) = outerAabb.width;       // Outer::width
+    *(data++) = 0;                     // Outer::width high byte
     *(data++) = outerAabb.height;      // Outer::height
+    *(data++) = 0;                     // Outer::height high byte
     *(data++) = count;                 // count;
 
     if (count > 0) {
@@ -856,7 +858,9 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
             *(data++) = innerAabb.x.romData(); // Inner::xOffset
             *(data++) = innerAabb.y.romData(); // Inner::yOffset
             *(data++) = innerAabb.width;       // Inner::width
+            *(data++) = 0;                     // Inner::width high byte
             *(data++) = innerAabb.height;      // Inner::height
+            *(data++) = 0;                     // Inner::height high byte
             *(data++) = eh.parameter();        // Inner:type;
         }
     }
