@@ -9,6 +9,7 @@
 #include <typeinfo>
 
 using namespace UnTech::MetaSprite;
+namespace MSC = UnTech::MetaSpriteCommon;
 
 template class UnTech::Controller::SpriteSelectedTypeController<MetaSpriteController>;
 
@@ -199,20 +200,15 @@ CREATE_SIMPLE_ACTION(EntityHitboxController, selected_setAabb,
                      signal_dataChanged,
                      "Set Entity Hitbox AABB")
 
-CREATE_SIMPLE_ACTION(EntityHitboxController, selected_setParameter,
-                     EntityHitbox, unsigned, parameter, setParameter,
+CREATE_SIMPLE_ACTION(EntityHitboxController, selected_setHitboxType,
+                     EntityHitbox, MSC::EntityHitboxType, hitboxType, setHitboxType,
                      signal_dataChanged,
-                     "Set Entity Hitbox Parameter")
+                     "Set Entity Hitbox Type")
 
 CREATE_MERGE_ACTION(EntityHitboxController, selected_setAabb_merge,
                     EntityHitbox, UnTech::ms8rect, aabb, setAabb,
                     signal_dataChanged,
                     "Set Entity Hitbox AABB")
-
-CREATE_MERGE_ACTION(EntityHitboxController, selected_setParameter_merge,
-                    EntityHitbox, unsigned, parameter, setParameter,
-                    signal_dataChanged,
-                    "Set Entity Hitbox Parameter")
 
 /*
  * FRAME CONTROLLER

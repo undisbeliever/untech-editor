@@ -8,7 +8,7 @@ const char* EntityHitbox::TYPE_NAME = "Entity Hitbox";
 EntityHitbox::EntityHitbox(Frame& frame)
     : _frame(frame)
     , _aabb(0, 0, Frame::MIN_WIDTH, Frame::MIN_HEIGHT)
-    , _parameter(0)
+    , _hitboxType()
 {
     const auto frameLocation = frame.location();
 
@@ -19,7 +19,7 @@ EntityHitbox::EntityHitbox(Frame& frame)
 EntityHitbox::EntityHitbox(const EntityHitbox& hitbox, Frame& frame)
     : _frame(frame)
     , _aabb(hitbox._aabb)
-    , _parameter(hitbox._parameter)
+    , _hitboxType(hitbox._hitboxType)
 {
 }
 
@@ -32,9 +32,9 @@ void EntityHitbox::setAabb(const urect& aabb)
     }
 }
 
-void EntityHitbox::setParameter(parameter_t parameter)
+void EntityHitbox::setHitboxType(MetaSpriteCommon::EntityHitboxType hitboxType)
 {
-    if (_parameter != parameter) {
-        _parameter = parameter;
+    if (_hitboxType != hitboxType) {
+        _hitboxType = hitboxType;
     }
 }

@@ -133,7 +133,7 @@ void OrderedListCtrl<MS::EntityHitbox>::CreateColumns()
 {
     AppendColumn("Location", wxLIST_FORMAT_LEFT);
     AppendColumn("Size", wxLIST_FORMAT_LEFT);
-    AppendColumn("Parameter", wxLIST_FORMAT_LEFT);
+    AppendColumn("Type", wxLIST_FORMAT_LEFT);
 
     BindColumnsToEqualWidth();
 }
@@ -161,7 +161,7 @@ wxString OrderedListCtrl<MS::EntityHitbox>::OnGetItemText(long item, long column
     }
 
     case 2: {
-        return wxString::Format("0x%02x", eh.parameter());
+        return eh.hitboxType().string();
     }
 
     default:

@@ -1,6 +1,7 @@
 #include "sidebar.h"
 #include "sidebar-lists.hpp"
 #include "gui/view/common/aabb.h"
+#include "gui/view/common/enumclasschoice.h"
 #include "gui/view/common/filedialogs.h"
 #include "gui/view/common/textandtogglebuttonctrl.h"
 #include "gui/view/defaults.h"
@@ -17,6 +18,8 @@ namespace SpriteImporter {
 static const upoint emptyPoint(0, 0);
 static const usize emptySize(1, 1);
 static const urect emptyRect(0, 0, 1, 1);
+
+namespace MSC = UnTech::MetaSpriteCommon;
 
 typedef SI::SpriteImporterController::SelectedTypeController::Type SelectedType;
 
@@ -140,7 +143,7 @@ private:
     SI::EntityHitboxController& _controller;
 
     URectCtrl* _aabb;
-    wxSpinCtrl* _parameter;
+    EnumClassChoice<MSC::EntityHitboxType>* _hitboxType;
 };
 }
 }
@@ -883,11 +886,9 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, "AABB:"));
     grid->Add(_aabb, wxSizerFlags(1).Expand());
 
-    // ::TODO replace with something better::
-    _parameter = new wxSpinCtrl(this, wxID_ANY);
-    _parameter->SetRange(0, 255);
-    grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));
-    grid->Add(_parameter, wxSizerFlags(1).Expand());
+    _hitboxType = new EnumClassChoice<MSC::EntityHitboxType>(this, wxID_ANY);
+    grid->Add(new wxStaticText(this, wxID_ANY, "Type:"));
+    grid->Add(_hitboxType, wxSizerFlags(1).Expand());
 
     // Signals
     // -------
@@ -913,12 +914,8 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
         _controller.selected_setAabb_merge(_aabb->GetValue());
     });
 
-    _parameter->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
-    _parameter->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setParameter_merge(_parameter->GetValue());
+    _hitboxType->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
+        _controller.selected_setHitboxType(_hitboxType->GetValue());
     });
 }
 
@@ -929,13 +926,13 @@ void EntityHitboxPanel::UpdateGui()
     const SI::EntityHitbox* eh = _controller.selected();
     if (eh) {
         _aabb->SetValue(eh->aabb());
-        _parameter->SetValue(eh->parameter());
+        _hitboxType->SetValue(eh->hitboxType());
 
         this->Enable();
     }
     else {
         _aabb->SetValue(emptyRect);
-        _parameter->SetValue(0);
+        _hitboxType->SetSelection(wxNOT_FOUND);
 
         this->Disable();
     }

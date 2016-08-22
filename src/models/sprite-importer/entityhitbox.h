@@ -1,8 +1,9 @@
 #pragma once
 
 #include "frame.h"
-#include "../common/aabb.h"
-#include "../common/orderedlist.h"
+#include "models/common/aabb.h"
+#include "models/common/orderedlist.h"
+#include "models/metasprite-common/entityhitboxtype.h"
 #include <cstdint>
 #include <memory>
 
@@ -13,8 +14,6 @@ class EntityHitbox {
 public:
     typedef OrderedList<Frame, EntityHitbox> list_t;
     static const char* TYPE_NAME;
-
-    typedef uint8_t parameter_t;
 
 public:
     EntityHitbox() = delete;
@@ -27,15 +26,15 @@ public:
     inline SpriteImporterDocument& document() const { return _frame.frameSet().document(); }
 
     urect aabb() const { return _aabb; }
-    parameter_t parameter() const { return _parameter; }
+    MetaSpriteCommon::EntityHitboxType hitboxType() const { return _hitboxType; }
 
     void setAabb(const urect& aabb);
-    void setParameter(parameter_t parameter);
+    void setHitboxType(MetaSpriteCommon::EntityHitboxType hitboxType);
 
 private:
     Frame& _frame;
     urect _aabb;
-    parameter_t _parameter;
+    MetaSpriteCommon::EntityHitboxType _hitboxType;
 };
 }
 }

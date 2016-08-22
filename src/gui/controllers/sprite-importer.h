@@ -66,10 +66,9 @@ public:
     ~EntityHitboxController() = default;
 
     void selected_setAabb(const UnTech::urect& aabb);
-    void selected_setParameter(const unsigned& tileId);
+    void selected_setHitboxType(const MetaSpriteCommon::EntityHitboxType& hitboxType);
 
     void selected_setAabb_merge(const UnTech::urect& aabb);
-    void selected_setParameter_merge(const unsigned& tileId);
 };
 
 /*

@@ -135,7 +135,7 @@ private:
                 EntityHitbox& eh = frame.entityHitboxes().create();
 
                 eh.setAabb(childTag->getAttributeMs8rect());
-                eh.setParameter(childTag->getAttributeUint8("parameter"));
+                eh.setHitboxType(childTag->getAttributeSimpleClass<MSC::EntityHitboxType>("type"));
             }
 
             else if (childTag->name == "tilehitbox") {
@@ -272,7 +272,7 @@ inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame
     for (const EntityHitbox& eh : frame.entityHitboxes()) {
         xml.writeTag("entityhitbox");
 
-        xml.writeTagAttribute("parameter", eh.parameter());
+        xml.writeTagAttributeSimpleClass("type", eh.hitboxType());
         xml.writeTagAttributeMs8rect(eh.aabb());
 
         xml.writeCloseTag();

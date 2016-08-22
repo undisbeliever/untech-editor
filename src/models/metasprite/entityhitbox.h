@@ -1,8 +1,9 @@
 #pragma once
 
 #include "frame.h"
-#include "../common/ms8aabb.h"
-#include "../common/orderedlist.h"
+#include "models/common/ms8aabb.h"
+#include "models/common/orderedlist.h"
+#include "models/metasprite-common/entityhitboxtype.h"
 #include <cstdint>
 #include <memory>
 
@@ -14,8 +15,6 @@ public:
     typedef OrderedList<Frame, EntityHitbox> list_t;
     static const char* TYPE_NAME;
 
-    typedef uint8_t parameter_t;
-
     const static unsigned MAX_HITBOXES = 8;
 
 public:
@@ -25,14 +24,14 @@ public:
     EntityHitbox(Frame& frame)
         : _frame(frame)
         , _aabb(-4, -4, 8, 8)
-        , _parameter(0)
+        , _hitboxType()
     {
     }
 
     EntityHitbox(const EntityHitbox& hitbox, Frame& frame)
         : _frame(frame)
         , _aabb(hitbox._aabb)
-        , _parameter(hitbox._parameter)
+        , _hitboxType(hitbox._hitboxType)
     {
     }
 
@@ -40,15 +39,22 @@ public:
     inline MetaSpriteDocument& document() const { return _frame.frameSet().document(); }
 
     inline ms8rect aabb() const { return _aabb; }
-    inline parameter_t parameter() const { return _parameter; }
+    inline MetaSpriteCommon::EntityHitboxType hitboxType() const { return _hitboxType; }
 
-    inline void setAabb(const ms8rect& aabb) { _aabb = aabb; }
-    inline void setParameter(parameter_t parameter) { _parameter = parameter; }
+    inline void setAabb(const ms8rect& aabb)
+    {
+        _aabb = aabb;
+    }
+
+    inline void setHitboxType(MetaSpriteCommon::EntityHitboxType hitboxType)
+    {
+        _hitboxType = hitboxType;
+    }
 
 private:
     Frame& _frame;
     ms8rect _aabb;
-    parameter_t _parameter;
+    MetaSpriteCommon::EntityHitboxType _hitboxType;
 };
 }
 }

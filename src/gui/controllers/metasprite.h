@@ -75,10 +75,9 @@ public:
     ~EntityHitboxController() = default;
 
     void selected_setAabb(const UnTech::ms8rect& aabb);
-    void selected_setParameter(const unsigned& parameter);
+    void selected_setHitboxType(const MetaSpriteCommon::EntityHitboxType& hitboxType);
 
     void selected_setAabb_merge(const UnTech::ms8rect& aabb);
-    void selected_setParameter_merge(const unsigned& parameter);
 };
 
 /*

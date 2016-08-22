@@ -855,18 +855,18 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
                 throw std::runtime_error("Entity Hitbox aabb has no size");
             }
 
-            *(data++) = innerAabb.x.romData(); // Inner::xOffset
-            *(data++) = innerAabb.y.romData(); // Inner::yOffset
-            *(data++) = innerAabb.width;       // Inner::width
-            *(data++) = 0;                     // Inner::width high byte
-            *(data++) = innerAabb.height;      // Inner::height
-            *(data++) = 0;                     // Inner::height high byte
-            *(data++) = eh.parameter();        // Inner:type;
+            *(data++) = innerAabb.x.romData();      // Inner::xOffset
+            *(data++) = innerAabb.y.romData();      // Inner::yOffset
+            *(data++) = innerAabb.width;            // Inner::width
+            *(data++) = 0;                          // Inner::width high byte
+            *(data++) = innerAabb.height;           // Inner::height
+            *(data++) = 0;                          // Inner::height high byte
+            *(data++) = eh.hitboxType().romValue(); // Inner:type;
         }
     }
     else {
         const MS::EntityHitbox& eh = entityHitboxes.at(0);
-        *(data++) = eh.parameter(); // SingleHitbox::type;
+        *(data++) = eh.hitboxType().romValue(); // SingleHitbox::type;
     }
 
     return _entityHitboxData.addData(romData);
@@ -918,7 +918,7 @@ inline RomOffsetPtr Compiler::processActionPoints(const MS::ActionPoint::list_t&
         *(data++) = loc.y.romData(); // Point::yOffset
     }
 
-    *(data++) = 0;  // null terminator
+    *(data++) = 0; // null terminator
 
     return _actionPointData.addData(romData);
 }

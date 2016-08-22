@@ -2,6 +2,7 @@
 #include "palettelist.h"
 #include "palettepanel.h"
 #include "sidebar-lists.hpp"
+#include "gui/view/common/enumclasschoice.h"
 #include "gui/view/common/ms8aabb.h"
 #include "gui/view/defaults.h"
 #include "gui/view/metasprite-common/abstractframesetpanel.h"
@@ -16,6 +17,8 @@ namespace MetaSprite {
 
 static const ms8point emptyPoint(0, 0);
 static const ms8rect emptyRect(0, 0, 1, 1);
+
+namespace MSC = UnTech::MetaSpriteCommon;
 
 typedef MS::MetaSpriteController::SelectedTypeController::Type SelectedType;
 
@@ -94,7 +97,7 @@ private:
     MS::EntityHitboxController& _controller;
 
     Ms8RectCtrl* _aabb;
-    wxSpinCtrl* _parameter;
+    EnumClassChoice<MSC::EntityHitboxType>* _hitboxType;
 };
 }
 }
@@ -591,11 +594,9 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, "AABB:"));
     grid->Add(_aabb, wxSizerFlags(1).Expand());
 
-    // ::TODO replace with something better::
-    _parameter = new wxSpinCtrl(this, wxID_ANY);
-    _parameter->SetRange(0, 255);
-    grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));
-    grid->Add(_parameter, wxSizerFlags(1).Expand());
+    _hitboxType = new EnumClassChoice<MSC::EntityHitboxType>(this, wxID_ANY);
+    grid->Add(new wxStaticText(this, wxID_ANY, "Type:"));
+    grid->Add(_hitboxType, wxSizerFlags(1).Expand());
 
     // Signals
     // -------
@@ -615,12 +616,8 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
         _controller.selected_setAabb_merge(_aabb->GetValue());
     });
 
-    _parameter->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
-    _parameter->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setParameter_merge(_parameter->GetValue());
+    _hitboxType->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
+        _controller.selected_setHitboxType(_hitboxType->GetValue());
     });
 }
 
@@ -630,13 +627,13 @@ void EntityHitboxPanel::UpdateGui()
 
     if (eh) {
         _aabb->SetValue(eh->aabb());
-        _parameter->SetValue(eh->parameter());
+        _hitboxType->SetValue(eh->hitboxType());
 
         this->Enable();
     }
     else {
         _aabb->SetValue(emptyRect);
-        _parameter->SetValue(0);
+        _hitboxType->SetSelection(wxNOT_FOUND);
 
         this->Disable();
     }

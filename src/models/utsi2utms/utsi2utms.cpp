@@ -314,7 +314,7 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
                 MS::EntityHitbox& msEh = msFrame.entityHitboxes().create();
 
                 msEh.setAabb(ms8rect::createFromOffset(siEh.aabb(), siFrameOrigin));
-                msEh.setParameter(siEh.parameter());
+                msEh.setHitboxType(siEh.hitboxType());
             }
 
             if (siFrame.solid()) {
