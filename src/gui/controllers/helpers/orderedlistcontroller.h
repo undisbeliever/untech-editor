@@ -29,8 +29,30 @@ public:
     void selected_moveUp();
     void selected_moveDown();
 
-    bool canMoveSelectedUp() const;
-    bool canMoveSelectedDown() const;
+    bool canCreate() const
+    {
+        return _list;
+    }
+
+    bool canCloneSelected() const
+    {
+        return _list && _selected;
+    }
+
+    bool canRemoveSelected() const
+    {
+        return _list && _selected;
+    }
+
+    bool canMoveSelectedUp() const
+    {
+        return _list && _selected && !_list->isLast(_selected);
+    }
+
+    bool canMoveSelectedDown() const
+    {
+        return _list && _selected && !_list->isFirst(_selected);
+    }
 
     auto& signal_selectedChanged() { return _signal_selectedChanged; }
     auto& signal_dataChanged() { return _signal_dataChanged; }

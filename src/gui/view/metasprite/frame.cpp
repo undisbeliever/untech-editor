@@ -450,15 +450,11 @@ void Frame::UpdateGuiMenu()
 
     auto& selectedType = _controller.selectedTypeController();
 
-    bool canCrud = selectedType.canCrudSelected();
-    bool canMoveUp = selectedType.canMoveSelectedUp();
-    bool canMoveDown = selectedType.canMoveSelectedDown();
-
-    menuBar->Enable(ID_CREATE, canCrud);
-    menuBar->Enable(ID_CLONE, canCrud);
-    menuBar->Enable(ID_REMOVE, canCrud);
-    menuBar->Enable(ID_MOVE_UP, canMoveUp);
-    menuBar->Enable(ID_MOVE_DOWN, canMoveDown);
+    menuBar->Enable(ID_CREATE, selectedType.canCreateSelected());
+    menuBar->Enable(ID_CLONE, selectedType.canCloneSelected());
+    menuBar->Enable(ID_REMOVE, selectedType.canRemoveSelected());
+    menuBar->Enable(ID_MOVE_UP, selectedType.canMoveSelectedUp());
+    menuBar->Enable(ID_MOVE_DOWN, selectedType.canMoveSelectedDown());
 }
 
 void Frame::UpdateGuiZoom()

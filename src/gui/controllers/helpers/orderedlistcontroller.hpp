@@ -175,7 +175,7 @@ void OrderedListController<T>::create()
         Private::OrderedListAddRemove<T> _handler;
     };
 
-    if (_list) {
+    if (canCreate()) {
         T* newItem = &(_list->create());
 
         signal_listDataChanged().emit(_list);
@@ -220,7 +220,7 @@ void OrderedListController<T>::selected_clone()
         Private::OrderedListAddRemove<T> _handler;
     };
 
-    if (_selected && _list) {
+    if (canCloneSelected()) {
         T* newItem = &(_list->clone(*_selected));
 
         signal_listDataChanged().emit(_list);
@@ -265,7 +265,7 @@ void OrderedListController<T>::selected_remove()
         Private::OrderedListAddRemove<T> _handler;
     };
 
-    if (_selected && _list) {
+    if (canRemoveSelected()) {
         if (_list->contains(_selected)) {
             auto a = std::make_unique<Action>(*this, _list, _selected);
 
@@ -316,7 +316,7 @@ void OrderedListController<T>::selected_moveUp()
         OrderedListController<T>& _controller;
     };
 
-    if (_selected && _list) {
+    if (canMoveSelectedUp()) {
         bool r = _list->moveUp(_selected);
 
         if (r) {
@@ -368,7 +368,7 @@ void OrderedListController<T>::selected_moveDown()
         OrderedListController<T>& _controller;
     };
 
-    if (_list && _selected) {
+    if (canMoveSelectedDown()) {
         bool r = _list->moveDown(_selected);
 
         if (r) {
@@ -378,18 +378,6 @@ void OrderedListController<T>::selected_moveDown()
                 std::make_unique<Action>(*this, _list, _selected));
         }
     }
-}
-
-template <class T>
-bool OrderedListController<T>::canMoveSelectedUp() const
-{
-    return _list && _selected && !_list->isLast(_selected);
-}
-
-template <class T>
-bool OrderedListController<T>::canMoveSelectedDown() const
-{
-    return _list && _selected && !_list->isFirst(_selected);
 }
 }
 }

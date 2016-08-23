@@ -213,6 +213,60 @@ const std::string& SpriteSelectedTypeController<T>::typeString() const
 }
 
 template <class T>
+bool SpriteSelectedTypeController<T>::canCreateSelected() const
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        return _controller.frameObjectController().canCreate();
+
+    case Type::ACTION_POINT:
+        return _controller.actionPointController().canCreate();
+
+    case Type::ENTITY_HITBOX:
+        return _controller.entityHitboxController().canCreate();
+
+    default:
+        return false;
+    }
+}
+
+template <class T>
+bool SpriteSelectedTypeController<T>::canCloneSelected() const
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        return _controller.frameObjectController().canCloneSelected();
+
+    case Type::ACTION_POINT:
+        return _controller.actionPointController().canCloneSelected();
+
+    case Type::ENTITY_HITBOX:
+        return _controller.entityHitboxController().canCloneSelected();
+
+    default:
+        return false;
+    }
+}
+
+template <class T>
+bool SpriteSelectedTypeController<T>::canRemoveSelected() const
+{
+    switch (_type) {
+    case Type::FRAME_OBJECT:
+        return _controller.frameObjectController().canRemoveSelected();
+
+    case Type::ACTION_POINT:
+        return _controller.actionPointController().canRemoveSelected();
+
+    case Type::ENTITY_HITBOX:
+        return _controller.entityHitboxController().canRemoveSelected();
+
+    default:
+        return false;
+    }
+}
+
+template <class T>
 bool SpriteSelectedTypeController<T>::canMoveSelectedUp() const
 {
     switch (_type) {

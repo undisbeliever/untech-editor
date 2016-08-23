@@ -203,16 +203,16 @@ public:
 protected:
     void UpdateGui()
     {
-        const T* item = _controller.selected();
-        const typename T::list_t* list = _controller.list();
+        bool hasList = _controller.list() != nullptr;
+        this->Enable(hasList);
 
-        this->Enable(_controller.list() != nullptr);
-
-        EnableTool(ID_CREATE, list != nullptr);
-        EnableTool(ID_CLONE, item != nullptr);
-        EnableTool(ID_MOVE_UP, list != nullptr && !list->isFirst(item));
-        EnableTool(ID_MOVE_DOWN, list != nullptr && !list->isLast(item));
-        EnableTool(ID_REMOVE, item != nullptr);
+        if (hasList) {
+            EnableTool(ID_CREATE, _controller.canCreate());
+            EnableTool(ID_CLONE, _controller.canCloneSelected());
+            EnableTool(ID_MOVE_UP, _controller.canMoveSelectedUp());
+            EnableTool(ID_MOVE_DOWN, _controller.canMoveSelectedDown());
+            EnableTool(ID_REMOVE, _controller.canRemoveSelected());
+        }
     }
 
 private:

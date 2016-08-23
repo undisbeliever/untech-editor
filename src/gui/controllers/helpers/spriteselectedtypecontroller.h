@@ -32,7 +32,9 @@ public:
 
     const std::string& typeString() const;
 
-    bool canCrudSelected() const { return _type != Type::NONE; }
+    bool canCreateSelected() const;
+    bool canCloneSelected() const;
+    bool canRemoveSelected() const;
     bool canMoveSelectedUp() const;
     bool canMoveSelectedDown() const;
 
