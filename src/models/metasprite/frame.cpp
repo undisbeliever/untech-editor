@@ -3,16 +3,18 @@
 #include "entityhitbox.h"
 #include "frameobject.h"
 #include "palette.h"
-#include "../snes/tileset.hpp"
+#include "models/metasprite-common/limits.h"
+#include "models/snes/tileset.hpp"
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
+using namespace UnTech::MetaSpriteCommon;
 
 Frame::Frame(FrameSet& frameSet)
     : _frameSet(frameSet)
-    , _objects(*this)
-    , _actionPoints(*this)
-    , _entityHitboxes(*this)
+    , _objects(*this, MAX_FRAME_OBJECTS)
+    , _actionPoints(*this, MAX_ACTION_POINTS)
+    , _entityHitboxes(*this, MAX_ENTITY_HITBOXES)
     , _solid(true)
     , _tileHitbox(-8, -8, 16, 16)
 {
@@ -20,9 +22,9 @@ Frame::Frame(FrameSet& frameSet)
 
 Frame::Frame(const Frame& frame, FrameSet& frameSet)
     : _frameSet(frameSet)
-    , _objects(*this)
-    , _actionPoints(*this)
-    , _entityHitboxes(*this)
+    , _objects(*this, MAX_FRAME_OBJECTS)
+    , _actionPoints(*this, MAX_ACTION_POINTS)
+    , _entityHitboxes(*this, MAX_ENTITY_HITBOXES)
     , _solid(frame._solid)
     , _tileHitbox(frame._tileHitbox)
 {

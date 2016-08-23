@@ -2,10 +2,12 @@
 #include "actionpoint.h"
 #include "entityhitbox.h"
 #include "frameobject.h"
+#include "models/metasprite-common/limits.h"
 #include <algorithm>
 
 using namespace UnTech;
 using namespace UnTech::SpriteImporter;
+using namespace UnTech::MetaSpriteCommon;
 
 const char* Frame::TYPE_NAME = "FrameSet";
 
@@ -13,9 +15,9 @@ const usize Frame::MIN_SIZE = usize(Frame::MIN_WIDTH, Frame::MIN_HEIGHT);
 
 Frame::Frame(FrameSet& frameSet)
     : _frameSet(frameSet)
-    , _objects(*this)
-    , _actionPoints(*this)
-    , _entityHitboxes(*this)
+    , _objects(*this, MAX_FRAME_OBJECTS)
+    , _actionPoints(*this, MAX_ACTION_POINTS)
+    , _entityHitboxes(*this, MAX_ENTITY_HITBOXES)
     , _useGridLocation(true)
     , _gridLocation(0, 0)
     , _useGridOrigin(true)
@@ -32,9 +34,9 @@ Frame::Frame(FrameSet& frameSet)
 
 Frame::Frame(const Frame& frame, FrameSet& frameSet)
     : _frameSet(frameSet)
-    , _objects(*this)
-    , _actionPoints(*this)
-    , _entityHitboxes(*this)
+    , _objects(*this, MAX_FRAME_OBJECTS)
+    , _actionPoints(*this, MAX_ACTION_POINTS)
+    , _entityHitboxes(*this, MAX_ENTITY_HITBOXES)
     , _useGridLocation(frame._useGridLocation)
     , _gridLocation(frame._gridLocation)
     , _location(frame._location)

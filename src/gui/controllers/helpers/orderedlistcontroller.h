@@ -31,12 +31,12 @@ public:
 
     bool canCreate() const
     {
-        return _list;
+        return _list && _list->canCreate();
     }
 
     bool canCloneSelected() const
     {
-        return _list && _selected;
+        return _list && _selected && _list->canCreate();
     }
 
     bool canRemoveSelected() const

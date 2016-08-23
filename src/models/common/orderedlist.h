@@ -1,7 +1,9 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -16,6 +18,8 @@ class OrderedListAddRemove;
 
 /**
  * A basic list interface that enforces child-parent references.
+ *
+ * Will throw an exception if list length exceeds maxSize.
  *
  * Internally uses std::unique_ptr so that:
  *      * std::find is done on the pointer level.
@@ -52,18 +56,41 @@ public:
         : _owner(owner)
         , _list()
     {
+        _maxSize = _list.max_size();
+    }
+
+    OrderedList(P& owner, unsigned maxSize)
+        : _owner(owner)
+        , _maxSize(maxSize)
+        , _list()
+    {
+        assert(_list.max_size() >= _maxSize);
+
+        if (_maxSize <= 32) {
+            _list.reserve(_maxSize);
+        }
     }
 
     T& create()
     {
-        _list.emplace_back(std::make_unique<T>(_owner));
-        return *(_list.back());
+        if (_list.size() < _maxSize) {
+            _list.emplace_back(std::make_unique<T>(_owner));
+            return *(_list.back());
+        }
+        else {
+            throw std::length_error("Too many items in ordered list");
+        }
     }
 
     T& clone(const T& e)
     {
-        _list.emplace_back(std::make_unique<T>(e, _owner));
-        return *(_list.back());
+        if (_list.size() < _maxSize) {
+            _list.emplace_back(std::make_unique<T>(e, _owner));
+            return *(_list.back());
+        }
+        else {
+            throw std::length_error("Too many items in ordered list");
+        }
     }
 
     void remove(T* e)
@@ -140,6 +167,9 @@ public:
     }
     int indexOf(const T& e) const { return indexOf(&e); }
 
+    inline unsigned maxSize() const { return _maxSize; }
+    inline bool canCreate() const { return _list.size() < _maxSize; }
+
     // Expose the list
     T& at(size_t i) { return *_list.at(i).get(); }
     const T& at(size_t i) const { return *_list.at(i).get(); }
@@ -189,12 +219,18 @@ protected:
 
     void insertAtIndex(std::unique_ptr<T> e, size_t index)
     {
-        auto it = _list.begin() + index;
-        _list.insert(it, std::move(e));
+        if (_list.size() < _maxSize) {
+            auto it = _list.begin() + index;
+            _list.insert(it, std::move(e));
+        }
+        else {
+            throw std::length_error("Too many items in ordered list");
+        }
     }
 
 private:
     P& _owner;
+    unsigned _maxSize;
     std::vector<std::unique_ptr<T>> _list;
 };
 }
