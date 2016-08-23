@@ -13,6 +13,8 @@ namespace UnTech {
 /**
  * A basic ordered map interface that enforces child-parent references.
  *
+ * Will throw an exception if list length exceeds maxSize.
+ *
  * Internally uses std::unique_ptr so that:
  *      * find is done on the pointer level.
  *      * undo engine can remove and insert in place.
@@ -54,11 +56,28 @@ public:
         , _nameList()
         , _nameMap()
     {
+        _maxSize = std::min(_list.max_size(), _nameList.max_size(), _nameMap.max_size());
+    }
+
+    OrderedNamedList(P& owner, unsigned maxSize)
+        : _owner(owner)
+        , _maxSize(maxSize)
+        , _list()
+        , _nameList()
+        , _nameMap()
+    {
+        assert(_maxSize <= _list.max_size());
+        assert(_maxSize <= _nameList.max_size());
+        assert(_maxSize <= _nameMap.max_size());
     }
 
     // returns a pointer as this may fail
     T* create(const std::string& name)
     {
+        if (_list.size() >= _maxSize) {
+            throw std::length_error("Too many items in ordered named list");
+        }
+
         if (isNameValid(name) && !nameExists(name)) {
             auto newElem = std::make_unique<T>(_owner);
             T* newElemPtr = newElem.get();
@@ -76,6 +95,10 @@ public:
     // returns a pointer as this may fail
     T* clone(T& e, const std::string& newName)
     {
+        if (_list.size() >= _maxSize) {
+            throw std::length_error("Too many items in ordered named list");
+        }
+
         if (isNameValid(newName) && !nameExists(newName)) {
             auto newElem = std::make_unique<T>(e, _owner);
             T* newElemPtr = newElem.get();
@@ -205,6 +228,14 @@ public:
     }
     optional<std::string> getName(const T& e) const { return getName(&e); }
 
+    inline unsigned maxSize() const { return _maxSize; }
+    inline bool canCreate() const { return _list.size() < _maxSize; }
+
+    inline bool canCreate(const std::string& name) const
+    {
+        return canCreate() && isNameValid(name) && !nameExists(name);
+    }
+
     // Expose the list
     T& at(size_t i) { return *_list.at(i).get(); }
     const T& at(size_t i) const { return *_list.at(i).get(); }
@@ -258,6 +289,10 @@ protected:
 
     void insertAtIndex(std::unique_ptr<T> e, const std::string& name, size_t index)
     {
+        if (_list.size() >= _maxSize) {
+            throw std::length_error("Too many items in ordered named list");
+        }
+
         auto it = _list.begin() + index;
         _list.insert(it, std::move(e));
 
@@ -271,6 +306,7 @@ protected:
 
 private:
     P& _owner;
+    unsigned _maxSize;
     std::vector<std::unique_ptr<T>> _list;
     std::vector<std::pair<T*, std::string>> _nameList;
 
