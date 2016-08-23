@@ -2,8 +2,10 @@
 
 #include "namechecks.h"
 #include "optional.h"
+#include <cassert>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -19,6 +21,8 @@ class NamedListAddRemove;
 
 /**
  * A basic map that enforces id names and child-parent references.
+ *
+ * Will throw an exception if list length exceeds maxSize.
  *
  * Internally uses std::unique_ptr so that:
  *      * find is done on the pointer level.
@@ -60,11 +64,26 @@ public:
         , _values()
         , _names()
     {
+        _maxSize = std::min(_values.max_size(), _names.max_size());
+    }
+
+    NamedList(P& owner, unsigned maxSize)
+        : _owner(owner)
+        , _maxSize(maxSize)
+        , _values()
+        , _names()
+    {
+        assert(_maxSize <= _values.max_size());
+        assert(_maxSize <= _names.max_size());
     }
 
     // returns a pointer as this may fail
     T* create(const std::string& name)
     {
+        if (_values.size() >= _maxSize) {
+            throw std::length_error("Too many items in named list");
+        }
+
         if (isNameValid(name) && !nameExists(name)) {
             auto newElem = std::make_unique<T>(_owner);
             T* newElemPtr = newElem.get();
@@ -81,6 +100,10 @@ public:
     // returns a pointer as this may fail
     T* clone(T& e, const std::string& newName)
     {
+        if (_values.size() >= _maxSize) {
+            throw std::length_error("Too many items in named list");
+        }
+
         if (isNameValid(newName) && !nameExists(newName)) {
             auto newElem = std::make_unique<T>(e, _owner);
             T* newElemPtr = newElem.get();
@@ -168,6 +191,14 @@ public:
         }
     }
 
+    inline unsigned maxSize() const { return _maxSize; }
+    inline bool canCreate() const { return _values.size() < _maxSize; }
+
+    inline bool canCreate(const std::string& name) const
+    {
+        return canCreate() && isNameValid(name) && !nameExists(name);
+    }
+
     // Expose the map
     T& at(const std::string& name) { return *_values.at(name).get(); }
     const T& at(const std::string& name) const { return *_values.at(name).get(); }
@@ -206,6 +237,10 @@ protected:
 
     void insertInto(std::unique_ptr<T> e, const std::string& name)
     {
+        if (_values.size() >= _maxSize) {
+            throw std::length_error("Too many items in named list");
+        }
+
         if (isNameValid(name) && !nameExists(name)) {
             _names.insert({ e.get(), name });
             _values[name] = std::move(e);
@@ -214,6 +249,7 @@ protected:
 
 private:
     P& _owner;
+    unsigned _maxSize;
     std::map<std::string, std::unique_ptr<T>> _values;
     std::unordered_map<const T*, std::string> _names;
 };
