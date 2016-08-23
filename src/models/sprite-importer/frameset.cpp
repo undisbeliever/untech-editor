@@ -6,6 +6,7 @@
 #include "frameobject.h"
 #include "models/common/file.h"
 #include "models/common/namechecks.h"
+#include "models/metasprite-common/limits.h"
 
 using namespace UnTech::SpriteImporter;
 namespace FSExportOrder = UnTech::MetaSpriteCommon::FrameSetExportOrder;
@@ -18,7 +19,7 @@ FrameSet::FrameSet(SpriteImporterDocument& document)
     , _imageFilename()
     , _image()
     , _transparentColor(rgba::fromRgba(0))
-    , _frames(*this)
+    , _frames(*this, MetaSpriteCommon::MAX_FRAMES)
     , _grid(*this)
 {
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "framesetexportorderserializer.h"
+#include "limits.h"
 #include "models/common/namedlist.h"
 #include "models/common/orderedlist.h"
 #include "models/common/orderednamedlist.h"
@@ -28,8 +29,8 @@ public:
     ExportOrder(ExportOrderDocument& document)
         : _document(document)
         , _name()
-        , _stillFrames(*this)
-        , _animations(*this)
+        , _stillFrames(*this, MAX_FRAMES)
+        , _animations(*this, MAX_ANIMATIONS)
     {
     }
 
@@ -70,13 +71,13 @@ public:
 
     ExportName(ExportOrder& exportOrder)
         : _exportOrder(exportOrder)
-        , _alternativeNames(*this)
+        , _alternativeNames(*this, MAX_FRAMES)
     {
     }
 
     ExportName(const ExportName& ns, ExportOrder& exportOrder)
         : _exportOrder(exportOrder)
-        , _alternativeNames(*this)
+        , _alternativeNames(*this, MAX_FRAMES)
     {
         for (const auto& d : ns._alternativeNames) {
             _alternativeNames.clone(d);

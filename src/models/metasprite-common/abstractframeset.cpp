@@ -1,6 +1,7 @@
 #include "abstractframeset.h"
 #include "animation.h"
 #include "framesetexportorder.h"
+#include "limits.h"
 #include <iostream>
 
 using namespace UnTech::MetaSpriteCommon;
@@ -10,7 +11,7 @@ AbstractFrameSet::AbstractFrameSet(::UnTech::Document& document)
     , _name("frameset")
     , _tilesetType()
     , _exportOrderDocument()
-    , _animations(*this)
+    , _animations(*this, MAX_ANIMATIONS)
 {
 }
 

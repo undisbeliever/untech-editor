@@ -1,5 +1,6 @@
 #include "animation.h"
 #include "abstractframeset.h"
+#include "limits.h"
 #include "models/common/namechecks.h"
 #include <cmath>
 
@@ -15,13 +16,13 @@ const char* Animation::TYPE_NAME = "Animation";
 
 Animation::Animation(AbstractFrameSet& parent)
     : _frameSet(parent)
-    , _instructions(*this)
+    , _instructions(*this, MAX_ANIMATION_INSTRUCTIONS)
 {
 }
 
 Animation::Animation(const Animation& animation, AbstractFrameSet& parent)
     : _frameSet(parent)
-    , _instructions(*this)
+    , _instructions(*this, MAX_ANIMATION_INSTRUCTIONS)
 {
     for (const auto& inst : animation._instructions) {
         _instructions.clone(inst);
