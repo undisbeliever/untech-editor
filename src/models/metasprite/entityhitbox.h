@@ -15,8 +15,6 @@ public:
     typedef OrderedList<Frame, EntityHitbox> list_t;
     static const char* TYPE_NAME;
 
-    const static unsigned MAX_HITBOXES = 8;
-
 public:
     EntityHitbox() = delete;
     EntityHitbox(const EntityHitbox&) = delete;

@@ -2,6 +2,7 @@
 #include "combinesmalltilesets.h"
 #include "version.h"
 #include "models/metasprite-common/framesetexportorder.h"
+#include "models/metasprite-common/limits.h"
 #include "models/snes/palette.hpp"
 #include <algorithm>
 #include <climits>
@@ -765,7 +766,7 @@ inline RomOffsetPtr Compiler::processFrameObjects(const MS::FrameObject::list_t&
         return RomOffsetPtr();
     }
 
-    if (objects.size() > MS::FrameObject::MAX_FRAME_OBJECTS) {
+    if (objects.size() > MSC::MAX_FRAME_OBJECTS) {
         throw std::runtime_error("Too many frame objects");
     }
 
@@ -811,7 +812,7 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
         return RomOffsetPtr();
     }
 
-    if (entityHitboxes.size() > MS::EntityHitbox::MAX_HITBOXES) {
+    if (entityHitboxes.size() > MSC::MAX_ENTITY_HITBOXES) {
         throw std::runtime_error("Too many entity hitboxes");
     }
 
@@ -901,7 +902,7 @@ inline RomOffsetPtr Compiler::processActionPoints(const MS::ActionPoint::list_t&
         return RomOffsetPtr();
     }
 
-    if (actionPoints.size() > MS::ActionPoint::MAX_ACTION_POINTS) {
+    if (actionPoints.size() > MSC::MAX_ACTION_POINTS) {
         throw std::runtime_error("Too many action points");
     }
 
