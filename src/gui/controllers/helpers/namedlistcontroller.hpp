@@ -165,7 +165,7 @@ void NamedListController<T>::create(const std::string& name)
         Private::NamedListAddRemove<T> _handler;
     };
 
-    if (_list) {
+    if (canCreate()) {
         T* newItem = _list->create(name);
 
         if (newItem != nullptr) {
@@ -212,7 +212,7 @@ void NamedListController<T>::selected_clone(const std::string& newName)
         Private::NamedListAddRemove<T> _handler;
     };
 
-    if (_selected && _list) {
+    if (canCloneSelected()) {
         T* newItem = _list->clone(*_selected, newName);
 
         if (newItem != nullptr) {
@@ -259,7 +259,7 @@ void NamedListController<T>::selected_remove()
         Private::NamedListAddRemove<T> _handler;
     };
 
-    if (_selected && _list) {
+    if (canRemoveSelected()) {
         const auto name = _list->getName(_selected);
 
         if (name) {
@@ -318,7 +318,7 @@ void NamedListController<T>::selected_rename(const std::string& newName)
         NamedListController<T>& _controller;
     };
 
-    if (_selected && _list) {
+    if (canRenameSelected()) {
         const auto oldName = _list->getName(_selected);
 
         if (oldName) {

@@ -28,6 +28,26 @@ public:
     void selected_remove();
     void selected_rename(const std::string& newName);
 
+    bool canCreate() const
+    {
+        return _list;
+    }
+
+    bool canCloneSelected() const
+    {
+        return _list && _selected;
+    }
+
+    bool canRemoveSelected() const
+    {
+        return _list && _selected;
+    }
+
+    bool canRenameSelected() const
+    {
+        return _list && _selected;
+    }
+
     auto& signal_selectedChanged() { return _signal_selectedChanged; }
     auto& signal_itemRenamed() { return _signal_itemRenamed; }
     auto& signal_dataChanged() { return _signal_dataChanged; }
