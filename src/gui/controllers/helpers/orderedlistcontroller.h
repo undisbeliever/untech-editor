@@ -46,12 +46,12 @@ public:
 
     bool canMoveSelectedUp() const
     {
-        return _list && _selected && !_list->isLast(_selected);
+        return _list && _selected && !_list->isFirst(_selected);
     }
 
     bool canMoveSelectedDown() const
     {
-        return _list && _selected && !_list->isFirst(_selected);
+        return _list && _selected && !_list->isLast(_selected);
     }
 
     auto& signal_selectedChanged() { return _signal_selectedChanged; }
