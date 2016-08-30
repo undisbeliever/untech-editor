@@ -770,10 +770,10 @@ inline RomOffsetPtr Compiler::processFrameObjects(const MS::FrameObject::list_t&
         throw std::runtime_error("Too many frame objects");
     }
 
-    std::vector<uint8_t> romData(1 + 4 * objects.size());
-    uint8_t* data = romData.data();
+    std::vector<uint8_t> romData;
+    romData.reserve(1 + 4 * objects.size());
 
-    *(data++) = objects.size(); // count
+    romData.push_back(objects.size()); // count
 
     for (const MS::FrameObject& obj : objects) {
         const ms8point loc = obj.location();
@@ -797,10 +797,10 @@ inline RomOffsetPtr Compiler::processFrameObjects(const MS::FrameObject::list_t&
             charAttr ^= V_FLIP;
         }
 
-        *(data++) = loc.x.romData();        // Objects::xOffset
-        *(data++) = loc.y.romData();        // Objects::yOffset
-        *(data++) = charAttr & 0xFF;        // Objects::char
-        *(data++) = (charAttr >> 8) & 0xFF; // Objects::attr
+        romData.push_back(loc.x.romData());        // Objects::xOffset
+        romData.push_back(loc.y.romData());        // Objects::yOffset
+        romData.push_back(charAttr & 0xFF);        // Objects::char
+        romData.push_back((charAttr >> 8) & 0xFF); // Objects::attr
     }
 
     return _frameObjectData.addData(romData);
@@ -817,7 +817,7 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
     }
 
     unsigned count = entityHitboxes.size();
-    unsigned dataSize = 7 * count;
+    unsigned dataSize = 7 + 7 * count;
 
     // a Hitbox with a single aabb is a special case.
     if (count == 1) {
@@ -825,8 +825,8 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
         dataSize = 7 + 1;
     }
 
-    std::vector<uint8_t> romData(dataSize);
-    uint8_t* data = romData.data();
+    std::vector<uint8_t> romData;
+    romData.reserve(dataSize);
 
     ms8rect outerAabb;
     {
@@ -840,13 +840,13 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
         }
     }
 
-    *(data++) = outerAabb.x.romData(); // Outer::xOffset
-    *(data++) = outerAabb.y.romData(); // Outer::yOffset
-    *(data++) = outerAabb.width;       // Outer::width
-    *(data++) = 0;                     // Outer::width high byte
-    *(data++) = outerAabb.height;      // Outer::height
-    *(data++) = 0;                     // Outer::height high byte
-    *(data++) = count;                 // count;
+    romData.push_back(outerAabb.x.romData()); // Outer::xOffset
+    romData.push_back(outerAabb.y.romData()); // Outer::yOffset
+    romData.push_back(outerAabb.width);       // Outer::width
+    romData.push_back(0);                     // Outer::width high byte
+    romData.push_back(outerAabb.height);      // Outer::height
+    romData.push_back(0);                     // Outer::height high byte
+    romData.push_back(count);                 // count
 
     if (count > 0) {
         for (const MS::EntityHitbox& eh : entityHitboxes) {
@@ -856,18 +856,18 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
                 throw std::runtime_error("Entity Hitbox aabb has no size");
             }
 
-            *(data++) = innerAabb.x.romData();      // Inner::xOffset
-            *(data++) = innerAabb.y.romData();      // Inner::yOffset
-            *(data++) = innerAabb.width;            // Inner::width
-            *(data++) = 0;                          // Inner::width high byte
-            *(data++) = innerAabb.height;           // Inner::height
-            *(data++) = 0;                          // Inner::height high byte
-            *(data++) = eh.hitboxType().romValue(); // Inner:type;
+            romData.push_back(innerAabb.x.romData());      // Inner::xOffset
+            romData.push_back(innerAabb.y.romData());      // Inner::yOffset
+            romData.push_back(innerAabb.width);            // Inner::width
+            romData.push_back(0);                          // Inner::width high byte
+            romData.push_back(innerAabb.height);           // Inner::height
+            romData.push_back(0);                          // Inner::height high byte
+            romData.push_back(eh.hitboxType().romValue()); // Inner:type
         }
     }
     else {
         const MS::EntityHitbox& eh = entityHitboxes.at(0);
-        *(data++) = eh.hitboxType().romValue(); // SingleHitbox::type;
+        romData.push_back(eh.hitboxType().romValue()); // SingleHitbox::type
     }
 
     return _entityHitboxData.addData(romData);
@@ -886,12 +886,11 @@ inline RomOffsetPtr Compiler::processTileCollisionHitbox(const MS::Frame& frame)
     }
 
     std::vector<uint8_t> romData(4);
-    uint8_t* data = romData.data();
 
-    *(data++) = aabb.x.romData(); // xOffset
-    *(data++) = aabb.y.romData(); // yOffset
-    *(data++) = aabb.width;       // width
-    *(data++) = aabb.height;      // height
+    romData.push_back(aabb.x.romData()); // xOffset
+    romData.push_back(aabb.y.romData()); // yOffset
+    romData.push_back(aabb.width);       // width
+    romData.push_back(aabb.height);      // height
 
     return _tileHitboxData.addData(romData);
 }
@@ -906,20 +905,18 @@ inline RomOffsetPtr Compiler::processActionPoints(const MS::ActionPoint::list_t&
         throw std::runtime_error("Too many action points");
     }
 
-    std::vector<uint8_t> romData(3 * actionPoints.size() + 1);
-    uint8_t* data = romData.data();
-
-    *(data++) = actionPoints.size(); // count
+    std::vector<uint8_t> romData;
+    romData.reserve(3 * actionPoints.size() + 1);
 
     for (const MS::ActionPoint& ap : actionPoints) {
         const ms8point loc = ap.location();
 
-        *(data++) = ap.parameter();  // Point::parameter
-        *(data++) = loc.x.romData(); // Point::xOffset
-        *(data++) = loc.y.romData(); // Point::yOffset
+        romData.push_back(ap.parameter());  // Point::parameter
+        romData.push_back(loc.x.romData()); // Point::xOffset
+        romData.push_back(loc.y.romData()); // Point::yOffset
     }
 
-    *(data++) = 0; // null terminator
+    romData.push_back(0); // null terminator
 
     return _actionPointData.addData(romData);
 }
