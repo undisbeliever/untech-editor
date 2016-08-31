@@ -801,7 +801,7 @@ ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID,
 
     // ::TODO replace with something better::
     _parameter = new wxSpinCtrl(this, wxID_ANY);
-    _parameter->SetRange(0, 255);
+    _parameter->SetRange(1, 255);
     grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));
     grid->Add(_parameter, wxSizerFlags(1).Expand());
 

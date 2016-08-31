@@ -128,7 +128,7 @@ private:
                 ActionPoint& ap = frame.actionPoints().create();
 
                 ap.setLocation(childTag->getAttributeMs8point());
-                ap.setParameter(childTag->getAttributeUint8("parameter"));
+                ap.setParameter(childTag->getAttributeUint8NotZero("parameter"));
             }
 
             else if (childTag->name == "entityhitbox") {

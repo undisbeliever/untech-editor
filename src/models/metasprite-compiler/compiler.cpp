@@ -909,6 +909,10 @@ inline RomOffsetPtr Compiler::processActionPoints(const MS::ActionPoint::list_t&
     romData.reserve(3 * actionPoints.size() + 1);
 
     for (const MS::ActionPoint& ap : actionPoints) {
+        if (ap.parameter() == 0) {
+            throw std::runtime_error("Action Point parameter cannot be zero");
+        }
+
         const ms8point loc = ap.location();
 
         romData.push_back(ap.parameter());  // Point::parameter

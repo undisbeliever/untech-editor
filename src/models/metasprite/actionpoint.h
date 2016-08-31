@@ -23,7 +23,7 @@ public:
     ActionPoint(Frame& frame)
         : _frame(frame)
         , _location(0, 0)
-        , _parameter(0)
+        , _parameter(1)
     {
     }
 
@@ -41,7 +41,12 @@ public:
     inline parameter_t parameter() const { return _parameter; }
 
     inline void setLocation(const ms8point& location) { _location = location; };
-    inline void setParameter(parameter_t parameter) { _parameter = parameter; };
+    inline void setParameter(parameter_t parameter)
+    {
+        if (parameter >= 1) {
+            _parameter = parameter;
+        }
+    };
 
 private:
     Frame& _frame;

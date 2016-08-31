@@ -8,7 +8,7 @@ const char* ActionPoint::TYPE_NAME = "Action Point";
 ActionPoint::ActionPoint(Frame& frame)
     : _frame(frame)
     , _location(0, 0)
-    , _parameter(0)
+    , _parameter(1)
 {
     const auto frameLocation = frame.location();
 
@@ -34,7 +34,10 @@ void ActionPoint::setLocation(const upoint& location)
 
 void ActionPoint::setParameter(parameter_t parameter)
 {
-    if (_parameter != parameter) {
-        _parameter = parameter;
+    // parameter cannot be 0
+    if (parameter >= 1) {
+        if (_parameter != parameter) {
+            _parameter = parameter;
+        }
     }
 }

@@ -116,6 +116,11 @@ struct XmlTag {
         return (uint8_t)getAttributeUnsigned(aName, 0, UINT8_MAX);
     }
 
+    inline uint8_t getAttributeUint8NotZero(const std::string& aName) const
+    {
+        return (uint8_t)getAttributeUnsigned(aName, 1, UINT8_MAX);
+    }
+
     inline int_ms8_t getAttributeIntMs8(const std::string& aName) const
     {
         return int_ms8_t(getAttributeInteger(aName, int_ms8_t::MIN, int_ms8_t::MAX));
