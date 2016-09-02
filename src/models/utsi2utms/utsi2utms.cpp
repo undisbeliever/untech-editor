@@ -293,6 +293,7 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
 
                 msObj.setSize(static_cast<MS::FrameObject::ObjectSize>(siObj.size()));
                 msObj.setLocation(ms8point::createFromOffset(siObj.location(), siFrameOrigin));
+                msObj.setOrder(siFrame.spriteOrder());
 
                 if (overlapping.count(&siObj) > 0) {
                     // don't process overlapping tiles here
