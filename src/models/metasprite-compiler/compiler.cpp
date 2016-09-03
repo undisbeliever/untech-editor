@@ -840,13 +840,14 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
         }
     }
 
+    romData.push_back(count); // count
+
     romData.push_back(outerAabb.x.romData()); // Outer::xOffset
     romData.push_back(outerAabb.y.romData()); // Outer::yOffset
     romData.push_back(outerAabb.width);       // Outer::width
     romData.push_back(0);                     // Outer::width high byte
     romData.push_back(outerAabb.height);      // Outer::height
     romData.push_back(0);                     // Outer::height high byte
-    romData.push_back(count);                 // count
 
     if (count > 0) {
         for (const MS::EntityHitbox& eh : entityHitboxes) {
@@ -856,13 +857,13 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
                 throw std::runtime_error("Entity Hitbox aabb has no size");
             }
 
+            romData.push_back(eh.hitboxType().romValue()); // Inner:type
             romData.push_back(innerAabb.x.romData());      // Inner::xOffset
             romData.push_back(innerAabb.y.romData());      // Inner::yOffset
             romData.push_back(innerAabb.width);            // Inner::width
             romData.push_back(0);                          // Inner::width high byte
             romData.push_back(innerAabb.height);           // Inner::height
             romData.push_back(0);                          // Inner::height high byte
-            romData.push_back(eh.hitboxType().romValue()); // Inner:type
         }
     }
     else {
