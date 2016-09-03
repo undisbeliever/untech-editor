@@ -3,8 +3,8 @@
 #include <string>
 
 #define UNTECH_NAME "UnTech"
-#define UNTECH_VERSION "0.20"
-const unsigned UNTECH_VERSION_INT = 20;
+#define UNTECH_VERSION "0.21"
+const unsigned UNTECH_VERSION_INT = 21;
 
 #define UNTECH_LICENSE "The MIT License"
 #define UNTECH_LICENSE_URL "https://opensource.org/licenses/MIT"

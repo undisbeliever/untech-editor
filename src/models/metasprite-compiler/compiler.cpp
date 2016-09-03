@@ -816,12 +816,12 @@ inline RomOffsetPtr Compiler::processEntityHitboxes(const MS::EntityHitbox::list
         throw std::runtime_error("Too many entity hitboxes");
     }
 
-    unsigned count = entityHitboxes.size();
-    unsigned dataSize = 7 + 7 * count;
+    // count starts at -1
+    unsigned count = entityHitboxes.size() - 1;
+    unsigned dataSize = 7 + 7 * entityHitboxes.size();
 
     // a Hitbox with a single aabb is a special case.
-    if (count == 1) {
-        count = 0;
+    if (count == 0) {
         dataSize = 7 + 1;
     }
 
