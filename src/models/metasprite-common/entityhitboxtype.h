@@ -12,10 +12,10 @@ public:
     enum class Enum : uint_fast8_t {
         BODY = 0,
         BODY_WEAK = 2,
-        SHIELD = 4,
-        SHIELD_ATTACK = 6,
-        ATTACK = 8,
-        PROJECTILE = 10,
+        BODY_ATTACK = 4,
+        SHIELD = 6,
+        SHIELD_ATTACK = 8,
+        ATTACK = 10,
     };
 
     static const std::map<Enum, std::string> enumMap;
