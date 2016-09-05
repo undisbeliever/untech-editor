@@ -12,6 +12,8 @@ using namespace UnTech::MetaSpriteCompiler;
 namespace MS = UnTech::MetaSprite;
 namespace MSC = UnTech::MetaSpriteCommon;
 
+const unsigned Compiler::METASPRITE_FORMAT_VERSION = 23;
+
 inline bool Compiler::AnimationListEntry::operator==(const Compiler::AnimationListEntry& o) const
 {
     return animation == o.animation && hFlip == o.hFlip && vFlip == o.vFlip;
@@ -61,7 +63,8 @@ void Compiler::writeToIncFile(std::ostream& out) const
     out << "scope MetaSprite {\n"
            "scope Data {\n"
            "\n"
-        << "constant EDITOR_VERSION(" << UNTECH_VERSION_INT << ")\n";
+        << "constant EDITOR_VERSION(" << UNTECH_VERSION_INT << ")\n"
+        << "constant METASPRITE_FORMAT_VERSION(" << METASPRITE_FORMAT_VERSION << ")\n";
 
     _animationData.writeToIncFile(out);
     _animationList.writeToIncFile(out);

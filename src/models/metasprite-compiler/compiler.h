@@ -22,6 +22,8 @@ class Compiler {
 public:
     const static unsigned DEFAULT_TILE_BLOCK_SIZE = 8 * 1024;
 
+    const static unsigned METASPRITE_FORMAT_VERSION;
+
 public:
     Compiler(unsigned tilesetBlockSize = DEFAULT_TILE_BLOCK_SIZE);
 
