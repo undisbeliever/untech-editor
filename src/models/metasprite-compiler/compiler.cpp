@@ -12,7 +12,7 @@ using namespace UnTech::MetaSpriteCompiler;
 namespace MS = UnTech::MetaSprite;
 namespace MSC = UnTech::MetaSpriteCommon;
 
-const unsigned Compiler::METASPRITE_FORMAT_VERSION = 23;
+const unsigned Compiler::METASPRITE_FORMAT_VERSION = 24;
 
 inline bool Compiler::AnimationListEntry::operator==(const Compiler::AnimationListEntry& o) const
 {
@@ -776,7 +776,7 @@ inline RomOffsetPtr Compiler::processFrameObjects(const MS::FrameObject::list_t&
     std::vector<uint8_t> romData;
     romData.reserve(1 + 4 * objects.size());
 
-    romData.push_back(objects.size()); // count
+    romData.push_back(objects.size() - 1); // count
 
     for (const MS::FrameObject& obj : objects) {
         const ms8point loc = obj.location();
