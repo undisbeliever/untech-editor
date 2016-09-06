@@ -1,8 +1,8 @@
 #pragma once
 
-#include "compiler.h"
-#include <list>
-#include <set>
+#include "tilesetcompiler.h"
+#include <array>
+#include <unordered_map>
 
 namespace UnTech {
 namespace MetaSpriteCompiler {

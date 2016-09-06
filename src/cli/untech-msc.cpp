@@ -11,7 +11,7 @@ using namespace UnTech;
 namespace MS = UnTech::MetaSprite;
 namespace MSC = UnTech::MetaSpriteCompiler;
 
-const unsigned TBS = MSC::Compiler::DEFAULT_TILE_BLOCK_SIZE;
+const unsigned TBS = MSC::TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE;
 
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
@@ -48,15 +48,17 @@ int main(int argc, const char* argv[])
         }
     }
 
-    for (const std::string& w : compiler.warnings()) {
+    const auto& errorList = compiler.errorList();
+
+    for (const std::string& w : errorList.warnings()) {
         std::cerr << "warning: " << w << '\n';
     }
 
-    for (const std::string& e : compiler.errors()) {
+    for (const std::string& e : errorList.errors()) {
         std::cerr << "error: " << e << '\n';
     }
 
-    if (!compiler.errors().empty()) {
+    if (!errorList.errors().empty()) {
         return EXIT_FAILURE;
     }
 

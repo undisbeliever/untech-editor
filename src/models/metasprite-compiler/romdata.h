@@ -292,6 +292,10 @@ public:
 
     RomOffsetPtr addData(const std::vector<uint8_t>& sData)
     {
+        if (sData.size() == 0) {
+            return RomOffsetPtr();
+        }
+
         const auto it = _map.find(sData);
         if (it != _map.end()) {
             return RomOffsetPtr(&_label, it->second);
