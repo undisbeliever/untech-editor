@@ -333,16 +333,14 @@ TilesetCompiler::generateTilesetList(const FrameSetExportList& exportList)
             _errorList.addWarning(frameSet, "Tileset can be fixed, making it so.");
         }
 
-        // resize tileset if necessary
+        // try to resize tileset if necessary
         auto smallestType = MSC::TilesetType::smallestFixedTileset(tilesetSize);
 
         if (tilesetType.nTiles() != smallestType.nTiles()) {
             _errorList.addWarning(frameSet, std::string("TilesetType shrunk to ") + smallestType.string());
-
-            tilesetType = smallestType;
         }
 
-        return generateFixedTileset(frameSet, tilesetType, largeTileGraph, smallTileGraph);
+        return generateFixedTileset(frameSet, smallestType, largeTileGraph, smallTileGraph);
     }
     else {
         return generateDynamicTilesets(frameSet, tilesetType, largeTileGraph, smallTileGraph);
