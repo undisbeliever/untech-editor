@@ -166,22 +166,24 @@ Frame::Boundary Frame::calcBoundary() const
 
 void Frame::draw(Image& image, const Palette& palette, unsigned xOffset, unsigned yOffset) const
 {
-    for (int order = 0; order < 4; order++) {
-        for (auto it = _objects.rbegin(); it != _objects.rend(); ++it) {
-            const FrameObject& obj = *it;
+    // Ignore sprite order.
+    //
+    // The SNES will only check the priority of the topmost OAM object
+    // (for the current pixel) and ignore the priority of all of the
+    // other objects.
 
-            if (obj.order() == order) {
-                if (obj.size() == FrameObject::ObjectSize::SMALL) {
-                    _frameSet.smallTileset().drawTile(image, palette,
-                                                      xOffset + obj.location().x, yOffset + obj.location().y,
-                                                      obj.tileId(), obj.hFlip(), obj.vFlip());
-                }
-                else {
-                    _frameSet.largeTileset().drawTile(image, palette,
-                                                      xOffset + obj.location().x, yOffset + obj.location().y,
-                                                      obj.tileId(), obj.hFlip(), obj.vFlip());
-                }
-            }
+    for (auto it = _objects.rbegin(); it != _objects.rend(); ++it) {
+        const FrameObject& obj = *it;
+
+        if (obj.size() == FrameObject::ObjectSize::SMALL) {
+            _frameSet.smallTileset().drawTile(image, palette,
+                                              xOffset + obj.location().x, yOffset + obj.location().y,
+                                              obj.tileId(), obj.hFlip(), obj.vFlip());
+        }
+        else {
+            _frameSet.largeTileset().drawTile(image, palette,
+                                              xOffset + obj.location().x, yOffset + obj.location().y,
+                                              obj.tileId(), obj.hFlip(), obj.vFlip());
         }
     }
 }
