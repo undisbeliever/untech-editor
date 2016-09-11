@@ -9,7 +9,7 @@ using namespace UnTech;
 using namespace UnTech::SpriteImporter;
 using namespace UnTech::MetaSpriteCommon;
 
-const char* Frame::TYPE_NAME = "FrameSet";
+const char* Frame::TYPE_NAME = "Frame";
 
 const usize Frame::MIN_SIZE = usize(Frame::MIN_WIDTH, Frame::MIN_HEIGHT);
 
