@@ -105,6 +105,10 @@ wxString OrderedListCtrl<MSC::AnimationInstruction>::OnGetItemText(long item, lo
             return wxString::Format("%d", inst.parameter());
             break;
 
+        case BC::GOTO_ANIMATION:
+            return inst.gotoLabel();
+            break;
+
         case BC::SET_FRAME_AND_WAIT_FRAMES:
             return wxString::Format("%d frames", inst.parameter());
             break;
