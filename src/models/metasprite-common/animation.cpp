@@ -68,6 +68,7 @@ const char* AnimationInstruction::TYPE_NAME = "Animation Instruction";
 AnimationInstruction::AnimationInstruction(Animation& parent)
     : _animation(parent)
     , _operation()
+    , _gotoLabel()
     , _frame()
     , _parameter(0)
 {
@@ -77,6 +78,7 @@ AnimationInstruction::AnimationInstruction(const AnimationInstruction& ani,
                                            Animation& parent)
     : _animation(parent)
     , _operation(ani._operation)
+    , _gotoLabel(ani._gotoLabel)
     , _frame(ani._frame)
     , _parameter(ani._parameter)
 {
