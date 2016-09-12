@@ -20,6 +20,8 @@ FrameSetExportList::FrameSetExportList(const MetaSprite::FrameSet& frameSet)
 
 inline void FrameSetExportList::buildAnimationList()
 {
+    typedef MSC::AnimationBytecode::Enum BC;
+
     assert(_frameSet.exportOrderDocument() != nullptr);
     const auto& exportOrder = _frameSet.exportOrderDocument()->exportOrder();
 
@@ -49,6 +51,27 @@ inline void FrameSetExportList::buildAnimationList()
 
             if (success == false) {
                 throw std::runtime_error("Cannot find animation " + aname);
+            }
+        }
+    }
+
+    // Include the animations referenced in GOTO_ANIMATION bytecode
+    for (unsigned toTestIndex = 0; toTestIndex < _animations.size(); toTestIndex++) {
+        const auto& toTest = _animations[toTestIndex];
+
+        for (const auto& inst : toTest.animation->instructions()) {
+            if (inst.operation() == BC::GOTO_ANIMATION) {
+                const MSC::Animation* a = _frameSet.animations().getPtr(inst.gotoLabel());
+
+                if (a == nullptr) {
+                    throw std::runtime_error("Cannot find animation " + inst.gotoLabel());
+                }
+
+                auto it = std::find(_animations.begin(), _animations.end(),
+                                    AnimationListEntry({ a, toTest.hFlip, toTest.vFlip }));
+                if (it == _animations.end()) {
+                    _animations.push_back({ a, toTest.hFlip, toTest.vFlip });
+                }
             }
         }
     }
