@@ -59,84 +59,54 @@ Frame::Frame(const Frame& frame, FrameSet& frameSet)
 
 void Frame::setUseGridLocation(bool useGridLocation)
 {
-    if (_useGridLocation != useGridLocation) {
-        _useGridLocation = useGridLocation;
-
-        if (useGridLocation == true) {
-            recalculateLocation();
-        }
-    }
+    _useGridLocation = useGridLocation;
+    recalculateLocation();
 }
 
 void Frame::setGridLocation(upoint gridLocation)
 {
-    if (_gridLocation != gridLocation) {
-        _useGridLocation = true;
-        _gridLocation = gridLocation;
-
-        recalculateLocation();
-    }
+    _useGridLocation = true;
+    _gridLocation = gridLocation;
+    recalculateLocation();
 }
 
 void Frame::setLocation(const urect& location)
 {
+    _useGridLocation = true;
+
+    urect newLocation = location;
     usize limit = minimumViableSize();
+    newLocation.width = std::max(location.width, limit.width);
+    newLocation.height = std::max(location.height, limit.height);
 
-    if (_useGridLocation == false) {
-        urect newLocation = location;
-
-        newLocation.width = std::max(location.width, limit.width);
-        newLocation.height = std::max(location.height, limit.height);
-
-        if (_location != newLocation) {
-            _location = newLocation;
-        }
-    }
+    _location = newLocation;
 }
 
 void Frame::setUseGridOrigin(bool useGridOrigin)
 {
-    if (_useGridOrigin != useGridOrigin) {
-        _useGridOrigin = useGridOrigin;
-
-        if (useGridOrigin == true) {
-            recalculateOrigin();
-        }
-    }
+    _useGridOrigin = useGridOrigin;
+    recalculateOrigin();
 }
 
 void Frame::setOrigin(upoint origin)
 {
-    if (_origin != origin) {
-        if (_useGridOrigin == false) {
-            _origin = _location.clipInside(origin);
-        }
-    }
+    _useGridOrigin = false;
+    _origin = _location.clipInside(origin);
 }
 
 void Frame::setSolid(bool solid)
 {
-    if (_solid != solid) {
-        _solid = solid;
-    }
+    _solid = solid;
 }
 
 void Frame::setTileHitbox(const urect& tileHitbox)
 {
-    urect newHitbox = _location.clipInside(tileHitbox, _tileHitbox);
-
-    if (_tileHitbox != newHitbox) {
-        _tileHitbox = newHitbox;
-    }
+    _tileHitbox = _location.clipInside(tileHitbox, _tileHitbox);
 }
 
 void Frame::setSpriteOrder(unsigned spriteOrder)
 {
-    unsigned newOrder = spriteOrder & SPRITE_ORDER_MASK;
-
-    if (_spriteOrder != newOrder) {
-        _spriteOrder = newOrder;
-    }
+    _spriteOrder = spriteOrder & SPRITE_ORDER_MASK;
 }
 
 usize Frame::minimumViableSize() const
@@ -162,9 +132,9 @@ usize Frame::minimumViableSize() const
 
 void Frame::recalculateLocation()
 {
-    const auto& grid = _frameSet.grid();
-
     if (_useGridLocation) {
+        const auto& grid = _frameSet.grid();
+
         _location.x = _gridLocation.x * (grid.frameSize().width + grid.padding().width) + grid.offset().x;
         _location.y = _gridLocation.y * (grid.frameSize().height + grid.padding().height) + grid.offset().y;
         _location.width = grid.frameSize().width;
@@ -174,9 +144,7 @@ void Frame::recalculateLocation()
 
 void Frame::recalculateOrigin()
 {
-    const auto& grid = _frameSet.grid();
-
     if (_useGridOrigin) {
-        _origin = grid.origin();
+        _origin = _frameSet.grid().origin();
     }
 }

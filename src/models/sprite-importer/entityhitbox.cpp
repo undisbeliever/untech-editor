@@ -25,16 +25,10 @@ EntityHitbox::EntityHitbox(const EntityHitbox& hitbox, Frame& frame)
 
 void EntityHitbox::setAabb(const urect& aabb)
 {
-    urect newAabb = _frame.location().clipInside(aabb, _aabb);
-
-    if (_aabb != newAabb) {
-        _aabb = newAabb;
-    }
+    _aabb = _frame.location().clipInside(aabb, _aabb);
 }
 
 void EntityHitbox::setHitboxType(MetaSpriteCommon::EntityHitboxType hitboxType)
 {
-    if (_hitboxType != hitboxType) {
-        _hitboxType = hitboxType;
-    }
+    _hitboxType = hitboxType;
 }

@@ -25,21 +25,15 @@ FrameObject::FrameObject(const FrameObject& object, Frame& frame)
 
 void FrameObject::setLocation(const upoint& location)
 {
-    upoint newLocation = _frame.location().clipInside(location, sizePx());
-
-    if (_location != newLocation) {
-        _location = newLocation;
-    }
+    _location = _frame.location().clipInside(location, sizePx());
 }
 
 void FrameObject::setSize(ObjectSize size)
 {
-    if (_size != size) {
-        _size = size;
+    _size = size;
 
-        if (size == ObjectSize::LARGE) {
-            // may now be outside frame.
-            _location = _frame.location().clipInside(_location, sizePx());
-        }
+    if (_size == ObjectSize::LARGE) {
+        // may now be outside frame.
+        _location = _frame.location().clipInside(_location, sizePx());
     }
 }

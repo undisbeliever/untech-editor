@@ -25,19 +25,13 @@ ActionPoint::ActionPoint(const ActionPoint& point, Frame& frame)
 
 void ActionPoint::setLocation(const upoint& location)
 {
-    upoint newLocation = _frame.location().clipInside(location);
-
-    if (_location != newLocation) {
-        _location = newLocation;
-    }
+    _location = _frame.location().clipInside(location);
 }
 
 void ActionPoint::setParameter(parameter_t parameter)
 {
     // parameter cannot be 0
     if (parameter >= 1) {
-        if (_parameter != parameter) {
-            _parameter = parameter;
-        }
+        _parameter = parameter;
     }
 }
