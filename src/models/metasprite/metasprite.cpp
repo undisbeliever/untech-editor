@@ -81,13 +81,13 @@ void Frame::draw(Image& image, const FrameSet& frameSet, size_t paletteId,
 
         if (obj.size == ObjectSize::SMALL) {
             frameSet.smallTileset.drawTile(image, palette,
-                                             xOffset + obj.location.x, yOffset + obj.location.y,
-                                             obj.tileId, obj.hFlip, obj.vFlip);
+                                           xOffset + obj.location.x, yOffset + obj.location.y,
+                                           obj.tileId, obj.hFlip, obj.vFlip);
         }
         else {
             frameSet.largeTileset.drawTile(image, palette,
-                                             xOffset + obj.location.x, yOffset + obj.location.y,
-                                             obj.tileId, obj.hFlip, obj.vFlip);
+                                           xOffset + obj.location.x, yOffset + obj.location.y,
+                                           obj.tileId, obj.hFlip, obj.vFlip);
         }
     }
 }

@@ -21,6 +21,11 @@ public:
 public:
     Palette() = default;
     Palette(const Palette& p) = default;
+    Palette(const std::vector<uint8_t>& data)
+        : _colors()
+    {
+        readPalette(data);
+    }
 
     inline palette_t& colors() { return _colors; }
     inline const palette_t& colors() const { return _colors; }

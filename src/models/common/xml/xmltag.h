@@ -1,10 +1,11 @@
 #pragma once
 
 #include "../aabb.h"
+#include "../clampedinteger.h"
 #include "../file.h"
 #include "../int_ms8_t.h"
 #include "../ms8aabb.h"
-#include "../namedlist.h"
+#include "../namechecks.h"
 #include "../optional.h"
 #include <climits>
 #include <memory>
@@ -53,6 +54,20 @@ struct XmlTag {
         }
     }
 
+    template <class ListT>
+    inline std::string getAttributeUniqueId(const std::string& aName,
+                                            const ListT& list) const
+    {
+        std::string id = getAttributeId(aName);
+
+        if (list.find(id) == list.end()) {
+            return id;
+        }
+        else {
+            throw buildError("id already exists");
+        }
+    }
+
     inline optional<std::string> getOptionalAttribute(const std::string& aName) const
     {
         auto it = attributes.find(aName);
@@ -85,6 +100,12 @@ struct XmlTag {
             throw buildError(aName, "Number too small");
         }
         return i;
+    }
+
+    template <class T>
+    inline T getAttributeClampedInteger(const std::string& aName)
+    {
+        return getAttributeInteger(aName, T::MIN, T::MAX);
     }
 
     inline unsigned getAttributeUnsigned(const std::string& aName, unsigned min = 0, unsigned max = UINT_MAX) const
