@@ -1,7 +1,7 @@
 #include "tilesettype.h"
 #include <stdexcept>
 
-using namespace UnTech::MetaSpriteCommon;
+using namespace UnTech::MetaSprite;
 
 const std::map<TilesetType::Enum, std::string> TilesetType::enumMap = {
     { TilesetType::Enum::ONE_TILE, "ONE_TILE" },

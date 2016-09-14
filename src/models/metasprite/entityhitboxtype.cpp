@@ -1,6 +1,6 @@
 #include "entityhitboxtype.h"
 
-using namespace UnTech::MetaSpriteCommon;
+using namespace UnTech::MetaSprite;
 
 const std::map<EntityHitboxType::Enum, std::string> EntityHitboxType::enumMap = {
     { EntityHitboxType::Enum::BODY, "BODY" },

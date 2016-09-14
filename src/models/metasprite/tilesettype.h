@@ -5,7 +5,7 @@
 #include <string>
 
 namespace UnTech {
-namespace MetaSpriteCommon {
+namespace MetaSprite {
 
 class TilesetType {
 public:
@@ -34,6 +34,7 @@ public:
     }
 
     TilesetType(const TilesetType&) = default;
+    TilesetType(TilesetType&&) = default;
 
     static TilesetType smallestFixedTileset(unsigned tilesetSize);
 
@@ -48,23 +49,18 @@ public:
 
     uint8_t engineValue() const { return (uint8_t)_value; }
 
-    bool operator==(const TilesetType& o) const
+    inline operator Enum() const { return _value; }
+    inline TilesetType operator=(const TilesetType& v)
     {
-        return _value == o._value;
-    }
-    bool operator==(Enum e) const
-    {
-        return _value == e;
+        _value = v._value;
+        return *this;
     }
 
-    bool operator!=(const TilesetType& o) const
-    {
-        return _value != o._value;
-    }
-    bool operator!=(Enum e) const
-    {
-        return _value != e;
-    }
+    inline bool operator==(const TilesetType& o) const { return _value == o._value; }
+    inline bool operator==(Enum e) const { return _value == e; }
+
+    inline bool operator!=(const TilesetType& o) const { return _value != o._value; }
+    inline bool operator!=(Enum e) const { return _value != e; }
 
 private:
     Enum _value;

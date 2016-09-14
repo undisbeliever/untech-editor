@@ -5,7 +5,7 @@
 #include <string>
 
 namespace UnTech {
-namespace MetaSpriteCommon {
+namespace MetaSprite {
 
 class EntityHitboxType {
 public:
@@ -32,6 +32,7 @@ public:
     }
 
     EntityHitboxType(const EntityHitboxType&) = default;
+    EntityHitboxType(EntityHitboxType&&) = default;
 
     static EntityHitboxType smallestFixedTileset(unsigned tilesetSize);
 
@@ -40,23 +41,18 @@ public:
 
     const std::string& string() const { return enumMap.at(_value); }
 
-    bool operator==(const EntityHitboxType& o) const
+    inline operator Enum() const { return _value; }
+    inline EntityHitboxType operator=(const EntityHitboxType& v)
     {
-        return _value == o._value;
-    }
-    bool operator==(Enum e) const
-    {
-        return _value == e;
+        _value = v._value;
+        return *this;
     }
 
-    bool operator!=(const EntityHitboxType& o) const
-    {
-        return _value != o._value;
-    }
-    bool operator!=(Enum e) const
-    {
-        return _value != e;
-    }
+    inline bool operator==(const EntityHitboxType& o) const { return _value == o._value; }
+    inline bool operator==(Enum e) const { return _value == e; }
+
+    inline bool operator!=(const EntityHitboxType& o) const { return _value != o._value; }
+    inline bool operator!=(Enum e) const { return _value != e; }
 
 private:
     Enum _value;

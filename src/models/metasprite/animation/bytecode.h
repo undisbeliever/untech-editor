@@ -5,9 +5,10 @@
 #include <string>
 
 namespace UnTech {
-namespace MetaSpriteCommon {
+namespace MetaSprite {
+namespace Animation {
 
-class AnimationBytecode {
+class Bytecode {
 public:
     enum class Enum : uint_fast8_t {
         STOP = 0x00,
@@ -23,17 +24,17 @@ public:
     static const std::map<Enum, std::string> enumMap;
     static const std::map<std::string, Enum> stringMap;
 
-    AnimationBytecode(const Enum v = Enum::STOP)
+    Bytecode(const Enum v = Enum::STOP)
         : _value(v)
     {
     }
 
-    AnimationBytecode(const std::string str)
+    Bytecode(const std::string str)
         : _value(stringMap.at(str))
     {
     }
 
-    AnimationBytecode(const AnimationBytecode&) = default;
+    Bytecode(const Bytecode&) = default;
 
     unsigned instructionSize() const;
 
@@ -49,26 +50,17 @@ public:
     const std::string& string() const { return enumMap.at(_value); }
     uint8_t engineValue() const { return (uint8_t)_value; }
 
-    bool operator==(const AnimationBytecode& o) const
-    {
-        return _value == o._value;
-    }
-    bool operator==(Enum e) const
-    {
-        return _value == e;
-    }
+    inline operator Enum() const { return _value; }
 
-    bool operator!=(const AnimationBytecode& o) const
-    {
-        return _value != o._value;
-    }
-    bool operator!=(Enum e) const
-    {
-        return _value != e;
-    }
+    inline bool operator==(const Bytecode& o) const { return _value == o._value; }
+    inline bool operator==(Enum e) const { return _value == e; }
+
+    inline bool operator!=(const Bytecode& o) const { return _value != o._value; }
+    inline bool operator!=(Enum e) const { return _value != e; }
 
 private:
     Enum _value;
 };
+}
 }
 }

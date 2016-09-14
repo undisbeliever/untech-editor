@@ -75,6 +75,11 @@ struct usize {
         return upoint(std::min(width, p.x), std::min(height, p.y));
     }
 
+    inline bool contains(const upoint& p) const
+    {
+        return p.x < width && p.y < height;
+    }
+
     inline bool contains(const urect& r) const;
 
     bool operator==(const usize& o) const
@@ -133,6 +138,7 @@ struct _rect {
     inline T bottom() const { return y + height; }
 
     inline usize size() const { return { width, height }; }
+    inline _point<T> bottomRight() const { return { bottom(), right() }; }
 
     inline bool contains(const _point<T>& p) const
     {
