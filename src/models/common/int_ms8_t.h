@@ -1,5 +1,6 @@
 #pragma once
 
+#include "clampedinteger.h"
 #include <cstdint>
 
 namespace UnTech {
@@ -11,72 +12,22 @@ namespace UnTech {
  *
  * The data stored in ROM is in the following format:
  *
- *      byte value: (value - OFFSET)
+ *      ROM value: (integer value + OFFSET)
  *
  * This is much faster than sign extending a byte value in 65816 assembly
  */
 
-class int_ms8_t {
+class int_ms8_t : public ClampedInteger<int_fast16_t, -128, 127> {
 public:
     static const unsigned OFFSET = 128;
-
-    static const int MIN = -OFFSET;
-    static const int MAX = UINT8_MAX - OFFSET;
-
     static bool isValid(const int v) { return v >= MIN && v <= MAX; }
 
-private:
-    int_fast8_t data;
-
-    inline void assign(const int v)
+    int_ms8_t() = default;
+    int_ms8_t(const int_fast16_t& v)
+        : ClampedInteger(v)
     {
-        data = v >= MIN ? (v <= MAX ? v : MAX) : MIN;
     }
 
-public:
-    inline int_ms8_t()
-        : data(0)
-    {
-    }
-    inline int_ms8_t(const int_ms8_t& v)
-        : data(v.data)
-    {
-    }
-    inline int_ms8_t(const int& v) { assign(v); }
-
-    inline operator int() const { return data; }
-    inline auto& operator=(const int v)
-    {
-        assign(v);
-        return *this;
-    }
-
-    inline auto& operator+=(const int v)
-    {
-        assign(data + v);
-        return *this;
-    }
-    inline auto& operator-=(const int v)
-    {
-        assign(data - v);
-        return *this;
-    }
-    inline auto& operator*=(const int v)
-    {
-        assign(data * v);
-        return *this;
-    }
-    inline auto& operator/=(const int v)
-    {
-        assign(data / v);
-        return *this;
-    }
-    inline auto& operator%=(const int v)
-    {
-        assign(data % v);
-        return *this;
-    }
-
-    inline uint8_t romData() const { return data + OFFSET; }
+    inline uint8_t romData() const { return *this + OFFSET; }
 };
 }
