@@ -4,11 +4,12 @@
 #include "entityhitboxtype.h"
 #include "tilesettype.h"
 #include "animation/animation.h"
+#include "models/common/capped_vector.h"
 #include "models/common/image.h"
 #include "models/common/ms8aabb.h"
 #include "models/snes/tileset.h"
+#include <map>
 #include <string>
-#include <vector>
 
 namespace UnTech {
 namespace MetaSprite {
@@ -18,6 +19,8 @@ struct FrameSet;
 struct Frame;
 
 struct FrameObject {
+    typedef capped_vector<FrameObject, MAX_FRAME_OBJECTS> list_t;
+
     ms8point location;
     ObjectSize size;
     unsigned tileId;
@@ -38,6 +41,8 @@ struct FrameObject {
 };
 
 struct ActionPoint {
+    typedef capped_vector<ActionPoint, MAX_ACTION_POINTS> list_t;
+
     ms8point location;
     ActionPointParameter parameter;
 
@@ -50,6 +55,8 @@ struct ActionPoint {
 };
 
 struct EntityHitbox {
+    typedef capped_vector<EntityHitbox, MAX_ENTITY_HITBOXES> list_t;
+
     ms8rect aabb;
     EntityHitboxType hitboxType;
 
@@ -66,9 +73,9 @@ struct Frame {
     // ::TODO replace with idstring::
     typedef std::map<std::string, Frame> map_t;
 
-    std::vector<FrameObject> objects;
-    std::vector<ActionPoint> actionPoints;
-    std::vector<EntityHitbox> entityHitboxes;
+    FrameObject::list_t objects;
+    ActionPoint::list_t actionPoints;
+    EntityHitbox::list_t entityHitboxes;
     ms8rect tileHitbox;
     bool solid;
 

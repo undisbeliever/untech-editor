@@ -278,7 +278,7 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
         xml.writeCloseTag();
     }
 
-    for (const auto fIt : frameSet.frames) {
+    for (const auto& fIt : frameSet.frames) {
         writeFrame(xml, fIt.first, fIt.second);
     }
 

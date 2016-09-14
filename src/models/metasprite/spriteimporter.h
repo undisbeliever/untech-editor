@@ -5,6 +5,7 @@
 #include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/aabb.h"
+#include "models/common/capped_vector.h"
 #include "models/common/image.h"
 #include <map>
 #include <string>
@@ -54,6 +55,8 @@ struct FrameLocation {
 };
 
 struct FrameObject {
+    typedef capped_vector<FrameObject, MAX_FRAME_OBJECTS> list_t;
+
     upoint location;
     ObjectSize size;
 
@@ -78,6 +81,8 @@ struct FrameObject {
 };
 
 struct ActionPoint {
+    typedef capped_vector<ActionPoint, MAX_ACTION_POINTS> list_t;
+
     upoint location;
     ActionPointParameter parameter;
 
@@ -95,6 +100,8 @@ struct ActionPoint {
 };
 
 struct EntityHitbox {
+    typedef capped_vector<EntityHitbox, MAX_ENTITY_HITBOXES> list_t;
+
     urect aabb;
     EntityHitboxType hitboxType;
 
@@ -117,9 +124,9 @@ struct Frame {
     typedef std::map<std::string, Frame> map_t;
 
     FrameLocation location;
-    std::vector<FrameObject> objects;
-    std::vector<ActionPoint> actionPoints;
-    std::vector<EntityHitbox> entityHitboxes;
+    FrameObject::list_t objects;
+    ActionPoint::list_t actionPoints;
+    EntityHitbox::list_t entityHitboxes;
     urect tileHitbox;
     SpriteOrderType spriteOrder = DEFAULT_SPRITE_ORDER;
     bool solid;

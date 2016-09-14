@@ -5,6 +5,13 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite::SpriteImporter;
 
+template <>
+const std::string FrameObject::list_t::HUMAN_TYPE_NAME = "Frame Object";
+template <>
+const std::string ActionPoint::list_t::HUMAN_TYPE_NAME = "Action Point";
+template <>
+const std::string EntityHitbox::list_t::HUMAN_TYPE_NAME = "Entity Hitbox";
+
 bool FrameSetGrid::isValid(const FrameSet& frameSet) const
 {
     usize minSize = frameSet.minimumViableFrameSize();
