@@ -1,8 +1,5 @@
 #include "utsi2utms.h"
 #include "tilesetinserter.h"
-#include "models/metasprite-common/framesetexportorder.h"
-#include "models/metasprite.h"
-#include "models/sprite-importer.h"
 #include <algorithm>
 #include <cassert>
 #include <iterator>
@@ -17,17 +14,19 @@
 const size_t PALETTE_COLORS = 16;
 
 namespace UnTech {
+namespace MetaSprite {
 namespace Utsi2UtmsPrivate {
 
-namespace MS = UnTech::MetaSprite;
-namespace SI = UnTech::SpriteImporter;
+namespace MS = UnTech::MetaSprite::MetaSprite;
+namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 inline Snes::Tile4bpp8px getSmallTile(const Image& image,
                                       const std::map<rgba, unsigned>& colorMap,
-                                      const SI::FrameObject& siObj)
+                                      const SI::Frame& frame,
+                                      const SI::FrameObject& obj)
 {
-    unsigned xOffset = siObj.frame().location().x + siObj.location().x;
-    unsigned yOffset = siObj.frame().location().y + siObj.location().y;
+    unsigned xOffset = frame.location.aabb.x + obj.location.x;
+    unsigned yOffset = frame.location.aabb.y + obj.location.y;
 
     Snes::Tile4bpp8px tile;
     uint8_t* tData = tile.rawData();
@@ -44,10 +43,11 @@ inline Snes::Tile4bpp8px getSmallTile(const Image& image,
 
 inline Snes::Tile4bpp16px getLargeTile(const Image& image,
                                        const std::map<rgba, unsigned>& colorMap,
-                                       const SI::FrameObject& siObj)
+                                       const SI::Frame& frame,
+                                       const SI::FrameObject& obj)
 {
-    unsigned xOffset = siObj.frame().location().x + siObj.location().x;
-    unsigned yOffset = siObj.frame().location().y + siObj.location().y;
+    unsigned xOffset = frame.location.aabb.x + obj.location.x;
+    unsigned yOffset = frame.location.aabb.y + obj.location.y;
 
     Snes::Tile4bpp16px tile;
     uint8_t* tData = tile.rawData();
@@ -119,9 +119,11 @@ inline void clearCommonOverlappedTiles(Snes::Tile<4, OVER_SIZE>& overTile,
 }
 }
 }
+}
 
 using namespace UnTech;
-using namespace UnTech::Utsi2UtmsPrivate;
+using namespace UnTech::MetaSprite;
+using namespace UnTech::MetaSprite::Utsi2UtmsPrivate;
 
 Utsi2Utms::Utsi2Utms()
     : _errors()
@@ -130,19 +132,20 @@ Utsi2Utms::Utsi2Utms()
 {
 }
 
-std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDocument& siDocument)
+std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
 {
     _hasError = false;
 
-    const SI::FrameSet& siFrameSet = siDocument.frameSet();
-    const UnTech::Image& image = siDocument.frameSet().image();
+    const UnTech::Image& image = siFrameSet.image;
+
+    // ::SHOULDDO move to SpriteImporter::FrameSet::validate::
 
     // Validate siFrameSet
     {
         if (image.empty()) {
             addError(siFrameSet, "No Image");
         }
-        if (siFrameSet.frames().size() == 0) {
+        if (siFrameSet.frames.size() == 0) {
             addError(siFrameSet, "No Frames");
         }
         if (siFrameSet.transparentColorValid() == false) {
@@ -154,19 +157,13 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
         return nullptr;
     }
 
-    auto msDocument = std::make_unique<MS::MetaSpriteDocument>();
-    MS::FrameSet& msFrameSet = msDocument->frameSet();
+    auto msFrameSet = std::make_unique<MS::FrameSet>();
 
-    msFrameSet.setName(siFrameSet.name());
-    msFrameSet.setTilesetType(siFrameSet.tilesetType());
+    msFrameSet->name = siFrameSet.name;
+    msFrameSet->tilesetType = siFrameSet.tilesetType;
+    msFrameSet->animations = siFrameSet.animations;
 
-    if (siFrameSet.exportOrderDocument()) {
-        msFrameSet.loadExportOrderDocument(siFrameSet.exportOrderDocument()->filename());
-    }
-
-    for (const auto& it : siFrameSet.animations()) {
-        msFrameSet.animations().clone(it.second, it.first);
-    }
+    // ::TODO export Order Document::
 
     // Build map of rgba to palette color
     // Faster than std::unordered_map, only contains 16 elements
@@ -174,17 +171,18 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
     {
         std::set<rgba> colors;
 
-        for (const auto siFrameIt : siFrameSet.frames()) {
+        for (const auto siFrameIt : siFrameSet.frames) {
+            const std::string& frameName = siFrameIt.first;
             const SI::Frame& siFrame = siFrameIt.second;
 
-            if (!image.size().contains(siFrame.location())) {
-                addError(siFrame, "Frame not inside image");
+            if (!image.size().contains(siFrame.location.aabb)) {
+                addError(siFrameSet, frameName, "Frame not inside image");
                 continue;
             }
 
-            for (const SI::FrameObject& obj : siFrame.objects()) {
-                unsigned lx = siFrame.location().x + obj.location().x;
-                unsigned ly = siFrame.location().y + obj.location().y;
+            for (const SI::FrameObject& obj : siFrame.objects) {
+                unsigned lx = siFrame.location.aabb.x + obj.location.x;
+                unsigned ly = siFrame.location.aabb.y + obj.location.y;
 
                 for (unsigned y = 0; y < obj.sizePx(); y++) {
                     const rgba* p = image.scanline(ly + y) + lx;
@@ -201,7 +199,7 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
             }
         }
 
-        auto tIt = colors.find(siFrameSet.transparentColor());
+        auto tIt = colors.find(siFrameSet.transparentColor);
         if (tIt != colors.end()) {
             colors.erase(tIt);
         }
@@ -218,10 +216,11 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
         // Store palette in MetaSprite
         // ::TODO handle user supplied palettes::
         {
-            MS::Palette& palette = msFrameSet.palettes().create();
+            msFrameSet->palettes.emplace_back();
+            Snes::Palette4bpp& palette = msFrameSet->palettes.back();
 
-            colorMap.insert({ siFrameSet.transparentColor(), 0 });
-            palette.color(0).setRgb(siFrameSet.transparentColor());
+            colorMap.insert({ siFrameSet.transparentColor, 0 });
+            palette.color(0).setRgb(siFrameSet.transparentColor);
 
             int i = 1;
             for (auto& c : colors) {
@@ -236,15 +235,15 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
         return nullptr;
     }
 
-    TilesetInserter<Snes::Tileset4bpp8px> smallTileset(msFrameSet.smallTileset());
-    TilesetInserter<Snes::Tileset4bpp16px> largeTileset(msFrameSet.largeTileset());
+    TilesetInserter<Snes::Tileset4bpp8px> smallTileset(msFrameSet->smallTileset);
+    TilesetInserter<Snes::Tileset4bpp16px> largeTileset(msFrameSet->largeTileset);
 
-    auto getTilesetOutputFromImage = [&](const SI::FrameObject& siObj) {
-        if (siObj.size() == SI::FrameObject::ObjectSize::SMALL) {
-            return smallTileset.getOrInsert(getSmallTile(image, colorMap, siObj));
+    auto getTilesetOutputFromImage = [&](const SI::Frame& frame, const SI::FrameObject& obj) {
+        if (obj.size == ObjectSize::SMALL) {
+            return smallTileset.getOrInsert(getSmallTile(image, colorMap, frame, obj));
         }
         else {
-            return largeTileset.getOrInsert(getLargeTile(image, colorMap, siObj));
+            return largeTileset.getOrInsert(getLargeTile(image, colorMap, frame, obj));
         }
     };
 
@@ -253,83 +252,88 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
     std::map<const std::string, std::map<unsigned, std::list<unsigned>>> overlappingFrameObjectsMap;
 
     // Process frames
-    for (const auto frameIt : siFrameSet.frames()) {
+    for (const auto frameIt : siFrameSet.frames) {
+        const std::string& frameName = frameIt.first;
         const SI::Frame& siFrame = frameIt.second;
-        const auto& siFrameOrigin = siFrame.origin();
+        const auto& siFrameOrigin = siFrame.location.origin;
 
-        MS::Frame* msFramePtr = msFrameSet.frames().create(frameIt.first);
-        MS::Frame& msFrame = *msFramePtr;
+        MS::Frame& msFrame = msFrameSet->frames[frameName];
 
         std::unordered_set<const SI::FrameObject*> overlapping;
 
         // Search for overlapping frame objects
         {
-            typedef SI::FrameObject::list_t::const_iterator f_iterator;
+            typedef std::vector<SI::FrameObject>::const_iterator f_iterator;
 
-            const auto& fobjs = siFrame.objects();
+            const auto& fobjs = siFrame.objects;
 
             for (f_iterator iIt = fobjs.begin(); iIt != fobjs.end(); ++iIt) {
                 const SI::FrameObject& iObj = *iIt;
-                const urect iRect(iObj.location(), iObj.sizePx());
+                const urect iRect(iObj.location, iObj.sizePx());
 
                 for (f_iterator jIt = iIt + 1; jIt != fobjs.end(); ++jIt) {
                     const SI::FrameObject& jObj = *jIt;
 
-                    if (iRect.overlaps(jObj.location(), jObj.sizePx())) {
+                    if (iRect.overlaps(jObj.location, jObj.sizePx())) {
                         overlapping.insert(&iObj);
                         overlapping.insert(&jObj);
 
                         unsigned di = std::distance(fobjs.begin(), iIt);
                         unsigned dj = std::distance(fobjs.begin(), jIt);
-                        overlappingFrameObjectsMap[frameIt.first][di].push_back(dj);
+                        overlappingFrameObjectsMap[frameName][di].push_back(dj);
                     }
                 }
             }
         }
 
         try {
-            for (const SI::FrameObject& siObj : siFrame.objects()) {
-                MS::FrameObject& msObj = msFrame.objects().create();
+            for (const SI::FrameObject& siObj : siFrame.objects) {
+                MS::FrameObject msObj;
 
-                msObj.setSize(static_cast<MS::FrameObject::ObjectSize>(siObj.size()));
-                msObj.setLocation(ms8point::createFromOffset(siObj.location(), siFrameOrigin));
-                msObj.setOrder(siFrame.spriteOrder());
+                msObj.size = siObj.size;
+                msObj.location = ms8point::createFromOffset(siObj.location, siFrameOrigin);
+                msObj.order = siFrame.spriteOrder;
 
                 if (overlapping.count(&siObj) > 0) {
                     // don't process overlapping tiles here
                     continue;
                 }
 
-                auto to = getTilesetOutputFromImage(siObj);
+                auto to = getTilesetOutputFromImage(siFrame, siObj);
                 to.apply(msObj);
+
+                msFrame.objects.push_back(msObj);
             }
 
-            for (const SI::ActionPoint& siAp : siFrame.actionPoints()) {
-                MS::ActionPoint& msAp = msFrame.actionPoints().create();
+            for (const SI::ActionPoint& siAp : siFrame.actionPoints) {
+                MS::ActionPoint msAp;
 
-                msAp.setLocation(ms8point::createFromOffset(siAp.location(), siFrameOrigin));
-                msAp.setParameter(siAp.parameter());
+                msAp.location = ms8point::createFromOffset(siAp.location, siFrameOrigin);
+                msAp.parameter = siAp.parameter;
+
+                msFrame.actionPoints.push_back(msAp);
             }
 
-            for (const SI::EntityHitbox& siEh : siFrame.entityHitboxes()) {
-                MS::EntityHitbox& msEh = msFrame.entityHitboxes().create();
+            for (const SI::EntityHitbox& siEh : siFrame.entityHitboxes) {
+                MS::EntityHitbox msEh;
 
-                msEh.setAabb(ms8rect::createFromOffset(siEh.aabb(), siFrameOrigin));
-                msEh.setHitboxType(siEh.hitboxType());
+                msEh.aabb = ms8rect::createFromOffset(siEh.aabb, siFrameOrigin);
+                msEh.hitboxType = siEh.hitboxType;
+
+                msFrame.entityHitboxes.push_back(msEh);
             }
 
-            if (siFrame.solid()) {
-                msFrame.setSolid(true);
-                msFrame.setTileHitbox(ms8rect::createFromOffset(siFrame.tileHitbox(), siFrameOrigin));
+            msFrame.solid = siFrame.solid;
+            if (siFrame.solid) {
+                msFrame.tileHitbox = ms8rect::createFromOffset(siFrame.tileHitbox, siFrameOrigin);
             }
             else {
-                msFrame.setSolid(false);
             }
         }
         catch (const std::out_of_range& ex) {
             // This should not happen unless the frame is very large,
             // a simple error message will do.
-            addError(siFrame, ex.what());
+            addError(siFrameSet, frameName, ex.what());
             continue;
         }
     }
@@ -345,10 +349,11 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
     } overTile;
 
     for (const auto overlappingFramesIt : overlappingFrameObjectsMap) {
+        const std::string& frameName = overlappingFramesIt.first;
         const auto& frameObjectOverlaps = overlappingFramesIt.second;
 
-        const SI::Frame& siFrame = siFrameSet.frames().at(overlappingFramesIt.first);
-        MS::Frame& msFrame = msFrameSet.frames().at(overlappingFramesIt.first);
+        const SI::Frame& siFrame = siFrameSet.frames.at(frameName);
+        MS::Frame& msFrame = msFrameSet->frames.at(frameName);
 
         // Check that there is no triple overlapping tile
         {
@@ -358,35 +363,36 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
                     auto ret = matches.insert(id);
 
                     if (ret.second == false) {
-                        addError(siFrame, "Cannot have three or more overlapping tiles");
+                        addError(siFrameSet, frameName, "Cannot have three or more overlapping tiles");
                         return nullptr;
                     }
                 }
             }
         }
 
-        std::set<MS::FrameObject*> emptyObjects;
+        std::set<unsigned> emptyObjects;
 
         // Process the overlapping tiles
         for (auto foIt : frameObjectOverlaps) {
-            const SI::FrameObject& siOverObj = siFrame.objects().at(foIt.first);
-            MS::FrameObject& msOverObj = msFrame.objects().at(foIt.first);
+            const unsigned overObjId = foIt.first;
+            const SI::FrameObject& siOverObj = siFrame.objects.at(overObjId);
+            MS::FrameObject& msOverObj = msFrame.objects.at(overObjId);
 
-            if (siOverObj.size() == SI::FrameObject::ObjectSize::SMALL) {
-                overTile.small = getSmallTile(image, colorMap, siOverObj);
+            if (siOverObj.size == ObjectSize::SMALL) {
+                overTile.small = getSmallTile(image, colorMap, siFrame, siOverObj);
                 useSmall = true;
             }
             else {
-                overTile.large = getLargeTile(image, colorMap, siOverObj);
+                overTile.large = getLargeTile(image, colorMap, siFrame, siOverObj);
                 useSmall = false;
             }
 
-            for (unsigned id : foIt.second) {
-                const SI::FrameObject& siUnderObj = siFrame.objects().at(id);
-                MS::FrameObject& msUnderObj = msFrame.objects().at(id);
+            for (const unsigned underObjId : foIt.second) {
+                const SI::FrameObject& siUnderObj = siFrame.objects.at(underObjId);
+                MS::FrameObject& msUnderObj = msFrame.objects.at(underObjId);
 
-                int xOffset = siOverObj.location().x - siUnderObj.location().x;
-                int yOffset = siOverObj.location().y - siUnderObj.location().y;
+                int xOffset = siOverObj.location.x - siUnderObj.location.x;
+                int yOffset = siOverObj.location.y - siUnderObj.location.y;
 
                 /*
                  * This:
@@ -396,25 +402,25 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
                  */
                 std::pair<TilesetInserterOutput, bool> tilesetOutput;
                 if (useSmall) {
-                    if (siUnderObj.size() == SI::FrameObject::ObjectSize::SMALL) {
-                        auto underTile = getSmallTile(image, colorMap, siUnderObj);
+                    if (siUnderObj.size == ObjectSize::SMALL) {
+                        auto underTile = getSmallTile(image, colorMap, siFrame, siUnderObj);
                         auto overlaps = markOverlappedPixels<8, 8>(overTile.small, xOffset, yOffset);
                         tilesetOutput = smallTileset.processOverlappedTile(underTile, overlaps);
                     }
                     else {
-                        auto underTile = getLargeTile(image, colorMap, siUnderObj);
+                        auto underTile = getLargeTile(image, colorMap, siFrame, siUnderObj);
                         auto overlaps = markOverlappedPixels<8, 16>(overTile.small, xOffset, yOffset);
                         tilesetOutput = largeTileset.processOverlappedTile(underTile, overlaps);
                     }
                 }
                 else {
-                    if (siUnderObj.size() == SI::FrameObject::ObjectSize::SMALL) {
-                        auto underTile = getSmallTile(image, colorMap, siUnderObj);
+                    if (siUnderObj.size == ObjectSize::SMALL) {
+                        auto underTile = getSmallTile(image, colorMap, siFrame, siUnderObj);
                         auto overlaps = markOverlappedPixels<16, 8>(overTile.large, xOffset, yOffset);
                         tilesetOutput = smallTileset.processOverlappedTile(underTile, overlaps);
                     }
                     else {
-                        auto underTile = getLargeTile(image, colorMap, siUnderObj);
+                        auto underTile = getLargeTile(image, colorMap, siFrame, siUnderObj);
                         auto overlaps = markOverlappedPixels<16, 16>(overTile.large, xOffset, yOffset);
                         tilesetOutput = largeTileset.processOverlappedTile(underTile, overlaps);
                     }
@@ -422,12 +428,12 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
                 tilesetOutput.first.apply(msUnderObj);
 
                 if (tilesetOutput.second == false) {
-                    addWarning(siUnderObj, "Matching undertile not found");
+                    addWarningObj(siFrameSet, frameName, underObjId, "Matching undertile not found");
                 }
 
                 // remove duplicate pixels in the overtile that match the processed undertile.
                 if (useSmall) {
-                    if (siUnderObj.size() == SI::FrameObject::ObjectSize::SMALL) {
+                    if (siUnderObj.size == ObjectSize::SMALL) {
                         auto underTile = smallTileset.getTile(tilesetOutput.first);
                         clearCommonOverlappedTiles<8, 8>(overTile.small, underTile, xOffset, yOffset);
                     }
@@ -437,7 +443,7 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
                     }
                 }
                 else {
-                    if (siUnderObj.size() == SI::FrameObject::ObjectSize::SMALL) {
+                    if (siUnderObj.size == ObjectSize::SMALL) {
                         auto underTile = smallTileset.getTile(tilesetOutput.first);
                         clearCommonOverlappedTiles<16, 8>(overTile.large, underTile, xOffset, yOffset);
                     }
@@ -457,8 +463,8 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
                     to.apply(msOverObj);
                 }
                 else {
-                    addWarning(siOverObj, "Overtile is empty - skipping");
-                    emptyObjects.insert(&msOverObj);
+                    addWarningObj(siFrameSet, frameName, overObjId, "Overtile is empty - skipping");
+                    emptyObjects.insert(overObjId);
                 }
             }
             else {
@@ -469,19 +475,23 @@ std::unique_ptr<MS::MetaSpriteDocument> Utsi2Utms::convert(SI::SpriteImporterDoc
                     to.apply(msOverObj);
                 }
                 else {
-                    addWarning(siOverObj, "Overtile is empty - skipping");
-                    emptyObjects.insert(&msOverObj);
+                    addWarningObj(siFrameSet, frameName, overObjId, "Overtile is empty - skipping");
+                    emptyObjects.insert(overObjId);
                 }
             }
         }
 
         // remove empty frame objects
-        for (MS::FrameObject* obj : emptyObjects) {
-            msFrame.objects().remove(obj);
+        // Take advantage that a std::set iterator is sorted
+        for (auto it = emptyObjects.crbegin(); it != emptyObjects.crend(); ++it) {
+            unsigned toRemove = *it;
+
+            auto objIt = msFrame.objects.begin() + toRemove;
+            msFrame.objects.erase(objIt);
         }
     }
 
-    return msDocument;
+    return msFrameSet;
 }
 
 void Utsi2Utms::addError(const std::string& message)
@@ -490,28 +500,15 @@ void Utsi2Utms::addError(const std::string& message)
     _hasError = true;
 }
 
-void Utsi2Utms::addError(const SI::FrameSet& frameSet, const std::string& message)
+void Utsi2Utms::addError(const SI::FrameSet& fs, const std::string& message)
 {
-    std::stringstream out;
-
-    out << frameSet.name()
-        << ": "
-        << message;
-
-    _errors.push_back(out.str());
+    _errors.push_back(fs.name + ": " + message);
     _hasError = true;
 }
 
-void Utsi2Utms::addError(const SI::Frame& frame, const std::string& message)
+void Utsi2Utms::addError(const SI::FrameSet& fs, const std::string& frame, const std::string& message)
 {
-    std::stringstream out;
-
-    const SI::FrameSet& fs = frame.frameSet();
-
-    out << fs.name() << "." << fs.frames().getName(frame).value()
-        << ": " << message;
-
-    _errors.push_back(out.str());
+    _errors.push_back(fs.name + "." + frame + ": " + message);
     _hasError = true;
 }
 
@@ -520,36 +517,23 @@ void Utsi2Utms::addWarning(const std::string& message)
     _warnings.push_back(message);
 }
 
-void Utsi2Utms::addWarning(const SI::FrameSet& frameSet, const std::string& message)
+void Utsi2Utms::addWarning(const SI::FrameSet& fs, const std::string& message)
 {
-    std::stringstream out;
-
-    out << frameSet.name() << ": " << message;
-
-    _warnings.push_back(out.str());
+    _warnings.push_back(fs.name + ": " + message);
 }
 
-void Utsi2Utms::addWarning(const SI::Frame& frame, const std::string& message)
+void Utsi2Utms::addWarning(const SpriteImporter::FrameSet& fs, const std::string& frame,
+                           const std::string& message)
 {
-    std::stringstream out;
-
-    const SI::FrameSet& fs = frame.frameSet();
-
-    out << fs.name() << "." << fs.frames().getName(frame).value()
-        << ": " << message;
-
-    _warnings.push_back(out.str());
+    _warnings.push_back(fs.name + "." + frame + ": " + message);
 }
 
-void Utsi2Utms::addWarning(const SI::FrameObject& frameObj, const std::string& message)
+void Utsi2Utms::addWarningObj(const SpriteImporter::FrameSet& fs, const std::string& frame,
+                              unsigned objectId, const std::string& message)
 {
     std::stringstream out;
 
-    const SI::Frame& frame = frameObj.frame();
-    const SI::FrameSet& fs = frame.frameSet();
-
-    out << fs.name() << "." << fs.frames().getName(frame).value()
-        << ":object-" << frame.objects().indexOf(frameObj)
+    out << fs.name << "." << frame << ":object-" << objectId
         << ": " << message;
 
     _warnings.push_back(out.str());
