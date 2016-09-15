@@ -50,7 +50,7 @@ inline void readInstruction(const XmlTag* tag, Instruction& inst)
     }
 
     if (op.usesFrame()) {
-        inst.frame.frameName = tag->getAttributeId("frame");
+        inst.frame.name = tag->getAttributeId("frame");
         inst.frame.hFlip = tag->getAttributeBoolean("hflip");
         inst.frame.vFlip = tag->getAttributeBoolean("vflip");
     }
@@ -78,7 +78,7 @@ inline void writeInstruction(XmlWriter& xml, const Instruction& instruction)
     }
 
     if (op.usesFrame()) {
-        xml.writeTagAttribute("frame", instruction.frame.frameName);
+        xml.writeTagAttribute("frame", instruction.frame.name);
         xml.writeTagAttribute("hflip", instruction.frame.hFlip);
         xml.writeTagAttribute("vflip", instruction.frame.vFlip);
     }

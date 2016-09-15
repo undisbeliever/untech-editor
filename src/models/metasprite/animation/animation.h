@@ -13,7 +13,7 @@ namespace Animation {
 struct Instruction {
     Bytecode operation;
     std::string gotoLabel;
-    FrameReference frame;
+    NameReference frame;
     int parameter;
 
     Instruction() = default;

@@ -25,24 +25,24 @@ enum class ObjectSize {
 
 typedef ClampedType<uint8_t, 1, 255> ActionPointParameter;
 
-struct FrameReference {
+struct NameReference {
     // ::TODO replace with idname::
-    std::string frameName;
+    std::string name;
     bool hFlip;
     bool vFlip;
 
-    FrameReference() = default;
-    FrameReference(const FrameReference&) = default;
-    FrameReference(FrameReference&&) = default;
+    NameReference() = default;
+    NameReference(const NameReference&) = default;
+    NameReference(NameReference&&) = default;
 
-    bool operator==(const FrameReference& o)
+    bool operator==(const NameReference& o)
     {
-        return frameName == o.frameName && hFlip == o.hFlip && vFlip == o.vFlip;
+        return name == o.name && hFlip == o.hFlip && vFlip == o.vFlip;
     }
 
-    bool operator!=(const FrameReference& o)
+    bool operator!=(const NameReference& o)
     {
-        return frameName != o.frameName || hFlip != o.hFlip || vFlip != o.vFlip;
+        return name != o.name || hFlip != o.hFlip || vFlip != o.vFlip;
     }
 };
 }
