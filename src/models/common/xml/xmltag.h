@@ -103,9 +103,16 @@ struct XmlTag {
     }
 
     template <class T>
-    inline T getAttributeClampedInteger(const std::string& aName)
+    inline T getAttributeClamped(const std::string& aName)
     {
-        return getAttributeInteger(aName, T::MIN, T::MAX);
+        static_assert(std::is_integral<typename T::TYPE>::value, "not integral");
+
+        if (std::is_signed<typename T::TYPE>::value) {
+            return getAttributeInteger(aName, T::MIN, T::MAX);
+        }
+        else if (std::is_unsigned<typename T::TYPE>::value) {
+            return getAttributeUnsigned(aName, T::MIN, T::MAX);
+        }
     }
 
     inline unsigned getAttributeUnsigned(const std::string& aName, unsigned min = 0, unsigned max = UINT_MAX) const

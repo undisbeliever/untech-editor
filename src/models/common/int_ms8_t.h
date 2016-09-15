@@ -17,14 +17,14 @@ namespace UnTech {
  * This is much faster than sign extending a byte value in 65816 assembly
  */
 
-class int_ms8_t : public ClampedInteger<int_fast16_t, -128, 127> {
+class int_ms8_t : public ClampedType<int16_t, -128, 127> {
 public:
     static const unsigned OFFSET = 128;
     static bool isValid(const int v) { return v >= MIN && v <= MAX; }
 
     int_ms8_t() = default;
     int_ms8_t(const int_fast16_t& v)
-        : ClampedInteger(v)
+        : ClampedType(v)
     {
     }
 

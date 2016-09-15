@@ -54,9 +54,10 @@ public:
     }
 
     template <typename T, T MIN, T MAX>
-    inline void writeTagAttribute(const std::string& name, const ClampedInteger<T, MIN, MAX>& v)
+    inline void writeTagAttribute(const std::string& name,
+                                  const ClampedType<T, MIN, MAX>& v)
     {
-        writeTagAttribute(name, int(v));
+        writeTagAttribute(name, T(v));
     }
 
     template <class T>

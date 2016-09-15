@@ -23,7 +23,7 @@ enum class ObjectSize {
     LARGE = 16
 };
 
-typedef ClampedInteger<uint8_t, 1, 255> ActionPointParameter;
+typedef ClampedType<uint8_t, 1, 255> ActionPointParameter;
 
 struct FrameReference {
     // ::TODO replace with idname::

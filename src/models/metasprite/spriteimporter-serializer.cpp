@@ -160,7 +160,7 @@ private:
                 ActionPoint ap;
 
                 ap.location = childTag->getAttributeUpointInside(frameLocation);
-                ap.parameter = childTag->getAttributeUint8NotZero("parameter");
+                ap.parameter = childTag->getAttributeClamped<ActionPointParameter>("parameter");
 
                 frame.actionPoints.push_back(ap);
             }
