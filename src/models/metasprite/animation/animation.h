@@ -2,6 +2,7 @@
 
 #include "bytecode.h"
 #include "../common.h"
+#include "models/common/capped_vector.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -11,6 +12,8 @@ namespace MetaSprite {
 namespace Animation {
 
 struct Instruction {
+    typedef capped_vector<Instruction, MAX_ANIMATION_INSTRUCTIONS> list_t;
+
     Bytecode operation;
     std::string gotoLabel;
     NameReference frame;
@@ -27,7 +30,7 @@ struct Animation {
     // ::TODO replace with idstring::
     typedef std::map<std::string, Animation> map_t;
 
-    std::vector<Instruction> instructions;
+    Instruction::list_t instructions;
 
     Animation() = default;
     Animation(const Animation&) = default;
