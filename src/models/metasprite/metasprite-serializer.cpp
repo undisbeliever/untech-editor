@@ -57,7 +57,7 @@ public:
                 readPalette(childTag.get());
             }
             else if (childTag->name == "exportorder") {
-                // ::TODO readExportOrder (from export order module)::
+                readExportOrder(childTag.get());
             }
             else if (childTag->name == "animation") {
                 Animation::readAnimation(xml, childTag.get(), frameSet.animations);
@@ -182,6 +182,23 @@ private:
 
         frameSet.palettes.emplace_back(data);
     }
+
+    inline void readExportOrder(const XmlTag* tag)
+    {
+        assert(tag->name == "exportorder");
+
+        if (frameSet.exportOrder != nullptr) {
+            throw tag->buildError("Only one exportorder tag allowed per frameset");
+        }
+
+        const std::string src = tag->getAttributeFilename("src");
+        try {
+            frameSet.exportOrder = loadFrameSetExportOrder(src);
+        }
+        catch (const std::exception& ex) {
+            throw tag->buildError("Unable to open FrameSet Export Order", ex);
+        }
+    }
 };
 
 void readFrameSet(XmlReader& xml, const XmlTag* tag, FrameSet& frameSet)
@@ -257,8 +274,15 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     xml.writeTagAttributeSimpleClass("tilesettype", frameSet.tilesetType);
 
-    // ::TODO export order document::
-    // ::TODO use external module::
+    if (frameSet.exportOrder != nullptr) {
+        const std::string& src = frameSet.exportOrder->filename;
+
+        if (!src.empty()) {
+            xml.writeTag("exportorder");
+            xml.writeTagAttributeFilename("src", src);
+            xml.writeCloseTag();
+        }
+    }
 
     if (frameSet.smallTileset.size() > 0) {
         xml.writeTag("smalltileset");

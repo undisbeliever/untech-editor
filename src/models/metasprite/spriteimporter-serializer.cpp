@@ -65,7 +65,7 @@ public:
                 readFrameSetGrid(childTag.get());
             }
             else if (childTag->name == "exportorder") {
-                // ::TODO readExportOrder (from export order module)::
+                readExportOrder(childTag.get());
             }
             else if (childTag->name == "frame") {
                 readFrame(childTag.get());
@@ -198,6 +198,23 @@ private:
 
         // ::TODO frame.isValid()::
     }
+
+    inline void readExportOrder(const XmlTag* tag)
+    {
+        assert(tag->name == "exportorder");
+
+        if (frameSet.exportOrder != nullptr) {
+            throw tag->buildError("Only one exportorder tag allowed per frameset");
+        }
+
+        const std::string src = tag->getAttributeFilename("src");
+        try {
+            frameSet.exportOrder = loadFrameSetExportOrder(src);
+        }
+        catch (const std::exception& ex) {
+            throw tag->buildError("Unable to open FrameSet Export Order", ex);
+        }
+    }
 };
 
 void readFrameSet(XmlReader& xml, const XmlTag* tag, FrameSet& frameSet)
@@ -309,8 +326,15 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     writeFrameSetGrid(xml, frameSet.grid);
 
-    // ::TODO export order document::
-    // ::TODO use external module::
+    if (frameSet.exportOrder != nullptr) {
+        const std::string& src = frameSet.exportOrder->filename;
+
+        if (!src.empty()) {
+            xml.writeTag("exportorder");
+            xml.writeTagAttributeFilename("src", src);
+            xml.writeCloseTag();
+        }
+    }
 
     for (const auto f : frameSet.frames) {
         writeFrame(xml, f.first, f.second);

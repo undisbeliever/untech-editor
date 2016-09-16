@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "entityhitboxtype.h"
+#include "frameset-exportorder.h"
 #include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/aabb.h"
@@ -138,11 +139,10 @@ struct Frame {
 };
 
 struct FrameSet {
-    // ::TODO export Order document::
-
     // ::TODO replace with idstring::
     std::string name;
     TilesetType tilesetType;
+    std::shared_ptr<const FrameSetExportOrder> exportOrder;
     Frame::map_t frames;
     Animation::Animation::map_t animations;
 

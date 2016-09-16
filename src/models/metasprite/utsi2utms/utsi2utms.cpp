@@ -162,8 +162,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
     msFrameSet->name = siFrameSet.name;
     msFrameSet->tilesetType = siFrameSet.tilesetType;
     msFrameSet->animations = siFrameSet.animations;
-
-    // ::TODO export Order Document::
+    msFrameSet->exportOrder = siFrameSet.exportOrder;
 
     // Build map of rgba to palette color
     // Faster than std::unordered_map, only contains 16 elements
