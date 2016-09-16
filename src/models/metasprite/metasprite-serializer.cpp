@@ -231,7 +231,7 @@ std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag* t
     FrameSetReader reader(*frameSet.get(), xml);
     reader.readFrameSet(tag);
 
-    return std::move(frameSet);
+    return frameSet;
 }
 
 /*

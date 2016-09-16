@@ -8,13 +8,14 @@
 using namespace UnTech;
 using namespace UnTech::Xml;
 
+namespace MS = UnTech::MetaSprite;
+
+const std::string MS::FrameSetExportOrder::FILE_EXTENSION = "utfseo";
+template <>
+const std::string MS::FrameSetExportOrder::ExportName::list_t::HUMAN_TYPE_NAME = "Export Name";
+
 namespace UnTech {
 namespace MetaSprite {
-
-const std::string FrameSetExportOrder::FILE_EXTENSION = "utfseo";
-
-template <>
-const std::string FrameSetExportOrder::ExportName::list_t::HUMAN_TYPE_NAME = "Export Name";
 
 struct FrameSetExportOrderReader {
     FrameSetExportOrderReader(FrameSetExportOrder& exportOrder, XmlReader& xml)
