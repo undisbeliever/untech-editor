@@ -7,6 +7,9 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Animation {
 
+template <>
+const std::string Instruction::list_t::HUMAN_TYPE_NAME = "Instruction";
+
 void readInstruction(const Xml::XmlTag* tag, Instruction& inst);
 
 void readAnimation(XmlReader& xml, const XmlTag* tag, Animation::map_t& animations)

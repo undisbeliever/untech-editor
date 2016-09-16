@@ -13,6 +13,8 @@ struct FrameSetExportOrder {
     static const std::string FILE_EXTENSION;
 
     struct ExportName {
+        typedef capped_vector<ExportName, MAX_EXPORT_NAMES> list_t;
+
         std::string name;
         std::vector<NameReference> alternatives;
     };
@@ -21,8 +23,8 @@ struct FrameSetExportOrder {
 
     // ::TODO replace with idstring::
     std::string name;
-    capped_vector<ExportName, MAX_FRAMES> stillFrames;
-    capped_vector<ExportName, MAX_ANIMATIONS> animations;
+    ExportName::list_t stillFrames;
+    ExportName::list_t animations;
 
     FrameSetExportOrder() = default;
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;

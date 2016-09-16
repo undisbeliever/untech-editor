@@ -13,6 +13,9 @@ namespace MetaSprite {
 
 const std::string FrameSetExportOrder::FILE_EXTENSION = "utfseo";
 
+template <>
+const std::string FrameSetExportOrder::ExportName::list_t::HUMAN_TYPE_NAME = "Export Name";
+
 struct FrameSetExportOrderReader {
     FrameSetExportOrderReader(FrameSetExportOrder& exportOrder, XmlReader& xml)
         : exportOrder(exportOrder)
