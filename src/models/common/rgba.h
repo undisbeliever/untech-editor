@@ -21,6 +21,7 @@ union rgba {
                     (rgbaValue >> 24) & 0xff);
     }
 
+    rgba() = default;
     rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255)
         : red(r)
         , green(g)

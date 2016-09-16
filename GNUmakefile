@@ -97,11 +97,11 @@ $(BIN_DIR)/$(strip $1)$(BIN_EXT): \
 endef
 
 # Select the modules used by the apps
-$(call cli-modules, untech-msc,       common snes metasprite metasprite-common metasprite-compiler)
-$(call cli-modules, untech-utsi2utms, common snes sprite-importer metasprite metasprite-common utsi2utms)
+$(call cli-modules, untech-msc,       common snes metasprite)
+$(call cli-modules, untech-utsi2utms, common snes metasprite)
 
-$(call gui-modules, untech-metasprite-gui,     common snes metasprite metasprite-common)
-$(call gui-modules, untech-spriteimporter-gui, common snes sprite-importer metasprite-common)
+$(call gui-modules, untech-metasprite-gui,     common snes metasprite)
+$(call gui-modules, untech-spriteimporter-gui, common snes metasprite)
 
 # Disable Builtin rules
 .SUFFIXES:

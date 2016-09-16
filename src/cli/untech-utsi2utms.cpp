@@ -1,19 +1,12 @@
 #include "helpers/commandlineparser.h"
 #include "models/common/file.h"
-#include "models/common/namedlist.h"
-#include "models/metasprite.h"
-#include "models/metasprite/serializer.h"
-#include "models/sprite-importer.h"
-#include "models/utsi2utms/utsi2utms.h"
+#include "models/metasprite/utsi2utms/utsi2utms.h"
 #include <cstdlib>
 #include <iostream>
 
 using namespace UnTech;
-
-namespace SI = UnTech::SpriteImporter;
-namespace MS = UnTech::MetaSprite;
-
-typedef CommandLine::OptionType OT;
+namespace MS = UnTech::MetaSprite::MetaSprite;
+namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
@@ -21,7 +14,7 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     true,
     true,
     false,
-    SI::SpriteImporterDocument::DOCUMENT_TYPE.extension + " file",
+    SI::FrameSet::FILE_EXTENSION + " file",
     {
         { 'o', "output", OT::STRING, true, {}, "output file" },
         { 0, "version", OT::VERSION, false, {}, "display version information" },
@@ -29,17 +22,12 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     }
 };
 
-int main(int argc, const char* argv[])
+int convert(const std::string& infilename, const std::string& outfilename)
 {
-    CommandLine::Parser args(COMMAND_LINE_CONFIG);
-    args.parse(argc, argv);
+    MetaSprite::Utsi2Utms converter;
 
-    UnTech::Utsi2Utms converter;
-
-    SI::SpriteImporterDocument siDocument(
-        args.filenames().front());
-
-    auto msDocument = converter.convert(siDocument);
+    auto siFrameSet = SI::loadFrameSet(infilename);
+    auto msFrameSet = converter.convert(*siFrameSet);
 
     for (const std::string& w : converter.warnings()) {
         std::cerr << "warning: " << w << '\n';
@@ -49,7 +37,7 @@ int main(int argc, const char* argv[])
         std::cerr << "error: " << e << '\n';
     }
 
-    if (msDocument == nullptr) {
+    if (msFrameSet == nullptr) {
         std::cerr << "Error processing frameset.\n";
         return EXIT_FAILURE;
     }
@@ -58,7 +46,23 @@ int main(int argc, const char* argv[])
         return EXIT_FAILURE;
     }
 
-    msDocument->saveFile(args.options().at("output").string());
+    MS::saveFrameSet(*msFrameSet, outfilename);
 
     return EXIT_SUCCESS;
+}
+
+int main(int argc, const char* argv[])
+{
+    CommandLine::Parser args(COMMAND_LINE_CONFIG);
+    args.parse(argc, argv);
+
+    try {
+        return convert(
+            args.filenames().front(),
+            args.options().at("output").string());
+    }
+    catch (const std::exception& ex) {
+        std::cerr << ex.what();
+        return EXIT_FAILURE;
+    }
 }
