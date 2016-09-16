@@ -10,6 +10,8 @@ namespace UnTech {
 namespace MetaSprite {
 
 struct FrameSetExportOrder {
+    static const std::string FILE_EXTENSION;
+
     struct ExportName {
         std::string name;
         std::vector<NameReference> alternatives;

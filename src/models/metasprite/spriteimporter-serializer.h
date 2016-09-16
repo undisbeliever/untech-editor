@@ -8,11 +8,8 @@ namespace UnTech {
 namespace MetaSprite {
 namespace SpriteImporter {
 
-void readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag* tag,
-                  FrameSet& frameSet);
-
-void writeFrameSet(Xml::XmlWriter& xml,
-                   const FrameSet& frameSet);
+std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag* tag);
+void writeFrameSet(Xml::XmlWriter& xml, const FrameSet& frameSet);
 }
 }
 }

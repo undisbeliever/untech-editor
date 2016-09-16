@@ -11,6 +11,8 @@ using namespace UnTech::Xml;
 namespace UnTech {
 namespace MetaSprite {
 
+const std::string FrameSetExportOrder::FILE_EXTENSION = "utfseo";
+
 struct FrameSetExportOrderReader {
     FrameSetExportOrderReader(FrameSetExportOrder& exportOrder, XmlReader& xml)
         : exportOrder(exportOrder)
@@ -25,6 +27,7 @@ private:
 public:
     inline void readFrameSetExportOrder(const XmlTag* tag)
     {
+        // ::TODO change root tag::
         assert(tag->name == "framesettype");
         assert(exportOrder.stillFrames.size() == 0);
         assert(exportOrder.animations.size() == 0);
@@ -88,7 +91,8 @@ loadFrameSetExportOrder(const std::string& filename)
     auto xml = XmlReader::fromFile(filename);
     std::unique_ptr<XmlTag> tag = xml->parseTag();
 
-    if (tag->name != "framesetexport") {
+    // ::TODO change root tag::
+    if (tag->name != "framesettype") {
         throw std::runtime_error(filename + ": Not frame set export order file");
     }
 

@@ -8,12 +8,8 @@ namespace UnTech {
 namespace MetaSprite {
 namespace MetaSprite {
 
-// NOTE: FrameSet MUST be empty
-void readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag* tag,
-                  FrameSet& frameSet);
-
-void writeFrameSet(Xml::XmlWriter& xml,
-                   const FrameSet& frameSet);
+std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag* tag);
+void writeFrameSet(Xml::XmlWriter& xml, const FrameSet& frameSet);
 }
 }
 }

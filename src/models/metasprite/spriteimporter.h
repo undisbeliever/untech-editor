@@ -139,6 +139,8 @@ struct Frame {
 };
 
 struct FrameSet {
+    static const std::string FILE_EXTENSION;
+
     // ::TODO replace with idstring::
     std::string name;
     TilesetType tilesetType;
@@ -165,6 +167,9 @@ struct FrameSet {
     void loadImage(const std::string filename);
     bool reloadImage();
 };
+
+std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename);
+void saveFrameSet(const FrameSet& frameSet, const std::string& filename);
 }
 }
 }

@@ -1,6 +1,7 @@
 #include "spriteimporter-serializer.h"
 #include "animation/serializer.h"
 
+#include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include <cassert>
@@ -13,6 +14,28 @@ using namespace UnTech::Xml;
 namespace UnTech {
 namespace MetaSprite {
 namespace SpriteImporter {
+
+const std::string FrameSet::FILE_EXTENSION = "utsi";
+
+std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename)
+{
+    auto xml = XmlReader::fromFile(filename);
+    std::unique_ptr<XmlTag> tag = xml->parseTag();
+
+    if (tag->name != "spriteimporter") {
+        throw std::runtime_error(filename + ": Not a sprite importer frameset");
+    }
+
+    return readFrameSet(*xml, tag.get());
+}
+
+void saveFrameSet(const FrameSet& frameSet, const std::string& filename)
+{
+    AtomicOfStream file(filename);
+    XmlWriter xml(file, filename, "untech");
+    writeFrameSet(xml, frameSet);
+    file.commit();
+}
 
 /*
  * FRAME SET READER
@@ -217,10 +240,14 @@ private:
     }
 };
 
-void readFrameSet(XmlReader& xml, const XmlTag* tag, FrameSet& frameSet)
+std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag* tag)
 {
-    FrameSetReader reader(frameSet, xml);
+    auto frameSet = std::make_unique<FrameSet>();
+
+    FrameSetReader reader(*frameSet.get(), xml);
     reader.readFrameSet(tag);
+
+    return std::move(frameSet);
 }
 
 /*
