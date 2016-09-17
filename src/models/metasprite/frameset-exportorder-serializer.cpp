@@ -52,7 +52,7 @@ public:
                 exportOrder.animations.push_back(en);
             }
             else {
-                throw childTag->buildUnknownTagError();
+                throw unknown_tag_error(*childTag);
             }
 
             xml.parseCloseTag();
@@ -78,7 +78,7 @@ private:
                 en.alternatives.push_back(alt);
             }
             else {
-                throw childTag->buildUnknownTagError();
+                throw unknown_tag_error(*childTag);
             }
 
             xml.parseCloseTag();
@@ -93,21 +93,25 @@ std::shared_ptr<const FrameSetExportOrder>
 loadFrameSetExportOrder(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
-    std::unique_ptr<XmlTag> tag = xml->parseTag();
+    try {
+        std::unique_ptr<XmlTag> tag = xml->parseTag();
 
-    // ::TODO change root tag::
-    if (tag->name != "framesettype") {
-        throw std::runtime_error(filename + ": Not frame set export order file");
+        // ::TODO change root tag::
+        if (tag->name != "framesettype") {
+            throw std::runtime_error(filename + ": Not frame set export order file");
+        }
+
+        auto exportOrder = std::make_shared<FrameSetExportOrder>();
+        exportOrder->filename = File::fullPath(filename);
+
+        FrameSetExportOrderReader reader(*exportOrder, *xml);
+        reader.readFrameSetExportOrder(tag.get());
+
+        return std::const_pointer_cast<const FrameSetExportOrder>(exportOrder);
     }
-
-    auto exportOrder = std::make_shared<FrameSetExportOrder>();
-
-    FrameSetExportOrderReader reader(*exportOrder, *xml);
-    reader.readFrameSetExportOrder(tag.get());
-
-    exportOrder->filename = File::fullPath(filename);
-
-    return std::const_pointer_cast<const FrameSetExportOrder>(exportOrder);
+    catch (const std::exception& ex) {
+        throw xml_error(*xml, "Error loading FrameSetExportOrder file", ex);
+    }
 }
 }
 }

@@ -22,13 +22,18 @@ const std::string FrameSet::FILE_EXTENSION = "utms";
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
-    std::unique_ptr<XmlTag> tag = xml->parseTag();
 
-    if (tag->name != "metasprite") {
-        throw std::runtime_error(filename + ": Not a metasprite frameset");
+    try {
+        std::unique_ptr<XmlTag> tag = xml->parseTag();
+
+        if (tag->name != "metasprite") {
+            throw std::runtime_error(filename + ": Not a metasprite frameset");
+        }
+        return readFrameSet(*xml, tag.get());
     }
-
-    return readFrameSet(*xml, tag.get());
+    catch (const std::exception& ex) {
+        throw xml_error(*xml, "Unable to load MetaSprite FrameSet file", ex);
+    }
 }
 
 void saveFrameSet(const FrameSet& frameSet, const std::string& filename)
@@ -86,7 +91,7 @@ public:
                 Animation::readAnimation(xml, childTag.get(), frameSet.animations);
             }
             else {
-                throw childTag->buildUnknownTagError();
+                throw unknown_tag_error(*childTag);
             }
 
             xml.parseCloseTag();
@@ -116,7 +121,7 @@ private:
                     obj.size = ObjectSize::LARGE;
                 }
                 else {
-                    throw childTag->buildError("size", "Unknown size");
+                    throw xml_error(*childTag, "size", "Unknown size");
                 }
 
                 obj.location = childTag->getAttributeMs8point();
@@ -148,14 +153,14 @@ private:
 
             else if (childTag->name == "tilehitbox") {
                 if (frame.solid == true) {
-                    throw xml.buildError("Can only have one tilehitbox per frame");
+                    throw xml_error(*childTag, "Can only have one tilehitbox per frame");
                 }
                 frame.tileHitbox = childTag->getAttributeMs8rect();
                 frame.solid = true;
             }
 
             else {
-                throw childTag->buildUnknownTagError();
+                throw unknown_tag_error(*childTag);
             }
 
             xml.parseCloseTag();
@@ -170,7 +175,7 @@ private:
 
         static_assert(Snes::Tile4bpp8px::SNES_DATA_SIZE == 32, "Bad assumption");
         if ((data.size() % 32) != 0) {
-            throw tag->buildError("Small Tileset data must be a multiple of 32 bytes");
+            throw xml_error(*tag, "Small Tileset data must be a multiple of 32 bytes");
         }
 
         frameSet.smallTileset.readSnesData(data);
@@ -184,7 +189,7 @@ private:
 
         static_assert(Snes::Tile4bpp16px::SNES_DATA_SIZE == 128, "Bad assumption");
         if ((data.size() % 128) != 0) {
-            throw tag->buildError("Large Tileset data must be a multiple of 128 bytes");
+            throw xml_error(*tag, "Large Tileset data must be a multiple of 128 bytes");
         }
 
         frameSet.largeTileset.readSnesData(data);
@@ -200,7 +205,7 @@ private:
 
         static_assert(N_COLORS * 2 == 32, "Bad assumption");
         if (data.size() != 32) {
-            throw tag->buildError("Palette data must contain 32 bytes");
+            throw xml_error(*tag, "Palette data must contain 32 bytes");
         }
 
         frameSet.palettes.emplace_back(data);
@@ -211,16 +216,11 @@ private:
         assert(tag->name == "exportorder");
 
         if (frameSet.exportOrder != nullptr) {
-            throw tag->buildError("Only one exportorder tag allowed per frameset");
+            throw xml_error(*tag, "Only one exportorder tag allowed per frameset");
         }
 
         const std::string src = tag->getAttributeFilename("src");
-        try {
-            frameSet.exportOrder = loadFrameSetExportOrder(src);
-        }
-        catch (const std::exception& ex) {
-            throw tag->buildError("Unable to open FrameSet Export Order", ex);
-        }
+        frameSet.exportOrder = loadFrameSetExportOrder(src);
     }
 };
 

@@ -20,13 +20,19 @@ const std::string FrameSet::FILE_EXTENSION = "utsi";
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
-    std::unique_ptr<XmlTag> tag = xml->parseTag();
 
-    if (tag->name != "spriteimporter") {
-        throw std::runtime_error(filename + ": Not a sprite importer frameset");
+    try {
+        std::unique_ptr<XmlTag> tag = xml->parseTag();
+
+        if (tag->name != "spriteimporter") {
+            throw std::runtime_error(filename + ": Not a sprite importer frameset");
+        }
+
+        return readFrameSet(*xml, tag.get());
     }
-
-    return readFrameSet(*xml, tag.get());
+    catch (const std::exception& ex) {
+        throw xml_error(*xml, "Unable to load SpriteImporter FrameSet file", ex);
+    }
 }
 
 void saveFrameSet(const FrameSet& frameSet, const std::string& filename)
@@ -97,7 +103,7 @@ public:
                 Animation::readAnimation(xml, childTag.get(), frameSet.animations);
             }
             else {
-                throw childTag->buildUnknownTagError();
+                throw unknown_tag_error(*childTag);
             }
 
             xml.parseCloseTag();
@@ -138,19 +144,19 @@ private:
             }
             else if (childTag->name == "gridlocation") {
                 if (frameSetGridSet == false) {
-                    throw childTag->buildError("Frameset grid is not set.");
+                    throw xml_error(*childTag, "Frameset grid is not set.");
                 }
 
                 frame.location.gridLocation = childTag->getAttributeUpoint();
                 frame.location.useGridLocation = true;
             }
             else {
-                throw tag->buildError("location or gridlocation tag must be the first child of frame");
+                throw xml_error(*childTag, "location or gridlocation tag must be the first child of frame");
             }
             xml.parseCloseTag();
         }
         else {
-            throw tag->buildError("location or gridlocation tag must be the first child of frame");
+            throw xml_error(*tag, "location or gridlocation tag must be the first child of frame");
         }
 
         frame.location.useGridOrigin = true;
@@ -171,7 +177,7 @@ private:
                     obj.size = ObjectSize::LARGE;
                 }
                 else {
-                    throw childTag->buildError("Unknown object size");
+                    throw xml_error(*childTag, "Unknown object size");
                 }
 
                 obj.location = childTag->getAttributeUpointInside(frameLocation, obj.sizePx());
@@ -199,7 +205,7 @@ private:
 
             else if (childTag->name == "tilehitbox") {
                 if (frame.solid) {
-                    throw xml.buildError("Can only have one tilehitbox per frame");
+                    throw xml_error(*childTag, "Can only have one tilehitbox per frame");
                 }
                 frame.tileHitbox = childTag->getAttributeUrectInside(frameLocation);
                 frame.solid = true;
@@ -207,13 +213,13 @@ private:
 
             else if (childTag->name == "origin") {
                 if (frame.location.useGridOrigin == false) {
-                    throw childTag->buildError("Can only have one origin per frame");
+                    throw xml_error(*childTag, "Can only have one origin per frame");
                 }
                 frame.location.useGridOrigin = false;
                 frame.location.origin = childTag->getAttributeUpointInside(frameLocation);
             }
             else {
-                throw childTag->buildUnknownTagError();
+                throw unknown_tag_error(*childTag);
             }
 
             xml.parseCloseTag();
@@ -227,16 +233,11 @@ private:
         assert(tag->name == "exportorder");
 
         if (frameSet.exportOrder != nullptr) {
-            throw tag->buildError("Only one exportorder tag allowed per frameset");
+            throw xml_error(*tag, "Only one exportorder tag allowed per frameset");
         }
 
         const std::string src = tag->getAttributeFilename("src");
-        try {
-            frameSet.exportOrder = loadFrameSetExportOrder(src);
-        }
-        catch (const std::exception& ex) {
-            throw tag->buildError("Unable to open FrameSet Export Order", ex);
-        }
+        frameSet.exportOrder = loadFrameSetExportOrder(src);
     }
 };
 

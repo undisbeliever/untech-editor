@@ -62,7 +62,8 @@ int main(int argc, const char* argv[])
             args.options().at("output").string());
     }
     catch (const std::exception& ex) {
-        std::cerr << ex.what();
+        std::cerr << "ERROR: "
+                  << ex.what() << std::endl;
         return EXIT_FAILURE;
     }
 }

@@ -30,7 +30,7 @@ void readAnimation(XmlReader& xml, const XmlTag* tag, Animation::map_t& animatio
             readInstruction(childTag.get(), inst);
         }
         else {
-            throw childTag->buildUnknownTagError();
+            throw unknown_tag_error(*childTag);
         }
 
         xml.parseCloseTag();

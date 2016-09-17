@@ -5,7 +5,6 @@
 #include "../string.h"
 #include <cstdint>
 #include <memory>
-#include <sstream>
 #include <stack>
 #include <string>
 #include <vector>
@@ -13,7 +12,20 @@
 namespace UnTech {
 namespace Xml {
 
+class XmlReader;
 struct XmlTag;
+class xml_error : public std::runtime_error {
+public:
+    xml_error(const XmlTag& tag, const char* message);
+    xml_error(const XmlTag& tag, const std::string& attr, const char* message);
+    xml_error(const XmlReader& xml, const char* message);
+    xml_error(const XmlReader& tag, const char* message, const std::exception& error);
+
+    const std::string& filename() const { return _filename; }
+
+private:
+    const std::string _filename;
+};
 
 /**
  * The `XmlReader` class allows for the parsing of a subset of the XML spec.
@@ -72,22 +84,8 @@ public:
     /** the file part of the filename. */
     inline std::string filepart() const { return _filepart; }
 
-    /**
-     * builds a std::runtime_error with the filename and line number of
-     * prepending the given message.
-     */
-    std::runtime_error buildError(const char* msg) const
-    {
-        std::stringstream stream;
-
-        auto fp = _filepart;
-        if (fp.empty()) {
-            fp = "XML";
-        }
-
-        stream << fp << ":" << _lineNo << ": " << msg;
-        return std::runtime_error(stream.str());
-    }
+    std::string generateErrorString(const char* message) const;
+    std::string generateErrorString(const char* message, const std::exception& ex) const;
 
 private:
     void skipWhitespace();
@@ -99,6 +97,7 @@ private:
     const std::string _inputString;
     const char* _pos;
     std::stack<std::string> _tagStack;
+    std::string _currentTag;
     bool _inSelfClosingTag;
     unsigned _lineNo;
     std::string _filename;
@@ -107,4 +106,5 @@ private:
 };
 }
 }
+
 #include "xmltag.h"

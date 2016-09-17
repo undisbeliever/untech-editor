@@ -9,13 +9,20 @@
 #include "../optional.h"
 #include <climits>
 #include <memory>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 
 namespace UnTech {
 namespace Xml {
+
+class unknown_tag_error : public xml_error {
+public:
+    unknown_tag_error(XmlTag& tag)
+        : xml_error(tag, "Unknown tag")
+    {
+    }
+};
 
 struct XmlTag {
     XmlTag(const XmlReader* xml, std::string tagName, unsigned lineNo)
@@ -38,7 +45,7 @@ struct XmlTag {
             return it->second;
         }
         else {
-            throw buildError(aName, "Missing attribute");
+            throw xml_error(*this, aName, "Missing attribute");
         }
     }
 
@@ -50,7 +57,7 @@ struct XmlTag {
             return id;
         }
         else {
-            throw buildError(aName, "Invalid id");
+            throw xml_error(*this, aName, "Invalid id");
         }
     }
 
@@ -64,7 +71,7 @@ struct XmlTag {
             return id;
         }
         else {
-            throw buildError("id already exists");
+            throw xml_error(*this, aName, "id already exists");
         }
     }
 
@@ -84,7 +91,7 @@ struct XmlTag {
         auto v = String::toInt(getAttribute(aName));
 
         if (!v) {
-            throw buildError(aName, "Not a number");
+            throw xml_error(*this, aName, "Not a number");
         }
         return v.value();
     }
@@ -94,10 +101,10 @@ struct XmlTag {
         int i = getAttributeInteger(aName);
 
         if (i < min) {
-            throw buildError(aName, "Number too small");
+            throw xml_error(*this, aName, "Number too small");
         }
         if (i > max) {
-            throw buildError(aName, "Number too small");
+            throw xml_error(*this, aName, "Number too small");
         }
         return i;
     }
@@ -120,16 +127,16 @@ struct XmlTag {
         auto v = String::toLong(getAttribute(aName));
 
         if (!v) {
-            throw buildError(aName, "Not a number");
+            throw xml_error(*this, aName, "Not a number");
         }
         if (v.value() < 0) {
-            throw buildError(aName, "Only positive numbers allowed");
+            throw xml_error(*this, aName, "Only positive numbers allowed");
         }
         if ((unsigned long)v.value() < min) {
-            throw buildError(aName, "Number too small");
+            throw xml_error(*this, aName, "Number too small");
         }
         if ((unsigned long)v.value() > max) {
-            throw buildError(aName, "Number too large");
+            throw xml_error(*this, aName, "Number too large");
         }
         return (unsigned)v.value();
     }
@@ -166,7 +173,7 @@ struct XmlTag {
                 return false;
             }
             else {
-                throw buildError(aName, "Expected true or false");
+                throw xml_error(*this, aName, "Expected true or false");
             }
         }
 
@@ -186,11 +193,14 @@ struct XmlTag {
         try {
             return T(getAttribute(name));
         }
+        catch (const xml_error&) {
+            throw;
+        }
         catch (const std::out_of_range& ex) {
-            throw buildError(name, "Invalid");
+            throw xml_error(*this, name, "Invalid value");
         }
         catch (const std::exception& ex) {
-            throw buildError(name, ex.what());
+            throw xml_error(*this, name, ex.what());
         }
     }
 
@@ -199,7 +209,7 @@ struct XmlTag {
         auto v = String::hexToUnsigned(getAttribute(aName));
 
         if (!v) {
-            throw buildError(aName, "Not a hexadecimal number");
+            throw xml_error(*this, aName, "Not a hexadecimal number");
         }
         return v.value();
     }
@@ -231,7 +241,7 @@ struct XmlTag {
     inline upoint getAttributeUpointInside(const urect& container, unsigned squareSize, const std::string& xName = "x", const std::string& yName = "y") const
     {
         if (container.width < squareSize || container.height < squareSize) {
-            throw std::logic_error("Container too small");
+            throw xml_error(*this, "upoint outside urect");
         }
         unsigned x = getAttributeUnsigned(xName, 0, container.width - squareSize);
         unsigned y = getAttributeUnsigned(yName, 0, container.height - squareSize);
@@ -290,58 +300,8 @@ struct XmlTag {
         return ms8rect(x, y, width, height);
     }
 
-    std::runtime_error buildError(const char* msg) const
-    {
-        std::stringstream stream;
-
-        auto fp = xml->filepart();
-        if (fp.empty()) {
-            fp = "XML";
-        }
-
-        stream << fp << ":" << xml->lineNo() << " <" << name << ">: " << msg;
-        return std::runtime_error(stream.str());
-    }
-
-    std::runtime_error buildError(const std::string& aName, const char* msg) const
-    {
-        std::stringstream stream;
-
-        auto fp = xml->filepart();
-        if (fp.empty()) {
-            fp = "XML";
-        }
-
-        stream << fp << ":" << lineNo << " <" << name << " " << aName << ">: " << msg;
-        return std::runtime_error(stream.str());
-    }
-
-    std::runtime_error buildError(const std::string& message, const std::exception& ex) const
-    {
-        std::stringstream stream;
-
-        auto fp = xml->filepart();
-        if (fp.empty()) {
-            fp = "XML";
-        }
-
-        stream << fp << ":" << lineNo << ' ' << message << "\n\t"
-               << ex.what();
-        return std::runtime_error(stream.str());
-    }
-
-    std::runtime_error buildUnknownTagError() const
-    {
-        std::stringstream stream;
-
-        auto fp = xml->filepart();
-        if (fp.empty()) {
-            fp = "XML";
-        }
-
-        stream << fp << ":" << xml->lineNo() << ": Unknown tag '" << name << "'";
-        return std::runtime_error(stream.str());
-    }
+    std::string generateErrorString(const char* msg) const;
+    std::string generateErrorString(const std::string& aName, const char* msg) const;
 
     std::string name;
     std::unordered_map<std::string, std::string> attributes;
