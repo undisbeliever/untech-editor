@@ -24,16 +24,17 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int convert(const std::string& infilename, const std::string& outfilename)
 {
-    MetaSprite::Utsi2Utms converter;
+    MetaSprite::ErrorList errorList;
+    MetaSprite::Utsi2Utms converter(errorList);
 
     auto siFrameSet = SI::loadFrameSet(infilename);
     auto msFrameSet = converter.convert(*siFrameSet);
 
-    for (const std::string& w : converter.warnings()) {
+    for (const auto& w : errorList.warnings) {
         std::cerr << "warning: " << w << '\n';
     }
 
-    for (const std::string& e : converter.errors()) {
+    for (const auto& e : errorList.errors) {
         std::cerr << "error: " << e << '\n';
     }
 
@@ -42,7 +43,7 @@ int convert(const std::string& infilename, const std::string& outfilename)
         return EXIT_FAILURE;
     }
 
-    if (!converter.errors().empty()) {
+    if (!errorList.errors.empty()) {
         return EXIT_FAILURE;
     }
 

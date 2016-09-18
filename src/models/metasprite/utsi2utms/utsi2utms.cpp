@@ -5,7 +5,6 @@
 #include <iterator>
 #include <map>
 #include <set>
-#include <sstream>
 #include <string>
 #include <unordered_set>
 
@@ -125,16 +124,17 @@ using namespace UnTech;
 using namespace UnTech::MetaSprite;
 using namespace UnTech::MetaSprite::Utsi2UtmsPrivate;
 
-Utsi2Utms::Utsi2Utms()
-    : _errors()
-    , _warnings()
-    , _hasError(false)
+Utsi2Utms::Utsi2Utms(ErrorList& errorList)
+    : errorList(errorList)
 {
 }
 
 std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
 {
-    _hasError = false;
+    size_t initialErrorCount = errorList.errors.size();
+    auto hasError = [initialErrorCount, this]() {
+        return initialErrorCount != errorList.errors.size();
+    };
 
     const UnTech::Image& image = siFrameSet.image;
 
@@ -143,17 +143,17 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
     // Validate siFrameSet
     {
         if (image.empty()) {
-            addError(siFrameSet, "No Image");
+            errorList.addError(siFrameSet, "No Image");
         }
         if (siFrameSet.frames.size() == 0) {
-            addError(siFrameSet, "No Frames");
+            errorList.addError(siFrameSet, "No Frames");
         }
         if (siFrameSet.transparentColorValid() == false) {
-            addError(siFrameSet, "Transparent color is invalid");
+            errorList.addError(siFrameSet, "Transparent color is invalid");
         }
     }
 
-    if (_hasError) {
+    if (hasError()) {
         return nullptr;
     }
 
@@ -171,11 +171,10 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
         std::set<rgba> colors;
 
         for (const auto& siFrameIt : siFrameSet.frames) {
-            const std::string& frameName = siFrameIt.first;
             const SI::Frame& siFrame = siFrameIt.second;
 
             if (!image.size().contains(siFrame.location.aabb)) {
-                addError(siFrameSet, frameName, "Frame not inside image");
+                errorList.addError(siFrameSet, siFrame, "Frame not inside image");
                 continue;
             }
 
@@ -192,7 +191,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
                 }
 
                 if (colors.size() > PALETTE_COLORS) {
-                    addError(siFrameSet, "Too many colors, expected a max of 16");
+                    errorList.addError(siFrameSet, "Too many colors, expected a max of 16");
                     return nullptr;
                 }
             }
@@ -203,12 +202,12 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
             colors.erase(tIt);
         }
         else {
-            addWarning(siFrameSet, "Transparent color is not in frame objects");
+            errorList.addWarning(siFrameSet, "Transparent color is not in frame objects");
         }
 
         // Verify enough colors after remove transparency
         if (colors.size() > (PALETTE_COLORS - 1)) {
-            addError(siFrameSet, "Too many colors, expected a max of 16");
+            errorList.addError(siFrameSet, "Too many colors, expected a max of 16");
             return nullptr;
         }
 
@@ -230,7 +229,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
         }
     }
 
-    if (_hasError) {
+    if (hasError()) {
         return nullptr;
     }
 
@@ -332,12 +331,12 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
         catch (const std::out_of_range& ex) {
             // This should not happen unless the frame is very large,
             // a simple error message will do.
-            addError(siFrameSet, frameName, ex.what());
+            errorList.addError(siFrameSet, siFrame, ex.what());
             continue;
         }
     }
 
-    if (_hasError) {
+    if (hasError()) {
         return nullptr;
     }
 
@@ -362,7 +361,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
                     auto ret = matches.insert(id);
 
                     if (ret.second == false) {
-                        addError(siFrameSet, frameName, "Cannot have three or more overlapping tiles");
+                        errorList.addError(siFrameSet, siFrame, "Cannot have three or more overlapping tiles");
                         return nullptr;
                     }
                 }
@@ -372,7 +371,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
         std::set<unsigned> emptyObjects;
 
         // Process the overlapping tiles
-        for (auto foIt : frameObjectOverlaps) {
+        for (const auto& foIt : frameObjectOverlaps) {
             const unsigned overObjId = foIt.first;
             const SI::FrameObject& siOverObj = siFrame.objects.at(overObjId);
             MS::FrameObject& msOverObj = msFrame.objects.at(overObjId);
@@ -427,7 +426,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
                 tilesetOutput.first.apply(msUnderObj);
 
                 if (tilesetOutput.second == false) {
-                    addWarningObj(siFrameSet, frameName, underObjId, "Matching undertile not found");
+                    errorList.addWarningObj(siFrameSet, siFrame, underObjId, "Matching undertile not found");
                 }
 
                 // remove duplicate pixels in the overtile that match the processed undertile.
@@ -462,7 +461,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
                     to.apply(msOverObj);
                 }
                 else {
-                    addWarningObj(siFrameSet, frameName, overObjId, "Overtile is empty - skipping");
+                    errorList.addWarningObj(siFrameSet, siFrame, overObjId, "Overtile is empty - skipping");
                     emptyObjects.insert(overObjId);
                 }
             }
@@ -474,7 +473,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
                     to.apply(msOverObj);
                 }
                 else {
-                    addWarningObj(siFrameSet, frameName, overObjId, "Overtile is empty - skipping");
+                    errorList.addWarningObj(siFrameSet, siFrame, overObjId, "Overtile is empty - skipping");
                     emptyObjects.insert(overObjId);
                 }
             }
@@ -491,49 +490,4 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
     }
 
     return msFrameSet;
-}
-
-void Utsi2Utms::addError(const std::string& message)
-{
-    _errors.push_back(message);
-    _hasError = true;
-}
-
-void Utsi2Utms::addError(const SI::FrameSet& fs, const std::string& message)
-{
-    _errors.push_back(fs.name + ": " + message);
-    _hasError = true;
-}
-
-void Utsi2Utms::addError(const SI::FrameSet& fs, const std::string& frame, const std::string& message)
-{
-    _errors.push_back(fs.name + "." + frame + ": " + message);
-    _hasError = true;
-}
-
-void Utsi2Utms::addWarning(const std::string& message)
-{
-    _warnings.push_back(message);
-}
-
-void Utsi2Utms::addWarning(const SI::FrameSet& fs, const std::string& message)
-{
-    _warnings.push_back(fs.name + ": " + message);
-}
-
-void Utsi2Utms::addWarning(const SpriteImporter::FrameSet& fs, const std::string& frame,
-                           const std::string& message)
-{
-    _warnings.push_back(fs.name + "." + frame + ": " + message);
-}
-
-void Utsi2Utms::addWarningObj(const SpriteImporter::FrameSet& fs, const std::string& frame,
-                              unsigned objectId, const std::string& message)
-{
-    std::stringstream out;
-
-    out << fs.name << "." << frame << ":object-" << objectId
-        << ": " << message;
-
-    _warnings.push_back(out.str());
 }
