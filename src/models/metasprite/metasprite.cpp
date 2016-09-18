@@ -1,4 +1,6 @@
 #include "metasprite.h"
+#include "models/snes/tile.hpp"
+#include "models/snes/tileset.hpp"
 #include <algorithm>
 
 using namespace UnTech;
