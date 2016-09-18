@@ -44,7 +44,7 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     usize minSize = frame.minimumViableSize();
 
     aabb.width = std::max(aabb.width, minSize.width);
-    aabb.height = std::max(aabb.width, minSize.height);
+    aabb.height = std::max(aabb.height, minSize.height);
 
     if (useGridOrigin) {
         origin = grid.origin;
