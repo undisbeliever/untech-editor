@@ -170,7 +170,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
     {
         std::set<rgba> colors;
 
-        for (const auto siFrameIt : siFrameSet.frames) {
+        for (const auto& siFrameIt : siFrameSet.frames) {
             const std::string& frameName = siFrameIt.first;
             const SI::Frame& siFrame = siFrameIt.second;
 
@@ -251,7 +251,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
     std::map<const std::string, std::map<unsigned, std::list<unsigned>>> overlappingFrameObjectsMap;
 
     // Process frames
-    for (const auto frameIt : siFrameSet.frames) {
+    for (const auto& frameIt : siFrameSet.frames) {
         const std::string& frameName = frameIt.first;
         const SI::Frame& siFrame = frameIt.second;
         const auto& siFrameOrigin = siFrame.location.origin;
@@ -347,7 +347,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
         Snes::Tile4bpp16px large;
     } overTile;
 
-    for (const auto overlappingFramesIt : overlappingFrameObjectsMap) {
+    for (const auto& overlappingFramesIt : overlappingFrameObjectsMap) {
         const std::string& frameName = overlappingFramesIt.first;
         const auto& frameObjectOverlaps = overlappingFramesIt.second;
 
@@ -357,7 +357,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
         // Check that there is no triple overlapping tile
         {
             std::set<unsigned> matches;
-            for (auto foIt : frameObjectOverlaps) {
+            for (const auto& foIt : frameObjectOverlaps) {
                 for (unsigned id : foIt.second) {
                     auto ret = matches.insert(id);
 

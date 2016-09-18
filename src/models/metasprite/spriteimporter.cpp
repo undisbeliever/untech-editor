@@ -101,7 +101,7 @@ usize FrameSet::minimumViableFrameSize() const
 
 void FrameSet::updateFrameLocations()
 {
-    for (auto it : frames) {
+    for (auto& it : frames) {
         it.second.location.update(grid, it.second);
     }
 }
@@ -116,7 +116,7 @@ bool FrameSet::reloadImage()
 {
     image.erase();
 
-    auto ret = image.loadPngImage(imageFilename);
+    bool ret = image.loadPngImage(imageFilename);
 
     if (ret && !transparentColorValid()) {
         transparentColor = image.getPixel(0, 0);

@@ -106,6 +106,7 @@ struct FrameSet {
 
     FrameSet() = default;
     FrameSet(const FrameSet&) = default;
+    FrameSet(FrameSet&&) = default;
 
     // ::TODO isValid - returns a string if there is an error::
 };

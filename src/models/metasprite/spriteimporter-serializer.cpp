@@ -364,7 +364,7 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
         }
     }
 
-    for (const auto f : frameSet.frames) {
+    for (const auto& f : frameSet.frames) {
         writeFrame(xml, f.first, f.second);
     }
 

@@ -134,6 +134,7 @@ struct Frame {
 
     Frame() = default;
     Frame(const Frame&) = default;
+    Frame(Frame&&) = default;
 
     usize minimumViableSize() const;
 };
@@ -155,6 +156,7 @@ struct FrameSet {
 
     FrameSet() = default;
     FrameSet(const FrameSet&) = default;
+    FrameSet(FrameSet&&) = default;
 
     usize minimumViableFrameSize() const;
     bool transparentColorValid() const

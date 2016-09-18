@@ -67,7 +67,7 @@ public:
 
         const uint8_t* underTileData = underTile.rawData();
 
-        for (auto it : _map) {
+        for (const auto& it : _map) {
             const uint8_t* other = it.first.rawData();
 
             unsigned score = 0;
