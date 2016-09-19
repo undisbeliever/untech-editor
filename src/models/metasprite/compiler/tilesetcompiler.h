@@ -1,9 +1,9 @@
 #pragma once
 
-#include "errorlist.h"
 #include "framesetexportlist.h"
 #include "romtiledata.h"
-#include "models/metasprite.h"
+#include "../errorlist.h"
+#include "../metasprite.h"
 #include <array>
 #include <cstdint>
 #include <list>
@@ -12,7 +12,8 @@
 #include <vector>
 
 namespace UnTech {
-namespace MetaSpriteCompiler {
+namespace MetaSprite {
+namespace Compiler {
 
 typedef std::unordered_map<unsigned, std::vector<const MetaSprite::Frame*>> TileGraph_t;
 
@@ -28,7 +29,7 @@ struct FrameTileset {
 };
 
 struct FrameTilesetList {
-    MetaSpriteCommon::TilesetType tilesetType;
+    TilesetType tilesetType;
 
     std::unordered_map<const MetaSprite::Frame*, FrameTileset&> frameMap;
 
@@ -50,24 +51,24 @@ public:
 
 private:
     FrameTilesetList generateDynamicTilesets(const MetaSprite::FrameSet& frameSet,
-                                             const MetaSpriteCommon::TilesetType& tilesetType,
+                                             const TilesetType& tilesetType,
                                              const TileGraph_t& largeTileGraph,
                                              const TileGraph_t& smallTileGraph);
 
     FrameTilesetList generateFixedTileset(const MetaSprite::FrameSet& frameSet,
-                                          const MetaSpriteCommon::TilesetType& tilesetType,
+                                          const TilesetType& tilesetType,
                                           const TileGraph_t& largeTileGraph,
                                           const TileGraph_t& smallTileGraph);
 
     void buildTileset(FrameTileset& tileset,
                       const MetaSprite::FrameSet& frameSet,
-                      const MetaSpriteCommon::TilesetType& tilesetType,
+                      const TilesetType& tilesetType,
                       const std::set<unsigned>& largeTiles,
                       const std::set<std::array<unsigned, 4>>& smallTiles);
 
     void buildTileset(FrameTileset& tileset,
                       const MetaSprite::FrameSet& frameSet,
-                      const MetaSpriteCommon::TilesetType& tilesetType,
+                      const TilesetType& tilesetType,
                       const std::set<unsigned>& largeTiles,
                       const std::set<unsigned>& smallTiles);
 
@@ -77,5 +78,6 @@ private:
     RomTileData _tileData;
     RomIncData _tilesetData;
 };
+}
 }
 }

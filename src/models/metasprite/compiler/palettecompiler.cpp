@@ -1,8 +1,9 @@
 #include "palettecompiler.h"
 #include "models/snes/palette.hpp"
 
-using namespace UnTech::MetaSpriteCompiler;
-namespace MS = UnTech::MetaSprite;
+using namespace UnTech::MetaSprite;
+using namespace UnTech::MetaSprite::Compiler;
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 PaletteCompiler::PaletteCompiler()
     : _paletteData("PD", "MS_PaletteData")
@@ -19,7 +20,7 @@ void PaletteCompiler::writeToIncFile(std::ostream& out) const
 RomOffsetPtr PaletteCompiler::process(const MS::FrameSet& frameSet)
 {
     // Some framesets can have the same palette, will check for duplicates
-    const auto& palettes = frameSet.palettes();
+    const auto& palettes = frameSet.palettes;
 
     if (palettes.size() == 0) {
         throw std::runtime_error("No Palettes in Frameset");

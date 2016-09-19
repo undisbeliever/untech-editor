@@ -3,9 +3,8 @@
 #include <climits>
 #include <set>
 
-using namespace UnTech::MetaSpriteCompiler;
-namespace MS = UnTech::MetaSprite;
-namespace MSC = UnTech::MetaSpriteCommon;
+using namespace UnTech::MetaSprite::Compiler;
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 AnimationCompiler::AnimationCompiler(ErrorList& errorList)
     : _errorList(errorList)
@@ -26,34 +25,36 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
                                     const std::map<const FrameListEntry, unsigned>& frameMap,
                                     const std::map<const AnimationListEntry, unsigned>& animationMap)
 {
-    typedef MSC::AnimationBytecode::Enum BC;
+    using namespace UnTech;
+    typedef Animation::Bytecode::Enum BC;
 
     assert(aniEntry.animation != nullptr);
-    const MSC::Animation& animation = *aniEntry.animation;
+    const Animation::Animation& animation = *aniEntry.animation;
 
     std::vector<uint8_t> data;
-    data.reserve(animation.instructions().size() * 3);
+    data.reserve(animation.instructions.size() * 3);
 
-    const auto& instructions = animation.instructions();
+    const auto& instructions = animation.instructions;
     for (auto instIt = instructions.begin(); instIt != instructions.end(); ++instIt) {
         const auto& inst = *instIt;
 
-        data.push_back(inst.operation().engineValue());
+        data.push_back(inst.operation.engineValue());
 
-        switch (inst.operation().value()) {
+        switch (inst.operation.value()) {
         case BC::GOTO_ANIMATION: {
-            const MSC::Animation* a = frameSet.animations().getPtr(inst.gotoLabel());
+            const auto aniIt = frameSet.animations.find(inst.gotoLabel);
+            if (aniIt == frameSet.animations.end()) {
+                throw std::runtime_error("Cannot find animation " + inst.gotoLabel);
+            }
 
             // Find animation Id
-            if (a == nullptr) {
-                throw std::runtime_error("Cannot find animation " + inst.gotoLabel());
-            }
+            const Animation::Animation* a = &aniIt->second;
             auto it = animationMap.find({ a, aniEntry.hFlip, aniEntry.vFlip });
             if (it == animationMap.end()) {
                 it = animationMap.find({ a, false, false });
             }
             if (it == animationMap.end()) {
-                throw std::runtime_error("Cannot find animation " + inst.gotoLabel());
+                throw std::runtime_error("Cannot find animation " + inst.gotoLabel);
             }
             data.push_back(it->second);
 
@@ -63,15 +64,15 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
         case BC::GOTO_OFFSET: {
             // will always succeed because inst is valid.
 
-            int p = inst.parameter();
-            UnTech::int_ms8_t offset = 0;
+            int p = inst.parameter;
+            int offset = 0;
 
             if (p < 0) {
                 assert(std::distance(instructions.begin(), instIt) >= -p);
                 assert(instIt + (p + 1) != instructions.begin());
 
                 for (auto gotoIt = instIt + p; gotoIt != instIt; ++gotoIt) {
-                    offset -= (*gotoIt)->operation().instructionSize();
+                    offset -= (*gotoIt).operation.instructionSize();
                 }
             }
             else {
@@ -79,11 +80,15 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
                 assert(instIt + p != instructions.end());
 
                 for (auto gotoIt = instIt + p; gotoIt != instIt; --gotoIt) {
-                    offset += (*gotoIt)->operation().instructionSize();
+                    offset += (*gotoIt).operation.instructionSize();
                 }
             }
 
-            data.push_back(offset.romData());
+            if (!int_ms8_t::isValid(offset)) {
+                throw std::runtime_error("Offset outside range");
+            }
+
+            data.push_back(int_ms8_t(offset).romData());
 
             break;
         }
@@ -92,16 +97,17 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
         case BC::SET_FRAME_AND_WAIT_TIME:
         case BC::SET_FRAME_AND_WAIT_XVECL:
         case BC::SET_FRAME_AND_WAIT_YVECL: {
-            const std::string& fname = inst.frame().frameName;
+            auto fIt = frameSet.frames.find(inst.frame.name);
+            assert(fIt != frameSet.frames.end());
 
-            FrameListEntry f = { frameSet.frames().getPtr(fname),
-                                 static_cast<bool>(inst.frame().hFlip ^ aniEntry.hFlip),
-                                 static_cast<bool>(inst.frame().vFlip ^ aniEntry.vFlip) };
+            FrameListEntry f = { &fIt->second,
+                                 static_cast<bool>(inst.frame.hFlip ^ aniEntry.hFlip),
+                                 static_cast<bool>(inst.frame.vFlip ^ aniEntry.vFlip) };
 
             data.push_back(frameMap.at(f));
 
-            assert(inst.parameter() >= 0 && inst.parameter() < 256);
-            data.push_back(inst.parameter());
+            assert(inst.parameter >= 0 && inst.parameter < 256);
+            data.push_back(inst.parameter);
 
             break;
         }
@@ -142,13 +148,10 @@ AnimationCompiler::process(const FrameSetExportList& exportList)
         assert(ani.animation != nullptr);
         uint32_t ao = ~0;
 
-        if (ani.animation->isValid()) {
-            ao = processAnimation(ani, exportList.frameSet(),
-                                  frameMap, animationMap);
-        }
-        else {
-            _errorList.addError(*ani.animation, "animation is invalid");
-        }
+        // ::TODO test animation isValid::
+
+        ao = processAnimation(ani, exportList.frameSet(),
+                              frameMap, animationMap);
 
         animationOffsets.push_back(ao);
     }

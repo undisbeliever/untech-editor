@@ -1,15 +1,16 @@
 #pragma once
 
-#include "errorlist.h"
 #include "framesetexportlist.h"
 #include "romdata.h"
 #include "tilesetcompiler.h"
-#include "models/metasprite.h"
+#include "../errorlist.h"
+#include "../metasprite.h"
 #include <cstdint>
 #include <vector>
 
 namespace UnTech {
-namespace MetaSpriteCompiler {
+namespace MetaSprite {
+namespace Compiler {
 
 class FrameCompiler {
 public:
@@ -41,5 +42,6 @@ private:
     RomBinData _entityHitboxData;
     RomBinData _actionPointData;
 };
+}
 }
 }

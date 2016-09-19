@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iomanip>
 
-using namespace UnTech::MetaSpriteCompiler;
+using namespace UnTech::MetaSprite::Compiler;
 
 void RomTileData::writeToIncFile(std::ostream& out) const
 {

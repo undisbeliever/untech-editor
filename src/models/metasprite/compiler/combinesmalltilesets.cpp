@@ -5,14 +5,15 @@
 #include <set>
 
 namespace UnTech {
-namespace MetaSpriteCompiler {
+namespace MetaSprite {
+namespace Compiler {
 namespace CombineSmallTilesets {
 
 // This is a simple packing algorithm
 // It just pairs off the most common small tiles,
 // and then pairs them again.
 
-namespace MS = UnTech::MetaSprite;
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 struct FirstPassOutput {
     unsigned firstTile = UINT_MAX;
@@ -157,6 +158,7 @@ SmallTileMap_t combineSmallTilesets(const TileGraph_t& smallTileGraph)
 {
     auto fp = CombineSmallTilesets::firstPass(smallTileGraph);
     return CombineSmallTilesets::secondPass(fp);
+}
 }
 }
 }

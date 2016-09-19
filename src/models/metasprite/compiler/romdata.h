@@ -10,7 +10,8 @@
 #include <vector>
 
 namespace UnTech {
-namespace MetaSpriteCompiler {
+namespace MetaSprite {
+namespace Compiler {
 
 // MEMORY: Must not exist when data class is deleted.
 struct RomOffsetPtr {
@@ -320,5 +321,6 @@ private:
     std::vector<uint8_t> _data;
     bool _nullableType;
 };
+}
 }
 }

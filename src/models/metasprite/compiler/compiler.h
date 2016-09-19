@@ -3,24 +3,25 @@
 #include "animationcompiler.h"
 #include "framecompiler.h"
 #include "palettecompiler.h"
-#include "tilesetcompiler.h"
-
-#include "errorlist.h"
 #include "romdata.h"
-#include "models/metasprite.h"
+#include "tilesetcompiler.h"
+#include "../errorlist.h"
+#include "../metasprite.h"
 #include <map>
 #include <unordered_set>
 #include <vector>
 
 namespace UnTech {
-namespace MetaSpriteCompiler {
+namespace MetaSprite {
+namespace Compiler {
 
 class Compiler {
 public:
     const static unsigned METASPRITE_FORMAT_VERSION;
 
 public:
-    Compiler(unsigned tilesetBlockSize = TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE);
+    Compiler(ErrorList& errorList,
+             unsigned tilesetBlockSize = TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE);
 
     Compiler(const Compiler&) = delete;
 
@@ -34,7 +35,7 @@ public:
     const ErrorList& errorList() const { return _errorList; }
 
 private:
-    ErrorList _errorList;
+    ErrorList& _errorList;
 
     AnimationCompiler _animationCompiler;
     PaletteCompiler _paletteCompiler;
@@ -63,10 +64,10 @@ private:
         {
         }
     };
-    typedef MetaSpriteCommon::FrameSetExportOrder::ExportOrderDocument ExportOrderDocument;
 
     std::vector<FrameSetReference> _frameSetReferences;
-    std::unordered_set<std::shared_ptr<const ExportOrderDocument>> _exportOrderDocuments;
+    std::unordered_set<std::shared_ptr<const FrameSetExportOrder>> _exportOrderDocuments;
 };
+}
 }
 }

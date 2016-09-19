@@ -1,13 +1,14 @@
 #pragma once
 
-#include "errorlist.h"
 #include "framesetexportlist.h"
 #include "romdata.h"
-#include "models/metasprite.h"
+#include "../errorlist.h"
+#include "../metasprite.h"
 #include <map>
 
 namespace UnTech {
-namespace MetaSpriteCompiler {
+namespace MetaSprite {
+namespace Compiler {
 
 class AnimationCompiler {
 public:
@@ -31,5 +32,6 @@ private:
     RomBinData _animationData;
     RomAddrTable _animationList;
 };
+}
 }
 }

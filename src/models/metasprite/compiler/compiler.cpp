@@ -1,20 +1,18 @@
 #include "compiler.h"
 #include "version.h"
-#include "models/metasprite-common/framesetexportorder.h"
 #include <algorithm>
 #include <climits>
 #include <set>
 
-using namespace UnTech::MetaSpriteCompiler;
-namespace MS = UnTech::MetaSprite;
-namespace MSC = UnTech::MetaSpriteCommon;
+namespace MS = UnTech::MetaSprite::MetaSprite;
+using Compiler = UnTech::MetaSprite::Compiler::Compiler;
 
 const unsigned Compiler::METASPRITE_FORMAT_VERSION = 24;
 
 // ::TODO generate debug file - containing frame/frameset names::
 
-Compiler::Compiler(unsigned tilesetBlockSize)
-    : _errorList()
+Compiler::Compiler(ErrorList& errorList, unsigned tilesetBlockSize)
+    : _errorList(errorList)
     , _animationCompiler(_errorList)
     , _paletteCompiler()
     , _tilesetCompiler(_errorList, tilesetBlockSize)
@@ -63,25 +61,23 @@ void Compiler::writeToReferencesFile(std::ostream& out) const
     out << "}\n"
            "scope MSEO {\n";
 
-    for (const auto& eoDoc : _exportOrderDocuments) {
-        const auto& eo = eoDoc->exportOrder();
+    for (const auto& eo : _exportOrderDocuments) {
+        out << "\tscope " << eo->name << " {\n";
 
-        out << "\tscope " << eo.name() << " {\n";
-
-        if (eo.stillFrames().size() > 0) {
+        if (eo->stillFrames.size() > 0) {
             unsigned id = 0;
             out << "\t\tscope Frames {\n";
-            for (const auto& sfIt : eo.stillFrames()) {
-                out << "\t\t\tconstant " << sfIt.first << "(" << id << ")\n";
+            for (const auto& f : eo->stillFrames) {
+                out << "\t\t\tconstant " << f.name << "(" << id << ")\n";
                 id++;
             }
             out << "\t\t}\n";
         }
-        if (eo.animations().size() > 0) {
+        if (eo->animations.size() > 0) {
             unsigned id = 0;
             out << "\t\tscope Animations {\n";
-            for (const auto& sfIt : eo.animations()) {
-                out << "\t\t\tconstant " << sfIt.first << "(" << id << ")\n";
+            for (const auto& a : eo->animations) {
+                out << "\t\t\tconstant " << a.name << "(" << id << ")\n";
                 id++;
             }
             out << "\t\t}\n";
@@ -100,7 +96,7 @@ void Compiler::processNullFrameSet()
 
 void Compiler::processFrameSet(const MS::FrameSet& frameSet)
 {
-    if (frameSet.exportOrderDocument() == nullptr) {
+    if (frameSet.exportOrder == nullptr) {
         _errorList.addError(frameSet, "No frameset export order");
         return processNullFrameSet();
     }
@@ -118,7 +114,7 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
         // -------------
         RomIncItem frameSetItem;
 
-        unsigned nPalettes = frameSet.palettes().size();
+        unsigned nPalettes = frameSet.palettes.size();
 
         frameSetItem.addIndex(fsPalettes);                  // paletteTable
         frameSetItem.addField(RomIncItem::BYTE, nPalettes); // nPalettes
@@ -141,9 +137,9 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
         _frameSetList.addOffset(ptr.offset);
 
         // add to references
-        _frameSetReferences.emplace_back(frameSet.name(),
-                                         frameSet.exportOrderDocument()->exportOrder().name());
-        _exportOrderDocuments.insert(frameSet.exportOrderDocument());
+        _frameSetReferences.emplace_back(frameSet.name,
+                                         frameSet.exportOrder->name);
+        _exportOrderDocuments.insert(frameSet.exportOrder);
     }
     catch (const std::exception& ex) {
         _errorList.addError(frameSet, ex.what());

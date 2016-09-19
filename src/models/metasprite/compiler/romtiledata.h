@@ -12,7 +12,8 @@
 #include <vector>
 
 namespace UnTech {
-namespace MetaSpriteCompiler {
+namespace MetaSprite {
+namespace Compiler {
 
 class RomTileData {
 public:
@@ -106,5 +107,6 @@ private:
     // RomOffsetPtr uses string pointers
     std::vector<std::unique_ptr<std::string>> _blockNames;
 };
+}
 }
 }

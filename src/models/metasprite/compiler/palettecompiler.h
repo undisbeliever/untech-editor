@@ -1,10 +1,11 @@
 #pragma once
 
 #include "romdata.h"
-#include "models/metasprite.h"
+#include "../metasprite.h"
 
 namespace UnTech {
-namespace MetaSpriteCompiler {
+namespace MetaSprite {
+namespace Compiler {
 
 class PaletteCompiler {
 public:
@@ -19,5 +20,6 @@ private:
     RomBinData _paletteData;
     RomAddrTable _paletteList;
 };
+}
 }
 }

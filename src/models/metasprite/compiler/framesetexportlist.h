@@ -1,15 +1,16 @@
 #pragma once
 
-#include "models/metasprite.h"
+#include "../metasprite.h"
 #include <algorithm>
 #include <cstdint>
 #include <vector>
 
 namespace UnTech {
-namespace MetaSpriteCompiler {
+namespace MetaSprite {
+namespace Compiler {
 
 struct AnimationListEntry {
-    const MetaSpriteCommon::Animation* animation;
+    const Animation::Animation* animation;
     const bool hFlip;
     const bool vFlip;
 
@@ -58,5 +59,6 @@ private:
     std::vector<AnimationListEntry> _animations;
     std::vector<FrameListEntry> _frames;
 };
+}
 }
 }

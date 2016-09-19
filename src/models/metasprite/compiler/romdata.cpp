@@ -1,7 +1,7 @@
 #include "romdata.h"
 #include <iomanip>
 
-using namespace UnTech::MetaSpriteCompiler;
+using namespace UnTech::MetaSprite::Compiler;
 
 RomOffsetPtr NULL_OFFSET(0);
 

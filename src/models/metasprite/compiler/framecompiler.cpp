@@ -1,9 +1,9 @@
 #include "framecompiler.h"
-#include "models/metasprite-common/limits.h"
 
-using namespace UnTech::MetaSpriteCompiler;
-namespace MS = UnTech::MetaSprite;
-namespace MSC = UnTech::MetaSpriteCommon;
+using namespace UnTech::MetaSprite;
+using namespace UnTech::MetaSprite::Compiler;
+
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 FrameCompiler::FrameCompiler(ErrorList& errorList)
     : _errorList(errorList)
@@ -40,7 +40,7 @@ FrameCompiler::processFrameObjects(const MS::FrameObject::list_t& objects,
         return RomOffsetPtr();
     }
 
-    if (objects.size() > MSC::MAX_FRAME_OBJECTS) {
+    if (objects.size() > MAX_FRAME_OBJECTS) {
         throw std::runtime_error("Too many frame objects");
     }
 
@@ -50,24 +50,24 @@ FrameCompiler::processFrameObjects(const MS::FrameObject::list_t& objects,
     romData.push_back(objects.size() - 1); // count
 
     for (const MS::FrameObject& obj : objects) {
-        const ms8point loc = obj.location();
+        const ms8point loc = obj.location;
 
         uint16_t charAttr;
 
-        if (obj.size() == MS::FrameObject::ObjectSize::SMALL) {
-            charAttr = tileset.smallTilesetMap.at(obj.tileId());
+        if (obj.size == ObjectSize::SMALL) {
+            charAttr = tileset.smallTilesetMap.at(obj.tileId);
         }
         else {
-            charAttr = tileset.largeTilesetMap.at(obj.tileId());
+            charAttr = tileset.largeTilesetMap.at(obj.tileId);
         }
 
-        charAttr |= (obj.order() & ORDER_MASK) << ORDER_SHIFT;
+        charAttr |= (obj.order & ORDER_MASK) << ORDER_SHIFT;
 
-        if (obj.hFlip()) {
+        if (obj.hFlip) {
             charAttr ^= H_FLIP;
         }
 
-        if (obj.vFlip()) {
+        if (obj.vFlip) {
             charAttr ^= V_FLIP;
         }
 
@@ -87,7 +87,7 @@ FrameCompiler::processEntityHitboxes(const MS::EntityHitbox::list_t& entityHitbo
         return RomOffsetPtr();
     }
 
-    if (entityHitboxes.size() > MSC::MAX_ENTITY_HITBOXES) {
+    if (entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
         throw std::runtime_error("Too many entity hitboxes");
     }
 
@@ -107,7 +107,7 @@ FrameCompiler::processEntityHitboxes(const MS::EntityHitbox::list_t& entityHitbo
     {
         // calculate outer AABB.
         for (const MS::EntityHitbox& eh : entityHitboxes) {
-            outerAabb.extend(eh.aabb());
+            outerAabb.extend(eh.aabb);
         }
 
         if (outerAabb.width == 0 || outerAabb.height == 0) {
@@ -126,24 +126,24 @@ FrameCompiler::processEntityHitboxes(const MS::EntityHitbox::list_t& entityHitbo
 
     if (count > 0) {
         for (const MS::EntityHitbox& eh : entityHitboxes) {
-            const ms8rect& innerAabb = eh.aabb();
+            const ms8rect& innerAabb = eh.aabb;
 
             if (innerAabb.width == 0 || innerAabb.height == 0) {
                 throw std::runtime_error("Entity Hitbox aabb has no size");
             }
 
-            romData.push_back(eh.hitboxType().romValue()); // Inner:type
-            romData.push_back(innerAabb.x.romData());      // Inner::xOffset
-            romData.push_back(innerAabb.y.romData());      // Inner::yOffset
-            romData.push_back(innerAabb.width);            // Inner::width
-            romData.push_back(0);                          // Inner::width high byte
-            romData.push_back(innerAabb.height);           // Inner::height
-            romData.push_back(0);                          // Inner::height high byte
+            romData.push_back(eh.hitboxType.romValue()); // Inner:type
+            romData.push_back(innerAabb.x.romData());    // Inner::xOffset
+            romData.push_back(innerAabb.y.romData());    // Inner::yOffset
+            romData.push_back(innerAabb.width);          // Inner::width
+            romData.push_back(0);                        // Inner::width high byte
+            romData.push_back(innerAabb.height);         // Inner::height
+            romData.push_back(0);                        // Inner::height high byte
         }
     }
     else {
         const MS::EntityHitbox& eh = entityHitboxes.at(0);
-        romData.push_back(eh.hitboxType().romValue()); // SingleHitbox::type
+        romData.push_back(eh.hitboxType.romValue()); // SingleHitbox::type
     }
 
     return _entityHitboxData.addData(romData);
@@ -152,11 +152,11 @@ FrameCompiler::processEntityHitboxes(const MS::EntityHitbox::list_t& entityHitbo
 inline RomOffsetPtr
 FrameCompiler::processTileHitbox(const MS::Frame& frame)
 {
-    if (frame.solid() == false) {
+    if (frame.solid == false) {
         return RomOffsetPtr();
     }
 
-    const ms8rect& aabb = frame.tileHitbox();
+    const ms8rect& aabb = frame.tileHitbox;
 
     if (aabb.width == 0 || aabb.height == 0) {
         throw std::runtime_error("Tileset Hitbox aabb has no size");
@@ -179,7 +179,7 @@ FrameCompiler::processActionPoints(const MS::ActionPoint::list_t& actionPoints)
         return RomOffsetPtr();
     }
 
-    if (actionPoints.size() > MSC::MAX_ACTION_POINTS) {
+    if (actionPoints.size() > MAX_ACTION_POINTS) {
         throw std::runtime_error("Too many action points");
     }
 
@@ -187,13 +187,13 @@ FrameCompiler::processActionPoints(const MS::ActionPoint::list_t& actionPoints)
     romData.reserve(3 * actionPoints.size() + 1);
 
     for (const MS::ActionPoint& ap : actionPoints) {
-        if (ap.parameter() == 0) {
+        if (ap.parameter == 0) {
             throw std::runtime_error("Action Point parameter cannot be zero");
         }
 
-        const ms8point loc = ap.location();
+        const ms8point loc = ap.location;
 
-        romData.push_back(ap.parameter());  // Point::parameter
+        romData.push_back(ap.parameter);    // Point::parameter
         romData.push_back(loc.x.romData()); // Point::xOffset
         romData.push_back(loc.y.romData()); // Point::yOffset
     }
@@ -206,10 +206,10 @@ FrameCompiler::processActionPoints(const MS::ActionPoint::list_t& actionPoints)
 inline uint32_t
 FrameCompiler::processFrame(const MS::Frame& frame, const FrameTileset& tileset)
 {
-    RomOffsetPtr frameObjects = processFrameObjects(frame.objects(), tileset);
-    RomOffsetPtr enityHitbox = processEntityHitboxes(frame.entityHitboxes());
+    RomOffsetPtr frameObjects = processFrameObjects(frame.objects, tileset);
+    RomOffsetPtr enityHitbox = processEntityHitboxes(frame.entityHitboxes);
     RomOffsetPtr tileHitbox = processTileHitbox(frame);
-    RomOffsetPtr actionPoints = processActionPoints(frame.actionPoints());
+    RomOffsetPtr actionPoints = processActionPoints(frame.actionPoints);
 
     RomIncItem data;
     data.addAddr(frameObjects);
@@ -247,14 +247,13 @@ FrameCompiler::process(const FrameSetExportList& exportList,
                 }
                 else {
                     auto flippedFrame = fle.frame->flip(fle.hFlip, fle.vFlip);
-
-                    fo = processFrame(*flippedFrame, frameTileset);
+                    fo = processFrame(flippedFrame, frameTileset);
                 }
 
                 frameOffsets.push_back(fo);
             }
             catch (const std::exception& ex) {
-                _errorList.addError(*fle.frame, ex.what());
+                _errorList.addError(exportList.frameSet(), *fle.frame, ex.what());
 
                 frameOffsets.push_back(NULL_OFFSET);
             }
