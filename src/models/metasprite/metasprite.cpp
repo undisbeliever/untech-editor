@@ -13,6 +13,8 @@ template <>
 const std::string ActionPoint::list_t::HUMAN_TYPE_NAME = "Action Point";
 template <>
 const std::string EntityHitbox::list_t::HUMAN_TYPE_NAME = "Entity Hitbox";
+template <>
+const std::string capped_vector<Snes::Palette4bpp, MAX_PALETTES>::HUMAN_TYPE_NAME = "Palettes";
 
 bool FrameObject::isValid(const FrameSet& frameSet)
 {

@@ -102,7 +102,7 @@ struct FrameSet {
 
     Snes::Tileset4bpp8px smallTileset;
     Snes::Tileset4bpp16px largeTileset;
-    std::vector<Snes::Palette4bpp> palettes;
+    capped_vector<Snes::Palette4bpp, MAX_PALETTES> palettes;
 
     FrameSet() = default;
     FrameSet(const FrameSet&) = default;
