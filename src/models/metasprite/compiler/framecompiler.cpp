@@ -33,16 +33,13 @@ FrameCompiler::processFrameObjects(const MS::FrameObject::list_t& objects,
 {
     const static uint16_t V_FLIP = 0x8000;
     const static uint16_t H_FLIP = 0x4000;
-    const static uint16_t ORDER_MASK = 0x03;
     const static unsigned ORDER_SHIFT = 12;
 
     if (objects.size() == 0) {
         return RomOffsetPtr();
     }
 
-    if (objects.size() > MAX_FRAME_OBJECTS) {
-        throw std::runtime_error("Too many frame objects");
-    }
+    assert(objects.size() <= MAX_FRAME_OBJECTS);
 
     std::vector<uint8_t> romData;
     romData.reserve(1 + 4 * objects.size());
@@ -61,7 +58,7 @@ FrameCompiler::processFrameObjects(const MS::FrameObject::list_t& objects,
             charAttr = tileset.largeTilesetMap.at(obj.tileId);
         }
 
-        charAttr |= (obj.order & ORDER_MASK) << ORDER_SHIFT;
+        charAttr |= obj.order << ORDER_SHIFT;
 
         if (obj.hFlip) {
             charAttr ^= H_FLIP;
@@ -87,9 +84,7 @@ FrameCompiler::processEntityHitboxes(const MS::EntityHitbox::list_t& entityHitbo
         return RomOffsetPtr();
     }
 
-    if (entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
-        throw std::runtime_error("Too many entity hitboxes");
-    }
+    assert(entityHitboxes.size() <= MAX_ENTITY_HITBOXES);
 
     // count starts at -1
     unsigned count = entityHitboxes.size() - 1;
@@ -179,17 +174,13 @@ FrameCompiler::processActionPoints(const MS::ActionPoint::list_t& actionPoints)
         return RomOffsetPtr();
     }
 
-    if (actionPoints.size() > MAX_ACTION_POINTS) {
-        throw std::runtime_error("Too many action points");
-    }
+    assert(actionPoints.size() <= MAX_ACTION_POINTS);
 
     std::vector<uint8_t> romData;
     romData.reserve(3 * actionPoints.size() + 1);
 
     for (const MS::ActionPoint& ap : actionPoints) {
-        if (ap.parameter == 0) {
-            throw std::runtime_error("Action Point parameter cannot be zero");
-        }
+        assert(ap.parameter != 0);
 
         const ms8point loc = ap.location;
 
@@ -227,9 +218,7 @@ FrameCompiler::process(const FrameSetExportList& exportList,
 {
     const auto& frameList = exportList.frames();
 
-    if (frameList.size() >= 256) {
-        throw std::runtime_error("Too many frames");
-    }
+    assert(frameList.size() <= MAX_EXPORT_NAMES);
 
     const uint32_t NULL_OFFSET = ~0;
 

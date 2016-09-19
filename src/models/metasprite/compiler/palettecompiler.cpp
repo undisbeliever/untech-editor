@@ -22,11 +22,10 @@ RomOffsetPtr PaletteCompiler::process(const MS::FrameSet& frameSet)
     // Some framesets can have the same palette, will check for duplicates
     const auto& palettes = frameSet.palettes;
 
+    assert(palettes.size() <= MAX_PALETTES);
+
     if (palettes.size() == 0) {
         throw std::runtime_error("No Palettes in Frameset");
-    }
-    if (palettes.size() > 255) {
-        throw std::runtime_error("Too many palettes (max 255)");
     }
 
     std::vector<uint32_t> offsets;

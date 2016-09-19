@@ -106,7 +106,7 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
 
             data.push_back(frameMap.at(f));
 
-            assert(inst.parameter >= 0 && inst.parameter < 256);
+            assert(inst.parameter >= 0 && inst.parameter < UINT8_MAX);
             data.push_back(inst.parameter);
 
             break;
@@ -127,9 +127,7 @@ AnimationCompiler::process(const FrameSetExportList& exportList)
     const auto& animationList = exportList.animations();
     const auto& frameList = exportList.frames();
 
-    if (animationList.size() >= 256) {
-        throw std::runtime_error("Too many animations");
-    }
+    assert(animationList.size() <= MAX_EXPORT_NAMES);
 
     std::map<const FrameListEntry, unsigned> frameMap;
     for (unsigned i = 0; i < frameList.size(); i++) {
