@@ -1,17 +1,14 @@
 #include "helpers/commandlineparser.h"
 #include "models/common/atomicofstream.h"
-#include "models/metasprite-compiler/compiler.h"
-#include "models/metasprite-compiler/msexportorder.h"
-#include "models/metasprite.h"
+#include "models/metasprite/compiler/compiler.h"
+#include "models/metasprite/project.h"
 #include <cstdlib>
 #include <iostream>
 
 using namespace UnTech;
+using namespace UnTech::MetaSprite;
 
-namespace MS = UnTech::MetaSprite;
-namespace MSC = UnTech::MetaSpriteCompiler;
-
-const unsigned TBS = MSC::TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE;
+const unsigned TBS = Compiler::TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE;
 
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
@@ -19,7 +16,7 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     true,
     true,
     false,
-    MSC::MsExportOrderDocument::DOCUMENT_TYPE.extension + " file",
+    Project::FILE_EXTENSION + " file",
     {
         { 'o', "output", OT::STRING, true, {}, "output file" },
         { 't', "tileblock", OT::UNSIGNED, false, TBS, "tileset block size" },
@@ -28,37 +25,38 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     }
 };
 
-int main(int argc, const char* argv[])
+int compile(const CommandLine::Parser& args)
 {
-    CommandLine::Parser args(COMMAND_LINE_CONFIG);
-    args.parse(argc, argv);
+    std::unique_ptr<Project> project = loadProject(args.filenames().front());
+    for (auto& fs : project->frameSets) {
+        fs.loadFile();
+    }
 
-    MSC::Compiler compiler(
+    ErrorList errorList;
+    Compiler::Compiler compiler(
+        errorList,
         args.options().at("tileblock").uint());
 
-    MSC::MsExportOrderDocument eoDocument(
-        args.filenames().front());
+    for (auto& fs : project->frameSets) {
+        fs.convertSpriteImporter(errorList);
 
-    for (auto& fsd : eoDocument.exportOrder().frameSets()) {
-        if (fsd) {
-            compiler.processFrameSet(fsd->frameSet());
+        if (fs.msFrameSet) {
+            compiler.processFrameSet(*fs.msFrameSet);
         }
         else {
             compiler.processNullFrameSet();
         }
     }
 
-    const auto& errorList = compiler.errorList();
-
-    for (const std::string& w : errorList.warnings()) {
-        std::cerr << "warning: " << w << '\n';
+    for (const auto& w : errorList.warnings) {
+        std::cerr << "WARNING: " << w << '\n';
     }
 
-    for (const std::string& e : errorList.errors()) {
-        std::cerr << "error: " << e << '\n';
+    for (const auto& e : errorList.errors) {
+        std::cerr << "ERROR: " << e << '\n';
     }
 
-    if (!errorList.errors().empty()) {
+    if (!errorList.errors.empty()) {
         return EXIT_FAILURE;
     }
 
@@ -70,4 +68,18 @@ int main(int argc, const char* argv[])
     os.commit();
 
     return EXIT_SUCCESS;
+}
+
+int main(int argc, const char* argv[])
+{
+    try {
+        CommandLine::Parser args(COMMAND_LINE_CONFIG);
+        args.parse(argc, argv);
+        return compile(args);
+    }
+    catch (const std::exception& ex) {
+        std::cerr << "ERROR: "
+                  << ex.what() << std::endl;
+        return EXIT_FAILURE;
+    }
 }
