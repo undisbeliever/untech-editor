@@ -44,7 +44,7 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
         case BC::GOTO_ANIMATION: {
             const auto aniIt = frameSet.animations.find(inst.gotoLabel);
             if (aniIt == frameSet.animations.end()) {
-                throw std::runtime_error("Cannot find animation " + inst.gotoLabel);
+                throw std::runtime_error("GOTO_ANIMATION: Cannot find animation " + inst.gotoLabel);
             }
 
             // Find animation Id
@@ -54,7 +54,7 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
                 it = animationMap.find({ a, false, false });
             }
             if (it == animationMap.end()) {
-                throw std::runtime_error("Cannot find animation " + inst.gotoLabel);
+                throw std::runtime_error("GOTO_ANIMATION: Cannot find animation " + inst.gotoLabel);
             }
             data.push_back(it->second);
 
@@ -85,7 +85,7 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
             }
 
             if (!int_ms8_t::isValid(offset)) {
-                throw std::runtime_error("Offset outside range");
+                throw std::runtime_error("GOTO_OFFSET: Offset outside range");
             }
 
             data.push_back(int_ms8_t(offset).romData());
@@ -148,8 +148,13 @@ AnimationCompiler::process(const FrameSetExportList& exportList)
 
         // ::TODO test animation isValid::
 
-        ao = processAnimation(ani, exportList.frameSet(),
-                              frameMap, animationMap);
+        try {
+            ao = processAnimation(ani, exportList.frameSet(),
+                                  frameMap, animationMap);
+        }
+        catch (const std::exception& ex) {
+            _errorList.addError(exportList.frameSet(), *ani.animation, ex.what());
+        }
 
         animationOffsets.push_back(ao);
     }
