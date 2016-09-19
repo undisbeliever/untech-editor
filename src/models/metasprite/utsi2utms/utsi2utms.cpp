@@ -292,13 +292,11 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
                 msObj.location = ms8point::createFromOffset(siObj.location, siFrameOrigin);
                 msObj.order = siFrame.spriteOrder;
 
-                if (overlapping.count(&siObj) > 0) {
+                if (overlapping.count(&siObj) == 0) {
                     // don't process overlapping tiles here
-                    continue;
+                    auto to = getTilesetOutputFromImage(siFrame, siObj);
+                    to.apply(msObj);
                 }
-
-                auto to = getTilesetOutputFromImage(siFrame, siObj);
-                to.apply(msObj);
 
                 msFrame.objects.push_back(msObj);
             }
