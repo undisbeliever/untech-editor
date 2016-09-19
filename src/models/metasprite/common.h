@@ -7,6 +7,7 @@
 namespace UnTech {
 namespace MetaSprite {
 
+const static size_t MAX_FRAMESETS = 1024;
 const static size_t MAX_FRAMES = 254;
 const static size_t MAX_EXPORT_NAMES = 254;
 const static size_t MAX_FRAME_OBJECTS = 32;
