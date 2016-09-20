@@ -7,6 +7,7 @@
 #include "animation/animation.h"
 #include "models/common/aabb.h"
 #include "models/common/capped_vector.h"
+#include "models/common/idstring.h"
 #include "models/common/image.h"
 #include <map>
 #include <string>
@@ -121,8 +122,7 @@ struct EntityHitbox {
 };
 
 struct Frame {
-    // ::TODO replace with idstring::
-    typedef std::map<std::string, Frame> map_t;
+    typedef std::map<idstring, Frame> map_t;
 
     FrameLocation location;
     FrameObject::list_t objects;
@@ -142,8 +142,7 @@ struct Frame {
 struct FrameSet {
     static const std::string FILE_EXTENSION;
 
-    // ::TODO replace with idstring::
-    std::string name;
+    idstring name;
     TilesetType tilesetType;
     std::shared_ptr<const FrameSetExportOrder> exportOrder;
     Frame::map_t frames;

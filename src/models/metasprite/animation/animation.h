@@ -3,6 +3,7 @@
 #include "bytecode.h"
 #include "../common.h"
 #include "models/common/capped_vector.h"
+#include "models/common/idstring.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -15,7 +16,7 @@ struct Instruction {
     typedef capped_vector<Instruction, MAX_ANIMATION_INSTRUCTIONS> list_t;
 
     Bytecode operation;
-    std::string gotoLabel;
+    idstring gotoLabel;
     NameReference frame;
     int parameter;
 
@@ -27,8 +28,7 @@ struct Instruction {
 };
 
 struct Animation {
-    // ::TODO replace with idstring::
-    typedef std::map<std::string, Animation> map_t;
+    typedef std::map<idstring, Animation> map_t;
 
     Instruction::list_t instructions;
 

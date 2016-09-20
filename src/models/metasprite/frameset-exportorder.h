@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "models/common/capped_vector.h"
+#include "models/common/idstring.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -15,14 +16,13 @@ struct FrameSetExportOrder {
     struct ExportName {
         typedef capped_vector<ExportName, MAX_EXPORT_NAMES> list_t;
 
-        std::string name;
+        idstring name;
         std::vector<NameReference> alternatives;
     };
 
     std::string filename;
 
-    // ::TODO replace with idstring::
-    std::string name;
+    idstring name;
     ExportName::list_t stillFrames;
     ExportName::list_t animations;
 

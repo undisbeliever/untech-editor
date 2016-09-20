@@ -3,9 +3,9 @@
 #include "../aabb.h"
 #include "../clampedinteger.h"
 #include "../file.h"
+#include "../idstring.h"
 #include "../int_ms8_t.h"
 #include "../ms8aabb.h"
-#include "../namechecks.h"
 #include "../optional.h"
 #include <climits>
 #include <memory>
@@ -49,11 +49,11 @@ struct XmlTag {
         }
     }
 
-    inline std::string getAttributeId(const std::string& aName) const
+    inline idstring getAttributeId(const std::string& aName) const
     {
-        std::string id = getAttribute(aName);
+        idstring id = getAttribute(aName);
 
-        if (isNameValid(id)) {
+        if (id.isValid()) {
             return id;
         }
         else {
@@ -62,8 +62,8 @@ struct XmlTag {
     }
 
     template <class ListT>
-    inline std::string getAttributeUniqueId(const std::string& aName,
-                                            const ListT& list) const
+    inline idstring getAttributeUniqueId(const std::string& aName,
+                                         const ListT& list) const
     {
         std::string id = getAttributeId(aName);
 

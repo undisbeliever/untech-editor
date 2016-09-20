@@ -11,6 +11,9 @@
 #include <unordered_map>
 #include <vector>
 
+// uses std::string instead of idstring as
+// the assembly data labels can contain dots (.)
+
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {

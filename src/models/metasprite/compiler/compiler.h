@@ -47,8 +47,8 @@ private:
 
     struct FrameSetReference {
         bool isNull;
-        const std::string name;
-        const std::string exportOrderName;
+        const idstring name;
+        const idstring exportOrderName;
 
         FrameSetReference()
             : isNull(true)
@@ -57,7 +57,7 @@ private:
         {
         }
 
-        FrameSetReference(const std::string& name, const std::string& exportOrderName)
+        FrameSetReference(const idstring& name, const idstring& exportOrderName)
             : isNull(false)
             , name(name)
             , exportOrderName(exportOrderName)

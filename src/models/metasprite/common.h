@@ -1,5 +1,6 @@
 #pragma once
 #include "models/common/clampedinteger.h"
+#include "models/common/idstring.h"
 #include "models/common/unsignedbits.h"
 #include <cstdint>
 #include <string>
@@ -26,8 +27,7 @@ enum class ObjectSize {
 typedef ClampedType<uint8_t, 1, 255> ActionPointParameter;
 
 struct NameReference {
-    // ::TODO replace with idname::
-    std::string name;
+    idstring name;
     bool hFlip;
     bool vFlip;
 

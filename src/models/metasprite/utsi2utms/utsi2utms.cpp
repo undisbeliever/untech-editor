@@ -247,11 +247,11 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
 
     // A Mapping to store all the frame objects that overlap each other.
     // Mapping of <frameName> -> <objectIDs> -> list<overlapping objectIDs>
-    std::map<const std::string, std::map<unsigned, std::list<unsigned>>> overlappingFrameObjectsMap;
+    std::map<const idstring, std::map<unsigned, std::list<unsigned>>> overlappingFrameObjectsMap;
 
     // Process frames
     for (const auto& frameIt : siFrameSet.frames) {
-        const std::string& frameName = frameIt.first;
+        const idstring& frameName = frameIt.first;
         const SI::Frame& siFrame = frameIt.second;
         const auto& siFrameOrigin = siFrame.location.origin;
 
@@ -345,7 +345,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
     } overTile;
 
     for (const auto& overlappingFramesIt : overlappingFrameObjectsMap) {
-        const std::string& frameName = overlappingFramesIt.first;
+        const idstring& frameName = overlappingFramesIt.first;
         const auto& frameObjectOverlaps = overlappingFramesIt.second;
 
         const SI::Frame& siFrame = siFrameSet.frames.at(frameName);
