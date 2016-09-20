@@ -220,7 +220,7 @@ private:
         }
 
         const std::string src = tag->getAttributeFilename("src");
-        frameSet.exportOrder = loadFrameSetExportOrder(src);
+        frameSet.exportOrder = loadFrameSetExportOrderCached(src);
     }
 };
 

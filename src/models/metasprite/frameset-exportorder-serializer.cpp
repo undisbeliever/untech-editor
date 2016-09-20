@@ -88,9 +88,8 @@ private:
     }
 };
 
-// ::SHOULDO cache these values for metasprite-compiler::
 std::shared_ptr<const FrameSetExportOrder>
-loadFrameSetExportOrder(const std::string& filename)
+loadFrameSetExportOrderFile(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     try {
@@ -111,6 +110,26 @@ loadFrameSetExportOrder(const std::string& filename)
     }
     catch (const std::exception& ex) {
         throw xml_error(*xml, "Error loading FrameSetExportOrder file", ex);
+    }
+}
+
+std::shared_ptr<const FrameSetExportOrder>
+loadFrameSetExportOrderCached(const std::string& filename)
+{
+    static std::unordered_map<std::string, std::weak_ptr<const FrameSetExportOrder>> cache;
+
+    const std::string fullPath = File::fullPath(filename);
+    auto& c = cache[fullPath];
+
+    std::shared_ptr<const FrameSetExportOrder> eo = c.lock();
+    if (eo) {
+        return eo;
+    }
+    else {
+        // not found
+        eo = loadFrameSetExportOrderFile(fullPath);
+        c = eo;
+        return eo;
     }
 }
 }

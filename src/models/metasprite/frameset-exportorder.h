@@ -30,9 +30,8 @@ struct FrameSetExportOrder {
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;
 };
 
-// FrameSetExportOrder is read only and
-// may be shared amongst many MetaSprite/SpriteImporter instances.
+// uses a cache to return the same FrameSetExportOrder for the same filename.
 std::shared_ptr<const FrameSetExportOrder>
-loadFrameSetExportOrder(const std::string& filename);
+loadFrameSetExportOrderCached(const std::string& filename);
 }
 }
