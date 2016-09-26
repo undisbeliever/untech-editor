@@ -49,7 +49,7 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     if (useGridOrigin) {
         origin = grid.origin;
     }
-    origin.x = std::min(origin.x, aabb.height);
+    origin.x = std::min(origin.x, aabb.width);
     origin.y = std::min(origin.y, aabb.height);
 }
 
