@@ -78,12 +78,12 @@ std::string File::readUtf8TextFile(const std::string& filename)
         in.close();
 
         if (!String::checkUtf8WellFormed(ret)) {
-            throw std::runtime_error("File is not UTF-8 Well Formed");
+            throw std::runtime_error("Cannot open file: " + filename + " : Not UTF-8 Well Formed");
         }
 
         return (ret);
     }
-    throw std::runtime_error("Cannot open file");
+    throw std::runtime_error("Cannot open file: " + filename);
 }
 
 std::pair<std::string, std::string> File::splitFilename(const std::string& filename)
