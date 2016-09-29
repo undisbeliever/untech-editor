@@ -119,11 +119,11 @@ std::string File::cwd()
     return to_string(wpath);
 
 #else
-    char* dir = get_current_dir_name();
+    char buff[PATH_MAX + 1];
+    char* dir = getcwd(buff, PATH_MAX);
 
     if (dir) {
         std::string ret(dir);
-        free(dir);
         return ret;
     }
     else {
