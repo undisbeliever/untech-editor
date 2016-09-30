@@ -23,8 +23,14 @@ private:
     T data;
 
 public:
+    ~ClampedType() = default;
+    ClampedType(const ClampedType&) = default;
+    ClampedType(ClampedType&&) = default;
+    ClampedType& operator=(const ClampedType&) = default;
+    ClampedType& operator=(ClampedType&&) = default;
+
     inline ClampedType() = default;
-    inline explicit ClampedType(const ClampedType& o) = default;
+
     inline ClampedType(const COMP_TYPE v)
     {
         data = v >= MIN ? (v <= MAX ? v : MAX) : MIN;

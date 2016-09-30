@@ -35,13 +35,13 @@ public:
     }
 
 public:
-    idstring() = default;
+    ~idstring() = default;
     idstring(const idstring&) = default;
     idstring(idstring&&) = default;
-
     idstring& operator=(const idstring&) = default;
     idstring& operator=(idstring&&) = default;
 
+    idstring() = default;
     idstring(const std::string& s)
     {
         if (isValid(s)) {

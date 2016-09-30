@@ -22,8 +22,12 @@ private:
 public:
     const static unsigned MASK = (1 << BITS) - 1;
 
-    inline UnsignedBits() = default;
-    inline UnsignedBits(const UnsignedBits& o) = default;
+    ~UnsignedBits() = default;
+    UnsignedBits(const UnsignedBits&) = default;
+    UnsignedBits(UnsignedBits&&) = default;
+    UnsignedBits& operator=(const UnsignedBits&) = default;
+    UnsignedBits& operator=(UnsignedBits&&) = default;
+
     inline UnsignedBits(const T& v) { data = v & MASK; }
 
     inline operator T() const { return data; }

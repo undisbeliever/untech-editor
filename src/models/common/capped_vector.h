@@ -35,20 +35,14 @@ public:
     typedef typename parent::const_iterator const_iterator;
     typedef typename parent::size_type size_type;
 
-    capped_vector() = default;
+    ~capped_vector() = default;
     capped_vector(const capped_vector&) = default;
     capped_vector(capped_vector&&) = default;
+    capped_vector& operator=(const capped_vector& other) = default;
+    capped_vector& operator=(capped_vector&& other) = default;
 
-    capped_vector& operator=(const capped_vector& other)
-    {
-        parent::operator=(other);
-        return *this;
-    }
-    capped_vector& operator=(capped_vector&& other)
-    {
-        parent::operator=(other);
-        return *this;
-    }
+    capped_vector() = default;
+
     capped_vector& operator=(std::initializer_list<T> ilist)
     {
         _validate_count(ilist.size());

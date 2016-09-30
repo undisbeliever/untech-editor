@@ -7,6 +7,12 @@ namespace UnTech {
 template <typename T>
 class optional {
 public:
+    ~optional() = default;
+    optional(const optional&) = default;
+    optional(optional&&) = default;
+    optional& operator=(const optional&) = default;
+    optional& operator=(optional&&) = default;
+
     optional()
         : _value()
         , _exists(false)
@@ -18,10 +24,6 @@ public:
         , _exists(true)
     {
     }
-
-    optional(const optional<T>&) = default;
-    optional(optional<T>&&) = default;
-    ~optional() = default;
 
     bool exists() const { return _exists; }
     explicit operator bool() const { return _exists; }
@@ -47,6 +49,13 @@ public:
     }
 
     inline constexpr optional& operator=(const T& v)
+    {
+        _value = v;
+        _exists = true;
+        return *this;
+    }
+
+    inline constexpr optional& operator=(T&& v)
     {
         _value = v;
         _exists = true;
