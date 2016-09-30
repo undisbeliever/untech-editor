@@ -405,18 +405,18 @@ void File::atomicWrite(const std::string& filename, const void* data, size_t siz
             throw std::runtime_error("User can not write to " + filename);
         }
 
-        fd = mkostemp(tmpFilename, O_WRONLY);
+        fd = mkstemp(tmpFilename);
         if (fd < 0) {
             throw std::system_error(errno, std::system_category());
         }
 
-        // mkostemp sets file permission to 0600
+        // mkstemp sets file permission to 0600
         // Set the permissions to match filename
         chmod(tmpFilename, statbuf.st_mode);
         chown(tmpFilename, statbuf.st_uid, statbuf.st_gid);
     }
     else {
-        fd = mkostemp(tmpFilename, O_WRONLY);
+        fd = mkstemp(tmpFilename);
         if (fd < 0) {
             throw std::system_error(errno, std::system_category());
         }
