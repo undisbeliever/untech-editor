@@ -31,9 +31,6 @@ public:
     {
     }
 
-    EntityHitboxType(const EntityHitboxType&) = default;
-    EntityHitboxType(EntityHitboxType&&) = default;
-
     static EntityHitboxType smallestFixedTileset(unsigned tilesetSize);
 
     Enum value() const { return _value; };
@@ -42,11 +39,6 @@ public:
     const std::string& string() const { return enumMap.at(_value); }
 
     inline operator Enum() const { return _value; }
-    inline EntityHitboxType operator=(const EntityHitboxType& v)
-    {
-        _value = v._value;
-        return *this;
-    }
 
     inline bool operator==(const EntityHitboxType& o) const { return _value == o._value; }
     inline bool operator==(Enum e) const { return _value == e; }

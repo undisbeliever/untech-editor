@@ -33,8 +33,6 @@ struct Project {
         void loadFile();
 
         FrameSetFile() = default;
-        FrameSetFile(const FrameSetFile&) = delete;
-        FrameSetFile(FrameSetFile&&) = default;
     };
 
     FrameSetFile::list_t frameSets;

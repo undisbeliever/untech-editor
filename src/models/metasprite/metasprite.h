@@ -63,7 +63,6 @@ struct EntityHitbox {
     EntityHitboxType hitboxType;
 
     EntityHitbox() = default;
-    EntityHitbox(const EntityHitbox&) = default;
     EntityHitbox(const ms8rect& aabb, EntityHitboxType& hitboxType)
         : aabb(aabb)
         , hitboxType(hitboxType)
@@ -81,8 +80,6 @@ struct Frame {
     bool solid;
 
     Frame() = default;
-    Frame(const Frame&) = default;
-    Frame(Frame&&) = default;
 
     Frame flip(bool hFlip, bool vFlip) const;
 
@@ -104,8 +101,6 @@ struct FrameSet {
     capped_vector<Snes::Palette4bpp, MAX_PALETTES> palettes;
 
     FrameSet() = default;
-    FrameSet(const FrameSet&) = default;
-    FrameSet(FrameSet&&) = default;
 
     // ::TODO isValid - returns a string if there is an error::
 };

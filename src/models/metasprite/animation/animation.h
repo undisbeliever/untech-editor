@@ -21,8 +21,6 @@ struct Instruction {
     int parameter;
 
     Instruction() = default;
-    Instruction(const Instruction&) = default;
-    Instruction(Instruction&&) = default;
 
     // ::TODO isValid - given frame name list::
 };
@@ -33,8 +31,6 @@ struct Animation {
     Instruction::list_t instructions;
 
     Animation() = default;
-    Animation(const Animation&) = default;
-    Animation(Animation&&) = default;
 
     // ::TODO isValid - given frame name list::
 };

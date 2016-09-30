@@ -33,7 +33,6 @@ struct FrameSetGrid {
         , origin(MIN_FRAME_SIZE / 2, MIN_FRAME_SIZE / 2)
     {
     }
-    FrameSetGrid(const FrameSetGrid&) = default;
 
     urect cell(unsigned x, unsigned y) const;
     bool isValid(const FrameSet& frameSet) const;
@@ -51,7 +50,6 @@ struct FrameLocation {
         , origin(MIN_FRAME_SIZE / 2, MIN_FRAME_SIZE / 2)
     {
     }
-    FrameLocation(const FrameLocation&) = default;
 
     void update(const FrameSetGrid&, const Frame&);
 };
@@ -108,7 +106,6 @@ struct EntityHitbox {
     EntityHitboxType hitboxType;
 
     EntityHitbox() = default;
-    EntityHitbox(const EntityHitbox&) = default;
     EntityHitbox(const urect& aabb, EntityHitboxType& hitboxType)
         : aabb(aabb)
         , hitboxType(hitboxType)
@@ -133,8 +130,6 @@ struct Frame {
     bool solid;
 
     Frame() = default;
-    Frame(const Frame&) = default;
-    Frame(Frame&&) = default;
 
     usize minimumViableSize() const;
 };
@@ -154,8 +149,6 @@ struct FrameSet {
     FrameSetGrid grid;
 
     FrameSet() = default;
-    FrameSet(const FrameSet&) = default;
-    FrameSet(FrameSet&&) = default;
 
     usize minimumViableFrameSize() const;
     bool transparentColorValid() const

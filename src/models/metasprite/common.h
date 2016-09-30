@@ -32,8 +32,6 @@ struct NameReference {
     bool vFlip;
 
     NameReference() = default;
-    NameReference(const NameReference&) = default;
-    NameReference(NameReference&&) = default;
 
     bool operator==(const NameReference& o)
     {

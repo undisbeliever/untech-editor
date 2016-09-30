@@ -33,9 +33,6 @@ public:
     {
     }
 
-    TilesetType(const TilesetType&) = default;
-    TilesetType(TilesetType&&) = default;
-
     static TilesetType smallestFixedTileset(unsigned tilesetSize);
 
     unsigned nTiles() const;
@@ -50,11 +47,6 @@ public:
     uint8_t engineValue() const { return (uint8_t)_value; }
 
     inline operator Enum() const { return _value; }
-    inline TilesetType operator=(const TilesetType& v)
-    {
-        _value = v._value;
-        return *this;
-    }
 
     inline bool operator==(const TilesetType& o) const { return _value == o._value; }
     inline bool operator==(Enum e) const { return _value == e; }

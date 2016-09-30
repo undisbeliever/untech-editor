@@ -20,7 +20,6 @@ public:
     OptionValue(bool boolean = false);
     OptionValue(const std::string& str);
     OptionValue(unsigned uint);
-    OptionValue(const OptionValue&) = default;
 
     Type type() const { return _type; }
     operator bool() const { return _boolean; }

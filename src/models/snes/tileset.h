@@ -18,6 +18,8 @@ public:
     typedef TileT tile_t;
 
 public:
+    Tileset() = default;
+
     // fails silently
     void drawTile(Image& image, const Palette<TileT::BIT_DEPTH>& palette,
                   unsigned xOffset, unsigned yOffset,

@@ -20,7 +20,6 @@ public:
 
 public:
     Palette() = default;
-    Palette(const Palette& p) = default;
     Palette(const std::vector<uint8_t>& data)
         : _colors()
     {

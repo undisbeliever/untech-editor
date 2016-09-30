@@ -34,7 +34,6 @@ public:
 
 public:
     Tile() = default;
-    Tile(const Tile&) = default;
 
 public:
     // fails silently
@@ -91,7 +90,6 @@ public:
 
 public:
     Tile8px() = default;
-    Tile8px(const Tile8px&) = default;
     Tile8px(const Tile<BD, 8>&);
     Tile8px(const uint8_t data[SNES_DATA_SIZE]) { readSnesData(data); }
 
@@ -117,7 +115,6 @@ public:
 
 public:
     Tile16px() = default;
-    Tile16px(const Tile16px&) = default;
     Tile16px(const Tile<BD, 16>&);
     Tile16px(const uint8_t data[SNES_DATA_SIZE]) { readSnesData(data); }
     Tile16px(const std::array<Tile8px<BD>, 4>& tiles) { combineIntoLarge(tiles); }

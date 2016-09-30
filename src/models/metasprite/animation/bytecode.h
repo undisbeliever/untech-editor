@@ -34,8 +34,6 @@ public:
     {
     }
 
-    Bytecode(const Bytecode&) = default;
-
     unsigned instructionSize() const;
 
     // Returns true if the instruction is a jump or a stop

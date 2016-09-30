@@ -30,8 +30,6 @@ struct RomOffsetPtr {
     {
     }
 
-    RomOffsetPtr(const RomOffsetPtr&) = default;
-
     const std::string* label;
     uint32_t offset;
 };
