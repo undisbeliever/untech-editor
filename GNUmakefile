@@ -1,32 +1,38 @@
 
 PROFILE	?= release
 
+CXXWARNINGS	?= -Wall -Wextra -Wdeprecated
+
 ifeq ($(PROFILE),release)
   OBJ_DIR       := obj/release
   BIN_DIR       := bin
   BIN_EXT	:=
 
   CXX           ?= g++
-  CXXFLAGS      += -std=c++14 -O2 -flto -Wall -Wextra -MMD -Isrc
-  LDFLAGS       += -O2 -flto -Wall -Wextra
+  CXXFLAGS      += -std=c++14 -O2 -flto -MMD -Isrc
+  LDFLAGS       += -O2 -flto
   LIBS	        :=
   CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
   CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
   VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
   VIEW_LIBS  := $(shell wx-config --libs)
+  VENDOR_CXXFLAGS := -Wno-deprecated
+
 else ifeq ($(PROFILE),debug)
   OBJ_DIR       := obj/debug
   BIN_DIR       := bin/debug
   BIN_EXT	:=
 
   CXX           ?= g++
-  CXXFLAGS      += -std=c++14 -g -Werror -Wall -Wextra -MMD -Isrc
-  LDFLAGS       += -g -Werror -Wall -Wextra
+  CXXFLAGS      += -std=c++14 -g -MMD -Isrc -Werror
+  LDFLAGS       += -g -Werrror
   LIBS	        :=
   CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
   CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
   VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
   VIEW_LIBS     := $(shell wx-config --libs)
+  VENDOR_CXXFLAGS := -Wno-deprecated
+
 else ifeq ($(PROFILE),mingw)
   # MinGW cross platform compiling
   CXX_MINGW     ?= x86_64-w64-mingw32-g++
@@ -37,13 +43,15 @@ else ifeq ($(PROFILE),mingw)
   BIN_EXT	:= .exe
 
   CXX           := $(CXX_MINGW)
-  CXXFLAGS      += -std=c++14 -O2 -flto -Wall -Wextra -MMD -Isrc
-  LDFLAGS       += -O2 -flto -Wall -Wextra
+  CXXFLAGS      += -std=c++14 -O2 -flto -MMD -Isrc
+  LDFLAGS       += -O2 -flto
   LIBS	        := -lshlwapi
   CONTROLLER_CXXFLAGS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --cflags sigc++-2.0)
   CONTROLLER_LIBS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --libs sigc++-2.0)
   VIEW_CXXFLAGS := $(shell $(PREFIX)/bin/wx-config --cxxflags)
   VIEW_LIBS  := $(shell $(PREFIX)/bin/wx-config --libs)
+  VENDOR_CXXFLAGS := -Wno-deprecated
+
 else
   $(error unknown profile)
 endif
@@ -112,25 +120,28 @@ DEPS = $(OBJS:.o=.d)
 -include $(DEPS)
 
 $(GUI_APPS): $(BIN_DIR)/%-gui$(BIN_EXT): $(OBJ_DIR)/gui/%.o
-	$(CXX) $(LDFLAGS) -o $@ $^ $(VIEW_LIBS) $(CONTROLLER_LIBS) $(LIBS)
+	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(VIEW_LIBS) $(CONTROLLER_LIBS) $(LIBS)
 
 $(CLI_APPS): $(BIN_DIR)/%$(BIN_EXT): $(OBJ_DIR)/cli/%.o
-	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
 
 $(OBJ_DIR)/gui/%.o: src/gui/%.cpp
-	$(CXX) $(CXXFLAGS) $(VIEW_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(VIEW_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/gui/controllers/%.o: src/gui/controllers/%.cpp
-	$(CXX) $(CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/gui/view/%.o: src/gui/view/%.cpp
-	$(CXX) $(CXXFLAGS) $(VIEW_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(VIEW_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/gui/widgets/%.o: src/gui/widgets/%.cpp
-	$(CXX) $(CXXFLAGS) $(GTK_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(GTK_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/vendor/%.o: src/vendor/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(VENDOR_CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/%.o: src/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) -c -o $@ $<
 
 
 .PHONY: dirs
