@@ -101,7 +101,7 @@ usize FrameSet::minimumViableFrameSize() const
 
 void FrameSet::updateFrameLocations()
 {
-    for (auto& it : frames) {
+    for (auto&& it : frames) {
         it.second.location.update(grid, it.second);
     }
 }

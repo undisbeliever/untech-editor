@@ -128,7 +128,7 @@ private:
         assert(tag->name == "frame");
 
         std::string id = tag->getAttributeUniqueId("id", frameSet.frames);
-        Frame& frame = frameSet.frames[id];
+        Frame& frame = frameSet.frames.create(id);
 
         if (tag->hasAttribute("order")) {
             frame.spriteOrder = tag->getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);

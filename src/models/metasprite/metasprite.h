@@ -6,11 +6,11 @@
 #include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/capped_vector.h"
+#include "models/common/idmap.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
 #include "models/common/ms8aabb.h"
 #include "models/snes/tileset.h"
-#include <map>
 #include <string>
 
 namespace UnTech {
@@ -71,7 +71,7 @@ struct EntityHitbox {
 };
 
 struct Frame {
-    typedef std::map<idstring, Frame> map_t;
+    typedef idmap<Frame> map_t;
 
     FrameObject::list_t objects;
     ActionPoint::list_t actionPoints;

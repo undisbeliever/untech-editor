@@ -18,7 +18,7 @@ void readAnimation(XmlReader& xml, const XmlTag* tag, Animation::map_t& animatio
     assert(tag->name == "animation");
 
     idstring id = tag->getAttributeUniqueId("id", animations);
-    Animation& animation = animations[id];
+    Animation& animation = animations.create(id);
 
     std::unique_ptr<XmlTag> childTag;
 

@@ -104,7 +104,7 @@ private:
         assert(tag->name == "frame");
 
         std::string id = tag->getAttributeUniqueId("id", frameSet.frames);
-        Frame& frame = frameSet.frames[id];
+        Frame& frame = frameSet.frames.create(id);
         frame.solid = false;
 
         std::unique_ptr<XmlTag> childTag;

@@ -49,7 +49,7 @@ public:
         }
     }
 
-    inline bool isValid() { return !data.empty(); }
+    inline bool isValid() const { return !data.empty(); }
 
     inline const std::string& str() const { return data; }
     inline operator const std::string&() const { return data; }

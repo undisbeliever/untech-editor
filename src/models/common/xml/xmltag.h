@@ -61,18 +61,16 @@ struct XmlTag {
         }
     }
 
-    template <class ListT>
+    template <class MapT>
     inline idstring getAttributeUniqueId(const std::string& aName,
-                                         const ListT& list) const
+                                         const MapT& map) const
     {
         std::string id = getAttributeId(aName);
 
-        if (list.find(id) == list.end()) {
-            return id;
-        }
-        else {
+        if (map.contains(id)) {
             throw xml_error(*this, aName, "id already exists");
         }
+        return id;
     }
 
     inline optional<std::string> getOptionalAttribute(const std::string& aName) const

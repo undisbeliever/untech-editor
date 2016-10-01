@@ -28,20 +28,18 @@ inline void FrameSetExportList::buildAnimationList()
     _animations.reserve(exportOrder->animations.size());
 
     for (const auto& en : exportOrder->animations) {
-        const auto aniIt = _frameSet.animations.find(en.name);
+        const Animation::Animation* ani = _frameSet.animations.getPtr(en.name);
 
-        if (aniIt != _frameSet.animations.end()) {
-            const Animation::Animation* ani = &aniIt->second;
+        if (ani) {
             _animations.push_back({ ani, false, false });
         }
         else {
             bool success = false;
 
             for (const auto& alt : en.alternatives) {
-                const auto altIt = _frameSet.animations.find(alt.name);
+                const Animation::Animation* altAni = _frameSet.animations.getPtr(alt.name);
 
-                if (altIt != _frameSet.animations.end()) {
-                    const Animation::Animation* altAni = &altIt->second;
+                if (altAni) {
                     _animations.push_back({ altAni, alt.hFlip, alt.vFlip });
 
                     success = true;
@@ -61,12 +59,11 @@ inline void FrameSetExportList::buildAnimationList()
 
         for (const auto& inst : toTest.animation->instructions) {
             if (inst.operation == BC::GOTO_ANIMATION) {
-                const auto aIt = _frameSet.animations.find(inst.gotoLabel);
+                const Animation::Animation* a = _frameSet.animations.getPtr(inst.gotoLabel);
 
-                if (aIt == _frameSet.animations.end()) {
+                if (a == nullptr) {
                     throw std::runtime_error("Cannot find animation " + inst.gotoLabel);
                 }
-                const Animation::Animation* a = &aIt->second;
 
                 auto it = std::find(_animations.begin(), _animations.end(),
                                     AnimationListEntry({ a, toTest.hFlip, toTest.vFlip }));
@@ -86,21 +83,19 @@ inline void FrameSetExportList::buildFrameList()
     _frames.reserve(exportOrder->stillFrames.size());
 
     for (const auto& en : exportOrder->stillFrames) {
-        const auto fIt = _frameSet.frames.find(en.name);
+        const MS::Frame* frame = _frameSet.frames.getPtr(en.name);
 
-        if (fIt != _frameSet.frames.end()) {
-            const MS::Frame* f = &fIt->second;
-            _frames.push_back({ f, false, false });
+        if (frame) {
+            _frames.push_back({ frame, false, false });
         }
         else {
             bool success = false;
 
             for (const auto& alt : en.alternatives) {
-                const auto afIt = _frameSet.frames.find(alt.name);
+                const MS::Frame* altFrame = _frameSet.frames.getPtr(alt.name);
 
-                if (afIt != _frameSet.frames.end()) {
-                    const MS::Frame* af = &afIt->second;
-                    _frames.push_back({ af, alt.hFlip, alt.vFlip });
+                if (altFrame) {
+                    _frames.push_back({ altFrame, alt.hFlip, alt.vFlip });
 
                     success = true;
                     break;
@@ -122,13 +117,13 @@ inline void FrameSetExportList::buildFrameList()
         for (const auto& inst : ani.animation->instructions) {
             const auto& op = inst.operation;
             if (op.usesFrame()) {
-                auto fIt = _frameSet.frames.find(inst.frame.name);
+                const MS::Frame* frame = _frameSet.frames.getPtr(inst.frame.name);
 
-                if (fIt == _frameSet.frames.end()) {
+                if (frame == nullptr) {
                     throw std::runtime_error("Cannot find frame " + inst.frame.name);
                 }
 
-                FrameListEntry e = { &fIt->second,
+                FrameListEntry e = { frame,
                                      static_cast<bool>(inst.frame.hFlip ^ ani.hFlip),
                                      static_cast<bool>(inst.frame.vFlip ^ ani.vFlip) };
 

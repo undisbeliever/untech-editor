@@ -255,7 +255,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
         const SI::Frame& siFrame = frameIt.second;
         const auto& siFrameOrigin = siFrame.location.origin;
 
-        MS::Frame& msFrame = msFrameSet->frames[frameName];
+        MS::Frame& msFrame = msFrameSet->frames.create(frameName);
 
         std::unordered_set<const SI::FrameObject*> overlapping;
 

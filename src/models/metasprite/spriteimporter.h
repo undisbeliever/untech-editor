@@ -7,9 +7,9 @@
 #include "animation/animation.h"
 #include "models/common/aabb.h"
 #include "models/common/capped_vector.h"
+#include "models/common/idmap.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
-#include <map>
 #include <string>
 #include <vector>
 
@@ -119,7 +119,7 @@ struct EntityHitbox {
 };
 
 struct Frame {
-    typedef std::map<idstring, Frame> map_t;
+    typedef idmap<Frame> map_t;
 
     FrameLocation location;
     FrameObject::list_t objects;

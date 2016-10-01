@@ -42,13 +42,13 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
 
         switch (inst.operation.value()) {
         case BC::GOTO_ANIMATION: {
-            const auto aniIt = frameSet.animations.find(inst.gotoLabel);
-            if (aniIt == frameSet.animations.end()) {
+            const Animation::Animation* a = frameSet.animations.getPtr(inst.gotoLabel);
+
+            if (a == nullptr) {
                 throw std::runtime_error("GOTO_ANIMATION: Cannot find animation " + inst.gotoLabel);
             }
 
             // Find animation Id
-            const Animation::Animation* a = &aniIt->second;
             auto it = animationMap.find({ a, aniEntry.hFlip, aniEntry.vFlip });
             if (it == animationMap.end()) {
                 it = animationMap.find({ a, false, false });
@@ -97,10 +97,10 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
         case BC::SET_FRAME_AND_WAIT_TIME:
         case BC::SET_FRAME_AND_WAIT_XVECL:
         case BC::SET_FRAME_AND_WAIT_YVECL: {
-            auto fIt = frameSet.frames.find(inst.frame.name);
-            assert(fIt != frameSet.frames.end());
+            const MS::Frame* frame = frameSet.frames.getPtr(inst.frame.name);
+            assert(frame != nullptr);
 
-            FrameListEntry f = { &fIt->second,
+            FrameListEntry f = { frame,
                                  static_cast<bool>(inst.frame.hFlip ^ aniEntry.hFlip),
                                  static_cast<bool>(inst.frame.vFlip ^ aniEntry.vFlip) };
 

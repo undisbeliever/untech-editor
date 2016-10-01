@@ -3,8 +3,8 @@
 #include "bytecode.h"
 #include "../common.h"
 #include "models/common/capped_vector.h"
+#include "models/common/idmap.h"
 #include "models/common/idstring.h"
-#include <map>
 #include <string>
 #include <vector>
 
@@ -26,7 +26,7 @@ struct Instruction {
 };
 
 struct Animation {
-    typedef std::map<idstring, Animation> map_t;
+    typedef idmap<Animation> map_t;
 
     Instruction::list_t instructions;
 
