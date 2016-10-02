@@ -11,7 +11,7 @@ class idstring {
     std::string data;
 
 public:
-    static bool isNameCharValid(const char c)
+    static bool isCharValid(const char c)
     {
         return ((c == '_'
                  || (c >= '0' && c <= '9')
@@ -26,7 +26,7 @@ public:
         }
 
         for (const char& c : name) {
-            if (!isNameCharValid(c)) {
+            if (!isCharValid(c)) {
                 return false;
             }
         }

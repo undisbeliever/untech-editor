@@ -1,11 +1,12 @@
-#include "namedlistnamedialiog.h"
+#include "idstringdialog.h"
+
 #include "gui/view/defaults.h"
 
 using namespace UnTech::View;
 
-NamedListNameDialog::NamedListNameDialog(wxWindow* parent,
-                                         const wxString& title, const wxString& caption,
-                                         std::function<bool(const std::string&)> validator)
+IdStringDialog::IdStringDialog(wxWindow* parent,
+                               const wxString& title, const wxString& caption,
+                               std::function<bool(const std::string&)> validator)
     : wxDialog(parent, wxID_ANY, title,
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE | wxCAPTION | wxCENTRE)
@@ -19,9 +20,9 @@ NamedListNameDialog::NamedListNameDialog(wxWindow* parent,
     sizer->Add(CreateTextSizer(caption),
                wxSizerFlags().DoubleBorder());
 
-    _name = new NamedListNameCtrl(this, wxID_ANY);
-    _name->SetSizeHints(DIALOG_TEXT_WIDTH, -1);
-    sizer->Add(_name, wxSizerFlags().Expand().TripleBorder(wxLEFT | wxRIGHT));
+    _idText = new IdStringTextCtrl(this, wxID_ANY);
+    _idText->SetSizeHints(DIALOG_TEXT_WIDTH, -1);
+    sizer->Add(_idText, wxSizerFlags().Expand().TripleBorder(wxLEFT | wxRIGHT));
 
     sizer->Add(CreateSeparatedButtonSizer(wxOK | wxCANCEL),
                wxSizerFlags().Expand().DoubleBorder());
@@ -33,8 +34,8 @@ NamedListNameDialog::NamedListNameDialog(wxWindow* parent,
     OnTextChanged();
 
     this->Bind(wxEVT_SHOW, [this](wxShowEvent&) {
-        _name->SelectAll();
-        _name->SetFocus();
+        _idText->SelectAll();
+        _idText->SetFocus();
     });
 
     this->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
@@ -42,15 +43,15 @@ NamedListNameDialog::NamedListNameDialog(wxWindow* parent,
     });
 }
 
-void NamedListNameDialog::SetValue(const wxString& text)
+void IdStringDialog::SetIdString(const idstring& text)
 {
-    _name->ChangeValue(text);
+    _idText->ChangeValue(wxString(text));
     OnTextChanged();
 }
 
-void NamedListNameDialog::OnTextChanged()
+void IdStringDialog::OnTextChanged()
 {
-    bool v = _validator(_name->GetValue().ToStdString());
+    bool v = _validator(_idText->GetIdString());
 
     // not sure how to do this normally
     wxWindow* ok = wxWindow::FindWindowById(wxID_OK, this);
