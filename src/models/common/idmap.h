@@ -132,13 +132,13 @@ public:
             throw std::invalid_argument("Invalid newId");
         }
 
-        auto newElem = std::make_unique<T>(*it.second);
+        auto newElem = std::make_unique<T>(*it->second);
         T* newElemPtr = newElem.get();
 
         _hashMap[newId] = std::move(newElem);
         _orderedMap[newId] = newElemPtr;
 
-        return &newElemPtr;
+        return *newElemPtr;
     }
 
     // Fails silently

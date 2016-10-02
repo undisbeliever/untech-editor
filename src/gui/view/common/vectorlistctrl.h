@@ -1,7 +1,8 @@
 #pragma once
-#include "gui/controllers/helpers/orderedlistcontroller.h"
+#include "mylistctrl.h"
 #include "gui/view/defaults.h"
 #include <cassert>
+#include <sigc++/signal.h>
 #include <wx/artprov.h>
 #include <wx/listctrl.h>
 #include <wx/toolbar.h>
@@ -10,13 +11,15 @@
 namespace UnTech {
 namespace View {
 
-template <class T>
-class OrderedListCtrl : public MyListCtrl {
-    typedef typename Controller::OrderedListController<T> OrderedListController;
-
+template <class ControllerT>
+class VectorListCtrl : public MyListCtrl {
 public:
-    OrderedListCtrl(wxWindow* parent, wxWindowID id,
-                    OrderedListController& controller)
+    using controller_type = ControllerT;
+    using list_type = typename ControllerT::list_type;
+    using element_type = typename ControllerT::element_type;
+
+    VectorListCtrl(wxWindow* parent, wxWindowID id,
+                   controller_type& controller)
         : MyListCtrl(parent, id, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_VIRTUAL | wxLC_SINGLE_SEL)
         , _controller(controller)
     {
@@ -29,10 +32,10 @@ public:
         this->Bind(wxEVT_LIST_ITEM_SELECTED, [this](wxCommandEvent&) {
             long i = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
             if (i != wxNOT_FOUND) {
-                _controller.setSelected(i);
+                _controller.selectIndex(i);
             }
             else {
-                _controller.setSelected(nullptr);
+                _controller.selectNone();
             }
         });
 
@@ -40,9 +43,13 @@ public:
          * SLOTS
          * =====
          */
+
+        // ::SHOULDDO add more fine grained signals in controller::
+        // ::: prevent redrawing entire screen::
+
         _controller.signal_listChanged().connect(
             [this](void) {
-                const typename T::list_t* list = _controller.list();
+                const list_type* list = _controller.list();
                 if (list) {
                     SetItemCount(list->size());
                     Refresh();
@@ -56,15 +63,13 @@ public:
 
         _controller.signal_selectedChanged().connect(
             [this](void) {
-                const T* item = _controller.selected();
-                const typename T::list_t* list = _controller.list();
-                if (list && item) {
-                    int i = list->indexOf(item);
-                    if (i >= 0) {
-                        SetItemCount(list->size()); // BUGFIX
-                        SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-                        EnsureVisible(i);
-                    }
+                const list_type* list = _controller.list();
+                optional<size_t> index = _controller.selectedIndex();
+
+                if (list && index) {
+                    SetItemCount(list->size()); // BUGFIX
+                    SetItemState(index.value(), wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                    EnsureVisible(index.value());
                 }
                 else {
                     // deselect the item(s)
@@ -76,34 +81,9 @@ public:
                 }
             });
 
-        _controller.signal_listDataChanged().connect(
-            [this](const typename T::list_t* list) {
-                if (list && list == _controller.list()) {
-                    SetItemCount(list->size());
-
-                    const T* item = _controller.selected();
-                    if (item) {
-                        int i = list->indexOf(item);
-                        if (i >= 0) {
-                            SetItemState(i, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-                            EnsureVisible(i);
-                        }
-                    }
-
-                    Refresh();
-                }
-            });
-
-        _controller.signal_dataChanged().connect(
-            [this](const T* item) {
-                const typename T::list_t* list = _controller.list();
-                if (item && list) {
-                    int i = list->indexOf(item);
-                    if (i >= 0) {
-                        RefreshItem(i);
-                    }
-                }
-            });
+        _controller.signal_dataChanged().connect([this](void) {
+            this->Refresh();
+        });
     }
 
 protected:
@@ -115,12 +95,12 @@ protected:
     virtual wxString OnGetItemText(long item, long column) const override;
 
 private:
-    OrderedListController& _controller;
+    controller_type& _controller;
 };
 
-template <class T>
-class OrderedListToolBar : public wxToolBar {
-    typedef typename Controller::OrderedListController<T> OrderedListController;
+template <class ControllerT>
+class VectorListToolBar : public wxToolBar {
+    using controller_type = ControllerT;
 
     enum IDs {
         ID_CREATE = 1000,
@@ -131,31 +111,33 @@ class OrderedListToolBar : public wxToolBar {
     };
 
 public:
-    OrderedListToolBar(wxWindow* parent, wxWindowID id,
-                       OrderedListController& controller)
+    VectorListToolBar(wxWindow* parent, wxWindowID id,
+                      controller_type& controller)
         : wxToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
                     wxTB_HORIZONTAL | wxTB_NODIVIDER)
         , _controller(controller)
     {
+        const static std::string& HUMAN_TYPE_NAME = controller_type::HUMAN_TYPE_NAME;
+
         AddTool(ID_CREATE, "Create",
                 wxArtProvider::GetBitmap("wxART_PLUS", wxART_TOOLBAR),
-                wxString("Create ") + T::TYPE_NAME);
+                wxString("Create ") + HUMAN_TYPE_NAME);
 
         AddTool(ID_CLONE, "Clone",
                 wxArtProvider::GetBitmap("wxART_COPY", wxART_TOOLBAR),
-                wxString("Clone ") + T::TYPE_NAME);
+                wxString("Clone ") + HUMAN_TYPE_NAME);
 
         AddTool(ID_MOVE_UP, "Move Up",
                 wxArtProvider::GetBitmap("wxART_GO_UP", wxART_TOOLBAR),
-                wxString("Move ") + T::TYPE_NAME + " Up");
+                wxString("Move ") + HUMAN_TYPE_NAME + " Up");
 
         AddTool(ID_MOVE_DOWN, "Move Down",
                 wxArtProvider::GetBitmap("wxART_GO_DOWN", wxART_TOOLBAR),
-                wxString("Move ") + T::TYPE_NAME + " Down");
+                wxString("Move ") + HUMAN_TYPE_NAME + " Down");
 
         AddTool(ID_REMOVE, "Remove",
                 wxArtProvider::GetBitmap("wxART_MINUS", wxART_TOOLBAR),
-                wxString("Remove ") + T::TYPE_NAME);
+                wxString("Remove ") + HUMAN_TYPE_NAME);
 
         Realize();
 
@@ -170,21 +152,21 @@ public:
                 break;
 
             case ID_CLONE:
-                _controller.selected_clone();
+                _controller.cloneSelected();
                 break;
 
             case ID_MOVE_UP:
-                _controller.selected_moveUp();
+                _controller.moveSelectedUp();
                 UpdateGui();
                 break;
 
             case ID_MOVE_DOWN:
-                _controller.selected_moveDown();
+                _controller.moveSelectedDown();
                 UpdateGui();
                 break;
 
             case ID_REMOVE:
-                _controller.selected_remove();
+                _controller.removeSelected();
                 break;
             }
         });
@@ -194,10 +176,10 @@ public:
          * =======
          */
         _controller.signal_listChanged().connect(sigc::mem_fun(
-            *this, &OrderedListToolBar::UpdateGui));
+            *this, &VectorListToolBar::UpdateGui));
 
         _controller.signal_selectedChanged().connect(sigc::mem_fun(
-            *this, &OrderedListToolBar::UpdateGui));
+            *this, &VectorListToolBar::UpdateGui));
     }
 
 protected:
@@ -216,7 +198,7 @@ protected:
     }
 
 private:
-    OrderedListController& _controller;
+    controller_type& _controller;
 };
 }
 }

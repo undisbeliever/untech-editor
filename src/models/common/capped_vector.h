@@ -130,7 +130,7 @@ public:
         parent::emplace_back(args...);
     }
 
-    void can_insert(size_t count = 1)
+    bool can_insert(size_t count = 1)
     {
         return this->size() + count <= MAX_SIZE;
     }
