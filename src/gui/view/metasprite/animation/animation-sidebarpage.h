@@ -1,18 +1,21 @@
 #pragma once
-#include "gui/controllers/metasprite-common.h"
+#include "gui/controllers/metasprite/animation.h"
 #include <wx/wx.h>
 
 namespace UnTech {
 namespace View {
-namespace MetaSpriteCommon {
+namespace MetaSprite {
+namespace Animation {
 
-namespace MSC = UnTech::MetaSpriteCommon;
+namespace MSA = UnTech::MetaSprite::Animation;
 
 class AnimationSidebarPage : public wxPanel {
+
 public:
     AnimationSidebarPage(wxWindow* parent, int wxWindowID,
-                         MSC::AbstractFrameSetController& controller);
+                         MSA::AnimationControllerInterface& controller);
 };
+}
 }
 }
 }

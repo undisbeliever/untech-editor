@@ -1,16 +1,20 @@
 #include "animation-sidebarpage.h"
 #include "animation-sidebarlists.hpp"
 #include "gui/view/common/enumclasschoice.h"
-#include "gui/view/common/namedlistnamectrl.h"
+#include "gui/view/common/idstringtextctrl.h"
 
 namespace UnTech {
 namespace View {
-namespace MetaSpriteCommon {
+namespace MetaSprite {
+namespace Animation {
 
-class AnimationInstructionPanel : public wxPanel {
+namespace MSA = UnTech::MetaSprite::Animation;
+
+class InstructionPanel : public wxPanel {
+
 public:
-    AnimationInstructionPanel(wxWindow* parent, int wxWindowID,
-                              MSC::AnimationInstructionController& controller);
+    InstructionPanel(wxWindow* parent, int wxWindowID,
+                     MSA::InstructionController& controller);
 
 private:
     void UpdateGui();
@@ -19,11 +23,11 @@ private:
     void OnParameterChanged();
 
 private:
-    MSC::AnimationInstructionController& _controller;
+    MSA::InstructionController& _controller;
 
-    EnumClassChoice<MSC::AnimationBytecode>* _operation;
+    EnumClassChoice<MSA::Bytecode>* _operation;
     wxStaticText* _frameLabel;
-    NamedListNameCtrl* _frameName;
+    IdStringTextCtrl* _frameName;
     wxChoice* _frameFlip;
     wxStaticText* _parameterLabel;
     wxTextCtrl* _parameter;
@@ -32,25 +36,26 @@ private:
 }
 }
 }
+}
 
-using namespace UnTech::View::MetaSpriteCommon;
+using namespace UnTech::View::MetaSprite::Animation;
 
 // ANIMATION SIDEBAR
 // =================
 
 AnimationSidebarPage::AnimationSidebarPage(wxWindow* parent, int wxWindowID,
-                                           MSC::AbstractFrameSetController& controller)
+                                           MSA::AnimationControllerInterface& controller)
     : wxPanel(parent, wxWindowID)
 {
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(sizer);
 
-    sizer->Add(new NamedListToolBar<MSC::Animation>(
+    sizer->Add(new IdMapListToolBar<MSA::AnimationController>(
                    this, wxID_ANY,
                    controller.animationController()),
                wxSizerFlags(0).Right().Border());
 
-    sizer->Add(new NamedListCtrl<MSC::Animation>(
+    sizer->Add(new IdMapListCtrl<MSA::AnimationController>(
                    this, wxID_ANY,
                    controller.animationController()),
                wxSizerFlags(2).Expand().Border(wxLEFT | wxRIGHT));
@@ -59,27 +64,27 @@ AnimationSidebarPage::AnimationSidebarPage(wxWindow* parent, int wxWindowID,
     auto* instSizer = new wxStaticBoxSizer(wxVERTICAL, this, "Animation Bytecode");
     sizer->Add(instSizer, wxSizerFlags(3).Expand().Border());
 
-    instSizer->Add(new OrderedListToolBar<MSC::AnimationInstruction>(
+    instSizer->Add(new VectorListToolBar<MSA::InstructionController>(
                        this, wxID_ANY,
-                       controller.animationInstructionController()),
+                       controller.instructionController()),
                    wxSizerFlags().Right().Border());
 
-    instSizer->Add(new OrderedListCtrl<MSC::AnimationInstruction>(
+    instSizer->Add(new VectorListCtrl<MSA::InstructionController>(
                        this, wxID_ANY,
-                       controller.animationInstructionController()),
+                       controller.instructionController()),
                    wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
 
-    instSizer->Add(new AnimationInstructionPanel(
+    instSizer->Add(new InstructionPanel(
                        this, wxID_ANY,
-                       controller.animationInstructionController()),
+                       controller.instructionController()),
                    wxSizerFlags().Expand().Border());
 }
 
 // ANIMATION INSTRUCTION
 // =====================
 
-AnimationInstructionPanel::AnimationInstructionPanel(wxWindow* parent, int wxWindowID,
-                                                     MSC::AnimationInstructionController& controller)
+InstructionPanel::InstructionPanel(wxWindow* parent, int wxWindowID,
+                                   MSA::InstructionController& controller)
     : wxPanel(parent, wxWindowID)
     , _controller(controller)
 {
@@ -89,7 +94,7 @@ AnimationInstructionPanel::AnimationInstructionPanel(wxWindow* parent, int wxWin
 
     grid->AddGrowableCol(1, 1);
 
-    _operation = new EnumClassChoice<MSC::AnimationBytecode>(this, wxID_ANY);
+    _operation = new EnumClassChoice<MSA::Bytecode>(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Operation:"));
     grid->Add(_operation, wxSizerFlags(1).Expand());
 
@@ -100,9 +105,9 @@ AnimationInstructionPanel::AnimationInstructionPanel(wxWindow* parent, int wxWin
     flipChoices.Add("hvFlip");
 
     _frameLabel = new wxStaticText(this, wxID_ANY, "Frame:");
-    _frameName = new NamedListNameCtrl(this, wxID_ANY,
-                                       wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                                       wxTE_PROCESS_ENTER);
+    _frameName = new IdStringTextCtrl(this, wxID_ANY,
+                                      idstring(), wxDefaultPosition, wxDefaultSize,
+                                      wxTE_PROCESS_ENTER);
     _frameFlip = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, flipChoices);
 
     grid->Add(_frameLabel);
@@ -129,11 +134,8 @@ AnimationInstructionPanel::AnimationInstructionPanel(wxWindow* parent, int wxWin
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
-        *this, &AnimationInstructionPanel::UpdateGui));
-
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
-        *this, &AnimationInstructionPanel::UpdateGui));
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
+        *this, &InstructionPanel::UpdateGui));
 
     // Events
     // ------
@@ -163,14 +165,14 @@ AnimationInstructionPanel::AnimationInstructionPanel(wxWindow* parent, int wxWin
 
     // Convert spaces to underscores in Goto labels
     _parameter->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) {
-        const MSC::AnimationInstruction* inst = _controller.selected();
+        const MSA::Instruction& inst = _controller.selected();
 
-        if (inst && inst->operation().usesGotoLabel()) {
+        if (inst.operation.usesGotoLabel()) {
             bool changed = false;
             wxString text = _parameter->GetValue();
 
             for (auto c : text) {
-                if (!UnTech::isNameCharValid(c)) {
+                if (!idstring::isCharValid(c)) {
                     c = '_';
                     changed = true;
                 }
@@ -185,141 +187,130 @@ AnimationInstructionPanel::AnimationInstructionPanel(wxWindow* parent, int wxWin
     });
 }
 
-void AnimationInstructionPanel::UpdateGui()
+void InstructionPanel::UpdateGui()
 {
-    typedef MSC::AnimationBytecode::Enum BC;
+    typedef MSA::Bytecode::Enum BC;
 
-    const MSC::AnimationInstruction* inst = _controller.selected();
+    this->Enable(_controller.hasSelected());
 
-    if (inst) {
-        const MSC::AnimationBytecode& op = inst->operation();
+    const MSA::Instruction& inst = _controller.selected();
+    const MSA::Bytecode& op = inst.operation;
 
-        this->Enable();
+    _operation->SetValue(op);
 
-        _operation->SetValue(op);
+    if (op.usesFrame()) {
+        const auto& fref = inst.frame;
 
-        if (op.usesFrame()) {
-            const auto& fref = inst->frame();
+        _frameLabel->Enable();
 
-            _frameLabel->Enable();
+        _frameName->Enable();
+        _frameName->ChangeValue(fref.name.str());
 
-            _frameName->Enable();
-            _frameName->ChangeValue(fref.frameName);
-
-            _frameFlip->Enable();
-            _frameFlip->SetSelection((fref.vFlip << 1) | fref.hFlip);
-        }
-        else {
-            _frameLabel->Disable();
-
-            _frameName->Disable();
-            _frameName->ChangeValue(wxEmptyString);
-
-            _frameFlip->Disable();
-            _frameFlip->SetSelection(wxNOT_FOUND);
-        }
-
-        if (op.usesParameter()) {
-            _parameterLabel->Enable();
-
-            wxString v;
-            v << inst->parameter();
-            _parameter->Enable();
-            _parameter->ChangeValue(v);
-
-            _parameterMeaning->Enable();
-
-            switch (op.value()) {
-            case BC::SET_FRAME_AND_WAIT_FRAMES:
-                _parameterMeaning->SetLabel("frames");
-                break;
-
-            case BC::SET_FRAME_AND_WAIT_TIME:
-                _parameterMeaning->SetLabel(
-                    wxString::Format("%d ms", inst->parameter() * 1000 / 75));
-                break;
-
-            case BC::SET_FRAME_AND_WAIT_XVECL:
-            case BC::SET_FRAME_AND_WAIT_YVECL:
-                _parameterMeaning->SetLabel(
-                    wxString::Format("%0.3f px", (double)inst->parameter() / 32));
-                break;
-
-            default:
-                break;
-            }
-        }
-        else if (op.usesGotoLabel()) {
-            _parameterLabel->Enable();
-
-            _parameter->Enable();
-            _parameter->ChangeValue(inst->gotoLabel());
-
-            _parameterMeaning->Disable();
-            _parameterMeaning->SetLabel(wxEmptyString);
-        }
-        else {
-            _parameterLabel->Disable();
-
-            _parameter->Disable();
-            _parameter->ChangeValue(wxEmptyString);
-
-            _parameterMeaning->Disable();
-            _parameterMeaning->SetLabel(wxEmptyString);
-        }
+        _frameFlip->Enable();
+        _frameFlip->SetSelection((fref.vFlip << 1) | fref.hFlip);
     }
     else {
-        this->Disable();
+        _frameLabel->Disable();
+
+        _frameName->Disable();
+        _frameName->ChangeValue(wxEmptyString);
+
+        _frameFlip->Disable();
+        _frameFlip->SetSelection(wxNOT_FOUND);
+    }
+
+    if (op.usesParameter()) {
+        _parameterLabel->Enable();
+
+        wxString v;
+        v << inst.parameter;
+        _parameter->Enable();
+        _parameter->ChangeValue(v);
+
+        _parameterMeaning->Enable();
+
+        switch (op.value()) {
+        case BC::SET_FRAME_AND_WAIT_FRAMES:
+            _parameterMeaning->SetLabel("frames");
+            break;
+
+        case BC::SET_FRAME_AND_WAIT_TIME:
+            _parameterMeaning->SetLabel(
+                wxString::Format("%d ms", inst.parameter * 1000 / 75));
+            break;
+
+        case BC::SET_FRAME_AND_WAIT_XVECL:
+        case BC::SET_FRAME_AND_WAIT_YVECL:
+            _parameterMeaning->SetLabel(
+                wxString::Format("%0.3f px", double(inst.parameter) / 32));
+            break;
+
+        default:
+            break;
+        }
+    }
+    else if (op.usesGotoLabel()) {
+        _parameterLabel->Enable();
+
+        _parameter->Enable();
+        _parameter->ChangeValue(inst.gotoLabel.str());
+
+        _parameterMeaning->Disable();
+        _parameterMeaning->SetLabel(wxEmptyString);
+    }
+    else {
+        _parameterLabel->Disable();
+
+        _parameter->Disable();
+        _parameter->ChangeValue(wxEmptyString);
+
+        _parameterMeaning->Disable();
+        _parameterMeaning->SetLabel(wxEmptyString);
     }
 }
 
-void AnimationInstructionPanel::OnFrameChanged()
+void InstructionPanel::OnFrameChanged()
 {
-    const MSC::AnimationInstruction* inst = _controller.selected();
+    const MSA::Instruction& inst = _controller.selected();
+    const MSA::Bytecode& op = inst.operation;
 
-    if (inst) {
-        const MSC::AnimationBytecode& op = inst->operation();
+    if (op.usesFrame()) {
+        UnTech::MetaSprite::NameReference ref;
 
-        if (op.usesFrame()) {
-            MSC::FrameReference ref;
+        ref.name = _frameName->GetValue().ToStdString();
 
-            ref.frameName = _frameName->GetValue();
-
-            int sel = _frameFlip->GetSelection();
-            if (sel < 0 || sel > 3) {
-                sel = 0;
-            }
-            ref.hFlip = sel & 0x01;
-            ref.vFlip = sel & 0x02;
-
-            _controller.selected_setFrame(ref);
+        int sel = _frameFlip->GetSelection();
+        if (sel < 0 || sel > 3) {
+            sel = 0;
         }
+        ref.hFlip = sel & 0x01;
+        ref.vFlip = sel & 0x02;
+
+        _controller.selected_setFrame(ref);
     }
 }
 
-void AnimationInstructionPanel::OnParameterChanged()
+void InstructionPanel::OnParameterChanged()
 {
-    const MSC::AnimationInstruction* inst = _controller.selected();
+    const MSA::Instruction& inst = _controller.selected();
 
-    if (inst) {
-        const MSC::AnimationBytecode& op = inst->operation();
+    const MSA::Bytecode& op = inst.operation;
 
-        if (op.usesParameter()) {
-            long p;
-            bool s = _parameter->GetValue().ToLong(&p);
+    if (op.usesParameter()) {
+        long p;
+        bool s = _parameter->GetValue().ToLong(&p);
 
-            if (s && p > INT_MIN && p < INT_MAX) {
-                _controller.selected_setParameter(p);
-            }
-            else {
-                UpdateGui();
-            }
-        }
-        else if (op.usesGotoLabel()) {
-            _controller.selected_setGotoLabel(_parameter->GetValue().ToStdString());
+        if (s && p > INT_MIN && p < INT_MAX) {
+            _controller.selected_setParameter(p);
         }
         else {
             UpdateGui();
         }
+    }
+    else if (op.usesGotoLabel()) {
+        _controller.selected_setGotoLabel(_parameter->GetValue().ToStdString());
+    }
+    else {
+        UpdateGui();
     }
 }

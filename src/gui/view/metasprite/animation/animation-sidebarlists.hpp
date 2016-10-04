@@ -1,21 +1,21 @@
 #pragma once
 
-#include "gui/controllers/metasprite-common.h"
-#include "gui/view/common/namedlist.h"
-#include "gui/view/common/orderedlist.h"
+#include "gui/controllers/metasprite/animation.h"
+#include "gui/view/common/idmaplistctrl.h"
+#include "gui/view/common/vectorlistctrl.h"
 
 namespace UnTech {
 namespace View {
 
-namespace MSC = UnTech::MetaSpriteCommon;
+namespace MSA = UnTech::MetaSprite::Animation;
 
 // ANIMATIONS
 // ==========
 template <>
-void NamedListCtrl<MSC::Animation>::CreateColumns();
+void IdMapListCtrl<MSA::AnimationController>::CreateColumns();
 
 template <>
-void NamedListCtrl<MSC::Animation>::CreateColumns()
+void IdMapListCtrl<MSA::AnimationController>::CreateColumns()
 {
     AppendColumn("Animation", wxLIST_FORMAT_LEFT);
 
@@ -24,9 +24,9 @@ void NamedListCtrl<MSC::Animation>::CreateColumns()
 }
 
 template <>
-wxString NamedListCtrl<MSC::Animation>::OnGetItemText(long item, long column) const
+wxString IdMapListCtrl<MSA::AnimationController>::OnGetItemText(long item, long column) const
 {
-    if (item < 0 || (unsigned)item >= _ptrList.size()) {
+    if (item < 0 || (unsigned)item >= _nameList.size()) {
         return wxEmptyString;
     }
 
@@ -42,10 +42,10 @@ wxString NamedListCtrl<MSC::Animation>::OnGetItemText(long item, long column) co
 // ANIMATION INSTRUCTIONS
 // ======================
 template <>
-void OrderedListCtrl<MSC::AnimationInstruction>::CreateColumns();
+void VectorListCtrl<MSA::InstructionController>::CreateColumns();
 
 template <>
-void OrderedListCtrl<MSC::AnimationInstruction>::CreateColumns()
+void VectorListCtrl<MSA::InstructionController>::CreateColumns()
 {
     AppendColumn("Instruction", wxLIST_FORMAT_LEFT);
     AppendColumn("Frame", wxLIST_FORMAT_LEFT);
@@ -55,18 +55,18 @@ void OrderedListCtrl<MSC::AnimationInstruction>::CreateColumns()
 }
 
 template <>
-wxString OrderedListCtrl<MSC::AnimationInstruction>::OnGetItemText(long item, long column) const
+wxString VectorListCtrl<MSA::InstructionController>::OnGetItemText(long item, long column) const
 {
-    typedef MSC::AnimationBytecode::Enum BC;
+    typedef MSA::Bytecode::Enum BC;
 
-    const MSC::AnimationInstruction::list_t* list = _controller.list();
+    const MSA::Instruction::list_t* list = _controller.list();
 
     if (list == nullptr) {
         return wxEmptyString;
     }
 
-    const MSC::AnimationInstruction& inst = list->at(item);
-    const MSC::AnimationBytecode& op = inst.operation();
+    const MSA::Instruction& inst = list->at(item);
+    const MSA::Bytecode& op = inst.operation;
 
     switch (column) {
     case 0: {
@@ -75,9 +75,9 @@ wxString OrderedListCtrl<MSC::AnimationInstruction>::OnGetItemText(long item, lo
 
     case 1: {
         if (op.usesFrame()) {
-            const auto& fref = inst.frame();
+            const auto& fref = inst.frame;
 
-            wxString ret = fref.frameName;
+            wxString ret = fref.name.str();
 
             if (!fref.hFlip) {
                 if (fref.vFlip) {
@@ -102,23 +102,23 @@ wxString OrderedListCtrl<MSC::AnimationInstruction>::OnGetItemText(long item, lo
     case 2:
         switch (op.value()) {
         case BC::GOTO_OFFSET:
-            return wxString::Format("%d", inst.parameter());
+            return wxString::Format("%d", inst.parameter);
             break;
 
         case BC::GOTO_ANIMATION:
-            return inst.gotoLabel();
+            return inst.gotoLabel.str();
             break;
 
         case BC::SET_FRAME_AND_WAIT_FRAMES:
-            return wxString::Format("%d frames", inst.parameter());
+            return wxString::Format("%d frames", inst.parameter);
             break;
 
         case BC::SET_FRAME_AND_WAIT_TIME:
-            return wxString::Format("%d ms", inst.parameter() * 1000 / 75);
+            return wxString::Format("%d ms", inst.parameter * 1000 / 75);
 
         case BC::SET_FRAME_AND_WAIT_XVECL:
         case BC::SET_FRAME_AND_WAIT_YVECL:
-            return wxString::Format("%0.3f px", (double)inst.parameter() / 32);
+            return wxString::Format("%0.3f px", double(inst.parameter) / 32);
 
         default:
             return wxEmptyString;
