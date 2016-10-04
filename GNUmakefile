@@ -58,10 +58,10 @@ endif
 
 ifneq ($(findstring clang,$(CXX)),)
   # Prevent clang from spamming errors
-  VIEW_CXXFLAGS += -Wno-potentially-evaluated-expression
+  VIEW_CXXFLAGS += -Wno-potentially-evaluated-expression -Wno-deprecated
 endif
 
-SRCS            := $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp)
+SRCS            := $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp src/*/*/*/*/*.cpp)
 OBJS            := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 
 CLI_SRC         := $(wildcard src/cli/*.cpp)
