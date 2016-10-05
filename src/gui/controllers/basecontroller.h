@@ -11,7 +11,7 @@ namespace Controller {
  */
 class ControllerInterface {
 public:
-    virtual ~ControllerInterface() = 0;
+    virtual ~ControllerInterface() = default;
 
     virtual void showError(const char* error, const std::exception& ex) = 0;
 };

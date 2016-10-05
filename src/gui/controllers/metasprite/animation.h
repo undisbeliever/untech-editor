@@ -105,7 +105,7 @@ private:
     FrameSetControllerT& _parent;
 };
 
-Animation::map_t* AnimationController::editable_mapFromParent()
+inline Animation::map_t* AnimationController::editable_mapFromParent()
 {
     return parent().editable_animationMap();
 }

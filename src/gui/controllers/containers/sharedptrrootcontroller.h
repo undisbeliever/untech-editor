@@ -71,5 +71,8 @@ protected:
     sigc::signal<void> _signal_dataChanged;
     sigc::signal<void> _signal_selectedChanged;
 };
+
+template <typename T>
+const T SharedPtrRootController<T>::BLANK_T = T();
 }
 }

@@ -13,13 +13,15 @@ namespace UnTech {
  */
 class Image {
 public:
+    ~Image() = default;
+    Image(const Image&) = default;
+    Image(Image&&) = default;
+    Image& operator=(const Image&) = default;
+    Image& operator=(Image&&) = default;
+
     Image();
     Image(const usize& size);
     Image(unsigned width, unsigned height);
-
-    Image(const Image&) = delete;
-
-    ~Image() = default;
 
     usize size() const { return _size; }
     std::string errorString() const { return _errorString; }

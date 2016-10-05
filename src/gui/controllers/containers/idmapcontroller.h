@@ -224,5 +224,8 @@ protected:
     sigc::signal<void> _signal_mapChanged;
     sigc::signal<void> _signal_selectedChanged;
 };
+
+template <typename ElementT, class ParentT>
+const ElementT IdMapController<ElementT, ParentT>::BLANK_T = ElementT();
 }
 }

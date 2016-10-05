@@ -1,9 +1,14 @@
 #include "animation.h"
 
+using namespace UnTech;
 using namespace UnTech::MetaSprite::Animation;
 
 const std::string AnimationController::HUMAN_TYPE_NAME = "Animation";
 const std::string InstructionController::HUMAN_TYPE_NAME = "Animation Instruction";
+
+// AnimationController
+// -------------------
+template class Controller::IdMapController<Animation, AnimationControllerInterface>;
 
 // InstructionController
 // ---------------------

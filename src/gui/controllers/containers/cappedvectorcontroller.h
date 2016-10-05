@@ -258,5 +258,8 @@ protected:
     sigc::signal<void> _signal_listChanged;
     sigc::signal<void> _signal_selectedChanged;
 };
+
+template <typename ElementT, class ListT, class ParentT>
+const ElementT CappedVectorController<ElementT, ListT, ParentT>::BLANK_T = ElementT();
 }
 }

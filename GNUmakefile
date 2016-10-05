@@ -100,7 +100,6 @@ $(BIN_DIR)/$(strip $1)$(BIN_EXT): \
   $(filter $(patsubst %,$(OBJ_DIR)/gui/controllers/%/$(PERCENT),$2), $(OBJS)) \
   $(filter $(OBJ_DIR)/gui/controllers/undo/%, $(OBJS)) \
   $(OBJ_DIR)/gui/controllers/basecontroller.o \
-  $(OBJ_DIR)/gui/controllers/settings.o \
   $(THIRD_PARTY)
 endef
 
