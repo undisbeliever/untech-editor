@@ -2,8 +2,15 @@
 
 using namespace UnTech::MetaSprite::SpriteImporter;
 
-SpriteImporterController::SpriteImporterController()
-    : _frameSetController()
+const std::string FrameSetController::HUMAN_TYPE_NAME = "Frame Set";
+const std::string FrameController::HUMAN_TYPE_NAME = "Frame";
+const std::string FrameObjectController::HUMAN_TYPE_NAME = "Frame Object";
+const std::string ActionPointController::HUMAN_TYPE_NAME = "Action Point";
+const std::string EntityHitboxController::HUMAN_TYPE_NAME = "Entity Hitbox";
+
+SpriteImporterController::SpriteImporterController(Controller::ControllerInterface& interface)
+    : BaseController(interface)
+    , _frameSetController()
     , _animationControllerInterface(_frameSetController)
     , _frameController(_frameSetController)
     , _frameObjectController(_frameController)
@@ -13,11 +20,30 @@ SpriteImporterController::SpriteImporterController()
 {
 }
 
-const std::string FrameSetController::HUMAN_TYPE_NAME = "Frame Set";
-const std::string FrameController::HUMAN_TYPE_NAME = "Frame";
-const std::string FrameObjectController::HUMAN_TYPE_NAME = "Frame Object";
-const std::string ActionPointController::HUMAN_TYPE_NAME = "Action Point";
-const std::string EntityHitboxController::HUMAN_TYPE_NAME = "Entity Hitbox";
+bool SpriteImporterController::hasDocument() const
+{
+    return _frameSetController.hasSelected();
+}
+
+void SpriteImporterController::doSave(const std::string& filename)
+{
+    if (_frameSetController.hasSelected()) {
+        saveFrameSet(_frameSetController.selected(), filename);
+    }
+}
+
+void SpriteImporterController::doLoad(const std::string& filename)
+{
+    std::shared_ptr<FrameSet> fs = loadFrameSet(filename);
+
+    _frameSetController.setRoot(fs);
+}
+
+void SpriteImporterController::doNew()
+{
+    auto frameSet = std::make_shared<FrameSet>();
+    _frameSetController.setRoot(frameSet);
+}
 
 // FrameSetController
 // ------------------

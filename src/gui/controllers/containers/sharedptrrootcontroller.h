@@ -21,15 +21,6 @@ public:
     SharedPtrRootController(const SharedPtrRootController&) = delete;
     virtual ~SharedPtrRootController() = default;
 
-    void setRoot(std::shared_ptr<value_type>& s)
-    {
-        _root = s;
-
-        _signal_selectedChanged.emit();
-        _signal_dataChanged.emit();
-        _signal_anyChanged.emit();
-    }
-
     bool hasSelected() const { return _root != nullptr; }
 
     const value_type& selected() const
@@ -48,6 +39,15 @@ public:
 
 protected:
     container_type getRoot() { return _root; }
+
+    void setRoot(std::shared_ptr<value_type>& s)
+    {
+        _root = s;
+
+        _signal_selectedChanged.emit();
+        _signal_dataChanged.emit();
+        _signal_anyChanged.emit();
+    }
 
     // can return NULL is nothing is selected
     value_type* editable_selected() { return _root.get(); }

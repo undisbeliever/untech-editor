@@ -2,6 +2,7 @@
 
 #include "animation.h"
 #include "settings.h"
+#include "gui/controllers/basecontroller.h"
 #include "gui/controllers/containers/cappedvectorcontroller.h"
 #include "gui/controllers/containers/idmapcontroller.h"
 #include "gui/controllers/containers/sharedptrrootcontroller.h"
@@ -11,6 +12,7 @@ namespace UnTech {
 namespace MetaSprite {
 namespace SpriteImporter {
 
+class SpriteImporterController;
 class FrameController;
 class FrameObjectController;
 class ActionPointController;
@@ -19,6 +21,7 @@ class EntityHitboxController;
 class FrameSetController
     : public Controller::SharedPtrRootController<FrameSet> {
 
+    friend class SpriteImporterController;
     friend class FrameController;
     friend class Animation::AnimationControllerImpl<FrameSetController>;
 
@@ -139,8 +142,9 @@ protected:
     }
 };
 
-struct SpriteImporterController {
-    SpriteImporterController();
+class SpriteImporterController : public Controller::BaseController {
+public:
+    SpriteImporterController(Controller::ControllerInterface&);
     SpriteImporterController(const SpriteImporterController&) = delete;
 
     auto& frameSetController() { return _frameSetController; }
@@ -151,6 +155,13 @@ struct SpriteImporterController {
     auto& entityHitboxController() { return _entityHitboxController; }
 
     auto& settingsController() { return _settingsController; }
+
+    virtual bool hasDocument() const final;
+
+protected:
+    virtual void doSave(const std::string& filename) final;
+    virtual void doLoad(const std::string& filename) final;
+    virtual void doNew() final;
 
 private:
     FrameSetController _frameSetController;

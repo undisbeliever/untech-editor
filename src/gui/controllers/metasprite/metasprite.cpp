@@ -2,8 +2,16 @@
 
 using namespace UnTech::MetaSprite::MetaSprite;
 
-MetaSpriteController::MetaSpriteController()
-    : _frameSetController()
+const std::string FrameSetController::HUMAN_TYPE_NAME = "Frame Set";
+const std::string PaletteController::HUMAN_TYPE_NAME = "Palette";
+const std::string FrameController::HUMAN_TYPE_NAME = "Frame";
+const std::string FrameObjectController::HUMAN_TYPE_NAME = "Frame Object";
+const std::string ActionPointController::HUMAN_TYPE_NAME = "Action Point";
+const std::string EntityHitboxController::HUMAN_TYPE_NAME = "Entity Hitbox";
+
+MetaSpriteController::MetaSpriteController(Controller::ControllerInterface& interface)
+    : BaseController(interface)
+    , _frameSetController()
     , _animationControllerInterface(_frameSetController)
     , _paletteController(_frameSetController)
     , _frameController(_frameSetController)
@@ -14,12 +22,30 @@ MetaSpriteController::MetaSpriteController()
 {
 }
 
-const std::string FrameSetController::HUMAN_TYPE_NAME = "Frame Set";
-const std::string PaletteController::HUMAN_TYPE_NAME = "Palette";
-const std::string FrameController::HUMAN_TYPE_NAME = "Frame";
-const std::string FrameObjectController::HUMAN_TYPE_NAME = "Frame Object";
-const std::string ActionPointController::HUMAN_TYPE_NAME = "Action Point";
-const std::string EntityHitboxController::HUMAN_TYPE_NAME = "Entity Hitbox";
+bool MetaSpriteController::hasDocument() const
+{
+    return _frameSetController.hasSelected();
+}
+
+void MetaSpriteController::doSave(const std::string& filename)
+{
+    if (_frameSetController.hasSelected()) {
+        saveFrameSet(_frameSetController.selected(), filename);
+    }
+}
+
+void MetaSpriteController::doLoad(const std::string& filename)
+{
+    std::shared_ptr<FrameSet> fs = loadFrameSet(filename);
+
+    _frameSetController.setRoot(fs);
+}
+
+void MetaSpriteController::doNew()
+{
+    auto frameSet = std::make_shared<FrameSet>();
+    _frameSetController.setRoot(frameSet);
+}
 
 // FrameSetController
 // ------------------
