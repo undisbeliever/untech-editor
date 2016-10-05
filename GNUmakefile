@@ -25,7 +25,7 @@ else ifeq ($(PROFILE),debug)
 
   CXX           ?= g++
   CXXFLAGS      += -std=c++14 -g -MMD -Isrc -Werror
-  LDFLAGS       += -g -Werrror
+  LDFLAGS       += -g -Werror
   LIBS	        :=
   CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
   CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
