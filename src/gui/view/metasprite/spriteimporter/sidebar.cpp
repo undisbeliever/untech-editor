@@ -5,23 +5,16 @@
 #include "gui/view/common/filedialogs.h"
 #include "gui/view/common/textandtogglebuttonctrl.h"
 #include "gui/view/defaults.h"
-#include "gui/view/metasprite-common/abstractframesetpanel.h"
-#include "gui/view/metasprite-common/animation-sidebarpage.h"
-#include "gui/view/metasprite-common/export-sidebarpage.h"
+#include "gui/view/metasprite/animation/animation-sidebarpage.h"
+#include "gui/view/metasprite/common/export-sidebarpage.hpp"
+#include "gui/view/metasprite/common/framesetcommonpanel.hpp"
 #include "models/common/string.h"
 #include <wx/spinctrl.h>
 
 namespace UnTech {
 namespace View {
+namespace MetaSprite {
 namespace SpriteImporter {
-
-static const upoint emptyPoint(0, 0);
-static const usize emptySize(1, 1);
-static const urect emptyRect(0, 0, 1, 1);
-
-namespace MSC = UnTech::MetaSpriteCommon;
-
-typedef SI::SpriteImporterController::SelectedTypeController::Type SelectedType;
 
 enum class SidebarPages {
     FRAMESET_PAGE,
@@ -36,7 +29,7 @@ enum class FramePages {
     ENTITY_HITBOX_PAGE
 };
 
-const UnTech::DocumentType PNG_DOCUMENT_TYPE = {
+const DocumentType PNG_DOCUMENT_TYPE = {
     "PNG Image",
     "png"
 };
@@ -44,13 +37,13 @@ const UnTech::DocumentType PNG_DOCUMENT_TYPE = {
 class FrameSetImagePanel : public wxPanel {
 public:
     FrameSetImagePanel(wxWindow* parent, int wxWindowID,
-                       SI::FrameSetController& controller);
+                       SI::SpriteImporterController& controller);
 
 private:
     void UpdateGui();
 
 private:
-    SI::FrameSetController& _controller;
+    SI::SpriteImporterController& _controller;
 
     TextAndToggleButtonCtrl* _filename;
     TextAndToggleButtonCtrl* _transparentColor;
@@ -66,6 +59,7 @@ private:
 
 private:
     SI::FrameSetController& _controller;
+    SI::FrameSetGrid _grid;
 
     USizeCtrl* _frameSize;
     UPointCtrl* _offset;
@@ -85,11 +79,13 @@ private:
     SI::FrameController& _controller;
     SI::SpriteImporterController& _siController;
 
+    SI::FrameLocation _frameLocation;
+
     wxSpinCtrl* _spriteOrder;
 
     wxCheckBox* _useGridLocation;
     UPointCtrl* _gridLocation;
-    URectCtrl* _location;
+    URectCtrl* _aabb;
 
     wxCheckBox* _useCustomOrigin;
     UPointCtrl* _origin;
@@ -143,14 +139,15 @@ private:
     SI::EntityHitboxController& _controller;
 
     URectCtrl* _aabb;
-    EnumClassChoice<MSC::EntityHitboxType>* _hitboxType;
+    EnumClassChoice<UnTech::MetaSprite::EntityHitboxType>* _hitboxType;
 };
 }
 }
 }
+}
 
-using namespace UnTech::View::SpriteImporter;
-using namespace UnTech::View::MetaSpriteCommon;
+using namespace UnTech::View::MetaSprite::SpriteImporter;
+using namespace UnTech::View::MetaSprite::Common;
 
 // SIDEBAR
 // =======
@@ -169,14 +166,15 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         auto* sizer = new wxBoxSizer(wxVERTICAL);
         panel->SetSizer(sizer);
 
-        auto* afPanel = new AbstractFrameSetPanel(panel, wxID_ANY, controller.abstractFrameSetController());
+        auto* afPanel = new FrameSetCommonPanel<SI::FrameSetController>(
+            panel, wxID_ANY, controller.frameSetController());
         sizer->Add(afPanel, wxSizerFlags().Expand().Border());
 
         auto* fsImageSizer = new wxStaticBoxSizer(wxVERTICAL, panel, "Image");
         sizer->Add(fsImageSizer, wxSizerFlags().Expand().Border());
 
         fsImageSizer->Add(
-            new FrameSetImagePanel(panel, wxID_ANY, controller.frameSetController()),
+            new FrameSetImagePanel(panel, wxID_ANY, controller),
             wxSizerFlags().Expand().Border());
 
         auto* fsGridSizer = new wxStaticBoxSizer(wxVERTICAL, panel, "Grid");
@@ -196,12 +194,12 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         auto* frameSizer = new wxBoxSizer(wxVERTICAL);
         framePanel->SetSizer(frameSizer);
 
-        frameSizer->Add(new NamedListToolBar<SI::Frame>(
+        frameSizer->Add(new IdMapListToolBar<SI::FrameController>(
                             framePanel, wxID_ANY,
                             controller.frameController()),
                         wxSizerFlags(0).Right().Border());
 
-        frameSizer->Add(new NamedListCtrl<SI::Frame>(
+        frameSizer->Add(new IdMapListCtrl<SI::FrameController>(
                             framePanel, wxID_ANY,
                             controller.frameController()),
                         wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
@@ -219,12 +217,12 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
 
-            sizer->Add(new OrderedListToolBar<SI::FrameObject>(
+            sizer->Add(new VectorListToolBar<SI::FrameObjectController>(
                            panel, wxID_ANY,
                            controller.frameObjectController()),
                        wxSizerFlags(0).Right().Border());
 
-            sizer->Add(new OrderedListCtrl<SI::FrameObject>(
+            sizer->Add(new VectorListCtrl<SI::FrameObjectController>(
                            panel, wxID_ANY,
                            controller.frameObjectController()),
                        wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
@@ -243,12 +241,12 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
 
-            sizer->Add(new OrderedListToolBar<SI::ActionPoint>(
+            sizer->Add(new VectorListToolBar<SI::ActionPointController>(
                            panel, wxID_ANY,
                            controller.actionPointController()),
                        wxSizerFlags(0).Right().Border());
 
-            sizer->Add(new OrderedListCtrl<SI::ActionPoint>(
+            sizer->Add(new VectorListCtrl<SI::ActionPointController>(
                            panel, wxID_ANY,
                            controller.actionPointController()),
                        wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
@@ -267,12 +265,12 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
 
-            sizer->Add(new OrderedListToolBar<SI::EntityHitbox>(
+            sizer->Add(new VectorListToolBar<SI::EntityHitboxController>(
                            panel, wxID_ANY,
                            controller.entityHitboxController()),
                        wxSizerFlags(0).Right().Border());
 
-            sizer->Add(new OrderedListCtrl<SI::EntityHitbox>(
+            sizer->Add(new VectorListCtrl<SI::EntityHitboxController>(
                            panel, wxID_ANY,
                            controller.entityHitboxController()),
                        wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
@@ -288,25 +286,20 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         this->AddPage(framePanel, "Frame");
 
         this->AddPage(
-            new AnimationSidebarPage(this, wxID_ANY,
-                                     controller.abstractFrameSetController()),
+            new Animation::AnimationSidebarPage(
+                this, wxID_ANY,
+                controller.animationControllerInterface()),
             "Animations");
 
-        auto* exportPage = new ExportSidebarPage(this, wxID_ANY,
-                                                 controller.abstractFrameSetController());
+        auto* exportPage = new ExportSidebarPage<SI::SpriteImporterController>(
+            this, wxID_ANY, controller);
         this->AddPage(exportPage, "Export");
 
         // Signals
         // -------
-        controller.frameController().signal_listChanged().connect(
-            exportPage->slot_frameNameChanged());
 
-        controller.frameController().signal_listDataChanged().connect(sigc::hide(
-            exportPage->slot_frameNameChanged()));
-
-        controller.frameController().signal_itemRenamed().connect(sigc::hide(
-            exportPage->slot_frameNameChanged()));
-
+        // ::TODO SelectedType::
+        /*
         controller.selectedTypeController().signal_selectedChanged().connect([this](void) {
             const auto type = _controller.selectedTypeController().type();
 
@@ -335,6 +328,11 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                 }
             }
         });
+    */
+
+        _controller.frameSetController().signal_selectedChanged().connect([this](void) {
+            this->Enable(_controller.frameSetController().hasSelected());
+        });
     }
 }
 
@@ -342,7 +340,7 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
 // ==============
 
 FrameSetImagePanel::FrameSetImagePanel(wxWindow* parent, int wxWindowID,
-                                       SI::FrameSetController& controller)
+                                       SI::SpriteImporterController& controller)
     : wxPanel(parent, wxWindowID)
     , _controller(controller)
 {
@@ -362,74 +360,65 @@ FrameSetImagePanel::FrameSetImagePanel(wxWindow* parent, int wxWindowID,
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+    _controller.frameSetController().signal_anyChanged().connect(sigc::mem_fun(
         *this, &FrameSetImagePanel::UpdateGui));
 
-    _controller.signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetImagePanel::UpdateGui)));
-
     /** Update transparent button when changed */
-    _controller.signal_selectTransparentModeChanged().connect([this](void) {
-        _transparentColor->SetButtonValue(_controller.selectTransparentMode());
+    auto& settingsController = _controller.settingsController();
+
+    settingsController.selectColorWithMouse().signal_valueChanged().connect([this](void) {
+        auto& settingsController = _controller.settingsController();
+        _transparentColor->SetButtonValue(settingsController.selectColorWithMouse().value());
     });
 
     // Events
     // ------
     _filename->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) {
-        const SI::FrameSet* frameSet = _controller.selected();
+        auto& frameSetController = _controller.frameSetController();
 
-        if (frameSet && _filename->GetButtonValue()) {
+        const SI::FrameSet& frameSet = frameSetController.selected();
+
+        if (_filename->GetButtonValue()) {
             auto fn = openFileDialog(this,
                                      PNG_DOCUMENT_TYPE,
-                                     frameSet->imageFilename());
+                                     frameSet.imageFilename);
             if (fn) {
-                _controller.selected_setImageFilename(fn.value());
+                frameSetController.selected_setImageFilename(fn.value());
             }
             _filename->SetButtonValue(false);
         }
     });
 
     _transparentColor->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) {
-        const SI::FrameSet* frameSet = _controller.selected();
-
-        if (frameSet) {
-            _controller.setSelectTransparentMode(
-                _transparentColor->GetButtonValue());
-        }
+        _controller.settingsController().selectColorWithMouse().setValue(
+            _transparentColor->GetButtonValue());
     });
 }
 
 void FrameSetImagePanel::UpdateGui()
 {
-    const SI::FrameSet* frameSet = _controller.selected();
-    if (frameSet) {
-        _filename->ChangeTextValue(frameSet->imageFilename());
+    auto& frameSetController = _controller.frameSetController();
 
-        if (frameSet->transparentColorValid()) {
-            auto t = frameSet->transparentColor().rgb();
+    this->Enable(frameSetController.hasSelected());
 
-            auto c = wxString::Format("%06x", t);
-            _transparentColor->ChangeTextValue(c);
-            _transparentColor->GetButton()->SetBackgroundColour(t);
-        }
-        else {
-            _transparentColor->ChangeTextValue(wxEmptyString);
-            _transparentColor->GetButton()->SetBackgroundColour(
-                wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-        }
-        _transparentColor->Enable(!frameSet->image().empty());
+    const SI::FrameSet& frameSet = frameSetController.selected();
 
-        this->Enable();
+    _filename->ChangeTextValue(frameSet.imageFilename);
+
+    if (frameSet.transparentColorValid()) {
+        auto t = frameSet.transparentColor.rgb();
+
+        auto c = wxString::Format("%06x", t);
+        _transparentColor->ChangeTextValue(c);
+        _transparentColor->GetButton()->SetBackgroundColour(t);
     }
     else {
-        _filename->ChangeTextValue(wxEmptyString);
-
         _transparentColor->ChangeTextValue(wxEmptyString);
         _transparentColor->GetButton()->SetBackgroundColour(
             wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-
-        this->Disable();
     }
+
+    _transparentColor->Enable(!frameSet.image.empty());
 }
 
 // FRAMESET GRID
@@ -464,68 +453,42 @@ FrameSetGridPanel::FrameSetGridPanel(wxWindow* parent, int wxWindowID,
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &FrameSetGridPanel::UpdateGui));
-
-    controller.signal_gridChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGridPanel::UpdateGui)));
 
     // Events
     // ------
-    _frameSize->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _frameSize->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setGridFrameSize_merge(_frameSize->GetValue());
+        _grid.frameSize = _frameSize->GetValue();
+        _controller.selected_setGrid(_grid);
     });
 
-    _offset->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _offset->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setGridOffset_merge(_offset->GetValue());
+        _grid.offset = _offset->GetValue();
+        _controller.selected_setGrid(_grid);
     });
 
-    _padding->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _padding->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setGridPadding_merge(_padding->GetValue());
+        _grid.padding = _padding->GetValue();
+        _controller.selected_setGrid(_grid);
     });
 
-    _origin->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _origin->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setGridOrigin_merge(_origin->GetValue());
+        _grid.origin = _origin->GetValue();
+        _controller.selected_setGrid(_grid);
     });
 }
 
 void FrameSetGridPanel::UpdateGui()
 {
-    const SI::FrameSet* frameSet = _controller.selected();
-    if (frameSet) {
-        const SI::FrameSetGrid& grid = frameSet->grid();
+    this->Enable(_controller.hasSelected());
 
-        _frameSize->SetValue(grid.frameSize());
-        _offset->SetValue(grid.offset());
-        _padding->SetValue(grid.padding());
-        _origin->SetValue(grid.origin());
+    _grid = _controller.selected().grid;
 
-        this->Enable();
-    }
-    else {
-        _frameSize->SetValue(emptySize);
-        _offset->SetValue(emptyPoint);
-        _padding->SetValue(emptySize);
-        _origin->SetValue(emptyPoint);
-
-        this->Disable();
-    }
+    _frameSize->SetValue(_grid.frameSize);
+    _offset->SetValue(_grid.offset);
+    _padding->SetValue(_grid.padding);
+    _origin->SetValue(_grid.origin);
 }
 
 // FRAME
@@ -559,9 +522,9 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, "Grid Location:"));
     grid->Add(_gridLocation, wxSizerFlags(1).Expand());
 
-    _location = new URectCtrl(this, wxID_ANY);
+    _aabb = new URectCtrl(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Location:"));
-    grid->Add(_location, wxSizerFlags(1).Expand());
+    grid->Add(_aabb, wxSizerFlags(1).Expand());
 
     _useCustomOrigin = new wxCheckBox(this, wxID_ANY, "Custom Origin");
     grid->Add(_useCustomOrigin, wxSizerFlags(1));
@@ -581,14 +544,11 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &FramePanel::UpdateGui));
 
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+    _siController.frameSetController().signal_dataChanged().connect(sigc::mem_fun(
         *this, &FramePanel::UpdateGui));
-
-    controller.frameSetController().signal_gridChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FramePanel::UpdateGui)));
 
     // Events
     // ------
@@ -597,98 +557,73 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     });
 
     _useGridLocation->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
-        _controller.selected_setUseGridLocation(_useGridLocation->GetValue());
+        _frameLocation.useGridLocation = _useGridLocation->GetValue();
+
+        _controller.selected_setLocation(_frameLocation);
     });
 
-    _gridLocation->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _gridLocation->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setGridLocation_merge(_gridLocation->GetValue());
+        _frameLocation.gridLocation = _gridLocation->GetValue();
+
+        _controller.selected_setLocation(_frameLocation);
     });
 
-    _location->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
-    _location->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setLocation_merge(_location->GetValue());
+    _aabb->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _frameLocation.aabb = _aabb->GetValue();
+
+        _controller.selected_setLocation(_frameLocation);
     });
 
     _useCustomOrigin->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
-        _controller.selected_setUseGridOrigin(!_useCustomOrigin->GetValue());
+        _frameLocation.useGridOrigin = !_useCustomOrigin->GetValue();
+
+        _controller.selected_setLocation(_frameLocation);
     });
 
-    _origin->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _origin->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setOrigin_merge(_origin->GetValue());
+        _frameLocation.origin = _origin->GetValue();
+
+        _controller.selected_setLocation(_frameLocation);
     });
 
     _solid->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         _controller.selected_setSolid(_solid->GetValue());
-        _siController.selectedTypeController().selectTileHitbox();
+
+        // ::TODO SelectedType - set TileHitbox::
     });
 
-    _tileHitbox->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        _siController.selectedTypeController().selectTileHitbox();
-        e.Skip();
-    });
     _tileHitbox->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setTileHitbox_merge(_tileHitbox->GetValue());
+        _controller.selected_setTileHitbox(_tileHitbox->GetValue());
     });
 }
 
 void FramePanel::UpdateGui()
 {
-    const SI::Frame* frame = _controller.selected();
-    if (frame) {
-        _location->SetMinRectSize(frame->minimumViableSize());
-        _origin->SetRange(frame->locationSize());
-        _tileHitbox->SetRange(frame->locationSize());
+    this->Enable(_controller.hasSelected());
 
-        _spriteOrder->SetValue(frame->spriteOrder());
+    const SI::Frame& frame = _controller.selected();
+    _frameLocation = frame.location;
 
-        _useGridLocation->SetValue(frame->useGridLocation());
-        _gridLocation->Enable(frame->useGridLocation());
-        _gridLocation->SetValue(frame->gridLocation());
+    _aabb->SetMinRectSize(frame.minimumViableSize());
+    _origin->SetRange(_frameLocation.aabb.size());
+    _tileHitbox->SetRange(_frameLocation.aabb.size());
 
-        _location->Enable(!frame->useGridLocation());
-        _location->SetValue(frame->location());
+    _spriteOrder->SetValue(frame.spriteOrder);
 
-        _useCustomOrigin->SetValue(!frame->useGridOrigin());
-        _origin->Enable(!frame->useGridOrigin());
-        _origin->SetValue(frame->origin());
+    _useGridLocation->SetValue(_frameLocation.useGridLocation);
+    _gridLocation->Enable(_frameLocation.useGridLocation);
+    _gridLocation->SetValue(_frameLocation.gridLocation);
 
-        _solid->SetValue(frame->solid());
-        _tileHitbox->Enable(frame->solid());
-        _tileHitbox->SetValue(frame->tileHitbox());
+    _aabb->Enable(!_frameLocation.useGridLocation);
+    _aabb->SetValue(_frameLocation.aabb);
 
-        this->Enable();
-    }
-    else {
-        _location->SetMinRectSize(emptySize);
-        _origin->SetRange(emptySize);
-        _tileHitbox->SetRange(emptySize);
+    _useCustomOrigin->SetValue(!_frameLocation.useGridOrigin);
+    _origin->Enable(!_frameLocation.useGridOrigin);
+    _origin->SetValue(_frameLocation.origin);
 
-        _spriteOrder->SetValue(0);
-
-        _useGridLocation->SetValue(false);
-        _gridLocation->SetValue(emptyPoint);
-        _location->SetValue(emptyRect);
-
-        _useCustomOrigin->SetValue(false);
-        _origin->SetValue(emptyPoint);
-
-        _solid->SetValue(false);
-        _tileHitbox->SetValue(emptyRect);
-
-        this->Disable();
-    }
+    _solid->SetValue(frame.solid);
+    _tileHitbox->Enable(frame.solid);
+    _tileHitbox->SetValue(frame.tileHitbox);
 }
 
 // FRAME OBJECTS
@@ -719,66 +654,49 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &FrameObjectPanel::UpdateGui));
 
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
-        *this, &FrameObjectPanel::UpdateGui));
+    controller.frameController().signal_dataChanged().connect(sigc::mem_fun(
+        *this, &FrameObjectPanel::UpdateGuiRange));
 
-    controller.frameController().signal_frameSizeChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameObjectPanel::UpdateGuiRange)));
-
-    controller.frameSetController().signal_gridChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameObjectPanel::UpdateGuiRange)));
+    controller.frameSetController().signal_dataChanged().connect(sigc::mem_fun(
+        *this, &FrameObjectPanel::UpdateGuiRange));
 
     // Events
     // ------
-    _location->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _location->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setLocation_merge(_location->GetValue());
+        _controller.selected_setLocation(_location->GetValue());
     });
 
     _size->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
-        typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
-        _controller.selected_setLocationAndSize(
-            _location->GetValue(),
+        typedef UnTech::MetaSprite::ObjectSize OS;
+
+        _controller.selected_setSize(
             _size->GetSelection() == 1 ? OS::LARGE : OS::SMALL);
     });
 }
 
 void FrameObjectPanel::UpdateGui()
 {
+    typedef UnTech::MetaSprite::ObjectSize OS;
+
+    this->Enable(_controller.hasSelected());
+
     UpdateGuiRange();
 
-    const SI::FrameObject* obj = _controller.selected();
-    if (obj) {
-        typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
+    const SI::FrameObject& obj = _controller.selected();
 
-        _location->SetValue(obj->location());
-        _size->SetSelection(obj->size() == OS::LARGE ? 1 : 0);
-
-        this->Enable();
-    }
-    else {
-        _location->SetValue(emptyPoint);
-        _size->SetSelection(wxNOT_FOUND);
-
-        this->Disable();
-    }
+    _location->SetValue(obj.location);
+    _size->SetSelection(obj.size == OS::LARGE ? 1 : 0);
 }
 
 void FrameObjectPanel::UpdateGuiRange()
 {
-    const SI::FrameObject* obj = _controller.selected();
-    if (obj) {
-        _location->SetRange(obj->frame().locationSize(), obj->sizePx());
-    }
-    else {
-        _location->SetRange(emptySize);
-    }
+    const SI::FrameObject& obj = _controller.selected();
+    const SI::Frame& frame = _controller.parent().selected();
+
+    _location->SetRange(frame.location.aabb.size(), obj.sizePx());
 }
 
 // ACTION POINTS
@@ -807,65 +725,43 @@ ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID,
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &ActionPointPanel::UpdateGui));
 
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
-        *this, &ActionPointPanel::UpdateGui));
+    controller.frameController().signal_dataChanged().connect(sigc::mem_fun(
+        *this, &ActionPointPanel::UpdateGuiRange));
 
-    controller.frameController().signal_frameSizeChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &ActionPointPanel::UpdateGuiRange)));
-
-    controller.frameSetController().signal_gridChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &ActionPointPanel::UpdateGuiRange)));
+    controller.frameSetController().signal_dataChanged().connect(sigc::mem_fun(
+        *this, &ActionPointPanel::UpdateGuiRange));
 
     // Events
     // ------
-    _location->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _location->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setLocation_merge(_location->GetValue());
+        _controller.selected_setLocation(_location->GetValue());
     });
 
-    _parameter->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _parameter->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setParameter_merge(_parameter->GetValue());
+        _controller.selected_setParameter(_parameter->GetValue());
     });
 }
 
 void ActionPointPanel::UpdateGui()
 {
+    this->Enable(_controller.hasSelected());
+
+    const SI::ActionPoint& ap = _controller.selected();
+
     UpdateGuiRange();
 
-    const SI::ActionPoint* ap = _controller.selected();
-    if (ap) {
-        _location->SetValue(ap->location());
-        _parameter->SetValue(ap->parameter());
-
-        this->Enable();
-    }
-    else {
-        _location->SetValue(emptyPoint);
-        _parameter->SetValue(0);
-
-        this->Disable();
-    }
+    _location->SetValue(ap.location);
+    _parameter->SetValue(ap.parameter);
 }
 
 void ActionPointPanel::UpdateGuiRange()
 {
-    const SI::ActionPoint* ap = _controller.selected();
-    if (ap) {
-        _location->SetRange(ap->frame().locationSize());
-    }
-    else {
-        _location->SetRange(emptySize);
-    }
+    const SI::Frame& frame = _controller.parent().selected();
+
+    _location->SetRange(frame.location.aabb.size());
 }
 
 // ENTITY HITBOXES
@@ -886,32 +782,25 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, "AABB:"));
     grid->Add(_aabb, wxSizerFlags(1).Expand());
 
-    _hitboxType = new EnumClassChoice<MSC::EntityHitboxType>(this, wxID_ANY);
+    _hitboxType = new EnumClassChoice<UnTech::MetaSprite::EntityHitboxType>(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Type:"));
     grid->Add(_hitboxType, wxSizerFlags(1).Expand());
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &EntityHitboxPanel::UpdateGui));
 
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
-        *this, &EntityHitboxPanel::UpdateGui));
+    controller.frameController().signal_dataChanged().connect(sigc::mem_fun(
+        *this, &EntityHitboxPanel::UpdateGuiRange));
 
-    controller.frameController().signal_frameSizeChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &EntityHitboxPanel::UpdateGuiRange)));
-
-    controller.frameSetController().signal_gridChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &EntityHitboxPanel::UpdateGuiRange)));
+    controller.frameSetController().signal_dataChanged().connect(sigc::mem_fun(
+        *this, &EntityHitboxPanel::UpdateGuiRange));
 
     // Events
     // ------
-    _aabb->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _aabb->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setAabb_merge(_aabb->GetValue());
+        _controller.selected_setAabb(_aabb->GetValue());
     });
 
     _hitboxType->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
@@ -921,30 +810,19 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
 
 void EntityHitboxPanel::UpdateGui()
 {
+    this->Enable(_controller.hasSelected());
+
+    const SI::EntityHitbox& eh = _controller.selected();
+
     UpdateGuiRange();
 
-    const SI::EntityHitbox* eh = _controller.selected();
-    if (eh) {
-        _aabb->SetValue(eh->aabb());
-        _hitboxType->SetValue(eh->hitboxType());
-
-        this->Enable();
-    }
-    else {
-        _aabb->SetValue(emptyRect);
-        _hitboxType->SetSelection(wxNOT_FOUND);
-
-        this->Disable();
-    }
+    _aabb->SetValue(eh.aabb);
+    _hitboxType->SetValue(eh.hitboxType);
 }
 
 void EntityHitboxPanel::UpdateGuiRange()
 {
-    const SI::EntityHitbox* eh = _controller.selected();
-    if (eh) {
-        _aabb->SetRange(eh->frame().locationSize());
-    }
-    else {
-        _aabb->SetRange(emptySize);
-    }
+    const SI::Frame& frame = _controller.parent().selected();
+
+    _aabb->SetRange(frame.location.aabb.size());
 }

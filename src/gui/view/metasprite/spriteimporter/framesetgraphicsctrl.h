@@ -1,13 +1,14 @@
 #pragma once
-#include "gui/controllers/sprite-importer.h"
+#include "gui/controllers/metasprite/spriteimporter.h"
 #include <wx/bitmap.h>
 #include <wx/wx.h>
 
 namespace UnTech {
 namespace View {
+namespace MetaSprite {
 namespace SpriteImporter {
 
-namespace SI = UnTech::SpriteImporter;
+namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 class FrameSetGraphicsCtrl : public wxPanel {
 public:
@@ -78,6 +79,7 @@ private:
     MousePosition _prevMouse;
     MouseDrag _mouseDrag;
 };
+}
 }
 }
 }

@@ -1,21 +1,21 @@
 #pragma once
 
-#include "gui/controllers/sprite-importer.h"
-#include "gui/view/common/namedlist.h"
-#include "gui/view/common/orderedlist.h"
+#include "gui/controllers/metasprite/spriteimporter.h"
+#include "gui/view/common/idmaplistctrl.h"
+#include "gui/view/common/vectorlistctrl.h"
 
 namespace UnTech {
 namespace View {
 
-namespace SI = UnTech::SpriteImporter;
+namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 // FRAME
 // =====
 template <>
-void NamedListCtrl<SI::Frame>::CreateColumns();
+void IdMapListCtrl<SI::FrameController>::CreateColumns();
 
 template <>
-void NamedListCtrl<SI::Frame>::CreateColumns()
+void IdMapListCtrl<SI::FrameController>::CreateColumns()
 {
     AppendColumn("Frame", wxLIST_FORMAT_LEFT);
 
@@ -24,9 +24,9 @@ void NamedListCtrl<SI::Frame>::CreateColumns()
 }
 
 template <>
-wxString NamedListCtrl<SI::Frame>::OnGetItemText(long item, long column) const
+wxString IdMapListCtrl<SI::FrameController>::OnGetItemText(long item, long column) const
 {
-    if (item < 0 || (unsigned)item >= _ptrList.size()) {
+    if (item < 0 || (unsigned)item >= _nameList.size()) {
         return wxEmptyString;
     }
 
@@ -42,10 +42,10 @@ wxString NamedListCtrl<SI::Frame>::OnGetItemText(long item, long column) const
 // FRAME OBJECTS
 // =============
 template <>
-void OrderedListCtrl<SI::FrameObject>::CreateColumns();
+void VectorListCtrl<SI::FrameObjectController>::CreateColumns();
 
 template <>
-void OrderedListCtrl<SI::FrameObject>::CreateColumns()
+void VectorListCtrl<SI::FrameObjectController>::CreateColumns()
 {
     AppendColumn("Location", wxLIST_FORMAT_LEFT);
     AppendColumn("Size", wxLIST_FORMAT_LEFT);
@@ -54,9 +54,9 @@ void OrderedListCtrl<SI::FrameObject>::CreateColumns()
 }
 
 template <>
-wxString OrderedListCtrl<SI::FrameObject>::OnGetItemText(long item, long column) const
+wxString VectorListCtrl<SI::FrameObjectController>::OnGetItemText(long item, long column) const
 {
-    const SI::FrameObject::list_t* list = _controller.list();
+    const list_type* list = _controller.list();
 
     if (list == nullptr) {
         return wxEmptyString;
@@ -66,16 +66,16 @@ wxString OrderedListCtrl<SI::FrameObject>::OnGetItemText(long item, long column)
 
     switch (column) {
     case 0: {
-        auto loc = obj.location();
-        return wxString::Format("%d, %d", int(loc.x), int(loc.y));
+        return wxString::Format("%d, %d", obj.location.x, obj.location.y);
     }
 
     case 1: {
-        typedef UnTech::SpriteImporter::FrameObject::ObjectSize OS;
+        using OS = UnTech::MetaSprite::ObjectSize;
+
         const static wxString smallString("Small");
         const static wxString largeString("Large");
 
-        return obj.size() == OS::LARGE ? largeString : smallString;
+        return obj.size == OS::LARGE ? largeString : smallString;
     }
 
     default:
@@ -86,10 +86,10 @@ wxString OrderedListCtrl<SI::FrameObject>::OnGetItemText(long item, long column)
 // ACTION POINTS
 // =============
 template <>
-void OrderedListCtrl<SI::ActionPoint>::CreateColumns();
+void VectorListCtrl<SI::ActionPointController>::CreateColumns();
 
 template <>
-void OrderedListCtrl<SI::ActionPoint>::CreateColumns()
+void VectorListCtrl<SI::ActionPointController>::CreateColumns()
 {
     AppendColumn("Location", wxLIST_FORMAT_LEFT);
     AppendColumn("Parameter", wxLIST_FORMAT_LEFT);
@@ -98,7 +98,7 @@ void OrderedListCtrl<SI::ActionPoint>::CreateColumns()
 }
 
 template <>
-wxString OrderedListCtrl<SI::ActionPoint>::OnGetItemText(long item, long column) const
+wxString VectorListCtrl<SI::ActionPointController>::OnGetItemText(long item, long column) const
 {
     const SI::ActionPoint::list_t* list = _controller.list();
 
@@ -110,12 +110,11 @@ wxString OrderedListCtrl<SI::ActionPoint>::OnGetItemText(long item, long column)
 
     switch (column) {
     case 0: {
-        auto loc = ap.location();
-        return wxString::Format("%d, %d", int(loc.x), int(loc.y));
+        return wxString::Format("%d, %d", ap.location.x, ap.location.y);
     }
 
     case 1: {
-        return wxString::Format("0x%02x", ap.parameter());
+        return wxString::Format("0x%02x", int(ap.parameter));
     }
 
     default:
@@ -126,10 +125,10 @@ wxString OrderedListCtrl<SI::ActionPoint>::OnGetItemText(long item, long column)
 // ENTITY HITBOXES
 // ===============
 template <>
-void OrderedListCtrl<SI::EntityHitbox>::CreateColumns();
+void VectorListCtrl<SI::EntityHitboxController>::CreateColumns();
 
 template <>
-void OrderedListCtrl<SI::EntityHitbox>::CreateColumns()
+void VectorListCtrl<SI::EntityHitboxController>::CreateColumns()
 {
     AppendColumn("Location", wxLIST_FORMAT_LEFT);
     AppendColumn("Size", wxLIST_FORMAT_LEFT);
@@ -139,7 +138,7 @@ void OrderedListCtrl<SI::EntityHitbox>::CreateColumns()
 }
 
 template <>
-wxString OrderedListCtrl<SI::EntityHitbox>::OnGetItemText(long item, long column) const
+wxString VectorListCtrl<SI::EntityHitboxController>::OnGetItemText(long item, long column) const
 {
     const SI::EntityHitbox::list_t* list = _controller.list();
 
@@ -151,17 +150,15 @@ wxString OrderedListCtrl<SI::EntityHitbox>::OnGetItemText(long item, long column
 
     switch (column) {
     case 0: {
-        auto aabb = eh.aabb();
-        return wxString::Format("%d, %d", int(aabb.x), int(aabb.y));
+        return wxString::Format("%d, %d", eh.aabb.x, eh.aabb.y);
     }
 
     case 1: {
-        auto aabb = eh.aabb();
-        return wxString::Format("%d x %d", aabb.width, aabb.height);
+        return wxString::Format("%d x %d", eh.aabb.width, eh.aabb.height);
     }
 
     case 2: {
-        return eh.hitboxType().string();
+        return eh.hitboxType.string();
     }
 
     default:

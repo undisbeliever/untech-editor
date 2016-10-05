@@ -1,12 +1,14 @@
 #pragma once
-#include "gui/controllers/sprite-importer.h"
+#include "gui/controllers/metasprite/spriteimporter.h"
+#include "gui/view/common/controllerinterface.h"
 #include <wx/wx.h>
 
 namespace UnTech {
 namespace View {
+namespace MetaSprite {
 namespace SpriteImporter {
 
-namespace SI = UnTech::SpriteImporter;
+namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 class Frame : public wxFrame {
 public:
@@ -35,9 +37,11 @@ protected:
     void OnClose(wxCloseEvent&);
 
 private:
+    ControllerInterface _controllerInterface;
     SI::SpriteImporterController _controller;
     wxTimer _initBugfixTimer;
 };
+}
 }
 }
 }

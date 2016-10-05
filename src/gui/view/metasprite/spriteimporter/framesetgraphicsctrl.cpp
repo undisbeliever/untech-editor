@@ -10,9 +10,7 @@
 // ::SHOULD update image on refresh::
 
 using namespace UnTech;
-using namespace UnTech::View::SpriteImporter;
-
-typedef SI::SpriteImporterController::SelectedTypeController::Type SelectedType;
+using namespace UnTech::View::MetaSprite::SpriteImporter;
 
 FrameSetGraphicsCtrl::FrameSetGraphicsCtrl(wxWindow* parent, wxWindowID id,
                                            SI::SpriteImporterController& controller)
@@ -26,49 +24,37 @@ FrameSetGraphicsCtrl::FrameSetGraphicsCtrl(wxWindow* parent, wxWindowID id,
 
     // Signals
     // -------
-    controller.frameSetController().signal_selectedChanged().connect(sigc::mem_fun(
+    controller.frameSetController().signal_anyChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::UpdateBitmap));
-    controller.frameSetController().signal_imageChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::UpdateBitmap)));
-    controller.frameSetController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
 
-    controller.frameController().signal_selectedChanged().connect([this](void) {
-        ScrollToSelectedFrame();
-        OnNonBitmapDataChanged();
-    });
-    controller.frameController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
-    controller.frameController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
+    controller.frameController().signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &FrameSetGraphicsCtrl::ScrollToSelectedFrame));
 
-    controller.frameObjectController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
-    controller.frameObjectController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
+    controller.frameController().signal_anyChanged().connect(sigc::mem_fun(
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
 
-    controller.actionPointController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
-    controller.actionPointController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
+    controller.frameObjectController().signal_anyChanged().connect(sigc::mem_fun(
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
 
-    controller.entityHitboxController().signal_dataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
-    controller.entityHitboxController().signal_listDataChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged)));
+    controller.actionPointController().signal_anyChanged().connect(sigc::mem_fun(
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
 
+    controller.entityHitboxController().signal_anyChanged().connect(sigc::mem_fun(
+        *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
+
+    /*
+    // ::TODO SelectedType::
     controller.selectedTypeController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
+ */
 
-    controller.layersController().signal_layersChanged().connect(sigc::mem_fun(
+    controller.settingsController().signal_settingsChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
 
-    controller.settings().signal_zoomChanged().connect([this](void) {
-        UpdateScrollbar();
-        OnNonBitmapDataChanged();
-    });
+    controller.settingsController().zoom().signal_zoomChanged().connect(sigc::mem_fun(
+        *this, &FrameSetGraphicsCtrl::UpdateScrollbar));
 
-    controller.frameSetController().signal_selectTransparentModeChanged().connect(sigc::mem_fun(
+    controller.settingsController().selectColorWithMouse().signal_valueChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::ResetMouseState));
 
     // Events
@@ -117,13 +103,13 @@ FrameSetGraphicsCtrl::FrameSetGraphicsCtrl(wxWindow* parent, wxWindowID id,
 
 void FrameSetGraphicsCtrl::UpdateScrollbar()
 {
-    const SI::FrameSet* frameSet = _controller.frameSetController().selected();
+    const auto& zoomSettings = _controller.settingsController().zoom();
 
     int clientWidth, clientHeight;
     GetClientSize(&clientWidth, &clientHeight);
 
-    clientWidth /= _controller.settings().zoomX();
-    clientHeight /= _controller.settings().zoomY();
+    clientWidth /= zoomSettings.zoomX();
+    clientHeight /= zoomSettings.zoomY();
 
     int width, height;
     if (_bitmap.IsOk()) {
@@ -139,14 +125,8 @@ void FrameSetGraphicsCtrl::UpdateScrollbar()
     int vThumbSize = std::min(clientHeight, height);
 
     int hPos, vPos;
-    if (frameSet) {
-        hPos = GetScrollPos(wxHORIZONTAL) + GetScrollThumb(wxHORIZONTAL) / 2 - hThumbSize / 2;
-        vPos = GetScrollPos(wxVERTICAL) + GetScrollThumb(wxVERTICAL) / 2 - vThumbSize / 2;
-    }
-    else {
-        hPos = 0;
-        vPos = 0;
-    }
+    hPos = GetScrollPos(wxHORIZONTAL) + GetScrollThumb(wxHORIZONTAL) / 2 - hThumbSize / 2;
+    vPos = GetScrollPos(wxVERTICAL) + GetScrollThumb(wxVERTICAL) / 2 - vThumbSize / 2;
 
     this->SetScrollbar(wxHORIZONTAL, hPos, hThumbSize, width);
     this->SetScrollbar(wxVERTICAL, vPos, vThumbSize, height);
@@ -166,13 +146,11 @@ void FrameSetGraphicsCtrl::ScrollToSelectedFrame()
         }
     };
 
-    const SI::Frame* frame = _controller.frameController().selected();
-    if (frame) {
-        const urect& loc = frame->location();
+    const SI::Frame& frame = _controller.frameController().selected();
+    const urect& loc = frame.location.aabb;
 
-        scroll(wxHORIZONTAL, loc.x, loc.width);
-        scroll(wxVERTICAL, loc.y, loc.height);
-    }
+    scroll(wxHORIZONTAL, loc.x, loc.width);
+    scroll(wxVERTICAL, loc.y, loc.height);
 }
 
 void FrameSetGraphicsCtrl::OnNonBitmapDataChanged()
@@ -183,13 +161,8 @@ void FrameSetGraphicsCtrl::OnNonBitmapDataChanged()
 
 void FrameSetGraphicsCtrl::UpdateBitmap()
 {
-    const SI::FrameSet* frameSet = _controller.frameSetController().selected();
-    if (frameSet) {
-        _bitmap = ImageToWxBitmap(frameSet->image());
-    }
-    else {
-        _bitmap = wxNullBitmap;
-    }
+    const SI::FrameSet& frameSet = _controller.frameSetController().selected();
+    _bitmap = ImageToWxBitmap(frameSet.image);
 
     UpdateScrollbar();
     OnNonBitmapDataChanged();
@@ -197,15 +170,15 @@ void FrameSetGraphicsCtrl::UpdateBitmap()
 
 void FrameSetGraphicsCtrl::Render(wxPaintDC& paintDc)
 {
-    const SI::FrameSet* frameSet = _controller.frameSetController().selected();
-    const auto& layers = _controller.layersController();
+    const SI::FrameSet& frameSet = _controller.frameSetController().selected();
+    const auto& layers = _controller.settingsController().layers();
 
-    if (frameSet == nullptr || paintDc.IsOk() == false) {
+    if (paintDc.IsOk() == false) {
         return;
     }
 
-    const double zoomX = _controller.settings().zoomX();
-    const double zoomY = _controller.settings().zoomY();
+    const double zoomX = _controller.settingsController().zoom().zoomX();
+    const double zoomY = _controller.settingsController().zoom().zoomY();
 
     int clientWidth, clientHeight;
     paintDc.GetSize(&clientWidth, &clientHeight);
@@ -246,16 +219,16 @@ void FrameSetGraphicsCtrl::Render(wxPaintDC& paintDc)
     // Origins
     // -------
     if (layers.origin()) {
-        for (const auto& frameIt : frameSet->frames()) {
-            const SI::Frame& frame = frameIt.second;
+        for (const auto& frameIt : frameSet.frames) {
+            const auto& frameLoc = frameIt.second.location;
 
             DashedPen(paintDc, [&](wxDC& dc) {
                 DrawingHelper helper(dc, zoomX, zoomY,
-                                     xPos - frame.location().x,
-                                     yPos - frame.location().y);
+                                     xPos - frameLoc.aabb.x,
+                                     yPos - frameLoc.aabb.y);
 
-                helper.DrawCrossHair(frame.origin(),
-                                     frame.location().size());
+                helper.DrawCrossHair(frameLoc.origin,
+                                     frameLoc.aabb.size());
             });
         }
     }
@@ -266,93 +239,100 @@ void FrameSetGraphicsCtrl::Render(wxPaintDC& paintDc)
         dc.SetBrush(wxNullBrush);
         dc.SetPen(FRAME_OUTLINE_PEN);
 
-        for (const auto& frameIt : frameSet->frames()) {
+        for (const auto& frameIt : frameSet.frames) {
             const SI::Frame& frame = frameIt.second;
-            fsHelper.DrawRectangle(frame.location());
+            fsHelper.DrawRectangle(frame.location.aabb);
         }
     }
 
     // Frame details
     // -------------
-    for (const auto& frameIt : frameSet->frames()) {
+    for (const auto& frameIt : frameSet.frames) {
         const SI::Frame& frame = frameIt.second;
 
         DrawingHelper helper(dc, zoomX, zoomY,
-                             xPos - frame.location().x,
-                             yPos - frame.location().y);
+                             xPos - frame.location.aabb.x,
+                             yPos - frame.location.aabb.y);
 
         if (layers.frameObjects()) {
             dc.SetBrush(wxNullBrush);
             dc.SetPen(FRAME_OBJECTS_PEN);
 
-            for (const SI::FrameObject& obj : frame.objects()) {
-                helper.DrawSquare(obj.location(), obj.sizePx());
+            for (const SI::FrameObject& obj : frame.objects) {
+                helper.DrawSquare(obj.location, obj.sizePx());
             }
         }
 
         if (layers.entityHitboxes()) {
             dc.SetBrush(ENTITY_HITBOX_BRUSH);
             dc.SetPen(ENTITY_HITBOX_PEN);
-            for (const SI::EntityHitbox& eh : frame.entityHitboxes()) {
-                helper.DrawRectangle(eh.aabb());
+            for (const SI::EntityHitbox& eh : frame.entityHitboxes) {
+                helper.DrawRectangle(eh.aabb);
             }
         }
 
-        if (frame.solid() && layers.tileHitbox()) {
+        if (frame.solid && layers.tileHitbox()) {
             dc.SetBrush(TILE_HITBOX_BRUSH);
             dc.SetPen(TILE_HITBOX_PEN);
-            helper.DrawRectangle(frame.tileHitbox());
+            helper.DrawRectangle(frame.tileHitbox);
         }
 
         if (layers.actionPoints()) {
             dc.SetBrush(wxNullBrush);
             dc.SetPen(ACTION_POINT_PEN);
-            for (const SI::ActionPoint& ap : frame.actionPoints()) {
-                helper.DrawCross(ap.location());
+            for (const SI::ActionPoint& ap : frame.actionPoints) {
+                helper.DrawCross(ap.location);
             }
         }
     }
 
     // Selected Frame
     // --------------
-    const SI::Frame* selectedFrame = _controller.frameController().selected();
-    if (selectedFrame) {
-        fsHelper.AntiHighlightRectangle(selectedFrame->location());
+    if (_controller.frameController().hasSelected()) {
+        const SI::Frame& selectedFrame = _controller.frameController().selected();
+
+        fsHelper.AntiHighlightRectangle(selectedFrame.location.aabb);
 
         // Selected Item
         // -------------
         DrawingHelper helper(dc, zoomX, zoomY,
-                             xPos - selectedFrame->location().x,
-                             yPos - selectedFrame->location().y);
+                             xPos - selectedFrame.location.aabb.x,
+                             yPos - selectedFrame.location.aabb.y);
 
+        /*
+        // ::TODO SelectedType::
         switch (_controller.selectedTypeController().type()) {
         case SelectedType::NONE:
             break;
 
         case SelectedType::FRAME_OBJECT:
-            if (const auto* fo = _controller.frameObjectController().selected()) {
-                helper.DrawSelectedSquare(fo->location(), fo->sizePx());
+            if (_controller.frameObjectController().hasSelected()) {
+                const auto& fo = _controller.frameObjectController().selected();
+                helper.DrawSelectedSquare(fo.location, fo.sizePx());
             }
             break;
 
         case SelectedType::ENTITY_HITBOX:
-            if (const auto* eh = _controller.entityHitboxController().selected()) {
-                helper.DrawSelectedRectangle(eh->aabb());
+            if (_controller.entityHitboxController().hasSelected()) {
+                const auto& eh = _controller.entityHitboxController().selected().aabb;
+                helper.DrawSelectedRectangle(eh.aabb);
             }
             break;
 
         case SelectedType::ACTION_POINT:
-            if (const auto* ap = _controller.actionPointController().selected()) {
-                helper.DrawSelectedCross(ap->location());
+            if (_controller.actionPointController().hasSelected()) {
+                const auto& ap = _controller.actionPointController().selected();
+                helper.DrawSelectedCross(ap.location);
             }
             break;
 
         case SelectedType::TILE_HITBOX:
-            if (selectedFrame->solid()) {
-                helper.DrawSelectedRectangle(selectedFrame->tileHitbox());
+            if (selectedFrame.solid) {
+                helper.DrawSelectedRectangle(selectedFrame.tileHitbox());
             }
             break;
         }
+    */
 
         // Drag shadow
         // -----------
@@ -366,13 +346,13 @@ void FrameSetGraphicsCtrl::Render(wxPaintDC& paintDc)
 
 FrameSetGraphicsCtrl::MousePosition FrameSetGraphicsCtrl::GetMousePosition()
 {
-    const SI::FrameSet* frameSet = _controller.frameSetController().selected();
+    const SI::FrameSet& frameSet = _controller.frameSetController().selected();
 
     MousePosition ret;
     ret.isValid = false;
     ret.isInFrame = false;
 
-    if (frameSet == nullptr || frameSet->image().empty()) {
+    if (frameSet.image.empty()) {
         return ret;
     }
 
@@ -383,21 +363,23 @@ FrameSetGraphicsCtrl::MousePosition FrameSetGraphicsCtrl::GetMousePosition()
         return ret;
     }
 
-    const double zoomX = _controller.settings().zoomX();
-    const double zoomY = _controller.settings().zoomY();
+    const double zoomX = _controller.settingsController().zoom().zoomX();
+    const double zoomY = _controller.settingsController().zoom().zoomY();
 
     const unsigned x = (pt.x / zoomX) + GetScrollPos(wxHORIZONTAL);
     const unsigned y = (pt.y / zoomY) + GetScrollPos(wxVERTICAL);
 
     ret.frameSetLoc = upoint(x, y);
 
-    const usize& isize = frameSet->image().size();
+    const usize& isize = frameSet.image.size();
     if (x < isize.width && y < isize.height) {
         ret.isValid = true;
 
-        const SI::Frame* frame = _controller.frameController().selected();
-        if (frame) {
-            const urect& loc = frame->location();
+        if (_controller.frameController().hasSelected()) {
+            const SI::Frame& frame = _controller.frameController().selected();
+
+            const urect& loc = frame.location.aabb;
+
             if (loc.contains(ret.frameSetLoc)) {
                 ret.isInFrame = true;
                 ret.frameLoc = upoint(x - loc.x, y - loc.y);
@@ -482,7 +464,9 @@ void FrameSetGraphicsCtrl::ResetMouseState()
 {
     MouseDrag_Reset();
 
-    if (_controller.frameSetController().selectTransparentMode() == false) {
+    bool selectTransparent = _controller.settingsController().selectColorWithMouse().value();
+
+    if (selectTransparent == false) {
         _mouseState = MouseState::NONE;
         SetCursor(wxNullCursor);
     }
@@ -500,7 +484,7 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
     }
 
     if (!mouse.isValid) {
-        _controller.frameController().setSelected(nullptr);
+        _controller.frameController().selectNone();
         return;
     }
     else if (mouse.isInFrame) {
@@ -512,6 +496,9 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
          * was the previously selected one then the first match
          * is selected.
          */
+
+        // ::TODO SelectedType::
+        /*
         const void* current = _controller.selectedTypeController().selectedPtr();
 
         struct SelHandler {
@@ -534,39 +521,37 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
             }
         };
 
-        const SI::Frame* frame = _controller.frameController().selected();
+        const SI::Frame& frame = _controller.frameController().selected();
         const auto& layers = _controller.layersController();
         const auto& fMouse = mouse.frameLoc;
 
-        assert(frame != nullptr);
-
         if (layers.frameObjects()) {
-            for (const SI::FrameObject& obj : frame->objects()) {
-                if (urect(obj.location(), obj.sizePx()).contains(fMouse)) {
+            for (const SI::FrameObject& obj : frame.objects) {
+                if (urect(obj.location, obj.sizePx()).contains(fMouse)) {
                     updateMatch(SelectedType::FRAME_OBJECT, &obj);
                 }
             }
         }
 
         if (layers.actionPoints()) {
-            for (const SI::ActionPoint& ap : frame->actionPoints()) {
-                if (fMouse == ap.location()) {
+            for (const SI::ActionPoint& ap : frame.actionPoints()) {
+                if (fMouse == ap.location) {
                     updateMatch(SelectedType::ACTION_POINT, &ap);
                 }
             }
         }
 
         if (layers.entityHitboxes()) {
-            for (const SI::EntityHitbox& eh : frame->entityHitboxes()) {
-                if (eh.aabb().contains(fMouse)) {
+            for (const SI::EntityHitbox& eh : frame.entityHitboxes()) {
+                if (eh.aabb.contains(fMouse)) {
                     updateMatch(SelectedType::ENTITY_HITBOX, &eh);
                 }
             }
         }
 
         if (layers.tileHitbox()) {
-            if (frame->solid()) {
-                if (frame->tileHitbox().contains(fMouse)) {
+            if (frame.solid()) {
+                if (frame.tileHitbox().contains(fMouse)) {
                     updateMatch(SelectedType::TILE_HITBOX, frame);
                 }
             }
@@ -577,32 +562,32 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
             match = firstMatch;
         }
         _controller.selectedTypeController().selectItem(match.type, match.item);
+
+    */
     }
     else {
         // select frame
-        const SI::FrameSet* frameSet = _controller.frameSetController().selected();
-        assert(frameSet != nullptr);
+        const SI::FrameSet& frameSet = _controller.frameSetController().selected();
 
-        for (const auto fIt : frameSet->frames()) {
-            const auto frameLoc = fIt.second.location();
+        for (const auto fIt : frameSet.frames) {
+            const auto frameLoc = fIt.second.location.aabb;
 
             if (frameLoc.contains(mouse.frameSetLoc)) {
-                _controller.frameController().setSelected(&fIt.second);
+                _controller.frameController().selectId(fIt.first);
                 return;
             }
         }
 
-        _controller.frameController().setSelected(nullptr);
+        _controller.frameController().selectNone();
     }
 }
 
 void FrameSetGraphicsCtrl::OnMouseLeftUp_SelectTransparentColor(const MousePosition& mouse)
 {
     if (mouse.isValid) {
-        const SI::FrameSet* frameSet = _controller.frameSetController().selected();
-        assert(frameSet != nullptr);
+        const SI::FrameSet& frameSet = _controller.frameSetController().selected();
 
-        const auto& image = frameSet->image();
+        const auto& image = frameSet.image;
         if (!image.empty()) {
             const auto& fsLoc = mouse.frameSetLoc;
 
@@ -612,7 +597,7 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp_SelectTransparentColor(const MousePosit
         }
     }
 
-    _controller.frameSetController().setSelectTransparentMode(false);
+    _controller.settingsController().selectColorWithMouse().setValue(false);
 }
 
 // Mouse Drag
@@ -623,45 +608,52 @@ void FrameSetGraphicsCtrl::MouseDrag_MouseClick(const MousePosition& mouse)
     auto& md = _mouseDrag;
     bool canResize = false;
 
-    md.frame = _controller.frameController().selected();
+    md.frame = &_controller.frameController().selected();
     if (md.frame == nullptr || !mouse.isValid) {
         MouseDrag_Reset();
         return;
     }
 
+    // ::TODO SelectedType::
+    /*
     switch (_controller.selectedTypeController().type()) {
     case SelectedType::NONE:
         MouseDrag_Reset();
         return;
 
     case SelectedType::FRAME_OBJECT:
-        if (const auto* fo = _controller.frameObjectController().selected()) {
-            md.aabb = urect(fo->location(), fo->sizePx());
+        {
+            const auto& fo = _controller.frameObjectController().selected();
+            md.aabb = urect(fo.location, fo.sizePx());
         }
         break;
 
     case SelectedType::ACTION_POINT:
-        if (const auto* ap = _controller.actionPointController().selected()) {
-            md.aabb = urect(ap->location(), 1);
+        {
+            const auto& ap = _controller.actionPointController().selected();
+            md.aabb = urect(ap.location(), 1);
         }
         break;
 
     case SelectedType::ENTITY_HITBOX:
-        if (const auto* eh = _controller.entityHitboxController().selected()) {
-            md.aabb = eh->aabb();
+        {
+            const auto& eh = _controller.entityHitboxController().selected().aabb;
+            md.aabb = eh.aabb;
             canResize = true;
         }
         break;
 
     case SelectedType::TILE_HITBOX:
-        if (const auto* frame = _controller.frameController().selected()) {
-            if (frame->solid()) {
-                md.aabb = frame->tileHitbox();
+        {
+            const auto& frame = _controller.frameController().selected();
+            if (frame.solid) {
+                md.aabb = frame.tileHitbox;
                 canResize = true;
             }
         }
         break;
     }
+*/
 
     const auto& fMouse = mouse.frameLoc;
 
@@ -697,7 +689,7 @@ void FrameSetGraphicsCtrl::MouseDrag_MouseMotion(const MousePosition& mouse)
     }
 
     if (md.prevMouse != fsMouse) {
-        const auto& fLoc = md.frame->location();
+        const auto& fLoc = md.frame->location.aabb;
 
         urect newAabb = md.aabb;
 
@@ -809,6 +801,9 @@ void FrameSetGraphicsCtrl::MouseDrag_Confirm()
     auto& md = _mouseDrag;
 
     if (md.isActive) {
+
+        // ::TODO SelectedType::
+        /*
         switch (_controller.selectedTypeController().type()) {
         case SelectedType::NONE:
             break;
@@ -829,6 +824,7 @@ void FrameSetGraphicsCtrl::MouseDrag_Confirm()
             _controller.frameController().selected_setTileHitbox(md.aabb);
             break;
         }
+    */
 
         MouseDrag_Reset();
     }
