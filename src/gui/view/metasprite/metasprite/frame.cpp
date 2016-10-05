@@ -16,7 +16,8 @@ const wxString Frame::WINDOW_NAME = "UnTech MetaSprite Editor";
 
 const DocumentType FRAMESET_DOCUMENT_TYPE = {
     "MetaSprite FrameSet",
-    MS::FrameSet::FILE_EXTENSION
+    // ::BUGFIX can't use MS::FrameSet::FILE_EXTENSION with g++ -O2::
+    "utms"
 };
 
 enum MENU_IDS {

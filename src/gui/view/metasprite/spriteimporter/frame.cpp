@@ -14,7 +14,8 @@ const wxString Frame::WINDOW_NAME = "UnTech Sprite Importer";
 
 const DocumentType FRAMESET_DOCUMENT_TYPE = {
     "Sprite Importer FrameSet",
-    SI::FrameSet::FILE_EXTENSION
+    // ::BUGFIX can't use SI::FrameSet::FILE_EXTENSION with g++ -O2::
+    "utsi"
 };
 
 enum MENU_IDS {
