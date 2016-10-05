@@ -8,15 +8,15 @@ namespace Snes {
 
 class SnesColor {
 public:
+    ~SnesColor() = default;
+    SnesColor(const SnesColor&) = default;
+    SnesColor(SnesColor&&) = default;
+    SnesColor& operator=(const SnesColor&) = default;
+    SnesColor& operator=(SnesColor&&) = default;
+
     SnesColor()
         : _rgb(0, 0, 0, 0xFF)
         , _data(0)
-    {
-    }
-
-    SnesColor(const SnesColor& c)
-        : _rgb(c._rgb)
-        , _data(c._data)
     {
     }
 

@@ -1,13 +1,14 @@
 #pragma once
-#include "gui/controllers/metasprite.h"
+#include "gui/controllers/metasprite/metasprite.h"
 #include <wx/bitmap.h>
 #include <wx/wx.h>
 
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
+namespace MetaSprite {
 
-namespace MS = UnTech::MetaSprite;
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 class TilesetCtrl : public wxPanel {
 public:
@@ -61,6 +62,7 @@ private:
     MouseState _mouseState;
     MousePosition _prevMouse;
 };
+}
 }
 }
 }

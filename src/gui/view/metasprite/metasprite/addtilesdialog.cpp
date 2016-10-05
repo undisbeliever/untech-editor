@@ -1,7 +1,7 @@
 #include "addtilesdialog.h"
 #include "gui/view/defaults.h"
 
-using namespace UnTech::View::MetaSprite;
+using namespace UnTech::View::MetaSprite::MetaSprite;
 
 AddTilesDialog::AddTilesDialog(wxWindow* parent,
                                unsigned nSmall, unsigned nLarge)

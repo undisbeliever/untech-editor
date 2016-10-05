@@ -10,8 +10,14 @@
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
+namespace MetaSprite {
 
 const wxString Frame::WINDOW_NAME = "UnTech MetaSprite Editor";
+
+const DocumentType FRAMESET_DOCUMENT_TYPE = {
+    "MetaSprite FrameSet",
+    MS::FrameSet::FILE_EXTENSION
+};
 
 enum MENU_IDS {
     ID_ADD_TILES = 1000,
@@ -46,12 +52,14 @@ enum MENU_IDS {
 }
 }
 }
+}
 
-using namespace UnTech::View::MetaSprite;
+using namespace UnTech::View::MetaSprite::MetaSprite;
 
 Frame::Frame()
     : wxFrame(NULL, wxID_ANY, WINDOW_NAME)
-    , _controller(std::make_unique<ControllerInterface>(this))
+    , _controllerInterface(this)
+    , _controller(_controllerInterface)
 {
     SetMinSize(MIN_FRAME_SIZE);
 
@@ -174,6 +182,9 @@ Frame::Frame()
 
         // EDIT
 
+        // ::TODO UndoStack::
+        /*
+
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
                 _controller.undoStack().undo();
@@ -185,16 +196,18 @@ Frame::Frame()
                 _controller.undoStack().redo();
             },
             wxID_REDO);
+        */
 
         edit->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
                 auto& fsController = _controller.frameSetController();
-                const MS::FrameSet* frameSet = fsController.selected();
 
-                if (frameSet) {
+                if (fsController.hasSelected()) {
+                    const MS::FrameSet& frameSet = fsController.selected();
+
                     AddTilesDialog dialog(this,
-                                          frameSet->smallTileset().size(),
-                                          frameSet->largeTileset().size());
+                                          frameSet.smallTileset.size(),
+                                          frameSet.largeTileset.size());
 
                     if (dialog.ShowModal() == wxID_OK) {
                         fsController.selected_addTiles(dialog.GetSmallToAdd(),
@@ -203,6 +216,9 @@ Frame::Frame()
                 }
             },
             ID_ADD_TILES);
+
+        // ::TODO SelectedType::
+        /*
 
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
@@ -233,20 +249,21 @@ Frame::Frame()
                 _controller.selectedTypeController().moveSelectedDown();
             },
             ID_MOVE_DOWN);
+        */
 
         // VIEW
 
         zoom->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                auto& settings = _controller.settings();
-                settings.setZoom(settings.zoom() + 1);
+                auto& zoom = _controller.settingsController().zoom();
+                zoom.setZoom(zoom.zoom() + 1);
             },
             wxID_ZOOM_IN);
 
         zoom->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                auto& settings = _controller.settings();
-                settings.setZoom(settings.zoom() - 1);
+                auto& zoom = _controller.settingsController().zoom();
+                zoom.setZoom(zoom.zoom() - 1);
             },
             wxID_ZOOM_OUT);
 
@@ -254,7 +271,7 @@ Frame::Frame()
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
                 if (e.IsChecked()) {
                     int z = e.GetId() - ID_ZOOM_1 + 1;
-                    _controller.settings().setZoom(z);
+                    _controller.settingsController().zoom().setZoom(z);
                 }
             },
             ID_ZOOM_1, ID_ZOOM_9);
@@ -263,32 +280,34 @@ Frame::Frame()
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
                 if (e.IsChecked()) {
                     int a = e.GetId() - ID_ASPECT_SQUARE;
-                    _controller.settings().setAspectRatio(
-                        static_cast<Controller::Settings::AspectRatio>(a));
+                    _controller.settingsController().zoom().setAspectRatio(
+                        static_cast<UnTech::MetaSprite::ViewSettings::Zoom::AspectRatio>(a));
                 }
             },
             ID_ASPECT_SQUARE, ID_ASPECT_PAL);
 
         layers->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent& e) {
+                auto& layers = _controller.settingsController().layers();
+
                 switch (e.GetId()) {
                 case ID_LAYER_ORIGIN:
-                    _controller.layersController().setOrigin(e.IsChecked());
+                    layers.setOrigin(e.IsChecked());
                     break;
                 case ID_LAYER_TILE_HITBOX:
-                    _controller.layersController().setTileHitbox(e.IsChecked());
+                    layers.setTileHitbox(e.IsChecked());
                     break;
                 case ID_LAYER_FRAME_OBJECTS:
-                    _controller.layersController().setFrameObjects(e.IsChecked());
+                    layers.setFrameObjects(e.IsChecked());
                     break;
                 case ID_LAYER_ACTION_POINTS:
-                    _controller.layersController().setActionPoints(e.IsChecked());
+                    layers.setActionPoints(e.IsChecked());
                     break;
                 case ID_LAYER_ENTITY_HITBOXES:
-                    _controller.layersController().setEntityHitboxes(e.IsChecked());
+                    layers.setEntityHitboxes(e.IsChecked());
                     break;
                 case ID_LAYER_SHOW_ALL:
-                    _controller.layersController().showAll();
+                    layers.showAll();
                     break;
                 }
             });
@@ -313,33 +332,35 @@ Frame::Frame()
 
     // Signals
     // =======
+
+    // ::TODO SelectedType::
+    /*
     _controller.selectedTypeController().signal_typeChanged().connect(sigc::mem_fun(
         *this, &Frame::UpdateGuiMenu));
 
     _controller.selectedTypeController().signal_listChanged().connect(sigc::mem_fun(
         *this, &Frame::UpdateGuiMenu));
+    */
 
-    _controller.settings().signal_zoomChanged().connect(sigc::mem_fun(
-        *this, &Frame::UpdateGuiZoom));
-
-    _controller.layersController().signal_layersChanged().connect(sigc::mem_fun(
-        *this, &Frame::UpdateGuiLayers));
-
+    // ::TODO UndoStack::
+    /*
     _controller.undoStack().signal_stackChanged().connect(sigc::mem_fun(
         *this, &Frame::UpdateGuiUndo));
 
     _controller.undoStack().signal_dirtyBitChanged().connect(sigc::mem_fun(
         *this, &Frame::UpdateGuiTitle));
+     */
 
-    _controller.abstractFrameSetController().signal_nameChanged().connect(sigc::hide(sigc::mem_fun(
-        *this, &Frame::UpdateGuiTitle)));
+    _controller.frameSetController().signal_dataChanged().connect(sigc::mem_fun(
+        *this, &Frame::UpdateGuiTitle));
 
-    _controller.frameSetController().signal_selectedChanged().connect([this](void) {
-        UpdateGuiMenu();
-        UpdateGuiZoom();
-        UpdateGuiUndo();
-        UpdateGuiTitle();
-    });
+    _controller.frameSetController().signal_selectedChanged().connect(
+        [this](void) {
+            UpdateGuiMenu();
+            UpdateGuiZoom();
+            UpdateGuiUndo();
+            UpdateGuiTitle();
+        });
 
     // Events
     // ======
@@ -377,7 +398,8 @@ Frame::Frame()
 
     this->Bind(
         wxEVT_TIMER, [this](wxTimerEvent&) {
-            _controller.emitAllDataChanged();
+            // signal will propagate through the controller and all child controllers will be called.
+            _controller.frameSetController().signal_selectedChanged().emit();
         },
         ID_INIT_TIMER);
 
@@ -392,7 +414,7 @@ Frame::Frame()
 void Frame::CreateOpen(const std::string& filename)
 {
     auto* frame = new Frame();
-    bool s = frame->Controller().openDocument(filename);
+    bool s = frame->Controller().loadDocument(filename);
 
     if (s) {
         frame->Show(true);
@@ -404,7 +426,10 @@ void Frame::CreateOpen(const std::string& filename)
 
 void Frame::OnClose(wxCloseEvent& event)
 {
-    if (event.CanVeto() && _controller.undoStack().isDirty()) {
+    // ::TODO UndoStack::
+    const bool isDirty = _controller.hasDocument();
+
+    if (event.CanVeto() && isDirty) {
         int r = wxMessageBox("Do you want to save?\n\n"
                              "If you close without saving, your changes will be discarded.",
                              "Do you want to save?",
@@ -433,8 +458,7 @@ void Frame::UpdateGuiMenu()
 {
     wxMenuBar* menuBar = GetMenuBar();
 
-    const auto* document = _controller.document();
-    if (document) {
+    if (_controller.hasDocument()) {
         menuBar->EnableTop(1, true);
         menuBar->EnableTop(2, true);
         menuBar->Enable(wxID_SAVEAS, true);
@@ -448,6 +472,8 @@ void Frame::UpdateGuiMenu()
         menuBar->Enable(ID_ADD_TILES, false);
     }
 
+    // ::TODO SelectedType::
+    /*
     auto& selectedType = _controller.selectedTypeController();
 
     menuBar->Enable(ID_CREATE, selectedType.canCreateSelected());
@@ -455,24 +481,25 @@ void Frame::UpdateGuiMenu()
     menuBar->Enable(ID_REMOVE, selectedType.canRemoveSelected());
     menuBar->Enable(ID_MOVE_UP, selectedType.canMoveSelectedUp());
     menuBar->Enable(ID_MOVE_DOWN, selectedType.canMoveSelectedDown());
+    */
 }
 
 void Frame::UpdateGuiZoom()
 {
     wxMenuBar* menuBar = GetMenuBar();
-    auto& settings = _controller.settings();
+    auto& setting = _controller.settingsController().zoom();
 
-    int zoom = settings.zoom();
+    int zoom = setting.zoom();
     if (zoom >= 0 && zoom <= 9) {
         menuBar->Check(ID_ZOOM_1 - 1 + zoom, true);
     }
-    menuBar->Check(ID_ASPECT_SQUARE + static_cast<int>(settings.aspectRatio()), true);
+    menuBar->Check(ID_ASPECT_SQUARE + static_cast<int>(setting.aspectRatio()), true);
 }
 
 void Frame::UpdateGuiLayers()
 {
     wxMenuBar* menuBar = GetMenuBar();
-    auto& layers = _controller.layersController();
+    auto& layers = _controller.settingsController().layers();
 
     menuBar->Check(ID_LAYER_FRAME_OBJECTS, layers.frameObjects());
     menuBar->Check(ID_LAYER_ACTION_POINTS, layers.actionPoints());
@@ -485,41 +512,46 @@ void Frame::UpdateGuiUndo()
 {
     wxMenuBar* menuBar = GetMenuBar();
 
-    const auto& undoStack = _controller.undoStack();
-    const auto* frameSet = _controller.frameSetController().selected();
+    // ::TODO UndoStack::
+    const bool canUndo = false;
+    const bool canRedo = false;
+    const bool isDirty = _controller.hasDocument();
+    const bool hasFile = _controller.hasDocument();
 
-    if (frameSet && undoStack.canUndo()) {
+    if (hasFile && canUndo) {
         menuBar->Enable(wxID_UNDO, true);
-        menuBar->SetLabel(wxID_UNDO, "&Undo " + undoStack.undoMessage() + "\tCTRL+Z");
+        // menuBar->SetLabel(wxID_UNDO, "&Undo " + undoStack.undoMessage() + "\tCTRL+Z");
     }
     else {
         menuBar->Enable(wxID_UNDO, false);
         menuBar->SetLabel(wxID_UNDO, "&Undo\tCTRL+Z");
     }
 
-    if (frameSet && undoStack.canRedo()) {
+    if (hasFile && canRedo) {
         menuBar->Enable(wxID_REDO, true);
-        menuBar->SetLabel(wxID_REDO, "&Redo " + undoStack.redoMessage() + "\tCTRL+SHIFT+Z");
+        // menuBar->SetLabel(wxID_REDO, "&Redo " + undoStack.redoMessage() + "\tCTRL+SHIFT+Z");
     }
     else {
         menuBar->Enable(wxID_REDO, false);
         menuBar->SetLabel(wxID_REDO, "&Redo\tCTRL+SHIFT+Z");
     }
 
-    menuBar->Enable(wxID_SAVE, frameSet && undoStack.isDirty());
+    menuBar->Enable(wxID_SAVE, hasFile && isDirty);
 }
 
 void Frame::UpdateGuiTitle()
 {
-    const auto& undoStack = _controller.undoStack();
-    const auto* frameSet = _controller.frameSetController().selected();
+    // ::TODO UndoStack::
+    const bool isDirty = _controller.hasDocument();
 
-    if (frameSet) {
-        if (undoStack.isDirty()) {
-            SetTitle("*" + frameSet->name() + ": " + WINDOW_NAME);
+    if (_controller.hasDocument()) {
+        const MS::FrameSet& frameSet = _controller.frameSetController().selected();
+
+        if (isDirty) {
+            SetTitle("*" + frameSet.name + ": " + WINDOW_NAME);
         }
         else {
-            SetTitle(frameSet->name() + ": " + WINDOW_NAME);
+            SetTitle(frameSet.name + ": " + WINDOW_NAME);
         }
     }
     else {
@@ -529,9 +561,9 @@ void Frame::UpdateGuiTitle()
 
 void Frame::OnMenuNew(wxCommandEvent&)
 {
-    if (_controller.document()) {
+    if (_controller.hasDocument()) {
         Frame* frame = new Frame();
-        frame->Controller().newDocument();
+        frame->_controller.newDocument();
         frame->Show(true);
     }
     else {
@@ -541,23 +573,23 @@ void Frame::OnMenuNew(wxCommandEvent&)
 
 void Frame::OnMenuOpen(wxCommandEvent&)
 {
-    auto fn = openFileDialog(this,
-                             MS::MetaSpriteDocument::DOCUMENT_TYPE,
-                             _controller.document());
+    auto fn = openFileDialog(this, FRAMESET_DOCUMENT_TYPE);
 
     if (fn) {
-        if (_controller.document()) {
+        auto& fsController = _controller.frameSetController();
+
+        if (fsController.hasSelected()) {
             CreateOpen(fn.value());
         }
         else {
-            _controller.openDocument(fn.value());
+            _controller.loadDocument(fn.value());
         }
     }
 }
 
 bool Frame::SaveDocument()
 {
-    if (_controller.document()) {
+    if (_controller.hasDocument()) {
         bool s = _controller.saveDocument();
         if (s) {
             return true;
@@ -572,13 +604,14 @@ bool Frame::SaveDocument()
 
 bool Frame::SaveDocumentAs()
 {
-    if (_controller.document()) {
-        auto fn = saveFileDialog(this,
-                                 MS::MetaSpriteDocument::DOCUMENT_TYPE,
-                                 _controller.document());
+    auto& fsController = _controller.frameSetController();
+
+    if (fsController.hasSelected()) {
+        auto fn = saveFileDialog(this, FRAMESET_DOCUMENT_TYPE,
+                                 _controller.filename());
 
         if (fn) {
-            return _controller.saveDocumentAs(fn.value());
+            return _controller.saveDocument(fn.value());
         }
     }
 

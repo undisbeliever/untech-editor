@@ -1,13 +1,12 @@
 #pragma once
-#include "gui/controllers/metasprite.h"
+#include "gui/controllers/metasprite/metasprite.h"
 #include <wx/spinctrl.h>
 #include <wx/wx.h>
 
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
-
-namespace MS = UnTech::MetaSprite;
+namespace MetaSprite {
 
 class AddTilesDialog : public wxDialog {
 public:
@@ -39,6 +38,7 @@ private:
     wxStaticText* _smallTotal;
     wxStaticText* _largeTotal;
 };
+}
 }
 }
 }

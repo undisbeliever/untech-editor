@@ -2,7 +2,9 @@
 #include "editcolordialog.h"
 #include "gui/view/defaults.h"
 
-using namespace UnTech::View::MetaSprite;
+using namespace UnTech::View::MetaSprite::MetaSprite;
+
+// ::TODO move to Snes namespace::
 
 PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
                            MS::PaletteController& controller)
@@ -30,10 +32,7 @@ PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
-        *this, &PalettePanel::UpdateGui));
-
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &PalettePanel::UpdateGui));
 
     // EVENTS
@@ -45,9 +44,8 @@ PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
 
 void PalettePanel::UpdateGui()
 {
-    const MS::Palette* palette = _controller.selected();
-
-    if (palette) {
+    if (_controller.hasSelected()) {
+        const Snes::Palette4bpp& palette = _controller.selected();
         int active = _controller.selectedColorId();
 
         if (active > 0) {
@@ -55,7 +53,7 @@ void PalettePanel::UpdateGui()
         }
 
         for (unsigned i = 0; i < N_COLORS; i++) {
-            _colors[i]->SetBackgroundColour(wxColor(palette->color(i).rgb().rgb()));
+            _colors[i]->SetBackgroundColour(wxColor(palette.color(i).rgb().rgb()));
             _colors[i]->SetValue((int)i == active);
         }
 

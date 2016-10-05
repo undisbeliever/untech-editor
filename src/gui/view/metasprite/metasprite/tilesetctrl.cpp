@@ -7,11 +7,10 @@
 #include <wx/pen.h>
 
 using namespace UnTech;
-using namespace UnTech::View::MetaSprite;
-
-typedef MS::MetaSpriteController::SelectedTypeController::Type SelectedType;
+using namespace UnTech::View::MetaSprite::MetaSprite;
 
 // ::TODO add UpdateSmallBitmap(tileId), UpdateLargeBitmap(tileId) functions::
+// ::TODO select color with mouse mode::
 
 TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
                          MS::MetaSpriteController& controller)
@@ -42,7 +41,7 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
         CreateBitmaps();
     });
 
-    controller.paletteController().signal_selectedDataChanged().connect([this](void) {
+    controller.paletteController().signal_anyChanged().connect([this](void) {
         ResetMouseState();
         CreateBitmaps();
     });
@@ -57,41 +56,22 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
         ResetMouseState();
     });
 
-    controller.frameSetController().signal_tileCountChanged().connect([this](const MS::FrameSet* fs) {
-        if (fs && fs == _controller.frameSetController().selected()) {
-            ResetMouseState();
-            CreateBitmaps();
-        }
-    });
+    controller.frameSetController().signal_dataChanged().connect(sigc::mem_fun(
+        *this, &TilesetCtrl::CreateBitmaps));
 
-    controller.frameSetController().signal_smallTilesetChanged().connect([this](const MS::FrameSet* fs) {
-        if (fs && fs == _controller.frameSetController().selected()) {
-            CreateSmallBitmap();
-        }
-    });
+    controller.frameSetController().signal_selectedChanged().connect(sigc::mem_fun(
+        *this, &TilesetCtrl::ResetMouseState));
 
-    controller.frameSetController().signal_largeTilesetChanged().connect([this](const MS::FrameSet* fs) {
-        if (fs && fs == _controller.frameSetController().selected()) {
-            CreateLargeBitmap();
-        }
-    });
-
-    auto onObj = [this](void) {
+    controller.frameObjectController().signal_anyChanged().connect([this](void) {
         Refresh(true);
 
-        const MS::FrameObject* obj = _controller.frameObjectController().selected();
-        if (obj) {
-            ScrollTo(int(obj->tileId() * obj->sizePx()), obj->sizePx());
+        if (_controller.frameSetController().hasSelected()) {
+            const MS::FrameObject& obj = _controller.frameObjectController().selected();
+            ScrollTo(int(obj.tileId * obj.sizePx()), obj.sizePx());
         }
-    };
-    controller.frameObjectController().signal_selectedChanged().connect(onObj);
-    controller.frameObjectController().signal_selectedDataChanged().connect(onObj);
-
-    controller.selectedTypeController().signal_selectedChanged().connect([this](void) {
-        Refresh(true);
     });
 
-    _controller.settings().signal_zoomChanged().connect([this](void) {
+    _controller.settingsController().zoom().signal_zoomChanged().connect([this](void) {
         ResetMouseState();
         UpdateSize();
         UpdateScrollbar();
@@ -141,7 +121,9 @@ TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
 
 void TilesetCtrl::UpdateSize()
 {
-    int h = (SMALL_SIZE + LARGE_SIZE) * _controller.settings().zoomY() + 1;
+    auto& zoomSetting = _controller.settingsController().zoom();
+
+    int h = (SMALL_SIZE + LARGE_SIZE) * zoomSetting.zoomY() + 1;
     wxSize s(-1, h);
 
     this->SetMinClientSize(s);
@@ -156,19 +138,18 @@ void TilesetCtrl::UpdateSize()
 
 void TilesetCtrl::UpdateScrollbar()
 {
-    const MS::FrameSet* frameSet = _controller.frameSetController().selected();
+    auto& zoomSetting = _controller.settingsController().zoom();
+    const MS::FrameSet& frameSet = _controller.frameSetController().selected();
 
     int width = 1;
 
-    if (frameSet) {
-        width = std::max(frameSet->smallTileset().size() * SMALL_SIZE,
-                         frameSet->largeTileset().size() * LARGE_SIZE);
-    }
+    width = std::max(frameSet.smallTileset.size() * SMALL_SIZE,
+                     frameSet.largeTileset.size() * LARGE_SIZE);
 
     int clientWidth, clientHeight;
     GetClientSize(&clientWidth, &clientHeight);
 
-    clientWidth /= _controller.settings().zoomX();
+    clientWidth /= zoomSetting.zoomX();
 
     int thumbSize = std::min(clientWidth, width);
 
@@ -197,17 +178,12 @@ void TilesetCtrl::CreateBitmaps()
 
 void TilesetCtrl::CreateSmallBitmap()
 {
-    const MS::Palette* palette = _controller.paletteController().selected();
-    const MS::FrameSet* frameSet = _controller.frameSetController().selected();
+    const UnTech::Snes::Palette4bpp& palette = _controller.paletteController().selected();
+    const MS::FrameSet& frameSet = _controller.frameSetController().selected();
+    const auto& smallTileset = frameSet.smallTileset;
 
     Refresh(true);
 
-    if (frameSet == nullptr || palette == nullptr) {
-        _smallTilesBitmap = wxNullBitmap;
-        return;
-    }
-
-    const auto& smallTileset = frameSet->smallTileset();
     if (smallTileset.size() == 0) {
         _smallTilesBitmap = wxNullBitmap;
         return;
@@ -227,24 +203,19 @@ void TilesetCtrl::CreateSmallBitmap()
 
     for (unsigned i = 0; i < smallTileset.size(); i++) {
         UnTech::View::Snes::DrawTileOpaque(
-            pData, smallTileset.tile(i), *palette,
+            pData, smallTileset.tile(i), palette,
             i * SMALL_SIZE, 0, false, false);
     }
 }
 
 void TilesetCtrl::CreateLargeBitmap()
 {
-    const MS::Palette* palette = _controller.paletteController().selected();
-    const MS::FrameSet* frameSet = _controller.frameSetController().selected();
+    const UnTech::Snes::Palette4bpp& palette = _controller.paletteController().selected();
+    const MS::FrameSet& frameSet = _controller.frameSetController().selected();
+    const auto& largeTileset = frameSet.largeTileset;
 
     Refresh(true);
 
-    if (frameSet == nullptr || palette == nullptr) {
-        _largeTilesBitmap = wxNullBitmap;
-        return;
-    }
-
-    const auto& largeTileset = frameSet->largeTileset();
     if (largeTileset.size() == 0) {
         _largeTilesBitmap = wxNullBitmap;
         return;
@@ -264,7 +235,7 @@ void TilesetCtrl::CreateLargeBitmap()
 
     for (unsigned i = 0; i < largeTileset.size(); i++) {
         UnTech::View::Snes::DrawTileOpaque(
-            pData, largeTileset.tile(i), *palette,
+            pData, largeTileset.tile(i), palette,
             i * LARGE_SIZE, 0, false, false);
     }
 }
@@ -274,14 +245,14 @@ void TilesetCtrl::Render(wxDC& dc)
     // I have no idea why I can't put a space between the two tilesets.
     // It works at zoom levels 1-2, but not 3-9
 
-    const MS::FrameSet* frameSet = _controller.frameSetController().selected();
+    const MS::FrameSet& frameSet = _controller.frameSetController().selected();
 
-    if (frameSet == nullptr || dc.IsOk() == false) {
+    if (dc.IsOk() == false) {
         return;
     }
 
-    const double zoomX = _controller.settings().zoomX();
-    const double zoomY = _controller.settings().zoomY();
+    const double zoomX = _controller.settingsController().zoom().zoomX();
+    const double zoomY = _controller.settingsController().zoom().zoomY();
 
     const int xPos = GetScrollPos(wxHORIZONTAL);
     int largeTilesOffset = SMALL_SIZE * zoomY;
@@ -323,12 +294,14 @@ void TilesetCtrl::Render(wxDC& dc)
                             xPos * zoomX, yOffset + size * zoomY);
             }
         };
-        draw(dc, frameSet->smallTileset().size(), SMALL_SIZE, 0);
-        draw(dc, frameSet->largeTileset().size(), LARGE_SIZE, largeTilesOffset);
+        draw(dc, frameSet.smallTileset.size(), SMALL_SIZE, 0);
+        draw(dc, frameSet.largeTileset.size(), LARGE_SIZE, largeTilesOffset);
     });
 
     // Selected Tile
     // -------------
+    // ::TODO SelectedType
+    /*
     if (_controller.selectedTypeController().type() == SelectedType::FRAME_OBJECT) {
         const MS::FrameObject* obj = _controller.frameObjectController().selected();
         if (obj) {
@@ -341,6 +314,7 @@ void TilesetCtrl::Render(wxDC& dc)
             helper.DrawSelectedRectangle(x, y, obj->sizePx(), obj->sizePx());
         }
     }
+*/
 }
 
 TilesetCtrl::MousePosition TilesetCtrl::GetMousePosition()
@@ -348,10 +322,7 @@ TilesetCtrl::MousePosition TilesetCtrl::GetMousePosition()
     MousePosition ret;
     ret.isValid = false;
 
-    const MS::FrameSet* frameSet = _controller.frameSetController().selected();
-    if (frameSet == nullptr) {
-        return ret;
-    }
+    const MS::FrameSet& frameSet = _controller.frameSetController().selected();
 
     const wxPoint pt = ScreenToClient(wxGetMousePosition());
     const wxSize size = GetClientSize();
@@ -360,8 +331,8 @@ TilesetCtrl::MousePosition TilesetCtrl::GetMousePosition()
         return ret;
     }
 
-    const double zoomX = _controller.settings().zoomX();
-    const double zoomY = _controller.settings().zoomY();
+    const double zoomX = _controller.settingsController().zoom().zoomX();
+    const double zoomY = _controller.settingsController().zoom().zoomY();
 
     const unsigned px = (pt.x / zoomX) + GetScrollPos(wxHORIZONTAL);
     const unsigned py = pt.y / zoomY;
@@ -370,7 +341,7 @@ TilesetCtrl::MousePosition TilesetCtrl::GetMousePosition()
         // small tile
         unsigned tileId = px / SMALL_SIZE;
 
-        if (tileId < frameSet->smallTileset().size()) {
+        if (tileId < frameSet.smallTileset.size()) {
             ret.isValid = true;
             ret.isSmall = true;
             ret.tileId = px / SMALL_SIZE;
@@ -382,7 +353,7 @@ TilesetCtrl::MousePosition TilesetCtrl::GetMousePosition()
         // large tile
         unsigned tileId = px / LARGE_SIZE;
 
-        if (tileId < frameSet->largeTileset().size()) {
+        if (tileId < frameSet.largeTileset.size()) {
             ret.isValid = true;
             ret.isSmall = false;
             ret.tileId = px / LARGE_SIZE;
@@ -419,7 +390,7 @@ void TilesetCtrl::OnMouseLeftDown(wxMouseEvent& event)
 
 void TilesetCtrl::OnMouseLeftUp(wxMouseEvent& event)
 {
-    typedef MS::FrameObject::ObjectSize OS;
+    typedef UnTech::MetaSprite::ObjectSize OS;
 
     MousePosition mouse = GetMousePosition();
 
@@ -461,7 +432,9 @@ void TilesetCtrl::OnMouseMotion(wxMouseEvent& event)
 void TilesetCtrl::ResetMouseState()
 {
     if (_mouseState == MouseState::DRAW) {
-        _controller.dontMergeNextAction();
+        // ::TODO Don't Merge next Action::
+        // _controller.dontMergeNextAction();
+
         ReleaseMouse();
     }
 

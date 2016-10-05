@@ -5,22 +5,22 @@
 #include "gui/view/common/enumclasschoice.h"
 #include "gui/view/common/ms8aabb.h"
 #include "gui/view/defaults.h"
-#include "gui/view/metasprite-common/abstractframesetpanel.h"
-#include "gui/view/metasprite-common/animation-sidebarpage.h"
-#include "gui/view/metasprite-common/export-sidebarpage.h"
+#include "gui/view/metasprite/animation/animation-sidebarpage.h"
+#include "gui/view/metasprite/common/export-sidebarpage.hpp"
+#include "gui/view/metasprite/common/framesetcommonpanel.hpp"
 #include "models/common/string.h"
 #include <wx/spinctrl.h>
 
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
+namespace MetaSprite {
 
 static const ms8point emptyPoint(0, 0);
 static const ms8rect emptyRect(0, 0, 1, 1);
 
-namespace MSC = UnTech::MetaSpriteCommon;
-
-typedef MS::MetaSpriteController::SelectedTypeController::Type SelectedType;
+// ::TODO SelectedType::
+// typedef MS::MetaSpriteController::SelectedTypeController::Type SelectedType;
 
 enum class SidebarPages {
     FRAMESET_PAGE,
@@ -45,7 +45,6 @@ private:
 
 private:
     MS::FrameController& _controller;
-    MS::MetaSpriteController& _msController;
 
     wxCheckBox* _solid;
     Ms8RectCtrl* _tileHitbox;
@@ -58,9 +57,11 @@ public:
 
 private:
     void UpdateGui();
+    void UpdateGuiRange();
 
 private:
     MS::FrameObjectController& _controller;
+    MS::MetaSpriteController& _msController;
 
     Ms8PointCtrl* _location;
     wxSpinCtrl* _tileId;
@@ -97,14 +98,15 @@ private:
     MS::EntityHitboxController& _controller;
 
     Ms8RectCtrl* _aabb;
-    EnumClassChoice<MSC::EntityHitboxType>* _hitboxType;
+    EnumClassChoice<UnTech::MetaSprite::EntityHitboxType>* _hitboxType;
 };
 }
 }
 }
+}
 
-using namespace UnTech::View::MetaSprite;
-using namespace UnTech::View::MetaSpriteCommon;
+using namespace UnTech::View::MetaSprite::MetaSprite;
+using namespace UnTech::View::MetaSprite::Common;
 
 // SIDEBAR
 // =======
@@ -123,13 +125,14 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         auto* sizer = new wxBoxSizer(wxVERTICAL);
         panel->SetSizer(sizer);
 
-        auto* afPanel = new AbstractFrameSetPanel(panel, wxID_ANY, controller.abstractFrameSetController());
+        auto* afPanel = new FrameSetCommonPanel<MS::FrameSetController>(
+            panel, wxID_ANY, controller.frameSetController());
         sizer->Add(afPanel, wxSizerFlags().Expand().Border());
 
         auto* palSizer = new wxStaticBoxSizer(wxVERTICAL, panel, "Palette");
         sizer->Add(palSizer, wxSizerFlags(1).Expand().Border());
 
-        palSizer->Add(new OrderedListToolBar<MS::Palette>(
+        palSizer->Add(new VectorListToolBar<MS::PaletteController>(
                           panel, wxID_ANY,
                           controller.paletteController()),
                       wxSizerFlags(0).Right().Border());
@@ -154,12 +157,12 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         auto* frameSizer = new wxBoxSizer(wxVERTICAL);
         framePanel->SetSizer(frameSizer);
 
-        frameSizer->Add(new NamedListToolBar<MS::Frame>(
+        frameSizer->Add(new IdMapListToolBar<MS::FrameController>(
                             framePanel, wxID_ANY,
                             controller.frameController()),
                         wxSizerFlags(0).Right().Border());
 
-        frameSizer->Add(new NamedListCtrl<MS::Frame>(
+        frameSizer->Add(new IdMapListCtrl<MS::FrameController>(
                             framePanel, wxID_ANY,
                             controller.frameController()),
                         wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
@@ -177,12 +180,12 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
 
-            sizer->Add(new OrderedListToolBar<MS::FrameObject>(
+            sizer->Add(new VectorListToolBar<MS::FrameObjectController>(
                            panel, wxID_ANY,
                            controller.frameObjectController()),
                        wxSizerFlags(0).Right().Border());
 
-            sizer->Add(new OrderedListCtrl<MS::FrameObject>(
+            sizer->Add(new VectorListCtrl<MS::FrameObjectController>(
                            panel, wxID_ANY,
                            controller.frameObjectController()),
                        wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
@@ -201,12 +204,12 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
 
-            sizer->Add(new OrderedListToolBar<MS::ActionPoint>(
+            sizer->Add(new VectorListToolBar<MS::ActionPointController>(
                            panel, wxID_ANY,
                            controller.actionPointController()),
                        wxSizerFlags(0).Right().Border());
 
-            sizer->Add(new OrderedListCtrl<MS::ActionPoint>(
+            sizer->Add(new VectorListCtrl<MS::ActionPointController>(
                            panel, wxID_ANY,
                            controller.actionPointController()),
                        wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
@@ -225,12 +228,12 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
             auto* sizer = new wxBoxSizer(wxVERTICAL);
             panel->SetSizer(sizer);
 
-            sizer->Add(new OrderedListToolBar<MS::EntityHitbox>(
+            sizer->Add(new VectorListToolBar<MS::EntityHitboxController>(
                            panel, wxID_ANY,
                            controller.entityHitboxController()),
                        wxSizerFlags(0).Right().Border());
 
-            sizer->Add(new OrderedListCtrl<MS::EntityHitbox>(
+            sizer->Add(new VectorListCtrl<MS::EntityHitboxController>(
                            panel, wxID_ANY,
                            controller.entityHitboxController()),
                        wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
@@ -246,25 +249,20 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         this->AddPage(framePanel, "Frame");
 
         this->AddPage(
-            new AnimationSidebarPage(this, wxID_ANY,
-                                     controller.abstractFrameSetController()),
+            new Animation::AnimationSidebarPage(
+                this, wxID_ANY,
+                controller.animationControllerInterface()),
             "Animations");
 
-        auto* exportPage = new ExportSidebarPage(this, wxID_ANY,
-                                                 controller.abstractFrameSetController());
+        auto* exportPage = new ExportSidebarPage<MS::MetaSpriteController>(
+            this, wxID_ANY, controller);
         this->AddPage(exportPage, "Export");
 
         // Signals
         // -------
-        controller.frameController().signal_listChanged().connect(
-            exportPage->slot_frameNameChanged());
 
-        controller.frameController().signal_listDataChanged().connect(sigc::hide(
-            exportPage->slot_frameNameChanged()));
-
-        controller.frameController().signal_itemRenamed().connect(sigc::hide(
-            exportPage->slot_frameNameChanged()));
-
+        // ::TOSO SelectedType::
+        /*
         controller.selectedTypeController().signal_selectedChanged().connect([this](void) {
             const auto type = _controller.selectedTypeController().type();
 
@@ -293,6 +291,11 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                 }
             }
         });
+        */
+
+        _controller.frameSetController().signal_selectedChanged().connect([this](void) {
+            this->Enable(_controller.frameSetController().hasSelected());
+        });
     }
 }
 
@@ -303,7 +306,6 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
                        MS::MetaSpriteController& controller)
     : wxPanel(parent, wxWindowID)
     , _controller(controller.frameController())
-    , _msController(controller)
 {
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(sizer);
@@ -324,46 +326,31 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
-        *this, &FramePanel::UpdateGui));
-
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &FramePanel::UpdateGui));
 
     // Events
     // ------
     _solid->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         _controller.selected_setSolid(_solid->GetValue());
-        _msController.selectedTypeController().selectTileHitbox();
+
+        // ::TODO SelectedType - set TileHitbox::
     });
 
-    _tileHitbox->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        _msController.selectedTypeController().selectTileHitbox();
-        e.Skip();
-    });
     _tileHitbox->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setTileHitbox_merge(_tileHitbox->GetValue());
+        _controller.selected_setTileHitbox(_tileHitbox->GetValue());
     });
 }
 
 void FramePanel::UpdateGui()
 {
-    const MS::Frame* frame = _controller.selected();
+    this->Enable(_controller.hasSelected());
 
-    if (frame) {
-        _solid->SetValue(frame->solid());
-        _tileHitbox->Enable(frame->solid());
-        _tileHitbox->SetValue(frame->tileHitbox());
+    const MS::Frame& frame = _controller.selected();
 
-        this->Enable();
-    }
-    else {
-        _solid->SetValue(false);
-        _tileHitbox->SetValue(emptyRect);
-
-        this->Disable();
-    }
+    _solid->SetValue(frame.solid);
+    _tileHitbox->Enable(frame.solid);
+    _tileHitbox->SetValue(frame.tileHitbox);
 }
 
 // FRAME OBJECTS
@@ -373,6 +360,7 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
                                    MS::MetaSpriteController& controller)
     : wxPanel(parent, wxWindowID)
     , _controller(controller.frameObjectController())
+    , _msController(controller)
 {
     int defBorder = wxSizerFlags::GetDefaultBorder();
     auto* grid = new wxFlexGridSizer(5, 2, defBorder, defBorder * 2);
@@ -412,48 +400,24 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &FrameObjectPanel::UpdateGui));
 
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+    _msController.frameSetController().signal_dataChanged().connect(sigc::mem_fun(
         *this, &FrameObjectPanel::UpdateGui));
-
-    controller.frameSetController().signal_tileCountChanged().connect(
-        [this](const MS::FrameSet* frameSet) {
-            const MS::FrameObject* obj = _controller.selected();
-
-            if (obj && frameSet == &obj->frame().frameSet()) {
-                assert(frameSet != nullptr);
-
-                if (obj->size() == MS::FrameObject::ObjectSize::SMALL) {
-                    _tileId->SetRange(0, frameSet->smallTileset().size() - 1);
-                }
-                else {
-                    _tileId->SetRange(0, frameSet->largeTileset().size() - 1);
-                }
-            }
-        });
 
     // Events
     // ------
-    _location->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _location->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setLocation_merge(_location->GetValue());
+        _controller.selected_setLocation(_location->GetValue());
     });
 
-    _tileId->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _tileId->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setTileId_merge(_tileId->GetValue());
+        _controller.selected_setTileId(_tileId->GetValue());
     });
 
     _size->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
-        typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
+        typedef UnTech::MetaSprite::ObjectSize OS;
         _controller.selected_setSize(_size->GetSelection() == 1 ? OS::LARGE : OS::SMALL);
     });
 
@@ -472,38 +436,34 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
 
 void FrameObjectPanel::UpdateGui()
 {
-    typedef UnTech::MetaSprite::FrameObject::ObjectSize OS;
+    typedef UnTech::MetaSprite::ObjectSize OS;
 
-    const MS::FrameObject* obj = _controller.selected();
+    this->Enable(_controller.hasSelected());
 
-    if (obj) {
-        const MS::FrameSet& frameSet = obj->frame().frameSet();
+    UpdateGuiRange();
 
-        if (obj->size() == MS::FrameObject::ObjectSize::SMALL) {
-            _tileId->SetRange(0, frameSet.smallTileset().size() - 1);
-        }
-        else {
-            _tileId->SetRange(0, frameSet.largeTileset().size() - 1);
-        }
+    const MS::FrameObject& obj = _controller.selected();
 
-        _location->SetValue(obj->location());
-        _tileId->SetValue(obj->tileId());
-        _size->SetSelection(obj->size() == OS::LARGE ? 1 : 0);
-        _order->SetValue(obj->order());
-        _hFlip->SetValue(obj->hFlip());
-        _vFlip->SetValue(obj->vFlip());
+    _location->SetValue(obj.location);
+    _tileId->SetValue(obj.tileId);
+    _size->SetSelection(obj.size == OS::LARGE ? 1 : 0);
+    _order->SetValue(obj.order);
+    _hFlip->SetValue(obj.hFlip);
+    _vFlip->SetValue(obj.vFlip);
+}
 
-        this->Enable();
+void FrameObjectPanel::UpdateGuiRange()
+{
+    typedef UnTech::MetaSprite::ObjectSize OS;
+
+    const MS::FrameObject& obj = _controller.selected();
+    const MS::FrameSet& frameSet = _msController.frameSetController().selected();
+
+    if (obj.size == OS::SMALL) {
+        _tileId->SetRange(0, frameSet.smallTileset.size() - 1);
     }
     else {
-        _location->SetValue(emptyPoint);
-        _tileId->SetValue(0);
-        _size->SetSelection(wxNOT_FOUND);
-        _order->SetValue(0);
-        _hFlip->SetValue(false);
-        _vFlip->SetValue(false);
-
-        this->Disable();
+        _tileId->SetRange(0, frameSet.largeTileset.size() - 1);
     }
 }
 
@@ -533,47 +493,28 @@ ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID,
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
-        *this, &ActionPointPanel::UpdateGui));
-
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &ActionPointPanel::UpdateGui));
 
     // Events
     // ------
-    _location->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _location->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setLocation_merge(_location->GetValue());
+        _controller.selected_setLocation(_location->GetValue());
     });
 
-    _parameter->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _parameter->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setParameter_merge(_parameter->GetValue());
+        _controller.selected_setParameter(_parameter->GetValue());
     });
 }
 
 void ActionPointPanel::UpdateGui()
 {
-    const MS::ActionPoint* ap = _controller.selected();
+    this->Enable(_controller.hasSelected());
 
-    if (ap) {
-        _location->SetValue(ap->location());
-        _parameter->SetValue(ap->parameter());
+    const MS::ActionPoint& ap = _controller.selected();
 
-        this->Enable();
-    }
-    else {
-        _location->SetValue(emptyPoint);
-        _parameter->SetValue(0);
-
-        this->Disable();
-    }
+    _location->SetValue(ap.location);
+    _parameter->SetValue(ap.parameter);
 }
 
 // ENTITY HITBOXES
@@ -594,26 +535,19 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, "AABB:"));
     grid->Add(_aabb, wxSizerFlags(1).Expand());
 
-    _hitboxType = new EnumClassChoice<MSC::EntityHitboxType>(this, wxID_ANY);
+    _hitboxType = new EnumClassChoice<UnTech::MetaSprite::EntityHitboxType>(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Type:"));
     grid->Add(_hitboxType, wxSizerFlags(1).Expand());
 
     // Signals
     // -------
-    _controller.signal_selectedChanged().connect(sigc::mem_fun(
-        *this, &EntityHitboxPanel::UpdateGui));
-
-    _controller.signal_selectedDataChanged().connect(sigc::mem_fun(
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &EntityHitboxPanel::UpdateGui));
 
     // Events
     // ------
-    _aabb->Bind(wxEVT_CHILD_FOCUS, [this](wxChildFocusEvent& e) {
-        _controller.baseController().dontMergeNextAction();
-        e.Skip();
-    });
     _aabb->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setAabb_merge(_aabb->GetValue());
+        _controller.selected_setAabb(_aabb->GetValue());
     });
 
     _hitboxType->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
@@ -623,18 +557,10 @@ EntityHitboxPanel::EntityHitboxPanel(wxWindow* parent, int wxWindowID,
 
 void EntityHitboxPanel::UpdateGui()
 {
-    const MS::EntityHitbox* eh = _controller.selected();
+    this->Enable(_controller.hasSelected());
 
-    if (eh) {
-        _aabb->SetValue(eh->aabb());
-        _hitboxType->SetValue(eh->hitboxType());
+    const MS::EntityHitbox& eh = _controller.selected();
 
-        this->Enable();
-    }
-    else {
-        _aabb->SetValue(emptyRect);
-        _hitboxType->SetSelection(wxNOT_FOUND);
-
-        this->Disable();
-    }
+    _aabb->SetValue(eh.aabb);
+    _hitboxType->SetValue(eh.hitboxType);
 }

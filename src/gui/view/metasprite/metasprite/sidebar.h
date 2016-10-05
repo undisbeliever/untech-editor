@@ -1,13 +1,14 @@
 #pragma once
-#include "gui/controllers/metasprite.h"
+#include "gui/controllers/metasprite/metasprite.h"
 #include <wx/notebook.h>
 #include <wx/wx.h>
 
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
+namespace MetaSprite {
 
-namespace MS = UnTech::MetaSprite;
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 class Sidebar : public wxNotebook {
 public:
@@ -18,6 +19,7 @@ private:
     MS::MetaSpriteController& _controller;
     wxNotebook* _frameNotebook;
 };
+}
 }
 }
 }

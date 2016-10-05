@@ -1,5 +1,5 @@
 #pragma once
-#include "gui/controllers/metasprite.h"
+#include "gui/controllers/metasprite/metasprite.h"
 #include "gui/view/defaults.h"
 #include <cassert>
 #include <wx/listctrl.h>
@@ -8,12 +8,13 @@
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
+namespace MetaSprite {
 
-namespace MS = UnTech::MetaSprite;
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 class PaletteListCtrl : public wxListCtrl {
 public:
-    const unsigned N_COLORS = MS::Palette::N_COLORS;
+    const unsigned N_COLORS = Snes::Palette4bpp::N_COLORS;
     const unsigned COLOR_SIZE = 16;
     const unsigned COLOR_SPACING = 0;
 
@@ -33,6 +34,7 @@ private:
 private:
     MS::PaletteController& _controller;
 };
+}
 }
 }
 }

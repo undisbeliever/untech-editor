@@ -1,12 +1,14 @@
 #pragma once
-#include "gui/controllers/metasprite.h"
+#include "gui/controllers/metasprite/metasprite.h"
+#include "gui/view/common/controllerinterface.h"
 #include <wx/wx.h>
 
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
+namespace MetaSprite {
 
-namespace MS = UnTech::MetaSprite;
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 class GraphicsPanel;
 class Sidebar;
@@ -38,12 +40,14 @@ protected:
     void OnClose(wxCloseEvent&);
 
 private:
+    ControllerInterface _controllerInterface;
     MS::MetaSpriteController _controller;
     wxTimer _initBugfixTimer;
 
     GraphicsPanel* _graphics;
     Sidebar* _sidebar;
 };
+}
 }
 }
 }

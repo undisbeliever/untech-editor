@@ -1,10 +1,13 @@
 #include "editcolordialog.h"
 #include "gui/view/defaults.h"
 #include <cassert>
+#include <sigc++/connection.h>
 #include <wx/colordlg.h>
 
 using namespace UnTech;
-using namespace UnTech::View::MetaSprite;
+using namespace UnTech::View::MetaSprite::MetaSprite;
+
+// ::TODO move to Snes Namespace::
 
 EditColorDialog::EditColorDialog(wxWindow* parent,
                                  MS::PaletteController& controller,
@@ -85,10 +88,10 @@ EditColorDialog::EditColorDialog(wxWindow* parent,
     });
 
     _colorButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) {
-        const MS::Palette* palette = _controller.selected();
+        const auto& palette = _controller.selected();
 
-        if (palette != nullptr && _colorButton->GetValue() == true) {
-            Snes::SnesColor c = palette->color(_colorId);
+        if (_colorButton->GetValue() == true) {
+            Snes::SnesColor c = palette.color(_colorId);
 
             wxColour wc(c.rgb().rgb());
             wc = wxGetColourFromUser(this, wc, "Select Color");
@@ -96,7 +99,7 @@ EditColorDialog::EditColorDialog(wxWindow* parent,
             if (wc.IsOk()) {
                 c.setRgb(UnTech::rgba(wc.Red(), wc.Green(), wc.Blue()));
 
-                _controller.selected_setColor_merge(_colorId, c);
+                _controller.selected_setColor(_colorId, c);
             }
 
             _colorButton->SetValue(false);
@@ -107,18 +110,20 @@ EditColorDialog::EditColorDialog(wxWindow* parent,
 int EditColorDialog::ShowModal()
 {
     // build signal
-    sigc::connection con = _controller.signal_selectedDataChanged().connect(
+    sigc::connection con = _controller.signal_dataChanged().connect(
         sigc::mem_fun(*this, &EditColorDialog::UpdateGui));
 
     int ret = wxDialog::ShowModal();
 
     if (ret == wxID_OK) {
         // commit color
-        _controller.baseController().dontMergeNextAction();
+        // ::TODO dontMergeNextAction::
+        // _controller.baseController().dontMergeNextAction();
     }
     else {
         // restore color
-        _controller.baseController().undoStack().undo();
+        // ::TODO UnDo::
+        // _controller.baseController().undoStack().undo();
     }
 
     // remove signal
@@ -129,35 +134,29 @@ int EditColorDialog::ShowModal()
 
 void EditColorDialog::UpdateGui()
 {
-    const MS::Palette* palette = _controller.selected();
+    const auto& palette = _controller.selected();
+    const Snes::SnesColor& c = palette.color(_colorId);
 
-    if (palette != nullptr) {
-        const Snes::SnesColor& c = palette->color(_colorId);
+    _red->SetValue(c.red());
+    _redText->ChangeValue(wxString::Format("%d", c.red()));
+    _green->SetValue(c.green());
+    _greenText->ChangeValue(wxString::Format("%d", c.green()));
+    _blue->SetValue(c.blue());
+    _blueText->ChangeValue(wxString::Format("%d", c.blue()));
 
-        _red->SetValue(c.red());
-        _redText->ChangeValue(wxString::Format("%d", c.red()));
-        _green->SetValue(c.green());
-        _greenText->ChangeValue(wxString::Format("%d", c.green()));
-        _blue->SetValue(c.blue());
-        _blueText->ChangeValue(wxString::Format("%d", c.blue()));
-
-        _colorButton->SetBackgroundColour(c.rgb().rgb());
-    }
+    _colorButton->SetBackgroundColour(c.rgb().rgb());
 }
 
 void EditColorDialog::OnSliderChanged(wxCommandEvent&)
 {
-    const MS::Palette* palette = _controller.selected();
+    const auto& palette = _controller.selected();
+    Snes::SnesColor c = palette.color(_colorId);
 
-    if (palette != nullptr) {
-        Snes::SnesColor c = palette->color(_colorId);
+    c.setRed(_red->GetValue());
+    c.setGreen(_green->GetValue());
+    c.setBlue(_blue->GetValue());
 
-        c.setRed(_red->GetValue());
-        c.setGreen(_green->GetValue());
-        c.setBlue(_blue->GetValue());
-
-        _controller.selected_setColor_merge(_colorId, c);
-    }
+    _controller.selected_setColor(_colorId, c);
 }
 
 void EditColorDialog::OnTextChanged(wxCommandEvent& e)

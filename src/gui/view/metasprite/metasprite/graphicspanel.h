@@ -1,13 +1,14 @@
 #pragma once
-#include "gui/controllers/metasprite.h"
+#include "gui/controllers/metasprite/metasprite.h"
 #include <array>
 #include <wx/wx.h>
 
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
+namespace MetaSprite {
 
-namespace MS = UnTech::MetaSprite;
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 class FrameGraphicsCtrl;
 class TilesetCtrl;
@@ -31,6 +32,7 @@ private:
     unsigned _currentFrameCtrl;
     bool _split;
 };
+}
 }
 }
 }

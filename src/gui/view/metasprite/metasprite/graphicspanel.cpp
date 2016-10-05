@@ -2,7 +2,7 @@
 #include "framegraphicsctrl.h"
 #include "tilesetctrl.h"
 
-using namespace UnTech::View::MetaSprite;
+using namespace UnTech::View::MetaSprite::MetaSprite;
 
 GraphicsPanel::GraphicsPanel(wxWindow* parent, wxWindowID windowId,
                              MS::MetaSpriteController& controller)
@@ -30,8 +30,8 @@ GraphicsPanel::GraphicsPanel(wxWindow* parent, wxWindowID windowId,
     // Signals
     // -------
     _controller.frameController().signal_selectedChanged().connect([this](void) {
-        const MS::Frame* frame = _controller.frameController().selected();
-        _frames.at(_currentFrameCtrl)->SetMetaSpriteFrame(frame);
+        const idstring& frameId = _controller.frameController().selectedId();
+        _frames.at(_currentFrameCtrl)->SetCurrentFrameId(frameId);
     });
 
     // Events
@@ -41,7 +41,7 @@ GraphicsPanel::GraphicsPanel(wxWindow* parent, wxWindowID windowId,
         for (unsigned i = 0; i < _frames.size(); i++) {
             if (_frames[i] == event.GetEventObject()) {
                 _currentFrameCtrl = i;
-                _controller.frameController().setSelected(_frames[i]->GetMetaSpriteFrame());
+                _controller.frameController().selectId(_frames[i]->GetCurrentFrameId());
                 break;
             }
         }

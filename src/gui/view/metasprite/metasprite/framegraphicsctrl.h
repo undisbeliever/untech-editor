@@ -1,5 +1,5 @@
 #pragma once
-#include "gui/controllers/metasprite.h"
+#include "gui/controllers/metasprite/metasprite.h"
 #include "models/common/optional.h"
 #include <wx/bitmap.h>
 #include <wx/wx.h>
@@ -7,8 +7,9 @@
 namespace UnTech {
 namespace View {
 namespace MetaSprite {
+namespace MetaSprite {
 
-namespace MS = UnTech::MetaSprite;
+namespace MS = UnTech::MetaSprite::MetaSprite;
 
 class FrameGraphicsCtrl : public wxPanel {
 public:
@@ -34,8 +35,8 @@ public:
     FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
                       MS::MetaSpriteController& controller);
 
-    const MS::Frame* GetMetaSpriteFrame() const { return _currentFrame; }
-    void SetMetaSpriteFrame(const MS::Frame* frame);
+    const idstring& GetCurrentFrameId() const { return _currentFrameId; }
+    void SetCurrentFrameId(const idstring& frameId);
 
     void CenterScrollbar() { UpdateScrollbar(true); }
 
@@ -68,6 +69,7 @@ private:
 private:
     MS::MetaSpriteController& _controller;
     const MS::Frame* _currentFrame;
+    idstring _currentFrameId;
 
     wxBitmap _bitmap;
 
@@ -75,6 +77,7 @@ private:
     point _prevMouse;
     MouseDrag _mouseDrag;
 };
+}
 }
 }
 }

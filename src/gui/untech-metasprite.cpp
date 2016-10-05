@@ -1,4 +1,4 @@
-#include "view/metasprite/frame.h"
+#include "view/metasprite/metasprite/frame.h"
 #include <wx/cmdline.h>
 #include <wx/wx.h>
 
@@ -37,13 +37,15 @@ void MyApp::OnInitCmdLine(wxCmdLineParser& parser)
 
 bool MyApp::OnCmdLineParsed(wxCmdLineParser& parser)
 {
+    using Frame = UnTech::View::MetaSprite::MetaSprite::Frame;
+
     for (unsigned i = 0; i < parser.GetParamCount(); i++) {
         const std::string& filename = parser.GetParam(i).ToStdString();
-        UnTech::View::MetaSprite::Frame::CreateOpen(filename);
+        Frame::CreateOpen(filename);
     }
 
     if (parser.GetParamCount() == 0) {
-        auto* frame = new UnTech::View::MetaSprite::Frame();
+        auto* frame = new Frame();
         frame->Show(true);
     }
 
