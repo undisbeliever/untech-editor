@@ -1,5 +1,9 @@
 #include "spriteimporter.h"
+#include "gui/controllers/containers/cappedvectorcontroller.hpp"
+#include "gui/controllers/containers/idmapcontroller.hpp"
+#include "gui/controllers/containers/sharedptrrootcontroller.hpp"
 
+using namespace UnTech;
 using namespace UnTech::MetaSprite::SpriteImporter;
 
 const std::string FrameSetController::HUMAN_TYPE_NAME = "Frame Set";
@@ -47,6 +51,7 @@ void SpriteImporterController::doNew()
 
 // FrameSetController
 // ------------------
+template class Controller::SharedPtrRootController<FrameSet>;
 
 void FrameSetController::selected_setName(const idstring& name)
 {
@@ -105,6 +110,7 @@ void FrameSetController::selected_reloadImage()
 
 // FrameController
 // ---------------
+template class Controller::IdMapController<Frame, FrameSetController>;
 
 void FrameController::selected_setLocation(const FrameLocation& location)
 {
@@ -139,6 +145,8 @@ void FrameController::selected_setSolid(const bool solid)
 
 // FrameObjectController
 // ---------------------
+template class Controller::CappedVectorController<FrameObject, FrameObject::list_t,
+                                                  FrameController>;
 
 void FrameObjectController::selected_setLocation(const upoint& location)
 {
@@ -161,6 +169,8 @@ void FrameObjectController::selected_setSize(const ObjectSize size)
 
 // ActionPointController
 // ---------------------
+template class Controller::CappedVectorController<ActionPoint, ActionPoint::list_t,
+                                                  FrameController>;
 
 void ActionPointController::selected_setLocation(const upoint& location)
 {
@@ -179,6 +189,8 @@ void ActionPointController::selected_setParameter(const ActionPointParameter& pa
 
 // EntityHitboxController
 // ----------------------
+template class Controller::CappedVectorController<EntityHitbox, EntityHitbox::list_t,
+                                                  FrameController>;
 
 void EntityHitboxController::selected_setAabb(const urect& aabb)
 {

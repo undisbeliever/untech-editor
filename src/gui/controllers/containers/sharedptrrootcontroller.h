@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <cassert>
 #include <functional>
 #include <memory>
 #include <sigc++/signal.h>
@@ -40,29 +38,12 @@ public:
 protected:
     container_type getRoot() { return _root; }
 
-    void setRoot(std::shared_ptr<value_type>& s)
-    {
-        _root = s;
-
-        _signal_selectedChanged.emit();
-        _signal_dataChanged.emit();
-        _signal_anyChanged.emit();
-    }
+    void setRoot(std::shared_ptr<value_type> s);
 
     // can return NULL is nothing is selected
     value_type* editable_selected() { return _root.get(); }
 
-    void edit_selected(std::function<void(value_type&)> const& fun)
-    {
-        if (_root) {
-            // ::TODO undo engine::
-
-            fun(*_root);
-        }
-
-        _signal_dataChanged.emit();
-        _signal_anyChanged.emit();
-    }
+    void edit_selected(std::function<void(value_type&)> const& fun);
 
 protected:
     container_type _root;
@@ -71,8 +52,5 @@ protected:
     sigc::signal<void> _signal_dataChanged;
     sigc::signal<void> _signal_selectedChanged;
 };
-
-template <typename T>
-const T SharedPtrRootController<T>::BLANK_T = T();
 }
 }

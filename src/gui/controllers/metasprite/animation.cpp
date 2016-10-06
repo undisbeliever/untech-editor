@@ -1,4 +1,6 @@
 #include "animation.h"
+#include "gui/controllers/containers/cappedvectorcontroller.hpp"
+#include "gui/controllers/containers/idmapcontroller.hpp"
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite::Animation;
@@ -12,6 +14,8 @@ template class Controller::IdMapController<Animation, AnimationControllerInterfa
 
 // InstructionController
 // ---------------------
+template class Controller::CappedVectorController<Instruction, Instruction::list_t,
+                                                  AnimationController>;
 
 void InstructionController::selected_setOperation(const Bytecode bc)
 {

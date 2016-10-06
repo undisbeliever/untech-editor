@@ -1,5 +1,9 @@
 #include "metasprite.h"
+#include "gui/controllers/containers/cappedvectorcontroller.hpp"
+#include "gui/controllers/containers/idmapcontroller.hpp"
+#include "gui/controllers/containers/sharedptrrootcontroller.hpp"
 
+using namespace UnTech;
 using namespace UnTech::MetaSprite::MetaSprite;
 
 const std::string FrameSetController::HUMAN_TYPE_NAME = "Frame Set";
@@ -49,6 +53,7 @@ void MetaSpriteController::doNew()
 
 // FrameSetController
 // ------------------
+template class Controller::SharedPtrRootController<FrameSet>;
 
 void FrameSetController::selected_setName(const idstring& name)
 {
@@ -101,6 +106,9 @@ void FrameSetController::selected_largeTileset_setPixel(
 
 // PaletteController
 // -----------------
+template class Controller::CappedVectorController<Snes::Palette4bpp,
+                                                  capped_vector<Snes::Palette4bpp, MetaSprite::MAX_PALETTES>,
+                                                  FrameSetController>;
 
 void PaletteController::setSelectedColorId(unsigned colorId)
 {
@@ -127,6 +135,7 @@ void PaletteController::selected_setColor(size_t index, const Snes::SnesColor& c
 
 // FrameController
 // ---------------
+template class Controller::IdMapController<Frame, FrameSetController>;
 
 void FrameController::selected_setSolid(const bool solid)
 {
@@ -144,6 +153,8 @@ void FrameController::selected_setTileHitbox(const ms8rect& tileHitbox)
 
 // FrameObjectController
 // ---------------------
+template class Controller::CappedVectorController<FrameObject, FrameObject::list_t,
+                                                  FrameController>;
 
 void FrameObjectController::selected_setLocation(const ms8point& location)
 {
@@ -213,6 +224,8 @@ void FrameObjectController::selected_setVFlip(const bool vFlip)
 
 // ActionPointController
 // ---------------------
+template class Controller::CappedVectorController<ActionPoint, ActionPoint::list_t,
+                                                  FrameController>;
 
 void ActionPointController::selected_setLocation(const ms8point& location)
 {
@@ -230,6 +243,8 @@ void ActionPointController::selected_setParameter(const ActionPointParameter& pa
 
 // EntityHitboxController
 // ----------------------
+template class Controller::CappedVectorController<EntityHitbox, EntityHitbox::list_t,
+                                                  FrameController>;
 
 void EntityHitboxController::selected_setAabb(const ms8rect& aabb)
 {
