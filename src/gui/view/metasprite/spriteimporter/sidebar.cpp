@@ -16,6 +16,8 @@ namespace View {
 namespace MetaSprite {
 namespace SpriteImporter {
 
+using SelectedType = UnTech::MetaSprite::SelectedType;
+
 enum class SidebarPages {
     FRAMESET_PAGE,
     FRAME_PAGE,
@@ -298,16 +300,19 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         // Signals
         // -------
 
-        // ::TODO SelectedType::
-        /*
-        controller.selectedTypeController().signal_selectedChanged().connect([this](void) {
-            const auto type = _controller.selectedTypeController().type();
+        controller.selectedController().signal_selectedChanged().connect([this](void) {
+            const auto type = _controller.selectedController().type();
 
             if (type != SelectedType::NONE) {
                 this->SetSelection(int(SidebarPages::FRAME_PAGE));
 
                 switch (type) {
                 case SelectedType::NONE:
+                case SelectedType::FRAME:
+                    break;
+
+                case SelectedType::TILE_HITBOX:
+                    _frameNotebook->SetSelection(int(FramePages::FRAME_PAGE));
                     break;
 
                 case SelectedType::FRAME_OBJECT:
@@ -321,14 +326,9 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                 case SelectedType::ENTITY_HITBOX:
                     _frameNotebook->SetSelection(int(FramePages::ENTITY_HITBOX_PAGE));
                     break;
-
-                case SelectedType::TILE_HITBOX:
-                    _frameNotebook->SetSelection(int(FramePages::FRAME_PAGE));
-                    break;
                 }
             }
         });
-    */
 
         _controller.frameSetController().signal_selectedChanged().connect([this](void) {
             this->Enable(_controller.frameSetController().hasSelected());
@@ -588,12 +588,12 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
 
     _solid->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         _controller.selected_setSolid(_solid->GetValue());
-
-        // ::TODO SelectedType - set TileHitbox::
+        _siController.selectedController().selectTileHitbox();
     });
 
     _tileHitbox->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
         _controller.selected_setTileHitbox(_tileHitbox->GetValue());
+        _siController.selectedController().selectTileHitbox();
     });
 }
 

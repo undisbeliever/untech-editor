@@ -1,6 +1,7 @@
 #pragma once
 
 #include "animation.h"
+#include "selected.h"
 #include "settings.h"
 #include "gui/controllers/basecontroller.h"
 #include "gui/controllers/containers/cappedvectorcontroller.h"
@@ -198,6 +199,7 @@ public:
     auto& entityHitboxController() { return _entityHitboxController; }
 
     auto& settingsController() { return _settingsController; }
+    auto& selectedController() { return _selectedController; }
 
     virtual bool hasDocument() const final;
 
@@ -216,6 +218,7 @@ private:
     EntityHitboxController _entityHitboxController;
 
     ViewSettings::SettingsController _settingsController;
+    SelectedController<MetaSpriteController> _selectedController;
 };
 }
 }

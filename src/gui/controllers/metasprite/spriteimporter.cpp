@@ -1,4 +1,5 @@
 #include "spriteimporter.h"
+#include "selected.hpp"
 #include "gui/controllers/containers/cappedvectorcontroller.hpp"
 #include "gui/controllers/containers/idmapcontroller.hpp"
 #include "gui/controllers/containers/sharedptrrootcontroller.hpp"
@@ -12,6 +13,8 @@ const std::string FrameObjectController::HUMAN_TYPE_NAME = "Frame Object";
 const std::string ActionPointController::HUMAN_TYPE_NAME = "Action Point";
 const std::string EntityHitboxController::HUMAN_TYPE_NAME = "Entity Hitbox";
 
+template class MetaSprite::SelectedController<SpriteImporterController>;
+
 SpriteImporterController::SpriteImporterController(Controller::ControllerInterface& interface)
     : BaseController(interface)
     , _frameSetController()
@@ -21,6 +24,7 @@ SpriteImporterController::SpriteImporterController(Controller::ControllerInterfa
     , _actionPointController(_frameController)
     , _entityHitboxController(_frameController)
     , _settingsController()
+    , _selectedController(*this)
 {
 }
 

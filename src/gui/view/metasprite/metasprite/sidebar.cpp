@@ -16,11 +16,7 @@ namespace View {
 namespace MetaSprite {
 namespace MetaSprite {
 
-static const ms8point emptyPoint(0, 0);
-static const ms8rect emptyRect(0, 0, 1, 1);
-
-// ::TODO SelectedType::
-// typedef MS::MetaSpriteController::SelectedTypeController::Type SelectedType;
+using SelectedType = UnTech::MetaSprite::SelectedType;
 
 enum class SidebarPages {
     FRAMESET_PAGE,
@@ -45,6 +41,7 @@ private:
 
 private:
     MS::FrameController& _controller;
+    MS::MetaSpriteController& _msController;
 
     wxCheckBox* _solid;
     Ms8RectCtrl* _tileHitbox;
@@ -261,16 +258,19 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
         // Signals
         // -------
 
-        // ::TOSO SelectedType::
-        /*
-        controller.selectedTypeController().signal_selectedChanged().connect([this](void) {
-            const auto type = _controller.selectedTypeController().type();
+        controller.selectedController().signal_selectedChanged().connect([this](void) {
+            const auto type = _controller.selectedController().type();
 
             if (type != SelectedType::NONE) {
                 this->SetSelection(int(SidebarPages::FRAME_PAGE));
 
                 switch (type) {
                 case SelectedType::NONE:
+                case SelectedType::FRAME:
+                    break;
+
+                case SelectedType::TILE_HITBOX:
+                    _frameNotebook->SetSelection(int(FramePages::FRAME_PAGE));
                     break;
 
                 case SelectedType::FRAME_OBJECT:
@@ -284,14 +284,9 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
                 case SelectedType::ENTITY_HITBOX:
                     _frameNotebook->SetSelection(int(FramePages::ENTITY_HITBOX_PAGE));
                     break;
-
-                case SelectedType::TILE_HITBOX:
-                    _frameNotebook->SetSelection(int(FramePages::FRAME_PAGE));
-                    break;
                 }
             }
         });
-        */
 
         _controller.frameSetController().signal_selectedChanged().connect([this](void) {
             this->Enable(_controller.frameSetController().hasSelected());
@@ -306,6 +301,7 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
                        MS::MetaSpriteController& controller)
     : wxPanel(parent, wxWindowID)
     , _controller(controller.frameController())
+    , _msController(controller)
 {
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(sizer);
@@ -333,12 +329,12 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     // ------
     _solid->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         _controller.selected_setSolid(_solid->GetValue());
-
-        // ::TODO SelectedType - set TileHitbox::
+        _msController.selectedController().selectTileHitbox();
     });
 
     _tileHitbox->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
         _controller.selected_setTileHitbox(_tileHitbox->GetValue());
+        _msController.selectedController().selectTileHitbox();
     });
 }
 

@@ -218,39 +218,35 @@ Frame::Frame()
             },
             ID_ADD_TILES);
 
-        // ::TODO SelectedType::
-        /*
-
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                _controller.selectedTypeController().createNewOfSelectedType();
+                _controller.selectedController().createNewOfSelectedType();
             },
             ID_CREATE);
 
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                _controller.selectedTypeController().cloneSelected();
+                _controller.selectedController().cloneSelected();
             },
             ID_CLONE);
 
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                _controller.selectedTypeController().removeSelected();
+                _controller.selectedController().removeSelected();
             },
             ID_REMOVE);
 
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                _controller.selectedTypeController().moveSelectedUp();
+                _controller.selectedController().moveSelectedUp();
             },
             ID_MOVE_UP);
 
         menuBar->Bind(
             wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                _controller.selectedTypeController().moveSelectedDown();
+                _controller.selectedController().moveSelectedDown();
             },
             ID_MOVE_DOWN);
-        */
 
         // VIEW
 
@@ -334,14 +330,11 @@ Frame::Frame()
     // Signals
     // =======
 
-    // ::TODO SelectedType::
-    /*
-    _controller.selectedTypeController().signal_typeChanged().connect(sigc::mem_fun(
+    _controller.selectedController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &Frame::UpdateGuiMenu));
 
-    _controller.selectedTypeController().signal_listChanged().connect(sigc::mem_fun(
+    _controller.selectedController().signal_listChanged().connect(sigc::mem_fun(
         *this, &Frame::UpdateGuiMenu));
-    */
 
     // ::TODO UndoStack::
     /*
@@ -473,16 +466,13 @@ void Frame::UpdateGuiMenu()
         menuBar->Enable(ID_ADD_TILES, false);
     }
 
-    // ::TODO SelectedType::
-    /*
-    auto& selectedType = _controller.selectedTypeController();
+    auto& selected = _controller.selectedController();
 
-    menuBar->Enable(ID_CREATE, selectedType.canCreateSelected());
-    menuBar->Enable(ID_CLONE, selectedType.canCloneSelected());
-    menuBar->Enable(ID_REMOVE, selectedType.canRemoveSelected());
-    menuBar->Enable(ID_MOVE_UP, selectedType.canMoveSelectedUp());
-    menuBar->Enable(ID_MOVE_DOWN, selectedType.canMoveSelectedDown());
-    */
+    menuBar->Enable(ID_CREATE, selected.canCreateSelected());
+    menuBar->Enable(ID_CLONE, selected.canCloneSelected());
+    menuBar->Enable(ID_REMOVE, selected.canRemoveSelected());
+    menuBar->Enable(ID_MOVE_UP, selected.canMoveSelectedUp());
+    menuBar->Enable(ID_MOVE_DOWN, selected.canMoveSelectedDown());
 }
 
 void Frame::UpdateGuiZoom()

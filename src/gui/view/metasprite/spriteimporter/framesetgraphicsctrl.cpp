@@ -7,10 +7,10 @@
 #include <wx/dcgraph.h>
 #include <wx/pen.h>
 
-// ::SHOULD update image on refresh::
-
 using namespace UnTech;
 using namespace UnTech::View::MetaSprite::SpriteImporter;
+
+using SelectedType = UnTech::MetaSprite::SelectedType;
 
 FrameSetGraphicsCtrl::FrameSetGraphicsCtrl(wxWindow* parent, wxWindowID id,
                                            SI::SpriteImporterController& controller)
@@ -42,11 +42,8 @@ FrameSetGraphicsCtrl::FrameSetGraphicsCtrl(wxWindow* parent, wxWindowID id,
     controller.entityHitboxController().signal_anyChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
 
-    /*
-    // ::TODO SelectedType::
-    controller.selectedTypeController().signal_selectedChanged().connect(sigc::mem_fun(
+    controller.selectedController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
- */
 
     controller.settingsController().signal_settingsChanged().connect(sigc::mem_fun(
         *this, &FrameSetGraphicsCtrl::OnNonBitmapDataChanged));
@@ -299,40 +296,34 @@ void FrameSetGraphicsCtrl::Render(wxPaintDC& paintDc)
                              xPos - selectedFrame.location.aabb.x,
                              yPos - selectedFrame.location.aabb.y);
 
-        /*
-        // ::TODO SelectedType::
-        switch (_controller.selectedTypeController().type()) {
+        switch (_controller.selectedController().type()) {
         case SelectedType::NONE:
+        case SelectedType::FRAME:
             break;
 
-        case SelectedType::FRAME_OBJECT:
-            if (_controller.frameObjectController().hasSelected()) {
-                const auto& fo = _controller.frameObjectController().selected();
-                helper.DrawSelectedSquare(fo.location, fo.sizePx());
-            }
-            break;
-
-        case SelectedType::ENTITY_HITBOX:
-            if (_controller.entityHitboxController().hasSelected()) {
-                const auto& eh = _controller.entityHitboxController().selected().aabb;
-                helper.DrawSelectedRectangle(eh.aabb);
-            }
-            break;
-
-        case SelectedType::ACTION_POINT:
-            if (_controller.actionPointController().hasSelected()) {
-                const auto& ap = _controller.actionPointController().selected();
-                helper.DrawSelectedCross(ap.location);
-            }
-            break;
-
-        case SelectedType::TILE_HITBOX:
-            if (selectedFrame.solid) {
-                helper.DrawSelectedRectangle(selectedFrame.tileHitbox());
-            }
+        case SelectedType::TILE_HITBOX: {
+            helper.DrawSelectedRectangle(selectedFrame.tileHitbox);
             break;
         }
-    */
+
+        case SelectedType::FRAME_OBJECT: {
+            const auto& fo = _controller.frameObjectController().selected();
+            helper.DrawSelectedSquare(fo.location, fo.sizePx());
+            break;
+        }
+
+        case SelectedType::ACTION_POINT: {
+            const auto& ap = _controller.actionPointController().selected();
+            helper.DrawSelectedCross(ap.location);
+            break;
+        }
+
+        case SelectedType::ENTITY_HITBOX: {
+            const auto& eh = _controller.entityHitboxController().selected();
+            helper.DrawSelectedRectangle(eh.aabb);
+            break;
+        }
+        }
 
         // Drag shadow
         // -----------
@@ -497,73 +488,73 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp_Select(const MousePosition& mouse)
          * is selected.
          */
 
-        // ::TODO SelectedType::
-        /*
-        const void* current = _controller.selectedTypeController().selectedPtr();
+        const std::pair<SelectedType, size_t> current = _controller.selectedController().typeAndIndex();
+        std::pair<SelectedType, size_t> match, firstMatch;
 
-        struct SelHandler {
-            SelectedType type = SelectedType::NONE;
-            const void* item = nullptr;
-        };
-        SelHandler match, firstMatch;
+        auto updateMatch = [&](SelectedType type, size_t index) mutable {
+            auto m = std::make_pair(type, index);
 
-        auto updateMatch = [&](SelectedType type, const void* item) mutable {
-            if (match.type == SelectedType::NONE) {
-                match.type = type;
-                match.item = item;
+            if (match.first == SelectedType::NONE) {
+                match = m;
 
-                if (firstMatch.type == SelectedType::NONE) {
-                    firstMatch = match;
+                if (firstMatch.first == SelectedType::NONE) {
+                    firstMatch = m;
                 }
             }
-            if (item == current) {
-                match.type = SelectedType::NONE;
+            if (current == m) {
+                match.first = SelectedType::NONE;
             }
         };
 
         const SI::Frame& frame = _controller.frameController().selected();
-        const auto& layers = _controller.layersController();
+        const auto& layers = _controller.settingsController().layers();
         const auto& fMouse = mouse.frameLoc;
 
         if (layers.frameObjects()) {
-            for (const SI::FrameObject& obj : frame.objects) {
+            for (size_t i = 0; i < frame.objects.size(); i++) {
+                const auto& obj = frame.objects[i];
+
                 if (urect(obj.location, obj.sizePx()).contains(fMouse)) {
-                    updateMatch(SelectedType::FRAME_OBJECT, &obj);
+                    updateMatch(SelectedType::FRAME_OBJECT, i);
                 }
             }
         }
 
         if (layers.actionPoints()) {
-            for (const SI::ActionPoint& ap : frame.actionPoints()) {
+            for (size_t i = 0; i < frame.actionPoints.size(); i++) {
+                const auto& ap = frame.actionPoints[i];
+
                 if (fMouse == ap.location) {
-                    updateMatch(SelectedType::ACTION_POINT, &ap);
+                    updateMatch(SelectedType::ACTION_POINT, i);
                 }
             }
         }
 
         if (layers.entityHitboxes()) {
-            for (const SI::EntityHitbox& eh : frame.entityHitboxes()) {
+            for (size_t i = 0; i < frame.entityHitboxes.size(); i++) {
+                const auto& eh = frame.entityHitboxes[i];
+
                 if (eh.aabb.contains(fMouse)) {
-                    updateMatch(SelectedType::ENTITY_HITBOX, &eh);
+                    updateMatch(SelectedType::ENTITY_HITBOX, i);
                 }
             }
         }
 
         if (layers.tileHitbox()) {
-            if (frame.solid()) {
-                if (frame.tileHitbox().contains(fMouse)) {
-                    updateMatch(SelectedType::TILE_HITBOX, frame);
+            if (frame.solid) {
+                if (frame.tileHitbox.contains(fMouse)) {
+                    updateMatch(SelectedType::TILE_HITBOX, 0);
                 }
             }
         }
 
-        if (match.type == SelectedType::NONE) {
+        if (match.first == SelectedType::NONE) {
             // handle wrap around.
             match = firstMatch;
         }
-        _controller.selectedTypeController().selectItem(match.type, match.item);
 
-    */
+        const auto& frameId = _controller.frameController().selectedId();
+        _controller.selectedController().selectFrameItem(frameId, match.first, match.second);
     }
     else {
         // select frame
@@ -614,46 +605,41 @@ void FrameSetGraphicsCtrl::MouseDrag_MouseClick(const MousePosition& mouse)
         return;
     }
 
-    // ::TODO SelectedType::
-    /*
-    switch (_controller.selectedTypeController().type()) {
+    switch (_controller.selectedController().type()) {
     case SelectedType::NONE:
+    case SelectedType::FRAME: {
         MouseDrag_Reset();
         return;
+    }
 
-    case SelectedType::FRAME_OBJECT:
-        {
-            const auto& fo = _controller.frameObjectController().selected();
-            md.aabb = urect(fo.location, fo.sizePx());
-        }
-        break;
-
-    case SelectedType::ACTION_POINT:
-        {
-            const auto& ap = _controller.actionPointController().selected();
-            md.aabb = urect(ap.location(), 1);
-        }
-        break;
-
-    case SelectedType::ENTITY_HITBOX:
-        {
-            const auto& eh = _controller.entityHitboxController().selected().aabb;
-            md.aabb = eh.aabb;
+    case SelectedType::TILE_HITBOX: {
+        const auto& frame = _controller.frameController().selected();
+        if (frame.solid) {
+            md.aabb = frame.tileHitbox;
             canResize = true;
         }
         break;
+    }
 
-    case SelectedType::TILE_HITBOX:
-        {
-            const auto& frame = _controller.frameController().selected();
-            if (frame.solid) {
-                md.aabb = frame.tileHitbox;
-                canResize = true;
-            }
-        }
+    case SelectedType::FRAME_OBJECT: {
+        const auto& fo = _controller.frameObjectController().selected();
+        md.aabb = urect(fo.location, fo.sizePx());
         break;
     }
-*/
+
+    case SelectedType::ACTION_POINT: {
+        const auto& ap = _controller.actionPointController().selected();
+        md.aabb = urect(ap.location, 1);
+        break;
+    }
+
+    case SelectedType::ENTITY_HITBOX: {
+        const auto& eh = _controller.entityHitboxController().selected();
+        md.aabb = eh.aabb;
+        canResize = true;
+        break;
+    }
+    }
 
     const auto& fMouse = mouse.frameLoc;
 
@@ -801,11 +787,13 @@ void FrameSetGraphicsCtrl::MouseDrag_Confirm()
     auto& md = _mouseDrag;
 
     if (md.isActive) {
-
-        // ::TODO SelectedType::
-        /*
-        switch (_controller.selectedTypeController().type()) {
+        switch (_controller.selectedController().type()) {
         case SelectedType::NONE:
+        case SelectedType::FRAME:
+            break;
+
+        case SelectedType::TILE_HITBOX:
+            _controller.frameController().selected_setTileHitbox(md.aabb);
             break;
 
         case SelectedType::FRAME_OBJECT:
@@ -819,12 +807,7 @@ void FrameSetGraphicsCtrl::MouseDrag_Confirm()
         case SelectedType::ENTITY_HITBOX:
             _controller.entityHitboxController().selected_setAabb(md.aabb);
             break;
-
-        case SelectedType::TILE_HITBOX:
-            _controller.frameController().selected_setTileHitbox(md.aabb);
-            break;
         }
-    */
 
         MouseDrag_Reset();
     }
