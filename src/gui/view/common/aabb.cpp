@@ -57,7 +57,7 @@ USizeCtrl::USizeCtrl(wxWindow* parent, int wxWindowID)
     auto* sizer = new wxBoxSizer(wxHORIZONTAL);
 
     _width = new wxSpinCtrl(this, wxID_ANY);
-    _width->SetRange(0, INT_MAX);
+    _width->SetRange(1, INT_MAX);
     _width->SetSizeHints(MIN_SPIN_WIDTH, -1);
     sizer->Add(_width, wxSizerFlags(1).Expand());
 
@@ -67,7 +67,7 @@ USizeCtrl::USizeCtrl(wxWindow* parent, int wxWindowID)
     sizer->Add(cross, wxSizerFlags().Bottom().Border(wxALL, 1));
 
     _height = new wxSpinCtrl(this, wxID_ANY);
-    _height->SetRange(0, INT_MAX);
+    _height->SetRange(1, INT_MAX);
     _height->SetSizeHints(MIN_SPIN_WIDTH, -1);
     sizer->Add(_height, wxSizerFlags(1).Expand());
 
@@ -76,8 +76,8 @@ USizeCtrl::USizeCtrl(wxWindow* parent, int wxWindowID)
 
 void USizeCtrl::SetRange(const usize& max)
 {
-    _width->SetRange(0, max.width);
-    _height->SetRange(0, max.height);
+    _width->SetRange(1, max.width);
+    _height->SetRange(1, max.height);
 }
 
 URectCtrl::URectCtrl(wxWindow* parent, int wxWindowID)

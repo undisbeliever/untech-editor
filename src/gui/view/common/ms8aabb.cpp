@@ -68,7 +68,7 @@ Ms8RectCtrl::Ms8RectCtrl(wxWindow* parent, int wxWindowID)
     auto* sizeSizer = new wxBoxSizer(wxHORIZONTAL);
 
     _width = new wxSpinCtrl(this, wxID_ANY);
-    _width->SetRange(0, UINT8_MAX);
+    _width->SetRange(1, UINT8_MAX);
     _width->SetSizeHints(MIN_SPIN_WIDTH, -1);
     sizeSizer->Add(_width, wxSizerFlags(1).Expand());
 
@@ -78,7 +78,7 @@ Ms8RectCtrl::Ms8RectCtrl(wxWindow* parent, int wxWindowID)
     sizeSizer->Add(cross, wxSizerFlags(0).Bottom().Border(wxALL, 1));
 
     _height = new wxSpinCtrl(this, wxID_ANY);
-    _height->SetRange(0, UINT8_MAX);
+    _height->SetRange(1, UINT8_MAX);
     _height->SetSizeHints(MIN_SPIN_WIDTH, -1);
     sizeSizer->Add(_height, wxSizerFlags(1).Expand());
 
