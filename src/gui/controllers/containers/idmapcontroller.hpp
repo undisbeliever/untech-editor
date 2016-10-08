@@ -90,12 +90,19 @@ void IdMapController<T, PT>::create(const idstring& newId)
         // ::TODO undo engine::
 
         _map->create(newId);
+        onCreate(newId, _map->at(newId));
+
         _selectedId = newId;
 
         _signal_mapChanged.emit();
         _signal_selectedChanged.emit();
         _signal_anyChanged.emit();
     }
+}
+
+template <class T, class PT>
+void IdMapController<T, PT>::onCreate(const idstring&, T&)
+{
 }
 
 template <class T, class PT>

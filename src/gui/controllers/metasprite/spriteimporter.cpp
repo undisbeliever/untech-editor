@@ -116,6 +116,16 @@ void FrameSetController::selected_reloadImage()
 // ---------------
 template class Controller::IdMapController<Frame, FrameSetController>;
 
+void FrameController::onCreate(const idstring&, Frame& frame)
+{
+    const FrameSet& fs = this->parent().selected();
+
+    frame.location.useGridLocation = true;
+    frame.location.useGridOrigin = true;
+
+    frame.location.update(fs.grid, frame);
+}
+
 void FrameController::selected_setLocation(const FrameLocation& location)
 {
     edit_selected([&](Frame& frame) {

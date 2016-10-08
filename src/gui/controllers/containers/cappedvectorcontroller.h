@@ -79,6 +79,10 @@ public:
 protected:
     virtual list_type* editable_listFromParent() = 0;
 
+    // called when element is created but before signals are emitted
+    // can edit element_type
+    virtual void onCreate(element_type&);
+
     // may be NULL if nothing is selected
     element_type* editable_selected();
 

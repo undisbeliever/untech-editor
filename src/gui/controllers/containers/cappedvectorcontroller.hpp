@@ -88,6 +88,7 @@ void CappedVectorController<ET, LT, PT>::create()
         // ::TODO undo engine::
 
         _list->emplace_back();
+        onCreate(_list->back());
 
         _selectedIndex = _list->size() - 1;
         _hasSelected = true;
@@ -96,6 +97,11 @@ void CappedVectorController<ET, LT, PT>::create()
         _signal_selectedChanged.emit();
         _signal_anyChanged.emit();
     }
+}
+
+template <typename ET, class LT, class PT>
+void CappedVectorController<ET, LT, PT>::onCreate(ET&)
+{
 }
 
 template <typename ET, class LT, class PT>

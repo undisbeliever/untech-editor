@@ -72,6 +72,10 @@ protected:
     // can return NULL if parent has nothing selected
     virtual map_type* editable_mapFromParent() = 0;
 
+    // called when element is created but before signals are emitted
+    // can edit element_type
+    virtual void onCreate(const idstring&, element_type&);
+
     // can return NULL is nothing is selected
     element_type* editable_selected();
 

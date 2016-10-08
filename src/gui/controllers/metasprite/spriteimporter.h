@@ -69,6 +69,8 @@ protected:
         FrameSet* fs = parent().editable_selected();
         return fs ? &fs->frames : nullptr;
     }
+
+    virtual void onCreate(const idstring& id, Frame& frame);
 };
 
 class FrameObjectController
