@@ -54,11 +54,7 @@ public:
     static const std::string HUMAN_TYPE_NAME;
 
 public:
-    PaletteController(FrameSetController& parent)
-        : CappedVectorController(parent)
-        , _selectedColorId(-1)
-    {
-    }
+    PaletteController(FrameSetController& parent);
 
     // If < 0 then no color is selected.
     int selectedColorId() { return _selectedColorId; }

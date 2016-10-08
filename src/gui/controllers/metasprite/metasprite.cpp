@@ -114,6 +114,18 @@ template class Controller::CappedVectorController<Snes::Palette4bpp,
                                                   capped_vector<Snes::Palette4bpp, MetaSprite::MAX_PALETTES>,
                                                   FrameSetController>;
 
+PaletteController::PaletteController(FrameSetController& parent)
+    : CappedVectorController(parent)
+    , _selectedColorId(-1)
+{
+    // Ensure a palette is always selected.
+    signal_selectedChanged().connect([this](void) {
+        if (!hasSelected() && _list != nullptr && !_list->empty()) {
+            selectIndex(0);
+        }
+    });
+}
+
 void PaletteController::setSelectedColorId(unsigned colorId)
 {
     if (colorId < element_type::N_COLORS) {
