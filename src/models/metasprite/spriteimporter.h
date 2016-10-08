@@ -60,7 +60,12 @@ struct FrameObject {
     upoint location;
     ObjectSize size;
 
-    FrameObject() = default;
+    FrameObject()
+        : location(0, 0)
+        , size(ObjectSize::SMALL)
+    {
+    }
+
     FrameObject(const upoint& location, ObjectSize& size)
         : location(location)
         , size(size)
@@ -105,7 +110,11 @@ struct EntityHitbox {
     urect aabb;
     EntityHitboxType hitboxType;
 
-    EntityHitbox() = default;
+    EntityHitbox()
+        : aabb(0, 0, MIN_FRAME_SIZE, MIN_FRAME_SIZE)
+        , hitboxType(EntityHitboxType::Enum::BODY)
+    {
+    }
     EntityHitbox(const urect& aabb, EntityHitboxType& hitboxType)
         : aabb(aabb)
         , hitboxType(hitboxType)
@@ -129,7 +138,12 @@ struct Frame {
     SpriteOrderType spriteOrder = DEFAULT_SPRITE_ORDER;
     bool solid;
 
-    Frame() = default;
+    Frame()
+        : tileHitbox(-8, -8, 16, 16)
+        , spriteOrder(DEFAULT_SPRITE_ORDER)
+        , solid(false)
+    {
+    }
 
     usize minimumViableSize() const;
 };

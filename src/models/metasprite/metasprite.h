@@ -30,7 +30,15 @@ struct FrameObject {
     bool hFlip;
     bool vFlip;
 
-    FrameObject() = default;
+    FrameObject()
+        : location(-4, -4)
+        , size(ObjectSize::SMALL)
+        , tileId(0)
+        , order(DEFAULT_SPRITE_ORDER)
+        , hFlip(false)
+        , vFlip(false)
+    {
+    }
     FrameObject(const ms8point& location, ObjectSize& size)
         : location(location)
         , size(size)
@@ -62,7 +70,11 @@ struct EntityHitbox {
     ms8rect aabb;
     EntityHitboxType hitboxType;
 
-    EntityHitbox() = default;
+    EntityHitbox()
+        : aabb(-8, -8, 16, 16)
+        , hitboxType(EntityHitboxType::Enum::BODY)
+    {
+    }
     EntityHitbox(const ms8rect& aabb, EntityHitboxType& hitboxType)
         : aabb(aabb)
         , hitboxType(hitboxType)
@@ -79,7 +91,11 @@ struct Frame {
     ms8rect tileHitbox;
     bool solid;
 
-    Frame() = default;
+    Frame()
+        : tileHitbox(-8, -8, 16, 16)
+        , solid(false)
+    {
+    }
 
     Frame flip(bool hFlip, bool vFlip) const;
 
