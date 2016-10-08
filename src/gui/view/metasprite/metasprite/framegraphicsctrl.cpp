@@ -185,35 +185,31 @@ void FrameGraphicsCtrl::UpdateBitmap()
 
         wxNativePixelData pData(_bitmap);
 
-        for (unsigned order = 0; order < 4; order++) {
-            for (auto it = frame.objects.rbegin(); it != frame.objects.rend(); ++it) {
-                const MS::FrameObject& obj = *it;
+        for (auto it = frame.objects.rbegin(); it != frame.objects.rend(); ++it) {
+            const MS::FrameObject& obj = *it;
 
-                if (obj.order == order) {
-                    if (obj.size == OS::SMALL) {
-                        const auto& smallTileset = frameSet.smallTileset;
+            if (obj.size == OS::SMALL) {
+                const auto& smallTileset = frameSet.smallTileset;
 
-                        if (obj.tileId < smallTileset.size()) {
-                            UnTech::View::Snes::DrawTileTransparent(
-                                pData,
-                                smallTileset.tile(obj.tileId), palette,
-                                obj.location.x + FRAME_IMAGE_OFFSET,
-                                obj.location.y + FRAME_IMAGE_OFFSET,
-                                obj.hFlip, obj.vFlip);
-                        }
-                    }
-                    else {
-                        const auto& largeTileset = frameSet.largeTileset;
+                if (obj.tileId < smallTileset.size()) {
+                    UnTech::View::Snes::DrawTileTransparent(
+                        pData,
+                        smallTileset.tile(obj.tileId), palette,
+                        obj.location.x + FRAME_IMAGE_OFFSET,
+                        obj.location.y + FRAME_IMAGE_OFFSET,
+                        obj.hFlip, obj.vFlip);
+                }
+            }
+            else {
+                const auto& largeTileset = frameSet.largeTileset;
 
-                        if (obj.tileId < largeTileset.size()) {
-                            UnTech::View::Snes::DrawTileTransparent(
-                                pData,
-                                largeTileset.tile(obj.tileId), palette,
-                                obj.location.x + FRAME_IMAGE_OFFSET,
-                                obj.location.y + FRAME_IMAGE_OFFSET,
-                                obj.hFlip, obj.vFlip);
-                        }
-                    }
+                if (obj.tileId < largeTileset.size()) {
+                    UnTech::View::Snes::DrawTileTransparent(
+                        pData,
+                        largeTileset.tile(obj.tileId), palette,
+                        obj.location.x + FRAME_IMAGE_OFFSET,
+                        obj.location.y + FRAME_IMAGE_OFFSET,
+                        obj.hFlip, obj.vFlip);
                 }
             }
         }
