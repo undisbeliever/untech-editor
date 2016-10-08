@@ -49,10 +49,12 @@ template <class T, class PT>
 void IdMapController<T, PT>::selectId(const idstring& id)
 {
     if (_map && _map->contains(id)) {
-        _selectedId = id;
+        if (id != _selectedId) {
+            _selectedId = id;
 
-        _signal_selectedChanged.emit();
-        _signal_anyChanged.emit();
+            _signal_selectedChanged.emit();
+            _signal_anyChanged.emit();
+        }
     }
     else {
         selectNone();

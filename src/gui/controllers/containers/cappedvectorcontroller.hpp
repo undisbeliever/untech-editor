@@ -54,11 +54,13 @@ template <typename ET, class LT, class PT>
 void CappedVectorController<ET, LT, PT>::selectIndex(size_t index)
 {
     if (_list && index < _list->size()) {
-        _selectedIndex = index;
-        _hasSelected = true;
+        if (index != _selectedIndex) {
+            _selectedIndex = index;
+            _hasSelected = true;
 
-        _signal_selectedChanged.emit();
-        _signal_anyChanged.emit();
+            _signal_selectedChanged.emit();
+            _signal_anyChanged.emit();
+        }
     }
     else {
         selectNone();
