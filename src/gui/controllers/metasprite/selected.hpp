@@ -8,9 +8,20 @@ SelectedController<BaseControllerT>::SelectedController(BaseControllerT& control
     : _controller(controller)
     , _type(SelectedType::NONE)
 {
+    _controller.frameController().signal_dataChanged().connect(
+        [this](void) {
+            // deselect TILE_HITBOX is frame is not solid
+            if (_type == SelectedType::TILE_HITBOX) {
+                auto& f = _controller.frameController().selected();
+                if (f.solid == false) {
+                    selectFrame();
+                }
+            }
+        });
+
     _controller.frameController().signal_mapChanged().connect(
         [this](void) {
-            if (_type == SelectedType::FRAME) {
+            if (_type == SelectedType::FRAME || _type == SelectedType::TILE_HITBOX) {
                 _signal_listChanged.emit();
             }
         });
@@ -120,14 +131,14 @@ void SelectedController<T>::selectFrame()
 template <class T>
 void SelectedController<T>::selectTileHitbox()
 {
-    if (_controller.frameController().hasSelected()) {
+    if (_controller.frameController().selected().solid) {
         if (_type != SelectedType::TILE_HITBOX) {
             _type = SelectedType::TILE_HITBOX;
             _signal_selectedChanged.emit();
         }
     }
     else {
-        selectNone();
+        selectFrame();
     }
 }
 
