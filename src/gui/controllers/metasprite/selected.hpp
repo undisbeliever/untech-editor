@@ -199,6 +199,8 @@ const std::string& SelectedController<T>::typeString() const
     case SelectedType::ENTITY_HITBOX:
         return _controller.entityHitboxController().HUMAN_TYPE_NAME;
     }
+
+    return nullString;
 }
 
 template <class T>
