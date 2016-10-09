@@ -1,6 +1,8 @@
 #pragma once
 #include "gui/controllers/metasprite/spriteimporter.h"
 #include "gui/view/common/controllerinterface.h"
+#include "gui/view/common/filedialogs.h"
+#include "gui/view/metasprite/framehelper.h"
 #include <wx/wx.h>
 
 namespace UnTech {
@@ -13,6 +15,7 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
 class Frame : public wxFrame {
 public:
     const static wxString WINDOW_NAME;
+    const static DocumentType FRAMESET_DOCUMENT_TYPE;
 
 public:
     Frame();
@@ -22,23 +25,10 @@ public:
     static void CreateOpen(const std::string& filename);
 
 protected:
-    void UpdateGuiMenu();
-    void UpdateGuiZoom();
-    void UpdateGuiLayers();
-    void UpdateGuiUndo();
-    void UpdateGuiTitle();
-
-    void OnMenuNew(wxCommandEvent&);
-    void OnMenuOpen(wxCommandEvent&);
-
-    bool SaveDocument();
-    bool SaveDocumentAs();
-
-    void OnClose(wxCloseEvent&);
-
-private:
     ControllerInterface _controllerInterface;
     SI::SpriteImporterController _controller;
+    FrameHelper<Frame> _frameHelper;
+
     wxTimer _initBugfixTimer;
 };
 }
