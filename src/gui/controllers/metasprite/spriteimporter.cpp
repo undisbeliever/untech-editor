@@ -109,6 +109,9 @@ void FrameSetController::selected_reloadImage()
 
     if (frameSet) {
         frameSet->reloadImage();
+
+        signal_dataChanged().emit();
+        signal_anyChanged().emit();
     }
 }
 
