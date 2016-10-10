@@ -1,5 +1,6 @@
 #pragma once
 
+#include "undo/undostack.h"
 #include <stdexcept>
 
 namespace UnTech {
@@ -22,6 +23,9 @@ public:
     virtual ~BaseController() = default;
 
     BaseController(const BaseController&) = delete;
+
+    Undo::UndoStack& undoStack() { return _undoStack; }
+    const Undo::UndoStack& undoStack() const { return _undoStack; }
 
     const std::string& filename() const { return _filename; }
 
@@ -48,6 +52,7 @@ protected:
 
 private:
     ControllerInterface& _interface;
+    Undo::UndoStack _undoStack;
     std::string _filename;
 };
 }

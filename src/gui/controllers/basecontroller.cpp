@@ -7,6 +7,7 @@ using namespace UnTech::Controller;
 
 BaseController::BaseController(ControllerInterface& interface)
     : _interface(interface)
+    , _undoStack()
     , _filename()
 {
 }
@@ -22,6 +23,7 @@ bool BaseController::saveDocument(const std::string& filename)
         try {
             doSave(filename);
             _filename = filename;
+            _undoStack.markClean();
             return true;
         }
         catch (const std::exception& ex) {
@@ -39,6 +41,7 @@ bool BaseController::loadDocument(const std::string& filename)
     try {
         doLoad(filename);
         _filename = filename;
+        _undoStack.clear();
         return true;
     }
     catch (const std::exception& ex) {
@@ -51,6 +54,7 @@ void BaseController::newDocument()
 {
     doNew();
     _filename = "";
+    _undoStack.clear();
 }
 
 void BaseController::showError(const char* error, const std::exception& ex)

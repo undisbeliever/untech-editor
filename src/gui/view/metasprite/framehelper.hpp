@@ -140,21 +140,17 @@ FrameHelper<FrameT>::FrameHelper(FrameT* frame, controller_type& controller)
 
     // EDIT
 
-    // ::TODO UndoStack::
-    /*
+    menuBar->Bind(
+        wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+            _controller.undoStack().undo();
+        },
+        wxID_UNDO);
 
-        menuBar->Bind(
-            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                _controller.undoStack().undo();
-            },
-            wxID_UNDO);
-
-        menuBar->Bind(
-            wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
-                _controller.undoStack().redo();
-            },
-            wxID_REDO);
-        */
+    menuBar->Bind(
+        wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
+            _controller.undoStack().redo();
+        },
+        wxID_REDO);
 
     menuBar->Bind(
         wxEVT_COMMAND_MENU_SELECTED, [this](wxCommandEvent&) {
@@ -256,14 +252,11 @@ FrameHelper<FrameT>::FrameHelper(FrameT* frame, controller_type& controller)
     _controller.selectedController().signal_listChanged().connect(sigc::mem_fun(
         *this, &FrameHelper::UpdateGuiMenu));
 
-    // ::TODO UndoStack::
-    /*
     _controller.undoStack().signal_stackChanged().connect(sigc::mem_fun(
-        *this, &Frame::UpdateGuiUndo));
+        *this, &FrameHelper::UpdateGuiUndo));
 
     _controller.undoStack().signal_dirtyBitChanged().connect(sigc::mem_fun(
-        *this, &Frame::UpdateGuiTitle));
-     */
+        *this, &FrameHelper::UpdateGuiTitle));
 
     _controller.frameSetController().signal_dataChanged().connect(sigc::mem_fun(
         *this, &FrameHelper::UpdateGuiTitle));
@@ -376,43 +369,39 @@ void FrameHelper<FrameT>::UpdateGuiUndo()
 {
     wxMenuBar* menuBar = _frame->GetMenuBar();
 
-    // ::TODO UndoStack::
-    const bool canUndo = false;
-    const bool canRedo = false;
-    const bool isDirty = _controller.hasDocument();
+    const auto& undoStack = _controller.undoStack();
     const bool hasFile = _controller.hasDocument();
 
-    if (hasFile && canUndo) {
+    if (hasFile && undoStack.canUndo()) {
         menuBar->Enable(wxID_UNDO, true);
-        // menuBar->SetLabel(wxID_UNDO, "&Undo " + undoStack.undoMessage() + "\tCTRL+Z");
+        menuBar->SetLabel(wxID_UNDO, "&Undo " + undoStack.undoMessage() + "\tCTRL+Z");
     }
     else {
         menuBar->Enable(wxID_UNDO, false);
         menuBar->SetLabel(wxID_UNDO, "&Undo\tCTRL+Z");
     }
 
-    if (hasFile && canRedo) {
+    if (hasFile && undoStack.canRedo()) {
         menuBar->Enable(wxID_REDO, true);
-        // menuBar->SetLabel(wxID_REDO, "&Redo " + undoStack.redoMessage() + "\tCTRL+SHIFT+Z");
+        menuBar->SetLabel(wxID_REDO, "&Redo " + undoStack.redoMessage() + "\tCTRL+SHIFT+Z");
     }
     else {
         menuBar->Enable(wxID_REDO, false);
         menuBar->SetLabel(wxID_REDO, "&Redo\tCTRL+SHIFT+Z");
     }
 
-    menuBar->Enable(wxID_SAVE, hasFile && isDirty);
+    menuBar->Enable(wxID_SAVE, hasFile && undoStack.isDirty());
 }
 
 template <class FrameT>
 void FrameHelper<FrameT>::UpdateGuiTitle()
 {
-    // ::TODO UndoStack::
-    const bool isDirty = _controller.hasDocument();
+    const auto& undoStack = _controller.undoStack();
 
     if (_controller.hasDocument()) {
         const auto& frameSet = _controller.frameSetController().selected();
 
-        if (isDirty) {
+        if (undoStack.isDirty()) {
             _frame->SetTitle("*" + frameSet.name + ": " + FrameT::WINDOW_NAME);
         }
         else {
