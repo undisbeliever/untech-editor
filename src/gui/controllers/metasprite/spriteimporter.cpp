@@ -17,7 +17,7 @@ template class MetaSprite::SelectedController<SpriteImporterController>;
 
 SpriteImporterController::SpriteImporterController(Controller::ControllerInterface& interface)
     : BaseController(interface)
-    , _frameSetController()
+    , _frameSetController(*this)
     , _animationControllerInterface(_frameSetController)
     , _frameController(_frameSetController)
     , _frameObjectController(_frameController)

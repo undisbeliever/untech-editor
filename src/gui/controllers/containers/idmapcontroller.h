@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui/controllers/basecontroller.h"
 #include "models/common/idmap.h"
 #include <functional>
 #include <sigc++/signal.h>
@@ -22,6 +23,9 @@ public:
 
     ParentT& parent() { return _parent; }
     const ParentT& parent() const { return _parent; }
+
+    BaseController& baseController() { return _baseController; }
+    const BaseController& baseController() const { return _baseController; }
 
     // Reloads the map from the parent
     void reloadMap();
@@ -83,6 +87,8 @@ protected:
 
 protected:
     ParentT& _parent;
+    BaseController& _baseController;
+
     map_type* _map;
     idstring _selectedId;
 

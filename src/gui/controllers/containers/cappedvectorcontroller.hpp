@@ -12,6 +12,7 @@ const ElementT CappedVectorController<ElementT, ListT, ParentT>::BLANK_T = Eleme
 template <typename ET, class LT, class ParentT>
 CappedVectorController<ET, LT, ParentT>::CappedVectorController(ParentT& parent)
     : _parent(parent)
+    , _baseController(parent.baseController())
 {
     parent.signal_selectedChanged().connect(sigc::mem_fun(
         *this, &CappedVectorController::reloadList));

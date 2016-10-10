@@ -18,7 +18,7 @@ template class MetaSprite::SelectedController<MetaSpriteController>;
 
 MetaSpriteController::MetaSpriteController(Controller::ControllerInterface& interface)
     : BaseController(interface)
-    , _frameSetController()
+    , _frameSetController(*this)
     , _animationControllerInterface(_frameSetController)
     , _paletteController(_frameSetController)
     , _frameController(_frameSetController)

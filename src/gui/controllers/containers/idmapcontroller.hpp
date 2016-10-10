@@ -9,6 +9,7 @@ const ElementT IdMapController<ElementT, ParentT>::BLANK_T = ElementT();
 template <class T, class ParentT>
 IdMapController<T, ParentT>::IdMapController(ParentT& parent)
     : _parent(parent)
+    , _baseController(parent.baseController())
 {
     parent.signal_selectedChanged().connect(sigc::mem_fun(
         *this, &IdMapController::reloadMap));

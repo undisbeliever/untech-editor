@@ -60,11 +60,14 @@ class AnimationControllerInterface {
     friend class AnimationController;
 
 public:
-    AnimationControllerInterface()
-        : _animationController(*this)
+    AnimationControllerInterface(Controller::BaseController& baseController)
+        : _baseController(baseController)
+        , _animationController(*this)
         , _instructionController(_animationController)
     {
     }
+
+    auto& baseController() { return _baseController; }
 
     auto& signal_selectedChanged() { return _signal_selectedChanged; }
 
@@ -75,6 +78,8 @@ protected:
     virtual Animation::map_t* editable_animationMap() = 0;
 
 private:
+    Controller::BaseController& _baseController;
+
     sigc::signal<void> _signal_selectedChanged;
 
     AnimationController _animationController;
@@ -86,7 +91,7 @@ class AnimationControllerImpl : public AnimationControllerInterface {
 
 public:
     AnimationControllerImpl(FrameSetControllerT& parent)
-        : AnimationControllerInterface()
+        : AnimationControllerInterface(parent.baseController())
         , _parent(parent)
     {
         _parent.signal_selectedChanged().connect(signal_selectedChanged());

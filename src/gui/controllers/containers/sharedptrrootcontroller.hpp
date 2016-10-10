@@ -7,6 +7,12 @@ template <typename T>
 const T SharedPtrRootController<T>::BLANK_T = T();
 
 template <typename T>
+SharedPtrRootController<T>::SharedPtrRootController(BaseController& baseController)
+    : _baseController(baseController)
+{
+}
+
+template <typename T>
 void SharedPtrRootController<T>::setRoot(std::shared_ptr<T> s)
 {
     _root = s;

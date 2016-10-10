@@ -31,7 +31,11 @@ class FrameSetController
 public:
     static const std::string HUMAN_TYPE_NAME;
 
-    FrameSetController() = default;
+public:
+    FrameSetController(Controller::BaseController& baseController)
+        : SharedPtrRootController(baseController)
+    {
+    }
 
     void selected_setName(const idstring& name);
     void selected_setTilesetType(const TilesetType tilesetType);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui/controllers/basecontroller.h"
 #include "models/common/capped_vector.h"
 #include "models/common/optional.h"
 #include <functional>
@@ -23,6 +24,9 @@ public:
 
     ParentT& parent() { return _parent; }
     const ParentT& parent() const { return _parent; }
+
+    BaseController& baseController() { return _baseController; }
+    const BaseController& baseController() const { return _baseController; }
 
     const list_type* list() const { return _list; }
 
@@ -90,6 +94,8 @@ protected:
 
 protected:
     ParentT& _parent;
+    BaseController& _baseController;
+
     list_type* _list;
     size_t _selectedIndex;
     bool _hasSelected;

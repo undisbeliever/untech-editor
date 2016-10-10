@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui/controllers/basecontroller.h"
 #include <functional>
 #include <memory>
 #include <sigc++/signal.h>
@@ -15,9 +16,13 @@ class SharedPtrRootController {
     const static value_type BLANK_T;
 
 public:
-    SharedPtrRootController() = default;
     SharedPtrRootController(const SharedPtrRootController&) = delete;
     virtual ~SharedPtrRootController() = default;
+
+    SharedPtrRootController(BaseController& baseController);
+
+    BaseController& baseController() { return _baseController; }
+    const BaseController& baseController() const { return _baseController; }
 
     bool hasSelected() const { return _root != nullptr; }
 
@@ -46,6 +51,8 @@ protected:
     void edit_selected(std::function<void(value_type&)> const& fun);
 
 protected:
+    BaseController& _baseController;
+
     container_type _root;
 
     sigc::signal<void> _signal_anyChanged;
