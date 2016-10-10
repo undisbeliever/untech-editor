@@ -24,7 +24,7 @@ template <typename ET, class LT, class PT>
 void CappedVectorController<ET, LT, PT>::reloadList()
 {
     list_type* l = editable_listFromParent();
-    if (l != _list) {
+    if (l != _list || _list == nullptr) {
         _selectedIndex = ~0;
         _hasSelected = false;
         _list = l;

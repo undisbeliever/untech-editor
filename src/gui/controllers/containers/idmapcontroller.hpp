@@ -21,7 +21,7 @@ template <class T, class PT>
 void IdMapController<T, PT>::reloadMap()
 {
     map_type* m = editable_mapFromParent();
-    if (m != _map) {
+    if (m != _map || _map == nullptr) {
         _selectedId = idstring();
         _map = m;
 
