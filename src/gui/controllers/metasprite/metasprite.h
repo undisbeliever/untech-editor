@@ -24,8 +24,6 @@ class FrameSetController
     : public Controller::SharedPtrRootController<FrameSet> {
 
     friend class MetaSpriteController;
-    friend class FrameController;
-    friend class PaletteController;
     friend class Animation::AnimationControllerImpl<FrameSetController>;
 
 public:
@@ -69,13 +67,6 @@ public:
 
     auto& signal_selectedColorChanged() { return _signal_selectedColorChanged; }
 
-protected:
-    virtual list_type* editable_listFromParent() final
-    {
-        FrameSet* fs = parent().editable_selected();
-        return fs ? &fs->palettes : nullptr;
-    }
-
 private:
     int _selectedColorId;
     sigc::signal<void> _signal_selectedColorChanged;
@@ -83,10 +74,6 @@ private:
 
 class FrameController
     : public Controller::IdMapController<Frame, FrameSetController> {
-
-    friend class FrameObjectController;
-    friend class ActionPointController;
-    friend class EntityHitboxController;
 
 public:
     static const std::string HUMAN_TYPE_NAME;
@@ -99,13 +86,6 @@ public:
 
     void selected_setSolid(const bool solid);
     void selected_setTileHitbox(const ms8rect& tileHitbox);
-
-protected:
-    virtual Frame::map_t* editable_mapFromParent() final
-    {
-        FrameSet* fs = parent().editable_selected();
-        return fs ? &fs->frames : nullptr;
-    }
 };
 
 class FrameObjectController
@@ -128,13 +108,6 @@ public:
     void selected_setOrder(const unsigned order);
     void selected_setHFlip(const bool hFlip);
     void selected_setVFlip(const bool vFlip);
-
-protected:
-    virtual FrameObject::list_t* editable_listFromParent() final
-    {
-        Frame* f = parent().editable_selected();
-        return f ? &f->objects : nullptr;
-    }
 };
 
 class ActionPointController
@@ -152,13 +125,6 @@ public:
 
     void selected_setLocation(const ms8point& location);
     void selected_setParameter(const ActionPointParameter& parameter);
-
-protected:
-    virtual ActionPoint::list_t* editable_listFromParent() final
-    {
-        Frame* f = parent().editable_selected();
-        return f ? &f->actionPoints : nullptr;
-    }
 };
 
 class EntityHitboxController
@@ -176,13 +142,6 @@ public:
 
     void selected_setAabb(const ms8rect& aabb);
     void selected_setHitboxType(const EntityHitboxType& hitboxType);
-
-protected:
-    virtual EntityHitbox::list_t* editable_listFromParent() final
-    {
-        Frame* f = parent().editable_selected();
-        return f ? &f->entityHitboxes : nullptr;
-    }
 };
 
 class MetaSpriteController : public Controller::BaseController {

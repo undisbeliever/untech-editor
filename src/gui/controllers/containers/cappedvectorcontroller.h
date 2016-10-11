@@ -11,12 +11,18 @@ namespace Controller {
 
 template <typename ElementT, class ListT, class ParentT>
 class CappedVectorController {
+    template <typename, class, class>
+    friend class CappedVectorController;
+    template <class, class>
+    friend class IdMapController;
+
 public:
     using element_type = ElementT;
     using list_type = ListT;
 
     const static element_type BLANK_T;
 
+public:
     CappedVectorController(const CappedVectorController&) = delete;
     virtual ~CappedVectorController() = default;
 
@@ -81,8 +87,6 @@ public:
     auto& signal_selectedChanged() { return _signal_selectedChanged; }
 
 protected:
-    virtual list_type* editable_listFromParent() = 0;
-
     // called when element is created but before signals are emitted
     // can edit element_type
     virtual void onCreate(element_type&);

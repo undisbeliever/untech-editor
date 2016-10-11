@@ -3,6 +3,9 @@
 namespace UnTech {
 namespace Controller {
 
+template <class T, class ParentT>
+UnTech::idmap<T>& idmapFromParent(ParentT&);
+
 template <typename ElementT, class ParentT>
 const ElementT IdMapController<ElementT, ParentT>::BLANK_T = ElementT();
 
@@ -21,7 +24,12 @@ IdMapController<T, ParentT>::IdMapController(ParentT& parent)
 template <class T, class PT>
 void IdMapController<T, PT>::reloadMap()
 {
-    map_type* m = editable_mapFromParent();
+    typename PT::element_type* p = _parent.editable_selected();
+
+    map_type* m = nullptr;
+    if (p) {
+        m = &idmapFromParent<T, typename PT::element_type>(*p);
+    }
     if (m != _map || _map == nullptr) {
         _selectedId = idstring();
         _map = m;

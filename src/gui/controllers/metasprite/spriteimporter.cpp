@@ -7,11 +7,42 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite::SpriteImporter;
 
+namespace UnTech {
+namespace Controller {
+template <>
+idmap<Frame>& idmapFromParent<Frame, FrameSet>(FrameSet& fs)
+{
+    return fs.frames;
+}
+
+template <>
+FrameObject::list_t& listFromParent<FrameObject::list_t, Frame>(Frame& f)
+{
+    return f.objects;
+}
+
+template <>
+ActionPoint::list_t& listFromParent<ActionPoint::list_t, Frame>(Frame& f)
+{
+    return f.actionPoints;
+}
+
+template <>
+EntityHitbox::list_t& listFromParent<EntityHitbox::list_t, Frame>(Frame& f)
+{
+    return f.entityHitboxes;
+}
+}
+}
+
 const std::string FrameSetController::HUMAN_TYPE_NAME = "Frame Set";
 const std::string FrameController::HUMAN_TYPE_NAME = "Frame";
 const std::string FrameObjectController::HUMAN_TYPE_NAME = "Frame Object";
 const std::string ActionPointController::HUMAN_TYPE_NAME = "Action Point";
 const std::string EntityHitboxController::HUMAN_TYPE_NAME = "Entity Hitbox";
+
+// SpriteImporterController
+// ========================
 
 template class MetaSprite::SelectedController<SpriteImporterController>;
 

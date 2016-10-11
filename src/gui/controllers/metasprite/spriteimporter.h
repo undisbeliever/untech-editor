@@ -23,7 +23,6 @@ class FrameSetController
     : public Controller::SharedPtrRootController<FrameSet> {
 
     friend class SpriteImporterController;
-    friend class FrameController;
     friend class Animation::AnimationControllerImpl<FrameSetController>;
 
 public:
@@ -49,10 +48,6 @@ public:
 class FrameController
     : public Controller::IdMapController<Frame, FrameSetController> {
 
-    friend class FrameObjectController;
-    friend class ActionPointController;
-    friend class EntityHitboxController;
-
 public:
     static const std::string HUMAN_TYPE_NAME;
 
@@ -68,12 +63,6 @@ public:
     void selected_setSolid(const bool solid);
 
 protected:
-    virtual Frame::map_t* editable_mapFromParent() final
-    {
-        FrameSet* fs = parent().editable_selected();
-        return fs ? &fs->frames : nullptr;
-    }
-
     virtual void onCreate(const idstring& id, Frame& frame);
 };
 
@@ -92,13 +81,6 @@ public:
 
     void selected_setLocation(const upoint& location);
     void selected_setSize(const ObjectSize size);
-
-protected:
-    virtual FrameObject::list_t* editable_listFromParent() final
-    {
-        Frame* f = parent().editable_selected();
-        return f ? &f->objects : nullptr;
-    }
 };
 
 class ActionPointController
@@ -116,13 +98,6 @@ public:
 
     void selected_setLocation(const upoint& location);
     void selected_setParameter(const ActionPointParameter& parameter);
-
-protected:
-    virtual ActionPoint::list_t* editable_listFromParent() final
-    {
-        Frame* f = parent().editable_selected();
-        return f ? &f->actionPoints : nullptr;
-    }
 };
 
 class EntityHitboxController
@@ -140,13 +115,6 @@ public:
 
     void selected_setAabb(const urect& aabb);
     void selected_setHitboxType(const EntityHitboxType& hitboxType);
-
-protected:
-    virtual EntityHitbox::list_t* editable_listFromParent() final
-    {
-        Frame* f = parent().editable_selected();
-        return f ? &f->entityHitboxes : nullptr;
-    }
 };
 
 class SpriteImporterController : public Controller::BaseController {

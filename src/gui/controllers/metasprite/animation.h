@@ -25,9 +25,6 @@ public:
         : IdMapController(parent)
     {
     }
-
-protected:
-    virtual Animation::map_t* editable_mapFromParent() final;
 };
 
 class InstructionController
@@ -58,6 +55,10 @@ protected:
 
 class AnimationControllerInterface {
     friend class AnimationController;
+    friend class Controller::IdMapController<Animation, AnimationControllerInterface>;
+
+public:
+    using element_type = Animation::map_t;
 
 public:
     AnimationControllerInterface(Controller::BaseController& baseController)
@@ -75,7 +76,7 @@ public:
     auto& instructionController() { return _instructionController; }
 
 protected:
-    virtual Animation::map_t* editable_animationMap() = 0;
+    virtual element_type* editable_selected() = 0;
 
 private:
     Controller::BaseController& _baseController;
@@ -100,7 +101,7 @@ public:
     FrameSetControllerT& parent() { return _parent; }
 
 protected:
-    virtual Animation::map_t* editable_animationMap() final
+    virtual AnimationControllerInterface::element_type* editable_selected() final
     {
         auto* fs = _parent.editable_selected();
         return fs ? &fs->animations : nullptr;
@@ -109,11 +110,6 @@ protected:
 private:
     FrameSetControllerT& _parent;
 };
-
-inline Animation::map_t* AnimationController::editable_mapFromParent()
-{
-    return parent().editable_animationMap();
-}
 }
 }
 }

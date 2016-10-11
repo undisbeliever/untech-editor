@@ -10,8 +10,15 @@ namespace Controller {
 
 template <class T>
 class SharedPtrRootController {
+    template <typename, class, class>
+    friend class CappedVectorController;
+    template <class, class>
+    friend class IdMapController;
+
+public:
     using container_type = std::shared_ptr<T>;
     using value_type = T;
+    using element_type = T;
 
     const static value_type BLANK_T;
 

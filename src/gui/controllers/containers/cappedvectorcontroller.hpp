@@ -6,6 +6,9 @@
 namespace UnTech {
 namespace Controller {
 
+template <class ListT, class ParentT>
+ListT& listFromParent(ParentT&);
+
 template <typename ElementT, class ListT, class ParentT>
 const ElementT CappedVectorController<ElementT, ListT, ParentT>::BLANK_T = ElementT();
 
@@ -24,7 +27,13 @@ CappedVectorController<ET, LT, ParentT>::CappedVectorController(ParentT& parent)
 template <typename ET, class LT, class PT>
 void CappedVectorController<ET, LT, PT>::reloadList()
 {
-    list_type* l = editable_listFromParent();
+    typename PT::element_type* p = _parent.editable_selected();
+
+    list_type* l = nullptr;
+    if (p) {
+        l = &listFromParent<LT, typename PT::element_type>(*p);
+    }
+
     if (l != _list || _list == nullptr) {
         _selectedIndex = ~0;
         _hasSelected = false;

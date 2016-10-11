@@ -5,6 +5,22 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite::Animation;
 
+namespace UnTech {
+namespace Controller {
+template <>
+Animation::map_t& idmapFromParent<Animation, Animation::map_t>(Animation::map_t& am)
+{
+    return am;
+}
+
+template <>
+Instruction::list_t& listFromParent<Instruction::list_t, Animation>(Animation& a)
+{
+    return a.instructions;
+}
+}
+}
+
 const std::string AnimationController::HUMAN_TYPE_NAME = "Animation";
 const std::string InstructionController::HUMAN_TYPE_NAME = "Animation Instruction";
 

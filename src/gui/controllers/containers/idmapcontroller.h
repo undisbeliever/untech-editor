@@ -10,12 +10,18 @@ namespace Controller {
 
 template <class T, class ParentT>
 class IdMapController {
+    template <typename, class, class>
+    friend class CappedVectorController;
+    template <class, class>
+    friend class IdMapController;
+
 public:
     using map_type = typename UnTech::idmap<T>;
     using element_type = T;
 
     const static element_type BLANK_T;
 
+public:
     IdMapController(const IdMapController&) = delete;
     virtual ~IdMapController() = default;
 
@@ -73,9 +79,6 @@ public:
     auto& signal_selectedChanged() { return _signal_selectedChanged; }
 
 protected:
-    // can return NULL if parent has nothing selected
-    virtual map_type* editable_mapFromParent() = 0;
-
     // called when element is created but before signals are emitted
     // can edit element_type
     virtual void onCreate(const idstring&, element_type&);
