@@ -24,8 +24,8 @@ bool FrameSetGrid::isValid(const FrameSet& frameSet) const
 urect FrameSetGrid::cell(unsigned x, unsigned y) const
 {
     return urect(
-        x * (frameSize.width + padding.width) + offset.x,
-        y * (frameSize.height + padding.height) + offset.y,
+        x * (frameSize.width + padding.x) + offset.x,
+        y * (frameSize.height + padding.y) + offset.y,
         frameSize.width,
         frameSize.height);
 }

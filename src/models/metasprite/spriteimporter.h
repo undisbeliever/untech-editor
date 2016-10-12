@@ -25,7 +25,7 @@ struct Frame;
 struct FrameSetGrid {
     usize frameSize;
     upoint offset;
-    usize padding;
+    upoint padding;
     upoint origin;
 
     FrameSetGrid()

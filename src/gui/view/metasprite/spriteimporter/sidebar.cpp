@@ -65,7 +65,7 @@ private:
 
     USizeCtrl* _frameSize;
     UPointCtrl* _offset;
-    USizeCtrl* _padding;
+    UPointCtrl* _padding;
     UPointCtrl* _origin;
 };
 
@@ -443,7 +443,7 @@ FrameSetGridPanel::FrameSetGridPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, "Offset:"));
     grid->Add(_offset, wxSizerFlags(1).Expand());
 
-    _padding = new USizeCtrl(this, wxID_ANY);
+    _padding = new UPointCtrl(this, wxID_ANY);
     grid->Add(new wxStaticText(this, wxID_ANY, "Padding:"));
     grid->Add(_padding, wxSizerFlags(1).Expand());
 

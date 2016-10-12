@@ -117,7 +117,7 @@ private:
 
         frameSet.grid.frameSize = tag->getAttributeUsize("width", "height");
         frameSet.grid.offset = tag->getAttributeUpoint("xoffset", "yoffset");
-        frameSet.grid.padding = tag->getAttributeUsize("xpadding", "ypadding");
+        frameSet.grid.padding = tag->getAttributeUpoint("xpadding", "ypadding");
         frameSet.grid.origin = tag->getAttributeUpoint("xorigin", "yorigin");
 
         frameSetGridSet = true;
@@ -327,7 +327,7 @@ inline void writeFrameSetGrid(XmlWriter& xml, const FrameSetGrid& grid)
 
     xml.writeTagAttributeUsize(grid.frameSize, "width", "height");
     xml.writeTagAttributeUpoint(grid.offset, "xoffset", "yoffset");
-    xml.writeTagAttributeUsize(grid.padding, "xpadding", "ypadding");
+    xml.writeTagAttributeUpoint(grid.padding, "xpadding", "ypadding");
     xml.writeTagAttributeUpoint(grid.origin, "xorigin", "yorigin");
 
     xml.writeCloseTag();
