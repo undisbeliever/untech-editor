@@ -436,7 +436,7 @@ FrameSetGridPanel::FrameSetGridPanel(wxWindow* parent, int wxWindowID,
     grid->AddGrowableCol(1, 1);
 
     _frameSize = new USizeCtrl(this, wxID_ANY);
-    _frameSize->SetRange(usize(255, 255));
+    _frameSize->SetMaxValue(usize(255, 255));
     grid->Add(new wxStaticText(this, wxID_ANY, "Size:"));
     grid->Add(_frameSize, wxSizerFlags(1).Expand());
 

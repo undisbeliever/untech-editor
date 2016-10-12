@@ -49,14 +49,14 @@ public:
         _height->SetValue(value.height);
     }
 
-    void SetMinValue(const usize& minSize);
-    void SetRange(const usize& max);
+    void SetMinValue(const usize& min);
+    void SetMaxValue(const usize& max);
 
 private:
     void UpdateRanges();
 
 private:
-    usize _range, _minSize;
+    usize _minValue, _maxValue;
 
     wxSpinCtrl* _width;
     wxSpinCtrl* _height;
@@ -86,15 +86,15 @@ public:
         UpdateRanges();
     }
 
-    void SetMinRectSize(const usize& minSize);
-    void SetMaxRectSize(const usize& maxSize);
+    void SetMinRectSize(const usize& minRectSize);
+    void SetMaxRectSize(const usize& maxRectSize);
     void SetRange(const usize& range);
 
 private:
     void UpdateRanges();
 
 private:
-    usize _range, _minSize, _maxSize;
+    usize _range, _minRectSize, _maxRectSize;
 
     wxSpinCtrl* _xPos;
     wxSpinCtrl* _yPos;
