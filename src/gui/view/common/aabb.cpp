@@ -147,13 +147,36 @@ URectCtrl::URectCtrl(wxWindow* parent, int wxWindowID)
     // Events
     // ------
     _xPos->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& e) {
-        _width->SetRange(_minRectSize.width, _range.width - _xPos->GetValue());
+        UpdateHorizontalRanges();
         e.Skip();
     });
     _yPos->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& e) {
-        _height->SetRange(_minRectSize.height, _range.height - _yPos->GetValue());
+        UpdateVerticalRanges();
         e.Skip();
     });
+    _width->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& e) {
+        UpdateHorizontalRanges();
+        e.Skip();
+    });
+    _height->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& e) {
+        UpdateVerticalRanges();
+        e.Skip();
+    });
+}
+
+void URectCtrl::SetValue(const urect& value)
+{
+    _xPos->SetRange(0, _range.width);
+    _yPos->SetRange(0, _range.height);
+    _width->SetRange(_minRectSize.width, _maxRectSize.width);
+    _height->SetRange(_minRectSize.height, _maxRectSize.height);
+
+    _xPos->SetValue(value.x);
+    _yPos->SetValue(value.y);
+    _width->SetValue(value.width);
+    _height->SetValue(value.height);
+
+    UpdateRanges();
 }
 
 void URectCtrl::SetMinRectSize(const usize& min)
@@ -176,11 +199,22 @@ void URectCtrl::SetRange(const usize& range)
 
 void URectCtrl::UpdateRanges()
 {
-    _xPos->SetRange(0, _range.width - _minRectSize.width);
-    _yPos->SetRange(0, _range.height - _minRectSize.height);
+    UpdateHorizontalRanges();
+    UpdateVerticalRanges();
+}
+
+void URectCtrl::UpdateHorizontalRanges()
+{
+    _xPos->SetRange(0, _range.width - _width->GetValue());
 
     _width->SetRange(_minRectSize.width,
                      std::min(_maxRectSize.width, _range.width - _xPos->GetValue()));
+}
+
+void URectCtrl::UpdateVerticalRanges()
+{
+    _yPos->SetRange(0, _range.height - _height->GetValue());
+
     _height->SetRange(_minRectSize.height,
                       std::min(_maxRectSize.height, _range.height - _yPos->GetValue()));
 }

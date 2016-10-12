@@ -77,14 +77,7 @@ public:
                      _width->GetValue(), _height->GetValue());
     }
 
-    void SetValue(const urect& value)
-    {
-        _xPos->SetValue(value.x);
-        _yPos->SetValue(value.y);
-        _width->SetValue(value.width);
-        _height->SetValue(value.height);
-        UpdateRanges();
-    }
+    void SetValue(const urect& value);
 
     void SetMinRectSize(const usize& minRectSize);
     void SetMaxRectSize(const usize& maxRectSize);
@@ -92,6 +85,8 @@ public:
 
 private:
     void UpdateRanges();
+    void UpdateHorizontalRanges();
+    void UpdateVerticalRanges();
 
 private:
     usize _range, _minRectSize, _maxRectSize;
