@@ -30,9 +30,11 @@ T* SharedPtrRootController<T>::elementFromUndoRef(const UndoRef& ref)
 }
 
 template <typename T>
-void SharedPtrRootController<T>::setRoot(std::shared_ptr<T> s)
+void SharedPtrRootController<T>::setRoot(std::shared_ptr<T> newRoot)
 {
-    _root = s;
+    std::shared_ptr<T> oldRoot = _root;
+
+    _root = newRoot;
 
     _signal_selectedChanged.emit();
     _signal_dataChanged.emit();
