@@ -51,6 +51,8 @@ void UPointCtrl::SetRange(const usize& max, unsigned squareSize)
 
 USizeCtrl::USizeCtrl(wxWindow* parent, int wxWindowID)
     : wxPanel(parent, wxWindowID)
+    , _range(INT_MAX, INT_MAX)
+    , _minSize(1, 1)
 {
     const wxSize crossSize(AABB_COMMA_WIDTH, -1);
 
@@ -76,14 +78,27 @@ USizeCtrl::USizeCtrl(wxWindow* parent, int wxWindowID)
 
 void USizeCtrl::SetRange(const usize& max)
 {
-    _width->SetRange(1, max.width);
-    _height->SetRange(1, max.height);
+    _range = max;
+    UpdateRanges();
+}
+
+void USizeCtrl::SetMinValue(const usize& min)
+{
+    _minSize = min;
+    UpdateRanges();
+}
+
+void USizeCtrl::UpdateRanges()
+{
+    _width->SetRange(_minSize.width, _range.width);
+    _height->SetRange(_minSize.height, _range.height);
 }
 
 URectCtrl::URectCtrl(wxWindow* parent, int wxWindowID)
     : wxPanel(parent, wxWindowID)
     , _range(INT_MAX, INT_MAX)
     , _minSize(1, 1)
+    , _maxSize(INT_MAX, INT_MAX)
 {
     const wxSize commaSize(AABB_COMMA_WIDTH, -1);
 
@@ -147,6 +162,12 @@ void URectCtrl::SetMinRectSize(const usize& minSize)
     UpdateRanges();
 }
 
+void URectCtrl::SetMaxRectSize(const usize& maxSize)
+{
+    _maxSize = maxSize;
+    UpdateRanges();
+}
+
 void URectCtrl::SetRange(const usize& range)
 {
     _range = range;
@@ -158,6 +179,8 @@ void URectCtrl::UpdateRanges()
     _xPos->SetRange(0, _range.width - _minSize.width);
     _yPos->SetRange(0, _range.height - _minSize.height);
 
-    _width->SetRange(_minSize.width, _range.width - _xPos->GetValue());
-    _height->SetRange(_minSize.height, _range.height - _yPos->GetValue());
+    _width->SetRange(_minSize.width,
+                     std::min(_maxSize.width, _range.width - _xPos->GetValue()));
+    _height->SetRange(_minSize.height,
+                      std::min(_maxSize.height, _range.height - _yPos->GetValue()));
 }

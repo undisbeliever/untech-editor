@@ -436,14 +436,17 @@ FrameSetGridPanel::FrameSetGridPanel(wxWindow* parent, int wxWindowID,
     grid->AddGrowableCol(1, 1);
 
     _frameSize = new USizeCtrl(this, wxID_ANY);
+    _frameSize->SetRange(usize(255, 255));
     grid->Add(new wxStaticText(this, wxID_ANY, "Size:"));
     grid->Add(_frameSize, wxSizerFlags(1).Expand());
 
     _offset = new UPointCtrl(this, wxID_ANY);
+    _offset->SetRange(usize(255, 255));
     grid->Add(new wxStaticText(this, wxID_ANY, "Offset:"));
     grid->Add(_offset, wxSizerFlags(1).Expand());
 
     _padding = new UPointCtrl(this, wxID_ANY);
+    _padding->SetRange(usize(255, 255));
     grid->Add(new wxStaticText(this, wxID_ANY, "Padding:"));
     grid->Add(_padding, wxSizerFlags(1).Expand());
 
@@ -485,6 +488,10 @@ void FrameSetGridPanel::UpdateGui()
 
     _grid = _controller.selected().grid;
 
+    const SI::FrameSet& frameSet = _controller.selected();
+    _frameSize->SetMinValue(frameSet.minimumFrameGridSize());
+    _origin->SetRange(_grid.frameSize);
+
     _frameSize->SetValue(_grid.frameSize);
     _offset->SetValue(_grid.offset);
     _padding->SetValue(_grid.padding);
@@ -519,10 +526,12 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxWindow(this, wxID_ANY));
 
     _gridLocation = new UPointCtrl(this, wxID_ANY);
+    _gridLocation->SetRange(usize(255, 255));
     grid->Add(new wxStaticText(this, wxID_ANY, "Grid Location:"));
     grid->Add(_gridLocation, wxSizerFlags(1).Expand());
 
     _aabb = new URectCtrl(this, wxID_ANY);
+    _aabb->SetMaxRectSize(usize(255, 255));
     grid->Add(new wxStaticText(this, wxID_ANY, "Location:"));
     grid->Add(_aabb, wxSizerFlags(1).Expand());
 
