@@ -252,7 +252,9 @@ ET* CappedVectorController<ET, LT, PT>::elementFromUndoRef(const UndoRef& ref)
 }
 
 template <typename ET, class LT, class PT>
-void CappedVectorController<ET, LT, PT>::edit_selected(std::function<void(ET&)> const& fun)
+void CappedVectorController<ET, LT, PT>::edit_selected(
+    std::function<bool(const ET&)> const& validate,
+    std::function<void(ET&)> const& fun)
 {
     class Action : public Undo::Action {
     public:
@@ -308,13 +310,14 @@ void CappedVectorController<ET, LT, PT>::edit_selected(std::function<void(ET&)> 
         assert(_selectedIndex < _list->size());
         auto& value = _list->at(_selectedIndex);
 
-        auto action = std::make_unique<Action>(*this, value);
+        if (validate(value)) {
+            auto action = std::make_unique<Action>(*this, value);
 
-        fun(value);
+            fun(value);
 
-        action->setNewValue(value);
-
-        _baseController.undoStack().add_undo(std::move(action));
+            action->setNewValue(value);
+            _baseController.undoStack().add_undo(std::move(action));
+        }
     }
 
     _signal_dataChanged.emit();

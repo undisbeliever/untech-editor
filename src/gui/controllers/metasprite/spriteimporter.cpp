@@ -90,47 +90,49 @@ template class Controller::SharedPtrRootController<FrameSet>;
 
 void FrameSetController::selected_setName(const idstring& name)
 {
-    edit_selected([&](FrameSet& frameSet) {
-        frameSet.name = name;
-    });
+    edit_selected(
+        [&](auto& fs) { return fs.name != name; },
+        [&](auto& fs) { fs.name = name; });
 }
 
 void FrameSetController::selected_setTilesetType(const TilesetType tilesetType)
 {
-    edit_selected([&](FrameSet& frameSet) {
-        frameSet.tilesetType = tilesetType;
-    });
+    edit_selected(
+        [&](auto& fs) { return fs.tilesetType != tilesetType; },
+        [&](auto& fs) { fs.tilesetType = tilesetType; });
 }
 
 void FrameSetController::selected_setExportOrderFilename(const std::string& filename)
 {
-    edit_selected([&](FrameSet& frameSet) {
-        frameSet.exportOrder = loadFrameSetExportOrderCached(filename);
-    });
+    edit_selected(
+        [&](auto) { return !filename.empty(); },
+        [&](auto& fs) {
+            fs.exportOrder = loadFrameSetExportOrderCached(filename);
+        });
 }
 
 void FrameSetController::selected_setImageFilename(const std::string& filename)
 {
-    edit_selected([&](FrameSet& frameSet) {
-        frameSet.loadImage(filename);
-    });
+    edit_selected(
+        [&](auto& fs) { return fs.imageFilename != filename; },
+        [&](auto& fs) { fs.loadImage(filename); });
 }
 
 void FrameSetController::selected_setTransparentColor(const rgba& color)
 {
-    edit_selected([&](FrameSet& frameSet) {
-        frameSet.transparentColor = color;
-    });
+    edit_selected(
+        [&](auto& fs) { return fs.transparentColor != color; },
+        [&](auto& fs) { fs.transparentColor = color; });
 }
 
 void FrameSetController::selected_setGrid(const FrameSetGrid& grid)
 {
-    edit_selected([&](FrameSet& frameSet) {
-        if (grid.isValid(frameSet)) {
+    edit_selected(
+        [&](auto& frameSet) { return grid.isValid(frameSet); },
+        [&](auto& frameSet) {
             frameSet.grid = grid;
             frameSet.updateFrameLocations();
-        }
-    });
+        });
 }
 
 void FrameSetController::selected_reloadImage()
@@ -162,33 +164,38 @@ void FrameController::onCreate(const idstring&, Frame& frame)
 
 void FrameController::selected_setLocation(const FrameLocation& location)
 {
-    edit_selected([&](Frame& frame) {
-        const FrameSet& fs = this->parent().selected();
+    const FrameSet& fs = parent().selected();
 
-        frame.location = location;
-        frame.location.update(fs.grid, frame);
-    });
+    FrameLocation loc = location;
+    loc.update(fs.grid, this->selected());
+
+    edit_selected(
+        [&](auto& frame) { return frame.location != loc; },
+        [&](auto& frame) { frame.location = loc; });
 }
 
 void FrameController::selected_setTileHitbox(const urect& tileHitbox)
 {
-    edit_selected([&](Frame& frame) {
-        frame.tileHitbox = frame.location.aabb.clipInside(tileHitbox, frame.tileHitbox);
-    });
+    const Frame& f = selected();
+    auto th = f.location.aabb.clipInside(tileHitbox, f.tileHitbox);
+
+    edit_selected(
+        [&](auto& frame) { return frame.tileHitbox != th; },
+        [&](auto& frame) { frame.tileHitbox = th; });
 }
 
 void FrameController::selected_setSpriteOrder(const SpriteOrderType& spriteOrder)
 {
-    edit_selected([&](Frame& frame) {
-        frame.spriteOrder = spriteOrder;
-    });
+    edit_selected(
+        [&](auto& frame) { return frame.spriteOrder != spriteOrder; },
+        [&](auto& frame) { frame.spriteOrder = spriteOrder; });
 }
 
 void FrameController::selected_setSolid(const bool solid)
 {
-    edit_selected([&](Frame& frame) {
-        frame.solid = solid;
-    });
+    edit_selected(
+        [&](auto& frame) { return frame.solid != solid; },
+        [&](auto& frame) { frame.solid = solid; });
 }
 
 // FrameObjectController
@@ -198,21 +205,26 @@ template class Controller::CappedVectorController<FrameObject, FrameObject::list
 
 void FrameObjectController::selected_setLocation(const upoint& location)
 {
-    edit_selected([&](FrameObject& obj) {
-        const Frame& frame = parent().selected();
-        obj.location = frame.location.aabb.clipInside(location, obj.sizePx());
-    });
+    const urect& frameAabb = parent().selected().location.aabb;
+    const auto objSize = selected().sizePx();
+    const upoint loc = frameAabb.clipInside(location, objSize);
+
+    edit_selected(
+        [&](auto& obj) { return obj.location != loc; },
+        [&](auto& obj) { obj.location = loc; });
 }
 
 void FrameObjectController::selected_setSize(const ObjectSize size)
 {
-    edit_selected([&](FrameObject& obj) {
-        const Frame& frame = parent().selected();
+    edit_selected(
+        [&](auto& obj) { return obj.size != size; },
+        [&](auto& obj) {
+            // updating size can cause location to appear outside frame aabb
+            const Frame& frame = this->parent().selected();
 
-        // updating size can cause location to appear outside frame aabb
-        obj.size = size;
-        obj.location = frame.location.aabb.clipInside(obj.location, obj.sizePx());
-    });
+            obj.size = size;
+            obj.location = frame.location.aabb.clipInside(obj.location, obj.sizePx());
+        });
 }
 
 // ActionPointController
@@ -222,17 +234,19 @@ template class Controller::CappedVectorController<ActionPoint, ActionPoint::list
 
 void ActionPointController::selected_setLocation(const upoint& location)
 {
-    edit_selected([&](ActionPoint& ap) {
-        const Frame& frame = parent().selected();
-        ap.location = frame.location.aabb.clipInside(location);
-    });
+    const urect& frameAabb = parent().selected().location.aabb;
+    const upoint loc = frameAabb.clipInside(location);
+
+    edit_selected(
+        [&](auto& ap) { return ap.location != loc; },
+        [&](auto& ap) { ap.location = loc; });
 }
 
 void ActionPointController::selected_setParameter(const ActionPointParameter& parameter)
 {
-    edit_selected([&](ActionPoint& ap) {
-        ap.parameter = parameter;
-    });
+    edit_selected(
+        [&](auto& ap) { return ap.parameter != parameter; },
+        [&](auto& ap) { ap.parameter = parameter; });
 }
 
 // EntityHitboxController
@@ -242,15 +256,18 @@ template class Controller::CappedVectorController<EntityHitbox, EntityHitbox::li
 
 void EntityHitboxController::selected_setAabb(const urect& aabb)
 {
-    edit_selected([&](EntityHitbox& eh) {
-        const Frame& frame = parent().selected();
-        eh.aabb = frame.location.aabb.clipInside(aabb, eh.aabb);
-    });
+    const urect& frameAabb = parent().selected().location.aabb;
+    const urect& oldAabb = selected().aabb;
+    const urect newAabb = frameAabb.clipInside(aabb, oldAabb);
+
+    edit_selected(
+        [&](auto& eh) { return eh.aabb != newAabb; },
+        [&](auto& eh) { eh.aabb = newAabb; });
 }
 
 void EntityHitboxController::selected_setHitboxType(const EntityHitboxType& hitboxType)
 {
-    edit_selected([&](EntityHitbox& eh) {
-        eh.hitboxType = hitboxType;
-    });
+    edit_selected(
+        [&](auto& eh) { return eh.hitboxType != hitboxType; },
+        [&](auto& eh) { eh.hitboxType = hitboxType; });
 }

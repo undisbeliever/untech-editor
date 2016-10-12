@@ -53,6 +53,15 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     origin.y = std::min(origin.y, aabb.height);
 }
 
+bool FrameLocation::operator==(const FrameLocation& o) const
+{
+    return this->aabb == o.aabb
+           && this->origin == o.origin
+           && this->gridLocation == o.gridLocation
+           && this->useGridLocation == o.useGridLocation
+           && this->useGridOrigin == o.useGridOrigin;
+}
+
 /*
  * FRAME
  * =====

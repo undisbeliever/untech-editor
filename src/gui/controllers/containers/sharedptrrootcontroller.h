@@ -57,7 +57,10 @@ protected:
     // can return NULL is nothing is selected
     value_type* editable_selected() { return _root.get(); }
 
-    void edit_selected(std::function<void(value_type&)> const& fun);
+    // will only create an UndoAction and call fun if validate returns true.
+    void edit_selected(
+        std::function<bool(const element_type&)> const& validate,
+        std::function<void(element_type&)> const& fun);
 
     UndoRef undoRefForSelected() const;
     static element_type* elementFromUndoRef(const UndoRef& ref);

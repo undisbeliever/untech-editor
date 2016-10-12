@@ -227,7 +227,9 @@ T* IdMapController<T, PT>::elementFromUndoRef(const UndoRef& ref)
 }
 
 template <class T, class PT>
-void IdMapController<T, PT>::edit_selected(std::function<void(T&)> const& fun)
+void IdMapController<T, PT>::edit_selected(
+    std::function<bool(const T&)> const& validate,
+    std::function<void(T&)> const& fun)
 {
     class Action : public Undo::Action {
     public:
@@ -282,13 +284,14 @@ void IdMapController<T, PT>::edit_selected(std::function<void(T&)> const& fun)
     if (_map && _selectedId.isValid()) {
         auto& value = _map->at(_selectedId);
 
-        auto action = std::make_unique<Action>(*this, value);
+        if (validate(value)) {
+            auto action = std::make_unique<Action>(*this, value);
 
-        fun(value);
+            fun(value);
 
-        action->setNewValue(value);
-
-        _baseController.undoStack().add_undo(std::move(action));
+            action->setNewValue(value);
+            _baseController.undoStack().add_undo(std::move(action));
+        }
     }
 
     _signal_dataChanged.emit();

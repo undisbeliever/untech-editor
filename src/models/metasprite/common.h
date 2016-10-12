@@ -33,12 +33,12 @@ struct NameReference {
 
     NameReference() = default;
 
-    bool operator==(const NameReference& o)
+    bool operator==(const NameReference& o) const
     {
         return name == o.name && hFlip == o.hFlip && vFlip == o.vFlip;
     }
 
-    bool operator!=(const NameReference& o)
+    bool operator!=(const NameReference& o) const
     {
         return name != o.name || hFlip != o.hFlip || vFlip != o.vFlip;
     }

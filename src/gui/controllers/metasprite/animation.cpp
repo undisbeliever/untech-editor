@@ -99,28 +99,28 @@ template class Controller::CappedVectorController<Instruction, Instruction::list
 
 void InstructionController::selected_setOperation(const Bytecode bc)
 {
-    edit_selected([&](Instruction& inst) {
-        inst.operation = bc;
-    });
+    edit_selected(
+        [&](auto& inst) { return inst.operation != bc; },
+        [&](auto& inst) { inst.operation = bc; });
 }
 
 void InstructionController::selected_setParameter(int parameter)
 {
-    edit_selected([&](Instruction& inst) {
-        inst.parameter = parameter;
-    });
+    edit_selected(
+        [&](auto& inst) { return inst.parameter != parameter; },
+        [&](auto& inst) { inst.parameter = parameter; });
 }
 
 void InstructionController::selected_setFrame(const NameReference& frame)
 {
-    edit_selected([&](Instruction& inst) {
-        inst.frame = frame;
-    });
+    edit_selected(
+        [&](auto& inst) { return inst.frame != frame; },
+        [&](auto& inst) { inst.frame = frame; });
 }
 
 void InstructionController::selected_setGotoLabel(const idstring& label)
 {
-    edit_selected([&](Instruction& inst) {
-        inst.gotoLabel = label;
-    });
+    edit_selected(
+        [&](auto& inst) { return inst.gotoLabel != label; },
+        [&](auto& inst) { inst.gotoLabel = label; });
 }
