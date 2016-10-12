@@ -161,7 +161,7 @@ struct _rect {
     // Clips the _point within the width/height of the _rect
     inline _point<T> clipInside(const _point<T>& p) const
     {
-        return _point<T>(std::min(p.x, width), std::min(p.y, height));
+        return _point<T>(std::min(p.x, width - 1), std::min(p.y, height - 1));
     }
 
     // Clips the _point within the width/height of the _rect

@@ -24,8 +24,8 @@ public:
         _yPos->SetValue(value.y);
     }
 
-    void SetRange(const usize& max);
-    void SetRange(const usize& max, unsigned squareSize);
+    void SetRange(const usize& range);
+    void SetRange(const usize& range, unsigned squareSize);
 
 private:
     wxSpinCtrl* _xPos;

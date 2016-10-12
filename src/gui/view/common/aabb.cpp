@@ -37,16 +37,16 @@ UPointCtrl::UPointCtrl(wxWindow* parent, int wxWindowID)
     this->SetSizer(sizer);
 }
 
-void UPointCtrl::SetRange(const usize& max)
+void UPointCtrl::SetRange(const usize& range)
 {
-    _xPos->SetRange(0, max.width);
-    _yPos->SetRange(0, max.height);
+    _xPos->SetRange(0, range.width - 1);
+    _yPos->SetRange(0, range.height - 1);
 }
 
-void UPointCtrl::SetRange(const usize& max, unsigned squareSize)
+void UPointCtrl::SetRange(const usize& range, unsigned squareSize)
 {
-    _xPos->SetRange(0, std::max((int)(max.width - squareSize), 0));
-    _yPos->SetRange(0, std::max((int)(max.height - squareSize), 0));
+    _xPos->SetRange(0, std::max((int)(range.width - squareSize), 0));
+    _yPos->SetRange(0, std::max((int)(range.height - squareSize), 0));
 }
 
 USizeCtrl::USizeCtrl(wxWindow* parent, int wxWindowID)
