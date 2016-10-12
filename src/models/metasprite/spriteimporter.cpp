@@ -14,7 +14,7 @@ const std::string EntityHitbox::list_t::HUMAN_TYPE_NAME = "Entity Hitbox";
 
 bool FrameSetGrid::isValid(const FrameSet& frameSet) const
 {
-    usize minSize = frameSet.minimumViableFrameSize();
+    usize minSize = frameSet.minimumFrameGridSize();
 
     return frameSize.width >= minSize.width
            && frameSize.height >= minSize.height
@@ -97,12 +97,16 @@ usize Frame::minimumViableSize() const
  * =========
  */
 
-usize FrameSet::minimumViableFrameSize() const
+usize FrameSet::minimumFrameGridSize() const
 {
-    usize limit;
+    usize limit = usize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
 
     for (const auto& it : frames) {
-        limit = limit.expand(it.second.minimumViableSize());
+        const Frame& frame = it.second;
+
+        if (frame.location.useGridLocation) {
+            limit = limit.expand(frame.minimumViableSize());
+        }
     }
 
     return limit;

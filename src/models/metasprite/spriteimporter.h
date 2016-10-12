@@ -167,7 +167,8 @@ struct FrameSet {
 
     FrameSet() = default;
 
-    usize minimumViableFrameSize() const;
+    usize minimumFrameGridSize() const;
+
     bool transparentColorValid() const
     {
         return transparentColor.alpha == 0xFF;
