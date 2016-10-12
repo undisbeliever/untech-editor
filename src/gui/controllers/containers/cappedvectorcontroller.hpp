@@ -225,14 +225,96 @@ ET* CappedVectorController<ET, LT, PT>::editable_selected()
 }
 
 template <typename ET, class LT, class PT>
+typename CappedVectorController<ET, LT, PT>::UndoRef
+CappedVectorController<ET, LT, PT>::undoRefForSelected() const
+{
+    if (_list && hasSelected()) {
+        return {
+            _parent.undoRefForSelected(),
+            _selectedIndex
+        };
+    }
+    else {
+        throw std::logic_error("No element selected");
+    }
+}
+
+template <typename ET, class LT, class PT>
+ET* CappedVectorController<ET, LT, PT>::elementFromUndoRef(const UndoRef& ref)
+{
+    auto* p = PT::elementFromUndoRef(ref.parent);
+    if (p) {
+        auto& list = listFromParent<LT, typename PT::element_type>(*p);
+        return &list.at(ref.index);
+    }
+
+    return nullptr;
+}
+
+template <typename ET, class LT, class PT>
 void CappedVectorController<ET, LT, PT>::edit_selected(std::function<void(ET&)> const& fun)
 {
+    class Action : public Undo::Action {
+    public:
+        Action() = delete;
+        Action(CappedVectorController& controller, const ET& value)
+            : _controller(controller)
+            , _ref(controller.undoRefForSelected())
+            , _oldValue(value)
+            , _newValue()
+        {
+        }
+        virtual ~Action() override = default;
+
+        virtual void undo() override
+        {
+            ET* element = CappedVectorController::elementFromUndoRef(_ref);
+            if (element) {
+                *element = _oldValue;
+
+                _controller._signal_dataChanged.emit();
+                _controller._signal_anyChanged.emit();
+            }
+        }
+
+        virtual void redo() override
+        {
+            ET* element = CappedVectorController::elementFromUndoRef(_ref);
+            if (element) {
+                *element = _newValue;
+
+                _controller._signal_dataChanged.emit();
+                _controller._signal_anyChanged.emit();
+            }
+        }
+
+        virtual const std::string& message() const override
+        {
+            // ::TODO undo message::
+            static const std::string s = "edit_selected";
+            return s;
+        }
+
+        void setNewValue(const ET& value) { _newValue = value; }
+
+    private:
+        CappedVectorController& _controller;
+        UndoRef _ref;
+        const ET _oldValue;
+        ET _newValue;
+    };
+
     if (_list && _hasSelected) {
-        // ::TODO undo engine::
-
         assert(_selectedIndex < _list->size());
+        auto& value = _list->at(_selectedIndex);
 
-        fun(_list->at(_selectedIndex));
+        auto action = std::make_unique<Action>(*this, value);
+
+        fun(value);
+
+        action->setNewValue(value);
+
+        _baseController.undoStack().add_undo(std::move(action));
     }
 
     _signal_dataChanged.emit();

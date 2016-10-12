@@ -60,6 +60,18 @@ class AnimationControllerInterface {
 public:
     using element_type = Animation::map_t;
 
+    // ::HACK FrameSet type is unknown::
+    // this is allowed as FrameSetController is a root controller
+    struct UndoRef {
+        enum Type {
+            UNKNOWN = 0,
+            METASPRITE,
+            SPRITE_IMPORTER,
+        };
+        std::shared_ptr<void> frameSet;
+        Type type;
+    };
+
 public:
     AnimationControllerInterface(Controller::BaseController& baseController)
         : _baseController(baseController)
@@ -77,6 +89,9 @@ public:
 
 protected:
     virtual element_type* editable_selected() = 0;
+
+    virtual UndoRef undoRefForSelected() const = 0;
+    static element_type* elementFromUndoRef(const UndoRef& ref);
 
 private:
     Controller::BaseController& _baseController;
@@ -101,11 +116,8 @@ public:
     FrameSetControllerT& parent() { return _parent; }
 
 protected:
-    virtual AnimationControllerInterface::element_type* editable_selected() final
-    {
-        auto* fs = _parent.editable_selected();
-        return fs ? &fs->animations : nullptr;
-    }
+    virtual AnimationControllerInterface::element_type* editable_selected() final;
+    virtual UndoRef undoRefForSelected() const final;
 
 private:
     FrameSetControllerT& _parent;

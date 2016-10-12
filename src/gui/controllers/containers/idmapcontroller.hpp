@@ -200,12 +200,95 @@ T* IdMapController<T, PT>::editable_selected()
 }
 
 template <class T, class PT>
+typename IdMapController<T, PT>::UndoRef
+IdMapController<T, PT>::undoRefForSelected() const
+{
+    if (_map && hasSelected()) {
+        return {
+            _parent.undoRefForSelected(),
+            _selectedId
+        };
+    }
+    else {
+        throw std::logic_error("No element selected");
+    }
+}
+
+template <class T, class PT>
+T* IdMapController<T, PT>::elementFromUndoRef(const UndoRef& ref)
+{
+    auto* p = PT::elementFromUndoRef(ref.parent);
+    if (p) {
+        auto& map = idmapFromParent<T, typename PT::element_type>(*p);
+        return &map.at(ref.id);
+    }
+
+    return nullptr;
+}
+
+template <class T, class PT>
 void IdMapController<T, PT>::edit_selected(std::function<void(T&)> const& fun)
 {
-    if (_map && _selectedId.isValid()) {
-        // ::TODO undo engine::
+    class Action : public Undo::Action {
+    public:
+        Action() = delete;
+        Action(IdMapController& controller, const T& value)
+            : _controller(controller)
+            , _ref(controller.undoRefForSelected())
+            , _oldValue(value)
+            , _newValue()
+        {
+        }
+        virtual ~Action() override = default;
 
-        fun(_map->at(_selectedId));
+        virtual void undo() override
+        {
+            T* element = elementFromUndoRef(_ref);
+            if (element) {
+                *element = _oldValue;
+
+                _controller._signal_dataChanged.emit();
+                _controller._signal_anyChanged.emit();
+            }
+        }
+
+        virtual void redo() override
+        {
+            T* element = elementFromUndoRef(_ref);
+            if (element) {
+                *element = _newValue;
+
+                _controller._signal_dataChanged.emit();
+                _controller._signal_anyChanged.emit();
+            }
+        }
+
+        virtual const std::string& message() const override
+        {
+            // ::TODO undo message::
+            static const std::string s = "edit_selected";
+            return s;
+        }
+
+        void setNewValue(const T& value) { _newValue = value; }
+
+    private:
+        IdMapController& _controller;
+        UndoRef _ref;
+        const T _oldValue;
+        T _newValue;
+    };
+
+    if (_map && _selectedId.isValid()) {
+        auto& value = _map->at(_selectedId);
+
+        auto action = std::make_unique<Action>(*this, value);
+
+        fun(value);
+
+        action->setNewValue(value);
+
+        _baseController.undoStack().add_undo(std::move(action));
     }
 
     _signal_dataChanged.emit();

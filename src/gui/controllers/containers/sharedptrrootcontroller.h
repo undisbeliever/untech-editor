@@ -20,6 +20,8 @@ public:
     using value_type = T;
     using element_type = T;
 
+    using UndoRef = std::shared_ptr<T>;
+
     const static value_type BLANK_T;
 
 public:
@@ -56,6 +58,9 @@ protected:
     value_type* editable_selected() { return _root.get(); }
 
     void edit_selected(std::function<void(value_type&)> const& fun);
+
+    UndoRef undoRefForSelected() const;
+    static element_type* elementFromUndoRef(const UndoRef& ref);
 
 protected:
     BaseController& _baseController;

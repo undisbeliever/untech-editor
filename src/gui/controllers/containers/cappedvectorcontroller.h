@@ -20,6 +20,11 @@ public:
     using element_type = ElementT;
     using list_type = ListT;
 
+    struct UndoRef {
+        const typename ParentT::UndoRef parent;
+        const size_t index;
+    };
+
     const static element_type BLANK_T;
 
 public:
@@ -95,6 +100,9 @@ protected:
     element_type* editable_selected();
 
     void edit_selected(std::function<void(element_type&)> const& fun);
+
+    UndoRef undoRefForSelected() const;
+    static element_type* elementFromUndoRef(const UndoRef& ref);
 
 protected:
     ParentT& _parent;
