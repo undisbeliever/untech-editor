@@ -24,6 +24,7 @@ public:
         const typename ParentT::UndoRef parent;
         const size_t index;
     };
+    class MementoUndoAction;
 
     const static element_type BLANK_T;
 
@@ -100,6 +101,7 @@ protected:
     element_type* editable_selected();
 
     // will only create an UndoAction and call fun if validate returns true.
+    template <class UndoActionT = MementoUndoAction>
     void edit_selected(
         std::function<bool(const element_type&)> const& validate,
         std::function<void(element_type&)> const& fun);

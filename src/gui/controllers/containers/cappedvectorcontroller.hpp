@@ -9,6 +9,57 @@ namespace Controller {
 template <class ListT, class ParentT>
 ListT& listFromParent(ParentT&);
 
+template <typename ET, class LT, class PT>
+class CappedVectorController<ET, LT, PT>::MementoUndoAction : public Undo::Action {
+public:
+    MementoUndoAction() = delete;
+    MementoUndoAction(CappedVectorController& controller, const ET& value)
+        : _controller(controller)
+        , _ref(controller.undoRefForSelected())
+        , _oldValue(value)
+        , _newValue()
+    {
+    }
+    virtual ~MementoUndoAction() override = default;
+
+    virtual void undo() override
+    {
+        ET* element = CappedVectorController::elementFromUndoRef(_ref);
+        if (element) {
+            *element = _oldValue;
+
+            _controller._signal_dataChanged.emit();
+            _controller._signal_anyChanged.emit();
+        }
+    }
+
+    virtual void redo() override
+    {
+        ET* element = CappedVectorController::elementFromUndoRef(_ref);
+        if (element) {
+            *element = _newValue;
+
+            _controller._signal_dataChanged.emit();
+            _controller._signal_anyChanged.emit();
+        }
+    }
+
+    virtual const std::string& message() const override
+    {
+        // ::TODO undo message::
+        static const std::string s = "edit_selected";
+        return s;
+    }
+
+    void setNewValue(const ET& value) { _newValue = value; }
+
+private:
+    CappedVectorController& _controller;
+    UndoRef _ref;
+    const ET _oldValue;
+    ET _newValue;
+};
+
 template <typename ElementT, class ListT, class ParentT>
 const ElementT CappedVectorController<ElementT, ListT, ParentT>::BLANK_T = ElementT();
 
@@ -252,66 +303,17 @@ ET* CappedVectorController<ET, LT, PT>::elementFromUndoRef(const UndoRef& ref)
 }
 
 template <typename ET, class LT, class PT>
+template <class UndoActionT>
 void CappedVectorController<ET, LT, PT>::edit_selected(
     std::function<bool(const ET&)> const& validate,
     std::function<void(ET&)> const& fun)
 {
-    class Action : public Undo::Action {
-    public:
-        Action() = delete;
-        Action(CappedVectorController& controller, const ET& value)
-            : _controller(controller)
-            , _ref(controller.undoRefForSelected())
-            , _oldValue(value)
-            , _newValue()
-        {
-        }
-        virtual ~Action() override = default;
-
-        virtual void undo() override
-        {
-            ET* element = CappedVectorController::elementFromUndoRef(_ref);
-            if (element) {
-                *element = _oldValue;
-
-                _controller._signal_dataChanged.emit();
-                _controller._signal_anyChanged.emit();
-            }
-        }
-
-        virtual void redo() override
-        {
-            ET* element = CappedVectorController::elementFromUndoRef(_ref);
-            if (element) {
-                *element = _newValue;
-
-                _controller._signal_dataChanged.emit();
-                _controller._signal_anyChanged.emit();
-            }
-        }
-
-        virtual const std::string& message() const override
-        {
-            // ::TODO undo message::
-            static const std::string s = "edit_selected";
-            return s;
-        }
-
-        void setNewValue(const ET& value) { _newValue = value; }
-
-    private:
-        CappedVectorController& _controller;
-        UndoRef _ref;
-        const ET _oldValue;
-        ET _newValue;
-    };
-
     if (_list && _hasSelected) {
         assert(_selectedIndex < _list->size());
         auto& value = _list->at(_selectedIndex);
 
         if (validate(value)) {
-            auto action = std::make_unique<Action>(*this, value);
+            auto action = std::make_unique<UndoActionT>(*this, value);
 
             fun(value);
 

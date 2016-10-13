@@ -21,6 +21,7 @@ public:
     using element_type = T;
 
     using UndoRef = std::shared_ptr<T>;
+    class MementoUndoAction;
 
     const static value_type BLANK_T;
 
@@ -58,6 +59,7 @@ protected:
     value_type* editable_selected() { return _root.get(); }
 
     // will only create an UndoAction and call fun if validate returns true.
+    template <class UndoActionT = MementoUndoAction>
     void edit_selected(
         std::function<bool(const element_type&)> const& validate,
         std::function<void(element_type&)> const& fun);

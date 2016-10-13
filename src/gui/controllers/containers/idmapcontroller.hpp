@@ -6,6 +6,57 @@ namespace Controller {
 template <class T, class ParentT>
 UnTech::idmap<T>& idmapFromParent(ParentT&);
 
+template <class T, class PT>
+class IdMapController<T, PT>::MementoUndoAction : public Undo::Action {
+public:
+    MementoUndoAction() = delete;
+    MementoUndoAction(IdMapController& controller, const T& value)
+        : _controller(controller)
+        , _ref(controller.undoRefForSelected())
+        , _oldValue(value)
+        , _newValue()
+    {
+    }
+    virtual ~MementoUndoAction() override = default;
+
+    virtual void undo() override
+    {
+        T* element = elementFromUndoRef(_ref);
+        if (element) {
+            *element = _oldValue;
+
+            _controller._signal_dataChanged.emit();
+            _controller._signal_anyChanged.emit();
+        }
+    }
+
+    virtual void redo() override
+    {
+        T* element = elementFromUndoRef(_ref);
+        if (element) {
+            *element = _newValue;
+
+            _controller._signal_dataChanged.emit();
+            _controller._signal_anyChanged.emit();
+        }
+    }
+
+    virtual const std::string& message() const override
+    {
+        // ::TODO undo message::
+        static const std::string s = "edit_selected";
+        return s;
+    }
+
+    void setNewValue(const T& value) { _newValue = value; }
+
+private:
+    IdMapController& _controller;
+    UndoRef _ref;
+    const T _oldValue;
+    T _newValue;
+};
+
 template <typename ElementT, class ParentT>
 const ElementT IdMapController<ElementT, ParentT>::BLANK_T = ElementT();
 
@@ -227,65 +278,16 @@ T* IdMapController<T, PT>::elementFromUndoRef(const UndoRef& ref)
 }
 
 template <class T, class PT>
+template <class UndoActionT>
 void IdMapController<T, PT>::edit_selected(
     std::function<bool(const T&)> const& validate,
     std::function<void(T&)> const& fun)
 {
-    class Action : public Undo::Action {
-    public:
-        Action() = delete;
-        Action(IdMapController& controller, const T& value)
-            : _controller(controller)
-            , _ref(controller.undoRefForSelected())
-            , _oldValue(value)
-            , _newValue()
-        {
-        }
-        virtual ~Action() override = default;
-
-        virtual void undo() override
-        {
-            T* element = elementFromUndoRef(_ref);
-            if (element) {
-                *element = _oldValue;
-
-                _controller._signal_dataChanged.emit();
-                _controller._signal_anyChanged.emit();
-            }
-        }
-
-        virtual void redo() override
-        {
-            T* element = elementFromUndoRef(_ref);
-            if (element) {
-                *element = _newValue;
-
-                _controller._signal_dataChanged.emit();
-                _controller._signal_anyChanged.emit();
-            }
-        }
-
-        virtual const std::string& message() const override
-        {
-            // ::TODO undo message::
-            static const std::string s = "edit_selected";
-            return s;
-        }
-
-        void setNewValue(const T& value) { _newValue = value; }
-
-    private:
-        IdMapController& _controller;
-        UndoRef _ref;
-        const T _oldValue;
-        T _newValue;
-    };
-
     if (_map && _selectedId.isValid()) {
         auto& value = _map->at(_selectedId);
 
         if (validate(value)) {
-            auto action = std::make_unique<Action>(*this, value);
+            auto action = std::make_unique<UndoActionT>(*this, value);
 
             fun(value);
 
