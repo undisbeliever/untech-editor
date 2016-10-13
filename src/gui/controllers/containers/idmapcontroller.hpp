@@ -21,24 +21,18 @@ public:
 
     virtual void undo() override
     {
-        T* element = elementFromUndoRef(_ref);
-        if (element) {
-            *element = _oldValue;
+        elementFromUndoRef(_ref) = _oldValue;
 
-            _controller._signal_dataChanged.emit();
-            _controller._signal_anyChanged.emit();
-        }
+        _controller._signal_dataChanged.emit();
+        _controller._signal_anyChanged.emit();
     }
 
     virtual void redo() override
     {
-        T* element = elementFromUndoRef(_ref);
-        if (element) {
-            *element = _newValue;
+        elementFromUndoRef(_ref) = _newValue;
 
-            _controller._signal_dataChanged.emit();
-            _controller._signal_anyChanged.emit();
-        }
+        _controller._signal_dataChanged.emit();
+        _controller._signal_anyChanged.emit();
     }
 
     virtual const std::string& message() const override
@@ -266,15 +260,12 @@ IdMapController<T, PT>::undoRefForSelected() const
 }
 
 template <class T, class PT>
-T* IdMapController<T, PT>::elementFromUndoRef(const UndoRef& ref)
+T& IdMapController<T, PT>::elementFromUndoRef(const UndoRef& ref)
 {
-    auto* p = PT::elementFromUndoRef(ref.parent);
-    if (p) {
-        auto& map = idmapFromParent<T, typename PT::element_type>(*p);
-        return &map.at(ref.id);
-    }
+    typename PT::element_type& p = PT::elementFromUndoRef(ref.parent);
+    map_type& map = idmapFromParent<T, typename PT::element_type>(p);
 
-    return nullptr;
+    return map.at(ref.id);
 }
 
 template <class T, class PT>

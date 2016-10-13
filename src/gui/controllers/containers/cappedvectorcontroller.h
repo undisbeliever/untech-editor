@@ -106,8 +106,11 @@ protected:
         std::function<bool(const element_type&)> const& validate,
         std::function<void(element_type&)> const& fun);
 
+    // throws exception if nothing is selected
     UndoRef undoRefForSelected() const;
-    static element_type* elementFromUndoRef(const UndoRef& ref);
+
+    // throws exception if reference is invalid
+    static element_type& elementFromUndoRef(const UndoRef& ref);
 
 protected:
     ParentT& _parent;

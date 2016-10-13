@@ -91,7 +91,7 @@ protected:
     virtual element_type* editable_selected() = 0;
 
     virtual UndoRef undoRefForSelected() const = 0;
-    static element_type* elementFromUndoRef(const UndoRef& ref);
+    static element_type& elementFromUndoRef(const UndoRef& ref);
 
 private:
     Controller::BaseController& _baseController;

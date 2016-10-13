@@ -20,11 +20,7 @@ public:
 
     virtual void undo() final
     {
-        T* element = elementFromUndoRef(_ref);
-
-        if (element) {
-            *element = _oldValue;
-        }
+        elementFromUndoRef(_ref) = _oldValue;
 
         _controller._signal_dataChanged.emit();
         _controller._signal_anyChanged.emit();
@@ -32,11 +28,7 @@ public:
 
     virtual void redo() final
     {
-        T* element = elementFromUndoRef(_ref);
-
-        if (element) {
-            *element = _newValue;
-        }
+        elementFromUndoRef(_ref) = _newValue;
 
         _controller._signal_dataChanged.emit();
         _controller._signal_anyChanged.emit();
@@ -77,9 +69,14 @@ typename SharedPtrRootController<T>::UndoRef SharedPtrRootController<T>::undoRef
 }
 
 template <typename T>
-T* SharedPtrRootController<T>::elementFromUndoRef(const UndoRef& ref)
+T& SharedPtrRootController<T>::elementFromUndoRef(const UndoRef& ref)
 {
-    return ref.get();
+    if (ref) {
+        return *ref;
+    }
+    else {
+        throw std::logic_error("Root is empty");
+    }
 }
 
 template <typename T>

@@ -31,21 +31,21 @@ const std::string InstructionController::HUMAN_TYPE_NAME = "Animation Instructio
 
 // AnimationControllerInterface
 // ----------------------------
-AnimationControllerInterface::element_type*
+AnimationControllerInterface::element_type&
 AnimationControllerInterface::elementFromUndoRef(const UndoRef& ref)
 {
     if (ref.frameSet) {
         if (ref.type == UndoRef::Type::METASPRITE) {
             auto* a = static_cast<MS::FrameSet*>(ref.frameSet.get());
-            return &a->animations;
+            return a->animations;
         }
         else if (ref.type == UndoRef::Type::SPRITE_IMPORTER) {
             auto* a = static_cast<SI::FrameSet*>(ref.frameSet.get());
-            return &a->animations;
+            return a->animations;
         }
     }
 
-    return nullptr;
+    throw std::logic_error("No root FrameSet");
 }
 
 // AnimationControllerImpl

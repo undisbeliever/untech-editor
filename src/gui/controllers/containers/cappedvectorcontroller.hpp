@@ -24,24 +24,18 @@ public:
 
     virtual void undo() override
     {
-        ET* element = CappedVectorController::elementFromUndoRef(_ref);
-        if (element) {
-            *element = _oldValue;
+        elementFromUndoRef(_ref) = _oldValue;
 
-            _controller._signal_dataChanged.emit();
-            _controller._signal_anyChanged.emit();
-        }
+        _controller._signal_dataChanged.emit();
+        _controller._signal_anyChanged.emit();
     }
 
     virtual void redo() override
     {
-        ET* element = CappedVectorController::elementFromUndoRef(_ref);
-        if (element) {
-            *element = _newValue;
+        elementFromUndoRef(_ref) = _newValue;
 
-            _controller._signal_dataChanged.emit();
-            _controller._signal_anyChanged.emit();
-        }
+        _controller._signal_dataChanged.emit();
+        _controller._signal_anyChanged.emit();
     }
 
     virtual const std::string& message() const override
@@ -291,15 +285,12 @@ CappedVectorController<ET, LT, PT>::undoRefForSelected() const
 }
 
 template <typename ET, class LT, class PT>
-ET* CappedVectorController<ET, LT, PT>::elementFromUndoRef(const UndoRef& ref)
+ET& CappedVectorController<ET, LT, PT>::elementFromUndoRef(const UndoRef& ref)
 {
-    auto* p = PT::elementFromUndoRef(ref.parent);
-    if (p) {
-        auto& list = listFromParent<LT, typename PT::element_type>(*p);
-        return &list.at(ref.index);
-    }
+    typename PT::element_type& p = PT::elementFromUndoRef(ref.parent);
+    list_type& list = listFromParent<LT, typename PT::element_type>(p);
 
-    return nullptr;
+    return list.at(ref.index);
 }
 
 template <typename ET, class LT, class PT>
