@@ -46,9 +46,169 @@ public:
 
 private:
     IdMapController& _controller;
-    UndoRef _ref;
+    const UndoRef _ref;
     const T _oldValue;
     T _newValue;
+};
+
+template <class T, class PT>
+class IdMapController<T, PT>::CreateUndoAction : public Undo::Action {
+public:
+    CreateUndoAction() = delete;
+    CreateUndoAction(IdMapController& controller, const idstring& id)
+        : _controller(controller)
+        , _ref(controller.parent().undoRefForSelected())
+        , _id(id)
+        , _element(nullptr)
+    {
+    }
+    virtual ~CreateUndoAction() override = default;
+
+    virtual void undo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        map_type& map = idmapFromParent<T, typename PT::element_type>(p);
+
+        _element = map.extractFrom(_id);
+
+        _controller.validateSelectedId();
+        _controller._signal_mapChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual void redo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        map_type& map = idmapFromParent<T, typename PT::element_type>(p);
+
+        map.insertInto(_id, std::move(_element));
+
+        _controller._signal_mapChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual const std::string& message() const override
+    {
+        // ::TODO undo message::
+        static const std::string s = "Create";
+        return s;
+    }
+
+private:
+    IdMapController& _controller;
+    const typename PT::UndoRef _ref;
+    const idstring _id;
+    std::unique_ptr<T> _element;
+};
+
+template <class T, class PT>
+class IdMapController<T, PT>::RemoveUndoAction : public Undo::Action {
+public:
+    RemoveUndoAction() = delete;
+    RemoveUndoAction(IdMapController& controller, const idstring& id)
+        : _controller(controller)
+        , _ref(controller.parent().undoRefForSelected())
+        , _id(id)
+        , _element(nullptr)
+    {
+    }
+    virtual ~RemoveUndoAction() override = default;
+
+    virtual void undo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        map_type& map = idmapFromParent<T, typename PT::element_type>(p);
+
+        map.insertInto(_id, std::move(_element));
+
+        _controller._signal_mapChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual void redo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        map_type& map = idmapFromParent<T, typename PT::element_type>(p);
+
+        _element = map.extractFrom(_id);
+
+        _controller.validateSelectedId();
+        _controller._signal_mapChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual const std::string& message() const override
+    {
+        // ::TODO undo message::
+        static const std::string s = "Remove";
+        return s;
+    }
+
+private:
+    IdMapController& _controller;
+    const typename PT::UndoRef _ref;
+    const idstring _id;
+    std::unique_ptr<T> _element;
+};
+
+template <class T, class PT>
+class IdMapController<T, PT>::RenameUndoAction : public Undo::Action {
+public:
+    RenameUndoAction() = delete;
+    RenameUndoAction(IdMapController& controller,
+                     const idstring& oldId, const idstring& newId)
+        : _controller(controller)
+        , _ref(controller.parent().undoRefForSelected())
+        , _oldId(oldId)
+        , _newId(newId)
+    {
+    }
+    virtual ~RenameUndoAction() override = default;
+
+    virtual void undo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        map_type& map = idmapFromParent<T, typename PT::element_type>(p);
+
+        map.rename(_newId, _oldId);
+
+        if (_controller._selectedId == _newId) {
+            _controller._selectedId = _oldId;
+        }
+
+        _controller._signal_mapChanged.emit();
+        _controller._signal_selectedChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual void redo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        map_type& map = idmapFromParent<T, typename PT::element_type>(p);
+
+        map.rename(_oldId, _newId);
+
+        if (_controller._selectedId == _oldId) {
+            _controller._selectedId = _newId;
+        }
+
+        _controller._signal_mapChanged.emit();
+        _controller._signal_selectedChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual const std::string& message() const override
+    {
+        // ::TODO undo message::
+        static const std::string s = "Rename";
+        return s;
+    }
+
+private:
+    IdMapController& _controller;
+    const typename PT::UndoRef _ref;
+    const idstring _oldId;
+    const idstring _newId;
 };
 
 template <typename ElementT, class ParentT>
@@ -61,9 +221,6 @@ IdMapController<T, ParentT>::IdMapController(ParentT& parent)
 {
     parent.signal_selectedChanged().connect(sigc::mem_fun(
         *this, &IdMapController::reloadMap));
-
-    this->_signal_mapChanged.connect(sigc::mem_fun(
-        *this, &IdMapController::validateSelectedId));
 }
 
 template <class T, class PT>
@@ -141,8 +298,6 @@ template <class T, class PT>
 void IdMapController<T, PT>::create(const idstring& newId)
 {
     if (canCreate(newId)) {
-        // ::TODO undo engine::
-
         _map->create(newId);
         onCreate(newId, _map->at(newId));
 
@@ -151,6 +306,9 @@ void IdMapController<T, PT>::create(const idstring& newId)
         _signal_mapChanged.emit();
         _signal_selectedChanged.emit();
         _signal_anyChanged.emit();
+
+        _baseController.undoStack().add_undo(
+            std::make_unique<CreateUndoAction>(*this, newId));
     }
 }
 
@@ -175,14 +333,15 @@ template <class T, class PT>
 void IdMapController<T, PT>::cloneSelected(const idstring& newId)
 {
     if (canCloneSelected(newId)) {
-        // ::TODO undo engine::
-
         _map->clone(_selectedId, newId);
         _selectedId = newId;
 
         _signal_mapChanged.emit();
         _signal_selectedChanged.emit();
         _signal_anyChanged.emit();
+
+        _baseController.undoStack().add_undo(
+            std::make_unique<CreateUndoAction>(*this, newId));
     }
 }
 
@@ -202,14 +361,10 @@ template <class T, class PT>
 void IdMapController<T, PT>::renameSelected(const idstring& newId)
 {
     if (canRenameSelected(newId)) {
-        // ::TODO undo engine::
+        auto action = std::make_unique<RenameUndoAction>(*this, _selectedId, newId);
+        action->redo();
 
-        _map->rename(_selectedId, newId);
-        _selectedId = newId;
-
-        _signal_mapChanged.emit();
-        _signal_selectedChanged.emit();
-        _signal_anyChanged.emit();
+        _baseController.undoStack().add_undo(std::move(action));
     }
 }
 
@@ -223,13 +378,10 @@ template <class T, class PT>
 void IdMapController<T, PT>::removeSelected()
 {
     if (canRemoveSelected()) {
-        // ::TODO undo engine::
+        auto action = std::make_unique<RemoveUndoAction>(*this, _selectedId);
+        action->redo();
 
-        _map->remove(_selectedId);
-
-        selectNone();
-        _signal_mapChanged.emit();
-        _signal_anyChanged.emit();
+        _baseController.undoStack().add_undo(std::move(action));
     }
 }
 

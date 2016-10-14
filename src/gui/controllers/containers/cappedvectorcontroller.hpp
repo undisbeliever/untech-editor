@@ -41,7 +41,7 @@ public:
     virtual const std::string& message() const override
     {
         // ::TODO undo message::
-        static const std::string s = "edit_selected";
+        static const std::string s = "Edit " + list_type::HUMAN_TYPE_NAME;
         return s;
     }
 
@@ -49,9 +49,182 @@ public:
 
 private:
     CappedVectorController& _controller;
-    UndoRef _ref;
+    const UndoRef _ref;
     const ET _oldValue;
     ET _newValue;
+};
+
+template <typename ET, class LT, class PT>
+class CappedVectorController<ET, LT, PT>::CreateUndoAction : public Undo::Action {
+public:
+    CreateUndoAction() = delete;
+    CreateUndoAction(CappedVectorController& controller, size_t index)
+        : _controller(controller)
+        , _ref(controller.parent().undoRefForSelected())
+        , _index(index)
+        , _element(_controller._list->at(index))
+    {
+    }
+    virtual ~CreateUndoAction() override = default;
+
+    virtual void undo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        list_type& list = listFromParent<LT, typename PT::element_type>(p);
+
+        assert(_index < list.size());
+        auto it = list.begin() + _index;
+        list.erase(it);
+
+        if (_controller._selectedIndex == _index) {
+            _controller.selectNone();
+        }
+
+        _controller._signal_listChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual void redo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        list_type& list = listFromParent<LT, typename PT::element_type>(p);
+
+        assert(_index <= list.size());
+        auto it = list.begin() + _index;
+        list.emplace(it, _element);
+
+        _controller._signal_listChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual const std::string& message() const override
+    {
+        static const std::string s = "Create " + list_type::HUMAN_TYPE_NAME;
+        return s;
+    }
+
+private:
+    CappedVectorController& _controller;
+    const typename PT::UndoRef _ref;
+    const size_t _index;
+    const ET _element;
+};
+
+template <typename ET, class LT, class PT>
+class CappedVectorController<ET, LT, PT>::RemoveUndoAction : public Undo::Action {
+public:
+    RemoveUndoAction() = delete;
+    RemoveUndoAction(CappedVectorController& controller, size_t index)
+        : _controller(controller)
+        , _ref(controller.parent().undoRefForSelected())
+        , _index(index)
+        , _element(_controller._list->at(index))
+    {
+    }
+    virtual ~RemoveUndoAction() override = default;
+
+    virtual void undo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        list_type& list = listFromParent<LT, typename PT::element_type>(p);
+
+        assert(_index <= list.size());
+        auto it = list.begin() + _index;
+        list.emplace(it, _element);
+
+        _controller._signal_listChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual void redo() override
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        list_type& list = listFromParent<LT, typename PT::element_type>(p);
+
+        assert(_index < list.size());
+        auto it = list.begin() + _index;
+        list.erase(it);
+
+        if (_controller._selectedIndex == _index) {
+            _controller.selectNone();
+        }
+
+        _controller._signal_listChanged.emit();
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual const std::string& message() const override
+    {
+        static const std::string s = "Remove " + list_type::HUMAN_TYPE_NAME;
+        return s;
+    }
+
+private:
+    CappedVectorController& _controller;
+    const typename PT::UndoRef _ref;
+    const size_t _index;
+    const ET _element;
+};
+
+template <typename ET, class LT, class PT>
+class CappedVectorController<ET, LT, PT>::MoveUndoAction : public Undo::Action {
+public:
+    MoveUndoAction() = delete;
+    MoveUndoAction(CappedVectorController& controller, size_t oldIndex, size_t newIndex)
+        : _controller(controller)
+        , _ref(controller.parent().undoRefForSelected())
+        , _oldIndex(oldIndex)
+        , _newIndex(newIndex)
+    {
+    }
+    virtual ~MoveUndoAction() override = default;
+
+    void doSwap(size_t oldIndex, size_t newIndex)
+    {
+        typename PT::element_type& p = PT::elementFromUndoRef(_ref);
+        list_type& list = listFromParent<LT, typename PT::element_type>(p);
+
+        assert(oldIndex < list.size() && newIndex < list.size());
+
+        auto it1 = list.begin() + oldIndex;
+        auto it2 = list.begin() + newIndex;
+
+        std::iter_swap(it1, it2);
+
+        _controller._signal_listChanged.emit();
+
+        if (_controller._selectedIndex == oldIndex) {
+            _controller._selectedIndex = newIndex;
+            _controller._signal_selectedChanged.emit();
+        }
+        else if (_controller._selectedIndex == newIndex) {
+            _controller._selectedIndex = oldIndex;
+            _controller._signal_selectedChanged.emit();
+        }
+
+        _controller._signal_anyChanged.emit();
+    }
+
+    virtual void undo() override
+    {
+        doSwap(_newIndex, _oldIndex);
+    }
+
+    virtual void redo() override
+    {
+        doSwap(_oldIndex, _newIndex);
+    }
+
+    virtual const std::string& message() const override
+    {
+        static const std::string s = "Move " + list_type::HUMAN_TYPE_NAME;
+        return s;
+    }
+
+private:
+    CappedVectorController& _controller;
+    const typename PT::UndoRef _ref;
+    const size_t _oldIndex, _newIndex;
 };
 
 template <typename ElementT, class ListT, class ParentT>
@@ -64,9 +237,6 @@ CappedVectorController<ET, LT, ParentT>::CappedVectorController(ParentT& parent)
 {
     parent.signal_selectedChanged().connect(sigc::mem_fun(
         *this, &CappedVectorController::reloadList));
-
-    this->_signal_listChanged.connect(sigc::mem_fun(
-        *this, &CappedVectorController::validateSelection));
 }
 
 template <typename ET, class LT, class PT>
@@ -140,8 +310,6 @@ template <typename ET, class LT, class PT>
 void CappedVectorController<ET, LT, PT>::create()
 {
     if (canCreate()) {
-        // ::TODO undo engine::
-
         _list->emplace_back();
         onCreate(_list->back());
 
@@ -151,6 +319,9 @@ void CappedVectorController<ET, LT, PT>::create()
         _signal_listChanged.emit();
         _signal_selectedChanged.emit();
         _signal_anyChanged.emit();
+
+        _baseController.undoStack().add_undo(
+            std::make_unique<CreateUndoAction>(*this, _selectedIndex));
     }
 }
 
@@ -169,8 +340,6 @@ template <typename ET, class LT, class PT>
 void CappedVectorController<ET, LT, PT>::cloneSelected()
 {
     if (canCloneSelected()) {
-        // ::TODO undo engine::
-
         _list->emplace_back(_list->at(_selectedIndex));
 
         _selectedIndex = _list->size() - 1;
@@ -179,6 +348,9 @@ void CappedVectorController<ET, LT, PT>::cloneSelected()
         _signal_listChanged.emit();
         _signal_selectedChanged.emit();
         _signal_anyChanged.emit();
+
+        _baseController.undoStack().add_undo(
+            std::make_unique<CreateUndoAction>(*this, _selectedIndex));
     }
 }
 
@@ -192,16 +364,10 @@ template <typename ET, class LT, class PT>
 void CappedVectorController<ET, LT, PT>::removeSelected()
 {
     if (canRemoveSelected()) {
-        // ::TODO undo engine::
+        auto action = std::make_unique<RemoveUndoAction>(*this, _selectedIndex);
+        action->redo();
 
-        assert(_selectedIndex < _list->size());
-
-        auto it = _list->begin() + _selectedIndex;
-        _list->erase(it);
-
-        selectNone();
-        _signal_listChanged.emit();
-        _signal_anyChanged.emit();
+        _baseController.undoStack().add_undo(std::move(action));
     }
 }
 
@@ -215,19 +381,11 @@ template <typename ET, class LT, class PT>
 void CappedVectorController<ET, LT, PT>::moveSelectedUp()
 {
     if (canMoveSelectedUp()) {
-        // ::TODO undo engine::
+        auto action = std::make_unique<MoveUndoAction>(
+            *this, _selectedIndex, _selectedIndex - 1);
+        action->redo();
 
-        assert(_selectedIndex < _list->size());
-
-        auto it = _list->begin() + _selectedIndex;
-        std::iter_swap(it, it - 1);
-
-        _selectedIndex = _selectedIndex - 1;
-        _hasSelected = true;
-
-        _signal_listChanged.emit();
-        _signal_selectedChanged.emit();
-        _signal_anyChanged.emit();
+        _baseController.undoStack().add_undo(std::move(action));
     }
 }
 
@@ -242,19 +400,11 @@ template <typename ET, class LT, class PT>
 void CappedVectorController<ET, LT, PT>::moveSelectedDown()
 {
     if (canMoveSelectedDown()) {
-        // ::TODO undo engine::
+        auto action = std::make_unique<MoveUndoAction>(
+            *this, _selectedIndex, _selectedIndex + 1);
+        action->redo();
 
-        assert(_selectedIndex + 1 < _list->size());
-
-        auto it = _list->begin() + _selectedIndex;
-        std::iter_swap(it, it + 1);
-
-        _selectedIndex = _selectedIndex + 1;
-        _hasSelected = true;
-
-        _signal_listChanged.emit();
-        _signal_selectedChanged.emit();
-        _signal_anyChanged.emit();
+        _baseController.undoStack().add_undo(std::move(action));
     }
 }
 

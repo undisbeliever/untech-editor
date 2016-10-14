@@ -20,11 +20,15 @@ public:
     using element_type = ElementT;
     using list_type = ListT;
 
+private:
     struct UndoRef {
         const typename ParentT::UndoRef parent;
         const size_t index;
     };
     class MementoUndoAction;
+    class CreateUndoAction;
+    class RemoveUndoAction;
+    class MoveUndoAction;
 
     const static element_type BLANK_T;
 

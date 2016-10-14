@@ -19,11 +19,15 @@ public:
     using map_type = typename UnTech::idmap<T>;
     using element_type = T;
 
+private:
     struct UndoRef {
         const typename ParentT::UndoRef parent;
         const idstring id;
     };
     class MementoUndoAction;
+    class CreateUndoAction;
+    class RemoveUndoAction;
+    class RenameUndoAction;
 
     const static element_type BLANK_T;
 
