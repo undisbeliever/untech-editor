@@ -1,5 +1,4 @@
 #include "palettecompiler.h"
-#include "models/snes/palette.hpp"
 
 using namespace UnTech::MetaSprite;
 using namespace UnTech::MetaSprite::Compiler;

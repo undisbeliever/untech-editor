@@ -1,11 +1,8 @@
-#pragma once
-
-#include "tile.hpp"
 #include "tileset.h"
 #include <cstring>
 
-namespace UnTech {
-namespace Snes {
+using namespace UnTech;
+using namespace UnTech::Snes;
 
 template <class TileT>
 void Tileset<TileT>::drawTile(Image& image,
@@ -47,5 +44,8 @@ inline void Tileset<TileT>::readSnesData(const std::vector<uint8_t>& in)
         inData += TileT::SNES_DATA_SIZE;
     }
 }
-}
-}
+
+template class Snes::Tileset<Tile2bpp8px>;
+template class Snes::Tileset<Tile4bpp8px>;
+template class Snes::Tileset<Tile8bpp8px>;
+template class Snes::Tileset<Tile4bpp16px>;

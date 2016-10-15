@@ -1,10 +1,9 @@
-#pragma once
-
+#include "tile.h"
 #include "tileset.h"
 #include <cstring>
 
-namespace UnTech {
-namespace Snes {
+using namespace UnTech;
+using namespace UnTech::Snes;
 
 template <size_t BD>
 Tile8px<BD>::Tile8px(const Tile<BD, 8>& t)
@@ -324,41 +323,51 @@ inline void Tile16px<BD>::writeSnesData(uint8_t out[SNES_DATA_SIZE]) const
         outPos += Tile8px<BD>::SNES_DATA_SIZE;
     }
 }
-}
-}
 
-// Specifying a hash function.
+// Hash Functions
+// --------------
 namespace std {
 
 template <size_t BD>
-struct hash<::UnTech::Snes::Tile8px<BD>> {
-    inline size_t operator()(const ::UnTech::Snes::Tile8px<BD>& tile) const
-    {
-        const uint8_t* data = tile.rawData();
+size_t hash<Tile8px<BD>>::operator()(const Tile8px<BD>& tile) const
+{
+    const uint8_t* data = tile.rawData();
 
-        size_t seed = 0;
-        for (unsigned i = 0; i < tile.TILE_ARRAY_SIZE; i++) {
-            // Numbers from boost
-            seed ^= data[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-
-        return seed;
+    size_t seed = 0;
+    for (unsigned i = 0; i < tile.TILE_ARRAY_SIZE; i++) {
+        // Numbers from boost
+        seed ^= data[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
-};
+
+    return seed;
+}
 
 template <size_t BD>
-struct hash<::UnTech::Snes::Tile16px<BD>> {
-    inline size_t operator()(const ::UnTech::Snes::Tile16px<BD>& tile) const
-    {
-        const uint8_t* data = tile.rawData();
+size_t hash<Tile16px<BD>>::operator()(const Tile16px<BD>& tile) const
+{
+    const uint8_t* data = tile.rawData();
 
-        size_t seed = 0;
-        for (unsigned i = 0; i < tile.TILE_ARRAY_SIZE; i++) {
-            // Numbers from boost
-            seed ^= data[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-
-        return seed;
+    size_t seed = 0;
+    for (unsigned i = 0; i < tile.TILE_ARRAY_SIZE; i++) {
+        // Numbers from boost
+        seed ^= data[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
-};
+
+    return seed;
 }
+}
+
+template struct std::hash<Tile8px<2>>;
+template struct std::hash<Tile8px<4>>;
+template struct std::hash<Tile8px<8>>;
+template struct std::hash<Tile16px<4>>;
+
+template class Snes::Tile<2, 8>;
+template class Snes::Tile<4, 8>;
+template class Snes::Tile<8, 8>;
+template class Snes::Tile<4, 16>;
+
+template class Snes::Tile8px<2>;
+template class Snes::Tile8px<4>;
+template class Snes::Tile8px<8>;
+template class Snes::Tile16px<4>;

@@ -2,7 +2,6 @@
 
 #include "../metasprite.h"
 #include "models/snes/tileset.h"
-#include "models/snes/tileset.hpp"
 #include <unordered_map>
 
 namespace UnTech {

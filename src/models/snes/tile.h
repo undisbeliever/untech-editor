@@ -150,3 +150,14 @@ struct TileTraits<4, 16> {
 };
 }
 }
+
+namespace std {
+template <size_t BD>
+struct hash<::UnTech::Snes::Tile8px<BD>> {
+    size_t operator()(const ::UnTech::Snes::Tile8px<BD>& tile) const;
+};
+template <size_t BD>
+struct hash<::UnTech::Snes::Tile16px<BD>> {
+    size_t operator()(const ::UnTech::Snes::Tile16px<BD>& tile) const;
+};
+}

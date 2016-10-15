@@ -4,8 +4,6 @@
 #include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
-#include "models/snes/palette.hpp"
-#include "models/snes/tileset.hpp"
 #include <cassert>
 #include <fstream>
 #include <stdexcept>

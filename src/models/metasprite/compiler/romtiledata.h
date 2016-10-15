@@ -2,7 +2,6 @@
 
 #include "romdata.h"
 #include "models/snes/tile.h"
-#include "models/snes/tile.hpp"
 #include <cassert>
 #include <cstdint>
 #include <memory>
