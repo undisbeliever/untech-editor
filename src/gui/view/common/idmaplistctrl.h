@@ -4,6 +4,7 @@
 #include "mylistctrl.h"
 #include "gui/controllers/containers/idmapcontroller.h"
 #include "gui/view/defaults.h"
+#include "models/common/humantypename.h"
 #include "models/common/optional.h"
 #include <cassert>
 #include <sigc++/sigc++.h>
@@ -158,7 +159,7 @@ public:
                     wxTB_HORIZONTAL | wxTB_NODIVIDER)
         , _controller(controller)
     {
-        const static std::string& HUMAN_TYPE_NAME = controller_type::HUMAN_TYPE_NAME;
+        const static std::string& HUMAN_TYPE_NAME = HumanTypeName<typename controller_type::element_type>::value;
 
         AddTool(ID_CREATE, "Create",
                 wxArtProvider::GetBitmap("wxART_PLUS", wxART_TOOLBAR),
@@ -193,7 +194,7 @@ public:
                 return id.isValid() && !map->contains(id);
             };
 
-            const static std::string& HUMAN_TYPE_NAME = controller_type::HUMAN_TYPE_NAME;
+            const static std::string& HUMAN_TYPE_NAME = HumanTypeName<typename controller_type::element_type>::value;
 
             switch (e.GetId()) {
             case ID_CREATE: {

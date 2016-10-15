@@ -18,9 +18,6 @@ class AnimationController
     friend class InstructionController;
 
 public:
-    static const std::string HUMAN_TYPE_NAME;
-
-public:
     AnimationController(AnimationControllerInterface& parent)
         : IdMapController(parent)
     {
@@ -30,9 +27,6 @@ public:
 class InstructionController
     : public Controller::CappedVectorController<Instruction, Instruction::list_t,
                                                 AnimationController> {
-
-public:
-    static const std::string HUMAN_TYPE_NAME;
 
 public:
     InstructionController(AnimationController& parent)

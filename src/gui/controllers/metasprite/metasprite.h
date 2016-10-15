@@ -27,9 +27,6 @@ class FrameSetController
     friend class Animation::AnimationControllerImpl<FrameSetController>;
 
 public:
-    static const std::string HUMAN_TYPE_NAME;
-
-public:
     FrameSetController(Controller::BaseController& baseController)
         : SharedPtrRootController(baseController)
     {
@@ -53,9 +50,6 @@ class PaletteController
                                                 capped_vector<Snes::Palette4bpp, MAX_PALETTES>,
                                                 FrameSetController> {
 public:
-    static const std::string HUMAN_TYPE_NAME;
-
-public:
     PaletteController(FrameSetController& parent);
 
     // If < 0 then no color is selected.
@@ -76,9 +70,6 @@ class FrameController
     : public Controller::IdMapController<Frame, FrameSetController> {
 
 public:
-    static const std::string HUMAN_TYPE_NAME;
-
-public:
     FrameController(FrameSetController& parent)
         : IdMapController(parent)
     {
@@ -91,9 +82,6 @@ public:
 class FrameObjectController
     : public Controller::CappedVectorController<FrameObject, FrameObject::list_t,
                                                 FrameController> {
-
-public:
-    static const std::string HUMAN_TYPE_NAME;
 
 public:
     FrameObjectController(FrameController& parent)
@@ -115,9 +103,6 @@ class ActionPointController
                                                 FrameController> {
 
 public:
-    static const std::string HUMAN_TYPE_NAME;
-
-public:
     ActionPointController(FrameController& parent)
         : CappedVectorController(parent)
     {
@@ -130,9 +115,6 @@ public:
 class EntityHitboxController
     : public Controller::CappedVectorController<EntityHitbox, EntityHitbox::list_t,
                                                 FrameController> {
-
-public:
-    static const std::string HUMAN_TYPE_NAME;
 
 public:
     EntityHitboxController(FrameController& parent)

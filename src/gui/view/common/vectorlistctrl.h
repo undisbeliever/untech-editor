@@ -1,6 +1,7 @@
 #pragma once
 #include "mylistctrl.h"
 #include "gui/view/defaults.h"
+#include "models/common/humantypename.h"
 #include <cassert>
 #include <sigc++/signal.h>
 #include <wx/artprov.h>
@@ -117,7 +118,7 @@ public:
                     wxTB_HORIZONTAL | wxTB_NODIVIDER)
         , _controller(controller)
     {
-        const static std::string& HUMAN_TYPE_NAME = controller_type::HUMAN_TYPE_NAME;
+        const static std::string& HUMAN_TYPE_NAME = HumanTypeName<typename controller_type::element_type>::value;
 
         AddTool(ID_CREATE, "Create",
                 wxArtProvider::GetBitmap("wxART_PLUS", wxART_TOOLBAR),

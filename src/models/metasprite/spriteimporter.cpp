@@ -1,16 +1,30 @@
 #include "spriteimporter.h"
 #include "models/common/file.h"
+#include "models/common/humantypename.h"
 #include <algorithm>
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite::SpriteImporter;
 
 template <>
-const std::string FrameObject::list_t::HUMAN_TYPE_NAME = "Frame Object";
+const std::string HumanTypeName<FrameSet>::value = "Frame Set";
 template <>
-const std::string ActionPoint::list_t::HUMAN_TYPE_NAME = "Action Point";
+const std::string HumanTypeName<FrameSetGrid>::value = "Frame Set Grid";
 template <>
-const std::string EntityHitbox::list_t::HUMAN_TYPE_NAME = "Entity Hitbox";
+const std::string HumanTypeName<Frame>::value = "Frame";
+template <>
+const std::string HumanTypeName<FrameLocation>::value = "Frame Location";
+template <>
+const std::string HumanTypeName<FrameObject>::value = "Frame Object";
+template <>
+const std::string HumanTypeName<ActionPoint>::value = "Action Point";
+template <>
+const std::string HumanTypeName<EntityHitbox>::value = "Entity Hitbox";
+
+/*
+ * FRAME SET GRID
+ * ==============
+ */
 
 bool FrameSetGrid::isValid(const FrameSet& frameSet) const
 {

@@ -1,4 +1,5 @@
 #include "metasprite.h"
+#include "models/common/humantypename.h"
 #include "models/snes/tile.hpp"
 #include "models/snes/tileset.hpp"
 #include <algorithm>
@@ -8,13 +9,20 @@ using namespace UnTech::MetaSprite;
 using namespace UnTech::MetaSprite::MetaSprite;
 
 template <>
-const std::string FrameObject::list_t::HUMAN_TYPE_NAME = "Frame Object";
+const std::string HumanTypeName<FrameSet>::value = "Frame Set";
 template <>
-const std::string ActionPoint::list_t::HUMAN_TYPE_NAME = "Action Point";
+const std::string HumanTypeName<Frame>::value = "Frame";
 template <>
-const std::string EntityHitbox::list_t::HUMAN_TYPE_NAME = "Entity Hitbox";
+const std::string HumanTypeName<FrameObject>::value = "Frame Object";
 template <>
-const std::string capped_vector<Snes::Palette4bpp, MAX_PALETTES>::HUMAN_TYPE_NAME = "Palettes";
+const std::string HumanTypeName<ActionPoint>::value = "Action Point";
+template <>
+const std::string HumanTypeName<EntityHitbox>::value = "Entity Hitbox";
+
+/*
+ * FRAME OBJECT
+ * ============
+ */
 
 bool FrameObject::isValid(const FrameSet& frameSet)
 {

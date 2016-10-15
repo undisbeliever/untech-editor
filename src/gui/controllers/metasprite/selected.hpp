@@ -178,26 +178,30 @@ template <class T>
 const std::string& SelectedController<T>::typeString() const
 {
     const static std::string nullString;
+    const static std::string frameString = "Frame";
     const static std::string tileHitboxString = "Tile Hitbox";
+    const static std::string frameObjectString = "Frame Object";
+    const static std::string actionPointString = "Action Point";
+    const static std::string entityHitboxString = "Entity Hitbox";
 
     switch (_type) {
     case SelectedType::NONE:
         return nullString;
 
     case SelectedType::FRAME:
-        return _controller.frameController().HUMAN_TYPE_NAME;
+        return frameString;
 
     case SelectedType::TILE_HITBOX:
         return tileHitboxString;
 
     case SelectedType::FRAME_OBJECT:
-        return _controller.frameObjectController().HUMAN_TYPE_NAME;
+        return frameObjectString;
 
     case SelectedType::ACTION_POINT:
-        return _controller.actionPointController().HUMAN_TYPE_NAME;
+        return actionPointString;
 
     case SelectedType::ENTITY_HITBOX:
-        return _controller.entityHitboxController().HUMAN_TYPE_NAME;
+        return entityHitboxString;
     }
 
     return nullString;

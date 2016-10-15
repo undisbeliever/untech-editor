@@ -20,6 +20,7 @@ public:
     using value_type = T;
     using element_type = T;
 
+private:
     using UndoRef = std::shared_ptr<T>;
     class MementoUndoAction;
 

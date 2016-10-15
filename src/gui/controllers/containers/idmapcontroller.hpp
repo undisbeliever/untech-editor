@@ -1,5 +1,7 @@
 #include "idmapcontroller.h"
 
+#include "models/common/humantypename.h"
+
 namespace UnTech {
 namespace Controller {
 
@@ -37,8 +39,8 @@ public:
 
     virtual const std::string& message() const override
     {
-        // ::TODO undo message::
-        static const std::string s = "edit_selected";
+        // ::SHOULDDO better undo message::
+        static const std::string s = "Edit " + HumanTypeName<T>::value;
         return s;
     }
 
@@ -89,8 +91,7 @@ public:
 
     virtual const std::string& message() const override
     {
-        // ::TODO undo message::
-        static const std::string s = "Create";
+        static const std::string s = "Create " + HumanTypeName<T>::value;
         return s;
     }
 
@@ -139,8 +140,7 @@ public:
 
     virtual const std::string& message() const override
     {
-        // ::TODO undo message::
-        static const std::string s = "Remove";
+        static const std::string s = "Remove " + HumanTypeName<T>::value;
         return s;
     }
 
@@ -199,8 +199,7 @@ public:
 
     virtual const std::string& message() const override
     {
-        // ::TODO undo message::
-        static const std::string s = "Rename";
+        static const std::string s = "Rename " + HumanTypeName<T>::value;
         return s;
     }
 

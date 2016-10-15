@@ -1,11 +1,12 @@
 #include "project.h"
+#include "models/common/humantypename.h"
 #include "utsi2utms/utsi2utms.h"
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
 template <>
-const std::string Project::FrameSetFile::list_t::HUMAN_TYPE_NAME = "FrameSet File";
+const std::string HumanTypeName<Project::FrameSetFile>::value = "FrameSet File";
 
 bool Project::FrameSetFile::convertSpriteImporter(ErrorList& errors, bool strict)
 {

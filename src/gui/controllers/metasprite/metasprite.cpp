@@ -44,13 +44,6 @@ EntityHitbox::list_t& listFromParent<EntityHitbox::list_t, Frame>(Frame& f)
 }
 }
 
-const std::string FrameSetController::HUMAN_TYPE_NAME = "Frame Set";
-const std::string PaletteController::HUMAN_TYPE_NAME = "Palette";
-const std::string FrameController::HUMAN_TYPE_NAME = "Frame";
-const std::string FrameObjectController::HUMAN_TYPE_NAME = "Frame Object";
-const std::string ActionPointController::HUMAN_TYPE_NAME = "Action Point";
-const std::string EntityHitboxController::HUMAN_TYPE_NAME = "Entity Hitbox";
-
 // MetaSpriteController
 // ====================
 

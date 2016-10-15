@@ -26,9 +26,6 @@ Instruction::list_t& listFromParent<Instruction::list_t, Animation>(Animation& a
 }
 }
 
-const std::string AnimationController::HUMAN_TYPE_NAME = "Animation";
-const std::string InstructionController::HUMAN_TYPE_NAME = "Animation Instruction";
-
 // AnimationControllerInterface
 // ----------------------------
 AnimationControllerInterface::element_type&

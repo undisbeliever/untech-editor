@@ -11,8 +11,6 @@ using namespace UnTech::Xml;
 namespace MS = UnTech::MetaSprite;
 
 const std::string MS::FrameSetExportOrder::FILE_EXTENSION = "utfseo";
-template <>
-const std::string MS::FrameSetExportOrder::ExportName::list_t::HUMAN_TYPE_NAME = "Export Name";
 
 namespace UnTech {
 namespace MetaSprite {

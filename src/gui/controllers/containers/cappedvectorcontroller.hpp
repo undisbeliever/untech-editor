@@ -1,5 +1,6 @@
 #include "cappedvectorcontroller.h"
 
+#include "models/common/humantypename.h"
 #include <algorithm>
 #include <cassert>
 
@@ -40,8 +41,8 @@ public:
 
     virtual const std::string& message() const override
     {
-        // ::TODO undo message::
-        static const std::string s = "Edit " + list_type::HUMAN_TYPE_NAME;
+        // ::SHOULDDO better undo message::
+        static const std::string s = "Edit " + HumanTypeName<ET>::value;
         return s;
     }
 
@@ -99,7 +100,7 @@ public:
 
     virtual const std::string& message() const override
     {
-        static const std::string s = "Create " + list_type::HUMAN_TYPE_NAME;
+        static const std::string s = "Create " + HumanTypeName<ET>::value;
         return s;
     }
 
@@ -155,7 +156,7 @@ public:
 
     virtual const std::string& message() const override
     {
-        static const std::string s = "Remove " + list_type::HUMAN_TYPE_NAME;
+        static const std::string s = "Remove " + HumanTypeName<ET>::value;
         return s;
     }
 
@@ -217,7 +218,7 @@ public:
 
     virtual const std::string& message() const override
     {
-        static const std::string s = "Move " + list_type::HUMAN_TYPE_NAME;
+        static const std::string s = "Move " + HumanTypeName<ET>::value;
         return s;
     }
 

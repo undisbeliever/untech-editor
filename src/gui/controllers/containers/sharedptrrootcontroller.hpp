@@ -1,4 +1,5 @@
 #include "sharedptrrootcontroller.h"
+#include "models/common/humantypename.h"
 
 namespace UnTech {
 namespace Controller {
@@ -36,8 +37,8 @@ public:
 
     virtual const std::string& message() const override
     {
-        // ::TODO undo message::
-        static const std::string s = "edit_selected";
+        // ::SHOULDDO better undo message::
+        static const std::string s = "Edit " + HumanTypeName<T>::value;
         return s;
     }
 
