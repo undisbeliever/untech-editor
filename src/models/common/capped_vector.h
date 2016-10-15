@@ -18,13 +18,13 @@ class capped_vector : public std::vector<T> {
     inline void _validate_insert(const size_t count = 1)
     {
         if (this->size() + count > MAX_T) {
-            throw new std::runtime_error("Could not insert " + HumanTypeName<T>::value + ": (too many elements)");
+            throw std::runtime_error("Could not insert " + HumanTypeName<T>::value + ": (too many elements)");
         }
     }
     inline void _validate_count(const size_t count)
     {
         if (count > MAX_T) {
-            throw new std::runtime_error("Too many elements in" + HumanTypeName<T>::value + " capped_vector");
+            throw std::runtime_error("Too many elements in" + HumanTypeName<T>::value + " capped_vector");
         }
     }
 
