@@ -41,10 +41,32 @@ void UndoStack::dontMergeNextAction()
     _dontMerge = true;
 }
 
+Action* UndoStack::retrieveMergableAction(const ActionType* type)
+{
+    if (type == nullptr || type->canMerge == false) {
+        return nullptr;
+    }
+
+    if (_undoStack.empty() || _dontMerge == true || canRedo()) {
+        return nullptr;
+    }
+
+    Action* lastAction = _undoStack.front().get();
+
+    if (lastAction && lastAction->type() == type) {
+        return lastAction;
+    }
+    else {
+        return nullptr;
+    }
+}
+
 void UndoStack::undo()
 {
     if (canUndo()) {
         _undoStack.front()->undo();
+
+        _dontMerge = true;
 
         _redoStack.splice(_redoStack.begin(), _undoStack, _undoStack.begin());
 
@@ -63,6 +85,8 @@ void UndoStack::redo()
     if (canRedo()) {
         _redoStack.front()->redo();
 
+        _dontMerge = true;
+
         _undoStack.splice(_undoStack.begin(), _redoStack, _redoStack.begin());
 
         _signal_stackChanged.emit();
@@ -73,6 +97,8 @@ void UndoStack::clear()
 {
     _undoStack.clear();
     _redoStack.clear();
+
+    _dontMerge = true;
 
     _signal_stackChanged.emit();
 
@@ -89,8 +115,11 @@ void UndoStack::markDirty()
 
 void UndoStack::markClean()
 {
+    _dontMerge = true;
+
     if (_dirty != false) {
         _dirty = false;
+
         _signal_dirtyBitChanged.emit();
     }
 }

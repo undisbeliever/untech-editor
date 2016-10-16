@@ -36,6 +36,7 @@ Frame::Frame()
     : wxFrame(NULL, wxID_ANY, WINDOW_NAME)
     , _controllerInterface(this)
     , _controller(_controllerInterface)
+    , _dontMergeFocusHack(_controller)
     , _frameHelper(this, _controller)
 {
     SetMinSize(MIN_FRAME_SIZE);
@@ -53,6 +54,10 @@ Frame::Frame()
 
         Centre();
     }
+
+    // Events
+    // ======
+    _dontMergeFocusHack.BindEventRecursive(this);
 
     // Extra Menus
     // ===========

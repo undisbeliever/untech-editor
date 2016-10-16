@@ -70,6 +70,17 @@ public:
      */
     void dontMergeNextAction();
 
+    /**
+     * Retrieves the Action on the top of the undoStack IF
+     *  1) _dontMerge is False
+     *  2) The topmost undo action is merge-able
+     *  3) The topmost undo action is of the same type as `type`
+     *     (done by pointer comparison)
+     *
+     * Returns `nullptr` if the next undo action is not merge-able with type.
+     */
+    Action* retrieveMergableAction(const ActionType* type);
+
     void undo();
     void redo();
 

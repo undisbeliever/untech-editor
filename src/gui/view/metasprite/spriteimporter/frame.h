@@ -1,6 +1,7 @@
 #pragma once
 #include "gui/controllers/metasprite/spriteimporter.h"
 #include "gui/view/common/controllerinterface.h"
+#include "gui/view/common/dontmergefocushack.h"
 #include "gui/view/common/filedialogs.h"
 #include "gui/view/metasprite/framehelper.h"
 #include <wx/wx.h>
@@ -27,6 +28,7 @@ public:
 protected:
     ControllerInterface _controllerInterface;
     SI::SpriteImporterController _controller;
+    DontMergeFocusHack _dontMergeFocusHack;
     FrameHelper<Frame> _frameHelper;
 
     wxTimer _initBugfixTimer;

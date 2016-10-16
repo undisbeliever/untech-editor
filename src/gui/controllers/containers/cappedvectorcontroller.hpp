@@ -15,10 +15,12 @@ class CappedVectorController<ET, LT, PT>::MementoUndoAction : public Undo::Actio
 public:
     MementoUndoAction() = delete;
     MementoUndoAction(const Undo::ActionType* actionType,
-                      CappedVectorController& controller, const ET& value)
+                      CappedVectorController& controller,
+                      const UndoRef& ref,
+                      const ET& value)
         : Action(actionType)
         , _controller(controller)
-        , _ref(controller.undoRefForSelected())
+        , _ref(ref)
         , _oldValue(value)
         , _newValue()
     {
@@ -40,6 +42,8 @@ public:
         _controller._signal_dataChanged.emit();
         _controller._signal_anyChanged.emit();
     }
+
+    const UndoRef& undoRef() const { return _ref; }
 
     void setNewValue(const ET& value) { _newValue = value; }
 
@@ -160,6 +164,7 @@ public:
     MoveUndoAction() = delete;
     MoveUndoAction(const Undo::ActionType* actionType,
                    CappedVectorController& controller,
+
                    size_t oldIndex, size_t newIndex)
         : Action(actionType)
         , _controller(controller)
@@ -460,12 +465,27 @@ void CappedVectorController<ET, LT, PT>::edit_selected(
         auto& value = _list->at(_selectedIndex);
 
         if (validate(value)) {
-            auto action = std::make_unique<UndoActionT>(actionType, *this, value);
+            auto& undoStack = _baseController.undoStack();
 
-            fun(value);
+            UndoActionT* prevAction = dynamic_cast<UndoActionT*>(
+                undoStack.retrieveMergableAction(actionType));
 
-            action->setNewValue(value);
-            _baseController.undoStack().add_undo(std::move(action));
+            const auto& undoRef = undoRefForSelected();
+
+            bool canMerge = prevAction && prevAction->undoRef() == undoRef;
+
+            if (canMerge) {
+                fun(value);
+                prevAction->setNewValue(value);
+            }
+            else {
+                auto action = std::make_unique<UndoActionT>(
+                    actionType, *this, undoRef, value);
+                fun(value);
+
+                action->setNewValue(value);
+                undoStack.add_undo(std::move(action));
+            }
         }
     }
 

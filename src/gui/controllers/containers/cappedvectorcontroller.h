@@ -24,6 +24,8 @@ private:
     struct UndoRef {
         const typename ParentT::UndoRef parent;
         const size_t index;
+
+        bool operator==(const UndoRef& o) const { return parent == o.parent && index == o.index; }
     };
     class MementoUndoAction;
     class CreateUndoAction;

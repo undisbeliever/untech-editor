@@ -369,6 +369,8 @@ TilesetCtrl::MousePosition TilesetCtrl::GetMousePosition()
 
 void TilesetCtrl::OnMouseLeftDown(wxMouseEvent& event)
 {
+    _controller.undoStack().dontMergeNextAction();
+
     MousePosition mouse = GetMousePosition();
 
     if (mouse.isValid) {
@@ -434,9 +436,6 @@ void TilesetCtrl::OnMouseMotion(wxMouseEvent& event)
 void TilesetCtrl::ResetMouseState()
 {
     if (_mouseState == MouseState::DRAW) {
-        // ::TODO Don't Merge next Action::
-        // _controller.dontMergeNextAction();
-
         ReleaseMouse();
     }
 

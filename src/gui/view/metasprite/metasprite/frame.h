@@ -1,6 +1,7 @@
 #pragma once
 #include "gui/controllers/metasprite/metasprite.h"
 #include "gui/view/common/controllerinterface.h"
+#include "gui/view/common/dontmergefocushack.h"
 #include "gui/view/common/filedialogs.h"
 #include "gui/view/metasprite/framehelper.h"
 #include <wx/wx.h>
@@ -30,6 +31,7 @@ public:
 private:
     ControllerInterface _controllerInterface;
     MS::MetaSpriteController _controller;
+    DontMergeFocusHack _dontMergeFocusHack;
     FrameHelper<Frame> _frameHelper;
 
     wxTimer _initBugfixTimer;

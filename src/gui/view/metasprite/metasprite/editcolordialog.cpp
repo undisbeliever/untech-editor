@@ -109,6 +109,8 @@ EditColorDialog::EditColorDialog(wxWindow* parent,
 
 int EditColorDialog::ShowModal()
 {
+    auto& undoStack = _controller.baseController().undoStack();
+
     // build signal
     sigc::connection con = _controller.signal_dataChanged().connect(
         sigc::mem_fun(*this, &EditColorDialog::UpdateGui));
@@ -117,13 +119,11 @@ int EditColorDialog::ShowModal()
 
     if (ret == wxID_OK) {
         // commit color
-        // ::TODO dontMergeNextAction::
-        // _controller.baseController().dontMergeNextAction();
+        undoStack.dontMergeNextAction();
     }
     else {
         // restore color
-        // ::TODO UnDo::
-        // _controller.baseController().undoStack().undo();
+        undoStack.undo();
     }
 
     // remove signal

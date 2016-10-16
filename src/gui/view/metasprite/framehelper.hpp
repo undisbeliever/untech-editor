@@ -284,8 +284,7 @@ FrameHelper<FrameT>::FrameHelper(FrameT* frame, controller_type& controller)
 template <class FrameT>
 void FrameHelper<FrameT>::OnClose(wxCloseEvent& event)
 {
-    // ::TODO UndoStack::
-    const bool isDirty = _controller.hasDocument();
+    const bool isDirty = _controller.undoStack().isDirty();
 
     if (event.CanVeto() && isDirty) {
         int r = wxMessageBox("Do you want to save?\n\n"

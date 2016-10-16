@@ -383,6 +383,8 @@ FrameSetGraphicsCtrl::MousePosition FrameSetGraphicsCtrl::GetMousePosition()
 
 void FrameSetGraphicsCtrl::OnMouseLeftDown(wxMouseEvent& event)
 {
+    _controller.undoStack().dontMergeNextAction();
+
     MousePosition mouse = GetMousePosition();
 
     if (_mouseState == MouseState::NONE) {

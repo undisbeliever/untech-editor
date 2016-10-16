@@ -13,10 +13,12 @@ class IdMapController<T, PT>::MementoUndoAction : public Undo::Action {
 public:
     MementoUndoAction() = delete;
     MementoUndoAction(const Undo::ActionType* actionType,
-                      IdMapController& controller, const T& value)
+                      IdMapController& controller,
+                      const UndoRef& ref,
+                      const T& value)
         : Action(actionType)
         , _controller(controller)
-        , _ref(controller.undoRefForSelected())
+        , _ref(ref)
         , _oldValue(value)
         , _newValue()
     {
@@ -38,6 +40,8 @@ public:
         _controller._signal_dataChanged.emit();
         _controller._signal_anyChanged.emit();
     }
+
+    const UndoRef& undoRef() const { return _ref; }
 
     void setNewValue(const T& value) { _newValue = value; }
 
@@ -430,12 +434,27 @@ void IdMapController<T, PT>::edit_selected(
         auto& value = _map->at(_selectedId);
 
         if (validate(value)) {
-            auto action = std::make_unique<UndoActionT>(actionType, *this, value);
+            auto& undoStack = _baseController.undoStack();
 
-            fun(value);
+            UndoActionT* prevAction = dynamic_cast<UndoActionT*>(
+                undoStack.retrieveMergableAction(actionType));
 
-            action->setNewValue(value);
-            _baseController.undoStack().add_undo(std::move(action));
+            const auto& undoRef = undoRefForSelected();
+
+            bool canMerge = prevAction && prevAction->undoRef() == undoRef;
+
+            if (canMerge) {
+                fun(value);
+                prevAction->setNewValue(value);
+            }
+            else {
+                auto action = std::make_unique<UndoActionT>(
+                    actionType, *this, undoRef, value);
+                fun(value);
+
+                action->setNewValue(value);
+                _baseController.undoStack().add_undo(std::move(action));
+            }
         }
     }
 

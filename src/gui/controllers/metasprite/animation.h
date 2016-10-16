@@ -64,6 +64,8 @@ public:
         };
         std::shared_ptr<void> frameSet;
         Type type;
+
+        bool operator==(const UndoRef& o) const { return frameSet == o.frameSet && type == o.type; }
     };
 
 public:

@@ -415,6 +415,8 @@ optional<point> FrameGraphicsCtrl::GetMousePosition()
 
 void FrameGraphicsCtrl::OnMouseLeftDown(wxMouseEvent& event)
 {
+    _controller.undoStack().dontMergeNextAction();
+
     auto mouse = GetMousePosition();
 
     if (mouse) {
