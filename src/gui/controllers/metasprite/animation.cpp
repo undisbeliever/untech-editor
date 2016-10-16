@@ -6,6 +6,7 @@
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite::Animation;
+using UndoActionType = UnTech::Controller::Undo::ActionType;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace SI = UnTech::MetaSprite::SpriteImporter;
@@ -96,28 +97,40 @@ template class Controller::CappedVectorController<Instruction, Instruction::list
 
 void InstructionController::selected_setOperation(const Bytecode bc)
 {
+    const static UndoActionType actionType = { "Edit Animation Operation", false };
+
     edit_selected(
+        &actionType,
         [&](auto& inst) { return inst.operation != bc; },
         [&](auto& inst) { inst.operation = bc; });
 }
 
 void InstructionController::selected_setParameter(int parameter)
 {
+    const static UndoActionType actionType = { "Edit Animation Parameter", false };
+
     edit_selected(
+        &actionType,
         [&](auto& inst) { return inst.parameter != parameter; },
         [&](auto& inst) { inst.parameter = parameter; });
 }
 
 void InstructionController::selected_setFrame(const NameReference& frame)
 {
+    const static UndoActionType actionType = { "Edit Animation Frame", false };
+
     edit_selected(
+        &actionType,
         [&](auto& inst) { return inst.frame != frame; },
         [&](auto& inst) { inst.frame = frame; });
 }
 
 void InstructionController::selected_setGotoLabel(const idstring& label)
 {
+    const static UndoActionType actionType = { "Edit Animation Goto Label", false };
+
     edit_selected(
+        &actionType,
         [&](auto& inst) { return inst.gotoLabel != label; },
         [&](auto& inst) { inst.gotoLabel = label; });
 }

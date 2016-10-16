@@ -6,6 +6,7 @@
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite::MetaSprite;
+using UndoActionType = UnTech::Controller::Undo::ActionType;
 
 using palette_list = capped_vector<Snes::Palette4bpp, MetaSprite::MAX_PALETTES>;
 
@@ -94,21 +95,30 @@ template class Controller::SharedPtrRootController<FrameSet>;
 
 void FrameSetController::selected_setName(const idstring& name)
 {
+    const static UndoActionType actionType = { "Edit FrameSet Name", false };
+
     edit_selected(
+        &actionType,
         [&](auto& fs) { return fs.name != name; },
         [&](auto& fs) { fs.name = name; });
 }
 
 void FrameSetController::selected_setTilesetType(const TilesetType tilesetType)
 {
+    const static UndoActionType actionType = { "Edit Tileset Type", false };
+
     edit_selected(
+        &actionType,
         [&](auto& fs) { return fs.tilesetType != tilesetType; },
         [&](auto& fs) { fs.tilesetType = tilesetType; });
 }
 
 void FrameSetController::selected_setExportOrderFilename(const std::string& filename)
 {
+    const static UndoActionType actionType = { "Set Export Order File", false };
+
     edit_selected(
+        &actionType,
         [&](auto) { return !filename.empty(); },
         [&](auto& fs) {
             fs.exportOrder = loadFrameSetExportOrderCached(filename);
@@ -117,7 +127,10 @@ void FrameSetController::selected_setExportOrderFilename(const std::string& file
 
 void FrameSetController::selected_addTiles(unsigned smallTiles, unsigned largeTiles)
 {
+    const static UndoActionType actionType = { "Add tiles", false };
+
     edit_selected(
+        &actionType,
         [&](auto&) { return smallTiles > 0 || smallTiles > 0; },
         [&](FrameSet& frameSet) {
             for (unsigned t = 0; t < smallTiles; t++) {
@@ -132,7 +145,10 @@ void FrameSetController::selected_addTiles(unsigned smallTiles, unsigned largeTi
 void FrameSetController::selected_smallTileset_setPixel(
     unsigned tileId, unsigned x, unsigned y, unsigned value)
 {
+    const static UndoActionType actionType = { "Edit Tileset", true };
+
     edit_selected(
+        &actionType,
         [&](const FrameSet& fs) {
             return fs.smallTileset.tile(tileId).pixel(x, y) != value;
         },
@@ -144,7 +160,10 @@ void FrameSetController::selected_smallTileset_setPixel(
 void FrameSetController::selected_largeTileset_setPixel(
     unsigned tileId, unsigned x, unsigned y, unsigned value)
 {
+    const static UndoActionType actionType = { "Edit Tileset", true };
+
     edit_selected(
+        &actionType,
         [&](const FrameSet& fs) {
             return fs.largeTileset.tile(tileId).pixel(x, y) != value;
         },
@@ -187,8 +206,11 @@ void PaletteController::unsetSelectedColor()
 
 void PaletteController::selected_setColor(size_t index, const Snes::SnesColor& color)
 {
+    const static UndoActionType actionType = { "Edit Palette Color", true };
+
     if (index < element_type::N_COLORS) {
         edit_selected(
+            &actionType,
             [&](auto& palette) { return palette.color(index) != color; },
             [&](auto& palette) { palette.color(index) = color; });
     }
@@ -200,14 +222,23 @@ template class Controller::IdMapController<Frame, FrameSetController>;
 
 void FrameController::selected_setSolid(const bool solid)
 {
+    const static UndoActionType actionType[2] = {
+        { "Set Frame Solid", false },
+        { "Set Frame Not-Solid", false },
+    };
+
     edit_selected(
+        &actionType[solid],
         [&](auto& frame) { return frame.solid != solid; },
         [&](auto& frame) { frame.solid = solid; });
 }
 
 void FrameController::selected_setTileHitbox(const ms8rect& tileHitbox)
 {
+    const static UndoActionType actionType = { "Edit Tile Hitbox", true };
+
     edit_selected(
+        &actionType,
         [&](auto& frame) { return frame.tileHitbox != tileHitbox; },
         [&](auto& frame) { frame.tileHitbox = tileHitbox; });
 }
@@ -219,14 +250,20 @@ template class Controller::CappedVectorController<FrameObject, FrameObject::list
 
 void FrameObjectController::selected_setLocation(const ms8point& location)
 {
+    const static UndoActionType actionType = { "Edit Object Location", true };
+
     edit_selected(
+        &actionType,
         [&](auto& obj) { return obj.location != location; },
         [&](auto& obj) { obj.location = location; });
 }
 
 void FrameObjectController::selected_setTileId(const unsigned tileId)
 {
+    const static UndoActionType actionType = { "Edit Object Tile", true };
+
     edit_selected(
+        &actionType,
         [&](auto& obj) {
             const FrameSet& frameSet = this->parent().parent().selected();
 
@@ -247,7 +284,10 @@ void FrameObjectController::selected_setTileId(const unsigned tileId)
 
 void FrameObjectController::selected_setSize(const ObjectSize size)
 {
+    const static UndoActionType actionType = { "Edit Object Size", false };
+
     edit_selected(
+        &actionType,
         [&](auto& obj) { return obj.size != size; },
         [&](auto& obj) {
             // updating size can cause the tileId to be invalid
@@ -271,7 +311,10 @@ void FrameObjectController::selected_setSize(const ObjectSize size)
 void FrameObjectController::selected_setSizeAndTileId(
     const ObjectSize size, const unsigned tileId)
 {
+    const static UndoActionType actionType = { "Edit Object Tile", false };
+
     edit_selected(
+        &actionType,
         [&](auto& obj) {
             const FrameSet& frameSet = this->parent().parent().selected();
 
@@ -293,21 +336,30 @@ void FrameObjectController::selected_setSizeAndTileId(
 
 void FrameObjectController::selected_setOrder(const unsigned order)
 {
+    const static UndoActionType actionType = { "Edit Object Order", false };
+
     edit_selected(
+        &actionType,
         [&](auto& obj) { return obj.order != order; },
         [&](auto& obj) { obj.order = order; });
 }
 
 void FrameObjectController::selected_setHFlip(const bool hFlip)
 {
+    const static UndoActionType actionType = { "Edit Object hFlip", false };
+
     edit_selected(
+        &actionType,
         [&](auto& obj) { return obj.hFlip != hFlip; },
         [&](auto& obj) { obj.hFlip = hFlip; });
 }
 
 void FrameObjectController::selected_setVFlip(const bool vFlip)
 {
+    const static UndoActionType actionType = { "Edit Object vFlip", false };
+
     edit_selected(
+        &actionType,
         [&](auto& obj) { return obj.vFlip != vFlip; },
         [&](auto& obj) { obj.vFlip = vFlip; });
 }
@@ -319,14 +371,20 @@ template class Controller::CappedVectorController<ActionPoint, ActionPoint::list
 
 void ActionPointController::selected_setLocation(const ms8point& location)
 {
+    const static UndoActionType actionType = { "Edit Action Point Location", true };
+
     edit_selected(
+        &actionType,
         [&](auto& ap) { return ap.location != location; },
         [&](auto& ap) { ap.location = location; });
 }
 
 void ActionPointController::selected_setParameter(const ActionPointParameter& parameter)
 {
+    const static UndoActionType actionType = { "Edit Action Point Parameter", true };
+
     edit_selected(
+        &actionType,
         [&](auto& ap) { return ap.parameter != parameter; },
         [&](auto& ap) { ap.parameter = parameter; });
 }
@@ -338,14 +396,20 @@ template class Controller::CappedVectorController<EntityHitbox, EntityHitbox::li
 
 void EntityHitboxController::selected_setAabb(const ms8rect& aabb)
 {
+    const static UndoActionType actionType = { "Edit Entity Hitbox Aabb", true };
+
     edit_selected(
+        &actionType,
         [&](auto& eh) { return eh.aabb != aabb; },
         [&](auto& eh) { eh.aabb = aabb; });
 }
 
 void EntityHitboxController::selected_setHitboxType(const EntityHitboxType& hitboxType)
 {
+    const static UndoActionType actionType = { "Edit Entity Hitbox Type", false };
+
     edit_selected(
+        &actionType,
         [&](auto& eh) { return eh.hitboxType != hitboxType; },
         [&](auto& eh) { eh.hitboxType = hitboxType; });
 }

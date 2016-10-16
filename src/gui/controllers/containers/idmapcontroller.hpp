@@ -12,8 +12,10 @@ template <class T, class PT>
 class IdMapController<T, PT>::MementoUndoAction : public Undo::Action {
 public:
     MementoUndoAction() = delete;
-    MementoUndoAction(IdMapController& controller, const T& value)
-        : _controller(controller)
+    MementoUndoAction(const Undo::ActionType* actionType,
+                      IdMapController& controller, const T& value)
+        : Action(actionType)
+        , _controller(controller)
         , _ref(controller.undoRefForSelected())
         , _oldValue(value)
         , _newValue()
@@ -37,13 +39,6 @@ public:
         _controller._signal_anyChanged.emit();
     }
 
-    virtual const std::string& message() const override
-    {
-        // ::SHOULDDO better undo message::
-        static const std::string s = "Edit " + HumanTypeName<T>::value;
-        return s;
-    }
-
     void setNewValue(const T& value) { _newValue = value; }
 
 private:
@@ -57,8 +52,10 @@ template <class T, class PT>
 class IdMapController<T, PT>::CreateUndoAction : public Undo::Action {
 public:
     CreateUndoAction() = delete;
-    CreateUndoAction(IdMapController& controller, const idstring& id)
-        : _controller(controller)
+    CreateUndoAction(const Undo::ActionType* actionType,
+                     IdMapController& controller, const idstring& id)
+        : Action(actionType)
+        , _controller(controller)
         , _ref(controller.parent().undoRefForSelected())
         , _id(id)
         , _element(nullptr)
@@ -89,12 +86,6 @@ public:
         _controller._signal_anyChanged.emit();
     }
 
-    virtual const std::string& message() const override
-    {
-        static const std::string s = "Create " + HumanTypeName<T>::value;
-        return s;
-    }
-
 private:
     IdMapController& _controller;
     const typename PT::UndoRef _ref;
@@ -106,8 +97,10 @@ template <class T, class PT>
 class IdMapController<T, PT>::RemoveUndoAction : public Undo::Action {
 public:
     RemoveUndoAction() = delete;
-    RemoveUndoAction(IdMapController& controller, const idstring& id)
-        : _controller(controller)
+    RemoveUndoAction(const Undo::ActionType* actionType,
+                     IdMapController& controller, const idstring& id)
+        : Action(actionType)
+        , _controller(controller)
         , _ref(controller.parent().undoRefForSelected())
         , _id(id)
         , _element(nullptr)
@@ -138,12 +131,6 @@ public:
         _controller._signal_anyChanged.emit();
     }
 
-    virtual const std::string& message() const override
-    {
-        static const std::string s = "Remove " + HumanTypeName<T>::value;
-        return s;
-    }
-
 private:
     IdMapController& _controller;
     const typename PT::UndoRef _ref;
@@ -155,9 +142,11 @@ template <class T, class PT>
 class IdMapController<T, PT>::RenameUndoAction : public Undo::Action {
 public:
     RenameUndoAction() = delete;
-    RenameUndoAction(IdMapController& controller,
+    RenameUndoAction(const Undo::ActionType* actionType,
+                     IdMapController& controller,
                      const idstring& oldId, const idstring& newId)
-        : _controller(controller)
+        : Action(actionType)
+        , _controller(controller)
         , _ref(controller.parent().undoRefForSelected())
         , _oldId(oldId)
         , _newId(newId)
@@ -195,12 +184,6 @@ public:
         _controller._signal_mapChanged.emit();
         _controller._signal_selectedChanged.emit();
         _controller._signal_anyChanged.emit();
-    }
-
-    virtual const std::string& message() const override
-    {
-        static const std::string s = "Rename " + HumanTypeName<T>::value;
-        return s;
     }
 
 private:
@@ -296,6 +279,10 @@ bool IdMapController<T, PT>::canCreate(const idstring& newId) const
 template <class T, class PT>
 void IdMapController<T, PT>::create(const idstring& newId)
 {
+    static const Undo::ActionType actionType = {
+        "Create " + HumanTypeName<T>::value, false
+    };
+
     if (canCreate(newId)) {
         _map->create(newId);
         onCreate(newId, _map->at(newId));
@@ -307,7 +294,7 @@ void IdMapController<T, PT>::create(const idstring& newId)
         _signal_anyChanged.emit();
 
         _baseController.undoStack().add_undo(
-            std::make_unique<CreateUndoAction>(*this, newId));
+            std::make_unique<CreateUndoAction>(&actionType, *this, newId));
     }
 }
 
@@ -331,6 +318,10 @@ bool IdMapController<T, PT>::canCloneSelected(const idstring& newId) const
 template <class T, class PT>
 void IdMapController<T, PT>::cloneSelected(const idstring& newId)
 {
+    static const Undo::ActionType actionType = {
+        "Clone " + HumanTypeName<T>::value, false
+    };
+
     if (canCloneSelected(newId)) {
         _map->clone(_selectedId, newId);
         _selectedId = newId;
@@ -340,7 +331,7 @@ void IdMapController<T, PT>::cloneSelected(const idstring& newId)
         _signal_anyChanged.emit();
 
         _baseController.undoStack().add_undo(
-            std::make_unique<CreateUndoAction>(*this, newId));
+            std::make_unique<CreateUndoAction>(&actionType, *this, newId));
     }
 }
 
@@ -359,8 +350,13 @@ bool IdMapController<T, PT>::canRenameSelected(const idstring& newId) const
 template <class T, class PT>
 void IdMapController<T, PT>::renameSelected(const idstring& newId)
 {
+    static const Undo::ActionType actionType = {
+        "Rename " + HumanTypeName<T>::value, false
+    };
+
     if (canRenameSelected(newId)) {
-        auto action = std::make_unique<RenameUndoAction>(*this, _selectedId, newId);
+        auto action = std::make_unique<RenameUndoAction>(
+            &actionType, *this, _selectedId, newId);
         action->redo();
 
         _baseController.undoStack().add_undo(std::move(action));
@@ -376,8 +372,12 @@ bool IdMapController<T, PT>::canRemoveSelected() const
 template <class T, class PT>
 void IdMapController<T, PT>::removeSelected()
 {
+    static const Undo::ActionType actionType = {
+        "Remove " + HumanTypeName<T>::value, false
+    };
+
     if (canRemoveSelected()) {
-        auto action = std::make_unique<RemoveUndoAction>(*this, _selectedId);
+        auto action = std::make_unique<RemoveUndoAction>(&actionType, *this, _selectedId);
         action->redo();
 
         _baseController.undoStack().add_undo(std::move(action));
@@ -422,6 +422,7 @@ T& IdMapController<T, PT>::elementFromUndoRef(const UndoRef& ref)
 template <class T, class PT>
 template <class UndoActionT>
 void IdMapController<T, PT>::edit_selected(
+    const Undo::ActionType* actionType,
     std::function<bool(const T&)> const& validate,
     std::function<void(T&)> const& fun)
 {
@@ -429,7 +430,7 @@ void IdMapController<T, PT>::edit_selected(
         auto& value = _map->at(_selectedId);
 
         if (validate(value)) {
-            auto action = std::make_unique<UndoActionT>(*this, value);
+            auto action = std::make_unique<UndoActionT>(actionType, *this, value);
 
             fun(value);
 

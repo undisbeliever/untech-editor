@@ -3,6 +3,14 @@
 
 using namespace UnTech::Controller::Undo;
 
+Action::Action(const ActionType* type)
+    : _type(type)
+{
+    if (_type == nullptr) {
+        throw std::invalid_argument("type");
+    }
+}
+
 UndoStack::UndoStack()
     : _undoStack()
     , _redoStack()
@@ -26,28 +34,6 @@ void UndoStack::add_undo(std::unique_ptr<Action> action)
     _signal_stackChanged.emit();
 
     markDirty();
-}
-
-void UndoStack::add_undoMerge(std::unique_ptr<MergeAction> actionToMerge)
-{
-    if (_undoStack.empty() || _dontMerge == true || canRedo()) {
-        return add_undo(std::move(actionToMerge));
-    }
-
-    MergeAction* lastAction = dynamic_cast<MergeAction*>(
-        _undoStack.front().get());
-
-    if (lastAction == nullptr) {
-        return add_undo(std::move(actionToMerge));
-    }
-
-    bool m = lastAction->mergeWith(actionToMerge.get());
-    if (m) {
-        markDirty();
-    }
-    else {
-        add_undo(std::move(actionToMerge));
-    }
 }
 
 void UndoStack::dontMergeNextAction()
@@ -114,7 +100,7 @@ static const std::string emptyString;
 const std::string& UndoStack::undoMessage() const
 {
     if (!_undoStack.empty()) {
-        return _undoStack.front()->message();
+        return _undoStack.front()->type()->text;
     }
     else {
         return emptyString;
@@ -124,7 +110,7 @@ const std::string& UndoStack::undoMessage() const
 const std::string& UndoStack::redoMessage() const
 {
     if (!_redoStack.empty()) {
-        return _redoStack.front()->message();
+        return _redoStack.front()->type()->text;
     }
     else {
         return emptyString;

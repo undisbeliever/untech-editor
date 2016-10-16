@@ -7,8 +7,9 @@ namespace Controller {
 template <class T>
 class SharedPtrRootController<T>::MementoUndoAction : public Undo::Action {
 public:
-    MementoUndoAction(SharedPtrRootController& controller, const T& value)
-        : Undo::Action()
+    MementoUndoAction(const Undo::ActionType* actionType,
+                      SharedPtrRootController& controller, const T& value)
+        : Undo::Action(actionType)
         , _controller(controller)
         , _ref(controller.undoRefForSelected())
         , _oldValue(value)
@@ -33,13 +34,6 @@ public:
 
         _controller._signal_dataChanged.emit();
         _controller._signal_anyChanged.emit();
-    }
-
-    virtual const std::string& message() const override
-    {
-        // ::SHOULDDO better undo message::
-        static const std::string s = "Edit " + HumanTypeName<T>::value;
-        return s;
     }
 
 private:
@@ -95,6 +89,7 @@ void SharedPtrRootController<T>::setRoot(std::shared_ptr<T> newRoot)
 template <typename T>
 template <class UndoActionT>
 void SharedPtrRootController<T>::edit_selected(
+    const Undo::ActionType* actionType,
     std::function<bool(const T&)> const& validate,
     std::function<void(T&)> const& fun)
 {
@@ -102,7 +97,7 @@ void SharedPtrRootController<T>::edit_selected(
         auto& value = *_root;
 
         if (validate(value)) {
-            auto action = std::make_unique<UndoActionT>(*this, value);
+            auto action = std::make_unique<UndoActionT>(actionType, *this, value);
 
             fun(value);
 

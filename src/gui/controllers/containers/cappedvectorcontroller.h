@@ -105,8 +105,10 @@ protected:
     element_type* editable_selected();
 
     // will only create an UndoAction and call fun if validate returns true.
+    // actionType MUST EXIST forever (preferably as a const static)
     template <class UndoActionT = MementoUndoAction>
     void edit_selected(
+        const Undo::ActionType* actionType,
         std::function<bool(const element_type&)> const& validate,
         std::function<void(element_type&)> const& fun);
 
