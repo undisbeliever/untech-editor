@@ -53,9 +53,6 @@ public:
          * =====
          */
 
-        // ::SHOULDDO add more fine grained signals in controller::
-        // ::: prevent redrawing entire screen::
-
         _controller.signal_mapChanged().connect(sigc::mem_fun(
             *this, &IdMapListCtrl::UpdateLists));
 

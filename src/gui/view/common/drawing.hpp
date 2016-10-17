@@ -234,8 +234,6 @@ inline void DashedPen(wxDC& dc, const wxColour& bgColor, const wxColour& fgColor
     // ::ANNOY wxGTK does not support Stipple Pens::
     // Have to draw this twice.
 
-    // ::SHOULDO use stipple pen in wxMSW, wxOSX/Cocoa::
-
     dc.SetBrush(wxNullBrush);
 
     dc.SetPen(wxPen(bgColor, 1, wxPENSTYLE_SOLID));

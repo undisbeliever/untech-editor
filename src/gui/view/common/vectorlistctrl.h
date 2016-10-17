@@ -45,9 +45,6 @@ public:
          * =====
          */
 
-        // ::SHOULDDO add more fine grained signals in controller::
-        // ::: prevent redrawing entire screen::
-
         _controller.signal_listChanged().connect(
             [this](void) {
                 const list_type* list = _controller.list();

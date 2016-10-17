@@ -4,8 +4,6 @@
 
 using namespace UnTech::View::MetaSprite::MetaSprite;
 
-// ::TODO move to Snes namespace::
-
 PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
                            MS::PaletteController& controller)
 

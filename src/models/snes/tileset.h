@@ -10,8 +10,6 @@
 namespace UnTech {
 namespace Snes {
 
-// ::SHOULDO draw large tile (8, 16, 32) function::
-
 template <class TileT>
 class Tileset {
 public:

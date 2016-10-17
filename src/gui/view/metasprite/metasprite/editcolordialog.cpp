@@ -7,8 +7,6 @@
 using namespace UnTech;
 using namespace UnTech::View::MetaSprite::MetaSprite;
 
-// ::TODO move to Snes Namespace::
-
 EditColorDialog::EditColorDialog(wxWindow* parent,
                                  MS::PaletteController& controller,
                                  unsigned colorId)

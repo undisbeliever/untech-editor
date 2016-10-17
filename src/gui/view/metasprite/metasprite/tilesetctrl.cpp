@@ -11,7 +11,6 @@ using namespace UnTech::View::MetaSprite::MetaSprite;
 
 using SelectedType = UnTech::MetaSprite::SelectedType;
 
-// ::TODO add UpdateSmallBitmap(tileId), UpdateLargeBitmap(tileId) functions::
 // ::TODO select color with mouse mode::
 
 TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,

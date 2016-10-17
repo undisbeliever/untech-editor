@@ -726,7 +726,6 @@ ActionPointPanel::ActionPointPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, "Location:"));
     grid->Add(_location, wxSizerFlags(1).Expand());
 
-    // ::TODO replace with something better::
     _parameter = new wxSpinCtrl(this, wxID_ANY);
     _parameter->SetRange(1, 255);
     grid->Add(new wxStaticText(this, wxID_ANY, "Parameter:"));

@@ -4,8 +4,6 @@
 #include <wx/imaglist.h>
 #include <wx/rawbmp.h>
 
-// ::TODO move to Snes namespace::
-
 using namespace UnTech;
 using namespace UnTech::View::MetaSprite::MetaSprite;
 

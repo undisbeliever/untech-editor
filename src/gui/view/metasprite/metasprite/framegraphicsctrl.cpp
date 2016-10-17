@@ -40,8 +40,6 @@ FrameGraphicsCtrl::FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
     controller.paletteController().signal_anyChanged().connect(sigc::mem_fun(
         *this, &FrameGraphicsCtrl::UpdateBitmap));
 
-    // ::TODO separate controllers for Tilesets::
-
     controller.frameSetController().signal_anyChanged().connect(sigc::mem_fun(
         *this, &FrameGraphicsCtrl::UpdateBitmap));
 

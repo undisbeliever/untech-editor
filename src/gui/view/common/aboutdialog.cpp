@@ -18,8 +18,6 @@ AboutDialog::AboutDialog(wxWindow* parent, const wxString& appName)
     auto* vSizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(vSizer, wxSizerFlags().Expand().DoubleBorder());
 
-    // ::SHOULDO image::
-
     // about
     {
         vSizer->Add(CreateLargeHText(appName),

@@ -117,8 +117,6 @@ struct FrameSet {
     capped_vector<Snes::Palette4bpp, MAX_PALETTES> palettes;
 
     FrameSet() = default;
-
-    // ::TODO isValid - returns a string if there is an error::
 };
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename);

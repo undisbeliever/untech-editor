@@ -44,8 +44,6 @@ public:
         auto* paraSizer = new wxStaticBoxSizer(wxVERTICAL, this, "FrameSet Parameters");
         sizer->Add(paraSizer, wxSizerFlags(1).Expand().Border());
 
-        // ::TODO frame Properties::
-
         // Signals
         // -------
         _controller.frameSetController().signal_anyChanged().connect(sigc::mem_fun(

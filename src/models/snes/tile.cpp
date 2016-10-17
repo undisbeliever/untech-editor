@@ -28,8 +28,6 @@ void Tile<BD, TS>::draw(Image& image, const Palette<BD>& palette,
         return;
     }
 
-    // ::SHOULDO refactor and profile to see if faster::
-
     rgba* imgBits;
     const uint8_t* tilePos = rawData();
 
@@ -80,8 +78,6 @@ void Tile<BD, TS>::drawOpaque(Image& image, const Palette<BD>& palette,
 
         return;
     }
-
-    // ::SHOULDO refactor and profile to see if faster::
 
     rgba* imgBits;
     const uint8_t* tilePos = rawData();
