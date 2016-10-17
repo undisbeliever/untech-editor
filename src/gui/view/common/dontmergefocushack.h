@@ -18,6 +18,7 @@ public:
 
 protected:
     void OnWindowFocus(wxFocusEvent&);
+    void OnTextEnter(wxCommandEvent&);
 
 private:
     Controller::BaseController& _controller;

@@ -12,6 +12,9 @@ void DontMergeFocusHack::BindEventRecursive(wxWindow* window)
 {
     if (wxSpinCtrl* spin = dynamic_cast<wxSpinCtrl*>(window)) {
         spin->Bind(wxEVT_SET_FOCUS, &DontMergeFocusHack::OnWindowFocus, this);
+
+        spin->SetWindowStyleFlag(wxTE_PROCESS_ENTER);
+        spin->Bind(wxEVT_TEXT_ENTER, &DontMergeFocusHack::OnTextEnter, this);
     }
     else if (wxTextCtrl* text = dynamic_cast<wxTextCtrl*>(window)) {
         text->Bind(wxEVT_SET_FOCUS, &DontMergeFocusHack::OnWindowFocus, this);
@@ -24,6 +27,12 @@ void DontMergeFocusHack::BindEventRecursive(wxWindow* window)
 }
 
 void DontMergeFocusHack::OnWindowFocus(wxFocusEvent& event)
+{
+    _controller.undoStack().dontMergeNextAction();
+    event.Skip();
+}
+
+void DontMergeFocusHack::OnTextEnter(wxCommandEvent& event)
 {
     _controller.undoStack().dontMergeNextAction();
     event.Skip();
