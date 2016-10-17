@@ -149,6 +149,16 @@ void SelectedController<T>::selectFrameItem(const idstring& frameId, SelectedTyp
         _controller.frameController().selectId(frameId);
     }
 
+    auto select = [&](auto& controller) {
+        controller.selectIndex(index);
+        if (_type != type) {
+            if (controller.hasSelected()) {
+                _type = type;
+                _signal_selectedChanged.emit();
+            }
+        }
+    };
+
     if (_controller.frameController().hasSelected()) {
         switch (type) {
         case SelectedType::NONE:
@@ -157,18 +167,19 @@ void SelectedController<T>::selectFrameItem(const idstring& frameId, SelectedTyp
             break;
 
         case SelectedType::TILE_HITBOX:
+            selectTileHitbox();
             break;
 
         case SelectedType::FRAME_OBJECT:
-            _controller.frameObjectController().selectIndex(index);
+            select(_controller.frameObjectController());
             break;
 
         case SelectedType::ACTION_POINT:
-            _controller.actionPointController().selectIndex(index);
+            select(_controller.actionPointController());
             break;
 
         case SelectedType::ENTITY_HITBOX:
-            _controller.entityHitboxController().selectIndex(index);
+            select(_controller.entityHitboxController());
             break;
         }
     }
