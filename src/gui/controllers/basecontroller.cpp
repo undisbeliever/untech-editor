@@ -57,6 +57,14 @@ void BaseController::newDocument()
     _undoStack.clear();
 }
 
+void BaseController::showError(const std::exception& ex)
+{
+    std::cerr << "ERROR: " << ex.what()
+              << std::endl;
+
+    _interface.showError("Error", ex);
+}
+
 void BaseController::showError(const char* error, const std::exception& ex)
 {
     std::cerr << "ERROR: " << error

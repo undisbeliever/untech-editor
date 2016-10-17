@@ -460,33 +460,38 @@ void CappedVectorController<ET, LT, PT>::edit_selected(
     std::function<bool(const ET&)> const& validate,
     std::function<void(ET&)> const& fun)
 {
-    if (_list && _hasSelected) {
-        assert(_selectedIndex < _list->size());
-        auto& value = _list->at(_selectedIndex);
+    try {
+        if (_list && _hasSelected) {
+            assert(_selectedIndex < _list->size());
+            auto& value = _list->at(_selectedIndex);
 
-        if (validate(value)) {
-            auto& undoStack = _baseController.undoStack();
+            if (validate(value)) {
+                auto& undoStack = _baseController.undoStack();
 
-            UndoActionT* prevAction = dynamic_cast<UndoActionT*>(
-                undoStack.retrieveMergableAction(actionType));
+                UndoActionT* prevAction = dynamic_cast<UndoActionT*>(
+                    undoStack.retrieveMergableAction(actionType));
 
-            const auto& undoRef = undoRefForSelected();
+                const auto& undoRef = undoRefForSelected();
 
-            bool canMerge = prevAction && prevAction->undoRef() == undoRef;
+                bool canMerge = prevAction && prevAction->undoRef() == undoRef;
 
-            if (canMerge) {
-                fun(value);
-                prevAction->setNewValue(value);
-            }
-            else {
-                auto action = std::make_unique<UndoActionT>(
-                    actionType, *this, undoRef, value);
-                fun(value);
+                if (canMerge) {
+                    fun(value);
+                    prevAction->setNewValue(value);
+                }
+                else {
+                    auto action = std::make_unique<UndoActionT>(
+                        actionType, *this, undoRef, value);
+                    fun(value);
 
-                action->setNewValue(value);
-                undoStack.add_undo(std::move(action));
+                    action->setNewValue(value);
+                    undoStack.add_undo(std::move(action));
+                }
             }
         }
+    }
+    catch (const std::exception& ex) {
+        _baseController.showError(ex);
     }
 
     _signal_dataChanged.emit();

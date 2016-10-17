@@ -97,32 +97,37 @@ void SharedPtrRootController<T>::edit_selected(
     std::function<bool(const T&)> const& validate,
     std::function<void(T&)> const& fun)
 {
-    if (_root) {
-        auto& value = *_root;
+    try {
+        if (_root) {
+            auto& value = *_root;
 
-        if (validate(value)) {
-            auto& undoStack = _baseController.undoStack();
+            if (validate(value)) {
+                auto& undoStack = _baseController.undoStack();
 
-            UndoActionT* prevAction = dynamic_cast<UndoActionT*>(
-                undoStack.retrieveMergableAction(actionType));
+                UndoActionT* prevAction = dynamic_cast<UndoActionT*>(
+                    undoStack.retrieveMergableAction(actionType));
 
-            const auto& undoRef = undoRefForSelected();
+                const auto& undoRef = undoRefForSelected();
 
-            bool canMerge = prevAction && prevAction->undoRef() == undoRef;
+                bool canMerge = prevAction && prevAction->undoRef() == undoRef;
 
-            if (canMerge) {
-                fun(value);
-                prevAction->setNewValue(value);
-            }
-            else {
-                auto action = std::make_unique<UndoActionT>(
-                    actionType, *this, undoRef, value);
-                fun(value);
+                if (canMerge) {
+                    fun(value);
+                    prevAction->setNewValue(value);
+                }
+                else {
+                    auto action = std::make_unique<UndoActionT>(
+                        actionType, *this, undoRef, value);
+                    fun(value);
 
-                action->setNewValue(value);
-                _baseController.undoStack().add_undo(std::move(action));
+                    action->setNewValue(value);
+                    _baseController.undoStack().add_undo(std::move(action));
+                }
             }
         }
+    }
+    catch (const std::exception& ex) {
+        _baseController.showError(ex);
     }
 
     _signal_dataChanged.emit();

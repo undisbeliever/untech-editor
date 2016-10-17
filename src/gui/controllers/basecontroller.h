@@ -38,6 +38,7 @@ public:
     void newDocument();
 
     // Prints the error to stderr, then calls `ControllerInterface::showError`
+    void showError(const std::exception& ex);
     void showError(const char* error, const std::exception& ex);
 
 protected:
