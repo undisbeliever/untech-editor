@@ -146,14 +146,18 @@ AnimationCompiler::process(const FrameSetExportList& exportList)
         assert(ani.animation != nullptr);
         uint32_t ao = ~0;
 
-        // ::TODO test animation isValid::
-
-        try {
-            ao = processAnimation(ani, exportList.frameSet(),
-                                  frameMap, animationMap);
+        bool valid = ani.animation->isValid(exportList.frameSet());
+        if (valid) {
+            try {
+                ao = processAnimation(ani, exportList.frameSet(),
+                                      frameMap, animationMap);
+            }
+            catch (const std::exception& ex) {
+                _errorList.addError(exportList.frameSet(), *ani.animation, ex.what());
+            }
         }
-        catch (const std::exception& ex) {
-            _errorList.addError(exportList.frameSet(), *ani.animation, ex.what());
+        else {
+            _errorList.addError(exportList.frameSet(), *ani.animation, "Invalid Animation");
         }
 
         animationOffsets.push_back(ao);

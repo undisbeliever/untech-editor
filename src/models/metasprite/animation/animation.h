@@ -10,7 +10,15 @@
 
 namespace UnTech {
 namespace MetaSprite {
+namespace MetaSprite {
+struct FrameSet;
+}
+namespace SpriteImporter {
+struct FrameSet;
+}
+
 namespace Animation {
+struct Animation;
 
 struct Instruction {
     typedef capped_vector<Instruction, MAX_ANIMATION_INSTRUCTIONS> list_t;
@@ -22,7 +30,12 @@ struct Instruction {
 
     Instruction() = default;
 
-    // ::TODO isValid - given frame name list::
+    bool isValid(const MetaSprite::FrameSet&, const Animation&, unsigned pos) const;
+    bool isValid(const SpriteImporter::FrameSet&, const Animation&, unsigned pos) const;
+
+private:
+    template <class FrameSetT>
+    bool _isValid(const FrameSetT&, const Animation&, unsigned pos) const;
 };
 
 struct Animation {
@@ -32,7 +45,12 @@ struct Animation {
 
     Animation() = default;
 
-    // ::TODO isValid - given frame name list::
+    bool isValid(const MetaSprite::FrameSet&) const;
+    bool isValid(const SpriteImporter::FrameSet&) const;
+
+private:
+    template <class FrameSetT>
+    bool _isValid(const FrameSetT&) const;
 };
 }
 }

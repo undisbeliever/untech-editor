@@ -205,16 +205,14 @@ public:
         for (const ExportName& en : exportOrder->animations) {
             TreeIcon itemId = CROSS_ICON;
             if (animations.contains(en.name)) {
-                // ::TODO Animation.isValid::
-                // itemId = animations.at(en.name).isValid() ? TICK_ICON : WARNING_ICON;
-                itemId = WARNING_ICON;
+                bool valid = animations.at(en.name).isValid(frameSet);
+                itemId = valid ? TICK_ICON : WARNING_ICON;
             }
             else {
                 for (const auto& alt : en.alternatives) {
                     if (animations.contains(alt.name)) {
-                        // ::TODO Animation.isValid::
-                        // itemId = animations.at(alt.name).isValid() ? TICK_ICON : WARNING_ICON;
-                        itemId = WARNING_ICON;
+                        bool valid = animations.at(alt.name).isValid(frameSet);
+                        itemId = valid ? TICK_ICON : WARNING_ICON;
                         break;
                     }
                 }
