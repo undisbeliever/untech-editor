@@ -224,8 +224,6 @@ private:
 
             xml.parseCloseTag();
         }
-
-        // ::TODO frame.isValid()::
     }
 
     inline void readExportOrder(const XmlTag* tag)

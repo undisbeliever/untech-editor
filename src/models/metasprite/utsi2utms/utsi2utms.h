@@ -14,7 +14,13 @@ class Utsi2Utms {
 public:
     Utsi2Utms(ErrorList& errorList);
 
-    std::unique_ptr<MetaSprite::FrameSet> convert(const SpriteImporter::FrameSet& siFrameSet);
+    std::unique_ptr<MetaSprite::FrameSet> convert(SpriteImporter::FrameSet& siFrameSet);
+
+    // NOTE: updates the frame Locations
+    bool validateFrameSet(SpriteImporter::FrameSet&);
+
+private:
+    std::unique_ptr<MetaSprite::FrameSet> process(const SpriteImporter::FrameSet& siFrameSet);
 
 private:
     ErrorList& errorList;

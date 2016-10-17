@@ -67,6 +67,17 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     origin.y = std::min(origin.y, aabb.height);
 }
 
+bool FrameLocation::isValid(const FrameSet& frameSet, const Frame& frame)
+{
+    update(frameSet.grid, frame);
+
+    usize minSize = frame.minimumViableSize();
+
+    return aabb.width >= minSize.width
+           && aabb.height >= minSize.height
+           && aabb.size().contains(origin);
+}
+
 bool FrameLocation::operator==(const FrameLocation& o) const
 {
     return this->aabb == o.aabb

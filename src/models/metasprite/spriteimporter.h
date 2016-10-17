@@ -53,6 +53,8 @@ struct FrameLocation {
 
     void update(const FrameSetGrid&, const Frame&);
 
+    bool isValid(const FrameSet&, const Frame&);
+
     bool operator==(const FrameLocation& o) const;
     bool operator!=(const FrameLocation& o) const { return !(*this == o); }
 };

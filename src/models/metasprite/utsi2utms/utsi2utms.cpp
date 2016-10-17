@@ -129,7 +129,56 @@ Utsi2Utms::Utsi2Utms(ErrorList& errorList)
 {
 }
 
-std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
+std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(SI::FrameSet& siFrameSet)
+{
+    bool valid = validateFrameSet(siFrameSet);
+    if (!valid) {
+        return nullptr;
+    }
+
+    return process(siFrameSet);
+}
+
+bool Utsi2Utms::validateFrameSet(SpriteImporter::FrameSet& frameSet)
+{
+    size_t prevErrorSize = errorList.errors.size();
+
+    // Validate FrameSet
+
+    if (frameSet.image.empty()) {
+        errorList.addError(frameSet, "No Image");
+    }
+    if (frameSet.frames.size() == 0) {
+        errorList.addError(frameSet, "No Frames");
+    }
+    if (frameSet.transparentColorValid() == false) {
+        errorList.addError(frameSet, "Transparent color is invalid");
+    }
+    if (frameSet.grid.isValid(frameSet) == false) {
+        errorList.addError(frameSet, "Invalid Frame Set Grid");
+    }
+
+    if (errorList.errors.size() != prevErrorSize) {
+        return false;
+    }
+
+    // Validate Frames
+    for (auto&& it : frameSet.frames) {
+        SpriteImporter::Frame& frame = it.second;
+
+        if (frame.location.isValid(frameSet, frame) == false) {
+            errorList.addError(frameSet, frame, "Invalid Frame Size");
+        }
+
+        if (!frameSet.image.size().contains(frame.location.aabb)) {
+            errorList.addError(frameSet, frame, "Frame not inside image");
+        }
+    }
+
+    return errorList.errors.size() == prevErrorSize;
+}
+
+std::unique_ptr<MS::FrameSet> Utsi2Utms::process(const SI::FrameSet& siFrameSet)
 {
     size_t initialErrorCount = errorList.errors.size();
     auto hasError = [initialErrorCount, this]() {
@@ -137,25 +186,6 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
     };
 
     const UnTech::Image& image = siFrameSet.image;
-
-    // ::SHOULDDO move to SpriteImporter::FrameSet::validate::
-
-    // Validate siFrameSet
-    {
-        if (image.empty()) {
-            errorList.addError(siFrameSet, "No Image");
-        }
-        if (siFrameSet.frames.size() == 0) {
-            errorList.addError(siFrameSet, "No Frames");
-        }
-        if (siFrameSet.transparentColorValid() == false) {
-            errorList.addError(siFrameSet, "Transparent color is invalid");
-        }
-    }
-
-    if (hasError()) {
-        return nullptr;
-    }
 
     auto msFrameSet = std::make_unique<MS::FrameSet>();
 
@@ -172,11 +202,6 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(const SI::FrameSet& siFrameSet)
 
         for (const auto& siFrameIt : siFrameSet.frames) {
             const SI::Frame& siFrame = siFrameIt.second;
-
-            if (!image.size().contains(siFrame.location.aabb)) {
-                errorList.addError(siFrameSet, siFrame, "Frame not inside image");
-                continue;
-            }
 
             for (const SI::FrameObject& obj : siFrame.objects) {
                 unsigned lx = siFrame.location.aabb.x + obj.location.x;
