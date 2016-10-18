@@ -52,6 +52,7 @@ private:
     void ResetMouseState();
 
     void DrawTilePixel(const MousePosition&);
+    void SelectColorWithMouse(const MousePosition&);
 
 private:
     MS::MetaSpriteController& _controller;

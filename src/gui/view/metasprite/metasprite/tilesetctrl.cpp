@@ -11,8 +11,6 @@ using namespace UnTech::View::MetaSprite::MetaSprite;
 
 using SelectedType = UnTech::MetaSprite::SelectedType;
 
-// ::TODO select color with mouse mode::
-
 TilesetCtrl::TilesetCtrl(wxWindow* parent, wxWindowID id,
                          MS::MetaSpriteController& controller)
     : wxPanel(parent, id, wxDefaultPosition, wxDefaultSize,
@@ -373,13 +371,22 @@ void TilesetCtrl::OnMouseLeftDown(wxMouseEvent& event)
     MousePosition mouse = GetMousePosition();
 
     if (mouse.isValid) {
-        if (_controller.paletteController().selectedColorId() >= 0) {
-            _mouseState = MouseState::DRAW;
+        auto mod = event.GetModifiers();
 
-            DrawTilePixel(mouse);
-            CaptureMouse();
+        if (mod == 0) {
+            if (_controller.paletteController().selectedColorId() >= 0) {
+                _mouseState = MouseState::DRAW;
+
+                DrawTilePixel(mouse);
+                CaptureMouse();
+            }
+            else {
+                _mouseState = MouseState::SELECT;
+            }
         }
-        else {
+        else if (mod == wxMOD_CONTROL) {
+            SelectColorWithMouse(mouse);
+
             _mouseState = MouseState::SELECT;
         }
         _prevMouse = mouse;
@@ -459,4 +466,24 @@ void TilesetCtrl::DrawTilePixel(const MousePosition& mouse)
             mouse.tileX, mouse.tileY,
             _controller.paletteController().selectedColorId());
     }
+}
+
+void TilesetCtrl::SelectColorWithMouse(const MousePosition& mouse)
+{
+    assert(mouse.isValid);
+
+    const MS::FrameSet& frameSet = _controller.frameSetController().selected();
+
+    unsigned color;
+
+    if (mouse.isSmall) {
+        const auto& tile = frameSet.smallTileset.tile(mouse.tileId);
+        color = tile.pixel(mouse.tileX, mouse.tileY);
+    }
+    else {
+        const auto& tile = frameSet.largeTileset.tile(mouse.tileId);
+        color = tile.pixel(mouse.tileX, mouse.tileY);
+    }
+
+    _controller.paletteController().setSelectedColorId(color);
 }

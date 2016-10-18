@@ -33,6 +33,9 @@ PalettePanel::PalettePanel(wxWindow* parent, int wxWindowID,
     _controller.signal_anyChanged().connect(sigc::mem_fun(
         *this, &PalettePanel::UpdateGui));
 
+    _controller.signal_selectedColorChanged().connect(sigc::mem_fun(
+        *this, &PalettePanel::UpdateGui));
+
     // EVENTS
     // ------
     _editColor->Bind(wxEVT_TOGGLEBUTTON, &PalettePanel::on_editColorToggled, this);

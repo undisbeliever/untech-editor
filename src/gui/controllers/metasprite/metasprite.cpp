@@ -196,6 +196,9 @@ void PaletteController::setSelectedColorId(unsigned colorId)
         _selectedColorId = colorId;
         _signal_selectedColorChanged.emit();
     }
+    else {
+        unsetSelectedColor();
+    }
 }
 
 void PaletteController::unsetSelectedColor()
