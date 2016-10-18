@@ -41,6 +41,8 @@ public:
     void CenterScrollbar() { UpdateScrollbar(true); }
 
 private:
+    const MS::Frame& CurrentFrame();
+
     void OnNonBitmapDataChanged();
 
     void UpdateScrollbar(bool center = false);
@@ -68,7 +70,6 @@ private:
 
 private:
     MS::MetaSpriteController& _controller;
-    const MS::Frame* _currentFrame;
     idstring _currentFrameId;
 
     wxBitmap _bitmap;

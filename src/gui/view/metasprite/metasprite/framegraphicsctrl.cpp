@@ -31,11 +31,8 @@ FrameGraphicsCtrl::FrameGraphicsCtrl(wxWindow* parent, wxWindowID id,
     controller.frameController().signal_dataChanged().connect(sigc::mem_fun(
         *this, &FrameGraphicsCtrl::OnNonBitmapDataChanged));
 
-    controller.frameController().signal_mapChanged().connect(
-        [this](void) {
-            // reload MetaSprite Frame
-            SetCurrentFrameId(_currentFrameId);
-        });
+    controller.frameController().signal_mapChanged().connect(sigc::mem_fun(
+        *this, &FrameGraphicsCtrl::UpdateBitmap));
 
     controller.paletteController().signal_anyChanged().connect(sigc::mem_fun(
         *this, &FrameGraphicsCtrl::UpdateBitmap));
@@ -113,16 +110,40 @@ void FrameGraphicsCtrl::SetCurrentFrameId(const idstring& frameId)
     const auto* map = _controller.frameController().map();
 
     if (map && map->contains(frameId)) {
-        _currentFrame = &map->at(frameId);
         _currentFrameId = frameId;
     }
     else {
-        _currentFrame = nullptr;
         _currentFrameId = idstring();
     }
 
     CenterScrollbar();
     UpdateBitmap();
+}
+
+const MS::Frame& FrameGraphicsCtrl::CurrentFrame()
+{
+    const static MS::Frame BLANK_FRAME;
+
+    if (_currentFrameId.isValid()) {
+        const auto* map = _controller.frameController().map();
+
+        const MS::Frame* framePtr = nullptr;
+
+        if (map) {
+            framePtr = map->getPtr(_currentFrameId);
+        }
+
+        if (framePtr) {
+            return *framePtr;
+        }
+        else {
+            _currentFrameId = idstring();
+            return BLANK_FRAME;
+        }
+    }
+    else {
+        return BLANK_FRAME;
+    }
 }
 
 void FrameGraphicsCtrl::UpdateScrollbar(bool center)
@@ -137,7 +158,7 @@ void FrameGraphicsCtrl::UpdateScrollbar(bool center)
     int vThumbSize = std::min(clientHeight, BITMAP_SIZE);
 
     int hPos, vPos;
-    if (_currentFrame && !center) {
+    if (_currentFrameId.isValid() && !center) {
         hPos = GetScrollPos(wxHORIZONTAL) + GetScrollThumb(wxHORIZONTAL) / 2 - hThumbSize / 2;
         vPos = GetScrollPos(wxVERTICAL) + GetScrollThumb(wxVERTICAL) / 2 - vThumbSize / 2;
     }
@@ -176,39 +197,38 @@ void FrameGraphicsCtrl::UpdateBitmap()
     }
 
     // Draw the sprites
-    if (_currentFrame != nullptr) {
-        const MS::Frame& frame = *_currentFrame;
-        const MS::FrameSet& frameSet = _controller.frameSetController().selected();
-        const auto& palette = _controller.paletteController().selected();
+    const MS::Frame& frame = CurrentFrame();
 
-        wxNativePixelData pData(_bitmap);
+    const MS::FrameSet& frameSet = _controller.frameSetController().selected();
+    const auto& palette = _controller.paletteController().selected();
 
-        for (auto it = frame.objects.rbegin(); it != frame.objects.rend(); ++it) {
-            const MS::FrameObject& obj = *it;
+    wxNativePixelData pData(_bitmap);
 
-            if (obj.size == OS::SMALL) {
-                const auto& smallTileset = frameSet.smallTileset;
+    for (auto it = frame.objects.rbegin(); it != frame.objects.rend(); ++it) {
+        const MS::FrameObject& obj = *it;
 
-                if (obj.tileId < smallTileset.size()) {
-                    UnTech::View::Snes::DrawTileTransparent(
-                        pData,
-                        smallTileset.tile(obj.tileId), palette,
-                        obj.location.x + FRAME_IMAGE_OFFSET,
-                        obj.location.y + FRAME_IMAGE_OFFSET,
-                        obj.hFlip, obj.vFlip);
-                }
+        if (obj.size == OS::SMALL) {
+            const auto& smallTileset = frameSet.smallTileset;
+
+            if (obj.tileId < smallTileset.size()) {
+                UnTech::View::Snes::DrawTileTransparent(
+                    pData,
+                    smallTileset.tile(obj.tileId), palette,
+                    obj.location.x + FRAME_IMAGE_OFFSET,
+                    obj.location.y + FRAME_IMAGE_OFFSET,
+                    obj.hFlip, obj.vFlip);
             }
-            else {
-                const auto& largeTileset = frameSet.largeTileset;
+        }
+        else {
+            const auto& largeTileset = frameSet.largeTileset;
 
-                if (obj.tileId < largeTileset.size()) {
-                    UnTech::View::Snes::DrawTileTransparent(
-                        pData,
-                        largeTileset.tile(obj.tileId), palette,
-                        obj.location.x + FRAME_IMAGE_OFFSET,
-                        obj.location.y + FRAME_IMAGE_OFFSET,
-                        obj.hFlip, obj.vFlip);
-                }
+            if (obj.tileId < largeTileset.size()) {
+                UnTech::View::Snes::DrawTileTransparent(
+                    pData,
+                    largeTileset.tile(obj.tileId), palette,
+                    obj.location.x + FRAME_IMAGE_OFFSET,
+                    obj.location.y + FRAME_IMAGE_OFFSET,
+                    obj.hFlip, obj.vFlip);
             }
         }
     }
@@ -216,11 +236,11 @@ void FrameGraphicsCtrl::UpdateBitmap()
 
 void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 {
-    if (_currentFrame == nullptr || paintDc.IsOk() == false) {
+    if (paintDc.IsOk() == false) {
         return;
     }
 
-    const MS::Frame& frame = *_currentFrame;
+    const MS::Frame& frame = CurrentFrame();
     const auto& layers = _controller.settingsController().layers();
 
     const double zoomX = _controller.settingsController().zoom().zoomX();
@@ -369,10 +389,6 @@ void FrameGraphicsCtrl::Render(wxPaintDC& paintDc)
 
 optional<point> FrameGraphicsCtrl::GetMousePosition()
 {
-    if (_currentFrame == nullptr) {
-        return optional<point>();
-    }
-
     const wxPoint pt = ScreenToClient(wxGetMousePosition());
     const wxSize size = GetClientSize();
 
@@ -494,8 +510,6 @@ void FrameGraphicsCtrl::ResetMouseState()
 
 void FrameGraphicsCtrl::OnMouseLeftUp_Select(const point& mouse)
 {
-    assert(_currentFrame);
-
     // only select if mouse did not move.
     if (mouse != _prevMouse) {
         return;
@@ -531,7 +545,7 @@ void FrameGraphicsCtrl::OnMouseLeftUp_Select(const point& mouse)
         }
     };
 
-    const MS::Frame& frame = *_currentFrame;
+    const MS::Frame& frame = CurrentFrame();
     const auto& layers = _controller.settingsController().layers();
 
     if (layers.frameObjects()) {
