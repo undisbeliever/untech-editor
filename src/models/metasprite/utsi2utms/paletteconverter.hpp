@@ -61,7 +61,9 @@ public:
 private:
     inline std::set<rgba> getColorsFromImage()
     {
-        const Image& image = siFrameSet.image;
+        assert(siFrameSet.isImageValid());
+
+        const Image& image = *siFrameSet.image;
 
         std::set<rgba> colors;
 

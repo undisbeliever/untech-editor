@@ -147,17 +147,21 @@ void FrameSet::updateFrameLocations()
 void FrameSet::loadImage(const std::string filename)
 {
     imageFilename = File::fullPath(filename);
+
+    image = nullptr;
     reloadImage();
 }
 
 bool FrameSet::reloadImage()
 {
-    image.erase();
+    if (image == nullptr) {
+        image = std::make_shared<Image>();
+    }
 
-    bool ret = image.loadPngImage(imageFilename);
+    bool ret = image->loadPngImage(imageFilename);
 
     if (ret && !transparentColorValid()) {
-        transparentColor = image.getPixel(0, 0);
+        transparentColor = image->getPixel(0, 0);
     }
 
     return ret;

@@ -32,7 +32,7 @@ public:
                   MetaSprite::FrameSet& msFrameSet,
                   ErrorList& errorList,
                   const std::map<rgba, unsigned>& colorMap)
-        : image(siFrameSet.image)
+        : image(*siFrameSet.image)
         , colorMap(colorMap)
         , siFrameSet(siFrameSet)
         , msFrameSet(msFrameSet)
@@ -40,6 +40,7 @@ public:
         , smallTileset(msFrameSet.smallTileset)
         , largeTileset(msFrameSet.largeTileset)
     {
+        assert(siFrameSet.isImageValid());
     }
 
     const TilesetInserterOutput getTilesetOutputFromImage(const SI::Frame& frame,

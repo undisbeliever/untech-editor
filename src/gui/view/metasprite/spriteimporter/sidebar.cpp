@@ -418,7 +418,7 @@ void FrameSetImagePanel::UpdateGui()
             wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     }
 
-    _transparentColor->Enable(!frameSet.image.empty());
+    _transparentColor->Enable(frameSet.isImageValid());
 }
 
 // FRAMESET GRID

@@ -29,7 +29,7 @@ bool Utsi2Utms::validateFrameSet(SpriteImporter::FrameSet& frameSet)
 
     // Validate FrameSet
 
-    if (frameSet.image.empty()) {
+    if (frameSet.image == nullptr || frameSet.image->empty()) {
         errorList.addError(frameSet, "No Image");
     }
     if (frameSet.frames.size() == 0) {
@@ -47,6 +47,9 @@ bool Utsi2Utms::validateFrameSet(SpriteImporter::FrameSet& frameSet)
     }
 
     // Validate Frames
+    assert(frameSet.isImageValid());
+    auto imgSize = frameSet.image->size();
+
     for (auto&& it : frameSet.frames) {
         SpriteImporter::Frame& frame = it.second;
 
@@ -54,7 +57,7 @@ bool Utsi2Utms::validateFrameSet(SpriteImporter::FrameSet& frameSet)
             errorList.addError(frameSet, frame, "Invalid Frame Size");
         }
 
-        if (!frameSet.image.size().contains(frame.location.aabb)) {
+        if (!imgSize.contains(frame.location.aabb)) {
             errorList.addError(frameSet, frame, "Frame not inside image");
         }
     }

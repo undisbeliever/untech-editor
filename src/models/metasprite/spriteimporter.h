@@ -163,7 +163,7 @@ struct FrameSet {
     Animation::Animation::map_t animations;
 
     std::string imageFilename;
-    UnTech::Image image;
+    std::shared_ptr<Image> image;
     UnTech::rgba transparentColor;
     FrameSetGrid grid;
 
@@ -179,7 +179,12 @@ struct FrameSet {
     void updateFrameLocations();
 
     void loadImage(const std::string filename);
+
+    // reloads ALL references to Image
+    // this is valid because they would share the same imageFilename
     bool reloadImage();
+
+    bool isImageValid() const { return image && !image->empty(); }
 };
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename);

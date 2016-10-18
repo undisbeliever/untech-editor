@@ -159,7 +159,13 @@ void FrameSetGraphicsCtrl::OnNonBitmapDataChanged()
 void FrameSetGraphicsCtrl::UpdateBitmap()
 {
     const SI::FrameSet& frameSet = _controller.frameSetController().selected();
-    _bitmap = ImageToWxBitmap(frameSet.image);
+
+    if (frameSet.image) {
+        _bitmap = ImageToWxBitmap(*frameSet.image);
+    }
+    else {
+        _bitmap = wxNullBitmap;
+    }
 
     UpdateScrollbar();
     OnNonBitmapDataChanged();
@@ -343,7 +349,7 @@ FrameSetGraphicsCtrl::MousePosition FrameSetGraphicsCtrl::GetMousePosition()
     ret.isValid = false;
     ret.isInFrame = false;
 
-    if (frameSet.image.empty()) {
+    if (frameSet.isImageValid() == false) {
         return ret;
     }
 
@@ -362,7 +368,7 @@ FrameSetGraphicsCtrl::MousePosition FrameSetGraphicsCtrl::GetMousePosition()
 
     ret.frameSetLoc = upoint(x, y);
 
-    const usize& isize = frameSet.image.size();
+    const usize& isize = frameSet.image->size();
     if (x < isize.width && y < isize.height) {
         ret.isValid = true;
 
@@ -580,8 +586,8 @@ void FrameSetGraphicsCtrl::OnMouseLeftUp_SelectTransparentColor(const MousePosit
     if (mouse.isValid) {
         const SI::FrameSet& frameSet = _controller.frameSetController().selected();
 
-        const auto& image = frameSet.image;
-        if (!image.empty()) {
+        if (frameSet.isImageValid()) {
+            const auto& image = *frameSet.image;
             const auto& fsLoc = mouse.frameSetLoc;
 
             auto color = image.getPixel(fsLoc.x, fsLoc.y);
