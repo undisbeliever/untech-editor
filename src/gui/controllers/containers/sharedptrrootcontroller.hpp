@@ -53,6 +53,10 @@ const T SharedPtrRootController<T>::BLANK_T = T();
 template <typename T>
 SharedPtrRootController<T>::SharedPtrRootController(BaseController& baseController)
     : _baseController(baseController)
+    , _root(nullptr)
+    , _signal_anyChanged()
+    , _signal_dataChanged()
+    , _signal_selectedChanged()
 {
 }
 

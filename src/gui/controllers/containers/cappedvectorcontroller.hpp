@@ -224,6 +224,13 @@ template <typename ET, class LT, class ParentT>
 CappedVectorController<ET, LT, ParentT>::CappedVectorController(ParentT& parent)
     : _parent(parent)
     , _baseController(parent.baseController())
+    , _list(nullptr)
+    , _selectedIndex(~0)
+    , _hasSelected(false)
+    , _signal_anyChanged()
+    , _signal_dataChanged()
+    , _signal_listChanged()
+    , _signal_selectedChanged()
 {
     parent.signal_selectedChanged().connect(sigc::mem_fun(
         *this, &CappedVectorController::reloadList));

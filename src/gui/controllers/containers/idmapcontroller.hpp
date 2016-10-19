@@ -204,6 +204,12 @@ template <class T, class ParentT>
 IdMapController<T, ParentT>::IdMapController(ParentT& parent)
     : _parent(parent)
     , _baseController(parent.baseController())
+    , _map(nullptr)
+    , _selectedId()
+    , _signal_anyChanged()
+    , _signal_dataChanged()
+    , _signal_mapChanged()
+    , _signal_selectedChanged()
 {
     parent.signal_selectedChanged().connect(sigc::mem_fun(
         *this, &IdMapController::reloadMap));
