@@ -19,6 +19,12 @@ namespace Xml {
 class XmlWriter {
 
 public:
+    XmlWriter() = delete;
+    XmlWriter(const XmlWriter&) = delete;
+    XmlWriter(XmlWriter&&) = delete;
+    XmlWriter& operator=(const XmlWriter&) = delete;
+    XmlWriter& operator=(XmlWriter&&) = delete;
+
     XmlWriter(std::ostream& output, const std::string& doctype)
         : XmlWriter(output, "", doctype)
     {

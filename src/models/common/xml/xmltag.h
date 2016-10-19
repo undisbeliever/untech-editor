@@ -25,6 +25,12 @@ public:
 };
 
 struct XmlTag {
+    XmlTag() = delete;
+    XmlTag(const XmlTag&) = delete;
+    XmlTag(XmlTag&&) = delete;
+    XmlTag& operator=(const XmlTag&) = delete;
+    XmlTag& operator=(XmlTag&&) = delete;
+
     XmlTag(const XmlReader* xml, std::string tagName, unsigned lineNo)
         : name(tagName)
         , attributes()

@@ -46,6 +46,12 @@ private:
 class XmlReader {
 
 public:
+    XmlReader() = delete;
+    XmlReader(const XmlReader&) = delete;
+    XmlReader(XmlReader&&) = delete;
+    XmlReader& operator=(const XmlReader&) = delete;
+    XmlReader& operator=(XmlReader&&) = delete;
+
     XmlReader(const std::string& xml, const std::string& filename = "");
 
     static std::unique_ptr<XmlReader> fromFile(const std::string& filename);
