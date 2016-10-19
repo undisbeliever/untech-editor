@@ -42,6 +42,10 @@ struct FrameObject {
     FrameObject(const ms8point& location, ObjectSize& size)
         : location(location)
         , size(size)
+        , tileId(0)
+        , order(DEFAULT_SPRITE_ORDER)
+        , hFlip(false)
+        , vFlip(false)
     {
     }
 

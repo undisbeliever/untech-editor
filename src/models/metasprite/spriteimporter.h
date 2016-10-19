@@ -30,6 +30,8 @@ struct FrameSetGrid {
 
     FrameSetGrid()
         : frameSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE)
+        , offset(0, 0)
+        , padding(0, 0)
         , origin(MIN_FRAME_SIZE / 2, MIN_FRAME_SIZE / 2)
     {
     }
@@ -48,6 +50,9 @@ struct FrameLocation {
     FrameLocation()
         : aabb(0, 0, MIN_FRAME_SIZE, MIN_FRAME_SIZE)
         , origin(MIN_FRAME_SIZE / 2, MIN_FRAME_SIZE / 2)
+        , gridLocation()
+        , useGridLocation(false)
+        , useGridOrigin(false)
     {
     }
 

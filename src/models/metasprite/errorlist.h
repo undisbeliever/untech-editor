@@ -31,6 +31,9 @@ struct ErrorList {
     std::deque<Error> errors;
     std::deque<Error> warnings;
 
+public:
+    ErrorList() = default;
+
     void addError(const MetaSprite::FrameSet&, const std::string& message);
     void addError(const MetaSprite::FrameSet&, const MetaSprite::Frame&, const std::string& message);
     void addError(const MetaSprite::FrameSet&, const Animation::Animation&, const std::string& message);
