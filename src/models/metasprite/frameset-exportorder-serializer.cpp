@@ -40,14 +40,10 @@ public:
 
         while ((childTag = xml.parseTag())) {
             if (childTag->name == "frame") {
-                auto en = readExportName(childTag.get());
-                // ::TODO detect duplicate names::
-                exportOrder.stillFrames.push_back(en);
+                readExportName(childTag.get(), exportOrder.stillFrames);
             }
             else if (childTag->name == "animation") {
-                auto en = readExportName(childTag.get());
-                // ::TODO detect duplicate names::
-                exportOrder.animations.push_back(en);
+                readExportName(childTag.get(), exportOrder.animations);
             }
             else {
                 throw unknown_tag_error(*childTag);
@@ -58,10 +54,19 @@ public:
     }
 
 private:
-    inline FrameSetExportOrder::ExportName readExportName(const XmlTag* tag)
+    inline void readExportName(const XmlTag* tag,
+                               FrameSetExportOrder::ExportName::list_t& exportList)
     {
         FrameSetExportOrder::ExportName en;
         en.name = tag->getAttributeId("id");
+
+        bool idExists = std::any_of(
+            exportList.begin(), exportList.end(),
+            [en](const auto& existing) { return existing.name == en.name; });
+
+        if (idExists) {
+            throw xml_error(*tag, "id already exists");
+        }
 
         std::unique_ptr<XmlTag> childTag;
 
@@ -73,6 +78,11 @@ private:
                 alt.hFlip = childTag->getAttributeBoolean("hflip");
                 alt.vFlip = childTag->getAttributeBoolean("vflip");
 
+                auto it = std::find(en.alternatives.begin(), en.alternatives.end(), alt);
+                if (it != en.alternatives.end()) {
+                    throw xml_error(*childTag, "alt already exists");
+                }
+
                 en.alternatives.push_back(alt);
             }
             else {
@@ -82,7 +92,7 @@ private:
             xml.parseCloseTag();
         }
 
-        return en;
+        exportList.push_back(en);
     }
 };
 
