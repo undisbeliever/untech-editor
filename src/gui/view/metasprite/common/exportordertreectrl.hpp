@@ -46,6 +46,11 @@ public:
 
         this->AssignImageList(imageList);
 
+        // Events
+        // ------
+        this->Bind(wxEVT_TREE_ITEM_RIGHT_CLICK,
+                   &ExportOrderTreeCtrl::OnListItemRightClick, this);
+
         // Signals
         // -------
         auto& aniController = _controller.animationControllerInterface();
@@ -232,6 +237,136 @@ public:
         this->SetItemImage(aniNode, totalItemId);
 
         this->Thaw();
+    }
+
+    int GetChildIndex(wxTreeItemId& parentNode, const wxTreeItemId& selected)
+    {
+        int pos = 0;
+
+        wxTreeItemIdValue cookie;
+        auto node = this->GetFirstChild(parentNode, cookie);
+
+        while (node.IsOk()) {
+            if (node == selected) {
+                return pos;
+            }
+
+            pos++;
+            node = this->GetNextChild(parentNode, cookie);
+        };
+
+        return -1;
+    }
+
+    void OnListItemRightClick(wxTreeEvent& event)
+    {
+        wxTreeItemId selected = event.GetItem();
+
+        if (this->GetItemImage(selected) != CROSS_ICON) {
+            // only show menu if exportOrder item doesn't exist
+            return;
+        }
+
+        wxTreeItemIdValue rootCookie;
+        auto root = this->GetRootItem();
+
+        auto frameNode = this->GetFirstChild(root, rootCookie);
+        int frameIndex = this->GetChildIndex(frameNode, selected);
+
+        if (frameIndex >= 0) {
+            GeneratePopupMenu(PopupMenuData::FRAME, frameIndex);
+        }
+        else {
+            auto aniNode = this->GetNextChild(root, rootCookie);
+            auto aniIndex = this->GetChildIndex(aniNode, selected);
+
+            if (aniIndex >= 0) {
+                GeneratePopupMenu(PopupMenuData::ANIMATION, aniIndex);
+            }
+        }
+    }
+
+private:
+    class PopupMenuData : public wxObject {
+        using ExportName = UnTech::MetaSprite::FrameSetExportOrder::ExportName;
+
+    public:
+        enum Type {
+            FRAME,
+            ANIMATION,
+        };
+
+    private:
+        const ExportOrderTreeCtrl& parent;
+        const Type type;
+        const int index;
+
+    public:
+        PopupMenuData(ExportOrderTreeCtrl& parent, Type type, int index)
+            : wxObject()
+            , parent(parent)
+            , type(type)
+            , index(index)
+        {
+        }
+
+        const ExportName& GetExportName() const
+        {
+            const auto& exportOrder = parent._controller.frameSetController().selected().exportOrder;
+
+            assert(exportOrder != nullptr);
+
+            if (type == PopupMenuData::FRAME) {
+                return exportOrder->stillFrames.at(index);
+            }
+            else {
+                return exportOrder->animations.at(index);
+            }
+        }
+
+        Type GetType() const { return type; };
+    };
+
+    void GeneratePopupMenu(const typename PopupMenuData::Type type, int index)
+    {
+        auto menuData = std::make_unique<PopupMenuData>(*this, type, index);
+        const auto& en = menuData->GetExportName();
+
+        int id = wxID_HIGHEST;
+
+        wxMenu menu;
+
+        menu.Append(id, "Create " + en.name);
+
+        for (const auto& alt : en.alternatives) {
+            id++;
+            menu.Append(id, "Create " + alt.name);
+        }
+
+        menu.Bind(wxEVT_COMMAND_MENU_SELECTED, &ExportOrderTreeCtrl::OnPopupClick, this,
+                  wxID_ANY, wxID_ANY, menuData.release());
+
+        PopupMenu(&menu);
+    }
+
+    void OnPopupClick(wxCommandEvent& event)
+    {
+        int id = event.GetId() - wxID_HIGHEST;
+        auto* menuData = dynamic_cast<PopupMenuData*>(event.GetEventUserData());
+
+        if (menuData && id >= 0) {
+            const auto& en = menuData->GetExportName();
+
+            const idstring& toCreate = id == 0 ? en.name
+                                               : en.alternatives.at(id - 1).name;
+
+            if (menuData->GetType() == PopupMenuData::FRAME) {
+                _controller.frameController().create(toCreate);
+            }
+            else {
+                _controller.animationControllerInterface().animationController().create(toCreate);
+            }
+        }
     }
 
 private:
