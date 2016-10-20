@@ -29,8 +29,7 @@ private:
 public:
     inline void readFrameSetExportOrder(const XmlTag* tag)
     {
-        // ::TODO change root tag::
-        assert(tag->name == "framesettype");
+        assert(tag->name == "fsexportorder");
         assert(exportOrder.stillFrames.size() == 0);
         assert(exportOrder.animations.size() == 0);
 
@@ -103,8 +102,7 @@ loadFrameSetExportOrderFile(const std::string& filename)
     try {
         std::unique_ptr<XmlTag> tag = xml->parseTag();
 
-        // ::TODO change root tag::
-        if (tag->name != "framesettype") {
+        if (tag->name != "fsexportorder") {
             throw std::runtime_error(filename + ": Not frame set export order file");
         }
 
