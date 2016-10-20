@@ -26,7 +26,6 @@ struct FrameObject {
     ms8point location;
     ObjectSize size;
     unsigned tileId;
-    SpriteOrderType order = DEFAULT_SPRITE_ORDER;
     bool hFlip;
     bool vFlip;
 
@@ -34,7 +33,6 @@ struct FrameObject {
         : location(-4, -4)
         , size(ObjectSize::SMALL)
         , tileId(0)
-        , order(DEFAULT_SPRITE_ORDER)
         , hFlip(false)
         , vFlip(false)
     {
@@ -43,7 +41,6 @@ struct FrameObject {
         : location(location)
         , size(size)
         , tileId(0)
-        , order(DEFAULT_SPRITE_ORDER)
         , hFlip(false)
         , vFlip(false)
     {
@@ -92,11 +89,13 @@ struct Frame {
     FrameObject::list_t objects;
     ActionPoint::list_t actionPoints;
     EntityHitbox::list_t entityHitboxes;
+    SpriteOrderType spriteOrder = DEFAULT_SPRITE_ORDER;
     ms8rect tileHitbox;
     bool solid;
 
     Frame()
-        : tileHitbox(-8, -8, 16, 16)
+        : spriteOrder(DEFAULT_SPRITE_ORDER)
+        , tileHitbox(-8, -8, 16, 16)
         , solid(false)
     {
     }

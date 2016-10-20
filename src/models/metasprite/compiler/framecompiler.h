@@ -23,7 +23,7 @@ public:
                          const FrameTilesetList& tilesets);
 
 private:
-    RomOffsetPtr processFrameObjects(const MetaSprite::FrameObject::list_t&,
+    RomOffsetPtr processFrameObjects(const MetaSprite::Frame& frame,
                                      const FrameTileset&);
     RomOffsetPtr processEntityHitboxes(const MetaSprite::EntityHitbox::list_t&);
     RomOffsetPtr processTileHitbox(const MetaSprite::Frame& frame);

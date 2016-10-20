@@ -47,7 +47,6 @@ public:
 
             msObj.size = siObj.size;
             msObj.location = ms8point::createFromOffset(siObj.location, siFrameOrigin);
-            msObj.order = siFrame.spriteOrder;
 
             if (sieve[objId] == false) {
                 auto to = tileExtractor.getTilesetOutputFromImage(siFrame, siObj);
@@ -78,6 +77,8 @@ public:
 
             msFrame.entityHitboxes.push_back(msEh);
         }
+
+        msFrame.spriteOrder = siFrame.spriteOrder;
 
         msFrame.solid = siFrame.solid;
         if (siFrame.solid) {

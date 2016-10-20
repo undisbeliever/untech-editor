@@ -85,12 +85,6 @@ Frame Frame::flip(bool hFlip, bool vFlip) const
 void Frame::draw(Image& image, const FrameSet& frameSet, size_t paletteId,
                  unsigned xOffset, unsigned yOffset) const
 {
-    // Ignore sprite order.
-    //
-    // The SNES will only check the priority of the topmost OAM object
-    // (for the current pixel) and ignore the priority of all of the
-    // other objects.
-
     const Snes::Palette4bpp& palette = frameSet.palettes[paletteId];
 
     for (auto it = objects.rbegin(); it != objects.rend(); ++it) {

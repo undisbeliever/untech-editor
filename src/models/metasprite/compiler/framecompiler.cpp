@@ -28,25 +28,27 @@ void FrameCompiler::writeToIncFile(std::ostream& out) const
 }
 
 inline RomOffsetPtr
-FrameCompiler::processFrameObjects(const MS::FrameObject::list_t& objects,
+FrameCompiler::processFrameObjects(const MS::Frame& frame,
                                    const FrameTileset& tileset)
 {
     const static uint16_t V_FLIP = 0x8000;
     const static uint16_t H_FLIP = 0x4000;
     const static unsigned ORDER_SHIFT = 12;
 
-    if (objects.size() == 0) {
+    size_t nObjects = frame.objects.size();
+
+    if (nObjects == 0) {
         return RomOffsetPtr();
     }
 
-    assert(objects.size() <= MAX_FRAME_OBJECTS);
+    assert(nObjects <= MAX_FRAME_OBJECTS);
 
     std::vector<uint8_t> romData;
-    romData.reserve(1 + 4 * objects.size());
+    romData.reserve(1 + 4 * nObjects);
 
-    romData.push_back(objects.size() - 1); // count
+    romData.push_back(nObjects - 1); // count
 
-    for (const MS::FrameObject& obj : objects) {
+    for (const MS::FrameObject& obj : frame.objects) {
         const ms8point loc = obj.location;
 
         uint16_t charAttr;
@@ -58,7 +60,7 @@ FrameCompiler::processFrameObjects(const MS::FrameObject::list_t& objects,
             charAttr = tileset.largeTilesetMap.at(obj.tileId);
         }
 
-        charAttr |= obj.order << ORDER_SHIFT;
+        charAttr |= frame.spriteOrder << ORDER_SHIFT;
 
         if (obj.hFlip) {
             charAttr ^= H_FLIP;
@@ -197,7 +199,7 @@ FrameCompiler::processActionPoints(const MS::ActionPoint::list_t& actionPoints)
 inline uint32_t
 FrameCompiler::processFrame(const MS::Frame& frame, const FrameTileset& tileset)
 {
-    RomOffsetPtr frameObjects = processFrameObjects(frame.objects, tileset);
+    RomOffsetPtr frameObjects = processFrameObjects(frame, tileset);
     RomOffsetPtr enityHitbox = processEntityHitboxes(frame.entityHitboxes);
     RomOffsetPtr tileHitbox = processTileHitbox(frame);
     RomOffsetPtr actionPoints = processActionPoints(frame.actionPoints);

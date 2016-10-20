@@ -43,6 +43,8 @@ private:
     MS::FrameController& _controller;
     MS::MetaSpriteController& _msController;
 
+    wxSpinCtrl* _spriteOrder;
+
     wxCheckBox* _solid;
     Ms8RectCtrl* _tileHitbox;
 };
@@ -63,7 +65,6 @@ private:
     Ms8PointCtrl* _location;
     wxSpinCtrl* _tileId;
     wxChoice* _size;
-    wxSpinCtrl* _order;
     wxCheckBox* _hFlip;
     wxCheckBox* _vFlip;
 };
@@ -307,10 +308,15 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
     this->SetSizer(sizer);
 
     int defBorder = wxSizerFlags::GetDefaultBorder();
-    auto* grid = new wxFlexGridSizer(2, 2, defBorder, defBorder * 2);
+    auto* grid = new wxFlexGridSizer(3, 2, defBorder, defBorder * 2);
     sizer->Add(grid, wxSizerFlags(1).Expand().Border());
 
     grid->AddGrowableCol(1, 1);
+
+    _spriteOrder = new wxSpinCtrl(this, wxID_ANY);
+    _spriteOrder->SetRange(0, 3);
+    grid->Add(new wxStaticText(this, wxID_ANY, "Sprite Order:"));
+    grid->Add(_spriteOrder, wxSizerFlags(1).Expand());
 
     _solid = new wxCheckBox(this, wxID_ANY, "Solid");
     grid->Add(_solid, wxSizerFlags(1));
@@ -327,6 +333,10 @@ FramePanel::FramePanel(wxWindow* parent, int wxWindowID,
 
     // Events
     // ------
+    _spriteOrder->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setSpriteOrder(_spriteOrder->GetValue());
+    });
+
     _solid->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         _controller.selected_setSolid(_solid->GetValue());
         _msController.selectedController().selectTileHitbox();
@@ -344,6 +354,7 @@ void FramePanel::UpdateGui()
 
     const MS::Frame& frame = _controller.selected();
 
+    _spriteOrder->SetValue(frame.spriteOrder);
     _solid->SetValue(frame.solid);
     _tileHitbox->Enable(frame.solid);
     _tileHitbox->SetValue(frame.tileHitbox);
@@ -380,11 +391,6 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
     grid->Add(new wxStaticText(this, wxID_ANY, "Size:"));
     grid->Add(_size, wxSizerFlags(1).Expand());
 
-    _order = new wxSpinCtrl(this, wxID_ANY);
-    _order->SetRange(0, 3);
-    grid->Add(new wxStaticText(this, wxID_ANY, "Order:"));
-    grid->Add(_order, wxSizerFlags(1).Expand());
-
     _hFlip = new wxCheckBox(this, wxID_ANY, "hFlip");
     _vFlip = new wxCheckBox(this, wxID_ANY, "vFlip");
 
@@ -417,10 +423,6 @@ FrameObjectPanel::FrameObjectPanel(wxWindow* parent, int wxWindowID,
         _controller.selected_setSize(_size->GetSelection() == 1 ? OS::LARGE : OS::SMALL);
     });
 
-    _order->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
-        _controller.selected_setOrder(_order->GetValue());
-    });
-
     _hFlip->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
         _controller.selected_setHFlip(_hFlip->GetValue());
     });
@@ -443,7 +445,6 @@ void FrameObjectPanel::UpdateGui()
     _location->SetValue(obj.location);
     _tileId->SetValue(obj.tileId);
     _size->SetSelection(obj.size == OS::LARGE ? 1 : 0);
-    _order->SetValue(obj.order);
     _hFlip->SetValue(obj.hFlip);
     _vFlip->SetValue(obj.vFlip);
 }

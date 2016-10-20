@@ -223,6 +223,16 @@ void PaletteController::selected_setColor(size_t index, const Snes::SnesColor& c
 // ---------------
 template class Controller::IdMapController<Frame, FrameSetController>;
 
+void FrameController::selected_setSpriteOrder(const SpriteOrderType& spriteOrder)
+{
+    const static UndoActionType actionType = { "Edit Frame Sprite Order", false };
+
+    edit_selected(
+        &actionType,
+        [&](auto& frame) { return frame.spriteOrder != spriteOrder; },
+        [&](auto& frame) { frame.spriteOrder = spriteOrder; });
+}
+
 void FrameController::selected_setSolid(const bool solid)
 {
     const static UndoActionType actionType[2] = {
@@ -335,16 +345,6 @@ void FrameObjectController::selected_setSizeAndTileId(
             obj.size = size;
             obj.tileId = tileId;
         });
-}
-
-void FrameObjectController::selected_setOrder(const unsigned order)
-{
-    const static UndoActionType actionType = { "Edit Object Order", false };
-
-    edit_selected(
-        &actionType,
-        [&](auto& obj) { return obj.order != order; },
-        [&](auto& obj) { obj.order = order; });
 }
 
 void FrameObjectController::selected_setHFlip(const bool hFlip)

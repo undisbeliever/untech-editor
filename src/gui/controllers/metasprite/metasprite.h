@@ -75,6 +75,7 @@ public:
     {
     }
 
+    void selected_setSpriteOrder(const SpriteOrderType& spriteOrder);
     void selected_setSolid(const bool solid);
     void selected_setTileHitbox(const ms8rect& tileHitbox);
 };
@@ -93,7 +94,6 @@ public:
     void selected_setTileId(const unsigned tileId);
     void selected_setSize(const ObjectSize size);
     void selected_setSizeAndTileId(const ObjectSize size, const unsigned tileId);
-    void selected_setOrder(const unsigned order);
     void selected_setHFlip(const bool hFlip);
     void selected_setVFlip(const bool vFlip);
 };

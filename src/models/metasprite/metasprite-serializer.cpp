@@ -103,6 +103,8 @@ private:
 
         std::string id = tag->getAttributeUniqueId("id", frameSet.frames);
         Frame& frame = frameSet.frames.create(id);
+
+        frame.spriteOrder = tag->getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);
         frame.solid = false;
 
         std::unique_ptr<XmlTag> childTag;
@@ -124,7 +126,6 @@ private:
 
                 obj.location = childTag->getAttributeMs8point();
                 obj.tileId = childTag->getAttributeUnsigned("tile");
-                obj.order = childTag->getAttributeUnsigned("order", 0, obj.order.MASK);
                 obj.hFlip = childTag->getAttributeBoolean("hflip");
                 obj.vFlip = childTag->getAttributeBoolean("vflip");
 
@@ -242,6 +243,7 @@ inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame
     xml.writeTag("frame");
 
     xml.writeTagAttribute("id", frameName);
+    xml.writeTagAttribute("order", frame.spriteOrder);
 
     if (frame.solid) {
         xml.writeTag("tilehitbox");
@@ -263,7 +265,6 @@ inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame
 
         xml.writeTagAttributeMs8point(obj.location);
         xml.writeTagAttribute("tile", obj.tileId);
-        xml.writeTagAttribute("order", obj.order);
         xml.writeTagAttribute("hflip", obj.hFlip);
         xml.writeTagAttribute("vflip", obj.vFlip);
 
