@@ -331,6 +331,11 @@ std::string File::relativePath(const std::string& sourceDir, const std::string& 
 #endif
 }
 
+void File::atomicWrite(const std::string& filename, const std::vector<uint8_t>& data)
+{
+    atomicWrite(filename, data.data(), data.size());
+}
+
 #ifdef PLATFORM_WINDOWS
 void File::atomicWrite(const std::string& filename, const void* data, size_t size)
 {

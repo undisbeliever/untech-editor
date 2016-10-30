@@ -2,6 +2,7 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace UnTech {
 namespace File {
@@ -63,5 +64,6 @@ std::string relativePath(const std::string& sourceDir, const std::string& destPa
  * original) if an error occurred while writing it.
  */
 void atomicWrite(const std::string& filename, const void* data, size_t size);
+void atomicWrite(const std::string& filename, const std::vector<uint8_t>& data);
 }
 }

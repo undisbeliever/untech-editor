@@ -104,8 +104,9 @@ $(BIN_DIR)/$(strip $1)$(BIN_EXT): \
 endef
 
 # Select the modules used by the apps
-$(call cli-modules, untech-msc,       common snes metasprite)
-$(call cli-modules, untech-utsi2utms, common snes metasprite)
+$(call cli-modules, untech-msc,		common snes metasprite)
+$(call cli-modules, untech-png2tileset, common snes)
+$(call cli-modules, untech-utsi2utms,	common snes metasprite)
 
 $(call gui-modules, untech-metasprite-gui,     common snes metasprite)
 $(call gui-modules, untech-spriteimporter-gui, common snes metasprite)
