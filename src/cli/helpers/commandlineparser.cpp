@@ -262,27 +262,10 @@ bool Parser::parseSwitch(const Argument& argument, bool isShort, const char* nex
 
 void Parser::printHelpText()
 {
-    std::cout << "Usage: " << _programExec << " [options]";
-
-    if (_config.usesFiles) {
-        std::cout << ' ';
-
-        if (!_config.requireFile) {
-            std::cout << "[";
-        }
-        std::cout << _config.fileType;
-        if (_config.multipleFiles) {
-            std::cout << "...";
-        }
-        if (!_config.requireFile) {
-            std::cout << ']';
-        }
-    }
-
-    for (const auto& a : _config.arguments) {
+    auto printArgument = [](const auto& a) {
         int spacing = 24;
 
-        std::cout << "\n\t";
+        std::cout << "\n  ";
 
         if (a.shortName) {
             std::cout << '-' << a.shortName << ' ';
@@ -313,6 +296,37 @@ void Parser::printHelpText()
 
         if (a.defaultValue) {
             std::cout << " (default " << a.defaultValue << ")";
+        }
+    };
+
+    std::cout << "Usage: " << _programExec << " [options]";
+
+    if (_config.usesFiles) {
+        std::cout << ' ';
+
+        if (!_config.requireFile) {
+            std::cout << "[";
+        }
+        std::cout << '<' << _config.fileType << '>';
+        if (_config.multipleFiles) {
+            std::cout << "...";
+        }
+        if (!_config.requireFile) {
+            std::cout << ']';
+        }
+    }
+
+    std::cout << "\n\nRequired arguments:";
+    for (const auto& a : _config.arguments) {
+        if (a.required) {
+            printArgument(a);
+        }
+    }
+
+    std::cout << "\n\nOptional arguments:";
+    for (const auto& a : _config.arguments) {
+        if (!a.required) {
+            printArgument(a);
         }
     }
 
