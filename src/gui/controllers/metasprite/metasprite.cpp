@@ -261,6 +261,15 @@ void FrameController::selected_setTileHitbox(const ms8rect& tileHitbox)
 template class Controller::CappedVectorController<FrameObject, FrameObject::list_t,
                                                   FrameController>;
 
+void FrameObjectController::onCreate(FrameObject& obj)
+{
+    const FrameSet& fs = this->parent().parent().selected();
+
+    if (fs.smallTileset.size() == 0 && fs.largeTileset.size() > 0) {
+        obj.size = ObjectSize::LARGE;
+    }
+}
+
 void FrameObjectController::selected_setLocation(const ms8point& location)
 {
     const static UndoActionType actionType = { "Edit Object Location", true };

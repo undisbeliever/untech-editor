@@ -90,6 +90,8 @@ public:
     {
     }
 
+    virtual void onCreate(FrameObject& obj) final;
+
     void selected_setLocation(const ms8point& location);
     void selected_setTileId(const unsigned tileId);
     void selected_setSize(const ObjectSize size);
