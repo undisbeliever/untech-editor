@@ -1,4 +1,5 @@
 #include "project.h"
+
 #include "metasprite-serializer.h"
 #include "spriteimporter-serializer.h"
 #include "models/common/atomicofstream.h"

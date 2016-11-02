@@ -121,7 +121,7 @@ inline typename Tile<BD, TS>::Tile_t Tile<BD, TS>::hFlip() const
     typename Tile<BD, TS>::Tile_t hFlip;
     uint8_t(*hData)[TS] = (uint8_t(*)[TS])hFlip.rawData();
 
-    const auto pixelData = (uint8_t(*)[TS]) this->rawData();
+    const auto pixelData = (uint8_t(*)[TS])this->rawData();
 
     for (unsigned y = 0; y < TS; y++) {
         for (unsigned x = 0; x < TS; x++) {
@@ -138,7 +138,7 @@ inline typename Tile<BD, TS>::Tile_t Tile<BD, TS>::vFlip() const
     typename Tile<BD, TS>::Tile_t vFlip;
     uint8_t(*vData)[TS] = (uint8_t(*)[TS])vFlip.rawData();
 
-    const auto pixelData = (uint8_t(*)[TS]) this->rawData();
+    const auto pixelData = (uint8_t(*)[TS])this->rawData();
 
     for (unsigned y = 0; y < TS; y++) {
         for (unsigned x = 0; x < TS; x++) {
@@ -155,7 +155,7 @@ inline typename Tile<BD, TS>::Tile_t Tile<BD, TS>::hvFlip() const
     typename Tile<BD, TS>::Tile_t hvFlip;
     uint8_t(*hvData)[TS] = (uint8_t(*)[TS])hvFlip.rawData();
 
-    const auto pixelData = (uint8_t(*)[TS]) this->rawData();
+    const auto pixelData = (uint8_t(*)[TS])this->rawData();
 
     for (unsigned y = 0; y < TS; y++) {
         for (unsigned x = 0; x < TS; x++) {
