@@ -131,7 +131,7 @@ void FrameSetController::selected_addTiles(unsigned smallTiles, unsigned largeTi
 
     edit_selected(
         &actionType,
-        [&](auto&) { return smallTiles > 0 || smallTiles > 0; },
+        [&](auto&) { return smallTiles > 0 || largeTiles > 0; },
         [&](FrameSet& frameSet) {
             for (unsigned t = 0; t < smallTiles; t++) {
                 frameSet.smallTileset.addTile();
