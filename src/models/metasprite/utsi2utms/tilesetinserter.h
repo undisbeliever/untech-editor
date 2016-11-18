@@ -114,17 +114,10 @@ private:
 
         const auto& tile = _tileset.tile(tileId);
 
-        _map.insert({ tile,
-                      { tileId, false, false } });
-
-        _map.insert({ tile.hFlip(),
-                      { tileId, false, true } });
-
-        _map.insert({ tile.vFlip(),
-                      { tileId, true, false } });
-
-        _map.insert({ tile.hvFlip(),
-                      { tileId, true, true } });
+        _map.insert({ tile, { tileId, false, false } });
+        _map.insert({ tile.hFlip(), { tileId, true, false } });
+        _map.insert({ tile.vFlip(), { tileId, false, true } });
+        _map.insert({ tile.hvFlip(), { tileId, true, true } });
     }
 
 private:

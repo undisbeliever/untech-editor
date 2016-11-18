@@ -70,8 +70,8 @@ public:
 
             auto ret = _map.emplace(tile, Accessor(addr, false, false));
 
-            _map.emplace(tile.hFlip(), Accessor(addr, false, true));
-            _map.emplace(tile.vFlip(), Accessor(addr, true, false));
+            _map.emplace(tile.hFlip(), Accessor(addr, true, false));
+            _map.emplace(tile.vFlip(), Accessor(addr, false, true));
             _map.emplace(tile.hvFlip(), Accessor(addr, true, true));
 
             return ret.first->second;
