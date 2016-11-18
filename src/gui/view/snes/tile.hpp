@@ -57,75 +57,20 @@ void __DrawTile(PF& pixelData,
     typename PF::Iterator rowIt(pixelData);
     rowIt.Offset(pixelData, xOffset, yOffset);
 
-    if (!vFlip) {
-        if (!hFlip) {
-            // no Flip
-            const uint8_t* tilePos = tile.rawData();
+    for (unsigned y = 0; y < TILE_SIZE; y++) {
+        unsigned fy = (vFlip == false) ? y : TILE_SIZE - 1 - y;
 
-            for (unsigned y = 0; y < TILE_SIZE; y++) {
-                imgBits = rowIt;
-                for (unsigned x = 0; x < TILE_SIZE; x++) {
-                    __DrawTilePixel<showTransparent>(imgBits, palette, *tilePos & PIXEL_MASK);
+        imgBits = rowIt;
+        const uint8_t* tileRow = tile.rawData() + fy * TILE_SIZE;
 
-                    ++imgBits;
-                    ++tilePos;
-                }
-                rowIt.OffsetY(pixelData, 1);
-            }
+        for (unsigned x = 0; x < TILE_SIZE; x++) {
+            unsigned fx = (hFlip == false) ? x : TILE_SIZE - 1 - x;
+
+            auto p = tileRow[fx] & PIXEL_MASK;
+            __DrawTilePixel<showTransparent>(imgBits, palette, p);
+            imgBits++;
         }
-        else {
-            // hFlip
-            const uint8_t* rowData = tile.rawData() + TILE_SIZE - 1;
-
-            for (unsigned y = 0; y < TILE_SIZE; y++) {
-                const uint8_t* tilePos = rowData;
-
-                imgBits = rowIt;
-                for (unsigned x = 0; x < TILE_SIZE; x++) {
-                    __DrawTilePixel<showTransparent>(imgBits, palette, *tilePos & PIXEL_MASK);
-
-                    ++imgBits;
-                    --tilePos;
-                }
-                rowData += TILE_SIZE;
-                rowIt.OffsetY(pixelData, 1);
-            }
-        }
-    }
-    else {
-        if (!hFlip) {
-            // vFlip
-            const uint8_t* rowData = tile.rawData() + TILE_SIZE * (TILE_SIZE - 1);
-
-            for (unsigned y = 0; y < TILE_SIZE; y++) {
-                const uint8_t* tilePos = rowData;
-
-                imgBits = rowIt;
-                for (unsigned x = 0; x < TILE_SIZE; x++) {
-                    __DrawTilePixel<showTransparent>(imgBits, palette, *tilePos & PIXEL_MASK);
-
-                    ++imgBits;
-                    ++tilePos;
-                }
-                rowData -= TILE_SIZE;
-                rowIt.OffsetY(pixelData, 1);
-            }
-        }
-        else {
-            // hvFlip
-            const uint8_t* tilePos = tile.rawData() + (TILE_SIZE * TILE_SIZE) - 1;
-
-            for (unsigned y = 0; y < TILE_SIZE; y++) {
-                imgBits = rowIt;
-                for (unsigned x = 0; x < TILE_SIZE; x++) {
-                    __DrawTilePixel<showTransparent>(imgBits, palette, *tilePos & PIXEL_MASK);
-
-                    ++imgBits;
-                    --tilePos;
-                }
-                rowIt.OffsetY(pixelData, 1);
-            }
-        }
+        rowIt.OffsetY(pixelData, 1);
     }
 }
 

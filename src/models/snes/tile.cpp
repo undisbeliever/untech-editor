@@ -30,40 +30,18 @@ void Tile<BD, TS>::draw(Image& image, const Palette<BD>& palette,
 
     rgba* imgBits;
     const uint8_t* tilePos = rawData();
-
     for (unsigned y = 0; y < TILE_SIZE; y++) {
-        if (!vFlip) {
-            imgBits = image.scanline(yOffset + y);
-        }
-        else {
-            imgBits = image.scanline(yOffset + TILE_SIZE - y - 1);
-        }
+        unsigned fy = (vFlip == false) ? y : TILE_SIZE - 1 - y;
+        imgBits = image.scanline(yOffset + fy) + xOffset;
 
-        if (!hFlip) {
-            imgBits += xOffset;
+        for (unsigned x = 0; x < TILE_SIZE; x++) {
+            unsigned fx = (hFlip == false) ? x : TILE_SIZE - 1 - x;
 
-            for (unsigned x = 0; x < TILE_SIZE; x++) {
-                auto p = *tilePos & PIXEL_MASK;
-
-                if (p != 0) {
-                    *imgBits = palette.color(p).rgb();
-                }
-                imgBits++;
-                tilePos++;
+            auto p = *tilePos & PIXEL_MASK;
+            if (p != 0) {
+                imgBits[fx] = palette.color(p).rgb();
             }
-        }
-        else {
-            imgBits += xOffset + TILE_SIZE - 1;
-
-            for (unsigned x = 0; x < TILE_SIZE; x++) {
-                auto p = *tilePos & PIXEL_MASK;
-
-                if (p != 0) {
-                    *imgBits = palette.color(p).rgb();
-                }
-                imgBits--;
-                tilePos++;
-            }
+            tilePos++;
         }
     }
 }
@@ -81,36 +59,15 @@ void Tile<BD, TS>::drawOpaque(Image& image, const Palette<BD>& palette,
 
     rgba* imgBits;
     const uint8_t* tilePos = rawData();
-
     for (unsigned y = 0; y < TILE_SIZE; y++) {
-        if (!vFlip) {
-            imgBits = image.scanline(yOffset + y);
-        }
-        else {
-            imgBits = image.scanline(yOffset + TILE_SIZE - y - 1);
-        }
+        unsigned fy = (vFlip == false) ? y : TILE_SIZE - 1 - y;
+        imgBits = image.scanline(yOffset + fy) + xOffset;
 
-        if (!hFlip) {
-            imgBits += xOffset;
-
-            for (unsigned x = 0; x < TILE_SIZE; x++) {
-                auto p = *tilePos & PIXEL_MASK;
-
-                *imgBits = palette.color(p).rgb();
-                imgBits++;
-                tilePos++;
-            }
-        }
-        else {
-            imgBits += xOffset + TILE_SIZE - 1;
-
-            for (unsigned x = 0; x < TILE_SIZE; x++) {
-                auto p = *tilePos & PIXEL_MASK;
-
-                *imgBits = palette.color(p).rgb();
-                imgBits--;
-                tilePos++;
-            }
+        for (unsigned x = 0; x < TILE_SIZE; x++) {
+            unsigned fx = (hFlip == false) ? x : TILE_SIZE - 1 - x;
+            auto p = *tilePos & PIXEL_MASK;
+            imgBits[fx] = palette.color(p).rgb();
+            tilePos++;
         }
     }
 }
@@ -118,73 +75,38 @@ void Tile<BD, TS>::drawOpaque(Image& image, const Palette<BD>& palette,
 template <size_t BD, size_t TS>
 inline typename Tile<BD, TS>::Tile_t Tile<BD, TS>::hFlip() const
 {
-    typename Tile<BD, TS>::Tile_t hFlip;
-    uint8_t(*hData)[TS] = (uint8_t(*)[TS])hFlip.rawData();
-
-    const auto pixelData = (uint8_t(*)[TS])this->rawData();
-
-    for (unsigned y = 0; y < TS; y++) {
-        for (unsigned x = 0; x < TS; x++) {
-            hData[y][x] = pixelData[TILE_SIZE - y - 1][x];
-        }
-    }
-
-    return hFlip;
+    return flip(true, false);
 }
 
 template <size_t BD, size_t TS>
 inline typename Tile<BD, TS>::Tile_t Tile<BD, TS>::vFlip() const
 {
-    typename Tile<BD, TS>::Tile_t vFlip;
-    uint8_t(*vData)[TS] = (uint8_t(*)[TS])vFlip.rawData();
-
-    const auto pixelData = (uint8_t(*)[TS])this->rawData();
-
-    for (unsigned y = 0; y < TS; y++) {
-        for (unsigned x = 0; x < TS; x++) {
-            vData[y][x] = pixelData[y][TS - x - 1];
-        }
-    }
-
-    return vFlip;
+    return flip(false, true);
 }
 
 template <size_t BD, size_t TS>
 inline typename Tile<BD, TS>::Tile_t Tile<BD, TS>::hvFlip() const
 {
-    typename Tile<BD, TS>::Tile_t hvFlip;
-    uint8_t(*hvData)[TS] = (uint8_t(*)[TS])hvFlip.rawData();
-
-    const auto pixelData = (uint8_t(*)[TS])this->rawData();
-
-    for (unsigned y = 0; y < TS; y++) {
-        for (unsigned x = 0; x < TS; x++) {
-            hvData[y][x] = pixelData[TILE_SIZE - y - 1][TILE_SIZE - x - 1];
-        }
-    }
-
-    return hvFlip;
+    return flip(true, true);
 }
 
 template <size_t BD, size_t TS>
 typename Tile<BD, TS>::Tile_t Tile<BD, TS>::flip(bool hFlip, bool vFlip) const
 {
-    if (hFlip == false) {
-        if (vFlip == false) {
-            return Tile<BD, TS>::Tile_t(*this);
-        }
-        else {
-            return this->vFlip();
-        }
-    }
-    else {
-        if (vFlip == false) {
-            return this->hFlip();
-        }
-        else {
-            return this->hvFlip();
+    typename Tile<BD, TS>::Tile_t ret;
+    const uint8_t* pixelData = this->rawData();
+
+    for (unsigned y = 0; y < TS; y++) {
+        unsigned fy = (vFlip == false) ? y : TS - 1 - y;
+        uint8_t* retRow = ret.rawData() + fy * TS;
+
+        for (unsigned x = 0; x < TS; x++) {
+            unsigned fx = (hFlip == false) ? x : TS - 1 - x;
+            retRow[fx] = *pixelData++;
         }
     }
+
+    return ret;
 }
 
 template <size_t BD>
