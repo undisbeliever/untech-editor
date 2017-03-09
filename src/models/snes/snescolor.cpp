@@ -4,18 +4,11 @@ using namespace UnTech::Snes;
 
 void SnesColor::setRgb(const rgba color)
 {
-    uint8_t b = (color.blue * 31.25) / 256;
-    uint8_t g = (color.green * 31.25) / 256;
-    uint8_t r = (color.red * 31.25) / 256;
+    // Ignoring rounding so converting SNES->RGB->SNES is lossless
 
-    if (b > 31)
-        b = 31;
-
-    if (g > 31)
-        g = 31;
-
-    if (r > 31)
-        r = 31;
+    unsigned b = (color.blue >> 3) & 31;
+    unsigned g = (color.green >> 3) & 31;
+    unsigned r = (color.red >> 3) & 31;
 
     _data = (b << 10) | (g << 5) | r;
 
