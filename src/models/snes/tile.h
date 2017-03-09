@@ -49,6 +49,8 @@ public:
     inline uint8_t* rawData() { return _data.data(); }
     inline const uint8_t* rawData() const { return _data.data(); }
 
+    inline void setData(std::array<uint8_t, TILE_ARRAY_SIZE> data) { _data = data; }
+
     Tile_t flip(bool hFlip, bool vFlip) const;
     Tile_t hFlip() const;
     Tile_t vFlip() const;
@@ -75,7 +77,7 @@ public:
     bool operator!=(const Tile& other) const { return this->_data != other._data; }
 
 protected:
-    std::array<uint8_t, TILE_ARRAY_SIZE> _data;
+    std::array<uint8_t, TILE_ARRAY_SIZE> _data = {};
 };
 
 template <size_t BD>
