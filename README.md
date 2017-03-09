@@ -8,7 +8,7 @@ used by the
 This editor is a work in progress and the data formats may be subject to
 changes in the future.
 
-It currently contains 4 apps:
+It currently contains 6 apps:
 
  * `untech-metasprite-gui`: A graphical editor for UnTech MetaSprites
  * `untech-spriteimporter-gui`: A graphical UI for creating a sprite
@@ -17,6 +17,10 @@ It currently contains 4 apps:
    MetaSprites.
  * `untech-msc`: A CLI utility for compiling MetaSprites to an assembly
    include file.
+ * `untech-png2tileset`: A CLI utility for converting an indexed png
+   image to a SNES tileset/palette combo.
+ * `untech-png2snes`: A CLI utility for converting an indexed png image
+   to a SNES tileset/tilemap/palette combo.
 
 License
 =======
