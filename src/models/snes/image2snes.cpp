@@ -336,7 +336,8 @@ private:
         // As nColors is limited, this is faster than std::sort.
         // ::KUDOS pcx2snes.c by Neviksti::
 
-        std::vector<unsigned> processOrder(tiles.size());
+        std::vector<unsigned> processOrder;
+        processOrder.reserve(tiles.size());
         for (unsigned c = 0; c < TileColors::MAX_PALETTE_COLORS + 1; c++) {
             unsigned colorToTest = TileColors::MAX_PALETTE_COLORS - c;
 
@@ -346,6 +347,7 @@ private:
                 }
             }
         }
+        assert(processOrder.size() == colorsPerTile.size());
 
         // Build the final palette, processing the tiles with the most colors first.
 
