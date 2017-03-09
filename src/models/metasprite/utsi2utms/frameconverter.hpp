@@ -34,6 +34,13 @@ public:
         buildOverlappingObjects();
     }
 
+    inline static void applyTilesetOutput(const Snes::TilesetInserterOutput& tio, MS::FrameObject& obj)
+    {
+        obj.tileId = tio.tileId;
+        obj.hFlip = tio.hFlip;
+        obj.vFlip = tio.vFlip;
+    }
+
     // processes everything EXCEPT overlapping tiles
     void process()
     {
@@ -50,7 +57,7 @@ public:
 
             if (sieve[objId] == false) {
                 auto to = tileExtractor.getTilesetOutputFromImage(siFrame, siObj);
-                to.apply(msObj);
+                applyTilesetOutput(to, msObj);
             }
             else {
                 // don't process overlapping tiles here
@@ -128,7 +135,7 @@ private:
              *   - Mark the undertile pixels that are overlapped with 0xFF
              *   - Search for duplicate tiles, creating a new tile if necessary
              */
-            std::pair<TilesetInserterOutput, bool> tilesetOutput;
+            std::pair<Snes::TilesetInserterOutput, bool> tilesetOutput;
             if (siUnderObj.size == ObjectSize::SMALL) {
                 auto underTile = tileExtractor.getTileFromImage<8>(siFrame, siUnderObj);
                 auto overlaps = markOverlappedPixels<OVER_SIZE, 8>(overTile, xOffset, yOffset);
@@ -139,7 +146,7 @@ private:
                 auto overlaps = markOverlappedPixels<OVER_SIZE, 16>(overTile, xOffset, yOffset);
                 tilesetOutput = tileExtractor.largeTileset.processOverlappedTile(underTile, overlaps);
             }
-            tilesetOutput.first.apply(msUnderObj);
+            applyTilesetOutput(tilesetOutput.first, msUnderObj);
 
             if (tilesetOutput.second == false) {
                 addWarningObj(underObjId, "Matching undertile not found");
@@ -160,8 +167,8 @@ private:
         static const Snes::Tile<4, OVER_SIZE> smallZero{};
 
         if (overTile != smallZero) {
-            TilesetInserterOutput to = tileExtractor.getOrInsertTile(overTile);
-            to.apply(msOverObj);
+            Snes::TilesetInserterOutput to = tileExtractor.getOrInsertTile(overTile);
+            applyTilesetOutput(to, msOverObj);
         }
         else {
             addWarningObj(overObjId, "Overtile is empty - skipping");

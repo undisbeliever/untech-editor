@@ -1,8 +1,8 @@
 #pragma once
-#include "tilesetinserter.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
 #include "models/snes/tileset.h"
+#include "models/snes/tilesetinserter.h"
 #include <array>
 #include <map>
 
@@ -24,8 +24,8 @@ class TileExtractor {
     MetaSprite::FrameSet& msFrameSet;
     ErrorList& errorList;
 
-    TilesetInserter<Snes::Tileset4bpp8px> smallTileset;
-    TilesetInserter<Snes::Tileset4bpp16px> largeTileset;
+    Snes::TilesetInserter<Snes::Tileset4bpp8px> smallTileset;
+    Snes::TilesetInserter<Snes::Tileset4bpp16px> largeTileset;
 
 public:
     TileExtractor(const SpriteImporter::FrameSet& siFrameSet,
@@ -43,8 +43,8 @@ public:
         assert(siFrameSet.isImageValid());
     }
 
-    const TilesetInserterOutput getTilesetOutputFromImage(const SI::Frame& frame,
-                                                          const SI::FrameObject& obj)
+    const Snes::TilesetInserterOutput getTilesetOutputFromImage(const SI::Frame& frame,
+                                                                const SI::FrameObject& obj)
     {
         if (obj.size == ObjectSize::SMALL) {
             return smallTileset.getOrInsert(getTileFromImage<8>(frame, obj));
@@ -55,7 +55,7 @@ public:
     };
 
     template <size_t OVER_SIZE>
-    TilesetInserterOutput getOrInsertTile(const Snes::Tile<4, OVER_SIZE>& tile);
+    Snes::TilesetInserterOutput getOrInsertTile(const Snes::Tile<4, OVER_SIZE>& tile);
 
     template <size_t TILE_SIZE>
     inline Snes::Tile<4, TILE_SIZE> getTileFromImage(const SI::Frame& frame,
@@ -79,13 +79,13 @@ public:
 };
 
 template <>
-TilesetInserterOutput TileExtractor::getOrInsertTile<8>(const Snes::Tile<4, 8>& tile)
+Snes::TilesetInserterOutput TileExtractor::getOrInsertTile<8>(const Snes::Tile<4, 8>& tile)
 {
     return smallTileset.getOrInsert(tile);
 }
 
 template <>
-TilesetInserterOutput TileExtractor::getOrInsertTile<16>(const Snes::Tile<4, 16>& tile)
+Snes::TilesetInserterOutput TileExtractor::getOrInsertTile<16>(const Snes::Tile<4, 16>& tile)
 {
     return largeTileset.getOrInsert(tile);
 }

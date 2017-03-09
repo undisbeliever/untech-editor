@@ -1,24 +1,15 @@
 #pragma once
 
-#include "../metasprite.h"
-#include "models/snes/tileset.h"
+#include "tileset.h"
 #include <unordered_map>
 
 namespace UnTech {
-namespace MetaSprite {
-namespace Utsi2UtmsPrivate {
+namespace Snes {
 
 struct TilesetInserterOutput {
     unsigned tileId;
     bool hFlip;
     bool vFlip;
-
-    void apply(MetaSprite::FrameObject& fo)
-    {
-        fo.tileId = tileId;
-        fo.hFlip = hFlip;
-        fo.vFlip = vFlip;
-    }
 
     bool operator==(const TilesetInserterOutput& o) const
     {
@@ -125,6 +116,5 @@ private:
 
     std::unordered_map<typename T::tile_t, TilesetInserterOutput> _map;
 };
-}
 }
 }
