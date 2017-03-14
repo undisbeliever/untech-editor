@@ -69,6 +69,23 @@ private:
     UPointCtrl* _origin;
 };
 
+class UserSuppliedPalettePanel : public wxPanel {
+public:
+    UserSuppliedPalettePanel(wxWindow* parent, int wxWindowID,
+                             SI::FrameSetController& controller);
+
+private:
+    void UpdateGui();
+
+private:
+    SI::FrameSetController& _controller;
+    SI::UserSuppliedPalette _pal;
+
+    wxCheckBox* _useUserSuppliedPalette;
+    wxSpinCtrl* _nPalettes;
+    wxSpinCtrl* _colorSize;
+};
+
 class FramePanel : public wxPanel {
 public:
     FramePanel(wxWindow* parent, int wxWindowID,
@@ -184,6 +201,13 @@ Sidebar::Sidebar(wxWindow* parent, int wxWindowID,
 
         fsGridSizer->Add(
             new FrameSetGridPanel(panel, wxID_ANY, controller.frameSetController()),
+            wxSizerFlags().Expand().Border());
+
+        auto* paletteSizer = new wxStaticBoxSizer(wxVERTICAL, panel, "User Supplied Palette");
+        sizer->Add(paletteSizer, wxSizerFlags().Expand().Border());
+
+        paletteSizer->Add(
+            new UserSuppliedPalettePanel(panel, wxID_ANY, controller.frameSetController()),
             wxSizerFlags().Expand().Border());
 
         this->AddPage(panel, "FrameSet");
@@ -496,6 +520,78 @@ void FrameSetGridPanel::UpdateGui()
     _offset->SetValue(_grid.offset);
     _padding->SetValue(_grid.padding);
     _origin->SetValue(_grid.origin);
+}
+
+// USER SUPPLIED PALETTE
+// =====================
+
+UserSuppliedPalettePanel::UserSuppliedPalettePanel(wxWindow* parent, int wxWindowID,
+                                                   SI::FrameSetController& controller)
+    : wxPanel(parent, wxWindowID)
+    , _controller(controller)
+{
+    int defBorder = wxSizerFlags::GetDefaultBorder();
+    auto* grid = new wxFlexGridSizer(4, 2, defBorder, defBorder * 2);
+    this->SetSizer(grid);
+
+    grid->AddGrowableCol(1, 1);
+
+    _useUserSuppliedPalette = new wxCheckBox(this, wxID_ANY, "Enable User Supplied Palette");
+    grid->Add(_useUserSuppliedPalette, wxSizerFlags(1));
+    grid->Add(new wxWindow(this, wxID_ANY));
+
+    _nPalettes = new wxSpinCtrl(this, wxID_ANY);
+    _nPalettes->SetRange(1, UnTech::MetaSprite::MAX_PALETTES);
+    grid->Add(new wxStaticText(this, wxID_ANY, "Number of Palettes:"));
+    grid->Add(_nPalettes, wxSizerFlags(1).Expand());
+
+    _colorSize = new wxSpinCtrl(this, wxID_ANY);
+    _colorSize->SetRange(1, 24);
+    grid->Add(new wxStaticText(this, wxID_ANY, "Color Size:"));
+    grid->Add(_colorSize, wxSizerFlags(1).Expand());
+
+    // Signals
+    // -------
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
+        *this, &UserSuppliedPalettePanel::UpdateGui));
+
+    // Events
+    // ------
+
+    _useUserSuppliedPalette->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        if (_useUserSuppliedPalette->GetValue()) {
+            _pal.nPalettes = 1;
+        }
+        else {
+            _pal.nPalettes = 0;
+        }
+        _controller.selected_setPalette(_pal);
+    });
+    _nPalettes->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _pal.nPalettes = _nPalettes->GetValue();
+        _controller.selected_setPalette(_pal);
+    });
+    _colorSize->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _pal.colorSize = _colorSize->GetValue();
+        _controller.selected_setPalette(_pal);
+    });
+}
+
+void UserSuppliedPalettePanel::UpdateGui()
+{
+    this->Enable(_controller.hasSelected());
+
+    _pal = _controller.selected().palette;
+
+    bool enabled = _pal.usesUserSuppliedPalette();
+
+    _useUserSuppliedPalette->SetValue(enabled);
+
+    _nPalettes->Enable(enabled);
+    _nPalettes->SetValue(_pal.nPalettes);
+
+    _colorSize->Enable(enabled);
+    _colorSize->SetValue(_pal.colorSize);
 }
 
 // FRAME

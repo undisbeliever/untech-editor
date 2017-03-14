@@ -148,6 +148,18 @@ void FrameSetController::selected_setGrid(const FrameSetGrid& grid)
         });
 }
 
+void FrameSetController::selected_setPalette(const UserSuppliedPalette& palette)
+{
+    const static UndoActionType actionType = { "Edit User Supplied Palette", true };
+
+    edit_selected(
+        &actionType,
+        [&](auto& frameSet) { return frameSet.palette != palette; },
+        [&](auto& frameSet) {
+            frameSet.palette = palette;
+        });
+}
+
 void FrameSetController::selected_reloadImage()
 {
     // Not an undo-able action.

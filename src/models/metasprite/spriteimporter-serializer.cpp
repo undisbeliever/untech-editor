@@ -96,6 +96,9 @@ public:
             else if (childTag->name == "exportorder") {
                 readExportOrder(childTag.get());
             }
+            else if (childTag->name == "palette") {
+                readPalette(childTag.get());
+            }
             else if (childTag->name == "frame") {
                 readFrame(childTag.get());
             }
@@ -237,6 +240,18 @@ private:
         const std::string src = tag->getAttributeFilename("src");
         frameSet.exportOrder = loadFrameSetExportOrderCached(src);
     }
+
+    inline void readPalette(const XmlTag* tag)
+    {
+        assert(tag->name == "palette");
+
+        if (frameSet.palette.usesUserSuppliedPalette()) {
+            throw xml_error(*tag, "Only one palette tag allowed per frameset");
+        }
+
+        frameSet.palette.nPalettes = tag->getAttributeUnsigned("npalettes", 1);
+        frameSet.palette.colorSize = tag->getAttributeUnsigned("colorsize", 1);
+    }
 };
 
 std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag* tag)
@@ -360,6 +375,13 @@ inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
             xml.writeTagAttributeFilename("src", src);
             xml.writeCloseTag();
         }
+    }
+
+    if (frameSet.palette.usesUserSuppliedPalette()) {
+        xml.writeTag("palette");
+        xml.writeTagAttribute("npalettes", frameSet.palette.nPalettes);
+        xml.writeTagAttribute("colorsize", frameSet.palette.colorSize);
+        xml.writeCloseTag();
     }
 
     for (const auto& f : frameSet.frames) {

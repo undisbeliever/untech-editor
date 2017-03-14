@@ -158,6 +158,33 @@ struct Frame {
     usize minimumViableSize() const;
 };
 
+struct UserSuppliedPalette {
+    unsigned nPalettes;
+    unsigned colorSize;
+
+    UserSuppliedPalette()
+        : nPalettes(0)
+        , colorSize(4)
+    {
+    }
+
+    bool usesUserSuppliedPalette() const
+    {
+        return nPalettes > 0 && colorSize > 0;
+    }
+
+    usize paletteSize() const
+    {
+        return usize(colorSize * PALETTE_COLORS, nPalettes * colorSize);
+    }
+
+    bool operator==(const UserSuppliedPalette& o) const
+    {
+        return this->nPalettes == o.nPalettes && this->colorSize == o.colorSize;
+    }
+    bool operator!=(const UserSuppliedPalette& o) const { return !(*this == o); }
+};
+
 struct FrameSet {
     static const std::string FILE_EXTENSION;
 
@@ -170,6 +197,7 @@ struct FrameSet {
     std::string imageFilename;
     std::shared_ptr<Image> image;
     UnTech::rgba transparentColor;
+    UserSuppliedPalette palette;
     FrameSetGrid grid;
 
     FrameSet() = default;

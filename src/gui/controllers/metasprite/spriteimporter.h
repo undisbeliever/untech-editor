@@ -38,6 +38,7 @@ public:
     void selected_setImageFilename(const std::string& filename);
     void selected_setTransparentColor(const rgba& color);
     void selected_setGrid(const FrameSetGrid& grid);
+    void selected_setPalette(const UserSuppliedPalette& palette);
 
     void selected_reloadImage();
 };

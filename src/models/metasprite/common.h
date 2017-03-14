@@ -16,6 +16,8 @@ const static size_t MAX_ACTION_POINTS = 8;
 const static size_t MAX_ENTITY_HITBOXES = 4;
 const static size_t MAX_ANIMATION_INSTRUCTIONS = 64;
 
+const static size_t PALETTE_COLORS = 16;
+
 typedef UnsignedBits<3, uint_fast8_t> SpriteOrderType;
 const static SpriteOrderType DEFAULT_SPRITE_ORDER = 2;
 
