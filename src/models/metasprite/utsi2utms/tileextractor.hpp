@@ -25,7 +25,7 @@ class TileExtractor {
     ErrorList& errorList;
 
     Snes::TilesetInserter<Snes::Tileset4bpp8px> smallTileset;
-    Snes::TilesetInserter<Snes::Tileset4bpp16px> largeTileset;
+    Snes::TilesetInserter<Snes::TilesetTile16> largeTileset;
 
 public:
     TileExtractor(const SpriteImporter::FrameSet& siFrameSet,
@@ -55,16 +55,16 @@ public:
     };
 
     template <size_t OVER_SIZE>
-    Snes::TilesetInserterOutput getOrInsertTile(const Snes::Tile<4, OVER_SIZE>& tile);
+    Snes::TilesetInserterOutput getOrInsertTile(const Snes::Tile<OVER_SIZE>& tile);
 
     template <size_t TILE_SIZE>
-    inline Snes::Tile<4, TILE_SIZE> getTileFromImage(const SI::Frame& frame,
-                                                     const SI::FrameObject& obj)
+    inline Snes::Tile<TILE_SIZE> getTileFromImage(const SI::Frame& frame,
+                                                  const SI::FrameObject& obj)
     {
         unsigned xOffset = frame.location.aabb.x + obj.location.x;
         unsigned yOffset = frame.location.aabb.y + obj.location.y;
 
-        Snes::Tile<4, TILE_SIZE> tile;
+        Snes::Tile<TILE_SIZE> tile;
         uint8_t* tData = tile.rawData();
         for (unsigned y = 0; y < TILE_SIZE; y++) {
             const rgba* imgBits = image.scanline(yOffset + y) + xOffset;
@@ -79,13 +79,13 @@ public:
 };
 
 template <>
-Snes::TilesetInserterOutput TileExtractor::getOrInsertTile<8>(const Snes::Tile<4, 8>& tile)
+Snes::TilesetInserterOutput TileExtractor::getOrInsertTile<8>(const Snes::Tile8px& tile)
 {
     return smallTileset.getOrInsert(tile);
 }
 
 template <>
-Snes::TilesetInserterOutput TileExtractor::getOrInsertTile<16>(const Snes::Tile<4, 16>& tile)
+Snes::TilesetInserterOutput TileExtractor::getOrInsertTile<16>(const Snes::Tile16px& tile)
 {
     return largeTileset.getOrInsert(tile);
 }
@@ -93,7 +93,7 @@ Snes::TilesetInserterOutput TileExtractor::getOrInsertTile<16>(const Snes::Tile<
 // mark the pixels in the undertile that are overlapped by the overtile
 template <size_t OVER_SIZE, size_t UNDER_SIZE>
 inline std::array<bool, UNDER_SIZE * UNDER_SIZE>
-markOverlappedPixels(const Snes::Tile<4, OVER_SIZE>& overTile,
+markOverlappedPixels(const Snes::Tile<OVER_SIZE>& overTile,
                      int xOffset, int yOffset)
 {
     const uint8_t* overTileData = overTile.rawData();
@@ -121,8 +121,8 @@ markOverlappedPixels(const Snes::Tile<4, OVER_SIZE>& overTile,
 
 // clears the pixels in the overtile that match the undertile.
 template <size_t OVER_SIZE, size_t UNDER_SIZE>
-inline void clearCommonOverlappedTiles(Snes::Tile<4, OVER_SIZE>& overTile,
-                                       Snes::Tile<4, UNDER_SIZE>& underTile,
+inline void clearCommonOverlappedTiles(Snes::Tile<OVER_SIZE>& overTile,
+                                       Snes::Tile<UNDER_SIZE>& underTile,
                                        int xOffset, int yOffset)
 {
     uint8_t* overTileData = overTile.rawData();

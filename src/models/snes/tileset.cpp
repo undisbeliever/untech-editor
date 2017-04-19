@@ -1,12 +1,78 @@
 #include "tileset.h"
+#include "tile.hpp"
 #include <cstring>
 
-using namespace UnTech;
-using namespace UnTech::Snes;
+namespace UnTech {
+namespace Snes {
+namespace Private {
 
-template <class TileT>
-void Tileset<TileT>::drawTile(Image& image,
-                              const Palette<TileT::BIT_DEPTH>& palette,
+template <size_t BD>
+inline void writeSnesTile8px(uint8_t out[8 * BD], const Tile<8>& tile)
+{
+    constexpr unsigned TILE_SIZE = 8;
+    constexpr unsigned BIT_DEPTH = BD;
+    constexpr unsigned SNES_DATA_SIZE = 8 * BD;
+
+    unsigned pos = 0;
+    memset(out, 0, SNES_DATA_SIZE);
+
+    for (unsigned b = 0; b < BIT_DEPTH; b += 2) {
+        for (unsigned y = 0; y < TILE_SIZE; y++) {
+            const uint8_t* tileRow = tile.rawData() + y * 8;
+
+            for (unsigned bi = 0; bi < 2; bi++) {
+                uint_fast8_t byte = 0;
+                uint_fast8_t mask = 1 << (b + bi);
+
+                for (unsigned x = 0; x < TILE_SIZE; x++) {
+                    byte <<= 1;
+
+                    if (tileRow[x] & mask)
+                        byte |= 1;
+                }
+                out[pos++] = byte;
+            }
+        }
+    }
+}
+
+template <size_t BD>
+inline void readSnesTile8px(Tile<8>& tile, const uint8_t data[8 * BD])
+{
+    constexpr unsigned TILE_SIZE = 8;
+    constexpr unsigned BIT_DEPTH = BD;
+
+    const uint8_t* dataPos = data;
+
+    memset(tile.rawData(), 0, tile.TILE_ARRAY_SIZE);
+
+    for (unsigned b = 0; b < BIT_DEPTH; b += 2) {
+        for (unsigned y = 0; y < TILE_SIZE; y++) {
+            uint8_t* tileRow = tile.rawData() + y * 8;
+
+            for (unsigned bi = 0; bi < 2; bi++) {
+                uint_fast8_t byte = *dataPos++;
+                uint_fast8_t bits = 1 << (b + bi);
+
+                for (unsigned x = 0; x < TILE_SIZE; x++) {
+                    if (byte & 0x80) {
+                        tileRow[x] |= bits;
+                    }
+                    byte <<= 1;
+                }
+            }
+        }
+    }
+}
+}
+}
+}
+
+using namespace UnTech::Snes;
+using namespace UnTech::Snes::Private;
+
+template <size_t BD>
+void Tileset8px<BD>::drawTile(Image& image, const Palette<BD>& palette,
                               unsigned xOffset, unsigned yOffset,
                               unsigned tileId, const bool hFlip, const bool vFlip) const
 {
@@ -17,35 +83,76 @@ void Tileset<TileT>::drawTile(Image& image,
     _tiles[tileId].draw(image, palette, xOffset, yOffset, hFlip, vFlip);
 }
 
-template <class TileT>
-inline std::vector<uint8_t> Tileset<TileT>::snesData() const
+template <size_t BD>
+inline std::vector<uint8_t> Tileset8px<BD>::snesData() const
 {
-    std::vector<uint8_t> out(TileT::SNES_DATA_SIZE * _tiles.size());
+    std::vector<uint8_t> out(SNES_TILE_SIZE * _tiles.size());
     uint8_t* outData = out.data();
 
     for (const auto& tile : _tiles) {
-        tile.writeSnesData(outData);
+        writeSnesTile8px<BIT_DEPTH>(outData, tile);
 
-        outData += TileT::SNES_DATA_SIZE;
+        outData += SNES_TILE_SIZE;
     }
 
     return out;
 }
 
-template <class TileT>
-inline void Tileset<TileT>::readSnesData(const std::vector<uint8_t>& in)
+template <size_t BD>
+inline void Tileset8px<BD>::readSnesData(const std::vector<uint8_t>& in)
 {
     const uint8_t* inData = in.data();
-    size_t count = in.size() / TileT::SNES_DATA_SIZE;
+    size_t toAdd = in.size() / SNES_TILE_SIZE;
 
-    for (size_t i = 0; i < count; i++) {
-        _tiles.emplace_back(inData);
+    size_t oldSize = _tiles.size();
+    _tiles.resize(oldSize + toAdd);
 
-        inData += TileT::SNES_DATA_SIZE;
+    for (size_t i = 0; i < toAdd; i++) {
+        TileT& tile = _tiles[i + oldSize];
+        readSnesTile8px<BIT_DEPTH>(tile, inData);
+
+        inData += SNES_TILE_SIZE;
     }
 }
 
-template class Snes::Tileset<Tile2bpp8px>;
-template class Snes::Tileset<Tile4bpp8px>;
-template class Snes::Tileset<Tile8bpp8px>;
-template class Snes::Tileset<Tile4bpp16px>;
+template class UnTech::Snes::Tileset8px<2>;
+template class UnTech::Snes::Tileset8px<4>;
+template class UnTech::Snes::Tileset8px<8>;
+
+std::vector<uint8_t> TilesetTile16::snesData() const
+{
+    std::vector<uint8_t> out(SNES_TILE_SIZE * _tiles.size());
+    uint8_t* outData = out.data();
+
+    for (const Tile<16>& tile : _tiles) {
+        auto smallTiles = splitLargeTile(tile);
+
+        for (const Tile<8>& st : smallTiles) {
+            writeSnesTile8px<BIT_DEPTH>(outData, st);
+
+            outData += SNES_SMALL_TILE_SIZE;
+        }
+    }
+
+    return out;
+}
+
+void TilesetTile16::readSnesData(const std::vector<uint8_t>& in)
+{
+    const uint8_t* inData = in.data();
+    size_t toAdd = in.size() / SNES_TILE_SIZE;
+
+    size_t oldSize = _tiles.size();
+    _tiles.resize(oldSize + toAdd);
+
+    for (size_t i = 0; i < toAdd; i++) {
+        std::array<Tile<8>, 4> smallTiles;
+
+        for (Tile<8>& tile8 : smallTiles) {
+            readSnesTile8px<BIT_DEPTH>(tile8, inData);
+            inData += SNES_SMALL_TILE_SIZE;
+        }
+
+        _tiles[i + oldSize] = combineSmallTiles(smallTiles);
+    }
+}

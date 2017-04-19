@@ -72,7 +72,7 @@ void TilesetCompiler::buildTileset(FrameTileset& tileset,
 
     // Process Tiles
     {
-        auto addTile = [&](const Snes::Tile4bpp16px& tile) mutable {
+        auto addTile = [&](const Snes::Tile16px& tile) mutable {
             auto a = _tileData.addLargeTile(tile);
             tilesetTable.addTilePtr(a.addr);
 
@@ -83,7 +83,7 @@ void TilesetCompiler::buildTileset(FrameTileset& tileset,
         CharAttrPos charAttrPos(tilesetType.tilesetSplitPoint());
 
         for (unsigned tId : largeTiles) {
-            const Snes::Tile4bpp16px& tile = frameSet.largeTileset.tile(tId);
+            const Snes::Tile16px& tile = frameSet.largeTileset.tile(tId);
 
             RomTileData::Accessor a = addTile(tile);
 
@@ -101,15 +101,15 @@ void TilesetCompiler::buildTileset(FrameTileset& tileset,
 
         // Process Small Tiles
         for (auto tileIds : smallTiles) {
-            std::array<Snes::Tile4bpp8px, 4> tile = {};
+            std::array<Snes::Tile8px, 4> tiles = {};
 
             for (unsigned i = 0; i < 4; i++) {
                 unsigned tId = tileIds[i];
                 if (tId < frameSet.smallTileset.size()) {
-                    tile[i] = frameSet.smallTileset.tile(tId);
+                    tiles[i] = frameSet.smallTileset.tile(tId);
                 }
             }
-            RomTileData::Accessor a = addTile(tile);
+            RomTileData::Accessor a = addTile(combineSmallTiles(tiles));
 
             for (unsigned i = 0; i < 4; i++) {
                 unsigned tId = tileIds[i];

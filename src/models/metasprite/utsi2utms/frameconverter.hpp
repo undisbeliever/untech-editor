@@ -115,7 +115,7 @@ private:
     inline void _processOverlappingTiles(const unsigned overObjId,
                                          const std::list<unsigned>& underObjectIdList)
     {
-        Snes::Tile<4, OVER_SIZE> overTile;
+        Snes::Tile<OVER_SIZE> overTile;
 
         const SI::FrameObject& siOverObj = siFrame.objects.at(overObjId);
         MS::FrameObject& msOverObj = msFrame.objects.at(overObjId);
@@ -164,7 +164,7 @@ private:
         }
 
         // create the overtile and add to the tileset
-        static const Snes::Tile<4, OVER_SIZE> smallZero{};
+        static const Snes::Tile<OVER_SIZE> smallZero{};
 
         if (overTile != smallZero) {
             Snes::TilesetInserterOutput to = tileExtractor.getOrInsertTile(overTile);

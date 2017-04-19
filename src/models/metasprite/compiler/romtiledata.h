@@ -1,7 +1,7 @@
 #pragma once
 
 #include "romdata.h"
-#include "models/snes/tile.h"
+#include "models/snes/tileset.h"
 #include <cassert>
 #include <cstdint>
 #include <memory>
@@ -20,6 +20,7 @@ namespace Compiler {
 class RomTileData {
 public:
     const static unsigned BYTES_PER_LINE = 16;
+    constexpr static unsigned SNES_TILE16_SIZE = Snes::TilesetTile16::SNES_TILE_SIZE;
 
     struct Accessor {
         Accessor(const RomOffsetPtr& addr, bool hFlip, bool vFlip)
@@ -45,7 +46,7 @@ public:
         , _tiles()
         , _blockNames()
     {
-        if (blockSize < Snes::Tile4bpp16px::SNES_DATA_SIZE) {
+        if (blockSize < SNES_TILE16_SIZE) {
             throw std::invalid_argument("block size is too small");
         }
 
@@ -56,7 +57,7 @@ public:
 
     void writeToIncFile(std::ostream& out) const;
 
-    const Accessor& addLargeTile(const Snes::Tile4bpp16px& tile)
+    const Accessor& addLargeTile(const Snes::Tile16px& tile)
     {
         const auto it = _map.find(tile);
         if (it != _map.end()) {
@@ -79,13 +80,13 @@ public:
     }
 
 private:
-    inline RomOffsetPtr insertTileData(const Snes::Tile4bpp16px& tile)
+    inline RomOffsetPtr insertTileData(const Snes::Tile16px& tile)
     {
         RomOffsetPtr ret(_blockNames[_currentBlock].get(), _currentOffset);
 
-        _tiles.push_back(tile);
+        _tiles.addTile(tile);
 
-        _currentOffset += Snes::Tile4bpp16px::SNES_DATA_SIZE;
+        _currentOffset += SNES_TILE16_SIZE;
         if (_currentOffset >= _blockSize) {
             _currentOffset = 0;
 
@@ -103,8 +104,8 @@ private:
     uint32_t _blockSize;
     uint32_t _currentBlock;
     uint32_t _currentOffset;
-    std::unordered_map<Snes::Tile4bpp16px, const Accessor> _map;
-    std::vector<Snes::Tile4bpp16px> _tiles;
+    std::unordered_map<Snes::Tile16px, const Accessor> _map;
+    Snes::TilesetTile16 _tiles;
 
     // RomOffsetPtr uses string pointers
     std::vector<std::unique_ptr<std::string>> _blockNames;

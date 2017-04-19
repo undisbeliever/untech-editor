@@ -116,7 +116,7 @@ struct FrameSet {
     Animation::Animation::map_t animations;
 
     Snes::Tileset4bpp8px smallTileset;
-    Snes::Tileset4bpp16px largeTileset;
+    Snes::TilesetTile16 largeTileset;
     capped_vector<Snes::Palette4bpp, MAX_PALETTES> palettes;
 
     FrameSet() = default;

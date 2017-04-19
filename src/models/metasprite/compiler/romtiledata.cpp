@@ -6,15 +6,13 @@ using namespace UnTech::MetaSprite::Compiler;
 
 void RomTileData::writeToIncFile(std::ostream& out) const
 {
-    constexpr static unsigned SNES_DATA_SIZE = Snes::Tile4bpp16px::SNES_DATA_SIZE;
-
     auto oldWidth = out.width();
     auto oldFlags = out.flags();
     auto oldFill = out.fill();
 
-    uint8_t buffer[SNES_DATA_SIZE] = { 0 };
+    const std::vector<uint8_t> snesData = _tiles.snesData();
 
-    const unsigned tilesPerBlock = _blockSize / SNES_DATA_SIZE;
+    const unsigned tilesPerBlock = _blockSize / SNES_TILE16_SIZE;
     const unsigned nBlocks = _tiles.size() / tilesPerBlock + 1;
 
     for (unsigned blockId = 0; blockId < nBlocks; blockId++) {
@@ -29,20 +27,20 @@ void RomTileData::writeToIncFile(std::ostream& out) const
                                                 _tiles.size());
 
         for (unsigned t = begin; t < end; t++) {
-            _tiles[t].writeSnesData(buffer);
+            const uint8_t* tData = snesData.data() + t * SNES_TILE16_SIZE;
 
-            static_assert(SNES_DATA_SIZE % BYTES_PER_LINE == 0, "Bad assumption");
+            static_assert(SNES_TILE16_SIZE % BYTES_PER_LINE == 0, "Bad assumption");
 
             // NOTE: All strings pushed to out MUST CONTAIN more than 2 characters.
 
             unsigned bPos = 0;
-            unsigned lines = SNES_DATA_SIZE / BYTES_PER_LINE;
+            unsigned lines = SNES_TILE16_SIZE / BYTES_PER_LINE;
             for (unsigned l = 0; l < lines; l++) {
-                out << "\tdb\t$" << std::setw(2) << (short)buffer[bPos];
+                out << "\tdb\t$" << std::setw(2) << (short)tData[bPos];
                 bPos++;
 
                 for (unsigned j = 1; j < BYTES_PER_LINE; j++) {
-                    out << ", $" << std::setw(2) << (short)buffer[bPos];
+                    out << ", $" << std::setw(2) << (short)tData[bPos];
                     bPos++;
                 }
 

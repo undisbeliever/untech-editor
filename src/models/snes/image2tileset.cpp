@@ -59,8 +59,8 @@ void ImageToTileset<BD>::processPalette(const IndexedImage& image)
 template <size_t BD>
 void ImageToTileset<BD>::processTileset(const IndexedImage& image)
 {
-    constexpr uint8_t PIXEL_MASK = TileT::PIXEL_MASK;
-    constexpr unsigned TILE_SIZE = TileT::TILE_SIZE;
+    constexpr uint8_t PIXEL_MASK = Palette<BD>::PIXEL_MASK;
+    constexpr unsigned TILE_SIZE = Tile8px::TILE_SIZE;
 
     if (image.size().width % TILE_SIZE != 0
         || image.size().height % TILE_SIZE != 0) {
@@ -73,7 +73,7 @@ void ImageToTileset<BD>::processTileset(const IndexedImage& image)
 
     for (unsigned tileY = 0; tileY < tileHeight; tileY++) {
         for (unsigned tileX = 0; tileX < tileWidth; tileX++) {
-            TileT tile;
+            Tile8px tile;
             uint8_t* tData = tile.rawData();
 
             for (unsigned py = 0; py < TILE_SIZE; py++) {

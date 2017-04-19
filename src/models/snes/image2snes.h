@@ -13,7 +13,6 @@ namespace Snes {
 template <size_t BIT_DEPTH>
 class Image2Snes {
 public:
-    using TileT = Tile8px<BIT_DEPTH>;
     constexpr static unsigned COLORS_PER_PALETTE = 1 << BIT_DEPTH;
 
 public:
@@ -40,7 +39,7 @@ private:
     unsigned _maxPalettes = 8;
     bool _order = 0;
 
-    Tileset<TileT> _tileset;
+    Tileset8px<BIT_DEPTH> _tileset;
     std::vector<SnesColor> _palette;
     Tilemap _tilemap;
 };

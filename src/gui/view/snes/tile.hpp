@@ -39,13 +39,13 @@ inline void __DrawTilePixel(wxAlphaPixelData::Iterator& pIt,
 
 template <size_t BD, size_t TS, class PF, bool showTransparent>
 void __DrawTile(PF& pixelData,
-                const UnTech::Snes::Tile<BD, TS>& tile,
+                const UnTech::Snes::Tile<TS>& tile,
                 const UnTech::Snes::Palette<BD>& palette,
                 const unsigned xOffset, const unsigned yOffset,
                 const bool hFlip, const bool vFlip)
 {
     const unsigned TILE_SIZE = tile.TILE_SIZE;
-    const unsigned PIXEL_MASK = tile.PIXEL_MASK;
+    const unsigned PIXEL_MASK = palette.PIXEL_MASK;
 
     if (pixelData.GetWidth() < int(xOffset + TILE_SIZE)
         || pixelData.GetHeight() < int(yOffset + TILE_SIZE)) {
@@ -76,7 +76,7 @@ void __DrawTile(PF& pixelData,
 
 template <size_t BD, size_t TS, class PF>
 void DrawTileOpaque(PF& pixelData,
-                    const UnTech::Snes::Tile<BD, TS>& tile,
+                    const UnTech::Snes::Tile<TS>& tile,
                     const UnTech::Snes::Palette<BD>& palette,
                     const unsigned xOffset, const unsigned yOffset,
                     const bool hFlip, const bool vFlip)
@@ -86,7 +86,7 @@ void DrawTileOpaque(PF& pixelData,
 
 template <size_t BD, size_t TS, class PF>
 void DrawTileTransparent(PF& pixelData,
-                         const UnTech::Snes::Tile<BD, TS>& tile,
+                         const UnTech::Snes::Tile<TS>& tile,
                          const UnTech::Snes::Palette<BD>& palette,
                          const unsigned xOffset, const unsigned yOffset,
                          const bool hFlip, const bool vFlip)

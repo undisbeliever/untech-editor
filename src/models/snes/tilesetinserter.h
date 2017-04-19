@@ -31,7 +31,7 @@ public:
         }
     }
 
-    const TilesetInserterOutput getOrInsert(const typename T::tile_t& tile)
+    const TilesetInserterOutput getOrInsert(const typename T::TileT& tile)
     {
         auto it = _map.find(tile);
 
@@ -43,14 +43,14 @@ public:
         }
     }
 
-    const typename T::tile_t getTile(const TilesetInserterOutput& tio) const
+    const typename T::TileT getTile(const TilesetInserterOutput& tio) const
     {
         return _tileset.tile(tio.tileId).flip(tio.hFlip, tio.vFlip);
     }
 
     const std::pair<TilesetInserterOutput, bool>
-    processOverlappedTile(const typename T::tile_t& underTile,
-                          const typename std::array<bool, T::tile_t::TILE_ARRAY_SIZE>& overlaps)
+    processOverlappedTile(const typename T::TileT& underTile,
+                          const typename std::array<bool, T::TileT::TILE_ARRAY_SIZE>& overlaps)
     {
         unsigned bestScore = 0;
         TilesetInserterOutput ret = { 0, false, false };
@@ -63,7 +63,7 @@ public:
             unsigned score = 0;
             bool found = true;
 
-            for (unsigned i = 0; i < T::tile_t::TILE_ARRAY_SIZE; i++) {
+            for (unsigned i = 0; i < T::TileT::TILE_ARRAY_SIZE; i++) {
                 if (underTileData[i] == other[i]) {
                     score++;
                 }
@@ -88,7 +88,7 @@ public:
     }
 
 private:
-    TilesetInserterOutput insertNewTile(const typename T::tile_t& tile)
+    TilesetInserterOutput insertNewTile(const typename T::TileT& tile)
     {
         unsigned tileId = _tileset.size();
         _tileset.addTile(tile);
@@ -114,7 +114,7 @@ private:
 private:
     T& _tileset;
 
-    std::unordered_map<typename T::tile_t, TilesetInserterOutput> _map;
+    std::unordered_map<typename T::TileT, TilesetInserterOutput> _map;
 };
 }
 }

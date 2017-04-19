@@ -17,8 +17,6 @@ namespace Snes {
 template <size_t BIT_DEPTH>
 class ImageToTileset {
 public:
-    using TileT = Tile8px<BIT_DEPTH>;
-
     static void convertAndSave(
         const IndexedImage& image,
         const std::string& tilesetFile, const std::string& paletteFile);
@@ -43,7 +41,7 @@ private:
     void processTileset(const IndexedImage& image);
 
 private:
-    Tileset<TileT> _tileset;
+    Tileset8px<BIT_DEPTH> _tileset;
     Palette<BIT_DEPTH> _palette;
 };
 }

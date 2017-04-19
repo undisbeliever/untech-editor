@@ -92,7 +92,7 @@ public:
         Tilemap tilemap = Tilemap(mapWidth, mapHeight);
 
         TilesetInserter<TilesetT> tilesetInserter(tileset);
-        typename TilesetT::tile_t tile = {};
+        typename TilesetT::TileT tile = {};
 
         if (containsTransparentTile()) {
             // make the transparent tile the first one

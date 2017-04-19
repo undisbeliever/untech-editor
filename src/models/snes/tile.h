@@ -10,39 +10,27 @@
 namespace UnTech {
 namespace Snes {
 
-template <size_t BD, size_t TS>
-struct TileTraits {
-};
-
-template <size_t BD, size_t TS>
+template <size_t TS>
 class Tile {
-    static_assert(BD <= 8, "BD is too high");
-    static_assert((BD & 1) == 0, "BD must be a multiple of 2");
-
 public:
     constexpr static unsigned TILE_SIZE = TS;
-    constexpr static unsigned BIT_DEPTH = BD;
-
-    constexpr static unsigned PIXEL_MASK = (1 << BD) - 1;
     constexpr static unsigned TILE_ARRAY_SIZE = TILE_SIZE * TILE_SIZE;
-    constexpr static unsigned SNES_DATA_SIZE = TILE_ARRAY_SIZE * BD / 8;
 
     typedef std::array<uint8_t, TILE_ARRAY_SIZE> tileArray_t;
-    typedef Palette<BD> palette_t;
-
-    typedef typename TileTraits<BD, TS>::Tile_t Tile_t;
 
 public:
     Tile() = default;
 
 public:
     // fails silently
-    void draw(Image& image, const Palette<BD>& palette,
+    template <class PaletteT>
+    void draw(Image& image, const PaletteT& palette,
               unsigned xOffset, unsigned yOffset,
               bool hFlip = false, bool vFlip = false) const;
 
     // fails silently
-    void drawOpaque(Image& image, const Palette<BD>& palette,
+    template <class PaletteT>
+    void drawOpaque(Image& image, const PaletteT& palette,
                     unsigned xOffset, unsigned yOffset,
                     bool hFlip = false, bool vFlip = false) const;
 
@@ -51,10 +39,10 @@ public:
 
     inline void setData(std::array<uint8_t, TILE_ARRAY_SIZE> data) { _data = data; }
 
-    Tile_t flip(bool hFlip, bool vFlip) const;
-    Tile_t hFlip() const;
-    Tile_t vFlip() const;
-    Tile_t hvFlip() const;
+    Tile flip(bool hFlip, bool vFlip) const;
+    Tile hFlip() const;
+    Tile vFlip() const;
+    Tile hvFlip() const;
 
     uint8_t pixel(unsigned x, unsigned y) const
     {
@@ -69,7 +57,7 @@ public:
     void setPixel(unsigned x, unsigned y, uint8_t value)
     {
         if (x < TILE_SIZE && y < TILE_SIZE) {
-            _data[y * TILE_SIZE + x] = value & PIXEL_MASK;
+            _data[y * TILE_SIZE + x] = value;
         }
     }
 
@@ -80,86 +68,28 @@ protected:
     std::array<uint8_t, TILE_ARRAY_SIZE> _data = {};
 };
 
-template <size_t BD>
-class Tile8px : public Tile<BD, 8> {
-public:
-    constexpr static unsigned TILE_SIZE = 8;
-    constexpr static unsigned BIT_DEPTH = BD;
+typedef Tile<8> Tile8px;
+typedef Tile<16> Tile16px;
 
-    constexpr static unsigned PIXEL_MASK = (1 << BD) - 1;
-    constexpr static unsigned TILE_ARRAY_SIZE = TILE_SIZE * TILE_SIZE;
-    constexpr static unsigned SNES_DATA_SIZE = TILE_ARRAY_SIZE * BD / 8;
-
-public:
-    Tile8px() = default;
-    Tile8px(const Tile<BD, 8>&);
-    Tile8px(const uint8_t data[SNES_DATA_SIZE]) { readSnesData(data); }
-
-    void readSnesData(const uint8_t data[SNES_DATA_SIZE]);
-    void writeSnesData(uint8_t out[SNES_DATA_SIZE]) const;
-};
-
-/**
- * NOTE: Tile<N, 16> tiles are stored/loaded sequentially.
- *       This is the way 16px tiles are stored in UnTech engine ROM,
- *       not in the SNES' VRAM.
- *
- */
-template <size_t BD>
-class Tile16px : public Tile<BD, 16> {
-public:
-    constexpr static unsigned TILE_SIZE = 16;
-    constexpr static unsigned BIT_DEPTH = BD;
-
-    constexpr static unsigned PIXEL_MASK = (1 << BD) - 1;
-    constexpr static unsigned TILE_ARRAY_SIZE = TILE_SIZE * TILE_SIZE;
-    constexpr static unsigned SNES_DATA_SIZE = TILE_ARRAY_SIZE * BD / 8;
-
-public:
-    Tile16px() = default;
-    Tile16px(const Tile<BD, 16>&);
-    Tile16px(const uint8_t data[SNES_DATA_SIZE]) { readSnesData(data); }
-    Tile16px(const std::array<Tile8px<BD>, 4>& tiles) { combineIntoLarge(tiles); }
-
-    void readSnesData(const uint8_t data[SNES_DATA_SIZE]);
-    void writeSnesData(uint8_t out[SNES_DATA_SIZE]) const;
-
-    std::array<Tile8px<BD>, 4> splitIntoSmall() const;
-    void combineIntoLarge(const std::array<Tile8px<BD>, 4>& tiles);
-};
-
-typedef Tile8px<2> Tile2bpp8px;
-typedef Tile8px<4> Tile4bpp8px;
-typedef Tile8px<8> Tile8bpp8px;
-
-typedef Tile16px<4> Tile4bpp16px;
-
-template <>
-struct TileTraits<2, 8> {
-    typedef Tile2bpp8px Tile_t;
-};
-template <>
-struct TileTraits<4, 8> {
-    typedef Tile4bpp8px Tile_t;
-};
-template <>
-struct TileTraits<8, 8> {
-    typedef Tile8bpp8px Tile_t;
-};
-template <>
-struct TileTraits<4, 16> {
-    typedef Tile4bpp16px Tile_t;
-};
+std::array<Tile8px, 4> splitLargeTile(const Tile16px& largeTile);
+Tile16px combineSmallTiles(const std::array<Tile8px, 4>& tiles);
 }
 }
 
 namespace std {
-template <size_t BD>
-struct hash<::UnTech::Snes::Tile8px<BD>> {
-    size_t operator()(const ::UnTech::Snes::Tile8px<BD>& tile) const;
-};
-template <size_t BD>
-struct hash<::UnTech::Snes::Tile16px<BD>> {
-    size_t operator()(const ::UnTech::Snes::Tile16px<BD>& tile) const;
+template <size_t TS>
+struct hash<::UnTech::Snes::Tile<TS>> {
+    size_t operator()(const ::UnTech::Snes::Tile<TS>& tile) const
+    {
+        const uint8_t* data = tile.rawData();
+
+        size_t seed = 0;
+        for (unsigned i = 0; i < tile.TILE_ARRAY_SIZE; i++) {
+            // Numbers from boost
+            seed ^= data[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+
+        return seed;
+    }
 };
 }
