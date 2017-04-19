@@ -24,8 +24,8 @@ class TileExtractor {
     MetaSprite::FrameSet& msFrameSet;
     ErrorList& errorList;
 
-    Snes::TilesetInserter<Snes::Tileset4bpp8px> smallTileset;
-    Snes::TilesetInserter<Snes::TilesetTile16> largeTileset;
+    Snes::TilesetInserter8px smallTileset;
+    Snes::TilesetInserter16px largeTileset;
 
 public:
     TileExtractor(const SpriteImporter::FrameSet& siFrameSet,

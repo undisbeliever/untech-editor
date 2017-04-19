@@ -81,8 +81,7 @@ public:
     }
 
     // `process()` MUST be called before calling `buildTilesetAndTilemap`
-    template <class TilesetT>
-    Tilemap buildTilemapAndTileset(TilesetT& tileset)
+    Tilemap buildTilemapAndTileset(BaseTileset<8>& tileset)
     {
         assert(mapWidth >= 1);
         assert(mapHeight >= 1);
@@ -91,8 +90,8 @@ public:
 
         Tilemap tilemap = Tilemap(mapWidth, mapHeight);
 
-        TilesetInserter<TilesetT> tilesetInserter(tileset);
-        typename TilesetT::TileT tile = {};
+        TilesetInserter8px tilesetInserter(tileset);
+        Tile8px tile = {};
 
         if (containsTransparentTile()) {
             // make the transparent tile the first one

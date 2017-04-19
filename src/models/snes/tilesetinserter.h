@@ -19,10 +19,13 @@ struct TilesetInserterOutput {
     }
 };
 
-template <class T>
+template <size_t TS>
 class TilesetInserter {
+    using TilesetT = BaseTileset<TS>;
+    using TileT = Tile<TS>;
+
 public:
-    TilesetInserter(T& tileset)
+    TilesetInserter(TilesetT& tileset)
         : _tileset(tileset)
         , _map()
     {
@@ -31,7 +34,7 @@ public:
         }
     }
 
-    const TilesetInserterOutput getOrInsert(const typename T::TileT& tile)
+    const TilesetInserterOutput getOrInsert(const TileT& tile)
     {
         auto it = _map.find(tile);
 
@@ -43,14 +46,14 @@ public:
         }
     }
 
-    const typename T::TileT getTile(const TilesetInserterOutput& tio) const
+    const TileT getTile(const TilesetInserterOutput& tio) const
     {
         return _tileset.tile(tio.tileId).flip(tio.hFlip, tio.vFlip);
     }
 
     const std::pair<TilesetInserterOutput, bool>
-    processOverlappedTile(const typename T::TileT& underTile,
-                          const typename std::array<bool, T::TileT::TILE_ARRAY_SIZE>& overlaps)
+    processOverlappedTile(const TileT& underTile,
+                          const std::array<bool, TileT::TILE_ARRAY_SIZE>& overlaps)
     {
         unsigned bestScore = 0;
         TilesetInserterOutput ret = { 0, false, false };
@@ -63,7 +66,7 @@ public:
             unsigned score = 0;
             bool found = true;
 
-            for (unsigned i = 0; i < T::TileT::TILE_ARRAY_SIZE; i++) {
+            for (unsigned i = 0; i < TileT::TILE_ARRAY_SIZE; i++) {
                 if (underTileData[i] == other[i]) {
                     score++;
                 }
@@ -88,7 +91,7 @@ public:
     }
 
 private:
-    TilesetInserterOutput insertNewTile(const typename T::TileT& tile)
+    TilesetInserterOutput insertNewTile(const TileT& tile)
     {
         unsigned tileId = _tileset.size();
         _tileset.addTile(tile);
@@ -112,9 +115,12 @@ private:
     }
 
 private:
-    T& _tileset;
+    TilesetT& _tileset;
 
-    std::unordered_map<typename T::TileT, TilesetInserterOutput> _map;
+    std::unordered_map<TileT, TilesetInserterOutput> _map;
 };
+
+typedef TilesetInserter<8> TilesetInserter8px;
+typedef TilesetInserter<16> TilesetInserter16px;
 }
 }
