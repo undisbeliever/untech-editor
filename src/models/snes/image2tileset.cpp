@@ -89,6 +89,8 @@ void ImageToTileset<BD>::processTileset(const IndexedImage& image)
     }
 }
 
+template class Snes::ImageToTileset<1>;
 template class Snes::ImageToTileset<2>;
+template class Snes::ImageToTileset<3>;
 template class Snes::ImageToTileset<4>;
 template class Snes::ImageToTileset<8>;

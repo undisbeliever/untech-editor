@@ -50,7 +50,9 @@ private:
     palette_t _colors;
 };
 
+typedef Palette<1> Palette1bpp;
 typedef Palette<2> Palette2bpp;
+typedef Palette<3> Palette3bpp;
 typedef Palette<4> Palette4bpp;
 typedef Palette<8> Palette8bpp;
 }

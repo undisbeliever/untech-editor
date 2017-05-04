@@ -96,6 +96,7 @@ template <>
 struct hash<UnTech::idstring> {
     hash() = default;
     inline size_t operator()(const UnTech::idstring& id) const { return strHash(id.str()); };
+
 private:
     hash<std::string> strHash;
 };

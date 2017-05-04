@@ -36,8 +36,16 @@ int process(const CommandLine::Parser& args)
     const std::string& paletteFile = args.options().at("palette").string();
 
     switch (args.options().at("bpp").uint()) {
+    case 1:
+        ImageToTileset<1>::convertAndSave(image, tilesetFile, paletteFile);
+        break;
+
     case 2:
         ImageToTileset<2>::convertAndSave(image, tilesetFile, paletteFile);
+        break;
+
+    case 3:
+        ImageToTileset<3>::convertAndSave(image, tilesetFile, paletteFile);
         break;
 
     case 4:
@@ -49,7 +57,7 @@ int process(const CommandLine::Parser& args)
         break;
 
     default:
-        throw std::runtime_error("Bad bpp value, expected 2, 4 or 8");
+        throw std::runtime_error("Bad bpp value, expected 1, 2, 3, 4 or 8");
     }
 
     return EXIT_SUCCESS;

@@ -20,7 +20,8 @@ inline void writeSnesTile8px(uint8_t out[8 * BD], const Tile<8>& tile)
         for (unsigned y = 0; y < TILE_SIZE; y++) {
             const uint8_t* tileRow = tile.rawData() + y * 8;
 
-            for (unsigned bi = 0; bi < 2; bi++) {
+            const unsigned biEnd = (b < BIT_DEPTH - 1) ? 2 : 1;
+            for (unsigned bi = 0; bi < biEnd; bi++) {
                 uint_fast8_t byte = 0;
                 uint_fast8_t mask = 1 << (b + bi);
 
@@ -50,7 +51,8 @@ inline void readSnesTile8px(Tile<8>& tile, const uint8_t data[8 * BD])
         for (unsigned y = 0; y < TILE_SIZE; y++) {
             uint8_t* tileRow = tile.rawData() + y * 8;
 
-            for (unsigned bi = 0; bi < 2; bi++) {
+            const unsigned biEnd = (b < BIT_DEPTH - 1) ? 2 : 1;
+            for (unsigned bi = 0; bi < biEnd; bi++) {
                 uint_fast8_t byte = *dataPos++;
                 uint_fast8_t bits = 1 << (b + bi);
 
@@ -115,7 +117,9 @@ inline void Tileset8px<BD>::readSnesData(const std::vector<uint8_t>& in)
     }
 }
 
+template class UnTech::Snes::Tileset8px<1>;
 template class UnTech::Snes::Tileset8px<2>;
+template class UnTech::Snes::Tileset8px<3>;
 template class UnTech::Snes::Tileset8px<4>;
 template class UnTech::Snes::Tileset8px<8>;
 

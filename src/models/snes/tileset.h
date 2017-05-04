@@ -60,7 +60,9 @@ public:
     void readSnesData(const std::vector<uint8_t>& data);
 };
 
+typedef Tileset8px<1> Tileset1bpp8px;
 typedef Tileset8px<2> Tileset2bpp8px;
+typedef Tileset8px<3> Tileset3bpp8px;
 typedef Tileset8px<4> Tileset4bpp8px;
 typedef Tileset8px<8> Tileset8bpp8px;
 

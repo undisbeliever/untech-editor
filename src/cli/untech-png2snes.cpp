@@ -110,8 +110,16 @@ int process(const CommandLine::Parser& args)
     }
 
     switch (args.options().at("bpp").uint()) {
+    case 1:
+        processImage<1>(image, args);
+        break;
+
     case 2:
         processImage<2>(image, args);
+        break;
+
+    case 3:
+        processImage<3>(image, args);
         break;
 
     case 4:
@@ -123,7 +131,7 @@ int process(const CommandLine::Parser& args)
         break;
 
     default:
-        throw std::runtime_error("Bad bpp value, expected 2, 4 or 8");
+        throw std::runtime_error("Bad bpp value, expected 1, 2, 3, 4 or 8");
     }
 
     return EXIT_SUCCESS;

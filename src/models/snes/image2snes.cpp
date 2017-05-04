@@ -495,7 +495,9 @@ std::vector<uint8_t> Image2Snes<BIT_DEPTH>::paletteSnesData() const
     return data;
 }
 
+template class Image2Snes<1>;
 template class Image2Snes<2>;
+template class Image2Snes<3>;
 template class Image2Snes<4>;
 template class Image2Snes<8>;
 }

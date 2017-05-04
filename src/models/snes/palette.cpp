@@ -40,6 +40,8 @@ inline void Palette<BIT_DEPTH>::readPalette(const std::vector<uint8_t>& data)
     }
 }
 
+template class Snes::Palette<1>;
 template class Snes::Palette<2>;
+template class Snes::Palette<3>;
 template class Snes::Palette<4>;
 template class Snes::Palette<8>;
