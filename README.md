@@ -1,5 +1,5 @@
-UnTech Game Engine Editor
-=========================
+UnTech Editor Suite
+===================
 
 This repository contains the utilities used to create and edit assets
 used by the
