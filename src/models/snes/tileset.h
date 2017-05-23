@@ -72,6 +72,12 @@ typedef Tileset8px<3> Tileset3bpp8px;
 typedef Tileset8px<4> Tileset4bpp8px;
 typedef Tileset8px<8> Tileset8bpp8px;
 
+extern template class UnTech::Snes::Tileset8px<1>;
+extern template class UnTech::Snes::Tileset8px<2>;
+extern template class UnTech::Snes::Tileset8px<3>;
+extern template class UnTech::Snes::Tileset8px<4>;
+extern template class UnTech::Snes::Tileset8px<8>;
+
 /**
  * TilesetTile16 tiles are stored/loaded in sequential order.
  * This matches the Tile16 format used by the UnTech engine to store
