@@ -55,7 +55,11 @@ public:
     constexpr static unsigned BIT_DEPTH = BD;
     constexpr static unsigned SNES_TILE_SIZE = 8 * BIT_DEPTH;
 
-    Tileset8px() = default;
+    // using default causes linker error on clang++ debug
+    Tileset8px()
+        : BaseTileset()
+    {
+    }
 
     // fails silently
     void drawTile(Image& image, const Palette<BD>& palette,
