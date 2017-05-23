@@ -129,6 +129,17 @@ template class UnTech::Snes::Tileset8px<3>;
 template class UnTech::Snes::Tileset8px<4>;
 template class UnTech::Snes::Tileset8px<8>;
 
+void TilesetTile16::drawTile(Image& image, const Palette<4>& palette,
+                             unsigned xOffset, unsigned yOffset,
+                             unsigned tileId, const bool hFlip, const bool vFlip) const
+{
+    if (_tiles.size() <= tileId) {
+        return;
+    }
+
+    _tiles[tileId].draw(image, palette, xOffset, yOffset, hFlip, vFlip);
+}
+
 std::vector<uint8_t> TilesetTile16::snesData() const
 {
     std::vector<uint8_t> out(SNES_TILE_SIZE * _tiles.size());
