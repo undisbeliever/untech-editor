@@ -58,6 +58,7 @@ endif
 
 ifneq ($(findstring clang,$(CXX)),)
   # Prevent clang from spamming errors
+  CXXFLAGS      += -Wno-undefined-var-template
   VIEW_CXXFLAGS += -Wno-potentially-evaluated-expression -Wno-deprecated
 endif
 
