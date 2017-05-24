@@ -202,20 +202,25 @@ TilesetCompiler::generateDynamicTilesets(const MetaSprite::FrameSet& frameSet,
             }
         }
 
-        for (auto& fIt : ft) {
-            const auto& data = fIt.second;
+        // ftData must be built in a deterministic order
+        for (const auto& it : frameSet.frames) {
+            MetaSprite::Frame* frame = &it.second;
 
-            auto dup = std::find_if(ftData.begin(), ftData.end(), [data](const auto& t) {
-                return t.originalSmallTiles == data.originalSmallTiles
-                       && t.largeTiles == data.largeTiles;
-            });
+            if (ft.find(frame) != ft.end()) {
+                const auto& data = ft[frame];
 
-            if (dup != ftData.end()) {
-                dup->frames.push_back(fIt.first);
-            }
-            else {
-                ftData.emplace_back(data);
-                ftData.back().frames.push_back(fIt.first);
+                auto dup = std::find_if(ftData.begin(), ftData.end(), [data](const auto& t) {
+                    return t.originalSmallTiles == data.originalSmallTiles
+                           && t.largeTiles == data.largeTiles;
+                });
+
+                if (dup != ftData.end()) {
+                    dup->frames.push_back(frame);
+                }
+                else {
+                    ftData.emplace_back(data);
+                    ftData.back().frames.push_back(frame);
+                }
             }
         }
     }

@@ -13,8 +13,6 @@
 #include "tilesetcompiler.h"
 #include "../errorlist.h"
 #include "../metasprite.h"
-#include <map>
-#include <unordered_set>
 #include <vector>
 
 namespace UnTech {
@@ -72,7 +70,7 @@ private:
     };
 
     std::vector<FrameSetReference> _frameSetReferences;
-    std::unordered_set<std::shared_ptr<const FrameSetExportOrder>> _exportOrderDocuments;
+    std::vector<std::shared_ptr<const FrameSetExportOrder>> _exportOrderDocuments;
 };
 }
 }

@@ -145,7 +145,11 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
         // add to references
         _frameSetReferences.emplace_back(frameSet.name,
                                          frameSet.exportOrder->name);
-        _exportOrderDocuments.insert(frameSet.exportOrder);
+
+        auto it = std::find(_exportOrderDocuments.begin(), _exportOrderDocuments.end(), frameSet.exportOrder);
+        if (it == _exportOrderDocuments.end()) {
+            _exportOrderDocuments.push_back(frameSet.exportOrder);
+        }
     }
     catch (const std::exception& ex) {
         _errorList.addError(frameSet, ex.what());
