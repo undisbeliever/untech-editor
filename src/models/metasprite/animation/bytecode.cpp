@@ -65,6 +65,20 @@ bool Bytecode::isValidTerminator() const
     }
 }
 
+bool Bytecode::isWait() const
+{
+    switch (_value) {
+    case Enum::SET_FRAME_AND_WAIT_FRAMES:
+    case Enum::SET_FRAME_AND_WAIT_TIME:
+    case Enum::SET_FRAME_AND_WAIT_XVECL:
+    case Enum::SET_FRAME_AND_WAIT_YVECL:
+        return true;
+
+    default:
+        return false;
+    }
+}
+
 bool Bytecode::usesFrame() const
 {
     switch (_value) {

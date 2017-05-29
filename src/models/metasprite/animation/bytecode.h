@@ -45,6 +45,9 @@ public:
     // Returns true if the instruction is a jump or a stop
     bool isValidTerminator() const;
 
+    // Returns true if the bytecode is a wait instruction
+    bool isWait() const;
+
     bool usesFrame() const;
     bool usesGotoLabel() const;
     bool usesParameter() const;
