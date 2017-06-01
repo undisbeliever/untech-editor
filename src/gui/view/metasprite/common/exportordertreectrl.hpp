@@ -70,7 +70,7 @@ public:
         aniController.animationController().signal_anyChanged().connect(sigc::mem_fun(
             *this, &ExportOrderTreeCtrl::UpdateTreeAnimations));
 
-        aniController.instructionController().signal_anyChanged().connect(sigc::mem_fun(
+        aniController.animationFrameController().signal_anyChanged().connect(sigc::mem_fun(
             *this, &ExportOrderTreeCtrl::UpdateTreeAnimations));
     }
 

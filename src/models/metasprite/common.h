@@ -20,7 +20,7 @@ const static size_t MAX_PALETTES = 254;
 const static size_t MAX_FRAME_OBJECTS = 32;
 const static size_t MAX_ACTION_POINTS = 8;
 const static size_t MAX_ENTITY_HITBOXES = 4;
-const static size_t MAX_ANIMATION_INSTRUCTIONS = 64;
+const static size_t MAX_ANIMATION_FRAMES = 126;
 
 const static size_t PALETTE_COLORS = 16;
 

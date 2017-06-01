@@ -16,40 +16,42 @@ namespace Animation {
 
 class AnimationControllerInterface;
 class AnimationController;
-class InstructionController;
+class AnimationFrameController;
 
 class AnimationController
     : public Controller::IdMapController<Animation, AnimationControllerInterface> {
 
-    friend class InstructionController;
+    friend class AnimationFrameController;
 
 public:
     AnimationController(AnimationControllerInterface& parent)
         : IdMapController(parent)
     {
     }
+
+    void selected_setDurationFormat(DurationFormat format);
+    void selected_setNextAnimation(const idstring& animationId);
+    void selected_setOneShot(bool oneShot);
 };
 
-class InstructionController
-    : public Controller::CappedVectorController<Instruction, Instruction::list_t,
+class AnimationFrameController
+    : public Controller::CappedVectorController<AnimationFrame, AnimationFrame::list_t,
                                                 AnimationController> {
 
 public:
-    InstructionController(AnimationController& parent)
+    AnimationFrameController(AnimationController& parent)
         : CappedVectorController(parent)
     {
     }
 
-    void selected_setOperation(const Bytecode bc);
-    void selected_setParameter(int parameter);
     void selected_setFrame(const NameReference& frame);
-    void selected_setGotoLabel(const idstring& label);
+    void selected_setDuration(uint8_t duration);
 
 protected:
-    virtual Instruction::list_t* editable_listFromParent() final
+    virtual AnimationFrame::list_t* editable_listFromParent() final
     {
         Animation* a = parent().editable_selected();
-        return a ? &a->instructions : nullptr;
+        return a ? &a->frames : nullptr;
     }
 };
 
@@ -78,7 +80,7 @@ public:
     AnimationControllerInterface(Controller::BaseController& baseController)
         : _baseController(baseController)
         , _animationController(*this)
-        , _instructionController(_animationController)
+        , _animationFrameController(_animationController)
     {
     }
 
@@ -87,7 +89,7 @@ public:
     auto& signal_selectedChanged() { return _signal_selectedChanged; }
 
     auto& animationController() { return _animationController; }
-    auto& instructionController() { return _instructionController; }
+    auto& animationFrameController() { return _animationFrameController; }
 
 protected:
     virtual element_type* editable_selected() = 0;
@@ -101,7 +103,7 @@ private:
     sigc::signal<void> _signal_selectedChanged;
 
     AnimationController _animationController;
-    InstructionController _instructionController;
+    AnimationFrameController _animationFrameController;
 };
 
 template <class FrameSetControllerT>

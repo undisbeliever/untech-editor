@@ -26,8 +26,6 @@ FrameSetExportList::FrameSetExportList(const MetaSprite::FrameSet& frameSet)
 
 inline void FrameSetExportList::buildAnimationList()
 {
-    typedef Animation::Bytecode::Enum BC;
-
     assert(_frameSet.exportOrder != nullptr);
     const auto& exportOrder = _frameSet.exportOrder;
 
@@ -44,7 +42,6 @@ inline void FrameSetExportList::buildAnimationList()
 
             for (const auto& alt : en.alternatives) {
                 const Animation::Animation* altAni = _frameSet.animations.getPtr(alt.name);
-
                 if (altAni) {
                     _animations.push_back({ altAni, alt.hFlip, alt.vFlip });
 
@@ -59,23 +56,23 @@ inline void FrameSetExportList::buildAnimationList()
         }
     }
 
-    // Include the animations referenced in GOTO_ANIMATION bytecode
+    // Include the animations referenced in the nextAnimation field
     for (unsigned toTestIndex = 0; toTestIndex < _animations.size(); toTestIndex++) {
-        const auto& toTest = _animations[toTestIndex];
+        const auto& ani = _animations[toTestIndex];
 
-        for (const auto& inst : toTest.animation->instructions) {
-            if (inst.operation == BC::GOTO_ANIMATION) {
-                const Animation::Animation* a = _frameSet.animations.getPtr(inst.gotoLabel);
+        if (ani.animation->oneShot == false && ani.animation->nextAnimation.isValid()) {
+            const idstring& nextAnimation = ani.animation->nextAnimation;
 
-                if (a == nullptr) {
-                    throw std::runtime_error("Cannot find animation " + inst.gotoLabel);
-                }
+            const Animation::Animation* a = _frameSet.animations.getPtr(nextAnimation);
+            if (a == nullptr) {
+                throw std::runtime_error("Cannot find animation " + nextAnimation);
+            }
 
-                auto it = std::find(_animations.begin(), _animations.end(),
-                                    AnimationListEntry({ a, toTest.hFlip, toTest.vFlip }));
-                if (it == _animations.end()) {
-                    _animations.push_back({ a, toTest.hFlip, toTest.vFlip });
-                }
+            AnimationListEntry toAdd = { a, ani.hFlip, ani.vFlip };
+
+            auto it = std::find(_animations.begin(), _animations.end(), toAdd);
+            if (it == _animations.end()) {
+                _animations.push_back(toAdd);
             }
         }
     }
@@ -120,24 +117,22 @@ inline void FrameSetExportList::buildFrameList()
     assert(_animations.size() != 0 || exportOrder->animations.size() == 0);
 
     for (const AnimationListEntry& ani : _animations) {
-        for (const auto& inst : ani.animation->instructions) {
-            const auto& op = inst.operation;
-            if (op.usesFrame()) {
-                const MS::Frame* frame = _frameSet.frames.getPtr(inst.frame.name);
+        for (const auto& aFrame : ani.animation->frames) {
+            const auto& frameRef = aFrame.frame;
 
-                if (frame == nullptr) {
-                    throw std::runtime_error("Cannot find frame " + inst.frame.name);
-                }
+            const MS::Frame* frame = _frameSet.frames.getPtr(frameRef.name);
+            if (frame == nullptr) {
+                throw std::runtime_error("Cannot find frame " + frameRef.name);
+            }
 
-                FrameListEntry e = { frame,
-                                     static_cast<bool>(inst.frame.hFlip ^ ani.hFlip),
-                                     static_cast<bool>(inst.frame.vFlip ^ ani.vFlip) };
+            FrameListEntry e = { frame,
+                                 static_cast<bool>(frameRef.hFlip ^ ani.hFlip),
+                                 static_cast<bool>(frameRef.vFlip ^ ani.vFlip) };
 
-                auto it = std::find(_frames.begin(), _frames.end(), e);
-                if (it == _frames.end()) {
-                    // new entry
-                    _frames.push_back(e);
-                }
+            auto it = std::find(_frames.begin(), _frames.end(), e);
+            if (it == _frames.end()) {
+                // new entry
+                _frames.push_back(e);
             }
         }
     }

@@ -10,14 +10,12 @@
 using namespace UnTech::Xml;
 
 namespace Ani = UnTech::MetaSprite::Animation;
-template <>
-const std::string Ani::Instruction::list_t::HUMAN_TYPE_NAME = "Instruction";
 
 namespace UnTech {
 namespace MetaSprite {
 namespace Animation {
 
-void readInstruction(const Xml::XmlTag* tag, Instruction& inst);
+void readAnimationFrame(const Xml::XmlTag* tag, AnimationFrame& aFrame);
 
 void readAnimation(XmlReader& xml, const XmlTag* tag, Animation::map_t& animations)
 {
@@ -26,14 +24,22 @@ void readAnimation(XmlReader& xml, const XmlTag* tag, Animation::map_t& animatio
     idstring id = tag->getAttributeUniqueId("id", animations);
     Animation& animation = animations.create(id);
 
+    animation.durationFormat = tag->getAttributeSimpleClass<DurationFormat>("durationformat");
+
+    animation.oneShot = tag->getAttributeBoolean("oneshot");
+
+    if (tag->hasAttribute("next")) {
+        animation.nextAnimation = tag->getAttributeId("next");
+    }
+
     std::unique_ptr<XmlTag> childTag;
 
     while ((childTag = xml.parseTag())) {
-        if (childTag->name == "instruction") {
-            animation.instructions.emplace_back();
+        if (childTag->name == "aframe") {
+            animation.frames.emplace_back();
 
-            Instruction& inst = animation.instructions.back();
-            readInstruction(childTag.get(), inst);
+            AnimationFrame& aFrame = animation.frames.back();
+            readAnimationFrame(childTag.get(), aFrame);
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -43,27 +49,14 @@ void readAnimation(XmlReader& xml, const XmlTag* tag, Animation::map_t& animatio
     }
 }
 
-inline void readInstruction(const XmlTag* tag, Instruction& inst)
+inline void readAnimationFrame(const XmlTag* tag, AnimationFrame& aFrame)
 {
-    assert(tag->name == "instruction");
+    assert(tag->name == "aframe");
 
-    auto& op = inst.operation;
-
-    op = tag->getAttributeSimpleClass<Bytecode>("op");
-
-    if (op.usesParameter()) {
-        inst.parameter = tag->getAttributeInteger("parameter");
-    }
-
-    if (op.usesGotoLabel()) {
-        inst.gotoLabel = tag->getAttributeId("goto");
-    }
-
-    if (op.usesFrame()) {
-        inst.frame.name = tag->getAttributeId("frame");
-        inst.frame.hFlip = tag->getAttributeBoolean("hflip");
-        inst.frame.vFlip = tag->getAttributeBoolean("vflip");
-    }
+    aFrame.frame.name = tag->getAttributeId("frame");
+    aFrame.frame.hFlip = tag->getAttributeBoolean("hflip");
+    aFrame.frame.vFlip = tag->getAttributeBoolean("vflip");
+    aFrame.duration = tag->getAttributeUint8("duration");
 }
 
 /*
@@ -71,27 +64,14 @@ inline void readInstruction(const XmlTag* tag, Instruction& inst)
  * ======
  */
 
-inline void writeInstruction(XmlWriter& xml, const Instruction& instruction)
+inline void writeAnimationFrame(XmlWriter& xml, const AnimationFrame& aFrame)
 {
-    xml.writeTag("instruction");
+    xml.writeTag("aframe");
 
-    const auto op = instruction.operation;
-
-    xml.writeTagAttributeSimpleClass("op", op);
-
-    if (op.usesParameter()) {
-        xml.writeTagAttribute("parameter", instruction.parameter);
-    }
-
-    if (op.usesGotoLabel()) {
-        xml.writeTagAttribute("goto", instruction.gotoLabel);
-    }
-
-    if (op.usesFrame()) {
-        xml.writeTagAttribute("frame", instruction.frame.name);
-        xml.writeTagAttribute("hflip", instruction.frame.hFlip);
-        xml.writeTagAttribute("vflip", instruction.frame.vFlip);
-    }
+    xml.writeTagAttribute("frame", aFrame.frame.name);
+    xml.writeTagAttribute("hflip", aFrame.frame.hFlip);
+    xml.writeTagAttribute("vflip", aFrame.frame.vFlip);
+    xml.writeTagAttribute("duration", aFrame.duration);
 
     xml.writeCloseTag();
 }
@@ -101,10 +81,24 @@ void writeAnimations(XmlWriter& xml, const Animation::map_t& animations)
     for (const auto& it : animations) {
         xml.writeTag("animation");
 
-        xml.writeTagAttribute("id", it.first);
+        const idstring& id = it.first;
+        const Animation& animation = it.second;
 
-        for (const auto& inst : it.second.instructions) {
-            writeInstruction(xml, inst);
+        xml.writeTagAttribute("id", id);
+
+        xml.writeTagAttributeSimpleClass("durationformat", animation.durationFormat);
+
+        if (animation.oneShot) {
+            xml.writeTagAttribute("oneshot", animation.oneShot);
+        }
+        else {
+            if (animation.nextAnimation.isValid()) {
+                xml.writeTagAttribute("next", animation.nextAnimation);
+            }
+        }
+
+        for (const auto& aFrame : animation.frames) {
+            writeAnimationFrame(xml, aFrame);
         }
 
         xml.writeCloseTag();

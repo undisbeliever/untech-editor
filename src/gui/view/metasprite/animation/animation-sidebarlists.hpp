@@ -48,88 +48,59 @@ wxString IdMapListCtrl<MSA::AnimationController>::OnGetItemText(long item, long 
 // ANIMATION INSTRUCTIONS
 // ======================
 template <>
-void VectorListCtrl<MSA::InstructionController>::CreateColumns();
+void VectorListCtrl<MSA::AnimationFrameController>::CreateColumns();
 
 template <>
-void VectorListCtrl<MSA::InstructionController>::CreateColumns()
+void VectorListCtrl<MSA::AnimationFrameController>::CreateColumns()
 {
-    AppendColumn("Instruction", wxLIST_FORMAT_LEFT);
     AppendColumn("Frame", wxLIST_FORMAT_LEFT);
-    AppendColumn("Parameter", wxLIST_FORMAT_LEFT);
+    AppendColumn("Duration", wxLIST_FORMAT_LEFT);
 
     BindColumnsToEqualWidth();
+
+    // Refresh duration column if Animation data changes
+    _controller.parent().signal_dataChanged().connect([this](void) {
+        this->Refresh();
+    });
 }
 
 template <>
-wxString VectorListCtrl<MSA::InstructionController>::OnGetItemText(long item, long column) const
+wxString VectorListCtrl<MSA::AnimationFrameController>::OnGetItemText(long item, long column) const
 {
-    typedef MSA::Bytecode::Enum BC;
-
-    const MSA::Instruction::list_t* list = _controller.list();
+    const MSA::AnimationFrame::list_t* list = _controller.list();
 
     if (list == nullptr) {
         return wxEmptyString;
     }
 
-    const MSA::Instruction& inst = list->at(item);
-    const MSA::Bytecode& op = inst.operation;
+    const MSA::AnimationFrame& aFrame = list->at(item);
+    const MSA::Animation& animation = _controller.parent().selected();
 
     switch (column) {
     case 0: {
-        return op.string();
-    }
+        const auto& fref = aFrame.frame;
 
-    case 1: {
-        if (op.usesFrame()) {
-            const auto& fref = inst.frame;
+        wxString ret = fref.name.str();
 
-            wxString ret = fref.name.str();
-
-            if (!fref.hFlip) {
-                if (fref.vFlip) {
-                    ret += " (vFlip)";
-                }
+        if (!fref.hFlip) {
+            if (fref.vFlip) {
+                ret += " (vFlip)";
             }
-            else {
-                if (!fref.vFlip) {
-                    ret += " (hFlip)";
-                }
-                else {
-                    ret += " (hvFlip)";
-                }
-            }
-
-            return ret;
         }
         else {
-            return wxEmptyString;
+            if (!fref.vFlip) {
+                ret += " (hFlip)";
+            }
+            else {
+                ret += " (hvFlip)";
+            }
         }
 
-    case 2:
-        switch (op.value()) {
-        case BC::GOTO_OFFSET:
-            return wxString::Format("%d", inst.parameter);
-            break;
-
-        case BC::GOTO_ANIMATION:
-            return inst.gotoLabel.str();
-            break;
-
-        case BC::SET_FRAME_AND_WAIT_FRAMES:
-            return wxString::Format("%d frames", inst.parameter);
-            break;
-
-        case BC::SET_FRAME_AND_WAIT_TIME:
-            return wxString::Format("%d ms", inst.parameter * 1000 / 75);
-
-        case BC::SET_FRAME_AND_WAIT_XVECL:
-        case BC::SET_FRAME_AND_WAIT_YVECL:
-            return wxString::Format("%0.3f px", double(inst.parameter) / 32);
-
-        default:
-            return wxEmptyString;
-        }
+        return ret;
     }
+
+    case 1:
+        return animation.durationFormat.durationToString(aFrame.duration);
 
     default:
         return wxEmptyString;

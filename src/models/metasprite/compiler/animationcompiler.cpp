@@ -9,8 +9,10 @@
 #include <climits>
 #include <set>
 
+using namespace UnTech;
 using namespace UnTech::MetaSprite::Compiler;
 namespace MS = UnTech::MetaSprite::MetaSprite;
+namespace ANI = UnTech::MetaSprite::Animation;
 
 AnimationCompiler::AnimationCompiler(ErrorList& errorList)
     : _errorList(errorList)
@@ -32,96 +34,40 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
                                     const std::map<const AnimationListEntry, unsigned>& animationMap)
 {
     using namespace UnTech;
-    typedef Animation::Bytecode::Enum BC;
 
     assert(aniEntry.animation != nullptr);
     const Animation::Animation& animation = *aniEntry.animation;
 
+    uint8_t nextAnimationId = 0xff;
+    {
+        if (animation.oneShot == false) {
+            const ANI::Animation* a = &animation;
+
+            if (animation.nextAnimation.isValid()) {
+                a = frameSet.animations.getPtr(animation.nextAnimation);
+                assert(a != nullptr);
+            }
+
+            nextAnimationId = animationMap.at({ a, aniEntry.hFlip, aniEntry.vFlip });
+        }
+    }
+
     std::vector<uint8_t> data;
-    data.reserve(animation.instructions.size() * 3);
+    data.reserve(3 + animation.frames.size() * 2);
 
-    const auto& instructions = animation.instructions;
-    for (auto instIt = instructions.begin(); instIt != instructions.end(); ++instIt) {
-        const auto& inst = *instIt;
+    data.push_back(animation.durationFormat.engineValue()); // durationFormat
+    data.push_back(nextAnimationId);                        // nextAnimation
+    data.push_back(animation.frames.size() * 2);            // frameTableSize
 
-        data.push_back(inst.operation.engineValue());
+    for (const auto& aFrame : animation.frames) {
+        const auto& frameRef = aFrame.frame;
 
-        switch (inst.operation.value()) {
-        case BC::GOTO_ANIMATION: {
-            const Animation::Animation* a = frameSet.animations.getPtr(inst.gotoLabel);
+        uint8_t frameId = frameMap.at({ frameSet.frames.getPtr(frameRef.name),
+                                        static_cast<bool>(frameRef.hFlip ^ aniEntry.hFlip),
+                                        static_cast<bool>(frameRef.vFlip ^ aniEntry.vFlip) });
 
-            if (a == nullptr) {
-                throw std::runtime_error("GOTO_ANIMATION: Cannot find animation " + inst.gotoLabel);
-            }
-
-            // Find animation Id
-            auto it = animationMap.find({ a, aniEntry.hFlip, aniEntry.vFlip });
-            if (it == animationMap.end()) {
-                it = animationMap.find({ a, false, false });
-            }
-            if (it == animationMap.end()) {
-                throw std::runtime_error("GOTO_ANIMATION: Cannot find animation " + inst.gotoLabel);
-            }
-            data.push_back(it->second);
-
-            break;
-        }
-
-        case BC::GOTO_OFFSET: {
-            // will always succeed because inst is valid.
-
-            int p = inst.parameter;
-            int offset = 0;
-
-            if (p < 0) {
-                assert(std::distance(instructions.begin(), instIt) >= -p);
-                assert(instIt + (p + 1) != instructions.begin());
-
-                for (auto gotoIt = instIt + p; gotoIt != instIt; ++gotoIt) {
-                    offset -= (*gotoIt).operation.instructionSize();
-                }
-            }
-            else {
-                assert(std::distance(instIt, instructions.end()) >= p);
-                assert(instIt + p != instructions.end());
-
-                for (auto gotoIt = instIt + p; gotoIt != instIt; --gotoIt) {
-                    offset += (*gotoIt).operation.instructionSize();
-                }
-            }
-
-            if (!int_ms8_t::isValid(offset)) {
-                throw std::runtime_error("GOTO_OFFSET: Offset outside range");
-            }
-
-            data.push_back(int_ms8_t(offset).romData());
-
-            break;
-        }
-
-        case BC::SET_FRAME_AND_WAIT_FRAMES:
-        case BC::SET_FRAME_AND_WAIT_TIME:
-        case BC::SET_FRAME_AND_WAIT_XVECL:
-        case BC::SET_FRAME_AND_WAIT_YVECL: {
-            const MS::Frame* frame = frameSet.frames.getPtr(inst.frame.name);
-            assert(frame != nullptr);
-
-            FrameListEntry f = { frame,
-                                 static_cast<bool>(inst.frame.hFlip ^ aniEntry.hFlip),
-                                 static_cast<bool>(inst.frame.vFlip ^ aniEntry.vFlip) };
-
-            data.push_back(frameMap.at(f));
-
-            assert(inst.parameter >= 0 && inst.parameter < UINT8_MAX);
-            data.push_back(inst.parameter);
-
-            break;
-        }
-
-        case BC::STOP:
-        case BC::GOTO_START:
-            break;
-        }
+        data.push_back(frameId);         // Frames.frameId
+        data.push_back(aFrame.duration); // Frames.duration
     }
 
     return _animationData.addData(data).offset;

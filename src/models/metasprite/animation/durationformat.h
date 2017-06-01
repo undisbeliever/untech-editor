@@ -14,41 +14,30 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Animation {
 
-class Bytecode {
+class DurationFormat {
 public:
     enum class Enum : uint_fast8_t {
-        STOP = 0x00,
-        GOTO_START = 0x02,
-        GOTO_ANIMATION = 0x04,
-        GOTO_OFFSET = 0x06,
-        SET_FRAME_AND_WAIT_FRAMES = 0x08,
-        SET_FRAME_AND_WAIT_TIME = 0x0A,
-        SET_FRAME_AND_WAIT_XVECL = 0x0C,
-        SET_FRAME_AND_WAIT_YVECL = 0x0E
+        FRAME = 0x00,
+        TIME = 0x02,
+        DISTANCE_VERTICAL = 0x04,
+        DISTANCE_HORIZONTAL = 0x06,
     };
 
     static const std::map<Enum, std::string> enumMap;
     static const std::map<std::string, Enum> stringMap;
 
-    Bytecode(const Enum v = Enum::STOP)
+    DurationFormat(const Enum v = Enum::FRAME)
         : _value(v)
     {
     }
 
-    Bytecode(const std::string str)
+    DurationFormat(const std::string str)
         : _value(stringMap.at(str))
     {
     }
 
-    unsigned instructionSize() const;
-
-    // Returns true if the instruction is a jump or a stop
-    bool isValidTerminator() const;
-
-    bool usesFrame() const;
-    bool usesGotoLabel() const;
-    bool usesParameter() const;
-    bool parameterUnsigned() const;
+    // Converts the duration integer into a united string
+    std::string durationToString(uint8_t duration) const;
 
     Enum value() const { return _value; }
     const std::string& string() const { return enumMap.at(_value); }
@@ -56,10 +45,10 @@ public:
 
     inline operator Enum() const { return _value; }
 
-    inline bool operator==(const Bytecode& o) const { return _value == o._value; }
+    inline bool operator==(const DurationFormat& o) const { return _value == o._value; }
     inline bool operator==(Enum e) const { return _value == e; }
 
-    inline bool operator!=(const Bytecode& o) const { return _value != o._value; }
+    inline bool operator!=(const DurationFormat& o) const { return _value != o._value; }
     inline bool operator!=(Enum e) const { return _value != e; }
 
 private:

@@ -8,6 +8,7 @@
 #include "animation-sidebarlists.hpp"
 #include "gui/view/common/enumclasschoice.h"
 #include "gui/view/common/idstringtextctrl.h"
+#include <wx/spinctrl.h>
 
 namespace UnTech {
 namespace View {
@@ -16,28 +17,42 @@ namespace Animation {
 
 namespace MSA = UnTech::MetaSprite::Animation;
 
-class InstructionPanel : public wxPanel {
+class AnimationPanel : public wxPanel {
 
 public:
-    InstructionPanel(wxWindow* parent, int wxWindowID,
-                     MSA::InstructionController& controller);
+    AnimationPanel(wxWindow* parent, int wxWindowID,
+                   MSA::AnimationController& controller);
+
+private:
+    void UpdateGui();
+
+private:
+    MSA::AnimationController& _controller;
+
+    EnumClassChoice<MSA::DurationFormat>* _durationFormat;
+    wxCheckBox* _oneShot;
+    wxStaticText* _nextAnimationLabel;
+    IdStringTextCtrl* _nextAnimation;
+};
+
+class AnimationFramePanel : public wxPanel {
+
+public:
+    AnimationFramePanel(wxWindow* parent, int wxWindowID,
+                        MSA::AnimationFrameController& controller);
 
 private:
     void UpdateGui();
 
     void OnFrameChanged();
-    void OnParameterChanged();
 
 private:
-    MSA::InstructionController& _controller;
+    MSA::AnimationFrameController& _controller;
 
-    EnumClassChoice<MSA::Bytecode>* _operation;
-    wxStaticText* _frameLabel;
     IdStringTextCtrl* _frameName;
     wxChoice* _frameFlip;
-    wxStaticText* _parameterLabel;
-    wxTextCtrl* _parameter;
-    wxStaticText* _parameterMeaning;
+    wxSpinCtrl* _duration;
+    wxStaticText* _durationMeaning;
 };
 }
 }
@@ -66,31 +81,40 @@ AnimationSidebarPage::AnimationSidebarPage(wxWindow* parent, int wxWindowID,
                    controller.animationController()),
                wxSizerFlags(2).Expand().Border(wxLEFT | wxRIGHT));
 
-    // Animation Bytecode
-    auto* instSizer = new wxStaticBoxSizer(wxVERTICAL, this, "Animation Bytecode");
-    sizer->Add(instSizer, wxSizerFlags(3).Expand().Border());
+    // Animation Frame
+    auto* aniSizer = new wxStaticBoxSizer(wxVERTICAL, this, "Animation");
+    sizer->Add(aniSizer, wxSizerFlags().Expand().Border());
 
-    instSizer->Add(new VectorListToolBar<MSA::InstructionController>(
-                       this, wxID_ANY,
-                       controller.instructionController()),
-                   wxSizerFlags().Right().Border());
+    aniSizer->Add(new AnimationPanel(
+                      this, wxID_ANY,
+                      controller.animationController()),
+                  wxSizerFlags().Expand().Border());
 
-    instSizer->Add(new VectorListCtrl<MSA::InstructionController>(
-                       this, wxID_ANY,
-                       controller.instructionController()),
-                   wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
+    // Animation Frame
+    auto* aFrameSizer = new wxStaticBoxSizer(wxVERTICAL, this, "Animation Frames");
+    sizer->Add(aFrameSizer, wxSizerFlags(3).Expand().Border());
 
-    instSizer->Add(new InstructionPanel(
-                       this, wxID_ANY,
-                       controller.instructionController()),
-                   wxSizerFlags().Expand().Border());
+    aFrameSizer->Add(new VectorListToolBar<MSA::AnimationFrameController>(
+                         this, wxID_ANY,
+                         controller.animationFrameController()),
+                     wxSizerFlags().Right().Border());
+
+    aFrameSizer->Add(new VectorListCtrl<MSA::AnimationFrameController>(
+                         this, wxID_ANY,
+                         controller.animationFrameController()),
+                     wxSizerFlags(1).Expand().Border(wxLEFT | wxRIGHT));
+
+    aFrameSizer->Add(new AnimationFramePanel(
+                         this, wxID_ANY,
+                         controller.animationFrameController()),
+                     wxSizerFlags().Expand().Border());
 }
 
-// ANIMATION INSTRUCTION
-// =====================
+// ANIMATION
+// =========
 
-InstructionPanel::InstructionPanel(wxWindow* parent, int wxWindowID,
-                                   MSA::InstructionController& controller)
+AnimationPanel::AnimationPanel(wxWindow* parent, int wxWindowID,
+                               MSA::AnimationController& controller)
     : wxPanel(parent, wxWindowID)
     , _controller(controller)
 {
@@ -100,9 +124,70 @@ InstructionPanel::InstructionPanel(wxWindow* parent, int wxWindowID,
 
     grid->AddGrowableCol(1, 1);
 
-    _operation = new EnumClassChoice<MSA::Bytecode>(this, wxID_ANY);
-    grid->Add(new wxStaticText(this, wxID_ANY, "Operation:"));
-    grid->Add(_operation, wxSizerFlags(1).Expand());
+    _durationFormat = new EnumClassChoice<MSA::DurationFormat>(this, wxID_ANY);
+    grid->Add(new wxStaticText(this, wxID_ANY, "Duration Format:"));
+    grid->Add(_durationFormat, wxSizerFlags(1).Expand());
+
+    _oneShot = new wxCheckBox(this, wxID_ANY, "One Shot");
+    grid->Add(_oneShot, wxSizerFlags(1));
+    grid->Add(new wxPanel(this, wxID_ANY));
+
+    _nextAnimationLabel = new wxStaticText(this, wxID_ANY, "Next Animation:");
+    _nextAnimation = new IdStringTextCtrl(this, wxID_ANY);
+    grid->Add(_nextAnimationLabel);
+    grid->Add(_nextAnimation, wxSizerFlags(1).Expand());
+
+    // Signals
+    // -------
+    _controller.signal_anyChanged().connect(sigc::mem_fun(
+        *this, &AnimationPanel::UpdateGui));
+
+    // Events
+    // ------
+    _durationFormat->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
+        _controller.selected_setDurationFormat(_durationFormat->GetValue());
+    });
+
+    _oneShot->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) {
+        _controller.selected_setOneShot(_oneShot->GetValue());
+    });
+
+    _nextAnimation->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) {
+        _controller.selected_setNextAnimation(_nextAnimation->GetValue().ToStdString());
+    });
+    _nextAnimation->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
+        _controller.selected_setNextAnimation(_nextAnimation->GetValue().ToStdString());
+        e.Skip();
+    });
+}
+
+void AnimationPanel::UpdateGui()
+{
+    this->Enable(_controller.hasSelected());
+
+    const MSA::Animation& animation = _controller.selected();
+
+    _durationFormat->SetValue(animation.durationFormat);
+    _oneShot->SetValue(animation.oneShot);
+
+    _nextAnimationLabel->Enable(animation.oneShot == false);
+    _nextAnimation->Enable(animation.oneShot == false);
+    _nextAnimation->ChangeValue(animation.nextAnimation.str());
+}
+
+// ANIMATION FRAME
+// ===============
+
+AnimationFramePanel::AnimationFramePanel(wxWindow* parent, int wxWindowID,
+                                         MSA::AnimationFrameController& controller)
+    : wxPanel(parent, wxWindowID)
+    , _controller(controller)
+{
+    int defBorder = wxSizerFlags::GetDefaultBorder();
+    auto* grid = new wxFlexGridSizer(3, 2, defBorder, defBorder * 2);
+    this->SetSizer(grid);
+
+    grid->AddGrowableCol(1, 1);
 
     wxArrayString flipChoices;
     flipChoices.Add(wxEmptyString);
@@ -110,45 +195,38 @@ InstructionPanel::InstructionPanel(wxWindow* parent, int wxWindowID,
     flipChoices.Add("vFlip");
     flipChoices.Add("hvFlip");
 
-    _frameLabel = new wxStaticText(this, wxID_ANY, "Frame:");
     _frameName = new IdStringTextCtrl(this, wxID_ANY,
                                       idstring(), wxDefaultPosition, wxDefaultSize,
                                       wxTE_PROCESS_ENTER);
     _frameFlip = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, flipChoices);
 
-    grid->Add(_frameLabel);
+    grid->Add(new wxStaticText(this, wxID_ANY, "Frame:"));
     {
         auto* box = new wxBoxSizer(wxHORIZONTAL);
         box->Add(_frameName, wxSizerFlags(1).Expand());
-        box->Add(_frameFlip, wxSizerFlags(1).Expand().Border(wxLEFT));
+        box->Add(_frameFlip, wxSizerFlags().Expand().Border(wxLEFT));
         grid->Add(box, wxSizerFlags().Expand());
     }
 
-    _parameterLabel = new wxStaticText(this, wxID_ANY, "Parameter:");
-    _parameter = new wxTextCtrl(this, wxID_ANY,
-                                wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                                wxTE_PROCESS_ENTER);
-    _parameterMeaning = new wxStaticText(this, wxID_ANY, wxEmptyString);
+    _duration = new wxSpinCtrl(this, wxID_ANY);
+    _duration->SetRange(0, 255);
+    _durationMeaning = new wxStaticText(this, wxID_ANY, wxEmptyString);
 
-    grid->Add(_parameterLabel);
+    grid->Add(new wxStaticText(this, wxID_ANY, "Duration:"));
     {
         auto* box = new wxBoxSizer(wxHORIZONTAL);
-        box->Add(_parameter, wxSizerFlags(1).Expand());
-        box->Add(_parameterMeaning, wxSizerFlags(1).Expand().Border(wxLEFT));
+        box->Add(_duration, wxSizerFlags(1).Expand());
+        box->Add(_durationMeaning, wxSizerFlags(1).Expand().DoubleBorder(wxLEFT));
         grid->Add(box, wxSizerFlags().Expand());
     }
 
     // Signals
     // -------
     _controller.signal_anyChanged().connect(sigc::mem_fun(
-        *this, &InstructionPanel::UpdateGui));
+        *this, &AnimationFramePanel::UpdateGui));
 
     // Events
     // ------
-    _operation->Bind(wxEVT_CHOICE, [this](wxCommandEvent&) {
-        _controller.selected_setOperation(_operation->GetValue());
-    });
-
     _frameName->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) {
         OnFrameChanged();
     });
@@ -161,162 +239,43 @@ InstructionPanel::InstructionPanel(wxWindow* parent, int wxWindowID,
         OnFrameChanged();
     });
 
-    _parameter->Bind(wxEVT_TEXT_ENTER, [this](wxCommandEvent&) {
-        OnParameterChanged();
-    });
-    _parameter->Bind(wxEVT_KILL_FOCUS, [this](wxFocusEvent& e) {
-        OnParameterChanged();
-        e.Skip();
-    });
-
-    // Convert spaces to underscores in Goto labels
-    _parameter->Bind(wxEVT_TEXT, [this](wxCommandEvent& e) {
-        const MSA::Instruction& inst = _controller.selected();
-
-        if (inst.operation.usesGotoLabel()) {
-            bool changed = false;
-            wxString text = _parameter->GetValue();
-
-            for (auto c : text) {
-                if (!idstring::isCharValid(c)) {
-                    c = '_';
-                    changed = true;
-                }
-            }
-
-            if (changed) {
-                _parameter->ChangeValue(text);
-            }
-
-            e.Skip();
-        }
+    _duration->Bind(wxEVT_SPINCTRL, [this](wxCommandEvent&) {
+        _controller.selected_setDuration(_duration->GetValue());
     });
 }
 
-void InstructionPanel::UpdateGui()
+void AnimationFramePanel::UpdateGui()
 {
-    typedef MSA::Bytecode::Enum BC;
-
     this->Enable(_controller.hasSelected());
 
-    const MSA::Instruction& inst = _controller.selected();
-    const MSA::Bytecode& op = inst.operation;
+    const MSA::AnimationFrame& aFrame = _controller.selected();
+    const MSA::Animation& animation = _controller.parent().selected();
 
-    _operation->SetValue(op);
+    _frameName->ChangeValue(aFrame.frame.name.str());
+    _frameFlip->SetSelection((aFrame.frame.vFlip << 1) | aFrame.frame.hFlip);
 
-    if (op.usesFrame()) {
-        const auto& fref = inst.frame;
+    _duration->SetValue(aFrame.duration);
 
-        _frameLabel->Enable();
-
-        _frameName->Enable();
-        _frameName->ChangeValue(fref.name.str());
-
-        _frameFlip->Enable();
-        _frameFlip->SetSelection((fref.vFlip << 1) | fref.hFlip);
+    if (_controller.hasSelected()) {
+        _durationMeaning->SetLabel(animation.durationFormat.durationToString(aFrame.duration));
     }
     else {
-        _frameLabel->Disable();
-
-        _frameName->Disable();
-        _frameName->ChangeValue(wxEmptyString);
-
-        _frameFlip->Disable();
-        _frameFlip->SetSelection(wxNOT_FOUND);
-    }
-
-    if (op.usesParameter()) {
-        _parameterLabel->Enable();
-
-        wxString v;
-        v << inst.parameter;
-        _parameter->Enable();
-        _parameter->ChangeValue(v);
-
-        _parameterMeaning->Enable();
-
-        switch (op.value()) {
-        case BC::SET_FRAME_AND_WAIT_FRAMES:
-            _parameterMeaning->SetLabel("frames");
-            break;
-
-        case BC::SET_FRAME_AND_WAIT_TIME:
-            _parameterMeaning->SetLabel(
-                wxString::Format("%d ms", inst.parameter * 1000 / 75));
-            break;
-
-        case BC::SET_FRAME_AND_WAIT_XVECL:
-        case BC::SET_FRAME_AND_WAIT_YVECL:
-            _parameterMeaning->SetLabel(
-                wxString::Format("%0.3f px", double(inst.parameter) / 32));
-            break;
-
-        default:
-            break;
-        }
-    }
-    else if (op.usesGotoLabel()) {
-        _parameterLabel->Enable();
-
-        _parameter->Enable();
-        _parameter->ChangeValue(inst.gotoLabel.str());
-
-        _parameterMeaning->Disable();
-        _parameterMeaning->SetLabel(wxEmptyString);
-    }
-    else {
-        _parameterLabel->Disable();
-
-        _parameter->Disable();
-        _parameter->ChangeValue(wxEmptyString);
-
-        _parameterMeaning->Disable();
-        _parameterMeaning->SetLabel(wxEmptyString);
+        _durationMeaning->SetLabel(wxEmptyString);
     }
 }
 
-void InstructionPanel::OnFrameChanged()
+void AnimationFramePanel::OnFrameChanged()
 {
-    const MSA::Instruction& inst = _controller.selected();
-    const MSA::Bytecode& op = inst.operation;
+    UnTech::MetaSprite::NameReference ref;
 
-    if (op.usesFrame()) {
-        UnTech::MetaSprite::NameReference ref;
+    ref.name = _frameName->GetValue().ToStdString();
 
-        ref.name = _frameName->GetValue().ToStdString();
-
-        int sel = _frameFlip->GetSelection();
-        if (sel < 0 || sel > 3) {
-            sel = 0;
-        }
-        ref.hFlip = sel & 0x01;
-        ref.vFlip = sel & 0x02;
-
-        _controller.selected_setFrame(ref);
+    int sel = _frameFlip->GetSelection();
+    if (sel < 0 || sel > 3) {
+        sel = 0;
     }
-}
+    ref.hFlip = sel & 0x01;
+    ref.vFlip = sel & 0x02;
 
-void InstructionPanel::OnParameterChanged()
-{
-    const MSA::Instruction& inst = _controller.selected();
-
-    const MSA::Bytecode& op = inst.operation;
-
-    if (op.usesParameter()) {
-        long p;
-        bool s = _parameter->GetValue().ToLong(&p);
-
-        if (s && p > INT_MIN && p < INT_MAX) {
-            _controller.selected_setParameter(p);
-        }
-        else {
-            UpdateGui();
-        }
-    }
-    else if (op.usesGotoLabel()) {
-        _controller.selected_setGotoLabel(_parameter->GetValue().ToStdString());
-    }
-    else {
-        UpdateGui();
-    }
+    _controller.selected_setFrame(ref);
 }

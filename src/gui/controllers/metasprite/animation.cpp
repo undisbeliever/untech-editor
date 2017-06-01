@@ -26,9 +26,9 @@ Animation::map_t& idmapFromParent<Animation, Animation::map_t>(Animation::map_t&
 }
 
 template <>
-Instruction::list_t& listFromParent<Instruction::list_t, Animation>(Animation& a)
+AnimationFrame::list_t& listFromParent<AnimationFrame::list_t, Animation>(Animation& a)
 {
-    return a.instructions;
+    return a.frames;
 }
 }
 }
@@ -96,47 +96,57 @@ AnimationControllerImpl<SI::FrameSetController>::undoRefForSelected() const
 // -------------------
 template class Controller::IdMapController<Animation, AnimationControllerInterface>;
 
-// InstructionController
-// ---------------------
-template class Controller::CappedVectorController<Instruction, Instruction::list_t,
+void AnimationController::selected_setDurationFormat(DurationFormat format)
+{
+    const static UndoActionType actionType = { "Edit Animation Duration Format", false };
+
+    edit_selected(
+        &actionType,
+        [&](auto& ani) { return ani.durationFormat != format; },
+        [&](auto& ani) { ani.durationFormat = format; });
+}
+
+void AnimationController::selected_setNextAnimation(const idstring& animationId)
+{
+    const static UndoActionType actionType = { "Edit Next Animation", false };
+
+    edit_selected(
+        &actionType,
+        [&](auto& ani) { return ani.nextAnimation != animationId; },
+        [&](auto& ani) { ani.nextAnimation = animationId; });
+}
+
+void AnimationController::selected_setOneShot(bool oneShot)
+{
+    const static UndoActionType actionType = { "Edit Next Animation", false };
+
+    edit_selected(
+        &actionType,
+        [&](auto& ani) { return ani.oneShot != oneShot; },
+        [&](auto& ani) { ani.oneShot = oneShot; });
+}
+
+// AnimationFrameController
+// ------------------------
+template class Controller::CappedVectorController<AnimationFrame, AnimationFrame::list_t,
                                                   AnimationController>;
 
-void InstructionController::selected_setOperation(const Bytecode bc)
-{
-    const static UndoActionType actionType = { "Edit Animation Operation", false };
-
-    edit_selected(
-        &actionType,
-        [&](auto& inst) { return inst.operation != bc; },
-        [&](auto& inst) { inst.operation = bc; });
-}
-
-void InstructionController::selected_setParameter(int parameter)
-{
-    const static UndoActionType actionType = { "Edit Animation Parameter", false };
-
-    edit_selected(
-        &actionType,
-        [&](auto& inst) { return inst.parameter != parameter; },
-        [&](auto& inst) { inst.parameter = parameter; });
-}
-
-void InstructionController::selected_setFrame(const NameReference& frame)
+void AnimationFrameController::selected_setFrame(const NameReference& frame)
 {
     const static UndoActionType actionType = { "Edit Animation Frame", false };
 
     edit_selected(
         &actionType,
-        [&](auto& inst) { return inst.frame != frame; },
-        [&](auto& inst) { inst.frame = frame; });
+        [&](auto& aFrame) { return aFrame.frame != frame; },
+        [&](auto& aFrame) { aFrame.frame = frame; });
 }
 
-void InstructionController::selected_setGotoLabel(const idstring& label)
+void AnimationFrameController::selected_setDuration(uint8_t duration)
 {
-    const static UndoActionType actionType = { "Edit Animation Goto Label", false };
+    const static UndoActionType actionType = { "Edit Animation Frame Duration", true };
 
     edit_selected(
         &actionType,
-        [&](auto& inst) { return inst.gotoLabel != label; },
-        [&](auto& inst) { inst.gotoLabel = label; });
+        [&](auto& aFrame) { return aFrame.duration != duration; },
+        [&](auto& aFrame) { aFrame.duration = duration; });
 }
