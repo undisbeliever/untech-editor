@@ -8,7 +8,6 @@
 #include "models/common/humantypename.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
-#include <unordered_set>
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite::Animation;
@@ -94,7 +93,7 @@ bool Animation::_isValid(const FrameSetT& frameSet) const
         }
     }
 
-    return this->isTimely(frameSet.animations);
+    return true;
 }
 
 bool Animation::isValid(const MS::FrameSet& frameSet) const
@@ -105,88 +104,4 @@ bool Animation::isValid(const MS::FrameSet& frameSet) const
 bool Animation::isValid(const SI::FrameSet& frameSet) const
 {
     return _isValid(frameSet);
-}
-
-bool Animation::isTimely(const Animation::map_t& animations) const
-{
-    unsigned stepsWithoutWait = 0;
-    std::unordered_set<ProgramCounter> waitInstructions;
-    ProgramCounter pc(animations, *this);
-
-    while (pc.instruction().operation != Bytecode::Enum::STOP) {
-        if (pc.instruction().operation.isWait()) {
-            stepsWithoutWait = 0;
-            waitInstructions.insert(pc);
-        }
-        else {
-            stepsWithoutWait++;
-            if (stepsWithoutWait > INSTRUCTION_TIMEOUT) {
-                return false;
-            }
-        }
-
-        pc.step();
-        if (waitInstructions.find(pc) != waitInstructions.end()) {
-            break;
-        }
-    }
-
-    return true;
-}
-
-// ProgramCounter
-// ==============
-
-ProgramCounter::ProgramCounter(const Animation::map_t& animations,
-                               const Animation& animation)
-    : _animations(animations)
-    , _animation(&animation)
-    , _index(0)
-{
-}
-
-void ProgramCounter::step()
-{
-    switch (instruction().operation) {
-    case Bytecode::Enum::STOP:
-        break;
-
-    case Bytecode::Enum::GOTO_START:
-        _index = 0;
-        break;
-
-    case Bytecode::Enum::GOTO_ANIMATION: {
-        const std::string& gotoLabel = instruction().gotoLabel;
-
-        if (_animations.contains(gotoLabel)) {
-            _animation = &_animations.at(gotoLabel);
-            _index = 0;
-        }
-        else {
-            throw std::runtime_error("Missing animation");
-        }
-    } break;
-
-    case Bytecode::Enum::GOTO_OFFSET: {
-        const int p = instruction().parameter;
-        const unsigned aSize = _animation->instructions.size();
-
-        if (p == 0 || p < (int)-_index || p >= (int)(aSize - _index)) {
-            throw std::runtime_error("Invalid offset");
-        }
-
-        _index = _index + p;
-    } break;
-
-    case Bytecode::Enum::SET_FRAME_AND_WAIT_FRAMES:
-    case Bytecode::Enum::SET_FRAME_AND_WAIT_TIME:
-    case Bytecode::Enum::SET_FRAME_AND_WAIT_XVECL:
-    case Bytecode::Enum::SET_FRAME_AND_WAIT_YVECL:
-        _index++;
-        break;
-
-    default:
-        throw std::logic_error("Unknown instruction");
-        break;
-    }
 }
