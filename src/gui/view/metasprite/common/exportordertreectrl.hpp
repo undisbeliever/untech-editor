@@ -77,10 +77,6 @@ public:
     void BuildTree()
     {
         const static wxString ALT_STR = "Alt: ";
-        const static wxString FLIP_MAP[4] = { " (no Flip)",
-                                              " (vFlip)",
-                                              " (hFlip)",
-                                              " (hvFlip)" };
 
         using ExportName = UnTech::MetaSprite::FrameSetExportOrder::ExportName;
 
@@ -96,9 +92,7 @@ public:
                     auto row = this->AppendItem(tItem, en.name.str());
 
                     for (const auto& alt : en.alternatives) {
-                        int i = (alt.hFlip & 1) << 1 | (alt.vFlip & 1);
-
-                        this->AppendItem(row, ALT_STR + alt.name + FLIP_MAP[i]);
+                        this->AppendItem(row, ALT_STR + alt.str());
                     }
                 }
             };

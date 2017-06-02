@@ -77,27 +77,8 @@ wxString VectorListCtrl<MSA::AnimationFrameController>::OnGetItemText(long item,
     const MSA::Animation& animation = _controller.parent().selected();
 
     switch (column) {
-    case 0: {
-        const auto& fref = aFrame.frame;
-
-        wxString ret = fref.name.str();
-
-        if (!fref.hFlip) {
-            if (fref.vFlip) {
-                ret += " (vFlip)";
-            }
-        }
-        else {
-            if (!fref.vFlip) {
-                ret += " (hFlip)";
-            }
-            else {
-                ret += " (hvFlip)";
-            }
-        }
-
-        return ret;
-    }
+    case 0:
+        return aFrame.frame.str();
 
     case 1:
         return animation.durationFormat.durationToString(aFrame.duration);

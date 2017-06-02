@@ -41,6 +41,8 @@ struct NameReference {
 
     NameReference() = default;
 
+    std::string str() const;
+
     bool operator==(const NameReference& o) const
     {
         return name == o.name && hFlip == o.hFlip && vFlip == o.vFlip;
