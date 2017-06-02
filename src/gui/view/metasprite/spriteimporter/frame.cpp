@@ -10,6 +10,7 @@
 #include "gui/view/common/aboutdialog.h"
 #include "gui/view/common/filedialogs.h"
 #include "gui/view/defaults.h"
+#include "gui/view/metasprite/animation/previewpanel.h"
 #include "gui/view/metasprite/framehelper.hpp"
 
 namespace UnTech {
@@ -49,11 +50,24 @@ Frame::Frame()
     // Widgets
     // =======
     {
-        auto* graphics = new FrameSetGraphicsCtrl(this, wxID_ANY, _controller);
-        auto* sidebar = new Sidebar(this, wxID_ANY, _controller);
-
         auto* sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(graphics, wxSizerFlags(1).Expand().Border());
+
+        auto* notebook = new wxNotebook(this, wxID_ANY,
+                                        wxDefaultPosition, wxDefaultSize,
+                                        wxNB_BOTTOM);
+
+        sizer->Add(notebook, wxSizerFlags(1).Expand().Border());
+
+        notebook->AddPage(new FrameSetGraphicsCtrl(
+                              notebook, wxID_ANY, _controller),
+                          "Sprite Importer");
+
+        notebook->AddPage(new Animation::PreviewPanel(
+                              notebook, wxID_ANY,
+                              _controller.animationControllerInterface()),
+                          "Animation Preview");
+
+        auto* sidebar = new Sidebar(this, wxID_ANY, _controller);
         sizer->Add(sidebar, wxSizerFlags().Expand().Border(wxTOP | wxBOTTOM | wxRIGHT));
 
         this->SetSizer(sizer);

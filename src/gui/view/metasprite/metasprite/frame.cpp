@@ -50,12 +50,24 @@ Frame::Frame()
     // Widgets
     // =======
     {
-        _graphics = new GraphicsPanel(this, wxID_ANY, _controller);
-        _sidebar = new Sidebar(this, wxID_ANY, _controller);
-
         auto* sizer = new wxBoxSizer(wxHORIZONTAL);
-        sizer->Add(_graphics, wxSizerFlags(1).Expand().Border());
-        sizer->Add(_sidebar, wxSizerFlags(0).Expand().Border(wxTOP | wxBOTTOM | wxRIGHT));
+
+        auto* notebook = new wxNotebook(this, wxID_ANY,
+                                        wxDefaultPosition, wxDefaultSize,
+                                        wxNB_BOTTOM);
+
+        sizer->Add(notebook, wxSizerFlags(1).Expand().Border());
+
+        _graphics = new GraphicsPanel(notebook, wxID_ANY, _controller);
+        notebook->AddPage(_graphics, "Frame Editor");
+
+        _animationPreview = new Animation::PreviewPanel(
+            notebook, wxID_ANY, _controller.animationControllerInterface());
+        notebook->AddPage(_animationPreview, "Animation Preview");
+
+        _sidebar = new Sidebar(this, wxID_ANY, _controller);
+        sizer->Add(_sidebar, wxSizerFlags().Expand().Border(wxTOP | wxBOTTOM | wxRIGHT));
+
         this->SetSizer(sizer);
 
         Centre();

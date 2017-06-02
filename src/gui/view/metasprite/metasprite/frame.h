@@ -9,6 +9,7 @@
 #include "gui/view/common/controllerinterface.h"
 #include "gui/view/common/dontmergefocushack.h"
 #include "gui/view/common/filedialogs.h"
+#include "gui/view/metasprite/animation/previewpanel.h"
 #include "gui/view/metasprite/framehelper.h"
 #include <wx/wx.h>
 
@@ -43,6 +44,7 @@ private:
     wxTimer _initBugfixTimer;
 
     GraphicsPanel* _graphics;
+    Animation::PreviewPanel* _animationPreview;
     Sidebar* _sidebar;
 };
 }
