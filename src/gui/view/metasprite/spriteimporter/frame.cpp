@@ -10,6 +10,7 @@
 #include "gui/view/common/aboutdialog.h"
 #include "gui/view/common/filedialogs.h"
 #include "gui/view/defaults.h"
+#include "gui/view/metasprite/animation/preview-sirenderer.h"
 #include "gui/view/metasprite/animation/previewpanel.h"
 #include "gui/view/metasprite/framehelper.hpp"
 
@@ -64,7 +65,8 @@ Frame::Frame()
 
         notebook->AddPage(new Animation::PreviewPanel(
                               notebook, wxID_ANY,
-                              _controller.animationControllerInterface()),
+                              _controller.animationControllerInterface(),
+                              std::make_unique<Animation::PreviewSiRenderer>(_controller)),
                           "Animation Preview");
 
         auto* sidebar = new Sidebar(this, wxID_ANY, _controller);

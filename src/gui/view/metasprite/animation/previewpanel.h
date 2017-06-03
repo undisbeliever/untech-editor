@@ -17,13 +17,19 @@ namespace Animation {
 
 namespace MSA = UnTech::MetaSprite::Animation;
 
+class AbstractPreviewRenderer {
+public:
+    virtual void Render(wxPaintDC& dc, const MSA::PreviewState& state) = 0;
+};
+
 class PreviewPanel : public wxPanel {
     // (1:7:8 fixed point)
     static constexpr int MAX_SLIDER_VELOCITY = 0x02ff;
 
 public:
     PreviewPanel(wxWindow* parent, int wxWindowID,
-                 MSA::AnimationControllerInterface& controller);
+                 MSA::AnimationControllerInterface& controller,
+                 std::unique_ptr<AbstractPreviewRenderer> renderer);
 
     void SetTimer();
     void StopTimer();
@@ -32,13 +38,17 @@ public:
 private:
     void ProcessDisplayFrame();
     void ProcessSkipFrame();
-    void UpdateStatus();
+    void UpdateGui();
 
     void OnAnimationSelected();
+
+    void RenderGraphicsPanel(wxPaintDC& dc);
 
 private:
     MSA::AnimationControllerInterface& _controller;
     MSA::PreviewState _previewState;
+
+    std::unique_ptr<AbstractPreviewRenderer> _renderer;
 
     wxPanel* _graphicsPanel;
 

@@ -9,6 +9,7 @@
 #include "graphicspanel.h"
 #include "sidebar.h"
 #include "gui/view/defaults.h"
+#include "gui/view/metasprite/animation/preview-msrenderer.h"
 #include "gui/view/metasprite/framehelper.hpp"
 
 namespace UnTech {
@@ -62,7 +63,9 @@ Frame::Frame()
         notebook->AddPage(_graphics, "Frame Editor");
 
         _animationPreview = new Animation::PreviewPanel(
-            notebook, wxID_ANY, _controller.animationControllerInterface());
+            notebook, wxID_ANY,
+            _controller.animationControllerInterface(),
+            std::make_unique<Animation::PreviewMsRenderer>(_controller));
         notebook->AddPage(_animationPreview, "Animation Preview");
 
         _sidebar = new Sidebar(this, wxID_ANY, _controller);

@@ -11,9 +11,12 @@
 using namespace UnTech::View::MetaSprite::Animation;
 
 PreviewPanel::PreviewPanel(wxWindow* parent, int wxWindowID,
-                           MSA::AnimationControllerInterface& controller)
+                           MSA::AnimationControllerInterface& controller,
+                           std::unique_ptr<AbstractPreviewRenderer> renderer)
     : wxPanel(parent, wxWindowID)
     , _controller(controller)
+    , _previewState()
+    , _renderer(std::move(renderer))
 {
     const int defBorder = wxSizerFlags::GetDefaultBorder();
 
@@ -23,6 +26,7 @@ PreviewPanel::PreviewPanel(wxWindow* parent, int wxWindowID,
     _graphicsPanel = new wxPanel(this, wxID_ANY,
                                  wxDefaultPosition, wxDefaultSize,
                                  wxBORDER_SUNKEN);
+    _graphicsPanel->SetDoubleBuffered(true);
     sizer->Add(_graphicsPanel, wxSizerFlags(5).Expand());
 
     auto* controlsSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -94,6 +98,11 @@ PreviewPanel::PreviewPanel(wxWindow* parent, int wxWindowID,
 
     // Events
     // ------
+    _graphicsPanel->Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
+        wxPaintDC dc(_graphicsPanel);
+        RenderGraphicsPanel(dc);
+    });
+
     _playButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent&) {
         if (_playButton->GetValue()) {
             Reset();
@@ -166,7 +175,7 @@ void PreviewPanel::StopTimer()
     _timer.Stop();
     _playButton->SetValue(false);
 
-    UpdateStatus();
+    UpdateGui();
 }
 
 void PreviewPanel::Reset()
@@ -177,7 +186,7 @@ void PreviewPanel::Reset()
 
     StopTimer();
 
-    UpdateStatus();
+    UpdateGui();
 }
 
 void PreviewPanel::OnAnimationSelected()
@@ -195,7 +204,7 @@ void PreviewPanel::ProcessDisplayFrame()
     }
 
     _previewState.processDisplayFrame();
-    UpdateStatus();
+    UpdateGui();
 
     if (!_previewState.isRunning()) {
         StopTimer();
@@ -205,15 +214,17 @@ void PreviewPanel::ProcessDisplayFrame()
 void PreviewPanel::ProcessSkipFrame()
 {
     _previewState.nextAnimationFrame();
-    UpdateStatus();
+    UpdateGui();
 
     if (!_previewState.isRunning()) {
         StopTimer();
     }
 }
 
-void PreviewPanel::UpdateStatus()
+void PreviewPanel::UpdateGui()
 {
+    _graphicsPanel->Refresh();
+
     wxString out;
 
     out << "Display Frame:\t" << _previewState.displayFrameCount()
@@ -225,4 +236,13 @@ void PreviewPanel::UpdateStatus()
     }
 
     _status->SetLabel(out);
+}
+
+void PreviewPanel::RenderGraphicsPanel(wxPaintDC& paintDc)
+{
+    if (paintDc.IsOk() == false) {
+        return;
+    }
+
+    _renderer->Render(paintDc, _previewState);
 }
