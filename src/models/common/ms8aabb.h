@@ -44,6 +44,20 @@ struct ms8point {
         return ms8point(px, py);
     }
 
+    ms8point flip(bool hFlip, bool vFlip) const
+    {
+        ms8point p = *this;
+
+        if (hFlip) {
+            p.x = -p.x;
+        }
+        if (vFlip) {
+            p.y = -p.y;
+        }
+
+        return p;
+    }
+
     bool operator==(const ms8point& o) const
     {
         return x == o.x && y == o.y;
@@ -158,6 +172,20 @@ struct ms8rect {
     {
         return p.x >= left() && p.x < right()
                && p.y >= top() && p.y < bottom();
+    }
+
+    ms8rect flip(bool hFlip, bool vFlip) const
+    {
+        ms8rect r = *this;
+
+        if (hFlip) {
+            r.x = -r.x - r.width;
+        }
+        if (vFlip) {
+            r.y = -r.y - r.height;
+        }
+
+        return r;
     }
 
     bool operator==(const ms8rect& o) const

@@ -47,42 +47,20 @@ Frame Frame::flip(bool hFlip, bool vFlip) const
 {
     Frame ret(*this);
 
-    {
-        if (hFlip) {
-            ret.tileHitbox.x = -ret.tileHitbox.x - ret.tileHitbox.width;
-        }
-        if (vFlip) {
-            ret.tileHitbox.y = -ret.tileHitbox.y - ret.tileHitbox.height;
-        }
-    }
+    ret.tileHitbox = tileHitbox.flip(hFlip, vFlip);
 
     for (auto& obj : ret.objects) {
-        if (hFlip) {
-            obj.location.x = -obj.location.x - obj.sizePx();
-            obj.hFlip = !obj.hFlip;
-        }
-        if (vFlip) {
-            obj.location.y = -obj.location.y - obj.sizePx();
-            obj.vFlip = !obj.vFlip;
-        }
+        obj.location = obj.location.flip(hFlip, vFlip);
+        obj.hFlip = obj.hFlip ^ hFlip;
+        obj.vFlip = obj.vFlip ^ vFlip;
     }
 
     for (auto& ap : ret.actionPoints) {
-        if (hFlip) {
-            ap.location.x = -ap.location.x;
-        }
-        if (vFlip) {
-            ap.location.y = -ap.location.y;
-        }
+        ap.location = ap.location.flip(hFlip, vFlip);
     }
 
     for (auto& eh : ret.entityHitboxes) {
-        if (hFlip) {
-            eh.aabb.x = -eh.aabb.x - eh.aabb.width;
-        }
-        if (vFlip) {
-            eh.aabb.y = -eh.aabb.y - eh.aabb.height;
-        }
+        eh.aabb = eh.aabb.flip(hFlip, vFlip);
     }
 
     return ret;
