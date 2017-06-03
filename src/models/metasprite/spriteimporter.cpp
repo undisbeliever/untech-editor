@@ -38,6 +38,10 @@ bool FrameSetGrid::isValid(const FrameSet& frameSet) const
 
     return frameSize.width >= minSize.width
            && frameSize.height >= minSize.height
+           && frameSize.width <= MAX_FRAME_SIZE
+           && frameSize.height <= MAX_FRAME_SIZE
+           && origin.x <= MAX_ORIGIN
+           && origin.y <= MAX_ORIGIN
            && frameSize.contains(origin);
 }
 
@@ -48,6 +52,13 @@ urect FrameSetGrid::cell(unsigned x, unsigned y) const
         y * (frameSize.height + padding.y) + offset.y,
         frameSize.width,
         frameSize.height);
+}
+
+usize FrameSetGrid::originRange() const
+{
+    return usize(
+        std::min(MAX_ORIGIN, frameSize.width),
+        std::min(MAX_ORIGIN, frameSize.height));
 }
 
 /*
@@ -81,7 +92,18 @@ bool FrameLocation::isValid(const FrameSet& frameSet, const Frame& frame)
 
     return aabb.width >= minSize.width
            && aabb.height >= minSize.height
+           && aabb.width <= MAX_FRAME_SIZE
+           && aabb.height <= MAX_FRAME_SIZE
+           && origin.x <= MAX_ORIGIN
+           && origin.y <= MAX_ORIGIN
            && aabb.size().contains(origin);
+}
+
+usize FrameLocation::originRange() const
+{
+    return usize(
+        std::min(MAX_ORIGIN, aabb.width),
+        std::min(MAX_ORIGIN, aabb.height));
 }
 
 bool FrameLocation::operator==(const FrameLocation& o) const

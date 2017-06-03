@@ -520,7 +520,7 @@ void FrameSetGridPanel::UpdateGui()
 
     const SI::FrameSet& frameSet = _controller.selected();
     _frameSize->SetMinValue(frameSet.minimumFrameGridSize());
-    _origin->SetRange(_grid.frameSize);
+    _origin->SetRange(_grid.originRange());
 
     _frameSize->SetValue(_grid.frameSize);
     _offset->SetValue(_grid.offset);
@@ -716,7 +716,7 @@ void FramePanel::UpdateGui()
     _frameLocation = frame.location;
 
     _aabb->SetMinRectSize(frame.minimumViableSize());
-    _origin->SetRange(_frameLocation.aabb.size());
+    _origin->SetRange(_frameLocation.originRange());
     _tileHitbox->SetRange(_frameLocation.aabb.size());
 
     _spriteOrder->SetValue(frame.spriteOrder);

@@ -24,6 +24,8 @@ namespace MetaSprite {
 namespace SpriteImporter {
 
 const static unsigned MIN_FRAME_SIZE = 16;
+const static unsigned MAX_FRAME_SIZE = 255;
+const static unsigned MAX_ORIGIN = 128;
 
 struct FrameSet;
 struct Frame;
@@ -44,6 +46,8 @@ struct FrameSetGrid {
 
     urect cell(unsigned x, unsigned y) const;
     bool isValid(const FrameSet& frameSet) const;
+
+    usize originRange() const;
 };
 
 struct FrameLocation {
@@ -65,6 +69,8 @@ struct FrameLocation {
     void update(const FrameSetGrid&, const Frame&);
 
     bool isValid(const FrameSet&, const Frame&);
+
+    usize originRange() const;
 
     bool operator==(const FrameLocation& o) const;
     bool operator!=(const FrameLocation& o) const { return !(*this == o); }
