@@ -65,6 +65,7 @@ Frame::Frame()
         _animationPreview = new Animation::PreviewPanel(
             notebook, wxID_ANY,
             _controller.animationControllerInterface(),
+            _controller.settingsController(),
             std::make_unique<Animation::PreviewMsRenderer>(_controller));
         notebook->AddPage(_animationPreview, "Animation Preview");
 

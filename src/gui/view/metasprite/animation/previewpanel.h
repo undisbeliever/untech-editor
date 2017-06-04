@@ -6,6 +6,7 @@
 
 #pragma once
 #include "gui/controllers/metasprite/animation.h"
+#include "gui/controllers/metasprite/settings.h"
 #include "models/metasprite/animation/previewstate.h"
 #include <wx/tglbtn.h>
 #include <wx/wx.h>
@@ -16,6 +17,7 @@ namespace MetaSprite {
 namespace Animation {
 
 namespace MSA = UnTech::MetaSprite::Animation;
+namespace VS = UnTech::MetaSprite::ViewSettings;
 
 class AbstractPreviewRenderer {
 public:
@@ -29,6 +31,7 @@ class PreviewPanel : public wxPanel {
 public:
     PreviewPanel(wxWindow* parent, int wxWindowID,
                  MSA::AnimationControllerInterface& controller,
+                 VS::SettingsController& settingsController,
                  std::unique_ptr<AbstractPreviewRenderer> renderer);
 
     void SetTimer();
@@ -46,6 +49,8 @@ private:
 
 private:
     MSA::AnimationControllerInterface& _controller;
+    VS::SettingsController& _settingsController;
+
     MSA::PreviewState _previewState;
 
     std::unique_ptr<AbstractPreviewRenderer> _renderer;

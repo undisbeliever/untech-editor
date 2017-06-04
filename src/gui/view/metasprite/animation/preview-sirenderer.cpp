@@ -34,9 +34,10 @@ void PreviewSiRenderer::Render(wxPaintDC& paintDc, const MSA::PreviewState& stat
     const double zoomX = _controller.settingsController().zoom().zoomX();
     const double zoomY = _controller.settingsController().zoom().zoomY();
 
-    auto dcSize = paintDc.GetSize();
-    const int xOffset = dcSize.GetWidth() / zoomX / 2;
-    const int yOffset = dcSize.GetHeight() / zoomY / 2;
+    wxSize dcSize = paintDc.GetSize();
+    const point aPos = state.positionInt();
+    const int xOffset = dcSize.GetWidth() / zoomX / 2 + aPos.x;
+    const int yOffset = dcSize.GetHeight() / zoomY / 2 + aPos.y;
 
     if (_bitmap.IsOk()) {
         wxMemoryDC tmpDc;

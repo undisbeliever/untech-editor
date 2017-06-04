@@ -20,6 +20,7 @@ PreviewState::PreviewState()
     , _displayFrameCount(0)
     , _region(Region::NTSC)
     , _velocity(0, 0)
+    , _position(0, 0)
 {
 }
 
@@ -79,6 +80,9 @@ bool PreviewState::processDisplayFrame()
     assert(ani != nullptr);
 
     _displayFrameCount++;
+
+    _position.x += _velocity.x;
+    _position.y += _velocity.y;
 
     switch (ani->durationFormat) {
     case DurationFormat::Enum::FRAME:

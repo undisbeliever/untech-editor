@@ -12,9 +12,11 @@ using namespace UnTech::View::MetaSprite::Animation;
 
 PreviewPanel::PreviewPanel(wxWindow* parent, int wxWindowID,
                            MSA::AnimationControllerInterface& controller,
+                           VS::SettingsController& settingsController,
                            std::unique_ptr<AbstractPreviewRenderer> renderer)
     : wxPanel(parent, wxWindowID)
     , _controller(controller)
+    , _settingsController(settingsController)
     , _previewState()
     , _renderer(std::move(renderer))
 {
@@ -140,7 +142,7 @@ PreviewPanel::PreviewPanel(wxWindow* parent, int wxWindowID,
 
     auto onVelocityChange = [this](wxCommandEvent&) {
         point v(_xVelocity->GetValue(), _yVelocity->GetValue());
-        _previewState.setVelocity(v);
+        _previewState.setVelocityFp(v);
     };
     _xVelocity->Bind(wxEVT_SLIDER, onVelocityChange);
     _yVelocity->Bind(wxEVT_SLIDER, onVelocityChange);
@@ -182,6 +184,7 @@ void PreviewPanel::Reset()
 {
     _previewState.setAnimationMap(_controller.animationController().map());
     _previewState.setAnimation(_controller.animationController().selectedId());
+    _previewState.setPositionInt(point(0, 0));
     _previewState.resetFrameCount();
 
     StopTimer();
@@ -204,6 +207,7 @@ void PreviewPanel::ProcessDisplayFrame()
     }
 
     _previewState.processDisplayFrame();
+
     UpdateGui();
 
     if (!_previewState.isRunning()) {
@@ -243,6 +247,27 @@ void PreviewPanel::RenderGraphicsPanel(wxPaintDC& paintDc)
     if (paintDc.IsOk() == false) {
         return;
     }
+
+    // Ensure preview is inside graphics panel.
+    auto checkAxis = [](int posFp, int clientSize, double zoom) {
+        int limit = clientSize / zoom * 0.85 / 2.0;
+        limit = limit << 8;
+
+        if (posFp > limit) {
+            posFp = -limit;
+        }
+        else if (posFp < -limit) {
+            posFp = limit;
+        }
+        return posFp;
+    };
+    const auto& zoom = _settingsController.zoom();
+    wxSize size = paintDc.GetSize();
+    point posFp = _previewState.positionFp();
+    posFp.x = checkAxis(posFp.x, size.x, zoom.zoomX());
+    posFp.y = checkAxis(posFp.y, size.y, zoom.zoomY());
+
+    _previewState.setPositionFp(posFp);
 
     _renderer->Render(paintDc, _previewState);
 }

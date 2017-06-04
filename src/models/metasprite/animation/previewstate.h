@@ -29,7 +29,11 @@ public:
     void setAnimation(const idstring&);
 
     void setRegion(Region region) { _region = region; }
-    void setVelocity(const point& v) { _velocity = v; }
+
+    void setVelocityFp(const point& v) { _velocity = v; }
+
+    void setPositionFp(const point& p) { _position = p; }
+    void setPositionInt(const point& p) { _position = point(p.x << FP_SHIFT, p.y << FP_SHIFT); }
 
     void resetFrameCount() { _displayFrameCount = 0; }
 
@@ -42,6 +46,9 @@ public:
     const idstring& animationId() const { return _animationId; }
     unsigned animationFrameIndex() const { return _aFrameIndex; }
     unsigned displayFrameCount() const { return _displayFrameCount; }
+
+    const point& positionFp() const { return _position; }
+    point positionInt() const { return point(_position.x >> FP_SHIFT, _position.y >> FP_SHIFT); }
 
 private:
     const Animation* getAnimation() const;
@@ -62,6 +69,7 @@ private:
 
     // fixed point
     point _velocity;
+    point _position;
 };
 }
 }
