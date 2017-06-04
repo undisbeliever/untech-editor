@@ -98,6 +98,10 @@ PreviewPanel::PreviewPanel(wxWindow* parent, int wxWindowID,
     _controller.animationController().signal_selectedChanged().connect(sigc::mem_fun(
         *this, &PreviewPanel::OnAnimationSelected));
 
+    _settingsController.signal_settingsChanged().connect([this]() {
+        Refresh();
+    });
+
     // Events
     // ------
     _graphicsPanel->Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
