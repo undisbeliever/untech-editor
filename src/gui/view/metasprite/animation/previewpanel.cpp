@@ -60,7 +60,7 @@ PreviewPanel::PreviewPanel(wxWindow* parent, int wxWindowID,
 
     // Settings
     {
-        auto* grid = new wxFlexGridSizer(4, 2, defBorder, defBorder * 2);
+        auto* grid = new wxFlexGridSizer(4, 3, defBorder, 1);
         controlsSizer->Add(grid, wxSizerFlags(1).Expand().Border());
 
         grid->AddGrowableCol(1, 1);
@@ -74,14 +74,22 @@ PreviewPanel::PreviewPanel(wxWindow* parent, int wxWindowID,
         _region->SetSelection(0);
         grid->Add(new wxStaticText(this, wxID_ANY, "Region:"));
         grid->Add(_region, wxSizerFlags(1).Expand());
+        grid->Add(new wxPanel(this));
+
+        wxSize cSize = _region->GetSize();
+        wxSize buttonSize(cSize.GetHeight(), cSize.GetHeight());
 
         _xVelocity = new wxSlider(this, wxID_ANY, 0, -MAX_SLIDER_VELOCITY, MAX_SLIDER_VELOCITY);
+        _zeroXButton = new wxButton(this, wxID_ANY, "0", wxDefaultPosition, buttonSize);
         grid->Add(new wxStaticText(this, wxID_ANY, "X Velocity:"));
         grid->Add(_xVelocity, wxSizerFlags(1).Expand());
+        grid->Add(_zeroXButton, wxSizerFlags().Expand());
 
         _yVelocity = new wxSlider(this, wxID_ANY, 0, -MAX_SLIDER_VELOCITY, MAX_SLIDER_VELOCITY);
+        _zeroYButton = new wxButton(this, wxID_ANY, "0", wxDefaultPosition, buttonSize);
         grid->Add(new wxStaticText(this, wxID_ANY, "Y Velocity:"));
         grid->Add(_yVelocity, wxSizerFlags(1).Expand());
+        grid->Add(_zeroYButton, wxSizerFlags().Expand());
     }
 
     controlsSizer->AddSpacer(defBorder);
@@ -150,6 +158,28 @@ PreviewPanel::PreviewPanel(wxWindow* parent, int wxWindowID,
     };
     _xVelocity->Bind(wxEVT_SLIDER, onVelocityChange);
     _yVelocity->Bind(wxEVT_SLIDER, onVelocityChange);
+
+    _zeroXButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        _xVelocity->SetValue(0);
+
+        point v(0, _yVelocity->GetValue());
+        _previewState.setVelocityFp(v);
+
+        point p = _previewState.positionFp();
+        p.x = 0;
+        _previewState.setPositionFp(p);
+    });
+
+    _zeroYButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        _yVelocity->SetValue(0);
+
+        point v(_xVelocity->GetValue(), 0);
+        _previewState.setVelocityFp(v);
+
+        point p = _previewState.positionFp();
+        p.y = 0;
+        _previewState.setPositionFp(p);
+    });
 
     this->Bind(
         wxEVT_TIMER, [this](wxTimerEvent&) {

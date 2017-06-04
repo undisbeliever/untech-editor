@@ -65,6 +65,8 @@ private:
     wxChoice* _region;
     wxSlider* _xVelocity;
     wxSlider* _yVelocity;
+    wxButton* _zeroXButton;
+    wxButton* _zeroYButton;
 
     wxStaticText* _status;
 
