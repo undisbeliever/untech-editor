@@ -12,10 +12,10 @@ ifeq ($(PROFILE),release)
   CXXFLAGS      += -std=c++14 -O2 -flto -MMD -Isrc
   LDFLAGS       += -O2 -flto
   LIBS	        :=
-  CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
-  CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
-  VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
-  VIEW_LIBS  := $(shell wx-config --libs)
+  WX_CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
+  WX_CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
+  WX_VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
+  WX_VIEW_LIBS := $(shell wx-config --libs)
   VENDOR_CXXFLAGS := -Wno-deprecated
 
 else ifeq ($(PROFILE),debug)
@@ -27,10 +27,10 @@ else ifeq ($(PROFILE),debug)
   CXXFLAGS      += -std=c++14 -g -MMD -Isrc -Werror
   LDFLAGS       += -g -Werror
   LIBS	        :=
-  CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
-  CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
-  VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
-  VIEW_LIBS     := $(shell wx-config --libs)
+  WX_CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
+  WX_CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
+  WX_VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
+  WX_VIEW_LIBS := $(shell wx-config --libs)
   VENDOR_CXXFLAGS := -Wno-deprecated
 
 else ifeq ($(PROFILE),mingw)
@@ -46,10 +46,10 @@ else ifeq ($(PROFILE),mingw)
   CXXFLAGS      += -std=c++14 -O2 -flto -MMD -Isrc
   LDFLAGS       += -O2 -flto
   LIBS	        := -lshlwapi
-  CONTROLLER_CXXFLAGS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --cflags sigc++-2.0)
-  CONTROLLER_LIBS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --libs sigc++-2.0)
-  VIEW_CXXFLAGS := $(shell $(PREFIX)/bin/wx-config --cxxflags)
-  VIEW_LIBS  := $(shell $(PREFIX)/bin/wx-config --libs)
+  WX_CONTROLLER_CXXFLAGS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --cflags sigc++-2.0)
+  WX_CONTROLLER_LIBS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --libs sigc++-2.0)
+  WX_VIEW_CXXFLAGS := $(shell $(PREFIX)/bin/wx-config --cxxflags)
+  WX_VIEW_LIBS := $(shell $(PREFIX)/bin/wx-config --libs)
   VENDOR_CXXFLAGS := -Wno-deprecated
 
 else
@@ -59,7 +59,7 @@ endif
 ifneq ($(findstring clang,$(CXX)),)
   # Prevent clang from spamming errors
   CXXFLAGS      += -Wno-undefined-var-template
-  VIEW_CXXFLAGS += -Wno-potentially-evaluated-expression -Wno-deprecated
+  WX_VIEW_CXXFLAGS += -Wno-potentially-evaluated-expression -Wno-deprecated
 endif
 
 SRCS            := $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp src/*/*/*/*/*.cpp)
@@ -68,8 +68,8 @@ OBJS            := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 CLI_SRC         := $(wildcard src/cli/*.cpp)
 CLI_APPS        := $(patsubst src/cli/%.cpp,$(BIN_DIR)/%$(BIN_EXT),$(CLI_SRC))
 
-GUI_SRC         := $(filter-out %-gtk.cpp, $(wildcard src/gui/*.cpp))
-GUI_APPS        := $(patsubst src/gui/%.cpp,$(BIN_DIR)/%-gui$(BIN_EXT),$(GUI_SRC))
+GUI_WX_SRC         := $(filter-out %-gtk.cpp, $(wildcard src/gui-wx/*.cpp))
+GUI_WX_APPS        := $(patsubst src/gui-wx/%.cpp,$(BIN_DIR)/%-wxgui$(BIN_EXT),$(GUI_WX_SRC))
 
 # Third party libs
 THIRD_PARTY     := $(OBJ_DIR)/vendor/lodepng/lodepng.o
@@ -82,7 +82,7 @@ all: cli gui
 cli: dirs $(CLI_APPS)
 
 .PHONY: gui
-gui: dirs $(GUI_APPS)
+gui: dirs $(GUI_WX_APPS)
 
 
 PERCENT = %
@@ -96,11 +96,11 @@ endef
 define gui-modules
 $(BIN_DIR)/$(strip $1)$(BIN_EXT): \
   $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$2), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui/view/%/$(PERCENT),$2), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui/controllers/%.o,$2), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui/controllers/%/$(PERCENT),$2), $(OBJS)) \
-  $(filter $(OBJ_DIR)/gui/controllers/undo/%, $(OBJS)) \
-  $(OBJ_DIR)/gui/controllers/basecontroller.o \
+  $(filter $(patsubst %,$(OBJ_DIR)/gui-wx/view/%/$(PERCENT),$2), $(OBJS)) \
+  $(filter $(patsubst %,$(OBJ_DIR)/gui-wx/controllers/%.o,$2), $(OBJS)) \
+  $(filter $(patsubst %,$(OBJ_DIR)/gui-wx/controllers/%/$(PERCENT),$2), $(OBJS)) \
+  $(filter $(OBJ_DIR)/gui-wx/controllers/undo/%, $(OBJS)) \
+  $(OBJ_DIR)/gui-wx/controllers/basecontroller.o \
   $(THIRD_PARTY)
 endef
 
@@ -110,8 +110,8 @@ $(call cli-modules, untech-png2tileset, common snes)
 $(call cli-modules, untech-png2snes,    common snes)
 $(call cli-modules, untech-utsi2utms,	common snes metasprite)
 
-$(call gui-modules, untech-metasprite-gui,     common snes metasprite)
-$(call gui-modules, untech-spriteimporter-gui, common snes metasprite)
+$(call gui-modules, untech-metasprite-wxgui,     common snes metasprite)
+$(call gui-modules, untech-spriteimporter-wxgui, common snes metasprite)
 
 # Disable Builtin rules
 .SUFFIXES:
@@ -121,23 +121,20 @@ MAKEFLAGS += --no-builtin-rules
 DEPS = $(OBJS:.o=.d)
 -include $(DEPS)
 
-$(GUI_APPS): $(BIN_DIR)/%-gui$(BIN_EXT): $(OBJ_DIR)/gui/%.o
-	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(VIEW_LIBS) $(CONTROLLER_LIBS) $(LIBS)
+$(GUI_WX_APPS): $(BIN_DIR)/%-wxgui$(BIN_EXT): $(OBJ_DIR)/gui-wx/%.o
+	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(WX_VIEW_LIBS) $(WX_CONTROLLER_LIBS) $(LIBS)
 
 $(CLI_APPS): $(BIN_DIR)/%$(BIN_EXT): $(OBJ_DIR)/cli/%.o
 	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
 
-$(OBJ_DIR)/gui/%.o: src/gui/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(VIEW_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+$(OBJ_DIR)/gui-wx/%.o: src/gui-wx/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(WX_VIEW_CXXFLAGS) $(WX_CONTROLLER_CXXFLAGS) -c -o $@ $<
 
-$(OBJ_DIR)/gui/controllers/%.o: src/gui/controllers/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+$(OBJ_DIR)/gui-wx/controllers/%.o: src/gui-wx/controllers/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(WX_CONTROLLER_CXXFLAGS) -c -o $@ $<
 
-$(OBJ_DIR)/gui/view/%.o: src/gui/view/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(VIEW_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
-
-$(OBJ_DIR)/gui/widgets/%.o: src/gui/widgets/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(GTK_CXXFLAGS) $(CONTROLLER_CXXFLAGS) -c -o $@ $<
+$(OBJ_DIR)/gui-wx/view/%.o: src/gui-wx/view/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(WX_VIEW_CXXFLAGS) $(WX_CONTROLLER_CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/vendor/%.o: src/vendor/%.cpp
 	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(VENDOR_CXXFLAGS) -c -o $@ $<
