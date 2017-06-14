@@ -17,6 +17,7 @@ namespace SpriteImporter {
 namespace Ui {
 class MainWindow;
 }
+class Document;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -25,8 +26,17 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
+    void setDocument(std::unique_ptr<Document> document);
+
+protected slots:
+    void onActionNew();
+    void onActionOpen();
+    void onActionSave();
+    void onActionSaveAs();
+
 private:
     std::unique_ptr<Ui::MainWindow> _ui;
+    std::unique_ptr<Document> _document;
 };
 }
 }
