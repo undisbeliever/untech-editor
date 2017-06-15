@@ -21,10 +21,25 @@ union rgba {
 
     static rgba fromRgba(uint32_t rgbaValue)
     {
-        return rgba(rgbaValue & 0xff,
+        return rgba((rgbaValue >> 0) & 0xff,
                     (rgbaValue >> 8) & 0xff,
                     (rgbaValue >> 16) & 0xff,
                     (rgbaValue >> 24) & 0xff);
+    }
+
+    static rgba fromRgbHex(uint32_t rgbHex)
+    {
+        return rgba((rgbHex >> 16) & 0xff,
+                    (rgbHex >> 8) & 0xff,
+                    (rgbHex >> 0) & 0xff);
+    }
+
+    static rgba fromRgbaHex(uint32_t rgbaHex)
+    {
+        return rgba((rgbaHex >> 24) & 0xff,
+                    (rgbaHex >> 16) & 0xff,
+                    (rgbaHex >> 8) & 0xff,
+                    (rgbaHex >> 0) & 0xff);
     }
 
     rgba() = default;
@@ -44,6 +59,16 @@ union rgba {
     inline uint32_t rgbaValue() const
     {
         return (alpha << 24) | (blue << 16) | (green << 8) | red;
+    }
+
+    inline uint32_t rgbHex() const
+    {
+        return (red << 16) | (green << 8) | blue;
+    }
+
+    inline uint32_t rgbaHex() const
+    {
+        return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
     inline bool operator==(const rgba& o) const

@@ -18,6 +18,7 @@ namespace Ui {
 class MainWindow;
 }
 class Document;
+class FrameSetDock;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -37,6 +38,8 @@ protected slots:
 private:
     std::unique_ptr<Ui::MainWindow> _ui;
     std::unique_ptr<Document> _document;
+
+    FrameSetDock* _frameSetDock;
 };
 }
 }

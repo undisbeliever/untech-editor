@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UnTech::GuiQt::MetaSprite::SpriteImporter::FrameSetDock</class>
+ <widget class="QDockWidget" name="UnTech::GuiQt::MetaSprite::SpriteImporter::FrameSetDock">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="features">
+   <set>QDockWidget::DockWidgetMovable</set>
+  </property>
+  <property name="windowTitle">
+   <string>FrameSet</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QScrollArea" name="scrollArea">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>298</width>
+         <height>479</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>149</width>
+         <height>0</height>
+        </size>
+       </property>
+       <layout class="QVBoxLayout" name="scrollLayout">
+        <item>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="frameSetNameLabel">
+            <property name="text">
+             <string>Name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="frameSetName"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="exportOrderLabel">
+            <property name="text">
+             <string>Export Order:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="frameSetTypeLabel">
+            <property name="text">
+             <string>FrameSet Type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="tilesetTypeLabel">
+            <property name="text">
+             <string>Tileset Type:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="EnumComboBox" name="tilesetType"/>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="frameSetType">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="exportOrderLayout">
+            <property name="spacing">
+             <number>1</number>
+            </property>
+            <item>
+             <widget class="QLineEdit" name="exportOrder">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="exportOrderButton">
+              <property name="text">
+               <string>...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="imageBox">
+          <property name="title">
+           <string>Image</string>
+          </property>
+          <layout class="QFormLayout" name="formLayout_2">
+           <item row="0" column="0">
+            <widget class="QLabel" name="imageFilenameLabel">
+             <property name="text">
+              <string>Filename:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="transparentLabel">
+             <property name="text">
+              <string>Transparent:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <layout class="QHBoxLayout" name="imageFilenameLayout">
+             <property name="spacing">
+              <number>1</number>
+             </property>
+             <item>
+              <widget class="QLineEdit" name="imageFilename">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="imageFilenameButton">
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="1" column="1">
+            <layout class="QHBoxLayout" name="transparentLayout">
+             <property name="spacing">
+              <number>1</number>
+             </property>
+             <item>
+              <widget class="QLineEdit" name="transparent">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="transparentButton">
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="gridBox">
+          <property name="title">
+           <string>Grid</string>
+          </property>
+          <layout class="QFormLayout" name="formLayout_3">
+           <item row="0" column="0">
+            <widget class="QLabel" name="gridSizeLabel">
+             <property name="text">
+              <string>Size:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="SizeWidget" name="gridSize" native="true"/>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="gridOffsetLabel">
+             <property name="text">
+              <string>Offset:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="gridPaddingLabel">
+             <property name="text">
+              <string>Padding:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="gridOriginLabel">
+             <property name="text">
+              <string>Origin:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="PointWidget" name="gridOffset" native="true"/>
+           </item>
+           <item row="2" column="1">
+            <widget class="PointWidget" name="gridPadding" native="true"/>
+           </item>
+           <item row="3" column="1">
+            <widget class="PointWidget" name="gridOrigin" native="true"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="userSuppliedPaletteBox">
+          <property name="title">
+           <string>User Supplied Palette</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <layout class="QFormLayout" name="formLayout_4">
+           <item row="0" column="0">
+            <widget class="QLabel" name="nPalettesLabel">
+             <property name="text">
+              <string>Number of Palettes:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="nPalettes">
+             <property name="minimum">
+              <number>0</number>
+             </property>
+             <property name="maximum">
+              <number>254</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="paletteSizeLabel">
+             <property name="text">
+              <string>Colour Size:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QSpinBox" name="paletteSize">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>32</number>
+             </property>
+             <property name="value">
+              <number>4</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PointWidget</class>
+   <extends>QWidget</extends>
+   <header>gui-qt/common/widgets/pointwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>EnumComboBox</class>
+   <extends>QComboBox</extends>
+   <header>gui-qt/common/widgets/enumcombobox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SizeWidget</class>
+   <extends>QWidget</extends>
+   <header>gui-qt/common/widgets/sizewidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
