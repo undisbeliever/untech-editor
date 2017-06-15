@@ -14,6 +14,8 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace SpriteImporter {
+class Selection;
+class FrameListModel;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -35,9 +37,15 @@ public:
     SI::FrameSet* frameSet() const { return _frameSet.get(); }
     const QString& filename() const { return _filename; }
 
+    Selection* selection() const { return _selection; }
+    FrameListModel* frameListModel() const { return _frameListModel; }
+
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;
     QString _filename;
+
+    Selection* _selection;
+    FrameListModel* _frameListModel;
 };
 }
 }

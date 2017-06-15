@@ -5,6 +5,8 @@
  */
 
 #include "document.h"
+#include "framelistmodel.h"
+#include "selection.h"
 
 #include <QMessageBox>
 
@@ -22,8 +24,13 @@ Document::Document(std::unique_ptr<SI::FrameSet> frameSet,
     : QObject(parent)
     , _frameSet(std::move(frameSet))
     , _filename(filename)
+    , _selection(new Selection(this))
+    , _frameListModel(new FrameListModel(this))
 {
     Q_ASSERT(_frameSet != nullptr);
+
+    _selection->setDocument(this);
+    _frameListModel->setDocument(this);
 }
 
 std::unique_ptr<Document> Document::loadDocument(const QString& filename)

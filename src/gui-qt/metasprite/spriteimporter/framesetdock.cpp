@@ -6,6 +6,8 @@
 
 #include "framesetdock.h"
 #include "document.h"
+#include "framelistmodel.h"
+#include "selection.h"
 #include "gui-qt/metasprite/spriteimporter/framesetdock.ui.h"
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
@@ -34,15 +36,33 @@ void FrameSetDock::setDocument(Document* document)
     if (_document == document) {
         return;
     }
+
+    if (_document != nullptr) {
+        _document->selection()->disconnect(this);
+    }
     _document = document;
 
     setEnabled(_document != nullptr);
 
     if (_document) {
         updateGui();
+        updateFrameListSelection();
+
+        if (auto* m = _ui->frameList->selectionModel()) {
+            m->deleteLater();
+        }
+        _ui->frameList->setModel(_document->frameListModel());
+
+        connect(_document->selection(), SIGNAL(selectedFrameChanged()),
+                this, SLOT(updateFrameListSelection()));
+
+        connect(_ui->frameList->selectionModel(),
+                SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
+                this, SLOT(onFrameListSelectionChanged()));
     }
     else {
         clearGui();
+        _ui->frameList->setModel(nullptr);
     }
 }
 
@@ -106,4 +126,19 @@ void FrameSetDock::updateGui()
     _ui->userSuppliedPaletteBox->setChecked(fs.palette.usesUserSuppliedPalette());
     _ui->nPalettes->setValue(fs.palette.nPalettes);
     _ui->paletteSize->setValue(fs.palette.colorSize);
+}
+
+void FrameSetDock::updateFrameListSelection()
+{
+    const idstring id = _document->selection()->selectedFrameId();
+    QModelIndex index = _document->frameListModel()->toModelIndex(id);
+
+    _ui->frameList->setCurrentIndex(index);
+}
+
+void FrameSetDock::onFrameListSelectionChanged()
+{
+    QModelIndex index = _ui->frameList->currentIndex();
+    idstring frameId = _document->frameListModel()->toFrameId(index);
+    _document->selection()->selectFrame(frameId);
 }

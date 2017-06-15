@@ -31,6 +31,9 @@ public:
 
 private slots:
     void updateGui();
+    void updateFrameListSelection();
+
+    void onFrameListSelectionChanged();
 
 private:
     std::unique_ptr<Ui::FrameSetDock> _ui;
