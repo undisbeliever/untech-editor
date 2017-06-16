@@ -53,12 +53,17 @@ QModelIndex FrameListModel::toModelIndex(const idstring& frameId) const
     return createIndex(row, 0);
 }
 
-idstring FrameListModel::toFrameId(const QModelIndex& index) const
+idstring FrameListModel::toFrameId(int row) const
 {
-    if (index.row() < 0 || index.row() >= _frameIdstrings.size()) {
+    if (row < 0 || row >= _frameIdstrings.size()) {
         return idstring();
     }
-    return _frameIdstrings.at(index.row());
+    return _frameIdstrings.at(row);
+}
+
+idstring FrameListModel::toFrameId(const QModelIndex& index) const
+{
+    return toFrameId(index.row());
 }
 
 int FrameListModel::rowCount(const QModelIndex& parent) const

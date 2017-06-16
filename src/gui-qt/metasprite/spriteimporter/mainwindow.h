@@ -19,6 +19,7 @@ class MainWindow;
 }
 class Document;
 class FrameSetDock;
+class FrameDock;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -40,6 +41,7 @@ private:
     std::unique_ptr<Document> _document;
 
     FrameSetDock* _frameSetDock;
+    FrameDock* _frameDock;
 };
 }
 }

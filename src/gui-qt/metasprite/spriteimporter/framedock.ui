@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UnTech::GuiQt::MetaSprite::SpriteImporter::FrameDock</class>
+ <widget class="QDockWidget" name="UnTech::GuiQt::MetaSprite::SpriteImporter::FrameDock">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>300</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="features">
+   <set>QDockWidget::DockWidgetMovable</set>
+  </property>
+  <property name="windowTitle">
+   <string>Frame</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QScrollArea" name="scrollArea">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>298</width>
+         <height>551</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="scrollAreaLayout">
+        <item>
+         <widget class="QComboBox" name="frameComboBox"/>
+        </item>
+        <item>
+         <widget class="QWidget" name="frameWidget" native="true">
+          <layout class="QGridLayout" name="gridLayout">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="spriteOrderLabel">
+             <property name="text">
+              <string>Sprite Order:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="spriteOrder">
+             <property name="maximum">
+              <number>3</number>
+             </property>
+             <property name="value">
+              <number>2</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QGroupBox" name="frameLocationBox">
+             <property name="title">
+              <string>Frame Location</string>
+             </property>
+             <layout class="QFormLayout" name="frameLocationLayout">
+              <item row="0" column="0" colspan="2">
+               <widget class="QCheckBox" name="useGridLocation">
+                <property name="text">
+                 <string>Use Grid</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="gridLocationLabel">
+                <property name="text">
+                 <string>Grid Location:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="PointWidget" name="gridLocation" native="true"/>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="frameLocationLabel">
+                <property name="text">
+                 <string>Location:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="RectWidget" name="frameLocation" native="true"/>
+              </item>
+              <item row="3" column="0" colspan="2">
+               <widget class="QCheckBox" name="useCustomOrigin">
+                <property name="text">
+                 <string>Custom Origin</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0">
+               <widget class="QLabel" name="originLabel">
+                <property name="text">
+                 <string>Origin:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="1">
+               <widget class="PointWidget" name="origin" native="true"/>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="2" column="0" colspan="2">
+            <widget class="QGroupBox" name="solid">
+             <property name="title">
+              <string>Solid</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <layout class="QFormLayout" name="formLayout_2">
+              <item row="0" column="1">
+               <widget class="RectWidget" name="tileHitbox" native="true"/>
+              </item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="tileHitboxLabel">
+                <property name="text">
+                 <string>Tile Hitbox:</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="frameContentsBox">
+          <property name="title">
+           <string>Frame Contents</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <item>
+            <widget class="QTreeView" name="frameContents">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PointWidget</class>
+   <extends>QWidget</extends>
+   <header>gui-qt/common/widgets/pointwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RectWidget</class>
+   <extends>QWidget</extends>
+   <header>gui-qt/common/widgets/rectwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

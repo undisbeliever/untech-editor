@@ -6,6 +6,7 @@
 
 #include "mainwindow.h"
 #include "document.h"
+#include "framedock.h"
 #include "framesetdock.h"
 #include "gui-qt/metasprite/spriteimporter/mainwindow.ui.h"
 
@@ -21,6 +22,13 @@ MainWindow::MainWindow(QWidget* parent)
 
     _frameSetDock = new FrameSetDock(this);
     addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
+
+    _frameDock = new FrameDock(this);
+    addDockWidget(Qt::RightDockWidgetArea, _frameDock);
+
+    tabifyDockWidget(_frameSetDock, _frameDock);
+
+    _frameSetDock->raise();
 
     setDocument(nullptr);
 
@@ -40,6 +48,7 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     _document = std::move(document);
 
     _frameSetDock->setDocument(_document.get());
+    _frameDock->setDocument(_document.get());
 
     _ui->actionSave->setEnabled(_document != nullptr);
     _ui->actionSaveAs->setEnabled(_document != nullptr);

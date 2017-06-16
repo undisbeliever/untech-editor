@@ -27,6 +27,7 @@ public:
     void setDocument(Document* document);
 
     QModelIndex toModelIndex(const idstring& frameId) const;
+    idstring toFrameId(int row) const;
     idstring toFrameId(const QModelIndex& index) const;
 
     virtual int rowCount(const QModelIndex& parent) const final;
