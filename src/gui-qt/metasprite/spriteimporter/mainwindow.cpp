@@ -17,6 +17,8 @@ using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
+    , _document(nullptr)
+    , _undoGroup(new QUndoGroup(this))
 {
     _ui->setupUi(this);
 
@@ -32,6 +34,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     setDocument(nullptr);
 
+    createUndoActions();
+
     connect(_ui->actionNew, SIGNAL(triggered()), this, SLOT(onActionNew()));
     connect(_ui->actionOpen, SIGNAL(triggered()), this, SLOT(onActionOpen()));
     connect(_ui->actionSave, SIGNAL(triggered()), this, SLOT(onActionSave()));
@@ -40,6 +44,18 @@ MainWindow::MainWindow(QWidget* parent)
 }
 
 MainWindow::~MainWindow() = default;
+
+void MainWindow::createUndoActions()
+{
+    QAction* undoAction = _undoGroup->createUndoAction(this);
+    QAction* redoAction = _undoGroup->createRedoAction(this);
+
+    undoAction->setShortcuts(QKeySequence::Undo);
+    redoAction->setShortcuts(QKeySequence::Redo);
+
+    _ui->menuEdit->addAction(undoAction);
+    _ui->menuEdit->addAction(redoAction);
+}
 
 void MainWindow::setDocument(std::unique_ptr<Document> document)
 {
@@ -52,6 +68,11 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
 
     _ui->actionSave->setEnabled(_document != nullptr);
     _ui->actionSaveAs->setEnabled(_document != nullptr);
+
+    if (_document != nullptr) {
+        _undoGroup->addStack(_document->undoStack());
+        _document->undoStack()->setActive();
+    }
 }
 
 void MainWindow::onActionNew()

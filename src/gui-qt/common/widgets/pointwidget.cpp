@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
+using namespace UnTech;
 using namespace UnTech::GuiQt;
 
 PointWidget::PointWidget(QWidget* parent)
@@ -35,12 +36,20 @@ PointWidget::PointWidget(QWidget* parent)
 
     setMinimum(0);
     setMaximum(255);
+
+    connect(_xPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
+    connect(_yPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
 }
 
 void PointWidget::clear()
 {
     _xPos->clear();
     _yPos->clear();
+}
+
+upoint PointWidget::valueUpoint() const
+{
+    return upoint(_xPos->value(), _yPos->value());
 }
 
 void PointWidget::setValue(const upoint& p)

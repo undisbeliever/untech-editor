@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QUndoGroup>
 #include <memory>
 
 namespace UnTech {
@@ -30,6 +31,9 @@ public:
 
     void setDocument(std::unique_ptr<Document> document);
 
+private:
+    void createUndoActions();
+
 protected slots:
     void onActionNew();
     void onActionOpen();
@@ -39,6 +43,8 @@ protected slots:
 private:
     std::unique_ptr<Ui::MainWindow> _ui;
     std::unique_ptr<Document> _document;
+
+    QUndoGroup* _undoGroup;
 
     FrameSetDock* _frameSetDock;
     FrameDock* _frameDock;

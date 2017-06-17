@@ -35,6 +35,7 @@ void FrameDock::setDocument(Document* document)
     }
 
     if (_document != nullptr) {
+        _document->disconnect(this);
         _document->selection()->disconnect(this);
     }
     _document = document;
@@ -45,6 +46,8 @@ void FrameDock::setDocument(Document* document)
         _ui->frameComboBox->setModel(_document->frameListModel());
 
         onSelectedFrameChanged();
+
+        connect(_document, SIGNAL(frameSetGridChanged()), this, SLOT(updateGui()));
 
         connect(_document->selection(), SIGNAL(selectedFrameChanged()),
                 this, SLOT(onSelectedFrameChanged()));
@@ -106,6 +109,9 @@ void FrameDock::clearGui()
 
 void FrameDock::updateGui()
 {
+    if (_document->selection()->selectedFrame() == nullptr) {
+        return;
+    }
     const SI::Frame& frame = *_document->selection()->selectedFrame();
     const SI::FrameLocation& floc = frame.location;
 

@@ -34,6 +34,12 @@ public:
     }
 
     template <class EnumClassT>
+    inline EnumClassT currentEnum()
+    {
+        return (typename EnumClassT::Enum)currentData().toInt();
+    }
+
+    template <class EnumClassT>
     inline void setCurrentEnum(const EnumClassT& e)
     {
         int index = this->findData(int(e.value()));

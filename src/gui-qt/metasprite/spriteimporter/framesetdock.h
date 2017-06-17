@@ -33,6 +33,14 @@ private slots:
     void updateGui();
     void updateFrameListSelection();
 
+    void onNameEdited();
+    void onTilesetTypeEdited();
+    void onExportOrderButtonClicked();
+    void onImageFilenameButtonClicked();
+    void onTransparentButtonClicked();
+    void onGridEdited();
+    void onPaletteEdited();
+
     void onFrameListSelectionChanged();
 
 private:

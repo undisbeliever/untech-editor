@@ -8,6 +8,7 @@
 
 #include "models/metasprite/spriteimporter.h"
 #include <QObject>
+#include <QUndoStack>
 #include <memory>
 
 namespace UnTech {
@@ -37,12 +38,20 @@ public:
     SI::FrameSet* frameSet() const { return _frameSet.get(); }
     const QString& filename() const { return _filename; }
 
+    QUndoStack* undoStack() const { return _undoStack; }
+
     Selection* selection() const { return _selection; }
     FrameListModel* frameListModel() const { return _frameListModel; }
+
+signals:
+    void frameSetDataChanged();
+    void frameSetGridChanged();
 
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;
     QString _filename;
+
+    QUndoStack* _undoStack;
 
     Selection* _selection;
     FrameListModel* _frameListModel;

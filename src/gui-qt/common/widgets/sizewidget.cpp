@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
+using namespace UnTech;
 using namespace UnTech::GuiQt;
 
 SizeWidget::SizeWidget(QWidget* parent)
@@ -35,12 +36,20 @@ SizeWidget::SizeWidget(QWidget* parent)
 
     setMinimum(1);
     setMaximum(255);
+
+    connect(_width, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
+    connect(_height, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
 }
 
 void SizeWidget::clear()
 {
     _width->clear();
     _height->clear();
+}
+
+usize SizeWidget::valueUsize() const
+{
+    return usize(_width->value(), _height->value());
 }
 
 void SizeWidget::setValue(const usize& s)

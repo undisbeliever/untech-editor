@@ -22,12 +22,16 @@ public:
 
     void clear();
 
+    upoint valueUpoint() const;
     void setValue(const upoint&);
 
     void setMinimum(int min);
 
     void setMaximum(int max);
     void setMaximum(const usize&);
+
+signals:
+    void editingFinished();
 
 private:
     QSpinBox* _xPos;

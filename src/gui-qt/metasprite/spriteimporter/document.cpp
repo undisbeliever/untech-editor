@@ -24,6 +24,7 @@ Document::Document(std::unique_ptr<SI::FrameSet> frameSet,
     : QObject(parent)
     , _frameSet(std::move(frameSet))
     , _filename(filename)
+    , _undoStack(new QUndoStack(this))
     , _selection(new Selection(this))
     , _frameListModel(new FrameListModel(this))
 {

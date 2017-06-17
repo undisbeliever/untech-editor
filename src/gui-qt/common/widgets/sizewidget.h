@@ -22,11 +22,15 @@ public:
 
     void clear();
 
+    usize valueUsize() const;
     void setValue(const usize&);
 
     void setMaximum(unsigned max);
 
     void setMinimum(unsigned min);
+
+signals:
+    void editingFinished();
 
 private:
     QSpinBox* _width;

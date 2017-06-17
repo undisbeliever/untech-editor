@@ -48,6 +48,13 @@ struct FrameSetGrid {
     bool isValid(const FrameSet& frameSet) const;
 
     usize originRange() const;
+
+    bool operator==(const FrameSetGrid& o) const
+    {
+        return this->frameSize == o.frameSize && this->offset == o.offset
+               && this->padding == o.padding && this->origin == o.origin;
+    }
+    bool operator!=(const FrameSetGrid& o) const { return !(*this == o); }
 };
 
 struct FrameLocation {
