@@ -9,6 +9,7 @@
 #include <QGridLayout>
 #include <QLabel>
 
+using namespace UnTech;
 using namespace UnTech::GuiQt;
 
 RectWidget::RectWidget(QWidget* parent)
@@ -62,6 +63,11 @@ RectWidget::RectWidget(QWidget* parent)
     connect(_width, SIGNAL(valueChanged(int)), this, SLOT(updateHorizontalRange()));
     connect(_yPos, SIGNAL(valueChanged(int)), this, SLOT(updateVerticalRange()));
     connect(_height, SIGNAL(valueChanged(int)), this, SLOT(updateVerticalRange()));
+
+    connect(_xPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
+    connect(_yPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
+    connect(_width, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
+    connect(_height, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
 }
 
 void RectWidget::clear()
@@ -70,6 +76,12 @@ void RectWidget::clear()
     _yPos->clear();
     _width->clear();
     _height->clear();
+}
+
+urect RectWidget::valueUrect() const
+{
+    return urect(_xPos->value(), _yPos->value(),
+                 _width->value(), _height->value());
 }
 
 void RectWidget::setValue(const urect& r)

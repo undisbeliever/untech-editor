@@ -6,6 +6,7 @@
 
 #include "framedock.h"
 #include "document.h"
+#include "framecommands.h"
 #include "framelistmodel.h"
 #include "selection.h"
 #include "gui-qt/metasprite/spriteimporter/framedock.ui.h"
@@ -24,6 +25,16 @@ FrameDock::FrameDock(QWidget* parent)
 
     connect(_ui->frameComboBox, SIGNAL(activated(int)),
             this, SLOT(onFrameComboBoxActivated()));
+
+    connect(_ui->spriteOrder, SIGNAL(editingFinished()), this, SLOT(onSpriteOrderEdited()));
+
+    connect(_ui->useGridLocation, SIGNAL(clicked(bool)), this, SLOT(onFrameLocationEdited()));
+    connect(_ui->gridLocation, SIGNAL(editingFinished()), this, SLOT(onFrameLocationEdited()));
+    connect(_ui->frameLocation, SIGNAL(editingFinished()), this, SLOT(onFrameLocationEdited()));
+    connect(_ui->useCustomOrigin, SIGNAL(clicked(bool)), this, SLOT(onFrameLocationEdited()));
+    connect(_ui->origin, SIGNAL(editingFinished()), this, SLOT(onFrameLocationEdited()));
+    connect(_ui->solid, SIGNAL(clicked()), this, SLOT(onSolidClicked()));
+    connect(_ui->tileHitbox, SIGNAL(editingFinished()), this, SLOT(onTileHitboxEdited()));
 }
 
 FrameDock::~FrameDock() = default;
@@ -48,6 +59,7 @@ void FrameDock::setDocument(Document* document)
         onSelectedFrameChanged();
 
         connect(_document, SIGNAL(frameSetGridChanged()), this, SLOT(updateGui()));
+        connect(_document, &Document::frameDataChanged, this, &FrameDock::onFrameDataChanged);
 
         connect(_document->selection(), SIGNAL(selectedFrameChanged()),
                 this, SLOT(onSelectedFrameChanged()));
@@ -73,6 +85,13 @@ void FrameDock::onSelectedFrameChanged()
     }
     else {
         clearGui();
+    }
+}
+
+void FrameDock::onFrameDataChanged(const SI::Frame* frame)
+{
+    if (frame == _document->selection()->selectedFrame()) {
+        updateGui();
     }
 }
 
@@ -138,5 +157,58 @@ void FrameDock::updateGui()
     }
     else {
         _ui->tileHitbox->clear();
+    }
+}
+
+void FrameDock::onSpriteOrderEdited()
+{
+    SI::Frame* frame = _document->selection()->selectedFrame();
+
+    unsigned so = _ui->spriteOrder->value();
+    if (so != frame->spriteOrder) {
+        _document->undoStack()->push(
+            new ChangeFrameSpriteOrder(_document, frame, so));
+    }
+}
+
+void FrameDock::onFrameLocationEdited()
+{
+    const SI::FrameSet* frameSet = _document->frameSet();
+    SI::Frame* frame = _document->selection()->selectedFrame();
+
+    SI::FrameLocation floc;
+    floc.useGridLocation = _ui->useGridLocation->isChecked();
+    floc.gridLocation = _ui->gridLocation->valueUpoint();
+    floc.aabb = _ui->frameLocation->valueUrect();
+    floc.useGridOrigin = !_ui->useCustomOrigin->isChecked();
+    floc.origin = _ui->origin->valueUpoint();
+
+    floc.update(frameSet->grid, *frame);
+
+    if (floc != frame->location) {
+        _document->undoStack()->push(
+            new ChangeFrameLocation(_document, frame, floc));
+    }
+}
+
+void FrameDock::onSolidClicked()
+{
+    SI::Frame* frame = _document->selection()->selectedFrame();
+
+    bool solid = _ui->solid->isChecked();
+    if (solid != frame->solid) {
+        _document->undoStack()->push(
+            new ChangeFrameSolid(_document, frame, solid));
+    }
+}
+
+void FrameDock::onTileHitboxEdited()
+{
+    SI::Frame* frame = _document->selection()->selectedFrame();
+
+    urect hitbox = _ui->tileHitbox->valueUrect();
+    if (hitbox != frame->tileHitbox) {
+        _document->undoStack()->push(
+            new ChangeFrameTileHitbox(_document, frame, hitbox));
     }
 }

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/metasprite/spriteimporter.h"
 #include <QDockWidget>
 #include <memory>
 
@@ -17,6 +18,8 @@ namespace Ui {
 class FrameDock;
 }
 class Document;
+
+namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 class FrameDock : public QDockWidget {
     Q_OBJECT
@@ -33,7 +36,14 @@ private slots:
     void onSelectedFrameChanged();
     void onFrameComboBoxActivated();
 
+    void onFrameDataChanged(const SI::Frame*);
+
     void updateGui();
+
+    void onSpriteOrderEdited();
+    void onFrameLocationEdited();
+    void onSolidClicked();
+    void onTileHitboxEdited();
 
 private:
     std::unique_ptr<Ui::FrameDock> _ui;

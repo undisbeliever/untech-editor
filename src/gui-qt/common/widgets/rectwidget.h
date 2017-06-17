@@ -22,11 +22,15 @@ public:
 
     void clear();
 
+    urect valueUrect() const;
     void setValue(const urect&);
 
     void setRange(const usize&);
     void setMinRectSize(const usize&);
     void setMaxRectSize(const usize&);
+
+signals:
+    void editingFinished();
 
 private slots:
     void updateRanges();
