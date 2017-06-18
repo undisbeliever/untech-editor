@@ -6,7 +6,9 @@
 
 #include "rectwidget.h"
 
+#include <QEvent>
 #include <QGridLayout>
+#include <QKeyEvent>
 #include <QLabel>
 
 using namespace UnTech;
@@ -64,10 +66,41 @@ RectWidget::RectWidget(QWidget* parent)
     connect(_yPos, SIGNAL(valueChanged(int)), this, SLOT(updateVerticalRange()));
     connect(_height, SIGNAL(valueChanged(int)), this, SLOT(updateVerticalRange()));
 
-    connect(_xPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-    connect(_yPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-    connect(_width, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-    connect(_height, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
+    _xPos->installEventFilter(this);
+    _yPos->installEventFilter(this);
+    _width->installEventFilter(this);
+    _height->installEventFilter(this);
+}
+
+bool RectWidget::eventFilter(QObject* object, QEvent* event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        const auto& key = keyEvent->key();
+
+        if (key == Qt::Key_Backtab && _xPos->hasFocus()) {
+            emit editingFinished();
+            return false;
+        }
+        else if (key == Qt::Key_Tab && _height->hasFocus()) {
+            emit editingFinished();
+            return false;
+        }
+        else if (key == Qt::Key_Enter || key == Qt::Key_Return) {
+            emit editingFinished();
+            return false;
+        }
+    }
+    else if (event->type() == QEvent::FocusOut) {
+        if (_xPos->hasFocus() == false && _yPos->hasFocus() == false
+            && _width->hasFocus() == false && _height->hasFocus() == false) {
+
+            emit editingFinished();
+            return false;
+        }
+    }
+
+    return QWidget::eventFilter(object, event);
 }
 
 void RectWidget::clear()

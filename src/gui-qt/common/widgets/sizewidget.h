@@ -29,6 +29,8 @@ public:
 
     void setMinimum(unsigned min);
 
+    virtual bool eventFilter(QObject* object, QEvent* event);
+
 signals:
     void editingFinished();
 

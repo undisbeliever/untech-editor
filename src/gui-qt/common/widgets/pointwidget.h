@@ -30,6 +30,8 @@ public:
     void setMaximum(int max);
     void setMaximum(const usize&);
 
+    virtual bool eventFilter(QObject* object, QEvent* event);
+
 signals:
     void editingFinished();
 

@@ -29,6 +29,8 @@ public:
     void setMinRectSize(const usize&);
     void setMaxRectSize(const usize&);
 
+    virtual bool eventFilter(QObject* object, QEvent* event);
+
 signals:
     void editingFinished();
 

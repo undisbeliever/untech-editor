@@ -6,7 +6,9 @@
 
 #include "pointwidget.h"
 
+#include <QEvent>
 #include <QHBoxLayout>
+#include <QKeyEvent>
 #include <QLabel>
 
 using namespace UnTech;
@@ -39,6 +41,38 @@ PointWidget::PointWidget(QWidget* parent)
 
     connect(_xPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
     connect(_yPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
+
+    _xPos->installEventFilter(this);
+    _yPos->installEventFilter(this);
+}
+
+bool PointWidget::eventFilter(QObject* object, QEvent* event)
+{
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        const auto& key = keyEvent->key();
+
+        if (key == Qt::Key_Backtab && _xPos->hasFocus()) {
+            emit editingFinished();
+            return false;
+        }
+        else if (key == Qt::Key_Tab && _yPos->hasFocus()) {
+            emit editingFinished();
+            return false;
+        }
+        else if (key == Qt::Key_Enter || key == Qt::Key_Return) {
+            emit editingFinished();
+            return false;
+        }
+    }
+    else if (event->type() == QEvent::FocusOut) {
+        if (_xPos->hasFocus() == false && _yPos->hasFocus() == false) {
+            emit editingFinished();
+            return false;
+        }
+    }
+
+    return QWidget::eventFilter(object, event);
 }
 
 void PointWidget::clear()
