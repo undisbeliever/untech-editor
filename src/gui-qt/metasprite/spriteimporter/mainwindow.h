@@ -31,16 +31,21 @@ public:
 
     void setDocument(std::unique_ptr<Document> document);
 
+protected:
+    virtual void closeEvent(QCloseEvent* event);
+
 private:
     void createUndoActions();
+    bool unsavedChangesDialog();
 
 protected slots:
     void updateWindowTitle();
 
     void onActionNew();
     void onActionOpen();
-    void onActionSave();
-    void onActionSaveAs();
+
+    bool saveDocument();
+    bool saveDocumentAs();
 
 private:
     std::unique_ptr<Ui::MainWindow> _ui;

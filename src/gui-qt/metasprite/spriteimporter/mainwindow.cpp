@@ -10,7 +10,9 @@
 #include "framesetdock.h"
 #include "gui-qt/metasprite/spriteimporter/mainwindow.ui.h"
 
+#include <QCloseEvent>
 #include <QFileDialog>
+#include <QMessageBox>
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
@@ -40,8 +42,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(_ui->actionNew, SIGNAL(triggered()), this, SLOT(onActionNew()));
     connect(_ui->actionOpen, SIGNAL(triggered()), this, SLOT(onActionOpen()));
-    connect(_ui->actionSave, SIGNAL(triggered()), this, SLOT(onActionSave()));
-    connect(_ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(onActionSaveAs()));
+    connect(_ui->actionSave, SIGNAL(triggered()), this, SLOT(saveDocument()));
+    connect(_ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(saveDocumentAs()));
     connect(_ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
 }
 
@@ -101,11 +103,19 @@ void MainWindow::updateWindowTitle()
 
 void MainWindow::onActionNew()
 {
+    if (unsavedChangesDialog() == false) {
+        return;
+    }
+
     setDocument(std::make_unique<Document>(this));
 }
 
 void MainWindow::onActionOpen()
 {
+    if (unsavedChangesDialog() == false) {
+        return;
+    }
+
     QString filter = tr(Document::FILE_FILTER);
 
     const QString filename = QFileDialog::getOpenFileName(
@@ -119,17 +129,17 @@ void MainWindow::onActionOpen()
     }
 }
 
-void MainWindow::onActionSave()
+bool MainWindow::saveDocument()
 {
     if (_document->filename().isEmpty()) {
-        onActionSaveAs();
+        return saveDocumentAs();
     }
     else {
-        _document->saveDocument(_document->filename());
+        return _document->saveDocument(_document->filename());
     }
 }
 
-void MainWindow::onActionSaveAs()
+bool MainWindow::saveDocumentAs()
 {
     QString filter = tr(Document::FILE_FILTER);
 
@@ -137,6 +147,39 @@ void MainWindow::onActionSaveAs()
         this, tr("Save FrameSet"), _document->filename(), filter);
 
     if (!filename.isNull()) {
-        _document->saveDocument(filename);
+        return _document->saveDocument(filename);
+    }
+
+    return false;
+}
+
+bool MainWindow::unsavedChangesDialog()
+{
+    bool success = true;
+
+    if (_document && !_document->undoStack()->isClean()) {
+        QMessageBox dialog(QMessageBox::Warning,
+                           tr("Save Changes?"),
+                           tr("There are unsaved changes. Do you want to save?"),
+                           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
+                           this);
+        dialog.exec();
+
+        success = (dialog.result() == QMessageBox::Discard);
+        if (dialog.result() == QMessageBox::Save) {
+            success = saveDocument();
+        }
+    }
+
+    return success;
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    if (unsavedChangesDialog()) {
+        event->accept();
+    }
+    else {
+        event->ignore();
     }
 }
