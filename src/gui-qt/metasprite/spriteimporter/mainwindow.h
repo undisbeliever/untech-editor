@@ -35,6 +35,8 @@ private:
     void createUndoActions();
 
 protected slots:
+    void updateWindowTitle();
+
     void onActionNew();
     void onActionOpen();
     void onActionSave();

@@ -36,6 +36,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     createUndoActions();
 
+    connect(_undoGroup, SIGNAL(cleanChanged(bool)), this, SLOT(updateWindowTitle()));
+
     connect(_ui->actionNew, SIGNAL(triggered()), this, SLOT(onActionNew()));
     connect(_ui->actionOpen, SIGNAL(triggered()), this, SLOT(onActionOpen()));
     connect(_ui->actionSave, SIGNAL(triggered()), this, SLOT(onActionSave()));
@@ -72,6 +74,28 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     if (_document != nullptr) {
         _undoGroup->addStack(_document->undoStack());
         _document->undoStack()->setActive();
+    }
+
+    updateWindowTitle();
+}
+
+void MainWindow::updateWindowTitle()
+{
+    if (_document != nullptr) {
+        QString title = QFileInfo(_document->filename()).fileName();
+        if (title.isEmpty()) {
+            title = "untitled";
+        }
+        title.prepend("[*]");
+
+        setWindowTitle(title);
+        setWindowFilePath(_document->filename());
+        setWindowModified(!_document->undoStack()->isClean());
+    }
+    else {
+        setWindowTitle(QString());
+        setWindowFilePath(QString());
+        setWindowModified(false);
     }
 }
 

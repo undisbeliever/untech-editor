@@ -52,6 +52,7 @@ bool Document::saveDocument(const QString& filename)
     try {
         SI::saveFrameSet(*_frameSet, filename.toUtf8().data());
         _filename = filename;
+        _undoStack->setClean();
 
         return true;
     }

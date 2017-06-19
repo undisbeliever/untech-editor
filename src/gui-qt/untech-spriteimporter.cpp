@@ -12,6 +12,8 @@ using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
+    a.setApplicationDisplayName("UnTech SpriteImporter");
+
     MainWindow w;
     w.show();
 
