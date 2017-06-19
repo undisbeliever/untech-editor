@@ -86,3 +86,50 @@ QVariant FrameListModel::data(const QModelIndex& index, int role) const
 
     return QVariant();
 }
+
+void FrameListModel::insertFrame(const idstring& id, std::unique_ptr<SI::Frame> frame)
+{
+    auto& frames = _document->frameSet()->frames;
+
+    Q_ASSERT(frames.contains(id) == false);
+    Q_ASSERT(frame != nullptr);
+
+    int index = 0;
+    for (index = 0; index < _frameIdstrings.size(); index++) {
+        if (_frameIdstrings.at(index).str() > id.str()) {
+            break;
+        }
+    }
+
+    const SI::Frame* framePtr = frame.get();
+
+    beginInsertRows(QModelIndex(), index, index);
+
+    frames.insertInto(id, std::move(frame));
+    _frameNames.insert(index, QString::fromStdString(id));
+    _frameIdstrings.insert(index, id);
+
+    endInsertRows();
+
+    emit _document->frameAdded(framePtr);
+}
+
+std::unique_ptr<SI::Frame> FrameListModel::removeFrame(const idstring& id)
+{
+    auto& frames = _document->frameSet()->frames;
+    Q_ASSERT(frames.contains(id));
+
+    emit _document->frameAboutToBeRemoved(frames.getPtr(id));
+
+    int index = _frameIdstrings.indexOf(id);
+
+    beginRemoveRows(QModelIndex(), index, index);
+
+    auto frame = frames.extractFrom(id);
+    _frameNames.removeAt(index);
+    _frameIdstrings.removeAt(index);
+
+    endRemoveRows();
+
+    return frame;
+}

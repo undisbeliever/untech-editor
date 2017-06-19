@@ -35,6 +35,9 @@ public:
 signals:
     void selectedFrameChanged();
 
+private slots:
+    void onFrameAboutToBeRemoved(const SI::Frame*);
+
 private:
     Document* _document;
 

@@ -19,6 +19,7 @@ namespace Ui {
 class MainWindow;
 }
 class Document;
+class Actions;
 class FrameSetDock;
 class FrameDock;
 
@@ -35,7 +36,7 @@ protected:
     virtual void closeEvent(QCloseEvent* event);
 
 private:
-    void createUndoActions();
+    void setupMenubar();
     bool unsavedChangesDialog();
 
 protected slots:
@@ -50,6 +51,7 @@ protected slots:
 private:
     std::unique_ptr<Ui::MainWindow> _ui;
     std::unique_ptr<Document> _document;
+    Actions* _actions;
 
     QUndoGroup* _undoGroup;
 

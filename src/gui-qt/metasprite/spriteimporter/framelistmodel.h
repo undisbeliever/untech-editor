@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "models/common/idstring.h"
+#include "models/metasprite/spriteimporter.h"
 #include <QAbstractListModel>
 #include <QStringList>
 #include <QVector>
@@ -16,6 +16,9 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace SpriteImporter {
 class Document;
+class AddRemoveFrame;
+
+namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 class FrameListModel : public QAbstractListModel {
     Q_OBJECT
@@ -32,6 +35,11 @@ public:
 
     virtual int rowCount(const QModelIndex& parent) const final;
     virtual QVariant data(const QModelIndex& index, int role) const final;
+
+protected:
+    friend class AddRemoveFrame;
+    void insertFrame(const idstring& id, std::unique_ptr<SI::Frame> frame);
+    std::unique_ptr<SI::Frame> removeFrame(const idstring& id);
 
 private:
     void buildFrameLists();

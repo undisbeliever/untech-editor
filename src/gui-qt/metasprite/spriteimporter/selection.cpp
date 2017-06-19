@@ -21,8 +21,14 @@ void Selection::setDocument(Document* document)
 {
     Q_ASSERT(document != nullptr);
 
+    if (_document) {
+        _document->disconnect(this);
+    }
     _document = document;
+
     unselectFrame();
+
+    connect(_document, &Document::frameAboutToBeRemoved, this, &Selection::onFrameAboutToBeRemoved);
 }
 
 void Selection::unselectFrame()
@@ -46,5 +52,12 @@ void Selection::selectFrame(const idstring& id)
         _selectedFrameId = selectedFrame ? id : idstring();
 
         emit selectedFrameChanged();
+    }
+}
+
+void Selection::onFrameAboutToBeRemoved(const SI::Frame* frame)
+{
+    if (_selectedFrame == frame) {
+        unselectFrame();
     }
 }

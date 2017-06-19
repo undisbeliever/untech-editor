@@ -12,6 +12,92 @@
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
+// AddRemoveFrame
+// ==============
+
+AddRemoveFrame::AddRemoveFrame(Document* document,
+                               const idstring& frameId, std::unique_ptr<SI::Frame> frame)
+    : QUndoCommand()
+    , _document(document)
+    , _frameId(frameId)
+    , _frame(std::move(frame))
+{
+    Q_ASSERT(_frameId.isValid());
+}
+
+void AddRemoveFrame::addFrame()
+{
+    Q_ASSERT(_frame != nullptr);
+    Q_ASSERT(_document->frameSet()->frames.contains(_frameId) == false);
+
+    _document->frameListModel()->insertFrame(_frameId, std::move(_frame));
+}
+
+void AddRemoveFrame::removeFrame()
+{
+    Q_ASSERT(_frame == nullptr);
+    Q_ASSERT(_document->frameSet()->frames.contains(_frameId));
+
+    _frame = _document->frameListModel()->removeFrame(_frameId);
+}
+
+// AddFrame
+// ========
+
+AddFrame::AddFrame(Document* document, const idstring& newId)
+    : AddRemoveFrame(document, newId,
+                     std::make_unique<SI::Frame>())
+{
+    setText(QCoreApplication::tr("Add Frame"));
+}
+
+void AddFrame::undo()
+{
+    removeFrame();
+}
+void AddFrame::redo()
+{
+    addFrame();
+}
+
+// CloneFrame
+// ==========
+
+CloneFrame::CloneFrame(Document* document,
+                       const idstring& id, const idstring& newId)
+    : AddRemoveFrame(document, newId,
+                     std::make_unique<SI::Frame>(document->frameSet()->frames.at(id)))
+{
+    setText(QCoreApplication::tr("Clone Frame"));
+}
+
+void CloneFrame::undo()
+{
+    removeFrame();
+}
+void CloneFrame::redo()
+{
+    addFrame();
+}
+
+// RemoveFrame
+// ===========
+
+RemoveFrame::RemoveFrame(Document* document, const idstring& frameId)
+    : AddRemoveFrame(document, frameId, nullptr)
+{
+    setText(QCoreApplication::tr("Remove Frame"));
+}
+
+void RemoveFrame::undo()
+{
+    addFrame();
+}
+void RemoveFrame::redo()
+{
+    removeFrame();
+}
+
 // ChangeFrameSpriteOrder
 // ======================
 

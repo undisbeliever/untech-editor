@@ -5,6 +5,7 @@
  */
 
 #include "mainwindow.h"
+#include "actions.h"
 #include "document.h"
 #include "framedock.h"
 #include "framesetdock.h"
@@ -20,6 +21,7 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , _ui(new Ui::MainWindow)
     , _document(nullptr)
+    , _actions(new Actions(this))
     , _undoGroup(new QUndoGroup(this))
 {
     _ui->setupUi(this);
@@ -36,7 +38,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     setDocument(nullptr);
 
-    createUndoActions();
+    setupMenubar();
 
     connect(_undoGroup, SIGNAL(cleanChanged(bool)), this, SLOT(updateWindowTitle()));
 
@@ -49,7 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow() = default;
 
-void MainWindow::createUndoActions()
+void MainWindow::setupMenubar()
 {
     QAction* undoAction = _undoGroup->createUndoAction(this);
     QAction* redoAction = _undoGroup->createRedoAction(this);
@@ -59,6 +61,11 @@ void MainWindow::createUndoActions()
 
     _ui->menuEdit->addAction(undoAction);
     _ui->menuEdit->addAction(redoAction);
+
+    _ui->menuEdit->addSeparator();
+    _ui->menuEdit->addAction(_actions->addFrame());
+    _ui->menuEdit->addAction(_actions->cloneFrame());
+    _ui->menuEdit->addAction(_actions->removeFrame());
 }
 
 void MainWindow::setDocument(std::unique_ptr<Document> document)
@@ -67,6 +74,7 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
 
     _document = std::move(document);
 
+    _actions->setDocument(_document.get());
     _frameSetDock->setDocument(_document.get());
     _frameDock->setDocument(_document.get());
 

@@ -17,6 +17,50 @@ class Document;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
+class AddRemoveFrame : public QUndoCommand {
+protected:
+    AddRemoveFrame(Document* document,
+                   const idstring& frameId, std::unique_ptr<SI::Frame> frame);
+    ~AddRemoveFrame() = default;
+
+protected:
+    void addFrame();
+    void removeFrame();
+
+private:
+    Document* _document;
+    const idstring _frameId;
+    std::unique_ptr<SI::Frame> _frame;
+};
+
+class AddFrame : public AddRemoveFrame {
+public:
+    AddFrame(Document* document, const idstring& newId);
+    ~AddFrame() = default;
+
+    virtual void undo() final;
+    virtual void redo() final;
+};
+
+class CloneFrame : public AddRemoveFrame {
+public:
+    CloneFrame(Document* document,
+               const idstring& existingId, const idstring& newId);
+    ~CloneFrame() = default;
+
+    virtual void undo() final;
+    virtual void redo() final;
+};
+
+class RemoveFrame : public AddRemoveFrame {
+public:
+    RemoveFrame(Document* document, const idstring& frameId);
+    ~RemoveFrame() = default;
+
+    virtual void undo() final;
+    virtual void redo() final;
+};
+
 class ChangeFrameSpriteOrder : public QUndoCommand {
 public:
     ChangeFrameSpriteOrder(Document* document,
