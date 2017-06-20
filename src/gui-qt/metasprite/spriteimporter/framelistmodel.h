@@ -34,6 +34,8 @@ public:
     idstring toFrameId(int row) const;
     idstring toFrameId(const QModelIndex& index) const;
 
+    const QStringList& frameNames() const { return _frameNames; }
+
     virtual int rowCount(const QModelIndex& parent) const final;
     virtual QVariant data(const QModelIndex& index, int role) const final;
 

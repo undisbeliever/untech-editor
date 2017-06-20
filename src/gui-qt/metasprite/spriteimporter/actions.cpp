@@ -7,11 +7,10 @@
 #include "actions.h"
 #include "document.h"
 #include "framecommands.h"
+#include "framelistmodel.h"
 #include "mainwindow.h"
 #include "selection.h"
-
-#include <QInputDialog>
-#include <QMessageBox>
+#include "gui-qt/common/idstringdialog.h"
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
@@ -67,9 +66,11 @@ void Actions::onAddFrame()
 {
     const SI::FrameSet& fs = *_document->frameSet();
 
-    QString text = QInputDialog::getText(
-        _mainWindow, tr("Input Frame Name"), tr("Input name of the new frame:"));
-    idstring newId(text.toStdString());
+    idstring newId = IdstringDialog::getIdstring(
+        _mainWindow,
+        tr("Input Frame Name"),
+        tr("Input name of the new frame:"),
+        idstring(), _document->frameListModel()->frameNames());
 
     if (newId.isValid() && !fs.frames.contains(newId)) {
         _document->undoStack()->push(
@@ -84,9 +85,11 @@ void Actions::onCloneFrame()
     const SI::FrameSet& fs = *_document->frameSet();
     const idstring& frameId = _document->selection()->selectedFrameId();
 
-    QString text = QInputDialog::getText(
-        _mainWindow, tr("Input Frame Name"), tr("Input name of the cloned frame:"));
-    idstring newId(text.toStdString());
+    idstring newId = IdstringDialog::getIdstring(
+        _mainWindow,
+        tr("Input Frame Name"),
+        tr("Input name of the cloned frame:"),
+        frameId, _document->frameListModel()->frameNames());
 
     if (newId != frameId && newId.isValid() && !fs.frames.contains(newId)) {
         _document->undoStack()->push(
@@ -101,9 +104,11 @@ void Actions::onRenameFrame()
     const SI::FrameSet& fs = *_document->frameSet();
     const idstring& frameId = _document->selection()->selectedFrameId();
 
-    QString text = QInputDialog::getText(
-        _mainWindow, tr("Input Frame Name"), tr("Rename frame to:"));
-    idstring newId(text.toStdString());
+    idstring newId = IdstringDialog::getIdstring(
+        _mainWindow,
+        tr("Input Frame Name"),
+        tr("Rename %1 to:").arg(QString::fromStdString(frameId)),
+        frameId, _document->frameListModel()->frameNames());
 
     if (newId != frameId && newId.isValid() && !fs.frames.contains(newId)) {
         _document->undoStack()->push(
