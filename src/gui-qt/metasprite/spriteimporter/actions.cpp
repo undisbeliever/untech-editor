@@ -22,12 +22,14 @@ Actions::Actions(MainWindow* mainWindow)
 {
     _addFrame = new QAction(tr("New Frame"), this);
     _cloneFrame = new QAction(tr("Clone Frame"), this);
+    _renameFrame = new QAction(tr("Rename Frame"), this);
     _removeFrame = new QAction(tr("Remove Frame"), this);
 
     updateActions();
 
     connect(_addFrame, SIGNAL(triggered()), this, SLOT(onAddFrame()));
     connect(_cloneFrame, SIGNAL(triggered()), this, SLOT(onCloneFrame()));
+    connect(_renameFrame, SIGNAL(triggered()), this, SLOT(onRenameFrame()));
     connect(_removeFrame, SIGNAL(triggered()), this, SLOT(onRemoveFrame()));
 }
 
@@ -57,6 +59,7 @@ void Actions::updateActions()
 
     _addFrame->setEnabled(documentExists);
     _cloneFrame->setEnabled(frameSelected);
+    _renameFrame->setEnabled(frameSelected);
     _removeFrame->setEnabled(frameSelected);
 }
 
@@ -90,6 +93,21 @@ void Actions::onCloneFrame()
             new CloneFrame(_document, frameId, newId));
 
         _document->selection()->selectFrame(newId);
+    }
+}
+
+void Actions::onRenameFrame()
+{
+    const SI::FrameSet& fs = *_document->frameSet();
+    const idstring& frameId = _document->selection()->selectedFrameId();
+
+    QString text = QInputDialog::getText(
+        _mainWindow, tr("Input Frame Name"), tr("Rename frame to:"));
+    idstring newId(text.toStdString());
+
+    if (newId != frameId && newId.isValid() && !fs.frames.contains(newId)) {
+        _document->undoStack()->push(
+            new RenameFrame(_document, frameId, newId));
     }
 }
 

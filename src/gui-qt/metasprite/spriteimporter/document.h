@@ -49,6 +49,7 @@ signals:
     void frameDataChanged(const SI::Frame*);
     void frameAdded(const SI::Frame*);
     void frameAboutToBeRemoved(const SI::Frame*);
+    void frameRenamed(const SI::Frame*, const idstring& newId);
 
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;

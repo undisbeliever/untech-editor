@@ -65,6 +65,7 @@ void MainWindow::setupMenubar()
     _ui->menuEdit->addSeparator();
     _ui->menuEdit->addAction(_actions->addFrame());
     _ui->menuEdit->addAction(_actions->cloneFrame());
+    _ui->menuEdit->addAction(_actions->renameFrame());
     _ui->menuEdit->addAction(_actions->removeFrame());
 }
 

@@ -133,3 +133,47 @@ std::unique_ptr<SI::Frame> FrameListModel::removeFrame(const idstring& id)
 
     return frame;
 }
+
+void FrameListModel::renameFrame(const idstring& oldId, const idstring& newId)
+{
+    auto& frames = _document->frameSet()->frames;
+
+    Q_ASSERT(frames.contains(oldId));
+    Q_ASSERT(frames.contains(newId) == false);
+
+    int oldIndex = _frameIdstrings.indexOf(oldId);
+
+    int newIndex = 0;
+    for (newIndex = 0; newIndex < _frameIdstrings.size(); newIndex++) {
+        if (_frameIdstrings.at(newIndex).str() > newId.str()) {
+            break;
+        }
+    }
+
+    if (oldIndex != newIndex && oldIndex != newIndex - 1) {
+        beginMoveRows(QModelIndex(), oldIndex, oldIndex,
+                      QModelIndex(), newIndex);
+        if (oldIndex < newIndex) {
+            newIndex--;
+        }
+        frames.rename(oldId, newId);
+
+        _frameNames.takeAt(oldIndex);
+        _frameNames.insert(newIndex, QString::fromStdString(newId));
+
+        _frameIdstrings.takeAt(oldIndex);
+        _frameIdstrings.insert(newIndex, newId);
+
+        endMoveRows();
+    }
+    else {
+        frames.rename(oldId, newId);
+
+        _frameNames.replace(oldIndex, QString::fromStdString(newId));
+        _frameIdstrings.replace(oldIndex, newId);
+
+        emit dataChanged(createIndex(oldIndex, 0), createIndex(oldIndex, 0));
+    }
+
+    emit _document->frameRenamed(frames.getPtr(newId), newId);
+}

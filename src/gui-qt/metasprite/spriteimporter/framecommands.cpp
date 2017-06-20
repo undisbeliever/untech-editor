@@ -98,6 +98,29 @@ void RemoveFrame::redo()
     removeFrame();
 }
 
+// RenameFrame
+// ===========
+
+RenameFrame::RenameFrame(Document* document,
+                         const idstring& oldId, const idstring& newId)
+    : QUndoCommand(QCoreApplication::tr("Rename Frame"))
+    , _document(document)
+    , _oldId(oldId)
+    , _newId(newId)
+{
+    Q_ASSERT(_oldId != _newId);
+}
+
+void RenameFrame::undo()
+{
+    _document->frameListModel()->renameFrame(_newId, _oldId);
+}
+
+void RenameFrame::redo()
+{
+    _document->frameListModel()->renameFrame(_oldId, _newId);
+}
+
 // ChangeFrameSpriteOrder
 // ======================
 

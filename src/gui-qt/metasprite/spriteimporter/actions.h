@@ -27,6 +27,7 @@ public:
 
     QAction* addFrame() const { return _addFrame; }
     QAction* cloneFrame() const { return _cloneFrame; }
+    QAction* renameFrame() const { return _renameFrame; }
     QAction* removeFrame() const { return _removeFrame; }
 
 public slots:
@@ -34,6 +35,7 @@ public slots:
 
     void onAddFrame();
     void onCloneFrame();
+    void onRenameFrame();
     void onRemoveFrame();
 
 private:
@@ -42,6 +44,7 @@ private:
 
     QAction* _addFrame;
     QAction* _cloneFrame;
+    QAction* _renameFrame;
     QAction* _removeFrame;
 };
 }

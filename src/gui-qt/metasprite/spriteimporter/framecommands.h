@@ -61,6 +61,21 @@ public:
     virtual void redo() final;
 };
 
+class RenameFrame : public QUndoCommand {
+public:
+    RenameFrame(Document* document,
+                const idstring& oldId, const idstring& newId);
+    ~RenameFrame() = default;
+
+    virtual void undo() final;
+    virtual void redo() final;
+
+private:
+    Document* _document;
+    const idstring _oldId;
+    const idstring _newId;
+};
+
 class ChangeFrameSpriteOrder : public QUndoCommand {
 public:
     ChangeFrameSpriteOrder(Document* document,

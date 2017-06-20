@@ -29,6 +29,7 @@ void Selection::setDocument(Document* document)
     unselectFrame();
 
     connect(_document, &Document::frameAboutToBeRemoved, this, &Selection::onFrameAboutToBeRemoved);
+    connect(_document, &Document::frameRenamed, this, &Selection::onFrameRenamed);
 }
 
 void Selection::unselectFrame()
@@ -59,5 +60,12 @@ void Selection::onFrameAboutToBeRemoved(const SI::Frame* frame)
 {
     if (_selectedFrame == frame) {
         unselectFrame();
+    }
+}
+
+void Selection::onFrameRenamed(const SI::Frame* frame, const idstring& newId)
+{
+    if (_selectedFrame == frame) {
+        _selectedFrameId = newId;
     }
 }

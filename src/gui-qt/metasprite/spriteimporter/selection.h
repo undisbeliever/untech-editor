@@ -37,6 +37,7 @@ signals:
 
 private slots:
     void onFrameAboutToBeRemoved(const SI::Frame*);
+    void onFrameRenamed(const SI::Frame*, const idstring& newId);
 
 private:
     Document* _document;

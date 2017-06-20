@@ -17,6 +17,7 @@ namespace MetaSprite {
 namespace SpriteImporter {
 class Document;
 class AddRemoveFrame;
+class RenameFrame;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -40,6 +41,9 @@ protected:
     friend class AddRemoveFrame;
     void insertFrame(const idstring& id, std::unique_ptr<SI::Frame> frame);
     std::unique_ptr<SI::Frame> removeFrame(const idstring& id);
+
+    friend class RenameFrame;
+    void renameFrame(const idstring& oldId, const idstring& newId);
 
 private:
     void buildFrameLists();
