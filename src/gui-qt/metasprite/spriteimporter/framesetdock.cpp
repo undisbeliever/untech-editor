@@ -9,6 +9,7 @@
 #include "framelistmodel.h"
 #include "framesetcommands.h"
 #include "selection.h"
+#include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/spriteimporter/framesetdock.ui.h"
 
 #include <QColorDialog>
@@ -24,6 +25,8 @@ FrameSetDock::FrameSetDock(QWidget* parent)
     , _document(nullptr)
 {
     _ui->setupUi(this);
+
+    _ui->frameSetName->setValidator(new IdstringValidator(this));
 
     _ui->nPalettes->setMaximum(UnTech::MetaSprite::MAX_PALETTES);
     _ui->paletteSize->setMaximum(32);
