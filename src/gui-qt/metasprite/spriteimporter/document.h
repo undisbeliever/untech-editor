@@ -17,6 +17,7 @@ namespace MetaSprite {
 namespace SpriteImporter {
 class Selection;
 class FrameListModel;
+class FrameContentsModel;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -42,6 +43,7 @@ public:
 
     Selection* selection() const { return _selection; }
     FrameListModel* frameListModel() const { return _frameListModel; }
+    FrameContentsModel* frameContentsModel() const { return _frameContentsModel; }
 
 signals:
     void frameSetDataChanged();
@@ -59,6 +61,7 @@ private:
 
     Selection* _selection;
     FrameListModel* _frameListModel;
+    FrameContentsModel* _frameContentsModel;
 };
 }
 }

@@ -5,6 +5,7 @@
  */
 
 #include "document.h"
+#include "framecontentsmodel.h"
 #include "framelistmodel.h"
 #include "selection.h"
 
@@ -27,11 +28,13 @@ Document::Document(std::unique_ptr<SI::FrameSet> frameSet,
     , _undoStack(new QUndoStack(this))
     , _selection(new Selection(this))
     , _frameListModel(new FrameListModel(this))
+    , _frameContentsModel(new FrameContentsModel(this))
 {
     Q_ASSERT(_frameSet != nullptr);
 
     _selection->setDocument(this);
     _frameListModel->setDocument(this);
+    _frameContentsModel->setDocument(this);
 }
 
 std::unique_ptr<Document> Document::loadDocument(const QString& filename)

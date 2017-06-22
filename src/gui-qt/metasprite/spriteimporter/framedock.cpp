@@ -7,6 +7,7 @@
 #include "framedock.h"
 #include "document.h"
 #include "framecommands.h"
+#include "framecontentsmodel.h"
 #include "framelistmodel.h"
 #include "selection.h"
 #include "gui-qt/metasprite/spriteimporter/framedock.ui.h"
@@ -19,6 +20,9 @@ FrameDock::FrameDock(QWidget* parent)
     , _document(nullptr)
 {
     _ui->setupUi(this);
+
+    _ui->frameContents->header()->setStretchLastSection(true);
+    _ui->frameContents->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     clearGui();
     setEnabled(false);
@@ -56,6 +60,11 @@ void FrameDock::setDocument(Document* document)
     if (_document) {
         _ui->frameComboBox->setModel(_document->frameListModel());
 
+        if (auto* m = _ui->frameContents->selectionModel()) {
+            m->deleteLater();
+        }
+        _ui->frameContents->setModel(_document->frameContentsModel());
+
         onSelectedFrameChanged();
 
         connect(_document, SIGNAL(frameSetGridChanged()), this, SLOT(updateGui()));
@@ -79,6 +88,7 @@ void FrameDock::onSelectedFrameChanged()
 
     if (frame) {
         updateGui();
+        _ui->frameContents->expandAll();
 
         _ui->frameComboBox->setCurrentIndex(
             _document->frameListModel()->toModelIndex(frameId).row());
