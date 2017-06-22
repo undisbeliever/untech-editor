@@ -7,6 +7,7 @@
 #include "framedock.h"
 #include "document.h"
 #include "framecommands.h"
+#include "framecontentsdelegate.h"
 #include "framecontentsmodel.h"
 #include "framelistmodel.h"
 #include "selection.h"
@@ -21,6 +22,7 @@ FrameDock::FrameDock(QWidget* parent)
 {
     _ui->setupUi(this);
 
+    _ui->frameContents->setItemDelegate(new FrameContentsDelegate(this));
     _ui->frameContents->header()->setStretchLastSection(true);
     _ui->frameContents->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 

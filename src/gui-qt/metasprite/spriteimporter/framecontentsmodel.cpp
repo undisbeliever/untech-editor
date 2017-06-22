@@ -6,9 +6,12 @@
 
 #include "framecontentsmodel.h"
 #include "document.h"
+#include "framecontentsdelegate.h"
 #include "selection.h"
 
 #include <QHash>
+#include <QPoint>
+#include <QRect>
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
@@ -187,7 +190,7 @@ Qt::ItemFlags FrameContentsModel::flags(const QModelIndex& index) const
         return Qt::ItemIsEnabled;
     }
     else {
-        return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+        return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
     }
 }
 
@@ -260,6 +263,29 @@ QVariant FrameContentsModel::data_frameObject(const QModelIndex& index, int role
                 return obj->size == ObjSize::SMALL ? tr("Small") : tr("Large");
             }
         }
+        else if (role == Qt::EditRole) {
+            switch ((Column)index.column()) {
+            case Column::LOCATION:
+                return QPoint(obj->location.x, obj->location.y);
+
+            case Column::PARAMETER:
+                return obj->size != ObjSize::SMALL;
+            }
+        }
+        else if (role == FrameContentsDelegate::DataTypeRole) {
+            switch ((Column)index.column()) {
+            case Column::LOCATION:
+                return FrameContentsDelegate::UPOINT;
+
+            case Column::PARAMETER:
+                return FrameContentsDelegate::OBJECT_SIZE;
+            }
+        }
+        else if (role == FrameContentsDelegate::RangeRole) {
+            const usize s = _frame->location.aabb.size();
+            const unsigned o = obj->sizePx();
+            return QSize(s.width - o, s.height - o);
+        }
     }
 
     return QVariant();
@@ -276,6 +302,28 @@ QVariant FrameContentsModel::data_actionPoint(const QModelIndex& index, int role
             case Column::PARAMETER:
                 return int(ap->parameter);
             }
+        }
+        else if (role == Qt::EditRole) {
+            switch ((Column)index.column()) {
+            case Column::LOCATION:
+                return QPoint(ap->location.x, ap->location.y);
+
+            case Column::PARAMETER:
+                return unsigned(ap->parameter);
+            }
+        }
+        else if (role == FrameContentsDelegate::DataTypeRole) {
+            switch ((Column)index.column()) {
+            case Column::LOCATION:
+                return FrameContentsDelegate::UPOINT;
+
+            case Column::PARAMETER:
+                return FrameContentsDelegate::ACTION_POINT_PARAMETER;
+            }
+        }
+        else if (role == FrameContentsDelegate::RangeRole) {
+            const usize s = _frame->location.aabb.size();
+            return QSize(s.width, s.height);
         }
     }
 
@@ -297,6 +345,29 @@ QVariant FrameContentsModel::data_entityHitbox(const QModelIndex& index, int rol
             case Column::PARAMETER:
                 return entityHitboxMap.value(int(eh->hitboxType.value()));
             }
+        }
+        else if (role == Qt::EditRole) {
+            switch ((Column)index.column()) {
+            case Column::LOCATION:
+                return QRect(eh->aabb.x, eh->aabb.y,
+                             eh->aabb.width, eh->aabb.height);
+
+            case Column::PARAMETER:
+                return int(eh->hitboxType.value());
+            }
+        }
+        else if (role == FrameContentsDelegate::DataTypeRole) {
+            switch ((Column)index.column()) {
+            case Column::LOCATION:
+                return FrameContentsDelegate::URECT;
+
+            case Column::PARAMETER:
+                return FrameContentsDelegate::ENTITY_HITBOX_TYPE;
+            }
+        }
+        else if (role == FrameContentsDelegate::RangeRole) {
+            const usize s = _frame->location.aabb.size();
+            return QSize(s.width, s.height);
         }
     }
 

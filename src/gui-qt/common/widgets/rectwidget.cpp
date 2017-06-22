@@ -111,6 +111,22 @@ void RectWidget::clear()
     _height->clear();
 }
 
+QRect RectWidget::value() const
+{
+    return QRect(_xPos->value(), _yPos->value(),
+                 _width->value(), _height->value());
+}
+
+void RectWidget::setValue(const QRect& r)
+{
+    _xPos->setValue(r.x());
+    _yPos->setValue(r.y());
+    _width->setValue(r.width());
+    _height->setValue(r.height());
+
+    updateRanges();
+}
+
 urect RectWidget::valueUrect() const
 {
     return urect(_xPos->value(), _yPos->value(),
@@ -130,6 +146,13 @@ void RectWidget::setValue(const urect& r)
 void RectWidget::setRange(const usize& range)
 {
     _range = range;
+    updateRanges();
+}
+
+void RectWidget::setRange(const QSize& range)
+{
+    _range.width = range.width();
+    _range.height = range.height();
     updateRanges();
 }
 

@@ -31,6 +31,8 @@ PointWidget::PointWidget(QWidget* parent)
     _yPos = new QSpinBox(this);
     layout->addWidget(_yPos, 1);
 
+    this->setMinimumSize(layout->minimumSize());
+
     _xPos->setFocusPolicy(Qt::WheelFocus);
     _yPos->setFocusPolicy(Qt::WheelFocus);
 
@@ -81,6 +83,17 @@ void PointWidget::clear()
     _yPos->clear();
 }
 
+QPoint PointWidget::value() const
+{
+    return QPoint(_xPos->value(), _yPos->value());
+}
+
+void PointWidget::setValue(const QPoint& p)
+{
+    _xPos->setValue(p.x());
+    _yPos->setValue(p.y());
+}
+
 upoint PointWidget::valueUpoint() const
 {
     return upoint(_xPos->value(), _yPos->value());
@@ -108,4 +121,10 @@ void PointWidget::setMaximum(const usize& max)
 {
     _xPos->setMaximum(max.width);
     _yPos->setMaximum(max.height);
+}
+
+void PointWidget::setMaximum(const QSize& max)
+{
+    _xPos->setMaximum(max.width());
+    _yPos->setMaximum(max.height());
 }

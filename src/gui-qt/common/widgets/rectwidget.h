@@ -22,10 +22,14 @@ public:
 
     void clear();
 
+    QRect value() const;
+    void setValue(const QRect&);
+
     urect valueUrect() const;
     void setValue(const urect&);
 
     void setRange(const usize&);
+    void setRange(const QSize&);
     void setMinRectSize(const usize&);
     void setMaxRectSize(const usize&);
 

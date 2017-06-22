@@ -22,6 +22,9 @@ public:
 
     void clear();
 
+    QPoint value() const;
+    void setValue(const QPoint&);
+
     upoint valueUpoint() const;
     void setValue(const upoint&);
 
@@ -29,6 +32,7 @@ public:
 
     void setMaximum(int max);
     void setMaximum(const usize&);
+    void setMaximum(const QSize&);
 
     virtual bool eventFilter(QObject* object, QEvent* event);
 
