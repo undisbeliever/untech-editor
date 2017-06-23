@@ -86,6 +86,12 @@ struct usize {
         return p.x < width && p.y < height;
     }
 
+    inline bool contains(const upoint& p, unsigned squarePx) const
+    {
+        return p.x + squarePx <= width
+               && p.y + squarePx <= height;
+    }
+
     inline bool contains(const urect& r) const;
 
     bool operator==(const usize& o) const

@@ -103,7 +103,7 @@ struct FrameObject {
 
     bool isValid(const FrameLocation& floc) const
     {
-        return floc.aabb.contains(location);
+        return floc.aabb.size().contains(location, sizePx());
     }
 
     bool operator==(const FrameObject& o) const
@@ -128,7 +128,7 @@ struct ActionPoint {
 
     bool isValid(const FrameLocation& floc) const
     {
-        return floc.aabb.contains(location);
+        return floc.aabb.size().contains(location);
     }
 
     bool operator==(const ActionPoint& o) const
@@ -157,7 +157,7 @@ struct EntityHitbox {
 
     bool isValid(const FrameLocation& floc) const
     {
-        return floc.aabb.contains(aabb.bottomRight());
+        return floc.aabb.size().contains(aabb);
     }
 
     bool operator==(const EntityHitbox& o) const
