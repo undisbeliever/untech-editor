@@ -49,6 +49,7 @@ public:
     inline auto& operator=(const COMP_TYPE v)
     {
         data = v >= MIN ? (v <= MAX ? v : MAX) : MIN;
+        return *this;
     }
 };
 
