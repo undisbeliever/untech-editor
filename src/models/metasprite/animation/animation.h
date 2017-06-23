@@ -34,6 +34,12 @@ struct AnimationFrame {
 
     bool isValid(const MetaSprite::FrameSet&) const;
     bool isValid(const SpriteImporter::FrameSet&) const;
+
+    bool operator==(const AnimationFrame& o) const
+    {
+        return this->frame == o.frame && this->duration == o.duration;
+    }
+    bool operator!=(const AnimationFrame& o) const { return !(*this == o); }
 };
 
 struct Animation {

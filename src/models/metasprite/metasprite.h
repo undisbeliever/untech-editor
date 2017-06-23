@@ -55,6 +55,14 @@ struct FrameObject {
     inline unsigned sizePx() const { return static_cast<unsigned>(size); }
 
     bool isValid(const FrameSet&);
+
+    bool operator==(const FrameObject& o) const
+    {
+        return this->location == o.location && this->size == o.size
+               && this->tileId == o.tileId && this->hFlip == o.hFlip
+               && this->vFlip == o.vFlip;
+    }
+    bool operator!=(const FrameObject& o) const { return !(*this == o); }
 };
 
 struct ActionPoint {
@@ -69,6 +77,12 @@ struct ActionPoint {
         , parameter(parameter)
     {
     }
+
+    bool operator==(const ActionPoint& o) const
+    {
+        return this->location == o.location && this->parameter == o.parameter;
+    }
+    bool operator!=(const ActionPoint& o) const { return !(*this == o); }
 };
 
 struct EntityHitbox {
@@ -87,6 +101,12 @@ struct EntityHitbox {
         , hitboxType(hitboxType)
     {
     }
+
+    bool operator==(const EntityHitbox& o) const
+    {
+        return this->aabb == o.aabb && this->hitboxType == o.hitboxType;
+    }
+    bool operator!=(const EntityHitbox& o) const { return !(*this == o); }
 };
 
 struct Frame {
