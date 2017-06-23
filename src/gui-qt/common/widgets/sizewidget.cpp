@@ -6,6 +6,7 @@
 
 #include "sizewidget.h"
 
+#include <QApplication>
 #include <QEvent>
 #include <QHBoxLayout>
 #include <QKeyEvent>
@@ -46,6 +47,12 @@ SizeWidget::SizeWidget(QWidget* parent)
     _height->installEventFilter(this);
 }
 
+void SizeWidget::focusInEvent(QFocusEvent*)
+{
+    _width->setFocus();
+    _width->selectAll();
+}
+
 bool SizeWidget::eventFilter(QObject* object, QEvent* event)
 {
     if (event->type() == QEvent::KeyPress) {
@@ -53,12 +60,14 @@ bool SizeWidget::eventFilter(QObject* object, QEvent* event)
         const auto& key = keyEvent->key();
 
         if (key == Qt::Key_Backtab && _width->hasFocus()) {
+            QApplication::sendEvent(this, event);
             emit editingFinished();
-            return false;
+            return true;
         }
         else if (key == Qt::Key_Tab && _height->hasFocus()) {
+            QApplication::sendEvent(this, event);
             emit editingFinished();
-            return false;
+            return true;
         }
         else if (key == Qt::Key_Enter || key == Qt::Key_Return) {
             emit editingFinished();
@@ -67,6 +76,7 @@ bool SizeWidget::eventFilter(QObject* object, QEvent* event)
     }
     else if (event->type() == QEvent::FocusOut) {
         if (_width->hasFocus() == false && _height->hasFocus() == false) {
+            QApplication::sendEvent(this, event);
             emit editingFinished();
             return false;
         }

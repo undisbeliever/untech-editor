@@ -33,7 +33,9 @@ public:
     void setMinRectSize(const usize&);
     void setMaxRectSize(const usize&);
 
-    virtual bool eventFilter(QObject* object, QEvent* event);
+protected:
+    virtual void focusInEvent(QFocusEvent*) override;
+    virtual bool eventFilter(QObject* object, QEvent* event) override;
 
 signals:
     void editingFinished();

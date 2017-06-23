@@ -6,6 +6,7 @@
 
 #include "rectwidget.h"
 
+#include <QApplication>
 #include <QEvent>
 #include <QGridLayout>
 #include <QKeyEvent>
@@ -72,6 +73,12 @@ RectWidget::RectWidget(QWidget* parent)
     _height->installEventFilter(this);
 }
 
+void RectWidget::focusInEvent(QFocusEvent*)
+{
+    _xPos->setFocus();
+    _xPos->selectAll();
+}
+
 bool RectWidget::eventFilter(QObject* object, QEvent* event)
 {
     if (event->type() == QEvent::KeyPress) {
@@ -79,12 +86,14 @@ bool RectWidget::eventFilter(QObject* object, QEvent* event)
         const auto& key = keyEvent->key();
 
         if (key == Qt::Key_Backtab && _xPos->hasFocus()) {
+            QApplication::sendEvent(this, event);
             emit editingFinished();
-            return false;
+            return true;
         }
         else if (key == Qt::Key_Tab && _height->hasFocus()) {
+            QApplication::sendEvent(this, event);
             emit editingFinished();
-            return false;
+            return true;
         }
         else if (key == Qt::Key_Enter || key == Qt::Key_Return) {
             emit editingFinished();
@@ -95,6 +104,7 @@ bool RectWidget::eventFilter(QObject* object, QEvent* event)
         if (_xPos->hasFocus() == false && _yPos->hasFocus() == false
             && _width->hasFocus() == false && _height->hasFocus() == false) {
 
+            QApplication::sendEvent(this, event);
             emit editingFinished();
             return false;
         }

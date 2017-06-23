@@ -34,7 +34,9 @@ public:
     void setMaximum(const usize&);
     void setMaximum(const QSize&);
 
-    virtual bool eventFilter(QObject* object, QEvent* event);
+protected:
+    virtual void focusInEvent(QFocusEvent* event) override;
+    virtual bool eventFilter(QObject* object, QEvent* event) override;
 
 signals:
     void editingFinished();

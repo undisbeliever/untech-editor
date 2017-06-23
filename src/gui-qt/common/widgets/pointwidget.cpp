@@ -6,6 +6,7 @@
 
 #include "pointwidget.h"
 
+#include <QApplication>
 #include <QEvent>
 #include <QHBoxLayout>
 #include <QKeyEvent>
@@ -48,6 +49,12 @@ PointWidget::PointWidget(QWidget* parent)
     _yPos->installEventFilter(this);
 }
 
+void PointWidget::focusInEvent(QFocusEvent*)
+{
+    _xPos->setFocus();
+    _xPos->selectAll();
+}
+
 bool PointWidget::eventFilter(QObject* object, QEvent* event)
 {
     if (event->type() == QEvent::KeyPress) {
@@ -55,12 +62,14 @@ bool PointWidget::eventFilter(QObject* object, QEvent* event)
         const auto& key = keyEvent->key();
 
         if (key == Qt::Key_Backtab && _xPos->hasFocus()) {
+            QApplication::sendEvent(this, event);
             emit editingFinished();
-            return false;
+            return true;
         }
         else if (key == Qt::Key_Tab && _yPos->hasFocus()) {
+            QApplication::sendEvent(this, event);
             emit editingFinished();
-            return false;
+            return true;
         }
         else if (key == Qt::Key_Enter || key == Qt::Key_Return) {
             emit editingFinished();
@@ -69,6 +78,7 @@ bool PointWidget::eventFilter(QObject* object, QEvent* event)
     }
     else if (event->type() == QEvent::FocusOut) {
         if (_xPos->hasFocus() == false && _yPos->hasFocus() == false) {
+            QApplication::sendEvent(this, event);
             emit editingFinished();
             return false;
         }
