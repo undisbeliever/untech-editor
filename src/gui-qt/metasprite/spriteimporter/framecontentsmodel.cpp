@@ -6,6 +6,7 @@
 
 #include "framecontentsmodel.h"
 #include "document.h"
+#include "framecontentcommands.h"
 #include "framecontentsdelegate.h"
 #include "selection.h"
 
@@ -373,3 +374,141 @@ QVariant FrameContentsModel::data_entityHitbox(const QModelIndex& index, int rol
 
     return QVariant();
 }
+
+bool FrameContentsModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+    if (_frame == nullptr
+        || role != Qt::EditRole) {
+        return false;
+    }
+
+    switch ((InternalId)index.internalId()) {
+    case InternalId::FRAME_OBJECT:
+        return setData_frameObject(index, value);
+
+    case InternalId::ACTION_POINT:
+        return setData_actionPoint(index, value);
+
+    case InternalId::ENTITY_HITBOX:
+        return setData_entityHitbox(index, value);
+
+    default:
+        return false;
+    }
+}
+
+bool FrameContentsModel::setData_frameObject(const QModelIndex& index, const QVariant& value)
+{
+    using ObjSize = UnTech::MetaSprite::ObjectSize;
+
+    const SI::FrameObject* modelObj = toFrameObject(index);
+    if (modelObj == nullptr) {
+        return false;
+    }
+
+    SI::FrameObject obj = *modelObj;
+
+    switch ((Column)index.column()) {
+    case Column::LOCATION:
+        obj.location.x = value.toPoint().x();
+        obj.location.y = value.toPoint().y();
+        break;
+
+    case Column::PARAMETER:
+        obj.size = value.toBool() ? ObjSize::LARGE : ObjSize::SMALL;
+        break;
+
+    default:
+        return false;
+    }
+
+    if (obj != *modelObj && obj.isValid(_frame->location)) {
+        _document->undoStack()->push(
+            new ChangeFrameObject(_document, _frame, index.row(), obj));
+    }
+
+    return true;
+}
+
+bool FrameContentsModel::setData_actionPoint(const QModelIndex& index, const QVariant& value)
+{
+    const SI::ActionPoint* modelAp = toActionPoint(index);
+    if (modelAp == nullptr) {
+        return false;
+    }
+
+    SI::ActionPoint ap = *modelAp;
+
+    switch ((Column)index.column()) {
+    case Column::LOCATION:
+        ap.location.x = value.toPoint().x();
+        ap.location.y = value.toPoint().y();
+        break;
+
+    case Column::PARAMETER:
+        ap.parameter = value.toUInt();
+        break;
+
+    default:
+        return false;
+    }
+
+    if (ap != *modelAp && ap.isValid(_frame->location)) {
+        _document->undoStack()->push(
+            new ChangeActionPoint(_document, _frame, index.row(), ap));
+    }
+
+    return true;
+}
+
+bool FrameContentsModel::setData_entityHitbox(const QModelIndex& index, const QVariant& value)
+{
+    using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
+
+    const SI::EntityHitbox* modelEh = toEntityHitbox(index);
+    if (modelEh == nullptr) {
+        return false;
+    }
+
+    SI::EntityHitbox eh = *modelEh;
+
+    switch ((Column)index.column()) {
+    case Column::LOCATION:
+        eh.aabb.x = value.toRect().x();
+        eh.aabb.y = value.toRect().y();
+        eh.aabb.width = value.toRect().width();
+        eh.aabb.height = value.toRect().height();
+        break;
+
+    case Column::PARAMETER:
+        eh.hitboxType = (EntityHitboxType::Enum)value.toInt();
+        break;
+
+    default:
+        return false;
+    }
+
+    if (eh != *modelEh && eh.isValid(_frame->location)) {
+        _document->undoStack()->push(
+            new ChangeEntityHitbox(_document, _frame, index.row(), eh));
+    }
+
+    return true;
+}
+
+#define SET_ITEM(CLS, FIELD, INTERNAL_ID, SIGNAL)                           \
+    void FrameContentsModel::set##CLS(SI::Frame* frame,                     \
+                                      unsigned index, const SI::CLS& value) \
+    {                                                                       \
+        frame->FIELD.at(index) = value;                                     \
+                                                                            \
+        if (_frame == frame) {                                              \
+            emit dataChanged(createIndex(index, 0, INTERNAL_ID),            \
+                             createIndex(index, N_COLUMNS, INTERNAL_ID),    \
+                             { Qt::DisplayRole, Qt::EditRole });            \
+        }                                                                   \
+        emit _document->SIGNAL(frame, index);                               \
+    }
+SET_ITEM(FrameObject, objects, FRAME_OBJECT, frameObjectChanged);
+SET_ITEM(ActionPoint, actionPoints, ACTION_POINT, actionPointChanged);
+SET_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxChanged);

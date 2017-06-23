@@ -15,6 +15,9 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace SpriteImporter {
 class Document;
+class ChangeFrameObject;
+class ChangeActionPoint;
+class ChangeEntityHitbox;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -55,6 +58,7 @@ public:
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const final;
 
     virtual QVariant data(const QModelIndex& index, int role) const final;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
 private:
     SI::FrameObject* toFrameObject(const QModelIndex& index) const;
@@ -65,6 +69,20 @@ private:
     QVariant data_frameObject(const QModelIndex& index, int role) const;
     QVariant data_actionPoint(const QModelIndex& index, int role) const;
     QVariant data_entityHitbox(const QModelIndex& index, int role) const;
+
+    bool setData_frameObject(const QModelIndex& index, const QVariant& value);
+    bool setData_actionPoint(const QModelIndex& index, const QVariant& value);
+    bool setData_entityHitbox(const QModelIndex& index, const QVariant& value);
+
+protected:
+    friend class ChangeFrameObject;
+    void setFrameObject(SI::Frame* frame, unsigned index, const SI::FrameObject& obj);
+
+    friend class ChangeActionPoint;
+    void setActionPoint(SI::Frame* frame, unsigned index, const SI::ActionPoint& ap);
+
+    friend class ChangeEntityHitbox;
+    void setEntityHitbox(SI::Frame* frame, unsigned index, const SI::EntityHitbox& eh);
 
 private slots:
     void onSelectedFrameChanged();

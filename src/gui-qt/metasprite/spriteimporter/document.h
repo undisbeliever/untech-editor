@@ -53,6 +53,10 @@ signals:
     void frameAboutToBeRemoved(const SI::Frame*);
     void frameRenamed(const SI::Frame*, const idstring& newId);
 
+    void frameObjectChanged(const SI::Frame*, unsigned index);
+    void actionPointChanged(const SI::Frame*, unsigned index);
+    void entityHitboxChanged(const SI::Frame*, unsigned index);
+
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;
     QString _filename;

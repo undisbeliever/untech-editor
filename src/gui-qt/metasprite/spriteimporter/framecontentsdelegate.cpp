@@ -116,6 +116,41 @@ void FrameContentsDelegate::setEditorData(QWidget* editor,
     }
 }
 
+void FrameContentsDelegate::setModelData(QWidget* editor, QAbstractItemModel* model,
+                                         const QModelIndex& index) const
+{
+    int type = index.data(DataTypeRole).toInt();
+    QVariant value = index.data(Qt::EditRole);
+
+    switch ((DataType)type) {
+    case UPOINT: {
+        PointWidget* pointEditor = qobject_cast<PointWidget*>(editor);
+        model->setData(index, pointEditor->value(), Qt::EditRole);
+    } break;
+
+    case URECT: {
+        RectWidget* rectEditor = qobject_cast<RectWidget*>(editor);
+        model->setData(index, rectEditor->value(), Qt::EditRole);
+    } break;
+
+    case OBJECT_SIZE: {
+        QComboBox* comboBox = qobject_cast<QComboBox*>(editor);
+        model->setData(index, comboBox->currentIndex(), Qt::EditRole);
+    } break;
+
+    case ENTITY_HITBOX_TYPE: {
+        EnumComboBox* comboBox = qobject_cast<EnumComboBox*>(editor);
+        model->setData(index, comboBox->currentEnumInt(), Qt::EditRole);
+    } break;
+
+    case ACTION_POINT_PARAMETER: {
+        QSpinBox* spinBox = qobject_cast<QSpinBox*>(editor);
+        spinBox->interpretText();
+        model->setData(index, spinBox->value(), Qt::EditRole);
+    } break;
+    }
+}
+
 void FrameContentsDelegate::updateEditorGeometry(QWidget* editor,
                                                  const QStyleOptionViewItem& option,
                                                  const QModelIndex&) const
