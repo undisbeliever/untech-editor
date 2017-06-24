@@ -32,6 +32,12 @@ void Selection::setDocument(Document* document)
 
     connect(_document, &Document::frameAboutToBeRemoved, this, &Selection::onFrameAboutToBeRemoved);
     connect(_document, &Document::frameRenamed, this, &Selection::onFrameRenamed);
+    connect(_document, &Document::frameObjectAboutToBeRemoved,
+            this, &Selection::onFrameObjectAboutToBeRemoved);
+    connect(_document, &Document::frameObjectAboutToBeRemoved,
+            this, &Selection::onActionPointAboutToBeRemoved);
+    connect(_document, &Document::frameObjectAboutToBeRemoved,
+            this, &Selection::onEntityHitboxAboutToBeRemoved);
 }
 
 void Selection::unselectFrame()
@@ -82,4 +88,92 @@ void Selection::onFrameRenamed(const SI::Frame* frame, const idstring& newId)
     if (_selectedFrame == frame) {
         _selectedFrameId = newId;
     }
+}
+
+void Selection::onFrameObjectAboutToBeRemoved(const SI::Frame* frame, unsigned index)
+{
+    if (_selectedFrame == frame) {
+        _selectedItems.erase({ SelectedItem::FRAME_OBJECT, index });
+    }
+}
+
+void Selection::onActionPointAboutToBeRemoved(const SI::Frame* frame, unsigned index)
+{
+    if (_selectedFrame == frame) {
+        _selectedItems.erase({ SelectedItem::ACTION_POINT, index });
+    }
+}
+
+void Selection::onEntityHitboxAboutToBeRemoved(const SI::Frame* frame, unsigned index)
+{
+    if (_selectedFrame == frame) {
+        _selectedItems.erase({ SelectedItem::ENTITY_HITBOX, index });
+    }
+}
+
+bool Selection::canCloneSelectedItems() const
+{
+    if (_selectedFrame == nullptr || _selectedItems.size() == 0) {
+        return false;
+    }
+
+    unsigned nObjects = 0;
+    unsigned nActionPoints = 0;
+    unsigned nEntityHitboxes = 0;
+
+    for (const auto& item : _selectedItems) {
+        switch (item.type) {
+        case SelectedItem::NONE:
+            return false;
+
+        case SelectedItem::FRAME_OBJECT:
+            nObjects++;
+            break;
+
+        case SelectedItem::ACTION_POINT:
+            nActionPoints++;
+            break;
+
+        case SelectedItem::ENTITY_HITBOX:
+            nEntityHitboxes++;
+            break;
+        }
+    }
+
+    return _selectedFrame->objects.can_insert(nObjects)
+           && _selectedFrame->actionPoints.can_insert(nActionPoints)
+           && _selectedFrame->entityHitboxes.can_insert(nEntityHitboxes);
+}
+
+void Selection::selectFrameObject(unsigned index)
+{
+    _selectedItems.clear();
+
+    if (_selectedFrame && _selectedFrame->objects.size()) {
+        _selectedItems.insert({ SelectedItem::FRAME_OBJECT, index });
+    }
+
+    emit selectedItemsChanged();
+}
+
+void Selection::selectActionPoint(unsigned index)
+{
+    _selectedItems.clear();
+
+    if (_selectedFrame && _selectedFrame->actionPoints.size()) {
+        _selectedItems.insert({ SelectedItem::ACTION_POINT, index });
+    }
+
+    emit selectedItemsChanged();
+}
+
+void Selection::selectEntityHitbox(unsigned index)
+{
+    _selectedItems.clear();
+
+    if (_selectedFrame && _selectedFrame->entityHitboxes.size()) {
+        _selectedItems.insert({ SelectedItem::ENTITY_HITBOX, index });
+    }
+
+    emit selectedItemsChanged();
 }

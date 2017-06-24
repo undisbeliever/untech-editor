@@ -19,6 +19,9 @@ class Document;
 class ChangeFrameObject;
 class ChangeActionPoint;
 class ChangeEntityHitbox;
+class AddRemoveFrameObject;
+class AddRemoveActionPoint;
+class AddRemoveEntityHitbox;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -87,6 +90,18 @@ protected:
 
     friend class ChangeEntityHitbox;
     void setEntityHitbox(SI::Frame* frame, unsigned index, const SI::EntityHitbox& eh);
+
+    friend class AddRemoveFrameObject;
+    void insertFrameObject(SI::Frame* frame, unsigned index, const SI::FrameObject&);
+    void removeFrameObject(SI::Frame* frame, unsigned index);
+
+    friend class AddRemoveActionPoint;
+    void insertActionPoint(SI::Frame* frame, unsigned index, const SI::ActionPoint&);
+    void removeActionPoint(SI::Frame* frame, unsigned index);
+
+    friend class AddRemoveEntityHitbox;
+    void insertEntityHitbox(SI::Frame* frame, unsigned index, const SI::EntityHitbox&);
+    void removeEntityHitbox(SI::Frame* frame, unsigned index);
 
 private slots:
     void onSelectedFrameChanged();

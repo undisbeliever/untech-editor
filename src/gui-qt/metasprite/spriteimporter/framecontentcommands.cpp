@@ -39,3 +39,94 @@ using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 CHANGE_COMMAND(FrameObject, objects, "Change Frame Object");
 CHANGE_COMMAND(ActionPoint, actionPoints, "Change Action Point");
 CHANGE_COMMAND(EntityHitbox, entityHitboxes, "Change Entity Hitbox");
+
+#define ADD_REMOVE_COMMAND(CLS)                                               \
+    AddRemove##CLS::AddRemove##CLS(Document* document, SI::Frame* frame,      \
+                                   unsigned index, const SI::CLS& value,      \
+                                   const QString& text)                       \
+        : QUndoCommand(text)                                                  \
+        , _document(document)                                                 \
+        , _frame(frame)                                                       \
+        , _index(index)                                                       \
+        , _value(value)                                                       \
+    {                                                                         \
+        Q_ASSERT(_frame != nullptr);                                          \
+    }                                                                         \
+                                                                              \
+    void AddRemove##CLS::add##CLS()                                           \
+    {                                                                         \
+        _document->frameContentsModel()->insert##CLS(_frame, _index, _value); \
+    }                                                                         \
+                                                                              \
+    void AddRemove##CLS::remove##CLS()                                        \
+    {                                                                         \
+        _document->frameContentsModel()->remove##CLS(_frame, _index);         \
+    }
+ADD_REMOVE_COMMAND(FrameObject);
+ADD_REMOVE_COMMAND(ActionPoint);
+ADD_REMOVE_COMMAND(EntityHitbox);
+
+#define ADD_COMMAND(CLS, CONTAINER, TEXT)                    \
+    Add##CLS::Add##CLS(Document* document, SI::Frame* frame) \
+        : AddRemove##CLS(document, frame,                    \
+                         frame->CONTAINER.size(),            \
+                         SI::CLS(),                          \
+                         QCoreApplication::tr(TEXT))         \
+    {                                                        \
+    }                                                        \
+                                                             \
+    void Add##CLS::undo()                                    \
+    {                                                        \
+        remove##CLS();                                       \
+    }                                                        \
+    void Add##CLS::redo()                                    \
+    {                                                        \
+        add##CLS();                                          \
+    }
+ADD_COMMAND(FrameObject, objects, "Add Frame Object");
+ADD_COMMAND(ActionPoint, actionPoints, "Add Action Point");
+ADD_COMMAND(EntityHitbox, entityHitboxes, "Add Entity Hitbox");
+
+#define CLONE_COMMAND(CLS, CONTAINER, TEXT)                      \
+    Clone##CLS::Clone##CLS(Document* document, SI::Frame* frame, \
+                           unsigned index)                       \
+        : AddRemove##CLS(document, frame,                        \
+                         frame->CONTAINER.size(),                \
+                         frame->CONTAINER.at(index),             \
+                         QCoreApplication::tr(TEXT))             \
+    {                                                            \
+    }                                                            \
+                                                                 \
+    void Clone##CLS::undo()                                      \
+    {                                                            \
+        remove##CLS();                                           \
+    }                                                            \
+    void Clone##CLS::redo()                                      \
+    {                                                            \
+        add##CLS();                                              \
+    }
+CLONE_COMMAND(FrameObject, objects, "Clone Frame Object");
+CLONE_COMMAND(ActionPoint, actionPoints, "Clone Action Point");
+CLONE_COMMAND(EntityHitbox, entityHitboxes, "Clone Entity Hitbox");
+
+#define REMOVE_COMMAND(CLS, CONTAINER, TEXT)                       \
+    Remove##CLS::Remove##CLS(Document* document, SI::Frame* frame, \
+                             unsigned index)                       \
+        : AddRemove##CLS(document, frame,                          \
+                         index,                                    \
+                         frame->CONTAINER.at(index),               \
+                         QCoreApplication::tr(TEXT))               \
+    {                                                              \
+    }                                                              \
+                                                                   \
+    void Remove##CLS::undo()                                       \
+    {                                                              \
+        add##CLS();                                                \
+    }                                                              \
+    void Remove##CLS::redo()                                       \
+    {                                                              \
+        remove##CLS();                                             \
+    }
+REMOVE_COMMAND(FrameObject, objects, "Remove Frame Object");
+REMOVE_COMMAND(ActionPoint, actionPoints, "Remove Action Point");
+REMOVE_COMMAND(EntityHitbox, entityHitboxes, "Remove Entity Hitbox");

@@ -28,7 +28,7 @@ struct SelectedItem {
         ENTITY_HITBOX
     };
     Type type;
-    unsigned index;
+    size_t index;
 
     bool operator==(const SelectedItem& o) const
     {
@@ -58,6 +58,12 @@ public:
     void unselectFrame();
     void selectFrame(const idstring& id);
 
+    bool canCloneSelectedItems() const;
+
+    void selectFrameObject(unsigned index);
+    void selectActionPoint(unsigned index);
+    void selectEntityHitbox(unsigned index);
+
 signals:
     void selectedFrameChanged();
     void selectedItemsChanged();
@@ -65,6 +71,10 @@ signals:
 private slots:
     void onFrameAboutToBeRemoved(const SI::Frame*);
     void onFrameRenamed(const SI::Frame*, const idstring& newId);
+
+    void onFrameObjectAboutToBeRemoved(const SI::Frame*, unsigned index);
+    void onActionPointAboutToBeRemoved(const SI::Frame*, unsigned index);
+    void onEntityHitboxAboutToBeRemoved(const SI::Frame*, unsigned index);
 
 private:
     Document* _document;

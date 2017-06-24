@@ -57,6 +57,14 @@ signals:
     void actionPointChanged(const SI::Frame*, unsigned index);
     void entityHitboxChanged(const SI::Frame*, unsigned index);
 
+    void frameObjectAboutToBeRemoved(const SI::Frame*, unsigned index);
+    void actionPointAboutToBeRemoved(const SI::Frame*, unsigned index);
+    void entityHitboxAboutToBeRemoved(const SI::Frame*, unsigned index);
+
+    void frameObjectAdded(const SI::Frame*, unsigned index);
+    void actionPointAdded(const SI::Frame*, unsigned index);
+    void entityHitboxAdded(const SI::Frame*, unsigned index);
+
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;
     QString _filename;

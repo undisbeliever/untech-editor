@@ -572,3 +572,53 @@ bool FrameContentsModel::setData_entityHitbox(const QModelIndex& index, const QV
 SET_ITEM(FrameObject, objects, FRAME_OBJECT, frameObjectChanged);
 SET_ITEM(ActionPoint, actionPoints, ACTION_POINT, actionPointChanged);
 SET_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxChanged);
+
+#define INSERT_ITEM(CLS, FIELD, INTERNAL_ID, SIGNAL)                           \
+    void FrameContentsModel::insert##CLS(SI::Frame* frame,                     \
+                                         unsigned index, const SI::CLS& value) \
+    {                                                                          \
+        Q_ASSERT(frame != nullptr);                                            \
+        Q_ASSERT(index <= frame->FIELD.size());                                \
+                                                                               \
+        if (_frame == frame) {                                                 \
+            beginInsertRows(createIndex(INTERNAL_ID - 1, 0, ROOT),             \
+                            index, index);                                     \
+        }                                                                      \
+                                                                               \
+        auto it = frame->FIELD.begin() + index;                                \
+        frame->FIELD.insert(it, value);                                        \
+                                                                               \
+        if (_frame == frame) {                                                 \
+            endInsertRows();                                                   \
+        }                                                                      \
+                                                                               \
+        emit _document->SIGNAL(frame, index);                                  \
+    }
+INSERT_ITEM(FrameObject, objects, FRAME_OBJECT, frameObjectAdded);
+INSERT_ITEM(ActionPoint, actionPoints, ACTION_POINT, actionPointAdded);
+INSERT_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxAdded);
+
+#define REMOVE_ITEM(CLS, FIELD, INTERNAL_ID, SIGNAL)                       \
+    void FrameContentsModel::remove##CLS(SI::Frame* frame, unsigned index) \
+    {                                                                      \
+        Q_ASSERT(frame != nullptr);                                        \
+        Q_ASSERT(frame->FIELD.size() > 0);                                 \
+        Q_ASSERT(index < frame->FIELD.size());                             \
+                                                                           \
+        emit _document->SIGNAL(frame, index);                              \
+                                                                           \
+        if (_frame == frame) {                                             \
+            beginRemoveRows(createIndex(INTERNAL_ID - 1, 0, ROOT),         \
+                            index, index);                                 \
+        }                                                                  \
+                                                                           \
+        auto it = frame->FIELD.begin() + index;                            \
+        frame->FIELD.erase(it);                                            \
+                                                                           \
+        if (_frame == frame) {                                             \
+            endRemoveRows();                                               \
+        }                                                                  \
+    }
+REMOVE_ITEM(FrameObject, objects, FRAME_OBJECT, frameObjectAboutToBeRemoved);
+REMOVE_ITEM(ActionPoint, actionPoints, ACTION_POINT, actionPointAboutToBeRemoved);
+REMOVE_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxAboutToBeRemoved);

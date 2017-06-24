@@ -30,6 +30,13 @@ public:
     QAction* renameFrame() const { return _renameFrame; }
     QAction* removeFrame() const { return _removeFrame; }
 
+    QAction* addFrameObject() const { return _addFrameObject; }
+    QAction* addActionPoint() const { return _addActionPoint; }
+    QAction* addEntityHitbox() const { return _addEntityHitbox; }
+
+    QAction* cloneSelected() const { return _cloneSelected; }
+    QAction* removeSelected() const { return _removeSelected; }
+
 public slots:
     void updateActions();
 
@@ -37,6 +44,12 @@ public slots:
     void onCloneFrame();
     void onRenameFrame();
     void onRemoveFrame();
+
+    void onAddFrameObject();
+    void onAddActionPoint();
+    void onAddEntityHitbox();
+    void onCloneSelected();
+    void onRemoveSelected();
 
 private:
     MainWindow* _mainWindow;
@@ -46,6 +59,12 @@ private:
     QAction* _cloneFrame;
     QAction* _renameFrame;
     QAction* _removeFrame;
+
+    QAction* _addFrameObject;
+    QAction* _addActionPoint;
+    QAction* _addEntityHitbox;
+    QAction* _cloneSelected;
+    QAction* _removeSelected;
 };
 }
 }
