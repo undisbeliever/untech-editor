@@ -91,6 +91,66 @@ inline SI::EntityHitbox* FrameContentsModel::toEntityHitbox(const QModelIndex& i
     return &_frame->entityHitboxes.at(index.row());
 }
 
+QModelIndex FrameContentsModel::toModelIndex(const SelectedItem& item) const
+{
+    switch (item.type) {
+    case SelectedItem::NONE:
+        return QModelIndex();
+
+    case SelectedItem::FRAME_OBJECT:
+        if (item.index < _frame->objects.size()) {
+            return createIndex(item.index, 0, FRAME_OBJECT);
+        }
+        break;
+
+    case SelectedItem::ACTION_POINT:
+        if (item.index < _frame->actionPoints.size()) {
+            return createIndex(item.index, 0, ACTION_POINT);
+        }
+        break;
+
+    case SelectedItem::ENTITY_HITBOX:
+        if (item.index < _frame->entityHitboxes.size()) {
+            return createIndex(item.index, 0, ENTITY_HITBOX);
+        }
+        break;
+    }
+
+    return QModelIndex();
+}
+
+SelectedItem FrameContentsModel::toSelectedItem(const QModelIndex& index) const
+{
+    if (_frame && index.isValid() && index.row() >= 0) {
+        unsigned i = unsigned(index.row());
+
+        switch ((InternalId)index.internalId()) {
+        case InternalId::ROOT:
+            break;
+
+        case InternalId::FRAME_OBJECT:
+            if (i < _frame->objects.size()) {
+                return { SelectedItem::FRAME_OBJECT, i };
+            }
+            break;
+
+        case InternalId::ACTION_POINT:
+            if (i < _frame->actionPoints.size()) {
+                return { SelectedItem::ACTION_POINT, i };
+            }
+            break;
+
+        case InternalId::ENTITY_HITBOX:
+            if (i < _frame->entityHitboxes.size()) {
+                return { SelectedItem::ENTITY_HITBOX, i };
+            }
+            break;
+        }
+    }
+
+    return { SelectedItem::NONE, 0 };
+}
+
 QModelIndex FrameContentsModel::index(int row, int column, const QModelIndex& parent) const
 {
     if (_frame == nullptr

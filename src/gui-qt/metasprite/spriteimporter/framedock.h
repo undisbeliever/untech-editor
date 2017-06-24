@@ -8,6 +8,7 @@
 
 #include "models/metasprite/spriteimporter.h"
 #include <QDockWidget>
+#include <QItemSelection>
 #include <memory>
 
 namespace UnTech {
@@ -35,6 +36,7 @@ public:
 private slots:
     void onSelectedFrameChanged();
     void onFrameComboBoxActivated();
+    void updateFrameContentsSelection();
 
     void onFrameDataChanged(const SI::Frame*);
 
@@ -44,6 +46,8 @@ private slots:
     void onFrameLocationEdited();
     void onSolidClicked();
     void onTileHitboxEdited();
+
+    void onFrameContentsSelectionChanged();
 
 private:
     std::unique_ptr<Ui::FrameDock> _ui;

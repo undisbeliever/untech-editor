@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "selection.h"
 #include "models/metasprite/spriteimporter.h"
 #include <QAbstractItemModel>
 #include <QHash>
@@ -46,6 +47,9 @@ public:
     ~FrameContentsModel() = default;
 
     void setDocument(Document* document);
+
+    QModelIndex toModelIndex(const SelectedItem& item) const;
+    SelectedItem toSelectedItem(const QModelIndex& index) const;
 
     virtual QModelIndex index(int row, int column, const QModelIndex& parent) const final;
     virtual QModelIndex parent(const QModelIndex& index) const final;

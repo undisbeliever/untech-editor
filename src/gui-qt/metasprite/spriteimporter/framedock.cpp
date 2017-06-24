@@ -74,6 +74,12 @@ void FrameDock::setDocument(Document* document)
 
         connect(_document->selection(), SIGNAL(selectedFrameChanged()),
                 this, SLOT(onSelectedFrameChanged()));
+
+        connect(_document->selection(), SIGNAL(selectedItemsChanged()),
+                this, SLOT(updateFrameContentsSelection()));
+
+        connect(_ui->frameContents->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, &FrameDock::onFrameContentsSelectionChanged);
     }
     else {
         clearGui();
@@ -223,4 +229,30 @@ void FrameDock::onTileHitboxEdited()
         _document->undoStack()->push(
             new ChangeFrameTileHitbox(_document, frame, hitbox));
     }
+}
+
+void FrameDock::updateFrameContentsSelection()
+{
+    FrameContentsModel* model = _document->frameContentsModel();
+    QItemSelection sel;
+
+    for (const auto& item : _document->selection()->selectedItems()) {
+        QModelIndex index = model->toModelIndex(item);
+        sel.select(index, index);
+    }
+
+    _ui->frameContents->selectionModel()->select(
+        sel, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+}
+
+void FrameDock::onFrameContentsSelectionChanged()
+{
+    FrameContentsModel* model = _document->frameContentsModel();
+    std::set<SelectedItem> items;
+
+    for (const auto& index : _ui->frameContents->selectionModel()->selectedRows()) {
+        items.insert(model->toSelectedItem(index));
+    }
+
+    _document->selection()->setSelectedItems(items);
 }

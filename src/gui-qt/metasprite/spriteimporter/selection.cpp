@@ -6,6 +6,7 @@
 
 #include "selection.h"
 #include "document.h"
+#include <algorithm>
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
@@ -14,6 +15,7 @@ Selection::Selection(QObject* parent)
     , _document(nullptr)
     , _selectedFrame(nullptr)
     , _selectedFrameId()
+    , _selectedItems()
 {
 }
 
@@ -36,7 +38,9 @@ void Selection::unselectFrame()
 {
     _selectedFrame = nullptr;
     _selectedFrameId = idstring();
+    _selectedItems.clear();
 
+    emit selectedItemsChanged();
     emit selectedFrameChanged();
 }
 
@@ -51,8 +55,18 @@ void Selection::selectFrame(const idstring& id)
     if (_selectedFrame != selectedFrame) {
         _selectedFrame = selectedFrame;
         _selectedFrameId = selectedFrame ? id : idstring();
+        _selectedItems.clear();
 
+        emit selectedItemsChanged();
         emit selectedFrameChanged();
+    }
+}
+
+void Selection::setSelectedItems(const std::set<SelectedItem>& items)
+{
+    if (_selectedItems != items) {
+        _selectedItems = items;
+        emit selectedItemsChanged();
     }
 }
 
