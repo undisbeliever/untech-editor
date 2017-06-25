@@ -622,3 +622,89 @@ INSERT_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxAdded);
 REMOVE_ITEM(FrameObject, objects, FRAME_OBJECT, frameObjectAboutToBeRemoved);
 REMOVE_ITEM(ActionPoint, actionPoints, ACTION_POINT, actionPointAboutToBeRemoved);
 REMOVE_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxAboutToBeRemoved);
+
+void FrameContentsModel::raiseSelectedItems(SI::Frame* frame,
+                                            const std::set<SelectedItem>& items)
+{
+    for (const auto& item : items) {
+        if (item.index == 0) {
+            continue;
+        }
+
+        auto fn = [&](InternalId intId, auto& list) {
+            if (frame == _frame) {
+                QModelIndex parent = createIndex(intId - 1, 0, ROOT);
+                beginMoveRows(parent, item.index, item.index, parent, item.index - 1);
+            }
+
+            std::swap(list.at(item.index),
+                      list.at(item.index - 1));
+
+            if (frame == _frame) {
+                endMoveRows();
+            }
+        };
+
+        switch (item.type) {
+        case SelectedItem::FRAME_OBJECT:
+            fn(FRAME_OBJECT, frame->objects);
+            break;
+
+        case SelectedItem::ACTION_POINT:
+            fn(ACTION_POINT, frame->actionPoints);
+            break;
+
+        case SelectedItem::ENTITY_HITBOX:
+            fn(ENTITY_HITBOX, frame->entityHitboxes);
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    emit _document->frameContentsMoved(frame, items, -1);
+}
+
+void FrameContentsModel::lowerSelectedItems(SI::Frame* frame,
+                                            const std::set<SelectedItem>& items)
+{
+    for (auto it = items.rbegin(); it != items.rend(); it++) {
+        const auto& item = *it;
+
+        auto fn = [&](InternalId intId, auto& list) {
+            if (item.index + 1 < list.size()) {
+                if (frame == _frame) {
+                    QModelIndex parent = createIndex(intId - 1, 0, ROOT);
+                    beginMoveRows(parent, item.index, item.index, parent, item.index + 2);
+                }
+
+                std::swap(list.at(item.index),
+                          list.at(item.index + 1));
+
+                if (frame == _frame) {
+                    endMoveRows();
+                }
+            }
+        };
+
+        switch (item.type) {
+        case SelectedItem::FRAME_OBJECT:
+            fn(FRAME_OBJECT, frame->objects);
+            break;
+
+        case SelectedItem::ACTION_POINT:
+            fn(ACTION_POINT, frame->actionPoints);
+            break;
+
+        case SelectedItem::ENTITY_HITBOX:
+            fn(ENTITY_HITBOX, frame->entityHitboxes);
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    emit _document->frameContentsMoved(frame, items, 1);
+}

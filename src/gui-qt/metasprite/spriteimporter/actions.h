@@ -34,6 +34,8 @@ public:
     QAction* addActionPoint() const { return _addActionPoint; }
     QAction* addEntityHitbox() const { return _addEntityHitbox; }
 
+    QAction* raiseSelected() const { return _raiseSelected; }
+    QAction* lowerSelected() const { return _lowerSelected; }
     QAction* cloneSelected() const { return _cloneSelected; }
     QAction* removeSelected() const { return _removeSelected; }
 
@@ -48,6 +50,9 @@ public slots:
     void onAddFrameObject();
     void onAddActionPoint();
     void onAddEntityHitbox();
+
+    void onRaiseSelected();
+    void onLowerSelected();
     void onCloneSelected();
     void onRemoveSelected();
 
@@ -63,6 +68,9 @@ private:
     QAction* _addFrameObject;
     QAction* _addActionPoint;
     QAction* _addEntityHitbox;
+
+    QAction* _raiseSelected;
+    QAction* _lowerSelected;
     QAction* _cloneSelected;
     QAction* _removeSelected;
 };

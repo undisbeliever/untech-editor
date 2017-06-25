@@ -59,6 +59,8 @@ public:
     void selectFrame(const idstring& id);
 
     bool canCloneSelectedItems() const;
+    bool canRaiseSelectedItems() const;
+    bool canLowerSelectedItems() const;
 
     void selectFrameObject(unsigned index);
     void selectActionPoint(unsigned index);
@@ -75,6 +77,9 @@ private slots:
     void onFrameObjectAboutToBeRemoved(const SI::Frame*, unsigned index);
     void onActionPointAboutToBeRemoved(const SI::Frame*, unsigned index);
     void onEntityHitboxAboutToBeRemoved(const SI::Frame*, unsigned index);
+
+    void onFrameContentsMoved(const SI::Frame*,
+                              const std::set<SelectedItem>& oldPositions, int offset);
 
 private:
     Document* _document;

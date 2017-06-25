@@ -10,11 +10,13 @@
 #include <QObject>
 #include <QUndoStack>
 #include <memory>
+#include <set>
 
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace SpriteImporter {
+struct SelectedItem;
 class Selection;
 class FrameListModel;
 class FrameContentsModel;
@@ -64,6 +66,9 @@ signals:
     void frameObjectAdded(const SI::Frame*, unsigned index);
     void actionPointAdded(const SI::Frame*, unsigned index);
     void entityHitboxAdded(const SI::Frame*, unsigned index);
+
+    void frameContentsMoved(const SI::Frame*,
+                            const std::set<SelectedItem>& oldPositions, int offset);
 
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;

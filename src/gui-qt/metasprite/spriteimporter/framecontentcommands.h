@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "selection.h"
 #include "models/metasprite/spriteimporter.h"
 #include <QUndoCommand>
 
@@ -87,6 +88,36 @@ CREATE_COMMAND_CLASSES(ActionPoint)
 CREATE_COMMAND_CLASSES(EntityHitbox)
 
 #undef CREATE_COMMAND_CLASSES
+
+class RaiseFrameContents : public QUndoCommand {
+public:
+    RaiseFrameContents(Document*, SI::Frame* frame,
+                       const std::set<SelectedItem>& items);
+    ~RaiseFrameContents() = default;
+
+    virtual void undo() final;
+    virtual void redo() final;
+
+private:
+    Document* _document;
+    SI::Frame* _frame;
+    const std::set<SelectedItem> _items;
+};
+
+class LowerFrameContents : public QUndoCommand {
+public:
+    LowerFrameContents(Document*, SI::Frame* frame,
+                       const std::set<SelectedItem>& items);
+    ~LowerFrameContents() = default;
+
+    virtual void undo() final;
+    virtual void redo() final;
+
+private:
+    Document* _document;
+    SI::Frame* _frame;
+    const std::set<SelectedItem> _items;
+};
 }
 }
 }

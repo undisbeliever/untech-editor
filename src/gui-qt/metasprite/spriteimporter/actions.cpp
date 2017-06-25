@@ -28,9 +28,14 @@ Actions::Actions(MainWindow* mainWindow)
     _addFrameObject = new QAction(tr("Add Frame Object"), this);
     _addActionPoint = new QAction(tr("Add Action Point"), this);
     _addEntityHitbox = new QAction(tr("Add Entity Hitbox"), this);
+
+    _raiseSelected = new QAction(tr("Raise Selected"), this);
+    _lowerSelected = new QAction(tr("Lower Selected"), this);
     _cloneSelected = new QAction(tr("Clone Selected"), this);
     _removeSelected = new QAction(tr("Remove Selected"), this);
 
+    _raiseSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Up);
+    _lowerSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Down);
     _cloneSelected->setShortcut(Qt::CTRL + Qt::Key_D);
     _removeSelected->setShortcut(Qt::Key_Delete);
 
@@ -43,6 +48,8 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_addFrameObject, SIGNAL(triggered()), this, SLOT(onAddFrameObject()));
     connect(_addActionPoint, SIGNAL(triggered()), this, SLOT(onAddActionPoint()));
     connect(_addEntityHitbox, SIGNAL(triggered()), this, SLOT(onAddEntityHitbox()));
+    connect(_raiseSelected, SIGNAL(triggered()), this, SLOT(onRaiseSelected()));
+    connect(_lowerSelected, SIGNAL(triggered()), this, SLOT(onLowerSelected()));
     connect(_cloneSelected, SIGNAL(triggered()), this, SLOT(onCloneSelected()));
     connect(_removeSelected, SIGNAL(triggered()), this, SLOT(onRemoveSelected()));
 }
@@ -69,6 +76,8 @@ void Actions::updateActions()
     bool canAddFrameObject = false;
     bool canAddActionPoint = false;
     bool canAddEntityHitbox = false;
+    bool canRaiseSelected = false;
+    bool canLowerSelected = false;
     bool canCloneSelected = false;
     bool canRemoveSelected = false;
 
@@ -83,6 +92,8 @@ void Actions::updateActions()
             canAddEntityHitbox = frame->entityHitboxes.can_insert();
         }
 
+        canRaiseSelected = _document->selection()->canRaiseSelectedItems();
+        canLowerSelected = _document->selection()->canLowerSelectedItems();
         canCloneSelected = _document->selection()->canCloneSelectedItems();
         canRemoveSelected = _document->selection()->selectedItems().size() > 0;
     }
@@ -94,6 +105,8 @@ void Actions::updateActions()
     _addFrameObject->setEnabled(canAddFrameObject);
     _addActionPoint->setEnabled(canAddActionPoint);
     _addEntityHitbox->setEnabled(canAddEntityHitbox);
+    _raiseSelected->setEnabled(canRaiseSelected);
+    _lowerSelected->setEnabled(canLowerSelected);
     _cloneSelected->setEnabled(canCloneSelected);
     _removeSelected->setEnabled(canRemoveSelected);
 }
@@ -188,6 +201,24 @@ void Actions::onAddEntityHitbox()
         new AddEntityHitbox(_document, frame));
 
     _document->selection()->selectEntityHitbox(frame->entityHitboxes.size() - 1);
+}
+
+void Actions::onRaiseSelected()
+{
+    SI::Frame* frame = _document->selection()->selectedFrame();
+    const auto& selectedItems = _document->selection()->selectedItems();
+
+    _document->undoStack()->push(
+        new RaiseFrameContents(_document, frame, selectedItems));
+}
+
+void Actions::onLowerSelected()
+{
+    SI::Frame* frame = _document->selection()->selectedFrame();
+    const auto& selectedItems = _document->selection()->selectedItems();
+
+    _document->undoStack()->push(
+        new LowerFrameContents(_document, frame, selectedItems));
 }
 
 void Actions::onCloneSelected()

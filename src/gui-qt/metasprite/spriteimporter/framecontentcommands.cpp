@@ -130,3 +130,47 @@ CLONE_COMMAND(EntityHitbox, entityHitboxes, "Clone Entity Hitbox");
 REMOVE_COMMAND(FrameObject, objects, "Remove Frame Object");
 REMOVE_COMMAND(ActionPoint, actionPoints, "Remove Action Point");
 REMOVE_COMMAND(EntityHitbox, entityHitboxes, "Remove Entity Hitbox");
+
+// RaiseFrameContents
+// ==================
+
+RaiseFrameContents::RaiseFrameContents(Document* document, SI::Frame* frame,
+                                       const std::set<SelectedItem>& items)
+    : QUndoCommand(QCoreApplication::tr("Raise"))
+    , _document(document)
+    , _frame(frame)
+    , _items(items)
+{
+}
+
+void RaiseFrameContents::undo()
+{
+    _document->frameContentsModel()->lowerSelectedItems(_frame, _items);
+}
+
+void RaiseFrameContents::redo()
+{
+    _document->frameContentsModel()->raiseSelectedItems(_frame, _items);
+}
+
+// LowerFrameContents
+// ==================
+
+LowerFrameContents::LowerFrameContents(Document* document, SI::Frame* frame,
+                                       const std::set<SelectedItem>& items)
+    : QUndoCommand(QCoreApplication::tr("Lower"))
+    , _document(document)
+    , _frame(frame)
+    , _items(items)
+{
+}
+
+void LowerFrameContents::undo()
+{
+    _document->frameContentsModel()->raiseSelectedItems(_frame, _items);
+}
+
+void LowerFrameContents::redo()
+{
+    _document->frameContentsModel()->lowerSelectedItems(_frame, _items);
+}

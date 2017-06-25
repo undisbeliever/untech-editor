@@ -62,6 +62,8 @@ void MainWindow::setupMenubar()
     _ui->menuEdit->addAction(undoAction);
     _ui->menuEdit->addAction(redoAction);
     _ui->menuEdit->addSeparator();
+    _ui->menuEdit->addAction(_actions->raiseSelected());
+    _ui->menuEdit->addAction(_actions->lowerSelected());
     _ui->menuEdit->addAction(_actions->cloneSelected());
     _ui->menuEdit->addAction(_actions->removeSelected());
     _ui->menuEdit->addSeparator();

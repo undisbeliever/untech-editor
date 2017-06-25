@@ -38,6 +38,8 @@ void Selection::setDocument(Document* document)
             this, &Selection::onActionPointAboutToBeRemoved);
     connect(_document, &Document::frameObjectAboutToBeRemoved,
             this, &Selection::onEntityHitboxAboutToBeRemoved);
+    connect(_document, &Document::frameContentsMoved,
+            this, &Selection::onFrameContentsMoved);
 }
 
 void Selection::unselectFrame()
@@ -65,14 +67,6 @@ void Selection::selectFrame(const idstring& id)
 
         emit selectedItemsChanged();
         emit selectedFrameChanged();
-    }
-}
-
-void Selection::setSelectedItems(const std::set<SelectedItem>& items)
-{
-    if (_selectedItems != items) {
-        _selectedItems = items;
-        emit selectedItemsChanged();
     }
 }
 
@@ -111,6 +105,26 @@ void Selection::onEntityHitboxAboutToBeRemoved(const SI::Frame* frame, unsigned 
     }
 }
 
+void Selection::onFrameContentsMoved(const SI::Frame* frame,
+                                     const std::set<SelectedItem>& oldPos, int offset)
+{
+    if (_selectedFrame == frame) {
+        std::set<SelectedItem> selection;
+
+        for (const SelectedItem& item : _selectedItems) {
+            auto it = oldPos.find(item);
+            if (it != oldPos.end()) {
+                selection.insert({ item.type, item.index + offset });
+            }
+            else {
+                selection.insert(item);
+            }
+        }
+
+        setSelectedItems(selection);
+    }
+}
+
 bool Selection::canCloneSelectedItems() const
 {
     if (_selectedFrame == nullptr || _selectedItems.size() == 0) {
@@ -143,6 +157,66 @@ bool Selection::canCloneSelectedItems() const
     return _selectedFrame->objects.can_insert(nObjects)
            && _selectedFrame->actionPoints.can_insert(nActionPoints)
            && _selectedFrame->entityHitboxes.can_insert(nEntityHitboxes);
+}
+
+void Selection::setSelectedItems(const std::set<SelectedItem>& items)
+{
+    if (_selectedItems != items) {
+        _selectedItems = items;
+        emit selectedItemsChanged();
+    }
+}
+
+bool Selection::canRaiseSelectedItems() const
+{
+    if (_selectedItems.size() == 0
+        || _selectedFrame == nullptr) {
+        return false;
+    }
+
+    for (const auto& item : _selectedItems) {
+        if (item.index == 0 || item.type == SelectedItem::NONE) {
+
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Selection::canLowerSelectedItems() const
+{
+    if (_selectedItems.size() == 0
+        || _selectedFrame == nullptr) {
+        return false;
+    }
+
+    for (const auto& item : _selectedItems) {
+        switch (item.type) {
+        case SelectedItem::NONE:
+            return false;
+
+        case SelectedItem::FRAME_OBJECT:
+            if (item.index + 1 >= _selectedFrame->objects.size()) {
+                return false;
+            }
+            break;
+
+        case SelectedItem::ACTION_POINT:
+            if (item.index + 1 >= _selectedFrame->actionPoints.size()) {
+                return false;
+            }
+            break;
+
+        case SelectedItem::ENTITY_HITBOX:
+            if (item.index + 1 >= _selectedFrame->entityHitboxes.size()) {
+                return false;
+            }
+            break;
+        }
+    }
+
+    return true;
 }
 
 void Selection::selectFrameObject(unsigned index)
