@@ -26,10 +26,10 @@ MainWindow::MainWindow(QWidget* parent)
 {
     _ui->setupUi(this);
 
-    _frameSetDock = new FrameSetDock(this);
+    _frameSetDock = new FrameSetDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
 
-    _frameDock = new FrameDock(this);
+    _frameDock = new FrameDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameDock);
 
     tabifyDockWidget(_frameSetDock, _frameDock);

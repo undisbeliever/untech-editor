@@ -18,6 +18,7 @@ namespace SpriteImporter {
 namespace Ui {
 class FrameDock;
 }
+class Actions;
 class Document;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
@@ -26,7 +27,7 @@ class FrameDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    explicit FrameDock(QWidget* parent = nullptr);
+    FrameDock(Actions* actions, QWidget* parent = nullptr);
     ~FrameDock();
 
     void setDocument(Document* document);
@@ -48,9 +49,11 @@ private slots:
     void onTileHitboxEdited();
 
     void onFrameContentsSelectionChanged();
+    void onFrameContentsContextMenu(const QPoint& pos);
 
 private:
     std::unique_ptr<Ui::FrameDock> _ui;
+    Actions* _actions;
     Document* _document;
 };
 }

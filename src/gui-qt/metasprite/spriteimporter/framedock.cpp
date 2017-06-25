@@ -5,6 +5,7 @@
  */
 
 #include "framedock.h"
+#include "actions.h"
 #include "document.h"
 #include "framecommands.h"
 #include "framecontentsdelegate.h"
@@ -13,15 +14,21 @@
 #include "selection.h"
 #include "gui-qt/metasprite/spriteimporter/framedock.ui.h"
 
+#include <QMenu>
+
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-FrameDock::FrameDock(QWidget* parent)
+FrameDock::FrameDock(Actions* actions, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameDock)
+    , _actions(actions)
     , _document(nullptr)
 {
+    Q_ASSERT(actions != nullptr);
+
     _ui->setupUi(this);
 
+    _ui->frameContents->setContextMenuPolicy(Qt::CustomContextMenu);
     _ui->frameContents->setItemDelegate(new FrameContentsDelegate(this));
     _ui->frameContents->header()->setStretchLastSection(true);
     _ui->frameContents->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -41,6 +48,8 @@ FrameDock::FrameDock(QWidget* parent)
     connect(_ui->origin, SIGNAL(editingFinished()), this, SLOT(onFrameLocationEdited()));
     connect(_ui->solid, SIGNAL(clicked()), this, SLOT(onSolidClicked()));
     connect(_ui->tileHitbox, SIGNAL(editingFinished()), this, SLOT(onTileHitboxEdited()));
+
+    connect(_ui->frameContents, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onFrameContentsContextMenu(QPoint)));
 }
 
 FrameDock::~FrameDock() = default;
@@ -255,4 +264,27 @@ void FrameDock::onFrameContentsSelectionChanged()
     }
 
     _document->selection()->setSelectedItems(items);
+}
+
+void FrameDock::onFrameContentsContextMenu(const QPoint& pos)
+{
+    if (_document && _actions) {
+        QModelIndex modelIndex = _ui->frameContents->indexAt(pos);
+
+        QMenu menu;
+        menu.addAction(_actions->addFrameObject());
+        menu.addAction(_actions->addActionPoint());
+        menu.addAction(_actions->addEntityHitbox());
+
+        if (modelIndex.isValid() && modelIndex.flags() & Qt::ItemIsEditable) {
+            menu.addSeparator();
+            menu.addAction(_actions->raiseSelected());
+            menu.addAction(_actions->lowerSelected());
+            menu.addAction(_actions->cloneSelected());
+            menu.addAction(_actions->removeSelected());
+        }
+
+        QPoint globalPos = _ui->frameContents->mapToGlobal(pos);
+        menu.exec(globalPos);
+    }
 }

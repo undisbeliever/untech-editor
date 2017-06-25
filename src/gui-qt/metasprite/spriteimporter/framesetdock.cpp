@@ -5,6 +5,7 @@
  */
 
 #include "framesetdock.h"
+#include "actions.h"
 #include "document.h"
 #include "framelistmodel.h"
 #include "framesetcommands.h"
@@ -14,16 +15,20 @@
 
 #include <QColorDialog>
 #include <QFileDialog>
+#include <QMenu>
 #include <QMessageBox>
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 using TilesetType = UnTech::MetaSprite::TilesetType;
 
-FrameSetDock::FrameSetDock(QWidget* parent)
+FrameSetDock::FrameSetDock(Actions* actions, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameSetDock)
+    , _actions(actions)
     , _document(nullptr)
 {
+    Q_ASSERT(actions != nullptr);
+
     _ui->setupUi(this);
 
     _ui->frameSetName->setValidator(new IdstringValidator(this));
@@ -32,6 +37,8 @@ FrameSetDock::FrameSetDock(QWidget* parent)
     _ui->paletteSize->setMaximum(32);
 
     _ui->tilesetType->populateData(TilesetType::enumMap);
+
+    _ui->frameList->setContextMenuPolicy(Qt::CustomContextMenu);
 
     clearGui();
     setEnabled(false);
@@ -52,6 +59,8 @@ FrameSetDock::FrameSetDock(QWidget* parent)
     connect(_ui->userSuppliedPaletteBox, SIGNAL(clicked(bool)), this, SLOT(onPaletteEdited()));
     connect(_ui->nPalettes, SIGNAL(editingFinished()), this, SLOT(onPaletteEdited()));
     connect(_ui->paletteSize, SIGNAL(editingFinished()), this, SLOT(onPaletteEdited()));
+
+    connect(_ui->frameList, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onFrameContextMenu(QPoint)));
 }
 
 FrameSetDock::~FrameSetDock() = default;
@@ -286,4 +295,23 @@ void FrameSetDock::onFrameListSelectionChanged()
     QModelIndex index = _ui->frameList->currentIndex();
     idstring frameId = _document->frameListModel()->toFrameId(index);
     _document->selection()->selectFrame(frameId);
+}
+
+void FrameSetDock::onFrameContextMenu(const QPoint& pos)
+{
+    if (_document && _actions) {
+        bool onFrame = _ui->frameList->indexAt(pos).isValid();
+
+        QMenu menu;
+        menu.addAction(_actions->addFrame());
+
+        if (onFrame) {
+            menu.addAction(_actions->cloneFrame());
+            menu.addAction(_actions->renameFrame());
+            menu.addAction(_actions->removeFrame());
+        }
+
+        QPoint globalPos = _ui->frameList->mapToGlobal(pos);
+        menu.exec(globalPos);
+    }
 }
