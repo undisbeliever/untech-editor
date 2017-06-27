@@ -293,7 +293,7 @@ void FrameSetDock::updateFrameListSelection()
 void FrameSetDock::onFrameListSelectionChanged()
 {
     QModelIndex index = _ui->frameList->currentIndex();
-    idstring frameId = _document->frameListModel()->toFrameId(index);
+    idstring frameId = _document->frameListModel()->toIdstring(index);
     _document->selection()->selectFrame(frameId);
 }
 

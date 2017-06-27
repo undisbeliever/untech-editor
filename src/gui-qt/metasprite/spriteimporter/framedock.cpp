@@ -128,7 +128,7 @@ void FrameDock::onFrameComboBoxActivated()
 
     if (index >= 0) {
         _document->selection()->selectFrame(
-            _document->frameListModel()->toFrameId(index));
+            _document->frameListModel()->toIdstring(index));
     }
     else {
         _document->selection()->unselectFrame();

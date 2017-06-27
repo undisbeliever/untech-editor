@@ -7,14 +7,11 @@
 #include "framelistmodel.h"
 #include "document.h"
 
-using namespace UnTech;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 FrameListModel::FrameListModel(QObject* parent)
-    : QAbstractListModel(parent)
+    : AbstractIdmapListModel(parent)
     , _document(nullptr)
-    , _frameNames()
-    , _frameIdstrings()
 {
 }
 
@@ -27,89 +24,15 @@ void FrameListModel::setDocument(Document* document)
     }
     _document = document;
 
-    buildFrameLists();
-}
-
-void FrameListModel::buildFrameLists()
-{
-    beginResetModel();
-
-    _frameNames.clear();
-    _frameIdstrings.clear();
-
-    for (const auto& it : _document->frameSet()->frames) {
-        _frameNames.append(QString::fromStdString(it.first));
-        _frameIdstrings.append(it.first);
-    }
-
-    endResetModel();
-}
-
-QModelIndex FrameListModel::toModelIndex(const idstring& frameId) const
-{
-    QString id = QString::fromStdString(frameId);
-    int row = _frameNames.indexOf(id);
-
-    return createIndex(row, 0);
-}
-
-idstring FrameListModel::toFrameId(int row) const
-{
-    if (row < 0 || row >= _frameIdstrings.size()) {
-        return idstring();
-    }
-    return _frameIdstrings.at(row);
-}
-
-idstring FrameListModel::toFrameId(const QModelIndex& index) const
-{
-    return toFrameId(index.row());
-}
-
-int FrameListModel::rowCount(const QModelIndex& parent) const
-{
-    if (parent.isValid()) {
-        return 0;
-    }
-    return _frameNames.size();
-}
-
-QVariant FrameListModel::data(const QModelIndex& index, int role) const
-{
-    if (index.row() < 0 || index.row() >= _frameNames.size()) {
-        return QVariant();
-    }
-
-    if (role == Qt::DisplayRole) {
-        return _frameNames.at(index.row());
-    }
-
-    return QVariant();
+    buildLists(_document->frameSet()->frames);
 }
 
 void FrameListModel::insertFrame(const idstring& id, std::unique_ptr<SI::Frame> frame)
 {
     auto& frames = _document->frameSet()->frames;
-
-    Q_ASSERT(frames.contains(id) == false);
-    Q_ASSERT(frame != nullptr);
-
-    int index = 0;
-    for (index = 0; index < _frameIdstrings.size(); index++) {
-        if (_frameIdstrings.at(index).str() > id.str()) {
-            break;
-        }
-    }
-
     const SI::Frame* framePtr = frame.get();
 
-    beginInsertRows(QModelIndex(), index, index);
-
-    frames.insertInto(id, std::move(frame));
-    _frameNames.insert(index, QString::fromStdString(id));
-    _frameIdstrings.insert(index, id);
-
-    endInsertRows();
+    insertMapItem(frames, id, std::move(frame));
 
     emit _document->frameAdded(framePtr);
 }
@@ -117,63 +40,16 @@ void FrameListModel::insertFrame(const idstring& id, std::unique_ptr<SI::Frame> 
 std::unique_ptr<SI::Frame> FrameListModel::removeFrame(const idstring& id)
 {
     auto& frames = _document->frameSet()->frames;
-    Q_ASSERT(frames.contains(id));
 
     emit _document->frameAboutToBeRemoved(frames.getPtr(id));
-
-    int index = _frameIdstrings.indexOf(id);
-
-    beginRemoveRows(QModelIndex(), index, index);
-
-    auto frame = frames.extractFrom(id);
-    _frameNames.removeAt(index);
-    _frameIdstrings.removeAt(index);
-
-    endRemoveRows();
-
-    return frame;
+    return removeMapItem(frames, id);
 }
 
 void FrameListModel::renameFrame(const idstring& oldId, const idstring& newId)
 {
     auto& frames = _document->frameSet()->frames;
 
-    Q_ASSERT(frames.contains(oldId));
-    Q_ASSERT(frames.contains(newId) == false);
-
-    int oldIndex = _frameIdstrings.indexOf(oldId);
-
-    int newIndex = 0;
-    for (newIndex = 0; newIndex < _frameIdstrings.size(); newIndex++) {
-        if (_frameIdstrings.at(newIndex).str() > newId.str()) {
-            break;
-        }
-    }
-
-    if (oldIndex != newIndex && oldIndex != newIndex - 1) {
-        beginMoveRows(QModelIndex(), oldIndex, oldIndex,
-                      QModelIndex(), newIndex);
-        if (oldIndex < newIndex) {
-            newIndex--;
-        }
-        frames.rename(oldId, newId);
-
-        _frameNames.takeAt(oldIndex);
-        _frameNames.insert(newIndex, QString::fromStdString(newId));
-
-        _frameIdstrings.takeAt(oldIndex);
-        _frameIdstrings.insert(newIndex, newId);
-
-        endMoveRows();
-    }
-    else {
-        frames.rename(oldId, newId);
-
-        _frameNames.replace(oldIndex, QString::fromStdString(newId));
-        _frameIdstrings.replace(oldIndex, newId);
-
-        emit dataChanged(createIndex(oldIndex, 0), createIndex(oldIndex, 0));
-    }
+    renameMapItem(frames, oldId, newId);
 
     emit _document->frameRenamed(frames.getPtr(newId), newId);
 }

@@ -6,10 +6,8 @@
 
 #pragma once
 
+#include "gui-qt/common/abstractidmaplistmodel.h"
 #include "models/metasprite/spriteimporter.h"
-#include <QAbstractListModel>
-#include <QStringList>
-#include <QVector>
 
 namespace UnTech {
 namespace GuiQt {
@@ -21,7 +19,7 @@ class RenameFrame;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
-class FrameListModel : public QAbstractListModel {
+class FrameListModel : public AbstractIdmapListModel {
     Q_OBJECT
 
 public:
@@ -29,15 +27,6 @@ public:
     ~FrameListModel() = default;
 
     void setDocument(Document* document);
-
-    QModelIndex toModelIndex(const idstring& frameId) const;
-    idstring toFrameId(int row) const;
-    idstring toFrameId(const QModelIndex& index) const;
-
-    const QStringList& frameNames() const { return _frameNames; }
-
-    virtual int rowCount(const QModelIndex& parent) const final;
-    virtual QVariant data(const QModelIndex& index, int role) const final;
 
 protected:
     friend class AddRemoveFrame;
@@ -48,12 +37,7 @@ protected:
     void renameFrame(const idstring& oldId, const idstring& newId);
 
 private:
-    void buildFrameLists();
-
-private:
     Document* _document;
-    QStringList _frameNames;
-    QVector<idstring> _frameIdstrings;
 };
 }
 }
