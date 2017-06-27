@@ -11,10 +11,10 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QSet>
 
 namespace UnTech {
 namespace GuiQt {
+class AbstractIdmapListModel;
 
 class IdstringDialog : public QDialog {
     Q_OBJECT
@@ -29,9 +29,9 @@ public:
                                 const QString& title,
                                 const QString& labelText,
                                 const idstring& value = idstring(),
-                                const QStringList& idList = QStringList());
+                                const AbstractIdmapListModel* model = nullptr);
 
-    void setIdList(const QStringList& idList);
+    void setModel(const AbstractIdmapListModel* model);
 
     void setLabelText(const QString& text);
 
@@ -51,7 +51,7 @@ private:
     QLineEdit* _input;
     QPushButton* _okButton;
 
-    QSet<QString> _existingIds;
+    const AbstractIdmapListModel* _model;
 };
 }
 }

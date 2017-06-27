@@ -21,6 +21,11 @@ public:
     explicit AbstractIdmapListModel(QObject* parent = nullptr);
     ~AbstractIdmapListModel() = default;
 
+    bool contains(const idstring& id) const;
+    bool contains(const QString& id) const;
+
+    int indexOf(const idstring& id) const;
+
     QModelIndex toModelIndex(const idstring& id) const;
     idstring toIdstring(int row) const;
     idstring toIdstring(const QModelIndex& index) const;
@@ -32,6 +37,8 @@ public:
     virtual QVariant data(const QModelIndex& index, int role) const override;
 
 protected:
+    int indexToInsert(const idstring& id) const;
+
     template <class T>
     void buildLists(const idmap<T>& map)
     {
@@ -54,12 +61,7 @@ protected:
         Q_ASSERT(map.contains(id) == false);
         Q_ASSERT(item != nullptr);
 
-        int index = 0;
-        for (index = 0; index < _idstrings.size(); index++) {
-            if (_idstrings.at(index).str() > id.str()) {
-                break;
-            }
-        }
+        int index = indexToInsert(id);
 
         beginInsertRows(QModelIndex(), index, index);
 
@@ -75,7 +77,7 @@ protected:
     {
         Q_ASSERT(map.contains(id));
 
-        int index = _idstrings.indexOf(id);
+        int index = indexOf(id);
 
         beginRemoveRows(QModelIndex(), index, index);
 
@@ -95,14 +97,8 @@ protected:
         Q_ASSERT(map.contains(oldId));
         Q_ASSERT(map.contains(newId) == false);
 
-        int oldIndex = _idstrings.indexOf(oldId);
-
-        int newIndex = 0;
-        for (newIndex = 0; newIndex < _idstrings.size(); newIndex++) {
-            if (_idstrings.at(newIndex).str() > newId.str()) {
-                break;
-            }
-        }
+        int oldIndex = indexOf(oldId);
+        int newIndex = indexToInsert(newId);
 
         if (oldIndex != newIndex && oldIndex != newIndex - 1) {
             beginMoveRows(QModelIndex(), oldIndex, oldIndex,

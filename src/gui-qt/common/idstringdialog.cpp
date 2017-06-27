@@ -5,6 +5,7 @@
  */
 
 #include "idstringdialog.h"
+#include "abstractidmaplistmodel.h"
 #include "idstringvalidator.h"
 
 #include <QDialogButtonBox>
@@ -19,6 +20,7 @@ using namespace UnTech::GuiQt;
 IdstringDialog::IdstringDialog(const QString& title, const QString& labelText,
                                QWidget* parent)
     : QDialog(parent)
+    , _model(nullptr)
 {
     using DBB = QDialogButtonBox;
 
@@ -50,10 +52,11 @@ IdstringDialog::IdstringDialog(const QString& title, const QString& labelText,
 
 idstring IdstringDialog::getIdstring(QWidget* parent,
                                      const QString& title, const QString& labelText,
-                                     const idstring& value, const QStringList& idList)
+                                     const idstring& value,
+                                     const AbstractIdmapListModel* model)
 {
     IdstringDialog dialog(title, labelText, parent);
-    dialog.setIdList(idList);
+    dialog.setModel(model);
     dialog.setValue(value);
     int r = dialog.exec();
 
@@ -67,8 +70,10 @@ idstring IdstringDialog::getIdstring(QWidget* parent,
 
 bool IdstringDialog::isValid() const
 {
-    return _input->text().isEmpty() == false
-           && _existingIds.contains(_input->text()) == false;
+    if (_model && _model->contains(_input->text())) {
+        return false;
+    }
+    return _input->text().isEmpty() == false;
 }
 
 void IdstringDialog::onInputChanged()
@@ -76,9 +81,9 @@ void IdstringDialog::onInputChanged()
     _okButton->setEnabled(isValid());
 }
 
-void IdstringDialog::setIdList(const QStringList& idList)
+void IdstringDialog::setModel(const AbstractIdmapListModel* model)
 {
-    _existingIds = idList.toSet();
+    _model = model;
 }
 
 void IdstringDialog::setLabelText(const QString& text)

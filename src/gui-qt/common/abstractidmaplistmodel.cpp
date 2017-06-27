@@ -6,6 +6,9 @@
 
 #include "abstractidmaplistmodel.h"
 
+#include <algorithm>
+#include <iterator>
+
 using UnTech::idstring;
 using namespace UnTech::GuiQt;
 
@@ -16,11 +19,36 @@ AbstractIdmapListModel::AbstractIdmapListModel(QObject* parent)
 {
 }
 
+bool AbstractIdmapListModel::contains(const idstring& id) const
+{
+    return std::binary_search(_idstrings.cbegin(), _idstrings.cend(), id);
+}
+
+bool AbstractIdmapListModel::contains(const QString& id) const
+{
+    return std::binary_search(_displayList.cbegin(), _displayList.cend(), id);
+}
+
+int AbstractIdmapListModel::indexOf(const idstring& id) const
+{
+    auto it = std::lower_bound(_idstrings.cbegin(), _idstrings.cend(), id);
+    if (it != _idstrings.cend() && *it == id) {
+        return std::distance(_idstrings.cbegin(), it);
+    }
+    else {
+        return -1;
+    }
+}
+
+int AbstractIdmapListModel::indexToInsert(const idstring& id) const
+{
+    auto it = std::lower_bound(_idstrings.cbegin(), _idstrings.cend(), id);
+    return std::distance(_idstrings.cbegin(), it);
+}
+
 QModelIndex AbstractIdmapListModel::toModelIndex(const idstring& id) const
 {
-    int row = _idstrings.indexOf(id);
-
-    return createIndex(row, 0);
+    return createIndex(indexOf(id), 0);
 }
 
 idstring AbstractIdmapListModel::toIdstring(int row) const
