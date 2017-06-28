@@ -13,6 +13,9 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
+namespace Animation {
+class AnimationDock;
+}
 namespace SpriteImporter {
 
 namespace Ui {
@@ -57,6 +60,7 @@ private:
 
     FrameSetDock* _frameSetDock;
     FrameDock* _frameDock;
+    Animation::AnimationDock* _animationDock;
 };
 }
 }

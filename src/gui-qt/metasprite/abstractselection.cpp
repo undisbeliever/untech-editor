@@ -32,6 +32,7 @@ void AbstractSelection::setDocument(AbstractDocument* document)
     _document = document;
 
     unselectFrame();
+    unselectAnimation();
 
     connect(_document, &AbstractDocument::frameAboutToBeRemoved,
             this, &AbstractSelection::onFrameAboutToBeRemoved);
@@ -69,6 +70,46 @@ void AbstractSelection::unselectFrame()
 
     emit selectedItemsChanged();
     emit selectedFrameChanged();
+}
+
+void AbstractSelection::selectAnimation(const idstring& id)
+{
+    MSA::Animation* ani = _document->animations()->getPtr(id);
+
+    if (_selectedAnimation != ani) {
+        _selectedAnimation = ani;
+        _selectedAnimationId = ani ? id : idstring();
+
+        _selectedAnimationFrame = -1;
+
+        emit selectedAnimationChanged();
+        emit selectedAnimationFrameChanged();
+    }
+}
+
+void AbstractSelection::unselectAnimation()
+{
+    _selectedAnimation = nullptr;
+    _selectedAnimationId = idstring();
+    _selectedAnimationFrame = -1;
+
+    emit selectedAnimationChanged();
+    emit selectedAnimationFrameChanged();
+}
+
+void AbstractSelection::selectAnimationFrame(int index)
+{
+    if (_selectedAnimation == nullptr
+        || index < 0
+        || (unsigned)index >= _selectedAnimation->frames.size()) {
+        index = -1;
+    }
+
+    if (_selectedAnimationFrame != index) {
+        _selectedAnimationFrame = index;
+
+        emit selectedAnimationFrameChanged();
+    }
 }
 
 void AbstractSelection::onFrameAboutToBeRemoved(const void* frame)

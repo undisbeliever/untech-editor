@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/idstring.h"
+#include "models/metasprite/animation/animation.h"
 #include <QObject>
 #include <QVector>
 #include <set>
@@ -16,6 +17,8 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 class AbstractDocument;
+
+namespace MSA = UnTech::MetaSprite::Animation;
 
 struct SelectedItem {
     enum Type {
@@ -49,11 +52,19 @@ public:
     bool hasSelectedFrame() const { return _selectedFramePtr != nullptr; }
     const idstring& selectedFrameId() const { return _selectedFrameId; }
 
+    MSA::Animation* selectedAnimation() const { return _selectedAnimation; }
+    const idstring& selectedAnimationId() const { return _selectedAnimationId; }
+    int selectedAnimationFrame() const { return _selectedAnimationFrame; }
+
     const std::set<SelectedItem>& selectedItems() const { return _selectedItems; }
     void setSelectedItems(const std::set<SelectedItem>&);
 
     void selectFrame(const idstring& id);
     void unselectFrame();
+
+    void selectAnimation(const idstring& id);
+    void unselectAnimation();
+    void selectAnimationFrame(int index);
 
     bool canCloneSelectedItems() const;
     bool canRaiseSelectedItems() const;
@@ -73,6 +84,9 @@ signals:
     void selectedFrameChanged();
     void selectedItemsChanged();
 
+    void selectedAnimationChanged();
+    void selectedAnimationFrameChanged();
+
 private slots:
     void onFrameAboutToBeRemoved(const void* frame);
     void onFrameRenamed(const void* frame, const idstring& newId);
@@ -89,6 +103,10 @@ protected:
     const void* _selectedFramePtr;
     idstring _selectedFrameId;
     std::set<SelectedItem> _selectedItems;
+
+    MSA::Animation* _selectedAnimation;
+    idstring _selectedAnimationId;
+    int _selectedAnimationFrame;
 };
 }
 }

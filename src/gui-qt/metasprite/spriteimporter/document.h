@@ -36,6 +36,7 @@ public:
     virtual bool saveDocument(const QString& filename) final;
 
     SI::FrameSet* frameSet() const { return _frameSet.get(); }
+    virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
     virtual Selection* selection() const final { return _selection; }
     virtual FrameListModel* frameListModel() const final { return _frameListModel; }

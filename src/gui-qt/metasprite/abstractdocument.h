@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/idstring.h"
+#include "models/metasprite/animation/animation.h"
 #include <QObject>
 #include <QUndoStack>
 #include <set>
@@ -16,8 +17,14 @@ namespace GuiQt {
 class AbstractIdmapListModel;
 
 namespace MetaSprite {
+namespace Animation {
+class AnimationListModel;
+class AnimationFramesModel;
+}
 struct SelectedItem;
 class AbstractSelection;
+
+namespace MSA = UnTech::MetaSprite::Animation;
 
 class AbstractDocument : public QObject {
     Q_OBJECT
@@ -26,22 +33,25 @@ public:
     static const char* FILE_FILTER;
 
 public:
-    explicit AbstractDocument(QObject* parent = nullptr)
-        : QObject(parent)
-        , _filename()
-        , _undoStack(new QUndoStack(this))
-    {
-    }
-
+    explicit AbstractDocument(QObject* parent = nullptr);
     ~AbstractDocument() = default;
 
+protected:
+    void initModels();
+
+public:
     virtual bool saveDocument(const QString& filename) = 0;
 
     const QString& filename() const { return _filename; }
     QUndoStack* undoStack() const { return _undoStack; }
 
+    virtual MSA::Animation::map_t* animations() const = 0;
+
     virtual AbstractSelection* selection() const = 0;
     virtual AbstractIdmapListModel* frameListModel() const = 0;
+
+    auto* animationListModel() const { return _animationListModel; }
+    auto* animationFramesModel() const { return _animationFramesModel; }
 
 signals:
     void frameSetDataChanged();
@@ -69,6 +79,9 @@ signals:
 protected:
     QString _filename;
     QUndoStack* _undoStack;
+
+    Animation::AnimationListModel* _animationListModel;
+    Animation::AnimationFramesModel* _animationFramesModel;
 };
 }
 }

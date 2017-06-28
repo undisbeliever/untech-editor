@@ -35,6 +35,8 @@ Document::Document(std::unique_ptr<SI::FrameSet> frameSet,
     _selection->setDocument(this);
     _frameListModel->setDocument(this);
     _frameContentsModel->setDocument(this);
+
+    initModels();
 }
 
 std::unique_ptr<Document> Document::loadDocument(const QString& filename)

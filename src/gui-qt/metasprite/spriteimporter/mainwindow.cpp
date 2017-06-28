@@ -9,6 +9,7 @@
 #include "document.h"
 #include "framedock.h"
 #include "framesetdock.h"
+#include "gui-qt/metasprite/animation/animationdock.h"
 #include "gui-qt/metasprite/spriteimporter/mainwindow.ui.h"
 
 #include <QCloseEvent>
@@ -32,7 +33,11 @@ MainWindow::MainWindow(QWidget* parent)
     _frameDock = new FrameDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameDock);
 
+    _animationDock = new Animation::AnimationDock(this);
+    addDockWidget(Qt::RightDockWidgetArea, _animationDock);
+
     tabifyDockWidget(_frameSetDock, _frameDock);
+    tabifyDockWidget(_frameSetDock, _animationDock);
 
     _frameSetDock->raise();
 
@@ -86,6 +91,7 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     _actions->setDocument(_document.get());
     _frameSetDock->setDocument(_document.get());
     _frameDock->setDocument(_document.get());
+    _animationDock->setDocument(_document.get());
 
     _ui->actionSave->setEnabled(_document != nullptr);
     _ui->actionSaveAs->setEnabled(_document != nullptr);
