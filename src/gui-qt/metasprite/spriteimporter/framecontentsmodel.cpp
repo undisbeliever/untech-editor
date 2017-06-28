@@ -14,6 +14,7 @@
 #include <QPoint>
 #include <QRect>
 
+using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 QHash<int, QString> buildEntityHitboxMap()

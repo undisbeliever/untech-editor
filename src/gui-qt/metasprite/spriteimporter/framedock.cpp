@@ -115,7 +115,7 @@ void FrameDock::onSelectedFrameChanged()
     }
 }
 
-void FrameDock::onFrameDataChanged(const SI::Frame* frame)
+void FrameDock::onFrameDataChanged(const void* frame)
 {
     if (frame == _document->selection()->selectedFrame()) {
         updateGui();

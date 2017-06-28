@@ -39,7 +39,7 @@ private slots:
     void onFrameComboBoxActivated();
     void updateFrameContentsSelection();
 
-    void onFrameDataChanged(const SI::Frame*);
+    void onFrameDataChanged(const void* frame);
 
     void updateGui();
 

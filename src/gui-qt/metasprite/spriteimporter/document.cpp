@@ -22,15 +22,15 @@ Document::Document(QObject* parent)
 
 Document::Document(std::unique_ptr<SI::FrameSet> frameSet,
                    const QString& filename, QObject* parent)
-    : QObject(parent)
+    : AbstractDocument(parent)
     , _frameSet(std::move(frameSet))
-    , _filename(filename)
-    , _undoStack(new QUndoStack(this))
     , _selection(new Selection(this))
     , _frameListModel(new FrameListModel(this))
     , _frameContentsModel(new FrameContentsModel(this))
 {
     Q_ASSERT(_frameSet != nullptr);
+
+    _filename = filename;
 
     _selection->setDocument(this);
     _frameListModel->setDocument(this);
