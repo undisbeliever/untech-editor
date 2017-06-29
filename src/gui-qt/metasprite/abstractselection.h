@@ -98,6 +98,9 @@ private slots:
     void onFrameContentsMoved(const void* frame,
                               const std::set<SelectedItem>& oldPositions, int offset);
 
+    void onAnimationAboutToBeRemoved(const void* animation);
+    void onAnimationRenamed(const void* animation, const idstring& newId);
+
 protected:
     AbstractDocument* _document;
     const void* _selectedFramePtr;

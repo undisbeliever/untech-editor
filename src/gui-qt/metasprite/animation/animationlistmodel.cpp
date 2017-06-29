@@ -26,3 +26,31 @@ void AnimationListModel::setDocument(AbstractDocument* document)
 
     buildLists(*_document->animations());
 }
+
+void AnimationListModel::insertAnimation(
+    const idstring& id, std::unique_ptr<MSA::Animation> animation)
+{
+    auto& animations = *_document->animations();
+    const MSA::Animation* animationPtr = animation.get();
+
+    insertMapItem(animations, id, std::move(animation));
+
+    emit _document->animationAdded(animationPtr);
+}
+
+std::unique_ptr<MSA::Animation> AnimationListModel::removeAnimation(const idstring& id)
+{
+    auto& animations = *_document->animations();
+
+    emit _document->animationAboutToBeRemoved(animations.getPtr(id));
+    return removeMapItem(animations, id);
+}
+
+void AnimationListModel::renameAnimation(const idstring& oldId, const idstring& newId)
+{
+    auto& animations = *_document->animations();
+
+    renameMapItem(animations, oldId, newId);
+
+    emit _document->animationRenamed(animations.getPtr(newId), newId);
+}

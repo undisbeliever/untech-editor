@@ -5,25 +5,46 @@
  */
 
 #include "animationdock.h"
+#include "animationactions.h"
+#include "animationcommands.h"
 #include "animationframesmodel.h"
 #include "animationlistmodel.h"
+#include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/abstractdocument.h"
 #include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/animation/animationdock.ui.h"
+
+#include <QMenu>
 
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
 AnimationDock::AnimationDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::AnimationDock)
+    , _actions(new AnimationActions(this))
     , _document(nullptr)
+    , _nextAnimationCompleter(new QCompleter(this))
 {
     _ui->setupUi(this);
 
+    _nextAnimationCompleter->setCompletionRole(Qt::DisplayRole);
+    _nextAnimationCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    _ui->nextAnimation->setCompleter(_nextAnimationCompleter);
+    _ui->nextAnimation->setValidator(new IdstringValidator(this));
+
     _ui->durationFormat->populateData(MSA::DurationFormat::enumMap);
+
+    _ui->animationList->setContextMenuPolicy(Qt::CustomContextMenu);
 
     clearGui();
     setEnabled(false);
+
+    connect(_ui->durationFormat, SIGNAL(activated(int)), this, SLOT(onDurationFormatEdited()));
+    connect(_ui->oneShot, SIGNAL(clicked(bool)), this, SLOT(onOneShotEdited()));
+    connect(_ui->nextAnimation, SIGNAL(editingFinished()), this, SLOT(onNextAnimationEdited()));
+
+    connect(_ui->animationList, SIGNAL(customContextMenuRequested(QPoint)),
+            this, SLOT(onAnimationListContextMenu(QPoint)));
 }
 
 AnimationDock::~AnimationDock() = default;
@@ -40,6 +61,7 @@ void AnimationDock::setDocument(AbstractDocument* document)
     }
     _document = document;
 
+    _actions->setDocument(document);
     setEnabled(_document != nullptr);
 
     if (_document) {
@@ -50,6 +72,7 @@ void AnimationDock::setDocument(AbstractDocument* document)
             m->deleteLater();
         }
 
+        _nextAnimationCompleter->setModel(_document->animationListModel());
         _ui->animationList->setModel(_document->animationListModel());
         _ui->animationFrames->setModel(_document->animationFramesModel());
 
@@ -59,6 +82,9 @@ void AnimationDock::setDocument(AbstractDocument* document)
 
         onSelectedAnimationChanged();
         onSelectedAnimationFrameChanged();
+
+        connect(_document, &AbstractDocument::animationDataChanged,
+                this, &AnimationDock::onAnimationDataChanged);
 
         connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
                 this, &AnimationDock::onSelectedAnimationChanged);
@@ -73,6 +99,7 @@ void AnimationDock::setDocument(AbstractDocument* document)
                 this, &AnimationDock::onAnimationFrameSelectionChanged);
     }
     else {
+        _nextAnimationCompleter->setModel(nullptr);
         _ui->animationList->setModel(nullptr);
         _ui->animationFrames->setModel(nullptr);
 
@@ -95,6 +122,13 @@ void AnimationDock::onSelectedAnimationChanged()
     }
     else {
         clearGui();
+    }
+}
+
+void AnimationDock::onAnimationDataChanged(const void* animation)
+{
+    if (animation == _document->selection()->selectedAnimation()) {
+        updateGui();
     }
 }
 
@@ -125,6 +159,39 @@ void AnimationDock::updateGui()
     _ui->nextAnimation->setText(QString::fromStdString(ani->nextAnimation));
 }
 
+void AnimationDock::onDurationFormatEdited()
+{
+    MSA::Animation* ani = _document->selection()->selectedAnimation();
+
+    MSA::DurationFormat df = _ui->durationFormat->currentEnum<MSA::DurationFormat>();
+    if (df != ani->durationFormat) {
+        _document->undoStack()->push(
+            new ChangeAnimationDurationFormat(_document, ani, df));
+    }
+}
+
+void AnimationDock::onOneShotEdited()
+{
+    MSA::Animation* ani = _document->selection()->selectedAnimation();
+
+    bool oneShot = _ui->oneShot->isChecked();
+    if (oneShot != ani->oneShot) {
+        _document->undoStack()->push(
+            new ChangeAnimationOneShot(_document, ani, oneShot));
+    }
+}
+
+void AnimationDock::onNextAnimationEdited()
+{
+    MSA::Animation* ani = _document->selection()->selectedAnimation();
+
+    idstring nextAni = _ui->nextAnimation->text().toStdString();
+    if (nextAni != ani->nextAnimation) {
+        _document->undoStack()->push(
+            new ChangeAnimationNextAnimation(_document, ani, nextAni));
+    }
+}
+
 void AnimationDock::onAnimationListSelectionChanged()
 {
     QModelIndex index = _ui->animationList->currentIndex();
@@ -136,4 +203,23 @@ void AnimationDock::onAnimationFrameSelectionChanged()
 {
     QModelIndex index = _ui->animationFrames->currentIndex();
     _document->selection()->selectAnimationFrame(index.row());
+}
+
+void AnimationDock::onAnimationListContextMenu(const QPoint& pos)
+{
+    if (_document) {
+        bool onAnimation = _ui->animationList->indexAt(pos).isValid();
+
+        QMenu menu;
+        menu.addAction(_actions->addAnimation());
+
+        if (onAnimation) {
+            menu.addAction(_actions->cloneAnimation());
+            menu.addAction(_actions->renameAnimation());
+            menu.addAction(_actions->removeAnimation());
+        }
+
+        QPoint globalPos = _ui->animationList->mapToGlobal(pos);
+        menu.exec(globalPos);
+    }
 }

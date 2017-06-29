@@ -56,6 +56,7 @@ private:
 
 private slots:
     void onSelectedAnimationChanged();
+    void onAnimationDataChanged(const void* animation);
 
 private:
     AbstractDocument* _document;

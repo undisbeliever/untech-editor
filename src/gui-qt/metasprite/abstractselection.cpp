@@ -46,6 +46,10 @@ void AbstractSelection::setDocument(AbstractDocument* document)
             this, &AbstractSelection::onEntityHitboxAboutToBeRemoved);
     connect(_document, &AbstractDocument::frameContentsMoved,
             this, &AbstractSelection::onFrameContentsMoved);
+    connect(_document, &AbstractDocument::animationAboutToBeRemoved,
+            this, &AbstractSelection::onAnimationAboutToBeRemoved);
+    connect(_document, &AbstractDocument::animationRenamed,
+            this, &AbstractSelection::onAnimationRenamed);
 }
 
 void AbstractSelection::selectFrame(const idstring& id)
@@ -164,6 +168,20 @@ void AbstractSelection::onFrameContentsMoved(const void* frame,
         }
 
         setSelectedItems(selection);
+    }
+}
+
+void AbstractSelection::onAnimationAboutToBeRemoved(const void* animation)
+{
+    if (_selectedAnimation == animation) {
+        unselectAnimation();
+    }
+}
+
+void AbstractSelection::onAnimationRenamed(const void* animation, const idstring& newId)
+{
+    if (_selectedAnimation == animation) {
+        _selectedAnimationId = newId;
     }
 }
 

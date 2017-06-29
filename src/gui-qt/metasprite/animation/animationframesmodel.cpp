@@ -37,6 +37,9 @@ void AnimationFramesModel::setDocument(AbstractDocument* document)
     onSelectedAnimationChanged();
     connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
             this, &AnimationFramesModel::onSelectedAnimationChanged);
+
+    connect(_document, &AbstractDocument::animationDataChanged,
+            this, &AnimationFramesModel::onAnimationDataChanged);
 }
 
 void AnimationFramesModel::onSelectedAnimationChanged()
@@ -47,6 +50,19 @@ void AnimationFramesModel::onSelectedAnimationChanged()
         beginResetModel();
         _animation = animation;
         endResetModel();
+    }
+}
+
+void AnimationFramesModel::onAnimationDataChanged(const void* animation)
+{
+    if (animation == _animation) {
+        if (_animation && _animation->frames.size() > 0) {
+            int nRows = _animation->frames.size();
+
+            emit dataChanged(createIndex(0, int(Column::DURATION)),
+                             createIndex(nRows, int(Column::DURATION)),
+                             { Qt::DisplayRole });
+        }
     }
 }
 

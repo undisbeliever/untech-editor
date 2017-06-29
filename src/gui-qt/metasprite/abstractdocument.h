@@ -76,6 +76,11 @@ signals:
     void frameContentsMoved(const void* frame,
                             const std::set<SelectedItem>& oldPositions, int offset);
 
+    void animationDataChanged(const void* animation);
+    void animationAdded(const void* animation);
+    void animationAboutToBeRemoved(const void* animation);
+    void animationRenamed(const void* animation, const idstring& newId);
+
 protected:
     QString _filename;
     QUndoStack* _undoStack;
