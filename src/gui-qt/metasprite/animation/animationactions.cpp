@@ -6,6 +6,7 @@
 
 #include "animationactions.h"
 #include "animationcommands.h"
+#include "animationframecommands.h"
 #include "animationlistmodel.h"
 #include "gui-qt/common/idstringdialog.h"
 #include "gui-qt/metasprite/abstractdocument.h"
@@ -23,12 +24,24 @@ AnimationActions::AnimationActions(QWidget* widget)
     _renameAnimation = new QAction(tr("Rename Animation"), this);
     _removeAnimation = new QAction(tr("Remove Animation"), this);
 
+    _addAnimationFrame = new QAction(tr("New Animation Frame"), this);
+    _raiseAnimationFrame = new QAction(tr("Raise Animation Frame"), this);
+    _lowerAnimationFrame = new QAction(tr("Lower Animation Frame"), this);
+    _cloneAnimationFrame = new QAction(tr("Clone Animation Frame"), this);
+    _removeAnimationFrame = new QAction(tr("Remove Animation Frame"), this);
+
     updateActions();
 
     connect(_addAnimation, SIGNAL(triggered()), this, SLOT(onAddAnimation()));
     connect(_cloneAnimation, SIGNAL(triggered()), this, SLOT(onCloneAnimation()));
     connect(_renameAnimation, SIGNAL(triggered()), this, SLOT(onRenameAnimation()));
     connect(_removeAnimation, SIGNAL(triggered()), this, SLOT(onRemoveAnimation()));
+
+    connect(_addAnimationFrame, SIGNAL(triggered()), this, SLOT(onAddAnimationFrame()));
+    connect(_raiseAnimationFrame, SIGNAL(triggered()), this, SLOT(onRaiseAnimationFrame()));
+    connect(_lowerAnimationFrame, SIGNAL(triggered()), this, SLOT(onLowerAnimationFrame()));
+    connect(_cloneAnimationFrame, SIGNAL(triggered()), this, SLOT(onCloneAnimationFrame()));
+    connect(_removeAnimationFrame, SIGNAL(triggered()), this, SLOT(onRemoveAnimationFrame()));
 }
 
 void AnimationActions::setDocument(AbstractDocument* document)
@@ -41,6 +54,8 @@ void AnimationActions::setDocument(AbstractDocument* document)
     if (document) {
         connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
                 this, &AnimationActions::updateActions);
+        connect(_document->selection(), &AbstractSelection::selectedAnimationFrameChanged,
+                this, &AnimationActions::updateActions);
     }
 
     updateActions();
@@ -50,17 +65,39 @@ void AnimationActions::updateActions()
 {
     bool documentExists = false;
     bool animationSelected = false;
+    bool animationFrameSelected = false;
+    bool canInsertAnimationFrame = false;
+    bool canRaiseAnimationFrame = false;
+    bool canLowerAnimationFrame = false;
 
     if (_document) {
         documentExists = true;
 
-        animationSelected = _document->selection()->selectedAnimation() != nullptr;
+        const auto* sel = _document->selection();
+
+        if (const MSA::Animation* animation = sel->selectedAnimation()) {
+            animationSelected = true;
+
+            int fIndex = sel->selectedAnimationFrame();
+            int nFrames = animation->frames.size();
+
+            canInsertAnimationFrame = animation->frames.can_insert();
+            animationFrameSelected = fIndex >= 0 && fIndex < nFrames;
+            canRaiseAnimationFrame = fIndex >= 1 && fIndex < nFrames;
+            canLowerAnimationFrame = fIndex >= 0 && fIndex + 1 < nFrames;
+        }
     }
 
     _addAnimation->setEnabled(documentExists);
     _cloneAnimation->setEnabled(animationSelected);
     _renameAnimation->setEnabled(animationSelected);
     _removeAnimation->setEnabled(animationSelected);
+
+    _addAnimationFrame->setEnabled(canInsertAnimationFrame);
+    _raiseAnimationFrame->setEnabled(canRaiseAnimationFrame);
+    _lowerAnimationFrame->setEnabled(canLowerAnimationFrame);
+    _cloneAnimationFrame->setEnabled(animationFrameSelected && canInsertAnimationFrame);
+    _removeAnimationFrame->setEnabled(animationFrameSelected);
 }
 
 void AnimationActions::onAddAnimation()
@@ -123,4 +160,56 @@ void AnimationActions::onRemoveAnimation()
 
     _document->undoStack()->push(
         new RemoveAnimation(_document, animationId));
+}
+
+void AnimationActions::onAddAnimationFrame()
+{
+    MSA::Animation* animation = _document->selection()->selectedAnimation();
+
+    _document->undoStack()->push(
+        new AddAnimationFrame(_document, animation));
+
+    _document->selection()->selectAnimationFrame(animation->frames.size() - 1);
+}
+
+void AnimationActions::onRaiseAnimationFrame()
+{
+    MSA::Animation* animation = _document->selection()->selectedAnimation();
+    unsigned index = _document->selection()->selectedAnimationFrame();
+
+    _document->undoStack()->push(
+        new RaiseAnimationFrame(_document, animation, index));
+
+    _document->selection()->selectAnimationFrame(index - 1);
+}
+
+void AnimationActions::onLowerAnimationFrame()
+{
+    MSA::Animation* animation = _document->selection()->selectedAnimation();
+    unsigned index = _document->selection()->selectedAnimationFrame();
+
+    _document->undoStack()->push(
+        new LowerAnimationFrame(_document, animation, index));
+
+    _document->selection()->selectAnimationFrame(index + 1);
+}
+
+void AnimationActions::onCloneAnimationFrame()
+{
+    MSA::Animation* animation = _document->selection()->selectedAnimation();
+    unsigned index = _document->selection()->selectedAnimationFrame();
+
+    _document->undoStack()->push(
+        new CloneAnimationFrame(_document, animation, index));
+
+    _document->selection()->selectAnimationFrame(animation->frames.size() - 1);
+}
+
+void AnimationActions::onRemoveAnimationFrame()
+{
+    MSA::Animation* animation = _document->selection()->selectedAnimation();
+    unsigned index = _document->selection()->selectedAnimationFrame();
+
+    _document->undoStack()->push(
+        new RemoveAnimationFrame(_document, animation, index));
 }

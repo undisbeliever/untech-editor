@@ -5,17 +5,16 @@
  */
 
 #include "animationframesmodel.h"
+#include "animationframecommands.h"
 #include "gui-qt/metasprite/abstractdocument.h"
 #include "gui-qt/metasprite/abstractselection.h"
 
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
-const QString AnimationFramesModel::FLIP_STRINGS[4] = {
-    QString(),
-    QString::fromUtf8("hFlip"),
-    QString::fromUtf8("vFlip"),
-    QString::fromUtf8("hvFlip")
-};
+const QStringList AnimationFramesModel::FLIP_STRINGS({ QString(),
+                                                       QString::fromUtf8("hFlip"),
+                                                       QString::fromUtf8("vFlip"),
+                                                       QString::fromUtf8("hvFlip") });
 
 AnimationFramesModel::AnimationFramesModel(QObject* parent)
     : QAbstractItemModel(parent)
@@ -116,7 +115,7 @@ Qt::ItemFlags AnimationFramesModel::flags(const QModelIndex& index) const
         return 0;
     }
 
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
 }
 
 QVariant AnimationFramesModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -166,7 +165,145 @@ QVariant AnimationFramesModel::data(const QModelIndex& index, int role) const
                     _animation->durationFormat.durationToString(aFrame->duration));
             }
         }
+        else if (role == Qt::EditRole) {
+            switch ((Column)index.column()) {
+            case Column::FRAME:
+                return QString::fromStdString(aFrame->frame.name);
+
+            case Column::FLIP:
+                return flipIndex;
+
+            case Column::DURATION:
+                return aFrame->duration;
+            }
+        }
     }
 
     return QVariant();
+}
+
+bool AnimationFramesModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+    if (_animation == nullptr
+        || role != Qt::EditRole
+        || index.column() < 0 || index.column() > N_COLUMNS) {
+        return false;
+    }
+
+    const MSA::AnimationFrame* modelFrame = toAnimationFrame(index);
+    if (modelFrame == nullptr) {
+        return false;
+    }
+
+    MSA::AnimationFrame aFrame = *modelFrame;
+
+    switch ((Column)index.column()) {
+    case Column::FRAME:
+        aFrame.frame.name = value.toString().toStdString();
+        break;
+
+    case Column::FLIP:
+        aFrame.frame.hFlip = value.toUInt() & 1;
+        aFrame.frame.vFlip = value.toUInt() & 2;
+        break;
+
+    case Column::DURATION:
+        aFrame.duration = value.toUInt();
+        break;
+    }
+
+    if (aFrame != *modelFrame) {
+        _document->undoStack()->push(
+            new ChangeAnimationFrame(_document, _animation, index.row(), aFrame));
+    }
+
+    return true;
+}
+
+void AnimationFramesModel::setAnimationFrame(MSA::Animation* animation,
+                                             unsigned index, const MSA::AnimationFrame& value)
+{
+    animation->frames.at(index) = value;
+
+    if (_animation == animation) {
+        emit dataChanged(createIndex(index, 0), createIndex(index, N_COLUMNS),
+                         { Qt::DisplayRole, Qt::EditRole });
+    }
+
+    emit _document->animationFrameChanged(animation, index);
+}
+
+void AnimationFramesModel::insertAnimationFrame(MSA::Animation* animation,
+                                                unsigned index, const MSA::AnimationFrame& value)
+{
+    Q_ASSERT(index <= animation->frames.size());
+
+    emit _document->animationFrameAdded(animation, index);
+
+    if (_animation == animation) {
+        beginInsertRows(QModelIndex(), index, index);
+    }
+
+    auto it = animation->frames.begin() + index;
+    animation->frames.insert(it, value);
+
+    if (_animation == animation) {
+        endInsertRows();
+    }
+}
+
+void AnimationFramesModel::removeAnimationFrame(MSA::Animation* animation, unsigned index)
+{
+    Q_ASSERT(animation->frames.size() > 0);
+    Q_ASSERT(index < animation->frames.size());
+
+    emit _document->animationFrameAboutToBeRemoved(animation, index);
+
+    if (_animation == animation) {
+        beginRemoveRows(QModelIndex(), index, index);
+    }
+
+    auto it = animation->frames.begin() + index;
+    animation->frames.erase(it);
+
+    if (_animation == animation) {
+        endRemoveRows();
+    }
+}
+
+void AnimationFramesModel::raiseAnimationFrame(MSA::Animation* animation, unsigned index)
+{
+    Q_ASSERT(index != 0);
+    Q_ASSERT(index < animation->frames.size());
+
+    if (animation == _animation) {
+        beginMoveRows(QModelIndex(), index, index, QModelIndex(), index - 1);
+    }
+
+    std::swap(animation->frames.at(index),
+              animation->frames.at(index - 1));
+
+    if (animation == _animation) {
+        endMoveRows();
+    }
+
+    emit _document->animationFrameMoved(animation, index, index - 1);
+}
+
+void AnimationFramesModel::lowerAnimationFrame(MSA::Animation* animation, unsigned index)
+{
+    Q_ASSERT(index + 1 < animation->frames.size());
+
+    if (animation == _animation) {
+        beginMoveRows(QModelIndex(), index, index, QModelIndex(), index + 2);
+    }
+
+    std::swap(animation->frames.at(index),
+              animation->frames.at(index + 1));
+
+    if (animation == _animation) {
+        endMoveRows();
+    }
+
+    emit _document->animationFrameMoved(animation, index, index + 1);
 }

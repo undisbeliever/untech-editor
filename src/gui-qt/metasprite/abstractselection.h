@@ -101,6 +101,9 @@ private slots:
     void onAnimationAboutToBeRemoved(const void* animation);
     void onAnimationRenamed(const void* animation, const idstring& newId);
 
+    void onAnimationFrameAboutToBeRemoved(const void* animation, unsigned index);
+    void onAnimationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
+
 protected:
     AbstractDocument* _document;
     const void* _selectedFramePtr;

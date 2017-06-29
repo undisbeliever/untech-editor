@@ -54,6 +54,7 @@ private slots:
     void onAnimationFrameSelectionChanged();
 
     void onAnimationListContextMenu(const QPoint& pos);
+    void onAnimationFramesContextMenu(const QPoint& pos);
 
 private:
     std::unique_ptr<Ui::AnimationDock> _ui;

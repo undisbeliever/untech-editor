@@ -8,6 +8,7 @@
 
 #include "models/metasprite/animation/animation.h"
 #include <QAbstractItemModel>
+#include <QStringList>
 
 namespace UnTech {
 namespace GuiQt {
@@ -15,15 +16,19 @@ namespace MetaSprite {
 class AbstractDocument;
 
 namespace Animation {
+class ChangeAnimationFrame;
+class AddRemoveAnimationFrame;
+class RaiseAnimationFrame;
+class LowerAnimationFrame;
 
 namespace MSA = UnTech::MetaSprite::Animation;
 
 class AnimationFramesModel : public QAbstractItemModel {
     Q_OBJECT
 
-    const static QString FLIP_STRINGS[4];
-
 public:
+    const static QStringList FLIP_STRINGS;
+
     enum class Column {
         FRAME,
         FLIP,
@@ -50,6 +55,21 @@ public:
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const final;
 
     virtual QVariant data(const QModelIndex& index, int role) const final;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
+
+protected:
+    friend class ChangeAnimationFrame;
+    void setAnimationFrame(MSA::Animation* animation, unsigned index, const MSA::AnimationFrame& value);
+
+    friend class AddRemoveAnimationFrame;
+    void insertAnimationFrame(MSA::Animation* animation, unsigned index, const MSA::AnimationFrame& value);
+    void removeAnimationFrame(MSA::Animation* animation, unsigned index);
+
+    friend class RaiseAnimationFrame;
+    void raiseAnimationFrame(MSA::Animation* animation, unsigned index);
+
+    friend class LowerAnimationFrame;
+    void lowerAnimationFrame(MSA::Animation* animation, unsigned index);
 
 private:
     MSA::AnimationFrame* toAnimationFrame(const QModelIndex& index) const;

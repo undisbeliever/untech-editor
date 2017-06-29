@@ -7,6 +7,7 @@
 #include "animationdock.h"
 #include "animationactions.h"
 #include "animationcommands.h"
+#include "animationframesdelegate.h"
 #include "animationframesmodel.h"
 #include "animationlistmodel.h"
 #include "gui-qt/common/idstringvalidator.h"
@@ -34,7 +35,10 @@ AnimationDock::AnimationDock(QWidget* parent)
 
     _ui->durationFormat->populateData(MSA::DurationFormat::enumMap);
 
+    _ui->animationFrames->setItemDelegate(new AnimationFramesDelegate(this));
+
     _ui->animationList->setContextMenuPolicy(Qt::CustomContextMenu);
+    _ui->animationFrames->setContextMenuPolicy(Qt::CustomContextMenu);
 
     clearGui();
     setEnabled(false);
@@ -45,6 +49,8 @@ AnimationDock::AnimationDock(QWidget* parent)
 
     connect(_ui->animationList, SIGNAL(customContextMenuRequested(QPoint)),
             this, SLOT(onAnimationListContextMenu(QPoint)));
+    connect(_ui->animationFrames, SIGNAL(customContextMenuRequested(QPoint)),
+            this, SLOT(onAnimationFramesContextMenu(QPoint)));
 }
 
 AnimationDock::~AnimationDock() = default;
@@ -220,6 +226,26 @@ void AnimationDock::onAnimationListContextMenu(const QPoint& pos)
         }
 
         QPoint globalPos = _ui->animationList->mapToGlobal(pos);
+        menu.exec(globalPos);
+    }
+}
+
+void AnimationDock::onAnimationFramesContextMenu(const QPoint& pos)
+{
+    if (_document) {
+        bool onFrame = _ui->animationFrames->indexAt(pos).isValid();
+
+        QMenu menu;
+        menu.addAction(_actions->addAnimationFrame());
+
+        if (onFrame) {
+            menu.addAction(_actions->raiseAnimationFrame());
+            menu.addAction(_actions->lowerAnimationFrame());
+            menu.addAction(_actions->cloneAnimationFrame());
+            menu.addAction(_actions->removeAnimationFrame());
+        }
+
+        QPoint globalPos = _ui->animationFrames->mapToGlobal(pos);
         menu.exec(globalPos);
     }
 }

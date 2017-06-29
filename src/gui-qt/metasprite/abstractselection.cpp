@@ -50,6 +50,10 @@ void AbstractSelection::setDocument(AbstractDocument* document)
             this, &AbstractSelection::onAnimationAboutToBeRemoved);
     connect(_document, &AbstractDocument::animationRenamed,
             this, &AbstractSelection::onAnimationRenamed);
+    connect(_document, &AbstractDocument::animationFrameAboutToBeRemoved,
+            this, &AbstractSelection::onAnimationFrameAboutToBeRemoved);
+    connect(_document, &AbstractDocument::animationFrameMoved,
+            this, &AbstractSelection::onAnimationFrameMoved);
 }
 
 void AbstractSelection::selectFrame(const idstring& id)
@@ -182,6 +186,27 @@ void AbstractSelection::onAnimationRenamed(const void* animation, const idstring
 {
     if (_selectedAnimation == animation) {
         _selectedAnimationId = newId;
+    }
+}
+
+void AbstractSelection::onAnimationFrameAboutToBeRemoved(const void* animation, unsigned index)
+{
+    if (_selectedAnimation == animation
+        && _selectedAnimationFrame == int(index)) {
+
+        unselectAnimation();
+    }
+}
+
+void AbstractSelection::onAnimationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos)
+{
+    if (_selectedAnimation == animation) {
+        if (_selectedAnimationFrame == int(oldPos)) {
+            selectAnimationFrame(newPos);
+        }
+        else if (_selectedAnimationFrame == int(newPos)) {
+            selectAnimationFrame(oldPos);
+        }
     }
 }
 

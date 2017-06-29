@@ -81,6 +81,11 @@ signals:
     void animationAboutToBeRemoved(const void* animation);
     void animationRenamed(const void* animation, const idstring& newId);
 
+    void animationFrameChanged(const void* animation, unsigned index);
+    void animationFrameAdded(const void* animation, unsigned index);
+    void animationFrameAboutToBeRemoved(const void* animation, unsigned index);
+    void animationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
+
 protected:
     QString _filename;
     QUndoStack* _undoStack;
