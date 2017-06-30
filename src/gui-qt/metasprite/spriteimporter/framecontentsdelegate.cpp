@@ -58,7 +58,7 @@ QWidget* FrameContentsDelegate::createEditor(QWidget* parent,
         QSpinBox* editor = new QSpinBox(parent);
         editor->setFrame(false);
         editor->setAutoFillBackground(true);
-        editor->setMaximum(ActionPointParameter::MIN);
+        editor->setMinimum(ActionPointParameter::MIN);
         editor->setMaximum(ActionPointParameter::MAX);
         return editor;
     }
