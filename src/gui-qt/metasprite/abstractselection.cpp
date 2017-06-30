@@ -178,6 +178,7 @@ void AbstractSelection::onFrameContentsMoved(const void* frame,
                                              const std::set<SelectedItem>& oldPos, int offset)
 {
     if (_selectedFramePtr == frame) {
+        const std::set<SelectedItem> newPos = moveSelectedItems(oldPos, offset);
         std::set<SelectedItem> selection;
 
         for (const SelectedItem& item : _selectedItems) {
@@ -186,7 +187,11 @@ void AbstractSelection::onFrameContentsMoved(const void* frame,
                 selection.insert({ item.type, item.index + offset });
             }
             else {
-                selection.insert(item);
+                SelectedItem i = item;
+                while (newPos.find(i) != newPos.end()) {
+                    i.index -= offset;
+                }
+                selection.insert(i);
             }
         }
 
