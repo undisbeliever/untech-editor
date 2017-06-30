@@ -40,6 +40,9 @@ struct SelectedItem {
     }
 };
 
+std::set<SelectedItem> moveSelectedItems(
+    const std::set<SelectedItem>& items, int offset);
+
 class AbstractSelection : public QObject {
     Q_OBJECT
 

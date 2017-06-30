@@ -13,6 +13,25 @@
 using namespace UnTech::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite;
 
+std::set<SelectedItem>
+UnTech::GuiQt::MetaSprite::moveSelectedItems(
+    const std::set<SelectedItem>& items, int offset)
+{
+    std::set<SelectedItem> ret;
+    for (const SelectedItem& item : items) {
+        if (item.type == SelectedItem::NONE) {
+            ret.insert({ SelectedItem::NONE, 0 });
+        }
+        else if (offset > 0 || item.index > 0) {
+            ret.insert({ item.type, item.index + offset });
+        }
+        else {
+            ret.insert(item);
+        }
+    }
+    return ret;
+}
+
 AbstractSelection::AbstractSelection(QObject* parent)
     : QObject(parent)
     , _document(nullptr)

@@ -139,18 +139,19 @@ RaiseFrameContents::RaiseFrameContents(Document* document, SI::Frame* frame,
     : QUndoCommand(QCoreApplication::tr("Raise"))
     , _document(document)
     , _frame(frame)
-    , _items(items)
+    , _undoItems(moveSelectedItems(items, -1))
+    , _redoItems(items)
 {
 }
 
 void RaiseFrameContents::undo()
 {
-    _document->frameContentsModel()->lowerSelectedItems(_frame, _items);
+    _document->frameContentsModel()->lowerSelectedItems(_frame, _undoItems);
 }
 
 void RaiseFrameContents::redo()
 {
-    _document->frameContentsModel()->raiseSelectedItems(_frame, _items);
+    _document->frameContentsModel()->raiseSelectedItems(_frame, _redoItems);
 }
 
 // LowerFrameContents
@@ -161,16 +162,17 @@ LowerFrameContents::LowerFrameContents(Document* document, SI::Frame* frame,
     : QUndoCommand(QCoreApplication::tr("Lower"))
     , _document(document)
     , _frame(frame)
-    , _items(items)
+    , _undoItems(moveSelectedItems(items, 1))
+    , _redoItems(items)
 {
 }
 
 void LowerFrameContents::undo()
 {
-    _document->frameContentsModel()->raiseSelectedItems(_frame, _items);
+    _document->frameContentsModel()->raiseSelectedItems(_frame, _undoItems);
 }
 
 void LowerFrameContents::redo()
 {
-    _document->frameContentsModel()->lowerSelectedItems(_frame, _items);
+    _document->frameContentsModel()->lowerSelectedItems(_frame, _redoItems);
 }

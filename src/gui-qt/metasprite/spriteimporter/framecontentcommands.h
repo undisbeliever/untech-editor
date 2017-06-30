@@ -101,7 +101,8 @@ public:
 private:
     Document* _document;
     SI::Frame* _frame;
-    const std::set<SelectedItem> _items;
+    const std::set<SelectedItem> _undoItems;
+    const std::set<SelectedItem> _redoItems;
 };
 
 class LowerFrameContents : public QUndoCommand {
@@ -116,7 +117,8 @@ public:
 private:
     Document* _document;
     SI::Frame* _frame;
-    const std::set<SelectedItem> _items;
+    const std::set<SelectedItem> _undoItems;
+    const std::set<SelectedItem> _redoItems;
 };
 }
 }
