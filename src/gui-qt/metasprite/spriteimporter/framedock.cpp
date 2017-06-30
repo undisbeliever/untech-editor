@@ -60,6 +60,10 @@ void FrameDock::setDocument(Document* document)
         return;
     }
 
+    if (auto* m = _ui->frameContents->selectionModel()) {
+        m->deleteLater();
+    }
+
     if (_document != nullptr) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
@@ -70,10 +74,6 @@ void FrameDock::setDocument(Document* document)
 
     if (_document) {
         _ui->frameComboBox->setModel(_document->frameListModel());
-
-        if (auto* m = _ui->frameContents->selectionModel()) {
-            m->deleteLater();
-        }
         _ui->frameContents->setModel(_document->frameContentsModel());
 
         onSelectedFrameChanged();
@@ -91,6 +91,9 @@ void FrameDock::setDocument(Document* document)
                 this, &FrameDock::onFrameContentsSelectionChanged);
     }
     else {
+        _ui->frameComboBox->setModel(nullptr);
+        _ui->frameContents->setModel(nullptr);
+
         clearGui();
     }
 }

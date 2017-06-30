@@ -61,6 +61,13 @@ void AnimationDock::setDocument(AbstractDocument* document)
         return;
     }
 
+    if (auto* m = _ui->animationList->selectionModel()) {
+        m->deleteLater();
+    }
+    if (auto* m = _ui->animationFrames->selectionModel()) {
+        m->deleteLater();
+    }
+
     if (_document != nullptr) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
@@ -71,13 +78,6 @@ void AnimationDock::setDocument(AbstractDocument* document)
     setEnabled(_document != nullptr);
 
     if (_document) {
-        if (auto* m = _ui->animationList->selectionModel()) {
-            m->deleteLater();
-        }
-        if (auto* m = _ui->animationFrames->selectionModel()) {
-            m->deleteLater();
-        }
-
         _nextAnimationCompleter->setModel(_document->animationListModel());
         _ui->animationList->setModel(_document->animationListModel());
         _ui->animationFrames->setModel(_document->animationFramesModel());

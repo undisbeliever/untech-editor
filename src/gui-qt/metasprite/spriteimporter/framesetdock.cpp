@@ -71,6 +71,10 @@ void FrameSetDock::setDocument(Document* document)
         return;
     }
 
+    if (auto* m = _ui->frameList->selectionModel()) {
+        m->deleteLater();
+    }
+
     if (_document != nullptr) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
@@ -80,13 +84,10 @@ void FrameSetDock::setDocument(Document* document)
     setEnabled(_document != nullptr);
 
     if (_document) {
+        _ui->frameList->setModel(_document->frameListModel());
+
         updateGui();
         updateFrameListSelection();
-
-        if (auto* m = _ui->frameList->selectionModel()) {
-            m->deleteLater();
-        }
-        _ui->frameList->setModel(_document->frameListModel());
 
         connect(_document, SIGNAL(frameSetDataChanged()), this, SLOT(updateGui()));
 
@@ -98,8 +99,9 @@ void FrameSetDock::setDocument(Document* document)
                 this, SLOT(onFrameListSelectionChanged()));
     }
     else {
-        clearGui();
         _ui->frameList->setModel(nullptr);
+
+        clearGui();
     }
 }
 
