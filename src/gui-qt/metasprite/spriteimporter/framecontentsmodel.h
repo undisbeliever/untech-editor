@@ -30,8 +30,6 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
 class FrameContentsModel : public QAbstractItemModel {
     Q_OBJECT
 
-    const static QHash<int, QString> entityHitboxMap;
-
 public:
     enum class Column {
         LOCATION,

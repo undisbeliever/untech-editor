@@ -17,18 +17,6 @@
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-QHash<int, QString> buildEntityHitboxMap()
-{
-    QHash<int, QString> map;
-
-    for (const auto& it : UnTech::MetaSprite::EntityHitboxType::enumMap) {
-        QString s = QString::fromStdString(it.second);
-        map.insert(int(it.first), s);
-    }
-    return map;
-}
-const QHash<int, QString> FrameContentsModel::entityHitboxMap = buildEntityHitboxMap();
-
 FrameContentsModel::FrameContentsModel(QObject* parent)
     : QAbstractItemModel(parent)
     , _document(nullptr)
@@ -405,7 +393,7 @@ QVariant FrameContentsModel::data_entityHitbox(const QModelIndex& index, int rol
                     .arg(eh->aabb.height);
 
             case Column::PARAMETER:
-                return entityHitboxMap.value(int(eh->hitboxType.value()));
+                return QString::fromStdString(eh->hitboxType.string());
             }
         }
         else if (role == Qt::EditRole) {
