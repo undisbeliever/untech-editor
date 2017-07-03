@@ -4,18 +4,33 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#include "version.h"
+#include "metasprite/spriteimporter/document.h"
 #include "metasprite/spriteimporter/mainwindow.h"
 #include <QApplication>
+#include <QCommandLineParser>
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 int main(int argc, char* argv[])
 {
-    QApplication a(argc, argv);
-    a.setApplicationDisplayName("UnTech SpriteImporter");
+    QApplication app(argc, argv);
+    app.setApplicationDisplayName("UnTech SpriteImporter");
+    app.setApplicationVersion(UNTECH_VERSION);
 
-    MainWindow w;
-    w.show();
+    QCommandLineParser parser;
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addPositionalArgument("file", "utsi file", "[file]");
+    parser.process(app);
 
-    return a.exec();
+    MainWindow* window = new MainWindow();
+    window->show();
+
+    const QStringList args = parser.positionalArguments();
+    if (args.size() > 0) {
+        window->setDocument(Document::loadDocument(args.first()));
+    }
+
+    return app.exec();
 }
