@@ -156,6 +156,7 @@ $(call cli-modules, untech-utsi2utms,	common snes metasprite)
 $(call gui-modules, untech-metasprite-wxgui,     common snes metasprite)
 $(call gui-modules, untech-spriteimporter-wxgui, common snes metasprite)
 
+$(call gui-qt-modules, untech-metasprite-qtgui,     common snes metasprite)
 $(call gui-qt-modules, untech-spriteimporter-qtgui, common snes metasprite)
 
 
