@@ -55,7 +55,6 @@ public:
 
 signals:
     void frameSetDataChanged();
-    void frameSetGridChanged();
     void frameDataChanged(const void* frame);
     void frameAdded(const void* frame);
     void frameAboutToBeRemoved(const void* frame);

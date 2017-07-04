@@ -73,7 +73,6 @@ void FrameDock::setDocument(Document* document)
 
         onSelectedFrameChanged();
 
-        connect(_document, SIGNAL(frameSetGridChanged()), this, SLOT(updateGui()));
         connect(_document, &Document::frameDataChanged, this, &FrameDock::onFrameDataChanged);
 
         connect(_document->selection(), SIGNAL(selectedFrameChanged()),

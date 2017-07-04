@@ -44,6 +44,9 @@ public:
 
     virtual AbstractSelection* abstractSelection() const { return nullptr; }
 
+signals:
+    void frameSetGridChanged();
+
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;
 
