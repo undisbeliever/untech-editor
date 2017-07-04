@@ -23,6 +23,7 @@ class MainWindow;
 }
 class Document;
 class Actions;
+class SiGraphicsScene;
 class FrameSetDock;
 class FrameDock;
 
@@ -58,6 +59,7 @@ private:
 
     QUndoGroup* _undoGroup;
 
+    SiGraphicsScene* _graphicsScene;
     FrameSetDock* _frameSetDock;
     FrameDock* _frameDock;
     Animation::AnimationDock* _animationDock;

@@ -46,6 +46,7 @@ public:
 
 signals:
     void frameSetGridChanged();
+    void frameSetImageChanged();
 
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;

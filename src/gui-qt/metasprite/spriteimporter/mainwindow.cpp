@@ -9,6 +9,7 @@
 #include "document.h"
 #include "framedock.h"
 #include "framesetdock.h"
+#include "sigraphicsscene.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
 #include "gui-qt/metasprite/spriteimporter/mainwindow.ui.h"
 
@@ -26,6 +27,9 @@ MainWindow::MainWindow(QWidget* parent)
     , _undoGroup(new QUndoGroup(this))
 {
     _ui->setupUi(this);
+
+    _graphicsScene = new SiGraphicsScene(this);
+    _ui->graphicsView->setScene(_graphicsScene);
 
     _frameSetDock = new FrameSetDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
@@ -89,6 +93,7 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     _document = std::move(document);
 
     _actions->setDocument(_document.get());
+    _graphicsScene->setDocument(_document.get());
     _frameSetDock->setDocument(_document.get());
     _frameDock->setDocument(_document.get());
     _animationDock->setDocument(_document.get());

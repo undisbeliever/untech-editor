@@ -104,16 +104,11 @@ void ChangeFrameSetImageFile::undo()
 {
     SI::FrameSet* fs = _document->frameSet();
 
-    rgba prevTC = fs->transparentColor;
-
     fs->loadImage(_oldFilename);
     fs->transparentColor = _oldTransparentColor;
 
     emit _document->frameSetDataChanged();
-
-    if (fs->transparentColor != prevTC) {
-        emit _document->frameSetDataChanged();
-    }
+    emit _document->frameSetImageChanged();
 }
 
 void ChangeFrameSetImageFile::redo()
@@ -124,10 +119,7 @@ void ChangeFrameSetImageFile::redo()
     fs->loadImage(_newFilename);
 
     emit _document->frameSetDataChanged();
-
-    if (fs->transparentColor != _oldTransparentColor) {
-        emit _document->frameSetDataChanged();
-    }
+    emit _document->frameSetImageChanged();
 }
 
 // ChangeFrameSetTransparentColor
