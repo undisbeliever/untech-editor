@@ -179,7 +179,7 @@ struct Frame {
     bool solid;
 
     Frame()
-        : tileHitbox(-8, -8, 16, 16)
+        : tileHitbox(0, 0, MIN_FRAME_SIZE, MIN_FRAME_SIZE)
         , spriteOrder(DEFAULT_SPRITE_ORDER)
         , solid(false)
     {
