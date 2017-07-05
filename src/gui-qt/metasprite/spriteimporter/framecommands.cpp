@@ -165,12 +165,16 @@ ChangeFrameLocation::ChangeFrameLocation(Document* document,
 void ChangeFrameLocation::undo()
 {
     _frame->location = _oldLocation;
+
+    emit _document->frameLocationChanged(_frame);
     emit _document->frameDataChanged(_frame);
 }
 
 void ChangeFrameLocation::redo()
 {
     _frame->location = _newLocation;
+
+    emit _document->frameLocationChanged(_frame);
     emit _document->frameDataChanged(_frame);
 }
 
@@ -198,12 +202,16 @@ ChangeFrameSolid::ChangeFrameSolid(
 void ChangeFrameSolid::undo()
 {
     _frame->solid = _oldSolid;
+
+    emit _document->frameTileHitboxChanged(_frame);
     emit _document->frameDataChanged(_frame);
 }
 
 void ChangeFrameSolid::redo()
 {
     _frame->solid = _newSolid;
+
+    emit _document->frameTileHitboxChanged(_frame);
     emit _document->frameDataChanged(_frame);
 }
 
@@ -224,11 +232,15 @@ ChangeFrameTileHitbox::ChangeFrameTileHitbox(
 void ChangeFrameTileHitbox::undo()
 {
     _frame->tileHitbox = _oldHitbox;
+
+    emit _document->frameTileHitboxChanged(_frame);
     emit _document->frameDataChanged(_frame);
 }
 
 void ChangeFrameTileHitbox::redo()
 {
     _frame->tileHitbox = _newHitbox;
+
+    emit _document->frameTileHitboxChanged(_frame);
     emit _document->frameDataChanged(_frame);
 }

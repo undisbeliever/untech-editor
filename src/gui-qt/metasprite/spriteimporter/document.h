@@ -48,6 +48,9 @@ signals:
     void frameSetGridChanged();
     void frameSetImageChanged();
 
+    void frameLocationChanged(const void* frame);
+    void frameTileHitboxChanged(const void* frame);
+
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;
 
