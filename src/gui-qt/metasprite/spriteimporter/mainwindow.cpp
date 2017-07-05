@@ -10,6 +10,7 @@
 #include "framedock.h"
 #include "framesetdock.h"
 #include "sigraphicsscene.h"
+#include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
 #include "gui-qt/metasprite/spriteimporter/mainwindow.ui.h"
 
@@ -17,6 +18,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
+using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 MainWindow::MainWindow(QWidget* parent)
@@ -24,10 +26,12 @@ MainWindow::MainWindow(QWidget* parent)
     , _ui(new Ui::MainWindow)
     , _document(nullptr)
     , _actions(new Actions(this))
+    , _zoomSettings(new ZoomSettings(4.0, ZoomSettings::NTSC, this))
     , _undoGroup(new QUndoGroup(this))
 {
     _ui->setupUi(this);
 
+    _ui->graphicsView->setZoomSettings(_zoomSettings);
     _graphicsScene = new SiGraphicsScene(this);
     _ui->graphicsView->setScene(_graphicsScene);
 
@@ -48,6 +52,7 @@ MainWindow::MainWindow(QWidget* parent)
     setDocument(nullptr);
 
     setupMenubar();
+    setupStatusbar();
 
     connect(_undoGroup, SIGNAL(cleanChanged(bool)), this, SLOT(updateWindowTitle()));
 
@@ -84,6 +89,17 @@ void MainWindow::setupMenubar()
     _ui->menuEdit->addAction(_actions->addFrameObject());
     _ui->menuEdit->addAction(_actions->addActionPoint());
     _ui->menuEdit->addAction(_actions->addEntityHitbox());
+}
+
+void MainWindow::setupStatusbar()
+{
+    _aspectRatioComboBox = new QComboBox(this);
+    _zoomSettings->setAspectRatioComboBox(_aspectRatioComboBox);
+    statusBar()->addPermanentWidget(_aspectRatioComboBox);
+
+    _zoomComboBox = new QComboBox(this);
+    _zoomSettings->setZoomComboBox(_zoomComboBox);
+    statusBar()->addPermanentWidget(_zoomComboBox);
 }
 
 void MainWindow::setDocument(std::unique_ptr<Document> document)

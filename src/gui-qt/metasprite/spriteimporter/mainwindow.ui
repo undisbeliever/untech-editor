@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>UnTech</string>
   </property>
-  <widget class="QGraphicsView" name="graphicsView">
+  <widget class="ZoomableGraphicsView" name="graphicsView">
    <property name="minimumSize">
     <size>
      <width>256</width>
@@ -98,6 +98,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>ZoomableGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>gui-qt/common/graphics/zoomablegraphicsview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
