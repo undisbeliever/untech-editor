@@ -58,6 +58,25 @@ struct ms8point {
         return p;
     }
 
+    ms8point flip(bool hFlip, bool vFlip, unsigned width, unsigned height) const
+    {
+        ms8point p = *this;
+
+        if (hFlip) {
+            p.x = -p.x - width;
+        }
+        if (vFlip) {
+            p.y = -p.y - height;
+        }
+
+        return p;
+    }
+
+    ms8point flip(bool hFlip, bool vFlip, unsigned squareSize) const
+    {
+        return flip(hFlip, vFlip, squareSize, squareSize);
+    }
+
     bool operator==(const ms8point& o) const
     {
         return x == o.x && y == o.y;

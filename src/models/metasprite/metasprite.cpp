@@ -50,7 +50,7 @@ Frame Frame::flip(bool hFlip, bool vFlip) const
     ret.tileHitbox = tileHitbox.flip(hFlip, vFlip);
 
     for (auto& obj : ret.objects) {
-        obj.location = obj.location.flip(hFlip, vFlip);
+        obj.location = obj.location.flip(hFlip, vFlip, obj.sizePx());
         obj.hFlip = obj.hFlip ^ hFlip;
         obj.vFlip = obj.vFlip ^ vFlip;
     }
