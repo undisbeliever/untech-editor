@@ -16,6 +16,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 class Style;
+class LayerSettings;
 
 namespace SpriteImporter {
 class Document;
@@ -25,12 +26,14 @@ class SiGraphicsScene : public QGraphicsScene {
     Q_OBJECT
 
 public:
-    SiGraphicsScene(QWidget* parent = nullptr);
+    SiGraphicsScene(LayerSettings* layerSettings, QWidget* parent = nullptr);
     ~SiGraphicsScene() = default;
 
     void setDocument(Document* document);
 
 private slots:
+    void onLayerSettingsChanged();
+
     void updateFrameSetPixmap();
 
     void buildFrameItems();
@@ -54,6 +57,7 @@ private slots:
     void onFrameContentsMoved(const void* frame, const std::set<SelectedItem>& oldPositions, int offset);
 
 private:
+    LayerSettings* _layerSettings;
     Document* _document;
 
     Style* _style;

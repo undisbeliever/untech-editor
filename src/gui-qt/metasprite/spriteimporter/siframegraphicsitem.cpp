@@ -5,6 +5,7 @@
  */
 
 #include "siframegraphicsitem.h"
+#include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
 #include <QPen>
@@ -16,6 +17,7 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame, Style* style,
     : QGraphicsRectItem(parent)
     , _frame(frame)
     , _style(style)
+    , _showTileHitbox(true)
 {
     Q_ASSERT(frame != nullptr);
     Q_ASSERT(style != nullptr);
@@ -74,7 +76,7 @@ void SiFrameGraphicsItem::updateTileHitbox()
 {
     const urect& hitbox = _frame->tileHitbox;
 
-    _tileHitbox->setVisible(_frame->solid);
+    _tileHitbox->setVisible(_showTileHitbox & _frame->solid);
     _tileHitbox->setRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
 }
 
@@ -172,4 +174,25 @@ void SiFrameGraphicsItem::updateFrameContents()
     for (int i = 0; i < _entityHitboxes.size(); i++) {
         updateEntityHitbox(i);
     }
+}
+
+void SiFrameGraphicsItem::updateLayerSettings(const LayerSettings* settings)
+{
+    _showTileHitbox = settings->showTileHitbox();
+    _tileHitbox->setVisible(_showTileHitbox & _frame->solid);
+
+    _horizontalOrigin->setVisible(settings->showOrigin());
+    _verticalOrigin->setVisible(settings->showOrigin());
+
+    for (auto* item : _objects) {
+        item->setVisible(settings->showFrameObjects());
+    }
+    for (auto* item : _actionPoints) {
+        item->setVisible(settings->showActionPoints());
+    }
+    for (auto* item : _entityHitboxes) {
+        item->setVisible(settings->showEntityHitboxes());
+    }
+
+    update();
 }

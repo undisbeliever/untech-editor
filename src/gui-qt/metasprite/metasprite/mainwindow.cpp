@@ -12,11 +12,13 @@
 #include "msgraphicsscene.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
+#include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/metasprite/mainwindow.ui.h"
 
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QPushButton>
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
@@ -26,6 +28,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _document(nullptr)
     , _actions(new Actions(this))
     , _zoomSettings(new ZoomSettings(6.0, ZoomSettings::NTSC, this))
+    , _layerSettings(new LayerSettings(this))
     , _undoGroup(new QUndoGroup(this))
 {
     _ui->setupUi(this);
@@ -33,7 +36,7 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->graphicsView->setZoomSettings(_zoomSettings);
     _ui->graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
 
-    _graphicsScene = new MsGraphicsScene(this);
+    _graphicsScene = new MsGraphicsScene(_layerSettings, this);
     _ui->graphicsView->setScene(_graphicsScene);
 
     _frameSetDock = new FrameSetDock(_actions, this);
@@ -90,10 +93,18 @@ void MainWindow::setupMenubar()
     _ui->menuEdit->addAction(_actions->addFrameObject());
     _ui->menuEdit->addAction(_actions->addActionPoint());
     _ui->menuEdit->addAction(_actions->addEntityHitbox());
+
+    _layerSettings->populateMenu(_ui->menuView);
 }
 
 void MainWindow::setupStatusbar()
 {
+    QPushButton* layerButton = new QPushButton(tr("Layers"), this);
+    QMenu* layerMenu = new QMenu(this);
+    _layerSettings->populateMenu(layerMenu);
+    layerButton->setMenu(layerMenu);
+    statusBar()->addPermanentWidget(layerButton);
+
     _aspectRatioComboBox = new QComboBox(this);
     _zoomSettings->setAspectRatioComboBox(_aspectRatioComboBox);
     statusBar()->addPermanentWidget(_aspectRatioComboBox);

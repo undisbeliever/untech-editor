@@ -19,6 +19,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 class Style;
+class LayerSettings;
 
 namespace MetaSprite {
 class Document;
@@ -35,7 +36,7 @@ class MsGraphicsScene : public QGraphicsScene {
     static const unsigned ACTION_POINT_ZVALUE = 400;
 
 public:
-    MsGraphicsScene(QWidget* parent = nullptr);
+    MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent = nullptr);
     ~MsGraphicsScene() = default;
 
     void setDocument(Document* document);
@@ -64,6 +65,8 @@ private:
     void removeEntityHitbox(unsigned index);
 
 private slots:
+    void onLayerSettingsChanged();
+
     void onSelectedFrameChanged();
 
     void onFrameTileHitboxChanged(const void* frame);
@@ -83,6 +86,7 @@ private slots:
     void onFrameContentsMoved(const void* frame, const std::set<SelectedItem>& oldPositions, int offset);
 
 private:
+    LayerSettings* _layerSettings;
     Document* _document;
 
     Style* _style;

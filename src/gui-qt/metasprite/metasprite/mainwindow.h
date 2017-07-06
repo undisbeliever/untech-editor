@@ -16,6 +16,8 @@ namespace GuiQt {
 class ZoomSettings;
 
 namespace MetaSprite {
+class LayerSettings;
+
 namespace Animation {
 class AnimationDock;
 }
@@ -61,6 +63,7 @@ private:
     std::unique_ptr<Document> _document;
     Actions* _actions;
     ZoomSettings* _zoomSettings;
+    LayerSettings* _layerSettings;
 
     QUndoGroup* _undoGroup;
 

@@ -14,6 +14,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 class Style;
+class LayerSettings;
 
 namespace SpriteImporter {
 
@@ -49,6 +50,8 @@ public:
 
     void updateFrameContents();
 
+    void updateLayerSettings(const LayerSettings* settings);
+
 private:
     template <class T>
     static void updateZValues(const QList<T*>& list, int start, unsigned baseZValue);
@@ -56,6 +59,7 @@ private:
 private:
     SI::Frame* _frame;
     Style* _style;
+    bool _showTileHitbox;
 
     QGraphicsRectItem* _tileHitbox;
     QGraphicsLineItem* _horizontalOrigin;

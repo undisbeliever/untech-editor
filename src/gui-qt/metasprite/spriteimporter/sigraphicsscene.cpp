@@ -7,19 +7,28 @@
 #include "sigraphicsscene.h"
 #include "document.h"
 #include "siframegraphicsitem.h"
+#include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-SiGraphicsScene::SiGraphicsScene(QWidget* parent)
+SiGraphicsScene::SiGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     : QGraphicsScene(parent)
+    , _layerSettings(layerSettings)
     , _document(nullptr)
 {
+    Q_ASSERT(_layerSettings != nullptr);
+
     _style = new Style(parent);
 
     _frameSetPixmap = new QGraphicsPixmapItem();
     _frameSetPixmap->setTransformationMode(Qt::FastTransformation);
     addItem(_frameSetPixmap);
+
+    onLayerSettingsChanged();
+
+    connect(_layerSettings, &LayerSettings::layerSettingsChanged,
+            this, &SiGraphicsScene::onLayerSettingsChanged);
 }
 
 void SiGraphicsScene::setDocument(Document* document)
@@ -111,6 +120,13 @@ void SiGraphicsScene::buildFrameItems()
     }
 
     setSceneRect(itemsBoundingRect());
+}
+
+void SiGraphicsScene::onLayerSettingsChanged()
+{
+    for (SiFrameGraphicsItem* item : _frameItems) {
+        item->updateLayerSettings(_layerSettings);
+    }
 }
 
 void SiGraphicsScene::onFrameSetGridChanged()

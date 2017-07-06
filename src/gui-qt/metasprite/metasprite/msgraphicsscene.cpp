@@ -6,17 +6,21 @@
 
 #include "msgraphicsscene.h"
 #include "document.h"
+#include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
 #include <QGraphicsView>
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-MsGraphicsScene::MsGraphicsScene(QWidget* parent)
+MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     : QGraphicsScene(parent)
+    , _layerSettings(layerSettings)
     , _document(nullptr)
     , _frame(nullptr)
 {
+    Q_ASSERT(layerSettings != nullptr);
+
     _style = new Style(parent);
 
     _tileHitbox = new QGraphicsRectItem();
@@ -25,6 +29,11 @@ MsGraphicsScene::MsGraphicsScene(QWidget* parent)
     _tileHitbox->setZValue(TILE_HITBOX_ZVALUE);
     _tileHitbox->setVisible(false);
     addItem(_tileHitbox);
+
+    onLayerSettingsChanged();
+
+    connect(_layerSettings, &LayerSettings::layerSettingsChanged,
+            this, &MsGraphicsScene::onLayerSettingsChanged);
 }
 
 void MsGraphicsScene::setDocument(Document* document)
@@ -113,7 +122,7 @@ void MsGraphicsScene::setFrame(MS::Frame* frame)
 
 void MsGraphicsScene::drawForeground(QPainter* painter, const QRectF& rect)
 {
-    if (_frame != nullptr) {
+    if (_frame != nullptr && _layerSettings->showOrigin()) {
         QRectF r = rect.adjusted(-1, -1, 1, 1);
 
         painter->save();
@@ -133,7 +142,8 @@ void MsGraphicsScene::updateTileHitbox()
 {
     const ms8rect& hitbox = _frame->tileHitbox;
 
-    _tileHitbox->setVisible(_frame->solid);
+    _tileHitbox->setVisible(_layerSettings->showTileHitbox() & _frame->solid);
+
     _tileHitbox->setRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
 }
 
@@ -235,6 +245,24 @@ void MsGraphicsScene::removeEntityHitbox(unsigned index)
     auto* item = _entityHitboxes.takeAt(index);
     delete item;
     updateZValues(_entityHitboxes, index, ENTITY_HITBOX_ZVALUE);
+}
+
+void MsGraphicsScene::onLayerSettingsChanged()
+{
+    bool solid = _frame && _frame->solid;
+    _tileHitbox->setVisible(_layerSettings->showTileHitbox() & solid);
+
+    for (auto* item : _objects) {
+        item->setVisible(_layerSettings->showFrameObjects());
+    }
+    for (auto* item : _actionPoints) {
+        item->setVisible(_layerSettings->showActionPoints());
+    }
+    for (auto* item : _entityHitboxes) {
+        item->setVisible(_layerSettings->showEntityHitboxes());
+    }
+
+    update();
 }
 
 void MsGraphicsScene::onSelectedFrameChanged()
