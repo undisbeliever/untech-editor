@@ -55,6 +55,8 @@ private:
     void updateTransform();
 
 public slots:
+    void zoomIn();
+    void zoomOut();
     void resetZoom();
 
 private slots:

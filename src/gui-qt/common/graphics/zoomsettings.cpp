@@ -77,6 +77,30 @@ void ZoomSettings::setZoom(qreal z)
     }
 }
 
+void ZoomSettings::zoomIn()
+{
+    qreal nextZoom = MAX_ZOOM;
+    for (qreal z : ZOOM_LEVELS) {
+        if (z > _zoom) {
+            nextZoom = z;
+            break;
+        }
+    }
+    setZoom(nextZoom);
+}
+
+void ZoomSettings::zoomOut()
+{
+    qreal nextZoom = MIN_ZOOM;
+    for (qreal z : ZOOM_LEVELS) {
+        if (z >= _zoom) {
+            break;
+        }
+        nextZoom = z;
+    }
+    setZoom(nextZoom);
+}
+
 void ZoomSettings::resetZoom()
 {
     setZoom(1.0);
