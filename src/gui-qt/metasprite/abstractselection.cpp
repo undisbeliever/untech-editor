@@ -91,12 +91,7 @@ void AbstractSelection::selectFrame(const idstring& id)
 
 void AbstractSelection::unselectFrame()
 {
-    _selectedFramePtr = nullptr;
-    _selectedFrameId = idstring();
-    _selectedItems.clear();
-
-    emit selectedItemsChanged();
-    emit selectedFrameChanged();
+    selectFrame(idstring());
 }
 
 void AbstractSelection::selectAnimation(const idstring& id)
