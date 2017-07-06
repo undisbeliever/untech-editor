@@ -55,7 +55,9 @@ public:
 
 signals:
     void frameSetDataChanged();
+
     void frameDataChanged(const void* frame);
+    void frameTileHitboxChanged(const void* frame);
     void frameAdded(const void* frame);
     void frameAboutToBeRemoved(const void* frame);
     void frameRenamed(const void* frame, const idstring& newId);

@@ -6,12 +6,15 @@
 
 #pragma once
 
+#include <QComboBox>
 #include <QMainWindow>
 #include <QUndoGroup>
 #include <memory>
 
 namespace UnTech {
 namespace GuiQt {
+class ZoomSettings;
+
 namespace MetaSprite {
 namespace Animation {
 class AnimationDock;
@@ -23,6 +26,7 @@ class MainWindow;
 }
 class Document;
 class Actions;
+class MsGraphicsScene;
 class FrameSetDock;
 class FrameDock;
 
@@ -40,6 +44,7 @@ protected:
 
 private:
     void setupMenubar();
+    void setupStatusbar();
     bool unsavedChangesDialog();
 
 protected slots:
@@ -55,12 +60,17 @@ private:
     std::unique_ptr<Ui::MainWindow> _ui;
     std::unique_ptr<Document> _document;
     Actions* _actions;
+    ZoomSettings* _zoomSettings;
 
     QUndoGroup* _undoGroup;
 
+    MsGraphicsScene* _graphicsScene;
     FrameSetDock* _frameSetDock;
     FrameDock* _frameDock;
     Animation::AnimationDock* _animationDock;
+
+    QComboBox* _zoomComboBox;
+    QComboBox* _aspectRatioComboBox;
 };
 }
 }

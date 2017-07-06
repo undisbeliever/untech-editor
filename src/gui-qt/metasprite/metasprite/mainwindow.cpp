@@ -9,6 +9,8 @@
 #include "document.h"
 #include "framedock.h"
 #include "framesetdock.h"
+#include "msgraphicsscene.h"
+#include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
 #include "gui-qt/metasprite/metasprite/mainwindow.ui.h"
 
@@ -23,9 +25,16 @@ MainWindow::MainWindow(QWidget* parent)
     , _ui(new Ui::MainWindow)
     , _document(nullptr)
     , _actions(new Actions(this))
+    , _zoomSettings(new ZoomSettings(6.0, ZoomSettings::NTSC, this))
     , _undoGroup(new QUndoGroup(this))
 {
     _ui->setupUi(this);
+
+    _ui->graphicsView->setZoomSettings(_zoomSettings);
+    _ui->graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
+
+    _graphicsScene = new MsGraphicsScene(this);
+    _ui->graphicsView->setScene(_graphicsScene);
 
     _frameSetDock = new FrameSetDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
@@ -44,6 +53,7 @@ MainWindow::MainWindow(QWidget* parent)
     setDocument(nullptr);
 
     setupMenubar();
+    setupStatusbar();
 
     connect(_undoGroup, SIGNAL(cleanChanged(bool)), this, SLOT(updateWindowTitle()));
 
@@ -82,6 +92,17 @@ void MainWindow::setupMenubar()
     _ui->menuEdit->addAction(_actions->addEntityHitbox());
 }
 
+void MainWindow::setupStatusbar()
+{
+    _aspectRatioComboBox = new QComboBox(this);
+    _zoomSettings->setAspectRatioComboBox(_aspectRatioComboBox);
+    statusBar()->addPermanentWidget(_aspectRatioComboBox);
+
+    _zoomComboBox = new QComboBox(this);
+    _zoomSettings->setZoomComboBox(_zoomComboBox);
+    statusBar()->addPermanentWidget(_zoomComboBox);
+}
+
 void MainWindow::setDocument(std::unique_ptr<Document> document)
 {
     auto oldDocument = std::move(_document);
@@ -89,6 +110,7 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     _document = std::move(document);
 
     _actions->setDocument(_document.get());
+    _graphicsScene->setDocument(_document.get());
     _frameSetDock->setDocument(_document.get());
     _frameDock->setDocument(_document.get());
     _animationDock->setDocument(_document.get());
