@@ -35,6 +35,8 @@ class MsGraphicsScene : public QGraphicsScene {
     static const unsigned TILE_HITBOX_ZVALUE = 300;
     static const unsigned ACTION_POINT_ZVALUE = 400;
 
+    static const int SELECTION_ID = 0;
+
 public:
     MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent = nullptr);
     ~MsGraphicsScene() = default;
@@ -48,7 +50,9 @@ protected:
 
 private:
     template <class T>
-    static void updateZValues(QList<T*>& list, unsigned start, unsigned baseZValue);
+    static void updateItemIndexes(QList<T*>& list, unsigned start,
+                                  unsigned baseZValue,
+                                  const SelectedItem::Type& type);
 
     void updateTileHitbox();
 
@@ -68,6 +72,9 @@ private slots:
     void onLayerSettingsChanged();
 
     void onSelectedFrameChanged();
+
+    void updateSelection();
+    void onSceneSelectionChanged();
 
     void onFrameTileHitboxChanged(const void* frame);
 
@@ -97,6 +104,8 @@ private:
     QList<QGraphicsRectItem*> _objects;      // ::TODO change to FrameObjectItem::
     QList<QGraphicsRectItem*> _actionPoints; // ::TODO change to cross::
     QList<QGraphicsRectItem*> _entityHitboxes;
+
+    bool _inUpdateSelection;
 };
 }
 }

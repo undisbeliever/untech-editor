@@ -11,6 +11,7 @@
 
 #include <QGraphicsView>
 
+using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
@@ -18,6 +19,7 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     , _layerSettings(layerSettings)
     , _document(nullptr)
     , _frame(nullptr)
+    , _inUpdateSelection(false)
 {
     Q_ASSERT(layerSettings != nullptr);
 
@@ -31,6 +33,9 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     addItem(_tileHitbox);
 
     onLayerSettingsChanged();
+
+    connect(this, &MsGraphicsScene::selectionChanged,
+            this, &MsGraphicsScene::onSceneSelectionChanged);
 
     connect(_layerSettings, &LayerSettings::layerSettingsChanged,
             this, &MsGraphicsScene::onLayerSettingsChanged);
@@ -51,8 +56,13 @@ void MsGraphicsScene::setDocument(Document* document)
     setFrame(nullptr);
 
     if (_document) {
+        onSelectedFrameChanged();
+        updateSelection();
+
         connect(_document->selection(), &Selection::selectedFrameChanged,
                 this, &MsGraphicsScene::onSelectedFrameChanged);
+        connect(_document->selection(), &Selection::selectedItemsChanged,
+                this, &MsGraphicsScene::updateSelection);
 
         connect(_document, &Document::frameTileHitboxChanged,
                 this, &MsGraphicsScene::onFrameTileHitboxChanged);
@@ -148,11 +158,15 @@ void MsGraphicsScene::updateTileHitbox()
 }
 
 template <class T>
-void MsGraphicsScene::updateZValues(QList<T*>& list, unsigned start,
-                                    unsigned baseZValue)
+void MsGraphicsScene::updateItemIndexes(QList<T*>& list, unsigned start,
+                                        unsigned baseZValue,
+                                        const SelectedItem::Type& type)
 {
-    for (int i = start; i < list.size(); i++) {
+    for (unsigned i = start; int(i) < list.size(); i++) {
         list.at(i)->setZValue(baseZValue + i);
+
+        SelectedItem si = { type, i };
+        list.at(i)->setData(SELECTION_ID, QVariant::fromValue(si));
     }
 }
 
@@ -160,7 +174,10 @@ void MsGraphicsScene::addFrameObject(unsigned index)
 {
     auto* item = new QGraphicsRectItem();
     _objects.insert(index, item);
-    updateZValues(_objects, index, FRAME_OBJECT_ZVALUE);
+    updateItemIndexes(_objects, index,
+                      FRAME_OBJECT_ZVALUE, SelectedItem::FRAME_OBJECT);
+
+    item->setFlag(QGraphicsItem::ItemIsSelectable);
 
     item->setPen(_style->frameObjectPen());
     item->setBrush(QBrush(Qt::black));
@@ -184,14 +201,18 @@ void MsGraphicsScene::removeFrameObject(unsigned index)
 {
     auto* item = _objects.takeAt(index);
     delete item;
-    updateZValues(_objects, index, FRAME_OBJECT_ZVALUE);
+    updateItemIndexes(_objects, index,
+                      FRAME_OBJECT_ZVALUE, SelectedItem::FRAME_OBJECT);
 }
 
 void MsGraphicsScene::addActionPoint(unsigned index)
 {
     auto* item = new QGraphicsRectItem();
     _actionPoints.insert(index, item);
-    updateZValues(_actionPoints, index, ACTION_POINT_ZVALUE);
+    updateItemIndexes(_actionPoints, index,
+                      ACTION_POINT_ZVALUE, SelectedItem::ACTION_POINT);
+
+    item->setFlag(QGraphicsItem::ItemIsSelectable);
 
     item->setPen(_style->actionPointPen());
     item->setBrush(_style->actionPointBrush());
@@ -214,14 +235,18 @@ void MsGraphicsScene::removeActionPoint(unsigned index)
 {
     auto* item = _actionPoints.takeAt(index);
     delete item;
-    updateZValues(_actionPoints, index, ACTION_POINT_ZVALUE);
+    updateItemIndexes(_actionPoints, index,
+                      ACTION_POINT_ZVALUE, SelectedItem::ACTION_POINT);
 }
 
 void MsGraphicsScene::addEntityHitbox(unsigned index)
 {
     auto* item = new QGraphicsRectItem();
     _entityHitboxes.insert(index, item);
-    updateZValues(_entityHitboxes, index, ENTITY_HITBOX_ZVALUE);
+    updateItemIndexes(_entityHitboxes, index,
+                      ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);
+
+    item->setFlag(QGraphicsItem::ItemIsSelectable);
 
     updateEntityHitbox(index);
 
@@ -244,7 +269,8 @@ void MsGraphicsScene::removeEntityHitbox(unsigned index)
 {
     auto* item = _entityHitboxes.takeAt(index);
     delete item;
-    updateZValues(_entityHitboxes, index, ENTITY_HITBOX_ZVALUE);
+    updateItemIndexes(_entityHitboxes, index,
+                      ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);
 }
 
 void MsGraphicsScene::onLayerSettingsChanged()
@@ -268,6 +294,51 @@ void MsGraphicsScene::onLayerSettingsChanged()
 void MsGraphicsScene::onSelectedFrameChanged()
 {
     setFrame(_document->selection()->selectedFrame());
+}
+
+void MsGraphicsScene::updateSelection()
+{
+    if (_frame == nullptr) {
+        return;
+    }
+
+    Q_ASSERT(_inUpdateSelection == false);
+    _inUpdateSelection = true;
+
+    const auto& sel = _document->selection()->selectedItems();
+
+    auto processList = [&](auto list, SelectedItem::Type type) {
+        SelectedItem si{ type, 0 };
+
+        for (QGraphicsItem* item : list) {
+            item->setSelected(sel.find(si) != sel.end());
+            si.index++;
+        }
+    };
+
+    processList(_objects, SelectedItem::FRAME_OBJECT);
+    processList(_actionPoints, SelectedItem::ACTION_POINT);
+    processList(_entityHitboxes, SelectedItem::ENTITY_HITBOX);
+
+    _inUpdateSelection = false;
+}
+
+void MsGraphicsScene::onSceneSelectionChanged()
+{
+    if (_frame == nullptr || _inUpdateSelection) {
+        return;
+    }
+
+    std::set<SelectedItem> selection;
+
+    for (const QGraphicsItem* item : selectedItems()) {
+        QVariant v = item->data(SELECTION_ID);
+        if (v.isValid()) {
+            selection.insert(v.value<SelectedItem>());
+        }
+    }
+
+    _document->selection()->setSelectedItems(selection);
 }
 
 void MsGraphicsScene::onFrameTileHitboxChanged(const void* framePtr)

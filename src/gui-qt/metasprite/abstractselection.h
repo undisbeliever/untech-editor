@@ -120,3 +120,5 @@ protected:
 }
 }
 }
+
+Q_DECLARE_METATYPE(UnTech::GuiQt::MetaSprite::SelectedItem);
