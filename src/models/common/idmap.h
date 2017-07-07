@@ -236,6 +236,16 @@ public:
         }
     }
 
+    idstring getId(const T* e) const
+    {
+        for (const auto& it : _hashMap) {
+            if (it.second.get() == e) {
+                return it.first;
+            }
+        }
+        return idstring();
+    }
+
     // Expose the map
     T& at(const idstring& id) { return *_hashMap.at(id).get(); }
     const T& at(const idstring& id) const { return *_hashMap.at(id).get(); }

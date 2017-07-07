@@ -19,6 +19,8 @@ class Style : public QObject {
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 
 private:
+    static const QColor ANTI_HIGHLIGHT_BRUSH_COLOR;
+
     static const QColor ORIGIN_PEN_COLOR;
 
     static const QColor FRAME_OUTLINE_PEN_COLOR;
@@ -51,6 +53,8 @@ public:
     QPen frameObjectPen() const;
     QPen actionPointPen() const;
     QPen entityHitboxPen(const EntityHitboxType&) const;
+
+    QBrush antiHighlightBrush() const;
 
     QBrush tileHitboxBrush() const;
     QBrush actionPointBrush() const;

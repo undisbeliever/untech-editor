@@ -10,12 +10,16 @@
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
+#include <QGraphicsSceneMouseEvent>
+#include <QPainter>
+
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 SiGraphicsScene::SiGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     : QGraphicsScene(parent)
     , _layerSettings(layerSettings)
     , _document(nullptr)
+    , _inUpdateSelection(false)
 {
     Q_ASSERT(_layerSettings != nullptr);
 
@@ -26,6 +30,9 @@ SiGraphicsScene::SiGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     addItem(_frameSetPixmap);
 
     onLayerSettingsChanged();
+
+    connect(this, &SiGraphicsScene::selectionChanged,
+            this, &SiGraphicsScene::onSceneSelectionChanged);
 
     connect(_layerSettings, &LayerSettings::layerSettingsChanged,
             this, &SiGraphicsScene::onLayerSettingsChanged);
@@ -39,6 +46,7 @@ void SiGraphicsScene::setDocument(Document* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
+        _document->selection()->disconnect(this);
     }
     _document = document;
 
@@ -46,6 +54,13 @@ void SiGraphicsScene::setDocument(Document* document)
 
     if (_document) {
         updateFrameSetPixmap();
+        onSelectedFrameChanged();
+        updateSelection();
+
+        connect(_document->selection(), &Selection::selectedFrameChanged,
+                this, &SiGraphicsScene::onSelectedFrameChanged);
+        connect(_document->selection(), &Selection::selectedItemsChanged,
+                this, &SiGraphicsScene::updateSelection);
 
         connect(_document, &Document::frameSetImageChanged,
                 this, &SiGraphicsScene::updateFrameSetPixmap);
@@ -84,6 +99,124 @@ void SiGraphicsScene::setDocument(Document* document)
     else {
         _frameSetPixmap->setPixmap(QPixmap());
     }
+}
+
+void SiGraphicsScene::drawForeground(QPainter* painter, const QRectF& rect)
+{
+    if (_document == nullptr) {
+        return;
+    }
+
+    const SI::Frame* frame = _document->selection()->selectedFrame();
+    if (frame != nullptr) {
+        const urect& fLoc = frame->location.aabb;
+
+        painter->save();
+
+        QPainterPath outer;
+        outer.addRect(rect);
+
+        QPainterPath inner;
+        inner.addRect(fLoc.x, fLoc.y, fLoc.width, fLoc.height);
+
+        QPainterPath path = outer.subtracted(inner);
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(_style->antiHighlightBrush());
+
+        painter->drawPath(path);
+
+        painter->restore();
+    }
+}
+
+void SiGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    QGraphicsScene::mouseReleaseEvent(event);
+
+    if (_document && event->button() == Qt::LeftButton) {
+        // Set selected frame to the one under the mouse.
+        // This is done manually as making SiFrameGraphicsItem selectable
+        // complicates the selection model.
+
+        auto frameItemAt = [this](const QPointF pos) -> SiFrameGraphicsItem* {
+            QGraphicsItem* item = itemAt(pos, QTransform());
+            if (item) {
+                while (QGraphicsItem* i = item->parentItem()) {
+                    item = i;
+                }
+            }
+            return qgraphicsitem_cast<SiFrameGraphicsItem*>(item);
+        };
+
+        auto* press = frameItemAt(event->buttonDownScenePos(Qt::LeftButton));
+        auto* release = frameItemAt(event->scenePos());
+
+        if (press == release) {
+            if (press) {
+                _document->selection()->selectFrame(press->frame());
+            }
+            else {
+                _document->selection()->unselectFrame();
+            }
+        }
+    }
+}
+
+void SiGraphicsScene::onSelectedFrameChanged()
+{
+    const SI::Frame* frame = _document->selection()->selectedFrame();
+
+    for (SiFrameGraphicsItem* item : _frameItems) {
+        bool s = item->frame() == frame;
+        item->setFrameSelected(s);
+
+        // Selected frame is always on top
+        item->setZValue(s ? 10 : 1);
+    }
+
+    update();
+}
+
+void SiGraphicsScene::updateSelection()
+{
+    if (_document == nullptr) {
+        return;
+    }
+
+    Q_ASSERT(_inUpdateSelection == false);
+    _inUpdateSelection = true;
+
+    const SI::Frame* frame = _document->selection()->selectedFrame();
+    const auto& sel = _document->selection()->selectedItems();
+
+    auto it = _frameItems.find(frame);
+    if (it != _frameItems.end()) {
+        it.value()->updateSelection(sel);
+    }
+
+    _inUpdateSelection = false;
+}
+
+void SiGraphicsScene::onSceneSelectionChanged()
+{
+    if (_document == nullptr || _inUpdateSelection) {
+        return;
+    }
+
+    // Only the selected frame has selectable QGraphicsItems
+    // No need to worry about items from different frames being selected
+
+    std::set<SelectedItem> selection;
+
+    for (const QGraphicsItem* item : selectedItems()) {
+        QVariant v = item->data(SiFrameGraphicsItem::SELECTION_ID);
+        if (v.isValid()) {
+            selection.insert(v.value<SelectedItem>());
+        }
+    }
+
+    _document->selection()->setSelectedItems(selection);
 }
 
 void SiGraphicsScene::updateFrameSetPixmap()
@@ -146,6 +279,7 @@ void SiGraphicsScene::onFrameLocationChanged(const void* framePtr)
     }
 
     setSceneRect(itemsBoundingRect());
+    update();
 }
 
 void SiGraphicsScene::onFrameTileHitboxChanged(const void* framePtr)

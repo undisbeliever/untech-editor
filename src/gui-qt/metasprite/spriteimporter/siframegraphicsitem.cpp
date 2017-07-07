@@ -5,6 +5,7 @@
  */
 
 #include "siframegraphicsitem.h"
+#include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
@@ -18,6 +19,7 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame, Style* style,
     , _frame(frame)
     , _style(style)
     , _showTileHitbox(true)
+    , _frameSelected(false)
 {
     Q_ASSERT(frame != nullptr);
     Q_ASSERT(style != nullptr);
@@ -52,12 +54,49 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame, Style* style,
 }
 
 template <class T>
-void SiFrameGraphicsItem::updateZValues(const QList<T*>& list, int start,
-                                        unsigned baseZValue)
+void SiFrameGraphicsItem::updateItemIndexes(QList<T*>& list, unsigned start,
+                                            unsigned baseZValue,
+                                            const SelectedItem::Type& type)
 {
-    for (int i = start; i < list.size(); i++) {
+    for (unsigned i = start; int(i) < list.size(); i++) {
         list.at(i)->setZValue(baseZValue + i);
+
+        SelectedItem si = { type, i };
+        list.at(i)->setData(SELECTION_ID, QVariant::fromValue(si));
     }
+}
+
+void SiFrameGraphicsItem::setFrameSelected(bool sel)
+{
+    if (_frameSelected != sel) {
+        _frameSelected = sel;
+
+        for (auto* item : _objects) {
+            item->setFlag(QGraphicsItem::ItemIsSelectable, sel);
+        }
+        for (auto* item : _actionPoints) {
+            item->setFlag(QGraphicsItem::ItemIsSelectable, sel);
+        }
+        for (auto* item : _entityHitboxes) {
+            item->setFlag(QGraphicsItem::ItemIsSelectable, sel);
+        }
+    }
+}
+
+void SiFrameGraphicsItem::updateSelection(const std::set<SelectedItem>& selection)
+{
+    auto processList = [&](auto list, SelectedItem::Type type) {
+        SelectedItem si{ type, 0 };
+
+        for (QGraphicsItem* item : list) {
+            item->setSelected(selection.find(si) != selection.end());
+            si.index++;
+        }
+    };
+
+    processList(_objects, SelectedItem::FRAME_OBJECT);
+    processList(_actionPoints, SelectedItem::ACTION_POINT);
+    processList(_entityHitboxes, SelectedItem::ENTITY_HITBOX);
 }
 
 void SiFrameGraphicsItem::updateFrameLocation()
@@ -84,7 +123,10 @@ void SiFrameGraphicsItem::addFrameObject(unsigned index)
 {
     auto* item = new QGraphicsRectItem(this);
     _objects.insert(index, item);
-    updateZValues(_objects, index, FRAME_OBJECT_ZVALUE);
+    updateItemIndexes(_objects, index,
+                      FRAME_OBJECT_ZVALUE, SelectedItem::FRAME_OBJECT);
+
+    item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
 
     item->setPen(_style->frameObjectPen());
 
@@ -104,14 +146,18 @@ void SiFrameGraphicsItem::removeFrameObject(unsigned index)
 {
     auto* item = _objects.takeAt(index);
     delete item;
-    updateZValues(_objects, index, FRAME_OBJECT_ZVALUE);
+    updateItemIndexes(_objects, index,
+                      FRAME_OBJECT_ZVALUE, SelectedItem::FRAME_OBJECT);
 }
 
 void SiFrameGraphicsItem::addActionPoint(unsigned index)
 {
     auto* item = new QGraphicsRectItem(this);
     _actionPoints.insert(index, item);
-    updateZValues(_actionPoints, index, ACTION_POINT_ZVALUE);
+    updateItemIndexes(_actionPoints, index,
+                      ACTION_POINT_ZVALUE, SelectedItem::ACTION_POINT);
+
+    item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
 
     item->setPen(_style->actionPointPen());
     item->setBrush(_style->actionPointBrush());
@@ -132,14 +178,18 @@ void SiFrameGraphicsItem::removeActionPoint(unsigned index)
 {
     auto* item = _actionPoints.takeAt(index);
     delete item;
-    updateZValues(_actionPoints, index, ACTION_POINT_ZVALUE);
+    updateItemIndexes(_actionPoints, index,
+                      ACTION_POINT_ZVALUE, SelectedItem::ACTION_POINT);
 }
 
 void SiFrameGraphicsItem::addEntityHitbox(unsigned index)
 {
     auto* item = new QGraphicsRectItem(this);
     _entityHitboxes.insert(index, item);
-    updateZValues(_entityHitboxes, index, ENTITY_HITBOX_ZVALUE);
+    updateItemIndexes(_entityHitboxes, index,
+                      ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);
+
+    item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
 
     updateEntityHitbox(index);
 }
@@ -160,7 +210,8 @@ void SiFrameGraphicsItem::removeEntityHitbox(unsigned index)
 {
     auto* item = _entityHitboxes.takeAt(index);
     delete item;
-    updateZValues(_entityHitboxes, index, ENTITY_HITBOX_ZVALUE);
+    updateItemIndexes(_entityHitboxes, index,
+                      ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);
 }
 
 void SiFrameGraphicsItem::updateFrameContents()

@@ -10,6 +10,8 @@
 
 using namespace UnTech::GuiQt::MetaSprite;
 
+const QColor Style::ANTI_HIGHLIGHT_BRUSH_COLOR(128, 128, 128, 128);
+
 const QColor Style::FRAME_OUTLINE_PEN_COLOR(160, 160, 160, 240);
 const QColor Style::ORIGIN_PEN_COLOR(160, 160, 160, 240);
 
@@ -101,6 +103,11 @@ QPen Style::entityHitboxPen(const EntityHitboxType& type) const
     case EHT::ATTACK:
         return createCosmeticPen(EH_ATTACK_PEN_COLOR);
     };
+}
+
+QBrush Style::antiHighlightBrush() const
+{
+    return QBrush(ANTI_HIGHLIGHT_BRUSH_COLOR);
 }
 
 QBrush Style::tileHitboxBrush() const

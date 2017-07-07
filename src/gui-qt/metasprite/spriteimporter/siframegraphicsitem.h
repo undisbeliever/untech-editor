@@ -4,6 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#include "gui-qt/metasprite/abstractselection.h"
 #include "models/metasprite/spriteimporter.h"
 
 #include <QGraphicsLineItem>
@@ -28,10 +29,19 @@ public:
     static const unsigned ACTION_POINT_ZVALUE = 400;
     static const unsigned ORIGIN_ZVALUE = 500;
 
+    static const int SELECTION_ID = 0;
+
 public:
     SiFrameGraphicsItem(SI::Frame* frame, Style* style,
                         QGraphicsItem* parent = nullptr);
     ~SiFrameGraphicsItem() = default;
+
+    const SI::Frame* frame() const { return _frame; }
+
+    bool frameSelected() const { return _frameSelected; }
+    void setFrameSelected(bool selected);
+
+    void updateSelection(const std::set<SelectedItem>& selection);
 
     void updateFrameLocation();
     void updateTileHitbox();
@@ -54,12 +64,15 @@ public:
 
 private:
     template <class T>
-    static void updateZValues(const QList<T*>& list, int start, unsigned baseZValue);
+    static void updateItemIndexes(QList<T*>& list, unsigned start,
+                                  unsigned baseZValue,
+                                  const SelectedItem::Type& type);
 
 private:
     SI::Frame* _frame;
     Style* _style;
     bool _showTileHitbox;
+    bool _frameSelected;
 
     QGraphicsRectItem* _tileHitbox;
     QGraphicsLineItem* _horizontalOrigin;

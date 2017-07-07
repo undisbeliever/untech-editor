@@ -24,6 +24,14 @@ void Selection::setDocument(Document* document)
     _document = document;
 }
 
+void Selection::selectFrame(const SI::Frame* frame)
+{
+    if (_selectedFrame != frame) {
+        idstring frameId = _document->frameSet()->frames.getId(frame);
+        selectFrame(frameId);
+    }
+}
+
 const void* Selection::setSelectedFrame(const idstring& id)
 {
     if (_document) {

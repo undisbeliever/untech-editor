@@ -30,6 +30,13 @@ public:
 
     void setDocument(Document* document);
 
+    void selectFrame(const SI::Frame* frame);
+
+    inline void selectFrame(const idstring& frameId)
+    {
+        return AbstractSelection::selectFrame(frameId);
+    }
+
     SI::Frame* selectedFrame() const { return _selectedFrame; }
 
 protected:

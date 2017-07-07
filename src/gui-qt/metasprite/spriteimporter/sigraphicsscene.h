@@ -31,8 +31,16 @@ public:
 
     void setDocument(Document* document);
 
+protected:
+    virtual void drawForeground(QPainter* painter, const QRectF& rect) override;
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
+
 private slots:
     void onLayerSettingsChanged();
+
+    void onSelectedFrameChanged();
+    void updateSelection();
+    void onSceneSelectionChanged();
 
     void updateFrameSetPixmap();
 
@@ -63,6 +71,8 @@ private:
     Style* _style;
     QGraphicsPixmapItem* _frameSetPixmap;
     QMap<const void*, SiFrameGraphicsItem*> _frameItems;
+
+    bool _inUpdateSelection;
 };
 }
 }
