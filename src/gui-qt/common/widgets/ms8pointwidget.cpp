@@ -41,9 +41,6 @@ Ms8pointWidget::Ms8pointWidget(QWidget* parent)
 
     this->setTabOrder(_xPos, _yPos);
 
-    connect(_xPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-    connect(_yPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-
     _xPos->installEventFilter(this);
     _yPos->installEventFilter(this);
 }

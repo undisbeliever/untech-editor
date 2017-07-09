@@ -40,9 +40,6 @@ SizeWidget::SizeWidget(QWidget* parent)
     setMinimum(1);
     setMaximum(255);
 
-    connect(_width, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-    connect(_height, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-
     _width->installEventFilter(this);
     _height->installEventFilter(this);
 }

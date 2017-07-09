@@ -42,9 +42,6 @@ PointWidget::PointWidget(QWidget* parent)
     setMinimum(0);
     setMaximum(255);
 
-    connect(_xPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-    connect(_yPos, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-
     _xPos->installEventFilter(this);
     _yPos->installEventFilter(this);
 }
