@@ -9,8 +9,8 @@ ifeq ($(PROFILE),release)
   BIN_EXT	:=
 
   CXX           ?= g++
-  CXXFLAGS      += -std=c++14 -O2 -flto -MMD -Isrc
-  LDFLAGS       += -O2 -flto
+  CXXFLAGS      += -std=c++14 -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
+  LDFLAGS       += -O2 -flto -Wl,-gc-sections
   LIBS	        :=
   WX_CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
   WX_CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
@@ -73,6 +73,10 @@ ifneq ($(findstring clang,$(CXX)),)
   CXXFLAGS      += -Wno-undefined-var-template
   WX_VIEW_CXXFLAGS += -Wno-potentially-evaluated-expression -Wno-deprecated
   GUI_QT_CXXFLAGS += -Wno-deprecated
+
+  # LTO on clang causes "signal not found" errors in Qt
+  CXXFLAGS := $(filter-out -flto,$(CXXFLAGS))
+  LDFLAGS  := $(filter-out -flto,$(LDFLAGS))
 endif
 
 
