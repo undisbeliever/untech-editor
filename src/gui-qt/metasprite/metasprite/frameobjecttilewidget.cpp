@@ -58,7 +58,8 @@ FrameObjectTileWidget::FrameObjectTileWidget(QWidget* parent)
 
     updateTileIdRange();
 
-    connect(_tileSize, SIGNAL(activated(int)), this, SLOT(updateTileIdRange()));
+    connect(_tileSize, qOverload<int>(&QComboBox::activated),
+            this, &FrameObjectTileWidget::updateTileIdRange);
 
     _tileId->installEventFilter(this);
     _tileSize->installEventFilter(this);

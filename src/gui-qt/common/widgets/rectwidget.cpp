@@ -62,10 +62,14 @@ RectWidget::RectWidget(QWidget* parent)
 
     updateRanges();
 
-    connect(_xPos, SIGNAL(valueChanged(int)), this, SLOT(updateHorizontalRange()));
-    connect(_width, SIGNAL(valueChanged(int)), this, SLOT(updateHorizontalRange()));
-    connect(_yPos, SIGNAL(valueChanged(int)), this, SLOT(updateVerticalRange()));
-    connect(_height, SIGNAL(valueChanged(int)), this, SLOT(updateVerticalRange()));
+    connect(_xPos, qOverload<int>(&QSpinBox::valueChanged),
+            this, &RectWidget::updateHorizontalRange);
+    connect(_width, qOverload<int>(&QSpinBox::valueChanged),
+            this, &RectWidget::updateHorizontalRange);
+    connect(_yPos, qOverload<int>(&QSpinBox::valueChanged),
+            this, &RectWidget::updateVerticalRange);
+    connect(_height, qOverload<int>(&QSpinBox::valueChanged),
+            this, &RectWidget::updateVerticalRange);
 
     _xPos->installEventFilter(this);
     _yPos->installEventFilter(this);

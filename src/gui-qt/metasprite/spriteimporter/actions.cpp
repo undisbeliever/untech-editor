@@ -41,17 +41,17 @@ Actions::Actions(MainWindow* mainWindow)
 
     updateActions();
 
-    connect(_addFrame, SIGNAL(triggered()), this, SLOT(onAddFrame()));
-    connect(_cloneFrame, SIGNAL(triggered()), this, SLOT(onCloneFrame()));
-    connect(_renameFrame, SIGNAL(triggered()), this, SLOT(onRenameFrame()));
-    connect(_removeFrame, SIGNAL(triggered()), this, SLOT(onRemoveFrame()));
-    connect(_addFrameObject, SIGNAL(triggered()), this, SLOT(onAddFrameObject()));
-    connect(_addActionPoint, SIGNAL(triggered()), this, SLOT(onAddActionPoint()));
-    connect(_addEntityHitbox, SIGNAL(triggered()), this, SLOT(onAddEntityHitbox()));
-    connect(_raiseSelected, SIGNAL(triggered()), this, SLOT(onRaiseSelected()));
-    connect(_lowerSelected, SIGNAL(triggered()), this, SLOT(onLowerSelected()));
-    connect(_cloneSelected, SIGNAL(triggered()), this, SLOT(onCloneSelected()));
-    connect(_removeSelected, SIGNAL(triggered()), this, SLOT(onRemoveSelected()));
+    connect(_addFrame, &QAction::triggered, this, &Actions::onAddFrame);
+    connect(_cloneFrame, &QAction::triggered, this, &Actions::onCloneFrame);
+    connect(_renameFrame, &QAction::triggered, this, &Actions::onRenameFrame);
+    connect(_removeFrame, &QAction::triggered, this, &Actions::onRemoveFrame);
+    connect(_addFrameObject, &QAction::triggered, this, &Actions::onAddFrameObject);
+    connect(_addActionPoint, &QAction::triggered, this, &Actions::onAddActionPoint);
+    connect(_addEntityHitbox, &QAction::triggered, this, &Actions::onAddEntityHitbox);
+    connect(_raiseSelected, &QAction::triggered, this, &Actions::onRaiseSelected);
+    connect(_lowerSelected, &QAction::triggered, this, &Actions::onLowerSelected);
+    connect(_cloneSelected, &QAction::triggered, this, &Actions::onCloneSelected);
+    connect(_removeSelected, &QAction::triggered, this, &Actions::onRemoveSelected);
 }
 
 void Actions::setDocument(Document* document)
@@ -62,8 +62,10 @@ void Actions::setDocument(Document* document)
     _document = document;
 
     if (document) {
-        connect(_document->selection(), SIGNAL(selectedFrameChanged()), this, SLOT(updateActions()));
-        connect(_document->selection(), SIGNAL(selectedItemsChanged()), this, SLOT(updateActions()));
+        connect(_document->selection(), &Selection::selectedFrameChanged,
+                this, &Actions::updateActions);
+        connect(_document->selection(), &Selection::selectedItemsChanged,
+                this, &Actions::updateActions);
     }
 
     updateActions();

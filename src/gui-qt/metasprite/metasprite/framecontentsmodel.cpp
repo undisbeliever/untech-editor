@@ -35,8 +35,8 @@ void FrameContentsModel::setDocument(Document* document)
 
     onSelectedFrameChanged();
 
-    connect(_document->selection(), SIGNAL(selectedFrameChanged()),
-            this, SLOT(onSelectedFrameChanged()));
+    connect(_document->selection(), &Selection::selectedFrameChanged,
+            this, &FrameContentsModel::onSelectedFrameChanged);
 }
 
 void FrameContentsModel::onSelectedFrameChanged()

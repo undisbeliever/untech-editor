@@ -36,15 +36,19 @@ FrameDock::FrameDock(Actions* actions, QWidget* parent)
     clearGui();
     setEnabled(false);
 
-    connect(_ui->frameComboBox, SIGNAL(activated(int)),
-            this, SLOT(onFrameComboBoxActivated()));
+    connect(_ui->frameComboBox, qOverload<int>(&QComboBox::activated),
+            this, &FrameDock::onFrameComboBoxActivated);
 
-    connect(_ui->spriteOrder, SIGNAL(editingFinished()), this, SLOT(onSpriteOrderEdited()));
+    connect(_ui->spriteOrder, &QSpinBox::editingFinished,
+            this, &FrameDock::onSpriteOrderEdited);
 
-    connect(_ui->solid, SIGNAL(clicked()), this, SLOT(onSolidClicked()));
-    connect(_ui->tileHitbox, SIGNAL(editingFinished()), this, SLOT(onTileHitboxEdited()));
+    connect(_ui->solid, &QGroupBox::clicked,
+            this, &FrameDock::onSolidClicked);
+    connect(_ui->tileHitbox, &Ms8rectWidget::editingFinished,
+            this, &FrameDock::onTileHitboxEdited);
 
-    connect(_ui->frameContents, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onFrameContentsContextMenu(QPoint)));
+    connect(_ui->frameContents, &QTreeView::customContextMenuRequested,
+            this, &FrameDock::onFrameContentsContextMenu);
 }
 
 FrameDock::~FrameDock() = default;
@@ -75,11 +79,11 @@ void FrameDock::setDocument(Document* document)
 
         connect(_document, &Document::frameDataChanged, this, &FrameDock::onFrameDataChanged);
 
-        connect(_document->selection(), SIGNAL(selectedFrameChanged()),
-                this, SLOT(onSelectedFrameChanged()));
+        connect(_document->selection(), &Selection::selectedFrameChanged,
+                this, &FrameDock::onSelectedFrameChanged);
 
-        connect(_document->selection(), SIGNAL(selectedItemsChanged()),
-                this, SLOT(updateFrameContentsSelection()));
+        connect(_document->selection(), &Selection::selectedItemsChanged,
+                this, &FrameDock::updateFrameContentsSelection);
 
         connect(_ui->frameContents->selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, &FrameDock::onFrameContentsSelectionChanged);

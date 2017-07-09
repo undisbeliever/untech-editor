@@ -151,11 +151,10 @@ void ZoomSettings::setZoomComboBox(QComboBox* comboBox)
 
         updateZoomComboBox();
 
-        connect(_zoomComboBox, SIGNAL(activated(int)),
-                this, SLOT(onZoomComboBoxActivated(int)));
-
-        connect(_zoomComboBox->lineEdit(), SIGNAL(editingFinished()),
-                this, SLOT(onZoomComboBoxEdited()));
+        connect(_zoomComboBox, qOverload<int>(&QComboBox::activated),
+                this, &ZoomSettings::onZoomComboBoxActivated);
+        connect(_zoomComboBox->lineEdit(), &QLineEdit::editingFinished,
+                this, &ZoomSettings::onZoomComboBoxEdited);
     }
 }
 
@@ -178,8 +177,8 @@ void ZoomSettings::setAspectRatioComboBox(QComboBox* comboBox)
 
         updateAspectRatioComboBox();
 
-        connect(_aspectRatioComboBox, SIGNAL(activated(int)),
-                this, SLOT(onAspectRatioComboBoxActivated(int)));
+        connect(_aspectRatioComboBox, qOverload<int>(&QComboBox::activated),
+                this, &ZoomSettings::onAspectRatioComboBoxActivated);
     }
 }
 

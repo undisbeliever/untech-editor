@@ -44,10 +44,12 @@ IdstringDialog::IdstringDialog(const QString& title, const QString& labelText,
     _okButton = buttonBox->button(DBB::Ok);
     onInputChanged();
 
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-
-    connect(_input, SIGNAL(textChanged(QString)), this, SLOT(onInputChanged()));
+    connect(buttonBox, &QDialogButtonBox::accepted,
+            this, &IdstringDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected,
+            this, &IdstringDialog::reject);
+    connect(_input, &QLineEdit::textChanged,
+            this, &IdstringDialog::onInputChanged);
 }
 
 idstring IdstringDialog::getIdstring(QWidget* parent,

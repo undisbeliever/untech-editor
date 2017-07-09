@@ -57,13 +57,13 @@ MainWindow::MainWindow(QWidget* parent)
     setupMenubar();
     setupStatusbar();
 
-    connect(_undoGroup, SIGNAL(cleanChanged(bool)), this, SLOT(updateWindowTitle()));
+    connect(_undoGroup, &QUndoGroup::cleanChanged, this, &MainWindow::updateWindowTitle);
 
-    connect(_ui->actionNew, SIGNAL(triggered()), this, SLOT(onActionNew()));
-    connect(_ui->actionOpen, SIGNAL(triggered()), this, SLOT(onActionOpen()));
-    connect(_ui->actionSave, SIGNAL(triggered()), this, SLOT(saveDocument()));
-    connect(_ui->actionSaveAs, SIGNAL(triggered()), this, SLOT(saveDocumentAs()));
-    connect(_ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(_ui->actionNew, &QAction::triggered, this, &MainWindow::onActionNew);
+    connect(_ui->actionOpen, &QAction::triggered, this, &MainWindow::onActionOpen);
+    connect(_ui->actionSave, &QAction::triggered, this, &MainWindow::saveDocument);
+    connect(_ui->actionSaveAs, &QAction::triggered, this, &MainWindow::saveDocumentAs);
+    connect(_ui->actionQuit, &QAction::triggered, this, &MainWindow::close);
 }
 
 MainWindow::~MainWindow() = default;

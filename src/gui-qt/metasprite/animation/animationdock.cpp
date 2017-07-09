@@ -43,14 +43,17 @@ AnimationDock::AnimationDock(QWidget* parent)
     clearGui();
     setEnabled(false);
 
-    connect(_ui->durationFormat, SIGNAL(activated(int)), this, SLOT(onDurationFormatEdited()));
-    connect(_ui->oneShot, SIGNAL(clicked(bool)), this, SLOT(onOneShotEdited()));
-    connect(_ui->nextAnimation, SIGNAL(editingFinished()), this, SLOT(onNextAnimationEdited()));
+    connect(_ui->durationFormat, qOverload<int>(&QComboBox::activated),
+            this, &AnimationDock::onDurationFormatEdited);
+    connect(_ui->oneShot, &QCheckBox::clicked,
+            this, &AnimationDock::onOneShotEdited);
+    connect(_ui->nextAnimation, &QLineEdit::editingFinished,
+            this, &AnimationDock::onNextAnimationEdited);
 
-    connect(_ui->animationList, SIGNAL(customContextMenuRequested(QPoint)),
-            this, SLOT(onAnimationListContextMenu(QPoint)));
-    connect(_ui->animationFrames, SIGNAL(customContextMenuRequested(QPoint)),
-            this, SLOT(onAnimationFramesContextMenu(QPoint)));
+    connect(_ui->animationList, &QListView::customContextMenuRequested,
+            this, &AnimationDock::onAnimationListContextMenu);
+    connect(_ui->animationFrames, &QListView::customContextMenuRequested,
+            this, &AnimationDock::onAnimationFramesContextMenu);
 }
 
 AnimationDock::~AnimationDock() = default;

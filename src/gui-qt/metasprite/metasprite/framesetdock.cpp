@@ -39,13 +39,16 @@ FrameSetDock::FrameSetDock(Actions* actions, QWidget* parent)
     clearGui();
     setEnabled(false);
 
-    connect(_ui->frameSetName, SIGNAL(editingFinished()), this, SLOT(onNameEdited()));
+    connect(_ui->frameSetName, &QLineEdit::editingFinished,
+            this, &FrameSetDock::onNameEdited);
+    connect(_ui->tilesetType, qOverload<int>(&EnumComboBox::activated),
+            this, &FrameSetDock::onTilesetTypeEdited);
 
-    connect(_ui->tilesetType, SIGNAL(activated(int)), this, SLOT(onTilesetTypeEdited()));
+    connect(_ui->exportOrderButton, &QToolButton::clicked,
+            this, &FrameSetDock::onExportOrderButtonClicked);
 
-    connect(_ui->exportOrderButton, SIGNAL(clicked(bool)), this, SLOT(onExportOrderButtonClicked()));
-
-    connect(_ui->frameList, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onFrameContextMenu(QPoint)));
+    connect(_ui->frameList, &QListView::customContextMenuRequested,
+            this, &FrameSetDock::onFrameContextMenu);
 }
 
 FrameSetDock::~FrameSetDock() = default;
@@ -74,14 +77,14 @@ void FrameSetDock::setDocument(Document* document)
         updateGui();
         updateFrameListSelection();
 
-        connect(_document, SIGNAL(frameSetDataChanged()), this, SLOT(updateGui()));
+        connect(_document, &Document::frameSetDataChanged,
+                this, &FrameSetDock::updateGui);
 
-        connect(_document->selection(), SIGNAL(selectedFrameChanged()),
-                this, SLOT(updateFrameListSelection()));
+        connect(_document->selection(), &Selection::selectedFrameChanged,
+                this, &FrameSetDock::updateFrameListSelection);
 
-        connect(_ui->frameList->selectionModel(),
-                SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
-                this, SLOT(onFrameListSelectionChanged()));
+        connect(_ui->frameList->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, &FrameSetDock::onFrameListSelectionChanged);
     }
     else {
         _ui->frameList->setModel(nullptr);

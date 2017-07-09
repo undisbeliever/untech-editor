@@ -36,20 +36,31 @@ FrameDock::FrameDock(Actions* actions, QWidget* parent)
     clearGui();
     setEnabled(false);
 
-    connect(_ui->frameComboBox, SIGNAL(activated(int)),
-            this, SLOT(onFrameComboBoxActivated()));
+    connect(_ui->frameComboBox, qOverload<int>(&QComboBox::activated),
+            this, &FrameDock::onFrameComboBoxActivated);
 
-    connect(_ui->spriteOrder, SIGNAL(editingFinished()), this, SLOT(onSpriteOrderEdited()));
+    connect(_ui->spriteOrder, &QSpinBox::editingFinished,
+            this, &FrameDock::onSpriteOrderEdited);
 
-    connect(_ui->useGridLocation, SIGNAL(clicked(bool)), this, SLOT(onFrameLocationEdited()));
-    connect(_ui->gridLocation, SIGNAL(editingFinished()), this, SLOT(onFrameLocationEdited()));
-    connect(_ui->frameLocation, SIGNAL(editingFinished()), this, SLOT(onFrameLocationEdited()));
-    connect(_ui->useCustomOrigin, SIGNAL(clicked(bool)), this, SLOT(onFrameLocationEdited()));
-    connect(_ui->origin, SIGNAL(editingFinished()), this, SLOT(onFrameLocationEdited()));
-    connect(_ui->solid, SIGNAL(clicked()), this, SLOT(onSolidClicked()));
-    connect(_ui->tileHitbox, SIGNAL(editingFinished()), this, SLOT(onTileHitboxEdited()));
+    connect(_ui->useGridLocation, &QCheckBox::clicked,
+            this, &FrameDock::onFrameLocationEdited);
 
-    connect(_ui->frameContents, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onFrameContentsContextMenu(QPoint)));
+    connect(_ui->gridLocation, &PointWidget::editingFinished,
+            this, &FrameDock::onFrameLocationEdited);
+    connect(_ui->frameLocation, &RectWidget::editingFinished,
+            this, &FrameDock::onFrameLocationEdited);
+    connect(_ui->useCustomOrigin, &QCheckBox::clicked,
+            this, &FrameDock::onFrameLocationEdited);
+    connect(_ui->origin, &PointWidget::editingFinished,
+            this, &FrameDock::onFrameLocationEdited);
+
+    connect(_ui->solid, &QGroupBox::clicked,
+            this, &FrameDock::onSolidClicked);
+    connect(_ui->tileHitbox, &RectWidget::editingFinished,
+            this, &FrameDock::onTileHitboxEdited);
+
+    connect(_ui->frameContents, &QTreeView::customContextMenuRequested,
+            this, &FrameDock::onFrameContentsContextMenu);
 }
 
 FrameDock::~FrameDock() = default;
@@ -78,14 +89,14 @@ void FrameDock::setDocument(Document* document)
 
         onSelectedFrameChanged();
 
-        connect(_document, SIGNAL(frameSetGridChanged()), this, SLOT(updateGui()));
+        connect(_document, &Document::frameSetGridChanged, this, &FrameDock::updateGui);
         connect(_document, &Document::frameDataChanged, this, &FrameDock::onFrameDataChanged);
 
-        connect(_document->selection(), SIGNAL(selectedFrameChanged()),
-                this, SLOT(onSelectedFrameChanged()));
+        connect(_document->selection(), &Selection::selectedFrameChanged,
+                this, &FrameDock::onSelectedFrameChanged);
 
-        connect(_document->selection(), SIGNAL(selectedItemsChanged()),
-                this, SLOT(updateFrameContentsSelection()));
+        connect(_document->selection(), &Selection::selectedItemsChanged,
+                this, &FrameDock::updateFrameContentsSelection);
 
         connect(_ui->frameContents->selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, &FrameDock::onFrameContentsSelectionChanged);

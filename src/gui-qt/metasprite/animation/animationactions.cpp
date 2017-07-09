@@ -32,16 +32,25 @@ AnimationActions::AnimationActions(QWidget* widget)
 
     updateActions();
 
-    connect(_addAnimation, SIGNAL(triggered()), this, SLOT(onAddAnimation()));
-    connect(_cloneAnimation, SIGNAL(triggered()), this, SLOT(onCloneAnimation()));
-    connect(_renameAnimation, SIGNAL(triggered()), this, SLOT(onRenameAnimation()));
-    connect(_removeAnimation, SIGNAL(triggered()), this, SLOT(onRemoveAnimation()));
+    connect(_addAnimation, &QAction::triggered,
+            this, &AnimationActions::onAddAnimation);
+    connect(_cloneAnimation, &QAction::triggered,
+            this, &AnimationActions::onCloneAnimation);
+    connect(_renameAnimation, &QAction::triggered,
+            this, &AnimationActions::onRenameAnimation);
+    connect(_removeAnimation, &QAction::triggered,
+            this, &AnimationActions::onRemoveAnimation);
 
-    connect(_addAnimationFrame, SIGNAL(triggered()), this, SLOT(onAddAnimationFrame()));
-    connect(_raiseAnimationFrame, SIGNAL(triggered()), this, SLOT(onRaiseAnimationFrame()));
-    connect(_lowerAnimationFrame, SIGNAL(triggered()), this, SLOT(onLowerAnimationFrame()));
-    connect(_cloneAnimationFrame, SIGNAL(triggered()), this, SLOT(onCloneAnimationFrame()));
-    connect(_removeAnimationFrame, SIGNAL(triggered()), this, SLOT(onRemoveAnimationFrame()));
+    connect(_addAnimationFrame, &QAction::triggered,
+            this, &AnimationActions::onAddAnimationFrame);
+    connect(_raiseAnimationFrame, &QAction::triggered,
+            this, &AnimationActions::onRaiseAnimationFrame);
+    connect(_lowerAnimationFrame, &QAction::triggered,
+            this, &AnimationActions::onLowerAnimationFrame);
+    connect(_cloneAnimationFrame, &QAction::triggered,
+            this, &AnimationActions::onCloneAnimationFrame);
+    connect(_removeAnimationFrame, &QAction::triggered,
+            this, &AnimationActions::onRemoveAnimationFrame);
 }
 
 void AnimationActions::setDocument(AbstractDocument* document)
