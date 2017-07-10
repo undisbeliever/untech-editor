@@ -35,6 +35,7 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->setupUi(this);
 
     _ui->graphicsView->setZoomSettings(_zoomSettings);
+    _ui->graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _graphicsScene = new SiGraphicsScene(_layerSettings, this);
     _ui->graphicsView->setScene(_graphicsScene);
 
@@ -140,6 +141,11 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     if (_document != nullptr) {
         _undoGroup->addStack(_document->undoStack());
         _document->undoStack()->setActive();
+
+        _ui->graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+    }
+    else {
+        _ui->graphicsView->setDragMode(QGraphicsView::NoDrag);
     }
 
     updateWindowTitle();

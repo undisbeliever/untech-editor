@@ -50,6 +50,8 @@ private:
     bool unsavedChangesDialog();
 
 protected slots:
+    void onSelectedFrameChanged();
+
     void updateWindowTitle();
 
     void onActionNew();

@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->setupUi(this);
 
     _ui->graphicsView->setZoomSettings(_zoomSettings);
+    _ui->graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _ui->graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
 
     _graphicsScene = new MsGraphicsScene(_layerSettings, this);
@@ -127,6 +128,9 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
 {
     auto oldDocument = std::move(_document);
 
+    if (_document) {
+        _document->selection()->disconnect(this);
+    }
     _document = std::move(document);
 
     _actions->setDocument(_document.get());
@@ -141,9 +145,23 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     if (_document != nullptr) {
         _undoGroup->addStack(_document->undoStack());
         _document->undoStack()->setActive();
+
+        connect(_document->selection(), &Selection::selectedFrameChanged,
+                this, &MainWindow::onSelectedFrameChanged);
     }
 
+    onSelectedFrameChanged();
     updateWindowTitle();
+}
+
+void MainWindow::onSelectedFrameChanged()
+{
+    if (_document && _document->selection()->hasSelectedFrame()) {
+        _ui->graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
+    }
+    else {
+        _ui->graphicsView->setDragMode(QGraphicsView::NoDrag);
+    }
 }
 
 void MainWindow::updateWindowTitle()
