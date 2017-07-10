@@ -5,6 +5,7 @@
  */
 
 #include "siframegraphicsitem.h"
+#include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
@@ -15,7 +16,7 @@ using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame, Style* style,
                                          QGraphicsItem* parent)
-    : QGraphicsRectItem(parent)
+    : AabbGraphicsItem(parent)
     , _frame(frame)
     , _style(style)
     , _showTileHitbox(true)
@@ -26,7 +27,7 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame, Style* style,
 
     setPen(style->frameOutlinePen());
 
-    _tileHitbox = new QGraphicsRectItem(this);
+    _tileHitbox = new AabbGraphicsItem(this);
     _tileHitbox->setZValue(TILE_HITBOX_ZVALUE);
     _tileHitbox->setPen(style->tileHitboxPen());
     _tileHitbox->setBrush(style->tileHitboxBrush());
@@ -103,29 +104,38 @@ void SiFrameGraphicsItem::updateFrameLocation()
 {
     const urect& aabb = _frame->location.aabb;
     const upoint& origin = _frame->location.origin;
+    const QRect itemRange(0, 0, aabb.width, aabb.height);
 
-    setPos(aabb.x, aabb.y);
-    setRect(0, 0, aabb.width, aabb.height);
+    setRect(aabb);
 
     _horizontalOrigin->setLine(0, origin.y, aabb.width, origin.y);
     _verticalOrigin->setLine(origin.x, 0, origin.x, aabb.height);
+
+    for (auto* item : _objects) {
+        item->setRange(itemRange);
+    }
+    for (auto* item : _actionPoints) {
+        item->setRange(itemRange);
+    }
+    for (auto* item : _entityHitboxes) {
+        item->setRange(itemRange);
+    }
 }
 
 void SiFrameGraphicsItem::updateTileHitbox()
 {
-    const urect& hitbox = _frame->tileHitbox;
-
     _tileHitbox->setVisible(_showTileHitbox & _frame->solid);
-    _tileHitbox->setRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+    _tileHitbox->setRect(_frame->tileHitbox);
 }
 
 void SiFrameGraphicsItem::addFrameObject(unsigned index)
 {
-    auto* item = new QGraphicsRectItem(this);
+    auto* item = new AabbGraphicsItem(this);
     _objects.insert(index, item);
     updateItemIndexes(_objects, index,
                       FRAME_OBJECT_ZVALUE, SelectedItem::FRAME_OBJECT);
 
+    item->setRange(0, 0, _frame->location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
 
     item->setPen(_style->frameObjectPen());
@@ -138,8 +148,7 @@ void SiFrameGraphicsItem::updateFrameObject(unsigned index)
     SI::FrameObject& obj = _frame->objects.at(index);
     auto* item = _objects.at(index);
 
-    item->setRect(obj.location.x, obj.location.y,
-                  obj.sizePx(), obj.sizePx());
+    item->setRect(obj.location, obj.sizePx());
 }
 
 void SiFrameGraphicsItem::removeFrameObject(unsigned index)
@@ -152,16 +161,16 @@ void SiFrameGraphicsItem::removeFrameObject(unsigned index)
 
 void SiFrameGraphicsItem::addActionPoint(unsigned index)
 {
-    auto* item = new QGraphicsRectItem(this);
+    auto* item = new AabbGraphicsItem(this);
     _actionPoints.insert(index, item);
     updateItemIndexes(_actionPoints, index,
                       ACTION_POINT_ZVALUE, SelectedItem::ACTION_POINT);
 
+    item->setRange(0, 0, _frame->location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
 
     item->setPen(_style->actionPointPen());
     item->setBrush(_style->actionPointBrush());
-    item->setRect(0, 0, 1, 1);
 
     updateActionPoint(index);
 }
@@ -171,7 +180,7 @@ void SiFrameGraphicsItem::updateActionPoint(unsigned index)
     SI::ActionPoint& ap = _frame->actionPoints.at(index);
     auto* item = _actionPoints.at(index);
 
-    item->setPos(ap.location.x, ap.location.y);
+    item->setPos(ap.location);
 }
 
 void SiFrameGraphicsItem::removeActionPoint(unsigned index)
@@ -184,11 +193,12 @@ void SiFrameGraphicsItem::removeActionPoint(unsigned index)
 
 void SiFrameGraphicsItem::addEntityHitbox(unsigned index)
 {
-    auto* item = new QGraphicsRectItem(this);
+    auto* item = new AabbGraphicsItem(this);
     _entityHitboxes.insert(index, item);
     updateItemIndexes(_entityHitboxes, index,
                       ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);
 
+    item->setRange(0, 0, _frame->location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
 
     updateEntityHitbox(index);
@@ -202,8 +212,7 @@ void SiFrameGraphicsItem::updateEntityHitbox(unsigned index)
     item->setPen(_style->entityHitboxPen(eh.hitboxType));
     item->setBrush(_style->entityHitboxBrush(eh.hitboxType));
 
-    item->setRect(eh.aabb.x, eh.aabb.y,
-                  eh.aabb.width, eh.aabb.height);
+    item->setRect(eh.aabb);
 }
 
 void SiFrameGraphicsItem::removeEntityHitbox(unsigned index)

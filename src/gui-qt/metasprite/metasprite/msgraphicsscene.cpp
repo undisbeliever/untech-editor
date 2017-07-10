@@ -6,6 +6,7 @@
 
 #include "msgraphicsscene.h"
 #include "document.h"
+#include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
@@ -13,6 +14,9 @@
 
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
+
+const QRect MsGraphicsScene::ITEM_RANGE(
+    int_ms8_t::MIN, int_ms8_t::MIN, UINT8_MAX, UINT8_MAX);
 
 MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     : QGraphicsScene(parent)
@@ -25,7 +29,7 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
 
     _style = new Style(parent);
 
-    _tileHitbox = new QGraphicsRectItem();
+    _tileHitbox = new AabbGraphicsItem();
     _tileHitbox->setPen(_style->tileHitboxPen());
     _tileHitbox->setBrush(_style->tileHitboxBrush());
     _tileHitbox->setZValue(TILE_HITBOX_ZVALUE);
@@ -150,11 +154,9 @@ void MsGraphicsScene::drawForeground(QPainter* painter, const QRectF& rect)
 
 void MsGraphicsScene::updateTileHitbox()
 {
-    const ms8rect& hitbox = _frame->tileHitbox;
-
     _tileHitbox->setVisible(_layerSettings->showTileHitbox() & _frame->solid);
 
-    _tileHitbox->setRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+    _tileHitbox->setRect(_frame->tileHitbox);
 }
 
 template <class T>
@@ -172,11 +174,12 @@ void MsGraphicsScene::updateItemIndexes(QList<T*>& list, unsigned start,
 
 void MsGraphicsScene::addFrameObject(unsigned index)
 {
-    auto* item = new QGraphicsRectItem();
+    auto* item = new AabbGraphicsItem();
     _objects.insert(index, item);
     updateItemIndexes(_objects, index,
                       FRAME_OBJECT_ZVALUE, SelectedItem::FRAME_OBJECT);
 
+    item->setRange(ITEM_RANGE);
     item->setFlag(QGraphicsItem::ItemIsSelectable);
 
     item->setPen(_style->frameObjectPen());
@@ -193,8 +196,7 @@ void MsGraphicsScene::updateFrameObject(unsigned index)
     auto* item = _objects.at(index);
 
     // ::TODO frameObject tile::
-    item->setRect(obj.location.x, obj.location.y,
-                  obj.sizePx(), obj.sizePx());
+    item->setRect(obj.location, obj.sizePx());
 }
 
 void MsGraphicsScene::removeFrameObject(unsigned index)
@@ -207,16 +209,16 @@ void MsGraphicsScene::removeFrameObject(unsigned index)
 
 void MsGraphicsScene::addActionPoint(unsigned index)
 {
-    auto* item = new QGraphicsRectItem();
+    auto* item = new AabbGraphicsItem();
     _actionPoints.insert(index, item);
     updateItemIndexes(_actionPoints, index,
                       ACTION_POINT_ZVALUE, SelectedItem::ACTION_POINT);
 
+    item->setRange(ITEM_RANGE);
     item->setFlag(QGraphicsItem::ItemIsSelectable);
 
     item->setPen(_style->actionPointPen());
     item->setBrush(_style->actionPointBrush());
-    item->setRect(0, 0, 1, 1);
 
     updateActionPoint(index);
 
@@ -228,7 +230,7 @@ void MsGraphicsScene::updateActionPoint(unsigned index)
     MS::ActionPoint& ap = _frame->actionPoints.at(index);
     auto* item = _actionPoints.at(index);
 
-    item->setPos(ap.location.x, ap.location.y);
+    item->setPos(ap.location);
 }
 
 void MsGraphicsScene::removeActionPoint(unsigned index)
@@ -241,11 +243,12 @@ void MsGraphicsScene::removeActionPoint(unsigned index)
 
 void MsGraphicsScene::addEntityHitbox(unsigned index)
 {
-    auto* item = new QGraphicsRectItem();
+    auto* item = new AabbGraphicsItem();
     _entityHitboxes.insert(index, item);
     updateItemIndexes(_entityHitboxes, index,
                       ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);
 
+    item->setRange(ITEM_RANGE);
     item->setFlag(QGraphicsItem::ItemIsSelectable);
 
     updateEntityHitbox(index);
@@ -261,8 +264,7 @@ void MsGraphicsScene::updateEntityHitbox(unsigned index)
     item->setPen(_style->entityHitboxPen(eh.hitboxType));
     item->setBrush(_style->entityHitboxBrush(eh.hitboxType));
 
-    item->setRect(eh.aabb.x, eh.aabb.y,
-                  eh.aabb.width, eh.aabb.height);
+    item->setRect(eh.aabb);
 }
 
 void MsGraphicsScene::removeEntityHitbox(unsigned index)

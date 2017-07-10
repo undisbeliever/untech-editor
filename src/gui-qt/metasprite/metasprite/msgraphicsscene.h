@@ -9,7 +9,6 @@
 #include "gui-qt/metasprite/abstractselection.h"
 #include "models/metasprite/metasprite.h"
 #include <QGraphicsItem>
-#include <QGraphicsRectItem>
 #include <QGraphicsScene>
 #include <QList>
 #include <QMap>
@@ -17,6 +16,8 @@
 
 namespace UnTech {
 namespace GuiQt {
+class AabbGraphicsItem;
+
 namespace MetaSprite {
 class Style;
 class LayerSettings;
@@ -29,6 +30,8 @@ namespace MS = UnTech::MetaSprite::MetaSprite;
 
 class MsGraphicsScene : public QGraphicsScene {
     Q_OBJECT
+
+    static const QRect ITEM_RANGE;
 
     static const unsigned FRAME_OBJECT_ZVALUE = 100;
     static const unsigned ENTITY_HITBOX_ZVALUE = 200;
@@ -99,11 +102,11 @@ private:
     Style* _style;
     MS::Frame* _frame;
 
-    QGraphicsRectItem* _tileHitbox;
+    AabbGraphicsItem* _tileHitbox;
 
-    QList<QGraphicsRectItem*> _objects;      // ::TODO change to FrameObjectItem::
-    QList<QGraphicsRectItem*> _actionPoints; // ::TODO change to cross::
-    QList<QGraphicsRectItem*> _entityHitboxes;
+    QList<AabbGraphicsItem*> _objects; // ::TODO change to FrameObjectItem::
+    QList<AabbGraphicsItem*> _actionPoints;
+    QList<AabbGraphicsItem*> _entityHitboxes;
 
     bool _inUpdateSelection;
 };

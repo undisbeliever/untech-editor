@@ -4,15 +4,17 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/metasprite/abstractselection.h"
 #include "models/metasprite/spriteimporter.h"
 
 #include <QGraphicsLineItem>
-#include <QGraphicsRectItem>
 #include <QList>
 
 namespace UnTech {
 namespace GuiQt {
+class AabbGraphicsItem;
+
 namespace MetaSprite {
 class Style;
 class LayerSettings;
@@ -21,7 +23,7 @@ namespace SpriteImporter {
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
-class SiFrameGraphicsItem : public QGraphicsRectItem {
+class SiFrameGraphicsItem : public AabbGraphicsItem {
 public:
     static const unsigned FRAME_OBJECT_ZVALUE = 100;
     static const unsigned ENTITY_HITBOX_ZVALUE = 200;
@@ -74,13 +76,13 @@ private:
     bool _showTileHitbox;
     bool _frameSelected;
 
-    QGraphicsRectItem* _tileHitbox;
+    AabbGraphicsItem* _tileHitbox;
     QGraphicsLineItem* _horizontalOrigin;
     QGraphicsLineItem* _verticalOrigin;
 
-    QList<QGraphicsRectItem*> _objects;
-    QList<QGraphicsRectItem*> _actionPoints; // ::TODO change to cross::
-    QList<QGraphicsRectItem*> _entityHitboxes;
+    QList<AabbGraphicsItem*> _objects;
+    QList<AabbGraphicsItem*> _actionPoints;
+    QList<AabbGraphicsItem*> _entityHitboxes;
 };
 }
 }
