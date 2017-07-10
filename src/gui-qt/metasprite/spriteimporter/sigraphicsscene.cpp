@@ -140,15 +140,14 @@ void SiGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         // complicates the selection model.
 
         auto frameItemAt = [this](const QPointF pos) -> SiFrameGraphicsItem* {
-            QGraphicsItem* item = itemAt(pos, QTransform());
-            if (item) {
-                while (QGraphicsItem* i = item->parentItem()) {
-                    item = i;
+            for (QGraphicsItem* item : this->items(pos)) {
+                auto* frameItem = dynamic_cast<SiFrameGraphicsItem*>(item);
+                if (frameItem) {
+                    return frameItem;
                 }
             }
-            return qgraphicsitem_cast<SiFrameGraphicsItem*>(item);
+            return nullptr;
         };
-
         auto* press = frameItemAt(event->buttonDownScenePos(Qt::LeftButton));
         auto* release = frameItemAt(event->scenePos());
 
