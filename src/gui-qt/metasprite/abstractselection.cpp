@@ -77,15 +77,20 @@ void AbstractSelection::setDocument(AbstractDocument* document)
 
 void AbstractSelection::selectFrame(const idstring& id)
 {
-    const void* selectedFrame = setSelectedFrame(id);
+    if (_selectedFrameId != id) {
+        if (!_selectedItems.empty()) {
+            _selectedItems.clear();
+            emit selectedItemsChanged();
+        }
 
-    if (_selectedFramePtr != selectedFrame) {
-        _selectedFramePtr = selectedFrame;
-        _selectedFrameId = selectedFrame ? id : idstring();
-        _selectedItems.clear();
+        const void* selectedFrame = setSelectedFrame(id);
 
-        emit selectedItemsChanged();
-        emit selectedFrameChanged();
+        if (_selectedFramePtr != selectedFrame) {
+            _selectedFramePtr = selectedFrame;
+            _selectedFrameId = selectedFrame ? id : idstring();
+
+            emit selectedFrameChanged();
+        }
     }
 }
 
