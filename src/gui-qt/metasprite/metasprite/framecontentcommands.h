@@ -22,7 +22,8 @@ namespace MS = UnTech::MetaSprite::MetaSprite;
     class Change##CLS : public QUndoCommand {                \
     public:                                                  \
         Change##CLS(Document* document, MS::Frame* frame,    \
-                    unsigned index, const MS::CLS& value);   \
+                    unsigned index, const MS::CLS& value,    \
+                    QUndoCommand* parent = nullptr);         \
         ~Change##CLS() = default;                            \
                                                              \
         virtual void undo() final;                           \

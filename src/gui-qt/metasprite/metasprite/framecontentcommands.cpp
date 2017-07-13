@@ -15,8 +15,8 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 #define CHANGE_COMMAND(CLS, FIELD, TEXT)                                 \
     Change##CLS::Change##CLS(                                            \
         Document* document, MS::Frame* frame,                            \
-        unsigned index, const MS::CLS& value)                            \
-        : QUndoCommand(QCoreApplication::tr(TEXT))                       \
+        unsigned index, const MS::CLS& value, QUndoCommand* parent)      \
+        : QUndoCommand(QCoreApplication::tr(TEXT), parent)               \
         , _document(document)                                            \
         , _frame(frame)                                                  \
         , _index(index)                                                  \

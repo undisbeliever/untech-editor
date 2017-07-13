@@ -6,10 +6,12 @@
 
 #include "msgraphicsscene.h"
 #include "document.h"
+#include "framecontentcommands.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
+#include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 
 using namespace UnTech::GuiQt::MetaSprite;
@@ -152,6 +154,80 @@ void MsGraphicsScene::drawForeground(QPainter* painter, const QRectF& rect)
     }
 }
 
+void MsGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    QGraphicsScene::mouseReleaseEvent(event);
+
+    if (event->button() == Qt::LeftButton) {
+        commitMovedItems();
+    }
+}
+
+void MsGraphicsScene::commitMovedItems()
+{
+    const auto selectedItems = this->selectedItems();
+
+    if (_frame == nullptr || selectedItems.isEmpty()) {
+        return;
+    }
+
+    auto command = std::make_unique<QUndoCommand>(tr("Move"));
+
+    for (QGraphicsItem* item : selectedItems) {
+        QVariant v = item->data(SELECTION_ID);
+        if (v.isValid()) {
+            SelectedItem id = v.value<SelectedItem>();
+            switch (id.type) {
+            case SelectedItem::NONE:
+                break;
+
+            case SelectedItem::FRAME_OBJECT:
+                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
+                    MS::FrameObject obj = _frame->objects.at(id.index);
+
+                    ms8point location = i->posMs8point();
+                    if (obj.location != location) {
+                        obj.location = location;
+                        new ChangeFrameObject(_document, _frame, id.index, obj,
+                                              command.get());
+                    }
+                }
+                break;
+
+            case SelectedItem::ACTION_POINT:
+                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
+                    MS::ActionPoint ap = _frame->actionPoints.at(id.index);
+
+                    ms8point location = i->posMs8point();
+                    if (ap.location != location) {
+                        ap.location = location;
+                        new ChangeActionPoint(_document, _frame, id.index, ap,
+                                              command.get());
+                    }
+                }
+                break;
+
+            case SelectedItem::ENTITY_HITBOX:
+                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
+                    MS::EntityHitbox eh = _frame->entityHitboxes.at(id.index);
+
+                    ms8rect aabb = i->rectMs8rect();
+                    if (eh.aabb != aabb) {
+                        eh.aabb = aabb;
+                        new ChangeEntityHitbox(_document, _frame, id.index, eh,
+                                               command.get());
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    if (command->childCount() > 0) {
+        _document->undoStack()->push(command.release());
+    }
+}
+
 void MsGraphicsScene::updateTileHitbox()
 {
     _tileHitbox->setVisible(_layerSettings->showTileHitbox() & _frame->solid);
@@ -181,6 +257,7 @@ void MsGraphicsScene::addFrameObject(unsigned index)
 
     item->setRange(ITEM_RANGE);
     item->setFlag(QGraphicsItem::ItemIsSelectable);
+    item->setFlag(QGraphicsItem::ItemIsMovable);
 
     item->setPen(_style->frameObjectPen());
     item->setBrush(QBrush(Qt::black));
@@ -216,6 +293,7 @@ void MsGraphicsScene::addActionPoint(unsigned index)
 
     item->setRange(ITEM_RANGE);
     item->setFlag(QGraphicsItem::ItemIsSelectable);
+    item->setFlag(QGraphicsItem::ItemIsMovable);
 
     item->setPen(_style->actionPointPen());
     item->setBrush(_style->actionPointBrush());
@@ -250,6 +328,7 @@ void MsGraphicsScene::addEntityHitbox(unsigned index)
 
     item->setRange(ITEM_RANGE);
     item->setFlag(QGraphicsItem::ItemIsSelectable);
+    item->setFlag(QGraphicsItem::ItemIsMovable);
 
     updateEntityHitbox(index);
 

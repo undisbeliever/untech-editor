@@ -22,7 +22,8 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
     class Change##CLS : public QUndoCommand {                \
     public:                                                  \
         Change##CLS(Document* document, SI::Frame* frame,    \
-                    unsigned index, const SI::CLS& value);   \
+                    unsigned index, const SI::CLS& value,    \
+                    QUndoCommand* parent = nullptr);         \
         ~Change##CLS() = default;                            \
                                                              \
         virtual void undo() final;                           \

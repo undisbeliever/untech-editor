@@ -50,8 +50,11 @@ public:
 
 protected:
     virtual void drawForeground(QPainter* painter, const QRectF& rect) override;
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
+    void commitMovedItems();
+
     template <class T>
     static void updateItemIndexes(QList<T*>& list, unsigned start,
                                   unsigned baseZValue,

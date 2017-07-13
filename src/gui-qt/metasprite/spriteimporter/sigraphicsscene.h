@@ -35,6 +35,9 @@ protected:
     virtual void drawForeground(QPainter* painter, const QRectF& rect) override;
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* mouseEvent) override;
 
+private:
+    void commitMovedItems();
+
 private slots:
     void onLayerSettingsChanged();
 

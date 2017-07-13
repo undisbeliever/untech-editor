@@ -137,6 +137,7 @@ void SiFrameGraphicsItem::addFrameObject(unsigned index)
 
     item->setRange(0, 0, _frame->location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
+    item->setFlag(QGraphicsItem::ItemIsMovable);
 
     item->setPen(_style->frameObjectPen());
 
@@ -168,6 +169,7 @@ void SiFrameGraphicsItem::addActionPoint(unsigned index)
 
     item->setRange(0, 0, _frame->location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
+    item->setFlag(QGraphicsItem::ItemIsMovable);
 
     item->setPen(_style->actionPointPen());
     item->setBrush(_style->actionPointBrush());
@@ -200,6 +202,7 @@ void SiFrameGraphicsItem::addEntityHitbox(unsigned index)
 
     item->setRange(0, 0, _frame->location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
+    item->setFlag(QGraphicsItem::ItemIsMovable);
 
     updateEntityHitbox(index);
 }

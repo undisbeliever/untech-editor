@@ -6,6 +6,7 @@
 
 #include "sigraphicsscene.h"
 #include "document.h"
+#include "framecontentcommands.h"
 #include "siframegraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
@@ -135,6 +136,8 @@ void SiGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     QGraphicsScene::mouseReleaseEvent(event);
 
     if (_document && event->button() == Qt::LeftButton) {
+        commitMovedItems();
+
         // Set selected frame to the one under the mouse.
         // This is done manually as making SiFrameGraphicsItem selectable
         // complicates the selection model.
@@ -159,6 +162,72 @@ void SiGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
                 _document->selection()->unselectFrame();
             }
         }
+    }
+}
+
+void SiGraphicsScene::commitMovedItems()
+{
+    SI::Frame* frame = _document->selection()->selectedFrame();
+    const auto selectedItems = this->selectedItems();
+
+    if (frame == nullptr || selectedItems.isEmpty()) {
+        return;
+    }
+
+    auto command = std::make_unique<QUndoCommand>(tr("Move"));
+
+    for (QGraphicsItem* item : selectedItems) {
+        QVariant v = item->data(SiFrameGraphicsItem::SELECTION_ID);
+        if (v.isValid()) {
+            SelectedItem id = v.value<SelectedItem>();
+            switch (id.type) {
+            case SelectedItem::NONE:
+                break;
+
+            case SelectedItem::FRAME_OBJECT:
+                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
+                    SI::FrameObject obj = frame->objects.at(id.index);
+
+                    upoint location = i->posUpoint();
+                    if (obj.location != location) {
+                        obj.location = location;
+                        new ChangeFrameObject(_document, frame, id.index, obj,
+                                              command.get());
+                    }
+                }
+                break;
+
+            case SelectedItem::ACTION_POINT:
+                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
+                    SI::ActionPoint ap = frame->actionPoints.at(id.index);
+
+                    upoint location = i->posUpoint();
+                    if (ap.location != location) {
+                        ap.location = location;
+                        new ChangeActionPoint(_document, frame, id.index, ap,
+                                              command.get());
+                    }
+                }
+                break;
+
+            case SelectedItem::ENTITY_HITBOX:
+                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
+                    SI::EntityHitbox eh = frame->entityHitboxes.at(id.index);
+
+                    urect aabb = i->rectUrect();
+                    if (eh.aabb != aabb) {
+                        eh.aabb = aabb;
+                        new ChangeEntityHitbox(_document, frame, id.index, eh,
+                                               command.get());
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    if (command->childCount() > 0) {
+        _document->undoStack()->push(command.release());
     }
 }
 
