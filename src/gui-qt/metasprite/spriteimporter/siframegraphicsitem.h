@@ -14,6 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 class AabbGraphicsItem;
+class ResizableAabbGraphicsItem;
 
 namespace MetaSprite {
 class Style;
@@ -82,7 +83,7 @@ private:
 
     QList<AabbGraphicsItem*> _objects;
     QList<AabbGraphicsItem*> _actionPoints;
-    QList<AabbGraphicsItem*> _entityHitboxes;
+    QList<ResizableAabbGraphicsItem*> _entityHitboxes;
 };
 }
 }

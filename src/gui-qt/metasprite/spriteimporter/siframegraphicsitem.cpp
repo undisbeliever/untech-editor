@@ -6,6 +6,7 @@
 
 #include "siframegraphicsitem.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
+#include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 #include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
@@ -195,7 +196,7 @@ void SiFrameGraphicsItem::removeActionPoint(unsigned index)
 
 void SiFrameGraphicsItem::addEntityHitbox(unsigned index)
 {
-    auto* item = new AabbGraphicsItem(this);
+    auto* item = new ResizableAabbGraphicsItem(this);
     _entityHitboxes.insert(index, item);
     updateItemIndexes(_entityHitboxes, index,
                       ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);

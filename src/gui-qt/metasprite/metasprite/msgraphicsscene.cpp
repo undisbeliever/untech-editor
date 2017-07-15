@@ -8,6 +8,7 @@
 #include "document.h"
 #include "framecontentcommands.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
+#include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
@@ -208,7 +209,7 @@ void MsGraphicsScene::commitMovedItems()
                 break;
 
             case SelectedItem::ENTITY_HITBOX:
-                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
+                if (auto* i = dynamic_cast<const ResizableAabbGraphicsItem*>(item)) {
                     MS::EntityHitbox eh = _frame->entityHitboxes.at(id.index);
 
                     ms8rect aabb = i->rectMs8rect();
@@ -321,7 +322,7 @@ void MsGraphicsScene::removeActionPoint(unsigned index)
 
 void MsGraphicsScene::addEntityHitbox(unsigned index)
 {
-    auto* item = new AabbGraphicsItem();
+    auto* item = new ResizableAabbGraphicsItem();
     _entityHitboxes.insert(index, item);
     updateItemIndexes(_entityHitboxes, index,
                       ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);

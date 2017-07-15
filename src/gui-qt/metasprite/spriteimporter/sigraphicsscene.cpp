@@ -8,6 +8,7 @@
 #include "document.h"
 #include "framecontentcommands.h"
 #include "siframegraphicsitem.h"
+#include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
@@ -211,7 +212,7 @@ void SiGraphicsScene::commitMovedItems()
                 break;
 
             case SelectedItem::ENTITY_HITBOX:
-                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
+                if (auto* i = dynamic_cast<const ResizableAabbGraphicsItem*>(item)) {
                     SI::EntityHitbox eh = frame->entityHitboxes.at(id.index);
 
                     urect aabb = i->rectUrect();

@@ -17,6 +17,7 @@
 namespace UnTech {
 namespace GuiQt {
 class AabbGraphicsItem;
+class ResizableAabbGraphicsItem;
 
 namespace MetaSprite {
 class Style;
@@ -109,7 +110,7 @@ private:
 
     QList<AabbGraphicsItem*> _objects; // ::TODO change to FrameObjectItem::
     QList<AabbGraphicsItem*> _actionPoints;
-    QList<AabbGraphicsItem*> _entityHitboxes;
+    QList<ResizableAabbGraphicsItem*> _entityHitboxes;
 
     bool _inUpdateSelection;
 };
