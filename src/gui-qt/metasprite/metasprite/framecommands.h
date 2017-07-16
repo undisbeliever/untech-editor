@@ -111,7 +111,8 @@ private:
 class ChangeFrameTileHitbox : public QUndoCommand {
 public:
     ChangeFrameTileHitbox(Document* document,
-                          MS::Frame* frame, const ms8rect& hitbox);
+                          MS::Frame* frame, const ms8rect& hitbox,
+                          QUndoCommand* parent = nullptr);
     ~ChangeFrameTileHitbox() = default;
 
     virtual void undo() final;

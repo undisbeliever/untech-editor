@@ -106,7 +106,7 @@ private:
     Style* _style;
     MS::Frame* _frame;
 
-    AabbGraphicsItem* _tileHitbox;
+    ResizableAabbGraphicsItem* _tileHitbox;
 
     QList<AabbGraphicsItem*> _objects; // ::TODO change to FrameObjectItem::
     QList<AabbGraphicsItem*> _actionPoints;

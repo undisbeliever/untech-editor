@@ -77,7 +77,7 @@ private:
     bool _showTileHitbox;
     bool _frameSelected;
 
-    AabbGraphicsItem* _tileHitbox;
+    ResizableAabbGraphicsItem* _tileHitbox;
     QGraphicsLineItem* _horizontalOrigin;
     QGraphicsLineItem* _verticalOrigin;
 

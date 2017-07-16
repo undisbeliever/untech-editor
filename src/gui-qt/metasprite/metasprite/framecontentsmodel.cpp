@@ -84,6 +84,7 @@ QModelIndex FrameContentsModel::toModelIndex(const SelectedItem& item) const
 {
     switch (item.type) {
     case SelectedItem::NONE:
+    case SelectedItem::TILE_HITBOX:
         return QModelIndex();
 
     case SelectedItem::FRAME_OBJECT:

@@ -188,8 +188,9 @@ void ChangeFrameSolid::redo()
 // =====================
 
 ChangeFrameTileHitbox::ChangeFrameTileHitbox(
-    Document* document, MS::Frame* frame, const ms8rect& hitbox)
-    : QUndoCommand(QCoreApplication::tr("Change Tile Hitbox"))
+    Document* document, MS::Frame* frame, const ms8rect& hitbox,
+    QUndoCommand* parent)
+    : QUndoCommand(QCoreApplication::tr("Change Tile Hitbox"), parent)
     , _document(document)
     , _frame(frame)
     , _oldHitbox(frame->tileHitbox)

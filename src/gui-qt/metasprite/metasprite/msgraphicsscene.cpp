@@ -6,6 +6,7 @@
 
 #include "msgraphicsscene.h"
 #include "document.h"
+#include "framecommands.h"
 #include "framecontentcommands.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
@@ -32,11 +33,16 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
 
     _style = new Style(parent);
 
-    _tileHitbox = new AabbGraphicsItem();
+    _tileHitbox = new ResizableAabbGraphicsItem();
     _tileHitbox->setPen(_style->tileHitboxPen());
     _tileHitbox->setBrush(_style->tileHitboxBrush());
     _tileHitbox->setZValue(TILE_HITBOX_ZVALUE);
     _tileHitbox->setVisible(false);
+    _tileHitbox->setRange(ITEM_RANGE);
+    _tileHitbox->setFlag(QGraphicsItem::ItemIsSelectable);
+    _tileHitbox->setFlag(QGraphicsItem::ItemIsMovable);
+    _tileHitbox->setData(SELECTION_ID, QVariant::fromValue<SelectedItem>(
+                                           { SelectedItem::TILE_HITBOX, 0 }));
     addItem(_tileHitbox);
 
     onLayerSettingsChanged();
@@ -217,6 +223,16 @@ void MsGraphicsScene::commitMovedItems()
                         eh.aabb = aabb;
                         new ChangeEntityHitbox(_document, _frame, id.index, eh,
                                                command.get());
+                    }
+                }
+                break;
+
+            case SelectedItem::TILE_HITBOX:
+                if (auto* i = dynamic_cast<const ResizableAabbGraphicsItem*>(item)) {
+                    ms8rect hitbox = i->rectMs8rect();
+                    if (_frame->tileHitbox != hitbox) {
+                        new ChangeFrameTileHitbox(_document, _frame, hitbox,
+                                                  command.get());
                     }
                 }
                 break;

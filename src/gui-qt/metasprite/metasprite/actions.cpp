@@ -237,6 +237,7 @@ void Actions::onCloneSelected()
     for (const auto& item : items) {
         switch (item.type) {
         case SelectedItem::NONE:
+        case SelectedItem::TILE_HITBOX:
             break;
 
         case SelectedItem::FRAME_OBJECT:
@@ -278,6 +279,7 @@ void Actions::onRemoveSelected()
     for (const auto& item : items) {
         switch (item.type) {
         case SelectedItem::NONE:
+        case SelectedItem::TILE_HITBOX:
             break;
 
         case SelectedItem::FRAME_OBJECT:

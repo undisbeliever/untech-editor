@@ -25,7 +25,8 @@ struct SelectedItem {
         NONE,
         FRAME_OBJECT,
         ACTION_POINT,
-        ENTITY_HITBOX
+        ENTITY_HITBOX,
+        TILE_HITBOX
     };
     Type type;
     size_t index;

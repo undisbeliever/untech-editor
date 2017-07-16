@@ -28,10 +28,14 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame, Style* style,
 
     setPen(style->frameOutlinePen());
 
-    _tileHitbox = new AabbGraphicsItem(this);
+    _tileHitbox = new ResizableAabbGraphicsItem(this);
     _tileHitbox->setZValue(TILE_HITBOX_ZVALUE);
     _tileHitbox->setPen(style->tileHitboxPen());
     _tileHitbox->setBrush(style->tileHitboxBrush());
+    _tileHitbox->setFlag(QGraphicsItem::ItemIsSelectable);
+    _tileHitbox->setFlag(QGraphicsItem::ItemIsMovable);
+    _tileHitbox->setData(SELECTION_ID, QVariant::fromValue<SelectedItem>(
+                                           { SelectedItem::TILE_HITBOX, 0 }));
 
     _horizontalOrigin = new QGraphicsLineItem(this);
     _horizontalOrigin->setZValue(ORIGIN_ZVALUE);
@@ -108,6 +112,8 @@ void SiFrameGraphicsItem::updateFrameLocation()
     const QRect itemRange(0, 0, aabb.width, aabb.height);
 
     setRect(aabb);
+
+    _tileHitbox->setRange(itemRange);
 
     _horizontalOrigin->setLine(0, origin.y, aabb.width, origin.y);
     _verticalOrigin->setLine(origin.x, 0, origin.x, aabb.height);

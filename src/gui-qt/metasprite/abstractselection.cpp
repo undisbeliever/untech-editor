@@ -247,6 +247,7 @@ bool AbstractSelection::canCloneSelectedItems() const
     for (const auto& item : _selectedItems) {
         switch (item.type) {
         case SelectedItem::NONE:
+        case SelectedItem::TILE_HITBOX:
             return false;
 
         case SelectedItem::FRAME_OBJECT:
@@ -314,6 +315,7 @@ bool AbstractSelection::canLowerSelectedItems() const
     for (const auto& item : _selectedItems) {
         switch (item.type) {
         case SelectedItem::NONE:
+        case SelectedItem::TILE_HITBOX:
             return false;
 
         case SelectedItem::FRAME_OBJECT:

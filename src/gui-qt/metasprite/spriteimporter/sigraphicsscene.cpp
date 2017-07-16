@@ -6,6 +6,7 @@
 
 #include "sigraphicsscene.h"
 #include "document.h"
+#include "framecommands.h"
 #include "framecontentcommands.h"
 #include "siframegraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
@@ -220,6 +221,16 @@ void SiGraphicsScene::commitMovedItems()
                         eh.aabb = aabb;
                         new ChangeEntityHitbox(_document, frame, id.index, eh,
                                                command.get());
+                    }
+                }
+                break;
+
+            case SelectedItem::TILE_HITBOX:
+                if (auto* i = dynamic_cast<const ResizableAabbGraphicsItem*>(item)) {
+                    urect hitbox = i->rectUrect();
+                    if (frame->tileHitbox != hitbox) {
+                        new ChangeFrameTileHitbox(_document, frame, hitbox,
+                                                  command.get());
                     }
                 }
                 break;
