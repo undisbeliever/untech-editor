@@ -17,6 +17,7 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
 class FrameContentsModel;
+class PalettesModel;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -41,6 +42,7 @@ public:
     virtual Selection* selection() const final { return _selection; }
     virtual FrameListModel* frameListModel() const final { return _frameListModel; }
     FrameContentsModel* frameContentsModel() const { return _frameContentsModel; }
+    PalettesModel* palettesModel() const { return _palettesModel; }
 
     virtual AbstractSelection* abstractSelection() const { return nullptr; }
 
@@ -50,6 +52,7 @@ private:
     Selection* _selection;
     FrameListModel* _frameListModel;
     FrameContentsModel* _frameContentsModel;
+    PalettesModel* _palettesModel;
 };
 }
 }

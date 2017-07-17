@@ -31,6 +31,7 @@ class Actions;
 class MsGraphicsScene;
 class FrameSetDock;
 class FrameDock;
+class PalettesDock;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -73,6 +74,7 @@ private:
     FrameSetDock* _frameSetDock;
     FrameDock* _frameDock;
     Animation::AnimationDock* _animationDock;
+    PalettesDock* _palettesDock;
 
     QComboBox* _zoomComboBox;
     QComboBox* _aspectRatioComboBox;

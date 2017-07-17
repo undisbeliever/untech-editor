@@ -7,6 +7,7 @@
 #include "document.h"
 #include "framecontentsmodel.h"
 #include "framelistmodel.h"
+#include "palettesmodel.h"
 #include "selection.h"
 
 #include <QMessageBox>
@@ -27,6 +28,7 @@ Document::Document(std::unique_ptr<MS::FrameSet> frameSet,
     , _selection(new Selection(this))
     , _frameListModel(new FrameListModel(this))
     , _frameContentsModel(new FrameContentsModel(this))
+    , _palettesModel(new PalettesModel(this))
 {
     Q_ASSERT(_frameSet != nullptr);
 
@@ -35,6 +37,7 @@ Document::Document(std::unique_ptr<MS::FrameSet> frameSet,
     _selection->setDocument(this);
     _frameListModel->setDocument(this);
     _frameContentsModel->setDocument(this);
+    _palettesModel->setDocument(this);
 
     initModels();
 }
