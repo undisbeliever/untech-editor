@@ -10,6 +10,7 @@
 #include "framecontentcommands.h"
 #include "framelistmodel.h"
 #include "mainwindow.h"
+#include "palettecommands.h"
 #include "selection.h"
 #include "gui-qt/common/idstringdialog.h"
 
@@ -24,6 +25,12 @@ Actions::Actions(MainWindow* mainWindow)
     _cloneFrame = new QAction(tr("Clone Frame"), this);
     _renameFrame = new QAction(tr("Rename Frame"), this);
     _removeFrame = new QAction(tr("Remove Frame"), this);
+
+    _addPalette = new QAction(tr("New Palette"), this);
+    _clonePalette = new QAction(tr("Clone Palette"), this);
+    _removePalette = new QAction(tr("Remove Palette"), this);
+    _raisePalette = new QAction(tr("Raise Palette"), this);
+    _lowerPalette = new QAction(tr("Lower Palette"), this);
 
     _addFrameObject = new QAction(tr("Add Frame Object"), this);
     _addActionPoint = new QAction(tr("Add Action Point"), this);
@@ -45,6 +52,13 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_cloneFrame, &QAction::triggered, this, &Actions::onCloneFrame);
     connect(_renameFrame, &QAction::triggered, this, &Actions::onRenameFrame);
     connect(_removeFrame, &QAction::triggered, this, &Actions::onRemoveFrame);
+
+    connect(_addPalette, &QAction::triggered, this, &Actions::onAddPalette);
+    connect(_clonePalette, &QAction::triggered, this, &Actions::onClonePalette);
+    connect(_removePalette, &QAction::triggered, this, &Actions::onRemovePalette);
+    connect(_raisePalette, &QAction::triggered, this, &Actions::onRaisePalette);
+    connect(_lowerPalette, &QAction::triggered, this, &Actions::onLowerPalette);
+
     connect(_addFrameObject, &QAction::triggered, this, &Actions::onAddFrameObject);
     connect(_addActionPoint, &QAction::triggered, this, &Actions::onAddActionPoint);
     connect(_addEntityHitbox, &QAction::triggered, this, &Actions::onAddEntityHitbox);
@@ -64,6 +78,8 @@ void Actions::setDocument(Document* document)
     if (document) {
         connect(_document->selection(), &Selection::selectedFrameChanged,
                 this, &Actions::updateActions);
+        connect(_document->selection(), &Selection::selectedPaletteChanged,
+                this, &Actions::updateActions);
         connect(_document->selection(), &Selection::selectedItemsChanged,
                 this, &Actions::updateActions);
     }
@@ -75,6 +91,13 @@ void Actions::updateActions()
 {
     bool documentExists = false;
     bool frameSelected = false;
+
+    bool paletteSelected = false;
+    bool canAddPalette = false;
+    bool canRemovePalette = false;
+    bool canRaisePalette = false;
+    bool canLowerPalette = false;
+
     bool canAddFrameObject = false;
     bool canAddActionPoint = false;
     bool canAddEntityHitbox = false;
@@ -85,6 +108,16 @@ void Actions::updateActions()
 
     if (_document) {
         documentExists = true;
+
+        const auto& palettes = _document->frameSet()->palettes;
+        const unsigned selectedPalette = _document->selection()->selectedPalette();
+        if (selectedPalette < palettes.size()) {
+            paletteSelected = true;
+            canRemovePalette = palettes.size() > 1;
+            canRaisePalette = selectedPalette > 0;
+            canLowerPalette = selectedPalette < palettes.size() - 1;
+        }
+        canAddPalette = palettes.can_insert();
 
         if (MS::Frame* frame = _document->selection()->selectedFrame()) {
             frameSelected = true;
@@ -104,6 +137,13 @@ void Actions::updateActions()
     _cloneFrame->setEnabled(frameSelected);
     _renameFrame->setEnabled(frameSelected);
     _removeFrame->setEnabled(frameSelected);
+
+    _addPalette->setEnabled(canAddPalette);
+    _clonePalette->setEnabled(paletteSelected && canAddPalette);
+    _removePalette->setEnabled(canRemovePalette);
+    _raisePalette->setEnabled(canRaisePalette);
+    _lowerPalette->setEnabled(canLowerPalette);
+
     _addFrameObject->setEnabled(canAddFrameObject);
     _addActionPoint->setEnabled(canAddActionPoint);
     _addEntityHitbox->setEnabled(canAddEntityHitbox);
@@ -173,6 +213,51 @@ void Actions::onRemoveFrame()
 
     _document->undoStack()->push(
         new RemoveFrame(_document, frameId));
+}
+
+void Actions::onAddPalette()
+{
+    const auto& palettes = _document->frameSet()->palettes;
+
+    _document->undoStack()->push(
+        new AddPalette(_document));
+
+    _document->selection()->selectPalette(palettes.size() - 1);
+}
+
+void Actions::onClonePalette()
+{
+    const auto& palettes = _document->frameSet()->palettes;
+    unsigned index = _document->selection()->selectedPalette();
+
+    _document->undoStack()->push(
+        new ClonePalette(_document, index));
+
+    _document->selection()->selectPalette(palettes.size() - 1);
+}
+
+void Actions::onRemovePalette()
+{
+    unsigned index = _document->selection()->selectedPalette();
+
+    _document->undoStack()->push(
+        new RemovePalette(_document, index));
+}
+
+void Actions::onRaisePalette()
+{
+    unsigned index = _document->selection()->selectedPalette();
+
+    _document->undoStack()->push(
+        new RaisePalette(_document, index));
+}
+
+void Actions::onLowerPalette()
+{
+    unsigned index = _document->selection()->selectedPalette();
+
+    _document->undoStack()->push(
+        new LowerPalette(_document, index));
 }
 
 void Actions::onAddFrameObject()

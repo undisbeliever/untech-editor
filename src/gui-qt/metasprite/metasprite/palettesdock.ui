@@ -28,9 +28,12 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>250</width>
+        <width>270</width>
         <height>100</height>
        </size>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
       <property name="selectionMode">
        <enum>QAbstractItemView::SingleSelection</enum>

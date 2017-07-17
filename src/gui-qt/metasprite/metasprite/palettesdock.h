@@ -28,6 +28,11 @@ public:
 
     void setDocument(Document* document);
 
+private slots:
+    void updatePaletteListSelection();
+    void onPaletteListSelectionChanged();
+    void onPaletteContextMenu(const QPoint& pos);
+
 private:
     std::unique_ptr<Ui::PalettesDock> _ui;
     Actions* _actions;

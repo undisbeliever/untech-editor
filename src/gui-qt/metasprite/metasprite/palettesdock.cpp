@@ -11,6 +11,8 @@
 #include "selection.h"
 #include "gui-qt/metasprite/metasprite/palettesdock.ui.h"
 
+#include <QMenu>
+
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
@@ -23,7 +25,12 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
 
     _ui->setupUi(this);
 
+    _ui->paletteList->setContextMenuPolicy(Qt::CustomContextMenu);
+
     setEnabled(false);
+
+    connect(_ui->paletteList, &QListView::customContextMenuRequested,
+            this, &PalettesDock::onPaletteContextMenu);
 }
 
 PalettesDock::~PalettesDock() = default;
@@ -48,8 +55,50 @@ void PalettesDock::setDocument(Document* document)
 
     if (_document) {
         _ui->paletteList->setModel(_document->palettesModel());
+
+        updatePaletteListSelection();
+
+        connect(_document->selection(), &Selection::selectedPaletteChanged,
+                this, &PalettesDock::updatePaletteListSelection);
+        connect(_ui->paletteList->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, &PalettesDock::onPaletteListSelectionChanged);
     }
     else {
         _ui->paletteList->setModel(nullptr);
+    }
+}
+
+void PalettesDock::updatePaletteListSelection()
+{
+    unsigned selectedPalette = _document->selection()->selectedPalette();
+    QModelIndex index = _document->palettesModel()->toModelIndex(selectedPalette);
+
+    _ui->paletteList->setCurrentIndex(index);
+}
+
+void PalettesDock::onPaletteListSelectionChanged()
+{
+    QModelIndex index = _ui->paletteList->currentIndex();
+    _document->selection()->selectPalette(index.row());
+}
+
+void PalettesDock::onPaletteContextMenu(const QPoint& pos)
+{
+    if (_document && _actions) {
+        bool onPalette = _ui->paletteList->indexAt(pos).isValid();
+
+        QMenu menu;
+        menu.addAction(_actions->addPalette());
+
+        if (onPalette) {
+            menu.addAction(_actions->clonePalette());
+            menu.addAction(_actions->removePalette());
+            menu.addSeparator();
+            menu.addAction(_actions->raisePalette());
+            menu.addAction(_actions->lowerPalette());
+        }
+
+        QPoint globalPos = _ui->paletteList->mapToGlobal(pos);
+        menu.exec(globalPos);
     }
 }

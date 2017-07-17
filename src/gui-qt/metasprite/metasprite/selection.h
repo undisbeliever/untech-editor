@@ -32,16 +32,29 @@ public:
 
     MS::Frame* selectedFrame() const { return _selectedFrame; }
 
+    void selectPalette(unsigned index);
+    unsigned selectedPalette() const { return _selectedPalette; }
+
 protected:
     virtual const void* setSelectedFrame(const idstring& id) final;
     virtual unsigned nObjectsInSelectedFrame() const final;
     virtual unsigned nActionPointsInSelectedFrame() const final;
     virtual unsigned nEntityHitboxesInSelectedFrame() const final;
 
+private slots:
+    void onPaletteAdded(unsigned index);
+    void onPaletteAboutToBeRemoved(unsigned index);
+    void onPaletteMoved(unsigned oldPos, unsigned newPos);
+
+signals:
+    void selectedPaletteChanged();
+
 private:
     Document* _document;
 
     MS::Frame* _selectedFrame;
+
+    unsigned _selectedPalette;
 };
 }
 }

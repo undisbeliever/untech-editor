@@ -46,6 +46,12 @@ public:
 
     virtual AbstractSelection* abstractSelection() const { return nullptr; }
 
+signals:
+    void paletteChanged(unsigned index);
+    void paletteAdded(unsigned index);
+    void paletteAboutToBeRemoved(unsigned index);
+    void paletteMoved(unsigned oldIndex, unsigned newIndex);
+
 private:
     std::unique_ptr<MS::FrameSet> _frameSet;
 

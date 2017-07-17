@@ -17,6 +17,9 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
 class Document;
+class AddRemovePalette;
+class RaisePalette;
+class LowerPalette;
 
 class PalettesModel : public QAbstractListModel {
     Q_OBJECT
@@ -37,6 +40,17 @@ public:
     virtual Qt::ItemFlags flags(const QModelIndex& index) const final;
 
     virtual QVariant data(const QModelIndex& index, int role) const final;
+
+protected:
+    friend class AddRemovePalette;
+    void insertPalette(unsigned index, const Snes::Palette4bpp& pal);
+    void removePalette(unsigned index);
+
+    friend class RaisePalette;
+    void raisePalette(unsigned index);
+
+    friend class LowerPalette;
+    void lowerPalette(unsigned index);
 
 private:
     void updateAllPixmaps();

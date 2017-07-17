@@ -30,6 +30,12 @@ public:
     QAction* renameFrame() const { return _renameFrame; }
     QAction* removeFrame() const { return _removeFrame; }
 
+    QAction* addPalette() const { return _addPalette; }
+    QAction* clonePalette() const { return _clonePalette; }
+    QAction* removePalette() const { return _removePalette; }
+    QAction* raisePalette() const { return _raisePalette; }
+    QAction* lowerPalette() const { return _lowerPalette; }
+
     QAction* addFrameObject() const { return _addFrameObject; }
     QAction* addActionPoint() const { return _addActionPoint; }
     QAction* addEntityHitbox() const { return _addEntityHitbox; }
@@ -46,6 +52,12 @@ public slots:
     void onCloneFrame();
     void onRenameFrame();
     void onRemoveFrame();
+
+    void onAddPalette();
+    void onClonePalette();
+    void onRemovePalette();
+    void onRaisePalette();
+    void onLowerPalette();
 
     void onAddFrameObject();
     void onAddActionPoint();
@@ -64,6 +76,12 @@ private:
     QAction* _cloneFrame;
     QAction* _renameFrame;
     QAction* _removeFrame;
+
+    QAction* _addPalette;
+    QAction* _clonePalette;
+    QAction* _raisePalette;
+    QAction* _lowerPalette;
+    QAction* _removePalette;
 
     QAction* _addFrameObject;
     QAction* _addActionPoint;

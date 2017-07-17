@@ -56,6 +56,8 @@ MainWindow::MainWindow(QWidget* parent)
     tabifyDockWidget(_frameSetDock, _frameDock);
     tabifyDockWidget(_frameSetDock, _animationDock);
 
+    resizeDocks({ _palettesDock }, { 1 }, Qt::Vertical);
+
     _frameSetDock->raise();
 
     setDocument(nullptr);
