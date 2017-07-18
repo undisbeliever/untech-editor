@@ -183,7 +183,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QToolButton" name="transparentButton">
+              <widget class="ColorToolButton" name="transparentButton">
                <property name="text">
                 <string>...</string>
                </property>
@@ -339,6 +339,11 @@
    <extends>QWidget</extends>
    <header>gui-qt/common/widgets/sizewidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ColorToolButton</class>
+   <extends>QToolButton</extends>
+   <header>gui-qt/common/widgets/colortoolbutton.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

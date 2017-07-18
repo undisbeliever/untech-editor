@@ -125,7 +125,7 @@ void FrameSetDock::clearGui()
     _ui->frameSetType->clear();
     _ui->imageFilename->clear();
     _ui->transparent->clear();
-    _ui->transparentButton->setStyleSheet(QString());
+    _ui->transparentButton->unsetColor();
     _ui->gridSize->clear();
     _ui->gridOffset->clear();
     _ui->gridPadding->clear();
@@ -159,12 +159,11 @@ void FrameSetDock::updateGui()
         QString colorHex = c.name();
 
         _ui->transparent->setText(colorHex);
-        _ui->transparentButton->setStyleSheet(
-            QString("QToolButton{ background: %1; }").arg(colorHex));
+        _ui->transparentButton->setColor(c);
     }
     else {
         _ui->transparent->clear();
-        _ui->transparentButton->setStyleSheet(QString());
+        _ui->transparentButton->unsetColor();
     }
 
     _ui->gridSize->setValue(fs.grid.frameSize);
