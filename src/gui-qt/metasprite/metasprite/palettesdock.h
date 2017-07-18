@@ -37,6 +37,7 @@ private slots:
     void onPaletteContextMenu(const QPoint& pos);
 
     void updateSelectedPalette();
+    void onColorClicked(int index);
 
 private:
     std::unique_ptr<Ui::PalettesDock> _ui;

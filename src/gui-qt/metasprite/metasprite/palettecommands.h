@@ -84,6 +84,27 @@ private:
     Document* _document;
     const unsigned _index;
 };
+
+class ChangePaletteColor : public QUndoCommand {
+public:
+    ChangePaletteColor(Document* document, unsigned paletteIndex,
+                       unsigned colorIndex);
+    ChangePaletteColor(Document* document, unsigned paletteIndex,
+                       unsigned colorIndex, const Snes::SnesColor& color);
+    ~ChangePaletteColor() = default;
+
+    void setNewColor(const Snes::SnesColor& color);
+
+    virtual void undo() final;
+    virtual void redo() final;
+
+private:
+    Document* _document;
+    const unsigned _paletteIndex;
+    const unsigned _colorIndex;
+    const Snes::SnesColor _oldColor;
+    Snes::SnesColor _newColor;
+};
 }
 }
 }

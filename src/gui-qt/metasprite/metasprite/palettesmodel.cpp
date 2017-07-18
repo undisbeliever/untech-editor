@@ -161,3 +161,20 @@ void PalettesModel::lowerPalette(unsigned index)
 
     emit _document->paletteMoved(index, index + 1);
 }
+
+void PalettesModel::setPaletteColor(unsigned paletteIndex, unsigned colorIndex,
+                                    const Snes::SnesColor& color)
+{
+    Q_ASSERT(_document != nullptr);
+
+    auto& palettes = _document->frameSet()->palettes;
+    palettes.at(paletteIndex).color(colorIndex) = color;
+
+    _palettePixmaps.replace(paletteIndex, palettePixmap(paletteIndex));
+
+    emit dataChanged(createIndex(paletteIndex, 0),
+                     createIndex(paletteIndex, 1),
+                     { Qt::DecorationRole });
+
+    emit _document->paletteChanged(paletteIndex);
+}

@@ -134,3 +134,45 @@ void LowerPalette::redo()
 {
     _document->palettesModel()->lowerPalette(_index);
 }
+
+// ChangePaletteColor
+// ==================
+
+ChangePaletteColor::ChangePaletteColor(Document* document,
+                                       unsigned paletteIndex, unsigned colorIndex)
+    : QUndoCommand(QCoreApplication::tr("Change Palette Color"))
+    , _document(document)
+    , _paletteIndex(paletteIndex)
+    , _colorIndex(colorIndex)
+    , _oldColor(_document->frameSet()->palettes.at(paletteIndex).color(colorIndex))
+    , _newColor(_oldColor)
+{
+}
+
+ChangePaletteColor::ChangePaletteColor(Document* document,
+                                       unsigned paletteIndex, unsigned colorIndex,
+                                       const Snes::SnesColor& color)
+    : QUndoCommand(QCoreApplication::tr("Change Palette Color"))
+    , _document(document)
+    , _paletteIndex(paletteIndex)
+    , _colorIndex(colorIndex)
+    , _oldColor(_document->frameSet()->palettes.at(paletteIndex).color(colorIndex))
+    , _newColor(color)
+{
+    Q_ASSERT(_oldColor != _newColor);
+}
+
+void ChangePaletteColor::setNewColor(const Snes::SnesColor& color)
+{
+    _newColor = color;
+}
+
+void ChangePaletteColor::undo()
+{
+    _document->palettesModel()->setPaletteColor(_paletteIndex, _colorIndex, _oldColor);
+}
+
+void ChangePaletteColor::redo()
+{
+    _document->palettesModel()->setPaletteColor(_paletteIndex, _colorIndex, _newColor);
+}

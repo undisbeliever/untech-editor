@@ -20,6 +20,7 @@ class Document;
 class AddRemovePalette;
 class RaisePalette;
 class LowerPalette;
+class ChangePaletteColor;
 
 class PalettesModel : public QAbstractListModel {
     Q_OBJECT
@@ -51,6 +52,10 @@ protected:
 
     friend class LowerPalette;
     void lowerPalette(unsigned index);
+
+    friend class ChangePaletteColor;
+    void setPaletteColor(unsigned paletteIndex, unsigned colorIndex,
+                         const Snes::SnesColor& color);
 
 private:
     void updateAllPixmaps();

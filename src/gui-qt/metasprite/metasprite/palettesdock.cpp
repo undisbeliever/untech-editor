@@ -7,14 +7,18 @@
 #include "palettesdock.h"
 #include "actions.h"
 #include "document.h"
+#include "palettecommands.h"
 #include "palettesmodel.h"
 #include "selection.h"
 #include "gui-qt/common/widgets/colortoolbutton.h"
 #include "gui-qt/metasprite/metasprite/palettesdock.ui.h"
+#include "gui-qt/snes/snescolordialog.h"
 
 #include <QMenu>
+#include <QSignalMapper>
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
+using namespace UnTech::GuiQt::Snes;
 
 PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
     : QDockWidget(parent)
@@ -43,6 +47,16 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
 
     connect(_ui->paletteList, &QListView::customContextMenuRequested,
             this, &PalettesDock::onPaletteContextMenu);
+
+    QSignalMapper* signalMapper = new QSignalMapper(this);
+    for (unsigned i = 0; i < 16; i++) {
+        signalMapper->setMapping(_colorButtons.at(i), i);
+
+        connect(_colorButtons.at(i), &QToolButton::clicked,
+                signalMapper, qOverload<>(&QSignalMapper::map));
+    }
+    connect(signalMapper, qOverload<int>(&QSignalMapper::mapped),
+            this, &PalettesDock::onColorClicked);
 }
 
 PalettesDock::~PalettesDock() = default;
@@ -146,5 +160,42 @@ void PalettesDock::updateSelectedPalette()
         for (auto* b : _colorButtons) {
             b->unsetColor();
         }
+    }
+}
+
+void PalettesDock::onColorClicked(int colorIndex)
+{
+    if (_document == nullptr) {
+        return;
+    }
+
+    unsigned selectedPalette = _document->selection()->selectedPalette();
+    const MS::FrameSet& frameSet = *_document->frameSet();
+
+    if (selectedPalette >= frameSet.palettes.size()) {
+        return;
+    }
+
+    const auto color = frameSet.palettes.at(selectedPalette).color(colorIndex);
+
+    auto command = std::make_unique<ChangePaletteColor>(
+        _document, selectedPalette, colorIndex);
+
+    SnesColorDialog dialog(this);
+    dialog.setColor(color);
+
+    connect(&dialog, &SnesColorDialog::colorChanged,
+            [&](auto& newColor) {
+                command->setNewColor(newColor);
+                command->redo();
+            });
+
+    dialog.exec();
+
+    if (dialog.result() == QDialog::Accepted && dialog.color() != color) {
+        _document->undoStack()->push(command.release());
+    }
+    else {
+        command->undo();
     }
 }
