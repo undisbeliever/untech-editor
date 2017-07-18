@@ -7,10 +7,13 @@
 #pragma once
 
 #include <QDockWidget>
+#include <QList>
 #include <memory>
 
 namespace UnTech {
 namespace GuiQt {
+class ColorToolButton;
+
 namespace MetaSprite {
 namespace MetaSprite {
 namespace Ui {
@@ -33,10 +36,14 @@ private slots:
     void onPaletteListSelectionChanged();
     void onPaletteContextMenu(const QPoint& pos);
 
+    void updateSelectedPalette();
+
 private:
     std::unique_ptr<Ui::PalettesDock> _ui;
     Actions* _actions;
     Document* _document;
+
+    QList<ColorToolButton*> _colorButtons;
 };
 }
 }

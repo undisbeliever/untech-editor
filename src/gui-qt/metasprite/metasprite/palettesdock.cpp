@@ -9,6 +9,7 @@
 #include "document.h"
 #include "palettesmodel.h"
 #include "selection.h"
+#include "gui-qt/common/widgets/colortoolbutton.h"
 #include "gui-qt/metasprite/metasprite/palettesdock.ui.h"
 
 #include <QMenu>
@@ -26,6 +27,17 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
     _ui->setupUi(this);
 
     _ui->paletteList->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    for (unsigned i = 0; i < 16; i++) {
+        ColorToolButton* b = new ColorToolButton(this);
+        _colorButtons.append(b);
+
+        // setting autoRaise removes gradient from QToolButton
+        b->setAutoRaise(true);
+        b->setIconSize(QSize(20, 20));
+
+        _ui->colorGrid->addWidget(b, i / 8, i % 8);
+    }
 
     setEnabled(false);
 
@@ -53,13 +65,19 @@ void PalettesDock::setDocument(Document* document)
 
     setEnabled(_document != nullptr);
 
+    updateSelectedPalette();
+
     if (_document) {
         _ui->paletteList->setModel(_document->palettesModel());
 
         updatePaletteListSelection();
 
+        connect(_document, &Document::paletteChanged,
+                this, &PalettesDock::updateSelectedPalette);
         connect(_document->selection(), &Selection::selectedPaletteChanged,
                 this, &PalettesDock::updatePaletteListSelection);
+        connect(_document->selection(), &Selection::selectedPaletteChanged,
+                this, &PalettesDock::updateSelectedPalette);
         connect(_ui->paletteList->selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, &PalettesDock::onPaletteListSelectionChanged);
     }
@@ -100,5 +118,33 @@ void PalettesDock::onPaletteContextMenu(const QPoint& pos)
 
         QPoint globalPos = _ui->paletteList->mapToGlobal(pos);
         menu.exec(globalPos);
+    }
+}
+
+void PalettesDock::updateSelectedPalette()
+{
+    unsigned selectedPalette = INT_MAX;
+    unsigned nPalettes = 0;
+
+    if (_document) {
+        selectedPalette = _document->selection()->selectedPalette();
+        nPalettes = _document->frameSet()->palettes.size();
+    }
+
+    if (selectedPalette < nPalettes) {
+        _ui->selectedPalette->setEnabled(true);
+
+        const auto& palette = _document->frameSet()->palettes.at(selectedPalette);
+
+        for (unsigned i = 0; i < 16; i++) {
+            _colorButtons.at(i)->setColor(palette.color(i).rgb());
+        }
+    }
+    else {
+        _ui->selectedPalette->setEnabled(false);
+
+        for (auto* b : _colorButtons) {
+            b->unsetColor();
+        }
     }
 }
