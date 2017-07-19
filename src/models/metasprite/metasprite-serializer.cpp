@@ -34,7 +34,7 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
     try {
         std::unique_ptr<XmlTag> tag = xml.parseTag();
 
-        if (tag->name != "metasprite") {
+        if (tag == nullptr || tag->name != "metasprite") {
             throw xml_error(xml, "Expected <metasprite> tag");
         }
         return readFrameSet(xml, tag.get());

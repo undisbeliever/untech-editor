@@ -108,7 +108,7 @@ loadFrameSetExportOrderFile(const std::string& filename)
     try {
         std::unique_ptr<XmlTag> tag = xml->parseTag();
 
-        if (tag->name != "fsexportorder") {
+        if (tag == nullptr || tag->name != "fsexportorder") {
             throw std::runtime_error(filename + ": Not frame set export order file");
         }
 

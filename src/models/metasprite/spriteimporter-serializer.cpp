@@ -34,10 +34,9 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
     try {
         std::unique_ptr<XmlTag> tag = xml.parseTag();
 
-        if (tag->name != "spriteimporter") {
+        if (tag == nullptr || tag->name != "spriteimporter") {
             throw xml_error(xml, "Expected <spriteimporter> tag");
         }
-
         return readFrameSet(xml, tag.get());
     }
     catch (const std::exception& ex) {

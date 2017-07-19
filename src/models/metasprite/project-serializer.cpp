@@ -25,7 +25,7 @@ inline std::unique_ptr<Project> readProject(XmlReader& xml, const XmlTag* tag)
 {
     using FST = Project::FrameSetType;
 
-    if (tag->name != "metaspriteproject") {
+    if (tag == nullptr || tag->name != "metaspriteproject") {
         throw xml_error(xml, "Not a MetaSprite Project (expected <metaspriteproject>");
     }
 
@@ -89,7 +89,10 @@ void Project::FrameSetFile::loadFile()
     try {
         std::unique_ptr<XmlTag> tag = xml->parseTag();
 
-        if (tag->name == "metasprite") {
+        if (tag == nullptr) {
+            throw std::runtime_error(filename + ": Unknown file format");
+        }
+        else if (tag->name == "metasprite") {
             msFrameSet = MetaSprite::readFrameSet(*xml, tag.get());
             type = FrameSetType::METASPRITE;
         }
