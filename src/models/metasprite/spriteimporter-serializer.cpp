@@ -26,18 +26,22 @@ const std::string FrameSet::FILE_EXTENSION = "utsi";
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
+    return readFrameSet(*xml);
+}
 
+std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
+{
     try {
-        std::unique_ptr<XmlTag> tag = xml->parseTag();
+        std::unique_ptr<XmlTag> tag = xml.parseTag();
 
         if (tag->name != "spriteimporter") {
-            throw std::runtime_error(filename + ": Not a sprite importer frameset");
+            throw xml_error(xml, "Expected <spriteimporter> tag");
         }
 
-        return readFrameSet(*xml, tag.get());
+        return readFrameSet(xml, tag.get());
     }
     catch (const std::exception& ex) {
-        throw xml_error(*xml, "Unable to load SpriteImporter FrameSet file", ex);
+        throw xml_error(xml, "Unable to load SpriteImporter FrameSet file", ex);
     }
 }
 
@@ -352,7 +356,7 @@ inline void writeFrameSetGrid(XmlWriter& xml, const FrameSetGrid& grid)
     xml.writeCloseTag();
 }
 
-inline void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
+void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 {
     xml.writeTag("spriteimporter");
 

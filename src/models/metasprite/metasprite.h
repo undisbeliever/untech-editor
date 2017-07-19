@@ -130,6 +130,9 @@ struct Frame {
 
     void draw(Image& image, const FrameSet& frameSet, size_t paletteId,
               unsigned xOffset, unsigned yOffset) const;
+
+    bool operator==(const Frame& o) const;
+    bool operator!=(const Frame& o) const { return !(*this == o); }
 };
 
 struct FrameSet {
@@ -146,6 +149,9 @@ struct FrameSet {
     capped_vector<Snes::Palette4bpp, MAX_PALETTES> palettes;
 
     FrameSet() = default;
+
+    bool operator==(const FrameSet& o) const;
+    bool operator!=(const FrameSet& o) const { return !(*this == o); }
 };
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename);

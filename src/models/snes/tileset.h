@@ -45,6 +45,9 @@ public:
         }
     }
 
+    bool operator==(const BaseTileset& o) const { return _tiles == o._tiles; }
+    bool operator!=(const BaseTileset& o) const { return _tiles != o._tiles; }
+
 protected:
     std::vector<TileT> _tiles;
 };

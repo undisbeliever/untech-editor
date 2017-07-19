@@ -48,6 +48,9 @@ struct FrameSetGrid {
     bool isValid(const FrameSet& frameSet) const;
 
     usize originRange() const;
+
+    bool operator==(const FrameSetGrid& o) const;
+    bool operator!=(const FrameSetGrid& o) const { return !(*this == o); }
 };
 
 struct FrameLocation {
@@ -186,6 +189,9 @@ struct Frame {
     }
 
     usize minimumViableSize() const;
+
+    bool operator==(const Frame& o) const;
+    bool operator!=(const Frame& o) const { return !(*this == o); }
 };
 
 struct UserSuppliedPalette {
@@ -248,6 +254,9 @@ struct FrameSet {
     bool reloadImage();
 
     bool isImageValid() const { return image && !image->empty(); }
+
+    bool operator==(const FrameSet& o) const;
+    bool operator!=(const FrameSet& o) const { return !(*this == o); }
 };
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename);

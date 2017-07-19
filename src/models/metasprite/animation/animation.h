@@ -58,6 +58,15 @@ struct Animation {
     bool isValid(const MetaSprite::FrameSet&) const;
     bool isValid(const SpriteImporter::FrameSet&) const;
 
+    bool operator==(const Animation& o) const
+    {
+        return frames == o.frames
+               && durationFormat == o.durationFormat
+               && nextAnimation == o.nextAnimation
+               && oneShot == o.oneShot;
+    }
+    bool operator!=(const Animation& o) const { return !(*this == o); }
+
 private:
     template <class FrameSetT>
     bool _isValid(const FrameSetT&) const;

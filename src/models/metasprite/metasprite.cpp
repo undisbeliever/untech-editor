@@ -86,3 +86,42 @@ void Frame::draw(Image& image, const FrameSet& frameSet, size_t paletteId,
         }
     }
 }
+
+bool Frame::operator==(const Frame& o) const
+{
+    return objects == o.objects
+           && actionPoints == o.actionPoints
+           && entityHitboxes == o.entityHitboxes
+           && spriteOrder == o.spriteOrder
+           && tileHitbox == o.tileHitbox
+           && solid == o.solid;
+}
+
+/*
+ * FRAME SET
+ * =========
+ */
+
+bool FrameSet::operator==(const FrameSet& o) const
+{
+    auto testMap = [](const auto& aMap, const auto& bMap) -> bool {
+        for (const auto& aIt : aMap) {
+            const auto* bValue = bMap.getPtr(aIt.first);
+
+            if (bValue == nullptr || aIt.second != *bValue) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    return name == o.name
+           && tilesetType == o.tilesetType
+           && exportOrder == o.exportOrder
+           && smallTileset == o.smallTileset
+           && largeTileset == o.largeTileset
+           && palettes == o.palettes
+           && testMap(frames, o.frames)
+           && testMap(animations, o.animations);
+}

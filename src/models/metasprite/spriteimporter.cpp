@@ -61,6 +61,14 @@ usize FrameSetGrid::originRange() const
         std::min(MAX_ORIGIN, frameSize.height));
 }
 
+bool FrameSetGrid::operator==(const FrameSetGrid& o) const
+{
+    return frameSize == o.frameSize
+           && offset == o.offset
+           && padding == o.padding
+           && origin == o.origin;
+}
+
 /*
  * FRAME LOCATION
  * ==============
@@ -145,6 +153,17 @@ usize Frame::minimumViableSize() const
     return limit;
 }
 
+bool Frame::operator==(const Frame& o) const
+{
+    return location == o.location
+           && objects == o.objects
+           && actionPoints == o.actionPoints
+           && entityHitboxes == o.entityHitboxes
+           && tileHitbox == o.tileHitbox
+           && spriteOrder == o.spriteOrder
+           && solid == o.solid;
+}
+
 /*
  * FRAME SET
  * =========
@@ -193,4 +212,43 @@ bool FrameSet::reloadImage()
     }
 
     return ret;
+}
+
+bool FrameSet::operator==(const FrameSet& o) const
+{
+    auto testMap = [](const auto& aMap, const auto& bMap) -> bool {
+        for (const auto& aIt : aMap) {
+            const auto* bValue = bMap.getPtr(aIt.first);
+
+            if (bValue == nullptr || aIt.second != *bValue) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    auto testTransparentColor = [&]() -> bool {
+        if (transparentColorValid() != o.transparentColorValid()) {
+            return false;
+        }
+        else if (transparentColorValid()) {
+            return transparentColor == transparentColor;
+        }
+        else {
+            return true;
+        }
+    };
+
+    // Don't test image, imageFilename test is fine for now
+
+    return name == o.name
+           && tilesetType == o.tilesetType
+           && exportOrder == o.exportOrder
+           && imageFilename == o.imageFilename
+           && palette == o.palette
+           && grid == o.grid
+           && testTransparentColor()
+           && testMap(frames, o.frames)
+           && testMap(animations, o.animations);
 }

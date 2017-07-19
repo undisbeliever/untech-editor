@@ -52,6 +52,9 @@ public:
      */
     void readPalette(const std::vector<uint8_t>& data);
 
+    bool operator==(const Palette& o) const { return _colors == o._colors; }
+    bool operator!=(const Palette& o) const { return _colors != o._colors; }
+
 private:
     palette_t _colors;
 };

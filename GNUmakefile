@@ -68,6 +68,9 @@ OBJS            := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
 CLI_SRC         := $(wildcard src/cli/*.cpp)
 CLI_APPS        := $(patsubst src/cli/%.cpp,$(BIN_DIR)/%$(BIN_EXT),$(CLI_SRC))
 
+TEST_SRC        := $(wildcard src/test-utils/*.cpp)
+TEST_UTILS      := $(patsubst src/test-utils/%.cpp,$(BIN_DIR)/test-utils/%$(BIN_EXT),$(TEST_SRC))
+
 GUI_WX_SRC         := $(filter-out %-gtk.cpp, $(wildcard src/gui-wx/*.cpp))
 GUI_WX_APPS        := $(patsubst src/gui-wx/%.cpp,$(BIN_DIR)/%-wxgui$(BIN_EXT),$(GUI_WX_SRC))
 
@@ -76,10 +79,13 @@ THIRD_PARTY     := $(OBJ_DIR)/vendor/lodepng/lodepng.o
 
 
 .PHONY: all
-all: cli gui
+all: cli test-utils gui
 
 .PHONY: cli
 cli: dirs $(CLI_APPS)
+
+.PHONY: test-utils
+test-utils: dirs $(TEST_UTILS)
 
 .PHONY: gui
 gui: dirs $(GUI_WX_APPS)
@@ -91,6 +97,10 @@ $(BIN_DIR)/$(strip $1)$(BIN_EXT): \
   $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$2), $(OBJS)) \
   $(filter $(OBJ_DIR)/cli/helpers/%, $(OBJS)) \
   $(THIRD_PARTY)
+endef
+
+define test-util-modules
+$(call cli-modules, test-utils/$(strip $1), $(strip $2))
 endef
 
 define gui-modules
@@ -110,8 +120,12 @@ $(call cli-modules, untech-png2tileset, common snes)
 $(call cli-modules, untech-png2snes,    common snes)
 $(call cli-modules, untech-utsi2utms,	common snes metasprite)
 
+$(call test-util-modules, metasprite-serializer-test,     common snes metasprite)
+$(call test-util-modules, spriteimporter-serializer-test, common snes metasprite)
+
 $(call gui-modules, untech-metasprite-wxgui,     common snes metasprite)
 $(call gui-modules, untech-spriteimporter-wxgui, common snes metasprite)
+
 
 # Disable Builtin rules
 .SUFFIXES:
@@ -123,6 +137,9 @@ DEPS = $(OBJS:.o=.d)
 
 $(GUI_WX_APPS): $(BIN_DIR)/%-wxgui$(BIN_EXT): $(OBJ_DIR)/gui-wx/%.o
 	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(WX_VIEW_LIBS) $(WX_CONTROLLER_LIBS) $(LIBS)
+
+$(TEST_UTILS): $(BIN_DIR)/test-utils/%$(BIN_EXT): $(OBJ_DIR)/test-utils/%.o
+	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
 
 $(CLI_APPS): $(BIN_DIR)/%$(BIN_EXT): $(OBJ_DIR)/cli/%.o
 	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
@@ -145,8 +162,8 @@ $(OBJ_DIR)/%.o: src/%.cpp
 
 .PHONY: dirs
 OBJECT_DIRS := $(sort $(dir $(OBJS)))
-dirs: $(BIN_DIR)/ $(OBJECT_DIRS)
-$(BIN_DIR)/ $(OBJECT_DIRS):
+dirs: $(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(OBJECT_DIRS)
+$(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(OBJECT_DIRS):
 	mkdir -p $@
 
 

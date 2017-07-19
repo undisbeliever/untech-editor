@@ -14,6 +14,7 @@ namespace UnTech {
 namespace MetaSprite {
 namespace MetaSprite {
 
+std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml);
 std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag* tag);
 void writeFrameSet(Xml::XmlWriter& xml, const FrameSet& frameSet);
 }
