@@ -8,7 +8,9 @@
 #include "document.h"
 #include "framecommands.h"
 #include "framecontentcommands.h"
+#include "tilesetpixmaps.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
+#include "gui-qt/common/graphics/pixmapgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
@@ -22,14 +24,18 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 const QRect MsGraphicsScene::ITEM_RANGE(
     int_ms8_t::MIN, int_ms8_t::MIN, UINT8_MAX, UINT8_MAX);
 
-MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
+MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings,
+                                 TilesetPixmaps* tilesetPixmaps,
+                                 QWidget* parent)
     : QGraphicsScene(parent)
     , _layerSettings(layerSettings)
+    , _tilesetPixmaps(tilesetPixmaps)
     , _document(nullptr)
     , _frame(nullptr)
     , _inUpdateSelection(false)
 {
     Q_ASSERT(layerSettings != nullptr);
+    Q_ASSERT(tilesetPixmaps != nullptr);
 
     _style = new Style(parent);
 
@@ -52,6 +58,9 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
 
     connect(_layerSettings, &LayerSettings::layerSettingsChanged,
             this, &MsGraphicsScene::onLayerSettingsChanged);
+
+    connect(_tilesetPixmaps, &TilesetPixmaps::pixmapsChanged,
+            this, &MsGraphicsScene::onTilesetPixmapsChanged);
 }
 
 void MsGraphicsScene::setDocument(Document* document)
@@ -189,7 +198,7 @@ void MsGraphicsScene::commitMovedItems()
                 break;
 
             case SelectedItem::FRAME_OBJECT:
-                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
+                if (auto* i = dynamic_cast<const PixmapGraphicsItem*>(item)) {
                     MS::FrameObject obj = _frame->objects.at(id.index);
 
                     ms8point location = i->posMs8point();
@@ -267,7 +276,7 @@ void MsGraphicsScene::updateItemIndexes(QList<T*>& list, unsigned start,
 
 void MsGraphicsScene::addFrameObject(unsigned index)
 {
-    auto* item = new AabbGraphicsItem();
+    auto* item = new PixmapGraphicsItem();
     _objects.insert(index, item);
     updateItemIndexes(_objects, index,
                       FRAME_OBJECT_ZVALUE, SelectedItem::FRAME_OBJECT);
@@ -276,9 +285,6 @@ void MsGraphicsScene::addFrameObject(unsigned index)
     item->setFlag(QGraphicsItem::ItemIsSelectable);
     item->setFlag(QGraphicsItem::ItemIsMovable);
 
-    item->setPen(_style->frameObjectPen());
-    item->setBrush(QBrush(Qt::black));
-
     updateFrameObject(index);
 
     addItem(item);
@@ -286,11 +292,19 @@ void MsGraphicsScene::addFrameObject(unsigned index)
 
 void MsGraphicsScene::updateFrameObject(unsigned index)
 {
+    using ObjSize = UnTech::MetaSprite::ObjectSize;
+
     MS::FrameObject& obj = _frame->objects.at(index);
     auto* item = _objects.at(index);
 
-    // ::TODO frameObject tile::
-    item->setRect(obj.location, obj.sizePx());
+    if (obj.size == ObjSize::SMALL) {
+        item->setPixmap(_tilesetPixmaps->smallTile(obj.tileId));
+    }
+    else {
+        item->setPixmap(_tilesetPixmaps->largeTile(obj.tileId));
+    }
+    item->setFlip(obj.hFlip, obj.vFlip);
+    item->setPos(obj.location);
 }
 
 void MsGraphicsScene::removeFrameObject(unsigned index)
@@ -437,6 +451,13 @@ void MsGraphicsScene::onSceneSelectionChanged()
     }
 
     _document->selection()->setSelectedItems(selection);
+}
+
+void MsGraphicsScene::onTilesetPixmapsChanged()
+{
+    for (int i = 0; i < _objects.size(); i++) {
+        updateFrameObject(i);
+    }
 }
 
 void MsGraphicsScene::onFrameTileHitboxChanged(const void* framePtr)

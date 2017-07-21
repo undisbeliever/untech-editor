@@ -28,6 +28,7 @@ class MainWindow;
 }
 class Document;
 class Actions;
+class TilesetPixmaps;
 class MsGraphicsScene;
 class FrameSetDock;
 class FrameDock;
@@ -69,6 +70,8 @@ private:
     LayerSettings* _layerSettings;
 
     QUndoGroup* _undoGroup;
+
+    TilesetPixmaps* _tilesetPixmaps;
 
     MsGraphicsScene* _graphicsScene;
     FrameSetDock* _frameSetDock;

@@ -17,6 +17,7 @@
 namespace UnTech {
 namespace GuiQt {
 class AabbGraphicsItem;
+class PixmapGraphicsItem;
 class ResizableAabbGraphicsItem;
 
 namespace MetaSprite {
@@ -25,7 +26,7 @@ class LayerSettings;
 
 namespace MetaSprite {
 class Document;
-class SiFrameGraphicsItem;
+class TilesetPixmaps;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -42,7 +43,8 @@ class MsGraphicsScene : public QGraphicsScene {
     static const int SELECTION_ID = 0;
 
 public:
-    MsGraphicsScene(LayerSettings* layerSettings, QWidget* parent = nullptr);
+    MsGraphicsScene(LayerSettings* layerSettings, TilesetPixmaps* tilesetPixmaps,
+                    QWidget* parent = nullptr);
     ~MsGraphicsScene() = default;
 
     void setDocument(Document* document);
@@ -83,6 +85,8 @@ private slots:
     void updateSelection();
     void onSceneSelectionChanged();
 
+    void onTilesetPixmapsChanged();
+
     void onFrameTileHitboxChanged(const void* frame);
 
     void onFrameObjectChanged(const void* frame, unsigned index);
@@ -101,6 +105,7 @@ private slots:
 
 private:
     LayerSettings* _layerSettings;
+    TilesetPixmaps* _tilesetPixmaps;
     Document* _document;
 
     Style* _style;
@@ -108,7 +113,7 @@ private:
 
     ResizableAabbGraphicsItem* _tileHitbox;
 
-    QList<AabbGraphicsItem*> _objects; // ::TODO change to FrameObjectItem::
+    QList<PixmapGraphicsItem*> _objects;
     QList<AabbGraphicsItem*> _actionPoints;
     QList<ResizableAabbGraphicsItem*> _entityHitboxes;
 

@@ -22,6 +22,8 @@ public:
     using TileT = Tile<TS>;
 
 public:
+    constexpr static unsigned TILE_SIZE = TS;
+
     BaseTileset() = default;
 
     void addTile() { _tiles.emplace_back(); }

@@ -11,6 +11,7 @@
 #include "framesetdock.h"
 #include "msgraphicsscene.h"
 #include "palettesdock.h"
+#include "tilesetpixmaps.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
 #include "gui-qt/metasprite/layersettings.h"
@@ -31,6 +32,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _zoomSettings(new ZoomSettings(6.0, ZoomSettings::NTSC, this))
     , _layerSettings(new LayerSettings(this))
     , _undoGroup(new QUndoGroup(this))
+    , _tilesetPixmaps(new TilesetPixmaps(this))
 {
     _ui->setupUi(this);
 
@@ -38,7 +40,7 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _ui->graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
 
-    _graphicsScene = new MsGraphicsScene(_layerSettings, this);
+    _graphicsScene = new MsGraphicsScene(_layerSettings, _tilesetPixmaps, this);
     _ui->graphicsView->setScene(_graphicsScene);
 
     _frameSetDock = new FrameSetDock(_actions, this);
@@ -140,6 +142,7 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     _document = std::move(document);
 
     _actions->setDocument(_document.get());
+    _tilesetPixmaps->setDocument(_document.get());
     _graphicsScene->setDocument(_document.get());
     _frameSetDock->setDocument(_document.get());
     _frameDock->setDocument(_document.get());
