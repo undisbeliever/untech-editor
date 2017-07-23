@@ -11,6 +11,7 @@
 #include "framesetdock.h"
 #include "msgraphicsscene.h"
 #include "palettesdock.h"
+#include "tilesetdock.h"
 #include "tilesetpixmaps.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
@@ -54,6 +55,9 @@ MainWindow::MainWindow(QWidget* parent)
 
     _palettesDock = new PalettesDock(_actions, this);
     addDockWidget(Qt::BottomDockWidgetArea, _palettesDock);
+
+    _tilesetDock = new TilesetDock(_tilesetPixmaps, this);
+    addDockWidget(Qt::BottomDockWidgetArea, _tilesetDock);
 
     tabifyDockWidget(_frameSetDock, _frameDock);
     tabifyDockWidget(_frameSetDock, _animationDock);
@@ -148,6 +152,7 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     _frameDock->setDocument(_document.get());
     _animationDock->setDocument(_document.get());
     _palettesDock->setDocument(_document.get());
+    _tilesetDock->setDocument(_document.get());
 
     _ui->actionSave->setEnabled(_document != nullptr);
     _ui->actionSaveAs->setEnabled(_document != nullptr);
