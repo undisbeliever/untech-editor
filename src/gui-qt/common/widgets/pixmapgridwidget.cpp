@@ -6,6 +6,7 @@
 
 #include "pixmapgridwidget.h"
 
+#include <QPaintEvent>
 #include <QPainter>
 
 using namespace UnTech;
@@ -82,7 +83,7 @@ void PixmapGridWidget::updateWindowSize()
     resize(width(), heightForWidth(width()));
 }
 
-void PixmapGridWidget::paintEvent(QPaintEvent*)
+void PixmapGridWidget::paintEvent(QPaintEvent* event)
 {
     if (_pixmaps.empty()) {
         return;
@@ -90,39 +91,50 @@ void PixmapGridWidget::paintEvent(QPaintEvent*)
 
     QPainter painter(this);
 
-    const int width = this->width() - 1;
-
     const int cellWidth = _cellSize.width();
     const int cellHeight = _cellSize.height();
 
-    const int nColumns = qMax(1, width / cellWidth);
+    const int nColumns = qMax(1, (width() - 1) / cellWidth);
     const int nRows = (_pixmaps.size() + nColumns - 1) / nColumns;
-    const int cellsInLastRow = _pixmaps.size() - ((nRows - 1) * nColumns);
+    const int lastRow = nRows - 1;
+    const int cellsInLastRow = _pixmaps.size() - (lastRow * nColumns);
+
+    const QRect& toUpdate = event->rect();
+    const int xStart = qMax(0, toUpdate.left() / cellWidth);
+    const int yStart = qMax(0, toUpdate.top() / cellHeight);
+    const int xEnd = qMin(nColumns - 1, (toUpdate.right() + cellWidth - 1) / cellWidth);
+    const int yEnd = qMin(nRows - 1, (toUpdate.bottom() + cellHeight - 1) / cellHeight);
 
     // Draw Background
     if (_backgroundColor.isValid()) {
-        if (_pixmaps.size() > nColumns) {
-            QRect r(0, 0, nColumns * cellWidth, (nRows - 1) * cellHeight);
+        if (_pixmaps.size() > nColumns && yStart < lastRow) {
+            QRect r(0, 0, nColumns * cellWidth, lastRow * cellHeight);
             painter.fillRect(r, _backgroundColor);
         }
 
-        QRect r(0, (nRows - 1) * cellWidth, cellsInLastRow * cellWidth, cellHeight);
-        painter.fillRect(r, _backgroundColor);
+        if (lastRow == yEnd) {
+            QRect r(0, lastRow * cellWidth, cellsInLastRow * cellWidth, cellHeight);
+            painter.fillRect(r, _backgroundColor);
+        }
     }
 
     // Draw Pixmaps
     {
-        int x = 0;
-        int y = 0;
-        for (int i = 0; i < _pixmaps.size(); i++) {
-            const QPixmap& pixmap = _pixmaps.at(i);
+        for (int y = yStart; y <= yEnd; y++) {
+            int yPos = y * cellHeight;
+            int xPos = xStart * cellWidth;
+            int index = y * nColumns + xStart;
 
-            painter.drawPixmap(x, y, cellWidth, cellHeight, pixmap);
+            for (int x = xStart; x <= xEnd; x++) {
+                if (index >= _pixmaps.size()) {
+                    break;
+                }
 
-            x += cellWidth;
-            if (x + cellWidth > width) {
-                x = 0;
-                y += cellHeight;
+                const QPixmap& pixmap = _pixmaps.at(index);
+                painter.drawPixmap(xPos, yPos, cellWidth, cellHeight, pixmap);
+
+                xPos += cellWidth;
+                index++;
             }
         }
     }
@@ -132,29 +144,31 @@ void PixmapGridWidget::paintEvent(QPaintEvent*)
         QPen pen(_gridColor, 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin);
         painter.setPen(pen);
 
-        for (int y = 1; y <= nRows; y++) {
+        for (int y = qMax(1, yStart); y <= yEnd + 1; y++) {
             int yPos = y * cellHeight;
-            int xEnd = nColumns * cellWidth;
+            int x1 = xStart * cellWidth;
+            int x2 = (xEnd + 1) * cellWidth;
 
-            if (y >= nRows) {
-                xEnd = cellsInLastRow * cellWidth;
+            if (y > lastRow) {
+                x2 = cellsInLastRow * cellWidth;
             }
 
-            painter.drawLine(0, yPos, xEnd, yPos);
+            painter.drawLine(x1, yPos, x2, yPos);
         }
 
-        for (int x = 1; x <= nColumns; x++) {
+        for (int x = qMax(1, xStart); x <= xEnd + 1; x++) {
             int xPos = x * cellWidth;
-            int yEnd = nRows * cellHeight;
+            int y1 = yStart * cellHeight;
+            int y2 = (yEnd + 1) * cellHeight;
 
-            if (x > cellsInLastRow) {
+            if (x > cellsInLastRow && yEnd == lastRow) {
                 if (nRows == 1) {
                     break;
                 }
-                yEnd -= cellWidth;
+                y2 -= cellWidth;
             }
 
-            painter.drawLine(xPos, 0, xPos, yEnd);
+            painter.drawLine(xPos, y1, xPos, y2);
         }
     }
 }
