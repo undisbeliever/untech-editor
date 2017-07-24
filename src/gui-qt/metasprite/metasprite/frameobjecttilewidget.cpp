@@ -147,9 +147,9 @@ void FrameObjectTileWidget::setTilesetSize(const MS::FrameSet& frameSet)
 void FrameObjectTileWidget::updateTileIdRange()
 {
     if (_tileSize->currentIndex() == 0) {
-        _tileId->setMaximum(_nSmallTiles);
+        _tileId->setMaximum(_nSmallTiles - 1);
     }
     else {
-        _tileId->setMaximum(_nLargeTiles);
+        _tileId->setMaximum(_nLargeTiles - 1);
     }
 }
