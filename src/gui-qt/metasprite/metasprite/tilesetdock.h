@@ -33,6 +33,12 @@ private slots:
     void onTilesetPixmapChanged();
     void onPaletteChanged(unsigned index);
     void updateBackgroundColor();
+    void onSelectedItemsChanged();
+    void onFrameObjectChanged(const void* frame, unsigned index);
+
+private:
+    // returns -1 if more than one frame object is selected
+    int selectedFrameObjectIndex() const;
 
 private:
     std::unique_ptr<Ui::TilesetDock> _ui;

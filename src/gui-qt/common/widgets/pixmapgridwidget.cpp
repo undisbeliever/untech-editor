@@ -18,6 +18,7 @@ PixmapGridWidget::PixmapGridWidget(QWidget* parent)
     , _gridColor(100, 100, 128, 128)
     , _cellSize(32, 32)
     , _pixmaps()
+    , _selected(-1)
 {
     updateWindowSize();
 }
@@ -59,6 +60,29 @@ void PixmapGridWidget::setPixmaps(const QVector<QPixmap>& pixmaps)
     update();
 }
 
+void PixmapGridWidget::setSelected(int selected)
+{
+    if (_selected != selected) {
+        const int oldSelected = _selected;
+
+        _selected = selected;
+
+        int nColumns = columnCount();
+        auto updateCell = [&](int index) {
+            if (index >= 0 || index < _pixmaps.size()) {
+                int x = index % nColumns;
+                int y = index / nColumns;
+
+                // must include the selected outline in the update
+                update(x * _cellSize.width() - 1, y * _cellSize.height() - 1,
+                       _cellSize.width() + 2, _cellSize.height() + 2);
+            }
+        };
+        updateCell(oldSelected);
+        updateCell(_selected);
+    }
+}
+
 bool PixmapGridWidget::hasHeightForWidth() const
 {
     return true;
@@ -70,6 +94,11 @@ int PixmapGridWidget::heightForWidth(int width) const
     int nRows = qMax(1, (_pixmaps.size() + nColumns - 1) / nColumns);
 
     return nRows * _cellSize.height() + 1;
+}
+
+int PixmapGridWidget::columnCount() const
+{
+    return qMax(1, (width() - 1) / _cellSize.width());
 }
 
 void PixmapGridWidget::updateWindowSize()
@@ -170,5 +199,23 @@ void PixmapGridWidget::paintEvent(QPaintEvent* event)
 
             painter.drawLine(xPos, y1, xPos, y2);
         }
+    }
+
+    // Draw Selected Outline
+    if (_selected >= 0 && _selected < _pixmaps.size()) {
+        static const QPen white(Qt::white, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+        static const QPen black(Qt::black, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+
+        QRectF r(_selected % nColumns * cellWidth, _selected / nColumns * cellHeight,
+                 cellWidth, cellHeight);
+
+        painter.setBrush(Qt::NoBrush);
+
+        painter.setPen(black);
+        painter.drawRect(r);
+
+        r.adjust(1, 1, -1, -1);
+        painter.setPen(white);
+        painter.drawRect(r);
     }
 }

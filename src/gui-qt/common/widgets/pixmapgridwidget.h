@@ -32,8 +32,14 @@ public:
     const QVector<QPixmap>& pixmaps() const { return _pixmaps; }
     void setPixmaps(const QVector<QPixmap>& pixmaps);
 
+    int selected() const { return _selected; }
+    void setSelected(int selected);
+    void clearSelected() { setSelected(-1); }
+
     virtual bool hasHeightForWidth() const override;
     virtual int heightForWidth(int width) const override;
+
+    int columnCount() const;
 
 protected:
     virtual void paintEvent(QPaintEvent* event) override;
@@ -46,6 +52,7 @@ private:
     QColor _gridColor;
     QSize _cellSize;
     QVector<QPixmap> _pixmaps;
+    int _selected;
 };
 }
 }

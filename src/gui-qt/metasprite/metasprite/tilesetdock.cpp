@@ -47,12 +47,19 @@ void TilesetDock::setDocument(Document* document)
 
     if (_document) {
         updateBackgroundColor();
+        onSelectedItemsChanged();
 
         connect(_document, &Document::paletteChanged,
                 this, &TilesetDock::onPaletteChanged);
 
+        connect(_document, &Document::frameObjectChanged,
+                this, &TilesetDock::onFrameObjectChanged);
+
         connect(_document->selection(), &Selection::selectedPaletteChanged,
                 this, &TilesetDock::updateBackgroundColor);
+
+        connect(_document->selection(), &Selection::selectedItemsChanged,
+                this, &TilesetDock::onSelectedItemsChanged);
     }
 }
 
@@ -81,4 +88,69 @@ void TilesetDock::updateBackgroundColor()
         _ui->smallTileset->setBackgroundColor(bg);
         _ui->largeTileset->setBackgroundColor(bg);
     }
+}
+
+void TilesetDock::onSelectedItemsChanged()
+{
+    // To simplify the UI the selected tile will only be shown if
+    // selectedItems contains a single Frame Object.
+
+    using ObjSize = UnTech::MetaSprite::ObjectSize;
+
+    const int index = selectedFrameObjectIndex();
+    if (index >= 0) {
+        const MS::Frame* frame = _document->selection()->selectedFrame();
+        const MS::FrameObject& obj = frame->objects.at(index);
+
+        if (obj.size == ObjSize::SMALL) {
+            _ui->smallTileset->setSelected(obj.tileId);
+            _ui->largeTileset->clearSelected();
+        }
+        else {
+            _ui->largeTileset->setSelected(obj.tileId);
+            _ui->smallTileset->clearSelected();
+        }
+    }
+    else {
+        _ui->smallTileset->clearSelected();
+        _ui->largeTileset->clearSelected();
+    }
+}
+
+void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned changedIndex)
+{
+    using ObjSize = UnTech::MetaSprite::ObjectSize;
+
+    const MS::Frame* frame = _document->selection()->selectedFrame();
+    if (frame == changedFrame) {
+        const int index = selectedFrameObjectIndex();
+
+        if (index >= 0 && int(changedIndex) == index) {
+            const MS::FrameObject& obj = frame->objects.at(index);
+
+            if (obj.size == ObjSize::SMALL) {
+                _ui->smallTileset->setSelected(obj.tileId);
+                _ui->largeTileset->clearSelected();
+            }
+            else {
+                _ui->largeTileset->setSelected(obj.tileId);
+                _ui->smallTileset->clearSelected();
+            }
+        }
+    }
+}
+
+int TilesetDock::selectedFrameObjectIndex() const
+{
+    const auto& selectedItems = _document->selection()->selectedItems();
+    if (selectedItems.size() != 1) {
+        return -1;
+    }
+
+    const auto& it = selectedItems.cbegin();
+    if (it->type != SelectedItem::FRAME_OBJECT) {
+        return -1;
+    }
+
+    return it->index;
 }
