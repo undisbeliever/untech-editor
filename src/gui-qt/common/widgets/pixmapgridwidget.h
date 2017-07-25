@@ -40,9 +40,14 @@ public:
     virtual int heightForWidth(int width) const override;
 
     int columnCount() const;
+    int indexAt(const QPoint& point) const;
 
 protected:
     virtual void paintEvent(QPaintEvent* event) override;
+    virtual void mousePressEvent(QMouseEvent* event) override;
+
+signals:
+    void cellClicked(int index);
 
 private:
     void updateWindowSize();

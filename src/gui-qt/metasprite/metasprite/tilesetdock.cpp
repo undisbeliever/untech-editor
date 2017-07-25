@@ -6,6 +6,7 @@
 
 #include "tilesetdock.h"
 #include "document.h"
+#include "framecontentcommands.h"
 #include "selection.h"
 #include "tilesetpixmaps.h"
 #include "gui-qt/metasprite/metasprite/tilesetdock.ui.h"
@@ -27,6 +28,11 @@ TilesetDock::TilesetDock(TilesetPixmaps* tilesetPixmaps, QWidget* parent)
 
     connect(_tilesetPixmaps, &TilesetPixmaps::pixmapsChanged,
             this, &TilesetDock::onTilesetPixmapChanged);
+
+    connect(_ui->smallTileset, &PixmapGridWidget::cellClicked,
+            [this](int index) { onTileClicked(ObjectSize::SMALL, index); });
+    connect(_ui->largeTileset, &PixmapGridWidget::cellClicked,
+            [this](int index) { onTileClicked(ObjectSize::LARGE, index); });
 }
 
 TilesetDock::~TilesetDock() = default;
@@ -95,14 +101,12 @@ void TilesetDock::onSelectedItemsChanged()
     // To simplify the UI the selected tile will only be shown if
     // selectedItems contains a single Frame Object.
 
-    using ObjSize = UnTech::MetaSprite::ObjectSize;
-
     const int index = selectedFrameObjectIndex();
     if (index >= 0) {
         const MS::Frame* frame = _document->selection()->selectedFrame();
         const MS::FrameObject& obj = frame->objects.at(index);
 
-        if (obj.size == ObjSize::SMALL) {
+        if (obj.size == ObjectSize::SMALL) {
             _ui->smallTileset->setSelected(obj.tileId);
             _ui->largeTileset->clearSelected();
         }
@@ -119,8 +123,6 @@ void TilesetDock::onSelectedItemsChanged()
 
 void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned changedIndex)
 {
-    using ObjSize = UnTech::MetaSprite::ObjectSize;
-
     const MS::Frame* frame = _document->selection()->selectedFrame();
     if (frame == changedFrame) {
         const int index = selectedFrameObjectIndex();
@@ -128,7 +130,7 @@ void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned change
         if (index >= 0 && int(changedIndex) == index) {
             const MS::FrameObject& obj = frame->objects.at(index);
 
-            if (obj.size == ObjSize::SMALL) {
+            if (obj.size == ObjectSize::SMALL) {
                 _ui->smallTileset->setSelected(obj.tileId);
                 _ui->largeTileset->clearSelected();
             }
@@ -136,6 +138,24 @@ void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned change
                 _ui->largeTileset->setSelected(obj.tileId);
                 _ui->smallTileset->clearSelected();
             }
+        }
+    }
+}
+
+void TilesetDock::onTileClicked(ObjectSize size, int tileIndex)
+{
+    const int index = selectedFrameObjectIndex();
+    if (index >= 0) {
+        MS::Frame* frame = _document->selection()->selectedFrame();
+        const MS::FrameObject& oldObj = frame->objects.at(index);
+        MS::FrameObject obj = oldObj;
+
+        obj.size = size;
+        obj.tileId = tileIndex;
+
+        if (obj != oldObj) {
+            _document->undoStack()->push(
+                new ChangeFrameObject(_document, frame, index, obj));
         }
     }
 }

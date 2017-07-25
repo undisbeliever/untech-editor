@@ -112,6 +112,29 @@ void PixmapGridWidget::updateWindowSize()
     resize(width(), heightForWidth(width()));
 }
 
+int PixmapGridWidget::indexAt(const QPoint& point) const
+{
+    if (point.x() < 0 || point.y() < 0) {
+        return -1;
+    }
+
+    const int nColumns = columnCount();
+    int x = point.x() / _cellSize.width();
+    int y = point.y() / _cellSize.height();
+
+    if (x >= nColumns) {
+        return -1;
+    }
+
+    int i = y * nColumns + x;
+    if (i < _pixmaps.size()) {
+        return i;
+    }
+    else {
+        return -1;
+    }
+}
+
 void PixmapGridWidget::paintEvent(QPaintEvent* event)
 {
     if (_pixmaps.empty()) {
@@ -218,4 +241,17 @@ void PixmapGridWidget::paintEvent(QPaintEvent* event)
         painter.setPen(white);
         painter.drawRect(r);
     }
+}
+
+void PixmapGridWidget::mousePressEvent(QMouseEvent* event)
+{
+    if (event->button() == Qt::LeftButton) {
+        int index = indexAt(event->pos());
+
+        if (index >= 0) {
+            emit cellClicked(index);
+        }
+    }
+
+    QWidget::mousePressEvent(event);
 }

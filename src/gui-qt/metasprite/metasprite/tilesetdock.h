@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/metasprite/common.h"
 #include <QDockWidget>
 #include <QList>
 #include <memory>
@@ -23,6 +24,8 @@ class TilesetPixmaps;
 class TilesetDock : public QDockWidget {
     Q_OBJECT
 
+    using ObjectSize = UnTech::MetaSprite::ObjectSize;
+
 public:
     TilesetDock(TilesetPixmaps* tilesetPixmaps, QWidget* parent = nullptr);
     ~TilesetDock();
@@ -35,6 +38,7 @@ private slots:
     void updateBackgroundColor();
     void onSelectedItemsChanged();
     void onFrameObjectChanged(const void* frame, unsigned index);
+    void onTileClicked(ObjectSize size, int tileIndex);
 
 private:
     // returns -1 if more than one frame object is selected
