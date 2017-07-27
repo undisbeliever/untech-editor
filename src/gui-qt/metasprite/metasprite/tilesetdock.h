@@ -33,9 +33,6 @@ public:
     void setDocument(Document* document);
 
 private slots:
-    void onTilesetPixmapChanged();
-    void onPaletteChanged(unsigned index);
-    void updateBackgroundColor();
     void onSelectedItemsChanged();
     void onFrameObjectChanged(const void* frame, unsigned index);
     void onTileClicked(ObjectSize size, int tileIndex);
@@ -46,7 +43,6 @@ private:
 
 private:
     std::unique_ptr<Ui::TilesetDock> _ui;
-    TilesetPixmaps* _tilesetPixmaps;
     Document* _document;
 };
 }

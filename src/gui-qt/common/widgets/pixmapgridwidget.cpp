@@ -60,6 +60,20 @@ void PixmapGridWidget::setPixmaps(const QVector<QPixmap>& pixmaps)
     update();
 }
 
+void PixmapGridWidget::setPixmap(int index, const QPixmap& pixmap)
+{
+    if (index >= 0 && index < _pixmaps.size()) {
+        _pixmaps.replace(index, pixmap);
+
+        int nColumns = columnCount();
+        int x = index % nColumns;
+        int y = index / nColumns;
+
+        update(x * _cellSize.width(), y * _cellSize.height(),
+               _cellSize.width(), _cellSize.height());
+    }
+}
+
 void PixmapGridWidget::setSelected(int selected)
 {
     if (_selected != selected) {

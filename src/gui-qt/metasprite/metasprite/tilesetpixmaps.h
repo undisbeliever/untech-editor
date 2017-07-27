@@ -32,12 +32,23 @@ public:
     const QPixmap& smallTile(unsigned index) const;
     const QPixmap& largeTile(unsigned index) const;
 
+protected:
+    void setSmallTile(unsigned tileId, const Snes::Tile8px& tile);
+    void setLargeTile(unsigned tileId, const Snes::Tile16px& tile);
+
 signals:
     void pixmapsChanged();
+
+    void pixmapsRedrawn();
+    void smallTileChanged(int tileId);
+    void largeTileChanged(int tileId);
 
 private slots:
     void redrawTilesets();
     void onPaletteChanged(unsigned index);
+
+    void onSmallTileChanged(unsigned tileId);
+    void onLargeTileChanged(unsigned tileId);
 
 private:
     const Snes::Palette4bpp& palette() const;

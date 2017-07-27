@@ -8,7 +8,7 @@
 #include "document.h"
 #include "framecontentcommands.h"
 #include "selection.h"
-#include "tilesetpixmaps.h"
+#include "tilesetwidgets.h"
 #include "gui-qt/metasprite/metasprite/tilesetdock.ui.h"
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
@@ -16,22 +16,18 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 TilesetDock::TilesetDock(TilesetPixmaps* tilesetPixmaps, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::TilesetDock)
-    , _tilesetPixmaps(tilesetPixmaps)
     , _document(nullptr)
 {
     Q_ASSERT(tilesetPixmaps != nullptr);
 
     _ui->setupUi(this);
 
-    _ui->smallTileset->setCellSize(QSize(8 * 6, 8 * 6));
-    _ui->largeTileset->setCellSize(QSize(16 * 6, 16 * 6));
+    _ui->smallTileset->setTilesetPixmaps(tilesetPixmaps);
+    _ui->largeTileset->setTilesetPixmaps(tilesetPixmaps);
 
-    connect(_tilesetPixmaps, &TilesetPixmaps::pixmapsChanged,
-            this, &TilesetDock::onTilesetPixmapChanged);
-
-    connect(_ui->smallTileset, &PixmapGridWidget::cellClicked,
+    connect(_ui->smallTileset, &DrawingPixmapGridWidget::cellClicked,
             [this](int index) { onTileClicked(ObjectSize::SMALL, index); });
-    connect(_ui->largeTileset, &PixmapGridWidget::cellClicked,
+    connect(_ui->largeTileset, &DrawingPixmapGridWidget::cellClicked,
             [this](int index) { onTileClicked(ObjectSize::LARGE, index); });
 }
 
@@ -51,48 +47,17 @@ void TilesetDock::setDocument(Document* document)
 
     setEnabled(_document != nullptr);
 
-    if (_document) {
-        updateBackgroundColor();
-        onSelectedItemsChanged();
+    _ui->smallTileset->setDocument(_document);
+    _ui->largeTileset->setDocument(_document);
 
-        connect(_document, &Document::paletteChanged,
-                this, &TilesetDock::onPaletteChanged);
+    if (_document) {
+        onSelectedItemsChanged();
 
         connect(_document, &Document::frameObjectChanged,
                 this, &TilesetDock::onFrameObjectChanged);
 
-        connect(_document->selection(), &Selection::selectedPaletteChanged,
-                this, &TilesetDock::updateBackgroundColor);
-
         connect(_document->selection(), &Selection::selectedItemsChanged,
                 this, &TilesetDock::onSelectedItemsChanged);
-    }
-}
-
-void TilesetDock::onTilesetPixmapChanged()
-{
-    _ui->smallTileset->setPixmaps(_tilesetPixmaps->smallTileset());
-    _ui->largeTileset->setPixmaps(_tilesetPixmaps->largeTileset());
-}
-
-void TilesetDock::onPaletteChanged(unsigned index)
-{
-    if (index == _document->selection()->selectedPalette()) {
-        updateBackgroundColor();
-    }
-}
-
-void TilesetDock::updateBackgroundColor()
-{
-    const auto& palettes = _document->frameSet()->palettes;
-    const unsigned selected = _document->selection()->selectedPalette();
-
-    if (selected < palettes.size()) {
-        const auto& rgb = palettes.at(selected).color(0).rgb();
-        QColor bg = qRgb(rgb.red, rgb.green, rgb.blue);
-
-        _ui->smallTileset->setBackgroundColor(bg);
-        _ui->largeTileset->setBackgroundColor(bg);
     }
 }
 
@@ -144,6 +109,11 @@ void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned change
 
 void TilesetDock::onTileClicked(ObjectSize size, int tileIndex)
 {
+    if (_document->selection()->selectedColor() >= 0) {
+        // don't change tile in edit tiles mode
+        return;
+    }
+
     const int index = selectedFrameObjectIndex();
     if (index >= 0) {
         MS::Frame* frame = _document->selection()->selectedFrame();

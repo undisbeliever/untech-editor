@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <QButtonGroup>
 #include <QDockWidget>
 #include <QList>
 #include <memory>
@@ -37,13 +38,20 @@ private slots:
     void onPaletteContextMenu(const QPoint& pos);
 
     void updateSelectedPalette();
-    void onColorClicked(int index);
+    void updateSelectedColor();
+    void onColorClicked(int colorIndex);
+
+    void uncheckColorButtons();
+
+private:
+    void editColorDialog(int colorIndex);
 
 private:
     std::unique_ptr<Ui::PalettesDock> _ui;
     Actions* _actions;
     Document* _document;
 
+    QButtonGroup* _colorGroup;
     QList<ColorToolButton*> _colorButtons;
 };
 }

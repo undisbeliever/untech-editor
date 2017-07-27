@@ -35,6 +35,10 @@ public:
     void selectPalette(unsigned index);
     unsigned selectedPalette() const { return _selectedPalette; }
 
+    void selectColor(int color);
+    void unselectColor() { selectColor(-1); }
+    int selectedColor() const { return _selectedColor; }
+
 protected:
     virtual const void* setSelectedFrame(const idstring& id) final;
     virtual unsigned nObjectsInSelectedFrame() const final;
@@ -48,6 +52,7 @@ private slots:
 
 signals:
     void selectedPaletteChanged();
+    void selectedColorChanged();
 
 private:
     Document* _document;
@@ -55,6 +60,7 @@ private:
     MS::Frame* _selectedFrame;
 
     unsigned _selectedPalette;
+    int _selectedColor;
 };
 }
 }

@@ -122,7 +122,7 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="PixmapGridWidget" name="smallTileset" native="true"/>
+      <widget class="SmallTilesetWidget" name="smallTileset" native="true"/>
      </item>
      <item>
       <widget class="Line" name="line">
@@ -135,7 +135,7 @@
       </widget>
      </item>
      <item>
-      <widget class="PixmapGridWidget" name="largeTileset" native="true"/>
+      <widget class="LargeTilesetWidget" name="largeTileset" native="true"/>
      </item>
      <item>
       <spacer name="verticalSpacer">
@@ -156,9 +156,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PixmapGridWidget</class>
+   <class>SmallTilesetWidget</class>
    <extends>QWidget</extends>
-   <header>gui-qt/common/widgets/pixmapgridwidget.h</header>
+   <header>gui-qt/metasprite/metasprite/tilesetwidgets.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LargeTilesetWidget</class>
+   <extends>QWidget</extends>
+   <header>gui-qt/metasprite/metasprite/tilesetwidgets.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

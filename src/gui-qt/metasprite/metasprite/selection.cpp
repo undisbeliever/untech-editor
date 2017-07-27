@@ -16,6 +16,7 @@ Selection::Selection(QObject* parent)
     , _document(nullptr)
     , _selectedFrame(nullptr)
     , _selectedPalette(0)
+    , _selectedColor(-1)
 {
 }
 
@@ -79,8 +80,23 @@ void Selection::selectPalette(unsigned index)
     }
 
     if (_selectedPalette != index) {
+        unselectColor();
+
         _selectedPalette = index;
         emit selectedPaletteChanged();
+    }
+}
+
+void Selection::selectColor(int color)
+{
+    if (color < 0 || color > 15) {
+        color = -1;
+    }
+
+    if (_selectedColor != color) {
+        _selectedColor = color;
+
+        emit selectedColorChanged();
     }
 }
 

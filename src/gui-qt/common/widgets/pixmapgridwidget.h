@@ -32,6 +32,8 @@ public:
     const QVector<QPixmap>& pixmaps() const { return _pixmaps; }
     void setPixmaps(const QVector<QPixmap>& pixmaps);
 
+    void setPixmap(int index, const QPixmap& pixmap);
+
     int selected() const { return _selected; }
     void setSelected(int selected);
     void clearSelected() { setSelected(-1); }

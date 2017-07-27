@@ -52,6 +52,9 @@ signals:
     void paletteAboutToBeRemoved(unsigned index);
     void paletteMoved(unsigned oldIndex, unsigned newIndex);
 
+    void smallTileChanged(unsigned tileId);
+    void largeTileChanged(unsigned tileId);
+
 private:
     std::unique_ptr<MS::FrameSet> _frameSet;
 

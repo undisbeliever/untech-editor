@@ -15,7 +15,6 @@
 #include "gui-qt/snes/snescolordialog.h"
 
 #include <QMenu>
-#include <QSignalMapper>
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 using namespace UnTech::GuiQt::Snes;
@@ -25,6 +24,8 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
     , _ui(new Ui::PalettesDock)
     , _actions(actions)
     , _document(nullptr)
+    , _colorGroup(new QButtonGroup(this))
+    , _colorButtons()
 {
     Q_ASSERT(actions != nullptr);
 
@@ -35,10 +36,12 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
     for (unsigned i = 0; i < 16; i++) {
         ColorToolButton* b = new ColorToolButton(this);
         _colorButtons.append(b);
+        _colorGroup->addButton(b, i);
 
         // setting autoRaise removes gradient from QToolButton
         b->setAutoRaise(true);
-        b->setIconSize(QSize(20, 20));
+        b->setCheckable(true);
+        b->setIconSize(QSize(16, 16));
 
         _ui->colorGrid->addWidget(b, i / 8, i % 8);
     }
@@ -48,14 +51,13 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
     connect(_ui->paletteList, &QListView::customContextMenuRequested,
             this, &PalettesDock::onPaletteContextMenu);
 
-    QSignalMapper* signalMapper = new QSignalMapper(this);
-    for (unsigned i = 0; i < 16; i++) {
-        signalMapper->setMapping(_colorButtons.at(i), i);
+    connect(_ui->editColorButton, &QToolButton::clicked,
+            this, &PalettesDock::uncheckColorButtons);
 
-        connect(_colorButtons.at(i), &QToolButton::clicked,
-                signalMapper, qOverload<>(&QSignalMapper::map));
-    }
-    connect(signalMapper, qOverload<int>(&QSignalMapper::mapped),
+    connect(_ui->selectColorButton, &QToolButton::clicked,
+            this, &PalettesDock::uncheckColorButtons);
+
+    connect(_colorGroup, qOverload<int>(&QButtonGroup::buttonClicked),
             this, &PalettesDock::onColorClicked);
 }
 
@@ -79,12 +81,14 @@ void PalettesDock::setDocument(Document* document)
 
     setEnabled(_document != nullptr);
 
+    uncheckColorButtons();
     updateSelectedPalette();
 
     if (_document) {
         _ui->paletteList->setModel(_document->palettesModel());
 
         updatePaletteListSelection();
+        updateSelectedColor();
 
         connect(_document, &Document::paletteChanged,
                 this, &PalettesDock::updateSelectedPalette);
@@ -92,6 +96,9 @@ void PalettesDock::setDocument(Document* document)
                 this, &PalettesDock::updatePaletteListSelection);
         connect(_document->selection(), &Selection::selectedPaletteChanged,
                 this, &PalettesDock::updateSelectedPalette);
+        connect(_document->selection(), &Selection::selectedColorChanged,
+                this, &PalettesDock::updateSelectedColor);
+
         connect(_ui->paletteList->selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, &PalettesDock::onPaletteListSelectionChanged);
     }
@@ -163,6 +170,35 @@ void PalettesDock::updateSelectedPalette()
     }
 }
 
+void PalettesDock::updateSelectedColor()
+{
+    const int c = _document->selection()->selectedColor();
+    if (c >= 0) {
+        _ui->selectColorButton->setChecked(true);
+        _colorButtons.at(c)->setChecked(true);
+    }
+    else {
+        uncheckColorButtons();
+    }
+}
+
+void PalettesDock::uncheckColorButtons()
+{
+    Q_ASSERT(_colorGroup->exclusive());
+
+    QAbstractButton* b = _colorGroup->checkedButton();
+
+    if (b != nullptr) {
+        _colorGroup->setExclusive(false);
+        b->setChecked(false);
+        _colorGroup->setExclusive(true);
+    }
+
+    if (_document) {
+        _document->selection()->unselectColor();
+    }
+}
+
 void PalettesDock::onColorClicked(int colorIndex)
 {
     if (_document == nullptr) {
@@ -173,8 +209,20 @@ void PalettesDock::onColorClicked(int colorIndex)
     const MS::FrameSet& frameSet = *_document->frameSet();
 
     if (selectedPalette >= frameSet.palettes.size()) {
-        return;
+        uncheckColorButtons();
     }
+    else if (_ui->selectColorButton->isChecked()) {
+        _document->selection()->selectColor(colorIndex);
+    }
+    else {
+        editColorDialog(colorIndex);
+    }
+}
+
+void PalettesDock::editColorDialog(int colorIndex)
+{
+    unsigned selectedPalette = _document->selection()->selectedPalette();
+    const MS::FrameSet& frameSet = *_document->frameSet();
 
     const auto color = frameSet.palettes.at(selectedPalette).color(colorIndex);
 
@@ -198,4 +246,6 @@ void PalettesDock::onColorClicked(int colorIndex)
     else {
         command->undo();
     }
+
+    uncheckColorButtons();
 }

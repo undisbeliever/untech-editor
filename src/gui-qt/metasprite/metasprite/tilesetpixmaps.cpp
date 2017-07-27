@@ -43,6 +43,12 @@ void TilesetPixmaps::setDocument(Document* document)
         connect(_document, &Document::paletteChanged,
                 this, &TilesetPixmaps::onPaletteChanged);
 
+        connect(_document, &Document::smallTileChanged,
+                this, &TilesetPixmaps::onSmallTileChanged);
+
+        connect(_document, &Document::largeTileChanged,
+                this, &TilesetPixmaps::onLargeTileChanged);
+
         connect(_document->selection(), &Selection::selectedPaletteChanged,
                 this, &TilesetPixmaps::redrawTilesets);
     }
@@ -96,6 +102,7 @@ void TilesetPixmaps::redrawTilesets()
     }
 
     emit pixmapsChanged();
+    emit pixmapsRedrawn();
 }
 
 void TilesetPixmaps::onPaletteChanged(unsigned index)
@@ -103,6 +110,40 @@ void TilesetPixmaps::onPaletteChanged(unsigned index)
     if (index == _document->selection()->selectedPalette()) {
         redrawTilesets();
     }
+}
+
+void TilesetPixmaps::onSmallTileChanged(unsigned tileId)
+{
+    Q_ASSERT(tileId < unsigned(_smallTileset.size()));
+
+    const auto& tile = _document->frameSet()->smallTileset.tile(tileId);
+    const auto& palette = this->palette();
+
+    QImage img(8, 8, QImage::Format_ARGB32_Premultiplied);
+    img.fill(0);
+    drawTransparentTile(img, tile, palette, 0, 0);
+
+    _smallTileset.replace(tileId, QPixmap::fromImage(img));
+
+    emit smallTileChanged(tileId);
+    emit pixmapsChanged();
+}
+
+void TilesetPixmaps::onLargeTileChanged(unsigned tileId)
+{
+    Q_ASSERT(tileId < unsigned(_largeTileset.size()));
+
+    const auto& tile = _document->frameSet()->largeTileset.tile(tileId);
+    const auto& palette = this->palette();
+
+    QImage img(16, 16, QImage::Format_ARGB32_Premultiplied);
+    img.fill(0);
+    drawTransparentTile(img, tile, palette, 0, 0);
+
+    _largeTileset.replace(tileId, QPixmap::fromImage(img));
+
+    emit largeTileChanged(tileId);
+    emit pixmapsChanged();
 }
 
 const UnTech::Snes::Palette4bpp& TilesetPixmaps::palette() const
