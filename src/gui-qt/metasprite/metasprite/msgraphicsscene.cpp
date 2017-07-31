@@ -294,7 +294,7 @@ void MsGraphicsScene::updateFrameObject(unsigned index)
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    MS::FrameObject& obj = _frame->objects.at(index);
+    const MS::FrameObject& obj = _frame->objects.at(index);
     auto* item = _objects.at(index);
 
     if (obj.size == ObjSize::SMALL) {
@@ -336,7 +336,7 @@ void MsGraphicsScene::addActionPoint(unsigned index)
 
 void MsGraphicsScene::updateActionPoint(unsigned index)
 {
-    MS::ActionPoint& ap = _frame->actionPoints.at(index);
+    const MS::ActionPoint& ap = _frame->actionPoints.at(index);
     auto* item = _actionPoints.at(index);
 
     item->setPos(ap.location);
@@ -368,7 +368,7 @@ void MsGraphicsScene::addEntityHitbox(unsigned index)
 
 void MsGraphicsScene::updateEntityHitbox(unsigned index)
 {
-    MS::EntityHitbox& eh = _frame->entityHitboxes.at(index);
+    const MS::EntityHitbox& eh = _frame->entityHitboxes.at(index);
     auto* item = _entityHitboxes.at(index);
 
     item->setPen(_style->entityHitboxPen(eh.hitboxType));

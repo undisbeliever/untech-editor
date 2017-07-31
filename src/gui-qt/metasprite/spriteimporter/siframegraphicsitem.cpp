@@ -153,7 +153,7 @@ void SiFrameGraphicsItem::addFrameObject(unsigned index)
 
 void SiFrameGraphicsItem::updateFrameObject(unsigned index)
 {
-    SI::FrameObject& obj = _frame->objects.at(index);
+    const SI::FrameObject& obj = _frame->objects.at(index);
     auto* item = _objects.at(index);
 
     item->setRect(obj.location, obj.sizePx());
@@ -186,7 +186,7 @@ void SiFrameGraphicsItem::addActionPoint(unsigned index)
 
 void SiFrameGraphicsItem::updateActionPoint(unsigned index)
 {
-    SI::ActionPoint& ap = _frame->actionPoints.at(index);
+    const SI::ActionPoint& ap = _frame->actionPoints.at(index);
     auto* item = _actionPoints.at(index);
 
     item->setPos(ap.location);
@@ -216,7 +216,7 @@ void SiFrameGraphicsItem::addEntityHitbox(unsigned index)
 
 void SiFrameGraphicsItem::updateEntityHitbox(unsigned index)
 {
-    SI::EntityHitbox& eh = _frame->entityHitboxes.at(index);
+    const SI::EntityHitbox& eh = _frame->entityHitboxes.at(index);
     auto* item = _entityHitboxes.at(index);
 
     item->setPen(_style->entityHitboxPen(eh.hitboxType));
