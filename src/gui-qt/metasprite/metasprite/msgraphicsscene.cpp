@@ -267,7 +267,7 @@ void MsGraphicsScene::updateItemIndexes(QList<T*>& list, unsigned start,
                                         const SelectedItem::Type& type)
 {
     for (unsigned i = start; int(i) < list.size(); i++) {
-        list.at(i)->setZValue(baseZValue + i);
+        list.at(i)->setZValue(baseZValue - i);
 
         SelectedItem si = { type, i };
         list.at(i)->setData(SELECTION_ID, QVariant::fromValue(si));
