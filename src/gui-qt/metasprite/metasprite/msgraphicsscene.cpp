@@ -51,6 +51,20 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings,
                                            { SelectedItem::TILE_HITBOX, 0 }));
     addItem(_tileHitbox);
 
+    _horizontalOrigin = new QGraphicsLineItem();
+    _horizontalOrigin->setLine(int_ms8_t::MIN, 0, int_ms8_t::MAX, 0);
+    _horizontalOrigin->setPen(_style->originPen());
+    _horizontalOrigin->setZValue(ORIGIN_ZVALUE);
+    _horizontalOrigin->setVisible(false);
+    addItem(_horizontalOrigin);
+
+    _verticalOrigin = new QGraphicsLineItem();
+    _verticalOrigin->setLine(0, int_ms8_t::MIN, 0, int_ms8_t::MAX);
+    _verticalOrigin->setPen(_style->originPen());
+    _verticalOrigin->setZValue(ORIGIN_ZVALUE);
+    _verticalOrigin->setVisible(false);
+    addItem(_verticalOrigin);
+
     onLayerSettingsChanged();
 
     connect(this, &MsGraphicsScene::selectionChanged,
@@ -129,6 +143,10 @@ void MsGraphicsScene::setFrame(MS::Frame* frame)
         _actionPoints.clear();
         _entityHitboxes.clear();
 
+        bool showOrigin = _frame && _layerSettings->showOrigin();
+        _horizontalOrigin->setVisible(showOrigin);
+        _verticalOrigin->setVisible(showOrigin);
+
         if (_frame != nullptr) {
             setSceneRect(int_ms8_t::MIN, int_ms8_t::MIN, 256, 256);
 
@@ -149,24 +167,6 @@ void MsGraphicsScene::setFrame(MS::Frame* frame)
         }
 
         update();
-    }
-}
-
-void MsGraphicsScene::drawForeground(QPainter* painter, const QRectF& rect)
-{
-    if (_frame != nullptr && _layerSettings->showOrigin()) {
-        QRectF r = rect.adjusted(-1, -1, 1, 1);
-
-        painter->save();
-
-        painter->setPen(_style->originPen());
-
-        painter->drawLine(0, 0, 0, r.top());
-        painter->drawLine(0, 0, 0, r.bottom());
-        painter->drawLine(0, 0, r.left(), 0);
-        painter->drawLine(0, 0, r.right(), 0);
-
-        painter->restore();
     }
 }
 
@@ -389,6 +389,10 @@ void MsGraphicsScene::onLayerSettingsChanged()
 {
     bool solid = _frame && _frame->solid;
     _tileHitbox->setVisible(_layerSettings->showTileHitbox() & solid);
+
+    bool showOrigin = _frame && _layerSettings->showOrigin();
+    _horizontalOrigin->setVisible(showOrigin);
+    _verticalOrigin->setVisible(showOrigin);
 
     for (auto* item : _objects) {
         item->setVisible(_layerSettings->showFrameObjects());

@@ -39,6 +39,7 @@ class MsGraphicsScene : public QGraphicsScene {
     static const unsigned ENTITY_HITBOX_ZVALUE = 200;
     static const unsigned TILE_HITBOX_ZVALUE = 300;
     static const unsigned ACTION_POINT_ZVALUE = 400;
+    static const unsigned ORIGIN_ZVALUE = 500;
 
     static const int SELECTION_ID = 0;
 
@@ -52,7 +53,6 @@ public:
     void setFrame(MS::Frame* frame);
 
 protected:
-    virtual void drawForeground(QPainter* painter, const QRectF& rect) override;
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
@@ -112,6 +112,8 @@ private:
     MS::Frame* _frame;
 
     ResizableAabbGraphicsItem* _tileHitbox;
+    QGraphicsLineItem* _horizontalOrigin;
+    QGraphicsLineItem* _verticalOrigin;
 
     QList<PixmapGraphicsItem*> _objects;
     QList<AabbGraphicsItem*> _actionPoints;
