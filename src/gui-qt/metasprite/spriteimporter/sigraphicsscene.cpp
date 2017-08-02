@@ -73,6 +73,10 @@ void SiGraphicsScene::setDocument(Document* document)
         connect(_document, &Document::frameSetGridChanged,
                 this, &SiGraphicsScene::onFrameSetGridChanged);
 
+        connect(_document, &Document::frameAdded,
+                this, &SiGraphicsScene::onFrameAdded);
+        connect(_document, &Document::frameAboutToBeRemoved,
+                this, &SiGraphicsScene::onFrameAboutToBeRemoved);
         connect(_document, &Document::frameLocationChanged,
                 this, &SiGraphicsScene::onFrameLocationChanged);
         connect(_document, &Document::frameTileHitboxChanged,
@@ -352,6 +356,32 @@ void SiGraphicsScene::onFrameSetGridChanged()
     }
 
     setSceneRect(itemsBoundingRect());
+}
+
+void SiGraphicsScene::onFrameAdded(const void* framePtr)
+{
+    for (const auto& it : _document->frameSet()->frames) {
+        if (&it.second == framePtr) {
+            SI::Frame* frame = &it.second;
+
+            auto* frameItem = new SiFrameGraphicsItem(frame, _actions, _style);
+            _frameItems.insert(frame, frameItem);
+            addItem(frameItem);
+            break;
+        }
+    }
+}
+
+void SiGraphicsScene::onFrameAboutToBeRemoved(const void* framePtr)
+{
+    auto it = _frameItems.find(framePtr);
+    if (it != _frameItems.end()) {
+        SiFrameGraphicsItem* frameItem = it.value();
+        _frameItems.erase(it);
+
+        removeItem(frameItem);
+        delete frameItem;
+    }
 }
 
 void SiGraphicsScene::onFrameLocationChanged(const void* framePtr)
