@@ -21,6 +21,7 @@ class Style;
 class LayerSettings;
 
 namespace SpriteImporter {
+class Actions;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -35,7 +36,7 @@ public:
     static const int SELECTION_ID = 0;
 
 public:
-    SiFrameGraphicsItem(SI::Frame* frame, Style* style,
+    SiFrameGraphicsItem(SI::Frame* frame, Actions* actions, Style* style,
                         QGraphicsItem* parent = nullptr);
     ~SiFrameGraphicsItem() = default;
 
@@ -65,6 +66,9 @@ public:
 
     void updateLayerSettings(const LayerSettings* settings);
 
+protected:
+    virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
+
 private:
     template <class T>
     static void updateItemIndexes(QList<T*>& list, unsigned start,
@@ -73,6 +77,7 @@ private:
 
 private:
     SI::Frame* _frame;
+    Actions* _actions;
     Style* _style;
     bool _showTileHitbox;
     bool _frameSelected;

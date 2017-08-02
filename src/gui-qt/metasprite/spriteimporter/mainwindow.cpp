@@ -36,7 +36,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     _ui->graphicsView->setZoomSettings(_zoomSettings);
     _ui->graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
-    _graphicsScene = new SiGraphicsScene(_layerSettings, this);
+    _graphicsScene = new SiGraphicsScene(_actions, _layerSettings, this);
     _ui->graphicsView->setScene(_graphicsScene);
 
     _frameSetDock = new FrameSetDock(_actions, this);

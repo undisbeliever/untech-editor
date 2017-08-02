@@ -25,6 +25,7 @@ class Style;
 class LayerSettings;
 
 namespace MetaSprite {
+class Actions;
 class Document;
 class TilesetPixmaps;
 
@@ -44,8 +45,8 @@ class MsGraphicsScene : public QGraphicsScene {
     static const int SELECTION_ID = 0;
 
 public:
-    MsGraphicsScene(LayerSettings* layerSettings, TilesetPixmaps* tilesetPixmaps,
-                    QWidget* parent = nullptr);
+    MsGraphicsScene(Actions* actions, LayerSettings* layerSettings,
+                    TilesetPixmaps* tilesetPixmaps, QWidget* parent = nullptr);
     ~MsGraphicsScene() = default;
 
     void setDocument(Document* document);
@@ -54,6 +55,7 @@ public:
 
 protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+    virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
     void commitMovedItems();
@@ -104,6 +106,7 @@ private slots:
     void onFrameContentsMoved(const void* frame, const std::set<SelectedItem>& oldPositions, int offset);
 
 private:
+    Actions* _actions;
     LayerSettings* _layerSettings;
     TilesetPixmaps* _tilesetPixmaps;
     Document* _document;

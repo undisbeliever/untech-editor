@@ -5,6 +5,7 @@
  */
 
 #include "msgraphicsscene.h"
+#include "actions.h"
 #include "document.h"
 #include "framecommands.h"
 #include "framecontentcommands.h"
@@ -24,16 +25,18 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 const QRect MsGraphicsScene::ITEM_RANGE(
     int_ms8_t::MIN, int_ms8_t::MIN, UINT8_MAX, UINT8_MAX);
 
-MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings,
+MsGraphicsScene::MsGraphicsScene(Actions* actions, LayerSettings* layerSettings,
                                  TilesetPixmaps* tilesetPixmaps,
                                  QWidget* parent)
     : QGraphicsScene(parent)
+    , _actions(actions)
     , _layerSettings(layerSettings)
     , _tilesetPixmaps(tilesetPixmaps)
     , _document(nullptr)
     , _frame(nullptr)
     , _inUpdateSelection(false)
 {
+    Q_ASSERT(actions != nullptr);
     Q_ASSERT(layerSettings != nullptr);
     Q_ASSERT(tilesetPixmaps != nullptr);
 
@@ -176,6 +179,28 @@ void MsGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
     if (event->button() == Qt::LeftButton) {
         commitMovedItems();
+    }
+}
+
+void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+    if (_document && _frame) {
+        const auto& selectedItems = _document->selection()->selectedItems();
+
+        QMenu menu;
+        menu.addAction(_actions->addFrameObject());
+        menu.addAction(_actions->addActionPoint());
+        menu.addAction(_actions->addEntityHitbox());
+
+        if (selectedItems.empty() == false) {
+            menu.addSeparator();
+            menu.addAction(_actions->raiseSelected());
+            menu.addAction(_actions->lowerSelected());
+            menu.addAction(_actions->cloneSelected());
+            menu.addAction(_actions->removeSelected());
+        }
+
+        menu.exec(event->screenPos());
     }
 }
 

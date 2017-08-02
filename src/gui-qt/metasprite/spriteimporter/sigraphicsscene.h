@@ -19,6 +19,7 @@ class Style;
 class LayerSettings;
 
 namespace SpriteImporter {
+class Actions;
 class Document;
 class SiFrameGraphicsItem;
 
@@ -26,7 +27,8 @@ class SiGraphicsScene : public QGraphicsScene {
     Q_OBJECT
 
 public:
-    SiGraphicsScene(LayerSettings* layerSettings, QWidget* parent = nullptr);
+    SiGraphicsScene(Actions* actions, LayerSettings* layerSettings,
+                    QWidget* parent = nullptr);
     ~SiGraphicsScene() = default;
 
     void setDocument(Document* document);
@@ -68,6 +70,7 @@ private slots:
     void onFrameContentsMoved(const void* frame, const std::set<SelectedItem>& oldPositions, int offset);
 
 private:
+    Actions* _actions;
     LayerSettings* _layerSettings;
     Document* _document;
 

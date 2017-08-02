@@ -41,7 +41,8 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _ui->graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
 
-    _graphicsScene = new MsGraphicsScene(_layerSettings, _tilesetPixmaps, this);
+    _graphicsScene = new MsGraphicsScene(_actions, _layerSettings,
+                                         _tilesetPixmaps, this);
     _ui->graphicsView->setScene(_graphicsScene);
 
     _frameSetDock = new FrameSetDock(_actions, this);

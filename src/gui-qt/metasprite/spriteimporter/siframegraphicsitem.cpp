@@ -5,25 +5,30 @@
  */
 
 #include "siframegraphicsitem.h"
+#include "actions.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 #include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
+#include <QGraphicsSceneContextMenuEvent>
 #include <QPen>
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame, Style* style,
+SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame,
+                                         Actions* actions, Style* style,
                                          QGraphicsItem* parent)
     : AabbGraphicsItem(parent)
     , _frame(frame)
+    , _actions(actions)
     , _style(style)
     , _showTileHitbox(true)
     , _frameSelected(false)
 {
     Q_ASSERT(frame != nullptr);
+    Q_ASSERT(actions != nullptr);
     Q_ASSERT(style != nullptr);
 
     setPen(style->frameOutlinePen());
@@ -265,4 +270,27 @@ void SiFrameGraphicsItem::updateLayerSettings(const LayerSettings* settings)
     }
 
     update();
+}
+
+void SiFrameGraphicsItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+    if (_frameSelected) {
+        QMenu menu;
+        menu.addAction(_actions->addFrameObject());
+        menu.addAction(_actions->addActionPoint());
+        menu.addAction(_actions->addEntityHitbox());
+
+        if (_actions->removeSelected()->isEnabled()) {
+            menu.addSeparator();
+            menu.addAction(_actions->raiseSelected());
+            menu.addAction(_actions->lowerSelected());
+            menu.addAction(_actions->cloneSelected());
+            menu.addAction(_actions->removeSelected());
+        }
+
+        menu.exec(event->screenPos());
+    }
+    else {
+        event->ignore();
+    }
 }

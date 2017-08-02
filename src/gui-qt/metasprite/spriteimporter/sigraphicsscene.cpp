@@ -18,12 +18,15 @@
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-SiGraphicsScene::SiGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
+SiGraphicsScene::SiGraphicsScene(Actions* actions, LayerSettings* layerSettings,
+                                 QWidget* parent)
     : QGraphicsScene(parent)
+    , _actions(actions)
     , _layerSettings(layerSettings)
     , _document(nullptr)
     , _inUpdateSelection(false)
 {
+    Q_ASSERT(_actions != nullptr);
     Q_ASSERT(_layerSettings != nullptr);
 
     _style = new Style(parent);
@@ -326,7 +329,7 @@ void SiGraphicsScene::buildFrameItems()
         for (auto it : _document->frameSet()->frames) {
             SI::Frame* frame = &it.second;
 
-            auto* frameItem = new SiFrameGraphicsItem(frame, _style);
+            auto* frameItem = new SiFrameGraphicsItem(frame, _actions, _style);
             _frameItems.insert(frame, frameItem);
             addItem(frameItem);
         }
