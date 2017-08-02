@@ -30,6 +30,8 @@ public:
     QAction* renameFrame() const { return _renameFrame; }
     QAction* removeFrame() const { return _removeFrame; }
 
+    QAction* addRemoveTileHitbox() const { return _addRemoveTileHitbox; }
+
     QAction* addFrameObject() const { return _addFrameObject; }
     QAction* addActionPoint() const { return _addActionPoint; }
     QAction* addEntityHitbox() const { return _addEntityHitbox; }
@@ -46,6 +48,8 @@ public slots:
     void onCloneFrame();
     void onRenameFrame();
     void onRemoveFrame();
+
+    void onAddRemoveTileHitbox();
 
     void onAddFrameObject();
     void onAddActionPoint();
@@ -64,6 +68,8 @@ private:
     QAction* _cloneFrame;
     QAction* _renameFrame;
     QAction* _removeFrame;
+
+    QAction* _addRemoveTileHitbox;
 
     QAction* _addFrameObject;
     QAction* _addActionPoint;

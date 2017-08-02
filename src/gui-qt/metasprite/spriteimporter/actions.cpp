@@ -25,6 +25,8 @@ Actions::Actions(MainWindow* mainWindow)
     _renameFrame = new QAction(tr("Rename Frame"), this);
     _removeFrame = new QAction(tr("Remove Frame"), this);
 
+    _addRemoveTileHitbox = new QAction(tr("Add Tile Hitbox"), this);
+
     _addFrameObject = new QAction(tr("Add Frame Object"), this);
     _addActionPoint = new QAction(tr("Add Action Point"), this);
     _addEntityHitbox = new QAction(tr("Add Entity Hitbox"), this);
@@ -45,6 +47,7 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_cloneFrame, &QAction::triggered, this, &Actions::onCloneFrame);
     connect(_renameFrame, &QAction::triggered, this, &Actions::onRenameFrame);
     connect(_removeFrame, &QAction::triggered, this, &Actions::onRemoveFrame);
+    connect(_addRemoveTileHitbox, &QAction::triggered, this, &Actions::onAddRemoveTileHitbox);
     connect(_addFrameObject, &QAction::triggered, this, &Actions::onAddFrameObject);
     connect(_addActionPoint, &QAction::triggered, this, &Actions::onAddActionPoint);
     connect(_addEntityHitbox, &QAction::triggered, this, &Actions::onAddEntityHitbox);
@@ -57,11 +60,14 @@ Actions::Actions(MainWindow* mainWindow)
 void Actions::setDocument(Document* document)
 {
     if (_document) {
+        _document->disconnect(this);
         _document->selection()->disconnect(this);
     }
     _document = document;
 
     if (document) {
+        connect(_document, &Document::frameDataChanged,
+                this, &Actions::updateActions);
         connect(_document->selection(), &Selection::selectedFrameChanged,
                 this, &Actions::updateActions);
         connect(_document->selection(), &Selection::selectedItemsChanged,
@@ -86,9 +92,15 @@ void Actions::updateActions()
     if (_document) {
         documentExists = true;
 
-        if (SI::Frame* frame = _document->selection()->selectedFrame()) {
+        if (const SI::Frame* frame = _document->selection()->selectedFrame()) {
             frameSelected = true;
 
+            if (frame->solid) {
+                _addRemoveTileHitbox->setText(tr("Remove Tile Hitbox"));
+            }
+            else {
+                _addRemoveTileHitbox->setText(tr("Add Tile Hitbox"));
+            }
             canAddFrameObject = frame->objects.can_insert();
             canAddActionPoint = frame->actionPoints.can_insert();
             canAddEntityHitbox = frame->entityHitboxes.can_insert();
@@ -104,6 +116,7 @@ void Actions::updateActions()
     _cloneFrame->setEnabled(frameSelected);
     _renameFrame->setEnabled(frameSelected);
     _removeFrame->setEnabled(frameSelected);
+    _addRemoveTileHitbox->setEnabled(frameSelected);
     _addFrameObject->setEnabled(canAddFrameObject);
     _addActionPoint->setEnabled(canAddActionPoint);
     _addEntityHitbox->setEnabled(canAddEntityHitbox);
@@ -183,6 +196,15 @@ void Actions::onAddFrameObject()
         new AddFrameObject(_document, frame));
 
     _document->selection()->selectFrameObject(frame->objects.size() - 1);
+}
+
+void Actions::onAddRemoveTileHitbox()
+{
+    SI::Frame* frame = _document->selection()->selectedFrame();
+    if (frame) {
+        _document->undoStack()->push(
+            new ChangeFrameSolid(_document, frame, !frame->solid));
+    }
 }
 
 void Actions::onAddActionPoint()

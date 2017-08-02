@@ -26,6 +26,8 @@ Actions::Actions(MainWindow* mainWindow)
     _renameFrame = new QAction(tr("Rename Frame"), this);
     _removeFrame = new QAction(tr("Remove Frame"), this);
 
+    _addRemoveTileHitbox = new QAction(tr("Add Tile Hitbox"), this);
+
     _addPalette = new QAction(tr("New Palette"), this);
     _clonePalette = new QAction(tr("Clone Palette"), this);
     _removePalette = new QAction(tr("Remove Palette"), this);
@@ -53,6 +55,8 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_renameFrame, &QAction::triggered, this, &Actions::onRenameFrame);
     connect(_removeFrame, &QAction::triggered, this, &Actions::onRemoveFrame);
 
+    connect(_addRemoveTileHitbox, &QAction::triggered, this, &Actions::onAddRemoveTileHitbox);
+
     connect(_addPalette, &QAction::triggered, this, &Actions::onAddPalette);
     connect(_clonePalette, &QAction::triggered, this, &Actions::onClonePalette);
     connect(_removePalette, &QAction::triggered, this, &Actions::onRemovePalette);
@@ -71,11 +75,14 @@ Actions::Actions(MainWindow* mainWindow)
 void Actions::setDocument(Document* document)
 {
     if (_document) {
+        _document->disconnect(this);
         _document->selection()->disconnect(this);
     }
     _document = document;
 
     if (document) {
+        connect(_document, &Document::frameDataChanged,
+                this, &Actions::updateActions);
         connect(_document->selection(), &Selection::selectedFrameChanged,
                 this, &Actions::updateActions);
         connect(_document->selection(), &Selection::selectedPaletteChanged,
@@ -119,9 +126,15 @@ void Actions::updateActions()
         }
         canAddPalette = palettes.can_insert();
 
-        if (MS::Frame* frame = _document->selection()->selectedFrame()) {
+        if (const MS::Frame* frame = _document->selection()->selectedFrame()) {
             frameSelected = true;
 
+            if (frame->solid) {
+                _addRemoveTileHitbox->setText(tr("Remove Tile Hitbox"));
+            }
+            else {
+                _addRemoveTileHitbox->setText(tr("Add Tile Hitbox"));
+            }
             canAddFrameObject = frame->objects.can_insert();
             canAddActionPoint = frame->actionPoints.can_insert();
             canAddEntityHitbox = frame->entityHitboxes.can_insert();
@@ -137,6 +150,8 @@ void Actions::updateActions()
     _cloneFrame->setEnabled(frameSelected);
     _renameFrame->setEnabled(frameSelected);
     _removeFrame->setEnabled(frameSelected);
+
+    _addRemoveTileHitbox->setEnabled(frameSelected);
 
     _addPalette->setEnabled(canAddPalette);
     _clonePalette->setEnabled(paletteSelected && canAddPalette);
@@ -213,6 +228,15 @@ void Actions::onRemoveFrame()
 
     _document->undoStack()->push(
         new RemoveFrame(_document, frameId));
+}
+
+void Actions::onAddRemoveTileHitbox()
+{
+    MS::Frame* frame = _document->selection()->selectedFrame();
+    if (frame) {
+        _document->undoStack()->push(
+            new ChangeFrameSolid(_document, frame, !frame->solid));
+    }
 }
 
 void Actions::onAddPalette()

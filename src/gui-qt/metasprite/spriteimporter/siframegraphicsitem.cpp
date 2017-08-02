@@ -279,6 +279,8 @@ void SiFrameGraphicsItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event
         menu.addAction(_actions->addFrameObject());
         menu.addAction(_actions->addActionPoint());
         menu.addAction(_actions->addEntityHitbox());
+        menu.addSeparator();
+        menu.addAction(_actions->addRemoveTileHitbox());
 
         if (_actions->removeSelected()->isEnabled()) {
             menu.addSeparator();

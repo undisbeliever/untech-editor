@@ -191,6 +191,8 @@ void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
         menu.addAction(_actions->addFrameObject());
         menu.addAction(_actions->addActionPoint());
         menu.addAction(_actions->addEntityHitbox());
+        menu.addSeparator();
+        menu.addAction(_actions->addRemoveTileHitbox());
 
         if (selectedItems.empty() == false) {
             menu.addSeparator();

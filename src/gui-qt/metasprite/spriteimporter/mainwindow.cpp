@@ -90,6 +90,8 @@ void MainWindow::setupMenubar()
     _ui->menuEdit->addAction(_actions->renameFrame());
     _ui->menuEdit->addAction(_actions->removeFrame());
     _ui->menuEdit->addSeparator();
+    _ui->menuEdit->addAction(_actions->addRemoveTileHitbox());
+    _ui->menuEdit->addSeparator();
     _ui->menuEdit->addAction(_actions->addFrameObject());
     _ui->menuEdit->addAction(_actions->addActionPoint());
     _ui->menuEdit->addAction(_actions->addEntityHitbox());
