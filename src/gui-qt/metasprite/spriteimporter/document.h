@@ -47,6 +47,7 @@ public:
 signals:
     void frameSetGridChanged();
     void frameSetImageChanged();
+    void frameSetPaletteChanged();
 
     void frameLocationChanged(const void* frame);
 

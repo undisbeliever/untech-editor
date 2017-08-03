@@ -208,10 +208,12 @@ void ChangeFrameSetPalette::undo()
 {
     _document->frameSet()->palette = _oldPalette;
     emit _document->frameSetDataChanged();
+    emit _document->frameSetPaletteChanged();
 }
 
 void ChangeFrameSetPalette::redo()
 {
     _document->frameSet()->palette = _newPalette;
     emit _document->frameSetDataChanged();
+    emit _document->frameSetPaletteChanged();
 }

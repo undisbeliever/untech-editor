@@ -33,7 +33,14 @@ SiGraphicsScene::SiGraphicsScene(Actions* actions, LayerSettings* layerSettings,
 
     _frameSetPixmap = new QGraphicsPixmapItem();
     _frameSetPixmap->setTransformationMode(Qt::FastTransformation);
+    _frameSetPixmap->setZValue(PIXMAP_ZVALUE);
     addItem(_frameSetPixmap);
+
+    _paletteOutline = new QGraphicsPathItem();
+    _paletteOutline->setPen(_style->paletteOutlinePen());
+    _paletteOutline->setVisible(false);
+    _paletteOutline->setZValue(PALETTE_ZVALUE);
+    addItem(_paletteOutline);
 
     onLayerSettingsChanged();
 
@@ -60,6 +67,7 @@ void SiGraphicsScene::setDocument(Document* document)
 
     if (_document) {
         updateFrameSetPixmap();
+        updatePaletteOutline();
         onSelectedFrameChanged();
         updateSelection();
 
@@ -70,6 +78,10 @@ void SiGraphicsScene::setDocument(Document* document)
 
         connect(_document, &Document::frameSetImageChanged,
                 this, &SiGraphicsScene::updateFrameSetPixmap);
+        connect(_document, &Document::frameSetImageChanged,
+                this, &SiGraphicsScene::updatePaletteOutline);
+        connect(_document, &Document::frameSetPaletteChanged,
+                this, &SiGraphicsScene::updatePaletteOutline);
         connect(_document, &Document::frameSetGridChanged,
                 this, &SiGraphicsScene::onFrameSetGridChanged);
 
@@ -259,7 +271,7 @@ void SiGraphicsScene::onSelectedFrameChanged()
         item->setFrameSelected(s);
 
         // Selected frame is always on top
-        item->setZValue(s ? 10 : 1);
+        item->setZValue(s ? SELECTED_FRAME_ZVALUE : FRAME_ZVALUE);
     }
 
     update();
@@ -321,6 +333,33 @@ void SiGraphicsScene::updateFrameSetPixmap()
     setSceneRect(itemsBoundingRect());
 }
 
+void SiGraphicsScene::updatePaletteOutline()
+{
+    const SI::FrameSet* frameSet = _document->frameSet();
+    const auto& palette = frameSet->palette;
+
+    if (frameSet->image && palette.usesUserSuppliedPalette()) {
+        const unsigned colorSize = palette.colorSize;
+        const usize paletteSize = palette.paletteSize();
+        const usize imageSize = frameSet->image->size();
+
+        QPainterPath path;
+        path.addRect(0, 0, paletteSize.width, paletteSize.height);
+        for (unsigned i = 0; i < palette.nPalettes; i++) {
+            path.moveTo(0, i * colorSize);
+            path.lineTo(paletteSize.width, i * colorSize);
+        }
+
+        _paletteOutline->setPath(path);
+        _paletteOutline->setPos(0, imageSize.height - paletteSize.height);
+        _paletteOutline->setVisible(true);
+    }
+    else {
+        _paletteOutline->setPath(QPainterPath());
+        _paletteOutline->setVisible(false);
+    }
+}
+
 void SiGraphicsScene::buildFrameItems()
 {
     for (SiFrameGraphicsItem* frameItem : _frameItems) {
@@ -335,6 +374,7 @@ void SiGraphicsScene::buildFrameItems()
 
             auto* frameItem = new SiFrameGraphicsItem(frame, _actions, _style);
             _frameItems.insert(frame, frameItem);
+            frameItem->setVisible(FRAME_ZVALUE);
             addItem(frameItem);
         }
     }
@@ -366,6 +406,7 @@ void SiGraphicsScene::onFrameAdded(const void* framePtr)
 
             auto* frameItem = new SiFrameGraphicsItem(frame, _actions, _style);
             _frameItems.insert(frame, frameItem);
+            frameItem->setVisible(FRAME_ZVALUE);
             addItem(frameItem);
             break;
         }

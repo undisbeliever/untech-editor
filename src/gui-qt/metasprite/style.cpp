@@ -14,6 +14,7 @@ const QColor Style::ANTI_HIGHLIGHT_BRUSH_COLOR(128, 128, 128, 128);
 
 const QColor Style::FRAME_OUTLINE_PEN_COLOR(160, 160, 160, 240);
 const QColor Style::ORIGIN_PEN_COLOR(160, 160, 160, 240);
+const QColor Style::PALETTE_OUTLINE_COLOR(160, 160, 160, 240);
 
 const QColor Style::TILE_HITBOX_PEN_COLOR(192, 0, 0, 240);
 const QColor Style::FRAME_OBJECT_PEN_COLOR(64, 128, 64, 240);
@@ -62,6 +63,11 @@ QPen Style::frameOutlinePen() const
 QPen Style::originPen() const
 {
     return QPen(ORIGIN_PEN_COLOR, 0.0, Qt::DashLine);
+}
+
+QPen Style::paletteOutlinePen() const
+{
+    return createCosmeticPen(PALETTE_OUTLINE_COLOR);
 }
 
 QPen Style::tileHitboxPen() const

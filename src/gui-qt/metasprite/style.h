@@ -22,6 +22,7 @@ private:
     static const QColor ANTI_HIGHLIGHT_BRUSH_COLOR;
 
     static const QColor ORIGIN_PEN_COLOR;
+    static const QColor PALETTE_OUTLINE_COLOR;
 
     static const QColor FRAME_OUTLINE_PEN_COLOR;
     static const QColor TILE_HITBOX_PEN_COLOR;
@@ -49,6 +50,7 @@ public:
 
     QPen frameOutlinePen() const;
     QPen originPen() const;
+    QPen paletteOutlinePen() const;
     QPen tileHitboxPen() const;
     QPen frameObjectPen() const;
     QPen actionPointPen() const;

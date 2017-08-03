@@ -26,6 +26,11 @@ class SiFrameGraphicsItem;
 class SiGraphicsScene : public QGraphicsScene {
     Q_OBJECT
 
+    static const unsigned PIXMAP_ZVALUE = 100;
+    static const unsigned FRAME_ZVALUE = 200;
+    static const unsigned SELECTED_FRAME_ZVALUE = 250;
+    static const unsigned PALETTE_ZVALUE = 300;
+
 public:
     SiGraphicsScene(Actions* actions, LayerSettings* layerSettings,
                     QWidget* parent = nullptr);
@@ -48,6 +53,7 @@ private slots:
     void onSceneSelectionChanged();
 
     void updateFrameSetPixmap();
+    void updatePaletteOutline();
 
     void buildFrameItems();
 
@@ -79,6 +85,7 @@ private:
 
     Style* _style;
     QGraphicsPixmapItem* _frameSetPixmap;
+    QGraphicsPathItem* _paletteOutline;
     QMap<const void*, SiFrameGraphicsItem*> _frameItems;
 
     bool _inUpdateSelection;
