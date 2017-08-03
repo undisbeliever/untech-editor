@@ -174,8 +174,14 @@ void FrameSetDock::updateGui()
     _ui->gridOrigin->setValue(fs.grid.origin);
 
     _ui->userSuppliedPaletteBox->setChecked(fs.palette.usesUserSuppliedPalette());
-    _ui->nPalettes->setValue(fs.palette.nPalettes);
-    _ui->paletteSize->setValue(fs.palette.colorSize);
+    if (fs.palette.usesUserSuppliedPalette()) {
+        _ui->nPalettes->setValue(fs.palette.nPalettes);
+        _ui->paletteSize->setValue(fs.palette.colorSize);
+    }
+    else {
+        _ui->nPalettes->clear();
+        _ui->paletteSize->clear();
+    }
 }
 
 void FrameSetDock::onNameEdited()
