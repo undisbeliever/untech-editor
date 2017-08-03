@@ -40,6 +40,9 @@ public:
 
     virtual void undo() final;
     virtual void redo() final;
+
+private:
+    static std::unique_ptr<SI::Frame> createNewFrame(const SI::FrameSet&);
 };
 
 class CloneFrame : public AddRemoveFrame {

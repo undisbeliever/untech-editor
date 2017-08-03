@@ -44,9 +44,19 @@ void AddRemoveFrame::removeFrame()
 // AddFrame
 // ========
 
+std::unique_ptr<SI::Frame> AddFrame::createNewFrame(const SI::FrameSet& frameSet)
+{
+    auto frame = std::make_unique<SI::Frame>();
+    frame->location.useGridLocation = true;
+    frame->location.useGridOrigin = true;
+    frame->location.update(frameSet.grid, *frame);
+
+    return frame;
+}
+
 AddFrame::AddFrame(Document* document, const idstring& newId)
     : AddRemoveFrame(document, newId,
-                     std::make_unique<SI::Frame>())
+                     createNewFrame(*document->frameSet()))
 {
     setText(QCoreApplication::tr("Add Frame"));
 }
