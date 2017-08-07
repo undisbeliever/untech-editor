@@ -52,6 +52,9 @@ signals:
     void paletteAboutToBeRemoved(unsigned index);
     void paletteMoved(unsigned oldIndex, unsigned newIndex);
 
+    void smallTilesetChanged();
+    void largeTilesetChanged();
+
     void smallTileChanged(unsigned tileId);
     void largeTileChanged(unsigned tileId);
 

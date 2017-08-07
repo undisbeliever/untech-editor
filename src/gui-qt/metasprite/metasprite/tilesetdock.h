@@ -36,6 +36,7 @@ private slots:
     void onSelectedItemsChanged();
     void onFrameObjectChanged(const void* frame, unsigned index);
     void onTileClicked(ObjectSize size, int tileIndex);
+    void onContextMenu(const QPoint& pos);
 
 private:
     // returns -1 if more than one frame object is selected

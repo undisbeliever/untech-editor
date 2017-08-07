@@ -21,6 +21,8 @@ class ChangeEntityHitbox;
 class AddRemoveFrameObject;
 class AddRemoveActionPoint;
 class AddRemoveEntityHitbox;
+class AddRemoveSmallTile;
+class AddRemoveLargeTile;
 class RaiseFrameContents;
 class LowerFrameContents;
 
@@ -82,6 +84,8 @@ private:
 
 protected:
     friend class ChangeFrameObject;
+    friend class AddRemoveSmallTile;
+    friend class AddRemoveLargeTile;
     void setFrameObject(MS::Frame* frame, unsigned index, const MS::FrameObject& obj);
 
     friend class ChangeActionPoint;

@@ -28,6 +28,13 @@ public:
 
     void addTile() { _tiles.emplace_back(); }
     void addTile(const TileT& tile) { _tiles.emplace_back(tile); }
+    void addTile(unsigned tileId, const TileT& tile)
+    {
+        if (tileId > _tiles.size()) {
+            tileId = _tiles.size();
+        }
+        _tiles.insert(_tiles.begin() + tileId, tile);
+    }
 
     TileT& tile(size_t n) { return _tiles.at(n); }
     const TileT& tile(size_t n) const { return _tiles.at(n); }
@@ -44,6 +51,12 @@ public:
     {
         if (size() > 0) {
             _tiles.pop_back();
+        }
+    }
+    void removeTile(unsigned tileId)
+    {
+        if (size() > 0 && tileId < size()) {
+            _tiles.erase(_tiles.begin() + tileId);
         }
     }
 

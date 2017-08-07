@@ -43,6 +43,12 @@ void TilesetPixmaps::setDocument(Document* document)
         connect(_document, &Document::paletteChanged,
                 this, &TilesetPixmaps::onPaletteChanged);
 
+        connect(_document, &Document::smallTilesetChanged,
+                this, &TilesetPixmaps::redrawTilesets);
+
+        connect(_document, &Document::largeTilesetChanged,
+                this, &TilesetPixmaps::redrawTilesets);
+
         connect(_document, &Document::smallTileChanged,
                 this, &TilesetPixmaps::onSmallTileChanged);
 

@@ -8,8 +8,11 @@
 #include "document.h"
 #include "framecontentcommands.h"
 #include "selection.h"
+#include "tilesetcommands.h"
 #include "tilesetwidgets.h"
 #include "gui-qt/metasprite/metasprite/tilesetdock.ui.h"
+
+#include <QMenu>
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
@@ -25,10 +28,15 @@ TilesetDock::TilesetDock(TilesetPixmaps* tilesetPixmaps, QWidget* parent)
     _ui->smallTileset->setTilesetPixmaps(tilesetPixmaps);
     _ui->largeTileset->setTilesetPixmaps(tilesetPixmaps);
 
+    _ui->scrollAreaContents->setContextMenuPolicy(Qt::CustomContextMenu);
+
     connect(_ui->smallTileset, &DrawingPixmapGridWidget::cellClicked,
             [this](int index) { onTileClicked(ObjectSize::SMALL, index); });
     connect(_ui->largeTileset, &DrawingPixmapGridWidget::cellClicked,
             [this](int index) { onTileClicked(ObjectSize::LARGE, index); });
+
+    connect(_ui->scrollAreaContents, &QWidget::customContextMenuRequested,
+            this, &TilesetDock::onContextMenu);
 }
 
 TilesetDock::~TilesetDock() = default;
@@ -143,4 +151,80 @@ int TilesetDock::selectedFrameObjectIndex() const
     }
 
     return it->index;
+}
+
+void TilesetDock::onContextMenu(const QPoint& pos)
+{
+    if (_document) {
+        QPoint globalPos = _ui->scrollAreaContents->mapToGlobal(pos);
+
+        int index = -1;
+        bool isSmall = false;
+
+        if (pos.y() < _ui->line->y() + _ui->line->height() / 2) {
+            isSmall = true;
+            index = _ui->smallTileset->indexAt(_ui->smallTileset->mapFromGlobal(globalPos));
+        }
+        else {
+            isSmall = false;
+            index = _ui->largeTileset->indexAt(_ui->largeTileset->mapFromGlobal(globalPos));
+        }
+
+        QMenu menu;
+        auto addAction = [&](const char* text, auto functor) {
+            QAction* action = menu.addAction(tr(text));
+            connect(action, &QAction::triggered, functor);
+        };
+
+        if (index >= 0) {
+            if (isSmall) {
+                addAction("Add Small Tile", [=]() {
+                    _document->undoStack()->push(
+                        new AddSmallTile(_document));
+                });
+                addAction("Add Small Tile Here", [=]() {
+                    _document->undoStack()->push(
+                        new AddSmallTile(_document, index));
+                });
+                addAction("Clone Small Tile Here", [=]() {
+                    _document->undoStack()->push(
+                        new CloneSmallTile(_document, index));
+                });
+                addAction("Remove Small Tile", [=]() {
+                    _document->undoStack()->push(
+                        new RemoveSmallTile(_document, index));
+                });
+            }
+            else {
+                addAction("Add Large Tile", [=]() {
+                    _document->undoStack()->push(
+                        new AddLargeTile(_document));
+                });
+                addAction("Add Large Tile Here", [=]() {
+                    _document->undoStack()->push(
+                        new AddLargeTile(_document, index));
+                });
+                addAction("Clone Large Tile Here", [=]() {
+                    _document->undoStack()->push(
+                        new CloneLargeTile(_document, index));
+                });
+                addAction("Remove Large Tile", [=]() {
+                    _document->undoStack()->push(
+                        new RemoveLargeTile(_document, index));
+                });
+            }
+        }
+        else {
+            addAction("Add Small Tile", [=]() {
+                _document->undoStack()->push(
+                    new AddSmallTile(_document));
+            });
+            addAction("Add Large Tile", [=]() {
+                _document->undoStack()->push(
+                    new AddLargeTile(_document));
+            });
+        }
+
+        menu.exec(globalPos);
+    }
 }
