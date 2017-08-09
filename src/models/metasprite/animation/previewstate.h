@@ -15,7 +15,7 @@ namespace Animation {
 
 class PreviewState {
 public:
-    const unsigned FP_SHIFT = 8;
+    constexpr static unsigned FP_SHIFT = 8;
 
     enum Region {
         NTSC = 0,

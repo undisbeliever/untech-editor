@@ -41,6 +41,8 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _ui->graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
 
+    _ui->animationPreview->setZoomSettings(_zoomSettings);
+
     _graphicsScene = new MsGraphicsScene(_actions, _layerSettings,
                                          _tilesetPixmaps, this);
     _ui->graphicsView->setScene(_graphicsScene);
@@ -156,6 +158,7 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     _animationDock->setDocument(_document.get());
     _palettesDock->setDocument(_document.get());
     _tilesetDock->setDocument(_document.get());
+    _ui->animationPreview->setDocument(_document.get());
 
     _ui->actionSave->setEnabled(_document != nullptr);
     _ui->actionSaveAs->setEnabled(_document != nullptr);

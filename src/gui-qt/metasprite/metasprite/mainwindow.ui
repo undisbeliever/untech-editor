@@ -13,13 +13,26 @@
   <property name="windowTitle">
    <string>UnTech</string>
   </property>
-  <widget class="ZoomableGraphicsView" name="graphicsView">
-   <property name="minimumSize">
-    <size>
-     <width>256</width>
-     <height>256</height>
-    </size>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="tabPosition">
+    <enum>QTabWidget::West</enum>
    </property>
+   <widget class="ZoomableGraphicsView" name="graphicsView">
+    <property name="minimumSize">
+     <size>
+      <width>256</width>
+      <height>256</height>
+     </size>
+    </property>
+    <attribute name="title">
+     <string>Frame</string>
+    </attribute>
+   </widget>
+   <widget class="Animation::AnimationPreview" name="animationPreview">
+    <attribute name="title">
+     <string>Animation Preview</string>
+    </attribute>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -109,6 +122,12 @@
    <class>ZoomableGraphicsView</class>
    <extends>QGraphicsView</extends>
    <header>gui-qt/common/graphics/zoomablegraphicsview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>Animation::AnimationPreview</class>
+   <extends>QWidget</extends>
+   <header>gui-qt/metasprite/animation/animationpreview.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

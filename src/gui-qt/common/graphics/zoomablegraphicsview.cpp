@@ -37,6 +37,9 @@ void ZoomableGraphicsView::setZoomSettings(ZoomSettings* zoomSettings)
         connect(_zoomSettings, &ZoomSettings::transformChanged,
                 this, &ZoomableGraphicsView::onZoomSettingsChanged);
     }
+    else {
+        resetTransform();
+    }
 }
 
 void ZoomableGraphicsView::onZoomSettingsChanged()

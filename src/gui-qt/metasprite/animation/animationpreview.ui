@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UnTech::GuiQt::MetaSprite::Animation::AnimationPreview</class>
+ <widget class="QWidget" name="UnTech::GuiQt::MetaSprite::Animation::AnimationPreview">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
+   <property name="leftMargin">
+    <number>3</number>
+   </property>
+   <property name="topMargin">
+    <number>3</number>
+   </property>
+   <property name="rightMargin">
+    <number>3</number>
+   </property>
+   <property name="bottomMargin">
+    <number>3</number>
+   </property>
+   <item>
+    <widget class="ZoomableGraphicsView" name="graphicsView">
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="footerLayout" stretch="0,0,1">
+     <property name="spacing">
+      <number>12</number>
+     </property>
+     <item>
+      <layout class="QVBoxLayout" name="buttonLayout">
+       <property name="spacing">
+        <number>1</number>
+       </property>
+       <item>
+        <widget class="QToolButton" name="playButton">
+         <property name="toolTip">
+          <string>Play Animation</string>
+         </property>
+         <property name="text">
+          <string>Play</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="stepButton">
+         <property name="toolTip">
+          <string>Step Display Frame</string>
+         </property>
+         <property name="text">
+          <string>Step</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="skipButton">
+         <property name="toolTip">
+          <string>Skip Animation Frame</string>
+         </property>
+         <property name="text">
+          <string>Skip</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="resetButton">
+         <property name="toolTip">
+          <string>Reset Animation</string>
+         </property>
+         <property name="text">
+          <string>Reset</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="settingsLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="regionLabel">
+         <property name="text">
+          <string>Region:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1" colspan="2">
+        <widget class="QComboBox" name="region"/>
+       </item>
+       <item row="1" column="0" colspan="3">
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="animationLabel">
+         <property name="text">
+          <string>Animation:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" colspan="2">
+        <widget class="QComboBox" name="animation"/>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="xVelocityLabel">
+         <property name="text">
+          <string>X Velocity:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QSlider" name="xVelocity">
+         <property name="minimumSize">
+          <size>
+           <width>180</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="minimum">
+          <number>-384</number>
+         </property>
+         <property name="maximum">
+          <number>384</number>
+         </property>
+         <property name="singleStep">
+          <number>1</number>
+         </property>
+         <property name="pageStep">
+          <number>32</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::TicksBelow</enum>
+         </property>
+         <property name="tickInterval">
+          <number>32</number>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QToolButton" name="zeroXVelocityButton">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="yVelocityLabel">
+         <property name="text">
+          <string>Y Velocity:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QSlider" name="yVelocity">
+         <property name="minimum">
+          <number>-384</number>
+         </property>
+         <property name="maximum">
+          <number>384</number>
+         </property>
+         <property name="singleStep">
+          <number>1</number>
+         </property>
+         <property name="pageStep">
+          <number>32</number>
+         </property>
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="tickPosition">
+          <enum>QSlider::TicksBelow</enum>
+         </property>
+         <property name="tickInterval">
+          <number>32</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QToolButton" name="zeroYVelocityButton">
+         <property name="text">
+          <string>0</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QFormLayout" name="displayLayout">
+       <property name="verticalSpacing">
+        <number>4</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="displayFrameLabel">
+         <property name="text">
+          <string>Display Frame:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="displayFrame">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="animationFrameLabel">
+         <property name="text">
+          <string>Animation Frame:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="animationFrame">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="metaSpriteFrameLabel">
+         <property name="text">
+          <string>MetaSprite Frame:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="metaSpriteFrame">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ZoomableGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>gui-qt/common/graphics/zoomablegraphicsview.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -39,6 +39,8 @@ MainWindow::MainWindow(QWidget* parent)
     _graphicsScene = new SiGraphicsScene(_actions, _layerSettings, this);
     _ui->graphicsView->setScene(_graphicsScene);
 
+    _ui->animationPreview->setZoomSettings(_zoomSettings);
+
     _frameSetDock = new FrameSetDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
 
@@ -136,6 +138,7 @@ void MainWindow::setDocument(std::unique_ptr<Document> document)
     _frameSetDock->setDocument(_document.get());
     _frameDock->setDocument(_document.get());
     _animationDock->setDocument(_document.get());
+    _ui->animationPreview->setDocument(_document.get());
 
     _ui->actionSave->setEnabled(_document != nullptr);
     _ui->actionSaveAs->setEnabled(_document != nullptr);
