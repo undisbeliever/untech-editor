@@ -86,6 +86,7 @@ void AnimationPreview::setDocument(AbstractDocument* document)
     }
 
     if (_document != nullptr) {
+        _document->disconnect(this);
         _document->selection()->disconnect(this);
     }
     _document = document;
@@ -96,6 +97,11 @@ void AnimationPreview::setDocument(AbstractDocument* document)
         _ui->animation->setModel(_document->animationListModel());
 
         onSelectedAnimationChanged();
+
+        connect(_document, &AbstractDocument::animationFrameChanged,
+                this, &AnimationPreview::onAnimationFramesChanged);
+        connect(_document, &AbstractDocument::animationFrameListChanged,
+                this, &AnimationPreview::onAnimationFramesChanged);
 
         connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
                 this, &AnimationPreview::onSelectedAnimationChanged);
@@ -181,6 +187,14 @@ void AnimationPreview::onSelectedAnimationChanged()
             _previewItem = nullptr;
         }
         stopTimer();
+    }
+}
+
+void AnimationPreview::onAnimationFramesChanged()
+{
+    if (_previewItem != nullptr) {
+        _previewItem->sync();
+        updateGui();
     }
 }
 

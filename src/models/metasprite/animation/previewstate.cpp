@@ -16,7 +16,6 @@ PreviewState::PreviewState()
     , _animationId()
     , _aFrameIndex(0)
     , _frameTime(0)
-    , _frame()
     , _displayFrameCount(0)
     , _region(Region::NTSC)
     , _velocity(0, 0)
@@ -45,6 +44,19 @@ const AnimationFrame* PreviewState::getAnimationFrame() const
     return &ani->frames.at(_aFrameIndex);
 }
 
+const MetaSprite::NameReference& PreviewState::frame() const
+{
+    const static NameReference BLANK_FRAME = {};
+
+    const Animation* ani = getAnimation();
+    if (ani == nullptr || _aFrameIndex >= ani->frames.size()) {
+        return BLANK_FRAME;
+    }
+    else {
+        return ani->frames.at(_aFrameIndex).frame;
+    }
+}
+
 bool PreviewState::isRunning() const
 {
     const Animation* ani = getAnimation();
@@ -60,14 +72,6 @@ void PreviewState::setAnimation(const idstring& aniId)
     _animationId = aniId;
     _aFrameIndex = 0;
     _frameTime = 0;
-
-    const Animation* ani = getAnimation();
-    if (ani && ani->frames.size() > 0) {
-        _frame = ani->frames.at(0).frame;
-    }
-    else {
-        _frame = NameReference();
-    }
 }
 
 bool PreviewState::processDisplayFrame()
@@ -122,21 +126,16 @@ void PreviewState::nextAnimationFrame()
     _frameTime = 0;
 
     _aFrameIndex++;
-    if (_aFrameIndex < ani->frames.size()) {
-        // next frame
-        _frame = ani->frames.at(_aFrameIndex).frame;
-    }
-    else {
+    if (_aFrameIndex >= ani->frames.size()) {
         // goto next animation
         if (ani->oneShot) {
-            _aFrameIndex = 0;
-            _animationId = idstring();
+            _aFrameIndex = ani->frames.size() - 1;
         }
         else if (ani->nextAnimation.isValid()) {
             setAnimation(ani->nextAnimation);
         }
         else {
-            setAnimation(_animationId);
+            _aFrameIndex = 0;
         }
     }
 }

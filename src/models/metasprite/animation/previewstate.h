@@ -41,8 +41,8 @@ public:
     bool processDisplayFrame();
     void nextAnimationFrame();
 
+    const NameReference& frame() const;
     bool isRunning() const;
-    const NameReference& frame() const { return _frame; }
     const idstring& animationId() const { return _animationId; }
     unsigned animationFrameIndex() const { return _aFrameIndex; }
     unsigned displayFrameCount() const { return _displayFrameCount; }
@@ -62,7 +62,6 @@ private:
     unsigned _aFrameIndex;
     unsigned _frameTime;
 
-    NameReference _frame;
     unsigned _displayFrameCount;
 
     Region _region;
