@@ -24,6 +24,7 @@ public:
     explicit TilesetPixmaps(QObject* parent = nullptr);
     ~TilesetPixmaps() = default;
 
+    const Document* document() const { return _document; }
     void setDocument(Document* document);
 
     const QVector<QPixmap>& smallTileset() const { return _smallTileset; }

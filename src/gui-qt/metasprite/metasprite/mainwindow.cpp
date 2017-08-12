@@ -9,6 +9,7 @@
 #include "document.h"
 #include "framedock.h"
 #include "framesetdock.h"
+#include "msanimationpreviewitem.h"
 #include "msgraphicsscene.h"
 #include "palettesdock.h"
 #include "tilesetdock.h"
@@ -34,6 +35,8 @@ MainWindow::MainWindow(QWidget* parent)
     , _layerSettings(new LayerSettings(this))
     , _undoGroup(new QUndoGroup(this))
     , _tilesetPixmaps(new TilesetPixmaps(this))
+    , _animationPreviewItemFactory(
+          new MsAnimationPreviewItemFactory(_layerSettings, _tilesetPixmaps, this))
 {
     _ui->setupUi(this);
 
@@ -42,6 +45,7 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
 
     _ui->animationPreview->setZoomSettings(_zoomSettings);
+    _ui->animationPreview->setItemFactory(_animationPreviewItemFactory);
 
     _graphicsScene = new MsGraphicsScene(_actions, _layerSettings,
                                          _tilesetPixmaps, this);

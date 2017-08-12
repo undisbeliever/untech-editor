@@ -28,6 +28,7 @@ class MainWindow;
 }
 class Document;
 class Actions;
+class SiAnimationPreviewItemFactory;
 class SiGraphicsScene;
 class FrameSetDock;
 class FrameDock;
@@ -64,6 +65,7 @@ private:
     Actions* _actions;
     ZoomSettings* _zoomSettings;
     LayerSettings* _layerSettings;
+    SiAnimationPreviewItemFactory* _animationPreviewItemFactory;
 
     QUndoGroup* _undoGroup;
 

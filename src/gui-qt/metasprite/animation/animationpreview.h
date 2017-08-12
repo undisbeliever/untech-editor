@@ -24,6 +24,7 @@ namespace Ui {
 class AnimationPreview;
 }
 class AnimationPreviewItem;
+class AnimationPreviewItemFactory;
 
 class AnimationPreview : public QWidget {
     Q_OBJECT
@@ -32,12 +33,16 @@ public:
     explicit AnimationPreview(QWidget* parent = nullptr);
     ~AnimationPreview();
 
+    void setItemFactory(AnimationPreviewItemFactory* itemFactory);
     void setZoomSettings(ZoomSettings* zoomSettings);
     void setDocument(AbstractDocument* document);
 
-    void clearGui();
+private:
+    void removePreviewItem();
+    void createPreviewItem();
 
 public slots:
+    void clearGui();
     void updateGui();
     void updateSceneRect();
 
@@ -69,6 +74,7 @@ protected:
 private:
     std::unique_ptr<Ui::AnimationPreview> _ui;
     QGraphicsScene* _graphicsScene;
+    AnimationPreviewItemFactory* _itemFactory;
     ZoomSettings* _zoomSettings;
 
     AbstractDocument* _document;

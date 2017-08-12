@@ -9,6 +9,7 @@
 #include "document.h"
 #include "framedock.h"
 #include "framesetdock.h"
+#include "sianimationpreviewitem.h"
 #include "sigraphicsscene.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
@@ -30,6 +31,8 @@ MainWindow::MainWindow(QWidget* parent)
     , _actions(new Actions(this))
     , _zoomSettings(new ZoomSettings(4.0, ZoomSettings::NTSC, this))
     , _layerSettings(new LayerSettings(this))
+    , _animationPreviewItemFactory(
+          new SiAnimationPreviewItemFactory(_layerSettings, this))
     , _undoGroup(new QUndoGroup(this))
 {
     _ui->setupUi(this);
@@ -40,6 +43,7 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->graphicsView->setScene(_graphicsScene);
 
     _ui->animationPreview->setZoomSettings(_zoomSettings);
+    _ui->animationPreview->setItemFactory(_animationPreviewItemFactory);
 
     _frameSetDock = new FrameSetDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);

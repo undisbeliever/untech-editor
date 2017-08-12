@@ -5,29 +5,77 @@
  */
 
 #include "animationpreviewitem.h"
-#include "gui-qt/metasprite/layersettings.h"
+#include "gui-qt/metasprite/abstractdocument.h"
+#include "models/common/int_ms8_t.h"
 
 #include <QGraphicsScene>
 #include <QPainter>
 #include <QtMath>
 
 using namespace UnTech;
+using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
-AnimationPreviewItem::AnimationPreviewItem(const MSA::Animation::map_t* map,
+AnimationPreviewItem::AnimationPreviewItem(const AbstractDocument* document,
                                            QGraphicsItem* parent)
-    : QGraphicsItem(parent)
+    : QGraphicsObject(parent)
+    , _document(document)
     , _animationId()
     , _state()
-    , _frame()
+    , _prevFrame()
+    , _framePtr(nullptr)
 {
-    Q_ASSERT(map != nullptr);
+    Q_ASSERT(document != nullptr);
 
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(ItemSendsGeometryChanges);
 
-    _state.setAnimationMap(map);
-    sync();
+    _state.setAnimationMap(document->animations());
+
+    connect(_document, &AbstractDocument::frameAdded,
+            this, &AnimationPreviewItem::onFrameAdded);
+    connect(_document, &AbstractDocument::frameAboutToBeRemoved,
+            this, &AnimationPreviewItem::onFrameAboutToBeRemoved);
+    connect(_document, &AbstractDocument::frameDataChanged,
+            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document, &AbstractDocument::frameObjectChanged,
+            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document, &AbstractDocument::actionPointChanged,
+            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document, &AbstractDocument::entityHitboxChanged,
+            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document, &AbstractDocument::frameObjectListChanged,
+            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document, &AbstractDocument::actionPointListChanged,
+            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document, &AbstractDocument::entityHitboxListChanged,
+            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
+}
+
+void AnimationPreviewItem::onFrameAdded()
+{
+    const void* framePtr = setFrame(_state.frame().name);
+    if (framePtr != _framePtr) {
+        _framePtr = framePtr;
+        update();
+    }
+}
+
+void AnimationPreviewItem::onFrameAboutToBeRemoved(const void* frame)
+{
+    if (_framePtr == frame) {
+        _framePtr = nullptr;
+        setFrame(idstring());
+        update();
+    }
+}
+
+void AnimationPreviewItem::onFrameDataAndContentsChanged(const void* frame)
+{
+    if (_framePtr == frame) {
+        setFrame(_state.frame().name);
+        update();
+    }
 }
 
 void AnimationPreviewItem::setAnimation(const idstring& animationId)
@@ -69,24 +117,34 @@ void AnimationPreviewItem::sync()
     setPos(pos.x, pos.y);
 
     const NameReference& frame = _state.frame();
-    if (_frame != frame) {
-        _frame = frame;
+    const void* framePtr = setFrame(frame.name);
+    if (_framePtr != framePtr || _prevFrame != frame) {
+        _prevFrame = frame;
+        _framePtr = framePtr;
         update();
     }
 }
 
 QRectF AnimationPreviewItem::boundingRect() const
 {
-    return QRectF(-8, -8, 16, 16);
+    return QRectF(int_ms8_t::MIN, int_ms8_t::MIN, UINT8_MAX, UINT8_MAX);
 }
 
 void AnimationPreviewItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-    painter->setPen(Qt::red);
+    if (_framePtr != nullptr) {
+        painter->scale(_state.frame().hFlip ? -1 : 1,
+                       _state.frame().vFlip ? -1 : 1);
 
-    painter->drawLine(-7, -7, 7, 7);
-    painter->drawLine(-7, 7, 7, -7);
+        drawFrame(painter);
+    }
+    else {
+        painter->setPen(Qt::red);
+
+        painter->drawLine(-4, -4, 4, 4);
+        painter->drawLine(-4, 4, 4, -4);
+    }
 }
 
 QVariant AnimationPreviewItem::itemChange(GraphicsItemChange change,

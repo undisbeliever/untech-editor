@@ -19,6 +19,7 @@ AnimationPreview::AnimationPreview(QWidget* parent)
     : QWidget(parent)
     , _ui(new Ui::AnimationPreview)
     , _graphicsScene(new QGraphicsScene(this))
+    , _itemFactory(nullptr)
     , _zoomSettings(nullptr)
     , _document(nullptr)
     , _previewItem(nullptr)
@@ -65,6 +66,15 @@ AnimationPreview::AnimationPreview(QWidget* parent)
 
 AnimationPreview::~AnimationPreview() = default;
 
+void AnimationPreview::setItemFactory(AnimationPreviewItemFactory* itemFactory)
+{
+    Q_ASSERT(itemFactory != nullptr);
+
+    removePreviewItem();
+
+    _itemFactory = itemFactory;
+}
+
 void AnimationPreview::setZoomSettings(ZoomSettings* zoomSettings)
 {
     if (_zoomSettings) {
@@ -107,10 +117,39 @@ void AnimationPreview::setDocument(AbstractDocument* document)
                 this, &AnimationPreview::onSelectedAnimationChanged);
     }
     else {
-        stopTimer();
+        removePreviewItem();
         clearGui();
         _ui->animation->setModel(nullptr);
     }
+}
+
+void AnimationPreview::removePreviewItem()
+{
+    stopTimer();
+    clearGui();
+
+    _previewItem = nullptr;
+    _graphicsScene->clear();
+}
+
+void AnimationPreview::createPreviewItem()
+{
+    if (_previewItem != nullptr) {
+        return;
+    }
+    if (_itemFactory == nullptr || _document == nullptr) {
+        return;
+    }
+
+    _previewItem = _itemFactory->createPreviewItem(_document);
+    _graphicsScene->addItem(_previewItem);
+
+    onRegionChanged();
+    onVelocityChanged();
+
+    _previewItem->setAnimation(_document->selection()->selectedAnimationId());
+
+    updateGui();
 }
 
 void AnimationPreview::clearGui()
@@ -172,21 +211,15 @@ void AnimationPreview::onSelectedAnimationChanged()
 
     if (id.isValid()) {
         if (_previewItem == nullptr) {
-            _previewItem = new AnimationPreviewItem(_document->animations());
-            _graphicsScene->addItem(_previewItem);
-
-            onRegionChanged();
-            onVelocityChanged();
+            createPreviewItem();
         }
-
-        _previewItem->setAnimation(id);
+        else {
+            _previewItem->setAnimation(id);
+            updateGui();
+        }
     }
     else {
-        if (_previewItem) {
-            _graphicsScene->clear();
-            _previewItem = nullptr;
-        }
-        stopTimer();
+        removePreviewItem();
     }
 }
 

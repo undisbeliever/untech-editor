@@ -30,6 +30,7 @@ class Document;
 class Actions;
 class TilesetPixmaps;
 class MsGraphicsScene;
+class MsAnimationPreviewItemFactory;
 class FrameSetDock;
 class FrameDock;
 class PalettesDock;
@@ -73,6 +74,7 @@ private:
     QUndoGroup* _undoGroup;
 
     TilesetPixmaps* _tilesetPixmaps;
+    MsAnimationPreviewItemFactory* _animationPreviewItemFactory;
 
     MsGraphicsScene* _graphicsScene;
     FrameSetDock* _frameSetDock;

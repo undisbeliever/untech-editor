@@ -34,6 +34,7 @@ namespace MS = UnTech::MetaSprite::MetaSprite;
 class MsGraphicsScene : public QGraphicsScene {
     Q_OBJECT
 
+public:
     static const QRect ITEM_RANGE;
 
     static const unsigned FRAME_OBJECT_ZVALUE = 100;
