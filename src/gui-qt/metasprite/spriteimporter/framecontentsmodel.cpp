@@ -582,11 +582,12 @@ SET_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxChanged);
             endInsertRows();                                                   \
         }                                                                      \
                                                                                \
-        emit _document->SIGNAL(frame, index);                                  \
+        emit _document->SIGNAL##Added(frame, index);                           \
+        emit _document->SIGNAL##ListChanged(frame);                            \
     }
-INSERT_ITEM(FrameObject, objects, FRAME_OBJECT, frameObjectAdded);
-INSERT_ITEM(ActionPoint, actionPoints, ACTION_POINT, actionPointAdded);
-INSERT_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxAdded);
+INSERT_ITEM(FrameObject, objects, FRAME_OBJECT, frameObject);
+INSERT_ITEM(ActionPoint, actionPoints, ACTION_POINT, actionPoint);
+INSERT_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitbox);
 
 #define REMOVE_ITEM(CLS, FIELD, INTERNAL_ID, SIGNAL)                       \
     void FrameContentsModel::remove##CLS(SI::Frame* frame, unsigned index) \
@@ -595,7 +596,7 @@ INSERT_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxAdded);
         Q_ASSERT(frame->FIELD.size() > 0);                                 \
         Q_ASSERT(index < frame->FIELD.size());                             \
                                                                            \
-        emit _document->SIGNAL(frame, index);                              \
+        emit _document->SIGNAL##AboutToBeRemoved(frame, index);            \
                                                                            \
         if (_frame == frame) {                                             \
             beginRemoveRows(createIndex(INTERNAL_ID - 1, 0, ROOT),         \
@@ -608,14 +609,20 @@ INSERT_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxAdded);
         if (_frame == frame) {                                             \
             endRemoveRows();                                               \
         }                                                                  \
+                                                                           \
+        emit _document->SIGNAL##ListChanged(frame);                        \
     }
-REMOVE_ITEM(FrameObject, objects, FRAME_OBJECT, frameObjectAboutToBeRemoved);
-REMOVE_ITEM(ActionPoint, actionPoints, ACTION_POINT, actionPointAboutToBeRemoved);
-REMOVE_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitboxAboutToBeRemoved);
+REMOVE_ITEM(FrameObject, objects, FRAME_OBJECT, frameObject);
+REMOVE_ITEM(ActionPoint, actionPoints, ACTION_POINT, actionPoint);
+REMOVE_ITEM(EntityHitbox, entityHitboxes, ENTITY_HITBOX, entityHitbox);
 
 void FrameContentsModel::raiseSelectedItems(SI::Frame* frame,
                                             const std::set<SelectedItem>& items)
 {
+    bool frameObjectListChanged = false;
+    bool actionPointListChanged = false;
+    bool entityHitboxListChanged = false;
+
     for (const auto& item : items) {
         if (item.index == 0) {
             continue;
@@ -637,14 +644,17 @@ void FrameContentsModel::raiseSelectedItems(SI::Frame* frame,
 
         switch (item.type) {
         case SelectedItem::FRAME_OBJECT:
+            frameObjectListChanged = true;
             fn(FRAME_OBJECT, frame->objects);
             break;
 
         case SelectedItem::ACTION_POINT:
+            actionPointListChanged = true;
             fn(ACTION_POINT, frame->actionPoints);
             break;
 
         case SelectedItem::ENTITY_HITBOX:
+            entityHitboxListChanged = true;
             fn(ENTITY_HITBOX, frame->entityHitboxes);
             break;
 
@@ -654,11 +664,25 @@ void FrameContentsModel::raiseSelectedItems(SI::Frame* frame,
     }
 
     emit _document->frameContentsMoved(frame, items, -1);
+
+    if (frameObjectListChanged) {
+        emit _document->frameObjectListChanged(frame);
+    }
+    if (actionPointListChanged) {
+        emit _document->actionPointListChanged(frame);
+    }
+    if (entityHitboxListChanged) {
+        emit _document->entityHitboxListChanged(frame);
+    }
 }
 
 void FrameContentsModel::lowerSelectedItems(SI::Frame* frame,
                                             const std::set<SelectedItem>& items)
 {
+    bool frameObjectListChanged = false;
+    bool actionPointListChanged = false;
+    bool entityHitboxListChanged = false;
+
     for (auto it = items.rbegin(); it != items.rend(); it++) {
         const auto& item = *it;
 
@@ -680,14 +704,17 @@ void FrameContentsModel::lowerSelectedItems(SI::Frame* frame,
 
         switch (item.type) {
         case SelectedItem::FRAME_OBJECT:
+            frameObjectListChanged = true;
             fn(FRAME_OBJECT, frame->objects);
             break;
 
         case SelectedItem::ACTION_POINT:
+            actionPointListChanged = true;
             fn(ACTION_POINT, frame->actionPoints);
             break;
 
         case SelectedItem::ENTITY_HITBOX:
+            entityHitboxListChanged = true;
             fn(ENTITY_HITBOX, frame->entityHitboxes);
             break;
 
@@ -697,4 +724,14 @@ void FrameContentsModel::lowerSelectedItems(SI::Frame* frame,
     }
 
     emit _document->frameContentsMoved(frame, items, 1);
+
+    if (frameObjectListChanged) {
+        emit _document->frameObjectListChanged(frame);
+    }
+    if (actionPointListChanged) {
+        emit _document->actionPointListChanged(frame);
+    }
+    if (entityHitboxListChanged) {
+        emit _document->entityHitboxListChanged(frame);
+    }
 }

@@ -36,6 +36,7 @@ void AnimationListModel::insertAnimation(
     insertMapItem(animations, id, std::move(animation));
 
     emit _document->animationAdded(animationPtr);
+    emit _document->animationMapChanged();
 }
 
 std::unique_ptr<MSA::Animation> AnimationListModel::removeAnimation(const idstring& id)
@@ -43,7 +44,10 @@ std::unique_ptr<MSA::Animation> AnimationListModel::removeAnimation(const idstri
     auto& animations = *_document->animations();
 
     emit _document->animationAboutToBeRemoved(animations.getPtr(id));
-    return removeMapItem(animations, id);
+    auto ret = removeMapItem(animations, id);
+    emit _document->animationMapChanged();
+
+    return ret;
 }
 
 void AnimationListModel::renameAnimation(const idstring& oldId, const idstring& newId)
@@ -53,4 +57,5 @@ void AnimationListModel::renameAnimation(const idstring& oldId, const idstring& 
     renameMapItem(animations, oldId, newId);
 
     emit _document->animationRenamed(animations.getPtr(newId), newId);
+    emit _document->animationMapChanged();
 }

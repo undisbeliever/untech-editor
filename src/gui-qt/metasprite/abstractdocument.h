@@ -58,6 +58,7 @@ signals:
 
     void frameDataChanged(const void* frame);
     void frameTileHitboxChanged(const void* frame);
+    void frameMapChanged();
     void frameAdded(const void* frame);
     void frameAboutToBeRemoved(const void* frame);
     void frameRenamed(const void* frame, const idstring& newId);
@@ -65,6 +66,10 @@ signals:
     void frameObjectChanged(const void* frame, unsigned index);
     void actionPointChanged(const void* frame, unsigned index);
     void entityHitboxChanged(const void* frame, unsigned index);
+
+    void frameObjectListChanged(const void* frame);
+    void actionPointListChanged(const void* frame);
+    void entityHitboxListChanged(const void* frame);
 
     void frameObjectAboutToBeRemoved(const void* frame, unsigned index);
     void actionPointAboutToBeRemoved(const void* frame, unsigned index);
@@ -78,11 +83,13 @@ signals:
                             const std::set<SelectedItem>& oldPositions, int offset);
 
     void animationDataChanged(const void* animation);
+    void animationMapChanged();
     void animationAdded(const void* animation);
     void animationAboutToBeRemoved(const void* animation);
     void animationRenamed(const void* animation, const idstring& newId);
 
     void animationFrameChanged(const void* animation, unsigned index);
+    void animationFrameListChanged(const void* animation);
     void animationFrameAdded(const void* animation, unsigned index);
     void animationFrameAboutToBeRemoved(const void* animation, unsigned index);
     void animationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);

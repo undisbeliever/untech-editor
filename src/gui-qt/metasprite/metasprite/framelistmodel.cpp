@@ -35,6 +35,7 @@ void FrameListModel::insertFrame(const idstring& id, std::unique_ptr<MS::Frame> 
     insertMapItem(frames, id, std::move(frame));
 
     emit _document->frameAdded(framePtr);
+    emit _document->frameMapChanged();
 }
 
 std::unique_ptr<MS::Frame> FrameListModel::removeFrame(const idstring& id)
@@ -42,7 +43,10 @@ std::unique_ptr<MS::Frame> FrameListModel::removeFrame(const idstring& id)
     auto& frames = _document->frameSet()->frames;
 
     emit _document->frameAboutToBeRemoved(frames.getPtr(id));
-    return removeMapItem(frames, id);
+    auto ret = removeMapItem(frames, id);
+    emit _document->frameMapChanged();
+
+    return ret;
 }
 
 void FrameListModel::renameFrame(const idstring& oldId, const idstring& newId)
@@ -52,4 +56,5 @@ void FrameListModel::renameFrame(const idstring& oldId, const idstring& newId)
     renameMapItem(frames, oldId, newId);
 
     emit _document->frameRenamed(frames.getPtr(newId), newId);
+    emit _document->frameMapChanged();
 }

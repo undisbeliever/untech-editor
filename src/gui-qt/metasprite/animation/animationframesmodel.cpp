@@ -250,6 +250,8 @@ void AnimationFramesModel::insertAnimationFrame(MSA::Animation* animation,
     if (_animation == animation) {
         endInsertRows();
     }
+
+    emit _document->animationFrameListChanged(animation);
 }
 
 void AnimationFramesModel::removeAnimationFrame(MSA::Animation* animation, unsigned index)
@@ -269,6 +271,8 @@ void AnimationFramesModel::removeAnimationFrame(MSA::Animation* animation, unsig
     if (_animation == animation) {
         endRemoveRows();
     }
+
+    emit _document->animationFrameListChanged(animation);
 }
 
 void AnimationFramesModel::raiseAnimationFrame(MSA::Animation* animation, unsigned index)
@@ -288,6 +292,7 @@ void AnimationFramesModel::raiseAnimationFrame(MSA::Animation* animation, unsign
     }
 
     emit _document->animationFrameMoved(animation, index, index - 1);
+    emit _document->animationFrameListChanged(animation);
 }
 
 void AnimationFramesModel::lowerAnimationFrame(MSA::Animation* animation, unsigned index)
@@ -306,4 +311,5 @@ void AnimationFramesModel::lowerAnimationFrame(MSA::Animation* animation, unsign
     }
 
     emit _document->animationFrameMoved(animation, index, index + 1);
+    emit _document->animationFrameListChanged(animation);
 }
