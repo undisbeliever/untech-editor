@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QBasicTimer>
+#include <QElapsedTimer>
 #include <QGraphicsScene>
 #include <QWidget>
 #include <functional>
@@ -80,7 +81,10 @@ private:
     AbstractDocument* _document;
 
     AnimationPreviewItem* _previewItem;
+
     QBasicTimer _timer;
+    QElapsedTimer _elapsed;
+    qint64 _nsSinceLastFrame;
 };
 }
 }

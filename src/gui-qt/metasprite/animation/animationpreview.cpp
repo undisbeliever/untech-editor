@@ -24,16 +24,20 @@ AnimationPreview::AnimationPreview(QWidget* parent)
     , _document(nullptr)
     , _previewItem(nullptr)
     , _timer()
+    , _elapsed()
+    , _nsSinceLastFrame()
 {
     _ui->setupUi(this);
 
     _ui->graphicsView->setScene(_graphicsScene);
 
+    _ui->region->addItem("NTSC", 1000000000 / 60);
+    _ui->region->addItem("PAL", 1000000000 / 50);
+
+    _elapsed.start();
+
     updateGui();
     updateSceneRect();
-
-    _ui->region->addItem("NTSC", 60);
-    _ui->region->addItem("PAL", 50);
 
     setEnabled(false);
 
@@ -255,9 +259,8 @@ void AnimationPreview::onRegionChanged()
     using Region = MSA::PreviewState::Region;
 
     if (_previewItem) {
-        int fps = _ui->region->currentData().toInt();
-
-        if (fps == 60) {
+        unsigned nsPerFrame = _ui->region->currentData().toUInt();
+        if (nsPerFrame == 1000000000 / 60) {
             _previewItem->setRegion(Region::NTSC);
         }
         else {
@@ -313,14 +316,10 @@ void AnimationPreview::onResetClicked()
 
 void AnimationPreview::updateTimer()
 {
-    int fps = 0;
-
-    if (_ui->playButton->isChecked()) {
-        fps = _ui->region->currentData().toInt();
-    }
-
-    if (fps > 0) {
-        _timer.start(1000 / fps, Qt::PreciseTimer, this);
+    if (_ui->playButton->isChecked() && _ui->region->currentIndex() >= 0) {
+        _elapsed.restart();
+        _nsSinceLastFrame = _elapsed.nsecsElapsed();
+        _timer.start(1, Qt::PreciseTimer, this);
     }
     else {
         _timer.stop();
@@ -337,10 +336,23 @@ void AnimationPreview::timerEvent(QTimerEvent* event)
 {
     if (event->timerId() == _timer.timerId()) {
         if (_previewItem) {
-            _previewItem->processDisplayFrame();
+            unsigned nsPerFrame = _ui->region->currentData().toUInt();
+            qint64 nsecsElapsed = _elapsed.nsecsElapsed();
+            qint64 ns = nsecsElapsed - _nsSinceLastFrame;
 
-            if (_previewItem->state().isRunning() == false) {
-                stopTimer();
+            if (ns > nsPerFrame * 4) {
+                ns = nsPerFrame * 4;
+                _nsSinceLastFrame = nsecsElapsed - ns;
+            }
+            while (ns >= nsPerFrame) {
+                ns -= nsPerFrame;
+                _nsSinceLastFrame += nsPerFrame;
+
+                _previewItem->processDisplayFrame();
+                if (_previewItem->state().isRunning() == false) {
+                    stopTimer();
+                    break;
+                }
             }
         }
         else {
