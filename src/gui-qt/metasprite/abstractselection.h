@@ -69,6 +69,7 @@ public:
     void selectAnimation(const idstring& id);
     void unselectAnimation();
     void selectAnimationFrame(int index);
+    void unselectAnimationFrame() { selectAnimationFrame(-1); }
 
     bool canCloneSelectedItems() const;
     bool canRaiseSelectedItems() const;

@@ -218,7 +218,7 @@ void AbstractSelection::onAnimationFrameAboutToBeRemoved(const void* animation, 
     if (_selectedAnimation == animation
         && _selectedAnimationFrame == int(index)) {
 
-        unselectAnimation();
+        unselectAnimationFrame();
     }
 }
 
