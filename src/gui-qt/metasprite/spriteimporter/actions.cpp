@@ -41,6 +41,8 @@ Actions::Actions(MainWindow* mainWindow)
     _cloneSelected->setShortcut(Qt::CTRL + Qt::Key_D);
     _removeSelected->setShortcut(Qt::Key_Delete);
 
+    _toggleObjSize = new QAction(tr("Toggle Object Size"), this);
+
     updateActions();
 
     connect(_addFrame, &QAction::triggered, this, &Actions::onAddFrame);
@@ -55,6 +57,8 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_lowerSelected, &QAction::triggered, this, &Actions::onLowerSelected);
     connect(_cloneSelected, &QAction::triggered, this, &Actions::onCloneSelected);
     connect(_removeSelected, &QAction::triggered, this, &Actions::onRemoveSelected);
+
+    connect(_toggleObjSize, &QAction::triggered, this, &Actions::onToggleObjSize);
 }
 
 void Actions::setDocument(Document* document)
@@ -88,6 +92,7 @@ void Actions::updateActions()
     bool canLowerSelected = false;
     bool canCloneSelected = false;
     bool canRemoveSelected = false;
+    bool frameObjSelected = false;
 
     if (_document) {
         documentExists = true;
@@ -110,6 +115,7 @@ void Actions::updateActions()
         canLowerSelected = _document->selection()->canLowerSelectedItems();
         canCloneSelected = _document->selection()->canCloneSelectedItems();
         canRemoveSelected = _document->selection()->selectedItems().size() > 0;
+        frameObjSelected = _document->selection()->isFrameObjectSelected();
     }
 
     _addFrame->setEnabled(documentExists);
@@ -124,6 +130,7 @@ void Actions::updateActions()
     _lowerSelected->setEnabled(canLowerSelected);
     _cloneSelected->setEnabled(canCloneSelected);
     _removeSelected->setEnabled(canRemoveSelected);
+    _toggleObjSize->setEnabled(frameObjSelected);
 }
 
 void Actions::onAddFrame()
@@ -321,4 +328,25 @@ void Actions::onRemoveSelected()
     if (items.size() > 1) {
         undoStack->endMacro();
     }
+}
+
+void Actions::onToggleObjSize()
+{
+    using ObjSize = UnTech::MetaSprite::ObjectSize;
+
+    QUndoStack* undoStack = _document->undoStack();
+    SI::Frame* frame = _document->selection()->selectedFrame();
+
+    undoStack->beginMacro(tr("Change Object Size"));
+
+    for (const auto& item : _document->selection()->selectedItems()) {
+        if (item.type == SelectedItem::FRAME_OBJECT) {
+            SI::FrameObject obj = frame->objects.at(item.index);
+            obj.size = obj.size == ObjSize::SMALL ? ObjSize::LARGE : ObjSize::SMALL;
+
+            undoStack->push(new ChangeFrameObject(_document, frame, item.index, obj));
+        }
+    }
+
+    undoStack->endMacro();
 }

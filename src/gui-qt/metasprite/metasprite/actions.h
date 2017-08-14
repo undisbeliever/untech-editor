@@ -47,6 +47,8 @@ public:
     QAction* cloneSelected() const { return _cloneSelected; }
     QAction* removeSelected() const { return _removeSelected; }
 
+    QAction* toggleObjSize() const { return _toggleObjSize; }
+
 public slots:
     void updateActions();
 
@@ -71,6 +73,8 @@ public slots:
     void onLowerSelected();
     void onCloneSelected();
     void onRemoveSelected();
+
+    void onToggleObjSize();
 
 private:
     MainWindow* _mainWindow;
@@ -97,6 +101,8 @@ private:
     QAction* _lowerSelected;
     QAction* _cloneSelected;
     QAction* _removeSelected;
+
+    QAction* _toggleObjSize;
 };
 }
 }

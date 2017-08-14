@@ -188,6 +188,10 @@ void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
         const auto& selectedItems = _document->selection()->selectedItems();
 
         QMenu menu;
+        if (_actions->toggleObjSize()->isEnabled()) {
+            menu.addAction(_actions->toggleObjSize());
+            menu.addSeparator();
+        }
         menu.addAction(_actions->addFrameObject());
         menu.addAction(_actions->addActionPoint());
         menu.addAction(_actions->addEntityHitbox());

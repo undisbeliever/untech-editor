@@ -79,6 +79,10 @@ public:
     void selectActionPoint(unsigned index);
     void selectEntityHitbox(unsigned index);
 
+    bool isFrameObjectSelected() const;
+    bool isActionPointSelected() const;
+    bool isEntityHitboxSelected() const;
+
 protected:
     virtual const void* setSelectedFrame(const idstring& id) = 0;
     virtual unsigned nObjectsInSelectedFrame() const = 0;

@@ -276,6 +276,10 @@ void SiFrameGraphicsItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event
 {
     if (_frameSelected) {
         QMenu menu;
+        if (_actions->toggleObjSize()->isEnabled()) {
+            menu.addAction(_actions->toggleObjSize());
+            menu.addSeparator();
+        }
         menu.addAction(_actions->addFrameObject());
         menu.addAction(_actions->addActionPoint());
         menu.addAction(_actions->addEntityHitbox());

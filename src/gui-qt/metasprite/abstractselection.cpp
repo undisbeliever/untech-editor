@@ -373,3 +373,21 @@ void AbstractSelection::selectEntityHitbox(unsigned index)
 
     emit selectedItemsChanged();
 }
+
+bool AbstractSelection::isFrameObjectSelected() const
+{
+    return std::any_of(_selectedItems.begin(), _selectedItems.end(),
+                       [](auto& i) { return i.type == SelectedItem::FRAME_OBJECT; });
+}
+
+bool AbstractSelection::isActionPointSelected() const
+{
+    return std::any_of(_selectedItems.begin(), _selectedItems.end(),
+                       [](auto& i) { return i.type == SelectedItem::ACTION_POINT; });
+}
+
+bool AbstractSelection::isEntityHitboxSelected() const
+{
+    return std::any_of(_selectedItems.begin(), _selectedItems.end(),
+                       [](auto& i) { return i.type == SelectedItem::ENTITY_HITBOX; });
+}
