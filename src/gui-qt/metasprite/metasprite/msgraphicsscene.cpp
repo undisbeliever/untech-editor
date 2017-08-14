@@ -190,6 +190,8 @@ void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
         QMenu menu;
         if (_actions->toggleObjSize()->isEnabled()) {
             menu.addAction(_actions->toggleObjSize());
+            menu.addAction(_actions->flipObjHorizontally());
+            menu.addAction(_actions->flipObjVertically());
             menu.addSeparator();
         }
         menu.addAction(_actions->addFrameObject());

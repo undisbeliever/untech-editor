@@ -48,6 +48,8 @@ public:
     QAction* removeSelected() const { return _removeSelected; }
 
     QAction* toggleObjSize() const { return _toggleObjSize; }
+    QAction* flipObjHorizontally() const { return _flipObjHorizontally; }
+    QAction* flipObjVertically() const { return _flipObjVertically; }
 
 public slots:
     void updateActions();
@@ -75,6 +77,8 @@ public slots:
     void onRemoveSelected();
 
     void onToggleObjSize();
+    void onFlipObjHorizontally();
+    void onFlipObjVertically();
 
 private:
     MainWindow* _mainWindow;
@@ -103,6 +107,8 @@ private:
     QAction* _removeSelected;
 
     QAction* _toggleObjSize;
+    QAction* _flipObjHorizontally;
+    QAction* _flipObjVertically;
 };
 }
 }

@@ -44,6 +44,8 @@ Actions::Actions(MainWindow* mainWindow)
     _removeSelected = new QAction(tr("Remove Selected"), this);
 
     _toggleObjSize = new QAction(tr("Toggle Object Size"), this);
+    _flipObjHorizontally = new QAction(tr("Flip Object Horizontally"), this);
+    _flipObjVertically = new QAction(tr("Flip Object Vertically"), this);
 
     _raiseSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Up);
     _lowerSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Down);
@@ -74,6 +76,8 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_removeSelected, &QAction::triggered, this, &Actions::onRemoveSelected);
 
     connect(_toggleObjSize, &QAction::triggered, this, &Actions::onToggleObjSize);
+    connect(_flipObjHorizontally, &QAction::triggered, this, &Actions::onFlipObjHorizontally);
+    connect(_flipObjVertically, &QAction::triggered, this, &Actions::onFlipObjVertically);
 }
 
 void Actions::setDocument(Document* document)
@@ -174,6 +178,8 @@ void Actions::updateActions()
     _removeSelected->setEnabled(canRemoveSelected);
 
     _toggleObjSize->setEnabled(frameObjSelected);
+    _flipObjVertically->setEnabled(frameObjSelected);
+    _flipObjHorizontally->setEnabled(frameObjSelected);
 }
 
 void Actions::onAddFrame()
@@ -431,6 +437,44 @@ void Actions::onToggleObjSize()
         if (item.type == SelectedItem::FRAME_OBJECT) {
             MS::FrameObject obj = frame->objects.at(item.index);
             obj.size = obj.size == ObjSize::SMALL ? ObjSize::LARGE : ObjSize::SMALL;
+
+            undoStack->push(new ChangeFrameObject(_document, frame, item.index, obj));
+        }
+    }
+
+    undoStack->endMacro();
+}
+
+void Actions::onFlipObjHorizontally()
+{
+    QUndoStack* undoStack = _document->undoStack();
+    MS::Frame* frame = _document->selection()->selectedFrame();
+
+    undoStack->beginMacro(tr("Flip Horizontally"));
+
+    for (const auto& item : _document->selection()->selectedItems()) {
+        if (item.type == SelectedItem::FRAME_OBJECT) {
+            MS::FrameObject obj = frame->objects.at(item.index);
+            obj.hFlip = !obj.hFlip;
+
+            undoStack->push(new ChangeFrameObject(_document, frame, item.index, obj));
+        }
+    }
+
+    undoStack->endMacro();
+}
+
+void Actions::onFlipObjVertically()
+{
+    QUndoStack* undoStack = _document->undoStack();
+    MS::Frame* frame = _document->selection()->selectedFrame();
+
+    undoStack->beginMacro(tr("Flip Vertically"));
+
+    for (const auto& item : _document->selection()->selectedItems()) {
+        if (item.type == SelectedItem::FRAME_OBJECT) {
+            MS::FrameObject obj = frame->objects.at(item.index);
+            obj.vFlip = !obj.vFlip;
 
             undoStack->push(new ChangeFrameObject(_document, frame, item.index, obj));
         }
