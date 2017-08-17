@@ -7,7 +7,9 @@
 #pragma once
 
 #include <QAction>
+#include <QMenu>
 #include <QObject>
+#include <memory>
 
 namespace UnTech {
 namespace GuiQt {
@@ -42,6 +44,7 @@ public:
     QAction* removeSelected() const { return _removeSelected; }
 
     QAction* toggleObjSize() const { return _toggleObjSize; }
+    QMenu* entityHitboxTypeMenu() const { return _entityHitboxTypeMenu.get(); }
 
 public slots:
     void updateActions();
@@ -63,6 +66,7 @@ public slots:
     void onRemoveSelected();
 
     void onToggleObjSize();
+    void onEntityHitboxTypeMenu(QAction* action);
 
 private:
     MainWindow* _mainWindow;
@@ -85,6 +89,7 @@ private:
     QAction* _removeSelected;
 
     QAction* _toggleObjSize;
+    std::unique_ptr<QMenu> _entityHitboxTypeMenu;
 };
 }
 }

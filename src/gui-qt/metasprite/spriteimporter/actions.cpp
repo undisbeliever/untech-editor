@@ -43,6 +43,12 @@ Actions::Actions(MainWindow* mainWindow)
 
     _toggleObjSize = new QAction(tr("Toggle Object Size"), this);
 
+    _entityHitboxTypeMenu = std::make_unique<QMenu>(tr("Set Entity Hitbox Type"));
+    for (auto& it : UnTech::MetaSprite::EntityHitboxType::enumMap) {
+        QString s = QString::fromStdString(it.second);
+        _entityHitboxTypeMenu->addAction(s)->setData(int(it.first));
+    }
+
     updateActions();
 
     connect(_addFrame, &QAction::triggered, this, &Actions::onAddFrame);
@@ -59,6 +65,7 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_removeSelected, &QAction::triggered, this, &Actions::onRemoveSelected);
 
     connect(_toggleObjSize, &QAction::triggered, this, &Actions::onToggleObjSize);
+    connect(_entityHitboxTypeMenu.get(), &QMenu::triggered, this, &Actions::onEntityHitboxTypeMenu);
 }
 
 void Actions::setDocument(Document* document)
@@ -93,6 +100,7 @@ void Actions::updateActions()
     bool canCloneSelected = false;
     bool canRemoveSelected = false;
     bool frameObjSelected = false;
+    bool entityHitboxSelected = false;
 
     if (_document) {
         documentExists = true;
@@ -116,6 +124,7 @@ void Actions::updateActions()
         canCloneSelected = _document->selection()->canCloneSelectedItems();
         canRemoveSelected = _document->selection()->selectedItems().size() > 0;
         frameObjSelected = _document->selection()->isFrameObjectSelected();
+        entityHitboxSelected = _document->selection()->isEntityHitboxSelected();
     }
 
     _addFrame->setEnabled(documentExists);
@@ -131,6 +140,7 @@ void Actions::updateActions()
     _cloneSelected->setEnabled(canCloneSelected);
     _removeSelected->setEnabled(canRemoveSelected);
     _toggleObjSize->setEnabled(frameObjSelected);
+    _entityHitboxTypeMenu->setEnabled(entityHitboxSelected);
 }
 
 void Actions::onAddFrame()
@@ -349,4 +359,28 @@ void Actions::onToggleObjSize()
     }
 
     undoStack->endMacro();
+}
+
+void Actions::onEntityHitboxTypeMenu(QAction* action)
+{
+    using EhtEnum = UnTech::MetaSprite::EntityHitboxType::Enum;
+
+    EhtEnum ehType = EhtEnum(action->data().toInt());
+    SI::Frame* frame = _document->selection()->selectedFrame();
+    auto command = std::make_unique<QUndoCommand>(tr("Change Entity Hitbox Type"));
+
+    for (const auto& item : _document->selection()->selectedItems()) {
+        if (item.type == SelectedItem::ENTITY_HITBOX) {
+            SI::EntityHitbox eh = frame->entityHitboxes.at(item.index);
+
+            if (eh.hitboxType != ehType) {
+                eh.hitboxType = ehType;
+                new ChangeEntityHitbox(_document, frame, item.index, eh, command.get());
+            }
+        }
+    }
+
+    if (command->childCount() > 0) {
+        _document->undoStack()->push(command.release());
+    }
 }

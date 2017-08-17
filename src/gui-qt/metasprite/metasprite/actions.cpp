@@ -47,6 +47,12 @@ Actions::Actions(MainWindow* mainWindow)
     _flipObjHorizontally = new QAction(tr("Flip Object Horizontally"), this);
     _flipObjVertically = new QAction(tr("Flip Object Vertically"), this);
 
+    _entityHitboxTypeMenu = std::make_unique<QMenu>(tr("Set Entity Hitbox Type"));
+    for (auto& it : UnTech::MetaSprite::EntityHitboxType::enumMap) {
+        QString s = QString::fromStdString(it.second);
+        _entityHitboxTypeMenu->addAction(s)->setData(int(it.first));
+    }
+
     _raiseSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Up);
     _lowerSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Down);
     _cloneSelected->setShortcut(Qt::CTRL + Qt::Key_D);
@@ -78,6 +84,8 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_toggleObjSize, &QAction::triggered, this, &Actions::onToggleObjSize);
     connect(_flipObjHorizontally, &QAction::triggered, this, &Actions::onFlipObjHorizontally);
     connect(_flipObjVertically, &QAction::triggered, this, &Actions::onFlipObjVertically);
+
+    connect(_entityHitboxTypeMenu.get(), &QMenu::triggered, this, &Actions::onEntityHitboxTypeMenu);
 }
 
 void Actions::setDocument(Document* document)
@@ -121,6 +129,7 @@ void Actions::updateActions()
     bool canCloneSelected = false;
     bool canRemoveSelected = false;
     bool frameObjSelected = false;
+    bool entityHitboxSelected = false;
 
     if (_document) {
         documentExists = true;
@@ -154,6 +163,7 @@ void Actions::updateActions()
         canCloneSelected = _document->selection()->canCloneSelectedItems();
         canRemoveSelected = _document->selection()->selectedItems().size() > 0;
         frameObjSelected = _document->selection()->isFrameObjectSelected();
+        entityHitboxSelected = _document->selection()->isEntityHitboxSelected();
     }
 
     _addFrame->setEnabled(documentExists);
@@ -180,6 +190,8 @@ void Actions::updateActions()
     _toggleObjSize->setEnabled(frameObjSelected);
     _flipObjVertically->setEnabled(frameObjSelected);
     _flipObjHorizontally->setEnabled(frameObjSelected);
+
+    _entityHitboxTypeMenu->setEnabled(entityHitboxSelected);
 }
 
 void Actions::onAddFrame()
@@ -481,4 +493,28 @@ void Actions::onFlipObjVertically()
     }
 
     undoStack->endMacro();
+}
+
+void Actions::onEntityHitboxTypeMenu(QAction* action)
+{
+    using EhtEnum = UnTech::MetaSprite::EntityHitboxType::Enum;
+
+    EhtEnum ehType = EhtEnum(action->data().toInt());
+    MS::Frame* frame = _document->selection()->selectedFrame();
+    auto command = std::make_unique<QUndoCommand>(tr("Change Entity Hitbox Type"));
+
+    for (const auto& item : _document->selection()->selectedItems()) {
+        if (item.type == SelectedItem::ENTITY_HITBOX) {
+            MS::EntityHitbox eh = frame->entityHitboxes.at(item.index);
+
+            if (eh.hitboxType != ehType) {
+                eh.hitboxType = ehType;
+                new ChangeEntityHitbox(_document, frame, item.index, eh, command.get());
+            }
+        }
+    }
+
+    if (command->childCount() > 0) {
+        _document->undoStack()->push(command.release());
+    }
 }

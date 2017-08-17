@@ -230,10 +230,18 @@ void FrameDock::onFrameContentsContextMenu(const QPoint& pos)
         QModelIndex modelIndex = _ui->frameContents->indexAt(pos);
 
         QMenu menu;
+        bool addSep = false;
         if (_actions->toggleObjSize()->isEnabled()) {
             menu.addAction(_actions->toggleObjSize());
             menu.addAction(_actions->flipObjHorizontally());
             menu.addAction(_actions->flipObjVertically());
+            addSep = true;
+        }
+        if (_actions->entityHitboxTypeMenu()->isEnabled()) {
+            menu.addMenu(_actions->entityHitboxTypeMenu());
+            addSep = true;
+        }
+        if (addSep) {
             menu.addSeparator();
         }
         menu.addAction(_actions->addFrameObject());

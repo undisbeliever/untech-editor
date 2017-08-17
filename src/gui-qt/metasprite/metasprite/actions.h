@@ -7,7 +7,9 @@
 #pragma once
 
 #include <QAction>
+#include <QMenu>
 #include <QObject>
+#include <memory>
 
 namespace UnTech {
 namespace GuiQt {
@@ -51,6 +53,8 @@ public:
     QAction* flipObjHorizontally() const { return _flipObjHorizontally; }
     QAction* flipObjVertically() const { return _flipObjVertically; }
 
+    QMenu* entityHitboxTypeMenu() const { return _entityHitboxTypeMenu.get(); }
+
 public slots:
     void updateActions();
 
@@ -79,6 +83,8 @@ public slots:
     void onToggleObjSize();
     void onFlipObjHorizontally();
     void onFlipObjVertically();
+
+    void onEntityHitboxTypeMenu(QAction* action);
 
 private:
     MainWindow* _mainWindow;
@@ -109,6 +115,8 @@ private:
     QAction* _toggleObjSize;
     QAction* _flipObjHorizontally;
     QAction* _flipObjVertically;
+
+    std::unique_ptr<QMenu> _entityHitboxTypeMenu;
 };
 }
 }

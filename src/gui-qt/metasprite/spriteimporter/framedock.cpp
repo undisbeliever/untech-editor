@@ -286,8 +286,15 @@ void FrameDock::onFrameContentsContextMenu(const QPoint& pos)
         QModelIndex modelIndex = _ui->frameContents->indexAt(pos);
 
         QMenu menu;
+        bool addSep = false;
         if (_actions->toggleObjSize()->isEnabled()) {
             menu.addAction(_actions->toggleObjSize());
+        }
+        if (_actions->entityHitboxTypeMenu()->isEnabled()) {
+            menu.addMenu(_actions->entityHitboxTypeMenu());
+            addSep = true;
+        }
+        if (addSep) {
             menu.addSeparator();
         }
         menu.addAction(_actions->addFrameObject());
