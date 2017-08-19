@@ -18,7 +18,7 @@ namespace GuiQt {
 class ZoomSettings;
 
 namespace MetaSprite {
-class AbstractDocument;
+class AbstractMsDocument;
 
 namespace Animation {
 namespace Ui {
@@ -36,7 +36,7 @@ public:
 
     void setItemFactory(AnimationPreviewItemFactory* itemFactory);
     void setZoomSettings(ZoomSettings* zoomSettings);
-    void setDocument(AbstractDocument* document);
+    void setDocument(AbstractMsDocument* document);
 
 private:
     void removePreviewItem();
@@ -78,7 +78,7 @@ private:
     AnimationPreviewItemFactory* _itemFactory;
     ZoomSettings* _zoomSettings;
 
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
 
     AnimationPreviewItem* _previewItem;
 

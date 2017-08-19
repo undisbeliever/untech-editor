@@ -13,7 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractDocument;
+class AbstractMsDocument;
 
 namespace Animation {
 class ChangeAnimationFrame;
@@ -40,7 +40,7 @@ public:
     explicit AnimationFramesModel(QObject* parent = nullptr);
     ~AnimationFramesModel() = default;
 
-    void setDocument(AbstractDocument* document);
+    void setDocument(AbstractMsDocument* document);
 
     QModelIndex toModelIndex(int row) const;
 
@@ -79,7 +79,7 @@ private slots:
     void onAnimationDataChanged(const void* animation);
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     MSA::Animation* _animation;
 };
 }

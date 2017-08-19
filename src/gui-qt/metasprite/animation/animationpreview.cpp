@@ -8,7 +8,7 @@
 #include "animationlistmodel.h"
 #include "animationpreviewitem.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
-#include "gui-qt/metasprite/abstractdocument.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/animation/animationpreview.ui.h"
 
@@ -93,7 +93,7 @@ void AnimationPreview::setZoomSettings(ZoomSettings* zoomSettings)
             this, &AnimationPreview::updateSceneRect);
 }
 
-void AnimationPreview::setDocument(AbstractDocument* document)
+void AnimationPreview::setDocument(AbstractMsDocument* document)
 {
     if (_document == document) {
         return;
@@ -112,9 +112,9 @@ void AnimationPreview::setDocument(AbstractDocument* document)
 
         onSelectedAnimationChanged();
 
-        connect(_document, &AbstractDocument::animationFrameChanged,
+        connect(_document, &AbstractMsDocument::animationFrameChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
-        connect(_document, &AbstractDocument::animationFrameListChanged,
+        connect(_document, &AbstractMsDocument::animationFrameListChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
 
         connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,

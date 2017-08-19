@@ -6,7 +6,7 @@
 
 #include "animationcommands.h"
 #include "animationlistmodel.h"
-#include "gui-qt/metasprite/abstractdocument.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 
 #include <QCoreApplication>
 
@@ -16,7 +16,7 @@ using namespace UnTech::GuiQt::MetaSprite::Animation;
 // AddRemoveAnimation
 // ==================
 
-AddRemoveAnimation::AddRemoveAnimation(AbstractDocument* document,
+AddRemoveAnimation::AddRemoveAnimation(AbstractMsDocument* document,
                                        const idstring& animationId, std::unique_ptr<MSA::Animation> frame)
     : QUndoCommand()
     , _document(document)
@@ -45,7 +45,7 @@ void AddRemoveAnimation::removeAnimation()
 // AddAnimation
 // ============
 
-AddAnimation::AddAnimation(AbstractDocument* document, const idstring& newId)
+AddAnimation::AddAnimation(AbstractMsDocument* document, const idstring& newId)
     : AddRemoveAnimation(document, newId,
                          std::make_unique<MSA::Animation>())
 {
@@ -64,7 +64,7 @@ void AddAnimation::redo()
 // CloneAnimation
 // ==============
 
-CloneAnimation::CloneAnimation(AbstractDocument* document,
+CloneAnimation::CloneAnimation(AbstractMsDocument* document,
                                const idstring& id, const idstring& newId)
     : AddRemoveAnimation(document, newId,
                          std::make_unique<MSA::Animation>(document->animations()->at(id)))
@@ -84,7 +84,7 @@ void CloneAnimation::redo()
 // RemoveAnimation
 // ===============
 
-RemoveAnimation::RemoveAnimation(AbstractDocument* document, const idstring& animationId)
+RemoveAnimation::RemoveAnimation(AbstractMsDocument* document, const idstring& animationId)
     : AddRemoveAnimation(document, animationId, nullptr)
 {
     setText(QCoreApplication::tr("Remove Animation"));
@@ -102,7 +102,7 @@ void RemoveAnimation::redo()
 // RenameAnimation
 // ===============
 
-RenameAnimation::RenameAnimation(AbstractDocument* document,
+RenameAnimation::RenameAnimation(AbstractMsDocument* document,
                                  const idstring& oldId, const idstring& newId)
     : QUndoCommand(QCoreApplication::tr("Rename Animation"))
     , _document(document)
@@ -126,7 +126,7 @@ void RenameAnimation::redo()
 // =============================
 
 ChangeAnimationDurationFormat::ChangeAnimationDurationFormat(
-    AbstractDocument* document, MSA::Animation* animation, const MSA::DurationFormat& format)
+    AbstractMsDocument* document, MSA::Animation* animation, const MSA::DurationFormat& format)
     : QUndoCommand(QCoreApplication::tr("Change Animation Duration Format"))
     , _document(document)
     , _animation(animation)
@@ -152,7 +152,7 @@ void ChangeAnimationDurationFormat::redo()
 // ============================
 
 ChangeAnimationNextAnimation::ChangeAnimationNextAnimation(
-    AbstractDocument* document, MSA::Animation* animation, const idstring& nextAnimation)
+    AbstractMsDocument* document, MSA::Animation* animation, const idstring& nextAnimation)
     : QUndoCommand(QCoreApplication::tr("Change Next Animation"))
     , _document(document)
     , _animation(animation)
@@ -178,7 +178,7 @@ void ChangeAnimationNextAnimation::redo()
 // ======================
 
 ChangeAnimationOneShot::ChangeAnimationOneShot(
-    AbstractDocument* document, MSA::Animation* animation, bool oneShot)
+    AbstractMsDocument* document, MSA::Animation* animation, bool oneShot)
     : QUndoCommand()
     , _document(document)
     , _animation(animation)

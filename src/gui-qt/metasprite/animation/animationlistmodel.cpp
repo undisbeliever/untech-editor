@@ -5,7 +5,7 @@
  */
 
 #include "animationlistmodel.h"
-#include "gui-qt/metasprite/abstractdocument.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
@@ -15,7 +15,7 @@ AnimationListModel::AnimationListModel(QObject* parent)
 {
 }
 
-void AnimationListModel::setDocument(AbstractDocument* document)
+void AnimationListModel::setDocument(AbstractMsDocument* document)
 {
     Q_ASSERT(document != nullptr);
 

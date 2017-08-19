@@ -12,7 +12,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractDocument;
+class AbstractMsDocument;
 
 namespace Animation {
 
@@ -20,7 +20,7 @@ namespace MSA = UnTech::MetaSprite::Animation;
 
 class AddRemoveAnimationFrame : public QUndoCommand {
 protected:
-    AddRemoveAnimationFrame(AbstractDocument* document,
+    AddRemoveAnimationFrame(AbstractMsDocument* document,
                             MSA::Animation* animation, unsigned index,
                             const MSA::AnimationFrame&,
                             const QString& text);
@@ -31,7 +31,7 @@ protected:
     void removeAnimationFrame();
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     MSA::Animation* _animation;
     const unsigned _index;
     const MSA::AnimationFrame _animationFrame;
@@ -39,7 +39,7 @@ private:
 
 class AddAnimationFrame : public AddRemoveAnimationFrame {
 public:
-    AddAnimationFrame(AbstractDocument* document,
+    AddAnimationFrame(AbstractMsDocument* document,
                       MSA::Animation* animation);
     ~AddAnimationFrame() = default;
 
@@ -49,7 +49,7 @@ public:
 
 class CloneAnimationFrame : public AddRemoveAnimationFrame {
 public:
-    CloneAnimationFrame(AbstractDocument* document,
+    CloneAnimationFrame(AbstractMsDocument* document,
                         MSA::Animation* animation, unsigned index);
     ~CloneAnimationFrame() = default;
 
@@ -59,7 +59,7 @@ public:
 
 class RemoveAnimationFrame : public AddRemoveAnimationFrame {
 public:
-    RemoveAnimationFrame(AbstractDocument* document,
+    RemoveAnimationFrame(AbstractMsDocument* document,
                          MSA::Animation* animation, unsigned index);
     ~RemoveAnimationFrame() = default;
 
@@ -69,7 +69,7 @@ public:
 
 class RaiseAnimationFrame : public QUndoCommand {
 public:
-    RaiseAnimationFrame(AbstractDocument* document,
+    RaiseAnimationFrame(AbstractMsDocument* document,
                         MSA::Animation* animation, unsigned index);
     ~RaiseAnimationFrame() = default;
 
@@ -77,14 +77,14 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     MSA::Animation* _animation;
     const unsigned _index;
 };
 
 class LowerAnimationFrame : public QUndoCommand {
 public:
-    LowerAnimationFrame(AbstractDocument* document,
+    LowerAnimationFrame(AbstractMsDocument* document,
                         MSA::Animation* animation, unsigned index);
     ~LowerAnimationFrame() = default;
 
@@ -92,14 +92,14 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     MSA::Animation* _animation;
     const unsigned _index;
 };
 
 class ChangeAnimationFrame : public QUndoCommand {
 public:
-    ChangeAnimationFrame(AbstractDocument* document,
+    ChangeAnimationFrame(AbstractMsDocument* document,
                          MSA::Animation* animation, unsigned index,
                          const MSA::AnimationFrame& newValue);
     ~ChangeAnimationFrame() = default;
@@ -108,7 +108,7 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     MSA::Animation* _animation;
     unsigned _index;
     const MSA::AnimationFrame _oldValue;

@@ -15,7 +15,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractDocument;
+class AbstractMsDocument;
 
 namespace Animation {
 namespace Ui {
@@ -34,7 +34,7 @@ public:
 
     AnimationActions* actions() const { return _actions.get(); }
 
-    void setDocument(AbstractDocument* document);
+    void setDocument(AbstractMsDocument* document);
 
     void clearGui();
 
@@ -59,7 +59,7 @@ private slots:
 private:
     std::unique_ptr<Ui::AnimationDock> _ui;
     std::unique_ptr<AnimationActions> _actions;
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
 
     QCompleter* _nextAnimationCompleter;
 };

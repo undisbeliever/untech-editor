@@ -14,59 +14,59 @@
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-const char* Document::FILE_FILTER = "MetaSprite FrameSet (*.utms);;All Files (*)";
-
 Document::Document(QObject* parent)
-    : Document(std::make_unique<MS::FrameSet>(), QString(), parent)
-{
-}
-
-Document::Document(std::unique_ptr<MS::FrameSet> frameSet,
-                   const QString& filename, QObject* parent)
-    : AbstractDocument(parent)
-    , _frameSet(std::move(frameSet))
+    : AbstractMsDocument(parent)
+    , _frameSet(std::make_unique<MS::FrameSet>())
     , _selection(new Selection(this))
     , _frameListModel(new FrameListModel(this))
     , _frameContentsModel(new FrameContentsModel(this))
     , _palettesModel(new PalettesModel(this))
 {
-    Q_ASSERT(_frameSet != nullptr);
+    initModels();
+}
 
-    _filename = filename;
-
+void Document::initModels()
+{
     _selection->setDocument(this);
     _frameListModel->setDocument(this);
     _frameContentsModel->setDocument(this);
     _palettesModel->setDocument(this);
 
-    initModels();
+    AbstractMsDocument::initModels();
 }
 
-std::unique_ptr<Document> Document::loadDocument(const QString& filename)
+const QString& Document::fileFilter() const
 {
-    try {
-        return std::make_unique<Document>(
-            MS::loadFrameSet(filename.toUtf8().data()), filename);
-    }
-    catch (const std::exception& ex) {
-        QMessageBox::critical(nullptr, tr("Error Opening File"), ex.what());
+    static const QString FILTER = QString::fromUtf8(
+        "MetaSprite FrameSet (*.utms);;All Files (*)");
 
-        return nullptr;
-    }
+    return FILTER;
 }
 
-bool Document::saveDocument(const QString& filename)
+bool Document::saveDocumentFile(const QString& filename)
 {
     try {
         MS::saveFrameSet(*_frameSet, filename.toUtf8().data());
-        _filename = filename;
-        _undoStack->setClean();
-
         return true;
     }
     catch (const std::exception& ex) {
         QMessageBox::critical(nullptr, tr("Error Saving File"), ex.what());
-
         return false;
     }
+}
+
+bool Document::loadDocumentFile(const QString& filename)
+{
+    try {
+        auto fs = MS::loadFrameSet(filename.toUtf8().data());
+        if (fs) {
+            _frameSet = std::move(fs);
+            initModels();
+            return true;
+        }
+    }
+    catch (const std::exception& ex) {
+        QMessageBox::critical(nullptr, tr("Error Opening File"), ex.what());
+    }
+    return false;
 }

@@ -13,7 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractDocument;
+class AbstractMsDocument;
 
 namespace Animation {
 
@@ -24,7 +24,7 @@ public:
     AnimationActions(QWidget* parent);
     ~AnimationActions() = default;
 
-    void setDocument(AbstractDocument*);
+    void setDocument(AbstractMsDocument*);
 
     QAction* addAnimation() const { return _addAnimation; }
     QAction* cloneAnimation() const { return _cloneAnimation; }
@@ -53,7 +53,7 @@ public slots:
 
 private:
     QWidget* _widget;
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
 
     QAction* _addAnimation;
     QAction* _cloneAnimation;

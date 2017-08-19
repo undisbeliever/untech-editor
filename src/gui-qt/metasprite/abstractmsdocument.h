@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/common/abstractdocument.h"
 #include "models/common/idstring.h"
 #include "models/metasprite/animation/animation.h"
 #include <QObject>
@@ -26,25 +27,17 @@ class AbstractSelection;
 
 namespace MSA = UnTech::MetaSprite::Animation;
 
-class AbstractDocument : public QObject {
+class AbstractMsDocument : public GuiQt::AbstractDocument {
     Q_OBJECT
 
 public:
-    static const char* FILE_FILTER;
-
-public:
-    explicit AbstractDocument(QObject* parent = nullptr);
-    ~AbstractDocument() = default;
+    explicit AbstractMsDocument(QObject* parent = nullptr);
+    ~AbstractMsDocument() = default;
 
 protected:
     void initModels();
 
 public:
-    virtual bool saveDocument(const QString& filename) = 0;
-
-    const QString& filename() const { return _filename; }
-    QUndoStack* undoStack() const { return _undoStack; }
-
     virtual MSA::Animation::map_t* animations() const = 0;
 
     virtual AbstractSelection* selection() const = 0;
@@ -94,10 +87,7 @@ signals:
     void animationFrameAboutToBeRemoved(const void* animation, unsigned index);
     void animationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
 
-protected:
-    QString _filename;
-    QUndoStack* _undoStack;
-
+private:
     Animation::AnimationListModel* _animationListModel;
     Animation::AnimationFramesModel* _animationFramesModel;
 };

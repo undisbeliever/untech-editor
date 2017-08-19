@@ -5,7 +5,7 @@
  */
 
 #include "abstractselection.h"
-#include "abstractdocument.h"
+#include "abstractmsdocument.h"
 #include "models/metasprite/common.h"
 
 #include <algorithm>
@@ -41,7 +41,7 @@ AbstractSelection::AbstractSelection(QObject* parent)
 {
 }
 
-void AbstractSelection::setDocument(AbstractDocument* document)
+void AbstractSelection::setDocument(AbstractMsDocument* document)
 {
     Q_ASSERT(document != nullptr);
 
@@ -53,25 +53,25 @@ void AbstractSelection::setDocument(AbstractDocument* document)
     unselectFrame();
     unselectAnimation();
 
-    connect(_document, &AbstractDocument::frameAboutToBeRemoved,
+    connect(_document, &AbstractMsDocument::frameAboutToBeRemoved,
             this, &AbstractSelection::onFrameAboutToBeRemoved);
-    connect(_document, &AbstractDocument::frameRenamed,
+    connect(_document, &AbstractMsDocument::frameRenamed,
             this, &AbstractSelection::onFrameRenamed);
-    connect(_document, &AbstractDocument::frameObjectAboutToBeRemoved,
+    connect(_document, &AbstractMsDocument::frameObjectAboutToBeRemoved,
             this, &AbstractSelection::onFrameObjectAboutToBeRemoved);
-    connect(_document, &AbstractDocument::frameObjectAboutToBeRemoved,
+    connect(_document, &AbstractMsDocument::frameObjectAboutToBeRemoved,
             this, &AbstractSelection::onActionPointAboutToBeRemoved);
-    connect(_document, &AbstractDocument::frameObjectAboutToBeRemoved,
+    connect(_document, &AbstractMsDocument::frameObjectAboutToBeRemoved,
             this, &AbstractSelection::onEntityHitboxAboutToBeRemoved);
-    connect(_document, &AbstractDocument::frameContentsMoved,
+    connect(_document, &AbstractMsDocument::frameContentsMoved,
             this, &AbstractSelection::onFrameContentsMoved);
-    connect(_document, &AbstractDocument::animationAboutToBeRemoved,
+    connect(_document, &AbstractMsDocument::animationAboutToBeRemoved,
             this, &AbstractSelection::onAnimationAboutToBeRemoved);
-    connect(_document, &AbstractDocument::animationRenamed,
+    connect(_document, &AbstractMsDocument::animationRenamed,
             this, &AbstractSelection::onAnimationRenamed);
-    connect(_document, &AbstractDocument::animationFrameAboutToBeRemoved,
+    connect(_document, &AbstractMsDocument::animationFrameAboutToBeRemoved,
             this, &AbstractSelection::onAnimationFrameAboutToBeRemoved);
-    connect(_document, &AbstractDocument::animationFrameMoved,
+    connect(_document, &AbstractMsDocument::animationFrameMoved,
             this, &AbstractSelection::onAnimationFrameMoved);
 }
 

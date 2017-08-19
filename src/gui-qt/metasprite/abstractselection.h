@@ -16,7 +16,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractDocument;
+class AbstractMsDocument;
 
 namespace MSA = UnTech::MetaSprite::Animation;
 
@@ -51,7 +51,7 @@ public:
     explicit AbstractSelection(QObject* parent = nullptr);
     ~AbstractSelection() = default;
 
-    void setDocument(AbstractDocument* document);
+    void setDocument(AbstractMsDocument* document);
 
     bool hasSelectedFrame() const { return _selectedFramePtr != nullptr; }
     const idstring& selectedFrameId() const { return _selectedFrameId; }
@@ -114,7 +114,7 @@ private slots:
     void onAnimationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
 
 protected:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     const void* _selectedFramePtr;
     idstring _selectedFrameId;
     std::set<SelectedItem> _selectedItems;

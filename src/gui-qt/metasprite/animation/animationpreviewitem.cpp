@@ -5,7 +5,7 @@
  */
 
 #include "animationpreviewitem.h"
-#include "gui-qt/metasprite/abstractdocument.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 #include "models/common/int_ms8_t.h"
 
 #include <QGraphicsScene>
@@ -16,7 +16,7 @@ using namespace UnTech;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
-AnimationPreviewItem::AnimationPreviewItem(const AbstractDocument* document,
+AnimationPreviewItem::AnimationPreviewItem(const AbstractMsDocument* document,
                                            QGraphicsItem* parent)
     : QGraphicsObject(parent)
     , _document(document)
@@ -32,23 +32,23 @@ AnimationPreviewItem::AnimationPreviewItem(const AbstractDocument* document,
 
     _state.setAnimationMap(document->animations());
 
-    connect(_document, &AbstractDocument::frameAdded,
+    connect(_document, &AbstractMsDocument::frameAdded,
             this, &AnimationPreviewItem::onFrameAdded);
-    connect(_document, &AbstractDocument::frameAboutToBeRemoved,
+    connect(_document, &AbstractMsDocument::frameAboutToBeRemoved,
             this, &AnimationPreviewItem::onFrameAboutToBeRemoved);
-    connect(_document, &AbstractDocument::frameDataChanged,
+    connect(_document, &AbstractMsDocument::frameDataChanged,
             this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractDocument::frameObjectChanged,
+    connect(_document, &AbstractMsDocument::frameObjectChanged,
             this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractDocument::actionPointChanged,
+    connect(_document, &AbstractMsDocument::actionPointChanged,
             this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractDocument::entityHitboxChanged,
+    connect(_document, &AbstractMsDocument::entityHitboxChanged,
             this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractDocument::frameObjectListChanged,
+    connect(_document, &AbstractMsDocument::frameObjectListChanged,
             this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractDocument::actionPointListChanged,
+    connect(_document, &AbstractMsDocument::actionPointListChanged,
             this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractDocument::entityHitboxListChanged,
+    connect(_document, &AbstractMsDocument::entityHitboxListChanged,
             this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
 }
 

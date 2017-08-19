@@ -11,7 +11,7 @@
 #include "animationframesmodel.h"
 #include "animationlistmodel.h"
 #include "gui-qt/common/idstringvalidator.h"
-#include "gui-qt/metasprite/abstractdocument.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/animation/animationdock.ui.h"
 
@@ -58,7 +58,7 @@ AnimationDock::AnimationDock(QWidget* parent)
 
 AnimationDock::~AnimationDock() = default;
 
-void AnimationDock::setDocument(AbstractDocument* document)
+void AnimationDock::setDocument(AbstractMsDocument* document)
 {
     if (_document == document) {
         return;
@@ -92,7 +92,7 @@ void AnimationDock::setDocument(AbstractDocument* document)
         onSelectedAnimationChanged();
         onSelectedAnimationFrameChanged();
 
-        connect(_document, &AbstractDocument::animationDataChanged,
+        connect(_document, &AbstractMsDocument::animationDataChanged,
                 this, &AnimationDock::onAnimationDataChanged);
 
         connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,

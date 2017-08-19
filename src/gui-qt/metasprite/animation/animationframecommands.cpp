@@ -6,7 +6,7 @@
 
 #include "animationframecommands.h"
 #include "animationframesmodel.h"
-#include "gui-qt/metasprite/abstractdocument.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 
 #include <QCoreApplication>
 
@@ -15,7 +15,7 @@ using namespace UnTech::GuiQt::MetaSprite::Animation;
 // AddRemoveAnimationFrame
 // =======================
 
-AddRemoveAnimationFrame::AddRemoveAnimationFrame(AbstractDocument* document,
+AddRemoveAnimationFrame::AddRemoveAnimationFrame(AbstractMsDocument* document,
                                                  MSA::Animation* animation, unsigned index,
                                                  const MSA::AnimationFrame& animationFrame,
                                                  const QString& text)
@@ -41,7 +41,7 @@ void AddRemoveAnimationFrame::removeAnimationFrame()
 // AddAnimationFrame
 // =================
 
-AddAnimationFrame::AddAnimationFrame(AbstractDocument* document,
+AddAnimationFrame::AddAnimationFrame(AbstractMsDocument* document,
                                      MSA::Animation* animation)
     : AddRemoveAnimationFrame(document, animation,
                               animation->frames.size(), MSA::AnimationFrame(),
@@ -61,7 +61,7 @@ void AddAnimationFrame::redo()
 // CloneAnimationFrame
 // ===================
 
-CloneAnimationFrame::CloneAnimationFrame(AbstractDocument* document,
+CloneAnimationFrame::CloneAnimationFrame(AbstractMsDocument* document,
                                          MSA::Animation* animation, unsigned index)
     : AddRemoveAnimationFrame(document, animation,
                               animation->frames.size(), animation->frames.at(index),
@@ -81,7 +81,7 @@ void CloneAnimationFrame::redo()
 // RemoveAnimationFrame
 // ====================
 
-RemoveAnimationFrame::RemoveAnimationFrame(AbstractDocument* document,
+RemoveAnimationFrame::RemoveAnimationFrame(AbstractMsDocument* document,
                                            MSA::Animation* animation, unsigned index)
     : AddRemoveAnimationFrame(document, animation,
                               index, animation->frames.at(index),
@@ -101,7 +101,7 @@ void RemoveAnimationFrame::redo()
 // RaiseAnimationFrame
 // ===================
 
-RaiseAnimationFrame::RaiseAnimationFrame(AbstractDocument* document,
+RaiseAnimationFrame::RaiseAnimationFrame(AbstractMsDocument* document,
                                          MSA::Animation* animation, unsigned index)
     : QUndoCommand(QCoreApplication::tr("Raise Animation Frame"))
     , _document(document)
@@ -123,7 +123,7 @@ void RaiseAnimationFrame::redo()
 // LowerAnimationFrame
 // ===================
 
-LowerAnimationFrame::LowerAnimationFrame(AbstractDocument* document,
+LowerAnimationFrame::LowerAnimationFrame(AbstractMsDocument* document,
                                          MSA::Animation* animation, unsigned index)
     : QUndoCommand(QCoreApplication::tr("Lower Animation Frame"))
     , _document(document)
@@ -145,7 +145,7 @@ void LowerAnimationFrame::redo()
 // ChangeAnimationFrame
 // ====================
 
-ChangeAnimationFrame::ChangeAnimationFrame(AbstractDocument* document,
+ChangeAnimationFrame::ChangeAnimationFrame(AbstractMsDocument* document,
                                            MSA::Animation* animation, unsigned index,
                                            const MSA::AnimationFrame& newValue)
     : QUndoCommand(QCoreApplication::tr("Change Animation Frame"))

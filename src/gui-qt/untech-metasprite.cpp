@@ -29,7 +29,10 @@ int main(int argc, char* argv[])
 
     const QStringList args = parser.positionalArguments();
     if (args.size() > 0) {
-        window->setDocument(Document::loadDocument(args.first()));
+        auto doc = std::make_unique<Document>();
+        if (doc->loadDocument(args.first())) {
+            window->setDocument(std::move(doc));
+        }
     }
 
     return app.exec();

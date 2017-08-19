@@ -12,7 +12,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractDocument;
+class AbstractMsDocument;
 
 namespace Animation {
 class AddRemoveAnimation;
@@ -27,7 +27,7 @@ public:
     explicit AnimationListModel(QObject* parent = nullptr);
     ~AnimationListModel() = default;
 
-    void setDocument(AbstractDocument* document);
+    void setDocument(AbstractMsDocument* document);
 
 protected:
     friend class AddRemoveAnimation;
@@ -38,7 +38,7 @@ protected:
     void renameAnimation(const idstring& oldId, const idstring& newId);
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
 };
 }
 }

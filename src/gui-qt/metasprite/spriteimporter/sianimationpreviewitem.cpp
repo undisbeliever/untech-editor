@@ -23,7 +23,7 @@ SiAnimationPreviewItemFactory::SiAnimationPreviewItemFactory(LayerSettings* laye
 }
 
 SiAnimationPreviewItem* SiAnimationPreviewItemFactory::createPreviewItem(
-    const AbstractDocument* abstractDocument)
+    const AbstractMsDocument* abstractDocument)
 {
     const Document* document = dynamic_cast<const Document*>(abstractDocument);
     if (document) {

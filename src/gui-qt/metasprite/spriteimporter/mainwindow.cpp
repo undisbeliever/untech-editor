@@ -198,14 +198,13 @@ void MainWindow::onActionOpen()
         return;
     }
 
-    QString filter = tr(Document::FILE_FILTER);
+    auto doc = std::make_unique<Document>();
 
     const QString filename = QFileDialog::getOpenFileName(
-        this, tr("Open FrameSet"), QString(), filter);
+        this, tr("Open FrameSet"), QString(), doc->fileFilter());
 
     if (!filename.isNull()) {
-        auto doc = Document::loadDocument(filename);
-        if (doc) {
+        if (doc->loadDocument(filename)) {
             setDocument(std::move(doc));
         }
     }
@@ -223,10 +222,9 @@ bool MainWindow::saveDocument()
 
 bool MainWindow::saveDocumentAs()
 {
-    QString filter = tr(Document::FILE_FILTER);
-
     const QString filename = QFileDialog::getSaveFileName(
-        this, tr("Save FrameSet"), _document->filename(), filter);
+        this, tr("Save FrameSet"),
+        _document->filename(), _document->fileFilter());
 
     if (!filename.isNull()) {
         return _document->saveDocument(filename);

@@ -12,7 +12,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractDocument;
+class AbstractMsDocument;
 
 namespace Animation {
 
@@ -25,7 +25,7 @@ class AnimationPreviewItem : public QGraphicsObject {
     using Region = MSA::PreviewState::Region;
 
 public:
-    explicit AnimationPreviewItem(const AbstractDocument* document,
+    explicit AnimationPreviewItem(const AbstractMsDocument* document,
                                   QGraphicsItem* parent = nullptr);
     ~AnimationPreviewItem() = default;
 
@@ -71,7 +71,7 @@ protected:
     virtual void drawFrame(QPainter* painter) = 0;
 
 private:
-    const AbstractDocument* _document;
+    const AbstractMsDocument* _document;
 
     idstring _animationId;
     MSA::PreviewState _state;
@@ -82,7 +82,7 @@ private:
 
 class AnimationPreviewItemFactory {
 public:
-    virtual AnimationPreviewItem* createPreviewItem(const AbstractDocument*) = 0;
+    virtual AnimationPreviewItem* createPreviewItem(const AbstractMsDocument*) = 0;
 };
 }
 }

@@ -8,7 +8,7 @@
 
 #include "framelistmodel.h"
 #include "selection.h"
-#include "gui-qt/metasprite/abstractdocument.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 #include "models/metasprite/spriteimporter.h"
 #include <memory>
 
@@ -20,20 +20,12 @@ class FrameContentsModel;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
-class Document : public AbstractDocument {
+class Document : public AbstractMsDocument {
     Q_OBJECT
 
 public:
-    static const char* FILE_FILTER;
-
-public:
     explicit Document(QObject* parent = nullptr);
-    Document(std::unique_ptr<SI::FrameSet> frameSet,
-             const QString& filename, QObject* parent = nullptr);
     ~Document() = default;
-
-    static std::unique_ptr<Document> loadDocument(const QString& filename);
-    virtual bool saveDocument(const QString& filename) final;
 
     SI::FrameSet* frameSet() const { return _frameSet.get(); }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
@@ -42,7 +34,14 @@ public:
     virtual FrameListModel* frameListModel() const final { return _frameListModel; }
     FrameContentsModel* frameContentsModel() const { return _frameContentsModel; }
 
-    virtual AbstractSelection* abstractSelection() const { return nullptr; }
+    virtual const QString& fileFilter() const final;
+
+protected:
+    virtual bool saveDocumentFile(const QString& filename) final;
+    virtual bool loadDocumentFile(const QString& filename) final;
+
+private:
+    void initModels();
 
 signals:
     void frameSetGridChanged();

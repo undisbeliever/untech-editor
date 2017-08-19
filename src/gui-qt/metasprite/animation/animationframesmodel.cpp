@@ -6,7 +6,7 @@
 
 #include "animationframesmodel.h"
 #include "animationframecommands.h"
-#include "gui-qt/metasprite/abstractdocument.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/abstractselection.h"
 
 using namespace UnTech::GuiQt::MetaSprite::Animation;
@@ -23,7 +23,7 @@ AnimationFramesModel::AnimationFramesModel(QObject* parent)
 {
 }
 
-void AnimationFramesModel::setDocument(AbstractDocument* document)
+void AnimationFramesModel::setDocument(AbstractMsDocument* document)
 {
     Q_ASSERT(document != nullptr);
 
@@ -37,7 +37,7 @@ void AnimationFramesModel::setDocument(AbstractDocument* document)
     connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
             this, &AnimationFramesModel::onSelectedAnimationChanged);
 
-    connect(_document, &AbstractDocument::animationDataChanged,
+    connect(_document, &AbstractMsDocument::animationDataChanged,
             this, &AnimationFramesModel::onAnimationDataChanged);
 }
 

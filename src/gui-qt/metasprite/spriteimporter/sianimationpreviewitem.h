@@ -61,7 +61,7 @@ public:
                                   QWidget* parent = nullptr);
     ~SiAnimationPreviewItemFactory() = default;
 
-    virtual SiAnimationPreviewItem* createPreviewItem(const AbstractDocument* document);
+    virtual SiAnimationPreviewItem* createPreviewItem(const AbstractMsDocument* document);
 
 private:
     LayerSettings* _layerSettings;

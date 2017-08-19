@@ -9,7 +9,7 @@
 #include "animationframecommands.h"
 #include "animationlistmodel.h"
 #include "gui-qt/common/idstringdialog.h"
-#include "gui-qt/metasprite/abstractdocument.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/abstractselection.h"
 
 using namespace UnTech::GuiQt::MetaSprite::Animation;
@@ -53,7 +53,7 @@ AnimationActions::AnimationActions(QWidget* widget)
             this, &AnimationActions::onRemoveAnimationFrame);
 }
 
-void AnimationActions::setDocument(AbstractDocument* document)
+void AnimationActions::setDocument(AbstractMsDocument* document)
 {
     if (_document) {
         _document->selection()->disconnect(this);

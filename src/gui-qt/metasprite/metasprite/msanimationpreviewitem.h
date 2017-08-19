@@ -54,7 +54,7 @@ public:
                                   QWidget* parent = nullptr);
     ~MsAnimationPreviewItemFactory() = default;
 
-    virtual MsAnimationPreviewItem* createPreviewItem(const AbstractDocument* document);
+    virtual MsAnimationPreviewItem* createPreviewItem(const AbstractMsDocument* document);
 
 private:
     LayerSettings* _layerSettings;

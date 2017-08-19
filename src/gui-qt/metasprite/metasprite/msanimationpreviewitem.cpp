@@ -27,7 +27,7 @@ MsAnimationPreviewItemFactory::MsAnimationPreviewItemFactory(LayerSettings* laye
 }
 
 MsAnimationPreviewItem* MsAnimationPreviewItemFactory::createPreviewItem(
-    const AbstractDocument* abstractDocument)
+    const AbstractMsDocument* abstractDocument)
 {
     const Document* document = dynamic_cast<const Document*>(abstractDocument);
     if (document) {

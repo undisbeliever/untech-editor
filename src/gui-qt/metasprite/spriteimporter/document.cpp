@@ -13,57 +13,57 @@
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-const char* Document::FILE_FILTER = "SpriteImporter FrameSet (*.utsi);;All Files (*)";
-
 Document::Document(QObject* parent)
-    : Document(std::make_unique<SI::FrameSet>(), QString(), parent)
-{
-}
-
-Document::Document(std::unique_ptr<SI::FrameSet> frameSet,
-                   const QString& filename, QObject* parent)
-    : AbstractDocument(parent)
-    , _frameSet(std::move(frameSet))
+    : AbstractMsDocument(parent)
+    , _frameSet(std::make_unique<SI::FrameSet>())
     , _selection(new Selection(this))
     , _frameListModel(new FrameListModel(this))
     , _frameContentsModel(new FrameContentsModel(this))
 {
-    Q_ASSERT(_frameSet != nullptr);
+    initModels();
+}
 
-    _filename = filename;
-
+void Document::initModels()
+{
     _selection->setDocument(this);
     _frameListModel->setDocument(this);
     _frameContentsModel->setDocument(this);
 
-    initModels();
+    AbstractMsDocument::initModels();
 }
 
-std::unique_ptr<Document> Document::loadDocument(const QString& filename)
+const QString& Document::fileFilter() const
 {
-    try {
-        return std::make_unique<Document>(
-            SI::loadFrameSet(filename.toUtf8().data()), filename);
-    }
-    catch (const std::exception& ex) {
-        QMessageBox::critical(nullptr, tr("Error Opening File"), ex.what());
+    static const QString FILTER = QString::fromUtf8(
+        "SpriteImporter FrameSet (*.utsi);;All Files (*)");
 
-        return nullptr;
-    }
+    return FILTER;
 }
 
-bool Document::saveDocument(const QString& filename)
+bool Document::saveDocumentFile(const QString& filename)
 {
     try {
         SI::saveFrameSet(*_frameSet, filename.toUtf8().data());
-        _filename = filename;
-        _undoStack->setClean();
-
         return true;
     }
     catch (const std::exception& ex) {
         QMessageBox::critical(nullptr, tr("Error Saving File"), ex.what());
-
         return false;
     }
+}
+
+bool Document::loadDocumentFile(const QString& filename)
+{
+    try {
+        auto fs = SI::loadFrameSet(filename.toUtf8().data());
+        if (fs) {
+            _frameSet = std::move(fs);
+            initModels();
+            return true;
+        }
+    }
+    catch (const std::exception& ex) {
+        QMessageBox::critical(nullptr, tr("Error Opening File"), ex.what());
+    }
+    return false;
 }

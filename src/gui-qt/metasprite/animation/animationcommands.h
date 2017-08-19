@@ -12,7 +12,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractDocument;
+class AbstractMsDocument;
 
 namespace Animation {
 
@@ -20,7 +20,7 @@ namespace MSA = UnTech::MetaSprite::Animation;
 
 class AddRemoveAnimation : public QUndoCommand {
 protected:
-    AddRemoveAnimation(AbstractDocument* document,
+    AddRemoveAnimation(AbstractMsDocument* document,
                        const idstring& animationId, std::unique_ptr<MSA::Animation> frame);
     ~AddRemoveAnimation() = default;
 
@@ -29,14 +29,14 @@ protected:
     void removeAnimation();
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     const idstring _animationId;
     std::unique_ptr<MSA::Animation> _animation;
 };
 
 class AddAnimation : public AddRemoveAnimation {
 public:
-    AddAnimation(AbstractDocument* document, const idstring& newId);
+    AddAnimation(AbstractMsDocument* document, const idstring& newId);
     ~AddAnimation() = default;
 
     virtual void undo() final;
@@ -45,7 +45,7 @@ public:
 
 class CloneAnimation : public AddRemoveAnimation {
 public:
-    CloneAnimation(AbstractDocument* document,
+    CloneAnimation(AbstractMsDocument* document,
                    const idstring& existingId, const idstring& newId);
     ~CloneAnimation() = default;
 
@@ -55,7 +55,7 @@ public:
 
 class RemoveAnimation : public AddRemoveAnimation {
 public:
-    RemoveAnimation(AbstractDocument* document, const idstring& animationId);
+    RemoveAnimation(AbstractMsDocument* document, const idstring& animationId);
     ~RemoveAnimation() = default;
 
     virtual void undo() final;
@@ -64,7 +64,7 @@ public:
 
 class RenameAnimation : public QUndoCommand {
 public:
-    RenameAnimation(AbstractDocument* document,
+    RenameAnimation(AbstractMsDocument* document,
                     const idstring& oldId, const idstring& newId);
     ~RenameAnimation() = default;
 
@@ -72,14 +72,14 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     const idstring _oldId;
     const idstring _newId;
 };
 
 class ChangeAnimationDurationFormat : public QUndoCommand {
 public:
-    ChangeAnimationDurationFormat(AbstractDocument* document, MSA::Animation* animation,
+    ChangeAnimationDurationFormat(AbstractMsDocument* document, MSA::Animation* animation,
                                   const MSA::DurationFormat& format);
     ~ChangeAnimationDurationFormat() = default;
 
@@ -87,7 +87,7 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     MSA::Animation* _animation;
     const MSA::DurationFormat _oldDurationFormat;
     const MSA::DurationFormat _newDurationFormat;
@@ -95,7 +95,7 @@ private:
 
 class ChangeAnimationOneShot : public QUndoCommand {
 public:
-    ChangeAnimationOneShot(AbstractDocument* document, MSA::Animation* animation,
+    ChangeAnimationOneShot(AbstractMsDocument* document, MSA::Animation* animation,
                            bool oneShot);
     ~ChangeAnimationOneShot() = default;
 
@@ -103,7 +103,7 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     MSA::Animation* _animation;
     const idstring _oldNextAnimation;
     const idstring _newNextAnimation;
@@ -113,7 +113,7 @@ private:
 
 class ChangeAnimationNextAnimation : public QUndoCommand {
 public:
-    ChangeAnimationNextAnimation(AbstractDocument* document, MSA::Animation* animation,
+    ChangeAnimationNextAnimation(AbstractMsDocument* document, MSA::Animation* animation,
                                  const idstring& nextAnimation);
     ~ChangeAnimationNextAnimation() = default;
 
@@ -121,7 +121,7 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractDocument* _document;
+    AbstractMsDocument* _document;
     MSA::Animation* _animation;
     const idstring _oldNextAnimation;
     const idstring _newNextAnimation;
