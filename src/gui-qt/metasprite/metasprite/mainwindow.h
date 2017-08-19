@@ -6,26 +6,27 @@
 
 #pragma once
 
+#include "gui-qt/common/abstractmainwindow.h"
 #include <QComboBox>
 #include <QMainWindow>
+#include <QTabWidget>
 #include <QUndoGroup>
 #include <memory>
 
 namespace UnTech {
 namespace GuiQt {
 class ZoomSettings;
+class ZoomableGraphicsView;
 
 namespace MetaSprite {
 class LayerSettings;
 
 namespace Animation {
 class AnimationDock;
+class AnimationPreview;
 }
 namespace MetaSprite {
 
-namespace Ui {
-class MainWindow;
-}
 class Document;
 class Actions;
 class TilesetPixmaps;
@@ -36,47 +37,38 @@ class FrameDock;
 class PalettesDock;
 class TilesetDock;
 
-class MainWindow : public QMainWindow {
+class MainWindow : public AbstractMainWindow {
     Q_OBJECT
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
-    void setDocument(std::unique_ptr<Document> document);
-
-protected:
-    virtual void closeEvent(QCloseEvent* event);
-
 private:
     void setupMenubar();
     void setupStatusbar();
-    bool unsavedChangesDialog();
 
-protected slots:
+protected:
+    virtual void documentChangedEvent(AbstractDocument* document,
+                                      AbstractDocument* oldDocument) final;
+    virtual std::unique_ptr<AbstractDocument> createDocumentInstance() final;
+
+private slots:
     void onSelectedFrameChanged();
 
-    void updateWindowTitle();
-
-    void onActionNew();
-    void onActionOpen();
-
-    bool saveDocument();
-    bool saveDocumentAs();
-
 private:
-    std::unique_ptr<Ui::MainWindow> _ui;
-    std::unique_ptr<Document> _document;
     Actions* _actions;
     ZoomSettings* _zoomSettings;
     LayerSettings* _layerSettings;
 
-    QUndoGroup* _undoGroup;
-
     TilesetPixmaps* _tilesetPixmaps;
     MsAnimationPreviewItemFactory* _animationPreviewItemFactory;
 
+    QTabWidget* _tabWidget;
+    ZoomableGraphicsView* _graphicsView;
     MsGraphicsScene* _graphicsScene;
+    Animation::AnimationPreview* _animationPreview;
+
     FrameSetDock* _frameSetDock;
     FrameDock* _frameDock;
     Animation::AnimationDock* _animationDock;
