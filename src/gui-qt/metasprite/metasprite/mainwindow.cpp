@@ -109,14 +109,7 @@ void MainWindow::setupMenubar()
     _editMenu->addAction(_actions->addActionPoint());
     _editMenu->addAction(_actions->addEntityHitbox());
 
-    QAction* zoomIn = _viewMenu->addAction(tr("Zoom In"));
-    zoomIn->setShortcut(Qt::CTRL + Qt::Key_Plus);
-    connect(zoomIn, &QAction::triggered, _zoomSettings, &ZoomSettings::zoomIn);
-
-    QAction* zoomOut = _viewMenu->addAction(tr("Zoom Out"));
-    zoomOut->setShortcut(Qt::CTRL + Qt::Key_Minus);
-    connect(zoomOut, &QAction::triggered, _zoomSettings, &ZoomSettings::zoomOut);
-
+    _zoomSettings->populateMenu(_viewMenu);
     _viewMenu->addSeparator();
     _layerSettings->populateMenu(_viewMenu);
 }

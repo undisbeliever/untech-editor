@@ -123,6 +123,14 @@ void ZoomSettings::setAspectRatio(AspectRatio aspectRatio)
     }
 }
 
+void ZoomSettings::populateMenu(QMenu* menu)
+{
+    menu->addAction(tr("Zoom In"), this, &ZoomSettings::zoomIn,
+                    Qt::CTRL + Qt::Key_Plus);
+    menu->addAction(tr("Zoom Out"), this, &ZoomSettings::zoomOut,
+                    Qt::CTRL + Qt::Key_Minus);
+}
+
 void ZoomSettings::setZoomComboBox(QComboBox* comboBox)
 {
     if (_zoomComboBox == comboBox) {

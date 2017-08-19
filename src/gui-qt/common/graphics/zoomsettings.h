@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QComboBox>
+#include <QMenu>
 #include <QObject>
 #include <QRegExpValidator>
 #include <QTransform>
@@ -44,6 +45,8 @@ public:
 
     void setAspectRatio(AspectRatio aspectRatio);
     AspectRatio aspectRatio() const { return _aspectRatio; }
+
+    void populateMenu(QMenu* menu);
 
     void setZoomComboBox(QComboBox* comboBox);
     QComboBox* zoomComboBox() const { return _zoomComboBox; }
