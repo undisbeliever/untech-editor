@@ -62,12 +62,13 @@ MainWindow::MainWindow(QWidget* parent)
     tabifyDockWidget(_frameSetDock, _frameDock);
     tabifyDockWidget(_frameSetDock, _animationDock);
 
-    _frameSetDock->raise();
-
     documentChangedEvent(nullptr, nullptr);
 
     setupMenubar();
     setupStatusbar();
+    readSettings();
+
+    _frameSetDock->raise();
 }
 
 MainWindow::~MainWindow() = default;

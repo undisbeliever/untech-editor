@@ -75,12 +75,13 @@ MainWindow::MainWindow(QWidget* parent)
 
     resizeDocks({ _palettesDock }, { 1 }, Qt::Vertical);
 
-    _frameSetDock->raise();
-
     documentChangedEvent(nullptr, nullptr);
 
     setupMenubar();
     setupStatusbar();
+    readSettings();
+
+    _frameSetDock->raise();
 }
 
 MainWindow::~MainWindow() = default;

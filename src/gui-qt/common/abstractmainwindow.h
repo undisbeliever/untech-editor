@@ -35,6 +35,12 @@ protected:
     virtual void documentChangedEvent(AbstractDocument* document, AbstractDocument* oldDocument) = 0;
     virtual std::unique_ptr<AbstractDocument> createDocumentInstance() = 0;
 
+    // MUST be called in the child class after setting up the GUI
+    void readSettings();
+
+    // will automatically be called in closeEvent
+    void saveSettings();
+
 private:
     void setDocument(std::unique_ptr<AbstractDocument> document);
     bool unsavedChangesDialog();
