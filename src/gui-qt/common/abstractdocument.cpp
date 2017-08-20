@@ -6,6 +6,8 @@
 
 #include "abstractdocument.h"
 
+#include <QFileInfo>
+
 using namespace UnTech::GuiQt;
 
 AbstractDocument::AbstractDocument(QObject* parent)
@@ -17,11 +19,12 @@ AbstractDocument::AbstractDocument(QObject* parent)
 
 bool AbstractDocument::saveDocument(const QString& filename)
 {
-    bool success = saveDocumentFile(filename);
+    QString absFilename = QFileInfo(filename).absoluteFilePath();
+    bool success = saveDocumentFile(absFilename);
 
     if (success) {
-        if (_filename != filename) {
-            _filename = filename;
+        if (_filename != absFilename) {
+            _filename = absFilename;
             filenameChanged();
         }
         _undoStack->setClean();
@@ -32,11 +35,12 @@ bool AbstractDocument::saveDocument(const QString& filename)
 
 bool AbstractDocument::loadDocument(const QString& filename)
 {
-    bool success = loadDocumentFile(filename);
+    QString absFilename = QFileInfo(filename).absoluteFilePath();
+    bool success = loadDocumentFile(absFilename);
 
     if (success) {
-        if (_filename != filename) {
-            _filename = filename;
+        if (_filename != absFilename) {
+            _filename = absFilename;
             filenameChanged();
         }
         _undoStack->clear();

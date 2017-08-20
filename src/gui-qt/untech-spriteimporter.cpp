@@ -16,6 +16,7 @@ int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
     app.setApplicationDisplayName("UnTech SpriteImporter");
+    app.setOrganizationDomain(UNTECH_DOMAIN);
     app.setApplicationVersion(UNTECH_VERSION);
 
     QCommandLineParser parser;

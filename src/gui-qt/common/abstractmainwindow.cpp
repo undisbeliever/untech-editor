@@ -11,8 +11,11 @@
 #include <QFileDialog>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QSettings>
 
 using namespace UnTech::GuiQt;
+
+const int AbstractMainWindow::MAX_OPEN_RECENT_SIZE = 6;
 
 AbstractMainWindow::AbstractMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -27,6 +30,15 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
         _fileMenu->addAction(tr("&Open"), this,
                              &AbstractMainWindow::onMenuOpen,
                              Qt::CTRL + Qt::Key_O);
+
+        auto* openRecentMenu = _fileMenu->addMenu(tr("Open &Recent"));
+        openRecentMenu->setToolTipsVisible(true);
+        for (int i = 0; i < MAX_OPEN_RECENT_SIZE; i++) {
+            _openRecentActions.append(openRecentMenu->addAction(QString()));
+        }
+        connect(openRecentMenu, &QMenu::triggered,
+                this, &AbstractMainWindow::onMenuOpenRecent);
+
         _fileMenu->addSeparator();
         _saveAction = _fileMenu->addAction(tr("&Save"), this,
                                            &AbstractMainWindow::onMenuSave,
@@ -54,6 +66,8 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
     _saveAction->setEnabled(false);
     _saveAsAction->setEnabled(false);
 
+    updateOpenRecentMenu();
+
     connect(_undoGroup, &QUndoGroup::cleanChanged,
             this, &AbstractMainWindow::updateWindowTitle);
 }
@@ -70,6 +84,7 @@ void AbstractMainWindow::loadDocument(const QString& filename)
     std::unique_ptr<AbstractDocument> doc = createDocumentInstance();
     if (doc->loadDocument(filename)) {
         setDocument(std::move(doc));
+        addToRecentFilesList(filename);
     }
 }
 
@@ -138,9 +153,19 @@ void AbstractMainWindow::onMenuOpen()
         this, tr("Open"), QString(), doc->fileFilter());
 
     if (!filename.isNull()) {
-        if (doc->loadDocument(filename)) {
-            setDocument(std::move(doc));
-        }
+        loadDocument(filename);
+    }
+}
+
+void AbstractMainWindow::onMenuOpenRecent(QAction* action)
+{
+    if (unsavedChangesDialog() == false) {
+        return;
+    }
+
+    QString filename = action->data().toString();
+    if (!filename.isEmpty()) {
+        loadDocument(filename);
     }
 }
 
@@ -152,7 +177,11 @@ bool AbstractMainWindow::onMenuSave()
         return onMenuSaveAs();
     }
     else {
-        return _document->saveDocument(_document->filename());
+        bool s = _document->saveDocument(_document->filename());
+        if (s) {
+            addToRecentFilesList(_document->filename());
+        }
+        return s;
     }
 }
 
@@ -164,8 +193,12 @@ bool AbstractMainWindow::onMenuSaveAs()
         this, tr("Save"),
         _document->filename(), _document->fileFilter());
 
-    if (!filename.isNull()) {
-        return _document->saveDocument(filename);
+    if (!filename.isEmpty()) {
+        bool s = _document->saveDocument(filename);
+        if (s) {
+            addToRecentFilesList(_document->filename());
+        }
+        return s;
     }
 
     return false;
@@ -190,6 +223,40 @@ bool AbstractMainWindow::unsavedChangesDialog()
     }
 
     return success;
+}
+
+void AbstractMainWindow::addToRecentFilesList(const QString& filename)
+{
+    QSettings settings;
+    QStringList files = settings.value("recent_files").toStringList();
+
+    files.removeAll(filename);
+    files.prepend(filename);
+    while (files.size() > MAX_OPEN_RECENT_SIZE) {
+        files.removeLast();
+    }
+
+    settings.setValue("recent_files", files);
+
+    updateOpenRecentMenu();
+}
+
+void AbstractMainWindow::updateOpenRecentMenu()
+{
+    QSettings settings;
+    const QStringList files = settings.value("recent_files").toStringList();
+
+    for (int i = 0; i < MAX_OPEN_RECENT_SIZE; i++) {
+        QAction* action = _openRecentActions.at(i);
+
+        action->setVisible(i < files.size());
+        if (i < files.size()) {
+            const QString& file = files.at(i);
+            action->setText(QFileInfo(file).fileName());
+            action->setToolTip(file);
+            action->setData(file);
+        }
+    }
 }
 
 void AbstractMainWindow::closeEvent(QCloseEvent* event)

@@ -18,6 +18,8 @@ class AbstractDocument;
 class AbstractMainWindow : public QMainWindow {
     Q_OBJECT
 
+    static const int MAX_OPEN_RECENT_SIZE;
+
 public:
     explicit AbstractMainWindow(QWidget* parent = nullptr);
     ~AbstractMainWindow();
@@ -37,11 +39,15 @@ private:
     void setDocument(std::unique_ptr<AbstractDocument> document);
     bool unsavedChangesDialog();
 
+    void addToRecentFilesList(const QString& filename);
+    void updateOpenRecentMenu();
+
 private slots:
     void updateWindowTitle();
 
     void onMenuNew();
     void onMenuOpen();
+    void onMenuOpenRecent(QAction* action);
     bool onMenuSave();
     bool onMenuSaveAs();
 
@@ -51,6 +57,7 @@ private:
 
     QAction* _saveAction;
     QAction* _saveAsAction;
+    QList<QAction*> _openRecentActions;
 
 protected:
     QMenu* _fileMenu;
