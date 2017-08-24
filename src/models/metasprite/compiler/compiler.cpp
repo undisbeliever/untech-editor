@@ -13,7 +13,7 @@
 namespace MS = UnTech::MetaSprite::MetaSprite;
 using Compiler = UnTech::MetaSprite::Compiler::Compiler;
 
-const unsigned Compiler::METASPRITE_FORMAT_VERSION = 25;
+const unsigned Compiler::METASPRITE_FORMAT_VERSION = 26;
 
 // ::TODO generate debug file - containing frame/frameset names::
 
@@ -32,11 +32,11 @@ Compiler::Compiler(ErrorList& errorList, unsigned tilesetBlockSize)
 
 void Compiler::writeToIncFile(std::ostream& out) const
 {
-    out << "scope MetaSprite {\n"
-           "scope Data {\n"
+    out << "namespace MetaSprite {\n"
+           "namespace Data {\n"
            "\n"
-        << "constant EDITOR_VERSION(" << UNTECH_VERSION_INT << ")\n"
-        << "constant METASPRITE_FORMAT_VERSION(" << METASPRITE_FORMAT_VERSION << ")\n";
+        << "constant EDITOR_VERSION = " << UNTECH_VERSION_INT << "\n"
+        << "constant METASPRITE_FORMAT_VERSION = " << METASPRITE_FORMAT_VERSION << "\n";
 
     _animationCompiler.writeToIncFile(out);
     _paletteCompiler.writeToIncFile(out);
@@ -45,7 +45,7 @@ void Compiler::writeToIncFile(std::ostream& out) const
 
     _frameSetData.writeToIncFile(out);
     _frameSetList.writeToIncFile(out);
-    out << "constant FrameSetListCount((pc() - FSL)/2)\n";
+    out << "constant FrameSetListCount = (pc() - FSL)/2\n";
 
     out << "}\n"
            "}\n";
@@ -53,37 +53,37 @@ void Compiler::writeToIncFile(std::ostream& out) const
 
 void Compiler::writeToReferencesFile(std::ostream& out) const
 {
-    out << "scope MSFS {\n";
+    out << "namespace MSFS {\n";
 
     for (unsigned i = 0; i < _frameSetReferences.size(); i++) {
         const auto& r = _frameSetReferences[i];
 
         if (!r.isNull) {
-            out << "\tconstant " << r.name << "(" << i << ")\n";
-            out << "\tdefine " << r.name << ".type(" << r.exportOrderName << ")\n";
+            out << "\tconstant " << r.name << " = " << i << "\n";
+            out << "\tdefine " << r.name << ".type = " << r.exportOrderName << "\n";
         }
     }
 
     out << "}\n"
-           "scope MSEO {\n";
+           "namespace MSEO {\n";
 
     for (const auto& eo : _exportOrderDocuments) {
-        out << "\tscope " << eo->name << " {\n";
+        out << "\tnamespace " << eo->name << " {\n";
 
         if (eo->stillFrames.size() > 0) {
             unsigned id = 0;
-            out << "\t\tscope Frames {\n";
+            out << "\t\tnamespace Frames {\n";
             for (const auto& f : eo->stillFrames) {
-                out << "\t\t\tconstant " << f.name << "(" << id << ")\n";
+                out << "\t\t\tconstant " << f.name << " = " << id << "\n";
                 id++;
             }
             out << "\t\t}\n";
         }
         if (eo->animations.size() > 0) {
             unsigned id = 0;
-            out << "\t\tscope Animations {\n";
+            out << "\t\tnamespace Animations {\n";
             for (const auto& a : eo->animations) {
-                out << "\t\t\tconstant " << a.name << "(" << id << ")\n";
+                out << "\t\t\tconstant " << a.name << " = " << id << "\n";
                 id++;
             }
             out << "\t\t}\n";
