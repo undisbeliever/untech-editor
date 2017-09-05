@@ -148,6 +148,22 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QToolBar" name="frameListButtons">
+             <property name="movable">
+              <bool>false</bool>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="floatable">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>

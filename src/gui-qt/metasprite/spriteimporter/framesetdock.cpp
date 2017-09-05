@@ -40,6 +40,11 @@ FrameSetDock::FrameSetDock(Actions* actions, QWidget* parent)
 
     _ui->frameList->setContextMenuPolicy(Qt::CustomContextMenu);
 
+    _ui->frameListButtons->addAction(_actions->addFrame());
+    _ui->frameListButtons->addAction(_actions->cloneFrame());
+    _ui->frameListButtons->addAction(_actions->renameFrame());
+    _ui->frameListButtons->addAction(_actions->removeFrame());
+
     clearGui();
     setEnabled(false);
 

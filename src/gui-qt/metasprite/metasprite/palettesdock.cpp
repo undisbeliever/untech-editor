@@ -33,6 +33,12 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
 
     _ui->paletteList->setContextMenuPolicy(Qt::CustomContextMenu);
 
+    _ui->paletteListButtons->addAction(_actions->addPalette());
+    _ui->paletteListButtons->addAction(_actions->raisePalette());
+    _ui->paletteListButtons->addAction(_actions->lowerPalette());
+    _ui->paletteListButtons->addAction(_actions->clonePalette());
+    _ui->paletteListButtons->addAction(_actions->removePalette());
+
     for (unsigned i = 0; i < 16; i++) {
         ColorToolButton* b = new ColorToolButton(this);
         _colorButtons.append(b);

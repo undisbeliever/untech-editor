@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>300</width>
-    <height>180</height>
+    <height>200</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -46,6 +46,22 @@
       </property>
       <property name="uniformItemSizes">
        <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QToolBar" name="paletteListButtons">
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="floatable">
+       <bool>false</bool>
       </property>
      </widget>
     </item>

@@ -50,7 +50,7 @@
          <x>0</x>
          <y>0</y>
          <width>298</width>
-         <height>551</height>
+         <height>574</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="scrollAreaLayout">
@@ -180,6 +180,22 @@
              </property>
              <property name="selectionMode">
               <enum>QAbstractItemView::ExtendedSelection</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolBar" name="frameContentsButtons">
+             <property name="movable">
+              <bool>false</bool>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="floatable">
+              <bool>false</bool>
              </property>
             </widget>
            </item>

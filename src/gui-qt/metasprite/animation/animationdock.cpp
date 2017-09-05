@@ -35,7 +35,19 @@ AnimationDock::AnimationDock(QWidget* parent)
 
     _ui->durationFormat->populateData(MSA::DurationFormat::enumMap);
 
+    _ui->animationListButtons->addAction(_actions->addAnimation());
+    _ui->animationListButtons->addAction(_actions->cloneAnimation());
+    _ui->animationListButtons->addAction(_actions->renameAnimation());
+    _ui->animationListButtons->addAction(_actions->removeAnimation());
+
     _ui->animationFrames->setItemDelegate(new AnimationFramesDelegate(this));
+
+    _ui->animationFramesButtons->addAction(_actions->addAnimationFrame());
+    _ui->animationFramesButtons->addAction(_actions->cloneAnimationFrame());
+    _ui->animationFramesButtons->addAction(_actions->raiseAnimationFrame());
+    _ui->animationFramesButtons->addAction(_actions->lowerAnimationFrame());
+    _ui->animationFramesButtons->addAction(_actions->cloneAnimationFrame());
+    _ui->animationFramesButtons->addAction(_actions->removeAnimationFrame());
 
     _ui->animationList->setContextMenuPolicy(Qt::CustomContextMenu);
     _ui->animationFrames->setContextMenuPolicy(Qt::CustomContextMenu);

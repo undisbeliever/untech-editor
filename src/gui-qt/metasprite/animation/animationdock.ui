@@ -50,7 +50,7 @@
          <x>0</x>
          <y>0</y>
          <width>298</width>
-         <height>541</height>
+         <height>587</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -64,6 +64,22 @@
           </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolBar" name="animationListButtons">
+          <property name="movable">
+           <bool>false</bool>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="floatable">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -115,6 +131,22 @@
               </sizepolicy>
              </property>
              <property name="rootIsDecorated">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="2">
+            <widget class="QToolBar" name="animationFramesButtons">
+             <property name="movable">
+              <bool>false</bool>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="floatable">
               <bool>false</bool>
              </property>
             </widget>

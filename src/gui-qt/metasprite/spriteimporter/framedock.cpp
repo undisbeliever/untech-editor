@@ -33,6 +33,14 @@ FrameDock::FrameDock(Actions* actions, QWidget* parent)
     _ui->frameContents->header()->setStretchLastSection(true);
     _ui->frameContents->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
+    _ui->frameContentsButtons->addAction(_actions->addFrameObject());
+    _ui->frameContentsButtons->addAction(_actions->addActionPoint());
+    _ui->frameContentsButtons->addAction(_actions->addEntityHitbox());
+    _ui->frameContentsButtons->addAction(_actions->raiseSelected());
+    _ui->frameContentsButtons->addAction(_actions->lowerSelected());
+    _ui->frameContentsButtons->addAction(_actions->cloneSelected());
+    _ui->frameContentsButtons->addAction(_actions->removeSelected());
+
     clearGui();
     setEnabled(false);
 

@@ -50,7 +50,7 @@
          <x>0</x>
          <y>0</y>
          <width>284</width>
-         <height>704</height>
+         <height>727</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -311,6 +311,22 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QToolBar" name="frameListButtons">
+             <property name="movable">
+              <bool>false</bool>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="floatable">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -323,15 +339,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PointWidget</class>
-   <extends>QWidget</extends>
-   <header>gui-qt/common/widgets/pointwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>EnumComboBox</class>
    <extends>QComboBox</extends>
    <header>gui-qt/common/widgets/enumcombobox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PointWidget</class>
+   <extends>QWidget</extends>
+   <header>gui-qt/common/widgets/pointwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
