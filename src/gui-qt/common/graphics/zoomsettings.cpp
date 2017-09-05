@@ -125,9 +125,11 @@ void ZoomSettings::setAspectRatio(AspectRatio aspectRatio)
 
 void ZoomSettings::populateMenu(QMenu* menu)
 {
-    menu->addAction(tr("Zoom In"), this, &ZoomSettings::zoomIn,
+    menu->addAction(QIcon(":/icons/zoom-in.svg"), tr("Zoom In"),
+                    this, &ZoomSettings::zoomIn,
                     Qt::CTRL + Qt::Key_Plus);
-    menu->addAction(tr("Zoom Out"), this, &ZoomSettings::zoomOut,
+    menu->addAction(QIcon(":/icons/zoom-out.svg"), tr("Zoom Out"),
+                    this, &ZoomSettings::zoomOut,
                     Qt::CTRL + Qt::Key_Minus);
 }
 

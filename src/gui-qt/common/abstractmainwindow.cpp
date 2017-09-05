@@ -24,11 +24,11 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
 {
     _fileMenu = menuBar()->addMenu(tr("&File"));
     {
-        _fileMenu->addAction(tr("&New"), this,
-                             &AbstractMainWindow::onMenuNew,
+        _fileMenu->addAction(QIcon(":/icons/new.svg"), tr("&New"),
+                             this, &AbstractMainWindow::onMenuNew,
                              Qt::CTRL + Qt::Key_N);
-        _fileMenu->addAction(tr("&Open"), this,
-                             &AbstractMainWindow::onMenuOpen,
+        _fileMenu->addAction(QIcon(":/icons/open.svg"), tr("&Open"),
+                             this, &AbstractMainWindow::onMenuOpen,
                              Qt::CTRL + Qt::Key_O);
 
         auto* openRecentMenu = _fileMenu->addMenu(tr("Open &Recent"));
@@ -40,8 +40,8 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
                 this, &AbstractMainWindow::onMenuOpenRecent);
 
         _fileMenu->addSeparator();
-        _saveAction = _fileMenu->addAction(tr("&Save"), this,
-                                           &AbstractMainWindow::onMenuSave,
+        _saveAction = _fileMenu->addAction(QIcon(":/icons/save.svg"), tr("&Save"),
+                                           this, &AbstractMainWindow::onMenuSave,
                                            Qt::CTRL + Qt::Key_S);
         _saveAsAction = _fileMenu->addAction(tr("Save &As"), this,
                                              &AbstractMainWindow::onMenuSaveAs,
@@ -55,7 +55,9 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
     {
         QAction* undoAction = _undoGroup->createUndoAction(this);
         QAction* redoAction = _undoGroup->createRedoAction(this);
+        undoAction->setIcon(QIcon(":/icons/undo.svg"));
         undoAction->setShortcuts(QKeySequence::Undo);
+        redoAction->setIcon(QIcon(":/icons/redo.svg"));
         redoAction->setShortcuts(QKeySequence::Redo);
         _editMenu->addAction(undoAction);
         _editMenu->addAction(redoAction);

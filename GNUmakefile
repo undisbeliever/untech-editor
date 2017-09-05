@@ -59,13 +59,14 @@ endif
 
 GEN_DIR	    := gen
 
-GUI_QT_MODULES  := Qt5Core Qt5Gui Qt5Widgets
+GUI_QT_MODULES  := Qt5Core Qt5Gui Qt5Widgets Qt5Svg
 
 # ::TODO Windows and Linux::
 GUI_QT_CXXFLAGS := -fPIC `pkg-config --cflags $(GUI_QT_MODULES)`
 GUI_QT_LIBS     := `pkg-config --libs $(GUI_QT_MODULES)`
 MOC         := moc-qt5
 UIC         := uic-qt5
+RCC         := rcc-qt5
 
 
 ifneq ($(findstring clang,$(CXX)),)
@@ -101,7 +102,11 @@ GUI_QT_UI_SRC      := $(wildcard src/gui-qt/*/*.ui src/gui-qt/*/*/*.ui src/gui-q
 GUI_QT_UI_GEN      := $(patsubst src/%.ui,$(GEN_DIR)/%.ui.h,$(GUI_QT_UI_SRC))
 GUI_QT_UI_OBJS     := $(patsubst src/%.ui,$(OBJ_DIR)/%.o,$(GUI_QT_UI_SRC))
 
-GEN_OBJS           := $(GUI_QT_UI_OBJS) $(GUI_QT_MOC_OBJS)
+GUI_QT_RES_QRC     := $(wildcard resources/*.qrc)
+GUI_QT_RES_GEN     := $(patsubst resources/%.qrc,$(GEN_DIR)/resources/%.cpp,$(GUI_QT_RES_QRC))
+GUI_QT_RES_OBJS    := $(patsubst resources/%.qrc,$(OBJ_DIR)/resources/%.o,$(GUI_QT_RES_QRC))
+
+GEN_OBJS           := $(GUI_QT_UI_OBJS) $(GUI_QT_MOC_OBJS) $(GUI_QT_RES_OBJS)
 
 # Third party libs
 THIRD_PARTY     := $(OBJ_DIR)/vendor/lodepng/lodepng.o
@@ -142,11 +147,13 @@ $(BIN_DIR)/$(strip $1)$(BIN_EXT): \
   $(THIRD_PARTY)
 endef
 
+# usage: <bin> <resource file> <modules>
 define gui-qt-modules
 $(BIN_DIR)/$(strip $1)$(BIN_EXT): \
-  $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$2), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui-qt/%/$(PERCENT),$2), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui-qt/%/$(PERCENT),$2), $(GUI_QT_MOC_OBJS)) \
+  $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$3), $(OBJS)) \
+  $(filter $(patsubst %,$(OBJ_DIR)/gui-qt/%/$(PERCENT),$3), $(OBJS)) \
+  $(filter $(patsubst %,$(OBJ_DIR)/gui-qt/%/$(PERCENT),$3), $(GUI_QT_MOC_OBJS)) \
+  $(OBJ_DIR)/resources/$(strip $2).o \
   $(THIRD_PARTY)
 endef
 
@@ -160,8 +167,8 @@ $(call cli-modules, untech-utsi2utms,	common snes metasprite)
 $(call gui-modules, untech-metasprite-wxgui,     common snes metasprite)
 $(call gui-modules, untech-spriteimporter-wxgui, common snes metasprite)
 
-$(call gui-qt-modules, untech-metasprite-qtgui,     common snes metasprite)
-$(call gui-qt-modules, untech-spriteimporter-qtgui, common snes metasprite)
+$(call gui-qt-modules, untech-metasprite-qtgui,     metasprite, common snes metasprite)
+$(call gui-qt-modules, untech-spriteimporter-qtgui, metasprite, common snes metasprite)
 
 
 # Disable Builtin rules
@@ -203,6 +210,9 @@ $(OBJ_DIR)/gui-qt/%.o: src/gui-qt/%.cpp
 $(OBJ_DIR)/gui-qt/%.moc.o: $(GEN_DIR)/gui-qt/%.moc.cpp
 	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(GUI_QT_CXXFLAGS) -c -o $@ $<
 
+$(OBJ_DIR)/resources/%.o: $(GEN_DIR)/resources/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) -c -o $@ $<
+
 
 $(OBJ_DIR)/vendor/%.o: src/vendor/%.cpp
 	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(VENDOR_CXXFLAGS) -c -o $@ $<
@@ -221,11 +231,17 @@ $(GEN_DIR)/gui-qt/%.moc.cpp: src/gui-qt/%.h
 $(GEN_DIR)/gui-qt/%.ui.h: src/gui-qt/%.ui
 	$(UIC) -o $@ $<
 
+.SECONDARY: $(GUI_QT_RES_GEN)
+$(GEN_DIR)/resources/%.cpp: resources/%.qrc
+	$(RCC) -o $@ $<
+
+$(foreach r,$(GUI_QT_RES_QRC),$(eval $(r:resources/%.qrc=$(GEN_DIR)/resources/%.cpp): $(shell $(RCC) --list $r)))
+
 
 
 .PHONY: dirs
-OBJECT_DIRS := $(sort $(dir $(OBJS)))
-GEN_DIRS := $(sort $(dir $(GUI_QT_UI_GEN) $(GUI_QT_MOC_GEN)))
+OBJECT_DIRS := $(sort $(dir $(OBJS) $(GEN_OBJS)))
+GEN_DIRS := $(sort $(dir $(GUI_QT_UI_GEN) $(GUI_QT_MOC_GEN) $(GUI_QT_RES_GEN)))
 dirs: $(BIN_DIR)/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS)
 $(BIN_DIR)/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS):
 	mkdir -p $@
@@ -238,6 +254,8 @@ clean:
 	$(RM) $(GUI_QT_MOC_GEN)
 	$(RM) $(GUI_QT_MOC_OBJS)
 	$(RM) $(GUI_QT_UI_GEN)
+	$(RM) $(GUI_QT_RES_OBJS)
+	$(RM) $(GUI_QT_RES_GEN) $(GUI_QT_RES_GEN:.cpp=.d)
 
 .PHONY: style
 style:

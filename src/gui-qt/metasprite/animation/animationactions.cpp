@@ -19,16 +19,16 @@ AnimationActions::AnimationActions(QWidget* widget)
     , _widget(widget)
     , _document(nullptr)
 {
-    _addAnimation = new QAction(tr("New Animation"), this);
-    _cloneAnimation = new QAction(tr("Clone Animation"), this);
-    _renameAnimation = new QAction(tr("Rename Animation"), this);
-    _removeAnimation = new QAction(tr("Remove Animation"), this);
+    _addAnimation = new QAction(QIcon(":/icons/add.svg"), tr("New Animation"), this);
+    _cloneAnimation = new QAction(QIcon(":/icons/clone.svg"), tr("Clone Animation"), this);
+    _renameAnimation = new QAction(QIcon(":/icons/rename.svg"), tr("Rename Animation"), this);
+    _removeAnimation = new QAction(QIcon(":/icons/remove.svg"), tr("Remove Animation"), this);
 
-    _addAnimationFrame = new QAction(tr("New Animation Frame"), this);
-    _raiseAnimationFrame = new QAction(tr("Raise Animation Frame"), this);
-    _lowerAnimationFrame = new QAction(tr("Lower Animation Frame"), this);
-    _cloneAnimationFrame = new QAction(tr("Clone Animation Frame"), this);
-    _removeAnimationFrame = new QAction(tr("Remove Animation Frame"), this);
+    _addAnimationFrame = new QAction(QIcon(":icons/add.svg"), tr("New Animation Frame"), this);
+    _raiseAnimationFrame = new QAction(QIcon(":icons/raise.svg"), tr("Raise Animation Frame"), this);
+    _lowerAnimationFrame = new QAction(QIcon(":icons/lower.svg"), tr("Lower Animation Frame"), this);
+    _cloneAnimationFrame = new QAction(QIcon(":icons/clone.svg"), tr("Clone Animation Frame"), this);
+    _removeAnimationFrame = new QAction(QIcon(":icons/remove.svg"), tr("Remove Animation Frame"), this);
 
     updateActions();
 

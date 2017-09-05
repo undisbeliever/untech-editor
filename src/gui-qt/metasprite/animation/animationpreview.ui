@@ -51,6 +51,10 @@
          <property name="text">
           <string>Play</string>
          </property>
+         <property name="icon">
+          <iconset resource="../../../../resources/metasprite.qrc">
+           <normaloff>:/icons/animation-play.svg</normaloff>:/icons/animation-play.svg</iconset>
+         </property>
          <property name="checkable">
           <bool>true</bool>
          </property>
@@ -64,6 +68,10 @@
          <property name="text">
           <string>Step</string>
          </property>
+         <property name="icon">
+          <iconset resource="../../../../resources/metasprite.qrc">
+           <normaloff>:/icons/animation-step.svg</normaloff>:/icons/animation-step.svg</iconset>
+         </property>
         </widget>
        </item>
        <item>
@@ -74,6 +82,10 @@
          <property name="text">
           <string>Skip</string>
          </property>
+         <property name="icon">
+          <iconset resource="../../../../resources/metasprite.qrc">
+           <normaloff>:/icons/animation-skip.svg</normaloff>:/icons/animation-skip.svg</iconset>
+         </property>
         </widget>
        </item>
        <item>
@@ -83,6 +95,10 @@
          </property>
          <property name="text">
           <string>Reset</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../../resources/metasprite.qrc">
+           <normaloff>:/icons/animation-reset.svg</normaloff>:/icons/animation-reset.svg</iconset>
          </property>
         </widget>
        </item>
@@ -279,6 +295,8 @@
    <header>gui-qt/common/graphics/zoomablegraphicsview.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../../../resources/metasprite.qrc"/>
+ </resources>
  <connections/>
 </ui>
