@@ -50,47 +50,54 @@
          <x>0</x>
          <y>0</y>
          <width>298</width>
-         <height>587</height>
+         <height>479</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QListView" name="animationList">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-            <horstretch>1</horstretch>
-            <verstretch>1</verstretch>
-           </sizepolicy>
+         <layout class="QVBoxLayout" name="animationListLayout">
+          <property name="spacing">
+           <number>0</number>
           </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolBar" name="animationListButtons">
-          <property name="movable">
-           <bool>false</bool>
-          </property>
-          <property name="iconSize">
-           <size>
-            <width>16</width>
-            <height>16</height>
-           </size>
-          </property>
-          <property name="floatable">
-           <bool>false</bool>
-          </property>
-         </widget>
+          <item>
+           <widget class="QListView" name="animationList">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolBar" name="animationListButtons">
+            <property name="movable">
+             <bool>false</bool>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
+            <property name="floatable">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <widget class="QGroupBox" name="animationBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-            <horstretch>1</horstretch>
-            <verstretch>1</verstretch>
-           </sizepolicy>
-          </property>
           <property name="title">
            <string>Animation</string>
           </property>
@@ -102,15 +109,15 @@
              </property>
             </widget>
            </item>
+           <item row="1" column="1">
+            <widget class="EnumComboBox" name="durationFormat"/>
+           </item>
            <item row="2" column="0">
             <widget class="QCheckBox" name="oneShot">
              <property name="text">
               <string>One Shot</string>
              </property>
             </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="EnumComboBox" name="durationFormat"/>
            </item>
            <item row="3" column="0">
             <widget class="QLabel" name="nextAnimationLabel">
@@ -122,7 +129,31 @@
            <item row="3" column="1">
             <widget class="QLineEdit" name="nextAnimation"/>
            </item>
-           <item row="4" column="0" colspan="2">
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="animationFrameBox">
+          <property name="title">
+           <string>Animation Frames</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
             <widget class="QTreeView" name="animationFrames">
              <property name="sizePolicy">
               <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
@@ -130,12 +161,18 @@
                <verstretch>1</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>100</height>
+              </size>
+             </property>
              <property name="rootIsDecorated">
               <bool>false</bool>
              </property>
             </widget>
            </item>
-           <item row="5" column="0" colspan="2">
+           <item>
             <widget class="QToolBar" name="animationFramesButtons">
              <property name="movable">
               <bool>false</bool>
@@ -153,6 +190,13 @@
            </item>
           </layout>
          </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="animationFramesLayout">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+         </layout>
         </item>
        </layout>
       </widget>

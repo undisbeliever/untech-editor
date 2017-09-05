@@ -50,7 +50,7 @@
          <x>0</x>
          <y>0</y>
          <width>284</width>
-         <height>727</height>
+         <height>611</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -297,7 +297,22 @@
           <property name="title">
            <string>Frames</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <layout class="QVBoxLayout" name="verticalLayout2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
             <widget class="QListView" name="frameList">
              <property name="sizePolicy">
@@ -305,6 +320,12 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>100</height>
+              </size>
              </property>
              <property name="selectionMode">
               <enum>QAbstractItemView::SingleSelection</enum>
