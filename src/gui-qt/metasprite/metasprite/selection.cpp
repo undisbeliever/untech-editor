@@ -22,11 +22,10 @@ Selection::Selection(QObject* parent)
 
 void Selection::setDocument(Document* document)
 {
-    AbstractSelection::setDocument(document);
-
     if (_document != nullptr) {
         _document->disconnect(this);
     }
+    AbstractSelection::setDocument(document);
     _document = document;
 
     connect(_document, &Document::paletteAdded,
