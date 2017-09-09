@@ -8,6 +8,7 @@
 
 #include "gui-qt/common/abstractmainwindow.h"
 #include <QComboBox>
+#include <QFileSystemWatcher>
 #include <QMainWindow>
 #include <QTabWidget>
 #include <QUndoGroup>
@@ -54,10 +55,15 @@ protected:
 private slots:
     void onSelectedFrameChanged();
 
+    void onFrameSetImageFilenameChanged();
+    void onImageFileChanged();
+
 private:
     Actions* _actions;
     ZoomSettings* _zoomSettings;
     LayerSettings* _layerSettings;
+
+    QFileSystemWatcher _imageFileWatcher;
 
     SiAnimationPreviewItemFactory* _animationPreviewItemFactory;
 

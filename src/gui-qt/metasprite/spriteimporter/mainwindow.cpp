@@ -28,6 +28,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _actions(new Actions(this))
     , _zoomSettings(new ZoomSettings(4.0, ZoomSettings::NTSC, this))
     , _layerSettings(new LayerSettings(this))
+    , _imageFileWatcher()
     , _animationPreviewItemFactory(
           new SiAnimationPreviewItemFactory(_layerSettings, this))
 {
@@ -69,6 +70,9 @@ MainWindow::MainWindow(QWidget* parent)
     readSettings();
 
     _frameSetDock->raise();
+
+    connect(&_imageFileWatcher, &QFileSystemWatcher::fileChanged,
+            this, &MainWindow::onImageFileChanged);
 }
 
 MainWindow::~MainWindow() = default;
@@ -129,6 +133,7 @@ void MainWindow::documentChangedEvent(AbstractDocument* abstractDocument,
     Document* oldDocument = qobject_cast<Document*>(abstractOldDocument);
 
     if (oldDocument) {
+        oldDocument->disconnect(this);
         oldDocument->selection()->disconnect(this);
     }
 
@@ -141,7 +146,11 @@ void MainWindow::documentChangedEvent(AbstractDocument* abstractDocument,
 
     _tabWidget->setEnabled(document != nullptr);
 
+    onFrameSetImageFilenameChanged();
+
     if (document != nullptr) {
+        connect(document, &Document::frameSetImageFilenameChanged,
+                this, &MainWindow::onFrameSetImageFilenameChanged);
         connect(document->selection(), &Selection::selectedFrameChanged,
                 this, &MainWindow::onSelectedFrameChanged);
     }
@@ -159,4 +168,33 @@ void MainWindow::onSelectedFrameChanged()
     else {
         _graphicsView->setDragMode(QGraphicsView::NoDrag);
     }
+}
+
+void MainWindow::onFrameSetImageFilenameChanged()
+{
+    auto removePaths = [this](const auto& list) {
+        if (!list.isEmpty()) {
+            _imageFileWatcher.removePaths(list);
+        }
+    };
+    removePaths(_imageFileWatcher.files());
+    removePaths(_imageFileWatcher.directories());
+
+    Document* document = qobject_cast<Document*>(this->document());
+    if (document) {
+        QString fn = QString::fromStdString(document->frameSet()->imageFilename);
+        if (!fn.isEmpty()) {
+            _imageFileWatcher.addPath(fn);
+        }
+    }
+}
+
+void MainWindow::onImageFileChanged()
+{
+    Document* document = qobject_cast<Document*>(this->document());
+    Q_ASSERT(document != nullptr);
+
+    document->frameSet()->reloadImage();
+
+    emit document->frameSetImageChanged();
 }

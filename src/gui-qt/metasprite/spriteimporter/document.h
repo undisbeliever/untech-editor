@@ -45,6 +45,7 @@ private:
 
 signals:
     void frameSetGridChanged();
+    void frameSetImageFilenameChanged();
     void frameSetImageChanged();
     void frameSetPaletteChanged();
 

@@ -108,6 +108,7 @@ void ChangeFrameSetImageFile::undo()
     fs->transparentColor = _oldTransparentColor;
 
     emit _document->frameSetDataChanged();
+    emit _document->frameSetImageFilenameChanged();
     emit _document->frameSetImageChanged();
 }
 
@@ -119,6 +120,7 @@ void ChangeFrameSetImageFile::redo()
     fs->loadImage(_newFilename);
 
     emit _document->frameSetDataChanged();
+    emit _document->frameSetImageFilenameChanged();
     emit _document->frameSetImageChanged();
 }
 
