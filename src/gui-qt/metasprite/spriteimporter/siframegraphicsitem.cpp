@@ -108,6 +108,10 @@ void SiFrameGraphicsItem::updateSelection(const std::set<SelectedItem>& selectio
     processList(_objects, SelectedItem::FRAME_OBJECT);
     processList(_actionPoints, SelectedItem::ACTION_POINT);
     processList(_entityHitboxes, SelectedItem::ENTITY_HITBOX);
+
+    _tileHitbox->setSelected(
+        std::any_of(selection.begin(), selection.end(),
+                    [](auto& s) { return s.type == SelectedItem::TILE_HITBOX; }));
 }
 
 void SiFrameGraphicsItem::updateFrameLocation()

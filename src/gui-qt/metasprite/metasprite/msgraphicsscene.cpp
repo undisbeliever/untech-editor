@@ -477,6 +477,10 @@ void MsGraphicsScene::updateSelection()
     processList(_actionPoints, SelectedItem::ACTION_POINT);
     processList(_entityHitboxes, SelectedItem::ENTITY_HITBOX);
 
+    _tileHitbox->setSelected(
+        std::any_of(sel.begin(), sel.end(),
+                    [](auto& s) { return s.type == SelectedItem::TILE_HITBOX; }));
+
     _inUpdateSelection = false;
 }
 
