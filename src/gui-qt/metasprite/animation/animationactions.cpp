@@ -56,11 +56,16 @@ AnimationActions::AnimationActions(QWidget* widget)
 void AnimationActions::setDocument(AbstractMsDocument* document)
 {
     if (_document) {
+        _document->disconnect(this);
         _document->selection()->disconnect(this);
     }
     _document = document;
 
     if (document) {
+        connect(_document, &AbstractMsDocument::animationMapChanged,
+                this, &AnimationActions::updateActions);
+        connect(_document, &AbstractMsDocument::animationFrameListChanged,
+                this, &AnimationActions::updateActions);
         connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
                 this, &AnimationActions::updateActions);
         connect(_document->selection(), &AbstractSelection::selectedAnimationFrameChanged,

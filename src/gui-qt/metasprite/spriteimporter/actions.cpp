@@ -79,6 +79,12 @@ void Actions::setDocument(Document* document)
     if (document) {
         connect(_document, &Document::frameDataChanged,
                 this, &Actions::updateActions);
+        connect(_document, &Document::frameObjectListChanged,
+                this, &Actions::updateActions);
+        connect(_document, &Document::actionPointListChanged,
+                this, &Actions::updateActions);
+        connect(_document, &Document::entityHitboxListChanged,
+                this, &Actions::updateActions);
         connect(_document->selection(), &Selection::selectedFrameChanged,
                 this, &Actions::updateActions);
         connect(_document->selection(), &Selection::selectedItemsChanged,
