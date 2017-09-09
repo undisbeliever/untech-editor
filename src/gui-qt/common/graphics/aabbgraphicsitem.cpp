@@ -59,30 +59,35 @@ void AabbGraphicsItem::setSize(int width, int height)
 
 void AabbGraphicsItem::setRect(const QRect& rect)
 {
+    _size = QSize(0, 0);
     QGraphicsItem::setPos(rect.x(), rect.y());
     setSize(rect.width(), rect.height());
 }
 
 void AabbGraphicsItem::setRect(const urect& rect)
 {
+    _size = QSize(0, 0);
     QGraphicsItem::setPos(rect.x, rect.y);
     setSize(rect.width, rect.height);
 }
 
 void AabbGraphicsItem::setRect(const ms8rect& rect)
 {
+    _size = QSize(0, 0);
     QGraphicsItem::setPos(rect.x, rect.y);
     setSize(rect.width, rect.height);
 }
 
 void AabbGraphicsItem::setRect(const upoint& point, unsigned squareSize)
 {
+    _size = QSize(0, 0);
     QGraphicsItem::setPos(point.x, point.y);
     setSize(squareSize);
 }
 
 void AabbGraphicsItem::setRect(const ms8point& point, unsigned squareSize)
 {
+    _size = QSize(0, 0);
     QGraphicsItem::setPos(point.x, point.y);
     setSize(squareSize);
 }
