@@ -1,37 +1,78 @@
 
-PROFILE	?= release
+PROFILE     ?= release
+CXX         ?= g++
+CXXWARNINGS ?= -Wall -Wextra -Wdeprecated
 
-CXXWARNINGS	?= -Wall -Wextra -Wdeprecated
+GUI_QT_MODULES := Qt5Core Qt5Gui Qt5Widgets Qt5Svg
+
+ifeq ($(OS),Windows_NT)
+  BIN_EXT         := .exe
+  RM_COMMAND       = -del /f $(subst /,\,$1)
+  # Prevents text spam
+  _MISSING_DIRS    = $(foreach p,$1,$(if $(wildcard $p),,$p))
+  MKDIR_P_COMMAND  = $(if $(call _MISSING_DIRS,$1),-mkdir $(subst /,\,$(call _MISSING_DIRS,$1)))
+
+  LIBS := -lshlwapi
+
+  VENDOR_CXXFLAGS := -Wno-deprecated
+
+  WX_CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
+  WX_CONTROLLER_LIBS     := $(shell pkg-config --libs sigc++-2.0)
+  WX_VIEW_CXXFLAGS       := $(shell wx-config --cxxflags)
+  WX_VIEW_LIBS           := $(shell wx-config --libs)
+
+  ifndef QT_PATH
+    # Find QT install dir from PATH
+    QT_PATH := $(foreach p,$(subst ;, ,$(PATH)),$(if $(wildcard $p/moc.exe),$p))
+    QT_PATH := $(patsubst %\bin,%,$(QT_PATH))
+  endif
+
+  GUI_QT_CXXFLAGS := -I$(QT_PATH)/include $(foreach l,$(GUI_QT_MODULES:Qt5%=Qt%),-I$(QT_PATH)/include/$l)
+  GUI_QT_LIBS     := $(foreach l,$(GUI_QT_MODULES),-l$l) -L$(QT_PATH)/lib
+
+  MOC := moc
+  UIC := uic
+  RCC := rcc
+
+else
+  # Linux/BSD
+
+  BIN_EXT         :=
+  RM_COMMAND       = rm -f $1
+  MKDIR_P_COMMAND  = mkdir -p $1
+
+  LIBS :=
+
+  VENDOR_CXXFLAGS := -Wno-deprecated
+
+  WX_CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
+  WX_CONTROLLER_LIBS     := $(shell pkg-config --libs sigc++-2.0)
+  WX_VIEW_CXXFLAGS       := $(shell wx-config --cxxflags)
+  WX_VIEW_LIBS           := $(shell wx-config --libs)
+
+  GUI_QT_CXXFLAGS := -fPIC $(shell pkg-config --cflags $(GUI_QT_MODULES))
+  GUI_QT_LIBS     := $(shell pkg-config --libs $(GUI_QT_MODULES))
+
+  MOC := moc-qt5
+  UIC := uic-qt5
+  RCC := rcc-qt5
+endif
+
+GEN_DIR	:= gen
 
 ifeq ($(PROFILE),release)
   OBJ_DIR       := obj/release
   BIN_DIR       := bin
-  BIN_EXT	:=
 
-  CXX           ?= g++
   CXXFLAGS      += -std=c++14 -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
   LDFLAGS       += -O2 -flto -Wl,-gc-sections
-  LIBS	        :=
-  WX_CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
-  WX_CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
-  WX_VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
-  WX_VIEW_LIBS := $(shell wx-config --libs)
-  VENDOR_CXXFLAGS := -Wno-deprecated
 
 else ifeq ($(PROFILE),debug)
   OBJ_DIR       := obj/debug
   BIN_DIR       := bin/debug
-  BIN_EXT	:=
 
-  CXX           ?= g++
   CXXFLAGS      += -std=c++14 -g -MMD -Isrc -Werror
   LDFLAGS       += -g -Werror
-  LIBS	        :=
-  WX_CONTROLLER_CXXFLAGS := $(shell pkg-config --cflags sigc++-2.0)
-  WX_CONTROLLER_LIBS := $(shell pkg-config --libs sigc++-2.0)
-  WX_VIEW_CXXFLAGS := $(shell wx-config --cxxflags)
-  WX_VIEW_LIBS := $(shell wx-config --libs)
-  VENDOR_CXXFLAGS := -Wno-deprecated
 
 else ifeq ($(PROFILE),mingw)
   # MinGW cross platform compiling
@@ -45,28 +86,19 @@ else ifeq ($(PROFILE),mingw)
   CXX           := $(CXX_MINGW)
   CXXFLAGS      += -std=c++14 -O2 -flto -MMD -Isrc
   LDFLAGS       += -O2 -flto
-  LIBS	        := -lshlwapi
+  LIBS          += -lshlwapi
+
   WX_CONTROLLER_CXXFLAGS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --cflags sigc++-2.0)
   WX_CONTROLLER_LIBS := $(shell pkg-config --define-variable=prefix=$(PREFIX) --libs sigc++-2.0)
   WX_VIEW_CXXFLAGS := $(shell $(PREFIX)/bin/wx-config --cxxflags)
   WX_VIEW_LIBS := $(shell $(PREFIX)/bin/wx-config --libs)
-  VENDOR_CXXFLAGS := -Wno-deprecated
+
+  GUI_QT_CXXFLAGS := -fPIC $(shell pkg-config --define-variable=prefix=$(PREFIX) --cflags $(GUI_QT_MODULES))
+  GUI_QT_LIBS     := $(shell pkg-config --define-variable=prefix=$(PREFIX) --libs $(GUI_QT_MODULES))
 
 else
   $(error unknown profile)
 endif
-
-
-GEN_DIR	    := gen
-
-GUI_QT_MODULES  := Qt5Core Qt5Gui Qt5Widgets Qt5Svg
-
-# ::TODO Windows and Linux::
-GUI_QT_CXXFLAGS := -fPIC `pkg-config --cflags $(GUI_QT_MODULES)`
-GUI_QT_LIBS     := `pkg-config --libs $(GUI_QT_MODULES)`
-MOC         := moc-qt5
-UIC         := uic-qt5
-RCC         := rcc-qt5
 
 
 ifneq ($(findstring clang,$(CXX)),)
@@ -244,18 +276,21 @@ OBJECT_DIRS := $(sort $(dir $(OBJS) $(GEN_OBJS)))
 GEN_DIRS := $(sort $(dir $(GUI_QT_UI_GEN) $(GUI_QT_MOC_GEN) $(GUI_QT_RES_GEN)))
 dirs: $(BIN_DIR)/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS)
 $(BIN_DIR)/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS):
-	mkdir -p $@
+	$(call MKDIR_P_COMMAND,$@)
+
 
 
 .PHONY: clean
 clean:
-	$(RM) $(DEPS)
-	$(RM) $(OBJS)
-	$(RM) $(GUI_QT_MOC_GEN)
-	$(RM) $(GUI_QT_MOC_OBJS)
-	$(RM) $(GUI_QT_UI_GEN)
-	$(RM) $(GUI_QT_RES_OBJS)
-	$(RM) $(GUI_QT_RES_GEN) $(GUI_QT_RES_GEN:.cpp=.d)
+	$(call RM_COMMAND, $(DEPS))
+	$(call RM_COMMAND, $(OBJS))
+	$(call RM_COMMAND, $(GUI_QT_MOC_GEN))
+	$(call RM_COMMAND, $(GUI_QT_MOC_OBJS))
+	$(call RM_COMMAND, $(GUI_QT_UI_GEN))
+	$(call RM_COMMAND, $(GUI_QT_RES_OBJS))
+	$(call RM_COMMAND, $(GUI_QT_RES_GEN) $(GUI_QT_RES_GEN:.cpp=.d))
+
+
 
 .PHONY: style
 style:
