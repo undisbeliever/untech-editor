@@ -5,6 +5,7 @@
  */
 
 #include "abstractmainwindow.h"
+#include "aboutdialog.h"
 #include "abstractdocument.h"
 
 #include <QCloseEvent>
@@ -64,6 +65,12 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
     }
 
     _viewMenu = menuBar()->addMenu(tr("&View"));
+
+    _aboutMenu = menuBar()->addMenu(tr("&Help"));
+    {
+        _aboutMenu->addAction(tr("About"),
+                              this, &AbstractMainWindow::onMenuAbout);
+    }
 
     _saveAction->setEnabled(false);
     _saveAsAction->setEnabled(false);
@@ -204,6 +211,11 @@ bool AbstractMainWindow::onMenuSaveAs()
     }
 
     return false;
+}
+
+void AbstractMainWindow::onMenuAbout()
+{
+    AboutDialog().exec();
 }
 
 bool AbstractMainWindow::unsavedChangesDialog()

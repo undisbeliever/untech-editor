@@ -57,6 +57,8 @@ private slots:
     bool onMenuSave();
     bool onMenuSaveAs();
 
+    void onMenuAbout();
+
 private:
     std::unique_ptr<AbstractDocument> _document;
     QUndoGroup* _undoGroup;
@@ -69,6 +71,7 @@ protected:
     QMenu* _fileMenu;
     QMenu* _editMenu;
     QMenu* _viewMenu;
+    QMenu* _aboutMenu;
 };
 }
 }
