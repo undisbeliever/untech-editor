@@ -45,6 +45,39 @@ ZoomSettings::ZoomSettings(qreal zoom, AspectRatio aspectRatio, QObject* parent)
     , _aspectRatioComboBox(nullptr)
 {
     updateTransform();
+
+    _zoomMenu = new QMenu(tr("Zoom"));
+    QActionGroup* zoomActionGroup = new QActionGroup(this);
+    zoomActionGroup->setExclusive(true);
+
+    for (qreal z : ZOOM_LEVELS) {
+        QAction* a = zoomActionGroup->addAction(QString::fromUtf8("%1%").arg(z * 100));
+        a->setData(z);
+        a->setCheckable(true);
+        a->setChecked(z == _zoom);
+        _zoomMenu->addAction(a);
+    }
+
+    _aspectRatioMenu = new QMenu(tr("Aspect Ratio"));
+    QActionGroup* aspectRatioGroup = new QActionGroup(this);
+    aspectRatioGroup->setExclusive(true);
+
+    auto addAspectAction = [&](const char* title, AspectRatio ratio) {
+        QAction* a = aspectRatioGroup->addAction(tr(title));
+        a->setData(ratio);
+        a->setCheckable(true);
+        a->setChecked(ratio == _aspectRatio);
+        _aspectRatioMenu->addAction(a);
+    };
+    addAspectAction("Square", SQUARE);
+    addAspectAction("NTSC", NTSC);
+    addAspectAction("PAL", PAL);
+
+    connect(_zoomMenu, &QMenu::triggered,
+            this, &ZoomSettings::onZoomMenuTriggered);
+
+    connect(_aspectRatioMenu, &QMenu::triggered,
+            this, &ZoomSettings::onAspectRatioMenuTriggered);
 }
 
 void ZoomSettings::updateTransform()
@@ -74,6 +107,10 @@ void ZoomSettings::setZoom(qreal z)
         updateTransform();
 
         emit zoomChanged();
+    }
+
+    for (QAction* a : _zoomMenu->actions()) {
+        a->setChecked(a->data() == _zoom);
     }
 }
 
@@ -116,6 +153,13 @@ void ZoomSettings::setAspectRatio(AspectRatio aspectRatio)
     if (_aspectRatio != aspectRatio) {
         _aspectRatio = aspectRatio;
 
+        for (QAction* a : _aspectRatioMenu->actions()) {
+            if (a->data() == aspectRatio) {
+                a->setChecked(true);
+                break;
+            }
+        }
+
         updateAspectRatioComboBox();
         updateTransform();
 
@@ -125,6 +169,9 @@ void ZoomSettings::setAspectRatio(AspectRatio aspectRatio)
 
 void ZoomSettings::populateMenu(QMenu* menu)
 {
+    menu->addMenu(_zoomMenu);
+    menu->addMenu(_aspectRatioMenu);
+
     menu->addAction(QIcon(":/icons/zoom-in.svg"), tr("Zoom In"),
                     this, &ZoomSettings::zoomIn,
                     Qt::CTRL + Qt::Key_Plus);
@@ -229,6 +276,17 @@ void ZoomSettings::onZoomComboBoxEdited()
     }
 }
 
+void ZoomSettings::onZoomMenuTriggered(QAction* action)
+{
+    qreal z = action->data().toDouble();
+    if (z > 0) {
+        setZoom(z);
+    }
+    else {
+        resetZoom();
+    }
+}
+
 void ZoomSettings::updateAspectRatioComboBox()
 {
     if (_aspectRatioComboBox) {
@@ -240,5 +298,11 @@ void ZoomSettings::updateAspectRatioComboBox()
 void ZoomSettings::onAspectRatioComboBoxActivated(int index)
 {
     int a = _aspectRatioComboBox->itemData(index).toInt();
+    setAspectRatio(AspectRatio(a));
+}
+
+void ZoomSettings::onAspectRatioMenuTriggered(QAction* action)
+{
+    int a = action->data().toInt();
     setAspectRatio(AspectRatio(a));
 }

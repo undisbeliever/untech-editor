@@ -68,7 +68,9 @@ private slots:
 
     void onZoomComboBoxActivated(int index);
     void onZoomComboBoxEdited();
+    void onZoomMenuTriggered(QAction* action);
     void onAspectRatioComboBoxActivated(int index);
+    void onAspectRatioMenuTriggered(QAction* action);
 
 signals:
     void zoomChanged();
@@ -79,6 +81,9 @@ private:
     qreal _zoom;
     AspectRatio _aspectRatio;
     QTransform _transform;
+
+    QMenu* _aspectRatioMenu;
+    QMenu* _zoomMenu;
 
     QRegExpValidator* _zoomValidator;
 
