@@ -25,6 +25,7 @@ AnimationDock::AnimationDock(QWidget* parent)
     , _actions(new AnimationActions(this))
     , _document(nullptr)
     , _nextAnimationCompleter(new QCompleter(this))
+    , _animationFramesDelegate(new AnimationFramesDelegate(this))
 {
     _ui->setupUi(this);
 
@@ -40,7 +41,7 @@ AnimationDock::AnimationDock(QWidget* parent)
     _ui->animationListButtons->addAction(_actions->renameAnimation());
     _ui->animationListButtons->addAction(_actions->removeAnimation());
 
-    _ui->animationFrames->setItemDelegate(new AnimationFramesDelegate(this));
+    _ui->animationFrames->setItemDelegate(_animationFramesDelegate);
 
     _ui->animationFramesButtons->addAction(_actions->addAnimationFrame());
     _ui->animationFramesButtons->addAction(_actions->cloneAnimationFrame());
@@ -90,6 +91,8 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
     _document = document;
 
     _actions->setDocument(document);
+    _animationFramesDelegate->setDocument(document);
+
     setEnabled(_document != nullptr);
 
     if (_document) {

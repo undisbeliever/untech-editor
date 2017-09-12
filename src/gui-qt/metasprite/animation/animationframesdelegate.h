@@ -11,6 +11,8 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
+class AbstractMsDocument;
+
 namespace Animation {
 
 class AnimationFramesDelegate : public QStyledItemDelegate {
@@ -19,6 +21,8 @@ class AnimationFramesDelegate : public QStyledItemDelegate {
 public:
     explicit AnimationFramesDelegate(QObject* parent = nullptr);
     ~AnimationFramesDelegate() = default;
+
+    void setDocument(AbstractMsDocument* document);
 
     virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option,
                                   const QModelIndex& index) const final;
@@ -30,6 +34,9 @@ public:
 
     virtual void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option,
                                       const QModelIndex& index) const final;
+
+private:
+    AbstractMsDocument* _document;
 };
 }
 }

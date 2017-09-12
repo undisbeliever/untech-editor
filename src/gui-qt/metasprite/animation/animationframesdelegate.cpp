@@ -7,8 +7,11 @@
 #include "animationframesdelegate.h"
 #include "animationframesmodel.h"
 
+#include "gui-qt/common/abstractidmaplistmodel.h"
 #include "gui-qt/common/idstringvalidator.h"
+#include "gui-qt/metasprite/abstractmsdocument.h"
 #include <QComboBox>
+#include <QCompleter>
 #include <QLineEdit>
 #include <QSpinBox>
 
@@ -16,7 +19,13 @@ using namespace UnTech::GuiQt::MetaSprite::Animation;
 
 AnimationFramesDelegate::AnimationFramesDelegate(QObject* parent)
     : QStyledItemDelegate(parent)
+    , _document(nullptr)
 {
+}
+
+void AnimationFramesDelegate::setDocument(AbstractMsDocument* document)
+{
+    _document = document;
 }
 
 QWidget* AnimationFramesDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&,
@@ -34,6 +43,15 @@ QWidget* AnimationFramesDelegate::createEditor(QWidget* parent, const QStyleOpti
         QLineEdit* editor = new QLineEdit(parent);
         editor->setValidator(new IdstringValidator(editor));
         editor->setAutoFillBackground(true);
+
+        if (_document != nullptr) {
+            QCompleter* completer = new QCompleter(editor);
+            completer->setCompletionRole(Qt::DisplayRole);
+            completer->setCaseSensitivity(Qt::CaseInsensitive);
+            completer->setModel(_document->frameListModel());
+
+            editor->setCompleter(completer);
+        }
         return editor;
     }
 

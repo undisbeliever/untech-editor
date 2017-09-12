@@ -22,6 +22,7 @@ namespace Ui {
 class AnimationDock;
 }
 class AnimationActions;
+class AnimationFramesDelegate;
 
 namespace MSA = UnTech::MetaSprite::Animation;
 
@@ -62,6 +63,7 @@ private:
     AbstractMsDocument* _document;
 
     QCompleter* _nextAnimationCompleter;
+    AnimationFramesDelegate* _animationFramesDelegate;
 };
 }
 }
