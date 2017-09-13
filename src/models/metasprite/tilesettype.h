@@ -16,14 +16,14 @@ namespace MetaSprite {
 class TilesetType {
 public:
     enum class Enum : uint_fast8_t {
-        ONE_TILE = 0x00,
-        TWO_TILES = 0x02,
-        ONE_ROW = 0x04,
-        TWO_ROWS = 0x06,
-        ONE_TILE_FIXED = 0x80,
-        TWO_TILES_FIXED = 0x82,
-        ONE_ROW_FIXED = 0x84,
-        TWO_ROWS_FIXED = 0x86
+        ONE_TILE_FIXED = 0x00,
+        TWO_TILES_FIXED = 0x02,
+        ONE_ROW_FIXED = 0x04,
+        TWO_ROWS_FIXED = 0x06,
+        ONE_TILE = 0x08,
+        TWO_TILES = 0x0A,
+        ONE_ROW = 0x0C,
+        TWO_ROWS = 0x0E
     };
 
     static const std::map<Enum, std::string> enumMap;
@@ -48,7 +48,7 @@ public:
     uint_fast8_t romValue() const { return (uint_fast8_t)_value; }
 
     const std::string& string() const { return enumMap.at(_value); }
-    bool isFixed() const { return (unsigned)_value & 0x80; }
+    bool isFixed() const { return (unsigned)_value < 0x08; }
 
     uint8_t engineValue() const { return (uint8_t)_value; }
 
