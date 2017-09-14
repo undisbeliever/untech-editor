@@ -22,6 +22,7 @@ namespace MetaSprite {
 namespace Compiler {
 
 typedef std::unordered_map<unsigned, std::vector<const MetaSprite::Frame*>> TileGraph_t;
+typedef std::unordered_map<unsigned, std::array<uint16_t, 4>> SmallTileMap_t;
 
 struct FrameListEntry;
 struct AnimationListEntry;
@@ -37,6 +38,8 @@ struct FrameTileset {
 struct FrameTilesetList {
     TilesetType tilesetType;
 
+    FrameTileset* frameSetTileset;
+
     std::unordered_map<const MetaSprite::Frame*, FrameTileset&> frameMap;
 
     // Holds the tileset data used by the FrameMap
@@ -47,6 +50,9 @@ class TilesetCompiler {
 public:
     const static unsigned DEFAULT_TILE_BLOCK_SIZE = 8 * 1024;
 
+    struct Tile16;
+    struct FrameTilesetData;
+
 public:
     TilesetCompiler(ErrorList& errorList, unsigned tilesetBlockSize);
     TilesetCompiler(const TilesetCompiler&) = delete;
@@ -56,27 +62,27 @@ public:
     FrameTilesetList generateTilesetList(const FrameSetExportList& exportList);
 
 private:
-    FrameTilesetList generateDynamicTilesets(const MetaSprite::FrameSet& frameSet,
-                                             const TilesetType& tilesetType,
-                                             const TileGraph_t& largeTileGraph,
-                                             const TileGraph_t& smallTileGraph);
+    void validateExportList(const FrameSetExportList& exportList);
 
-    FrameTilesetList generateFixedTileset(const MetaSprite::FrameSet& frameSet,
-                                          const TilesetType& tilesetType,
-                                          const TileGraph_t& largeTileGraph,
-                                          const TileGraph_t& smallTileGraph);
+    SmallTileMap_t buildSmallTileMap(const std::vector<FrameListEntry>& frameEntries);
 
-    void buildTileset(FrameTileset& tileset,
-                      const MetaSprite::FrameSet& frameSet,
-                      const TilesetType& tilesetType,
-                      const std::set<unsigned>& largeTiles,
-                      const std::set<std::array<unsigned, 4>>& smallTiles);
+    std::vector<FrameTilesetData> fixedTilesetData(const std::vector<FrameListEntry>& frameEntries,
+                                                   const SmallTileMap_t& smallTileMap);
 
-    void buildTileset(FrameTileset& tileset,
-                      const MetaSprite::FrameSet& frameSet,
-                      const TilesetType& tilesetType,
-                      const std::set<unsigned>& largeTiles,
-                      const std::set<unsigned>& smallTiles);
+    std::vector<FrameTilesetData> dynamicTilesetData(const std::vector<FrameListEntry>& frameEntries,
+                                                     const SmallTileMap_t& smallTileMap);
+
+    void addFrameToTileset(std::set<Tile16>& tiles,
+                           const MetaSprite::Frame& frame,
+                           const SmallTileMap_t& smallTileMap);
+
+    FrameTilesetList buildTilesetList(const MetaSprite::FrameSet& frameSet,
+                                      const TilesetType& tilesetType,
+                                      const std::vector<FrameTilesetData>& ftVector);
+
+    FrameTileset buildTileset(const MetaSprite::FrameSet& frameSet,
+                              const TilesetType& tilesetType,
+                              const std::set<Tile16>& tiles);
 
 private:
     ErrorList& _errorList;

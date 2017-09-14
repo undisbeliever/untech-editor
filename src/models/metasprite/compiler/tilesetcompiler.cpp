@@ -13,6 +13,10 @@ using namespace UnTech;
 using namespace UnTech::MetaSprite::Compiler;
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
+namespace UnTech {
+namespace MetaSprite {
+namespace Compiler {
+
 /*
  * Increments the `charattr` position by one 16x16 tile,
  * handling the tilesetSpitPoint as required.
@@ -49,6 +53,56 @@ struct CharAttrPos {
 
 const uint16_t CharAttrPos::SMALL_TILE_OFFSETS[4] = { 0x0000, 0x0001, 0x0010, 0x0011 };
 
+// internal representation of a tile
+// ids are the tile ids used by the FrameObjects
+// if largeTileId == 0xffff then tile is small.
+struct TilesetCompiler::Tile16 {
+    uint16_t largeTileId = 0xffff;
+    std::array<uint16_t, 4> smallTileIds = { { 0xffff, 0xffff, 0xffff, 0xffff } };
+
+    bool isLarge() const { return largeTileId != 0xffff; }
+    bool isSmall() const { return largeTileId == 0xffff; }
+
+    bool operator==(const Tile16& o) const
+    {
+        return largeTileId == o.largeTileId && smallTileIds == o.smallTileIds;
+    }
+    bool operator!=(const Tile16& o) const
+    {
+        return !(*this == o);
+    }
+    bool operator<(const Tile16& o) const
+    {
+        return std::tie(largeTileId, smallTileIds)
+               < std::tie(o.largeTileId, o.smallTileIds);
+    }
+};
+
+struct TilesetCompiler::FrameTilesetData {
+    std::set<const MetaSprite::Frame*> frames;
+    std::set<Tile16> tiles;
+
+    FrameTilesetData(const MetaSprite::Frame* frame, std::set<Tile16>&& tiles)
+        : frames()
+        , tiles(tiles)
+    {
+        frames.insert(frame);
+    }
+
+    FrameTilesetData(const std::vector<FrameListEntry>& frameEntries,
+                     std::set<Tile16>&& tiles)
+        : frames()
+        , tiles(tiles)
+    {
+        for (const auto& entry : frameEntries) {
+            frames.insert(entry.frame);
+        }
+    }
+};
+}
+}
+}
+
 TilesetCompiler::TilesetCompiler(ErrorList& errorList,
                                  unsigned tilesetBlockSize)
     : _errorList(errorList)
@@ -63,32 +117,31 @@ void TilesetCompiler::writeToIncFile(std::ostream& out) const
     _tilesetData.writeToIncFile(out);
 }
 
-void TilesetCompiler::buildTileset(FrameTileset& tileset,
-                                   const MS::FrameSet& frameSet,
-                                   const TilesetType& tilesetType,
-                                   const std::set<unsigned>& largeTiles,
-                                   const std::set<std::array<unsigned, 4>>& smallTiles)
+FrameTileset
+TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
+                              const TilesetType& tilesetType,
+                              const std::set<Tile16>& tiles)
 {
-    unsigned tileCount = largeTiles.size() + smallTiles.size();
-    assert(tileCount > 0);
-    assert(tileCount <= tilesetType.nTiles());
+    assert(tiles.size() > 0);
+    assert(tiles.size() <= tilesetType.nTiles());
+
+    FrameTileset tileset;
 
     RomIncItem tilesetTable;
-    tilesetTable.addField(RomIncItem::BYTE, tileCount);
+    tilesetTable.addField(RomIncItem::BYTE, tiles.size());
 
-    // Process Tiles
-    {
-        auto addTile = [&](const Snes::Tile16px& tile) mutable {
-            auto a = _tileData.addLargeTile(tile);
-            tilesetTable.addTilePtr(a.addr);
+    auto addTile = [&](const Snes::Tile16px& tile) mutable {
+        auto a = _tileData.addLargeTile(tile);
+        tilesetTable.addTilePtr(a.addr);
 
-            return a;
-        };
+        return a;
+    };
 
-        // Process Large Tiles
-        CharAttrPos charAttrPos(tilesetType.tilesetSplitPoint());
+    CharAttrPos charAttrPos(tilesetType.tilesetSplitPoint());
 
-        for (unsigned tId : largeTiles) {
+    for (const Tile16& tile16 : tiles) {
+        if (tile16.isLarge()) {
+            unsigned tId = tile16.largeTileId;
             const Snes::Tile16px& tile = frameSet.largeTileset.tile(tId);
 
             RomTileData::Accessor a = addTile(tile);
@@ -104,13 +157,11 @@ void TilesetCompiler::buildTileset(FrameTileset& tileset,
 
             charAttrPos.inc();
         }
-
-        // Process Small Tiles
-        for (auto tileIds : smallTiles) {
+        else {
             std::array<Snes::Tile8px, 4> tiles = {};
 
             for (unsigned i = 0; i < 4; i++) {
-                unsigned tId = tileIds[i];
+                unsigned tId = tile16.smallTileIds[i];
                 if (tId < frameSet.smallTileset.size()) {
                     tiles[i] = frameSet.smallTileset.tile(tId);
                 }
@@ -118,7 +169,7 @@ void TilesetCompiler::buildTileset(FrameTileset& tileset,
             RomTileData::Accessor a = addTile(combineSmallTiles(tiles));
 
             for (unsigned i = 0; i < 4; i++) {
-                unsigned tId = tileIds[i];
+                unsigned tId = tile16.smallTileIds[i];
                 uint16_t charAttr = charAttrPos.smallCharAttr(i);
 
                 if (a.hFlip) {
@@ -136,231 +187,183 @@ void TilesetCompiler::buildTileset(FrameTileset& tileset,
 
     // Store the DMA data and tileset
     tileset.tilesetOffset = _tilesetData.addData(tilesetTable);
+
+    return tileset;
 }
 
-void TilesetCompiler::buildTileset(FrameTileset& tileset,
-                                   const MS::FrameSet& frameSet,
-                                   const TilesetType& tilesetType,
-                                   const std::set<unsigned>& largeTiles,
-                                   const std::set<unsigned>& smallTiles)
+FrameTilesetList
+TilesetCompiler::buildTilesetList(const MetaSprite::FrameSet& frameSet,
+                                  const TilesetType& tilesetType,
+                                  const std::vector<FrameTilesetData>& ftVector)
 {
-    std::set<std::array<unsigned, 4>> smallTilesCombined;
+    FrameTilesetList ret;
+    ret.tilesetType = tilesetType;
 
-    auto it = smallTiles.begin();
-    while (it != smallTiles.end()) {
-        std::array<unsigned, 4> st = { { UINT_MAX, UINT_MAX, UINT_MAX, UINT_MAX } };
+    bool error = false;
 
-        for (unsigned i = 0; i < st.size() && it != smallTiles.end(); i++) {
-            st[i] = *it;
-            ++it;
-        }
-        smallTilesCombined.insert(st);
-    }
+    for (const auto& ft : ftVector) {
+        if (ft.tiles.size() <= tilesetType.nTiles()) {
+            ret.tilesets.emplace_back(
+                buildTileset(frameSet, tilesetType, ft.tiles));
 
-    buildTileset(tileset, frameSet, tilesetType, largeTiles, smallTilesCombined);
-}
-
-inline FrameTilesetList
-TilesetCompiler::generateDynamicTilesets(const MetaSprite::FrameSet& frameSet,
-                                         const TilesetType& tilesetType,
-                                         const TileGraph_t& largeTileGraph,
-                                         const TileGraph_t& smallTileGraph)
-{
-    auto smallTileMap = combineSmallTilesets(smallTileGraph);
-
-    // convert to a more use-able format
-    struct FrameTileset {
-        std::vector<const MetaSprite::Frame*> frames;
-        std::set<unsigned> originalSmallTiles;
-        std::set<std::array<unsigned, 4>> smallTiles;
-        std::set<unsigned> largeTiles;
-
-        unsigned nTiles() const
-        {
-            return largeTiles.size() + smallTiles.size();
-        }
-
-        unsigned nTilesUnoptimized() const
-        {
-            return largeTiles.size() + (originalSmallTiles.size() + 3) / 4;
-        }
-    };
-
-    std::vector<FrameTileset> ftData;
-    {
-        std::map<const MetaSprite::Frame*, FrameTileset> ft;
-
-        for (const auto& it : largeTileGraph) {
-            for (const auto& f : it.second) {
-                ft[f].largeTiles.insert(it.first);
-            }
-        }
-        for (const auto& it : smallTileGraph) {
-            for (const auto& f : it.second) {
-                ft[f].smallTiles.insert(smallTileMap[it.first]);
-                ft[f].originalSmallTiles.insert(it.first);
-            }
-        }
-
-        // ftData must be built in a deterministic order
-        for (const auto& it : frameSet.frames) {
-            MetaSprite::Frame* frame = &it.second;
-
-            if (ft.find(frame) != ft.end()) {
-                const auto& data = ft[frame];
-
-                auto dup = std::find_if(ftData.begin(), ftData.end(), [data](const auto& t) {
-                    return t.originalSmallTiles == data.originalSmallTiles
-                           && t.largeTiles == data.largeTiles;
-                });
-
-                if (dup != ftData.end()) {
-                    dup->frames.push_back(frame);
-                }
-                else {
-                    ftData.emplace_back(data);
-                    ftData.back().frames.push_back(frame);
-                }
-            }
-        }
-    }
-
-    // Build tilesets
-    {
-        FrameTilesetList ret;
-        ret.tilesetType = tilesetType;
-
-        bool error = false;
-
-        for (const auto& ft : ftData) {
-            ret.tilesets.emplace_back();
             auto& tileset = ret.tilesets.back();
-
-            if (ft.nTiles() <= tilesetType.nTiles()) {
-                buildTileset(tileset, frameSet, tilesetType, ft.largeTiles, ft.smallTiles);
-            }
-            else if (ft.nTilesUnoptimized() <= tilesetType.nTiles()) {
-                _errorList.addWarning(frameSet, "Could not optimally combine tileset");
-                buildTileset(tileset, frameSet, tilesetType, ft.largeTiles, ft.originalSmallTiles);
-            }
-            else {
-                for (const auto* f : ft.frames) {
-                    _errorList.addError(frameSet, *f, "Too many tiles in frame");
-                }
-                error = true;
-            }
 
             for (const MS::Frame* frame : ft.frames) {
                 ret.frameMap.emplace(frame, tileset);
             }
         }
-
-        if (error) {
-            throw std::runtime_error("Unable to build tileset");
+        else {
+            for (const MS::Frame* f : ft.frames) {
+                _errorList.addError(frameSet, *f, "Too many tiles in frame");
+            }
+            error = true;
         }
+    }
 
-        return ret;
+    if (error) {
+        throw std::runtime_error("Unable to build tileset");
+    }
+
+    return ret;
+}
+
+void TilesetCompiler::addFrameToTileset(std::set<Tile16>& tiles,
+                                        const MS::Frame& frame,
+                                        const SmallTileMap_t& smallTileMap)
+{
+    for (const auto& obj : frame.objects) {
+        Tile16 t;
+        if (obj.size == ObjectSize::LARGE) {
+            t.largeTileId = obj.tileId;
+        }
+        else {
+            t.smallTileIds = smallTileMap.at(obj.tileId);
+        }
+        tiles.insert(t);
     }
 }
 
-inline FrameTilesetList
-TilesetCompiler::generateFixedTileset(const MetaSprite::FrameSet& frameSet,
-                                      const TilesetType& tilesetType,
-                                      const TileGraph_t& largeTileGraph,
-                                      const TileGraph_t& smallTileGraph)
+std::vector<TilesetCompiler::FrameTilesetData>
+TilesetCompiler::dynamicTilesetData(const std::vector<FrameListEntry>& frameEntries,
+                                    const SmallTileMap_t& smallTileMap)
 {
-    // Duplicates of large tiles are handled by the RomTileData class
-    // Duplicates of small tiles can not be easily processed, and will be ignored.
-    std::set<unsigned> largeTiles;
-    std::set<unsigned> smallTiles;
-    {
-        for (const auto& it : largeTileGraph) {
-            largeTiles.insert(it.first);
+    std::vector<FrameTilesetData> ftVector;
+
+    for (const auto& entry : frameEntries) {
+        std::set<Tile16> tiles;
+        addFrameToTileset(tiles, *entry.frame, smallTileMap);
+
+        auto it = std::find_if(ftVector.begin(), ftVector.end(),
+                               [&](auto& i) { return i.tiles == tiles; });
+
+        if (it == ftVector.end()) {
+            ftVector.emplace_back(entry.frame, std::move(tiles));
         }
-        for (const auto& it : smallTileGraph) {
-            smallTiles.insert(it.first);
+        else {
+            it->frames.insert(entry.frame);
         }
     }
 
-    // Build and store tileset
-    {
-        FrameTilesetList ret;
-        ret.tilesetType = tilesetType;
-
-        ret.tilesets.emplace_back();
-        FrameTileset& tileset = ret.tilesets.back();
-        buildTileset(tileset, frameSet, tilesetType, largeTiles, smallTiles);
-
-        for (const auto& fsIt : frameSet.frames) {
-            ret.frameMap.emplace(&fsIt.second, tileset);
-        }
-
-        return ret;
-    }
+    return ftVector;
 }
 
-FrameTilesetList
-TilesetCompiler::generateTilesetList(const FrameSetExportList& exportList)
+std::vector<TilesetCompiler::FrameTilesetData>
+TilesetCompiler::fixedTilesetData(const std::vector<FrameListEntry>& frames,
+                                  const SmallTileMap_t& smallTileMap)
 {
-    const MS::FrameSet& frameSet = exportList.frameSet();
+    std::vector<FrameTilesetData> ftVector;
+    std::set<Tile16> tiles;
 
-    TileGraph_t largeTileGraph;
+    for (const auto& entry : frames) {
+        addFrameToTileset(tiles, *entry.frame, smallTileMap);
+    }
+
+    ftVector.emplace_back(frames, std::move(tiles));
+
+    return ftVector;
+}
+
+SmallTileMap_t
+TilesetCompiler::buildSmallTileMap(const std::vector<FrameListEntry>& frameEntries)
+{
     TileGraph_t smallTileGraph;
 
-    // Build a graph of the tiles and the frames that use them.
-    for (const auto& fle : exportList.frames()) {
+    for (const auto& fle : frameEntries) {
         if (fle.frame != nullptr) {
             for (const auto& obj : fle.frame->objects) {
-
-                if (obj.size == ObjectSize::LARGE) {
-                    largeTileGraph[obj.tileId].emplace_back(fle.frame);
-                }
-                else {
+                if (obj.size == ObjectSize::SMALL) {
                     smallTileGraph[obj.tileId].emplace_back(fle.frame);
                 }
             }
         }
     }
 
-    // verify tileIds are valid
-    {
-        for (const auto& it : smallTileGraph) {
-            unsigned t = it.first;
-            if (t >= frameSet.smallTileset.size()) {
-                throw std::runtime_error("Invalid small tileId " + std::to_string(t));
+    return combineSmallTilesets(smallTileGraph);
+}
+
+void TilesetCompiler::validateExportList(const FrameSetExportList& exportList)
+{
+    const MS::FrameSet& frameSet = exportList.frameSet();
+
+    std::set<unsigned> largeTiles;
+    std::set<unsigned> smallTiles;
+
+    for (const auto& fle : exportList.frames()) {
+        assert(fle.frame != nullptr);
+
+        for (const auto& obj : fle.frame->objects) {
+            if (obj.size == ObjectSize::LARGE) {
+                largeTiles.insert(obj.tileId);
             }
-        }
-        for (const auto& it : largeTileGraph) {
-            unsigned t = it.first;
-            if (t >= frameSet.largeTileset.size()) {
-                throw std::runtime_error("Invalid large tileId " + std::to_string(t));
+            else {
+                smallTiles.insert(obj.tileId);
             }
         }
     }
 
-    unsigned tilesetSize = largeTileGraph.size() + (smallTileGraph.size() + 3) / 4;
-    auto tilesetType = frameSet.tilesetType;
+    for (unsigned t : smallTiles) {
+        if (t >= frameSet.smallTileset.size()) {
+            throw std::runtime_error("Invalid small tileId " + std::to_string(t));
+        }
+    }
+    for (unsigned t : largeTiles) {
+        if (t >= frameSet.largeTileset.size()) {
+            throw std::runtime_error("Invalid large tileId " + std::to_string(t));
+        }
+    }
 
-    if (tilesetSize == 0) {
+    if (smallTiles.size() == 0 && largeTiles.size() == 0) {
         throw std::runtime_error("No tiles in tileset");
     }
+}
 
-    if (tilesetSize <= tilesetType.nTiles() || tilesetType.isFixed()) {
-        // All of the tiles used in the frameset
+FrameTilesetList
+TilesetCompiler::generateTilesetList(const FrameSetExportList& exportList)
+{
+    validateExportList(exportList);
+    auto smallTileMap = buildSmallTileMap(exportList.frames());
+
+    const MS::FrameSet& frameSet = exportList.frameSet();
+    TilesetType tilesetType = frameSet.tilesetType;
+
+    auto frameTilesetData = fixedTilesetData(exportList.frames(), smallTileMap);
+    unsigned nTiles = frameTilesetData.back().tiles.size();
+
+    if (nTiles <= tilesetType.nTiles() || tilesetType.isFixed()) {
         if (tilesetType.isFixed() == false) {
             _errorList.addWarning(frameSet, "Tileset can be fixed, making it so.");
         }
 
-        // try to resize tileset if necessary
-        auto smallestType = TilesetType::smallestFixedTileset(tilesetSize);
-
+        auto smallestType = TilesetType::smallestFixedTileset(nTiles);
         if (tilesetType.nTiles() != smallestType.nTiles()) {
             _errorList.addWarning(frameSet, std::string("TilesetType shrunk to ") + smallestType.string());
         }
 
-        return generateFixedTileset(frameSet, smallestType, largeTileGraph, smallTileGraph);
+        tilesetType = smallestType;
     }
     else {
-        return generateDynamicTilesets(frameSet, tilesetType, largeTileGraph, smallTileGraph);
+        frameTilesetData = dynamicTilesetData(exportList.frames(), smallTileMap);
     }
+
+    return buildTilesetList(frameSet, tilesetType, frameTilesetData);
 }

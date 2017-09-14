@@ -138,7 +138,7 @@ inline SmallTileMap_t secondPass(std::list<FirstPassOutput> input)
             }
         }
 
-        std::array<unsigned, 4> combined = { { UINT_MAX, UINT_MAX, UINT_MAX, UINT_MAX } };
+        std::array<uint16_t, 4> combined = { { 0xffff, 0xffff, 0xffff, 0xffff } };
 
         combined[0] = mostPopular->firstTile;
         combined[1] = mostPopular->secondTile;
