@@ -119,7 +119,7 @@ void TilesetCompiler::writeToIncFile(std::ostream& out) const
 
 FrameTileset
 TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
-                              const TilesetType& tilesetType,
+                              const TilesetType tilesetType,
                               const std::set<Tile16>& tiles)
 {
     assert(tiles.size() > 0);
@@ -191,12 +191,12 @@ TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
     return tileset;
 }
 
-FrameTilesetList
-TilesetCompiler::buildTilesetList(const MetaSprite::FrameSet& frameSet,
-                                  const TilesetType& tilesetType,
-                                  const std::vector<FrameTilesetData>& ftVector)
+FrameSetTilesets
+TilesetCompiler::buildDynamicTileset(const MetaSprite::FrameSet& frameSet,
+                                     const TilesetType tilesetType,
+                                     const std::vector<FrameTilesetData>& ftVector)
 {
-    FrameTilesetList ret;
+    FrameSetTilesets ret;
     ret.tilesetType = tilesetType;
 
     bool error = false;
@@ -222,6 +222,32 @@ TilesetCompiler::buildTilesetList(const MetaSprite::FrameSet& frameSet,
 
     if (error) {
         throw std::runtime_error("Unable to build tileset");
+    }
+
+    return ret;
+}
+
+FrameSetTilesets
+TilesetCompiler::buildFixedTileset(const MetaSprite::FrameSet& frameSet,
+                                   const TilesetType tilesetType,
+                                   const std::set<Tile16>& tiles)
+{
+    FrameSetTilesets ret;
+    ret.tilesetType = tilesetType;
+
+    if (tiles.size() > tilesetType.nTiles()) {
+        _errorList.addError(frameSet, "Too many tiles in frameset");
+        throw std::runtime_error("Unable to build tileset");
+    }
+
+    ret.tilesets.emplace_back(
+        buildTileset(frameSet, tilesetType, tiles));
+    auto& tileset = ret.tilesets.back();
+
+    ret.tilesetOffset = tileset.tilesetOffset;
+
+    for (const auto& it : frameSet.frames) {
+        ret.frameMap.emplace(&it.second, tileset);
     }
 
     return ret;
@@ -267,20 +293,17 @@ TilesetCompiler::dynamicTilesetData(const std::vector<FrameListEntry>& frameEntr
     return ftVector;
 }
 
-std::vector<TilesetCompiler::FrameTilesetData>
+std::set<TilesetCompiler::Tile16>
 TilesetCompiler::fixedTilesetData(const std::vector<FrameListEntry>& frames,
                                   const SmallTileMap_t& smallTileMap)
 {
-    std::vector<FrameTilesetData> ftVector;
     std::set<Tile16> tiles;
 
     for (const auto& entry : frames) {
         addFrameToTileset(tiles, *entry.frame, smallTileMap);
     }
 
-    ftVector.emplace_back(frames, std::move(tiles));
-
-    return ftVector;
+    return tiles;
 }
 
 SmallTileMap_t
@@ -337,8 +360,8 @@ void TilesetCompiler::validateExportList(const FrameSetExportList& exportList)
     }
 }
 
-FrameTilesetList
-TilesetCompiler::generateTilesetList(const FrameSetExportList& exportList)
+FrameSetTilesets
+TilesetCompiler::generateTilesets(const FrameSetExportList& exportList)
 {
     validateExportList(exportList);
     auto smallTileMap = buildSmallTileMap(exportList.frames());
@@ -346,24 +369,23 @@ TilesetCompiler::generateTilesetList(const FrameSetExportList& exportList)
     const MS::FrameSet& frameSet = exportList.frameSet();
     TilesetType tilesetType = frameSet.tilesetType;
 
-    auto frameTilesetData = fixedTilesetData(exportList.frames(), smallTileMap);
-    unsigned nTiles = frameTilesetData.back().tiles.size();
+    auto tiles = fixedTilesetData(exportList.frames(), smallTileMap);
 
-    if (nTiles <= tilesetType.nTiles() || tilesetType.isFixed()) {
+    if (tiles.size() <= tilesetType.nTiles() || tilesetType.isFixed()) {
         if (tilesetType.isFixed() == false) {
             _errorList.addWarning(frameSet, "Tileset can be fixed, making it so.");
         }
 
-        auto smallestType = TilesetType::smallestFixedTileset(nTiles);
+        auto smallestType = TilesetType::smallestFixedTileset(tiles.size());
         if (tilesetType.nTiles() != smallestType.nTiles()) {
             _errorList.addWarning(frameSet, std::string("TilesetType shrunk to ") + smallestType.string());
         }
 
-        tilesetType = smallestType;
+        return buildFixedTileset(frameSet, smallestType, tiles);
     }
     else {
-        frameTilesetData = dynamicTilesetData(exportList.frames(), smallTileMap);
-    }
+        auto tilesetData = dynamicTilesetData(exportList.frames(), smallTileMap);
 
-    return buildTilesetList(frameSet, tilesetType, frameTilesetData);
+        return buildDynamicTileset(frameSet, tilesetType, tilesetData);
+    }
 }

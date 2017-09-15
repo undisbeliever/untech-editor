@@ -110,7 +110,7 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
     try {
         FrameSetExportList exportList(frameSet);
 
-        FrameTilesetList tilesets = _tilesetCompiler.generateTilesetList(exportList);
+        FrameSetTilesets tilesets = _tilesetCompiler.generateTilesets(exportList);
 
         RomOffsetPtr fsPalettes = _paletteCompiler.process(frameSet);
         RomOffsetPtr fsFrames = _frameCompiler.process(exportList, tilesets);
@@ -122,17 +122,9 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
 
         unsigned nPalettes = frameSet.palettes.size();
 
-        frameSetItem.addIndex(fsPalettes);                  // paletteTable
-        frameSetItem.addField(RomIncItem::BYTE, nPalettes); // nPalettes
-
-        // tileset
-        if (tilesets.tilesets.size() == 1) {
-            frameSetItem.addAddr(tilesets.tilesets.front().tilesetOffset);
-        }
-        else {
-            frameSetItem.addField(RomIncItem::ADDR, 0);
-        }
-
+        frameSetItem.addIndex(fsPalettes);                                        // paletteTable
+        frameSetItem.addField(RomIncItem::BYTE, nPalettes);                       // nPalettes
+        frameSetItem.addAddr(tilesets.tilesetOffset);                             // tileset
         frameSetItem.addField(RomIncItem::BYTE, tilesets.tilesetType.romValue()); // tilesetType
         frameSetItem.addIndex(fsFrames);                                          // frameTable
         frameSetItem.addField(RomIncItem::BYTE, exportList.frames().size());      // nFrames

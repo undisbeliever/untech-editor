@@ -35,10 +35,9 @@ struct FrameTileset {
     std::unordered_map<unsigned, uint16_t> largeTilesetMap;
 };
 
-struct FrameTilesetList {
+struct FrameSetTilesets {
+    RomOffsetPtr tilesetOffset;
     TilesetType tilesetType;
-
-    FrameTileset* frameSetTileset;
 
     std::unordered_map<const MetaSprite::Frame*, FrameTileset&> frameMap;
 
@@ -59,15 +58,15 @@ public:
 
     void writeToIncFile(std::ostream& out) const;
 
-    FrameTilesetList generateTilesetList(const FrameSetExportList& exportList);
+    FrameSetTilesets generateTilesets(const FrameSetExportList& exportList);
 
 private:
     void validateExportList(const FrameSetExportList& exportList);
 
     SmallTileMap_t buildSmallTileMap(const std::vector<FrameListEntry>& frameEntries);
 
-    std::vector<FrameTilesetData> fixedTilesetData(const std::vector<FrameListEntry>& frameEntries,
-                                                   const SmallTileMap_t& smallTileMap);
+    std::set<Tile16> fixedTilesetData(const std::vector<FrameListEntry>& frameEntries,
+                                      const SmallTileMap_t& smallTileMap);
 
     std::vector<FrameTilesetData> dynamicTilesetData(const std::vector<FrameListEntry>& frameEntries,
                                                      const SmallTileMap_t& smallTileMap);
@@ -76,12 +75,16 @@ private:
                            const MetaSprite::Frame& frame,
                            const SmallTileMap_t& smallTileMap);
 
-    FrameTilesetList buildTilesetList(const MetaSprite::FrameSet& frameSet,
-                                      const TilesetType& tilesetType,
-                                      const std::vector<FrameTilesetData>& ftVector);
+    FrameSetTilesets buildFixedTileset(const MetaSprite::FrameSet& frameSet,
+                                       const TilesetType tilesetType,
+                                       const std::set<Tile16>& tiles);
+
+    FrameSetTilesets buildDynamicTileset(const MetaSprite::FrameSet& frameSet,
+                                         const TilesetType tilesetType,
+                                         const std::vector<FrameTilesetData>& ftVector);
 
     FrameTileset buildTileset(const MetaSprite::FrameSet& frameSet,
-                              const TilesetType& tilesetType,
+                              const TilesetType tilesetType,
                               const std::set<Tile16>& tiles);
 
 private:

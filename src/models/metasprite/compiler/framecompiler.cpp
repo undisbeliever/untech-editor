@@ -222,7 +222,7 @@ FrameCompiler::processFrame(const MS::Frame& frame, const FrameTileset& tileset)
 
 RomOffsetPtr
 FrameCompiler::process(const FrameSetExportList& exportList,
-                       const FrameTilesetList& tilesets)
+                       const FrameSetTilesets& tilesets)
 {
     const auto& frameList = exportList.frames();
 

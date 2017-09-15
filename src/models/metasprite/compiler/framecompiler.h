@@ -26,7 +26,7 @@ public:
     void writeToIncFile(std::ostream& out) const;
 
     RomOffsetPtr process(const FrameSetExportList& exportList,
-                         const FrameTilesetList& tilesets);
+                         const FrameSetTilesets& tilesets);
 
 private:
     RomOffsetPtr processFrameObjects(const MetaSprite::Frame& frame,
