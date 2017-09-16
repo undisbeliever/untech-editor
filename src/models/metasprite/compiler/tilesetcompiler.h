@@ -51,6 +51,7 @@ public:
 
     struct Tile16;
     struct FrameTilesetData;
+    struct DynamicTilesetData;
 
 public:
     TilesetCompiler(ErrorList& errorList, unsigned tilesetBlockSize);
@@ -68,12 +69,19 @@ private:
     std::set<Tile16> fixedTilesetData(const std::vector<FrameListEntry>& frameEntries,
                                       const SmallTileMap_t& smallTileMap);
 
-    std::vector<FrameTilesetData> dynamicTilesetData(const std::vector<FrameListEntry>& frameEntries,
-                                                     const SmallTileMap_t& smallTileMap);
+    DynamicTilesetData dynamicTilesetData(const std::vector<FrameListEntry>& frameEntries,
+                                          const SmallTileMap_t& smallTileMap,
+                                          const TilesetType tilesetType);
 
     void addFrameToTileset(std::set<Tile16>& tiles,
                            const MetaSprite::Frame& frame,
                            const SmallTileMap_t& smallTileMap);
+
+    std::set<Tile16> calculateStaticTiles(const std::vector<FrameTilesetData>& ftVector,
+                                          const TilesetType tilesetType);
+
+    std::vector<std::pair<Tile16, unsigned>> countTileUsage(
+        const std::vector<FrameTilesetData>& ftVector);
 
     FrameSetTilesets buildFixedTileset(const MetaSprite::FrameSet& frameSet,
                                        const TilesetType tilesetType,
@@ -81,11 +89,12 @@ private:
 
     FrameSetTilesets buildDynamicTileset(const MetaSprite::FrameSet& frameSet,
                                          const TilesetType tilesetType,
-                                         const std::vector<FrameTilesetData>& ftVector);
+                                         const DynamicTilesetData& tileset);
 
     FrameTileset buildTileset(const MetaSprite::FrameSet& frameSet,
                               const TilesetType tilesetType,
-                              const std::set<Tile16>& tiles);
+                              const std::set<Tile16>& tiles,
+                              const unsigned tileOffset = 0);
 
 private:
     ErrorList& _errorList;
