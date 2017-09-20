@@ -348,7 +348,7 @@ void Parser::printVersion()
                  "\nLicensed under " UNTECH_LICENSE
                  "\n"
                  "\nThis program makes uses of the following third party source code:"
-                 "\n\tLodePNG - Copyright (c) 2005-2016 Lode Vandevenne, zlib License"
+                 "\n\tLodePNG - Copyright (c) 2005-2017 Lode Vandevenne, zlib License"
                  "\n";
 }
 
