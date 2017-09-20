@@ -278,7 +278,7 @@ TilesetCompiler::buildFixedTileset(const MetaSprite::FrameSet& frameSet,
 
 void TilesetCompiler::addFrameToTileset(std::set<Tile16>& tiles,
                                         const MS::Frame& frame,
-                                        const SmallTileMap_t& smallTileMap)
+                                        const SmallTileMap_t& smallTileMap) const
 {
     for (const auto& obj : frame.objects) {
         Tile16 t;
@@ -293,7 +293,7 @@ void TilesetCompiler::addFrameToTileset(std::set<Tile16>& tiles,
 }
 
 std::vector<std::pair<TilesetCompiler::Tile16, unsigned>>
-TilesetCompiler::countTileUsage(const std::vector<FrameTilesetData>& ftVector)
+TilesetCompiler::countTileUsage(const std::vector<FrameTilesetData>& ftVector) const
 {
     std::vector<std::pair<Tile16, unsigned>> ret;
     ret.reserve(128);
@@ -316,7 +316,7 @@ TilesetCompiler::countTileUsage(const std::vector<FrameTilesetData>& ftVector)
 
 std::set<TilesetCompiler::Tile16>
 TilesetCompiler::calculateStaticTiles(const std::vector<FrameTilesetData>& ftVector,
-                                      const TilesetType tilesetType)
+                                      const TilesetType tilesetType) const
 {
     auto popularTiles = countTileUsage(ftVector);
 
@@ -359,7 +359,7 @@ TilesetCompiler::calculateStaticTiles(const std::vector<FrameTilesetData>& ftVec
 TilesetCompiler::DynamicTilesetData
 TilesetCompiler::dynamicTilesetData(const std::vector<FrameListEntry>& frameEntries,
                                     const SmallTileMap_t& smallTileMap,
-                                    const TilesetType tilesetType)
+                                    const TilesetType tilesetType) const
 {
     DynamicTilesetData tileset;
 
@@ -394,7 +394,7 @@ TilesetCompiler::dynamicTilesetData(const std::vector<FrameListEntry>& frameEntr
 
 std::set<TilesetCompiler::Tile16>
 TilesetCompiler::fixedTilesetData(const std::vector<FrameListEntry>& frames,
-                                  const SmallTileMap_t& smallTileMap)
+                                  const SmallTileMap_t& smallTileMap) const
 {
     std::set<Tile16> tiles;
 

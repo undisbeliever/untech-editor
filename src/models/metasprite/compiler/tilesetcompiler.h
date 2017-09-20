@@ -67,21 +67,21 @@ private:
     SmallTileMap_t buildSmallTileMap(const std::vector<FrameListEntry>& frameEntries);
 
     std::set<Tile16> fixedTilesetData(const std::vector<FrameListEntry>& frameEntries,
-                                      const SmallTileMap_t& smallTileMap);
+                                      const SmallTileMap_t& smallTileMap) const;
 
     DynamicTilesetData dynamicTilesetData(const std::vector<FrameListEntry>& frameEntries,
                                           const SmallTileMap_t& smallTileMap,
-                                          const TilesetType tilesetType);
+                                          const TilesetType tilesetType) const;
 
     void addFrameToTileset(std::set<Tile16>& tiles,
                            const MetaSprite::Frame& frame,
-                           const SmallTileMap_t& smallTileMap);
+                           const SmallTileMap_t& smallTileMap) const;
 
     std::set<Tile16> calculateStaticTiles(const std::vector<FrameTilesetData>& ftVector,
-                                          const TilesetType tilesetType);
+                                          const TilesetType tilesetType) const;
 
     std::vector<std::pair<Tile16, unsigned>> countTileUsage(
-        const std::vector<FrameTilesetData>& ftVector);
+        const std::vector<FrameTilesetData>& ftVector) const;
 
     FrameSetTilesets buildFixedTileset(const MetaSprite::FrameSet& frameSet,
                                        const TilesetType tilesetType,
