@@ -11,6 +11,10 @@ directory:
 
 This project links the with the following third party libraries:
 
+ * [The Qt Toolkit](https://www.qt.io/) -
+   Copyright (C) 2016 The Qt Company Ltd, and other contributors,
+   [LGPL version 3 License](https://doc.qt.io/qt-5/lgpl.html)
+
  * [wxWidgets](https://wxwidgets.org/) -
    Copyright (c) 1992-2016 The wxWidgets Team,
    [wxWidgets Library Licence](https://wxwidgets.org/about/licence/).

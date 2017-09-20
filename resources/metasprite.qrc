@@ -1,0 +1,28 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource>
+ <file>icons/add.svg</file>
+ <file>icons/clone.svg</file>
+ <file>icons/lower.svg</file>
+ <file>icons/new.svg</file>
+ <file>icons/open.svg</file>
+ <file>icons/raise.svg</file>
+ <file>icons/redo.svg</file>
+ <file>icons/remove.svg</file>
+ <file>icons/rename.svg</file>
+ <file>icons/save.svg</file>
+ <file>icons/undo.svg</file>
+ <file>icons/zoom-in.svg</file>
+ <file>icons/zoom-out.svg</file>
+ <file>icons/add-action-point.svg</file>
+ <file>icons/add-entity-hitbox.svg</file>
+ <file>icons/add-frame-object.svg</file>
+ <file>icons/animation-play.svg</file>
+ <file>icons/animation-reset.svg</file>
+ <file>icons/animation-skip.svg</file>
+ <file>icons/animation-step.svg</file>
+ <file>icons/flip-horizontally.svg</file>
+ <file>icons/flip-vertically.svg</file>
+ <file>icons/toggle-obj-size.svg</file>
+</qresource>
+</RCC>

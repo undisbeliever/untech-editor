@@ -1,6 +1,7 @@
 *.swp
 *~
 
-bin
-obj
+/bin
+/obj
+/gen
 
