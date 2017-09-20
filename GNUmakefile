@@ -28,7 +28,7 @@ ifeq ($(OS),Windows_NT)
   endif
 
   GUI_QT_CXXFLAGS := -I$(QT_PATH)/include $(foreach l,$(GUI_QT_MODULES:Qt5%=Qt%),-I$(QT_PATH)/include/$l)
-  GUI_QT_LIBS     := $(foreach l,$(GUI_QT_MODULES),-l$l) -L$(QT_PATH)/lib
+  GUI_QT_LIBS     := -mwindows $(foreach l,$(GUI_QT_MODULES),-l$l) -L$(QT_PATH)/lib
 
   MOC := moc
   UIC := uic
