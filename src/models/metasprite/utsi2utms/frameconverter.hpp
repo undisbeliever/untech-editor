@@ -184,11 +184,8 @@ private:
     void removeEmptyFrameObjects()
     {
         msFrame.objects.erase(
-            std::remove_if(
-                msFrame.objects.begin(), msFrame.objects.end(),
-                [this](const MS::FrameObject& obj) {
-                    return obj.tileId == UINT_MAX;
-                }),
+            std::remove_if(msFrame.objects.begin(), msFrame.objects.end(),
+                           [](const MS::FrameObject& obj) { return obj.tileId == UINT_MAX; }),
             msFrame.objects.end());
     }
 
