@@ -55,6 +55,8 @@ ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
 SpaceBeforeParens: ControlStatements
 DisableFormat:   false
 
+FixNamespaceComments:   false
+
 # Prefer include files in current directory before all else
 IncludeCategories:
   - Regex:           '^"[^/]+"$'
