@@ -6,12 +6,23 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace UnTech {
 namespace File {
+
+/**
+ * Reads a binary file into a vector.
+ *
+ * If the size of the file is greater than limit then a runtime_error is
+ * thrown.
+ *
+ * Raises an exception if an error occurred.
+ */
+std::vector<uint8_t> readBinaryFile(const std::string& filename, size_t limit);
 
 /**
  * Reads a UTF-8 text file into a string.

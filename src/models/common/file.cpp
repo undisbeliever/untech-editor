@@ -57,6 +57,32 @@ inline std::unique_ptr<wchar_t[]> to_wchar(const std::string str)
 
 using namespace UnTech;
 
+std::vector<uint8_t> File::readBinaryFile(const std::string& filename, size_t limit)
+{
+    std::ifstream in(filename, std::ios::in | std::ios::binary);
+    if (!in) {
+        throw std::runtime_error("Cannot open file: " + filename);
+    }
+
+    in.seekg(0, std::ios::end);
+    size_t size = in.tellg();
+    in.seekg(0);
+
+    if (size > limit) {
+        throw std::runtime_error("Cannot open file : " + filename + " : file too large");
+    }
+
+    std::vector<uint8_t> ret(size);
+    in.read((char*)ret.data(), ret.size());
+    in.close();
+
+    if (!in) {
+        throw std::runtime_error("Error reading file: " + filename);
+    }
+
+    return ret;
+}
+
 std::string File::readUtf8TextFile(const std::string& filename)
 {
     std::ifstream in(filename, std::ios::in | std::ios::binary);

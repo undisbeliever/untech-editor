@@ -20,6 +20,15 @@ namespace String {
  */
 bool checkUtf8WellFormed(const std::string& str);
 
+// returns true if str ends in cmp
+static inline bool endsWith(const std::string& str, const std::string& cmp)
+{
+    if (str.size() < cmp.size()) {
+        return false;
+    }
+    return std::equal(cmp.rbegin(), cmp.rend(), str.rbegin());
+}
+
 static inline std::string& ltrim(std::string& s)
 {
     size_t f = s.find_first_not_of(" \t\n\r", 0, 4);

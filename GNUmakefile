@@ -165,10 +165,11 @@ endef
 
 
 # Select the modules used by the apps
-$(call cli-modules, untech-msc,		common snes metasprite)
-$(call cli-modules, untech-png2tileset, common snes)
-$(call cli-modules, untech-png2snes,    common snes)
-$(call cli-modules, untech-utsi2utms,	common snes metasprite)
+$(call cli-modules, untech-msc,		        common snes metasprite)
+$(call cli-modules, untech-png2tileset,         common snes)
+$(call cli-modules, untech-png2snes,            common snes)
+$(call cli-modules, untech-utsi2utms,           common snes metasprite)
+$(call cli-modules, untech-write-sfc-checksum,  common snes)
 
 $(call test-util-modules, metasprite-serializer-test,     common snes metasprite)
 $(call test-util-modules, spriteimporter-serializer-test, common snes metasprite)
