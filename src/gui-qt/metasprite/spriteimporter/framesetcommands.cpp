@@ -193,12 +193,12 @@ ChangeFrameSetPalette::ChangeFrameSetPalette(Document* document,
     Q_ASSERT(_oldPalette != _newPalette);
 
     bool oldEnabled = _oldPalette.usesUserSuppliedPalette();
-    bool newEnabled = _oldPalette.usesUserSuppliedPalette();
+    bool newEnabled = _newPalette.usesUserSuppliedPalette();
 
     if (!oldEnabled && newEnabled) {
         setText(QCoreApplication::tr("Enable User Supplied Palette"));
     }
-    else if (!oldEnabled && newEnabled) {
+    else if (!newEnabled && oldEnabled) {
         setText(QCoreApplication::tr("Disable User Supplied Palette"));
     }
     else {
