@@ -1,7 +1,23 @@
 
 PROFILE     ?= release
 CXX         ?= g++
-CXXWARNINGS ?= -Wall -Wextra -Wdeprecated
+
+ifeq ($(CXXWARNINGS),)
+  CXXWARNINGS := -Wall -Wextra -Wdeprecated
+
+  ifneq ($(findstring g++,$(CXX)),)
+    GCC_MAJOR := $(firstword $(subst ., ,$(shell $(CXX) -dumpversion)))
+
+    ifeq ($(GCC_MAJOR),5)
+       CXXWARNINGS += -Wlogical-op -Wdouble-promotion -Wformat=2
+    else ifeq ($(GCC_MAJOR),6)
+       CXXWARNINGS += -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wdouble-promotion -Wformat=2
+    else ifeq ($(GCC_MAJOR),7)
+       CXXWARNINGS += -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wformat=2
+    endif
+  endif
+endif
+
 
 GUI_QT_MODULES := Qt5Core Qt5Gui Qt5Widgets Qt5Svg
 
