@@ -18,7 +18,7 @@ std::string escape(const std::string str, bool intag = true)
         if (c == '<') {
             ret += "&lt;";
         }
-        else if (c == '<') {
+        else if (c == '>') {
             ret += "&gt;";
         }
         else if (c == '&') {
