@@ -305,6 +305,8 @@ void Parser::printHelpText()
         }
     };
 
+    std::cout << _config.programName << "\n\n";
+
     std::cout << "Usage: " << _programExec << " [options]";
 
     if (_config.usesFiles) {
