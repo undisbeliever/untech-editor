@@ -8,7 +8,7 @@ used by the
 This editor is a work in progress and the data formats may be subject to
 changes in the future.
 
-It currently contains 7 apps:
+It currently contains 8 apps:
 
  * `untech-metasprite-gui`: A graphical editor for UnTech MetaSprites
  * `untech-spriteimporter-gui`: A graphical UI for creating a sprite
@@ -23,6 +23,9 @@ It currently contains 7 apps:
    to a SNES tileset/tilemap/palette combo.
  * `untech-write-sfc-checksum`: A CLI utility that corrects the internal
    checksum of an unheadered .sfc ROM file.
+ * `untech-lz4c`: A LZ4 HC block compressor.\
+    (NOTE: untech-lz4c uses a modified block frame to save 2 bytes of
+    ROM and is incompatible with the lz4 standard).
 
 
 License

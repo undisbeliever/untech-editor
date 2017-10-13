@@ -1,6 +1,7 @@
 
 PROFILE     ?= release
 CXX         ?= g++
+CC          ?= gcc
 
 ifeq ($(CXXWARNINGS),)
   CXXWARNINGS := -Wall -Wextra -Wdeprecated
@@ -71,6 +72,7 @@ ifeq ($(PROFILE),release)
   BIN_DIR       := bin
 
   CXXFLAGS      += -std=c++14 -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
+  CFLAGS        += -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
   LDFLAGS       += -O2 -flto -Wl,-gc-sections
 
 else ifeq ($(PROFILE),debug)
@@ -78,6 +80,7 @@ else ifeq ($(PROFILE),debug)
   BIN_DIR       := bin/debug
 
   CXXFLAGS      += -std=c++14 -g -MMD -Isrc -Werror
+  CFLAGS        += -g -MMD -Isrc -Werror
   LDFLAGS       += -g -Werror
 
 else ifeq ($(PROFILE),mingw)
@@ -91,6 +94,7 @@ else ifeq ($(PROFILE),mingw)
 
   CXX           := $(CXX_MINGW)
   CXXFLAGS      += -std=c++14 -O2 -flto -MMD -Isrc
+  CFLAGS        += -O2 -flto -MMD -Isrc
   LDFLAGS       += -O2 -flto
   LIBS          += -lshlwapi
 
@@ -102,13 +106,14 @@ else
 endif
 
 
-ifneq ($(findstring clang,$(CXX)),)
+ifneq ($(findstring clang,$(CXX) $(CC)),)
   # Prevent clang from spamming errors
   CXXFLAGS      += -Wno-undefined-var-template
   GUI_QT_CXXFLAGS += -Wno-deprecated
 
   # LTO on clang causes "signal not found" errors in Qt
   CXXFLAGS := $(filter-out -flto,$(CXXFLAGS))
+  CFLAGS   := $(filter-out -flto,$(CFLAGS))
   LDFLAGS  := $(filter-out -flto,$(LDFLAGS))
 endif
 
@@ -141,7 +146,10 @@ GUI_QT_RES_OBJS    := $(patsubst resources/%.qrc,$(OBJ_DIR)/resources/%.o,$(GUI_
 GEN_OBJS           := $(GUI_QT_UI_OBJS) $(GUI_QT_MOC_OBJS) $(GUI_QT_RES_OBJS)
 
 # Third party libs
-THIRD_PARTY     := $(OBJ_DIR)/vendor/lodepng/lodepng.o
+THIRD_PARTY_LODEPNG := $(OBJ_DIR)/vendor/lodepng/lodepng.o
+THIRD_PARTY_LZ4     := $(OBJ_DIR)/vendor/lz4/lib/lz4.o $(OBJ_DIR)/vendor/lz4/lib/lz4hc.o
+
+THIRD_PARTY_OBJS := $(THIRD_PARTY_LODEPNG) $(THIRD_PARTY_LZ4)
 
 
 .PHONY: all
@@ -162,7 +170,8 @@ define cli-modules
 $(BIN_DIR)/$(strip $1)$(BIN_EXT): \
   $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$2), $(OBJS)) \
   $(filter $(OBJ_DIR)/cli/helpers/%, $(OBJS)) \
-  $(THIRD_PARTY)
+  $(THIRD_PARTY_LODEPNG) \
+  $(if $(filter lz4,$2), $(THIRD_PARTY_LZ4))
 endef
 
 define test-util-modules
@@ -176,12 +185,14 @@ $(BIN_DIR)/$(strip $1)$(BIN_EXT): \
   $(filter $(patsubst %,$(OBJ_DIR)/gui-qt/%/$(PERCENT),$3), $(OBJS)) \
   $(filter $(patsubst %,$(OBJ_DIR)/gui-qt/%/$(PERCENT),$3), $(GUI_QT_MOC_OBJS)) \
   $(OBJ_DIR)/resources/$(strip $2).o \
-  $(THIRD_PARTY)
+  $(THIRD_PARTY_LODEPNG) \
+  $(if $(filter lz4,$3), $(THIRD_PARTY_LZ4))
 endef
 
 
 # Select the modules used by the apps
-$(call cli-modules, untech-msc,		        common snes metasprite)
+$(call cli-modules, untech-lz4c,                common lz4)
+$(call cli-modules, untech-msc,                 common snes metasprite)
 $(call cli-modules, untech-png2tileset,         common snes)
 $(call cli-modules, untech-png2snes,            common snes)
 $(call cli-modules, untech-utsi2utms,           common snes metasprite)
@@ -203,6 +214,7 @@ MAKEFLAGS += --no-builtin-rules
 
 DEPS := $(OBJS:.o=.d)
 DEPS += $(GEN_OBJS:.o=.d)
+DEPS += $(THIRD_PARTY_OBJS:.o=.d)
 -include $(DEPS)
 
 $(GUI_QT_APPS): $(BIN_DIR)/%-gui$(BIN_EXT): $(OBJ_DIR)/gui-qt/%.o
@@ -231,6 +243,9 @@ $(OBJ_DIR)/resources/%.o: $(GEN_DIR)/resources/%.cpp
 $(OBJ_DIR)/vendor/%.o: src/vendor/%.cpp
 	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(VENDOR_CXXFLAGS) -c -o $@ $<
 
+$(OBJ_DIR)/vendor/%.o: src/vendor/%.c
+	$(CC) $(CFLAGS) $(CXXWARNINGS) -c -o $@ $<
+
 
 $(OBJ_DIR)/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) -c -o $@ $<
@@ -254,7 +269,7 @@ $(foreach r,$(GUI_QT_RES_QRC),$(eval $(r:resources/%.qrc=$(GEN_DIR)/resources/%.
 
 
 .PHONY: dirs
-OBJECT_DIRS := $(sort $(dir $(OBJS) $(GEN_OBJS)))
+OBJECT_DIRS := $(sort $(dir $(OBJS) $(GEN_OBJS) $(THIRD_PARTY_OBJS)))
 GEN_DIRS := $(sort $(dir $(GUI_QT_UI_GEN) $(GUI_QT_MOC_GEN) $(GUI_QT_RES_GEN)))
 dirs: $(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS)
 $(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS):
@@ -266,6 +281,7 @@ $(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS):
 clean:
 	$(call RM_COMMAND, $(DEPS))
 	$(call RM_COMMAND, $(OBJS))
+	$(call RM_COMMAND, $(THIRD_PARTY_OBJS))
 	$(call RM_COMMAND, $(GUI_QT_MOC_GEN))
 	$(call RM_COMMAND, $(GUI_QT_MOC_OBJS))
 	$(call RM_COMMAND, $(GUI_QT_UI_GEN))
