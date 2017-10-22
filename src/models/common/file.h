@@ -82,5 +82,6 @@ std::string relativePath(const std::string& sourceDir, const std::string& destPa
  */
 void atomicWrite(const std::string& filename, const void* data, size_t size);
 void atomicWrite(const std::string& filename, const std::vector<uint8_t>& data);
+void atomicWrite(const std::string& filename, const std::string& data);
 }
 }

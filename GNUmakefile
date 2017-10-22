@@ -195,6 +195,7 @@ $(call cli-modules, untech-lz4c,                common lz4)
 $(call cli-modules, untech-msc,                 common snes metasprite)
 $(call cli-modules, untech-png2tileset,         common snes)
 $(call cli-modules, untech-png2snes,            common snes)
+$(call cli-modules, untech-resc,                common lz4 resources snes)
 $(call cli-modules, untech-utsi2utms,           common snes metasprite)
 $(call cli-modules, untech-write-sfc-checksum,  common snes)
 

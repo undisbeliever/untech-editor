@@ -30,5 +30,9 @@ struct ResourcesOutput {
 
 // raises exception on error
 std::unique_ptr<ResourcesFile> loadResourcesFile(const std::string& filename);
+
+// raises exception on error
+std::unique_ptr<ResourcesOutput>
+compileResources(const ResourcesFile& input, const std::string& binaryFilename);
 }
 }

@@ -8,7 +8,7 @@ used by the
 This editor is a work in progress and the data formats may be subject to
 changes in the future.
 
-It currently contains 8 apps:
+It currently contains 9 apps:
 
  * `untech-metasprite-gui`: A graphical editor for UnTech MetaSprites
  * `untech-spriteimporter-gui`: A graphical UI for creating a sprite
@@ -21,6 +21,7 @@ It currently contains 8 apps:
    image to a SNES tileset/palette combo.
  * `untech-png2snes`: A CLI utility for converting an indexed png image
    to a SNES tileset/tilemap/palette combo.
+ * `untech-resc`: A CLI utility for compiling resources.
  * `untech-write-sfc-checksum`: A CLI utility that corrects the internal
    checksum of an unheadered .sfc ROM file.
  * `untech-lz4c`: A LZ4 HC block compressor.\
