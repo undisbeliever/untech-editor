@@ -182,7 +182,7 @@ private:
 
         const auto data = xml.parseBase64();
 
-        static_assert(Snes::Tileset4bpp8px::SNES_TILE_SIZE == 32, "Bad assumption");
+        assert(frameSet.smallTileset.snesTileSize() == 32);
         if ((data.size() % 32) != 0) {
             throw xml_error(*tag, "Small Tileset data must be a multiple of 32 bytes");
         }

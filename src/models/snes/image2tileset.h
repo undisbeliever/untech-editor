@@ -20,15 +20,14 @@ namespace Snes {
  *
  * Throws an exception on error
  */
-template <size_t BIT_DEPTH>
 class ImageToTileset {
 public:
     static void convertAndSave(
-        const IndexedImage& image,
+        const IndexedImage& image, int bitDepth,
         const std::string& tilesetFile, const std::string& paletteFile);
 
 public:
-    ImageToTileset() = default;
+    ImageToTileset(int bitDepth);
     ImageToTileset(const ImageToTileset&) = delete;
 
     void writeTileset(const std::string& filename) const;
@@ -47,8 +46,8 @@ private:
     void processTileset(const IndexedImage& image);
 
 private:
-    Tileset8px<BIT_DEPTH> _tileset;
-    Palette<BIT_DEPTH> _palette;
+    Tileset8px _tileset;
+    std::vector<SnesColor> _palette;
 };
 }
 }

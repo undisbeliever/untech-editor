@@ -87,7 +87,7 @@ public:
     }
 
     // `process()` MUST be called before calling `buildTilesetAndTilemap`
-    Tilemap buildTilemapAndTileset(BaseTileset<8>& tileset)
+    Tilemap buildTilemapAndTileset(Tileset8px& tileset)
     {
         assert(mapWidth >= 1);
         assert(mapHeight >= 1);
@@ -468,15 +468,21 @@ private:
  * ==========
  */
 
-template <size_t BIT_DEPTH>
-void Image2Snes<BIT_DEPTH>::process(const IndexedImage& image)
+Image2Snes::Image2Snes(int bitDepth)
+    : _tileset(bitDepth)
+    , _palette()
+    , _tilemap()
 {
-    if (BIT_DEPTH > 4) {
+}
+
+void Image2Snes::process(const IndexedImage& image)
+{
+    if (_tileset.bitDepthInt() > 4) {
         _maxPalettes = 1;
         _paletteOffset = 0;
     }
 
-    Image2SnesConverter converter(COLORS_PER_PALETTE,
+    Image2SnesConverter converter(_tileset.colorsPerTile(),
                                   _tileOffset, _maxTiles,
                                   _paletteOffset, _maxPalettes,
                                   _order);
@@ -487,8 +493,7 @@ void Image2Snes<BIT_DEPTH>::process(const IndexedImage& image)
     _palette = converter.buildSnesColorPalette();
 }
 
-template <size_t BIT_DEPTH>
-std::vector<uint8_t> Image2Snes<BIT_DEPTH>::paletteSnesData() const
+std::vector<uint8_t> Image2Snes::paletteSnesData() const
 {
     std::vector<uint8_t> data(_palette.size() * 2);
     auto* ptr = data.data();
@@ -500,11 +505,5 @@ std::vector<uint8_t> Image2Snes<BIT_DEPTH>::paletteSnesData() const
 
     return data;
 }
-
-template class Image2Snes<1>;
-template class Image2Snes<2>;
-template class Image2Snes<3>;
-template class Image2Snes<4>;
-template class Image2Snes<8>;
 }
 }

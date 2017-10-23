@@ -37,11 +37,11 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     }
 };
 
-template <size_t BIT_DEPTH>
-void processImage(IndexedImage& image, const CommandLine::Parser& args)
+int process(const CommandLine::Parser& args)
 {
     const std::string& inputFile = args.filenames().front();
 
+    const unsigned bitDepth = args.options().at("bpp").uint();
     const unsigned tileOffset = args.options().at("tile-offset").uint();
     const unsigned maxTiles = args.options().at("max-tiles").uint();
     const unsigned paletteOffset = args.options().at("palette-offset").uint();
@@ -50,20 +50,27 @@ void processImage(IndexedImage& image, const CommandLine::Parser& args)
 
     const bool verbose = args.options().at("verbose").boolean();
 
-    Image2Snes<BIT_DEPTH> image2Snes;
+    Image2Snes image2Snes(bitDepth);
     image2Snes.setTileOffset(tileOffset);
     image2Snes.setMaxTiles(maxTiles);
     image2Snes.setPaletteOffset(paletteOffset);
     image2Snes.setMaxPalettes(maxPalettes);
     image2Snes.setOrder(order);
 
+    IndexedImage image;
+    image.loadPngImage(inputFile);
+
+    if (image.empty()) {
+        throw std::runtime_error(image.errorString());
+    }
+
     if (verbose) {
         std::cout << "SETTINGS:\n"
-                  << "   Bit Depth:      " << BIT_DEPTH << "bpp\n"
+                  << "   Bit Depth:      " << bitDepth << "bpp\n"
                   << "   Max Tiles:      " << maxTiles << '\n'
                   << "   Tile Offset:    " << tileOffset << '\n';
 
-        if (BIT_DEPTH <= 4) {
+        if (bitDepth <= 4) {
             std::cout
                 << "   Max Palettes:   " << maxPalettes << '\n'
                 << "   Palette Offset: " << paletteOffset << '\n';
@@ -83,8 +90,8 @@ void processImage(IndexedImage& image, const CommandLine::Parser& args)
         const auto& tileset = image2Snes.tileset();
         const auto& tilemap = image2Snes.tilemap();
 
-        const unsigned COLORS_PER_PALETTE = 1 << BIT_DEPTH;
-        unsigned nPalettes = (palette.size() + COLORS_PER_PALETTE - 1) / COLORS_PER_PALETTE;
+        const unsigned colorsPerPalette = 1 << bitDepth;
+        unsigned nPalettes = (palette.size() + colorsPerPalette - 1) / colorsPerPalette;
 
         const char* paletteString = nPalettes == 1 ? "palette" : "palettes";
         const char* tileString = tileset.size() == 1 ? "tile" : "tiles";
@@ -104,41 +111,6 @@ void processImage(IndexedImage& image, const CommandLine::Parser& args)
     File::atomicWrite(tilesetFile, image2Snes.tileset().snesData());
     File::atomicWrite(tilemapFile, image2Snes.tilemap().snesData());
     File::atomicWrite(paletteFile, image2Snes.paletteSnesData());
-}
-
-int process(const CommandLine::Parser& args)
-{
-    IndexedImage image;
-    image.loadPngImage(args.filenames().front());
-
-    if (image.empty()) {
-        throw std::runtime_error(image.errorString());
-    }
-
-    switch (args.options().at("bpp").uint()) {
-    case 1:
-        processImage<1>(image, args);
-        break;
-
-    case 2:
-        processImage<2>(image, args);
-        break;
-
-    case 3:
-        processImage<3>(image, args);
-        break;
-
-    case 4:
-        processImage<4>(image, args);
-        break;
-
-    case 8:
-        processImage<8>(image, args);
-        break;
-
-    default:
-        throw std::runtime_error("Bad bpp value, expected 1, 2, 3, 4 or 8");
-    }
 
     return EXIT_SUCCESS;
 }

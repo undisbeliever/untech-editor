@@ -11,12 +11,17 @@
 using namespace UnTech;
 using namespace UnTech::Snes;
 
-template <size_t BD>
-void ImageToTileset<BD>::convertAndSave(
-    const IndexedImage& image,
+ImageToTileset::ImageToTileset(int bitDepth)
+    : _tileset(bitDepth)
+    , _palette()
+{
+}
+
+void ImageToTileset::convertAndSave(
+    const IndexedImage& image, int bitDepth,
     const std::string& tilesetFile, const std::string& paletteFile)
 {
-    ImageToTileset<BD> converter;
+    ImageToTileset converter(bitDepth);
     converter.process(image);
 
     if (!tilesetFile.empty()) {
@@ -27,46 +32,54 @@ void ImageToTileset<BD>::convertAndSave(
     }
 }
 
-template <size_t BD>
-void ImageToTileset<BD>::writeTileset(const std::string& filename) const
+void ImageToTileset::writeTileset(const std::string& filename) const
 {
     std::vector<uint8_t> data = _tileset.snesData();
     File::atomicWrite(filename, data);
 }
 
-template <size_t BD>
-void ImageToTileset<BD>::writePalette(const std::string& filename) const
+void ImageToTileset::writePalette(const std::string& filename) const
 {
-    std::vector<uint8_t> data = _palette.paletteData();
+    std::vector<uint8_t> data(_palette.size() * 2);
+    auto* ptr = data.data();
+
+    for (const auto& c : _palette) {
+        *ptr++ = c.data() & 0xFF;
+        *ptr++ = c.data() >> 8;
+    }
+
+    assert(ptr == data.data() + data.size());
+
     File::atomicWrite(filename, data);
 }
 
-template <size_t BD>
-void ImageToTileset<BD>::process(const IndexedImage& image)
+void ImageToTileset::process(const IndexedImage& image)
 {
     processPalette(image);
     processTileset(image);
 }
 
-template <size_t BD>
-void ImageToTileset<BD>::processPalette(const IndexedImage& image)
+void ImageToTileset::processPalette(const IndexedImage& image)
 {
-    if (image.palette().size() > _palette.N_COLORS) {
+    const unsigned nColors = _tileset.colorsPerTile();
+
+    if (image.palette().size() > nColors) {
         throw std::runtime_error("Too many colors in image, maximum allowed is "
-                                 + std::to_string(_palette.N_COLORS));
+                                 + std::to_string(nColors));
     }
 
-    assert(image.palette().size() <= _palette.colors().size());
+    _palette.resize(nColors);
+
+    assert(image.palette().size() <= _palette.size());
     std::transform(image.palette().begin(), image.palette().end(),
-                   _palette.colors().begin(),
+                   _palette.begin(),
                    [](const rgba& c) { return SnesColor(c); });
 }
 
-template <size_t BD>
-void ImageToTileset<BD>::processTileset(const IndexedImage& image)
+void ImageToTileset::processTileset(const IndexedImage& image)
 {
-    constexpr uint8_t PIXEL_MASK = Palette<BD>::PIXEL_MASK;
     constexpr unsigned TILE_SIZE = Tile8px::TILE_SIZE;
+    const uint8_t pixelMask = _tileset.pixelMask();
 
     if (image.size().width % TILE_SIZE != 0
         || image.size().height % TILE_SIZE != 0) {
@@ -86,7 +99,7 @@ void ImageToTileset<BD>::processTileset(const IndexedImage& image)
                 const uint8_t* imgData = image.scanline(tileY * TILE_SIZE + py) + tileX * TILE_SIZE;
 
                 for (unsigned px = 0; px < TILE_SIZE; px++) {
-                    *tData++ = *imgData++ & PIXEL_MASK;
+                    *tData++ = *imgData++ & pixelMask;
                 }
             }
 
@@ -94,9 +107,3 @@ void ImageToTileset<BD>::processTileset(const IndexedImage& image)
         }
     }
 }
-
-template class Snes::ImageToTileset<1>;
-template class Snes::ImageToTileset<2>;
-template class Snes::ImageToTileset<3>;
-template class Snes::ImageToTileset<4>;
-template class Snes::ImageToTileset<8>;

@@ -60,45 +60,63 @@ public:
         }
     }
 
-    bool operator==(const BaseTileset& o) const { return _tiles == o._tiles; }
-    bool operator!=(const BaseTileset& o) const { return _tiles != o._tiles; }
-
 protected:
     std::vector<TileT> _tiles;
 };
 
-template <size_t BD>
 class Tileset8px : public BaseTileset<8> {
 public:
-    constexpr static unsigned BIT_DEPTH = BD;
-    constexpr static unsigned SNES_TILE_SIZE = 8 * BIT_DEPTH;
+    enum class BitDepth {
+        BD_1BPP = 1,
+        BD_2BPP = 2,
+        BD_3BPP = 3,
+        BD_4BPP = 4,
+        BD_8BPP = 8
+    };
 
-    // using default causes linker error on clang++ debug
-    Tileset8px()
+    static BitDepth depthFromInt(int bd);
+
+public:
+    Tileset8px(BitDepth bitDepth)
         : BaseTileset()
+        , _bitDepth(bitDepth)
     {
     }
 
+    Tileset8px(int bitDepth)
+        : BaseTileset()
+        , _bitDepth(depthFromInt(bitDepth))
+    {
+    }
+
+    void setBitDepth(BitDepth bitDepth) { _bitDepth = bitDepth; }
+
+    BitDepth bitDepth() const { return _bitDepth; }
+    int bitDepthInt() const { return int(_bitDepth); }
+
+    uint8_t pixelMask() const { return (1 << unsigned(_bitDepth)) - 1; }
+    unsigned colorsPerTile() const { return 1 << unsigned(_bitDepth); }
+    unsigned snesTileSize() const { return TILE_SIZE * TILE_SIZE * unsigned(_bitDepth) / 8; }
+
     // fails silently
+    template <size_t BD>
     void drawTile(Image& image, const Palette<BD>& palette,
                   unsigned xOffset, unsigned yOffset,
                   unsigned tileId, bool hFlip = false, bool vFlip = false) const;
 
     std::vector<uint8_t> snesData() const;
     void readSnesData(const std::vector<uint8_t>& data);
+
+    bool operator==(const Tileset8px& o) const
+    {
+        return _tiles == o._tiles
+               && _bitDepth == o._bitDepth;
+    }
+    bool operator!=(const Tileset8px& o) const { return !(*this == o); }
+
+private:
+    BitDepth _bitDepth;
 };
-
-typedef Tileset8px<1> Tileset1bpp8px;
-typedef Tileset8px<2> Tileset2bpp8px;
-typedef Tileset8px<3> Tileset3bpp8px;
-typedef Tileset8px<4> Tileset4bpp8px;
-typedef Tileset8px<8> Tileset8bpp8px;
-
-extern template class UnTech::Snes::Tileset8px<1>;
-extern template class UnTech::Snes::Tileset8px<2>;
-extern template class UnTech::Snes::Tileset8px<3>;
-extern template class UnTech::Snes::Tileset8px<4>;
-extern template class UnTech::Snes::Tileset8px<8>;
 
 /**
  * TilesetTile16 tiles are stored/loaded in sequential order.
@@ -120,6 +138,9 @@ public:
 
     std::vector<uint8_t> snesData() const;
     void readSnesData(const std::vector<uint8_t>& data);
+
+    bool operator==(const TilesetTile16& o) const { return _tiles == o._tiles; }
+    bool operator!=(const TilesetTile16& o) const { return _tiles != o._tiles; }
 };
 }
 }

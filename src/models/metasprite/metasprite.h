@@ -144,11 +144,21 @@ struct FrameSet {
     Frame::map_t frames;
     Animation::Animation::map_t animations;
 
-    Snes::Tileset4bpp8px smallTileset;
+    Snes::Tileset8px smallTileset;
     Snes::TilesetTile16 largeTileset;
     capped_vector<Snes::Palette4bpp, MAX_PALETTES> palettes;
 
-    FrameSet() = default;
+    FrameSet()
+        : name()
+        , tilesetType(TilesetType::Enum::ONE_ROW)
+        , exportOrder(nullptr)
+        , frames()
+        , animations()
+        , smallTileset(Snes::Tileset8px::BitDepth::BD_4BPP)
+        , largeTileset()
+        , palettes()
+    {
+    }
 
     bool operator==(const FrameSet& o) const;
     bool operator!=(const FrameSet& o) const { return !(*this == o); }
