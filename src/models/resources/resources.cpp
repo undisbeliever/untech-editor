@@ -5,6 +5,7 @@
  */
 
 #include "resources.h"
+#include <algorithm>
 #include <cassert>
 #include <functional>
 #include <sstream>
@@ -35,6 +36,19 @@ static void validateNamesUnique(const std::vector<T>& inputList, const std::stri
 void ResourcesFile::validate() const
 {
     validateNamesUnique(palettes, "palettes");
+}
+
+const PaletteInput& ResourcesFile::getPalette(const idstring& name) const
+{
+
+    auto it = std::find_if(palettes.begin(), palettes.end(),
+                           [&](const auto& p) { return p.name == name; });
+
+    if (it == palettes.end()) {
+        throw std::runtime_error("Cannot find palette: " + name);
+    }
+
+    return *it;
 }
 }
 }

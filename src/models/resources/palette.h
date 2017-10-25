@@ -51,5 +51,14 @@ struct PaletteData {
 
 // raises an exception if an error occurred
 PaletteData convertPalette(const PaletteInput& input);
+
+// Extracts the first palette from the palette image, even `skipFirstFrame` is set.
+//
+// The output palette will contain:
+//  * a multiple of 4, 32, or 256 colors, depending on the bitDepth argument.
+//  * contain at most 32, 128 or 256 colors, depending on the bitDepth argument.
+//
+// Raises an exception if an error occurred.
+std::vector<Snes::SnesColor> extractFirstPalette(const PaletteInput& input, unsigned bitDepth);
 }
 }

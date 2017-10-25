@@ -40,6 +40,15 @@ public:
         setData(value);
     }
 
+    // will never match a valid SnesColor
+    static SnesColor invalidColor()
+    {
+        SnesColor c;
+        c._rgb.alpha = 0;
+        c._data = 0xffff;
+        return c;
+    }
+
     inline const rgba& rgb() const { return _rgb; }
     inline const uint16_t& data() const { return _data; }
 

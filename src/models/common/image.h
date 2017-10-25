@@ -53,6 +53,11 @@ public:
      */
     bool empty() const { return _size.width == 0 || _size.height == 0; }
 
+    inline unsigned pixelsPerScanline() const
+    {
+        return _size.width;
+    }
+
     inline rgba* data()
     {
         return reinterpret_cast<rgba*>(_imageData.data());
@@ -60,7 +65,7 @@ public:
 
     inline rgba* scanline(unsigned y)
     {
-        return data() + (y * _size.width);
+        return data() + (y * pixelsPerScanline());
     }
 
     inline const rgba* data() const
@@ -70,12 +75,12 @@ public:
 
     inline const rgba* scanline(unsigned y) const
     {
-        return data() + (y * _size.width);
+        return data() + (y * pixelsPerScanline());
     }
 
     inline rgba getPixel(unsigned x, unsigned y) const
     {
-        return *(data() + x + (y * _size.width));
+        return *(data() + x + (y * pixelsPerScanline()));
     }
 
 private:

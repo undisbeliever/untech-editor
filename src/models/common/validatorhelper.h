@@ -23,7 +23,7 @@ inline void validateMax(unsigned value, unsigned max, const char* msg)
 {
     if (value > max) {
         throw std::runtime_error(msg
-                                 + std::string("(") + std::to_string(value)
+                                 + std::string(" (") + std::to_string(value)
                                  + ", max: " + std::to_string(max) + ")");
     }
 }

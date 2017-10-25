@@ -7,6 +7,8 @@
 #pragma once
 
 #include "palette.h"
+#include "models/common/idstring.h"
+#include "models/metatiles/common.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -17,10 +19,17 @@ namespace Resources {
 struct ResourcesFile {
     const static std::string FILE_EXTENSION;
 
+    MetaTiles::EngineSettings metaTileEngineSettings;
+
     std::vector<PaletteInput> palettes;
+
+    std::vector<std::string> metaTileTilesetFilenames;
 
     // raise exception if invalid
     void validate() const;
+
+    // raise exception if palette name does not exist
+    const PaletteInput& getPalette(const idstring& name) const;
 };
 
 struct ResourcesOutput {

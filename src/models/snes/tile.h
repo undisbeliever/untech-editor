@@ -98,4 +98,21 @@ struct hash<::UnTech::Snes::Tile<TS>> {
         return seed;
     }
 };
+template <size_t TS>
+struct hash<std::vector<::UnTech::Snes::Tile<TS>>> {
+    size_t operator()(const std::vector<::UnTech::Snes::Tile<TS>>& tiles) const
+    {
+        size_t seed = 0;
+        for (const auto& tile : tiles) {
+            const uint8_t* data = tile.rawData();
+
+            for (unsigned i = 0; i < tile.TILE_ARRAY_SIZE; i++) {
+                // Numbers from boost
+                seed ^= data[i] + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+            }
+        }
+
+        return seed;
+    }
+};
 }

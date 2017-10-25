@@ -79,6 +79,53 @@ PaletteData Resources::convertPalette(const PaletteInput& input)
     return ret;
 }
 
+std::vector<Snes::SnesColor>
+Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth)
+{
+    input.validate();
+
+    if (bitDepth == 0 || bitDepth > 8) {
+        throw std::invalid_argument("Invalid bit-depth");
+    }
+
+    unsigned maxColors = 128;
+    if (bitDepth <= 2) {
+        maxColors = 32;
+    }
+    if (bitDepth > 4) {
+        maxColors = 256;
+    }
+
+    const Image& img = input.paletteImage;
+
+    unsigned nColumns = img.size().width;
+    unsigned nRows = input.rowsPerFrame;
+    if (nRows * nColumns > maxColors) {
+        nRows = maxColors / nColumns;
+    }
+
+    if (img.size().height < nRows) {
+        throw std::runtime_error("Palette image must be a minimum of "
+                                 + std::to_string(nRows) + "pixels tall");
+    }
+
+    std::vector<Snes::SnesColor> palette(nRows * nColumns, SnesColor::invalidColor());
+    assert(palette.size() < maxColors);
+
+    auto pIt = palette.begin();
+
+    for (unsigned y = 0; y < nRows; y++) {
+        const rgba* scanline = img.scanline(y);
+
+        for (unsigned x = 0; x < nColumns; x++) {
+            *pIt++ = *scanline++;
+        }
+    }
+    assert(pIt == palette.end());
+
+    return palette;
+}
+
 // PaletteData
 // ===========
 
