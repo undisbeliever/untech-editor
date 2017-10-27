@@ -20,21 +20,25 @@ namespace Resources {
 class ResourceWriter {
 private:
     std::stringstream _incData;
-    std::vector<uint8_t> _binaryData;
+    std::vector<std::vector<uint8_t>> _blocks;
+    std::string _binaryFilename;
+    unsigned _maxBlockSize;
     bool _finalized;
 
 public:
-    ResourceWriter(const std::string& binaryFilename)
+    ResourceWriter(const std::string& binaryFilename, unsigned blockSize, unsigned blockCount)
         : _incData()
-        , _binaryData()
+        , _blocks(blockCount)
+        , _binaryFilename(binaryFilename)
+        , _maxBlockSize(blockSize)
         , _finalized(false)
     {
-        _incData << "namespace __resc__ {\n"
-                 << "  constant EDITOR_VERSION = " << UNTECH_VERSION_INT << "\n\n"
-                 << "rodata(RES_Block0)\n"
-                 << "  insert Data, \"" << binaryFilename << "\"\n"
-                 << "}\n\n"
-                 << "rodata(RES_Lists)\n";
+        for (auto& block : _blocks) {
+            block.reserve(blockSize);
+        }
+
+        _incData << "rodata(RES_Lists)\n"
+                 << "constant __resc__.EDITOR_VERSION = " << UNTECH_VERSION_INT << "\n\n";
     }
 
     void writeConstant(const char* name, long value)
@@ -50,9 +54,10 @@ public:
 
     void addDataToList(const std::vector<uint8_t>& data)
     {
-        _incData << "  dl __resc__.Data + " << _binaryData.size() << '\n';
+        unsigned blockId, offset;
+        std::tie(blockId, offset) = storeDataBlock(data);
 
-        _binaryData.insert(_binaryData.end(), data.begin(), data.end());
+        _incData << "  dl __resc__.Data" << blockId << " + " << offset << '\n';
     }
 
     template <class T>
@@ -71,6 +76,26 @@ public:
     void finalize()
     {
         assert(_finalized == false);
+
+        _incData << "\nnamespace __resc__ {\n";
+
+        unsigned offset = 0;
+        for (unsigned blockId = 0; blockId < _blocks.size(); blockId++) {
+            unsigned bSize = _blocks.at(blockId).size();
+
+            if (bSize > 0) {
+                assert(bSize <= _maxBlockSize);
+
+                _incData << "rodata(RES_Block" << blockId << ")\n"
+                         << "  insert Data" << blockId << ", \"" << _binaryFilename << "\", "
+                         << offset << ", " << bSize << '\n';
+
+                offset += bSize;
+            }
+        }
+
+        _incData << "}\n";
+
         _finalized = true;
     }
 
@@ -81,9 +106,36 @@ public:
         auto ret = std::make_unique<ResourcesOutput>();
 
         ret->incData = _incData.str();
-        ret->binaryData = _binaryData;
+
+        ret->binaryData.reserve(_maxBlockSize * _blocks.size());
+        for (auto& block : _blocks) {
+            if (block.size() > 0) {
+                ret->binaryData.insert(ret->binaryData.end(), block.begin(), block.end());
+            }
+        }
 
         return ret;
+    }
+
+private:
+    std::pair<unsigned, unsigned> storeDataBlock(const std::vector<uint8_t>& data)
+    {
+        assert(_finalized == false);
+
+        for (unsigned blockId = 0; blockId < _blocks.size(); blockId++) {
+            auto& block = _blocks.at(blockId);
+
+            unsigned spaceLeft = _maxBlockSize - block.size();
+            if (spaceLeft >= data.size()) {
+                unsigned offset = block.size();
+                block.insert(block.end(), data.begin(), data.end());
+
+                return { blockId, offset };
+            }
+        }
+
+        throw std::runtime_error("Unable to store " + std::to_string(data.size())
+                                 + " bytes of data, increase block size/count.");
     }
 };
 
@@ -116,7 +168,7 @@ compileResources(const ResourcesFile& input, const std::string& binaryFilename)
 {
     input.validate();
 
-    ResourceWriter writer(binaryFilename);
+    ResourceWriter writer(binaryFilename, input.blockSize, input.blockCount);
 
     auto compileList = [&](const auto& inputList,
                            const char* exportListName, const char* typeName,

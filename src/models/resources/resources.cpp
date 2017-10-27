@@ -5,6 +5,7 @@
  */
 
 #include "resources.h"
+#include "models/common/validatorhelper.h"
 #include <algorithm>
 #include <cassert>
 #include <functional>
@@ -35,6 +36,9 @@ static void validateNamesUnique(const std::vector<T>& inputList, const std::stri
 
 void ResourcesFile::validate() const
 {
+    validateMinMax(blockSize, 1024, 64 * 1024, "block size invalid");
+    validateMinMax(blockCount, 1, 128, "block count invalid");
+
     validateNamesUnique(palettes, "palettes");
 }
 

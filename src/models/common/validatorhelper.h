@@ -19,6 +19,16 @@ inline void validateNotEmpty(const std::vector<T>& vec, const char* msg)
     }
 }
 
+inline void validateMinMax(unsigned value, unsigned min, unsigned max, const char* msg)
+{
+    if (value < min || value > max) {
+        throw std::runtime_error(msg
+                                 + std::string(" (") + std::to_string(value)
+                                 + ", min: " + std::to_string(min)
+                                 + ", max: " + std::to_string(max) + ")");
+    }
+}
+
 inline void validateMax(unsigned value, unsigned max, const char* msg)
 {
     if (value > max) {

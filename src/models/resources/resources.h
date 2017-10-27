@@ -19,6 +19,9 @@ namespace Resources {
 struct ResourcesFile {
     const static std::string FILE_EXTENSION;
 
+    unsigned blockSize;
+    unsigned blockCount;
+
     MetaTiles::EngineSettings metaTileEngineSettings;
 
     std::vector<PaletteInput> palettes;

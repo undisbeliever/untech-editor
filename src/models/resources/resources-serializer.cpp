@@ -70,6 +70,9 @@ static std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml, const Xm
 
     auto resources = std::make_unique<ResourcesFile>();
 
+    resources->blockSize = tag->getAttributeUnsigned("block-size");
+    resources->blockCount = tag->getAttributeUnsigned("block-count");
+
     while (auto childTag = xml.parseTag()) {
         if (childTag->name == "palette") {
             resources->palettes.emplace_back();
