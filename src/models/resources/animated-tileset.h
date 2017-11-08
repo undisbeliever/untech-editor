@@ -19,7 +19,7 @@ struct AnimatedTilesetData {
     constexpr static unsigned MAX_ANIMATED_TILES_FRAME_SIZE = 32 * 32;
     constexpr static unsigned ANIMATION_FRAME_SIZE_SCALE = 16;
 
-    const static unsigned ANIMATED_TILESET_FORMAT_VERSION;
+    const static int ANIMATED_TILESET_FORMAT_VERSION;
 
     AnimatedTilesetData(int bitDepth)
         : staticTiles(bitDepth)

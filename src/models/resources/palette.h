@@ -32,7 +32,7 @@ struct PaletteInput {
 
 struct PaletteData {
     static constexpr unsigned MAX_PALETTE_BLOCK_SIZE = 32 * 128 * 2;
-    static const unsigned PALETTE_FORMAT_VERSION;
+    static const int PALETTE_FORMAT_VERSION;
 
     idstring name;
 

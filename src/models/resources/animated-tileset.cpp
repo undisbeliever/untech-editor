@@ -60,7 +60,7 @@ void AnimatedTilesetData::validate() const
     validateMax(staticTiles.size() + nAnimatedTiles(), MAX_SNES_TILES, "Too many tiles");
 }
 
-const unsigned AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION = 2;
+const int AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION = 2;
 
 std::vector<uint8_t> AnimatedTilesetData::exportAnimatedTileset() const
 {

@@ -33,7 +33,7 @@ struct MetaTileTilesetInput {
 };
 
 struct MetaTileTilesetData {
-    static const unsigned TILESET_FORMAT_VERSION;
+    static const int TILESET_FORMAT_VERSION;
 
     idstring name;
     std::vector<idstring> palettes;

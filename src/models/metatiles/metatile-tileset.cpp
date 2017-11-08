@@ -104,7 +104,7 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap(const EngineSettings& s
     return out;
 }
 
-const unsigned MetaTileTilesetData::TILESET_FORMAT_VERSION = 1;
+const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 1;
 
 std::vector<uint8_t>
 MetaTileTilesetData::exportMetaTileTileset(const EngineSettings& settings) const

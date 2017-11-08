@@ -161,7 +161,7 @@ void PaletteData::validate() const
     }
 }
 
-const unsigned PaletteData::PALETTE_FORMAT_VERSION = 1;
+const int PaletteData::PALETTE_FORMAT_VERSION = 1;
 
 std::vector<uint8_t> PaletteData::exportPalette() const
 {
