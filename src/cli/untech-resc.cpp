@@ -37,7 +37,11 @@ int compile(const CommandLine::Parser& args)
     const std::string relativeBinaryFilename = File::relativePath(incFilename, binaryFilename);
 
     std::unique_ptr<ResourcesFile> resources = loadResourcesFile(resourcesFilename);
-    std::unique_ptr<ResourcesOutput> output = compileResources(*resources, relativeBinaryFilename);
+    std::unique_ptr<ResourcesOutput> output = compileResources(*resources, relativeBinaryFilename, std::cerr);
+    if (!output) {
+        std::cerr << "Unable to compile resources.\n";
+        return EXIT_FAILURE;
+    }
 
     File::atomicWrite(incFilename, output->incData);
     File::atomicWrite(binaryFilename, output->binaryData);

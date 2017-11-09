@@ -6,7 +6,6 @@
 
 #include "metatile-tileset.h"
 #include "models/common/bytevectorhelper.h"
-#include "models/common/validatorhelper.h"
 #include "models/lz4/lz4.h"
 #include "models/resources/resources.h"
 #include <cassert>
@@ -14,73 +13,118 @@
 namespace UnTech {
 namespace MetaTiles {
 
-void MetaTileTilesetInput::validate() const
+bool MetaTileTilesetInput::validate(Resources::ErrorList& err) const
 {
+    bool valid = true;
+
     if (!name.isValid()) {
-        throw std::runtime_error("Expected metaTile tileset name");
+        err.addError("Expected metaTile tileset name");
+        valid = false;
     }
 
-    validateNotEmpty(palettes, "Expected at least one palette");
+    if (palettes.empty()) {
+        err.addError("Expected at least one palette");
+        valid = false;
+    }
 
     if (!animationFrames.frameImages.empty()) {
         const auto& frameSize = animationFrames.frameImages.front().size();
 
         if (frameSize.width % METATILE_SIZE_PX != 0) {
-            throw std::runtime_error("Image width must be a multiple of 16");
+            err.addError("Image width must be a multiple of 16");
+            valid = false;
         }
         if (frameSize.height % METATILE_SIZE_PX != 0) {
-            throw std::runtime_error("Image height must be a multiple of 16");
+            err.addError("Image height must be a multiple of 16");
+            valid = false;
         }
     }
 
-    animationFrames.validate();
+    if (valid) {
+        valid &= animationFrames.validate(err);
+    }
+
+    return valid;
 }
 
-MetaTileTilesetData convertTileset(const MetaTileTilesetInput& input,
-                                   const Resources::ResourcesFile& resourcesFile)
+std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
+                                                    const Resources::ResourcesFile& resourcesFile,
+                                                    Resources::ErrorList& err)
 {
-    input.validate();
+    bool valid = input.validate(err);
+    if (!valid) {
+        return nullptr;
+    }
 
-    const auto& palette = resourcesFile.getPalette(input.palettes.front());
+    const idstring& paletteName = input.palettes.front();
+    const auto* palette = resourcesFile.getPalettePtr(paletteName);
+    if (palette == nullptr) {
+        err.addError("Cannot find palette: " + paletteName);
+        return nullptr;
+    }
 
-    return MetaTileTilesetData{
-        input.name,
-        input.palettes,
-        Resources::convertAnimationFrames(input.animationFrames, palette)
+    auto aniFrames = Resources::convertAnimationFrames(input.animationFrames, *palette, err);
+    if (!aniFrames) {
+        return nullptr;
+    }
+
+    auto ret = std::make_unique<MetaTileTilesetData>();
+    ret->name = input.name;
+    ret->palettes = input.palettes;
+    ret->animatedTileset = std::move(aniFrames);
+
+    valid = ret->validate(resourcesFile.metaTileEngineSettings, err);
+    if (!valid) {
+        return nullptr;
+    }
+    return ret;
+}
+
+bool MetaTileTilesetData::validate(const EngineSettings& settings, Resources::ErrorList& err) const
+{
+    bool valid = animatedTileset->validate(err);
+
+    const auto& tileMap = animatedTileset->tileMap;
+
+    if (tileMap.empty()) {
+        err.addError("Expected at least one MetaTile");
+        valid = false;
+    }
+
+    auto validateMax = [&](unsigned v, unsigned max, const char* msg) {
+        if (v > max) {
+            err.addError(msg + std::string(" (") + std::to_string(v) + ", max: " + std::to_string(max) + ")");
+            valid = false;
+        }
     };
-}
-
-void MetaTileTilesetData::validate(const EngineSettings& settings) const
-{
-    animatedTileset.validate();
-
-    const auto& tileMap = animatedTileset.tileMap;
-
-    validateNotEmpty(tileMap, "Expected at least one MetaTile");
     validateMax(tileMap.size() / 4, settings.nMetaTiles, "Too many MetaTiles");
 
-    if (animatedTileset.mapWidth % 2 != 0) {
-        throw std::runtime_error("Tileset image width must be a multiple of 16");
+    if (animatedTileset->mapWidth % 2 != 0) {
+        err.addError("Tileset image width must be a multiple of 16");
+        valid = false;
     }
-    if (animatedTileset.mapHeight % 2 != 0) {
-        throw std::runtime_error("Tileset image height must be a multiple of 16");
+    if (animatedTileset->mapHeight % 2 != 0) {
+        err.addError("Tileset image height must be a multiple of 16");
+        valid = false;
     }
+
+    return valid;
 }
 
 std::vector<uint8_t> MetaTileTilesetData::convertTileMap(const EngineSettings& settings) const
 {
-    validate(settings);
-
     std::vector<uint8_t> out(settings.nMetaTiles * 2 * 4, 0);
 
-    const unsigned& mapWidth = animatedTileset.mapWidth;
-    const unsigned& mapHeight = animatedTileset.mapHeight;
+    const unsigned& mapWidth = animatedTileset->mapWidth;
+    const unsigned& mapHeight = animatedTileset->mapHeight;
 
-    assert(animatedTileset.tileMap.size() == mapWidth * mapHeight);
-    assert(animatedTileset.tileMap.size() <= out.size() / 2);
+    assert(mapWidth % 2 == 0);
+    assert(mapHeight % 2 == 0);
+    assert(animatedTileset->tileMap.size() == mapWidth * mapHeight);
+    assert(animatedTileset->tileMap.size() <= out.size() / 2);
 
     for (unsigned q = 0; q < 4; q++) {
-        auto mapIt = animatedTileset.tileMap.begin();
+        auto mapIt = animatedTileset->tileMap.begin();
         if (q & 1) {
             mapIt += 1;
         }
@@ -109,13 +153,11 @@ const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 1;
 std::vector<uint8_t>
 MetaTileTilesetData::exportMetaTileTileset(const EngineSettings& settings) const
 {
-    validate(settings);
-
     std::vector<uint8_t> tmBlock = convertTileMap(settings);
 
     std::vector<uint8_t> out = lz4HcCompress(tmBlock);
 
-    std::vector<uint8_t> atData = animatedTileset.exportAnimatedTileset();
+    std::vector<uint8_t> atData = animatedTileset->exportAnimatedTileset();
 
     out.insert(out.end(), atData.begin(), atData.end());
 

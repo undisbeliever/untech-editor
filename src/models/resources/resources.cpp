@@ -5,7 +5,6 @@
  */
 
 #include "resources.h"
-#include "models/common/validatorhelper.h"
 #include <algorithm>
 #include <cassert>
 #include <functional>
@@ -16,43 +15,62 @@ namespace UnTech {
 namespace Resources {
 
 template <class T>
-static void validateNamesUnique(const std::vector<T>& inputList, const std::string& typeName)
+static bool validateNamesUnique(const std::vector<T>& inputList, const std::string& typeName,
+                                ErrorList& err)
 {
+    bool valid = true;
+
     std::unordered_set<idstring> nameSet;
 
     for (const T& item : inputList) {
         const std::string& name = item.name;
         if (name == "count") {
-            throw std::runtime_error("Invalid " + typeName + " name: count");
+            err.addError("Invalid " + typeName + " name: count");
+            valid = false;
         }
 
         auto it = nameSet.find(name);
         if (it != nameSet.end()) {
-            throw std::runtime_error("Duplicate " + typeName + " name detected: " + name);
+            err.addError("Duplicate " + typeName + " name detected: " + name);
+            valid = false;
         }
         nameSet.insert(name);
     }
+
+    return valid;
 }
 
-void ResourcesFile::validate() const
+bool ResourcesFile::validate(ErrorList& err) const
 {
+    bool valid = true;
+
+    auto validateMinMax = [&](unsigned value, unsigned min, unsigned max, const char* msg) {
+        if (value < min || value > max) {
+            err.addError(msg
+                         + std::string(" (") + std::to_string(value)
+                         + ", min: " + std::to_string(min)
+                         + ", max: " + std::to_string(max) + ")");
+            valid = false;
+        }
+    };
+
     validateMinMax(blockSize, 1024, 64 * 1024, "block size invalid");
     validateMinMax(blockCount, 1, 128, "block count invalid");
 
-    validateNamesUnique(palettes, "palettes");
+    valid &= validateNamesUnique(palettes, "palettes", err);
+
+    return valid;
 }
 
-const PaletteInput& ResourcesFile::getPalette(const idstring& name) const
+const PaletteInput* ResourcesFile::getPalettePtr(const idstring& name) const
 {
-
     auto it = std::find_if(palettes.begin(), palettes.end(),
                            [&](const auto& p) { return p.name == name; });
 
     if (it == palettes.end()) {
-        throw std::runtime_error("Cannot find palette: " + name);
+        return nullptr;
     }
-
-    return *it;
+    return &*it;
 }
 }
 }

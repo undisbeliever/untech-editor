@@ -70,5 +70,19 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string
         throw xml_error(*xml, "Error loading metatile tileset file", ex);
     }
 }
+
+std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename,
+                                                               Resources::ErrorList& err)
+{
+    try {
+        auto xml = XmlReader::fromFile(filename);
+        std::unique_ptr<XmlTag> tag = xml->parseTag();
+        return readMetaTileTilesetInput(*xml, tag.get());
+    }
+    catch (const std::exception& ex) {
+        err.addError(std::string("Error loading file: ") + ex.what());
+        return nullptr;
+    }
+}
 }
 }

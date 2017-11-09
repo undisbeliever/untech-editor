@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "error-list.h"
 #include "palette.h"
 #include "models/common/idstring.h"
 #include "models/metatiles/common.h"
@@ -28,11 +29,10 @@ struct ResourcesFile {
 
     std::vector<std::string> metaTileTilesetFilenames;
 
-    // raise exception if invalid
-    void validate() const;
+    bool validate(ErrorList& err) const;
 
-    // raise exception if palette name does not exist
-    const PaletteInput& getPalette(const idstring& name) const;
+    // returns nullptr if name does not exist
+    const PaletteInput* getPalettePtr(const idstring& name) const;
 };
 
 struct ResourcesOutput {
@@ -43,8 +43,9 @@ struct ResourcesOutput {
 // raises exception on error
 std::unique_ptr<ResourcesFile> loadResourcesFile(const std::string& filename);
 
-// raises exception on error
+// may raise an exception
 std::unique_ptr<ResourcesOutput>
-compileResources(const ResourcesFile& input, const std::string& relativeBinaryFilename);
+compileResources(const ResourcesFile& input, const std::string& relativeBinaryFilename,
+                 std::ostream& errorStream);
 }
 }

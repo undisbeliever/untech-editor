@@ -7,7 +7,6 @@
 #include "animation-frames-input.h"
 #include "resources.h"
 #include "models/common/bytevectorhelper.h"
-#include "models/common/validatorhelper.h"
 #include "models/lz4/lz4.h"
 #include "models/snes/animatedtilesetinserter.h"
 #include "models/snes/tilesetinserter.h"
@@ -67,25 +66,22 @@ static bool extractFrameTile(FrameTile& ft, const Image& image, const unsigned x
     const unsigned pps = image.pixelsPerScanline();
     const rgba* imgBits = image.scanline(y) + x;
 
-    bool extractedTile = false;
-
     unsigned pId = 0;
     for (auto palIt = palettes.begin(); palIt < palettes.end(); palIt += colorsPerPalette, pId++) {
         bool s = extractTile8px(ft.tile, imgBits, pps, palIt, palIt + colorsPerPalette);
 
         if (s) {
             ft.palette = pId;
-
-            extractedTile = true;
-            break;
+            return true;
         }
     }
 
-    return extractedTile;
+    return false;
 }
 
-static std::vector<FrameTile> tilesFromFrameImage(const Image& image, const std::string& imageFilename,
-                                                  const std::vector<Snes::SnesColor>& palettes, unsigned colorsPerPalette)
+static std::vector<FrameTile> tilesFromFrameImage(const Image& image, unsigned frameId,
+                                                  const std::vector<Snes::SnesColor>& palettes, unsigned colorsPerPalette,
+                                                  ErrorList& err)
 {
     const static unsigned TS = 8;
 
@@ -100,9 +96,7 @@ static std::vector<FrameTile> tilesFromFrameImage(const Image& image, const std:
         for (unsigned x = 0; x < iSize.width; x += TS) {
             bool s = extractFrameTile(*tileIt, image, x, y, palettes, colorsPerPalette);
             if (!s) {
-                throw std::runtime_error("Unable to extract tile at position "
-                                         + std::to_string(x) + ", " + std::to_string(y)
-                                         + ": " + imageFilename);
+                err.addInvalidImageTile(frameId, x / TS, y / TS, ErrorList::NO_PALETTE_FOUND);
             }
             tileIt++;
         }
@@ -113,26 +107,25 @@ static std::vector<FrameTile> tilesFromFrameImage(const Image& image, const std:
 }
 
 static std::vector<std::vector<FrameTile>> tilesFromFrameImages(const AnimationFramesInput input,
-                                                                const std::vector<Snes::SnesColor>& palettes)
+                                                                const std::vector<Snes::SnesColor>& palettes,
+                                                                ErrorList& err)
 {
     const unsigned colorsPerPalette = 1 << input.bitDepth;
 
     std::vector<std::vector<FrameTile>> frameTiles;
     frameTiles.reserve(input.frameImages.size());
 
-    for (unsigned i = 0; i < input.frameImages.size(); i++) {
-        const auto& image = input.frameImages.at(i);
-        const auto& imageFilename = input.frameImageFilenames.at(i);
-
+    for (unsigned frameId = 0; frameId < input.frameImages.size(); frameId++) {
+        const auto& image = input.frameImages.at(frameId);
         frameTiles.emplace_back(
-            tilesFromFrameImage(image, imageFilename, palettes, colorsPerPalette));
+            tilesFromFrameImage(image, frameId, palettes, colorsPerPalette, err));
     }
 
     return frameTiles;
 }
 
-static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vector<FrameTile>>& frameTiles,
-                                                     unsigned tileWidth)
+static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vector<FrameTile>>& frameTiles, unsigned tileWidth,
+                                                     ErrorList& err)
 {
     assert(!frameTiles.empty());
     const unsigned nTiles = frameTiles.front().size();
@@ -159,9 +152,8 @@ static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vect
         unsigned palette = getPalette(0, tileId);
         for (unsigned frameId = 1; frameId < nFrames; frameId++) {
             if (getPalette(frameId, tileId) != palette) {
-                throw std::runtime_error("Tile " + std::to_string(tileId % tileWidth)
-                                         + ", " + std::to_string(tileId / tileWidth)
-                                         + " must use the same palette in each frame.");
+                err.addInvalidImageTile(tileId % tileWidth, tileId / tileWidth, ErrorList::NOT_SAME_PALETTE);
+                break;
             }
         }
         tm.palette = palette;
@@ -241,21 +233,24 @@ static void buildTilesetAndTilemap(AnimatedTilesetData& aniTileset, const Animat
     }
 }
 
-void AnimationFramesInput::validate() const
+bool AnimationFramesInput::validate(ErrorList& err) const
 {
+    bool valid = true;
+
     if (bitDepth != 2 && bitDepth != 4 && bitDepth != 8) {
-        throw std::runtime_error("Invalid bit-depth, expected 2, 4 or 8");
+        err.addError("Invalid bit-depth, expected 2, 4 or 8");
+        valid = false;
     }
 
     if (frameImages.empty()) {
-        throw std::runtime_error("Missing frame image");
+        err.addError("Missing frame image");
+        valid = false;
     }
 
     if (frameImages.size() != frameImageFilenames.size()) {
-        throw std::runtime_error("Invalid number of frameImages");
+        err.addError("Invalid number of frameImages");
+        valid = false;
     }
-
-    usize frameSize = frameImages.front().size();
 
     assert(frameImages.size() == frameImageFilenames.size());
     for (unsigned i = 0; i < frameImages.size(); i++) {
@@ -263,40 +258,72 @@ void AnimationFramesInput::validate() const
         const auto& imageFilename = frameImageFilenames.at(i);
 
         if (image.empty()) {
-            throw std::runtime_error("Missing frame image: " + imageFilename + ": " + image.errorString());
+            err.addError("Missing frame image: " + image.errorString());
+            valid = false;
+            break;
         }
 
         if (image.size().width % 8 != 0 || image.size().height % 8 != 0) {
-            throw std::runtime_error("image size invalid (height and width must be a multiple of 8): " + imageFilename);
-        }
-
-        if (image.size() != frameSize) {
-            throw std::runtime_error("All frame images must be the same size");
+            err.addError("image size invalid (height and width must be a multiple of 8): " + imageFilename);
+            valid = false;
         }
     }
+
+    if (valid) {
+        for (const Image& image : frameImages) {
+            if (image.size() != frameImages.front().size()) {
+                err.addError("All frame images must be the same size");
+                valid = false;
+                break;
+            }
+        }
+    }
+
+    return valid;
 }
 
-AnimatedTilesetData convertAnimationFrames(const AnimationFramesInput& input,
-                                           const PaletteInput& paletteInput)
+std::unique_ptr<AnimatedTilesetData>
+convertAnimationFrames(const AnimationFramesInput& input, const PaletteInput& paletteInput,
+                       ErrorList& err)
 {
-    input.validate();
-
-    AnimatedTilesetData ret(input.bitDepth);
-
-    ret.animationDelay = input.animationDelay;
-    ret.mapWidth = input.frameImages.front().size().width / 8;
-    ret.mapHeight = input.frameImages.front().size().height / 8;
-
-    const auto palettes = extractFirstPalette(paletteInput, input.bitDepth);
-
-    const auto frameTiles = tilesFromFrameImages(input, palettes);
-    const auto tilesetIntermediate = combineFrameTiles(frameTiles, ret.mapWidth);
-
-    if (input.addTransparentTile) {
-        ret.staticTiles.addTile();
+    bool valid = input.validate(err);
+    if (!valid) {
+        return nullptr;
     }
 
-    buildTilesetAndTilemap(ret, tilesetIntermediate);
+    const unsigned initialErrorCount = err.errorCount();
+
+    auto ret = std::make_unique<AnimatedTilesetData>(input.bitDepth);
+
+    ret->animationDelay = input.animationDelay;
+    ret->mapWidth = input.frameImages.front().size().width / 8;
+    ret->mapHeight = input.frameImages.front().size().height / 8;
+
+    const auto palette = extractFirstPalette(paletteInput, input.bitDepth, err);
+    if (palette.empty()) {
+        return nullptr;
+    }
+
+    const auto frameTiles = tilesFromFrameImages(input, palette, err);
+    if (initialErrorCount != err.errorCount()) {
+        return nullptr;
+    }
+    const auto tilesetIntermediate = combineFrameTiles(frameTiles, ret->mapWidth, err);
+
+    if (input.addTransparentTile) {
+        ret->staticTiles.addTile();
+    }
+
+    buildTilesetAndTilemap(*ret, tilesetIntermediate);
+
+    if (initialErrorCount != err.errorCount()) {
+        return nullptr;
+    }
+
+    valid = ret->validate(err);
+    if (!valid) {
+        return nullptr;
+    }
 
     return ret;
 }

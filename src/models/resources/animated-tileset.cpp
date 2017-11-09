@@ -7,7 +7,6 @@
 #include "animated-tileset.h"
 #include "resources.h"
 #include "models/common/bytevectorhelper.h"
-#include "models/common/validatorhelper.h"
 #include "models/lz4/lz4.h"
 #include "models/snes/animatedtilesetinserter.h"
 #include "models/snes/tilesetinserter.h"
@@ -37,39 +36,53 @@ unsigned AnimatedTilesetData::animatedTilesBlockSize() const
     return animatedTiles.size() * nAnimatedTiles() * staticTiles.snesTileSize();
 }
 
-void AnimatedTilesetData::validate() const
+bool AnimatedTilesetData::validate(ErrorList& err) const
 {
+    bool valid = true;
+
     if (mapHeight * mapWidth != tileMap.size()) {
-        throw std::logic_error("Invalid tileMap");
+        err.addError("Invalid tileMap");
+        valid = false;
     }
 
     for (const auto& at : animatedTiles) {
         if (at.size() != nAnimatedTiles()
             || at.bitDepth() != staticTiles.bitDepth()) {
 
-            throw std::logic_error("animatedTiles is invalid");
+            err.addError("animatedTiles is invalid");
+            valid = false;
         }
     }
 
     if (staticTiles.size() == 0) {
-        throw std::runtime_error("Expected at least one static tile");
+        err.addError("Expected at least one static tile");
+        valid = false;
     }
 
+    auto validateMax = [&](unsigned v, unsigned max, const char* msg) {
+        if (v > max) {
+            err.addError(msg + std::string(" (") + std::to_string(v) + ", max: " + std::to_string(max) + ")");
+            valid = false;
+        }
+    };
     validateMax(animatedTilesBlockSize(), MAX_ANIMATED_TILES_BLOCK_SIZE, "Too many animated tiles");
     validateMax(animatedTilesFrameSize(), MAX_ANIMATED_TILES_FRAME_SIZE, "Animated frame size too large");
     validateMax(staticTiles.size() + nAnimatedTiles(), MAX_SNES_TILES, "Too many tiles");
+
+    return valid;
 }
 
 const int AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION = 2;
 
 std::vector<uint8_t> AnimatedTilesetData::exportAnimatedTileset() const
 {
-    validate();
-
     std::vector<uint8_t> block = staticTiles.snesData();
     block.reserve(block.size() + animatedTilesBlockSize());
 
     for (const auto& at : animatedTiles) {
+        assert(at.size() == animatedTiles.front().size());
+        assert(at.bitDepth() == staticTiles.bitDepth());
+
         const std::vector<uint8_t> atData = at.snesData();
         block.insert(block.end(), atData.begin(), atData.end());
     }

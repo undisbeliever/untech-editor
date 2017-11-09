@@ -10,7 +10,9 @@
 #include "models/common/idstring.h"
 #include "models/resources/animated-tileset.h"
 #include "models/resources/animation-frames-input.h"
+#include "models/resources/error-list.h"
 #include "models/resources/resources.h"
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,7 +31,7 @@ struct MetaTileTilesetInput {
 
     Resources::AnimationFramesInput animationFrames;
 
-    void validate() const;
+    bool validate(Resources::ErrorList& err) const;
 };
 
 struct MetaTileTilesetData {
@@ -37,11 +39,9 @@ struct MetaTileTilesetData {
 
     idstring name;
     std::vector<idstring> palettes;
+    std::unique_ptr<Resources::AnimatedTilesetData> animatedTileset;
 
-    Resources::AnimatedTilesetData animatedTileset;
-
-    // raises an exception if invalid
-    void validate(const EngineSettings& settings) const;
+    bool validate(const EngineSettings& settings, Resources::ErrorList& err) const;
 
     std::vector<uint8_t> exportMetaTileTileset(const EngineSettings& settings) const;
 
@@ -49,7 +49,8 @@ private:
     std::vector<uint8_t> convertTileMap(const EngineSettings& settings) const;
 };
 
-MetaTileTilesetData convertTileset(const MetaTileTilesetInput& input,
-                                   const Resources::ResourcesFile& resourcesFile);
+std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
+                                                    const Resources::ResourcesFile& resourcesFile,
+                                                    Resources::ErrorList& err);
 }
 }

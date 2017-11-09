@@ -6,9 +6,11 @@
 
 #pragma once
 
+#include "error-list.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
 #include "models/snes/palette.h"
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -26,8 +28,7 @@ struct PaletteInput {
 
     bool skipFirstFrame = false;
 
-    // raises an exception if PaletteInput is invalid.
-    void validate() const;
+    bool validate(ErrorList& err) const;
 };
 
 struct PaletteData {
@@ -42,23 +43,20 @@ struct PaletteData {
     unsigned nAnimations() const { return paletteFrames.size(); }
     unsigned colorsPerFrame() const;
 
-    // raises an exception if PaletteData is invalid.
-    void validate() const;
+    bool validate(ErrorList& err) const;
 
-    // raises an exception if PaletteData is invalid.
+    // PaleteData SHOULD BE valid before exporting
     std::vector<uint8_t> exportPalette() const;
 };
 
-// raises an exception if an error occurred
-PaletteData convertPalette(const PaletteInput& input);
+// Will return a nullptr if PaletteInput or PaletteData is invalid
+std::unique_ptr<PaletteData> convertPalette(const PaletteInput& input, ErrorList& err);
 
 // Extracts the first palette from the palette image, even `skipFirstFrame` is set.
 //
 // The output palette will contain:
 //  * a multiple of 4, 32, or 256 colors, depending on the bitDepth argument.
 //  * contain at most 32, 128 or 256 colors, depending on the bitDepth argument.
-//
-// Raises an exception if an error occurred.
-std::vector<Snes::SnesColor> extractFirstPalette(const PaletteInput& input, unsigned bitDepth);
+std::vector<Snes::SnesColor> extractFirstPalette(const PaletteInput& input, unsigned bitDepth, ErrorList& err);
 }
 }

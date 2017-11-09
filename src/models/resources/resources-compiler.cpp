@@ -25,20 +25,9 @@ std::string itemNameString(const std::string& item)
 }
 
 std::unique_ptr<ResourcesOutput>
-compileResources(const ResourcesFile& input, const std::string& relativeBinFilename)
+compileResources(const ResourcesFile& input, const std::string& relativeBinFilename,
+                 std::ostream& errorStream)
 {
-    auto compileList = [&](const auto& inputList, const char* typeName, auto compile_fn) {
-        for (const auto& item : inputList) {
-            try {
-                compile_fn(item);
-            }
-            catch (const std::exception& ex) {
-                throw std::runtime_error(std::string("Unable to compile ")
-                                         + typeName + ' ' + itemNameString(item) + ": " + ex.what());
-            }
-        }
-    };
-
     const static std::vector<RomDataWriter::Constant> FORMAT_VERSIONS = {
         { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
         { "Resources.PALETTE_FORMAT_VERSION", PaletteData::PALETTE_FORMAT_VERSION },
@@ -54,27 +43,64 @@ compileResources(const ResourcesFile& input, const std::string& relativeBinFilen
         "MetaTiles.TilesetList"
     };
 
-    input.validate();
+    bool valid = true;
+    {
+        ErrorList errorList;
+        valid = input.validate(errorList);
+        if (!valid) {
+            errorStream << "Unable to compile resources:\n";
+            errorList.printIndented(errorStream);
+            return nullptr;
+        }
+    }
+
+    auto compileList = [&](const auto& inputList, const char* typeName, auto compile_fn) {
+        for (const auto& item : inputList) {
+            ErrorList errorList;
+
+            compile_fn(item, errorList);
+
+            if (errorList.hasError()) {
+                errorStream << "ERROR compiling " << typeName << " `" << itemNameString(item) << "`:\n";
+                errorList.printIndented(errorStream);
+                valid = false;
+            }
+        }
+    };
 
     RomDataWriter writer(input.blockSize, input.blockCount,
                          "__resc__", "RES_Lists", "RES_Block",
                          FORMAT_VERSIONS, TYPE_NAMES);
 
     compileList(input.palettes, "Palette",
-                [&](const PaletteInput& p) {
-                    const auto data = convertPalette(p).exportPalette();
-
-                    writer.addData(PALETTE, p.name, data);
+                [&](const PaletteInput& p, ErrorList& err) {
+                    const auto palData = convertPalette(p, err);
+                    if (palData) {
+                        writer.addData(PALETTE, p.name, palData->exportPalette());
+                    }
                 });
+
+    if (!valid) {
+        // Prevents duplicate palette errors
+        return nullptr;
+    }
 
     compileList(input.metaTileTilesetFilenames, "MetaTile Tileset",
-                [&](const std::string& filename) {
-                    const auto mti = MetaTiles::loadMetaTileTilesetInput(filename);
-                    const auto mtd = MetaTiles::convertTileset(*mti, input);
-                    const auto data = mtd.exportMetaTileTileset(input.metaTileEngineSettings);
-
-                    writer.addData(METATILE_TILESET, mti->name, data);
+                [&](const std::string& filename, ErrorList& err) {
+                    const auto mti = MetaTiles::loadMetaTileTilesetInput(filename, err);
+                    if (!mti) {
+                        return;
+                    }
+                    const auto mtd = MetaTiles::convertTileset(*mti, input, err);
+                    if (mtd) {
+                        const auto data = mtd->exportMetaTileTileset(input.metaTileEngineSettings);
+                        writer.addData(METATILE_TILESET, mti->name, data);
+                    }
                 });
+
+    if (!valid) {
+        return nullptr;
+    }
 
     auto ret = std::make_unique<ResourcesOutput>();
     ret->incData = writer.writeIncData(relativeBinFilename);

@@ -6,7 +6,6 @@
 
 #include "palette.h"
 #include "models/common/bytevectorhelper.h"
-#include "models/common/validatorhelper.h"
 #include "models/lz4/lz4.h"
 #include <cassert>
 
@@ -17,53 +16,67 @@ using namespace UnTech::Snes;
 // PaletteInput
 // ============
 
-void PaletteInput::validate() const
+bool PaletteInput::validate(ErrorList& err) const
 {
+    bool valid = true;
+
     const usize& imgSize = paletteImage.size();
 
     unsigned minImageHeight = skipFirstFrame ? rowsPerFrame * 2 : rowsPerFrame;
     unsigned colorsPerFrame = imgSize.width * rowsPerFrame;
 
     if (!name.isValid()) {
-        throw std::runtime_error("Expected palette name");
+        err.addError("Expected palette name");
+        valid = false;
     }
     if (paletteImage.empty()) {
-        throw std::runtime_error("Error loading palette image: " + paletteImage.errorString());
+        err.addError("Error loading palette image: " + paletteImage.errorString());
+        valid = false;
     }
     if (rowsPerFrame == 0) {
-        throw std::runtime_error("Expected rowsPerFrame");
+        err.addError("Expected rowsPerFrame");
+        valid = false;
     }
     if (imgSize.width != 4 && imgSize.width != 16) {
-        throw std::runtime_error("Palette image must be 4 or 16 pixels wide");
+        err.addError("Palette image must be 4 or 16 pixels wide");
+        valid = false;
     }
     if (imgSize.height < minImageHeight) {
-        throw std::runtime_error("Palette image must be a minimum of "
-                                 + std::to_string(minImageHeight) + "pixels tall");
+        err.addError("Palette image must be a minimum of "
+                     + std::to_string(minImageHeight) + "pixels tall");
+        valid = false;
     }
     if (imgSize.height % rowsPerFrame != 0) {
-        throw std::runtime_error("Palette image height must be a multiple of rowsPerFrame");
+        err.addError("Palette image height must be a multiple of rowsPerFrame");
+        valid = false;
     }
     if (colorsPerFrame > 256) {
-        throw std::runtime_error("Too many colors per palette frame");
+        err.addError("Too many colors per palette frame");
+        valid = false;
     }
+
+    return valid;
 }
 
-PaletteData Resources::convertPalette(const PaletteInput& input)
+std::unique_ptr<PaletteData> Resources::convertPalette(const PaletteInput& input, ErrorList& err)
 {
-    input.validate();
+    bool valid = input.validate(err);
+    if (!valid) {
+        return nullptr;
+    }
 
     const usize& imgSize = input.paletteImage.size();
 
     unsigned startingY = input.skipFirstFrame ? input.rowsPerFrame : 0;
     unsigned colorsPerFrame = imgSize.width * input.rowsPerFrame;
 
-    PaletteData ret;
-    ret.name = input.name;
-    ret.animationDelay = input.animationDelay;
+    std::unique_ptr<PaletteData> ret = std::make_unique<PaletteData>();
+    ret->name = input.name;
+    ret->animationDelay = input.animationDelay;
 
     for (unsigned py = startingY; py < imgSize.height; py += input.rowsPerFrame) {
-        ret.paletteFrames.emplace_back(colorsPerFrame);
-        std::vector<SnesColor>& frame = ret.paletteFrames.back();
+        ret->paletteFrames.emplace_back(colorsPerFrame);
+        std::vector<SnesColor>& frame = ret->paletteFrames.back();
         auto frameIt = frame.begin();
 
         for (unsigned fy = 0; fy < input.rowsPerFrame; fy++) {
@@ -76,16 +89,22 @@ PaletteData Resources::convertPalette(const PaletteInput& input)
         assert(frameIt == frame.end());
     }
 
+    valid = ret->validate(err);
+    if (!valid) {
+        return nullptr;
+    }
+
     return ret;
 }
 
 std::vector<Snes::SnesColor>
-Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth)
+Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth, ErrorList& err)
 {
-    input.validate();
+    bool valid = input.validate(err);
 
     if (bitDepth == 0 || bitDepth > 8) {
-        throw std::invalid_argument("Invalid bit-depth");
+        err.addError("Invalid bit-depth");
+        valid = false;
     }
 
     unsigned maxColors = 128;
@@ -105,8 +124,13 @@ Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth)
     }
 
     if (img.size().height < nRows) {
-        throw std::runtime_error("Palette image must be a minimum of "
-                                 + std::to_string(nRows) + "pixels tall");
+        err.addError("Palette image must be a minimum of "
+                     + std::to_string(nRows) + "pixels tall");
+        valid = false;
+    }
+
+    if (!valid) {
+        return std::vector<SnesColor>();
     }
 
     std::vector<Snes::SnesColor> palette(nRows * nColumns, SnesColor::invalidColor());
@@ -139,40 +163,57 @@ unsigned PaletteData::colorsPerFrame() const
     }
 }
 
-void PaletteData::validate() const
+bool PaletteData::validate(ErrorList& err) const
 {
-    validateNotEmpty(paletteFrames, "Expected at least one palette frame");
-    validateMax(paletteFrames.size(), 255, "Too many palette animations");
+    bool valid = true;
+
+    if (paletteFrames.empty()) {
+        err.addError("Expected at least one palette frame");
+        valid = false;
+    }
+    if (paletteFrames.size() > 255) {
+        err.addError("Too many palette animations");
+        valid = false;
+    }
 
     unsigned blockSize = paletteFrames.size() * colorsPerFrame() * 2;
-    validateMax(blockSize, MAX_PALETTE_BLOCK_SIZE, "Animation palette too large");
+    if (blockSize > MAX_PALETTE_BLOCK_SIZE) {
+        err.addError("Animation palette too large");
+        valid = false;
+    }
 
     if (paletteFrames.size() > 0) {
         if (animationDelay == 0) {
-            throw std::runtime_error("Expected animation delay");
+            err.addError("Expected animation delay");
+            valid = false;
         }
-        validateMax(animationDelay, 0xffff, "Animation delay too long");
+        if (animationDelay > 0xffff) {
+            err.addError("Animation delay too long");
+            valid = false;
+        }
     }
 
     for (const auto& pal : paletteFrames) {
         if (pal.size() != colorsPerFrame()) {
-            throw std::runtime_error("paletteFrames must contain the same number of colors in each frame");
+            err.addError("paletteFrames must contain the same number of colors in each frame");
+            valid = false;
         }
     }
+
+    return valid;
 }
 
 const int PaletteData::PALETTE_FORMAT_VERSION = 1;
 
 std::vector<uint8_t> PaletteData::exportPalette() const
 {
-    validate();
-
     unsigned blockSize = paletteFrames.size() * colorsPerFrame() * 2;
 
     std::vector<uint8_t> block;
     block.reserve(blockSize);
 
     for (const auto& pal : paletteFrames) {
+        assert(pal.size() == paletteFrames.front().size());
         for (const SnesColor& c : pal) {
             writeUint16(block, c.data());
         }

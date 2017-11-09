@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "error-list.h"
 #include "models/snes/tilemap.h"
 #include "models/snes/tileset.h"
 #include <vector>
@@ -40,11 +41,10 @@ struct AnimatedTilesetData {
     unsigned animatedTilesFrameSize() const;
     unsigned animatedTilesBlockSize() const;
 
-    // raises an exception if invalid
-    void validate() const;
+    bool validate(ErrorList& err) const;
 
     // Does not export tileMap.
-    // Raises an exception if invalid.
+    // Expects this AnimatedTilesetData to be valid.
     std::vector<uint8_t> exportAnimatedTileset() const;
 };
 }

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "animated-tileset.h"
+#include "error-list.h"
 #include "palette.h"
 #include "models/common/image.h"
 #include <vector>
@@ -25,11 +26,12 @@ struct AnimationFramesInput {
     unsigned bitDepth = 4;
     bool addTransparentTile = false;
 
-    // raises an exception is input is invalid
-    void validate() const;
+    bool validate(ErrorList& err) const;
 };
 
-AnimatedTilesetData convertAnimationFrames(const AnimationFramesInput& input,
-                                           const PaletteInput& paletteInput);
+// returns nullptr if AnimationFramesInput or AnimatedTilesetData is invalid
+std::unique_ptr<AnimatedTilesetData>
+convertAnimationFrames(const AnimationFramesInput& input, const PaletteInput& paletteInput,
+                       ErrorList& err);
 }
 }
