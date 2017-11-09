@@ -5,3 +5,5 @@
 /obj
 /gen
 
+.clang_complete
+
