@@ -9,6 +9,7 @@
 #include "common.h"
 #include "metatile-tileset.h"
 #include "models/common/xml/xmlreader.h"
+#include "models/common/xml/xmlwriter.h"
 #include "models/resources/error-list.h"
 
 namespace UnTech {
@@ -20,6 +21,13 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string
 // raises an exception on error
 std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename);
 
+// raises an exception on error
 void readEngineSettings(EngineSettings& settings, const Xml::XmlTag* tag);
+
+// raises an exception on error
+void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::string& filename);
+
+// raises an exception on error
+void writeEngineSettings(Xml::XmlWriter& xml, const EngineSettings& settings);
 }
 }

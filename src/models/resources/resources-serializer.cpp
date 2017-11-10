@@ -5,6 +5,7 @@
  */
 
 #include "resources-serializer.h"
+#include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include <cassert>
@@ -104,6 +105,55 @@ static std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml, const Xm
     return resources;
 }
 
+void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
+{
+    xml.writeTag("animation-frames");
+
+    xml.writeTagAttribute("bit-depth", afi.bitDepth);
+    xml.writeTagAttribute("animation-delay", afi.animationDelay);
+    xml.writeTagAttribute("add-transparent-tile", afi.addTransparentTile);
+
+    for (const std::string& fiFilename : afi.frameImageFilenames) {
+        xml.writeTag("frame");
+        xml.writeTagAttributeFilename("image", fiFilename);
+        xml.writeCloseTag();
+    }
+
+    xml.writeCloseTag();
+}
+
+static void writeResourcesFile(XmlWriter& xml, const ResourcesFile& res)
+{
+    xml.writeTag("resources");
+
+    xml.writeTagAttribute("block-size", res.blockSize);
+    xml.writeTagAttribute("block-count", res.blockCount);
+
+    MetaTiles::writeEngineSettings(xml, res.metaTileEngineSettings);
+
+    for (const PaletteInput& p : res.palettes) {
+        xml.writeTag("palette");
+        xml.writeTagAttribute("name", p.name);
+        xml.writeTagAttributeFilename("image", p.paletteImageFilename);
+        xml.writeTagAttribute("rows-per-frame", p.rowsPerFrame);
+        xml.writeTagAttribute("skip-first", p.skipFirstFrame);
+
+        if (p.animationDelay > 0) {
+            xml.writeTagAttribute("animation-delay", p.animationDelay);
+        }
+
+        xml.writeCloseTag();
+    }
+
+    for (const std::string& mtFilename : res.metaTileTilesetFilenames) {
+        xml.writeTag("metatile-tileset");
+        xml.writeTagAttributeFilename("src", mtFilename);
+        xml.writeCloseTag();
+    }
+
+    xml.writeCloseTag();
+}
+
 std::unique_ptr<ResourcesFile> loadResourcesFile(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
@@ -114,6 +164,14 @@ std::unique_ptr<ResourcesFile> loadResourcesFile(const std::string& filename)
     catch (const std::exception& ex) {
         throw xml_error(*xml, "Error loading resources file", ex);
     }
+}
+
+void saveResourcesFile(const ResourcesFile& res, const std::string& filename)
+{
+    AtomicOfStream file(filename);
+    XmlWriter xml(file, filename, "untech");
+    writeResourcesFile(xml, res);
+    file.commit();
 }
 }
 }

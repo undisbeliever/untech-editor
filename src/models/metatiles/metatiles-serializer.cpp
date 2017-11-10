@@ -5,6 +5,7 @@
  */
 
 #include "metatiles-serializer.h"
+#include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/resources/resources-serializer.h"
 #include <cassert>
@@ -59,6 +60,31 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
     return tilesetInput;
 }
 
+void writeEngineSettings(XmlWriter& xml, const EngineSettings& settings)
+{
+    xml.writeTag("metatile-engine-settings");
+    xml.writeTagAttribute("max-map-size", settings.maxMapSize);
+    xml.writeTagAttribute("n-metatiles", settings.nMetaTiles);
+    xml.writeCloseTag();
+}
+
+static void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input)
+{
+    xml.writeTag("metatile-tileset");
+
+    xml.writeTagAttribute("name", input.name);
+
+    for (const idstring& pName : input.palettes) {
+        xml.writeTag("palette");
+        xml.writeTagAttribute("name", pName);
+        xml.writeCloseTag();
+    }
+
+    Resources::writeAnimationFramesInput(xml, input.animationFrames);
+
+    xml.writeCloseTag();
+}
+
 std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
@@ -83,6 +109,14 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string
         err.addError(std::string("Error loading file: ") + ex.what());
         return nullptr;
     }
+}
+
+void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::string& filename)
+{
+    AtomicOfStream file(filename);
+    XmlWriter xml(file, filename, "untech");
+    writeMetaTileTilesetInput(xml, input);
+    file.commit();
 }
 }
 }

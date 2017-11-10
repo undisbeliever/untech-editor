@@ -9,6 +9,7 @@
 #include "animation-frames-input.h"
 #include "resources.h"
 #include "models/common/xml/xmlreader.h"
+#include "models/common/xml/xmlwriter.h"
 
 namespace UnTech {
 namespace Resources {
@@ -20,5 +21,11 @@ std::unique_ptr<ResourcesFile> loadResourcesFile(const std::string& filename);
 // `afi` must be empty, xml/tag points to an <animation-frames> tag
 void readAnimationFramesInput(AnimationFramesInput& afi,
                               Xml::XmlReader& xml, const Xml::XmlTag* tag);
+
+// raises exception on error
+void saveResourcesFile(const ResourcesFile& res, const std::string& filename);
+
+// raises exception on error
+void writeAnimationFramesInput(Xml::XmlWriter& xml, const AnimationFramesInput& afi);
 }
 }
