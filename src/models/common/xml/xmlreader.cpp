@@ -107,14 +107,15 @@ using namespace UnTech::XmlPrivate;
 
 XmlReader::XmlReader(const std::string& xml, const std::string& filename)
     : _inputString(xml)
-    , _filename(filename)
+    , _filename()
 {
     if (xml.empty()) {
         throw std::runtime_error("Empty XML file");
     }
 
     if (!filename.empty()) {
-        std::tie(_dirname, _filepart) = File::splitFilename(filename);
+        _filename = File::fullPath(filename);
+        std::tie(_dirname, _filepart) = File::splitFilename(_filename);
     }
     else {
         _dirname = std::string();

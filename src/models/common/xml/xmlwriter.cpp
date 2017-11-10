@@ -21,16 +21,16 @@
 using namespace UnTech;
 using namespace UnTech::Xml;
 
-XmlWriter::XmlWriter(std::ostream& output, const std::string& fileName, const std::string& doctype)
+XmlWriter::XmlWriter(std::ostream& output, const std::string& filename, const std::string& doctype)
     : _file(output)
     , _tagStack()
-    , _filename(fileName)
+    , _filename()
     , _inTag(false)
-    , _useRelativePaths(!fileName.empty())
+    , _useRelativePaths(!filename.empty())
 {
-    if (!_filename.empty()) {
-        auto dirname = File::splitFilename(fileName).first;
-        _dirname = File::fullPath(dirname);
+    if (!filename.empty()) {
+        _filename = File::fullPath(filename);
+        _dirname = File::splitFilename(_filename).first;
     }
 
     _file << "<?xml version=\"1.0\" encoding=\"UTF_8\"?>\n";
