@@ -29,6 +29,15 @@ struct PaletteInput {
     bool skipFirstFrame = false;
 
     bool validate(ErrorList& err) const;
+
+    bool operator==(const PaletteInput& o) const
+    {
+        return paletteImageFilename == o.paletteImageFilename
+               && rowsPerFrame == o.rowsPerFrame
+               && animationDelay == o.animationDelay
+               && skipFirstFrame == o.skipFirstFrame;
+    }
+    bool operator!=(const PaletteInput& o) const { return !(*this == o); }
 };
 
 struct PaletteData {

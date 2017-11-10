@@ -40,7 +40,7 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
         return readFrameSet(xml, tag.get());
     }
     catch (const std::exception& ex) {
-        throw xml_error(xml, "Unable to load MetaSprite FrameSet file", ex);
+        throw xml_error(xml, "Unable to load MetaSprite FrameSet", ex);
     }
 }
 

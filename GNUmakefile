@@ -199,8 +199,10 @@ $(call cli-modules, untech-resc,                common lz4 resources metatiles s
 $(call cli-modules, untech-utsi2utms,           common snes metasprite)
 $(call cli-modules, untech-write-sfc-checksum,  common snes)
 
-$(call test-util-modules, metasprite-serializer-test,     common snes metasprite)
-$(call test-util-modules, spriteimporter-serializer-test, common snes metasprite)
+$(call test-util-modules, metasprite-serializer-test,           common snes metasprite)
+$(call test-util-modules, spriteimporter-serializer-test,       common snes metasprite)
+$(call test-util-modules, resources-file-serializer-test,       common snes resources metatiles lz4)
+$(call test-util-modules, metatiles-tileset-serializer-test,    common snes resources metatiles lz4)
 
 $(call gui-qt-modules, untech-metasprite-gui,     metasprite, common snes metasprite)
 $(call gui-qt-modules, untech-spriteimporter-gui, metasprite, common snes metasprite)

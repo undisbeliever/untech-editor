@@ -32,6 +32,14 @@ struct MetaTileTilesetInput {
     Resources::AnimationFramesInput animationFrames;
 
     bool validate(Resources::ErrorList& err) const;
+
+    bool operator==(const MetaTileTilesetInput& o) const
+    {
+        return name == o.name
+               && palettes == o.palettes
+               && animationFrames == o.animationFrames;
+    }
+    bool operator!=(const MetaTileTilesetInput& o) const { return !(*this == o); }
 };
 
 struct MetaTileTilesetData {

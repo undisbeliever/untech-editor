@@ -12,6 +12,13 @@ namespace MetaTiles {
 struct EngineSettings {
     unsigned maxMapSize;
     unsigned nMetaTiles;
+
+    bool operator==(const EngineSettings& o) const
+    {
+        return maxMapSize == o.maxMapSize
+               && nMetaTiles == o.nMetaTiles;
+    }
+    bool operator!=(const EngineSettings& o) const { return !(*this == o); }
 };
 
 constexpr static unsigned METATILE_SIZE_PX = 16;

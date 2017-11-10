@@ -22,10 +22,16 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string
 std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename);
 
 // raises an exception on error
+std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(Xml::XmlReader& xml);
+
+// raises an exception on error
 void readEngineSettings(EngineSettings& settings, const Xml::XmlTag* tag);
 
 // raises an exception on error
 void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::string& filename);
+
+// raises an exception on error
+void writeMetaTileTilesetInput(Xml::XmlWriter& xml, const MetaTileTilesetInput& input);
 
 // raises an exception on error
 void writeEngineSettings(Xml::XmlWriter& xml, const EngineSettings& settings);

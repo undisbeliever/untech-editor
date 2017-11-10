@@ -122,7 +122,7 @@ void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
     xml.writeCloseTag();
 }
 
-static void writeResourcesFile(XmlWriter& xml, const ResourcesFile& res)
+void writeResourcesFile(XmlWriter& xml, const ResourcesFile& res)
 {
     xml.writeTag("resources");
 
@@ -154,16 +154,21 @@ static void writeResourcesFile(XmlWriter& xml, const ResourcesFile& res)
     xml.writeCloseTag();
 }
 
+std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml)
+{
+    try {
+        std::unique_ptr<XmlTag> tag = xml.parseTag();
+        return readResourcesFile(xml, tag.get());
+    }
+    catch (const std::exception& ex) {
+        throw xml_error(xml, "Error loading resources file", ex);
+    }
+}
+
 std::unique_ptr<ResourcesFile> loadResourcesFile(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
-    try {
-        std::unique_ptr<XmlTag> tag = xml->parseTag();
-        return readResourcesFile(*xml, tag.get());
-    }
-    catch (const std::exception& ex) {
-        throw xml_error(*xml, "Error loading resources file", ex);
-    }
+    return readResourcesFile(*xml);
 }
 
 void saveResourcesFile(const ResourcesFile& res, const std::string& filename)

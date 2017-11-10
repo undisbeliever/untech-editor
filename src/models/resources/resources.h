@@ -33,6 +33,16 @@ struct ResourcesFile {
 
     // returns nullptr if name does not exist
     const PaletteInput* getPalettePtr(const idstring& name) const;
+
+    bool operator==(const ResourcesFile& o) const
+    {
+        return blockSize == o.blockSize
+               && blockCount == o.blockCount
+               && metaTileEngineSettings == o.metaTileEngineSettings
+               && palettes == o.palettes
+               && metaTileTilesetFilenames == o.metaTileTilesetFilenames;
+    }
+    bool operator!=(const ResourcesFile& o) const { return !(*this == o); }
 };
 
 struct ResourcesOutput {

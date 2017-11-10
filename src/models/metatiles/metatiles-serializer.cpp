@@ -68,7 +68,7 @@ void writeEngineSettings(XmlWriter& xml, const EngineSettings& settings)
     xml.writeCloseTag();
 }
 
-static void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input)
+void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input)
 {
     xml.writeTag("metatile-tileset");
 
@@ -85,16 +85,21 @@ static void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput
     xml.writeCloseTag();
 }
 
+std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml)
+{
+    try {
+        std::unique_ptr<XmlTag> tag = xml.parseTag();
+        return readMetaTileTilesetInput(xml, tag.get());
+    }
+    catch (const std::exception& ex) {
+        throw xml_error(xml, "Error loading metatile tileset", ex);
+    }
+}
+
 std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
-    try {
-        std::unique_ptr<XmlTag> tag = xml->parseTag();
-        return readMetaTileTilesetInput(*xml, tag.get());
-    }
-    catch (const std::exception& ex) {
-        throw xml_error(*xml, "Error loading metatile tileset file", ex);
-    }
+    return readMetaTileTilesetInput(*xml);
 }
 
 std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename,
@@ -102,11 +107,10 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string
 {
     try {
         auto xml = XmlReader::fromFile(filename);
-        std::unique_ptr<XmlTag> tag = xml->parseTag();
-        return readMetaTileTilesetInput(*xml, tag.get());
+        return readMetaTileTilesetInput(*xml);
     }
     catch (const std::exception& ex) {
-        err.addError(std::string("Error loading file: ") + ex.what());
+        err.addError(ex.what());
         return nullptr;
     }
 }
