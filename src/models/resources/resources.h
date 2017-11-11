@@ -25,14 +25,14 @@ struct ResourcesFile {
 
     MetaTiles::EngineSettings metaTileEngineSettings;
 
-    std::vector<PaletteInput> palettes;
+    std::vector<std::shared_ptr<PaletteInput>> palettes;
 
     std::vector<std::string> metaTileTilesetFilenames;
 
     bool validate(ErrorList& err) const;
 
     // returns nullptr if name does not exist
-    const PaletteInput* getPalettePtr(const idstring& name) const;
+    std::shared_ptr<const PaletteInput> getPalette(const idstring& name) const;
 
     bool operator==(const ResourcesFile& o) const
     {

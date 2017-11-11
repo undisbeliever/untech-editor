@@ -18,6 +18,11 @@ static std::string itemNameString(const T& item)
 {
     return item.name;
 }
+template <class T>
+static std::string itemNameString(const std::shared_ptr<T>& item)
+{
+    return item->name;
+}
 template <>
 std::string itemNameString(const std::string& item)
 {
@@ -73,10 +78,11 @@ compileResources(const ResourcesFile& input, const std::string& relativeBinFilen
                          FORMAT_VERSIONS, TYPE_NAMES);
 
     compileList(input.palettes, "Palette",
-                [&](const PaletteInput& p, ErrorList& err) {
-                    const auto palData = convertPalette(p, err);
+                [&](const std::shared_ptr<PaletteInput>& p, ErrorList& err) {
+                    assert(p != nullptr);
+                    const auto palData = convertPalette(*p, err);
                     if (palData) {
-                        writer.addData(PALETTE, p.name, palData->exportPalette());
+                        writer.addData(PALETTE, p->name, palData->exportPalette());
                     }
                 });
 

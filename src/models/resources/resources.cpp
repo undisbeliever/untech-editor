@@ -15,15 +15,16 @@ namespace UnTech {
 namespace Resources {
 
 template <class T>
-static bool validateNamesUnique(const std::vector<T>& inputList, const std::string& typeName,
+static bool validateNamesUnique(const std::vector<std::shared_ptr<T>>& inputList,
+                                const std::string& typeName,
                                 ErrorList& err)
 {
     bool valid = true;
 
     std::unordered_set<idstring> nameSet;
 
-    for (const T& item : inputList) {
-        const std::string& name = item.name;
+    for (const std::shared_ptr<T>& item : inputList) {
+        const std::string& name = item->name;
         if (name == "count") {
             err.addError("Invalid " + typeName + " name: count");
             valid = false;
@@ -62,15 +63,15 @@ bool ResourcesFile::validate(ErrorList& err) const
     return valid;
 }
 
-const PaletteInput* ResourcesFile::getPalettePtr(const idstring& name) const
+std::shared_ptr<const PaletteInput> ResourcesFile::getPalette(const idstring& name) const
 {
     auto it = std::find_if(palettes.begin(), palettes.end(),
-                           [&](const auto& p) { return p.name == name; });
+                           [&](const auto& p) { return p->name == name; });
 
     if (it == palettes.end()) {
         return nullptr;
     }
-    return &*it;
+    return *it;
 }
 }
 }

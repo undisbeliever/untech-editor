@@ -45,20 +45,24 @@ void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const X
     }
 }
 
-static void readPalette(PaletteInput& palette, const XmlTag* tag)
+static std::shared_ptr<PaletteInput> readPalette(const XmlTag* tag)
 {
     assert(tag->name == "palette");
 
-    palette.name = tag->getAttributeId("name");
-    palette.paletteImageFilename = tag->getAttributeFilename("image");
-    palette.rowsPerFrame = tag->getAttributeUnsigned("rows-per-frame");
-    palette.skipFirstFrame = tag->getAttributeBoolean("skip-first");
+    auto palette = std::make_shared<PaletteInput>();
+
+    palette->name = tag->getAttributeId("name");
+    palette->paletteImageFilename = tag->getAttributeFilename("image");
+    palette->rowsPerFrame = tag->getAttributeUnsigned("rows-per-frame");
+    palette->skipFirstFrame = tag->getAttributeBoolean("skip-first");
 
     if (tag->hasAttribute("animation-delay")) {
-        palette.animationDelay = tag->getAttributeUnsigned("animation-delay");
+        palette->animationDelay = tag->getAttributeUnsigned("animation-delay");
     }
 
-    palette.paletteImage.loadPngImage(palette.paletteImageFilename);
+    palette->paletteImage.loadPngImage(palette->paletteImageFilename);
+
+    return palette;
 }
 
 static std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml, const XmlTag* tag)
@@ -76,8 +80,7 @@ static std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml, const Xm
 
     while (auto childTag = xml.parseTag()) {
         if (childTag->name == "palette") {
-            resources->palettes.emplace_back();
-            readPalette(resources->palettes.back(), childTag.get());
+            resources->palettes.push_back(readPalette(childTag.get()));
         }
         else if (childTag->name == "metatile-tileset") {
             resources->metaTileTilesetFilenames.emplace_back(
@@ -131,15 +134,17 @@ void writeResourcesFile(XmlWriter& xml, const ResourcesFile& res)
 
     MetaTiles::writeEngineSettings(xml, res.metaTileEngineSettings);
 
-    for (const PaletteInput& p : res.palettes) {
-        xml.writeTag("palette");
-        xml.writeTagAttribute("name", p.name);
-        xml.writeTagAttributeFilename("image", p.paletteImageFilename);
-        xml.writeTagAttribute("rows-per-frame", p.rowsPerFrame);
-        xml.writeTagAttribute("skip-first", p.skipFirstFrame);
+    for (const std::shared_ptr<PaletteInput>& p : res.palettes) {
+        assert(p != nullptr);
 
-        if (p.animationDelay > 0) {
-            xml.writeTagAttribute("animation-delay", p.animationDelay);
+        xml.writeTag("palette");
+        xml.writeTagAttribute("name", p->name);
+        xml.writeTagAttributeFilename("image", p->paletteImageFilename);
+        xml.writeTagAttribute("rows-per-frame", p->rowsPerFrame);
+        xml.writeTagAttribute("skip-first", p->skipFirstFrame);
+
+        if (p->animationDelay > 0) {
+            xml.writeTagAttribute("animation-delay", p->animationDelay);
         }
 
         xml.writeCloseTag();

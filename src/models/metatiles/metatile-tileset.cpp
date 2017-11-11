@@ -57,7 +57,7 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     }
 
     const idstring& paletteName = input.palettes.front();
-    const auto* palette = resourcesFile.getPalettePtr(paletteName);
+    const auto palette = resourcesFile.getPalette(paletteName);
     if (palette == nullptr) {
         err.addError("Cannot find palette: " + paletteName);
         return nullptr;
