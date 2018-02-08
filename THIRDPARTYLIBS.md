@@ -5,7 +5,7 @@ This project embeds the following third party code in the `src/vendor`
 directory:
 
  * [LodePNG](http://lodev.org/lodepng/) -
-   Copyright (c) 2005-2017 Lode Vandevenne,
+   Copyright (c) 2005-2018 Lode Vandevenne,
    [zlib License](https://opensource.org/licenses/Zlib]).
  * [LZ4 Library](https://lz4.github.io/lz4/) -
    Copyright (c) 2011-2016, Yann Collet
