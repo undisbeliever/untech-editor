@@ -57,8 +57,12 @@ else
 
   VENDOR_CXXFLAGS := -Wno-deprecated
 
-  GUI_QT_CXXFLAGS := -fPIC $(shell pkg-config --cflags $(GUI_QT_MODULES))
+  GUI_QT_CXXFLAGS := $(shell pkg-config --cflags $(GUI_QT_MODULES))
   GUI_QT_LIBS     := $(shell pkg-config --libs $(GUI_QT_MODULES))
+
+  ifneq ($(filter reduce_relocations, $(shell pkg-config --variable qt_config $(GUI_QT_MODULES))),)
+    GUI_QT_CXXFLAGS := $(GUI_QT_CXXFLAGS) -fPIC
+  endif
 
   MOC := moc-qt5
   UIC := uic-qt5
