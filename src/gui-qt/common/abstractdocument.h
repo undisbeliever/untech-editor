@@ -30,6 +30,7 @@ public:
     QUndoStack* undoStack() const { return _undoStack; }
 
     virtual const QString& fileFilter() const = 0;
+    virtual const QString& defaultFileExtension() const = 0;
 
 protected:
     virtual bool saveDocumentFile(const QString& filename) = 0;

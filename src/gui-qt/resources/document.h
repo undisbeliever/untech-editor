@@ -26,6 +26,7 @@ public:
     RES::ResourcesFile* resourcesFile() const { return _resourcesFile.get(); }
 
     virtual const QString& fileFilter() const final;
+    virtual const QString& defaultFileExtension() const final;
 
 protected:
     virtual bool saveDocumentFile(const QString& filename) final;

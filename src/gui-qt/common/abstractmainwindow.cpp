@@ -198,11 +198,19 @@ bool AbstractMainWindow::onMenuSaveAs()
 {
     Q_ASSERT(_document != nullptr);
 
-    const QString filename = QFileDialog::getSaveFileName(
-        this, tr("Save"),
-        _document->filename(), _document->fileFilter());
+    QFileDialog saveDialog(this, "Save");
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    saveDialog.setNameFilter(_document->fileFilter());
+    saveDialog.setDefaultSuffix(_document->defaultFileExtension());
 
-    if (!filename.isEmpty()) {
+    if (!_document->filename().isEmpty()) {
+        saveDialog.selectFile(_document->filename());
+    }
+    saveDialog.exec();
+
+    if (saveDialog.result() == QDialog::Accepted) {
+        QString filename = saveDialog.selectedFiles().first();
+
         bool s = _document->saveDocument(filename);
         if (s) {
             addToRecentFilesList(_document->filename());

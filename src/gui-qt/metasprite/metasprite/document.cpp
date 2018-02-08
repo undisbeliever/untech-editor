@@ -43,6 +43,12 @@ const QString& Document::fileFilter() const
     return FILTER;
 }
 
+const QString& Document::defaultFileExtension() const
+{
+    static const QString EXTENSION = QString::fromUtf8("utms");
+    return EXTENSION;
+}
+
 bool Document::saveDocumentFile(const QString& filename)
 {
     try {

@@ -35,6 +35,7 @@ public:
     FrameContentsModel* frameContentsModel() const { return _frameContentsModel; }
 
     virtual const QString& fileFilter() const final;
+    virtual const QString& defaultFileExtension() const final;
 
 protected:
     virtual bool saveDocumentFile(const QString& filename) final;
