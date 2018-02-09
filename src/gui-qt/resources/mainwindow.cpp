@@ -6,6 +6,7 @@
 
 #include "mainwindow.h"
 #include "document.h"
+#include "resourcestreedock.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 
 #include <QStatusBar>
@@ -17,6 +18,9 @@ MainWindow::MainWindow(QWidget* parent)
     : AbstractMainWindow(parent)
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
 {
+    _resourcesTreeDock = new ResourcesTreeDock(this);
+    addDockWidget(Qt::LeftDockWidgetArea, _resourcesTreeDock);
+
     documentChangedEvent(nullptr, nullptr);
 
     setupMenubar();
@@ -48,7 +52,15 @@ std::unique_ptr<AbstractDocument> MainWindow::createDocumentInstance()
     return std::make_unique<Document>();
 }
 
-void MainWindow::documentChangedEvent(AbstractDocument* /* abstractDocument */,
-                                      AbstractDocument* /* abstractOldDocument */)
+void MainWindow::documentChangedEvent(AbstractDocument* abstractDocument,
+                                      AbstractDocument* abstractOldDocument)
 {
+    Document* document = qobject_cast<Document*>(abstractDocument);
+    Document* oldDocument = qobject_cast<Document*>(abstractOldDocument);
+
+    if (oldDocument) {
+        oldDocument->disconnect(this);
+    }
+
+    _resourcesTreeDock->setDocument(document);
 }

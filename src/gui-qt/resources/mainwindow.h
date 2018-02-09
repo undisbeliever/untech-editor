@@ -16,6 +16,7 @@ class ZoomableGraphicsView;
 
 namespace Resources {
 class Document;
+class ResourcesTreeDock;
 
 class MainWindow : public AbstractMainWindow {
     Q_OBJECT
@@ -38,6 +39,8 @@ private:
 
     QComboBox* _aspectRatioComboBox;
     QComboBox* _zoomComboBox;
+
+    ResourcesTreeDock* _resourcesTreeDock;
 };
 }
 }
