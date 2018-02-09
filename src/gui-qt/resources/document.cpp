@@ -6,6 +6,8 @@
 
 #include "document.h"
 #include "models/resources/resources-serializer.h"
+#include "mttileset/mttilesetresourcelist.h"
+#include "palette/paletteresourcelist.h"
 
 #include <QMessageBox>
 
@@ -14,12 +16,19 @@ using namespace UnTech::GuiQt::Resources;
 Document::Document(QObject* parent)
     : AbstractDocument(parent)
     , _resourcesFile(std::make_unique<RES::ResourcesFile>())
+    , _resourceLists({ {
+          new PaletteResourceList(this),
+          new MtTilesetResourceList(this),
+      } })
 {
     initModels();
 }
 
 void Document::initModels()
 {
+    for (auto& rl : _resourceLists) {
+        rl->setDocument(this);
+    }
 }
 
 const QString& Document::fileFilter() const

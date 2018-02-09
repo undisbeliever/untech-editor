@@ -8,11 +8,13 @@
 
 #include "gui-qt/common/abstractdocument.h"
 #include "models/resources/resources.h"
+#include <array>
 #include <memory>
 
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+class AbstractResourceList;
 
 namespace RES = UnTech::Resources;
 
@@ -20,10 +22,15 @@ class Document : public AbstractDocument {
     Q_OBJECT
 
 public:
+    static constexpr unsigned N_RESOURCE_TYPES = 2;
+
+public:
     explicit Document(QObject* parent = nullptr);
     ~Document() = default;
 
     RES::ResourcesFile* resourcesFile() const { return _resourcesFile.get(); }
+
+    const auto& resourceLists() const { return _resourceLists; }
 
     virtual const QString& fileFilter() const final;
     virtual const QString& defaultFileExtension() const final;
@@ -37,6 +44,8 @@ private:
 
 private:
     std::unique_ptr<RES::ResourcesFile> _resourcesFile;
+
+    std::array<AbstractResourceList*, N_RESOURCE_TYPES> _resourceLists;
 };
 }
 }

@@ -5,9 +5,14 @@
  */
 
 #include "resourcestreemodel.h"
+#include "abstractresourceitem.h"
+#include "abstractresourcelist.h"
 #include "document.h"
 
 using namespace UnTech::GuiQt::Resources;
+
+static_assert(Document::N_RESOURCE_TYPES < ResourcesTreeModel::ROOT_INTERNAL_ID,
+              "ROOT_INTERNAL_ID too low");
 
 ResourcesTreeModel::ResourcesTreeModel(QObject* parent)
     : QAbstractItemModel(parent)
@@ -32,50 +37,42 @@ QModelIndex ResourcesTreeModel::index(int row, int column, const QModelIndex& pa
 {
     if (_document == nullptr
         || row < 0
-        || column < 0 || column > N_COLUMNS) {
+        || column < 0 || column >= N_COLUMNS) {
 
         return QModelIndex();
     }
 
-    const auto& res = *_document->resourcesFile();
+    const auto& rl = _document->resourceLists();
 
     if (!parent.isValid()) {
-        if (row < N_ROOT_NODES) {
-            return createIndex(row, column, ROOT);
+        if ((unsigned)row < rl.size()) {
+            return createIndex(row, column, ROOT_INTERNAL_ID);
         }
-        return QModelIndex();
     }
     else {
-        switch ((InternalId)parent.row() + 1) {
-        case PALETTES:
-            if ((unsigned)row < res.palettes.size()) {
-                return createIndex(row, column, PALETTES);
-            }
-            return QModelIndex();
+        if ((unsigned)parent.row() < rl.size()) {
+            const auto& list = rl.at(parent.row())->list();
 
-        case METATILE_TILESETS:
-            if ((unsigned)row < res.metaTileTilesetFilenames.size()) {
-                return createIndex(row, column, METATILE_TILESETS);
+            if (row < list.size()) {
+                return createIndex(row, column, parent.row());
             }
-            return QModelIndex();
-
-        default:
-            return QModelIndex();
         }
     }
+
+    return QModelIndex();
 }
 
 QModelIndex ResourcesTreeModel::parent(const QModelIndex& index) const
 {
     if (_document == nullptr
         || !index.isValid()
-        || index.internalId() == ROOT) {
+        || index.internalId() == ROOT_INTERNAL_ID) {
 
         return QModelIndex();
     }
 
-    if (index.internalId() <= N_ROOT_NODES) {
-        return createIndex(index.internalId() - 1, 0, ROOT);
+    if (index.internalId() <= Document::N_RESOURCE_TYPES) {
+        return createIndex(index.internalId(), 0, ROOT_INTERNAL_ID);
     }
     return QModelIndex();
 }
@@ -86,7 +83,7 @@ bool ResourcesTreeModel::hasChildren(const QModelIndex& parent) const
         return false;
     }
 
-    return !parent.isValid() || parent.internalId() == ROOT;
+    return !parent.isValid() || parent.internalId() == ROOT_INTERNAL_ID;
 }
 
 int ResourcesTreeModel::rowCount(const QModelIndex& parent) const
@@ -95,22 +92,17 @@ int ResourcesTreeModel::rowCount(const QModelIndex& parent) const
         return 0;
     }
 
-    const auto& res = *_document->resourcesFile();
+    const auto& rl = _document->resourceLists();
+    const unsigned row = parent.row();
 
     if (!parent.isValid()) {
-        return N_ROOT_NODES;
+        return rl.size();
+    }
+    else if (row < rl.size()) {
+        return rl.at(row)->list().size();
     }
     else {
-        switch ((InternalId)parent.row() + 1) {
-        case InternalId::PALETTES:
-            return res.palettes.size();
-
-        case InternalId::METATILE_TILESETS:
-            return res.metaTileTilesetFilenames.size();
-
-        default:
-            return 0;
-        }
+        return 0;
     }
 }
 
@@ -120,7 +112,7 @@ int ResourcesTreeModel::columnCount(const QModelIndex& parent) const
         return 0;
     }
 
-    if (!parent.isValid() || parent.internalId() == ROOT) {
+    if (!parent.isValid() || parent.internalId() == ROOT_INTERNAL_ID) {
         return N_COLUMNS;
     }
 
@@ -136,7 +128,7 @@ Qt::ItemFlags ResourcesTreeModel::flags(const QModelIndex& index) const
         return 0;
     }
 
-    if (index.internalId() == ROOT) {
+    if (index.internalId() == ROOT_INTERNAL_ID) {
         return Qt::ItemIsEnabled;
     }
     else {
@@ -154,26 +146,19 @@ QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
         return QVariant();
     }
 
-    int row = index.row();
-    const auto& res = *_document->resourcesFile();
+    const quintptr internalId = index.internalId();
+    const int row = index.row();
+    const auto& rl = _document->resourceLists();
 
-    switch (index.internalId()) {
-    case InternalId::ROOT: {
-        switch ((InternalId)index.row() + 1) {
-        case PALETTES:
-            return tr("Palettes");
-
-        case METATILE_TILESETS:
-            return tr("MetaTile Tilesets");
-        }
-        break;
+    if (internalId == ROOT_INTERNAL_ID) {
+        return rl.at(row)->resourceTypeName();
     }
+    else if (internalId < rl.size()) {
+        const auto& list = rl.at(internalId)->list();
 
-    case InternalId::PALETTES:
-        return QString::fromStdString(res.palettes.at(row)->name);
-
-    case InternalId::METATILE_TILESETS:
-        return QString::fromStdString(res.metaTileTilesetFilenames.at(row));
+        if (row < list.size()) {
+            return list.at(row)->name();
+        }
     }
 
     return QVariant();

@@ -18,13 +18,8 @@ class ResourcesTreeModel : public QAbstractItemModel {
     Q_OBJECT
 
 public:
-    enum InternalId {
-        ROOT = 0,
-        PALETTES = 1,
-        METATILE_TILESETS = 2,
-    };
-    constexpr static int N_ROOT_NODES = 2;
-    constexpr static int N_COLUMNS = 1;
+    static constexpr unsigned ROOT_INTERNAL_ID = 0xff;
+    static constexpr int N_COLUMNS = 1;
 
 public:
     explicit ResourcesTreeModel(QObject* parent = nullptr);
