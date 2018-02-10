@@ -25,10 +25,22 @@ public:
     virtual const QString filename() const final;
 
 private:
-    inline const auto& mtTilesetFilenames() const
+    inline const auto& mtTilesetFilenameList() const
     {
         return document()->resourcesFile()->metaTileTilesetFilenames;
     }
+
+    inline const std::string& mtTilesetFilename() const
+    {
+        return document()->resourcesFile()->metaTileTilesetFilenames.at(_index);
+    }
+
+private slots:
+    void updateFilePaths();
+
+private:
+    QString _absoluteFilePath;
+    QString _relativeFilePath;
 };
 }
 }

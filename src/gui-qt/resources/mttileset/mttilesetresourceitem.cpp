@@ -6,22 +6,43 @@
 
 #include "mttilesetresourceitem.h"
 
+#include <QDir>
+
 using namespace UnTech::GuiQt::Resources;
 
 MtTilesetResourceItem::MtTilesetResourceItem(AbstractResourceList* parent, size_t index)
     : AbstractResourceItem(parent, index)
 {
-    Q_ASSERT(index < mtTilesetFilenames().size());
+    Q_ASSERT(index < mtTilesetFilenameList().size());
+
+    updateFilePaths();
+
+    connect(document(), &Document::filenameChanged,
+            this, &MtTilesetResourceItem::updateFilePaths);
+}
+
+void MtTilesetResourceItem::updateFilePaths()
+{
+    QString mf = QString::fromStdString(mtTilesetFilename());
+
+    QDir dir(document()->filename());
+    _absoluteFilePath = dir.absolutePath();
+
+    bool s = dir.cdUp();
+    if (s) {
+        _relativeFilePath = dir.relativeFilePath(mf);
+    }
+    else {
+        _relativeFilePath = _absoluteFilePath;
+    }
 }
 
 const QString MtTilesetResourceItem::name() const
 {
-    const auto& mf = mtTilesetFilenames().at(index());
-    return QString::fromStdString(mf);
+    return _relativeFilePath;
 }
 
 const QString MtTilesetResourceItem::filename() const
 {
-    const auto& mf = mtTilesetFilenames().at(index());
-    return QString::fromStdString(mf);
+    return _absoluteFilePath;
 }
