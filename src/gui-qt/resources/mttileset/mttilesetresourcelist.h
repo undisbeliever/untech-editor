@@ -19,7 +19,7 @@ class MtTilesetResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    explicit MtTilesetResourceList(QObject* parent = nullptr);
+    MtTilesetResourceList(QObject* parent, ResourceTypeIndex typeIndex);
     ~MtTilesetResourceList() = default;
 
     virtual const QString resourceTypeName() const final;

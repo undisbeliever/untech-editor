@@ -34,6 +34,8 @@ public:
     Document* document() const { return _document; }
     int index() const { return _index; }
 
+    ResourceTypeIndex resourceTypeIndex() const { return _list->resourceTypeIndex(); }
+
     // name of the resource item
     virtual const QString name() const = 0;
 

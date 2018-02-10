@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "common.h"
 #include <QObject>
 #include <QVector>
 
@@ -19,8 +20,10 @@ class AbstractResourceList : public QObject {
     Q_OBJECT
 
 public:
-    explicit AbstractResourceList(QObject* parent = nullptr);
+    AbstractResourceList(QObject* parent, ResourceTypeIndex typeIndex);
     ~AbstractResourceList() = default;
+
+    ResourceTypeIndex resourceTypeIndex() const { return _resourceTypeIndex; }
 
     const QVector<AbstractResourceItem*>& list() const { return _list; }
 
@@ -40,6 +43,7 @@ protected:
 
 private:
     Document* _document;
+    const ResourceTypeIndex _resourceTypeIndex;
 };
 }
 }

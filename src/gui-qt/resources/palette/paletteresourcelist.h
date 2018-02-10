@@ -19,7 +19,7 @@ class PaletteResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    explicit PaletteResourceList(QObject* parent = nullptr);
+    PaletteResourceList(QObject* parent, ResourceTypeIndex typeIndex);
     ~PaletteResourceList() = default;
 
     virtual const QString resourceTypeName() const final;

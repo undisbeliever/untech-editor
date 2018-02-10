@@ -9,8 +9,8 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-MtTilesetResourceList::MtTilesetResourceList(QObject* parent)
-    : AbstractResourceList(parent)
+MtTilesetResourceList::MtTilesetResourceList(QObject* parent, ResourceTypeIndex typeIndex)
+    : AbstractResourceList(parent, typeIndex)
 {
 }
 

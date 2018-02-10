@@ -45,6 +45,7 @@ private:
 private:
     std::unique_ptr<RES::ResourcesFile> _resourcesFile;
 
+    // order matches ResourceTypeIndex
     std::array<AbstractResourceList*, N_RESOURCE_TYPES> _resourceLists;
 };
 }

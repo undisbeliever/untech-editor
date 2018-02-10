@@ -11,7 +11,7 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-static_assert(Document::N_RESOURCE_TYPES < ResourcesTreeModel::ROOT_INTERNAL_ID,
+static_assert(N_RESOURCE_TYPES <= ResourcesTreeModel::ROOT_INTERNAL_ID,
               "ROOT_INTERNAL_ID too low");
 
 ResourcesTreeModel::ResourcesTreeModel(QObject* parent)

@@ -9,10 +9,11 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-AbstractResourceList::AbstractResourceList(QObject* parent)
+AbstractResourceList::AbstractResourceList(QObject* parent, ResourceTypeIndex typeIndex)
     : QObject(parent)
     , _list()
     , _document(nullptr)
+    , _resourceTypeIndex(typeIndex)
 {
 }
 

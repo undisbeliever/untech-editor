@@ -13,12 +13,14 @@
 
 using namespace UnTech::GuiQt::Resources;
 
+// _resourceLists order MUST match ResourceTypeIndex
+
 Document::Document(QObject* parent)
     : AbstractDocument(parent)
     , _resourcesFile(std::make_unique<RES::ResourcesFile>())
     , _resourceLists({ {
-          new PaletteResourceList(this),
-          new MtTilesetResourceList(this),
+          new PaletteResourceList(this, ResourceTypeIndex::PALETTE),
+          new MtTilesetResourceList(this, ResourceTypeIndex::MT_TILESET),
       } })
 {
     initModels();
