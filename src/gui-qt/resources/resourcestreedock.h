@@ -27,6 +27,10 @@ public:
 
     void setDocument(Document* document);
 
+private slots:
+    void onSelectedResourceChanged();
+    void onResourcesTreeSelectionChanged();
+
 private:
     std::unique_ptr<Ui::ResourcesTreeDock> _ui;
     ResourcesTreeModel* _model;

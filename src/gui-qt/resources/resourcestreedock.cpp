@@ -23,6 +23,9 @@ ResourcesTreeDock::ResourcesTreeDock(QWidget* parent)
     _ui->resourcesTree->setModel(_model);
 
     setEnabled(false);
+
+    connect(_ui->resourcesTree->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &ResourcesTreeDock::onResourcesTreeSelectionChanged);
 }
 
 ResourcesTreeDock::~ResourcesTreeDock() = default;
@@ -40,5 +43,27 @@ void ResourcesTreeDock::setDocument(Document* document)
 
     _model->setDocument(document);
 
+    if (_document) {
+        connect(_document, &Document::selectedResourceChanged,
+                this, &ResourcesTreeDock::onSelectedResourceChanged);
+    }
+
     setEnabled(_document != nullptr);
+}
+
+void ResourcesTreeDock::onSelectedResourceChanged()
+{
+    QModelIndex index = _model->toModelIndex(_document->selectedResource());
+    _ui->resourcesTree->setCurrentIndex(index);
+}
+
+void ResourcesTreeDock::onResourcesTreeSelectionChanged()
+{
+    if (_document == nullptr) {
+        return;
+    }
+
+    QModelIndex index = _ui->resourcesTree->currentIndex();
+    AbstractResourceItem* item = _model->toResourceItem(index);
+    _document->setSelectedResource(item);
 }

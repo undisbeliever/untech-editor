@@ -22,8 +22,34 @@ Document::Document(QObject* parent)
           new PaletteResourceList(this, ResourceTypeIndex::PALETTE),
           new MtTilesetResourceList(this, ResourceTypeIndex::MT_TILESET),
       } })
+    , _selectedResource(nullptr)
 {
     initModels();
+}
+
+void Document::setSelectedResource(AbstractResourceItem* item)
+{
+    if (_selectedResource != item) {
+        if (_selectedResource) {
+            _selectedResource->disconnect(this);
+        }
+
+        _selectedResource = item;
+
+        if (_selectedResource) {
+            connect(_selectedResource, &QObject::destroyed,
+                    this, &Document::onSelectedResourceDestroyed);
+        }
+
+        emit selectedResourceChanged();
+    }
+}
+
+void Document::onSelectedResourceDestroyed(QObject* obj)
+{
+    if (_selectedResource == obj) {
+        setSelectedResource(nullptr);
+    }
 }
 
 void Document::initModels()

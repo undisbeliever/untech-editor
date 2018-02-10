@@ -5,10 +5,13 @@
  */
 
 #include "mainwindow.h"
+#include "abstractresourceitem.h"
+#include "common.h"
 #include "document.h"
 #include "resourcestreedock.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 
+#include <QLabel>
 #include <QStatusBar>
 
 using namespace UnTech::GuiQt;
@@ -20,6 +23,28 @@ MainWindow::MainWindow(QWidget* parent)
 {
     _resourcesTreeDock = new ResourcesTreeDock(this);
     addDockWidget(Qt::LeftDockWidgetArea, _resourcesTreeDock);
+
+    _propertiesDock = new QDockWidget(tr("Properties"), this);
+    _propertiesDock->setObjectName(QStringLiteral("PropertiesDock"));
+    _propertiesDock->setFeatures(QDockWidget::DockWidgetMovable);
+    _propertiesDock->setMinimumSize(150, 150);
+    _propertiesStackedWidget = new QStackedWidget(this);
+    _propertiesDock->setWidget(_propertiesStackedWidget);
+    addDockWidget(Qt::RightDockWidgetArea, _propertiesDock);
+
+    _centralStackedWidget = new QStackedWidget(this);
+    this->setCentralWidget(_centralStackedWidget);
+
+    // ::NOTE This MUST match ResourceTypeIndex::
+
+    _centralStackedWidget->addWidget(new QLabel("Blank GUI", this));
+    _propertiesStackedWidget->addWidget(new QLabel("Blank Properties", this));
+
+    _centralStackedWidget->addWidget(new QLabel("Palette GUI", this));
+    _propertiesStackedWidget->addWidget(new QLabel("Palette Properties", this));
+
+    _centralStackedWidget->addWidget(new QLabel("MetaTile Tileset GUI", this));
+    _propertiesStackedWidget->addWidget(new QLabel("MetaTile Tileset properties", this));
 
     documentChangedEvent(nullptr, nullptr);
 
@@ -62,5 +87,34 @@ void MainWindow::documentChangedEvent(AbstractDocument* abstractDocument,
         oldDocument->disconnect(this);
     }
 
+    _document = document;
     _resourcesTreeDock->setDocument(document);
+
+    _centralStackedWidget->setCurrentIndex(0);
+    _propertiesStackedWidget->setCurrentIndex(0);
+
+    if (document) {
+        connect(document, &Document::selectedResourceChanged,
+                this, &MainWindow::onSelectedResourceChanged);
+    }
+}
+
+void MainWindow::onSelectedResourceChanged()
+{
+    if (_document == nullptr) {
+        _centralStackedWidget->setCurrentIndex(0);
+        _propertiesStackedWidget->setCurrentIndex(0);
+    }
+    AbstractResourceItem* item = _document->selectedResource();
+
+    if (item) {
+        int index = (int)item->resourceTypeIndex() + 1;
+
+        _centralStackedWidget->setCurrentIndex(index);
+        _propertiesStackedWidget->setCurrentIndex(index);
+    }
+    else {
+        _centralStackedWidget->setCurrentIndex(0);
+        _propertiesStackedWidget->setCurrentIndex(0);
+    }
 }

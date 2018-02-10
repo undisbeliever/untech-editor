@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "abstractresourceitem.h"
 #include "models/metasprite/metasprite.h"
 #include <QAbstractItemModel>
 
@@ -26,6 +27,9 @@ public:
     ~ResourcesTreeModel() = default;
 
     void setDocument(Document* document);
+
+    QModelIndex toModelIndex(const AbstractResourceItem* item) const;
+    AbstractResourceItem* toResourceItem(const QModelIndex& index) const;
 
     virtual QModelIndex index(int row, int column, const QModelIndex& parent) const final;
     virtual QModelIndex parent(const QModelIndex& index) const final;

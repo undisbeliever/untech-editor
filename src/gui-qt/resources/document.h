@@ -15,6 +15,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace Resources {
 class AbstractResourceList;
+class AbstractResourceItem;
 
 namespace RES = UnTech::Resources;
 
@@ -32,6 +33,9 @@ public:
 
     const auto& resourceLists() const { return _resourceLists; }
 
+    void setSelectedResource(AbstractResourceItem* item);
+    AbstractResourceItem* selectedResource() const { return _selectedResource; }
+
     virtual const QString& fileFilter() const final;
     virtual const QString& defaultFileExtension() const final;
 
@@ -42,11 +46,19 @@ protected:
 private:
     void initModels();
 
+private slots:
+    void onSelectedResourceDestroyed(QObject* obj);
+
+signals:
+    void selectedResourceChanged();
+
 private:
     std::unique_ptr<RES::ResourcesFile> _resourcesFile;
 
     // order matches ResourceTypeIndex
     std::array<AbstractResourceList*, N_RESOURCE_TYPES> _resourceLists;
+
+    AbstractResourceItem* _selectedResource;
 };
 }
 }

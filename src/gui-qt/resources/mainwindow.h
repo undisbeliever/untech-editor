@@ -8,6 +8,7 @@
 
 #include "gui-qt/common/abstractmainwindow.h"
 #include <QComboBox>
+#include <QStackedWidget>
 
 namespace UnTech {
 namespace GuiQt {
@@ -34,13 +35,21 @@ protected:
                                       AbstractDocument* oldDocument) final;
     virtual std::unique_ptr<AbstractDocument> createDocumentInstance() final;
 
+private slots:
+    void onSelectedResourceChanged();
+
 private:
+    Document* _document;
     ZoomSettings* _zoomSettings;
 
     QComboBox* _aspectRatioComboBox;
     QComboBox* _zoomComboBox;
 
+    QStackedWidget* _centralStackedWidget;
+    QStackedWidget* _propertiesStackedWidget;
+
     ResourcesTreeDock* _resourcesTreeDock;
+    QDockWidget* _propertiesDock;
 };
 }
 }

@@ -33,6 +33,37 @@ void ResourcesTreeModel::setDocument(Document* document)
     endResetModel();
 }
 
+QModelIndex ResourcesTreeModel::toModelIndex(const AbstractResourceItem* item) const
+{
+    if (item) {
+        return createIndex(item->index(), 0, (int)item->resourceTypeIndex());
+    }
+
+    return QModelIndex();
+}
+
+AbstractResourceItem* ResourcesTreeModel::toResourceItem(const QModelIndex& index) const
+{
+    if (_document == nullptr
+        || index.row() < 0
+        || index.column() < 0 || index.column() >= N_COLUMNS) {
+        return nullptr;
+    }
+
+    const quintptr internalId = index.internalId();
+    const int row = index.row();
+
+    if (internalId != ROOT_INTERNAL_ID) {
+        const auto& list = _document->resourceLists().at(internalId)->list();
+
+        if (row < list.size()) {
+            return list.at(row);
+        }
+    }
+
+    return nullptr;
+}
+
 QModelIndex ResourcesTreeModel::index(int row, int column, const QModelIndex& parent) const
 {
     if (_document == nullptr
