@@ -16,6 +16,34 @@ using namespace UnTech::Snes;
 // PaletteInput
 // ============
 
+unsigned PaletteInput::nFrames() const
+{
+    const usize& imgSize = paletteImage.size();
+    unsigned minImageHeight = skipFirstFrame ? rowsPerFrame * 2 : rowsPerFrame;
+    unsigned colorsPerFrame = imgSize.width * rowsPerFrame;
+
+    if (paletteImage.empty()) {
+        return 0;
+    }
+    if (rowsPerFrame == 0) {
+        return 0;
+    }
+    if (imgSize.width != 4 && imgSize.width != 16) {
+        return 0;
+    }
+    if (imgSize.height < minImageHeight) {
+        return 0;
+    }
+    if (imgSize.height % rowsPerFrame != 0) {
+        return 0;
+    }
+    if (colorsPerFrame > 256) {
+        return 0;
+    }
+
+    return imgSize.height / rowsPerFrame;
+}
+
 bool PaletteInput::validate(ErrorList& err) const
 {
     bool valid = true;

@@ -17,6 +17,7 @@ class ZoomableGraphicsView;
 
 namespace Resources {
 class Document;
+class AbstractResourceWidget;
 class ResourcesTreeDock;
 
 class MainWindow : public AbstractMainWindow {
@@ -50,6 +51,8 @@ private:
 
     ResourcesTreeDock* _resourcesTreeDock;
     QDockWidget* _propertiesDock;
+
+    QVector<AbstractResourceWidget*> _resourceWidgets;
 };
 }
 }

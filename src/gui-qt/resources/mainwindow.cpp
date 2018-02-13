@@ -10,6 +10,7 @@
 #include "document.h"
 #include "resourcestreedock.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
+#include "palette/palettecentralwidget.h"
 
 #include <QLabel>
 #include <QStatusBar>
@@ -35,12 +36,17 @@ MainWindow::MainWindow(QWidget* parent)
     _centralStackedWidget = new QStackedWidget(this);
     this->setCentralWidget(_centralStackedWidget);
 
-    // ::NOTE This MUST match ResourceTypeIndex::
+    auto addCW = [this](auto* centralWidget) {
+        _resourceWidgets.append(centralWidget);
+        _centralStackedWidget->addWidget(centralWidget);
+    };
+
+    // ::NOTE Order MUST match ResourceTypeIndex::
 
     _centralStackedWidget->addWidget(new QLabel("Blank GUI", this));
     _propertiesStackedWidget->addWidget(new QLabel("Blank Properties", this));
 
-    _centralStackedWidget->addWidget(new QLabel("Palette GUI", this));
+    addCW(new PaletteCentralWidget(this));
     _propertiesStackedWidget->addWidget(new QLabel("Palette Properties", this));
 
     _centralStackedWidget->addWidget(new QLabel("MetaTile Tileset GUI", this));
@@ -116,5 +122,9 @@ void MainWindow::onSelectedResourceChanged()
     else {
         _centralStackedWidget->setCurrentIndex(0);
         _propertiesStackedWidget->setCurrentIndex(0);
+    }
+
+    for (auto* widget : _resourceWidgets) {
+        widget->setResourceItem(item);
     }
 }

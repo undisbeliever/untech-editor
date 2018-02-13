@@ -24,6 +24,11 @@ public:
     virtual const QString name() const final;
     virtual const QString filename() const final;
 
+    inline const auto& paletteData() const
+    {
+        return document()->resourcesFile()->palettes.at(_index);
+    }
+
 private:
     inline const auto& palettesData() const
     {

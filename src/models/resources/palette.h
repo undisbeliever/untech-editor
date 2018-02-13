@@ -28,6 +28,9 @@ struct PaletteInput {
 
     bool skipFirstFrame = false;
 
+    // returns 0 frames if input is invalid
+    unsigned nFrames() const;
+
     bool validate(ErrorList& err) const;
 
     bool operator==(const PaletteInput& o) const
