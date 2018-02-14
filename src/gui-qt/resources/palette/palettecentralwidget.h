@@ -7,8 +7,7 @@
 #pragma once
 
 #include "../abstractresourcewidget.h"
-#include <QBasicTimer>
-#include <QElapsedTimer>
+#include "../animationtimer.h"
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <memory>
@@ -29,8 +28,6 @@ class PaletteGraphicsItem;
 class PaletteCentralWidget : public AbstractResourceWidget {
     Q_OBJECT
 
-    static constexpr unsigned ANIMATION_TICKS_PER_SECOND = 300;
-
 public:
     explicit PaletteCentralWidget(QWidget* parent = nullptr);
     ~PaletteCentralWidget();
@@ -39,14 +36,17 @@ public:
 
     virtual void setResourceItem(AbstractResourceItem* item) final;
 
-    virtual void timerEvent(QTimerEvent* event) final;
+private:
+    void updateFrameLabel();
+    void centerGraphicsItem();
+    void clearGui();
 
 private slots:
-    void clearGui();
-    void updateGui();
+    void onPaletteDataChanged();
 
-    void onPlayButtonToggled();
-    void stopAnimation();
+    void onAnimationStarted();
+    void onAnimationFrameAdvance();
+    void onAnimationStopped();
 
 private:
     std::unique_ptr<Ui::PaletteCentralWidget> _ui;
@@ -56,10 +56,7 @@ private:
 
     PaletteGraphicsItem* _graphicsItem;
 
-    QBasicTimer _timer;
-    QElapsedTimer _elapsed;
-    qint64 _nsSinceLastFrame;
-    unsigned _animationTicks;
+    AnimationTimer _animationTimer;
 };
 
 class PaletteGraphicsItem : public QGraphicsItem {

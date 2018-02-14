@@ -22,17 +22,21 @@ PaletteCentralWidget::PaletteCentralWidget(QWidget* parent)
 {
     _ui->setupUi(this);
 
-    _ui->region->addItem("NTSC", 1000000000 / 60);
-    _ui->region->addItem("PAL", 1000000000 / 50);
+    _animationTimer.setRegionCombo(_ui->region);
+    _animationTimer.setPlayButton(_ui->playButton);
 
     _ui->graphicsView->setScene(_graphicsScene);
 
     setEnabled(false);
 
-    updateGui();
+    updateFrameLabel();
 
-    connect(_ui->playButton, &QToolButton::toggled,
-            this, &PaletteCentralWidget::onPlayButtonToggled);
+    connect(&_animationTimer, &AnimationTimer::animationStarted,
+            this, &PaletteCentralWidget::onAnimationStarted);
+    connect(&_animationTimer, &AnimationTimer::animationFrameAdvance,
+            this, &PaletteCentralWidget::onAnimationFrameAdvance);
+    connect(&_animationTimer, &AnimationTimer::animationStopped,
+            this, &PaletteCentralWidget::onAnimationStopped);
 }
 
 PaletteCentralWidget::~PaletteCentralWidget() = default;
@@ -44,7 +48,7 @@ ResourceTypeIndex PaletteCentralWidget::resourceTypeIndex() const
 
 void PaletteCentralWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
-    stopAnimation();
+    _animationTimer.stopTimer();
 
     PaletteResourceItem* item = qobject_cast<PaletteResourceItem*>(abstractItem);
 
@@ -64,17 +68,17 @@ void PaletteCentralWidget::setResourceItem(AbstractResourceItem* abstractItem)
         _graphicsItem = new PaletteGraphicsItem(item);
         _graphicsScene->addItem(_graphicsItem);
 
-        _graphicsScene->setSceneRect(_graphicsItem->boundingRect());
-
-        _ui->graphicsView->viewport()->update();
+        onPaletteDataChanged();
+        updateFrameLabel();
+    }
+    else {
+        clearGui();
     }
 
     setEnabled(item != nullptr);
-
-    updateGui();
 }
 
-void PaletteCentralWidget::updateGui()
+void PaletteCentralWidget::updateFrameLabel()
 {
     if (_palette == nullptr) {
         clearGui();
@@ -83,6 +87,9 @@ void PaletteCentralWidget::updateGui()
 
     unsigned nFrames = _palette->paletteData()->nFrames();
     int fIndex = _graphicsItem->frameIndex();
+
+    // disable play button when there are no frames to show
+    _animationTimer.setEnabled(nFrames > 0);
 
     if (fIndex >= 0 && nFrames > 0) {
         _ui->animationFrameLabel->setText(
@@ -93,86 +100,53 @@ void PaletteCentralWidget::updateGui()
     }
 }
 
-void PaletteCentralWidget::clearGui()
+void PaletteCentralWidget::centerGraphicsItem()
 {
-    stopAnimation();
-    _ui->animationFrameLabel->clear();
-}
+    Q_ASSERT(_graphicsItem);
 
-void PaletteCentralWidget::onPlayButtonToggled()
-{
-    if (_ui->playButton->isChecked()
-        && _palette && _graphicsItem
-        && _palette->paletteData()
-        && _palette->paletteData()->nFrames() > 0) {
-
-        _timer.start(1, Qt::PreciseTimer, this);
-        _elapsed.restart();
-        _nsSinceLastFrame = _elapsed.nsecsElapsed();
-        _animationTicks = 0;
-
-        _graphicsItem->setFrameIndex(0);
-    }
-    else {
-        _ui->playButton->setChecked(false);
-
-        _timer.stop();
-        if (_graphicsItem) {
-            _graphicsItem->setFrameIndex(-1);
-        }
-    }
-
-    updateGui();
-
+    _ui->graphicsView->viewport()->update();
     _graphicsScene->setSceneRect(_graphicsItem->boundingRect());
 }
 
-void PaletteCentralWidget::stopAnimation()
+void PaletteCentralWidget::clearGui()
 {
-    _ui->playButton->setChecked(false);
+    _animationTimer.setEnabled(false);
+    _ui->animationFrameLabel->clear();
 }
 
-void PaletteCentralWidget::timerEvent(QTimerEvent* event)
+void PaletteCentralWidget::onPaletteDataChanged()
 {
-    if (event->timerId() == _timer.timerId()) {
-        const auto& pal = _palette->paletteData();
+    Q_ASSERT(_palette);
+    const auto& pData = _palette->paletteData();
+    Q_ASSERT(pData);
 
-        if (_graphicsItem && pal) {
-            unsigned nsPerFrame = _ui->region->currentData().toUInt();
-            qint64 nsecsElapsed = _elapsed.nsecsElapsed();
-            qint64 ns = nsecsElapsed - _nsSinceLastFrame;
+    _animationTimer.setAnimationDelay(pData->animationDelay);
+    _animationTimer.setEnabled(pData->nFrames() > 0);
 
-            constexpr unsigned TPS = ANIMATION_TICKS_PER_SECOND;
-            unsigned ticksPerFrame = (nsPerFrame == 1000000000 / 60) ? TPS / 60 : TPS / 50;
+    centerGraphicsItem();
+}
 
-            if (ns > nsPerFrame * 6) {
-                // stop if execution takes too long
-                stopAnimation();
-            }
-            while (ns >= nsPerFrame) {
-                ns -= nsPerFrame;
-                _nsSinceLastFrame += nsPerFrame;
-
-                _animationTicks += ticksPerFrame;
-
-                if (_animationTicks >= pal->animationDelay) {
-                    _graphicsItem->nextAnimationFrame();
-                    _animationTicks = 0;
-
-                    if (pal->nFrames() <= 0) {
-                        stopAnimation();
-                    }
-                }
-            }
-        }
-        else {
-            stopAnimation();
-        }
-
-        updateGui();
+void PaletteCentralWidget::onAnimationStarted()
+{
+    if (_graphicsItem) {
+        _graphicsItem->setFrameIndex(0);
+        centerGraphicsItem();
+        updateFrameLabel();
     }
-    else {
-        QWidget::timerEvent(event);
+}
+
+void PaletteCentralWidget::onAnimationFrameAdvance()
+{
+    _graphicsItem->nextAnimationFrame();
+    updateFrameLabel();
+}
+
+void PaletteCentralWidget::onAnimationStopped()
+{
+    if (_graphicsItem) {
+        _graphicsItem->setFrameIndex(-1);
+        centerGraphicsItem();
+        updateFrameLabel();
     }
 }
 
