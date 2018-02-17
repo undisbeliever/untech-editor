@@ -8,11 +8,16 @@
 
 #include "../abstractresourceitem.h"
 #include "../document.h"
+#include "models/metatiles/metatile-tileset.h"
 #include <QObject>
+#include <QPixmap>
+#include <QVector>
 
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+
+namespace MT = UnTech::MetaTiles;
 
 class MtTilesetResourceItem : public AbstractResourceItem {
     Q_OBJECT
@@ -23,6 +28,16 @@ public:
 
     virtual const QString name() const final;
     virtual const QString filename() const final;
+
+    // may be nullptr
+    const auto& tilesetInput() const { return _tilesetInput; }
+
+    // may be empty or invalid
+    const auto& pixmaps() const { return _pixmaps; }
+
+public:
+    void loadPixmaps();
+    void unloadPixmaps();
 
 private:
     inline const auto& mtTilesetFilenameList() const
@@ -35,12 +50,17 @@ private:
         return document()->resourcesFile()->metaTileTilesetFilenames.at(_index);
     }
 
+    void loadFile();
+
 private slots:
     void updateFilePaths();
 
 private:
     QString _absoluteFilePath;
     QString _relativeFilePath;
+
+    std::unique_ptr<MT::MetaTileTilesetInput> _tilesetInput;
+    QVector<QPixmap> _pixmaps;
 };
 }
 }

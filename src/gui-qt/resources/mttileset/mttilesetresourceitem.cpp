@@ -5,6 +5,7 @@
  */
 
 #include "mttilesetresourceitem.h"
+#include "models/metatiles/metatiles-serializer.h"
 
 #include <QDir>
 
@@ -16,6 +17,7 @@ MtTilesetResourceItem::MtTilesetResourceItem(AbstractResourceList* parent, size_
     Q_ASSERT(index < mtTilesetFilenameList().size());
 
     updateFilePaths();
+    loadFile();
 
     connect(document(), &Document::filenameChanged,
             this, &MtTilesetResourceItem::updateFilePaths);
@@ -37,9 +39,48 @@ void MtTilesetResourceItem::updateFilePaths()
     }
 }
 
+void MtTilesetResourceItem::loadFile()
+{
+    const auto& fn = mtTilesetFilename();
+
+    if (!fn.empty()) {
+        try {
+            _tilesetInput = MT::loadMetaTileTilesetInput(fn);
+        }
+        catch (const std::exception&) {
+            _tilesetInput = nullptr;
+            // ::TODO log message::
+        }
+    }
+}
+
+void MtTilesetResourceItem::loadPixmaps()
+{
+    _pixmaps.clear();
+
+    if (_tilesetInput) {
+        const auto& filenames = _tilesetInput->animationFrames.frameImageFilenames;
+
+        _pixmaps.reserve(filenames.size());
+        for (const auto& fn : filenames) {
+            _pixmaps.append(QPixmap(QString::fromStdString(fn), "PNG"));
+        }
+    }
+}
+
+void MtTilesetResourceItem::unloadPixmaps()
+{
+    _pixmaps.clear();
+}
+
 const QString MtTilesetResourceItem::name() const
 {
-    return _relativeFilePath;
+    if (_tilesetInput) {
+        return QString::fromStdString(_tilesetInput->name);
+    }
+    else {
+        return _relativeFilePath;
+    }
 }
 
 const QString MtTilesetResourceItem::filename() const

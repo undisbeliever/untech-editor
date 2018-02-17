@@ -10,6 +10,7 @@
 #include "document.h"
 #include "resourcestreedock.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
+#include "mttileset/mttilesetcentralwidget.h"
 #include "palette/palettecentralwidget.h"
 
 #include <QLabel>
@@ -49,7 +50,7 @@ MainWindow::MainWindow(QWidget* parent)
     addCW(new PaletteCentralWidget(this));
     _propertiesStackedWidget->addWidget(new QLabel("Palette Properties", this));
 
-    _centralStackedWidget->addWidget(new QLabel("MetaTile Tileset GUI", this));
+    addCW(new MtTilesetCentralWidget(this, _zoomSettings));
     _propertiesStackedWidget->addWidget(new QLabel("MetaTile Tileset properties", this));
 
     documentChangedEvent(nullptr, nullptr);
