@@ -210,7 +210,7 @@ $(call test-util-modules, metatiles-tileset-serializer-test,    common snes reso
 
 $(call gui-qt-modules, untech-metasprite-gui,     metasprite, common snes metasprite)
 $(call gui-qt-modules, untech-spriteimporter-gui, metasprite, common snes metasprite)
-$(call gui-qt-modules, untech-resources-gui,      metasprite, common snes metatiles resources lz4)
+$(call gui-qt-modules, untech-resources-gui,      resources, common snes metatiles resources lz4)
 
 
 
