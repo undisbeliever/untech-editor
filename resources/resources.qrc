@@ -18,5 +18,7 @@
  <file>icons/animation-reset.svg</file>
  <file>icons/animation-skip.svg</file>
  <file>icons/animation-step.svg</file>
+ <file>icons/next.svg</file>
+ <file>icons/previous.svg</file>
 </qresource>
 </RCC>
