@@ -14,6 +14,7 @@ AbstractResourceList::AbstractResourceList(QObject* parent, ResourceTypeIndex ty
     , _list()
     , _document(nullptr)
     , _resourceTypeIndex(typeIndex)
+    , _state(ResourceState::VALID)
 {
 }
 
@@ -29,6 +30,45 @@ void AbstractResourceList::setDocument(Document* document)
     _list.reserve(size);
 
     for (size_t i = 0; i < size; i++) {
-        _list.append(buildResourceItem(i));
+        AbstractResourceItem* item = buildResourceItem(i);
+        _list.append(item);
+
+        item->connect(item, &AbstractResourceItem::stateChanged,
+                      this, &AbstractResourceList::updateState);
+    }
+
+    _state = size > 0 ? ResourceState::DIRTY : ResourceState::VALID;
+    emit stateChanged();
+}
+
+void AbstractResourceList::updateState()
+{
+    bool error = false;
+    bool dirty = false;
+
+    for (const auto& item : _list) {
+        ResourceState s = item->state();
+        if (s == ResourceState::ERROR) {
+            error = true;
+        }
+        else if (s == ResourceState::DIRTY) {
+            dirty = true;
+        }
+    }
+
+    ResourceState s;
+    if (error) {
+        s = ResourceState::ERROR;
+    }
+    else if (dirty) {
+        s = ResourceState::DIRTY;
+    }
+    else {
+        s = ResourceState::VALID;
+    }
+
+    if (_state != s) {
+        _state = s;
+        emit stateChanged();
     }
 }

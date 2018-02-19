@@ -24,9 +24,13 @@ public:
     virtual const QString name() const final;
     virtual const QString filename() const final;
 
+protected:
+    virtual bool compileResource(RES::ErrorList& err) final;
+
+public:
     inline const auto& paletteData() const
     {
-        return document()->resourcesFile()->palettes.at(_index);
+        return document()->resourcesFile()->palettes.at(index());
     }
 
 private:

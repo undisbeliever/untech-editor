@@ -10,6 +10,12 @@ namespace UnTech {
 namespace GuiQt {
 namespace Resources {
 
+enum class ResourceState {
+    DIRTY,
+    VALID,
+    ERROR,
+};
+
 enum class ResourceTypeIndex {
     PALETTE,
     MT_TILESET,

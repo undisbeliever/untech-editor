@@ -30,6 +30,8 @@ public:
     void setDocument(Document* document);
     Document* document() const { return _document; }
 
+    const ResourceState& state() const { return _state; }
+
     virtual const QString resourceTypeName() const = 0;
 
 protected:
@@ -38,12 +40,19 @@ protected:
 
     virtual AbstractResourceItem* buildResourceItem(size_t index) = 0;
 
+private slots:
+    void updateState();
+
+signals:
+    void stateChanged();
+
 protected:
     QVector<AbstractResourceItem*> _list;
 
 private:
     Document* _document;
     const ResourceTypeIndex _resourceTypeIndex;
+    ResourceState _state;
 };
 }
 }

@@ -24,3 +24,13 @@ const QString PaletteResourceItem::filename() const
 {
     return QString();
 }
+
+bool PaletteResourceItem::compileResource(RES::ErrorList& err)
+{
+    const auto& res = _document->resourcesFile();
+    Q_ASSERT(res);
+    const auto& pal = paletteData();
+
+    const auto palData = RES::convertPalette(*pal, err);
+    return palData && palData->validate(err);
+}

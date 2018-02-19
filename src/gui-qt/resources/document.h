@@ -16,6 +16,7 @@ namespace GuiQt {
 namespace Resources {
 class AbstractResourceList;
 class AbstractResourceItem;
+class ResourceValidationWorker;
 
 namespace RES = UnTech::Resources;
 
@@ -35,6 +36,8 @@ public:
 
     void setSelectedResource(AbstractResourceItem* item);
     AbstractResourceItem* selectedResource() const { return _selectedResource; }
+
+    ResourceValidationWorker* validationWorker() const { return _validationWorker; }
 
     virtual const QString& fileFilter() const final;
     virtual const QString& defaultFileExtension() const final;
@@ -57,6 +60,7 @@ private:
 
     // order matches ResourceTypeIndex
     std::array<AbstractResourceList*, N_RESOURCE_TYPES> _resourceLists;
+    ResourceValidationWorker* const _validationWorker;
 
     AbstractResourceItem* _selectedResource;
 };

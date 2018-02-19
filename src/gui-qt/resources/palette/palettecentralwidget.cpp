@@ -104,8 +104,8 @@ void PaletteCentralWidget::centerGraphicsItem()
 {
     Q_ASSERT(_graphicsItem);
 
-    _ui->graphicsView->viewport()->update();
     _graphicsScene->setSceneRect(_graphicsItem->boundingRect());
+    _ui->graphicsView->viewport()->update();
 }
 
 void PaletteCentralWidget::clearGui()

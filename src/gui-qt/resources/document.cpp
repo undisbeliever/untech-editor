@@ -5,6 +5,7 @@
  */
 
 #include "document.h"
+#include "resourcevalidationworker.h"
 #include "models/resources/resources-serializer.h"
 #include "mttileset/mttilesetresourcelist.h"
 #include "palette/paletteresourcelist.h"
@@ -22,6 +23,7 @@ Document::Document(QObject* parent)
           new PaletteResourceList(this, ResourceTypeIndex::PALETTE),
           new MtTilesetResourceList(this, ResourceTypeIndex::MT_TILESET),
       } })
+    , _validationWorker(new ResourceValidationWorker(this))
     , _selectedResource(nullptr)
 {
     initModels();

@@ -49,9 +49,10 @@ void MtTilesetResourceItem::loadFile()
         }
         catch (const std::exception&) {
             _tilesetInput = nullptr;
-            // ::TODO log message::
         }
     }
+
+    markDirty();
 }
 
 void MtTilesetResourceItem::loadPixmaps()
@@ -86,4 +87,17 @@ const QString MtTilesetResourceItem::name() const
 const QString MtTilesetResourceItem::filename() const
 {
     return _absoluteFilePath;
+}
+
+bool MtTilesetResourceItem::compileResource(RES::ErrorList& err)
+{
+    if (_tilesetInput == nullptr) {
+        err.addError("Unable to load file");
+        return false;
+    }
+    const auto& res = _document->resourcesFile();
+    Q_ASSERT(res);
+
+    const auto mtd = MetaTiles::convertTileset(*_tilesetInput, *res, err);
+    return mtd && mtd->validate(res->metaTileEngineSettings, err);
 }

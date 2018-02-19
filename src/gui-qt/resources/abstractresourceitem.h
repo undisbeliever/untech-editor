@@ -7,6 +7,7 @@
 #pragma once
 
 #include "abstractresourcelist.h"
+#include "models/resources/error-list.h"
 #include <QObject>
 
 namespace UnTech {
@@ -14,6 +15,8 @@ namespace GuiQt {
 namespace Resources {
 class Document;
 class AbstractResourceList;
+
+namespace RES = UnTech::Resources;
 
 class AbstractResourceItem : public QObject {
     Q_OBJECT
@@ -24,6 +27,7 @@ public:
         , _list(parent)
         , _document(parent->document())
         , _index(index)
+        , _state(ResourceState::DIRTY)
     {
         Q_ASSERT(parent != nullptr);
         Q_ASSERT(_document != nullptr);
@@ -32,7 +36,10 @@ public:
     ~AbstractResourceItem() = default;
 
     Document* document() const { return _document; }
-    int index() const { return _index; }
+    inline int index() const { return _index; }
+
+    const ResourceState& state() const { return _state; }
+    const RES::ErrorList& errorList() const { return _errorList; }
 
     ResourceTypeIndex resourceTypeIndex() const { return _list->resourceTypeIndex(); }
 
@@ -42,10 +49,30 @@ public:
     // empty if the resource is inline with the resource document
     virtual const QString filename() const = 0;
 
+    void markDirty();
+
+    void validateItem();
+
+protected:
+    // compiles the resource to test if valid
+    virtual bool compileResource(RES::ErrorList& err) = 0;
+
+private:
+    void setState(ResourceState state);
+
+signals:
+    void stateChanged();
+    void errorListChanged();
+
 protected:
     AbstractResourceList* const _list;
     Document* const _document;
+
+private:
     unsigned _index;
+
+    ResourceState _state;
+    RES::ErrorList _errorList;
 };
 }
 }

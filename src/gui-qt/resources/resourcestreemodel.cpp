@@ -17,6 +17,9 @@ static_assert(N_RESOURCE_TYPES <= ResourcesTreeModel::ROOT_INTERNAL_ID,
 ResourcesTreeModel::ResourcesTreeModel(QObject* parent)
     : QAbstractItemModel(parent)
     , _document(nullptr)
+    , _dirtyIcon(":icons/resource-dirty.svg")
+    , _validIcon(":icons/resource-valid.svg")
+    , _errorIcon(":icons/resource-error.svg")
 {
 }
 
@@ -24,13 +27,73 @@ void ResourcesTreeModel::setDocument(Document* document)
 {
     if (_document) {
         _document->disconnect(this);
+
+        for (AbstractResourceList* rl : _document->resourceLists()) {
+            rl->disconnect(this);
+            for (AbstractResourceItem* i : rl->list()) {
+                i->disconnect(this);
+            }
+        }
     }
 
     beginResetModel();
 
     _document = document;
 
+    if (_document) {
+        for (AbstractResourceList* rl : _document->resourceLists()) {
+            connect(rl, &AbstractResourceList::stateChanged,
+                    this, &ResourcesTreeModel::onResourceListStateChanged);
+
+            for (AbstractResourceItem* item : rl->list()) {
+                connect(item, &AbstractResourceItem::stateChanged,
+                        this, &ResourcesTreeModel::onResourceItemStateChanged);
+            }
+        }
+    }
+
     endResetModel();
+}
+
+void ResourcesTreeModel::onResourceListStateChanged()
+{
+    Q_ASSERT(_document);
+
+    AbstractResourceList* item = qobject_cast<AbstractResourceList*>(sender());
+    if (item) {
+        int index = (int)item->resourceTypeIndex();
+
+        emit dataChanged(createIndex(index, 0, ROOT_INTERNAL_ID),
+                         createIndex(index, N_COLUMNS, ROOT_INTERNAL_ID),
+                         { Qt::DecorationRole });
+    }
+    else {
+        emit dataChanged(createIndex(0, 0, ROOT_INTERNAL_ID),
+                         createIndex(N_RESOURCE_TYPES, N_COLUMNS, ROOT_INTERNAL_ID),
+                         { Qt::DecorationRole });
+    }
+}
+
+void ResourcesTreeModel::onResourceItemStateChanged()
+{
+    Q_ASSERT(_document);
+
+    AbstractResourceItem* item = qobject_cast<AbstractResourceItem*>(sender());
+    if (item) {
+        int listIndex = (int)item->resourceTypeIndex();
+        int index = item->index();
+
+        emit dataChanged(createIndex(index, 0, listIndex),
+                         createIndex(index, N_COLUMNS, listIndex),
+                         { Qt::DecorationRole });
+    }
+    else {
+        // Update everything
+        int lastIndex = _document->resourceLists().back()->list().size();
+        emit dataChanged(createIndex(0, 0, ROOT_INTERNAL_ID),
+                         createIndex(lastIndex, N_COLUMNS, N_RESOURCE_TYPES - 1),
+                         { Qt::DecorationRole });
+    }
 }
 
 QModelIndex ResourcesTreeModel::toModelIndex(const AbstractResourceItem* item) const
@@ -169,10 +232,9 @@ Qt::ItemFlags ResourcesTreeModel::flags(const QModelIndex& index) const
 
 QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
 {
-    if (role != Qt::DisplayRole
-        || _document == nullptr
-        || !index.isValid()
-        || index.column() != 0) {
+    if (_document == nullptr
+        || index.column() != 0
+        || !index.isValid()) {
 
         return QVariant();
     }
@@ -181,16 +243,44 @@ QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
     const int row = index.row();
     const auto& rl = _document->resourceLists();
 
-    if (internalId == ROOT_INTERNAL_ID) {
-        return rl.at(row)->resourceTypeName();
-    }
-    else if (internalId < rl.size()) {
-        const auto& list = rl.at(internalId)->list();
+    if (role == Qt::DisplayRole) {
+        if (internalId == ROOT_INTERNAL_ID) {
+            return rl.at(row)->resourceTypeName();
+        }
+        else if (internalId < rl.size()) {
+            const auto& list = rl.at(internalId)->list();
 
-        if (row < list.size()) {
-            return list.at(row)->name();
+            if (row < list.size()) {
+                return list.at(row)->name();
+            }
+        }
+    }
+    else if (role == Qt::DecorationRole) {
+        if (internalId == ROOT_INTERNAL_ID) {
+            return stateIcon(rl.at(row)->state());
+        }
+        else if (internalId < rl.size()) {
+            const auto& list = rl.at(internalId)->list();
+
+            if (row < list.size()) {
+                return stateIcon(list.at(row)->state());
+            }
         }
     }
 
     return QVariant();
+}
+
+QVariant ResourcesTreeModel::stateIcon(ResourceState s) const
+{
+    switch (s) {
+    case ResourceState::DIRTY:
+        return _dirtyIcon;
+
+    case ResourceState::VALID:
+        return _validIcon;
+
+    case ResourceState::ERROR:
+        return _errorIcon;
+    }
 }

@@ -26,9 +26,14 @@ public:
     MtTilesetResourceItem(AbstractResourceList* parent, size_t index);
     ~MtTilesetResourceItem() = default;
 
+public:
     virtual const QString name() const final;
     virtual const QString filename() const final;
 
+protected:
+    virtual bool compileResource(RES::ErrorList& err) final;
+
+public:
     // may be nullptr
     const auto& tilesetInput() const { return _tilesetInput; }
 
@@ -47,7 +52,7 @@ private:
 
     inline const std::string& mtTilesetFilename() const
     {
-        return document()->resourcesFile()->metaTileTilesetFilenames.at(_index);
+        return document()->resourcesFile()->metaTileTilesetFilenames.at(index());
     }
 
     void loadFile();

@@ -9,6 +9,7 @@
 #include "common.h"
 #include "document.h"
 #include "resourcestreedock.h"
+#include "resourcevalidationworker.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "mttileset/mttilesetcentralwidget.h"
 #include "palette/palettecentralwidget.h"
@@ -103,6 +104,8 @@ void MainWindow::documentChangedEvent(AbstractDocument* abstractDocument,
     if (document) {
         connect(document, &Document::selectedResourceChanged,
                 this, &MainWindow::onSelectedResourceChanged);
+
+        document->validationWorker()->validateAllResources();
     }
 }
 

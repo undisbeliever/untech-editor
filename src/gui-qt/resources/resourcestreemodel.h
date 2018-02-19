@@ -9,6 +9,7 @@
 #include "abstractresourceitem.h"
 #include "models/metasprite/metasprite.h"
 #include <QAbstractItemModel>
+#include <QIcon>
 
 namespace UnTech {
 namespace GuiQt {
@@ -43,7 +44,17 @@ public:
     virtual QVariant data(const QModelIndex& index, int role) const final;
 
 private:
+    QVariant stateIcon(ResourceState s) const;
+
+private slots:
+    void onResourceListStateChanged();
+    void onResourceItemStateChanged();
+
+private:
     Document* _document;
+    QIcon _dirtyIcon;
+    QIcon _validIcon;
+    QIcon _errorIcon;
 };
 }
 }
