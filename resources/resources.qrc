@@ -20,5 +20,8 @@
  <file>icons/animation-step.svg</file>
  <file>icons/next.svg</file>
  <file>icons/previous.svg</file>
+ <file>icons/resource-dirty.svg</file>
+ <file>icons/resource-error.svg</file>
+ <file>icons/resource-valid.svg</file>
 </qresource>
 </RCC>
