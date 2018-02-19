@@ -88,9 +88,6 @@ void PaletteCentralWidget::updateFrameLabel()
     unsigned nFrames = _palette->paletteData()->nFrames();
     int fIndex = _graphicsItem->frameIndex();
 
-    // disable play button when there are no frames to show
-    _animationTimer.setEnabled(nFrames > 0);
-
     if (fIndex >= 0 && nFrames > 0) {
         _ui->animationFrameLabel->setText(
             tr("Frame %1").arg(fIndex % nFrames));

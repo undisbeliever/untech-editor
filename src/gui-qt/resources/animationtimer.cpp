@@ -104,7 +104,7 @@ void AnimationTimer::startTimer()
 
     _animationTicksCurrent = 0;
 
-    animationStarted();
+    emit animationStarted();
 }
 
 void AnimationTimer::stopTimer()
@@ -113,10 +113,12 @@ void AnimationTimer::stopTimer()
         _playButton->setChecked(false);
     }
 
-    _timer.stop();
-    _animationTicksCurrent = 0;
+    if (_timer.isActive()) {
+        _timer.stop();
+        _animationTicksCurrent = 0;
 
-    animationStopped();
+        emit animationStopped();
+    }
 }
 
 void AnimationTimer::onPlayButtonClicked()
