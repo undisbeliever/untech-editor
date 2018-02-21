@@ -8,7 +8,8 @@
 
 #include "../abstractresourcewidget.h"
 #include "../animationtimer.h"
-#include <QGraphicsPixmapItem>
+#include "models/resources/error-list.h"
+#include <QGraphicsObject>
 #include <QGraphicsScene>
 #include <memory>
 
@@ -25,6 +26,8 @@ class Document;
 class AbstractResourceItem;
 class MtTilesetResourceItem;
 class MtTilesetGraphicsItem;
+
+namespace RES = UnTech::Resources;
 
 class MtTilesetCentralWidget : public AbstractResourceWidget {
     Q_OBJECT
@@ -59,12 +62,15 @@ private:
     AnimationTimer _animationTimer;
 };
 
-class MtTilesetGraphicsItem : public QGraphicsItem {
-public:
-    static const QColor GRID_COLOR;
+class MtTilesetGraphicsItem : public QGraphicsObject {
+    Q_OBJECT
 
 public:
-    explicit MtTilesetGraphicsItem(MtTilesetResourceItem* item);
+    static const QColor GRID_COLOR;
+    static const QColor ERROR_COLOR;
+
+public:
+    MtTilesetGraphicsItem(MtTilesetResourceItem* item);
     ~MtTilesetGraphicsItem() = default;
 
     void reloadAnimationFrame() { setAnimationFrameIndex(_animationFrameIndex); }
@@ -83,9 +89,17 @@ public:
                        const QStyleOptionGraphicsItem* option,
                        QWidget* widget = nullptr) final;
 
+    static const QString& toolTipForType(const RES::ErrorList::InvalidTileReason& reason);
+
+private slots:
+    void updateInvalidTiles();
+
 private:
     MtTilesetResourceItem* const _tileset;
     QPixmap _pixmap;
+
+    QGraphicsItem* _commonErrors;
+    QList<QGraphicsItem*> _frameErrors;
 
     int _animationFrameIndex;
 };

@@ -13,6 +13,7 @@
 using namespace UnTech::GuiQt::Resources;
 
 const QColor MtTilesetGraphicsItem::GRID_COLOR = QColor(200, 200, 255, 128);
+const QColor MtTilesetGraphicsItem::ERROR_COLOR = QColor(255, 0, 50, 128);
 
 MtTilesetCentralWidget::MtTilesetCentralWidget(QWidget* parent,
                                                ZoomSettings* zoomSettings)
@@ -141,13 +142,19 @@ void MtTilesetCentralWidget::onNextClicked()
 }
 
 MtTilesetGraphicsItem::MtTilesetGraphicsItem(MtTilesetResourceItem* item)
-    : QGraphicsItem()
+    : QGraphicsObject()
     , _tileset(item)
+    , _commonErrors(nullptr)
     , _animationFrameIndex(0)
 {
     Q_ASSERT(_tileset);
 
     reloadAnimationFrame();
+
+    updateInvalidTiles();
+
+    connect(_tileset, &AbstractResourceItem::errorListChanged,
+            this, &MtTilesetGraphicsItem::updateInvalidTiles);
 }
 
 void MtTilesetGraphicsItem::setAnimationFrameIndex(int index)
@@ -170,6 +177,10 @@ void MtTilesetGraphicsItem::setAnimationFrameIndex(int index)
     else {
         _pixmap = QPixmap();
         _animationFrameIndex = 0;
+    }
+
+    for (int i = 0; i < _frameErrors.size(); i++) {
+        _frameErrors.at(i)->setVisible(i == index);
     }
 
     update();
@@ -212,4 +223,91 @@ void MtTilesetGraphicsItem::paint(QPainter* painter,
     }
 
     painter->restore();
+}
+
+void MtTilesetGraphicsItem::updateInvalidTiles()
+{
+    // delete all the old error items
+    {
+        if (_commonErrors) {
+            delete _commonErrors;
+        }
+        _commonErrors = nullptr;
+
+        qDeleteAll(_frameErrors);
+        _frameErrors.clear();
+    }
+
+    // Create new parent containers for the errors
+    {
+        QSize s;
+        for (auto& p : _tileset->pixmaps()) {
+            s = s.expandedTo(p.size());
+        }
+
+        QRectF r(0, 0, s.width(), s.height());
+        unsigned nFrames = _tileset->pixmaps().size();
+        for (unsigned i = 0; i < nFrames; i++) {
+            auto* item = new QGraphicsRectItem(r, this);
+            item->setBrush(Qt::NoBrush);
+            item->setPen(Qt::NoPen);
+            item->hide();
+            _frameErrors.append(item);
+        }
+
+        QGraphicsRectItem* ce = new QGraphicsRectItem(r, this);
+        ce->setBrush(Qt::NoBrush);
+        ce->setPen(Qt::NoPen);
+        _commonErrors = ce;
+    }
+
+    // create the error items
+    {
+        Q_ASSERT(QGuiApplication::topLevelWindows().size() > 0);
+        QWindow* widget = QGuiApplication::topLevelWindows().first();
+
+        QBrush errorBrush(ERROR_COLOR);
+        QPen errorPen = createCosmeticPen(ERROR_COLOR, widget);
+
+        const auto& invalidTiles = _tileset->errorList().invalidImageTiles();
+
+        for (const auto& tile : invalidTiles) {
+            QRectF r(tile.x * 8, tile.y * 8, 8, 8);
+
+            QGraphicsItem* parent = _commonErrors;
+            if (tile.showFrameId()) {
+                parent = _frameErrors.at(tile.frameId);
+            }
+
+            QGraphicsRectItem* tileItem = new QGraphicsRectItem(r, parent);
+            tileItem->setBrush(errorBrush);
+            tileItem->setPen(errorPen);
+            tileItem->setToolTip(QString::fromLatin1("(%1, %2) %3").arg(tile.x * 8).arg(tile.y * 8).arg(toolTipForType(tile.reason)));
+        }
+    }
+
+    // show errors for the current frame
+    if (_animationFrameIndex >= 0 && _animationFrameIndex < _frameErrors.size()) {
+        _frameErrors.at(_animationFrameIndex)->show();
+    }
+}
+
+const QString& MtTilesetGraphicsItem::toolTipForType(const RES::ErrorList::InvalidTileReason& reason)
+{
+    using ITR = RES::ErrorList::InvalidTileReason;
+
+    static const QString NO_PALETTE_FOUND = tr("No palette found");
+    static const QString NOT_SAME_PALETTE = tr("Must use the same palette in each frame");
+    static const QString TOO_MANY_COLORS = tr("Too many colors");
+
+    switch (reason) {
+    case ITR::NO_PALETTE_FOUND:
+        return NO_PALETTE_FOUND;
+
+    case ITR::NOT_SAME_PALETTE:
+        return NOT_SAME_PALETTE;
+
+    case ITR::TOO_MANY_COLORS:
+        return TOO_MANY_COLORS;
+    };
 }
