@@ -8,6 +8,7 @@
 #include "abstractresourceitem.h"
 #include "common.h"
 #include "document.h"
+#include "errorlistdock.h"
 #include "resourcestreedock.h"
 #include "resourcevalidationworker.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
@@ -24,6 +25,12 @@ MainWindow::MainWindow(QWidget* parent)
     : AbstractMainWindow(parent)
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
 {
+    // Have the left and right docks take up the whole height of the MainWindow
+    setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+
     _resourcesTreeDock = new ResourcesTreeDock(this);
     addDockWidget(Qt::LeftDockWidgetArea, _resourcesTreeDock);
 
@@ -34,6 +41,9 @@ MainWindow::MainWindow(QWidget* parent)
     _propertiesStackedWidget = new QStackedWidget(this);
     _propertiesDock->setWidget(_propertiesStackedWidget);
     addDockWidget(Qt::RightDockWidgetArea, _propertiesDock);
+
+    _errorListDock = new ErrorListDock(this);
+    addDockWidget(Qt::BottomDockWidgetArea, _errorListDock);
 
     _centralStackedWidget = new QStackedWidget(this);
     this->setCentralWidget(_centralStackedWidget);
@@ -97,6 +107,7 @@ void MainWindow::documentChangedEvent(AbstractDocument* abstractDocument,
 
     _document = document;
     _resourcesTreeDock->setDocument(document);
+    _errorListDock->setDocument(document);
 
     _centralStackedWidget->setCurrentIndex(0);
     _propertiesStackedWidget->setCurrentIndex(0);

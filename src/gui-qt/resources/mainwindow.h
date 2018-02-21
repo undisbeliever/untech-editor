@@ -19,6 +19,7 @@ namespace Resources {
 class Document;
 class AbstractResourceWidget;
 class ResourcesTreeDock;
+class ErrorListDock;
 
 class MainWindow : public AbstractMainWindow {
     Q_OBJECT
@@ -51,6 +52,7 @@ private:
 
     ResourcesTreeDock* _resourcesTreeDock;
     QDockWidget* _propertiesDock;
+    ErrorListDock* _errorListDock;
 
     QVector<AbstractResourceWidget*> _resourceWidgets;
 };
