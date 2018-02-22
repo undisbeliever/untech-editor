@@ -37,14 +37,14 @@ void AbstractResourceList::setDocument(Document* document)
                       this, &AbstractResourceList::updateState);
     }
 
-    _state = size > 0 ? ResourceState::DIRTY : ResourceState::VALID;
+    _state = size > 0 ? ResourceState::UNCHECKED : ResourceState::VALID;
     emit stateChanged();
 }
 
 void AbstractResourceList::updateState()
 {
     bool error = false;
-    bool dirty = false;
+    bool unchecked = false;
 
     for (const auto& item : _list) {
         switch (item->state()) {
@@ -53,9 +53,9 @@ void AbstractResourceList::updateState()
             error = true;
             break;
 
-        case ResourceState::DIRTY:
+        case ResourceState::UNCHECKED:
         case ResourceState::NOT_LOADED:
-            dirty = true;
+            unchecked = true;
             break;
 
         case ResourceState::VALID:
@@ -67,8 +67,8 @@ void AbstractResourceList::updateState()
     if (error) {
         s = ResourceState::ERROR;
     }
-    else if (dirty) {
-        s = ResourceState::DIRTY;
+    else if (unchecked) {
+        s = ResourceState::UNCHECKED;
     }
     else {
         s = ResourceState::VALID;

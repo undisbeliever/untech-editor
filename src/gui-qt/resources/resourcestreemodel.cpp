@@ -17,7 +17,7 @@ static_assert(N_RESOURCE_TYPES <= ResourcesTreeModel::ROOT_INTERNAL_ID,
 ResourcesTreeModel::ResourcesTreeModel(QObject* parent)
     : QAbstractItemModel(parent)
     , _document(nullptr)
-    , _dirtyIcon(":icons/resource-dirty.svg")
+    , _uncheckedIcon(":icons/resource-unchecked.svg")
     , _validIcon(":icons/resource-valid.svg")
     , _errorIcon(":icons/resource-error.svg")
 {
@@ -275,8 +275,8 @@ QVariant ResourcesTreeModel::stateIcon(ResourceState s) const
 {
     switch (s) {
     case ResourceState::NOT_LOADED:
-    case ResourceState::DIRTY:
-        return _dirtyIcon;
+    case ResourceState::UNCHECKED:
+        return _uncheckedIcon;
 
     case ResourceState::VALID:
         return _validIcon;

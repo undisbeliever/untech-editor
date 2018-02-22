@@ -52,7 +52,7 @@ private slots:
 
 private:
     Document* _document;
-    QIcon _dirtyIcon;
+    QIcon _uncheckedIcon;
     QIcon _validIcon;
     QIcon _errorIcon;
 };

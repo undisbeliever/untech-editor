@@ -12,7 +12,7 @@ namespace Resources {
 
 enum class ResourceState {
     NOT_LOADED,
-    DIRTY,
+    UNCHECKED,
     VALID,
     ERROR,
     FILE_ERROR,

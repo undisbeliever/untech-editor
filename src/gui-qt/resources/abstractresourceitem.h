@@ -49,7 +49,7 @@ public:
     // empty if the resource is inline with the resource document
     virtual const QString filename() const = 0;
 
-    void markDirty();
+    void markUnchecked();
 
     void validateItem();
 

@@ -18,8 +18,8 @@ class AbstractResourceItem;
 
 /**
  * The ResourceValidationWorker will call `AbstractResourceItem::validateItem()`
- * for all dirty items in the background so the user can see if the resource is
- * valid or contains errors.
+ * for all unchecked items in the background so the user can see if the
+ * resource is valid or contains errors.
  *
  * This is done with the QTimer with a 0ms interval so it will not block the
  * main thread.
