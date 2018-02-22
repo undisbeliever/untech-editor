@@ -96,7 +96,7 @@ static std::vector<FrameTile> tilesFromFrameImage(const Image& image, unsigned f
         for (unsigned x = 0; x < iSize.width; x += TS) {
             bool s = extractFrameTile(*tileIt, image, x, y, palettes, colorsPerPalette);
             if (!s) {
-                err.addInvalidImageTile(frameId, x / TS, y / TS, ErrorList::NO_PALETTE_FOUND);
+                err.addInvalidImageTile(frameId, TS, x, y, ErrorList::NO_PALETTE_FOUND);
             }
             tileIt++;
         }
@@ -147,12 +147,14 @@ static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vect
     ret.tileMap.resize(nTiles);
 
     for (unsigned tileId = 0; tileId < nTiles; tileId++) {
+        const static unsigned TS = Tile8px::TILE_SIZE;
+
         auto& tm = ret.tileMap.at(tileId);
 
         unsigned palette = getPalette(0, tileId);
         for (unsigned frameId = 1; frameId < nFrames; frameId++) {
             if (getPalette(frameId, tileId) != palette) {
-                err.addInvalidImageTile(tileId % tileWidth, tileId / tileWidth, ErrorList::NOT_SAME_PALETTE);
+                err.addInvalidImageTile(TS, (tileId % tileWidth) * TS, (tileId / tileWidth) * TS, ErrorList::NOT_SAME_PALETTE);
                 break;
             }
         }

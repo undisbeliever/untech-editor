@@ -39,9 +39,9 @@ void ErrorList::printIndented(std::ostream& out) const
             for (const auto& t : _invalidImageTiles) {
                 out << "      ";
                 if (t.showFrameId()) {
-                    out << "Frame " << t.frameId << " ";
+                    out << "Frame " << t.frameId << ", ";
                 }
-                out << "Tile (" << t.x << ", " << t.y << "): " << t.reasonString() << '\n';
+                out << "Tile" << t.size << " @ " << t.x << "px, " << t.y << "px: " << t.reasonString() << '\n';
             }
         }
         else {

@@ -272,7 +272,7 @@ void MtTilesetGraphicsItem::updateInvalidTiles()
         const auto& invalidTiles = _tileset->errorList().invalidImageTiles();
 
         for (const auto& tile : invalidTiles) {
-            QRectF r(tile.x * 8, tile.y * 8, 8, 8);
+            QRectF r(tile.x, tile.y, tile.size, tile.size);
 
             QGraphicsItem* parent = _commonErrors;
             if (tile.showFrameId()) {
@@ -282,7 +282,7 @@ void MtTilesetGraphicsItem::updateInvalidTiles()
             QGraphicsRectItem* tileItem = new QGraphicsRectItem(r, parent);
             tileItem->setBrush(errorBrush);
             tileItem->setPen(errorPen);
-            tileItem->setToolTip(QString::fromLatin1("(%1, %2) %3").arg(tile.x * 8).arg(tile.y * 8).arg(toolTipForType(tile.reason)));
+            tileItem->setToolTip(QString::fromLatin1("(%1, %2) %3").arg(tile.x).arg(tile.y).arg(toolTipForType(tile.reason)));
         }
     }
 

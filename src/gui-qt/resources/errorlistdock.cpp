@@ -87,9 +87,9 @@ void ErrorListDock::updateErrorList()
         for (const auto& t : invalidTiles) {
             QString s = QString::fromLatin1("\t");
             if (t.showFrameId()) {
-                s += tr("Frame %1 ").arg(t.frameId);
+                s += tr("Frame %1, ").arg(t.frameId);
             }
-            s += tr("Tile (%1, %2): %3").arg(t.x).arg(t.y).arg(QString::fromUtf8(t.reasonString()));
+            s += tr("Tile%1 @ %2px, %3px: %4").arg(t.size).arg(t.x).arg(t.y).arg(QString::fromUtf8(t.reasonString()));
             el.append(s);
         }
     }

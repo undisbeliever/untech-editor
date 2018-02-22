@@ -23,25 +23,30 @@ public:
     };
     struct InvalidImageTile {
         unsigned frameId;
+        unsigned size;
         unsigned x;
         unsigned y;
         InvalidTileReason reason;
 
-        InvalidImageTile(unsigned frameId, unsigned x, unsigned y, InvalidTileReason reason)
+        InvalidImageTile(unsigned frameId, unsigned size, unsigned x, unsigned y, InvalidTileReason reason)
             : frameId(frameId)
+            , size(size)
             , x(x)
             , y(y)
             , reason(reason)
         {
             assert(frameId < INT_MAX);
+            assert(size > 0);
         }
 
-        InvalidImageTile(unsigned x, unsigned y, InvalidTileReason reason)
+        InvalidImageTile(unsigned size, unsigned x, unsigned y, InvalidTileReason reason)
             : frameId(UINT_MAX)
+            , size(size)
             , x(x)
             , y(y)
             , reason(reason)
         {
+            assert(size > 0);
         }
 
         bool showFrameId() const { return frameId <= INT_MAX; }
@@ -59,13 +64,13 @@ public:
         _errors.emplace_back(s);
     }
 
-    void addInvalidImageTile(unsigned frameId, unsigned x, unsigned y, InvalidTileReason r)
+    void addInvalidImageTile(unsigned frameId, unsigned size, unsigned x, unsigned y, InvalidTileReason r)
     {
-        _invalidImageTiles.emplace_back(frameId, x, y, r);
+        _invalidImageTiles.emplace_back(frameId, size, x, y, r);
     }
-    void addInvalidImageTile(unsigned x, unsigned y, InvalidTileReason r)
+    void addInvalidImageTile(unsigned size, unsigned x, unsigned y, InvalidTileReason r)
     {
-        _invalidImageTiles.emplace_back(x, y, r);
+        _invalidImageTiles.emplace_back(size, x, y, r);
     }
 
     const std::vector<std::string>& errors() const { return _errors; }
