@@ -129,6 +129,10 @@ void MainWindow::onSelectedResourceChanged()
     AbstractResourceItem* item = _document->selectedResource();
 
     if (item) {
+        if (item->state() == ResourceState::NOT_LOADED) {
+            item->loadResource();
+        }
+
         int index = (int)item->resourceTypeIndex() + 1;
 
         _centralStackedWidget->setCurrentIndex(index);

@@ -17,7 +17,6 @@ MtTilesetResourceItem::MtTilesetResourceItem(AbstractResourceList* parent, size_
     Q_ASSERT(index < mtTilesetFilenameList().size());
 
     updateFilePaths();
-    loadFile();
 
     connect(document(), &Document::filenameChanged,
             this, &MtTilesetResourceItem::updateFilePaths);
@@ -37,22 +36,6 @@ void MtTilesetResourceItem::updateFilePaths()
     else {
         _relativeFilePath = _absoluteFilePath;
     }
-}
-
-void MtTilesetResourceItem::loadFile()
-{
-    const auto& fn = mtTilesetFilename();
-
-    if (!fn.empty()) {
-        try {
-            _tilesetInput = MT::loadMetaTileTilesetInput(fn);
-        }
-        catch (const std::exception&) {
-            _tilesetInput = nullptr;
-        }
-    }
-
-    markDirty();
 }
 
 void MtTilesetResourceItem::loadPixmaps()
@@ -87,6 +70,27 @@ const QString MtTilesetResourceItem::name() const
 const QString MtTilesetResourceItem::filename() const
 {
     return _absoluteFilePath;
+}
+
+bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
+{
+    const auto& fn = mtTilesetFilename();
+
+    if (fn.empty()) {
+        err.addError("Missing filename");
+        return false;
+    }
+
+    try {
+        _tilesetInput = MT::loadMetaTileTilesetInput(fn);
+        return true;
+    }
+    catch (const std::exception& ex) {
+        _tilesetInput = nullptr;
+
+        err.addError(ex.what());
+        return false;
+    }
 }
 
 bool MtTilesetResourceItem::compileResource(RES::ErrorList& err)

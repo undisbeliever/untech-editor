@@ -31,6 +31,7 @@ public:
     virtual const QString filename() const final;
 
 protected:
+    virtual bool loadResourceData(RES::ErrorList& err) final;
     virtual bool compileResource(RES::ErrorList& err) final;
 
 public:
@@ -54,8 +55,6 @@ private:
     {
         return document()->resourcesFile()->metaTileTilesetFilenames.at(index());
     }
-
-    void loadFile();
 
 private slots:
     void updateFilePaths();

@@ -10,11 +10,34 @@ using namespace UnTech::GuiQt::Resources;
 
 void AbstractResourceItem::markDirty()
 {
-    setState(ResourceState::DIRTY);
+    if (_state != ResourceState::NOT_LOADED && _state != ResourceState::FILE_ERROR) {
+        setState(ResourceState::DIRTY);
+    }
+}
+
+void AbstractResourceItem::loadResource()
+{
+    RES::ErrorList err;
+
+    try {
+        bool s = loadResourceData(err);
+        setState(s ? ResourceState::DIRTY : ResourceState::FILE_ERROR);
+    }
+    catch (const std::exception& ex) {
+        err.addError(std::string("EXCEPTION: ") + ex.what());
+        setState(ResourceState::FILE_ERROR);
+    }
+
+    _errorList = err;
+    emit errorListChanged();
 }
 
 void AbstractResourceItem::validateItem()
 {
+    if (_state == ResourceState::FILE_ERROR || _state == ResourceState::NOT_LOADED) {
+        return;
+    }
+
     RES::ErrorList err;
 
     try {
@@ -32,7 +55,7 @@ void AbstractResourceItem::validateItem()
 
 void AbstractResourceItem::setState(ResourceState state)
 {
-    if (state != _state) {
+    if (_state != state) {
         _state = state;
         emit stateChanged();
     }

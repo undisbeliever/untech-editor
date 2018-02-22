@@ -274,6 +274,7 @@ QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
 QVariant ResourcesTreeModel::stateIcon(ResourceState s) const
 {
     switch (s) {
+    case ResourceState::NOT_LOADED:
     case ResourceState::DIRTY:
         return _dirtyIcon;
 
@@ -281,6 +282,7 @@ QVariant ResourcesTreeModel::stateIcon(ResourceState s) const
         return _validIcon;
 
     case ResourceState::ERROR:
+    case ResourceState::FILE_ERROR:
         return _errorIcon;
     }
 }

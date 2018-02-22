@@ -11,9 +11,11 @@ namespace GuiQt {
 namespace Resources {
 
 enum class ResourceState {
+    NOT_LOADED,
     DIRTY,
     VALID,
     ERROR,
+    FILE_ERROR,
 };
 
 enum class ResourceTypeIndex {

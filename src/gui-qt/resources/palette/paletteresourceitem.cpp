@@ -25,6 +25,11 @@ const QString PaletteResourceItem::filename() const
     return QString();
 }
 
+bool PaletteResourceItem::loadResourceData(UnTech::Resources::ErrorList&)
+{
+    return true;
+}
+
 bool PaletteResourceItem::compileResource(RES::ErrorList& err)
 {
     const auto& res = _document->resourcesFile();

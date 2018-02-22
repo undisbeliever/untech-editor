@@ -47,12 +47,19 @@ void AbstractResourceList::updateState()
     bool dirty = false;
 
     for (const auto& item : _list) {
-        ResourceState s = item->state();
-        if (s == ResourceState::ERROR) {
+        switch (item->state()) {
+        case ResourceState::ERROR:
+        case ResourceState::FILE_ERROR:
             error = true;
-        }
-        else if (s == ResourceState::DIRTY) {
+            break;
+
+        case ResourceState::DIRTY:
+        case ResourceState::NOT_LOADED:
             dirty = true;
+            break;
+
+        case ResourceState::VALID:
+            break;
         }
     }
 

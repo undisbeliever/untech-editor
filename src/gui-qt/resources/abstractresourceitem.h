@@ -27,7 +27,7 @@ public:
         , _list(parent)
         , _document(parent->document())
         , _index(index)
-        , _state(ResourceState::DIRTY)
+        , _state(ResourceState::NOT_LOADED)
     {
         Q_ASSERT(parent != nullptr);
         Q_ASSERT(_document != nullptr);
@@ -53,7 +53,12 @@ public:
 
     void validateItem();
 
+public slots:
+    void loadResource();
+
 protected:
+    virtual bool loadResourceData(RES::ErrorList& err) = 0;
+
     // compiles the resource to test if valid
     virtual bool compileResource(RES::ErrorList& err) = 0;
 

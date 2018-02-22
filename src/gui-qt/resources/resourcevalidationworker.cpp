@@ -48,6 +48,10 @@ void ResourceValidationWorker::processNextResource()
     Q_ASSERT(_itemsToProcess.size() > 0);
 
     AbstractResourceItem* item = _itemsToProcess.takeLast();
+
+    if (item->state() == ResourceState::NOT_LOADED) {
+        item->loadResource();
+    }
     item->validateItem();
 
     if (!_itemsToProcess.isEmpty()) {
