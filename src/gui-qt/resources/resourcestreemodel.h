@@ -47,6 +47,7 @@ private:
     QVariant stateIcon(ResourceState s) const;
 
 private slots:
+    void onResourceListChanged();
     void onResourceListStateChanged();
     void onResourceItemStateChanged();
 

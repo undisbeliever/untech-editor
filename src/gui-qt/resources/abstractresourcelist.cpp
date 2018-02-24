@@ -6,6 +6,7 @@
 
 #include "abstractresourcelist.h"
 #include "abstractresourceitem.h"
+#include "document.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -39,6 +40,54 @@ void AbstractResourceList::setDocument(Document* document)
 
     _state = size > 0 ? ResourceState::UNCHECKED : ResourceState::VALID;
     emit stateChanged();
+}
+
+void AbstractResourceList::addResource(const QString& input)
+{
+    do_addResource(input.toStdString());
+
+    Q_ASSERT((size_t)_items.size() + 1 == nItems());
+
+    int index = _items.size();
+    AbstractResourceItem* item = buildResourceItem(index);
+    _items.append(item);
+
+    item->connect(item, &AbstractResourceItem::stateChanged,
+                  this, &AbstractResourceList::updateState);
+
+    if (_state != ResourceState::UNCHECKED) {
+        _state = ResourceState::UNCHECKED;
+        emit stateChanged();
+    }
+
+    emit listChanged();
+    _document->undoStack()->resetClean();
+
+    _document->setSelectedResource(item);
+}
+
+void AbstractResourceList::removeResource(int index)
+{
+    Q_ASSERT(index >= 0);
+    Q_ASSERT(index < _items.size());
+
+    if (_document->selectedResource() == _items.at(index)) {
+        _document->setSelectedResource(nullptr);
+    }
+
+    do_removeResource(index);
+
+    AbstractResourceItem* oldItem = _items.takeAt(index);
+    oldItem->deleteLater();
+
+    for (int i = index; i < _items.size(); i++) {
+        _items.at(i)->setIndex(i);
+    }
+
+    updateState();
+
+    emit listChanged();
+    _document->undoStack()->resetClean();
 }
 
 void AbstractResourceList::updateState()

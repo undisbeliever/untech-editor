@@ -32,6 +32,13 @@ void AbstractResourceItem::loadResource()
     emit errorListChanged();
 }
 
+void AbstractResourceItem::setIndex(unsigned index)
+{
+    Q_ASSERT(index < (unsigned)_list->items().size());
+
+    _index = index;
+}
+
 void AbstractResourceItem::validateItem()
 {
     if (_state == ResourceState::FILE_ERROR || _state == ResourceState::NOT_LOADED) {

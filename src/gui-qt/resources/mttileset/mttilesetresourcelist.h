@@ -24,10 +24,14 @@ public:
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
+    virtual const AddResourceDialogSettings& addResourceDialogSettings() const final;
 
 protected:
     virtual size_t nItems() const final;
     virtual MtTilesetResourceItem* buildResourceItem(size_t index) final;
+
+    virtual void do_addResource(const std::string& filename) final;
+    virtual void do_removeResource(unsigned index) final;
 };
 }
 }

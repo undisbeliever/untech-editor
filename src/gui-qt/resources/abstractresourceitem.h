@@ -42,6 +42,7 @@ public:
     const RES::ErrorList& errorList() const { return _errorList; }
 
     ResourceTypeIndex resourceTypeIndex() const { return _list->resourceTypeIndex(); }
+    AbstractResourceList* resourceList() const { return _list; }
 
     // name of the resource item
     virtual const QString name() const = 0;
@@ -62,6 +63,10 @@ protected:
 
     // compiles the resource to test if valid
     virtual bool compileResource(RES::ErrorList& err) = 0;
+
+private:
+    friend void AbstractResourceList::removeResource(int);
+    void setIndex(unsigned index);
 
 private:
     void setState(ResourceState state);

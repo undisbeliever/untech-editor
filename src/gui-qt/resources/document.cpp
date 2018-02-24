@@ -64,7 +64,7 @@ void Document::initModels()
 const QString& Document::fileFilter() const
 {
     static const QString FILTER = QString::fromUtf8(
-        "MetaSprite Resources File (*.utres);;All Files (*)");
+        "UnTech Resources File (*.utres);;All Files (*)");
 
     return FILTER;
 }

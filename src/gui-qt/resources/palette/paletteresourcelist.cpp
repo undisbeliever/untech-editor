@@ -6,6 +6,9 @@
 
 #include "paletteresourcelist.h"
 #include "paletteresourceitem.h"
+#include "gui-qt/common/idstringvalidator.h"
+
+#include <QFileInfo>
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -24,6 +27,18 @@ const QString PaletteResourceList::resourceTypeNamePlural() const
     return tr("Palettes");
 }
 
+const AbstractResourceList::AddResourceDialogSettings& PaletteResourceList::addResourceDialogSettings() const
+{
+    const static AbstractResourceList::AddResourceDialogSettings filter = {
+        tr("Select Palette Image"),
+        QString::fromUtf8("PNG Image (*.png)"),
+        QString::fromUtf8("png"),
+        .canCreateFile = false
+    };
+
+    return filter;
+}
+
 size_t PaletteResourceList::nItems() const
 {
     return document()->resourcesFile()->palettes.size();
@@ -32,4 +47,29 @@ size_t PaletteResourceList::nItems() const
 PaletteResourceItem* PaletteResourceList::buildResourceItem(size_t index)
 {
     return new PaletteResourceItem(this, index);
+}
+
+void PaletteResourceList::do_addResource(const std::string& filename)
+{
+    auto& palettes = document()->resourcesFile()->palettes;
+
+    palettes.emplace_back(std::make_unique<RES::PaletteInput>());
+    auto& pal = palettes.back();
+
+    QFileInfo fi = QString::fromStdString(filename);
+    QString name = fi.baseName();
+    IdstringValidator().fixup(name);
+
+    pal->name = name.toStdString();
+    pal->paletteImageFilename = filename;
+    pal->paletteImage.loadPngImage(filename);
+    pal->rowsPerFrame = qBound(1U, pal->paletteImage.size().height, 16U);
+}
+
+void PaletteResourceList::do_removeResource(unsigned index)
+{
+    auto& palettes = document()->resourcesFile()->palettes;
+
+    Q_ASSERT(index < palettes.size());
+    palettes.erase(palettes.begin() + index);
 }

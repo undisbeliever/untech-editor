@@ -44,6 +44,8 @@ void ResourcesTreeModel::setDocument(Document* document)
         for (AbstractResourceList* rl : _document->resourceLists()) {
             connect(rl, &AbstractResourceList::stateChanged,
                     this, &ResourcesTreeModel::onResourceListStateChanged);
+            connect(rl, &AbstractResourceList::listChanged,
+                    this, &ResourcesTreeModel::onResourceListChanged);
 
             for (AbstractResourceItem* item : rl->items()) {
                 connect(item, &AbstractResourceItem::stateChanged,
@@ -53,6 +55,16 @@ void ResourcesTreeModel::setDocument(Document* document)
     }
 
     endResetModel();
+}
+
+void ResourcesTreeModel::onResourceListChanged()
+{
+    Q_ASSERT(_document);
+
+    AbstractResourceList* item = qobject_cast<AbstractResourceList*>(sender());
+    if (item) {
+        emit layoutChanged();
+    }
 }
 
 void ResourcesTreeModel::onResourceListStateChanged()

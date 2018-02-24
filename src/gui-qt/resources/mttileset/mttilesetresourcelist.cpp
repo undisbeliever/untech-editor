@@ -24,6 +24,18 @@ const QString MtTilesetResourceList::resourceTypeNamePlural() const
     return tr("MetaTile Tilesets");
 }
 
+const AbstractResourceList::AddResourceDialogSettings& MtTilesetResourceList::addResourceDialogSettings() const
+{
+    const static AbstractResourceList::AddResourceDialogSettings filter = {
+        tr("Add MetaTile Tileset Resource"),
+        QString::fromUtf8("UnTech MetaTile Tileset File (*.utmt)"),
+        QString::fromUtf8("utmt"),
+        true
+    };
+
+    return filter;
+}
+
 size_t MtTilesetResourceList::nItems() const
 {
     return document()->resourcesFile()->metaTileTilesetFilenames.size();
@@ -32,4 +44,18 @@ size_t MtTilesetResourceList::nItems() const
 MtTilesetResourceItem* MtTilesetResourceList::buildResourceItem(size_t index)
 {
     return new MtTilesetResourceItem(this, index);
+}
+
+void MtTilesetResourceList::do_addResource(const std::string& filename)
+{
+    auto& fnList = document()->resourcesFile()->metaTileTilesetFilenames;
+    fnList.emplace_back(filename);
+}
+
+void MtTilesetResourceList::do_removeResource(unsigned index)
+{
+    auto& fnList = document()->resourcesFile()->metaTileTilesetFilenames;
+
+    Q_ASSERT(index < fnList.size());
+    fnList.erase(fnList.begin() + index);
 }

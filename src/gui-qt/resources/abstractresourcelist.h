@@ -20,6 +20,16 @@ class AbstractResourceList : public QObject {
     Q_OBJECT
 
 public:
+    struct AddResourceDialogSettings {
+        // If either filter or extension are empty then an inputbox containing
+        // the name of the object will be shown instead of a file dialog.
+        QString title;
+        QString filter;
+        QString extension;
+        bool canCreateFile;
+    };
+
+public:
     AbstractResourceList(QObject* parent, ResourceTypeIndex typeIndex);
     ~AbstractResourceList() = default;
 
@@ -31,8 +41,12 @@ public:
     const QVector<AbstractResourceItem*>& items() const { return _items; }
     const ResourceState& state() const { return _state; }
 
+    void addResource(const QString& input);
+    void removeResource(int index);
+
     virtual const QString resourceTypeNameSingle() const = 0;
     virtual const QString resourceTypeNamePlural() const = 0;
+    virtual const AddResourceDialogSettings& addResourceDialogSettings() const = 0;
 
 protected:
     // number of this type of data in the document.
@@ -40,10 +54,14 @@ protected:
 
     virtual AbstractResourceItem* buildResourceItem(size_t index) = 0;
 
+    virtual void do_addResource(const std::string& input) = 0;
+    virtual void do_removeResource(unsigned index) = 0;
+
 private slots:
     void updateState();
 
 signals:
+    void listChanged();
     void stateChanged();
 
 private:

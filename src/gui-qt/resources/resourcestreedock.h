@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QDockWidget>
+#include <QMenu>
 #include <memory>
 
 namespace UnTech {
@@ -16,6 +17,7 @@ namespace Ui {
 class ResourcesTreeDock;
 }
 class Document;
+class AbstractResourceList;
 class ResourcesTreeModel;
 
 class ResourcesTreeDock : public QDockWidget {
@@ -27,13 +29,22 @@ public:
 
     void setDocument(Document* document);
 
+    void showAddResouceDialog(AbstractResourceList* resourceList);
+
 private slots:
+    void onAddResourceMenuTriggered(QAction* action);
+    void onRemoveResourceTriggered();
+
     void onSelectedResourceChanged();
     void onResourcesTreeSelectionChanged();
 
 private:
+    void setupAddResourceMenu();
+
+private:
     std::unique_ptr<Ui::ResourcesTreeDock> _ui;
     ResourcesTreeModel* _model;
+    QMenu* const _addResourceMenu;
 
     Document* _document;
 };
