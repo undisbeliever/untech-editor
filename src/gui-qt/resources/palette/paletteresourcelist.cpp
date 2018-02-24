@@ -14,7 +14,12 @@ PaletteResourceList::PaletteResourceList(QObject* parent, ResourceTypeIndex type
 {
 }
 
-const QString PaletteResourceList::resourceTypeName() const
+const QString PaletteResourceList::resourceTypeNameSingle() const
+{
+    return tr("Palette");
+}
+
+const QString PaletteResourceList::resourceTypeNamePlural() const
 {
     return tr("Palettes");
 }

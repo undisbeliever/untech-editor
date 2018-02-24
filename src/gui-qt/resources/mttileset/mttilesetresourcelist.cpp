@@ -14,7 +14,12 @@ MtTilesetResourceList::MtTilesetResourceList(QObject* parent, ResourceTypeIndex 
 {
 }
 
-const QString MtTilesetResourceList::resourceTypeName() const
+const QString MtTilesetResourceList::resourceTypeNameSingle() const
+{
+    return tr("MetaTile Tileset");
+}
+
+const QString MtTilesetResourceList::resourceTypeNamePlural() const
 {
     return tr("MetaTile Tilesets");
 }

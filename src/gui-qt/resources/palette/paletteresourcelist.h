@@ -22,7 +22,8 @@ public:
     PaletteResourceList(QObject* parent, ResourceTypeIndex typeIndex);
     ~PaletteResourceList() = default;
 
-    virtual const QString resourceTypeName() const final;
+    virtual const QString resourceTypeNameSingle() const final;
+    virtual const QString resourceTypeNamePlural() const final;
 
 protected:
     virtual size_t nItems() const final;

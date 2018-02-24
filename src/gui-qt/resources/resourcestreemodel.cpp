@@ -245,7 +245,7 @@ QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
 
     if (role == Qt::DisplayRole) {
         if (internalId == ROOT_INTERNAL_ID) {
-            return rl.at(row)->resourceTypeName();
+            return rl.at(row)->resourceTypeNamePlural();
         }
         else if (internalId < rl.size()) {
             const auto& items = rl.at(internalId)->items();

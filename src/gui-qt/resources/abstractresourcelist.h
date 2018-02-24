@@ -31,7 +31,8 @@ public:
     const QVector<AbstractResourceItem*>& items() const { return _items; }
     const ResourceState& state() const { return _state; }
 
-    virtual const QString resourceTypeName() const = 0;
+    virtual const QString resourceTypeNameSingle() const = 0;
+    virtual const QString resourceTypeNamePlural() const = 0;
 
 protected:
     // number of this type of data in the document.

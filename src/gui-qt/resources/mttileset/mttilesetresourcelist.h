@@ -22,7 +22,8 @@ public:
     MtTilesetResourceList(QObject* parent, ResourceTypeIndex typeIndex);
     ~MtTilesetResourceList() = default;
 
-    virtual const QString resourceTypeName() const final;
+    virtual const QString resourceTypeNameSingle() const final;
+    virtual const QString resourceTypeNamePlural() const final;
 
 protected:
     virtual size_t nItems() const final;
