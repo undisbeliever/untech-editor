@@ -210,6 +210,10 @@ void PaletteGraphicsItem::paint(QPainter* painter,
         return;
     }
 
+    if (pal->rowsPerFrame <= 0) {
+        pal->rowsPerFrame = 1;
+    }
+
     // draw image
 
     unsigned w = _pixmap.width();
@@ -238,6 +242,7 @@ void PaletteGraphicsItem::paint(QPainter* painter,
 
     painter->drawRect(-LINE_WIDTH, -LINE_WIDTH, w + LINE_WIDTH, h + LINE_WIDTH);
 
+    Q_ASSERT(PALETTE_SCALE > 0);
     for (unsigned x = PALETTE_SCALE; x < w; x += PALETTE_SCALE) {
         painter->drawLine(x, 0, x, h);
     }
@@ -251,6 +256,7 @@ void PaletteGraphicsItem::paint(QPainter* painter,
 
     unsigned fh = PALETTE_SCALE * pal->rowsPerFrame;
 
+    Q_ASSERT(fh > 0);
     for (unsigned y = 0; y <= h; y += fh) {
         painter->drawLine(-FRAME_OVERHANG, y, w + FRAME_OVERHANG, y);
     }
