@@ -296,6 +296,7 @@ const QString& MtTilesetGraphicsItem::toolTipForType(const RES::ErrorList::Inval
 {
     using ITR = RES::ErrorList::InvalidTileReason;
 
+    static const QString NULL_STRING;
     static const QString NO_PALETTE_FOUND = tr("No palette found");
     static const QString NOT_SAME_PALETTE = tr("Must use the same palette in each frame");
     static const QString TOO_MANY_COLORS = tr("Too many colors");
@@ -310,4 +311,6 @@ const QString& MtTilesetGraphicsItem::toolTipForType(const RES::ErrorList::Inval
     case ITR::TOO_MANY_COLORS:
         return TOO_MANY_COLORS;
     };
+
+    return NULL_STRING;
 }

@@ -285,4 +285,6 @@ QVariant ResourcesTreeModel::stateIcon(ResourceState s) const
     case ResourceState::FILE_ERROR:
         return _errorIcon;
     }
+
+    return QVariant();
 }
