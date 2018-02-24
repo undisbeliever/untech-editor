@@ -25,11 +25,10 @@ public:
 
     ResourceTypeIndex resourceTypeIndex() const { return _resourceTypeIndex; }
 
-    const QVector<AbstractResourceItem*>& list() const { return _list; }
-
     void setDocument(Document* document);
     Document* document() const { return _document; }
 
+    const QVector<AbstractResourceItem*>& items() const { return _items; }
     const ResourceState& state() const { return _state; }
 
     virtual const QString resourceTypeName() const = 0;
@@ -46,13 +45,11 @@ private slots:
 signals:
     void stateChanged();
 
-protected:
-    QVector<AbstractResourceItem*> _list;
-
 private:
     Document* _document;
     const ResourceTypeIndex _resourceTypeIndex;
     ResourceState _state;
+    QVector<AbstractResourceItem*> _items;
 };
 }
 }

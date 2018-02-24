@@ -30,7 +30,7 @@ void ResourcesTreeModel::setDocument(Document* document)
 
         for (AbstractResourceList* rl : _document->resourceLists()) {
             rl->disconnect(this);
-            for (AbstractResourceItem* i : rl->list()) {
+            for (AbstractResourceItem* i : rl->items()) {
                 i->disconnect(this);
             }
         }
@@ -45,7 +45,7 @@ void ResourcesTreeModel::setDocument(Document* document)
             connect(rl, &AbstractResourceList::stateChanged,
                     this, &ResourcesTreeModel::onResourceListStateChanged);
 
-            for (AbstractResourceItem* item : rl->list()) {
+            for (AbstractResourceItem* item : rl->items()) {
                 connect(item, &AbstractResourceItem::stateChanged,
                         this, &ResourcesTreeModel::onResourceItemStateChanged);
             }
@@ -89,7 +89,7 @@ void ResourcesTreeModel::onResourceItemStateChanged()
     }
     else {
         // Update everything
-        int lastIndex = _document->resourceLists().back()->list().size();
+        int lastIndex = _document->resourceLists().back()->items().size();
         emit dataChanged(createIndex(0, 0, ROOT_INTERNAL_ID),
                          createIndex(lastIndex, N_COLUMNS, N_RESOURCE_TYPES - 1),
                          { Qt::DecorationRole });
@@ -117,10 +117,10 @@ AbstractResourceItem* ResourcesTreeModel::toResourceItem(const QModelIndex& inde
     const int row = index.row();
 
     if (internalId != ROOT_INTERNAL_ID) {
-        const auto& list = _document->resourceLists().at(internalId)->list();
+        const auto& items = _document->resourceLists().at(internalId)->items();
 
-        if (row < list.size()) {
-            return list.at(row);
+        if (row < items.size()) {
+            return items.at(row);
         }
     }
 
@@ -145,9 +145,9 @@ QModelIndex ResourcesTreeModel::index(int row, int column, const QModelIndex& pa
     }
     else {
         if ((unsigned)parent.row() < rl.size()) {
-            const auto& list = rl.at(parent.row())->list();
+            const auto& items = rl.at(parent.row())->items();
 
-            if (row < list.size()) {
+            if (row < items.size()) {
                 return createIndex(row, column, parent.row());
             }
         }
@@ -193,7 +193,7 @@ int ResourcesTreeModel::rowCount(const QModelIndex& parent) const
         return rl.size();
     }
     else if (row < rl.size()) {
-        return rl.at(row)->list().size();
+        return rl.at(row)->items().size();
     }
     else {
         return 0;
@@ -248,10 +248,10 @@ QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
             return rl.at(row)->resourceTypeName();
         }
         else if (internalId < rl.size()) {
-            const auto& list = rl.at(internalId)->list();
+            const auto& items = rl.at(internalId)->items();
 
-            if (row < list.size()) {
-                return list.at(row)->name();
+            if (row < items.size()) {
+                return items.at(row)->name();
             }
         }
     }
@@ -260,10 +260,10 @@ QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
             return stateIcon(rl.at(row)->state());
         }
         else if (internalId < rl.size()) {
-            const auto& list = rl.at(internalId)->list();
+            const auto& items = rl.at(internalId)->items();
 
-            if (row < list.size()) {
-                return stateIcon(list.at(row)->state());
+            if (row < items.size()) {
+                return stateIcon(items.at(row)->state());
             }
         }
     }

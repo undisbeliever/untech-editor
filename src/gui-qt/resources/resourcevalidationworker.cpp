@@ -30,7 +30,7 @@ void ResourceValidationWorker::validateAllResources()
     _itemsToProcess.clear();
 
     for (AbstractResourceList* rl : _document->resourceLists()) {
-        for (AbstractResourceItem* item : rl->list()) {
+        for (AbstractResourceItem* item : rl->items()) {
             item->markUnchecked();
             _itemsToProcess.append(item);
         }
