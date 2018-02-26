@@ -6,54 +6,62 @@
 
 #pragma once
 
-#include "gui-qt/common/abstractsingledocumentmainwindow.h"
-#include <QComboBox>
-#include <QStackedWidget>
+#include <QMainWindow>
+#include <QUndoGroup>
+#include <memory>
 
 namespace UnTech {
 namespace GuiQt {
 class ZoomSettings;
-class ZoomableGraphicsView;
+class OpenRecentMenu;
 
 namespace Resources {
+namespace Ui {
+class MainWindow;
+}
 class Document;
 class AbstractResourceWidget;
-class ResourcesTreeDock;
-class ErrorListDock;
 
-class MainWindow : public AbstractSingleDocumentMainWindow {
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
-private:
-    void setupMenubar();
-    void setupStatusbar();
-
-protected:
-    virtual void documentChangedEvent(AbstractDocument* document,
-                                      AbstractDocument* oldDocument) final;
-    virtual std::unique_ptr<AbstractDocument> createDocumentInstance() final;
+    void loadDocument(const QString& filename);
+    void setDocument(std::unique_ptr<Document>&& document);
 
 private slots:
+    void updateWindowTitle();
+
     void onSelectedResourceChanged();
 
 private:
-    Document* _document;
+    bool unsavedChangesDialog();
+
+private slots:
+    void onMenuNew();
+    void onMenuOpen();
+    void onMenuOpenRecent(QString filename);
+    bool onMenuSave();
+    bool onMenuSaveAs();
+
+    void onMenuAbout();
+
+protected:
+    virtual void closeEvent(QCloseEvent* event) override;
+
+    void readSettings();
+    void saveSettings();
+
+private:
+    std::unique_ptr<Document> _document;
+
+    std::unique_ptr<Ui::MainWindow> _ui;
+
     ZoomSettings* _zoomSettings;
-
-    QComboBox* _aspectRatioComboBox;
-    QComboBox* _zoomComboBox;
-
-    QStackedWidget* _centralStackedWidget;
-    QStackedWidget* _propertiesStackedWidget;
-
-    ResourcesTreeDock* _resourcesTreeDock;
-    QDockWidget* _propertiesDock;
-    ErrorListDock* _errorListDock;
-
+    QUndoGroup* _undoGroup;
     QVector<AbstractResourceWidget*> _resourceWidgets;
 };
 }
