@@ -20,6 +20,7 @@ namespace RES = UnTech::Resources;
 
 class AbstractResourceItem : public QObject {
     Q_OBJECT
+    friend class AbstractInternalResourceItem;
 
 public:
     AbstractResourceItem(AbstractResourceList* parent, unsigned index)
@@ -45,10 +46,10 @@ public:
     AbstractResourceList* resourceList() const { return _list; }
 
     // name of the resource item
-    virtual const QString name() const = 0;
+    virtual QString name() const = 0;
 
     // empty if the resource is inline with the resource document
-    virtual const QString filename() const = 0;
+    virtual QString filename() const = 0;
 
     void markUnchecked();
 
@@ -84,6 +85,45 @@ private:
 
     ResourceState _state;
     RES::ErrorList _errorList;
+};
+
+class AbstractInternalResourceItem : public AbstractResourceItem {
+    Q_OBJECT
+
+public:
+    AbstractInternalResourceItem(AbstractResourceList* parent, unsigned index);
+
+    virtual QString filename() const final;
+
+protected:
+    virtual bool loadResourceData(RES::ErrorList&) final;
+};
+
+class AbstractExternalResourceItem : public AbstractResourceItem {
+    Q_OBJECT
+
+public:
+    AbstractExternalResourceItem(AbstractResourceList* parent, unsigned index,
+                                 const QString& filename = QString());
+
+    virtual QString filename() const final;
+
+    const QString& absoluteFilePath() const { return _absoluteFilePath; }
+    const QString& relativeFilePath() const { return _relativeFilePath; }
+
+protected:
+    void setFilename(const QString& filename);
+
+private slots:
+    void updateRelativePath();
+
+signals:
+    void absoluteFilePathChanged();
+    void relativeFilePathChanged();
+
+private:
+    QString _absoluteFilePath;
+    QString _relativeFilePath;
 };
 }
 }

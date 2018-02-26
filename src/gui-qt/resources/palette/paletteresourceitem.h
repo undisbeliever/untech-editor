@@ -14,18 +14,16 @@ namespace UnTech {
 namespace GuiQt {
 namespace Resources {
 
-class PaletteResourceItem : public AbstractResourceItem {
+class PaletteResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
 
 public:
     PaletteResourceItem(AbstractResourceList* parent, size_t index);
     ~PaletteResourceItem() = default;
 
-    virtual const QString name() const final;
-    virtual const QString filename() const final;
+    virtual QString name() const final;
 
 protected:
-    virtual bool loadResourceData(RES::ErrorList& err) final;
     virtual bool compileResource(RES::ErrorList& err) final;
 
 public:

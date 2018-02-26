@@ -19,7 +19,7 @@ namespace Resources {
 
 namespace MT = UnTech::MetaTiles;
 
-class MtTilesetResourceItem : public AbstractResourceItem {
+class MtTilesetResourceItem : public AbstractExternalResourceItem {
     Q_OBJECT
 
 public:
@@ -27,8 +27,7 @@ public:
     ~MtTilesetResourceItem() = default;
 
 public:
-    virtual const QString name() const final;
-    virtual const QString filename() const final;
+    virtual QString name() const final;
 
 protected:
     virtual bool loadResourceData(RES::ErrorList& err) final;
@@ -56,13 +55,7 @@ private:
         return document()->resourcesFile()->metaTileTilesetFilenames.at(index());
     }
 
-private slots:
-    void updateFilePaths();
-
 private:
-    QString _absoluteFilePath;
-    QString _relativeFilePath;
-
     std::unique_ptr<MT::MetaTileTilesetInput> _tilesetInput;
     QVector<QPixmap> _pixmaps;
 };

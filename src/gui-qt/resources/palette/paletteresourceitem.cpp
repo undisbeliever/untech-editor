@@ -9,25 +9,15 @@
 using namespace UnTech::GuiQt::Resources;
 
 PaletteResourceItem::PaletteResourceItem(AbstractResourceList* parent, size_t index)
-    : AbstractResourceItem(parent, index)
+    : AbstractInternalResourceItem(parent, index)
 {
     Q_ASSERT(index < palettesData().size());
 }
 
-const QString PaletteResourceItem::name() const
+QString PaletteResourceItem::name() const
 {
     const auto& pal = palettesData().at(index());
     return QString::fromStdString(pal->name);
-}
-
-const QString PaletteResourceItem::filename() const
-{
-    return QString();
-}
-
-bool PaletteResourceItem::loadResourceData(UnTech::Resources::ErrorList&)
-{
-    return true;
 }
 
 bool PaletteResourceItem::compileResource(RES::ErrorList& err)

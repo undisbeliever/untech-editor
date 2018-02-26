@@ -14,36 +14,11 @@
 using namespace UnTech::GuiQt::Resources;
 
 MtTilesetResourceItem::MtTilesetResourceItem(AbstractResourceList* parent, size_t index)
-    : AbstractResourceItem(parent, index)
+    : AbstractExternalResourceItem(parent, index)
 {
     Q_ASSERT(index < mtTilesetFilenameList().size());
 
-    updateFilePaths();
-
-    connect(document(), &Document::filenameChanged,
-            this, &MtTilesetResourceItem::updateFilePaths);
-}
-
-void MtTilesetResourceItem::updateFilePaths()
-{
-    QString mf = QString::fromStdString(mtTilesetFilename());
-
-    if (mf.isEmpty()) {
-        _relativeFilePath = QString();
-        _absoluteFilePath = QString();
-    }
-    else {
-        QDir dir(document()->filename());
-        _absoluteFilePath = dir.absolutePath();
-
-        bool s = dir.cdUp();
-        if (s) {
-            _relativeFilePath = dir.relativeFilePath(mf);
-        }
-        else {
-            _relativeFilePath = _absoluteFilePath;
-        }
-    }
+    setFilename(QString::fromStdString(mtTilesetFilename()));
 }
 
 void MtTilesetResourceItem::loadPixmaps()
@@ -65,25 +40,19 @@ void MtTilesetResourceItem::unloadPixmaps()
     _pixmaps.clear();
 }
 
-const QString MtTilesetResourceItem::name() const
+QString MtTilesetResourceItem::name() const
 {
     if (_tilesetInput) {
         return QString::fromStdString(_tilesetInput->name);
     }
     else {
-        return _relativeFilePath;
+        return relativeFilePath();
     }
-}
-
-const QString MtTilesetResourceItem::filename() const
-{
-    return _absoluteFilePath;
 }
 
 bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
 {
     const std::string& fn = mtTilesetFilename();
-    updateFilePaths();
 
     if (fn.empty()) {
         err.addError("Missing filename");

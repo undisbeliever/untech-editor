@@ -5,6 +5,10 @@
  */
 
 #include "abstractresourceitem.h"
+#include "document.h"
+
+#include <QDir>
+#include <QFileInfo>
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -65,5 +69,83 @@ void AbstractResourceItem::setState(ResourceState state)
     if (_state != state) {
         _state = state;
         emit stateChanged();
+    }
+}
+
+/*
+ * AbstractInternalResourceItem
+ */
+
+AbstractInternalResourceItem::AbstractInternalResourceItem(AbstractResourceList* parent, unsigned index)
+    : AbstractResourceItem(parent, index)
+{
+    // no need to load an internal resource
+    _state = ResourceState::UNCHECKED;
+}
+
+QString AbstractInternalResourceItem::filename() const
+{
+    return QString();
+}
+
+bool AbstractInternalResourceItem::loadResourceData(UnTech::Resources::ErrorList&)
+{
+    return true;
+}
+
+/*
+ * AbstractExternalResourceItem
+ */
+
+AbstractExternalResourceItem::AbstractExternalResourceItem(AbstractResourceList* parent, unsigned index,
+                                                           const QString& filename)
+    : AbstractResourceItem(parent, index)
+{
+    setFilename(filename);
+
+    connect(_document, &Document::filenameChanged,
+            this, &AbstractExternalResourceItem::updateRelativePath);
+}
+
+QString AbstractExternalResourceItem::filename() const
+{
+    return _absoluteFilePath;
+}
+
+void AbstractExternalResourceItem::setFilename(const QString& filename)
+{
+    QString absFilePath;
+    if (!filename.isEmpty()) {
+        absFilePath = QFileInfo(filename).absoluteFilePath();
+    }
+
+    if (_absoluteFilePath != absFilePath) {
+        _absoluteFilePath = absFilePath;
+
+        updateRelativePath();
+
+        emit absoluteFilePathChanged();
+    }
+}
+
+void AbstractExternalResourceItem::updateRelativePath()
+{
+    Q_ASSERT(_document);
+
+    QString relPath = _absoluteFilePath;
+
+    if (!_absoluteFilePath.isEmpty()) {
+        const auto& docFn = _document->filename();
+        if (!docFn.isEmpty()) {
+            relPath = QFileInfo(docFn).absoluteDir().relativeFilePath(_absoluteFilePath);
+        }
+        else {
+            relPath = _absoluteFilePath;
+        }
+    }
+
+    if (_relativeFilePath != relPath) {
+        _relativeFilePath = relPath;
+        emit relativeFilePathChanged();
     }
 }
