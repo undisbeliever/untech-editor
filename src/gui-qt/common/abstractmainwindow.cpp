@@ -7,6 +7,7 @@
 #include "abstractmainwindow.h"
 #include "aboutdialog.h"
 #include "abstractdocument.h"
+#include "openrecentmenu.h"
 
 #include <QCloseEvent>
 #include <QFileDialog>
@@ -15,8 +16,6 @@
 #include <QSettings>
 
 using namespace UnTech::GuiQt;
-
-const int AbstractMainWindow::MAX_OPEN_RECENT_SIZE = 6;
 
 AbstractMainWindow::AbstractMainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -32,13 +31,10 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
                              this, &AbstractMainWindow::onMenuOpen,
                              Qt::CTRL + Qt::Key_O);
 
-        auto* openRecentMenu = _fileMenu->addMenu(tr("Open &Recent"));
-        openRecentMenu->setToolTipsVisible(true);
-        for (int i = 0; i < MAX_OPEN_RECENT_SIZE; i++) {
-            _openRecentActions.append(openRecentMenu->addAction(QString()));
-        }
-        connect(openRecentMenu, &QMenu::triggered,
+        _openRecentMenu = new OpenRecentMenu(_fileMenu);
+        connect(_openRecentMenu, &OpenRecentMenu::recentFileSelected,
                 this, &AbstractMainWindow::onMenuOpenRecent);
+        _fileMenu->addMenu(_openRecentMenu);
 
         _fileMenu->addSeparator();
         _saveAction = _fileMenu->addAction(QIcon(":/icons/save.svg"), tr("&Save"),
@@ -75,8 +71,6 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
     _saveAction->setEnabled(false);
     _saveAsAction->setEnabled(false);
 
-    updateOpenRecentMenu();
-
     connect(_undoGroup, &QUndoGroup::cleanChanged,
             this, &AbstractMainWindow::updateWindowTitle);
 }
@@ -93,7 +87,7 @@ void AbstractMainWindow::loadDocument(const QString& filename)
     std::unique_ptr<AbstractDocument> doc = createDocumentInstance();
     if (doc->loadDocument(filename)) {
         setDocument(std::move(doc));
-        addToRecentFilesList(filename);
+        _openRecentMenu->addFilename(filename);
     }
 }
 
@@ -166,16 +160,14 @@ void AbstractMainWindow::onMenuOpen()
     }
 }
 
-void AbstractMainWindow::onMenuOpenRecent(QAction* action)
+void AbstractMainWindow::onMenuOpenRecent(QString filename)
 {
+    Q_ASSERT(!filename.isEmpty());
+
     if (unsavedChangesDialog() == false) {
         return;
     }
-
-    QString filename = action->data().toString();
-    if (!filename.isEmpty()) {
-        loadDocument(filename);
-    }
+    loadDocument(filename);
 }
 
 bool AbstractMainWindow::onMenuSave()
@@ -188,7 +180,7 @@ bool AbstractMainWindow::onMenuSave()
     else {
         bool s = _document->saveDocument(_document->filename());
         if (s) {
-            addToRecentFilesList(_document->filename());
+            _openRecentMenu->addFilename(_document->filename());
         }
         return s;
     }
@@ -213,7 +205,7 @@ bool AbstractMainWindow::onMenuSaveAs()
 
         bool s = _document->saveDocument(filename);
         if (s) {
-            addToRecentFilesList(_document->filename());
+            _openRecentMenu->addFilename(_document->filename());
         }
         return s;
     }
@@ -245,40 +237,6 @@ bool AbstractMainWindow::unsavedChangesDialog()
     }
 
     return success;
-}
-
-void AbstractMainWindow::addToRecentFilesList(const QString& filename)
-{
-    QSettings settings;
-    QStringList files = settings.value("recent_files").toStringList();
-
-    files.removeAll(filename);
-    files.prepend(filename);
-    while (files.size() > MAX_OPEN_RECENT_SIZE) {
-        files.removeLast();
-    }
-
-    settings.setValue("recent_files", files);
-
-    updateOpenRecentMenu();
-}
-
-void AbstractMainWindow::updateOpenRecentMenu()
-{
-    QSettings settings;
-    const QStringList files = settings.value("recent_files").toStringList();
-
-    for (int i = 0; i < MAX_OPEN_RECENT_SIZE; i++) {
-        QAction* action = _openRecentActions.at(i);
-
-        action->setVisible(i < files.size());
-        if (i < files.size()) {
-            const QString& file = files.at(i);
-            action->setText(QFileInfo(file).fileName());
-            action->setToolTip(file);
-            action->setData(file);
-        }
-    }
 }
 
 void AbstractMainWindow::readSettings()

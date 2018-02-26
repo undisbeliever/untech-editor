@@ -14,11 +14,10 @@ namespace UnTech {
 namespace GuiQt {
 
 class AbstractDocument;
+class OpenRecentMenu;
 
 class AbstractMainWindow : public QMainWindow {
     Q_OBJECT
-
-    static const int MAX_OPEN_RECENT_SIZE;
 
 public:
     explicit AbstractMainWindow(QWidget* parent = nullptr);
@@ -45,15 +44,12 @@ private:
     void setDocument(std::unique_ptr<AbstractDocument> document);
     bool unsavedChangesDialog();
 
-    void addToRecentFilesList(const QString& filename);
-    void updateOpenRecentMenu();
-
 private slots:
     void updateWindowTitle();
 
     void onMenuNew();
     void onMenuOpen();
-    void onMenuOpenRecent(QAction* action);
+    void onMenuOpenRecent(QString filename);
     bool onMenuSave();
     bool onMenuSaveAs();
 
@@ -63,9 +59,9 @@ private:
     std::unique_ptr<AbstractDocument> _document;
     QUndoGroup* _undoGroup;
 
+    OpenRecentMenu* _openRecentMenu;
     QAction* _saveAction;
     QAction* _saveAsAction;
-    QList<QAction*> _openRecentActions;
 
 protected:
     QMenu* _fileMenu;
