@@ -16,12 +16,12 @@ namespace GuiQt {
 class AbstractDocument;
 class OpenRecentMenu;
 
-class AbstractMainWindow : public QMainWindow {
+class AbstractSingleDocumentMainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit AbstractMainWindow(QWidget* parent = nullptr);
-    ~AbstractMainWindow();
+    explicit AbstractSingleDocumentMainWindow(QWidget* parent = nullptr);
+    ~AbstractSingleDocumentMainWindow();
 
     AbstractDocument* document() const { return _document.get(); }
 

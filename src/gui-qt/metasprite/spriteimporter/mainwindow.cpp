@@ -24,7 +24,7 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 MainWindow::MainWindow(QWidget* parent)
-    : AbstractMainWindow(parent)
+    : AbstractSingleDocumentMainWindow(parent)
     , _actions(new Actions(this))
     , _zoomSettings(new ZoomSettings(4.0, ZoomSettings::NTSC, this))
     , _layerSettings(new LayerSettings(this))

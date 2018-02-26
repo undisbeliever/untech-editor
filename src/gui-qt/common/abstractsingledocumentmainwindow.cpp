@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "abstractmainwindow.h"
+#include "abstractsingledocumentmainwindow.h"
 #include "aboutdialog.h"
 #include "abstractdocument.h"
 #include "openrecentmenu.h"
@@ -17,7 +17,7 @@
 
 using namespace UnTech::GuiQt;
 
-AbstractMainWindow::AbstractMainWindow(QWidget* parent)
+AbstractSingleDocumentMainWindow::AbstractSingleDocumentMainWindow(QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
     , _undoGroup(new QUndoGroup(this))
@@ -25,27 +25,27 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
     _fileMenu = menuBar()->addMenu(tr("&File"));
     {
         _fileMenu->addAction(QIcon(":/icons/new.svg"), tr("&New"),
-                             this, &AbstractMainWindow::onMenuNew,
+                             this, &AbstractSingleDocumentMainWindow::onMenuNew,
                              Qt::CTRL + Qt::Key_N);
         _fileMenu->addAction(QIcon(":/icons/open.svg"), tr("&Open"),
-                             this, &AbstractMainWindow::onMenuOpen,
+                             this, &AbstractSingleDocumentMainWindow::onMenuOpen,
                              Qt::CTRL + Qt::Key_O);
 
         _openRecentMenu = new OpenRecentMenu(_fileMenu);
         connect(_openRecentMenu, &OpenRecentMenu::recentFileSelected,
-                this, &AbstractMainWindow::onMenuOpenRecent);
+                this, &AbstractSingleDocumentMainWindow::onMenuOpenRecent);
         _fileMenu->addMenu(_openRecentMenu);
 
         _fileMenu->addSeparator();
         _saveAction = _fileMenu->addAction(QIcon(":/icons/save.svg"), tr("&Save"),
-                                           this, &AbstractMainWindow::onMenuSave,
+                                           this, &AbstractSingleDocumentMainWindow::onMenuSave,
                                            Qt::CTRL + Qt::Key_S);
         _saveAsAction = _fileMenu->addAction(tr("Save &As"), this,
-                                             &AbstractMainWindow::onMenuSaveAs,
+                                             &AbstractSingleDocumentMainWindow::onMenuSaveAs,
                                              Qt::CTRL + Qt::SHIFT + Qt::Key_S);
         _fileMenu->addSeparator();
         _fileMenu->addAction(tr("&Quit"), this,
-                             &AbstractMainWindow::close);
+                             &AbstractSingleDocumentMainWindow::close);
     }
 
     _editMenu = menuBar()->addMenu(tr("&Edit"));
@@ -65,24 +65,24 @@ AbstractMainWindow::AbstractMainWindow(QWidget* parent)
     _aboutMenu = menuBar()->addMenu(tr("&Help"));
     {
         _aboutMenu->addAction(tr("About"),
-                              this, &AbstractMainWindow::onMenuAbout);
+                              this, &AbstractSingleDocumentMainWindow::onMenuAbout);
     }
 
     _saveAction->setEnabled(false);
     _saveAsAction->setEnabled(false);
 
     connect(_undoGroup, &QUndoGroup::cleanChanged,
-            this, &AbstractMainWindow::updateWindowTitle);
+            this, &AbstractSingleDocumentMainWindow::updateWindowTitle);
 }
 
-AbstractMainWindow::~AbstractMainWindow() = default;
+AbstractSingleDocumentMainWindow::~AbstractSingleDocumentMainWindow() = default;
 
-void AbstractMainWindow::newDocument()
+void AbstractSingleDocumentMainWindow::newDocument()
 {
     setDocument(createDocumentInstance());
 }
 
-void AbstractMainWindow::loadDocument(const QString& filename)
+void AbstractSingleDocumentMainWindow::loadDocument(const QString& filename)
 {
     std::unique_ptr<AbstractDocument> doc = createDocumentInstance();
     if (doc->loadDocument(filename)) {
@@ -91,7 +91,7 @@ void AbstractMainWindow::loadDocument(const QString& filename)
     }
 }
 
-void AbstractMainWindow::setDocument(std::unique_ptr<AbstractDocument> document)
+void AbstractSingleDocumentMainWindow::setDocument(std::unique_ptr<AbstractDocument> document)
 {
     auto oldDocument = std::move(_document);
 
@@ -108,7 +108,7 @@ void AbstractMainWindow::setDocument(std::unique_ptr<AbstractDocument> document)
         _document->undoStack()->setActive();
 
         connect(_document.get(), &AbstractDocument::filenameChanged,
-                this, &AbstractMainWindow::updateWindowTitle);
+                this, &AbstractSingleDocumentMainWindow::updateWindowTitle);
     }
 
     documentChangedEvent(_document.get(), oldDocument.get());
@@ -116,7 +116,7 @@ void AbstractMainWindow::setDocument(std::unique_ptr<AbstractDocument> document)
     updateWindowTitle();
 }
 
-void AbstractMainWindow::updateWindowTitle()
+void AbstractSingleDocumentMainWindow::updateWindowTitle()
 {
     if (_document != nullptr) {
         QString title = QFileInfo(_document->filename()).fileName();
@@ -136,7 +136,7 @@ void AbstractMainWindow::updateWindowTitle()
     }
 }
 
-void AbstractMainWindow::onMenuNew()
+void AbstractSingleDocumentMainWindow::onMenuNew()
 {
     if (unsavedChangesDialog() == false) {
         return;
@@ -144,7 +144,7 @@ void AbstractMainWindow::onMenuNew()
     newDocument();
 }
 
-void AbstractMainWindow::onMenuOpen()
+void AbstractSingleDocumentMainWindow::onMenuOpen()
 {
     if (unsavedChangesDialog() == false) {
         return;
@@ -160,7 +160,7 @@ void AbstractMainWindow::onMenuOpen()
     }
 }
 
-void AbstractMainWindow::onMenuOpenRecent(QString filename)
+void AbstractSingleDocumentMainWindow::onMenuOpenRecent(QString filename)
 {
     Q_ASSERT(!filename.isEmpty());
 
@@ -170,7 +170,7 @@ void AbstractMainWindow::onMenuOpenRecent(QString filename)
     loadDocument(filename);
 }
 
-bool AbstractMainWindow::onMenuSave()
+bool AbstractSingleDocumentMainWindow::onMenuSave()
 {
     Q_ASSERT(_document != nullptr);
 
@@ -186,7 +186,7 @@ bool AbstractMainWindow::onMenuSave()
     }
 }
 
-bool AbstractMainWindow::onMenuSaveAs()
+bool AbstractSingleDocumentMainWindow::onMenuSaveAs()
 {
     Q_ASSERT(_document != nullptr);
 
@@ -213,12 +213,12 @@ bool AbstractMainWindow::onMenuSaveAs()
     return false;
 }
 
-void AbstractMainWindow::onMenuAbout()
+void AbstractSingleDocumentMainWindow::onMenuAbout()
 {
     AboutDialog().exec();
 }
 
-bool AbstractMainWindow::unsavedChangesDialog()
+bool AbstractSingleDocumentMainWindow::unsavedChangesDialog()
 {
     bool success = true;
 
@@ -239,21 +239,21 @@ bool AbstractMainWindow::unsavedChangesDialog()
     return success;
 }
 
-void AbstractMainWindow::readSettings()
+void AbstractSingleDocumentMainWindow::readSettings()
 {
     QSettings settings;
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("window_state").toByteArray());
 }
 
-void AbstractMainWindow::saveSettings()
+void AbstractSingleDocumentMainWindow::saveSettings()
 {
     QSettings settings;
     settings.setValue("geometry", saveGeometry());
     settings.setValue("window_state", saveState());
 }
 
-void AbstractMainWindow::closeEvent(QCloseEvent* event)
+void AbstractSingleDocumentMainWindow::closeEvent(QCloseEvent* event)
 {
     if (unsavedChangesDialog()) {
         event->accept();

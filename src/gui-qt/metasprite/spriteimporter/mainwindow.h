@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gui-qt/common/abstractmainwindow.h"
+#include "gui-qt/common/abstractsingledocumentmainwindow.h"
 #include <QComboBox>
 #include <QFileSystemWatcher>
 #include <QMainWindow>
@@ -36,7 +36,7 @@ class SiAnimationPreviewItemFactory;
 class FrameSetDock;
 class FrameDock;
 
-class MainWindow : public AbstractMainWindow {
+class MainWindow : public AbstractSingleDocumentMainWindow {
     Q_OBJECT
 
 public:

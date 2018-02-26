@@ -22,7 +22,7 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
 
 MainWindow::MainWindow(QWidget* parent)
-    : AbstractMainWindow(parent)
+    : AbstractSingleDocumentMainWindow(parent)
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
 {
     // Have the left and right docks take up the whole height of the MainWindow
