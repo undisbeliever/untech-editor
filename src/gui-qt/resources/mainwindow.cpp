@@ -13,8 +13,11 @@
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/resources/mainwindow.ui.h"
 
+#include "genericpropertieswidget.h"
 #include "mttileset/mttilesetcentralwidget.h"
+#include "mttileset/mttilesetpropertymanager.h"
 #include "palette/palettecentralwidget.h"
+#include "palette/palettepropertymanager.h"
 
 #include <QComboBox>
 #include <QFileDialog>
@@ -68,19 +71,20 @@ MainWindow::MainWindow(QWidget* parent)
 
     // ::NOTE Order MUST match ResourceTypeIndex::
 
-    auto addCW = [this](auto* centralWidget) {
+    auto addWidgets = [this](AbstractResourceWidget* centralWidget, AbstractResourceWidget* propertiesWidget) {
         _resourceWidgets.append(centralWidget);
         _ui->centralStackedWidget->addWidget(centralWidget);
+        _resourceWidgets.append(propertiesWidget);
+        _ui->propertiesStackedWidget->addWidget(propertiesWidget);
     };
 
     _ui->centralStackedWidget->addWidget(new QLabel("Blank GUI", this));
     _ui->propertiesStackedWidget->addWidget(new QLabel("Blank Properties", this));
 
-    addCW(new PaletteCentralWidget(this));
-    _ui->propertiesStackedWidget->addWidget(new QLabel("Palette Properties", this));
-
-    addCW(new MtTilesetCentralWidget(this, _zoomSettings));
-    _ui->propertiesStackedWidget->addWidget(new QLabel("MetaTile Tileset properties", this));
+    addWidgets(new PaletteCentralWidget(this),
+               new GenericPropertiesWidget(new PalettePropertiesManager(this), this));
+    addWidgets(new MtTilesetCentralWidget(this, _zoomSettings),
+               new GenericPropertiesWidget(new MtTilesetPropertiesManager(this), this));
 
     readSettings();
 
