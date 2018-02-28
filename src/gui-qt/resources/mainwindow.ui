@@ -37,7 +37,6 @@
     <addaction name="menu_OpenRecent"/>
     <addaction name="separator"/>
     <addaction name="action_Save"/>
-    <addaction name="action_SaveAs"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
@@ -130,14 +129,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
-   </property>
-  </action>
-  <action name="action_SaveAs">
-   <property name="text">
-    <string>Save &amp;As</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+S</string>
    </property>
   </action>
   <action name="action_Quit">

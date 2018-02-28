@@ -101,8 +101,6 @@ MainWindow::MainWindow(QWidget* parent)
             this, &MainWindow::onMenuOpenRecent);
     connect(_ui->action_Save, &QAction::triggered,
             this, &MainWindow::onMenuSave);
-    connect(_ui->action_SaveAs, &QAction::triggered,
-            this, &MainWindow::onMenuSaveAs);
     connect(_ui->action_Quit, &QAction::triggered,
             this, &MainWindow::close);
 
@@ -137,7 +135,6 @@ void MainWindow::setDocument(std::unique_ptr<Document>&& document)
     _ui->errorListDock->close();
 
     _ui->action_Save->setEnabled(_document != nullptr);
-    _ui->action_SaveAs->setEnabled(_document != nullptr);
 
     _ui->centralStackedWidget->setCurrentIndex(0);
     _ui->propertiesStackedWidget->setCurrentIndex(0);
@@ -289,44 +286,13 @@ void MainWindow::onMenuOpenRecent(QString filename)
 bool MainWindow::onMenuSave()
 {
     Q_ASSERT(_document != nullptr);
+    Q_ASSERT(!_document->filename().isEmpty());
 
-    if (_document->filename().isEmpty()) {
-        return onMenuSaveAs();
+    bool s = _document->saveDocument(_document->filename());
+    if (s) {
+        _ui->menu_OpenRecent->addFilename(_document->filename());
     }
-    else {
-        bool s = _document->saveDocument(_document->filename());
-        if (s) {
-            _ui->menu_OpenRecent->addFilename(_document->filename());
-        }
-        return s;
-    }
-}
-
-bool MainWindow::onMenuSaveAs()
-{
-    Q_ASSERT(_document != nullptr);
-
-    QFileDialog saveDialog(this, "Save");
-    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
-    saveDialog.setNameFilter(_document->fileFilter());
-    saveDialog.setDefaultSuffix(_document->defaultFileExtension());
-
-    if (!_document->filename().isEmpty()) {
-        saveDialog.selectFile(_document->filename());
-    }
-    saveDialog.exec();
-
-    if (saveDialog.result() == QDialog::Accepted) {
-        QString filename = saveDialog.selectedFiles().first();
-
-        bool s = _document->saveDocument(filename);
-        if (s) {
-            _ui->menu_OpenRecent->addFilename(_document->filename());
-        }
-        return s;
-    }
-
-    return false;
+    return s;
 }
 
 void MainWindow::onMenuAbout()
