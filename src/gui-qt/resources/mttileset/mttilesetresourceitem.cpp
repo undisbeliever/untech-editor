@@ -5,11 +5,7 @@
  */
 
 #include "mttilesetresourceitem.h"
-#include "gui-qt/common/idstringvalidator.h"
 #include "models/metatiles/metatiles-serializer.h"
-
-#include <QDir>
-#include <QFileInfo>
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -57,18 +53,6 @@ bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
     if (fn.empty()) {
         err.addError("Missing filename");
         return false;
-    }
-
-    QFileInfo fi(QString::fromStdString(fn));
-    if (!fi.exists()) {
-        // File does not exist, create a blank MtTileset
-        _tilesetInput = std::make_unique<MT::MetaTileTilesetInput>();
-
-        QString name = fi.baseName();
-        IdstringValidator().fixup(name);
-        _tilesetInput->name = name.toStdString();
-
-        return true;
     }
 
     try {

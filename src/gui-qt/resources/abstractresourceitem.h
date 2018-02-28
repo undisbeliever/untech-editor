@@ -59,7 +59,6 @@ public slots:
     void loadResource();
 
 protected:
-    // MUST load a blank resource if the file does not exist
     virtual bool loadResourceData(RES::ErrorList& err) = 0;
 
     // compiles the resource to test if valid
