@@ -143,6 +143,8 @@ void MainWindow::setDocument(std::unique_ptr<Document>&& document)
     _ui->propertiesStackedWidget->setCurrentIndex(0);
 
     if (_document != nullptr) {
+        Q_ASSERT(!_document->filename().isEmpty());
+
         _undoGroup->addStack(_document->undoStack());
         _document->undoStack()->setActive();
 
@@ -233,7 +235,28 @@ void MainWindow::onMenuNew()
         return;
     }
 
-    setDocument(std::make_unique<Document>());
+    auto doc = std::make_unique<Document>();
+
+    QFileDialog saveDialog(this, "Create New Resource File");
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    saveDialog.setNameFilter(doc->fileFilter());
+    saveDialog.setDefaultSuffix(doc->defaultFileExtension());
+
+    if (!doc->filename().isEmpty()) {
+        saveDialog.selectFile(doc->filename());
+    }
+    saveDialog.exec();
+
+    if (saveDialog.result() == QDialog::Accepted) {
+        Q_ASSERT(saveDialog.selectedFiles().size() == 1);
+        QString filename = saveDialog.selectedFiles().first();
+
+        bool s = doc->saveDocument(filename);
+        if (s) {
+            _ui->menu_OpenRecent->addFilename(filename);
+            setDocument(std::move(doc));
+        }
+    }
 }
 
 void MainWindow::onMenuOpen()
