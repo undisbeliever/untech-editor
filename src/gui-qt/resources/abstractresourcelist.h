@@ -54,7 +54,10 @@ protected:
 
     virtual AbstractResourceItem* buildResourceItem(size_t index) = 0;
 
+    // If the resource is external then create a new resource file.
+    // Is allowed to throw an exception
     virtual void do_addResource(const std::string& input) = 0;
+
     virtual void do_removeResource(unsigned index) = 0;
 
 private slots:

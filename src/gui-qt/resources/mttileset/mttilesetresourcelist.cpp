@@ -6,6 +6,10 @@
 
 #include "mttilesetresourcelist.h"
 #include "mttilesetresourceitem.h"
+#include "gui-qt/common/idstringvalidator.h"
+#include "models/metatiles/metatiles-serializer.h"
+
+#include <QFileInfo>
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -50,6 +54,16 @@ void MtTilesetResourceList::do_addResource(const std::string& filename)
 {
     auto& fnList = document()->resourcesFile()->metaTileTilesetFilenames;
     fnList.emplace_back(filename);
+
+    QFileInfo fi(QString::fromStdString(filename));
+    if (!fi.exists()) {
+        QString name = fi.baseName();
+        IdstringValidator().fixup(name);
+
+        MT::MetaTileTilesetInput tilesetInput;
+        tilesetInput.name = name.toStdString();
+        MT::saveMetaTileTilesetInput(tilesetInput, filename);
+    }
 }
 
 void MtTilesetResourceList::do_removeResource(unsigned index)

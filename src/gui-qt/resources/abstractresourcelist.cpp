@@ -8,6 +8,8 @@
 #include "abstractresourceitem.h"
 #include "document.h"
 
+#include <QMessageBox>
+
 using namespace UnTech::GuiQt::Resources;
 
 AbstractResourceList::AbstractResourceList(QObject* parent, ResourceTypeIndex typeIndex)
@@ -44,7 +46,13 @@ void AbstractResourceList::setDocument(Document* document)
 
 void AbstractResourceList::addResource(const QString& input)
 {
-    do_addResource(input.toStdString());
+    try {
+        do_addResource(input.toStdString());
+    }
+    catch (const std::exception& ex) {
+        QMessageBox::critical(nullptr, tr("Error Creating Resource"), ex.what());
+        return;
+    }
 
     Q_ASSERT((size_t)_items.size() + 1 == nItems());
 
