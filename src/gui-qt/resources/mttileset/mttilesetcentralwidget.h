@@ -11,6 +11,8 @@
 #include "models/resources/error-list.h"
 #include <QGraphicsObject>
 #include <QGraphicsScene>
+#include <QPixmap>
+#include <QVector>
 #include <memory>
 
 namespace UnTech {
@@ -93,14 +95,15 @@ public:
 
 private slots:
     void updateInvalidTiles();
+    void loadPixmaps();
 
 private:
     MtTilesetResourceItem* const _tileset;
-    QPixmap _pixmap;
 
     QGraphicsItem* _commonErrors;
     QList<QGraphicsItem*> _frameErrors;
 
+    QVector<QPixmap> _pixmaps;
     int _animationFrameIndex;
 };
 }

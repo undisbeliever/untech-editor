@@ -59,7 +59,6 @@ void MtTilesetCentralWidget::setResourceItem(AbstractResourceItem* abstractItem)
     }
 
     if (_tileset) {
-        _tileset->unloadPixmaps();
         _tileset->disconnect(this);
     }
     _tileset = item;
@@ -68,8 +67,6 @@ void MtTilesetCentralWidget::setResourceItem(AbstractResourceItem* abstractItem)
     _graphicsItem = nullptr;
 
     if (_tileset) {
-        _tileset->loadPixmaps();
-
         _graphicsItem = new MtTilesetGraphicsItem(_tileset);
         _graphicsScene->addItem(_graphicsItem);
 
@@ -87,9 +84,7 @@ void MtTilesetCentralWidget::updateFrameLabel()
     Q_ASSERT(_tileset);
     Q_ASSERT(_graphicsItem);
 
-    const auto& pixmaps = _tileset->pixmaps();
-
-    if (!pixmaps.empty()) {
+    if (_graphicsItem->animationFrameIndex() >= 0) {
         unsigned index = _graphicsItem->animationFrameIndex();
         _ui->animationFrameLabel->setText(tr("Frame %1").arg(index));
     }
@@ -149,6 +144,7 @@ MtTilesetGraphicsItem::MtTilesetGraphicsItem(MtTilesetResourceItem* item)
 {
     Q_ASSERT(_tileset);
 
+    loadPixmaps();
     reloadAnimationFrame();
 
     updateInvalidTiles();
@@ -157,26 +153,44 @@ MtTilesetGraphicsItem::MtTilesetGraphicsItem(MtTilesetResourceItem* item)
             this, &MtTilesetGraphicsItem::updateInvalidTiles);
 }
 
+void MtTilesetGraphicsItem::loadPixmaps()
+{
+    Q_ASSERT(_tileset);
+    const auto& _tilesetInput = _tileset->tilesetInput();
+
+    _pixmaps.clear();
+
+    if (_tilesetInput) {
+        const auto& filenames = _tilesetInput->animationFrames.frameImageFilenames;
+        _pixmaps.reserve(filenames.size());
+        for (const auto& fn : filenames) {
+            _pixmaps.append(QPixmap(QString::fromStdString(fn), "PNG"));
+        }
+
+        if (_animationFrameIndex > _pixmaps.size()) {
+            setAnimationFrameIndex(0);
+        }
+    }
+
+    prepareGeometryChange();
+    update();
+}
+
 void MtTilesetGraphicsItem::setAnimationFrameIndex(int index)
 {
     Q_ASSERT(_tileset);
 
-    const auto& pixmaps = _tileset->pixmaps();
-
-    if (!pixmaps.empty()) {
+    if (!_pixmaps.empty()) {
         if (index < 0) {
-            index = pixmaps.size() - 1;
+            index = _pixmaps.size() - 1;
         }
-        else if (index >= pixmaps.size()) {
+        else if (index >= _pixmaps.size()) {
             index = 0;
         }
         _animationFrameIndex = index;
-
-        _pixmap = pixmaps.at(index);
     }
     else {
-        _pixmap = QPixmap();
-        _animationFrameIndex = 0;
+        _animationFrameIndex = -1;
     }
 
     for (int i = 0; i < _frameErrors.size(); i++) {
@@ -188,8 +202,13 @@ void MtTilesetGraphicsItem::setAnimationFrameIndex(int index)
 
 QRectF MtTilesetGraphicsItem::boundingRect() const
 {
-    unsigned w = _pixmap.width();
-    unsigned h = _pixmap.height();
+    if (_animationFrameIndex < 0 || _animationFrameIndex > _pixmaps.size()) {
+        return QRectF();
+    }
+    const QPixmap& pixmap = _pixmaps.at(_animationFrameIndex);
+
+    unsigned w = pixmap.width();
+    unsigned h = pixmap.height();
 
     return QRectF(0, 0, w, h);
 }
@@ -197,11 +216,12 @@ QRectF MtTilesetGraphicsItem::boundingRect() const
 void MtTilesetGraphicsItem::paint(QPainter* painter,
                                   const QStyleOptionGraphicsItem*, QWidget* widget)
 {
-    if (_pixmap.isNull()) {
+    if (_animationFrameIndex < 0 || _animationFrameIndex > _pixmaps.size()) {
         return;
     }
+    const QPixmap& pixmap = _pixmaps.at(_animationFrameIndex);
 
-    painter->drawPixmap(0, 0, _pixmap);
+    painter->drawPixmap(0, 0, pixmap);
 
     // draw grid
 
@@ -210,8 +230,8 @@ void MtTilesetGraphicsItem::paint(QPainter* painter,
     painter->setBrush(QBrush());
     painter->setPen(createCosmeticPen(GRID_COLOR, widget));
 
-    const unsigned w = _pixmap.width();
-    const unsigned h = _pixmap.height();
+    const unsigned w = pixmap.width();
+    const unsigned h = pixmap.height();
 
     painter->drawRect(0, 0, w, h);
 
@@ -241,12 +261,12 @@ void MtTilesetGraphicsItem::updateInvalidTiles()
     // Create new parent containers for the errors
     {
         QSize s;
-        for (auto& p : _tileset->pixmaps()) {
+        for (auto& p : _pixmaps) {
             s = s.expandedTo(p.size());
         }
 
         QRectF r(0, 0, s.width(), s.height());
-        unsigned nFrames = _tileset->pixmaps().size();
+        unsigned nFrames = _pixmaps.size();
         for (unsigned i = 0; i < nFrames; i++) {
             auto* item = new QGraphicsRectItem(r, this);
             item->setBrush(Qt::NoBrush);

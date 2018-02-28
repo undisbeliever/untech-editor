@@ -10,8 +10,6 @@
 #include "../document.h"
 #include "models/metatiles/metatile-tileset.h"
 #include <QObject>
-#include <QPixmap>
-#include <QVector>
 
 namespace UnTech {
 namespace GuiQt {
@@ -37,12 +35,6 @@ public:
     // may be nullptr
     const auto& tilesetInput() const { return _tilesetInput; }
 
-    // may be empty or invalid
-    const auto& pixmaps() const { return _pixmaps; }
-
-public:
-    void loadPixmaps();
-    void unloadPixmaps();
 
 private:
     inline const auto& mtTilesetFilenameList() const
@@ -57,7 +49,6 @@ private:
 
 private:
     std::unique_ptr<MT::MetaTileTilesetInput> _tilesetInput;
-    QVector<QPixmap> _pixmaps;
 };
 }
 }

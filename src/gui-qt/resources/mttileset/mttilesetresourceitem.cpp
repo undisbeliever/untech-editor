@@ -17,25 +17,6 @@ MtTilesetResourceItem::MtTilesetResourceItem(AbstractResourceList* parent, size_
     setFilename(QString::fromStdString(mtTilesetFilename()));
 }
 
-void MtTilesetResourceItem::loadPixmaps()
-{
-    _pixmaps.clear();
-
-    if (_tilesetInput) {
-        const auto& filenames = _tilesetInput->animationFrames.frameImageFilenames;
-
-        _pixmaps.reserve(filenames.size());
-        for (const auto& fn : filenames) {
-            _pixmaps.append(QPixmap(QString::fromStdString(fn), "PNG"));
-        }
-    }
-}
-
-void MtTilesetResourceItem::unloadPixmaps()
-{
-    _pixmaps.clear();
-}
-
 QString MtTilesetResourceItem::name() const
 {
     if (_tilesetInput) {
