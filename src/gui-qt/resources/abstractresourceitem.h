@@ -32,6 +32,9 @@ public:
     {
         Q_ASSERT(parent != nullptr);
         Q_ASSERT(_document != nullptr);
+
+        connect(this, &AbstractResourceItem::dataChanged,
+                this, &AbstractResourceItem::markUnchecked);
     }
 
     ~AbstractResourceItem() = default;
@@ -51,11 +54,10 @@ public:
     // empty if the resource is inline with the resource document
     virtual QString filename() const = 0;
 
-    void markUnchecked();
-
     void validateItem();
 
 public slots:
+    void markUnchecked();
     void loadResource();
 
 protected:
@@ -63,6 +65,12 @@ protected:
 
     // compiles the resource to test if valid
     virtual bool compileResource(RES::ErrorList& err) = 0;
+
+signals:
+    // MUST be emitted by the subclass when the resource name changes
+    void nameChanged();
+    // MUST be emitted by the subclass when the internal data changes
+    void dataChanged();
 
 private:
     friend void AbstractResourceList::removeResource(int);

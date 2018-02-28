@@ -59,7 +59,9 @@ private:
     AnimationTimer _animationTimer;
 };
 
-class PaletteGraphicsItem : public QGraphicsItem {
+class PaletteGraphicsItem : public QGraphicsObject {
+    Q_OBJECT
+
 public:
     static constexpr int PALETTE_SCALE = 24;
     static constexpr int LINE_WIDTH = 1;
@@ -73,8 +75,10 @@ public:
     explicit PaletteGraphicsItem(PaletteResourceItem* item);
     ~PaletteGraphicsItem() = default;
 
+public slots:
     void updatePixmap();
 
+public:
     void setFrameIndex(int index);
     void nextAnimationFrame() { setFrameIndex(_frameIndex + 1); }
     int frameIndex() const { return _frameIndex; }

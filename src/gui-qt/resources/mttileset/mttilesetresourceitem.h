@@ -35,6 +35,8 @@ public:
     // may be nullptr
     const auto& tilesetInput() const { return _tilesetInput; }
 
+signals:
+    void frameImageFilenamesChanged();
 
 private:
     inline const auto& mtTilesetFilenameList() const

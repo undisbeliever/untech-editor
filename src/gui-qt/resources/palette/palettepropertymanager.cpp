@@ -29,13 +29,23 @@ void PalettePropertiesManager::setResourceItem(AbstractResourceItem* abstractIte
 {
     PaletteResourceItem* item = qobject_cast<PaletteResourceItem*>(abstractItem);
 
-    if (_palette != item) {
-        _palette = item;
-
-        setEnabled(_palette != nullptr);
-
-        emit dataChanged();
+    if (_palette == item) {
+        return;
     }
+
+    if (_palette) {
+        _palette->disconnect(this);
+    }
+    _palette = item;
+
+    setEnabled(_palette != nullptr);
+
+    if (_palette) {
+        connect(_palette, &PaletteResourceItem::dataChanged,
+                this, &PalettePropertiesManager::dataChanged);
+    }
+
+    emit dataChanged();
 }
 
 QVariant PalettePropertiesManager::data(int id) const
@@ -81,11 +91,13 @@ bool PalettePropertiesManager::setData(int id, const QVariant& value)
     switch ((PropertyId)id) {
     case NAME:
         newData.name = value.toString().toStdString();
+        emit _palette->nameChanged();
         break;
 
     case IMAGE_FILENAME:
         newData.paletteImageFilename = value.toString().toStdString();
         newData.paletteImage.loadPngImage(newData.paletteImageFilename);
+        emit _palette->imageFilenameChanged();
         break;
 
     case ROWS_PER_FRAME:
@@ -101,5 +113,6 @@ bool PalettePropertiesManager::setData(int id, const QVariant& value)
         break;
     }
 
+    emit _palette->dataChanged();
     return true;
 }

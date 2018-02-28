@@ -46,10 +46,13 @@ public:
 private:
     QVariant stateIcon(ResourceState s) const;
 
+    void emitResourceDataChanged(AbstractResourceItem* item, const QVector<int>& roles);
+
 private slots:
     void onResourceListChanged();
     void onResourceListStateChanged();
     void onResourceItemStateChanged();
+    void onResourceItemNameChanged();
 
 private:
     Document* _document;

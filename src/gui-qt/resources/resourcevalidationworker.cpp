@@ -24,21 +24,32 @@ ResourceValidationWorker::ResourceValidationWorker(Document* document)
             this, &ResourceValidationWorker::processNextResource);
 }
 
+void ResourceValidationWorker::checkResourceLater(AbstractResourceItem* item)
+{
+    _itemsToProcess.removeAll(item);
+    _itemsToProcess.append(item);
+
+    if (!_timer.isActive()) {
+        _timer.start();
+    }
+}
+
 void ResourceValidationWorker::validateAllResources()
 {
     _timer.stop();
-    _itemsToProcess.clear();
+    QList<AbstractResourceItem*> items;
 
     for (AbstractResourceList* rl : _document->resourceLists()) {
         for (AbstractResourceItem* item : rl->items()) {
             item->markUnchecked();
-            _itemsToProcess.append(item);
+            items.append(item);
         }
     }
 
-    std::reverse(_itemsToProcess.begin(), _itemsToProcess.end());
+    std::reverse(items.begin(), items.end());
 
-    if (!_itemsToProcess.isEmpty()) {
+    if (!items.isEmpty()) {
+        _itemsToProcess = items;
         _timer.start();
     }
 }

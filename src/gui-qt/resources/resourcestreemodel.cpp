@@ -48,6 +48,8 @@ void ResourcesTreeModel::setDocument(Document* document)
                     this, &ResourcesTreeModel::onResourceListChanged);
 
             for (AbstractResourceItem* item : rl->items()) {
+                connect(item, &AbstractResourceItem::nameChanged,
+                        this, &ResourcesTreeModel::onResourceItemNameChanged);
                 connect(item, &AbstractResourceItem::stateChanged,
                         this, &ResourcesTreeModel::onResourceItemStateChanged);
             }
@@ -89,22 +91,33 @@ void ResourcesTreeModel::onResourceListStateChanged()
 void ResourcesTreeModel::onResourceItemStateChanged()
 {
     Q_ASSERT(_document);
+    emitResourceDataChanged(qobject_cast<AbstractResourceItem*>(sender()),
+                            { Qt::DecorationRole });
+}
 
-    AbstractResourceItem* item = qobject_cast<AbstractResourceItem*>(sender());
+void ResourcesTreeModel::onResourceItemNameChanged()
+{
+    Q_ASSERT(_document);
+    emitResourceDataChanged(qobject_cast<AbstractResourceItem*>(sender()),
+                            { Qt::DisplayRole });
+}
+
+void ResourcesTreeModel::emitResourceDataChanged(AbstractResourceItem* item, const QVector<int>& roles)
+{
     if (item) {
         int listIndex = (int)item->resourceTypeIndex();
         int index = item->index();
 
         emit dataChanged(createIndex(index, 0, listIndex),
                          createIndex(index, N_COLUMNS, listIndex),
-                         { Qt::DecorationRole });
+                         roles);
     }
     else {
         // Update everything
         int lastIndex = _document->resourceLists().back()->items().size();
         emit dataChanged(createIndex(0, 0, ROOT_INTERNAL_ID),
                          createIndex(lastIndex, N_COLUMNS, N_RESOURCE_TYPES - 1),
-                         { Qt::DecorationRole });
+                         roles);
     }
 }
 

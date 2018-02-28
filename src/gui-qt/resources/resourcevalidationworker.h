@@ -30,6 +30,8 @@ class ResourceValidationWorker : public QObject {
 public:
     ResourceValidationWorker(Document* parent);
 
+    void checkResourceLater(AbstractResourceItem* item);
+
 public slots:
     void validateAllResources();
 

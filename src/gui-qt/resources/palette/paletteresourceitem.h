@@ -26,6 +26,9 @@ public:
 protected:
     virtual bool compileResource(RES::ErrorList& err) final;
 
+signals:
+    void imageFilenameChanged();
+
 public:
     inline const auto& paletteData() const
     {

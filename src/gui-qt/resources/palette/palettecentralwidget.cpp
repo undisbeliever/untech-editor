@@ -70,6 +70,9 @@ void PaletteCentralWidget::setResourceItem(AbstractResourceItem* abstractItem)
 
         onPaletteDataChanged();
         updateFrameLabel();
+
+        connect(_palette, &PaletteResourceItem::dataChanged,
+                this, &PaletteCentralWidget::onPaletteDataChanged);
     }
     else {
         clearGui();
@@ -148,13 +151,16 @@ void PaletteCentralWidget::onAnimationStopped()
 }
 
 PaletteGraphicsItem::PaletteGraphicsItem(PaletteResourceItem* item)
-    : QGraphicsItem()
+    : QGraphicsObject()
     , _palette(item)
     , _frameIndex(-1)
 {
     Q_ASSERT(_palette != nullptr);
 
     updatePixmap();
+
+    connect(_palette, &PaletteResourceItem::imageFilenameChanged,
+            this, &PaletteGraphicsItem::updatePixmap);
 }
 
 void PaletteGraphicsItem::updatePixmap()

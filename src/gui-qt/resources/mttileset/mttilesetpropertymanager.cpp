@@ -31,16 +31,24 @@ void MtTilesetPropertiesManager::setResourceItem(AbstractResourceItem* abstractI
 {
     MtTilesetResourceItem* item = qobject_cast<MtTilesetResourceItem*>(abstractItem);
 
-    if (_tileset != item) {
-        _tileset = item;
-
-        setEnabled(_tileset != nullptr);
-        if (_tileset) {
-            setEnabled(_tileset->tilesetInput() != nullptr);
-        }
-
-        emit dataChanged();
+    if (_tileset == item) {
+        return;
     }
+    if (_tileset) {
+        _tileset->disconnect(this);
+    }
+    _tileset = item;
+
+    setEnabled(_tileset != nullptr);
+
+    if (_tileset) {
+        setEnabled(_tileset->tilesetInput() != nullptr);
+
+        connect(_tileset, &MtTilesetResourceItem::dataChanged,
+                this, &MtTilesetPropertiesManager::dataChanged);
+    }
+
+    emit dataChanged();
 }
 
 QVariant MtTilesetPropertiesManager::data(int id) const
@@ -89,10 +97,12 @@ bool MtTilesetPropertiesManager::setData(int id, const QVariant& value)
     switch ((PropertyId)id) {
     case NAME:
         newData.name = value.toString().toStdString();
+        emit _tileset->nameChanged();
         break;
 
     case FRAME_IMAGES:
         newData.animationFrames.frameImageFilenames = toStringVector(value.toStringList());
+        emit _tileset->frameImageFilenamesChanged();
         break;
 
     case PALETTES:
@@ -112,5 +122,6 @@ bool MtTilesetPropertiesManager::setData(int id, const QVariant& value)
         break;
     }
 
+    emit _tileset->dataChanged();
     return true;
 }

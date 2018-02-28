@@ -71,6 +71,9 @@ void MtTilesetCentralWidget::setResourceItem(AbstractResourceItem* abstractItem)
         _graphicsScene->addItem(_graphicsItem);
 
         onMtTilesetDataChanged();
+
+        connect(_tileset, &MtTilesetResourceItem::dataChanged,
+                this, &MtTilesetCentralWidget::onMtTilesetDataChanged);
     }
     else {
         _ui->animationFrameLabel->clear();
@@ -148,6 +151,9 @@ MtTilesetGraphicsItem::MtTilesetGraphicsItem(MtTilesetResourceItem* item)
     reloadAnimationFrame();
 
     updateInvalidTiles();
+
+    connect(_tileset, &MtTilesetResourceItem::frameImageFilenamesChanged,
+            this, &MtTilesetGraphicsItem::loadPixmaps);
 
     connect(_tileset, &AbstractResourceItem::errorListChanged,
             this, &MtTilesetGraphicsItem::updateInvalidTiles);
