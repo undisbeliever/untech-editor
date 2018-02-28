@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Update Menu
     {
+        _ui->action_AddResource->setMenu(_ui->resourcesTreeDock->addResourceMenu());
+
         QAction* undoAction = _undoGroup->createUndoAction(this);
         QAction* redoAction = _undoGroup->createRedoAction(this);
         undoAction->setIcon(QIcon(":/icons/undo.svg"));
