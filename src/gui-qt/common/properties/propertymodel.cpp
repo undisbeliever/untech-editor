@@ -23,7 +23,9 @@ PropertyModel::PropertyModel(PropertyManager* manager)
 
 void PropertyModel::updateAll()
 {
-    emit layoutChanged();
+    emit dataChanged(createIndex(0, VALUE_COLUMN),
+                     createIndex(_manager->propertiesList().size(), VALUE_COLUMN),
+                     { Qt::DisplayRole, Qt::EditRole });
 }
 
 QModelIndex PropertyModel::index(int row, int column, const QModelIndex& parent) const
@@ -94,7 +96,13 @@ Qt::ItemFlags PropertyModel::flags(const QModelIndex& index) const
         return 0;
     }
 
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren;
+    static_assert(N_COLUMNS == 2, "Invalid flags N_COLUMNS");
+    if (index.column() == PROPERTY_COLUMN) {
+        return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren;
+    }
+    else {
+        return Qt::ItemIsEnabled | Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren;
+    }
 }
 
 QVariant PropertyModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -107,7 +115,7 @@ QVariant PropertyModel::headerData(int section, Qt::Orientation orientation, int
     }
 
     static_assert(N_COLUMNS == 2, "Invalid headerData N_COLUMNS");
-    if (section == 0) {
+    if (section == PROPERTY_COLUMN) {
         return tr("Property");
     }
     else {
@@ -120,7 +128,6 @@ QVariant PropertyModel::data(const QModelIndex& index, int role) const
     const auto& pl = _manager->propertiesList();
 
     if (pl.isEmpty()
-        || role != Qt::DisplayRole
         || !index.isValid()
         || index.column() >= N_COLUMNS
         || index.row() >= pl.size()
@@ -130,13 +137,39 @@ QVariant PropertyModel::data(const QModelIndex& index, int role) const
     }
 
     static_assert(N_COLUMNS == 2, "Invalid data N_COLUMNS");
-    if (index.column() == 0) {
-        return pl.at(index.row()).title;
+    if (role == Qt::DisplayRole) {
+        if (index.column() == PROPERTY_COLUMN) {
+            return pl.at(index.row()).title;
+        }
+        else if (_manager->isEnabled()) {
+            return _manager->data(pl.at(index.row()).id);
+        }
     }
-    else if (_manager->isEnabled()) {
-        return _manager->data(pl.at(index.row()).id);
+    else if (role == Qt::EditRole) {
+        if (_manager->isEnabled()) {
+            return _manager->data(pl.at(index.row()).id);
+        }
+    }
+
+    return QVariant();
+}
+
+bool PropertyModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+    if (role != Qt::EditRole
+        || _manager->isEnabled() == false
+        || !index.isValid()
+        || index.column() != VALUE_COLUMN
+        || index.row() >= _manager->propertiesList().size()) {
+
+        return false;
+    }
+
+    const auto& settings = _manager->propertiesList().at(index.row());
+    if (settings.id >= 0) {
+        return _manager->setData(settings.id, value);
     }
     else {
-        return QVariant();
+        return false;
     }
 }

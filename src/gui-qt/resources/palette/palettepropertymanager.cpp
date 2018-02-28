@@ -68,3 +68,38 @@ QVariant PalettePropertiesManager::data(int id) const
 
     return QVariant();
 }
+
+bool PalettePropertiesManager::setData(int id, const QVariant& value)
+{
+    Q_ASSERT(_palette);
+    const auto palleteInput = _palette->paletteData();
+    Q_ASSERT(palleteInput);
+
+    // ::TODO QUndoCommand::
+    auto& newData = *_palette->paletteData();
+
+    switch ((PropertyId)id) {
+    case NAME:
+        newData.name = value.toString().toStdString();
+        break;
+
+    case IMAGE_FILENAME:
+        newData.paletteImageFilename = value.toString().toStdString();
+        newData.paletteImage.loadPngImage(newData.paletteImageFilename);
+        break;
+
+    case ROWS_PER_FRAME:
+        newData.rowsPerFrame = value.toUInt();
+        break;
+
+    case ANIMATION_DELAY:
+        newData.animationDelay = value.toUInt();
+        break;
+
+    case SKIP_FIRST_FRAME:
+        newData.skipFirstFrame = value.toBool();
+        break;
+    }
+
+    return true;
+}

@@ -34,6 +34,7 @@ public:
     virtual void setResourceItem(AbstractResourceItem* item) final;
 
     virtual QVariant data(int id) const final;
+    virtual bool setData(int id, const QVariant& value) final;
 
 private:
     MtTilesetResourceItem* _tileset;

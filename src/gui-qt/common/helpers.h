@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/common/idstring.h"
 #include <QStringList>
 #include <string>
 #include <vector>
@@ -21,6 +22,24 @@ QStringList convertStringList(const std::vector<T>& sl)
     std::transform(sl.begin(), sl.end(), std::back_inserter(qsl),
                    [](const std::string& s) { return QString::fromStdString(s); });
     return qsl;
+}
+
+inline std::vector<std::string> toStringVector(const QStringList& qsl)
+{
+    std::vector<std::string> sl;
+    sl.reserve(qsl.size());
+    std::transform(qsl.begin(), qsl.end(), std::back_inserter(sl),
+                   [](const QString& qs) { return qs.toStdString(); });
+    return sl;
+}
+
+inline std::vector<idstring> toIdstringVector(const QStringList& qsl)
+{
+    std::vector<idstring> sl;
+    sl.reserve(qsl.size());
+    std::transform(qsl.begin(), qsl.end(), std::back_inserter(sl),
+                   [](const QString& qs) { return qs.toStdString(); });
+    return sl;
 }
 }
 }

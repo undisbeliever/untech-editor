@@ -34,6 +34,7 @@ public:
     bool isEnabled() const { return _enabled; }
 
     virtual QVariant data(int id) const = 0;
+    virtual bool setData(int id, const QVariant& value) = 0;
 
 protected:
     // if id is < 0 then the property is blank and cannot be selected

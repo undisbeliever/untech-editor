@@ -76,3 +76,41 @@ QVariant MtTilesetPropertiesManager::data(int id) const
 
     return QVariant();
 }
+
+bool MtTilesetPropertiesManager::setData(int id, const QVariant& value)
+{
+    Q_ASSERT(_tileset);
+    const auto& tilesetInput = _tileset->tilesetInput();
+    Q_ASSERT(tilesetInput);
+
+    // ::TODO QUndoCommand::
+    auto& newData = *_tileset->tilesetInput();
+
+    switch ((PropertyId)id) {
+    case NAME:
+        newData.name = value.toString().toStdString();
+        break;
+
+    case FRAME_IMAGES:
+        newData.animationFrames.frameImageFilenames = toStringVector(value.toStringList());
+        break;
+
+    case PALETTES:
+        newData.palettes = toIdstringVector(value.toStringList());
+        break;
+
+    case ANIMATION_DELAY:
+        newData.animationFrames.animationDelay = value.toUInt();
+        break;
+
+    case BIT_DEPTH:
+        newData.animationFrames.bitDepth = value.toUInt();
+        break;
+
+    case ADD_TRANSPARENT_TILE:
+        newData.animationFrames.addTransparentTile = value.toBool();
+        break;
+    }
+
+    return true;
+}

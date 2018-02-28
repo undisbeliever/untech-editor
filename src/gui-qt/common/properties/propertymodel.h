@@ -17,6 +17,11 @@ class PropertyManager;
 class PropertyModel : public QAbstractItemModel {
     Q_OBJECT
 
+    enum {
+        PROPERTY_COLUMN,
+        VALUE_COLUMN,
+    };
+
     static constexpr int N_COLUMNS = 2;
 
 public:
@@ -34,6 +39,7 @@ public:
 
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     virtual QVariant data(const QModelIndex& index, int role) const final;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
 private slots:
     void updateAll();
