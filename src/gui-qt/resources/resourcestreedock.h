@@ -29,7 +29,7 @@ public:
 
     void setDocument(Document* document);
 
-    void showAddResouceDialog(AbstractResourceList* resourceList);
+    QMenu* addResourceMenu() const { return _addResourceMenu; }
 
 private slots:
     void onAddResourceMenuTriggered(QAction* action);

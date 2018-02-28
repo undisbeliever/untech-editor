@@ -68,10 +68,6 @@ ResourcesTreeDock::~ResourcesTreeDock() = default;
 
 void ResourcesTreeDock::setDocument(Document* document)
 {
-    if (_document == document) {
-        return;
-    }
-
     if (_document != nullptr) {
         _document->disconnect(this);
     }
@@ -80,6 +76,7 @@ void ResourcesTreeDock::setDocument(Document* document)
     _model->setDocument(document);
     _addResourceMenu->setEnabled(_document);
     _ui->addResourceAction->setEnabled(_document);
+    _ui->removeResourceAction->setEnabled(false);
 
     if (_document) {
         onSelectedResourceChanged();
