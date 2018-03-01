@@ -6,6 +6,7 @@
 
 #include "palette.h"
 #include "models/common/bytevectorhelper.h"
+#include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
 #include <cassert>
 
@@ -18,11 +19,13 @@ using namespace UnTech::Snes;
 
 unsigned PaletteInput::nFrames() const
 {
-    const usize& imgSize = paletteImage.size();
+    const auto& paletteImage = ImageCache::loadPngImage(paletteImageFilename);
+    const usize& imgSize = paletteImage->size();
+
     unsigned minImageHeight = skipFirstFrame ? rowsPerFrame * 2 : rowsPerFrame;
     unsigned colorsPerFrame = imgSize.width * rowsPerFrame;
 
-    if (paletteImage.empty()) {
+    if (paletteImage->empty()) {
         return 0;
     }
     if (rowsPerFrame == 0) {
@@ -48,7 +51,8 @@ bool PaletteInput::validate(ErrorList& err) const
 {
     bool valid = true;
 
-    const usize& imgSize = paletteImage.size();
+    const auto& paletteImage = ImageCache::loadPngImage(paletteImageFilename);
+    const usize& imgSize = paletteImage->size();
 
     unsigned minImageHeight = skipFirstFrame ? rowsPerFrame * 2 : rowsPerFrame;
     unsigned colorsPerFrame = imgSize.width * rowsPerFrame;
@@ -57,8 +61,8 @@ bool PaletteInput::validate(ErrorList& err) const
         err.addError("Expected palette name");
         valid = false;
     }
-    if (paletteImage.empty()) {
-        err.addError("Error loading palette image: " + paletteImage.errorString());
+    if (paletteImage->empty()) {
+        err.addError("Error loading palette image: " + paletteImage->errorString());
         valid = false;
     }
     if (rowsPerFrame == 0) {
@@ -93,7 +97,8 @@ std::unique_ptr<PaletteData> Resources::convertPalette(const PaletteInput& input
         return nullptr;
     }
 
-    const usize& imgSize = input.paletteImage.size();
+    const auto& paletteImage = ImageCache::loadPngImage(input.paletteImageFilename);
+    const usize& imgSize = paletteImage->size();
 
     unsigned startingY = input.skipFirstFrame ? input.rowsPerFrame : 0;
     unsigned colorsPerFrame = imgSize.width * input.rowsPerFrame;
@@ -108,7 +113,7 @@ std::unique_ptr<PaletteData> Resources::convertPalette(const PaletteInput& input
         auto frameIt = frame.begin();
 
         for (unsigned fy = 0; fy < input.rowsPerFrame; fy++) {
-            const auto* imgBits = input.paletteImage.scanline(py + fy);
+            const auto* imgBits = paletteImage->scanline(py + fy);
 
             for (unsigned fx = 0; fx < imgSize.width; fx++) {
                 *frameIt++ = imgBits[fx];
@@ -143,15 +148,15 @@ Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth, Err
         maxColors = 256;
     }
 
-    const Image& img = input.paletteImage;
+    const auto& img = ImageCache::loadPngImage(input.paletteImageFilename);
 
-    unsigned nColumns = img.size().width;
+    unsigned nColumns = img->size().width;
     unsigned nRows = input.rowsPerFrame;
     if (nRows * nColumns > maxColors) {
         nRows = maxColors / nColumns;
     }
 
-    if (img.size().height < nRows) {
+    if (img->size().height < nRows) {
         err.addError("Palette image must be a minimum of "
                      + std::to_string(nRows) + "pixels tall");
         valid = false;
@@ -167,7 +172,7 @@ Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth, Err
     auto pIt = palette.begin();
 
     for (unsigned y = 0; y < nRows; y++) {
-        const rgba* scanline = img.scanline(y);
+        const rgba* scanline = img->scanline(y);
 
         for (unsigned x = 0; x < nColumns; x++) {
             *pIt++ = *scanline++;

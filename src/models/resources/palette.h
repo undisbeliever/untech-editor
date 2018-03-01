@@ -8,7 +8,6 @@
 
 #include "error-list.h"
 #include "models/common/idstring.h"
-#include "models/common/image.h"
 #include "models/snes/palette.h"
 #include <memory>
 #include <string>
@@ -21,7 +20,6 @@ struct PaletteInput {
     idstring name;
 
     std::string paletteImageFilename;
-    Image paletteImage;
 
     unsigned rowsPerFrame = 0;
     unsigned animationDelay = 0;

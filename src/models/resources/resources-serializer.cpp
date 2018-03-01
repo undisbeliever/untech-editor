@@ -21,7 +21,6 @@ const std::string ResourcesFile::FILE_EXTENSION = "utres";
 void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const XmlTag* tag)
 {
     assert(tag->name == "animation-frames");
-    assert(afi.frameImages.empty());
     assert(afi.frameImageFilenames.empty());
 
     afi.bitDepth = tag->getAttributeUnsigned("bit-depth", 2, 8);
@@ -31,10 +30,6 @@ void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const X
     while (auto childTag = xml.parseTag()) {
         if (childTag->name == "frame") {
             const std::string filename = childTag->getAttributeFilename("image");
-
-            afi.frameImages.emplace_back();
-            afi.frameImages.back().loadPngImage(filename);
-
             afi.frameImageFilenames.emplace_back(filename);
         }
         else {
@@ -59,8 +54,6 @@ static std::shared_ptr<PaletteInput> readPalette(const XmlTag* tag)
     if (tag->hasAttribute("animation-delay")) {
         palette->animationDelay = tag->getAttributeUnsigned("animation-delay");
     }
-
-    palette->paletteImage.loadPngImage(palette->paletteImageFilename);
 
     return palette;
 }

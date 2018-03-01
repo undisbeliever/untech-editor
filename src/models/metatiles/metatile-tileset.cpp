@@ -6,6 +6,7 @@
 
 #include "metatile-tileset.h"
 #include "models/common/bytevectorhelper.h"
+#include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
 #include "models/resources/resources.h"
 #include <cassert>
@@ -27,8 +28,9 @@ bool MetaTileTilesetInput::validate(Resources::ErrorList& err) const
         valid = false;
     }
 
-    if (!animationFrames.frameImages.empty()) {
-        const auto& frameSize = animationFrames.frameImages.front().size();
+    if (!animationFrames.frameImageFilenames.empty()) {
+        const auto& firstImageFilename = animationFrames.frameImageFilenames.front();
+        const auto& frameSize = ImageCache::loadPngImage(firstImageFilename)->size();
 
         if (frameSize.width % METATILE_SIZE_PX != 0) {
             err.addError("Image width must be a multiple of 16");

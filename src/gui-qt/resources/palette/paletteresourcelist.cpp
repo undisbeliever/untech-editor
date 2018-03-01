@@ -7,6 +7,7 @@
 #include "paletteresourcelist.h"
 #include "paletteresourceitem.h"
 #include "gui-qt/common/idstringvalidator.h"
+#include "models/common/imagecache.h"
 
 #include <QFileInfo>
 
@@ -62,8 +63,9 @@ void PaletteResourceList::do_addResource(const std::string& filename)
 
     pal->name = name.toStdString();
     pal->paletteImageFilename = filename;
-    pal->paletteImage.loadPngImage(filename);
-    pal->rowsPerFrame = qBound(1U, pal->paletteImage.size().height, 16U);
+
+    const auto& paletteImage = ImageCache::loadPngImage(filename);
+    pal->rowsPerFrame = qBound(1U, paletteImage->size().height, 16U);
 }
 
 void PaletteResourceList::do_removeResource(unsigned index)

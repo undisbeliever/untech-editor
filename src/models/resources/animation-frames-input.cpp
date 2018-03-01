@@ -7,6 +7,7 @@
 #include "animation-frames-input.h"
 #include "resources.h"
 #include "models/common/bytevectorhelper.h"
+#include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
 #include "models/snes/animatedtilesetinserter.h"
 #include "models/snes/tilesetinserter.h"
@@ -113,12 +114,13 @@ static std::vector<std::vector<FrameTile>> tilesFromFrameImages(const AnimationF
     const unsigned colorsPerPalette = 1 << input.bitDepth;
 
     std::vector<std::vector<FrameTile>> frameTiles;
-    frameTiles.reserve(input.frameImages.size());
+    frameTiles.reserve(input.frameImageFilenames.size());
 
-    for (unsigned frameId = 0; frameId < input.frameImages.size(); frameId++) {
-        const auto& image = input.frameImages.at(frameId);
+    const unsigned nFrames = input.frameImageFilenames.size();
+    for (unsigned frameId = 0; frameId < nFrames; frameId++) {
+        const auto& image = ImageCache::loadPngImage(input.frameImageFilenames.at(frameId));
         frameTiles.emplace_back(
-            tilesFromFrameImage(image, frameId, palettes, colorsPerPalette, err));
+            tilesFromFrameImage(*image, frameId, palettes, colorsPerPalette, err));
     }
 
     return frameTiles;
@@ -244,36 +246,33 @@ bool AnimationFramesInput::validate(ErrorList& err) const
         valid = false;
     }
 
-    if (frameImages.empty()) {
+    if (frameImageFilenames.empty()) {
         err.addError("Missing frame image");
         valid = false;
     }
 
-    if (frameImages.size() != frameImageFilenames.size()) {
-        err.addError("Invalid number of frameImages");
-        valid = false;
-    }
+    std::vector<usize> imageSizes(frameImageFilenames.size());
 
-    assert(frameImages.size() == frameImageFilenames.size());
-    for (unsigned i = 0; i < frameImages.size(); i++) {
-        const auto& image = frameImages.at(i);
+    for (unsigned i = 0; i < frameImageFilenames.size(); i++) {
         const auto& imageFilename = frameImageFilenames.at(i);
+        const auto& image = ImageCache::loadPngImage(imageFilename);
+        imageSizes.at(i) = image->size();
 
-        if (image.empty()) {
-            err.addError("Missing frame image: " + image.errorString());
+        if (image->empty()) {
+            err.addError("Missing frame image: " + image->errorString());
             valid = false;
             break;
         }
 
-        if (image.size().width % 8 != 0 || image.size().height % 8 != 0) {
+        if (image->size().width % 8 != 0 || image->size().height % 8 != 0) {
             err.addError("image size invalid (height and width must be a multiple of 8): " + imageFilename);
             valid = false;
         }
     }
 
     if (valid) {
-        for (const Image& image : frameImages) {
-            if (image.size() != frameImages.front().size()) {
+        for (const usize& imgSize : imageSizes) {
+            if (imgSize != imageSizes.front()) {
                 err.addError("All frame images must be the same size");
                 valid = false;
                 break;
@@ -295,11 +294,14 @@ convertAnimationFrames(const AnimationFramesInput& input, const PaletteInput& pa
 
     const unsigned initialErrorCount = err.errorCount();
 
+    const auto& firstImageFilename = input.frameImageFilenames.front();
+    const auto& imgSize = ImageCache::loadPngImage(firstImageFilename)->size();
+
     auto ret = std::make_unique<AnimatedTilesetData>(input.bitDepth);
 
     ret->animationDelay = input.animationDelay;
-    ret->mapWidth = input.frameImages.front().size().width / 8;
-    ret->mapHeight = input.frameImages.front().size().height / 8;
+    ret->mapWidth = imgSize.width / 8;
+    ret->mapHeight = imgSize.height / 8;
 
     const auto palette = extractFirstPalette(paletteInput, input.bitDepth, err);
     if (palette.empty()) {

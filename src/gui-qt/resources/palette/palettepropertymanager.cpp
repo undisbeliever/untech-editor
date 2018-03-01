@@ -96,7 +96,6 @@ bool PalettePropertiesManager::setData(int id, const QVariant& value)
 
     case IMAGE_FILENAME:
         newData.paletteImageFilename = value.toString().toStdString();
-        newData.paletteImage.loadPngImage(newData.paletteImageFilename);
         emit _palette->imageFilenameChanged();
         break;
 
