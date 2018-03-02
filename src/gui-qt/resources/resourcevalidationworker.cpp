@@ -33,6 +33,13 @@ void ResourceValidationWorker::onResourceItemCreated(AbstractResourceItem* item)
 
     connect(item, &AbstractResourceItem::stateChanged,
             this, &ResourceValidationWorker::onResourceItemStateChanged);
+    connect(item, &AbstractResourceItem::destroyed,
+            this, &ResourceValidationWorker::onResourceItemDestroyed);
+}
+
+void ResourceValidationWorker::onResourceItemDestroyed(QObject *item)
+{
+    _itemsToProcess.removeAll(static_cast<AbstractExternalResourceItem*>(item));
 }
 
 void ResourceValidationWorker::onResourceItemStateChanged()
@@ -80,7 +87,10 @@ void ResourceValidationWorker::validateAllResources()
 
 void ResourceValidationWorker::processNextResource()
 {
-    Q_ASSERT(_itemsToProcess.size() > 0);
+    if (_itemsToProcess.size() == 0) {
+        _timer.stop();
+        return;
+    }
 
     AbstractResourceItem* item = _itemsToProcess.takeLast();
 

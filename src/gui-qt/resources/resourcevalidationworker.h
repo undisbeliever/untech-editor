@@ -37,6 +37,7 @@ public slots:
 
 private slots:
     void onResourceItemCreated(AbstractResourceItem* item);
+    void onResourceItemDestroyed(QObject* item);
     void onResourceItemStateChanged();
 
     void processNextResource();
