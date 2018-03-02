@@ -210,14 +210,10 @@ QRectF PaletteGraphicsItem::boundingRect() const
 void PaletteGraphicsItem::paint(QPainter* painter,
                                 const QStyleOptionGraphicsItem*, QWidget*)
 {
-    const auto& pal = _palette->paletteData();
+    const RES::PaletteInput* pal = _palette->paletteData();
 
     if (_pixmap.isNull() || pal == nullptr) {
         return;
-    }
-
-    if (pal->rowsPerFrame <= 0) {
-        pal->rowsPerFrame = 1;
     }
 
     // draw image
@@ -261,10 +257,10 @@ void PaletteGraphicsItem::paint(QPainter* painter,
     painter->setPen(QPen(FRAME_LINE_COLOR, FRAME_LINE_WIDTH));
 
     unsigned fh = PALETTE_SCALE * pal->rowsPerFrame;
-
-    Q_ASSERT(fh > 0);
-    for (unsigned y = 0; y <= h; y += fh) {
-        painter->drawLine(-FRAME_OVERHANG, y, w + FRAME_OVERHANG, y);
+    if (fh > 0) {
+        for (unsigned y = 0; y <= h; y += fh) {
+            painter->drawLine(-FRAME_OVERHANG, y, w + FRAME_OVERHANG, y);
+        }
     }
 
     painter->restore();

@@ -20,11 +20,31 @@ QString PaletteResourceItem::name() const
     return QString::fromStdString(pal->name);
 }
 
+void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
+{
+    const auto& pal = palettesData().at(index());
+    Q_ASSERT(pal);
+
+    bool nameChange = pal->name != data.name;
+    bool imageChange = pal->paletteImageFilename != data.paletteImageFilename;
+
+    *pal = data;
+    emit dataChanged();
+
+    if (nameChange) {
+        emit nameChanged();
+    }
+    if (imageChange) {
+        emit imageFilenameChanged();
+    }
+}
+
 bool PaletteResourceItem::compileResource(RES::ErrorList& err)
 {
     const auto& res = _document->resourcesFile();
     Q_ASSERT(res);
-    const auto& pal = paletteData();
+    const RES::PaletteInput* pal = paletteData();
+    Q_ASSERT(pal);
 
     const auto palData = RES::convertPalette(*pal, err);
     return palData && palData->validate(err);

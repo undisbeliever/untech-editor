@@ -23,17 +23,19 @@ public:
 
     virtual QString name() const final;
 
+    // will never be null
+    inline const RES::PaletteInput* paletteData() const
+    {
+        return document()->resourcesFile()->palettes.at(index()).get();
+    }
+
+    void setData(const RES::PaletteInput& data);
+
 protected:
     virtual bool compileResource(RES::ErrorList& err) final;
 
 signals:
     void imageFilenameChanged();
-
-public:
-    inline const auto& paletteData() const
-    {
-        return document()->resourcesFile()->palettes.at(index());
-    }
 
 private:
     inline const auto& palettesData() const

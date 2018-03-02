@@ -27,6 +27,24 @@ QString MtTilesetResourceItem::name() const
     }
 }
 
+void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
+{
+    Q_ASSERT(_tilesetInput);
+
+    bool nameChange = _tilesetInput->name != data.name;
+    bool imagesChange = _tilesetInput->animationFrames.frameImageFilenames != data.animationFrames.frameImageFilenames;
+
+    *_tilesetInput = data;
+    emit dataChanged();
+
+    if (nameChange) {
+        emit nameChanged();
+    }
+    if (imagesChange) {
+        emit frameImageFilenamesChanged();
+    }
+}
+
 bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
 {
     const std::string& fn = mtTilesetFilename();

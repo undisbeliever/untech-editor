@@ -27,13 +27,14 @@ public:
 public:
     virtual QString name() const final;
 
+    // may be nullptr
+    const MT::MetaTileTilesetInput* tilesetInput() const { return _tilesetInput.get(); }
+
+    void setData(const MT::MetaTileTilesetInput& data);
+
 protected:
     virtual bool loadResourceData(RES::ErrorList& err) final;
     virtual bool compileResource(RES::ErrorList& err) final;
-
-public:
-    // may be nullptr
-    const auto& tilesetInput() const { return _tilesetInput; }
 
 signals:
     void frameImageFilenamesChanged();

@@ -54,10 +54,8 @@ QVariant PalettePropertiesManager::data(int id) const
         return QVariant();
     }
 
-    const std::shared_ptr<RES::PaletteInput> pal = _palette->paletteData();
-    if (pal == nullptr) {
-        return QVariant();
-    }
+    const RES::PaletteInput* pal = _palette->paletteData();
+    Q_ASSERT(pal);
 
     switch ((PropertyId)id) {
     case NAME:
@@ -82,21 +80,18 @@ QVariant PalettePropertiesManager::data(int id) const
 bool PalettePropertiesManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_palette);
-    const auto palleteInput = _palette->paletteData();
-    Q_ASSERT(palleteInput);
+    Q_ASSERT(_palette->paletteData());
 
     // ::TODO QUndoCommand::
-    auto& newData = *_palette->paletteData();
+    RES::PaletteInput newData = *_palette->paletteData();
 
     switch ((PropertyId)id) {
     case NAME:
         newData.name = value.toString().toStdString();
-        emit _palette->nameChanged();
         break;
 
     case IMAGE_FILENAME:
         newData.paletteImageFilename = value.toString().toStdString();
-        emit _palette->imageFilenameChanged();
         break;
 
     case ROWS_PER_FRAME:
@@ -112,6 +107,11 @@ bool PalettePropertiesManager::setData(int id, const QVariant& value)
         break;
     }
 
-    emit _palette->dataChanged();
-    return true;
+    if (newData != *_palette->paletteData()) {
+        _palette->setData(newData);
+        return true;
+    }
+    else {
+        return false;
+    }
 }

@@ -57,7 +57,7 @@ QVariant MtTilesetPropertiesManager::data(int id) const
         return QVariant();
     }
 
-    const std::unique_ptr<MT::MetaTileTilesetInput>& ti = _tileset->tilesetInput();
+    const MT::MetaTileTilesetInput* ti = _tileset->tilesetInput();
     if (ti == nullptr) {
         return QVariant();
     }
@@ -88,21 +88,17 @@ QVariant MtTilesetPropertiesManager::data(int id) const
 bool MtTilesetPropertiesManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_tileset);
-    const auto& tilesetInput = _tileset->tilesetInput();
-    Q_ASSERT(tilesetInput);
+    Q_ASSERT(_tileset->tilesetInput());
 
-    // ::TODO QUndoCommand::
-    auto& newData = *_tileset->tilesetInput();
+    MT::MetaTileTilesetInput newData = *_tileset->tilesetInput();
 
     switch ((PropertyId)id) {
     case NAME:
         newData.name = value.toString().toStdString();
-        emit _tileset->nameChanged();
         break;
 
     case FRAME_IMAGES:
         newData.animationFrames.frameImageFilenames = toStringVector(value.toStringList());
-        emit _tileset->frameImageFilenamesChanged();
         break;
 
     case PALETTES:
@@ -122,6 +118,11 @@ bool MtTilesetPropertiesManager::setData(int id, const QVariant& value)
         break;
     }
 
-    emit _tileset->dataChanged();
-    return true;
+    if (newData != *_tileset->tilesetInput()) {
+        _tileset->setData(newData);
+        return true;
+    }
+    else {
+        return false;
+    }
 }
