@@ -78,7 +78,7 @@ bool PaletteInput::validate(ErrorList& err) const
                      + std::to_string(minImageHeight) + "pixels tall");
         valid = false;
     }
-    if (imgSize.height % rowsPerFrame != 0) {
+    if (rowsPerFrame > 0 && imgSize.height % rowsPerFrame != 0) {
         err.addError("Palette image height must be a multiple of rowsPerFrame");
         valid = false;
     }
