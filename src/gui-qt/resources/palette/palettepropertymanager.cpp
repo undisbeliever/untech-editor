@@ -6,6 +6,7 @@
 
 #include "palettepropertymanager.h"
 #include "paletteresourceitem.h"
+#include "../editresourceitemcommand.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -82,7 +83,6 @@ bool PalettePropertiesManager::setData(int id, const QVariant& value)
     Q_ASSERT(_palette);
     Q_ASSERT(_palette->paletteData());
 
-    // ::TODO QUndoCommand::
     RES::PaletteInput newData = *_palette->paletteData();
 
     switch ((PropertyId)id) {
@@ -108,7 +108,10 @@ bool PalettePropertiesManager::setData(int id, const QVariant& value)
     }
 
     if (newData != *_palette->paletteData()) {
-        _palette->setData(newData);
+        _palette->undoStack()->push(
+            new EditResourceItemCommand<PaletteResourceItem>(
+                _palette, *_palette->paletteData(), newData,
+                tr("Edit %1").arg(propertyTitle(id))));
         return true;
     }
     else {

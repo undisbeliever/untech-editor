@@ -18,6 +18,9 @@ class PaletteResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
 
 public:
+    using DataT = RES::PaletteInput;
+
+public:
     PaletteResourceItem(AbstractResourceList* parent, size_t index);
     ~PaletteResourceItem() = default;
 
@@ -29,6 +32,9 @@ public:
         return document()->resourcesFile()->palettes.at(index()).get();
     }
 
+protected:
+    template <class T>
+    friend class EditResourceItemCommand;
     void setData(const RES::PaletteInput& data);
 
 protected:

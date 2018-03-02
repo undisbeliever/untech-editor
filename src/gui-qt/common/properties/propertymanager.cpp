@@ -14,6 +14,19 @@ PropertyManager::PropertyManager(QObject* parent)
 {
 }
 
+const QString& PropertyManager::propertyTitle(int id)
+{
+    static const QString nullString;
+
+    for (const Property& p : _properties) {
+        if (p.id == id) {
+            return p.title;
+        }
+    }
+
+    return nullString;
+}
+
 void PropertyManager::addProperty(const QString& title, int id)
 {
     _properties.append({ title, id });

@@ -6,6 +6,7 @@
 
 #include "mttilesetpropertymanager.h"
 #include "mttilesetresourceitem.h"
+#include "../editresourceitemcommand.h"
 #include "gui-qt/common/helpers.h"
 
 using namespace UnTech::GuiQt::Resources;
@@ -119,7 +120,10 @@ bool MtTilesetPropertiesManager::setData(int id, const QVariant& value)
     }
 
     if (newData != *_tileset->tilesetInput()) {
-        _tileset->setData(newData);
+        _tileset->undoStack()->push(
+            new EditResourceItemCommand<MtTilesetResourceItem>(
+                _tileset, *_tileset->tilesetInput(), newData,
+                tr("Edit %1").arg(propertyTitle(id))));
         return true;
     }
     else {

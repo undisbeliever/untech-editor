@@ -37,7 +37,7 @@ void ResourceValidationWorker::onResourceItemCreated(AbstractResourceItem* item)
             this, &ResourceValidationWorker::onResourceItemDestroyed);
 }
 
-void ResourceValidationWorker::onResourceItemDestroyed(QObject *item)
+void ResourceValidationWorker::onResourceItemDestroyed(QObject* item)
 {
     _itemsToProcess.removeAll(static_cast<AbstractExternalResourceItem*>(item));
 }

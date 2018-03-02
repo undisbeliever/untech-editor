@@ -30,6 +30,8 @@ public:
 
     const QVector<Property>& propertiesList() const { return _properties; }
 
+    const QString& propertyTitle(int id);
+
     void setEnabled(bool enabled);
     bool isEnabled() const { return _enabled; }
 

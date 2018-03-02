@@ -20,6 +20,7 @@ namespace Ui {
 class MainWindow;
 }
 class Document;
+class AbstractResourceItem;
 class AbstractResourceWidget;
 
 class MainWindow : public QMainWindow {
@@ -35,6 +36,7 @@ public:
 private slots:
     void updateWindowTitle();
 
+    void onResourceItemCreated(AbstractResourceItem* item);
     void onSelectedResourceChanged();
 
 private:
@@ -56,6 +58,7 @@ protected:
 
 private:
     std::unique_ptr<Document> _document;
+    AbstractResourceItem* _selectedResource;
 
     std::unique_ptr<Ui::MainWindow> _ui;
 

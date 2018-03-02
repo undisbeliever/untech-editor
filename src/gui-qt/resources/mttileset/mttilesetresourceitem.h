@@ -21,6 +21,9 @@ class MtTilesetResourceItem : public AbstractExternalResourceItem {
     Q_OBJECT
 
 public:
+    using DataT = MT::MetaTileTilesetInput;
+
+public:
     MtTilesetResourceItem(AbstractResourceList* parent, size_t index);
     ~MtTilesetResourceItem() = default;
 
@@ -30,6 +33,9 @@ public:
     // may be nullptr
     const MT::MetaTileTilesetInput* tilesetInput() const { return _tilesetInput.get(); }
 
+protected:
+    template <class T>
+    friend class EditResourceItemCommand;
     void setData(const MT::MetaTileTilesetInput& data);
 
 protected:

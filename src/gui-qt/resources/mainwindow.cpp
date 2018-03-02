@@ -149,6 +149,14 @@ void MainWindow::setDocument(std::unique_ptr<Document>&& document)
 
         _document->validationWorker()->validateAllResources();
 
+        onSelectedResourceChanged();
+
+        for (AbstractResourceList* rl : _document->resourceLists()) {
+            for (AbstractResourceItem* item : rl->items()) {
+                _undoGroup->addStack(item->undoStack());
+            }
+        }
+
         connect(_document.get(), &Document::filenameChanged,
                 this, &MainWindow::updateWindowTitle);
 
@@ -179,15 +187,25 @@ void MainWindow::updateWindowTitle()
     }
 }
 
+void MainWindow::onResourceItemCreated(AbstractResourceItem* item)
+{
+    _undoGroup->addStack(item->undoStack());
+}
+
 void MainWindow::onSelectedResourceChanged()
 {
     if (_document == nullptr) {
         _ui->centralStackedWidget->setCurrentIndex(0);
         _ui->propertiesStackedWidget->setCurrentIndex(0);
-    }
-    AbstractResourceItem* item = _document->selectedResource();
 
+        return;
+    }
+
+    AbstractResourceItem* item = _document->selectedResource();
     if (item) {
+        _selectedResource = item;
+        item->undoStack()->setActive();
+
         if (item->state() == ResourceState::NOT_LOADED) {
             item->loadResource();
         }
@@ -198,6 +216,8 @@ void MainWindow::onSelectedResourceChanged()
         _ui->propertiesStackedWidget->setCurrentIndex(index);
     }
     else {
+        _document->undoStack()->setActive();
+
         _ui->centralStackedWidget->setCurrentIndex(0);
         _ui->propertiesStackedWidget->setCurrentIndex(0);
     }

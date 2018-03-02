@@ -9,6 +9,7 @@
 #include "abstractresourcelist.h"
 #include "models/resources/error-list.h"
 #include <QObject>
+#include <QUndoStack>
 
 namespace UnTech {
 namespace GuiQt {
@@ -27,6 +28,7 @@ public:
         : QObject(parent)
         , _list(parent)
         , _document(parent->document())
+        , _undoStack(new QUndoStack(this))
         , _index(index)
         , _state(ResourceState::NOT_LOADED)
     {
@@ -40,8 +42,9 @@ public:
     ~AbstractResourceItem() = default;
 
     Document* document() const { return _document; }
-    inline int index() const { return _index; }
+    QUndoStack* undoStack() const { return _undoStack; }
 
+    inline int index() const { return _index; }
     const ResourceState& state() const { return _state; }
     const RES::ErrorList& errorList() const { return _errorList; }
 
@@ -88,8 +91,9 @@ protected:
     Document* const _document;
 
 private:
-    unsigned _index;
+    QUndoStack* const _undoStack;
 
+    unsigned _index;
     ResourceState _state;
     RES::ErrorList _errorList;
 };
