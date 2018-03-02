@@ -41,6 +41,9 @@ void ResourcesTreeModel::setDocument(Document* document)
     _document = document;
 
     if (_document) {
+        connect(_document, &Document::resourceItemCreated,
+                this, &ResourcesTreeModel::connectResourceItemSignals);
+
         for (AbstractResourceList* rl : _document->resourceLists()) {
             connect(rl, &AbstractResourceList::stateChanged,
                     this, &ResourcesTreeModel::onResourceListStateChanged);
@@ -48,15 +51,20 @@ void ResourcesTreeModel::setDocument(Document* document)
                     this, &ResourcesTreeModel::onResourceListChanged);
 
             for (AbstractResourceItem* item : rl->items()) {
-                connect(item, &AbstractResourceItem::nameChanged,
-                        this, &ResourcesTreeModel::onResourceItemNameChanged);
-                connect(item, &AbstractResourceItem::stateChanged,
-                        this, &ResourcesTreeModel::onResourceItemStateChanged);
+                connectResourceItemSignals(item);
             }
         }
     }
 
     endResetModel();
+}
+
+void ResourcesTreeModel::connectResourceItemSignals(AbstractResourceItem* item)
+{
+    connect(item, &AbstractResourceItem::nameChanged,
+            this, &ResourcesTreeModel::onResourceItemNameChanged);
+    connect(item, &AbstractResourceItem::stateChanged,
+            this, &ResourcesTreeModel::onResourceItemStateChanged);
 }
 
 void ResourcesTreeModel::onResourceListChanged()

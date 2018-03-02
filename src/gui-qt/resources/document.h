@@ -54,6 +54,7 @@ private slots:
 
 signals:
     void selectedResourceChanged();
+    void resourceItemCreated(AbstractResourceItem*);
 
 private:
     std::unique_ptr<RES::ResourcesFile> _resourcesFile;

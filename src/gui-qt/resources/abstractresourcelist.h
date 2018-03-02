@@ -60,12 +60,17 @@ protected:
 
     virtual void do_removeResource(unsigned index) = 0;
 
+private:
+    // does not emit listChanged()
+    void appendNewItemToList(int index);
+
 private slots:
     void updateState();
 
 signals:
     void listChanged();
     void stateChanged();
+    void resourceItemCreated(AbstractResourceItem* item);
 
 private:
     Document* _document;

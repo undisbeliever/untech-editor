@@ -17,8 +17,6 @@ void AbstractResourceItem::markUnchecked()
 {
     if (_state != ResourceState::NOT_LOADED && _state != ResourceState::FILE_ERROR) {
         setState(ResourceState::UNCHECKED);
-
-        _document->validationWorker()->checkResourceLater(this);
     }
 }
 

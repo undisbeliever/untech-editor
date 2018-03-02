@@ -36,6 +36,9 @@ public slots:
     void validateAllResources();
 
 private slots:
+    void onResourceItemCreated(AbstractResourceItem* item);
+    void onResourceItemStateChanged();
+
     void processNextResource();
 
 private:

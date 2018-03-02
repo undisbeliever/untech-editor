@@ -33,15 +33,21 @@ void AbstractResourceList::setDocument(Document* document)
     _items.reserve(size);
 
     for (size_t i = 0; i < size; i++) {
-        AbstractResourceItem* item = buildResourceItem(i);
-        _items.append(item);
-
-        item->connect(item, &AbstractResourceItem::stateChanged,
-                      this, &AbstractResourceList::updateState);
+        appendNewItemToList(i);
     }
 
     _state = size > 0 ? ResourceState::UNCHECKED : ResourceState::VALID;
     emit stateChanged();
+}
+
+void AbstractResourceList::appendNewItemToList(int index)
+{
+    AbstractResourceItem* item = buildResourceItem(index);
+    _items.append(item);
+
+    emit resourceItemCreated(item);
+    item->connect(item, &AbstractResourceItem::stateChanged,
+                  this, &AbstractResourceList::updateState);
 }
 
 void AbstractResourceList::addResource(const QString& input)
@@ -55,23 +61,12 @@ void AbstractResourceList::addResource(const QString& input)
     }
 
     Q_ASSERT((size_t)_items.size() + 1 == nItems());
-
-    int index = _items.size();
-    AbstractResourceItem* item = buildResourceItem(index);
-    _items.append(item);
-
-    item->connect(item, &AbstractResourceItem::stateChanged,
-                  this, &AbstractResourceList::updateState);
-
-    if (_state != ResourceState::UNCHECKED) {
-        _state = ResourceState::UNCHECKED;
-        emit stateChanged();
-    }
+    appendNewItemToList(_items.size());
 
     emit listChanged();
     _document->undoStack()->resetClean();
 
-    _document->setSelectedResource(item);
+    _document->setSelectedResource(_items.back());
 }
 
 void AbstractResourceList::removeResource(int index)

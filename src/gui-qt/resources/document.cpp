@@ -29,6 +29,16 @@ Document::Document(QObject* parent)
     initModels();
 }
 
+void Document::initModels()
+{
+    for (auto& rl : _resourceLists) {
+        rl->setDocument(this);
+
+        connect(rl, &AbstractResourceList::resourceItemCreated,
+                this, &Document::resourceItemCreated);
+    }
+}
+
 void Document::setSelectedResource(AbstractResourceItem* item)
 {
     if (_selectedResource != item) {
@@ -51,13 +61,6 @@ void Document::onSelectedResourceDestroyed(QObject* obj)
 {
     if (_selectedResource == obj) {
         setSelectedResource(nullptr);
-    }
-}
-
-void Document::initModels()
-{
-    for (auto& rl : _resourceLists) {
-        rl->setDocument(this);
     }
 }
 

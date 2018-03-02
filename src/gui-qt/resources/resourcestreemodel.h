@@ -49,6 +49,7 @@ private:
     void emitResourceDataChanged(AbstractResourceItem* item, const QVector<int>& roles);
 
 private slots:
+    void connectResourceItemSignals(AbstractResourceItem* item);
     void onResourceListChanged();
     void onResourceListStateChanged();
     void onResourceItemStateChanged();

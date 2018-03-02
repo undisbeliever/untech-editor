@@ -22,6 +22,30 @@ ResourceValidationWorker::ResourceValidationWorker(Document* document)
 
     connect(&_timer, &QTimer::timeout,
             this, &ResourceValidationWorker::processNextResource);
+
+    connect(_document, &Document::resourceItemCreated,
+            this, &ResourceValidationWorker::onResourceItemCreated);
+}
+
+void ResourceValidationWorker::onResourceItemCreated(AbstractResourceItem* item)
+{
+    checkResourceLater(item);
+
+    connect(item, &AbstractResourceItem::stateChanged,
+            this, &ResourceValidationWorker::onResourceItemStateChanged);
+}
+
+void ResourceValidationWorker::onResourceItemStateChanged()
+{
+    auto* item = qobject_cast<AbstractResourceItem*>(sender());
+
+    if (item) {
+        if (item->state() == ResourceState::UNCHECKED
+            || item->state() == ResourceState::NOT_LOADED) {
+
+            checkResourceLater(item);
+        }
+    }
 }
 
 void ResourceValidationWorker::checkResourceLater(AbstractResourceItem* item)
