@@ -33,7 +33,8 @@ struct PaletteInput {
 
     bool operator==(const PaletteInput& o) const
     {
-        return paletteImageFilename == o.paletteImageFilename
+        return name == o.name
+               && paletteImageFilename == o.paletteImageFilename
                && rowsPerFrame == o.rowsPerFrame
                && animationDelay == o.animationDelay
                && skipFirstFrame == o.skipFirstFrame;
