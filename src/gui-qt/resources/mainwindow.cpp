@@ -32,6 +32,7 @@ using namespace UnTech::GuiQt::Resources;
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
+    , _selectedResource(nullptr)
     , _ui(std::make_unique<Ui::MainWindow>())
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
     , _undoGroup(new QUndoGroup(this))
@@ -202,17 +203,16 @@ void MainWindow::onSelectedResourceChanged()
 
         return;
     }
+    _selectedResource = _document->selectedResource();
 
-    AbstractResourceItem* item = _document->selectedResource();
-    if (item) {
-        _selectedResource = item;
-        item->undoStack()->setActive();
+    if (_selectedResource) {
+        _selectedResource->undoStack()->setActive();
 
-        if (item->state() == ResourceState::NOT_LOADED) {
-            item->loadResource();
+        if (_selectedResource->state() == ResourceState::NOT_LOADED) {
+            _selectedResource->loadResource();
         }
 
-        int index = (int)item->resourceTypeIndex() + 1;
+        int index = (int)_selectedResource->resourceTypeIndex() + 1;
 
         _ui->centralStackedWidget->setCurrentIndex(index);
         _ui->propertiesStackedWidget->setCurrentIndex(index);
@@ -225,7 +225,7 @@ void MainWindow::onSelectedResourceChanged()
     }
 
     for (auto* widget : _resourceWidgets) {
-        widget->setResourceItem(item);
+        widget->setResourceItem(_selectedResource);
     }
 }
 
