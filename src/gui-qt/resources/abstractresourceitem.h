@@ -123,8 +123,14 @@ public:
     const QString& absoluteFilePath() const { return _absoluteFilePath; }
     const QString& relativeFilePath() const { return _relativeFilePath; }
 
+    // will raise exception on error
+    void saveResource() const;
+
 protected:
     void setFilename(const QString& filename);
+
+    // may raise an exception on error
+    virtual void saveResourceData(const std::string& filename) const = 0;
 
 private slots:
     void updateRelativePath();

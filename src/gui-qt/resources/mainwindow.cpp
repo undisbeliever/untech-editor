@@ -103,6 +103,8 @@ MainWindow::MainWindow(QWidget* parent)
             this, &MainWindow::onMenuOpenRecent);
     connect(_ui->action_Save, &QAction::triggered,
             this, &MainWindow::onMenuSave);
+    connect(_ui->action_SaveAll, &QAction::triggered,
+            this, &MainWindow::onMenuSaveAll);
     connect(_ui->action_Quit, &QAction::triggered,
             this, &MainWindow::close);
 
@@ -229,19 +231,35 @@ void MainWindow::onSelectedResourceChanged()
 
 bool MainWindow::unsavedChangesDialog()
 {
+    if (_document == nullptr) {
+        return true;
+    }
     bool success = true;
 
-    if (_document && !_document->undoStack()->isClean()) {
+    QStringList unsavedFilenames = _document->unsavedFilenames();
+
+    if (!unsavedFilenames.isEmpty()) {
+        QString dialogText;
+        if (unsavedFilenames.size() == 1) {
+            dialogText = tr("There is one unsaved file.\nDo you wish to save?");
+        }
+        else {
+            dialogText = tr("There are %1 unsaved files.\nDo you wish to save them all?")
+                             .arg(unsavedFilenames.size());
+        }
+
         QMessageBox dialog(QMessageBox::Warning,
-                           tr("Save Changes?"),
-                           tr("There are unsaved changes. Do you want to save?"),
+                           tr("Save Changes?"), dialogText,
                            QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel,
                            this);
+        dialog.setDetailedText(unsavedFilenames.join("\n"));
+        dialog.button(QMessageBox::Save)->setText(tr("Save All"));
+
         dialog.exec();
 
         success = (dialog.result() == QMessageBox::Discard);
         if (dialog.result() == QMessageBox::Save) {
-            success = onMenuSave();
+            success = onMenuSaveAll();
         }
     }
 
@@ -314,6 +332,30 @@ bool MainWindow::onMenuSave()
     if (s) {
         _ui->menu_OpenRecent->addFilename(_document->filename());
     }
+    return s;
+}
+
+bool MainWindow::onMenuSaveAll()
+{
+    Q_ASSERT(_document != nullptr);
+    Q_ASSERT(!_document->filename().isEmpty());
+
+    bool s = _document->saveDocument(_document->filename());
+    if (s) {
+        _ui->menu_OpenRecent->addFilename(_document->filename());
+    }
+
+    for (AbstractExternalResourceItem* item : _document->unsavedExternalResources()) {
+        try {
+            item->saveResource();
+            s &= true;
+        }
+        catch (const std::exception& ex) {
+            QMessageBox::critical(this, tr("Error Saving File"), ex.what());
+            s = false;
+        }
+    }
+
     return s;
 }
 

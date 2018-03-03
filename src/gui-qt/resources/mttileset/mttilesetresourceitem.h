@@ -37,6 +37,7 @@ protected:
     void setData(const MT::MetaTileTilesetInput& data);
 
 protected:
+    virtual void saveResourceData(const std::string& filename) const final;
     virtual bool loadResourceData(RES::ErrorList& err) final;
     virtual bool compileResource(RES::ErrorList& err) final;
 

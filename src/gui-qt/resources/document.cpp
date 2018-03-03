@@ -10,6 +10,7 @@
 #include "mttileset/mttilesetresourcelist.h"
 #include "palette/paletteresourcelist.h"
 
+#include <QFileInfo>
 #include <QMessageBox>
 
 using namespace UnTech::GuiQt::Resources;
@@ -84,6 +85,17 @@ bool Document::saveDocumentFile(const QString& filename)
 {
     try {
         RES::saveResourcesFile(*_resourcesFile, filename.toUtf8().data());
+
+        // Mark all internal resources as clean
+        _undoStack->setClean();
+        for (AbstractResourceList* rl : _resourceLists) {
+            for (AbstractResourceItem* item : rl->items()) {
+                if (auto* inItem = qobject_cast<AbstractInternalResourceItem*>(item)) {
+                    inItem->undoStack()->setClean();
+                }
+            }
+        }
+
         return true;
     }
     catch (const std::exception& ex) {
@@ -106,4 +118,49 @@ bool Document::loadDocumentFile(const QString& filename)
         QMessageBox::critical(nullptr, tr("Error Opening File"), ex.what());
     }
     return false;
+}
+
+QList<AbstractExternalResourceItem*> Document::unsavedExternalResources() const
+{
+    QList<AbstractExternalResourceItem*> items;
+
+    for (AbstractResourceList* rl : _resourceLists) {
+        for (AbstractResourceItem* item : rl->items()) {
+            if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(item)) {
+                if (exItem->undoStack()->isClean() == false) {
+                    items.append(exItem);
+                }
+            }
+        }
+    }
+
+    return items;
+}
+
+QStringList Document::unsavedFilenames() const
+{
+    QList<QString> filenames;
+    bool resourceFileDirty = _undoStack->isClean() == false;
+
+    for (AbstractResourceList* rl : _resourceLists) {
+        for (AbstractResourceItem* item : rl->items()) {
+            if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(item)) {
+                if (exItem->undoStack()->isClean() == false) {
+                    filenames.append(exItem->relativeFilePath());
+                }
+            }
+            else {
+                // internal resource
+                if (item->undoStack()->isClean() == false) {
+                    resourceFileDirty = true;
+                }
+            }
+        }
+    }
+
+    if (resourceFileDirty) {
+        filenames.prepend(QFileInfo(filename()).fileName());
+    }
+
+    return filenames;
 }

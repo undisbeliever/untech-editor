@@ -16,6 +16,7 @@ namespace GuiQt {
 namespace Resources {
 class AbstractResourceList;
 class AbstractResourceItem;
+class AbstractExternalResourceItem;
 class ResourceValidationWorker;
 
 namespace RES = UnTech::Resources;
@@ -33,11 +34,15 @@ public:
     RES::ResourcesFile* resourcesFile() const { return _resourcesFile.get(); }
 
     const auto& resourceLists() const { return _resourceLists; }
+    ResourceValidationWorker* validationWorker() const { return _validationWorker; }
 
     void setSelectedResource(AbstractResourceItem* item);
     AbstractResourceItem* selectedResource() const { return _selectedResource; }
 
-    ResourceValidationWorker* validationWorker() const { return _validationWorker; }
+    QList<AbstractExternalResourceItem*> unsavedExternalResources() const;
+
+    // All unsaved filenames are relative to the directory this document is saved to
+    QStringList unsavedFilenames() const;
 
     virtual const QString& fileFilter() const final;
     virtual const QString& defaultFileExtension() const final;

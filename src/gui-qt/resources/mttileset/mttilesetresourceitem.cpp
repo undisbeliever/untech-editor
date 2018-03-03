@@ -35,6 +35,13 @@ void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
     }
 }
 
+void MtTilesetResourceItem::saveResourceData(const std::string& filename) const
+{
+    if (_tilesetInput) {
+        MT::saveMetaTileTilesetInput(*_tilesetInput, filename);
+    }
+}
+
 bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
 {
     const std::string& fn = mtTilesetFilename();

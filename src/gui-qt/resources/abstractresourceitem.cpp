@@ -137,6 +137,14 @@ void AbstractExternalResourceItem::setFilename(const QString& filename)
     }
 }
 
+void AbstractExternalResourceItem::saveResource() const
+{
+    Q_ASSERT(filename().isEmpty() == false);
+
+    saveResourceData(filename().toStdString());
+    undoStack()->setClean();
+}
+
 void AbstractExternalResourceItem::updateRelativePath()
 {
     Q_ASSERT(_document);
