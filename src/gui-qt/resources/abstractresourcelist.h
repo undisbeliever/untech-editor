@@ -71,6 +71,7 @@ signals:
     void listChanged();
     void stateChanged();
     void resourceItemCreated(AbstractResourceItem* item);
+    void resourceItemAboutToBeRemoved(AbstractResourceItem* item);
 
 private:
     Document* _document;

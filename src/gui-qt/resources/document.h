@@ -55,6 +55,7 @@ private slots:
 signals:
     void selectedResourceChanged();
     void resourceItemCreated(AbstractResourceItem*);
+    void resourceItemAboutToBeRemoved(AbstractResourceItem*);
 
 private:
     std::unique_ptr<RES::ResourcesFile> _resourcesFile;

@@ -36,6 +36,8 @@ void Document::initModels()
 
         connect(rl, &AbstractResourceList::resourceItemCreated,
                 this, &Document::resourceItemCreated);
+        connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
+                this, &Document::resourceItemAboutToBeRemoved);
     }
 }
 

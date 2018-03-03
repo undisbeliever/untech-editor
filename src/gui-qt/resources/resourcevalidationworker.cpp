@@ -25,6 +25,8 @@ ResourceValidationWorker::ResourceValidationWorker(Document* document)
 
     connect(_document, &Document::resourceItemCreated,
             this, &ResourceValidationWorker::onResourceItemCreated);
+    connect(_document, &Document::resourceItemAboutToBeRemoved,
+            this, &ResourceValidationWorker::onResourceItemAboutToBeRemoved);
 }
 
 void ResourceValidationWorker::onResourceItemCreated(AbstractResourceItem* item)
@@ -33,13 +35,11 @@ void ResourceValidationWorker::onResourceItemCreated(AbstractResourceItem* item)
 
     connect(item, &AbstractResourceItem::stateChanged,
             this, &ResourceValidationWorker::onResourceItemStateChanged);
-    connect(item, &AbstractResourceItem::destroyed,
-            this, &ResourceValidationWorker::onResourceItemDestroyed);
 }
 
-void ResourceValidationWorker::onResourceItemDestroyed(QObject* item)
+void ResourceValidationWorker::onResourceItemAboutToBeRemoved(AbstractResourceItem* item)
 {
-    _itemsToProcess.removeAll(static_cast<AbstractExternalResourceItem*>(item));
+    _itemsToProcess.removeAll(item);
 }
 
 void ResourceValidationWorker::onResourceItemStateChanged()

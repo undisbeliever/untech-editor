@@ -78,6 +78,8 @@ void AbstractResourceList::removeResource(int index)
         _document->setSelectedResource(nullptr);
     }
 
+    emit resourceItemAboutToBeRemoved(_items.at(index));
+
     do_removeResource(index);
 
     AbstractResourceItem* oldItem = _items.takeAt(index);
