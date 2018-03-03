@@ -34,8 +34,9 @@ public:
     void setDocument(std::unique_ptr<Document>&& document);
 
 private slots:
-    void updateWindowTitle();
-
+    // updates windowTitle, windowFilePath and action_Save->text
+    void updateGuiFilePath();
+    void onUndoGroupCleanChanged();
     void onResourceItemCreated(AbstractResourceItem* item);
     void onSelectedResourceChanged();
 
@@ -46,7 +47,7 @@ private slots:
     void onMenuNew();
     void onMenuOpen();
     void onMenuOpenRecent(QString filename);
-    bool onMenuSave();
+    void onMenuSave();
     bool onMenuSaveAll();
 
     void onMenuAbout();

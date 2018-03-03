@@ -94,7 +94,7 @@ MainWindow::MainWindow(QWidget* parent)
     setDocument(nullptr);
 
     connect(_undoGroup, &QUndoGroup::cleanChanged,
-            this, &MainWindow::updateWindowTitle);
+            this, &MainWindow::onUndoGroupCleanChanged);
 
     connect(_ui->action_New, &QAction::triggered,
             this, &MainWindow::onMenuNew);
@@ -139,8 +139,6 @@ void MainWindow::setDocument(std::unique_ptr<Document>&& document)
     // Close the errors dock as it is now empty
     _ui->errorListDock->close();
 
-    _ui->action_Save->setEnabled(_document != nullptr);
-
     _ui->centralStackedWidget->setCurrentIndex(0);
     _ui->propertiesStackedWidget->setCurrentIndex(0);
 
@@ -161,33 +159,44 @@ void MainWindow::setDocument(std::unique_ptr<Document>&& document)
         }
 
         connect(_document.get(), &Document::filenameChanged,
-                this, &MainWindow::updateWindowTitle);
+                this, &MainWindow::updateGuiFilePath);
 
         connect(_document.get(), &Document::selectedResourceChanged,
                 this, &MainWindow::onSelectedResourceChanged);
     }
 
-    updateWindowTitle();
+    updateGuiFilePath();
 }
 
-void MainWindow::updateWindowTitle()
+void MainWindow::updateGuiFilePath()
 {
-    if (_document != nullptr) {
-        QString title = QFileInfo(_document->filename()).fileName();
-        if (title.isEmpty()) {
-            title = "untitled";
-        }
-        title.prepend("[*]");
+    QString relativePath;
+    QString filePath;
 
-        setWindowTitle(title);
-        setWindowFilePath(_document->filename());
-        setWindowModified(!_document->undoStack()->isClean());
+    if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(_selectedResource)) {
+        filePath = exItem->absoluteFilePath();
+        relativePath = exItem->relativeFilePath();
+    }
+    else if (_document) {
+        filePath = _document->filename();
+        relativePath = QFileInfo(_document->filename()).fileName();
+    }
+
+    setWindowFilePath(filePath);
+    if (!relativePath.isEmpty()) {
+        setWindowTitle(QStringLiteral("[*]") + relativePath);
+        _ui->action_Save->setText(tr("Save \"%1\"").arg(relativePath));
     }
     else {
         setWindowTitle(QString());
-        setWindowFilePath(QString());
-        setWindowModified(false);
+        _ui->action_Save->setText(tr("Save"));
     }
+}
+
+void MainWindow::onUndoGroupCleanChanged()
+{
+    _ui->action_Save->setEnabled(!_undoGroup->isClean());
+    setWindowModified(!_undoGroup->isClean());
 }
 
 void MainWindow::onResourceItemCreated(AbstractResourceItem* item)
@@ -197,6 +206,10 @@ void MainWindow::onResourceItemCreated(AbstractResourceItem* item)
 
 void MainWindow::onSelectedResourceChanged()
 {
+    if (_selectedResource) {
+        _selectedResource->disconnect(this);
+    }
+
     if (_document == nullptr) {
         _ui->centralStackedWidget->setCurrentIndex(0);
         _ui->propertiesStackedWidget->setCurrentIndex(0);
@@ -216,6 +229,11 @@ void MainWindow::onSelectedResourceChanged()
 
         _ui->centralStackedWidget->setCurrentIndex(index);
         _ui->propertiesStackedWidget->setCurrentIndex(index);
+
+        if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(_selectedResource)) {
+            connect(exItem, &AbstractExternalResourceItem::relativeFilePathChanged,
+                    this, &MainWindow::updateGuiFilePath);
+        }
     }
     else {
         _document->undoStack()->setActive();
@@ -223,6 +241,8 @@ void MainWindow::onSelectedResourceChanged()
         _ui->centralStackedWidget->setCurrentIndex(0);
         _ui->propertiesStackedWidget->setCurrentIndex(0);
     }
+
+    updateGuiFilePath();
 
     for (auto* widget : _resourceWidgets) {
         widget->setResourceItem(_selectedResource);
@@ -323,16 +343,26 @@ void MainWindow::onMenuOpenRecent(QString filename)
     loadDocument(filename);
 }
 
-bool MainWindow::onMenuSave()
+void MainWindow::onMenuSave()
 {
     Q_ASSERT(_document != nullptr);
-    Q_ASSERT(!_document->filename().isEmpty());
+    try {
+        if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(_selectedResource)) {
+            // current resource is external
 
-    bool s = _document->saveDocument(_document->filename());
-    if (s) {
-        _ui->menu_OpenRecent->addFilename(_document->filename());
+            Q_ASSERT(!exItem->filename().isEmpty());
+            exItem->saveResource();
+        }
+        else {
+            // current resource is internal
+
+            Q_ASSERT(!_document->filename().isEmpty());
+            _document->saveDocument(_document->filename());
+        }
     }
-    return s;
+    catch (const std::exception& ex) {
+        QMessageBox::critical(this, tr("Error Saving File"), ex.what());
+    }
 }
 
 bool MainWindow::onMenuSaveAll()
