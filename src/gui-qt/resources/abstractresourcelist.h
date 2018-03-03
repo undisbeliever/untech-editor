@@ -41,6 +41,9 @@ public:
     const QVector<AbstractResourceItem*>& items() const { return _items; }
     const ResourceState& state() const { return _state; }
 
+    QStringList itemNames() const;
+    AbstractResourceItem* findResource(const QString& name) const;
+
     void addResource(const QString& input);
     void removeResource(int index);
 

@@ -284,7 +284,13 @@ QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
             const auto& items = rl.at(internalId)->items();
 
             if (row < items.size()) {
-                return items.at(row)->name();
+                const AbstractResourceItem* item = items.at(row);
+                if (item->name().isEmpty()) {
+                    if (auto* exItem = qobject_cast<const AbstractExternalResourceItem*>(item)) {
+                        return exItem->relativeFilePath();
+                    }
+                }
+                return item->name();
             }
         }
     }

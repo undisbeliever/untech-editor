@@ -45,14 +45,12 @@ public:
     QUndoStack* undoStack() const { return _undoStack; }
 
     inline int index() const { return _index; }
+    const QString& name() const { return _name; }
     const ResourceState& state() const { return _state; }
     const RES::ErrorList& errorList() const { return _errorList; }
 
     ResourceTypeIndex resourceTypeIndex() const { return _list->resourceTypeIndex(); }
     AbstractResourceList* resourceList() const { return _list; }
-
-    // name of the resource item
-    virtual QString name() const = 0;
 
     // empty if the resource is inline with the resource document
     virtual QString filename() const = 0;
@@ -64,14 +62,15 @@ public slots:
     void loadResource();
 
 protected:
+    // MUST be called by the subclass when the resource name changes
+    void setName(const QString& name);
+
     virtual bool loadResourceData(RES::ErrorList& err) = 0;
 
     // compiles the resource to test if valid
     virtual bool compileResource(RES::ErrorList& err) = 0;
 
 signals:
-    // MUST be emitted by the subclass when the resource name changes
-    void nameChanged();
     // MUST be emitted by the subclass when the internal data changes
     void dataChanged();
 
@@ -83,6 +82,7 @@ private:
     void setState(ResourceState state);
 
 signals:
+    void nameChanged();
     void stateChanged();
     void errorListChanged();
 
@@ -94,6 +94,7 @@ private:
     QUndoStack* const _undoStack;
 
     unsigned _index;
+    QString _name;
     ResourceState _state;
     RES::ErrorList _errorList;
 };

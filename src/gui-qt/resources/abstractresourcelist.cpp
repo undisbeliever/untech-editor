@@ -50,6 +50,26 @@ void AbstractResourceList::appendNewItemToList(int index)
                   this, &AbstractResourceList::updateState);
 }
 
+QStringList AbstractResourceList::itemNames() const
+{
+    QStringList list;
+    list.reserve(_items.size());
+    std::transform(_items.begin(), _items.end(), std::back_inserter(list),
+                   [](const auto* i) -> const QString& { return i->name(); });
+    return list;
+}
+
+AbstractResourceItem* AbstractResourceList::findResource(const QString& name) const
+{
+    for (AbstractResourceItem* item : _items) {
+        if (item->name() == name) {
+            return item;
+        }
+    }
+
+    return nullptr;
+}
+
 void AbstractResourceList::addResource(const QString& input)
 {
     try {

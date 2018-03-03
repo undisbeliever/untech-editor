@@ -12,12 +12,8 @@ PaletteResourceItem::PaletteResourceItem(AbstractResourceList* parent, size_t in
     : AbstractInternalResourceItem(parent, index)
 {
     Q_ASSERT(index < palettesData().size());
-}
 
-QString PaletteResourceItem::name() const
-{
-    const auto& pal = palettesData().at(index());
-    return QString::fromStdString(pal->name);
+    setName(QString::fromStdString(paletteData()->name));
 }
 
 void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
@@ -32,7 +28,7 @@ void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
     emit dataChanged();
 
     if (nameChange) {
-        emit nameChanged();
+        setName(QString::fromStdString(data.name));
     }
     if (imageChange) {
         emit imageFilenameChanged();

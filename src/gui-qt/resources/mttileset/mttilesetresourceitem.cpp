@@ -17,16 +17,6 @@ MtTilesetResourceItem::MtTilesetResourceItem(AbstractResourceList* parent, size_
     setFilename(QString::fromStdString(mtTilesetFilename()));
 }
 
-QString MtTilesetResourceItem::name() const
-{
-    if (_tilesetInput) {
-        return QString::fromStdString(_tilesetInput->name);
-    }
-    else {
-        return relativeFilePath();
-    }
-}
-
 void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
 {
     Q_ASSERT(_tilesetInput);
@@ -38,7 +28,7 @@ void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
     emit dataChanged();
 
     if (nameChange) {
-        emit nameChanged();
+        setName(QString::fromStdString(data.name));
     }
     if (imagesChange) {
         emit frameImageFilenamesChanged();
@@ -56,6 +46,7 @@ bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
 
     try {
         _tilesetInput = MT::loadMetaTileTilesetInput(fn);
+        setName(QString::fromStdString(_tilesetInput->name));
         return true;
     }
     catch (const std::exception& ex) {

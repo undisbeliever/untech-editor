@@ -37,6 +37,14 @@ void AbstractResourceItem::loadResource()
     emit errorListChanged();
 }
 
+void AbstractResourceItem::setName(const QString& name)
+{
+    if (_name != name) {
+        _name = name;
+        emit nameChanged();
+    }
+}
+
 void AbstractResourceItem::setIndex(unsigned index)
 {
     Q_ASSERT(index < (unsigned)_list->items().size());

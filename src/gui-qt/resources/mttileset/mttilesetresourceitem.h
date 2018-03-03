@@ -28,8 +28,6 @@ public:
     ~MtTilesetResourceItem() = default;
 
 public:
-    virtual QString name() const final;
-
     // may be nullptr
     const MT::MetaTileTilesetInput* tilesetInput() const { return _tilesetInput.get(); }
 

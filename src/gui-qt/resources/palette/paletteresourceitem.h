@@ -24,8 +24,6 @@ public:
     PaletteResourceItem(AbstractResourceList* parent, size_t index);
     ~PaletteResourceItem() = default;
 
-    virtual QString name() const final;
-
     // will never be null
     inline const RES::PaletteInput* paletteData() const
     {
