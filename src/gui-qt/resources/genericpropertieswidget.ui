@@ -15,17 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTreeView" name="treeView">
-     <property name="minimumSize">
-      <size>
-       <width>300</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="alternatingRowColors">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <widget class="PropertyView" name="propertyView"/>
    </item>
   </layout>
  </widget>
@@ -35,6 +25,11 @@
    <extends>QWidget</extends>
    <header>gui-qt/resources/abstractresourcewidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PropertyView</class>
+   <extends>QTreeView</extends>
+   <header>gui-qt/common/properties/propertyview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -6,7 +6,6 @@
 
 #include "genericpropertieswidget.h"
 #include "abstractresourceitem.h"
-#include "gui-qt/common/properties/propertymodel.h"
 #include "gui-qt/resources/genericpropertieswidget.ui.h"
 
 using namespace UnTech::GuiQt;
@@ -20,10 +19,7 @@ GenericPropertiesWidget::GenericPropertiesWidget(AbstractPropertyManager* manage
     Q_ASSERT(manager);
 
     _ui->setupUi(this);
-
-    _ui->treeView->setModel(new PropertyModel(manager));
-    _ui->treeView->setIndentation(3);
-    _ui->treeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    _ui->propertyView->setPropertyManager(manager);
 }
 
 GenericPropertiesWidget::~GenericPropertiesWidget() = default;
