@@ -22,6 +22,7 @@ public:
     struct Property {
         QString title;
         int id;
+        bool isList;
     };
 
 public:
@@ -41,6 +42,7 @@ public:
 protected:
     // if id is < 0 then the property is blank and cannot be selected
     void addProperty(const QString& title, int id);
+    void addListProperty(const QString& title, int id);
 
 signals:
     void propertyListChanged();

@@ -16,8 +16,8 @@ MtTilesetPropertiesManager::MtTilesetPropertiesManager(QObject* parent)
     , _tileset(nullptr)
 {
     addProperty(tr("Name"), NAME);
-    addProperty(tr("Frame Images"), FRAME_IMAGES);
-    addProperty(tr("Palettes"), PALETTES);
+    addListProperty(tr("Frame Images"), FRAME_IMAGES);
+    addListProperty(tr("Palettes"), PALETTES);
     addProperty(tr("Animation Delay"), ANIMATION_DELAY);
     addProperty(tr("Bit Depth"), BIT_DEPTH);
     addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE);

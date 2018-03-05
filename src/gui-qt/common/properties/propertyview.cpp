@@ -25,7 +25,6 @@ PropertyView::PropertyView(QWidget* parent)
 
     setEditTriggers(QAbstractItemView::AllEditTriggers);
     setAlternatingRowColors(true);
-    setIndentation(3);
 
     header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 }

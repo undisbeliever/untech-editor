@@ -29,7 +29,16 @@ const QString& PropertyManager::propertyTitle(int id)
 
 void PropertyManager::addProperty(const QString& title, int id)
 {
-    _properties.append({ title, id });
+    _properties.append({ title, id, false });
+
+    emit propertyListChanged();
+}
+
+void PropertyManager::addListProperty(const QString& title, int id)
+{
+    Q_ASSERT(id >= 0);
+
+    _properties.append({ title, id, true });
 
     emit propertyListChanged();
 }

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "propertymanager.h"
 #include <QAbstractItemModel>
 #include <QBitArray>
 #include <QVector>
@@ -24,6 +25,7 @@ class PropertyModel : public QAbstractItemModel {
     };
 
     static constexpr int N_COLUMNS = 2;
+    static constexpr quintptr ROOT_INTERNAL_ID = UINT_MAX;
 
 public:
     PropertyModel(PropertyManager* manager);
@@ -43,7 +45,11 @@ public:
     virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
 private:
+    void updateCacheIfDirty(int index) const;
     const QVariant& dataFromCache(int index) const;
+    int propertyListSize(int index) const;
+
+    bool checkIndex(const QModelIndex& index) const;
 
 private slots:
     void resizeCache();
@@ -57,6 +63,7 @@ private:
 
     mutable QBitArray _cacheDirty;
     mutable QVector<QVariant> _dataCache;
+    mutable QVector<int> _listSizeCache;
 };
 }
 }
