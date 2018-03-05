@@ -6,13 +6,14 @@
 
 #pragma once
 
-#include "propertymanager.h"
-
 #include <QAbstractItemModel>
+#include <QBitArray>
+#include <QVector>
 
 namespace UnTech {
 namespace GuiQt {
 class PropertyManager;
+class PropertyModelCache;
 
 class PropertyModel : public QAbstractItemModel {
     Q_OBJECT
@@ -41,11 +42,21 @@ public:
     virtual QVariant data(const QModelIndex& index, int role) const final;
     virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
+private:
+    const QVariant& dataFromCache(int index) const;
+
 private slots:
+    void resizeCache();
+
+public slots:
+    void invalidateCache();
     void updateAll();
 
 private:
     PropertyManager* const _manager;
+
+    mutable QBitArray _cacheDirty;
+    mutable QVector<QVariant> _dataCache;
 };
 }
 }

@@ -13,12 +13,32 @@ PropertyModel::PropertyModel(PropertyManager* manager)
     : QAbstractItemModel(manager)
     , _manager(manager)
 {
+    resizeCache();
+
     connect(manager, &PropertyManager::propertyListChanged,
-            this, &PropertyModel::updateAll);
+            this, &PropertyModel::resizeCache);
+    connect(manager, &PropertyManager::dataChanged,
+            this, &PropertyModel::invalidateCache);
     connect(manager, &PropertyManager::enabledChanged,
             this, &PropertyModel::updateAll);
-    connect(manager, &PropertyManager::dataChanged,
-            this, &PropertyModel::updateAll);
+}
+
+void PropertyModel::resizeCache()
+{
+    beginResetModel();
+
+    int nItems = _manager->propertiesList().size();
+
+    _cacheDirty.fill(true, nItems);
+    _dataCache.resize(nItems);
+
+    endResetModel();
+}
+
+void PropertyModel::invalidateCache()
+{
+    _cacheDirty.fill(true);
+    updateAll();
 }
 
 void PropertyModel::updateAll()
@@ -26,6 +46,27 @@ void PropertyModel::updateAll()
     emit dataChanged(createIndex(0, VALUE_COLUMN),
                      createIndex(_manager->propertiesList().size(), VALUE_COLUMN),
                      { Qt::DisplayRole, Qt::EditRole });
+}
+
+const QVariant& PropertyModel::dataFromCache(int index) const
+{
+    Q_ASSERT(index >= 0);
+    Q_ASSUME(index < _cacheDirty.size());
+    Q_ASSUME(index < _dataCache.size());
+    Q_ASSUME(index < _manager->propertiesList().size());
+
+    if (_cacheDirty.at(index)) {
+        int id = _manager->propertiesList().at(index).id;
+        if (id >= 0) {
+            _dataCache.replace(index, _manager->data(id));
+        }
+        else {
+            _dataCache.replace(index, QVariant());
+        }
+        _cacheDirty.clearBit(index);
+    }
+
+    return _dataCache.at(index);
 }
 
 QModelIndex PropertyModel::index(int row, int column, const QModelIndex& parent) const
@@ -130,8 +171,7 @@ QVariant PropertyModel::data(const QModelIndex& index, int role) const
     if (pl.isEmpty()
         || !index.isValid()
         || index.column() >= N_COLUMNS
-        || index.row() >= pl.size()
-        || pl.at(index.row()).id < 0) {
+        || index.row() >= pl.size()) {
 
         return QVariant();
     }
@@ -142,12 +182,12 @@ QVariant PropertyModel::data(const QModelIndex& index, int role) const
             return pl.at(index.row()).title;
         }
         else if (_manager->isEnabled()) {
-            return _manager->data(pl.at(index.row()).id);
+            return dataFromCache(index.row());
         }
     }
     else if (role == Qt::EditRole) {
         if (_manager->isEnabled()) {
-            return _manager->data(pl.at(index.row()).id);
+            return dataFromCache(index.row());
         }
     }
 
