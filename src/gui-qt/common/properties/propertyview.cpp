@@ -5,6 +5,7 @@
  */
 
 #include "propertyview.h"
+#include "propertydelegate.h"
 #include "propertymanager.h"
 #include "propertymodel.h"
 
@@ -16,7 +17,10 @@ PropertyView::PropertyView(QWidget* parent)
     : QTreeView(parent)
     , _model(nullptr)
     , _manager(nullptr)
+    , _delegate(new PropertyDelegate(this))
 {
+    setItemDelegate(_delegate);
+
     setMinimumWidth(250);
 
     setEditTriggers(QAbstractItemView::AllEditTriggers);

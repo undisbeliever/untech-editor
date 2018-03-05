@@ -12,6 +12,7 @@ namespace UnTech {
 namespace GuiQt {
 class PropertyModel;
 class PropertyManager;
+class PropertyDelegate;
 
 class PropertyView : public QTreeView {
     Q_OBJECT
@@ -28,6 +29,7 @@ public:
 private:
     PropertyModel* _model;
     PropertyManager* _manager;
+    PropertyDelegate* const _delegate;
 };
 }
 }
