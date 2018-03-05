@@ -115,7 +115,37 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
         dialog.exec();
 
         if (dialog.result() == QDialog::Accepted && !dialog.selectedFiles().empty()) {
+            Q_ASSERT(!_document->filename().isEmpty());
+
             input = dialog.selectedFiles().first();
+
+            const auto& items = resourceList->items();
+            auto it = std::find_if(items.begin(), items.end(),
+                                   [&](auto* item) { return item->filename() == input; });
+            if (it != items.end()) {
+                QMessageBox::critical(this,
+                                      tr("Error"),
+                                      tr("Cannot add Resource: Resource file already in list."));
+                _document->setSelectedResource(*it);
+                return;
+            }
+
+            QString relativeFn = QFileInfo(_document->filename()).absoluteDir().relativeFilePath(input);
+            if (relativeFn.startsWith("..") || QFileInfo(relativeFn).isRelative() == false) {
+                QMessageBox verifyDialog(QMessageBox::Warning,
+                                         tr("Something is not quite right..."),
+                                         tr("The file \"%1\" is outside the resource file's directory."
+                                            "\n\nAre you sure you want to continue?")
+                                             .arg(relativeFn),
+                                         QMessageBox::Yes | QMessageBox::No,
+                                         this);
+                verifyDialog.setDefaultButton(QMessageBox::No);
+                verifyDialog.exec();
+
+                if (verifyDialog.result() == QMessageBox::No) {
+                    return;
+                }
+            }
         }
     }
     else {
@@ -123,6 +153,13 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
             this, settings.title,
             tr("Name of the new %1:").arg(resourceList->resourceTypeNameSingle()));
         input = QString::fromStdString(name);
+
+        if (resourceList->findResource(input) != nullptr) {
+            QMessageBox::critical(this,
+                                  tr("Error"),
+                                  tr("%1 name already exists.").arg(resourceList->resourceTypeNameSingle()));
+            return;
+        }
     }
 
     if (!input.isEmpty()) {
