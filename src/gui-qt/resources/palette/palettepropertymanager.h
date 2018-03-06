@@ -32,6 +32,8 @@ public:
     virtual ResourceTypeIndex resourceTypeIndex() const final;
     virtual void setResourceItem(AbstractResourceItem* item) final;
 
+    virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;
+
     virtual QVariant data(int id) const final;
     virtual bool setData(int id, const QVariant& value) final;
 

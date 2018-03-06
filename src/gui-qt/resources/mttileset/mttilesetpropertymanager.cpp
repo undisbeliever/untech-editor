@@ -16,10 +16,11 @@ MtTilesetPropertiesManager::MtTilesetPropertiesManager(QObject* parent)
     , _tileset(nullptr)
 {
     addProperty(tr("Name"), NAME, Type::IDSTRING);
-    addProperty(tr("Frame Images"), FRAME_IMAGES, Type::FILENAME_LIST);
+    addProperty(tr("Frame Images"), FRAME_IMAGES, Type::FILENAME_LIST,
+                QStringLiteral("PNG Image (*.png)"));
     addProperty(tr("Palettes"), PALETTES, Type::IDSTRING_LIST);
-    addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED);
-    addProperty(tr("Bit Depth"), BIT_DEPTH, Type::UNSIGNED);
+    addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED, 0, 0x10000);
+    addProperty(tr("Bit Depth"), BIT_DEPTH, Type::UNSIGNED, 2, 8);
     addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE, Type::BOOLEAN);
 }
 
@@ -50,6 +51,17 @@ void MtTilesetPropertiesManager::setResourceItem(AbstractResourceItem* abstractI
     }
 
     emit dataChanged();
+}
+
+void MtTilesetPropertiesManager::updateParameters(int id, QVariant& param1, QVariant&) const
+{
+    if (_tileset == nullptr) {
+        return;
+    }
+
+    if (id == PALETTES) {
+        param1 = _tileset->document()->resourceLists().at((int)ResourceTypeIndex::PALETTE)->itemNames();
+    }
 }
 
 QVariant MtTilesetPropertiesManager::data(int id) const

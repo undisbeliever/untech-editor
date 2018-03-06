@@ -10,7 +10,8 @@
 using namespace UnTech::GuiQt;
 
 const PropertyManager::Property PropertyManager::blankProperty = {
-    QString(), -1, PropertyManager::Type::STRING, false
+    QString(), -1, PropertyManager::Type::STRING,
+    QVariant(), QVariant(), false
 };
 
 PropertyManager::PropertyManager(QObject* parent)
@@ -31,13 +32,14 @@ const QString& PropertyManager::propertyTitle(int id)
     return nullString;
 }
 
-void PropertyManager::addProperty(const QString& title, int id, Type type)
+void PropertyManager::addProperty(const QString& title, int id, Type type,
+                                  const QVariant& param1, const QVariant& param2)
 {
     bool isList = type == Type::STRING_LIST
                   || type == Type::IDSTRING_LIST
                   || type == Type::FILENAME_LIST;
 
-    _properties.append({ title, id, type, isList });
+    _properties.append({ title, id, type, param1, param2, isList });
 
     emit propertyListChanged();
 }
@@ -53,4 +55,9 @@ void PropertyManager::setEnabled(bool enabled)
         _enabled = enabled;
         emit enabledChanged();
     }
+}
+
+void PropertyManager::updateParameters(int, QVariant&, QVariant&) const
+{
+    // This function does not change the parameters by default
 }

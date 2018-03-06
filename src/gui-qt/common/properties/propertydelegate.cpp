@@ -12,6 +12,7 @@
 #include "gui-qt/common/widgets/colorinputwidget.h"
 #include "gui-qt/common/widgets/filenameinputwidget.h"
 #include <QCheckBox>
+#include <QCompleter>
 #include <QLineEdit>
 #include <QSpinBox>
 
@@ -153,12 +154,21 @@ void PropertyDelegate::commitEditor()
 
 void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
+    const PropertyModel* model = qobject_cast<const PropertyModel*>(index.model());
+    if (model == nullptr) {
+        return;
+    }
+
     const auto& property = propertyForIndex(index);
     const QVariant data = index.data(Qt::EditRole);
 
     if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
         return;
     }
+
+    QVariant param1 = property.parameter1;
+    QVariant param2 = property.parameter2;
+    model->manager()->updateParameters(property.id, param1, param2);
 
     switch (property.type) {
     case Type::BOOLEAN: {
@@ -169,20 +179,43 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
     case Type::INTEGER:
     case Type::UNSIGNED: {
         QSpinBox* sb = qobject_cast<QSpinBox*>(editor);
+        if (param1.isValid()) {
+            sb->setMinimum(param1.toInt());
+        }
+        if (param2.isValid()) {
+            sb->setMaximum(param2.toInt());
+        }
         sb->setValue(data.toInt());
     } break;
 
     case Type::STRING:
-    case Type::STRING_LIST:
+    case Type::STRING_LIST: {
+        QLineEdit* le = qobject_cast<QLineEdit*>(editor);
+        le->setText(data.toString());
+    } break;
+
     case Type::IDSTRING:
     case Type::IDSTRING_LIST: {
         QLineEdit* le = qobject_cast<QLineEdit*>(editor);
+
+        if (QCompleter* c = le->completer()) {
+            le->setCompleter(nullptr);
+            c->deleteLater();
+        };
+        if (param1.type() == QVariant::StringList) {
+            QCompleter* c = new QCompleter(param1.toStringList(), le);
+            c->setCaseSensitivity(Qt::CaseInsensitive);
+            le->setCompleter(c);
+        }
         le->setText(data.toString());
     } break;
 
     case Type::FILENAME:
     case Type::FILENAME_LIST: {
         FilenameInputWidget* fi = qobject_cast<FilenameInputWidget*>(editor);
+        if (param1.isValid()) {
+            fi->setDialogFilter(param1.toString());
+        }
         fi->setFilename(data.toString());
     } break;
 

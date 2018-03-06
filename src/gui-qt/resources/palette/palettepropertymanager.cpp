@@ -7,6 +7,7 @@
 #include "palettepropertymanager.h"
 #include "paletteresourceitem.h"
 #include "../editresourceitemcommand.h"
+#include "models/common/imagecache.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -15,9 +16,9 @@ PalettePropertiesManager::PalettePropertiesManager(QObject* parent)
     , _palette(nullptr)
 {
     addProperty(tr("Name"), NAME, Type::IDSTRING);
-    addProperty(tr("Image"), IMAGE_FILENAME, Type::FILENAME);
-    addProperty(tr("Rows Per Frame"), ROWS_PER_FRAME, Type::UNSIGNED);
-    addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED);
+    addProperty(tr("Image"), IMAGE_FILENAME, Type::FILENAME, QStringLiteral("PNG Image (*.png)"));
+    addProperty(tr("Rows Per Frame"), ROWS_PER_FRAME, Type::UNSIGNED, 1, 16);
+    addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED, 0, 0x10000);
     addProperty(tr("Skip First Frame"), SKIP_FIRST_FRAME, Type::BOOLEAN);
 }
 
@@ -47,6 +48,22 @@ void PalettePropertiesManager::setResourceItem(AbstractResourceItem* abstractIte
     }
 
     emit dataChanged();
+}
+
+void PalettePropertiesManager::updateParameters(int id, QVariant& param1, QVariant& param2) const
+{
+    if (_palette == nullptr) {
+        return;
+    }
+
+    if (id == ROWS_PER_FRAME) {
+        const RES::PaletteInput* pal = _palette->paletteData();
+        Q_ASSERT(pal);
+        const auto& paletteImage = ImageCache::loadPngImage(pal->paletteImageFilename);
+
+        param1 = 1;
+        param2 = qMin(paletteImage->size().height, 16U);
+    }
 }
 
 QVariant PalettePropertiesManager::data(int id) const
