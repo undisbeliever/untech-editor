@@ -36,6 +36,11 @@ FilenameInputWidget::FilenameInputWidget(QWidget* parent)
             this, &FilenameInputWidget::filenameChanged);
 }
 
+void FilenameInputWidget::setFrame(bool b)
+{
+    _lineEdit->setFrame(b);
+}
+
 void FilenameInputWidget::setFilename(const QString& filename)
 {
     _lineEdit->setText(filename);

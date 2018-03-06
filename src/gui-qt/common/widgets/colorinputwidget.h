@@ -20,6 +20,8 @@ public:
     ColorInputWidget(QWidget* parent = nullptr);
     ~ColorInputWidget() = default;
 
+    void setFrame(bool f);
+
     QColor color() const { return _color; }
     void setColor(const QColor& c);
     void clear();

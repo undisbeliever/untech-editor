@@ -19,11 +19,26 @@ class PropertyManager : public QObject {
     Q_OBJECT
 
 public:
+    enum class Type {
+        BOOLEAN,
+        INTEGER,
+        UNSIGNED,
+        STRING,
+        IDSTRING,
+        FILENAME,
+        COLOR,
+        STRING_LIST,
+        IDSTRING_LIST,
+        FILENAME_LIST
+    };
+
     struct Property {
         QString title;
         int id;
+        Type type;
         bool isList;
     };
+    const static Property blankProperty;
 
 public:
     explicit PropertyManager(QObject* parent = nullptr);
@@ -41,8 +56,9 @@ public:
 
 protected:
     // if id is < 0 then the property is blank and cannot be selected
-    void addProperty(const QString& title, int id);
-    void addListProperty(const QString& title, int id);
+    void addProperty(const QString& title, int id, Type type);
+
+    void addSeperator(const QString& title);
 
 signals:
     void propertyListChanged();

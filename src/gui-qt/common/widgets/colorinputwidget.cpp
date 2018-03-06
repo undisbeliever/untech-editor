@@ -34,6 +34,11 @@ ColorInputWidget::ColorInputWidget(QWidget* parent)
             this, &ColorInputWidget::colorChanged);
 }
 
+void ColorInputWidget::setFrame(bool f)
+{
+    _lineEdit->setFrame(f);
+}
+
 void ColorInputWidget::setColor(const QColor& c)
 {
     if (_color != c) {

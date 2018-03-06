@@ -14,11 +14,11 @@ PalettePropertiesManager::PalettePropertiesManager(QObject* parent)
     : AbstractPropertyManager(parent)
     , _palette(nullptr)
 {
-    addProperty(tr("Name"), NAME);
-    addProperty(tr("Image"), IMAGE_FILENAME);
-    addProperty(tr("Rows Per Frame"), ROWS_PER_FRAME);
-    addProperty(tr("Animation Delay"), ANIMATION_DELAY);
-    addProperty(tr("Skip First Frame"), SKIP_FIRST_FRAME);
+    addProperty(tr("Name"), NAME, Type::IDSTRING);
+    addProperty(tr("Image"), IMAGE_FILENAME, Type::FILENAME);
+    addProperty(tr("Rows Per Frame"), ROWS_PER_FRAME, Type::UNSIGNED);
+    addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED);
+    addProperty(tr("Skip First Frame"), SKIP_FIRST_FRAME, Type::BOOLEAN);
 }
 
 ResourceTypeIndex PalettePropertiesManager::resourceTypeIndex() const

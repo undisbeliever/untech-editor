@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "propertymanager.h"
 #include <QStyledItemDelegate>
 
 namespace UnTech {
@@ -20,6 +21,20 @@ public:
     ~PropertyDelegate() = default;
 
     virtual QString displayText(const QVariant& value, const QLocale& locale) const final;
+
+    virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option,
+                                  const QModelIndex& index) const final;
+
+    virtual void setEditorData(QWidget* editor, const QModelIndex& index) const final;
+
+    virtual void setModelData(QWidget* editor, QAbstractItemModel* model,
+                              const QModelIndex& index) const final;
+
+private:
+    const PropertyManager::Property& propertyForIndex(const QModelIndex& index) const;
+
+private slots:
+    void commitEditor();
 };
 }
 }

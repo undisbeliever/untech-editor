@@ -20,6 +20,8 @@ public:
     FilenameInputWidget(QWidget* parent = nullptr);
     ~FilenameInputWidget() = default;
 
+    void setFrame(bool);
+
     QString filename() const { return _lineEdit->text(); }
     void setFilename(const QString& filename);
     void clear();

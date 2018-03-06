@@ -9,6 +9,10 @@
 
 using namespace UnTech::GuiQt;
 
+const PropertyManager::Property PropertyManager::blankProperty = {
+    QString(), -1, PropertyManager::Type::STRING, false
+};
+
 PropertyManager::PropertyManager(QObject* parent)
     : QObject(parent)
 {
@@ -27,20 +31,20 @@ const QString& PropertyManager::propertyTitle(int id)
     return nullString;
 }
 
-void PropertyManager::addProperty(const QString& title, int id)
+void PropertyManager::addProperty(const QString& title, int id, Type type)
 {
-    _properties.append({ title, id, false });
+    bool isList = type == Type::STRING_LIST
+                  || type == Type::IDSTRING_LIST
+                  || type == Type::FILENAME_LIST;
+
+    _properties.append({ title, id, type, isList });
 
     emit propertyListChanged();
 }
 
-void PropertyManager::addListProperty(const QString& title, int id)
+void PropertyManager::addSeperator(const QString& title)
 {
-    Q_ASSERT(id >= 0);
-
-    _properties.append({ title, id, true });
-
-    emit propertyListChanged();
+    addProperty(title, -1, Type::STRING);
 }
 
 void PropertyManager::setEnabled(bool enabled)

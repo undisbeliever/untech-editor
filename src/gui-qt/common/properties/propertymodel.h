@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "propertymanager.h"
 #include <QAbstractItemModel>
 #include <QBitArray>
 #include <QVector>
@@ -19,6 +18,7 @@ class PropertyModelCache;
 class PropertyModel : public QAbstractItemModel {
     Q_OBJECT
 
+public:
     enum {
         PROPERTY_COLUMN,
         VALUE_COLUMN,
@@ -30,6 +30,8 @@ class PropertyModel : public QAbstractItemModel {
 public:
     PropertyModel(PropertyManager* manager);
     ~PropertyModel() = default;
+
+    PropertyManager* manager() const { return _manager; }
 
     virtual QModelIndex index(int row, int column, const QModelIndex& parent) const final;
     virtual QModelIndex parent(const QModelIndex& index) const final;

@@ -15,12 +15,12 @@ MtTilesetPropertiesManager::MtTilesetPropertiesManager(QObject* parent)
     : AbstractPropertyManager(parent)
     , _tileset(nullptr)
 {
-    addProperty(tr("Name"), NAME);
-    addListProperty(tr("Frame Images"), FRAME_IMAGES);
-    addListProperty(tr("Palettes"), PALETTES);
-    addProperty(tr("Animation Delay"), ANIMATION_DELAY);
-    addProperty(tr("Bit Depth"), BIT_DEPTH);
-    addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE);
+    addProperty(tr("Name"), NAME, Type::IDSTRING);
+    addProperty(tr("Frame Images"), FRAME_IMAGES, Type::FILENAME_LIST);
+    addProperty(tr("Palettes"), PALETTES, Type::IDSTRING_LIST);
+    addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED);
+    addProperty(tr("Bit Depth"), BIT_DEPTH, Type::UNSIGNED);
+    addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE, Type::BOOLEAN);
 }
 
 ResourceTypeIndex MtTilesetPropertiesManager::resourceTypeIndex() const
