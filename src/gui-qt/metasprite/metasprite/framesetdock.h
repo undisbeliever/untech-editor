@@ -36,7 +36,7 @@ private slots:
 
     void onNameEdited();
     void onTilesetTypeEdited();
-    void onExportOrderButtonClicked();
+    void onExportOrderFileSelected();
 
     void onFrameListSelectionChanged();
     void onFrameContextMenu(const QPoint& pos);

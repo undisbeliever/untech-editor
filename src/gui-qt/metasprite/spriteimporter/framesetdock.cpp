@@ -33,6 +33,14 @@ FrameSetDock::FrameSetDock(Actions* actions, QWidget* parent)
 
     _ui->frameSetName->setValidator(new IdstringValidator(this));
 
+    _ui->exportOrder->setDialogTitle(tr("Open Export File"));
+    _ui->exportOrder->setDialogFilter(tr("FrameSet Export File (*.utfseo);;All Files (*)"));
+
+    _ui->imageFilename->setDialogTitle(tr("Open Image"));
+    _ui->imageFilename->setDialogFilter(tr("PNG Image (*.png);;All Files (*)"));
+
+    _ui->transparent->setDialogTitle(tr("Select Transparent Color"));
+
     _ui->nPalettes->setMaximum(UnTech::MetaSprite::MAX_PALETTES);
     _ui->paletteSize->setMaximum(32);
 
@@ -53,12 +61,12 @@ FrameSetDock::FrameSetDock(Actions* actions, QWidget* parent)
     connect(_ui->tilesetType, qOverload<int>(&EnumComboBox::activated),
             this, &FrameSetDock::onTilesetTypeEdited);
 
-    connect(_ui->exportOrderButton, &QToolButton::clicked,
-            this, &FrameSetDock::onExportOrderButtonClicked);
-    connect(_ui->imageFilenameButton, &QToolButton::clicked,
-            this, &FrameSetDock::onImageFilenameButtonClicked);
-    connect(_ui->transparentButton, &QToolButton::clicked,
-            this, &FrameSetDock::onTransparentButtonClicked);
+    connect(_ui->exportOrder, &FilenameInputWidget::fileSelected,
+            this, &FrameSetDock::onExportOrderFileSelected);
+    connect(_ui->imageFilename, &FilenameInputWidget::fileSelected,
+            this, &FrameSetDock::onImageFilenameFileSelected);
+    connect(_ui->transparent, &ColorInputWidget::colorSelected,
+            this, &FrameSetDock::onTransparentColorSelected);
 
     connect(_ui->gridSize, &SizeWidget::editingFinished,
             this, &FrameSetDock::onGridEdited);
@@ -130,7 +138,6 @@ void FrameSetDock::clearGui()
     _ui->frameSetType->clear();
     _ui->imageFilename->clear();
     _ui->transparent->clear();
-    _ui->transparentButton->unsetColor();
     _ui->gridSize->clear();
     _ui->gridOffset->clear();
     _ui->gridPadding->clear();
@@ -149,7 +156,7 @@ void FrameSetDock::updateGui()
     _ui->tilesetType->setCurrentEnum(fs.tilesetType);
 
     if (fs.exportOrder) {
-        _ui->exportOrder->setText(QString::fromStdString(fs.exportOrder->filename));
+        _ui->exportOrder->setFilename(QString::fromStdString(fs.exportOrder->filename));
         _ui->frameSetType->setText(QString::fromStdString(fs.exportOrder->name));
     }
     else {
@@ -157,18 +164,14 @@ void FrameSetDock::updateGui()
         _ui->frameSetType->clear();
     }
 
-    _ui->imageFilename->setText(QString::fromStdString(fs.imageFilename));
+    _ui->imageFilename->setFilename(QString::fromStdString(fs.imageFilename));
 
     if (fs.transparentColorValid()) {
         QColor c(fs.transparentColor.rgbHex());
-        QString colorHex = c.name();
-
-        _ui->transparent->setText(colorHex);
-        _ui->transparentButton->setColor(c);
+        _ui->transparent->setColor(c);
     }
     else {
         _ui->transparent->clear();
-        _ui->transparentButton->unsetColor();
     }
 
     _ui->gridSize->setValue(fs.grid.frameSize);
@@ -209,7 +212,7 @@ void FrameSetDock::onTilesetTypeEdited()
     }
 }
 
-void FrameSetDock::onExportOrderButtonClicked()
+void FrameSetDock::onExportOrderFileSelected()
 {
     const SI::FrameSet& fs = *_document->frameSet();
 
@@ -218,58 +221,43 @@ void FrameSetDock::onExportOrderButtonClicked()
         oldFilename = QString::fromStdString(fs.exportOrder->filename);
     }
 
-    const QString filename = QFileDialog::getOpenFileName(
-        this, tr("Open Export File"), oldFilename,
-        tr("FrameSet Export File (*.utfseo);;All Files (*)"));
+    const QString filename = _ui->exportOrder->filename();
+    Q_ASSERT(!filename.isEmpty());
 
-    if (!filename.isNull()) {
+    try {
         std::string fn = filename.toStdString();
+        auto eo = UnTech::MetaSprite::loadFrameSetExportOrderCached(fn);
 
-        try {
-            auto eo = UnTech::MetaSprite::loadFrameSetExportOrderCached(fn);
-
-            if (eo != fs.exportOrder) {
-                _document->undoStack()->push(
-                    new ChangeFrameSetExportOrder(_document, eo));
-            }
-        }
-        catch (std::exception& ex) {
-            QMessageBox::critical(this, tr("Error Opening File"), ex.what());
-        }
-    }
-}
-
-void FrameSetDock::onImageFilenameButtonClicked()
-{
-    const SI::FrameSet& fs = *_document->frameSet();
-
-    const QString filename = QFileDialog::getOpenFileName(
-        this, tr("Open Image"),
-        QString::fromStdString(fs.imageFilename),
-        tr("PNG Image (*.png);;All Files (*)"));
-
-    if (!filename.isNull()) {
-        std::string fn = filename.toStdString();
-
-        if (fn != fs.imageFilename)
+        if (eo != fs.exportOrder) {
             _document->undoStack()->push(
-                new ChangeFrameSetImageFile(_document, fn));
+                new ChangeFrameSetExportOrder(_document, eo));
+        }
+    }
+    catch (std::exception& ex) {
+        QMessageBox::critical(this, tr("Error Opening File"), ex.what());
+        _ui->exportOrder->setFilename(oldFilename);
     }
 }
 
-void FrameSetDock::onTransparentButtonClicked()
+void FrameSetDock::onImageFilenameFileSelected()
 {
     const SI::FrameSet& fs = *_document->frameSet();
 
-    QColor color;
-    if (fs.transparentColorValid()) {
-        color.setRgb(fs.transparentColor.rgbHex());
+    const QString filename = _ui->imageFilename->filename();
+    Q_ASSERT(!filename.isEmpty());
+
+    const std::string fn = filename.toStdString();
+    if (fn != fs.imageFilename) {
+        _document->undoStack()->push(
+            new ChangeFrameSetImageFile(_document, fn));
     }
+}
 
-    color = QColorDialog::getColor(color, this,
-                                   tr("Select Transparent Colour"),
-                                   QColorDialog::DontUseNativeDialog);
+void FrameSetDock::onTransparentColorSelected()
+{
+    const SI::FrameSet& fs = *_document->frameSet();
 
+    QColor color = _ui->transparent->color();
     rgba tc(color.red(), color.green(), color.blue());
     if (tc != fs.transparentColor) {
         _document->undoStack()->push(
