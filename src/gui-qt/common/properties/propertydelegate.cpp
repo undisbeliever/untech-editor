@@ -85,12 +85,36 @@ QString PropertyDelegate::listCountString(const QVariant& value) const
 
 QSize PropertyDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
+    auto sizeForText = [option](const QString& text) {
+        QStyle* style = option.widget ? option.widget->style() : QApplication::style();
+
+        int frameHMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin) + 1;
+        int textHMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin) + 1;
+        int extendWidth = frameHMargin * 3 + textHMargin * 2;
+
+        int extendHeight = style->pixelMetric(QStyle::PM_FocusFrameVMargin) * 2;
+
+        QRect b = option.fontMetrics.boundingRect(text);
+        return QSize(b.width() + extendWidth, b.height() + extendHeight);
+    };
+
     const auto& property = propertyForIndex(index);
 
-    if (index.column() == PropertyModel::VALUE_COLUMN) {
+    if (index.column() == PropertyModel::PROPERTY_COLUMN) {
+        QVariant value = index.data(Qt::DisplayRole);
+        return sizeForText(value.toString());
+    }
+    else {
         if (property.type == Type::BOOLEAN) {
             QRect rect = checkBoxRect(option);
             return QSize(rect.width() + 2, rect.height() + 2);
+        }
+        else if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+            return sizeForText(QStringLiteral("(xxx items)"));
+        }
+        else {
+            QVariant value = index.data(Qt::DisplayRole);
+            return sizeForText(value.toString());
         }
     }
 
