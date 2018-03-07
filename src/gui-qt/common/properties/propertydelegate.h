@@ -40,7 +40,7 @@ private:
     const PropertyManager::Property& propertyForIndex(const QModelIndex& index) const;
 
     QRect checkBoxRect(const QStyleOptionViewItem& option) const;
-    QString displayText(const QVariant& value) const;
+    QString listCountString(const QVariant& value) const;
 
 private slots:
     void commitEditor();

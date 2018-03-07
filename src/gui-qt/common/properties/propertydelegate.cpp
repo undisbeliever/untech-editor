@@ -61,7 +61,7 @@ QRect PropertyDelegate::checkBoxRect(const QStyleOptionViewItem& option) const
     return style->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &opt, option.widget);
 }
 
-QString PropertyDelegate::displayText(const QVariant& value) const
+QString PropertyDelegate::listCountString(const QVariant& value) const
 {
     auto itemCountString = [](int s) {
         if (s != 1) {
@@ -109,7 +109,14 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
     if (index.column() == PropertyModel::PROPERTY_COLUMN) {
         drawDisplay(painter, option, option.rect, value.toString());
     }
+    else if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+        // middle node of a list type
+        QStyleOptionViewItem opt = option;
+        opt.font.setItalic(true);
+        drawDisplay(painter, opt, option.rect, listCountString(value));
+    }
     else {
+        // leaf node
         switch (property.type) {
         case Type::BOOLEAN: {
             QRect rect = checkBoxRect(option);
@@ -123,11 +130,15 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
         case Type::STRING_LIST:
         case Type::IDSTRING:
         case Type::IDSTRING_LIST:
-        case Type::FILENAME:
-        case Type::FILENAME_LIST:
         case Type::COLOR: {
-            QString text = displayText(value);
-            drawDisplay(painter, option, option.rect, text);
+            drawDisplay(painter, option, option.rect, value.toString());
+        } break;
+
+        case Type::FILENAME:
+        case Type::FILENAME_LIST: {
+            QStyleOptionViewItem opt = option;
+            opt.textElideMode = Qt::ElideLeft;
+            drawDisplay(painter, opt, option.rect, value.toString());
         } break;
         }
     }
