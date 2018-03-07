@@ -8,6 +8,11 @@
 #include "propertymanager.h"
 #include "propertymodel.h"
 
+#include <QApplication>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QStyle>
+
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/widgets/colorinputwidget.h"
 #include "gui-qt/common/widgets/filenameinputwidget.h"
@@ -20,30 +25,8 @@ using namespace UnTech::GuiQt;
 using Type = PropertyManager::Type;
 
 PropertyDelegate::PropertyDelegate(QObject* parent)
-    : QStyledItemDelegate(parent)
+    : QItemDelegate(parent)
 {
-}
-
-QString PropertyDelegate::displayText(const QVariant& value, const QLocale& locale) const
-{
-    auto itemCountString = [](int s) {
-        if (s != 1) {
-            return tr("(%1 items)").arg(s);
-        }
-        else {
-            return tr("(1 item)");
-        }
-    };
-
-    if (value.type() == QVariant::List) {
-        return itemCountString(value.toList().size());
-    }
-    else if (value.type() == QVariant::StringList) {
-        return itemCountString(value.toStringList().size());
-    }
-    else {
-        return QStyledItemDelegate::displayText(value, locale);
-    }
 }
 
 const PropertyManager::Property& PropertyDelegate::propertyForIndex(const QModelIndex& index) const
@@ -69,6 +52,120 @@ const PropertyManager::Property& PropertyDelegate::propertyForIndex(const QModel
     }
 
     return PropertyManager::blankProperty;
+}
+
+QRect PropertyDelegate::checkBoxRect(const QStyleOptionViewItem& option) const
+{
+    QStyleOption opt = option;
+    QStyle* style = option.widget ? option.widget->style() : QApplication::style();
+    return style->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &opt, option.widget);
+}
+
+QString PropertyDelegate::displayText(const QVariant& value) const
+{
+    auto itemCountString = [](int s) {
+        if (s != 1) {
+            return tr("(%1 items)").arg(s);
+        }
+        else {
+            return tr("(1 item)");
+        }
+    };
+
+    if (value.type() == QVariant::List) {
+        return itemCountString(value.toList().size());
+    }
+    else if (value.type() == QVariant::StringList) {
+        return itemCountString(value.toStringList().size());
+    }
+    else {
+        return value.toString();
+    }
+}
+
+QSize PropertyDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
+{
+    const auto& property = propertyForIndex(index);
+
+    if (index.column() == PropertyModel::VALUE_COLUMN) {
+        if (property.type == Type::BOOLEAN) {
+            QRect rect = checkBoxRect(option);
+            return QSize(rect.width() + 2, rect.height() + 2);
+        }
+    }
+
+    return QItemDelegate::sizeHint(option, index);
+}
+
+void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
+                             const QModelIndex& index) const
+{
+    const auto& property = propertyForIndex(index);
+
+    drawBackground(painter, option, index);
+
+    QVariant value = index.data(Qt::DisplayRole);
+
+    if (index.column() == PropertyModel::PROPERTY_COLUMN) {
+        drawDisplay(painter, option, option.rect, value.toString());
+    }
+    else {
+        switch (property.type) {
+        case Type::BOOLEAN: {
+            QRect rect = checkBoxRect(option);
+            Qt::CheckState state = value.toBool() ? Qt::Checked : Qt::Unchecked;
+            drawCheck(painter, option, rect, state);
+        } break;
+
+        case Type::INTEGER:
+        case Type::UNSIGNED:
+        case Type::STRING:
+        case Type::STRING_LIST:
+        case Type::IDSTRING:
+        case Type::IDSTRING_LIST:
+        case Type::FILENAME:
+        case Type::FILENAME_LIST:
+        case Type::COLOR: {
+            QString text = displayText(value);
+            drawDisplay(painter, option, option.rect, text);
+        } break;
+        }
+    }
+
+    drawFocus(painter, option, option.rect);
+}
+
+bool PropertyDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
+                                   const QStyleOptionViewItem& option, const QModelIndex& index)
+{
+    Q_ASSERT(model);
+
+    if (index.column() == PropertyModel::VALUE_COLUMN) {
+        const auto& property = propertyForIndex(index);
+
+        if (property.type == Type::BOOLEAN) {
+            // NOTE: changing this test to QEvent::MouseButtonRelease does not
+            // work as setData is called AFTER `setEditorData`.
+            //
+            // If `createEditor` returns nullptr I loose tab navigation, but I
+            // really like the idea of changing a boolean value with a single
+            // click. Thererfore, I use check for MouseButtonPress events and
+            // hope the user doesn't notice.
+
+            if (event->type() == QEvent::MouseButtonPress) {
+                QMouseEvent* e = static_cast<QMouseEvent*>(event);
+
+                QRect checkRect = checkBoxRect(option);
+                if (checkRect.contains(e->pos())) {
+                    QVariant value = index.data(Qt::EditRole);
+                    model->setData(index, !value.toBool(), Qt::EditRole);
+                }
+                return false;
+            }
+        }
+    }
+
+    return QItemDelegate::editorEvent(event, model, option, index);
 }
 
 QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const

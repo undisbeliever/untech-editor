@@ -7,20 +7,26 @@
 #pragma once
 
 #include "propertymanager.h"
-#include <QStyledItemDelegate>
+#include <QItemDelegate>
 
 namespace UnTech {
 namespace GuiQt {
 class PropertyManager;
 
-class PropertyDelegate : public QStyledItemDelegate {
+class PropertyDelegate : public QItemDelegate {
     Q_OBJECT
 
 public:
     PropertyDelegate(QObject* parent = nullptr);
     ~PropertyDelegate() = default;
 
-    virtual QString displayText(const QVariant& value, const QLocale& locale) const final;
+    virtual QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const final;
+
+    virtual void paint(QPainter* painter, const QStyleOptionViewItem& option,
+                       const QModelIndex& index) const final;
+
+    virtual bool editorEvent(QEvent* event, QAbstractItemModel* model,
+                             const QStyleOptionViewItem& option, const QModelIndex& index) final;
 
     virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option,
                                   const QModelIndex& index) const final;
@@ -32,6 +38,9 @@ public:
 
 private:
     const PropertyManager::Property& propertyForIndex(const QModelIndex& index) const;
+
+    QRect checkBoxRect(const QStyleOptionViewItem& option) const;
+    QString displayText(const QVariant& value) const;
 
 private slots:
     void commitEditor();
