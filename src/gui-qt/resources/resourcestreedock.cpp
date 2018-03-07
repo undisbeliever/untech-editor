@@ -85,6 +85,8 @@ void ResourcesTreeDock::setDocument(Document* document)
     }
 
     setEnabled(_document != nullptr);
+
+    _ui->resourcesTree->expandAll();
 }
 
 void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)

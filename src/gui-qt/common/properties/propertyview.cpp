@@ -50,6 +50,8 @@ void PropertyView::setPropertyManager(PropertyManager* manager)
         _model = new PropertyModel(_manager);
         QTreeView::setModel(_model);
     }
+
+    this->expandAll();
 }
 
 void PropertyView::setModel(QAbstractItemModel*)
