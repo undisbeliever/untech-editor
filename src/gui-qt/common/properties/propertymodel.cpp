@@ -240,8 +240,7 @@ Qt::ItemFlags PropertyModel::flags(const QModelIndex& index) const
             flags |= Qt::ItemNeverHasChildren;
         }
         if (index.column() == VALUE_COLUMN
-            && settings.id >= 0
-            && settings.isList == false) {
+            && settings.id >= 0) {
 
             flags |= Qt::ItemIsEditable;
         }

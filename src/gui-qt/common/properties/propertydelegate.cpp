@@ -13,6 +13,7 @@
 #include <QPainter>
 #include <QStyle>
 
+#include "listitemwidget.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/widgets/colorinputwidget.h"
 #include "gui-qt/common/widgets/filenameinputwidget.h"
@@ -201,12 +202,27 @@ bool PropertyDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
 
 QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
 {
-    const auto& property = propertyForIndex(index);
-
-    if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+    if (index.column() == PropertyModel::PROPERTY_COLUMN) {
         return nullptr;
     }
 
+    const auto& property = propertyForIndex(index);
+
+    if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+        // root node of a list type
+
+        const PropertyModel* model = qobject_cast<const PropertyModel*>(index.model());
+        Q_ASSERT(model);
+
+        ListItemWidget* li = new ListItemWidget(model->manager(), index.row(), parent);
+        li->setAutoFillBackground(true);
+
+        connect(li, &ListItemWidget::listEdited,
+                this, &PropertyDelegate::commitEditor);
+        return li;
+    }
+
+    // leaf node
     switch (property.type) {
     case Type::BOOLEAN: {
         QCheckBox* cb = new QCheckBox(parent);
@@ -291,6 +307,9 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
     const QVariant data = index.data(Qt::EditRole);
 
     if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+        // root node of a list type
+        ListItemWidget* li = qobject_cast<ListItemWidget*>(editor);
+        li->setStringList(data.toStringList());
         return;
     }
 
@@ -359,9 +378,14 @@ void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
     const auto& property = propertyForIndex(index);
 
     if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+        // root node of a list type
+        ListItemWidget* li = qobject_cast<ListItemWidget*>(editor);
+        model->setData(index, li->stringList(), Qt::EditRole);
+
         return;
     }
 
+    // leaf node
     switch (property.type) {
     case Type::BOOLEAN: {
         QCheckBox* cb = qobject_cast<QCheckBox*>(editor);
