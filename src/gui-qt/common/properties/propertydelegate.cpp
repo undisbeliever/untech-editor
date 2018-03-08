@@ -179,15 +179,7 @@ bool PropertyDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
         const auto& property = propertyForIndex(index);
 
         if (property.type == Type::BOOLEAN) {
-            // NOTE: changing this test to QEvent::MouseButtonRelease does not
-            // work as setData is called AFTER `setEditorData`.
-            //
-            // If `createEditor` returns nullptr I loose tab navigation, but I
-            // really like the idea of changing a boolean value with a single
-            // click. Thererfore, I use check for MouseButtonPress events and
-            // hope the user doesn't notice.
-
-            if (event->type() == QEvent::MouseButtonPress) {
+            if (event->type() == QEvent::MouseButtonRelease) {
                 QMouseEvent* e = static_cast<QMouseEvent*>(event);
 
                 QRect checkRect = checkBoxRect(option);

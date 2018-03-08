@@ -44,8 +44,8 @@ void PropertyModel::invalidateCache()
 
 void PropertyModel::updateAll()
 {
-    emit dataChanged(createIndex(0, 0),
-                     createIndex(_manager->propertiesList().size(), N_COLUMNS - 1),
+    emit dataChanged(createIndex(0, VALUE_COLUMN, ROOT_INTERNAL_ID),
+                     createIndex(_manager->propertiesList().size() - 1, VALUE_COLUMN, ROOT_INTERNAL_ID),
                      { Qt::DisplayRole, Qt::EditRole });
     emit layoutChanged();
 }
