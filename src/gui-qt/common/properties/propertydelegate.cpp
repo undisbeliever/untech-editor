@@ -85,7 +85,11 @@ QString PropertyDelegate::listCountString(const QVariant& value) const
 
 QSize PropertyDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-    auto sizeForText = [option](const QString& text) {
+    auto sizeForText = [option](QString text) {
+        if (text.isEmpty()) {
+            text = QStringLiteral(" ");
+        }
+
         QStyle* style = option.widget ? option.widget->style() : QApplication::style();
 
         int frameHMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin) + 1;
