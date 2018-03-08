@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "propertymanager.h"
 #include <QAbstractItemModel>
 #include <QBitArray>
 #include <QVector>
@@ -33,6 +34,8 @@ public:
 
     PropertyManager* manager() const { return _manager; }
 
+    const PropertyManager::Property& propertyForIndex(const QModelIndex& index) const;
+
     virtual QModelIndex index(int row, int column, const QModelIndex& parent) const final;
     virtual QModelIndex parent(const QModelIndex& index) const final;
 
@@ -45,6 +48,10 @@ public:
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     virtual QVariant data(const QModelIndex& index, int role) const final;
     virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
+
+    bool insertRows(int row, const QModelIndex& parent, const QStringList& values);
+    virtual bool insertRows(int row, int count, const QModelIndex& parent = QModelIndex()) final;
+    virtual bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex()) final;
 
 private:
     void updateCacheIfDirty(int index) const;

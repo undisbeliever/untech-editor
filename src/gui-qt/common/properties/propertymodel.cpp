@@ -8,6 +8,7 @@
 #include "propertymanager.h"
 
 using namespace UnTech::GuiQt;
+using Type = PropertyManager::Type;
 
 PropertyModel::PropertyModel(PropertyManager* manager)
     : QAbstractItemModel(manager)
@@ -21,6 +22,32 @@ PropertyModel::PropertyModel(PropertyManager* manager)
             this, &PropertyModel::invalidateCache);
     connect(manager, &PropertyManager::enabledChanged,
             this, &PropertyModel::updateAll);
+}
+
+const PropertyManager::Property& PropertyModel::propertyForIndex(const QModelIndex& index) const
+{
+    if (index.isValid() == false
+        || index.model() != this
+        || index.column() >= N_COLUMNS) {
+
+        return PropertyManager::blankProperty;
+    }
+
+    const auto& pl = _manager->propertiesList();
+    if (index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+        if (index.row() < pl.size()) {
+            return pl.at(index.row());
+        }
+    }
+    else {
+        if (index.internalId() < (unsigned)pl.size()
+            && pl.at(index.internalId()).isList) {
+
+            return pl.at(index.internalId());
+        }
+    }
+
+    return PropertyManager::blankProperty;
 }
 
 void PropertyModel::resizeCache()
@@ -359,5 +386,119 @@ bool PropertyModel::setData(const QModelIndex& index, const QVariant& value, int
             qWarning("Expected list from manager");
             return false;
         }
+    }
+}
+
+bool PropertyModel::insertRows(int row, const QModelIndex& parent, const QStringList& values)
+{
+    if (row < 0
+        || parent.internalId() != ROOT_INTERNAL_ID
+        || checkIndex(parent) == false) {
+
+        return false;
+    }
+
+    const auto& settings = _manager->propertiesList().at(parent.row());
+    if (settings.isList == false) {
+        return false;
+    }
+
+    QVariant data = _manager->data(settings.id);
+
+    if (data.type() == QVariant::StringList) {
+        QStringList list = data.toStringList();
+
+        if (row > list.size()) {
+            row = list.size();
+        }
+        for (int i = 0; i < values.size(); i++) {
+            list.insert(row + i, values.at(i));
+        }
+        return _manager->setData(settings.id, list);
+    }
+    else {
+        return false;
+    }
+}
+
+bool PropertyModel::insertRows(int row, int count, const QModelIndex& parent)
+{
+    if (row < 0
+        || count <= 0
+        || parent.internalId() != ROOT_INTERNAL_ID
+        || checkIndex(parent) == false) {
+
+        return false;
+    }
+
+    const auto& settings = _manager->propertiesList().at(parent.row());
+    if (settings.isList == false) {
+        return false;
+    }
+    if (settings.type == Type::FILENAME_LIST) {
+        // Do not create empty strings in a filename list
+        return false;
+    }
+
+    auto doInsert = [&](auto list, auto value) {
+        if (row > list.size()) {
+            row = list.size();
+        }
+        for (int i = 0; i < count; i++) {
+            list.insert(row, value);
+        }
+        return _manager->setData(settings.id, list);
+    };
+
+    QVariant data = _manager->data(settings.id);
+
+    if (data.type() == QVariant::List) {
+        return doInsert(data.toList(), QVariant());
+    }
+    else if (data.type() == QVariant::StringList) {
+        return doInsert(data.toStringList(), QString());
+    }
+    else {
+        return false;
+    }
+}
+
+bool PropertyModel::removeRows(int row, int count, const QModelIndex& parent)
+{
+    if (row < 0
+        || count <= 0
+        || parent.internalId() != ROOT_INTERNAL_ID
+        || checkIndex(parent) == false) {
+
+        return false;
+    }
+
+    const auto& settings = _manager->propertiesList().at(parent.row());
+    if (settings.isList == false) {
+        return false;
+    }
+
+    auto doRemove = [&](auto list) {
+        if (row + count <= list.size()) {
+            for (int i = 0; i < count; i++) {
+                list.removeAt(row);
+            }
+            return _manager->setData(settings.id, list);
+        }
+        else {
+            return false;
+        }
+    };
+
+    QVariant data = _manager->data(settings.id);
+
+    if (data.type() == QVariant::List) {
+        return doRemove(data.toList());
+    }
+    else if (data.type() == QVariant::StringList) {
+        return doRemove(data.toStringList());
+    }
+    else {
+        return false;
     }
 }

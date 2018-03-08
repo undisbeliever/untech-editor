@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "propertymanager.h"
+#include <QAction>
 #include <QTreeView>
 
 namespace UnTech {
@@ -26,10 +28,25 @@ public:
     // MUST NOT call this method
     virtual void setModel(QAbstractItemModel*) final;
 
+protected:
+    virtual void contextMenuEvent(QContextMenuEvent* event) final;
+
+private:
+    QStringList showAddFilenameDialog(const PropertyManager::Property& property);
+
+private slots:
+    void onSelectionChanged();
+
+    void onInsertActionTriggered();
+    void onRemoveActionTriggered();
+
 private:
     PropertyModel* _model;
     PropertyManager* _manager;
     PropertyDelegate* const _delegate;
+
+    QAction* _insertAction;
+    QAction* _removeAction;
 };
 }
 }
