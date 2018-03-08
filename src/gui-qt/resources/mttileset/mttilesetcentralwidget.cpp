@@ -208,7 +208,7 @@ void MtTilesetGraphicsItem::setAnimationFrameIndex(int index)
 
 QRectF MtTilesetGraphicsItem::boundingRect() const
 {
-    if (_animationFrameIndex < 0 || _animationFrameIndex > _pixmaps.size()) {
+    if (_animationFrameIndex < 0 || _animationFrameIndex >= _pixmaps.size()) {
         return QRectF();
     }
     const QPixmap& pixmap = _pixmaps.at(_animationFrameIndex);
@@ -222,7 +222,7 @@ QRectF MtTilesetGraphicsItem::boundingRect() const
 void MtTilesetGraphicsItem::paint(QPainter* painter,
                                   const QStyleOptionGraphicsItem*, QWidget* widget)
 {
-    if (_animationFrameIndex < 0 || _animationFrameIndex > _pixmaps.size()) {
+    if (_animationFrameIndex < 0 || _animationFrameIndex >= _pixmaps.size()) {
         return;
     }
     const QPixmap& pixmap = _pixmaps.at(_animationFrameIndex);
