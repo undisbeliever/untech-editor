@@ -4,9 +4,11 @@
  <file>icons/add.svg</file>
  <file>icons/clone.svg</file>
  <file>icons/lower.svg</file>
+ <file>icons/lower-to-bottom.svg</file>
  <file>icons/new.svg</file>
  <file>icons/open.svg</file>
  <file>icons/raise.svg</file>
+ <file>icons/raise-to-top.svg</file>
  <file>icons/redo.svg</file>
  <file>icons/remove.svg</file>
  <file>icons/rename.svg</file>
