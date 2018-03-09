@@ -7,8 +7,12 @@
 #include "propertymodel.h"
 #include "propertymanager.h"
 
+#include <QMimeData>
+
 using namespace UnTech::GuiQt;
 using Type = PropertyManager::Type;
+
+const QString PropertyModel::ITEM_MIME_TYPE = QStringLiteral("application/x-untech-property-data");
 
 PropertyModel::PropertyModel(PropertyManager* manager)
     : QAbstractItemModel(manager)
@@ -266,6 +270,9 @@ Qt::ItemFlags PropertyModel::flags(const QModelIndex& index) const
         if (settings.isList == false) {
             flags |= Qt::ItemNeverHasChildren;
         }
+        else {
+            flags |= Qt::ItemIsDropEnabled;
+        }
         if (index.column() == VALUE_COLUMN
             && settings.id >= 0) {
 
@@ -276,7 +283,7 @@ Qt::ItemFlags PropertyModel::flags(const QModelIndex& index) const
         flags |= Qt::ItemNeverHasChildren;
 
         if (index.column() == VALUE_COLUMN) {
-            flags |= Qt::ItemIsEditable;
+            flags |= Qt::ItemIsEditable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
         }
     }
 
@@ -501,4 +508,193 @@ bool PropertyModel::removeRows(int row, int count, const QModelIndex& parent)
     else {
         return false;
     }
+}
+
+// This code is a LOT simpler if only one item can be moved at a time
+bool PropertyModel::moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
+                             const QModelIndex& destParent, int destRow)
+{
+    if (sourceRow < 0
+        || destRow < 0
+        || count != 1
+        || sourceRow == destRow
+        || sourceRow == destRow - 1
+        || sourceParent != destParent
+        || sourceParent.internalId() != ROOT_INTERNAL_ID
+        || checkIndex(sourceParent) == false) {
+
+        return false;
+    }
+
+    const auto& settings = _manager->propertiesList().at(sourceParent.row());
+    if (settings.isList == false) {
+        return false;
+    }
+
+    auto doMove = [&](auto list) {
+        if (sourceRow < list.size() && destRow <= list.size()) {
+            beginMoveRows(sourceParent, sourceRow, sourceRow, destParent, destRow);
+            endMoveRows();
+
+            if (destRow > sourceRow) {
+                destRow--;
+            }
+
+            list.move(sourceRow, destRow);
+            return _manager->setData(settings.id, list);
+        }
+        else {
+            return false;
+        }
+    };
+
+    QVariant data = _manager->data(settings.id);
+
+    if (data.type() == QVariant::List) {
+        return doMove(data.toList());
+    }
+    else if (data.type() == QVariant::StringList) {
+        return doMove(data.toStringList());
+    }
+    else {
+        return false;
+    }
+}
+
+Qt::DropActions PropertyModel::supportedDragActions() const
+{
+    return Qt::MoveAction;
+}
+
+Qt::DropActions PropertyModel::supportedDropActions() const
+{
+    return Qt::MoveAction;
+}
+
+QStringList PropertyModel::mimeTypes() const
+{
+    static const QStringList types = {
+        ITEM_MIME_TYPE
+    };
+
+    return types;
+}
+
+struct PropertyModel::InternalMimeData {
+    int id;
+    int row;
+    const void* model;
+};
+QDataStream& operator<<(QDataStream& stream, const PropertyModel::InternalMimeData& data)
+{
+    static_assert(sizeof(quintptr) == sizeof(data.model), "Bad quintptr size");
+
+    quintptr ptr = (quintptr)data.model;
+    stream << data.id << data.row << ptr;
+
+    return stream;
+}
+QDataStream& operator>>(QDataStream& stream, PropertyModel::InternalMimeData& data)
+{
+    static_assert(sizeof(quintptr) == sizeof(data.model), "Bad quintptr size");
+
+    quintptr ptr;
+    stream >> data.id >> data.row >> ptr;
+    data.model = (const void*)ptr;
+
+    return stream;
+}
+
+// This code is a LOT simpler if only one item can be moved at a time
+QMimeData* PropertyModel::mimeData(const QModelIndexList& indexes) const
+{
+    if (indexes.count() != 1
+        || indexes.front().internalId() == ROOT_INTERNAL_ID
+        || checkIndex(indexes.front()) == false) {
+
+        return nullptr;
+    }
+    const QModelIndex& index = indexes.front();
+    const auto& settings = _manager->propertiesList().at(index.internalId());
+
+    QByteArray encodedData;
+    QDataStream stream(&encodedData, QIODevice::WriteOnly);
+    stream << InternalMimeData{ settings.id, index.row(), this };
+
+    QMimeData* mimeData = new QMimeData();
+    mimeData->setData(ITEM_MIME_TYPE, encodedData);
+
+    return mimeData;
+}
+
+bool PropertyModel::canDropMimeData(const QMimeData* mimeData, Qt::DropAction action,
+                                    int destRow, int column, const QModelIndex& parent) const
+{
+    Q_UNUSED(column)
+
+    if (mimeData == nullptr
+        || action != Qt::MoveAction
+        || destRow < 0
+        || parent.internalId() != ROOT_INTERNAL_ID
+        || checkIndex(parent) == false) {
+        return false;
+    }
+
+    const auto& settings = _manager->propertiesList().at(parent.row());
+
+    if (settings.isList) {
+        if (mimeData->hasFormat(ITEM_MIME_TYPE) == false) {
+            return false;
+        }
+
+        QByteArray encodedData = mimeData->data(ITEM_MIME_TYPE);
+        QDataStream stream(&encodedData, QIODevice::ReadOnly);
+        InternalMimeData data;
+        stream >> data;
+
+        return stream.atEnd()
+               && data.model == this
+               && data.id == settings.id
+               && data.row >= 0 && data.row < propertyListSize(parent.row());
+    }
+
+    return false;
+}
+
+bool PropertyModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction action,
+                                 int destRow, int column, const QModelIndex& parent)
+{
+    Q_UNUSED(column)
+
+    if (mimeData == nullptr
+        || action != Qt::MoveAction
+        || destRow < 0
+        || parent.internalId() != ROOT_INTERNAL_ID
+        || checkIndex(parent) == false) {
+        return false;
+    }
+
+    const auto& settings = _manager->propertiesList().at(parent.row());
+
+    if (settings.isList) {
+        if (mimeData->hasFormat(ITEM_MIME_TYPE) == false) {
+            return false;
+        }
+
+        QByteArray encodedData = mimeData->data(ITEM_MIME_TYPE);
+        QDataStream stream(&encodedData, QIODevice::ReadOnly);
+        InternalMimeData data;
+        stream >> data;
+
+        if (stream.atEnd() && data.model == this && data.id == settings.id) {
+
+            // uses moveRow so the the manager only sees one setData call
+            moveRow(parent, data.row, parent, destRow);
+
+            // Return false so the View does not delete the source
+            return false;
+        }
+    }
+
+    return false;
 }

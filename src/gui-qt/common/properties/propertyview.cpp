@@ -27,6 +27,8 @@ PropertyView::PropertyView(QWidget* parent)
 
     setMinimumWidth(250);
 
+    setDragDropMode(QTreeView::InternalMove);
+
     setEditTriggers(QAbstractItemView::AllEditTriggers);
     setAlternatingRowColors(true);
 

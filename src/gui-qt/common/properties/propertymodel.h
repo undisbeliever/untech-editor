@@ -28,6 +28,9 @@ public:
     static constexpr int N_COLUMNS = 2;
     static constexpr quintptr ROOT_INTERNAL_ID = UINT_MAX;
 
+    static const QString ITEM_MIME_TYPE;
+    struct InternalMimeData;
+
 public:
     PropertyModel(PropertyManager* manager);
     ~PropertyModel() = default;
@@ -52,6 +55,17 @@ public:
     bool insertRows(int row, const QModelIndex& parent, const QStringList& values);
     virtual bool insertRows(int row, int count, const QModelIndex& parent = QModelIndex()) final;
     virtual bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex()) final;
+    virtual bool moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
+                          const QModelIndex& destinationParent, int destinationChild) final;
+
+    virtual Qt::DropActions supportedDragActions() const final;
+    virtual Qt::DropActions supportedDropActions() const final;
+    virtual QStringList mimeTypes() const final;
+    virtual QMimeData* mimeData(const QModelIndexList& indexes) const final;
+    virtual bool canDropMimeData(const QMimeData* data, Qt::DropAction action,
+                                 int destRow, int column, const QModelIndex& parent) const final;
+    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action,
+                              int row, int column, const QModelIndex& parent) final;
 
 private:
     void updateCacheIfDirty(int index) const;
