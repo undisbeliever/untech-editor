@@ -34,19 +34,26 @@ PropertyView::PropertyView(QWidget* parent)
 
     header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    _insertAction = new QAction(tr("Insert Item"), this);
-    _insertAction->setIcon(QIcon(":/icons/add.svg"));
-    _insertAction->setShortcut(Qt::Key_Insert);
-    _insertAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    _insertAction->setShortcutVisibleInContextMenu(true);
-    addAction(_insertAction);
+    auto createAction = [this](const char* title, const char* icon,
+                               const QKeySequence& shortcut) {
+        QAction* a = new QAction(tr(title), this);
+        a->setIcon(QIcon(icon));
+        a->setShortcut(shortcut);
+        a->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+        a->setShortcutVisibleInContextMenu(true);
+        addAction(a);
 
-    _removeAction = new QAction(tr("Remove Item"), this);
-    _removeAction->setIcon(QIcon(":/icons/remove.svg"));
-    _removeAction->setShortcut(Qt::Key_Delete);
-    _removeAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    _removeAction->setShortcutVisibleInContextMenu(true);
-    addAction(_removeAction);
+        return a;
+    };
+
+    // NOTE: if you change the move item shortcuts, update `PropertyView::keyPressEvent` to match
+
+    _insertAction = createAction("Insert Item", ":/icons/add.svg", Qt::Key_Insert);
+    _removeAction = createAction("Remove Item", ":/icons/remove.svg", Qt::Key_Delete);
+    _raiseAction = createAction("Raise Item", ":/icons/raise.svg", Qt::SHIFT + Qt::Key_PageUp);
+    _lowerAction = createAction("Lower Item", ":/icons/lower.svg", Qt::SHIFT + Qt::Key_PageDown);
+    _raiseToTopAction = createAction("Raise To Top", ":/icons/raise-to-top.svg", Qt::SHIFT + Qt::Key_Home);
+    _lowerToBottomAction = createAction("Lower To Bottom", ":/icons/lower-to-bottom.svg", Qt::SHIFT + Qt::Key_End);
 
     onSelectionChanged();
 
@@ -54,6 +61,14 @@ PropertyView::PropertyView(QWidget* parent)
             this, &PropertyView::onInsertActionTriggered);
     connect(_removeAction, &QAction::triggered,
             this, &PropertyView::onRemoveActionTriggered);
+    connect(_raiseAction, &QAction::triggered,
+            this, &PropertyView::onRaiseActionTriggered);
+    connect(_lowerAction, &QAction::triggered,
+            this, &PropertyView::onLowerActionTriggered);
+    connect(_raiseToTopAction, &QAction::triggered,
+            this, &PropertyView::onRaiseToTopActionTriggered);
+    connect(_lowerToBottomAction, &QAction::triggered,
+            this, &PropertyView::onLowerToBottomActionTriggered);
 }
 
 void PropertyView::setPropertyManager(PropertyManager* manager)
@@ -76,6 +91,9 @@ void PropertyView::setPropertyManager(PropertyManager* manager)
     if (_manager) {
         _model = new PropertyModel(_manager);
         QTreeView::setModel(_model);
+
+        connect(_model, &PropertyModel::rowsMoved,
+                this, &PropertyView::onSelectionChanged);
     }
 
     onSelectionChanged();
@@ -102,10 +120,31 @@ void PropertyView::contextMenuEvent(QContextMenuEvent* event)
         menu.addAction(_insertAction);
 
         if (_removeAction->isEnabled()) {
+            menu.addSeparator();
+            menu.addAction(_raiseAction);
+            menu.addAction(_lowerAction);
+            menu.addAction(_raiseToTopAction);
+            menu.addAction(_lowerToBottomAction);
+            menu.addSeparator();
             menu.addAction(_removeAction);
         }
 
         menu.exec(event->globalPos());
+    }
+}
+
+void PropertyView::keyPressEvent(QKeyEvent* event)
+{
+    // Do not process the "move item" shortcuts when the action has been disabled
+    if ((event->modifiers() == Qt::SHIFT && event->key() == Qt::Key_PageUp)
+        || (event->modifiers() == Qt::SHIFT && event->key() == Qt::Key_PageDown)
+        || (event->modifiers() == Qt::SHIFT && event->key() == Qt::Key_Home)
+        || (event->modifiers() == Qt::SHIFT && event->key() == Qt::Key_End)) {
+
+        return;
+    }
+    else {
+        QTreeView::keyPressEvent(event);
     }
 }
 
@@ -115,12 +154,24 @@ void PropertyView::onSelectionChanged()
     if (_manager && _model && index.isValid()) {
         auto& property = _model->propertyForIndex(index);
 
+        bool isListItem = property.isList && index.parent().isValid();
+        bool canRaise = isListItem && index.sibling(index.row() - 1, 0).isValid();
+        bool canLower = isListItem && index.sibling(index.row() + 1, 0).isValid();
+
         _insertAction->setEnabled(property.isList);
-        _removeAction->setEnabled(property.isList && index.parent().isValid());
+        _removeAction->setEnabled(isListItem);
+        _raiseAction->setEnabled(canRaise);
+        _lowerAction->setEnabled(canLower);
+        _raiseToTopAction->setEnabled(canRaise);
+        _lowerToBottomAction->setEnabled(canLower);
     }
     else {
         _insertAction->setEnabled(false);
         _removeAction->setEnabled(false);
+        _raiseAction->setEnabled(false);
+        _lowerAction->setEnabled(false);
+        _raiseToTopAction->setEnabled(false);
+        _lowerToBottomAction->setEnabled(false);
     }
 }
 
@@ -168,6 +219,52 @@ void PropertyView::onRemoveActionTriggered()
     if (index.isValid()) {
         Q_ASSERT(_model);
         _model->removeRow(index.row(), index.parent());
+    }
+}
+
+void PropertyView::onRaiseActionTriggered()
+{
+    QModelIndex index = currentIndex();
+    moveModelRow(index, index.row() - 1);
+}
+
+void PropertyView::onLowerActionTriggered()
+{
+    QModelIndex index = currentIndex();
+    moveModelRow(index, index.row() + 2);
+}
+
+void PropertyView::onRaiseToTopActionTriggered()
+{
+    QModelIndex index = currentIndex();
+    moveModelRow(index, 0);
+}
+
+void PropertyView::onLowerToBottomActionTriggered()
+{
+    if (_manager == nullptr) {
+        return;
+    }
+    Q_ASSERT(_model);
+
+    QModelIndex index = currentIndex();
+    QModelIndex parent = index.parent();
+    if (parent.isValid()) {
+        int nItems = _model->rowCount(parent);
+        _model->moveRow(parent, index.row(), parent, nItems);
+    }
+}
+
+void PropertyView::moveModelRow(const QModelIndex& index, int destRow)
+{
+    if (_manager == nullptr) {
+        return;
+    }
+    Q_ASSERT(_model);
+
+    if (index.isValid()) {
+        QModelIndex parent = index.parent();
+        _model->moveRow(parent, index.row(), parent, destRow);
     }
 }
 

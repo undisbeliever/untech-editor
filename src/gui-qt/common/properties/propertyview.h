@@ -30,8 +30,10 @@ public:
 
 protected:
     virtual void contextMenuEvent(QContextMenuEvent* event) final;
+    virtual void keyPressEvent(QKeyEvent* event) final;
 
 private:
+    void moveModelRow(const QModelIndex& index, int destRow);
     QStringList showAddFilenameDialog(const PropertyManager::Property& property);
 
 private slots:
@@ -39,6 +41,10 @@ private slots:
 
     void onInsertActionTriggered();
     void onRemoveActionTriggered();
+    void onRaiseActionTriggered();
+    void onLowerActionTriggered();
+    void onRaiseToTopActionTriggered();
+    void onLowerToBottomActionTriggered();
 
 private:
     PropertyModel* _model;
@@ -47,6 +53,10 @@ private:
 
     QAction* _insertAction;
     QAction* _removeAction;
+    QAction* _raiseAction;
+    QAction* _lowerAction;
+    QAction* _raiseToTopAction;
+    QAction* _lowerToBottomAction;
 };
 }
 }
