@@ -69,8 +69,10 @@ public:
 
 private:
     void updateCacheIfDirty(int index) const;
+    QString displayForProperty(const PropertyManager::Property& settings, const QVariant& value, int listSize) const;
     const QVariant& dataFromCache(int index) const;
     int propertyListSize(int index) const;
+    const QString& displayFromCache(int index) const;
 
     bool checkIndex(const QModelIndex& index) const;
 
@@ -87,6 +89,7 @@ private:
     mutable QBitArray _cacheDirty;
     mutable QVector<QVariant> _dataCache;
     mutable QVector<int> _listSizeCache;
+    mutable QVector<QString> _displayCache;
 };
 }
 }

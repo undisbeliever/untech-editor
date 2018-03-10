@@ -62,28 +62,6 @@ QRect PropertyDelegate::checkBoxRect(const QStyleOptionViewItem& option) const
     return style->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &opt, option.widget);
 }
 
-QString PropertyDelegate::listCountString(const QVariant& value) const
-{
-    auto itemCountString = [](int s) {
-        if (s != 1) {
-            return tr("(%1 items)").arg(s);
-        }
-        else {
-            return tr("(1 item)");
-        }
-    };
-
-    if (value.type() == QVariant::List) {
-        return itemCountString(value.toList().size());
-    }
-    else if (value.type() == QVariant::StringList) {
-        return itemCountString(value.toStringList().size());
-    }
-    else {
-        return value.toString();
-    }
-}
-
 QSize PropertyDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
     auto sizeForText = [option](QString text) {
@@ -114,9 +92,6 @@ QSize PropertyDelegate::sizeHint(const QStyleOptionViewItem& option, const QMode
             QRect rect = checkBoxRect(option);
             return QSize(rect.width() + 2, rect.height() + 2);
         }
-        else if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
-            return sizeForText(QStringLiteral("(xxx items)"));
-        }
         else {
             QVariant value = index.data(Qt::DisplayRole);
             return sizeForText(value.toString());
@@ -142,7 +117,7 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
         // middle node of a list type
         QStyleOptionViewItem opt = option;
         opt.font.setItalic(true);
-        drawDisplay(painter, opt, option.rect, listCountString(value));
+        drawDisplay(painter, opt, option.rect, value.toString());
     }
     else {
         // leaf node

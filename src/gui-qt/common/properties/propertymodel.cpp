@@ -63,6 +63,7 @@ void PropertyModel::resizeCache()
     _cacheDirty.fill(true, nItems);
     _dataCache.resize(nItems);
     _listSizeCache.resize(nItems);
+    _displayCache.resize(nItems);
 
     endResetModel();
 }
@@ -88,6 +89,7 @@ void PropertyModel::updateCacheIfDirty(int index) const
     Q_ASSUME(index < _cacheDirty.size());
     Q_ASSUME(index < _dataCache.size());
     Q_ASSUME(index < _listSizeCache.size());
+    Q_ASSUME(index < _displayCache.size());
 
     if (_cacheDirty.at(index)) {
         const auto& settings = _manager->propertiesList().at(index);
@@ -107,12 +109,50 @@ void PropertyModel::updateCacheIfDirty(int index) const
 
             _dataCache.replace(index, std::move(data));
             _listSizeCache.replace(index, listSize);
+            _displayCache.replace(index, displayForProperty(settings, data, listSize));
         }
         else {
             _dataCache.replace(index, QVariant());
         }
         _cacheDirty.clearBit(index);
     }
+}
+
+QString PropertyModel::displayForProperty(const PropertyManager::Property& settings, const QVariant& value, int listSize) const
+{
+    switch (settings.type) {
+    case Type::BOOLEAN:
+    case Type::INTEGER:
+    case Type::UNSIGNED:
+    case Type::STRING:
+    case Type::IDSTRING:
+    case Type::FILENAME:
+    case Type::COLOR: {
+        return value.toString();
+    }
+
+    case Type::STRING_LIST:
+    case Type::IDSTRING_LIST:
+    case Type::FILENAME_LIST: {
+        if (listSize != 1) {
+            return tr("(%1 items)").arg(listSize);
+        }
+        else {
+            return tr("(1 item)");
+        }
+    }
+    }
+
+    return QString();
+}
+
+const QString& PropertyModel::displayFromCache(int index) const
+{
+    Q_ASSERT(index >= 0);
+    Q_ASSUME(index < _displayCache.size());
+
+    updateCacheIfDirty(index);
+    return _displayCache.at(index);
 }
 
 const QVariant& PropertyModel::dataFromCache(int index) const
@@ -331,9 +371,8 @@ QVariant PropertyModel::data(const QModelIndex& index, int role) const
         }
         else {
             // Value column
-
             if (index.internalId() == ROOT_INTERNAL_ID) {
-                return dataFromCache(index.row());
+                return displayFromCache(index.row());
             }
             else {
                 QVariantList vl = dataFromCache(index.internalId()).toList();
