@@ -6,24 +6,24 @@
 
 #pragma once
 
-#include "propertymanager.h"
+#include "propertylistmanager.h"
 #include <QAction>
 #include <QTreeView>
 
 namespace UnTech {
 namespace GuiQt {
-class PropertyModel;
-class PropertyManager;
+class PropertyListModel;
+class PropertyListManager;
 class PropertyDelegate;
 
-class PropertyView : public QTreeView {
+class PropertyListView : public QTreeView {
     Q_OBJECT
 
 public:
-    PropertyView(QWidget* parent = nullptr);
+    PropertyListView(QWidget* parent = nullptr);
 
-    void setPropertyManager(PropertyManager* manager);
-    PropertyManager* propertyManager() const { return _manager; }
+    void setPropertyManager(PropertyListManager* manager);
+    PropertyListManager* propertyManager() const { return _manager; }
 
     // MUST NOT call this method
     virtual void setModel(QAbstractItemModel*) final;
@@ -47,8 +47,8 @@ private slots:
     void onLowerToBottomActionTriggered();
 
 private:
-    PropertyModel* _model;
-    PropertyManager* _manager;
+    PropertyListModel* _model;
+    PropertyListManager* _manager;
     PropertyDelegate* const _delegate;
 
     QAction* _insertAction;

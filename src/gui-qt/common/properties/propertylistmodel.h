@@ -13,10 +13,10 @@
 
 namespace UnTech {
 namespace GuiQt {
-class PropertyManager;
+class PropertyListManager;
 class PropertyModelCache;
 
-class PropertyModel : public AbstractPropertyModel {
+class PropertyListModel : public AbstractPropertyModel {
     Q_OBJECT
 
 public:
@@ -30,10 +30,10 @@ public:
     struct InternalMimeData;
 
 public:
-    PropertyModel(PropertyManager* manager);
-    ~PropertyModel() = default;
+    PropertyListModel(PropertyListManager* manager);
+    ~PropertyListModel() = default;
 
-    PropertyManager* manager() const { return _manager; }
+    PropertyListManager* manager() const { return _manager; }
 
     virtual const Property& propertyForIndex(const QModelIndex& index) const final;
     virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const;
@@ -83,7 +83,7 @@ public slots:
     void updateAll();
 
 private:
-    PropertyManager* const _manager;
+    PropertyListManager* const _manager;
 
     mutable QBitArray _cacheDirty;
     mutable QVector<QVariant> _dataCache;

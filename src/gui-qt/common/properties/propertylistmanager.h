@@ -14,14 +14,14 @@
 
 namespace UnTech {
 namespace GuiQt {
-class PropertyModel;
+class PropertyListModel;
 
-class PropertyManager : public QObject {
+class PropertyListManager : public QObject {
     Q_OBJECT
 
 public:
-    explicit PropertyManager(QObject* parent = nullptr);
-    ~PropertyManager() = default;
+    explicit PropertyListManager(QObject* parent = nullptr);
+    ~PropertyListManager() = default;
 
     const QVector<Property>& propertiesList() const { return _properties; }
 

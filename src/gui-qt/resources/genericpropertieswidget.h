@@ -7,7 +7,7 @@
 #pragma once
 
 #include "abstractresourcewidget.h"
-#include "gui-qt/common/properties/propertymanager.h"
+#include "gui-qt/common/properties/propertylistmanager.h"
 #include <memory>
 
 namespace UnTech {
@@ -18,12 +18,12 @@ class GenericPropertiesWidget;
 }
 class PaletteResourceItem;
 
-class AbstractPropertyManager : public PropertyManager {
+class AbstractPropertyManager : public PropertyListManager {
     Q_OBJECT
 
 public:
     AbstractPropertyManager(QObject* parent = nullptr)
-        : PropertyManager(parent)
+        : PropertyListManager(parent)
     {
     }
 

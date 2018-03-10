@@ -4,17 +4,17 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "propertymanager.h"
-#include "propertymodel.h"
+#include "propertylistmanager.h"
+#include "propertylistmodel.h"
 
 using namespace UnTech::GuiQt;
 
-PropertyManager::PropertyManager(QObject* parent)
+PropertyListManager::PropertyListManager(QObject* parent)
     : QObject(parent)
 {
 }
 
-const QString& PropertyManager::propertyTitle(int id)
+const QString& PropertyListManager::propertyTitle(int id)
 {
     static const QString nullString;
 
@@ -27,20 +27,20 @@ const QString& PropertyManager::propertyTitle(int id)
     return nullString;
 }
 
-void PropertyManager::addProperty(const QString& title, int id, PropertyType type,
-                                  const QVariant& param1, const QVariant& param2)
+void PropertyListManager::addProperty(const QString& title, int id, PropertyType type,
+                                      const QVariant& param1, const QVariant& param2)
 {
     _properties.append(Property(title, id, type, param1, param2));
 
     emit propertyListChanged();
 }
 
-void PropertyManager::addSeperator(const QString& title)
+void PropertyListManager::addSeperator(const QString& title)
 {
     addProperty(title, -1, PropertyType::STRING);
 }
 
-void PropertyManager::setEnabled(bool enabled)
+void PropertyListManager::setEnabled(bool enabled)
 {
     if (_enabled != enabled) {
         _enabled = enabled;
@@ -48,7 +48,7 @@ void PropertyManager::setEnabled(bool enabled)
     }
 }
 
-void PropertyManager::updateParameters(int, QVariant&, QVariant&) const
+void PropertyListManager::updateParameters(int, QVariant&, QVariant&) const
 {
     // This function does not change the parameters by default
 }

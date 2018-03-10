@@ -4,10 +4,10 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "propertyview.h"
+#include "propertylistview.h"
 #include "propertydelegate.h"
-#include "propertymanager.h"
-#include "propertymodel.h"
+#include "propertylistmanager.h"
+#include "propertylistmodel.h"
 
 #include <QContextMenuEvent>
 #include <QFileDialog>
@@ -18,7 +18,7 @@
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
-PropertyView::PropertyView(QWidget* parent)
+PropertyListView::PropertyListView(QWidget* parent)
     : QTreeView(parent)
     , _model(nullptr)
     , _manager(nullptr)
@@ -59,20 +59,20 @@ PropertyView::PropertyView(QWidget* parent)
     onSelectionChanged();
 
     connect(_insertAction, &QAction::triggered,
-            this, &PropertyView::onInsertActionTriggered);
+            this, &PropertyListView::onInsertActionTriggered);
     connect(_removeAction, &QAction::triggered,
-            this, &PropertyView::onRemoveActionTriggered);
+            this, &PropertyListView::onRemoveActionTriggered);
     connect(_raiseAction, &QAction::triggered,
-            this, &PropertyView::onRaiseActionTriggered);
+            this, &PropertyListView::onRaiseActionTriggered);
     connect(_lowerAction, &QAction::triggered,
-            this, &PropertyView::onLowerActionTriggered);
+            this, &PropertyListView::onLowerActionTriggered);
     connect(_raiseToTopAction, &QAction::triggered,
-            this, &PropertyView::onRaiseToTopActionTriggered);
+            this, &PropertyListView::onRaiseToTopActionTriggered);
     connect(_lowerToBottomAction, &QAction::triggered,
-            this, &PropertyView::onLowerToBottomActionTriggered);
+            this, &PropertyListView::onLowerToBottomActionTriggered);
 }
 
-void PropertyView::setPropertyManager(PropertyManager* manager)
+void PropertyListView::setPropertyManager(PropertyListManager* manager)
 {
     if (_manager == manager) {
         return;
@@ -90,18 +90,18 @@ void PropertyView::setPropertyManager(PropertyManager* manager)
     QTreeView::setModel(nullptr);
 
     if (_manager) {
-        _model = new PropertyModel(_manager);
+        _model = new PropertyListModel(_manager);
         QTreeView::setModel(_model);
 
-        connect(_model, &PropertyModel::rowsMoved,
-                this, &PropertyView::onSelectionChanged);
+        connect(_model, &PropertyListModel::rowsMoved,
+                this, &PropertyListView::onSelectionChanged);
     }
 
     onSelectionChanged();
 
     if (selectionModel()) {
         connect(selectionModel(), &QItemSelectionModel::selectionChanged,
-                this, &PropertyView::onSelectionChanged);
+                this, &PropertyListView::onSelectionChanged);
     }
 
     this->expandAll();
@@ -109,7 +109,7 @@ void PropertyView::setPropertyManager(PropertyManager* manager)
 
 // Must use contextMenuEvent. Using the customContextMenuRequested signal
 // results in the context menu's location being off by ~16 pixels
-void PropertyView::contextMenuEvent(QContextMenuEvent* event)
+void PropertyListView::contextMenuEvent(QContextMenuEvent* event)
 {
     if (_manager == nullptr) {
         return;
@@ -134,7 +134,7 @@ void PropertyView::contextMenuEvent(QContextMenuEvent* event)
     }
 }
 
-void PropertyView::keyPressEvent(QKeyEvent* event)
+void PropertyListView::keyPressEvent(QKeyEvent* event)
 {
     // Do not process the "move item" shortcuts when the action has been disabled
     if ((event->modifiers() == Qt::SHIFT && event->key() == Qt::Key_PageUp)
@@ -149,7 +149,7 @@ void PropertyView::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void PropertyView::onSelectionChanged()
+void PropertyListView::onSelectionChanged()
 {
     QModelIndex index = currentIndex();
     if (_manager && _model && index.isValid()) {
@@ -176,7 +176,7 @@ void PropertyView::onSelectionChanged()
     }
 }
 
-void PropertyView::onInsertActionTriggered()
+void PropertyListView::onInsertActionTriggered()
 {
     if (_manager == nullptr) {
         return;
@@ -204,13 +204,13 @@ void PropertyView::onInsertActionTriggered()
         }
 
         if (ok) {
-            QModelIndex newItemIndex = parent.child(row, PropertyModel::VALUE_COLUMN);
+            QModelIndex newItemIndex = parent.child(row, PropertyListModel::VALUE_COLUMN);
             setCurrentIndex(newItemIndex);
         }
     }
 }
 
-void PropertyView::onRemoveActionTriggered()
+void PropertyListView::onRemoveActionTriggered()
 {
     if (_manager == nullptr) {
         return;
@@ -223,25 +223,25 @@ void PropertyView::onRemoveActionTriggered()
     }
 }
 
-void PropertyView::onRaiseActionTriggered()
+void PropertyListView::onRaiseActionTriggered()
 {
     QModelIndex index = currentIndex();
     moveModelRow(index, index.row() - 1);
 }
 
-void PropertyView::onLowerActionTriggered()
+void PropertyListView::onLowerActionTriggered()
 {
     QModelIndex index = currentIndex();
     moveModelRow(index, index.row() + 2);
 }
 
-void PropertyView::onRaiseToTopActionTriggered()
+void PropertyListView::onRaiseToTopActionTriggered()
 {
     QModelIndex index = currentIndex();
     moveModelRow(index, 0);
 }
 
-void PropertyView::onLowerToBottomActionTriggered()
+void PropertyListView::onLowerToBottomActionTriggered()
 {
     if (_manager == nullptr) {
         return;
@@ -256,7 +256,7 @@ void PropertyView::onLowerToBottomActionTriggered()
     }
 }
 
-void PropertyView::moveModelRow(const QModelIndex& index, int destRow)
+void PropertyListView::moveModelRow(const QModelIndex& index, int destRow)
 {
     if (_manager == nullptr) {
         return;
@@ -269,7 +269,7 @@ void PropertyView::moveModelRow(const QModelIndex& index, int destRow)
     }
 }
 
-QStringList PropertyView::showAddFilenameDialog(const Property& property)
+QStringList PropertyListView::showAddFilenameDialog(const Property& property)
 {
     if (_manager == nullptr) {
         return QStringList();
@@ -285,7 +285,7 @@ QStringList PropertyView::showAddFilenameDialog(const Property& property)
         this, QString(), QString(), filter.toString());
 }
 
-void PropertyView::setModel(QAbstractItemModel*)
+void PropertyListView::setModel(QAbstractItemModel*)
 {
     qCritical("Must not call setModel in PropertyView.");
 }

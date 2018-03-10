@@ -4,31 +4,31 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "propertymodel.h"
-#include "propertymanager.h"
+#include "propertylistmodel.h"
+#include "propertylistmanager.h"
 
 #include <QMimeData>
 
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
-const QString PropertyModel::ITEM_MIME_TYPE = QStringLiteral("application/x-untech-property-data");
+const QString PropertyListModel::ITEM_MIME_TYPE = QStringLiteral("application/x-untech-propertylist-row");
 
-PropertyModel::PropertyModel(PropertyManager* manager)
+PropertyListModel::PropertyListModel(PropertyListManager* manager)
     : AbstractPropertyModel(manager)
     , _manager(manager)
 {
     resizeCache();
 
-    connect(manager, &PropertyManager::propertyListChanged,
-            this, &PropertyModel::resizeCache);
-    connect(manager, &PropertyManager::dataChanged,
-            this, &PropertyModel::invalidateCache);
-    connect(manager, &PropertyManager::enabledChanged,
-            this, &PropertyModel::updateAll);
+    connect(manager, &PropertyListManager::propertyListChanged,
+            this, &PropertyListModel::resizeCache);
+    connect(manager, &PropertyListManager::dataChanged,
+            this, &PropertyListModel::invalidateCache);
+    connect(manager, &PropertyListManager::enabledChanged,
+            this, &PropertyListModel::updateAll);
 }
 
-const Property& PropertyModel::propertyForIndex(const QModelIndex& index) const
+const Property& PropertyListModel::propertyForIndex(const QModelIndex& index) const
 {
     if (index.isValid() == false
         || index.model() != this
@@ -38,7 +38,7 @@ const Property& PropertyModel::propertyForIndex(const QModelIndex& index) const
     }
 
     const auto& pl = _manager->propertiesList();
-    if (index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+    if (index.internalId() == PropertyListModel::ROOT_INTERNAL_ID) {
         if (index.row() < pl.size()) {
             return pl.at(index.row());
         }
@@ -54,7 +54,7 @@ const Property& PropertyModel::propertyForIndex(const QModelIndex& index) const
     return blankProperty;
 }
 
-QPair<QVariant, QVariant> PropertyModel::propertyParametersForIndex(const QModelIndex& index) const
+QPair<QVariant, QVariant> PropertyListModel::propertyParametersForIndex(const QModelIndex& index) const
 {
     auto& settings = propertyForIndex(index);
 
@@ -66,7 +66,7 @@ QPair<QVariant, QVariant> PropertyModel::propertyParametersForIndex(const QModel
     return param;
 }
 
-void PropertyModel::resizeCache()
+void PropertyListModel::resizeCache()
 {
     beginResetModel();
 
@@ -80,13 +80,13 @@ void PropertyModel::resizeCache()
     endResetModel();
 }
 
-void PropertyModel::invalidateCache()
+void PropertyListModel::invalidateCache()
 {
     _cacheDirty.fill(true);
     updateAll();
 }
 
-void PropertyModel::updateAll()
+void PropertyListModel::updateAll()
 {
     emit dataChanged(createIndex(0, VALUE_COLUMN, ROOT_INTERNAL_ID),
                      createIndex(_manager->propertiesList().size() - 1, VALUE_COLUMN, ROOT_INTERNAL_ID),
@@ -94,7 +94,7 @@ void PropertyModel::updateAll()
     emit layoutChanged();
 }
 
-void PropertyModel::updateCacheIfDirty(int index) const
+void PropertyListModel::updateCacheIfDirty(int index) const
 {
     Q_ASSERT(index >= 0);
     Q_ASSERT(index < _manager->propertiesList().size());
@@ -130,7 +130,7 @@ void PropertyModel::updateCacheIfDirty(int index) const
     }
 }
 
-QString PropertyModel::displayForProperty(const Property& settings, const QVariant& value, int listSize) const
+QString PropertyListModel::displayForProperty(const Property& settings, const QVariant& value, int listSize) const
 {
     switch (settings.type) {
     case Type::BOOLEAN:
@@ -177,7 +177,7 @@ QString PropertyModel::displayForProperty(const Property& settings, const QVaria
     return QString();
 }
 
-const QString& PropertyModel::displayFromCache(int index) const
+const QString& PropertyListModel::displayFromCache(int index) const
 {
     Q_ASSERT(index >= 0);
     Q_ASSUME(index < _displayCache.size());
@@ -186,7 +186,7 @@ const QString& PropertyModel::displayFromCache(int index) const
     return _displayCache.at(index);
 }
 
-const QVariant& PropertyModel::dataFromCache(int index) const
+const QVariant& PropertyListModel::dataFromCache(int index) const
 {
     Q_ASSERT(index >= 0);
     Q_ASSUME(index < _dataCache.size());
@@ -195,7 +195,7 @@ const QVariant& PropertyModel::dataFromCache(int index) const
     return _dataCache.at(index);
 }
 
-int PropertyModel::propertyListSize(int index) const
+int PropertyListModel::propertyListSize(int index) const
 {
     Q_ASSERT(index >= 0);
     Q_ASSUME(index < _listSizeCache.size());
@@ -204,7 +204,7 @@ int PropertyModel::propertyListSize(int index) const
     return _listSizeCache.at(index);
 }
 
-bool PropertyModel::checkIndex(const QModelIndex& index) const
+bool PropertyListModel::checkIndex(const QModelIndex& index) const
 {
     const auto& pl = _manager->propertiesList();
 
@@ -230,7 +230,7 @@ bool PropertyModel::checkIndex(const QModelIndex& index) const
     }
 }
 
-QModelIndex PropertyModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex PropertyListModel::index(int row, int column, const QModelIndex& parent) const
 {
     if (row < 0
         || column < 0 || column >= N_COLUMNS) {
@@ -252,7 +252,7 @@ QModelIndex PropertyModel::index(int row, int column, const QModelIndex& parent)
     return QModelIndex();
 }
 
-QModelIndex PropertyModel::parent(const QModelIndex& index) const
+QModelIndex PropertyListModel::parent(const QModelIndex& index) const
 {
     Q_ASSUME(_manager->propertiesList().size() >= 0);
 
@@ -268,7 +268,7 @@ QModelIndex PropertyModel::parent(const QModelIndex& index) const
     }
 }
 
-bool PropertyModel::hasChildren(const QModelIndex& parent) const
+bool PropertyListModel::hasChildren(const QModelIndex& parent) const
 {
     if (_manager->propertiesList().isEmpty()) {
         return false;
@@ -287,7 +287,7 @@ bool PropertyModel::hasChildren(const QModelIndex& parent) const
     }
 }
 
-int PropertyModel::rowCount(const QModelIndex& parent) const
+int PropertyListModel::rowCount(const QModelIndex& parent) const
 {
     if (_manager->propertiesList().isEmpty()) {
         return 0;
@@ -307,7 +307,7 @@ int PropertyModel::rowCount(const QModelIndex& parent) const
     }
 }
 
-int PropertyModel::columnCount(const QModelIndex& parent) const
+int PropertyListModel::columnCount(const QModelIndex& parent) const
 {
     if (_manager->propertiesList().isEmpty()) {
         return 0;
@@ -321,7 +321,7 @@ int PropertyModel::columnCount(const QModelIndex& parent) const
     }
 }
 
-Qt::ItemFlags PropertyModel::flags(const QModelIndex& index) const
+Qt::ItemFlags PropertyListModel::flags(const QModelIndex& index) const
 {
     const auto& pl = _manager->propertiesList();
 
@@ -361,7 +361,7 @@ Qt::ItemFlags PropertyModel::flags(const QModelIndex& index) const
     return flags;
 }
 
-QVariant PropertyModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant PropertyListModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (section < 0 || section >= N_COLUMNS
         || orientation != Qt::Horizontal
@@ -379,7 +379,7 @@ QVariant PropertyModel::headerData(int section, Qt::Orientation orientation, int
     }
 }
 
-QVariant PropertyModel::data(const QModelIndex& index, int role) const
+QVariant PropertyListModel::data(const QModelIndex& index, int role) const
 {
     const auto& pl = _manager->propertiesList();
 
@@ -424,7 +424,7 @@ QVariant PropertyModel::data(const QModelIndex& index, int role) const
     return QVariant();
 }
 
-bool PropertyModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool PropertyListModel::setData(const QModelIndex& index, const QVariant& value, int role)
 {
     if (role != Qt::EditRole
         || checkIndex(index) == false
@@ -466,7 +466,7 @@ bool PropertyModel::setData(const QModelIndex& index, const QVariant& value, int
     }
 }
 
-bool PropertyModel::insertRows(int row, const QModelIndex& parent, const QStringList& values)
+bool PropertyListModel::insertRows(int row, const QModelIndex& parent, const QStringList& values)
 {
     if (row < 0
         || parent.internalId() != ROOT_INTERNAL_ID
@@ -498,7 +498,7 @@ bool PropertyModel::insertRows(int row, const QModelIndex& parent, const QString
     }
 }
 
-bool PropertyModel::insertRows(int row, int count, const QModelIndex& parent)
+bool PropertyListModel::insertRows(int row, int count, const QModelIndex& parent)
 {
     if (row < 0
         || count <= 0
@@ -540,7 +540,7 @@ bool PropertyModel::insertRows(int row, int count, const QModelIndex& parent)
     }
 }
 
-bool PropertyModel::removeRows(int row, int count, const QModelIndex& parent)
+bool PropertyListModel::removeRows(int row, int count, const QModelIndex& parent)
 {
     if (row < 0
         || count <= 0
@@ -581,8 +581,8 @@ bool PropertyModel::removeRows(int row, int count, const QModelIndex& parent)
 }
 
 // This code is a LOT simpler if only one item can be moved at a time
-bool PropertyModel::moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
-                             const QModelIndex& destParent, int destRow)
+bool PropertyListModel::moveRows(const QModelIndex& sourceParent, int sourceRow, int count,
+                                 const QModelIndex& destParent, int destRow)
 {
     if (sourceRow < 0
         || destRow < 0
@@ -631,17 +631,17 @@ bool PropertyModel::moveRows(const QModelIndex& sourceParent, int sourceRow, int
     }
 }
 
-Qt::DropActions PropertyModel::supportedDragActions() const
+Qt::DropActions PropertyListModel::supportedDragActions() const
 {
     return Qt::MoveAction;
 }
 
-Qt::DropActions PropertyModel::supportedDropActions() const
+Qt::DropActions PropertyListModel::supportedDropActions() const
 {
     return Qt::MoveAction;
 }
 
-QStringList PropertyModel::mimeTypes() const
+QStringList PropertyListModel::mimeTypes() const
 {
     static const QStringList types = {
         ITEM_MIME_TYPE
@@ -650,12 +650,12 @@ QStringList PropertyModel::mimeTypes() const
     return types;
 }
 
-struct PropertyModel::InternalMimeData {
+struct PropertyListModel::InternalMimeData {
     int id;
     int row;
     const void* model;
 };
-QDataStream& operator<<(QDataStream& stream, const PropertyModel::InternalMimeData& data)
+QDataStream& operator<<(QDataStream& stream, const PropertyListModel::InternalMimeData& data)
 {
     static_assert(sizeof(quintptr) == sizeof(data.model), "Bad quintptr size");
 
@@ -664,7 +664,7 @@ QDataStream& operator<<(QDataStream& stream, const PropertyModel::InternalMimeDa
 
     return stream;
 }
-QDataStream& operator>>(QDataStream& stream, PropertyModel::InternalMimeData& data)
+QDataStream& operator>>(QDataStream& stream, PropertyListModel::InternalMimeData& data)
 {
     static_assert(sizeof(quintptr) == sizeof(data.model), "Bad quintptr size");
 
@@ -676,7 +676,7 @@ QDataStream& operator>>(QDataStream& stream, PropertyModel::InternalMimeData& da
 }
 
 // This code is a LOT simpler if only one item can be moved at a time
-QMimeData* PropertyModel::mimeData(const QModelIndexList& indexes) const
+QMimeData* PropertyListModel::mimeData(const QModelIndexList& indexes) const
 {
     if (indexes.count() != 1
         || indexes.front().internalId() == ROOT_INTERNAL_ID
@@ -697,8 +697,8 @@ QMimeData* PropertyModel::mimeData(const QModelIndexList& indexes) const
     return mimeData;
 }
 
-bool PropertyModel::canDropMimeData(const QMimeData* mimeData, Qt::DropAction action,
-                                    int destRow, int column, const QModelIndex& parent) const
+bool PropertyListModel::canDropMimeData(const QMimeData* mimeData, Qt::DropAction action,
+                                        int destRow, int column, const QModelIndex& parent) const
 {
     Q_UNUSED(column)
 
@@ -731,8 +731,8 @@ bool PropertyModel::canDropMimeData(const QMimeData* mimeData, Qt::DropAction ac
     return false;
 }
 
-bool PropertyModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction action,
-                                 int destRow, int column, const QModelIndex& parent)
+bool PropertyListModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction action,
+                                     int destRow, int column, const QModelIndex& parent)
 {
     Q_UNUSED(column)
 
