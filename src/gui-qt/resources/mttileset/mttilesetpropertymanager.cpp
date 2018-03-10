@@ -20,7 +20,7 @@ MtTilesetPropertiesManager::MtTilesetPropertiesManager(QObject* parent)
                 QStringLiteral("PNG Image (*.png)"));
     addProperty(tr("Palettes"), PALETTES, Type::IDSTRING_LIST);
     addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED, 0, 0x10000);
-    addProperty(tr("Bit Depth"), BIT_DEPTH, Type::UNSIGNED, 2, 8);
+    addProperty(tr("Bit Depth"), BIT_DEPTH, Type::COMBO, QStringList{ "2 bpp", "4 bpp", "8 bpp" }, QVariantList{ 2, 4, 8 });
     addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE, Type::BOOLEAN);
 }
 

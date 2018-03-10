@@ -18,6 +18,7 @@
 #include "gui-qt/common/widgets/colorinputwidget.h"
 #include "gui-qt/common/widgets/filenameinputwidget.h"
 #include <QCheckBox>
+#include <QComboBox>
 #include <QCompleter>
 #include <QLineEdit>
 #include <QSpinBox>
@@ -134,7 +135,8 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
         case Type::STRING_LIST:
         case Type::IDSTRING:
         case Type::IDSTRING_LIST:
-        case Type::COLOR: {
+        case Type::COLOR:
+        case Type::COMBO: {
             drawDisplay(painter, option, option.rect, value.toString());
         } break;
 
@@ -260,6 +262,13 @@ QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewI
                 this, &PropertyDelegate::commitEditor);
         return ci;
     }
+
+    case Type::COMBO: {
+        QComboBox* cb = new QComboBox(parent);
+        cb->setAutoFillBackground(true);
+        cb->setFrame(false);
+        return cb;
+    }
     }
 
     return nullptr;
@@ -345,6 +354,27 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
         ColorInputWidget* ci = qobject_cast<ColorInputWidget*>(editor);
         ci->setColor(data.value<QColor>());
     } break;
+
+    case Type::COMBO: {
+        const QStringList displayList = param1.toStringList();
+        const QVariantList dataList = param2.toList();
+
+        QComboBox* cb = qobject_cast<QComboBox*>(editor);
+        cb->clear();
+
+        if (displayList.size() == dataList.size()) {
+            for (int i = 0; i < displayList.size(); i++) {
+                cb->addItem(displayList.at(i), dataList.at(i));
+            }
+        }
+        else {
+            for (int i = 0; i < displayList.size(); i++) {
+                cb->addItem(displayList.at(i), displayList.at(i));
+            }
+        }
+        int index = cb->findData(data);
+        cb->setCurrentIndex(index);
+    } break;
     }
 }
 
@@ -390,6 +420,11 @@ void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
     case Type::COLOR: {
         ColorInputWidget* ci = qobject_cast<ColorInputWidget*>(editor);
         model->setData(index, ci->color(), Qt::EditRole);
+    } break;
+
+    case Type::COMBO: {
+        QComboBox* cb = qobject_cast<QComboBox*>(editor);
+        model->setData(index, cb->currentData(), Qt::EditRole);
     } break;
     }
 }

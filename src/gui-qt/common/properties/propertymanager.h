@@ -27,6 +27,7 @@ public:
         IDSTRING,      // completer stringlist
         FILENAME,      // dialog filter
         COLOR,         // no parameters
+        COMBO,         // StringList of values, (optional) data VariantList
         STRING_LIST,   // no parameters
         IDSTRING_LIST, // completer values
         FILENAME_LIST  // dialog filter

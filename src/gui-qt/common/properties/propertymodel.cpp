@@ -131,6 +131,25 @@ QString PropertyModel::displayForProperty(const PropertyManager::Property& setti
         return value.toString();
     }
 
+    case Type::COMBO: {
+        QVariant param1 = settings.parameter1;
+        QVariant param2 = settings.parameter2;
+        _manager->updateParameters(settings.id, param1, param2);
+
+        int index = -1;
+        if (param2.canConvert(QVariant::List)) {
+            index = param2.toList().indexOf(value);
+        }
+
+        QStringList displayList = param1.toStringList();
+        if (index >= 0 && index < displayList.size()) {
+            return displayList.at(index);
+        }
+        else {
+            return value.toString();
+        }
+    }
+
     case Type::STRING_LIST:
     case Type::IDSTRING_LIST:
     case Type::FILENAME_LIST: {
