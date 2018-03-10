@@ -30,6 +30,9 @@ public:
     virtual const Property& propertyForIndex(const QModelIndex& index) const = 0;
 
     virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const = 0;
+
+protected:
+    QString displayForProperty(const QModelIndex& index, const QVariant& value) const;
 };
 }
 }

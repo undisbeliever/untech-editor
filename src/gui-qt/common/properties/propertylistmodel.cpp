@@ -121,60 +121,13 @@ void PropertyListModel::updateCacheIfDirty(int index) const
 
             _dataCache.replace(index, std::move(data));
             _listSizeCache.replace(index, listSize);
-            _displayCache.replace(index, displayForProperty(settings, data, listSize));
+            _displayCache.replace(index, displayForProperty(createIndex(index, 0, ROOT_INTERNAL_ID), data));
         }
         else {
             _dataCache.replace(index, QVariant());
         }
         _cacheDirty.clearBit(index);
     }
-}
-
-QString PropertyListModel::displayForProperty(const Property& settings, const QVariant& value, int listSize) const
-{
-    switch (settings.type) {
-    case Type::BOOLEAN:
-    case Type::INTEGER:
-    case Type::UNSIGNED:
-    case Type::STRING:
-    case Type::IDSTRING:
-    case Type::FILENAME:
-    case Type::COLOR: {
-        return value.toString();
-    }
-
-    case Type::COMBO: {
-        QVariant param1 = settings.parameter1;
-        QVariant param2 = settings.parameter2;
-        _manager->updateParameters(settings.id, param1, param2);
-
-        int index = -1;
-        if (param2.canConvert(QVariant::List)) {
-            index = param2.toList().indexOf(value);
-        }
-
-        QStringList displayList = param1.toStringList();
-        if (index >= 0 && index < displayList.size()) {
-            return displayList.at(index);
-        }
-        else {
-            return value.toString();
-        }
-    }
-
-    case Type::STRING_LIST:
-    case Type::IDSTRING_LIST:
-    case Type::FILENAME_LIST: {
-        if (listSize != 1) {
-            return tr("(%1 items)").arg(listSize);
-        }
-        else {
-            return tr("(1 item)");
-        }
-    }
-    }
-
-    return QString();
 }
 
 const QString& PropertyListModel::displayFromCache(int index) const

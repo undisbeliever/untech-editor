@@ -26,8 +26,6 @@
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
-const Property AbstractPropertyModel::blankProperty;
-
 PropertyDelegate::PropertyDelegate(QObject* parent)
     : QItemDelegate(parent)
 {
