@@ -10,8 +10,9 @@
 #include <QMimeData>
 
 using namespace UnTech::GuiQt;
-using Type = PropertyManager::Type;
+using Type = PropertyType;
 
+const Property PropertyModel::blankProperty;
 const QString PropertyModel::ITEM_MIME_TYPE = QStringLiteral("application/x-untech-property-data");
 
 PropertyModel::PropertyModel(PropertyManager* manager)
@@ -28,13 +29,13 @@ PropertyModel::PropertyModel(PropertyManager* manager)
             this, &PropertyModel::updateAll);
 }
 
-const PropertyManager::Property& PropertyModel::propertyForIndex(const QModelIndex& index) const
+const Property& PropertyModel::propertyForIndex(const QModelIndex& index) const
 {
     if (index.isValid() == false
         || index.model() != this
         || index.column() >= N_COLUMNS) {
 
-        return PropertyManager::blankProperty;
+        return blankProperty;
     }
 
     const auto& pl = _manager->propertiesList();
@@ -51,7 +52,7 @@ const PropertyManager::Property& PropertyModel::propertyForIndex(const QModelInd
         }
     }
 
-    return PropertyManager::blankProperty;
+    return blankProperty;
 }
 
 void PropertyModel::resizeCache()
@@ -118,7 +119,7 @@ void PropertyModel::updateCacheIfDirty(int index) const
     }
 }
 
-QString PropertyModel::displayForProperty(const PropertyManager::Property& settings, const QVariant& value, int listSize) const
+QString PropertyModel::displayForProperty(const Property& settings, const QVariant& value, int listSize) const
 {
     switch (settings.type) {
     case Type::BOOLEAN:

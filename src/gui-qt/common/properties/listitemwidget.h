@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include "propertymanager.h"
-
 #include <QLabel>
 #include <QStringList>
 #include <QToolButton>
@@ -15,7 +13,7 @@
 
 namespace UnTech {
 namespace GuiQt {
-class ColorToolButton;
+class PropertyManager;
 
 class ListItemWidget : public QWidget {
     Q_OBJECT

@@ -6,15 +6,17 @@
 
 #pragma once
 
-#include "propertymanager.h"
 #include <QItemDelegate>
 
 namespace UnTech {
 namespace GuiQt {
+struct Property;
 class PropertyManager;
 
 class PropertyDelegate : public QItemDelegate {
     Q_OBJECT
+
+    static const Property blankProperty;
 
 public:
     PropertyDelegate(QObject* parent = nullptr);
@@ -37,7 +39,7 @@ public:
                               const QModelIndex& index) const final;
 
 private:
-    const PropertyManager::Property& propertyForIndex(const QModelIndex& index) const;
+    const Property& propertyForIndex(const QModelIndex& index) const;
 
     QRect checkBoxRect(const QStyleOptionViewItem& option) const;
 

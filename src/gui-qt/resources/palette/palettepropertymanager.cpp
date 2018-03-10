@@ -15,6 +15,8 @@ PalettePropertiesManager::PalettePropertiesManager(QObject* parent)
     : AbstractPropertyManager(parent)
     , _palette(nullptr)
 {
+    using Type = UnTech::GuiQt::PropertyType;
+
     addProperty(tr("Name"), NAME, Type::IDSTRING);
     addProperty(tr("Image"), IMAGE_FILENAME, Type::FILENAME, QStringLiteral("PNG Image (*.png)"));
     addProperty(tr("Rows Per Frame"), ROWS_PER_FRAME, Type::UNSIGNED, 1, 16);

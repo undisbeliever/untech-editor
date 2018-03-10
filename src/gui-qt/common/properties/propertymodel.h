@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "propertymanager.h"
+#include "property.h"
 #include <QAbstractItemModel>
 #include <QBitArray>
 #include <QVector>
@@ -28,6 +28,8 @@ public:
     static constexpr int N_COLUMNS = 2;
     static constexpr quintptr ROOT_INTERNAL_ID = UINT_MAX;
 
+    static const Property blankProperty;
+
     static const QString ITEM_MIME_TYPE;
     struct InternalMimeData;
 
@@ -37,7 +39,7 @@ public:
 
     PropertyManager* manager() const { return _manager; }
 
-    const PropertyManager::Property& propertyForIndex(const QModelIndex& index) const;
+    const Property& propertyForIndex(const QModelIndex& index) const;
 
     virtual QModelIndex index(int row, int column, const QModelIndex& parent) const final;
     virtual QModelIndex parent(const QModelIndex& index) const final;
@@ -69,7 +71,7 @@ public:
 
 private:
     void updateCacheIfDirty(int index) const;
-    QString displayForProperty(const PropertyManager::Property& settings, const QVariant& value, int listSize) const;
+    QString displayForProperty(const Property& settings, const QVariant& value, int listSize) const;
     const QVariant& dataFromCache(int index) const;
     int propertyListSize(int index) const;
     const QString& displayFromCache(int index) const;

@@ -15,6 +15,8 @@ MtTilesetPropertiesManager::MtTilesetPropertiesManager(QObject* parent)
     : AbstractPropertyManager(parent)
     , _tileset(nullptr)
 {
+    using Type = UnTech::GuiQt::PropertyType;
+
     addProperty(tr("Name"), NAME, Type::IDSTRING);
     addProperty(tr("Frame Images"), FRAME_IMAGES, Type::FILENAME_LIST,
                 QStringLiteral("PNG Image (*.png)"));

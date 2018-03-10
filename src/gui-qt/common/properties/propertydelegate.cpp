@@ -5,6 +5,7 @@
  */
 
 #include "propertydelegate.h"
+#include "property.h"
 #include "propertymanager.h"
 #include "propertymodel.h"
 
@@ -24,18 +25,20 @@
 #include <QSpinBox>
 
 using namespace UnTech::GuiQt;
-using Type = PropertyManager::Type;
+using Type = PropertyType;
+
+const Property PropertyDelegate::blankProperty;
 
 PropertyDelegate::PropertyDelegate(QObject* parent)
     : QItemDelegate(parent)
 {
 }
 
-const PropertyManager::Property& PropertyDelegate::propertyForIndex(const QModelIndex& index) const
+const Property& PropertyDelegate::propertyForIndex(const QModelIndex& index) const
 {
     const PropertyModel* model = qobject_cast<const PropertyModel*>(index.model());
     if (index.isValid() == false || model == nullptr) {
-        return PropertyManager::blankProperty;
+        return blankProperty;
     }
 
     const auto& pl = model->manager()->propertiesList();
@@ -53,7 +56,7 @@ const PropertyManager::Property& PropertyDelegate::propertyForIndex(const QModel
         }
     }
 
-    return PropertyManager::blankProperty;
+    return blankProperty;
 }
 
 QRect PropertyDelegate::checkBoxRect(const QStyleOptionViewItem& option) const

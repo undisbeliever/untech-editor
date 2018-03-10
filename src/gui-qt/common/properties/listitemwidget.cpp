@@ -5,13 +5,14 @@
  */
 
 #include "listitemwidget.h"
+#include "propertymanager.h"
 #include "propertymodel.h"
 
 #include <QFileDialog>
 #include <QHBoxLayout>
 
 using namespace UnTech::GuiQt;
-using Type = PropertyManager::Type;
+using Type = PropertyType;
 
 ListItemWidget::ListItemWidget(const PropertyManager* manager,
                                int propertyIndex, QWidget* parent)

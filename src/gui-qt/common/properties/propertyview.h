@@ -34,7 +34,7 @@ protected:
 
 private:
     void moveModelRow(const QModelIndex& index, int destRow);
-    QStringList showAddFilenameDialog(const PropertyManager::Property& property);
+    QStringList showAddFilenameDialog(const Property& property);
 
 private slots:
     void onSelectionChanged();

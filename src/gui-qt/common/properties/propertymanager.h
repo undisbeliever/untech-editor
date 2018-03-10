@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "property.h"
 #include <QObject>
 #include <QTreeView>
 #include <QVariant>
@@ -17,33 +18,6 @@ class PropertyModel;
 
 class PropertyManager : public QObject {
     Q_OBJECT
-
-public:
-    enum class Type {
-        BOOLEAN,       // no parameters
-        INTEGER,       // minimum value, maximum value
-        UNSIGNED,      // minimum value, maximum value
-        STRING,        // no parameters
-        IDSTRING,      // completer stringlist
-        FILENAME,      // dialog filter
-        COLOR,         // no parameters
-        COMBO,         // StringList of values, (optional) data VariantList
-        STRING_LIST,   // no parameters
-        IDSTRING_LIST, // completer values
-        FILENAME_LIST  // dialog filter
-    };
-
-    struct Property {
-        QString title;
-        int id;
-        Type type;
-
-        QVariant parameter1;
-        QVariant parameter2;
-
-        bool isList;
-    };
-    const static Property blankProperty;
 
 public:
     explicit PropertyManager(QObject* parent = nullptr);
@@ -69,7 +43,7 @@ public:
 
 protected:
     // if id is < 0 then the property is blank and cannot be selected
-    void addProperty(const QString& title, int id, Type type,
+    void addProperty(const QString& title, int id, PropertyType type,
                      const QVariant& param1 = QVariant(), const QVariant& param2 = QVariant());
 
     void addSeperator(const QString& title);

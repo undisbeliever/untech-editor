@@ -16,6 +16,7 @@
 #include <QMenu>
 
 using namespace UnTech::GuiQt;
+using Type = PropertyType;
 
 PropertyView::PropertyView(QWidget* parent)
     : QTreeView(parent)
@@ -194,7 +195,7 @@ void PropertyView::onInsertActionTriggered()
 
         bool ok = false;
         auto& property = _model->propertyForIndex(parent);
-        if (property.type == PropertyManager::Type::FILENAME_LIST) {
+        if (property.type == Type::FILENAME_LIST) {
             const QStringList filenames = showAddFilenameDialog(property);
             ok = _model->insertRows(row, parent, filenames);
         }
@@ -268,7 +269,7 @@ void PropertyView::moveModelRow(const QModelIndex& index, int destRow)
     }
 }
 
-QStringList PropertyView::showAddFilenameDialog(const PropertyManager::Property& property)
+QStringList PropertyView::showAddFilenameDialog(const Property& property)
 {
     if (_manager == nullptr) {
         return QStringList();
