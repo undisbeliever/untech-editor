@@ -7,19 +7,20 @@
 #pragma once
 
 #include <QLabel>
+#include <QModelIndex>
 #include <QStringList>
 #include <QToolButton>
 #include <QWidget>
 
 namespace UnTech {
 namespace GuiQt {
-class PropertyManager;
+class AbstractPropertyModel;
 
 class ListItemWidget : public QWidget {
     Q_OBJECT
 
 public:
-    ListItemWidget(const PropertyManager* manager, int propertyIndex,
+    ListItemWidget(const AbstractPropertyModel* model, const QModelIndex& index,
                    QWidget* parent = nullptr);
     ~ListItemWidget() = default;
 
@@ -36,8 +37,8 @@ signals:
     void listEdited();
 
 private:
-    const PropertyManager* const _manager;
-    const int _propertyIndex;
+    const AbstractPropertyModel* const _model;
+    const QModelIndex _index;
 
     QStringList _stringList;
 

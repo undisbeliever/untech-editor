@@ -5,9 +5,8 @@
  */
 
 #include "propertydelegate.h"
+#include "abstractpropertymodel.h"
 #include "property.h"
-#include "propertymanager.h"
-#include "propertymodel.h"
 
 #include <QApplication>
 #include <QMouseEvent>
@@ -27,7 +26,7 @@
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
-const Property PropertyDelegate::blankProperty;
+const Property AbstractPropertyModel::blankProperty;
 
 PropertyDelegate::PropertyDelegate(QObject* parent)
     : QItemDelegate(parent)
@@ -36,27 +35,12 @@ PropertyDelegate::PropertyDelegate(QObject* parent)
 
 const Property& PropertyDelegate::propertyForIndex(const QModelIndex& index) const
 {
-    const PropertyModel* model = qobject_cast<const PropertyModel*>(index.model());
+    const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
     if (index.isValid() == false || model == nullptr) {
-        return blankProperty;
+        return AbstractPropertyModel::blankProperty;
     }
 
-    const auto& pl = model->manager()->propertiesList();
-
-    if (index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
-        if (index.row() < pl.size()) {
-            return pl.at(index.row());
-        }
-    }
-    else {
-        if (index.internalId() < (unsigned)pl.size()
-            && pl.at(index.internalId()).isList) {
-
-            return pl.at(index.internalId());
-        }
-    }
-
-    return blankProperty;
+    return model->propertyForIndex(index);
 }
 
 QRect PropertyDelegate::checkBoxRect(const QStyleOptionViewItem& option) const
@@ -87,19 +71,13 @@ QSize PropertyDelegate::sizeHint(const QStyleOptionViewItem& option, const QMode
 
     const auto& property = propertyForIndex(index);
 
-    if (index.column() == PropertyModel::PROPERTY_COLUMN) {
-        QVariant value = index.data(Qt::DisplayRole);
-        return sizeForText(value.toString());
+    if (property.type == Type::BOOLEAN) {
+        QRect rect = checkBoxRect(option);
+        return QSize(rect.width() + 2, rect.height() + 2);
     }
     else {
-        if (property.type == Type::BOOLEAN) {
-            QRect rect = checkBoxRect(option);
-            return QSize(rect.width() + 2, rect.height() + 2);
-        }
-        else {
-            QVariant value = index.data(Qt::DisplayRole);
-            return sizeForText(value.toString());
-        }
+        QVariant value = index.data(Qt::DisplayRole);
+        return sizeForText(value.toString());
     }
 
     return QItemDelegate::sizeHint(option, index);
@@ -114,10 +92,10 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 
     QVariant value = index.data(Qt::DisplayRole);
 
-    if (index.column() == PropertyModel::PROPERTY_COLUMN) {
+    if (property.id < 0) {
         drawDisplay(painter, option, option.rect, value.toString());
     }
-    else if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+    else if (property.isList && index.internalId() == AbstractPropertyModel::ROOT_INTERNAL_ID) {
         // middle node of a list type
         QStyleOptionViewItem opt = option;
         opt.font.setItalic(true);
@@ -160,20 +138,17 @@ bool PropertyDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
 {
     Q_ASSERT(model);
 
-    if (index.column() == PropertyModel::VALUE_COLUMN) {
-        const auto& property = propertyForIndex(index);
+    const auto& property = propertyForIndex(index);
+    if (property.type == Type::BOOLEAN) {
+        if (event->type() == QEvent::MouseButtonRelease) {
+            QMouseEvent* e = static_cast<QMouseEvent*>(event);
 
-        if (property.type == Type::BOOLEAN) {
-            if (event->type() == QEvent::MouseButtonRelease) {
-                QMouseEvent* e = static_cast<QMouseEvent*>(event);
-
-                QRect checkRect = checkBoxRect(option);
-                if (checkRect.contains(e->pos())) {
-                    QVariant value = index.data(Qt::EditRole);
-                    model->setData(index, !value.toBool(), Qt::EditRole);
-                }
-                return false;
+            QRect checkRect = checkBoxRect(option);
+            if (checkRect.contains(e->pos())) {
+                QVariant value = index.data(Qt::EditRole);
+                model->setData(index, !value.toBool(), Qt::EditRole);
             }
+            return false;
         }
     }
 
@@ -182,19 +157,19 @@ bool PropertyDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
 
 QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
 {
-    if (index.column() == PropertyModel::PROPERTY_COLUMN) {
+    const auto& property = propertyForIndex(index);
+
+    if (property.id < 0) {
         return nullptr;
     }
 
-    const auto& property = propertyForIndex(index);
-
-    if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+    if (property.isList && index.internalId() == AbstractPropertyModel::ROOT_INTERNAL_ID) {
         // root node of a list type
 
-        const PropertyModel* model = qobject_cast<const PropertyModel*>(index.model());
+        const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
         Q_ASSERT(model);
 
-        ListItemWidget* li = new ListItemWidget(model->manager(), index.row(), parent);
+        ListItemWidget* li = new ListItemWidget(model, index, parent);
         li->setAutoFillBackground(true);
 
         connect(li, &ListItemWidget::listEdited,
@@ -285,24 +260,26 @@ void PropertyDelegate::commitEditor()
 
 void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
-    const PropertyModel* model = qobject_cast<const PropertyModel*>(index.model());
+    const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
     if (model == nullptr) {
         return;
     }
 
     const auto& property = propertyForIndex(index);
+    if (property.id < 0) {
+        return;
+    }
+
     const QVariant data = index.data(Qt::EditRole);
 
-    if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+    if (property.isList && index.internalId() == AbstractPropertyModel::ROOT_INTERNAL_ID) {
         // root node of a list type
         ListItemWidget* li = qobject_cast<ListItemWidget*>(editor);
         li->setStringList(data.toStringList());
         return;
     }
 
-    QVariant param1 = property.parameter1;
-    QVariant param2 = property.parameter2;
-    model->manager()->updateParameters(property.id, param1, param2);
+    auto params = model->propertyParametersForIndex(index);
 
     switch (property.type) {
     case Type::BOOLEAN: {
@@ -313,11 +290,11 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
     case Type::INTEGER:
     case Type::UNSIGNED: {
         QSpinBox* sb = qobject_cast<QSpinBox*>(editor);
-        if (param1.isValid()) {
-            sb->setMinimum(param1.toInt());
+        if (params.first.isValid()) {
+            sb->setMinimum(params.first.toInt());
         }
-        if (param2.isValid()) {
-            sb->setMaximum(param2.toInt());
+        if (params.second.isValid()) {
+            sb->setMaximum(params.second.toInt());
         }
         sb->setValue(data.toInt());
     } break;
@@ -336,8 +313,8 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
             le->setCompleter(nullptr);
             c->deleteLater();
         };
-        if (param1.type() == QVariant::StringList) {
-            QCompleter* c = new QCompleter(param1.toStringList(), le);
+        if (params.first.type() == QVariant::StringList) {
+            QCompleter* c = new QCompleter(params.first.toStringList(), le);
             c->setCaseSensitivity(Qt::CaseInsensitive);
             le->setCompleter(c);
         }
@@ -347,8 +324,8 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
     case Type::FILENAME:
     case Type::FILENAME_LIST: {
         FilenameInputWidget* fi = qobject_cast<FilenameInputWidget*>(editor);
-        if (param1.isValid()) {
-            fi->setDialogFilter(param1.toString());
+        if (params.first.isValid()) {
+            fi->setDialogFilter(params.first.toString());
         }
         fi->setFilename(data.toString());
     } break;
@@ -359,8 +336,8 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
     } break;
 
     case Type::COMBO: {
-        const QStringList displayList = param1.toStringList();
-        const QVariantList dataList = param2.toList();
+        const QStringList displayList = params.first.toStringList();
+        const QVariantList dataList = params.second.toList();
 
         QComboBox* cb = qobject_cast<QComboBox*>(editor);
         cb->clear();
@@ -385,7 +362,7 @@ void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
 {
     const auto& property = propertyForIndex(index);
 
-    if (property.isList && index.internalId() == PropertyModel::ROOT_INTERNAL_ID) {
+    if (property.isList && index.internalId() == AbstractPropertyModel::ROOT_INTERNAL_ID) {
         // root node of a list type
         ListItemWidget* li = qobject_cast<ListItemWidget*>(editor);
         model->setData(index, li->stringList(), Qt::EditRole);

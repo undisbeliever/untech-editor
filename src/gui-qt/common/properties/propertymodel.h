@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "property.h"
+#include "abstractpropertymodel.h"
 #include <QAbstractItemModel>
 #include <QBitArray>
 #include <QVector>
@@ -16,7 +16,7 @@ namespace GuiQt {
 class PropertyManager;
 class PropertyModelCache;
 
-class PropertyModel : public QAbstractItemModel {
+class PropertyModel : public AbstractPropertyModel {
     Q_OBJECT
 
 public:
@@ -24,11 +24,7 @@ public:
         PROPERTY_COLUMN,
         VALUE_COLUMN,
     };
-
     static constexpr int N_COLUMNS = 2;
-    static constexpr quintptr ROOT_INTERNAL_ID = UINT_MAX;
-
-    static const Property blankProperty;
 
     static const QString ITEM_MIME_TYPE;
     struct InternalMimeData;
@@ -39,7 +35,8 @@ public:
 
     PropertyManager* manager() const { return _manager; }
 
-    const Property& propertyForIndex(const QModelIndex& index) const;
+    virtual const Property& propertyForIndex(const QModelIndex& index) const final;
+    virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const;
 
     virtual QModelIndex index(int row, int column, const QModelIndex& parent) const final;
     virtual QModelIndex parent(const QModelIndex& index) const final;

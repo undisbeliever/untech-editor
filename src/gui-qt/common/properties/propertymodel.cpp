@@ -12,11 +12,10 @@
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
-const Property PropertyModel::blankProperty;
 const QString PropertyModel::ITEM_MIME_TYPE = QStringLiteral("application/x-untech-property-data");
 
 PropertyModel::PropertyModel(PropertyManager* manager)
-    : QAbstractItemModel(manager)
+    : AbstractPropertyModel(manager)
     , _manager(manager)
 {
     resizeCache();
@@ -33,7 +32,7 @@ const Property& PropertyModel::propertyForIndex(const QModelIndex& index) const
 {
     if (index.isValid() == false
         || index.model() != this
-        || index.column() >= N_COLUMNS) {
+        || index.column() != VALUE_COLUMN) {
 
         return blankProperty;
     }
@@ -53,6 +52,18 @@ const Property& PropertyModel::propertyForIndex(const QModelIndex& index) const
     }
 
     return blankProperty;
+}
+
+QPair<QVariant, QVariant> PropertyModel::propertyParametersForIndex(const QModelIndex& index) const
+{
+    auto& settings = propertyForIndex(index);
+
+    auto param = qMakePair(settings.parameter1, settings.parameter2);
+    if (settings.id >= 0) {
+        _manager->updateParameters(settings.id, param.first, param.second);
+    }
+
+    return param;
 }
 
 void PropertyModel::resizeCache()

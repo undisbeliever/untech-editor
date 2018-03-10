@@ -5,8 +5,7 @@
  */
 
 #include "listitemwidget.h"
-#include "propertymanager.h"
-#include "propertymodel.h"
+#include "abstractpropertymodel.h"
 
 #include <QFileDialog>
 #include <QHBoxLayout>
@@ -14,16 +13,15 @@
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
-ListItemWidget::ListItemWidget(const PropertyManager* manager,
-                               int propertyIndex, QWidget* parent)
+ListItemWidget::ListItemWidget(const AbstractPropertyModel* model,
+                               const QModelIndex& index, QWidget* parent)
     : QWidget(parent)
-    , _manager(manager)
-    , _propertyIndex(propertyIndex)
+    , _model(model)
+    , _index(index)
     , _stringList()
 {
-    Q_ASSERT(manager);
-    Q_ASSERT(propertyIndex >= 0);
-    Q_ASSERT(propertyIndex < manager->propertiesList().size());
+    Q_ASSERT(model);
+    Q_ASSERT(model->propertyForIndex(index).isList);
 
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setSpacing(1);
@@ -63,7 +61,7 @@ void ListItemWidget::updateGui()
 
 void ListItemWidget::onAddButtonClicked()
 {
-    const auto& property = _manager->propertiesList().at(_propertyIndex);
+    const auto& property = _model->propertyForIndex(_index);
 
     switch (property.type) {
     case Type::BOOLEAN:
@@ -83,13 +81,10 @@ void ListItemWidget::onAddButtonClicked()
     } break;
 
     case Type::FILENAME_LIST: {
-        QVariant filter = property.parameter1;
-        QVariant param2 = property.parameter2;
-
-        _manager->updateParameters(property.id, filter, param2);
+        auto params = _model->propertyParametersForIndex(_index);
 
         const QStringList filenames = QFileDialog::getOpenFileNames(
-            this, QString(), QString(), filter.toString());
+            this, QString(), QString(), params.first.toString());
 
         _stringList.append(filenames);
         emit listEdited();

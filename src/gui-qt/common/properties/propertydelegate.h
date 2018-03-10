@@ -11,12 +11,9 @@
 namespace UnTech {
 namespace GuiQt {
 struct Property;
-class PropertyManager;
 
 class PropertyDelegate : public QItemDelegate {
     Q_OBJECT
-
-    static const Property blankProperty;
 
 public:
     PropertyDelegate(QObject* parent = nullptr);
