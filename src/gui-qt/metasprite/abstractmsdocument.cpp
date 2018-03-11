@@ -5,7 +5,7 @@
  */
 
 #include "abstractmsdocument.h"
-#include "animation/animationframesmodel.h"
+#include "animation/animationframesmanager.h"
 #include "animation/animationlistmodel.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
@@ -13,12 +13,12 @@ using namespace UnTech::GuiQt::MetaSprite;
 AbstractMsDocument::AbstractMsDocument(QObject* parent)
     : AbstractDocument(parent)
     , _animationListModel(new Animation::AnimationListModel(this))
-    , _animationFramesModel(new Animation::AnimationFramesModel(this))
+    , _animationFramesManager(new Animation::AnimationFramesManager(this))
 {
 }
 
 void AbstractMsDocument::initModels()
 {
     _animationListModel->setDocument(this);
-    _animationFramesModel->setDocument(this);
+    _animationFramesManager->setDocument(this);
 }

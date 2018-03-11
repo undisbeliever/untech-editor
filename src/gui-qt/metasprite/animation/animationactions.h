@@ -31,12 +31,6 @@ public:
     QAction* renameAnimation() const { return _renameAnimation; }
     QAction* removeAnimation() const { return _removeAnimation; }
 
-    QAction* addAnimationFrame() const { return _addAnimationFrame; }
-    QAction* raiseAnimationFrame() const { return _raiseAnimationFrame; }
-    QAction* lowerAnimationFrame() const { return _lowerAnimationFrame; }
-    QAction* cloneAnimationFrame() const { return _cloneAnimationFrame; }
-    QAction* removeAnimationFrame() const { return _removeAnimationFrame; }
-
 public slots:
     void updateActions();
 
@@ -44,12 +38,6 @@ public slots:
     void onCloneAnimation();
     void onRenameAnimation();
     void onRemoveAnimation();
-
-    void onAddAnimationFrame();
-    void onRaiseAnimationFrame();
-    void onLowerAnimationFrame();
-    void onCloneAnimationFrame();
-    void onRemoveAnimationFrame();
 
 private:
     QWidget* _widget;
@@ -59,12 +47,6 @@ private:
     QAction* _cloneAnimation;
     QAction* _renameAnimation;
     QAction* _removeAnimation;
-
-    QAction* _addAnimationFrame;
-    QAction* _raiseAnimationFrame;
-    QAction* _lowerAnimationFrame;
-    QAction* _cloneAnimationFrame;
-    QAction* _removeAnimationFrame;
 };
 }
 }

@@ -69,10 +69,6 @@ void AbstractSelection::setDocument(AbstractMsDocument* document)
             this, &AbstractSelection::onAnimationAboutToBeRemoved);
     connect(_document, &AbstractMsDocument::animationRenamed,
             this, &AbstractSelection::onAnimationRenamed);
-    connect(_document, &AbstractMsDocument::animationFrameAboutToBeRemoved,
-            this, &AbstractSelection::onAnimationFrameAboutToBeRemoved);
-    connect(_document, &AbstractMsDocument::animationFrameMoved,
-            this, &AbstractSelection::onAnimationFrameMoved);
 }
 
 void AbstractSelection::selectFrame(const idstring& id)
@@ -107,10 +103,7 @@ void AbstractSelection::selectAnimation(const idstring& id)
         _selectedAnimation = ani;
         _selectedAnimationId = ani ? id : idstring();
 
-        _selectedAnimationFrame = -1;
-
         emit selectedAnimationChanged();
-        emit selectedAnimationFrameChanged();
     }
 }
 
@@ -118,25 +111,8 @@ void AbstractSelection::unselectAnimation()
 {
     _selectedAnimation = nullptr;
     _selectedAnimationId = idstring();
-    _selectedAnimationFrame = -1;
 
     emit selectedAnimationChanged();
-    emit selectedAnimationFrameChanged();
-}
-
-void AbstractSelection::selectAnimationFrame(int index)
-{
-    if (_selectedAnimation == nullptr
-        || index < 0
-        || (unsigned)index >= _selectedAnimation->frames.size()) {
-        index = -1;
-    }
-
-    if (_selectedAnimationFrame != index) {
-        _selectedAnimationFrame = index;
-
-        emit selectedAnimationFrameChanged();
-    }
 }
 
 void AbstractSelection::onFrameAboutToBeRemoved(const void* frame)
@@ -210,27 +186,6 @@ void AbstractSelection::onAnimationRenamed(const void* animation, const idstring
 {
     if (_selectedAnimation == animation) {
         _selectedAnimationId = newId;
-    }
-}
-
-void AbstractSelection::onAnimationFrameAboutToBeRemoved(const void* animation, unsigned index)
-{
-    if (_selectedAnimation == animation
-        && _selectedAnimationFrame == int(index)) {
-
-        unselectAnimationFrame();
-    }
-}
-
-void AbstractSelection::onAnimationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos)
-{
-    if (_selectedAnimation == animation) {
-        if (_selectedAnimationFrame == int(oldPos)) {
-            selectAnimationFrame(newPos);
-        }
-        else if (_selectedAnimationFrame == int(newPos)) {
-            selectAnimationFrame(oldPos);
-        }
     }
 }
 

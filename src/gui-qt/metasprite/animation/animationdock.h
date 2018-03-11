@@ -22,7 +22,6 @@ namespace Ui {
 class AnimationDock;
 }
 class AnimationActions;
-class AnimationFramesDelegate;
 
 namespace MSA = UnTech::MetaSprite::Animation;
 
@@ -41,7 +40,6 @@ public:
 
 private slots:
     void onSelectedAnimationChanged();
-    void onSelectedAnimationFrameChanged();
 
     void onAnimationDataChanged(const void* animation);
 
@@ -52,10 +50,8 @@ private slots:
     void onNextAnimationEdited();
 
     void onAnimationListSelectionChanged();
-    void onAnimationFrameSelectionChanged();
 
     void onAnimationListContextMenu(const QPoint& pos);
-    void onAnimationFramesContextMenu(const QPoint& pos);
 
 private:
     std::unique_ptr<Ui::AnimationDock> _ui;
@@ -63,7 +59,6 @@ private:
     AbstractMsDocument* _document;
 
     QCompleter* _nextAnimationCompleter;
-    AnimationFramesDelegate* _animationFramesDelegate;
 };
 }
 }

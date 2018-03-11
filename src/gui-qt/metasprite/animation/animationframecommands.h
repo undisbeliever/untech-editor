@@ -41,6 +41,9 @@ class AddAnimationFrame : public AddRemoveAnimationFrame {
 public:
     AddAnimationFrame(AbstractMsDocument* document,
                       MSA::Animation* animation);
+    AddAnimationFrame(AbstractMsDocument* document,
+                      MSA::Animation* animation,
+                      int index);
     ~AddAnimationFrame() = default;
 
     virtual void undo() final;
@@ -67,11 +70,12 @@ public:
     virtual void redo() final;
 };
 
-class RaiseAnimationFrame : public QUndoCommand {
+class MoveAnimationFrame : public QUndoCommand {
 public:
-    RaiseAnimationFrame(AbstractMsDocument* document,
-                        MSA::Animation* animation, unsigned index);
-    ~RaiseAnimationFrame() = default;
+    MoveAnimationFrame(AbstractMsDocument* document,
+                       MSA::Animation* animation,
+                       unsigned fromIndex, unsigned toIndex);
+    ~MoveAnimationFrame() = default;
 
     virtual void undo() final;
     virtual void redo() final;
@@ -79,22 +83,8 @@ public:
 private:
     AbstractMsDocument* _document;
     MSA::Animation* _animation;
-    const unsigned _index;
-};
-
-class LowerAnimationFrame : public QUndoCommand {
-public:
-    LowerAnimationFrame(AbstractMsDocument* document,
-                        MSA::Animation* animation, unsigned index);
-    ~LowerAnimationFrame() = default;
-
-    virtual void undo() final;
-    virtual void redo() final;
-
-private:
-    AbstractMsDocument* _document;
-    MSA::Animation* _animation;
-    const unsigned _index;
+    const unsigned _fromIndex;
+    const unsigned _toIndex;
 };
 
 class ChangeAnimationFrame : public QUndoCommand {

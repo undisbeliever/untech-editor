@@ -7,8 +7,7 @@
 #include "animationdock.h"
 #include "animationactions.h"
 #include "animationcommands.h"
-#include "animationframesdelegate.h"
-#include "animationframesmodel.h"
+#include "animationframesmanager.h"
 #include "animationlistmodel.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
@@ -25,7 +24,6 @@ AnimationDock::AnimationDock(QWidget* parent)
     , _actions(new AnimationActions(this))
     , _document(nullptr)
     , _nextAnimationCompleter(new QCompleter(this))
-    , _animationFramesDelegate(new AnimationFramesDelegate(this))
 {
     _ui->setupUi(this);
 
@@ -41,17 +39,16 @@ AnimationDock::AnimationDock(QWidget* parent)
     _ui->animationListButtons->addAction(_actions->renameAnimation());
     _ui->animationListButtons->addAction(_actions->removeAnimation());
 
-    _ui->animationFrames->setItemDelegate(_animationFramesDelegate);
-
-    _ui->animationFramesButtons->addAction(_actions->addAnimationFrame());
-    _ui->animationFramesButtons->addAction(_actions->cloneAnimationFrame());
-    _ui->animationFramesButtons->addAction(_actions->raiseAnimationFrame());
-    _ui->animationFramesButtons->addAction(_actions->lowerAnimationFrame());
-    _ui->animationFramesButtons->addAction(_actions->cloneAnimationFrame());
-    _ui->animationFramesButtons->addAction(_actions->removeAnimationFrame());
+    _ui->animationFramesButtons->addAction(_ui->animationFrames->insertAction());
+    _ui->animationFramesButtons->addAction(_ui->animationFrames->cloneAction());
+    _ui->animationFramesButtons->addAction(_ui->animationFrames->raiseToTopAction());
+    _ui->animationFramesButtons->addAction(_ui->animationFrames->raiseAction());
+    _ui->animationFramesButtons->addAction(_ui->animationFrames->lowerAction());
+    _ui->animationFramesButtons->addAction(_ui->animationFrames->lowerToBottomAction());
+    _ui->animationFramesButtons->addAction(_ui->animationFrames->cloneAction());
+    _ui->animationFramesButtons->addAction(_ui->animationFrames->removeAction());
 
     _ui->animationList->setContextMenuPolicy(Qt::CustomContextMenu);
-    _ui->animationFrames->setContextMenuPolicy(Qt::CustomContextMenu);
 
     clearGui();
     setEnabled(false);
@@ -65,8 +62,6 @@ AnimationDock::AnimationDock(QWidget* parent)
 
     connect(_ui->animationList, &QListView::customContextMenuRequested,
             this, &AnimationDock::onAnimationListContextMenu);
-    connect(_ui->animationFrames, &QListView::customContextMenuRequested,
-            this, &AnimationDock::onAnimationFramesContextMenu);
 }
 
 AnimationDock::~AnimationDock() = default;
@@ -91,21 +86,20 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
     _document = document;
 
     _actions->setDocument(document);
-    _animationFramesDelegate->setDocument(document);
 
     setEnabled(_document != nullptr);
 
     if (_document) {
         _nextAnimationCompleter->setModel(_document->animationListModel());
         _ui->animationList->setModel(_document->animationListModel());
-        _ui->animationFrames->setModel(_document->animationFramesModel());
+        _ui->animationFrames->setPropertyManager(_document->animationFramesManager());
 
-        _ui->animationFrames->setColumnWidth(0, _ui->animationFrames->width() / 2);
+        _ui->animationFrames->setColumnWidth(0, _ui->animationFrames->width() / 3);
         _ui->animationFrames->setColumnWidth(1, 45);
-        _ui->animationFrames->setColumnWidth(2, 0);
+        _ui->animationFrames->setColumnWidth(2, 30);
+        _ui->animationFrames->setColumnWidth(3, 0);
 
         onSelectedAnimationChanged();
-        onSelectedAnimationFrameChanged();
 
         connect(_document, &AbstractMsDocument::animationDataChanged,
                 this, &AnimationDock::onAnimationDataChanged);
@@ -113,14 +107,8 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
         connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
                 this, &AnimationDock::onSelectedAnimationChanged);
 
-        connect(_document->selection(), &AbstractSelection::selectedAnimationFrameChanged,
-                this, &AnimationDock::onSelectedAnimationFrameChanged);
-
         connect(_ui->animationList->selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, &AnimationDock::onAnimationListSelectionChanged);
-
-        connect(_ui->animationFrames->selectionModel(), &QItemSelectionModel::selectionChanged,
-                this, &AnimationDock::onAnimationFrameSelectionChanged);
     }
     else {
         _nextAnimationCompleter->setModel(nullptr);
@@ -154,14 +142,6 @@ void AnimationDock::onAnimationDataChanged(const void* animation)
     if (animation == _document->selection()->selectedAnimation()) {
         updateGui();
     }
-}
-
-void AnimationDock::onSelectedAnimationFrameChanged()
-{
-    AnimationFramesModel* model = _document->animationFramesModel();
-    unsigned pos = _document->selection()->selectedAnimationFrame();
-
-    _ui->animationFrames->setCurrentIndex(model->toModelIndex(pos));
 }
 
 void AnimationDock::clearGui()
@@ -223,12 +203,6 @@ void AnimationDock::onAnimationListSelectionChanged()
     _document->selection()->selectAnimation(id);
 }
 
-void AnimationDock::onAnimationFrameSelectionChanged()
-{
-    QModelIndex index = _ui->animationFrames->currentIndex();
-    _document->selection()->selectAnimationFrame(index.row());
-}
-
 void AnimationDock::onAnimationListContextMenu(const QPoint& pos)
 {
     if (_document) {
@@ -244,26 +218,6 @@ void AnimationDock::onAnimationListContextMenu(const QPoint& pos)
         }
 
         QPoint globalPos = _ui->animationList->mapToGlobal(pos);
-        menu.exec(globalPos);
-    }
-}
-
-void AnimationDock::onAnimationFramesContextMenu(const QPoint& pos)
-{
-    if (_document) {
-        bool onFrame = _ui->animationFrames->indexAt(pos).isValid();
-
-        QMenu menu;
-        menu.addAction(_actions->addAnimationFrame());
-
-        if (onFrame) {
-            menu.addAction(_actions->raiseAnimationFrame());
-            menu.addAction(_actions->lowerAnimationFrame());
-            menu.addAction(_actions->cloneAnimationFrame());
-            menu.addAction(_actions->removeAnimationFrame());
-        }
-
-        QPoint globalPos = _ui->animationFrames->mapToGlobal(pos);
         menu.exec(globalPos);
     }
 }

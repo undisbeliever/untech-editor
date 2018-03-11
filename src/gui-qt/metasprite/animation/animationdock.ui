@@ -154,7 +154,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QTreeView" name="animationFrames">
+            <widget class="PropertyTableView" name="animationFrames">
              <property name="sizePolicy">
               <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                <horstretch>1</horstretch>
@@ -211,6 +211,11 @@
    <extends>QComboBox</extends>
    <header>gui-qt/common/widgets/enumcombobox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PropertyTableView</class>
+   <extends>QTreeView</extends>
+   <header>gui-qt/common/properties/propertytableview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

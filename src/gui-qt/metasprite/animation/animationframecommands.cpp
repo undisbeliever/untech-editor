@@ -5,8 +5,8 @@
  */
 
 #include "animationframecommands.h"
-#include "animationframesmodel.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
+#include "models/common/vector-helpers.h"
 
 #include <QCoreApplication>
 
@@ -30,12 +30,25 @@ AddRemoveAnimationFrame::AddRemoveAnimationFrame(AbstractMsDocument* document,
 
 void AddRemoveAnimationFrame::addAnimationFrame()
 {
-    _document->animationFramesModel()->insertAnimationFrame(_animation, _index, _animationFrame);
+    Q_ASSERT(_index <= _animation->frames.size());
+
+    auto it = _animation->frames.begin() + _index;
+    _animation->frames.insert(it, _animationFrame);
+
+    emit _document->animationFrameAdded(_animation, _index);
+    emit _document->animationFrameListChanged(_animation);
 }
 
 void AddRemoveAnimationFrame::removeAnimationFrame()
 {
-    _document->animationFramesModel()->removeAnimationFrame(_animation, _index);
+    Q_ASSERT(_index <= _animation->frames.size());
+
+    emit _document->animationFrameAboutToBeRemoved(_animation, _index);
+
+    auto it = _animation->frames.begin() + _index;
+    _animation->frames.erase(it);
+
+    emit _document->animationFrameListChanged(_animation);
 }
 
 // AddAnimationFrame
@@ -43,8 +56,14 @@ void AddRemoveAnimationFrame::removeAnimationFrame()
 
 AddAnimationFrame::AddAnimationFrame(AbstractMsDocument* document,
                                      MSA::Animation* animation)
+    : AddAnimationFrame(document, animation, animation->frames.size())
+{
+}
+
+AddAnimationFrame::AddAnimationFrame(AbstractMsDocument* document,
+                                     MSA::Animation* animation, int index)
     : AddRemoveAnimationFrame(document, animation,
-                              animation->frames.size(), MSA::AnimationFrame(),
+                              index, MSA::AnimationFrame(),
                               QCoreApplication::tr("Add Animation Frame"))
 {
 }
@@ -98,48 +117,41 @@ void RemoveAnimationFrame::redo()
     removeAnimationFrame();
 }
 
-// RaiseAnimationFrame
+// MoveAnimationFrame
 // ===================
 
-RaiseAnimationFrame::RaiseAnimationFrame(AbstractMsDocument* document,
-                                         MSA::Animation* animation, unsigned index)
-    : QUndoCommand(QCoreApplication::tr("Raise Animation Frame"))
+MoveAnimationFrame::MoveAnimationFrame(AbstractMsDocument* document,
+                                       MSA::Animation* animation,
+                                       unsigned fromIndex, unsigned toIndex)
+    : QUndoCommand(QCoreApplication::tr("Move Animation Frame"))
     , _document(document)
     , _animation(animation)
-    , _index(index)
+    , _fromIndex(fromIndex)
+    , _toIndex(toIndex)
 {
+    Q_ASSERT(_fromIndex != _toIndex);
 }
 
-void RaiseAnimationFrame::undo()
+void MoveAnimationFrame::undo()
 {
-    _document->animationFramesModel()->lowerAnimationFrame(_animation, _index - 1);
+    Q_ASSERT(_fromIndex < _animation->frames.size());
+    Q_ASSERT(_toIndex < _animation->frames.size());
+
+    moveVectorItem(_toIndex, _fromIndex, _animation->frames);
+
+    emit _document->animationFrameMoved(_animation, _toIndex, _fromIndex);
+    emit _document->animationFrameListChanged(_animation);
 }
 
-void RaiseAnimationFrame::redo()
+void MoveAnimationFrame::redo()
 {
-    _document->animationFramesModel()->raiseAnimationFrame(_animation, _index);
-}
+    Q_ASSERT(_fromIndex < _animation->frames.size());
+    Q_ASSERT(_toIndex < _animation->frames.size());
 
-// LowerAnimationFrame
-// ===================
+    moveVectorItem(_fromIndex, _toIndex, _animation->frames);
 
-LowerAnimationFrame::LowerAnimationFrame(AbstractMsDocument* document,
-                                         MSA::Animation* animation, unsigned index)
-    : QUndoCommand(QCoreApplication::tr("Lower Animation Frame"))
-    , _document(document)
-    , _animation(animation)
-    , _index(index)
-{
-}
-
-void LowerAnimationFrame::undo()
-{
-    _document->animationFramesModel()->raiseAnimationFrame(_animation, _index + 1);
-}
-
-void LowerAnimationFrame::redo()
-{
-    _document->animationFramesModel()->lowerAnimationFrame(_animation, _index);
+    emit _document->animationFrameMoved(_animation, _fromIndex, _toIndex);
+    emit _document->animationFrameListChanged(_animation);
 }
 
 // ChangeAnimationFrame
@@ -160,10 +172,14 @@ ChangeAnimationFrame::ChangeAnimationFrame(AbstractMsDocument* document,
 
 void ChangeAnimationFrame::undo()
 {
-    _document->animationFramesModel()->setAnimationFrame(_animation, _index, _oldValue);
+    _animation->frames.at(_index) = _oldValue;
+
+    emit _document->animationFrameChanged(_animation, _index);
 }
 
 void ChangeAnimationFrame::redo()
 {
-    _document->animationFramesModel()->setAnimationFrame(_animation, _index, _newValue);
+    _animation->frames.at(_index) = _newValue;
+
+    emit _document->animationFrameChanged(_animation, _index);
 }

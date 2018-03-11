@@ -21,6 +21,7 @@ namespace MetaSprite {
 namespace Animation {
 class AnimationListModel;
 class AnimationFramesModel;
+class AnimationFramesManager;
 }
 struct SelectedItem;
 class AbstractSelection;
@@ -44,7 +45,7 @@ public:
     virtual AbstractIdmapListModel* frameListModel() const = 0;
 
     auto* animationListModel() const { return _animationListModel; }
-    auto* animationFramesModel() const { return _animationFramesModel; }
+    auto* animationFramesManager() const { return _animationFramesManager; }
 
 signals:
     void frameSetDataChanged();
@@ -89,7 +90,7 @@ signals:
 
 private:
     Animation::AnimationListModel* _animationListModel;
-    Animation::AnimationFramesModel* _animationFramesModel;
+    Animation::AnimationFramesManager* _animationFramesManager;
 };
 }
 }

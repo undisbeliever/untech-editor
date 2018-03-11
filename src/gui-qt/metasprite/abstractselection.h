@@ -58,7 +58,6 @@ public:
 
     MSA::Animation* selectedAnimation() const { return _selectedAnimation; }
     const idstring& selectedAnimationId() const { return _selectedAnimationId; }
-    int selectedAnimationFrame() const { return _selectedAnimationFrame; }
 
     const std::set<SelectedItem>& selectedItems() const { return _selectedItems; }
     void setSelectedItems(const std::set<SelectedItem>&);
@@ -94,7 +93,6 @@ signals:
     void selectedItemsChanged();
 
     void selectedAnimationChanged();
-    void selectedAnimationFrameChanged();
 
 private slots:
     void onFrameAboutToBeRemoved(const void* frame);
@@ -110,9 +108,6 @@ private slots:
     void onAnimationAboutToBeRemoved(const void* animation);
     void onAnimationRenamed(const void* animation, const idstring& newId);
 
-    void onAnimationFrameAboutToBeRemoved(const void* animation, unsigned index);
-    void onAnimationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
-
 protected:
     AbstractMsDocument* _document;
     const void* _selectedFramePtr;
@@ -121,7 +116,6 @@ protected:
 
     MSA::Animation* _selectedAnimation;
     idstring _selectedAnimationId;
-    int _selectedAnimationFrame;
 };
 }
 }
