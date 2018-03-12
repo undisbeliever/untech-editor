@@ -50,12 +50,13 @@ public:
     virtual QVariant data(int index, int id) const = 0;
     virtual bool setData(int index, int id, const QVariant& value) = 0;
 
-    virtual bool canInsertItem() = 0;
-    virtual bool canCloneItem(int index) = 0;
+    // by default returns false
+    virtual bool canInsertItem();
+    virtual bool canCloneItem(int index);
 
-    virtual bool insertItem(int index) = 0;
-    virtual bool cloneItem(int index) = 0;
-    virtual bool removeItem(int index) = 0;
+    virtual bool insertItem(int index);
+    virtual bool cloneItem(int index);
+    virtual bool removeItem(int index);
     virtual bool moveItem(int from, int to) = 0;
 
 protected:
@@ -73,7 +74,7 @@ signals:
     // subclasses MUST emit this signal if the data changes
     void dataChanged();
 
-    // subclasses MUST emit these signals the table changes
+    // subclasses MUST emit these signals if the table items change
     void itemChanged(int index);
     void itemAdded(int index);
     void itemRemoved(int index);

@@ -63,3 +63,28 @@ void PropertyTableManager::setEnabled(bool enabled)
 void PropertyTableManager::updateParameters(int, int, QVariant&, QVariant&) const
 {
 }
+
+bool PropertyTableManager::canInsertItem()
+{
+    return false;
+}
+
+bool PropertyTableManager::canCloneItem(int)
+{
+    return false;
+}
+
+bool PropertyTableManager::insertItem(int)
+{
+    return false;
+}
+
+bool PropertyTableManager::cloneItem(int)
+{
+    return false;
+}
+
+bool PropertyTableManager::removeItem(int)
+{
+    return false;
+}
