@@ -22,12 +22,17 @@ public:
 
     void clear();
 
+    QSize value() const;
+    void setValue(const QSize&);
+
     usize valueUsize() const;
     void setValue(const usize&);
 
     void setMaximum(unsigned max);
+    void setMaximum(const QSize& max);
 
     void setMinimum(unsigned min);
+    void setMinimum(const QSize& min);
 
 protected:
     virtual void focusInEvent(QFocusEvent* event) override;

@@ -28,9 +28,12 @@ public:
     urect valueUrect() const;
     void setValue(const urect&);
 
+    void setRange(const QRect&);
     void setRange(const usize&);
     void setRange(const QSize&);
+    void setMinRectSize(const QSize&);
     void setMinRectSize(const usize&);
+    void setMaxRectSize(const QSize&);
     void setMaxRectSize(const usize&);
 
 protected:
@@ -46,7 +49,8 @@ private slots:
     void updateVerticalRange();
 
 private:
-    usize _range, _minRectSize, _maxRectSize;
+    QSize _minRectSize, _maxRectSize;
+    QRect _range;
 
     QSpinBox* _xPos;
     QSpinBox* _yPos;

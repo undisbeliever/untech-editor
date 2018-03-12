@@ -17,9 +17,9 @@ using namespace UnTech::GuiQt;
 
 RectWidget::RectWidget(QWidget* parent)
     : QWidget(parent)
-    , _range(INT_MAX, INT_MAX)
     , _minRectSize(1, 1)
     , _maxRectSize(255, 255)
+    , _range(0, 0, INT_MAX, INT_MAX)
 {
     QGridLayout* layout = new QGridLayout(this);
     layout->setSpacing(2);
@@ -157,28 +157,45 @@ void RectWidget::setValue(const urect& r)
     updateRanges();
 }
 
-void RectWidget::setRange(const usize& range)
+void RectWidget::setRange(const QRect& range)
 {
     _range = range;
     updateRanges();
 }
 
-void RectWidget::setRange(const QSize& range)
+void RectWidget::setRange(const usize& range)
 {
-    _range.width = range.width();
-    _range.height = range.height();
+    _range = QRect(0, 0, range.width, range.height);
     updateRanges();
 }
 
-void RectWidget::setMinRectSize(const usize& minRectSize)
+void RectWidget::setRange(const QSize& range)
+{
+    _range = QRect(0, 0, range.width(), range.height());
+    updateRanges();
+}
+
+void RectWidget::setMinRectSize(const QSize& minRectSize)
 {
     _minRectSize = minRectSize;
     updateRanges();
 }
 
-void RectWidget::setMaxRectSize(const usize& maxRectSize)
+void RectWidget::setMinRectSize(const usize& minRectSize)
+{
+    _minRectSize = QSize(minRectSize.width, minRectSize.height);
+    updateRanges();
+}
+
+void RectWidget::setMaxRectSize(const QSize& maxRectSize)
 {
     _maxRectSize = maxRectSize;
+    updateRanges();
+}
+
+void RectWidget::setMaxRectSize(const usize& maxRectSize)
+{
+    _minRectSize = QSize(maxRectSize.width, maxRectSize.height);
     updateRanges();
 }
 
@@ -190,16 +207,16 @@ void RectWidget::updateRanges()
 
 void RectWidget::updateHorizontalRange()
 {
-    _xPos->setRange(0, _range.width - _width->value());
+    _xPos->setRange(_range.left(), _range.right() - _width->value() + 1);
 
-    _width->setRange(_minRectSize.width,
-                     std::min(_maxRectSize.width, _range.width - _xPos->value()));
+    _width->setRange(_minRectSize.width(),
+                     std::min(_maxRectSize.width(), _range.right() - _xPos->value() + 1));
 }
 
 void RectWidget::updateVerticalRange()
 {
-    _yPos->setRange(0, _range.height - _height->value());
+    _yPos->setRange(_range.top(), _range.bottom() - _height->value() + 1);
 
-    _height->setRange(_minRectSize.height,
-                      std::min(_maxRectSize.height, _range.height - _yPos->value()));
+    _height->setRange(_minRectSize.height(),
+                      std::min(_maxRectSize.height(), _range.bottom() - _yPos->value() + 1));
 }

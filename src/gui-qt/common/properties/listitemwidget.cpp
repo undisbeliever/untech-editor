@@ -71,6 +71,9 @@ void ListItemWidget::onAddButtonClicked()
     case Type::IDSTRING:
     case Type::FILENAME:
     case Type::COLOR:
+    case Type::POINT:
+    case Type::SIZE:
+    case Type::RECT:
     case Type::COMBO:
         break;
 

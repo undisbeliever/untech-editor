@@ -35,6 +35,9 @@ public:
     virtual void setModelData(QWidget* editor, QAbstractItemModel* model,
                               const QModelIndex& index) const final;
 
+    virtual void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option,
+                                      const QModelIndex& index) const final;
+
 private:
     const Property& propertyForIndex(const QModelIndex& index) const;
 

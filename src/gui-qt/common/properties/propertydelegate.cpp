@@ -17,6 +17,9 @@
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/widgets/colorinputwidget.h"
 #include "gui-qt/common/widgets/filenameinputwidget.h"
+#include "gui-qt/common/widgets/pointwidget.h"
+#include "gui-qt/common/widgets/rectwidget.h"
+#include "gui-qt/common/widgets/sizewidget.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCompleter>
@@ -115,6 +118,9 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
         case Type::IDSTRING:
         case Type::IDSTRING_LIST:
         case Type::COLOR:
+        case Type::POINT:
+        case Type::SIZE:
+        case Type::RECT:
         case Type::COMBO: {
             drawDisplay(painter, option, option.rect, value.toString());
         } break;
@@ -239,6 +245,24 @@ QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewI
         return ci;
     }
 
+    case Type::POINT: {
+        PointWidget* pw = new PointWidget(parent);
+        pw->setAutoFillBackground(true);
+        return pw;
+    }
+
+    case Type::SIZE: {
+        SizeWidget* sw = new SizeWidget(parent);
+        sw->setAutoFillBackground(true);
+        return sw;
+    }
+
+    case Type::RECT: {
+        RectWidget* rw = new RectWidget(parent);
+        rw->setAutoFillBackground(true);
+        return rw;
+    }
+
     case Type::COMBO: {
         QComboBox* cb = new QComboBox(parent);
         cb->setAutoFillBackground(true);
@@ -333,6 +357,39 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
         ci->setColor(data.value<QColor>());
     } break;
 
+    case Type::POINT: {
+        PointWidget* pw = qobject_cast<PointWidget*>(editor);
+        if (params.first.type() == QVariant::Point) {
+            pw->setMinimum(params.first.toPoint());
+        }
+        if (params.second.type() == QVariant::Point) {
+            pw->setMaximum(params.second.toPoint());
+        }
+        pw->setValue(data.toPoint());
+    } break;
+
+    case Type::SIZE: {
+        SizeWidget* sw = qobject_cast<SizeWidget*>(editor);
+        if (params.first.type() == QVariant::Size) {
+            sw->setMinimum(params.first.toSize());
+        }
+        if (params.second.type() == QVariant::Size) {
+            sw->setMaximum(params.second.toSize());
+        }
+        sw->setValue(data.toSize());
+    } break;
+
+    case Type::RECT: {
+        RectWidget* rw = qobject_cast<RectWidget*>(editor);
+        if (params.first.type() == QVariant::Rect) {
+            rw->setRange(params.first.toRect());
+        }
+        if (params.second.type() == QVariant::Size) {
+            rw->setMaxRectSize(params.second.toSize());
+        }
+        rw->setValue(data.toRect());
+    } break;
+
     case Type::COMBO: {
         const QStringList displayList = params.first.toStringList();
         const QVariantList dataList = params.second.toList();
@@ -400,9 +457,43 @@ void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
         model->setData(index, ci->color(), Qt::EditRole);
     } break;
 
+    case Type::POINT: {
+        PointWidget* pw = qobject_cast<PointWidget*>(editor);
+        model->setData(index, pw->value(), Qt::EditRole);
+    } break;
+
+    case Type::SIZE: {
+        SizeWidget* sw = qobject_cast<SizeWidget*>(editor);
+        model->setData(index, sw->value(), Qt::EditRole);
+    } break;
+
+    case Type::RECT: {
+        RectWidget* rw = qobject_cast<RectWidget*>(editor);
+        model->setData(index, rw->value(), Qt::EditRole);
+    } break;
+
     case Type::COMBO: {
         QComboBox* cb = qobject_cast<QComboBox*>(editor);
         model->setData(index, cb->currentData(), Qt::EditRole);
     } break;
     }
+}
+
+void PropertyDelegate::updateEditorGeometry(QWidget* editor,
+                                            const QStyleOptionViewItem& option,
+                                            const QModelIndex&) const
+{
+    QRect r = option.rect;
+    if (editor->minimumHeight() > 0) {
+        r.setHeight(editor->minimumHeight());
+    }
+
+    QWidget* parent = editor->parentWidget();
+    if (parent) {
+        if (r.bottom() >= parent->height()) {
+            r.moveBottom(parent->height() - 1);
+        }
+    }
+
+    editor->setGeometry(r);
 }

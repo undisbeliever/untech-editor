@@ -6,6 +6,10 @@
 
 #include "abstractpropertymodel.h"
 
+#include <QPoint>
+#include <QRect>
+#include <QSize>
+
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
@@ -24,6 +28,29 @@ QString AbstractPropertyModel::displayForProperty(const QModelIndex& index, cons
     case Type::FILENAME:
     case Type::COLOR: {
         return value.toString();
+    }
+
+    case Type::POINT: {
+        QPoint p = value.toPoint();
+        return QString("%1, %2")
+            .arg(p.x())
+            .arg(p.y());
+    }
+
+    case Type::SIZE: {
+        QSize s = value.toSize();
+        return QString("%1 x %2")
+            .arg(s.width())
+            .arg(s.height());
+    }
+
+    case Type::RECT: {
+        QRect r = value.toRect();
+        return QString("%1, %2 : %3 x %4")
+            .arg(r.x())
+            .arg(r.y())
+            .arg(r.width())
+            .arg(r.height());
     }
 
     case Type::COMBO: {

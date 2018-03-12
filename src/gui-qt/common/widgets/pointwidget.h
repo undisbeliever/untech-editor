@@ -29,8 +29,10 @@ public:
     void setValue(const upoint&);
 
     void setMinimum(int min);
+    void setMinimum(const QPoint&);
 
     void setMaximum(int max);
+    void setMaximum(const QPoint&);
     void setMaximum(const usize&);
     void setMaximum(const QSize&);
 

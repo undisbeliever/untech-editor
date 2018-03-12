@@ -118,10 +118,22 @@ void PointWidget::setMinimum(int min)
     _yPos->setMinimum(min);
 }
 
+void PointWidget::setMinimum(const QPoint& min)
+{
+    _xPos->setMinimum(min.x());
+    _yPos->setMinimum(min.y());
+}
+
 void PointWidget::setMaximum(int max)
 {
     _xPos->setMaximum(max);
     _yPos->setMaximum(max);
+}
+
+void PointWidget::setMaximum(const QPoint& max)
+{
+    _xPos->setMaximum(max.x());
+    _yPos->setMaximum(max.y());
 }
 
 void PointWidget::setMaximum(const usize& max)

@@ -88,6 +88,11 @@ void SizeWidget::clear()
     _height->clear();
 }
 
+QSize SizeWidget::value() const
+{
+    return QSize(_width->value(), _height->value());
+}
+
 usize SizeWidget::valueUsize() const
 {
     return usize(_width->value(), _height->value());
@@ -99,14 +104,32 @@ void SizeWidget::setValue(const usize& s)
     _height->setValue(s.height);
 }
 
+void SizeWidget::setValue(const QSize& s)
+{
+    _width->setValue(s.width());
+    _height->setValue(s.height());
+}
+
 void SizeWidget::setMaximum(unsigned max)
 {
     _width->setMaximum(max);
     _height->setMaximum(max);
 }
 
+void SizeWidget::setMaximum(const QSize& max)
+{
+    _width->setMaximum(max.width());
+    _height->setMaximum(max.height());
+}
+
 void SizeWidget::setMinimum(unsigned min)
 {
     _width->setMinimum(min);
     _height->setMinimum(min);
+}
+
+void SizeWidget::setMinimum(const QSize& min)
+{
+    _width->setMinimum(min.width());
+    _height->setMinimum(min.height());
 }

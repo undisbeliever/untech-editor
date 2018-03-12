@@ -20,6 +20,9 @@ enum class PropertyType {
     IDSTRING,      // completer stringlist
     FILENAME,      // dialog filter
     COLOR,         // no parameters
+    POINT,         // minimum value, maximum value
+    SIZE,          // minimum value, maximum value
+    RECT,          // bounding rect, maximum size
     COMBO,         // StringList of values, (optional) data VariantList
     STRING_LIST,   // no parameters
     IDSTRING_LIST, // completer values
