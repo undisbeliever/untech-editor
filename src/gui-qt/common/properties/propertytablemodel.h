@@ -51,6 +51,7 @@ public:
 
     bool canInsert(const QModelIndex& parent);
     bool canClone(int row, const QModelIndex& parent);
+    bool canMoveItems(const QModelIndex& parent);
 
     virtual bool insertRows(int row, int count, const QModelIndex& parent = QModelIndex()) final;
     bool cloneRow(int row, const QModelIndex& parent = QModelIndex());

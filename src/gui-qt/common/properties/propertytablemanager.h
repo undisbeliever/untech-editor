@@ -35,6 +35,8 @@ public:
     bool isEnabled() const { return _enabled; }
     void setEnabled(bool enabled);
 
+    bool canMoveItems() const { return _canMoveItems; }
+
     /*
      * Called by `PropertyTableModel::propertyParametersForIndex`.
      *
@@ -57,9 +59,13 @@ public:
     virtual bool insertItem(int index);
     virtual bool cloneItem(int index);
     virtual bool removeItem(int index);
-    virtual bool moveItem(int from, int to) = 0;
+    virtual bool moveItem(int from, int to);
 
 protected:
+    // Items are NOT movable by default
+    // Set this true (and implement moveItem) if the manager supports moving items.
+    void setItemsMovable(bool canMove);
+
     // if id is < 0 then the property cannot be edited
     void addProperty(const QString& title, int id, PropertyType type,
                      const QVariant& param1 = QVariant(), const QVariant& param2 = QVariant());
@@ -68,6 +74,7 @@ signals:
     void propertyListChanged();
     void titleChanged();
     void enabledChanged();
+    void canMoveItemsChanged();
 
     void dataReset();
 
@@ -84,6 +91,7 @@ private:
     QString _title;
     QVector<Property> _properties;
     bool _enabled;
+    bool _canMoveItems;
 };
 }
 }

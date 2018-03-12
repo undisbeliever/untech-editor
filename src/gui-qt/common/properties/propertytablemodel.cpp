@@ -39,6 +39,8 @@ PropertyTableModel::PropertyTableModel(QList<PropertyTableManager*> managers, QS
                 this, &PropertyTableModel::updateAll);
         connect(manager, &PropertyTableManager::enabledChanged,
                 this, &PropertyTableModel::updateAll);
+        connect(manager, &PropertyTableManager::canMoveItemsChanged,
+                this, &PropertyTableModel::updateAll);
 
         connect(manager, &PropertyTableManager::dataChanged,
                 this, &PropertyTableModel::updateAll);
@@ -318,24 +320,41 @@ int PropertyTableModel::columnCount(const QModelIndex& parent) const
 Qt::ItemFlags PropertyTableModel::flags(const QModelIndex& index) const
 {
     if (!index.isValid() && _managers.size() == 1) {
-        return Qt::ItemIsDropEnabled;
+        if (_managers.first()->canMoveItems()) {
+            return Qt::ItemIsDropEnabled;
+        }
+        else {
+            return 0;
+        }
     }
 
     if (checkIndex(index) == false) {
         return 0;
     }
 
+    Qt::ItemFlags flags = Qt::ItemIsEnabled;
+
     if (index.internalId() == ROOT_INTERNAL_ID) {
-        return Qt::ItemIsEnabled | Qt::ItemIsDropEnabled;
+        PropertyTableManager* manager = _managers.at(index.row());
+
+        if (manager->canMoveItems()) {
+            flags |= Qt::ItemIsDropEnabled;
+        }
     }
     else {
-        auto flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsDragEnabled;
+        PropertyTableManager* manager = _managers.at(index.internalId());
 
+        flags |= Qt::ItemIsSelectable | Qt::ItemNeverHasChildren;
+
+        if (manager->canMoveItems()) {
+            flags |= Qt::ItemIsDragEnabled;
+        }
         if (propertyForIndex(index).id >= 0) {
             flags |= Qt::ItemIsEditable;
         }
-        return flags;
     }
+
+    return flags;
 }
 
 QVariant PropertyTableModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -400,7 +419,17 @@ bool PropertyTableModel::canInsert(const QModelIndex& parent)
 bool PropertyTableModel::canClone(int row, const QModelIndex& parent)
 {
     if (PropertyTableManager* m = managerForParent(parent)) {
-        return row < m->rowCount() && m->canCloneItem(row);
+        return row >= 0 && row < m->rowCount() && m->canCloneItem(row);
+    }
+    else {
+        return false;
+    }
+}
+
+bool PropertyTableModel::canMoveItems(const QModelIndex& parent)
+{
+    if (PropertyTableManager* m = managerForParent(parent)) {
+        return m->canMoveItems();
     }
     else {
         return false;
@@ -477,7 +506,8 @@ bool PropertyTableModel::moveRows(const QModelIndex& sourceParent, int sourceRow
         || sourceRow == destRow
         || sourceRow == destRow - 1
         || sourceParent != destParent
-        || manager == nullptr) {
+        || manager == nullptr
+        || manager->canMoveItems() == false) {
 
         return false;
     }
@@ -553,6 +583,12 @@ QMimeData* PropertyTableModel::mimeData(const QModelIndexList& indexes) const
     }
 
     const QModelIndex& index = indexes.front();
+
+    PropertyTableManager* manager = _managers.at(index.internalId());
+    if (manager->canMoveItems() == false) {
+        return nullptr;
+    }
+
     for (auto& i : indexes) {
         // Only allow drag+drop on a single row
         if (i.model() != this
@@ -583,7 +619,8 @@ bool PropertyTableModel::canDropMimeData(const QMimeData* mimeData, Qt::DropActi
     if (mimeData == nullptr
         || action != Qt::MoveAction
         || destRow < 0
-        || manager == nullptr) {
+        || manager == nullptr
+        || manager->canMoveItems() == false) {
 
         return false;
     }
@@ -611,7 +648,8 @@ bool PropertyTableModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction 
     if (mimeData == nullptr
         || action != Qt::MoveAction
         || destRow < 0
-        || manager == nullptr) {
+        || manager == nullptr
+        || manager->canMoveItems() == false) {
 
         return false;
     }

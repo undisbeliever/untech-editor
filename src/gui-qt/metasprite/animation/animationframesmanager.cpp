@@ -24,6 +24,8 @@ AnimationFramesManager::AnimationFramesManager(QObject* parent)
 {
     using Type = PropertyType;
 
+    setItemsMovable(true);
+
     addProperty(tr("Frame"), PropertyId::FRAME, Type::IDSTRING);
     addProperty(tr("Flip"), PropertyId::FLIP, Type::COMBO, FLIP_STRINGS, QVariantList{ 0, 1, 2, 3 });
     addProperty(tr("Dur"), PropertyId::DURATION, Type::UNSIGNED);

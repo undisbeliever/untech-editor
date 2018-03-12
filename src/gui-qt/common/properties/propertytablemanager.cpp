@@ -11,6 +11,7 @@ using namespace UnTech::GuiQt;
 
 PropertyTableManager::PropertyTableManager(QObject* parent)
     : QObject(parent)
+    , _canMoveItems(false)
 {
 }
 
@@ -60,6 +61,14 @@ void PropertyTableManager::setEnabled(bool enabled)
     }
 }
 
+void PropertyTableManager::setItemsMovable(bool canMove)
+{
+    if (_canMoveItems != canMove) {
+        _canMoveItems = canMove;
+        emit canMoveItemsChanged();
+    }
+}
+
 void PropertyTableManager::updateParameters(int, int, QVariant&, QVariant&) const
 {
 }
@@ -85,6 +94,11 @@ bool PropertyTableManager::cloneItem(int)
 }
 
 bool PropertyTableManager::removeItem(int)
+{
+    return false;
+}
+
+bool PropertyTableManager::moveItem(int, int)
 {
     return false;
 }

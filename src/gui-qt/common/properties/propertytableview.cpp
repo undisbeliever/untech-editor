@@ -171,8 +171,9 @@ void PropertyTableView::onSelectionChanged()
         bool isListItem = index.isValid() && index.internalId() != PropertyTableModel::ROOT_INTERNAL_ID;
         bool canInsert = _model->canInsert(index.parent());
         bool canClone = isListItem && _model->canClone(index.row(), index.parent());
-        bool canRaise = isListItem && index.sibling(index.row() - 1, 0).isValid();
-        bool canLower = isListItem && index.sibling(index.row() + 1, 0).isValid();
+        bool canMove = isListItem && _model->canMoveItems(index.parent());
+        bool canRaise = canMove && index.sibling(index.row() - 1, 0).isValid();
+        bool canLower = canMove && index.sibling(index.row() + 1, 0).isValid();
 
         _insertAction->setEnabled(canInsert);
         _cloneAction->setEnabled(canClone);
