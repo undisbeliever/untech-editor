@@ -8,6 +8,8 @@
 
 #include "models/common/idstring.h"
 #include <QStringList>
+#include <QVariant>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -40,6 +42,28 @@ inline std::vector<idstring> toIdstringVector(const QStringList& qsl)
     std::transform(qsl.begin(), qsl.end(), std::back_inserter(sl),
                    [](const QString& qs) { return qs.toStdString(); });
     return sl;
+}
+
+// output is in the same order as `enumComboDataList`
+template <typename EnumT>
+QStringList enumComboNames(const std::map<EnumT, std::string>& enumMap)
+{
+    QStringList sl;
+    sl.reserve(enumMap.size());
+    std::transform(enumMap.begin(), enumMap.end(), std::back_inserter(sl),
+                   [](const auto& p) { return QString::fromStdString(p.second); });
+    return sl;
+}
+
+// output is in the same order as `enumComboNames`
+template <typename EnumT>
+QVariantList enumComboDataList(const std::map<EnumT, std::string>& enumMap)
+{
+    QVariantList vl;
+    vl.reserve(enumMap.size());
+    std::transform(enumMap.begin(), enumMap.end(), std::back_inserter(vl),
+                   [](const auto& p) { return int(p.first); });
+    return vl;
 }
 }
 }

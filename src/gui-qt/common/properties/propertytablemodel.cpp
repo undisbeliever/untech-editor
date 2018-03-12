@@ -111,6 +111,31 @@ void PropertyTableModel::onManagerItemMoved(int managerIndex, int from, int to)
     endMoveRows();
 }
 
+QModelIndex PropertyTableModel::toModelIndex(PropertyTableManager* manager, int index) const
+{
+    int managerIndex = _managers.indexOf(manager);
+
+    if (managerIndex >= 0
+        && index >= 0 && index < rowCountFromManager(managerIndex)) {
+
+        return createIndex(index, 0, managerIndex);
+    }
+    else {
+        return QModelIndex();
+    }
+}
+
+QPair<const PropertyTableManager*, int> PropertyTableModel::toManagerAndIndex(const QModelIndex& index) const
+{
+    if (checkIndex(index) == false
+        || index.internalId() == ROOT_INTERNAL_ID) {
+
+        return { nullptr, -1 };
+    }
+
+    return { _managers.at(index.internalId()), index.row() };
+}
+
 int PropertyTableModel::rowCountFromManager(int index) const
 {
     if (index < 0 || index >= _managers.size()) {

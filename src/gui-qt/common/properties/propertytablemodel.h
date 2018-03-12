@@ -33,6 +33,9 @@ public:
 
     const QList<PropertyTableManager*>& managers() const { return _managers; }
 
+    QModelIndex toModelIndex(PropertyTableManager* manager, int index) const;
+    QPair<const PropertyTableManager*, int> toManagerAndIndex(const QModelIndex& index) const;
+
     virtual const Property& propertyForIndex(const QModelIndex& index) const final;
     virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const;
 
