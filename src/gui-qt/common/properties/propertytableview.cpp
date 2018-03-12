@@ -105,6 +105,10 @@ void PropertyTableView::setPropertyModel(PropertyTableModel* model)
     QTreeView::setModel(model);
 
     if (model) {
+        connect(_model, &PropertyTableModel::modelReset,
+                this, &PropertyTableView::onSelectionChanged);
+        connect(_model, &PropertyTableModel::layoutChanged,
+                this, &PropertyTableView::onSelectionChanged);
         connect(_model, &PropertyTableModel::rowsMoved,
                 this, &PropertyTableView::onSelectionChanged);
     }
@@ -112,8 +116,6 @@ void PropertyTableView::setPropertyModel(PropertyTableModel* model)
     onSelectionChanged();
 
     if (selectionModel()) {
-        connect(_model, &PropertyTableModel::layoutChanged,
-                this, &PropertyTableView::onSelectionChanged);
         connect(selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, &PropertyTableView::onSelectionChanged);
     }

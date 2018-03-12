@@ -93,6 +93,8 @@ void PropertyListView::setPropertyManager(PropertyListManager* manager)
         _model = new PropertyListModel(_manager);
         QTreeView::setModel(_model);
 
+        connect(_model, &PropertyListModel::modelReset,
+                this, &PropertyListView::onSelectionChanged);
         connect(_model, &PropertyListModel::rowsMoved,
                 this, &PropertyListView::onSelectionChanged);
     }
