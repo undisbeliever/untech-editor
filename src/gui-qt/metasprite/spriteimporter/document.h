@@ -35,7 +35,6 @@ public:
 
     virtual Selection* selection() const final { return _selection; }
     virtual FrameListModel* frameListModel() const final { return _frameListModel; }
-    FrameContentsModel* frameContentsModel() const { return _frameContentsModel; }
 
     virtual const QString& fileFilter() const final;
     virtual const QString& defaultFileExtension() const final;
@@ -60,7 +59,6 @@ private:
 
     Selection* _selection;
     FrameListModel* _frameListModel;
-    FrameContentsModel* _frameContentsModel;
 };
 }
 }

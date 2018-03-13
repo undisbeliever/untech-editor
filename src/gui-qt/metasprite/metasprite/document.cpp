@@ -5,7 +5,6 @@
  */
 
 #include "document.h"
-#include "framecontentsmodel.h"
 #include "framelistmodel.h"
 #include "palettesmodel.h"
 #include "selection.h"
@@ -19,7 +18,6 @@ Document::Document(QObject* parent)
     , _frameSet(std::make_unique<MS::FrameSet>())
     , _selection(new Selection(this))
     , _frameListModel(new FrameListModel(this))
-    , _frameContentsModel(new FrameContentsModel(this))
     , _palettesModel(new PalettesModel(this))
 {
     initModels();
@@ -29,7 +27,6 @@ void Document::initModels()
 {
     _selection->setDocument(this);
     _frameListModel->setDocument(this);
-    _frameContentsModel->setDocument(this);
     _palettesModel->setDocument(this);
 
     AbstractMsDocument::initModels();
