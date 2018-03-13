@@ -8,10 +8,11 @@
 #include "actions.h"
 #include "document.h"
 #include "framecommands.h"
-#include "framecontentsdelegate.h"
-#include "framecontentsmodel.h"
+#include "framecontentmanagers.h"
 #include "framelistmodel.h"
 #include "selection.h"
+#include "gui-qt/common/properties/propertydelegate.h"
+#include "gui-qt/common/properties/propertytablemodel.h"
 #include "gui-qt/metasprite/metasprite/framedock.ui.h"
 
 #include <QMenu>
@@ -23,13 +24,22 @@ FrameDock::FrameDock(Actions* actions, QWidget* parent)
     , _ui(new Ui::FrameDock)
     , _actions(actions)
     , _document(nullptr)
+    , _frameObjectManager(new FrameObjectManager(this))
+    , _actionPointManager(new ActionPointManager(this))
+    , _entityHitboxManager(new EntityHitboxManager(this))
+    , _frameContentsModel(new PropertyTableModel(
+          { _frameObjectManager, _actionPointManager, _entityHitboxManager },
+          { tr("Location"), tr("Param"), QString("Tile"), QString("Flip") },
+          this))
 {
     Q_ASSERT(actions != nullptr);
 
     _ui->setupUi(this);
 
+    _ui->frameContents->setModel(_frameContentsModel);
+    _ui->frameContents->setIndentation(10);
     _ui->frameContents->setContextMenuPolicy(Qt::CustomContextMenu);
-    _ui->frameContents->setItemDelegate(new FrameContentsDelegate(this));
+    _ui->frameContents->setItemDelegate(new PropertyDelegate(this));
     _ui->frameContents->header()->setStretchLastSection(true);
     _ui->frameContents->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
@@ -67,21 +77,20 @@ void FrameDock::setDocument(Document* document)
         return;
     }
 
-    if (auto* m = _ui->frameContents->selectionModel()) {
-        m->deleteLater();
-    }
-
     if (_document != nullptr) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
     }
     _document = document;
 
+    _frameObjectManager->setDocument(_document);
+    _actionPointManager->setDocument(_document);
+    _entityHitboxManager->setDocument(_document);
+
     setEnabled(_document != nullptr);
 
     if (_document) {
         _ui->frameComboBox->setModel(_document->frameListModel());
-        _ui->frameContents->setModel(_document->frameContentsModel());
 
         onSelectedFrameChanged();
 
@@ -98,7 +107,6 @@ void FrameDock::setDocument(Document* document)
     }
     else {
         _ui->frameComboBox->setModel(nullptr);
-        _ui->frameContents->setModel(nullptr);
 
         clearGui();
     }
@@ -208,12 +216,24 @@ void FrameDock::onTileHitboxEdited()
 
 void FrameDock::updateFrameContentsSelection()
 {
-    FrameContentsModel* model = _document->frameContentsModel();
     QItemSelection sel;
 
     for (const auto& item : _document->selection()->selectedItems()) {
-        QModelIndex index = model->toModelIndex(item);
-        sel.select(index, index);
+        PropertyTableManager* manager = nullptr;
+        if (item.type == SelectedItem::FRAME_OBJECT) {
+            manager = _frameObjectManager;
+        }
+        else if (item.type == SelectedItem::ACTION_POINT) {
+            manager = _actionPointManager;
+        }
+        else if (item.type == SelectedItem::ENTITY_HITBOX) {
+            manager = _entityHitboxManager;
+        }
+
+        QModelIndex index = _frameContentsModel->toModelIndex(manager, item.index);
+        if (index.isValid()) {
+            sel.select(index, index);
+        }
     }
 
     _ui->frameContents->selectionModel()->select(
@@ -222,11 +242,24 @@ void FrameDock::updateFrameContentsSelection()
 
 void FrameDock::onFrameContentsSelectionChanged()
 {
-    FrameContentsModel* model = _document->frameContentsModel();
     std::set<SelectedItem> items;
 
     for (const auto& index : _ui->frameContents->selectionModel()->selectedRows()) {
-        items.insert(model->toSelectedItem(index));
+        auto mi = _frameContentsModel->toManagerAndIndex(index);
+
+        if (mi.first && mi.second >= 0) {
+            unsigned i = unsigned(mi.second);
+
+            if (mi.first == _frameObjectManager) {
+                items.insert({ SelectedItem::FRAME_OBJECT, i });
+            }
+            else if (mi.first == _actionPointManager) {
+                items.insert({ SelectedItem::ACTION_POINT, i });
+            }
+            else if (mi.first == _entityHitboxManager) {
+                items.insert({ SelectedItem::ENTITY_HITBOX, i });
+            }
+        }
     }
 
     _document->selection()->setSelectedItems(items);

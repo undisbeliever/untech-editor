@@ -13,6 +13,8 @@
 
 namespace UnTech {
 namespace GuiQt {
+class PropertyTableModel;
+
 namespace MetaSprite {
 namespace MetaSprite {
 namespace Ui {
@@ -20,6 +22,9 @@ class FrameDock;
 }
 class Actions;
 class Document;
+class FrameObjectManager;
+class ActionPointManager;
+class EntityHitboxManager;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -54,6 +59,11 @@ private:
     std::unique_ptr<Ui::FrameDock> _ui;
     Actions* _actions;
     Document* _document;
+
+    FrameObjectManager* _frameObjectManager;
+    ActionPointManager* _actionPointManager;
+    EntityHitboxManager* _entityHitboxManager;
+    PropertyTableModel* _frameContentsModel;
 };
 }
 }

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
+    <width>360</width>
     <height>500</height>
    </rect>
   </property>
@@ -45,14 +45,6 @@
        <bool>true</bool>
       </property>
       <widget class="QWidget" name="scrollAreaWidgetContents">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>298</width>
-         <height>479</height>
-        </rect>
-       </property>
        <layout class="QVBoxLayout" name="scrollAreaLayout">
         <item>
          <widget class="QComboBox" name="frameComboBox"/>
@@ -145,7 +137,7 @@
              </property>
              <property name="minimumSize">
               <size>
-               <width>0</width>
+               <width>330</width>
                <height>100</height>
               </size>
              </property>
