@@ -7,7 +7,9 @@
 #pragma once
 
 #include "selection.h"
+#include "gui-qt/metasprite/framecontentcommands.h"
 #include "models/metasprite/spriteimporter.h"
+
 #include <QUndoCommand>
 
 namespace UnTech {
@@ -15,6 +17,9 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace SpriteImporter {
 class Document;
+
+using RaiseFrameContents = RaiseFrameContents<Document>;
+using LowerFrameContents = LowerFrameContents<Document>;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -89,38 +94,6 @@ CREATE_COMMAND_CLASSES(ActionPoint)
 CREATE_COMMAND_CLASSES(EntityHitbox)
 
 #undef CREATE_COMMAND_CLASSES
-
-class RaiseFrameContents : public QUndoCommand {
-public:
-    RaiseFrameContents(Document*, SI::Frame* frame,
-                       const std::set<SelectedItem>& items);
-    ~RaiseFrameContents() = default;
-
-    virtual void undo() final;
-    virtual void redo() final;
-
-private:
-    Document* _document;
-    SI::Frame* _frame;
-    const std::set<SelectedItem> _undoItems;
-    const std::set<SelectedItem> _redoItems;
-};
-
-class LowerFrameContents : public QUndoCommand {
-public:
-    LowerFrameContents(Document*, SI::Frame* frame,
-                       const std::set<SelectedItem>& items);
-    ~LowerFrameContents() = default;
-
-    virtual void undo() final;
-    virtual void redo() final;
-
-private:
-    Document* _document;
-    SI::Frame* _frame;
-    const std::set<SelectedItem> _undoItems;
-    const std::set<SelectedItem> _redoItems;
-};
 }
 }
 }

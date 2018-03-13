@@ -23,8 +23,6 @@ class AddRemoveActionPoint;
 class AddRemoveEntityHitbox;
 class AddRemoveSmallTile;
 class AddRemoveLargeTile;
-class RaiseFrameContents;
-class LowerFrameContents;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -106,10 +104,7 @@ protected:
     void insertEntityHitbox(MS::Frame* frame, unsigned index, const MS::EntityHitbox&);
     void removeEntityHitbox(MS::Frame* frame, unsigned index);
 
-    friend class RaiseFrameContents;
     void raiseSelectedItems(MS::Frame* frame, const std::set<SelectedItem>&);
-
-    friend class LowerFrameContents;
     void lowerSelectedItems(MS::Frame* frame, const std::set<SelectedItem>&);
 
 private slots:

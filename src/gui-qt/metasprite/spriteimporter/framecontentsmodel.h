@@ -22,8 +22,6 @@ class ChangeEntityHitbox;
 class AddRemoveFrameObject;
 class AddRemoveActionPoint;
 class AddRemoveEntityHitbox;
-class RaiseFrameContents;
-class LowerFrameContents;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -103,10 +101,7 @@ protected:
     void insertEntityHitbox(SI::Frame* frame, unsigned index, const SI::EntityHitbox&);
     void removeEntityHitbox(SI::Frame* frame, unsigned index);
 
-    friend class RaiseFrameContents;
     void raiseSelectedItems(SI::Frame* frame, const std::set<SelectedItem>&);
-
-    friend class LowerFrameContents;
     void lowerSelectedItems(SI::Frame* frame, const std::set<SelectedItem>&);
 
 private slots:

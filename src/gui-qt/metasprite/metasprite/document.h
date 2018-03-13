@@ -25,6 +25,9 @@ class Document : public AbstractMsDocument {
     Q_OBJECT
 
 public:
+    using FrameT = MS::Frame;
+
+public:
     explicit Document(QObject* parent = nullptr);
     ~Document() = default;
 

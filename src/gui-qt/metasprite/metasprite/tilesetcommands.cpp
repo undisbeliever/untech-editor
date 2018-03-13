@@ -6,7 +6,6 @@
 
 #include "tilesetcommands.h"
 #include "document.h"
-#include "framecontentsmodel.h"
 
 #include <QCoreApplication>
 
@@ -115,11 +114,11 @@ CHANGE_TILE(ChangeLargeTile, Tile16px, largeTileset, largeTileChanged)
     void AddRemove##CLS::updateFrameObjects(int offset)                     \
     {                                                                       \
         for (const auto& obj : _frameObjects) {                             \
-            MS::FrameObject newObj = obj.first->objects.at(obj.second);     \
-            newObj.tileId += offset;                                        \
+            MS::Frame* frame = obj.first;                                   \
+            unsigned index = obj.second;                                    \
                                                                             \
-            _document->frameContentsModel()->setFrameObject(                \
-                obj.first, obj.second, newObj);                             \
+            frame->objects.at(index).tileId += offset;                      \
+            emit _document->frameObjectChanged(frame, index);               \
         }                                                                   \
     }
 ADD_REMOVE_TILE_COMMAND(SmallTile, Tile8px, smallTileset, SMALL, smallTilesetChanged);

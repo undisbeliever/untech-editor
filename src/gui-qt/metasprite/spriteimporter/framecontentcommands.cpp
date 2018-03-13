@@ -6,65 +6,74 @@
 
 #include "framecontentcommands.h"
 #include "document.h"
-#include "framecontentsmodel.h"
 
 #include <QCoreApplication>
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-#define CHANGE_COMMAND(CLS, FIELD, TEXT)                                 \
-    Change##CLS::Change##CLS(                                            \
-        Document* document, SI::Frame* frame,                            \
-        unsigned index, const SI::CLS& value, QUndoCommand* parent)      \
-        : QUndoCommand(QCoreApplication::tr(TEXT), parent)               \
+#define CHANGE_COMMAND(CLS, FIELD, SIGNAL, TEXT)                    \
+    Change##CLS::Change##CLS(                                       \
+        Document* document, SI::Frame* frame,                       \
+        unsigned index, const SI::CLS& value, QUndoCommand* parent) \
+        : QUndoCommand(QCoreApplication::tr(TEXT), parent)          \
+        , _document(document)                                       \
+        , _frame(frame)                                             \
+        , _index(index)                                             \
+        , _old(frame->FIELD.at(index))                              \
+        , _new(value)                                               \
+    {                                                               \
+        Q_ASSERT(_old != _new);                                     \
+    }                                                               \
+                                                                    \
+    void Change##CLS::undo()                                        \
+    {                                                               \
+        _frame->FIELD.at(_index) = _old;                            \
+        emit _document->SIGNAL(_frame, _index);                     \
+    }                                                               \
+                                                                    \
+    void Change##CLS::redo()                                        \
+    {                                                               \
+        _frame->FIELD.at(_index) = _new;                            \
+        emit _document->SIGNAL(_frame, _index);                     \
+    }
+CHANGE_COMMAND(FrameObject, objects, frameObjectChanged, "Change Frame Object");
+CHANGE_COMMAND(ActionPoint, actionPoints, actionPointChanged, "Change Action Point");
+CHANGE_COMMAND(EntityHitbox, entityHitboxes, entityHitboxChanged, "Change Entity Hitbox");
+
+#define ADD_REMOVE_COMMAND(CLS, FIELD, SIGNAL)                           \
+    AddRemove##CLS::AddRemove##CLS(Document* document, SI::Frame* frame, \
+                                   unsigned index, const SI::CLS& value, \
+                                   const QString& text)                  \
+        : QUndoCommand(text)                                             \
         , _document(document)                                            \
         , _frame(frame)                                                  \
         , _index(index)                                                  \
-        , _old(frame->FIELD.at(index))                                   \
-        , _new(value)                                                    \
+        , _value(value)                                                  \
     {                                                                    \
-        Q_ASSERT(_old != _new);                                          \
+        Q_ASSERT(_frame != nullptr);                                     \
     }                                                                    \
                                                                          \
-    void Change##CLS::undo()                                             \
+    void AddRemove##CLS::add##CLS()                                      \
     {                                                                    \
-        _document->frameContentsModel()->set##CLS(_frame, _index, _old); \
+        auto it = _frame->FIELD.begin() + _index;                        \
+        _frame->FIELD.insert(it, _value);                                \
+                                                                         \
+        emit _document->SIGNAL##Added(_frame, _index);                   \
+        emit _document->SIGNAL##ListChanged(_frame);                     \
     }                                                                    \
                                                                          \
-    void Change##CLS::redo()                                             \
+    void AddRemove##CLS::remove##CLS()                                   \
     {                                                                    \
-        _document->frameContentsModel()->set##CLS(_frame, _index, _new); \
+        emit _document->SIGNAL##AboutToBeRemoved(_frame, _index);        \
+                                                                         \
+        auto it = _frame->FIELD.begin() + _index;                        \
+        _frame->FIELD.erase(it);                                         \
+                                                                         \
+        emit _document->SIGNAL##ListChanged(_frame);                     \
     }
-
-CHANGE_COMMAND(FrameObject, objects, "Change Frame Object");
-CHANGE_COMMAND(ActionPoint, actionPoints, "Change Action Point");
-CHANGE_COMMAND(EntityHitbox, entityHitboxes, "Change Entity Hitbox");
-
-#define ADD_REMOVE_COMMAND(CLS)                                               \
-    AddRemove##CLS::AddRemove##CLS(Document* document, SI::Frame* frame,      \
-                                   unsigned index, const SI::CLS& value,      \
-                                   const QString& text)                       \
-        : QUndoCommand(text)                                                  \
-        , _document(document)                                                 \
-        , _frame(frame)                                                       \
-        , _index(index)                                                       \
-        , _value(value)                                                       \
-    {                                                                         \
-        Q_ASSERT(_frame != nullptr);                                          \
-    }                                                                         \
-                                                                              \
-    void AddRemove##CLS::add##CLS()                                           \
-    {                                                                         \
-        _document->frameContentsModel()->insert##CLS(_frame, _index, _value); \
-    }                                                                         \
-                                                                              \
-    void AddRemove##CLS::remove##CLS()                                        \
-    {                                                                         \
-        _document->frameContentsModel()->remove##CLS(_frame, _index);         \
-    }
-ADD_REMOVE_COMMAND(FrameObject);
-ADD_REMOVE_COMMAND(ActionPoint);
-ADD_REMOVE_COMMAND(EntityHitbox);
+ADD_REMOVE_COMMAND(FrameObject, objects, frameObject);
+ADD_REMOVE_COMMAND(ActionPoint, actionPoints, actionPoint);
+ADD_REMOVE_COMMAND(EntityHitbox, entityHitboxes, entityHitbox);
 
 #define ADD_COMMAND(CLS, CONTAINER, TEXT)                    \
     Add##CLS::Add##CLS(Document* document, SI::Frame* frame) \
@@ -130,49 +139,3 @@ CLONE_COMMAND(EntityHitbox, entityHitboxes, "Clone Entity Hitbox");
 REMOVE_COMMAND(FrameObject, objects, "Remove Frame Object");
 REMOVE_COMMAND(ActionPoint, actionPoints, "Remove Action Point");
 REMOVE_COMMAND(EntityHitbox, entityHitboxes, "Remove Entity Hitbox");
-
-// RaiseFrameContents
-// ==================
-
-RaiseFrameContents::RaiseFrameContents(Document* document, SI::Frame* frame,
-                                       const std::set<SelectedItem>& items)
-    : QUndoCommand(QCoreApplication::tr("Raise"))
-    , _document(document)
-    , _frame(frame)
-    , _undoItems(moveSelectedItems(items, -1))
-    , _redoItems(items)
-{
-}
-
-void RaiseFrameContents::undo()
-{
-    _document->frameContentsModel()->lowerSelectedItems(_frame, _undoItems);
-}
-
-void RaiseFrameContents::redo()
-{
-    _document->frameContentsModel()->raiseSelectedItems(_frame, _redoItems);
-}
-
-// LowerFrameContents
-// ==================
-
-LowerFrameContents::LowerFrameContents(Document* document, SI::Frame* frame,
-                                       const std::set<SelectedItem>& items)
-    : QUndoCommand(QCoreApplication::tr("Lower"))
-    , _document(document)
-    , _frame(frame)
-    , _undoItems(moveSelectedItems(items, 1))
-    , _redoItems(items)
-{
-}
-
-void LowerFrameContents::undo()
-{
-    _document->frameContentsModel()->raiseSelectedItems(_frame, _undoItems);
-}
-
-void LowerFrameContents::redo()
-{
-    _document->frameContentsModel()->lowerSelectedItems(_frame, _redoItems);
-}
