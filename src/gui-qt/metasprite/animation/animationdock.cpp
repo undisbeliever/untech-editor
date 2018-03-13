@@ -24,6 +24,7 @@ AnimationDock::AnimationDock(QWidget* parent)
     , _actions(new AnimationActions(this))
     , _document(nullptr)
     , _nextAnimationCompleter(new QCompleter(this))
+    , _animationFramesManager(new AnimationFramesManager(this))
 {
     _ui->setupUi(this);
 
@@ -50,6 +51,8 @@ AnimationDock::AnimationDock(QWidget* parent)
 
     _ui->animationList->setContextMenuPolicy(Qt::CustomContextMenu);
 
+    _ui->animationFrames->setPropertyManager(_animationFramesManager);
+
     clearGui();
     setEnabled(false);
 
@@ -75,9 +78,6 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
     if (auto* m = _ui->animationList->selectionModel()) {
         m->deleteLater();
     }
-    if (auto* m = _ui->animationFrames->selectionModel()) {
-        m->deleteLater();
-    }
 
     if (_document != nullptr) {
         _document->disconnect(this);
@@ -86,13 +86,13 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
     _document = document;
 
     _actions->setDocument(document);
+    _animationFramesManager->setDocument(document);
 
     setEnabled(_document != nullptr);
 
     if (_document) {
         _nextAnimationCompleter->setModel(_document->animationListModel());
         _ui->animationList->setModel(_document->animationListModel());
-        _ui->animationFrames->setPropertyManager(_document->animationFramesManager());
 
         _ui->animationFrames->setColumnWidth(0, _ui->animationFrames->width() / 3);
         _ui->animationFrames->setColumnWidth(1, 45);

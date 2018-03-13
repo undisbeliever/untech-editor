@@ -45,7 +45,6 @@ public:
     virtual AbstractIdmapListModel* frameListModel() const = 0;
 
     auto* animationListModel() const { return _animationListModel; }
-    auto* animationFramesManager() const { return _animationFramesManager; }
 
 signals:
     void frameSetDataChanged();
@@ -90,7 +89,6 @@ signals:
 
 private:
     Animation::AnimationListModel* _animationListModel;
-    Animation::AnimationFramesManager* _animationFramesManager;
 };
 }
 }

@@ -13,12 +13,10 @@ using namespace UnTech::GuiQt::MetaSprite;
 AbstractMsDocument::AbstractMsDocument(QObject* parent)
     : AbstractDocument(parent)
     , _animationListModel(new Animation::AnimationListModel(this))
-    , _animationFramesManager(new Animation::AnimationFramesManager(this))
 {
 }
 
 void AbstractMsDocument::initModels()
 {
     _animationListModel->setDocument(this);
-    _animationFramesManager->setDocument(this);
 }
