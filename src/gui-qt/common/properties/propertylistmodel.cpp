@@ -121,7 +121,7 @@ void PropertyListModel::updateCacheIfDirty(int index) const
 
             _dataCache.replace(index, std::move(data));
             _listSizeCache.replace(index, listSize);
-            _displayCache.replace(index, displayForProperty(createIndex(index, 0, ROOT_INTERNAL_ID), data));
+            _displayCache.replace(index, displayForProperty(createIndex(index, VALUE_COLUMN, ROOT_INTERNAL_ID), data));
         }
         else {
             _dataCache.replace(index, QVariant());
