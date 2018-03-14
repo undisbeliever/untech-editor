@@ -107,7 +107,7 @@ void PropertyListModel::updateCacheIfDirty(int index) const
         const auto& settings = _manager->propertiesList().at(index);
 
         if (settings.id >= 0) {
-            const QVariant data = _manager->data(index);
+            const QVariant data = _manager->data(settings.id);
             int listSize = 0;
 
             if (settings.isList) {
