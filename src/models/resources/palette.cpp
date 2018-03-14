@@ -167,7 +167,7 @@ Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth, Err
     }
 
     std::vector<Snes::SnesColor> palette(nRows * nColumns, SnesColor::invalidColor());
-    assert(palette.size() < maxColors);
+    assert(palette.size() <= maxColors);
 
     auto pIt = palette.begin();
 
