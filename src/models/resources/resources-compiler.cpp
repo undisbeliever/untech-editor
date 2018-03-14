@@ -73,7 +73,7 @@ compileResources(const ResourcesFile& input, const std::string& relativeBinFilen
         }
     };
 
-    RomDataWriter writer(input.blockSize, input.blockCount,
+    RomDataWriter writer(input.blockSettings.size, input.blockSettings.count,
                          "__resc__", "RES_Lists", "RES_Block",
                          FORMAT_VERSIONS, TYPE_NAMES);
 

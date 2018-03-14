@@ -68,8 +68,8 @@ static std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml, const Xm
 
     auto resources = std::make_unique<ResourcesFile>();
 
-    resources->blockSize = tag->getAttributeUnsigned("block-size");
-    resources->blockCount = tag->getAttributeUnsigned("block-count");
+    resources->blockSettings.size = tag->getAttributeUnsigned("block-size");
+    resources->blockSettings.count = tag->getAttributeUnsigned("block-count");
 
     while (auto childTag = xml.parseTag()) {
         if (childTag->name == "palette") {
@@ -122,8 +122,8 @@ void writeResourcesFile(XmlWriter& xml, const ResourcesFile& res)
 {
     xml.writeTag("resources");
 
-    xml.writeTagAttribute("block-size", res.blockSize);
-    xml.writeTagAttribute("block-count", res.blockCount);
+    xml.writeTagAttribute("block-size", res.blockSettings.size);
+    xml.writeTagAttribute("block-count", res.blockSettings.count);
 
     MetaTiles::writeEngineSettings(xml, res.metaTileEngineSettings);
 

@@ -17,12 +17,22 @@
 namespace UnTech {
 namespace Resources {
 
+struct BlockSettings {
+    unsigned size;
+    unsigned count;
+
+    bool operator==(const BlockSettings& o) const
+    {
+        return size == o.size
+               && count == o.count;
+    }
+    bool operator!=(const BlockSettings& o) const { return !(*this == o); }
+};
+
 struct ResourcesFile {
     const static std::string FILE_EXTENSION;
 
-    unsigned blockSize;
-    unsigned blockCount;
-
+    BlockSettings blockSettings;
     MetaTiles::EngineSettings metaTileEngineSettings;
 
     std::vector<std::shared_ptr<PaletteInput>> palettes;
@@ -36,8 +46,7 @@ struct ResourcesFile {
 
     bool operator==(const ResourcesFile& o) const
     {
-        return blockSize == o.blockSize
-               && blockCount == o.blockCount
+        return blockSettings == o.blockSettings
                && metaTileEngineSettings == o.metaTileEngineSettings
                && palettes == o.palettes
                && metaTileTilesetFilenames == o.metaTileTilesetFilenames;

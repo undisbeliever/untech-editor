@@ -55,8 +55,8 @@ bool ResourcesFile::validate(ErrorList& err) const
         }
     };
 
-    validateMinMax(blockSize, 1024, 64 * 1024, "block size invalid");
-    validateMinMax(blockCount, 1, 128, "block count invalid");
+    validateMinMax(blockSettings.size, 1024, 64 * 1024, "block size invalid");
+    validateMinMax(blockSettings.count, 1, 128, "block count invalid");
 
     valid &= validateNamesUnique(palettes, "palettes", err);
 
