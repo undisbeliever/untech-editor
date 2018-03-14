@@ -214,6 +214,11 @@ QPair<QVariant, QVariant> PropertyTableModel::propertyParametersForIndex(const Q
     return param;
 }
 
+bool PropertyTableModel::isListItem(const QModelIndex&) const
+{
+    return false;
+}
+
 PropertyTableManager* PropertyTableModel::managerForParent(const QModelIndex& parent) const
 {
     if (!parent.isValid()) {

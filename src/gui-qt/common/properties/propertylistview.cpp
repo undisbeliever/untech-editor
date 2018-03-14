@@ -157,7 +157,7 @@ void PropertyListView::onSelectionChanged()
     if (_manager && _model && index.isValid()) {
         auto& property = _model->propertyForIndex(index);
 
-        bool isListItem = property.isList && index.parent().isValid();
+        bool isListItem = property.isList && _model->isListItem(index);
         bool canRaise = isListItem && index.sibling(index.row() - 1, 0).isValid();
         bool canLower = isListItem && index.sibling(index.row() + 1, 0).isValid();
 

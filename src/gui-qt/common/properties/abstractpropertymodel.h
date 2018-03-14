@@ -18,8 +18,6 @@ class AbstractPropertyModel : public QAbstractItemModel {
 public:
     static const Property blankProperty;
 
-    static constexpr quintptr ROOT_INTERNAL_ID = UINT_MAX;
-
 public:
     AbstractPropertyModel(QObject* parent)
         : QAbstractItemModel(parent)
@@ -30,6 +28,8 @@ public:
     virtual const Property& propertyForIndex(const QModelIndex& index) const = 0;
 
     virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const = 0;
+
+    virtual bool isListItem(const QModelIndex& index) const = 0;
 
 protected:
     QString displayForProperty(const QModelIndex& index, const QVariant& value) const;

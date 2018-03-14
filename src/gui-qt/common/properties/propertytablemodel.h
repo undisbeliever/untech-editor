@@ -19,6 +19,8 @@ class PropertyModelCache;
 class PropertyTableModel : public AbstractPropertyModel {
     Q_OBJECT
 
+    static constexpr quintptr ROOT_INTERNAL_ID = UINT_MAX;
+
 public:
     static const Property blankProperty;
 
@@ -38,6 +40,7 @@ public:
 
     virtual const Property& propertyForIndex(const QModelIndex& index) const final;
     virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const;
+    virtual bool isListItem(const QModelIndex& index) const final;
 
     virtual QModelIndex index(int row, int column, const QModelIndex& parent) const final;
     virtual QModelIndex parent(const QModelIndex& index) const final;

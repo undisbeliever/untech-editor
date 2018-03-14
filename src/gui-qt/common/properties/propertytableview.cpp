@@ -170,7 +170,7 @@ void PropertyTableView::onSelectionChanged()
 {
     QModelIndex index = currentIndex();
     if (_model) {
-        bool isListItem = index.isValid() && index.internalId() != PropertyTableModel::ROOT_INTERNAL_ID;
+        bool isListItem = index.isValid() && _model->hasChildren(index) == false;
         bool canInsert = _model->canInsert(index.parent());
         bool canClone = isListItem && _model->canClone(index.row(), index.parent());
         bool canMove = isListItem && _model->canMoveItems(index.parent());

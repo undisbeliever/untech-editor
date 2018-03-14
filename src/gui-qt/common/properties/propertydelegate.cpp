@@ -87,6 +87,7 @@ QSize PropertyDelegate::sizeHint(const QStyleOptionViewItem& option, const QMode
 void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
                              const QModelIndex& index) const
 {
+    const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
     const auto& property = propertyForIndex(index);
 
     drawBackground(painter, option, index);
@@ -96,8 +97,8 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
     if (property.id < 0) {
         drawDisplay(painter, option, option.rect, value.toString());
     }
-    else if (property.isList && index.internalId() == AbstractPropertyModel::ROOT_INTERNAL_ID) {
-        // middle node of a list type
+    else if (property.isList && model && !model->isListItem(index)) {
+        // container node of a list type
         QStyleOptionViewItem opt = option;
         opt.font.setItalic(true);
         drawDisplay(painter, opt, option.rect, value.toString());
@@ -161,18 +162,15 @@ bool PropertyDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
 
 QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
 {
+    const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
     const auto& property = propertyForIndex(index);
 
     if (property.id < 0) {
         return nullptr;
     }
 
-    if (property.isList && index.internalId() == AbstractPropertyModel::ROOT_INTERNAL_ID) {
-        // root node of a list type
-
-        const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
-        Q_ASSERT(model);
-
+    if (property.isList && model && !model->isListItem(index)) {
+        // container node of a list type
         ListItemWidget* li = new ListItemWidget(model, index, parent);
         li->setAutoFillBackground(true);
 
@@ -294,8 +292,8 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
 
     const QVariant data = index.data(Qt::EditRole);
 
-    if (property.isList && index.internalId() == AbstractPropertyModel::ROOT_INTERNAL_ID) {
-        // root node of a list type
+    if (property.isList && model && !model->isListItem(index)) {
+        // container node of a list type
         ListItemWidget* li = qobject_cast<ListItemWidget*>(editor);
         li->setStringList(data.toStringList());
         return;
@@ -415,10 +413,11 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
 
 void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
+    const auto* pmodel = qobject_cast<const AbstractPropertyModel*>(index.model());
     const auto& property = propertyForIndex(index);
 
-    if (property.isList && index.internalId() == AbstractPropertyModel::ROOT_INTERNAL_ID) {
-        // root node of a list type
+    if (property.isList && pmodel && !pmodel->isListItem(index)) {
+        // container node of a list type
         ListItemWidget* li = qobject_cast<ListItemWidget*>(editor);
         model->setData(index, li->stringList(), Qt::EditRole);
 

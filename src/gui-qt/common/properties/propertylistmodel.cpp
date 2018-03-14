@@ -28,6 +28,11 @@ PropertyListModel::PropertyListModel(PropertyListManager* manager)
             this, &PropertyListModel::updateAll);
 }
 
+bool PropertyListModel::isListItem(const QModelIndex& index) const
+{
+    return index.isValid() && index.internalId() != ROOT_INTERNAL_ID;
+}
+
 const Property& PropertyListModel::propertyForIndex(const QModelIndex& index) const
 {
     if (index.isValid() == false
