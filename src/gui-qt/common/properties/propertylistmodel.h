@@ -41,6 +41,7 @@ public:
 
     PropertyListManager* manager() const { return _manager; }
 
+    const Property& propertyForIndexIgnoreColumn(const QModelIndex& index) const;
     virtual const Property& propertyForIndex(const QModelIndex& index) const final;
     virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const final;
     virtual bool isListItem(const QModelIndex& index) const final;

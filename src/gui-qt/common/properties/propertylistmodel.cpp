@@ -33,11 +33,10 @@ bool PropertyListModel::isListItem(const QModelIndex& index) const
     return index.isValid() && (index.internalId() & LIST_ITEM_FLAG);
 }
 
-const Property& PropertyListModel::propertyForIndex(const QModelIndex& index) const
+const Property& PropertyListModel::propertyForIndexIgnoreColumn(const QModelIndex& index) const
 {
     if (index.isValid() == false
-        || index.model() != this
-        || index.column() != VALUE_COLUMN) {
+        || index.model() != this) {
 
         return blankProperty;
     }
@@ -50,6 +49,16 @@ const Property& PropertyListModel::propertyForIndex(const QModelIndex& index) co
     }
     else {
         return blankProperty;
+    }
+}
+
+const Property& PropertyListModel::propertyForIndex(const QModelIndex& index) const
+{
+    if (index.column() != VALUE_COLUMN) {
+        return blankProperty;
+    }
+    else {
+        return propertyForIndexIgnoreColumn(index);
     }
 }
 

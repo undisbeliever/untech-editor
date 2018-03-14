@@ -155,7 +155,7 @@ void PropertyListView::onSelectionChanged()
 {
     QModelIndex index = currentIndex();
     if (_manager && _model && index.isValid()) {
-        auto& property = _model->propertyForIndex(index);
+        auto& property = _model->propertyForIndexIgnoreColumn(index);
 
         bool isListItem = property.isList && _model->isListItem(index);
         bool canRaise = isListItem && index.sibling(index.row() - 1, 0).isValid();
@@ -196,7 +196,7 @@ void PropertyListView::onInsertActionTriggered()
         }
 
         bool ok = false;
-        auto& property = _model->propertyForIndex(parent);
+        auto& property = _model->propertyForIndexIgnoreColumn(parent);
         if (property.type == Type::FILENAME_LIST) {
             const QStringList filenames = showAddFilenameDialog(property);
             ok = _model->insertRows(row, parent, filenames);
