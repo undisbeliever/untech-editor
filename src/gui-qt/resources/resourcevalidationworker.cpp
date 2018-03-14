@@ -27,6 +27,9 @@ ResourceValidationWorker::ResourceValidationWorker(Document* document)
             this, &ResourceValidationWorker::onResourceItemCreated);
     connect(_document, &Document::resourceItemAboutToBeRemoved,
             this, &ResourceValidationWorker::onResourceItemAboutToBeRemoved);
+
+    connect(_document, &Document::resourceFileSettingsChanged,
+            this, &ResourceValidationWorker::validateAllResources);
 }
 
 void ResourceValidationWorker::onResourceItemCreated(AbstractResourceItem* item)

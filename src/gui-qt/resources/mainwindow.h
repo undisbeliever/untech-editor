@@ -22,6 +22,7 @@ class MainWindow;
 class Document;
 class AbstractResourceItem;
 class AbstractResourceWidget;
+class ResourceFilePropertiesWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -67,6 +68,7 @@ private:
     ZoomSettings* _zoomSettings;
     QUndoGroup* _undoGroup;
     QVector<AbstractResourceWidget*> _resourceWidgets;
+    ResourceFilePropertiesWidget* _resourceFilePropertiesWidget;
 };
 }
 }

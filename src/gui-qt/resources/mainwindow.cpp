@@ -18,6 +18,7 @@
 #include "mttileset/mttilesetpropertymanager.h"
 #include "palette/palettecentralwidget.h"
 #include "palette/palettepropertymanager.h"
+#include "resourcefile/resourcefilepropertieswidget.h"
 
 #include <QComboBox>
 #include <QFileDialog>
@@ -72,6 +73,12 @@ MainWindow::MainWindow(QWidget* parent)
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
+    _resourceFilePropertiesWidget = new ResourceFilePropertiesWidget(this);
+
+    _ui->centralStackedWidget->addWidget(new QLabel("Blank GUI", this));
+    _ui->propertiesStackedWidget->addWidget(_resourceFilePropertiesWidget);
+
+
     // ::NOTE Order MUST match ResourceTypeIndex::
 
     auto addWidgets = [this](AbstractResourceWidget* centralWidget, AbstractResourceWidget* propertiesWidget) {
@@ -80,9 +87,6 @@ MainWindow::MainWindow(QWidget* parent)
         _resourceWidgets.append(propertiesWidget);
         _ui->propertiesStackedWidget->addWidget(propertiesWidget);
     };
-
-    _ui->centralStackedWidget->addWidget(new QLabel("Blank GUI", this));
-    _ui->propertiesStackedWidget->addWidget(new QLabel("Blank Properties", this));
 
     addWidgets(new PaletteCentralWidget(this),
                new GenericPropertiesWidget(new PalettePropertyManager(this), this));
@@ -135,6 +139,8 @@ void MainWindow::setDocument(std::unique_ptr<Document>&& document)
 
     _ui->resourcesTreeDock->setDocument(_document.get());
     _ui->errorListDock->setDocument(_document.get());
+
+    _resourceFilePropertiesWidget->setDocument(_document.get());
 
     // Close the errors dock as it is now empty
     _ui->errorListDock->close();

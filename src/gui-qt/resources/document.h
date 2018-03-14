@@ -59,6 +59,8 @@ private slots:
     void onSelectedResourceDestroyed(QObject* obj);
 
 signals:
+    void resourceFileSettingsChanged();
+
     void selectedResourceChanged();
     void resourceItemCreated(AbstractResourceItem*);
     void resourceItemAboutToBeRemoved(AbstractResourceItem*);
