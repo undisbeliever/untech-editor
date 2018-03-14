@@ -30,7 +30,7 @@ PropertyListModel::PropertyListModel(PropertyListManager* manager)
 
 bool PropertyListModel::isListItem(const QModelIndex& index) const
 {
-    return index.isValid() && index.internalId() != ROOT_INTERNAL_ID;
+    return index.isValid() && (index.internalId() & LIST_ITEM_FLAG);
 }
 
 const Property& PropertyListModel::propertyForIndex(const QModelIndex& index) const
@@ -43,20 +43,14 @@ const Property& PropertyListModel::propertyForIndex(const QModelIndex& index) co
     }
 
     const auto& pl = _manager->propertiesList();
-    if (index.internalId() == PropertyListModel::ROOT_INTERNAL_ID) {
-        if (index.row() < pl.size()) {
-            return pl.at(index.row());
-        }
+    const int pIndex = index.internalId() & PINDEX_MASK;
+
+    if (pIndex >= 0 && pIndex < pl.size()) {
+        return pl.at(pIndex);
     }
     else {
-        if (index.internalId() < (unsigned)pl.size()
-            && pl.at(index.internalId()).isList) {
-
-            return pl.at(index.internalId());
-        }
+        return blankProperty;
     }
-
-    return blankProperty;
 }
 
 QPair<QVariant, QVariant> PropertyListModel::propertyParametersForIndex(const QModelIndex& index) const
@@ -93,8 +87,9 @@ void PropertyListModel::invalidateCache()
 
 void PropertyListModel::updateAll()
 {
-    emit dataChanged(createIndex(0, VALUE_COLUMN, ROOT_INTERNAL_ID),
-                     createIndex(_manager->propertiesList().size() - 1, VALUE_COLUMN, ROOT_INTERNAL_ID),
+    int lastRow = _manager->propertiesList().size() - 1;
+    emit dataChanged(createIndex(0, VALUE_COLUMN, int(0)),
+                     createIndex(lastRow, VALUE_COLUMN, lastRow),
                      { Qt::DisplayRole, Qt::EditRole });
     emit layoutChanged();
 }
@@ -102,6 +97,8 @@ void PropertyListModel::updateAll()
 void PropertyListModel::updateCacheIfDirty(int index) const
 {
     Q_ASSERT(index >= 0);
+    index &= PINDEX_MASK;
+
     Q_ASSERT(index < _manager->propertiesList().size());
     Q_ASSUME(index < _cacheDirty.size());
     Q_ASSUME(index < _dataCache.size());
@@ -126,7 +123,7 @@ void PropertyListModel::updateCacheIfDirty(int index) const
 
             _dataCache.replace(index, std::move(data));
             _listSizeCache.replace(index, listSize);
-            _displayCache.replace(index, displayForProperty(createIndex(index, VALUE_COLUMN, ROOT_INTERNAL_ID), data));
+            _displayCache.replace(index, displayForProperty(createIndex(index, VALUE_COLUMN, index), data));
         }
         else {
             _dataCache.replace(index, QVariant());
@@ -138,7 +135,9 @@ void PropertyListModel::updateCacheIfDirty(int index) const
 const QString& PropertyListModel::displayFromCache(int index) const
 {
     Q_ASSERT(index >= 0);
-    Q_ASSUME(index < _displayCache.size());
+
+    index &= PINDEX_MASK;
+    Q_ASSERT(index < _displayCache.size());
 
     updateCacheIfDirty(index);
     return _displayCache.at(index);
@@ -147,7 +146,9 @@ const QString& PropertyListModel::displayFromCache(int index) const
 const QVariant& PropertyListModel::dataFromCache(int index) const
 {
     Q_ASSERT(index >= 0);
-    Q_ASSUME(index < _dataCache.size());
+
+    index &= PINDEX_MASK;
+    Q_ASSERT(index < _dataCache.size());
 
     updateCacheIfDirty(index);
     return _dataCache.at(index);
@@ -156,7 +157,9 @@ const QVariant& PropertyListModel::dataFromCache(int index) const
 int PropertyListModel::propertyListSize(int index) const
 {
     Q_ASSERT(index >= 0);
-    Q_ASSUME(index < _listSizeCache.size());
+
+    index &= PINDEX_MASK;
+    Q_ASSERT(index < _listSizeCache.size());
 
     updateCacheIfDirty(index);
     return _listSizeCache.at(index);
@@ -164,27 +167,25 @@ int PropertyListModel::propertyListSize(int index) const
 
 bool PropertyListModel::checkIndex(const QModelIndex& index) const
 {
-    const auto& pl = _manager->propertiesList();
-
     Q_ASSUME(_manager->propertiesList().size() >= 0);
+
+    const auto& pl = _manager->propertiesList();
+    const int pIndex = index.internalId() & PINDEX_MASK;
 
     if (pl.isEmpty()
         || index.isValid() == false
         || index.model() != this
+        || pIndex < 0 || pIndex >= pl.size()
         || index.column() >= N_COLUMNS) {
 
         return false;
     }
 
-    if (index.internalId() == ROOT_INTERNAL_ID) {
-        return index.row() < pl.size();
+    if ((index.internalId() & LIST_ITEM_FLAG) == false) {
+        return index.row() == pIndex;
     }
     else {
-        if (index.internalId() >= (unsigned)pl.size()
-            || pl.at(index.internalId()).isList == false) {
-            return false;
-        }
-        return index.row() < propertyListSize(index.internalId());
+        return index.row() < propertyListSize(pIndex);
     }
 }
 
@@ -198,12 +199,13 @@ QModelIndex PropertyListModel::index(int row, int column, const QModelIndex& par
 
     if (!parent.isValid()) {
         if (row < _manager->propertiesList().size()) {
-            return createIndex(row, column, ROOT_INTERNAL_ID);
+            return createIndex(row, column, row);
         }
     }
-    else if (parent.internalId() == ROOT_INTERNAL_ID) {
-        if (row < propertyListSize(parent.row())) {
-            return createIndex(row, column, parent.row());
+    else if ((parent.internalId() & LIST_ITEM_FLAG) == false) {
+        const int pIndex = parent.internalId();
+        if (row < propertyListSize(pIndex)) {
+            return createIndex(row, column, pIndex | LIST_ITEM_FLAG);
         }
     }
 
@@ -212,33 +214,30 @@ QModelIndex PropertyListModel::index(int row, int column, const QModelIndex& par
 
 QModelIndex PropertyListModel::parent(const QModelIndex& index) const
 {
-    Q_ASSUME(_manager->propertiesList().size() >= 0);
+    if (index.isValid()
+        && (index.internalId() & LIST_ITEM_FLAG)) {
 
-    if (index.internalId() == ROOT_INTERNAL_ID) {
+        const auto& pl = _manager->propertiesList();
+        const int pIndex = index.internalId() & PINDEX_MASK;
 
-        return QModelIndex();
+        if (pIndex < pl.size()) {
+            return createIndex(pIndex, 0, pIndex);
+        }
     }
-    else if (index.internalId() < (unsigned)_manager->propertiesList().size()) {
-        return createIndex(index.internalId(), 0, ROOT_INTERNAL_ID);
-    }
-    else {
-        return QModelIndex();
-    }
+
+    return QModelIndex();
 }
 
 bool PropertyListModel::hasChildren(const QModelIndex& parent) const
 {
-    if (_manager->propertiesList().isEmpty()) {
-        return false;
-    }
-
     if (!parent.isValid()) {
         return true;
     }
-    else if (parent.internalId() == ROOT_INTERNAL_ID
-             && parent.row() < _manager->propertiesList().size()
-             && _manager->propertiesList().at(parent.row()).isList) {
-        return true;
+    else if ((parent.internalId() & LIST_ITEM_FLAG) == false) {
+        const auto& pl = _manager->propertiesList();
+        const int pIndex = parent.internalId() & PINDEX_MASK;
+
+        return pIndex < pl.size() && pl.at(pIndex).isList;
     }
     else {
         return false;
@@ -247,18 +246,15 @@ bool PropertyListModel::hasChildren(const QModelIndex& parent) const
 
 int PropertyListModel::rowCount(const QModelIndex& parent) const
 {
-    if (_manager->propertiesList().isEmpty()) {
-        return 0;
-    }
+    const auto& pl = _manager->propertiesList();
+    const int pIndex = parent.internalId() & PINDEX_MASK;
 
     if (!parent.isValid()) {
-        return _manager->propertiesList().size();
+        return pl.size();
     }
-    else if (parent.internalId() == ROOT_INTERNAL_ID
-             && parent.row() >= 0
-             && parent.row() < _manager->propertiesList().size()
-             && _manager->propertiesList().at(parent.row()).isList) {
-        return propertyListSize(parent.row());
+    else if ((parent.internalId() & LIST_ITEM_FLAG) == false
+             && pIndex < pl.size()) {
+        return propertyListSize(pIndex);
     }
     else {
         return 0;
@@ -271,7 +267,10 @@ int PropertyListModel::columnCount(const QModelIndex& parent) const
         return 0;
     }
 
-    if (!parent.isValid() || parent.internalId() == ROOT_INTERNAL_ID) {
+    if (!parent.isValid()) {
+        return N_COLUMNS;
+    }
+    else if ((parent.internalId() & LIST_ITEM_FLAG) == false) {
         return N_COLUMNS;
     }
     else {
@@ -281,8 +280,6 @@ int PropertyListModel::columnCount(const QModelIndex& parent) const
 
 Qt::ItemFlags PropertyListModel::flags(const QModelIndex& index) const
 {
-    const auto& pl = _manager->propertiesList();
-
     if (checkIndex(index) == false
         || _manager->isEnabled() == false) {
 
@@ -291,10 +288,13 @@ Qt::ItemFlags PropertyListModel::flags(const QModelIndex& index) const
 
     static_assert(N_COLUMNS == 2, "Invalid flags N_COLUMNS");
 
+    const auto& pl = _manager->propertiesList();
+    const int pIndex = index.internalId() & PINDEX_MASK;
+
     QFlags<Qt::ItemFlag> flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 
-    if (index.internalId() == ROOT_INTERNAL_ID) {
-        const auto& settings = pl.at(index.row());
+    if ((index.internalId() & LIST_ITEM_FLAG) == false) {
+        const auto& settings = pl.at(pIndex);
 
         if (settings.isList == false) {
             flags |= Qt::ItemNeverHasChildren;
@@ -339,8 +339,6 @@ QVariant PropertyListModel::headerData(int section, Qt::Orientation orientation,
 
 QVariant PropertyListModel::data(const QModelIndex& index, int role) const
 {
-    const auto& pl = _manager->propertiesList();
-
     if (checkIndex(index) == false) {
         return QVariant();
     }
@@ -351,30 +349,42 @@ QVariant PropertyListModel::data(const QModelIndex& index, int role) const
         return QVariant();
     }
 
+    const int pIndex = index.internalId() & PINDEX_MASK;
+    const auto& settings = _manager->propertiesList().at(pIndex);
+
     static_assert(N_COLUMNS == 2, "Invalid data N_COLUMNS");
+
     if (role == Qt::DisplayRole) {
-        if (index.column() == PROPERTY_COLUMN) {
-            if (index.internalId() == ROOT_INTERNAL_ID) {
-                return pl.at(index.row()).title;
+        if ((index.internalId() & LIST_ITEM_FLAG) == false) {
+            if (index.column() == PROPERTY_COLUMN) {
+                return settings.title;
+            }
+            else {
+                return displayFromCache(pIndex);
             }
         }
         else {
-            // Value column
-            if (index.internalId() == ROOT_INTERNAL_ID) {
-                return displayFromCache(index.row());
-            }
-            else {
-                QVariantList vl = dataFromCache(index.internalId()).toList();
+            if (index.column() == VALUE_COLUMN) {
+                // List Item
+                Q_ASSERT(settings.isList);
+
+                QVariantList vl = dataFromCache(pIndex).toList();
                 return vl.at(index.row());
             }
         }
     }
-    else if (role == Qt::EditRole && index.column() == VALUE_COLUMN) {
-        if (index.internalId() == ROOT_INTERNAL_ID) {
-            return dataFromCache(index.row());
+    else if (role == Qt::EditRole
+             && settings.id >= 0
+             && index.column() == VALUE_COLUMN) {
+
+        if ((index.internalId() & LIST_ITEM_FLAG) == false) {
+            return dataFromCache(pIndex);
         }
         else {
-            QVariantList vl = dataFromCache(index.internalId()).toList();
+            // List Item
+            Q_ASSERT(settings.isList);
+
+            QVariantList vl = dataFromCache(pIndex).toList();
             return vl.at(index.row());
         }
     }
@@ -391,21 +401,19 @@ bool PropertyListModel::setData(const QModelIndex& index, const QVariant& value,
         return false;
     }
 
-    if (index.internalId() == ROOT_INTERNAL_ID) {
-        const auto& settings = _manager->propertiesList().at(index.row());
+    const int pIndex = index.internalId() & PINDEX_MASK;
+    const auto& settings = _manager->propertiesList().at(pIndex);
 
-        if (settings.id < 0) {
-            return false;
-        }
+    if (settings.id < 0) {
+        return false;
+    }
+    else if ((index.internalId() & LIST_ITEM_FLAG) == false) {
         return _manager->setData(settings.id, value);
     }
     else {
-        const auto& settings = _manager->propertiesList().at(index.internalId());
-        const QVariant& data = dataFromCache(index.internalId());
+        Q_ASSERT(settings.isList);
 
-        if (settings.id < 0) {
-            return false;
-        }
+        const QVariant& data = dataFromCache(pIndex);
 
         if (data.type() == QVariant::StringList) {
             QStringList sl = data.toStringList();
@@ -427,13 +435,15 @@ bool PropertyListModel::setData(const QModelIndex& index, const QVariant& value,
 bool PropertyListModel::insertRows(int row, const QModelIndex& parent, const QStringList& values)
 {
     if (row < 0
-        || parent.internalId() != ROOT_INTERNAL_ID
+        || (parent.internalId() & LIST_ITEM_FLAG)
         || checkIndex(parent) == false) {
 
         return false;
     }
 
-    const auto& settings = _manager->propertiesList().at(parent.row());
+    const int pIndex = parent.internalId() & PINDEX_MASK;
+    const auto& settings = _manager->propertiesList().at(pIndex);
+
     if (settings.isList == false) {
         return false;
     }
@@ -460,13 +470,15 @@ bool PropertyListModel::insertRows(int row, int count, const QModelIndex& parent
 {
     if (row < 0
         || count <= 0
-        || parent.internalId() != ROOT_INTERNAL_ID
+        || (parent.internalId() & LIST_ITEM_FLAG)
         || checkIndex(parent) == false) {
 
         return false;
     }
 
-    const auto& settings = _manager->propertiesList().at(parent.row());
+    const int pIndex = parent.internalId() & PINDEX_MASK;
+    const auto& settings = _manager->propertiesList().at(pIndex);
+
     if (settings.isList == false) {
         return false;
     }
@@ -502,13 +514,15 @@ bool PropertyListModel::removeRows(int row, int count, const QModelIndex& parent
 {
     if (row < 0
         || count <= 0
-        || parent.internalId() != ROOT_INTERNAL_ID
+        || (parent.internalId() & LIST_ITEM_FLAG)
         || checkIndex(parent) == false) {
 
         return false;
     }
 
-    const auto& settings = _manager->propertiesList().at(parent.row());
+    const int pIndex = parent.internalId() & PINDEX_MASK;
+    const auto& settings = _manager->propertiesList().at(pIndex);
+
     if (settings.isList == false) {
         return false;
     }
@@ -548,13 +562,15 @@ bool PropertyListModel::moveRows(const QModelIndex& sourceParent, int sourceRow,
         || sourceRow == destRow
         || sourceRow == destRow - 1
         || sourceParent != destParent
-        || sourceParent.internalId() != ROOT_INTERNAL_ID
+        || (sourceParent.internalId() & LIST_ITEM_FLAG)
         || checkIndex(sourceParent) == false) {
 
         return false;
     }
 
-    const auto& settings = _manager->propertiesList().at(sourceParent.row());
+    const int pIndex = sourceParent.internalId() & PINDEX_MASK;
+    const auto& settings = _manager->propertiesList().at(pIndex);
+
     if (settings.isList == false) {
         return false;
     }
@@ -637,13 +653,15 @@ QDataStream& operator>>(QDataStream& stream, PropertyListModel::InternalMimeData
 QMimeData* PropertyListModel::mimeData(const QModelIndexList& indexes) const
 {
     if (indexes.count() != 1
-        || indexes.front().internalId() == ROOT_INTERNAL_ID
+        || (indexes.front().internalId() & LIST_ITEM_FLAG) == false
         || checkIndex(indexes.front()) == false) {
 
         return nullptr;
     }
+
     const QModelIndex& index = indexes.front();
-    const auto& settings = _manager->propertiesList().at(index.internalId());
+    const int pIndex = index.internalId() & PINDEX_MASK;
+    const auto& settings = _manager->propertiesList().at(pIndex);
 
     QByteArray encodedData;
     QDataStream stream(&encodedData, QIODevice::WriteOnly);
@@ -663,12 +681,13 @@ bool PropertyListModel::canDropMimeData(const QMimeData* mimeData, Qt::DropActio
     if (mimeData == nullptr
         || action != Qt::MoveAction
         || destRow < 0
-        || parent.internalId() != ROOT_INTERNAL_ID
+        || (parent.internalId() & LIST_ITEM_FLAG)
         || checkIndex(parent) == false) {
         return false;
     }
 
-    const auto& settings = _manager->propertiesList().at(parent.row());
+    const int pIndex = parent.internalId() & PINDEX_MASK;
+    const auto& settings = _manager->propertiesList().at(pIndex);
 
     if (settings.isList) {
         if (mimeData->hasFormat(ITEM_MIME_TYPE) == false) {
@@ -683,7 +702,7 @@ bool PropertyListModel::canDropMimeData(const QMimeData* mimeData, Qt::DropActio
         return stream.atEnd()
                && data.model == this
                && data.id == settings.id
-               && data.row >= 0 && data.row < propertyListSize(parent.row());
+               && data.row >= 0 && data.row < propertyListSize(pIndex);
     }
 
     return false;
@@ -697,12 +716,13 @@ bool PropertyListModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction a
     if (mimeData == nullptr
         || action != Qt::MoveAction
         || destRow < 0
-        || parent.internalId() != ROOT_INTERNAL_ID
+        || (parent.internalId() & LIST_ITEM_FLAG)
         || checkIndex(parent) == false) {
         return false;
     }
 
-    const auto& settings = _manager->propertiesList().at(parent.row());
+    const int pIndex = parent.internalId() & PINDEX_MASK;
+    const auto& settings = _manager->propertiesList().at(pIndex);
 
     if (settings.isList) {
         if (mimeData->hasFormat(ITEM_MIME_TYPE) == false) {

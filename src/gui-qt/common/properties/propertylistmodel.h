@@ -19,7 +19,11 @@ class PropertyModelCache;
 class PropertyListModel : public AbstractPropertyModel {
     Q_OBJECT
 
-    static constexpr quintptr ROOT_INTERNAL_ID = UINT_MAX;
+    // Internal Id:
+    //     For property Items: propertyList index
+    //     For list items:     propertyList index | LIST_ITEM_FLAG
+    static constexpr unsigned LIST_ITEM_FLAG = 0x1000;
+    static constexpr unsigned PINDEX_MASK = 0x0fff;
 
 public:
     enum {
