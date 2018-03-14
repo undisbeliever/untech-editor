@@ -203,15 +203,20 @@ void PropertyTableView::onInsertActionTriggered()
     }
 
     QModelIndex index = currentIndex();
-    if (index.isValid()) {
-        int row = index.row() + 1;
-        QModelIndex parent = index.parent();
+    QModelIndex parent = index.parent();
 
-        bool ok = _model->insertRow(row, parent);
-        if (ok) {
-            QModelIndex newItemIndex = _model->index(row, 0, parent);
-            setCurrentIndex(newItemIndex);
-        }
+    int row;
+    if (index.isValid()) {
+        row = index.row() + 1;
+    }
+    else {
+        row = _model->rowCount(parent);
+    }
+
+    bool ok = _model->insertRow(row, parent);
+    if (ok) {
+        QModelIndex newItemIndex = _model->index(row, 0, parent);
+        setCurrentIndex(newItemIndex);
     }
 }
 
