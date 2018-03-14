@@ -16,9 +16,6 @@ class AbstractDocument : public QObject {
     Q_OBJECT
 
 public:
-    static const char* FILE_FILTER;
-
-public:
     explicit AbstractDocument(QObject* parent = nullptr);
     ~AbstractDocument() = default;
 
@@ -33,7 +30,10 @@ public:
     virtual const QString& defaultFileExtension() const = 0;
 
 protected:
+    // can throw exception
     virtual bool saveDocumentFile(const QString& filename) = 0;
+
+    // can throw exception
     virtual bool loadDocumentFile(const QString& filename) = 0;
 
 signals:

@@ -40,6 +40,7 @@ public:
     virtual const QString& defaultFileExtension() const final;
 
 protected:
+    // can throw exceptions
     virtual bool saveDocumentFile(const QString& filename) final;
     virtual bool loadDocumentFile(const QString& filename) final;
 

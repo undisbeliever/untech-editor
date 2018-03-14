@@ -8,8 +8,6 @@
 #include "framelistmodel.h"
 #include "selection.h"
 
-#include <QMessageBox>
-
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 Document::Document(QObject* parent)
@@ -45,28 +43,17 @@ const QString& Document::defaultFileExtension() const
 
 bool Document::saveDocumentFile(const QString& filename)
 {
-    try {
-        SI::saveFrameSet(*_frameSet, filename.toUtf8().data());
-        return true;
-    }
-    catch (const std::exception& ex) {
-        QMessageBox::critical(nullptr, tr("Error Saving File"), ex.what());
-        return false;
-    }
+    SI::saveFrameSet(*_frameSet, filename.toUtf8().data());
+    return true;
 }
 
 bool Document::loadDocumentFile(const QString& filename)
 {
-    try {
-        auto fs = SI::loadFrameSet(filename.toUtf8().data());
-        if (fs) {
-            _frameSet = std::move(fs);
-            initModels();
-            return true;
-        }
-    }
-    catch (const std::exception& ex) {
-        QMessageBox::critical(nullptr, tr("Error Opening File"), ex.what());
+    auto fs = SI::loadFrameSet(filename.toUtf8().data());
+    if (fs) {
+        _frameSet = std::move(fs);
+        initModels();
+        return true;
     }
     return false;
 }

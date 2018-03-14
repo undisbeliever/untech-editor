@@ -7,6 +7,7 @@
 #include "abstractdocument.h"
 
 #include <QFileInfo>
+#include <QMessageBox>
 
 using namespace UnTech::GuiQt;
 
@@ -20,7 +21,15 @@ AbstractDocument::AbstractDocument(QObject* parent)
 bool AbstractDocument::saveDocument(const QString& filename)
 {
     QString absFilename = QFileInfo(filename).absoluteFilePath();
-    bool success = saveDocumentFile(absFilename);
+    bool success = false;
+
+    try {
+        success = saveDocumentFile(absFilename);
+    }
+    catch (const std::exception& ex) {
+        QMessageBox::critical(nullptr, tr("Error Saving File"), ex.what());
+        success = false;
+    }
 
     if (success) {
         if (_filename != absFilename) {
@@ -36,7 +45,15 @@ bool AbstractDocument::saveDocument(const QString& filename)
 bool AbstractDocument::loadDocument(const QString& filename)
 {
     QString absFilename = QFileInfo(filename).absoluteFilePath();
-    bool success = loadDocumentFile(absFilename);
+    bool success = false;
+
+    try {
+        success = loadDocumentFile(absFilename);
+    }
+    catch (const std::exception& ex) {
+        QMessageBox::critical(nullptr, tr("Error opening File"), ex.what());
+        success = false;
+    }
 
     if (success) {
         if (_filename != absFilename) {

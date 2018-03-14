@@ -11,7 +11,6 @@
 #include "palette/paletteresourcelist.h"
 
 #include <QFileInfo>
-#include <QMessageBox>
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -83,39 +82,28 @@ const QString& Document::defaultFileExtension() const
 
 bool Document::saveDocumentFile(const QString& filename)
 {
-    try {
-        RES::saveResourcesFile(*_resourcesFile, filename.toUtf8().data());
+    RES::saveResourcesFile(*_resourcesFile, filename.toUtf8().data());
 
-        // Mark all internal resources as clean
-        _undoStack->setClean();
-        for (AbstractResourceList* rl : _resourceLists) {
-            for (AbstractResourceItem* item : rl->items()) {
-                if (auto* inItem = qobject_cast<AbstractInternalResourceItem*>(item)) {
-                    inItem->undoStack()->setClean();
-                }
+    // Mark all internal resources as clean
+    _undoStack->setClean();
+    for (AbstractResourceList* rl : _resourceLists) {
+        for (AbstractResourceItem* item : rl->items()) {
+            if (auto* inItem = qobject_cast<AbstractInternalResourceItem*>(item)) {
+                inItem->undoStack()->setClean();
             }
         }
+    }
 
-        return true;
-    }
-    catch (const std::exception& ex) {
-        QMessageBox::critical(nullptr, tr("Error Saving File"), ex.what());
-        return false;
-    }
+    return true;
 }
 
 bool Document::loadDocumentFile(const QString& filename)
 {
-    try {
-        auto res = RES::loadResourcesFile(filename.toUtf8().data());
-        if (res) {
-            _resourcesFile = std::move(res);
-            initModels();
-            return true;
-        }
-    }
-    catch (const std::exception& ex) {
-        QMessageBox::critical(nullptr, tr("Error Opening File"), ex.what());
+    auto res = RES::loadResourcesFile(filename.toUtf8().data());
+    if (res) {
+        _resourcesFile = std::move(res);
+        initModels();
+        return true;
     }
     return false;
 }

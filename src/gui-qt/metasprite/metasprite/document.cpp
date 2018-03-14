@@ -9,8 +9,6 @@
 #include "palettesmodel.h"
 #include "selection.h"
 
-#include <QMessageBox>
-
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 Document::Document(QObject* parent)
@@ -48,28 +46,17 @@ const QString& Document::defaultFileExtension() const
 
 bool Document::saveDocumentFile(const QString& filename)
 {
-    try {
-        MS::saveFrameSet(*_frameSet, filename.toUtf8().data());
-        return true;
-    }
-    catch (const std::exception& ex) {
-        QMessageBox::critical(nullptr, tr("Error Saving File"), ex.what());
-        return false;
-    }
+    MS::saveFrameSet(*_frameSet, filename.toUtf8().data());
+    return true;
 }
 
 bool Document::loadDocumentFile(const QString& filename)
 {
-    try {
-        auto fs = MS::loadFrameSet(filename.toUtf8().data());
-        if (fs) {
-            _frameSet = std::move(fs);
-            initModels();
-            return true;
-        }
-    }
-    catch (const std::exception& ex) {
-        QMessageBox::critical(nullptr, tr("Error Opening File"), ex.what());
+    auto fs = MS::loadFrameSet(filename.toUtf8().data());
+    if (fs) {
+        _frameSet = std::move(fs);
+        initModels();
+        return true;
     }
     return false;
 }
