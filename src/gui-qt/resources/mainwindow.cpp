@@ -18,6 +18,7 @@
 #include "mttileset/mttilesetpropertymanager.h"
 #include "palette/palettecentralwidget.h"
 #include "palette/palettepropertymanager.h"
+#include "resourcefile/resourcefilecentralwidget.h"
 #include "resourcefile/resourcefilepropertieswidget.h"
 
 #include <QComboBox>
@@ -73,11 +74,11 @@ MainWindow::MainWindow(QWidget* parent)
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
+    _resourceFileCentralWidget = new ResourceFileCentralWidget(this);
     _resourceFilePropertiesWidget = new ResourceFilePropertiesWidget(this);
 
-    _ui->centralStackedWidget->addWidget(new QLabel("Blank GUI", this));
+    _ui->centralStackedWidget->addWidget(_resourceFileCentralWidget);
     _ui->propertiesStackedWidget->addWidget(_resourceFilePropertiesWidget);
-
 
     // ::NOTE Order MUST match ResourceTypeIndex::
 
@@ -140,6 +141,7 @@ void MainWindow::setDocument(std::unique_ptr<Document>&& document)
     _ui->resourcesTreeDock->setDocument(_document.get());
     _ui->errorListDock->setDocument(_document.get());
 
+    _resourceFileCentralWidget->setDocument(_document.get());
     _resourceFilePropertiesWidget->setDocument(_document.get());
 
     // Close the errors dock as it is now empty
