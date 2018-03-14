@@ -14,7 +14,7 @@ namespace Resources {
 
 class MtTilesetResourceItem;
 
-class MtTilesetPropertiesManager : public AbstractPropertyManager {
+class MtTilesetPropertyManager : public AbstractPropertyManager {
     Q_OBJECT
 
     enum PropertyId {
@@ -27,8 +27,8 @@ class MtTilesetPropertiesManager : public AbstractPropertyManager {
     };
 
 public:
-    explicit MtTilesetPropertiesManager(QObject* parent = nullptr);
-    ~MtTilesetPropertiesManager() = default;
+    explicit MtTilesetPropertyManager(QObject* parent = nullptr);
+    ~MtTilesetPropertyManager() = default;
 
     virtual ResourceTypeIndex resourceTypeIndex() const final;
     virtual void setResourceItem(AbstractResourceItem* item) final;

@@ -14,7 +14,7 @@ namespace Resources {
 
 class PaletteResourceItem;
 
-class PalettePropertiesManager : public AbstractPropertyManager {
+class PalettePropertyManager : public AbstractPropertyManager {
     Q_OBJECT
 
     enum PropertyId {
@@ -26,8 +26,8 @@ class PalettePropertiesManager : public AbstractPropertyManager {
     };
 
 public:
-    explicit PalettePropertiesManager(QObject* parent = nullptr);
-    ~PalettePropertiesManager() = default;
+    explicit PalettePropertyManager(QObject* parent = nullptr);
+    ~PalettePropertyManager() = default;
 
     virtual ResourceTypeIndex resourceTypeIndex() const final;
     virtual void setResourceItem(AbstractResourceItem* item) final;

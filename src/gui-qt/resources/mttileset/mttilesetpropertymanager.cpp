@@ -11,7 +11,7 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-MtTilesetPropertiesManager::MtTilesetPropertiesManager(QObject* parent)
+MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     : AbstractPropertyManager(parent)
     , _tileset(nullptr)
 {
@@ -26,12 +26,12 @@ MtTilesetPropertiesManager::MtTilesetPropertiesManager(QObject* parent)
     addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE, Type::BOOLEAN);
 }
 
-ResourceTypeIndex MtTilesetPropertiesManager::resourceTypeIndex() const
+ResourceTypeIndex MtTilesetPropertyManager::resourceTypeIndex() const
 {
     return ResourceTypeIndex::MT_TILESET;
 }
 
-void MtTilesetPropertiesManager::setResourceItem(AbstractResourceItem* abstractItem)
+void MtTilesetPropertyManager::setResourceItem(AbstractResourceItem* abstractItem)
 {
     MtTilesetResourceItem* item = qobject_cast<MtTilesetResourceItem*>(abstractItem);
 
@@ -49,13 +49,13 @@ void MtTilesetPropertiesManager::setResourceItem(AbstractResourceItem* abstractI
         setEnabled(_tileset->tilesetInput() != nullptr);
 
         connect(_tileset, &MtTilesetResourceItem::dataChanged,
-                this, &MtTilesetPropertiesManager::dataChanged);
+                this, &MtTilesetPropertyManager::dataChanged);
     }
 
     emit dataChanged();
 }
 
-void MtTilesetPropertiesManager::updateParameters(int id, QVariant& param1, QVariant&) const
+void MtTilesetPropertyManager::updateParameters(int id, QVariant& param1, QVariant&) const
 {
     if (_tileset == nullptr) {
         return;
@@ -66,7 +66,7 @@ void MtTilesetPropertiesManager::updateParameters(int id, QVariant& param1, QVar
     }
 }
 
-QVariant MtTilesetPropertiesManager::data(int id) const
+QVariant MtTilesetPropertyManager::data(int id) const
 {
     if (_tileset == nullptr) {
         return QVariant();
@@ -100,7 +100,7 @@ QVariant MtTilesetPropertiesManager::data(int id) const
     return QVariant();
 }
 
-bool MtTilesetPropertiesManager::setData(int id, const QVariant& value)
+bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_tileset);
     Q_ASSERT(_tileset->tilesetInput());

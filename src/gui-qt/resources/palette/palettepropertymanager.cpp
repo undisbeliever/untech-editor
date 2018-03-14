@@ -11,7 +11,7 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-PalettePropertiesManager::PalettePropertiesManager(QObject* parent)
+PalettePropertyManager::PalettePropertyManager(QObject* parent)
     : AbstractPropertyManager(parent)
     , _palette(nullptr)
 {
@@ -24,12 +24,12 @@ PalettePropertiesManager::PalettePropertiesManager(QObject* parent)
     addProperty(tr("Skip First Frame"), SKIP_FIRST_FRAME, Type::BOOLEAN);
 }
 
-ResourceTypeIndex PalettePropertiesManager::resourceTypeIndex() const
+ResourceTypeIndex PalettePropertyManager::resourceTypeIndex() const
 {
     return ResourceTypeIndex::PALETTE;
 }
 
-void PalettePropertiesManager::setResourceItem(AbstractResourceItem* abstractItem)
+void PalettePropertyManager::setResourceItem(AbstractResourceItem* abstractItem)
 {
     PaletteResourceItem* item = qobject_cast<PaletteResourceItem*>(abstractItem);
 
@@ -46,13 +46,13 @@ void PalettePropertiesManager::setResourceItem(AbstractResourceItem* abstractIte
 
     if (_palette) {
         connect(_palette, &PaletteResourceItem::dataChanged,
-                this, &PalettePropertiesManager::dataChanged);
+                this, &PalettePropertyManager::dataChanged);
     }
 
     emit dataChanged();
 }
 
-void PalettePropertiesManager::updateParameters(int id, QVariant& param1, QVariant& param2) const
+void PalettePropertyManager::updateParameters(int id, QVariant& param1, QVariant& param2) const
 {
     if (_palette == nullptr) {
         return;
@@ -68,7 +68,7 @@ void PalettePropertiesManager::updateParameters(int id, QVariant& param1, QVaria
     }
 }
 
-QVariant PalettePropertiesManager::data(int id) const
+QVariant PalettePropertyManager::data(int id) const
 {
     if (_palette == nullptr) {
         return QVariant();
@@ -97,7 +97,7 @@ QVariant PalettePropertiesManager::data(int id) const
     return QVariant();
 }
 
-bool PalettePropertiesManager::setData(int id, const QVariant& value)
+bool PalettePropertyManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_palette);
     Q_ASSERT(_palette->paletteData());

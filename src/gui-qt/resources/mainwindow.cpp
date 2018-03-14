@@ -85,9 +85,9 @@ MainWindow::MainWindow(QWidget* parent)
     _ui->propertiesStackedWidget->addWidget(new QLabel("Blank Properties", this));
 
     addWidgets(new PaletteCentralWidget(this),
-               new GenericPropertiesWidget(new PalettePropertiesManager(this), this));
+               new GenericPropertiesWidget(new PalettePropertyManager(this), this));
     addWidgets(new MtTilesetCentralWidget(this, _zoomSettings),
-               new GenericPropertiesWidget(new MtTilesetPropertiesManager(this), this));
+               new GenericPropertiesWidget(new MtTilesetPropertyManager(this), this));
 
     readSettings();
 
