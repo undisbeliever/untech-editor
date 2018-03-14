@@ -13,8 +13,8 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-MtTilesetResourceList::MtTilesetResourceList(QObject* parent, ResourceTypeIndex typeIndex)
-    : AbstractResourceList(parent, typeIndex)
+MtTilesetResourceList::MtTilesetResourceList(Document* document, ResourceTypeIndex typeIndex)
+    : AbstractResourceList(document, typeIndex)
 {
 }
 

@@ -53,7 +53,7 @@ protected:
     virtual bool loadDocumentFile(const QString& filename) final;
 
 private:
-    void initModels();
+    void rebuildResourceLists();
 
 private slots:
     void onSelectedResourceDestroyed(QObject* obj);

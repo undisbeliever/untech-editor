@@ -12,23 +12,21 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-AbstractResourceList::AbstractResourceList(QObject* parent, ResourceTypeIndex typeIndex)
-    : QObject(parent)
-    , _document(nullptr)
+AbstractResourceList::AbstractResourceList(Document* document, ResourceTypeIndex typeIndex)
+    : QObject(document)
+    , _document(document)
     , _resourceTypeIndex(typeIndex)
     , _state(ResourceState::VALID)
     , _items()
 {
+    Q_ASSERT(_document != nullptr);
 }
 
-void AbstractResourceList::setDocument(Document* document)
+void AbstractResourceList::rebuildResourceItems()
 {
-    Q_ASSERT(document != nullptr);
-    Q_ASSERT(_items.isEmpty());
+    qDeleteAll(_items);
+    _items.clear();
 
-    _document = document;
-
-    // build list
     size_t size = nItems();
     _items.reserve(size);
 
@@ -38,6 +36,7 @@ void AbstractResourceList::setDocument(Document* document)
 
     _state = size > 0 ? ResourceState::UNCHECKED : ResourceState::VALID;
     emit stateChanged();
+    emit listChanged();
 }
 
 void AbstractResourceList::appendNewItemToList(int index)

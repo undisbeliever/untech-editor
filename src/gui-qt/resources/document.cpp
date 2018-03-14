@@ -26,14 +26,9 @@ Document::Document(QObject* parent)
     , _validationWorker(new ResourceValidationWorker(this))
     , _selectedResource(nullptr)
 {
-    initModels();
-}
+    rebuildResourceLists();
 
-void Document::initModels()
-{
     for (auto& rl : _resourceLists) {
-        rl->setDocument(this);
-
         connect(rl, &AbstractResourceList::resourceItemCreated,
                 this, &Document::resourceItemCreated);
         connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
@@ -102,10 +97,17 @@ bool Document::loadDocumentFile(const QString& filename)
     auto res = RES::loadResourcesFile(filename.toUtf8().data());
     if (res) {
         _resourcesFile = std::move(res);
-        initModels();
+        rebuildResourceLists();
         return true;
     }
     return false;
+}
+
+void Document::rebuildResourceLists()
+{
+    for (auto* ri : _resourceLists) {
+        ri->rebuildResourceItems();
+    }
 }
 
 QList<AbstractExternalResourceItem*> Document::unsavedExternalResources() const

@@ -13,8 +13,8 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-PaletteResourceList::PaletteResourceList(QObject* parent, ResourceTypeIndex typeIndex)
-    : AbstractResourceList(parent, typeIndex)
+PaletteResourceList::PaletteResourceList(Document* document, ResourceTypeIndex typeIndex)
+    : AbstractResourceList(document, typeIndex)
 {
 }
 

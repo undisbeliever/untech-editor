@@ -30,12 +30,11 @@ public:
     };
 
 public:
-    AbstractResourceList(QObject* parent, ResourceTypeIndex typeIndex);
+    AbstractResourceList(Document* document, ResourceTypeIndex typeIndex);
     ~AbstractResourceList() = default;
 
     ResourceTypeIndex resourceTypeIndex() const { return _resourceTypeIndex; }
 
-    void setDocument(Document* document);
     Document* document() const { return _document; }
 
     const QVector<AbstractResourceItem*>& items() const { return _items; }
@@ -64,6 +63,9 @@ protected:
     virtual void do_removeResource(unsigned index) = 0;
 
 private:
+    friend class Document;
+    void rebuildResourceItems();
+
     // does not emit listChanged()
     void appendNewItemToList(int index);
 
@@ -77,7 +79,7 @@ signals:
     void resourceItemAboutToBeRemoved(AbstractResourceItem* item);
 
 private:
-    Document* _document;
+    Document* const _document;
     const ResourceTypeIndex _resourceTypeIndex;
     ResourceState _state;
     QVector<AbstractResourceItem*> _items;
