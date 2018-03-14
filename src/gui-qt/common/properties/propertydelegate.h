@@ -39,8 +39,6 @@ public:
                                       const QModelIndex& index) const final;
 
 private:
-    const Property& propertyForIndex(const QModelIndex& index) const;
-
     QRect checkBoxRect(const QStyleOptionViewItem& option) const;
 
 private slots:

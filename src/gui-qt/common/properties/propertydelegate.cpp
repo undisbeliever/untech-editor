@@ -34,16 +34,6 @@ PropertyDelegate::PropertyDelegate(QObject* parent)
 {
 }
 
-const Property& PropertyDelegate::propertyForIndex(const QModelIndex& index) const
-{
-    const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
-    if (index.isValid() == false || model == nullptr) {
-        return AbstractPropertyModel::blankProperty;
-    }
-
-    return model->propertyForIndex(index);
-}
-
 QRect PropertyDelegate::checkBoxRect(const QStyleOptionViewItem& option) const
 {
     QStyleOption opt = option;
@@ -70,9 +60,9 @@ QSize PropertyDelegate::sizeHint(const QStyleOptionViewItem& option, const QMode
         return QSize(b.width() + extendWidth, b.height() + extendHeight);
     };
 
-    const auto& property = propertyForIndex(index);
+    const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
 
-    if (property.type == Type::BOOLEAN) {
+    if (model && model->propertyForIndex(index).type == Type::BOOLEAN) {
         QRect rect = checkBoxRect(option);
         return QSize(rect.width() + 2, rect.height() + 2);
     }
@@ -88,7 +78,8 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
                              const QModelIndex& index) const
 {
     const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
-    const auto& property = propertyForIndex(index);
+    const auto& property = model && index.isValid() ? model->propertyForIndex(index)
+                                                    : AbstractPropertyModel::blankProperty;
 
     drawBackground(painter, option, index);
 
@@ -138,33 +129,35 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
     drawFocus(painter, option, option.rect);
 }
 
-bool PropertyDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
+bool PropertyDelegate::editorEvent(QEvent* event, QAbstractItemModel* aModel,
                                    const QStyleOptionViewItem& option, const QModelIndex& index)
 {
-    Q_ASSERT(model);
+    Q_ASSERT(aModel);
+    const auto* pModel = qobject_cast<const AbstractPropertyModel*>(index.model());
 
-    const auto& property = propertyForIndex(index);
-    if (property.type == Type::BOOLEAN) {
+    if (pModel && pModel->propertyForIndex(index).type == Type::BOOLEAN) {
         if (event->type() == QEvent::MouseButtonRelease) {
             QMouseEvent* e = static_cast<QMouseEvent*>(event);
 
             QRect checkRect = checkBoxRect(option);
             if (checkRect.contains(e->pos())) {
                 QVariant value = index.data(Qt::EditRole);
-                model->setData(index, !value.toBool(), Qt::EditRole);
+                aModel->setData(index, !value.toBool(), Qt::EditRole);
             }
             return false;
         }
     }
 
-    return QItemDelegate::editorEvent(event, model, option, index);
+    return QItemDelegate::editorEvent(event, aModel, option, index);
 }
 
 QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
 {
     const auto* model = qobject_cast<const AbstractPropertyModel*>(index.model());
-    const auto& property = propertyForIndex(index);
-
+    if (model == nullptr) {
+        return nullptr;
+    }
+    const auto& property = model->propertyForIndex(index);
     if (property.id < 0) {
         return nullptr;
     }
@@ -284,8 +277,7 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
     if (model == nullptr) {
         return;
     }
-
-    const auto& property = propertyForIndex(index);
+    const auto& property = model->propertyForIndex(index);
     if (property.id < 0) {
         return;
     }
@@ -413,10 +405,16 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
 
 void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
-    const auto* pmodel = qobject_cast<const AbstractPropertyModel*>(index.model());
-    const auto& property = propertyForIndex(index);
+    const auto* pModel = qobject_cast<const AbstractPropertyModel*>(index.model());
+    if (pModel == nullptr) {
+        return;
+    }
+    const auto& property = pModel->propertyForIndex(index);
+    if (property.id < 0) {
+        return;
+    }
 
-    if (property.isList && pmodel && !pmodel->isListItem(index)) {
+    if (property.isList && pModel && !pModel->isListItem(index)) {
         // container node of a list type
         ListItemWidget* li = qobject_cast<ListItemWidget*>(editor);
         model->setData(index, li->stringList(), Qt::EditRole);
