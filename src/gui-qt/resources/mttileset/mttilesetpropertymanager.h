@@ -19,8 +19,8 @@ class MtTilesetPropertyManager : public AbstractPropertyManager {
 
     enum PropertyId {
         NAME,
-        FRAME_IMAGES,
         PALETTES,
+        FRAME_IMAGES,
         ANIMATION_DELAY,
         BIT_DEPTH,
         ADD_TRANSPARENT_TILE,

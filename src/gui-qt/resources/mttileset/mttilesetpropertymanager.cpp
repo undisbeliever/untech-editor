@@ -18,9 +18,10 @@ MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     using Type = UnTech::GuiQt::PropertyType;
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
+    addProperty(tr("Palettes"), PALETTES, Type::IDSTRING_LIST);
+    addPropertyGroup(tr("Animation Frames:"));
     addProperty(tr("Frame Images"), FRAME_IMAGES, Type::FILENAME_LIST,
                 QStringLiteral("PNG Image (*.png)"));
-    addProperty(tr("Palettes"), PALETTES, Type::IDSTRING_LIST);
     addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED, 0, 0x10000);
     addProperty(tr("Bit Depth"), BIT_DEPTH, Type::COMBO, QStringList{ "2 bpp", "4 bpp", "8 bpp" }, QVariantList{ 2, 4, 8 });
     addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE, Type::BOOLEAN);
@@ -81,11 +82,11 @@ QVariant MtTilesetPropertyManager::data(int id) const
     case NAME:
         return QString::fromStdString(ti->name);
 
-    case FRAME_IMAGES:
-        return convertStringList(ti->animationFrames.frameImageFilenames);
-
     case PALETTES:
         return convertStringList(ti->palettes);
+
+    case FRAME_IMAGES:
+        return convertStringList(ti->animationFrames.frameImageFilenames);
 
     case ANIMATION_DELAY:
         return ti->animationFrames.animationDelay;
@@ -112,12 +113,12 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
         newData.name = value.toString().toStdString();
         break;
 
-    case FRAME_IMAGES:
-        newData.animationFrames.frameImageFilenames = toStringVector(value.toStringList());
-        break;
-
     case PALETTES:
         newData.palettes = toIdstringVector(value.toStringList());
+        break;
+
+    case FRAME_IMAGES:
+        newData.animationFrames.frameImageFilenames = toStringVector(value.toStringList());
         break;
 
     case ANIMATION_DELAY:
