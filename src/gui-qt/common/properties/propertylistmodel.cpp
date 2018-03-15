@@ -18,10 +18,10 @@ PropertyListModel::PropertyListModel(PropertyListManager* manager)
     : AbstractPropertyModel(manager)
     , _manager(manager)
 {
-    resizeCache();
+    onManagerPropertyListChanged();
 
     connect(manager, &PropertyListManager::propertyListChanged,
-            this, &PropertyListModel::resizeCache);
+            this, &PropertyListModel::onManagerPropertyListChanged);
     connect(manager, &PropertyListManager::dataChanged,
             this, &PropertyListModel::invalidateCache);
     connect(manager, &PropertyListManager::enabledChanged,
@@ -74,9 +74,59 @@ QPair<QVariant, QVariant> PropertyListModel::propertyParametersForIndex(const QM
     return param;
 }
 
-void PropertyListModel::resizeCache()
+void PropertyListModel::onManagerPropertyListChanged()
 {
     beginResetModel();
+
+    // Build the layout
+
+    _rootIndexes.clear();
+    _propertyLayout.resize(_manager->propertiesList().size());
+
+    const auto& pl = _manager->propertiesList();
+
+    int rowPos = 0;
+    int parentIndex = -1;
+    int parentRow = -1;
+    bool inRootGroup = true;
+
+    for (int index = 0; index < pl.size(); index++) {
+        auto& property = pl.at(index);
+        PropertyLayout layout;
+
+        if (property.id < 0) {
+            inRootGroup = false;
+
+            int nChildren = 0;
+            for (int j = index + 1; j < pl.size() && pl.at(j).id >= 0; j++) {
+                nChildren++;
+            }
+
+            layout.rowPos = _rootIndexes.size();
+            layout.nChildren = nChildren;
+            layout.parentIndex = -1;
+            layout.parentRow = -1;
+
+            rowPos = 0;
+            parentIndex = index;
+            parentRow = layout.rowPos;
+        }
+        else {
+            layout.rowPos = rowPos;
+            layout.nChildren = 0;
+            layout.parentIndex = parentIndex;
+            layout.parentRow = parentRow;
+
+            rowPos++;
+        }
+        _propertyLayout.replace(index, layout);
+
+        if (inRootGroup || property.id < 0) {
+            _rootIndexes.append(index);
+        }
+    }
+
+    // Resize cache
 
     int nItems = _manager->propertiesList().size();
 
@@ -191,7 +241,7 @@ bool PropertyListModel::checkIndex(const QModelIndex& index) const
     }
 
     if ((index.internalId() & LIST_ITEM_FLAG) == false) {
-        return index.row() == pIndex;
+        return index.row() == _propertyLayout.at(pIndex).rowPos;
     }
     else {
         return index.row() < propertyListSize(pIndex);
@@ -207,14 +257,27 @@ QModelIndex PropertyListModel::index(int row, int column, const QModelIndex& par
     }
 
     if (!parent.isValid()) {
-        if (row < _manager->propertiesList().size()) {
-            return createIndex(row, column, row);
+        if (row < _rootIndexes.size()) {
+            return createIndex(row, column, _rootIndexes.at(row));
         }
     }
-    else if ((parent.internalId() & LIST_ITEM_FLAG) == false) {
+    else {
         const int pIndex = parent.internalId();
-        if (row < propertyListSize(pIndex)) {
-            return createIndex(row, column, pIndex | LIST_ITEM_FLAG);
+        if (pIndex >= _propertyLayout.size()) {
+            return QModelIndex();
+        }
+        const auto& layout = _propertyLayout.at(pIndex);
+
+        if (row < layout.nChildren) {
+            int id = row + pIndex + 1;
+            Q_ASSERT(id < _propertyLayout.size());
+            return createIndex(row, column, id);
+        }
+        else {
+            // test if has children
+            if (row < propertyListSize(pIndex)) {
+                return createIndex(row, column, pIndex | LIST_ITEM_FLAG);
+            }
         }
     }
 
@@ -223,14 +286,21 @@ QModelIndex PropertyListModel::index(int row, int column, const QModelIndex& par
 
 QModelIndex PropertyListModel::parent(const QModelIndex& index) const
 {
-    if (index.isValid()
-        && (index.internalId() & LIST_ITEM_FLAG)) {
+    if (!index.isValid()) {
+        return QModelIndex();
+    }
+    const int pIndex = index.internalId() & PINDEX_MASK;
 
-        const auto& pl = _manager->propertiesList();
-        const int pIndex = index.internalId() & PINDEX_MASK;
+    if (pIndex < _propertyLayout.size()) {
+        const auto& layout = _propertyLayout.at(pIndex);
 
-        if (pIndex < pl.size()) {
-            return createIndex(pIndex, 0, pIndex);
+        if ((index.internalId() & LIST_ITEM_FLAG) == false) {
+            if (layout.parentIndex >= 0) {
+                return createIndex(layout.parentRow, 0, layout.parentIndex);
+            }
+        }
+        else {
+            return createIndex(layout.rowPos, 0, pIndex);
         }
     }
 
@@ -243,29 +313,49 @@ bool PropertyListModel::hasChildren(const QModelIndex& parent) const
         return true;
     }
     else if ((parent.internalId() & LIST_ITEM_FLAG) == false) {
-        const auto& pl = _manager->propertiesList();
         const int pIndex = parent.internalId() & PINDEX_MASK;
 
-        return pIndex < pl.size() && pl.at(pIndex).isList;
+        if (pIndex >= _propertyLayout.size()) {
+            return false;
+        }
+        const auto& layout = _propertyLayout.at(pIndex);
+
+        if (layout.nChildren > 0) {
+            return true;
+        }
+        else {
+            const auto& pl = _manager->propertiesList();
+            return pIndex < pl.size() && pl.at(pIndex).isList;
+        }
     }
     else {
+        // list item
         return false;
     }
 }
 
 int PropertyListModel::rowCount(const QModelIndex& parent) const
 {
-    const auto& pl = _manager->propertiesList();
-    const int pIndex = parent.internalId() & PINDEX_MASK;
-
     if (!parent.isValid()) {
-        return pl.size();
+        return _rootIndexes.size();
     }
-    else if ((parent.internalId() & LIST_ITEM_FLAG) == false
-             && pIndex < pl.size()) {
-        return propertyListSize(pIndex);
+    else if ((parent.internalId() & LIST_ITEM_FLAG) == false) {
+        const int pIndex = parent.internalId() & PINDEX_MASK;
+
+        if (pIndex >= _propertyLayout.size()) {
+            return 0;
+        }
+        const auto& layout = _propertyLayout.at(pIndex);
+
+        if (layout.nChildren > 0) {
+            return layout.nChildren;
+        }
+        else {
+            return propertyListSize(pIndex);
+        }
     }
     else {
+        // list item
         return 0;
     }
 }
@@ -303,9 +393,11 @@ Qt::ItemFlags PropertyListModel::flags(const QModelIndex& index) const
     QFlags<Qt::ItemFlag> flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 
     if ((index.internalId() & LIST_ITEM_FLAG) == false) {
+        Q_ASSERT(pIndex < _propertyLayout.size());
+        const auto& layout = _propertyLayout.at(pIndex);
         const auto& settings = pl.at(pIndex);
 
-        if (settings.isList == false) {
+        if (settings.isList == false && layout.nChildren == 0) {
             flags |= Qt::ItemNeverHasChildren;
         }
         else {
@@ -318,6 +410,7 @@ Qt::ItemFlags PropertyListModel::flags(const QModelIndex& index) const
         }
     }
     else {
+        // list item
         flags |= Qt::ItemNeverHasChildren;
 
         if (index.column() == VALUE_COLUMN) {

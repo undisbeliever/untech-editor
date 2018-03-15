@@ -30,14 +30,20 @@ const QString& PropertyListManager::propertyTitle(int id)
 void PropertyListManager::addProperty(const QString& title, int id, PropertyType type,
                                       const QVariant& param1, const QVariant& param2)
 {
+    if (id < 0) {
+        qWarning("PropertyListManager::addProperty: id must be >= 0");
+    }
+
     _properties.append(Property(title, id, type, param1, param2));
 
     emit propertyListChanged();
 }
 
-void PropertyListManager::addSeperator(const QString& title)
+void PropertyListManager::addPropertyGroup(const QString& title)
 {
-    addProperty(title, -1, PropertyType::STRING);
+    _properties.append(Property(title, -1, PropertyType::STRING));
+
+    emit propertyListChanged();
 }
 
 void PropertyListManager::setEnabled(bool enabled)

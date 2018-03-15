@@ -29,6 +29,7 @@ public:
 
     void setEnabled(bool enabled);
     bool isEnabled() const { return _enabled; }
+
     /*
      * Called by `PropertyDelegate::setEditorData`.
      *
@@ -42,11 +43,11 @@ public:
     virtual bool setData(int id, const QVariant& value) = 0;
 
 protected:
-    // if id is < 0 then the property is blank and cannot be selected
+    // id must be >= 0
     void addProperty(const QString& title, int id, PropertyType type,
                      const QVariant& param1 = QVariant(), const QVariant& param2 = QVariant());
 
-    void addSeperator(const QString& title);
+    void addPropertyGroup(const QString& title);
 
 signals:
     void propertyListChanged();

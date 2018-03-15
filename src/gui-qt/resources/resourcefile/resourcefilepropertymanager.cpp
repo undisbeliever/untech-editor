@@ -19,10 +19,10 @@ ResourceFilePropertyManager::ResourceFilePropertyManager(QObject* parent)
 {
     using Type = UnTech::GuiQt::PropertyType;
 
-    addSeperator(tr("Block Settings:"));
+    addPropertyGroup(tr("Block Settings:"));
     addProperty(tr("Block Size"), BLOCK_SIZE, Type::UNSIGNED, 1024, 64 * 1024);
     addProperty(tr("Block Count"), BLOCK_COUNT, Type::UNSIGNED, 1, 128);
-    addSeperator(tr("MetaTile Settings:"));
+    addPropertyGroup(tr("MetaTile Settings:"));
     addProperty(tr("Max Map Size"), METATILE_MAX_MAP_SIZE, Type::UNSIGNED, 16 * 14, 32 * 1024);
     addProperty(tr("N. MetaTiles"), METATILE_N_METATILES, Type::UNSIGNED, 16, 1024);
 }

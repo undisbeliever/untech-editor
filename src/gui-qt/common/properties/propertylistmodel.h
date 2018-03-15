@@ -83,14 +83,26 @@ private:
     bool checkIndex(const QModelIndex& index) const;
 
 private slots:
-    void resizeCache();
+    void onManagerPropertyListChanged();
 
 public slots:
     void invalidateCache();
     void updateAll();
 
 private:
+    struct PropertyLayout {
+        // parentRow is not needed, but used for padding
+        int rowPos;
+        int nChildren;
+        int parentIndex;
+        int parentRow;
+    };
+
+private:
     PropertyListManager* const _manager;
+
+    QVector<int> _rootIndexes;
+    QVector<PropertyLayout> _propertyLayout;
 
     mutable QBitArray _cacheDirty;
     mutable QVector<QVariant> _dataCache;
