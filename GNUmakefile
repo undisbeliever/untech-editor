@@ -3,23 +3,6 @@ PROFILE     ?= release
 CXX         ?= g++
 CC          ?= gcc
 
-ifeq ($(CXXWARNINGS),)
-  CXXWARNINGS := -Wall -Wextra -Wdeprecated
-
-  ifneq ($(findstring g++,$(CXX)),)
-    GCC_MAJOR := $(firstword $(subst ., ,$(shell $(CXX) -dumpversion)))
-
-    ifeq ($(GCC_MAJOR),5)
-       CXXWARNINGS += -Wlogical-op -Wdouble-promotion -Wformat=2
-    else ifeq ($(GCC_MAJOR),6)
-       CXXWARNINGS += -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wdouble-promotion -Wformat=2
-    else ifeq ($(GCC_MAJOR),7)
-       CXXWARNINGS += -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wformat=2
-    endif
-  endif
-endif
-
-
 GUI_QT_MODULES := Qt5Core Qt5Gui Qt5Widgets Qt5Svg
 
 ifeq ($(OS),Windows_NT)
@@ -87,6 +70,56 @@ else ifeq ($(PROFILE),debug)
   CFLAGS        += -g -MMD -Isrc -Werror
   LDFLAGS       += -g -Werror
 
+else ifeq ($(PROFILE),asan)
+  # Address sanitiser
+
+  # Reccomended environment to run asan binaries with
+  #  ASAN_OPTIONS=detect_leaks=1:check_initialization_order=1:detect_leaks=1:atexit=1
+
+  OBJ_DIR       := obj/asan
+  BIN_DIR       := bin/asan
+
+  ASAN_FLAGS    := -fsanitize=address,undefined -g -fno-omit-frame-pointer
+
+  CXXFLAGS      += $(ASAN_FLAGS) -std=c++14 -O0 -MMD -Isrc
+  CFLAGS        += $(ASAN_FLAGS) -O0 -MMD -Isrc
+  LDFLAGS       += $(ASAN_FLAGS) -O0 -Wl,-gc-sections
+
+else ifeq ($(PROFILE),msan)
+  # Memory sanitiser
+
+  # Reccomended environment to run asan binaries with
+  #  MSAN_OPTIONS=poison_in_dtor=1:detect_leaks=1:atexit=1
+
+  # only available on clang
+  CXX           := clang++
+  CC            := clang
+
+  OBJ_DIR       := obj/msan
+  BIN_DIR       := bin/msan
+
+  MSAN_FLAGS    := -fsanitize=memory,undefined -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor -g -fno-omit-frame-pointer
+
+  CXXFLAGS      += $(MSAN_FLAGS) -std=c++14 -O0 -MMD -Isrc
+  CFLAGS        += $(MSAN_FLAGS) -O0 -MMD -Isrc
+  LDFLAGS       += $(MSAN_FLAGS) -O0 -Wl,-gc-sections
+
+else ifeq ($(PROFILE),ubsan)
+  # Undefined Behaviour Sanitizer
+
+  # only available on clang
+  CXX           := clang++
+  CC            := clang
+
+  OBJ_DIR       := obj/ubsan
+  BIN_DIR       := bin/ubsan
+
+  UBSAN_FLAGS    := -fsanitize=undefined,integer,nullability -g -fno-omit-frame-pointer
+
+  CXXFLAGS      += $(UBSAN_FLAGS) -std=c++14 -O0 -MMD -Isrc -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+  CFLAGS        += $(UBSAN_FLAGS) -O0 -MMD -Isrc
+  LDFLAGS       += $(UBSAN_FLAGS) -O0 -Wl,-gc-sections
+
 else ifeq ($(PROFILE),mingw)
   # MinGW cross platform compiling
   CXX_MINGW     ?= x86_64-w64-mingw32-g++
@@ -121,6 +154,22 @@ ifneq ($(findstring clang,$(CXX) $(CC)),)
   LDFLAGS  := $(filter-out -flto,$(LDFLAGS))
 endif
 
+
+ifeq ($(CXXWARNINGS),)
+  CXXWARNINGS := -Wall -Wextra -Wdeprecated
+
+  ifneq ($(findstring g++,$(CXX)),)
+    GCC_MAJOR := $(firstword $(subst ., ,$(shell $(CXX) -dumpversion)))
+
+    ifeq ($(GCC_MAJOR),5)
+       CXXWARNINGS += -Wlogical-op -Wdouble-promotion -Wformat=2
+    else ifeq ($(GCC_MAJOR),6)
+       CXXWARNINGS += -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wdouble-promotion -Wformat=2
+    else ifeq ($(GCC_MAJOR),7)
+       CXXWARNINGS += -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wformat=2
+    endif
+  endif
+endif
 
 
 SRCS            := $(wildcard src/*/*.cpp src/*/*/*.cpp src/*/*/*/*.cpp src/*/*/*/*/*.cpp)
