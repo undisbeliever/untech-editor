@@ -83,7 +83,7 @@ else ifeq ($(PROFILE),debug)
   OBJ_DIR       := obj/debug
   BIN_DIR       := bin/debug
 
-  CXXFLAGS      += -std=c++14 -g -MMD -Isrc -Werror
+  CXXFLAGS      += -std=c++14 -g -MMD -Isrc -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
   CFLAGS        += -g -MMD -Isrc -Werror
   LDFLAGS       += -g -Werror
 
