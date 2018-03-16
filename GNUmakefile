@@ -63,8 +63,8 @@ ifeq ($(PROFILE),release)
   LDFLAGS       += -O2 -flto -Wl,-gc-sections
 
 else ifeq ($(PROFILE),debug)
-  OBJ_DIR       := obj/debug
-  BIN_DIR       := bin/debug
+  OBJ_DIR       := obj/debug-$(firstword $(CXX))
+  BIN_DIR       := bin/debug-$(firstword $(CXX))
 
   CXXFLAGS      += -std=c++14 -g -MMD -Isrc -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
   CFLAGS        += -g -MMD -Isrc -Werror
@@ -76,8 +76,8 @@ else ifeq ($(PROFILE),asan)
   # Reccomended environment to run asan binaries with
   #  ASAN_OPTIONS=detect_leaks=1:check_initialization_order=1:detect_leaks=1:atexit=1
 
-  OBJ_DIR       := obj/asan
-  BIN_DIR       := bin/asan
+  OBJ_DIR       := obj/asan-$(firstword $(CXX))
+  BIN_DIR       := bin/asan-$(firstword $(CXX))
 
   ASAN_FLAGS    := -fsanitize=address,undefined -g -fno-omit-frame-pointer
 
