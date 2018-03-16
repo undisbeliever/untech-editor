@@ -126,23 +126,24 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap(const EngineSettings& s
     assert(animatedTileset->tileMap.size() <= out.size() / 2);
 
     for (unsigned q = 0; q < 4; q++) {
-        auto mapIt = animatedTileset->tileMap.begin();
+        unsigned start = 0;
         if (q & 1) {
-            mapIt += 1;
+            start += 1;
         }
         if (q & 2) {
-            mapIt += mapWidth;
+            start += mapWidth;
         }
 
         auto outIt = out.begin() + settings.nMetaTiles * q * 2;
         for (unsigned y = 0; y < mapHeight / 2; y++) {
-            for (unsigned x = 0; x < mapWidth / 2; x++) {
-                *outIt++ = mapIt->data & 0xff;
-                *outIt++ = (mapIt->data >> 8) & 0xff;
+            unsigned lineStart = start + y * mapWidth * 2;
 
-                mapIt += 2;
+            for (unsigned x = 0; x < mapWidth / 2; x++) {
+                auto& tmCell = animatedTileset->tileMap.at(lineStart + x * 2);
+
+                *outIt++ = tmCell.data & 0xff;
+                *outIt++ = (tmCell.data >> 8) & 0xff;
             }
-            mapIt += mapWidth;
         }
         assert(outIt <= out.begin() + settings.nMetaTiles * (q + 1) * 2);
     }
