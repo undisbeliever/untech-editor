@@ -94,8 +94,9 @@ void MsAnimationPreviewItem::drawFrame(QPainter* painter)
     }
 
     if (_layerSettings->showEntityHitboxes()) {
-        for (int i = _frame->entityHitboxes.size() - 1; i >= 0; i--) {
-            const MS::EntityHitbox& eh = _frame->entityHitboxes.at(i);
+        const auto& hitboxes = _frame->entityHitboxes;
+        for (auto it = hitboxes.crbegin(); it != hitboxes.crend(); it++) {
+            const MS::EntityHitbox& eh = *it;
 
             painter->setPen(_style->entityHitboxPen(eh.hitboxType));
             painter->setBrush(_style->entityHitboxBrush(eh.hitboxType));
@@ -117,8 +118,9 @@ void MsAnimationPreviewItem::drawFrame(QPainter* painter)
         painter->setPen(_style->actionPointPen());
         painter->setBrush(_style->actionPointBrush());
 
-        for (int i = _frame->actionPoints.size() - 1; i >= 0; i--) {
-            const MS::ActionPoint& ap = _frame->actionPoints.at(i);
+        const auto& points = _frame->actionPoints;
+        for (auto it = points.crbegin(); it != points.crend(); it++) {
+            const MS::ActionPoint& ap = *it;
             painter->drawRect(ap.location.x, ap.location.y, 1, 1);
         }
     }
