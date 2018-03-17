@@ -6,9 +6,8 @@
 
 #pragma once
 
+#include "models/common/enummap.h"
 #include <cstdint>
-#include <map>
-#include <string>
 
 namespace UnTech {
 namespace MetaSprite {
@@ -26,8 +25,7 @@ public:
         TWO_ROWS = 0x0E
     };
 
-    static const std::map<Enum, std::string> enumMap;
-    static const std::map<std::string, Enum> stringMap;
+    static const EnumMap<Enum> enumMap;
 
     TilesetType(const Enum v = Enum::ONE_TILE)
         : _value(v)
@@ -35,7 +33,7 @@ public:
     }
 
     TilesetType(const std::string str)
-        : _value(stringMap.at(str))
+        : _value(enumMap.valueOf(str))
     {
     }
 
@@ -44,10 +42,10 @@ public:
     unsigned nTiles() const;
     unsigned tilesetSplitPoint() const;
 
-    Enum value() const { return _value; };
+    Enum value() const { return _value; }
     uint_fast8_t romValue() const { return (uint_fast8_t)_value; }
 
-    const std::string& string() const { return enumMap.at(_value); }
+    const std::string& string() const { return enumMap.nameOf(_value); }
     bool isFixed() const { return (unsigned)_value < 0x08; }
 
     uint8_t engineValue() const { return (uint8_t)_value; }

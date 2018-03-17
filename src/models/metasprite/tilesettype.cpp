@@ -7,20 +7,10 @@
 #include "tilesettype.h"
 #include <stdexcept>
 
+using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
-const std::map<TilesetType::Enum, std::string> TilesetType::enumMap = {
-    { TilesetType::Enum::ONE_TILE, "ONE_TILE" },
-    { TilesetType::Enum::TWO_TILES, "TWO_TILES" },
-    { TilesetType::Enum::ONE_ROW, "ONE_ROW" },
-    { TilesetType::Enum::TWO_ROWS, "TWO_ROWS" },
-    { TilesetType::Enum::ONE_TILE_FIXED, "ONE_TILE_FIXED" },
-    { TilesetType::Enum::TWO_TILES_FIXED, "TWO_TILES_FIXED" },
-    { TilesetType::Enum::ONE_ROW_FIXED, "ONE_ROW_FIXED" },
-    { TilesetType::Enum::TWO_ROWS_FIXED, "TWO_ROWS_FIXED" },
-};
-
-const std::map<std::string, TilesetType::Enum> TilesetType::stringMap = {
+const EnumMap<TilesetType::Enum> TilesetType::enumMap = {
     { "ONE_TILE", TilesetType::Enum::ONE_TILE },
     { "TWO_TILES", TilesetType::Enum::TWO_TILES },
     { "ONE_ROW", TilesetType::Enum::ONE_ROW },

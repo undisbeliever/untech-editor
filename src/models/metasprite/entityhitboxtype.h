@@ -6,9 +6,8 @@
 
 #pragma once
 
+#include "models/common/enummap.h"
 #include <cstdint>
-#include <map>
-#include <string>
 
 namespace UnTech {
 namespace MetaSprite {
@@ -24,8 +23,7 @@ public:
         ATTACK = 10,
     };
 
-    static const std::map<Enum, std::string> enumMap;
-    static const std::map<std::string, Enum> stringMap;
+    static const EnumMap<Enum> enumMap;
 
     EntityHitboxType(const Enum v = Enum::BODY)
         : _value(v)
@@ -33,16 +31,16 @@ public:
     }
 
     EntityHitboxType(const std::string str)
-        : _value(stringMap.at(str))
+        : _value(enumMap.valueOf(str))
     {
     }
 
     static EntityHitboxType smallestFixedTileset(unsigned tilesetSize);
 
-    Enum value() const { return _value; };
+    Enum value() const { return _value; }
     uint8_t romValue() const { return (uint8_t)_value; }
 
-    const std::string& string() const { return enumMap.at(_value); }
+    const std::string& string() const { return enumMap.nameOf(_value); }
 
     inline operator Enum() const { return _value; }
 

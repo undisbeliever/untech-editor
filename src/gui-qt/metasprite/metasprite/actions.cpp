@@ -49,8 +49,8 @@ Actions::Actions(MainWindow* mainWindow)
 
     _entityHitboxTypeMenu = std::make_unique<QMenu>(tr("Set Entity Hitbox Type"));
     for (auto& it : UnTech::MetaSprite::EntityHitboxType::enumMap) {
-        QString s = QString::fromStdString(it.second);
-        _entityHitboxTypeMenu->addAction(s)->setData(int(it.first));
+        QString s = QString::fromStdString(it.first);
+        _entityHitboxTypeMenu->addAction(s)->setData(int(it.second));
     }
 
     _raiseSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Up);

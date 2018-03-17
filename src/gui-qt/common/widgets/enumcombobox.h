@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/common/enummap.h"
 #include <QComboBox>
 #include <map>
 #include <string>
@@ -25,11 +26,11 @@ public:
 
 public:
     template <typename EnumT>
-    inline void populateData(const std::map<EnumT, std::string>& enumMap)
+    inline void populateData(const EnumMap<EnumT>& enumMap)
     {
         for (auto& it : enumMap) {
-            QString s = QString::fromStdString(it.second);
-            this->addItem(s, int(it.first));
+            QString s = QString::fromStdString(it.first);
+            this->addItem(s, int(it.second));
         }
     }
 

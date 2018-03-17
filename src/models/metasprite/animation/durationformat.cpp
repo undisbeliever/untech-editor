@@ -8,16 +8,10 @@
 #include <cstdio>
 #include <stdexcept>
 
+using namespace UnTech;
 using namespace UnTech::MetaSprite::Animation;
 
-const std::map<DurationFormat::Enum, std::string> DurationFormat::enumMap = {
-    { DurationFormat::Enum::FRAME, "FRAME" },
-    { DurationFormat::Enum::TIME, "TIME" },
-    { DurationFormat::Enum::DISTANCE_VERTICAL, "DISTANCE_VERTICAL" },
-    { DurationFormat::Enum::DISTANCE_HORIZONTAL, "DISTANCE_HORIZONTAL" }
-};
-
-const std::map<std::string, DurationFormat::Enum> DurationFormat::stringMap = {
+const EnumMap<DurationFormat::Enum> DurationFormat::enumMap = {
     { "FRAME", DurationFormat::Enum::FRAME },
     { "TIME", DurationFormat::Enum::TIME },
     { "DISTANCE_VERTICAL", DurationFormat::Enum::DISTANCE_VERTICAL },
