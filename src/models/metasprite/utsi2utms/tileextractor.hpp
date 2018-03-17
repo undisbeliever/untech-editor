@@ -102,20 +102,26 @@ inline std::array<bool, UNDER_SIZE * UNDER_SIZE>
 markOverlappedPixels(const Snes::Tile<OVER_SIZE>& overTile,
                      int xOffset, int yOffset)
 {
+    static_assert(OVER_SIZE > 0 && OVER_SIZE < 64, "bad OVER_SIZE");
+    static_assert(UNDER_SIZE > 0 && UNDER_SIZE < 64, "bad UNDER_SIZE");
+
+    constexpr int overSize = OVER_SIZE;
+    constexpr int underSize = UNDER_SIZE;
+
     const uint8_t* overTileData = overTile.rawData();
 
-    std::array<bool, UNDER_SIZE* UNDER_SIZE> ret = {};
+    std::array<bool, underSize* underSize> ret = {};
 
-    for (unsigned oY = 0; oY < OVER_SIZE; oY++) {
+    for (int oY = 0; oY < overSize; oY++) {
         int uY = oY + yOffset;
 
-        if (uY >= 0 && uY < (int)UNDER_SIZE) {
-            for (unsigned oX = 0; oX < OVER_SIZE; oX++) {
+        if (uY >= 0 && uY < underSize) {
+            for (int oX = 0; oX < overSize; oX++) {
                 int uX = oX + xOffset;
 
-                if (uX >= 0 && uX < (int)UNDER_SIZE) {
-                    if (overTileData[oY * OVER_SIZE + oX] != 0) {
-                        ret[uY * UNDER_SIZE + uX] = true;
+                if (uX >= 0 && uX < underSize) {
+                    if (overTileData[oY * overSize + oX] != 0) {
+                        ret[uY * overSize + uX] = true;
                     }
                 }
             }
@@ -131,19 +137,25 @@ inline void clearCommonOverlappedTiles(Snes::Tile<OVER_SIZE>& overTile,
                                        Snes::Tile<UNDER_SIZE>& underTile,
                                        int xOffset, int yOffset)
 {
+    static_assert(OVER_SIZE > 0 && OVER_SIZE < 64, "bad OVER_SIZE");
+    static_assert(UNDER_SIZE > 0 && UNDER_SIZE < 64, "bad UNDER_SIZE");
+
+    constexpr int overSize = OVER_SIZE;
+    constexpr int underSize = UNDER_SIZE;
+
     uint8_t* overTileData = overTile.rawData();
     uint8_t* underTileData = underTile.rawData();
 
-    for (unsigned oY = 0; oY < OVER_SIZE; oY++) {
+    for (int oY = 0; oY < overSize; oY++) {
         int uY = oY + yOffset;
 
-        if (uY >= 0 && uY < (int)UNDER_SIZE) {
-            for (unsigned oX = 0; oX < OVER_SIZE; oX++) {
+        if (uY >= 0 && uY < underSize) {
+            for (int oX = 0; oX < overSize; oX++) {
                 int uX = oX + xOffset;
 
-                if (uX >= 0 && uX < (int)UNDER_SIZE) {
-                    if (overTileData[oY * OVER_SIZE + oX] == underTileData[uY * UNDER_SIZE + uX]) {
-                        overTileData[oY * OVER_SIZE + oX] = 0;
+                if (uX >= 0 && uX < underSize) {
+                    if (overTileData[oY * overSize + oX] == underTileData[uY * underSize + uX]) {
+                        overTileData[oY * overSize + oX] = 0;
                     }
                 }
             }

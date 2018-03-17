@@ -84,7 +84,7 @@ void SiAnimationPreviewItem::drawFrame(QPainter* painter)
     }
 
     const upoint& origin = _frame->location.origin;
-    painter->translate(int(-origin.x), int(-origin.y));
+    painter->translate(-int(origin.x), -int(origin.y));
 
     if (_layerSettings->showFrameObjects()) {
         painter->drawImage(0, 0, _frameObjects);

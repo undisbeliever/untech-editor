@@ -31,8 +31,8 @@ struct ms8point {
 
     static inline ms8point createFromOffset(const upoint& p, const upoint& offset)
     {
-        int px = p.x - offset.x;
-        int py = p.y - offset.y;
+        int px = int(p.x) - int(offset.x);
+        int py = int(p.y) - int(offset.y);
 
         if (!int_ms8_t::isValid(px)) {
             throw std::out_of_range("upoint.x");
@@ -139,8 +139,8 @@ struct ms8rect {
 
     static inline ms8rect createFromOffset(const urect& r, const upoint& offset)
     {
-        int rx = r.x - offset.x;
-        int ry = r.y - offset.y;
+        int rx = int(r.x) - int(offset.x);
+        int ry = int(r.y) - int(offset.y);
 
         if (!int_ms8_t::isValid(rx)) {
             throw std::out_of_range("urect.x");

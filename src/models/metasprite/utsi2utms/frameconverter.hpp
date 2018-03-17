@@ -132,8 +132,8 @@ private:
             const SI::FrameObject& siUnderObj = siFrame.objects.at(underObjId);
             MS::FrameObject& msUnderObj = msFrame.objects.at(underObjId);
 
-            int xOffset = siOverObj.location.x - siUnderObj.location.x;
-            int yOffset = siOverObj.location.y - siUnderObj.location.y;
+            int xOffset = int(siOverObj.location.x) - int(siUnderObj.location.x);
+            int yOffset = int(siOverObj.location.y) - int(siUnderObj.location.y);
 
             /*
              * This:
