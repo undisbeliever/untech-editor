@@ -11,6 +11,7 @@ using namespace UnTech::GuiQt;
 
 PropertyListManager::PropertyListManager(QObject* parent)
     : QObject(parent)
+    , _enabled(false)
 {
 }
 
