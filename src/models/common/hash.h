@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "attributes.h"
 #include <cstdint>
 #include <vector>
 
@@ -14,6 +15,7 @@ namespace std {
 template <>
 struct hash<std::vector<uint8_t>> {
     inline size_t operator()(const std::vector<uint8_t>& vec) const
+        __attribute__(IGNORE_UNSIGNED_OVERFLOW_ATTR)
     {
         size_t seed = vec.size();
 

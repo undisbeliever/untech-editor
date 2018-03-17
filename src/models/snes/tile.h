@@ -8,6 +8,7 @@
 
 #include "palette.h"
 #include "../common/image.h"
+#include "models/common/attributes.h"
 #include <array>
 #include <cassert>
 #include <cstdint>
@@ -86,6 +87,7 @@ namespace std {
 template <size_t TS>
 struct hash<::UnTech::Snes::Tile<TS>> {
     size_t operator()(const ::UnTech::Snes::Tile<TS>& tile) const
+        __attribute__(IGNORE_UNSIGNED_OVERFLOW_ATTR)
     {
         const uint8_t* data = tile.rawData();
 
@@ -101,6 +103,7 @@ struct hash<::UnTech::Snes::Tile<TS>> {
 template <size_t TS>
 struct hash<std::vector<::UnTech::Snes::Tile<TS>>> {
     size_t operator()(const std::vector<::UnTech::Snes::Tile<TS>>& tiles) const
+        __attribute__(IGNORE_UNSIGNED_OVERFLOW_ATTR)
     {
         size_t seed = 0;
         for (const auto& tile : tiles) {
