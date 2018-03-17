@@ -76,7 +76,7 @@ public:
 
         frameSet.name = tag->getAttributeId("id");
 
-        frameSet.tilesetType = tag->getAttributeSimpleClass<TilesetType>("tilesettype");
+        frameSet.tilesetType = tag->getAttributeEnum<TilesetType>("tilesettype");
 
         std::unique_ptr<XmlTag> childTag;
         while ((childTag = xml.parseTag())) {
@@ -155,7 +155,7 @@ private:
                 EntityHitbox eh;
 
                 eh.aabb = childTag->getAttributeMs8rect();
-                eh.hitboxType = childTag->getAttributeSimpleClass<EntityHitboxType>("type");
+                eh.hitboxType = childTag->getAttributeEnum<EntityHitboxType>("type");
 
                 frame.entityHitboxes.push_back(eh);
             }
@@ -293,7 +293,7 @@ inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame
     for (const EntityHitbox& eh : frame.entityHitboxes) {
         xml.writeTag("entityhitbox");
 
-        xml.writeTagAttributeSimpleClass("type", eh.hitboxType);
+        xml.writeTagAttributeEnum("type", eh.hitboxType);
         xml.writeTagAttributeMs8rect(eh.aabb);
 
         xml.writeCloseTag();
@@ -308,7 +308,7 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     xml.writeTagAttribute("id", frameSet.name);
 
-    xml.writeTagAttributeSimpleClass("tilesettype", frameSet.tilesetType);
+    xml.writeTagAttributeEnum("tilesettype", frameSet.tilesetType);
 
     if (frameSet.exportOrder != nullptr) {
         const std::string& src = frameSet.exportOrder->filename;

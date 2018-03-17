@@ -8,6 +8,7 @@
 
 #include "../aabb.h"
 #include "../clampedinteger.h"
+#include "../enummap.h"
 #include "../file.h"
 #include "../idstring.h"
 #include "../int_ms8_t.h"
@@ -197,21 +198,22 @@ struct XmlTag {
         return File::joinPath(xml->dirname(), v);
     }
 
-    template <class T>
-    inline T getAttributeSimpleClass(const std::string& name) const
+    template <typename T>
+    inline T getAttributeEnum(const std::string& name, const EnumMap<T>& enumMap) const
     {
-        try {
-            return T(getAttribute(name));
+        auto it = enumMap.find(getAttribute(name));
+        if (it != enumMap.end()) {
+            return it->second;
         }
-        catch (const xml_error&) {
-            throw;
-        }
-        catch (const std::out_of_range& ex) {
+        else {
             throw xml_error(*this, name, "Invalid value");
         }
-        catch (const std::exception& ex) {
-            throw xml_error(*this, name, ex.what());
-        }
+    }
+
+    template <class T>
+    inline T getAttributeEnum(const std::string& name) const
+    {
+        return getAttributeEnum(name, T::enumMap);
     }
 
     inline unsigned getAttributeUnsignedHex(const std::string& aName) const

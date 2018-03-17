@@ -24,7 +24,7 @@ void readAnimation(XmlReader& xml, const XmlTag* tag, Animation::map_t& animatio
     idstring id = tag->getAttributeUniqueId("id", animations);
     Animation& animation = animations.create(id);
 
-    animation.durationFormat = tag->getAttributeSimpleClass<DurationFormat>("durationformat");
+    animation.durationFormat = tag->getAttributeEnum<DurationFormat>("durationformat");
 
     animation.oneShot = tag->getAttributeBoolean("oneshot");
 
@@ -86,7 +86,7 @@ void writeAnimations(XmlWriter& xml, const Animation::map_t& animations)
 
         xml.writeTagAttribute("id", id);
 
-        xml.writeTagAttributeSimpleClass("durationformat", animation.durationFormat);
+        xml.writeTagAttributeEnum("durationformat", animation.durationFormat);
 
         if (animation.oneShot) {
             xml.writeTagAttribute("oneshot", animation.oneShot);

@@ -8,6 +8,7 @@
 
 #include "xml.h"
 #include "../aabb.h"
+#include "../enummap.h"
 #include "../ms8aabb.h"
 #include "../string.h"
 #include <cstdint>
@@ -73,9 +74,16 @@ public:
     }
 
     template <class T>
-    inline void writeTagAttributeSimpleClass(const std::string& name, const T& value)
+    inline void writeTagAttributeEnum(const std::string& name, const T& value)
     {
-        writeTagAttribute(name, value.string());
+        const auto& enumMap = T::enumMap;
+        writeTagAttribute(name, enumMap.nameOf(value.value()));
+    }
+
+    template <typename T>
+    inline void writeTagAttributeEnum(const std::string& name, const T& value, const EnumMap<T>& enumMap)
+    {
+        writeTagAttribute(name, enumMap.nameOf(value));
     }
 
     inline void writeTagAttributeUpoint(const upoint& p, const std::string& xName = "x", const std::string& yName = "y")
