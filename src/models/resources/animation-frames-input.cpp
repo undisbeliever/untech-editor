@@ -67,9 +67,12 @@ static bool extractFrameTile(FrameTile& ft, const Image& image, const unsigned x
     const unsigned pps = image.pixelsPerScanline();
     const rgba* imgBits = image.scanline(y) + x;
 
-    unsigned pId = 0;
-    for (auto palIt = palettes.begin(); palIt < palettes.end(); palIt += colorsPerPalette, pId++) {
-        bool s = extractTile8px(ft.tile, imgBits, pps, palIt, palIt + colorsPerPalette);
+    for (size_t pIndex = 0, pId = 0; pIndex < palettes.size(); pIndex += colorsPerPalette, pId++) {
+        auto pStart = palettes.begin() + pIndex;
+        auto pEnd = pIndex + colorsPerPalette < palettes.size() ? pStart + colorsPerPalette
+                                                                : palettes.end();
+
+        bool s = extractTile8px(ft.tile, imgBits, pps, pStart, pEnd);
 
         if (s) {
             ft.palette = pId;
