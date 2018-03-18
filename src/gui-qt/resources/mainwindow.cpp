@@ -38,6 +38,15 @@ MainWindow::MainWindow(QWidget* parent)
 {
     _ui->setupUi(this);
 
+    // required when QMainWindow is inside a QWidget
+    _ui->documentWindow->setWindowFlags(Qt::Widget);
+
+    // Have the left and right docks take up the whole height of the documentWindow
+    _ui->documentWindow->setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+    _ui->documentWindow->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+    _ui->documentWindow->setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+    _ui->documentWindow->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+
     // Update Menu
     {
         _ui->action_AddResource->setMenu(_ui->resourcesTreeDock->addResourceMenu());
@@ -65,12 +74,6 @@ MainWindow::MainWindow(QWidget* parent)
         statusBar()->addPermanentWidget(zoomComboBox);
     }
 
-    // Have the left and right docks take up the whole height of the MainWindow
-    setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
-    setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
-    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
-    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-
     _editors.append(new ResourceFileEditor(this));
     _editors.append(new PaletteEditor(this));
     _editors.append(new MtTilesetEditor(this, _zoomSettings));
@@ -90,6 +93,9 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(_undoGroup, &QUndoGroup::cleanChanged,
             this, &MainWindow::onUndoGroupCleanChanged);
+
+    connect(_ui->tabBar, &TabBar::closeProjectRequested,
+            this, &MainWindow::onMenuCloseProject);
 
     connect(_ui->action_New, &QAction::triggered,
             this, &MainWindow::onMenuNew);
@@ -130,6 +136,7 @@ void MainWindow::setProject(std::unique_ptr<ResourceProject>&& project)
     }
     _project = std::move(project);
 
+    _ui->tabBar->setProject(_project.get());
     _ui->resourcesTreeDock->setProject(_project.get());
     _ui->errorListDock->setProject(_project.get());
 
