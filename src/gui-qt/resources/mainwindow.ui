@@ -41,6 +41,7 @@
     <addaction name="action_Save"/>
     <addaction name="action_SaveAll"/>
     <addaction name="separator"/>
+    <addaction name="action_CloseProject"/>
     <addaction name="action_Quit"/>
    </widget>
    <widget class="QMenu" name="menu_Edit">
@@ -104,7 +105,7 @@
      <normaloff>:/icons/new.svg</normaloff>:/icons/new.svg</iconset>
    </property>
    <property name="text">
-    <string>&amp;New</string>
+    <string>&amp;New Project</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -153,6 +154,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="action_CloseProject">
+   <property name="text">
+    <string>Close Project</string>
    </property>
   </action>
  </widget>

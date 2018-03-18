@@ -101,6 +101,8 @@ MainWindow::MainWindow(QWidget* parent)
             this, &MainWindow::onMenuSave);
     connect(_ui->action_SaveAll, &QAction::triggered,
             this, &MainWindow::onMenuSaveAll);
+    connect(_ui->action_CloseProject, &QAction::triggered,
+            this, &MainWindow::onMenuCloseProject);
     connect(_ui->action_Quit, &QAction::triggered,
             this, &MainWindow::close);
 
@@ -374,6 +376,15 @@ bool MainWindow::onMenuSaveAll()
     }
 
     return s;
+}
+
+void MainWindow::onMenuCloseProject()
+{
+    if (unsavedChangesDialog() == false) {
+        return;
+    }
+
+    setProject(nullptr);
 }
 
 void MainWindow::onMenuAbout()
