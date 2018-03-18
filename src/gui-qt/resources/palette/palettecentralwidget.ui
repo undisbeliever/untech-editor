@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>UnTech::GuiQt::Resources::PaletteCentralWidget</class>
- <widget class="AbstractResourceWidget" name="UnTech::GuiQt::Resources::PaletteCentralWidget">
+ <widget class="QWidget" name="UnTech::GuiQt::Resources::PaletteCentralWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -76,14 +76,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>AbstractResourceWidget</class>
-   <extends>QWidget</extends>
-   <header>gui-qt/resources/abstractresourcewidget.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../../../../resources/resources.qrc"/>
  </resources>

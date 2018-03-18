@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>UnTech::GuiQt::Resources::MtTilesetCentralWidget</class>
- <widget class="AbstractResourceWidget" name="UnTech::GuiQt::Resources::MtTilesetCentralWidget">
+ <widget class="QWidget" name="UnTech::GuiQt::Resources::MtTilesetCentralWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -105,12 +105,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>AbstractResourceWidget</class>
-   <extends>QWidget</extends>
-   <header>gui-qt/resources/abstractresourcewidget.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>ZoomableGraphicsView</class>
    <extends>QGraphicsView</extends>

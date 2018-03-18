@@ -17,7 +17,7 @@ const QColor MtTilesetGraphicsItem::ERROR_COLOR = QColor(255, 0, 50, 128);
 
 MtTilesetCentralWidget::MtTilesetCentralWidget(QWidget* parent,
                                                ZoomSettings* zoomSettings)
-    : AbstractResourceWidget(parent)
+    : QWidget(parent)
     , _ui(new Ui::MtTilesetCentralWidget)
     , _graphicsScene(new QGraphicsScene(this))
     , _tileset(nullptr)
@@ -43,16 +43,9 @@ MtTilesetCentralWidget::MtTilesetCentralWidget(QWidget* parent,
 
 MtTilesetCentralWidget::~MtTilesetCentralWidget() = default;
 
-ResourceTypeIndex MtTilesetCentralWidget::resourceTypeIndex() const
-{
-    return ResourceTypeIndex::MT_TILESET;
-}
-
-void MtTilesetCentralWidget::setResourceItem(AbstractResourceItem* abstractItem)
+void MtTilesetCentralWidget::setResourceItem(MtTilesetResourceItem* item)
 {
     _animationTimer.stopTimer();
-
-    MtTilesetResourceItem* item = qobject_cast<MtTilesetResourceItem*>(abstractItem);
 
     if (_tileset == item) {
         return;

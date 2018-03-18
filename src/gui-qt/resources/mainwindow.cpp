@@ -14,12 +14,9 @@
 #include "gui-qt/resources/mainwindow.ui.h"
 
 #include "genericpropertieswidget.h"
-#include "mttileset/mttilesetcentralwidget.h"
-#include "mttileset/mttilesetpropertymanager.h"
-#include "palette/palettecentralwidget.h"
-#include "palette/palettepropertymanager.h"
-#include "resourcefile/resourcefilecentralwidget.h"
-#include "resourcefile/resourcefilepropertieswidget.h"
+#include "mttileset/mttileseteditor.h"
+#include "palette/paletteeditor.h"
+#include "resourcefile/resourcefileeditor.h"
 
 #include <QComboBox>
 #include <QFileDialog>
@@ -74,25 +71,18 @@ MainWindow::MainWindow(QWidget* parent)
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-    _resourceFileCentralWidget = new ResourceFileCentralWidget(this);
-    _resourceFilePropertiesWidget = new ResourceFilePropertiesWidget(this);
+    _editors.append(new ResourceFileEditor(this));
+    _editors.append(new PaletteEditor(this));
+    _editors.append(new MtTilesetEditor(this, _zoomSettings));
 
-    _ui->centralStackedWidget->addWidget(_resourceFileCentralWidget);
-    _ui->propertiesStackedWidget->addWidget(_resourceFilePropertiesWidget);
-
-    // ::NOTE Order MUST match ResourceTypeIndex::
-
-    auto addWidgets = [this](AbstractResourceWidget* centralWidget, AbstractResourceWidget* propertiesWidget) {
-        _resourceWidgets.append(centralWidget);
-        _ui->centralStackedWidget->addWidget(centralWidget);
-        _resourceWidgets.append(propertiesWidget);
-        _ui->propertiesStackedWidget->addWidget(propertiesWidget);
+    for (AbstractEditor* editor : _editors) {
+        if (QWidget* w = editor->editorWidget()) {
+            _ui->centralStackedWidget->addWidget(w);
+        }
+        if (QWidget* w = editor->propertyWidget()) {
+            _ui->propertiesStackedWidget->addWidget(w);
+        }
     };
-
-    addWidgets(new PaletteCentralWidget(this),
-               new GenericPropertiesWidget(new PalettePropertyManager(this), this));
-    addWidgets(new MtTilesetCentralWidget(this, _zoomSettings),
-               new GenericPropertiesWidget(new MtTilesetPropertyManager(this), this));
 
     readSettings();
 
@@ -141,14 +131,8 @@ void MainWindow::setProject(std::unique_ptr<ResourceProject>&& project)
     _ui->resourcesTreeDock->setProject(_project.get());
     _ui->errorListDock->setProject(_project.get());
 
-    _resourceFileCentralWidget->setProject(_project.get());
-    _resourceFilePropertiesWidget->setProject(_project.get());
-
     // Close the errors dock as it is now empty
     _ui->errorListDock->close();
-
-    _ui->centralStackedWidget->setCurrentIndex(0);
-    _ui->propertiesStackedWidget->setCurrentIndex(0);
 
     if (_project != nullptr) {
         Q_ASSERT(!_project->filename().isEmpty());
@@ -157,8 +141,6 @@ void MainWindow::setProject(std::unique_ptr<ResourceProject>&& project)
         _project->undoStack()->setActive();
 
         _project->validationWorker()->validateAllResources();
-
-        onSelectedResourceChanged();
 
         for (AbstractResourceList* rl : _project->resourceLists()) {
             for (AbstractResourceItem* item : rl->items()) {
@@ -172,6 +154,8 @@ void MainWindow::setProject(std::unique_ptr<ResourceProject>&& project)
         connect(_project.get(), &ResourceProject::selectedResourceChanged,
                 this, &MainWindow::onSelectedResourceChanged);
     }
+
+    onSelectedResourceChanged();
 
     updateGuiFilePath();
 }
@@ -217,14 +201,11 @@ void MainWindow::onSelectedResourceChanged()
     if (_selectedResource) {
         _selectedResource->disconnect(this);
     }
+    _selectedResource = nullptr;
 
-    if (_project == nullptr) {
-        _ui->centralStackedWidget->setCurrentIndex(0);
-        _ui->propertiesStackedWidget->setCurrentIndex(0);
-
-        return;
+    if (_project) {
+        _selectedResource = _project->selectedResource();
     }
-    _selectedResource = _project->selectedResource();
 
     if (_selectedResource) {
         _selectedResource->undoStack()->setActive();
@@ -233,27 +214,25 @@ void MainWindow::onSelectedResourceChanged()
             _selectedResource->loadResource();
         }
 
-        int index = (int)_selectedResource->resourceTypeIndex() + 1;
-
-        _ui->centralStackedWidget->setCurrentIndex(index);
-        _ui->propertiesStackedWidget->setCurrentIndex(index);
-
         if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(_selectedResource)) {
             connect(exItem, &AbstractExternalResourceItem::relativeFilePathChanged,
                     this, &MainWindow::updateGuiFilePath);
         }
     }
     else {
-        _project->undoStack()->setActive();
-
-        _ui->centralStackedWidget->setCurrentIndex(0);
-        _ui->propertiesStackedWidget->setCurrentIndex(0);
+        if (_project) {
+            _project->undoStack()->setActive();
+        }
     }
 
     updateGuiFilePath();
 
-    for (auto* widget : _resourceWidgets) {
-        widget->setResourceItem(_selectedResource);
+    for (AbstractEditor* editor : _editors) {
+        bool s = editor->setResourceItem(_project.get(), _selectedResource);
+        if (s) {
+            _ui->centralStackedWidget->setCurrentWidget(editor->editorWidget());
+            _ui->propertiesStackedWidget->setCurrentWidget(editor->propertyWidget());
+        }
     }
 }
 

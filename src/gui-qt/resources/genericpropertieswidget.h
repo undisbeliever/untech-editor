@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "abstractresourcewidget.h"
 #include "gui-qt/common/properties/propertylistmanager.h"
 #include <memory>
 
@@ -16,7 +15,7 @@ namespace Resources {
 namespace Ui {
 class GenericPropertiesWidget;
 }
-class PaletteResourceItem;
+class AbstractResourceItem;
 
 class AbstractPropertyManager : public PropertyListManager {
     Q_OBJECT
@@ -27,19 +26,17 @@ public:
     {
     }
 
-    virtual ResourceTypeIndex resourceTypeIndex() const = 0;
     virtual void setResourceItem(AbstractResourceItem* item) = 0;
 };
 
-class GenericPropertiesWidget : public AbstractResourceWidget {
+class GenericPropertiesWidget : public QWidget {
     Q_OBJECT
 
 public:
     GenericPropertiesWidget(AbstractPropertyManager* manager, QWidget* parent = 0);
     ~GenericPropertiesWidget();
 
-    virtual ResourceTypeIndex resourceTypeIndex() const final;
-    virtual void setResourceItem(AbstractResourceItem* item) final;
+    void setResourceItem(AbstractResourceItem* item);
 
 private:
     std::unique_ptr<Ui::GenericPropertiesWidget> _ui;

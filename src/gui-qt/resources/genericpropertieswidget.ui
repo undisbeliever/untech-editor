@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>UnTech::GuiQt::Resources::GenericPropertiesWidget</class>
- <widget class="AbstractResourceWidget" name="UnTech::GuiQt::Resources::GenericPropertiesWidget">
+ <widget class="QWidget" name="UnTech::GuiQt::Resources::GenericPropertiesWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,9 +10,6 @@
     <height>480</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="PropertyListView" name="propertyView"/>
@@ -20,12 +17,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>AbstractResourceWidget</class>
-   <extends>QWidget</extends>
-   <header>gui-qt/resources/abstractresourcewidget.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>PropertyListView</class>
    <extends>QTreeView</extends>

@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "../abstractresourcewidget.h"
 #include "../animationtimer.h"
 #include "models/resources/error-list.h"
 #include <QGraphicsObject>
@@ -25,13 +24,12 @@ class MtTilesetCentralWidget;
 }
 
 class ResourceProject;
-class AbstractResourceItem;
 class MtTilesetResourceItem;
 class MtTilesetGraphicsItem;
 
 namespace RES = UnTech::Resources;
 
-class MtTilesetCentralWidget : public AbstractResourceWidget {
+class MtTilesetCentralWidget : public QWidget {
     Q_OBJECT
 
 public:
@@ -39,9 +37,7 @@ public:
                            ZoomSettings* ZoomSettings);
     ~MtTilesetCentralWidget();
 
-    virtual ResourceTypeIndex resourceTypeIndex() const final;
-
-    virtual void setResourceItem(AbstractResourceItem* item) final;
+    void setResourceItem(MtTilesetResourceItem* item);
 
 private:
     void updateFrameLabel();

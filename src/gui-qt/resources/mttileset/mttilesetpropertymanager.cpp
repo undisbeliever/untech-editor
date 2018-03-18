@@ -27,11 +27,6 @@ MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE, Type::BOOLEAN);
 }
 
-ResourceTypeIndex MtTilesetPropertyManager::resourceTypeIndex() const
-{
-    return ResourceTypeIndex::MT_TILESET;
-}
-
 void MtTilesetPropertyManager::setResourceItem(AbstractResourceItem* abstractItem)
 {
     MtTilesetResourceItem* item = qobject_cast<MtTilesetResourceItem*>(abstractItem);

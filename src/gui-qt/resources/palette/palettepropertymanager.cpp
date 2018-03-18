@@ -24,11 +24,6 @@ PalettePropertyManager::PalettePropertyManager(QObject* parent)
     addProperty(tr("Skip First Frame"), SKIP_FIRST_FRAME, Type::BOOLEAN);
 }
 
-ResourceTypeIndex PalettePropertyManager::resourceTypeIndex() const
-{
-    return ResourceTypeIndex::PALETTE;
-}
-
 void PalettePropertyManager::setResourceItem(AbstractResourceItem* abstractItem)
 {
     PaletteResourceItem* item = qobject_cast<PaletteResourceItem*>(abstractItem);

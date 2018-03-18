@@ -19,11 +19,9 @@ namespace Resources {
 namespace Ui {
 class MainWindow;
 }
+class AbstractEditor;
 class ResourceProject;
 class AbstractResourceItem;
-class AbstractResourceWidget;
-class ResourceFilePropertiesWidget;
-class ResourceFileCentralWidget;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -68,10 +66,7 @@ private:
 
     ZoomSettings* _zoomSettings;
     QUndoGroup* _undoGroup;
-    QVector<AbstractResourceWidget*> _resourceWidgets;
-
-    ResourceFileCentralWidget* _resourceFileCentralWidget;
-    ResourceFilePropertiesWidget* _resourceFilePropertiesWidget;
+    QVector<AbstractEditor*> _editors;
 };
 }
 }

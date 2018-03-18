@@ -30,7 +30,6 @@ public:
     explicit MtTilesetPropertyManager(QObject* parent = nullptr);
     ~MtTilesetPropertyManager() = default;
 
-    virtual ResourceTypeIndex resourceTypeIndex() const final;
     virtual void setResourceItem(AbstractResourceItem* item) final;
 
     virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;

@@ -12,7 +12,7 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
 
 GenericPropertiesWidget::GenericPropertiesWidget(AbstractPropertyManager* manager, QWidget* parent)
-    : AbstractResourceWidget(parent)
+    : QWidget(parent)
     , _ui(std::make_unique<Ui::GenericPropertiesWidget>())
     , _manager(manager)
 {
@@ -24,16 +24,7 @@ GenericPropertiesWidget::GenericPropertiesWidget(AbstractPropertyManager* manage
 
 GenericPropertiesWidget::~GenericPropertiesWidget() = default;
 
-ResourceTypeIndex GenericPropertiesWidget::resourceTypeIndex() const
-{
-    return _manager->resourceTypeIndex();
-}
-
 void GenericPropertiesWidget::setResourceItem(AbstractResourceItem* item)
 {
-    if (item && item->resourceTypeIndex() != _manager->resourceTypeIndex()) {
-        item = nullptr;
-    }
     _manager->setResourceItem(item);
-    setEnabled(item != nullptr);
 }

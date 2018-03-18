@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "../abstractresourcewidget.h"
 #include "../animationtimer.h"
 #include <QGraphicsItem>
 #include <QGraphicsScene>
@@ -21,20 +20,17 @@ class PaletteCentralWidget;
 }
 
 class ResourceProject;
-class AbstractResourceItem;
 class PaletteResourceItem;
 class PaletteGraphicsItem;
 
-class PaletteCentralWidget : public AbstractResourceWidget {
+class PaletteCentralWidget : public QWidget {
     Q_OBJECT
 
 public:
     explicit PaletteCentralWidget(QWidget* parent = nullptr);
     ~PaletteCentralWidget();
 
-    virtual ResourceTypeIndex resourceTypeIndex() const final;
-
-    virtual void setResourceItem(AbstractResourceItem* item) final;
+    void setResourceItem(PaletteResourceItem* item);
 
 private:
     void updateFrameLabel();

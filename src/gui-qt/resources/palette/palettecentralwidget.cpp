@@ -14,7 +14,7 @@ const QColor PaletteGraphicsItem::LINE_COLOR = QColor(200, 200, 255, 128);
 const QColor PaletteGraphicsItem::FRAME_LINE_COLOR = QColor(200, 100, 200, 192);
 
 PaletteCentralWidget::PaletteCentralWidget(QWidget* parent)
-    : AbstractResourceWidget(parent)
+    : QWidget(parent)
     , _ui(new Ui::PaletteCentralWidget)
     , _graphicsScene(new QGraphicsScene(this))
     , _palette(nullptr)
@@ -41,16 +41,9 @@ PaletteCentralWidget::PaletteCentralWidget(QWidget* parent)
 
 PaletteCentralWidget::~PaletteCentralWidget() = default;
 
-ResourceTypeIndex PaletteCentralWidget::resourceTypeIndex() const
-{
-    return ResourceTypeIndex::PALETTE;
-}
-
-void PaletteCentralWidget::setResourceItem(AbstractResourceItem* abstractItem)
+void PaletteCentralWidget::setResourceItem(PaletteResourceItem* item)
 {
     _animationTimer.stopTimer();
-
-    PaletteResourceItem* item = qobject_cast<PaletteResourceItem*>(abstractItem);
 
     if (_palette == item) {
         return;
