@@ -12,7 +12,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class Document;
+class ResourceProject;
 class AbstractResourceItem;
 
 class AbstractResourceWidget : public QWidget {

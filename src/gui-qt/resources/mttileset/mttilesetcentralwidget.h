@@ -24,7 +24,7 @@ namespace Ui {
 class MtTilesetCentralWidget;
 }
 
-class Document;
+class ResourceProject;
 class AbstractResourceItem;
 class MtTilesetResourceItem;
 class MtTilesetGraphicsItem;

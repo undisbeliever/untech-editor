@@ -13,7 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class Document;
+class ResourceProject;
 class AbstractResourceItem;
 
 /**
@@ -28,7 +28,7 @@ class ResourceValidationWorker : public QObject {
     Q_OBJECT
 
 public:
-    ResourceValidationWorker(Document* parent);
+    ResourceValidationWorker(ResourceProject* project);
 
     void checkResourceLater(AbstractResourceItem* item);
 
@@ -43,7 +43,7 @@ private slots:
     void processNextResource();
 
 private:
-    Document* const _document;
+    ResourceProject* const _project;
     QList<AbstractResourceItem*> _itemsToProcess;
     QTimer _timer;
 };

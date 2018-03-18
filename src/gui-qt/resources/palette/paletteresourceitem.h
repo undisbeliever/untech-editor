@@ -7,7 +7,7 @@
 #pragma once
 
 #include "../abstractresourceitem.h"
-#include "../document.h"
+#include "../resourceproject.h"
 #include <QObject>
 
 namespace UnTech {
@@ -27,7 +27,7 @@ public:
     // will never be null
     inline const RES::PaletteInput* paletteData() const
     {
-        return document()->resourcesFile()->palettes.at(index()).get();
+        return project()->resourcesFile()->palettes.at(index()).get();
     }
 
 protected:
@@ -44,7 +44,7 @@ signals:
 private:
     inline const auto& palettesData() const
     {
-        return document()->resourcesFile()->palettes;
+        return project()->resourcesFile()->palettes;
     }
 };
 }

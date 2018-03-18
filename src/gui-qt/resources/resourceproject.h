@@ -21,15 +21,15 @@ class ResourceValidationWorker;
 
 namespace RES = UnTech::Resources;
 
-class Document : public AbstractDocument {
+class ResourceProject : public AbstractDocument {
     Q_OBJECT
 
 public:
     static constexpr unsigned N_RESOURCE_TYPES = 2;
 
 public:
-    explicit Document(QObject* parent = nullptr);
-    ~Document() = default;
+    explicit ResourceProject(QObject* parent = nullptr);
+    ~ResourceProject() = default;
 
     RES::ResourcesFile* resourcesFile() const { return _resourcesFile.get(); }
 
@@ -41,7 +41,7 @@ public:
 
     QList<AbstractExternalResourceItem*> unsavedExternalResources() const;
 
-    // All unsaved filenames are relative to the directory this document is saved to
+    // All unsaved filenames are relative to the directory this project is saved to
     QStringList unsavedFilenames() const;
 
     virtual const QString& fileFilter() const final;

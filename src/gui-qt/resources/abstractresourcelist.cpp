@@ -6,20 +6,20 @@
 
 #include "abstractresourcelist.h"
 #include "abstractresourceitem.h"
-#include "document.h"
+#include "resourceproject.h"
 
 #include <QMessageBox>
 
 using namespace UnTech::GuiQt::Resources;
 
-AbstractResourceList::AbstractResourceList(Document* document, ResourceTypeIndex typeIndex)
-    : QObject(document)
-    , _document(document)
+AbstractResourceList::AbstractResourceList(ResourceProject* project, ResourceTypeIndex typeIndex)
+    : QObject(project)
+    , _project(project)
     , _resourceTypeIndex(typeIndex)
     , _state(ResourceState::VALID)
     , _items()
 {
-    Q_ASSERT(_document != nullptr);
+    Q_ASSERT(_project != nullptr);
 }
 
 void AbstractResourceList::rebuildResourceItems()
@@ -83,9 +83,9 @@ void AbstractResourceList::addResource(const QString& input)
     appendNewItemToList(_items.size());
 
     emit listChanged();
-    _document->undoStack()->resetClean();
+    _project->undoStack()->resetClean();
 
-    _document->setSelectedResource(_items.back());
+    _project->setSelectedResource(_items.back());
 }
 
 void AbstractResourceList::removeResource(int index)
@@ -93,8 +93,8 @@ void AbstractResourceList::removeResource(int index)
     Q_ASSERT(index >= 0);
     Q_ASSERT(index < _items.size());
 
-    if (_document->selectedResource() == _items.at(index)) {
-        _document->setSelectedResource(nullptr);
+    if (_project->selectedResource() == _items.at(index)) {
+        _project->setSelectedResource(nullptr);
     }
 
     emit resourceItemAboutToBeRemoved(_items.at(index));
@@ -111,7 +111,7 @@ void AbstractResourceList::removeResource(int index)
     updateState();
 
     emit listChanged();
-    _document->undoStack()->resetClean();
+    _project->undoStack()->resetClean();
 }
 
 void AbstractResourceList::updateState()

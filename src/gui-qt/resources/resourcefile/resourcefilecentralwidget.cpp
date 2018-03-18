@@ -5,8 +5,8 @@
  */
 
 #include "resourcefilecentralwidget.h"
-#include "gui-qt/resources/document.h"
 #include "gui-qt/resources/resourcefile/resourcefilecentralwidget.ui.h"
+#include "gui-qt/resources/resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -15,17 +15,17 @@ using namespace UnTech::GuiQt::Resources;
 ResourceFileCentralWidget::ResourceFileCentralWidget(QWidget* parent)
     : QWidget(parent)
     , _ui(std::make_unique<Ui::ResourceFileCentralWidget>())
-    , _document(nullptr)
+    , _project(nullptr)
 {
     _ui->setupUi(this);
 }
 
 ResourceFileCentralWidget::~ResourceFileCentralWidget() = default;
 
-void ResourceFileCentralWidget::setDocument(Document* document)
+void ResourceFileCentralWidget::setProject(ResourceProject* project)
 {
-    if (_document) {
-        _document->disconnect(this);
+    if (_project) {
+        _project->disconnect(this);
     }
-    _document = document;
+    _project = project;
 }

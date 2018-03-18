@@ -70,7 +70,7 @@ bool MtTilesetResourceItem::compileResource(RES::ErrorList& err)
         err.addError("Unable to load file");
         return false;
     }
-    const auto& res = _document->resourcesFile();
+    const auto& res = _project->resourcesFile();
     Q_ASSERT(res);
 
     const auto mtd = MetaTiles::convertTileset(*_tilesetInput, *res, err);

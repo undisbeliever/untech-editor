@@ -6,7 +6,7 @@
 
 #include "resourcefilepropertymanager.h"
 #include "editresourcefilesettingscommands.h"
-#include "gui-qt/resources/document.h"
+#include "gui-qt/resources/resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -15,7 +15,7 @@ namespace MT = UnTech::MetaTiles;
 
 ResourceFilePropertyManager::ResourceFilePropertyManager(QObject* parent)
     : PropertyListManager(parent)
-    , _document(nullptr)
+    , _project(nullptr)
 {
     using Type = UnTech::GuiQt::PropertyType;
 
@@ -27,21 +27,21 @@ ResourceFilePropertyManager::ResourceFilePropertyManager(QObject* parent)
     addProperty(tr("N. MetaTiles"), METATILE_N_METATILES, Type::UNSIGNED, 16, 1024);
 }
 
-void ResourceFilePropertyManager::setDocument(Document* document)
+void ResourceFilePropertyManager::setProject(ResourceProject* project)
 {
-    if (_document == document) {
+    if (_project == project) {
         return;
     }
 
-    if (_document) {
-        _document->disconnect(this);
+    if (_project) {
+        _project->disconnect(this);
     }
-    _document = document;
+    _project = project;
 
-    setEnabled(_document != nullptr);
+    setEnabled(_project != nullptr);
 
-    if (_document) {
-        connect(_document, &Document::resourceFileSettingsChanged,
+    if (_project) {
+        connect(_project, &ResourceProject::resourceFileSettingsChanged,
                 this, &ResourceFilePropertyManager::dataChanged);
     }
 
@@ -50,11 +50,11 @@ void ResourceFilePropertyManager::setDocument(Document* document)
 
 QVariant ResourceFilePropertyManager::data(int id) const
 {
-    if (_document == nullptr) {
+    if (_project == nullptr) {
         return QVariant();
     }
 
-    const RES::ResourcesFile* res = _document->resourcesFile();
+    const RES::ResourcesFile* res = _project->resourcesFile();
     Q_ASSERT(res);
 
     switch ((PropertyId)id) {
@@ -76,18 +76,18 @@ QVariant ResourceFilePropertyManager::data(int id) const
 
 bool ResourceFilePropertyManager::setData(int id, const QVariant& value)
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_project);
 
-    const RES::ResourcesFile* res = _document->resourcesFile();
+    const RES::ResourcesFile* res = _project->resourcesFile();
     Q_ASSERT(res);
 
     auto editBlock = [&](auto f) {
         RES::BlockSettings bs = res->blockSettings;
         f(bs);
         if (bs != res->blockSettings) {
-            _document->undoStack()->push(
+            _project->undoStack()->push(
                 new EditResourceFileSettingsCommand<RES::BlockSettings>(
-                    _document, bs,
+                    _project, bs,
                     tr("Edit %1").arg(propertyTitle(id))));
             return true;
         }
@@ -98,9 +98,9 @@ bool ResourceFilePropertyManager::setData(int id, const QVariant& value)
         MT::EngineSettings es = res->metaTileEngineSettings;
         f(es);
         if (es != res->metaTileEngineSettings) {
-            _document->undoStack()->push(
+            _project->undoStack()->push(
                 new EditResourceFileSettingsCommand<MT::EngineSettings>(
-                    _document, es,
+                    _project, es,
                     tr("Edit %1").arg(propertyTitle(id))));
             return true;
         }

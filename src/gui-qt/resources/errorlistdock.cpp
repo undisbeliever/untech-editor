@@ -6,7 +6,7 @@
 
 #include "errorlistdock.h"
 #include "abstractresourceitem.h"
-#include "document.h"
+#include "resourceproject.h"
 #include "gui-qt/resources/errorlistdock.ui.h"
 
 using namespace UnTech::GuiQt::Resources;
@@ -14,7 +14,7 @@ using namespace UnTech::GuiQt::Resources;
 ErrorListDock::ErrorListDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::ErrorListDock)
-    , _document(nullptr)
+    , _project(nullptr)
     , _currentItem(nullptr)
 {
     _ui->setupUi(this);
@@ -24,43 +24,43 @@ ErrorListDock::ErrorListDock(QWidget* parent)
 
 ErrorListDock::~ErrorListDock() = default;
 
-void ErrorListDock::setDocument(Document* document)
+void ErrorListDock::setProject(ResourceProject* project)
 {
-    if (_document == document) {
+    if (_project == project) {
         return;
     }
 
     _ui->errorList->clear();
 
-    if (_document != nullptr) {
-        _document->disconnect(this);
+    if (_project != nullptr) {
+        _project->disconnect(this);
     }
-    _document = document;
+    _project = project;
 
     if (_currentItem) {
         _currentItem->disconnect(this);
     }
     _currentItem = nullptr;
 
-    if (_document) {
+    if (_project) {
         onSelectedResourceChanged();
-        connect(_document, &Document::selectedResourceChanged,
+        connect(_project, &ResourceProject::selectedResourceChanged,
                 this, &ErrorListDock::onSelectedResourceChanged);
     }
 
-    setEnabled(_document != nullptr);
+    setEnabled(_project != nullptr);
 }
 
 void ErrorListDock::onSelectedResourceChanged()
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_project);
 
     _ui->errorList->clear();
 
     if (_currentItem) {
         _currentItem->disconnect(this);
     }
-    _currentItem = _document->selectedResource();
+    _currentItem = _project->selectedResource();
 
     if (_currentItem) {
         updateErrorList();

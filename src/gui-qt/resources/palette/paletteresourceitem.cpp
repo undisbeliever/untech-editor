@@ -37,7 +37,7 @@ void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
 
 bool PaletteResourceItem::compileResource(RES::ErrorList& err)
 {
-    const auto& res = _document->resourcesFile();
+    const auto& res = _project->resourcesFile();
     Q_ASSERT(res);
     const RES::PaletteInput* pal = paletteData();
     Q_ASSERT(pal);

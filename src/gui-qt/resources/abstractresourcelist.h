@@ -13,7 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class Document;
+class ResourceProject;
 class AbstractResourceItem;
 
 class AbstractResourceList : public QObject {
@@ -30,12 +30,12 @@ public:
     };
 
 public:
-    AbstractResourceList(Document* document, ResourceTypeIndex typeIndex);
+    AbstractResourceList(ResourceProject* project, ResourceTypeIndex typeIndex);
     ~AbstractResourceList() = default;
 
     ResourceTypeIndex resourceTypeIndex() const { return _resourceTypeIndex; }
 
-    Document* document() const { return _document; }
+    ResourceProject* project() const { return _project; }
 
     const QVector<AbstractResourceItem*>& items() const { return _items; }
     const ResourceState& state() const { return _state; }
@@ -51,7 +51,7 @@ public:
     virtual const AddResourceDialogSettings& addResourceDialogSettings() const = 0;
 
 protected:
-    // number of this type of data in the document.
+    // number of this type of data in the project.
     virtual size_t nItems() const = 0;
 
     virtual AbstractResourceItem* buildResourceItem(size_t index) = 0;
@@ -63,7 +63,7 @@ protected:
     virtual void do_removeResource(unsigned index) = 0;
 
 private:
-    friend class Document;
+    friend class ResourceProject;
     void rebuildResourceItems();
 
     // does not emit listChanged()
@@ -79,7 +79,7 @@ signals:
     void resourceItemAboutToBeRemoved(AbstractResourceItem* item);
 
 private:
-    Document* const _document;
+    ResourceProject* const _project;
     const ResourceTypeIndex _resourceTypeIndex;
     ResourceState _state;
     QVector<AbstractResourceItem*> _items;

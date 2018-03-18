@@ -14,7 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class Document;
+class ResourceProject;
 
 class ResourcesTreeModel : public QAbstractItemModel {
     Q_OBJECT
@@ -27,7 +27,7 @@ public:
     explicit ResourcesTreeModel(QObject* parent = nullptr);
     ~ResourcesTreeModel() = default;
 
-    void setDocument(Document* document);
+    void setProject(ResourceProject* project);
 
     QModelIndex toModelIndex(const AbstractResourceItem* item) const;
     AbstractResourceItem* toResourceItem(const QModelIndex& index) const;
@@ -56,7 +56,7 @@ private slots:
     void onResourceItemNameChanged();
 
 private:
-    Document* _document;
+    ResourceProject* _project;
     QIcon _uncheckedIcon;
     QIcon _validIcon;
     QIcon _errorIcon;

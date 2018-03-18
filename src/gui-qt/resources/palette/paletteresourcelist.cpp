@@ -13,8 +13,8 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-PaletteResourceList::PaletteResourceList(Document* document, ResourceTypeIndex typeIndex)
-    : AbstractResourceList(document, typeIndex)
+PaletteResourceList::PaletteResourceList(ResourceProject* project, ResourceTypeIndex typeIndex)
+    : AbstractResourceList(project, typeIndex)
 {
 }
 
@@ -42,7 +42,7 @@ const AbstractResourceList::AddResourceDialogSettings& PaletteResourceList::addR
 
 size_t PaletteResourceList::nItems() const
 {
-    return document()->resourcesFile()->palettes.size();
+    return project()->resourcesFile()->palettes.size();
 }
 
 PaletteResourceItem* PaletteResourceList::buildResourceItem(size_t index)
@@ -52,7 +52,7 @@ PaletteResourceItem* PaletteResourceList::buildResourceItem(size_t index)
 
 void PaletteResourceList::do_addResource(const std::string& filename)
 {
-    auto& palettes = document()->resourcesFile()->palettes;
+    auto& palettes = project()->resourcesFile()->palettes;
 
     palettes.emplace_back(std::make_unique<RES::PaletteInput>());
     auto& pal = palettes.back();
@@ -70,7 +70,7 @@ void PaletteResourceList::do_addResource(const std::string& filename)
 
 void PaletteResourceList::do_removeResource(unsigned index)
 {
-    auto& palettes = document()->resourcesFile()->palettes;
+    auto& palettes = project()->resourcesFile()->palettes;
 
     Q_ASSERT(index < palettes.size());
     palettes.erase(palettes.begin() + index);

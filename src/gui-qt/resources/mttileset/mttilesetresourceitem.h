@@ -7,7 +7,7 @@
 #pragma once
 
 #include "../abstractresourceitem.h"
-#include "../document.h"
+#include "../resourceproject.h"
 #include "models/metatiles/metatile-tileset.h"
 #include <QObject>
 
@@ -47,12 +47,12 @@ signals:
 private:
     inline const auto& mtTilesetFilenameList() const
     {
-        return document()->resourcesFile()->metaTileTilesetFilenames;
+        return project()->resourcesFile()->metaTileTilesetFilenames;
     }
 
     inline const std::string& mtTilesetFilename() const
     {
-        return document()->resourcesFile()->metaTileTilesetFilenames.at(index());
+        return project()->resourcesFile()->metaTileTilesetFilenames.at(index());
     }
 
 private:

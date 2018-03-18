@@ -20,7 +20,7 @@ namespace Ui {
 class PaletteCentralWidget;
 }
 
-class Document;
+class ResourceProject;
 class AbstractResourceItem;
 class PaletteResourceItem;
 class PaletteGraphicsItem;

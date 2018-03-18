@@ -15,7 +15,7 @@ namespace Resources {
 namespace Ui {
 class ResourceFileCentralWidget;
 }
-class Document;
+class ResourceProject;
 class ResourceFilePropertyManager;
 
 class ResourceFileCentralWidget : public QWidget {
@@ -25,12 +25,12 @@ public:
     ResourceFileCentralWidget(QWidget* parent = 0);
     ~ResourceFileCentralWidget();
 
-    void setDocument(Document* document);
+    void setProject(ResourceProject* project);
 
 private:
     std::unique_ptr<Ui::ResourceFileCentralWidget> _ui;
 
-    Document* _document;
+    ResourceProject* _project;
 };
 }
 }

@@ -7,7 +7,7 @@
 #include "resourcestreemodel.h"
 #include "abstractresourceitem.h"
 #include "abstractresourcelist.h"
-#include "document.h"
+#include "resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -16,19 +16,19 @@ static_assert(N_RESOURCE_TYPES <= ResourcesTreeModel::ROOT_INTERNAL_ID,
 
 ResourcesTreeModel::ResourcesTreeModel(QObject* parent)
     : QAbstractItemModel(parent)
-    , _document(nullptr)
+    , _project(nullptr)
     , _uncheckedIcon(":icons/resource-unchecked.svg")
     , _validIcon(":icons/resource-valid.svg")
     , _errorIcon(":icons/resource-error.svg")
 {
 }
 
-void ResourcesTreeModel::setDocument(Document* document)
+void ResourcesTreeModel::setProject(ResourceProject* project)
 {
-    if (_document) {
-        _document->disconnect(this);
+    if (_project) {
+        _project->disconnect(this);
 
-        for (AbstractResourceList* rl : _document->resourceLists()) {
+        for (AbstractResourceList* rl : _project->resourceLists()) {
             rl->disconnect(this);
             for (AbstractResourceItem* i : rl->items()) {
                 i->disconnect(this);
@@ -38,13 +38,13 @@ void ResourcesTreeModel::setDocument(Document* document)
 
     beginResetModel();
 
-    _document = document;
+    _project = project;
 
-    if (_document) {
-        connect(_document, &Document::resourceItemCreated,
+    if (_project) {
+        connect(_project, &ResourceProject::resourceItemCreated,
                 this, &ResourcesTreeModel::connectResourceItemSignals);
 
-        for (AbstractResourceList* rl : _document->resourceLists()) {
+        for (AbstractResourceList* rl : _project->resourceLists()) {
             connect(rl, &AbstractResourceList::stateChanged,
                     this, &ResourcesTreeModel::onResourceListStateChanged);
             connect(rl, &AbstractResourceList::listChanged,
@@ -69,7 +69,7 @@ void ResourcesTreeModel::connectResourceItemSignals(AbstractResourceItem* item)
 
 void ResourcesTreeModel::onResourceListChanged()
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_project);
 
     AbstractResourceList* item = qobject_cast<AbstractResourceList*>(sender());
     if (item) {
@@ -79,7 +79,7 @@ void ResourcesTreeModel::onResourceListChanged()
 
 void ResourcesTreeModel::onResourceListStateChanged()
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_project);
 
     AbstractResourceList* item = qobject_cast<AbstractResourceList*>(sender());
     if (item) {
@@ -98,14 +98,14 @@ void ResourcesTreeModel::onResourceListStateChanged()
 
 void ResourcesTreeModel::onResourceItemStateChanged()
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_project);
     emitResourceDataChanged(qobject_cast<AbstractResourceItem*>(sender()),
                             { Qt::DecorationRole });
 }
 
 void ResourcesTreeModel::onResourceItemNameChanged()
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_project);
     emitResourceDataChanged(qobject_cast<AbstractResourceItem*>(sender()),
                             { Qt::DisplayRole });
 }
@@ -122,7 +122,7 @@ void ResourcesTreeModel::emitResourceDataChanged(AbstractResourceItem* item, con
     }
     else {
         // Update everything
-        int lastIndex = _document->resourceLists().back()->items().size();
+        int lastIndex = _project->resourceLists().back()->items().size();
         emit dataChanged(createIndex(0, 0, ROOT_INTERNAL_ID),
                          createIndex(lastIndex, N_COLUMNS, N_RESOURCE_TYPES - 1),
                          roles);
@@ -140,7 +140,7 @@ QModelIndex ResourcesTreeModel::toModelIndex(const AbstractResourceItem* item) c
 
 AbstractResourceItem* ResourcesTreeModel::toResourceItem(const QModelIndex& index) const
 {
-    if (_document == nullptr
+    if (_project == nullptr
         || index.row() < 0
         || index.column() < 0 || index.column() >= N_COLUMNS) {
         return nullptr;
@@ -150,7 +150,7 @@ AbstractResourceItem* ResourcesTreeModel::toResourceItem(const QModelIndex& inde
     const int row = index.row();
 
     if (internalId != ROOT_INTERNAL_ID) {
-        const auto& items = _document->resourceLists().at(internalId)->items();
+        const auto& items = _project->resourceLists().at(internalId)->items();
 
         if (row < items.size()) {
             return items.at(row);
@@ -162,14 +162,14 @@ AbstractResourceItem* ResourcesTreeModel::toResourceItem(const QModelIndex& inde
 
 QModelIndex ResourcesTreeModel::index(int row, int column, const QModelIndex& parent) const
 {
-    if (_document == nullptr
+    if (_project == nullptr
         || row < 0
         || column < 0 || column >= N_COLUMNS) {
 
         return QModelIndex();
     }
 
-    const auto& rl = _document->resourceLists();
+    const auto& rl = _project->resourceLists();
 
     if (!parent.isValid()) {
         if ((unsigned)row < rl.size()) {
@@ -191,14 +191,14 @@ QModelIndex ResourcesTreeModel::index(int row, int column, const QModelIndex& pa
 
 QModelIndex ResourcesTreeModel::parent(const QModelIndex& index) const
 {
-    if (_document == nullptr
+    if (_project == nullptr
         || !index.isValid()
         || index.internalId() == ROOT_INTERNAL_ID) {
 
         return QModelIndex();
     }
 
-    if (index.internalId() <= Document::N_RESOURCE_TYPES) {
+    if (index.internalId() <= ResourceProject::N_RESOURCE_TYPES) {
         return createIndex(index.internalId(), 0, ROOT_INTERNAL_ID);
     }
     return QModelIndex();
@@ -206,7 +206,7 @@ QModelIndex ResourcesTreeModel::parent(const QModelIndex& index) const
 
 bool ResourcesTreeModel::hasChildren(const QModelIndex& parent) const
 {
-    if (_document == nullptr) {
+    if (_project == nullptr) {
         return false;
     }
 
@@ -215,11 +215,11 @@ bool ResourcesTreeModel::hasChildren(const QModelIndex& parent) const
 
 int ResourcesTreeModel::rowCount(const QModelIndex& parent) const
 {
-    if (_document == nullptr) {
+    if (_project == nullptr) {
         return 0;
     }
 
-    const auto& rl = _document->resourceLists();
+    const auto& rl = _project->resourceLists();
     const unsigned row = parent.row();
 
     if (!parent.isValid()) {
@@ -235,7 +235,7 @@ int ResourcesTreeModel::rowCount(const QModelIndex& parent) const
 
 int ResourcesTreeModel::columnCount(const QModelIndex& parent) const
 {
-    if (_document == nullptr) {
+    if (_project == nullptr) {
         return 0;
     }
 
@@ -248,7 +248,7 @@ int ResourcesTreeModel::columnCount(const QModelIndex& parent) const
 
 Qt::ItemFlags ResourcesTreeModel::flags(const QModelIndex& index) const
 {
-    if (_document == nullptr
+    if (_project == nullptr
         || !index.isValid()
         || index.column() >= N_COLUMNS) {
 
@@ -265,7 +265,7 @@ Qt::ItemFlags ResourcesTreeModel::flags(const QModelIndex& index) const
 
 QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
 {
-    if (_document == nullptr
+    if (_project == nullptr
         || index.column() != 0
         || !index.isValid()) {
 
@@ -274,7 +274,7 @@ QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
 
     const quintptr internalId = index.internalId();
     const int row = index.row();
-    const auto& rl = _document->resourceLists();
+    const auto& rl = _project->resourceLists();
 
     if (role == Qt::DisplayRole) {
         if (internalId == ROOT_INTERNAL_ID) {

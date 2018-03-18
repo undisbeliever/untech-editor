@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gui-qt/resources/document.h"
+#include "gui-qt/resources/resourceproject.h"
 #include "models/resources/resources.h"
 #include <QUndoCommand>
 
@@ -23,12 +23,12 @@ class EditResourceFileSettingsCommand : public QUndoCommand {
     using DataT = DT;
 
 public:
-    EditResourceFileSettingsCommand(Document* document,
+    EditResourceFileSettingsCommand(ResourceProject* project,
                                     const DataT& newValue,
                                     const QString& text,
                                     QUndoCommand* parent = Q_NULLPTR)
         : QUndoCommand(text, parent)
-        , _document(document)
+        , _project(project)
         , _oldValue(data())
         , _newValue(newValue)
     {
@@ -39,17 +39,17 @@ public:
     virtual void undo() final
     {
         data() = _oldValue;
-        emit _document->resourceFileSettingsChanged();
+        emit _project->resourceFileSettingsChanged();
     }
 
     virtual void redo() final
     {
         data() = _newValue;
-        emit _document->resourceFileSettingsChanged();
+        emit _project->resourceFileSettingsChanged();
     }
 
 private:
-    Document* const _document;
+    ResourceProject* const _project;
     const DataT _oldValue;
     const DataT _newValue;
 };
@@ -57,13 +57,13 @@ private:
 template <>
 inline RES::BlockSettings& EditResourceFileSettingsCommand<RES::BlockSettings>::data()
 {
-    return _document->resourcesFile()->blockSettings;
+    return _project->resourcesFile()->blockSettings;
 }
 
 template <>
 inline MT::EngineSettings& EditResourceFileSettingsCommand<MT::EngineSettings>::data()
 {
-    return _document->resourcesFile()->metaTileEngineSettings;
+    return _project->resourcesFile()->metaTileEngineSettings;
 }
 }
 }

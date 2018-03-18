@@ -13,8 +13,8 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-MtTilesetResourceList::MtTilesetResourceList(Document* document, ResourceTypeIndex typeIndex)
-    : AbstractResourceList(document, typeIndex)
+MtTilesetResourceList::MtTilesetResourceList(ResourceProject* project, ResourceTypeIndex typeIndex)
+    : AbstractResourceList(project, typeIndex)
 {
 }
 
@@ -42,7 +42,7 @@ const AbstractResourceList::AddResourceDialogSettings& MtTilesetResourceList::ad
 
 size_t MtTilesetResourceList::nItems() const
 {
-    return document()->resourcesFile()->metaTileTilesetFilenames.size();
+    return project()->resourcesFile()->metaTileTilesetFilenames.size();
 }
 
 MtTilesetResourceItem* MtTilesetResourceList::buildResourceItem(size_t index)
@@ -52,7 +52,7 @@ MtTilesetResourceItem* MtTilesetResourceList::buildResourceItem(size_t index)
 
 void MtTilesetResourceList::do_addResource(const std::string& filename)
 {
-    auto& fnList = document()->resourcesFile()->metaTileTilesetFilenames;
+    auto& fnList = project()->resourcesFile()->metaTileTilesetFilenames;
     fnList.emplace_back(filename);
 
     QFileInfo fi(QString::fromStdString(filename));
@@ -68,7 +68,7 @@ void MtTilesetResourceList::do_addResource(const std::string& filename)
 
 void MtTilesetResourceList::do_removeResource(unsigned index)
 {
-    auto& fnList = document()->resourcesFile()->metaTileTilesetFilenames;
+    auto& fnList = project()->resourcesFile()->metaTileTilesetFilenames;
 
     Q_ASSERT(index < fnList.size());
     fnList.erase(fnList.begin() + index);

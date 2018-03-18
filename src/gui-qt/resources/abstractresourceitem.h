@@ -14,7 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class Document;
+class ResourceProject;
 class AbstractResourceList;
 
 namespace RES = UnTech::Resources;
@@ -27,13 +27,13 @@ public:
     AbstractResourceItem(AbstractResourceList* parent, unsigned index)
         : QObject(parent)
         , _list(parent)
-        , _document(parent->document())
+        , _project(parent->project())
         , _undoStack(new QUndoStack(this))
         , _index(index)
         , _state(ResourceState::NOT_LOADED)
     {
         Q_ASSERT(parent != nullptr);
-        Q_ASSERT(_document != nullptr);
+        Q_ASSERT(_project != nullptr);
 
         connect(this, &AbstractResourceItem::dataChanged,
                 this, &AbstractResourceItem::markUnchecked);
@@ -41,7 +41,7 @@ public:
 
     ~AbstractResourceItem() = default;
 
-    Document* document() const { return _document; }
+    ResourceProject* project() const { return _project; }
     QUndoStack* undoStack() const { return _undoStack; }
 
     inline int index() const { return _index; }
@@ -52,7 +52,7 @@ public:
     ResourceTypeIndex resourceTypeIndex() const { return _list->resourceTypeIndex(); }
     AbstractResourceList* resourceList() const { return _list; }
 
-    // empty if the resource is inline with the resource document
+    // empty if the resource is inline with the resource project file
     virtual QString filename() const = 0;
 
     void validateItem();
@@ -88,7 +88,7 @@ signals:
 
 protected:
     AbstractResourceList* const _list;
-    Document* const _document;
+    ResourceProject* const _project;
 
 private:
     QUndoStack* const _undoStack;

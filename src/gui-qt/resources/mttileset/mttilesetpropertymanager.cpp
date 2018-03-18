@@ -63,7 +63,7 @@ void MtTilesetPropertyManager::updateParameters(int id, QVariant& param1, QVaria
     }
 
     if (id == PALETTES) {
-        param1 = _tileset->document()->resourceLists().at((int)ResourceTypeIndex::PALETTE)->itemNames();
+        param1 = _tileset->project()->resourceLists().at((int)ResourceTypeIndex::PALETTE)->itemNames();
     }
 }
 

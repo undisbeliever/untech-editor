@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 
     const QStringList args = parser.positionalArguments();
     if (args.size() > 0) {
-        window->loadDocument(args.first());
+        window->loadProject(args.first());
     }
 
     return app.exec();

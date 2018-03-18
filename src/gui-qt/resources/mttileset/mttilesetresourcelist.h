@@ -19,7 +19,7 @@ class MtTilesetResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    MtTilesetResourceList(Document* document, ResourceTypeIndex typeIndex);
+    MtTilesetResourceList(ResourceProject* project, ResourceTypeIndex typeIndex);
     ~MtTilesetResourceList() = default;
 
     virtual const QString resourceTypeNameSingle() const final;

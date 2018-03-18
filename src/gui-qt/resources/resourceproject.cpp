@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "document.h"
+#include "resourceproject.h"
 #include "resourcevalidationworker.h"
 #include "models/resources/resources-serializer.h"
 #include "mttileset/mttilesetresourcelist.h"
@@ -16,7 +16,7 @@ using namespace UnTech::GuiQt::Resources;
 
 // _resourceLists order MUST match ResourceTypeIndex
 
-Document::Document(QObject* parent)
+ResourceProject::ResourceProject(QObject* parent)
     : AbstractDocument(parent)
     , _resourcesFile(std::make_unique<RES::ResourcesFile>())
     , _resourceLists({ {
@@ -30,13 +30,13 @@ Document::Document(QObject* parent)
 
     for (auto& rl : _resourceLists) {
         connect(rl, &AbstractResourceList::resourceItemCreated,
-                this, &Document::resourceItemCreated);
+                this, &ResourceProject::resourceItemCreated);
         connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
-                this, &Document::resourceItemAboutToBeRemoved);
+                this, &ResourceProject::resourceItemAboutToBeRemoved);
     }
 }
 
-void Document::setSelectedResource(AbstractResourceItem* item)
+void ResourceProject::setSelectedResource(AbstractResourceItem* item)
 {
     if (_selectedResource != item) {
         if (_selectedResource) {
@@ -47,21 +47,21 @@ void Document::setSelectedResource(AbstractResourceItem* item)
 
         if (_selectedResource) {
             connect(_selectedResource, &QObject::destroyed,
-                    this, &Document::onSelectedResourceDestroyed);
+                    this, &ResourceProject::onSelectedResourceDestroyed);
         }
 
         emit selectedResourceChanged();
     }
 }
 
-void Document::onSelectedResourceDestroyed(QObject* obj)
+void ResourceProject::onSelectedResourceDestroyed(QObject* obj)
 {
     if (_selectedResource == obj) {
         setSelectedResource(nullptr);
     }
 }
 
-const QString& Document::fileFilter() const
+const QString& ResourceProject::fileFilter() const
 {
     static const QString FILTER = QString::fromUtf8(
         "UnTech Resources File (*.utres);;All Files (*)");
@@ -69,13 +69,13 @@ const QString& Document::fileFilter() const
     return FILTER;
 }
 
-const QString& Document::defaultFileExtension() const
+const QString& ResourceProject::defaultFileExtension() const
 {
     static const QString EXTENSION = QString::fromUtf8("utres");
     return EXTENSION;
 }
 
-bool Document::saveDocumentFile(const QString& filename)
+bool ResourceProject::saveDocumentFile(const QString& filename)
 {
     RES::saveResourcesFile(*_resourcesFile, filename.toUtf8().data());
 
@@ -92,7 +92,7 @@ bool Document::saveDocumentFile(const QString& filename)
     return true;
 }
 
-bool Document::loadDocumentFile(const QString& filename)
+bool ResourceProject::loadDocumentFile(const QString& filename)
 {
     auto res = RES::loadResourcesFile(filename.toUtf8().data());
     if (res) {
@@ -103,14 +103,14 @@ bool Document::loadDocumentFile(const QString& filename)
     return false;
 }
 
-void Document::rebuildResourceLists()
+void ResourceProject::rebuildResourceLists()
 {
     for (auto* ri : _resourceLists) {
         ri->rebuildResourceItems();
     }
 }
 
-QList<AbstractExternalResourceItem*> Document::unsavedExternalResources() const
+QList<AbstractExternalResourceItem*> ResourceProject::unsavedExternalResources() const
 {
     QList<AbstractExternalResourceItem*> items;
 
@@ -127,7 +127,7 @@ QList<AbstractExternalResourceItem*> Document::unsavedExternalResources() const
     return items;
 }
 
-QStringList Document::unsavedFilenames() const
+QStringList ResourceProject::unsavedFilenames() const
 {
     QList<QString> filenames;
     bool resourceFileDirty = _undoStack->isClean() == false;

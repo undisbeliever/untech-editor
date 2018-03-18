@@ -11,7 +11,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class Document;
+class ResourceProject;
 
 class ResourceFilePropertyManager : public PropertyListManager {
     Q_OBJECT
@@ -28,13 +28,13 @@ public:
     explicit ResourceFilePropertyManager(QObject* parent = nullptr);
     ~ResourceFilePropertyManager() = default;
 
-    virtual void setDocument(Document* item) final;
+    virtual void setProject(ResourceProject* project) final;
 
     virtual QVariant data(int id) const final;
     virtual bool setData(int id, const QVariant& value) final;
 
 private:
-    Document* _document;
+    ResourceProject* _project;
 };
 }
 }

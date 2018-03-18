@@ -7,15 +7,15 @@
 #include "resourcevalidationworker.h"
 #include "abstractresourceitem.h"
 #include "abstractresourcelist.h"
-#include "document.h"
+#include "resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
-ResourceValidationWorker::ResourceValidationWorker(Document* document)
-    : QObject(document)
-    , _document(document)
+ResourceValidationWorker::ResourceValidationWorker(ResourceProject* project)
+    : QObject(project)
+    , _project(project)
 {
-    Q_ASSERT(document);
+    Q_ASSERT(project);
 
     _timer.setInterval(0);
     _timer.setSingleShot(true);
@@ -23,12 +23,12 @@ ResourceValidationWorker::ResourceValidationWorker(Document* document)
     connect(&_timer, &QTimer::timeout,
             this, &ResourceValidationWorker::processNextResource);
 
-    connect(_document, &Document::resourceItemCreated,
+    connect(_project, &ResourceProject::resourceItemCreated,
             this, &ResourceValidationWorker::onResourceItemCreated);
-    connect(_document, &Document::resourceItemAboutToBeRemoved,
+    connect(_project, &ResourceProject::resourceItemAboutToBeRemoved,
             this, &ResourceValidationWorker::onResourceItemAboutToBeRemoved);
 
-    connect(_document, &Document::resourceFileSettingsChanged,
+    connect(_project, &ResourceProject::resourceFileSettingsChanged,
             this, &ResourceValidationWorker::validateAllResources);
 }
 
@@ -73,7 +73,7 @@ void ResourceValidationWorker::validateAllResources()
     _timer.stop();
     QList<AbstractResourceItem*> items;
 
-    for (AbstractResourceList* rl : _document->resourceLists()) {
+    for (AbstractResourceList* rl : _project->resourceLists()) {
         for (AbstractResourceItem* item : rl->items()) {
             item->markUnchecked();
             items.append(item);

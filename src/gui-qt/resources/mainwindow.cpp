@@ -7,7 +7,7 @@
 #include "mainwindow.h"
 #include "abstractresourceitem.h"
 #include "common.h"
-#include "document.h"
+#include "resourceproject.h"
 #include "resourcevalidationworker.h"
 #include "gui-qt/common/aboutdialog.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
@@ -33,7 +33,7 @@ using namespace UnTech::GuiQt::Resources;
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
-    , _document(nullptr)
+    , _project(nullptr)
     , _selectedResource(nullptr)
     , _ui(std::make_unique<Ui::MainWindow>())
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
@@ -96,7 +96,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     readSettings();
 
-    setDocument(nullptr);
+    setProject(nullptr);
 
     connect(_undoGroup, &QUndoGroup::cleanChanged,
             this, &MainWindow::onUndoGroupCleanChanged);
@@ -120,29 +120,29 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow() = default;
 
-void MainWindow::loadDocument(const QString& filename)
+void MainWindow::loadProject(const QString& filename)
 {
-    std::unique_ptr<Document> doc = std::make_unique<Document>();
+    std::unique_ptr<ResourceProject> doc = std::make_unique<ResourceProject>();
     if (doc->loadDocument(filename)) {
-        setDocument(std::move(doc));
+        setProject(std::move(doc));
         _ui->menu_OpenRecent->addFilename(filename);
     }
 }
 
-void MainWindow::setDocument(std::unique_ptr<Document>&& document)
+void MainWindow::setProject(std::unique_ptr<ResourceProject>&& project)
 {
-    auto oldDocument = std::move(_document);
+    auto oldProject = std::move(_project);
 
-    if (_document) {
-        _document->disconnect(this);
+    if (_project) {
+        _project->disconnect(this);
     }
-    _document = std::move(document);
+    _project = std::move(project);
 
-    _ui->resourcesTreeDock->setDocument(_document.get());
-    _ui->errorListDock->setDocument(_document.get());
+    _ui->resourcesTreeDock->setProject(_project.get());
+    _ui->errorListDock->setProject(_project.get());
 
-    _resourceFileCentralWidget->setDocument(_document.get());
-    _resourceFilePropertiesWidget->setDocument(_document.get());
+    _resourceFileCentralWidget->setProject(_project.get());
+    _resourceFilePropertiesWidget->setProject(_project.get());
 
     // Close the errors dock as it is now empty
     _ui->errorListDock->close();
@@ -150,26 +150,26 @@ void MainWindow::setDocument(std::unique_ptr<Document>&& document)
     _ui->centralStackedWidget->setCurrentIndex(0);
     _ui->propertiesStackedWidget->setCurrentIndex(0);
 
-    if (_document != nullptr) {
-        Q_ASSERT(!_document->filename().isEmpty());
+    if (_project != nullptr) {
+        Q_ASSERT(!_project->filename().isEmpty());
 
-        _undoGroup->addStack(_document->undoStack());
-        _document->undoStack()->setActive();
+        _undoGroup->addStack(_project->undoStack());
+        _project->undoStack()->setActive();
 
-        _document->validationWorker()->validateAllResources();
+        _project->validationWorker()->validateAllResources();
 
         onSelectedResourceChanged();
 
-        for (AbstractResourceList* rl : _document->resourceLists()) {
+        for (AbstractResourceList* rl : _project->resourceLists()) {
             for (AbstractResourceItem* item : rl->items()) {
                 _undoGroup->addStack(item->undoStack());
             }
         }
 
-        connect(_document.get(), &Document::filenameChanged,
+        connect(_project.get(), &ResourceProject::filenameChanged,
                 this, &MainWindow::updateGuiFilePath);
 
-        connect(_document.get(), &Document::selectedResourceChanged,
+        connect(_project.get(), &ResourceProject::selectedResourceChanged,
                 this, &MainWindow::onSelectedResourceChanged);
     }
 
@@ -185,9 +185,9 @@ void MainWindow::updateGuiFilePath()
         filePath = exItem->absoluteFilePath();
         relativePath = exItem->relativeFilePath();
     }
-    else if (_document) {
-        filePath = _document->filename();
-        relativePath = QFileInfo(_document->filename()).fileName();
+    else if (_project) {
+        filePath = _project->filename();
+        relativePath = QFileInfo(_project->filename()).fileName();
     }
 
     setWindowFilePath(filePath);
@@ -218,13 +218,13 @@ void MainWindow::onSelectedResourceChanged()
         _selectedResource->disconnect(this);
     }
 
-    if (_document == nullptr) {
+    if (_project == nullptr) {
         _ui->centralStackedWidget->setCurrentIndex(0);
         _ui->propertiesStackedWidget->setCurrentIndex(0);
 
         return;
     }
-    _selectedResource = _document->selectedResource();
+    _selectedResource = _project->selectedResource();
 
     if (_selectedResource) {
         _selectedResource->undoStack()->setActive();
@@ -244,7 +244,7 @@ void MainWindow::onSelectedResourceChanged()
         }
     }
     else {
-        _document->undoStack()->setActive();
+        _project->undoStack()->setActive();
 
         _ui->centralStackedWidget->setCurrentIndex(0);
         _ui->propertiesStackedWidget->setCurrentIndex(0);
@@ -259,12 +259,12 @@ void MainWindow::onSelectedResourceChanged()
 
 bool MainWindow::unsavedChangesDialog()
 {
-    if (_document == nullptr) {
+    if (_project == nullptr) {
         return true;
     }
     bool success = true;
 
-    QStringList unsavedFilenames = _document->unsavedFilenames();
+    QStringList unsavedFilenames = _project->unsavedFilenames();
 
     if (!unsavedFilenames.isEmpty()) {
         QString dialogText;
@@ -300,7 +300,7 @@ void MainWindow::onMenuNew()
         return;
     }
 
-    auto doc = std::make_unique<Document>();
+    auto doc = std::make_unique<ResourceProject>();
 
     QFileDialog saveDialog(this, "Create New Resource File");
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -319,7 +319,7 @@ void MainWindow::onMenuNew()
         bool s = doc->saveDocument(filename);
         if (s) {
             _ui->menu_OpenRecent->addFilename(filename);
-            setDocument(std::move(doc));
+            setProject(std::move(doc));
         }
     }
 }
@@ -330,13 +330,13 @@ void MainWindow::onMenuOpen()
         return;
     }
 
-    std::unique_ptr<Document> doc = std::make_unique<Document>();
+    std::unique_ptr<ResourceProject> doc = std::make_unique<ResourceProject>();
 
     const QString filename = QFileDialog::getOpenFileName(
         this, tr("Open"), QString(), doc->fileFilter());
 
     if (!filename.isNull()) {
-        loadDocument(filename);
+        loadProject(filename);
     }
 }
 
@@ -348,12 +348,12 @@ void MainWindow::onMenuOpenRecent(QString filename)
         return;
     }
 
-    loadDocument(filename);
+    loadProject(filename);
 }
 
 void MainWindow::onMenuSave()
 {
-    Q_ASSERT(_document != nullptr);
+    Q_ASSERT(_project != nullptr);
     try {
         if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(_selectedResource)) {
             // current resource is external
@@ -364,8 +364,8 @@ void MainWindow::onMenuSave()
         else {
             // current resource is internal
 
-            Q_ASSERT(!_document->filename().isEmpty());
-            _document->saveDocument(_document->filename());
+            Q_ASSERT(!_project->filename().isEmpty());
+            _project->saveDocument(_project->filename());
         }
     }
     catch (const std::exception& ex) {
@@ -375,15 +375,15 @@ void MainWindow::onMenuSave()
 
 bool MainWindow::onMenuSaveAll()
 {
-    Q_ASSERT(_document != nullptr);
-    Q_ASSERT(!_document->filename().isEmpty());
+    Q_ASSERT(_project != nullptr);
+    Q_ASSERT(!_project->filename().isEmpty());
 
-    bool s = _document->saveDocument(_document->filename());
+    bool s = _project->saveDocument(_project->filename());
     if (s) {
-        _ui->menu_OpenRecent->addFilename(_document->filename());
+        _ui->menu_OpenRecent->addFilename(_project->filename());
     }
 
-    for (AbstractExternalResourceItem* item : _document->unsavedExternalResources()) {
+    for (AbstractExternalResourceItem* item : _project->unsavedExternalResources()) {
         try {
             item->saveResource();
             s &= true;

@@ -19,7 +19,7 @@ namespace Resources {
 namespace Ui {
 class MainWindow;
 }
-class Document;
+class ResourceProject;
 class AbstractResourceItem;
 class AbstractResourceWidget;
 class ResourceFilePropertiesWidget;
@@ -32,8 +32,8 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
-    void loadDocument(const QString& filename);
-    void setDocument(std::unique_ptr<Document>&& document);
+    void loadProject(const QString& filename);
+    void setProject(std::unique_ptr<ResourceProject>&& project);
 
 private slots:
     // updates windowTitle, windowFilePath and action_Save->text
@@ -61,7 +61,7 @@ protected:
     void saveSettings();
 
 private:
-    std::unique_ptr<Document> _document;
+    std::unique_ptr<ResourceProject> _project;
     AbstractResourceItem* _selectedResource;
 
     std::unique_ptr<Ui::MainWindow> _ui;

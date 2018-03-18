@@ -5,7 +5,7 @@
  */
 
 #include "abstractresourceitem.h"
-#include "document.h"
+#include "resourceproject.h"
 #include "resourcevalidationworker.h"
 
 #include <QDir>
@@ -112,7 +112,7 @@ AbstractExternalResourceItem::AbstractExternalResourceItem(AbstractResourceList*
 {
     setFilename(filename);
 
-    connect(_document, &Document::filenameChanged,
+    connect(_project, &ResourceProject::filenameChanged,
             this, &AbstractExternalResourceItem::updateRelativePath);
 }
 
@@ -147,12 +147,12 @@ void AbstractExternalResourceItem::saveResource() const
 
 void AbstractExternalResourceItem::updateRelativePath()
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_project);
 
     QString relPath = _absoluteFilePath;
 
     if (!_absoluteFilePath.isEmpty()) {
-        const auto& docFn = _document->filename();
+        const auto& docFn = _project->filename();
         if (!docFn.isEmpty()) {
             relPath = QFileInfo(docFn).absoluteDir().relativeFilePath(_absoluteFilePath);
         }

@@ -5,7 +5,7 @@
  */
 
 #include "resourcestreedock.h"
-#include "document.h"
+#include "resourceproject.h"
 #include "resourcestreemodel.h"
 #include "gui-qt/common/idstringdialog.h"
 #include "gui-qt/resources/resourcestreedock.ui.h"
@@ -21,7 +21,7 @@ ResourcesTreeDock::ResourcesTreeDock(QWidget* parent)
     , _ui(new Ui::ResourcesTreeDock)
     , _model(new ResourcesTreeModel)
     , _addResourceMenu(new QMenu(this))
-    , _document(nullptr)
+    , _project(nullptr)
 {
     _ui->setupUi(this);
 
@@ -37,7 +37,7 @@ ResourcesTreeDock::ResourcesTreeDock(QWidget* parent)
 
     setupAddResourceMenu();
 
-    setDocument(nullptr);
+    setProject(nullptr);
 
     connect(_ui->resourcesTree->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &ResourcesTreeDock::onResourcesTreeSelectionChanged);
@@ -50,7 +50,7 @@ ResourcesTreeDock::ResourcesTreeDock(QWidget* parent)
 
 void ResourcesTreeDock::setupAddResourceMenu()
 {
-    Document doc;
+    ResourceProject doc;
 
     _addResourceMenu->setTitle(tr("Add Resource"));
     _addResourceMenu->setIcon(QIcon(":/icons/add.svg"));
@@ -66,42 +66,42 @@ void ResourcesTreeDock::setupAddResourceMenu()
 
 ResourcesTreeDock::~ResourcesTreeDock() = default;
 
-void ResourcesTreeDock::setDocument(Document* document)
+void ResourcesTreeDock::setProject(ResourceProject* project)
 {
-    if (_document != nullptr) {
-        _document->disconnect(this);
+    if (_project != nullptr) {
+        _project->disconnect(this);
     }
-    _document = document;
+    _project = project;
 
-    _model->setDocument(document);
-    _addResourceMenu->setEnabled(_document);
-    _ui->addResourceAction->setEnabled(_document);
+    _model->setProject(project);
+    _addResourceMenu->setEnabled(_project);
+    _ui->addResourceAction->setEnabled(_project);
     _ui->removeResourceAction->setEnabled(false);
 
-    if (_document) {
+    if (_project) {
         onSelectedResourceChanged();
-        connect(_document, &Document::selectedResourceChanged,
+        connect(_project, &ResourceProject::selectedResourceChanged,
                 this, &ResourcesTreeDock::onSelectedResourceChanged);
     }
 
-    setEnabled(_document != nullptr);
+    setEnabled(_project != nullptr);
 
     _ui->resourcesTree->expandAll();
 }
 
 void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_project);
 
     const unsigned listId = action->data().toUInt();
-    Q_ASSERT(listId < _document->resourceLists().size());
+    Q_ASSERT(listId < _project->resourceLists().size());
 
-    AbstractResourceList* resourceList = _document->resourceLists().at(listId);
+    AbstractResourceList* resourceList = _project->resourceLists().at(listId);
     const auto& settings = resourceList->addResourceDialogSettings();
 
     QString input;
     if (!settings.filter.isEmpty() && !settings.title.isEmpty()) {
-        QDir dir(resourceList->document()->filename());
+        QDir dir(resourceList->project()->filename());
         dir.cdUp();
 
         QFileDialog dialog(this, settings.title);
@@ -117,7 +117,7 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
         dialog.exec();
 
         if (dialog.result() == QDialog::Accepted && !dialog.selectedFiles().empty()) {
-            Q_ASSERT(!_document->filename().isEmpty());
+            Q_ASSERT(!_project->filename().isEmpty());
 
             input = dialog.selectedFiles().first();
 
@@ -128,11 +128,11 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
                 QMessageBox::critical(this,
                                       tr("Error"),
                                       tr("Cannot add Resource: Resource file already in list."));
-                _document->setSelectedResource(*it);
+                _project->setSelectedResource(*it);
                 return;
             }
 
-            QString relativeFn = QFileInfo(_document->filename()).absoluteDir().relativeFilePath(input);
+            QString relativeFn = QFileInfo(_project->filename()).absoluteDir().relativeFilePath(input);
             if (relativeFn.startsWith("..") || QFileInfo(relativeFn).isRelative() == false) {
                 QMessageBox verifyDialog(QMessageBox::Warning,
                                          tr("Something is not quite right..."),
@@ -171,8 +171,8 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
 
 void ResourcesTreeDock::onRemoveResourceTriggered()
 {
-    Q_ASSERT(_document);
-    AbstractResourceItem* selected = _document->selectedResource();
+    Q_ASSERT(_project);
+    AbstractResourceItem* selected = _project->selectedResource();
     Q_ASSERT(selected);
     AbstractResourceList* resourceList = selected->resourceList();
     Q_ASSERT(resourceList);
@@ -192,7 +192,7 @@ void ResourcesTreeDock::onRemoveResourceTriggered()
 
 void ResourcesTreeDock::onSelectedResourceChanged()
 {
-    AbstractResourceItem* selected = _document->selectedResource();
+    AbstractResourceItem* selected = _project->selectedResource();
 
     QModelIndex index = _model->toModelIndex(selected);
     _ui->resourcesTree->setCurrentIndex(index);
@@ -202,11 +202,11 @@ void ResourcesTreeDock::onSelectedResourceChanged()
 
 void ResourcesTreeDock::onResourcesTreeSelectionChanged()
 {
-    if (_document == nullptr) {
+    if (_project == nullptr) {
         return;
     }
 
     QModelIndex index = _ui->resourcesTree->currentIndex();
     AbstractResourceItem* item = _model->toResourceItem(index);
-    _document->setSelectedResource(item);
+    _project->setSelectedResource(item);
 }
