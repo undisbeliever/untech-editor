@@ -44,6 +44,7 @@ protected:
 
 private:
     void commitMovedItems();
+    void removeAllFrameItems();
 
 private slots:
     void onLayerSettingsChanged();

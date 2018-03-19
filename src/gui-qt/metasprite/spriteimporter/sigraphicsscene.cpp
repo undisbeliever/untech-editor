@@ -63,11 +63,17 @@ void SiGraphicsScene::setDocument(Document* document)
     }
     _document = document;
 
-    buildFrameItems();
+    // reset scene
+    removeAllFrameItems();
+    _frameSetPixmap->setPixmap(QPixmap());
+    _paletteOutline->setPath(QPainterPath());
+    _paletteOutline->setVisible(false);
+    setSceneRect(QRect(0, 0, 0, 0));
 
     if (_document) {
         updateFrameSetPixmap();
         updatePaletteOutline();
+        buildFrameItems();
         onSelectedFrameChanged();
         updateSelection();
 
@@ -117,9 +123,6 @@ void SiGraphicsScene::setDocument(Document* document)
 
         connect(_document, &Document::frameContentsMoved,
                 this, &SiGraphicsScene::onFrameContentsMoved);
-    }
-    else {
-        _frameSetPixmap->setPixmap(QPixmap());
     }
 }
 
@@ -358,15 +361,22 @@ void SiGraphicsScene::updatePaletteOutline()
         _paletteOutline->setPath(QPainterPath());
         _paletteOutline->setVisible(false);
     }
+
+    setSceneRect(itemsBoundingRect());
 }
 
-void SiGraphicsScene::buildFrameItems()
+void SiGraphicsScene::removeAllFrameItems()
 {
     for (SiFrameGraphicsItem* frameItem : _frameItems) {
         removeItem(frameItem);
         delete frameItem;
     }
     _frameItems.clear();
+}
+
+void SiGraphicsScene::buildFrameItems()
+{
+    removeAllFrameItems();
 
     if (_document) {
         for (auto it : _document->frameSet()->frames) {
