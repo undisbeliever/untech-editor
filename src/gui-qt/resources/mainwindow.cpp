@@ -13,7 +13,10 @@
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/resources/mainwindow.ui.h"
 
+#include "errorlistdock.h"
 #include "genericpropertieswidget.h"
+#include "resourcestreedock.h"
+#include "tabbar.h"
 #include "mttileset/mttileseteditor.h"
 #include "palette/paletteeditor.h"
 #include "resourcefile/resourcefileeditor.h"
@@ -24,6 +27,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QSettings>
+#include <QVBoxLayout>
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
@@ -38,18 +42,46 @@ MainWindow::MainWindow(QWidget* parent)
 {
     _ui->setupUi(this);
 
-    // required when QMainWindow is inside a QWidget
-    _ui->documentWindow->setWindowFlags(Qt::Widget);
+    QWidget* centralWidget = new QWidget(this);
+    this->setCentralWidget(centralWidget);
+
+    QVBoxLayout* centralLayout = new QVBoxLayout(centralWidget);
+    centralLayout->setMargin(0);
+    centralLayout->setSpacing(0);
+    centralWidget->setLayout(centralLayout);
+
+    _tabBar = new TabBar(this);
+    centralLayout->addWidget(_tabBar);
+
+    _projectWindow = new QMainWindow(this);
+    centralLayout->addWidget(_projectWindow);
+
+    _resourcesTreeDock = new ResourcesTreeDock(_projectWindow);
+    _projectWindow->addDockWidget(Qt::LeftDockWidgetArea, _resourcesTreeDock);
+
+    _errorListDock = new ErrorListDock(_projectWindow);
+    _projectWindow->addDockWidget(Qt::BottomDockWidgetArea, _errorListDock);
+
+    _propertiesDock = new QDockWidget(_projectWindow);
+    _propertiesDock->setObjectName(QStringLiteral("propertiesDock"));
+    _propertiesDock->setWindowTitle(tr("Properties"));
+    _propertiesDock->setFeatures(QDockWidget::DockWidgetMovable);
+    _propertiesStackedWidget = new QStackedWidget(_propertiesDock);
+    _propertiesDock->setWidget(_propertiesStackedWidget);
+    _projectWindow->addDockWidget(Qt::RightDockWidgetArea, _propertiesDock);
+
+    _centralStackedWidget = new QStackedWidget(_projectWindow);
+    _projectWindow->setCentralWidget(_centralStackedWidget);
 
     // Have the left and right docks take up the whole height of the documentWindow
-    _ui->documentWindow->setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
-    _ui->documentWindow->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
-    _ui->documentWindow->setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
-    _ui->documentWindow->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+    _projectWindow->setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+    _projectWindow->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+    _projectWindow->setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+    _projectWindow->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
     // Update Menu
     {
-        _ui->action_AddResource->setMenu(_ui->resourcesTreeDock->addResourceMenu());
+        _ui->action_AddResource->setMenu(_resourcesTreeDock->addResourceMenu());
 
         QAction* undoAction = _undoGroup->createUndoAction(this);
         QAction* redoAction = _undoGroup->createRedoAction(this);
@@ -80,10 +112,10 @@ MainWindow::MainWindow(QWidget* parent)
 
     for (AbstractEditor* editor : _editors) {
         if (QWidget* w = editor->editorWidget()) {
-            _ui->centralStackedWidget->addWidget(w);
+            _centralStackedWidget->addWidget(w);
         }
         if (QWidget* w = editor->propertyWidget()) {
-            _ui->propertiesStackedWidget->addWidget(w);
+            _propertiesStackedWidget->addWidget(w);
         }
     };
 
@@ -94,7 +126,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(_undoGroup, &QUndoGroup::cleanChanged,
             this, &MainWindow::onUndoGroupCleanChanged);
 
-    connect(_ui->tabBar, &TabBar::closeProjectRequested,
+    connect(_tabBar, &TabBar::closeProjectRequested,
             this, &MainWindow::onMenuCloseProject);
 
     connect(_ui->action_New, &QAction::triggered,
@@ -136,12 +168,12 @@ void MainWindow::setProject(std::unique_ptr<ResourceProject>&& project)
     }
     _project = std::move(project);
 
-    _ui->tabBar->setProject(_project.get());
-    _ui->resourcesTreeDock->setProject(_project.get());
-    _ui->errorListDock->setProject(_project.get());
+    _tabBar->setProject(_project.get());
+    _resourcesTreeDock->setProject(_project.get());
+    _errorListDock->setProject(_project.get());
 
     // Close the errors dock as it is now empty
-    _ui->errorListDock->close();
+    _errorListDock->close();
 
     if (_project != nullptr) {
         Q_ASSERT(!_project->filename().isEmpty());
@@ -239,8 +271,8 @@ void MainWindow::onSelectedResourceChanged()
     for (AbstractEditor* editor : _editors) {
         bool s = editor->setResourceItem(_project.get(), _selectedResource);
         if (s) {
-            _ui->centralStackedWidget->setCurrentWidget(editor->editorWidget());
-            _ui->propertiesStackedWidget->setCurrentWidget(editor->propertyWidget());
+            _centralStackedWidget->setCurrentWidget(editor->editorWidget());
+            _propertiesStackedWidget->setCurrentWidget(editor->propertyWidget());
         }
     }
 }

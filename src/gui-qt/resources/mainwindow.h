@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QStackedWidget>
 #include <QUndoGroup>
 #include <memory>
 
@@ -22,6 +23,9 @@ class MainWindow;
 class AbstractEditor;
 class ResourceProject;
 class AbstractResourceItem;
+class TabBar;
+class ResourcesTreeDock;
+class ErrorListDock;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -64,6 +68,15 @@ private:
     AbstractResourceItem* _selectedResource;
 
     std::unique_ptr<Ui::MainWindow> _ui;
+
+    TabBar* _tabBar;
+    QMainWindow* _projectWindow;
+    ResourcesTreeDock* _resourcesTreeDock;
+    ErrorListDock* _errorListDock;
+    QDockWidget* _propertiesDock;
+
+    QStackedWidget* _propertiesStackedWidget;
+    QStackedWidget* _centralStackedWidget;
 
     ZoomSettings* _zoomSettings;
     QUndoGroup* _undoGroup;

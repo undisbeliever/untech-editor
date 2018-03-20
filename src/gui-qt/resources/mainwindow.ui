@@ -13,61 +13,6 @@
   <property name="windowTitle">
    <string>UnTech Resources Editor</string>
   </property>
-  <widget class="QWidget" name="centralWidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <property name="spacing">
-     <number>0</number>
-    </property>
-    <property name="leftMargin">
-     <number>0</number>
-    </property>
-    <property name="topMargin">
-     <number>0</number>
-    </property>
-    <property name="rightMargin">
-     <number>0</number>
-    </property>
-    <property name="bottomMargin">
-     <number>0</number>
-    </property>
-    <item>
-     <widget class="TabBar" name="tabBar" native="true"/>
-    </item>
-    <item>
-     <widget class="QMainWindow" name="documentWindow">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <widget class="QStackedWidget" name="centralStackedWidget"/>
-      <widget class="ResourcesTreeDock" name="resourcesTreeDock">
-       <attribute name="dockWidgetArea">
-        <number>1</number>
-       </attribute>
-      </widget>
-      <widget class="QDockWidget" name="propertiesDock">
-       <property name="features">
-        <set>QDockWidget::DockWidgetMovable</set>
-       </property>
-       <property name="windowTitle">
-        <string>Properties</string>
-       </property>
-       <attribute name="dockWidgetArea">
-        <number>2</number>
-       </attribute>
-       <widget class="QStackedWidget" name="propertiesStackedWidget"/>
-      </widget>
-      <widget class="ErrorListDock" name="errorListDock">
-       <attribute name="dockWidgetArea">
-        <number>8</number>
-       </attribute>
-      </widget>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -196,23 +141,6 @@
    <class>OpenRecentMenu</class>
    <extends>QMenu</extends>
    <header>gui-qt/common/openrecentmenu.h</header>
-  </customwidget>
-  <customwidget>
-   <class>ResourcesTreeDock</class>
-   <extends>QDockWidget</extends>
-   <header>gui-qt/resources/resourcestreedock.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ErrorListDock</class>
-   <extends>QDockWidget</extends>
-   <header>gui-qt/resources/errorlistdock.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>TabBar</class>
-   <extends>QWidget</extends>
-   <header>gui-qt/resources/tabbar.h</header>
   </customwidget>
  </customwidgets>
  <resources>
