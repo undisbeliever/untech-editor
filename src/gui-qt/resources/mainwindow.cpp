@@ -446,12 +446,14 @@ void MainWindow::readSettings()
 {
     QSettings settings;
     restoreGeometry(settings.value("geometry").toByteArray());
-    restoreState(settings.value("window_state").toByteArray());
+    this->restoreState(settings.value("window_state").toByteArray());
+    _projectWindow->restoreState(settings.value("pwin_state").toByteArray());
 }
 
 void MainWindow::saveSettings()
 {
     QSettings settings;
     settings.setValue("geometry", saveGeometry());
-    settings.setValue("window_state", saveState());
+    settings.setValue("window_state", this->saveState());
+    settings.setValue("pwin_state", _projectWindow->saveState());
 }
