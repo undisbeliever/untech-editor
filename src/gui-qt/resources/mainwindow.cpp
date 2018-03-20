@@ -163,8 +163,8 @@ void MainWindow::setProject(std::unique_ptr<ResourceProject>&& project)
 {
     auto oldProject = std::move(_project);
 
-    if (_project) {
-        _project->disconnect(this);
+    if (oldProject) {
+        oldProject->disconnect(this);
     }
     _project = std::move(project);
 

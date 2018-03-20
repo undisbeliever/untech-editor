@@ -95,8 +95,8 @@ void AbstractSingleDocumentMainWindow::setDocument(std::unique_ptr<AbstractDocum
 {
     auto oldDocument = std::move(_document);
 
-    if (_document) {
-        _document->disconnect(this);
+    if (oldDocument) {
+        oldDocument->disconnect(this);
     }
     _document = std::move(document);
 
