@@ -64,7 +64,9 @@ void TabBar::setProject(ResourceProject* project)
 void TabBar::resetTabs()
 {
     for (AbstractResourceItem* item : _tabResources) {
-        item->disconnect(this);
+        if (item) {
+            item->disconnect(this);
+        }
     }
     _tabResources.clear();
 
