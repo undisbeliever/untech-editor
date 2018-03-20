@@ -242,6 +242,12 @@ bool AbstractSingleDocumentMainWindow::unsavedChangesDialog()
 void AbstractSingleDocumentMainWindow::readSettings()
 {
     QSettings settings;
+
+    if (!settings.contains("window_state")) {
+        // required to prevent docks from resizing on layout change
+        saveSettings();
+    }
+
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("window_state").toByteArray());
 }

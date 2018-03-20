@@ -445,6 +445,12 @@ void MainWindow::closeEvent(QCloseEvent* event)
 void MainWindow::readSettings()
 {
     QSettings settings;
+
+    if (!settings.contains("pwin_state")) {
+        // required to prevent docks from resizing on layout change
+        saveSettings();
+    }
+
     restoreGeometry(settings.value("geometry").toByteArray());
     this->restoreState(settings.value("window_state").toByteArray());
     _projectWindow->restoreState(settings.value("pwin_state").toByteArray());
