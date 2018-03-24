@@ -8,8 +8,10 @@ used by the
 This editor is a work in progress and the data formats may be subject to
 changes in the future.
 
-It currently contains 7 apps:
+It currently contains 8 apps:
 
+ * `untech-editor-gui`: A graphical UI for editing files used by the
+    compilers.
  * `untech-utsi2utms`: A CLI utility for converting sprite sheets into
    MetaSprites.
  * `untech-msc`: A CLI utility for compiling MetaSprites to an assembly

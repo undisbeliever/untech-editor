@@ -25,5 +25,11 @@
  <file>icons/resource-unchecked.svg</file>
  <file>icons/resource-error.svg</file>
  <file>icons/resource-valid.svg</file>
+ <file>icons/add-action-point.svg</file>
+ <file>icons/add-entity-hitbox.svg</file>
+ <file>icons/add-frame-object.svg</file>
+ <file>icons/flip-horizontally.svg</file>
+ <file>icons/flip-vertically.svg</file>
+ <file>icons/toggle-obj-size.svg</file>
 </qresource>
 </RCC>

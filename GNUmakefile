@@ -181,8 +181,9 @@ CLI_APPS        := $(patsubst src/cli/%.cpp,$(BIN_DIR)/%$(BIN_EXT),$(CLI_SRC))
 TEST_SRC        := $(wildcard src/test-utils/*.cpp)
 TEST_UTILS      := $(patsubst src/test-utils/%.cpp,$(BIN_DIR)/test-utils/%$(BIN_EXT),$(TEST_SRC))
 
-GUI_QT_SRC         := $(wildcard src/gui-qt/*.cpp)
-GUI_QT_APPS        := $(patsubst src/gui-qt/%.cpp,$(BIN_DIR)/%-gui$(BIN_EXT),$(GUI_QT_SRC))
+GUI_QT_SRC         := $(filter src/models/% src/gui-qt/%, $(SRCS))
+GUI_QT_OBJS        := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(GUI_QT_SRC))
+GUI_QT_APP         := $(BIN_DIR)/untech-editor-gui$(BIN_EXT)
 
 GUI_QT_MOC_HEADERS := $(wildcard src/gui-qt/*.h src/gui-qt/*/*.h src/gui-qt/*/*/*.h src/gui-qt/*/*/*/*.h)
 GUI_QT_MOC_GEN     := $(patsubst src/%.h,$(GEN_DIR)/%.moc.cpp,$(GUI_QT_MOC_HEADERS))
@@ -196,7 +197,7 @@ GUI_QT_RES_QRC     := $(wildcard resources/*.qrc)
 GUI_QT_RES_GEN     := $(patsubst resources/%.qrc,$(GEN_DIR)/resources/%.cpp,$(GUI_QT_RES_QRC))
 GUI_QT_RES_OBJS    := $(patsubst resources/%.qrc,$(OBJ_DIR)/resources/%.o,$(GUI_QT_RES_QRC))
 
-GEN_OBJS           := $(GUI_QT_UI_OBJS) $(GUI_QT_MOC_OBJS) $(GUI_QT_RES_OBJS)
+GEN_QT_OBJS        := $(GUI_QT_UI_OBJS) $(GUI_QT_MOC_OBJS) $(GUI_QT_RES_OBJS)
 
 # Third party libs
 THIRD_PARTY_LODEPNG := $(OBJ_DIR)/vendor/lodepng/lodepng.o
@@ -215,7 +216,7 @@ cli: dirs $(CLI_APPS)
 test-utils: dirs $(TEST_UTILS)
 
 .PHONY: gui-qt
-gui-qt: dirs $(GUI_QT_APPS)
+gui-qt: dirs $(GUI_QT_APP)
 
 
 PERCENT = %
@@ -246,6 +247,8 @@ $(call test-util-modules, spriteimporter-serializer-test,       common snes meta
 $(call test-util-modules, resources-file-serializer-test,       common snes resources metatiles lz4)
 $(call test-util-modules, metatiles-tileset-serializer-test,    common snes resources metatiles lz4)
 
+$(GUI_QT_APP): $(GUI_QT_OBJS) $(GEN_QT_OBJS) $(THIRD_PARTY_OBJS)
+
 
 # Disable Builtin rules
 .SUFFIXES:
@@ -254,11 +257,11 @@ MAKEFLAGS += --no-builtin-rules
 
 
 DEPS := $(OBJS:.o=.d)
-DEPS += $(GEN_OBJS:.o=.d)
+DEPS += $(GEN_QT_OBJS:.o=.d)
 DEPS += $(THIRD_PARTY_OBJS:.o=.d)
 -include $(DEPS)
 
-$(GUI_QT_APPS): $(BIN_DIR)/%-gui$(BIN_EXT): $(OBJ_DIR)/gui-qt/%.o
+$(GUI_QT_APP):
 	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(GUI_QT_LIBS) $(LIBS)
 
 $(TEST_UTILS): $(BIN_DIR)/test-utils/%$(BIN_EXT): $(OBJ_DIR)/test-utils/%.o
@@ -310,7 +313,7 @@ $(foreach r,$(GUI_QT_RES_QRC),$(eval $(r:resources/%.qrc=$(GEN_DIR)/resources/%.
 
 
 .PHONY: dirs
-OBJECT_DIRS := $(sort $(dir $(OBJS) $(GEN_OBJS) $(THIRD_PARTY_OBJS)))
+OBJECT_DIRS := $(sort $(dir $(OBJS) $(GEN_QT_OBJS) $(THIRD_PARTY_OBJS)))
 GEN_DIRS := $(sort $(dir $(GUI_QT_UI_GEN) $(GUI_QT_MOC_GEN) $(GUI_QT_RES_GEN)))
 dirs: $(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS)
 $(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS):
