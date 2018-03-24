@@ -231,17 +231,6 @@ define test-util-modules
 $(call cli-modules, test-utils/$(strip $1), $(strip $2))
 endef
 
-# usage: <bin> <resource file> <modules>
-define gui-qt-modules
-$(BIN_DIR)/$(strip $1)$(BIN_EXT): \
-  $(filter $(patsubst %,$(OBJ_DIR)/models/%/$(PERCENT),$3), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui-qt/%/$(PERCENT),$3), $(OBJS)) \
-  $(filter $(patsubst %,$(OBJ_DIR)/gui-qt/%/$(PERCENT),$3), $(GUI_QT_MOC_OBJS)) \
-  $(OBJ_DIR)/resources/$(strip $2).o \
-  $(THIRD_PARTY_LODEPNG) \
-  $(if $(filter lz4,$3), $(THIRD_PARTY_LZ4))
-endef
-
 
 # Select the modules used by the apps
 $(call cli-modules, untech-lz4c,                common lz4)
@@ -256,11 +245,6 @@ $(call test-util-modules, metasprite-serializer-test,           common snes meta
 $(call test-util-modules, spriteimporter-serializer-test,       common snes metasprite)
 $(call test-util-modules, resources-file-serializer-test,       common snes resources metatiles lz4)
 $(call test-util-modules, metatiles-tileset-serializer-test,    common snes resources metatiles lz4)
-
-$(call gui-qt-modules, untech-metasprite-gui,     metasprite, common snes metasprite)
-$(call gui-qt-modules, untech-spriteimporter-gui, metasprite, common snes metasprite)
-$(call gui-qt-modules, untech-resources-gui,      resources, common snes metatiles resources lz4)
-
 
 
 # Disable Builtin rules
