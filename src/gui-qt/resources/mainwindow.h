@@ -21,7 +21,7 @@ namespace Ui {
 class MainWindow;
 }
 class AbstractEditor;
-class ResourceProject;
+class AbstractProject;
 class AbstractResourceItem;
 class TabBar;
 class ResourcesTreeDock;
@@ -35,7 +35,7 @@ public:
     ~MainWindow();
 
     void loadProject(const QString& filename);
-    void setProject(std::unique_ptr<ResourceProject>&& project);
+    void setProject(std::unique_ptr<AbstractProject>&& project);
 
 private slots:
     // updates windowTitle, windowFilePath and action_Save->text
@@ -64,7 +64,7 @@ protected:
     void saveSettings();
 
 private:
-    std::unique_ptr<ResourceProject> _project;
+    std::unique_ptr<AbstractProject> _project;
     AbstractResourceItem* _selectedResource;
 
     std::unique_ptr<Ui::MainWindow> _ui;

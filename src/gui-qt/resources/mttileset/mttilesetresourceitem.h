@@ -14,6 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+class MtTilesetResourceList;
 
 namespace MT = UnTech::MetaTiles;
 
@@ -24,8 +25,10 @@ public:
     using DataT = MT::MetaTileTilesetInput;
 
 public:
-    MtTilesetResourceItem(AbstractResourceList* parent, size_t index);
+    MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index);
     ~MtTilesetResourceItem() = default;
+
+    ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
 
 public:
     // may be nullptr

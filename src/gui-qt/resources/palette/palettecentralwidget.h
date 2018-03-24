@@ -18,8 +18,6 @@ namespace Resources {
 namespace Ui {
 class PaletteCentralWidget;
 }
-
-class ResourceProject;
 class PaletteResourceItem;
 class PaletteGraphicsItem;
 

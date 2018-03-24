@@ -5,60 +5,20 @@
  */
 
 #include "resourceproject.h"
-#include "resourcevalidationworker.h"
 #include "models/resources/resources-serializer.h"
 #include "mttileset/mttilesetresourcelist.h"
 #include "palette/paletteresourcelist.h"
 
-#include <QFileInfo>
-
 using namespace UnTech::GuiQt::Resources;
 
-// _resourceLists order MUST match ResourceTypeIndex
-
 ResourceProject::ResourceProject(QObject* parent)
-    : AbstractDocument(parent)
+    : AbstractProject(parent)
     , _resourcesFile(std::make_unique<RES::ResourcesFile>())
-    , _resourceLists({ {
-          new PaletteResourceList(this, ResourceTypeIndex::PALETTE),
-          new MtTilesetResourceList(this, ResourceTypeIndex::MT_TILESET),
-      } })
-    , _validationWorker(new ResourceValidationWorker(this))
-    , _selectedResource(nullptr)
 {
-    rebuildResourceLists();
-
-    for (auto& rl : _resourceLists) {
-        connect(rl, &AbstractResourceList::resourceItemCreated,
-                this, &ResourceProject::resourceItemCreated);
-        connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
-                this, &ResourceProject::resourceItemAboutToBeRemoved);
-    }
-}
-
-void ResourceProject::setSelectedResource(AbstractResourceItem* item)
-{
-    if (_selectedResource != item) {
-        if (_selectedResource) {
-            _selectedResource->disconnect(this);
-        }
-
-        _selectedResource = item;
-
-        if (_selectedResource) {
-            connect(_selectedResource, &QObject::destroyed,
-                    this, &ResourceProject::onSelectedResourceDestroyed);
-        }
-
-        emit selectedResourceChanged();
-    }
-}
-
-void ResourceProject::onSelectedResourceDestroyed(QObject* obj)
-{
-    if (_selectedResource == obj) {
-        setSelectedResource(nullptr);
-    }
+    initResourceLists({
+        new PaletteResourceList(this, ResourceTypeIndex::PALETTE),
+        new MtTilesetResourceList(this, ResourceTypeIndex::MT_TILESET),
+    });
 }
 
 const QString& ResourceProject::fileFilter() const
@@ -81,7 +41,7 @@ bool ResourceProject::saveDocumentFile(const QString& filename)
 
     // Mark all internal resources as clean
     _undoStack->setClean();
-    for (AbstractResourceList* rl : _resourceLists) {
+    for (AbstractResourceList* rl : resourceLists()) {
         for (AbstractResourceItem* item : rl->items()) {
             if (auto* inItem = qobject_cast<AbstractInternalResourceItem*>(item)) {
                 inItem->undoStack()->setClean();
@@ -101,56 +61,4 @@ bool ResourceProject::loadDocumentFile(const QString& filename)
         return true;
     }
     return false;
-}
-
-void ResourceProject::rebuildResourceLists()
-{
-    for (auto* ri : _resourceLists) {
-        ri->rebuildResourceItems();
-    }
-}
-
-QList<AbstractExternalResourceItem*> ResourceProject::unsavedExternalResources() const
-{
-    QList<AbstractExternalResourceItem*> items;
-
-    for (AbstractResourceList* rl : _resourceLists) {
-        for (AbstractResourceItem* item : rl->items()) {
-            if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(item)) {
-                if (exItem->undoStack()->isClean() == false) {
-                    items.append(exItem);
-                }
-            }
-        }
-    }
-
-    return items;
-}
-
-QStringList ResourceProject::unsavedFilenames() const
-{
-    QList<QString> filenames;
-    bool resourceFileDirty = _undoStack->isClean() == false;
-
-    for (AbstractResourceList* rl : _resourceLists) {
-        for (AbstractResourceItem* item : rl->items()) {
-            if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(item)) {
-                if (exItem->undoStack()->isClean() == false) {
-                    filenames.append(exItem->relativeFilePath());
-                }
-            }
-            else {
-                // internal resource
-                if (item->undoStack()->isClean() == false) {
-                    resourceFileDirty = true;
-                }
-            }
-        }
-    }
-
-    if (resourceFileDirty) {
-        filenames.prepend(QFileInfo(filename()).fileName());
-    }
-
-    return filenames;
 }

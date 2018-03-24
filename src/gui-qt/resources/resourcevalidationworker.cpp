@@ -5,13 +5,13 @@
  */
 
 #include "resourcevalidationworker.h"
+#include "abstractproject.h"
 #include "abstractresourceitem.h"
 #include "abstractresourcelist.h"
-#include "resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
-ResourceValidationWorker::ResourceValidationWorker(ResourceProject* project)
+ResourceValidationWorker::ResourceValidationWorker(AbstractProject* project)
     : QObject(project)
     , _project(project)
 {
@@ -23,12 +23,12 @@ ResourceValidationWorker::ResourceValidationWorker(ResourceProject* project)
     connect(&_timer, &QTimer::timeout,
             this, &ResourceValidationWorker::processNextResource);
 
-    connect(_project, &ResourceProject::resourceItemCreated,
+    connect(_project, &AbstractProject::resourceItemCreated,
             this, &ResourceValidationWorker::onResourceItemCreated);
-    connect(_project, &ResourceProject::resourceItemAboutToBeRemoved,
+    connect(_project, &AbstractProject::resourceItemAboutToBeRemoved,
             this, &ResourceValidationWorker::onResourceItemAboutToBeRemoved);
 
-    connect(_project, &ResourceProject::resourceFileSettingsChanged,
+    connect(_project, &AbstractProject::resourceFileSettingsChanged,
             this, &ResourceValidationWorker::validateAllResources);
 }
 

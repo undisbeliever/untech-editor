@@ -14,7 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class ResourceProject;
+class AbstractProject;
 class AbstractResourceList;
 
 namespace RES = UnTech::Resources;
@@ -41,7 +41,7 @@ public:
 
     ~AbstractResourceItem() = default;
 
-    ResourceProject* project() const { return _project; }
+    AbstractProject* project() const { return _project; }
     QUndoStack* undoStack() const { return _undoStack; }
 
     inline int index() const { return _index; }
@@ -88,7 +88,7 @@ signals:
 
 protected:
     AbstractResourceList* const _list;
-    ResourceProject* const _project;
+    AbstractProject* const _project;
 
 private:
     QUndoStack* const _undoStack;

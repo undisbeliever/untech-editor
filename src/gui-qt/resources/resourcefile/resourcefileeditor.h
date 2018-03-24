@@ -10,6 +10,7 @@
 #include "resourcefilepropertieswidget.h"
 #include "gui-qt/resources/abstracteditor.h"
 #include "gui-qt/resources/genericpropertieswidget.h"
+#include "gui-qt/resources/resourceproject.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -27,13 +28,15 @@ public:
     }
     ~ResourceFileEditor() = default;
 
-    virtual bool setResourceItem(ResourceProject* project, AbstractResourceItem* item)
+    virtual bool setResourceItem(AbstractProject* aProject, AbstractResourceItem* item)
     {
+        ResourceProject* project = qobject_cast<ResourceProject*>(aProject);
+
         _editorWidget->setProject(project);
         _propertyWidget->setProject(project);
 
         // show this editor when no item is selected
-        return item == nullptr;
+        return project != nullptr && item == nullptr;
     }
 
     virtual QWidget* editorWidget() const final { return _editorWidget; }

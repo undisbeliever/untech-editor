@@ -22,8 +22,6 @@ namespace Resources {
 namespace Ui {
 class MtTilesetCentralWidget;
 }
-
-class ResourceProject;
 class MtTilesetResourceItem;
 class MtTilesetGraphicsItem;
 

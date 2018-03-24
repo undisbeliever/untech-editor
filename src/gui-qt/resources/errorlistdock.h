@@ -15,7 +15,7 @@ namespace Resources {
 namespace Ui {
 class ErrorListDock;
 }
-class ResourceProject;
+class AbstractProject;
 class AbstractResourceItem;
 
 class ErrorListDock : public QDockWidget {
@@ -25,7 +25,7 @@ public:
     ErrorListDock(QWidget* parent = nullptr);
     ~ErrorListDock();
 
-    void setProject(ResourceProject* project);
+    void setProject(AbstractProject* project);
 
 private slots:
     void onSelectedResourceChanged();
@@ -34,7 +34,7 @@ private slots:
 
 private:
     std::unique_ptr<Ui::ErrorListDock> _ui;
-    ResourceProject* _project;
+    AbstractProject* _project;
     AbstractResourceItem* _currentItem;
 };
 }

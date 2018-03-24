@@ -5,10 +5,11 @@
  */
 
 #include "paletteresourceitem.h"
+#include "paletteresourcelist.h"
 
 using namespace UnTech::GuiQt::Resources;
 
-PaletteResourceItem::PaletteResourceItem(AbstractResourceList* parent, size_t index)
+PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t index)
     : AbstractInternalResourceItem(parent, index)
 {
     Q_ASSERT(index < palettesData().size());
@@ -37,7 +38,7 @@ void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
 
 bool PaletteResourceItem::compileResource(RES::ErrorList& err)
 {
-    const auto& res = _project->resourcesFile();
+    const auto& res = project()->resourcesFile();
     Q_ASSERT(res);
     const RES::PaletteInput* pal = paletteData();
     Q_ASSERT(pal);

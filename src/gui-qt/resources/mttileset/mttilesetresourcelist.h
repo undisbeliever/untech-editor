@@ -22,6 +22,8 @@ public:
     MtTilesetResourceList(ResourceProject* project, ResourceTypeIndex typeIndex);
     ~MtTilesetResourceList() = default;
 
+    ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
+
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
     virtual const AddResourceDialogSettings& addResourceDialogSettings() const final;

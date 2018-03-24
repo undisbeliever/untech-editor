@@ -13,7 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class ResourceProject;
+class AbstractProject;
 class AbstractResourceItem;
 
 class AbstractResourceList : public QObject {
@@ -30,12 +30,12 @@ public:
     };
 
 public:
-    AbstractResourceList(ResourceProject* project, ResourceTypeIndex typeIndex);
+    AbstractResourceList(AbstractProject* project, ResourceTypeIndex typeIndex);
     ~AbstractResourceList() = default;
 
     ResourceTypeIndex resourceTypeIndex() const { return _resourceTypeIndex; }
 
-    ResourceProject* project() const { return _project; }
+    AbstractProject* project() const { return _project; }
 
     const QVector<AbstractResourceItem*>& items() const { return _items; }
     const ResourceState& state() const { return _state; }
@@ -63,7 +63,7 @@ protected:
     virtual void do_removeResource(unsigned index) = 0;
 
 private:
-    friend class ResourceProject;
+    friend class AbstractProject;
     void rebuildResourceItems();
 
     // does not emit listChanged()
@@ -78,8 +78,10 @@ signals:
     void resourceItemCreated(AbstractResourceItem* item);
     void resourceItemAboutToBeRemoved(AbstractResourceItem* item);
 
+protected:
+    AbstractProject* const _project;
+
 private:
-    ResourceProject* const _project;
     const ResourceTypeIndex _resourceTypeIndex;
     ResourceState _state;
     QVector<AbstractResourceItem*> _items;

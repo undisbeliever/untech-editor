@@ -5,9 +5,9 @@
  */
 
 #include "resourcestreemodel.h"
+#include "abstractproject.h"
 #include "abstractresourceitem.h"
 #include "abstractresourcelist.h"
-#include "resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -23,7 +23,7 @@ ResourcesTreeModel::ResourcesTreeModel(QObject* parent)
 {
 }
 
-void ResourcesTreeModel::setProject(ResourceProject* project)
+void ResourcesTreeModel::setProject(AbstractProject* project)
 {
     if (_project) {
         _project->disconnect(this);
@@ -41,7 +41,7 @@ void ResourcesTreeModel::setProject(ResourceProject* project)
     _project = project;
 
     if (_project) {
-        connect(_project, &ResourceProject::resourceItemCreated,
+        connect(_project, &AbstractProject::resourceItemCreated,
                 this, &ResourcesTreeModel::connectResourceItemSignals);
 
         for (AbstractResourceList* rl : _project->resourceLists()) {
@@ -172,12 +172,12 @@ QModelIndex ResourcesTreeModel::index(int row, int column, const QModelIndex& pa
     const auto& rl = _project->resourceLists();
 
     if (!parent.isValid()) {
-        if ((unsigned)row < rl.size()) {
+        if (row < rl.size()) {
             return createIndex(row, column, ROOT_INTERNAL_ID);
         }
     }
     else {
-        if ((unsigned)parent.row() < rl.size()) {
+        if (parent.row() < rl.size()) {
             const auto& items = rl.at(parent.row())->items();
 
             if (row < items.size()) {
@@ -198,7 +198,7 @@ QModelIndex ResourcesTreeModel::parent(const QModelIndex& index) const
         return QModelIndex();
     }
 
-    if (index.internalId() <= ResourceProject::N_RESOURCE_TYPES) {
+    if (long(index.internalId()) < _project->resourceLists().size()) {
         return createIndex(index.internalId(), 0, ROOT_INTERNAL_ID);
     }
     return QModelIndex();
@@ -220,7 +220,7 @@ int ResourcesTreeModel::rowCount(const QModelIndex& parent) const
     }
 
     const auto& rl = _project->resourceLists();
-    const unsigned row = parent.row();
+    const int row = parent.row();
 
     if (!parent.isValid()) {
         return rl.size();
@@ -272,7 +272,7 @@ QVariant ResourcesTreeModel::data(const QModelIndex& index, int role) const
         return QVariant();
     }
 
-    const quintptr internalId = index.internalId();
+    const long internalId = index.internalId();
     const int row = index.row();
     const auto& rl = _project->resourceLists();
 

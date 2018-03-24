@@ -5,7 +5,9 @@
  */
 
 #include "resourcestreedock.h"
-#include "resourceproject.h"
+#include "abstractproject.h"
+#include "abstractresourceitem.h"
+#include "abstractresourcelist.h"
 #include "resourcestreemodel.h"
 #include "gui-qt/common/idstringdialog.h"
 #include "gui-qt/resources/resourcestreedock.ui.h"
@@ -50,23 +52,25 @@ ResourcesTreeDock::ResourcesTreeDock(QWidget* parent)
 
 void ResourcesTreeDock::setupAddResourceMenu()
 {
-    ResourceProject doc;
-
     _addResourceMenu->setTitle(tr("Add Resource"));
     _addResourceMenu->setIcon(QIcon(":/icons/add.svg"));
 
     _addResourceMenu->clear();
-    for (const AbstractResourceList* rl : doc.resourceLists()) {
-        QAction* m = _addResourceMenu->addAction(
-            tr("Add %1").arg(rl->resourceTypeNameSingle()));
+    _addResourceMenu->setEnabled(_project != nullptr);
 
-        m->setData((unsigned)rl->resourceTypeIndex());
+    if (_project) {
+        for (const AbstractResourceList* rl : _project->resourceLists()) {
+            QAction* m = _addResourceMenu->addAction(
+                tr("Add %1").arg(rl->resourceTypeNameSingle()));
+
+            m->setData((unsigned)rl->resourceTypeIndex());
+        }
     }
 }
 
 ResourcesTreeDock::~ResourcesTreeDock() = default;
 
-void ResourcesTreeDock::setProject(ResourceProject* project)
+void ResourcesTreeDock::setProject(AbstractProject* project)
 {
     if (_project != nullptr) {
         _project->disconnect(this);
@@ -78,9 +82,11 @@ void ResourcesTreeDock::setProject(ResourceProject* project)
     _ui->addResourceAction->setEnabled(_project);
     _ui->removeResourceAction->setEnabled(false);
 
+    setupAddResourceMenu();
+
     if (_project) {
         onSelectedResourceChanged();
-        connect(_project, &ResourceProject::selectedResourceChanged,
+        connect(_project, &AbstractProject::selectedResourceChanged,
                 this, &ResourcesTreeDock::onSelectedResourceChanged);
     }
 
@@ -93,7 +99,7 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
 {
     Q_ASSERT(_project);
 
-    const unsigned listId = action->data().toUInt();
+    const int listId = action->data().toInt();
     Q_ASSERT(listId < _project->resourceLists().size());
 
     AbstractResourceList* resourceList = _project->resourceLists().at(listId);

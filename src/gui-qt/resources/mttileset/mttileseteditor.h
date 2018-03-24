@@ -30,7 +30,7 @@ public:
     }
     ~MtTilesetEditor() = default;
 
-    virtual bool setResourceItem(ResourceProject*, AbstractResourceItem* aItem)
+    virtual bool setResourceItem(AbstractProject*, AbstractResourceItem* aItem)
     {
         MtTilesetResourceItem* item = qobject_cast<MtTilesetResourceItem*>(aItem);
         _editorWidget->setResourceItem(item);

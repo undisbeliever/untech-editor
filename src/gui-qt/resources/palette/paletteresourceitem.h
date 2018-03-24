@@ -13,6 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+class PaletteResourceList;
 
 class PaletteResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
@@ -21,8 +22,10 @@ public:
     using DataT = RES::PaletteInput;
 
 public:
-    PaletteResourceItem(AbstractResourceList* parent, size_t index);
+    PaletteResourceItem(PaletteResourceList* parent, size_t index);
     ~PaletteResourceItem() = default;
+
+    ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
 
     // will never be null
     inline const RES::PaletteInput* paletteData() const

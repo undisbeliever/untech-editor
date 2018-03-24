@@ -5,11 +5,12 @@
  */
 
 #include "mttilesetresourceitem.h"
+#include "mttilesetresourcelist.h"
 #include "models/metatiles/metatiles-serializer.h"
 
 using namespace UnTech::GuiQt::Resources;
 
-MtTilesetResourceItem::MtTilesetResourceItem(AbstractResourceList* parent, size_t index)
+MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
 {
     Q_ASSERT(index < mtTilesetFilenameList().size());
@@ -70,7 +71,7 @@ bool MtTilesetResourceItem::compileResource(RES::ErrorList& err)
         err.addError("Unable to load file");
         return false;
     }
-    const auto& res = _project->resourcesFile();
+    const auto& res = project()->resourcesFile();
     Q_ASSERT(res);
 
     const auto mtd = MetaTiles::convertTileset(*_tilesetInput, *res, err);

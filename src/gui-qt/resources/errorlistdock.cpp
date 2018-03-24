@@ -5,8 +5,8 @@
  */
 
 #include "errorlistdock.h"
+#include "abstractproject.h"
 #include "abstractresourceitem.h"
-#include "resourceproject.h"
 #include "gui-qt/resources/errorlistdock.ui.h"
 
 using namespace UnTech::GuiQt::Resources;
@@ -24,7 +24,7 @@ ErrorListDock::ErrorListDock(QWidget* parent)
 
 ErrorListDock::~ErrorListDock() = default;
 
-void ErrorListDock::setProject(ResourceProject* project)
+void ErrorListDock::setProject(AbstractProject* project)
 {
     if (_project == project) {
         return;
@@ -44,7 +44,7 @@ void ErrorListDock::setProject(ResourceProject* project)
 
     if (_project) {
         onSelectedResourceChanged();
-        connect(_project, &ResourceProject::selectedResourceChanged,
+        connect(_project, &AbstractProject::selectedResourceChanged,
                 this, &ErrorListDock::onSelectedResourceChanged);
     }
 

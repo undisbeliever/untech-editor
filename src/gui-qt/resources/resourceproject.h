@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "abstractproject.h"
 #include "gui-qt/common/abstractdocument.h"
 #include "models/resources/resources.h"
 #include <array>
@@ -14,35 +15,17 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class AbstractResourceList;
-class AbstractResourceItem;
-class AbstractExternalResourceItem;
-class ResourceValidationWorker;
 
 namespace RES = UnTech::Resources;
 
-class ResourceProject : public AbstractDocument {
+class ResourceProject : public AbstractProject {
     Q_OBJECT
-
-public:
-    static constexpr unsigned N_RESOURCE_TYPES = 2;
 
 public:
     explicit ResourceProject(QObject* parent = nullptr);
     ~ResourceProject() = default;
 
     RES::ResourcesFile* resourcesFile() const { return _resourcesFile.get(); }
-
-    const auto& resourceLists() const { return _resourceLists; }
-    ResourceValidationWorker* validationWorker() const { return _validationWorker; }
-
-    void setSelectedResource(AbstractResourceItem* item);
-    AbstractResourceItem* selectedResource() const { return _selectedResource; }
-
-    QList<AbstractExternalResourceItem*> unsavedExternalResources() const;
-
-    // All unsaved filenames are relative to the directory this project is saved to
-    QStringList unsavedFilenames() const;
 
     virtual const QString& fileFilter() const final;
     virtual const QString& defaultFileExtension() const final;
@@ -53,26 +36,7 @@ protected:
     virtual bool loadDocumentFile(const QString& filename) final;
 
 private:
-    void rebuildResourceLists();
-
-private slots:
-    void onSelectedResourceDestroyed(QObject* obj);
-
-signals:
-    void resourceFileSettingsChanged();
-
-    void selectedResourceChanged();
-    void resourceItemCreated(AbstractResourceItem*);
-    void resourceItemAboutToBeRemoved(AbstractResourceItem*);
-
-private:
     std::unique_ptr<RES::ResourcesFile> _resourcesFile;
-
-    // order matches ResourceTypeIndex
-    std::array<AbstractResourceList*, N_RESOURCE_TYPES> _resourceLists;
-    ResourceValidationWorker* const _validationWorker;
-
-    AbstractResourceItem* _selectedResource;
 };
 }
 }

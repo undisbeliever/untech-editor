@@ -6,15 +6,16 @@
 
 #pragma once
 
-#include "abstractresourceitem.h"
-#include "models/metasprite/metasprite.h"
+#include "common.h"
+
 #include <QAbstractItemModel>
 #include <QIcon>
 
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class ResourceProject;
+class AbstractProject;
+class AbstractResourceItem;
 
 class ResourcesTreeModel : public QAbstractItemModel {
     Q_OBJECT
@@ -27,7 +28,7 @@ public:
     explicit ResourcesTreeModel(QObject* parent = nullptr);
     ~ResourcesTreeModel() = default;
 
-    void setProject(ResourceProject* project);
+    void setProject(AbstractProject* project);
 
     QModelIndex toModelIndex(const AbstractResourceItem* item) const;
     AbstractResourceItem* toResourceItem(const QModelIndex& index) const;
@@ -56,7 +57,7 @@ private slots:
     void onResourceItemNameChanged();
 
 private:
-    ResourceProject* _project;
+    AbstractProject* _project;
     QIcon _uncheckedIcon;
     QIcon _validIcon;
     QIcon _errorIcon;

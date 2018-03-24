@@ -5,7 +5,7 @@
  */
 
 #include "abstractresourceitem.h"
-#include "resourceproject.h"
+#include "abstractproject.h"
 #include "resourcevalidationworker.h"
 
 #include <QDir>
@@ -112,7 +112,7 @@ AbstractExternalResourceItem::AbstractExternalResourceItem(AbstractResourceList*
 {
     setFilename(filename);
 
-    connect(_project, &ResourceProject::filenameChanged,
+    connect(_project, &AbstractProject::filenameChanged,
             this, &AbstractExternalResourceItem::updateRelativePath);
 }
 

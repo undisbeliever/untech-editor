@@ -11,7 +11,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
-class ResourceProject;
+class AbstractProject;
 class AbstractResourceItem;
 
 class AbstractEditor : public QObject {
@@ -27,7 +27,7 @@ public:
 
     QWidget* parentWindow() const { return _parentWindow; }
 
-    virtual bool setResourceItem(ResourceProject* project, AbstractResourceItem* item) = 0;
+    virtual bool setResourceItem(AbstractProject* project, AbstractResourceItem* item) = 0;
 
     virtual QWidget* editorWidget() const = 0;
     virtual QWidget* propertyWidget() const { return nullptr; }

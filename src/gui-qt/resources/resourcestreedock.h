@@ -16,7 +16,7 @@ namespace Resources {
 namespace Ui {
 class ResourcesTreeDock;
 }
-class ResourceProject;
+class AbstractProject;
 class AbstractResourceList;
 class ResourcesTreeModel;
 
@@ -27,7 +27,7 @@ public:
     ResourcesTreeDock(QWidget* parent = nullptr);
     ~ResourcesTreeDock();
 
-    void setProject(ResourceProject* project);
+    void setProject(AbstractProject* project);
 
     QMenu* addResourceMenu() const { return _addResourceMenu; }
 
@@ -46,7 +46,7 @@ private:
     ResourcesTreeModel* _model;
     QMenu* const _addResourceMenu;
 
-    ResourceProject* _project;
+    AbstractProject* _project;
 };
 }
 }

@@ -159,7 +159,7 @@ void MainWindow::loadProject(const QString& filename)
     }
 }
 
-void MainWindow::setProject(std::unique_ptr<ResourceProject>&& project)
+void MainWindow::setProject(std::unique_ptr<AbstractProject>&& project)
 {
     auto oldProject = std::move(_project);
 
@@ -350,7 +350,7 @@ void MainWindow::onMenuOpen()
         return;
     }
 
-    std::unique_ptr<ResourceProject> doc = std::make_unique<ResourceProject>();
+    std::unique_ptr<AbstractProject> doc = std::make_unique<ResourceProject>();
 
     const QString filename = QFileDialog::getOpenFileName(
         this, tr("Open"), QString(), doc->fileFilter());
