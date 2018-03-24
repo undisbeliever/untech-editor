@@ -11,11 +11,12 @@
 
 namespace UnTech {
 namespace GuiQt {
+class AbstractResourceItem;
+
 namespace Resources {
 namespace Ui {
 class GenericPropertiesWidget;
 }
-class AbstractResourceItem;
 
 class AbstractPropertyManager : public PropertyListManager {
     Q_OBJECT

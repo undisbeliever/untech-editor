@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "abstractproject.h"
+#include "gui-qt/abstractproject.h"
 #include "gui-qt/common/abstractdocument.h"
 #include "models/resources/resources.h"
 #include <array>

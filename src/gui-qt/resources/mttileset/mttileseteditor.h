@@ -9,7 +9,7 @@
 #include "mttilesetcentralwidget.h"
 #include "mttilesetpropertymanager.h"
 #include "mttilesetresourceitem.h"
-#include "gui-qt/resources/abstracteditor.h"
+#include "gui-qt/abstracteditor.h"
 #include "gui-qt/resources/genericpropertieswidget.h"
 
 namespace UnTech {

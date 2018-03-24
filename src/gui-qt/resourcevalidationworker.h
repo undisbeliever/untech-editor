@@ -12,7 +12,6 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
 class AbstractProject;
 class AbstractResourceItem;
 
@@ -47,6 +46,5 @@ private:
     QList<AbstractResourceItem*> _itemsToProcess;
     QTimer _timer;
 };
-}
 }
 }

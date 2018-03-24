@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "../abstractresourceitem.h"
-#include "../resourceproject.h"
+#include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/resources/resourceproject.h"
 #include <QObject>
 
 namespace UnTech {

@@ -15,14 +15,14 @@ namespace UnTech {
 namespace GuiQt {
 class ZoomSettings;
 class OpenRecentMenu;
+class AbstractEditor;
+class AbstractProject;
+class AbstractResourceItem;
 
 namespace Resources {
 namespace Ui {
 class MainWindow;
 }
-class AbstractEditor;
-class AbstractProject;
-class AbstractResourceItem;
 class TabBar;
 class ResourcesTreeDock;
 class ErrorListDock;

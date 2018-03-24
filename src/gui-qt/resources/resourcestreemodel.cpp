@@ -5,10 +5,11 @@
  */
 
 #include "resourcestreemodel.h"
-#include "abstractproject.h"
-#include "abstractresourceitem.h"
-#include "abstractresourcelist.h"
+#include "gui-qt/abstractproject.h"
+#include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/abstractresourcelist.h"
 
+using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
 
 static_assert(N_RESOURCE_TYPES <= ResourcesTreeModel::ROOT_INTERNAL_ID,

@@ -11,7 +11,7 @@
 
 #include <QFileInfo>
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt;
 
 AbstractProject::AbstractProject(QObject* parent)
     : AbstractDocument(parent)

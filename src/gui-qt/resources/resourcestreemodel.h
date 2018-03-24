@@ -6,16 +6,17 @@
 
 #pragma once
 
-#include "common.h"
+#include "gui-qt/common.h"
 
 #include <QAbstractItemModel>
 #include <QIcon>
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
 class AbstractProject;
 class AbstractResourceItem;
+
+namespace Resources {
 
 class ResourcesTreeModel : public QAbstractItemModel {
     Q_OBJECT

@@ -8,7 +8,6 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
 
 enum class ResourceState {
     NOT_LOADED,
@@ -24,6 +23,5 @@ enum class ResourceTypeIndex {
 };
 
 constexpr unsigned N_RESOURCE_TYPES = 2;
-}
 }
 }

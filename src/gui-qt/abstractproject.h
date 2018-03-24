@@ -12,7 +12,6 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
 class AbstractResourceList;
 class AbstractResourceItem;
 class AbstractExternalResourceItem;
@@ -67,6 +66,5 @@ private:
 
     AbstractResourceItem* _selectedResource;
 };
-}
 }
 }

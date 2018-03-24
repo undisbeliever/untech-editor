@@ -12,7 +12,6 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
 class AbstractProject;
 class AbstractResourceItem;
 
@@ -86,6 +85,5 @@ private:
     ResourceState _state;
     QVector<AbstractResourceItem*> _items;
 };
-}
 }
 }

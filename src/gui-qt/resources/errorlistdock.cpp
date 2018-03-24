@@ -5,8 +5,8 @@
  */
 
 #include "errorlistdock.h"
-#include "abstractproject.h"
-#include "abstractresourceitem.h"
+#include "gui-qt/abstractproject.h"
+#include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/resources/errorlistdock.ui.h"
 
 using namespace UnTech::GuiQt::Resources;

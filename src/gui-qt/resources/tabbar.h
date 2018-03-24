@@ -12,9 +12,10 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
 class AbstractProject;
 class AbstractResourceItem;
+
+namespace Resources {
 
 class TabBar : public QWidget {
     Q_OBJECT

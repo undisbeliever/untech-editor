@@ -5,7 +5,7 @@
  */
 
 #include "genericpropertieswidget.h"
-#include "abstractresourceitem.h"
+#include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/resources/genericpropertieswidget.ui.h"
 
 using namespace UnTech::GuiQt;

@@ -5,10 +5,10 @@
  */
 
 #include "resourcestreedock.h"
-#include "abstractproject.h"
-#include "abstractresourceitem.h"
-#include "abstractresourcelist.h"
 #include "resourcestreemodel.h"
+#include "gui-qt/abstractproject.h"
+#include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/abstractresourcelist.h"
 #include "gui-qt/common/idstringdialog.h"
 #include "gui-qt/resources/resourcestreedock.ui.h"
 

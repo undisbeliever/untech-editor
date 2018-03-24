@@ -10,7 +10,6 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
 class AbstractProject;
 class AbstractResourceItem;
 
@@ -35,6 +34,5 @@ public:
 private:
     QWidget* const _parentWindow;
 };
-}
 }
 }

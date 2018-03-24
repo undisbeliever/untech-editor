@@ -5,13 +5,13 @@
  */
 
 #include "mainwindow.h"
-#include "abstractresourceitem.h"
-#include "common.h"
 #include "resourceproject.h"
-#include "resourcevalidationworker.h"
+#include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/common.h"
 #include "gui-qt/common/aboutdialog.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/resources/mainwindow.ui.h"
+#include "gui-qt/resourcevalidationworker.h"
 
 #include "errorlistdock.h"
 #include "genericpropertieswidget.h"

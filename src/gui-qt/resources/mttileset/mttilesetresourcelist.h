@@ -7,7 +7,7 @@
 #pragma once
 
 #include "mttilesetresourceitem.h"
-#include "../abstractresourcelist.h"
+#include "gui-qt/abstractresourcelist.h"
 #include <QObject>
 #include <QVector>
 

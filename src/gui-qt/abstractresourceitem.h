@@ -13,7 +13,6 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
 class AbstractProject;
 class AbstractResourceList;
 
@@ -143,6 +142,5 @@ private:
     QString _absoluteFilePath;
     QString _relativeFilePath;
 };
-}
 }
 }

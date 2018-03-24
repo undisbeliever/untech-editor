@@ -10,7 +10,7 @@
 
 #include <QMessageBox>
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt;
 
 AbstractResourceList::AbstractResourceList(AbstractProject* project, ResourceTypeIndex typeIndex)
     : QObject(project)

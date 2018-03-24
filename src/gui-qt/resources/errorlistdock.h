@@ -11,12 +11,13 @@
 
 namespace UnTech {
 namespace GuiQt {
+class AbstractProject;
+class AbstractResourceItem;
+
 namespace Resources {
 namespace Ui {
 class ErrorListDock;
 }
-class AbstractProject;
-class AbstractResourceItem;
 
 class ErrorListDock : public QDockWidget {
     Q_OBJECT

@@ -9,7 +9,7 @@
 #include "abstractresourceitem.h"
 #include "abstractresourcelist.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt;
 
 ResourceValidationWorker::ResourceValidationWorker(AbstractProject* project)
     : QObject(project)

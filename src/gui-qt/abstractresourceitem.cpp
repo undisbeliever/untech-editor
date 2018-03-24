@@ -11,7 +11,7 @@
 #include <QDir>
 #include <QFileInfo>
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt;
 
 void AbstractResourceItem::markUnchecked()
 {

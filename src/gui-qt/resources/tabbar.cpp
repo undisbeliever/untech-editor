@@ -5,8 +5,8 @@
  */
 
 #include "tabbar.h"
-#include "abstractproject.h"
-#include "abstractresourceitem.h"
+#include "gui-qt/abstractproject.h"
+#include "gui-qt/abstractresourceitem.h"
 
 #include <QMessageBox>
 #include <QVBoxLayout>

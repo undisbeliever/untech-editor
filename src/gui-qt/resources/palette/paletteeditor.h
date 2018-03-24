@@ -9,7 +9,7 @@
 #include "palettecentralwidget.h"
 #include "palettepropertymanager.h"
 #include "paletteresourceitem.h"
-#include "gui-qt/resources/abstracteditor.h"
+#include "gui-qt/abstracteditor.h"
 #include "gui-qt/resources/genericpropertieswidget.h"
 
 namespace UnTech {
