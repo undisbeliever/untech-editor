@@ -6,6 +6,7 @@
 
 #include "mainwindow.h"
 #include "resourceproject.h"
+#include "resourceprojectloader.h"
 #include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/common.h"
 #include "gui-qt/common/aboutdialog.h"
@@ -32,6 +33,9 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
 
+const QString MainWindow::ALL_FILE_FILTERS = QString::fromUtf8(
+    "UnTech Project File (*.utres)");
+
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , _project(nullptr)
@@ -39,6 +43,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _ui(std::make_unique<Ui::MainWindow>())
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
     , _undoGroup(new QUndoGroup(this))
+    , _projectLoaders({ new ResourceProjectLoader(this) })
 {
     _ui->setupUi(this);
 
@@ -81,6 +86,12 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Update Menu
     {
+        for (int i = 0; i < _projectLoaders.size(); i++) {
+            AbstractProjectLoader* loader = _projectLoaders.at(i);
+            QAction* a = _ui->menu_New->addAction(loader->name());
+            a->setData(i);
+        }
+
         _ui->action_AddResource->setMenu(_resourcesTreeDock->addResourceMenu());
 
         QAction* undoAction = _undoGroup->createUndoAction(this);
@@ -129,7 +140,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(_tabBar, &TabBar::closeProjectRequested,
             this, &MainWindow::onMenuCloseProject);
 
-    connect(_ui->action_New, &QAction::triggered,
+    connect(_ui->menu_New, &QMenu::triggered,
             this, &MainWindow::onMenuNew);
     connect(_ui->action_Open, &QAction::triggered,
             this, &MainWindow::onMenuOpen);
@@ -152,11 +163,20 @@ MainWindow::~MainWindow() = default;
 
 void MainWindow::loadProject(const QString& filename)
 {
-    std::unique_ptr<ResourceProject> doc = std::make_unique<ResourceProject>();
-    if (doc->loadDocument(filename)) {
-        setProject(std::move(doc));
-        _ui->menu_OpenRecent->addFilename(filename);
+    QString ext = QFileInfo(filename).suffix();
+
+    for (AbstractProjectLoader* loader : _projectLoaders) {
+        if (loader->fileExtension() == ext) {
+            auto project = loader->loadProject(filename);
+            if (project) {
+                setProject(std::move(project));
+                _ui->menu_OpenRecent->addFilename(filename);
+                return;
+            }
+        }
     }
+    QMessageBox::critical(this, tr("Unable to load Project"),
+                          tr("Unknown file extension %1").arg(ext));
 }
 
 void MainWindow::setProject(std::unique_ptr<AbstractProject>&& project)
@@ -314,32 +334,35 @@ bool MainWindow::unsavedChangesDialog()
     return success;
 }
 
-void MainWindow::onMenuNew()
+void MainWindow::onMenuNew(QAction* action)
 {
     if (unsavedChangesDialog() == false) {
         return;
     }
 
-    auto doc = std::make_unique<ResourceProject>();
+    int loaderId = action->data().toInt();
+
+    if (loaderId < 0 || loaderId >= _projectLoaders.size()) {
+        return;
+    }
+    AbstractProjectLoader* loader = _projectLoaders.at(loaderId);
 
     QFileDialog saveDialog(this, "Create New Resource File");
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
-    saveDialog.setNameFilter(doc->fileFilter());
-    saveDialog.setDefaultSuffix(doc->defaultFileExtension());
+    saveDialog.setNameFilter(loader->fileFilter());
+    saveDialog.setDefaultSuffix(loader->fileExtension());
 
-    if (!doc->filename().isEmpty()) {
-        saveDialog.selectFile(doc->filename());
-    }
     saveDialog.exec();
 
     if (saveDialog.result() == QDialog::Accepted) {
         Q_ASSERT(saveDialog.selectedFiles().size() == 1);
         QString filename = saveDialog.selectedFiles().first();
 
-        bool s = doc->saveDocument(filename);
+        std::unique_ptr<AbstractProject> project = loader->newProject();
+        bool s = project->saveDocument(filename);
         if (s) {
             _ui->menu_OpenRecent->addFilename(filename);
-            setProject(std::move(doc));
+            setProject(std::move(project));
         }
     }
 }
@@ -350,10 +373,8 @@ void MainWindow::onMenuOpen()
         return;
     }
 
-    std::unique_ptr<AbstractProject> doc = std::make_unique<ResourceProject>();
-
     const QString filename = QFileDialog::getOpenFileName(
-        this, tr("Open"), QString(), doc->fileFilter());
+        this, tr("Open Project"), QString(), ALL_FILE_FILTERS);
 
     if (!filename.isNull()) {
         loadProject(filename);

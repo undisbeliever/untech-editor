@@ -31,7 +31,16 @@
       <string>Open &amp;Recent</string>
      </property>
     </widget>
-    <addaction name="action_New"/>
+    <widget class="QMenu" name="menu_New">
+     <property name="title">
+      <string>&amp;New Project</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../../resources/resources.qrc">
+       <normaloff>:/icons/new.svg</normaloff>:/icons/new.svg</iconset>
+     </property>
+    </widget>
+    <addaction name="menu_New"/>
     <addaction name="action_AddResource"/>
     <addaction name="separator"/>
     <addaction name="action_Open"/>
@@ -71,18 +80,6 @@
    </property>
    <property name="menuRole">
     <enum>QAction::AboutRole</enum>
-   </property>
-  </action>
-  <action name="action_New">
-   <property name="icon">
-    <iconset resource="../../../resources/resources.qrc">
-     <normaloff>:/icons/new.svg</normaloff>:/icons/new.svg</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;New Project</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N</string>
    </property>
   </action>
   <action name="action_Open">

@@ -17,6 +17,7 @@ class ZoomSettings;
 class OpenRecentMenu;
 class AbstractEditor;
 class AbstractProject;
+class AbstractProjectLoader;
 class AbstractResourceItem;
 
 namespace Resources {
@@ -29,6 +30,8 @@ class ErrorListDock;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
+
+    const static QString ALL_FILE_FILTERS;
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);
@@ -48,7 +51,7 @@ private:
     bool unsavedChangesDialog();
 
 private slots:
-    void onMenuNew();
+    void onMenuNew(QAction* action);
     void onMenuOpen();
     void onMenuOpenRecent(QString filename);
     void onMenuSave();
@@ -80,7 +83,9 @@ private:
 
     ZoomSettings* _zoomSettings;
     QUndoGroup* _undoGroup;
-    QVector<AbstractEditor*> _editors;
+    QList<AbstractEditor*> _editors;
+
+    QList<AbstractProjectLoader*> _projectLoaders;
 };
 }
 }
