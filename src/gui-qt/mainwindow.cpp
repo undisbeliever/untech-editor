@@ -5,22 +5,24 @@
  */
 
 #include "mainwindow.h"
-#include "resourceproject.h"
-#include "resourceprojectloader.h"
-#include "gui-qt/abstractresourceitem.h"
-#include "gui-qt/common.h"
+#include "abstractresourceitem.h"
+#include "common.h"
+#include "resourcevalidationworker.h"
 #include "gui-qt/common/aboutdialog.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
-#include "gui-qt/resources/mainwindow.ui.h"
-#include "gui-qt/resourcevalidationworker.h"
+#include "gui-qt/mainwindow.ui.h"
 
 #include "errorlistdock.h"
 #include "genericpropertieswidget.h"
 #include "resourcestreedock.h"
 #include "tabbar.h"
-#include "mttileset/mttileseteditor.h"
-#include "palette/paletteeditor.h"
-#include "resourcefile/resourcefileeditor.h"
+
+#include "gui-qt/resources/resourceproject.h"
+#include "gui-qt/resources/resourceprojectloader.h"
+
+#include "resources/mttileset/mttileseteditor.h"
+#include "resources/palette/paletteeditor.h"
+#include "resources/resourcefile/resourcefileeditor.h"
 
 #include <QComboBox>
 #include <QFileDialog>

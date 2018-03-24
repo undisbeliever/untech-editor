@@ -6,8 +6,8 @@
 
 #include "mttilesetpropertymanager.h"
 #include "mttilesetresourceitem.h"
-#include "../editresourceitemcommand.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/editresourceitemcommand.h"
 
 using namespace UnTech::GuiQt::Resources;
 

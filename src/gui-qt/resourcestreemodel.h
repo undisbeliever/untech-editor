@@ -16,8 +16,6 @@ namespace GuiQt {
 class AbstractProject;
 class AbstractResourceItem;
 
-namespace Resources {
-
 class ResourcesTreeModel : public QAbstractItemModel {
     Q_OBJECT
 
@@ -63,6 +61,5 @@ private:
     QIcon _validIcon;
     QIcon _errorIcon;
 };
-}
 }
 }

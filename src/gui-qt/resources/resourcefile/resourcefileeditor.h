@@ -9,7 +9,7 @@
 #include "resourcefilecentralwidget.h"
 #include "resourcefilepropertieswidget.h"
 #include "gui-qt/abstracteditor.h"
-#include "gui-qt/resources/genericpropertieswidget.h"
+#include "gui-qt/genericpropertieswidget.h"
 #include "gui-qt/resources/resourceproject.h"
 
 namespace UnTech {

@@ -189,7 +189,7 @@ GUI_QT_MOC_HEADERS := $(wildcard src/gui-qt/*.h src/gui-qt/*/*.h src/gui-qt/*/*/
 GUI_QT_MOC_GEN     := $(patsubst src/%.h,$(GEN_DIR)/%.moc.cpp,$(GUI_QT_MOC_HEADERS))
 GUI_QT_MOC_OBJS    := $(patsubst src/%.h,$(OBJ_DIR)/%.moc.o,$(GUI_QT_MOC_HEADERS))
 
-GUI_QT_UI_SRC      := $(wildcard src/gui-qt/*/*.ui src/gui-qt/*/*/*.ui src/gui-qt/*/*/*/*.ui)
+GUI_QT_UI_SRC      := $(wildcard src/gui-qt/*.ui src/gui-qt/*/*.ui src/gui-qt/*/*/*.ui)
 GUI_QT_UI_GEN      := $(patsubst src/%.ui,$(GEN_DIR)/%.ui.h,$(GUI_QT_UI_SRC))
 GUI_QT_UI_OBJS     := $(patsubst src/%.ui,$(OBJ_DIR)/%.o,$(GUI_QT_UI_SRC))
 

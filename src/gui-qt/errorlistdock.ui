@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnTech::GuiQt::Resources::ErrorListDock</class>
- <widget class="QDockWidget" name="UnTech::GuiQt::Resources::ErrorListDock">
+ <class>UnTech::GuiQt::ErrorListDock</class>
+ <widget class="QDockWidget" name="UnTech::GuiQt::ErrorListDock">
   <property name="geometry">
    <rect>
     <x>0</x>

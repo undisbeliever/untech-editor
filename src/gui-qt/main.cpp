@@ -4,12 +4,12 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#include "mainwindow.h"
 #include "version.h"
-#include "resources/mainwindow.h"
 #include <QApplication>
 #include <QCommandLineParser>
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt;
 
 int main(int argc, char* argv[])
 {

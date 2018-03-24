@@ -13,17 +13,15 @@
 
 namespace UnTech {
 namespace GuiQt {
+namespace Ui {
+class MainWindow;
+}
 class ZoomSettings;
 class OpenRecentMenu;
 class AbstractEditor;
 class AbstractProject;
 class AbstractProjectLoader;
 class AbstractResourceItem;
-
-namespace Resources {
-namespace Ui {
-class MainWindow;
-}
 class TabBar;
 class ResourcesTreeDock;
 class ErrorListDock;
@@ -87,6 +85,5 @@ private:
 
     QList<AbstractProjectLoader*> _projectLoaders;
 };
-}
 }
 }

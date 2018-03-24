@@ -7,9 +7,9 @@
 #include "errorlistdock.h"
 #include "gui-qt/abstractproject.h"
 #include "gui-qt/abstractresourceitem.h"
-#include "gui-qt/resources/errorlistdock.ui.h"
+#include "gui-qt/errorlistdock.ui.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt;
 
 ErrorListDock::ErrorListDock(QWidget* parent)
     : QDockWidget(parent)

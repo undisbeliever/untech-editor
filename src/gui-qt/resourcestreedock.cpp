@@ -10,13 +10,13 @@
 #include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/abstractresourcelist.h"
 #include "gui-qt/common/idstringdialog.h"
-#include "gui-qt/resources/resourcestreedock.ui.h"
+#include "gui-qt/resourcestreedock.ui.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QToolButton>
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt;
 
 ResourcesTreeDock::ResourcesTreeDock(QWidget* parent)
     : QDockWidget(parent)

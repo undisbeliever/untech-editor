@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../genericpropertieswidget.h"
+#include "gui-qt/genericpropertieswidget.h"
 
 namespace UnTech {
 namespace GuiQt {

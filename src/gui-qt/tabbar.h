@@ -15,8 +15,6 @@ namespace GuiQt {
 class AbstractProject;
 class AbstractResourceItem;
 
-namespace Resources {
-
 class TabBar : public QWidget {
     Q_OBJECT
 
@@ -61,6 +59,5 @@ private:
     AbstractProject* _project;
     QList<AbstractResourceItem*> _tabResources;
 };
-}
 }
 }

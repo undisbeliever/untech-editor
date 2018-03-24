@@ -6,10 +6,9 @@
 
 #include "genericpropertieswidget.h"
 #include "gui-qt/abstractresourceitem.h"
-#include "gui-qt/resources/genericpropertieswidget.ui.h"
+#include "gui-qt/genericpropertieswidget.ui.h"
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Resources;
 
 GenericPropertiesWidget::GenericPropertiesWidget(AbstractPropertyManager* manager, QWidget* parent)
     : QWidget(parent)

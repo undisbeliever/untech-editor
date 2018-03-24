@@ -13,7 +13,6 @@
 #include <QVariant>
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Resources;
 
 TabBar::TabBar(QWidget* parent)
     : QWidget(parent)

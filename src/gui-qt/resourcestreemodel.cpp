@@ -10,7 +10,6 @@
 #include "gui-qt/abstractresourcelist.h"
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Resources;
 
 static_assert(N_RESOURCE_TYPES <= ResourcesTreeModel::ROOT_INTERNAL_ID,
               "ROOT_INTERNAL_ID too low");

@@ -11,12 +11,10 @@
 
 namespace UnTech {
 namespace GuiQt {
-class AbstractResourceItem;
-
-namespace Resources {
 namespace Ui {
 class GenericPropertiesWidget;
 }
+class AbstractResourceItem;
 
 class AbstractPropertyManager : public PropertyListManager {
     Q_OBJECT
@@ -43,6 +41,5 @@ private:
     std::unique_ptr<Ui::GenericPropertiesWidget> _ui;
     AbstractPropertyManager* const _manager;
 };
-}
 }
 }

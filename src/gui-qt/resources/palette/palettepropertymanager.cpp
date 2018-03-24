@@ -6,7 +6,7 @@
 
 #include "palettepropertymanager.h"
 #include "paletteresourceitem.h"
-#include "../editresourceitemcommand.h"
+#include "gui-qt/editresourceitemcommand.h"
 #include "models/common/imagecache.h"
 
 using namespace UnTech::GuiQt::Resources;

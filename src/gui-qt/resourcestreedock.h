@@ -12,13 +12,11 @@
 
 namespace UnTech {
 namespace GuiQt {
-class AbstractProject;
-class AbstractResourceList;
-
-namespace Resources {
 namespace Ui {
 class ResourcesTreeDock;
 }
+class AbstractProject;
+class AbstractResourceList;
 class ResourcesTreeModel;
 
 class ResourcesTreeDock : public QDockWidget {
@@ -49,6 +47,5 @@ private:
 
     AbstractProject* _project;
 };
-}
 }
 }
