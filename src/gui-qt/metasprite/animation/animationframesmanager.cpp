@@ -34,29 +34,33 @@ AnimationFramesManager::AnimationFramesManager(QObject* parent)
 
 void AnimationFramesManager::setDocument(AbstractMsDocument* document)
 {
-    Q_ASSERT(document != nullptr);
-
     if (_document) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
     }
     _document = document;
 
-    onSelectedAnimationChanged();
-    connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
-            this, &AnimationFramesManager::onSelectedAnimationChanged);
+    _animation = nullptr;
+    emit dataReset();
 
-    connect(_document, &AbstractMsDocument::animationDataChanged,
-            this, &AnimationFramesManager::onAnimationDataChanged);
+    if (_document) {
+        onSelectedAnimationChanged();
 
-    connect(_document, &AbstractMsDocument::animationFrameChanged,
-            this, &AnimationFramesManager::onAnimationFrameChanged);
-    connect(_document, &AbstractMsDocument::animationFrameAdded,
-            this, &AnimationFramesManager::onAnimationFrameAdded);
-    connect(_document, &AbstractMsDocument::animationFrameAboutToBeRemoved,
-            this, &AnimationFramesManager::onAnimationFrameAboutToBeRemoved);
-    connect(_document, &AbstractMsDocument::animationFrameMoved,
-            this, &AnimationFramesManager::onAnimationFrameMoved);
+        connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
+                this, &AnimationFramesManager::onSelectedAnimationChanged);
+
+        connect(_document, &AbstractMsDocument::animationDataChanged,
+                this, &AnimationFramesManager::onAnimationDataChanged);
+
+        connect(_document, &AbstractMsDocument::animationFrameChanged,
+                this, &AnimationFramesManager::onAnimationFrameChanged);
+        connect(_document, &AbstractMsDocument::animationFrameAdded,
+                this, &AnimationFramesManager::onAnimationFrameAdded);
+        connect(_document, &AbstractMsDocument::animationFrameAboutToBeRemoved,
+                this, &AnimationFramesManager::onAnimationFrameAboutToBeRemoved);
+        connect(_document, &AbstractMsDocument::animationFrameMoved,
+                this, &AnimationFramesManager::onAnimationFrameMoved);
+    }
 }
 
 void AnimationFramesManager::updateParameters(int index, int id, QVariant& param1, QVariant& param2) const
