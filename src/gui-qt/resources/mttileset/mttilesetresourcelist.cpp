@@ -29,18 +29,6 @@ const QString MtTilesetResourceList::resourceTypeNamePlural() const
     return tr("MetaTile Tilesets");
 }
 
-const AbstractResourceList::AddResourceDialogSettings& MtTilesetResourceList::addResourceDialogSettings() const
-{
-    const static AbstractResourceList::AddResourceDialogSettings filter = {
-        tr("Add MetaTile Tileset Resource"),
-        QString::fromUtf8("UnTech MetaTile Tileset File (*.utmt)"),
-        QString::fromUtf8("utmt"),
-        true
-    };
-
-    return filter;
-}
-
 size_t MtTilesetResourceList::nItems() const
 {
     return project()->resourcesFile()->metaTileTilesetFilenames.size();
@@ -51,8 +39,22 @@ MtTilesetResourceItem* MtTilesetResourceList::buildResourceItem(size_t index)
     return new MtTilesetResourceItem(this, index);
 }
 
-void MtTilesetResourceList::do_addResource(const std::string& filename)
+const QList<AbstractResourceList::AddResourceSettings>& MtTilesetResourceList::addResourceSettings() const
 {
+    const static QList<AbstractResourceList::AddResourceSettings> settings = {
+        { tr("Add MetaTile Tileset"),
+          QString::fromUtf8("UnTech MetaTile Tileset File (*.utmt)"),
+          QString::fromUtf8("utmt"),
+          true },
+    };
+
+    return settings;
+}
+
+void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& filename)
+{
+    Q_ASSERT(settingIndex == 0);
+
     auto& fnList = project()->resourcesFile()->metaTileTilesetFilenames;
     fnList.emplace_back(filename);
 

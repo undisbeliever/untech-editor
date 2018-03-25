@@ -29,18 +29,6 @@ const QString PaletteResourceList::resourceTypeNamePlural() const
     return tr("Palettes");
 }
 
-const AbstractResourceList::AddResourceDialogSettings& PaletteResourceList::addResourceDialogSettings() const
-{
-    const static AbstractResourceList::AddResourceDialogSettings filter = {
-        tr("Select Palette Image"),
-        QString::fromUtf8("PNG Image (*.png)"),
-        QString::fromUtf8("png"),
-        .canCreateFile = false
-    };
-
-    return filter;
-}
-
 size_t PaletteResourceList::nItems() const
 {
     return project()->resourcesFile()->palettes.size();
@@ -51,8 +39,22 @@ PaletteResourceItem* PaletteResourceList::buildResourceItem(size_t index)
     return new PaletteResourceItem(this, index);
 }
 
-void PaletteResourceList::do_addResource(const std::string& filename)
+const QList<AbstractResourceList::AddResourceSettings>& PaletteResourceList::addResourceSettings() const
 {
+    const static QList<AbstractResourceList::AddResourceSettings> filters = {
+        { tr("Add Palette"),
+          QString::fromUtf8("PNG Image (*.png)"),
+          QString::fromUtf8("png"),
+          .canCreateFile = false }
+    };
+
+    return filters;
+}
+
+void PaletteResourceList::do_addResource(int settingIndex, const std::string& filename)
+{
+    Q_ASSERT(settingIndex == 0);
+
     auto& palettes = project()->resourcesFile()->palettes;
 
     palettes.emplace_back(std::make_unique<RES::PaletteInput>());

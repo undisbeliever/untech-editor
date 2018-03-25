@@ -59,11 +59,18 @@ void ResourcesTreeDock::setupAddResourceMenu()
     _addResourceMenu->setEnabled(_project != nullptr);
 
     if (_project) {
-        for (const AbstractResourceList* rl : _project->resourceLists()) {
-            QAction* m = _addResourceMenu->addAction(
-                tr("Add %1").arg(rl->resourceTypeNameSingle()));
+        const auto& resourceLists = _project->resourceLists();
 
-            m->setData((unsigned)rl->resourceTypeIndex());
+        for (int listIndex = 0; listIndex < resourceLists.size(); listIndex++) {
+            const AbstractResourceList* rl = resourceLists.at(listIndex);
+            const auto& settingsList = rl->addResourceSettings();
+
+            for (int settingsIndex = 0; settingsIndex < settingsList.size(); settingsIndex++) {
+                const auto& settings = settingsList.at(settingsIndex);
+
+                QAction* m = _addResourceMenu->addAction(settings.title);
+                m->setData(QList<QVariant>{ listIndex, settingsIndex });
+            }
         }
     }
 }
@@ -99,11 +106,17 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
 {
     Q_ASSERT(_project);
 
-    const int listId = action->data().toInt();
-    Q_ASSERT(listId < _project->resourceLists().size());
+    auto dataList = action->data().toList();
+    Q_ASSERT(dataList.size() == 2);
 
-    AbstractResourceList* resourceList = _project->resourceLists().at(listId);
-    const auto& settings = resourceList->addResourceDialogSettings();
+    const int listIndex = dataList.at(0).toInt();
+    const int settingsIndex = dataList.at(1).toInt();
+
+    Q_ASSERT(listIndex >= 0 && listIndex < _project->resourceLists().size());
+    AbstractResourceList* resourceList = _project->resourceLists().at(listIndex);
+
+    Q_ASSERT(settingsIndex >= 0 && settingsIndex < resourceList->addResourceSettings().size());
+    const auto& settings = resourceList->addResourceSettings().at(settingsIndex);
 
     QString input;
     if (!settings.filter.isEmpty() && !settings.title.isEmpty()) {
@@ -171,7 +184,7 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
     }
 
     if (!input.isEmpty()) {
-        resourceList->addResource(input);
+        resourceList->addResource(settingsIndex, input);
     }
 }
 

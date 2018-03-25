@@ -69,10 +69,13 @@ AbstractResourceItem* AbstractResourceList::findResource(const QString& name) co
     return nullptr;
 }
 
-void AbstractResourceList::addResource(const QString& input)
+void AbstractResourceList::addResource(int settingIndex, const QString& input)
 {
+    Q_ASSERT(settingIndex >= 0);
+    Q_ASSERT(settingIndex < addResourceSettings().size());
+
     try {
-        do_addResource(input.toStdString());
+        do_addResource(settingIndex, input.toStdString());
     }
     catch (const std::exception& ex) {
         QMessageBox::critical(nullptr, tr("Error Creating Resource"), ex.what());
