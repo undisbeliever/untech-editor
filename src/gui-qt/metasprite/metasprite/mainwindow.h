@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "gui-qt/common/abstractsingledocumentmainwindow.h"
 #include <QComboBox>
 #include <QMainWindow>
 #include <QTabWidget>
@@ -37,28 +36,25 @@ class FrameDock;
 class PalettesDock;
 class TilesetDock;
 
-class MainWindow : public AbstractSingleDocumentMainWindow {
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
+    explicit MainWindow(ZoomSettings* zoomSettings, QWidget* parent = nullptr);
     ~MainWindow();
 
-private:
-    void setupMenubar();
-    void setupStatusbar();
+    void setDocument(Document* document);
 
-protected:
-    virtual void documentChangedEvent(AbstractDocument* document,
-                                      AbstractDocument* oldDocument) final;
-    virtual std::unique_ptr<AbstractDocument> createDocumentInstance() final;
+    void setupMenubar(QMenu* editMenu, QMenu* viewMenu);
+    void setupStatusbar(QStatusBar* statusBar);
 
 private slots:
     void onSelectedFrameChanged();
 
 private:
+    Document* _document;
+
     Actions* _actions;
-    ZoomSettings* _zoomSettings;
     LayerSettings* _layerSettings;
 
     TilesetPixmaps* _tilesetPixmaps;

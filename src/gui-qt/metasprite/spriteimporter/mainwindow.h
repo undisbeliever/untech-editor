@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "gui-qt/common/abstractsingledocumentmainwindow.h"
 #include <QComboBox>
 #include <QFileSystemWatcher>
 #include <QMainWindow>
@@ -36,21 +35,17 @@ class SiAnimationPreviewItemFactory;
 class FrameSetDock;
 class FrameDock;
 
-class MainWindow : public AbstractSingleDocumentMainWindow {
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
+    MainWindow(ZoomSettings* zoomSettings, QWidget* parent = nullptr);
     ~MainWindow();
 
-private:
-    void setupMenubar();
-    void setupStatusbar();
+    void setDocument(Document* document);
 
-protected:
-    virtual void documentChangedEvent(AbstractDocument* document,
-                                      AbstractDocument* oldDocument) final;
-    virtual std::unique_ptr<AbstractDocument> createDocumentInstance() final;
+    void setupMenubar(QMenu* editMenu, QMenu* viewMenu);
+    void setupStatusbar(QStatusBar* statusBar);
 
 private slots:
     void onSelectedFrameChanged();
@@ -59,8 +54,9 @@ private slots:
     void onImageFileChanged();
 
 private:
+    Document* _document;
+
     Actions* _actions;
-    ZoomSettings* _zoomSettings;
     LayerSettings* _layerSettings;
 
     QFileSystemWatcher _imageFileWatcher;
@@ -75,9 +71,6 @@ private:
     FrameSetDock* _frameSetDock;
     FrameDock* _frameDock;
     Animation::AnimationDock* _animationDock;
-
-    QComboBox* _zoomComboBox;
-    QComboBox* _aspectRatioComboBox;
 };
 }
 }

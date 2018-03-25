@@ -26,10 +26,10 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-MainWindow::MainWindow(QWidget* parent)
-    : AbstractSingleDocumentMainWindow(parent)
+MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
+    : QMainWindow(parent)
+    , _document(nullptr)
     , _actions(new Actions(this))
-    , _zoomSettings(new ZoomSettings(6.0, ZoomSettings::NTSC, this))
     , _layerSettings(new LayerSettings(this))
     , _tilesetPixmaps(new TilesetPixmaps(this))
     , _animationPreviewItemFactory(
@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     _graphicsView = new ZoomableGraphicsView(this);
     _graphicsView->setMinimumSize(256, 256);
-    _graphicsView->setZoomSettings(_zoomSettings);
+    _graphicsView->setZoomSettings(zoomSettings);
     _graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
 
@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
     _tabWidget->addTab(_graphicsView, tr("Frame"));
 
     _animationPreview = new Animation::AnimationPreview(this);
-    _animationPreview->setZoomSettings(_zoomSettings);
+    _animationPreview->setZoomSettings(zoomSettings);
     _animationPreview->setItemFactory(_animationPreviewItemFactory);
     _tabWidget->addTab(_animationPreview, tr("Animation Preview"));
 
@@ -75,77 +75,56 @@ MainWindow::MainWindow(QWidget* parent)
 
     resizeDocks({ _palettesDock }, { 1 }, Qt::Vertical);
 
-    documentChangedEvent(nullptr, nullptr);
-
-    setupMenubar();
-    setupStatusbar();
-    readSettings();
+    setDocument(nullptr);
 
     _frameSetDock->raise();
 }
 
 MainWindow::~MainWindow() = default;
 
-void MainWindow::setupMenubar()
+void MainWindow::setupMenubar(QMenu* editMenu, QMenu* viewMenu)
 {
-    _editMenu->addSeparator();
-    _editMenu->addAction(_actions->raiseSelected());
-    _editMenu->addAction(_actions->lowerSelected());
-    _editMenu->addAction(_actions->cloneSelected());
-    _editMenu->addAction(_actions->removeSelected());
-    _editMenu->addSeparator();
-    _editMenu->addAction(_actions->addFrame());
-    _editMenu->addAction(_actions->cloneFrame());
-    _editMenu->addAction(_actions->renameFrame());
-    _editMenu->addAction(_actions->removeFrame());
-    _editMenu->addSeparator();
-    _editMenu->addAction(_actions->addRemoveTileHitbox());
-    _editMenu->addSeparator();
-    _editMenu->addAction(_actions->toggleObjSize());
-    _editMenu->addAction(_actions->flipObjHorizontally());
-    _editMenu->addAction(_actions->flipObjVertically());
-    _editMenu->addMenu(_actions->entityHitboxTypeMenu());
-    _editMenu->addSeparator();
-    _editMenu->addAction(_actions->addFrameObject());
-    _editMenu->addAction(_actions->addActionPoint());
-    _editMenu->addAction(_actions->addEntityHitbox());
+    editMenu->addSeparator();
+    editMenu->addAction(_actions->raiseSelected());
+    editMenu->addAction(_actions->lowerSelected());
+    editMenu->addAction(_actions->cloneSelected());
+    editMenu->addAction(_actions->removeSelected());
+    editMenu->addSeparator();
+    editMenu->addAction(_actions->addFrame());
+    editMenu->addAction(_actions->cloneFrame());
+    editMenu->addAction(_actions->renameFrame());
+    editMenu->addAction(_actions->removeFrame());
+    editMenu->addSeparator();
+    editMenu->addAction(_actions->addRemoveTileHitbox());
+    editMenu->addSeparator();
+    editMenu->addAction(_actions->toggleObjSize());
+    editMenu->addAction(_actions->flipObjHorizontally());
+    editMenu->addAction(_actions->flipObjVertically());
+    editMenu->addMenu(_actions->entityHitboxTypeMenu());
+    editMenu->addSeparator();
+    editMenu->addAction(_actions->addFrameObject());
+    editMenu->addAction(_actions->addActionPoint());
+    editMenu->addAction(_actions->addEntityHitbox());
 
-    _zoomSettings->populateMenu(_viewMenu);
-    _viewMenu->addSeparator();
-    _layerSettings->populateMenu(_viewMenu);
+    viewMenu->addSeparator();
+    _layerSettings->populateMenu(viewMenu);
 }
 
-void MainWindow::setupStatusbar()
+void MainWindow::setupStatusbar(QStatusBar* statusBar)
 {
     QPushButton* layerButton = new QPushButton(tr("Layers"), this);
     QMenu* layerMenu = new QMenu(this);
     _layerSettings->populateMenu(layerMenu);
     layerButton->setMenu(layerMenu);
-    statusBar()->addPermanentWidget(layerButton);
-
-    _aspectRatioComboBox = new QComboBox(this);
-    _zoomSettings->setAspectRatioComboBox(_aspectRatioComboBox);
-    statusBar()->addPermanentWidget(_aspectRatioComboBox);
-
-    _zoomComboBox = new QComboBox(this);
-    _zoomSettings->setZoomComboBox(_zoomComboBox);
-    statusBar()->addPermanentWidget(_zoomComboBox);
+    statusBar->addPermanentWidget(layerButton);
 }
 
-std::unique_ptr<AbstractDocument> MainWindow::createDocumentInstance()
+void MainWindow::setDocument(Document* document)
 {
-    return std::make_unique<Document>();
-}
-
-void MainWindow::documentChangedEvent(AbstractDocument* abstractDocument,
-                                      AbstractDocument* abstractOldDocument)
-{
-    Document* document = qobject_cast<Document*>(abstractDocument);
-    Document* oldDocument = qobject_cast<Document*>(abstractOldDocument);
-
-    if (oldDocument) {
-        oldDocument->selection()->disconnect(this);
+    if (_document) {
+        _document->selection()->disconnect(this);
     }
+    _document = document;
 
     _actions->setDocument(document);
     _tilesetPixmaps->setDocument(document);
@@ -169,9 +148,7 @@ void MainWindow::documentChangedEvent(AbstractDocument* abstractDocument,
 
 void MainWindow::onSelectedFrameChanged()
 {
-    Document* document = qobject_cast<Document*>(this->document());
-
-    if (document && document->selection()->hasSelectedFrame()) {
+    if (_document && _document->selection()->hasSelectedFrame()) {
         _graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     }
     else {
