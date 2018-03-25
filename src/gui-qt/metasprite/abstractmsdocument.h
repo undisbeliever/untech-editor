@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include "gui-qt/common/abstractdocument.h"
+#include "metaspriteproject.h"
+#include "gui-qt/abstractresourceitem.h"
 #include "models/common/idstring.h"
 #include "models/metasprite/animation/animation.h"
 #include <QObject>
@@ -25,26 +26,40 @@ class AnimationFramesManager;
 }
 struct SelectedItem;
 class AbstractSelection;
+class FrameSetResourceList;
 
 namespace MSA = UnTech::MetaSprite::Animation;
 
-class AbstractMsDocument : public GuiQt::AbstractDocument {
+class AbstractMsDocument : public AbstractExternalResourceItem {
     Q_OBJECT
 
 public:
-    explicit AbstractMsDocument(QObject* parent = nullptr);
+    explicit AbstractMsDocument(FrameSetResourceList* parent, size_t index);
     ~AbstractMsDocument() = default;
 
 protected:
     void initModels();
 
 public:
+    MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
+
     virtual MSA::Animation::map_t* animations() const = 0;
 
     virtual AbstractSelection* selection() const = 0;
     virtual AbstractIdmapListModel* frameListModel() const = 0;
 
     auto* animationListModel() const { return _animationListModel; }
+
+protected:
+    inline const auto& frameSetList() const
+    {
+        return project()->metaSpriteProject()->frameSets;
+    }
+
+    inline const auto& frameSetFile() const
+    {
+        return project()->metaSpriteProject()->frameSets.at(index());
+    }
 
 signals:
     void frameSetDataChanged();

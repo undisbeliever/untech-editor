@@ -5,13 +5,14 @@
  */
 
 #include "abstractmsdocument.h"
+#include "framesetresourcelist.h"
 #include "animation/animationframesmanager.h"
 #include "animation/animationlistmodel.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 
-AbstractMsDocument::AbstractMsDocument(QObject* parent)
-    : AbstractDocument(parent)
+AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t index)
+    : AbstractExternalResourceItem(parent, index)
     , _animationListModel(new Animation::AnimationListModel(this))
 {
 }

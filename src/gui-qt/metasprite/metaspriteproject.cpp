@@ -5,6 +5,7 @@
  */
 
 #include "metaspriteproject.h"
+#include "framesetresourcelist.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 
@@ -12,7 +13,9 @@ MetaSpriteProject::MetaSpriteProject(QObject* parent)
     : AbstractProject(parent)
     , _metaSpriteProject(std::make_unique<UnTech::MetaSprite::Project>())
 {
-    // ::TODO initResourceLists::
+    initResourceLists({
+        new FrameSetResourceList(this, ResourceTypeIndex::MS_FRAMESET),
+    });
 }
 
 bool MetaSpriteProject::saveProjectFile(const QString& filename)

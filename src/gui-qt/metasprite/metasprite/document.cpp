@@ -9,20 +9,28 @@
 #include "palettesmodel.h"
 #include "selection.h"
 
+using FrameSetType = UnTech::MetaSprite::Project::FrameSetType;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-Document::Document(QObject* parent)
-    : AbstractMsDocument(parent)
+Document::Document(FrameSetResourceList* parent, size_t index)
+    : AbstractMsDocument(parent, index)
     , _frameSet(std::make_unique<MS::FrameSet>())
     , _selection(new Selection(this))
     , _frameListModel(new FrameListModel(this))
     , _palettesModel(new PalettesModel(this))
 {
+    Q_ASSERT(index < frameSetList().size());
+    Q_ASSERT(frameSetFile().type == FrameSetType::METASPRITE);
+
+    setFilename(QString::fromStdString(frameSetFile().filename));
+
     initModels();
 }
 
 void Document::initModels()
 {
+    setName(QString::fromStdString(_frameSet->name));
+
     _selection->setDocument(this);
     _frameListModel->setDocument(this);
     _palettesModel->setDocument(this);
@@ -30,33 +38,33 @@ void Document::initModels()
     AbstractMsDocument::initModels();
 }
 
-const QString& Document::fileFilter() const
+void Document::saveResourceData(const std::string& filename) const
 {
-    static const QString FILTER = QString::fromUtf8(
-        "MetaSprite FrameSet (*.utms);;All Files (*)");
-
-    return FILTER;
+    MS::saveFrameSet(*_frameSet, filename);
 }
 
-const QString& Document::defaultFileExtension() const
+bool Document::loadResourceData(RES::ErrorList& err)
 {
-    static const QString EXTENSION = QString::fromUtf8("utms");
-    return EXTENSION;
-}
+    Q_ASSERT(frameSetFile().type == FrameSetType::METASPRITE);
 
-bool Document::saveDocumentFile(const QString& filename)
-{
-    MS::saveFrameSet(*_frameSet, filename.toUtf8().data());
-    return true;
-}
+    const std::string& fn = filename().toStdString();
 
-bool Document::loadDocumentFile(const QString& filename)
-{
-    auto fs = MS::loadFrameSet(filename.toUtf8().data());
+    if (fn.empty()) {
+        err.addError("Missing filename");
+        return false;
+    }
+
+    auto fs = MS::loadFrameSet(fn);
     if (fs) {
         _frameSet = std::move(fs);
         initModels();
         return true;
     }
+    return false;
+}
+
+bool Document::compileResource(UnTech::Resources::ErrorList& err)
+{
+    err.addError("compileResource: Not implemented");
     return false;
 }

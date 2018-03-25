@@ -27,7 +27,7 @@ public:
     using FrameT = SI::Frame;
 
 public:
-    explicit Document(QObject* parent = nullptr);
+    Document(FrameSetResourceList* parent, size_t index);
     ~Document() = default;
 
     SI::FrameSet* frameSet() const { return _frameSet.get(); }
@@ -36,13 +36,11 @@ public:
     virtual Selection* selection() const final { return _selection; }
     virtual FrameListModel* frameListModel() const final { return _frameListModel; }
 
-    virtual const QString& fileFilter() const final;
-    virtual const QString& defaultFileExtension() const final;
-
 protected:
     // can throw exceptions
-    virtual bool saveDocumentFile(const QString& filename) final;
-    virtual bool loadDocumentFile(const QString& filename) final;
+    virtual void saveResourceData(const std::string& filename) const final;
+    virtual bool loadResourceData(RES::ErrorList& err) final;
+    virtual bool compileResource(RES::ErrorList& err) final;
 
 private:
     void initModels();

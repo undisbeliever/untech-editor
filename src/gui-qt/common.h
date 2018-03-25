@@ -20,8 +20,9 @@ enum class ResourceState {
 enum class ResourceTypeIndex {
     PALETTE,
     MT_TILESET,
+    MS_FRAMESET,
 };
 
-constexpr unsigned N_RESOURCE_TYPES = 2;
+constexpr unsigned N_RESOURCE_TYPES = 3;
 }
 }

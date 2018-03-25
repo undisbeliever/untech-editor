@@ -8,52 +8,60 @@
 #include "framelistmodel.h"
 #include "selection.h"
 
+using FrameSetType = UnTech::MetaSprite::Project::FrameSetType;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-Document::Document(QObject* parent)
-    : AbstractMsDocument(parent)
+Document::Document(FrameSetResourceList* parent, size_t index)
+    : AbstractMsDocument(parent, index)
     , _frameSet(std::make_unique<SI::FrameSet>())
     , _selection(new Selection(this))
     , _frameListModel(new FrameListModel(this))
 {
+    Q_ASSERT(index < frameSetList().size());
+    Q_ASSERT(frameSetFile().type == FrameSetType::SPRITE_IMPORTER);
+
+    setFilename(QString::fromStdString(frameSetFile().filename));
+
     initModels();
 }
 
 void Document::initModels()
 {
+    setName(QString::fromStdString(_frameSet->name));
+
     _selection->setDocument(this);
     _frameListModel->setDocument(this);
 
     AbstractMsDocument::initModels();
 }
 
-const QString& Document::fileFilter() const
+void Document::saveResourceData(const std::string& filename) const
 {
-    static const QString FILTER = QString::fromUtf8(
-        "SpriteImporter FrameSet (*.utsi);;All Files (*)");
-
-    return FILTER;
+    SI::saveFrameSet(*_frameSet, filename);
 }
 
-const QString& Document::defaultFileExtension() const
+bool Document::loadResourceData(RES::ErrorList& err)
 {
-    static const QString EXTENSION = QString::fromUtf8("utsi");
-    return EXTENSION;
-}
+    Q_ASSERT(frameSetFile().type == FrameSetType::SPRITE_IMPORTER);
 
-bool Document::saveDocumentFile(const QString& filename)
-{
-    SI::saveFrameSet(*_frameSet, filename.toUtf8().data());
-    return true;
-}
+    const std::string& fn = filename().toStdString();
 
-bool Document::loadDocumentFile(const QString& filename)
-{
-    auto fs = SI::loadFrameSet(filename.toUtf8().data());
+    if (fn.empty()) {
+        err.addError("Missing filename");
+        return false;
+    }
+
+    auto fs = SI::loadFrameSet(fn);
     if (fs) {
         _frameSet = std::move(fs);
         initModels();
         return true;
     }
+    return false;
+}
+
+bool Document::compileResource(UnTech::Resources::ErrorList& err)
+{
+    err.addError("compileResource: Not implemented");
     return false;
 }

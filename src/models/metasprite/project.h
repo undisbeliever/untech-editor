@@ -33,6 +33,8 @@ struct Project {
         std::unique_ptr<MetaSprite::FrameSet> msFrameSet;
         std::unique_ptr<SpriteImporter::FrameSet> siFrameSet;
 
+        void setTypeFromExtension();
+
         bool convertSpriteImporter(ErrorList& errors, bool strict = false);
 
         // throws an exception on error

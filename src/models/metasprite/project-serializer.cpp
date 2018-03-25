@@ -41,6 +41,7 @@ inline std::unique_ptr<Project> readProject(XmlReader& xml, const XmlTag* tag)
             if (childTag->hasAttribute("src")) {
                 fs.type = FST::UNKNOWN;
                 fs.filename = childTag->getAttributeFilename("src");
+                fs.setTypeFromExtension();
             }
             else {
                 fs.type = FST::NONE;

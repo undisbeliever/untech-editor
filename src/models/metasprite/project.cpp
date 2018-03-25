@@ -6,6 +6,7 @@
 
 #include "project.h"
 #include "models/common/humantypename.h"
+#include "models/common/string.h"
 #include "utsi2utms/utsi2utms.h"
 
 using namespace UnTech;
@@ -13,6 +14,24 @@ using namespace UnTech::MetaSprite;
 
 template <>
 const std::string HumanTypeName<Project::FrameSetFile>::value = "FrameSet File";
+
+void Project::FrameSetFile::setTypeFromExtension()
+{
+    if (filename.empty()) {
+        type = FrameSetType::NONE;
+        return;
+    }
+
+    if (String::endsWith(filename, ".utms")) {
+        type = FrameSetType::METASPRITE;
+    }
+    else if (String::endsWith(filename, ".utsi")) {
+        type = FrameSetType::SPRITE_IMPORTER;
+    }
+    else {
+        type = FrameSetType::UNKNOWN;
+    }
+}
 
 bool Project::FrameSetFile::convertSpriteImporter(ErrorList& errors, bool strict)
 {
