@@ -21,6 +21,8 @@
 #include "gui-qt/resources/resourceproject.h"
 #include "gui-qt/resources/resourceprojectloader.h"
 
+#include "gui-qt/metasprite/metasprite/msframeseteditor.h"
+#include "gui-qt/metasprite/spriteimporter/siframeseteditor.h"
 #include "resources/mttileset/mttileseteditor.h"
 #include "resources/palette/paletteeditor.h"
 #include "resources/resourcefile/resourcefileeditor.h"
@@ -124,6 +126,8 @@ MainWindow::MainWindow(QWidget* parent)
     _editors.append(new ResourceFileEditor(this));
     _editors.append(new PaletteEditor(this));
     _editors.append(new MtTilesetEditor(this, _zoomSettings));
+    _editors.append(new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettings));
+    _editors.append(new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettings));
 
     for (AbstractEditor* editor : _editors) {
         if (QWidget* w = editor->editorWidget()) {
