@@ -17,6 +17,7 @@
 #include "resourcestreedock.h"
 #include "tabbar.h"
 
+#include "gui-qt/metasprite/metaspriteprojectloader.h"
 #include "gui-qt/resources/resourceproject.h"
 #include "gui-qt/resources/resourceprojectloader.h"
 
@@ -36,7 +37,7 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
 
 const QString MainWindow::ALL_FILE_FILTERS = QString::fromUtf8(
-    "UnTech Project File (*.utres)");
+    "UnTech Project File (*.utres *.utmspro)");
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -45,7 +46,8 @@ MainWindow::MainWindow(QWidget* parent)
     , _ui(std::make_unique<Ui::MainWindow>())
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
     , _undoGroup(new QUndoGroup(this))
-    , _projectLoaders({ new ResourceProjectLoader(this) })
+    , _projectLoaders({ new Resources::ResourceProjectLoader(this),
+                        new MetaSprite::MetaSpriteProjectLoader(this) })
 {
     _ui->setupUi(this);
 
