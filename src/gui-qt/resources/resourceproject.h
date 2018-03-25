@@ -13,17 +13,22 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+class PaletteResourceList;
 
 namespace RES = UnTech::Resources;
 
 class ResourceProject : public AbstractProject {
     Q_OBJECT
 
+    static constexpr int PALETTE_LIST_INDEX = 0;
+
 public:
     explicit ResourceProject(QObject* parent = nullptr);
     ~ResourceProject() = default;
 
     RES::ResourcesFile* resourcesFile() const { return _resourcesFile.get(); }
+
+    PaletteResourceList* paletteResourceList() const;
 
 protected:
     // can throw exceptions

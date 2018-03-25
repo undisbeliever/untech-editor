@@ -19,6 +19,13 @@ ResourceProject::ResourceProject(QObject* parent)
         new PaletteResourceList(this, ResourceTypeIndex::PALETTE),
         new MtTilesetResourceList(this, ResourceTypeIndex::MT_TILESET),
     });
+
+    Q_ASSERT(paletteResourceList());
+}
+
+PaletteResourceList* ResourceProject::paletteResourceList() const
+{
+    return qobject_cast<PaletteResourceList*>(resourceLists().at(PALETTE_LIST_INDEX));
 }
 
 bool ResourceProject::saveProjectFile(const QString& filename)
