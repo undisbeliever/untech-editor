@@ -81,9 +81,9 @@ void ResourcesTreeModel::onResourceListStateChanged()
 {
     Q_ASSERT(_project);
 
-    AbstractResourceList* item = qobject_cast<AbstractResourceList*>(sender());
-    if (item) {
-        int index = (int)item->resourceTypeIndex();
+    AbstractResourceList* list = qobject_cast<AbstractResourceList*>(sender());
+    if (list) {
+        int index = _project->resourceLists().indexOf(list);
 
         emit dataChanged(createIndex(index, 0, ROOT_INTERNAL_ID),
                          createIndex(index, N_COLUMNS, ROOT_INTERNAL_ID),
@@ -113,7 +113,7 @@ void ResourcesTreeModel::onResourceItemNameChanged()
 void ResourcesTreeModel::emitResourceDataChanged(AbstractResourceItem* item, const QVector<int>& roles)
 {
     if (item) {
-        int listIndex = (int)item->resourceTypeIndex();
+        int listIndex = _project->resourceLists().indexOf(item->resourceList());
         int index = item->index();
 
         emit dataChanged(createIndex(index, 0, listIndex),
@@ -132,7 +132,10 @@ void ResourcesTreeModel::emitResourceDataChanged(AbstractResourceItem* item, con
 QModelIndex ResourcesTreeModel::toModelIndex(const AbstractResourceItem* item) const
 {
     if (item) {
-        return createIndex(item->index(), 0, (int)item->resourceTypeIndex());
+        int rli = _project->resourceLists().indexOf(item->resourceList());
+        Q_ASSERT(rli >= 0);
+
+        return createIndex(item->index(), 0, rli);
     }
 
     return QModelIndex();
