@@ -7,9 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstractproject.h"
-#include "gui-qt/common/abstractdocument.h"
 #include "models/resources/resources.h"
-#include <array>
 #include <memory>
 
 namespace UnTech {
@@ -27,13 +25,10 @@ public:
 
     RES::ResourcesFile* resourcesFile() const { return _resourcesFile.get(); }
 
-    virtual const QString& fileFilter() const final;
-    virtual const QString& defaultFileExtension() const final;
-
 protected:
     // can throw exceptions
-    virtual bool saveDocumentFile(const QString& filename) final;
-    virtual bool loadDocumentFile(const QString& filename) final;
+    virtual bool saveProjectFile(const QString& filename) final;
+    virtual bool loadProjectFile(const QString& filename) final;
 
 private:
     std::unique_ptr<RES::ResourcesFile> _resourcesFile;

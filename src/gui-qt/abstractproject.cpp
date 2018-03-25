@@ -10,12 +10,15 @@
 #include "resourcevalidationworker.h"
 
 #include <QFileInfo>
+#include <QMessageBox>
 
 using namespace UnTech::GuiQt;
 
 AbstractProject::AbstractProject(QObject* parent)
-    : AbstractDocument(parent)
+    : QObject(parent)
     , _resourceLists()
+    , _filename()
+    , _undoStack(new QUndoStack(this))
     , _validationWorker(new ResourceValidationWorker(this))
     , _selectedResource(nullptr)
 {
@@ -42,6 +45,66 @@ void AbstractProject::setSelectedResource(AbstractResourceItem* item)
 
         emit selectedResourceChanged();
     }
+}
+
+bool AbstractProject::saveProject(const QString& filename)
+{
+    QString absFilename = QFileInfo(filename).absoluteFilePath();
+    bool success = false;
+
+    try {
+        success = saveProjectFile(absFilename);
+    }
+    catch (const std::exception& ex) {
+        QMessageBox::critical(nullptr, tr("Error Saving File"), ex.what());
+        success = false;
+    }
+
+    if (success) {
+        if (_filename != absFilename) {
+            _filename = absFilename;
+            filenameChanged();
+        }
+
+        // Mark all internal resources as clean
+        _undoStack->setClean();
+        for (AbstractResourceList* rl : resourceLists()) {
+            for (AbstractResourceItem* item : rl->items()) {
+                if (auto* inItem = qobject_cast<AbstractInternalResourceItem*>(item)) {
+                    inItem->undoStack()->setClean();
+                }
+            }
+        }
+    }
+
+    return success;
+}
+
+bool AbstractProject::loadProject(const QString& filename)
+{
+    QString absFilename = QFileInfo(filename).absoluteFilePath();
+    bool success = false;
+
+    try {
+        success = loadProjectFile(absFilename);
+        if (success) {
+            rebuildResourceLists();
+        }
+    }
+    catch (const std::exception& ex) {
+        QMessageBox::critical(nullptr, tr("Error opening File"), ex.what());
+        success = false;
+    }
+
+    if (success) {
+        if (_filename != absFilename) {
+            _filename = absFilename;
+            filenameChanged();
+        }
+        _undoStack->clear();
+    }
+
+    return success;
 }
 
 void AbstractProject::onSelectedResourceDestroyed(QObject* obj)

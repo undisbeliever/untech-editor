@@ -21,43 +21,18 @@ ResourceProject::ResourceProject(QObject* parent)
     });
 }
 
-const QString& ResourceProject::fileFilter() const
-{
-    static const QString FILTER = QString::fromUtf8(
-        "UnTech Resources File (*.utres);;All Files (*)");
-
-    return FILTER;
-}
-
-const QString& ResourceProject::defaultFileExtension() const
-{
-    static const QString EXTENSION = QString::fromUtf8("utres");
-    return EXTENSION;
-}
-
-bool ResourceProject::saveDocumentFile(const QString& filename)
+bool ResourceProject::saveProjectFile(const QString& filename)
 {
     RES::saveResourcesFile(*_resourcesFile, filename.toUtf8().data());
-
-    // Mark all internal resources as clean
-    _undoStack->setClean();
-    for (AbstractResourceList* rl : resourceLists()) {
-        for (AbstractResourceItem* item : rl->items()) {
-            if (auto* inItem = qobject_cast<AbstractInternalResourceItem*>(item)) {
-                inItem->undoStack()->setClean();
-            }
-        }
-    }
 
     return true;
 }
 
-bool ResourceProject::loadDocumentFile(const QString& filename)
+bool ResourceProject::loadProjectFile(const QString& filename)
 {
     auto res = RES::loadResourcesFile(filename.toUtf8().data());
     if (res) {
         _resourcesFile = std::move(res);
-        rebuildResourceLists();
         return true;
     }
     return false;

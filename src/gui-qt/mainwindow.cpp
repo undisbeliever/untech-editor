@@ -361,7 +361,7 @@ void MainWindow::onMenuNew(QAction* action)
         QString filename = saveDialog.selectedFiles().first();
 
         std::unique_ptr<AbstractProject> project = loader->newProject();
-        bool s = project->saveDocument(filename);
+        bool s = project->saveProject(filename);
         if (s) {
             _ui->menu_OpenRecent->addFilename(filename);
             setProject(std::move(project));
@@ -408,7 +408,7 @@ void MainWindow::onMenuSave()
             // current resource is internal
 
             Q_ASSERT(!_project->filename().isEmpty());
-            _project->saveDocument(_project->filename());
+            _project->saveProject(_project->filename());
         }
     }
     catch (const std::exception& ex) {
@@ -421,7 +421,7 @@ bool MainWindow::onMenuSaveAll()
     Q_ASSERT(_project != nullptr);
     Q_ASSERT(!_project->filename().isEmpty());
 
-    bool s = _project->saveDocument(_project->filename());
+    bool s = _project->saveProject(_project->filename());
     if (s) {
         _ui->menu_OpenRecent->addFilename(_project->filename());
     }

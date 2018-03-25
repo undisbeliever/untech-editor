@@ -35,11 +35,10 @@ public:
 
     virtual std::unique_ptr<AbstractProject> newProject() = 0;
 
-    // may throw exception
     std::unique_ptr<AbstractProject> loadProject(const QString& filename)
     {
         std::unique_ptr<AbstractProject> project = newProject();
-        if (project->loadDocument(filename)) {
+        if (project->loadProject(filename)) {
             return project;
         }
         return nullptr;

@@ -6,9 +6,8 @@
 
 #pragma once
 
-#include "gui-qt/common/abstractdocument.h"
-#include <array>
-#include <memory>
+#include <QObject>
+#include <QUndoStack>
 
 namespace UnTech {
 namespace GuiQt {
@@ -17,7 +16,7 @@ class AbstractResourceItem;
 class AbstractExternalResourceItem;
 class ResourceValidationWorker;
 
-class AbstractProject : public AbstractDocument {
+class AbstractProject : public QObject {
     Q_OBJECT
 
 public:
@@ -28,24 +27,26 @@ protected:
     void initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists);
 
 public:
+    const QString& filename() const { return _filename; }
+    QUndoStack* undoStack() const { return _undoStack; }
     const auto& resourceLists() const { return _resourceLists; }
     ResourceValidationWorker* validationWorker() const { return _validationWorker; }
 
     void setSelectedResource(AbstractResourceItem* item);
     AbstractResourceItem* selectedResource() const { return _selectedResource; }
 
+    bool saveProject(const QString& filename);
+    bool loadProject(const QString& filename);
+
     QList<AbstractExternalResourceItem*> unsavedExternalResources() const;
 
     // All unsaved filenames are relative to the directory this project is saved to
     QStringList unsavedFilenames() const;
 
-    virtual const QString& fileFilter() const = 0;
-    virtual const QString& defaultFileExtension() const = 0;
-
 protected:
     // can throw exceptions
-    virtual bool saveDocumentFile(const QString& filename) = 0;
-    virtual bool loadDocumentFile(const QString& filename) = 0;
+    virtual bool saveProjectFile(const QString& filename) = 0;
+    virtual bool loadProjectFile(const QString& filename) = 0;
 
 protected:
     void rebuildResourceLists();
@@ -54,6 +55,7 @@ private slots:
     void onSelectedResourceDestroyed(QObject* obj);
 
 signals:
+    void filenameChanged();
     void resourceFileSettingsChanged();
 
     void selectedResourceChanged();
@@ -62,6 +64,9 @@ signals:
 
 private:
     QList<AbstractResourceList*> _resourceLists;
+
+    QString _filename;
+    QUndoStack* const _undoStack;
     ResourceValidationWorker* const _validationWorker;
 
     AbstractResourceItem* _selectedResource;

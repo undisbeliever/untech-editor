@@ -241,7 +241,7 @@ bool TabBar::unsavedChangesDialog(AbstractResourceItem* item)
                 }
                 else {
                     auto& filename = item->project()->filename();
-                    success = item->project()->saveDocument(filename);
+                    success = item->project()->saveProject(filename);
                 }
             }
             catch (const std::exception& ex) {
