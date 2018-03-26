@@ -46,6 +46,8 @@ private slots:
     void onSelectedResourceChanged();
 
 private:
+    void setEditor(AbstractEditor* editor);
+
     bool unsavedChangesDialog();
 
 private slots:
@@ -82,6 +84,8 @@ private:
     ZoomSettings* _zoomSettings;
     QUndoGroup* _undoGroup;
     QList<AbstractEditor*> _editors;
+
+    AbstractEditor* _currentEditor;
 
     QList<AbstractProjectLoader*> _projectLoaders;
 };

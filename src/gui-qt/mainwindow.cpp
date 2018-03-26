@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _ui(std::make_unique<Ui::MainWindow>())
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
     , _undoGroup(new QUndoGroup(this))
+    , _currentEditor(nullptr)
     , _projectLoaders({ new Resources::ResourceProjectLoader(this),
                         new MetaSprite::MetaSpriteProjectLoader(this) })
 {
@@ -299,10 +300,30 @@ void MainWindow::onSelectedResourceChanged()
     for (AbstractEditor* editor : _editors) {
         bool s = editor->setResourceItem(_project.get(), _selectedResource);
         if (s) {
-            _centralStackedWidget->setCurrentWidget(editor->editorWidget());
-            _propertiesStackedWidget->setCurrentWidget(editor->propertyWidget());
+            setEditor(editor);
+            break;
         }
     }
+}
+
+void MainWindow::setEditor(AbstractEditor* editor)
+{
+    Q_ASSERT(editor);
+
+    if (_currentEditor == editor) {
+        return;
+    }
+    _currentEditor = editor;
+
+    _centralStackedWidget->setCurrentWidget(editor->editorWidget());
+
+    QWidget* propertyWidget = editor->propertyWidget();
+    if (propertyWidget) {
+        _propertiesStackedWidget->setCurrentWidget(editor->propertyWidget());
+    }
+
+    _propertiesDock->setVisible(propertyWidget != nullptr);
+    _propertiesDock->setEnabled(propertyWidget != nullptr);
 }
 
 bool MainWindow::unsavedChangesDialog()
