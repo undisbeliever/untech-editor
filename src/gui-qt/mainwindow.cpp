@@ -193,6 +193,7 @@ void MainWindow::setProject(std::unique_ptr<AbstractProject>&& project)
     auto oldProject = std::move(_project);
 
     if (oldProject) {
+        oldProject->setSelectedResource(nullptr);
         oldProject->disconnect(this);
     }
     _project = std::move(project);
