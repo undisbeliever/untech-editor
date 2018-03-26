@@ -62,6 +62,9 @@ void TabBar::setProject(AbstractProject* project)
 
 void TabBar::resetTabs()
 {
+    // prevent currentChanged signal from being emitted
+    _tabBar->blockSignals(true);
+
     for (AbstractResourceItem* item : _tabResources) {
         if (item) {
             item->disconnect(this);
@@ -77,6 +80,8 @@ void TabBar::resetTabs()
         _tabResources.append(nullptr);
         _tabBar->addTab("Project");
     }
+
+    _tabBar->blockSignals(false);
 }
 
 AbstractResourceItem* TabBar::currentResource() const
