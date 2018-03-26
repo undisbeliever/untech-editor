@@ -35,6 +35,12 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     , _animationPreviewItemFactory(
           new MsAnimationPreviewItemFactory(_layerSettings, _tilesetPixmaps, this))
 {
+    // Have the left and right docks take up the whole height of the documentWindow
+    setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+
     _tabWidget = new QTabWidget(this);
     setCentralWidget(_tabWidget);
     _tabWidget->setTabPosition(QTabWidget::West);

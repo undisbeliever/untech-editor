@@ -91,6 +91,9 @@ MainWindow::MainWindow(QWidget* parent)
     _projectWindow->setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     _projectWindow->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
+    // Shrink errorListDock
+    _projectWindow->resizeDocks({ _errorListDock }, { 10 }, Qt::Vertical);
+
     // Update Menu
     {
         for (int i = 0; i < _projectLoaders.size(); i++) {

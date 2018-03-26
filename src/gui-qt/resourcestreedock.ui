@@ -23,11 +23,11 @@
     </property>
     <item>
      <widget class="QTreeView" name="resourcesTree">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>100</height>
-       </size>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
       <property name="selectionMode">
        <enum>QAbstractItemView::SingleSelection</enum>
