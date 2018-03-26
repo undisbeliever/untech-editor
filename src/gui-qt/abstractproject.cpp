@@ -27,6 +27,13 @@ AbstractProject::AbstractProject(QObject* parent)
 void AbstractProject::initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists)
 {
     _resourceLists = resourceLists;
+
+    for (AbstractResourceList* rl : _resourceLists) {
+        connect(rl, &AbstractResourceList::resourceItemCreated,
+                this, &AbstractProject::resourceItemCreated);
+        connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
+                this, &AbstractProject::resourceItemAboutToBeRemoved);
+    }
 }
 
 void AbstractProject::setSelectedResource(AbstractResourceItem* item)
