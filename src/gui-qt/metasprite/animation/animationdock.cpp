@@ -113,7 +113,6 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
     else {
         _nextAnimationCompleter->setModel(nullptr);
         _ui->animationList->setModel(nullptr);
-        _ui->animationFrames->setModel(nullptr);
 
         clearGui();
     }
