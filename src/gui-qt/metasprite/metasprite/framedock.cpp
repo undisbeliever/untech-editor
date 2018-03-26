@@ -106,7 +106,7 @@ void FrameDock::setDocument(Document* document)
                 this, &FrameDock::onFrameContentsSelectionChanged);
     }
     else {
-        _ui->frameComboBox->setModel(nullptr);
+        _ui->frameComboBox->clear();
 
         clearGui();
     }

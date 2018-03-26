@@ -123,7 +123,7 @@ void AnimationPreview::setDocument(AbstractMsDocument* document)
     else {
         removePreviewItem();
         clearGui();
-        _ui->animation->setModel(nullptr);
+        _ui->animation->clear();
     }
 }
 
