@@ -497,20 +497,63 @@ void MainWindow::readSettings()
 {
     QSettings settings;
 
-    if (!settings.contains("pwin_state")) {
-        // required to prevent docks from resizing on layout change
-        saveSettings();
+    restoreGeometry(settings.value("geometry").toByteArray());
+
+    const auto& snList = settingsStateNameWindowList();
+    for (const auto& it : snList) {
+        const QString& stateName = it.first;
+
+        if (settings.contains(stateName) == false) {
+            // required to prevent docks from resizing on layout change
+            saveSettings();
+            break;
+        }
     }
 
-    restoreGeometry(settings.value("geometry").toByteArray());
-    this->restoreState(settings.value("window_state").toByteArray());
-    _projectWindow->restoreState(settings.value("pwin_state").toByteArray());
+    for (const auto& it : snList) {
+        const QString& stateName = it.first;
+        QMainWindow* mw = it.second;
+
+        mw->restoreState(settings.value(stateName).toByteArray());
+    }
 }
 
 void MainWindow::saveSettings()
 {
     QSettings settings;
+
     settings.setValue("geometry", saveGeometry());
-    settings.setValue("window_state", this->saveState());
-    settings.setValue("pwin_state", _projectWindow->saveState());
+
+    const auto& snList = settingsStateNameWindowList();
+    for (const auto& it : snList) {
+        const QString& stateName = it.first;
+        QMainWindow* mw = it.second;
+
+        settings.setValue(stateName, mw->saveState());
+    }
+}
+
+QVector<QPair<QString, QMainWindow*>> MainWindow::settingsStateNameWindowList()
+{
+    QVector<QPair<QString, QMainWindow*>> snList;
+
+    snList.append(qMakePair(QStringLiteral("MainWindow_state"), this));
+    snList.append(qMakePair(QStringLiteral("ProjectWindow_state"), _projectWindow));
+
+    for (AbstractEditor* editor : _editors) {
+        QMainWindow* mw = qobject_cast<QMainWindow*>(editor->editorWidget());
+        if (mw) {
+            const QString className = editor->metaObject()->className();
+            QString stateName = className.section("::", -1);
+            stateName += QStringLiteral("_state");
+
+            auto it = std::find_if(snList.cbegin(), snList.cend(),
+                                   [&](const auto& p) { return p.first == stateName; });
+            Q_ASSERT_X(it == snList.end(), "settingsStateNameMap", "duplicate name detected");
+
+            snList.append(qMakePair(stateName, mw));
+        }
+    }
+
+    return snList;
 }

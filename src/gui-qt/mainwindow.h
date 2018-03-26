@@ -65,6 +65,7 @@ protected:
 
     void readSettings();
     void saveSettings();
+    QVector<QPair<QString, QMainWindow*>> settingsStateNameWindowList();
 
 private:
     std::unique_ptr<AbstractProject> _project;
