@@ -9,8 +9,8 @@
 #include <QComboBox>
 #include <QFileSystemWatcher>
 #include <QMainWindow>
+#include <QPushButton>
 #include <QTabWidget>
-#include <QUndoGroup>
 #include <memory>
 
 namespace UnTech {
@@ -42,11 +42,11 @@ public:
     MainWindow(ZoomSettings* zoomSettings, QWidget* parent = nullptr);
     ~MainWindow();
 
+    QPushButton* layersButton() { return _layersButton; }
+
     void setDocument(Document* document);
 
     void populateMenu(QMenu* editMenu, QMenu* viewMenu);
-
-    void setupStatusbar(QStatusBar* statusBar);
 
 private slots:
     void onSelectedFrameChanged();
@@ -59,6 +59,8 @@ private:
 
     Actions* _actions;
     LayerSettings* _layerSettings;
+
+    QPushButton* _layersButton;
 
     QFileSystemWatcher _imageFileWatcher;
 

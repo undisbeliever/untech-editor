@@ -42,6 +42,11 @@ public:
         _editorWidget->populateMenu(editMenu, viewMenu);
     }
 
+    virtual QWidget* statusBarWidget() const final
+    {
+        return _editorWidget->layersButton();
+    }
+
 private:
     MainWindow* const _editorWidget;
 };

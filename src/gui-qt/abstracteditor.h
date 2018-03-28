@@ -33,6 +33,7 @@ public:
     virtual QWidget* propertyWidget() const;
 
     virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu);
+    virtual QWidget* statusBarWidget() const;
 
 private:
     QWidget* const _parentWindow;

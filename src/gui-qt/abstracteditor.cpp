@@ -15,6 +15,11 @@ QWidget* AbstractEditor::propertyWidget() const
     return nullptr;
 }
 
+QWidget* AbstractEditor::statusBarWidget() const
+{
+    return nullptr;
+}
+
 void AbstractEditor::populateMenu(QMenu*, QMenu*)
 {
 }

@@ -38,6 +38,11 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
+    _layersButton = new QPushButton(tr("Layers"), this);
+    QMenu* layerMenu = new QMenu(this);
+    _layerSettings->populateMenu(layerMenu);
+    _layersButton->setMenu(layerMenu);
+
     _tabWidget = new QTabWidget(this);
     setCentralWidget(_tabWidget);
     _tabWidget->setTabPosition(QTabWidget::West);
@@ -103,15 +108,6 @@ void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 
     viewMenu->addSeparator();
     _layerSettings->populateMenu(viewMenu);
-}
-
-void MainWindow::setupStatusbar(QStatusBar* statusBar)
-{
-    QPushButton* layerButton = new QPushButton(tr("Layers"), this);
-    QMenu* layerMenu = new QMenu(this);
-    _layerSettings->populateMenu(layerMenu);
-    layerButton->setMenu(layerMenu);
-    statusBar->addPermanentWidget(layerButton);
 }
 
 void MainWindow::setDocument(Document* document)

@@ -316,6 +316,12 @@ void MainWindow::setEditor(AbstractEditor* editor)
     if (_currentEditor == editor) {
         return;
     }
+
+    if (_currentEditor) {
+        if (QWidget* sw = _currentEditor->statusBarWidget()) {
+            statusBar()->removeWidget(sw);
+        }
+    }
     _currentEditor = editor;
 
     bool showPropertiesDock = false;
@@ -329,6 +335,11 @@ void MainWindow::setEditor(AbstractEditor* editor)
         }
         else {
             _propertiesStackedWidget->setCurrentIndex(0);
+        }
+
+        if (QWidget* sw = editor->statusBarWidget()) {
+            statusBar()->insertPermanentWidget(0, sw);
+            sw->show();
         }
     }
     else {
