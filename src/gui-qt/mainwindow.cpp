@@ -133,6 +133,10 @@ MainWindow::MainWindow(QWidget* parent)
     _editors.append(new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettings));
     _editors.append(new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettings));
 
+    // Default (blank) widgets are always index 0
+    _centralStackedWidget->addWidget(new QWidget(_centralStackedWidget));
+    _propertiesStackedWidget->addWidget(new QWidget(_propertiesStackedWidget));
+
     for (AbstractEditor* editor : _editors) {
         if (QWidget* w = editor->editorWidget()) {
             _centralStackedWidget->addWidget(w);
@@ -301,33 +305,48 @@ void MainWindow::onSelectedResourceChanged()
 
     updateGuiFilePath();
 
+    bool foundEditor = false;
     for (AbstractEditor* editor : _editors) {
         bool s = editor->setResourceItem(_project.get(), _selectedResource);
         if (s) {
             setEditor(editor);
+            foundEditor = true;
             break;
         }
+    }
+
+    if (!foundEditor) {
+        setEditor(nullptr);
     }
 }
 
 void MainWindow::setEditor(AbstractEditor* editor)
 {
-    Q_ASSERT(editor);
-
     if (_currentEditor == editor) {
         return;
     }
     _currentEditor = editor;
 
-    _centralStackedWidget->setCurrentWidget(editor->editorWidget());
+    bool showPropertiesDock = false;
 
-    QWidget* propertyWidget = editor->propertyWidget();
-    if (propertyWidget) {
-        _propertiesStackedWidget->setCurrentWidget(editor->propertyWidget());
+    if (editor) {
+        _centralStackedWidget->setCurrentWidget(editor->editorWidget());
+
+        if (QWidget* pw = editor->propertyWidget()) {
+            showPropertiesDock = true;
+            _propertiesStackedWidget->setCurrentWidget(pw);
+        }
+        else {
+            _propertiesStackedWidget->setCurrentIndex(0);
+        }
+    }
+    else {
+        _centralStackedWidget->setCurrentIndex(0);
+        _propertiesStackedWidget->setCurrentIndex(0);
     }
 
-    _propertiesDock->setVisible(propertyWidget != nullptr);
-    _propertiesDock->setEnabled(propertyWidget != nullptr);
+    _propertiesDock->setVisible(showPropertiesDock);
+    _propertiesDock->setEnabled(showPropertiesDock);
 }
 
 bool MainWindow::unsavedChangesDialog()
