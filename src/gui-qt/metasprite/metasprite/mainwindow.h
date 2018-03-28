@@ -45,7 +45,8 @@ public:
 
     void setDocument(Document* document);
 
-    void setupMenubar(QMenu* editMenu, QMenu* viewMenu);
+    void populateMenu(QMenu* editMenu, QMenu* viewMenu);
+
     void setupStatusbar(QStatusBar* statusBar);
 
 private slots:

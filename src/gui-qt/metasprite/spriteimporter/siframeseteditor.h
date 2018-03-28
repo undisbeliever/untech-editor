@@ -37,6 +37,11 @@ public:
     virtual QWidget* editorWidget() const final { return _editorWidget; }
     virtual QWidget* propertyWidget() const final { return nullptr; }
 
+    virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu) final
+    {
+        _editorWidget->populateMenu(editMenu, viewMenu);
+    }
+
 private:
     MainWindow* const _editorWidget;
 };

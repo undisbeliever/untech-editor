@@ -103,17 +103,6 @@ MainWindow::MainWindow(QWidget* parent)
         }
 
         _ui->action_AddResource->setMenu(_resourcesTreeDock->addResourceMenu());
-
-        QAction* undoAction = _undoGroup->createUndoAction(this);
-        QAction* redoAction = _undoGroup->createRedoAction(this);
-        undoAction->setIcon(QIcon(":/icons/undo.svg"));
-        undoAction->setShortcuts(QKeySequence::Undo);
-        redoAction->setIcon(QIcon(":/icons/redo.svg"));
-        redoAction->setShortcuts(QKeySequence::Redo);
-        _ui->menu_Edit->addAction(undoAction);
-        _ui->menu_Edit->addAction(redoAction);
-
-        _zoomSettings->populateMenu(_ui->menu_View);
     }
 
     // Status Bar
@@ -149,6 +138,8 @@ MainWindow::MainWindow(QWidget* parent)
     readSettings();
 
     setProject(nullptr);
+
+    updateEditViewMenus();
 
     connect(_undoGroup, &QUndoGroup::cleanChanged,
             this, &MainWindow::onUndoGroupCleanChanged);
@@ -347,6 +338,29 @@ void MainWindow::setEditor(AbstractEditor* editor)
 
     _propertiesDock->setVisible(showPropertiesDock);
     _propertiesDock->setEnabled(showPropertiesDock);
+
+    updateEditViewMenus();
+}
+
+void MainWindow::updateEditViewMenus()
+{
+    _ui->menu_Edit->clear();
+    _ui->menu_View->clear();
+
+    QAction* undoAction = _undoGroup->createUndoAction(this);
+    QAction* redoAction = _undoGroup->createRedoAction(this);
+    undoAction->setIcon(QIcon(":/icons/undo.svg"));
+    undoAction->setShortcuts(QKeySequence::Undo);
+    redoAction->setIcon(QIcon(":/icons/redo.svg"));
+    redoAction->setShortcuts(QKeySequence::Redo);
+    _ui->menu_Edit->addAction(undoAction);
+    _ui->menu_Edit->addAction(redoAction);
+
+    _zoomSettings->populateMenu(_ui->menu_View);
+
+    if (_currentEditor) {
+        _currentEditor->populateMenu(_ui->menu_Edit, _ui->menu_View);
+    }
 }
 
 bool MainWindow::unsavedChangesDialog()

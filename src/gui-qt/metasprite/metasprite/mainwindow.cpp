@@ -88,7 +88,7 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
 
 MainWindow::~MainWindow() = default;
 
-void MainWindow::setupMenubar(QMenu* editMenu, QMenu* viewMenu)
+void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
     editMenu->addSeparator();
     editMenu->addAction(_actions->raiseSelected());

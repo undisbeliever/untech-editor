@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <QMenu>
 #include <QWidget>
 
 namespace UnTech {
@@ -29,7 +30,9 @@ public:
     virtual bool setResourceItem(AbstractProject* project, AbstractResourceItem* item) = 0;
 
     virtual QWidget* editorWidget() const = 0;
-    virtual QWidget* propertyWidget() const { return nullptr; }
+    virtual QWidget* propertyWidget() const;
+
+    virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu);
 
 private:
     QWidget* const _parentWindow;

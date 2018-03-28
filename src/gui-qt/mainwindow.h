@@ -47,6 +47,7 @@ private slots:
 
 private:
     void setEditor(AbstractEditor* editor);
+    void updateEditViewMenus();
 
     bool unsavedChangesDialog();
 
