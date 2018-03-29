@@ -56,7 +56,6 @@ signals:
 
 private:
     Document* _document;
-
     MS::Frame* _selectedFrame;
 
     unsigned _selectedPalette;

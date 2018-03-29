@@ -26,11 +26,18 @@ using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
+    , _imageFileWatcher()
     , _actions(new Actions(this))
     , _layerSettings(new LayerSettings(this))
-    , _imageFileWatcher()
-    , _animationPreviewItemFactory(
-          new SiAnimationPreviewItemFactory(_layerSettings, this))
+    , _layersButton(new QPushButton(tr("Layers"), this))
+    , _tabWidget(new QTabWidget(this))
+    , _graphicsView(new ZoomableGraphicsView(this))
+    , _graphicsScene(new SiGraphicsScene(_actions, _layerSettings, this))
+    , _animationPreview(new Animation::AnimationPreview(this))
+    , _animationPreviewItemFactory(new SiAnimationPreviewItemFactory(_layerSettings, this))
+    , _frameSetDock(new FrameSetDock(_actions, this))
+    , _frameDock(new FrameDock(_actions, this))
+    , _animationDock(new Animation::AnimationDock(this))
 {
     // Have the left and right docks take up the whole height of the documentWindow
     setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
@@ -38,37 +45,26 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-    _layersButton = new QPushButton(tr("Layers"), this);
     QMenu* layerMenu = new QMenu(this);
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
 
-    _tabWidget = new QTabWidget(this);
-    setCentralWidget(_tabWidget);
-    _tabWidget->setTabPosition(QTabWidget::West);
-
-    _graphicsView = new ZoomableGraphicsView(this);
     _graphicsView->setMinimumSize(256, 256);
     _graphicsView->setZoomSettings(zoomSettings);
     _graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
-
-    _graphicsScene = new SiGraphicsScene(_actions, _layerSettings, this);
     _graphicsView->setScene(_graphicsScene);
-    _tabWidget->addTab(_graphicsView, tr("Frame"));
 
-    _animationPreview = new Animation::AnimationPreview(this);
     _animationPreview->setZoomSettings(zoomSettings);
     _animationPreview->setItemFactory(_animationPreviewItemFactory);
+
+    _tabWidget->setTabPosition(QTabWidget::West);
+    _tabWidget->addTab(_graphicsView, tr("Frame"));
     _tabWidget->addTab(_animationPreview, tr("Animation Preview"));
+    setCentralWidget(_tabWidget);
 
-    _frameSetDock = new FrameSetDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
-
-    _frameDock = new FrameDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameDock);
-
-    _animationDock = new Animation::AnimationDock(this);
     addDockWidget(Qt::RightDockWidgetArea, _animationDock);
 
     tabifyDockWidget(_frameSetDock, _frameDock);

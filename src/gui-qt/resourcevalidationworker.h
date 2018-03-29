@@ -43,6 +43,7 @@ private slots:
 
 private:
     AbstractProject* const _project;
+
     QList<AbstractResourceItem*> _itemsToProcess;
     QTimer _timer;
 };

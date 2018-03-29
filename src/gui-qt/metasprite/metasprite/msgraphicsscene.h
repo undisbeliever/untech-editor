@@ -107,21 +107,21 @@ private slots:
     void onFrameContentsMoved(const void* frame, const std::set<SelectedItem>& oldPositions, int offset);
 
 private:
-    Actions* _actions;
-    LayerSettings* _layerSettings;
-    TilesetPixmaps* _tilesetPixmaps;
-    Document* _document;
+    Actions* const _actions;
+    LayerSettings* const _layerSettings;
+    TilesetPixmaps* const _tilesetPixmaps;
+    Style* const _style;
 
-    Style* _style;
-    MS::Frame* _frame;
-
-    ResizableAabbGraphicsItem* _tileHitbox;
-    QGraphicsLineItem* _horizontalOrigin;
-    QGraphicsLineItem* _verticalOrigin;
+    ResizableAabbGraphicsItem* const _tileHitbox;
+    QGraphicsLineItem* const _horizontalOrigin;
+    QGraphicsLineItem* const _verticalOrigin;
 
     QList<PixmapGraphicsItem*> _objects;
     QList<AabbGraphicsItem*> _actionPoints;
     QList<ResizableAabbGraphicsItem*> _entityHitboxes;
+
+    Document* _document;
+    MS::Frame* _frame;
 
     bool _inUpdateSelection;
 };

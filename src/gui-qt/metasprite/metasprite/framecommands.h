@@ -28,7 +28,7 @@ protected:
     void removeFrame();
 
 private:
-    Document* _document;
+    Document* const _document;
     const idstring _frameId;
     std::unique_ptr<MS::Frame> _frame;
 };
@@ -71,7 +71,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const idstring _oldId;
     const idstring _newId;
 };
@@ -86,8 +86,8 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
-    MS::Frame* _frame;
+    Document* const _document;
+    MS::Frame* const _frame;
     const unsigned _oldOrder;
     const unsigned _newOrder;
 };
@@ -102,8 +102,8 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
-    MS::Frame* _frame;
+    Document* const _document;
+    MS::Frame* const _frame;
     const bool _oldSolid;
     const bool _newSolid;
 };
@@ -119,8 +119,8 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
-    MS::Frame* _frame;
+    Document* const _document;
+    MS::Frame* const _frame;
     const ms8rect _oldHitbox;
     const ms8rect _newHitbox;
 };

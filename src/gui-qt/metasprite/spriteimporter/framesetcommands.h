@@ -26,7 +26,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const idstring _oldName;
     const idstring _newName;
 };
@@ -42,7 +42,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const TilesetType _oldTilesetType;
     const TilesetType _newTilesetType;
 };
@@ -60,9 +60,9 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
-    ExportOrderPtr _oldExportOrder;
-    ExportOrderPtr _newExportOrder;
+    Document* const _document;
+    const ExportOrderPtr _oldExportOrder;
+    const ExportOrderPtr _newExportOrder;
 };
 
 class ChangeFrameSetImageFile : public QUndoCommand {
@@ -74,7 +74,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const std::string _oldFilename;
     const std::string _newFilename;
     const rgba _oldTransparentColor;
@@ -89,7 +89,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const rgba _oldColor;
     const rgba _newColor;
 };
@@ -103,7 +103,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const SI::FrameSetGrid _oldGrid;
     const SI::FrameSetGrid _newGrid;
 };
@@ -117,7 +117,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const SI::UserSuppliedPalette _oldPalette;
     const SI::UserSuppliedPalette _newPalette;
 };

@@ -71,7 +71,7 @@ protected:
     virtual void drawFrame(QPainter* painter) = 0;
 
 private:
-    const AbstractMsDocument* _document;
+    const AbstractMsDocument* const _document;
 
     idstring _animationId;
     MSA::PreviewState _state;

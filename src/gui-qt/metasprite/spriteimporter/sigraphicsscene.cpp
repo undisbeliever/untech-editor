@@ -23,20 +23,19 @@ SiGraphicsScene::SiGraphicsScene(Actions* actions, LayerSettings* layerSettings,
     : QGraphicsScene(parent)
     , _actions(actions)
     , _layerSettings(layerSettings)
+    , _style(new Style(parent))
+    , _frameSetPixmap(new QGraphicsPixmapItem())
+    , _paletteOutline(new QGraphicsPathItem())
     , _document(nullptr)
     , _inUpdateSelection(false)
 {
     Q_ASSERT(_actions != nullptr);
     Q_ASSERT(_layerSettings != nullptr);
 
-    _style = new Style(parent);
-
-    _frameSetPixmap = new QGraphicsPixmapItem();
     _frameSetPixmap->setTransformationMode(Qt::FastTransformation);
     _frameSetPixmap->setZValue(PIXMAP_ZVALUE);
     addItem(_frameSetPixmap);
 
-    _paletteOutline = new QGraphicsPathItem();
     _paletteOutline->setPen(_style->paletteOutlinePen());
     _paletteOutline->setVisible(false);
     _paletteOutline->setZValue(PALETTE_ZVALUE);

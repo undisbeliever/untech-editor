@@ -35,9 +35,9 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
         virtual void redo() final;                           \
                                                              \
     private:                                                 \
-        Document* _document;                                 \
-        SI::Frame* _frame;                                   \
-        unsigned _index;                                     \
+        Document* const _document;                           \
+        SI::Frame* const _frame;                             \
+        const unsigned _index;                               \
         const SI::CLS _old;                                  \
         const SI::CLS _new;                                  \
     };                                                       \
@@ -54,9 +54,9 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
         void remove##CLS();                                  \
                                                              \
     private:                                                 \
-        Document* _document;                                 \
-        SI::Frame* _frame;                                   \
-        unsigned _index;                                     \
+        Document* const _document;                           \
+        SI::Frame* const _frame;                             \
+        const unsigned _index;                               \
         const SI::CLS _value;                                \
     };                                                       \
                                                              \

@@ -18,6 +18,25 @@
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 using namespace UnTech::GuiQt::Snes;
+using ColorToolButton = UnTech::GuiQt::ColorToolButton;
+
+static QList<ColorToolButton*> buildColorButtons(QButtonGroup* buttonGroup, PalettesDock* dock)
+{
+    QList<ColorToolButton*> buttons;
+
+    for (unsigned i = 0; i < 16; i++) {
+        ColorToolButton* b = new ColorToolButton(dock);
+        buttons.append(b);
+        buttonGroup->addButton(b, i);
+
+        // setting autoRaise removes gradient from QToolButton
+        b->setAutoRaise(true);
+        b->setCheckable(true);
+        b->setIconSize(QSize(16, 16));
+    }
+
+    return buttons;
+}
 
 PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
     : QDockWidget(parent)
@@ -25,7 +44,7 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
     , _actions(actions)
     , _document(nullptr)
     , _colorGroup(new QButtonGroup(this))
-    , _colorButtons()
+    , _colorButtons(buildColorButtons(_colorGroup, this))
 {
     Q_ASSERT(actions != nullptr);
 
@@ -40,15 +59,7 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
     _ui->paletteListButtons->addAction(_actions->removePalette());
 
     for (unsigned i = 0; i < 16; i++) {
-        ColorToolButton* b = new ColorToolButton(this);
-        _colorButtons.append(b);
-        _colorGroup->addButton(b, i);
-
-        // setting autoRaise removes gradient from QToolButton
-        b->setAutoRaise(true);
-        b->setCheckable(true);
-        b->setIconSize(QSize(16, 16));
-
+        auto* b = _colorButtons.at(i);
         _ui->colorGrid->addWidget(b, i / 8, i % 8);
     }
 

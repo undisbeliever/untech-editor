@@ -41,8 +41,8 @@ private:
     void setupAddResourceMenu();
 
 private:
-    std::unique_ptr<Ui::ResourcesTreeDock> _ui;
-    ResourcesTreeModel* _model;
+    std::unique_ptr<Ui::ResourcesTreeDock> const _ui;
+    ResourcesTreeModel* const _model;
     QMenu* const _addResourceMenu;
 
     AbstractProject* _project;

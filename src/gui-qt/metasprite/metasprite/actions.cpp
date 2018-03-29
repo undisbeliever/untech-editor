@@ -20,34 +20,28 @@ Actions::Actions(MainWindow* mainWindow)
     : QObject(mainWindow)
     , _mainWindow(mainWindow)
     , _document(nullptr)
+    , _addFrame(new QAction(QIcon(":/icons/add.svg"), tr("New Frame"), this))
+    , _cloneFrame(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Frame"), this))
+    , _renameFrame(new QAction(QIcon(":/icons/rename.svg"), tr("Rename Frame"), this))
+    , _removeFrame(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Frame"), this))
+    , _addRemoveTileHitbox(new QAction(tr("Add Tile Hitbox"), this))
+    , _addPalette(new QAction(QIcon(":/icons/add.svg"), tr("New Palette"), this))
+    , _clonePalette(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Palette"), this))
+    , _raisePalette(new QAction(QIcon(":/icons/raise.svg"), tr("Raise Palette"), this))
+    , _lowerPalette(new QAction(QIcon(":/icons/lower.svg"), tr("Lower Palette"), this))
+    , _removePalette(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Palette"), this))
+    , _addFrameObject(new QAction(QIcon(":/icons/add-frame-object.svg"), tr("Add Frame Object"), this))
+    , _addActionPoint(new QAction(QIcon(":/icons/add-action-point.svg"), tr("Add Action Point"), this))
+    , _addEntityHitbox(new QAction(QIcon(":/icons/add-entity-hitbox.svg"), tr("Add Entity Hitbox"), this))
+    , _raiseSelected(new QAction(QIcon(":/icons/raise.svg"), tr("Raise Selected"), this))
+    , _lowerSelected(new QAction(QIcon(":/icons/lower.svg"), tr("Lower Selected"), this))
+    , _cloneSelected(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Selected"), this))
+    , _removeSelected(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Selected"), this))
+    , _toggleObjSize(new QAction(QIcon(":/icons/toggle-obj-size.svg"), tr("Toggle Object Size"), this))
+    , _flipObjHorizontally(new QAction(QIcon(":/icons/flip-horizontally.svg"), tr("Flip Object Horizontally"), this))
+    , _flipObjVertically(new QAction(QIcon(":/icons/flip-vertically.svg"), tr("Flip Object Vertically"), this))
+    , _entityHitboxTypeMenu(std::make_unique<QMenu>(tr("Set Entity Hitbox Type")))
 {
-    _addFrame = new QAction(QIcon(":/icons/add.svg"), tr("New Frame"), this);
-    _cloneFrame = new QAction(QIcon(":/icons/clone.svg"), tr("Clone Frame"), this);
-    _renameFrame = new QAction(QIcon(":/icons/rename.svg"), tr("Rename Frame"), this);
-    _removeFrame = new QAction(QIcon(":/icons/remove.svg"), tr("Remove Frame"), this);
-
-    _addRemoveTileHitbox = new QAction(tr("Add Tile Hitbox"), this);
-
-    _addPalette = new QAction(QIcon(":/icons/add.svg"), tr("New Palette"), this);
-    _clonePalette = new QAction(QIcon(":/icons/clone.svg"), tr("Clone Palette"), this);
-    _removePalette = new QAction(QIcon(":/icons/remove.svg"), tr("Remove Palette"), this);
-    _raisePalette = new QAction(QIcon(":/icons/raise.svg"), tr("Raise Palette"), this);
-    _lowerPalette = new QAction(QIcon(":/icons/lower.svg"), tr("Lower Palette"), this);
-
-    _addFrameObject = new QAction(QIcon(":/icons/add-frame-object.svg"), tr("Add Frame Object"), this);
-    _addActionPoint = new QAction(QIcon(":/icons/add-action-point.svg"), tr("Add Action Point"), this);
-    _addEntityHitbox = new QAction(QIcon(":/icons/add-entity-hitbox.svg"), tr("Add Entity Hitbox"), this);
-
-    _raiseSelected = new QAction(QIcon(":/icons/raise.svg"), tr("Raise Selected"), this);
-    _lowerSelected = new QAction(QIcon(":/icons/lower.svg"), tr("Lower Selected"), this);
-    _cloneSelected = new QAction(QIcon(":/icons/clone.svg"), tr("Clone Selected"), this);
-    _removeSelected = new QAction(QIcon(":/icons/remove.svg"), tr("Remove Selected"), this);
-
-    _toggleObjSize = new QAction(QIcon(":/icons/toggle-obj-size.svg"), tr("Toggle Object Size"), this);
-    _flipObjHorizontally = new QAction(QIcon(":/icons/flip-horizontally.svg"), tr("Flip Object Horizontally"), this);
-    _flipObjVertically = new QAction(QIcon(":/icons/flip-vertically.svg"), tr("Flip Object Vertically"), this);
-
-    _entityHitboxTypeMenu = std::make_unique<QMenu>(tr("Set Entity Hitbox Type"));
     for (auto& it : UnTech::MetaSprite::EntityHitboxType::enumMap) {
         QString s = QString::fromStdString(it.first);
         _entityHitboxTypeMenu->addAction(s)->setData(int(it.second));

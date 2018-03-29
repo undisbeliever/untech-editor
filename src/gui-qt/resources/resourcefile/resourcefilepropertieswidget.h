@@ -28,7 +28,7 @@ public:
     void setProject(ResourceProject* project);
 
 private:
-    std::unique_ptr<Ui::ResourceFilePropertiesWidget> _ui;
+    std::unique_ptr<Ui::ResourceFilePropertiesWidget> const _ui;
     ResourceFilePropertyManager* const _manager;
 };
 }

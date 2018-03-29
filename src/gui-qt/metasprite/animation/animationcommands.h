@@ -29,7 +29,7 @@ protected:
     void removeAnimation();
 
 private:
-    AbstractMsDocument* _document;
+    AbstractMsDocument* const _document;
     const idstring _animationId;
     std::unique_ptr<MSA::Animation> _animation;
 };
@@ -72,7 +72,7 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractMsDocument* _document;
+    AbstractMsDocument* const _document;
     const idstring _oldId;
     const idstring _newId;
 };
@@ -87,8 +87,8 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractMsDocument* _document;
-    MSA::Animation* _animation;
+    AbstractMsDocument* const _document;
+    MSA::Animation* const _animation;
     const MSA::DurationFormat _oldDurationFormat;
     const MSA::DurationFormat _newDurationFormat;
 };
@@ -103,8 +103,8 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractMsDocument* _document;
-    MSA::Animation* _animation;
+    AbstractMsDocument* const _document;
+    MSA::Animation* const _animation;
     const idstring _oldNextAnimation;
     const idstring _newNextAnimation;
     const bool _oldOneShot;
@@ -121,8 +121,8 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractMsDocument* _document;
-    MSA::Animation* _animation;
+    AbstractMsDocument* const _document;
+    MSA::Animation* const _animation;
     const idstring _oldNextAnimation;
     const idstring _newNextAnimation;
 };

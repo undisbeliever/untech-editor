@@ -31,8 +31,8 @@ protected:
     void removeAnimationFrame();
 
 private:
-    AbstractMsDocument* _document;
-    MSA::Animation* _animation;
+    AbstractMsDocument* const _document;
+    MSA::Animation* const _animation;
     const unsigned _index;
     const MSA::AnimationFrame _animationFrame;
 };
@@ -81,8 +81,8 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractMsDocument* _document;
-    MSA::Animation* _animation;
+    AbstractMsDocument* const _document;
+    MSA::Animation* const _animation;
     const unsigned _fromIndex;
     const unsigned _toIndex;
 };
@@ -98,9 +98,9 @@ public:
     virtual void redo() final;
 
 private:
-    AbstractMsDocument* _document;
-    MSA::Animation* _animation;
-    unsigned _index;
+    AbstractMsDocument* const _document;
+    MSA::Animation* const _animation;
+    const unsigned _index;
     const MSA::AnimationFrame _oldValue;
     const MSA::AnimationFrame _newValue;
 };

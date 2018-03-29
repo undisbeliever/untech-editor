@@ -110,6 +110,7 @@ private slots:
 
 protected:
     AbstractMsDocument* _document;
+
     const void* _selectedFramePtr;
     idstring _selectedFrameId;
     std::set<SelectedItem> _selectedItems;

@@ -47,12 +47,13 @@ private:
     void editColorDialog(int colorIndex);
 
 private:
-    std::unique_ptr<Ui::PalettesDock> _ui;
-    Actions* _actions;
+    std::unique_ptr<Ui::PalettesDock> const _ui;
+    Actions* const _actions;
+
     Document* _document;
 
-    QButtonGroup* _colorGroup;
-    QList<ColorToolButton*> _colorButtons;
+    QButtonGroup* const _colorGroup;
+    QList<ColorToolButton*> const _colorButtons;
 };
 }
 }

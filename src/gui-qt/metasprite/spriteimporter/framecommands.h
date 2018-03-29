@@ -28,7 +28,7 @@ protected:
     void removeFrame();
 
 private:
-    Document* _document;
+    Document* const _document;
     const idstring _frameId;
     std::unique_ptr<SI::Frame> _frame;
 };
@@ -74,7 +74,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const idstring _oldId;
     const idstring _newId;
 };
@@ -89,8 +89,8 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
-    SI::Frame* _frame;
+    Document* const _document;
+    SI::Frame* const _frame;
     const unsigned _oldOrder;
     const unsigned _newOrder;
 };
@@ -105,8 +105,8 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
-    SI::Frame* _frame;
+    Document* const _document;
+    SI::Frame* const _frame;
     const SI::FrameLocation _oldLocation;
     const SI::FrameLocation _newLocation;
 };
@@ -121,8 +121,8 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
-    SI::Frame* _frame;
+    Document* const _document;
+    SI::Frame* const _frame;
     const bool _oldSolid;
     const bool _newSolid;
 };
@@ -138,8 +138,8 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
-    SI::Frame* _frame;
+    Document* const _document;
+    SI::Frame* const _frame;
     const urect _oldHitbox;
     const urect _newHitbox;
 };

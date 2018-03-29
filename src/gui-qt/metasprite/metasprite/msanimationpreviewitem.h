@@ -36,10 +36,10 @@ protected:
     virtual void drawFrame(QPainter* painter) final;
 
 private:
-    LayerSettings* _layerSettings;
-    Style* _style;
-    TilesetPixmaps* _tilesetPixmaps;
-    const Document* _document;
+    LayerSettings* const _layerSettings;
+    Style* const _style;
+    TilesetPixmaps* const _tilesetPixmaps;
+    const Document* const _document;
 
     const MS::Frame* _frame;
 };
@@ -57,9 +57,9 @@ public:
     virtual MsAnimationPreviewItem* createPreviewItem(const AbstractMsDocument* document);
 
 private:
-    LayerSettings* _layerSettings;
-    TilesetPixmaps* _tilesetPixmaps;
-    Style* _style;
+    LayerSettings* const _layerSettings;
+    TilesetPixmaps* const _tilesetPixmaps;
+    Style* const _style;
 };
 }
 }

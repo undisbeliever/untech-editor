@@ -43,7 +43,8 @@ private:
     int selectedFrameObjectIndex() const;
 
 private:
-    std::unique_ptr<Ui::TilesetDock> _ui;
+    std::unique_ptr<Ui::TilesetDock> const _ui;
+
     Document* _document;
 };
 }

@@ -85,6 +85,7 @@ protected:
 
 private:
     const ResourceTypeIndex _resourceTypeIndex;
+
     ResourceState _state;
     QVector<AbstractResourceItem*> _items;
 };

@@ -42,8 +42,8 @@ public:
 
 private:
     ResourceItemT* const _item;
-    DataT _oldData;
-    DataT _newData;
+    const DataT _oldData;
+    const DataT _newData;
 };
 }
 }

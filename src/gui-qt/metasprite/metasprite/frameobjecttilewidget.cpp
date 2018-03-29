@@ -23,30 +23,29 @@ const QStringList FrameObjectTileWidget::FLIP_STRINGS(
 
 FrameObjectTileWidget::FrameObjectTileWidget(QWidget* parent)
     : QWidget(parent)
+    , _tileSize(new QComboBox(this))
+    , _tileId(new QSpinBox(this))
+    , _tileFlip(new QComboBox(this))
     , _nSmallTiles(512)
     , _nLargeTiles(512)
 {
+    _tileSize->addItem(tr("Small"));
+    _tileSize->addItem(tr("Large"));
+
+    _tileFlip->addItems(FLIP_STRINGS);
+
     QGridLayout* layout = new QGridLayout(this);
+
     layout->setSpacing(2);
     layout->setContentsMargins(1, 1, 1, 1);
-
     layout->setColumnStretch(0, 1);
     layout->setColumnStretch(1, 1);
 
-    this->setLayout(layout);
-
-    _tileSize = new QComboBox(this);
-    _tileSize->addItem(tr("Small"));
-    _tileSize->addItem(tr("Large"));
     layout->addWidget(_tileSize, 0, 0);
-
-    _tileId = new QSpinBox(this);
     layout->addWidget(_tileId, 0, 1);
-
-    _tileFlip = new QComboBox(this);
-    _tileFlip->addItems(FLIP_STRINGS);
     layout->addWidget(_tileFlip, 1, 0, 1, 2);
 
+    this->setLayout(layout);
     this->setMinimumSize(layout->minimumSize());
 
     _tileSize->setFocusPolicy(Qt::WheelFocus);

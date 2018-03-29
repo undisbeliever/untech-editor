@@ -27,7 +27,7 @@ protected:
     void removePalette();
 
 private:
-    Document* _document;
+    Document* const _document;
     const unsigned _index;
     const Snes::Palette4bpp _palette;
 };
@@ -68,7 +68,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const unsigned _index;
 };
 
@@ -81,7 +81,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const unsigned _index;
 };
 
@@ -99,7 +99,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const unsigned _paletteIndex;
     const unsigned _colorIndex;
     const Snes::SnesColor _oldColor;

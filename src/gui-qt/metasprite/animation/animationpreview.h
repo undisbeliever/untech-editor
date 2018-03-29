@@ -73,8 +73,9 @@ protected:
     virtual void hideEvent(QHideEvent* event) override;
 
 private:
-    std::unique_ptr<Ui::AnimationPreview> _ui;
-    QGraphicsScene* _graphicsScene;
+    std::unique_ptr<Ui::AnimationPreview> const _ui;
+    QGraphicsScene* const _graphicsScene;
+
     AnimationPreviewItemFactory* _itemFactory;
     ZoomSettings* _zoomSettings;
 

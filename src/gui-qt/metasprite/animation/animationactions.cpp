@@ -18,12 +18,11 @@ AnimationActions::AnimationActions(QWidget* widget)
     : QObject(widget)
     , _widget(widget)
     , _document(nullptr)
+    , _addAnimation(new QAction(QIcon(":/icons/add.svg"), tr("New Animation"), this))
+    , _cloneAnimation(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Animation"), this))
+    , _renameAnimation(new QAction(QIcon(":/icons/rename.svg"), tr("Rename Animation"), this))
+    , _removeAnimation(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Animation"), this))
 {
-    _addAnimation = new QAction(QIcon(":/icons/add.svg"), tr("New Animation"), this);
-    _cloneAnimation = new QAction(QIcon(":/icons/clone.svg"), tr("Clone Animation"), this);
-    _renameAnimation = new QAction(QIcon(":/icons/rename.svg"), tr("Rename Animation"), this);
-    _removeAnimation = new QAction(QIcon(":/icons/remove.svg"), tr("Remove Animation"), this);
-
     updateActions();
 
     connect(_addAnimation, &QAction::triggered,

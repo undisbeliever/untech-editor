@@ -31,9 +31,18 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     , _document(nullptr)
     , _actions(new Actions(this))
     , _layerSettings(new LayerSettings(this))
+    , _layersButton(new QPushButton(tr("Layers"), this))
     , _tilesetPixmaps(new TilesetPixmaps(this))
-    , _animationPreviewItemFactory(
-          new MsAnimationPreviewItemFactory(_layerSettings, _tilesetPixmaps, this))
+    , _tabWidget(new QTabWidget(this))
+    , _graphicsView(new ZoomableGraphicsView(this))
+    , _graphicsScene(new MsGraphicsScene(_actions, _layerSettings, _tilesetPixmaps, this))
+    , _animationPreview(new Animation::AnimationPreview(this))
+    , _animationPreviewItemFactory(new MsAnimationPreviewItemFactory(_layerSettings, _tilesetPixmaps, this))
+    , _frameSetDock(new FrameSetDock(_actions, this))
+    , _frameDock(new FrameDock(_actions, this))
+    , _animationDock(new Animation::AnimationDock(this))
+    , _palettesDock(new PalettesDock(_actions, this))
+    , _tilesetDock(new TilesetDock(_tilesetPixmaps, this))
 {
     // Have the left and right docks take up the whole height of the documentWindow
     setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
@@ -41,44 +50,28 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-    _layersButton = new QPushButton(tr("Layers"), this);
     QMenu* layerMenu = new QMenu(this);
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
 
-    _tabWidget = new QTabWidget(this);
     setCentralWidget(_tabWidget);
     _tabWidget->setTabPosition(QTabWidget::West);
 
-    _graphicsView = new ZoomableGraphicsView(this);
     _graphicsView->setMinimumSize(256, 256);
     _graphicsView->setZoomSettings(zoomSettings);
     _graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
-
-    _graphicsScene = new MsGraphicsScene(_actions, _layerSettings,
-                                         _tilesetPixmaps, this);
     _graphicsView->setScene(_graphicsScene);
     _tabWidget->addTab(_graphicsView, tr("Frame"));
 
-    _animationPreview = new Animation::AnimationPreview(this);
     _animationPreview->setZoomSettings(zoomSettings);
     _animationPreview->setItemFactory(_animationPreviewItemFactory);
     _tabWidget->addTab(_animationPreview, tr("Animation Preview"));
 
-    _frameSetDock = new FrameSetDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
-
-    _frameDock = new FrameDock(_actions, this);
     addDockWidget(Qt::RightDockWidgetArea, _frameDock);
-
-    _animationDock = new Animation::AnimationDock(this);
     addDockWidget(Qt::RightDockWidgetArea, _animationDock);
-
-    _palettesDock = new PalettesDock(_actions, this);
     addDockWidget(Qt::BottomDockWidgetArea, _palettesDock);
-
-    _tilesetDock = new TilesetDock(_tilesetPixmaps, this);
     addDockWidget(Qt::BottomDockWidgetArea, _tilesetDock);
 
     tabifyDockWidget(_frameSetDock, _frameDock);

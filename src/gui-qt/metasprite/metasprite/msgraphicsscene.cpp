@@ -32,6 +32,10 @@ MsGraphicsScene::MsGraphicsScene(Actions* actions, LayerSettings* layerSettings,
     , _actions(actions)
     , _layerSettings(layerSettings)
     , _tilesetPixmaps(tilesetPixmaps)
+    , _style(new Style(parent))
+    , _tileHitbox(new ResizableAabbGraphicsItem())
+    , _horizontalOrigin(new QGraphicsLineItem())
+    , _verticalOrigin(new QGraphicsLineItem())
     , _document(nullptr)
     , _frame(nullptr)
     , _inUpdateSelection(false)
@@ -40,9 +44,6 @@ MsGraphicsScene::MsGraphicsScene(Actions* actions, LayerSettings* layerSettings,
     Q_ASSERT(layerSettings != nullptr);
     Q_ASSERT(tilesetPixmaps != nullptr);
 
-    _style = new Style(parent);
-
-    _tileHitbox = new ResizableAabbGraphicsItem();
     _tileHitbox->setPen(_style->tileHitboxPen());
     _tileHitbox->setBrush(_style->tileHitboxBrush());
     _tileHitbox->setZValue(TILE_HITBOX_ZVALUE);
@@ -54,14 +55,12 @@ MsGraphicsScene::MsGraphicsScene(Actions* actions, LayerSettings* layerSettings,
                                            { SelectedItem::TILE_HITBOX, 0 }));
     addItem(_tileHitbox);
 
-    _horizontalOrigin = new QGraphicsLineItem();
     _horizontalOrigin->setLine(int_ms8_t::MIN, 0, int_ms8_t::MAX, 0);
     _horizontalOrigin->setPen(_style->originPen());
     _horizontalOrigin->setZValue(ORIGIN_ZVALUE);
     _horizontalOrigin->setVisible(false);
     addItem(_horizontalOrigin);
 
-    _verticalOrigin = new QGraphicsLineItem();
     _verticalOrigin->setLine(0, int_ms8_t::MIN, 0, int_ms8_t::MAX);
     _verticalOrigin->setPen(_style->originPen());
     _verticalOrigin->setZValue(ORIGIN_ZVALUE);

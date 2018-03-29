@@ -55,27 +55,25 @@ private slots:
 private:
     Document* _document;
 
-    Actions* _actions;
-    LayerSettings* _layerSettings;
+    Actions* const _actions;
+    LayerSettings* const _layerSettings;
 
-    QPushButton* _layersButton;
+    QPushButton* const _layersButton;
 
-    TilesetPixmaps* _tilesetPixmaps;
-    MsAnimationPreviewItemFactory* _animationPreviewItemFactory;
+    TilesetPixmaps* const _tilesetPixmaps;
 
-    QTabWidget* _tabWidget;
-    ZoomableGraphicsView* _graphicsView;
-    MsGraphicsScene* _graphicsScene;
-    Animation::AnimationPreview* _animationPreview;
+    QTabWidget* const _tabWidget;
+    ZoomableGraphicsView* const _graphicsView;
+    MsGraphicsScene* const _graphicsScene;
+    Animation::AnimationPreview* const _animationPreview;
 
-    FrameSetDock* _frameSetDock;
-    FrameDock* _frameDock;
-    Animation::AnimationDock* _animationDock;
-    PalettesDock* _palettesDock;
-    TilesetDock* _tilesetDock;
+    MsAnimationPreviewItemFactory* const _animationPreviewItemFactory;
 
-    QComboBox* _zoomComboBox;
-    QComboBox* _aspectRatioComboBox;
+    FrameSetDock* const _frameSetDock;
+    FrameDock* const _frameDock;
+    Animation::AnimationDock* const _animationDock;
+    PalettesDock* const _palettesDock;
+    TilesetDock* const _tilesetDock;
 };
 }
 }

@@ -61,9 +61,9 @@ signals:
 private:
     std::unique_ptr<MS::FrameSet> _frameSet;
 
-    Selection* _selection;
-    FrameListModel* _frameListModel;
-    PalettesModel* _palettesModel;
+    Selection* const _selection;
+    FrameListModel* const _frameListModel;
+    PalettesModel* const _palettesModel;
 };
 }
 }

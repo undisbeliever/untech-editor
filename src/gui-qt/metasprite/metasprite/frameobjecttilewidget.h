@@ -50,9 +50,9 @@ protected:
     virtual bool eventFilter(QObject* object, QEvent* event) override;
 
 private:
-    QComboBox* _tileSize;
-    QSpinBox* _tileId;
-    QComboBox* _tileFlip;
+    QComboBox* const _tileSize;
+    QSpinBox* const _tileId;
+    QComboBox* const _tileFlip;
 
     unsigned _nSmallTiles;
     unsigned _nLargeTiles;

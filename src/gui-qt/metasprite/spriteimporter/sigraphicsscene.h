@@ -80,14 +80,16 @@ private slots:
     void onFrameContentsMoved(const void* frame, const std::set<SelectedItem>& oldPositions, int offset);
 
 private:
-    Actions* _actions;
-    LayerSettings* _layerSettings;
-    Document* _document;
+    Actions* const _actions;
+    LayerSettings* const _layerSettings;
 
-    Style* _style;
-    QGraphicsPixmapItem* _frameSetPixmap;
-    QGraphicsPathItem* _paletteOutline;
+    Style* const _style;
+    QGraphicsPixmapItem* const _frameSetPixmap;
+    QGraphicsPathItem* const _paletteOutline;
+
     QMap<const void*, SiFrameGraphicsItem*> _frameItems;
+
+    Document* _document;
 
     bool _inUpdateSelection;
 };

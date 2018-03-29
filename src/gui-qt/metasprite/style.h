@@ -66,7 +66,7 @@ private:
     QPen createCosmeticPen(const QColor& color) const;
 
 private:
-    QWidget* _widget;
+    QWidget* const _widget;
 };
 }
 }

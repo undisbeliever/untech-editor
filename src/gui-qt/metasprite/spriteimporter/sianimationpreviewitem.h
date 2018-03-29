@@ -43,8 +43,9 @@ private:
     void drawFrameObjects();
 
 private:
-    LayerSettings* _layerSettings;
-    Style* _style;
+    LayerSettings* const _layerSettings;
+    Style* const _style;
+
     const Document* _document;
 
     const SI::Frame* _frame;
@@ -64,8 +65,8 @@ public:
     virtual SiAnimationPreviewItem* createPreviewItem(const AbstractMsDocument* document);
 
 private:
-    LayerSettings* _layerSettings;
-    Style* _style;
+    LayerSettings* const _layerSettings;
+    Style* const _style;
 };
 }
 }

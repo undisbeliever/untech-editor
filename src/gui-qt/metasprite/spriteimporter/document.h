@@ -56,8 +56,8 @@ signals:
 private:
     std::unique_ptr<SI::FrameSet> _frameSet;
 
-    Selection* _selection;
-    FrameListModel* _frameListModel;
+    Selection* const _selection;
+    FrameListModel* const _frameListModel;
 };
 }
 }

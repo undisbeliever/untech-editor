@@ -49,8 +49,8 @@ private slots:
     void onNextClicked();
 
 private:
-    std::unique_ptr<Ui::MtTilesetCentralWidget> _ui;
-    QGraphicsScene* _graphicsScene;
+    std::unique_ptr<Ui::MtTilesetCentralWidget> const _ui;
+    QGraphicsScene* const _graphicsScene;
 
     MtTilesetResourceItem* _tileset;
     MtTilesetGraphicsItem* _graphicsItem;

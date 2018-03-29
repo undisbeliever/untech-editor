@@ -43,8 +43,8 @@ private slots:
     void onAnimationStopped();
 
 private:
-    std::unique_ptr<Ui::PaletteCentralWidget> _ui;
-    QGraphicsScene* _graphicsScene;
+    std::unique_ptr<Ui::PaletteCentralWidget> const _ui;
+    QGraphicsScene* const _graphicsScene;
 
     PaletteResourceItem* _palette;
 

@@ -32,9 +32,9 @@ using LowerFrameContents = LowerFrameContents<Document>;
         virtual void redo() final;                           \
                                                              \
     private:                                                 \
-        Document* _document;                                 \
-        MS::Frame* _frame;                                   \
-        unsigned _index;                                     \
+        Document* const _document;                           \
+        MS::Frame* const _frame;                             \
+        const unsigned _index;                               \
         const MS::CLS _old;                                  \
         const MS::CLS _new;                                  \
     };                                                       \
@@ -51,9 +51,9 @@ using LowerFrameContents = LowerFrameContents<Document>;
         void remove##CLS();                                  \
                                                              \
     private:                                                 \
-        Document* _document;                                 \
-        MS::Frame* _frame;                                   \
-        unsigned _index;                                     \
+        Document* const _document;                           \
+        MS::Frame* const _frame;                             \
+        const unsigned _index;                               \
         const MS::CLS _value;                                \
     };                                                       \
                                                              \

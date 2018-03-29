@@ -38,7 +38,7 @@ public:
     void setResourceItem(AbstractResourceItem* item);
 
 private:
-    std::unique_ptr<Ui::GenericPropertiesWidget> _ui;
+    std::unique_ptr<Ui::GenericPropertiesWidget> const _ui;
     AbstractPropertyManager* const _manager;
 };
 }

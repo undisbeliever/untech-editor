@@ -36,9 +36,9 @@ public:
 
     QAction* addPalette() const { return _addPalette; }
     QAction* clonePalette() const { return _clonePalette; }
-    QAction* removePalette() const { return _removePalette; }
     QAction* raisePalette() const { return _raisePalette; }
     QAction* lowerPalette() const { return _lowerPalette; }
+    QAction* removePalette() const { return _removePalette; }
 
     QAction* addFrameObject() const { return _addFrameObject; }
     QAction* addActionPoint() const { return _addActionPoint; }
@@ -87,36 +87,37 @@ public slots:
     void onEntityHitboxTypeMenu(QAction* action);
 
 private:
-    MainWindow* _mainWindow;
+    MainWindow* const _mainWindow;
+
     Document* _document;
 
-    QAction* _addFrame;
-    QAction* _cloneFrame;
-    QAction* _renameFrame;
-    QAction* _removeFrame;
+    QAction* const _addFrame;
+    QAction* const _cloneFrame;
+    QAction* const _renameFrame;
+    QAction* const _removeFrame;
 
-    QAction* _addRemoveTileHitbox;
+    QAction* const _addRemoveTileHitbox;
 
-    QAction* _addPalette;
-    QAction* _clonePalette;
-    QAction* _raisePalette;
-    QAction* _lowerPalette;
-    QAction* _removePalette;
+    QAction* const _addPalette;
+    QAction* const _clonePalette;
+    QAction* const _raisePalette;
+    QAction* const _lowerPalette;
+    QAction* const _removePalette;
 
-    QAction* _addFrameObject;
-    QAction* _addActionPoint;
-    QAction* _addEntityHitbox;
+    QAction* const _addFrameObject;
+    QAction* const _addActionPoint;
+    QAction* const _addEntityHitbox;
 
-    QAction* _raiseSelected;
-    QAction* _lowerSelected;
-    QAction* _cloneSelected;
-    QAction* _removeSelected;
+    QAction* const _raiseSelected;
+    QAction* const _lowerSelected;
+    QAction* const _cloneSelected;
+    QAction* const _removeSelected;
 
-    QAction* _toggleObjSize;
-    QAction* _flipObjHorizontally;
-    QAction* _flipObjVertically;
+    QAction* const _toggleObjSize;
+    QAction* const _flipObjHorizontally;
+    QAction* const _flipObjVertically;
 
-    std::unique_ptr<QMenu> _entityHitboxTypeMenu;
+    std::unique_ptr<QMenu> const _entityHitboxTypeMenu;
 };
 }
 }

@@ -69,27 +69,28 @@ public slots:
     void onEntityHitboxTypeMenu(QAction* action);
 
 private:
-    MainWindow* _mainWindow;
+    MainWindow* const _mainWindow;
+
     Document* _document;
 
-    QAction* _addFrame;
-    QAction* _cloneFrame;
-    QAction* _renameFrame;
-    QAction* _removeFrame;
+    QAction* const _addFrame;
+    QAction* const _cloneFrame;
+    QAction* const _renameFrame;
+    QAction* const _removeFrame;
 
-    QAction* _addRemoveTileHitbox;
+    QAction* const _addRemoveTileHitbox;
 
-    QAction* _addFrameObject;
-    QAction* _addActionPoint;
-    QAction* _addEntityHitbox;
+    QAction* const _addFrameObject;
+    QAction* const _addActionPoint;
+    QAction* const _addEntityHitbox;
 
-    QAction* _raiseSelected;
-    QAction* _lowerSelected;
-    QAction* _cloneSelected;
-    QAction* _removeSelected;
+    QAction* const _raiseSelected;
+    QAction* const _lowerSelected;
+    QAction* const _cloneSelected;
+    QAction* const _removeSelected;
 
-    QAction* _toggleObjSize;
-    std::unique_ptr<QMenu> _entityHitboxTypeMenu;
+    QAction* const _toggleObjSize;
+    std::unique_ptr<QMenu> const _entityHitboxTypeMenu;
 };
 }
 }

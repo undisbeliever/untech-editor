@@ -57,23 +57,23 @@ private slots:
 private:
     Document* _document;
 
-    Actions* _actions;
-    LayerSettings* _layerSettings;
-
-    QPushButton* _layersButton;
-
     QFileSystemWatcher _imageFileWatcher;
 
-    SiAnimationPreviewItemFactory* _animationPreviewItemFactory;
+    Actions* const _actions;
+    LayerSettings* const _layerSettings;
 
-    QTabWidget* _tabWidget;
-    ZoomableGraphicsView* _graphicsView;
-    SiGraphicsScene* _graphicsScene;
-    Animation::AnimationPreview* _animationPreview;
+    QPushButton* const _layersButton;
 
-    FrameSetDock* _frameSetDock;
-    FrameDock* _frameDock;
-    Animation::AnimationDock* _animationDock;
+    QTabWidget* const _tabWidget;
+    ZoomableGraphicsView* const _graphicsView;
+    SiGraphicsScene* const _graphicsScene;
+    Animation::AnimationPreview* const _animationPreview;
+
+    SiAnimationPreviewItemFactory* const _animationPreviewItemFactory;
+
+    FrameSetDock* const _frameSetDock;
+    FrameDock* const _frameDock;
+    Animation::AnimationDock* const _animationDock;
 };
 }
 }

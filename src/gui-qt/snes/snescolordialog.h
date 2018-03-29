@@ -48,7 +48,7 @@ private:
     void updateColorButton();
 
 private:
-    std::unique_ptr<Ui::SnesColorDialog> _ui;
+    std::unique_ptr<Ui::SnesColorDialog> const _ui;
 
     SnesColor _color;
 };

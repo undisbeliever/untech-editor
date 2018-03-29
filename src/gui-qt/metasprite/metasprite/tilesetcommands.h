@@ -33,8 +33,8 @@ namespace MS = UnTech::MetaSprite::MetaSprite;
         virtual bool mergeWith(const QUndoCommand* command) final; \
                                                                    \
     private:                                                       \
-        Document* _document;                                       \
-        unsigned _tileId;                                          \
+        Document* const _document;                                 \
+        const unsigned _tileId;                                    \
         const TILE_CLASS _oldTile;                                 \
         TILE_CLASS _newTile;                                       \
         const bool _first;                                         \
@@ -62,7 +62,7 @@ CHANGE_TILE(ChangeLargeTile, UnTech::Snes::Tile16px)
         void updateFrameObjects(int offset);                        \
                                                                     \
     private:                                                        \
-        Document* _document;                                        \
+        Document* const _document;                                  \
         const unsigned _tileId;                                     \
         const TILE_CLASS _tile;                                     \
         std::vector<std::pair<MS::Frame*, unsigned>> _frameObjects; \

@@ -26,7 +26,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const idstring _oldName;
     const idstring _newName;
 };
@@ -42,7 +42,7 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
+    Document* const _document;
     const TilesetType _oldTilesetType;
     const TilesetType _newTilesetType;
 };
@@ -60,9 +60,9 @@ public:
     virtual void redo() final;
 
 private:
-    Document* _document;
-    ExportOrderPtr _oldExportOrder;
-    ExportOrderPtr _newExportOrder;
+    Document* const _document;
+    ExportOrderPtr const _oldExportOrder;
+    ExportOrderPtr const _newExportOrder;
 };
 }
 }

@@ -55,12 +55,13 @@ private slots:
     void onAnimationListContextMenu(const QPoint& pos);
 
 private:
-    std::unique_ptr<Ui::AnimationDock> _ui;
-    std::unique_ptr<AnimationActions> _actions;
+    std::unique_ptr<Ui::AnimationDock> const _ui;
+    std::unique_ptr<AnimationActions> const _actions;
+
     AbstractMsDocument* _document;
 
-    QCompleter* _nextAnimationCompleter;
-    AnimationFramesManager* _animationFramesManager;
+    QCompleter* const _nextAnimationCompleter;
+    AnimationFramesManager* const _animationFramesManager;
 };
 }
 }

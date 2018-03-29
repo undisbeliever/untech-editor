@@ -40,13 +40,14 @@ public slots:
     void onRemoveAnimation();
 
 private:
-    QWidget* _widget;
+    QWidget* const _widget;
+
     AbstractMsDocument* _document;
 
-    QAction* _addAnimation;
-    QAction* _cloneAnimation;
-    QAction* _renameAnimation;
-    QAction* _removeAnimation;
+    QAction* const _addAnimation;
+    QAction* const _cloneAnimation;
+    QAction* const _renameAnimation;
+    QAction* const _removeAnimation;
 };
 }
 }

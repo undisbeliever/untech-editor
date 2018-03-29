@@ -56,14 +56,15 @@ private slots:
     void onFrameContentsContextMenu(const QPoint& pos);
 
 private:
-    std::unique_ptr<Ui::FrameDock> _ui;
-    Actions* _actions;
+    std::unique_ptr<Ui::FrameDock> const _ui;
+    Actions* const _actions;
+
     Document* _document;
 
-    FrameObjectManager* _frameObjectManager;
-    ActionPointManager* _actionPointManager;
-    EntityHitboxManager* _entityHitboxManager;
-    PropertyTableModel* _frameContentsModel;
+    FrameObjectManager* const _frameObjectManager;
+    ActionPointManager* const _actionPointManager;
+    EntityHitboxManager* const _entityHitboxManager;
+    PropertyTableModel* const _frameContentsModel;
 };
 }
 }

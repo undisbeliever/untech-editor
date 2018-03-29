@@ -32,7 +32,8 @@ private slots:
     void updateErrorList();
 
 private:
-    std::unique_ptr<Ui::ErrorListDock> _ui;
+    std::unique_ptr<Ui::ErrorListDock> const _ui;
+
     AbstractProject* _project;
     AbstractResourceItem* _currentItem;
 };

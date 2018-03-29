@@ -103,7 +103,7 @@ signals:
     void animationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
 
 private:
-    Animation::AnimationListModel* _animationListModel;
+    Animation::AnimationListModel* const _animationListModel;
 };
 }
 }

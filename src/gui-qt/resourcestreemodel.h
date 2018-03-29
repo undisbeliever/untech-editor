@@ -57,6 +57,7 @@ private slots:
 
 private:
     AbstractProject* _project;
+
     QIcon _uncheckedIcon;
     QIcon _validIcon;
     QIcon _errorIcon;

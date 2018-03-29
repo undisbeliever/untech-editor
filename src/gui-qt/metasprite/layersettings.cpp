@@ -10,26 +10,25 @@ using namespace UnTech::GuiQt::MetaSprite;
 
 LayerSettings::LayerSettings(QObject* parent)
     : QObject(parent)
+    , _showAllAction(new QAction(tr("Show &All Layers"), this))
+    , _showOriginAction(new QAction(tr("O&rigin"), this))
+    , _showTileHitboxAction(new QAction(tr("&Tile Hitbox"), this))
+    , _showFrameObjectsAction(new QAction(tr("Frame &Objects"), this))
+    , _showActionPointsAction(new QAction(tr("Action &Points"), this))
+    , _showEntityHitboxesAction(new QAction(tr("Entity &Hitboxes"), this))
 {
-    _showAllAction = new QAction(tr("Show &All Layers"), this);
-
-    _showOriginAction = new QAction(tr("O&rigin"), this);
     _showOriginAction->setCheckable(true);
     _showOriginAction->setShortcut(Qt::ALT + Qt::Key_G);
 
-    _showTileHitboxAction = new QAction(tr("&Tile Hitbox"), this);
     _showTileHitboxAction->setCheckable(true);
     _showTileHitboxAction->setShortcut(Qt::ALT + Qt::Key_H);
 
-    _showFrameObjectsAction = new QAction(tr("Frame &Objects"), this);
     _showFrameObjectsAction->setCheckable(true);
     _showFrameObjectsAction->setShortcut(Qt::ALT + Qt::Key_J);
 
-    _showActionPointsAction = new QAction(tr("Action &Points"), this);
     _showActionPointsAction->setCheckable(true);
     _showActionPointsAction->setShortcut(Qt::ALT + Qt::Key_K);
 
-    _showEntityHitboxesAction = new QAction(tr("Entity &Hitboxes"), this);
     _showEntityHitboxesAction->setCheckable(true);
     _showEntityHitboxesAction->setShortcut(Qt::ALT + Qt::Key_L);
 

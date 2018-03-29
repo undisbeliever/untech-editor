@@ -42,18 +42,18 @@ signals:
     void layerSettingsChanged();
 
 private:
+    QAction* const _showAllAction;
+    QAction* const _showOriginAction;
+    QAction* const _showTileHitboxAction;
+    QAction* const _showFrameObjectsAction;
+    QAction* const _showActionPointsAction;
+    QAction* const _showEntityHitboxesAction;
+
     bool _showOrigin;
     bool _showTileHitbox;
     bool _showFrameObjects;
     bool _showActionPoints;
     bool _showEntityHitboxes;
-
-    QAction* _showAllAction;
-    QAction* _showOriginAction;
-    QAction* _showTileHitboxAction;
-    QAction* _showFrameObjectsAction;
-    QAction* _showActionPointsAction;
-    QAction* _showEntityHitboxesAction;
 };
 }
 }
