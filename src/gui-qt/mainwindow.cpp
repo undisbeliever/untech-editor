@@ -36,7 +36,6 @@
 #include <QVBoxLayout>
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Resources;
 
 const QString MainWindow::ALL_FILE_FILTERS = QString::fromUtf8(
     "UnTech Project File (*.utres *.utmspro)");
@@ -45,10 +44,24 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , _project(nullptr)
     , _selectedResource(nullptr)
+    , _currentEditor(nullptr)
     , _ui(std::make_unique<Ui::MainWindow>())
+    , _tabBar(new TabBar(this))
+    , _projectWindow(new QMainWindow(this))
+    , _resourcesTreeDock(new ResourcesTreeDock(_projectWindow))
+    , _errorListDock(new ErrorListDock(_projectWindow))
+    , _propertiesDock(new QDockWidget(_projectWindow))
+    , _propertiesStackedWidget(new QStackedWidget(_propertiesDock))
+    , _centralStackedWidget(new QStackedWidget(_projectWindow))
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
     , _undoGroup(new QUndoGroup(this))
-    , _currentEditor(nullptr)
+    , _editors({
+          new Resources::ResourceFileEditor(this),
+          new Resources::PaletteEditor(this),
+          new Resources::MtTilesetEditor(this, _zoomSettings),
+          new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettings),
+          new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettings),
+      })
     , _projectLoaders({ new Resources::ResourceProjectLoader(this),
                         new MetaSprite::MetaSpriteProjectLoader(this) })
 {
@@ -62,27 +75,18 @@ MainWindow::MainWindow(QWidget* parent)
     centralLayout->setSpacing(0);
     centralWidget->setLayout(centralLayout);
 
-    _tabBar = new TabBar(this);
     centralLayout->addWidget(_tabBar);
-
-    _projectWindow = new QMainWindow(this);
     centralLayout->addWidget(_projectWindow);
 
-    _resourcesTreeDock = new ResourcesTreeDock(_projectWindow);
     _projectWindow->addDockWidget(Qt::LeftDockWidgetArea, _resourcesTreeDock);
-
-    _errorListDock = new ErrorListDock(_projectWindow);
     _projectWindow->addDockWidget(Qt::BottomDockWidgetArea, _errorListDock);
 
-    _propertiesDock = new QDockWidget(_projectWindow);
     _propertiesDock->setObjectName(QStringLiteral("propertiesDock"));
     _propertiesDock->setWindowTitle(tr("Properties"));
     _propertiesDock->setFeatures(QDockWidget::DockWidgetMovable);
-    _propertiesStackedWidget = new QStackedWidget(_propertiesDock);
     _propertiesDock->setWidget(_propertiesStackedWidget);
     _projectWindow->addDockWidget(Qt::RightDockWidgetArea, _propertiesDock);
 
-    _centralStackedWidget = new QStackedWidget(_projectWindow);
     _projectWindow->setCentralWidget(_centralStackedWidget);
 
     // Have the left and right docks take up the whole height of the documentWindow
@@ -115,12 +119,6 @@ MainWindow::MainWindow(QWidget* parent)
         _zoomSettings->setZoomComboBox(zoomComboBox);
         statusBar()->addPermanentWidget(zoomComboBox);
     }
-
-    _editors.append(new ResourceFileEditor(this));
-    _editors.append(new PaletteEditor(this));
-    _editors.append(new MtTilesetEditor(this, _zoomSettings));
-    _editors.append(new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettings));
-    _editors.append(new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettings));
 
     // Default (blank) widgets are always index 0
     _centralStackedWidget->addWidget(new QWidget(_centralStackedWidget));
@@ -217,10 +215,10 @@ void MainWindow::setProject(std::unique_ptr<AbstractProject>&& project)
             }
         }
 
-        connect(_project.get(), &ResourceProject::filenameChanged,
+        connect(_project.get(), &AbstractProject::filenameChanged,
                 this, &MainWindow::updateGuiFilePath);
 
-        connect(_project.get(), &ResourceProject::selectedResourceChanged,
+        connect(_project.get(), &AbstractProject::selectedResourceChanged,
                 this, &MainWindow::onSelectedResourceChanged);
     }
 

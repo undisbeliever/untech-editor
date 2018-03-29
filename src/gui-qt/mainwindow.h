@@ -71,25 +71,24 @@ protected:
 private:
     std::unique_ptr<AbstractProject> _project;
     AbstractResourceItem* _selectedResource;
-
-    std::unique_ptr<Ui::MainWindow> _ui;
-
-    TabBar* _tabBar;
-    QMainWindow* _projectWindow;
-    ResourcesTreeDock* _resourcesTreeDock;
-    ErrorListDock* _errorListDock;
-    QDockWidget* _propertiesDock;
-
-    QStackedWidget* _propertiesStackedWidget;
-    QStackedWidget* _centralStackedWidget;
-
-    ZoomSettings* _zoomSettings;
-    QUndoGroup* _undoGroup;
-    QList<AbstractEditor*> _editors;
-
     AbstractEditor* _currentEditor;
 
-    QList<AbstractProjectLoader*> _projectLoaders;
+    std::unique_ptr<Ui::MainWindow> const _ui;
+
+    TabBar* const _tabBar;
+    QMainWindow* const _projectWindow;
+    ResourcesTreeDock* const _resourcesTreeDock;
+    ErrorListDock* const _errorListDock;
+    QDockWidget* const _propertiesDock;
+
+    QStackedWidget* const _propertiesStackedWidget;
+    QStackedWidget* const _centralStackedWidget;
+
+    ZoomSettings* const _zoomSettings;
+    QUndoGroup* const _undoGroup;
+
+    QList<AbstractEditor*> const _editors;
+    QList<AbstractProjectLoader*> const _projectLoaders;
 };
 }
 }
