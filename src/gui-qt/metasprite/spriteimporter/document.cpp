@@ -25,6 +25,22 @@ Document::Document(FrameSetResourceList* parent, size_t index)
     initModels();
 }
 
+QStringList Document::frameList() const
+{
+    QStringList fl;
+
+    if (_frameSet) {
+        auto& frames = _frameSet->frames;
+
+        fl.reserve(frames.size());
+        for (const auto& it : frames) {
+            fl.append(QString::fromStdString(it.first));
+        }
+    }
+
+    return fl;
+}
+
 void Document::initModels()
 {
     setName(QString::fromStdString(_frameSet->name));

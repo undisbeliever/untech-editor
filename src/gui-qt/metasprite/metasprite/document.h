@@ -36,6 +36,8 @@ public:
     virtual Selection* selection() const final { return _selection; }
     virtual FrameListModel* frameListModel() const final { return _frameListModel; }
 
+    virtual QStringList frameList() const final;
+
 protected:
     // can throw exceptions
     virtual void saveResourceData(const std::string& filename) const final;

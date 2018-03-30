@@ -29,9 +29,9 @@ public:
                                 const QString& title,
                                 const QString& labelText,
                                 const idstring& value = idstring(),
-                                const AbstractIdmapListModel* model = nullptr);
+                                const QStringList& invalidIdstrings = QStringList());
 
-    void setModel(const AbstractIdmapListModel* model);
+    void setInvalidIdstrings(const QStringList& invalidIdstrings);
 
     void setLabelText(const QString& text);
 
@@ -51,7 +51,7 @@ private:
     QLineEdit* _input;
     QPushButton* _okButton;
 
-    const AbstractIdmapListModel* _model;
+    QStringList _invalidIdstrings;
 };
 }
 }

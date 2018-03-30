@@ -81,7 +81,7 @@ void AnimationActions::onAddAnimation()
         _widget,
         tr("Input Animation Name"),
         tr("Input name of the new animation:"),
-        idstring());
+        idstring(), _document->animationList());
 
     if (newId.isValid() && !animations->contains(newId)) {
         _document->undoStack()->push(
@@ -100,7 +100,7 @@ void AnimationActions::onCloneAnimation()
         _widget,
         tr("Input Animation Name"),
         tr("Input name of the cloned animation:"),
-        animationId);
+        animationId, _document->animationList());
 
     if (newId != animationId && newId.isValid() && !animations->contains(newId)) {
         _document->undoStack()->push(
@@ -119,7 +119,7 @@ void AnimationActions::onRenameAnimation()
         _widget,
         tr("Input Animation Name"),
         tr("Rename %1 to:").arg(QString::fromStdString(animationId)),
-        animationId);
+        animationId, _document->animationList());
 
     if (newId != animationId && newId.isValid() && !animations->contains(newId)) {
         _document->undoStack()->push(

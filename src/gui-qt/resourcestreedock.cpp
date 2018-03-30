@@ -172,7 +172,8 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
     else {
         idstring name = IdstringDialog::getIdstring(
             this, settings.title,
-            tr("Name of the new %1:").arg(resourceList->resourceTypeNameSingle()));
+            tr("Name of the new %1:").arg(resourceList->resourceTypeNameSingle()),
+            idstring(), resourceList->itemNames());
         input = QString::fromStdString(name);
 
         if (resourceList->findResource(input) != nullptr) {

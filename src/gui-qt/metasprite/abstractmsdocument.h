@@ -40,6 +40,10 @@ public:
     virtual AbstractSelection* selection() const = 0;
     virtual AbstractIdmapListModel* frameListModel() const = 0;
 
+    virtual QStringList frameList() const = 0;
+
+    QStringList animationList() const;
+
 protected:
     inline const auto& frameSetList() const
     {

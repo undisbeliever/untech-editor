@@ -15,3 +15,17 @@ AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t inde
     : AbstractExternalResourceItem(parent, index)
 {
 }
+
+QStringList AbstractMsDocument::animationList() const
+{
+    QStringList al;
+
+    if (const auto* aniMap = this->animations()) {
+        al.reserve(aniMap->size());
+        for (const auto& it : *aniMap) {
+            al.append(QString::fromStdString(it.first));
+        }
+    }
+
+    return al;
+}

@@ -20,7 +20,7 @@ using namespace UnTech::GuiQt;
 IdstringDialog::IdstringDialog(const QString& title, const QString& labelText,
                                QWidget* parent)
     : QDialog(parent)
-    , _model(nullptr)
+    , _invalidIdstrings()
 {
     using DBB = QDialogButtonBox;
 
@@ -55,10 +55,10 @@ IdstringDialog::IdstringDialog(const QString& title, const QString& labelText,
 idstring IdstringDialog::getIdstring(QWidget* parent,
                                      const QString& title, const QString& labelText,
                                      const idstring& value,
-                                     const AbstractIdmapListModel* model)
+                                     const QStringList& invalidIdstrings)
 {
     IdstringDialog dialog(title, labelText, parent);
-    dialog.setModel(model);
+    dialog.setInvalidIdstrings(invalidIdstrings);
     dialog.setValue(value);
     int r = dialog.exec();
 
@@ -72,7 +72,7 @@ idstring IdstringDialog::getIdstring(QWidget* parent,
 
 bool IdstringDialog::isValid() const
 {
-    if (_model && _model->contains(_input->text())) {
+    if (_invalidIdstrings.contains(_input->text())) {
         return false;
     }
     return _input->text().isEmpty() == false;
@@ -83,9 +83,10 @@ void IdstringDialog::onInputChanged()
     _okButton->setEnabled(isValid());
 }
 
-void IdstringDialog::setModel(const AbstractIdmapListModel* model)
+void IdstringDialog::setInvalidIdstrings(const QStringList& invalidIdstrings)
 {
-    _model = model;
+    _invalidIdstrings = invalidIdstrings;
+    onInputChanged();
 }
 
 void IdstringDialog::setLabelText(const QString& text)

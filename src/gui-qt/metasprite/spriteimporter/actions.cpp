@@ -152,7 +152,7 @@ void Actions::onAddFrame()
         _mainWindow,
         tr("Input Frame Name"),
         tr("Input name of the new frame:"),
-        idstring(), _document->frameListModel());
+        idstring(), _document->frameList());
 
     if (newId.isValid() && !fs.frames.contains(newId)) {
         _document->undoStack()->push(
@@ -171,7 +171,7 @@ void Actions::onCloneFrame()
         _mainWindow,
         tr("Input Frame Name"),
         tr("Input name of the cloned frame:"),
-        frameId, _document->frameListModel());
+        frameId, _document->frameList());
 
     if (newId != frameId && newId.isValid() && !fs.frames.contains(newId)) {
         _document->undoStack()->push(
@@ -190,7 +190,7 @@ void Actions::onRenameFrame()
         _mainWindow,
         tr("Input Frame Name"),
         tr("Rename %1 to:").arg(QString::fromStdString(frameId)),
-        frameId, _document->frameListModel());
+        frameId, _document->frameList());
 
     if (newId != frameId && newId.isValid() && !fs.frames.contains(newId)) {
         _document->undoStack()->push(
