@@ -35,7 +35,6 @@ public:
 
     virtual Selection* selection() const final { return _selection; }
     virtual FrameListModel* frameListModel() const final { return _frameListModel; }
-    PalettesModel* palettesModel() const { return _palettesModel; }
 
 protected:
     // can throw exceptions
@@ -63,7 +62,6 @@ private:
 
     Selection* const _selection;
     FrameListModel* const _frameListModel;
-    PalettesModel* const _palettesModel;
 };
 }
 }

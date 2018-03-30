@@ -42,6 +42,7 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::PalettesDock)
     , _actions(actions)
+    , _model(new PalettesModel(this))
     , _document(nullptr)
     , _colorGroup(new QButtonGroup(this))
     , _colorButtons(buildColorButtons(_colorGroup, this))
@@ -50,6 +51,7 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
 
     _ui->setupUi(this);
 
+    _ui->paletteList->setModel(_model);
     _ui->paletteList->setContextMenuPolicy(Qt::CustomContextMenu);
 
     _ui->paletteListButtons->addAction(_actions->addPalette());
@@ -76,6 +78,9 @@ PalettesDock::PalettesDock(Actions* actions, QWidget* parent)
 
     connect(_colorGroup, qOverload<int>(&QButtonGroup::buttonClicked),
             this, &PalettesDock::onColorClicked);
+
+    connect(_ui->paletteList->selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &PalettesDock::onPaletteListSelectionChanged);
 }
 
 PalettesDock::~PalettesDock() = default;
@@ -86,15 +91,13 @@ void PalettesDock::setDocument(Document* document)
         return;
     }
 
-    if (auto* m = _ui->paletteList->selectionModel()) {
-        m->deleteLater();
-    }
-
     if (_document != nullptr) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
     }
     _document = document;
+
+    _model->setDocument(document);
 
     setEnabled(_document != nullptr);
 
@@ -102,8 +105,6 @@ void PalettesDock::setDocument(Document* document)
     updateSelectedPalette();
 
     if (_document) {
-        _ui->paletteList->setModel(_document->palettesModel());
-
         updatePaletteListSelection();
         updateSelectedColor();
 
@@ -115,27 +116,25 @@ void PalettesDock::setDocument(Document* document)
                 this, &PalettesDock::updateSelectedPalette);
         connect(_document->selection(), &Selection::selectedColorChanged,
                 this, &PalettesDock::updateSelectedColor);
-
-        connect(_ui->paletteList->selectionModel(), &QItemSelectionModel::selectionChanged,
-                this, &PalettesDock::onPaletteListSelectionChanged);
-    }
-    else {
-        _ui->paletteList->setModel(nullptr);
     }
 }
 
 void PalettesDock::updatePaletteListSelection()
 {
+    Q_ASSERT(_document);
+
     unsigned selectedPalette = _document->selection()->selectedPalette();
-    QModelIndex index = _document->palettesModel()->toModelIndex(selectedPalette);
+    QModelIndex index = _model->toModelIndex(selectedPalette);
 
     _ui->paletteList->setCurrentIndex(index);
 }
 
 void PalettesDock::onPaletteListSelectionChanged()
 {
-    QModelIndex index = _ui->paletteList->currentIndex();
-    _document->selection()->selectPalette(index.row());
+    if (_document) {
+        QModelIndex index = _ui->paletteList->currentIndex();
+        _document->selection()->selectPalette(index.row());
+    }
 }
 
 void PalettesDock::onPaletteContextMenu(const QPoint& pos)

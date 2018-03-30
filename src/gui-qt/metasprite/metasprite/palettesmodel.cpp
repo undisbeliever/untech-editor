@@ -20,12 +20,29 @@ PalettesModel::PalettesModel(QObject* parent)
 
 void PalettesModel::setDocument(Document* document)
 {
-    Q_ASSERT(document != nullptr);
+    if (_document == document) {
+        return;
+    }
 
     beginResetModel();
 
+    if (_document) {
+        _document->disconnect(this);
+    }
     _document = document;
+
     updateAllPixmaps();
+
+    if (_document) {
+        connect(_document, &Document::paletteChanged,
+                this, &PalettesModel::onPaletteChanged);
+        connect(_document, &Document::paletteAdded,
+                this, &PalettesModel::onPaletteAdded);
+        connect(_document, &Document::paletteAboutToBeRemoved,
+                this, &PalettesModel::onPaletteAboutToBeRemoved);
+        connect(_document, &Document::paletteMoved,
+                this, &PalettesModel::onPaletteMoved);
+    }
 
     endResetModel();
 }
@@ -34,9 +51,11 @@ void PalettesModel::updateAllPixmaps()
 {
     _palettePixmaps.clear();
 
-    unsigned nPalettes = _document->frameSet()->palettes.size();
-    for (unsigned i = 0; i < nPalettes; i++) {
-        _palettePixmaps.append(palettePixmap(i));
+    if (_document) {
+        unsigned nPalettes = _document->frameSet()->palettes.size();
+        for (unsigned i = 0; i < nPalettes; i++) {
+            _palettePixmaps.append(palettePixmap(i));
+        }
     }
 }
 
@@ -92,7 +111,21 @@ QVariant PalettesModel::data(const QModelIndex& index, int role) const
     return _palettePixmaps.at(index.row());
 }
 
-void PalettesModel::insertPalette(unsigned index, const Snes::Palette4bpp& pal)
+void PalettesModel::onPaletteChanged(unsigned index)
+{
+    Q_ASSERT(_document != nullptr);
+
+    auto& palettes = _document->frameSet()->palettes;
+    Q_ASSERT(index < palettes.size());
+
+    _palettePixmaps.replace(index, palettePixmap(index));
+
+    emit dataChanged(createIndex(index, 0),
+                     createIndex(index, 1),
+                     { Qt::DecorationRole });
+}
+
+void PalettesModel::onPaletteAdded(unsigned index)
 {
     Q_ASSERT(_document != nullptr);
 
@@ -101,80 +134,42 @@ void PalettesModel::insertPalette(unsigned index, const Snes::Palette4bpp& pal)
 
     beginInsertRows(QModelIndex(), index, index);
 
-    palettes.insert(palettes.begin() + index, pal);
     _palettePixmaps.insert(index, palettePixmap(index));
 
     endInsertRows();
-
-    emit _document->paletteAdded(index);
 }
 
-void PalettesModel::removePalette(unsigned index)
+void PalettesModel::onPaletteAboutToBeRemoved(unsigned index)
 {
     Q_ASSERT(_document != nullptr);
 
     auto& palettes = _document->frameSet()->palettes;
     Q_ASSERT(index < palettes.size());
 
-    emit _document->paletteAboutToBeRemoved(index);
-
     beginRemoveRows(QModelIndex(), index, index);
 
-    palettes.erase(palettes.begin() + index);
     _palettePixmaps.removeAt(index);
 
     endRemoveRows();
 }
 
-void PalettesModel::raisePalette(unsigned index)
-{
-    Q_ASSERT(_document != nullptr);
-    Q_ASSERT(index != 0);
-
-    auto& palettes = _document->frameSet()->palettes;
-
-    beginMoveRows(QModelIndex(), index, index, QModelIndex(), index - 1);
-
-    std::swap(palettes.at(index),
-              palettes.at(index - 1));
-    _palettePixmaps.swap(index, index - 1);
-
-    endMoveRows();
-
-    emit _document->paletteMoved(index, index - 1);
-}
-
-void PalettesModel::lowerPalette(unsigned index)
+void PalettesModel::onPaletteMoved(unsigned fromIndex, unsigned toIndex)
 {
     Q_ASSERT(_document != nullptr);
 
     auto& palettes = _document->frameSet()->palettes;
-    Q_ASSERT(index < palettes.size() - 1);
+    Q_ASSERT((int)palettes.size() == _palettePixmaps.size());
+    Q_ASSERT(fromIndex < palettes.size());
+    Q_ASSERT(toIndex < palettes.size());
 
-    beginMoveRows(QModelIndex(), index, index, QModelIndex(), index + 2);
+    int toSignal = toIndex;
+    if (toIndex >= fromIndex) {
+        toSignal++;
+    }
 
-    std::swap(palettes.at(index),
-              palettes.at(index + 1));
-    _palettePixmaps.swap(index, index + 1);
+    layoutAboutToBeChanged();
 
-    endMoveRows();
+    _palettePixmaps.swap(fromIndex, toIndex);
 
-    emit _document->paletteMoved(index, index + 1);
-}
-
-void PalettesModel::setPaletteColor(unsigned paletteIndex, unsigned colorIndex,
-                                    const Snes::SnesColor& color)
-{
-    Q_ASSERT(_document != nullptr);
-
-    auto& palettes = _document->frameSet()->palettes;
-    palettes.at(paletteIndex).color(colorIndex) = color;
-
-    _palettePixmaps.replace(paletteIndex, palettePixmap(paletteIndex));
-
-    emit dataChanged(createIndex(paletteIndex, 0),
-                     createIndex(paletteIndex, 1),
-                     { Qt::DecorationRole });
-
-    emit _document->paletteChanged(paletteIndex);
+    layoutChanged();
 }

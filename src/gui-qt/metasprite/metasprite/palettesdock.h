@@ -22,6 +22,7 @@ class PalettesDock;
 }
 class Actions;
 class Document;
+class PalettesModel;
 
 class PalettesDock : public QDockWidget {
     Q_OBJECT
@@ -49,6 +50,7 @@ private:
 private:
     std::unique_ptr<Ui::PalettesDock> const _ui;
     Actions* const _actions;
+    PalettesModel* const _model;
 
     Document* _document;
 

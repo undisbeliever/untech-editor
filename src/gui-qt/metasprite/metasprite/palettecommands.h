@@ -59,30 +59,32 @@ public:
     virtual void redo() final;
 };
 
-class RaisePalette : public QUndoCommand {
+class MovePalette : public QUndoCommand {
+public:
+    MovePalette(Document* document, unsigned fromIndex, unsigned toIndex);
+    MovePalette(Document* document, unsigned fromIndex, unsigned toIndex,
+                const QString& text);
+    ~MovePalette() = default;
+
+    virtual void undo() final;
+    virtual void redo() final;
+
+private:
+    Document* const _document;
+    const unsigned _fromIndex;
+    const unsigned _toIndex;
+};
+
+class RaisePalette : public MovePalette {
 public:
     RaisePalette(Document* document, unsigned index);
     ~RaisePalette() = default;
-
-    virtual void undo() final;
-    virtual void redo() final;
-
-private:
-    Document* const _document;
-    const unsigned _index;
 };
 
-class LowerPalette : public QUndoCommand {
+class LowerPalette : public MovePalette {
 public:
     LowerPalette(Document* document, unsigned index);
     ~LowerPalette() = default;
-
-    virtual void undo() final;
-    virtual void redo() final;
-
-private:
-    Document* const _document;
-    const unsigned _index;
 };
 
 class ChangePaletteColor : public QUndoCommand {
@@ -97,6 +99,9 @@ public:
 
     virtual void undo() final;
     virtual void redo() final;
+
+private:
+    void doChangePaletteColor(const Snes::SnesColor& color);
 
 private:
     Document* const _document;

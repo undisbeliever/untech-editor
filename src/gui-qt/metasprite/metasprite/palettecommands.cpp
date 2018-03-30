@@ -6,7 +6,7 @@
 
 #include "palettecommands.h"
 #include "document.h"
-#include "palettesmodel.h"
+#include "models/common/vector-helpers.h"
 
 #include <QCoreApplication>
 
@@ -27,12 +27,22 @@ AddRemovePalette::AddRemovePalette(Document* document,
 
 void AddRemovePalette::addPalette()
 {
-    _document->palettesModel()->insertPalette(_index, _palette);
+    auto& palettes = _document->frameSet()->palettes;
+    Q_ASSERT(_index <= palettes.size());
+
+    palettes.insert(palettes.begin() + _index, _palette);
+
+    emit _document->paletteAdded(_index);
 }
 
 void AddRemovePalette::removePalette()
 {
-    _document->palettesModel()->removePalette(_index);
+    auto& palettes = _document->frameSet()->palettes;
+    Q_ASSERT(_index < palettes.size());
+
+    emit _document->paletteAboutToBeRemoved(_index);
+
+    palettes.erase(palettes.begin() + _index);
 }
 
 // AddPalette
@@ -95,44 +105,66 @@ void RemovePalette::redo()
     removePalette();
 }
 
+// MovePalette
+// ===========
+
+MovePalette::MovePalette(Document* document, unsigned fromIndex, unsigned toIndex)
+    : MovePalette(document, fromIndex, toIndex,
+                  QCoreApplication::tr("Move Palette"))
+{
+}
+
+MovePalette::MovePalette(Document* document, unsigned fromIndex, unsigned toIndex,
+                         const QString& text)
+    : QUndoCommand(text)
+    , _document(document)
+    , _fromIndex(fromIndex)
+    , _toIndex(toIndex)
+{
+    Q_ASSERT(_document);
+    Q_ASSERT(_fromIndex != _toIndex);
+}
+
+void MovePalette::undo()
+{
+    auto& palettes = _document->frameSet()->palettes;
+
+    Q_ASSERT(_fromIndex < palettes.size());
+    Q_ASSERT(_toIndex < palettes.size());
+
+    moveVectorItem(_toIndex, _fromIndex, palettes);
+
+    emit _document->paletteMoved(_toIndex, _fromIndex);
+}
+
+void MovePalette::redo()
+{
+    auto& palettes = _document->frameSet()->palettes;
+
+    Q_ASSERT(_fromIndex < palettes.size());
+    Q_ASSERT(_toIndex < palettes.size());
+
+    moveVectorItem(_fromIndex, _toIndex, palettes);
+
+    emit _document->paletteMoved(_fromIndex, _toIndex);
+}
+
 // RaisePalette
 // ============
 
 RaisePalette::RaisePalette(Document* document, unsigned index)
-    : QUndoCommand(QCoreApplication::tr("Raise Palette"))
-    , _document(document)
-    , _index(index)
+    : MovePalette(document, index, index - 1,
+                  QCoreApplication::tr("Raise Palette"))
 {
-}
-
-void RaisePalette::undo()
-{
-    _document->palettesModel()->lowerPalette(_index - 1);
-}
-
-void RaisePalette::redo()
-{
-    _document->palettesModel()->raisePalette(_index);
 }
 
 // LowerPalette
 // ============
 
 LowerPalette::LowerPalette(Document* document, unsigned index)
-    : QUndoCommand(QCoreApplication::tr("Lower Palette"))
-    , _document(document)
-    , _index(index)
+    : MovePalette(document, index, index + 1,
+                  QCoreApplication::tr("Lower Palette"))
 {
-}
-
-void LowerPalette::undo()
-{
-    _document->palettesModel()->raisePalette(_index + 1);
-}
-
-void LowerPalette::redo()
-{
-    _document->palettesModel()->lowerPalette(_index);
 }
 
 // ChangePaletteColor
@@ -159,6 +191,7 @@ ChangePaletteColor::ChangePaletteColor(Document* document,
     , _oldColor(_document->frameSet()->palettes.at(paletteIndex).color(colorIndex))
     , _newColor(color)
 {
+    Q_ASSERT(_document);
     Q_ASSERT(_oldColor != _newColor);
 }
 
@@ -169,10 +202,22 @@ void ChangePaletteColor::setNewColor(const Snes::SnesColor& color)
 
 void ChangePaletteColor::undo()
 {
-    _document->palettesModel()->setPaletteColor(_paletteIndex, _colorIndex, _oldColor);
+    doChangePaletteColor(_oldColor);
 }
 
 void ChangePaletteColor::redo()
 {
-    _document->palettesModel()->setPaletteColor(_paletteIndex, _colorIndex, _newColor);
+    doChangePaletteColor(_newColor);
+}
+
+void ChangePaletteColor::doChangePaletteColor(const Snes::SnesColor& color)
+{
+    auto& palettes = _document->frameSet()->palettes;
+
+    Q_ASSERT(_paletteIndex < palettes.size());
+    Q_ASSERT(_colorIndex < 16);
+
+    palettes.at(_paletteIndex).color(_colorIndex) = color;
+
+    emit _document->paletteChanged(_paletteIndex);
 }
