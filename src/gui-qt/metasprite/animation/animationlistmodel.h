@@ -15,10 +15,6 @@ namespace MetaSprite {
 class AbstractMsDocument;
 
 namespace Animation {
-class AddRemoveAnimation;
-class RenameAnimation;
-
-namespace MSA = UnTech::MetaSprite::Animation;
 
 class AnimationListModel : public AbstractIdmapListModel {
     Q_OBJECT
@@ -28,14 +24,6 @@ public:
     ~AnimationListModel() = default;
 
     void setDocument(AbstractMsDocument* document);
-
-protected:
-    friend class AddRemoveAnimation;
-    void insertAnimation(const idstring& id, std::unique_ptr<MSA::Animation> ani);
-    std::unique_ptr<MSA::Animation> removeAnimation(const idstring& id);
-
-    friend class RenameAnimation;
-    void renameAnimation(const idstring& oldId, const idstring& newId);
 
 private:
     AbstractMsDocument* _document;

@@ -13,6 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
+class AnimationListModel;
 class AbstractMsDocument;
 
 namespace Animation {

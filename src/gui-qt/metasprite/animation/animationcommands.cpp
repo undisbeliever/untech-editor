@@ -28,18 +28,27 @@ AddRemoveAnimation::AddRemoveAnimation(AbstractMsDocument* document,
 
 void AddRemoveAnimation::addAnimation()
 {
+    auto* animations = _document->animations();
+    Q_ASSERT(animations->contains(_animationId) == false);
     Q_ASSERT(_animation != nullptr);
-    Q_ASSERT(_document->animations()->contains(_animationId) == false);
 
-    _document->animationListModel()->insertAnimation(_animationId, std::move(_animation));
+    animations->insertInto(_animationId, std::move(_animation));
+
+    emit _document->animationAdded(_animationId);
+    emit _document->animationMapChanged();
 }
 
 void AddRemoveAnimation::removeAnimation()
 {
+    auto* animations = _document->animations();
+    Q_ASSERT(animations->contains(_animationId) == true);
     Q_ASSERT(_animation == nullptr);
-    Q_ASSERT(_document->animations()->contains(_animationId));
 
-    _animation = _document->animationListModel()->removeAnimation(_animationId);
+    emit _document->animationAboutToBeRemoved(_animationId);
+
+    _animation = animations->extractFrom(_animationId);
+
+    emit _document->animationMapChanged();
 }
 
 // AddAnimation
@@ -112,14 +121,27 @@ RenameAnimation::RenameAnimation(AbstractMsDocument* document,
     Q_ASSERT(_oldId != _newId);
 }
 
+void RenameAnimation::doRename(const idstring& from, const idstring& to)
+{
+    auto* animations = _document->animations();
+
+    Q_ASSERT(animations->contains(from) == true);
+    Q_ASSERT(animations->contains(to) == false);
+
+    animations->rename(from, to);
+
+    emit _document->animationRenamed(from, to);
+    emit _document->animationMapChanged();
+}
+
 void RenameAnimation::undo()
 {
-    _document->animationListModel()->renameAnimation(_newId, _oldId);
+    doRename(_newId, _oldId);
 }
 
 void RenameAnimation::redo()
 {
-    _document->animationListModel()->renameAnimation(_oldId, _newId);
+    doRename(_oldId, _newId);
 }
 
 // ChangeAnimationDurationFormat

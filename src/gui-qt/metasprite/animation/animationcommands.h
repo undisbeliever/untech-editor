@@ -72,6 +72,9 @@ public:
     virtual void redo() final;
 
 private:
+    void doRename(const idstring& from, const idstring& to);
+
+private:
     AbstractMsDocument* const _document;
     const idstring _oldId;
     const idstring _newId;

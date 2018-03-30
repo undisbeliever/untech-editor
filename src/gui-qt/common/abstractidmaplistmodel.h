@@ -126,6 +126,12 @@ protected:
         }
     }
 
+protected slots:
+    void clear();
+    void addIdstring(const idstring& id);
+    void removeIdstring(const idstring& id);
+    void renameIdstring(const idstring& oldId, const idstring& newId);
+
 private:
     QVector<idstring> _idstrings;
     QStringList _displayList;

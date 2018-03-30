@@ -33,8 +33,6 @@ void Document::initModels()
     _selection->unselectAll();
 
     _frameListModel->setDocument(this);
-
-    AbstractMsDocument::initModels();
 }
 
 void Document::saveResourceData(const std::string& filename) const

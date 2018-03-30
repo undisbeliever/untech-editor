@@ -13,11 +13,5 @@ using namespace UnTech::GuiQt::MetaSprite;
 
 AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
-    , _animationListModel(new Animation::AnimationListModel(this))
 {
-}
-
-void AbstractMsDocument::initModels()
-{
-    _animationListModel->setDocument(this);
 }

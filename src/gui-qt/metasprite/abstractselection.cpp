@@ -169,16 +169,16 @@ void AbstractSelection::onFrameContentsMoved(const void* frame,
     }
 }
 
-void AbstractSelection::onAnimationAboutToBeRemoved(const void* animation)
+void AbstractSelection::onAnimationAboutToBeRemoved(const idstring& id)
 {
-    if (_selectedAnimation == animation) {
+    if (_selectedAnimationId == id) {
         unselectAnimation();
     }
 }
 
-void AbstractSelection::onAnimationRenamed(const void* animation, const idstring& newId)
+void AbstractSelection::onAnimationRenamed(const idstring& oldId, const idstring& newId)
 {
-    if (_selectedAnimation == animation) {
+    if (_selectedAnimationId == oldId) {
         _selectedAnimationId = newId;
     }
 }

@@ -19,11 +19,6 @@ namespace GuiQt {
 class AbstractIdmapListModel;
 
 namespace MetaSprite {
-namespace Animation {
-class AnimationListModel;
-class AnimationFramesModel;
-class AnimationFramesManager;
-}
 struct SelectedItem;
 class AbstractSelection;
 class FrameSetResourceList;
@@ -37,9 +32,6 @@ public:
     explicit AbstractMsDocument(FrameSetResourceList* parent, size_t index);
     ~AbstractMsDocument() = default;
 
-protected:
-    void initModels();
-
 public:
     MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
 
@@ -47,8 +39,6 @@ public:
 
     virtual AbstractSelection* selection() const = 0;
     virtual AbstractIdmapListModel* frameListModel() const = 0;
-
-    auto* animationListModel() const { return _animationListModel; }
 
 protected:
     inline const auto& frameSetList() const
@@ -92,18 +82,16 @@ signals:
 
     void animationDataChanged(const void* animation);
     void animationMapChanged();
-    void animationAdded(const void* animation);
-    void animationAboutToBeRemoved(const void* animation);
-    void animationRenamed(const void* animation, const idstring& newId);
+    void animationAdded(const idstring& id);
+    void animationAboutToBeRemoved(const idstring& id);
+
+    void animationRenamed(const idstring& oldId, const idstring& newId);
 
     void animationFrameChanged(const void* animation, unsigned index);
     void animationFrameListChanged(const void* animation);
     void animationFrameAdded(const void* animation, unsigned index);
     void animationFrameAboutToBeRemoved(const void* animation, unsigned index);
     void animationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
-
-private:
-    Animation::AnimationListModel* const _animationListModel;
 };
 }
 }

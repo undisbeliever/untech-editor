@@ -24,6 +24,7 @@ namespace Animation {
 namespace Ui {
 class AnimationPreview;
 }
+class AnimationListModel;
 class AnimationPreviewItem;
 class AnimationPreviewItemFactory;
 
@@ -74,6 +75,7 @@ protected:
 
 private:
     std::unique_ptr<Ui::AnimationPreview> const _ui;
+    AnimationListModel* const _animationListModel;
     QGraphicsScene* const _graphicsScene;
 
     AnimationPreviewItemFactory* _itemFactory;

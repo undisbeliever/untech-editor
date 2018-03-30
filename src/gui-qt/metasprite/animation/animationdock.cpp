@@ -23,14 +23,17 @@ AnimationDock::AnimationDock(QWidget* parent)
     , _ui(new Ui::AnimationDock)
     , _actions(new AnimationActions(this))
     , _document(nullptr)
-    , _nextAnimationCompleter(new QCompleter(this))
+    , _animationListModel(new AnimationListModel(this))
     , _animationFramesManager(new AnimationFramesManager(this))
 {
     _ui->setupUi(this);
 
-    _nextAnimationCompleter->setCompletionRole(Qt::DisplayRole);
-    _nextAnimationCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    _ui->nextAnimation->setCompleter(_nextAnimationCompleter);
+    _ui->animationList->setModel(_animationListModel);
+
+    QCompleter* nextAnimationCompleter = new QCompleter(_animationListModel, this);
+    nextAnimationCompleter->setCompletionRole(Qt::DisplayRole);
+    nextAnimationCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+    _ui->nextAnimation->setCompleter(nextAnimationCompleter);
     _ui->nextAnimation->setValidator(new IdstringValidator(this));
 
     _ui->durationFormat->populateData(MSA::DurationFormat::enumMap);
@@ -75,10 +78,6 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
         return;
     }
 
-    if (auto* m = _ui->animationList->selectionModel()) {
-        m->deleteLater();
-    }
-
     if (_document != nullptr) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
@@ -86,14 +85,12 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
     _document = document;
 
     _actions->setDocument(document);
+    _animationListModel->setDocument(document);
     _animationFramesManager->setDocument(document);
 
     setEnabled(_document != nullptr);
 
     if (_document) {
-        _nextAnimationCompleter->setModel(_document->animationListModel());
-        _ui->animationList->setModel(_document->animationListModel());
-
         _ui->animationFrames->setColumnWidth(0, _ui->animationFrames->width() / 3);
         _ui->animationFrames->setColumnWidth(1, 45);
         _ui->animationFrames->setColumnWidth(2, 30);
@@ -111,9 +108,6 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
                 this, &AnimationDock::onAnimationListSelectionChanged);
     }
     else {
-        _nextAnimationCompleter->setModel(nullptr);
-        _ui->animationList->setModel(nullptr);
-
         clearGui();
     }
 }
@@ -129,7 +123,7 @@ void AnimationDock::onSelectedAnimationChanged()
         updateGui();
 
         _ui->animationList->setCurrentIndex(
-            _document->animationListModel()->toModelIndex(id));
+            _animationListModel->toModelIndex(id));
     }
     else {
         clearGui();
@@ -197,9 +191,11 @@ void AnimationDock::onNextAnimationEdited()
 
 void AnimationDock::onAnimationListSelectionChanged()
 {
-    QModelIndex index = _ui->animationList->currentIndex();
-    idstring id = _document->animationListModel()->toIdstring(index);
-    _document->selection()->selectAnimation(id);
+    if (_document) {
+        QModelIndex index = _ui->animationList->currentIndex();
+        idstring id = _animationListModel->toIdstring(index);
+        _document->selection()->selectAnimation(id);
+    }
 }
 
 void AnimationDock::onAnimationListContextMenu(const QPoint& pos)

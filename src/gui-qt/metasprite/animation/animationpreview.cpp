@@ -18,6 +18,7 @@ using namespace UnTech::GuiQt::MetaSprite::Animation;
 AnimationPreview::AnimationPreview(QWidget* parent)
     : QWidget(parent)
     , _ui(new Ui::AnimationPreview)
+    , _animationListModel(new AnimationListModel(this))
     , _graphicsScene(new QGraphicsScene(this))
     , _itemFactory(nullptr)
     , _zoomSettings(nullptr)
@@ -28,6 +29,8 @@ AnimationPreview::AnimationPreview(QWidget* parent)
     , _nsSinceLastFrame()
 {
     _ui->setupUi(this);
+
+    _ui->animation->setModel(_animationListModel);
 
     _ui->graphicsView->setScene(_graphicsScene);
 
@@ -105,11 +108,11 @@ void AnimationPreview::setDocument(AbstractMsDocument* document)
     }
     _document = document;
 
+    _animationListModel->setDocument(_document);
+
     setEnabled(_document != nullptr);
 
     if (_document) {
-        _ui->animation->setModel(_document->animationListModel());
-
         onSelectedAnimationChanged();
 
         connect(_document, &AbstractMsDocument::animationFrameChanged,
@@ -123,7 +126,6 @@ void AnimationPreview::setDocument(AbstractMsDocument* document)
     else {
         removePreviewItem();
         clearGui();
-        _ui->animation->clear();
     }
 }
 
@@ -208,10 +210,12 @@ void AnimationPreview::updateSceneRect()
 
 void AnimationPreview::onSelectedAnimationChanged()
 {
+    Q_ASSERT(_document);
+
     const idstring& id = _document->selection()->selectedAnimationId();
 
     _ui->animation->setCurrentIndex(
-        _document->animationListModel()->toModelIndex(id).row());
+        _animationListModel->toModelIndex(id).row());
 
     if (id.isValid()) {
         if (_previewItem == nullptr) {

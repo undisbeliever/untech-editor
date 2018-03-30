@@ -46,6 +46,16 @@ int AbstractIdmapListModel::indexToInsert(const idstring& id) const
     return std::distance(_idstrings.cbegin(), it);
 }
 
+void AbstractIdmapListModel::clear()
+{
+    beginResetModel();
+
+    _displayList.clear();
+    _idstrings.clear();
+
+    endResetModel();
+}
+
 QModelIndex AbstractIdmapListModel::toModelIndex(const idstring& id) const
 {
     return createIndex(indexOf(id), 0);
@@ -83,4 +93,64 @@ QVariant AbstractIdmapListModel::data(const QModelIndex& index, int role) const
     }
 
     return QVariant();
+}
+
+void AbstractIdmapListModel::addIdstring(const UnTech::idstring& id)
+{
+    Q_ASSERT(_idstrings.contains(id) == false);
+
+    int index = indexToInsert(id);
+
+    beginInsertRows(QModelIndex(), index, index);
+
+    _idstrings.insert(index, id);
+    _displayList.insert(index, QString::fromStdString(id));
+
+    endInsertRows();
+}
+
+void AbstractIdmapListModel::removeIdstring(const UnTech::idstring& id)
+{
+    int index = indexOf(id);
+    Q_ASSERT(index >= 0);
+
+    beginRemoveRows(QModelIndex(), index, index);
+
+    _idstrings.removeAt(index);
+    _displayList.removeAt(index);
+
+    endRemoveRows();
+}
+
+void AbstractIdmapListModel::renameIdstring(const UnTech::idstring& oldId, const UnTech::idstring& newId)
+{
+    Q_ASSERT(_idstrings.contains(newId) == false);
+
+    int oldIndex = indexOf(oldId);
+    Q_ASSERT(oldIndex >= 0);
+
+    int newIndex = indexToInsert(newId);
+
+    if (oldIndex != newIndex && oldIndex != newIndex - 1) {
+        beginMoveRows(QModelIndex(), oldIndex, oldIndex,
+                      QModelIndex(), newIndex);
+
+        if (oldIndex < newIndex) {
+            newIndex--;
+        }
+
+        _idstrings.takeAt(oldIndex);
+        _idstrings.insert(newIndex, newId);
+
+        _displayList.takeAt(oldIndex);
+        _displayList.insert(newIndex, QString::fromStdString(newId));
+
+        endMoveRows();
+    }
+    else {
+        _idstrings.replace(oldIndex, newId);
+        _displayList.replace(oldIndex, QString::fromStdString(newId));
+
+        emit dataChanged(createIndex(oldIndex, 0), createIndex(oldIndex, 0));
+    }
 }
