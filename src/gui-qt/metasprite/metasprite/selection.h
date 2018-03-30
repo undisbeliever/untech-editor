@@ -25,10 +25,10 @@ class Selection : public AbstractSelection {
     Q_OBJECT
 
 public:
-    explicit Selection(QObject* parent = nullptr);
+    Selection(Document* document);
     ~Selection() = default;
 
-    void setDocument(Document* document);
+    virtual void unselectAll() final;
 
     MS::Frame* selectedFrame() const { return _selectedFrame; }
 

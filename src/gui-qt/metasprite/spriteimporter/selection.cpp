@@ -11,17 +11,11 @@
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-Selection::Selection(QObject* parent)
-    : AbstractSelection(parent)
-    , _document(nullptr)
+Selection::Selection(Document* document)
+    : AbstractSelection(document)
+    , _document(document)
     , _selectedFrame(nullptr)
 {
-}
-
-void Selection::setDocument(Document* document)
-{
-    AbstractSelection::setDocument(document);
-    _document = document;
 }
 
 void Selection::selectFrame(const SI::Frame* frame)
@@ -34,12 +28,7 @@ void Selection::selectFrame(const SI::Frame* frame)
 
 const void* Selection::setSelectedFrame(const idstring& id)
 {
-    if (_document) {
-        _selectedFrame = _document->frameSet()->frames.getPtr(id);
-    }
-    else {
-        _selectedFrame = nullptr;
-    }
+    _selectedFrame = _document->frameSet()->frames.getPtr(id);
     return _selectedFrame;
 }
 

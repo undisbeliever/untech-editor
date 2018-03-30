@@ -32,26 +32,14 @@ UnTech::GuiQt::MetaSprite::moveSelectedItems(
     return ret;
 }
 
-AbstractSelection::AbstractSelection(QObject* parent)
-    : QObject(parent)
-    , _document(nullptr)
+AbstractSelection::AbstractSelection(AbstractMsDocument* document)
+    : QObject(document)
+    , _document(document)
     , _selectedFramePtr(nullptr)
     , _selectedFrameId()
     , _selectedItems()
 {
-}
-
-void AbstractSelection::setDocument(AbstractMsDocument* document)
-{
-    Q_ASSERT(document != nullptr);
-
-    if (_document) {
-        _document->disconnect(this);
-    }
-    _document = document;
-
-    unselectFrame();
-    unselectAnimation();
+    Q_ASSERT(document);
 
     connect(_document, &AbstractMsDocument::frameAboutToBeRemoved,
             this, &AbstractSelection::onFrameAboutToBeRemoved);
@@ -69,6 +57,12 @@ void AbstractSelection::setDocument(AbstractMsDocument* document)
             this, &AbstractSelection::onAnimationAboutToBeRemoved);
     connect(_document, &AbstractMsDocument::animationRenamed,
             this, &AbstractSelection::onAnimationRenamed);
+}
+
+void AbstractSelection::unselectAll()
+{
+    unselectFrame();
+    unselectAnimation();
 }
 
 void AbstractSelection::selectFrame(const idstring& id)

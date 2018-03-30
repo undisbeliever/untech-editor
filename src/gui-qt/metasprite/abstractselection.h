@@ -48,16 +48,16 @@ class AbstractSelection : public QObject {
     Q_OBJECT
 
 public:
-    explicit AbstractSelection(QObject* parent = nullptr);
+    AbstractSelection(AbstractMsDocument* document);
     ~AbstractSelection() = default;
-
-    void setDocument(AbstractMsDocument* document);
 
     bool hasSelectedFrame() const { return _selectedFramePtr != nullptr; }
     const idstring& selectedFrameId() const { return _selectedFrameId; }
 
     MSA::Animation* selectedAnimation() const { return _selectedAnimation; }
     const idstring& selectedAnimationId() const { return _selectedAnimationId; }
+
+    virtual void unselectAll();
 
     const std::set<SelectedItem>& selectedItems() const { return _selectedItems; }
     void setSelectedItems(const std::set<SelectedItem>&);
@@ -67,8 +67,6 @@ public:
 
     void selectAnimation(const idstring& id);
     void unselectAnimation();
-    void selectAnimationFrame(int index);
-    void unselectAnimationFrame() { selectAnimationFrame(-1); }
 
     bool canCloneSelectedItems() const;
     bool canRaiseSelectedItems() const;
@@ -109,7 +107,7 @@ private slots:
     void onAnimationRenamed(const void* animation, const idstring& newId);
 
 protected:
-    AbstractMsDocument* _document;
+    AbstractMsDocument* const _document;
 
     const void* _selectedFramePtr;
     idstring _selectedFrameId;

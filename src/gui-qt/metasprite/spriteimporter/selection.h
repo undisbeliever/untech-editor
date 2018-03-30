@@ -25,10 +25,8 @@ class Selection : public AbstractSelection {
     Q_OBJECT
 
 public:
-    explicit Selection(QObject* parent = nullptr);
+    Selection(Document* document);
     ~Selection() = default;
-
-    void setDocument(Document* document);
 
     void selectFrame(const SI::Frame* frame);
 

@@ -11,22 +11,14 @@
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-Selection::Selection(QObject* parent)
-    : AbstractSelection(parent)
-    , _document(nullptr)
+Selection::Selection(Document* document)
+    : AbstractSelection(document)
+    , _document(document)
     , _selectedFrame(nullptr)
     , _selectedPalette(0)
     , _selectedColor(-1)
 {
-}
-
-void Selection::setDocument(Document* document)
-{
-    if (_document != nullptr) {
-        _document->disconnect(this);
-    }
-    AbstractSelection::setDocument(document);
-    _document = document;
+    Q_ASSERT(document);
 
     connect(_document, &Document::paletteAdded,
             this, &Selection::onPaletteAdded);
@@ -36,14 +28,16 @@ void Selection::setDocument(Document* document)
             this, &Selection::onPaletteMoved);
 }
 
+void Selection::unselectAll()
+{
+    selectPalette(0);
+    unselectColor();
+    AbstractSelection::unselectAll();
+}
+
 const void* Selection::setSelectedFrame(const idstring& id)
 {
-    if (_document) {
-        _selectedFrame = _document->frameSet()->frames.getPtr(id);
-    }
-    else {
-        _selectedFrame = nullptr;
-    }
+    _selectedFrame = _document->frameSet()->frames.getPtr(id);
     return _selectedFrame;
 }
 
@@ -73,8 +67,7 @@ unsigned Selection::nEntityHitboxesInSelectedFrame() const
 
 void Selection::selectPalette(unsigned index)
 {
-    if (_document == nullptr
-        || index >= _document->frameSet()->palettes.size()) {
+    if (index >= _document->frameSet()->palettes.size()) {
         index = 0;
     }
 

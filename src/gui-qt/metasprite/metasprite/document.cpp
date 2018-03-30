@@ -31,7 +31,8 @@ void Document::initModels()
 {
     setName(QString::fromStdString(_frameSet->name));
 
-    _selection->setDocument(this);
+    _selection->unselectAll();
+
     _frameListModel->setDocument(this);
     _palettesModel->setDocument(this);
 
