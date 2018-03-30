@@ -16,6 +16,7 @@ namespace MetaSprite {
 namespace Ui {
 class FrameSetDock;
 }
+class FrameListModel;
 class Actions;
 class Document;
 
@@ -23,7 +24,8 @@ class FrameSetDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    FrameSetDock(Actions* actions, QWidget* parent = nullptr);
+    FrameSetDock(FrameListModel* frameListModel, Actions* actions,
+                 QWidget* parent = nullptr);
     ~FrameSetDock();
 
     void setDocument(Document* document);
@@ -43,6 +45,7 @@ private slots:
 
 private:
     std::unique_ptr<Ui::FrameSetDock> const _ui;
+    FrameListModel* const _frameListModel;
     Actions* const _actions;
 
     Document* _document;

@@ -14,10 +14,6 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
 class Document;
-class AddRemoveFrame;
-class RenameFrame;
-
-namespace MS = UnTech::MetaSprite::MetaSprite;
 
 class FrameListModel : public AbstractIdmapListModel {
     Q_OBJECT
@@ -27,14 +23,6 @@ public:
     ~FrameListModel() = default;
 
     void setDocument(Document* document);
-
-protected:
-    friend class AddRemoveFrame;
-    void insertFrame(const idstring& id, std::unique_ptr<MS::Frame> frame);
-    std::unique_ptr<MS::Frame> removeFrame(const idstring& id);
-
-    friend class RenameFrame;
-    void renameFrame(const idstring& oldId, const idstring& newId);
 
 private:
     Document* _document;

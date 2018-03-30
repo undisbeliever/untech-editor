@@ -16,7 +16,6 @@ Document::Document(FrameSetResourceList* parent, size_t index)
     : AbstractMsDocument(parent, index)
     , _frameSet(std::make_unique<MS::FrameSet>())
     , _selection(new Selection(this))
-    , _frameListModel(new FrameListModel(this))
 {
     Q_ASSERT(index < frameSetList().size());
     Q_ASSERT(frameSetFile().type == FrameSetType::METASPRITE);
@@ -47,8 +46,6 @@ void Document::initModels()
     setName(QString::fromStdString(_frameSet->name));
 
     _selection->unselectAll();
-
-    _frameListModel->setDocument(this);
 }
 
 void Document::saveResourceData(const std::string& filename) const

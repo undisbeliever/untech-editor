@@ -21,12 +21,15 @@
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 using TilesetType = UnTech::MetaSprite::TilesetType;
 
-FrameSetDock::FrameSetDock(Actions* actions, QWidget* parent)
+FrameSetDock::FrameSetDock(FrameListModel* frameListModel, Actions* actions,
+                           QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameSetDock)
+    , _frameListModel(frameListModel)
     , _actions(actions)
     , _document(nullptr)
 {
+    Q_ASSERT(frameListModel);
     Q_ASSERT(actions != nullptr);
 
     _ui->setupUi(this);
@@ -46,6 +49,7 @@ FrameSetDock::FrameSetDock(Actions* actions, QWidget* parent)
 
     _ui->tilesetType->populateData(TilesetType::enumMap);
 
+    _ui->frameList->setModel(_frameListModel);
     _ui->frameList->setContextMenuPolicy(Qt::CustomContextMenu);
 
     _ui->frameListButtons->addAction(_actions->addFrame());
@@ -96,10 +100,6 @@ void FrameSetDock::setDocument(Document* document)
         return;
     }
 
-    if (auto* m = _ui->frameList->selectionModel()) {
-        m->deleteLater();
-    }
-
     if (_document != nullptr) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
@@ -109,8 +109,6 @@ void FrameSetDock::setDocument(Document* document)
     setEnabled(_document != nullptr);
 
     if (_document) {
-        _ui->frameList->setModel(_document->frameListModel());
-
         updateGui();
         updateFrameListSelection();
 
@@ -124,8 +122,6 @@ void FrameSetDock::setDocument(Document* document)
                 this, &FrameSetDock::onFrameListSelectionChanged);
     }
     else {
-        _ui->frameList->setModel(nullptr);
-
         clearGui();
     }
 }
@@ -296,16 +292,18 @@ void FrameSetDock::onPaletteEdited()
 
 void FrameSetDock::updateFrameListSelection()
 {
-    const idstring id = _document->selection()->selectedFrameId();
-    QModelIndex index = _document->frameListModel()->toModelIndex(id);
+    if (_document) {
+        const idstring id = _document->selection()->selectedFrameId();
+        QModelIndex index = _frameListModel->toModelIndex(id);
 
-    _ui->frameList->setCurrentIndex(index);
+        _ui->frameList->setCurrentIndex(index);
+    }
 }
 
 void FrameSetDock::onFrameListSelectionChanged()
 {
     QModelIndex index = _ui->frameList->currentIndex();
-    idstring frameId = _document->frameListModel()->toIdstring(index);
+    idstring frameId = _frameListModel->toIdstring(index);
     _document->selection()->selectFrame(frameId);
 }
 

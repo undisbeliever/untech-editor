@@ -19,9 +19,10 @@
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-FrameDock::FrameDock(Actions* actions, QWidget* parent)
+FrameDock::FrameDock(FrameListModel* frameListModel, Actions* actions, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameDock)
+    , _frameListModel(frameListModel)
     , _actions(actions)
     , _document(nullptr)
     , _frameObjectManager(new FrameObjectManager(this))
@@ -32,9 +33,12 @@ FrameDock::FrameDock(Actions* actions, QWidget* parent)
           { tr("Location"), tr("Param"), QString("Tile"), QString("Flip") },
           this))
 {
+    Q_ASSERT(frameListModel);
     Q_ASSERT(actions != nullptr);
 
     _ui->setupUi(this);
+
+    _ui->frameComboBox->setModel(_frameListModel);
 
     _ui->frameContents->setModel(_frameContentsModel);
     _ui->frameContents->setIndentation(10);
@@ -90,8 +94,6 @@ void FrameDock::setDocument(Document* document)
     setEnabled(_document != nullptr);
 
     if (_document) {
-        _ui->frameComboBox->setModel(_document->frameListModel());
-
         onSelectedFrameChanged();
 
         connect(_document, &Document::frameDataChanged, this, &FrameDock::onFrameDataChanged);
@@ -106,8 +108,6 @@ void FrameDock::setDocument(Document* document)
                 this, &FrameDock::onFrameContentsSelectionChanged);
     }
     else {
-        _ui->frameComboBox->clear();
-
         clearGui();
     }
 }
@@ -125,7 +125,7 @@ void FrameDock::onSelectedFrameChanged()
         _ui->frameContents->expandAll();
 
         _ui->frameComboBox->setCurrentIndex(
-            _document->frameListModel()->toModelIndex(frameId).row());
+            _frameListModel->toModelIndex(frameId).row());
     }
     else {
         clearGui();
@@ -145,7 +145,7 @@ void FrameDock::onFrameComboBoxActivated()
 
     if (index >= 0) {
         _document->selection()->selectFrame(
-            _document->frameListModel()->toIdstring(index));
+            _frameListModel->toIdstring(index));
     }
     else {
         _document->selection()->unselectFrame();

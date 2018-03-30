@@ -8,6 +8,7 @@
 #include "actions.h"
 #include "document.h"
 #include "framedock.h"
+#include "framelistmodel.h"
 #include "framesetdock.h"
 #include "sianimationpreviewitem.h"
 #include "sigraphicsscene.h"
@@ -27,6 +28,7 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
     , _imageFileWatcher()
+    , _frameListModel(new FrameListModel(this))
     , _actions(new Actions(this))
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
@@ -35,8 +37,8 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     , _graphicsScene(new SiGraphicsScene(_actions, _layerSettings, this))
     , _animationPreview(new Animation::AnimationPreview(this))
     , _animationPreviewItemFactory(new SiAnimationPreviewItemFactory(_layerSettings, this))
-    , _frameSetDock(new FrameSetDock(_actions, this))
-    , _frameDock(new FrameDock(_actions, this))
+    , _frameSetDock(new FrameSetDock(_frameListModel, _actions, this))
+    , _frameDock(new FrameDock(_frameListModel, _actions, this))
     , _animationDock(new Animation::AnimationDock(this))
 {
     // Have the left and right docks take up the whole height of the documentWindow
@@ -114,6 +116,7 @@ void MainWindow::setDocument(Document* document)
     }
     _document = document;
 
+    _frameListModel->setDocument(document);
     _actions->setDocument(document);
     _graphicsScene->setDocument(document);
     _animationPreview->setDocument(document);

@@ -94,7 +94,7 @@ signals:
 
 private slots:
     void onFrameAboutToBeRemoved(const void* frame);
-    void onFrameRenamed(const void* frame, const idstring& newId);
+    void onFrameRenamed(const idstring& oldId, const idstring& newId);
 
     void onFrameObjectAboutToBeRemoved(const void* frame, unsigned index);
     void onActionPointAboutToBeRemoved(const void* frame, unsigned index);

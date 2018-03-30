@@ -60,7 +60,7 @@ private slots:
 
     void onFrameSetGridChanged();
 
-    void onFrameAdded(const void* frame);
+    void onFrameAdded(const idstring& id);
     void onFrameAboutToBeRemoved(const void* frame);
     void onFrameLocationChanged(const void* frame);
     void onFrameTileHitboxChanged(const void* frame);

@@ -22,6 +22,7 @@ class FrameDock;
 }
 class Actions;
 class Document;
+class FrameListModel;
 class FrameObjectManager;
 class ActionPointManager;
 class EntityHitboxManager;
@@ -32,7 +33,8 @@ class FrameDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    FrameDock(Actions* actions, QWidget* parent = nullptr);
+    FrameDock(FrameListModel* frameListModel, Actions* actions,
+              QWidget* parent = nullptr);
     ~FrameDock();
 
     void setDocument(Document* document);
@@ -58,6 +60,7 @@ private slots:
 
 private:
     std::unique_ptr<Ui::FrameDock> const _ui;
+    FrameListModel* const _frameListModel;
     Actions* const _actions;
 
     Document* _document;

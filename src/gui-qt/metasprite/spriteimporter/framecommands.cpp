@@ -27,18 +27,28 @@ AddRemoveFrame::AddRemoveFrame(Document* document,
 
 void AddRemoveFrame::addFrame()
 {
+    auto& frames = _document->frameSet()->frames;
+    Q_ASSERT(frames.contains(_frameId) == false);
     Q_ASSERT(_frame != nullptr);
-    Q_ASSERT(_document->frameSet()->frames.contains(_frameId) == false);
 
-    _document->frameListModel()->insertFrame(_frameId, std::move(_frame));
+    frames.insertInto(_frameId, std::move(_frame));
+
+    emit _document->frameAdded(_frameId);
+    emit _document->frameMapChanged();
 }
 
 void AddRemoveFrame::removeFrame()
 {
+    auto& frames = _document->frameSet()->frames;
+    Q_ASSERT(frames.contains(_frameId) == true);
     Q_ASSERT(_frame == nullptr);
-    Q_ASSERT(_document->frameSet()->frames.contains(_frameId));
 
-    _frame = _document->frameListModel()->removeFrame(_frameId);
+    emit _document->frameAboutToBeRemoved(_frameId);
+    emit _document->frameAboutToBeRemoved(frames.getPtr(_frameId));
+
+    _frame = frames.extractFrom(_frameId);
+
+    emit _document->frameMapChanged();
 }
 
 // AddFrame
@@ -123,12 +133,25 @@ RenameFrame::RenameFrame(Document* document,
 
 void RenameFrame::undo()
 {
-    _document->frameListModel()->renameFrame(_newId, _oldId);
+    doRename(_newId, _oldId);
 }
 
 void RenameFrame::redo()
 {
-    _document->frameListModel()->renameFrame(_oldId, _newId);
+    doRename(_oldId, _newId);
+}
+
+void RenameFrame::doRename(const idstring& from, const idstring& to)
+{
+    auto& frames = _document->frameSet()->frames;
+
+    Q_ASSERT(frames.contains(from) == true);
+    Q_ASSERT(frames.contains(to) == false);
+
+    frames.rename(from, to);
+
+    emit _document->frameRenamed(from, to);
+    emit _document->frameMapChanged();
 }
 
 // ChangeFrameSpriteOrder

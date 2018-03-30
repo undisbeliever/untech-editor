@@ -28,6 +28,7 @@ class AnimationPreview;
 namespace SpriteImporter {
 
 class Document;
+class FrameListModel;
 class Actions;
 class TilesetPixmaps;
 class SiGraphicsScene;
@@ -59,6 +60,7 @@ private:
 
     QFileSystemWatcher _imageFileWatcher;
 
+    FrameListModel* const _frameListModel;
     Actions* const _actions;
     LayerSettings* const _layerSettings;
 

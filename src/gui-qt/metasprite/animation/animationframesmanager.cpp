@@ -76,7 +76,7 @@ void AnimationFramesManager::updateParameters(int index, int id, QVariant& param
 
     switch ((PropertyId)id) {
     case PropertyId::FRAME:
-        param1 = _document->frameListModel()->displayList();
+        param1 = _document->frameList();
         break;
 
     case PropertyId::FLIP:

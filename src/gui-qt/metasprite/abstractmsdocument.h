@@ -38,7 +38,6 @@ public:
     virtual MSA::Animation::map_t* animations() const = 0;
 
     virtual AbstractSelection* selection() const = 0;
-    virtual AbstractIdmapListModel* frameListModel() const = 0;
 
     virtual QStringList frameList() const = 0;
 
@@ -61,9 +60,10 @@ signals:
     void frameDataChanged(const void* frame);
     void frameTileHitboxChanged(const void* frame);
     void frameMapChanged();
-    void frameAdded(const void* frame);
+    void frameAdded(const idstring& id);
+    void frameAboutToBeRemoved(const idstring& id);
     void frameAboutToBeRemoved(const void* frame);
-    void frameRenamed(const void* frame, const idstring& newId);
+    void frameRenamed(const idstring& oldId, const idstring& newId);
 
     void frameObjectChanged(const void* frame, unsigned index);
     void actionPointChanged(const void* frame, unsigned index);

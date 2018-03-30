@@ -41,7 +41,7 @@ AbstractSelection::AbstractSelection(AbstractMsDocument* document)
 {
     Q_ASSERT(document);
 
-    connect(_document, &AbstractMsDocument::frameAboutToBeRemoved,
+    connect(_document, qOverload<const void*>(&AbstractMsDocument::frameAboutToBeRemoved),
             this, &AbstractSelection::onFrameAboutToBeRemoved);
     connect(_document, &AbstractMsDocument::frameRenamed,
             this, &AbstractSelection::onFrameRenamed);
@@ -116,9 +116,9 @@ void AbstractSelection::onFrameAboutToBeRemoved(const void* frame)
     }
 }
 
-void AbstractSelection::onFrameRenamed(const void* frame, const idstring& newId)
+void AbstractSelection::onFrameRenamed(const idstring& oldId, const idstring& newId)
 {
-    if (_selectedFramePtr == frame) {
+    if (_selectedFrameId == oldId) {
         _selectedFrameId = newId;
     }
 }

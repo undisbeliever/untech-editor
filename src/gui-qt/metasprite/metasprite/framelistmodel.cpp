@@ -17,44 +17,22 @@ FrameListModel::FrameListModel(QObject* parent)
 
 void FrameListModel::setDocument(Document* document)
 {
-    Q_ASSERT(document != nullptr);
-
     if (_document) {
         _document->disconnect(this);
     }
     _document = document;
 
-    buildLists(_document->frameSet()->frames);
-}
+    if (_document) {
+        buildLists(_document->frameSet()->frames);
 
-void FrameListModel::insertFrame(const idstring& id, std::unique_ptr<MS::Frame> frame)
-{
-    auto& frames = _document->frameSet()->frames;
-    const MS::Frame* framePtr = frame.get();
-
-    insertMapItem(frames, id, std::move(frame));
-
-    emit _document->frameAdded(framePtr);
-    emit _document->frameMapChanged();
-}
-
-std::unique_ptr<MS::Frame> FrameListModel::removeFrame(const idstring& id)
-{
-    auto& frames = _document->frameSet()->frames;
-
-    emit _document->frameAboutToBeRemoved(frames.getPtr(id));
-    auto ret = removeMapItem(frames, id);
-    emit _document->frameMapChanged();
-
-    return ret;
-}
-
-void FrameListModel::renameFrame(const idstring& oldId, const idstring& newId)
-{
-    auto& frames = _document->frameSet()->frames;
-
-    renameMapItem(frames, oldId, newId);
-
-    emit _document->frameRenamed(frames.getPtr(newId), newId);
-    emit _document->frameMapChanged();
+        connect(_document, &AbstractMsDocument::frameAdded,
+                this, &FrameListModel::addIdstring);
+        connect(_document, qOverload<const idstring&>(&AbstractMsDocument::frameAboutToBeRemoved),
+                this, &FrameListModel::removeIdstring);
+        connect(_document, &AbstractMsDocument::frameRenamed,
+                this, &FrameListModel::renameIdstring);
+    }
+    else {
+        clear();
+    }
 }

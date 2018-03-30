@@ -92,7 +92,7 @@ void SiGraphicsScene::setDocument(Document* document)
 
         connect(_document, &Document::frameAdded,
                 this, &SiGraphicsScene::onFrameAdded);
-        connect(_document, &Document::frameAboutToBeRemoved,
+        connect(_document, qOverload<const void*>(&Document::frameAboutToBeRemoved),
                 this, &SiGraphicsScene::onFrameAboutToBeRemoved);
         connect(_document, &Document::frameLocationChanged,
                 this, &SiGraphicsScene::onFrameLocationChanged);
@@ -407,18 +407,14 @@ void SiGraphicsScene::onFrameSetGridChanged()
     setSceneRect(itemsBoundingRect());
 }
 
-void SiGraphicsScene::onFrameAdded(const void* framePtr)
+void SiGraphicsScene::onFrameAdded(const idstring& id)
 {
-    for (const auto& it : _document->frameSet()->frames) {
-        if (&it.second == framePtr) {
-            SI::Frame* frame = &it.second;
-
-            auto* frameItem = new SiFrameGraphicsItem(frame, _actions, _style);
-            _frameItems.insert(frame, frameItem);
-            frameItem->setVisible(FRAME_ZVALUE);
-            addItem(frameItem);
-            break;
-        }
+    SI::Frame* frame = _document->frameSet()->frames.getPtr(id);
+    if (frame) {
+        auto* frameItem = new SiFrameGraphicsItem(frame, _actions, _style);
+        _frameItems.insert(frame, frameItem);
+        frameItem->setVisible(FRAME_ZVALUE);
+        addItem(frameItem);
     }
 }
 

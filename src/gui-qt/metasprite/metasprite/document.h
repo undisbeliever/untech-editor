@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "framelistmodel.h"
 #include "selection.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "models/metasprite/metasprite.h"
@@ -34,7 +33,6 @@ public:
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
     virtual Selection* selection() const final { return _selection; }
-    virtual FrameListModel* frameListModel() const final { return _frameListModel; }
 
     virtual QStringList frameList() const final;
 
@@ -63,7 +61,6 @@ private:
     std::unique_ptr<MS::FrameSet> _frameSet;
 
     Selection* const _selection;
-    FrameListModel* const _frameListModel;
 };
 }
 }

@@ -28,6 +28,7 @@ namespace MetaSprite {
 
 class Document;
 class Actions;
+class FrameListModel;
 class TilesetPixmaps;
 class MsGraphicsScene;
 class MsAnimationPreviewItemFactory;
@@ -55,6 +56,7 @@ private slots:
 private:
     Document* _document;
 
+    FrameListModel* const _frameListModel;
     Actions* const _actions;
     LayerSettings* const _layerSettings;
 

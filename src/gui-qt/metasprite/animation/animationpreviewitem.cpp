@@ -34,7 +34,7 @@ AnimationPreviewItem::AnimationPreviewItem(const AbstractMsDocument* document,
 
     connect(_document, &AbstractMsDocument::frameAdded,
             this, &AnimationPreviewItem::onFrameAdded);
-    connect(_document, &AbstractMsDocument::frameAboutToBeRemoved,
+    connect(_document, qOverload<const void*>(&AbstractMsDocument::frameAboutToBeRemoved),
             this, &AnimationPreviewItem::onFrameAboutToBeRemoved);
     connect(_document, &AbstractMsDocument::frameDataChanged,
             this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
