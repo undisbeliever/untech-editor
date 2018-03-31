@@ -119,27 +119,38 @@ void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 void MainWindow::setDocument(Document* document)
 {
     if (_document) {
+        _document->disconnect(this);
         _document->selection()->disconnect(this);
     }
     _document = document;
 
-    _frameListModel->setDocument(document);
-    _actions->setDocument(document);
-    _tilesetPixmaps->setDocument(document);
-    _graphicsScene->setDocument(document);
-    _animationPreview->setDocument(document);
-    _frameSetDock->setDocument(document);
-    _frameDock->setDocument(document);
-    _animationDock->setDocument(document);
-    _palettesDock->setDocument(document);
-    _tilesetDock->setDocument(document);
+    populateWidgets();
 
-    _tabWidget->setEnabled(document != nullptr);
-
-    if (document != nullptr) {
+    if (_document) {
+        connect(document, &Document::resourceLoaded,
+                this, &MainWindow::populateWidgets);
         connect(document->selection(), &Selection::selectedFrameChanged,
                 this, &MainWindow::onSelectedFrameChanged);
     }
+}
+
+void MainWindow::populateWidgets()
+{
+    // Widgets cannot handle a null frameSet
+    Document* d = _document && _document->frameSet() ? _document : nullptr;
+
+    _frameListModel->setDocument(d);
+    _actions->setDocument(d);
+    _tilesetPixmaps->setDocument(d);
+    _graphicsScene->setDocument(d);
+    _animationPreview->setDocument(d);
+    _frameSetDock->setDocument(d);
+    _frameDock->setDocument(d);
+    _animationDock->setDocument(d);
+    _palettesDock->setDocument(d);
+    _tilesetDock->setDocument(d);
+
+    _tabWidget->setEnabled(d != nullptr);
 
     onSelectedFrameChanged();
 }

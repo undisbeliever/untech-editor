@@ -14,7 +14,7 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 Document::Document(FrameSetResourceList* parent, size_t index)
     : AbstractMsDocument(parent, index)
-    , _frameSet(std::make_unique<MS::FrameSet>())
+    , _frameSet(nullptr)
     , _selection(new Selection(this))
 {
     Q_ASSERT(index < frameSetList().size());
@@ -43,7 +43,12 @@ QStringList Document::frameList() const
 
 void Document::initModels()
 {
-    setName(QString::fromStdString(_frameSet->name));
+    if (_frameSet) {
+        setName(QString::fromStdString(_frameSet->name));
+    }
+    else {
+        setName(QString());
+    }
 
     _selection->unselectAll();
 }
@@ -56,6 +61,9 @@ void Document::saveResourceData(const std::string& filename) const
 bool Document::loadResourceData(RES::ErrorList& err)
 {
     Q_ASSERT(frameSetFile().type == FrameSetType::METASPRITE);
+
+    auto oldFrameSet = std::move(_frameSet);
+    initModels();
 
     const std::string& fn = filename().toStdString();
 

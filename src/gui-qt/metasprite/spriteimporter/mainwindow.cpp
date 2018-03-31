@@ -116,25 +116,34 @@ void MainWindow::setDocument(Document* document)
     }
     _document = document;
 
-    _frameListModel->setDocument(document);
-    _actions->setDocument(document);
-    _graphicsScene->setDocument(document);
-    _animationPreview->setDocument(document);
-    _frameSetDock->setDocument(document);
-    _frameDock->setDocument(document);
-    _animationDock->setDocument(document);
-
-    _tabWidget->setEnabled(document != nullptr);
-
-    onFrameSetImageFilenameChanged();
+    populateWidgets();
 
     if (document != nullptr) {
+        connect(document, &Document::resourceLoaded,
+                this, &MainWindow::populateWidgets);
         connect(document, &Document::frameSetImageFilenameChanged,
                 this, &MainWindow::onFrameSetImageFilenameChanged);
         connect(document->selection(), &Selection::selectedFrameChanged,
                 this, &MainWindow::onSelectedFrameChanged);
     }
+}
 
+void MainWindow::populateWidgets()
+{
+    // Widgets cannot handle a null frameSet
+    Document* d = _document && _document->frameSet() ? _document : nullptr;
+
+    _frameListModel->setDocument(d);
+    _actions->setDocument(d);
+    _graphicsScene->setDocument(d);
+    _animationPreview->setDocument(d);
+    _frameSetDock->setDocument(d);
+    _frameDock->setDocument(d);
+    _animationDock->setDocument(d);
+
+    _tabWidget->setEnabled(d != nullptr);
+
+    onFrameSetImageFilenameChanged();
     onSelectedFrameChanged();
 }
 
@@ -158,7 +167,7 @@ void MainWindow::onFrameSetImageFilenameChanged()
     removePaths(_imageFileWatcher.files());
     removePaths(_imageFileWatcher.directories());
 
-    if (_document) {
+    if (_document && _document->frameSet()) {
         QString fn = QString::fromStdString(_document->frameSet()->imageFilename);
         if (!fn.isEmpty()) {
             _imageFileWatcher.addPath(fn);

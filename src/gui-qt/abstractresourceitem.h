@@ -73,6 +73,10 @@ signals:
     // MUST be emitted by the subclass when the internal data changes
     void dataChanged();
 
+    // Will be always be emitted at the end of loadResource,
+    // (even if loadResourceData() failed).
+    void resourceLoaded();
+
 private:
     friend void AbstractResourceList::removeResource(int);
     void setIndex(unsigned index);

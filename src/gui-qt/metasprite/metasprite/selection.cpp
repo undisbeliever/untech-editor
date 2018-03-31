@@ -37,7 +37,13 @@ void Selection::unselectAll()
 
 const void* Selection::setSelectedFrame(const idstring& id)
 {
-    _selectedFrame = _document->frameSet()->frames.getPtr(id);
+    if (_document->frameSet()) {
+        _selectedFrame = _document->frameSet()->frames.getPtr(id);
+    }
+    else {
+        _selectedFrame = nullptr;
+    }
+
     return _selectedFrame;
 }
 
@@ -67,7 +73,10 @@ unsigned Selection::nEntityHitboxesInSelectedFrame() const
 
 void Selection::selectPalette(unsigned index)
 {
-    if (index >= _document->frameSet()->palettes.size()) {
+    if (_document->frameSet() == nullptr) {
+        index = 0;
+    }
+    else if (index >= _document->frameSet()->palettes.size()) {
         index = 0;
     }
 
@@ -94,6 +103,8 @@ void Selection::selectColor(int color)
 
 void Selection::onPaletteAdded(unsigned)
 {
+    Q_ASSERT(_document->frameSet());
+
     if (_document->frameSet()->palettes.size() == 1) {
         _selectedPalette = 0;
         emit selectedPaletteChanged();

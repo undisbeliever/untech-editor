@@ -46,11 +46,13 @@ public:
 
     QPushButton* layersButton() { return _layersButton; }
 
-    void setDocument(Document* document);
-
     void populateMenu(QMenu* editMenu, QMenu* viewMenu);
 
+    void setDocument(Document* document);
+
 private slots:
+    void populateWidgets();
+
     void onSelectedFrameChanged();
 
 private:

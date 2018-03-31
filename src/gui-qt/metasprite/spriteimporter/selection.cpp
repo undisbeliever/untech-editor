@@ -20,6 +20,11 @@ Selection::Selection(Document* document)
 
 void Selection::selectFrame(const SI::Frame* frame)
 {
+    if (_document->frameSet() == nullptr) {
+        unselectFrame();
+        return;
+    }
+
     if (_selectedFrame != frame) {
         idstring frameId = _document->frameSet()->frames.getId(frame);
         selectFrame(frameId);
@@ -28,6 +33,13 @@ void Selection::selectFrame(const SI::Frame* frame)
 
 const void* Selection::setSelectedFrame(const idstring& id)
 {
+    if (_document->frameSet()) {
+        _selectedFrame = _document->frameSet()->frames.getPtr(id);
+    }
+    else {
+        _selectedFrame = nullptr;
+    }
+
     _selectedFrame = _document->frameSet()->frames.getPtr(id);
     return _selectedFrame;
 }

@@ -34,6 +34,8 @@ void AbstractResourceItem::loadResource()
     }
 
     _errorList = err;
+
+    emit resourceLoaded();
     emit errorListChanged();
 }
 
