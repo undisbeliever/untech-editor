@@ -22,7 +22,7 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
     setFilename(QString::fromStdString(frameSetFile().filename));
 
-    initModels();
+    resetDocumentState();
 }
 
 QStringList Document::frameList() const
@@ -41,7 +41,7 @@ QStringList Document::frameList() const
     return fl;
 }
 
-void Document::initModels()
+void Document::resetDocumentState()
 {
     if (_frameSet) {
         setName(QString::fromStdString(_frameSet->name));
@@ -60,25 +60,29 @@ void Document::saveResourceData(const std::string& filename) const
 
 bool Document::loadResourceData(RES::ErrorList& err)
 {
-    Q_ASSERT(frameSetFile().type == FrameSetType::METASPRITE);
+    using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
 
-    auto oldFrameSet = std::move(_frameSet);
-    initModels();
+    FrameSetFile& fsf = frameSetFile();
+    Q_ASSERT(fsf.type == FrameSetType::METASPRITE);
+
+    auto oldFrameSet = std::move(fsf.msFrameSet);
+    _frameSet = nullptr;
+    emit resourceLoaded();
 
     const std::string& fn = filename().toStdString();
+    Q_ASSERT(fn == fsf.filename);
 
     if (fn.empty()) {
         err.addError("Missing filename");
         return false;
     }
 
-    auto fs = MS::loadFrameSet(fn);
-    if (fs) {
-        _frameSet = std::move(fs);
-        initModels();
-        return true;
-    }
-    return false;
+    frameSetFile().loadFile();
+
+    _frameSet = fsf.msFrameSet.get();
+    resetDocumentState();
+
+    return true;
 }
 
 bool Document::compileResource(UnTech::Resources::ErrorList& err)

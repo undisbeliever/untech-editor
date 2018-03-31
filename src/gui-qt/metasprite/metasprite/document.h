@@ -29,7 +29,7 @@ public:
     Document(FrameSetResourceList* parent, size_t index);
     ~Document() = default;
 
-    MS::FrameSet* frameSet() const { return _frameSet.get(); }
+    MS::FrameSet* frameSet() const { return _frameSet; }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
     virtual Selection* selection() const final { return _selection; }
@@ -43,7 +43,7 @@ protected:
     virtual bool compileResource(RES::ErrorList& err) final;
 
 private:
-    void initModels();
+    void resetDocumentState();
 
 signals:
     void paletteChanged(unsigned index);
@@ -58,7 +58,7 @@ signals:
     void largeTileChanged(unsigned tileId);
 
 private:
-    std::unique_ptr<MS::FrameSet> _frameSet;
+    MS::FrameSet* _frameSet;
 
     Selection* const _selection;
 };

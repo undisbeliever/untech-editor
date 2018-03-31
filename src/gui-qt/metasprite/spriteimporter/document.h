@@ -29,7 +29,7 @@ public:
     Document(FrameSetResourceList* parent, size_t index);
     ~Document() = default;
 
-    SI::FrameSet* frameSet() const { return _frameSet.get(); }
+    SI::FrameSet* frameSet() const { return _frameSet; }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
     virtual Selection* selection() const final { return _selection; }
@@ -43,7 +43,7 @@ protected:
     virtual bool compileResource(RES::ErrorList& err) final;
 
 private:
-    void initModels();
+    void resetDocumentState();
 
 signals:
     void frameSetGridChanged();
@@ -54,7 +54,7 @@ signals:
     void frameLocationChanged(const void* frame);
 
 private:
-    std::unique_ptr<SI::FrameSet> _frameSet;
+    SI::FrameSet* _frameSet;
 
     Selection* const _selection;
 };

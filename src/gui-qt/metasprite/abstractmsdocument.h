@@ -49,7 +49,7 @@ protected:
         return project()->metaSpriteProject()->frameSets;
     }
 
-    inline const auto& frameSetFile() const
+    inline auto& frameSetFile() const
     {
         return project()->metaSpriteProject()->frameSets.at(index());
     }
