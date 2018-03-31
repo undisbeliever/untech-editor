@@ -21,6 +21,13 @@ namespace MetaSprite {
 
 const std::string Project::FILE_EXTENSION = "utmspro";
 
+const EnumMap<Project::FrameSetType> frameSetTypeMap = {
+    { "none", Project::FrameSetType::NONE },
+    { "unknown", Project::FrameSetType::UNKNOWN },
+    { "metasprite", Project::FrameSetType::METASPRITE },
+    { "spriteimporter", Project::FrameSetType::SPRITE_IMPORTER },
+};
+
 inline std::unique_ptr<Project> readProject(XmlReader& xml, const XmlTag* tag)
 {
     using FST = Project::FrameSetType;
@@ -39,9 +46,14 @@ inline std::unique_ptr<Project> readProject(XmlReader& xml, const XmlTag* tag)
             Project::FrameSetFile& fs = project->frameSets.back();
 
             if (childTag->hasAttribute("src")) {
-                fs.type = FST::UNKNOWN;
                 fs.filename = childTag->getAttributeFilename("src");
-                fs.setTypeFromExtension();
+
+                if (childTag->hasAttribute("type")) {
+                    fs.type = childTag->getAttributeEnum("type", frameSetTypeMap);
+                }
+                else {
+                    fs.setTypeFromExtension();
+                }
             }
             else {
                 fs.type = FST::NONE;
@@ -67,6 +79,7 @@ inline void writeProject(XmlWriter& xml, const Project& project)
         xml.writeTag("frameset");
         if (fs.type != FST::NONE && !fs.filename.empty()) {
             xml.writeTagAttributeFilename("src", fs.filename);
+            xml.writeTagAttributeEnum("type", fs.type, frameSetTypeMap);
         }
         xml.writeCloseTag();
     }
@@ -81,32 +94,28 @@ inline void writeProject(XmlWriter& xml, const Project& project)
 
 void Project::FrameSetFile::loadFile()
 {
+    msFrameSet = nullptr;
+    siFrameSet = nullptr;
+
     if (filename.empty()) {
         return;
     }
 
-    auto xml = XmlReader::fromFile(filename);
+    switch (type) {
+    case FrameSetType::NONE:
+        break;
 
-    try {
-        std::unique_ptr<XmlTag> tag = xml->parseTag();
+    case FrameSetType::METASPRITE:
+        msFrameSet = MetaSprite::loadFrameSet(filename);
+        break;
 
-        if (tag == nullptr) {
-            throw std::runtime_error(filename + ": Unknown file format");
-        }
-        else if (tag->name == "metasprite") {
-            msFrameSet = MetaSprite::readFrameSet(*xml, tag.get());
-            type = FrameSetType::METASPRITE;
-        }
-        else if (tag->name == "spriteimporter") {
-            siFrameSet = SpriteImporter::readFrameSet(*xml, tag.get());
-            type = FrameSetType::SPRITE_IMPORTER;
-        }
-        else {
-            throw xml_error(*tag, "Unknown file type");
-        }
-    }
-    catch (const std::exception& ex) {
-        throw xml_error(*xml, "Unable to load FrameSet", ex);
+    case FrameSetType::SPRITE_IMPORTER:
+        siFrameSet = SpriteImporter::loadFrameSet(filename);
+        break;
+
+    case FrameSetType::UNKNOWN:
+        throw std::runtime_error("Cannot load " + filename + ": Unknown frameset type");
+        break;
     }
 }
 
