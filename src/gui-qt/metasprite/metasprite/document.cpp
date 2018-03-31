@@ -85,8 +85,12 @@ bool Document::loadResourceData(RES::ErrorList& err)
     return true;
 }
 
-bool Document::compileResource(UnTech::Resources::ErrorList& err)
+bool Document::compileResource(RES::ErrorList& err)
 {
-    err.addError("compileResource: Not implemented");
-    return false;
+    UnTech::MetaSprite::ErrorList msErrorList;
+
+    compileMsFrameset(_frameSet, msErrorList);
+    appendToErrorList(err, msErrorList);
+
+    return msErrorList.errors.empty() == true;
 }

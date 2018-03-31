@@ -84,8 +84,16 @@ bool Document::loadResourceData(RES::ErrorList& err)
     return true;
 }
 
-bool Document::compileResource(UnTech::Resources::ErrorList& err)
+bool Document::compileResource(RES::ErrorList& err)
 {
-    err.addError("compileResource: Not implemented");
-    return false;
+    using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
+
+    FrameSetFile& fsf = frameSetFile();
+    UnTech::MetaSprite::ErrorList msErrorList;
+
+    fsf.convertSpriteImporter(msErrorList);
+    compileMsFrameset(fsf.msFrameSet.get(), msErrorList);
+    appendToErrorList(err, msErrorList);
+
+    return msErrorList.errors.empty() == true;
 }

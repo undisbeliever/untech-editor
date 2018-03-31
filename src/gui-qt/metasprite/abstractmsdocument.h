@@ -23,6 +23,7 @@ struct SelectedItem;
 class AbstractSelection;
 class FrameSetResourceList;
 
+namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace MSA = UnTech::MetaSprite::Animation;
 
 class AbstractMsDocument : public AbstractExternalResourceItem {
@@ -53,6 +54,12 @@ protected:
     {
         return project()->metaSpriteProject()->frameSets.at(index());
     }
+
+    void compileMsFrameset(const MS::FrameSet* frameSet,
+                           UnTech::MetaSprite::ErrorList& errList);
+
+    void appendToErrorList(RES::ErrorList& errList,
+                           const UnTech::MetaSprite::ErrorList& msErrorList);
 
 signals:
     void frameSetDataChanged();

@@ -8,6 +8,7 @@
 #include "framesetresourcelist.h"
 #include "animation/animationframesmanager.h"
 #include "animation/animationlistmodel.h"
+#include "models/metasprite/compiler/compiler.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 
@@ -28,4 +29,35 @@ QStringList AbstractMsDocument::animationList() const
     }
 
     return al;
+}
+
+void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,
+                                           UnTech::MetaSprite::ErrorList& errList)
+{
+    using Compiler = UnTech::MetaSprite::Compiler::Compiler;
+
+    if (frameSet) {
+        try {
+            Compiler compiler(errList, 8192);
+            compiler.processFrameSet(*frameSet);
+        }
+        catch (std::exception& ex) {
+            errList.addError(*frameSet, ex.what());
+        }
+    }
+}
+
+void AbstractMsDocument::appendToErrorList(RES::ErrorList& errList,
+                                           const UnTech::MetaSprite::ErrorList& msErrorList)
+{
+    auto appendToErr = [&](const auto& list) {
+        for (auto& e : list) {
+            std::stringstream ss;
+            ss << e;
+            errList.addError(ss.str());
+        }
+    };
+
+    appendToErr(msErrorList.errors);
+    appendToErr(msErrorList.warnings);
 }
