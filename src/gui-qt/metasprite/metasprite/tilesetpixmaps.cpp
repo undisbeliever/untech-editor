@@ -37,9 +37,9 @@ void TilesetPixmaps::setDocument(Document* document)
     }
     _document = document;
 
-    if (_document) {
-        redrawTilesets();
+    redrawTilesets();
 
+    if (_document) {
         connect(_document, &Document::paletteChanged,
                 this, &TilesetPixmaps::onPaletteChanged);
 
