@@ -24,6 +24,9 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
     resetDocumentState();
 
+    connect(this, &Document::frameSetNameChanged,
+            this, &Document::onFrameSetNameChanged);
+
     connect(this, &Document::paletteChanged,
             this, &AbstractResourceItem::dataChanged);
     connect(this, &Document::paletteListChanged,
@@ -106,4 +109,16 @@ bool Document::compileResource(RES::ErrorList& err)
     appendToErrorList(err, msErrorList);
 
     return msErrorList.errors.empty() == true;
+}
+
+void Document::onFrameSetNameChanged()
+{
+    const MS::FrameSet* fs = frameSet();
+
+    if (fs) {
+        setName(QString::fromStdString(fs->name));
+    }
+    else {
+        setName(QString());
+    }
 }

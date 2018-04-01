@@ -63,6 +63,7 @@ protected:
 
 signals:
     void frameSetDataChanged();
+    void frameSetNameChanged();
 
     void frameDataChanged(const void* frame);
     void frameTileHitboxChanged(const void* frame);
