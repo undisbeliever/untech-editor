@@ -15,6 +15,32 @@ using namespace UnTech::GuiQt::MetaSprite;
 AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
 {
+    connect(this, &AbstractMsDocument::frameSetDataChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::frameDataChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::frameMapChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::frameObjectChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::actionPointChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::entityHitboxChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::frameObjectListChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::actionPointListChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::entityHitboxListChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::animationDataChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::animationMapChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::animationFrameChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &AbstractMsDocument::animationFrameListChanged,
+            this, &AbstractResourceItem::dataChanged);
 }
 
 QStringList AbstractMsDocument::animationList() const

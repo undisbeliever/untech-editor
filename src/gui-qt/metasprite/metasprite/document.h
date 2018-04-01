@@ -47,6 +47,7 @@ private:
 
 signals:
     void paletteChanged(unsigned index);
+    void paletteListChanged();
     void paletteAdded(unsigned index);
     void paletteAboutToBeRemoved(unsigned index);
     void paletteMoved(unsigned oldIndex, unsigned newIndex);
