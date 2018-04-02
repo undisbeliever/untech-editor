@@ -24,7 +24,7 @@ static std::string itemNameString(const ExternalFileItem<T>& item)
     return item.value->name;
 }
 template <class T>
-static std::string itemNameString(const std::shared_ptr<T>& item)
+static std::string itemNameString(const std::unique_ptr<T>& item)
 {
     return item->name;
 }
@@ -78,7 +78,7 @@ compileResources(const ResourcesFile& input, const std::string& relativeBinFilen
                          FORMAT_VERSIONS, TYPE_NAMES);
 
     compileList(input.palettes, "Palette",
-                [&](const std::shared_ptr<PaletteInput>& p, ErrorList& err) {
+                [&](const std::unique_ptr<PaletteInput>& p, ErrorList& err) {
                     assert(p != nullptr);
                     const auto palData = convertPalette(*p, err);
                     if (palData) {

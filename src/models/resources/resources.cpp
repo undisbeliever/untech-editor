@@ -51,7 +51,7 @@ static bool validateNamesUnique(const ExternalFileList<T>& inputList,
 }
 
 template <class T>
-static bool validateNamesUnique(const std::vector<std::shared_ptr<T>>& inputList,
+static bool validateNamesUnique(const NamedList<T>& inputList,
                                 const std::string& typeName,
                                 ErrorList& err)
 {
@@ -59,7 +59,7 @@ static bool validateNamesUnique(const std::vector<std::shared_ptr<T>>& inputList
 
     std::unordered_set<idstring> nameSet;
 
-    for (const std::shared_ptr<T>& item : inputList) {
+    for (const std::unique_ptr<T>& item : inputList) {
         const std::string& name = item->name;
         if (name == "count") {
             err.addError("Invalid " + typeName + " name: count");
@@ -98,17 +98,6 @@ bool ResourcesFile::validate(ErrorList& err) const
     valid &= validateNamesUnique(metaTileTilesets, "metatile tilesets", err);
 
     return valid;
-}
-
-std::shared_ptr<const PaletteInput> ResourcesFile::getPalette(const idstring& name) const
-{
-    auto it = std::find_if(palettes.begin(), palettes.end(),
-                           [&](const auto& p) { return p->name == name; });
-
-    if (it == palettes.end()) {
-        return nullptr;
-    }
-    return *it;
 }
 }
 }

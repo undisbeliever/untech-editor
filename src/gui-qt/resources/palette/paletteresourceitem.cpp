@@ -19,7 +19,7 @@ PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t ind
 
 void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
 {
-    const auto& pal = palettesData().at(index());
+    auto* pal = palettesData().at(index());
     Q_ASSERT(pal);
 
     bool nameChange = pal->name != data.name;

@@ -57,8 +57,8 @@ void PaletteResourceList::do_addResource(int settingIndex, const std::string& fi
 
     auto& palettes = project()->resourcesFile()->palettes;
 
-    palettes.emplace_back(std::make_unique<RES::PaletteInput>());
-    auto& pal = palettes.back();
+    palettes.insert_back();
+    auto* pal = palettes.back();
 
     QFileInfo fi = QString::fromStdString(filename);
     QString name = fi.baseName();
@@ -76,5 +76,5 @@ void PaletteResourceList::do_removeResource(unsigned index)
     auto& palettes = project()->resourcesFile()->palettes;
 
     Q_ASSERT(index < palettes.size());
-    palettes.erase(palettes.begin() + index);
+    palettes.remove(index);
 }

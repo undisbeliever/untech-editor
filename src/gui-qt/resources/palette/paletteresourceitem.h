@@ -27,10 +27,9 @@ public:
 
     ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
 
-    // will never be null
     inline const RES::PaletteInput* paletteData() const
     {
-        return project()->resourcesFile()->palettes.at(index()).get();
+        return project()->resourcesFile()->palettes.at(index());
     }
 
 protected:
@@ -45,7 +44,7 @@ signals:
     void imageFilenameChanged();
 
 private:
-    inline const auto& palettesData() const
+    inline auto& palettesData() const
     {
         return project()->resourcesFile()->palettes;
     }

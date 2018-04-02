@@ -40,11 +40,11 @@ void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const X
     }
 }
 
-static std::shared_ptr<PaletteInput> readPalette(const XmlTag* tag)
+static std::unique_ptr<PaletteInput> readPalette(const XmlTag* tag)
 {
     assert(tag->name == "palette");
 
-    auto palette = std::make_shared<PaletteInput>();
+    auto palette = std::make_unique<PaletteInput>();
 
     palette->name = tag->getAttributeId("name");
     palette->paletteImageFilename = tag->getAttributeFilename("image");
@@ -73,7 +73,7 @@ static std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml, const Xm
 
     while (auto childTag = xml.parseTag()) {
         if (childTag->name == "palette") {
-            resources->palettes.push_back(readPalette(childTag.get()));
+            resources->palettes.insert_back(readPalette(childTag.get()));
         }
         else if (childTag->name == "metatile-tileset") {
             resources->metaTileTilesets.insert_back(
@@ -127,7 +127,7 @@ void writeResourcesFile(XmlWriter& xml, const ResourcesFile& res)
 
     MetaTiles::writeEngineSettings(xml, res.metaTileEngineSettings);
 
-    for (const std::shared_ptr<PaletteInput>& p : res.palettes) {
+    for (const auto& p : res.palettes) {
         assert(p != nullptr);
 
         xml.writeTag("palette");
