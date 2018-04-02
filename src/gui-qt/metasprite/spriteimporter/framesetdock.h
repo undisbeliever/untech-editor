@@ -38,7 +38,7 @@ private slots:
 
     void onNameEdited();
     void onTilesetTypeEdited();
-    void onExportOrderFileSelected();
+    void onExportOrderEdited();
     void onImageFilenameFileSelected();
     void onTransparentColorSelected();
     void onGridEdited();

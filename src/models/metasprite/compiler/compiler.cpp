@@ -6,6 +6,7 @@
 
 #include "compiler.h"
 #include "version.h"
+#include "models/metasprite/project.h"
 #include <algorithm>
 #include <climits>
 #include <set>
@@ -17,8 +18,9 @@ const unsigned Compiler::METASPRITE_FORMAT_VERSION = 28;
 
 // ::TODO generate debug file - containing frame/frameset names::
 
-Compiler::Compiler(ErrorList& errorList, unsigned tilesetBlockSize)
-    : _errorList(errorList)
+Compiler::Compiler(const Project& project, ErrorList& errorList, unsigned tilesetBlockSize)
+    : _project(project)
+    , _errorList(errorList)
     , _animationCompiler(_errorList)
     , _paletteCompiler()
     , _tilesetCompiler(_errorList, tilesetBlockSize)
@@ -26,7 +28,6 @@ Compiler::Compiler(ErrorList& errorList, unsigned tilesetBlockSize)
     , _frameSetData("FSD", "MS_FrameSetData")
     , _frameSetList("FSL", "MS_FrameSetList", "FSD")
     , _frameSetReferences()
-    , _exportOrderDocuments()
 {
 }
 
@@ -67,7 +68,12 @@ void Compiler::writeToReferencesFile(std::ostream& out) const
     out << "}\n"
            "namespace MSEO {\n";
 
-    for (const auto& eo : _exportOrderDocuments) {
+    for (const auto& it : _project.exportOrders) {
+        const FrameSetExportOrder* eo = it.value.get();
+        if (eo == nullptr) {
+            throw std::runtime_error("Unable to read Export Order: " + it.filename);
+        }
+
         out << "\tnamespace " << eo->name << " {\n";
 
         if (eo->stillFrames.size() > 0) {
@@ -102,13 +108,13 @@ void Compiler::processNullFrameSet()
 
 void Compiler::processFrameSet(const MS::FrameSet& frameSet)
 {
-    if (frameSet.exportOrder == nullptr) {
+    if (frameSet.exportOrder.isValid() == false) {
         _errorList.addError(frameSet, "No frameset export order");
         return processNullFrameSet();
     }
 
     try {
-        FrameSetExportList exportList(frameSet);
+        FrameSetExportList exportList(_project, frameSet);
 
         FrameSetTilesets tilesets = _tilesetCompiler.generateTilesets(exportList);
 
@@ -135,13 +141,7 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
         _frameSetList.addOffset(ptr.offset);
 
         // add to references
-        _frameSetReferences.emplace_back(frameSet.name,
-                                         frameSet.exportOrder->name);
-
-        auto it = std::find(_exportOrderDocuments.begin(), _exportOrderDocuments.end(), frameSet.exportOrder);
-        if (it == _exportOrderDocuments.end()) {
-            _exportOrderDocuments.push_back(frameSet.exportOrder);
-        }
+        _frameSetReferences.emplace_back(frameSet.name, frameSet.exportOrder);
     }
     catch (const std::exception& ex) {
         _errorList.addError(frameSet, ex.what());

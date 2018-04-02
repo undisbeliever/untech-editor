@@ -41,7 +41,10 @@ inline std::unique_ptr<Project> readProject(XmlReader& xml, const XmlTag* tag)
     std::unique_ptr<XmlTag> childTag;
 
     while ((childTag = xml.parseTag())) {
-        if (childTag->name == "frameset") {
+        if (childTag->name == "exportorder") {
+            project->exportOrders.insert_back(childTag->getAttributeFilename("src"));
+        }
+        else if (childTag->name == "frameset") {
             project->frameSets.emplace_back();
             Project::FrameSetFile& fs = project->frameSets.back();
 
@@ -74,6 +77,12 @@ inline void writeProject(XmlWriter& xml, const Project& project)
     using FST = Project::FrameSetType;
 
     xml.writeTag("metaspriteproject");
+
+    for (const auto& it : project.exportOrders) {
+        xml.writeTag("exportorder");
+        xml.writeTagAttributeFilename("src", it.filename);
+        xml.writeCloseTag();
+    }
 
     for (const auto& fs : project.frameSets) {
         xml.writeTag("frameset");

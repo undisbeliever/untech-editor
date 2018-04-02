@@ -140,7 +140,7 @@ struct FrameSet {
 
     idstring name;
     TilesetType tilesetType;
-    std::shared_ptr<const FrameSetExportOrder> exportOrder;
+    idstring exportOrder;
     Frame::map_t frames;
     Animation::Animation::map_t animations;
 
@@ -151,7 +151,7 @@ struct FrameSet {
     FrameSet()
         : name()
         , tilesetType(TilesetType::Enum::ONE_ROW)
-        , exportOrder(nullptr)
+        , exportOrder()
         , frames()
         , animations()
         , smallTileset(Snes::Tileset8px::BitDepth::BD_4BPP)

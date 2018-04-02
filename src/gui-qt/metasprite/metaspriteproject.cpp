@@ -29,6 +29,9 @@ bool MetaSpriteProject::loadProjectFile(const QString& filename)
 {
     auto pro = UnTech::MetaSprite::loadProject(filename.toUtf8().data());
     if (pro) {
+        // ::DEBUG - move to export order resource item::
+        pro->exportOrders.loadAllFiles();
+
         _metaSpriteProject = std::move(pro);
         return true;
     }

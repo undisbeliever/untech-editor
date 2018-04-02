@@ -75,8 +75,11 @@ public:
         assert(frameSet.frames.size() == 0);
 
         frameSet.name = tag->getAttributeId("id");
-
         frameSet.tilesetType = tag->getAttributeEnum<TilesetType>("tilesettype");
+
+        if (tag->hasAttribute("exportorder")) {
+            frameSet.exportOrder = tag->getAttributeId("exportorder");
+        }
 
         std::unique_ptr<XmlTag> childTag;
         while ((childTag = xml.parseTag())) {
@@ -91,9 +94,6 @@ public:
             }
             else if (childTag->name == "palette") {
                 readPalette(childTag.get());
-            }
-            else if (childTag->name == "exportorder") {
-                readExportOrder(childTag.get());
             }
             else if (childTag->name == "animation") {
                 Animation::readAnimation(xml, childTag.get(), frameSet.animations);
@@ -219,18 +219,6 @@ private:
 
         frameSet.palettes.emplace_back(data);
     }
-
-    inline void readExportOrder(const XmlTag* tag)
-    {
-        assert(tag->name == "exportorder");
-
-        if (frameSet.exportOrder != nullptr) {
-            throw xml_error(*tag, "Only one exportorder tag allowed per frameset");
-        }
-
-        const std::string src = tag->getAttributeFilename("src");
-        frameSet.exportOrder = loadFrameSetExportOrderCached(src);
-    }
 };
 
 std::unique_ptr<FrameSet> readFrameSet(Xml::XmlReader& xml, const Xml::XmlTag* tag)
@@ -307,17 +295,10 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     xml.writeTag("metasprite");
 
     xml.writeTagAttribute("id", frameSet.name);
-
     xml.writeTagAttributeEnum("tilesettype", frameSet.tilesetType);
 
-    if (frameSet.exportOrder != nullptr) {
-        const std::string& src = frameSet.exportOrder->filename;
-
-        if (!src.empty()) {
-            xml.writeTag("exportorder");
-            xml.writeTagAttributeFilename("src", src);
-            xml.writeCloseTag();
-        }
+    if (frameSet.exportOrder.isValid()) {
+        xml.writeTagAttribute("exportorder", frameSet.exportOrder);
     }
 
     if (frameSet.smallTileset.size() > 0) {

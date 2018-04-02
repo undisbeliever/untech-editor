@@ -50,7 +50,7 @@
          <x>0</x>
          <y>0</y>
          <width>284</width>
-         <height>581</height>
+         <height>560</height>
         </rect>
        </property>
        <property name="minimumSize">
@@ -72,20 +72,6 @@
           <item row="0" column="1">
            <widget class="QLineEdit" name="frameSetName"/>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="exportOrderLabel">
-            <property name="text">
-             <string>Export Order:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="frameSetTypeLabel">
-            <property name="text">
-             <string>FrameSet Type:</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="tilesetTypeLabel">
             <property name="text">
@@ -96,15 +82,15 @@
           <item row="1" column="1">
            <widget class="EnumComboBox" name="tilesetType"/>
           </item>
-          <item row="3" column="1">
-           <widget class="QLineEdit" name="frameSetType">
-            <property name="readOnly">
-             <bool>true</bool>
+          <item row="2" column="0">
+           <widget class="QLabel" name="exportOrderLabel">
+            <property name="text">
+             <string>Export Order:</string>
             </property>
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="FilenameInputWidget" name="exportOrder" native="true"/>
+           <widget class="QLineEdit" name="exportOrder"/>
           </item>
          </layout>
         </item>
@@ -309,6 +295,12 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>FilenameInputWidget</class>
+   <extends>QWidget</extends>
+   <header>gui-qt/common/widgets/filenameinputwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>PointWidget</class>
    <extends>QWidget</extends>
    <header>gui-qt/common/widgets/pointwidget.h</header>
@@ -318,12 +310,6 @@
    <class>SizeWidget</class>
    <extends>QWidget</extends>
    <header>gui-qt/common/widgets/sizewidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>FilenameInputWidget</class>
-   <extends>QWidget</extends>
-   <header>gui-qt/common/widgets/filenameinputwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

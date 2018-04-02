@@ -64,7 +64,7 @@ void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,
 
     if (frameSet) {
         try {
-            Compiler compiler(errList, 8192);
+            Compiler compiler(*project()->metaSpriteProject(), errList, 8192);
             compiler.processFrameSet(*frameSet);
         }
         catch (std::exception& ex) {

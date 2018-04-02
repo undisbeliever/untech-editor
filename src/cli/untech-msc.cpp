@@ -37,10 +37,11 @@ int compile(const CommandLine::Parser& args)
     for (auto& fs : project->frameSets) {
         fs.loadFile();
     }
+    project->exportOrders.loadAllFiles();
 
     ErrorList errorList;
     Compiler::Compiler compiler(
-        errorList,
+        *project, errorList,
         args.options().at("tileblock").uint());
 
     for (auto& fs : project->frameSets) {

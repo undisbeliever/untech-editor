@@ -68,8 +68,7 @@ void ChangeFrameSetTilesetType::redo()
 // ChangeFrameSetExportOrder
 // =========================
 
-ChangeFrameSetExportOrder::ChangeFrameSetExportOrder(
-    Document* document, const ExportOrderPtr& exportOrder)
+ChangeFrameSetExportOrder::ChangeFrameSetExportOrder(Document* document, const idstring& exportOrder)
     : QUndoCommand(QCoreApplication::tr("Change Export Order"))
     , _document(document)
     , _oldExportOrder(document->frameSet()->exportOrder)

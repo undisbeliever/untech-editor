@@ -7,9 +7,11 @@
 #pragma once
 
 #include "errorlist.h"
+#include "frameset-exportorder.h"
 #include "metasprite.h"
 #include "spriteimporter.h"
 #include "models/common/capped_vector.h"
+#include "models/common/externalfilelist.h"
 #include <memory>
 
 namespace UnTech {
@@ -44,6 +46,7 @@ struct Project {
     };
 
     FrameSetFile::list_t frameSets;
+    ExternalFileList<FrameSetExportOrder> exportOrders;
 
     Project() = default;
     Project(const Project&) = delete;

@@ -101,8 +101,7 @@ private:
     }
 };
 
-std::shared_ptr<const FrameSetExportOrder>
-loadFrameSetExportOrderFile(const std::string& filename)
+std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     try {
@@ -112,36 +111,14 @@ loadFrameSetExportOrderFile(const std::string& filename)
             throw std::runtime_error(filename + ": Not frame set export order file");
         }
 
-        auto exportOrder = std::make_shared<FrameSetExportOrder>();
-        exportOrder->filename = File::fullPath(filename);
-
+        auto exportOrder = std::make_unique<FrameSetExportOrder>();
         FrameSetExportOrderReader reader(*exportOrder, *xml);
         reader.readFrameSetExportOrder(tag.get());
 
-        return std::const_pointer_cast<const FrameSetExportOrder>(exportOrder);
+        return exportOrder;
     }
     catch (const std::exception& ex) {
         throw xml_error(*xml, "Error loading FrameSetExportOrder file", ex);
-    }
-}
-
-std::shared_ptr<const FrameSetExportOrder>
-loadFrameSetExportOrderCached(const std::string& filename)
-{
-    static std::unordered_map<std::string, std::weak_ptr<const FrameSetExportOrder>> cache;
-
-    const std::string fullPath = File::fullPath(filename);
-    auto& c = cache[fullPath];
-
-    std::shared_ptr<const FrameSetExportOrder> eo = c.lock();
-    if (eo) {
-        return eo;
-    }
-    else {
-        // not found
-        eo = loadFrameSetExportOrderFile(fullPath);
-        c = eo;
-        return eo;
     }
 }
 }

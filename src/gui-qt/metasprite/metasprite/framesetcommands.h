@@ -48,12 +48,9 @@ private:
 };
 
 class ChangeFrameSetExportOrder : public QUndoCommand {
-    using FrameSetExportOrder = UnTech::MetaSprite::FrameSetExportOrder;
-    using ExportOrderPtr = const std::shared_ptr<const FrameSetExportOrder>;
-
 public:
     ChangeFrameSetExportOrder(
-        Document* document, const ExportOrderPtr& exportOrder);
+        Document* document, const idstring& exportOrder);
     ~ChangeFrameSetExportOrder() = default;
 
     virtual void undo() final;
@@ -61,8 +58,8 @@ public:
 
 private:
     Document* const _document;
-    ExportOrderPtr const _oldExportOrder;
-    ExportOrderPtr const _newExportOrder;
+    const idstring _oldExportOrder;
+    const idstring _newExportOrder;
 };
 }
 }

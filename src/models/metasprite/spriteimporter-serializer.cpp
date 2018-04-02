@@ -78,8 +78,11 @@ public:
         assert(frameSet.frames.size() == 0);
 
         frameSet.name = tag->getAttributeId("id");
-
         frameSet.tilesetType = tag->getAttributeEnum<TilesetType>("tilesettype");
+
+        if (tag->hasAttribute("exportorder")) {
+            frameSet.exportOrder = tag->getAttributeId("exportorder");
+        }
 
         frameSetGridSet = false;
 
@@ -101,9 +104,6 @@ public:
         while ((childTag = xml.parseTag())) {
             if (childTag->name == "grid") {
                 readFrameSetGrid(childTag.get());
-            }
-            else if (childTag->name == "exportorder") {
-                readExportOrder(childTag.get());
             }
             else if (childTag->name == "palette") {
                 readPalette(childTag.get());
@@ -238,18 +238,6 @@ private:
         }
     }
 
-    inline void readExportOrder(const XmlTag* tag)
-    {
-        assert(tag->name == "exportorder");
-
-        if (frameSet.exportOrder != nullptr) {
-            throw xml_error(*tag, "Only one exportorder tag allowed per frameset");
-        }
-
-        const std::string src = tag->getAttributeFilename("src");
-        frameSet.exportOrder = loadFrameSetExportOrderCached(src);
-    }
-
     inline void readPalette(const XmlTag* tag)
     {
         assert(tag->name == "palette");
@@ -360,9 +348,11 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     xml.writeTag("spriteimporter");
 
     xml.writeTagAttribute("id", frameSet.name);
-
     xml.writeTagAttributeEnum("tilesettype", frameSet.tilesetType);
 
+    if (frameSet.exportOrder.isValid()) {
+        xml.writeTagAttribute("exportorder", frameSet.exportOrder);
+    }
     if (!frameSet.imageFilename.empty()) {
         xml.writeTagAttributeFilename("image", frameSet.imageFilename);
     }
@@ -375,16 +365,6 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
     }
 
     writeFrameSetGrid(xml, frameSet.grid);
-
-    if (frameSet.exportOrder != nullptr) {
-        const std::string& src = frameSet.exportOrder->filename;
-
-        if (!src.empty()) {
-            xml.writeTag("exportorder");
-            xml.writeTagAttributeFilename("src", src);
-            xml.writeCloseTag();
-        }
-    }
 
     if (frameSet.palette.usesUserSuppliedPalette()) {
         xml.writeTag("palette");

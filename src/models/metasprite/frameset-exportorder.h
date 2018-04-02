@@ -26,8 +26,6 @@ struct FrameSetExportOrder {
         std::vector<NameReference> alternatives;
     };
 
-    std::string filename;
-
     idstring name;
     ExportName::list_t stillFrames;
     ExportName::list_t animations;
@@ -36,8 +34,6 @@ struct FrameSetExportOrder {
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;
 };
 
-// uses a cache to return the same FrameSetExportOrder for the same filename.
-std::shared_ptr<const FrameSetExportOrder>
-loadFrameSetExportOrderCached(const std::string& filename);
+std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename);
 }
 }

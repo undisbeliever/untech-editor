@@ -5,6 +5,7 @@
  */
 
 #include "frameset-exportorder.h"
+#include "models/common/externalfilelist.h"
 #include "models/common/humantypename.h"
 
 using namespace UnTech;
@@ -15,3 +16,9 @@ const std::string HumanTypeName<FrameSetExportOrder>::value = "FrameSet Export O
 
 template <>
 const std::string HumanTypeName<FrameSetExportOrder::ExportName>::value = "Export Name";
+
+template <>
+void ExternalFileItem<FrameSetExportOrder>::loadFile()
+{
+    value = loadFrameSetExportOrder(filename);
+}
