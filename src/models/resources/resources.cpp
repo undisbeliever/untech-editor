@@ -14,6 +14,42 @@
 namespace UnTech {
 namespace Resources {
 
+void ResourcesFile::loadAllFiles()
+{
+    metaTileTilesets.loadAllFiles();
+}
+
+template <class T>
+static bool validateNamesUnique(const ExternalFileList<T>& inputList,
+                                const std::string& typeName,
+                                ErrorList& err)
+{
+    bool valid = true;
+
+    std::unordered_set<idstring> nameSet;
+
+    for (const ExternalFileItem<T>& item : inputList) {
+        if (item.value == nullptr) {
+            continue;
+        }
+
+        const std::string& name = item.value->name;
+        if (name == "count") {
+            err.addError("Invalid " + typeName + " name: count");
+            valid = false;
+        }
+
+        auto it = nameSet.find(name);
+        if (it != nameSet.end()) {
+            err.addError("Duplicate " + typeName + " name detected: " + name);
+            valid = false;
+        }
+        nameSet.insert(name);
+    }
+
+    return valid;
+}
+
 template <class T>
 static bool validateNamesUnique(const std::vector<std::shared_ptr<T>>& inputList,
                                 const std::string& typeName,
@@ -59,6 +95,7 @@ bool ResourcesFile::validate(ErrorList& err) const
     validateMinMax(blockSettings.count, 1, 128, "block count invalid");
 
     valid &= validateNamesUnique(palettes, "palettes", err);
+    valid &= validateNamesUnique(metaTileTilesets, "metatile tilesets", err);
 
     return valid;
 }

@@ -31,7 +31,7 @@ const QString MtTilesetResourceList::resourceTypeNamePlural() const
 
 size_t MtTilesetResourceList::nItems() const
 {
-    return project()->resourcesFile()->metaTileTilesetFilenames.size();
+    return project()->resourcesFile()->metaTileTilesets.size();
 }
 
 MtTilesetResourceItem* MtTilesetResourceList::buildResourceItem(size_t index)
@@ -55,8 +55,8 @@ void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& 
 {
     Q_ASSERT(settingIndex == 0);
 
-    auto& fnList = project()->resourcesFile()->metaTileTilesetFilenames;
-    fnList.emplace_back(filename);
+    auto& metaTileTilesets = project()->resourcesFile()->metaTileTilesets;
+    metaTileTilesets.insert_back(filename);
 
     QFileInfo fi(QString::fromStdString(filename));
     if (!fi.exists()) {
@@ -71,8 +71,8 @@ void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& 
 
 void MtTilesetResourceList::do_removeResource(unsigned index)
 {
-    auto& fnList = project()->resourcesFile()->metaTileTilesetFilenames;
+    auto& metaTileTilesets = project()->resourcesFile()->metaTileTilesets;
 
-    Q_ASSERT(index < fnList.size());
-    fnList.erase(fnList.begin() + index);
+    Q_ASSERT(index < metaTileTilesets.size());
+    metaTileTilesets.remove(index);
 }

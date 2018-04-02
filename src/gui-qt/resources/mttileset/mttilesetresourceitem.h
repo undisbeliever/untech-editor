@@ -32,7 +32,10 @@ public:
 
 public:
     // may be nullptr
-    const MT::MetaTileTilesetInput* tilesetInput() const { return _tilesetInput.get(); }
+    const MT::MetaTileTilesetInput* tilesetInput() const
+    {
+        return project()->resourcesFile()->metaTileTilesets.at(index());
+    }
 
 protected:
     template <class T>
@@ -48,18 +51,15 @@ signals:
     void frameImageFilenamesChanged();
 
 private:
-    inline const auto& mtTilesetFilenameList() const
+    inline const auto& mtTilesetList() const
     {
-        return project()->resourcesFile()->metaTileTilesetFilenames;
+        return project()->resourcesFile()->metaTileTilesets;
     }
 
-    inline const std::string& mtTilesetFilename() const
+    inline auto& tilesetInputItem()
     {
-        return project()->resourcesFile()->metaTileTilesetFilenames.at(index());
+        return project()->resourcesFile()->metaTileTilesets.item(index());
     }
-
-private:
-    std::unique_ptr<MT::MetaTileTilesetInput> _tilesetInput;
 };
 }
 }

@@ -76,7 +76,7 @@ static std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml, const Xm
             resources->palettes.push_back(readPalette(childTag.get()));
         }
         else if (childTag->name == "metatile-tileset") {
-            resources->metaTileTilesetFilenames.emplace_back(
+            resources->metaTileTilesets.insert_back(
                 childTag->getAttributeFilename("src"));
         }
         else if (childTag->name == "metatile-engine-settings") {
@@ -143,9 +143,9 @@ void writeResourcesFile(XmlWriter& xml, const ResourcesFile& res)
         xml.writeCloseTag();
     }
 
-    for (const std::string& mtFilename : res.metaTileTilesetFilenames) {
+    for (const auto& mt : res.metaTileTilesets) {
         xml.writeTag("metatile-tileset");
-        xml.writeTagAttributeFilename("src", mtFilename);
+        xml.writeTagAttributeFilename("src", mt.filename);
         xml.writeCloseTag();
     }
 

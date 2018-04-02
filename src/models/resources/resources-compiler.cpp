@@ -19,14 +19,14 @@ static std::string itemNameString(const T& item)
     return item.name;
 }
 template <class T>
+static std::string itemNameString(const ExternalFileItem<T>& item)
+{
+    return item.value->name;
+}
+template <class T>
 static std::string itemNameString(const std::shared_ptr<T>& item)
 {
     return item->name;
-}
-template <>
-std::string itemNameString(const std::string& item)
-{
-    return File::splitFilename(item).second;
 }
 
 std::unique_ptr<ResourcesOutput>
@@ -91,16 +91,13 @@ compileResources(const ResourcesFile& input, const std::string& relativeBinFilen
         return nullptr;
     }
 
-    compileList(input.metaTileTilesetFilenames, "MetaTile Tileset",
-                [&](const std::string& filename, ErrorList& err) {
-                    const auto mti = MetaTiles::loadMetaTileTilesetInput(filename, err);
-                    if (!mti) {
-                        return;
-                    }
-                    const auto mtd = MetaTiles::convertTileset(*mti, input, err);
+    compileList(input.metaTileTilesets, "MetaTile Tileset",
+                [&](const auto& it, ErrorList& err) {
+                    assert(it.value != nullptr);
+                    const auto mtd = MetaTiles::convertTileset(*it.value, input, err);
                     if (mtd) {
                         const auto data = mtd->exportMetaTileTileset(input.metaTileEngineSettings);
-                        writer.addData(METATILE_TILESET, mti->name, data);
+                        writer.addData(METATILE_TILESET, it.value->name, data);
                     }
                 });
 

@@ -13,19 +13,20 @@ using namespace UnTech::GuiQt::Resources;
 MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
 {
-    Q_ASSERT(index < mtTilesetFilenameList().size());
+    Q_ASSERT(index < mtTilesetList().size());
 
-    setFilename(QString::fromStdString(mtTilesetFilename()));
+    setFilename(QString::fromStdString(tilesetInputItem().filename));
 }
 
 void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
 {
-    Q_ASSERT(_tilesetInput);
+    std::unique_ptr<DataT>& tileset = tilesetInputItem().value;
+    Q_ASSERT(tileset);
 
-    bool nameChange = _tilesetInput->name != data.name;
-    bool imagesChange = _tilesetInput->animationFrames.frameImageFilenames != data.animationFrames.frameImageFilenames;
+    bool nameChange = tileset->name != data.name;
+    bool imagesChange = tileset->animationFrames.frameImageFilenames != data.animationFrames.frameImageFilenames;
 
-    *_tilesetInput = data;
+    *tileset = data;
     emit dataChanged();
 
     if (nameChange) {
@@ -38,27 +39,29 @@ void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
 
 void MtTilesetResourceItem::saveResourceData(const std::string& filename) const
 {
-    if (_tilesetInput) {
-        MT::saveMetaTileTilesetInput(*_tilesetInput, filename);
+    auto* tileset = this->tilesetInput();
+
+    if (tileset) {
+        MT::saveMetaTileTilesetInput(*tileset, filename);
     }
 }
 
 bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
 {
-    const std::string& fn = mtTilesetFilename();
+    auto& tilesetItem = tilesetInputItem();
 
-    if (fn.empty()) {
+    if (tilesetItem.filename.empty()) {
         err.addError("Missing filename");
         return false;
     }
 
     try {
-        _tilesetInput = MT::loadMetaTileTilesetInput(fn);
-        setName(QString::fromStdString(_tilesetInput->name));
+        tilesetItem.loadFile();
+        setName(QString::fromStdString(tilesetInput()->name));
         return true;
     }
     catch (const std::exception& ex) {
-        _tilesetInput = nullptr;
+        tilesetItem.value = nullptr;
 
         err.addError(ex.what());
         return false;
@@ -67,13 +70,15 @@ bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
 
 bool MtTilesetResourceItem::compileResource(RES::ErrorList& err)
 {
-    if (_tilesetInput == nullptr) {
+    auto* tileset = this->tilesetInput();
+
+    if (tileset == nullptr) {
         err.addError("Unable to load file");
         return false;
     }
     const auto& res = project()->resourcesFile();
     Q_ASSERT(res);
 
-    const auto mtd = MetaTiles::convertTileset(*_tilesetInput, *res, err);
+    const auto mtd = MetaTiles::convertTileset(*tileset, *res, err);
     return mtd && mtd->validate(res->metaTileEngineSettings, err);
 }

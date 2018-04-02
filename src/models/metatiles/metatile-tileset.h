@@ -10,13 +10,16 @@
 #include "models/common/idstring.h"
 #include "models/resources/animated-tileset.h"
 #include "models/resources/animation-frames-input.h"
-#include "models/resources/error-list.h"
-#include "models/resources/resources.h"
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace UnTech {
+namespace Resources {
+struct ResourcesFile;
+class ErrorList;
+}
+
 namespace MetaTiles {
 
 struct MetaTileTilesetInput {
