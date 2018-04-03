@@ -7,6 +7,7 @@
 #include "externalfilelist.h"
 #include "namedlist.h"
 #include <algorithm>
+#include <vector>
 
 namespace UnTech {
 
@@ -88,6 +89,41 @@ inline bool validateNamesUnique(const NamedList<T>& list,
 
         bool dup = std::any_of(it + 1, list.end(),
                                [&](const auto& i) { return i && i->name == name; });
+        if (dup) {
+            err.addError("Duplicate " + typeName + " name detected: " + name);
+            valid = false;
+        }
+    }
+
+    return valid;
+}
+
+template <class T, class ErrorListT>
+inline bool validateNamesUnique(const std::vector<T>& list,
+                                const std::string& typeName,
+                                ErrorListT& err)
+{
+    const idstring countString("count");
+
+    bool valid = true;
+
+    for (auto it = list.begin(); it != list.end(); it++) {
+        const idstring& name = it->name;
+        if (name.isValid() == false) {
+            auto d = std::distance(list.begin(), it);
+            err.addError("Missing name in " + typeName + ' ' + std::to_string(d));
+            valid = false;
+            continue;
+        }
+
+        if (name == countString) {
+            err.addError("Invalid " + typeName + " name: count");
+            valid = false;
+            continue;
+        }
+
+        bool dup = std::any_of(it + 1, list.end(),
+                               [&](const auto& i) { return i.name == name; });
         if (dup) {
             err.addError("Duplicate " + typeName + " name detected: " + name);
             valid = false;

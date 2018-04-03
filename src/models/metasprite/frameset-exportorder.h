@@ -14,6 +14,9 @@
 #include <vector>
 
 namespace UnTech {
+namespace Resources {
+class ErrorList;
+}
 namespace MetaSprite {
 
 struct FrameSetExportOrder {
@@ -32,6 +35,8 @@ struct FrameSetExportOrder {
 
     FrameSetExportOrder() = default;
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;
+
+    bool validate(Resources::ErrorList& err) const;
 };
 
 // throws exception on error
