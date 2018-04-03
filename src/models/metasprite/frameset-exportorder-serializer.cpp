@@ -66,14 +66,6 @@ private:
         FrameSetExportOrder::ExportName en;
         en.name = tag->getAttributeId("id");
 
-        bool idExists = std::any_of(
-            exportList.begin(), exportList.end(),
-            [en](const auto& existing) { return existing.name == en.name; });
-
-        if (idExists) {
-            throw xml_error(*tag, "id already exists");
-        }
-
         std::unique_ptr<XmlTag> childTag;
 
         while ((childTag = xml.parseTag())) {
@@ -84,12 +76,7 @@ private:
                 alt.hFlip = childTag->getAttributeBoolean("hflip");
                 alt.vFlip = childTag->getAttributeBoolean("vflip");
 
-                auto it = std::find(en.alternatives.begin(), en.alternatives.end(), alt);
-                if (it != en.alternatives.end()) {
-                    throw xml_error(*childTag, "alt already exists");
-                }
-
-                en.alternatives.push_back(alt);
+                en.alternatives.emplace_back(alt);
             }
             else {
                 throw unknown_tag_error(*childTag);
