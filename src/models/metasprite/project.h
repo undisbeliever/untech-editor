@@ -42,6 +42,9 @@ struct Project {
         // throws an exception on error
         void loadFile();
 
+        // returns and empty idstring if no frameSet exists
+        const idstring& name() const;
+
         FrameSetFile() = default;
     };
 
@@ -50,6 +53,8 @@ struct Project {
 
     Project() = default;
     Project(const Project&) = delete;
+
+    bool validateNamesUnique(ErrorList& errors) const;
 };
 
 std::unique_ptr<Project> loadProject(const std::string& filename);

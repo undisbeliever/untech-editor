@@ -40,6 +40,10 @@ int compile(const CommandLine::Parser& args)
     project->exportOrders.loadAllFiles();
 
     ErrorList errorList;
+
+    // validation is done here to silence export order errors in GUI
+    project->validateNamesUnique(errorList);
+
     Compiler::Compiler compiler(
         *project, errorList,
         args.options().at("tileblock").uint());

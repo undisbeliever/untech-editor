@@ -24,6 +24,8 @@ ErrorList::Error::Error(const FrameSetType frameSetType, const std::string& fram
 std::ostream& UnTech::MetaSprite::operator<<(std::ostream& out, const ErrorList::Error& e)
 {
     switch (e.frameSetType) {
+    case FST::MESSAGE:
+        break;
     case FST::SPRITE_IMPORTER:
     case FST::SPRITE_IMPORTER_FRAME:
     case FST::SPRITE_IMPORTER_ANIMATION:
@@ -41,6 +43,7 @@ std::ostream& UnTech::MetaSprite::operator<<(std::ostream& out, const ErrorList:
     }
 
     switch (e.frameSetType) {
+    case FST::MESSAGE:
     case FST::SPRITE_IMPORTER:
     case FST::METASPRITE:
         break;
@@ -58,7 +61,10 @@ std::ostream& UnTech::MetaSprite::operator<<(std::ostream& out, const ErrorList:
         out << "." << e.childName;
     }
 
-    out << ": " << e.message;
+    if (!e.frameSetName.empty() || !e.childName.empty()) {
+        out << ": ";
+    }
+    out << e.message;
 
     return out;
 }
@@ -139,6 +145,11 @@ void ErrorList::addWarning(const MetaSprite::FrameSet& fs, const Animation::Anim
 {
     std::string aniName = _nameOf(fs, ani);
     warnings.emplace_back(FST::METASPRITE_ANIMATION, fs.name, aniName, message);
+}
+
+void ErrorList::addError(const std::string& message)
+{
+    errors.emplace_back(FST::MESSAGE, std::string(), std::string(), message);
 }
 
 void ErrorList::addError(const SpriteImporter::FrameSet& fs, const std::string& message)
