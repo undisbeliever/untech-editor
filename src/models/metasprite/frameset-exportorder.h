@@ -34,6 +34,8 @@ struct FrameSetExportOrder {
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;
 };
 
+// throws exception on error
 std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename);
+void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::string& filename);
 }
 }

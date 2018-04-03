@@ -6,6 +6,7 @@
 
 #include "frameset-exportorder.h"
 
+#include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include <cassert>
@@ -101,6 +102,40 @@ private:
     }
 };
 
+static void writeExportName(XmlWriter& xml, const std::string& tagName,
+                            const FrameSetExportOrder::ExportName& exportName)
+{
+    xml.writeTag(tagName);
+
+    xml.writeTagAttribute("id", exportName.name);
+
+    for (const auto& alt : exportName.alternatives) {
+        xml.writeTag("alt");
+        xml.writeTagAttribute("name", alt.name);
+        xml.writeTagAttribute("hflip", alt.hFlip);
+        xml.writeTagAttribute("vflip", alt.vFlip);
+        xml.writeCloseTag();
+    }
+
+    xml.writeCloseTag();
+}
+
+static void writeFrameSetExportOrder(XmlWriter& xml, const FrameSetExportOrder& eo)
+{
+    xml.writeTag("fsexportorder");
+
+    xml.writeTagAttribute("name", eo.name);
+
+    for (const auto& frame : eo.stillFrames) {
+        writeExportName(xml, "frame", frame);
+    }
+    for (const auto& ani : eo.animations) {
+        writeExportName(xml, "animation", ani);
+    }
+
+    xml.writeCloseTag();
+}
+
 std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
@@ -120,6 +155,14 @@ std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& 
     catch (const std::exception& ex) {
         throw xml_error(*xml, "Error loading FrameSetExportOrder file", ex);
     }
+}
+
+void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::string& filename)
+{
+    AtomicOfStream file(filename);
+    XmlWriter xml(file, filename, "untech");
+    writeFrameSetExportOrder(xml, eo);
+    file.commit();
 }
 }
 }
