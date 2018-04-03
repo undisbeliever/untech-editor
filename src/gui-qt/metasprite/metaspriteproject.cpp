@@ -6,6 +6,7 @@
 
 #include "metaspriteproject.h"
 #include "framesetresourcelist.h"
+#include "gui-qt/metasprite/exportorder/exportorderresourcelist.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 
@@ -14,6 +15,7 @@ MetaSpriteProject::MetaSpriteProject(QObject* parent)
     , _metaSpriteProject(std::make_unique<UnTech::MetaSprite::Project>())
 {
     initResourceLists({
+        new ExportOrderResourceList(this, ResourceTypeIndex::MS_EXPORT_ORDER),
         new FrameSetResourceList(this, ResourceTypeIndex::MS_FRAMESET),
     });
 }
@@ -29,9 +31,6 @@ bool MetaSpriteProject::loadProjectFile(const QString& filename)
 {
     auto pro = UnTech::MetaSprite::loadProject(filename.toUtf8().data());
     if (pro) {
-        // ::DEBUG - move to export order resource item::
-        pro->exportOrders.loadAllFiles();
-
         _metaSpriteProject = std::move(pro);
         return true;
     }
