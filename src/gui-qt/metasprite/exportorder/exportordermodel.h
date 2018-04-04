@@ -6,15 +6,15 @@
 
 #pragma once
 
+#include "gui-qt/common/properties/abstractpropertymodel.h"
 #include "models/metasprite/frameset-exportorder.h"
-#include <QAbstractItemModel>
 
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 class ExportOrderResourceItem;
 
-class ExportOrderModel : public QAbstractItemModel {
+class ExportOrderModel : public AbstractPropertyModel {
     Q_OBJECT
 
     using FrameSetExportOrder = UnTech::MetaSprite::FrameSetExportOrder;
@@ -67,6 +67,9 @@ public:
 
     void setExportOrder(ExportOrderResourceItem* exportOrder);
 
+    virtual const Property& propertyForIndex(const QModelIndex& index) const final;
+    virtual bool isListItem(const QModelIndex& index) const final;
+
     QModelIndex toModelIndex(const InternalIdFormat& index) const;
     InternalIdFormat toInternalFormat(const QModelIndex& index) const;
 
@@ -87,11 +90,15 @@ public:
 
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     virtual QVariant data(const QModelIndex& index, int role) const final;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
-    QVariant rawData(const QModelIndex& index) const;
+private slots:
+    void onExportNameChanged(bool isFrame, unsigned index);
+    void onExportNameAltChanged(bool isFrame, unsigned index, unsigned altIndex);
 
 private:
     ExportOrderResourceItem* _exportOrder;
+    const QVector<Property> _properties;
 };
 }
 }

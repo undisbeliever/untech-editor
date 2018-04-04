@@ -7,6 +7,7 @@
 #include "exportordereditorwidget.h"
 #include "exportordermodel.h"
 #include "exportorderresourceitem.h"
+#include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/metasprite/exportorder/exportordereditorwidget.ui.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
@@ -21,13 +22,15 @@ ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
 
     _ui->treeView->setModel(_model);
 
+    _ui->treeView->setItemDelegate(new PropertyDelegate(this));
+    _ui->treeView->setEditTriggers(QAbstractItemView::AllEditTriggers);
     _ui->treeView->setSelectionBehavior(QAbstractItemView::SelectRows);
     _ui->treeView->setAlternatingRowColors(true);
     _ui->treeView->header()->hide();
     _ui->treeView->header()->setStretchLastSection(false);
     _ui->treeView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     _ui->treeView->header()->setSectionResizeMode(1, QHeaderView::Fixed);
-    _ui->treeView->header()->resizeSection(1, 60);
+    _ui->treeView->header()->resizeSection(1, 65);
 }
 
 ExportOrderEditorWidget::~ExportOrderEditorWidget() = default;

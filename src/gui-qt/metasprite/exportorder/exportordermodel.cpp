@@ -5,6 +5,7 @@
  */
 
 #include "exportordermodel.h"
+#include "exportordercommands.h"
 #include "exportorderresourceitem.h"
 
 using namespace UnTech::GuiQt;
@@ -24,20 +25,103 @@ static_assert(invalidInternalId.index == NO_INDEX, "bad InvalidInternalId");
 static_assert(invalidInternalId.altIndex == NO_INDEX, "bad InvalidInternalId");
 
 ExportOrderModel::ExportOrderModel(QObject* parent)
-    : QAbstractItemModel(parent)
+    : AbstractPropertyModel(parent)
     , _exportOrder(nullptr)
+    , _properties({
+          Property(tr("Name"), 0, PropertyType::IDSTRING),
+          Property(tr("Flip"), 1, PropertyType::COMBO, FLIP_STRINGS, QVariantList{ 0, 1, 2, 3 }),
+      })
 {
 }
 
 void ExportOrderModel::setExportOrder(ExportOrderResourceItem* exportOrder)
 {
     if (_exportOrder != exportOrder) {
+        if (_exportOrder) {
+            _exportOrder->disconnect(this);
+        }
+
         beginResetModel();
 
         _exportOrder = exportOrder;
 
         endResetModel();
+
+        if (_exportOrder) {
+            connect(_exportOrder, &ExportOrderResourceItem::exportNameChanged,
+                    this, &ExportOrderModel::onExportNameChanged);
+            connect(_exportOrder, &ExportOrderResourceItem::exportNameAltChanged,
+                    this, &ExportOrderModel::onExportNameAltChanged);
+        }
     }
+}
+
+void ExportOrderModel::onExportNameChanged(bool isFrame, unsigned index)
+{
+    InternalIdFormat internalId;
+    internalId.isFrame = isFrame;
+    internalId.index = index;
+
+    auto* en = toExportName(internalId);
+    if (en) {
+        QModelIndex mIndex = toModelIndex(internalId);
+        auto mIndex2 = createIndex(mIndex.row(), N_COLUMNS, mIndex.internalId());
+
+        emit dataChanged(mIndex, mIndex2,
+                         { Qt::DisplayRole, Qt::EditRole });
+    }
+}
+
+void ExportOrderModel::onExportNameAltChanged(bool isFrame, unsigned index, unsigned altIndex)
+{
+    InternalIdFormat internalId;
+    internalId.isFrame = isFrame;
+    internalId.index = index;
+    internalId.altIndex = altIndex;
+
+    auto* en = toExportName(internalId);
+    if (en && altIndex < en->alternatives.size()) {
+        QModelIndex mIndex = toModelIndex(internalId);
+        auto mIndex2 = createIndex(mIndex.row(), N_COLUMNS, mIndex.internalId());
+
+        emit dataChanged(mIndex, mIndex2,
+                         { Qt::DisplayRole, Qt::EditRole });
+    }
+}
+
+const Property& ExportOrderModel::propertyForIndex(const QModelIndex& index) const
+{
+    const InternalIdFormat internalId = index.internalId();
+
+    Q_ASSUME(_properties.size() == N_COLUMNS);
+
+    if (!index.isValid()) {
+        return blankProperty;
+    }
+    else if (internalId.index == NO_INDEX) {
+        return blankProperty;
+    }
+    else if (internalId.altIndex == NO_INDEX) {
+        if (index.column() == NAME_COLUMN) {
+            return _properties.at(0);
+        }
+        else {
+            return blankProperty;
+        }
+    }
+    else {
+        if (index.column() == NAME_COLUMN) {
+            return _properties.at(0);
+        }
+        else {
+            return _properties.at(1);
+        }
+    }
+}
+
+bool ExportOrderModel::isListItem(const QModelIndex&) const
+{
+    return false;
 }
 
 QModelIndex ExportOrderModel::toModelIndex(const InternalIdFormat& internalId) const
@@ -362,20 +446,24 @@ Qt::ItemFlags ExportOrderModel::flags(const QModelIndex& index) const
         return 0;
     }
 
+    Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+
     const InternalIdFormat internalId = index.internalId();
 
-    if (internalId.index == NO_INDEX) {
-        // index = name list node
-        return Qt::ItemIsEnabled;
-    }
-    else if (internalId.altIndex == NO_INDEX) {
+    if (internalId.altIndex == NO_INDEX) {
         // index = exportName node
-        return Qt::ItemIsEnabled;
+
+        if (index.column() == NAME_COLUMN) {
+            flags |= Qt::ItemIsEditable;
+        }
     }
     else {
         // index = alternative node
-        return Qt::ItemIsEnabled | Qt::ItemNeverHasChildren;
+
+        flags |= Qt::ItemIsEditable | Qt::ItemNeverHasChildren;
     }
+
+    return flags;
 }
 
 QVariant ExportOrderModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -387,15 +475,7 @@ QVariant ExportOrderModel::headerData(int section, Qt::Orientation orientation, 
         return QVariant();
     }
 
-    switch (ColumnId(section)) {
-    case NAME_COLUMN:
-        return tr("Name");
-
-    case FLIP_COLUMN:
-        return tr("Flip");
-    }
-
-    return QVariant();
+    return _properties.at(section).title;
 }
 
 QVariant ExportOrderModel::data(const QModelIndex& index, int role) const
@@ -408,7 +488,7 @@ QVariant ExportOrderModel::data(const QModelIndex& index, int role) const
         return QVariant();
     }
 
-    if (role != Qt::DisplayRole) {
+    if (role != Qt::DisplayRole && role != Qt::EditRole) {
         return QVariant();
     }
 
@@ -418,7 +498,7 @@ QVariant ExportOrderModel::data(const QModelIndex& index, int role) const
     if (internalId.index == NO_INDEX) {
         // index = name list node
 
-        if (column == NAME_COLUMN) {
+        if (role == Qt::DisplayRole && column == NAME_COLUMN) {
             if (internalId.isFrame) {
                 return tr("Frames");
             }
@@ -448,13 +528,80 @@ QVariant ExportOrderModel::data(const QModelIndex& index, int role) const
         }
 
         if (column == NAME_COLUMN) {
-            return QLatin1Literal("ALT: ") + QString::fromStdString(alt->name);
+            if (role == Qt::DisplayRole) {
+                return QLatin1String("ALT: ") + QString::fromStdString(alt->name);
+            }
+            else {
+                return QString::fromStdString(alt->name);
+            }
         }
         else {
             int i = (alt->vFlip << 1) | alt->hFlip;
-            return FLIP_STRINGS.at(i);
+
+            if (role == Qt::DisplayRole) {
+                return FLIP_STRINGS.at(i);
+            }
+            else {
+                return i;
+            }
         }
     }
 
     return QModelIndex();
+}
+
+bool ExportOrderModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+    if (checkIndex(index) == false
+        || role != Qt::EditRole) {
+
+        return false;
+    }
+
+    const InternalIdFormat internalId = index.internalId();
+    const unsigned column = index.column();
+
+    const auto& exportName = _exportOrder->exportName(internalId.isFrame, internalId.index);
+
+    if (internalId.altIndex == NO_INDEX) {
+        // index = exportName node
+
+        if (column == FLIP_COLUMN) {
+            return false;
+        }
+
+        idstring name = value.toString().toStdString();
+        if (name.isValid() && name != exportName.name) {
+            _exportOrder->undoStack()->push(
+                new EditExportOrderExportNameCommand(
+                    _exportOrder, internalId.isFrame, internalId.index, std::move(name)));
+            return true;
+        }
+    }
+    else {
+        // index = alternative node
+
+        const auto& oldAlt = exportName.alternatives.at(internalId.altIndex);
+        NameReference newAlt = oldAlt;
+
+        if (column == NAME_COLUMN) {
+            newAlt.name = value.toString().toStdString();
+
+            if (newAlt.name.isValid() == false) {
+                return false;
+            }
+        }
+        else {
+            newAlt.hFlip = value.toUInt() & 1;
+            newAlt.vFlip = value.toUInt() & 2;
+        }
+
+        if (newAlt != oldAlt) {
+            _exportOrder->undoStack()->push(
+                new EditExportOrderAlternativeCommand(
+                    _exportOrder, internalId.isFrame, internalId.index, internalId.altIndex, std::move(newAlt)));
+        }
+    }
+
+    return false;
 }

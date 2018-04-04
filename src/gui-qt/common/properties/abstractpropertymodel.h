@@ -27,7 +27,7 @@ public:
     // Must return a blankProperty if index is a property title
     virtual const Property& propertyForIndex(const QModelIndex& index) const = 0;
 
-    virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const = 0;
+    virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const;
 
     virtual bool isListItem(const QModelIndex& index) const = 0;
 

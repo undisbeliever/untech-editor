@@ -24,6 +24,8 @@ class ExportOrderResourceItem : public AbstractExternalResourceItem {
 public:
     using DataT = UnTech::MetaSprite::FrameSetExportOrder;
 
+    using NameReference = UnTech::MetaSprite::NameReference;
+
 public:
     ExportOrderResourceItem(ExportOrderResourceList* parent, size_t index);
     ~ExportOrderResourceItem() = default;
@@ -37,10 +39,24 @@ public:
         return project()->metaSpriteProject()->exportOrders.at(index());
     }
 
+    const DataT::ExportName& exportName(bool isFrame, unsigned index);
+
+protected:
+    friend class EditExportOrderExportNameCommand;
+    void setExportName(bool isFrame, unsigned index, const idstring& name);
+
+    friend class EditExportOrderAlternativeCommand;
+    void setExportNameAlternative(bool isFrame, unsigned index, unsigned altIndex,
+                                  const NameReference& alt);
+
 protected:
     virtual void saveResourceData(const std::string& filename) const final;
     virtual bool loadResourceData(RES::ErrorList& err) final;
     virtual bool compileResource(RES::ErrorList& err) final;
+
+signals:
+    void exportNameChanged(bool isFrame, unsigned index);
+    void exportNameAltChanged(bool isFrame, unsigned index, unsigned altIndex);
 
 private:
     inline const auto& exportOrderList() const

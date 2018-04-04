@@ -15,6 +15,12 @@ using Type = PropertyType;
 
 const Property AbstractPropertyModel::blankProperty;
 
+QPair<QVariant, QVariant> AbstractPropertyModel::propertyParametersForIndex(const QModelIndex& index) const
+{
+    auto& p = propertyForIndex(index);
+    return qMakePair(p.parameter1, p.parameter2);
+}
+
 QString AbstractPropertyModel::displayForProperty(const QModelIndex& index, const QVariant& value) const
 {
     const Property& settings = propertyForIndex(index);
