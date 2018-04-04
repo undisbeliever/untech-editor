@@ -21,8 +21,9 @@ enum class ResourceTypeIndex {
     PALETTE,
     MT_TILESET,
     MS_FRAMESET,
+    MS_EXPORT_ORDER,
 };
 
-constexpr unsigned N_RESOURCE_TYPES = 3;
+constexpr unsigned N_RESOURCE_TYPES = 4;
 }
 }

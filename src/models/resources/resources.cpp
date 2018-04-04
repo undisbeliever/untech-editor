@@ -5,40 +5,15 @@
  */
 
 #include "resources.h"
-#include <algorithm>
+#include "models/common/validateunique.h"
 #include <cassert>
-#include <functional>
-#include <sstream>
-#include <unordered_set>
 
 namespace UnTech {
 namespace Resources {
 
-template <class T>
-static bool validateNamesUnique(const std::vector<std::shared_ptr<T>>& inputList,
-                                const std::string& typeName,
-                                ErrorList& err)
+void ResourcesFile::loadAllFiles()
 {
-    bool valid = true;
-
-    std::unordered_set<idstring> nameSet;
-
-    for (const std::shared_ptr<T>& item : inputList) {
-        const std::string& name = item->name;
-        if (name == "count") {
-            err.addError("Invalid " + typeName + " name: count");
-            valid = false;
-        }
-
-        auto it = nameSet.find(name);
-        if (it != nameSet.end()) {
-            err.addError("Duplicate " + typeName + " name detected: " + name);
-            valid = false;
-        }
-        nameSet.insert(name);
-    }
-
-    return valid;
+    metaTileTilesets.loadAllFiles();
 }
 
 bool ResourcesFile::validate(ErrorList& err) const
@@ -59,19 +34,9 @@ bool ResourcesFile::validate(ErrorList& err) const
     validateMinMax(blockSettings.count, 1, 128, "block count invalid");
 
     valid &= validateNamesUnique(palettes, "palettes", err);
+    valid &= validateFilesAndNamesUnique(metaTileTilesets, "metatile tilesets", err);
 
     return valid;
-}
-
-std::shared_ptr<const PaletteInput> ResourcesFile::getPalette(const idstring& name) const
-{
-    auto it = std::find_if(palettes.begin(), palettes.end(),
-                           [&](const auto& p) { return p->name == name; });
-
-    if (it == palettes.end()) {
-        return nullptr;
-    }
-    return *it;
 }
 }
 }

@@ -35,9 +35,7 @@ FrameSetDock::FrameSetDock(FrameListModel* frameListModel, Actions* actions,
     _ui->setupUi(this);
 
     _ui->frameSetName->setValidator(new IdstringValidator(this));
-
-    _ui->exportOrder->setDialogTitle(tr("Open Export File"));
-    _ui->exportOrder->setDialogFilter(tr("FrameSet Export File (*.utfseo);;All Files (*)"));
+    _ui->exportOrder->setValidator(new IdstringValidator(this));
 
     _ui->imageFilename->setDialogTitle(tr("Open Image"));
     _ui->imageFilename->setDialogFilter(tr("PNG Image (*.png);;All Files (*)"));
@@ -64,9 +62,9 @@ FrameSetDock::FrameSetDock(FrameListModel* frameListModel, Actions* actions,
             this, &FrameSetDock::onNameEdited);
     connect(_ui->tilesetType, qOverload<int>(&EnumComboBox::activated),
             this, &FrameSetDock::onTilesetTypeEdited);
+    connect(_ui->exportOrder, &QLineEdit::editingFinished,
+            this, &FrameSetDock::onExportOrderEdited);
 
-    connect(_ui->exportOrder, &FilenameInputWidget::fileSelected,
-            this, &FrameSetDock::onExportOrderFileSelected);
     connect(_ui->imageFilename, &FilenameInputWidget::fileSelected,
             this, &FrameSetDock::onImageFilenameFileSelected);
     connect(_ui->transparent, &ColorInputWidget::colorSelected,
@@ -131,7 +129,6 @@ void FrameSetDock::clearGui()
     _ui->frameSetName->clear();
     _ui->tilesetType->setCurrentIndex(-1);
     _ui->exportOrder->clear();
-    _ui->frameSetType->clear();
     _ui->imageFilename->clear();
     _ui->transparent->clear();
     _ui->gridSize->clear();
@@ -148,17 +145,8 @@ void FrameSetDock::updateGui()
     const SI::FrameSet& fs = *_document->frameSet();
 
     _ui->frameSetName->setText(QString::fromStdString(fs.name));
-
     _ui->tilesetType->setCurrentEnum(fs.tilesetType);
-
-    if (fs.exportOrder) {
-        _ui->exportOrder->setFilename(QString::fromStdString(fs.exportOrder->filename));
-        _ui->frameSetType->setText(QString::fromStdString(fs.exportOrder->name));
-    }
-    else {
-        _ui->exportOrder->clear();
-        _ui->frameSetType->clear();
-    }
+    _ui->exportOrder->setText(QString::fromStdString(fs.exportOrder));
 
     _ui->imageFilename->setFilename(QString::fromStdString(fs.imageFilename));
 
@@ -208,30 +196,12 @@ void FrameSetDock::onTilesetTypeEdited()
     }
 }
 
-void FrameSetDock::onExportOrderFileSelected()
+void FrameSetDock::onExportOrderEdited()
 {
-    const SI::FrameSet& fs = *_document->frameSet();
-
-    QString oldFilename;
-    if (fs.exportOrder) {
-        oldFilename = QString::fromStdString(fs.exportOrder->filename);
-    }
-
-    const QString filename = _ui->exportOrder->filename();
-    Q_ASSERT(!filename.isEmpty());
-
-    try {
-        std::string fn = filename.toStdString();
-        auto eo = UnTech::MetaSprite::loadFrameSetExportOrderCached(fn);
-
-        if (eo != fs.exportOrder) {
-            _document->undoStack()->push(
-                new ChangeFrameSetExportOrder(_document, eo));
-        }
-    }
-    catch (std::exception& ex) {
-        QMessageBox::critical(this, tr("Error Opening File"), ex.what());
-        _ui->exportOrder->setFilename(oldFilename);
+    idstring eo = _ui->exportOrder->text().toStdString();
+    if (eo != _document->frameSet()->exportOrder) {
+        _document->undoStack()->push(
+            new ChangeFrameSetExportOrder(_document, eo));
     }
 }
 

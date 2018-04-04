@@ -90,8 +90,10 @@ void ResourcesTreeModel::onResourceListStateChanged()
                          { Qt::DecorationRole });
     }
     else {
+        int nResourceLists = _project->resourceLists().size();
+
         emit dataChanged(createIndex(0, 0, ROOT_INTERNAL_ID),
-                         createIndex(N_RESOURCE_TYPES, N_COLUMNS, ROOT_INTERNAL_ID),
+                         createIndex(nResourceLists, N_COLUMNS, ROOT_INTERNAL_ID),
                          { Qt::DecorationRole });
     }
 }

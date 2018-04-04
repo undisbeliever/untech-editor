@@ -6,6 +6,7 @@
 
 #include "frameset-exportorder.h"
 
+#include "models/common/atomicofstream.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include <cassert>
@@ -65,14 +66,6 @@ private:
         FrameSetExportOrder::ExportName en;
         en.name = tag->getAttributeId("id");
 
-        bool idExists = std::any_of(
-            exportList.begin(), exportList.end(),
-            [en](const auto& existing) { return existing.name == en.name; });
-
-        if (idExists) {
-            throw xml_error(*tag, "id already exists");
-        }
-
         std::unique_ptr<XmlTag> childTag;
 
         while ((childTag = xml.parseTag())) {
@@ -83,12 +76,7 @@ private:
                 alt.hFlip = childTag->getAttributeBoolean("hflip");
                 alt.vFlip = childTag->getAttributeBoolean("vflip");
 
-                auto it = std::find(en.alternatives.begin(), en.alternatives.end(), alt);
-                if (it != en.alternatives.end()) {
-                    throw xml_error(*childTag, "alt already exists");
-                }
-
-                en.alternatives.push_back(alt);
+                en.alternatives.emplace_back(alt);
             }
             else {
                 throw unknown_tag_error(*childTag);
@@ -101,8 +89,41 @@ private:
     }
 };
 
-std::shared_ptr<const FrameSetExportOrder>
-loadFrameSetExportOrderFile(const std::string& filename)
+static void writeExportName(XmlWriter& xml, const std::string& tagName,
+                            const FrameSetExportOrder::ExportName& exportName)
+{
+    xml.writeTag(tagName);
+
+    xml.writeTagAttribute("id", exportName.name);
+
+    for (const auto& alt : exportName.alternatives) {
+        xml.writeTag("alt");
+        xml.writeTagAttribute("name", alt.name);
+        xml.writeTagAttribute("hflip", alt.hFlip);
+        xml.writeTagAttribute("vflip", alt.vFlip);
+        xml.writeCloseTag();
+    }
+
+    xml.writeCloseTag();
+}
+
+static void writeFrameSetExportOrder(XmlWriter& xml, const FrameSetExportOrder& eo)
+{
+    xml.writeTag("fsexportorder");
+
+    xml.writeTagAttribute("name", eo.name);
+
+    for (const auto& frame : eo.stillFrames) {
+        writeExportName(xml, "frame", frame);
+    }
+    for (const auto& ani : eo.animations) {
+        writeExportName(xml, "animation", ani);
+    }
+
+    xml.writeCloseTag();
+}
+
+std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     try {
@@ -112,37 +133,23 @@ loadFrameSetExportOrderFile(const std::string& filename)
             throw std::runtime_error(filename + ": Not frame set export order file");
         }
 
-        auto exportOrder = std::make_shared<FrameSetExportOrder>();
-        exportOrder->filename = File::fullPath(filename);
-
+        auto exportOrder = std::make_unique<FrameSetExportOrder>();
         FrameSetExportOrderReader reader(*exportOrder, *xml);
         reader.readFrameSetExportOrder(tag.get());
 
-        return std::const_pointer_cast<const FrameSetExportOrder>(exportOrder);
+        return exportOrder;
     }
     catch (const std::exception& ex) {
         throw xml_error(*xml, "Error loading FrameSetExportOrder file", ex);
     }
 }
 
-std::shared_ptr<const FrameSetExportOrder>
-loadFrameSetExportOrderCached(const std::string& filename)
+void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::string& filename)
 {
-    static std::unordered_map<std::string, std::weak_ptr<const FrameSetExportOrder>> cache;
-
-    const std::string fullPath = File::fullPath(filename);
-    auto& c = cache[fullPath];
-
-    std::shared_ptr<const FrameSetExportOrder> eo = c.lock();
-    if (eo) {
-        return eo;
-    }
-    else {
-        // not found
-        eo = loadFrameSetExportOrderFile(fullPath);
-        c = eo;
-        return eo;
-    }
+    AtomicOfStream file(filename);
+    XmlWriter xml(file, filename, "untech");
+    writeFrameSetExportOrder(xml, eo);
+    file.commit();
 }
 }
 }

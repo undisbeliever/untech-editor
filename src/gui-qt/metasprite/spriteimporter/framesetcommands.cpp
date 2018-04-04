@@ -27,12 +27,16 @@ ChangeFrameSetName::ChangeFrameSetName(Document* document,
 void ChangeFrameSetName::undo()
 {
     _document->frameSet()->name = _oldName;
+
+    emit _document->frameSetNameChanged();
     emit _document->frameSetDataChanged();
 }
 
 void ChangeFrameSetName::redo()
 {
     _document->frameSet()->name = _newName;
+
+    emit _document->frameSetNameChanged();
     emit _document->frameSetDataChanged();
 }
 
@@ -65,7 +69,7 @@ void ChangeFrameSetTilesetType::redo()
 // =========================
 
 ChangeFrameSetExportOrder::ChangeFrameSetExportOrder(
-    Document* document, const ExportOrderPtr& exportOrder)
+    Document* document, const idstring& exportOrder)
     : QUndoCommand(QCoreApplication::tr("Change Export Order"))
     , _document(document)
     , _oldExportOrder(document->frameSet()->exportOrder)

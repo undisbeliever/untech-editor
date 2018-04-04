@@ -17,6 +17,7 @@ namespace MetaSprite {
 
 struct ErrorList {
     enum class FrameSetType {
+        MESSAGE,
         SPRITE_IMPORTER,
         SPRITE_IMPORTER_FRAME,
         SPRITE_IMPORTER_ANIMATION,
@@ -39,6 +40,8 @@ struct ErrorList {
 
 public:
     ErrorList() = default;
+
+    void addError(const std::string& message);
 
     void addError(const MetaSprite::FrameSet&, const std::string& message);
     void addError(const MetaSprite::FrameSet&, const MetaSprite::Frame&, const std::string& message);

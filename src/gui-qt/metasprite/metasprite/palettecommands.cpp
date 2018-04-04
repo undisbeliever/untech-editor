@@ -33,6 +33,7 @@ void AddRemovePalette::addPalette()
     palettes.insert(palettes.begin() + _index, _palette);
 
     emit _document->paletteAdded(_index);
+    emit _document->paletteListChanged();
 }
 
 void AddRemovePalette::removePalette()
@@ -43,6 +44,8 @@ void AddRemovePalette::removePalette()
     emit _document->paletteAboutToBeRemoved(_index);
 
     palettes.erase(palettes.begin() + _index);
+
+    emit _document->paletteListChanged();
 }
 
 // AddPalette
@@ -135,6 +138,7 @@ void MovePalette::undo()
     moveVectorItem(_toIndex, _fromIndex, palettes);
 
     emit _document->paletteMoved(_toIndex, _fromIndex);
+    emit _document->paletteListChanged();
 }
 
 void MovePalette::redo()
@@ -147,6 +151,7 @@ void MovePalette::redo()
     moveVectorItem(_fromIndex, _toIndex, palettes);
 
     emit _document->paletteMoved(_fromIndex, _toIndex);
+    emit _document->paletteListChanged();
 }
 
 // RaisePalette

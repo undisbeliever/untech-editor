@@ -8,8 +8,11 @@
 
 #include "error-list.h"
 #include "palette.h"
+#include "models/common/externalfilelist.h"
 #include "models/common/idstring.h"
+#include "models/common/namedlist.h"
 #include "models/metatiles/common.h"
+#include "models/metatiles/metatile-tileset.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -35,21 +38,19 @@ struct ResourcesFile {
     BlockSettings blockSettings;
     MetaTiles::EngineSettings metaTileEngineSettings;
 
-    std::vector<std::shared_ptr<PaletteInput>> palettes;
+    NamedList<PaletteInput> palettes;
+    ExternalFileList<MetaTiles::MetaTileTilesetInput> metaTileTilesets;
 
-    std::vector<std::string> metaTileTilesetFilenames;
+    void loadAllFiles();
 
     bool validate(ErrorList& err) const;
-
-    // returns nullptr if name does not exist
-    std::shared_ptr<const PaletteInput> getPalette(const idstring& name) const;
 
     bool operator==(const ResourcesFile& o) const
     {
         return blockSettings == o.blockSettings
                && metaTileEngineSettings == o.metaTileEngineSettings
                && palettes == o.palettes
-               && metaTileTilesetFilenames == o.metaTileTilesetFilenames;
+               && metaTileTilesets == o.metaTileTilesets;
     }
     bool operator!=(const ResourcesFile& o) const { return !(*this == o); }
 };

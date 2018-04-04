@@ -6,6 +6,7 @@
 
 #include "metatiles-serializer.h"
 #include "models/common/atomicofstream.h"
+#include "models/common/externalfilelist.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/resources/resources-serializer.h"
 #include <cassert>
@@ -123,4 +124,10 @@ void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::stri
     file.commit();
 }
 }
+}
+
+template <>
+void UnTech::ExternalFileItem<MetaTiles::MetaTileTilesetInput>::loadFile()
+{
+    value = MetaTiles::loadMetaTileTilesetInput(filename);
 }

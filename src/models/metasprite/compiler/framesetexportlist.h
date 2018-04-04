@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../metasprite.h"
+#include "../project.h"
 #include <algorithm>
 #include <cstdint>
 #include <vector>
@@ -49,7 +50,7 @@ struct FrameListEntry {
 
 class FrameSetExportList {
 public:
-    FrameSetExportList(const MetaSprite::FrameSet& frameSet);
+    FrameSetExportList(const Project& project, const MetaSprite::FrameSet& frameSet);
     FrameSetExportList(const FrameSetExportList&) = delete;
 
     const MetaSprite::FrameSet& frameSet() const { return _frameSet; }
@@ -62,6 +63,7 @@ private:
 
 private:
     const MetaSprite::FrameSet& _frameSet;
+    const FrameSetExportOrder* const _exportOrder;
     std::vector<AnimationListEntry> _animations;
     std::vector<FrameListEntry> _frames;
 };

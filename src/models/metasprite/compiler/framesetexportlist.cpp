@@ -11,12 +11,14 @@ using namespace UnTech::MetaSprite::Compiler;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-FrameSetExportList::FrameSetExportList(const MetaSprite::FrameSet& frameSet)
+FrameSetExportList::FrameSetExportList(const Project& project,
+                                       const MetaSprite::FrameSet& frameSet)
     : _frameSet(frameSet)
+    , _exportOrder(project.exportOrders.find(frameSet.exportOrder))
     , _animations()
     , _frames()
 {
-    if (frameSet.exportOrder == nullptr) {
+    if (_exportOrder == nullptr) {
         throw std::runtime_error("Missing MetaSprite Export Order Document");
     }
 
@@ -26,12 +28,9 @@ FrameSetExportList::FrameSetExportList(const MetaSprite::FrameSet& frameSet)
 
 inline void FrameSetExportList::buildAnimationList()
 {
-    assert(_frameSet.exportOrder != nullptr);
-    const auto& exportOrder = _frameSet.exportOrder;
+    _animations.reserve(_exportOrder->animations.size());
 
-    _animations.reserve(exportOrder->animations.size());
-
-    for (const auto& en : exportOrder->animations) {
+    for (const auto& en : _exportOrder->animations) {
         const Animation::Animation* ani = _frameSet.animations.getPtr(en.name);
 
         if (ani) {
@@ -80,12 +79,9 @@ inline void FrameSetExportList::buildAnimationList()
 
 inline void FrameSetExportList::buildFrameList()
 {
-    assert(_frameSet.exportOrder != nullptr);
-    const auto& exportOrder = _frameSet.exportOrder;
+    _frames.reserve(_exportOrder->stillFrames.size());
 
-    _frames.reserve(exportOrder->stillFrames.size());
-
-    for (const auto& en : exportOrder->stillFrames) {
+    for (const auto& en : _exportOrder->stillFrames) {
         const MS::Frame* frame = _frameSet.frames.getPtr(en.name);
 
         if (frame) {
@@ -114,7 +110,7 @@ inline void FrameSetExportList::buildFrameList()
     // Add frames from animation.
     // Ensure that the frames added are unique.
 
-    assert(_animations.size() != 0 || exportOrder->animations.size() == 0);
+    assert(_animations.size() != 0 || _exportOrder->animations.size() == 0);
 
     for (const AnimationListEntry& ani : _animations) {
         for (const auto& aFrame : ani.animation->frames) {

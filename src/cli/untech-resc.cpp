@@ -37,6 +37,8 @@ int compile(const CommandLine::Parser& args)
     const std::string relativeBinaryFilename = File::relativePath(incFilename, binaryFilename);
 
     std::unique_ptr<ResourcesFile> resources = loadResourcesFile(resourcesFilename);
+    resources->loadAllFiles();
+
     std::unique_ptr<ResourcesOutput> output = compileResources(*resources, relativeBinaryFilename, std::cerr);
     if (!output) {
         std::cerr << "Unable to compile resources.\n";

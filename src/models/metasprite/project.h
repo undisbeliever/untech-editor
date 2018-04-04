@@ -7,9 +7,11 @@
 #pragma once
 
 #include "errorlist.h"
+#include "frameset-exportorder.h"
 #include "metasprite.h"
 #include "spriteimporter.h"
 #include "models/common/capped_vector.h"
+#include "models/common/externalfilelist.h"
 #include <memory>
 
 namespace UnTech {
@@ -40,13 +42,19 @@ struct Project {
         // throws an exception on error
         void loadFile();
 
+        // returns and empty idstring if no frameSet exists
+        const idstring& name() const;
+
         FrameSetFile() = default;
     };
 
     FrameSetFile::list_t frameSets;
+    ExternalFileList<FrameSetExportOrder> exportOrders;
 
     Project() = default;
     Project(const Project&) = delete;
+
+    bool validateNamesUnique(ErrorList& errors) const;
 };
 
 std::unique_ptr<Project> loadProject(const std::string& filename);

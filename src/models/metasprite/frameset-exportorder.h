@@ -14,6 +14,9 @@
 #include <vector>
 
 namespace UnTech {
+namespace Resources {
+class ErrorList;
+}
 namespace MetaSprite {
 
 struct FrameSetExportOrder {
@@ -26,18 +29,18 @@ struct FrameSetExportOrder {
         std::vector<NameReference> alternatives;
     };
 
-    std::string filename;
-
     idstring name;
     ExportName::list_t stillFrames;
     ExportName::list_t animations;
 
     FrameSetExportOrder() = default;
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;
+
+    bool validate(Resources::ErrorList& err) const;
 };
 
-// uses a cache to return the same FrameSetExportOrder for the same filename.
-std::shared_ptr<const FrameSetExportOrder>
-loadFrameSetExportOrderCached(const std::string& filename);
+// throws exception on error
+std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename);
+void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::string& filename);
 }
 }

@@ -23,6 +23,22 @@ Document::Document(FrameSetResourceList* parent, size_t index)
     setFilename(QString::fromStdString(frameSetFile().filename));
 
     resetDocumentState();
+
+    connect(this, &Document::frameSetNameChanged,
+            this, &Document::onFrameSetNameChanged);
+
+    connect(this, &Document::paletteChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &Document::paletteListChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &Document::smallTilesetChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &Document::largeTilesetChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &Document::smallTileChanged,
+            this, &AbstractResourceItem::dataChanged);
+    connect(this, &Document::largeTileChanged,
+            this, &AbstractResourceItem::dataChanged);
 }
 
 QStringList Document::frameList() const
@@ -93,4 +109,16 @@ bool Document::compileResource(RES::ErrorList& err)
     appendToErrorList(err, msErrorList);
 
     return msErrorList.errors.empty() == true;
+}
+
+void Document::onFrameSetNameChanged()
+{
+    const MS::FrameSet* fs = frameSet();
+
+    if (fs) {
+        setName(QString::fromStdString(fs->name));
+    }
+    else {
+        setName(QString());
+    }
 }

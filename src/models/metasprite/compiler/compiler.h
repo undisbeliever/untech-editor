@@ -24,7 +24,7 @@ public:
     const static unsigned METASPRITE_FORMAT_VERSION;
 
 public:
-    Compiler(ErrorList& errorList,
+    Compiler(const Project& project, ErrorList& errorList,
              unsigned tilesetBlockSize = TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE);
 
     Compiler(const Compiler&) = delete;
@@ -39,6 +39,7 @@ public:
     const ErrorList& errorList() const { return _errorList; }
 
 private:
+    const Project& _project;
     ErrorList& _errorList;
 
     AnimationCompiler _animationCompiler;
@@ -70,7 +71,6 @@ private:
     };
 
     std::vector<FrameSetReference> _frameSetReferences;
-    std::vector<std::shared_ptr<const FrameSetExportOrder>> _exportOrderDocuments;
 };
 }
 }
