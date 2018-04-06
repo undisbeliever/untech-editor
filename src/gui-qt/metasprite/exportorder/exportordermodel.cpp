@@ -5,11 +5,15 @@
  */
 
 #include "exportordermodel.h"
-#include "exportordercommands.h"
 #include "exportorderresourceitem.h"
+
+#include "exportorderlists.h"
+#include "gui-qt/undo/listundohelper.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;
+using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
+
 using FrameSetExportOrder = UnTech::MetaSprite::FrameSetExportOrder;
 using NameReference = UnTech::MetaSprite::NameReference;
 
@@ -38,7 +42,8 @@ void ExportOrderModel::setExportOrder(ExportOrderResourceItem* exportOrder)
 {
     if (_exportOrder != exportOrder) {
         if (_exportOrder) {
-            _exportOrder->disconnect(this);
+            _exportOrder->exportNameList()->disconnect(this);
+            _exportOrder->alternativesList()->disconnect(this);
         }
 
         beginResetModel();
@@ -48,9 +53,9 @@ void ExportOrderModel::setExportOrder(ExportOrderResourceItem* exportOrder)
         endResetModel();
 
         if (_exportOrder) {
-            connect(_exportOrder, &ExportOrderResourceItem::exportNameChanged,
+            connect(_exportOrder->exportNameList(), &ExportNameList::dataChanged,
                     this, &ExportOrderModel::onExportNameChanged);
-            connect(_exportOrder, &ExportOrderResourceItem::exportNameAltChanged,
+            connect(_exportOrder->alternativesList(), &AlternativesList::dataChanged,
                     this, &ExportOrderModel::onExportNameAltChanged);
         }
     }
@@ -558,10 +563,10 @@ bool ExportOrderModel::setData(const QModelIndex& index, const QVariant& value, 
         return false;
     }
 
+    using ExportName = FrameSetExportOrder::ExportName;
+
     const InternalIdFormat internalId = index.internalId();
     const unsigned column = index.column();
-
-    const auto& exportName = _exportOrder->exportName(internalId.isFrame, internalId.index);
 
     if (internalId.altIndex == NO_INDEX) {
         // index = exportName node
@@ -571,17 +576,20 @@ bool ExportOrderModel::setData(const QModelIndex& index, const QVariant& value, 
         }
 
         idstring name = value.toString().toStdString();
-        if (name.isValid() && name != exportName.name) {
-            _exportOrder->undoStack()->push(
-                new EditExportOrderExportNameCommand(
-                    _exportOrder, internalId.isFrame, internalId.index, std::move(name)));
-            return true;
+        if (name.isValid() == false) {
+            return false;
         }
+        ExportNameUndoHelper undoHelper(_exportOrder->exportNameList(), internalId.isFrame);
+        undoHelper.editField<idstring>(internalId.index, name,
+                                       tr("Edit Export Name"),
+                                       [](ExportName& en) -> idstring& { return en.name; });
     }
     else {
         // index = alternative node
 
-        const auto& oldAlt = exportName.alternatives.at(internalId.altIndex);
+        const NameReference* oldAltPtr = toAlternative(internalId);
+        Q_ASSERT(oldAltPtr);
+        const NameReference& oldAlt = *oldAltPtr;
         NameReference newAlt = oldAlt;
 
         if (column == NAME_COLUMN) {
@@ -597,9 +605,8 @@ bool ExportOrderModel::setData(const QModelIndex& index, const QVariant& value, 
         }
 
         if (newAlt != oldAlt) {
-            _exportOrder->undoStack()->push(
-                new EditExportOrderAlternativeCommand(
-                    _exportOrder, internalId.isFrame, internalId.index, internalId.altIndex, std::move(newAlt)));
+            AlternativesUndoHelper undoHelper(_exportOrder->alternativesList(), internalId.isFrame, internalId.index);
+            undoHelper.edit(internalId.altIndex, newAlt);
         }
     }
 
