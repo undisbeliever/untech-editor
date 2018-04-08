@@ -22,10 +22,10 @@ class ExportNameList : public QObject {
 public:
     using DataT = UnTech::MetaSprite::FrameSetExportOrder::ExportName;
     using ListT = DataT::list_t;
-    using size_type = ListT::size_type;
+    using index_type = ListT::size_type;
     using ArgsT = std::tuple<bool>;
 
-    constexpr static size_type max_size = ListT::MAX_SIZE;
+    constexpr static index_type max_size = ListT::MAX_SIZE;
     constexpr static char type_name[] = "Export Name";
 
 private:
@@ -54,7 +54,7 @@ protected:
     }
 
 signals:
-    void dataChanged(bool idFrame, size_type index);
+    void dataChanged(bool isFrame, index_type index);
 };
 
 class AlternativesList : public QObject {
@@ -63,10 +63,10 @@ class AlternativesList : public QObject {
 public:
     using DataT = UnTech::MetaSprite::NameReference;
     using ListT = std::vector<DataT>;
-    using size_type = ListT::size_type;
-    using ArgsT = std::tuple<bool, size_type>;
+    using index_type = ListT::size_type;
+    using ArgsT = std::tuple<bool, index_type>;
 
-    constexpr static size_type max_size = 256;
+    constexpr static index_type max_size = 256;
 
 private:
     ExportOrderResourceItem* const _exportOrder;
@@ -84,7 +84,7 @@ public:
 
 protected:
     friend class Undo::ListUndoHelper<AlternativesList>;
-    ListT* getList(bool isFrame, size_t index)
+    ListT* getList(bool isFrame, index_type index)
     {
         auto* eo = _exportOrder->exportOrderEditable();
         if (eo == nullptr) {
@@ -102,7 +102,7 @@ protected:
     }
 
 signals:
-    void dataChanged(bool idFrame, size_type index, size_type altIndex);
+    void dataChanged(bool isFrame, index_type index, index_type altIndex);
 };
 
 using ExportNameUndoHelper = Undo::ListUndoHelper<ExportNameList>;

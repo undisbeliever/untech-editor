@@ -21,10 +21,10 @@ class ListUndoHelper {
 public:
     using DataT = typename AccessorT::DataT;
     using ListT = typename AccessorT::ListT;
-    using size_type = typename AccessorT::size_type;
+    using index_type = typename AccessorT::index_type;
     using ArgsT = typename AccessorT::ArgsT;
 
-    constexpr static size_type max_size = AccessorT::max_size;
+    constexpr static index_type max_size = AccessorT::max_size;
 
 private:
     static inline QString tr(const char* s)
@@ -54,7 +54,7 @@ private:
             return mem_fn_call(f, _accessor, _args);
         }
 
-        inline void emitDataChanged(size_type index)
+        inline void emitDataChanged(index_type index)
         {
             auto f = std::mem_fn(&AccessorT::dataChanged);
             mem_fn_call(f, _accessor, _args, index);
@@ -70,13 +70,13 @@ private:
             _accessor->resourceItem()->dataChanged();
         }
 
-        inline void emitItemAdded(size_type index)
+        inline void emitItemAdded(index_type index)
         {
             auto f = std::mem_fn(&AccessorT::itemAdded);
             mem_fn_call(f, _accessor, _args, index);
         }
 
-        inline void emitItemAboutToBeRemoved(size_type index)
+        inline void emitItemAboutToBeRemoved(index_type index)
         {
             auto f = std::mem_fn(&AccessorT::itemAboutToBeRemoved);
             mem_fn_call(f, _accessor, _args, index);
@@ -85,12 +85,12 @@ private:
 
     class EditCommand : public BaseCommand {
     private:
-        const size_type _index;
+        const index_type _index;
         const DataT _oldValue;
         const DataT _newValue;
 
     public:
-        EditCommand(AccessorT* accessor, const ArgsT& args, size_type index,
+        EditCommand(AccessorT* accessor, const ArgsT& args, index_type index,
                     const DataT& oldValue, const DataT& newValue)
             : BaseCommand(accessor, args,
                           tr("Edit %1").arg(accessor->typeName()))
@@ -127,13 +127,13 @@ private:
     template <typename FieldT>
     class EditFieldCommand : public BaseCommand {
     private:
-        const size_type _index;
+        const index_type _index;
         const FieldT _oldValue;
         const FieldT _newValue;
         const std::function<FieldT&(DataT&)> _getter;
 
     public:
-        EditFieldCommand(AccessorT* accessor, const ArgsT& args, size_type index,
+        EditFieldCommand(AccessorT* accessor, const ArgsT& args, index_type index,
                          const FieldT& oldValue, const FieldT& newValue,
                          const QString& text,
                          typename std::function<FieldT&(DataT&)> getter)
@@ -171,11 +171,11 @@ private:
 
     class AddRemoveCommand : public BaseCommand {
     private:
-        const size_type _index;
+        const index_type _index;
         const DataT _value;
 
     protected:
-        AddRemoveCommand(AccessorT* accessor, const ArgsT& args, size_type index,
+        AddRemoveCommand(AccessorT* accessor, const ArgsT& args, index_type index,
                          const DataT& value,
                          const QString& text)
             : BaseCommand(accessor, args, text)
@@ -213,13 +213,13 @@ private:
 
     class AddCommand : public AddRemoveCommand {
     public:
-        AddCommand(AccessorT* accessor, const ArgsT& args, size_type index)
+        AddCommand(AccessorT* accessor, const ArgsT& args, index_type index)
             : AddRemoveCommand(accessor, args, index, DataT(),
                                tr("Add %1").arg(accessor->typeName()))
         {
         }
 
-        AddCommand(AccessorT* accessor, const ArgsT& args, size_type index, const DataT& value)
+        AddCommand(AccessorT* accessor, const ArgsT& args, index_type index, const DataT& value)
             : AddRemoveCommand(accessor, args, index, value,
                                tr("Clone %1").arg(accessor->typeName()))
         {
@@ -239,7 +239,7 @@ private:
 
     class RemoveCommand : public AddRemoveCommand {
     public:
-        RemoveCommand(AccessorT* accessor, const ArgsT& args, size_type index, const DataT& value)
+        RemoveCommand(AccessorT* accessor, const ArgsT& args, index_type index, const DataT& value)
             : AddRemoveCommand(accessor, args, index, value,
                                tr("Remove %1").arg(accessor->typeName()))
         {
@@ -278,7 +278,7 @@ private:
 
 public:
     // will return nullptr if data cannot be accessed or is equal to newValue
-    QUndoCommand* editCommand(size_type index, const DataT& newValue)
+    QUndoCommand* editCommand(index_type index, const DataT& newValue)
     {
         ListT* list = getList();
         if (list == nullptr) {
@@ -295,7 +295,7 @@ public:
         return new EditCommand(_accessor, _args, index, oldValue, newValue);
     }
 
-    void edit(size_type index, const DataT& newValue)
+    void edit(index_type index, const DataT& newValue)
     {
         QUndoCommand* e = editCommand(index, newValue);
         if (e) {
@@ -305,7 +305,7 @@ public:
 
     // will return nullptr if data cannot be accessed or is equal to newValue
     template <typename FieldT>
-    QUndoCommand* editFieldCommand(size_type index, const FieldT& newValue,
+    QUndoCommand* editFieldCommand(index_type index, const FieldT& newValue,
                                    const QString& text,
                                    typename std::function<FieldT&(DataT&)> getter)
     {
@@ -326,7 +326,7 @@ public:
     }
 
     template <typename FieldT>
-    void editField(size_type index, const FieldT& newValue,
+    void editField(index_type index, const FieldT& newValue,
                    const QString& text,
                    typename std::function<FieldT&(DataT&)> getter)
     {
@@ -338,7 +338,7 @@ public:
 
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
-    QUndoCommand* addCommand(size_type index)
+    QUndoCommand* addCommand(index_type index)
     {
         ListT* list = getList();
         if (list == nullptr) {
@@ -360,7 +360,7 @@ public:
         if (list == nullptr) {
             return;
         }
-        size_type index = list->size();
+        index_type index = list->size();
 
         QUndoCommand* c = addCommand(index);
         if (c) {
@@ -368,7 +368,7 @@ public:
         }
     }
 
-    void addItem(size_type index)
+    void addItem(index_type index)
     {
         QUndoCommand* c = addCommand(index);
         if (c) {
@@ -378,7 +378,7 @@ public:
 
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
-    QUndoCommand* cloneCommand(size_type index)
+    QUndoCommand* cloneCommand(index_type index)
     {
         ListT* list = getList();
         if (list == nullptr) {
@@ -394,7 +394,7 @@ public:
         return new AddCommand(_accessor, _args, index, list->at(index));
     }
 
-    void cloneItem(size_type index)
+    void cloneItem(index_type index)
     {
         QUndoCommand* c = cloneCommand(index);
         if (c) {
@@ -404,7 +404,7 @@ public:
 
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
-    QUndoCommand* removeCommand(size_type index)
+    QUndoCommand* removeCommand(index_type index)
     {
         ListT* list = getList();
         if (list == nullptr) {
@@ -417,7 +417,7 @@ public:
         return new RemoveCommand(_accessor, _args, index, list->at(index));
     }
 
-    void removeItem(size_type index)
+    void removeItem(index_type index)
     {
         QUndoCommand* c = removeCommand(index);
         if (c) {
