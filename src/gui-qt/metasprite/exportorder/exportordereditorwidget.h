@@ -27,6 +27,10 @@ public:
 
     void setExportOrderResource(ExportOrderResourceItem* item);
 
+private slots:
+    void updateSelection();
+    void onViewSelectionChanged();
+
 private:
     std::unique_ptr<Ui::ExportOrderEditorWidget> const _ui;
     ExportOrderModel* const _model;

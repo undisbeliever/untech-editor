@@ -10,6 +10,8 @@
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/metasprite/exportorder/exportordereditorwidget.ui.h"
 
+#include "exportorderlists.h"
+
 using namespace UnTech::GuiQt::MetaSprite;
 
 ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
@@ -42,7 +44,11 @@ void ExportOrderEditorWidget::setExportOrderResource(ExportOrderResourceItem* it
     }
 
     if (_exportOrder) {
-        _exportOrder->disconnect(this);
+        _exportOrder->exportNameList()->disconnect(this);
+        _exportOrder->alternativesList()->disconnect(this);
+
+        // required to prevent selectionModel from clearing resource selection
+        _ui->treeView->selectionModel()->disconnect(this);
     }
     _exportOrder = item;
 
@@ -50,4 +56,60 @@ void ExportOrderEditorWidget::setExportOrderResource(ExportOrderResourceItem* it
     _ui->treeView->expandAll();
 
     this->setEnabled(item != nullptr);
+
+    if (_exportOrder) {
+        updateSelection();
+
+        connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::selectedIndexChanged,
+                this, &ExportOrderEditorWidget::updateSelection);
+        connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::selectedIndexChanged,
+                this, &ExportOrderEditorWidget::updateSelection);
+
+        connect(_ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, &ExportOrderEditorWidget::onViewSelectionChanged);
+    }
+}
+
+void ExportOrderEditorWidget::updateSelection()
+{
+    using InternalIdFormat = ExportOrderModel::InternalIdFormat;
+
+    Q_ASSERT(_exportOrder);
+
+    if (_exportOrder->exportNameList()->isSelectedItemValid()) {
+        InternalIdFormat id;
+        id.isFrame = _exportOrder->exportNameList()->selectedListIsFrame();
+        id.index = _exportOrder->exportNameList()->selectedIndex();
+        id.altIndex = _exportOrder->alternativesList()->selectedIndex();
+
+        QModelIndex index = _model->toModelIndex(id);
+        _ui->treeView->expand(index);
+
+        _ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        _ui->treeView->setCurrentIndex(index);
+        _ui->treeView->setEditTriggers(QAbstractItemView::AllEditTriggers);
+    }
+    else {
+        _ui->treeView->setCurrentIndex(QModelIndex());
+    }
+}
+
+void ExportOrderEditorWidget::onViewSelectionChanged()
+{
+    using InternalIdFormat = ExportOrderModel::InternalIdFormat;
+
+    if (_exportOrder == nullptr) {
+        return;
+    }
+
+    QModelIndex index = _ui->treeView->currentIndex();
+    if (index.isValid()) {
+        InternalIdFormat id = index.internalId();
+        _exportOrder->exportNameList()->setSelectedListIsFrame(id.isFrame);
+        _exportOrder->exportNameList()->setSelectedIndex(id.index);
+        _exportOrder->alternativesList()->setSelectedIndex(id.altIndex);
+    }
+    else {
+        _exportOrder->exportNameList()->unselectItem();
+    }
 }
