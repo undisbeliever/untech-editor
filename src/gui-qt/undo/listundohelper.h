@@ -193,6 +193,14 @@ private:
 
             list->insert(list->begin() + _index, _value);
 
+            if (this->_accessor->selectedListTuple() == this->_args) {
+                index_type sel = this->_accessor->selectedIndex();
+
+                if (sel >= _index) {
+                    this->_accessor->setSelectedIndex(sel + 1);
+                }
+            }
+
             this->emitItemAdded(_index);
             this->emitListChanged();
         }
@@ -202,6 +210,17 @@ private:
             ListT* list = this->getList();
             Q_ASSERT(list);
             Q_ASSERT(_index >= 0 && _index < list->size());
+
+            if (this->_accessor->selectedListTuple() == this->_args) {
+                index_type sel = this->_accessor->selectedIndex();
+
+                if (sel == _index) {
+                    this->_accessor->unselectItem();
+                }
+                else if (sel > _index) {
+                    this->_accessor->setSelectedIndex(sel - 1);
+                }
+            }
 
             this->emitItemAboutToBeRemoved(_index);
 
@@ -300,6 +319,13 @@ public:
         }
     }
 
+    void editSelectedItem(const DataT& newValue)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        const index_type index = _accessor->selectedIndex();
+        edit(listArgs, index, newValue);
+    }
+
     // will return nullptr if data cannot be accessed or is equal to newValue
     template <typename FieldT>
     QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
@@ -331,6 +357,16 @@ public:
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
+    }
+
+    template <typename FieldT>
+    void editSelectedItemField(const FieldT& newValue,
+                               const QString& text,
+                               typename std::function<FieldT&(DataT&)> getter)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        const index_type index = _accessor->selectedIndex();
+        editField(listArgs, index, newValue, text, getter);
     }
 
     // will return nullptr if list cannot be accessed,
@@ -373,6 +409,36 @@ public:
         }
     }
 
+    void addItemToSelectedList(index_type index)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        QUndoCommand* c = addCommand(listArgs, index);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+
+            _accessor->setSelectedIndex(index);
+        }
+    }
+
+    void addItemToSelectedList()
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        ListT* list = getList(listArgs);
+        if (list == nullptr) {
+            return;
+        }
+        index_type index = list->size();
+
+        QUndoCommand* c = addCommand(listArgs, index);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+
+            _accessor->setSelectedIndex(index);
+        }
+    }
+
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
     QUndoCommand* cloneCommand(const ArgsT& listArgs, index_type index)
@@ -399,6 +465,18 @@ public:
         }
     }
 
+    void cloneSelectedItem()
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        const index_type index = _accessor->selectedIndex();
+
+        QUndoCommand* c = cloneCommand(listArgs, index);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+            _accessor->setSelectedIndex(index + 1);
+        }
+    }
+
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
     QUndoCommand* removeCommand(const ArgsT& listArgs, index_type index)
@@ -420,6 +498,11 @@ public:
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
+    }
+
+    void removeSelectedItem()
+    {
+        removeItem(_accessor->selectedListTuple(), _accessor->selectedIndex());
     }
 };
 }
