@@ -74,7 +74,7 @@ void ExportOrderEditorWidget::setExportOrderResource(ExportOrderResourceItem* it
     _model->setExportOrder(item);
     _ui->treeView->expandAll();
 
-    this->setEnabled(item != nullptr);
+    this->setEnabled(item != nullptr && item->exportOrder() != nullptr);
 
     if (_exportOrder) {
         updateSelection();
