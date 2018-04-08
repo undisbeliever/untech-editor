@@ -93,6 +93,7 @@ public:
     virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
 private slots:
+    void onListChanged();
     void onExportNameChanged(bool isFrame, unsigned index);
     void onExportNameAltChanged(bool isFrame, unsigned index, unsigned altIndex);
 

@@ -11,8 +11,12 @@
 #include "gui-qt/metasprite/exportorder/exportordereditorwidget.ui.h"
 
 #include "exportorderlists.h"
+#include "gui-qt/undo/listundohelper.h"
+
+#include <QMenu>
 
 using namespace UnTech::GuiQt::MetaSprite;
+using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
 ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
     : QWidget(parent)
@@ -24,6 +28,7 @@ ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
 
     _ui->treeView->setModel(_model);
 
+    _ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     _ui->treeView->setItemDelegate(new PropertyDelegate(this));
     _ui->treeView->setEditTriggers(QAbstractItemView::AllEditTriggers);
     _ui->treeView->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -33,6 +38,20 @@ ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
     _ui->treeView->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     _ui->treeView->header()->setSectionResizeMode(1, QHeaderView::Fixed);
     _ui->treeView->header()->resizeSection(1, 65);
+
+    connect(_ui->treeView, &QTreeView::customContextMenuRequested,
+            this, &ExportOrderEditorWidget::onContextMenuRequested);
+
+    connect(_ui->action_AddFrame, &QAction::triggered,
+            this, &ExportOrderEditorWidget::onActionAddFrame);
+    connect(_ui->action_AddAnimation, &QAction::triggered,
+            this, &ExportOrderEditorWidget::onActionAddAnimation);
+    connect(_ui->action_AddAlternative, &QAction::triggered,
+            this, &ExportOrderEditorWidget::onActionAddAlternative);
+    connect(_ui->action_CloneSelected, &QAction::triggered,
+            this, &ExportOrderEditorWidget::onActionCloneSelected);
+    connect(_ui->action_RemoveSelected, &QAction::triggered,
+            this, &ExportOrderEditorWidget::onActionRemoveSelected);
 }
 
 ExportOrderEditorWidget::~ExportOrderEditorWidget() = default;
@@ -111,5 +130,116 @@ void ExportOrderEditorWidget::onViewSelectionChanged()
     }
     else {
         _exportOrder->exportNameList()->unselectItem();
+    }
+}
+
+void ExportOrderEditorWidget::onContextMenuRequested(const QPoint& pos)
+{
+    using InternalIdFormat = ExportOrderModel::InternalIdFormat;
+
+    if (_exportOrder && _exportOrder->exportOrder()) {
+        QMenu menu;
+
+        QModelIndex index = _ui->treeView->currentIndex();
+        if (index.isValid()) {
+            InternalIdFormat intId = index.internalId();
+
+            if (intId.isFrame) {
+                menu.addAction(_ui->action_AddFrame);
+            }
+            else {
+                menu.addAction(_ui->action_AddAnimation);
+            }
+
+            if (intId.index != InternalIdFormat::NO_INDEX) {
+                menu.addAction(_ui->action_AddAlternative);
+                menu.addAction(_ui->action_CloneSelected);
+                menu.addAction(_ui->action_RemoveSelected);
+            }
+        }
+        else {
+            menu.addAction(_ui->action_AddFrame);
+            menu.addAction(_ui->action_AddAnimation);
+        }
+
+        QPoint globalPos = _ui->treeView->mapToGlobal(pos);
+        menu.exec(globalPos);
+    }
+}
+
+void ExportOrderEditorWidget::showEditorForCurrentIndex()
+{
+    QModelIndex index = _ui->treeView->currentIndex();
+    if (index.isValid()) {
+        _ui->treeView->edit(index);
+    }
+}
+
+void ExportOrderEditorWidget::addExportName(bool isFrame)
+{
+    Q_ASSERT(_exportOrder);
+
+    _exportOrder->exportNameList()->setSelectedListIsFrame(isFrame);
+    ExportNameUndoHelper(_exportOrder->exportNameList()).addItemToSelectedList();
+
+    showEditorForCurrentIndex();
+}
+
+void ExportOrderEditorWidget::onActionAddFrame()
+{
+    addExportName(true);
+}
+
+void ExportOrderEditorWidget::onActionAddAnimation()
+{
+    addExportName(false);
+}
+
+void ExportOrderEditorWidget::onActionAddAlternative()
+{
+    Q_ASSERT(_exportOrder);
+
+    AlternativesUndoHelper(_exportOrder->alternativesList()).addItemToSelectedList();
+    showEditorForCurrentIndex();
+}
+
+void ExportOrderEditorWidget::onActionCloneSelected()
+{
+    using InternalIdFormat = ExportOrderModel::InternalIdFormat;
+
+    Q_ASSERT(_exportOrder);
+
+    QModelIndex index = _ui->treeView->currentIndex();
+    if (index.isValid()) {
+        InternalIdFormat id = index.internalId();
+
+        if (id.index != InternalIdFormat::NO_INDEX) {
+            if (id.altIndex == InternalIdFormat::NO_INDEX) {
+                ExportNameUndoHelper(_exportOrder->exportNameList()).cloneSelectedItem();
+            }
+            else {
+                AlternativesUndoHelper(_exportOrder->alternativesList()).cloneSelectedItem();
+            }
+
+            showEditorForCurrentIndex();
+        }
+    }
+}
+
+void ExportOrderEditorWidget::onActionRemoveSelected()
+{
+    using InternalIdFormat = ExportOrderModel::InternalIdFormat;
+
+    Q_ASSERT(_exportOrder);
+
+    QModelIndex index = _ui->treeView->currentIndex();
+    if (index.isValid()) {
+        InternalIdFormat id = index.internalId();
+        if (id.altIndex == InternalIdFormat::NO_INDEX) {
+            ExportNameUndoHelper(_exportOrder->exportNameList()).removeSelectedItem();
+        }
+        else {
+            AlternativesUndoHelper(_exportOrder->alternativesList()).removeSelectedItem();
+        }
     }
 }

@@ -57,8 +57,18 @@ void ExportOrderModel::setExportOrder(ExportOrderResourceItem* exportOrder)
                     this, &ExportOrderModel::onExportNameChanged);
             connect(_exportOrder->alternativesList(), &AlternativesList::dataChanged,
                     this, &ExportOrderModel::onExportNameAltChanged);
+
+            connect(_exportOrder->exportNameList(), &ExportNameList::listChanged,
+                    this, &ExportOrderModel::onListChanged);
+            connect(_exportOrder->alternativesList(), &AlternativesList::listChanged,
+                    this, &ExportOrderModel::onListChanged);
         }
     }
+}
+
+void ExportOrderModel::onListChanged()
+{
+    emit layoutChanged();
 }
 
 void ExportOrderModel::onExportNameChanged(bool isFrame, unsigned index)

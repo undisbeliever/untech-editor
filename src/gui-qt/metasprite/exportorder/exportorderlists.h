@@ -88,8 +88,16 @@ protected:
         return isFrame ? &eo->stillFrames : &eo->animations;
     }
 
+    ArgsT selectedListTuple() const
+    {
+        return std::make_tuple(_selectedListIsFrame);
+    }
+
 signals:
     void dataChanged(bool isFrame, index_type index);
+    void listChanged(bool isFrame);
+    void itemAdded(bool isFrame, index_type index);
+    void itemAboutToBeRemoved(bool isFrame, index_type index);
 
     void selectedListChanged();
     void selectedIndexChanged();
@@ -155,8 +163,17 @@ protected:
         }
     }
 
+    ArgsT selectedListTuple() const
+    {
+        const ExportNameList* enl = _exportOrder->exportNameList();
+        return std::make_tuple(enl->selectedListIsFrame(), enl->selectedIndex());
+    }
+
 signals:
     void dataChanged(bool isFrame, index_type index, index_type altIndex);
+    void listChanged(bool isFrame, index_type index);
+    void itemAdded(bool isFrame, index_type index, index_type altIndex);
+    void itemAboutToBeRemoved(bool isFrame, index_type index, index_type altIndex);
 
     void selectedListChanged();
     void selectedIndexChanged();

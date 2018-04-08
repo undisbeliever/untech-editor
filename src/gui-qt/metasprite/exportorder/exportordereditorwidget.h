@@ -27,9 +27,21 @@ public:
 
     void setExportOrderResource(ExportOrderResourceItem* item);
 
+private:
+    void showEditorForCurrentIndex();
+    void addExportName(bool isFrame);
+
 private slots:
     void updateSelection();
     void onViewSelectionChanged();
+
+    void onContextMenuRequested(const QPoint& pos);
+
+    void onActionAddFrame();
+    void onActionAddAnimation();
+    void onActionAddAlternative();
+    void onActionCloneSelected();
+    void onActionRemoveSelected();
 
 private:
     std::unique_ptr<Ui::ExportOrderEditorWidget> const _ui;
