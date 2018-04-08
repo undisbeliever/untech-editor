@@ -33,6 +33,7 @@ private:
 
 private slots:
     void updateSelection();
+    void updateActions();
     void onViewSelectionChanged();
 
     void onContextMenuRequested(const QPoint& pos);

@@ -79,6 +79,7 @@ public:
 
 protected:
     friend class Undo::ListUndoHelper<ExportNameList>;
+    friend class Undo::ListActionHelper;
     ListT* getList(bool isFrame)
     {
         auto* eo = _exportOrder->exportOrderEditable();
@@ -146,6 +147,7 @@ public:
 
 protected:
     friend class Undo::ListUndoHelper<AlternativesList>;
+    friend class Undo::ListActionHelper;
     ListT* getList(bool isFrame, index_type index)
     {
         auto* eo = _exportOrder->exportOrderEditable();

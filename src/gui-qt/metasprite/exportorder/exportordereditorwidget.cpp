@@ -11,6 +11,7 @@
 #include "gui-qt/metasprite/exportorder/exportordereditorwidget.ui.h"
 
 #include "exportorderlists.h"
+#include "gui-qt/undo/listactionhelper.h"
 #include "gui-qt/undo/listundohelper.h"
 
 #include <QMenu>
@@ -78,11 +79,21 @@ void ExportOrderEditorWidget::setExportOrderResource(ExportOrderResourceItem* it
 
     if (_exportOrder) {
         updateSelection();
+        updateActions();
 
         connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::selectedIndexChanged,
                 this, &ExportOrderEditorWidget::updateSelection);
         connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::selectedIndexChanged,
                 this, &ExportOrderEditorWidget::updateSelection);
+
+        connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::listChanged,
+                this, &ExportOrderEditorWidget::updateActions);
+        connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::listChanged,
+                this, &ExportOrderEditorWidget::updateActions);
+        connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::selectedIndexChanged,
+                this, &ExportOrderEditorWidget::updateActions);
+        connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::selectedIndexChanged,
+                this, &ExportOrderEditorWidget::updateActions);
 
         connect(_ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, &ExportOrderEditorWidget::onViewSelectionChanged);
@@ -111,6 +122,27 @@ void ExportOrderEditorWidget::updateSelection()
     else {
         _ui->treeView->setCurrentIndex(QModelIndex());
     }
+}
+
+void ExportOrderEditorWidget::updateActions()
+{
+    using namespace UnTech::GuiQt::Undo;
+
+    Q_ASSERT(_exportOrder);
+
+    auto* enList = _exportOrder->exportNameList();
+    auto* altList = _exportOrder->alternativesList();
+
+    ListActionStatus enStatus = ListActionHelper::status(enList);
+    ListActionStatus altStatus = ListActionHelper::status(altList);
+
+    ListActionStatus selStatus = altStatus.selectionValid ? altStatus : enStatus;
+
+    _ui->action_AddFrame->setEnabled(ListActionHelper::canAddToList(enList, true));
+    _ui->action_AddAnimation->setEnabled(ListActionHelper::canAddToList(enList, false));
+    _ui->action_AddAlternative->setEnabled(altStatus.canAdd);
+    _ui->action_CloneSelected->setEnabled(selStatus.canClone);
+    _ui->action_RemoveSelected->setEnabled(selStatus.canRemove);
 }
 
 void ExportOrderEditorWidget::onViewSelectionChanged()
