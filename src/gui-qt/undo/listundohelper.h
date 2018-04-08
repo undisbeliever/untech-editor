@@ -259,28 +259,25 @@ private:
 
 private:
     AccessorT* const _accessor;
-    const ArgsT _args;
 
 public:
-    template <typename... A>
-    ListUndoHelper(AccessorT* accessor, A... args)
+    ListUndoHelper(AccessorT* accessor)
         : _accessor(accessor)
-        , _args(std::tie(args...))
     {
     }
 
 private:
-    inline ListT* getList()
+    inline ListT* getList(const ArgsT& listArgs)
     {
         auto f = std::mem_fn(&AccessorT::getList);
-        return mem_fn_call(f, _accessor, _args);
+        return mem_fn_call(f, _accessor, listArgs);
     }
 
 public:
     // will return nullptr if data cannot be accessed or is equal to newValue
-    QUndoCommand* editCommand(index_type index, const DataT& newValue)
+    QUndoCommand* editCommand(const ArgsT& listArgs, index_type index, const DataT& newValue)
     {
-        ListT* list = getList();
+        ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -292,12 +289,12 @@ public:
         if (oldValue == newValue) {
             return nullptr;
         }
-        return new EditCommand(_accessor, _args, index, oldValue, newValue);
+        return new EditCommand(_accessor, listArgs, index, oldValue, newValue);
     }
 
-    void edit(index_type index, const DataT& newValue)
+    void edit(const ArgsT& listArgs, index_type index, const DataT& newValue)
     {
-        QUndoCommand* e = editCommand(index, newValue);
+        QUndoCommand* e = editCommand(listArgs, index, newValue);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
@@ -305,11 +302,11 @@ public:
 
     // will return nullptr if data cannot be accessed or is equal to newValue
     template <typename FieldT>
-    QUndoCommand* editFieldCommand(index_type index, const FieldT& newValue,
+    QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
                                    const QString& text,
                                    typename std::function<FieldT&(DataT&)> getter)
     {
-        ListT* list = getList();
+        ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -322,15 +319,15 @@ public:
             return nullptr;
         }
         return new EditFieldCommand<FieldT>(
-            _accessor, _args, index, oldValue, newValue, text, getter);
+            _accessor, listArgs, index, oldValue, newValue, text, getter);
     }
 
     template <typename FieldT>
-    void editField(index_type index, const FieldT& newValue,
+    void editField(const ArgsT& listArgs, index_type index, const FieldT& newValue,
                    const QString& text,
                    typename std::function<FieldT&(DataT&)> getter)
     {
-        QUndoCommand* e = editFieldCommand(index, newValue, text, getter);
+        QUndoCommand* e = editFieldCommand(listArgs, index, newValue, text, getter);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
@@ -338,9 +335,9 @@ public:
 
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
-    QUndoCommand* addCommand(index_type index)
+    QUndoCommand* addCommand(const ArgsT& listArgs, index_type index)
     {
-        ListT* list = getList();
+        ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -351,26 +348,26 @@ public:
             return nullptr;
         }
 
-        return new AddCommand(_accessor, _args, index);
+        return new AddCommand(_accessor, listArgs, index);
     }
 
-    void addItem()
+    void addItem(const ArgsT& listArgs)
     {
-        ListT* list = getList();
+        ListT* list = getList(listArgs);
         if (list == nullptr) {
             return;
         }
         index_type index = list->size();
 
-        QUndoCommand* c = addCommand(index);
+        QUndoCommand* c = addCommand(listArgs, index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
     }
 
-    void addItem(index_type index)
+    void addItem(const ArgsT& listArgs, index_type index)
     {
-        QUndoCommand* c = addCommand(index);
+        QUndoCommand* c = addCommand(listArgs, index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
@@ -378,9 +375,9 @@ public:
 
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
-    QUndoCommand* cloneCommand(index_type index)
+    QUndoCommand* cloneCommand(const ArgsT& listArgs, index_type index)
     {
-        ListT* list = getList();
+        ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -391,12 +388,12 @@ public:
             return nullptr;
         }
 
-        return new AddCommand(_accessor, _args, index, list->at(index));
+        return new AddCommand(_accessor, listArgs, index, list->at(index));
     }
 
-    void cloneItem(index_type index)
+    void cloneItem(const ArgsT& listArgs, index_type index)
     {
-        QUndoCommand* c = cloneCommand(index);
+        QUndoCommand* c = cloneCommand(listArgs, index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
@@ -404,9 +401,9 @@ public:
 
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
-    QUndoCommand* removeCommand(index_type index)
+    QUndoCommand* removeCommand(const ArgsT& listArgs, index_type index)
     {
-        ListT* list = getList();
+        ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -414,12 +411,12 @@ public:
             return nullptr;
         }
 
-        return new RemoveCommand(_accessor, _args, index, list->at(index));
+        return new RemoveCommand(_accessor, listArgs, index, list->at(index));
     }
 
-    void removeItem(index_type index)
+    void removeItem(const ArgsT& listArgs, index_type index)
     {
-        QUndoCommand* c = removeCommand(index);
+        QUndoCommand* c = removeCommand(listArgs, index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }

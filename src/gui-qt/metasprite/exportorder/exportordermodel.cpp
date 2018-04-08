@@ -579,8 +579,8 @@ bool ExportOrderModel::setData(const QModelIndex& index, const QVariant& value, 
         if (name.isValid() == false) {
             return false;
         }
-        ExportNameUndoHelper undoHelper(_exportOrder->exportNameList(), internalId.isFrame);
-        undoHelper.editField<idstring>(internalId.index, name,
+        ExportNameUndoHelper undoHelper(_exportOrder->exportNameList());
+        undoHelper.editField<idstring>(std::make_tuple(internalId.isFrame), internalId.index, name,
                                        tr("Edit Export Name"),
                                        [](ExportName& en) -> idstring& { return en.name; });
     }
@@ -605,8 +605,9 @@ bool ExportOrderModel::setData(const QModelIndex& index, const QVariant& value, 
         }
 
         if (newAlt != oldAlt) {
-            AlternativesUndoHelper undoHelper(_exportOrder->alternativesList(), internalId.isFrame, internalId.index);
-            undoHelper.edit(internalId.altIndex, newAlt);
+            AlternativesUndoHelper undoHelper(_exportOrder->alternativesList());
+            undoHelper.edit(std::make_tuple(internalId.isFrame, internalId.index),
+                            internalId.altIndex, newAlt);
         }
     }
 
