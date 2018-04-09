@@ -89,6 +89,12 @@ void ExportOrderEditorWidget::setExportOrderResource(ExportOrderResourceItem* it
         updateSelection();
         updateActions();
 
+        // prevents data corruption when the list changes and the editor is open
+        connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::listAboutToChange,
+                this, &ExportOrderEditorWidget::closeEditor);
+        connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::listAboutToChange,
+                this, &ExportOrderEditorWidget::closeEditor);
+
         connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::selectedIndexChanged,
                 this, &ExportOrderEditorWidget::updateSelection);
         connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::selectedIndexChanged,
@@ -216,6 +222,14 @@ void ExportOrderEditorWidget::showEditorForCurrentIndex()
     QModelIndex index = _ui->treeView->currentIndex();
     if (index.isValid()) {
         _ui->treeView->edit(index);
+    }
+}
+
+void ExportOrderEditorWidget::closeEditor()
+{
+    QModelIndex index = _ui->treeView->currentIndex();
+    if (index.isValid()) {
+        _ui->treeView->closePersistentEditor(index);
     }
 }
 

@@ -29,6 +29,8 @@ public:
 
 private:
     void showEditorForCurrentIndex();
+    void closeEditor();
+
     void addExportName(bool isFrame);
 
 private slots:

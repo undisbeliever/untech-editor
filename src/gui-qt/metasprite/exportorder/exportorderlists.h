@@ -97,6 +97,8 @@ protected:
 signals:
     void dataChanged(bool isFrame, index_type index);
     void listChanged(bool isFrame);
+
+    void listAboutToChange(bool isFrame);
     void itemAdded(bool isFrame, index_type index);
     void itemAboutToBeRemoved(bool isFrame, index_type index);
     void itemMoved(bool isFrame, index_type from, index_type to);
@@ -175,6 +177,8 @@ protected:
 signals:
     void dataChanged(bool isFrame, index_type index, index_type altIndex);
     void listChanged(bool isFrame, index_type index);
+
+    void listAboutToChange(bool isFrame, index_type index);
     void itemAdded(bool isFrame, index_type index, index_type altIndex);
     void itemAboutToBeRemoved(bool isFrame, index_type index, index_type altIndex);
     void itemMoved(bool isFrame, index_type index, index_type from, index_type to);

@@ -71,6 +71,14 @@ private:
             _accessor->resourceItem()->dataChanged();
         }
 
+        // When this signal is emitted you MUST close all editors
+        // accessing the list to prevent data corruption
+        inline void emitListAboutToChange()
+        {
+            auto f = std::mem_fn(&AccessorT::listAboutToChange);
+            mem_fn_call(f, _accessor, _args);
+        }
+
         inline void emitItemAdded(index_type index)
         {
             auto f = std::mem_fn(&AccessorT::itemAdded);
@@ -198,6 +206,8 @@ private:
             Q_ASSERT(list);
             Q_ASSERT(_index >= 0 && _index <= list->size());
 
+            this->emitListAboutToChange();
+
             list->insert(list->begin() + _index, _value);
 
             if (this->_accessor->selectedListTuple() == this->_args) {
@@ -217,6 +227,8 @@ private:
             ListT* list = this->getList();
             Q_ASSERT(list);
             Q_ASSERT(_index >= 0 && _index < list->size());
+
+            this->emitListAboutToChange();
 
             if (this->_accessor->selectedListTuple() == this->_args) {
                 index_type sel = this->_accessor->selectedIndex();
@@ -319,6 +331,8 @@ private:
             Q_ASSERT(to >= 0 && to < list->size());
 
             index_type selected = this->_accessor->selectedIndex();
+
+            this->emitListAboutToChange();
 
             moveListItem(from, to, *list);
 
