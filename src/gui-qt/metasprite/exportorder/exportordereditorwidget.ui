@@ -35,6 +35,10 @@
      <addaction name="action_AddFrame"/>
      <addaction name="action_AddAnimation"/>
      <addaction name="action_AddAlternative"/>
+     <addaction name="action_RaiseToTop"/>
+     <addaction name="action_Raise"/>
+     <addaction name="action_Lower"/>
+     <addaction name="action_LowerToBottom"/>
      <addaction name="action_CloneSelected"/>
      <addaction name="action_RemoveSelected"/>
     </widget>
@@ -89,6 +93,54 @@
    </property>
    <property name="toolTip">
     <string>Remove Selected</string>
+   </property>
+  </action>
+  <action name="action_RaiseToTop">
+   <property name="icon">
+    <iconset resource="../../../../resources/resources.qrc">
+     <normaloff>:/icons/raise-to-top.svg</normaloff>:/icons/raise-to-top.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Raise To Top</string>
+   </property>
+   <property name="toolTip">
+    <string>Raise Selected To Top</string>
+   </property>
+  </action>
+  <action name="action_Raise">
+   <property name="icon">
+    <iconset resource="../../../../resources/resources.qrc">
+     <normaloff>:/icons/raise.svg</normaloff>:/icons/raise.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Raise</string>
+   </property>
+   <property name="toolTip">
+    <string>Raise Selected</string>
+   </property>
+  </action>
+  <action name="action_Lower">
+   <property name="icon">
+    <iconset resource="../../../../resources/resources.qrc">
+     <normaloff>:/icons/lower.svg</normaloff>:/icons/lower.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Lower</string>
+   </property>
+   <property name="toolTip">
+    <string>Lower Selected</string>
+   </property>
+  </action>
+  <action name="action_LowerToBottom">
+   <property name="icon">
+    <iconset resource="../../../../resources/resources.qrc">
+     <normaloff>:/icons/lower-to-bottom.svg</normaloff>:/icons/lower-to-bottom.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Lower To Bottom</string>
+   </property>
+   <property name="toolTip">
+    <string>Lower Selected</string>
    </property>
   </action>
  </widget>

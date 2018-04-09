@@ -44,6 +44,11 @@ private slots:
     void onActionCloneSelected();
     void onActionRemoveSelected();
 
+    void onActionRaiseToTop();
+    void onActionRaise();
+    void onActionLower();
+    void onActionLowerToBottom();
+
 private:
     std::unique_ptr<Ui::ExportOrderEditorWidget> const _ui;
     ExportOrderModel* const _model;

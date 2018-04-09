@@ -99,6 +99,7 @@ signals:
     void listChanged(bool isFrame);
     void itemAdded(bool isFrame, index_type index);
     void itemAboutToBeRemoved(bool isFrame, index_type index);
+    void itemMoved(bool isFrame, index_type from, index_type to);
 
     void selectedListChanged();
     void selectedIndexChanged();
@@ -176,6 +177,7 @@ signals:
     void listChanged(bool isFrame, index_type index);
     void itemAdded(bool isFrame, index_type index, index_type altIndex);
     void itemAboutToBeRemoved(bool isFrame, index_type index, index_type altIndex);
+    void itemMoved(bool isFrame, index_type index, index_type from, index_type to);
 
     void selectedListChanged();
     void selectedIndexChanged();

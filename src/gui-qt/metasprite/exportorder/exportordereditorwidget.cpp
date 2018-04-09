@@ -53,6 +53,14 @@ ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
             this, &ExportOrderEditorWidget::onActionCloneSelected);
     connect(_ui->action_RemoveSelected, &QAction::triggered,
             this, &ExportOrderEditorWidget::onActionRemoveSelected);
+    connect(_ui->action_RaiseToTop, &QAction::triggered,
+            this, &ExportOrderEditorWidget::onActionRaiseToTop);
+    connect(_ui->action_Raise, &QAction::triggered,
+            this, &ExportOrderEditorWidget::onActionRaise);
+    connect(_ui->action_Lower, &QAction::triggered,
+            this, &ExportOrderEditorWidget::onActionLower);
+    connect(_ui->action_LowerToBottom, &QAction::triggered,
+            this, &ExportOrderEditorWidget::onActionLowerToBottom);
 }
 
 ExportOrderEditorWidget::~ExportOrderEditorWidget() = default;
@@ -141,6 +149,10 @@ void ExportOrderEditorWidget::updateActions()
     _ui->action_AddFrame->setEnabled(ListActionHelper::canAddToList(enList, true));
     _ui->action_AddAnimation->setEnabled(ListActionHelper::canAddToList(enList, false));
     _ui->action_AddAlternative->setEnabled(altStatus.canAdd);
+    _ui->action_RaiseToTop->setEnabled(selStatus.canRaise);
+    _ui->action_Raise->setEnabled(selStatus.canRaise);
+    _ui->action_Lower->setEnabled(selStatus.canLower);
+    _ui->action_LowerToBottom->setEnabled(selStatus.canLower);
     _ui->action_CloneSelected->setEnabled(selStatus.canClone);
     _ui->action_RemoveSelected->setEnabled(selStatus.canRemove);
 }
@@ -258,20 +270,27 @@ void ExportOrderEditorWidget::onActionCloneSelected()
     }
 }
 
-void ExportOrderEditorWidget::onActionRemoveSelected()
-{
-    using InternalIdFormat = ExportOrderModel::InternalIdFormat;
-
-    Q_ASSERT(_exportOrder);
-
-    QModelIndex index = _ui->treeView->currentIndex();
-    if (index.isValid()) {
-        InternalIdFormat id = index.internalId();
-        if (id.altIndex == InternalIdFormat::NO_INDEX) {
-            ExportNameUndoHelper(_exportOrder->exportNameList()).removeSelectedItem();
-        }
-        else {
-            AlternativesUndoHelper(_exportOrder->alternativesList()).removeSelectedItem();
-        }
+#define SELECTION_ACTION(ACTION_METHOD, HELPER_METHOD)                                    \
+    void ExportOrderEditorWidget::ACTION_METHOD()                                         \
+    {                                                                                     \
+        using InternalIdFormat = ExportOrderModel::InternalIdFormat;                      \
+                                                                                          \
+        Q_ASSERT(_exportOrder);                                                           \
+                                                                                          \
+        QModelIndex index = _ui->treeView->currentIndex();                                \
+        if (index.isValid()) {                                                            \
+            InternalIdFormat id = index.internalId();                                     \
+            if (id.altIndex == InternalIdFormat::NO_INDEX) {                              \
+                ExportNameUndoHelper(_exportOrder->exportNameList()).HELPER_METHOD();     \
+            }                                                                             \
+            else {                                                                        \
+                AlternativesUndoHelper(_exportOrder->alternativesList()).HELPER_METHOD(); \
+            }                                                                             \
+        }                                                                                 \
     }
-}
+
+SELECTION_ACTION(onActionRemoveSelected, removeSelectedItem);
+SELECTION_ACTION(onActionRaiseToTop, raiseSelectedItemToTop);
+SELECTION_ACTION(onActionRaise, raiseSelectedItem);
+SELECTION_ACTION(onActionLower, lowerSelectedItem);
+SELECTION_ACTION(onActionLowerToBottom, lowerSelectedItemToBottom);
