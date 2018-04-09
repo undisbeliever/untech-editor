@@ -44,6 +44,7 @@ FrameDock::FrameDock(FrameListModel* frameListModel, Actions* actions, QWidget* 
 
     _ui->frameContents->setModel(_frameContentsModel);
     _ui->frameContents->setIndentation(10);
+    _ui->frameContents->setEditTriggers(QAbstractItemView::AllEditTriggers);
     _ui->frameContents->setContextMenuPolicy(Qt::CustomContextMenu);
     _ui->frameContents->setItemDelegate(new PropertyDelegate(this));
     _ui->frameContents->header()->setStretchLastSection(true);
