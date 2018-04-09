@@ -590,9 +590,9 @@ bool ExportOrderModel::setData(const QModelIndex& index, const QVariant& value, 
             return false;
         }
         ExportNameUndoHelper undoHelper(_exportOrder->exportNameList());
-        undoHelper.editField<idstring>(std::make_tuple(internalId.isFrame), internalId.index, name,
-                                       tr("Edit Export Name"),
-                                       [](ExportName& en) -> idstring& { return en.name; });
+        return undoHelper.editField<idstring>(std::make_tuple(internalId.isFrame), internalId.index, name,
+                                              tr("Edit Export Name"),
+                                              [](ExportName& en) -> idstring& { return en.name; });
     }
     else {
         // index = alternative node
@@ -614,12 +614,8 @@ bool ExportOrderModel::setData(const QModelIndex& index, const QVariant& value, 
             newAlt.vFlip = value.toUInt() & 2;
         }
 
-        if (newAlt != oldAlt) {
-            AlternativesUndoHelper undoHelper(_exportOrder->alternativesList());
-            undoHelper.edit(std::make_tuple(internalId.isFrame, internalId.index),
-                            internalId.altIndex, newAlt);
-        }
+        AlternativesUndoHelper undoHelper(_exportOrder->alternativesList());
+        return undoHelper.edit(std::make_tuple(internalId.isFrame, internalId.index),
+                               internalId.altIndex, newAlt);
     }
-
-    return false;
 }

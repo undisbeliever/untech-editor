@@ -257,8 +257,10 @@ void ExportOrderEditorWidget::onActionAddAlternative()
 {
     Q_ASSERT(_exportOrder);
 
-    AlternativesUndoHelper(_exportOrder->alternativesList()).addItemToSelectedList();
-    showEditorForCurrentIndex();
+    bool s = AlternativesUndoHelper(_exportOrder->alternativesList()).addItemToSelectedList();
+    if (s) {
+        showEditorForCurrentIndex();
+    }
 }
 
 void ExportOrderEditorWidget::onActionCloneSelected()
@@ -272,14 +274,17 @@ void ExportOrderEditorWidget::onActionCloneSelected()
         InternalIdFormat id = index.internalId();
 
         if (id.index != InternalIdFormat::NO_INDEX) {
+            bool s = false;
             if (id.altIndex == InternalIdFormat::NO_INDEX) {
-                ExportNameUndoHelper(_exportOrder->exportNameList()).cloneSelectedItem();
+                s = ExportNameUndoHelper(_exportOrder->exportNameList()).cloneSelectedItem();
             }
             else {
-                AlternativesUndoHelper(_exportOrder->alternativesList()).cloneSelectedItem();
+                s = AlternativesUndoHelper(_exportOrder->alternativesList()).cloneSelectedItem();
             }
 
-            showEditorForCurrentIndex();
+            if (s) {
+                showEditorForCurrentIndex();
+            }
         }
     }
 }

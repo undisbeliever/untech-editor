@@ -388,19 +388,20 @@ public:
         return new EditCommand(_accessor, listArgs, index, oldValue, newValue);
     }
 
-    void edit(const ArgsT& listArgs, index_type index, const DataT& newValue)
+    bool edit(const ArgsT& listArgs, index_type index, const DataT& newValue)
     {
         QUndoCommand* e = editCommand(listArgs, index, newValue);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
+        return e != nullptr;
     }
 
-    void editSelectedItem(const DataT& newValue)
+    bool editSelectedItem(const DataT& newValue)
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
         const index_type index = _accessor->selectedIndex();
-        edit(listArgs, index, newValue);
+        return edit(listArgs, index, newValue);
     }
 
     // will return nullptr if data cannot be accessed or is equal to newValue
@@ -426,7 +427,7 @@ public:
     }
 
     template <typename FieldT>
-    void editField(const ArgsT& listArgs, index_type index, const FieldT& newValue,
+    bool editField(const ArgsT& listArgs, index_type index, const FieldT& newValue,
                    const QString& text,
                    typename std::function<FieldT&(DataT&)> getter)
     {
@@ -434,16 +435,17 @@ public:
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
+        return e != nullptr;
     }
 
     template <typename FieldT>
-    void editSelectedItemField(const FieldT& newValue,
+    bool editSelectedItemField(const FieldT& newValue,
                                const QString& text,
                                typename std::function<FieldT&(DataT&)> getter)
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
         const index_type index = _accessor->selectedIndex();
-        editField(listArgs, index, newValue, text, getter);
+        return editField(listArgs, index, newValue, text, getter);
     }
 
     // will return nullptr if list cannot be accessed,
@@ -464,11 +466,11 @@ public:
         return new AddCommand(_accessor, listArgs, index);
     }
 
-    void addItem(const ArgsT& listArgs)
+    bool addItem(const ArgsT& listArgs)
     {
         ListT* list = getList(listArgs);
         if (list == nullptr) {
-            return;
+            return false;
         }
         index_type index = list->size();
 
@@ -476,17 +478,19 @@ public:
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
+        return c != nullptr;
     }
 
-    void addItem(const ArgsT& listArgs, index_type index)
+    bool addItem(const ArgsT& listArgs, index_type index)
     {
         QUndoCommand* c = addCommand(listArgs, index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
+        return c != nullptr;
     }
 
-    void addItemToSelectedList(index_type index)
+    bool addItemToSelectedList(index_type index)
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
 
@@ -496,15 +500,16 @@ public:
 
             _accessor->setSelectedIndex(index);
         }
+        return c != nullptr;
     }
 
-    void addItemToSelectedList()
+    bool addItemToSelectedList()
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
 
         ListT* list = getList(listArgs);
         if (list == nullptr) {
-            return;
+            return false;
         }
         index_type index = list->size();
 
@@ -514,6 +519,7 @@ public:
 
             _accessor->setSelectedIndex(index);
         }
+        return c != nullptr;
     }
 
     // will return nullptr if list cannot be accessed,
@@ -534,15 +540,16 @@ public:
         return new AddCommand(_accessor, listArgs, index, list->at(index));
     }
 
-    void cloneItem(const ArgsT& listArgs, index_type index)
+    bool cloneItem(const ArgsT& listArgs, index_type index)
     {
         QUndoCommand* c = cloneCommand(listArgs, index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
+        return c != nullptr;
     }
 
-    void cloneSelectedItem()
+    bool cloneSelectedItem()
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
         const index_type index = _accessor->selectedIndex();
@@ -552,6 +559,7 @@ public:
             _accessor->resourceItem()->undoStack()->push(c);
             _accessor->setSelectedIndex(index + 1);
         }
+        return c != nullptr;
     }
 
     // will return nullptr if list cannot be accessed,
@@ -569,17 +577,18 @@ public:
         return new RemoveCommand(_accessor, listArgs, index, list->at(index));
     }
 
-    void removeItem(const ArgsT& listArgs, index_type index)
+    bool removeItem(const ArgsT& listArgs, index_type index)
     {
         QUndoCommand* c = removeCommand(listArgs, index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
+        return c != nullptr;
     }
 
-    void removeSelectedItem()
+    bool removeSelectedItem()
     {
-        removeItem(_accessor->selectedListTuple(), _accessor->selectedIndex());
+        return removeItem(_accessor->selectedListTuple(), _accessor->selectedIndex());
     }
 
     // will return nullptr if list cannot be accessed or indexes are invalid
@@ -609,63 +618,74 @@ public:
                            tr("Move %1").arg(_accessor->typeName()));
     }
 
-    void moveItem(const ArgsT& listArgs, index_type from, index_type to)
+    bool moveItem(const ArgsT& listArgs, index_type from, index_type to)
     {
         QUndoCommand* c = moveCommand(listArgs, from, to);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
+        return c != nullptr;
     }
 
-    void moveItem(const ArgsT& listArgs, index_type from, index_type to, const QString& text)
+    bool moveItem(const ArgsT& listArgs, index_type from, index_type to, const QString& text)
     {
         QUndoCommand* c = moveCommand(listArgs, from, to, text);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
+        return c != nullptr;
     }
 
-    void raiseSelectedItemToTop()
+    bool raiseSelectedItemToTop()
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
         const index_type index = _accessor->selectedIndex();
 
         if (index > 0) {
-            moveItem(listArgs, index, 0, tr("Raise To Top"));
+            return moveItem(listArgs, index, 0, tr("Raise To Top"));
+        }
+        else {
+            return false;
         }
     }
 
-    void raiseSelectedItem()
+    bool raiseSelectedItem()
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
         const index_type index = _accessor->selectedIndex();
 
         if (index > 0) {
-            moveItem(listArgs, index, index - 1, tr("Raise"));
+            return moveItem(listArgs, index, index - 1, tr("Raise"));
+        }
+        else {
+            return false;
         }
     }
 
-    void lowerSelectedItem()
+    bool lowerSelectedItem()
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
         const index_type index = _accessor->selectedIndex();
 
-        moveItem(listArgs, index, index + 1, tr("Lower"));
+        return moveItem(listArgs, index, index + 1, tr("Lower"));
     }
 
-    void lowerSelectedItemToBottom()
+    bool lowerSelectedItemToBottom()
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
         const index_type index = _accessor->selectedIndex();
 
         ListT* list = getList(listArgs);
         if (list == nullptr) {
-            return;
+            return false;
         }
 
         index_type list_size = list->size();
         if (list_size > 1) {
-            moveItem(listArgs, index, list_size - 1, tr("Lower To Bottom"));
+            return moveItem(listArgs, index, list_size - 1, tr("Lower To Bottom"));
+        }
+        else {
+            return false;
         }
     }
 };
