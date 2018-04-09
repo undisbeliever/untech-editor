@@ -19,6 +19,9 @@ struct ListActionStatus {
     bool canAdd;
     bool canClone;
     bool canRemove;
+
+    bool canRaise;
+    bool canLower;
 };
 
 class ListActionHelper {
@@ -52,7 +55,7 @@ public:
         const ListT* list = mem_fn_call(f, a, listArgs);
 
         if (list == nullptr) {
-            return { false, false, false, false };
+            return { false, false, false, false, false, false };
         }
 
         const index_type list_size = list->size();
@@ -65,6 +68,9 @@ public:
         ret.canAdd = list_size < AccessorT::max_size;
         ret.canClone = ret.selectionValid && ret.canAdd;
         ret.canRemove = ret.selectionValid;
+
+        ret.canRaise = ret.selectionValid && index != 0;
+        ret.canLower = ret.selectionValid && index + 1 < list_size;
 
         return ret;
     }

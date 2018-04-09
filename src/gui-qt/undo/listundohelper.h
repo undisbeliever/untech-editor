@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/call.h"
+#include "models/common/vector-helpers.h"
 #include <QCoreApplication>
 #include <QUndoCommand>
 #include <functional>
@@ -80,6 +81,12 @@ private:
         {
             auto f = std::mem_fn(&AccessorT::itemAboutToBeRemoved);
             mem_fn_call(f, _accessor, _args, index);
+        }
+
+        inline void emitItemMoved(index_type from, index_type to)
+        {
+            auto f = std::mem_fn(&AccessorT::itemMoved);
+            mem_fn_call(f, _accessor, _args, from, to);
         }
     };
 
@@ -273,6 +280,62 @@ private:
         virtual void redo() final
         {
             this->removeItem();
+        }
+    };
+
+    class MoveCommand : public BaseCommand {
+    private:
+        const index_type _fromIndex;
+        const index_type _toIndex;
+
+    public:
+        MoveCommand(AccessorT* accessor, const ArgsT& args,
+                    index_type fromIndex, index_type toIndex,
+                    const QString& text)
+            : BaseCommand(accessor, args, text)
+            , _fromIndex(fromIndex)
+            , _toIndex(toIndex)
+        {
+        }
+        ~MoveCommand() = default;
+
+        void undo()
+        {
+            moveItem(_toIndex, _fromIndex);
+        }
+
+        void redo()
+        {
+            moveItem(_fromIndex, _toIndex);
+        }
+
+    private:
+        void moveItem(index_type from, index_type to)
+        {
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(from != to);
+            Q_ASSERT(from >= 0 && from < list->size());
+            Q_ASSERT(to >= 0 && to < list->size());
+
+            index_type selected = this->_accessor->selectedIndex();
+
+            moveListItem(from, to, *list);
+
+            this->emitItemMoved(from, to);
+            this->emitListChanged();
+
+            if (this->_accessor->selectedListTuple() == this->_args) {
+                if (selected == from) {
+                    this->_accessor->setSelectedIndex(to);
+                }
+                else if (selected > from && selected <= to) {
+                    this->_accessor->setSelectedIndex(selected - 1);
+                }
+                else if (selected >= to && selected < from) {
+                    this->_accessor->setSelectedIndex(selected + 1);
+                }
+            }
         }
     };
 
@@ -503,6 +566,93 @@ public:
     void removeSelectedItem()
     {
         removeItem(_accessor->selectedListTuple(), _accessor->selectedIndex());
+    }
+
+    // will return nullptr if list cannot be accessed or indexes are invalid
+    QUndoCommand* moveCommand(const ArgsT& listArgs, index_type from, index_type to,
+                              const QString& text)
+    {
+        ListT* list = getList(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+        if (from == to) {
+            return nullptr;
+        }
+        if (from < 0 || from >= list->size()) {
+            return nullptr;
+        }
+        if (to < 0 || to >= list->size()) {
+            return nullptr;
+        }
+
+        return new MoveCommand(_accessor, listArgs, from, to, text);
+    }
+
+    QUndoCommand* moveCommand(const ArgsT& listArgs, index_type from, index_type to)
+    {
+        return moveCommand(listArgs, from, to,
+                           tr("Move %1").arg(_accessor->typeName()));
+    }
+
+    void moveItem(const ArgsT& listArgs, index_type from, index_type to)
+    {
+        QUndoCommand* c = moveCommand(listArgs, from, to);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+    }
+
+    void moveItem(const ArgsT& listArgs, index_type from, index_type to, const QString& text)
+    {
+        QUndoCommand* c = moveCommand(listArgs, from, to, text);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+    }
+
+    void raiseSelectedItemToTop()
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        const index_type index = _accessor->selectedIndex();
+
+        if (index > 0) {
+            moveItem(listArgs, index, 0, tr("Raise To Top"));
+        }
+    }
+
+    void raiseSelectedItem()
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        const index_type index = _accessor->selectedIndex();
+
+        if (index > 0) {
+            moveItem(listArgs, index, index - 1, tr("Raise"));
+        }
+    }
+
+    void lowerSelectedItem()
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        const index_type index = _accessor->selectedIndex();
+
+        moveItem(listArgs, index, index + 1, tr("Lower"));
+    }
+
+    void lowerSelectedItemToBottom()
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        const index_type index = _accessor->selectedIndex();
+
+        ListT* list = getList(listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        index_type list_size = list->size();
+        if (list_size > 1) {
+            moveItem(listArgs, index, list_size - 1, tr("Lower To Bottom"));
+        }
     }
 };
 }
