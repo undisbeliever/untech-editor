@@ -7,7 +7,7 @@
 #include "exportordermodel.h"
 #include "exportorderresourceitem.h"
 
-#include "exportorderlists.h"
+#include "exportorderaccessors.h"
 #include "gui-qt/undo/listundohelper.h"
 
 using namespace UnTech::GuiQt;

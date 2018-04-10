@@ -10,7 +10,7 @@
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/metasprite/exportorder/exportordereditorwidget.ui.h"
 
-#include "exportorderlists.h"
+#include "exportorderaccessors.h"
 #include "gui-qt/undo/listactionhelper.h"
 #include "gui-qt/undo/listundohelper.h"
 
