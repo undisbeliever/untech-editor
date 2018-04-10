@@ -34,13 +34,7 @@ private:
     index_type _selectedIndex;
 
 public:
-    ExportNameList(ExportOrderResourceItem* exportOrder)
-        : QObject(exportOrder)
-        , _exportOrder(exportOrder)
-        , _selectedListIsFrame(true)
-        , _selectedIndex(INT_MAX)
-    {
-    }
+    ExportNameList(ExportOrderResourceItem* exportOrder);
 
     ExportOrderResourceItem* resourceItem() const { return _exportOrder; }
 
@@ -80,6 +74,7 @@ public:
 protected:
     friend class Undo::ListUndoHelper<ExportNameList>;
     friend class Undo::ListActionHelper;
+    friend class Undo::SelectedIndexHelper;
     ListT* getList(bool isFrame)
     {
         auto* eo = _exportOrder->exportOrderEditable();
@@ -124,14 +119,7 @@ private:
     index_type _selectedIndex;
 
 public:
-    AlternativesList(ExportOrderResourceItem* exportOrder)
-        : QObject(exportOrder)
-        , _exportOrder(exportOrder)
-        , _selectedIndex(INT_MAX)
-    {
-        connect(_exportOrder->exportNameList(), &ExportNameList::selectedIndexChanged,
-                this, &AlternativesList::unselectItem);
-    }
+    AlternativesList(ExportOrderResourceItem* exportOrder);
 
     ExportOrderResourceItem* resourceItem() const { return _exportOrder; }
 
@@ -151,6 +139,7 @@ public:
 protected:
     friend class Undo::ListUndoHelper<AlternativesList>;
     friend class Undo::ListActionHelper;
+    friend class Undo::SelectedIndexHelper;
     ListT* getList(bool isFrame, index_type index)
     {
         auto* eo = _exportOrder->exportOrderEditable();

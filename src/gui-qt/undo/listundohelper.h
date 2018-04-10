@@ -210,14 +210,6 @@ private:
 
             list->insert(list->begin() + _index, _value);
 
-            if (this->_accessor->selectedListTuple() == this->_args) {
-                index_type sel = this->_accessor->selectedIndex();
-
-                if (sel >= _index) {
-                    this->_accessor->setSelectedIndex(sel + 1);
-                }
-            }
-
             this->emitItemAdded(_index);
             this->emitListChanged();
         }
@@ -229,18 +221,6 @@ private:
             Q_ASSERT(_index >= 0 && _index < list->size());
 
             this->emitListAboutToChange();
-
-            if (this->_accessor->selectedListTuple() == this->_args) {
-                index_type sel = this->_accessor->selectedIndex();
-
-                if (sel == _index) {
-                    this->_accessor->unselectItem();
-                }
-                else if (sel > _index) {
-                    this->_accessor->setSelectedIndex(sel - 1);
-                }
-            }
-
             this->emitItemAboutToBeRemoved(_index);
 
             list->erase(list->begin() + _index);
@@ -330,26 +310,12 @@ private:
             Q_ASSERT(from >= 0 && from < list->size());
             Q_ASSERT(to >= 0 && to < list->size());
 
-            index_type selected = this->_accessor->selectedIndex();
-
             this->emitListAboutToChange();
 
             moveListItem(from, to, *list);
 
             this->emitItemMoved(from, to);
             this->emitListChanged();
-
-            if (this->_accessor->selectedListTuple() == this->_args) {
-                if (selected == from) {
-                    this->_accessor->setSelectedIndex(to);
-                }
-                else if (selected > from && selected <= to) {
-                    this->_accessor->setSelectedIndex(selected - 1);
-                }
-                else if (selected >= to && selected < from) {
-                    this->_accessor->setSelectedIndex(selected + 1);
-                }
-            }
         }
     };
 

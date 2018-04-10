@@ -10,6 +10,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace Undo {
 
+class SelectedIndexHelper;
 class ListActionHelper;
 
 template <class T>
