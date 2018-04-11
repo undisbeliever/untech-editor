@@ -27,6 +27,8 @@ public:
 
     constexpr static index_type max_size = AccessorT::max_size;
 
+    friend class ListAndSelectionUndoHelper<AccessorT>;
+
 private:
     static inline QString tr(const char* s)
     {
@@ -329,6 +331,11 @@ public:
     }
 
 private:
+    inline ArgsT selectedListTuple()
+    {
+        return _accessor->selectedListTuple();
+    }
+
     inline ListT* getList(const ArgsT& listArgs)
     {
         auto f = std::mem_fn(&AccessorT::getList);
@@ -363,13 +370,6 @@ public:
         return e != nullptr;
     }
 
-    bool editSelectedItem(const DataT& newValue)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        const index_type index = _accessor->selectedIndex();
-        return edit(listArgs, index, newValue);
-    }
-
     // will return nullptr if data cannot be accessed or is equal to newValue
     template <typename FieldT>
     QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
@@ -402,16 +402,6 @@ public:
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
-    }
-
-    template <typename FieldT>
-    bool editSelectedItemField(const FieldT& newValue,
-                               const QString& text,
-                               typename std::function<FieldT&(DataT&)> getter)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        const index_type index = _accessor->selectedIndex();
-        return editField(listArgs, index, newValue, text, getter);
     }
 
     // will return nullptr if list cannot be accessed,
@@ -456,36 +446,18 @@ public:
         return c != nullptr;
     }
 
-    bool addItemToSelectedList(index_type index)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-
-        QUndoCommand* c = addCommand(listArgs, index);
-        if (c) {
-            _accessor->resourceItem()->undoStack()->push(c);
-
-            _accessor->setSelectedIndex(index);
-        }
-        return c != nullptr;
-    }
-
     bool addItemToSelectedList()
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
 
-        ListT* list = getList(listArgs);
-        if (list == nullptr) {
-            return false;
-        }
-        index_type index = list->size();
+        return addItem(listArgs);
+    }
 
-        QUndoCommand* c = addCommand(listArgs, index);
-        if (c) {
-            _accessor->resourceItem()->undoStack()->push(c);
+    bool addItemToSelectedList(index_type index)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
 
-            _accessor->setSelectedIndex(index);
-        }
-        return c != nullptr;
+        return addItem(listArgs, index);
     }
 
     // will return nullptr if list cannot be accessed,
@@ -515,19 +487,6 @@ public:
         return c != nullptr;
     }
 
-    bool cloneSelectedItem()
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        const index_type index = _accessor->selectedIndex();
-
-        QUndoCommand* c = cloneCommand(listArgs, index);
-        if (c) {
-            _accessor->resourceItem()->undoStack()->push(c);
-            _accessor->setSelectedIndex(index + 1);
-        }
-        return c != nullptr;
-    }
-
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
     QUndoCommand* removeCommand(const ArgsT& listArgs, index_type index)
@@ -550,11 +509,6 @@ public:
             _accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
-    }
-
-    bool removeSelectedItem()
-    {
-        return removeItem(_accessor->selectedListTuple(), _accessor->selectedIndex());
     }
 
     // will return nullptr if list cannot be accessed or indexes are invalid
@@ -601,14 +555,97 @@ public:
         }
         return c != nullptr;
     }
+};
+
+template <class AccessorT>
+class ListAndSelectionUndoHelper : public ListUndoHelper<AccessorT> {
+public:
+    using DataT = typename AccessorT::DataT;
+    using ListT = typename AccessorT::ListT;
+    using index_type = typename AccessorT::index_type;
+    using ArgsT = typename AccessorT::ArgsT;
+
+public:
+    ListAndSelectionUndoHelper(AccessorT* accessor)
+        : ListUndoHelper<AccessorT>(accessor)
+    {
+    }
+
+    bool editSelectedItem(const DataT& newValue)
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->edit(listArgs, index, newValue);
+    }
+
+    template <typename FieldT>
+    bool editSelectedItemField(const FieldT& newValue,
+                               const QString& text,
+                               typename std::function<FieldT&(DataT&)> getter)
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->editField(listArgs, index, newValue, text, getter);
+    }
+
+    bool addItemToSelectedList(index_type index)
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+
+        bool s = this->addItem(listArgs, index);
+        if (s) {
+            this->_accessor->setSelectedIndex(index);
+        }
+        return s;
+    }
+
+    bool addItemToSelectedList()
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+
+        ListT* list = this->getList(listArgs);
+        if (list == nullptr) {
+            return false;
+        }
+        index_type index = list->size();
+
+        bool s = this->addItem(listArgs, index);
+        if (s) {
+            this->_accessor->setSelectedIndex(index);
+        }
+        return s;
+    }
+
+    bool cloneSelectedItem()
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
+
+        bool s = this->cloneItem(listArgs, index);
+        if (s) {
+            this->_accessor->setSelectedIndex(index + 1);
+        }
+        return s;
+    }
+
+    bool removeSelectedItem()
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->removeItem(listArgs, index);
+    }
 
     bool raiseSelectedItemToTop()
     {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        const index_type index = _accessor->selectedIndex();
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
 
         if (index > 0) {
-            return moveItem(listArgs, index, 0, tr("Raise To Top"));
+            return this->moveItem(listArgs, index, 0,
+                                  this->tr("Raise To Top"));
         }
         else {
             return false;
@@ -617,11 +654,12 @@ public:
 
     bool raiseSelectedItem()
     {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        const index_type index = _accessor->selectedIndex();
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
 
         if (index > 0) {
-            return moveItem(listArgs, index, index - 1, tr("Raise"));
+            return this->moveItem(listArgs, index, index - 1,
+                                  this->tr("Raise"));
         }
         else {
             return false;
@@ -630,25 +668,27 @@ public:
 
     bool lowerSelectedItem()
     {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        const index_type index = _accessor->selectedIndex();
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
 
-        return moveItem(listArgs, index, index + 1, tr("Lower"));
+        return this->moveItem(listArgs, index, index + 1,
+                              this->tr("Lower"));
     }
 
     bool lowerSelectedItemToBottom()
     {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        const index_type index = _accessor->selectedIndex();
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
 
-        ListT* list = getList(listArgs);
+        ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return false;
         }
 
         index_type list_size = list->size();
         if (list_size > 1) {
-            return moveItem(listArgs, index, list_size - 1, tr("Lower To Bottom"));
+            return this->moveItem(listArgs, index, list_size - 1,
+                                  this->tr("Lower To Bottom"));
         }
         else {
             return false;

@@ -176,8 +176,8 @@ signals:
     void selectedIndexChanged();
 };
 
-using ExportNameUndoHelper = Undo::ListUndoHelper<ExportNameList>;
-using AlternativesUndoHelper = Undo::ListUndoHelper<AlternativesList>;
+using ExportNameUndoHelper = Undo::ListAndSelectionUndoHelper<ExportNameList>;
+using AlternativesUndoHelper = Undo::ListAndSelectionUndoHelper<AlternativesList>;
 }
 }
 }

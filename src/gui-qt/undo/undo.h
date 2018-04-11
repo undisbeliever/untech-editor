@@ -15,6 +15,9 @@ class ListActionHelper;
 
 template <class T>
 class ListUndoHelper;
+
+template <class T>
+class ListAndSelectionUndoHelper;
 }
 }
 }
