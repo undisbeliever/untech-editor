@@ -141,19 +141,19 @@ private:
         }
     };
 
-    template <typename FieldT>
+    template <typename FieldT, typename UnaryFunction>
     class EditFieldCommand : public BaseCommand {
     private:
         const index_type _index;
         const FieldT _oldValue;
         const FieldT _newValue;
-        const std::function<FieldT&(DataT&)> _getter;
+        const UnaryFunction _getter;
 
     public:
         EditFieldCommand(AccessorT* accessor, const ArgsT& args, index_type index,
                          const FieldT& oldValue, const FieldT& newValue,
                          const QString& text,
-                         typename std::function<FieldT&(DataT&)> getter)
+                         UnaryFunction getter)
             : BaseCommand(accessor, args, text)
             , _index(index)
             , _oldValue(oldValue)
@@ -371,10 +371,10 @@ public:
     }
 
     // will return nullptr if data cannot be accessed or is equal to newValue
-    template <typename FieldT>
+    template <typename FieldT, typename UnaryFunction>
     QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
                                    const QString& text,
-                                   typename std::function<FieldT&(DataT&)> getter)
+                                   UnaryFunction getter)
     {
         ListT* list = getList(listArgs);
         if (list == nullptr) {
@@ -388,14 +388,14 @@ public:
         if (oldValue == newValue) {
             return nullptr;
         }
-        return new EditFieldCommand<FieldT>(
+        return new EditFieldCommand<FieldT, UnaryFunction>(
             _accessor, listArgs, index, oldValue, newValue, text, getter);
     }
 
-    template <typename FieldT>
+    template <typename FieldT, typename UnaryFunction>
     bool editField(const ArgsT& listArgs, index_type index, const FieldT& newValue,
                    const QString& text,
-                   typename std::function<FieldT&(DataT&)> getter)
+                   UnaryFunction getter)
     {
         QUndoCommand* e = editFieldCommand(listArgs, index, newValue, text, getter);
         if (e) {
@@ -579,10 +579,10 @@ public:
         return this->edit(listArgs, index, newValue);
     }
 
-    template <typename FieldT>
+    template <typename FieldT, typename UnaryFunction>
     bool editSelectedItemField(const FieldT& newValue,
                                const QString& text,
-                               typename std::function<FieldT&(DataT&)> getter)
+                               UnaryFunction getter)
     {
         const ArgsT listArgs = this->selectedListTuple();
         const index_type index = this->_accessor->selectedIndex();
