@@ -5,12 +5,12 @@
  */
 
 #include "animationactions.h"
-#include "animationcommands.h"
-#include "animationframecommands.h"
+#include "animationaccessors.h"
 #include "animationlistmodel.h"
 #include "gui-qt/common/idstringdialog.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/abstractselection.h"
+#include "gui-qt/undo/idmapundohelper.h"
 
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
@@ -39,16 +39,14 @@ void AnimationActions::setDocument(AbstractMsDocument* document)
 {
     if (_document) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->animationsMap()->disconnect(this);
     }
     _document = document;
 
     if (document) {
-        connect(_document, &AbstractMsDocument::animationMapChanged,
+        connect(_document->animationsMap(), &AnimationsMap::mapChanged,
                 this, &AnimationActions::updateActions);
-        connect(_document, &AbstractMsDocument::animationFrameListChanged,
-                this, &AnimationActions::updateActions);
-        connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
+        connect(_document->animationsMap(), &AnimationsMap::selectedItemChanged,
                 this, &AnimationActions::updateActions);
     }
 
@@ -63,8 +61,7 @@ void AnimationActions::updateActions()
     if (_document) {
         documentExists = true;
 
-        const auto* sel = _document->selection();
-        animationSelected = sel->selectedAnimation();
+        animationSelected = _document->animationsMap()->selectedItem() != nullptr;
     }
 
     _addAnimation->setEnabled(documentExists);
@@ -75,62 +72,42 @@ void AnimationActions::updateActions()
 
 void AnimationActions::onAddAnimation()
 {
-    const MSA::Animation::map_t* animations = _document->animations();
-
     idstring newId = IdstringDialog::getIdstring(
         _widget,
         tr("Input Animation Name"),
         tr("Input name of the new animation:"),
-        idstring(), _document->animationList());
+        idstring(), _document->animationsMap()->animationNames());
 
-    if (newId.isValid() && !animations->contains(newId)) {
-        _document->undoStack()->push(
-            new AddAnimation(_document, newId));
-
-        _document->selection()->selectAnimation(newId);
-    }
+    AnimationUndoHelper(_document->animationsMap()).addItem(newId);
 }
 
 void AnimationActions::onCloneAnimation()
 {
-    const MSA::Animation::map_t* animations = _document->animations();
-    const idstring& animationId = _document->selection()->selectedAnimationId();
+    const idstring& animationId = _document->animationsMap()->selectedId();
 
     idstring newId = IdstringDialog::getIdstring(
         _widget,
         tr("Input Animation Name"),
         tr("Input name of the cloned animation:"),
-        animationId, _document->animationList());
+        animationId, _document->animationsMap()->animationNames());
 
-    if (newId != animationId && newId.isValid() && !animations->contains(newId)) {
-        _document->undoStack()->push(
-            new CloneAnimation(_document, animationId, newId));
-
-        _document->selection()->selectAnimation(newId);
-    }
+    AnimationUndoHelper(_document->animationsMap()).cloneSelectedItem(newId);
 }
 
 void AnimationActions::onRenameAnimation()
 {
-    const MSA::Animation::map_t* animations = _document->animations();
-    const idstring& animationId = _document->selection()->selectedAnimationId();
+    const idstring& animationId = _document->animationsMap()->selectedId();
 
     idstring newId = IdstringDialog::getIdstring(
         _widget,
         tr("Input Animation Name"),
         tr("Rename %1 to:").arg(QString::fromStdString(animationId)),
-        animationId, _document->animationList());
+        animationId, _document->animationsMap()->animationNames());
 
-    if (newId != animationId && newId.isValid() && !animations->contains(newId)) {
-        _document->undoStack()->push(
-            new RenameAnimation(_document, animationId, newId));
-    }
+    AnimationUndoHelper(_document->animationsMap()).renameSelectedItem(newId);
 }
 
 void AnimationActions::onRemoveAnimation()
 {
-    idstring animationId = _document->selection()->selectedAnimationId();
-
-    _document->undoStack()->push(
-        new RemoveAnimation(_document, animationId));
+    AnimationUndoHelper(_document->animationsMap()).removeSelectedItem();
 }

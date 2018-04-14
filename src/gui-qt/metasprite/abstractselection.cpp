@@ -6,6 +6,7 @@
 
 #include "abstractselection.h"
 #include "abstractmsdocument.h"
+#include "gui-qt/metasprite/animation/animationaccessors.h"
 #include "models/metasprite/common.h"
 
 #include <algorithm>
@@ -53,16 +54,11 @@ AbstractSelection::AbstractSelection(AbstractMsDocument* document)
             this, &AbstractSelection::onEntityHitboxAboutToBeRemoved);
     connect(_document, &AbstractMsDocument::frameContentsMoved,
             this, &AbstractSelection::onFrameContentsMoved);
-    connect(_document, &AbstractMsDocument::animationAboutToBeRemoved,
-            this, &AbstractSelection::onAnimationAboutToBeRemoved);
-    connect(_document, &AbstractMsDocument::animationRenamed,
-            this, &AbstractSelection::onAnimationRenamed);
 }
 
 void AbstractSelection::unselectAll()
 {
     unselectFrame();
-    unselectAnimation();
 }
 
 void AbstractSelection::selectFrame(const idstring& id)
@@ -87,26 +83,6 @@ void AbstractSelection::selectFrame(const idstring& id)
 void AbstractSelection::unselectFrame()
 {
     selectFrame(idstring());
-}
-
-void AbstractSelection::selectAnimation(const idstring& id)
-{
-    MSA::Animation* ani = _document->animations()->getPtr(id);
-
-    if (_selectedAnimation != ani) {
-        _selectedAnimation = ani;
-        _selectedAnimationId = ani ? id : idstring();
-
-        emit selectedAnimationChanged();
-    }
-}
-
-void AbstractSelection::unselectAnimation()
-{
-    _selectedAnimation = nullptr;
-    _selectedAnimationId = idstring();
-
-    emit selectedAnimationChanged();
 }
 
 void AbstractSelection::onFrameAboutToBeRemoved(const void* frame)
@@ -166,20 +142,6 @@ void AbstractSelection::onFrameContentsMoved(const void* frame,
         }
 
         setSelectedItems(selection);
-    }
-}
-
-void AbstractSelection::onAnimationAboutToBeRemoved(const idstring& id)
-{
-    if (_selectedAnimationId == id) {
-        unselectAnimation();
-    }
-}
-
-void AbstractSelection::onAnimationRenamed(const idstring& oldId, const idstring& newId)
-{
-    if (_selectedAnimationId == oldId) {
-        _selectedAnimationId = newId;
     }
 }
 

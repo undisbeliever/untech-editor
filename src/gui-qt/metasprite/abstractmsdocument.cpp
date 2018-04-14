@@ -6,6 +6,7 @@
 
 #include "abstractmsdocument.h"
 #include "framesetresourcelist.h"
+#include "animation/animationaccessors.h"
 #include "animation/animationframesmanager.h"
 #include "animation/animationlistmodel.h"
 #include "models/metasprite/compiler/compiler.h"
@@ -14,6 +15,8 @@ using namespace UnTech::GuiQt::MetaSprite;
 
 AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _animationsMap(new Animation::AnimationsMap(this))
+    , _animationFramesList(new Animation::AnimationFramesList(this))
 {
     connect(this, &AbstractMsDocument::frameSetDataChanged,
             this, &AbstractResourceItem::dataChanged);
@@ -33,28 +36,6 @@ AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t inde
             this, &AbstractResourceItem::dataChanged);
     connect(this, &AbstractMsDocument::entityHitboxListChanged,
             this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::animationDataChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::animationMapChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::animationFrameChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::animationFrameListChanged,
-            this, &AbstractResourceItem::dataChanged);
-}
-
-QStringList AbstractMsDocument::animationList() const
-{
-    QStringList al;
-
-    if (const auto* aniMap = this->animations()) {
-        al.reserve(aniMap->size());
-        for (const auto& it : *aniMap) {
-            al.append(QString::fromStdString(it.first));
-        }
-    }
-
-    return al;
 }
 
 void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,

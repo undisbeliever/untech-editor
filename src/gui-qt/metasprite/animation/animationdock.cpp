@@ -5,14 +5,15 @@
  */
 
 #include "animationdock.h"
+#include "animationaccessors.h"
 #include "animationactions.h"
-#include "animationcommands.h"
 #include "animationframesmanager.h"
 #include "animationlistmodel.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/animation/animationdock.ui.h"
+#include "gui-qt/undo/idmapundohelper.h"
 
 #include <QMenu>
 
@@ -81,6 +82,9 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
     if (_document != nullptr) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
+        _document->animationsMap()->disconnect(this);
+
+        _ui->animationList->selectionModel()->disconnect(this);
     }
     _document = document;
 
@@ -98,10 +102,10 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
 
         onSelectedAnimationChanged();
 
-        connect(_document, &AbstractMsDocument::animationDataChanged,
+        connect(_document->animationsMap(), &AnimationsMap::dataChanged,
                 this, &AnimationDock::onAnimationDataChanged);
 
-        connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
+        connect(_document->animationsMap(), &AnimationsMap::selectedItemChanged,
                 this, &AnimationDock::onSelectedAnimationChanged);
 
         connect(_ui->animationList->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -114,8 +118,8 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
 
 void AnimationDock::onSelectedAnimationChanged()
 {
-    MSA::Animation* ani = _document->selection()->selectedAnimation();
-    const idstring& id = _document->selection()->selectedAnimationId();
+    const MSA::Animation* ani = _document->animationsMap()->selectedItem();
+    const idstring& id = _document->animationsMap()->selectedId();
 
     _ui->animationBox->setEnabled(ani != nullptr);
 
@@ -132,7 +136,7 @@ void AnimationDock::onSelectedAnimationChanged()
 
 void AnimationDock::onAnimationDataChanged(const void* animation)
 {
-    if (animation == _document->selection()->selectedAnimation()) {
+    if (animation == _document->animationsMap()->selectedItem()) {
         updateGui();
     }
 }
@@ -146,7 +150,7 @@ void AnimationDock::clearGui()
 
 void AnimationDock::updateGui()
 {
-    const MSA::Animation* ani = _document->selection()->selectedAnimation();
+    const MSA::Animation* ani = _document->animationsMap()->selectedItem();
 
     _ui->durationFormat->setCurrentEnum(ani->durationFormat);
     _ui->oneShot->setChecked(ani->oneShot);
@@ -158,35 +162,31 @@ void AnimationDock::updateGui()
 
 void AnimationDock::onDurationFormatEdited()
 {
-    MSA::Animation* ani = _document->selection()->selectedAnimation();
-
     MSA::DurationFormat df = _ui->durationFormat->currentEnum<MSA::DurationFormat>();
-    if (df != ani->durationFormat) {
-        _document->undoStack()->push(
-            new ChangeAnimationDurationFormat(_document, ani, df));
-    }
+
+    AnimationUndoHelper helper(_document->animationsMap());
+    helper.editSelectedItemField(df, tr("Change Animation Duration Format"),
+                                 [](MSA::Animation& a) -> MSA::DurationFormat& { return a.durationFormat; });
 }
 
 void AnimationDock::onOneShotEdited()
 {
-    MSA::Animation* ani = _document->selection()->selectedAnimation();
-
     bool oneShot = _ui->oneShot->isChecked();
-    if (oneShot != ani->oneShot) {
-        _document->undoStack()->push(
-            new ChangeAnimationOneShot(_document, ani, oneShot));
-    }
+
+    QString text = oneShot ? tr("Set Animation One Shot") : tr("Clear Animation One Shot");
+
+    AnimationUndoHelper helper(_document->animationsMap());
+    helper.editSelectedItemField(oneShot, text,
+                                 [](MSA::Animation& a) -> bool& { return a.oneShot; });
 }
 
 void AnimationDock::onNextAnimationEdited()
 {
-    MSA::Animation* ani = _document->selection()->selectedAnimation();
-
     idstring nextAni = _ui->nextAnimation->text().toStdString();
-    if (nextAni != ani->nextAnimation) {
-        _document->undoStack()->push(
-            new ChangeAnimationNextAnimation(_document, ani, nextAni));
-    }
+
+    AnimationUndoHelper helper(_document->animationsMap());
+    helper.editSelectedItemField(nextAni, tr("Change Next Animation"),
+                                 [](MSA::Animation& a) -> idstring& { return a.nextAnimation; });
 }
 
 void AnimationDock::onAnimationListSelectionChanged()
@@ -194,7 +194,7 @@ void AnimationDock::onAnimationListSelectionChanged()
     if (_document) {
         QModelIndex index = _ui->animationList->currentIndex();
         idstring id = _animationListModel->toIdstring(index);
-        _document->selection()->selectAnimation(id);
+        _document->animationsMap()->setSelectedId(id);
     }
 }
 

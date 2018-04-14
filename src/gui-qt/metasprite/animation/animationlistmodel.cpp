@@ -5,6 +5,7 @@
  */
 
 #include "animationlistmodel.h"
+#include "animationaccessors.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 
 using namespace UnTech::GuiQt::MetaSprite::Animation;
@@ -19,17 +20,18 @@ void AnimationListModel::setDocument(AbstractMsDocument* document)
 {
     if (_document) {
         _document->disconnect(this);
+        _document->animationsMap()->disconnect(this);
     }
     _document = document;
 
     if (_document) {
         buildLists(*_document->animations());
 
-        connect(_document, &AbstractMsDocument::animationAdded,
+        connect(_document->animationsMap(), &AnimationsMap::itemAdded,
                 this, &AnimationListModel::addIdstring);
-        connect(_document, &AbstractMsDocument::animationAboutToBeRemoved,
+        connect(_document->animationsMap(), &AnimationsMap::itemAboutToBeRemoved,
                 this, &AnimationListModel::removeIdstring);
-        connect(_document, &AbstractMsDocument::animationRenamed,
+        connect(_document->animationsMap(), &AnimationsMap::itemRenamed,
                 this, &AnimationListModel::renameIdstring);
     }
     else {

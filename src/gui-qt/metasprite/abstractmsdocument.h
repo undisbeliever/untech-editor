@@ -23,6 +23,11 @@ struct SelectedItem;
 class AbstractSelection;
 class FrameSetResourceList;
 
+namespace Animation {
+class AnimationFramesList;
+class AnimationsMap;
+}
+
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace MSA = UnTech::MetaSprite::Animation;
 
@@ -42,7 +47,8 @@ public:
 
     virtual QStringList frameList() const = 0;
 
-    QStringList animationList() const;
+    Animation::AnimationFramesList* animationFramesList() const { return _animationFramesList; }
+    Animation::AnimationsMap* animationsMap() const { return _animationsMap; }
 
 protected:
     inline const auto& frameSetList() const
@@ -92,18 +98,11 @@ signals:
     void frameContentsMoved(const void* frame,
                             const std::set<SelectedItem>& oldPositions, int offset);
 
-    void animationDataChanged(const void* animation);
-    void animationMapChanged();
-    void animationAdded(const idstring& id);
-    void animationAboutToBeRemoved(const idstring& id);
-
     void animationRenamed(const idstring& oldId, const idstring& newId);
 
-    void animationFrameChanged(const void* animation, unsigned index);
-    void animationFrameListChanged(const void* animation);
-    void animationFrameAdded(const void* animation, unsigned index);
-    void animationFrameAboutToBeRemoved(const void* animation, unsigned index);
-    void animationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
+private:
+    Animation::AnimationsMap* const _animationsMap;
+    Animation::AnimationFramesList* const _animationFramesList;
 };
 }
 }

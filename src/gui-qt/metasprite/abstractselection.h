@@ -54,9 +54,6 @@ public:
     bool hasSelectedFrame() const { return _selectedFramePtr != nullptr; }
     const idstring& selectedFrameId() const { return _selectedFrameId; }
 
-    MSA::Animation* selectedAnimation() const { return _selectedAnimation; }
-    const idstring& selectedAnimationId() const { return _selectedAnimationId; }
-
     virtual void unselectAll();
 
     const std::set<SelectedItem>& selectedItems() const { return _selectedItems; }
@@ -64,9 +61,6 @@ public:
 
     void selectFrame(const idstring& id);
     void unselectFrame();
-
-    void selectAnimation(const idstring& id);
-    void unselectAnimation();
 
     bool canCloneSelectedItems() const;
     bool canRaiseSelectedItems() const;
@@ -90,8 +84,6 @@ signals:
     void selectedFrameChanged();
     void selectedItemsChanged();
 
-    void selectedAnimationChanged();
-
 private slots:
     void onFrameAboutToBeRemoved(const void* frame);
     void onFrameRenamed(const idstring& oldId, const idstring& newId);
@@ -103,18 +95,12 @@ private slots:
     void onFrameContentsMoved(const void* frame,
                               const std::set<SelectedItem>& oldPositions, int offset);
 
-    void onAnimationAboutToBeRemoved(const idstring& id);
-    void onAnimationRenamed(const idstring& oldId, const idstring& newId);
-
 protected:
     AbstractMsDocument* const _document;
 
     const void* _selectedFramePtr;
     idstring _selectedFrameId;
     std::set<SelectedItem> _selectedItems;
-
-    MSA::Animation* _selectedAnimation;
-    idstring _selectedAnimationId;
 };
 }
 }

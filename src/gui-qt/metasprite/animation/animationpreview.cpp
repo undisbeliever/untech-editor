@@ -5,6 +5,7 @@
  */
 
 #include "animationpreview.h"
+#include "animationaccessors.h"
 #include "animationlistmodel.h"
 #include "animationpreviewitem.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
@@ -105,6 +106,7 @@ void AnimationPreview::setDocument(AbstractMsDocument* document)
     if (_document != nullptr) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
+        _document->animationFramesList()->disconnect(this);
     }
     _document = document;
 
@@ -115,12 +117,12 @@ void AnimationPreview::setDocument(AbstractMsDocument* document)
     if (_document) {
         onSelectedAnimationChanged();
 
-        connect(_document, &AbstractMsDocument::animationFrameChanged,
+        connect(_document->animationFramesList(), &AnimationFramesList::dataChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
-        connect(_document, &AbstractMsDocument::animationFrameListChanged,
+        connect(_document->animationFramesList(), &AnimationFramesList::listChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
 
-        connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
+        connect(_document->animationFramesList(), &AnimationFramesList::selectedListChanged,
                 this, &AnimationPreview::onSelectedAnimationChanged);
     }
     else {
@@ -153,7 +155,7 @@ void AnimationPreview::createPreviewItem()
     onRegionChanged();
     onVelocityChanged();
 
-    _previewItem->setAnimation(_document->selection()->selectedAnimationId());
+    _previewItem->setAnimation(_document->animationsMap()->selectedId());
 
     updateGui();
 }
@@ -212,7 +214,7 @@ void AnimationPreview::onSelectedAnimationChanged()
 {
     Q_ASSERT(_document);
 
-    const idstring& id = _document->selection()->selectedAnimationId();
+    const idstring& id = _document->animationsMap()->selectedId();
 
     _ui->animation->setCurrentIndex(
         _animationListModel->toModelIndex(id).row());
@@ -242,7 +244,7 @@ void AnimationPreview::onAnimationFramesChanged()
 void AnimationPreview::onAnimationComboActivated()
 {
     const idstring id = _ui->animation->currentText().toStdString();
-    _document->selection()->selectAnimation(id);
+    _document->animationsMap()->setSelectedId(id);
 }
 
 void AnimationPreview::onVelocityChanged()
