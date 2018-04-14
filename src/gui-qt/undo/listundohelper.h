@@ -370,6 +370,13 @@ public:
         return e != nullptr;
     }
 
+    bool editItemInSelectedList(index_type index, const DataT& newValue)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        return edit(listArgs, index, newValue);
+    }
+
     // will return nullptr if data cannot be accessed or is equal to newValue
     template <typename FieldT, typename UnaryFunction>
     QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
@@ -402,6 +409,16 @@ public:
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
+    }
+
+    template <typename FieldT, typename UnaryFunction>
+    bool editFieldInSelectedList(index_type index, const FieldT& newValue,
+                                 const QString& text,
+                                 UnaryFunction getter)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        return editField(listArgs, index, newValue, text, getter);
     }
 
     // will return nullptr if list cannot be accessed,
@@ -487,6 +504,13 @@ public:
         return c != nullptr;
     }
 
+    bool cloneItemInSelectedList(index_type index)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        return cloneItem(listArgs, index);
+    }
+
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
     QUndoCommand* removeCommand(const ArgsT& listArgs, index_type index)
@@ -509,6 +533,13 @@ public:
             _accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
+    }
+
+    bool removeItemFromSelectedList(index_type index)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        return removeItem(listArgs, index);
     }
 
     // will return nullptr if list cannot be accessed or indexes are invalid
@@ -554,6 +585,20 @@ public:
             _accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
+    }
+
+    bool moveItemInSelectedList(index_type from, index_type to)
+    {
+        const ArgsT listArgs = this->_accessor->selectedListTuple();
+
+        return moveItem(listArgs, from, to);
+    }
+
+    bool moveItemInSelectedList(index_type from, index_type to, const QString& text)
+    {
+        const ArgsT listArgs = this->_accessor->selectedListTuple();
+
+        return moveItem(listArgs, from, to, text);
     }
 };
 
