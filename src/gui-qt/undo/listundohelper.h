@@ -11,6 +11,7 @@
 #include <QCoreApplication>
 #include <QUndoCommand>
 #include <functional>
+#include <memory>
 
 namespace UnTech {
 namespace GuiQt {
@@ -183,6 +184,61 @@ private:
             _getter(list->at(_index)) = _newValue;
 
             this->emitDataChanged(_index);
+        }
+    };
+
+    template <typename FieldT, typename UnaryFunction>
+    class EditFieldIncompleteCommand : public BaseCommand {
+    private:
+        const index_type _index;
+        const FieldT _oldValue;
+        FieldT _newValue;
+        const UnaryFunction _getter;
+
+    public:
+        EditFieldIncompleteCommand(AccessorT* accessor, const ArgsT& args, index_type index,
+                                   const FieldT& oldValue,
+                                   const QString& text,
+                                   UnaryFunction getter)
+            : BaseCommand(accessor, args, text)
+            , _index(index)
+            , _oldValue(oldValue)
+            , _newValue(oldValue)
+            , _getter(getter)
+        {
+        }
+        ~EditFieldIncompleteCommand() = default;
+
+        virtual void undo() final
+        {
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(_index >= 0 && _index < list->size());
+
+            _getter(list->at(_index)) = _oldValue;
+
+            this->emitDataChanged(_index);
+        }
+
+        virtual void redo() final
+        {
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(_index >= 0 && _index < list->size());
+
+            _getter(list->at(_index)) = _newValue;
+
+            this->emitDataChanged(_index);
+        }
+
+        void setValue(const FieldT& v)
+        {
+            _newValue = v;
+        }
+
+        bool hasValueChanged() const
+        {
+            return _newValue != _oldValue;
         }
     };
 
@@ -421,6 +477,28 @@ public:
         return editField(listArgs, index, newValue, text, getter);
     }
 
+    // The caller is responsible for setting the new value of the command and
+    // releasing it into the undo stack.
+    // Will return nullptr if field cannot be accessed
+    template <typename FieldT, typename UnaryFunction>
+    std::unique_ptr<EditFieldIncompleteCommand<FieldT, UnaryFunction>>
+    editFieldIncompleteCommand(const ArgsT& listArgs, index_type index,
+                               const QString& text,
+                               UnaryFunction getter)
+    {
+        ListT* list = getList(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+        if (index < 0 || index >= list->size()) {
+            return nullptr;
+        }
+        const FieldT& oldValue = getter(list->at(index));
+
+        return std::make_unique<EditFieldIncompleteCommand<FieldT, UnaryFunction>>(
+            _accessor, listArgs, index, oldValue, text, getter);
+    }
+
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
     QUndoCommand* addCommand(const ArgsT& listArgs, index_type index)
@@ -633,6 +711,18 @@ public:
         const index_type index = this->_accessor->selectedIndex();
 
         return this->editField(listArgs, index, newValue, text, getter);
+    }
+
+    // will return nullptr if data cannot be accessed
+    template <typename FieldT, typename UnaryFunction>
+    auto editSelectedFieldIncompleteCommand(const QString& text,
+                                            UnaryFunction getter)
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->template editFieldIncompleteCommand<FieldT>(
+            listArgs, index, text, getter);
     }
 
     bool addItemToSelectedList(index_type index)
