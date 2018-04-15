@@ -5,6 +5,7 @@
  */
 
 #include "document.h"
+#include "accessors.h"
 #include "framelistmodel.h"
 #include "palettesmodel.h"
 #include "selection.h"
@@ -16,6 +17,7 @@ Document::Document(FrameSetResourceList* parent, size_t index)
     : AbstractMsDocument(parent, index)
     , _frameSet(nullptr)
     , _selection(new Selection(this))
+    , _paletteList(new PaletteList(this))
 {
     Q_ASSERT(index < frameSetList().size());
     Q_ASSERT(frameSetFile().type == FrameSetType::METASPRITE);
@@ -26,19 +28,6 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
     connect(this, &Document::frameSetNameChanged,
             this, &Document::onFrameSetNameChanged);
-
-    connect(this, &Document::paletteChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::paletteListChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::smallTilesetChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::largeTilesetChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::smallTileChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::largeTileChanged,
-            this, &AbstractResourceItem::dataChanged);
 }
 
 QStringList Document::frameList() const

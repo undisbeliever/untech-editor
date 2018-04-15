@@ -5,6 +5,7 @@
  */
 
 #include "tilesetdock.h"
+#include "accessors.h"
 #include "document.h"
 #include "framecontentcommands.h"
 #include "selection.h"
@@ -117,7 +118,7 @@ void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned change
 
 void TilesetDock::onTileClicked(ObjectSize size, int tileIndex)
 {
-    if (_document->selection()->selectedColor() >= 0) {
+    if (_document->paletteList()->isSelectedColorValid()) {
         // don't change tile in edit tiles mode
         return;
     }

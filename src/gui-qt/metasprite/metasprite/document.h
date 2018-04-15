@@ -15,7 +15,8 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
-class PalettesModel;
+
+class PaletteList;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -36,6 +37,8 @@ public:
 
     virtual QStringList frameList() const final;
 
+    PaletteList* paletteList() const { return _paletteList; }
+
 protected:
     // can throw exceptions
     virtual void saveResourceData(const std::string& filename) const final;
@@ -49,12 +52,6 @@ private:
     void resetDocumentState();
 
 signals:
-    void paletteChanged(unsigned index);
-    void paletteListChanged();
-    void paletteAdded(unsigned index);
-    void paletteAboutToBeRemoved(unsigned index);
-    void paletteMoved(unsigned oldIndex, unsigned newIndex);
-
     void smallTilesetChanged();
     void largeTilesetChanged();
 
@@ -65,6 +62,8 @@ private:
     MS::FrameSet* _frameSet;
 
     Selection* const _selection;
+
+    PaletteList* const _paletteList;
 };
 }
 }

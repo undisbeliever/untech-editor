@@ -5,14 +5,14 @@
  */
 
 #include "palettesdock.h"
+#include "accessors.h"
 #include "actions.h"
 #include "document.h"
-#include "palettecommands.h"
 #include "palettesmodel.h"
-#include "selection.h"
 #include "gui-qt/common/widgets/colortoolbutton.h"
 #include "gui-qt/metasprite/metasprite/palettesdock.ui.h"
 #include "gui-qt/snes/snescolordialog.h"
+#include "gui-qt/undo/listundohelper.h"
 
 #include <QMenu>
 
@@ -93,7 +93,7 @@ void PalettesDock::setDocument(Document* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->paletteList()->disconnect(this);
     }
     _document = document;
 
@@ -108,13 +108,13 @@ void PalettesDock::setDocument(Document* document)
         updatePaletteListSelection();
         updateSelectedColor();
 
-        connect(_document, &Document::paletteChanged,
+        connect(_document->paletteList(), &PaletteList::dataChanged,
                 this, &PalettesDock::updateSelectedPalette);
-        connect(_document->selection(), &Selection::selectedPaletteChanged,
+        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &PalettesDock::updatePaletteListSelection);
-        connect(_document->selection(), &Selection::selectedPaletteChanged,
+        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &PalettesDock::updateSelectedPalette);
-        connect(_document->selection(), &Selection::selectedColorChanged,
+        connect(_document->paletteList(), &PaletteList::selectedColorChanged,
                 this, &PalettesDock::updateSelectedColor);
     }
 }
@@ -123,7 +123,7 @@ void PalettesDock::updatePaletteListSelection()
 {
     Q_ASSERT(_document);
 
-    unsigned selectedPalette = _document->selection()->selectedPalette();
+    unsigned selectedPalette = _document->paletteList()->selectedIndex();
     QModelIndex index = _model->toModelIndex(selectedPalette);
 
     _ui->paletteList->setCurrentIndex(index);
@@ -133,7 +133,12 @@ void PalettesDock::onPaletteListSelectionChanged()
 {
     if (_document) {
         QModelIndex index = _ui->paletteList->currentIndex();
-        _document->selection()->selectPalette(index.row());
+        if (index.isValid()) {
+            _document->paletteList()->setSelectedIndex(index.row());
+        }
+        else {
+            _document->paletteList()->unselectItem();
+        }
     }
 }
 
@@ -160,21 +165,17 @@ void PalettesDock::onPaletteContextMenu(const QPoint& pos)
 
 void PalettesDock::updateSelectedPalette()
 {
-    unsigned selectedPalette = INT_MAX;
-    unsigned nPalettes = 0;
+    const UnTech::Snes::Palette4bpp* palette = nullptr;
 
     if (_document) {
-        selectedPalette = _document->selection()->selectedPalette();
-        nPalettes = _document->frameSet()->palettes.size();
+        palette = _document->paletteList()->selectedPalette();
     }
 
-    if (selectedPalette < nPalettes) {
+    if (palette) {
         _ui->selectedPalette->setEnabled(true);
 
-        const auto& palette = _document->frameSet()->palettes.at(selectedPalette);
-
         for (unsigned i = 0; i < 16; i++) {
-            _colorButtons.at(i)->setColor(palette.color(i).rgb());
+            _colorButtons.at(i)->setColor(palette->color(i).rgb());
         }
     }
     else {
@@ -188,8 +189,9 @@ void PalettesDock::updateSelectedPalette()
 
 void PalettesDock::updateSelectedColor()
 {
-    const int c = _document->selection()->selectedColor();
-    if (c >= 0) {
+    if (_document->paletteList()->isSelectedColorValid()) {
+        const unsigned c = _document->paletteList()->selectedColor();
+
         _ui->selectColorButton->setChecked(true);
         _colorButtons.at(c)->setChecked(true);
     }
@@ -211,7 +213,7 @@ void PalettesDock::uncheckColorButtons()
     }
 
     if (_document) {
-        _document->selection()->unselectColor();
+        _document->paletteList()->unselectColor();
     }
 }
 
@@ -221,14 +223,11 @@ void PalettesDock::onColorClicked(int colorIndex)
         return;
     }
 
-    unsigned selectedPalette = _document->selection()->selectedPalette();
-    const MS::FrameSet& frameSet = *_document->frameSet();
-
-    if (selectedPalette >= frameSet.palettes.size()) {
+    if (_document->paletteList()->isSelectedIndexValid() == false) {
         uncheckColorButtons();
     }
     else if (_ui->selectColorButton->isChecked()) {
-        _document->selection()->selectColor(colorIndex);
+        _document->paletteList()->setSelectedColor(colorIndex);
     }
     else {
         editColorDialog(colorIndex);
@@ -237,26 +236,37 @@ void PalettesDock::onColorClicked(int colorIndex)
 
 void PalettesDock::editColorDialog(int colorIndex)
 {
-    unsigned selectedPalette = _document->selection()->selectedPalette();
-    const MS::FrameSet& frameSet = *_document->frameSet();
+    using namespace UnTech::Snes;
 
-    const auto color = frameSet.palettes.at(selectedPalette).color(colorIndex);
+    if (colorIndex < 0 || colorIndex >= 16) {
+        return;
+    }
 
-    auto command = std::make_unique<ChangePaletteColor>(
-        _document, selectedPalette, colorIndex);
+    const Palette4bpp* palette = _document->paletteList()->selectedPalette();
+    if (palette == nullptr) {
+        return;
+    }
+    const SnesColor color = palette->color(colorIndex);
+
+    PaletteListUndoHelper helper(_document->paletteList());
+    auto command = helper.editSelectedFieldIncompleteCommand<SnesColor>(
+        tr("Edit Palette Color"),
+        [=](auto& pal) -> SnesColor& { return pal.color(colorIndex); });
+
+    Q_ASSERT(command);
 
     SnesColorDialog dialog(this);
     dialog.setColor(color);
 
     connect(&dialog, &SnesColorDialog::colorChanged,
             [&](auto& newColor) {
-                command->setNewColor(newColor);
+                command->setValue(newColor);
                 command->redo();
             });
 
     dialog.exec();
 
-    if (dialog.result() == QDialog::Accepted && dialog.color() != color) {
+    if (dialog.result() == QDialog::Accepted && command->hasValueChanged()) {
         _document->undoStack()->push(command.release());
     }
     else {

@@ -5,14 +5,16 @@
  */
 
 #include "actions.h"
+#include "accessors.h"
 #include "document.h"
 #include "framecommands.h"
 #include "framecontentcommands.h"
 #include "framelistmodel.h"
 #include "mainwindow.h"
-#include "palettecommands.h"
 #include "selection.h"
 #include "gui-qt/common/idstringdialog.h"
+#include "gui-qt/undo/listactionhelper.h"
+#include "gui-qt/undo/listundohelper.h"
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
@@ -87,6 +89,7 @@ void Actions::setDocument(Document* document)
     if (_document) {
         _document->disconnect(this);
         _document->selection()->disconnect(this);
+        _document->paletteList()->disconnect(this);
     }
     _document = document;
 
@@ -101,10 +104,13 @@ void Actions::setDocument(Document* document)
                 this, &Actions::updateActions);
         connect(_document->selection(), &Selection::selectedFrameChanged,
                 this, &Actions::updateActions);
-        connect(_document->selection(), &Selection::selectedPaletteChanged,
-                this, &Actions::updateActions);
         connect(_document->selection(), &Selection::selectedItemsChanged,
                 this, &Actions::updateActions);
+
+        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
+                this, &Actions::updatePaletteActions);
+        connect(_document->paletteList(), &PaletteList::listChanged,
+                this, &Actions::updatePaletteActions);
     }
 
     updateActions();
@@ -114,12 +120,6 @@ void Actions::updateActions()
 {
     bool documentExists = false;
     bool frameSelected = false;
-
-    bool paletteSelected = false;
-    bool canAddPalette = false;
-    bool canRemovePalette = false;
-    bool canRaisePalette = false;
-    bool canLowerPalette = false;
 
     bool canAddFrameObject = false;
     bool canAddActionPoint = false;
@@ -133,16 +133,6 @@ void Actions::updateActions()
 
     if (_document) {
         documentExists = true;
-
-        const auto& palettes = _document->frameSet()->palettes;
-        const unsigned selectedPalette = _document->selection()->selectedPalette();
-        if (selectedPalette < palettes.size()) {
-            paletteSelected = true;
-            canRemovePalette = palettes.size() > 1;
-            canRaisePalette = selectedPalette > 0;
-            canLowerPalette = selectedPalette < palettes.size() - 1;
-        }
-        canAddPalette = palettes.can_insert();
 
         if (const MS::Frame* frame = _document->selection()->selectedFrame()) {
             frameSelected = true;
@@ -173,12 +163,6 @@ void Actions::updateActions()
 
     _addRemoveTileHitbox->setEnabled(frameSelected);
 
-    _addPalette->setEnabled(canAddPalette);
-    _clonePalette->setEnabled(paletteSelected && canAddPalette);
-    _removePalette->setEnabled(canRemovePalette);
-    _raisePalette->setEnabled(canRaisePalette);
-    _lowerPalette->setEnabled(canLowerPalette);
-
     _addFrameObject->setEnabled(canAddFrameObject);
     _addActionPoint->setEnabled(canAddActionPoint);
     _addEntityHitbox->setEnabled(canAddEntityHitbox);
@@ -192,6 +176,23 @@ void Actions::updateActions()
     _flipObjHorizontally->setEnabled(frameObjSelected);
 
     _entityHitboxTypeMenu->setEnabled(entityHitboxSelected);
+}
+
+void Actions::updatePaletteActions()
+{
+    using namespace UnTech::GuiQt::Undo;
+
+    ListActionStatus status;
+
+    if (_document) {
+        status = ListActionHelper::status(_document->paletteList());
+    }
+
+    _addPalette->setEnabled(status.canAdd);
+    _clonePalette->setEnabled(status.canClone);
+    _removePalette->setEnabled(status.canRemove);
+    _raisePalette->setEnabled(status.canRaise);
+    _lowerPalette->setEnabled(status.canLower);
 }
 
 void Actions::onAddFrame()
@@ -267,47 +268,27 @@ void Actions::onAddRemoveTileHitbox()
 
 void Actions::onAddPalette()
 {
-    const auto& palettes = _document->frameSet()->palettes;
-
-    _document->undoStack()->push(
-        new AddPalette(_document));
-
-    _document->selection()->selectPalette(palettes.size() - 1);
+    PaletteListUndoHelper(_document->paletteList()).addItemToSelectedList();
 }
 
 void Actions::onClonePalette()
 {
-    const auto& palettes = _document->frameSet()->palettes;
-    unsigned index = _document->selection()->selectedPalette();
-
-    _document->undoStack()->push(
-        new ClonePalette(_document, index));
-
-    _document->selection()->selectPalette(palettes.size() - 1);
+    PaletteListUndoHelper(_document->paletteList()).cloneSelectedItem();
 }
 
 void Actions::onRemovePalette()
 {
-    unsigned index = _document->selection()->selectedPalette();
-
-    _document->undoStack()->push(
-        new RemovePalette(_document, index));
+    PaletteListUndoHelper(_document->paletteList()).removeSelectedItem();
 }
 
 void Actions::onRaisePalette()
 {
-    unsigned index = _document->selection()->selectedPalette();
-
-    _document->undoStack()->push(
-        new RaisePalette(_document, index));
+    PaletteListUndoHelper(_document->paletteList()).raiseSelectedItem();
 }
 
 void Actions::onLowerPalette()
 {
-    unsigned index = _document->selection()->selectedPalette();
-
-    _document->undoStack()->push(
-        new LowerPalette(_document, index));
+    PaletteListUndoHelper(_document->paletteList()).lowerSelectedItem();
 }
 
 void Actions::onAddFrameObject()

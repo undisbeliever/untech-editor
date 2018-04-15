@@ -28,16 +28,7 @@ public:
     Selection(Document* document);
     ~Selection() = default;
 
-    virtual void unselectAll() final;
-
     MS::Frame* selectedFrame() const { return _selectedFrame; }
-
-    void selectPalette(unsigned index);
-    unsigned selectedPalette() const { return _selectedPalette; }
-
-    void selectColor(int color);
-    void unselectColor() { selectColor(-1); }
-    int selectedColor() const { return _selectedColor; }
 
 protected:
     virtual const void* setSelectedFrame(const idstring& id) final;
@@ -45,21 +36,9 @@ protected:
     virtual unsigned nActionPointsInSelectedFrame() const final;
     virtual unsigned nEntityHitboxesInSelectedFrame() const final;
 
-private slots:
-    void onPaletteAdded(unsigned index);
-    void onPaletteAboutToBeRemoved(unsigned index);
-    void onPaletteMoved(unsigned oldPos, unsigned newPos);
-
-signals:
-    void selectedPaletteChanged();
-    void selectedColorChanged();
-
 private:
     Document* _document;
     MS::Frame* _selectedFrame;
-
-    unsigned _selectedPalette;
-    int _selectedColor;
 };
 }
 }

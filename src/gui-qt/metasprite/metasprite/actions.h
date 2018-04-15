@@ -57,6 +57,7 @@ public:
 
 public slots:
     void updateActions();
+    void updatePaletteActions();
 
     void onAddFrame();
     void onCloneFrame();
