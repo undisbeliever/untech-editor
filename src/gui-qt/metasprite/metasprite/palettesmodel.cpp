@@ -79,6 +79,13 @@ QPixmap PalettesModel::palettePixmap(unsigned index)
 
 QModelIndex PalettesModel::toModelIndex(unsigned index) const
 {
+    if (_document == nullptr
+        || _document->frameSet() == nullptr
+        || index >= _document->frameSet()->palettes.size()) {
+
+        return QModelIndex();
+    }
+
     return createIndex(index, 0);
 }
 
