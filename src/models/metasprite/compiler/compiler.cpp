@@ -9,7 +9,6 @@
 #include "models/metasprite/project.h"
 #include <algorithm>
 #include <climits>
-#include <set>
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 using Compiler = UnTech::MetaSprite::Compiler::Compiler;

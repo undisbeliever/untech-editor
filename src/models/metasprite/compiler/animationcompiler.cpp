@@ -7,7 +7,6 @@
 #include "animationcompiler.h"
 #include <algorithm>
 #include <climits>
-#include <set>
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite::Compiler;

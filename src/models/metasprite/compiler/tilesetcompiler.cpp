@@ -7,7 +7,6 @@
 #include "tilesetcompiler.h"
 #include "combinesmalltilesets.h"
 #include <climits>
-#include <set>
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite::Compiler;
@@ -82,10 +81,10 @@ struct TilesetCompiler::Tile16 {
 };
 
 struct TilesetCompiler::FrameTilesetData {
-    std::set<const MetaSprite::Frame*> frames;
-    std::set<Tile16> tiles;
+    vectorset<const MetaSprite::Frame*> frames;
+    vectorset<Tile16> tiles;
 
-    FrameTilesetData(const MetaSprite::Frame* frame, std::set<Tile16>&& tiles)
+    FrameTilesetData(const MetaSprite::Frame* frame, vectorset<Tile16>&& tiles)
         : frames()
         , tiles(tiles)
     {
@@ -93,7 +92,7 @@ struct TilesetCompiler::FrameTilesetData {
     }
 
     FrameTilesetData(const std::vector<FrameListEntry>& frameEntries,
-                     std::set<Tile16>&& tiles)
+                     vectorset<Tile16>&& tiles)
         : frames()
         , tiles(tiles)
     {
@@ -104,7 +103,7 @@ struct TilesetCompiler::FrameTilesetData {
 };
 
 struct TilesetCompiler::DynamicTilesetData {
-    std::set<Tile16> staticTiles;
+    vectorset<Tile16> staticTiles;
     std::vector<FrameTilesetData> ftVector;
 };
 }
@@ -128,7 +127,7 @@ void TilesetCompiler::writeToIncFile(std::ostream& out) const
 FrameTileset
 TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
                               const TilesetType tilesetType,
-                              const std::set<Tile16>& tiles,
+                              const vectorset<Tile16>& tiles,
                               const unsigned tileOffset)
 {
     assert(tiles.size() <= tilesetType.nTiles());
@@ -253,7 +252,7 @@ TilesetCompiler::buildDynamicTileset(const MetaSprite::FrameSet& frameSet,
 FrameSetTilesets
 TilesetCompiler::buildFixedTileset(const MetaSprite::FrameSet& frameSet,
                                    const TilesetType tilesetType,
-                                   const std::set<Tile16>& tiles)
+                                   const vectorset<Tile16>& tiles)
 {
     FrameSetTilesets ret;
     ret.tilesetType = tilesetType;
@@ -276,7 +275,7 @@ TilesetCompiler::buildFixedTileset(const MetaSprite::FrameSet& frameSet,
     return ret;
 }
 
-void TilesetCompiler::addFrameToTileset(std::set<Tile16>& tiles,
+void TilesetCompiler::addFrameToTileset(vectorset<Tile16>& tiles,
                                         const MS::Frame& frame,
                                         const SmallTileMap_t& smallTileMap) const
 {
@@ -314,7 +313,7 @@ TilesetCompiler::countTileUsage(const std::vector<FrameTilesetData>& ftVector) c
     return ret;
 }
 
-std::set<TilesetCompiler::Tile16>
+vectorset<TilesetCompiler::Tile16>
 TilesetCompiler::calculateStaticTiles(const std::vector<FrameTilesetData>& ftVector,
                                       const TilesetType tilesetType) const
 {
@@ -334,7 +333,7 @@ TilesetCompiler::calculateStaticTiles(const std::vector<FrameTilesetData>& ftVec
             unsigned nDynamicTiles = ft.tiles.size();
 
             for (const auto& tc : popularTiles) {
-                if (ft.tiles.find(tc.first) != ft.tiles.end()) {
+                if (ft.tiles.contains(tc.first)) {
                     nDynamicTiles--;
                 }
             }
@@ -349,9 +348,10 @@ TilesetCompiler::calculateStaticTiles(const std::vector<FrameTilesetData>& ftVec
         popularTiles.resize(popularTiles.size() - 1);
     }
 
-    std::set<Tile16> ret;
+    vectorset<Tile16> ret;
+    ret.reserve(popularTiles.size());
     for (const auto& tc : popularTiles) {
-        ret.emplace(std::move(tc.first));
+        ret.insert(tc.first);
     }
     return ret;
 }
@@ -366,7 +366,7 @@ TilesetCompiler::dynamicTilesetData(const std::vector<FrameListEntry>& frameEntr
     for (const auto& entry : frameEntries) {
         auto& ftVector = tileset.ftVector;
 
-        std::set<Tile16> tiles;
+        vectorset<Tile16> tiles;
         addFrameToTileset(tiles, *entry.frame, smallTileMap);
 
         auto it = std::find_if(ftVector.begin(), ftVector.end(),
@@ -392,11 +392,11 @@ TilesetCompiler::dynamicTilesetData(const std::vector<FrameListEntry>& frameEntr
     return tileset;
 }
 
-std::set<TilesetCompiler::Tile16>
+vectorset<TilesetCompiler::Tile16>
 TilesetCompiler::fixedTilesetData(const std::vector<FrameListEntry>& frames,
                                   const SmallTileMap_t& smallTileMap) const
 {
-    std::set<Tile16> tiles;
+    vectorset<Tile16> tiles;
 
     for (const auto& entry : frames) {
         addFrameToTileset(tiles, *entry.frame, smallTileMap);
@@ -427,8 +427,8 @@ void TilesetCompiler::validateExportList(const FrameSetExportList& exportList)
 {
     const MS::FrameSet& frameSet = exportList.frameSet();
 
-    std::set<unsigned> largeTiles;
-    std::set<unsigned> smallTiles;
+    vectorset<unsigned> largeTiles;
+    vectorset<unsigned> smallTiles;
 
     for (const auto& fle : exportList.frames()) {
         assert(fle.frame != nullptr);
