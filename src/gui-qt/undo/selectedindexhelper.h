@@ -19,12 +19,12 @@ class SelectedIndexHelper {
     template <class SelectorT, typename T, typename index_type>
     struct SlotBuilder;
 
-    template <class SelectorT, typename... ArgsT, typename index_type>
-    struct SlotBuilder<SelectorT, std::tuple<ArgsT...>, index_type> {
+    template <class SelectorT, typename... SignalArgsT, typename index_type>
+    struct SlotBuilder<SelectorT, std::tuple<SignalArgsT...>, index_type> {
 
         static auto buildOnItemAdded(SelectorT* selector)
         {
-            return [=](const ArgsT&... args, index_type index) {
+            return [=](const SignalArgsT&... args, index_type index) {
                 if (std::tie(args...) == selector->selectedListTuple()) {
                     index_type sel = selector->selectedIndex();
 
@@ -37,7 +37,7 @@ class SelectedIndexHelper {
 
         static auto buildOnItemAboutToBeRemoved(SelectorT* selector)
         {
-            return [=](const ArgsT&... args, index_type index) {
+            return [=](const SignalArgsT&... args, index_type index) {
                 if (std::tie(args...) == selector->selectedListTuple()) {
                     index_type sel = selector->selectedIndex();
 
@@ -53,7 +53,7 @@ class SelectedIndexHelper {
 
         static auto buildOnItemMoved(SelectorT* selector)
         {
-            return [=](const ArgsT&... args, index_type from, index_type to) {
+            return [=](const SignalArgsT&... args, index_type from, index_type to) {
                 if (std::tie(args...) == selector->selectedListTuple()) {
                     index_type sel = selector->selectedIndex();
 
@@ -75,10 +75,10 @@ public:
     template <class AccessorT, class SelectorT>
     static void buildAndConnectSlots(AccessorT* accessor, SelectorT* selector)
     {
-        using ArgsT = typename AccessorT::ArgsT;
+        using SignalArgsT = typename AccessorT::SignalArgsT;
         using index_type = typename AccessorT::index_type;
 
-        using SB = SlotBuilder<SelectorT, ArgsT, index_type>;
+        using SB = SlotBuilder<SelectorT, SignalArgsT, index_type>;
 
         QObject::connect(accessor, &AccessorT::itemAdded,
                          selector, SB::buildOnItemAdded(selector));

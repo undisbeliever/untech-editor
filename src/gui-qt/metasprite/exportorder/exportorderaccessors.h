@@ -24,6 +24,7 @@ public:
     using ListT = DataT::list_t;
     using index_type = ListT::size_type;
     using ArgsT = std::tuple<bool>;
+    using SignalArgsT = ArgsT;
 
     constexpr static index_type max_size = ListT::MAX_SIZE;
 
@@ -110,6 +111,7 @@ public:
     using ListT = std::vector<DataT>;
     using index_type = ListT::size_type;
     using ArgsT = std::tuple<bool, index_type>;
+    using SignalArgsT = ArgsT;
 
     constexpr static index_type max_size = 256;
 

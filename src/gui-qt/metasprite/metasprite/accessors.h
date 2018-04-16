@@ -26,6 +26,7 @@ public:
     using ListT = capped_vector<Snes::Palette4bpp, max_size>;
     using index_type = ListT::size_type;
     using ArgsT = std::tuple<>;
+    using SignalArgsT = ArgsT;
 
 private:
     Document* const _document;
