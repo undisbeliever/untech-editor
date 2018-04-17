@@ -28,6 +28,7 @@ SiGraphicsScene::SiGraphicsScene(Actions* actions, LayerSettings* layerSettings,
     , _paletteOutline(new QGraphicsPathItem())
     , _document(nullptr)
     , _inUpdateSelection(false)
+    , _inOnSceneSelectionChanged(false)
 {
     Q_ASSERT(_actions != nullptr);
     Q_ASSERT(_layerSettings != nullptr);
@@ -106,22 +107,12 @@ void SiGraphicsScene::setDocument(Document* document)
         connect(_document, &Document::entityHitboxChanged,
                 this, &SiGraphicsScene::onEntityHitboxChanged);
 
-        connect(_document, &Document::frameObjectAboutToBeRemoved,
-                this, &SiGraphicsScene::onFrameObjectAboutToBeRemoved);
-        connect(_document, &Document::actionPointAboutToBeRemoved,
-                this, &SiGraphicsScene::onActionPointAboutToBeRemoved);
-        connect(_document, &Document::entityHitboxAboutToBeRemoved,
-                this, &SiGraphicsScene::onEntityHitboxAboutToBeRemoved);
-
-        connect(_document, &Document::frameObjectAdded,
-                this, &SiGraphicsScene::onFrameObjectAdded);
-        connect(_document, &Document::actionPointAdded,
-                this, &SiGraphicsScene::onActionPointAdded);
-        connect(_document, &Document::entityHitboxAdded,
-                this, &SiGraphicsScene::onEntityHitboxAdded);
-
-        connect(_document, &Document::frameContentsMoved,
-                this, &SiGraphicsScene::onFrameContentsMoved);
+        connect(_document, &Document::frameObjectListChanged,
+                this, &SiGraphicsScene::onFrameObjectListChanged);
+        connect(_document, &Document::actionPointListChanged,
+                this, &SiGraphicsScene::onActionPointListChanged);
+        connect(_document, &Document::entityHitboxListChanged,
+                this, &SiGraphicsScene::onEntityHitboxListChanged);
     }
 }
 
@@ -196,66 +187,72 @@ void SiGraphicsScene::commitMovedItems()
     if (frame == nullptr || selectedItems.isEmpty()) {
         return;
     }
+    const SiFrameGraphicsItem* frameItem = _frameItems.value(frame);
+    if (frameItem == nullptr) {
+        return;
+    }
+
+    const auto& objects = frameItem->objects();
+    const auto& actionPoints = frameItem->actionPoints();
+    const auto& entityHitboxes = frameItem->entityHitboxes();
 
     auto command = std::make_unique<QUndoCommand>(tr("Move"));
 
-    for (QGraphicsItem* item : selectedItems) {
-        QVariant v = item->data(SiFrameGraphicsItem::SELECTION_ID);
-        if (v.isValid()) {
-            SelectedItem id = v.value<SelectedItem>();
-            switch (id.type) {
-            case SelectedItem::NONE:
-                break;
+    for (auto& sel : _document->selection()->selectedItems()) {
+        int index = sel.index;
 
-            case SelectedItem::FRAME_OBJECT:
-                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
-                    SI::FrameObject obj = frame->objects.at(id.index);
+        switch (sel.type) {
+        case SelectedItem::NONE:
+            break;
 
-                    upoint location = i->posUpoint();
-                    if (obj.location != location) {
-                        obj.location = location;
-                        new ChangeFrameObject(_document, frame, id.index, obj,
-                                              command.get());
-                    }
+        case SelectedItem::FRAME_OBJECT:
+            if (index < objects.size()) {
+                SI::FrameObject obj = frame->objects.at(index);
+
+                upoint location = objects.at(index)->posUpoint();
+                if (obj.location != location) {
+                    obj.location = location;
+                    new ChangeFrameObject(_document, frame, index, obj,
+                                          command.get());
                 }
-                break;
-
-            case SelectedItem::ACTION_POINT:
-                if (auto* i = dynamic_cast<const AabbGraphicsItem*>(item)) {
-                    SI::ActionPoint ap = frame->actionPoints.at(id.index);
-
-                    upoint location = i->posUpoint();
-                    if (ap.location != location) {
-                        ap.location = location;
-                        new ChangeActionPoint(_document, frame, id.index, ap,
-                                              command.get());
-                    }
-                }
-                break;
-
-            case SelectedItem::ENTITY_HITBOX:
-                if (auto* i = dynamic_cast<const ResizableAabbGraphicsItem*>(item)) {
-                    SI::EntityHitbox eh = frame->entityHitboxes.at(id.index);
-
-                    urect aabb = i->rectUrect();
-                    if (eh.aabb != aabb) {
-                        eh.aabb = aabb;
-                        new ChangeEntityHitbox(_document, frame, id.index, eh,
-                                               command.get());
-                    }
-                }
-                break;
-
-            case SelectedItem::TILE_HITBOX:
-                if (auto* i = dynamic_cast<const ResizableAabbGraphicsItem*>(item)) {
-                    urect hitbox = i->rectUrect();
-                    if (frame->tileHitbox != hitbox) {
-                        new ChangeFrameTileHitbox(_document, frame, hitbox,
-                                                  command.get());
-                    }
-                }
-                break;
             }
+            break;
+
+        case SelectedItem::ACTION_POINT:
+            if (index < actionPoints.size()) {
+                SI::ActionPoint ap = frame->actionPoints.at(index);
+
+                upoint location = actionPoints.at(index)->posUpoint();
+                if (ap.location != location) {
+                    ap.location = location;
+                    new ChangeActionPoint(_document, frame, index, ap,
+                                          command.get());
+                }
+            }
+            break;
+
+        case SelectedItem::ENTITY_HITBOX:
+            if (index < entityHitboxes.size()) {
+                SI::EntityHitbox eh = frame->entityHitboxes.at(index);
+
+                urect aabb = entityHitboxes.at(index)->rectUrect();
+                if (eh.aabb != aabb) {
+                    eh.aabb = aabb;
+                    new ChangeEntityHitbox(_document, frame, index, eh,
+                                           command.get());
+                }
+            }
+            break;
+
+        case SelectedItem::TILE_HITBOX:
+            if (const auto* th = frameItem->tileHitbox()) {
+                urect hitbox = th->rectUrect();
+                if (frame->tileHitbox != hitbox) {
+                    new ChangeFrameTileHitbox(_document, frame, hitbox,
+                                              command.get());
+                }
+            }
+            break;
         }
     }
 
@@ -281,7 +278,7 @@ void SiGraphicsScene::onSelectedFrameChanged()
 
 void SiGraphicsScene::updateSelection()
 {
-    if (_document == nullptr) {
+    if (_document == nullptr || _inOnSceneSelectionChanged) {
         return;
     }
 
@@ -305,19 +302,41 @@ void SiGraphicsScene::onSceneSelectionChanged()
         return;
     }
 
+    const SI::Frame* frame = _document->selection()->selectedFrame();
+    const SiFrameGraphicsItem* frameItem = _frameItems.value(frame);
+    if (frameItem == nullptr) {
+        return;
+    }
+
+    Q_ASSERT(_inOnSceneSelectionChanged == false);
+    _inOnSceneSelectionChanged = true;
+
     // Only the selected frame has selectable QGraphicsItems
     // No need to worry about items from different frames being selected
 
     std::set<SelectedItem> selection;
 
-    for (const QGraphicsItem* item : selectedItems()) {
-        QVariant v = item->data(SiFrameGraphicsItem::SELECTION_ID);
-        if (v.isValid()) {
-            selection.insert(v.value<SelectedItem>());
+    auto process = [&](const auto& items, SelectedItem::Type type) {
+        const size_t iSize = items.size();
+        for (size_t i = 0; i < iSize; i++) {
+            const auto* item = items.at(i);
+            if (item->isSelected()) {
+                selection.insert({ type, i });
+            }
         }
+    };
+
+    process(frameItem->objects(), SelectedItem::FRAME_OBJECT);
+    process(frameItem->actionPoints(), SelectedItem::ACTION_POINT);
+    process(frameItem->entityHitboxes(), SelectedItem::ENTITY_HITBOX);
+
+    if (frameItem->tileHitbox()->isSelected()) {
+        selection.insert({ SelectedItem::TILE_HITBOX, 0 });
     }
 
     _document->selection()->setSelectedItems(selection);
+
+    _inOnSceneSelectionChanged = false;
 }
 
 void SiGraphicsScene::updateFrameSetPixmap()
@@ -449,41 +468,24 @@ void SiGraphicsScene::onFrameTileHitboxChanged(const void* framePtr)
     }
 }
 
-#define FRAME_CHILDREN_SLOTS(CLS)                    \
-    void SiGraphicsScene::on##CLS##Changed(          \
-        const void* framePtr, unsigned index)        \
-    {                                                \
-        auto it = _frameItems.find(framePtr);        \
-        if (it != _frameItems.end()) {               \
-            it.value()->update##CLS(index);          \
-        }                                            \
-    }                                                \
-                                                     \
-    void SiGraphicsScene::on##CLS##AboutToBeRemoved( \
-        const void* framePtr, unsigned index)        \
-    {                                                \
-        auto it = _frameItems.find(framePtr);        \
-        if (it != _frameItems.end()) {               \
-            it.value()->remove##CLS(index);          \
-        }                                            \
-    }                                                \
-    void SiGraphicsScene::on##CLS##Added(            \
-        const void* framePtr, unsigned index)        \
-    {                                                \
-        auto it = _frameItems.find(framePtr);        \
-        if (it != _frameItems.end()) {               \
-            it.value()->add##CLS(index);             \
-        }                                            \
+#define FRAME_CHILDREN_SLOTS(CLS)               \
+    void SiGraphicsScene::on##CLS##Changed(     \
+        const void* framePtr, unsigned index)   \
+    {                                           \
+        auto it = _frameItems.find(framePtr);   \
+        if (it != _frameItems.end()) {          \
+            it.value()->update##CLS(index);     \
+        }                                       \
+    }                                           \
+                                                \
+    void SiGraphicsScene::on##CLS##ListChanged( \
+        const void* framePtr)                   \
+    {                                           \
+        auto it = _frameItems.find(framePtr);   \
+        if (it != _frameItems.end()) {          \
+            it.value()->on##CLS##ListChanged(); \
+        }                                       \
     }
 FRAME_CHILDREN_SLOTS(FrameObject)
 FRAME_CHILDREN_SLOTS(ActionPoint)
 FRAME_CHILDREN_SLOTS(EntityHitbox)
-
-void SiGraphicsScene::onFrameContentsMoved(
-    const void* framePtr, const std::set<SelectedItem>&, int)
-{
-    auto it = _frameItems.find(framePtr);
-    if (it != _frameItems.end()) {
-        it.value()->updateFrameContents();
-    }
-}

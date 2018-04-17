@@ -24,6 +24,7 @@ class LayerSettings;
 
 namespace SpriteImporter {
 class Actions;
+class Selection;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -35,7 +36,11 @@ public:
     static const unsigned ACTION_POINT_ZVALUE = 400;
     static const unsigned ORIGIN_ZVALUE = 500;
 
-    static const int SELECTION_ID = 0;
+    enum class ItemType {
+        FRAME_OBJECT,
+        ACTION_POINT,
+        ENTITY_HITBOX,
+    };
 
 public:
     SiFrameGraphicsItem(SI::Frame* frame, Actions* actions, Style* style,
@@ -44,41 +49,40 @@ public:
 
     const SI::Frame* frame() const { return _frame; }
 
+    const auto* tileHitbox() const { return _tileHitbox; }
+    const auto& objects() const { return _objects; }
+    const auto& actionPoints() const { return _actionPoints; }
+    const auto& entityHitboxes() const { return _entityHitboxes; }
+
     bool frameSelected() const { return _frameSelected; }
     void setFrameSelected(bool selected);
 
     void updateSelection(const std::set<SelectedItem>& selection);
 
     void updateFrameLocation();
+
     void updateTileHitbox();
 
-    void addFrameObject(unsigned index);
-    void updateFrameObject(unsigned index);
-    void removeFrameObject(unsigned index);
-
-    void addActionPoint(unsigned index);
-    void updateActionPoint(unsigned index);
-    void removeActionPoint(unsigned index);
-
-    void addEntityHitbox(unsigned index);
-    void updateEntityHitbox(unsigned index);
-    void removeEntityHitbox(unsigned index);
-
-    void updateFrameContents();
-
     void updateLayerSettings(const LayerSettings* settings);
+
+    void updateFrameObject(unsigned index);
+    void updateActionPoint(unsigned index);
+    void updateEntityHitbox(unsigned index);
+
+    void onFrameObjectListChanged();
+    void onActionPointListChanged();
+    void onEntityHitboxListChanged();
 
 protected:
     virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
-    template <class T>
-    static void updateItemIndexes(QList<T*>& list, unsigned start,
-                                  unsigned baseZValue,
-                                  const SelectedItem::Type& type);
+    void addFrameObject();
+    void addActionPoint();
+    void addEntityHitbox();
 
 private:
-    SI::Frame* _frame;
+    const SI::Frame* _frame;
     Actions* _actions;
     Style* _style;
     bool _showTileHitbox;

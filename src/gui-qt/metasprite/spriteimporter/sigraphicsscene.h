@@ -51,6 +51,7 @@ private slots:
 
     void onSelectedFrameChanged();
     void updateSelection();
+
     void onSceneSelectionChanged();
 
     void updateFrameSetPixmap();
@@ -69,15 +70,9 @@ private slots:
     void onActionPointChanged(const void* frame, unsigned index);
     void onEntityHitboxChanged(const void* frame, unsigned index);
 
-    void onFrameObjectAboutToBeRemoved(const void* frame, unsigned index);
-    void onActionPointAboutToBeRemoved(const void* frame, unsigned index);
-    void onEntityHitboxAboutToBeRemoved(const void* frame, unsigned index);
-
-    void onFrameObjectAdded(const void* frame, unsigned index);
-    void onActionPointAdded(const void* frame, unsigned index);
-    void onEntityHitboxAdded(const void* frame, unsigned index);
-
-    void onFrameContentsMoved(const void* frame, const std::set<SelectedItem>& oldPositions, int offset);
+    void onFrameObjectListChanged(const void* frame);
+    void onActionPointListChanged(const void* frame);
+    void onEntityHitboxListChanged(const void* frame);
 
 private:
     Actions* const _actions;
@@ -92,6 +87,7 @@ private:
     Document* _document;
 
     bool _inUpdateSelection;
+    bool _inOnSceneSelectionChanged;
 };
 }
 }
