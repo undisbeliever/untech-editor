@@ -4,6 +4,8 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#pragma once
+
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/metasprite/abstractselection.h"
 #include "models/metasprite/spriteimporter.h"
