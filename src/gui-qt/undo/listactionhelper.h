@@ -7,7 +7,9 @@
 #pragma once
 
 #include "models/common/call.h"
+#include "models/common/vectorset.h"
 #include <functional>
+#include <type_traits>
 
 namespace UnTech {
 namespace GuiQt {
@@ -61,7 +63,9 @@ public:
         return list->size() < AccessorT::max_size;
     }
 
-    template <class AccessorT>
+    template <class AccessorT,
+              typename std::enable_if_t<
+                  std::is_member_function_pointer<decltype(&AccessorT::selectedIndex)>::value>* = nullptr>
     static ListActionStatus status(AccessorT* a)
     {
         using ArgsT = typename AccessorT::ArgsT;
@@ -89,6 +93,41 @@ public:
 
         ret.canRaise = ret.selectionValid && index != 0;
         ret.canLower = ret.selectionValid && index + 1 < list_size;
+
+        return ret;
+    }
+
+    template <class AccessorT,
+              typename std::enable_if_t<
+                  std::is_member_function_pointer<decltype(&AccessorT::selectedIndexes)>::value>* = nullptr>
+    static ListActionStatus status(AccessorT* a)
+    {
+        using ArgsT = typename AccessorT::ArgsT;
+        using ListT = typename AccessorT::ListT;
+        using index_type = typename AccessorT::index_type;
+
+        const vectorset<index_type>& indexes = a->selectedIndexes();
+
+        auto f = std::mem_fn(&AccessorT::getList);
+        const ArgsT listArgs = a->selectedListTuple();
+        const ListT* list = mem_fn_call(f, a, listArgs);
+
+        if (list == nullptr) {
+            return ListActionStatus();
+        }
+
+        const index_type list_size = list->size();
+        Q_ASSERT(list_size >= 0);
+
+        ListActionStatus ret;
+        ret.selectionValid = !indexes.empty() && indexes.front() >= 0 && indexes.back() < list_size;
+
+        ret.canAdd = list_size < AccessorT::max_size;
+        ret.canClone = ret.selectionValid && list_size + indexes.size() <= AccessorT::max_size;
+        ret.canRemove = ret.selectionValid;
+
+        ret.canRaise = ret.selectionValid && indexes.front() > 0;
+        ret.canLower = ret.selectionValid && indexes.back() + 1 < list_size;
 
         return ret;
     }
