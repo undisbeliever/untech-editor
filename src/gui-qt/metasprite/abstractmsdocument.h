@@ -67,32 +67,6 @@ signals:
     void frameSetDataChanged();
     void frameSetNameChanged();
 
-    void frameDataChanged(const void* frame);
-    void frameTileHitboxChanged(const void* frame);
-    void frameMapChanged();
-    void frameAdded(const idstring& id);
-    void frameAboutToBeRemoved(const idstring& id);
-    void frameAboutToBeRemoved(const void* frame);
-    void frameRenamed(const idstring& oldId, const idstring& newId);
-
-    void frameObjectChanged(const void* frame, unsigned index);
-    void actionPointChanged(const void* frame, unsigned index);
-    void entityHitboxChanged(const void* frame, unsigned index);
-
-    void frameObjectListChanged(const void* frame);
-    void actionPointListChanged(const void* frame);
-    void entityHitboxListChanged(const void* frame);
-
-    void frameObjectAboutToBeRemoved(const void* frame, unsigned index);
-    void actionPointAboutToBeRemoved(const void* frame, unsigned index);
-    void entityHitboxAboutToBeRemoved(const void* frame, unsigned index);
-
-    void frameObjectAdded(const void* frame, unsigned index);
-    void actionPointAdded(const void* frame, unsigned index);
-    void entityHitboxAdded(const void* frame, unsigned index);
-
-    void animationRenamed(const idstring& oldId, const idstring& newId);
-
 private:
     Animation::AnimationsMap* const _animationsMap;
     Animation::AnimationFramesList* const _animationFramesList;

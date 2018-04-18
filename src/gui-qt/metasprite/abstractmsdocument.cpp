@@ -20,22 +20,6 @@ AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t inde
 {
     connect(this, &AbstractMsDocument::frameSetDataChanged,
             this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::frameDataChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::frameMapChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::frameObjectChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::actionPointChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::entityHitboxChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::frameObjectListChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::actionPointListChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &AbstractMsDocument::entityHitboxListChanged,
-            this, &AbstractResourceItem::dataChanged);
 }
 
 void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,
