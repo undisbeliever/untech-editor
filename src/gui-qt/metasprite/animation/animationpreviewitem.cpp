@@ -31,25 +31,6 @@ AnimationPreviewItem::AnimationPreviewItem(const AbstractMsDocument* document,
     setFlag(ItemSendsGeometryChanges);
 
     _state.setAnimationMap(document->animations());
-
-    connect(_document, &AbstractMsDocument::frameAdded,
-            this, &AnimationPreviewItem::onFrameAdded);
-    connect(_document, qOverload<const void*>(&AbstractMsDocument::frameAboutToBeRemoved),
-            this, &AnimationPreviewItem::onFrameAboutToBeRemoved);
-    connect(_document, &AbstractMsDocument::frameDataChanged,
-            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractMsDocument::frameObjectChanged,
-            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractMsDocument::actionPointChanged,
-            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractMsDocument::entityHitboxChanged,
-            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractMsDocument::frameObjectListChanged,
-            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractMsDocument::actionPointListChanged,
-            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document, &AbstractMsDocument::entityHitboxListChanged,
-            this, &AnimationPreviewItem::onFrameDataAndContentsChanged);
 }
 
 void AnimationPreviewItem::onFrameAdded()
@@ -61,9 +42,9 @@ void AnimationPreviewItem::onFrameAdded()
     }
 }
 
-void AnimationPreviewItem::onFrameAboutToBeRemoved(const void* frame)
+void AnimationPreviewItem::onFrameAboutToBeRemoved(const idstring& frameId)
 {
-    if (_framePtr == frame) {
+    if (_state.frame().name == frameId) {
         _framePtr = nullptr;
         setFrame(idstring());
         update();

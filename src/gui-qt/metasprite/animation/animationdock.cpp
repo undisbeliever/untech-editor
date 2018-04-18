@@ -81,7 +81,6 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
         _document->animationsMap()->disconnect(this);
 
         _ui->animationList->selectionModel()->disconnect(this);

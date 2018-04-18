@@ -10,7 +10,6 @@
 #include "animationpreviewitem.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
-#include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/animation/animationpreview.ui.h"
 
 using namespace UnTech::GuiQt;
@@ -105,7 +104,6 @@ void AnimationPreview::setDocument(AbstractMsDocument* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
         _document->animationFramesList()->disconnect(this);
     }
     _document = document;
