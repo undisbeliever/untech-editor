@@ -29,6 +29,7 @@ public:
     constexpr static index_type max_size = AccessorT::max_size;
 
     friend class ListAndSelectionUndoHelper<AccessorT>;
+    friend class ListAndMultipleSelectionUndoHelper<AccessorT>;
 
 private:
     static inline QString tr(const char* s)

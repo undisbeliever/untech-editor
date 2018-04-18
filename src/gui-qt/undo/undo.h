@@ -11,6 +11,7 @@ namespace GuiQt {
 namespace Undo {
 
 class SelectedIndexHelper;
+class MultipleSelectedIndexesHelper;
 class SelectedIdmapItemHelper;
 
 class ListActionHelper;
@@ -20,6 +21,9 @@ class ListUndoHelper;
 
 template <class T>
 class ListAndSelectionUndoHelper;
+
+template <class T>
+class ListAndMultipleSelectionUndoHelper;
 
 template <class T>
 class IdmapUndoHelper;
