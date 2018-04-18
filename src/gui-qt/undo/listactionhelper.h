@@ -14,14 +14,32 @@ namespace GuiQt {
 namespace Undo {
 
 struct ListActionStatus {
-    bool selectionValid;
+    bool selectionValid = false;
 
-    bool canAdd;
-    bool canClone;
-    bool canRemove;
+    bool canAdd = false;
+    bool canClone = false;
+    bool canRemove = false;
 
-    bool canRaise;
-    bool canLower;
+    bool canRaise = false;
+    bool canLower = false;
+
+    ListActionStatus() = default;
+
+    ListActionStatus(const ListActionStatus& a, const ListActionStatus& b)
+    {
+        selectionValid = a.selectionValid | b.selectionValid;
+        canAdd = (a.canAdd & b.canAdd) | (a.canAdd & !b.selectionValid) | (!a.selectionValid & b.canAdd);
+        canClone = (a.canClone & b.canClone) | (a.canClone & !b.selectionValid) | (!a.selectionValid & b.canClone);
+        canRemove = (a.canRemove & b.canRemove) | (a.canRemove & !b.selectionValid) | (!a.selectionValid & b.canRemove);
+        canRaise = (a.canRaise & b.canRaise) | (a.canRaise & !b.selectionValid) | (!a.selectionValid & b.canRaise);
+        canLower = (a.canLower & b.canLower) | (a.canLower & !b.selectionValid) | (!a.selectionValid & b.canLower);
+    }
+
+    template <class... T>
+    ListActionStatus(const ListActionStatus& a, const ListActionStatus& b, T... v)
+        : ListActionStatus(ListActionStatus(a, b), v...)
+    {
+    }
 };
 
 class ListActionHelper {
@@ -55,7 +73,7 @@ public:
         const ListT* list = mem_fn_call(f, a, listArgs);
 
         if (list == nullptr) {
-            return { false, false, false, false, false, false };
+            return ListActionStatus();
         }
 
         const index_type list_size = list->size();
