@@ -6,9 +6,7 @@
 
 #include "document.h"
 #include "accessors.h"
-#include "framelistmodel.h"
-#include "palettesmodel.h"
-#include "selection.h"
+#include "gui-qt/metasprite/animation/animationaccessors.h"
 
 using FrameSetType = UnTech::MetaSprite::Project::FrameSetType;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
@@ -16,8 +14,11 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 Document::Document(FrameSetResourceList* parent, size_t index)
     : AbstractMsDocument(parent, index)
     , _frameSet(nullptr)
-    , _selection(new Selection(this))
     , _paletteList(new PaletteList(this))
+    , _frameMap(new FrameMap(this))
+    , _frameObjectList(new FrameObjectList(this))
+    , _actionPointList(new ActionPointList(this))
+    , _entityHitboxList(new EntityHitboxList(this))
 {
     Q_ASSERT(index < frameSetList().size());
     Q_ASSERT(frameSetFile().type == FrameSetType::METASPRITE);
@@ -55,7 +56,9 @@ void Document::resetDocumentState()
         setName(QString());
     }
 
-    _selection->unselectAll();
+    paletteList()->unselectItem();
+    frameMap()->unselectItem();
+    animationsMap()->unselectItem();
 }
 
 void Document::saveResourceData(const std::string& filename) const

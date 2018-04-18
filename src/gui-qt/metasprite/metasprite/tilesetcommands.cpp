@@ -5,6 +5,7 @@
  */
 
 #include "tilesetcommands.h"
+#include "accessors.h"
 #include "document.h"
 
 #include <QCoreApplication>
@@ -118,7 +119,7 @@ CHANGE_TILE(ChangeLargeTile, Tile16px, largeTileset, largeTileChanged)
             unsigned index = obj.second;                                    \
                                                                             \
             frame->objects.at(index).tileId += offset;                      \
-            emit _document->frameObjectChanged(frame, index);               \
+            emit _document->frameObjectList()->dataChanged(frame, index);   \
         }                                                                   \
     }
 ADD_REMOVE_TILE_COMMAND(SmallTile, Tile8px, smallTileset, SMALL, smallTilesetChanged);

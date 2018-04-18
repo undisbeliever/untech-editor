@@ -34,7 +34,6 @@ void TilesetPixmaps::setDocument(Document* document)
 {
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
         _document->paletteList()->disconnect(this);
     }
     _document = document;

@@ -5,16 +5,17 @@
  */
 
 #include "msgraphicsscene.h"
+#include "accessors.h"
 #include "actions.h"
 #include "document.h"
-#include "framecommands.h"
-#include "framecontentcommands.h"
 #include "tilesetpixmaps.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/pixmapgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
+#include "gui-qt/undo/idmapundohelper.h"
+#include "gui-qt/undo/listandmultipleselectionundohelper.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
@@ -85,8 +86,10 @@ void MsGraphicsScene::setDocument(Document* document)
     }
 
     if (_document != nullptr) {
-        _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->frameMap()->disconnect(this);
+        _document->frameObjectList()->disconnect(this);
+        _document->actionPointList()->disconnect(this);
+        _document->entityHitboxList()->disconnect(this);
     }
     _document = document;
 
@@ -94,33 +97,46 @@ void MsGraphicsScene::setDocument(Document* document)
 
     if (_document) {
         onSelectedFrameChanged();
-        updateSelection();
+        updateTileHitboxSelection();
+        updateFrameObjectSelection();
+        updateActionPointSelection();
+        updateEntityHitboxSelection();
 
-        connect(_document->selection(), &Selection::selectedFrameChanged,
+        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &MsGraphicsScene::onSelectedFrameChanged);
-        connect(_document->selection(), &Selection::selectedItemsChanged,
-                this, &MsGraphicsScene::updateSelection);
 
-        connect(_document, &Document::frameTileHitboxChanged,
-                this, &MsGraphicsScene::onFrameTileHitboxChanged);
+        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
+                this, &MsGraphicsScene::updateFrameObjectSelection);
+        connect(_document->actionPointList(), &ActionPointList::selectedIndexesChanged,
+                this, &MsGraphicsScene::updateActionPointSelection);
+        connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
+                this, &MsGraphicsScene::updateEntityHitboxSelection);
 
-        connect(_document, &Document::frameObjectChanged,
+        connect(_document->frameMap(), &FrameMap::tileHitboxSelectedChanged,
+                this, &MsGraphicsScene::updateTileHitboxSelection);
+
+        connect(_document->frameMap(), &FrameMap::dataChanged,
+                this, &MsGraphicsScene::onFrameDataChanged);
+
+        connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
                 this, &MsGraphicsScene::onFrameObjectChanged);
-        connect(_document, &Document::actionPointChanged,
+        connect(_document->actionPointList(), &ActionPointList::dataChanged,
                 this, &MsGraphicsScene::onActionPointChanged);
-        connect(_document, &Document::entityHitboxChanged,
+        connect(_document->entityHitboxList(), &EntityHitboxList::dataChanged,
                 this, &MsGraphicsScene::onEntityHitboxChanged);
 
-        connect(_document, &Document::frameObjectListChanged,
+        // This class uses listChanged signal as it is more efficient when multiple items change
+
+        connect(_document->frameObjectList(), &FrameObjectList::listChanged,
                 this, &MsGraphicsScene::onFrameObjectListChanged);
-        connect(_document, &Document::actionPointListChanged,
+        connect(_document->actionPointList(), &ActionPointList::listChanged,
                 this, &MsGraphicsScene::onActionPointListChanged);
-        connect(_document, &Document::entityHitboxListChanged,
+        connect(_document->entityHitboxList(), &EntityHitboxList::listChanged,
                 this, &MsGraphicsScene::onEntityHitboxListChanged);
     }
 }
 
-void MsGraphicsScene::setFrame(MS::Frame* frame)
+void MsGraphicsScene::setFrame(const MS::Frame* frame)
 {
     if (_frame != frame) {
         _frame = frame;
@@ -142,6 +158,7 @@ void MsGraphicsScene::setFrame(MS::Frame* frame)
             setSceneRect(int_ms8_t::MIN, int_ms8_t::MIN, 256, 256);
 
             updateTileHitbox();
+            updateTileHitboxSelection();
 
             // rebuild item lists
             onFrameObjectListChanged(frame);
@@ -168,8 +185,6 @@ void MsGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
     if (_document && _frame) {
-        const auto& selectedItems = _document->selection()->selectedItems();
-
         QMenu menu;
         bool addSep = false;
         if (_actions->toggleObjSize()->isEnabled()) {
@@ -191,7 +206,7 @@ void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
         menu.addSeparator();
         menu.addAction(_actions->addRemoveTileHitbox());
 
-        if (selectedItems.empty() == false) {
+        if (_actions->removeSelected()->isEnabled()) {
             menu.addSeparator();
             menu.addAction(_actions->raiseSelected());
             menu.addAction(_actions->lowerSelected());
@@ -205,74 +220,47 @@ void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void MsGraphicsScene::commitMovedItems()
 {
-    const auto selectedItems = this->selectedItems();
-
-    if (_frame == nullptr || selectedItems.isEmpty()) {
+    if (_frame == nullptr) {
         return;
     }
 
-    auto command = std::make_unique<QUndoCommand>(tr("Move"));
+    QList<QUndoCommand*> commands;
 
-    for (auto& sel : _document->selection()->selectedItems()) {
-        int index = sel.index;
-
-        switch (sel.type) {
-        case SelectedItem::NONE:
-            break;
-
-        case SelectedItem::FRAME_OBJECT:
-            if (index < _objects.size()) {
-                MS::FrameObject obj = _frame->objects.at(index);
-
-                ms8point location = _objects.at(index)->posMs8point();
-                if (obj.location != location) {
-                    obj.location = location;
-                    new ChangeFrameObject(_document, _frame, index, obj,
-                                          command.get());
-                }
-            }
-            break;
-
-        case SelectedItem::ACTION_POINT:
-            if (index < _actionPoints.size()) {
-                MS::ActionPoint ap = _frame->actionPoints.at(index);
-
-                ms8point location = _actionPoints.at(index)->posMs8point();
-                if (ap.location != location) {
-                    ap.location = location;
-                    new ChangeActionPoint(_document, _frame, index, ap,
-                                          command.get());
-                }
-            }
-            break;
-
-        case SelectedItem::ENTITY_HITBOX:
-            if (index < _entityHitboxes.size()) {
-                MS::EntityHitbox eh = _frame->entityHitboxes.at(index);
-
-                ms8rect aabb = _entityHitboxes.at(index)->rectMs8rect();
-                if (eh.aabb != aabb) {
-                    eh.aabb = aabb;
-                    new ChangeEntityHitbox(_document, _frame, index, eh,
-                                           command.get());
-                }
-            }
-            break;
-
-        case SelectedItem::TILE_HITBOX:
-            if (_tileHitbox) {
-                ms8rect hitbox = _tileHitbox->rectMs8rect();
-                if (_frame->tileHitbox != hitbox) {
-                    new ChangeFrameTileHitbox(_document, _frame, hitbox,
-                                              command.get());
-                }
-            }
-            break;
+    if (_document->frameMap()->isTileHitboxSelected()) {
+        ms8rect hitbox = _tileHitbox->rectMs8rect();
+        auto* c = FrameMapUndoHelper(_document->frameMap())
+                      .editSelectedFieldCommand(hitbox, QString(),
+                                                [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
+        if (c != nullptr) {
+            commands.append(c);
         }
     }
 
-    if (command->childCount() > 0) {
-        _document->undoStack()->push(command.release());
+    commands.append(
+        FrameObjectListUndoHelper(_document->frameObjectList())
+            .editSelectedCommands(
+                [this](MS::FrameObject& obj, size_t i) {
+                    obj.location = _objects.at(i)->posMs8point();
+                }));
+    commands.append(
+        ActionPointListUndoHelper(_document->actionPointList())
+            .editSelectedCommands(
+                [this](MS::ActionPoint& ap, size_t i) {
+                    ap.location = _actionPoints.at(i)->posMs8point();
+                }));
+    commands.append(
+        EntityHitboxListUndoHelper(_document->entityHitboxList())
+            .editSelectedCommands(
+                [this](MS::EntityHitbox& eh, size_t i) {
+                    eh.aabb = _entityHitboxes.at(i)->rectMs8rect();
+                }));
+
+    if (!commands.empty()) {
+        _document->undoStack()->beginMacro(tr("Move Selected"));
+        for (QUndoCommand* c : commands) {
+            _document->undoStack()->push(c);
+        }
+        _document->undoStack()->endMacro();
     }
 }
 
@@ -409,10 +397,12 @@ void MsGraphicsScene::onLayerSettingsChanged()
 
 void MsGraphicsScene::onSelectedFrameChanged()
 {
-    setFrame(_document->selection()->selectedFrame());
+    setFrame(_document->frameMap()->selectedFrame());
 }
 
-void MsGraphicsScene::updateSelection()
+template <class T>
+void MsGraphicsScene::updateSelection(QList<T>& items,
+                                      const vectorset<size_t>& selectedIndexes)
 {
     if (_frame == nullptr || _inOnSceneSelectionChanged) {
         return;
@@ -421,24 +411,41 @@ void MsGraphicsScene::updateSelection()
     Q_ASSERT(_inUpdateSelection == false);
     _inUpdateSelection = true;
 
-    const auto& sel = _document->selection()->selectedItems();
+    for (int i = 0; i < items.size(); i++) {
+        QGraphicsItem* item = items.at(i);
+        item->setSelected(selectedIndexes.contains(i));
+    }
 
-    auto processList = [&](auto list, SelectedItem::Type type) {
-        SelectedItem si{ type, 0 };
+    _inUpdateSelection = false;
+}
 
-        for (QGraphicsItem* item : list) {
-            item->setSelected(sel.find(si) != sel.end());
-            si.index++;
-        }
-    };
+void MsGraphicsScene::updateFrameObjectSelection()
+{
+    updateSelection(_objects, _document->frameObjectList()->selectedIndexes());
+}
 
-    processList(_objects, SelectedItem::FRAME_OBJECT);
-    processList(_actionPoints, SelectedItem::ACTION_POINT);
-    processList(_entityHitboxes, SelectedItem::ENTITY_HITBOX);
+void MsGraphicsScene::updateActionPointSelection()
+{
+    updateSelection(_actionPoints, _document->actionPointList()->selectedIndexes());
+}
 
-    _tileHitbox->setSelected(
-        std::any_of(sel.begin(), sel.end(),
-                    [](auto& s) { return s.type == SelectedItem::TILE_HITBOX; }));
+void MsGraphicsScene::updateEntityHitboxSelection()
+{
+    updateSelection(_entityHitboxes, _document->entityHitboxList()->selectedIndexes());
+}
+
+void MsGraphicsScene::updateTileHitboxSelection()
+{
+    if (_frame == nullptr || _inOnSceneSelectionChanged) {
+        return;
+    }
+
+    Q_ASSERT(_inUpdateSelection == false);
+    _inUpdateSelection = true;
+
+    bool hbSelected = _document->frameMap()->isTileHitboxSelected();
+
+    _tileHitbox->setSelected(hbSelected);
 
     _inUpdateSelection = false;
 }
@@ -452,27 +459,25 @@ void MsGraphicsScene::onSceneSelectionChanged()
     Q_ASSERT(_inOnSceneSelectionChanged == false);
     _inOnSceneSelectionChanged = true;
 
-    std::set<SelectedItem> selection;
+    auto getSelected = [](const auto& items) {
+        std::vector<size_t> sel;
 
-    auto process = [&](const auto& items, SelectedItem::Type type) {
-        const size_t iSize = items.size();
-        for (size_t i = 0; i < iSize; i++) {
-            const auto* item = items.at(i);
+        for (int i = 0; i < items.size(); i++) {
+            const QGraphicsItem* item = items.at(i);
+
             if (item->isSelected()) {
-                selection.insert({ type, i });
+                sel.push_back(i);
             }
         }
+
+        return std::move(sel);
     };
 
-    process(_objects, SelectedItem::FRAME_OBJECT);
-    process(_actionPoints, SelectedItem::ACTION_POINT);
-    process(_entityHitboxes, SelectedItem::ENTITY_HITBOX);
+    _document->frameObjectList()->setSelectedIndexes(getSelected(_objects));
+    _document->actionPointList()->setSelectedIndexes(getSelected(_actionPoints));
+    _document->entityHitboxList()->setSelectedIndexes(getSelected(_entityHitboxes));
 
-    if (_tileHitbox->isSelected()) {
-        selection.insert({ SelectedItem::TILE_HITBOX, 0 });
-    }
-
-    _document->selection()->setSelectedItems(selection);
+    _document->frameMap()->setTileHitboxSelected(_tileHitbox->isSelected());
 
     _inOnSceneSelectionChanged = false;
 }
@@ -484,7 +489,7 @@ void MsGraphicsScene::onTilesetPixmapsChanged()
     }
 }
 
-void MsGraphicsScene::onFrameTileHitboxChanged(const void* framePtr)
+void MsGraphicsScene::onFrameDataChanged(const void* framePtr)
 {
     if (framePtr == _frame) {
         updateTileHitbox();
@@ -493,7 +498,7 @@ void MsGraphicsScene::onFrameTileHitboxChanged(const void* framePtr)
 
 #define FRAME_CHILDREN_SLOTS(CLS, ITEM_LIST, FRAME_LIST)             \
     void MsGraphicsScene::on##CLS##Changed(                          \
-        const void* framePtr, unsigned index)                        \
+        const void* framePtr, size_t index)                          \
     {                                                                \
         if (_frame == framePtr) {                                    \
             update##CLS(index);                                      \

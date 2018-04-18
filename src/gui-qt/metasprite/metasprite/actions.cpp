@@ -7,13 +7,12 @@
 #include "actions.h"
 #include "accessors.h"
 #include "document.h"
-#include "framecommands.h"
-#include "framecontentcommands.h"
 #include "framelistmodel.h"
 #include "mainwindow.h"
-#include "selection.h"
 #include "gui-qt/common/idstringdialog.h"
+#include "gui-qt/undo/idmapundohelper.h"
 #include "gui-qt/undo/listactionhelper.h"
+#include "gui-qt/undo/listandmultipleselectionundohelper.h"
 #include "gui-qt/undo/listundohelper.h"
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
@@ -54,7 +53,9 @@ Actions::Actions(MainWindow* mainWindow)
     _cloneSelected->setShortcut(Qt::CTRL + Qt::Key_D);
     _removeSelected->setShortcut(Qt::Key_Delete);
 
-    updateActions();
+    updateFrameActions();
+    updateSelectionActions();
+    updatePaletteActions();
 
     connect(_addFrame, &QAction::triggered, this, &Actions::onAddFrame);
     connect(_cloneFrame, &QAction::triggered, this, &Actions::onCloneFrame);
@@ -88,24 +89,36 @@ void Actions::setDocument(Document* document)
 {
     if (_document) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
         _document->paletteList()->disconnect(this);
+        _document->frameMap()->disconnect(this);
+        _document->frameObjectList()->disconnect(this);
+        _document->actionPointList()->disconnect(this);
+        _document->entityHitboxList()->disconnect(this);
     }
     _document = document;
 
     if (document) {
-        connect(_document, &Document::frameDataChanged,
-                this, &Actions::updateActions);
-        connect(_document, &Document::frameObjectListChanged,
-                this, &Actions::updateActions);
-        connect(_document, &Document::actionPointListChanged,
-                this, &Actions::updateActions);
-        connect(_document, &Document::entityHitboxListChanged,
-                this, &Actions::updateActions);
-        connect(_document->selection(), &Selection::selectedFrameChanged,
-                this, &Actions::updateActions);
-        connect(_document->selection(), &Selection::selectedItemsChanged,
-                this, &Actions::updateActions);
+        connect(_document->frameMap(), &FrameMap::dataChanged,
+                this, &Actions::updateFrameActions);
+        connect(_document->frameMap(), &FrameMap::mapChanged,
+                this, &Actions::updateFrameActions);
+        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
+                this, &Actions::updateFrameActions);
+
+        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
+                this, &Actions::updateSelectionActions);
+        connect(_document->frameObjectList(), &FrameObjectList::listChanged,
+                this, &Actions::updateSelectionActions);
+        connect(_document->actionPointList(), &ActionPointList::listChanged,
+                this, &Actions::updateSelectionActions);
+        connect(_document->entityHitboxList(), &EntityHitboxList::listChanged,
+                this, &Actions::updateSelectionActions);
+        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
+                this, &Actions::updateSelectionActions);
+        connect(_document->actionPointList(), &ActionPointList::selectedIndexesChanged,
+                this, &Actions::updateSelectionActions);
+        connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
+                this, &Actions::updateSelectionActions);
 
         connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &Actions::updatePaletteActions);
@@ -113,28 +126,22 @@ void Actions::setDocument(Document* document)
                 this, &Actions::updatePaletteActions);
     }
 
-    updateActions();
+    updateFrameActions();
+    updateSelectionActions();
+    updatePaletteActions();
 }
 
-void Actions::updateActions()
+void Actions::updateFrameActions()
 {
+    // ::TODO IdmapActionHelper::
+
     bool documentExists = false;
     bool frameSelected = false;
-
-    bool canAddFrameObject = false;
-    bool canAddActionPoint = false;
-    bool canAddEntityHitbox = false;
-    bool canRaiseSelected = false;
-    bool canLowerSelected = false;
-    bool canCloneSelected = false;
-    bool canRemoveSelected = false;
-    bool frameObjSelected = false;
-    bool entityHitboxSelected = false;
 
     if (_document) {
         documentExists = true;
 
-        if (const MS::Frame* frame = _document->selection()->selectedFrame()) {
+        if (const MS::Frame* frame = _document->frameMap()->selectedFrame()) {
             frameSelected = true;
 
             if (frame->solid) {
@@ -143,39 +150,47 @@ void Actions::updateActions()
             else {
                 _addRemoveTileHitbox->setText(tr("Add Tile Hitbox"));
             }
-            canAddFrameObject = frame->objects.can_insert();
-            canAddActionPoint = frame->actionPoints.can_insert();
-            canAddEntityHitbox = frame->entityHitboxes.can_insert();
         }
-
-        canRaiseSelected = _document->selection()->canRaiseSelectedItems();
-        canLowerSelected = _document->selection()->canLowerSelectedItems();
-        canCloneSelected = _document->selection()->canCloneSelectedItems();
-        canRemoveSelected = _document->selection()->selectedItems().size() > 0;
-        frameObjSelected = _document->selection()->isFrameObjectSelected();
-        entityHitboxSelected = _document->selection()->isEntityHitboxSelected();
     }
+
+    _addRemoveTileHitbox->setEnabled(frameSelected);
 
     _addFrame->setEnabled(documentExists);
     _cloneFrame->setEnabled(frameSelected);
     _renameFrame->setEnabled(frameSelected);
     _removeFrame->setEnabled(frameSelected);
+}
 
-    _addRemoveTileHitbox->setEnabled(frameSelected);
+void Actions::updateSelectionActions()
+{
+    using namespace UnTech::GuiQt::Undo;
 
-    _addFrameObject->setEnabled(canAddFrameObject);
-    _addActionPoint->setEnabled(canAddActionPoint);
-    _addEntityHitbox->setEnabled(canAddEntityHitbox);
-    _raiseSelected->setEnabled(canRaiseSelected);
-    _lowerSelected->setEnabled(canLowerSelected);
-    _cloneSelected->setEnabled(canCloneSelected);
-    _removeSelected->setEnabled(canRemoveSelected);
+    ListActionStatus obj;
+    ListActionStatus ap;
+    ListActionStatus eh;
 
-    _toggleObjSize->setEnabled(frameObjSelected);
-    _flipObjVertically->setEnabled(frameObjSelected);
-    _flipObjHorizontally->setEnabled(frameObjSelected);
+    if (_document) {
+        obj = ListActionHelper::status(_document->frameObjectList());
+        ap = ListActionHelper::status(_document->actionPointList());
+        eh = ListActionHelper::status(_document->entityHitboxList());
+    }
 
-    _entityHitboxTypeMenu->setEnabled(entityHitboxSelected);
+    ListActionStatus selected(obj, ap, eh);
+
+    _addFrameObject->setEnabled(obj.canAdd);
+    _addActionPoint->setEnabled(ap.canAdd);
+    _addEntityHitbox->setEnabled(eh.canAdd);
+
+    _raiseSelected->setEnabled(selected.canRaise);
+    _lowerSelected->setEnabled(selected.canLower);
+    _cloneSelected->setEnabled(selected.canClone);
+    _removeSelected->setEnabled(selected.canRemove);
+
+    _toggleObjSize->setEnabled(obj.selectionValid);
+    _flipObjVertically->setEnabled(obj.selectionValid);
+    _flipObjHorizontally->setEnabled(obj.selectionValid);
+
+    _entityHitboxTypeMenu->setEnabled(eh.selectionValid);
 }
 
 void Actions::updatePaletteActions()
@@ -197,26 +212,18 @@ void Actions::updatePaletteActions()
 
 void Actions::onAddFrame()
 {
-    const MS::FrameSet& fs = *_document->frameSet();
-
     idstring newId = IdstringDialog::getIdstring(
         _mainWindow,
         tr("Input Frame Name"),
         tr("Input name of the new frame:"),
         idstring(), _document->frameList());
 
-    if (newId.isValid() && !fs.frames.contains(newId)) {
-        _document->undoStack()->push(
-            new AddFrame(_document, newId));
-
-        _document->selection()->selectFrame(newId);
-    }
+    FrameMapUndoHelper(_document->frameMap()).addItem(newId);
 }
 
 void Actions::onCloneFrame()
 {
-    const MS::FrameSet& fs = *_document->frameSet();
-    const idstring& frameId = _document->selection()->selectedFrameId();
+    const idstring& frameId = _document->frameMap()->selectedId();
 
     idstring newId = IdstringDialog::getIdstring(
         _mainWindow,
@@ -224,18 +231,12 @@ void Actions::onCloneFrame()
         tr("Input name of the cloned frame:"),
         frameId, _document->frameList());
 
-    if (newId != frameId && newId.isValid() && !fs.frames.contains(newId)) {
-        _document->undoStack()->push(
-            new CloneFrame(_document, frameId, newId));
-
-        _document->selection()->selectFrame(newId);
-    }
+    FrameMapUndoHelper(_document->frameMap()).cloneItem(frameId, newId);
 }
 
 void Actions::onRenameFrame()
 {
-    const MS::FrameSet& fs = *_document->frameSet();
-    const idstring& frameId = _document->selection()->selectedFrameId();
+    const idstring& frameId = _document->frameMap()->selectedId();
 
     idstring newId = IdstringDialog::getIdstring(
         _mainWindow,
@@ -243,26 +244,24 @@ void Actions::onRenameFrame()
         tr("Rename %1 to:").arg(QString::fromStdString(frameId)),
         frameId, _document->frameList());
 
-    if (newId != frameId && newId.isValid() && !fs.frames.contains(newId)) {
-        _document->undoStack()->push(
-            new RenameFrame(_document, frameId, newId));
-    }
+    FrameMapUndoHelper(_document->frameMap()).renameItem(frameId, newId);
 }
 
 void Actions::onRemoveFrame()
 {
-    idstring frameId = _document->selection()->selectedFrameId();
-
-    _document->undoStack()->push(
-        new RemoveFrame(_document, frameId));
+    FrameMapUndoHelper(_document->frameMap()).removeSelectedItem();
 }
 
 void Actions::onAddRemoveTileHitbox()
 {
-    MS::Frame* frame = _document->selection()->selectedFrame();
+    const MS::Frame* frame = _document->frameMap()->selectedFrame();
     if (frame) {
-        _document->undoStack()->push(
-            new ChangeFrameSolid(_document, frame, !frame->solid));
+        QString text = !frame->solid ? tr("Enable Tile Hitbox")
+                                     : tr("Disable Tile Hitbox");
+
+        FrameMapUndoHelper h(_document->frameMap());
+        h.editSelectedItemField(!frame->solid, text,
+                                [](MS::Frame& f) -> bool& { return f.solid; });
     }
 }
 
@@ -293,209 +292,103 @@ void Actions::onLowerPalette()
 
 void Actions::onAddFrameObject()
 {
-    MS::Frame* frame = _document->selection()->selectedFrame();
-
-    _document->undoStack()->push(
-        new AddFrameObject(_document, frame));
-
-    _document->selection()->selectFrameObject(frame->objects.size() - 1);
+    FrameObjectListUndoHelper(_document->frameObjectList()).addItemToSelectedList();
 }
 
 void Actions::onAddActionPoint()
 {
-    MS::Frame* frame = _document->selection()->selectedFrame();
-
-    _document->undoStack()->push(
-        new AddActionPoint(_document, frame));
-
-    _document->selection()->selectActionPoint(frame->actionPoints.size() - 1);
+    ActionPointListUndoHelper(_document->actionPointList()).addItemToSelectedList();
 }
 
 void Actions::onAddEntityHitbox()
 {
-    MS::Frame* frame = _document->selection()->selectedFrame();
-
-    _document->undoStack()->push(
-        new AddEntityHitbox(_document, frame));
-
-    _document->selection()->selectEntityHitbox(frame->entityHitboxes.size() - 1);
+    EntityHitboxListUndoHelper(_document->entityHitboxList()).addItemToSelectedList();
 }
 
 void Actions::onRaiseSelected()
 {
-    MS::Frame* frame = _document->selection()->selectedFrame();
-    const auto& selectedItems = _document->selection()->selectedItems();
+    // ::TODO helper class that combines these and checks a command exists::
+    _document->undoStack()->beginMacro(tr("Raise Selected"));
 
-    _document->undoStack()->push(
-        new RaiseFrameContents(_document, frame, selectedItems));
+    FrameObjectListUndoHelper(_document->frameObjectList()).raiseSelectedItems();
+    ActionPointListUndoHelper(_document->actionPointList()).raiseSelectedItems();
+    EntityHitboxListUndoHelper(_document->entityHitboxList()).raiseSelectedItems();
+
+    _document->undoStack()->endMacro();
 }
 
 void Actions::onLowerSelected()
 {
-    MS::Frame* frame = _document->selection()->selectedFrame();
-    const auto& selectedItems = _document->selection()->selectedItems();
+    // ::TODO helper class::
+    _document->undoStack()->beginMacro(tr("Lower Selected"));
 
-    _document->undoStack()->push(
-        new LowerFrameContents(_document, frame, selectedItems));
+    FrameObjectListUndoHelper(_document->frameObjectList()).lowerSelectedItems();
+    ActionPointListUndoHelper(_document->actionPointList()).lowerSelectedItems();
+    EntityHitboxListUndoHelper(_document->entityHitboxList()).lowerSelectedItems();
+
+    _document->undoStack()->endMacro();
 }
 
 void Actions::onCloneSelected()
 {
-    QUndoStack* undoStack = _document->undoStack();
-    MS::Frame* frame = _document->selection()->selectedFrame();
-    const std::set<SelectedItem> items = _document->selection()->selectedItems();
-    std::set<SelectedItem> newSel;
+    // ::TODO helper class::
+    _document->undoStack()->beginMacro(tr("Clone Selected"));
 
-    if (items.size() > 1) {
-        undoStack->beginMacro(tr("Clone"));
-    }
+    FrameObjectListUndoHelper(_document->frameObjectList()).cloneSelectedItems();
+    ActionPointListUndoHelper(_document->actionPointList()).cloneSelectedItems();
+    EntityHitboxListUndoHelper(_document->entityHitboxList()).cloneSelectedItems();
 
-    for (const auto& item : items) {
-        switch (item.type) {
-        case SelectedItem::NONE:
-        case SelectedItem::TILE_HITBOX:
-            break;
-
-        case SelectedItem::FRAME_OBJECT:
-            undoStack->push(new CloneFrameObject(_document, frame, item.index));
-            newSel.insert({ SelectedItem::FRAME_OBJECT, frame->objects.size() - 1 });
-            break;
-
-        case SelectedItem::ACTION_POINT:
-            undoStack->push(new CloneActionPoint(_document, frame, item.index));
-            newSel.insert({ SelectedItem::ACTION_POINT, frame->actionPoints.size() - 1 });
-            break;
-
-        case SelectedItem::ENTITY_HITBOX:
-            undoStack->push(new CloneEntityHitbox(_document, frame, item.index));
-            newSel.insert({ SelectedItem::ENTITY_HITBOX, frame->entityHitboxes.size() - 1 });
-            break;
-        }
-    }
-
-    if (items.size() > 1) {
-        undoStack->endMacro();
-    }
-
-    _document->selection()->setSelectedItems(newSel);
+    _document->undoStack()->endMacro();
 }
 
 void Actions::onRemoveSelected()
 {
-    QUndoStack* undoStack = _document->undoStack();
-    MS::Frame* frame = _document->selection()->selectedFrame();
+    // ::TODO helper class::
+    _document->undoStack()->beginMacro(tr("Remove Selected"));
 
-    const auto& itemsSet = _document->selection()->selectedItems();
-    const std::vector<SelectedItem> items(itemsSet.rbegin(), itemsSet.rend());
+    FrameObjectListUndoHelper(_document->frameObjectList()).removeSelectedItems();
+    ActionPointListUndoHelper(_document->actionPointList()).removeSelectedItems();
+    EntityHitboxListUndoHelper(_document->entityHitboxList()).removeSelectedItems();
 
-    if (items.size() > 1) {
-        undoStack->beginMacro(tr("Remove Items"));
-    }
-
-    for (const auto& item : items) {
-        switch (item.type) {
-        case SelectedItem::NONE:
-        case SelectedItem::TILE_HITBOX:
-            break;
-
-        case SelectedItem::FRAME_OBJECT:
-            undoStack->push(new RemoveFrameObject(_document, frame, item.index));
-            break;
-
-        case SelectedItem::ACTION_POINT:
-            undoStack->push(new RemoveActionPoint(_document, frame, item.index));
-            break;
-
-        case SelectedItem::ENTITY_HITBOX:
-            undoStack->push(new RemoveEntityHitbox(_document, frame, item.index));
-            break;
-        }
-    }
-
-    if (items.size() > 1) {
-        undoStack->endMacro();
-    }
+    _document->undoStack()->endMacro();
 }
 
 void Actions::onToggleObjSize()
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    QUndoStack* undoStack = _document->undoStack();
-    MS::Frame* frame = _document->selection()->selectedFrame();
-
-    undoStack->beginMacro(tr("Change Object Size"));
-
-    for (const auto& item : _document->selection()->selectedItems()) {
-        if (item.type == SelectedItem::FRAME_OBJECT) {
-            MS::FrameObject obj = frame->objects.at(item.index);
-            obj.size = obj.size == ObjSize::SMALL ? ObjSize::LARGE : ObjSize::SMALL;
-
-            undoStack->push(new ChangeFrameObject(_document, frame, item.index, obj));
-        }
-    }
-
-    undoStack->endMacro();
+    FrameObjectListUndoHelper h(_document->frameObjectList());
+    h.editSelectedItems(tr("Change Object Size"),
+                        [](MS::FrameObject& obj, size_t) {
+                            obj.size = (obj.size == ObjSize::SMALL) ? ObjSize::LARGE : ObjSize::SMALL;
+                        });
 }
 
 void Actions::onFlipObjHorizontally()
 {
-    QUndoStack* undoStack = _document->undoStack();
-    MS::Frame* frame = _document->selection()->selectedFrame();
-
-    undoStack->beginMacro(tr("Flip Horizontally"));
-
-    for (const auto& item : _document->selection()->selectedItems()) {
-        if (item.type == SelectedItem::FRAME_OBJECT) {
-            MS::FrameObject obj = frame->objects.at(item.index);
-            obj.hFlip = !obj.hFlip;
-
-            undoStack->push(new ChangeFrameObject(_document, frame, item.index, obj));
-        }
-    }
-
-    undoStack->endMacro();
+    FrameObjectListUndoHelper h(_document->frameObjectList());
+    h.editSelectedItems(tr("Flip Horizontally"),
+                        [](MS::FrameObject& obj, size_t) {
+                            obj.hFlip = !obj.hFlip;
+                        });
 }
 
 void Actions::onFlipObjVertically()
 {
-    QUndoStack* undoStack = _document->undoStack();
-    MS::Frame* frame = _document->selection()->selectedFrame();
-
-    undoStack->beginMacro(tr("Flip Vertically"));
-
-    for (const auto& item : _document->selection()->selectedItems()) {
-        if (item.type == SelectedItem::FRAME_OBJECT) {
-            MS::FrameObject obj = frame->objects.at(item.index);
-            obj.vFlip = !obj.vFlip;
-
-            undoStack->push(new ChangeFrameObject(_document, frame, item.index, obj));
-        }
-    }
-
-    undoStack->endMacro();
+    FrameObjectListUndoHelper h(_document->frameObjectList());
+    h.editSelectedItems(tr("Flip Vertically"),
+                        [](MS::FrameObject& obj, size_t) {
+                            obj.vFlip = !obj.vFlip;
+                        });
 }
 
 void Actions::onEntityHitboxTypeMenu(QAction* action)
 {
-    using EhtEnum = UnTech::MetaSprite::EntityHitboxType::Enum;
+    using EHT = UnTech::MetaSprite::EntityHitboxType;
 
-    EhtEnum ehType = EhtEnum(action->data().toInt());
-    MS::Frame* frame = _document->selection()->selectedFrame();
-    auto command = std::make_unique<QUndoCommand>(tr("Change Entity Hitbox Type"));
+    EHT ehType = EHT::Enum(action->data().toInt());
 
-    for (const auto& item : _document->selection()->selectedItems()) {
-        if (item.type == SelectedItem::ENTITY_HITBOX) {
-            MS::EntityHitbox eh = frame->entityHitboxes.at(item.index);
-
-            if (eh.hitboxType != ehType) {
-                eh.hitboxType = ehType;
-                new ChangeEntityHitbox(_document, frame, item.index, eh, command.get());
-            }
-        }
-    }
-
-    if (command->childCount() > 0) {
-        _document->undoStack()->push(command.release());
-    }
+    EntityHitboxListUndoHelper h(_document->entityHitboxList());
+    h.setSelectedFields(ehType, tr("Change Entity Hitbox Type"),
+                        [](MS::EntityHitbox& eh) -> EHT& { return eh.hitboxType; });
 }

@@ -33,7 +33,7 @@ public:
     void setDocument(Document* document);
 
 private slots:
-    void onSelectedItemsChanged();
+    void onSelectedFrameObjectsChanged();
     void onFrameObjectChanged(const void* frame, unsigned index);
     void onTileClicked(ObjectSize size, int tileIndex);
     void onContextMenu(const QPoint& pos);

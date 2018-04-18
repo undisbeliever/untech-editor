@@ -7,11 +7,10 @@
 #include "tilesetdock.h"
 #include "accessors.h"
 #include "document.h"
-#include "framecontentcommands.h"
-#include "selection.h"
 #include "tilesetcommands.h"
 #include "tilesetwidgets.h"
 #include "gui-qt/metasprite/metasprite/tilesetdock.ui.h"
+#include "gui-qt/undo/listandmultipleselectionundohelper.h"
 
 #include <QMenu>
 
@@ -49,8 +48,7 @@ void TilesetDock::setDocument(Document* document)
     }
 
     if (_document != nullptr) {
-        _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->frameObjectList()->disconnect(this);
     }
     _document = document;
 
@@ -60,24 +58,24 @@ void TilesetDock::setDocument(Document* document)
     _ui->largeTileset->setDocument(_document);
 
     if (_document) {
-        onSelectedItemsChanged();
+        onSelectedFrameObjectsChanged();
 
-        connect(_document, &Document::frameObjectChanged,
-                this, &TilesetDock::onFrameObjectChanged);
+        connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
+                this, &TilesetDock::onSelectedFrameObjectsChanged);
 
-        connect(_document->selection(), &Selection::selectedItemsChanged,
-                this, &TilesetDock::onSelectedItemsChanged);
+        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
+                this, &TilesetDock::onSelectedFrameObjectsChanged);
     }
 }
 
-void TilesetDock::onSelectedItemsChanged()
+void TilesetDock::onSelectedFrameObjectsChanged()
 {
     // To simplify the UI the selected tile will only be shown if
     // selectedItems contains a single Frame Object.
 
     const int index = selectedFrameObjectIndex();
     if (index >= 0) {
-        const MS::Frame* frame = _document->selection()->selectedFrame();
+        const MS::Frame* frame = _document->frameMap()->selectedFrame();
         const MS::FrameObject& obj = frame->objects.at(index);
 
         if (obj.size == ObjectSize::SMALL) {
@@ -97,7 +95,7 @@ void TilesetDock::onSelectedItemsChanged()
 
 void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned changedIndex)
 {
-    const MS::Frame* frame = _document->selection()->selectedFrame();
+    const MS::Frame* frame = _document->frameMap()->selectedFrame();
     if (frame == changedFrame) {
         const int index = selectedFrameObjectIndex();
 
@@ -125,33 +123,25 @@ void TilesetDock::onTileClicked(ObjectSize size, int tileIndex)
 
     const int index = selectedFrameObjectIndex();
     if (index >= 0) {
-        MS::Frame* frame = _document->selection()->selectedFrame();
-        const MS::FrameObject& oldObj = frame->objects.at(index);
-        MS::FrameObject obj = oldObj;
+        const MS::Frame* frame = _document->frameMap()->selectedFrame();
+        MS::FrameObject obj = frame->objects.at(index);
 
         obj.size = size;
         obj.tileId = tileIndex;
 
-        if (obj != oldObj) {
-            _document->undoStack()->push(
-                new ChangeFrameObject(_document, frame, index, obj));
-        }
+        FrameObjectListUndoHelper(_document->frameObjectList()).editItemInSelectedList(index, obj);
     }
 }
 
 int TilesetDock::selectedFrameObjectIndex() const
 {
-    const auto& selectedItems = _document->selection()->selectedItems();
-    if (selectedItems.size() != 1) {
+    const auto& selectedIndexes = _document->frameObjectList()->selectedIndexes();
+    if (selectedIndexes.size() == 1) {
+        return selectedIndexes.front();
+    }
+    else {
         return -1;
     }
-
-    const auto& it = selectedItems.cbegin();
-    if (it->type != SelectedItem::FRAME_OBJECT) {
-        return -1;
-    }
-
-    return it->index;
 }
 
 void TilesetDock::onContextMenu(const QPoint& pos)

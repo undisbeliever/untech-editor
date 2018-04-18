@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gui-qt/metasprite/abstractselection.h"
+#include "models/common/vectorset.h"
 #include "models/metasprite/metasprite.h"
 #include <QGraphicsItem>
 #include <QGraphicsScene>
@@ -49,7 +49,7 @@ public:
 
     void setDocument(Document* document);
 
-    void setFrame(MS::Frame* frame);
+    void setFrame(const UnTech::MetaSprite::MetaSprite::Frame* frame);
 
 protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
@@ -57,6 +57,10 @@ protected:
 
 private:
     void commitMovedItems();
+
+    template <class T>
+    void updateSelection(QList<T>& items,
+                         const vectorset<size_t>& selectedIndexes);
 
     void updateTileHitbox();
 
@@ -74,17 +78,20 @@ private slots:
 
     void onSelectedFrameChanged();
 
-    void updateSelection();
+    void updateFrameObjectSelection();
+    void updateActionPointSelection();
+    void updateEntityHitboxSelection();
+    void updateTileHitboxSelection();
 
     void onSceneSelectionChanged();
 
     void onTilesetPixmapsChanged();
 
-    void onFrameTileHitboxChanged(const void* frame);
+    void onFrameDataChanged(const void* frame);
 
-    void onFrameObjectChanged(const void* frame, unsigned index);
-    void onActionPointChanged(const void* frame, unsigned index);
-    void onEntityHitboxChanged(const void* frame, unsigned index);
+    void onFrameObjectChanged(const void* frame, size_t index);
+    void onActionPointChanged(const void* frame, size_t index);
+    void onEntityHitboxChanged(const void* frame, size_t index);
 
     void onFrameObjectListChanged(const void* frame);
     void onActionPointListChanged(const void* frame);
@@ -105,7 +112,7 @@ private:
     QList<ResizableAabbGraphicsItem*> _entityHitboxes;
 
     Document* _document;
-    MS::Frame* _frame;
+    const MS::Frame* _frame;
 
     bool _inUpdateSelection;
     bool _inOnSceneSelectionChanged;

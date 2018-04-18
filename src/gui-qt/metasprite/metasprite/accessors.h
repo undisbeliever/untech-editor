@@ -6,8 +6,9 @@
 
 #pragma once
 
-#include "gui-qt/metasprite/metasprite/document.h"
+#include "document.h"
 #include "gui-qt/undo/undo.h"
+#include "models/common/vectorset.h"
 #include <QObject>
 #include <tuple>
 
@@ -15,6 +16,10 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
+
+class FrameObjectList;
+class ActionPointList;
+class EntityHitboxList;
 
 class PaletteList : public QObject {
     Q_OBJECT
@@ -134,7 +139,205 @@ signals:
     void selectedColorChanged();
 };
 
+class FrameMap : public QObject {
+    Q_OBJECT
+
+public:
+    using DataT = MS::Frame;
+    using MapT = MS::Frame::map_t;
+
+private:
+    Document* const _document;
+
+    idstring _selectedId;
+    MS::Frame* _selectedItem;
+
+    bool _tileHitboxSelected;
+
+public:
+    FrameMap(Document* document);
+    ~FrameMap() = default;
+
+    Document* resourceItem() const { return _document; }
+
+    QString typeName() const { return tr("Frame"); }
+
+    const idstring& selectedId() const { return _selectedId; }
+    const MS::Frame* selectedItem() const { return _selectedItem; }
+    const MS::Frame* selectedFrame() const { return _selectedItem; }
+
+    bool isFrameSelected() const { return _selectedItem != nullptr; }
+
+    bool isTileHitboxSelected() const { return _tileHitboxSelected && _selectedItem != nullptr; }
+    void setTileHitboxSelected(bool s);
+
+public slots:
+    void setSelectedId(const idstring& id);
+    void unselectItem();
+
+protected:
+    friend class Undo::IdmapUndoHelper<FrameMap>;
+    MapT* getMap()
+    {
+        MS::FrameSet* fs = _document->frameSet();
+        if (fs == nullptr) {
+            return nullptr;
+        }
+        return &fs->frames;
+    }
+
+    friend class AbstractFrameContentAccessor;
+    MS::Frame* selectedItemEditable() const { return _selectedItem; }
+
+signals:
+    void dataChanged(const MS::Frame*);
+    void mapChanged();
+
+    void mapAboutToChange();
+    void itemAdded(const idstring& id);
+    void itemAboutToBeRemoved(const idstring& id);
+    void itemRenamed(const idstring& oldId, const idstring& newId);
+
+    void selectedItemChanged();
+    void tileHitboxSelectedChanged();
+};
+
+class AbstractFrameContentAccessor : public QObject {
+    Q_OBJECT
+
+public:
+    using index_type = size_t;
+    using ArgsT = std::tuple<MS::Frame*>;
+    using SignalArgsT = std::tuple<const void*>;
+
+private:
+    Document* _document;
+
+    vectorset<index_type> _selectedIndexes;
+
+public:
+    AbstractFrameContentAccessor(Document* document);
+    ~AbstractFrameContentAccessor() = default;
+
+    Document* resourceItem() const { return _document; }
+
+    const vectorset<index_type>& selectedIndexes() const { return _selectedIndexes; }
+    void setSelectedIndexes(const vectorset<index_type>& selected);
+    void setSelectedIndexes(vectorset<index_type>&& selected);
+    void unselectAll();
+
+protected:
+    friend class Undo::ListUndoHelper<FrameObjectList>;
+    friend class Undo::ListUndoHelper<ActionPointList>;
+    friend class Undo::ListUndoHelper<EntityHitboxList>;
+    friend class Undo::MultipleSelectedIndexesHelper;
+    ArgsT selectedListTuple() const
+    {
+        return std::make_tuple(_document->frameMap()->selectedItemEditable());
+    }
+
+signals:
+    void dataChanged(const void* frame, index_type index);
+    void listChanged(const void* frame);
+
+    void listAboutToChange(const void* frame);
+    void itemAdded(const void* frame, index_type index);
+    void itemAboutToBeRemoved(const void* frame, index_type index);
+    void itemMoved(const void* frame, index_type from, index_type to);
+
+    void selectedListChanged();
+    void selectedIndexesChanged();
+};
+
+class FrameObjectList : public AbstractFrameContentAccessor {
+    Q_OBJECT
+
+public:
+    using DataT = MS::FrameObject;
+    using ListT = DataT::list_t;
+
+    constexpr static index_type max_size = ListT::MAX_SIZE;
+
+public:
+    FrameObjectList(Document* document);
+    ~FrameObjectList() = default;
+
+    QString typeName() const { return tr("Frame Object"); }
+    QString typeNamePlural() const { return tr("Frame Objects"); }
+
+protected:
+    friend class Undo::ListUndoHelper<FrameObjectList>;
+    friend class Undo::ListActionHelper;
+    ListT* getList(MS::Frame* frame)
+    {
+        if (frame == nullptr) {
+            return nullptr;
+        }
+        return &frame->objects;
+    }
+};
+
+class ActionPointList : public AbstractFrameContentAccessor {
+    Q_OBJECT
+
+public:
+    using DataT = MS::ActionPoint;
+    using ListT = DataT::list_t;
+
+    constexpr static index_type max_size = ListT::MAX_SIZE;
+
+public:
+    ActionPointList(Document* document);
+    ~ActionPointList() = default;
+
+    QString typeName() const { return tr("Action Point"); }
+    QString typeNamePlural() const { return tr("Action Points"); }
+
+protected:
+    friend class Undo::ListUndoHelper<ActionPointList>;
+    friend class Undo::ListActionHelper;
+    ListT* getList(MS::Frame* frame)
+    {
+        if (frame == nullptr) {
+            return nullptr;
+        }
+        return &frame->actionPoints;
+    }
+};
+
+class EntityHitboxList : public AbstractFrameContentAccessor {
+    Q_OBJECT
+
+public:
+    using DataT = MS::EntityHitbox;
+    using ListT = DataT::list_t;
+
+    constexpr static index_type max_size = ListT::MAX_SIZE;
+
+public:
+    EntityHitboxList(Document* document);
+    ~EntityHitboxList() = default;
+
+    QString typeName() const { return tr("Entity Hitbox"); }
+    QString typeNamePlural() const { return tr("Entity Hitboxes"); }
+
+protected:
+    friend class Undo::ListUndoHelper<EntityHitboxList>;
+    friend class Undo::ListActionHelper;
+    ListT* getList(MS::Frame* frame)
+    {
+        if (frame == nullptr) {
+            return nullptr;
+        }
+        return &frame->entityHitboxes;
+    }
+};
+
 using PaletteListUndoHelper = Undo::ListAndSelectionUndoHelper<PaletteList>;
+using FrameMapUndoHelper = Undo::IdmapAndSelectionUndoHelper<FrameMap>;
+using FrameObjectListUndoHelper = Undo::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
+using ActionPointListUndoHelper = Undo::ListAndMultipleSelectionUndoHelper<ActionPointList>;
+using EntityHitboxListUndoHelper = Undo::ListAndMultipleSelectionUndoHelper<EntityHitboxList>;
 }
 }
 }

@@ -5,9 +5,10 @@
  */
 
 #include "framecontentmanagers.h"
+#include "accessors.h"
 #include "document.h"
-#include "framecontentcommands.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/undo/listandmultipleselectionundohelper.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
@@ -31,46 +32,56 @@ void AbstractFrameContentManager::setDocument(Document* document)
 {
     if (_document) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->frameMap()->disconnect(this);
     }
     _document = document;
 
     _frame = nullptr;
-    dataReset();
+    emit dataReset();
 
     if (_document) {
         onSelectedFrameChanged();
 
-        connect(_document->selection(), &Selection::selectedFrameChanged,
+        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &AbstractFrameContentManager::onSelectedFrameChanged);
     }
 }
 
+void AbstractFrameContentManager::connectSignals(AbstractFrameContentAccessor* accessor)
+{
+    connect(accessor, &AbstractFrameContentAccessor::dataChanged,
+            this, &EntityHitboxManager::onItemChanged);
+    connect(accessor, &AbstractFrameContentAccessor::itemAdded,
+            this, &EntityHitboxManager::onItemAdded);
+    connect(accessor, &AbstractFrameContentAccessor::itemAboutToBeRemoved,
+            this, &EntityHitboxManager::onItemAboutToBeRemoved);
+}
+
 void AbstractFrameContentManager::onSelectedFrameChanged()
 {
-    MS::Frame* frame = _document->selection()->selectedFrame();
+    const MS::Frame* frame = _document->frameMap()->selectedFrame();
 
     if (_frame != frame) {
         _frame = frame;
-        dataReset();
+        emit dataReset();
     }
 }
 
-void AbstractFrameContentManager::onItemChanged(const void* frame, unsigned index)
+void AbstractFrameContentManager::onItemChanged(const void* frame, size_t index)
 {
     if (frame == _frame) {
         emit itemChanged(index);
     }
 }
 
-void AbstractFrameContentManager::onItemAdded(const void* frame, unsigned index)
+void AbstractFrameContentManager::onItemAdded(const void* frame, size_t index)
 {
     if (frame == _frame) {
         emit itemAdded(index);
     }
 }
 
-void AbstractFrameContentManager::onItemAboutToBeRemoved(const void* frame, unsigned index)
+void AbstractFrameContentManager::onItemAboutToBeRemoved(const void* frame, size_t index)
 {
     if (frame == _frame) {
         emit itemRemoved(index);
@@ -93,15 +104,14 @@ FrameObjectManager::FrameObjectManager(QObject* parent)
 
 void FrameObjectManager::setDocument(Document* document)
 {
+    if (_document) {
+        _document->frameObjectList()->disconnect(this);
+    }
+
     AbstractFrameContentManager::setDocument(document);
 
-    if (_document) {
-        connect(_document, &Document::frameObjectChanged,
-                this, &FrameObjectManager::onItemChanged);
-        connect(_document, &Document::frameObjectAdded,
-                this, &FrameObjectManager::onItemAdded);
-        connect(_document, &Document::frameObjectAboutToBeRemoved,
-                this, &FrameObjectManager::onItemAboutToBeRemoved);
+    if (document) {
+        connectSignals(document->frameObjectList());
     }
 }
 
@@ -185,8 +195,7 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
         return false;
     }
 
-    const MS::FrameObject& oldObj = _frame->objects.at(index);
-    MS::FrameObject obj = oldObj;
+    MS::FrameObject obj = _frame->objects.at(index);
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
@@ -208,18 +217,7 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
         break;
     };
 
-    if (obj != oldObj) {
-        _document->undoStack()->push(
-            new ChangeFrameObject(_document, _frame, index, obj));
-
-        return true;
-    }
-    return false;
-}
-
-SelectedItem::Type FrameObjectManager::itemType() const
-{
-    return SelectedItem::FRAME_OBJECT;
+    return FrameObjectListUndoHelper(_document->frameObjectList()).editItemInSelectedList(index, obj);
 }
 
 ActionPointManager::ActionPointManager(QObject* parent)
@@ -236,15 +234,14 @@ ActionPointManager::ActionPointManager(QObject* parent)
 
 void ActionPointManager::setDocument(Document* document)
 {
+    if (_document) {
+        _document->actionPointList()->disconnect(this);
+    }
+
     AbstractFrameContentManager::setDocument(document);
 
-    if (_document) {
-        connect(_document, &Document::actionPointChanged,
-                this, &ActionPointManager::onItemChanged);
-        connect(_document, &Document::actionPointAdded,
-                this, &ActionPointManager::onItemAdded);
-        connect(_document, &Document::actionPointAboutToBeRemoved,
-                this, &ActionPointManager::onItemAboutToBeRemoved);
+    if (document) {
+        connectSignals(document->actionPointList());
     }
 }
 
@@ -287,8 +284,7 @@ bool ActionPointManager::setData(int index, int id, const QVariant& value)
         return false;
     }
 
-    const MS::ActionPoint& oldAp = _frame->actionPoints.at(index);
-    MS::ActionPoint ap = oldAp;
+    MS::ActionPoint ap = _frame->actionPoints.at(index);
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
@@ -301,18 +297,7 @@ bool ActionPointManager::setData(int index, int id, const QVariant& value)
         break;
     };
 
-    if (ap != oldAp) {
-        _document->undoStack()->push(
-            new ChangeActionPoint(_document, _frame, index, ap));
-
-        return true;
-    }
-    return false;
-}
-
-SelectedItem::Type ActionPointManager::itemType() const
-{
-    return SelectedItem::ACTION_POINT;
+    return ActionPointListUndoHelper(_document->actionPointList()).editItemInSelectedList(index, ap);
 }
 
 EntityHitboxManager::EntityHitboxManager(QObject* parent)
@@ -331,15 +316,14 @@ EntityHitboxManager::EntityHitboxManager(QObject* parent)
 
 void EntityHitboxManager::setDocument(Document* document)
 {
+    if (_document) {
+        _document->entityHitboxList()->disconnect(this);
+    }
+
     AbstractFrameContentManager::setDocument(document);
 
-    if (_document) {
-        connect(_document, &Document::entityHitboxChanged,
-                this, &EntityHitboxManager::onItemChanged);
-        connect(_document, &Document::entityHitboxAdded,
-                this, &EntityHitboxManager::onItemAdded);
-        connect(_document, &Document::entityHitboxAboutToBeRemoved,
-                this, &EntityHitboxManager::onItemAboutToBeRemoved);
+    if (document) {
+        connectSignals(document->entityHitboxList());
     }
 }
 
@@ -385,8 +369,7 @@ bool EntityHitboxManager::setData(int index, int id, const QVariant& value)
         return false;
     }
 
-    const MS::EntityHitbox& oldeh = _frame->entityHitboxes.at(index);
-    MS::EntityHitbox eh = oldeh;
+    MS::EntityHitbox eh = _frame->entityHitboxes.at(index);
 
     switch ((PropertyId)id) {
     case PropertyId::AABB:
@@ -401,16 +384,5 @@ bool EntityHitboxManager::setData(int index, int id, const QVariant& value)
         break;
     };
 
-    if (eh != oldeh) {
-        _document->undoStack()->push(
-            new ChangeEntityHitbox(_document, _frame, index, eh));
-
-        return true;
-    }
-    return false;
-}
-
-SelectedItem::Type EntityHitboxManager::itemType() const
-{
-    return SelectedItem::ENTITY_HITBOX;
+    return EntityHitboxListUndoHelper(_document->entityHitboxList()).editItemInSelectedList(index, eh);
 }

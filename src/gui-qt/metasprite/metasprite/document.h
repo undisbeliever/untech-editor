@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "selection.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "models/metasprite/metasprite.h"
 #include <memory>
@@ -17,6 +16,10 @@ namespace MetaSprite {
 namespace MetaSprite {
 
 class PaletteList;
+class FrameMap;
+class FrameObjectList;
+class ActionPointList;
+class EntityHitboxList;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -33,11 +36,15 @@ public:
     MS::FrameSet* frameSet() const { return _frameSet; }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
-    virtual Selection* selection() const final { return _selection; }
-
     virtual QStringList frameList() const final;
 
+    virtual AbstractSelection* selection() const final { return nullptr; }
+
     PaletteList* paletteList() const { return _paletteList; }
+    FrameMap* frameMap() const { return _frameMap; }
+    FrameObjectList* frameObjectList() const { return _frameObjectList; }
+    ActionPointList* actionPointList() const { return _actionPointList; }
+    EntityHitboxList* entityHitboxList() const { return _entityHitboxList; }
 
 protected:
     // can throw exceptions
@@ -61,9 +68,11 @@ signals:
 private:
     MS::FrameSet* _frameSet;
 
-    Selection* const _selection;
-
     PaletteList* const _paletteList;
+    FrameMap* const _frameMap;
+    FrameObjectList* const _frameObjectList;
+    ActionPointList* const _actionPointList;
+    EntityHitboxList* const _entityHitboxList;
 };
 }
 }
