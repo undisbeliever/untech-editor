@@ -113,9 +113,12 @@ void PropertyTableModel::onManagerItemMoved(int managerIndex, int from, int to)
 
 QModelIndex PropertyTableModel::toModelIndex(PropertyTableManager* manager, int index) const
 {
-    int managerIndex = _managers.indexOf(manager);
+    return toModelIndex(_managers.indexOf(manager), index);
+}
 
-    if (managerIndex >= 0
+QModelIndex PropertyTableModel::toModelIndex(int managerIndex, int index) const
+{
+    if (managerIndex >= 0 && managerIndex < _managers.size()
         && index >= 0 && index < rowCountFromManager(managerIndex)) {
 
         return createIndex(index, 0, managerIndex);
