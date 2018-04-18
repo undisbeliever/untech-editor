@@ -11,7 +11,6 @@
 #include "animationlistmodel.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
-#include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/animation/animationdock.ui.h"
 #include "gui-qt/undo/idmapundohelper.h"
 

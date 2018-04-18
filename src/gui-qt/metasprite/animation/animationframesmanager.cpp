@@ -8,7 +8,6 @@
 #include "animationaccessors.h"
 #include "gui-qt/common/abstractidmaplistmodel.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
-#include "gui-qt/metasprite/abstractselection.h"
 
 #include "gui-qt/undo/listundohelper.h"
 

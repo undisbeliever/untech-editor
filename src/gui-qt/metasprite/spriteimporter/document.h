@@ -35,8 +35,6 @@ public:
     SI::FrameSet* frameSet() const { return _frameSet; }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
-    virtual AbstractSelection* selection() const final { return nullptr; }
-
     virtual QStringList frameList() const final;
 
     FrameMap* frameMap() const { return _frameMap; }

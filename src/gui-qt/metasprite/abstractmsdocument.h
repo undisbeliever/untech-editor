@@ -19,8 +19,6 @@ namespace GuiQt {
 class AbstractIdmapListModel;
 
 namespace MetaSprite {
-struct SelectedItem;
-class AbstractSelection;
 class FrameSetResourceList;
 
 namespace Animation {
@@ -42,8 +40,6 @@ public:
     MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
 
     virtual MSA::Animation::map_t* animations() const = 0;
-
-    virtual AbstractSelection* selection() const = 0;
 
     virtual QStringList frameList() const = 0;
 
@@ -94,9 +90,6 @@ signals:
     void frameObjectAdded(const void* frame, unsigned index);
     void actionPointAdded(const void* frame, unsigned index);
     void entityHitboxAdded(const void* frame, unsigned index);
-
-    void frameContentsMoved(const void* frame,
-                            const std::set<SelectedItem>& oldPositions, int offset);
 
     void animationRenamed(const idstring& oldId, const idstring& newId);
 

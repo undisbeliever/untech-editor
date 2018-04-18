@@ -38,8 +38,6 @@ public:
 
     virtual QStringList frameList() const final;
 
-    virtual AbstractSelection* selection() const final { return nullptr; }
-
     PaletteList* paletteList() const { return _paletteList; }
     FrameMap* frameMap() const { return _frameMap; }
     FrameObjectList* frameObjectList() const { return _frameObjectList; }

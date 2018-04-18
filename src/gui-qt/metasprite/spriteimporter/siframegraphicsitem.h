@@ -24,7 +24,6 @@ class LayerSettings;
 
 namespace SpriteImporter {
 class Actions;
-class Selection;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
