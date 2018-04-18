@@ -7,7 +7,7 @@
 #pragma once
 
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
-#include "gui-qt/metasprite/abstractselection.h"
+#include "models/common/vectorset.h"
 #include "models/metasprite/spriteimporter.h"
 
 #include <QGraphicsLineItem>
@@ -36,12 +36,6 @@ public:
     static const unsigned ACTION_POINT_ZVALUE = 400;
     static const unsigned ORIGIN_ZVALUE = 500;
 
-    enum class ItemType {
-        FRAME_OBJECT,
-        ACTION_POINT,
-        ENTITY_HITBOX,
-    };
-
 public:
     SiFrameGraphicsItem(SI::Frame* frame, Actions* actions, Style* style,
                         QGraphicsItem* parent = nullptr);
@@ -57,17 +51,20 @@ public:
     bool frameSelected() const { return _frameSelected; }
     void setFrameSelected(bool selected);
 
-    void updateSelection(const std::set<SelectedItem>& selection);
+    void updateFrameObjectSelection(const vectorset<size_t>& selectedIndexes);
+    void updateActionPointSelection(const vectorset<size_t>& selectedIndexes);
+    void updateEntityHitboxSelection(const vectorset<size_t>& selectedIndexes);
+
+    void updateTileHitboxSelected(bool s);
 
     void updateFrameLocation();
-
-    void updateTileHitbox();
+    void onFrameDataChanged();
 
     void updateLayerSettings(const LayerSettings* settings);
 
-    void updateFrameObject(unsigned index);
-    void updateActionPoint(unsigned index);
-    void updateEntityHitbox(unsigned index);
+    void updateFrameObject(size_t index);
+    void updateActionPoint(size_t index);
+    void updateEntityHitbox(size_t index);
 
     void onFrameObjectListChanged();
     void onActionPointListChanged();

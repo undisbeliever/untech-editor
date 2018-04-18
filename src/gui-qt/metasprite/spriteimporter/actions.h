@@ -47,7 +47,8 @@ public:
     QMenu* entityHitboxTypeMenu() const { return _entityHitboxTypeMenu.get(); }
 
 public slots:
-    void updateActions();
+    void updateFrameActions();
+    void updateSelectionActions();
 
     void onAddFrame();
     void onCloneFrame();

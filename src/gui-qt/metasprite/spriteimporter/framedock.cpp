@@ -5,19 +5,17 @@
  */
 
 #include "framedock.h"
+#include "accessors.h"
 #include "actions.h"
 #include "document.h"
-#include "framecommands.h"
 #include "framecontentmanagers.h"
 #include "framelistmodel.h"
-#include "selection.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
 #include "gui-qt/metasprite/spriteimporter/framedock.ui.h"
+#include "gui-qt/undo/idmapundohelper.h"
 
 #include <QMenu>
-
-#include <QDebug>
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
@@ -97,8 +95,10 @@ void FrameDock::setDocument(Document* document)
     }
 
     if (_document != nullptr) {
-        _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->frameMap()->disconnect(this);
+        _document->frameObjectList()->disconnect(this);
+        _document->actionPointList()->disconnect(this);
+        _document->entityHitboxList()->disconnect(this);
     }
     _document = document;
 
@@ -111,13 +111,19 @@ void FrameDock::setDocument(Document* document)
     if (_document) {
         onSelectedFrameChanged();
 
-        connect(_document, &Document::frameSetGridChanged, this, &FrameDock::updateGui);
-        connect(_document, &Document::frameDataChanged, this, &FrameDock::onFrameDataChanged);
+        connect(_document->frameMap(), &FrameMap::dataChanged,
+                this, &FrameDock::onFrameDataChanged);
 
-        connect(_document->selection(), &Selection::selectedFrameChanged,
+        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &FrameDock::onSelectedFrameChanged);
 
-        connect(_document->selection(), &Selection::selectedItemsChanged,
+        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
+                this, &FrameDock::updateFrameContentsSelection);
+
+        connect(_document->actionPointList(), &ActionPointList::selectedIndexesChanged,
+                this, &FrameDock::updateFrameContentsSelection);
+
+        connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
                 this, &FrameDock::updateFrameContentsSelection);
 
         connect(_ui->frameContents->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -130,8 +136,8 @@ void FrameDock::setDocument(Document* document)
 
 void FrameDock::onSelectedFrameChanged()
 {
-    SI::Frame* frame = _document->selection()->selectedFrame();
-    const idstring& frameId = _document->selection()->selectedFrameId();
+    const SI::Frame* frame = _document->frameMap()->selectedFrame();
+    const idstring& frameId = _document->frameMap()->selectedId();
 
     _ui->frameWidget->setEnabled(frame != nullptr);
     _ui->frameContentsBox->setEnabled(frame != nullptr);
@@ -150,7 +156,7 @@ void FrameDock::onSelectedFrameChanged()
 
 void FrameDock::onFrameDataChanged(const void* frame)
 {
-    if (frame == _document->selection()->selectedFrame()) {
+    if (frame == _document->frameMap()->selectedFrame()) {
         updateGui();
     }
 }
@@ -160,11 +166,11 @@ void FrameDock::onFrameComboBoxActivated()
     int index = _ui->frameComboBox->currentIndex();
 
     if (index >= 0) {
-        _document->selection()->selectFrame(
+        _document->frameMap()->setSelectedId(
             _frameListModel->toIdstring(index));
     }
     else {
-        _document->selection()->unselectFrame();
+        _document->frameMap()->unselectItem();
     }
 }
 
@@ -188,10 +194,10 @@ void FrameDock::clearGui()
 
 void FrameDock::updateGui()
 {
-    if (_document->selection()->selectedFrame() == nullptr) {
+    if (_document->frameMap()->selectedFrame() == nullptr) {
         return;
     }
-    const SI::Frame& frame = *_document->selection()->selectedFrame();
+    const SI::Frame& frame = *_document->frameMap()->selectedFrame();
     const SI::FrameLocation& floc = frame.location;
 
     _ui->spriteOrder->setValue(frame.spriteOrder);
@@ -222,19 +228,19 @@ void FrameDock::updateGui()
 
 void FrameDock::onSpriteOrderEdited()
 {
-    SI::Frame* frame = _document->selection()->selectedFrame();
+    using SOT = UnTech::MetaSprite::SpriteOrderType;
 
-    unsigned so = _ui->spriteOrder->value();
-    if (so != frame->spriteOrder) {
-        _document->undoStack()->push(
-            new ChangeFrameSpriteOrder(_document, frame, so));
-    }
+    SOT so = _ui->spriteOrder->value();
+
+    FrameMapUndoHelper h(_document->frameMap());
+    h.editSelectedItemField(so, tr("Edit Sprite Order"),
+                            [](SI::Frame& f) -> SOT& { return f.spriteOrder; });
 }
 
 void FrameDock::onFrameLocationEdited()
 {
     const SI::FrameSet* frameSet = _document->frameSet();
-    SI::Frame* frame = _document->selection()->selectedFrame();
+    const SI::Frame* frame = _document->frameMap()->selectedFrame();
 
     SI::FrameLocation floc;
     floc.useGridLocation = _ui->useGridLocation->isChecked();
@@ -245,55 +251,52 @@ void FrameDock::onFrameLocationEdited()
 
     floc.update(frameSet->grid, *frame);
 
-    if (floc != frame->location) {
-        _document->undoStack()->push(
-            new ChangeFrameLocation(_document, frame, floc));
-    }
+    FrameMapUndoHelper h(_document->frameMap());
+    h.editSelectedItemField(floc, tr("Edit Frame Location"),
+                            [](SI::Frame& f) -> SI::FrameLocation& { return f.location; },
+                            [](FrameMap* frameMap, const SI::Frame* f) { emit frameMap->frameLocationChanged(f); });
 }
 
 void FrameDock::onSolidClicked()
 {
-    SI::Frame* frame = _document->selection()->selectedFrame();
-
     bool solid = _ui->solid->isChecked();
-    if (solid != frame->solid) {
-        _document->undoStack()->push(
-            new ChangeFrameSolid(_document, frame, solid));
-    }
+
+    QString text = solid ? tr("Enable Tile Hitbox")
+                         : tr("Disable Tile Hitbox");
+
+    FrameMapUndoHelper h(_document->frameMap());
+    h.editSelectedItemField(solid, text,
+                            [](SI::Frame& f) -> bool& { return f.solid; });
 }
 
 void FrameDock::onTileHitboxEdited()
 {
-    SI::Frame* frame = _document->selection()->selectedFrame();
-
     urect hitbox = _ui->tileHitbox->valueUrect();
-    if (hitbox != frame->tileHitbox) {
-        _document->undoStack()->push(
-            new ChangeFrameTileHitbox(_document, frame, hitbox));
-    }
+
+    FrameMapUndoHelper h(_document->frameMap());
+    h.editSelectedItemField(hitbox, tr("Edit Tile Hitbox"),
+                            [](SI::Frame& f) -> urect& { return f.tileHitbox; });
 }
 
 void FrameDock::updateFrameContentsSelection()
 {
     QItemSelection sel;
 
-    for (const auto& item : _document->selection()->selectedItems()) {
-        PropertyTableManager* manager = nullptr;
-        if (item.type == SelectedItem::FRAME_OBJECT) {
-            manager = _frameObjectManager;
-        }
-        else if (item.type == SelectedItem::ACTION_POINT) {
-            manager = _actionPointManager;
-        }
-        else if (item.type == SelectedItem::ENTITY_HITBOX) {
-            manager = _entityHitboxManager;
-        }
+    auto process = [&](const vectorset<size_t>& selectedIndexes,
+                       PropertyTableManager* manager) {
+        int managerIndex = _frameContentsModel->managers().indexOf(manager);
 
-        QModelIndex index = _frameContentsModel->toModelIndex(manager, item.index);
-        if (index.isValid()) {
-            sel.select(index, index);
+        for (size_t si : selectedIndexes) {
+            QModelIndex index = _frameContentsModel->toModelIndex(managerIndex, si);
+            if (index.isValid()) {
+                sel.select(index, index);
+            }
         }
-    }
+    };
+
+    process(_document->frameObjectList()->selectedIndexes(), _frameObjectManager);
+    process(_document->actionPointList()->selectedIndexes(), _actionPointManager);
+    process(_document->entityHitboxList()->selectedIndexes(), _entityHitboxManager);
 
     _ui->frameContents->selectionModel()->select(
         sel, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
@@ -301,27 +304,29 @@ void FrameDock::updateFrameContentsSelection()
 
 void FrameDock::onFrameContentsSelectionChanged()
 {
-    std::set<SelectedItem> items;
+    std::vector<size_t> selectedObjects;
+    std::vector<size_t> selectedActionPoints;
+    std::vector<size_t> selectedEntityHitboxes;
 
     for (const auto& index : _ui->frameContents->selectionModel()->selectedRows()) {
         auto mi = _frameContentsModel->toManagerAndIndex(index);
 
         if (mi.first && mi.second >= 0) {
-            unsigned i = unsigned(mi.second);
-
             if (mi.first == _frameObjectManager) {
-                items.insert({ SelectedItem::FRAME_OBJECT, i });
+                selectedObjects.push_back(mi.second);
             }
             else if (mi.first == _actionPointManager) {
-                items.insert({ SelectedItem::ACTION_POINT, i });
+                selectedActionPoints.push_back(mi.second);
             }
             else if (mi.first == _entityHitboxManager) {
-                items.insert({ SelectedItem::ENTITY_HITBOX, i });
+                selectedEntityHitboxes.push_back(mi.second);
             }
         }
     }
 
-    _document->selection()->setSelectedItems(items);
+    _document->frameObjectList()->setSelectedIndexes(std::move(selectedObjects));
+    _document->actionPointList()->setSelectedIndexes(std::move(selectedActionPoints));
+    _document->entityHitboxList()->setSelectedIndexes(std::move(selectedEntityHitboxes));
 }
 
 void FrameDock::onFrameContentsContextMenu(const QPoint& pos)

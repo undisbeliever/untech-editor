@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "selection.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "models/metasprite/spriteimporter.h"
 #include <memory>
@@ -15,7 +14,11 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace SpriteImporter {
-class FrameContentsModel;
+
+class FrameMap;
+class FrameObjectList;
+class ActionPointList;
+class EntityHitboxList;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -32,9 +35,14 @@ public:
     SI::FrameSet* frameSet() const { return _frameSet; }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
-    virtual Selection* selection() const final { return _selection; }
+    virtual AbstractSelection* selection() const final { return nullptr; }
 
     virtual QStringList frameList() const final;
+
+    FrameMap* frameMap() const { return _frameMap; }
+    FrameObjectList* frameObjectList() const { return _frameObjectList; }
+    ActionPointList* actionPointList() const { return _actionPointList; }
+    EntityHitboxList* entityHitboxList() const { return _entityHitboxList; }
 
 protected:
     // can throw exceptions
@@ -54,12 +62,13 @@ signals:
     void frameSetImageChanged();
     void frameSetPaletteChanged();
 
-    void frameLocationChanged(const void* frame);
-
 private:
     SI::FrameSet* _frameSet;
 
-    Selection* const _selection;
+    FrameMap* const _frameMap;
+    FrameObjectList* const _frameObjectList;
+    ActionPointList* const _actionPointList;
+    EntityHitboxList* const _entityHitboxList;
 };
 }
 }

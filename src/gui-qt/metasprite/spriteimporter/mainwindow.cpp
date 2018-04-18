@@ -5,6 +5,7 @@
  */
 
 #include "mainwindow.h"
+#include "accessors.h"
 #include "actions.h"
 #include "document.h"
 #include "framedock.h"
@@ -112,7 +113,7 @@ void MainWindow::setDocument(Document* document)
 {
     if (_document) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->frameMap()->disconnect(this);
     }
     _document = document;
 
@@ -123,7 +124,7 @@ void MainWindow::setDocument(Document* document)
                 this, &MainWindow::populateWidgets);
         connect(document, &Document::frameSetImageFilenameChanged,
                 this, &MainWindow::onFrameSetImageFilenameChanged);
-        connect(document->selection(), &Selection::selectedFrameChanged,
+        connect(document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &MainWindow::onSelectedFrameChanged);
     }
 }
@@ -149,7 +150,7 @@ void MainWindow::populateWidgets()
 
 void MainWindow::onSelectedFrameChanged()
 {
-    if (_document && _document->selection()->hasSelectedFrame()) {
+    if (_document && _document->frameMap()->selectedFrame() != nullptr) {
         _graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     }
     else {

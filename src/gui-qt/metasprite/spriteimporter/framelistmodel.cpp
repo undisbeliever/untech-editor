@@ -5,6 +5,7 @@
  */
 
 #include "framelistmodel.h"
+#include "accessors.h"
 #include "document.h"
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
@@ -18,18 +19,18 @@ FrameListModel::FrameListModel(QObject* parent)
 void FrameListModel::setDocument(Document* document)
 {
     if (_document) {
-        _document->disconnect(this);
+        _document->frameMap()->disconnect(this);
     }
     _document = document;
 
     if (_document) {
         buildLists(_document->frameSet()->frames);
 
-        connect(_document, &AbstractMsDocument::frameAdded,
+        connect(_document->frameMap(), &FrameMap::itemAdded,
                 this, &FrameListModel::addIdstring);
-        connect(_document, qOverload<const idstring&>(&AbstractMsDocument::frameAboutToBeRemoved),
+        connect(_document->frameMap(), &FrameMap::itemAboutToBeRemoved,
                 this, &FrameListModel::removeIdstring);
-        connect(_document, &AbstractMsDocument::frameRenamed,
+        connect(_document->frameMap(), &FrameMap::itemRenamed,
                 this, &FrameListModel::renameIdstring);
     }
     else {

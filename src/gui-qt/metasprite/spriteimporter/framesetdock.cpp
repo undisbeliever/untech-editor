@@ -5,11 +5,11 @@
  */
 
 #include "framesetdock.h"
+#include "accessors.h"
 #include "actions.h"
 #include "document.h"
 #include "framelistmodel.h"
 #include "framesetcommands.h"
-#include "selection.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/spriteimporter/framesetdock.ui.h"
 
@@ -100,7 +100,8 @@ void FrameSetDock::setDocument(Document* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->frameMap()->disconnect(this);
+        _ui->frameList->selectionModel()->disconnect(this);
     }
     _document = document;
 
@@ -113,7 +114,7 @@ void FrameSetDock::setDocument(Document* document)
         connect(_document, &Document::frameSetDataChanged,
                 this, &FrameSetDock::updateGui);
 
-        connect(_document->selection(), &Selection::selectedFrameChanged,
+        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &FrameSetDock::updateFrameListSelection);
 
         connect(_ui->frameList->selectionModel(), &QItemSelectionModel::selectionChanged,
@@ -263,7 +264,7 @@ void FrameSetDock::onPaletteEdited()
 void FrameSetDock::updateFrameListSelection()
 {
     if (_document) {
-        const idstring id = _document->selection()->selectedFrameId();
+        const idstring id = _document->frameMap()->selectedId();
         QModelIndex index = _frameListModel->toModelIndex(id);
 
         _ui->frameList->setCurrentIndex(index);
@@ -274,7 +275,7 @@ void FrameSetDock::onFrameListSelectionChanged()
 {
     QModelIndex index = _ui->frameList->currentIndex();
     idstring frameId = _frameListModel->toIdstring(index);
-    _document->selection()->selectFrame(frameId);
+    _document->frameMap()->setSelectedId(frameId);
 }
 
 void FrameSetDock::onFrameContextMenu(const QPoint& pos)

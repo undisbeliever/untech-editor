@@ -6,7 +6,8 @@
 
 #pragma once
 
-#include "gui-qt/metasprite/abstractselection.h"
+#include "siframegraphicsitem.h"
+#include "models/common/vectorset.h"
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QMap>
@@ -21,7 +22,6 @@ class LayerSettings;
 namespace SpriteImporter {
 class Actions;
 class Document;
-class SiFrameGraphicsItem;
 
 class SiGraphicsScene : public QGraphicsScene {
     Q_OBJECT
@@ -46,11 +46,18 @@ private:
     void commitMovedItems();
     void removeAllFrameItems();
 
+    template <typename F>
+    void updateSelection(F f, const vectorset<size_t>& selectedIndexes);
+
 private slots:
     void onLayerSettingsChanged();
 
     void onSelectedFrameChanged();
-    void updateSelection();
+
+    void updateFrameObjectSelection();
+    void updateActionPointSelection();
+    void updateEntityHitboxSelection();
+    void updateTileHitboxSelection();
 
     void onSceneSelectionChanged();
 
@@ -62,13 +69,14 @@ private slots:
     void onFrameSetGridChanged();
 
     void onFrameAdded(const idstring& id);
-    void onFrameAboutToBeRemoved(const void* frame);
-    void onFrameLocationChanged(const void* frame);
-    void onFrameTileHitboxChanged(const void* frame);
+    void onFrameAboutToBeRemoved(const idstring& frameId);
 
-    void onFrameObjectChanged(const void* frame, unsigned index);
-    void onActionPointChanged(const void* frame, unsigned index);
-    void onEntityHitboxChanged(const void* frame, unsigned index);
+    void onFrameLocationChanged(const void* frame);
+    void onFrameDataChanged(const void* frame);
+
+    void onFrameObjectChanged(const void* frame, size_t index);
+    void onActionPointChanged(const void* frame, size_t index);
+    void onEntityHitboxChanged(const void* frame, size_t index);
 
     void onFrameObjectListChanged(const void* frame);
     void onActionPointListChanged(const void* frame);

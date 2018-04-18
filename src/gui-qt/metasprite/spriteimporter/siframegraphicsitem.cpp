@@ -8,7 +8,6 @@
 #include "actions.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
-#include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
@@ -49,7 +48,7 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame,
     _verticalOrigin->setPen(style->originPen());
 
     updateFrameLocation();
-    updateTileHitbox();
+    onFrameDataChanged();
 
     for (unsigned i = 0; i < frame->objects.size(); i++) {
         addFrameObject();
@@ -79,24 +78,33 @@ void SiFrameGraphicsItem::setFrameSelected(bool sel)
     }
 }
 
-void SiFrameGraphicsItem::updateSelection(const std::set<SelectedItem>& selection)
+template <typename T>
+static void updateSelection(QList<T>& items, const UnTech::vectorset<size_t>& selectedIndexes)
 {
-    auto processList = [&](auto list, SelectedItem::Type type) {
-        SelectedItem si{ type, 0 };
+    for (int i = 0; i < items.size(); i++) {
+        QGraphicsItem* item = items.at(i);
+        item->setSelected(selectedIndexes.contains(i));
+    }
+}
 
-        for (QGraphicsItem* item : list) {
-            item->setSelected(selection.find(si) != selection.end());
-            si.index++;
-        }
-    };
+void SiFrameGraphicsItem::updateFrameObjectSelection(const vectorset<size_t>& selectedIndexes)
+{
+    updateSelection(_objects, selectedIndexes);
+}
 
-    processList(_objects, SelectedItem::FRAME_OBJECT);
-    processList(_actionPoints, SelectedItem::ACTION_POINT);
-    processList(_entityHitboxes, SelectedItem::ENTITY_HITBOX);
+void SiFrameGraphicsItem::updateActionPointSelection(const vectorset<size_t>& selectedIndexes)
+{
+    updateSelection(_actionPoints, selectedIndexes);
+}
 
-    _tileHitbox->setSelected(
-        std::any_of(selection.begin(), selection.end(),
-                    [](auto& s) { return s.type == SelectedItem::TILE_HITBOX; }));
+void SiFrameGraphicsItem::updateEntityHitboxSelection(const vectorset<size_t>& selectedIndexes)
+{
+    updateSelection(_entityHitboxes, selectedIndexes);
+}
+
+void SiFrameGraphicsItem::updateTileHitboxSelected(bool s)
+{
+    _tileHitbox->setSelected(s);
 }
 
 void SiFrameGraphicsItem::updateFrameLocation()
@@ -123,15 +131,17 @@ void SiFrameGraphicsItem::updateFrameLocation()
     }
 }
 
-void SiFrameGraphicsItem::updateTileHitbox()
+void SiFrameGraphicsItem::onFrameDataChanged()
 {
+    // Do not update frame location, there is a seperate signal for that
+
     _tileHitbox->setVisible(_showTileHitbox & _frame->solid);
     _tileHitbox->setRect(_frame->tileHitbox);
 }
 
 void SiFrameGraphicsItem::addFrameObject()
 {
-    unsigned index = _objects.size();
+    size_t index = _objects.size();
     Q_ASSERT(index < _frame->objects.size());
 
     auto* item = new AabbGraphicsItem(this);
@@ -148,7 +158,7 @@ void SiFrameGraphicsItem::addFrameObject()
     updateFrameObject(index);
 }
 
-void SiFrameGraphicsItem::updateFrameObject(unsigned index)
+void SiFrameGraphicsItem::updateFrameObject(size_t index)
 {
     const SI::FrameObject& obj = _frame->objects.at(index);
     auto* item = _objects.at(index);
@@ -178,7 +188,7 @@ void SiFrameGraphicsItem::addActionPoint()
     updateActionPoint(index);
 }
 
-void SiFrameGraphicsItem::updateActionPoint(unsigned index)
+void SiFrameGraphicsItem::updateActionPoint(size_t index)
 {
     const SI::ActionPoint& ap = _frame->actionPoints.at(index);
     auto* item = _actionPoints.at(index);
@@ -190,7 +200,7 @@ void SiFrameGraphicsItem::addEntityHitbox()
 {
     Q_ASSERT(_frame);
 
-    unsigned index = _entityHitboxes.size();
+    size_t index = _entityHitboxes.size();
     Q_ASSERT(index < _frame->entityHitboxes.size());
 
     auto* item = new ResizableAabbGraphicsItem(this);
@@ -205,7 +215,7 @@ void SiFrameGraphicsItem::addEntityHitbox()
     updateEntityHitbox(index);
 }
 
-void SiFrameGraphicsItem::updateEntityHitbox(unsigned index)
+void SiFrameGraphicsItem::updateEntityHitbox(size_t index)
 {
     const SI::EntityHitbox& eh = _frame->entityHitboxes.at(index);
     auto* item = _entityHitboxes.at(index);
