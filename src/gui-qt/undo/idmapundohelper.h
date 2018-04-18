@@ -34,7 +34,11 @@ private:
         return QCoreApplication::tr(s);
     }
 
-    template <typename FieldT, typename UnaryFunction>
+    struct EmptySignalFunction {
+        void operator()(AccessorT*, const DataT*) const {}
+    };
+
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
     class EditFieldCommand : public QUndoCommand {
     private:
         AccessorT* const _accessor;
@@ -42,18 +46,20 @@ private:
         const FieldT _oldValue;
         const FieldT _newValue;
         const UnaryFunction _getter;
+        const ExtraSignalsFunction _signalEmitter;
 
     public:
         EditFieldCommand(AccessorT* accessor, DataT* item,
                          const FieldT& oldValue, const FieldT& newValue,
                          const QString& text,
-                         UnaryFunction getter)
+                         UnaryFunction getter, ExtraSignalsFunction signalEmitter)
             : QUndoCommand(text)
             , _accessor(accessor)
             , _item(item)
             , _oldValue(oldValue)
             , _newValue(newValue)
             , _getter(getter)
+            , _signalEmitter(signalEmitter)
         {
             Q_ASSERT(_item);
         }
@@ -64,6 +70,8 @@ private:
             _getter(*_item) = _oldValue;
 
             emit _accessor->dataChanged(static_cast<const DataT*>(_item));
+            _signalEmitter(_accessor, static_cast<const DataT*>(_item));
+
             emit _accessor->resourceItem()->dataChanged();
         }
 
@@ -72,6 +80,8 @@ private:
             _getter(*_item) = _newValue;
 
             emit _accessor->dataChanged(static_cast<const DataT*>(_item));
+            _signalEmitter(_accessor, static_cast<const DataT*>(_item));
+
             emit _accessor->resourceItem()->dataChanged();
         }
     };
@@ -231,10 +241,10 @@ private:
 
 public:
     // will return nullptr if data cannot be accessed or is equal to newValue
-    template <typename FieldT, typename UnaryFunction>
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
     QUndoCommand* editFieldCommand(const idstring& id, const FieldT& newValue,
                                    const QString& text,
-                                   UnaryFunction getter)
+                                   UnaryFunction getter, ExtraSignalsFunction extraSignals)
     {
         MapT* map = _accessor->getMap();
         if (map == nullptr) {
@@ -249,8 +259,17 @@ public:
         if (oldValue == newValue) {
             return nullptr;
         }
-        return new EditFieldCommand<FieldT, UnaryFunction>(
-            _accessor, item, oldValue, newValue, text, getter);
+        return new EditFieldCommand<FieldT, UnaryFunction, ExtraSignalsFunction>(
+            _accessor, item, oldValue, newValue, text, getter, extraSignals);
+    }
+
+    // will return nullptr if data cannot be accessed or is equal to newValue
+    template <typename FieldT, typename UnaryFunction>
+    QUndoCommand* editFieldCommand(const idstring& id, const FieldT& newValue,
+                                   const QString& text,
+                                   UnaryFunction getter)
+    {
+        return editFieldCommand(id, newValue, text, getter, EmptySignalFunction());
     }
 
     template <typename FieldT, typename UnaryFunction>
@@ -259,6 +278,18 @@ public:
                    UnaryFunction getter)
     {
         QUndoCommand* c = editFieldCommand(id, newValue, text, getter);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
+    }
+
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
+    bool editField(const idstring& id, const FieldT& newValue,
+                   const QString& text,
+                   UnaryFunction getter, ExtraSignalsFunction extraSignals)
+    {
+        QUndoCommand* c = editFieldCommand(id, newValue, text, getter, extraSignals);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
@@ -366,9 +397,7 @@ public:
         if (map->contains(newId)) {
             return nullptr;
         }
-
-        DataT* item = map->getPtr(id);
-        if (item == nullptr) {
+        if (map->contains(id) == false) {
             return nullptr;
         }
 
@@ -398,6 +427,26 @@ public:
     }
 
     template <typename FieldT, typename UnaryFunction>
+    QUndoCommand* editSelectedFieldCommand(const FieldT& newValue,
+                                           const QString& text,
+                                           UnaryFunction getter)
+    {
+        const idstring id = this->_accessor->selectedId();
+
+        return this->editFieldCommand(id, newValue, text, getter);
+    }
+
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
+    QUndoCommand* editSelectedFieldCommand(const FieldT& newValue,
+                                           const QString& text,
+                                           UnaryFunction getter, ExtraSignalsFunction extraSignals)
+    {
+        const idstring id = this->_accessor->selectedId();
+
+        return this->editFieldCommand(id, newValue, text, getter, extraSignals);
+    }
+
+    template <typename FieldT, typename UnaryFunction>
     bool editSelectedItemField(const FieldT& newValue,
                                const QString& text,
                                UnaryFunction getter)
@@ -405,6 +454,15 @@ public:
         const idstring id = this->_accessor->selectedId();
 
         return this->editField(id, newValue, text, getter);
+    }
+
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
+    bool editSelectedItemField(const FieldT& newValue, const QString& text,
+                               UnaryFunction getter, ExtraSignalsFunction extraSignals)
+    {
+        const idstring id = this->_accessor->selectedId();
+
+        return this->editField(id, newValue, text, getter, extraSignals);
     }
 
     bool addItem(const idstring& newId)
@@ -416,15 +474,20 @@ public:
         return s;
     }
 
-    bool cloneSelectedItem(const idstring& newId)
+    bool cloneItem(const idstring& id, const idstring& newId)
     {
-        const idstring id = this->_accessor->selectedId();
-
-        bool s = this->cloneItem(id, newId);
+        bool s = IdmapUndoHelper<AccessorT>::cloneItem(id, newId);
         if (s) {
             this->_accessor->setSelectedId(newId);
         }
         return s;
+    }
+
+    bool cloneSelectedItem(const idstring& newId)
+    {
+        const idstring id = this->_accessor->selectedId();
+
+        return cloneItem(id, newId);
     }
 
     bool removeSelectedItem()
