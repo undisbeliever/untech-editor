@@ -40,8 +40,7 @@ private slots:
     void onSelectedFrameChanged();
 
     void onItemChanged(const void* frame, size_t index);
-    void onItemAdded(const void* frame, size_t index);
-    void onItemAboutToBeRemoved(const void* frame, size_t index);
+    void onListChanged(const void* frame);
 
 protected:
     Document* _document;

@@ -48,10 +48,11 @@ void AbstractFrameContentManager::connectSignals(AbstractFrameContentAccessor* a
 {
     connect(accessor, &AbstractFrameContentAccessor::dataChanged,
             this, &EntityHitboxManager::onItemChanged);
-    connect(accessor, &AbstractFrameContentAccessor::itemAdded,
-            this, &EntityHitboxManager::onItemAdded);
-    connect(accessor, &AbstractFrameContentAccessor::itemAboutToBeRemoved,
-            this, &EntityHitboxManager::onItemAboutToBeRemoved);
+
+    // Use listChanged instead of add/remove to prevent QItemSelectionModel
+    // from corrupting the accessor selectedIndexes.
+    connect(accessor, &AbstractFrameContentAccessor::listChanged,
+            this, &EntityHitboxManager::onListChanged);
 }
 
 void AbstractFrameContentManager::onSelectedFrameChanged()
@@ -78,17 +79,10 @@ void AbstractFrameContentManager::onItemChanged(const void* frame, size_t index)
     }
 }
 
-void AbstractFrameContentManager::onItemAdded(const void* frame, size_t index)
+void AbstractFrameContentManager::onListChanged(const void* frame)
 {
     if (frame == _frame) {
-        emit itemAdded(index);
-    }
-}
-
-void AbstractFrameContentManager::onItemAboutToBeRemoved(const void* frame, size_t index)
-{
-    if (frame == _frame) {
-        emit itemRemoved(index);
+        emit dataChanged();
     }
 }
 
