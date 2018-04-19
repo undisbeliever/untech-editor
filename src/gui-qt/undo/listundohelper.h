@@ -571,7 +571,7 @@ public:
             return nullptr;
         }
 
-        return new AddCommand(_accessor, listArgs, index, list->at(index));
+        return new AddCommand(_accessor, listArgs, index + 1, list->at(index));
     }
 
     bool cloneItem(const ArgsT& listArgs, index_type index)
