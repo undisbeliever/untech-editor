@@ -35,6 +35,32 @@ QStringList AnimationsMap::animationNames() const
     return al;
 }
 
+void AnimationsMap::setSelectedId(const UnTech::idstring& id)
+{
+    if (_selectedId != id) {
+        MapT* map = getMap();
+        if (map == nullptr) {
+            unselectItem();
+            return;
+        }
+
+        _selectedItem = map->getPtr(id);
+        _selectedId = _selectedItem ? id : idstring();
+
+        emit selectedItemChanged();
+    }
+}
+
+void AnimationsMap::unselectItem()
+{
+    if (_selectedId.isValid() || _selectedItem != nullptr) {
+        _selectedId = idstring();
+        _selectedItem = nullptr;
+
+        emit selectedItemChanged();
+    }
+}
+
 AnimationFramesList::AnimationFramesList(AbstractMsDocument* document)
     : QObject(document)
     , _document(document)

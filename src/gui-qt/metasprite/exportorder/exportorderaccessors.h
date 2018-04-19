@@ -42,35 +42,13 @@ public:
     QString typeName() const { return tr("Export Name"); }
 
     const bool& selectedListIsFrame() const { return _selectedListIsFrame; }
-    void setSelectedListIsFrame(bool isFrame)
-    {
-        if (_selectedListIsFrame != isFrame) {
-            unselectItem();
-
-            _selectedListIsFrame = isFrame;
-            emit selectedListChanged();
-        }
-    }
+    void setSelectedListIsFrame(bool isFrame);
 
     index_type selectedIndex() const { return _selectedIndex; }
-    void setSelectedIndex(index_type index)
-    {
-        if (_selectedIndex != index) {
-            _selectedIndex = index;
-            emit selectedIndexChanged();
-        }
-    }
+    void setSelectedIndex(index_type index);
     void unselectItem() { setSelectedIndex(INT_MAX); }
 
-    bool isSelectedItemValid() const
-    {
-        auto* eo = _exportOrder->exportOrderEditable();
-        if (eo == nullptr) {
-            return false;
-        }
-        const auto& nl = _selectedListIsFrame ? &eo->stillFrames : &eo->animations;
-        return _selectedIndex < nl->size();
-    }
+    bool isSelectedItemValid() const;
 
 protected:
     friend class Undo::ListUndoHelper<ExportNameList>;
@@ -129,13 +107,7 @@ public:
 
     index_type selectedIndex() const { return _selectedIndex; }
 
-    void setSelectedIndex(index_type index)
-    {
-        if (_selectedIndex != index) {
-            _selectedIndex = index;
-            emit selectedIndexChanged();
-        }
-    }
+    void setSelectedIndex(index_type index);
     void unselectItem() { setSelectedIndex(INT_MAX); }
 
 protected:

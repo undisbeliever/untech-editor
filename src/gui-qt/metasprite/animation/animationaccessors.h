@@ -47,31 +47,8 @@ public:
     MSA::Animation* selectedAnimation() { return _selectedItem; }
 
 public slots:
-    void setSelectedId(const idstring& id)
-    {
-        if (_selectedId != id) {
-            MapT* map = getMap();
-            if (map == nullptr) {
-                unselectItem();
-                return;
-            }
-
-            _selectedItem = map->getPtr(id);
-            _selectedId = _selectedItem ? id : idstring();
-
-            emit selectedItemChanged();
-        }
-    }
-
-    void unselectItem()
-    {
-        if (_selectedId.isValid() || _selectedItem != nullptr) {
-            _selectedId = idstring();
-            _selectedItem = nullptr;
-
-            emit selectedItemChanged();
-        }
-    }
+    void setSelectedId(const idstring& id);
+    void unselectItem();
 
 protected:
     friend class Undo::IdmapUndoHelper<AnimationsMap>;

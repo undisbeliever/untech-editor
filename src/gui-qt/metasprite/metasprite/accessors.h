@@ -47,66 +47,19 @@ public:
     QString typeName() const { return tr("Palette"); }
 
     index_type selectedIndex() const { return _selectedIndex; }
-    void setSelectedIndex(index_type index)
-    {
-        // always ensure a palette is selected
-        const auto* palettes = this->palettes();
-        if (palettes == nullptr || index >= palettes->size()) {
-            index = 0;
-        }
-
-        if (_selectedIndex != index) {
-            _selectedIndex = index;
-            emit selectedIndexChanged();
-        }
-    }
+    void setSelectedIndex(index_type index);
     void unselectItem() { setSelectedIndex(INT_MAX); }
 
-    bool isSelectedIndexValid() const
-    {
-        const MS::FrameSet* fs = _document->frameSet();
-        if (fs == nullptr) {
-            return false;
-        }
-        return _selectedIndex < fs->palettes.size();
-    }
+    bool isSelectedIndexValid() const;
 
     index_type selectedColor() const { return _selectedColor; }
-    void setSelectedColor(unsigned color)
-    {
-        if (_selectedColor != color) {
-            _selectedColor = color;
-            emit selectedColorChanged();
-        }
-    }
+    void setSelectedColor(unsigned color);
     void unselectColor() { setSelectedColor(INT_MAX); }
 
-    bool isSelectedColorValid() const
-    {
-        return isSelectedIndexValid()
-               && _selectedColor < 16;
-    }
+    bool isSelectedColorValid() const;
 
-    const ListT* palettes() const
-    {
-        MS::FrameSet* fs = _document->frameSet();
-        if (fs == nullptr) {
-            return nullptr;
-        }
-        return &fs->palettes;
-    }
-
-    const DataT* selectedPalette() const
-    {
-        auto* pl = palettes();
-        if (pl == nullptr) {
-            return nullptr;
-        }
-        if (_selectedIndex >= pl->size()) {
-            return nullptr;
-        }
-        return &pl->at(_selectedIndex);
-    }
+    const ListT* palettes() const;
+    const DataT* selectedPalette() const;
 
 protected:
     friend class Undo::ListUndoHelper<PaletteList>;
