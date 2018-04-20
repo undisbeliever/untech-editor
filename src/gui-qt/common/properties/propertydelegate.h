@@ -11,6 +11,15 @@
 namespace UnTech {
 namespace GuiQt {
 struct Property;
+class AbstractPropertyModel;
+
+/*
+ * NOTICE
+ * ======
+ *
+ * All editors created PropertyDelegate MUST be closed before this object can
+ * be deleted safely.
+ */
 
 class PropertyDelegate : public QItemDelegate {
     Q_OBJECT
@@ -39,6 +48,9 @@ public:
                                       const QModelIndex& index) const final;
 
 private:
+    QWidget* createEditorWidget(QWidget* parent, const AbstractPropertyModel* model,
+                                const QModelIndex& index, const Property& property) const;
+
     QRect checkBoxRect(const QStyleOptionViewItem& option) const;
 
 private slots:

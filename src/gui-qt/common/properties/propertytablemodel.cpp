@@ -33,6 +33,9 @@ PropertyTableModel::PropertyTableModel(QList<PropertyTableManager*> managers, QS
         connect(manager, &PropertyTableManager::dataReset,
                 this, &PropertyTableModel::resetModel);
 
+        connect(manager, &PropertyTableManager::listAboutToChange,
+                this, &PropertyTableModel::requestCloseEditors);
+
         connect(manager, &PropertyTableManager::propertyListChanged,
                 this, &PropertyTableModel::updateAll);
         connect(manager, &PropertyTableManager::titleChanged,

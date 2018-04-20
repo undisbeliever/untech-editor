@@ -26,6 +26,9 @@ PropertyListModel::PropertyListModel(PropertyListManager* manager)
             this, &PropertyListModel::invalidateCache);
     connect(manager, &PropertyListManager::enabledChanged,
             this, &PropertyListModel::updateAll);
+
+    connect(manager, &PropertyListManager::listAboutToChange,
+            this, &PropertyListModel::requestCloseEditors);
 }
 
 bool PropertyListModel::isListItem(const QModelIndex& index) const

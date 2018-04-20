@@ -33,6 +33,10 @@ public:
 
 protected:
     QString displayForProperty(const QModelIndex& index, const QVariant& value) const;
+
+signals:
+    // Send a request to the PropertyDelegate to close all open editors
+    void requestCloseEditors();
 };
 }
 }

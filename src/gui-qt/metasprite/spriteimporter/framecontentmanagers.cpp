@@ -49,6 +49,9 @@ void AbstractFrameContentManager::connectSignals(AbstractFrameContentAccessor* a
     connect(accessor, &AbstractFrameContentAccessor::dataChanged,
             this, &EntityHitboxManager::onItemChanged);
 
+    connect(accessor, &AbstractFrameContentAccessor::listAboutToChange,
+            this, &AbstractFrameContentManager::listAboutToChange);
+
     // Use listChanged instead of add/remove to prevent QItemSelectionModel
     // from corrupting the accessor selectedIndexes.
     connect(accessor, &AbstractFrameContentAccessor::listChanged,

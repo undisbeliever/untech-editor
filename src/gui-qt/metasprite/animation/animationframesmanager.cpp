@@ -69,6 +69,9 @@ void AnimationFramesManager::setDocument(AbstractMsDocument* document)
                 this, &AnimationFramesManager::onAnimationFrameAboutToBeRemoved);
         connect(_document->animationFramesList(), &AnimationFramesList::itemMoved,
                 this, &AnimationFramesManager::onAnimationFrameMoved);
+
+        connect(_document->animationFramesList(), &AnimationFramesList::listAboutToChange,
+                this, &AnimationFramesManager::listAboutToChange);
     }
 }
 
