@@ -10,10 +10,10 @@
 #include "document.h"
 #include "framecontentmanagers.h"
 #include "framelistmodel.h"
+#include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
 #include "gui-qt/metasprite/spriteimporter/framedock.ui.h"
-#include "gui-qt/undo/idmapundohelper.h"
 
 #include <QMenu>
 

@@ -15,7 +15,7 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Undo {
+namespace Accessor {
 
 template <class AccessorT>
 class ListUndoHelper {

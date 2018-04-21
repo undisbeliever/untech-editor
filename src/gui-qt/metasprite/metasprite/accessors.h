@@ -7,7 +7,7 @@
 #pragma once
 
 #include "document.h"
-#include "gui-qt/undo/undo.h"
+#include "gui-qt/accessor/accessor.h"
 #include "models/common/vectorset.h"
 #include <QObject>
 #include <tuple>
@@ -62,9 +62,9 @@ public:
     const DataT* selectedPalette() const;
 
 protected:
-    friend class Undo::ListUndoHelper<PaletteList>;
-    friend class Undo::ListActionHelper;
-    friend class Undo::SelectedIndexHelper;
+    friend class Accessor::ListUndoHelper<PaletteList>;
+    friend class Accessor::ListActionHelper;
+    friend class Accessor::SelectedIndexHelper;
     ListT* getList()
     {
         MS::FrameSet* fs = _document->frameSet();
@@ -129,7 +129,7 @@ public slots:
     void unselectItem();
 
 protected:
-    friend class Undo::IdmapUndoHelper<FrameMap>;
+    friend class Accessor::IdmapUndoHelper<FrameMap>;
     MapT* getMap()
     {
         MS::FrameSet* fs = _document->frameSet();
@@ -180,10 +180,10 @@ public:
     void unselectAll();
 
 protected:
-    friend class Undo::ListUndoHelper<FrameObjectList>;
-    friend class Undo::ListUndoHelper<ActionPointList>;
-    friend class Undo::ListUndoHelper<EntityHitboxList>;
-    friend class Undo::MultipleSelectedIndexesHelper;
+    friend class Accessor::ListUndoHelper<FrameObjectList>;
+    friend class Accessor::ListUndoHelper<ActionPointList>;
+    friend class Accessor::ListUndoHelper<EntityHitboxList>;
+    friend class Accessor::MultipleSelectedIndexesHelper;
     ArgsT selectedListTuple() const
     {
         return std::make_tuple(_document->frameMap()->selectedItemEditable());
@@ -219,8 +219,8 @@ public:
     QString typeNamePlural() const { return tr("Frame Objects"); }
 
 protected:
-    friend class Undo::ListUndoHelper<FrameObjectList>;
-    friend class Undo::ListActionHelper;
+    friend class Accessor::ListUndoHelper<FrameObjectList>;
+    friend class Accessor::ListActionHelper;
     ListT* getList(MS::Frame* frame)
     {
         if (frame == nullptr) {
@@ -247,8 +247,8 @@ public:
     QString typeNamePlural() const { return tr("Action Points"); }
 
 protected:
-    friend class Undo::ListUndoHelper<ActionPointList>;
-    friend class Undo::ListActionHelper;
+    friend class Accessor::ListUndoHelper<ActionPointList>;
+    friend class Accessor::ListActionHelper;
     ListT* getList(MS::Frame* frame)
     {
         if (frame == nullptr) {
@@ -275,8 +275,8 @@ public:
     QString typeNamePlural() const { return tr("Entity Hitboxes"); }
 
 protected:
-    friend class Undo::ListUndoHelper<EntityHitboxList>;
-    friend class Undo::ListActionHelper;
+    friend class Accessor::ListUndoHelper<EntityHitboxList>;
+    friend class Accessor::ListActionHelper;
     ListT* getList(MS::Frame* frame)
     {
         if (frame == nullptr) {
@@ -286,11 +286,11 @@ protected:
     }
 };
 
-using PaletteListUndoHelper = Undo::ListAndSelectionUndoHelper<PaletteList>;
-using FrameMapUndoHelper = Undo::IdmapAndSelectionUndoHelper<FrameMap>;
-using FrameObjectListUndoHelper = Undo::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
-using ActionPointListUndoHelper = Undo::ListAndMultipleSelectionUndoHelper<ActionPointList>;
-using EntityHitboxListUndoHelper = Undo::ListAndMultipleSelectionUndoHelper<EntityHitboxList>;
+using PaletteListUndoHelper = Accessor::ListAndSelectionUndoHelper<PaletteList>;
+using FrameMapUndoHelper = Accessor::IdmapAndSelectionUndoHelper<FrameMap>;
+using FrameObjectListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
+using ActionPointListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<ActionPointList>;
+using EntityHitboxListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<EntityHitboxList>;
 }
 }
 }

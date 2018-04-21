@@ -7,9 +7,9 @@
 #include "animationactions.h"
 #include "animationaccessors.h"
 #include "animationlistmodel.h"
+#include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/common/idstringdialog.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
-#include "gui-qt/undo/idmapundohelper.h"
 
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 

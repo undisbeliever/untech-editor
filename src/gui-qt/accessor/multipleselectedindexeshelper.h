@@ -13,7 +13,7 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Undo {
+namespace Accessor {
 
 class MultipleSelectedIndexesHelper {
 

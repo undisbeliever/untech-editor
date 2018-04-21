@@ -6,10 +6,9 @@
 
 #include "animationframesmanager.h"
 #include "animationaccessors.h"
+#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/common/abstractidmaplistmodel.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
-
-#include "gui-qt/undo/listundohelper.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;

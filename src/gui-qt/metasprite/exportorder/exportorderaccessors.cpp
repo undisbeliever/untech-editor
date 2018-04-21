@@ -5,9 +5,9 @@
  */
 
 #include "exportorderaccessors.h"
-#include "gui-qt/undo/selectedindexhelper.h"
+#include "gui-qt/accessor/selectedindexhelper.h"
 
-using namespace UnTech::GuiQt::Undo;
+using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 

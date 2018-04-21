@@ -9,13 +9,13 @@
 #include "actions.h"
 #include "document.h"
 #include "tilesetpixmaps.h"
+#include "gui-qt/accessor/idmapundohelper.h"
+#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/pixmapgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
-#include "gui-qt/undo/idmapundohelper.h"
-#include "gui-qt/undo/listandmultipleselectionundohelper.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>

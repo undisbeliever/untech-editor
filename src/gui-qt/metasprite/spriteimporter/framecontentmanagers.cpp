@@ -7,8 +7,8 @@
 #include "framecontentmanagers.h"
 #include "accessors.h"
 #include "document.h"
+#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/common/helpers.h"
-#include "gui-qt/undo/listandmultipleselectionundohelper.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;

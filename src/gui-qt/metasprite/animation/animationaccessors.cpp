@@ -5,10 +5,10 @@
  */
 
 #include "animationaccessors.h"
-#include "gui-qt/undo/selectedidmapitemhelper.h"
-#include "gui-qt/undo/selectedindexhelper.h"
+#include "gui-qt/accessor/selectedidmapitemhelper.h"
+#include "gui-qt/accessor/selectedindexhelper.h"
 
-using namespace UnTech::GuiQt::Undo;
+using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 

@@ -5,14 +5,13 @@
  */
 
 #include "exportordereditorwidget.h"
+#include "exportorderaccessors.h"
 #include "exportordermodel.h"
 #include "exportorderresourceitem.h"
+#include "gui-qt/accessor/listactionhelper.h"
+#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/metasprite/exportorder/exportordereditorwidget.ui.h"
-
-#include "exportorderaccessors.h"
-#include "gui-qt/undo/listactionhelper.h"
-#include "gui-qt/undo/listundohelper.h"
 
 #include <QMenu>
 
@@ -140,7 +139,7 @@ void ExportOrderEditorWidget::updateSelection()
 
 void ExportOrderEditorWidget::updateActions()
 {
-    using namespace UnTech::GuiQt::Undo;
+    using namespace UnTech::GuiQt::Accessor;
 
     Q_ASSERT(_exportOrder);
 

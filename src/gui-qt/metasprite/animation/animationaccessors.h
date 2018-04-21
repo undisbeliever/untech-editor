@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
-#include "gui-qt/undo/undo.h"
 #include <QObject>
 #include <tuple>
 
@@ -51,7 +51,7 @@ public slots:
     void unselectItem();
 
 protected:
-    friend class Undo::IdmapUndoHelper<AnimationsMap>;
+    friend class Accessor::IdmapUndoHelper<AnimationsMap>;
     MapT* getMap()
     {
         return _document->animations();
@@ -97,7 +97,7 @@ public:
     QString typeName() const { return tr("Animation Frame"); }
 
 protected:
-    friend class Undo::ListUndoHelper<AnimationFramesList>;
+    friend class Accessor::ListUndoHelper<AnimationFramesList>;
     ListT* getList(MSA::Animation* ani)
     {
         if (ani == nullptr) {
@@ -123,8 +123,8 @@ signals:
     void selectedListChanged();
 };
 
-using AnimationUndoHelper = Undo::IdmapAndSelectionUndoHelper<AnimationsMap>;
-using AnimationFramesUndoHelper = Undo::ListUndoHelper<AnimationFramesList>;
+using AnimationUndoHelper = Accessor::IdmapAndSelectionUndoHelper<AnimationsMap>;
+using AnimationFramesUndoHelper = Accessor::ListUndoHelper<AnimationFramesList>;
 }
 }
 }

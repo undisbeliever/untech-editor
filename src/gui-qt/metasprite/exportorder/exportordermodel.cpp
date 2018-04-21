@@ -5,10 +5,9 @@
  */
 
 #include "exportordermodel.h"
-#include "exportorderresourceitem.h"
-
 #include "exportorderaccessors.h"
-#include "gui-qt/undo/listundohelper.h"
+#include "exportorderresourceitem.h"
+#include "gui-qt/accessor/listundohelper.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;

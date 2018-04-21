@@ -9,11 +9,11 @@
 #include "document.h"
 #include "framelistmodel.h"
 #include "mainwindow.h"
+#include "gui-qt/accessor/idmapundohelper.h"
+#include "gui-qt/accessor/listactionhelper.h"
+#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
+#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/common/idstringdialog.h"
-#include "gui-qt/undo/idmapundohelper.h"
-#include "gui-qt/undo/listactionhelper.h"
-#include "gui-qt/undo/listandmultipleselectionundohelper.h"
-#include "gui-qt/undo/listundohelper.h"
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
@@ -163,7 +163,7 @@ void Actions::updateFrameActions()
 
 void Actions::updateSelectionActions()
 {
-    using namespace UnTech::GuiQt::Undo;
+    using namespace UnTech::GuiQt::Accessor;
 
     ListActionStatus obj;
     ListActionStatus ap;
@@ -195,7 +195,7 @@ void Actions::updateSelectionActions()
 
 void Actions::updatePaletteActions()
 {
-    using namespace UnTech::GuiQt::Undo;
+    using namespace UnTech::GuiQt::Accessor;
 
     ListActionStatus status;
 

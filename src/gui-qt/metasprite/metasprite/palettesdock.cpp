@@ -9,10 +9,10 @@
 #include "actions.h"
 #include "document.h"
 #include "palettesmodel.h"
+#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/common/widgets/colortoolbutton.h"
 #include "gui-qt/metasprite/metasprite/palettesdock.ui.h"
 #include "gui-qt/snes/snescolordialog.h"
-#include "gui-qt/undo/listundohelper.h"
 
 #include <QMenu>
 

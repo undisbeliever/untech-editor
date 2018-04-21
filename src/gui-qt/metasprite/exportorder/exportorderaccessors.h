@@ -7,7 +7,7 @@
 #pragma once
 
 #include "exportorderresourceitem.h"
-#include "gui-qt/undo/undo.h"
+#include "gui-qt/accessor/accessor.h"
 #include <QObject>
 #include <tuple>
 
@@ -51,9 +51,9 @@ public:
     bool isSelectedItemValid() const;
 
 protected:
-    friend class Undo::ListUndoHelper<ExportNameList>;
-    friend class Undo::ListActionHelper;
-    friend class Undo::SelectedIndexHelper;
+    friend class Accessor::ListUndoHelper<ExportNameList>;
+    friend class Accessor::ListActionHelper;
+    friend class Accessor::SelectedIndexHelper;
     ListT* getList(bool isFrame)
     {
         auto* eo = _exportOrder->exportOrderEditable();
@@ -111,9 +111,9 @@ public:
     void unselectItem() { setSelectedIndex(INT_MAX); }
 
 protected:
-    friend class Undo::ListUndoHelper<AlternativesList>;
-    friend class Undo::ListActionHelper;
-    friend class Undo::SelectedIndexHelper;
+    friend class Accessor::ListUndoHelper<AlternativesList>;
+    friend class Accessor::ListActionHelper;
+    friend class Accessor::SelectedIndexHelper;
     ListT* getList(bool isFrame, index_type index)
     {
         auto* eo = _exportOrder->exportOrderEditable();
@@ -150,8 +150,8 @@ signals:
     void selectedIndexChanged();
 };
 
-using ExportNameUndoHelper = Undo::ListAndSelectionUndoHelper<ExportNameList>;
-using AlternativesUndoHelper = Undo::ListAndSelectionUndoHelper<AlternativesList>;
+using ExportNameUndoHelper = Accessor::ListAndSelectionUndoHelper<ExportNameList>;
+using AlternativesUndoHelper = Accessor::ListAndSelectionUndoHelper<AlternativesList>;
 }
 }
 }

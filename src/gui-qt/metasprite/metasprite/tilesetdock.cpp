@@ -9,8 +9,8 @@
 #include "document.h"
 #include "tilesetcommands.h"
 #include "tilesetwidgets.h"
+#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/metasprite/metasprite/tilesetdock.ui.h"
-#include "gui-qt/undo/listandmultipleselectionundohelper.h"
 
 #include <QMenu>
 

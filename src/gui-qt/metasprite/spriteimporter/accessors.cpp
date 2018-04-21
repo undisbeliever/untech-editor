@@ -5,16 +5,16 @@
  */
 
 #include "accessors.h"
-#include "gui-qt/undo/multipleselectedindexeshelper.h"
-#include "gui-qt/undo/selectedidmapitemhelper.h"
-#include "gui-qt/undo/selectedindexhelper.h"
+#include "gui-qt/accessor/multipleselectedindexeshelper.h"
+#include "gui-qt/accessor/selectedidmapitemhelper.h"
+#include "gui-qt/accessor/selectedindexhelper.h"
 
-#include "gui-qt/undo/listandmultipleselectionundohelper.h"
+#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 
-using namespace UnTech::GuiQt::Undo;
+using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-template class UnTech::GuiQt::Undo::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
+template class UnTech::GuiQt::Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
 
 FrameMap::FrameMap(Document* document)
     : QObject(document)
