@@ -68,16 +68,16 @@ private:
 
     QPushButton* const _layersButton;
 
+    FrameSetDock* const _frameSetDock;
+    FrameDock* const _frameDock;
+    Animation::AnimationDock* const _animationDock;
+
     QTabWidget* const _tabWidget;
     ZoomableGraphicsView* const _graphicsView;
     SiGraphicsScene* const _graphicsScene;
     Animation::AnimationPreview* const _animationPreview;
 
     SiAnimationPreviewItemFactory* const _animationPreviewItemFactory;
-
-    FrameSetDock* const _frameSetDock;
-    FrameDock* const _frameDock;
-    Animation::AnimationDock* const _animationDock;
 };
 }
 }

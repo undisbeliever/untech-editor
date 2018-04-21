@@ -36,7 +36,7 @@ public:
 
     AbstractMsDocument* resourceItem() const { return _document; }
 
-    QString typeName() const { return tr("Animation"); }
+    static QString typeName() { return tr("Animation"); }
 
     QStringList animationNames() const;
 
@@ -45,6 +45,11 @@ public:
     const MSA::Animation* selectedAnimation() const { return _selectedItem; }
 
     MSA::Animation* selectedAnimation() { return _selectedItem; }
+
+    const MapT* map()
+    {
+        return _document->animations();
+    }
 
 public slots:
     void setSelectedId(const idstring& id);

@@ -66,18 +66,18 @@ private:
 
     TilesetPixmaps* const _tilesetPixmaps;
 
+    FrameSetDock* const _frameSetDock;
+    FrameDock* const _frameDock;
+    Animation::AnimationDock* const _animationDock;
+    PalettesDock* const _palettesDock;
+    TilesetDock* const _tilesetDock;
+
     QTabWidget* const _tabWidget;
     ZoomableGraphicsView* const _graphicsView;
     MsGraphicsScene* const _graphicsScene;
     Animation::AnimationPreview* const _animationPreview;
 
     MsAnimationPreviewItemFactory* const _animationPreviewItemFactory;
-
-    FrameSetDock* const _frameSetDock;
-    FrameDock* const _frameDock;
-    Animation::AnimationDock* const _animationDock;
-    PalettesDock* const _palettesDock;
-    TilesetDock* const _tilesetDock;
 };
 }
 }

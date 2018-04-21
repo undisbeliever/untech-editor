@@ -6,8 +6,9 @@
 
 #include "animationpreview.h"
 #include "animationaccessors.h"
-#include "animationlistmodel.h"
+#include "animationdock.h"
 #include "animationpreviewitem.h"
+#include "gui-qt/accessor/idmaplistmodel.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/animation/animationpreview.ui.h"
@@ -15,10 +16,10 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
-AnimationPreview::AnimationPreview(QWidget* parent)
+AnimationPreview::AnimationPreview(AnimationDock* animationDock, QWidget* parent)
     : QWidget(parent)
     , _ui(new Ui::AnimationPreview)
-    , _animationListModel(new AnimationListModel(this))
+    , _animationListModel(animationDock->animationListModel())
     , _graphicsScene(new QGraphicsScene(this))
     , _itemFactory(nullptr)
     , _zoomSettings(nullptr)
@@ -28,6 +29,8 @@ AnimationPreview::AnimationPreview(QWidget* parent)
     , _elapsed()
     , _nsSinceLastFrame()
 {
+    Q_ASSERT(animationDock);
+
     _ui->setupUi(this);
 
     _ui->animation->setModel(_animationListModel);
@@ -107,8 +110,6 @@ void AnimationPreview::setDocument(AbstractMsDocument* document)
         _document->animationFramesList()->disconnect(this);
     }
     _document = document;
-
-    _animationListModel->setDocument(_document);
 
     setEnabled(_document != nullptr);
 

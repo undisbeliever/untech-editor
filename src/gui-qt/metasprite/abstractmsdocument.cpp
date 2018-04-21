@@ -8,7 +8,6 @@
 #include "framesetresourcelist.h"
 #include "animation/animationaccessors.h"
 #include "animation/animationframesmanager.h"
-#include "animation/animationlistmodel.h"
 #include "models/metasprite/compiler/compiler.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
