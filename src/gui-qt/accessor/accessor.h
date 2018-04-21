@@ -10,6 +10,10 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
+struct IdmapActions;
+class IdmapListView;
+class IdmapListModel;
+
 class SelectedIndexHelper;
 class MultipleSelectedIndexesHelper;
 class SelectedIdmapItemHelper;

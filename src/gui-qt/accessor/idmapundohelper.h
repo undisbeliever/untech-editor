@@ -18,6 +18,9 @@ namespace GuiQt {
 namespace Accessor {
 
 template <class AccessorT>
+class IdmapAndSelectionUndoHelper;
+
+template <class AccessorT>
 class IdmapUndoHelper {
 
 public:
