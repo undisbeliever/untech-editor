@@ -42,7 +42,7 @@ public:
 
     Document* resourceItem() const { return _document; }
 
-    QString typeName() const { return tr("Frame"); }
+    static QString typeName() { return tr("Frame"); }
 
     const idstring& selectedId() const { return _selectedId; }
     const SI::Frame* selectedItem() const { return _selectedItem; }
@@ -50,6 +50,15 @@ public:
 
     bool isTileHitboxSelected() const { return _tileHitboxSelected && _selectedItem != nullptr; }
     void setTileHitboxSelected(bool s);
+
+    const MapT* map()
+    {
+        const SI::FrameSet* fs = _document->frameSet();
+        if (fs == nullptr) {
+            return nullptr;
+        }
+        return &fs->frames;
+    }
 
 public slots:
     void setSelectedId(const idstring& id);

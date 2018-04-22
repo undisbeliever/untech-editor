@@ -8,7 +8,6 @@
 #include "accessors.h"
 #include "actions.h"
 #include "document.h"
-#include "framelistmodel.h"
 #include "framesetcommands.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/spriteimporter/framesetdock.ui.h"
@@ -18,18 +17,16 @@
 #include <QMenu>
 #include <QMessageBox>
 
+using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 using TilesetType = UnTech::MetaSprite::TilesetType;
 
-FrameSetDock::FrameSetDock(FrameListModel* frameListModel, Actions* actions,
-                           QWidget* parent)
+FrameSetDock::FrameSetDock(Actions* actions, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameSetDock)
-    , _frameListModel(frameListModel)
     , _actions(actions)
     , _document(nullptr)
 {
-    Q_ASSERT(frameListModel);
     Q_ASSERT(actions != nullptr);
 
     _ui->setupUi(this);
@@ -47,13 +44,7 @@ FrameSetDock::FrameSetDock(FrameListModel* frameListModel, Actions* actions,
 
     _ui->tilesetType->populateData(TilesetType::enumMap);
 
-    _ui->frameList->setModel(_frameListModel);
-    _ui->frameList->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    _ui->frameListButtons->addAction(_actions->addFrame());
-    _ui->frameListButtons->addAction(_actions->cloneFrame());
-    _ui->frameListButtons->addAction(_actions->renameFrame());
-    _ui->frameListButtons->addAction(_actions->removeFrame());
+    _ui->frameList->idmapActions().populateToolbar(_ui->frameListButtons);
 
     clearGui();
     setEnabled(false);
@@ -85,9 +76,6 @@ FrameSetDock::FrameSetDock(FrameListModel* frameListModel, Actions* actions,
             this, &FrameSetDock::onPaletteEdited);
     connect(_ui->paletteSize, &QSpinBox::editingFinished,
             this, &FrameSetDock::onPaletteEdited);
-
-    connect(_ui->frameList, &QListView::customContextMenuRequested,
-            this, &FrameSetDock::onFrameContextMenu);
 }
 
 FrameSetDock::~FrameSetDock() = default;
@@ -100,8 +88,6 @@ void FrameSetDock::setDocument(Document* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->frameMap()->disconnect(this);
-        _ui->frameList->selectionModel()->disconnect(this);
     }
     _document = document;
 
@@ -109,20 +95,33 @@ void FrameSetDock::setDocument(Document* document)
 
     if (_document) {
         updateGui();
-        updateFrameListSelection();
+
+        _ui->frameList->setAccessor(_document->frameMap());
 
         connect(_document, &Document::frameSetDataChanged,
                 this, &FrameSetDock::updateGui);
-
-        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
-                this, &FrameSetDock::updateFrameListSelection);
-
-        connect(_ui->frameList->selectionModel(), &QItemSelectionModel::selectionChanged,
-                this, &FrameSetDock::onFrameListSelectionChanged);
     }
     else {
         clearGui();
+
+        _ui->frameList->setAccessor<FrameMap>(nullptr);
     }
+}
+
+const Accessor::IdmapActions& FrameSetDock::frameActions() const
+{
+    return _ui->frameList->idmapActions();
+}
+
+Accessor::IdmapListModel* FrameSetDock::frameListModel() const
+{
+    return _ui->frameList->idmapListModel();
+}
+
+void FrameSetDock::populateMenu(QMenu* menu)
+{
+    _ui->frameList->idmapActions().populateMenu(menu);
+    // :: TODO add toggle tileset hitbox here::
 }
 
 void FrameSetDock::clearGui()
@@ -258,41 +257,5 @@ void FrameSetDock::onPaletteEdited()
     if (palette != _document->frameSet()->palette) {
         _document->undoStack()->push(
             new ChangeFrameSetPalette(_document, palette));
-    }
-}
-
-void FrameSetDock::updateFrameListSelection()
-{
-    if (_document) {
-        const idstring id = _document->frameMap()->selectedId();
-        QModelIndex index = _frameListModel->toModelIndex(id);
-
-        _ui->frameList->setCurrentIndex(index);
-    }
-}
-
-void FrameSetDock::onFrameListSelectionChanged()
-{
-    QModelIndex index = _ui->frameList->currentIndex();
-    idstring frameId = _frameListModel->toIdstring(index);
-    _document->frameMap()->setSelectedId(frameId);
-}
-
-void FrameSetDock::onFrameContextMenu(const QPoint& pos)
-{
-    if (_document && _actions) {
-        bool onFrame = _ui->frameList->indexAt(pos).isValid();
-
-        QMenu menu;
-        menu.addAction(_actions->addFrame());
-
-        if (onFrame) {
-            menu.addAction(_actions->cloneFrame());
-            menu.addAction(_actions->renameFrame());
-            menu.addAction(_actions->removeFrame());
-        }
-
-        QPoint globalPos = _ui->frameList->mapToGlobal(pos);
-        menu.exec(globalPos);
     }
 }

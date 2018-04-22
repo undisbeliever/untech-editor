@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
+#include <QAction>
 #include <QDockWidget>
 #include <memory>
 
@@ -16,7 +18,6 @@ namespace SpriteImporter {
 namespace Ui {
 class FrameSetDock;
 }
-class FrameListModel;
 class Actions;
 class Document;
 
@@ -24,17 +25,20 @@ class FrameSetDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    FrameSetDock(FrameListModel* frameListModel, Actions* actions,
-                 QWidget* parent = nullptr);
+    FrameSetDock(Actions* actions, QWidget* parent = nullptr);
     ~FrameSetDock();
 
     void setDocument(Document* document);
+
+    const Accessor::IdmapActions& frameActions() const;
+    Accessor::IdmapListModel* frameListModel() const;
+
+    void populateMenu(QMenu* menu);
 
     void clearGui();
 
 private slots:
     void updateGui();
-    void updateFrameListSelection();
 
     void onNameEdited();
     void onTilesetTypeEdited();
@@ -44,12 +48,8 @@ private slots:
     void onGridEdited();
     void onPaletteEdited();
 
-    void onFrameListSelectionChanged();
-    void onFrameContextMenu(const QPoint& pos);
-
 private:
     std::unique_ptr<Ui::FrameSetDock> const _ui;
-    FrameListModel* const _frameListModel;
     Actions* const _actions;
 
     Document* _document;
