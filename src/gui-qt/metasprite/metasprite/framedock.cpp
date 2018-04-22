@@ -9,7 +9,7 @@
 #include "actions.h"
 #include "document.h"
 #include "framecontentmanagers.h"
-#include "framelistmodel.h"
+#include "gui-qt/accessor/idmaplistmodel.h"
 #include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
@@ -19,7 +19,7 @@
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-FrameDock::FrameDock(FrameListModel* frameListModel, Actions* actions, QWidget* parent)
+FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, Actions* actions, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameDock)
     , _frameListModel(frameListModel)

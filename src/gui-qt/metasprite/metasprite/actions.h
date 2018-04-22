@@ -27,11 +27,6 @@ public:
 
     void setDocument(Document*);
 
-    QAction* addFrame() const { return _addFrame; }
-    QAction* cloneFrame() const { return _cloneFrame; }
-    QAction* renameFrame() const { return _renameFrame; }
-    QAction* removeFrame() const { return _removeFrame; }
-
     QAction* addRemoveTileHitbox() const { return _addRemoveTileHitbox; }
 
     QAction* addPalette() const { return _addPalette; }
@@ -56,14 +51,8 @@ public:
     QMenu* entityHitboxTypeMenu() const { return _entityHitboxTypeMenu.get(); }
 
 public slots:
-    void updateFrameActions();
     void updateSelectionActions();
     void updatePaletteActions();
-
-    void onAddFrame();
-    void onCloneFrame();
-    void onRenameFrame();
-    void onRemoveFrame();
 
     void onAddRemoveTileHitbox();
 
@@ -92,11 +81,6 @@ private:
     MainWindow* const _mainWindow;
 
     Document* _document;
-
-    QAction* const _addFrame;
-    QAction* const _cloneFrame;
-    QAction* const _renameFrame;
-    QAction* const _removeFrame;
 
     QAction* const _addRemoveTileHitbox;
 

@@ -7,7 +7,6 @@
 #include "actions.h"
 #include "accessors.h"
 #include "document.h"
-#include "framelistmodel.h"
 #include "mainwindow.h"
 #include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/accessor/listactionhelper.h"
@@ -21,10 +20,6 @@ Actions::Actions(MainWindow* mainWindow)
     : QObject(mainWindow)
     , _mainWindow(mainWindow)
     , _document(nullptr)
-    , _addFrame(new QAction(QIcon(":/icons/add.svg"), tr("New Frame"), this))
-    , _cloneFrame(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Frame"), this))
-    , _renameFrame(new QAction(QIcon(":/icons/rename.svg"), tr("Rename Frame"), this))
-    , _removeFrame(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Frame"), this))
     , _addRemoveTileHitbox(new QAction(tr("Add Tile Hitbox"), this))
     , _addPalette(new QAction(QIcon(":/icons/add.svg"), tr("New Palette"), this))
     , _clonePalette(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Palette"), this))
@@ -53,14 +48,8 @@ Actions::Actions(MainWindow* mainWindow)
     _cloneSelected->setShortcut(Qt::CTRL + Qt::Key_D);
     _removeSelected->setShortcut(Qt::Key_Delete);
 
-    updateFrameActions();
     updateSelectionActions();
     updatePaletteActions();
-
-    connect(_addFrame, &QAction::triggered, this, &Actions::onAddFrame);
-    connect(_cloneFrame, &QAction::triggered, this, &Actions::onCloneFrame);
-    connect(_renameFrame, &QAction::triggered, this, &Actions::onRenameFrame);
-    connect(_removeFrame, &QAction::triggered, this, &Actions::onRemoveFrame);
 
     connect(_addRemoveTileHitbox, &QAction::triggered, this, &Actions::onAddRemoveTileHitbox);
 
@@ -98,13 +87,6 @@ void Actions::setDocument(Document* document)
     _document = document;
 
     if (document) {
-        connect(_document->frameMap(), &FrameMap::dataChanged,
-                this, &Actions::updateFrameActions);
-        connect(_document->frameMap(), &FrameMap::mapChanged,
-                this, &Actions::updateFrameActions);
-        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
-                this, &Actions::updateFrameActions);
-
         connect(_document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &Actions::updateSelectionActions);
         connect(_document->frameObjectList(), &FrameObjectList::listChanged,
@@ -126,39 +108,8 @@ void Actions::setDocument(Document* document)
                 this, &Actions::updatePaletteActions);
     }
 
-    updateFrameActions();
     updateSelectionActions();
     updatePaletteActions();
-}
-
-void Actions::updateFrameActions()
-{
-    // ::TODO IdmapActionHelper::
-
-    bool documentExists = false;
-    bool frameSelected = false;
-
-    if (_document) {
-        documentExists = true;
-
-        if (const MS::Frame* frame = _document->frameMap()->selectedFrame()) {
-            frameSelected = true;
-
-            if (frame->solid) {
-                _addRemoveTileHitbox->setText(tr("Remove Tile Hitbox"));
-            }
-            else {
-                _addRemoveTileHitbox->setText(tr("Add Tile Hitbox"));
-            }
-        }
-    }
-
-    _addRemoveTileHitbox->setEnabled(frameSelected);
-
-    _addFrame->setEnabled(documentExists);
-    _cloneFrame->setEnabled(frameSelected);
-    _renameFrame->setEnabled(frameSelected);
-    _removeFrame->setEnabled(frameSelected);
 }
 
 void Actions::updateSelectionActions()
@@ -208,48 +159,6 @@ void Actions::updatePaletteActions()
     _removePalette->setEnabled(status.canRemove);
     _raisePalette->setEnabled(status.canRaise);
     _lowerPalette->setEnabled(status.canLower);
-}
-
-void Actions::onAddFrame()
-{
-    idstring newId = IdstringDialog::getIdstring(
-        _mainWindow,
-        tr("Input Frame Name"),
-        tr("Input name of the new frame:"),
-        idstring(), _document->frameList());
-
-    FrameMapUndoHelper(_document->frameMap()).addItem(newId);
-}
-
-void Actions::onCloneFrame()
-{
-    const idstring& frameId = _document->frameMap()->selectedId();
-
-    idstring newId = IdstringDialog::getIdstring(
-        _mainWindow,
-        tr("Input Frame Name"),
-        tr("Input name of the cloned frame:"),
-        frameId, _document->frameList());
-
-    FrameMapUndoHelper(_document->frameMap()).cloneItem(frameId, newId);
-}
-
-void Actions::onRenameFrame()
-{
-    const idstring& frameId = _document->frameMap()->selectedId();
-
-    idstring newId = IdstringDialog::getIdstring(
-        _mainWindow,
-        tr("Input Frame Name"),
-        tr("Rename %1 to:").arg(QString::fromStdString(frameId)),
-        frameId, _document->frameList());
-
-    FrameMapUndoHelper(_document->frameMap()).renameItem(frameId, newId);
-}
-
-void Actions::onRemoveFrame()
-{
-    FrameMapUndoHelper(_document->frameMap()).removeSelectedItem();
 }
 
 void Actions::onAddRemoveTileHitbox()

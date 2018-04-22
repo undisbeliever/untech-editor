@@ -9,7 +9,6 @@
 #include "actions.h"
 #include "document.h"
 #include "framedock.h"
-#include "framelistmodel.h"
 #include "framesetdock.h"
 #include "msanimationpreviewitem.h"
 #include "msgraphicsscene.h"
@@ -31,13 +30,12 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
-    , _frameListModel(new FrameListModel(this))
     , _actions(new Actions(this))
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
     , _tilesetPixmaps(new TilesetPixmaps(this))
-    , _frameSetDock(new FrameSetDock(_frameListModel, _actions, this))
-    , _frameDock(new FrameDock(_frameListModel, _actions, this))
+    , _frameSetDock(new FrameSetDock(_actions, this))
+    , _frameDock(new FrameDock(_frameSetDock->frameListModel(), _actions, this))
     , _animationDock(new Animation::AnimationDock(this))
     , _palettesDock(new PalettesDock(_actions, this))
     , _tilesetDock(new TilesetDock(_tilesetPixmaps, this))
@@ -97,10 +95,7 @@ void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
     editMenu->addAction(_actions->cloneSelected());
     editMenu->addAction(_actions->removeSelected());
     editMenu->addSeparator();
-    editMenu->addAction(_actions->addFrame());
-    editMenu->addAction(_actions->cloneFrame());
-    editMenu->addAction(_actions->renameFrame());
-    editMenu->addAction(_actions->removeFrame());
+    _frameSetDock->populateMenu(editMenu);
     editMenu->addSeparator();
     editMenu->addAction(_actions->addRemoveTileHitbox());
     editMenu->addSeparator();
@@ -140,7 +135,6 @@ void MainWindow::populateWidgets()
     // Widgets cannot handle a null frameSet
     Document* d = _document && _document->frameSet() ? _document : nullptr;
 
-    _frameListModel->setDocument(d);
     _actions->setDocument(d);
     _tilesetPixmaps->setDocument(d);
     _graphicsScene->setDocument(d);

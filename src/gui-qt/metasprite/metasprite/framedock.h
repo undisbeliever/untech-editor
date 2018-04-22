@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
 #include "models/metasprite/metasprite.h"
 #include <QDockWidget>
 #include <QItemSelection>
@@ -22,7 +23,6 @@ class FrameDock;
 }
 class Actions;
 class Document;
-class FrameListModel;
 class FrameObjectManager;
 class ActionPointManager;
 class EntityHitboxManager;
@@ -33,7 +33,7 @@ class FrameDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    FrameDock(FrameListModel* frameListModel, Actions* actions,
+    FrameDock(Accessor::IdmapListModel* frameListModel, Actions* actions,
               QWidget* parent = nullptr);
     ~FrameDock();
 
@@ -59,7 +59,7 @@ private slots:
 
 private:
     std::unique_ptr<Ui::FrameDock> const _ui;
-    FrameListModel* const _frameListModel;
+    Accessor::IdmapListModel* const _frameListModel;
     Actions* const _actions;
 
     Document* _document;
