@@ -16,8 +16,6 @@
 
 namespace UnTech {
 namespace GuiQt {
-class AbstractIdmapListModel;
-
 namespace MetaSprite {
 class FrameSetResourceList;
 

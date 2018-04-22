@@ -5,7 +5,6 @@
  */
 
 #include "idstringdialog.h"
-#include "abstractidmaplistmodel.h"
 #include "idstringvalidator.h"
 
 #include <QDialogButtonBox>
