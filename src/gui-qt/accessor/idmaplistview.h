@@ -67,6 +67,13 @@ public:
                     setCurrentIndex(QModelIndex());
                 }
 
+                // BUGFIX: Update view to redraw the previously selected item.
+                //
+                // I have no idea why the view glitches and both the current
+                // and previous selection are highlighted but scheduling an
+                // update fixes it.
+                viewport()->update();
+
                 _actions.add->setEnabled(true);
                 _actions.clone->setEnabled(item != nullptr);
                 _actions.rename->setEnabled(item != nullptr);
