@@ -36,7 +36,7 @@ public:
     MS::FrameSet* frameSet() const { return _frameSet; }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
-    virtual QStringList frameList() const final;
+    virtual QStringList frameNames() const final;
 
     PaletteList* paletteList() const { return _paletteList; }
     FrameMap* frameMap() const { return _frameMap; }

@@ -39,7 +39,7 @@ public:
 
     virtual MSA::Animation::map_t* animations() const = 0;
 
-    virtual QStringList frameList() const = 0;
+    virtual QStringList frameNames() const = 0;
 
     Animation::AnimationFramesList* animationFramesList() const { return _animationFramesList; }
     Animation::AnimationsMap* animationsMap() const { return _animationsMap; }

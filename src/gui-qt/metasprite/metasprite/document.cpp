@@ -31,7 +31,7 @@ Document::Document(FrameSetResourceList* parent, size_t index)
             this, &Document::onFrameSetNameChanged);
 }
 
-QStringList Document::frameList() const
+QStringList Document::frameNames() const
 {
     QStringList fl;
 
