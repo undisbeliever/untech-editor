@@ -45,6 +45,14 @@
        <bool>true</bool>
       </property>
       <widget class="QWidget" name="scrollAreaWidgetContents">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>358</width>
+         <height>479</height>
+        </rect>
+       </property>
        <layout class="QVBoxLayout" name="scrollAreaLayout">
         <item>
          <widget class="QComboBox" name="frameComboBox"/>
@@ -128,7 +136,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QTreeView" name="frameContents">
+            <widget class="GuiQt::Accessor::MultipleSelectionTableView" name="frameContents">
              <property name="sizePolicy">
               <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                <horstretch>0</horstretch>
@@ -143,9 +151,6 @@
              </property>
              <property name="horizontalScrollBarPolicy">
               <enum>Qt::ScrollBarAlwaysOff</enum>
-             </property>
-             <property name="selectionMode">
-              <enum>QAbstractItemView::ExtendedSelection</enum>
              </property>
             </widget>
            </item>
@@ -181,6 +186,11 @@
    <extends>QWidget</extends>
    <header>gui-qt/common/widgets/ms8rectwidget.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GuiQt::Accessor::MultipleSelectionTableView</class>
+   <extends>QTreeView</extends>
+   <header>gui-qt/accessor/multipleselectiontableview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
