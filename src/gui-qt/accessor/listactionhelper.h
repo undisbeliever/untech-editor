@@ -42,6 +42,19 @@ struct ListActionStatus {
         : ListActionStatus(ListActionStatus(a, b), v...)
     {
     }
+
+    template <size_t N>
+    static ListActionStatus mergeArray(const std::array<ListActionStatus, N>& array)
+    {
+        static_assert(N > 1, "Cannot merge 0 array");
+
+        ListActionStatus s = array.at(0);
+        for (size_t i = 1; i < array.size(); i++) {
+            s = ListActionStatus(s, array.at(i));
+        }
+
+        return s;
+    }
 };
 
 class ListActionHelper {

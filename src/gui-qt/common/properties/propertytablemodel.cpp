@@ -142,6 +142,17 @@ QPair<const PropertyTableManager*, int> PropertyTableModel::toManagerAndIndex(co
     return { _managers.at(index.internalId()), index.row() };
 }
 
+QPair<int, int> PropertyTableModel::toManagerIdAndIndex(const QModelIndex& index) const
+{
+    if (checkIndex(index) == false
+        || index.internalId() == ROOT_INTERNAL_ID) {
+
+        return { -1, -1 };
+    }
+
+    return { int(index.internalId()), index.row() };
+}
+
 int PropertyTableModel::rowCountFromManager(int index) const
 {
     if (index < 0 || index >= _managers.size()) {

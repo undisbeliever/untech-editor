@@ -30,6 +30,27 @@ private:
     void disableAll();
     void updateText(const QString& typeName);
 };
+
+// multipleselectiontableview.cpp
+struct MultiTableViewActions {
+    QList<QAction*> add;
+    QAction* const clone;
+    QAction* const raise;
+    QAction* const lower;
+    QAction* const remove;
+
+    explicit MultiTableViewActions(QObject* parent);
+
+    void populateMenu(QMenu* menu, bool addSeperator = true) const;
+    void populateMenuWithAddActions(QMenu* menu) const;
+    void populateToolbar(QToolBar* toolbar) const;
+
+    void disconnectAll(QObject* o);
+
+private:
+    friend class MultipleSelectionTableView;
+    void resizeAddList(int count, QObject* parent);
+};
 }
 }
 }

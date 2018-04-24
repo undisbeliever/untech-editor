@@ -17,6 +17,11 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
+template <class T>
+class ListAndSelectionUndoHelper;
+template <class T>
+class ListAndMultipleSelectionUndoHelper;
+
 template <class AccessorT>
 class ListUndoHelper {
 
