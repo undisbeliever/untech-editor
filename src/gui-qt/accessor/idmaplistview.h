@@ -28,6 +28,9 @@ public:
     const IdmapActions& idmapActions() const { return _actions; }
     IdmapListModel* idmapListModel() const { return _model; }
 
+    QMenu* selectedContextMenu() const { return _selectedContextMenu; }
+    QMenu* noSelectionContextMenu() const { return _noSelectionContextMenu; }
+
     template <class AccessorT>
     void setAccessor(AccessorT* accessor)
     {
@@ -140,6 +143,8 @@ private:
 private:
     IdmapActions _actions;
     IdmapListModel* const _model;
+    QMenu* const _selectedContextMenu;
+    QMenu* const _noSelectionContextMenu;
 
     QObject* _accessor;
 };

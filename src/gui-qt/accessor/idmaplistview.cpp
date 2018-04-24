@@ -63,6 +63,8 @@ IdmapListView::IdmapListView(QWidget* parent)
     : QListView(parent)
     , _actions(this)
     , _model(new IdmapListModel(this))
+    , _selectedContextMenu(new QMenu(this))
+    , _noSelectionContextMenu(new QMenu(this))
     , _accessor(nullptr)
 {
     QListView::setModel(_model);
@@ -76,6 +78,9 @@ IdmapListView::IdmapListView(QWidget* parent)
     this->addAction(_actions.clone);
     this->addAction(_actions.rename);
     this->addAction(_actions.remove);
+
+    _actions.populateMenu(_selectedContextMenu);
+    _noSelectionContextMenu->addAction(_actions.add);
 }
 
 void IdmapListView::setModel(QAbstractItemModel*)
@@ -91,16 +96,12 @@ void IdmapListView::contextMenuEvent(QContextMenuEvent* event)
         return;
     }
 
-    QMenu menu;
-    menu.addAction(_actions.add);
-
     if (_actions.remove->isEnabled()) {
-        menu.addAction(_actions.clone);
-        menu.addAction(_actions.rename);
-        menu.addAction(_actions.remove);
+        _selectedContextMenu->exec(event->globalPos());
     }
-
-    menu.exec(event->globalPos());
+    else {
+        _noSelectionContextMenu->exec(event->globalPos());
+    }
 }
 
 idstring IdmapListView::addIdstringDialog(const QString& typeName)
