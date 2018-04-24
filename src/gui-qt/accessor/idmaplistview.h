@@ -54,8 +54,9 @@ public:
 
         if (accessor) {
             auto onSelectedItemChanged = [=]() {
+                const idmap<DataT>* map = accessor->map();
                 const DataT* item = accessor->selectedItem();
-                if (item) {
+                if (map && item) {
                     const idstring& id = accessor->selectedId();
                     QModelIndex index = _model->toModelIndex(id);
                     if (index.isValid()) {
@@ -74,10 +75,10 @@ public:
                 // update fixes it.
                 viewport()->update();
 
-                _actions.add->setEnabled(true);
-                _actions.clone->setEnabled(item != nullptr);
-                _actions.rename->setEnabled(item != nullptr);
-                _actions.remove->setEnabled(item != nullptr);
+                _actions.add->setEnabled(map != nullptr);
+                _actions.clone->setEnabled(map != nullptr && item != nullptr);
+                _actions.rename->setEnabled(map != nullptr && item != nullptr);
+                _actions.remove->setEnabled(map != nullptr && item != nullptr);
             };
             onSelectedItemChanged();
 
