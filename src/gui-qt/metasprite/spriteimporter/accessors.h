@@ -154,8 +154,8 @@ public:
     FrameObjectList(Document* document);
     ~FrameObjectList() = default;
 
-    QString typeName() const { return tr("Frame Object"); }
-    QString typeNamePlural() const { return tr("Frame Objects"); }
+    static QString typeName() { return tr("Frame Object"); }
+    static QString typeNamePlural() { return tr("Frame Objects"); }
 
 protected:
     friend class Accessor::ListUndoHelper<FrameObjectList>;
@@ -182,8 +182,8 @@ public:
     ActionPointList(Document* document);
     ~ActionPointList() = default;
 
-    QString typeName() const { return tr("Action Point"); }
-    QString typeNamePlural() const { return tr("Action Points"); }
+    static QString typeName() { return tr("Action Point"); }
+    static QString typeNamePlural() { return tr("Action Points"); }
 
 protected:
     friend class Accessor::ListUndoHelper<ActionPointList>;
@@ -210,8 +210,8 @@ public:
     EntityHitboxList(Document* document);
     ~EntityHitboxList() = default;
 
-    QString typeName() const { return tr("Entity Hitbox"); }
-    QString typeNamePlural() const { return tr("Entity Hitboxes"); }
+    static QString typeName() { return tr("Entity Hitbox"); }
+    static QString typeNamePlural() { return tr("Entity Hitboxes"); }
 
 protected:
     friend class Accessor::ListUndoHelper<EntityHitboxList>;

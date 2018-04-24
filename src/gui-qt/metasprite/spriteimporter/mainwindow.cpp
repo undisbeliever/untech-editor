@@ -83,22 +83,12 @@ MainWindow::~MainWindow() = default;
 
 void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
-    editMenu->addSeparator();
-    editMenu->addAction(_actions->raiseSelected());
-    editMenu->addAction(_actions->lowerSelected());
-    editMenu->addAction(_actions->cloneSelected());
-    editMenu->addAction(_actions->removeSelected());
+
     editMenu->addSeparator();
     _frameSetDock->populateMenu(editMenu);
     editMenu->addSeparator();
-    editMenu->addAction(_actions->addRemoveTileHitbox());
+    _frameDock->populateMenu(editMenu);
     editMenu->addSeparator();
-    editMenu->addAction(_actions->toggleObjSize());
-    editMenu->addMenu(_actions->entityHitboxTypeMenu());
-    editMenu->addSeparator();
-    editMenu->addAction(_actions->addFrameObject());
-    editMenu->addAction(_actions->addActionPoint());
-    editMenu->addAction(_actions->addEntityHitbox());
 
     viewMenu->addSeparator();
     _layerSettings->populateMenu(viewMenu);

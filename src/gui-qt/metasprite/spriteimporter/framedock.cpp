@@ -28,10 +28,6 @@ FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, Actions* actions,
     , _frameObjectManager(new FrameObjectManager(this))
     , _actionPointManager(new ActionPointManager(this))
     , _entityHitboxManager(new EntityHitboxManager(this))
-    , _frameContentsModel(new PropertyTableModel(
-          { _frameObjectManager, _actionPointManager, _entityHitboxManager },
-          { tr("Location"), tr("Parameter") },
-          this))
 {
     Q_ASSERT(frameListModel);
     Q_ASSERT(actions != nullptr);
@@ -40,21 +36,26 @@ FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, Actions* actions,
 
     _ui->frameComboBox->setModel(_frameListModel);
 
-    _ui->frameContents->setModel(_frameContentsModel);
+    _ui->frameContents->setPropertyManagers(
+        { _frameObjectManager, _actionPointManager, _entityHitboxManager },
+        { tr("Location"), tr("Parameter") });
+
     _ui->frameContents->setIndentation(10);
-    _ui->frameContents->setEditTriggers(QAbstractItemView::AllEditTriggers);
-    _ui->frameContents->setContextMenuPolicy(Qt::CustomContextMenu);
-    _ui->frameContents->setItemDelegate(new PropertyDelegate(this));
     _ui->frameContents->header()->setStretchLastSection(true);
     _ui->frameContents->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    _ui->frameContentsButtons->addAction(_actions->addFrameObject());
-    _ui->frameContentsButtons->addAction(_actions->addActionPoint());
-    _ui->frameContentsButtons->addAction(_actions->addEntityHitbox());
-    _ui->frameContentsButtons->addAction(_actions->raiseSelected());
-    _ui->frameContentsButtons->addAction(_actions->lowerSelected());
-    _ui->frameContentsButtons->addAction(_actions->cloneSelected());
-    _ui->frameContentsButtons->addAction(_actions->removeSelected());
+    auto& frameActions = _ui->frameContents->viewActions();
+    frameActions.add.at(0)->setIcon(QIcon(":/icons/add-frame-object.svg"));
+    frameActions.add.at(1)->setIcon(QIcon(":/icons/add-action-point.svg"));
+    frameActions.add.at(2)->setIcon(QIcon(":/icons/add-entity-hitbox.svg"));
+
+    QMenu* frameContextMenu = _ui->frameContents->selectedContextmenu();
+    QAction* firstAddAction = frameActions.add.first();
+    frameContextMenu->insertAction(firstAddAction, _actions->toggleObjSize());
+    frameContextMenu->insertMenu(firstAddAction, _actions->entityHitboxTypeMenu());
+    frameContextMenu->insertSeparator(firstAddAction);
+
+    _ui->frameContents->viewActions().populateToolbar(_ui->frameContentsButtons);
 
     clearGui();
     setEnabled(false);
@@ -81,9 +82,6 @@ FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, Actions* actions,
             this, &FrameDock::onSolidClicked);
     connect(_ui->tileHitbox, &RectWidget::editingFinished,
             this, &FrameDock::onTileHitboxEdited);
-
-    connect(_ui->frameContents, &QTreeView::customContextMenuRequested,
-            this, &FrameDock::onFrameContentsContextMenu);
 }
 
 FrameDock::~FrameDock() = default;
@@ -96,9 +94,6 @@ void FrameDock::setDocument(Document* document)
 
     if (_document != nullptr) {
         _document->frameMap()->disconnect(this);
-        _document->frameObjectList()->disconnect(this);
-        _document->actionPointList()->disconnect(this);
-        _document->entityHitboxList()->disconnect(this);
     }
     _document = document;
 
@@ -111,27 +106,36 @@ void FrameDock::setDocument(Document* document)
     if (_document) {
         onSelectedFrameChanged();
 
+        _ui->frameContents->setAccessors(
+            _document->frameObjectList(),
+            _document->actionPointList(),
+            _document->entityHitboxList());
+
         connect(_document->frameMap(), &FrameMap::dataChanged,
                 this, &FrameDock::onFrameDataChanged);
 
         connect(_document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &FrameDock::onSelectedFrameChanged);
-
-        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
-                this, &FrameDock::updateFrameContentsSelection);
-
-        connect(_document->actionPointList(), &ActionPointList::selectedIndexesChanged,
-                this, &FrameDock::updateFrameContentsSelection);
-
-        connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
-                this, &FrameDock::updateFrameContentsSelection);
-
-        connect(_ui->frameContents->selectionModel(), &QItemSelectionModel::selectionChanged,
-                this, &FrameDock::onFrameContentsSelectionChanged);
     }
     else {
+        _ui->frameContents->setAccessors<
+            FrameObjectList, ActionPointList, EntityHitboxList>(nullptr, nullptr, nullptr);
+
         clearGui();
     }
+}
+
+QMenu* FrameDock::frameContentsContextMenu() const
+{
+    return _ui->frameContents->selectedContextmenu();
+}
+
+void FrameDock::populateMenu(QMenu* editMenu)
+{
+    editMenu->addAction(_actions->toggleObjSize());
+    editMenu->addMenu(_actions->entityHitboxTypeMenu());
+    editMenu->addSeparator();
+    _ui->frameContents->viewActions().populateMenu(editMenu, true);
 }
 
 void FrameDock::onSelectedFrameChanged()
@@ -276,89 +280,4 @@ void FrameDock::onTileHitboxEdited()
     FrameMapUndoHelper h(_document->frameMap());
     h.editSelectedItemField(hitbox, tr("Edit Tile Hitbox"),
                             [](SI::Frame& f) -> urect& { return f.tileHitbox; });
-}
-
-void FrameDock::updateFrameContentsSelection()
-{
-    QItemSelection sel;
-
-    auto process = [&](const vectorset<size_t>& selectedIndexes,
-                       PropertyTableManager* manager) {
-        int managerIndex = _frameContentsModel->managers().indexOf(manager);
-
-        for (size_t si : selectedIndexes) {
-            QModelIndex index = _frameContentsModel->toModelIndex(managerIndex, si);
-            if (index.isValid()) {
-                sel.select(index, index);
-            }
-        }
-    };
-
-    process(_document->frameObjectList()->selectedIndexes(), _frameObjectManager);
-    process(_document->actionPointList()->selectedIndexes(), _actionPointManager);
-    process(_document->entityHitboxList()->selectedIndexes(), _entityHitboxManager);
-
-    _ui->frameContents->selectionModel()->select(
-        sel, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-}
-
-void FrameDock::onFrameContentsSelectionChanged()
-{
-    std::vector<size_t> selectedObjects;
-    std::vector<size_t> selectedActionPoints;
-    std::vector<size_t> selectedEntityHitboxes;
-
-    for (const auto& index : _ui->frameContents->selectionModel()->selectedRows()) {
-        auto mi = _frameContentsModel->toManagerAndIndex(index);
-
-        if (mi.first && mi.second >= 0) {
-            if (mi.first == _frameObjectManager) {
-                selectedObjects.push_back(mi.second);
-            }
-            else if (mi.first == _actionPointManager) {
-                selectedActionPoints.push_back(mi.second);
-            }
-            else if (mi.first == _entityHitboxManager) {
-                selectedEntityHitboxes.push_back(mi.second);
-            }
-        }
-    }
-
-    _document->frameObjectList()->setSelectedIndexes(std::move(selectedObjects));
-    _document->actionPointList()->setSelectedIndexes(std::move(selectedActionPoints));
-    _document->entityHitboxList()->setSelectedIndexes(std::move(selectedEntityHitboxes));
-}
-
-void FrameDock::onFrameContentsContextMenu(const QPoint& pos)
-{
-    if (_document && _actions) {
-        QModelIndex modelIndex = _ui->frameContents->indexAt(pos);
-
-        QMenu menu;
-        bool addSep = false;
-        if (_actions->toggleObjSize()->isEnabled()) {
-            menu.addAction(_actions->toggleObjSize());
-        }
-        if (_actions->entityHitboxTypeMenu()->isEnabled()) {
-            menu.addMenu(_actions->entityHitboxTypeMenu());
-            addSep = true;
-        }
-        if (addSep) {
-            menu.addSeparator();
-        }
-        menu.addAction(_actions->addFrameObject());
-        menu.addAction(_actions->addActionPoint());
-        menu.addAction(_actions->addEntityHitbox());
-
-        if (modelIndex.isValid() && modelIndex.flags() & Qt::ItemIsEditable) {
-            menu.addSeparator();
-            menu.addAction(_actions->raiseSelected());
-            menu.addAction(_actions->lowerSelected());
-            menu.addAction(_actions->cloneSelected());
-            menu.addAction(_actions->removeSelected());
-        }
-
-        QPoint globalPos = _ui->frameContents->mapToGlobal(pos);
-        menu.exec(globalPos);
-    }
 }

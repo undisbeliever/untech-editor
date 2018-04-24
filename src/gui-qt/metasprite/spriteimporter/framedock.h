@@ -12,6 +12,8 @@
 #include <QItemSelection>
 #include <memory>
 
+class QMenu;
+
 namespace UnTech {
 namespace GuiQt {
 class PropertyTableModel;
@@ -39,12 +41,14 @@ public:
 
     void setDocument(Document* document);
 
+    QMenu* frameContentsContextMenu() const;
+    void populateMenu(QMenu* editMenu);
+
     void clearGui();
 
 private slots:
     void onSelectedFrameChanged();
     void onFrameComboBoxActivated();
-    void updateFrameContentsSelection();
 
     void onFrameDataChanged(const void* frame);
 
@@ -54,9 +58,6 @@ private slots:
     void onFrameLocationEdited();
     void onSolidClicked();
     void onTileHitboxEdited();
-
-    void onFrameContentsSelectionChanged();
-    void onFrameContentsContextMenu(const QPoint& pos);
 
 private:
     std::unique_ptr<Ui::FrameDock> const _ui;
@@ -68,7 +69,6 @@ private:
     FrameObjectManager* const _frameObjectManager;
     ActionPointManager* const _actionPointManager;
     EntityHitboxManager* const _entityHitboxManager;
-    PropertyTableModel* const _frameContentsModel;
 };
 }
 }
