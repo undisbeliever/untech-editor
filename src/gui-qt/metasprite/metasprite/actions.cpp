@@ -21,11 +21,6 @@ Actions::Actions(MainWindow* mainWindow)
     , _mainWindow(mainWindow)
     , _document(nullptr)
     , _addRemoveTileHitbox(new QAction(tr("Add Tile Hitbox"), this))
-    , _addPalette(new QAction(QIcon(":/icons/add.svg"), tr("New Palette"), this))
-    , _clonePalette(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Palette"), this))
-    , _raisePalette(new QAction(QIcon(":/icons/raise.svg"), tr("Raise Palette"), this))
-    , _lowerPalette(new QAction(QIcon(":/icons/lower.svg"), tr("Lower Palette"), this))
-    , _removePalette(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Palette"), this))
     , _toggleObjSize(new QAction(QIcon(":/icons/toggle-obj-size.svg"), tr("Toggle Object Size"), this))
     , _flipObjHorizontally(new QAction(QIcon(":/icons/flip-horizontally.svg"), tr("Flip Object Horizontally"), this))
     , _flipObjVertically(new QAction(QIcon(":/icons/flip-vertically.svg"), tr("Flip Object Vertically"), this))
@@ -37,15 +32,8 @@ Actions::Actions(MainWindow* mainWindow)
     }
 
     updateSelectionActions();
-    updatePaletteActions();
 
     connect(_addRemoveTileHitbox, &QAction::triggered, this, &Actions::onAddRemoveTileHitbox);
-
-    connect(_addPalette, &QAction::triggered, this, &Actions::onAddPalette);
-    connect(_clonePalette, &QAction::triggered, this, &Actions::onClonePalette);
-    connect(_removePalette, &QAction::triggered, this, &Actions::onRemovePalette);
-    connect(_raisePalette, &QAction::triggered, this, &Actions::onRaisePalette);
-    connect(_lowerPalette, &QAction::triggered, this, &Actions::onLowerPalette);
 
     connect(_toggleObjSize, &QAction::triggered, this, &Actions::onToggleObjSize);
     connect(_flipObjHorizontally, &QAction::triggered, this, &Actions::onFlipObjHorizontally);
@@ -58,7 +46,6 @@ void Actions::setDocument(Document* document)
 {
     if (_document) {
         _document->disconnect(this);
-        _document->paletteList()->disconnect(this);
         _document->frameMap()->disconnect(this);
         _document->frameObjectList()->disconnect(this);
         _document->entityHitboxList()->disconnect(this);
@@ -76,15 +63,9 @@ void Actions::setDocument(Document* document)
                 this, &Actions::updateSelectionActions);
         connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
                 this, &Actions::updateSelectionActions);
-
-        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
-                this, &Actions::updatePaletteActions);
-        connect(_document->paletteList(), &PaletteList::listChanged,
-                this, &Actions::updatePaletteActions);
     }
 
     updateSelectionActions();
-    updatePaletteActions();
 }
 
 void Actions::updateSelectionActions()
@@ -106,23 +87,6 @@ void Actions::updateSelectionActions()
     _entityHitboxTypeMenu->setEnabled(eh.selectionValid);
 }
 
-void Actions::updatePaletteActions()
-{
-    using namespace UnTech::GuiQt::Accessor;
-
-    ListActionStatus status;
-
-    if (_document) {
-        status = ListActionHelper::status(_document->paletteList());
-    }
-
-    _addPalette->setEnabled(status.canAdd);
-    _clonePalette->setEnabled(status.canClone);
-    _removePalette->setEnabled(status.canRemove);
-    _raisePalette->setEnabled(status.canRaise);
-    _lowerPalette->setEnabled(status.canLower);
-}
-
 void Actions::onAddRemoveTileHitbox()
 {
     const MS::Frame* frame = _document->frameMap()->selectedFrame();
@@ -134,31 +98,6 @@ void Actions::onAddRemoveTileHitbox()
         h.editSelectedItemField(!frame->solid, text,
                                 [](MS::Frame& f) -> bool& { return f.solid; });
     }
-}
-
-void Actions::onAddPalette()
-{
-    PaletteListUndoHelper(_document->paletteList()).addItemToSelectedList();
-}
-
-void Actions::onClonePalette()
-{
-    PaletteListUndoHelper(_document->paletteList()).cloneSelectedItem();
-}
-
-void Actions::onRemovePalette()
-{
-    PaletteListUndoHelper(_document->paletteList()).removeSelectedItem();
-}
-
-void Actions::onRaisePalette()
-{
-    PaletteListUndoHelper(_document->paletteList()).raiseSelectedItem();
-}
-
-void Actions::onLowerPalette()
-{
-    PaletteListUndoHelper(_document->paletteList()).lowerSelectedItem();
 }
 
 void Actions::onToggleObjSize()

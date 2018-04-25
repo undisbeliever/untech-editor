@@ -29,12 +29,6 @@ public:
 
     QAction* addRemoveTileHitbox() const { return _addRemoveTileHitbox; }
 
-    QAction* addPalette() const { return _addPalette; }
-    QAction* clonePalette() const { return _clonePalette; }
-    QAction* raisePalette() const { return _raisePalette; }
-    QAction* lowerPalette() const { return _lowerPalette; }
-    QAction* removePalette() const { return _removePalette; }
-
     QAction* toggleObjSize() const { return _toggleObjSize; }
     QAction* flipObjHorizontally() const { return _flipObjHorizontally; }
     QAction* flipObjVertically() const { return _flipObjVertically; }
@@ -43,15 +37,8 @@ public:
 
 public slots:
     void updateSelectionActions();
-    void updatePaletteActions();
 
     void onAddRemoveTileHitbox();
-
-    void onAddPalette();
-    void onClonePalette();
-    void onRemovePalette();
-    void onRaisePalette();
-    void onLowerPalette();
 
     void onToggleObjSize();
     void onFlipObjHorizontally();
@@ -65,12 +52,6 @@ private:
     Document* _document;
 
     QAction* const _addRemoveTileHitbox;
-
-    QAction* const _addPalette;
-    QAction* const _clonePalette;
-    QAction* const _raisePalette;
-    QAction* const _lowerPalette;
-    QAction* const _removePalette;
 
     QAction* const _toggleObjSize;
     QAction* const _flipObjHorizontally;
