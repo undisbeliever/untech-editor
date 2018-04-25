@@ -20,11 +20,10 @@
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-SiGraphicsScene::SiGraphicsScene(Actions* actions, LayerSettings* layerSettings,
-                                 QWidget* parent)
+SiGraphicsScene::SiGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     : QGraphicsScene(parent)
-    , _actions(actions)
     , _layerSettings(layerSettings)
+    , _frameContextMenu(new QMenu())
     , _style(new Style(parent))
     , _frameSetPixmap(new QGraphicsPixmapItem())
     , _paletteOutline(new QGraphicsPathItem())
@@ -32,7 +31,7 @@ SiGraphicsScene::SiGraphicsScene(Actions* actions, LayerSettings* layerSettings,
     , _inUpdateSelection(false)
     , _inOnSceneSelectionChanged(false)
 {
-    Q_ASSERT(_actions != nullptr);
+    Q_ASSERT(_frameContextMenu != nullptr);
     Q_ASSERT(_layerSettings != nullptr);
 
     _frameSetPixmap->setTransformationMode(Qt::FastTransformation);
@@ -433,7 +432,7 @@ void SiGraphicsScene::buildFrameItems()
         for (auto it : _document->frameSet()->frames) {
             SI::Frame* frame = &it.second;
 
-            auto* frameItem = new SiFrameGraphicsItem(frame, _actions, _style);
+            auto* frameItem = new SiFrameGraphicsItem(frame, _frameContextMenu.data(), _style);
             _frameItems.insert(frame, frameItem);
             frameItem->setVisible(FRAME_ZVALUE);
             addItem(frameItem);
@@ -463,7 +462,7 @@ void SiGraphicsScene::onFrameAdded(const idstring& id)
 {
     SI::Frame* frame = _document->frameSet()->frames.getPtr(id);
     if (frame) {
-        auto* frameItem = new SiFrameGraphicsItem(frame, _actions, _style);
+        auto* frameItem = new SiFrameGraphicsItem(frame, _frameContextMenu.data(), _style);
         _frameItems.insert(frame, frameItem);
         frameItem->setVisible(FRAME_ZVALUE);
         addItem(frameItem);

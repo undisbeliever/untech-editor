@@ -6,7 +6,6 @@
 
 #include "msgraphicsscene.h"
 #include "accessors.h"
-#include "actions.h"
 #include "document.h"
 #include "tilesetpixmaps.h"
 #include "gui-qt/accessor/idmapundohelper.h"
@@ -26,13 +25,13 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 const QRect MsGraphicsScene::ITEM_RANGE(
     int_ms8_t::MIN, int_ms8_t::MIN, UINT8_MAX, UINT8_MAX);
 
-MsGraphicsScene::MsGraphicsScene(Actions* actions, LayerSettings* layerSettings,
+MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings,
                                  TilesetPixmaps* tilesetPixmaps,
                                  QWidget* parent)
     : QGraphicsScene(parent)
-    , _actions(actions)
     , _layerSettings(layerSettings)
     , _tilesetPixmaps(tilesetPixmaps)
+    , _contextMenu(new QMenu())
     , _style(new Style(parent))
     , _tileHitbox(new ResizableAabbGraphicsItem())
     , _horizontalOrigin(new QGraphicsLineItem())
@@ -42,8 +41,6 @@ MsGraphicsScene::MsGraphicsScene(Actions* actions, LayerSettings* layerSettings,
     , _inUpdateSelection(false)
     , _inOnSceneSelectionChanged(false)
 {
-    Q_ASSERT(actions != nullptr);
-    Q_ASSERT(layerSettings != nullptr);
     Q_ASSERT(tilesetPixmaps != nullptr);
 
     _tileHitbox->setPen(_style->tileHitboxPen());
@@ -185,36 +182,7 @@ void MsGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
     if (_document && _frame) {
-        QMenu menu;
-        bool addSep = false;
-        if (_actions->toggleObjSize()->isEnabled()) {
-            menu.addAction(_actions->toggleObjSize());
-            menu.addAction(_actions->flipObjHorizontally());
-            menu.addAction(_actions->flipObjVertically());
-            addSep = true;
-        }
-        if (_actions->entityHitboxTypeMenu()->isEnabled()) {
-            menu.addMenu(_actions->entityHitboxTypeMenu());
-            addSep = true;
-        }
-        if (addSep) {
-            menu.addSeparator();
-        }
-        menu.addAction(_actions->addFrameObject());
-        menu.addAction(_actions->addActionPoint());
-        menu.addAction(_actions->addEntityHitbox());
-        menu.addSeparator();
-        menu.addAction(_actions->addRemoveTileHitbox());
-
-        if (_actions->removeSelected()->isEnabled()) {
-            menu.addSeparator();
-            menu.addAction(_actions->raiseSelected());
-            menu.addAction(_actions->lowerSelected());
-            menu.addAction(_actions->cloneSelected());
-            menu.addAction(_actions->removeSelected());
-        }
-
-        menu.exec(event->screenPos());
+        _contextMenu->exec(event->screenPos());
     }
 }
 

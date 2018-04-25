@@ -36,7 +36,7 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     , _animationDock(new Animation::AnimationDock(this))
     , _tabWidget(new QTabWidget(this))
     , _graphicsView(new ZoomableGraphicsView(this))
-    , _graphicsScene(new SiGraphicsScene(_actions, _layerSettings, this))
+    , _graphicsScene(new SiGraphicsScene(_layerSettings, this))
     , _animationPreview(new Animation::AnimationPreview(_animationDock, this))
     , _animationPreviewItemFactory(new SiAnimationPreviewItemFactory(_layerSettings, this))
 {
@@ -49,6 +49,9 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     QMenu* layerMenu = new QMenu(this);
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
+
+    _graphicsScene->frameContextMenu()->addAction(_actions->addRemoveTileHitbox());
+    _frameDock->populateMenu(_graphicsScene->frameContextMenu());
 
     _graphicsView->setMinimumSize(256, 256);
     _graphicsView->setZoomSettings(zoomSettings);

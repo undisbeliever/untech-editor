@@ -11,7 +11,7 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QList>
-#include <QWidget>
+#include <QMenu>
 
 namespace UnTech {
 namespace GuiQt {
@@ -24,7 +24,6 @@ class Style;
 class LayerSettings;
 
 namespace MetaSprite {
-class Actions;
 class Document;
 class TilesetPixmaps;
 
@@ -43,9 +42,11 @@ public:
     static const unsigned ORIGIN_ZVALUE = 500;
 
 public:
-    MsGraphicsScene(Actions* actions, LayerSettings* layerSettings,
+    MsGraphicsScene(LayerSettings* layerSettings,
                     TilesetPixmaps* tilesetPixmaps, QWidget* parent = nullptr);
     ~MsGraphicsScene() = default;
+
+    QMenu* contextMenu() { return _contextMenu.data(); }
 
     void setDocument(Document* document);
 
@@ -98,9 +99,9 @@ private slots:
     void onEntityHitboxListChanged(const void* frame);
 
 private:
-    Actions* const _actions;
     LayerSettings* const _layerSettings;
     TilesetPixmaps* const _tilesetPixmaps;
+    QScopedPointer<QMenu> const _contextMenu;
     Style* const _style;
 
     ResizableAabbGraphicsItem* const _tileHitbox;

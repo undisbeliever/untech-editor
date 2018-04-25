@@ -23,7 +23,6 @@ class Style;
 class LayerSettings;
 
 namespace SpriteImporter {
-class Actions;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -36,7 +35,7 @@ public:
     static const unsigned ORIGIN_ZVALUE = 500;
 
 public:
-    SiFrameGraphicsItem(SI::Frame* frame, Actions* actions, Style* style,
+    SiFrameGraphicsItem(SI::Frame* frame, QMenu* contextMenu, Style* style,
                         QGraphicsItem* parent = nullptr);
     ~SiFrameGraphicsItem() = default;
 
@@ -79,7 +78,7 @@ private:
 
 private:
     const SI::Frame* _frame;
-    Actions* _actions;
+    QMenu* _contextMenu;
     Style* _style;
     bool _showTileHitbox;
     bool _frameSelected;

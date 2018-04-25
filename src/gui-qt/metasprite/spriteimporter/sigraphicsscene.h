@@ -11,7 +11,7 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QMap>
-#include <QWidget>
+#include <QMenu>
 
 namespace UnTech {
 namespace GuiQt {
@@ -20,7 +20,6 @@ class Style;
 class LayerSettings;
 
 namespace SpriteImporter {
-class Actions;
 class Document;
 
 class SiGraphicsScene : public QGraphicsScene {
@@ -32,9 +31,11 @@ class SiGraphicsScene : public QGraphicsScene {
     static const unsigned PALETTE_ZVALUE = 300;
 
 public:
-    SiGraphicsScene(Actions* actions, LayerSettings* layerSettings,
+    SiGraphicsScene(LayerSettings* layerSettings,
                     QWidget* parent = nullptr);
     ~SiGraphicsScene() = default;
+
+    QMenu* frameContextMenu() { return _frameContextMenu.data(); }
 
     void setDocument(Document* document);
 
@@ -83,9 +84,9 @@ private slots:
     void onEntityHitboxListChanged(const void* frame);
 
 private:
-    Actions* const _actions;
     LayerSettings* const _layerSettings;
 
+    QScopedPointer<QMenu> const _frameContextMenu;
     Style* const _style;
     QGraphicsPixmapItem* const _frameSetPixmap;
     QGraphicsPathItem* const _paletteOutline;

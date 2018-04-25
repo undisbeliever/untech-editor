@@ -5,7 +5,6 @@
  */
 
 #include "siframegraphicsitem.h"
-#include "actions.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
@@ -17,17 +16,17 @@
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame,
-                                         Actions* actions, Style* style,
+                                         QMenu* contextMenu, Style* style,
                                          QGraphicsItem* parent)
     : AabbGraphicsItem(parent)
     , _frame(frame)
-    , _actions(actions)
+    , _contextMenu(contextMenu)
     , _style(style)
     , _showTileHitbox(true)
     , _frameSelected(false)
 {
     Q_ASSERT(frame != nullptr);
-    Q_ASSERT(actions != nullptr);
+    Q_ASSERT(contextMenu != nullptr);
     Q_ASSERT(style != nullptr);
 
     setPen(style->frameOutlinePen());
@@ -250,34 +249,7 @@ void SiFrameGraphicsItem::updateLayerSettings(const LayerSettings* settings)
 void SiFrameGraphicsItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
     if (_frameSelected) {
-        QMenu menu;
-        bool addSep = false;
-        if (_actions->toggleObjSize()->isEnabled()) {
-            menu.addAction(_actions->toggleObjSize());
-            addSep = true;
-        }
-        if (_actions->entityHitboxTypeMenu()->isEnabled()) {
-            menu.addMenu(_actions->entityHitboxTypeMenu());
-            addSep = true;
-        }
-        if (addSep) {
-            menu.addSeparator();
-        }
-        menu.addAction(_actions->addFrameObject());
-        menu.addAction(_actions->addActionPoint());
-        menu.addAction(_actions->addEntityHitbox());
-        menu.addSeparator();
-        menu.addAction(_actions->addRemoveTileHitbox());
-
-        if (_actions->removeSelected()->isEnabled()) {
-            menu.addSeparator();
-            menu.addAction(_actions->raiseSelected());
-            menu.addAction(_actions->lowerSelected());
-            menu.addAction(_actions->cloneSelected());
-            menu.addAction(_actions->removeSelected());
-        }
-
-        menu.exec(event->screenPos());
+        _contextMenu->exec(event->screenPos());
     }
     else {
         event->ignore();

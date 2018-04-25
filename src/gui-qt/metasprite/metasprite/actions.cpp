@@ -26,13 +26,6 @@ Actions::Actions(MainWindow* mainWindow)
     , _raisePalette(new QAction(QIcon(":/icons/raise.svg"), tr("Raise Palette"), this))
     , _lowerPalette(new QAction(QIcon(":/icons/lower.svg"), tr("Lower Palette"), this))
     , _removePalette(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Palette"), this))
-    , _addFrameObject(new QAction(QIcon(":/icons/add-frame-object.svg"), tr("Add Frame Object"), this))
-    , _addActionPoint(new QAction(QIcon(":/icons/add-action-point.svg"), tr("Add Action Point"), this))
-    , _addEntityHitbox(new QAction(QIcon(":/icons/add-entity-hitbox.svg"), tr("Add Entity Hitbox"), this))
-    , _raiseSelected(new QAction(QIcon(":/icons/raise.svg"), tr("Raise Selected"), this))
-    , _lowerSelected(new QAction(QIcon(":/icons/lower.svg"), tr("Lower Selected"), this))
-    , _cloneSelected(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Selected"), this))
-    , _removeSelected(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Selected"), this))
     , _toggleObjSize(new QAction(QIcon(":/icons/toggle-obj-size.svg"), tr("Toggle Object Size"), this))
     , _flipObjHorizontally(new QAction(QIcon(":/icons/flip-horizontally.svg"), tr("Flip Object Horizontally"), this))
     , _flipObjVertically(new QAction(QIcon(":/icons/flip-vertically.svg"), tr("Flip Object Vertically"), this))
@@ -42,11 +35,6 @@ Actions::Actions(MainWindow* mainWindow)
         QString s = QString::fromStdString(it.first);
         _entityHitboxTypeMenu->addAction(s)->setData(int(it.second));
     }
-
-    _raiseSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Up);
-    _lowerSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Down);
-    _cloneSelected->setShortcut(Qt::CTRL + Qt::Key_D);
-    _removeSelected->setShortcut(Qt::Key_Delete);
 
     updateSelectionActions();
     updatePaletteActions();
@@ -58,14 +46,6 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_removePalette, &QAction::triggered, this, &Actions::onRemovePalette);
     connect(_raisePalette, &QAction::triggered, this, &Actions::onRaisePalette);
     connect(_lowerPalette, &QAction::triggered, this, &Actions::onLowerPalette);
-
-    connect(_addFrameObject, &QAction::triggered, this, &Actions::onAddFrameObject);
-    connect(_addActionPoint, &QAction::triggered, this, &Actions::onAddActionPoint);
-    connect(_addEntityHitbox, &QAction::triggered, this, &Actions::onAddEntityHitbox);
-    connect(_raiseSelected, &QAction::triggered, this, &Actions::onRaiseSelected);
-    connect(_lowerSelected, &QAction::triggered, this, &Actions::onLowerSelected);
-    connect(_cloneSelected, &QAction::triggered, this, &Actions::onCloneSelected);
-    connect(_removeSelected, &QAction::triggered, this, &Actions::onRemoveSelected);
 
     connect(_toggleObjSize, &QAction::triggered, this, &Actions::onToggleObjSize);
     connect(_flipObjHorizontally, &QAction::triggered, this, &Actions::onFlipObjHorizontally);
@@ -81,7 +61,6 @@ void Actions::setDocument(Document* document)
         _document->paletteList()->disconnect(this);
         _document->frameMap()->disconnect(this);
         _document->frameObjectList()->disconnect(this);
-        _document->actionPointList()->disconnect(this);
         _document->entityHitboxList()->disconnect(this);
     }
     _document = document;
@@ -91,13 +70,9 @@ void Actions::setDocument(Document* document)
                 this, &Actions::updateSelectionActions);
         connect(_document->frameObjectList(), &FrameObjectList::listChanged,
                 this, &Actions::updateSelectionActions);
-        connect(_document->actionPointList(), &ActionPointList::listChanged,
-                this, &Actions::updateSelectionActions);
         connect(_document->entityHitboxList(), &EntityHitboxList::listChanged,
                 this, &Actions::updateSelectionActions);
         connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
-                this, &Actions::updateSelectionActions);
-        connect(_document->actionPointList(), &ActionPointList::selectedIndexesChanged,
                 this, &Actions::updateSelectionActions);
         connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
                 this, &Actions::updateSelectionActions);
@@ -117,25 +92,12 @@ void Actions::updateSelectionActions()
     using namespace UnTech::GuiQt::Accessor;
 
     ListActionStatus obj;
-    ListActionStatus ap;
     ListActionStatus eh;
 
     if (_document) {
         obj = ListActionHelper::status(_document->frameObjectList());
-        ap = ListActionHelper::status(_document->actionPointList());
         eh = ListActionHelper::status(_document->entityHitboxList());
     }
-
-    ListActionStatus selected(obj, ap, eh);
-
-    _addFrameObject->setEnabled(obj.canAdd);
-    _addActionPoint->setEnabled(ap.canAdd);
-    _addEntityHitbox->setEnabled(eh.canAdd);
-
-    _raiseSelected->setEnabled(selected.canRaise);
-    _lowerSelected->setEnabled(selected.canLower);
-    _cloneSelected->setEnabled(selected.canClone);
-    _removeSelected->setEnabled(selected.canRemove);
 
     _toggleObjSize->setEnabled(obj.selectionValid);
     _flipObjVertically->setEnabled(obj.selectionValid);
@@ -197,69 +159,6 @@ void Actions::onRaisePalette()
 void Actions::onLowerPalette()
 {
     PaletteListUndoHelper(_document->paletteList()).lowerSelectedItem();
-}
-
-void Actions::onAddFrameObject()
-{
-    FrameObjectListUndoHelper(_document->frameObjectList()).addItemToSelectedList();
-}
-
-void Actions::onAddActionPoint()
-{
-    ActionPointListUndoHelper(_document->actionPointList()).addItemToSelectedList();
-}
-
-void Actions::onAddEntityHitbox()
-{
-    EntityHitboxListUndoHelper(_document->entityHitboxList()).addItemToSelectedList();
-}
-
-void Actions::onRaiseSelected()
-{
-    // ::TODO helper class that combines these and checks a command exists::
-    _document->undoStack()->beginMacro(tr("Raise Selected"));
-
-    FrameObjectListUndoHelper(_document->frameObjectList()).raiseSelectedItems();
-    ActionPointListUndoHelper(_document->actionPointList()).raiseSelectedItems();
-    EntityHitboxListUndoHelper(_document->entityHitboxList()).raiseSelectedItems();
-
-    _document->undoStack()->endMacro();
-}
-
-void Actions::onLowerSelected()
-{
-    // ::TODO helper class::
-    _document->undoStack()->beginMacro(tr("Lower Selected"));
-
-    FrameObjectListUndoHelper(_document->frameObjectList()).lowerSelectedItems();
-    ActionPointListUndoHelper(_document->actionPointList()).lowerSelectedItems();
-    EntityHitboxListUndoHelper(_document->entityHitboxList()).lowerSelectedItems();
-
-    _document->undoStack()->endMacro();
-}
-
-void Actions::onCloneSelected()
-{
-    // ::TODO helper class::
-    _document->undoStack()->beginMacro(tr("Clone Selected"));
-
-    FrameObjectListUndoHelper(_document->frameObjectList()).cloneSelectedItems();
-    ActionPointListUndoHelper(_document->actionPointList()).cloneSelectedItems();
-    EntityHitboxListUndoHelper(_document->entityHitboxList()).cloneSelectedItems();
-
-    _document->undoStack()->endMacro();
-}
-
-void Actions::onRemoveSelected()
-{
-    // ::TODO helper class::
-    _document->undoStack()->beginMacro(tr("Remove Selected"));
-
-    FrameObjectListUndoHelper(_document->frameObjectList()).removeSelectedItems();
-    ActionPointListUndoHelper(_document->actionPointList()).removeSelectedItems();
-    EntityHitboxListUndoHelper(_document->entityHitboxList()).removeSelectedItems();
-
-    _document->undoStack()->endMacro();
 }
 
 void Actions::onToggleObjSize()

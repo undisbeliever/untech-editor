@@ -35,15 +35,6 @@ public:
     QAction* lowerPalette() const { return _lowerPalette; }
     QAction* removePalette() const { return _removePalette; }
 
-    QAction* addFrameObject() const { return _addFrameObject; }
-    QAction* addActionPoint() const { return _addActionPoint; }
-    QAction* addEntityHitbox() const { return _addEntityHitbox; }
-
-    QAction* raiseSelected() const { return _raiseSelected; }
-    QAction* lowerSelected() const { return _lowerSelected; }
-    QAction* cloneSelected() const { return _cloneSelected; }
-    QAction* removeSelected() const { return _removeSelected; }
-
     QAction* toggleObjSize() const { return _toggleObjSize; }
     QAction* flipObjHorizontally() const { return _flipObjHorizontally; }
     QAction* flipObjVertically() const { return _flipObjVertically; }
@@ -61,15 +52,6 @@ public slots:
     void onRemovePalette();
     void onRaisePalette();
     void onLowerPalette();
-
-    void onAddFrameObject();
-    void onAddActionPoint();
-    void onAddEntityHitbox();
-
-    void onRaiseSelected();
-    void onLowerSelected();
-    void onCloneSelected();
-    void onRemoveSelected();
 
     void onToggleObjSize();
     void onFlipObjHorizontally();
@@ -89,15 +71,6 @@ private:
     QAction* const _raisePalette;
     QAction* const _lowerPalette;
     QAction* const _removePalette;
-
-    QAction* const _addFrameObject;
-    QAction* const _addActionPoint;
-    QAction* const _addEntityHitbox;
-
-    QAction* const _raiseSelected;
-    QAction* const _lowerSelected;
-    QAction* const _cloneSelected;
-    QAction* const _removeSelected;
 
     QAction* const _toggleObjSize;
     QAction* const _flipObjHorizontally;
