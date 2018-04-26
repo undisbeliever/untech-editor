@@ -98,7 +98,7 @@ struct FrameObject {
     }
 
     inline unsigned sizePx() const { return static_cast<unsigned>(size); }
-    inline upoint bottomLeft() const
+    inline upoint bottomRight() const
     {
         return upoint(location.x + sizePx(),
                       location.y + sizePx());

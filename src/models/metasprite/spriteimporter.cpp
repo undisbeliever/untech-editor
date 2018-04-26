@@ -139,7 +139,7 @@ usize Frame::minimumViableSize() const
     }
 
     for (const auto& obj : objects) {
-        limit = limit.expand(obj.bottomLeft());
+        limit = limit.expand(obj.bottomRight());
     }
 
     for (const auto& ap : actionPoints) {
