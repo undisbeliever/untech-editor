@@ -85,6 +85,10 @@ public:
         using ListT = typename AccessorT::ListT;
         using index_type = typename AccessorT::index_type;
 
+        if (a == nullptr) {
+            return ListActionStatus();
+        }
+
         auto f = std::mem_fn(&AccessorT::getList);
         const ArgsT listArgs = a->selectedListTuple();
         const ListT* list = mem_fn_call(f, a, listArgs);
@@ -118,6 +122,10 @@ public:
         using ArgsT = typename AccessorT::ArgsT;
         using ListT = typename AccessorT::ListT;
         using index_type = typename AccessorT::index_type;
+
+        if (a == nullptr) {
+            return ListActionStatus();
+        }
 
         const vectorset<index_type>& indexes = a->selectedIndexes();
 
