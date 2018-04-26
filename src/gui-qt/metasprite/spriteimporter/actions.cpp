@@ -19,7 +19,6 @@ Actions::Actions(MainWindow* mainWindow)
     : QObject(mainWindow)
     , _mainWindow(mainWindow)
     , _document(nullptr)
-    , _addRemoveTileHitbox(new QAction(tr("Add Tile Hitbox"), this))
     , _addFrameObject(new QAction(QIcon(":/icons/add-frame-object.svg"), tr("Add Frame Object"), this))
     , _addActionPoint(new QAction(QIcon(":/icons/add-action-point.svg"), tr("Add Action Point"), this))
     , _addEntityHitbox(new QAction(QIcon(":/icons/add-entity-hitbox.svg"), tr("Add Entity Hitbox"), this))
@@ -27,22 +26,14 @@ Actions::Actions(MainWindow* mainWindow)
     , _lowerSelected(new QAction(QIcon(":/icons/lower.svg"), tr("Lower Selected"), this))
     , _cloneSelected(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Selected"), this))
     , _removeSelected(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Selected"), this))
-    , _toggleObjSize(new QAction(QIcon(":/icons/toggle-obj-size.svg"), tr("Toggle Object Size"), this))
-    , _entityHitboxTypeMenu(std::make_unique<QMenu>(tr("Set Entity Hitbox Type")))
 {
     _raiseSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Up);
     _lowerSelected->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_Down);
     _cloneSelected->setShortcut(Qt::CTRL + Qt::Key_D);
     _removeSelected->setShortcut(Qt::Key_Delete);
 
-    for (auto& it : UnTech::MetaSprite::EntityHitboxType::enumMap) {
-        QString s = QString::fromStdString(it.first);
-        _entityHitboxTypeMenu->addAction(s)->setData(int(it.second));
-    }
-
     updateSelectionActions();
 
-    connect(_addRemoveTileHitbox, &QAction::triggered, this, &Actions::onAddRemoveTileHitbox);
     connect(_addFrameObject, &QAction::triggered, this, &Actions::onAddFrameObject);
     connect(_addActionPoint, &QAction::triggered, this, &Actions::onAddActionPoint);
     connect(_addEntityHitbox, &QAction::triggered, this, &Actions::onAddEntityHitbox);
@@ -50,9 +41,6 @@ Actions::Actions(MainWindow* mainWindow)
     connect(_lowerSelected, &QAction::triggered, this, &Actions::onLowerSelected);
     connect(_cloneSelected, &QAction::triggered, this, &Actions::onCloneSelected);
     connect(_removeSelected, &QAction::triggered, this, &Actions::onRemoveSelected);
-
-    connect(_toggleObjSize, &QAction::triggered, this, &Actions::onToggleObjSize);
-    connect(_entityHitboxTypeMenu.get(), &QMenu::triggered, this, &Actions::onEntityHitboxTypeMenu);
 }
 
 void Actions::setDocument(Document* document)
@@ -110,10 +98,6 @@ void Actions::updateSelectionActions()
     _lowerSelected->setEnabled(selected.canLower);
     _cloneSelected->setEnabled(selected.canClone);
     _removeSelected->setEnabled(selected.canRemove);
-
-    _toggleObjSize->setEnabled(obj.selectionValid);
-
-    _entityHitboxTypeMenu->setEnabled(eh.selectionValid);
 }
 
 void Actions::onAddRemoveTileHitbox()
@@ -191,29 +175,4 @@ void Actions::onRemoveSelected()
     EntityHitboxListUndoHelper(_document->entityHitboxList()).removeSelectedItems();
 
     _document->undoStack()->endMacro();
-}
-
-void Actions::onToggleObjSize()
-{
-    using ObjSize = UnTech::MetaSprite::ObjectSize;
-
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
-    Q_ASSERT(frame);
-
-    FrameObjectListUndoHelper h(_document->frameObjectList());
-    h.editSelectedItems(tr("Change Object Size"),
-                        [&](SI::FrameObject& obj, size_t) {
-                            obj.size = (obj.size == ObjSize::SMALL) ? ObjSize::LARGE : ObjSize::SMALL;
-                        });
-}
-
-void Actions::onEntityHitboxTypeMenu(QAction* action)
-{
-    using EHT = UnTech::MetaSprite::EntityHitboxType;
-
-    EHT ehType = EHT::Enum(action->data().toInt());
-
-    EntityHitboxListUndoHelper h(_document->entityHitboxList());
-    h.setSelectedFields(ehType, tr("Change Entity Hitbox Type"),
-                        [](SI::EntityHitbox& eh) -> EHT& { return eh.hitboxType; });
 }

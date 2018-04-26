@@ -27,37 +27,10 @@ public:
 
     void setDocument(Document*);
 
-    QAction* addRemoveTileHitbox() const { return _addRemoveTileHitbox; }
-
-    QAction* toggleObjSize() const { return _toggleObjSize; }
-    QAction* flipObjHorizontally() const { return _flipObjHorizontally; }
-    QAction* flipObjVertically() const { return _flipObjVertically; }
-
-    QMenu* entityHitboxTypeMenu() const { return _entityHitboxTypeMenu.get(); }
-
-public slots:
-    void updateSelectionActions();
-
-    void onAddRemoveTileHitbox();
-
-    void onToggleObjSize();
-    void onFlipObjHorizontally();
-    void onFlipObjVertically();
-
-    void onEntityHitboxTypeMenu(QAction* action);
-
 private:
     MainWindow* const _mainWindow;
 
     Document* _document;
-
-    QAction* const _addRemoveTileHitbox;
-
-    QAction* const _toggleObjSize;
-    QAction* const _flipObjHorizontally;
-    QAction* const _flipObjVertically;
-
-    std::unique_ptr<QMenu> const _entityHitboxTypeMenu;
 };
 }
 }

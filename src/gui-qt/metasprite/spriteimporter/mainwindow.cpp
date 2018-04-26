@@ -32,7 +32,7 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
     , _frameSetDock(new FrameSetDock(_actions, this))
-    , _frameDock(new FrameDock(_frameSetDock->frameListModel(), _actions, this))
+    , _frameDock(new FrameDock(_frameSetDock->frameListModel(), this))
     , _animationDock(new Animation::AnimationDock(this))
     , _tabWidget(new QTabWidget(this))
     , _graphicsView(new ZoomableGraphicsView(this))
@@ -50,7 +50,6 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
 
-    _graphicsScene->frameContextMenu()->addAction(_actions->addRemoveTileHitbox());
     _frameDock->populateMenu(_graphicsScene->frameContextMenu());
 
     _graphicsView->setMinimumSize(256, 256);
@@ -86,7 +85,6 @@ MainWindow::~MainWindow() = default;
 
 void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
-
     editMenu->addSeparator();
     _frameSetDock->populateMenu(editMenu);
     editMenu->addSeparator();

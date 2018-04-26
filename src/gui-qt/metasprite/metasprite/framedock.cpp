@@ -6,7 +6,6 @@
 
 #include "framedock.h"
 #include "accessors.h"
-#include "actions.h"
 #include "document.h"
 #include "framecontentmanagers.h"
 #include "gui-qt/accessor/idmaplistmodel.h"
@@ -20,18 +19,21 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, Actions* actions, QWidget* parent)
+FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameDock)
     , _frameListModel(frameListModel)
-    , _actions(actions)
     , _document(nullptr)
     , _frameObjectManager(new FrameObjectManager(this))
     , _actionPointManager(new ActionPointManager(this))
     , _entityHitboxManager(new EntityHitboxManager(this))
+    , _addRemoveTileHitbox(new QAction(tr("Add Tile Hitbox"), this))
+    , _toggleObjSize(new QAction(QIcon(":/icons/toggle-obj-size.svg"), tr("Toggle Object Size"), this))
+    , _flipObjHorizontally(new QAction(QIcon(":/icons/flip-horizontally.svg"), tr("Flip Object Horizontally"), this))
+    , _flipObjVertically(new QAction(QIcon(":/icons/flip-vertically.svg"), tr("Flip Object Vertically"), this))
+    , _entityHitboxTypeMenu(new QMenu(tr("Set Entity Hitbox Type"), this))
 {
     Q_ASSERT(frameListModel);
-    Q_ASSERT(actions != nullptr);
 
     _ui->setupUi(this);
 
@@ -52,15 +54,24 @@ FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, Actions* actions,
 
     QMenu* frameContextMenu = _ui->frameContents->selectedContextmenu();
     QAction* firstAddAction = frameActions.add.first();
-    frameContextMenu->insertAction(firstAddAction, _actions->toggleObjSize());
-    frameContextMenu->insertAction(firstAddAction, _actions->flipObjHorizontally());
-    frameContextMenu->insertAction(firstAddAction, _actions->flipObjVertically());
-    frameContextMenu->insertMenu(firstAddAction, _actions->entityHitboxTypeMenu());
+    frameContextMenu->insertAction(firstAddAction, _toggleObjSize);
+    frameContextMenu->insertAction(firstAddAction, _flipObjHorizontally);
+    frameContextMenu->insertAction(firstAddAction, _flipObjVertically);
+    frameContextMenu->insertMenu(firstAddAction, _entityHitboxTypeMenu);
     frameContextMenu->insertSeparator(firstAddAction);
 
     _ui->frameContents->viewActions().populateToolbar(_ui->frameContentsButtons);
 
+    for (auto& it : UnTech::MetaSprite::EntityHitboxType::enumMap) {
+        QString s = QString::fromStdString(it.first);
+        _entityHitboxTypeMenu->addAction(s)->setData(int(it.second));
+    }
+
     clearGui();
+    updateFrameActions();
+    updateFrameObjectActions();
+    updateEntityHitboxTypeMenu();
+
     setEnabled(false);
 
     connect(_ui->frameComboBox, qOverload<int>(&QComboBox::activated),
@@ -73,6 +84,17 @@ FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, Actions* actions,
             this, &FrameDock::onSolidClicked);
     connect(_ui->tileHitbox, &Ms8rectWidget::editingFinished,
             this, &FrameDock::onTileHitboxEdited);
+
+    connect(_addRemoveTileHitbox, &QAction::triggered,
+            this, &FrameDock::onAddRemoveTileHitbox);
+    connect(_toggleObjSize, &QAction::triggered,
+            this, &FrameDock::onToggleObjSize);
+    connect(_flipObjHorizontally, &QAction::triggered,
+            this, &FrameDock::onFlipObjHorizontally);
+    connect(_flipObjVertically, &QAction::triggered,
+            this, &FrameDock::onFlipObjVertically);
+    connect(_entityHitboxTypeMenu, &QMenu::triggered,
+            this, &FrameDock::onEntityHitboxTypeMenu);
 }
 
 FrameDock::~FrameDock() = default;
@@ -86,7 +108,6 @@ void FrameDock::setDocument(Document* document)
     if (_document != nullptr) {
         _document->frameMap()->disconnect(this);
         _document->frameObjectList()->disconnect(this);
-        _document->actionPointList()->disconnect(this);
         _document->entityHitboxList()->disconnect(this);
     }
     _document = document;
@@ -110,6 +131,12 @@ void FrameDock::setDocument(Document* document)
 
         connect(_document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &FrameDock::onSelectedFrameChanged);
+
+        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
+                this, &FrameDock::updateFrameObjectActions);
+
+        connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
+                this, &FrameDock::updateEntityHitboxTypeMenu);
     }
     else {
         _ui->frameContents->setAccessors<
@@ -126,10 +153,11 @@ QMenu* FrameDock::frameContentsContextMenu() const
 
 void FrameDock::populateMenu(QMenu* editMenu)
 {
-    editMenu->addAction(_actions->toggleObjSize());
-    editMenu->addAction(_actions->flipObjHorizontally());
-    editMenu->addAction(_actions->flipObjVertically());
-    editMenu->addMenu(_actions->entityHitboxTypeMenu());
+    editMenu->addAction(_addRemoveTileHitbox);
+    editMenu->addAction(_toggleObjSize);
+    editMenu->addAction(_flipObjHorizontally);
+    editMenu->addAction(_flipObjVertically);
+    editMenu->addMenu(_entityHitboxTypeMenu);
     editMenu->addSeparator();
     _ui->frameContents->viewActions().populateMenu(editMenu, true);
 }
@@ -152,12 +180,15 @@ void FrameDock::onSelectedFrameChanged()
     else {
         clearGui();
     }
+
+    updateFrameActions();
 }
 
 void FrameDock::onFrameDataChanged(const void* frame)
 {
     if (frame == _document->frameMap()->selectedFrame()) {
         updateGui();
+        updateFrameActions();
     }
 }
 
@@ -203,6 +234,47 @@ void FrameDock::updateGui()
     }
 }
 
+void FrameDock::updateFrameActions()
+{
+    bool frameSelected = false;
+    bool isFrameSolid = false;
+
+    if (_document) {
+        if (const auto* frame = _document->frameMap()->selectedFrame()) {
+            frameSelected = true;
+            isFrameSolid = frame->solid;
+        }
+    }
+
+    _addRemoveTileHitbox->setEnabled(frameSelected);
+    _addRemoveTileHitbox->setText(isFrameSolid ? tr("Remove Tile Hitbox")
+                                               : tr("Add Tile Hitbox"));
+}
+
+void FrameDock::updateFrameObjectActions()
+{
+    bool objSelected = false;
+
+    if (_document) {
+        objSelected = !_document->frameObjectList()->selectedIndexes().empty();
+    }
+
+    _toggleObjSize->setEnabled(objSelected);
+    _flipObjVertically->setEnabled(objSelected);
+    _flipObjHorizontally->setEnabled(objSelected);
+}
+
+void FrameDock::updateEntityHitboxTypeMenu()
+{
+    bool ehSelected = false;
+
+    if (_document) {
+        ehSelected = !_document->entityHitboxList()->selectedIndexes().empty();
+    }
+
+    _entityHitboxTypeMenu->setEnabled(ehSelected);
+}
+
 void FrameDock::onSpriteOrderEdited()
 {
     using SOT = UnTech::MetaSprite::SpriteOrderType;
@@ -233,4 +305,57 @@ void FrameDock::onTileHitboxEdited()
     FrameMapUndoHelper h(_document->frameMap());
     h.editSelectedItemField(hitbox, tr("Edit Tile Hitbox"),
                             [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
+}
+
+void FrameDock::onAddRemoveTileHitbox()
+{
+    const MS::Frame* frame = _document->frameMap()->selectedFrame();
+    if (frame) {
+        QString text = !frame->solid ? tr("Enable Tile Hitbox")
+                                     : tr("Disable Tile Hitbox");
+
+        FrameMapUndoHelper h(_document->frameMap());
+        h.editSelectedItemField(!frame->solid, text,
+                                [](MS::Frame& f) -> bool& { return f.solid; });
+    }
+}
+
+void FrameDock::onToggleObjSize()
+{
+    using ObjSize = UnTech::MetaSprite::ObjectSize;
+
+    FrameObjectListUndoHelper h(_document->frameObjectList());
+    h.editSelectedItems(tr("Change Object Size"),
+                        [](MS::FrameObject& obj, size_t) {
+                            obj.size = (obj.size == ObjSize::SMALL) ? ObjSize::LARGE : ObjSize::SMALL;
+                        });
+}
+
+void FrameDock::onFlipObjHorizontally()
+{
+    FrameObjectListUndoHelper h(_document->frameObjectList());
+    h.editSelectedItems(tr("Flip Horizontally"),
+                        [](MS::FrameObject& obj, size_t) {
+                            obj.hFlip = !obj.hFlip;
+                        });
+}
+
+void FrameDock::onFlipObjVertically()
+{
+    FrameObjectListUndoHelper h(_document->frameObjectList());
+    h.editSelectedItems(tr("Flip Vertically"),
+                        [](MS::FrameObject& obj, size_t) {
+                            obj.vFlip = !obj.vFlip;
+                        });
+}
+
+void FrameDock::onEntityHitboxTypeMenu(QAction* action)
+{
+    using EHT = UnTech::MetaSprite::EntityHitboxType;
+
+    EHT ehType = EHT::Enum(action->data().toInt());
+
+    EntityHitboxListUndoHelper h(_document->entityHitboxList());
+    h.setSelectedFields(ehType, tr("Change Entity Hitbox Type"),
+                        [](MS::EntityHitbox& eh) -> EHT& { return eh.hitboxType; });
 }

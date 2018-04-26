@@ -27,8 +27,6 @@ public:
 
     void setDocument(Document*);
 
-    QAction* addRemoveTileHitbox() const { return _addRemoveTileHitbox; }
-
     QAction* addFrameObject() const { return _addFrameObject; }
     QAction* addActionPoint() const { return _addActionPoint; }
     QAction* addEntityHitbox() const { return _addEntityHitbox; }
@@ -37,9 +35,6 @@ public:
     QAction* lowerSelected() const { return _lowerSelected; }
     QAction* cloneSelected() const { return _cloneSelected; }
     QAction* removeSelected() const { return _removeSelected; }
-
-    QAction* toggleObjSize() const { return _toggleObjSize; }
-    QMenu* entityHitboxTypeMenu() const { return _entityHitboxTypeMenu.get(); }
 
 public slots:
     void updateSelectionActions();
@@ -55,15 +50,10 @@ public slots:
     void onCloneSelected();
     void onRemoveSelected();
 
-    void onToggleObjSize();
-    void onEntityHitboxTypeMenu(QAction* action);
-
 private:
     MainWindow* const _mainWindow;
 
     Document* _document;
-
-    QAction* const _addRemoveTileHitbox;
 
     QAction* const _addFrameObject;
     QAction* const _addActionPoint;
@@ -73,9 +63,6 @@ private:
     QAction* const _lowerSelected;
     QAction* const _cloneSelected;
     QAction* const _removeSelected;
-
-    QAction* const _toggleObjSize;
-    std::unique_ptr<QMenu> const _entityHitboxTypeMenu;
 };
 }
 }

@@ -35,7 +35,7 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     , _layersButton(new QPushButton(tr("Layers"), this))
     , _tilesetPixmaps(new TilesetPixmaps(this))
     , _frameSetDock(new FrameSetDock(_actions, this))
-    , _frameDock(new FrameDock(_frameSetDock->frameListModel(), _actions, this))
+    , _frameDock(new FrameDock(_frameSetDock->frameListModel(), this))
     , _animationDock(new Animation::AnimationDock(this))
     , _palettesDock(new PalettesDock(this))
     , _tilesetDock(new TilesetDock(_tilesetPixmaps, this))
@@ -58,7 +58,6 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     setCentralWidget(_tabWidget);
     _tabWidget->setTabPosition(QTabWidget::West);
 
-    _graphicsScene->contextMenu()->addAction(_actions->addRemoveTileHitbox());
     _frameDock->populateMenu(_graphicsScene->contextMenu());
 
     _graphicsView->setMinimumSize(256, 256);
@@ -95,7 +94,6 @@ void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
     editMenu->addSeparator();
     _frameSetDock->populateMenu(editMenu);
     editMenu->addSeparator();
-    editMenu->addAction(_actions->addRemoveTileHitbox());
     _frameDock->populateMenu(editMenu);
 
     viewMenu->addSeparator();

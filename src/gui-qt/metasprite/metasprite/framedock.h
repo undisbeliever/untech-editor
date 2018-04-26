@@ -23,7 +23,6 @@ namespace MetaSprite {
 namespace Ui {
 class FrameDock;
 }
-class Actions;
 class Document;
 class FrameObjectManager;
 class ActionPointManager;
@@ -35,7 +34,7 @@ class FrameDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    FrameDock(Accessor::IdmapListModel* frameListModel, Actions* actions,
+    FrameDock(Accessor::IdmapListModel* frameListModel,
               QWidget* parent = nullptr);
     ~FrameDock();
 
@@ -54,20 +53,36 @@ private slots:
 
     void updateGui();
 
+    void updateFrameActions();
+    void updateFrameObjectActions();
+    void updateEntityHitboxTypeMenu();
+
     void onSpriteOrderEdited();
     void onSolidClicked();
     void onTileHitboxEdited();
 
+    void onAddRemoveTileHitbox();
+    void onToggleObjSize();
+    void onFlipObjHorizontally();
+    void onFlipObjVertically();
+
+    void onEntityHitboxTypeMenu(QAction* action);
+
 private:
     std::unique_ptr<Ui::FrameDock> const _ui;
     Accessor::IdmapListModel* const _frameListModel;
-    Actions* const _actions;
 
     Document* _document;
 
     FrameObjectManager* const _frameObjectManager;
     ActionPointManager* const _actionPointManager;
     EntityHitboxManager* const _entityHitboxManager;
+
+    QAction* const _addRemoveTileHitbox;
+    QAction* const _toggleObjSize;
+    QAction* const _flipObjHorizontally;
+    QAction* const _flipObjVertically;
+    QMenu* const _entityHitboxTypeMenu;
 };
 }
 }
