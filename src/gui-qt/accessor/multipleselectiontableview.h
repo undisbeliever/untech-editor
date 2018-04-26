@@ -163,6 +163,10 @@ public:
 
             connect(_actions.add.at(aId), &QAction::triggered,
                     this, [=]() {
+                        for_each_accessor([](auto* a) {
+                            a->clearSelection();
+                        });
+
                         using AT = typename std::remove_pointer<decltype(accessor)>::type;
                         ListAndMultipleSelectionUndoHelper<AT>(accessor).addItemToSelectedList();
                     });
