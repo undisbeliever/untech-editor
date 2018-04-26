@@ -194,6 +194,13 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
         break;
     };
 
+    if (obj.bottomRight().x >= _frame->location.aabb.width) {
+        obj.location.x = _frame->location.aabb.width - obj.sizePx();
+    }
+    if (obj.bottomRight().y >= _frame->location.aabb.height) {
+        obj.location.y = _frame->location.aabb.height - obj.sizePx();
+    }
+
     return FrameObjectListUndoHelper(_document->frameObjectList()).editItemInSelectedList(index, obj);
 }
 

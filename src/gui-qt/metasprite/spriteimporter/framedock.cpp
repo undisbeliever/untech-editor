@@ -373,6 +373,13 @@ void FrameDock::onToggleObjSize()
     h.editSelectedItems(tr("Change Object Size"),
                         [&](SI::FrameObject& obj, size_t) {
                             obj.size = (obj.size == ObjSize::SMALL) ? ObjSize::LARGE : ObjSize::SMALL;
+
+                            if (obj.bottomRight().x >= frame->location.aabb.width) {
+                                obj.location.x = frame->location.aabb.width - obj.sizePx();
+                            }
+                            if (obj.bottomRight().y >= frame->location.aabb.height) {
+                                obj.location.y = frame->location.aabb.height - obj.sizePx();
+                            }
                         });
 }
 
