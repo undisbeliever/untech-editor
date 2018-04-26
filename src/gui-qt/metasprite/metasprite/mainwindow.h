@@ -27,7 +27,6 @@ class AnimationPreview;
 namespace MetaSprite {
 
 class Document;
-class Actions;
 class TilesetPixmaps;
 class MsGraphicsScene;
 class MsAnimationPreviewItemFactory;
@@ -57,9 +56,7 @@ private slots:
 private:
     Document* _document;
 
-    Actions* const _actions;
     LayerSettings* const _layerSettings;
-
     QPushButton* const _layersButton;
 
     TilesetPixmaps* const _tilesetPixmaps;

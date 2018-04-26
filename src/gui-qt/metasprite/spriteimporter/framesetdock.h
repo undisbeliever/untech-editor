@@ -18,14 +18,13 @@ namespace SpriteImporter {
 namespace Ui {
 class FrameSetDock;
 }
-class Actions;
 class Document;
 
 class FrameSetDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    FrameSetDock(Actions* actions, QWidget* parent = nullptr);
+    FrameSetDock(QWidget* parent = nullptr);
     ~FrameSetDock();
 
     void setDocument(Document* document);
@@ -50,7 +49,6 @@ private slots:
 
 private:
     std::unique_ptr<Ui::FrameSetDock> const _ui;
-    Actions* const _actions;
 
     Document* _document;
 };

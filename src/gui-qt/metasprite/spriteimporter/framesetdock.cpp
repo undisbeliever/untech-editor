@@ -6,7 +6,6 @@
 
 #include "framesetdock.h"
 #include "accessors.h"
-#include "actions.h"
 #include "document.h"
 #include "framesetcommands.h"
 #include "gui-qt/common/idstringvalidator.h"
@@ -21,14 +20,11 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 using TilesetType = UnTech::MetaSprite::TilesetType;
 
-FrameSetDock::FrameSetDock(Actions* actions, QWidget* parent)
+FrameSetDock::FrameSetDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameSetDock)
-    , _actions(actions)
     , _document(nullptr)
 {
-    Q_ASSERT(actions != nullptr);
-
     _ui->setupUi(this);
 
     _ui->frameSetName->setValidator(new IdstringValidator(this));

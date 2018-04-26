@@ -28,7 +28,6 @@ class AnimationPreview;
 namespace SpriteImporter {
 
 class Document;
-class Actions;
 class TilesetPixmaps;
 class SiGraphicsScene;
 class SiAnimationPreviewItemFactory;
@@ -61,7 +60,6 @@ private:
 
     QFileSystemWatcher _imageFileWatcher;
 
-    Actions* const _actions;
     LayerSettings* const _layerSettings;
 
     QPushButton* const _layersButton;

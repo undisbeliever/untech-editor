@@ -6,7 +6,6 @@
 
 #include "mainwindow.h"
 #include "accessors.h"
-#include "actions.h"
 #include "document.h"
 #include "framedock.h"
 #include "framesetdock.h"
@@ -28,10 +27,9 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
     , _imageFileWatcher()
-    , _actions(new Actions(this))
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
-    , _frameSetDock(new FrameSetDock(_actions, this))
+    , _frameSetDock(new FrameSetDock(this))
     , _frameDock(new FrameDock(_frameSetDock->frameListModel(), this))
     , _animationDock(new Animation::AnimationDock(this))
     , _tabWidget(new QTabWidget(this))
@@ -120,7 +118,6 @@ void MainWindow::populateWidgets()
     // Widgets cannot handle a null frameSet
     Document* d = _document && _document->frameSet() ? _document : nullptr;
 
-    _actions->setDocument(d);
     _graphicsScene->setDocument(d);
     _animationPreview->setDocument(d);
     _frameSetDock->setDocument(d);
