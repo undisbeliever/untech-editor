@@ -116,7 +116,7 @@ public:
     const vectorset<index_type>& selectedIndexes() const { return _selectedIndexes; }
     void setSelectedIndexes(const vectorset<index_type>& selected);
     void setSelectedIndexes(vectorset<index_type>&& selected);
-    void unselectAll();
+    void clearSelection();
 
 protected:
     friend class Accessor::ListUndoHelper<FrameObjectList>;

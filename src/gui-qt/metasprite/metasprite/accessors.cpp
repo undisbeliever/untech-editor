@@ -138,7 +138,7 @@ AbstractFrameContentAccessor::AbstractFrameContentAccessor(Document* document)
 
     connect(_document->frameMap(), &FrameMap::selectedItemChanged,
             this, [this]() {
-                unselectAll();
+                clearSelection();
                 emit selectedListChanged();
             });
 }
@@ -159,7 +159,7 @@ void AbstractFrameContentAccessor::setSelectedIndexes(vectorset<index_type>&& se
     }
 }
 
-void AbstractFrameContentAccessor::unselectAll()
+void AbstractFrameContentAccessor::clearSelection()
 {
     if (!_selectedIndexes.empty()) {
         _selectedIndexes.clear();
