@@ -248,6 +248,57 @@ private:
         }
     };
 
+    class EditMultipleCommand : public BaseCommand {
+    private:
+        const std::vector<index_type> _indexes;
+        const std::vector<DataT> _oldValues;
+        const std::vector<DataT> _newValues;
+
+    public:
+        EditMultipleCommand(AccessorT* accessor, const ArgsT& args,
+                            std::vector<index_type>&& indexes,
+                            std::vector<DataT>&& oldValues,
+                            std::vector<DataT>&& newValues,
+                            const QString& text)
+            : BaseCommand(accessor, args, text)
+            , _indexes(std::move(indexes))
+            , _oldValues(std::move(oldValues))
+            , _newValues(std::move(newValues))
+        {
+        }
+        ~EditMultipleCommand() = default;
+
+        virtual void undo() final
+        {
+            doEdit(_oldValues);
+        }
+
+        virtual void redo() final
+        {
+            doEdit(_newValues);
+        }
+
+    private:
+        void doEdit(const std::vector<DataT>& values)
+        {
+            Q_ASSERT(_indexes.size() == values.size());
+
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+
+            for (size_t i = 0; i < _indexes.size(); i++) {
+                const index_type& index = _indexes.at(i);
+                const DataT& value = values.at(i);
+
+                Q_ASSERT(index >= 0 && index < list->size());
+
+                list->at(index) = value;
+
+                this->emitDataChanged(index);
+            }
+        }
+    };
+
     class AddRemoveCommand : public BaseCommand {
     private:
         const index_type _index;

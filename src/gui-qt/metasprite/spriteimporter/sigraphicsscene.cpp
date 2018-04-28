@@ -216,6 +216,7 @@ void SiGraphicsScene::commitMovedItems()
     const auto& entityHitboxes = frameItem->entityHitboxes();
 
     QList<QUndoCommand*> commands;
+    commands.reserve(4);
 
     if (_document->frameMap()->isTileHitboxSelected()) {
         urect hitbox = frameItem->tileHitbox()->rectUrect();
@@ -229,22 +230,24 @@ void SiGraphicsScene::commitMovedItems()
 
     commands.append(
         FrameObjectListUndoHelper(_document->frameObjectList())
-            .editSelectedCommands(
+            .editSelectedCommand(
                 [&](SI::FrameObject& obj, size_t i) {
                     obj.location = objects.at(i)->posUpoint();
                 }));
     commands.append(
         ActionPointListUndoHelper(_document->actionPointList())
-            .editSelectedCommands(
+            .editSelectedCommand(
                 [&](SI::ActionPoint& ap, size_t i) {
                     ap.location = actionPoints.at(i)->posUpoint();
                 }));
     commands.append(
         EntityHitboxListUndoHelper(_document->entityHitboxList())
-            .editSelectedCommands(
+            .editSelectedCommand(
                 [&](SI::EntityHitbox& eh, size_t i) {
                     eh.aabb = entityHitboxes.at(i)->rectUrect();
                 }));
+
+    commands.removeAll(nullptr);
 
     if (!commands.empty()) {
         _document->undoStack()->beginMacro(tr("Move Selected"));

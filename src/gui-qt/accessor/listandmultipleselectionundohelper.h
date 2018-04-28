@@ -32,6 +32,64 @@ private:
 
     using BaseCommand = typename ListUndoHelper<AccessorT>::BaseCommand;
 
+    template <typename FieldT, typename UnaryFunction>
+    class SetMultipleFieldsCommand : public BaseCommand {
+    private:
+        const std::vector<index_type> _indexes;
+        const std::vector<FieldT> _oldValues;
+        const FieldT _newValue;
+        const UnaryFunction _getter;
+
+    public:
+        SetMultipleFieldsCommand(AccessorT* accessor, const ArgsT& args,
+                                 std::vector<index_type>&& indexes,
+                                 std::vector<FieldT>&& oldValues,
+                                 const FieldT& newValue,
+                                 const QString& text,
+                                 UnaryFunction getter)
+            : BaseCommand(accessor, args, text)
+            , _indexes(std::move(indexes))
+            , _oldValues(std::move(oldValues))
+            , _newValue(newValue)
+            , _getter(getter)
+        {
+        }
+        ~SetMultipleFieldsCommand() = default;
+
+        virtual void undo() final
+        {
+            Q_ASSERT(_indexes.size() == _oldValues.size());
+
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+
+            for (size_t i = 0; i < _indexes.size(); i++) {
+                const index_type& index = _indexes.at(i);
+                const FieldT& oldValue = _oldValues.at(i);
+
+                Q_ASSERT(index >= 0 && index < list->size());
+
+                _getter(list->at(index)) = oldValue;
+
+                this->emitDataChanged(index);
+            }
+        }
+
+        virtual void redo() final
+        {
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+
+            for (index_type index : _indexes) {
+                Q_ASSERT(index >= 0 && index < list->size());
+
+                _getter(list->at(index)) = _newValue;
+
+                this->emitDataChanged(index);
+            }
+        }
+    };
+
     class AddRemoveMultipleCommand : public BaseCommand {
     private:
         const vectorset<index_type> _indexes;
@@ -250,42 +308,108 @@ public:
     }
 
     template <typename EditFunction>
-    QList<QUndoCommand*> editSelectedCommands(EditFunction editFunction)
+    QUndoCommand* editSelectedCommand(const QString& text, EditFunction editFunction)
     {
-        QList<QUndoCommand*> commands;
-
         const ArgsT listArgs = this->selectedListTuple();
         const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
-            return commands;
+            return nullptr;
         }
 
         const vectorset<index_type>& indexes = this->_accessor->selectedIndexes();
 
-        commands.reserve(indexes.size());
+        std::vector<index_type> indexesEdited;
+        std::vector<DataT> oldValues;
+        std::vector<DataT> newValues;
+
+        indexesEdited.reserve(indexes.size());
+        oldValues.reserve(indexes.size());
+        newValues.reserve(indexes.size());
 
         for (const index_type& index : indexes) {
             if (index >= 0 && index < list->size()) {
+                const DataT& oldValue = list->at(index);
                 DataT newValue = list->at(index);
 
                 editFunction(newValue, index);
 
-                QUndoCommand* c = this->editCommand(listArgs, index, newValue);
-                if (c) {
-                    commands.append(c);
+                if (newValue != oldValue) {
+                    indexesEdited.push_back(index);
+                    oldValues.push_back(oldValue);
+                    newValues.push_back(std::move(newValue));
                 }
             }
         }
 
-        return commands;
+        if (!indexesEdited.empty()) {
+            return new typename ListUndoHelper<AccessorT>::EditMultipleCommand(
+                this->_accessor, listArgs,
+                std::move(indexesEdited), std::move(oldValues), std::move(newValues),
+                text);
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    template <typename EditFunction>
+    QUndoCommand* editSelectedCommand(EditFunction editFunction)
+    {
+        return editSelectedCommand(tr("Edit %1").arg(AccessorT::typeName()),
+                                   editFunction);
     }
 
     template <typename EditFunction>
     bool editSelectedItems(const QString& text,
                            EditFunction editFunction)
     {
-        auto commands = editSelectedCommands(editFunction);
-        return pushCommands(commands, text);
+        QUndoCommand* c = editSelectedCommand(text, editFunction);
+        if (c) {
+            this->_accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
+    }
+
+    template <typename FieldT, typename UnaryFunction>
+    QUndoCommand* setSelectedFieldsCommand(const FieldT& newValue,
+                                           const QString& text,
+                                           UnaryFunction getter)
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+        ListT* list = this->getList(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+
+        const vectorset<index_type>& indexes = this->_accessor->selectedIndexes();
+
+        std::vector<index_type> indexesEdited;
+        std::vector<FieldT> oldValues;
+
+        indexesEdited.reserve(indexes.size());
+        oldValues.reserve(indexes.size());
+
+        for (const index_type& index : indexes) {
+            if (index >= 0 && index < list->size()) {
+                DataT& data = list->at(index);
+                const FieldT& oldValue = getter(data);
+
+                if (newValue != oldValue) {
+                    indexesEdited.push_back(index);
+                    oldValues.emplace_back(oldValue);
+                }
+            }
+        }
+
+        if (!indexesEdited.empty()) {
+            return new SetMultipleFieldsCommand<FieldT, UnaryFunction>(
+                this->_accessor, listArgs,
+                std::move(indexesEdited), std::move(oldValues), newValue,
+                text, getter);
+        }
+        else {
+            return nullptr;
+        }
     }
 
     template <typename FieldT, typename UnaryFunction>
@@ -293,20 +417,11 @@ public:
                            const QString& text,
                            UnaryFunction getter)
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const vectorset<index_type>& indexes = this->_accessor->selectedIndexes();
-
-        QList<QUndoCommand*> commands;
-        commands.reserve(indexes.size());
-
-        for (const index_type& index : indexes) {
-            QUndoCommand* c = this->editFieldCommand(listArgs, index, newValue, QString(), getter);
-            if (c) {
-                commands.append(c);
-            }
+        QUndoCommand* c = setSelectedFieldsCommand(newValue, text, getter);
+        if (c) {
+            this->_accessor->resourceItem()->undoStack()->push(c);
         }
-
-        return pushCommands(commands, text);
+        return c != nullptr;
     }
 
     bool addItemToSelectedList(index_type index)
@@ -499,25 +614,6 @@ public:
 
         return this->moveMultipleItems(listArgs, indexes, +1,
                                        tr("Lower %1").arg(this->_accessor->typeNamePlural()));
-    }
-
-private:
-    bool pushCommands(const QList<QUndoCommand*>& commands, const QString& text)
-    {
-        if (commands.isEmpty() == false) {
-            QUndoStack* undoStack = this->_accessor->resourceItem()->undoStack();
-
-            undoStack->beginMacro(text);
-            for (QUndoCommand* c : commands) {
-                undoStack->push(c);
-            }
-            undoStack->endMacro();
-
-            return true;
-        }
-        else {
-            return false;
-        }
     }
 };
 }

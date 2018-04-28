@@ -193,6 +193,7 @@ void MsGraphicsScene::commitMovedItems()
     }
 
     QList<QUndoCommand*> commands;
+    commands.reserve(4);
 
     if (_document->frameMap()->isTileHitboxSelected()) {
         ms8rect hitbox = _tileHitbox->rectMs8rect();
@@ -206,22 +207,24 @@ void MsGraphicsScene::commitMovedItems()
 
     commands.append(
         FrameObjectListUndoHelper(_document->frameObjectList())
-            .editSelectedCommands(
+            .editSelectedCommand(
                 [this](MS::FrameObject& obj, size_t i) {
                     obj.location = _objects.at(i)->posMs8point();
                 }));
     commands.append(
         ActionPointListUndoHelper(_document->actionPointList())
-            .editSelectedCommands(
+            .editSelectedCommand(
                 [this](MS::ActionPoint& ap, size_t i) {
                     ap.location = _actionPoints.at(i)->posMs8point();
                 }));
     commands.append(
         EntityHitboxListUndoHelper(_document->entityHitboxList())
-            .editSelectedCommands(
+            .editSelectedCommand(
                 [this](MS::EntityHitbox& eh, size_t i) {
                     eh.aabb = _entityHitboxes.at(i)->rectMs8rect();
                 }));
+
+    commands.removeAll(nullptr);
 
     if (!commands.empty()) {
         _document->undoStack()->beginMacro(tr("Move Selected"));
