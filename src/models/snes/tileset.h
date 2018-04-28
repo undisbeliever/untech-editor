@@ -20,6 +20,7 @@ template <size_t TS>
 class BaseTileset {
 public:
     using TileT = Tile<TS>;
+    using iterator = typename std::vector<TileT>::iterator;
 
 public:
     constexpr static unsigned TILE_SIZE = TS;
@@ -59,6 +60,13 @@ public:
             _tiles.erase(_tiles.begin() + tileId);
         }
     }
+
+    // accessor methods
+    TileT& at(unsigned tileId) { return _tiles.at(tileId); }
+    const TileT& at(unsigned tileId) const { return _tiles.at(tileId); }
+
+    void insert(iterator it, const TileT& tile) { _tiles.insert(it, tile); }
+    void erase(iterator it) { _tiles.erase(it); }
 
 protected:
     std::vector<TileT> _tiles;

@@ -7,7 +7,6 @@
 #include "tilesetdock.h"
 #include "accessors.h"
 #include "document.h"
-#include "tilesetcommands.h"
 #include "tilesetwidgets.h"
 #include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/metasprite/metasprite/tilesetdock.ui.h"
@@ -129,7 +128,8 @@ void TilesetDock::onTileClicked(ObjectSize size, int tileIndex)
         obj.size = size;
         obj.tileId = tileIndex;
 
-        FrameObjectListUndoHelper(_document->frameObjectList()).editItemInSelectedList(index, obj);
+        FrameObjectListUndoHelper(_document->frameObjectList())
+            .editItemInSelectedList(index, obj);
     }
 }
 
@@ -144,10 +144,51 @@ int TilesetDock::selectedFrameObjectIndex() const
     }
 }
 
+void TilesetDock::pushAddTileCommand(QUndoCommand* c, unsigned tileId, ObjectSize size)
+{
+    if (c) {
+        _document->undoStack()->beginMacro(c->text());
+        _document->undoStack()->push(c);
+
+        FrameObjectListUndoHelper(_document->frameObjectList())
+            .editAllItemsInSelectedList(QString(), [&](MS::FrameObject& obj, size_t) {
+                if (obj.size == size
+                    && obj.tileId >= tileId) {
+
+                    obj.tileId++;
+                }
+            });
+
+        _document->undoStack()->endMacro();
+    }
+}
+
+void TilesetDock::pushRemoveTileCommand(QUndoCommand* c, unsigned tileId, ObjectSize size)
+{
+    if (c) {
+        _document->undoStack()->beginMacro(c->text());
+        _document->undoStack()->push(c);
+
+        FrameObjectListUndoHelper(_document->frameObjectList())
+            .editAllItemsInSelectedList(QString(), [&](MS::FrameObject& obj, size_t) {
+                if (obj.size == size
+                    && obj.tileId >= tileId
+                    && obj.tileId > 0) {
+
+                    obj.tileId--;
+                }
+            });
+
+        _document->undoStack()->endMacro();
+    }
+}
+
 void TilesetDock::onContextMenu(const QPoint& pos)
 {
-    if (_document) {
+    if (_document && _document->frameSet()) {
         QPoint globalPos = _ui->scrollAreaContents->mapToGlobal(pos);
+
+        MS::FrameSet* fs = _document->frameSet();
 
         int index = -1;
         bool isSmall = false;
@@ -161,8 +202,19 @@ void TilesetDock::onContextMenu(const QPoint& pos)
             index = _ui->largeTileset->indexAt(_ui->largeTileset->mapFromGlobal(globalPos));
         }
 
+        auto addSmallTile = [this](unsigned tileId) {
+            QUndoCommand* c = SmallTileTilesetUndoHelper(_document->smallTileTileset())
+                                  .addCommand(std::make_tuple(), tileId);
+            pushAddTileCommand(c, tileId, ObjectSize::SMALL);
+        };
+        auto addLargeTile = [this](unsigned tileId) {
+            QUndoCommand* c = LargeTileTilesetUndoHelper(_document->largeTileTileset())
+                                  .addCommand(std::make_tuple(), tileId);
+            pushAddTileCommand(c, tileId, ObjectSize::LARGE);
+        };
+
         QMenu menu;
-        auto addAction = [&](const char* text, auto functor) {
+        auto addAction = [&](const char* text, auto&& functor) {
             QAction* action = menu.addAction(tr(text));
             connect(action, &QAction::triggered, functor);
         };
@@ -170,49 +222,47 @@ void TilesetDock::onContextMenu(const QPoint& pos)
         if (index >= 0) {
             if (isSmall) {
                 addAction("Add Small Tile", [=]() {
-                    _document->undoStack()->push(
-                        new AddSmallTile(_document));
+                    addSmallTile(fs->smallTileset.size());
                 });
                 addAction("Add Small Tile Here", [=]() {
-                    _document->undoStack()->push(
-                        new AddSmallTile(_document, index));
+                    addSmallTile(index);
                 });
                 addAction("Clone Small Tile Here", [=]() {
-                    _document->undoStack()->push(
-                        new CloneSmallTile(_document, index));
+                    QUndoCommand* c = SmallTileTilesetUndoHelper(_document->smallTileTileset())
+                                          .cloneCommand(std::make_tuple(), index);
+                    pushAddTileCommand(c, index, ObjectSize::SMALL);
                 });
                 addAction("Remove Small Tile", [=]() {
-                    _document->undoStack()->push(
-                        new RemoveSmallTile(_document, index));
+                    QUndoCommand* c = SmallTileTilesetUndoHelper(_document->smallTileTileset())
+                                          .removeCommand(std::make_tuple(), index);
+                    pushRemoveTileCommand(c, index, ObjectSize::SMALL);
                 });
             }
             else {
                 addAction("Add Large Tile", [=]() {
-                    _document->undoStack()->push(
-                        new AddLargeTile(_document));
+                    addLargeTile(fs->largeTileset.size());
                 });
                 addAction("Add Large Tile Here", [=]() {
-                    _document->undoStack()->push(
-                        new AddLargeTile(_document, index));
+                    addLargeTile(index);
                 });
                 addAction("Clone Large Tile Here", [=]() {
-                    _document->undoStack()->push(
-                        new CloneLargeTile(_document, index));
+                    QUndoCommand* c = LargeTileTilesetUndoHelper(_document->largeTileTileset())
+                                          .cloneCommand(std::make_tuple(), index);
+                    pushAddTileCommand(c, index, ObjectSize::LARGE);
                 });
                 addAction("Remove Large Tile", [=]() {
-                    _document->undoStack()->push(
-                        new RemoveLargeTile(_document, index));
+                    QUndoCommand* c = LargeTileTilesetUndoHelper(_document->largeTileTileset())
+                                          .removeCommand(std::make_tuple(), index);
+                    pushRemoveTileCommand(c, index, ObjectSize::LARGE);
                 });
             }
         }
         else {
             addAction("Add Small Tile", [=]() {
-                _document->undoStack()->push(
-                    new AddSmallTile(_document));
+                addSmallTile(fs->smallTileset.size());
             });
             addAction("Add Large Tile", [=]() {
-                _document->undoStack()->push(
-                    new AddLargeTile(_document));
+                addLargeTile(fs->largeTileset.size());
             });
         }
 

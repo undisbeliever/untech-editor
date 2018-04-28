@@ -15,6 +15,8 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
 
+class SmallTileTileset;
+class LargeTileTileset;
 class PaletteList;
 class FrameMap;
 class FrameObjectList;
@@ -38,6 +40,8 @@ public:
 
     virtual QStringList frameNames() const final;
 
+    SmallTileTileset* smallTileTileset() const { return _smallTileTileset; }
+    LargeTileTileset* largeTileTileset() const { return _largeTileTileset; }
     PaletteList* paletteList() const { return _paletteList; }
     FrameMap* frameMap() const { return _frameMap; }
     FrameObjectList* frameObjectList() const { return _frameObjectList; }
@@ -56,16 +60,11 @@ private slots:
 private:
     void resetDocumentState();
 
-signals:
-    void smallTilesetChanged();
-    void largeTilesetChanged();
-
-    void smallTileChanged(unsigned tileId);
-    void largeTileChanged(unsigned tileId);
-
 private:
     MS::FrameSet* _frameSet;
 
+    SmallTileTileset* const _smallTileTileset;
+    LargeTileTileset* const _largeTileTileset;
     PaletteList* const _paletteList;
     FrameMap* const _frameMap;
     FrameObjectList* const _frameObjectList;

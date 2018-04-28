@@ -34,6 +34,8 @@ void TilesetPixmaps::setDocument(Document* document)
 {
     if (_document != nullptr) {
         _document->disconnect(this);
+        _document->smallTileTileset()->disconnect(this);
+        _document->largeTileTileset()->disconnect(this);
         _document->paletteList()->disconnect(this);
     }
     _document = document;
@@ -44,16 +46,16 @@ void TilesetPixmaps::setDocument(Document* document)
         connect(_document->paletteList(), &PaletteList::dataChanged,
                 this, &TilesetPixmaps::onPaletteChanged);
 
-        connect(_document, &Document::smallTilesetChanged,
+        connect(_document->smallTileTileset(), &SmallTileTileset::listChanged,
                 this, &TilesetPixmaps::redrawTilesets);
 
-        connect(_document, &Document::largeTilesetChanged,
+        connect(_document->largeTileTileset(), &LargeTileTileset::listChanged,
                 this, &TilesetPixmaps::redrawTilesets);
 
-        connect(_document, &Document::smallTileChanged,
+        connect(_document->smallTileTileset(), &SmallTileTileset::dataChanged,
                 this, &TilesetPixmaps::onSmallTileChanged);
 
-        connect(_document, &Document::largeTileChanged,
+        connect(_document->largeTileTileset(), &LargeTileTileset::dataChanged,
                 this, &TilesetPixmaps::onLargeTileChanged);
 
         connect(_document->paletteList(), &PaletteList::selectedIndexChanged,

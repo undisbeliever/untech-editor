@@ -7,9 +7,10 @@
 #include "tilesetwidgets.h"
 #include "accessors.h"
 #include "document.h"
-#include "tilesetcommands.h"
 #include "tilesetpixmaps.h"
+#include "gui-qt/accessor/listundohelper.h"
 
+using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 AbstractTilesetWidget::AbstractTilesetWidget(QWidget* parent)
@@ -134,22 +135,32 @@ void LargeTilesetWidget::onTilesetPixmapTileChanged(int tileId)
     setPixmap(tileId, pixmap);
 }
 
-#define DRAW_PIXEL(CLASS, TILESET, COMMAND)                          \
-    void CLASS::drawPixel(int tileId, const QPoint& p, bool first)   \
-    {                                                                \
-        if (_document->paletteList()->isSelectedColorValid()) {      \
-            unsigned c = _document->paletteList()->selectedColor();  \
-            const auto& tileset = _document->frameSet()->TILESET;    \
-            const auto& tile = tileset.tile(tileId);                 \
-                                                                     \
-            if (tile.pixel(p.x(), p.y()) != c) {                     \
-                auto newTile = tile;                                 \
-                newTile.setPixel(p.x(), p.y(), c);                   \
-                                                                     \
-                _document->undoStack()->push(                        \
-                    new COMMAND(_document, tileId, newTile, first)); \
-            }                                                        \
-        }                                                            \
+template <class AccessorT, class TilesetT>
+static inline void doDrawPixel(Document* document, AccessorT* accessor, const TilesetT& tileset,
+                               int tileId, const QPoint& p, bool first)
+{
+    if (document->paletteList()->isSelectedColorValid()) {
+        unsigned c = document->paletteList()->selectedColor();
+        const auto& tile = tileset.tile(tileId);
+
+        if (tile.pixel(p.x(), p.y()) != c) {
+            auto newTile = tile;
+            newTile.setPixel(p.x(), p.y(), c);
+
+            ListUndoHelper<AccessorT>(accessor)
+                .editItemInSelectedListMerge(tileId, newTile, first);
+        }
     }
-DRAW_PIXEL(SmallTilesetWidget, smallTileset, ChangeSmallTile)
-DRAW_PIXEL(LargeTilesetWidget, largeTileset, ChangeLargeTile)
+}
+
+void SmallTilesetWidget::drawPixel(int tileId, const QPoint& point, bool first)
+{
+    doDrawPixel(_document, _document->smallTileTileset(), _document->frameSet()->smallTileset,
+                tileId, point, first);
+}
+
+void LargeTilesetWidget::drawPixel(int tileId, const QPoint& point, bool first)
+{
+    doDrawPixel(_document, _document->largeTileTileset(), _document->frameSet()->largeTileset,
+                tileId, point, first);
+}

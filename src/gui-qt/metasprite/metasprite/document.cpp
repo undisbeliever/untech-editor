@@ -14,6 +14,8 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 Document::Document(FrameSetResourceList* parent, size_t index)
     : AbstractMsDocument(parent, index)
     , _frameSet(nullptr)
+    , _smallTileTileset(new SmallTileTileset(this))
+    , _largeTileTileset(new LargeTileTileset(this))
     , _paletteList(new PaletteList(this))
     , _frameMap(new FrameMap(this))
     , _frameObjectList(new FrameObjectList(this))

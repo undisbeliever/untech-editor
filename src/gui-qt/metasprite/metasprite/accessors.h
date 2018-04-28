@@ -21,6 +21,100 @@ class FrameObjectList;
 class ActionPointList;
 class EntityHitboxList;
 
+class SmallTileTileset : public QObject {
+    Q_OBJECT
+
+public:
+    constexpr static unsigned max_size = 256;
+
+    using DataT = Snes::Tile8px;
+    using ListT = Snes::Tileset8px;
+    using index_type = unsigned;
+    using ArgsT = std::tuple<>;
+
+private:
+    Document* const _document;
+
+public:
+    SmallTileTileset(Document* document);
+
+    Document* resourceItem() const { return _document; }
+
+    static QString typeName() { return tr("Small Tile"); }
+
+protected:
+    friend class Accessor::ListUndoHelper<SmallTileTileset>;
+    ListT* getList()
+    {
+        MS::FrameSet* fs = _document->frameSet();
+        if (fs == nullptr) {
+            return nullptr;
+        }
+        return &fs->smallTileset;
+    }
+
+    ArgsT selectedListTuple() const
+    {
+        return std::make_tuple();
+    }
+
+signals:
+    void dataChanged(index_type index);
+    void listChanged();
+
+    void listAboutToChange();
+    void itemAdded(unsigned index);
+    void itemAboutToBeRemoved(unsigned index);
+    void itemMoved(unsigned from, unsigned to);
+};
+
+class LargeTileTileset : public QObject {
+    Q_OBJECT
+
+public:
+    constexpr static unsigned max_size = 256;
+
+    using DataT = Snes::Tile16px;
+    using ListT = Snes::TilesetTile16;
+    using index_type = unsigned;
+    using ArgsT = std::tuple<>;
+
+private:
+    Document* const _document;
+
+public:
+    LargeTileTileset(Document* document);
+
+    Document* resourceItem() const { return _document; }
+
+    static QString typeName() { return tr("Large Tile"); }
+
+protected:
+    friend class Accessor::ListUndoHelper<LargeTileTileset>;
+    ListT* getList()
+    {
+        MS::FrameSet* fs = _document->frameSet();
+        if (fs == nullptr) {
+            return nullptr;
+        }
+        return &fs->largeTileset;
+    }
+
+    ArgsT selectedListTuple() const
+    {
+        return std::make_tuple();
+    }
+
+signals:
+    void dataChanged(index_type index);
+    void listChanged();
+
+    void listAboutToChange();
+    void itemAdded(unsigned index);
+    void itemAboutToBeRemoved(unsigned index);
+    void itemMoved(unsigned from, unsigned to);
+};
+
 class PaletteList : public QObject {
     Q_OBJECT
 
@@ -295,6 +389,8 @@ protected:
     }
 };
 
+using SmallTileTilesetUndoHelper = Accessor::ListUndoHelper<SmallTileTileset>;
+using LargeTileTilesetUndoHelper = Accessor::ListUndoHelper<LargeTileTileset>;
 using PaletteListUndoHelper = Accessor::ListAndSelectionUndoHelper<PaletteList>;
 using FrameMapUndoHelper = Accessor::IdmapAndSelectionUndoHelper<FrameMap>;
 using FrameObjectListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;

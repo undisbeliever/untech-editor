@@ -15,6 +15,18 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 #include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 template class UnTech::GuiQt::Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
 
+SmallTileTileset::SmallTileTileset(Document* document)
+    : QObject(document)
+    , _document(document)
+{
+}
+
+LargeTileTileset::LargeTileTileset(Document* document)
+    : QObject(document)
+    , _document(document)
+{
+}
+
 PaletteList::PaletteList(Document* document)
     : QObject(document)
     , _document(document)
