@@ -556,6 +556,74 @@ public:
             _accessor, listArgs, index, oldValue, text, getter);
     }
 
+    // will return nullptr if data cannot be accessed or unchanged
+    template <typename EditFunction>
+    QUndoCommand* editAllItemsInListCommand(const ArgsT& listArgs, const QString& text,
+                                            EditFunction editFunction)
+    {
+        const ListT* list = getList(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+
+        std::vector<index_type> indexesEdited;
+        std::vector<DataT> oldValues;
+        std::vector<DataT> newValues;
+
+        indexesEdited.reserve(list->size());
+        oldValues.reserve(list->size());
+        newValues.reserve(list->size());
+
+        for (index_type index = 0; index < list->size(); index++) {
+            const DataT& oldValue = list->at(index);
+            DataT newValue = oldValue;
+
+            editFunction(newValue, index);
+
+            if (newValue != oldValue) {
+                indexesEdited.push_back(index);
+                oldValues.push_back(oldValue);
+                newValues.push_back(std::move(newValue));
+            }
+        }
+
+        if (!indexesEdited.empty()) {
+            return new typename ListUndoHelper<AccessorT>::EditMultipleCommand(
+                this->_accessor, listArgs,
+                std::move(indexesEdited), std::move(oldValues), std::move(newValues),
+                text);
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    template <typename EditFunction>
+    QUndoCommand* editAllItemsInSelectedListCommand(const QString& text, EditFunction editFunction)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        return editAllItemsCommand(listArgs, text, editFunction);
+    }
+
+    template <typename EditFunction>
+    bool editAllItemsInList(const ArgsT& listArgs, const QString& text,
+                            EditFunction editFunction)
+    {
+        QUndoCommand* c = editAllItemsInListCommand(listArgs, text, editFunction);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
+    }
+
+    template <typename EditFunction>
+    bool editAllItemsInSelectedList(const QString& text, EditFunction editFunction)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        return editAllItemsInList(listArgs, text, editFunction);
+    }
+
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
     QUndoCommand* addCommand(const ArgsT& listArgs, index_type index)
