@@ -148,6 +148,74 @@ private:
         }
     };
 
+    // This class allows command merging
+    class EditMergeCommand : public BaseCommand {
+    private:
+        const index_type _index;
+        const DataT _oldValue;
+        DataT _newValue;
+        const bool _first;
+
+    public:
+        EditMergeCommand(AccessorT* accessor, const ArgsT& args, index_type index,
+                         const DataT& oldValue, const DataT& newValue, const bool first)
+            : BaseCommand(accessor, args,
+                          tr("Edit %1").arg(accessor->typeName()))
+            , _index(index)
+            , _oldValue(oldValue)
+            , _newValue(newValue)
+            , _first(first)
+        {
+        }
+        ~EditMergeCommand() = default;
+
+        virtual int id() const final
+        {
+            return 0x1337;
+        }
+
+        virtual void undo() final
+        {
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(_index >= 0 && _index < list->size());
+
+            list->at(_index) = _oldValue;
+
+            this->emitDataChanged(_index);
+        }
+
+        virtual void redo() final
+        {
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(_index >= 0 && _index < list->size());
+
+            list->at(_index) = _newValue;
+
+            this->emitDataChanged(_index);
+        }
+
+        virtual bool mergeWith(const QUndoCommand* cmd) final
+        {
+            const EditMergeCommand* command = dynamic_cast<const EditMergeCommand*>(cmd);
+
+            if (command
+                && command->_first == false
+                && command->_args == this->_args
+                && command->_index == this->_index
+                && command->_oldValue == this->_newValue) {
+
+                _newValue = command->_newValue;
+
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+    };
+
     template <typename FieldT, typename UnaryFunction>
     class EditFieldCommand : public BaseCommand {
     private:
@@ -488,6 +556,42 @@ public:
         const ArgsT listArgs = _accessor->selectedListTuple();
 
         return edit(listArgs, index, newValue);
+    }
+
+    // will return nullptr if data cannot be accessed or is equal to newValue
+    QUndoCommand* editMergeCommand(const ArgsT& listArgs, index_type index,
+                                   const DataT& newValue, bool first = false)
+    {
+        ListT* list = getList(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+        if (index < 0 || index >= list->size()) {
+            return nullptr;
+        }
+        const DataT& oldValue = list->at(index);
+
+        if (oldValue == newValue) {
+            return nullptr;
+        }
+
+        return new EditMergeCommand(_accessor, listArgs, index, oldValue, newValue, first);
+    }
+
+    bool editMerge(const ArgsT& listArgs, index_type index, const DataT& newValue, bool first = false)
+    {
+        QUndoCommand* c = editMergeCommand(listArgs, index, newValue, first);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
+    }
+
+    bool editItemInSelectedListMerge(index_type index, const DataT& newValue, bool first = false)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        return editMerge(listArgs, index, newValue, first);
     }
 
     // will return nullptr if data cannot be accessed or is equal to newValue
