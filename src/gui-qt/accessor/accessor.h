@@ -24,6 +24,9 @@ template <class T>
 class ResourceItemUndoHelper;
 
 template <class T>
+class ProjectSettingsUndoHelper;
+
+template <class T>
 class ListUndoHelper;
 
 template <class T>
