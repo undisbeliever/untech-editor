@@ -7,7 +7,7 @@
 #include "framesetdock.h"
 #include "accessors.h"
 #include "document.h"
-#include "framesetcommands.h"
+#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/metasprite/framesetdock.ui.h"
 
@@ -107,29 +107,33 @@ void FrameSetDock::updateGui()
 
 void FrameSetDock::onNameEdited()
 {
-    const MS::FrameSet& fs = *_document->frameSet();
-
     idstring name = _ui->frameSetName->text().toStdString();
-    if (name.isValid() && name != fs.name) {
-        _document->undoStack()->push(
-            new ChangeFrameSetName(_document, name));
+    if (name.isValid()) {
+        FrameSetUndoHelper(_document)
+            .editField(name, tr("Edit FrameSet Name"),
+                       [](MS::FrameSet& fs) -> idstring& { return fs.name; },
+                       [](Document& d) { emit d.frameSetNameChanged();
+                                         emit d.frameSetDataChanged(); });
+    }
+    else {
+        updateGui();
     }
 }
 
 void FrameSetDock::onTilesetTypeEdited()
 {
     TilesetType ts = _ui->tilesetType->currentEnum<TilesetType>();
-    if (ts != _document->frameSet()->tilesetType) {
-        _document->undoStack()->push(
-            new ChangeFrameSetTilesetType(_document, ts));
-    }
+    FrameSetUndoHelper(_document)
+        .editField(ts, tr("Edit Tileset Type"),
+                   [](MS::FrameSet& fs) -> TilesetType& { return fs.tilesetType; },
+                   [](Document& d) { emit d.frameSetDataChanged(); });
 }
 
 void FrameSetDock::onExportOrderEdited()
 {
     idstring eo = _ui->exportOrder->text().toStdString();
-    if (eo != _document->frameSet()->exportOrder) {
-        _document->undoStack()->push(
-            new ChangeFrameSetExportOrder(_document, eo));
-    }
+    FrameSetUndoHelper(_document)
+        .editField(eo, tr("Edit Export Order"),
+                   [](MS::FrameSet& fs) -> idstring& { return fs.exportOrder; },
+                   [](Document& d) { emit d.frameSetDataChanged(); });
 }

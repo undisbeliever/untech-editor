@@ -7,7 +7,7 @@
 #include "framesetdock.h"
 #include "accessors.h"
 #include "document.h"
-#include "framesetcommands.h"
+#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/spriteimporter/framesetdock.ui.h"
 
@@ -174,57 +174,67 @@ void FrameSetDock::updateGui()
 
 void FrameSetDock::onNameEdited()
 {
-    const SI::FrameSet& fs = *_document->frameSet();
-
     idstring name = _ui->frameSetName->text().toStdString();
-    if (name.isValid() && name != fs.name) {
-        _document->undoStack()->push(
-            new ChangeFrameSetName(_document, name));
+    if (name.isValid()) {
+        FrameSetUndoHelper(_document)
+            .editField(name, tr("Edit FrameSet Name"),
+                       [](SI::FrameSet& fs) -> idstring& { return fs.name; },
+                       [](Document& d) { emit d.frameSetNameChanged();
+                                         emit d.frameSetDataChanged(); });
+    }
+    else {
+        updateGui();
     }
 }
 
 void FrameSetDock::onTilesetTypeEdited()
 {
     TilesetType ts = _ui->tilesetType->currentEnum<TilesetType>();
-    if (ts != _document->frameSet()->tilesetType) {
-        _document->undoStack()->push(
-            new ChangeFrameSetTilesetType(_document, ts));
-    }
+    FrameSetUndoHelper(_document)
+        .editField(ts, tr("Edit Tileset Type"),
+                   [](SI::FrameSet& fs) -> TilesetType& { return fs.tilesetType; },
+                   [](Document& d) { emit d.frameSetDataChanged(); });
 }
 
 void FrameSetDock::onExportOrderEdited()
 {
     idstring eo = _ui->exportOrder->text().toStdString();
-    if (eo != _document->frameSet()->exportOrder) {
-        _document->undoStack()->push(
-            new ChangeFrameSetExportOrder(_document, eo));
-    }
+    FrameSetUndoHelper(_document)
+        .editField(eo, tr("Edit Export Order"),
+                   [](SI::FrameSet& fs) -> idstring& { return fs.exportOrder; },
+                   [](Document& d) { emit d.frameSetDataChanged(); });
 }
 
 void FrameSetDock::onImageFilenameFileSelected()
 {
-    const SI::FrameSet& fs = *_document->frameSet();
+    const std::string filename = _ui->imageFilename->filename().toStdString();
 
-    const QString filename = _ui->imageFilename->filename();
-    Q_ASSERT(!filename.isEmpty());
-
-    const std::string fn = filename.toStdString();
-    if (fn != fs.imageFilename) {
-        _document->undoStack()->push(
-            new ChangeFrameSetImageFile(_document, fn));
+    if (filename.empty()) {
+        return;
     }
+
+    FrameSetUndoHelper(_document)
+        .editField(filename, tr("Change Image"),
+                   [](SI::FrameSet& fs) -> std::string& { return fs.imageFilename; },
+                   [](Document& d) {
+                       SI::FrameSet* fs = d.frameSet();
+                       Q_ASSERT(fs);
+                       fs->loadImage(fs->imageFilename);
+
+                       emit d.frameSetImageFilenameChanged();
+                       emit d.frameSetImageChanged();
+                   });
 }
 
 void FrameSetDock::onTransparentColorSelected()
 {
-    const SI::FrameSet& fs = *_document->frameSet();
-
     QColor color = _ui->transparent->color();
     rgba tc(color.red(), color.green(), color.blue());
-    if (tc != fs.transparentColor) {
-        _document->undoStack()->push(
-            new ChangeFrameSetTransparentColor(_document, tc));
-    }
+
+    FrameSetUndoHelper(_document)
+        .editField(tc, tr("Edit Transparent Color"),
+                   [](SI::FrameSet& fs) -> rgba& { return fs.transparentColor; },
+                   [](Document& d) { emit d.frameSetDataChanged(); });
 }
 
 void FrameSetDock::onGridEdited()
@@ -236,10 +246,11 @@ void FrameSetDock::onGridEdited()
     grid.padding = _ui->gridPadding->valueUpoint();
     grid.origin = _ui->gridOrigin->valueUpoint();
 
-    if (grid != _document->frameSet()->grid) {
-        _document->undoStack()->push(
-            new ChangeFrameSetGrid(_document, grid));
-    }
+    FrameSetUndoHelper(_document)
+        .editField(grid, tr("Edit FrameSet Grid"),
+                   [](SI::FrameSet& fs) -> SI::FrameSetGrid& { return fs.grid; },
+                   [](Document& d) { emit d.frameSetGridChanged();
+                                     emit d.frameSetDataChanged(); });
 }
 
 void FrameSetDock::onPaletteEdited()
@@ -250,8 +261,9 @@ void FrameSetDock::onPaletteEdited()
         palette.colorSize = _ui->paletteSize->value();
     }
 
-    if (palette != _document->frameSet()->palette) {
-        _document->undoStack()->push(
-            new ChangeFrameSetPalette(_document, palette));
-    }
+    FrameSetUndoHelper(_document)
+        .editField(palette, tr("Edit FrameSet Palette"),
+                   [](SI::FrameSet& fs) -> SI::UserSuppliedPalette& { return fs.palette; },
+                   [](Document& d) { emit d.frameSetPaletteChanged();
+                                     emit d.frameSetDataChanged(); });
 }

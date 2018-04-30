@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "models/metasprite/metasprite.h"
 #include <memory>
@@ -29,7 +30,7 @@ class Document : public AbstractMsDocument {
     Q_OBJECT
 
 public:
-    using FrameT = MS::Frame;
+    using DataT = MS::FrameSet;
 
 public:
     Document(FrameSetResourceList* parent, size_t index);
@@ -47,6 +48,10 @@ public:
     FrameObjectList* frameObjectList() const { return _frameObjectList; }
     ActionPointList* actionPointList() const { return _actionPointList; }
     EntityHitboxList* entityHitboxList() const { return _entityHitboxList; }
+
+private:
+    friend class Accessor::ResourceItemUndoHelper<Document>;
+    MS::FrameSet* dataEditable() { return _frameSet; }
 
 protected:
     // can throw exceptions
@@ -71,6 +76,8 @@ private:
     ActionPointList* const _actionPointList;
     EntityHitboxList* const _entityHitboxList;
 };
+
+using FrameSetUndoHelper = Accessor::ResourceItemUndoHelper<Document>;
 }
 }
 }
