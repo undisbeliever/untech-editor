@@ -5,13 +5,15 @@
  */
 
 #include "resourcefilepropertymanager.h"
-#include "editresourcefilesettingscommands.h"
+#include "gui-qt/accessor/projectsettingsundohelper.h"
 #include "gui-qt/resources/resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
 namespace RES = UnTech::Resources;
 namespace MT = UnTech::MetaTiles;
+
+using SettingsUndoHelper = UnTech::GuiQt::Accessor::ProjectSettingsUndoHelper<ResourceProject>;
 
 ResourceFilePropertyManager::ResourceFilePropertyManager(QObject* parent)
     : PropertyListManager(parent)
@@ -81,30 +83,24 @@ bool ResourceFilePropertyManager::setData(int id, const QVariant& value)
     const RES::ResourcesFile* res = _project->resourcesFile();
     Q_ASSERT(res);
 
+    const QString undoText = tr("Edit %1").arg(propertyTitle(id));
+
     auto editBlock = [&](auto f) {
         RES::BlockSettings bs = res->blockSettings;
         f(bs);
-        if (bs != res->blockSettings) {
-            _project->undoStack()->push(
-                new EditResourceFileSettingsCommand<RES::BlockSettings>(
-                    _project, bs,
-                    tr("Edit %1").arg(propertyTitle(id))));
-            return true;
-        }
-        return false;
+
+        return SettingsUndoHelper(_project)
+            .editField(bs, undoText,
+                       [](RES::ResourcesFile& rf) -> RES::BlockSettings& { return rf.blockSettings; });
     };
 
     auto editMetaTile = [&](auto f) {
         MT::EngineSettings es = res->metaTileEngineSettings;
         f(es);
-        if (es != res->metaTileEngineSettings) {
-            _project->undoStack()->push(
-                new EditResourceFileSettingsCommand<MT::EngineSettings>(
-                    _project, es,
-                    tr("Edit %1").arg(propertyTitle(id))));
-            return true;
-        }
-        return false;
+
+        return SettingsUndoHelper(_project)
+            .editField(es, undoText,
+                       [](RES::ResourcesFile& rf) -> MT::EngineSettings& { return rf.metaTileEngineSettings; });
     };
 
     switch ((PropertyId)id) {

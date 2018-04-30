@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstractproject.h"
+#include "gui-qt/accessor/accessor.h"
 #include "models/resources/resources.h"
 #include <memory>
 
@@ -23,12 +24,19 @@ class ResourceProject : public AbstractProject {
     static constexpr int PALETTE_LIST_INDEX = 0;
 
 public:
+    using DataT = RES::ResourcesFile;
+
+public:
     explicit ResourceProject(QObject* parent = nullptr);
     ~ResourceProject() = default;
 
     RES::ResourcesFile* resourcesFile() const { return _resourcesFile.get(); }
 
     PaletteResourceList* paletteResourceList() const;
+
+private:
+    friend class Accessor::ProjectSettingsUndoHelper<ResourceProject>;
+    RES::ResourcesFile* dataEditable() const { return _resourcesFile.get(); }
 
 protected:
     // can throw exceptions
