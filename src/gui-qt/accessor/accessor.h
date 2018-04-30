@@ -21,6 +21,9 @@ class SelectedIdmapItemHelper;
 class ListActionHelper;
 
 template <class T>
+class ResourceItemUndoHelper;
+
+template <class T>
 class ListUndoHelper;
 
 template <class T>
