@@ -61,7 +61,7 @@ public:
 
 private:
     inline void readExportName(const XmlTag* tag,
-                               FrameSetExportOrder::ExportName::list_t& exportList)
+                               std::vector<FrameSetExportOrder::ExportName>& exportList)
     {
         FrameSetExportOrder::ExportName en;
         en.name = tag->getAttributeId("id");

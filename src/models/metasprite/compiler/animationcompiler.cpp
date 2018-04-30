@@ -78,7 +78,10 @@ AnimationCompiler::process(const FrameSetExportList& exportList)
     const auto& animationList = exportList.animations();
     const auto& frameList = exportList.frames();
 
-    assert(animationList.size() <= MAX_EXPORT_NAMES);
+    if (animationList.size() > MAX_EXPORT_NAMES) {
+        _errorList.addError("Too many animations in export order");
+        return _animationList.addNull();
+    }
 
     std::map<const FrameListEntry, unsigned> frameMap;
     for (unsigned i = 0; i < frameList.size(); i++) {
@@ -97,18 +100,14 @@ AnimationCompiler::process(const FrameSetExportList& exportList)
         assert(ani.animation != nullptr);
         uint32_t ao = ~0;
 
-        bool valid = ani.animation->isValid(exportList.frameSet());
-        if (valid) {
-            try {
-                ao = processAnimation(ani, exportList.frameSet(),
-                                      frameMap, animationMap);
-            }
-            catch (const std::exception& ex) {
-                _errorList.addError(exportList.frameSet(), *ani.animation, ex.what());
-            }
+        assert(ani.animation->isValid(exportList.frameSet()));
+
+        try {
+            ao = processAnimation(ani, exportList.frameSet(),
+                                  frameMap, animationMap);
         }
-        else {
-            _errorList.addError(exportList.frameSet(), *ani.animation, "Invalid Animation");
+        catch (const std::exception& ex) {
+            _errorList.addError(exportList.frameSet(), *ani.animation, ex.what());
         }
 
         animationOffsets.push_back(ao);

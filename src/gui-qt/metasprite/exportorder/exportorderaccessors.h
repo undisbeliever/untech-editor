@@ -21,12 +21,12 @@ class ExportNameList : public QObject {
 
 public:
     using DataT = UnTech::MetaSprite::FrameSetExportOrder::ExportName;
-    using ListT = DataT::list_t;
+    using ListT = std::vector<DataT>;
     using index_type = ListT::size_type;
     using ArgsT = std::tuple<bool>;
     using SignalArgsT = ArgsT;
 
-    constexpr static index_type max_size = ListT::MAX_SIZE;
+    constexpr static index_type max_size = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
 private:
     ExportOrderResourceItem* const _exportOrder;

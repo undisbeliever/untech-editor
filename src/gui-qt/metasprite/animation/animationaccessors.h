@@ -82,11 +82,11 @@ class AnimationFramesList : public QObject {
 
 public:
     using DataT = MSA::AnimationFrame;
-    using ListT = DataT::list_t;
+    using ListT = std::vector<DataT>;
     using index_type = ListT::size_type;
     using ArgsT = std::tuple<MSA::Animation*>;
 
-    constexpr static index_type max_size = ListT::MAX_SIZE;
+    constexpr static index_type max_size = UnTech::MetaSprite::MAX_ANIMATION_FRAMES;
 
 private:
     AbstractMsDocument* const _document;

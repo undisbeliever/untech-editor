@@ -12,7 +12,6 @@
 #include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/aabb.h"
-#include "models/common/capped_vector.h"
 #include "models/common/idmap.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
@@ -21,6 +20,8 @@
 
 namespace UnTech {
 namespace MetaSprite {
+struct ErrorList;
+
 namespace SpriteImporter {
 
 const static unsigned MIN_FRAME_SIZE = 16;
@@ -80,8 +81,6 @@ struct FrameLocation {
 };
 
 struct FrameObject {
-    typedef capped_vector<FrameObject, MAX_FRAME_OBJECTS> list_t;
-
     upoint location;
     ObjectSize size;
 
@@ -117,8 +116,6 @@ struct FrameObject {
 };
 
 struct ActionPoint {
-    typedef capped_vector<ActionPoint, MAX_ACTION_POINTS> list_t;
-
     upoint location;
     ActionPointParameter parameter;
 
@@ -142,8 +139,6 @@ struct ActionPoint {
 };
 
 struct EntityHitbox {
-    typedef capped_vector<EntityHitbox, MAX_ENTITY_HITBOXES> list_t;
-
     urect aabb;
     EntityHitboxType hitboxType;
 
@@ -174,9 +169,9 @@ struct Frame {
     typedef idmap<Frame> map_t;
 
     FrameLocation location;
-    FrameObject::list_t objects;
-    ActionPoint::list_t actionPoints;
-    EntityHitbox::list_t entityHitboxes;
+    std::vector<FrameObject> objects;
+    std::vector<ActionPoint> actionPoints;
+    std::vector<EntityHitbox> entityHitboxes;
     urect tileHitbox;
     SpriteOrderType spriteOrder = DEFAULT_SPRITE_ORDER;
     bool solid;
@@ -187,6 +182,9 @@ struct Frame {
         , solid(false)
     {
     }
+
+    // NOTE: updates the frame location
+    bool validate(ErrorList& errorList, const FrameSet& fs);
 
     usize minimumViableSize() const;
 
@@ -237,6 +235,9 @@ struct FrameSet {
     FrameSetGrid grid;
 
     FrameSet() = default;
+
+    // NOTE: updates the frame Locations
+    bool validate(ErrorList& errorList);
 
     usize minimumFrameGridSize() const;
 

@@ -7,7 +7,6 @@
 #pragma once
 
 #include "aabb.h"
-#include "capped_vector.h"
 #include "rgba.h"
 #include <cstdint>
 #include <string>
@@ -75,7 +74,7 @@ public:
 private:
     usize _size;
     std::vector<uint8_t> _imageData;
-    capped_vector<rgba, 256> _palette;
+    std::vector<rgba> _palette;
     std::string _errorString;
 };
 }

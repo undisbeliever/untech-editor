@@ -21,54 +21,12 @@ Utsi2Utms::Utsi2Utms(ErrorList& errorList)
 
 std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(SI::FrameSet& siFrameSet)
 {
-    bool valid = validateFrameSet(siFrameSet);
+    bool valid = siFrameSet.validate(errorList);
     if (!valid) {
         return nullptr;
     }
 
     return process(siFrameSet);
-}
-
-bool Utsi2Utms::validateFrameSet(SpriteImporter::FrameSet& frameSet)
-{
-    size_t prevErrorSize = errorList.errors.size();
-
-    // Validate FrameSet
-
-    if (frameSet.image == nullptr || frameSet.image->empty()) {
-        errorList.addError(frameSet, "No Image");
-    }
-    if (frameSet.frames.size() == 0) {
-        errorList.addError(frameSet, "No Frames");
-    }
-    if (frameSet.transparentColorValid() == false) {
-        errorList.addError(frameSet, "Transparent color is invalid");
-    }
-    if (frameSet.grid.isValid(frameSet) == false) {
-        errorList.addError(frameSet, "Invalid Frame Set Grid");
-    }
-
-    if (errorList.errors.size() != prevErrorSize) {
-        return false;
-    }
-
-    // Validate Frames
-    assert(frameSet.isImageValid());
-    auto imgSize = frameSet.image->size();
-
-    for (auto&& it : frameSet.frames) {
-        SpriteImporter::Frame& frame = it.second;
-
-        if (frame.location.isValid(frameSet, frame) == false) {
-            errorList.addError(frameSet, frame, "Invalid Frame Size");
-        }
-
-        if (!imgSize.contains(frame.location.aabb)) {
-            errorList.addError(frameSet, frame, "Frame not inside image");
-        }
-    }
-
-    return errorList.errors.size() == prevErrorSize;
 }
 
 std::unique_ptr<MS::FrameSet> Utsi2Utms::process(const SI::FrameSet& siFrameSet)

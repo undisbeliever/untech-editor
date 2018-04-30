@@ -216,20 +216,19 @@ bool AnimationFramesManager::setData(int index, int id, const QVariant& value)
 bool AnimationFramesManager::canInsertItem()
 {
     return _animation != nullptr
-           && _animation->frames.can_insert();
+           && _animation->frames.size() < UnTech::MetaSprite::MAX_ANIMATION_FRAMES;
 }
 
 bool AnimationFramesManager::canCloneItem(int index)
 {
     return _animation != nullptr
-           && _animation->frames.can_insert()
+           && _animation->frames.size() < UnTech::MetaSprite::MAX_ANIMATION_FRAMES
            && index >= 0 && (unsigned)index < _animation->frames.size();
 }
 
 bool AnimationFramesManager::insertItem(int index)
 {
-    if (_animation == nullptr
-        || _animation->frames.can_insert() == false
+    if (canInsertItem() == false
         || index < 0 || (unsigned)index > _animation->frames.size()) {
 
         return false;
@@ -240,8 +239,7 @@ bool AnimationFramesManager::insertItem(int index)
 
 bool AnimationFramesManager::cloneItem(int index)
 {
-    if (_animation == nullptr
-        || _animation->frames.can_insert() == false
+    if (canInsertItem() == false
         || index < 0 || (unsigned)index > _animation->frames.size()) {
 
         return false;

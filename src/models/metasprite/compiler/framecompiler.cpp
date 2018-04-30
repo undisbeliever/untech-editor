@@ -86,7 +86,7 @@ FrameCompiler::processFrameObjects(const MS::Frame& frame,
 }
 
 inline RomOffsetPtr
-FrameCompiler::processEntityHitboxes(const MS::EntityHitbox::list_t& entityHitboxes)
+FrameCompiler::processEntityHitboxes(const std::vector<MS::EntityHitbox>& entityHitboxes)
 {
     if (entityHitboxes.size() == 0) {
         return RomOffsetPtr();
@@ -176,7 +176,7 @@ FrameCompiler::processTileHitbox(const MS::Frame& frame)
 }
 
 inline RomOffsetPtr
-FrameCompiler::processActionPoints(const MS::ActionPoint::list_t& actionPoints)
+FrameCompiler::processActionPoints(const std::vector<MS::ActionPoint>& actionPoints)
 {
     if (actionPoints.size() == 0) {
         return RomOffsetPtr();
@@ -226,7 +226,10 @@ FrameCompiler::process(const FrameSetExportList& exportList,
 {
     const auto& frameList = exportList.frames();
 
-    assert(frameList.size() <= MAX_EXPORT_NAMES);
+    if (frameList.size() > MAX_EXPORT_NAMES) {
+        _errorList.addError("Too many frames in export order");
+        return _frameList.addNull();
+    }
 
     const uint32_t NULL_OFFSET = ~0;
 

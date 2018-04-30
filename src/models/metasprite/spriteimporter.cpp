@@ -5,6 +5,7 @@
  */
 
 #include "spriteimporter.h"
+#include "errorlist.h"
 #include "models/common/file.h"
 #include "models/common/humantypename.h"
 #include <algorithm>
@@ -128,6 +129,38 @@ bool FrameLocation::operator==(const FrameLocation& o) const
  * =====
  */
 
+bool Frame::validate(ErrorList& errorList, const FrameSet& fs)
+{
+    bool valid = true;
+
+    auto addError = [&](std::string&& msg) {
+        errorList.addError(fs, *this, msg);
+        valid = false;
+    };
+
+    if (objects.size() > MAX_FRAME_OBJECTS) {
+        addError("Too many frame objects");
+    }
+    if (actionPoints.size() > MAX_ACTION_POINTS) {
+        addError("Too many action points");
+    }
+    if (entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
+        addError("Too many entity hitboxes");
+    }
+
+    if (location.isValid(fs, *this) == false) {
+        addError("Invalid Frame Size");
+    }
+
+    if (fs.image == nullptr
+        || fs.image->size().contains(location.aabb) == false) {
+
+        addError("Frame not inside image");
+    }
+
+    return valid;
+}
+
 usize Frame::minimumViableSize() const
 {
     usize limit = usize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
@@ -168,6 +201,71 @@ bool Frame::operator==(const Frame& o) const
  * FRAME SET
  * =========
  */
+
+bool FrameSet::validate(ErrorList& errorList)
+{
+    bool valid = true;
+    auto addError = [&](std::string&& msg) {
+        errorList.addError(*this, msg);
+        valid = false;
+    };
+
+    // Validate FrameSet
+
+    if (name.isValid() == false) {
+        addError("Missing name");
+    }
+    if (exportOrder.isValid() == false) {
+        addError("Missing exportOrder");
+    }
+    if (frames.size() == 0) {
+        addError("No Frames");
+    }
+    if (image == nullptr || image->empty()) {
+        addError("No Image");
+    }
+    if (transparentColorValid() == false) {
+        addError("Transparent color is invalid");
+    }
+    if (grid.isValid(*this) == false) {
+        addError("Invalid Frame Set Grid");
+    }
+
+    if (valid == false) {
+        return false;
+    }
+
+    if (palette.usesUserSuppliedPalette()) {
+        assert(image);
+        auto imgSize = image->size();
+        auto palSize = palette.paletteSize();
+
+        if (palette.nPalettes > MAX_PALETTES) {
+            addError("Too many palettes");
+        }
+
+        if (palSize.width > imgSize.width
+            || palSize.height > imgSize.height) {
+
+            addError("Palette outside image");
+        }
+    }
+
+    for (auto&& it : frames) {
+        valid &= it.second.validate(errorList, *this);
+    }
+
+    for (auto&& it : animations) {
+        const auto& animation = it.second;
+
+        if (animation.isValid(*this) == false) {
+            errorList.addError(*this, animation, "Invalid Animation");
+            valid = false;
+        }
+    }
+
+    return valid;
+}
 
 usize FrameSet::minimumFrameGridSize() const
 {

@@ -184,7 +184,7 @@ ExportOrderModel::InternalIdFormat ExportOrderModel::toInternalFormat(const QMod
     }
 }
 
-const FrameSetExportOrder::ExportName::list_t* ExportOrderModel::toExportNameList(const InternalIdFormat& internalId) const
+const std::vector<FrameSetExportOrder::ExportName>* ExportOrderModel::toExportNameList(const InternalIdFormat& internalId) const
 {
     if (_exportOrder == nullptr) {
         return nullptr;
