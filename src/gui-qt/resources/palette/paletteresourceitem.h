@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/accessor/accessor.h"
 #include "gui-qt/resources/resourceproject.h"
 #include <QObject>
 
@@ -27,14 +28,14 @@ public:
 
     ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
 
-    inline const RES::PaletteInput* paletteData() const
+    inline const RES::PaletteInput* data() const
     {
         return project()->resourcesFile()->palettes.at(index());
     }
+    inline const RES::PaletteInput* paletteData() const { return data(); }
 
 protected:
-    template <class T>
-    friend class EditResourceItemCommand;
+    friend class Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
     void setData(const RES::PaletteInput& data);
 
 protected:

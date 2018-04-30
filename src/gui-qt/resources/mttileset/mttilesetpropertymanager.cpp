@@ -6,11 +6,13 @@
 
 #include "mttilesetpropertymanager.h"
 #include "mttilesetresourceitem.h"
+#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
-#include "gui-qt/editresourceitemcommand.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
 
 using namespace UnTech::GuiQt::Resources;
+
+using TilesetUndoHelper = UnTech::GuiQt::Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
 
 MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     : AbstractPropertyManager(parent)
@@ -100,9 +102,9 @@ QVariant MtTilesetPropertyManager::data(int id) const
 bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_tileset);
-    Q_ASSERT(_tileset->tilesetInput());
+    Q_ASSERT(_tileset->data());
 
-    MT::MetaTileTilesetInput newData = *_tileset->tilesetInput();
+    MT::MetaTileTilesetInput newData = *_tileset->data();
 
     switch ((PropertyId)id) {
     case NAME:
@@ -130,14 +132,6 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
         break;
     }
 
-    if (newData != *_tileset->tilesetInput()) {
-        _tileset->undoStack()->push(
-            new EditResourceItemCommand<MtTilesetResourceItem>(
-                _tileset, *_tileset->tilesetInput(), newData,
-                tr("Edit %1").arg(propertyTitle(id))));
-        return true;
-    }
-    else {
-        return false;
-    }
+    return TilesetUndoHelper(_tileset)
+        .edit(newData, tr("Edit %1").arg(propertyTitle(id)));
 }
