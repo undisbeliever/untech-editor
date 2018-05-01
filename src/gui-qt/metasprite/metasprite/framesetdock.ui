@@ -116,7 +116,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="QListView" name="frameList">
+            <widget class="GuiQt::Accessor::IdmapListView" name="frameList">
              <property name="sizePolicy">
               <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                <horstretch>0</horstretch>
@@ -128,9 +128,6 @@
                <width>0</width>
                <height>100</height>
               </size>
-             </property>
-             <property name="selectionMode">
-              <enum>QAbstractItemView::SingleSelection</enum>
              </property>
             </widget>
            </item>
@@ -166,6 +163,11 @@
    <extends>QComboBox</extends>
    <header>gui-qt/common/widgets/enumcombobox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GuiQt::Accessor::IdmapListView</class>
+   <extends>QListView</extends>
+   <header>gui-qt/accessor/idmaplistview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

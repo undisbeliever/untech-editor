@@ -54,6 +54,16 @@ bool FrameSetExportOrder::validate(Resources::ErrorList& err) const
         valid = false;
     }
 
+    if (stillFrames.size() > MAX_EXPORT_NAMES) {
+        err.addError("Too many stillFrames");
+        valid = false;
+    }
+
+    if (animations.size() > MAX_EXPORT_NAMES) {
+        err.addError("Too many animations");
+        valid = false;
+    }
+
     valid &= validateNamesUnique(stillFrames, "export frame", err);
     valid &= validateNamesUnique(animations, "export animation", err);
 

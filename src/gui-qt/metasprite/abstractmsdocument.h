@@ -16,12 +16,13 @@
 
 namespace UnTech {
 namespace GuiQt {
-class AbstractIdmapListModel;
-
 namespace MetaSprite {
-struct SelectedItem;
-class AbstractSelection;
 class FrameSetResourceList;
+
+namespace Animation {
+class AnimationFramesList;
+class AnimationsMap;
+}
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace MSA = UnTech::MetaSprite::Animation;
@@ -38,11 +39,10 @@ public:
 
     virtual MSA::Animation::map_t* animations() const = 0;
 
-    virtual AbstractSelection* selection() const = 0;
+    virtual QStringList frameNames() const = 0;
 
-    virtual QStringList frameList() const = 0;
-
-    QStringList animationList() const;
+    Animation::AnimationFramesList* animationFramesList() const { return _animationFramesList; }
+    Animation::AnimationsMap* animationsMap() const { return _animationsMap; }
 
 protected:
     inline const auto& frameSetList() const
@@ -65,45 +65,9 @@ signals:
     void frameSetDataChanged();
     void frameSetNameChanged();
 
-    void frameDataChanged(const void* frame);
-    void frameTileHitboxChanged(const void* frame);
-    void frameMapChanged();
-    void frameAdded(const idstring& id);
-    void frameAboutToBeRemoved(const idstring& id);
-    void frameAboutToBeRemoved(const void* frame);
-    void frameRenamed(const idstring& oldId, const idstring& newId);
-
-    void frameObjectChanged(const void* frame, unsigned index);
-    void actionPointChanged(const void* frame, unsigned index);
-    void entityHitboxChanged(const void* frame, unsigned index);
-
-    void frameObjectListChanged(const void* frame);
-    void actionPointListChanged(const void* frame);
-    void entityHitboxListChanged(const void* frame);
-
-    void frameObjectAboutToBeRemoved(const void* frame, unsigned index);
-    void actionPointAboutToBeRemoved(const void* frame, unsigned index);
-    void entityHitboxAboutToBeRemoved(const void* frame, unsigned index);
-
-    void frameObjectAdded(const void* frame, unsigned index);
-    void actionPointAdded(const void* frame, unsigned index);
-    void entityHitboxAdded(const void* frame, unsigned index);
-
-    void frameContentsMoved(const void* frame,
-                            const std::set<SelectedItem>& oldPositions, int offset);
-
-    void animationDataChanged(const void* animation);
-    void animationMapChanged();
-    void animationAdded(const idstring& id);
-    void animationAboutToBeRemoved(const idstring& id);
-
-    void animationRenamed(const idstring& oldId, const idstring& newId);
-
-    void animationFrameChanged(const void* animation, unsigned index);
-    void animationFrameListChanged(const void* animation);
-    void animationFrameAdded(const void* animation, unsigned index);
-    void animationFrameAboutToBeRemoved(const void* animation, unsigned index);
-    void animationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
+private:
+    Animation::AnimationsMap* const _animationsMap;
+    Animation::AnimationFramesList* const _animationFramesList;
 };
 }
 }

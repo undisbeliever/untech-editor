@@ -121,7 +121,7 @@ markOverlappedPixels(const Snes::Tile<OVER_SIZE>& overTile,
 
                 if (uX >= 0 && uX < underSize) {
                     if (overTileData[oY * overSize + oX] != 0) {
-                        ret[uY * overSize + uX] = true;
+                        ret[uY * underSize + uX] = true;
                     }
                 }
             }

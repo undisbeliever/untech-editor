@@ -33,6 +33,9 @@ PropertyTableModel::PropertyTableModel(QList<PropertyTableManager*> managers, QS
         connect(manager, &PropertyTableManager::dataReset,
                 this, &PropertyTableModel::resetModel);
 
+        connect(manager, &PropertyTableManager::listAboutToChange,
+                this, &PropertyTableModel::requestCloseEditors);
+
         connect(manager, &PropertyTableManager::propertyListChanged,
                 this, &PropertyTableModel::updateAll);
         connect(manager, &PropertyTableManager::titleChanged,
@@ -113,9 +116,12 @@ void PropertyTableModel::onManagerItemMoved(int managerIndex, int from, int to)
 
 QModelIndex PropertyTableModel::toModelIndex(PropertyTableManager* manager, int index) const
 {
-    int managerIndex = _managers.indexOf(manager);
+    return toModelIndex(_managers.indexOf(manager), index);
+}
 
-    if (managerIndex >= 0
+QModelIndex PropertyTableModel::toModelIndex(int managerIndex, int index) const
+{
+    if (managerIndex >= 0 && managerIndex < _managers.size()
         && index >= 0 && index < rowCountFromManager(managerIndex)) {
 
         return createIndex(index, 0, managerIndex);
@@ -134,6 +140,17 @@ QPair<const PropertyTableManager*, int> PropertyTableModel::toManagerAndIndex(co
     }
 
     return { _managers.at(index.internalId()), index.row() };
+}
+
+QPair<int, int> PropertyTableModel::toManagerIdAndIndex(const QModelIndex& index) const
+{
+    if (checkIndex(index) == false
+        || index.internalId() == ROOT_INTERNAL_ID) {
+
+        return { -1, -1 };
+    }
+
+    return { int(index.internalId()), index.row() };
 }
 
 int PropertyTableModel::rowCountFromManager(int index) const

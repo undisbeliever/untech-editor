@@ -5,11 +5,12 @@
  */
 
 #include "tilesetwidgets.h"
+#include "accessors.h"
 #include "document.h"
-#include "selection.h"
-#include "tilesetcommands.h"
 #include "tilesetpixmaps.h"
+#include "gui-qt/accessor/listundohelper.h"
 
+using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 AbstractTilesetWidget::AbstractTilesetWidget(QWidget* parent)
@@ -26,7 +27,7 @@ void AbstractTilesetWidget::setDocument(Document* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->paletteList()->disconnect(this);
     }
     _document = document;
 
@@ -34,13 +35,13 @@ void AbstractTilesetWidget::setDocument(Document* document)
         updateBackgroundColor();
         onSelectedColorChanged();
 
-        connect(_document, &Document::paletteChanged,
+        connect(_document->paletteList(), &PaletteList::dataChanged,
                 this, &SmallTilesetWidget::onPaletteChanged);
 
-        connect(_document->selection(), &Selection::selectedPaletteChanged,
+        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &SmallTilesetWidget::updateBackgroundColor);
 
-        connect(_document->selection(), &Selection::selectedColorChanged,
+        connect(_document->paletteList(), &PaletteList::selectedColorChanged,
                 this, &SmallTilesetWidget::onSelectedColorChanged);
     }
     else {
@@ -50,25 +51,22 @@ void AbstractTilesetWidget::setDocument(Document* document)
 
 void AbstractTilesetWidget::onPaletteChanged(unsigned index)
 {
-    if (index == _document->selection()->selectedPalette()) {
+    if (index == _document->paletteList()->selectedIndex()) {
         updateBackgroundColor();
     }
 }
 
 void AbstractTilesetWidget::updateBackgroundColor()
 {
-    const auto& palettes = _document->frameSet()->palettes;
-    const unsigned selected = _document->selection()->selectedPalette();
-
-    if (selected < palettes.size()) {
-        const auto& rgb = palettes.at(selected).color(0).rgb();
+    if (const auto* pal = _document->paletteList()->selectedPalette()) {
+        const auto& rgb = pal->color(0).rgb();
         setBackgroundColor(qRgb(rgb.red, rgb.green, rgb.blue));
     }
 }
 
 void AbstractTilesetWidget::onSelectedColorChanged()
 {
-    setCanDraw(_document->selection()->selectedColor() >= 0);
+    setCanDraw(_document->paletteList()->isSelectedColorValid());
 }
 
 SmallTilesetWidget::SmallTilesetWidget(QWidget* parent)
@@ -137,22 +135,32 @@ void LargeTilesetWidget::onTilesetPixmapTileChanged(int tileId)
     setPixmap(tileId, pixmap);
 }
 
-#define DRAW_PIXEL(CLASS, TILESET, COMMAND)                          \
-    void CLASS::drawPixel(int tileId, const QPoint& p, bool first)   \
-    {                                                                \
-        int c = _document->selection()->selectedColor();             \
-        if (c >= 0) {                                                \
-            const auto& tileset = _document->frameSet()->TILESET;    \
-            const auto& tile = tileset.tile(tileId);                 \
-                                                                     \
-            if (tile.pixel(p.x(), p.y()) != c) {                     \
-                auto newTile = tile;                                 \
-                newTile.setPixel(p.x(), p.y(), c);                   \
-                                                                     \
-                _document->undoStack()->push(                        \
-                    new COMMAND(_document, tileId, newTile, first)); \
-            }                                                        \
-        }                                                            \
+template <class AccessorT, class TilesetT>
+static inline void doDrawPixel(Document* document, AccessorT* accessor, const TilesetT& tileset,
+                               int tileId, const QPoint& p, bool first)
+{
+    if (document->paletteList()->isSelectedColorValid()) {
+        unsigned c = document->paletteList()->selectedColor();
+        const auto& tile = tileset.tile(tileId);
+
+        if (tile.pixel(p.x(), p.y()) != c) {
+            auto newTile = tile;
+            newTile.setPixel(p.x(), p.y(), c);
+
+            ListUndoHelper<AccessorT>(accessor)
+                .editItemInSelectedListMerge(tileId, newTile, first);
+        }
     }
-DRAW_PIXEL(SmallTilesetWidget, smallTileset, ChangeSmallTile)
-DRAW_PIXEL(LargeTilesetWidget, largeTileset, ChangeLargeTile)
+}
+
+void SmallTilesetWidget::drawPixel(int tileId, const QPoint& point, bool first)
+{
+    doDrawPixel(_document, _document->smallTileTileset(), _document->frameSet()->smallTileset,
+                tileId, point, first);
+}
+
+void LargeTilesetWidget::drawPixel(int tileId, const QPoint& point, bool first)
+{
+    doDrawPixel(_document, _document->largeTileTileset(), _document->frameSet()->largeTileset,
+                tileId, point, first);
+}

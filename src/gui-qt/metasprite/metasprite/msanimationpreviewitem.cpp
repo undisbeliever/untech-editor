@@ -5,6 +5,7 @@
  */
 
 #include "msanimationpreviewitem.h"
+#include "accessors.h"
 #include "document.h"
 #include "tilesetpixmaps.h"
 #include "gui-qt/metasprite/layersettings.h"
@@ -55,6 +56,29 @@ MsAnimationPreviewItem::MsAnimationPreviewItem(LayerSettings* layerSettings,
     Q_ASSERT(style != nullptr);
     Q_ASSERT(tilesetPixmaps != nullptr);
     Q_ASSERT(document != nullptr);
+
+    // Required connections to AnimationPreviewItem slots
+
+    connect(_document->frameMap(), &FrameMap::itemAdded,
+            this, &MsAnimationPreviewItem::onFrameAdded);
+    connect(_document->frameMap(), &FrameMap::itemAboutToBeRemoved,
+            this, &MsAnimationPreviewItem::onFrameAboutToBeRemoved);
+
+    connect(_document->frameMap(), &FrameMap::dataChanged,
+            this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
+
+    connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
+            this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->frameObjectList(), &FrameObjectList::listChanged,
+            this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->actionPointList(), &ActionPointList::dataChanged,
+            this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->actionPointList(), &ActionPointList::listChanged,
+            this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->entityHitboxList(), &EntityHitboxList::dataChanged,
+            this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->entityHitboxList(), &EntityHitboxList::listChanged,
+            this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
 }
 
 const void* MsAnimationPreviewItem::setFrame(const idstring& frameName)

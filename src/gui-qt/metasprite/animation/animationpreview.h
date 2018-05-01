@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
 #include <QBasicTimer>
 #include <QElapsedTimer>
 #include <QGraphicsScene>
@@ -24,6 +25,7 @@ namespace Animation {
 namespace Ui {
 class AnimationPreview;
 }
+class AnimationDock;
 class AnimationListModel;
 class AnimationPreviewItem;
 class AnimationPreviewItemFactory;
@@ -32,7 +34,7 @@ class AnimationPreview : public QWidget {
     Q_OBJECT
 
 public:
-    explicit AnimationPreview(QWidget* parent = nullptr);
+    explicit AnimationPreview(AnimationDock* animationDock, QWidget* parent = nullptr);
     ~AnimationPreview();
 
     void setItemFactory(AnimationPreviewItemFactory* itemFactory);
@@ -75,7 +77,7 @@ protected:
 
 private:
     std::unique_ptr<Ui::AnimationPreview> const _ui;
-    AnimationListModel* const _animationListModel;
+    Accessor::IdmapListModel* const _animationListModel;
     QGraphicsScene* const _graphicsScene;
 
     AnimationPreviewItemFactory* _itemFactory;

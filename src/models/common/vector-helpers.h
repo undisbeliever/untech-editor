@@ -12,6 +12,24 @@
 
 namespace UnTech {
 
+template <class ListT>
+void moveListItem(size_t from, size_t to, ListT& l)
+{
+    assert(from < l.size());
+    assert(to < l.size());
+
+    if (from == to) {
+        return;
+    }
+
+    if (from < to) {
+        std::rotate(l.begin() + from, l.begin() + from + 1, l.begin() + to + 1);
+    }
+    else {
+        std::rotate(l.begin() + to, l.begin() + from, l.begin() + from + 1);
+    }
+}
+
 template <typename T>
 void moveVectorItem(size_t from, size_t to, std::vector<T>& v)
 {

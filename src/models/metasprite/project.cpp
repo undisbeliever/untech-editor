@@ -67,7 +67,7 @@ const idstring& Project::FrameSetFile::name() const
     return empty;
 }
 
-static bool validateFrameSetNamesUnique(const Project::FrameSetFile::list_t& frameSets,
+static bool validateFrameSetNamesUnique(const std::vector<Project::FrameSetFile>& frameSets,
                                         ErrorList& err)
 {
     const idstring countString("count");
@@ -117,6 +117,10 @@ static bool validateFrameSetNamesUnique(const Project::FrameSetFile::list_t& fra
 bool Project::validateNamesUnique(ErrorList& errors) const
 {
     bool valid = true;
+
+    if (frameSets.size() > MAX_FRAMESETS) {
+        errors.addError("Too many frameSets");
+    }
 
     valid &= validateFrameSetNamesUnique(frameSets, errors);
     valid &= validateFilesAndNamesUnique(exportOrders, "export order", errors);

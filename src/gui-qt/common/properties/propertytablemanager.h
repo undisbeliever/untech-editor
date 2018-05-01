@@ -78,8 +78,12 @@ signals:
 
     void dataReset();
 
-    // subclasses MUST emit this signal if the data changes
+    // subclasses MUST emit this signal if the underlying data changes
     void dataChanged();
+
+    // subclesses MUST emit this signal if underlying list is about to change.
+    // When emitted it will cause the PropertyDelegate to close all open editors.
+    void listAboutToChange();
 
     // subclasses MUST emit these signals if the table items change
     void itemChanged(int index);

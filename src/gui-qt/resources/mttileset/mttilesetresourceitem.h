@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/accessor/accessor.h"
 #include "gui-qt/resources/resourceproject.h"
 #include "models/metatiles/metatile-tileset.h"
 #include <QObject>
@@ -32,14 +33,14 @@ public:
 
 public:
     // may be nullptr
-    const MT::MetaTileTilesetInput* tilesetInput() const
+    const MT::MetaTileTilesetInput* data() const
     {
         return project()->resourcesFile()->metaTileTilesets.at(index());
     }
+    const MT::MetaTileTilesetInput* tilesetInput() const { return data(); }
 
 protected:
-    template <class T>
-    friend class EditResourceItemCommand;
+    friend class Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
     void setData(const MT::MetaTileTilesetInput& data);
 
 protected:

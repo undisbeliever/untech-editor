@@ -5,10 +5,9 @@
  */
 
 #include "mainwindow.h"
-#include "actions.h"
+#include "accessors.h"
 #include "document.h"
 #include "framedock.h"
-#include "framelistmodel.h"
 #include "framesetdock.h"
 #include "sianimationpreviewitem.h"
 #include "sigraphicsscene.h"
@@ -28,18 +27,16 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
     , _imageFileWatcher()
-    , _frameListModel(new FrameListModel(this))
-    , _actions(new Actions(this))
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
+    , _frameSetDock(new FrameSetDock(this))
+    , _frameDock(new FrameDock(_frameSetDock->frameListModel(), this))
+    , _animationDock(new Animation::AnimationDock(this))
     , _tabWidget(new QTabWidget(this))
     , _graphicsView(new ZoomableGraphicsView(this))
-    , _graphicsScene(new SiGraphicsScene(_actions, _layerSettings, this))
-    , _animationPreview(new Animation::AnimationPreview(this))
+    , _graphicsScene(new SiGraphicsScene(_layerSettings, this))
+    , _animationPreview(new Animation::AnimationPreview(_animationDock, this))
     , _animationPreviewItemFactory(new SiAnimationPreviewItemFactory(_layerSettings, this))
-    , _frameSetDock(new FrameSetDock(_frameListModel, _actions, this))
-    , _frameDock(new FrameDock(_frameListModel, _actions, this))
-    , _animationDock(new Animation::AnimationDock(this))
 {
     // Have the left and right docks take up the whole height of the documentWindow
     setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
@@ -50,6 +47,8 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     QMenu* layerMenu = new QMenu(this);
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
+
+    _frameDock->populateMenu(_graphicsScene->frameContextMenu());
 
     _graphicsView->setMinimumSize(256, 256);
     _graphicsView->setZoomSettings(zoomSettings);
@@ -85,24 +84,10 @@ MainWindow::~MainWindow() = default;
 void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
     editMenu->addSeparator();
-    editMenu->addAction(_actions->raiseSelected());
-    editMenu->addAction(_actions->lowerSelected());
-    editMenu->addAction(_actions->cloneSelected());
-    editMenu->addAction(_actions->removeSelected());
+    _frameSetDock->populateMenu(editMenu);
     editMenu->addSeparator();
-    editMenu->addAction(_actions->addFrame());
-    editMenu->addAction(_actions->cloneFrame());
-    editMenu->addAction(_actions->renameFrame());
-    editMenu->addAction(_actions->removeFrame());
+    _frameDock->populateMenu(editMenu);
     editMenu->addSeparator();
-    editMenu->addAction(_actions->addRemoveTileHitbox());
-    editMenu->addSeparator();
-    editMenu->addAction(_actions->toggleObjSize());
-    editMenu->addMenu(_actions->entityHitboxTypeMenu());
-    editMenu->addSeparator();
-    editMenu->addAction(_actions->addFrameObject());
-    editMenu->addAction(_actions->addActionPoint());
-    editMenu->addAction(_actions->addEntityHitbox());
 
     viewMenu->addSeparator();
     _layerSettings->populateMenu(viewMenu);
@@ -112,7 +97,7 @@ void MainWindow::setDocument(Document* document)
 {
     if (_document) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->frameMap()->disconnect(this);
     }
     _document = document;
 
@@ -123,7 +108,7 @@ void MainWindow::setDocument(Document* document)
                 this, &MainWindow::populateWidgets);
         connect(document, &Document::frameSetImageFilenameChanged,
                 this, &MainWindow::onFrameSetImageFilenameChanged);
-        connect(document->selection(), &Selection::selectedFrameChanged,
+        connect(document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &MainWindow::onSelectedFrameChanged);
     }
 }
@@ -133,8 +118,6 @@ void MainWindow::populateWidgets()
     // Widgets cannot handle a null frameSet
     Document* d = _document && _document->frameSet() ? _document : nullptr;
 
-    _frameListModel->setDocument(d);
-    _actions->setDocument(d);
     _graphicsScene->setDocument(d);
     _animationPreview->setDocument(d);
     _frameSetDock->setDocument(d);
@@ -149,7 +132,7 @@ void MainWindow::populateWidgets()
 
 void MainWindow::onSelectedFrameChanged()
 {
-    if (_document && _document->selection()->hasSelectedFrame()) {
+    if (_document && _document->frameMap()->selectedFrame() != nullptr) {
         _graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     }
     else {

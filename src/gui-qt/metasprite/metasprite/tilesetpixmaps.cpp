@@ -5,6 +5,7 @@
  */
 
 #include "tilesetpixmaps.h"
+#include "accessors.h"
 #include "gui-qt/snes/tile.hpp"
 
 #include <QImage>
@@ -33,29 +34,31 @@ void TilesetPixmaps::setDocument(Document* document)
 {
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->smallTileTileset()->disconnect(this);
+        _document->largeTileTileset()->disconnect(this);
+        _document->paletteList()->disconnect(this);
     }
     _document = document;
 
     redrawTilesets();
 
     if (_document) {
-        connect(_document, &Document::paletteChanged,
+        connect(_document->paletteList(), &PaletteList::dataChanged,
                 this, &TilesetPixmaps::onPaletteChanged);
 
-        connect(_document, &Document::smallTilesetChanged,
+        connect(_document->smallTileTileset(), &SmallTileTileset::listChanged,
                 this, &TilesetPixmaps::redrawTilesets);
 
-        connect(_document, &Document::largeTilesetChanged,
+        connect(_document->largeTileTileset(), &LargeTileTileset::listChanged,
                 this, &TilesetPixmaps::redrawTilesets);
 
-        connect(_document, &Document::smallTileChanged,
+        connect(_document->smallTileTileset(), &SmallTileTileset::dataChanged,
                 this, &TilesetPixmaps::onSmallTileChanged);
 
-        connect(_document, &Document::largeTileChanged,
+        connect(_document->largeTileTileset(), &LargeTileTileset::dataChanged,
                 this, &TilesetPixmaps::onLargeTileChanged);
 
-        connect(_document->selection(), &Selection::selectedPaletteChanged,
+        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &TilesetPixmaps::redrawTilesets);
     }
 }
@@ -113,7 +116,7 @@ void TilesetPixmaps::redrawTilesets()
 
 void TilesetPixmaps::onPaletteChanged(unsigned index)
 {
-    if (index == _document->selection()->selectedPalette()) {
+    if (index == _document->paletteList()->selectedIndex()) {
         redrawTilesets();
     }
 }
@@ -160,11 +163,8 @@ const UnTech::Snes::Palette4bpp& TilesetPixmaps::palette() const
         return BLANK_PALETTE;
     }
 
-    const auto& palettes = _document->frameSet()->palettes;
-    const auto& palIndex = _document->selection()->selectedPalette();
-
-    if (palIndex < palettes.size()) {
-        return palettes.at(palIndex);
+    if (const auto* p = _document->paletteList()->selectedPalette()) {
+        return *p;
     }
     else {
         return BLANK_PALETTE;

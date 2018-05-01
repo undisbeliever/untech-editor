@@ -28,8 +28,6 @@ class AnimationPreview;
 namespace SpriteImporter {
 
 class Document;
-class FrameListModel;
-class Actions;
 class TilesetPixmaps;
 class SiGraphicsScene;
 class SiAnimationPreviewItemFactory;
@@ -62,11 +60,13 @@ private:
 
     QFileSystemWatcher _imageFileWatcher;
 
-    FrameListModel* const _frameListModel;
-    Actions* const _actions;
     LayerSettings* const _layerSettings;
 
     QPushButton* const _layersButton;
+
+    FrameSetDock* const _frameSetDock;
+    FrameDock* const _frameDock;
+    Animation::AnimationDock* const _animationDock;
 
     QTabWidget* const _tabWidget;
     ZoomableGraphicsView* const _graphicsView;
@@ -74,10 +74,6 @@ private:
     Animation::AnimationPreview* const _animationPreview;
 
     SiAnimationPreviewItemFactory* const _animationPreviewItemFactory;
-
-    FrameSetDock* const _frameSetDock;
-    FrameDock* const _frameDock;
-    Animation::AnimationDock* const _animationDock;
 };
 }
 }

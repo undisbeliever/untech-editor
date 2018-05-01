@@ -5,11 +5,10 @@
  */
 
 #include "tilesetdock.h"
+#include "accessors.h"
 #include "document.h"
-#include "framecontentcommands.h"
-#include "selection.h"
-#include "tilesetcommands.h"
 #include "tilesetwidgets.h"
+#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/metasprite/metasprite/tilesetdock.ui.h"
 
 #include <QMenu>
@@ -48,8 +47,7 @@ void TilesetDock::setDocument(Document* document)
     }
 
     if (_document != nullptr) {
-        _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->frameObjectList()->disconnect(this);
     }
     _document = document;
 
@@ -59,24 +57,24 @@ void TilesetDock::setDocument(Document* document)
     _ui->largeTileset->setDocument(_document);
 
     if (_document) {
-        onSelectedItemsChanged();
+        onSelectedFrameObjectsChanged();
 
-        connect(_document, &Document::frameObjectChanged,
-                this, &TilesetDock::onFrameObjectChanged);
+        connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
+                this, &TilesetDock::onSelectedFrameObjectsChanged);
 
-        connect(_document->selection(), &Selection::selectedItemsChanged,
-                this, &TilesetDock::onSelectedItemsChanged);
+        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
+                this, &TilesetDock::onSelectedFrameObjectsChanged);
     }
 }
 
-void TilesetDock::onSelectedItemsChanged()
+void TilesetDock::onSelectedFrameObjectsChanged()
 {
     // To simplify the UI the selected tile will only be shown if
     // selectedItems contains a single Frame Object.
 
     const int index = selectedFrameObjectIndex();
     if (index >= 0) {
-        const MS::Frame* frame = _document->selection()->selectedFrame();
+        const MS::Frame* frame = _document->frameMap()->selectedFrame();
         const MS::FrameObject& obj = frame->objects.at(index);
 
         if (obj.size == ObjectSize::SMALL) {
@@ -96,7 +94,7 @@ void TilesetDock::onSelectedItemsChanged()
 
 void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned changedIndex)
 {
-    const MS::Frame* frame = _document->selection()->selectedFrame();
+    const MS::Frame* frame = _document->frameMap()->selectedFrame();
     if (frame == changedFrame) {
         const int index = selectedFrameObjectIndex();
 
@@ -117,46 +115,80 @@ void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned change
 
 void TilesetDock::onTileClicked(ObjectSize size, int tileIndex)
 {
-    if (_document->selection()->selectedColor() >= 0) {
+    if (_document->paletteList()->isSelectedColorValid()) {
         // don't change tile in edit tiles mode
         return;
     }
 
     const int index = selectedFrameObjectIndex();
     if (index >= 0) {
-        MS::Frame* frame = _document->selection()->selectedFrame();
-        const MS::FrameObject& oldObj = frame->objects.at(index);
-        MS::FrameObject obj = oldObj;
+        const MS::Frame* frame = _document->frameMap()->selectedFrame();
+        MS::FrameObject obj = frame->objects.at(index);
 
         obj.size = size;
         obj.tileId = tileIndex;
 
-        if (obj != oldObj) {
-            _document->undoStack()->push(
-                new ChangeFrameObject(_document, frame, index, obj));
-        }
+        FrameObjectListUndoHelper(_document->frameObjectList())
+            .editItemInSelectedList(index, obj);
     }
 }
 
 int TilesetDock::selectedFrameObjectIndex() const
 {
-    const auto& selectedItems = _document->selection()->selectedItems();
-    if (selectedItems.size() != 1) {
+    const auto& selectedIndexes = _document->frameObjectList()->selectedIndexes();
+    if (selectedIndexes.size() == 1) {
+        return selectedIndexes.front();
+    }
+    else {
         return -1;
     }
+}
 
-    const auto& it = selectedItems.cbegin();
-    if (it->type != SelectedItem::FRAME_OBJECT) {
-        return -1;
+void TilesetDock::pushAddTileCommand(QUndoCommand* c, unsigned tileId, ObjectSize size)
+{
+    if (c) {
+        _document->undoStack()->beginMacro(c->text());
+        _document->undoStack()->push(c);
+
+        FrameObjectListUndoHelper(_document->frameObjectList())
+            .editAllItemsInSelectedList(QString(), [&](MS::FrameObject& obj, size_t) {
+                if (obj.size == size
+                    && obj.tileId >= tileId) {
+
+                    obj.tileId++;
+                }
+            });
+
+        _document->undoStack()->endMacro();
     }
+}
 
-    return it->index;
+void TilesetDock::pushRemoveTileCommand(QUndoCommand* c, unsigned tileId, ObjectSize size)
+{
+    if (c) {
+        _document->undoStack()->beginMacro(c->text());
+        _document->undoStack()->push(c);
+
+        FrameObjectListUndoHelper(_document->frameObjectList())
+            .editAllItemsInSelectedList(QString(), [&](MS::FrameObject& obj, size_t) {
+                if (obj.size == size
+                    && obj.tileId >= tileId
+                    && obj.tileId > 0) {
+
+                    obj.tileId--;
+                }
+            });
+
+        _document->undoStack()->endMacro();
+    }
 }
 
 void TilesetDock::onContextMenu(const QPoint& pos)
 {
-    if (_document) {
+    if (_document && _document->frameSet()) {
         QPoint globalPos = _ui->scrollAreaContents->mapToGlobal(pos);
+
+        MS::FrameSet* fs = _document->frameSet();
 
         int index = -1;
         bool isSmall = false;
@@ -170,8 +202,19 @@ void TilesetDock::onContextMenu(const QPoint& pos)
             index = _ui->largeTileset->indexAt(_ui->largeTileset->mapFromGlobal(globalPos));
         }
 
+        auto addSmallTile = [this](unsigned tileId) {
+            QUndoCommand* c = SmallTileTilesetUndoHelper(_document->smallTileTileset())
+                                  .addCommand(std::make_tuple(), tileId);
+            pushAddTileCommand(c, tileId, ObjectSize::SMALL);
+        };
+        auto addLargeTile = [this](unsigned tileId) {
+            QUndoCommand* c = LargeTileTilesetUndoHelper(_document->largeTileTileset())
+                                  .addCommand(std::make_tuple(), tileId);
+            pushAddTileCommand(c, tileId, ObjectSize::LARGE);
+        };
+
         QMenu menu;
-        auto addAction = [&](const char* text, auto functor) {
+        auto addAction = [&](const char* text, auto&& functor) {
             QAction* action = menu.addAction(tr(text));
             connect(action, &QAction::triggered, functor);
         };
@@ -179,49 +222,47 @@ void TilesetDock::onContextMenu(const QPoint& pos)
         if (index >= 0) {
             if (isSmall) {
                 addAction("Add Small Tile", [=]() {
-                    _document->undoStack()->push(
-                        new AddSmallTile(_document));
+                    addSmallTile(fs->smallTileset.size());
                 });
                 addAction("Add Small Tile Here", [=]() {
-                    _document->undoStack()->push(
-                        new AddSmallTile(_document, index));
+                    addSmallTile(index);
                 });
                 addAction("Clone Small Tile Here", [=]() {
-                    _document->undoStack()->push(
-                        new CloneSmallTile(_document, index));
+                    QUndoCommand* c = SmallTileTilesetUndoHelper(_document->smallTileTileset())
+                                          .cloneCommand(std::make_tuple(), index);
+                    pushAddTileCommand(c, index, ObjectSize::SMALL);
                 });
                 addAction("Remove Small Tile", [=]() {
-                    _document->undoStack()->push(
-                        new RemoveSmallTile(_document, index));
+                    QUndoCommand* c = SmallTileTilesetUndoHelper(_document->smallTileTileset())
+                                          .removeCommand(std::make_tuple(), index);
+                    pushRemoveTileCommand(c, index, ObjectSize::SMALL);
                 });
             }
             else {
                 addAction("Add Large Tile", [=]() {
-                    _document->undoStack()->push(
-                        new AddLargeTile(_document));
+                    addLargeTile(fs->largeTileset.size());
                 });
                 addAction("Add Large Tile Here", [=]() {
-                    _document->undoStack()->push(
-                        new AddLargeTile(_document, index));
+                    addLargeTile(index);
                 });
                 addAction("Clone Large Tile Here", [=]() {
-                    _document->undoStack()->push(
-                        new CloneLargeTile(_document, index));
+                    QUndoCommand* c = LargeTileTilesetUndoHelper(_document->largeTileTileset())
+                                          .cloneCommand(std::make_tuple(), index);
+                    pushAddTileCommand(c, index, ObjectSize::LARGE);
                 });
                 addAction("Remove Large Tile", [=]() {
-                    _document->undoStack()->push(
-                        new RemoveLargeTile(_document, index));
+                    QUndoCommand* c = LargeTileTilesetUndoHelper(_document->largeTileTileset())
+                                          .removeCommand(std::make_tuple(), index);
+                    pushRemoveTileCommand(c, index, ObjectSize::LARGE);
                 });
             }
         }
         else {
             addAction("Add Small Tile", [=]() {
-                _document->undoStack()->push(
-                    new AddSmallTile(_document));
+                addSmallTile(fs->smallTileset.size());
             });
             addAction("Add Large Tile", [=]() {
-                _document->undoStack()->push(
-                    new AddLargeTile(_document));
+                addLargeTile(fs->largeTileset.size());
             });
         }
 

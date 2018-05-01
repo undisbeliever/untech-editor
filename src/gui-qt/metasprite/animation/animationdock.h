@@ -6,10 +6,9 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
 #include "models/metasprite/animation/animation.h"
-#include <QCompleter>
 #include <QDockWidget>
-#include <QItemSelection>
 #include <memory>
 
 namespace UnTech {
@@ -34,15 +33,14 @@ public:
     explicit AnimationDock(QWidget* parent = nullptr);
     ~AnimationDock();
 
-    AnimationActions* actions() const { return _actions.get(); }
+    const Accessor::IdmapActions& actions() const;
+    Accessor::IdmapListModel* animationListModel();
 
     void setDocument(AbstractMsDocument* document);
 
     void clearGui();
 
 private slots:
-    void onSelectedAnimationChanged();
-
     void onAnimationDataChanged(const void* animation);
 
     void updateGui();
@@ -51,17 +49,11 @@ private slots:
     void onOneShotEdited();
     void onNextAnimationEdited();
 
-    void onAnimationListSelectionChanged();
-
-    void onAnimationListContextMenu(const QPoint& pos);
-
 private:
     std::unique_ptr<Ui::AnimationDock> const _ui;
-    std::unique_ptr<AnimationActions> const _actions;
 
     AbstractMsDocument* _document;
 
-    AnimationListModel* const _animationListModel;
     AnimationFramesManager* const _animationFramesManager;
 };
 }

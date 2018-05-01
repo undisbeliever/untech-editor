@@ -6,13 +6,12 @@
 
 #pragma once
 
-#include "gui-qt/metasprite/abstractselection.h"
+#include "models/common/vectorset.h"
 #include "models/metasprite/metasprite.h"
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QList>
-#include <QMap>
-#include <QWidget>
+#include <QMenu>
 
 namespace UnTech {
 namespace GuiQt {
@@ -25,7 +24,6 @@ class Style;
 class LayerSettings;
 
 namespace MetaSprite {
-class Actions;
 class Document;
 class TilesetPixmaps;
 
@@ -43,16 +41,16 @@ public:
     static const unsigned ACTION_POINT_ZVALUE = 400;
     static const unsigned ORIGIN_ZVALUE = 500;
 
-    static const int SELECTION_ID = 0;
-
 public:
-    MsGraphicsScene(Actions* actions, LayerSettings* layerSettings,
+    MsGraphicsScene(LayerSettings* layerSettings,
                     TilesetPixmaps* tilesetPixmaps, QWidget* parent = nullptr);
     ~MsGraphicsScene() = default;
 
+    QMenu* contextMenu() { return _contextMenu.data(); }
+
     void setDocument(Document* document);
 
-    void setFrame(MS::Frame* frame);
+    void setFrame(const UnTech::MetaSprite::MetaSprite::Frame* frame);
 
 protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
@@ -62,54 +60,48 @@ private:
     void commitMovedItems();
 
     template <class T>
-    static void updateItemIndexes(QList<T*>& list, unsigned start,
-                                  unsigned baseZValue,
-                                  const SelectedItem::Type& type);
+    void updateSelection(QList<T>& items,
+                         const vectorset<size_t>& selectedIndexes);
 
     void updateTileHitbox();
 
-    void addFrameObject(unsigned index);
+    void addFrameObject();
     void updateFrameObject(unsigned index);
-    void removeFrameObject(unsigned index);
 
-    void addActionPoint(unsigned index);
+    void addActionPoint();
     void updateActionPoint(unsigned index);
-    void removeActionPoint(unsigned index);
 
-    void addEntityHitbox(unsigned index);
+    void addEntityHitbox();
     void updateEntityHitbox(unsigned index);
-    void removeEntityHitbox(unsigned index);
 
 private slots:
     void onLayerSettingsChanged();
 
     void onSelectedFrameChanged();
 
-    void updateSelection();
+    void updateFrameObjectSelection();
+    void updateActionPointSelection();
+    void updateEntityHitboxSelection();
+    void updateTileHitboxSelection();
+
     void onSceneSelectionChanged();
 
     void onTilesetPixmapsChanged();
 
-    void onFrameTileHitboxChanged(const void* frame);
+    void onFrameDataChanged(const void* frame);
 
-    void onFrameObjectChanged(const void* frame, unsigned index);
-    void onActionPointChanged(const void* frame, unsigned index);
-    void onEntityHitboxChanged(const void* frame, unsigned index);
+    void onFrameObjectChanged(const void* frame, size_t index);
+    void onActionPointChanged(const void* frame, size_t index);
+    void onEntityHitboxChanged(const void* frame, size_t index);
 
-    void onFrameObjectAboutToBeRemoved(const void* frame, unsigned index);
-    void onActionPointAboutToBeRemoved(const void* frame, unsigned index);
-    void onEntityHitboxAboutToBeRemoved(const void* frame, unsigned index);
-
-    void onFrameObjectAdded(const void* frame, unsigned index);
-    void onActionPointAdded(const void* frame, unsigned index);
-    void onEntityHitboxAdded(const void* frame, unsigned index);
-
-    void onFrameContentsMoved(const void* frame, const std::set<SelectedItem>& oldPositions, int offset);
+    void onFrameObjectListChanged(const void* frame);
+    void onActionPointListChanged(const void* frame);
+    void onEntityHitboxListChanged(const void* frame);
 
 private:
-    Actions* const _actions;
     LayerSettings* const _layerSettings;
     TilesetPixmaps* const _tilesetPixmaps;
+    QScopedPointer<QMenu> const _contextMenu;
     Style* const _style;
 
     ResizableAabbGraphicsItem* const _tileHitbox;
@@ -121,9 +113,10 @@ private:
     QList<ResizableAabbGraphicsItem*> _entityHitboxes;
 
     Document* _document;
-    MS::Frame* _frame;
+    const MS::Frame* _frame;
 
     bool _inUpdateSelection;
+    bool _inOnSceneSelectionChanged;
 };
 }
 }

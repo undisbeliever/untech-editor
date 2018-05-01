@@ -6,10 +6,11 @@
 
 #include "palettepropertymanager.h"
 #include "paletteresourceitem.h"
-#include "gui-qt/editresourceitemcommand.h"
+#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "models/common/imagecache.h"
 
 using namespace UnTech::GuiQt::Resources;
+using PaletteUndoHelper = UnTech::GuiQt::Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
 
 PalettePropertyManager::PalettePropertyManager(QObject* parent)
     : AbstractPropertyManager(parent)
@@ -95,9 +96,9 @@ QVariant PalettePropertyManager::data(int id) const
 bool PalettePropertyManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_palette);
-    Q_ASSERT(_palette->paletteData());
+    Q_ASSERT(_palette->data());
 
-    RES::PaletteInput newData = *_palette->paletteData();
+    RES::PaletteInput newData = *_palette->data();
 
     switch ((PropertyId)id) {
     case NAME:
@@ -121,14 +122,6 @@ bool PalettePropertyManager::setData(int id, const QVariant& value)
         break;
     }
 
-    if (newData != *_palette->paletteData()) {
-        _palette->undoStack()->push(
-            new EditResourceItemCommand<PaletteResourceItem>(
-                _palette, *_palette->paletteData(), newData,
-                tr("Edit %1").arg(propertyTitle(id))));
-        return true;
-    }
-    else {
-        return false;
-    }
+    return PaletteUndoHelper(_palette)
+        .edit(newData, tr("Edit %1").arg(propertyTitle(id)));
 }

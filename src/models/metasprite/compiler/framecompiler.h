@@ -18,6 +18,8 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
+namespace MS = UnTech::MetaSprite::MetaSprite;
+
 class FrameCompiler {
 public:
     FrameCompiler(ErrorList& errorList);
@@ -31,9 +33,9 @@ public:
 private:
     RomOffsetPtr processFrameObjects(const MetaSprite::Frame& frame,
                                      const FrameTileset&);
-    RomOffsetPtr processEntityHitboxes(const MetaSprite::EntityHitbox::list_t&);
+    RomOffsetPtr processEntityHitboxes(const std::vector<MS::EntityHitbox>&);
     RomOffsetPtr processTileHitbox(const MetaSprite::Frame& frame);
-    RomOffsetPtr processActionPoints(const MetaSprite::ActionPoint::list_t&);
+    RomOffsetPtr processActionPoints(const std::vector<MS::ActionPoint>&);
 
     uint32_t processFrame(const MetaSprite::Frame&, const FrameTileset&);
 

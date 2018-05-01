@@ -39,10 +39,10 @@ public:
     virtual QVariant data(const QModelIndex& index, int role) const final;
 
 private slots:
-    void onPaletteChanged(unsigned index);
-    void onPaletteAdded(unsigned index);
-    void onPaletteAboutToBeRemoved(unsigned index);
-    void onPaletteMoved(unsigned fromIndex, unsigned toIndex);
+    void onPaletteChanged(size_t index);
+    void onPaletteAdded(size_t index);
+    void onPaletteAboutToBeRemoved(size_t index);
+    void onPaletteMoved(size_t fromIndex, size_t toIndex);
 
 private:
     void updateAllPixmaps();

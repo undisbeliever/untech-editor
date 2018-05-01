@@ -5,6 +5,7 @@
  */
 
 #include "metasprite.h"
+#include "errorlist.h"
 #include "models/common/humantypename.h"
 #include <algorithm>
 
@@ -28,7 +29,7 @@ const std::string HumanTypeName<EntityHitbox>::value = "Entity Hitbox";
  * ============
  */
 
-bool FrameObject::isValid(const FrameSet& frameSet)
+bool FrameObject::isValid(const FrameSet& frameSet) const
 {
     if (size == ObjectSize::SMALL) {
         return tileId < frameSet.smallTileset.size();
@@ -42,6 +43,33 @@ bool FrameObject::isValid(const FrameSet& frameSet)
  * FRAME
  * =====
  */
+
+bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
+{
+    bool valid = true;
+    auto addError = [&](std::string&& msg) {
+        errorList.addError(fs, *this, msg);
+        valid = false;
+    };
+
+    if (objects.size() > MAX_FRAME_OBJECTS) {
+        addError("Too many frame objects");
+    }
+    if (actionPoints.size() > MAX_ACTION_POINTS) {
+        addError("Too many action points");
+    }
+    if (entityHitboxes.size() > MAX_ENTITY_HITBOXES) {
+        addError("Too many entity hitboxes");
+    }
+
+    for (const FrameObject& obj : objects) {
+        if (obj.isValid(fs) == false) {
+            errorList.addError("Invalid tileId in frame object");
+        }
+    };
+
+    return valid;
+}
 
 Frame Frame::flip(bool hFlip, bool vFlip) const
 {
@@ -101,6 +129,49 @@ bool Frame::operator==(const Frame& o) const
  * FRAME SET
  * =========
  */
+
+bool FrameSet::validate(ErrorList& errorList) const
+{
+    bool valid = true;
+
+    auto addError = [&](std::string&& msg) {
+        errorList.addError(*this, msg);
+        valid = false;
+    };
+
+    if (name.isValid() == false) {
+        addError("Missing name");
+    }
+    if (exportOrder.isValid() == false) {
+        addError("Missing exportOrder");
+    }
+    if (frames.size() == 0) {
+        addError("No Frames");
+    }
+
+    if (exportOrder.isValid() == false) {
+        addError("Missing exportOrder");
+    }
+
+    if (palettes.size() > MAX_PALETTES) {
+        addError("Too many palettes");
+    }
+
+    for (auto&& it : frames) {
+        valid &= it.second.validate(errorList, *this);
+    }
+
+    for (auto&& it : animations) {
+        const auto& animation = it.second;
+
+        if (animation.isValid(*this) == false) {
+            errorList.addError(*this, animation, "Invalid Animation");
+            valid = false;
+        }
+    }
+
+    return valid;
+}
 
 bool FrameSet::operator==(const FrameSet& o) const
 {

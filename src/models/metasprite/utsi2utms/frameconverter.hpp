@@ -215,7 +215,7 @@ private:
     // Also checks that there is no triple overlapping tiles
     std::array<bool, MAX_FRAME_OBJECTS> buildOverlappingObjectsSieve()
     {
-        assert(siFrame.objects.size() < MAX_FRAME_OBJECTS);
+        assert(siFrame.objects.size() <= MAX_FRAME_OBJECTS);
 
         std::array<bool, MAX_FRAME_OBJECTS> sieve = {};
 

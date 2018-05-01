@@ -14,7 +14,6 @@
 
 namespace UnTech {
 namespace GuiQt {
-class AbstractIdmapListModel;
 
 class IdstringDialog : public QDialog {
     Q_OBJECT

@@ -73,7 +73,7 @@ public:
     QModelIndex toModelIndex(const InternalIdFormat& index) const;
     InternalIdFormat toInternalFormat(const QModelIndex& index) const;
 
-    const FrameSetExportOrder::ExportName::list_t* toExportNameList(const InternalIdFormat& internalId) const;
+    const std::vector<FrameSetExportOrder::ExportName>* toExportNameList(const InternalIdFormat& internalId) const;
     const FrameSetExportOrder::ExportName* toExportName(const InternalIdFormat& internalId) const;
     const NameReference* toAlternative(const ExportOrderModel::InternalIdFormat& internalId) const;
 
@@ -93,6 +93,7 @@ public:
     virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
 private slots:
+    void onListChanged();
     void onExportNameChanged(bool isFrame, unsigned index);
     void onExportNameAltChanged(bool isFrame, unsigned index, unsigned altIndex);
 

@@ -5,11 +5,9 @@
  */
 
 #include "framesetdock.h"
-#include "actions.h"
+#include "accessors.h"
 #include "document.h"
-#include "framelistmodel.h"
-#include "framesetcommands.h"
-#include "selection.h"
+#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/spriteimporter/framesetdock.ui.h"
 
@@ -18,20 +16,15 @@
 #include <QMenu>
 #include <QMessageBox>
 
+using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 using TilesetType = UnTech::MetaSprite::TilesetType;
 
-FrameSetDock::FrameSetDock(FrameListModel* frameListModel, Actions* actions,
-                           QWidget* parent)
+FrameSetDock::FrameSetDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameSetDock)
-    , _frameListModel(frameListModel)
-    , _actions(actions)
     , _document(nullptr)
 {
-    Q_ASSERT(frameListModel);
-    Q_ASSERT(actions != nullptr);
-
     _ui->setupUi(this);
 
     _ui->frameSetName->setValidator(new IdstringValidator(this));
@@ -47,13 +40,7 @@ FrameSetDock::FrameSetDock(FrameListModel* frameListModel, Actions* actions,
 
     _ui->tilesetType->populateData(TilesetType::enumMap);
 
-    _ui->frameList->setModel(_frameListModel);
-    _ui->frameList->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    _ui->frameListButtons->addAction(_actions->addFrame());
-    _ui->frameListButtons->addAction(_actions->cloneFrame());
-    _ui->frameListButtons->addAction(_actions->renameFrame());
-    _ui->frameListButtons->addAction(_actions->removeFrame());
+    _ui->frameList->idmapActions().populateToolbar(_ui->frameListButtons);
 
     clearGui();
     setEnabled(false);
@@ -85,9 +72,6 @@ FrameSetDock::FrameSetDock(FrameListModel* frameListModel, Actions* actions,
             this, &FrameSetDock::onPaletteEdited);
     connect(_ui->paletteSize, &QSpinBox::editingFinished,
             this, &FrameSetDock::onPaletteEdited);
-
-    connect(_ui->frameList, &QListView::customContextMenuRequested,
-            this, &FrameSetDock::onFrameContextMenu);
 }
 
 FrameSetDock::~FrameSetDock() = default;
@@ -100,7 +84,6 @@ void FrameSetDock::setDocument(Document* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
     }
     _document = document;
 
@@ -108,20 +91,33 @@ void FrameSetDock::setDocument(Document* document)
 
     if (_document) {
         updateGui();
-        updateFrameListSelection();
+
+        _ui->frameList->setAccessor(_document->frameMap());
 
         connect(_document, &Document::frameSetDataChanged,
                 this, &FrameSetDock::updateGui);
-
-        connect(_document->selection(), &Selection::selectedFrameChanged,
-                this, &FrameSetDock::updateFrameListSelection);
-
-        connect(_ui->frameList->selectionModel(), &QItemSelectionModel::selectionChanged,
-                this, &FrameSetDock::onFrameListSelectionChanged);
     }
     else {
         clearGui();
+
+        _ui->frameList->setAccessor<FrameMap>(nullptr);
     }
+}
+
+const Accessor::IdmapActions& FrameSetDock::frameActions() const
+{
+    return _ui->frameList->idmapActions();
+}
+
+Accessor::IdmapListModel* FrameSetDock::frameListModel() const
+{
+    return _ui->frameList->idmapListModel();
+}
+
+void FrameSetDock::populateMenu(QMenu* menu)
+{
+    _ui->frameList->idmapActions().populateMenu(menu);
+    // :: TODO add toggle tileset hitbox here::
 }
 
 void FrameSetDock::clearGui()
@@ -178,57 +174,67 @@ void FrameSetDock::updateGui()
 
 void FrameSetDock::onNameEdited()
 {
-    const SI::FrameSet& fs = *_document->frameSet();
-
     idstring name = _ui->frameSetName->text().toStdString();
-    if (name.isValid() && name != fs.name) {
-        _document->undoStack()->push(
-            new ChangeFrameSetName(_document, name));
+    if (name.isValid()) {
+        FrameSetUndoHelper(_document)
+            .editField(name, tr("Edit FrameSet Name"),
+                       [](SI::FrameSet& fs) -> idstring& { return fs.name; },
+                       [](Document& d) { emit d.frameSetNameChanged();
+                                         emit d.frameSetDataChanged(); });
+    }
+    else {
+        updateGui();
     }
 }
 
 void FrameSetDock::onTilesetTypeEdited()
 {
     TilesetType ts = _ui->tilesetType->currentEnum<TilesetType>();
-    if (ts != _document->frameSet()->tilesetType) {
-        _document->undoStack()->push(
-            new ChangeFrameSetTilesetType(_document, ts));
-    }
+    FrameSetUndoHelper(_document)
+        .editField(ts, tr("Edit Tileset Type"),
+                   [](SI::FrameSet& fs) -> TilesetType& { return fs.tilesetType; },
+                   [](Document& d) { emit d.frameSetDataChanged(); });
 }
 
 void FrameSetDock::onExportOrderEdited()
 {
     idstring eo = _ui->exportOrder->text().toStdString();
-    if (eo != _document->frameSet()->exportOrder) {
-        _document->undoStack()->push(
-            new ChangeFrameSetExportOrder(_document, eo));
-    }
+    FrameSetUndoHelper(_document)
+        .editField(eo, tr("Edit Export Order"),
+                   [](SI::FrameSet& fs) -> idstring& { return fs.exportOrder; },
+                   [](Document& d) { emit d.frameSetDataChanged(); });
 }
 
 void FrameSetDock::onImageFilenameFileSelected()
 {
-    const SI::FrameSet& fs = *_document->frameSet();
+    const std::string filename = _ui->imageFilename->filename().toStdString();
 
-    const QString filename = _ui->imageFilename->filename();
-    Q_ASSERT(!filename.isEmpty());
-
-    const std::string fn = filename.toStdString();
-    if (fn != fs.imageFilename) {
-        _document->undoStack()->push(
-            new ChangeFrameSetImageFile(_document, fn));
+    if (filename.empty()) {
+        return;
     }
+
+    FrameSetUndoHelper(_document)
+        .editField(filename, tr("Change Image"),
+                   [](SI::FrameSet& fs) -> std::string& { return fs.imageFilename; },
+                   [](Document& d) {
+                       SI::FrameSet* fs = d.frameSet();
+                       Q_ASSERT(fs);
+                       fs->loadImage(fs->imageFilename);
+
+                       emit d.frameSetImageFilenameChanged();
+                       emit d.frameSetImageChanged();
+                   });
 }
 
 void FrameSetDock::onTransparentColorSelected()
 {
-    const SI::FrameSet& fs = *_document->frameSet();
-
     QColor color = _ui->transparent->color();
     rgba tc(color.red(), color.green(), color.blue());
-    if (tc != fs.transparentColor) {
-        _document->undoStack()->push(
-            new ChangeFrameSetTransparentColor(_document, tc));
-    }
+
+    FrameSetUndoHelper(_document)
+        .editField(tc, tr("Edit Transparent Color"),
+                   [](SI::FrameSet& fs) -> rgba& { return fs.transparentColor; },
+                   [](Document& d) { emit d.frameSetDataChanged(); });
 }
 
 void FrameSetDock::onGridEdited()
@@ -240,10 +246,11 @@ void FrameSetDock::onGridEdited()
     grid.padding = _ui->gridPadding->valueUpoint();
     grid.origin = _ui->gridOrigin->valueUpoint();
 
-    if (grid != _document->frameSet()->grid) {
-        _document->undoStack()->push(
-            new ChangeFrameSetGrid(_document, grid));
-    }
+    FrameSetUndoHelper(_document)
+        .editField(grid, tr("Edit FrameSet Grid"),
+                   [](SI::FrameSet& fs) -> SI::FrameSetGrid& { return fs.grid; },
+                   [](Document& d) { emit d.frameSetGridChanged();
+                                     emit d.frameSetDataChanged(); });
 }
 
 void FrameSetDock::onPaletteEdited()
@@ -254,44 +261,9 @@ void FrameSetDock::onPaletteEdited()
         palette.colorSize = _ui->paletteSize->value();
     }
 
-    if (palette != _document->frameSet()->palette) {
-        _document->undoStack()->push(
-            new ChangeFrameSetPalette(_document, palette));
-    }
-}
-
-void FrameSetDock::updateFrameListSelection()
-{
-    if (_document) {
-        const idstring id = _document->selection()->selectedFrameId();
-        QModelIndex index = _frameListModel->toModelIndex(id);
-
-        _ui->frameList->setCurrentIndex(index);
-    }
-}
-
-void FrameSetDock::onFrameListSelectionChanged()
-{
-    QModelIndex index = _ui->frameList->currentIndex();
-    idstring frameId = _frameListModel->toIdstring(index);
-    _document->selection()->selectFrame(frameId);
-}
-
-void FrameSetDock::onFrameContextMenu(const QPoint& pos)
-{
-    if (_document && _actions) {
-        bool onFrame = _ui->frameList->indexAt(pos).isValid();
-
-        QMenu menu;
-        menu.addAction(_actions->addFrame());
-
-        if (onFrame) {
-            menu.addAction(_actions->cloneFrame());
-            menu.addAction(_actions->renameFrame());
-            menu.addAction(_actions->removeFrame());
-        }
-
-        QPoint globalPos = _ui->frameList->mapToGlobal(pos);
-        menu.exec(globalPos);
-    }
+    FrameSetUndoHelper(_document)
+        .editField(palette, tr("Edit FrameSet Palette"),
+                   [](SI::FrameSet& fs) -> SI::UserSuppliedPalette& { return fs.palette; },
+                   [](Document& d) { emit d.frameSetPaletteChanged();
+                                     emit d.frameSetDataChanged(); });
 }

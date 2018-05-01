@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "selection.h"
+#include "gui-qt/accessor/accessor.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "models/metasprite/metasprite.h"
 #include <memory>
@@ -15,7 +15,14 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
-class PalettesModel;
+
+class SmallTileTileset;
+class LargeTileTileset;
+class PaletteList;
+class FrameMap;
+class FrameObjectList;
+class ActionPointList;
+class EntityHitboxList;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -23,7 +30,7 @@ class Document : public AbstractMsDocument {
     Q_OBJECT
 
 public:
-    using FrameT = MS::Frame;
+    using DataT = MS::FrameSet;
 
 public:
     Document(FrameSetResourceList* parent, size_t index);
@@ -32,9 +39,19 @@ public:
     MS::FrameSet* frameSet() const { return _frameSet; }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
-    virtual Selection* selection() const final { return _selection; }
+    virtual QStringList frameNames() const final;
 
-    virtual QStringList frameList() const final;
+    SmallTileTileset* smallTileTileset() const { return _smallTileTileset; }
+    LargeTileTileset* largeTileTileset() const { return _largeTileTileset; }
+    PaletteList* paletteList() const { return _paletteList; }
+    FrameMap* frameMap() const { return _frameMap; }
+    FrameObjectList* frameObjectList() const { return _frameObjectList; }
+    ActionPointList* actionPointList() const { return _actionPointList; }
+    EntityHitboxList* entityHitboxList() const { return _entityHitboxList; }
+
+private:
+    friend class Accessor::ResourceItemUndoHelper<Document>;
+    MS::FrameSet* dataEditable() { return _frameSet; }
 
 protected:
     // can throw exceptions
@@ -48,24 +65,19 @@ private slots:
 private:
     void resetDocumentState();
 
-signals:
-    void paletteChanged(unsigned index);
-    void paletteListChanged();
-    void paletteAdded(unsigned index);
-    void paletteAboutToBeRemoved(unsigned index);
-    void paletteMoved(unsigned oldIndex, unsigned newIndex);
-
-    void smallTilesetChanged();
-    void largeTilesetChanged();
-
-    void smallTileChanged(unsigned tileId);
-    void largeTileChanged(unsigned tileId);
-
 private:
     MS::FrameSet* _frameSet;
 
-    Selection* const _selection;
+    SmallTileTileset* const _smallTileTileset;
+    LargeTileTileset* const _largeTileTileset;
+    PaletteList* const _paletteList;
+    FrameMap* const _frameMap;
+    FrameObjectList* const _frameObjectList;
+    ActionPointList* const _actionPointList;
+    EntityHitboxList* const _entityHitboxList;
 };
+
+using FrameSetUndoHelper = Accessor::ResourceItemUndoHelper<Document>;
 }
 }
 }

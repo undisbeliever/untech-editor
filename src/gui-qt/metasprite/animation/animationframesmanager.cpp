@@ -5,17 +5,23 @@
  */
 
 #include "animationframesmanager.h"
-#include "animationframecommands.h"
-#include "gui-qt/common/abstractidmaplistmodel.h"
+#include "animationaccessors.h"
+#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
-#include "gui-qt/metasprite/abstractselection.h"
 
+using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
 const QStringList AnimationFramesManager::FLIP_STRINGS({ QString(),
                                                          QString::fromUtf8("hFlip"),
                                                          QString::fromUtf8("vFlip"),
                                                          QString::fromUtf8("hvFlip") });
+
+inline AnimationFramesUndoHelper undoHelper(AbstractMsDocument* document)
+{
+    Q_ASSERT(document);
+    return AnimationFramesUndoHelper(document->animationFramesList());
+}
 
 AnimationFramesManager::AnimationFramesManager(QObject* parent)
     : PropertyTableManager(parent)
@@ -36,7 +42,8 @@ void AnimationFramesManager::setDocument(AbstractMsDocument* document)
 {
     if (_document) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->animationsMap()->disconnect(this);
+        _document->animationFramesList()->disconnect(this);
     }
     _document = document;
 
@@ -46,20 +53,23 @@ void AnimationFramesManager::setDocument(AbstractMsDocument* document)
     if (_document) {
         onSelectedAnimationChanged();
 
-        connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
-                this, &AnimationFramesManager::onSelectedAnimationChanged);
-
-        connect(_document, &AbstractMsDocument::animationDataChanged,
+        connect(_document->animationsMap(), &AnimationsMap::dataChanged,
                 this, &AnimationFramesManager::onAnimationDataChanged);
 
-        connect(_document, &AbstractMsDocument::animationFrameChanged,
+        connect(_document->animationFramesList(), &AnimationFramesList::selectedListChanged,
+                this, &AnimationFramesManager::onSelectedAnimationChanged);
+
+        connect(_document->animationFramesList(), &AnimationFramesList::dataChanged,
                 this, &AnimationFramesManager::onAnimationFrameChanged);
-        connect(_document, &AbstractMsDocument::animationFrameAdded,
+        connect(_document->animationFramesList(), &AnimationFramesList::itemAdded,
                 this, &AnimationFramesManager::onAnimationFrameAdded);
-        connect(_document, &AbstractMsDocument::animationFrameAboutToBeRemoved,
+        connect(_document->animationFramesList(), &AnimationFramesList::itemAboutToBeRemoved,
                 this, &AnimationFramesManager::onAnimationFrameAboutToBeRemoved);
-        connect(_document, &AbstractMsDocument::animationFrameMoved,
+        connect(_document->animationFramesList(), &AnimationFramesList::itemMoved,
                 this, &AnimationFramesManager::onAnimationFrameMoved);
+
+        connect(_document->animationFramesList(), &AnimationFramesList::listAboutToChange,
+                this, &AnimationFramesManager::listAboutToChange);
     }
 }
 
@@ -76,7 +86,7 @@ void AnimationFramesManager::updateParameters(int index, int id, QVariant& param
 
     switch ((PropertyId)id) {
     case PropertyId::FRAME:
-        param1 = _document->frameList();
+        param1 = _document->frameNames();
         break;
 
     case PropertyId::FLIP:
@@ -88,7 +98,7 @@ void AnimationFramesManager::updateParameters(int index, int id, QVariant& param
 
 void AnimationFramesManager::onSelectedAnimationChanged()
 {
-    MSA::Animation* animation = _document->selection()->selectedAnimation();
+    const MSA::Animation* animation = _document->animationsMap()->selectedAnimation();
 
     if (_animation != animation) {
         _animation = animation;
@@ -180,8 +190,7 @@ bool AnimationFramesManager::setData(int index, int id, const QVariant& value)
         return false;
     }
 
-    const auto& oldFrame = _animation->frames.at(index);
-    MSA::AnimationFrame aFrame = oldFrame;
+    MSA::AnimationFrame aFrame = _animation->frames.at(index);
 
     switch ((PropertyId)id) {
     case PropertyId::FRAME:
@@ -201,57 +210,42 @@ bool AnimationFramesManager::setData(int index, int id, const QVariant& value)
         return false;
     };
 
-    if (aFrame != oldFrame) {
-        _document->undoStack()->push(
-            new ChangeAnimationFrame(_document, _animation, index, aFrame));
-
-        return true;
-    }
-
-    return false;
+    return undoHelper(_document).editItemInSelectedList(index, aFrame);
 }
 
 bool AnimationFramesManager::canInsertItem()
 {
     return _animation != nullptr
-           && _animation->frames.can_insert();
+           && _animation->frames.size() < UnTech::MetaSprite::MAX_ANIMATION_FRAMES;
 }
 
 bool AnimationFramesManager::canCloneItem(int index)
 {
     return _animation != nullptr
-           && _animation->frames.can_insert()
+           && _animation->frames.size() < UnTech::MetaSprite::MAX_ANIMATION_FRAMES
            && index >= 0 && (unsigned)index < _animation->frames.size();
 }
 
 bool AnimationFramesManager::insertItem(int index)
 {
-    if (_animation == nullptr
-        || _animation->frames.can_insert() == false
+    if (canInsertItem() == false
         || index < 0 || (unsigned)index > _animation->frames.size()) {
 
         return false;
     }
 
-    _document->undoStack()->push(
-        new AddAnimationFrame(_document, _animation, index));
-
-    return true;
+    return undoHelper(_document).addItemToSelectedList(index);
 }
 
 bool AnimationFramesManager::cloneItem(int index)
 {
-    if (_animation == nullptr
-        || _animation->frames.can_insert() == false
+    if (canInsertItem() == false
         || index < 0 || (unsigned)index > _animation->frames.size()) {
 
         return false;
     }
 
-    _document->undoStack()->push(
-        new CloneAnimationFrame(_document, _animation, index));
-
-    return true;
+    return undoHelper(_document).cloneItemInSelectedList(index);
 }
 
 bool AnimationFramesManager::removeItem(int index)
@@ -262,10 +256,7 @@ bool AnimationFramesManager::removeItem(int index)
         return false;
     }
 
-    _document->undoStack()->push(
-        new RemoveAnimationFrame(_document, _animation, index));
-
-    return true;
+    return undoHelper(_document).removeItemFromSelectedList(index);
 }
 
 bool AnimationFramesManager::moveItem(int from, int to)
@@ -278,8 +269,5 @@ bool AnimationFramesManager::moveItem(int from, int to)
         return false;
     }
 
-    _document->undoStack()->push(
-        new MoveAnimationFrame(_document, _animation, from, to));
-
-    return true;
+    return undoHelper(_document).moveItemInSelectedList(from, to);
 }

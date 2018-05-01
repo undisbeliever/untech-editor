@@ -8,7 +8,6 @@
 
 #include "durationformat.h"
 #include "../common.h"
-#include "models/common/capped_vector.h"
 #include "models/common/idmap.h"
 #include "models/common/idstring.h"
 #include <string>
@@ -27,8 +26,6 @@ namespace Animation {
 struct Animation;
 
 struct AnimationFrame {
-    typedef capped_vector<AnimationFrame, MAX_ANIMATION_FRAMES> list_t;
-
     NameReference frame;
     uint8_t duration;
 
@@ -45,7 +42,7 @@ struct AnimationFrame {
 struct Animation {
     typedef idmap<Animation> map_t;
 
-    AnimationFrame::list_t frames;
+    std::vector<AnimationFrame> frames;
     DurationFormat durationFormat;
     idstring nextAnimation;
     bool oneShot = false;

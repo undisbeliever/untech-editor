@@ -51,9 +51,12 @@ public:
     virtual QVariant itemChange(GraphicsItemChange change,
                                 const QVariant& value) final;
 
-private slots:
+protected slots:
+    // Subclasses are responsible for connecting the
+    // document changed signals to these slots.
+
     void onFrameAdded();
-    void onFrameAboutToBeRemoved(const void* framePtr);
+    void onFrameAboutToBeRemoved(const idstring& frameId);
     void onFrameDataAndContentsChanged(const void* framePtr);
 
 private:

@@ -10,7 +10,6 @@
 #include "frameset-exportorder.h"
 #include "metasprite.h"
 #include "spriteimporter.h"
-#include "models/common/capped_vector.h"
 #include "models/common/externalfilelist.h"
 #include <memory>
 
@@ -27,8 +26,6 @@ struct Project {
         SPRITE_IMPORTER
     };
     struct FrameSetFile {
-        typedef capped_vector<FrameSetFile, MAX_FRAMESETS> list_t;
-
         std::string filename;
 
         FrameSetType type;
@@ -48,7 +45,7 @@ struct Project {
         FrameSetFile() = default;
     };
 
-    FrameSetFile::list_t frameSets;
+    std::vector<FrameSetFile> frameSets;
     ExternalFileList<FrameSetExportOrder> exportOrders;
 
     Project() = default;

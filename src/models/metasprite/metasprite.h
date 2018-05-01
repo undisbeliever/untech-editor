@@ -11,7 +11,6 @@
 #include "frameset-exportorder.h"
 #include "tilesettype.h"
 #include "animation/animation.h"
-#include "models/common/capped_vector.h"
 #include "models/common/idmap.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
@@ -21,14 +20,14 @@
 
 namespace UnTech {
 namespace MetaSprite {
+struct ErrorList;
+
 namespace MetaSprite {
 
 struct FrameSet;
 struct Frame;
 
 struct FrameObject {
-    typedef capped_vector<FrameObject, MAX_FRAME_OBJECTS> list_t;
-
     ms8point location;
     ObjectSize size;
     unsigned tileId;
@@ -54,7 +53,7 @@ struct FrameObject {
 
     inline unsigned sizePx() const { return static_cast<unsigned>(size); }
 
-    bool isValid(const FrameSet&);
+    bool isValid(const FrameSet&) const;
 
     bool operator==(const FrameObject& o) const
     {
@@ -66,8 +65,6 @@ struct FrameObject {
 };
 
 struct ActionPoint {
-    typedef capped_vector<ActionPoint, MAX_ACTION_POINTS> list_t;
-
     ms8point location;
     ActionPointParameter parameter;
 
@@ -86,8 +83,6 @@ struct ActionPoint {
 };
 
 struct EntityHitbox {
-    typedef capped_vector<EntityHitbox, MAX_ENTITY_HITBOXES> list_t;
-
     ms8rect aabb;
     EntityHitboxType hitboxType;
 
@@ -112,9 +107,9 @@ struct EntityHitbox {
 struct Frame {
     typedef idmap<Frame> map_t;
 
-    FrameObject::list_t objects;
-    ActionPoint::list_t actionPoints;
-    EntityHitbox::list_t entityHitboxes;
+    std::vector<FrameObject> objects;
+    std::vector<ActionPoint> actionPoints;
+    std::vector<EntityHitbox> entityHitboxes;
     SpriteOrderType spriteOrder = DEFAULT_SPRITE_ORDER;
     ms8rect tileHitbox;
     bool solid;
@@ -125,6 +120,8 @@ struct Frame {
         , solid(false)
     {
     }
+
+    bool validate(ErrorList& errorList, const FrameSet& fs) const;
 
     Frame flip(bool hFlip, bool vFlip) const;
 
@@ -146,7 +143,7 @@ struct FrameSet {
 
     Snes::Tileset8px smallTileset;
     Snes::TilesetTile16 largeTileset;
-    capped_vector<Snes::Palette4bpp, MAX_PALETTES> palettes;
+    std::vector<Snes::Palette4bpp> palettes;
 
     FrameSet()
         : name()
@@ -159,6 +156,8 @@ struct FrameSet {
         , palettes()
     {
     }
+
+    bool validate(ErrorList& errorList) const;
 
     bool operator==(const FrameSet& o) const;
     bool operator!=(const FrameSet& o) const { return !(*this == o); }

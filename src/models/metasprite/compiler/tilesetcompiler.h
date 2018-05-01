@@ -10,10 +10,10 @@
 #include "romtiledata.h"
 #include "../errorlist.h"
 #include "../metasprite.h"
+#include "models/common/vectorset.h"
 #include <array>
 #include <cstdint>
 #include <list>
-#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -66,26 +66,26 @@ private:
 
     SmallTileMap_t buildSmallTileMap(const std::vector<FrameListEntry>& frameEntries);
 
-    std::set<Tile16> fixedTilesetData(const std::vector<FrameListEntry>& frameEntries,
-                                      const SmallTileMap_t& smallTileMap) const;
+    vectorset<Tile16> fixedTilesetData(const std::vector<FrameListEntry>& frameEntries,
+                                       const SmallTileMap_t& smallTileMap) const;
 
     DynamicTilesetData dynamicTilesetData(const std::vector<FrameListEntry>& frameEntries,
                                           const SmallTileMap_t& smallTileMap,
                                           const TilesetType tilesetType) const;
 
-    void addFrameToTileset(std::set<Tile16>& tiles,
+    void addFrameToTileset(vectorset<Tile16>& tiles,
                            const MetaSprite::Frame& frame,
                            const SmallTileMap_t& smallTileMap) const;
 
-    std::set<Tile16> calculateStaticTiles(const std::vector<FrameTilesetData>& ftVector,
-                                          const TilesetType tilesetType) const;
+    vectorset<Tile16> calculateStaticTiles(const std::vector<FrameTilesetData>& ftVector,
+                                           const TilesetType tilesetType) const;
 
     std::vector<std::pair<Tile16, unsigned>> countTileUsage(
         const std::vector<FrameTilesetData>& ftVector) const;
 
     FrameSetTilesets buildFixedTileset(const MetaSprite::FrameSet& frameSet,
                                        const TilesetType tilesetType,
-                                       const std::set<Tile16>& tiles);
+                                       const vectorset<Tile16>& tiles);
 
     FrameSetTilesets buildDynamicTileset(const MetaSprite::FrameSet& frameSet,
                                          const TilesetType tilesetType,
@@ -93,7 +93,7 @@ private:
 
     FrameTileset buildTileset(const MetaSprite::FrameSet& frameSet,
                               const TilesetType tilesetType,
-                              const std::set<Tile16>& tiles,
+                              const vectorset<Tile16>& tiles,
                               const unsigned tileOffset = 0);
 
 private:

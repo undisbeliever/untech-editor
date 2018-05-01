@@ -27,8 +27,6 @@ class AnimationPreview;
 namespace MetaSprite {
 
 class Document;
-class Actions;
-class FrameListModel;
 class TilesetPixmaps;
 class MsGraphicsScene;
 class MsAnimationPreviewItemFactory;
@@ -58,13 +56,16 @@ private slots:
 private:
     Document* _document;
 
-    FrameListModel* const _frameListModel;
-    Actions* const _actions;
     LayerSettings* const _layerSettings;
-
     QPushButton* const _layersButton;
 
     TilesetPixmaps* const _tilesetPixmaps;
+
+    FrameSetDock* const _frameSetDock;
+    FrameDock* const _frameDock;
+    Animation::AnimationDock* const _animationDock;
+    PalettesDock* const _palettesDock;
+    TilesetDock* const _tilesetDock;
 
     QTabWidget* const _tabWidget;
     ZoomableGraphicsView* const _graphicsView;
@@ -72,12 +73,6 @@ private:
     Animation::AnimationPreview* const _animationPreview;
 
     MsAnimationPreviewItemFactory* const _animationPreviewItemFactory;
-
-    FrameSetDock* const _frameSetDock;
-    FrameDock* const _frameDock;
-    Animation::AnimationDock* const _animationDock;
-    PalettesDock* const _palettesDock;
-    TilesetDock* const _tilesetDock;
 };
 }
 }

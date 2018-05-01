@@ -5,12 +5,12 @@
  */
 
 #pragma once
+#include "models/common/vectorset.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
 #include <cstring>
 #include <iomanip>
 #include <map>
-#include <set>
 #include <sstream>
 #include <stdexcept>
 
@@ -58,13 +58,13 @@ public:
     }
 
 private:
-    std::set<rgba> getColorsFromImage() const
+    vectorset<rgba> getColorsFromImage() const
     {
         assert(siFrameSet.isImageValid());
 
         const Image& image = *siFrameSet.image;
 
-        std::set<rgba> colors;
+        vectorset<rgba> colors;
 
         for (const auto& siFrameIt : siFrameSet.frames) {
             const SI::Frame& siFrame = siFrameIt.second;
@@ -182,7 +182,7 @@ private:
         const Image& image = *siFrameSet.image;
         const unsigned colorSize = siFrameSet.palette.colorSize;
 
-        std::set<rgba> colorSet = getColorsFromImage();
+        vectorset<rgba> colorSet = getColorsFromImage();
         const rgba* scanline = image.scanline(image.size().height - 1);
 
         for (unsigned i = 0; i < PALETTE_COLORS; i++) {
@@ -205,7 +205,7 @@ private:
 
     inline void buildAutomaticPalette()
     {
-        std::set<rgba> colors = getColorsFromImage();
+        vectorset<rgba> colors = getColorsFromImage();
         assert(colors.size() <= PALETTE_COLORS - 1);
 
         // Store palette in MetaSprite

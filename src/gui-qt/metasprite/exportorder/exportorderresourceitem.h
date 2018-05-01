@@ -16,6 +16,11 @@ namespace GuiQt {
 namespace MetaSprite {
 class ExportOrderResourceList;
 
+namespace ExportOrder {
+class ExportNameList;
+class AlternativesList;
+}
+
 namespace RES = UnTech::Resources;
 
 class ExportOrderResourceItem : public AbstractExternalResourceItem {
@@ -41,33 +46,34 @@ public:
 
     const DataT::ExportName& exportName(bool isFrame, unsigned index);
 
-protected:
-    friend class EditExportOrderExportNameCommand;
-    void setExportName(bool isFrame, unsigned index, const idstring& name);
-
-    friend class EditExportOrderAlternativeCommand;
-    void setExportNameAlternative(bool isFrame, unsigned index, unsigned altIndex,
-                                  const NameReference& alt);
+    ExportOrder::ExportNameList* exportNameList() const { return _exportNameList; }
+    ExportOrder::AlternativesList* alternativesList() const { return _alternativesList; }
 
 protected:
     virtual void saveResourceData(const std::string& filename) const final;
     virtual bool loadResourceData(RES::ErrorList& err) final;
     virtual bool compileResource(RES::ErrorList& err) final;
 
-signals:
-    void exportNameChanged(bool isFrame, unsigned index);
-    void exportNameAltChanged(bool isFrame, unsigned index, unsigned altIndex);
+    friend class ExportOrder::ExportNameList;
+    friend class ExportOrder::AlternativesList;
+    DataT* exportOrderEditable()
+    {
+        return project()->metaSpriteProject()->exportOrders.at(index());
+    }
 
 private:
     inline const auto& exportOrderList() const
     {
         return project()->metaSpriteProject()->exportOrders;
     }
-
     inline auto& exportOrderItem()
     {
         return project()->metaSpriteProject()->exportOrders.item(index());
     }
+
+private:
+    ExportOrder::ExportNameList* const _exportNameList;
+    ExportOrder::AlternativesList* const _alternativesList;
 };
 }
 }

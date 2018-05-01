@@ -5,10 +5,10 @@
  */
 
 #include "combinesmalltilesets.h"
+#include "models/common/vectorset.h"
 #include <algorithm>
 #include <climits>
 #include <list>
-#include <set>
 
 namespace UnTech {
 namespace MetaSprite {
@@ -24,14 +24,14 @@ namespace MS = UnTech::MetaSprite::MetaSprite;
 struct FirstPassOutput {
     unsigned firstTile = UINT_MAX;
     unsigned secondTile = UINT_MAX;
-    std::set<const MS::Frame*> frames;
+    vectorset<const MS::Frame*> frames;
 };
 
-int scoreTiles(const std::vector<const MS::Frame*>& a, const std::set<const MS::Frame*>& b)
+int scoreTiles(const std::vector<const MS::Frame*>& a, const vectorset<const MS::Frame*>& b)
 {
     int score = 0;
     for (const auto& f : a) {
-        if (b.count(f) == 1) {
+        if (b.contains(f)) {
             score += 3;
         }
         else {
@@ -41,11 +41,11 @@ int scoreTiles(const std::vector<const MS::Frame*>& a, const std::set<const MS::
     return score;
 }
 
-int scoreTiles(const std::set<const MS::Frame*>& a, const std::set<const MS::Frame*>& b)
+int scoreTiles(const vectorset<const MS::Frame*>& a, const vectorset<const MS::Frame*>& b)
 {
     int score = 0;
     for (const auto& f : a) {
-        if (b.count(f) == 1) {
+        if (b.contains(f)) {
             score += 3;
         }
         else {
@@ -72,8 +72,7 @@ inline std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
 
         auto bestMatch = toProcess.end();
         {
-            const std::set<const MetaSprite::Frame*> cmp(mostPopular->second.begin(),
-                                                         mostPopular->second.end());
+            const vectorset<const MetaSprite::Frame*> cmp(mostPopular->second);
 
             int bestScore = INT_MIN;
             auto it = toProcess.begin();

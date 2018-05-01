@@ -5,20 +5,21 @@
  */
 
 #include "animationpreview.h"
-#include "animationlistmodel.h"
+#include "animationaccessors.h"
+#include "animationdock.h"
 #include "animationpreviewitem.h"
+#include "gui-qt/accessor/idmaplistmodel.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
-#include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/animation/animationpreview.ui.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
-AnimationPreview::AnimationPreview(QWidget* parent)
+AnimationPreview::AnimationPreview(AnimationDock* animationDock, QWidget* parent)
     : QWidget(parent)
     , _ui(new Ui::AnimationPreview)
-    , _animationListModel(new AnimationListModel(this))
+    , _animationListModel(animationDock->animationListModel())
     , _graphicsScene(new QGraphicsScene(this))
     , _itemFactory(nullptr)
     , _zoomSettings(nullptr)
@@ -28,6 +29,8 @@ AnimationPreview::AnimationPreview(QWidget* parent)
     , _elapsed()
     , _nsSinceLastFrame()
 {
+    Q_ASSERT(animationDock);
+
     _ui->setupUi(this);
 
     _ui->animation->setModel(_animationListModel);
@@ -104,23 +107,21 @@ void AnimationPreview::setDocument(AbstractMsDocument* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->selection()->disconnect(this);
+        _document->animationFramesList()->disconnect(this);
     }
     _document = document;
-
-    _animationListModel->setDocument(_document);
 
     setEnabled(_document != nullptr);
 
     if (_document) {
         onSelectedAnimationChanged();
 
-        connect(_document, &AbstractMsDocument::animationFrameChanged,
+        connect(_document->animationFramesList(), &AnimationFramesList::dataChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
-        connect(_document, &AbstractMsDocument::animationFrameListChanged,
+        connect(_document->animationFramesList(), &AnimationFramesList::listChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
 
-        connect(_document->selection(), &AbstractSelection::selectedAnimationChanged,
+        connect(_document->animationFramesList(), &AnimationFramesList::selectedListChanged,
                 this, &AnimationPreview::onSelectedAnimationChanged);
     }
     else {
@@ -153,7 +154,7 @@ void AnimationPreview::createPreviewItem()
     onRegionChanged();
     onVelocityChanged();
 
-    _previewItem->setAnimation(_document->selection()->selectedAnimationId());
+    _previewItem->setAnimation(_document->animationsMap()->selectedId());
 
     updateGui();
 }
@@ -212,7 +213,7 @@ void AnimationPreview::onSelectedAnimationChanged()
 {
     Q_ASSERT(_document);
 
-    const idstring& id = _document->selection()->selectedAnimationId();
+    const idstring& id = _document->animationsMap()->selectedId();
 
     _ui->animation->setCurrentIndex(
         _animationListModel->toModelIndex(id).row());
@@ -242,7 +243,7 @@ void AnimationPreview::onAnimationFramesChanged()
 void AnimationPreview::onAnimationComboActivated()
 {
     const idstring id = _ui->animation->currentText().toStdString();
-    _document->selection()->selectAnimation(id);
+    _document->animationsMap()->setSelectedId(id);
 }
 
 void AnimationPreview::onVelocityChanged()

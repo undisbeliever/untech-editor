@@ -162,6 +162,22 @@ QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewI
         return nullptr;
     }
 
+    QWidget* editor = createEditorWidget(parent, model, index, property);
+    if (editor) {
+        connect(model, &AbstractPropertyModel::requestCloseEditors,
+                editor, [=]() {
+                    // Close editor when underlying data is about to change
+
+                    // I know this is bad but QSignalMapper is deprecated
+                    emit const_cast<PropertyDelegate*>(this)->closeEditor(editor, EndEditHint::NoHint);
+                });
+    }
+    return editor;
+}
+
+QWidget* PropertyDelegate::createEditorWidget(QWidget* parent, const AbstractPropertyModel* model,
+                                              const QModelIndex& index, const Property& property) const
+{
     if (property.isList && model && !model->isListItem(index)) {
         // container node of a list type
         ListItemWidget* li = new ListItemWidget(model, index, parent);

@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "selection.h"
 #include "gui-qt/common/properties/propertytablemanager.h"
 #include "models/metasprite/metasprite.h"
 #include <QStringList>
@@ -16,6 +15,7 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
 class Document;
+class AbstractFrameContentAccessor;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -34,18 +34,18 @@ public:
     virtual void setDocument(Document* document);
 
 protected:
-    virtual SelectedItem::Type itemType() const = 0;
+    void connectSignals(AbstractFrameContentAccessor* accessor);
 
-protected slots:
+private slots:
     void onSelectedFrameChanged();
 
-    void onItemChanged(const void* frame, unsigned index);
-    void onItemAdded(const void* frame, unsigned index);
-    void onItemAboutToBeRemoved(const void* frame, unsigned index);
+    void onItemChanged(const void* frame, size_t index);
+    void onListChanged(const void* frame);
 
 protected:
     Document* _document;
-    MS::Frame* _frame;
+
+    const MS::Frame* _frame;
 };
 
 class FrameObjectManager : public AbstractFrameContentManager {
@@ -71,9 +71,6 @@ public:
     virtual QVariant data(int index, int id) const final;
     virtual void updateParameters(int index, int id, QVariant& param1, QVariant& param2) const final;
     virtual bool setData(int index, int id, const QVariant& value) final;
-
-protected:
-    virtual SelectedItem::Type itemType() const final;
 };
 
 class ActionPointManager : public AbstractFrameContentManager {
@@ -94,9 +91,6 @@ public:
     virtual int rowCount() const final;
     virtual QVariant data(int index, int id) const final;
     virtual bool setData(int index, int id, const QVariant& value) final;
-
-protected:
-    virtual SelectedItem::Type itemType() const final;
 };
 
 class EntityHitboxManager : public AbstractFrameContentManager {
@@ -117,9 +111,6 @@ public:
     virtual int rowCount() const final;
     virtual QVariant data(int index, int id) const final;
     virtual bool setData(int index, int id, const QVariant& value) final;
-
-protected:
-    virtual SelectedItem::Type itemType() const final;
 };
 }
 }

@@ -56,6 +56,10 @@ signals:
     // subclasses MUST emit this signal if the data changes
     void dataChanged();
 
+    // subclesses should emit this signal if underlying list is about to change.
+    // When emitted it will cause the PropertyDelegate to close all open editors.
+    void listAboutToChange();
+
 private:
     QVector<Property> _properties;
     bool _enabled;

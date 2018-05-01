@@ -5,10 +5,8 @@
  */
 
 #include "siframegraphicsitem.h"
-#include "actions.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
-#include "gui-qt/metasprite/abstractselection.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
@@ -18,17 +16,17 @@
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame,
-                                         Actions* actions, Style* style,
+                                         QMenu* contextMenu, Style* style,
                                          QGraphicsItem* parent)
     : AabbGraphicsItem(parent)
     , _frame(frame)
-    , _actions(actions)
+    , _contextMenu(contextMenu)
     , _style(style)
     , _showTileHitbox(true)
     , _frameSelected(false)
 {
     Q_ASSERT(frame != nullptr);
-    Q_ASSERT(actions != nullptr);
+    Q_ASSERT(contextMenu != nullptr);
     Q_ASSERT(style != nullptr);
 
     setPen(style->frameOutlinePen());
@@ -39,8 +37,6 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame,
     _tileHitbox->setBrush(style->tileHitboxBrush());
     _tileHitbox->setFlag(QGraphicsItem::ItemIsSelectable);
     _tileHitbox->setFlag(QGraphicsItem::ItemIsMovable);
-    _tileHitbox->setData(SELECTION_ID, QVariant::fromValue<SelectedItem>(
-                                           { SelectedItem::TILE_HITBOX, 0 }));
 
     _horizontalOrigin = new QGraphicsLineItem(this);
     _horizontalOrigin->setZValue(ORIGIN_ZVALUE);
@@ -51,29 +47,16 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame,
     _verticalOrigin->setPen(style->originPen());
 
     updateFrameLocation();
-    updateTileHitbox();
+    onFrameDataChanged();
 
     for (unsigned i = 0; i < frame->objects.size(); i++) {
-        addFrameObject(i);
+        addFrameObject();
     }
     for (unsigned i = 0; i < frame->actionPoints.size(); i++) {
-        addActionPoint(i);
+        addActionPoint();
     }
     for (unsigned i = 0; i < frame->entityHitboxes.size(); i++) {
-        addEntityHitbox(i);
-    }
-}
-
-template <class T>
-void SiFrameGraphicsItem::updateItemIndexes(QList<T*>& list, unsigned start,
-                                            unsigned baseZValue,
-                                            const SelectedItem::Type& type)
-{
-    for (unsigned i = start; int(i) < list.size(); i++) {
-        list.at(i)->setZValue(baseZValue - i);
-
-        SelectedItem si = { type, i };
-        list.at(i)->setData(SELECTION_ID, QVariant::fromValue(si));
+        addEntityHitbox();
     }
 }
 
@@ -94,24 +77,33 @@ void SiFrameGraphicsItem::setFrameSelected(bool sel)
     }
 }
 
-void SiFrameGraphicsItem::updateSelection(const std::set<SelectedItem>& selection)
+template <typename T>
+static void updateSelection(QList<T>& items, const UnTech::vectorset<size_t>& selectedIndexes)
 {
-    auto processList = [&](auto list, SelectedItem::Type type) {
-        SelectedItem si{ type, 0 };
+    for (int i = 0; i < items.size(); i++) {
+        QGraphicsItem* item = items.at(i);
+        item->setSelected(selectedIndexes.contains(i));
+    }
+}
 
-        for (QGraphicsItem* item : list) {
-            item->setSelected(selection.find(si) != selection.end());
-            si.index++;
-        }
-    };
+void SiFrameGraphicsItem::updateFrameObjectSelection(const vectorset<size_t>& selectedIndexes)
+{
+    updateSelection(_objects, selectedIndexes);
+}
 
-    processList(_objects, SelectedItem::FRAME_OBJECT);
-    processList(_actionPoints, SelectedItem::ACTION_POINT);
-    processList(_entityHitboxes, SelectedItem::ENTITY_HITBOX);
+void SiFrameGraphicsItem::updateActionPointSelection(const vectorset<size_t>& selectedIndexes)
+{
+    updateSelection(_actionPoints, selectedIndexes);
+}
 
-    _tileHitbox->setSelected(
-        std::any_of(selection.begin(), selection.end(),
-                    [](auto& s) { return s.type == SelectedItem::TILE_HITBOX; }));
+void SiFrameGraphicsItem::updateEntityHitboxSelection(const vectorset<size_t>& selectedIndexes)
+{
+    updateSelection(_entityHitboxes, selectedIndexes);
+}
+
+void SiFrameGraphicsItem::updateTileHitboxSelected(bool s)
+{
+    _tileHitbox->setSelected(s);
 }
 
 void SiFrameGraphicsItem::updateFrameLocation()
@@ -138,18 +130,23 @@ void SiFrameGraphicsItem::updateFrameLocation()
     }
 }
 
-void SiFrameGraphicsItem::updateTileHitbox()
+void SiFrameGraphicsItem::onFrameDataChanged()
 {
+    // Do not update frame location, there is a seperate signal for that
+
     _tileHitbox->setVisible(_showTileHitbox & _frame->solid);
     _tileHitbox->setRect(_frame->tileHitbox);
 }
 
-void SiFrameGraphicsItem::addFrameObject(unsigned index)
+void SiFrameGraphicsItem::addFrameObject()
 {
+    size_t index = _objects.size();
+    Q_ASSERT(index < _frame->objects.size());
+
     auto* item = new AabbGraphicsItem(this);
-    _objects.insert(index, item);
-    updateItemIndexes(_objects, index,
-                      FRAME_OBJECT_ZVALUE, SelectedItem::FRAME_OBJECT);
+    _objects.append(item);
+
+    item->setZValue(FRAME_OBJECT_ZVALUE - index);
 
     item->setRange(0, 0, _frame->location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
@@ -160,7 +157,7 @@ void SiFrameGraphicsItem::addFrameObject(unsigned index)
     updateFrameObject(index);
 }
 
-void SiFrameGraphicsItem::updateFrameObject(unsigned index)
+void SiFrameGraphicsItem::updateFrameObject(size_t index)
 {
     const SI::FrameObject& obj = _frame->objects.at(index);
     auto* item = _objects.at(index);
@@ -168,20 +165,17 @@ void SiFrameGraphicsItem::updateFrameObject(unsigned index)
     item->setRect(obj.location, obj.sizePx());
 }
 
-void SiFrameGraphicsItem::removeFrameObject(unsigned index)
+void SiFrameGraphicsItem::addActionPoint()
 {
-    auto* item = _objects.takeAt(index);
-    delete item;
-    updateItemIndexes(_objects, index,
-                      FRAME_OBJECT_ZVALUE, SelectedItem::FRAME_OBJECT);
-}
+    Q_ASSERT(_frame);
 
-void SiFrameGraphicsItem::addActionPoint(unsigned index)
-{
+    unsigned index = _actionPoints.size();
+    Q_ASSERT(index < _frame->actionPoints.size());
+
     auto* item = new AabbGraphicsItem(this);
-    _actionPoints.insert(index, item);
-    updateItemIndexes(_actionPoints, index,
-                      ACTION_POINT_ZVALUE, SelectedItem::ACTION_POINT);
+    _actionPoints.append(item);
+
+    item->setZValue(ACTION_POINT_ZVALUE - index);
 
     item->setRange(0, 0, _frame->location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
@@ -193,7 +187,7 @@ void SiFrameGraphicsItem::addActionPoint(unsigned index)
     updateActionPoint(index);
 }
 
-void SiFrameGraphicsItem::updateActionPoint(unsigned index)
+void SiFrameGraphicsItem::updateActionPoint(size_t index)
 {
     const SI::ActionPoint& ap = _frame->actionPoints.at(index);
     auto* item = _actionPoints.at(index);
@@ -201,20 +195,17 @@ void SiFrameGraphicsItem::updateActionPoint(unsigned index)
     item->setPos(ap.location);
 }
 
-void SiFrameGraphicsItem::removeActionPoint(unsigned index)
+void SiFrameGraphicsItem::addEntityHitbox()
 {
-    auto* item = _actionPoints.takeAt(index);
-    delete item;
-    updateItemIndexes(_actionPoints, index,
-                      ACTION_POINT_ZVALUE, SelectedItem::ACTION_POINT);
-}
+    Q_ASSERT(_frame);
 
-void SiFrameGraphicsItem::addEntityHitbox(unsigned index)
-{
+    size_t index = _entityHitboxes.size();
+    Q_ASSERT(index < _frame->entityHitboxes.size());
+
     auto* item = new ResizableAabbGraphicsItem(this);
-    _entityHitboxes.insert(index, item);
-    updateItemIndexes(_entityHitboxes, index,
-                      ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);
+    _entityHitboxes.append(item);
+
+    item->setZValue(ENTITY_HITBOX_ZVALUE - index);
 
     item->setRange(0, 0, _frame->location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
@@ -223,7 +214,7 @@ void SiFrameGraphicsItem::addEntityHitbox(unsigned index)
     updateEntityHitbox(index);
 }
 
-void SiFrameGraphicsItem::updateEntityHitbox(unsigned index)
+void SiFrameGraphicsItem::updateEntityHitbox(size_t index)
 {
     const SI::EntityHitbox& eh = _frame->entityHitboxes.at(index);
     auto* item = _entityHitboxes.at(index);
@@ -232,27 +223,6 @@ void SiFrameGraphicsItem::updateEntityHitbox(unsigned index)
     item->setBrush(_style->entityHitboxBrush(eh.hitboxType));
 
     item->setRect(eh.aabb);
-}
-
-void SiFrameGraphicsItem::removeEntityHitbox(unsigned index)
-{
-    auto* item = _entityHitboxes.takeAt(index);
-    delete item;
-    updateItemIndexes(_entityHitboxes, index,
-                      ENTITY_HITBOX_ZVALUE, SelectedItem::ENTITY_HITBOX);
-}
-
-void SiFrameGraphicsItem::updateFrameContents()
-{
-    for (int i = 0; i < _objects.size(); i++) {
-        updateFrameObject(i);
-    }
-    for (int i = 0; i < _actionPoints.size(); i++) {
-        updateActionPoint(i);
-    }
-    for (int i = 0; i < _entityHitboxes.size(); i++) {
-        updateEntityHitbox(i);
-    }
 }
 
 void SiFrameGraphicsItem::updateLayerSettings(const LayerSettings* settings)
@@ -279,36 +249,32 @@ void SiFrameGraphicsItem::updateLayerSettings(const LayerSettings* settings)
 void SiFrameGraphicsItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
     if (_frameSelected) {
-        QMenu menu;
-        bool addSep = false;
-        if (_actions->toggleObjSize()->isEnabled()) {
-            menu.addAction(_actions->toggleObjSize());
-            addSep = true;
-        }
-        if (_actions->entityHitboxTypeMenu()->isEnabled()) {
-            menu.addMenu(_actions->entityHitboxTypeMenu());
-            addSep = true;
-        }
-        if (addSep) {
-            menu.addSeparator();
-        }
-        menu.addAction(_actions->addFrameObject());
-        menu.addAction(_actions->addActionPoint());
-        menu.addAction(_actions->addEntityHitbox());
-        menu.addSeparator();
-        menu.addAction(_actions->addRemoveTileHitbox());
-
-        if (_actions->removeSelected()->isEnabled()) {
-            menu.addSeparator();
-            menu.addAction(_actions->raiseSelected());
-            menu.addAction(_actions->lowerSelected());
-            menu.addAction(_actions->cloneSelected());
-            menu.addAction(_actions->removeSelected());
-        }
-
-        menu.exec(event->screenPos());
+        _contextMenu->exec(event->screenPos());
     }
     else {
         event->ignore();
     }
 }
+
+#define ON_LIST_CHANGED(CLS, ITEM_LIST, FRAME_LIST)  \
+                                                     \
+    void SiFrameGraphicsItem::on##CLS##ListChanged() \
+    {                                                \
+        int flSize = _frame->FRAME_LIST.size();      \
+                                                     \
+        while (ITEM_LIST.size() > flSize) {          \
+            auto* item = ITEM_LIST.takeLast();       \
+            delete item;                             \
+        }                                            \
+                                                     \
+        for (int i = 0; i < ITEM_LIST.size(); i++) { \
+            update##CLS(i);                          \
+        }                                            \
+                                                     \
+        while (ITEM_LIST.size() < flSize) {          \
+            add##CLS();                              \
+        }                                            \
+    }
+ON_LIST_CHANGED(FrameObject, _objects, objects)
+ON_LIST_CHANGED(ActionPoint, _actionPoints, actionPoints)
+ON_LIST_CHANGED(EntityHitbox, _entityHitboxes, entityHitboxes)

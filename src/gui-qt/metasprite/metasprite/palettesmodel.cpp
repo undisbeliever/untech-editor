@@ -5,6 +5,7 @@
  */
 
 #include "palettesmodel.h"
+#include "accessors.h"
 #include "document.h"
 
 #include <QImage>
@@ -28,19 +29,20 @@ void PalettesModel::setDocument(Document* document)
 
     if (_document) {
         _document->disconnect(this);
+        _document->paletteList()->disconnect(this);
     }
     _document = document;
 
     updateAllPixmaps();
 
     if (_document) {
-        connect(_document, &Document::paletteChanged,
+        connect(_document->paletteList(), &PaletteList::dataChanged,
                 this, &PalettesModel::onPaletteChanged);
-        connect(_document, &Document::paletteAdded,
+        connect(_document->paletteList(), &PaletteList::itemAdded,
                 this, &PalettesModel::onPaletteAdded);
-        connect(_document, &Document::paletteAboutToBeRemoved,
+        connect(_document->paletteList(), &PaletteList::itemAboutToBeRemoved,
                 this, &PalettesModel::onPaletteAboutToBeRemoved);
-        connect(_document, &Document::paletteMoved,
+        connect(_document->paletteList(), &PaletteList::itemMoved,
                 this, &PalettesModel::onPaletteMoved);
     }
 
@@ -77,6 +79,13 @@ QPixmap PalettesModel::palettePixmap(unsigned index)
 
 QModelIndex PalettesModel::toModelIndex(unsigned index) const
 {
+    if (_document == nullptr
+        || _document->frameSet() == nullptr
+        || index >= _document->frameSet()->palettes.size()) {
+
+        return QModelIndex();
+    }
+
     return createIndex(index, 0);
 }
 
@@ -111,7 +120,7 @@ QVariant PalettesModel::data(const QModelIndex& index, int role) const
     return _palettePixmaps.at(index.row());
 }
 
-void PalettesModel::onPaletteChanged(unsigned index)
+void PalettesModel::onPaletteChanged(size_t index)
 {
     Q_ASSERT(_document != nullptr);
 
@@ -125,7 +134,7 @@ void PalettesModel::onPaletteChanged(unsigned index)
                      { Qt::DecorationRole });
 }
 
-void PalettesModel::onPaletteAdded(unsigned index)
+void PalettesModel::onPaletteAdded(size_t index)
 {
     Q_ASSERT(_document != nullptr);
 
@@ -139,7 +148,7 @@ void PalettesModel::onPaletteAdded(unsigned index)
     endInsertRows();
 }
 
-void PalettesModel::onPaletteAboutToBeRemoved(unsigned index)
+void PalettesModel::onPaletteAboutToBeRemoved(size_t index)
 {
     Q_ASSERT(_document != nullptr);
 
@@ -153,7 +162,7 @@ void PalettesModel::onPaletteAboutToBeRemoved(unsigned index)
     endRemoveRows();
 }
 
-void PalettesModel::onPaletteMoved(unsigned fromIndex, unsigned toIndex)
+void PalettesModel::onPaletteMoved(size_t fromIndex, size_t toIndex)
 {
     Q_ASSERT(_document != nullptr);
 

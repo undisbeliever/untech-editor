@@ -62,7 +62,7 @@ private slots:
 
 private:
     AbstractMsDocument* _document;
-    MSA::Animation* _animation;
+    const MSA::Animation* _animation;
 };
 }
 }

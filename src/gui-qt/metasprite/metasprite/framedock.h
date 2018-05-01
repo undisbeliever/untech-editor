@@ -6,10 +6,13 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
 #include "models/metasprite/metasprite.h"
 #include <QDockWidget>
 #include <QItemSelection>
 #include <memory>
+
+class QMenu;
 
 namespace UnTech {
 namespace GuiQt {
@@ -20,9 +23,7 @@ namespace MetaSprite {
 namespace Ui {
 class FrameDock;
 }
-class Actions;
 class Document;
-class FrameListModel;
 class FrameObjectManager;
 class ActionPointManager;
 class EntityHitboxManager;
@@ -33,41 +34,55 @@ class FrameDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    FrameDock(FrameListModel* frameListModel, Actions* actions,
+    FrameDock(Accessor::IdmapListModel* frameListModel,
               QWidget* parent = nullptr);
     ~FrameDock();
 
     void setDocument(Document* document);
+
+    QMenu* frameContentsContextMenu() const;
+    void populateMenu(QMenu* editMenu);
 
     void clearGui();
 
 private slots:
     void onSelectedFrameChanged();
     void onFrameComboBoxActivated();
-    void updateFrameContentsSelection();
 
     void onFrameDataChanged(const void* frame);
 
     void updateGui();
 
+    void updateFrameActions();
+    void updateFrameObjectActions();
+    void updateEntityHitboxTypeMenu();
+
     void onSpriteOrderEdited();
     void onSolidClicked();
     void onTileHitboxEdited();
 
-    void onFrameContentsSelectionChanged();
-    void onFrameContentsContextMenu(const QPoint& pos);
+    void onAddRemoveTileHitbox();
+    void onToggleObjSize();
+    void onFlipObjHorizontally();
+    void onFlipObjVertically();
+
+    void onEntityHitboxTypeMenu(QAction* action);
 
 private:
     std::unique_ptr<Ui::FrameDock> const _ui;
-    FrameListModel* const _frameListModel;
-    Actions* const _actions;
+    Accessor::IdmapListModel* const _frameListModel;
 
     Document* _document;
 
     FrameObjectManager* const _frameObjectManager;
     ActionPointManager* const _actionPointManager;
     EntityHitboxManager* const _entityHitboxManager;
-    PropertyTableModel* const _frameContentsModel;
+
+    QAction* const _addRemoveTileHitbox;
+    QAction* const _toggleObjSize;
+    QAction* const _flipObjHorizontally;
+    QAction* const _flipObjVertically;
+    QMenu* const _entityHitboxTypeMenu;
 };
 }
 }

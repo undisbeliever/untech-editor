@@ -20,7 +20,6 @@ namespace MetaSprite {
 namespace Ui {
 class PalettesDock;
 }
-class Actions;
 class Document;
 class PalettesModel;
 
@@ -28,13 +27,14 @@ class PalettesDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    PalettesDock(Actions* actions, QWidget* parent = nullptr);
+    PalettesDock(QWidget* parent = nullptr);
     ~PalettesDock();
 
     void setDocument(Document* document);
 
 private slots:
-    void updatePaletteListSelection();
+    void updateActions();
+    void onSelectedPaletteChanged();
     void onPaletteListSelectionChanged();
     void onPaletteContextMenu(const QPoint& pos);
 
@@ -44,12 +44,17 @@ private slots:
 
     void uncheckColorButtons();
 
+    void onActionAdd();
+    void onActionClone();
+    void onActionRaise();
+    void onActionLower();
+    void onActionRemove();
+
 private:
     void editColorDialog(int colorIndex);
 
 private:
     std::unique_ptr<Ui::PalettesDock> const _ui;
-    Actions* const _actions;
     PalettesModel* const _model;
 
     Document* _document;

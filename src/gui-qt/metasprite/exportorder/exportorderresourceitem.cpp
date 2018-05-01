@@ -5,6 +5,7 @@
  */
 
 #include "exportorderresourceitem.h"
+#include "exportorderaccessors.h"
 #include "exportorderresourcelist.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "models/metatiles/metatiles-serializer.h"
@@ -18,67 +19,12 @@ using FrameSetExportOrder = UnTech::MetaSprite::FrameSetExportOrder;
 
 ExportOrderResourceItem::ExportOrderResourceItem(ExportOrderResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _exportNameList(new ExportOrder::ExportNameList(this))
+    , _alternativesList(new ExportOrder::AlternativesList(this))
 {
     Q_ASSERT(index < exportOrderList().size());
 
     setFilename(QString::fromStdString(exportOrderItem().filename));
-}
-
-const FrameSetExportOrder::ExportName& ExportOrderResourceItem::exportName(bool isFrame, unsigned index)
-{
-    static const FrameSetExportOrder::ExportName blankExportName;
-
-    auto* eo = exportOrder();
-    if (eo == nullptr) {
-        return blankExportName;
-    }
-
-    const auto& nameList = isFrame ? eo->stillFrames : eo->animations;
-
-    if (index < nameList.size()) {
-        return nameList.at(index);
-    }
-    else {
-        return blankExportName;
-    }
-}
-
-void ExportOrderResourceItem::setExportName(bool isFrame, unsigned index,
-                                            const idstring& name)
-{
-    auto* eo = exportOrderItem().value.get();
-    if (eo == nullptr) {
-        return;
-    }
-
-    auto& nameList = isFrame ? eo->stillFrames : eo->animations;
-    Q_ASSERT(index < nameList.size());
-
-    nameList.at(index).name = name;
-
-    emit exportNameChanged(isFrame, index);
-    emit dataChanged();
-}
-
-void ExportOrderResourceItem::setExportNameAlternative(bool isFrame, unsigned index,
-                                                       unsigned altIndex, const NameReference& alt)
-{
-    auto* eo = exportOrderItem().value.get();
-    if (eo == nullptr) {
-        return;
-    }
-
-    auto& nameList = isFrame ? eo->stillFrames : eo->animations;
-
-    Q_ASSERT(index < nameList.size());
-    FrameSetExportOrder::ExportName& exportName = nameList.at(index);
-
-    Q_ASSERT(altIndex < exportName.alternatives.size());
-
-    exportName.alternatives.at(altIndex) = alt;
-
-    emit exportNameAltChanged(isFrame, index, altIndex);
-    emit dataChanged();
 }
 
 void ExportOrderResourceItem::saveResourceData(const std::string& filename) const

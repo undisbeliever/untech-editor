@@ -9,6 +9,7 @@
 #include "models/metasprite/common.h"
 #include <QDockWidget>
 #include <QList>
+#include <QUndoCommand>
 #include <memory>
 
 namespace UnTech {
@@ -33,7 +34,7 @@ public:
     void setDocument(Document* document);
 
 private slots:
-    void onSelectedItemsChanged();
+    void onSelectedFrameObjectsChanged();
     void onFrameObjectChanged(const void* frame, unsigned index);
     void onTileClicked(ObjectSize size, int tileIndex);
     void onContextMenu(const QPoint& pos);
@@ -41,6 +42,9 @@ private slots:
 private:
     // returns -1 if more than one frame object is selected
     int selectedFrameObjectIndex() const;
+
+    void pushAddTileCommand(QUndoCommand* c, unsigned tileId, ObjectSize size);
+    void pushRemoveTileCommand(QUndoCommand* c, unsigned tileId, ObjectSize size);
 
 private:
     std::unique_ptr<Ui::TilesetDock> const _ui;

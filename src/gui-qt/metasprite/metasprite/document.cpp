@@ -5,9 +5,8 @@
  */
 
 #include "document.h"
-#include "framelistmodel.h"
-#include "palettesmodel.h"
-#include "selection.h"
+#include "accessors.h"
+#include "gui-qt/metasprite/animation/animationaccessors.h"
 
 using FrameSetType = UnTech::MetaSprite::Project::FrameSetType;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
@@ -15,7 +14,13 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 Document::Document(FrameSetResourceList* parent, size_t index)
     : AbstractMsDocument(parent, index)
     , _frameSet(nullptr)
-    , _selection(new Selection(this))
+    , _smallTileTileset(new SmallTileTileset(this))
+    , _largeTileTileset(new LargeTileTileset(this))
+    , _paletteList(new PaletteList(this))
+    , _frameMap(new FrameMap(this))
+    , _frameObjectList(new FrameObjectList(this))
+    , _actionPointList(new ActionPointList(this))
+    , _entityHitboxList(new EntityHitboxList(this))
 {
     Q_ASSERT(index < frameSetList().size());
     Q_ASSERT(frameSetFile().type == FrameSetType::METASPRITE);
@@ -26,22 +31,9 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
     connect(this, &Document::frameSetNameChanged,
             this, &Document::onFrameSetNameChanged);
-
-    connect(this, &Document::paletteChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::paletteListChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::smallTilesetChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::largeTilesetChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::smallTileChanged,
-            this, &AbstractResourceItem::dataChanged);
-    connect(this, &Document::largeTileChanged,
-            this, &AbstractResourceItem::dataChanged);
 }
 
-QStringList Document::frameList() const
+QStringList Document::frameNames() const
 {
     QStringList fl;
 
@@ -66,7 +58,9 @@ void Document::resetDocumentState()
         setName(QString());
     }
 
-    _selection->unselectAll();
+    paletteList()->unselectItem();
+    frameMap()->unselectItem();
+    animationsMap()->unselectItem();
 }
 
 void Document::saveResourceData(const std::string& filename) const

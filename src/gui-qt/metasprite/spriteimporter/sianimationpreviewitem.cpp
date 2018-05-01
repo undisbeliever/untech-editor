@@ -5,6 +5,7 @@
  */
 
 #include "sianimationpreviewitem.h"
+#include "accessors.h"
 #include "document.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
@@ -49,10 +50,33 @@ SiAnimationPreviewItem::SiAnimationPreviewItem(LayerSettings* layerSettings,
     Q_ASSERT(style != nullptr);
     Q_ASSERT(document != nullptr);
 
-    connect(_document, &Document::frameObjectChanged,
+    connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
             this, &SiAnimationPreviewItem::onFrameObjectsChanged);
-    connect(_document, &Document::frameObjectListChanged,
+    connect(_document->frameObjectList(), &FrameObjectList::listChanged,
             this, &SiAnimationPreviewItem::onFrameObjectsChanged);
+
+    // Required connections to AnimationPreviewItem slots
+
+    connect(_document->frameMap(), &FrameMap::itemAdded,
+            this, &SiAnimationPreviewItem::onFrameAdded);
+    connect(_document->frameMap(), &FrameMap::itemAboutToBeRemoved,
+            this, &SiAnimationPreviewItem::onFrameAboutToBeRemoved);
+
+    connect(_document->frameMap(), &FrameMap::dataChanged,
+            this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
+
+    connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
+            this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->frameObjectList(), &FrameObjectList::listChanged,
+            this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->actionPointList(), &ActionPointList::dataChanged,
+            this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->actionPointList(), &ActionPointList::listChanged,
+            this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->entityHitboxList(), &EntityHitboxList::dataChanged,
+            this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
+    connect(_document->entityHitboxList(), &EntityHitboxList::listChanged,
+            this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
 }
 
 void SiAnimationPreviewItem::onFrameObjectsChanged(const void* framePtr)

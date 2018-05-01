@@ -9,7 +9,6 @@
 #include "models/metasprite/project.h"
 #include <algorithm>
 #include <climits>
-#include <set>
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 using Compiler = UnTech::MetaSprite::Compiler::Compiler;
@@ -108,8 +107,7 @@ void Compiler::processNullFrameSet()
 
 void Compiler::processFrameSet(const MS::FrameSet& frameSet)
 {
-    if (frameSet.exportOrder.isValid() == false) {
-        _errorList.addError(frameSet, "No frameset export order");
+    if (frameSet.validate(_errorList) == false) {
         return processNullFrameSet();
     }
 

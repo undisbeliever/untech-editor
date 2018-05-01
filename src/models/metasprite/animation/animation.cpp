@@ -39,6 +39,10 @@ bool AnimationFrame::isValid(const MS::FrameSet& frameSet) const
 template <class FrameSetT>
 bool Animation::_isValid(const FrameSetT& frameSet) const
 {
+    if (frameSet.animations.size() > MAX_ANIMATION_FRAMES) {
+        return false;
+    }
+
     if (oneShot == false && nextAnimation.isValid()) {
         if (frameSet.animations.contains(nextAnimation) == false) {
             return false;

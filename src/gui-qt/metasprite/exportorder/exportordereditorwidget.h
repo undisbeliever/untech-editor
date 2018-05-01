@@ -28,6 +28,30 @@ public:
     void setExportOrderResource(ExportOrderResourceItem* item);
 
 private:
+    void showEditorForCurrentIndex();
+    void closeEditor();
+
+    void addExportName(bool isFrame);
+
+private slots:
+    void updateSelection();
+    void updateActions();
+    void onViewSelectionChanged();
+
+    void onContextMenuRequested(const QPoint& pos);
+
+    void onActionAddFrame();
+    void onActionAddAnimation();
+    void onActionAddAlternative();
+    void onActionCloneSelected();
+    void onActionRemoveSelected();
+
+    void onActionRaiseToTop();
+    void onActionRaise();
+    void onActionLower();
+    void onActionLowerToBottom();
+
+private:
     std::unique_ptr<Ui::ExportOrderEditorWidget> const _ui;
     ExportOrderModel* const _model;
 

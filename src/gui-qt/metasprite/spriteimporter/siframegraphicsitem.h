@@ -4,8 +4,10 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#pragma once
+
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
-#include "gui-qt/metasprite/abstractselection.h"
+#include "models/common/vectorset.h"
 #include "models/metasprite/spriteimporter.h"
 
 #include <QGraphicsLineItem>
@@ -21,7 +23,6 @@ class Style;
 class LayerSettings;
 
 namespace SpriteImporter {
-class Actions;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -33,51 +34,51 @@ public:
     static const unsigned ACTION_POINT_ZVALUE = 400;
     static const unsigned ORIGIN_ZVALUE = 500;
 
-    static const int SELECTION_ID = 0;
-
 public:
-    SiFrameGraphicsItem(SI::Frame* frame, Actions* actions, Style* style,
+    SiFrameGraphicsItem(SI::Frame* frame, QMenu* contextMenu, Style* style,
                         QGraphicsItem* parent = nullptr);
     ~SiFrameGraphicsItem() = default;
 
     const SI::Frame* frame() const { return _frame; }
 
+    const auto* tileHitbox() const { return _tileHitbox; }
+    const auto& objects() const { return _objects; }
+    const auto& actionPoints() const { return _actionPoints; }
+    const auto& entityHitboxes() const { return _entityHitboxes; }
+
     bool frameSelected() const { return _frameSelected; }
     void setFrameSelected(bool selected);
 
-    void updateSelection(const std::set<SelectedItem>& selection);
+    void updateFrameObjectSelection(const vectorset<size_t>& selectedIndexes);
+    void updateActionPointSelection(const vectorset<size_t>& selectedIndexes);
+    void updateEntityHitboxSelection(const vectorset<size_t>& selectedIndexes);
+
+    void updateTileHitboxSelected(bool s);
 
     void updateFrameLocation();
-    void updateTileHitbox();
-
-    void addFrameObject(unsigned index);
-    void updateFrameObject(unsigned index);
-    void removeFrameObject(unsigned index);
-
-    void addActionPoint(unsigned index);
-    void updateActionPoint(unsigned index);
-    void removeActionPoint(unsigned index);
-
-    void addEntityHitbox(unsigned index);
-    void updateEntityHitbox(unsigned index);
-    void removeEntityHitbox(unsigned index);
-
-    void updateFrameContents();
+    void onFrameDataChanged();
 
     void updateLayerSettings(const LayerSettings* settings);
+
+    void updateFrameObject(size_t index);
+    void updateActionPoint(size_t index);
+    void updateEntityHitbox(size_t index);
+
+    void onFrameObjectListChanged();
+    void onActionPointListChanged();
+    void onEntityHitboxListChanged();
 
 protected:
     virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
-    template <class T>
-    static void updateItemIndexes(QList<T*>& list, unsigned start,
-                                  unsigned baseZValue,
-                                  const SelectedItem::Type& type);
+    void addFrameObject();
+    void addActionPoint();
+    void addEntityHitbox();
 
 private:
-    SI::Frame* _frame;
-    Actions* _actions;
+    const SI::Frame* _frame;
+    QMenu* _contextMenu;
     Style* _style;
     bool _showTileHitbox;
     bool _frameSelected;
