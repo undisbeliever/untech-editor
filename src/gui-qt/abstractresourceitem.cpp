@@ -127,7 +127,8 @@ void AbstractExternalResourceItem::setFilename(const QString& filename)
 {
     QString absFilePath;
     if (!filename.isEmpty()) {
-        absFilePath = QFileInfo(filename).absoluteFilePath();
+        absFilePath = QDir::toNativeSeparators(
+            QFileInfo(filename).absoluteFilePath());
     }
 
     if (_absoluteFilePath != absFilePath) {
@@ -156,7 +157,8 @@ void AbstractExternalResourceItem::updateRelativePath()
     if (!_absoluteFilePath.isEmpty()) {
         const auto& docFn = _project->filename();
         if (!docFn.isEmpty()) {
-            relPath = QFileInfo(docFn).absoluteDir().relativeFilePath(_absoluteFilePath);
+            relPath = QDir::toNativeSeparators(
+                QFileInfo(docFn).absoluteDir().relativeFilePath(_absoluteFilePath));
         }
         else {
             relPath = _absoluteFilePath;

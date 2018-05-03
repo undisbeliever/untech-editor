@@ -7,6 +7,7 @@
 #include "listitemwidget.h"
 #include "abstractpropertymodel.h"
 
+#include <QDir>
 #include <QFileDialog>
 #include <QHBoxLayout>
 
@@ -89,7 +90,10 @@ void ListItemWidget::onAddButtonClicked()
         const QStringList filenames = QFileDialog::getOpenFileNames(
             this, QString(), QString(), params.first.toString());
 
-        _stringList.append(filenames);
+        for (const QString& fn : filenames) {
+            _stringList.append(QDir::toNativeSeparators(fn));
+        }
+
         emit listEdited();
     } break;
     }

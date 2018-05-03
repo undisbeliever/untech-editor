@@ -6,6 +6,7 @@
 
 #include "filenameinputwidget.h"
 
+#include <QDir>
 #include <QFileDialog>
 #include <QHBoxLayout>
 
@@ -68,8 +69,9 @@ void FilenameInputWidget::setBlankFilenameAccepted(bool allowBlankFilename)
 
 void FilenameInputWidget::showDialog()
 {
-    const QString fn = QFileDialog::getOpenFileName(
-        this, _dialogTitle, filename(), _dialogFilter);
+    const QString fn = QDir::toNativeSeparators(
+        QFileDialog::getOpenFileName(
+            this, _dialogTitle, filename(), _dialogFilter));
 
     if (_blankFilenameAccepted || !fn.isNull()) {
         setFilename(fn);
