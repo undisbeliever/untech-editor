@@ -28,6 +28,7 @@
 #include "resources/palette/paletteeditor.h"
 #include "resources/resourcefile/resourcefileeditor.h"
 
+#include <QCloseEvent>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
