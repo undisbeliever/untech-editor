@@ -300,10 +300,9 @@ void MainWindow::onSelectedResourceChanged()
     bool foundEditor = false;
     for (AbstractEditor* editor : _editors) {
         bool s = editor->setResourceItem(_project.get(), _selectedResource);
-        if (s) {
+        if (s && foundEditor == false) {
             setEditor(editor);
             foundEditor = true;
-            break;
         }
     }
 
