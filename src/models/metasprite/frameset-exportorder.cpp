@@ -13,6 +13,7 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
+namespace UnTech {
 template <>
 const std::string HumanTypeName<FrameSetExportOrder>::value = "FrameSet Export Order";
 
@@ -23,6 +24,7 @@ template <>
 void ExternalFileItem<FrameSetExportOrder>::loadFile()
 {
     value = loadFrameSetExportOrder(filename);
+}
 }
 
 static bool validateAlternativesUnique(const std::vector<NameReference>& alts,

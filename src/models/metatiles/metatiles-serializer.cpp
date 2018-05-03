@@ -15,6 +15,13 @@ using namespace UnTech;
 using namespace UnTech::Xml;
 
 namespace UnTech {
+
+template <>
+void UnTech::ExternalFileItem<MetaTiles::MetaTileTilesetInput>::loadFile()
+{
+    value = MetaTiles::loadMetaTileTilesetInput(filename);
+}
+
 namespace MetaTiles {
 
 const std::string MetaTileTilesetInput::FILE_EXTENSION = "utmt";
@@ -124,10 +131,4 @@ void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::stri
     file.commit();
 }
 }
-}
-
-template <>
-void UnTech::ExternalFileItem<MetaTiles::MetaTileTilesetInput>::loadFile()
-{
-    value = MetaTiles::loadMetaTileTilesetInput(filename);
 }
