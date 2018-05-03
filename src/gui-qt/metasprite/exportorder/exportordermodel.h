@@ -36,7 +36,7 @@ public:
     constexpr static int N_ROOT_ROWS = 2;
 
     union InternalIdFormat {
-        constexpr static int INDEX_BITS = 31;
+        constexpr static int INDEX_BITS = sizeof(quintptr) > 4 ? 31 : 15;
         constexpr static quintptr NO_INDEX = (1U << INDEX_BITS) - 1;
 
         quintptr data = ~(quintptr(0));
