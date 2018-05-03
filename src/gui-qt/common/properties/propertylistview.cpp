@@ -41,7 +41,9 @@ PropertyListView::PropertyListView(QWidget* parent)
         a->setIcon(QIcon(icon));
         a->setShortcut(shortcut);
         a->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
         a->setShortcutVisibleInContextMenu(true);
+#endif
         addAction(a);
 
         return a;
