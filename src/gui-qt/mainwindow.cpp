@@ -429,6 +429,7 @@ void MainWindow::onMenuNew(QAction* action)
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     saveDialog.setNameFilter(loader->fileFilter());
     saveDialog.setDefaultSuffix(loader->fileExtension());
+    saveDialog.setOption(QFileDialog::DontUseNativeDialog);
 
     saveDialog.exec();
 
@@ -452,7 +453,8 @@ void MainWindow::onMenuOpen()
     }
 
     const QString filename = QFileDialog::getOpenFileName(
-        this, tr("Open Project"), QString(), ALL_FILE_FILTERS);
+        this, tr("Open Project"), QString(), ALL_FILE_FILTERS,
+        nullptr, QFileDialog::DontUseNativeDialog);
 
     if (!filename.isNull()) {
         loadProject(filename);

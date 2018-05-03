@@ -69,9 +69,11 @@ void FilenameInputWidget::setBlankFilenameAccepted(bool allowBlankFilename)
 
 void FilenameInputWidget::showDialog()
 {
+    // DontUseNativeDialog is required to prevent a segfault on my Win7 VM
     const QString fn = QDir::toNativeSeparators(
         QFileDialog::getOpenFileName(
-            this, _dialogTitle, filename(), _dialogFilter));
+            this, _dialogTitle, filename(), _dialogFilter,
+            nullptr, QFileDialog::DontUseNativeDialog));
 
     if (_blankFilenameAccepted || !fn.isNull()) {
         setFilename(fn);

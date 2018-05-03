@@ -286,7 +286,8 @@ QStringList PropertyListView::showAddFilenameDialog(const Property& property)
     _manager->updateParameters(property.id, filter, param2);
 
     QStringList filenames = QFileDialog::getOpenFileNames(
-        this, QString(), QString(), filter.toString());
+        this, QString(), QString(), filter.toString(),
+        nullptr, QFileDialog::DontUseNativeDialog);
 
     for (QString& fn : filenames) {
         fn = QDir::toNativeSeparators(fn);

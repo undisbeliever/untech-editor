@@ -153,7 +153,8 @@ void AbstractSingleDocumentMainWindow::onMenuOpen()
     std::unique_ptr<AbstractDocument> doc = createDocumentInstance();
 
     const QString filename = QFileDialog::getOpenFileName(
-        this, tr("Open"), QString(), doc->fileFilter());
+        this, tr("Open"), QString(), doc->fileFilter(),
+        nullptr, QFileDialog::DontUseNativeDialog);
 
     if (!filename.isNull()) {
         loadDocument(filename);
@@ -194,6 +195,7 @@ bool AbstractSingleDocumentMainWindow::onMenuSaveAs()
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     saveDialog.setNameFilter(_document->fileFilter());
     saveDialog.setDefaultSuffix(_document->defaultFileExtension());
+    saveDialog.setOption(QFileDialog::DontUseNativeDialog);
 
     if (!_document->filename().isEmpty()) {
         saveDialog.selectFile(_document->filename());

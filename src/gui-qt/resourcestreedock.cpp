@@ -134,6 +134,7 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
         dialog.setNameFilter(settings.filter);
         dialog.setDefaultSuffix(settings.extension);
         dialog.setDirectory(dir.absolutePath());
+        dialog.setOption(QFileDialog::DontUseNativeDialog);
         dialog.exec();
 
         if (dialog.result() == QDialog::Accepted && !dialog.selectedFiles().empty()) {
