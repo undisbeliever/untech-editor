@@ -195,6 +195,9 @@ struct XmlTag {
     {
         auto v = getAttribute(aName);
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+        std::replace(v.begin(), v.end(), '/', '\\');
+#endif
         return File::joinPath(xml->dirname(), v);
     }
 

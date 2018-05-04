@@ -12,6 +12,7 @@
 #include "gui-qt/common/idstringdialog.h"
 #include "gui-qt/resourcestreedock.ui.h"
 
+#include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QToolButton>
@@ -133,6 +134,7 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
         dialog.setNameFilter(settings.filter);
         dialog.setDefaultSuffix(settings.extension);
         dialog.setDirectory(dir.absolutePath());
+        dialog.setOption(QFileDialog::DontUseNativeDialog);
         dialog.exec();
 
         if (dialog.result() == QDialog::Accepted && !dialog.selectedFiles().empty()) {
@@ -153,6 +155,7 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
 
             QString relativeFn = QFileInfo(_project->filename()).absoluteDir().relativeFilePath(input);
             if (relativeFn.startsWith("..") || QFileInfo(relativeFn).isRelative() == false) {
+                relativeFn = QDir::toNativeSeparators(relativeFn);
                 QMessageBox verifyDialog(QMessageBox::Warning,
                                          tr("Something is not quite right..."),
                                          tr("The file \"%1\" is outside the resource file's directory."

@@ -149,8 +149,12 @@ void PropertyListModel::invalidateCache()
 
 void PropertyListModel::updateAll()
 {
-    int lastRow = _manager->propertiesList().size() - 1;
-    emit dataChanged(createIndex(0, VALUE_COLUMN, int(0)),
+    if (_manager->propertiesList().isEmpty()) {
+        return;
+    }
+
+    quintptr lastRow = _manager->propertiesList().size() - 1;
+    emit dataChanged(createIndex(0, VALUE_COLUMN, quintptr(0)),
                      createIndex(lastRow, VALUE_COLUMN, lastRow),
                      { Qt::DisplayRole, Qt::EditRole });
     emit layoutChanged();

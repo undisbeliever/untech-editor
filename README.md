@@ -28,6 +28,28 @@ It currently contains 8 apps:
     ROM and is incompatible with the lz4 standard).
 
 
+NOTICE
+======
+
+The UnTech Editor suite is a hobbyist project and I cannot guarantee
+that this code is bug free, nor can I guarantee that it won't crash
+unexpectedly.
+
+I **seriously recommend** that you use version control and save
+regularly if you use this program.
+
+
+Build Requirements
+==================
+
+To build the UnTech Editor the following must be installed and available
+in your $PATH:
+
+ * GNU Make
+ * A C++14 compiler (g++ or clang++)
+ * Qt 5.8 or higher
+
+
 License
 =======
 This repository's code is licensed under [The MIT License](LICENSE).

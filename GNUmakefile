@@ -161,7 +161,9 @@ ifeq ($(CXXWARNINGS),)
   ifneq ($(findstring g++,$(CXX)),)
     GCC_MAJOR := $(firstword $(subst ., ,$(shell $(CXX) -dumpversion)))
 
-    ifeq ($(GCC_MAJOR),5)
+    ifeq ($(GCC_MAJOR),4)
+        CXXWARNINGS += -Wno-missing-field-initializers
+    else ifeq ($(GCC_MAJOR),5)
        CXXWARNINGS += -Wlogical-op -Wdouble-promotion -Wformat=2
     else ifeq ($(GCC_MAJOR),6)
        CXXWARNINGS += -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wdouble-promotion -Wformat=2

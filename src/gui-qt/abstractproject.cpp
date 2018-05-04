@@ -9,6 +9,7 @@
 #include "abstractresourcelist.h"
 #include "resourcevalidationworker.h"
 
+#include <QDir>
 #include <QFileInfo>
 #include <QMessageBox>
 
@@ -56,9 +57,10 @@ void AbstractProject::setSelectedResource(AbstractResourceItem* item)
 
 bool AbstractProject::saveProject(const QString& filename)
 {
-    QString absFilename = QFileInfo(filename).absoluteFilePath();
-    bool success = false;
+    QString absFilename = QDir::toNativeSeparators(
+        QFileInfo(filename).absoluteFilePath());
 
+    bool success = false;
     try {
         success = saveProjectFile(absFilename);
     }
@@ -89,9 +91,10 @@ bool AbstractProject::saveProject(const QString& filename)
 
 bool AbstractProject::loadProject(const QString& filename)
 {
-    QString absFilename = QFileInfo(filename).absoluteFilePath();
-    bool success = false;
+    QString absFilename = QDir::toNativeSeparators(
+        QFileInfo(filename).absoluteFilePath());
 
+    bool success = false;
     try {
         success = loadProjectFile(absFilename);
         if (success) {

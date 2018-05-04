@@ -28,6 +28,7 @@
 #include "resources/palette/paletteeditor.h"
 #include "resources/resourcefile/resourcefileeditor.h"
 
+#include <QCloseEvent>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -299,10 +300,9 @@ void MainWindow::onSelectedResourceChanged()
     bool foundEditor = false;
     for (AbstractEditor* editor : _editors) {
         bool s = editor->setResourceItem(_project.get(), _selectedResource);
-        if (s) {
+        if (s && foundEditor == false) {
             setEditor(editor);
             foundEditor = true;
-            break;
         }
     }
 
@@ -428,6 +428,7 @@ void MainWindow::onMenuNew(QAction* action)
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     saveDialog.setNameFilter(loader->fileFilter());
     saveDialog.setDefaultSuffix(loader->fileExtension());
+    saveDialog.setOption(QFileDialog::DontUseNativeDialog);
 
     saveDialog.exec();
 
@@ -451,7 +452,8 @@ void MainWindow::onMenuOpen()
     }
 
     const QString filename = QFileDialog::getOpenFileName(
-        this, tr("Open Project"), QString(), ALL_FILE_FILTERS);
+        this, tr("Open Project"), QString(), ALL_FILE_FILTERS,
+        nullptr, QFileDialog::DontUseNativeDialog);
 
     if (!filename.isNull()) {
         loadProject(filename);

@@ -24,8 +24,12 @@ const QStringList ExportOrderModel::FLIP_STRINGS({ QString(),
 constexpr quintptr NO_INDEX = ExportOrderModel::InternalIdFormat::NO_INDEX;
 
 constexpr ExportOrderModel::InternalIdFormat invalidInternalId;
+
+#if !defined(__GNUC__) || __GNUC__ > 5
+// g++ 5.3.0-i686-w64-mingw32 encounters an internal compiler error
 static_assert(invalidInternalId.index == NO_INDEX, "bad InvalidInternalId");
 static_assert(invalidInternalId.altIndex == NO_INDEX, "bad InvalidInternalId");
+#endif
 
 ExportOrderModel::ExportOrderModel(QObject* parent)
     : AbstractPropertyModel(parent)

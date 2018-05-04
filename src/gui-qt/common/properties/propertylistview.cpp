@@ -41,7 +41,9 @@ PropertyListView::PropertyListView(QWidget* parent)
         a->setIcon(QIcon(icon));
         a->setShortcut(shortcut);
         a->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
         a->setShortcutVisibleInContextMenu(true);
+#endif
         addAction(a);
 
         return a;
@@ -283,8 +285,15 @@ QStringList PropertyListView::showAddFilenameDialog(const Property& property)
 
     _manager->updateParameters(property.id, filter, param2);
 
-    return QFileDialog::getOpenFileNames(
-        this, QString(), QString(), filter.toString());
+    QStringList filenames = QFileDialog::getOpenFileNames(
+        this, QString(), QString(), filter.toString(),
+        nullptr, QFileDialog::DontUseNativeDialog);
+
+    for (QString& fn : filenames) {
+        fn = QDir::toNativeSeparators(fn);
+    }
+
+    return filenames;
 }
 
 void PropertyListView::setModel(QAbstractItemModel*)

@@ -7,6 +7,7 @@
 #include "listitemwidget.h"
 #include "abstractpropertymodel.h"
 
+#include <QDir>
 #include <QFileDialog>
 #include <QHBoxLayout>
 
@@ -86,10 +87,15 @@ void ListItemWidget::onAddButtonClicked()
     case Type::FILENAME_LIST: {
         auto params = _model->propertyParametersForIndex(_index);
 
-        const QStringList filenames = QFileDialog::getOpenFileNames(
-            this, QString(), QString(), params.first.toString());
+        // DontUseNativeDialog is required to prevent a segfault on my Win7 VM
+        QStringList filenames = QFileDialog::getOpenFileNames(
+            this, QString(), QString(), params.first.toString(),
+            nullptr, QFileDialog::DontUseNativeDialog);
 
-        _stringList.append(filenames);
+        for (const QString& fn : filenames) {
+            _stringList.append(QDir::toNativeSeparators(fn));
+        }
+
         emit listEdited();
     } break;
     }
