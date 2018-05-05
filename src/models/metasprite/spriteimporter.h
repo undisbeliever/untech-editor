@@ -229,7 +229,6 @@ struct FrameSet {
     Animation::Animation::map_t animations;
 
     std::string imageFilename;
-    std::shared_ptr<Image> image;
     UnTech::rgba transparentColor;
     UserSuppliedPalette palette;
     FrameSetGrid grid;
@@ -247,14 +246,6 @@ struct FrameSet {
     }
 
     void updateFrameLocations();
-
-    void loadImage(const std::string filename);
-
-    // reloads ALL references to Image
-    // this is valid because they would share the same imageFilename
-    bool reloadImage();
-
-    bool isImageValid() const { return image && !image->empty(); }
 
     bool operator==(const FrameSet& o) const;
     bool operator!=(const FrameSet& o) const { return !(*this == o); }

@@ -57,8 +57,6 @@ private slots:
     void onFrameSetNameChanged();
     void onFrameSetImageFilenameChanged();
 
-    void onExternalFilesModified();
-
 private:
     void resetDocumentState();
 

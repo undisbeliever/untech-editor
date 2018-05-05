@@ -23,6 +23,7 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 class PaletteConverter {
     const SI::FrameSet& siFrameSet;
+    const Image& image;
     MS::FrameSet& msFrameSet;
     ErrorList& errorList;
 
@@ -31,9 +32,11 @@ class PaletteConverter {
 
 public:
     PaletteConverter(const SI::FrameSet& siFrameSet,
+                     const Image& image,
                      MS::FrameSet& msFrameSet,
                      ErrorList& errorList)
         : siFrameSet(siFrameSet)
+        , image(image)
         , msFrameSet(msFrameSet)
         , errorList(errorList)
         , _colorMap()
@@ -60,9 +63,7 @@ public:
 private:
     vectorset<rgba> getColorsFromImage() const
     {
-        assert(siFrameSet.isImageValid());
-
-        const Image& image = *siFrameSet.image;
+        assert(image.empty() == false);
 
         vectorset<rgba> colors;
 
@@ -101,8 +102,6 @@ private:
 
     inline void buildUserSuppliedPalettes()
     {
-        const Image& image = *siFrameSet.image;
-
         validateUserSuppliedPalettes();
 
         const unsigned colorSize = siFrameSet.palette.colorSize;
@@ -127,7 +126,7 @@ private:
 
     inline void validateUserSuppliedPalettes() const
     {
-        const usize imageSize = siFrameSet.image->size();
+        const usize imageSize = image.size();
         const usize paletteSize = siFrameSet.palette.paletteSize();
 
         if (imageSize.width < paletteSize.width || imageSize.height < paletteSize.height) {
@@ -143,7 +142,6 @@ private:
 
     inline void validateUserSuppliedPalette(unsigned pal) const
     {
-        const Image& image = *siFrameSet.image;
         const unsigned colorSize = siFrameSet.palette.colorSize;
         const unsigned yPos = image.size().height - pal * colorSize - 1;
 
@@ -179,7 +177,6 @@ private:
 
     inline void validateFirstUserSuppliedPalette() const
     {
-        const Image& image = *siFrameSet.image;
         const unsigned colorSize = siFrameSet.palette.colorSize;
 
         vectorset<rgba> colorSet = getColorsFromImage();

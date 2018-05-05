@@ -9,6 +9,7 @@
 #include "document.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
+#include "models/common/imagecache.h"
 
 #include <QPainter>
 
@@ -150,7 +151,10 @@ void SiAnimationPreviewItem::drawFrameObjects()
     _frameObjects.fill(0);
 
     const SI::FrameSet& frameSet = *_document->frameSet();
-    const usize fsImgSize = frameSet.image ? frameSet.image->size() : usize();
+    const auto fsImage = ImageCache::loadPngImage(frameSet.imageFilename);
+    Q_ASSERT(fsImage);
+
+    const auto& fsImgSize = fsImage->size();
 
     for (int i = _frame->objects.size() - 1; i >= 0; i--) {
         const SI::FrameObject& obj = _frame->objects.at(i);
@@ -168,12 +172,10 @@ void SiAnimationPreviewItem::drawFrameObjects()
                                 && tileY + tileSize <= fsImgSize.height;
 
         if (objInsideFsImage) {
-            Q_ASSERT(frameSet.image);
-
             for (unsigned y = 0; y < tileSize; y++) {
                 QRgb* imgBits = reinterpret_cast<QRgb*>(_frameObjects.scanLine(oLoc.y + y)) + oLoc.x;
 
-                const rgba* fsBits = frameSet.image->scanline(tileY + y) + tileX;
+                const rgba* fsBits = fsImage->scanline(tileY + y) + tileX;
 
                 for (unsigned x = 0; x < tileSize; x++) {
                     const rgba& c = fsBits[x];

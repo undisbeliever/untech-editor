@@ -90,8 +90,6 @@ void SiGraphicsScene::setDocument(Document* document)
 
         connect(_document, &Document::externalFilesModified,
                 this, &SiGraphicsScene::updateFrameSetPixmap);
-        connect(_document, &Document::externalFilesModified,
-                this, &SiGraphicsScene::updatePaletteOutline);
         connect(_document, &Document::frameSetPaletteChanged,
                 this, &SiGraphicsScene::updatePaletteOutline);
         connect(_document, &Document::frameSetGridChanged,
@@ -376,7 +374,7 @@ void SiGraphicsScene::onSceneSelectionChanged()
 
 void SiGraphicsScene::updateFrameSetPixmap()
 {
-    if (_document && _document->frameSet()->isImageValid()) {
+    if (_document && _document->frameSet()->imageFilename.empty() == false) {
         const std::string& fn = _document->frameSet()->imageFilename;
 
         QPixmap p(QString::fromStdString(fn), "PNG");
@@ -386,6 +384,8 @@ void SiGraphicsScene::updateFrameSetPixmap()
         _frameSetPixmap->setPixmap(QPixmap());
     }
 
+    updatePaletteOutline();
+
     setSceneRect(itemsBoundingRect());
 }
 
@@ -394,10 +394,10 @@ void SiGraphicsScene::updatePaletteOutline()
     const SI::FrameSet* frameSet = _document->frameSet();
     const auto& palette = frameSet->palette;
 
-    if (frameSet->image && palette.usesUserSuppliedPalette()) {
+    if (palette.usesUserSuppliedPalette()) {
         const unsigned colorSize = palette.colorSize;
         const usize paletteSize = palette.paletteSize();
-        const usize imageSize = frameSet->image->size();
+        const QSize imageSize = _frameSetPixmap->pixmap().size();
 
         QPainterPath path;
         path.addRect(0, 0, paletteSize.width, paletteSize.height);
@@ -407,7 +407,7 @@ void SiGraphicsScene::updatePaletteOutline()
         }
 
         _paletteOutline->setPath(path);
-        _paletteOutline->setPos(0, imageSize.height - paletteSize.height);
+        _paletteOutline->setPos(0, imageSize.height() - paletteSize.height);
         _paletteOutline->setVisible(true);
     }
     else {

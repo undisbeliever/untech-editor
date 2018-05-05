@@ -35,10 +35,11 @@ class TileExtractor {
 
 public:
     TileExtractor(const SpriteImporter::FrameSet& siFrameSet,
+                  const Image& image,
                   MetaSprite::FrameSet& msFrameSet,
                   ErrorList& errorList,
                   const std::map<rgba, unsigned>& colorMap)
-        : image(*siFrameSet.image)
+        : image(image)
         , colorMap(colorMap)
         , siFrameSet(siFrameSet)
         , msFrameSet(msFrameSet)
@@ -46,7 +47,7 @@ public:
         , smallTileset(msFrameSet.smallTileset)
         , largeTileset(msFrameSet.largeTileset)
     {
-        assert(siFrameSet.isImageValid());
+        assert(!image.empty());
     }
 
     const Snes::TilesetInserterOutput getTilesetOutputFromImage(const SI::Frame& frame,

@@ -31,9 +31,6 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
     connect(this, &Document::frameSetImageFilenameChanged,
             this, &Document::onFrameSetImageFilenameChanged);
-
-    connect(this, &Document::externalFilesModified,
-            this, &Document::onExternalFilesModified);
 }
 
 QStringList Document::frameNames() const
@@ -133,11 +130,4 @@ void Document::onFrameSetImageFilenameChanged()
         filenames << QString::fromStdString(fs->imageFilename);
     }
     setExternalFiles(filenames);
-}
-
-void Document::onExternalFilesModified()
-{
-    if (auto* fs = frameSet()) {
-        fs->reloadImage();
-    }
 }
