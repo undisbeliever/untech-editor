@@ -89,17 +89,31 @@ void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item, const Q
 {
     Q_ASSERT(item);
 
+    const QStringList watchedFiles = _watcher->files();
     const QStringList previousFilenames = _itemToFilenames.value(item);
 
+    bool emitModified = previousFilenames != nativeFilenames;
+
     {
-        // Always try to add the filenames to the watcher.
+        // Check the watched/existing status of every filename.
         // It may not have existed in the past, but it could exist now.
 
         QStringList toWatch;
         toWatch.reserve(nativeFilenames.size());
-        for (const QString& fn : nativeFilenames) {
-            if (QFile::exists(fn)) {
-                toWatch << fn;
+
+        for (const QString& nativePath : nativeFilenames) {
+            QString path = QDir::fromNativeSeparators(nativePath);
+
+            bool fileUnwatched = watchedFiles.contains(path) == false;
+            bool fileExists = QFile::exists(nativePath);
+
+            if (fileUnwatched && fileExists) {
+                toWatch << path;
+
+                emitModified = true;
+            }
+            if (fileUnwatched || !fileExists) {
+                ImageCache::invalidateFilename(nativePath.toStdString());
             }
         }
 
@@ -147,8 +161,10 @@ void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item, const Q
         _itemToFilenames.remove(item);
     }
 
-    if (nativeFilenames != previousFilenames) {
+    if (emitModified) {
         emit item->externalFilesModified();
+
+        item->markUnchecked();
     }
 }
 
