@@ -28,6 +28,12 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
     connect(this, &Document::frameSetNameChanged,
             this, &Document::onFrameSetNameChanged);
+
+    connect(this, &Document::frameSetImageFilenameChanged,
+            this, &Document::onFrameSetImageFilenameChanged);
+
+    connect(this, &Document::externalFilesModified,
+            this, &Document::onExternalFilesModified);
 }
 
 QStringList Document::frameNames() const
@@ -54,6 +60,7 @@ void Document::resetDocumentState()
     else {
         setName(QString());
     }
+    onFrameSetImageFilenameChanged();
 
     frameMap()->unselectItem();
     animationsMap()->unselectItem();
@@ -115,4 +122,24 @@ void Document::onFrameSetNameChanged()
     else {
         setName(QString());
     }
+}
+
+void Document::onFrameSetImageFilenameChanged()
+{
+    const SI::FrameSet* fs = frameSet();
+
+    QStringList filenames;
+    if (fs && fs->imageFilename.empty() == false) {
+        filenames << QString::fromStdString(fs->imageFilename);
+    }
+    setExternalFiles(filenames);
+}
+
+void Document::onExternalFilesModified()
+{
+    if (auto* fs = frameSet()) {
+        fs->reloadImage();
+    }
+
+    emit frameSetImageChanged();
 }

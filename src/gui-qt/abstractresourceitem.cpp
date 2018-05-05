@@ -83,6 +83,15 @@ void AbstractResourceItem::setState(ResourceState state)
     }
 }
 
+void AbstractResourceItem::setExternalFiles(const QStringList& externalFiles)
+{
+    if (_externalFiles != externalFiles) {
+        _externalFiles = externalFiles;
+
+        emit externalFilesChanged();
+    }
+}
+
 /*
  * AbstractInternalResourceItem
  */

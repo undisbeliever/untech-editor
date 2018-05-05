@@ -7,6 +7,7 @@
 #include "abstractproject.h"
 #include "abstractresourceitem.h"
 #include "abstractresourcelist.h"
+#include "filesystemwatcher.h"
 #include "resourcevalidationworker.h"
 
 #include <QDir>
@@ -21,6 +22,7 @@ AbstractProject::AbstractProject(QObject* parent)
     , _filename()
     , _undoStack(new QUndoStack(this))
     , _validationWorker(new ResourceValidationWorker(this))
+    , _filesystemWatcher(new FilesystemWatcher(this))
     , _selectedResource(nullptr)
 {
 }

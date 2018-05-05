@@ -6,6 +6,7 @@
 
 #include "mttilesetresourceitem.h"
 #include "mttilesetresourcelist.h"
+#include "gui-qt/common/helpers.h"
 #include "models/metatiles/metatiles-serializer.h"
 
 using namespace UnTech::GuiQt::Resources;
@@ -33,6 +34,8 @@ void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
         setName(QString::fromStdString(data.name));
     }
     if (imagesChange) {
+        setExternalFiles(convertStringList(data.animationFrames.frameImageFilenames));
+
         emit frameImageFilenamesChanged();
     }
 }
@@ -58,6 +61,7 @@ bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
     try {
         tilesetItem.loadFile();
         setName(QString::fromStdString(tilesetInput()->name));
+        setExternalFiles(convertStringList(tilesetInput()->animationFrames.frameImageFilenames));
         return true;
     }
     catch (const std::exception& ex) {

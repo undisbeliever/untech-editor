@@ -52,13 +52,8 @@ private slots:
 
     void onSelectedFrameChanged();
 
-    void onFrameSetImageFilenameChanged();
-    void onImageFileChanged();
-
 private:
     Document* _document;
-
-    QFileSystemWatcher _imageFileWatcher;
 
     LayerSettings* const _layerSettings;
 
