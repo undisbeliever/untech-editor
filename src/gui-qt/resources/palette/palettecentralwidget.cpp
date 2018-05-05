@@ -152,9 +152,6 @@ PaletteGraphicsItem::PaletteGraphicsItem(PaletteResourceItem* item)
 
     updatePixmap();
 
-    connect(_palette, &PaletteResourceItem::imageFilenameChanged,
-            this, &PaletteGraphicsItem::updatePixmap);
-
     connect(_palette, &PaletteResourceItem::externalFilesModified,
             this, &PaletteGraphicsItem::updatePixmap);
 }

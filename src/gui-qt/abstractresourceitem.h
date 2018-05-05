@@ -76,6 +76,9 @@ protected:
 
 signals:
     void externalFilesChanged();
+
+    // Emitted by FilesystemWatcher when the externalFiles list changes or when
+    // the external files have been modified by the filesystem.
     void externalFilesModified();
 
     // MUST be emitted by the subclass when the internal data changes

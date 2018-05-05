@@ -35,8 +35,6 @@ void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
     }
     if (imagesChange) {
         setExternalFiles(convertStringList(data.animationFrames.frameImageFilenames));
-
-        emit frameImageFilenamesChanged();
     }
 }
 

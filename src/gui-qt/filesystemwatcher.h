@@ -37,7 +37,7 @@ private:
     void updateExternalFiles(AbstractResourceItem* item);
     void removeResourceItem(AbstractResourceItem* item);
 
-    void updateWatcherAndMaps(AbstractResourceItem* item, const QStringList& filenames);
+    void updateWatcherAndMaps(AbstractResourceItem* item, const QStringList& nativeFilenames);
 
 private:
     AbstractProject* const _project;

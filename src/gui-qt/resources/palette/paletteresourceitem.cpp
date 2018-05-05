@@ -43,8 +43,6 @@ void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
             filenames << QString::fromStdString(pal->paletteImageFilename);
         }
         setExternalFiles(filenames);
-
-        emit imageFilenameChanged();
     }
 }
 

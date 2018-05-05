@@ -67,7 +67,14 @@ void FilesystemWatcher::onResourceItemExternalFilesChanged()
 void FilesystemWatcher::updateExternalFiles(AbstractResourceItem* item)
 {
     if (item) {
-        updateWatcherAndMaps(item, item->externalFiles());
+        QStringList nativeFilenames = item->externalFiles();
+        nativeFilenames.removeAll(QString());
+
+        for (QString& fn : nativeFilenames) {
+            fn = QDir::toNativeSeparators(QFileInfo(fn).absoluteFilePath());
+        }
+
+        updateWatcherAndMaps(item, nativeFilenames);
     }
 }
 
@@ -78,24 +85,19 @@ void FilesystemWatcher::removeResourceItem(AbstractResourceItem* item)
     }
 }
 
-void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item, const QStringList& filenames)
+void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item, const QStringList& nativeFilenames)
 {
     Q_ASSERT(item);
 
-    QStringList toAdd = filenames;
-    toAdd.removeAll(QString());
-
-    for (QString& fn : toAdd) {
-        fn = QDir::toNativeSeparators(QFileInfo(fn).absoluteFilePath());
-    }
+    const QStringList previousFilenames = _itemToFilenames.value(item);
 
     {
         // Always try to add the filenames to the watcher.
         // It may not have existed in the past, but it could exist now.
 
         QStringList toWatch;
-        toWatch.reserve(toAdd.size());
-        for (const QString& fn : toAdd) {
+        toWatch.reserve(nativeFilenames.size());
+        for (const QString& fn : nativeFilenames) {
             if (QFile::exists(fn)) {
                 toWatch << fn;
             }
@@ -107,7 +109,8 @@ void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item, const Q
         }
     }
 
-    QStringList previousFilenames = _itemToFilenames.value(item);
+    QStringList toAdd = nativeFilenames;
+
     for (const QString& prevFilename : previousFilenames) {
         int i = toAdd.indexOf(prevFilename);
         if (i >= 0) {
@@ -137,11 +140,15 @@ void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item, const Q
         }
     }
 
-    if (filenames.isEmpty() == false) {
-        _itemToFilenames.insert(item, filenames);
+    if (nativeFilenames.isEmpty() == false) {
+        _itemToFilenames.insert(item, nativeFilenames);
     }
     else {
         _itemToFilenames.remove(item);
+    }
+
+    if (nativeFilenames != previousFilenames) {
+        emit item->externalFilesModified();
     }
 }
 

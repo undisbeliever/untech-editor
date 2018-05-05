@@ -140,6 +140,4 @@ void Document::onExternalFilesModified()
     if (auto* fs = frameSet()) {
         fs->reloadImage();
     }
-
-    emit frameSetImageChanged();
 }

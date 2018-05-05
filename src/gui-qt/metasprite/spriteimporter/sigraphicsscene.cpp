@@ -88,9 +88,9 @@ void SiGraphicsScene::setDocument(Document* document)
         connect(_document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &SiGraphicsScene::onSelectedFrameChanged);
 
-        connect(_document, &Document::frameSetImageChanged,
+        connect(_document, &Document::externalFilesModified,
                 this, &SiGraphicsScene::updateFrameSetPixmap);
-        connect(_document, &Document::frameSetImageChanged,
+        connect(_document, &Document::externalFilesModified,
                 this, &SiGraphicsScene::updatePaletteOutline);
         connect(_document, &Document::frameSetPaletteChanged,
                 this, &SiGraphicsScene::updatePaletteOutline);
