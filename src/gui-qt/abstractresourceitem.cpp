@@ -151,9 +151,11 @@ void AbstractExternalResourceItem::setFilename(const QString& filename)
     }
 }
 
-void AbstractExternalResourceItem::saveResource() const
+void AbstractExternalResourceItem::saveResource()
 {
     Q_ASSERT(filename().isEmpty() == false);
+
+    emit aboutToSaveResource();
 
     saveResourceData(filename().toStdString());
     undoStack()->setClean();

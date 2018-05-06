@@ -143,7 +143,7 @@ public:
     const QString& relativeFilePath() const { return _relativeFilePath; }
 
     // will raise exception on error
-    void saveResource() const;
+    void saveResource();
 
 protected:
     void setFilename(const QString& filename);
@@ -157,6 +157,8 @@ private slots:
 signals:
     void absoluteFilePathChanged();
     void relativeFilePathChanged();
+
+    void aboutToSaveResource();
 
 private:
     QString _absoluteFilePath;

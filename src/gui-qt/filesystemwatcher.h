@@ -9,12 +9,15 @@
 #include <QFileSystemWatcher>
 #include <QList>
 #include <QMap>
+#include <QMessageBox>
 #include <QObject>
+#include <QPointer>
 
 namespace UnTech {
 namespace GuiQt {
 class AbstractProject;
 class AbstractResourceItem;
+class AbstractExternalResourceItem;
 
 class FilesystemWatcher : public QObject {
     Q_OBJECT
@@ -31,18 +34,27 @@ private slots:
 
     void removeResourceItem(AbstractResourceItem* item);
 
+    void onAboutToSaveResource();
+
     void onFileChanged(const QString& path);
 
 private:
     void updateWatcherAndMaps(AbstractResourceItem* item);
     void removeFilenameItemMapping(const QString& filename, AbstractResourceItem* item);
 
+    void resourceChangedOnDisk(AbstractExternalResourceItem*);
+    void showFilesChangedDialog();
+
 private:
     AbstractProject* const _project;
     QFileSystemWatcher* const _watcher;
+    bool _filesChangedDialogActive;
 
     QHash<QString, QList<AbstractResourceItem*>> _filenameToItems;
     QHash<AbstractResourceItem*, QStringList> _itemToFilenames;
+
+    QList<QPointer<AbstractExternalResourceItem>> _changedResources;
+    QStringList _filesSavedLocally;
 };
 }
 }

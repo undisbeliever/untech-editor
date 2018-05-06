@@ -7,11 +7,14 @@
 #include "filesystemwatcher.h"
 #include "abstractproject.h"
 #include "abstractresourceitem.h"
+#include "abstractresourcelist.h"
 #include "models/common/imagecache.h"
 
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
+#include <QLabel>
+#include <QMessageBox>
 
 using namespace UnTech::GuiQt;
 
@@ -19,6 +22,7 @@ FilesystemWatcher::FilesystemWatcher(AbstractProject* project)
     : QObject(project)
     , _project(project)
     , _watcher(new QFileSystemWatcher(this))
+    , _filesChangedDialogActive(false)
     , _filenameToItems()
     , _itemToFilenames()
 {
@@ -43,6 +47,11 @@ void FilesystemWatcher::onResourceItemCreated(AbstractResourceItem* item)
 
     connect(item, &AbstractResourceItem::externalFilesChanged,
             this, &FilesystemWatcher::onResourceItemExternalFilesChanged);
+
+    if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(item)) {
+        connect(exItem, &AbstractExternalResourceItem::aboutToSaveResource,
+                this, &FilesystemWatcher::onAboutToSaveResource);
+    }
 }
 
 void FilesystemWatcher::onSelectedResourceChanged()
@@ -63,9 +72,14 @@ void FilesystemWatcher::onResourceItemExternalFilesChanged()
     }
 }
 
-static QStringList toNativeFilenames(const QStringList& filenames)
+static QStringList resourceNativeFilenames(const AbstractResourceItem* item)
 {
-    QStringList nativeFilenames = filenames;
+    QStringList nativeFilenames = item->externalFiles();
+
+    if (auto* exItem = qobject_cast<const AbstractExternalResourceItem*>(item)) {
+        nativeFilenames << exItem->filename();
+    }
+
     nativeFilenames.removeAll(QString());
 
     for (QString& fn : nativeFilenames) {
@@ -79,7 +93,7 @@ void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item)
 {
     Q_ASSERT(item);
 
-    const QStringList nativeFilenames = toNativeFilenames(item->externalFiles());
+    const QStringList nativeFilenames = resourceNativeFilenames(item);
     const QStringList watchedFiles = _watcher->files();
     const QStringList previousFilenames = _itemToFilenames.value(item);
 
@@ -175,6 +189,14 @@ void FilesystemWatcher::removeFilenameItemMapping(const QString& filename, Abstr
     }
 }
 
+void FilesystemWatcher::onAboutToSaveResource()
+{
+    auto* item = qobject_cast<AbstractExternalResourceItem*>(sender());
+    if (item) {
+        _filesSavedLocally.append(item->filename());
+    }
+}
+
 void FilesystemWatcher::onFileChanged(const QString& path)
 {
     // If the path was replaced (ie, file copy or atomic write) then the
@@ -190,11 +212,24 @@ void FilesystemWatcher::onFileChanged(const QString& path)
 
     ImageCache::invalidateFilename(nativePath.toStdString());
 
+    if (_filesSavedLocally.contains(nativePath)) {
+        // Do not process items were saved by the editor
+        _filesSavedLocally.removeAll(nativePath);
+        return;
+    }
+
     auto it = _filenameToItems.find(nativePath);
     if (it != _filenameToItems.end()) {
         const auto& items = *it;
 
         for (AbstractResourceItem* item : items) {
+            if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(item)) {
+                if (nativePath == exItem->filename()) {
+                    resourceChangedOnDisk(exItem);
+                    continue;
+                }
+            }
+
             emit item->externalFilesModified();
 
             item->markUnchecked();
@@ -203,4 +238,83 @@ void FilesystemWatcher::onFileChanged(const QString& path)
     else {
         qWarning() << nativePath << "is not linked to a ResourceItem";
     }
+}
+
+void FilesystemWatcher::resourceChangedOnDisk(AbstractExternalResourceItem* item)
+{
+    if (_changedResources.contains(item) == false) {
+        _changedResources.append(item);
+    }
+    if (_filesChangedDialogActive == false) {
+        showFilesChangedDialog();
+    }
+}
+
+void FilesystemWatcher::showFilesChangedDialog()
+{
+    Q_ASSERT(_filesChangedDialogActive == false);
+    _filesChangedDialogActive = true;
+
+    QMessageBox dialog;
+
+    dialog.setWindowTitle(tr("Changed Files"));
+    dialog.addButton(QMessageBox::Yes);
+    dialog.addButton(QMessageBox::No);
+    dialog.addButton(QMessageBox::NoToAll);
+    dialog.setDefaultButton(QMessageBox::No);
+
+    {
+        // Set size of dialog so the buttons are always in the same place.
+
+        // QMessageDialog setSize methods do not work,
+        // however setting the size of the label does.
+
+        QSize labelSize(dialog.fontMetrics().width('m') * 50,
+                        dialog.fontMetrics().height() * 5);
+
+        for (QLabel* l : dialog.findChildren<QLabel*>()) {
+            l->setFixedSize(labelSize);
+        }
+    }
+
+    while (!_changedResources.empty()) {
+        QPointer<AbstractExternalResourceItem> item = _changedResources.first();
+
+        if (item) {
+            dialog.setText(tr("The file \"%1\" has been changed on disk.\n"
+                              "Do you want to reload it?\n\n"
+                              "You will not be able to undo this action.")
+                               .arg(item->relativeFilePath()));
+
+            dialog.exec();
+
+            switch (dialog.result()) {
+            case QMessageBox::Yes:
+                if (item) {
+                    auto* newItem = item->resourceList()->revertResource(item);
+                    newItem->project()->setSelectedResource(newItem);
+                }
+                _changedResources.removeFirst();
+                break;
+
+            case QMessageBox::No:
+                if (item) {
+                    item->undoStack()->resetClean();
+                }
+                _changedResources.removeFirst();
+                break;
+
+            case QMessageBox::NoToAll:
+                for (auto& i : _changedResources) {
+                    if (i) {
+                        i->undoStack()->resetClean();
+                    }
+                }
+                _changedResources.clear();
+                break;
+            }
+        }
+    }
+
+    _filesChangedDialogActive = false;
 }

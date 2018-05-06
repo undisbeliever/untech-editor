@@ -51,8 +51,9 @@ public:
     void addResource(int settingIndex, const QString& input);
     void removeResource(int index);
 
-    // replaces the resource with new one and loads it to memory
-    bool revertResource(AbstractResourceItem* item);
+    // replaces the resource with new one and loads it to memory.
+    // Returns the newly created item
+    AbstractResourceItem* revertResource(AbstractResourceItem* item);
 
 protected:
     // number of this type of data in the project.

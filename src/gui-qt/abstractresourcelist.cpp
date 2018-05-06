@@ -122,11 +122,11 @@ void AbstractResourceList::removeResource(int index)
     _project->undoStack()->resetClean();
 }
 
-bool AbstractResourceList::revertResource(AbstractResourceItem* item)
+AbstractResourceItem* AbstractResourceList::revertResource(AbstractResourceItem* item)
 {
     int index = _items.indexOf(item);
     if (index < 0) {
-        return false;
+        return nullptr;
     }
 
     bool isSelected = _project->selectedResource() == item;
@@ -152,7 +152,7 @@ bool AbstractResourceList::revertResource(AbstractResourceItem* item)
         _project->setSelectedResource(newItem);
     }
 
-    return true;
+    return newItem;
 }
 
 void AbstractResourceList::updateState()
