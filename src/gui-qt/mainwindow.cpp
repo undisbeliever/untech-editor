@@ -158,6 +158,8 @@ MainWindow::MainWindow(QWidget* parent)
             this, &MainWindow::onMenuSave);
     connect(_ui->action_SaveAll, &QAction::triggered,
             this, &MainWindow::onMenuSaveAll);
+    connect(_ui->action_RevertResource, &QAction::triggered,
+            this, &MainWindow::onMenuRevertResource);
     connect(_ui->action_CloseProject, &QAction::triggered,
             this, &MainWindow::onMenuCloseProject);
     connect(_ui->action_Quit, &QAction::triggered,
@@ -235,7 +237,8 @@ void MainWindow::updateGuiFilePath()
     QString relativePath;
     QString filePath;
 
-    if (auto* exItem = qobject_cast<AbstractExternalResourceItem*>(_selectedResource)) {
+    auto* exItem = qobject_cast<AbstractExternalResourceItem*>(_selectedResource);
+    if (exItem) {
         filePath = exItem->absoluteFilePath();
         relativePath = exItem->relativeFilePath();
     }
@@ -252,6 +255,14 @@ void MainWindow::updateGuiFilePath()
     else {
         setWindowTitle(QString());
         _ui->action_Save->setText(tr("Save"));
+    }
+
+    _ui->action_RevertResource->setEnabled(exItem != nullptr);
+    if (exItem) {
+        _ui->action_RevertResource->setText(tr("Revert \"%1\"").arg(relativePath));
+    }
+    else {
+        _ui->action_RevertResource->setText(tr("Revert"));
     }
 }
 
@@ -515,6 +526,39 @@ bool MainWindow::onMenuSaveAll()
     }
 
     return s;
+}
+
+void MainWindow::onMenuRevertResource()
+{
+    Q_ASSERT(_project != nullptr);
+    Q_ASSERT(!_project->filename().isEmpty());
+
+    auto* item = qobject_cast<AbstractExternalResourceItem*>(_project->selectedResource());
+    if (item == nullptr) {
+        return;
+    }
+
+    bool revertItem = item->undoStack()->count() == 0;
+
+    if (revertItem == false) {
+        QString dialogText = tr("Are you are sure you wish to revert \"%1\"?\n\n"
+                                "You will not be able to undo this action.")
+                                 .arg(item->relativeFilePath());
+
+        QMessageBox dialog(QMessageBox::Warning,
+                           tr("Revert File?"), dialogText,
+                           QMessageBox::Yes | QMessageBox::Cancel,
+                           this);
+        dialog.setDefaultButton(QMessageBox::Cancel);
+        dialog.exec();
+
+        revertItem = dialog.result() == QMessageBox::Yes;
+    }
+
+    if (revertItem) {
+        auto* list = item->resourceList();
+        list->revertResource(item);
+    }
 }
 
 void MainWindow::onMenuCloseProject()

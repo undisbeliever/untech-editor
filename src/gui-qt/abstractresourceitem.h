@@ -60,6 +60,10 @@ public:
 
 public slots:
     void markUnchecked();
+
+private:
+    friend class MainWindow;
+    friend class ResourceValidationWorker;
     void loadResource();
 
 protected:

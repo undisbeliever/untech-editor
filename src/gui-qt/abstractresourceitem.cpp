@@ -22,6 +22,8 @@ void AbstractResourceItem::markUnchecked()
 
 void AbstractResourceItem::loadResource()
 {
+    Q_ASSERT(_undoStack->count() == 0);
+
     RES::ErrorList err;
 
     try {

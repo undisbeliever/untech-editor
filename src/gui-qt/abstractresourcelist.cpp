@@ -31,7 +31,7 @@ void AbstractResourceList::rebuildResourceItems()
     _items.reserve(size);
 
     for (size_t i = 0; i < size; i++) {
-        appendNewItemToList(i);
+        appendNewItemToList();
     }
 
     _state = size > 0 ? ResourceState::UNCHECKED : ResourceState::VALID;
@@ -39,12 +39,17 @@ void AbstractResourceList::rebuildResourceItems()
     emit listChanged();
 }
 
-void AbstractResourceList::appendNewItemToList(int index)
+void AbstractResourceList::appendNewItemToList()
 {
-    AbstractResourceItem* item = buildResourceItem(index);
+    AbstractResourceItem* item = buildResourceItem(_items.size());
     _items.append(item);
 
     emit resourceItemCreated(item);
+    connectItemSignals(item);
+}
+
+void AbstractResourceList::connectItemSignals(AbstractResourceItem* item)
+{
     item->connect(item, &AbstractResourceItem::stateChanged,
                   this, &AbstractResourceList::updateState);
 }
@@ -83,7 +88,7 @@ void AbstractResourceList::addResource(int settingIndex, const QString& input)
     }
 
     Q_ASSERT((size_t)_items.size() + 1 == nItems());
-    appendNewItemToList(_items.size());
+    appendNewItemToList();
 
     emit listChanged();
     _project->undoStack()->resetClean();
@@ -115,6 +120,39 @@ void AbstractResourceList::removeResource(int index)
 
     emit listChanged();
     _project->undoStack()->resetClean();
+}
+
+bool AbstractResourceList::revertResource(AbstractResourceItem* item)
+{
+    int index = _items.indexOf(item);
+    if (index < 0) {
+        return false;
+    }
+
+    bool isSelected = _project->selectedResource() == item;
+    if (isSelected) {
+        _project->setSelectedResource(nullptr);
+    }
+
+    emit resourceItemAboutToBeRemoved(item);
+
+    item->deleteLater();
+
+    AbstractResourceItem* newItem = buildResourceItem(index);
+    _items.replace(index, newItem);
+    emit resourceItemCreated(newItem);
+
+    connectItemSignals(newItem);
+
+    emit listChanged();
+
+    _project->undoStack()->resetClean();
+
+    if (isSelected) {
+        _project->setSelectedResource(newItem);
+    }
+
+    return true;
 }
 
 void AbstractResourceList::updateState()

@@ -51,6 +51,9 @@ public:
     void addResource(int settingIndex, const QString& input);
     void removeResource(int index);
 
+    // replaces the resource with new one and loads it to memory
+    bool revertResource(AbstractResourceItem* item);
+
 protected:
     // number of this type of data in the project.
     virtual size_t nItems() const = 0;
@@ -69,7 +72,8 @@ private:
     void rebuildResourceItems();
 
     // does not emit listChanged()
-    void appendNewItemToList(int index);
+    void appendNewItemToList();
+    void connectItemSignals(AbstractResourceItem* item);
 
 private slots:
     void updateState();
