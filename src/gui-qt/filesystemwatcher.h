@@ -25,19 +25,17 @@ public:
 
 private slots:
     void onResourceItemCreated(AbstractResourceItem* item);
-    void onResourceItemAboutToBeRemoved(AbstractResourceItem* item);
 
     void onSelectedResourceChanged();
-
     void onResourceItemExternalFilesChanged();
+
+    void removeResourceItem(AbstractResourceItem* item);
 
     void onFileChanged(const QString& path);
 
 private:
-    void updateExternalFiles(AbstractResourceItem* item);
-    void removeResourceItem(AbstractResourceItem* item);
-
-    void updateWatcherAndMaps(AbstractResourceItem* item, const QStringList& nativeFilenames);
+    void updateWatcherAndMaps(AbstractResourceItem* item);
+    void removeFilenameItemMapping(const QString& filename, AbstractResourceItem* item);
 
 private:
     AbstractProject* const _project;

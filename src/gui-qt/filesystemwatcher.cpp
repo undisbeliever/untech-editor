@@ -34,20 +34,15 @@ FilesystemWatcher::FilesystemWatcher(AbstractProject* project)
             this, &FilesystemWatcher::onSelectedResourceChanged);
 
     connect(_project, &AbstractProject::resourceItemAboutToBeRemoved,
-            this, &FilesystemWatcher::onResourceItemAboutToBeRemoved);
+            this, &FilesystemWatcher::removeResourceItem);
 }
 
 void FilesystemWatcher::onResourceItemCreated(AbstractResourceItem* item)
 {
-    updateExternalFiles(item);
+    updateWatcherAndMaps(item);
 
     connect(item, &AbstractResourceItem::externalFilesChanged,
             this, &FilesystemWatcher::onResourceItemExternalFilesChanged);
-}
-
-void FilesystemWatcher::onResourceItemAboutToBeRemoved(AbstractResourceItem* item)
-{
-    removeResourceItem(item);
 }
 
 void FilesystemWatcher::onSelectedResourceChanged()
@@ -55,40 +50,36 @@ void FilesystemWatcher::onSelectedResourceChanged()
     // Reload the watcher when the selected item is changed.
     // Just in case a file that did not exist is now existing.
 
-    updateExternalFiles(_project->selectedResource());
+    if (auto* item = _project->selectedResource()) {
+        updateWatcherAndMaps(item);
+    }
 }
 
 void FilesystemWatcher::onResourceItemExternalFilesChanged()
 {
     auto* item = qobject_cast<AbstractResourceItem*>(sender());
-    updateExternalFiles(item);
-}
-
-void FilesystemWatcher::updateExternalFiles(AbstractResourceItem* item)
-{
     if (item) {
-        QStringList nativeFilenames = item->externalFiles();
-        nativeFilenames.removeAll(QString());
-
-        for (QString& fn : nativeFilenames) {
-            fn = QDir::toNativeSeparators(QFileInfo(fn).absoluteFilePath());
-        }
-
-        updateWatcherAndMaps(item, nativeFilenames);
+        updateWatcherAndMaps(item);
     }
 }
 
-void FilesystemWatcher::removeResourceItem(AbstractResourceItem* item)
+static QStringList toNativeFilenames(const QStringList& filenames)
 {
-    if (item) {
-        updateWatcherAndMaps(item, QStringList());
+    QStringList nativeFilenames = filenames;
+    nativeFilenames.removeAll(QString());
+
+    for (QString& fn : nativeFilenames) {
+        fn = QDir::toNativeSeparators(QFileInfo(fn).absoluteFilePath());
     }
+
+    return nativeFilenames;
 }
 
-void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item, const QStringList& nativeFilenames)
+void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item)
 {
     Q_ASSERT(item);
 
+    const QStringList nativeFilenames = toNativeFilenames(item->externalFiles());
     const QStringList watchedFiles = _watcher->files();
     const QStringList previousFilenames = _itemToFilenames.value(item);
 
@@ -131,16 +122,7 @@ void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item, const Q
             toAdd.removeAt(i);
         }
         else {
-            // prevFilename no longer used by item
-            auto it = _filenameToItems.find(prevFilename);
-            if (it != _filenameToItems.end()) {
-                it->removeAll(item);
-                if (it->isEmpty()) {
-                    _watcher->removePath(prevFilename);
-
-                    _filenameToItems.remove(prevFilename);
-                }
-            }
+            removeFilenameItemMapping(prevFilename, item);
         }
     }
 
@@ -165,6 +147,31 @@ void FilesystemWatcher::updateWatcherAndMaps(AbstractResourceItem* item, const Q
         emit item->externalFilesModified();
 
         item->markUnchecked();
+    }
+}
+
+void FilesystemWatcher::removeResourceItem(AbstractResourceItem* item)
+{
+    Q_ASSERT(item);
+
+    const QStringList filenames = _itemToFilenames.value(item);
+    for (const QString& fn : filenames) {
+        removeFilenameItemMapping(fn, item);
+    }
+
+    _itemToFilenames.remove(item);
+}
+
+void FilesystemWatcher::removeFilenameItemMapping(const QString& filename, AbstractResourceItem* item)
+{
+    auto it = _filenameToItems.find(filename);
+    if (it != _filenameToItems.end()) {
+        it->removeAll(item);
+        if (it->isEmpty()) {
+            _watcher->removePath(filename);
+
+            _filenameToItems.remove(filename);
+        }
     }
 }
 
