@@ -22,14 +22,26 @@ FilesystemWatcher::FilesystemWatcher(AbstractProject* project)
     : QObject(project)
     , _project(project)
     , _watcher(new QFileSystemWatcher(this))
+    , _projectWatcher(new QFileSystemWatcher(this))
     , _filesChangedDialogActive(false)
     , _filenameToItems()
     , _itemToFilenames()
 {
     Q_ASSERT(project);
 
+    watchProjectFile();
+
     connect(_watcher, &QFileSystemWatcher::fileChanged,
             this, &FilesystemWatcher::onFileChanged);
+
+    connect(_projectWatcher, &QFileSystemWatcher::fileChanged,
+            this, &FilesystemWatcher::onProjectFileChanged);
+
+    connect(_project, &AbstractProject::filenameChanged,
+            this, &FilesystemWatcher::watchProjectFile);
+
+    connect(_project, &AbstractProject::aboutToSaveProject,
+            this, &FilesystemWatcher::onAboutToSaveProject);
 
     connect(_project, &AbstractProject::resourceItemCreated,
             this, &FilesystemWatcher::onResourceItemCreated);
@@ -39,6 +51,66 @@ FilesystemWatcher::FilesystemWatcher(AbstractProject* project)
 
     connect(_project, &AbstractProject::resourceItemAboutToBeRemoved,
             this, &FilesystemWatcher::removeResourceItem);
+}
+
+void FilesystemWatcher::watchProjectFile()
+{
+    QString fn = _project->filename();
+    if (fn.isEmpty() == false) {
+        fn = QDir::fromNativeSeparators(fn);
+    }
+
+    QStringList toRemove = _projectWatcher->files();
+    toRemove << _projectWatcher->directories();
+
+    if (toRemove.size() == 1 && toRemove.first() == fn) {
+        // already watching project file
+        return;
+    }
+
+    if (toRemove.isEmpty() == false) {
+        _projectWatcher->removePaths(toRemove);
+    }
+
+    if (fn.isEmpty() == false && QFile::exists(fn)) {
+        _projectWatcher->addPath(_project->filename());
+    }
+}
+
+void FilesystemWatcher::onAboutToSaveProject()
+{
+    _filesSavedLocally.append(_project->filename());
+}
+
+void FilesystemWatcher::onProjectFileChanged(const QString& path)
+{
+    QString nativePath = QDir::toNativeSeparators(path);
+
+    if (_filesSavedLocally.contains(nativePath)) {
+        // Do not process items were saved by the editor
+        _filesSavedLocally.removeAll(nativePath);
+
+        // If the path was replaced we need to add it to the watcher again.
+        watchProjectFile();
+        return;
+    }
+
+    _project->undoStack()->resetClean();
+    for (AbstractResourceList* rl : _project->resourceLists()) {
+        for (AbstractResourceItem* item : rl->items()) {
+            if (auto* inItem = qobject_cast<AbstractInternalResourceItem*>(item)) {
+                inItem->undoStack()->resetClean();
+            }
+        }
+    }
+
+    QMessageBox::warning(
+        nullptr, tr("Project File Changed"),
+        tr("The project file \"%1\" has been changed on disk.\n"
+           "Please save or discard changes manually.")
+            .arg(QFileInfo(path).fileName()));
+
+    watchProjectFile();
 }
 
 void FilesystemWatcher::onResourceItemCreated(AbstractResourceItem* item)

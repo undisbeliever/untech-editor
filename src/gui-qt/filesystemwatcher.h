@@ -27,6 +27,10 @@ public:
     ~FilesystemWatcher() = default;
 
 private slots:
+    void watchProjectFile();
+    void onAboutToSaveProject();
+    void onProjectFileChanged(const QString& path);
+
     void onResourceItemCreated(AbstractResourceItem* item);
 
     void onSelectedResourceChanged();
@@ -48,6 +52,7 @@ private:
 private:
     AbstractProject* const _project;
     QFileSystemWatcher* const _watcher;
+    QFileSystemWatcher* const _projectWatcher;
     bool _filesChangedDialogActive;
 
     QHash<QString, QList<AbstractResourceItem*>> _filenameToItems;

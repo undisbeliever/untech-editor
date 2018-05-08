@@ -59,6 +59,8 @@ void AbstractProject::setSelectedResource(AbstractResourceItem* item)
 
 bool AbstractProject::saveProject(const QString& filename)
 {
+    emit aboutToSaveProject();
+
     QString absFilename = QDir::toNativeSeparators(
         QFileInfo(filename).absoluteFilePath());
 

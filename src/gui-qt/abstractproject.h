@@ -57,6 +57,8 @@ private slots:
     void onSelectedResourceDestroyed(QObject* obj);
 
 signals:
+    void aboutToSaveProject();
+
     void filenameChanged();
     void resourceFileSettingsChanged();
 
