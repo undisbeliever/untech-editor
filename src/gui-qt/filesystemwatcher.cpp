@@ -271,14 +271,16 @@ void FilesystemWatcher::onAboutToSaveResource()
 
 void FilesystemWatcher::onFileChanged(const QString& path)
 {
-    // If the path was replaced (ie, file copy or atomic write) then the
-    // watcher will automatically remove the path and we need to add it back
-    // again.
-    if (_watcher->files().contains(path) == false) {
-        if (QFile::exists(path)) {
-            _watcher->addPath(path);
+    auto watchPathAgain = [&]() {
+        // If the path was replaced (ie, file copy or atomic write) then the
+        // watcher will automatically remove the path and we need to add it back
+        // again.
+        if (_watcher->files().contains(path) == false) {
+            if (QFile::exists(path)) {
+                _watcher->addPath(path);
+            }
         }
-    }
+    };
 
     QString nativePath = QDir::toNativeSeparators(path);
 
@@ -287,6 +289,8 @@ void FilesystemWatcher::onFileChanged(const QString& path)
     if (_filesSavedLocally.contains(nativePath)) {
         // Do not process items were saved by the editor
         _filesSavedLocally.removeAll(nativePath);
+
+        watchPathAgain();
         return;
     }
 
@@ -310,6 +314,8 @@ void FilesystemWatcher::onFileChanged(const QString& path)
     else {
         qWarning() << nativePath << "is not linked to a ResourceItem";
     }
+
+    watchPathAgain();
 }
 
 void FilesystemWatcher::resourceChangedOnDisk(AbstractExternalResourceItem* item)
