@@ -26,6 +26,7 @@ void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
 
     bool nameChange = tileset->name != data.name;
     bool imagesChange = tileset->animationFrames.frameImageFilenames != data.animationFrames.frameImageFilenames;
+    bool palettesChanged = tileset->palettes != data.palettes;
 
     *tileset = data;
     emit dataChanged();
@@ -36,6 +37,21 @@ void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
     if (imagesChange) {
         setExternalFiles(convertStringList(data.animationFrames.frameImageFilenames));
     }
+    if (palettesChanged) {
+        updateDependencies();
+    }
+}
+
+void MtTilesetResourceItem::updateDependencies()
+{
+    std::unique_ptr<DataT>& tileset = tilesetInputItem().value;
+    Q_ASSERT(tileset);
+
+    QVector<Dependency> deps;
+    for (auto& p : tileset->palettes) {
+        deps.append({ ResourceTypeIndex::PALETTE, QString::fromStdString(p) });
+    }
+    setDependencies(deps);
 }
 
 void MtTilesetResourceItem::saveResourceData(const std::string& filename) const
@@ -60,6 +76,7 @@ bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
         tilesetItem.loadFile();
         setName(QString::fromStdString(tilesetInput()->name));
         setExternalFiles(convertStringList(tilesetInput()->animationFrames.frameImageFilenames));
+        updateDependencies();
         return true;
     }
     catch (const std::exception& ex) {

@@ -57,6 +57,28 @@ void AbstractProject::setSelectedResource(AbstractResourceItem* item)
     }
 }
 
+AbstractResourceList* AbstractProject::findResourceList(ResourceTypeIndex type)
+{
+    for (auto* rl : _resourceLists) {
+        if (rl->resourceTypeIndex() == type) {
+            return rl;
+        }
+    }
+
+    return nullptr;
+}
+
+AbstractResourceItem* AbstractProject::findResourceItem(ResourceTypeIndex type, const QString& name) const
+{
+    for (auto* rl : _resourceLists) {
+        if (rl->resourceTypeIndex() == type) {
+            return rl->findResource(name);
+        }
+    }
+
+    return nullptr;
+}
+
 bool AbstractProject::saveProject(const QString& filename)
 {
     emit aboutToSaveProject();

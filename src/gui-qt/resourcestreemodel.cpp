@@ -327,6 +327,7 @@ QVariant ResourcesTreeModel::stateIcon(ResourceState s) const
 
     case ResourceState::ERROR:
     case ResourceState::FILE_ERROR:
+    case ResourceState::DEPENDENCY_ERROR:
         return _errorIcon;
     }
 

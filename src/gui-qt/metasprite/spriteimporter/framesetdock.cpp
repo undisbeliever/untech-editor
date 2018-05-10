@@ -202,7 +202,8 @@ void FrameSetDock::onExportOrderEdited()
     FrameSetUndoHelper(_document)
         .editField(eo, tr("Edit Export Order"),
                    [](SI::FrameSet& fs) -> idstring& { return fs.exportOrder; },
-                   [](Document& d) { emit d.frameSetDataChanged(); });
+                   [](Document& d) { emit d.frameSetDataChanged();
+                                     emit d.frameSetExportOrderChanged(); });
 }
 
 void FrameSetDock::onImageFilenameFileSelected()

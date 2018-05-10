@@ -135,5 +135,6 @@ void FrameSetDock::onExportOrderEdited()
     FrameSetUndoHelper(_document)
         .editField(eo, tr("Edit Export Order"),
                    [](MS::FrameSet& fs) -> idstring& { return fs.exportOrder; },
-                   [](Document& d) { emit d.frameSetDataChanged(); });
+                   [](Document& d) { emit d.frameSetDataChanged();
+                                     emit d.frameSetExportOrderChanged(); });
 }

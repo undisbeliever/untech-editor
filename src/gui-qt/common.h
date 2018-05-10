@@ -15,6 +15,7 @@ enum class ResourceState {
     VALID,
     ERROR,
     FILE_ERROR,
+    DEPENDENCY_ERROR,
 };
 
 enum class ResourceTypeIndex {

@@ -49,6 +49,22 @@ void AbstractResourceItem::setName(const QString& name)
     }
 }
 
+void AbstractResourceItem::setDependencies(const QVector<Dependency>& dependencies)
+{
+    if (_dependencies != dependencies) {
+        _dependencies = dependencies;
+        markUnchecked();
+    }
+}
+
+void AbstractResourceItem::removeDependencies()
+{
+    if (_dependencies.isEmpty() == false) {
+        _dependencies.clear();
+        markUnchecked();
+    }
+}
+
 void AbstractResourceItem::setIndex(unsigned index)
 {
     Q_ASSERT(index < (unsigned)_list->items().size());
@@ -64,17 +80,60 @@ void AbstractResourceItem::validateItem()
 
     RES::ErrorList err;
 
-    try {
-        bool s = compileResource(err);
-        setState(s ? ResourceState::VALID : ResourceState::ERROR);
+    // check dependencies
+    bool dependenciesOk = true;
+    for (auto& dep : _dependencies) {
+        AbstractResourceItem* dItem = _project->findResourceItem(dep.type, dep.name);
+
+        if (dItem == nullptr) {
+            if (auto* rl = _project->findResourceList(dep.type)) {
+                QString rtn = rl->resourceTypeNameSingle();
+                err.addError("Dependency Error: Missing " + rtn.toStdString() + u8" · " + dep.name.toStdString());
+            }
+            else {
+                err.addError("Dependency Error: Missing " + dep.name.toStdString());
+            }
+            dependenciesOk = false;
+        }
+        else if (dItem->state() != ResourceState::VALID) {
+            QString rtn = dItem->resourceList()->resourceTypeNameSingle();
+            err.addError("Dependency Error: " + rtn.toStdString() + u8" · " + dep.name.toStdString());
+
+            dependenciesOk = false;
+        }
     }
-    catch (const std::exception& ex) {
-        err.addError(std::string("EXCEPTION: ") + ex.what());
-        setState(ResourceState::ERROR);
+
+    if (dependenciesOk) {
+        try {
+            bool s = compileResource(err);
+            setState(s ? ResourceState::VALID : ResourceState::ERROR);
+        }
+        catch (const std::exception& ex) {
+            err.addError(std::string("EXCEPTION: ") + ex.what());
+            setState(ResourceState::ERROR);
+        }
+    }
+    else {
+        setState(ResourceState::DEPENDENCY_ERROR);
     }
 
     _errorList = err;
     emit errorListChanged();
+
+    markDependantsUnchecked();
+}
+
+void AbstractResourceItem::markDependantsUnchecked()
+{
+    const Dependency toMatch = { _list->resourceTypeIndex(), _name };
+
+    for (AbstractResourceList* rl : _project->resourceLists()) {
+        for (AbstractResourceItem* item : rl->items()) {
+            if (item->dependencies().contains(toMatch)) {
+                item->markUnchecked();
+            }
+        }
+    }
 }
 
 void AbstractResourceItem::setState(ResourceState state)
