@@ -217,12 +217,7 @@ void FrameSetDock::onImageFilenameFileSelected()
         .editField(filename, tr("Change Image"),
                    [](SI::FrameSet& fs) -> std::string& { return fs.imageFilename; },
                    [](Document& d) {
-                       SI::FrameSet* fs = d.frameSet();
-                       Q_ASSERT(fs);
-                       fs->loadImage(fs->imageFilename);
-
                        emit d.frameSetImageFilenameChanged();
-                       emit d.frameSetImageChanged();
                    });
 }
 

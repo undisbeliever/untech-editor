@@ -14,7 +14,13 @@ PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t ind
 {
     Q_ASSERT(index < palettesData().size());
 
-    setName(QString::fromStdString(paletteData()->name));
+    auto* pal = paletteData();
+
+    setName(QString::fromStdString(pal->name));
+
+    if (pal->paletteImageFilename.empty() == false) {
+        setExternalFiles({ QString::fromStdString(pal->paletteImageFilename) });
+    }
 }
 
 void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
@@ -32,7 +38,11 @@ void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
         setName(QString::fromStdString(data.name));
     }
     if (imageChange) {
-        emit imageFilenameChanged();
+        QStringList filenames;
+        if (pal->paletteImageFilename.empty() == false) {
+            filenames << QString::fromStdString(pal->paletteImageFilename);
+        }
+        setExternalFiles(filenames);
     }
 }
 

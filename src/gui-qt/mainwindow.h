@@ -57,6 +57,7 @@ private slots:
     void onMenuOpenRecent(QString filename);
     void onMenuSave();
     bool onMenuSaveAll();
+    void onMenuRevertResource();
     void onMenuCloseProject();
 
     void onMenuAbout();

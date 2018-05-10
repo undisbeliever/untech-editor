@@ -48,6 +48,7 @@
     <addaction name="separator"/>
     <addaction name="action_Save"/>
     <addaction name="action_SaveAll"/>
+    <addaction name="action_RevertResource"/>
     <addaction name="separator"/>
     <addaction name="action_CloseProject"/>
     <addaction name="action_Quit"/>
@@ -130,6 +131,14 @@
   <action name="action_CloseProject">
    <property name="text">
     <string>Close Project</string>
+   </property>
+  </action>
+  <action name="action_RevertResource">
+   <property name="text">
+    <string>Revert</string>
+   </property>
+   <property name="toolTip">
+    <string>Revert File (cannot be undone)</string>
    </property>
   </action>
  </widget>

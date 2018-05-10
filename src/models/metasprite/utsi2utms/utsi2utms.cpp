@@ -8,6 +8,7 @@
 #include "frameconverter.hpp"
 #include "paletteconverter.hpp"
 #include "tileextractor.hpp"
+#include "models/common/imagecache.h"
 #include <list>
 
 using namespace UnTech;
@@ -38,19 +39,26 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::process(const SI::FrameSet& siFrameSet)
 
     auto msFrameSet = std::make_unique<MS::FrameSet>();
 
+    auto image = ImageCache::loadPngImage(siFrameSet.imageFilename);
+
+    if (image->empty()) {
+        errorList.addError(siFrameSet, "Unable to load image: " + image->errorString());
+        return nullptr;
+    }
+
     msFrameSet->name = siFrameSet.name;
     msFrameSet->tilesetType = siFrameSet.tilesetType;
     msFrameSet->animations = siFrameSet.animations;
     msFrameSet->exportOrder = siFrameSet.exportOrder;
 
-    PaletteConverter paletteConverter(siFrameSet, *msFrameSet, errorList);
+    PaletteConverter paletteConverter(siFrameSet, *image, *msFrameSet, errorList);
     paletteConverter.process();
 
     if (hasError()) {
         return nullptr;
     }
 
-    TileExtractor tileExtractor(siFrameSet, *msFrameSet, errorList,
+    TileExtractor tileExtractor(siFrameSet, *image, *msFrameSet, errorList,
                                 paletteConverter.colorMap());
 
     std::list<FrameConverter> frameConverters;

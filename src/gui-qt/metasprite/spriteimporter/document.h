@@ -55,6 +55,7 @@ protected:
 
 private slots:
     void onFrameSetNameChanged();
+    void onFrameSetImageFilenameChanged();
 
 private:
     void resetDocumentState();
@@ -62,7 +63,6 @@ private:
 signals:
     void frameSetGridChanged();
     void frameSetImageFilenameChanged();
-    void frameSetImageChanged();
     void frameSetPaletteChanged();
 
 private:

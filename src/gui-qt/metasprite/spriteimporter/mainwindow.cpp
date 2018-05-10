@@ -26,7 +26,6 @@ using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
-    , _imageFileWatcher()
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
     , _frameSetDock(new FrameSetDock(this))
@@ -74,9 +73,6 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     setDocument(nullptr);
 
     _frameSetDock->raise();
-
-    connect(&_imageFileWatcher, &QFileSystemWatcher::fileChanged,
-            this, &MainWindow::onImageFileChanged);
 }
 
 MainWindow::~MainWindow() = default;
@@ -106,8 +102,7 @@ void MainWindow::setDocument(Document* document)
     if (document != nullptr) {
         connect(document, &Document::resourceLoaded,
                 this, &MainWindow::populateWidgets);
-        connect(document, &Document::frameSetImageFilenameChanged,
-                this, &MainWindow::onFrameSetImageFilenameChanged);
+
         connect(document->frameMap(), &FrameMap::selectedItemChanged,
                 this, &MainWindow::onSelectedFrameChanged);
     }
@@ -126,7 +121,6 @@ void MainWindow::populateWidgets()
 
     _tabWidget->setEnabled(d != nullptr);
 
-    onFrameSetImageFilenameChanged();
     onSelectedFrameChanged();
 }
 
@@ -138,31 +132,4 @@ void MainWindow::onSelectedFrameChanged()
     else {
         _graphicsView->setDragMode(QGraphicsView::NoDrag);
     }
-}
-
-void MainWindow::onFrameSetImageFilenameChanged()
-{
-    auto removePaths = [this](const auto& list) {
-        if (!list.isEmpty()) {
-            _imageFileWatcher.removePaths(list);
-        }
-    };
-    removePaths(_imageFileWatcher.files());
-    removePaths(_imageFileWatcher.directories());
-
-    if (_document && _document->frameSet()) {
-        QString fn = QString::fromStdString(_document->frameSet()->imageFilename);
-        if (!fn.isEmpty()) {
-            _imageFileWatcher.addPath(fn);
-        }
-    }
-}
-
-void MainWindow::onImageFileChanged()
-{
-    Q_ASSERT(_document != nullptr);
-
-    _document->frameSet()->reloadImage();
-
-    emit _document->frameSetImageChanged();
 }

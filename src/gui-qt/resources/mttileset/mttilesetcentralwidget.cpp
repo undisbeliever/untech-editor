@@ -145,7 +145,7 @@ MtTilesetGraphicsItem::MtTilesetGraphicsItem(MtTilesetResourceItem* item)
 
     updateInvalidTiles();
 
-    connect(_tileset, &MtTilesetResourceItem::frameImageFilenamesChanged,
+    connect(_tileset, &MtTilesetResourceItem::externalFilesModified,
             this, &MtTilesetGraphicsItem::loadPixmaps);
 
     connect(_tileset, &AbstractResourceItem::errorListChanged,

@@ -30,6 +30,7 @@ public:
         , _undoStack(new QUndoStack(this))
         , _index(index)
         , _state(ResourceState::NOT_LOADED)
+        , _externalFiles()
     {
         Q_ASSERT(parent != nullptr);
         Q_ASSERT(_project != nullptr);
@@ -47,6 +48,7 @@ public:
     const QString& name() const { return _name; }
     const ResourceState& state() const { return _state; }
     const RES::ErrorList& errorList() const { return _errorList; }
+    const QStringList& externalFiles() const { return _externalFiles; }
 
     ResourceTypeIndex resourceTypeIndex() const { return _list->resourceTypeIndex(); }
     AbstractResourceList* resourceList() const { return _list; }
@@ -58,11 +60,18 @@ public:
 
 public slots:
     void markUnchecked();
+
+private:
+    friend class MainWindow;
+    friend class ResourceValidationWorker;
     void loadResource();
 
 protected:
     // MUST be called by the subclass when the resource name changes
     void setName(const QString& name);
+
+    // MUST be called when
+    void setExternalFiles(const QStringList&);
 
     virtual bool loadResourceData(RES::ErrorList& err) = 0;
 
@@ -70,6 +79,12 @@ protected:
     virtual bool compileResource(RES::ErrorList& err) = 0;
 
 signals:
+    void externalFilesChanged();
+
+    // Emitted by FilesystemWatcher when the externalFiles list changes or when
+    // the external files have been modified by the filesystem.
+    void externalFilesModified();
+
     // MUST be emitted by the subclass when the internal data changes
     void dataChanged();
 
@@ -100,6 +115,7 @@ private:
     QString _name;
     ResourceState _state;
     RES::ErrorList _errorList;
+    QStringList _externalFiles;
 };
 
 class AbstractInternalResourceItem : public AbstractResourceItem {
@@ -127,7 +143,7 @@ public:
     const QString& relativeFilePath() const { return _relativeFilePath; }
 
     // will raise exception on error
-    void saveResource() const;
+    void saveResource();
 
 protected:
     void setFilename(const QString& filename);
@@ -141,6 +157,8 @@ private slots:
 signals:
     void absoluteFilePathChanged();
     void relativeFilePathChanged();
+
+    void aboutToSaveResource();
 
 private:
     QString _absoluteFilePath;

@@ -22,6 +22,8 @@ void AbstractResourceItem::markUnchecked()
 
 void AbstractResourceItem::loadResource()
 {
+    Q_ASSERT(_undoStack->count() == 0);
+
     RES::ErrorList err;
 
     try {
@@ -83,6 +85,15 @@ void AbstractResourceItem::setState(ResourceState state)
     }
 }
 
+void AbstractResourceItem::setExternalFiles(const QStringList& externalFiles)
+{
+    if (_externalFiles != externalFiles) {
+        _externalFiles = externalFiles;
+
+        emit externalFilesChanged();
+    }
+}
+
 /*
  * AbstractInternalResourceItem
  */
@@ -140,9 +151,11 @@ void AbstractExternalResourceItem::setFilename(const QString& filename)
     }
 }
 
-void AbstractExternalResourceItem::saveResource() const
+void AbstractExternalResourceItem::saveResource()
 {
     Q_ASSERT(filename().isEmpty() == false);
+
+    emit aboutToSaveResource();
 
     saveResourceData(filename().toStdString());
     undoStack()->setClean();

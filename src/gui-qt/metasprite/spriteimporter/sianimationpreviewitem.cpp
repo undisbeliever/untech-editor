@@ -9,6 +9,7 @@
 #include "document.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
+#include "models/common/imagecache.h"
 
 #include <QPainter>
 
@@ -88,10 +89,6 @@ void SiAnimationPreviewItem::onFrameObjectsChanged(const void* framePtr)
 
 const void* SiAnimationPreviewItem::setFrame(const idstring& frameName)
 {
-    if (_document->frameSet()->image == nullptr) {
-        return nullptr;
-    }
-
     SI::Frame* frame = _document->frameSet()->frames.getPtr(frameName);
     _frameObjectsDirty = _frame != frame;
     _frame = frame;
@@ -154,9 +151,10 @@ void SiAnimationPreviewItem::drawFrameObjects()
     _frameObjects.fill(0);
 
     const SI::FrameSet& frameSet = *_document->frameSet();
-    if (frameSet.image == nullptr) {
-        return;
-    }
+    const auto fsImage = ImageCache::loadPngImage(frameSet.imageFilename);
+    Q_ASSERT(fsImage);
+
+    const auto& fsImgSize = fsImage->size();
 
     for (int i = _frame->objects.size() - 1; i >= 0; i--) {
         const SI::FrameObject& obj = _frame->objects.at(i);
@@ -170,14 +168,33 @@ void SiAnimationPreviewItem::drawFrameObjects()
         const unsigned tileX = _frame->location.aabb.x + oLoc.x;
         const unsigned tileY = _frame->location.aabb.y + oLoc.y;
 
-        for (unsigned y = 0; y < tileSize; y++) {
-            QRgb* imgBits = reinterpret_cast<QRgb*>(_frameObjects.scanLine(oLoc.y + y)) + oLoc.x;
-            const rgba* fsBits = frameSet.image->scanline(tileY + y) + tileX;
+        bool objInsideFsImage = tileX + tileSize <= fsImgSize.width
+                                && tileY + tileSize <= fsImgSize.height;
 
-            for (unsigned x = 0; x < tileSize; x++) {
-                const rgba& c = fsBits[x];
-                if (c != frameSet.transparentColor) {
-                    imgBits[x] = qRgb(c.red, c.green, c.blue);
+        if (objInsideFsImage) {
+            for (unsigned y = 0; y < tileSize; y++) {
+                QRgb* imgBits = reinterpret_cast<QRgb*>(_frameObjects.scanLine(oLoc.y + y)) + oLoc.x;
+
+                const rgba* fsBits = fsImage->scanline(tileY + y) + tileX;
+
+                for (unsigned x = 0; x < tileSize; x++) {
+                    const rgba& c = fsBits[x];
+                    if (c != frameSet.transparentColor) {
+                        imgBits[x] = qRgb(c.red, c.green, c.blue);
+                    }
+                }
+            }
+        }
+        else {
+            // object not inside frameSet image, draw checkerpattern instead
+            uint8_t p = 0;
+            for (unsigned y = 0; y < tileSize; y++) {
+                QRgb* imgBits = reinterpret_cast<QRgb*>(_frameObjects.scanLine(oLoc.y + y)) + oLoc.x;
+
+                p ^= 0xff;
+                for (unsigned x = 0; x < tileSize; x++) {
+                    imgBits[x] = qRgb(p, p, p);
+                    p ^= 0xff;
                 }
             }
         }

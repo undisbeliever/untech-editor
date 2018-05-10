@@ -87,8 +87,7 @@ public:
         frameSetGridSet = false;
 
         if (tag->hasAttribute("image")) {
-            std::string imageFilename = tag->getAttributeFilename("image");
-            frameSet.loadImage(imageFilename);
+            frameSet.imageFilename = tag->getAttributeFilename("image");
         }
 
         if (tag->hasAttribute("transparent")) {

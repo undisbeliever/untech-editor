@@ -15,6 +15,7 @@ class AbstractResourceList;
 class AbstractResourceItem;
 class AbstractExternalResourceItem;
 class ResourceValidationWorker;
+class FilesystemWatcher;
 
 class AbstractProject : public QObject {
     Q_OBJECT
@@ -31,6 +32,7 @@ public:
     QUndoStack* undoStack() const { return _undoStack; }
     const auto& resourceLists() const { return _resourceLists; }
     ResourceValidationWorker* validationWorker() const { return _validationWorker; }
+    FilesystemWatcher* filesystemWatcher() const { return _filesystemWatcher; }
 
     void setSelectedResource(AbstractResourceItem* item);
     AbstractResourceItem* selectedResource() const { return _selectedResource; }
@@ -55,6 +57,8 @@ private slots:
     void onSelectedResourceDestroyed(QObject* obj);
 
 signals:
+    void aboutToSaveProject();
+
     void filenameChanged();
     void resourceFileSettingsChanged();
 
@@ -68,6 +72,7 @@ private:
     QString _filename;
     QUndoStack* const _undoStack;
     ResourceValidationWorker* const _validationWorker;
+    FilesystemWatcher* const _filesystemWatcher;
 
     AbstractResourceItem* _selectedResource;
 };

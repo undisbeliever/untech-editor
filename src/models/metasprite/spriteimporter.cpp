@@ -8,6 +8,7 @@
 #include "errorlist.h"
 #include "models/common/file.h"
 #include "models/common/humantypename.h"
+#include "models/common/imagecache.h"
 #include <algorithm>
 
 using namespace UnTech;
@@ -152,9 +153,8 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs)
         addError("Invalid Frame Size");
     }
 
-    if (fs.image == nullptr
-        || fs.image->size().contains(location.aabb) == false) {
-
+    auto image = ImageCache::loadPngImage(fs.imageFilename);
+    if (image->size().contains(location.aabb) == false) {
         addError("Frame not inside image");
     }
 
@@ -221,7 +221,7 @@ bool FrameSet::validate(ErrorList& errorList)
     if (frames.size() == 0) {
         addError("No Frames");
     }
-    if (image == nullptr || image->empty()) {
+    if (imageFilename.empty()) {
         addError("No Image");
     }
     if (transparentColorValid() == false) {
@@ -236,7 +236,8 @@ bool FrameSet::validate(ErrorList& errorList)
     }
 
     if (palette.usesUserSuppliedPalette()) {
-        assert(image);
+        auto image = ImageCache::loadPngImage(imageFilename);
+
         auto imgSize = image->size();
         auto palSize = palette.paletteSize();
 
@@ -287,29 +288,6 @@ void FrameSet::updateFrameLocations()
     for (auto&& it : frames) {
         it.second.location.update(grid, it.second);
     }
-}
-
-void FrameSet::loadImage(const std::string filename)
-{
-    imageFilename = File::fullPath(filename);
-
-    image = nullptr;
-    reloadImage();
-}
-
-bool FrameSet::reloadImage()
-{
-    if (image == nullptr) {
-        image = std::make_shared<Image>();
-    }
-
-    bool ret = image->loadPngImage(imageFilename);
-
-    if (ret && !transparentColorValid()) {
-        transparentColor = image->getPixel(0, 0);
-    }
-
-    return ret;
 }
 
 bool FrameSet::operator==(const FrameSet& o) const
