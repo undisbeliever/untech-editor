@@ -368,8 +368,9 @@ void FilesystemWatcher::showFilesChangedDialog()
 
             switch (dialog.result()) {
             case QMessageBox::Yes:
-                if (item) {
-                    auto* newItem = item->resourceList()->revertResource(item);
+                // required to prevent potential null pointer dereference warning in g++ release build
+                if (AbstractExternalResourceItem* oldItem = item) {
+                    auto* newItem = oldItem->resourceList()->revertResource(oldItem);
                     newItem->project()->setSelectedResource(newItem);
                 }
                 _changedResources.removeFirst();
