@@ -24,7 +24,7 @@ class FrameSetResourceList : public AbstractResourceList {
     };
 
 public:
-    FrameSetResourceList(MetaSpriteProject* project, ResourceTypeIndex typeIndex);
+    FrameSetResourceList(MetaSpriteProject* project);
     ~FrameSetResourceList() = default;
 
     MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }

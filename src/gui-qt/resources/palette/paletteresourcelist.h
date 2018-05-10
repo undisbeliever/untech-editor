@@ -19,7 +19,7 @@ class PaletteResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    PaletteResourceList(ResourceProject* project, ResourceTypeIndex typeIndex);
+    PaletteResourceList(ResourceProject* project);
     ~PaletteResourceList() = default;
 
     ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }

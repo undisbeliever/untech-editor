@@ -15,8 +15,8 @@ MetaSpriteProject::MetaSpriteProject(QObject* parent)
     , _metaSpriteProject(std::make_unique<UnTech::MetaSprite::Project>())
 {
     initResourceLists({
-        new ExportOrderResourceList(this, ResourceTypeIndex::MS_EXPORT_ORDER),
-        new FrameSetResourceList(this, ResourceTypeIndex::MS_FRAMESET),
+        new ExportOrderResourceList(this),
+        new FrameSetResourceList(this),
     });
 }
 

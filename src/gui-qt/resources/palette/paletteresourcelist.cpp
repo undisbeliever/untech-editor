@@ -14,8 +14,8 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
 
-PaletteResourceList::PaletteResourceList(ResourceProject* project, ResourceTypeIndex typeIndex)
-    : AbstractResourceList(project, typeIndex)
+PaletteResourceList::PaletteResourceList(ResourceProject* project)
+    : AbstractResourceList(project, ResourceTypeIndex::PALETTE)
 {
 }
 

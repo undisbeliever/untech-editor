@@ -19,7 +19,7 @@ class ExportOrderResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    ExportOrderResourceList(MetaSpriteProject* project, ResourceTypeIndex typeIndex);
+    ExportOrderResourceList(MetaSpriteProject* project);
     ~ExportOrderResourceList() = default;
 
     MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
