@@ -64,6 +64,7 @@ protected:
 signals:
     void frameSetDataChanged();
     void frameSetNameChanged();
+    void frameSetExportOrderChanged();
 
 private:
     Animation::AnimationsMap* const _animationsMap;

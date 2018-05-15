@@ -95,14 +95,31 @@ void ResourceValidationWorker::processNextResource()
         return;
     }
 
-    AbstractResourceItem* item = _itemsToProcess.takeLast();
+    AbstractResourceItem* toProcess = _itemsToProcess.last();
 
-    if (item->state() == ResourceState::NOT_LOADED) {
-        item->loadResource();
+    if (toProcess->state() == ResourceState::NOT_LOADED) {
+        toProcess->loadResource();
     }
-    item->validateItem();
 
-    if (!_itemsToProcess.isEmpty()) {
-        _timer.start();
+    bool allDependenciesChecked = true;
+    for (auto& dep : toProcess->dependencies()) {
+        if (auto* d = _project->findResourceItem(dep.type, dep.name)) {
+            if (d->state() == ResourceState::UNCHECKED
+                || d->state() == ResourceState::NOT_LOADED) {
+
+                _itemsToProcess.append(d);
+                allDependenciesChecked = false;
+            }
+        }
+    }
+
+    if (allDependenciesChecked) {
+        toProcess->validateItem();
+
+        _itemsToProcess.removeAll(toProcess);
+
+        if (!_itemsToProcess.isEmpty()) {
+            _timer.start();
+        }
     }
 }

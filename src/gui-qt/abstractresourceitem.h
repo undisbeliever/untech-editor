@@ -23,6 +23,15 @@ class AbstractResourceItem : public QObject {
     friend class AbstractInternalResourceItem;
 
 public:
+    struct Dependency {
+        ResourceTypeIndex type;
+        QString name;
+
+        bool operator==(const Dependency& d) const { return type == d.type && name == d.name; }
+        bool operator!=(const Dependency& d) const { return !(*this == d); }
+    };
+
+public:
     AbstractResourceItem(AbstractResourceList* parent, unsigned index)
         : QObject(parent)
         , _list(parent)
@@ -30,6 +39,7 @@ public:
         , _undoStack(new QUndoStack(this))
         , _index(index)
         , _state(ResourceState::NOT_LOADED)
+        , _dependencies()
         , _externalFiles()
     {
         Q_ASSERT(parent != nullptr);
@@ -48,6 +58,7 @@ public:
     const QString& name() const { return _name; }
     const ResourceState& state() const { return _state; }
     const RES::ErrorList& errorList() const { return _errorList; }
+    const QVector<Dependency>& dependencies() const { return _dependencies; }
     const QStringList& externalFiles() const { return _externalFiles; }
 
     ResourceTypeIndex resourceTypeIndex() const { return _list->resourceTypeIndex(); }
@@ -57,6 +68,7 @@ public:
     virtual QString filename() const = 0;
 
     void validateItem();
+    void markDependantsUnchecked();
 
 public slots:
     void markUnchecked();
@@ -69,6 +81,10 @@ private:
 protected:
     // MUST be called by the subclass when the resource name changes
     void setName(const QString& name);
+
+    // MUST be called by the subclass when the dependencies change
+    void setDependencies(const QVector<Dependency>& dependencies);
+    void removeDependencies();
 
     // MUST be called when
     void setExternalFiles(const QStringList&);
@@ -115,6 +131,7 @@ private:
     QString _name;
     ResourceState _state;
     RES::ErrorList _errorList;
+    QVector<Dependency> _dependencies;
     QStringList _externalFiles;
 };
 

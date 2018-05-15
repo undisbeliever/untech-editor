@@ -14,8 +14,8 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
 
-MtTilesetResourceList::MtTilesetResourceList(ResourceProject* project, ResourceTypeIndex typeIndex)
-    : AbstractResourceList(project, typeIndex)
+MtTilesetResourceList::MtTilesetResourceList(ResourceProject* project)
+    : AbstractResourceList(project, ResourceTypeIndex::MT_TILESET)
 {
 }
 

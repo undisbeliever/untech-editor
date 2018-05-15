@@ -61,6 +61,7 @@ protected:
 
 private slots:
     void onFrameSetNameChanged();
+    void onFrameSetExportOrderChanged();
 
 private:
     void resetDocumentState();

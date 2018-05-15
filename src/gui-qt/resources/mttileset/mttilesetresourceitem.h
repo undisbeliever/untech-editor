@@ -43,6 +43,8 @@ protected:
     friend class Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
     void setData(const MT::MetaTileTilesetInput& data);
 
+    void updateDependencies();
+
 protected:
     virtual void saveResourceData(const std::string& filename) const final;
     virtual bool loadResourceData(RES::ErrorList& err) final;

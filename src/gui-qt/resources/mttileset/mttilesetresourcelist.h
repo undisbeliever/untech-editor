@@ -19,7 +19,7 @@ class MtTilesetResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    MtTilesetResourceList(ResourceProject* project, ResourceTypeIndex typeIndex);
+    MtTilesetResourceList(ResourceProject* project);
     ~MtTilesetResourceList() = default;
 
     ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }

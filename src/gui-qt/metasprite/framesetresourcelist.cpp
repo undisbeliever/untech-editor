@@ -22,8 +22,8 @@ using namespace UnTech::GuiQt::MetaSprite;
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
-FrameSetResourceList::FrameSetResourceList(MetaSpriteProject* project, ResourceTypeIndex typeIndex)
-    : AbstractResourceList(project, typeIndex)
+FrameSetResourceList::FrameSetResourceList(MetaSpriteProject* project)
+    : AbstractResourceList(project, ResourceTypeIndex::MS_FRAMESET)
 {
 }
 

@@ -56,6 +56,11 @@ bool FrameSetExportOrder::validate(Resources::ErrorList& err) const
         valid = false;
     }
 
+    if (stillFrames.empty() && animations.empty()) {
+        err.addError("Expected at least one still frame or animation");
+        valid = false;
+    }
+
     if (stillFrames.size() > MAX_EXPORT_NAMES) {
         err.addError("Too many stillFrames");
         valid = false;

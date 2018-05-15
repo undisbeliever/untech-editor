@@ -164,6 +164,7 @@ void AbstractResourceList::updateState()
         switch (item->state()) {
         case ResourceState::ERROR:
         case ResourceState::FILE_ERROR:
+        case ResourceState::DEPENDENCY_ERROR:
             error = true;
             break;
 

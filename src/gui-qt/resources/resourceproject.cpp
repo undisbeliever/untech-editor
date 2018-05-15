@@ -16,8 +16,8 @@ ResourceProject::ResourceProject(QObject* parent)
     , _resourcesFile(std::make_unique<RES::ResourcesFile>())
 {
     initResourceLists({
-        new PaletteResourceList(this, ResourceTypeIndex::PALETTE),
-        new MtTilesetResourceList(this, ResourceTypeIndex::MT_TILESET),
+        new PaletteResourceList(this),
+        new MtTilesetResourceList(this),
     });
 
     Q_ASSERT(paletteResourceList());

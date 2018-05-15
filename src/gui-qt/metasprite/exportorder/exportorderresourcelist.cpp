@@ -14,8 +14,8 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;
 
-ExportOrderResourceList::ExportOrderResourceList(MetaSpriteProject* project, ResourceTypeIndex typeIndex)
-    : AbstractResourceList(project, typeIndex)
+ExportOrderResourceList::ExportOrderResourceList(MetaSpriteProject* project)
+    : AbstractResourceList(project, ResourceTypeIndex::MS_EXPORT_ORDER)
 {
 }
 

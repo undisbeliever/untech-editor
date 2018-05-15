@@ -29,6 +29,9 @@ Document::Document(FrameSetResourceList* parent, size_t index)
     connect(this, &Document::frameSetNameChanged,
             this, &Document::onFrameSetNameChanged);
 
+    connect(this, &Document::frameSetExportOrderChanged,
+            this, &Document::onFrameSetExportOrderChanged);
+
     connect(this, &Document::frameSetImageFilenameChanged,
             this, &Document::onFrameSetImageFilenameChanged);
 }
@@ -51,12 +54,8 @@ QStringList Document::frameNames() const
 
 void Document::resetDocumentState()
 {
-    if (_frameSet) {
-        setName(QString::fromStdString(_frameSet->name));
-    }
-    else {
-        setName(QString());
-    }
+    onFrameSetNameChanged();
+    onFrameSetExportOrderChanged();
     onFrameSetImageFilenameChanged();
 
     frameMap()->unselectItem();
@@ -118,6 +117,18 @@ void Document::onFrameSetNameChanged()
     }
     else {
         setName(QString());
+    }
+}
+
+void Document::onFrameSetExportOrderChanged()
+{
+    if (auto* fs = frameSet()) {
+        setDependencies({
+            { ResourceTypeIndex::MS_EXPORT_ORDER, QString::fromStdString(fs->exportOrder) },
+        });
+    }
+    else {
+        removeDependencies();
     }
 }
 
