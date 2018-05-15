@@ -71,6 +71,8 @@ bool Document::loadResourceData(RES::ErrorList& err)
 {
     using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
 
+    Q_ASSERT(_frameSet == nullptr);
+
     FrameSetFile& fsf = frameSetFile();
     Q_ASSERT(fsf.type == FrameSetType::METASPRITE);
 
