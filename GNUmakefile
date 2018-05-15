@@ -171,6 +171,11 @@ ifeq ($(CXXWARNINGS),)
        CXXWARNINGS += -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wformat=2
     endif
   endif
+
+  ifneq ($(findstring clang,$(CXX) $(CC)),)
+    # Using -Wshadow on g++ is too aggressive
+    CXXWARNINGS += -Wshadow
+  endif
 endif
 
 
