@@ -6,6 +6,7 @@
 
 #include "image.h"
 #include "vendor/lodepng/lodepng.h"
+#include <cassert>
 #include <sstream>
 
 using namespace UnTech;
@@ -24,6 +25,7 @@ Image::Image(const usize& size)
     , _imageData(size.width * size.height * sizeof(rgba))
     , _errorString()
 {
+    assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
 }
 
 Image::Image(unsigned width, unsigned height)
@@ -31,6 +33,7 @@ Image::Image(unsigned width, unsigned height)
     , _imageData(width * height * sizeof(rgba))
     , _errorString()
 {
+    assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
 }
 
 void Image::erase()
@@ -63,6 +66,8 @@ bool Image::loadPngImage(const std::string& filename)
 
         return false;
     }
+
+    assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
 
     return true;
 }
