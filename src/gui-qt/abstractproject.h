@@ -23,7 +23,7 @@ class AbstractProject : public QObject {
 
 public:
     explicit AbstractProject(QObject* parent = nullptr);
-    ~AbstractProject() = default;
+    virtual ~AbstractProject();
 
 protected:
     void initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists);
