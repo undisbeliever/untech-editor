@@ -62,14 +62,14 @@ QString AbstractPropertyModel::displayForProperty(const QModelIndex& index, cons
     case Type::COMBO: {
         auto params = propertyParametersForIndex(index);
 
-        int index = -1;
+        int i = -1;
         if (params.second.canConvert(QVariant::List)) {
-            index = params.second.toList().indexOf(value);
+            i = params.second.toList().indexOf(value);
         }
 
         QStringList displayList = params.first.toStringList();
-        if (index >= 0 && index < displayList.size()) {
-            return displayList.at(index);
+        if (i >= 0 && i < displayList.size()) {
+            return displayList.at(i);
         }
         else {
             return value.toString();

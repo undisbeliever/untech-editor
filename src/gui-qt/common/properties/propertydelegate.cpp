@@ -413,8 +413,8 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
                 cb->addItem(displayList.at(i), displayList.at(i));
             }
         }
-        int index = cb->findData(data);
-        cb->setCurrentIndex(index);
+        int i = cb->findData(data);
+        cb->setCurrentIndex(i);
     } break;
     }
 }

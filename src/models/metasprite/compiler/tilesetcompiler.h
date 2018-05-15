@@ -89,7 +89,7 @@ private:
 
     FrameSetTilesets buildDynamicTileset(const MetaSprite::FrameSet& frameSet,
                                          const TilesetType tilesetType,
-                                         const DynamicTilesetData& tileset);
+                                         const DynamicTilesetData& tilesetData);
 
     FrameTileset buildTileset(const MetaSprite::FrameSet& frameSet,
                               const TilesetType tilesetType,
