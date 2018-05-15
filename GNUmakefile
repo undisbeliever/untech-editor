@@ -143,6 +143,57 @@ else
 endif
 
 
+ifndef NO_PROTECTIONS
+  PROTECTIONS :=
+
+  # Redhat recommended compiler and linker flags for GCC
+  # https://developers.redhat.com/blog/2018/03/21/compiler-and-linker-flags-gcc/
+
+  ifneq ($(or $(findstring -O2,$(CXXFLAGS)), $(findstring -O3,$(CXXFLAGS))),)
+    # Run-time buffer overflow detection and std bound checking
+    PROTECTIONS += -D_FORTIFY_SOURCE=2
+  endif
+
+  # Run-time bounds checking for C++ strings and containers
+  PROTECTIONS   += -D_GLIBCXX_ASSERTIONS
+
+  # Increased reliability of backtraces
+  PROTECTIONS   += -fasynchronous-unwind-tables
+  # Enable table-based thread cancellation
+  PROTECTIONS   += -fexceptions
+  # Full ASLR for executables
+  PROTECTIONS   += -fpic -fpie
+  LDFLAGS       += -Wl,-pie
+  # Stack smashing protector
+  PROTECTIONS   += -fstack-protector-strong
+
+  # Avoid temporary files, speeding up builds
+  PROTECTIONS   += -pipe
+
+  # Detect and reject underlinking
+  # Disable lazy binding
+  # Read-only segments after relocation
+  LDFLAGS       += -Wl,-z,defs -Wl,-z,now -Wl,-z,relro
+
+  ifneq ($(findstring g++,$(CXX)),)
+    GCC_MAJOR := $(firstword $(subst ., ,$(shell $(CXX) -dumpversion)))
+    ifeq ($(GCC_MAJOR),8)
+      # Increased reliability of stack overflow detection
+      PROTECTIONS += -fstack-clash-protection
+
+      ## Control flow integrity protection
+      #PROTECTIONS += -mcet -fcf-protection
+      #
+      # Skipped: My build of gcc 8.1.0 does not support this yet (-mcet is unrecognized)
+    endif
+  endif
+
+  CXXFLAGS  += $(PROTECTIONS)
+  CFLAGS    += $(PROTECTIONS)
+  LDFLAGS   += $(PROTECTIONS)
+endif
+
+
 ifneq ($(findstring clang,$(CXX) $(CC)),)
   # Prevent clang from spamming errors
   CXXFLAGS      += -Wno-undefined-var-template
