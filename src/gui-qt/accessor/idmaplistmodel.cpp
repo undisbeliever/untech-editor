@@ -15,26 +15,25 @@ using namespace UnTech::GuiQt::Accessor;
 IdmapListModel::IdmapListModel(QObject* parent)
     : QAbstractListModel(parent)
     , _accessor(nullptr)
-    , _idstrings()
     , _displayList()
 {
 }
 
-int IdmapListModel::indexOf(const idstring& id) const
+int IdmapListModel::indexOf(const QString& id) const
 {
-    auto it = std::lower_bound(_idstrings.cbegin(), _idstrings.cend(), id);
-    if (it != _idstrings.cend() && *it == id) {
-        return std::distance(_idstrings.cbegin(), it);
+    auto it = std::lower_bound(_displayList.cbegin(), _displayList.cend(), id);
+    if (it != _displayList.cend() && *it == id) {
+        return std::distance(_displayList.cbegin(), it);
     }
     else {
         return -1;
     }
 }
 
-int IdmapListModel::indexToInsert(const idstring& id) const
+int IdmapListModel::indexToInsert(const QString& id) const
 {
-    auto it = std::lower_bound(_idstrings.cbegin(), _idstrings.cend(), id);
-    return std::distance(_idstrings.cbegin(), it);
+    auto it = std::lower_bound(_displayList.cbegin(), _displayList.cend(), id);
+    return std::distance(_displayList.cbegin(), it);
 }
 
 void IdmapListModel::clear()
@@ -42,22 +41,21 @@ void IdmapListModel::clear()
     beginResetModel();
 
     _displayList.clear();
-    _idstrings.clear();
 
     endResetModel();
 }
 
 QModelIndex IdmapListModel::toModelIndex(const idstring& id) const
 {
-    return createIndex(indexOf(id), 0);
+    return createIndex(indexOf(QString::fromStdString(id)), 0);
 }
 
 idstring IdmapListModel::toIdstring(int row) const
 {
-    if (row < 0 || row >= _idstrings.size()) {
+    if (row < 0 || row >= _displayList.size()) {
         return idstring();
     }
-    return _idstrings.at(row);
+    return _displayList.at(row).toStdString();
 }
 
 idstring IdmapListModel::toIdstring(const QModelIndex& index) const
@@ -88,13 +86,14 @@ QVariant IdmapListModel::data(const QModelIndex& index, int role) const
 
 void IdmapListModel::addIdstring(const UnTech::idstring& id)
 {
-    Q_ASSERT(_idstrings.contains(id) == false);
+    QString display = QString::fromStdString(id);
 
-    int index = indexToInsert(id);
+    Q_ASSERT(_displayList.contains(display) == false);
+
+    int index = indexToInsert(display);
 
     beginInsertRows(QModelIndex(), index, index);
 
-    _idstrings.insert(index, id);
     _displayList.insert(index, QString::fromStdString(id));
 
     endInsertRows();
@@ -102,12 +101,13 @@ void IdmapListModel::addIdstring(const UnTech::idstring& id)
 
 void IdmapListModel::removeIdstring(const UnTech::idstring& id)
 {
-    int index = indexOf(id);
+    QString display = QString::fromStdString(id);
+
+    int index = indexOf(display);
     Q_ASSERT(index >= 0);
 
     beginRemoveRows(QModelIndex(), index, index);
 
-    _idstrings.removeAt(index);
     _displayList.removeAt(index);
 
     endRemoveRows();
@@ -115,12 +115,14 @@ void IdmapListModel::removeIdstring(const UnTech::idstring& id)
 
 void IdmapListModel::renameIdstring(const UnTech::idstring& oldId, const UnTech::idstring& newId)
 {
-    Q_ASSERT(_idstrings.contains(newId) == false);
+    QString newDisplay = QString::fromStdString(newId);
 
-    int oldIndex = indexOf(oldId);
+    Q_ASSERT(_displayList.contains(newDisplay) == false);
+
+    int oldIndex = indexOf(QString::fromStdString(oldId));
     Q_ASSERT(oldIndex >= 0);
 
-    int newIndex = indexToInsert(newId);
+    int newIndex = indexToInsert(newDisplay);
 
     if (oldIndex != newIndex && oldIndex != newIndex - 1) {
         beginMoveRows(QModelIndex(), oldIndex, oldIndex,
@@ -130,17 +132,13 @@ void IdmapListModel::renameIdstring(const UnTech::idstring& oldId, const UnTech:
             newIndex--;
         }
 
-        _idstrings.takeAt(oldIndex);
-        _idstrings.insert(newIndex, newId);
-
         _displayList.takeAt(oldIndex);
-        _displayList.insert(newIndex, QString::fromStdString(newId));
+        _displayList.insert(newIndex, newDisplay);
 
         endMoveRows();
     }
     else {
-        _idstrings.replace(oldIndex, newId);
-        _displayList.replace(oldIndex, QString::fromStdString(newId));
+        _displayList.replace(oldIndex, newDisplay);
 
         emit dataChanged(createIndex(oldIndex, 0), createIndex(oldIndex, 0));
     }
