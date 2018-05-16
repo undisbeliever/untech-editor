@@ -61,7 +61,7 @@ public:
     template <class... AccessorsT>
     void setAccessors(AccessorsT*... accessors)
     {
-        constexpr size_t nAccessors = sizeof...(AccessorsT);
+        constexpr int nAccessors = sizeof...(AccessorsT);
 
         auto for_each_accessor = [=](auto&& f) { for_each(f, accessors...); };
         auto for_each_accessor_i = [=](auto&& f) { for_each_i(f, accessors...); };
@@ -131,7 +131,7 @@ public:
             viewport()->update();
 
             // update action status
-            std::array<ListActionStatus, nAccessors> status = { ListActionHelper::status(accessors)... };
+            std::array<ListActionStatus, size_t(nAccessors)> status = { ListActionHelper::status(accessors)... };
             ListActionStatus selected = ListActionStatus::mergeArray(status);
 
             for (int i = 0; i < _actions.add.size(); i++) {
