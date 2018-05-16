@@ -169,6 +169,8 @@ ifeq ($(CXXWARNINGS),)
        CXXWARNINGS += -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wdouble-promotion -Wformat=2
     else ifeq ($(GCC_MAJOR),7)
        CXXWARNINGS += -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wformat=2
+    else ifeq ($(GCC_MAJOR),8)
+       CXXWARNINGS += -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wformat=2
     endif
   endif
 endif
