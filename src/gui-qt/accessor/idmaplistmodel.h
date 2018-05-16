@@ -22,13 +22,12 @@ public:
     explicit IdmapListModel(QObject* parent = nullptr);
     ~IdmapListModel() = default;
 
-    int indexOf(const idstring& id) const;
+    int indexOf(const QString& id) const;
 
     QModelIndex toModelIndex(const idstring& id) const;
     idstring toIdstring(int row) const;
     idstring toIdstring(const QModelIndex& index) const;
 
-    const QVector<idstring>& idstrings() const { return _idstrings; }
     const QStringList& displayList() const { return _displayList; }
 
     virtual int rowCount(const QModelIndex& parent) const final;
@@ -72,17 +71,15 @@ private:
         beginResetModel();
 
         _displayList.clear();
-        _idstrings.clear();
 
         for (const auto& it : map) {
-            _idstrings.append(it.first);
             _displayList.append(QString::fromStdString(it.first));
         }
 
         endResetModel();
     }
 
-    int indexToInsert(const idstring& id) const;
+    int indexToInsert(const QString& id) const;
 
 private slots:
     void addIdstring(const idstring& id);
@@ -92,7 +89,6 @@ private slots:
 private:
     QObject* _accessor;
 
-    QVector<idstring> _idstrings;
     QStringList _displayList;
 };
 }
