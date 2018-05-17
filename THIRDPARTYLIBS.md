@@ -8,7 +8,7 @@ directory:
    Copyright (c) 2005-2018 Lode Vandevenne,
    [zlib License](https://opensource.org/licenses/Zlib]).
  * [LZ4 Library](https://lz4.github.io/lz4/) -
-   Copyright (c) 2011-2017, Yann Collet,
+   Copyright (c) 2011-2018, Yann Collet,
    [BSD 2-Clause License](https://github.com/lz4/lz4/blob/master/lib/LICENSE).
 
 

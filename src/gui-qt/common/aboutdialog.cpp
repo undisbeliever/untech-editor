@@ -40,7 +40,7 @@ AboutDialog::AboutDialog(QWidget* parent)
             " </tr>"
             " <tr>"
             "  <td><a href=\"https://lz4.github.io/lz4//\"><b>LZ4 Library</b></a></td>"
-            "  <td>Copyright (c) 2011-2017, Yann Collet,"
+            "  <td>Copyright (c) 2011-2018, Yann Collet,"
             "   <br/><a href=\"https://github.com/lz4/lz4/blob/master/lib/LICENSE\">BSD 2-Clause License</a></td>"
             " </tr>"
             " <tr>"

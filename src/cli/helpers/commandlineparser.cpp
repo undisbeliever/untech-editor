@@ -351,7 +351,7 @@ void Parser::printVersion()
                  "\n"
                  "\nThe " UNTECH_NAME " Editor Suite makes uses of the following third party source code:"
                  "\n\tLodePNG - Copyright (c) 2005-2018 Lode Vandevenne, zlib License"
-                 "\n\tLZ4 Library - Copyright (c) 2011-2017, Yann Collet, BSD 2-Clause License"
+                 "\n\tLZ4 Library - Copyright (c) 2011-2018, Yann Collet, BSD 2-Clause License"
                  "\n";
 }
 
