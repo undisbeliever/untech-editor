@@ -163,17 +163,26 @@ ifndef NO_PROTECTIONS
   PROTECTIONS   += -fexceptions
   # Full ASLR for executables
   PROTECTIONS   += -fpic -fpie
-  LDFLAGS       += -Wl,-pie
   # Stack smashing protector
   PROTECTIONS   += -fstack-protector-strong
 
   # Avoid temporary files, speeding up builds
   PROTECTIONS   += -pipe
 
-  # Detect and reject underlinking
-  # Disable lazy binding
-  # Read-only segments after relocation
-  LDFLAGS       += -Wl,-z,defs -Wl,-z,now -Wl,-z,relro
+  ifeq ($(OS),Windows_NT)
+    # Enable DEP and ASLR
+    LDFLAGS     += -Wl,--nxcompat -Wl,--dynamicbase
+  else
+    # Linux/BSD
+
+    # Enable ASLR for executables
+    LDFLAGS       += -Wl,-pie
+
+    # Detect and reject underlinking
+    # Disable lazy binding
+    # Read-only segments after relocation
+    LDFLAGS     += -Wl,-z,defs -Wl,-z,now -Wl,-z,relro
+  endif
 
   ifneq ($(findstring g++,$(CXX)),)
     GCC_MAJOR := $(firstword $(subst ., ,$(shell $(CXX) -dumpversion)))
