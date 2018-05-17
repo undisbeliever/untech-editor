@@ -27,6 +27,21 @@ AbstractProject::AbstractProject(QObject* parent)
 {
 }
 
+AbstractProject::~AbstractProject()
+{
+    // Force cleanup of ResourceItems.
+    // This is done is the Project instead of in ResourceList to ensure that
+    // the `AbstractProject::resourceItemAboutToBeRemoved` signal is used.
+
+    setSelectedResource(nullptr);
+
+    for (auto* rl : _resourceLists) {
+        for (auto* item : rl->items()) {
+            emit rl->resourceItemAboutToBeRemoved(item);
+        }
+    }
+}
+
 void AbstractProject::initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists)
 {
     _resourceLists = resourceLists;

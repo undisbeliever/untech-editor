@@ -139,7 +139,6 @@ Tile16px combineSmallTiles(const std::array<Tile8px, 4>& tiles)
 
     auto transform = [&tile16](const Tile8px& tile8,
                                unsigned xPos, unsigned yPos) {
-
         const uint8_t* t8 = tile8.rawData();
         uint8_t* t16 = tile16 + (yPos * 16 + xPos);
 

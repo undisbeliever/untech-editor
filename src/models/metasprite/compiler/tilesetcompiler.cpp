@@ -169,15 +169,15 @@ TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
             charAttrPos.inc();
         }
         else {
-            std::array<Snes::Tile8px, 4> tiles = {};
+            std::array<Snes::Tile8px, 4> smallTiles = {};
 
             for (unsigned i = 0; i < 4; i++) {
                 unsigned tId = tile16.smallTileIds[i];
                 if (tId < frameSet.smallTileset.size()) {
-                    tiles[i] = frameSet.smallTileset.tile(tId);
+                    smallTiles[i] = frameSet.smallTileset.tile(tId);
                 }
             }
-            RomTileData::Accessor a = addTile(combineSmallTiles(tiles));
+            RomTileData::Accessor a = addTile(combineSmallTiles(smallTiles));
 
             for (unsigned i = 0; i < 4; i++) {
                 unsigned tId = tile16.smallTileIds[i];
@@ -205,20 +205,20 @@ TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
 FrameSetTilesets
 TilesetCompiler::buildDynamicTileset(const MetaSprite::FrameSet& frameSet,
                                      const TilesetType tilesetType,
-                                     const DynamicTilesetData& tileset)
+                                     const DynamicTilesetData& tilesetData)
 {
     FrameSetTilesets ret;
     ret.tilesetType = tilesetType;
 
-    unsigned staticTileOffset = tilesetType.nTiles() - tileset.staticTiles.size();
-    auto staticTileset = buildTileset(frameSet, tilesetType, tileset.staticTiles, staticTileOffset);
+    unsigned staticTileOffset = tilesetType.nTiles() - tilesetData.staticTiles.size();
+    auto staticTileset = buildTileset(frameSet, tilesetType, tilesetData.staticTiles, staticTileOffset);
 
     ret.tilesetOffset = staticTileset.tilesetOffset;
 
     bool error = false;
 
-    for (const auto& ft : tileset.ftVector) {
-        if (tileset.staticTiles.size() + ft.tiles.size() <= tilesetType.nTiles()) {
+    for (const auto& ft : tilesetData.ftVector) {
+        if (tilesetData.staticTiles.size() + ft.tiles.size() <= tilesetType.nTiles()) {
 
             ret.tilesets.emplace_back(
                 buildTileset(frameSet, tilesetType, ft.tiles));

@@ -39,7 +39,6 @@ struct RomOffsetPtr {
     const std::string* label;
     uint32_t offset;
 };
-extern const RomOffsetPtr NULL_OFFSET;
 
 class RomIncItem {
 public:

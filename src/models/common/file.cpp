@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -454,8 +455,12 @@ void File::atomicWrite(const std::string& filename, const void* data, size_t siz
 
         // mkstemp sets file permission to 0600
         // Set the permissions to match filename
-        chmod(tmpFilename, statbuf.st_mode);
-        chown(tmpFilename, statbuf.st_uid, statbuf.st_gid);
+        int s = 0;
+        s |= chmod(tmpFilename, statbuf.st_mode);
+        s |= chown(tmpFilename, statbuf.st_uid, statbuf.st_gid);
+        if (s != 0) {
+            std::cerr << "Warning: unable to change the file permissions of " << tmpFilename << std::endl;
+        }
     }
     else {
         fd = mkstemp(tmpFilename);

@@ -202,21 +202,21 @@ struct XmlTag {
     }
 
     template <typename T>
-    inline T getAttributeEnum(const std::string& name, const EnumMap<T>& enumMap) const
+    inline T getAttributeEnum(const std::string& aName, const EnumMap<T>& enumMap) const
     {
-        auto it = enumMap.find(getAttribute(name));
+        auto it = enumMap.find(getAttribute(aName));
         if (it != enumMap.end()) {
             return it->second;
         }
         else {
-            throw xml_error(*this, name, "Invalid value");
+            throw xml_error(*this, aName, "Invalid value");
         }
     }
 
     template <class T>
-    inline T getAttributeEnum(const std::string& name) const
+    inline T getAttributeEnum(const std::string& aName) const
     {
-        return getAttributeEnum(name, T::enumMap);
+        return getAttributeEnum(aName, T::enumMap);
     }
 
     inline unsigned getAttributeUnsignedHex(const std::string& aName) const
