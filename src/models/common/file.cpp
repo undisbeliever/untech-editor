@@ -304,26 +304,26 @@ std::string File::relativePath(const std::string& sourceDir, const std::string& 
         return File::fullPath(destPath);
     }
 
+    std::string source = File::fullPath(sourceDir);
+    std::string dest = File::fullPath(destPath);
+
 #ifdef PLATFORM_WINDOWS
     wchar_t wrelpath[PATH_MAX] = L"";
-    auto wsource = to_wchar(sourceDir);
-    auto wdest = to_wchar(destPath);
+    auto wsource = to_wchar(source);
+    auto wdest = to_wchar(dest);
 
-    if (!PathRelativePathToW(wrelpath, wsource.get(), FILE_ATTRIBUTE_DIRECTORY, wdest.get(), FILE_ATTRIBUTE_NORMAL)) {
-        return File::fullPath(destPath);
+    if (!PathRelativePathToW(wrelpath, wsource.get(), FILE_ATTRIBUTE_NORMAL, wdest.get(), FILE_ATTRIBUTE_NORMAL)) {
+        return dest;
     }
 
-    if (wrelpath[0] != L'\\') {
-        return to_string(wrelpath);
+    if (wrelpath[0] == L'.' && wrelpath[1] == L'\\') {
+        return to_string(wrelpath + 2);
     }
     else {
-        return to_string(wrelpath + 1);
+        return to_string(wrelpath);
     }
 
 #else
-
-    std::string source = File::fullPath(sourceDir);
-    std::string dest = File::fullPath(destPath);
 
     if (source.empty() || dest.empty()
         || source.front() != '/' || dest.front() != '/') {
