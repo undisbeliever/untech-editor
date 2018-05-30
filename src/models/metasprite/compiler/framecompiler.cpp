@@ -96,11 +96,11 @@ FrameCompiler::processEntityHitboxes(const std::vector<MS::EntityHitbox>& entity
 
     // count starts at -1
     unsigned count = entityHitboxes.size() - 1;
-    unsigned dataSize = 7 + 7 * entityHitboxes.size();
+    unsigned dataSize = 5 + 5 * entityHitboxes.size();
 
     // a Hitbox with a single aabb is a special case.
     if (count == 0) {
-        dataSize = 7 + 1;
+        dataSize = 5 + 1;
     }
 
     std::vector<uint8_t> romData;
@@ -121,11 +121,9 @@ FrameCompiler::processEntityHitboxes(const std::vector<MS::EntityHitbox>& entity
     romData.push_back(count); // count
 
     romData.push_back(outerAabb.x.romData()); // Outer::xOffset
-    romData.push_back(outerAabb.y.romData()); // Outer::yOffset
     romData.push_back(outerAabb.width);       // Outer::width
-    romData.push_back(0);                     // Outer::width high byte
+    romData.push_back(outerAabb.y.romData()); // Outer::yOffset
     romData.push_back(outerAabb.height);      // Outer::height
-    romData.push_back(0);                     // Outer::height high byte
 
     if (count > 0) {
         for (const MS::EntityHitbox& eh : entityHitboxes) {
@@ -137,11 +135,9 @@ FrameCompiler::processEntityHitboxes(const std::vector<MS::EntityHitbox>& entity
 
             romData.push_back(eh.hitboxType.romValue()); // Inner:type
             romData.push_back(innerAabb.x.romData());    // Inner::xOffset
-            romData.push_back(innerAabb.y.romData());    // Inner::yOffset
             romData.push_back(innerAabb.width);          // Inner::width
-            romData.push_back(0);                        // Inner::width high byte
+            romData.push_back(innerAabb.y.romData());    // Inner::yOffset
             romData.push_back(innerAabb.height);         // Inner::height
-            romData.push_back(0);                        // Inner::height high byte
         }
     }
     else {
