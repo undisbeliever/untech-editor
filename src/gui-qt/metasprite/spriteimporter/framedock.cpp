@@ -12,6 +12,7 @@
 #include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
+#include "gui-qt/metasprite/common.h"
 #include "gui-qt/metasprite/spriteimporter/framedock.ui.h"
 
 #include <QMenu>
@@ -55,12 +56,9 @@ FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, QWidget* parent)
     frameContextMenu->insertMenu(firstAddAction, _entityHitboxTypeMenu);
     frameContextMenu->insertSeparator(firstAddAction);
 
-    _ui->frameContents->viewActions().populateToolbar(_ui->frameContentsButtons);
+    populateEntityHitboxTypeMenu(_entityHitboxTypeMenu);
 
-    for (auto& it : UnTech::MetaSprite::EntityHitboxType::enumMap) {
-        QString s = QString::fromStdString(it.first);
-        _entityHitboxTypeMenu->addAction(s)->setData(int(it.second));
-    }
+    _ui->frameContents->viewActions().populateToolbar(_ui->frameContentsButtons);
 
     clearGui();
     updateFrameActions();
@@ -387,9 +385,9 @@ void FrameDock::onEntityHitboxTypeMenu(QAction* action)
 {
     using EHT = UnTech::MetaSprite::EntityHitboxType;
 
-    EHT ehType = EHT::Enum(action->data().toInt());
+    EHT eht = EHT::from_romValue(action->data().toInt());
 
     EntityHitboxListUndoHelper h(_document->entityHitboxList());
-    h.setSelectedFields(ehType, tr("Change Entity Hitbox Type"),
+    h.setSelectedFields(eht, tr("Change Entity Hitbox Type"),
                         [](SI::EntityHitbox& eh) -> EHT& { return eh.hitboxType; });
 }

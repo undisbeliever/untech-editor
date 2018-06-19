@@ -88,7 +88,7 @@ struct EntityHitbox {
 
     EntityHitbox()
         : aabb(-8, -8, 16, 16)
-        , hitboxType(EntityHitboxType::Enum::BODY)
+        , hitboxType()
     {
     }
     EntityHitbox(const ms8rect& aabb, EntityHitboxType& hitboxType)

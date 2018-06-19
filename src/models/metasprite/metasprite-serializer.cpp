@@ -155,7 +155,7 @@ private:
                 EntityHitbox eh;
 
                 eh.aabb = childTag->getAttributeMs8rect();
-                eh.hitboxType = childTag->getAttributeEnum<EntityHitboxType>("type");
+                eh.hitboxType = EntityHitboxType::from_string(childTag->getAttribute("type"));
 
                 frame.entityHitboxes.push_back(eh);
             }
@@ -281,7 +281,7 @@ inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame
     for (const EntityHitbox& eh : frame.entityHitboxes) {
         xml.writeTag("entityhitbox");
 
-        xml.writeTagAttributeEnum("type", eh.hitboxType);
+        xml.writeTagAttribute("type", eh.hitboxType.to_string());
         xml.writeTagAttributeMs8rect(eh.aabb);
 
         xml.writeCloseTag();

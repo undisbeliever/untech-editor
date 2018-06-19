@@ -16,8 +16,24 @@
 namespace UnTech {
 namespace GuiQt {
 
+inline QVariantList qVariantRange(int n)
+{
+    if (n < 0) {
+        n = 0;
+    }
+
+    QVariantList list;
+    list.reserve(n);
+
+    for (int i = 0; i < n; i++) {
+        list.append(i);
+    }
+
+    return list;
+}
+
 template <class T>
-QStringList convertStringList(const std::vector<T>& sl)
+QStringList convertStringList(const T& sl)
 {
     QStringList qsl;
     qsl.reserve(sl.size());
