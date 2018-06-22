@@ -11,40 +11,40 @@ using namespace UnTech::MetaSprite;
 
 const std::array<std::string, 16> EntityHitboxType::SHORT_STRING_VALUES({
     "----",
-    "---W",
-    "--B-",
-    "--BW",
+    "---B",
+    "--A-",
+    "--AB",
     "-S--",
-    "-S-W",
-    "-SB-",
-    "-SBW",
-    "A---",
-    "A--W",
-    "A-B-",
-    "A-BW",
-    "AS--",
-    "AS-W",
-    "ASB-",
-    "ASBW",
+    "-S-B",
+    "-SA-",
+    "-SAB",
+    "W---",
+    "W--B",
+    "W-A-",
+    "W-AB",
+    "WS--",
+    "WS-B",
+    "WSA-",
+    "WSAB",
 });
 
 const std::array<std::string, 16> EntityHitboxType::LONG_STRING_VALUES({
     "",
-    "Weak",
     "Body",
-    "Body Weak",
-    "Shield",
-    "Shield Weak",
-    "Shield Body",
-    "Shield Body Weak",
     "Attack",
-    "Attack Weak",
     "Attack Body",
-    "Attack Body Weak",
-    "Attack Shield",
-    "Attack Shield Weak",
-    "Attack Shield Body",
-    "Attack Shield Body Weak",
+    "Shield",
+    "Shield Body",
+    "Shield Attack",
+    "Shield Attack Body",
+    "Weak",
+    "Weak Body",
+    "Weak Attack",
+    "Weak Attack Body",
+    "Weak Shield",
+    "Weak Shield Body",
+    "Weak Shield Attack",
+    "Weak Shield Attack Body",
 });
 
 EntityHitboxType EntityHitboxType::from_string(const std::string& string)
@@ -79,17 +79,17 @@ EntityHitboxType EntityHitboxType::from_string(const std::string& string)
         if (c == '-') {
             continue;
         }
-        else if (c == 'A' || c == 'a') {
-            eht.attack = true;
+        else if (c == 'W' || c == 'w') {
+            eht.weak = true;
         }
         else if (c == 'S' || c == 's') {
             eht.shield = true;
         }
+        else if (c == 'A' || c == 'a') {
+            eht.attack = true;
+        }
         else if (c == 'B' || c == 'b') {
             eht.body = true;
-        }
-        else if (c == 'W' || c == 'w') {
-            eht.weak = true;
         }
         else {
             throw std::out_of_range("Cannot convert `" + string + "` to EntityHitboxType");

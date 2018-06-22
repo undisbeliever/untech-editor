@@ -14,27 +14,27 @@ namespace UnTech {
 namespace MetaSprite {
 
 struct EntityHitboxType {
-    bool attack = 0;
-    bool shield = 0;
-    bool body = 0;
     bool weak = 0;
+    bool shield = 0;
+    bool attack = 0;
+    bool body = 0;
 
     static const std::array<std::string, 16> SHORT_STRING_VALUES;
     static const std::array<std::string, 16> LONG_STRING_VALUES;
 
     uint8_t romValue() const
     {
-        return (attack << 3) | (shield << 2) | (body << 1) | (weak << 0);
+        return (weak << 3) | (shield << 2) | (attack << 1) | (body << 0);
     }
 
     static EntityHitboxType from_romValue(uint8_t v)
     {
         EntityHitboxType eht;
 
-        eht.attack = v & (1 << 3);
+        eht.weak = v & (1 << 3);
         eht.shield = v & (1 << 2);
-        eht.body = v & (1 << 1);
-        eht.weak = v & (1 << 0);
+        eht.attack = v & (1 << 1);
+        eht.body = v & (1 << 0);
 
         return eht;
     }
@@ -53,10 +53,10 @@ struct EntityHitboxType {
 
     inline bool operator==(const EntityHitboxType& o) const
     {
-        return attack == o.attack
-               && body == o.body
+        return weak == o.weak
                && shield == o.shield
-               && weak == o.weak;
+               && attack == o.attack
+               && body == o.body;
     }
     inline bool operator!=(const EntityHitboxType& o) const { return !(*this == o); }
 };

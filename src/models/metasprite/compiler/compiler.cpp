@@ -13,7 +13,7 @@
 namespace MS = UnTech::MetaSprite::MetaSprite;
 using Compiler = UnTech::MetaSprite::Compiler::Compiler;
 
-const unsigned Compiler::METASPRITE_FORMAT_VERSION = 30;
+const unsigned Compiler::METASPRITE_FORMAT_VERSION = 31;
 
 // ::TODO generate debug file - containing frame/frameset names::
 
