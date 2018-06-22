@@ -333,7 +333,7 @@ void SiGraphicsScene::updateTileHitboxSelection()
 
 void SiGraphicsScene::onSceneSelectionChanged()
 {
-    if (_inUpdateSelection) {
+    if (_inUpdateSelection || _document == nullptr) {
         return;
     }
 
