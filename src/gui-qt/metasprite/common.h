@@ -12,6 +12,9 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 
+extern const QStringList EH_SHORT_STRING_VALUES;
+extern const QStringList EH_LONG_STRING_VALUES;
+
 void populateEntityHitboxTypeMenu(QMenu* menu);
 }
 }

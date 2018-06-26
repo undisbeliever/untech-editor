@@ -9,6 +9,7 @@
 #include "document.h"
 #include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/metasprite/common.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
@@ -309,13 +310,12 @@ EntityHitboxManager::EntityHitboxManager(QObject* parent)
     : AbstractFrameContentManager(parent)
 {
     using Type = PropertyType;
-    const auto& EHT_STRINGS = UnTech::MetaSprite::EntityHitboxType::SHORT_STRING_VALUES;
 
     setTitle(tr("Entity Hitbox"));
 
     addProperty(tr("AABB"), PropertyId::AABB, Type::RECT);
     addProperty(tr("Hitbox Type"), PropertyId::HITBOX_TYPE, Type::COMBO,
-                convertStringList(EHT_STRINGS), qVariantRange(EHT_STRINGS.size()));
+                EH_SHORT_STRING_VALUES, qVariantRange(EH_SHORT_STRING_VALUES.size()));
 }
 
 void EntityHitboxManager::setDocument(Document* document)

@@ -9,6 +9,8 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
+// If you modify this also modify EH_SHORT_STRING_VALUES
+// located in src/gui-qt/metasprite/common.cpp
 const std::array<std::string, 16> EntityHitboxType::SHORT_STRING_VALUES({
     "----",
     "---B",
@@ -28,6 +30,8 @@ const std::array<std::string, 16> EntityHitboxType::SHORT_STRING_VALUES({
     "WSAB",
 });
 
+// If you modify this also modify EH_LONG_STRING_VALUES
+// located in src/gui-qt/metasprite/common.cpp
 const std::array<std::string, 16> EntityHitboxType::LONG_STRING_VALUES({
     "",
     "Body",
