@@ -121,9 +121,9 @@ FrameCompiler::processEntityHitboxes(const std::vector<MS::EntityHitbox>& entity
     romData.push_back(count); // count
 
     romData.push_back(outerAabb.x.romData()); // Outer::xOffset
-    romData.push_back(outerAabb.width);       // Outer::width
+    romData.push_back(outerAabb.width - 1);   // Outer::width
     romData.push_back(outerAabb.y.romData()); // Outer::yOffset
-    romData.push_back(outerAabb.height);      // Outer::height
+    romData.push_back(outerAabb.height - 1);  // Outer::height
 
     if (count > 0) {
         for (const MS::EntityHitbox& eh : entityHitboxes) {
@@ -135,9 +135,9 @@ FrameCompiler::processEntityHitboxes(const std::vector<MS::EntityHitbox>& entity
 
             romData.push_back(eh.hitboxType.romValue()); // Inner:type
             romData.push_back(innerAabb.x.romData());    // Inner::xOffset
-            romData.push_back(innerAabb.width);          // Inner::width
+            romData.push_back(innerAabb.width - 1);      // Inner::width
             romData.push_back(innerAabb.y.romData());    // Inner::yOffset
-            romData.push_back(innerAabb.height);         // Inner::height
+            romData.push_back(innerAabb.height - 1);     // Inner::height
         }
     }
     else {
