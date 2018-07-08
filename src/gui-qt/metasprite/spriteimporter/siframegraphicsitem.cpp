@@ -7,6 +7,7 @@
 #include "siframegraphicsitem.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
+#include "gui-qt/metasprite/common.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 
@@ -221,6 +222,7 @@ void SiFrameGraphicsItem::updateEntityHitbox(size_t index)
 
     item->setPen(_style->entityHitboxPen(eh.hitboxType));
     item->setBrush(_style->entityHitboxBrush(eh.hitboxType));
+    item->setToolTip(EH_LONG_STRING_VALUES.at(eh.hitboxType.romValue()));
 
     item->setRect(eh.aabb);
 }

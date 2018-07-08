@@ -19,15 +19,12 @@ const QColor Style::PALETTE_OUTLINE_COLOR(160, 160, 160, 240);
 const QColor Style::TILE_HITBOX_PEN_COLOR(192, 0, 0, 240);
 const QColor Style::FRAME_OBJECT_PEN_COLOR(64, 128, 64, 240);
 const QColor Style::ACTION_POINT_PEN_COLOR(192, 192, 192, 240);
-const QColor Style::EH_BODY_PEN_COLOR(0, 0, 255, 240);
-const QColor Style::EH_BODY_WEAK_PEN_COLOR(123, 123, 255, 240);
-const QColor Style::EH_BODY_ATTACK_PEN_COLOR(123, 0, 165, 240);
-const QColor Style::EH_SHIELD_PEN_COLOR(181, 181, 0, 240);
-const QColor Style::EH_SHIELD_ATTACK_PEN_COLOR(222, 82, 0, 240);
-const QColor Style::EH_ATTACK_PEN_COLOR(198, 0, 0, 240);
+const QColor Style::ENTITY_HITBOX_PEN_COLOR(0, 0, 255, 240);
 
 const QColor Style::TILE_HITBOX_BRUSH_COLOR(192, 0, 0, 32);
 const QColor Style::ACTION_POINT_BRUSH_COLOR(192, 192, 192, 128);
+const QColor Style::ENTITY_HITBOX_BRUSH_COLOR(0, 0, 255, 32);
+
 const QColor Style::EH_BODY_BRUSH_COLOR(0, 0, 255, 32);
 const QColor Style::EH_BODY_WEAK_BRUSH_COLOR(123, 123, 255, 32);
 const QColor Style::EH_BODY_ATTACK_BRUSH_COLOR(123, 0, 165, 32);
@@ -85,30 +82,9 @@ QPen Style::actionPointPen() const
     return createCosmeticPen(ACTION_POINT_PEN_COLOR);
 }
 
-QPen Style::entityHitboxPen(const EntityHitboxType& type) const
+QPen Style::entityHitboxPen(const EntityHitboxType&) const
 {
-    using EHT = EntityHitboxType::Enum;
-
-    switch (type) {
-    default:
-    case EHT::BODY:
-        return createCosmeticPen(EH_BODY_PEN_COLOR);
-
-    case EHT::BODY_WEAK:
-        return createCosmeticPen(EH_BODY_WEAK_PEN_COLOR);
-
-    case EHT::BODY_ATTACK:
-        return createCosmeticPen(EH_BODY_ATTACK_PEN_COLOR);
-
-    case EHT::SHIELD:
-        return createCosmeticPen(EH_SHIELD_PEN_COLOR);
-
-    case EHT::SHIELD_ATTACK:
-        return createCosmeticPen(EH_SHIELD_ATTACK_PEN_COLOR);
-
-    case EHT::ATTACK:
-        return createCosmeticPen(EH_ATTACK_PEN_COLOR);
-    };
+    return createCosmeticPen(ENTITY_HITBOX_PEN_COLOR);
 }
 
 QBrush Style::antiHighlightBrush() const
@@ -126,28 +102,8 @@ QBrush Style::actionPointBrush() const
     return QBrush(ACTION_POINT_BRUSH_COLOR);
 }
 
-QBrush Style::entityHitboxBrush(const EntityHitboxType& type) const
+QBrush Style::entityHitboxBrush(const EntityHitboxType&) const
 {
-    using EHT = EntityHitboxType::Enum;
-
-    switch (type) {
-    default:
-    case EHT::BODY:
-        return QBrush(EH_BODY_BRUSH_COLOR);
-
-    case EHT::BODY_WEAK:
-        return QBrush(EH_BODY_WEAK_BRUSH_COLOR);
-
-    case EHT::BODY_ATTACK:
-        return QBrush(EH_BODY_ATTACK_BRUSH_COLOR);
-
-    case EHT::SHIELD:
-        return QBrush(EH_SHIELD_BRUSH_COLOR);
-
-    case EHT::SHIELD_ATTACK:
-        return QBrush(EH_SHIELD_ATTACK_BRUSH_COLOR);
-
-    case EHT::ATTACK:
-        return QBrush(EH_ATTACK_BRUSH_COLOR);
-    };
+    // ::TODO different brush depending on type::
+    return QBrush(ENTITY_HITBOX_BRUSH_COLOR);
 }

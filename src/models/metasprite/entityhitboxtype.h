@@ -7,51 +7,58 @@
 #pragma once
 
 #include "models/common/enummap.h"
+#include <array>
 #include <cstdint>
 
 namespace UnTech {
 namespace MetaSprite {
 
-class EntityHitboxType {
-public:
-    enum class Enum : uint_fast8_t {
-        BODY = 0,
-        BODY_WEAK = 2,
-        BODY_ATTACK = 4,
-        SHIELD = 6,
-        SHIELD_ATTACK = 8,
-        ATTACK = 10,
-    };
+struct EntityHitboxType {
+    bool weak = 0;
+    bool shield = 0;
+    bool attack = 0;
+    bool body = 0;
 
-    static const EnumMap<Enum> enumMap;
+    static const std::array<std::string, 16> SHORT_STRING_VALUES;
+    static const std::array<std::string, 16> LONG_STRING_VALUES;
 
-    EntityHitboxType(const Enum v = Enum::BODY)
-        : _value(v)
+    uint8_t romValue() const
     {
+        return (weak << 3) | (shield << 2) | (attack << 1) | (body << 0);
     }
 
-    EntityHitboxType(const std::string str)
-        : _value(enumMap.valueOf(str))
+    static EntityHitboxType from_romValue(uint8_t v)
     {
+        EntityHitboxType eht;
+
+        eht.weak = v & (1 << 3);
+        eht.shield = v & (1 << 2);
+        eht.attack = v & (1 << 1);
+        eht.body = v & (1 << 0);
+
+        return eht;
     }
 
-    static EntityHitboxType smallestFixedTileset(unsigned tilesetSize);
+    const std::string& to_string() const
+    {
+        return SHORT_STRING_VALUES.at(romValue() & 0xf);
+    }
 
-    Enum value() const { return _value; }
-    uint8_t romValue() const { return (uint8_t)_value; }
+    const std::string& to_long_string() const
+    {
+        return LONG_STRING_VALUES.at(romValue() & 0xf);
+    }
 
-    const std::string& string() const { return enumMap.nameOf(_value); }
+    static EntityHitboxType from_string(const std::string& string);
 
-    inline operator Enum() const { return _value; }
-
-    inline bool operator==(const EntityHitboxType& o) const { return _value == o._value; }
-    inline bool operator==(Enum e) const { return _value == e; }
-
-    inline bool operator!=(const EntityHitboxType& o) const { return _value != o._value; }
-    inline bool operator!=(Enum e) const { return _value != e; }
-
-private:
-    Enum _value;
+    inline bool operator==(const EntityHitboxType& o) const
+    {
+        return weak == o.weak
+               && shield == o.shield
+               && attack == o.attack
+               && body == o.body;
+    }
+    inline bool operator!=(const EntityHitboxType& o) const { return !(*this == o); }
 };
 }
 }

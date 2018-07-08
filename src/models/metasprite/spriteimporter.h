@@ -144,7 +144,7 @@ struct EntityHitbox {
 
     EntityHitbox()
         : aabb(0, 0, MIN_FRAME_SIZE, MIN_FRAME_SIZE)
-        , hitboxType(EntityHitboxType::Enum::BODY)
+        , hitboxType()
     {
     }
     EntityHitbox(const urect& aabb, EntityHitboxType& hitboxType)

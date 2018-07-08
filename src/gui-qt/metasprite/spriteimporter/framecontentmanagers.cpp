@@ -9,6 +9,7 @@
 #include "document.h"
 #include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/metasprite/common.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
@@ -308,14 +309,13 @@ bool ActionPointManager::setData(int index, int id, const QVariant& value)
 EntityHitboxManager::EntityHitboxManager(QObject* parent)
     : AbstractFrameContentManager(parent)
 {
-    using EHT = UnTech::MetaSprite::EntityHitboxType;
     using Type = PropertyType;
 
     setTitle(tr("Entity Hitbox"));
 
     addProperty(tr("AABB"), PropertyId::AABB, Type::RECT);
     addProperty(tr("Hitbox Type"), PropertyId::HITBOX_TYPE, Type::COMBO,
-                enumComboNames(EHT::enumMap), enumComboDataList(EHT::enumMap));
+                EH_SHORT_STRING_VALUES, qVariantRange(EH_SHORT_STRING_VALUES.size()));
 }
 
 void EntityHitboxManager::setDocument(Document* document)
@@ -357,7 +357,7 @@ QVariant EntityHitboxManager::data(int index, int id) const
                      eh.aabb.width, eh.aabb.height);
 
     case PropertyId::HITBOX_TYPE:
-        return int(eh.hitboxType.value());
+        return int(eh.hitboxType.romValue());
     };
 
     return QVariant();
@@ -406,7 +406,7 @@ bool EntityHitboxManager::setData(int index, int id, const QVariant& value)
         break;
 
     case PropertyId::HITBOX_TYPE:
-        eh.hitboxType = (EntityHitboxType::Enum)value.toInt();
+        eh.hitboxType = EntityHitboxType::from_romValue(value.toInt());
         break;
     };
 

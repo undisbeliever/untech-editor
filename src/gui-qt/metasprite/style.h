@@ -28,15 +28,12 @@ private:
     static const QColor TILE_HITBOX_PEN_COLOR;
     static const QColor FRAME_OBJECT_PEN_COLOR;
     static const QColor ACTION_POINT_PEN_COLOR;
-    static const QColor EH_BODY_PEN_COLOR;
-    static const QColor EH_BODY_WEAK_PEN_COLOR;
-    static const QColor EH_BODY_ATTACK_PEN_COLOR;
-    static const QColor EH_SHIELD_PEN_COLOR;
-    static const QColor EH_SHIELD_ATTACK_PEN_COLOR;
-    static const QColor EH_ATTACK_PEN_COLOR;
+    static const QColor ENTITY_HITBOX_PEN_COLOR;
 
     static const QColor TILE_HITBOX_BRUSH_COLOR;
     static const QColor ACTION_POINT_BRUSH_COLOR;
+    static const QColor ENTITY_HITBOX_BRUSH_COLOR;
+
     static const QColor EH_BODY_BRUSH_COLOR;
     static const QColor EH_BODY_WEAK_BRUSH_COLOR;
     static const QColor EH_BODY_ATTACK_BRUSH_COLOR;
