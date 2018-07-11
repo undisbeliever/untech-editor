@@ -6,23 +6,11 @@
 
 #include "metasprite.h"
 #include "errorlist.h"
-#include "models/common/humantypename.h"
 #include <algorithm>
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 using namespace UnTech::MetaSprite::MetaSprite;
-
-template <>
-const std::string HumanTypeName<FrameSet>::value = "Frame Set";
-template <>
-const std::string HumanTypeName<Frame>::value = "Frame";
-template <>
-const std::string HumanTypeName<FrameObject>::value = "Frame Object";
-template <>
-const std::string HumanTypeName<ActionPoint>::value = "Action Point";
-template <>
-const std::string HumanTypeName<EntityHitbox>::value = "Entity Hitbox";
 
 /*
  * FRAME OBJECT

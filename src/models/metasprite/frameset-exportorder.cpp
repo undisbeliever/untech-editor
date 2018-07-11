@@ -6,25 +6,16 @@
 
 #include "frameset-exportorder.h"
 #include "models/common/externalfilelist.h"
-#include "models/common/humantypename.h"
 #include "models/common/validateunique.h"
 #include "models/resources/error-list.h"
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
-namespace UnTech {
 template <>
-const std::string HumanTypeName<FrameSetExportOrder>::value = "FrameSet Export Order";
-
-template <>
-const std::string HumanTypeName<FrameSetExportOrder::ExportName>::value = "Export Name";
-
-template <>
-void ExternalFileItem<FrameSetExportOrder>::loadFile()
+void UnTech::ExternalFileItem<FrameSetExportOrder>::loadFile()
 {
     value = loadFrameSetExportOrder(filename);
-}
 }
 
 static bool validateAlternativesUnique(const std::vector<NameReference>& alts,

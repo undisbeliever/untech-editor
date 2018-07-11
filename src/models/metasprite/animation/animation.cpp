@@ -5,7 +5,6 @@
  */
 
 #include "animation.h"
-#include "models/common/humantypename.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
 
@@ -14,11 +13,6 @@ using namespace UnTech::MetaSprite::Animation;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace SI = UnTech::MetaSprite::SpriteImporter;
-
-template <>
-const std::string HumanTypeName<Animation>::value = "Animation";
-template <>
-const std::string HumanTypeName<AnimationFrame>::value = "Animation Frame";
 
 // AnimationFrame
 // ==============

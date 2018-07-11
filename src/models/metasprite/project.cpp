@@ -5,16 +5,12 @@
  */
 
 #include "project.h"
-#include "models/common/humantypename.h"
 #include "models/common/string.h"
 #include "models/common/validateunique.h"
 #include "utsi2utms/utsi2utms.h"
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
-
-template <>
-const std::string HumanTypeName<Project::FrameSetFile>::value = "FrameSet File";
 
 void Project::FrameSetFile::setTypeFromExtension()
 {

@@ -7,27 +7,11 @@
 #include "spriteimporter.h"
 #include "errorlist.h"
 #include "models/common/file.h"
-#include "models/common/humantypename.h"
 #include "models/common/imagecache.h"
 #include <algorithm>
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite::SpriteImporter;
-
-template <>
-const std::string HumanTypeName<FrameSet>::value = "Frame Set";
-template <>
-const std::string HumanTypeName<FrameSetGrid>::value = "Frame Set Grid";
-template <>
-const std::string HumanTypeName<Frame>::value = "Frame";
-template <>
-const std::string HumanTypeName<FrameLocation>::value = "Frame Location";
-template <>
-const std::string HumanTypeName<FrameObject>::value = "Frame Object";
-template <>
-const std::string HumanTypeName<ActionPoint>::value = "Action Point";
-template <>
-const std::string HumanTypeName<EntityHitbox>::value = "Entity Hitbox";
 
 /*
  * FRAME SET GRID
