@@ -28,11 +28,18 @@ struct FrameListEntry;
 struct AnimationListEntry;
 
 struct FrameTileset {
+    static const uint16_t NULL_CHAR_ATTR;
+
+    FrameTileset(const MetaSprite::FrameSet& fs);
+
+    void merge(const FrameTileset& ft);
+    uint16_t charAttr(ObjectSize objSize, unsigned tileId) const;
+
     RomOffsetPtr tilesetOffset;
 
-    // the uint16_t matches the charattr bits of the frameobject data.
-    std::unordered_map<unsigned, uint16_t> smallTilesetMap;
-    std::unordered_map<unsigned, uint16_t> largeTilesetMap;
+    // Mapping of tileId => Objects::charAttr bits
+    std::vector<uint16_t> smallTilesCharAttr;
+    std::vector<uint16_t> largeTilesCharAttr;
 };
 
 struct FrameSetTilesets {

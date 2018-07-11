@@ -16,6 +16,49 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
+const uint16_t FrameTileset::NULL_CHAR_ATTR = 0xffff;
+
+FrameTileset::FrameTileset(const MetaSprite::FrameSet& fs)
+    : tilesetOffset(0)
+    , smallTilesCharAttr(fs.smallTileset.size(), NULL_CHAR_ATTR)
+    , largeTilesCharAttr(fs.largeTileset.size(), NULL_CHAR_ATTR)
+{
+}
+
+void FrameTileset::merge(const FrameTileset& ft)
+{
+    auto process = [](auto& map, const auto& ftMap) {
+        assert(map.size() == ftMap.size());
+
+        for (unsigned i = 0; i < map.size(); i++) {
+            auto& t = ftMap.at(i);
+            if (t != NULL_CHAR_ATTR) {
+                map.at(i) = t;
+            }
+        }
+    };
+
+    process(this->smallTilesCharAttr, ft.smallTilesCharAttr);
+    process(this->largeTilesCharAttr, ft.largeTilesCharAttr);
+}
+
+uint16_t FrameTileset::charAttr(ObjectSize objSize, unsigned tileId) const
+{
+    uint16_t ca;
+    if (objSize == ObjectSize::SMALL) {
+        ca = smallTilesCharAttr.at(tileId);
+    }
+    else {
+        ca = largeTilesCharAttr.at(tileId);
+    }
+
+    if (ca == NULL_CHAR_ATTR) {
+        throw std::logic_error("charAttr is NULL_CHAR_ATTR");
+    }
+
+    return ca;
+}
+
 /*
  * Increments the `charattr` position by one 16x16 tile,
  * handling the tilesetSpitPoint as required.
@@ -132,7 +175,7 @@ TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
 {
     assert(tiles.size() <= tilesetType.nTiles());
 
-    FrameTileset tileset;
+    FrameTileset tileset(frameSet);
 
     if (tiles.size() == 0) {
         return tileset;
@@ -164,7 +207,7 @@ TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
             if (a.vFlip) {
                 charAttr |= CharAttrPos::CHARATTR_VFLIP;
             }
-            tileset.largeTilesetMap.emplace(tId, charAttr);
+            tileset.largeTilesCharAttr.at(tId) = charAttr;
 
             charAttrPos.inc();
         }
@@ -181,6 +224,11 @@ TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
 
             for (unsigned i = 0; i < 4; i++) {
                 unsigned tId = tile16.smallTileIds[i];
+
+                if (tId >= 0xffff) {
+                    continue;
+                }
+
                 uint16_t charAttr = charAttrPos.smallCharAttr(i);
 
                 if (a.hFlip) {
@@ -189,7 +237,7 @@ TilesetCompiler::buildTileset(const MS::FrameSet& frameSet,
                 if (a.vFlip) {
                     charAttr |= CharAttrPos::CHARATTR_VFLIP;
                 }
-                tileset.smallTilesetMap.emplace(tId, charAttr);
+                tileset.smallTilesCharAttr.at(tId) = charAttr;
             }
 
             charAttrPos.inc();
@@ -225,11 +273,7 @@ TilesetCompiler::buildDynamicTileset(const MetaSprite::FrameSet& frameSet,
 
             auto& tileset = ret.tilesets.back();
 
-            tileset.smallTilesetMap.insert(staticTileset.smallTilesetMap.begin(),
-                                           staticTileset.smallTilesetMap.end());
-            tileset.largeTilesetMap.insert(staticTileset.largeTilesetMap.begin(),
-                                           staticTileset.largeTilesetMap.end());
-
+            tileset.merge(staticTileset);
             for (const MS::Frame* frame : ft.frames) {
                 ret.frameMap.emplace(frame, tileset);
             }

@@ -57,15 +57,7 @@ FrameCompiler::processFrameObjects(const MS::Frame& frame,
     for (const MS::FrameObject& obj : frame.objects) {
         const ms8point loc = obj.location;
 
-        uint16_t charAttr;
-
-        if (obj.size == ObjectSize::SMALL) {
-            charAttr = tileset.smallTilesetMap.at(obj.tileId);
-        }
-        else {
-            charAttr = tileset.largeTilesetMap.at(obj.tileId);
-        }
-
+        uint16_t charAttr = tileset.charAttr(obj.size, obj.tileId);
         charAttr |= frame.spriteOrder << ORDER_SHIFT;
 
         if (obj.hFlip) {
