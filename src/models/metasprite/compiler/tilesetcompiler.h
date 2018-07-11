@@ -14,15 +14,19 @@
 #include <array>
 #include <cstdint>
 #include <list>
-#include <unordered_map>
 #include <vector>
 
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
-typedef std::unordered_map<unsigned, std::vector<const MetaSprite::Frame*>> TileGraph_t;
-typedef std::unordered_map<unsigned, std::array<uint16_t, 4>> SmallTileMap_t;
+// Graph of tileId => list of frames that use that tile
+typedef std::vector<std::vector<const MetaSprite::Frame*>> TileGraph_t;
+// Mapping of small tileId => The four small tiles that combine to form a Tile16.
+typedef std::vector<std::array<uint16_t, 4>> SmallTileMap_t;
+
+constexpr uint16_t INVALID_SMALL_TILE = 0xffff;
+constexpr std::array<uint16_t, 4> INVALID_SMALL_TILES_ARRAY = { 0xffff, 0xffff, 0xffff, 0xffff };
 
 struct FrameListEntry;
 struct AnimationListEntry;
@@ -71,7 +75,8 @@ public:
 private:
     void validateExportList(const FrameSetExportList& exportList);
 
-    SmallTileMap_t buildSmallTileMap(const std::vector<FrameListEntry>& frameEntries);
+    SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
+                                     const std::vector<FrameListEntry>& frameEntries);
 
     vectorset<Tile16> fixedTilesetData(const std::vector<FrameListEntry>& frameEntries,
                                        const SmallTileMap_t& smallTileMap) const;

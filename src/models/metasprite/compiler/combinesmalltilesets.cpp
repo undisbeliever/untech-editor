@@ -59,8 +59,12 @@ inline std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
 {
     std::list<FirstPassOutput> output;
 
-    std::list<std::pair<unsigned, const std::vector<const MetaSprite::Frame*>&>>
-        toProcess(smallTileGraph.begin(), smallTileGraph.end());
+    std::list<std::pair<unsigned, const std::vector<const MetaSprite::Frame*>&>> toProcess;
+    for (unsigned i = 0; i < smallTileGraph.size(); i++) {
+        if (!smallTileGraph.at(i).empty()) {
+            toProcess.emplace_back(i, smallTileGraph.at(i));
+        }
+    }
 
     // sort the list by popularity
     toProcess.sort([](const auto& a, const auto& b) {
@@ -110,9 +114,10 @@ inline std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
     return output;
 }
 
-inline SmallTileMap_t secondPass(std::list<FirstPassOutput> input)
+inline SmallTileMap_t secondPass(std::list<FirstPassOutput> input,
+                                 size_t nSmallTiles)
 {
-    SmallTileMap_t output;
+    SmallTileMap_t output(nSmallTiles, INVALID_SMALL_TILES_ARRAY);
 
     // sort the input by popularity
     // should be mostly sorted anyways
@@ -137,7 +142,7 @@ inline SmallTileMap_t secondPass(std::list<FirstPassOutput> input)
             }
         }
 
-        std::array<uint16_t, 4> combined = { { 0xffff, 0xffff, 0xffff, 0xffff } };
+        std::array<uint16_t, 4> combined = INVALID_SMALL_TILES_ARRAY;
 
         combined[0] = mostPopular->firstTile;
         combined[1] = mostPopular->secondTile;
@@ -150,8 +155,10 @@ inline SmallTileMap_t secondPass(std::list<FirstPassOutput> input)
         }
         input.erase(mostPopular);
 
-        for (unsigned tId : combined) {
-            output[tId] = combined;
+        for (auto tId : combined) {
+            if (tId != INVALID_SMALL_TILE) {
+                output.at(tId) = combined;
+            }
         }
     }
 
@@ -162,7 +169,7 @@ inline SmallTileMap_t secondPass(std::list<FirstPassOutput> input)
 SmallTileMap_t combineSmallTilesets(const TileGraph_t& smallTileGraph)
 {
     auto fp = CombineSmallTilesets::firstPass(smallTileGraph);
-    return CombineSmallTilesets::secondPass(fp);
+    return CombineSmallTilesets::secondPass(fp, smallTileGraph.size());
 }
 }
 }
