@@ -10,7 +10,6 @@
 #include "romdata.h"
 #include "../errorlist.h"
 #include "../metasprite.h"
-#include <map>
 
 namespace UnTech {
 namespace MetaSprite {
@@ -29,8 +28,8 @@ private:
     // Returns the data offset in `_animationData`
     uint32_t processAnimation(const AnimationListEntry& animation,
                               const MetaSprite::FrameSet&,
-                              const std::map<const FrameListEntry, unsigned>& frameMap,
-                              const std::map<const AnimationListEntry, unsigned>& animationMap);
+                              const std::vector<FrameListEntry>& frames,
+                              const std::vector<AnimationListEntry>& animations);
 
 private:
     ErrorList& _errorList;

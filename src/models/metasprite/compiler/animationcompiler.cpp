@@ -26,11 +26,23 @@ void AnimationCompiler::writeToIncFile(std::ostream& out) const
     _animationList.writeToIncFile(out);
 }
 
+template <typename T>
+static inline auto indexOf_throw(const std::vector<T>& vector, const T& item)
+{
+    auto it = std::find(vector.begin(), vector.end(), item);
+
+    if (it == vector.end()) {
+        throw std::out_of_range("item not found in vector");
+    }
+
+    return std::distance(vector.begin(), it);
+}
+
 inline uint32_t
 AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
                                     const MS::FrameSet& frameSet,
-                                    const std::map<const FrameListEntry, unsigned>& frameMap,
-                                    const std::map<const AnimationListEntry, unsigned>& animationMap)
+                                    const std::vector<FrameListEntry>& frames,
+                                    const std::vector<AnimationListEntry>& animations)
 {
     using namespace UnTech;
 
@@ -47,7 +59,7 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
                 assert(a != nullptr);
             }
 
-            nextAnimationId = animationMap.at({ a, aniEntry.hFlip, aniEntry.vFlip });
+            nextAnimationId = indexOf_throw(animations, { a, aniEntry.hFlip, aniEntry.vFlip });
         }
     }
 
@@ -61,9 +73,9 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
     for (const auto& aFrame : animation.frames) {
         const auto& frameRef = aFrame.frame;
 
-        uint8_t frameId = frameMap.at({ frameSet.frames.getPtr(frameRef.name),
-                                        static_cast<bool>(frameRef.hFlip ^ aniEntry.hFlip),
-                                        static_cast<bool>(frameRef.vFlip ^ aniEntry.vFlip) });
+        uint8_t frameId = indexOf_throw(frames, { frameSet.frames.getPtr(frameRef.name),
+                                                  static_cast<bool>(frameRef.hFlip ^ aniEntry.hFlip),
+                                                  static_cast<bool>(frameRef.vFlip ^ aniEntry.vFlip) });
 
         data.push_back(frameId);         // Frames.frameId
         data.push_back(aFrame.duration); // Frames.duration
@@ -75,28 +87,17 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
 RomOffsetPtr
 AnimationCompiler::process(const FrameSetExportList& exportList)
 {
-    const auto& animationList = exportList.animations();
-    const auto& frameList = exportList.frames();
+    const size_t nAnimations = exportList.animations().size();
 
-    if (animationList.size() > MAX_EXPORT_NAMES) {
+    if (nAnimations > MAX_EXPORT_NAMES) {
         _errorList.addError("Too many animations in export order");
         return _animationList.addNull();
     }
 
-    std::map<const FrameListEntry, unsigned> frameMap;
-    for (unsigned i = 0; i < frameList.size(); i++) {
-        frameMap[frameList[i]] = i;
-    }
-
-    std::map<const AnimationListEntry, unsigned> animationMap;
-    for (unsigned i = 0; i < animationList.size(); i++) {
-        animationMap[animationList[i]] = i;
-    }
-
     std::vector<uint32_t> animationOffsets;
-    animationOffsets.reserve(animationList.size());
+    animationOffsets.reserve(nAnimations);
 
-    for (const auto& ani : animationList) {
+    for (const auto& ani : exportList.animations()) {
         assert(ani.animation != nullptr);
         uint32_t ao = ~0;
 
@@ -104,7 +105,7 @@ AnimationCompiler::process(const FrameSetExportList& exportList)
 
         try {
             ao = processAnimation(ani, exportList.frameSet(),
-                                  frameMap, animationMap);
+                                  exportList.frames(), exportList.animations());
         }
         catch (const std::exception& ex) {
             _errorList.addError(exportList.frameSet(), *ani.animation, ex.what());
