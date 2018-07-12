@@ -8,6 +8,7 @@
 #include "models/common/vectorset.h"
 #include <algorithm>
 #include <climits>
+#include <functional>
 #include <list>
 
 namespace UnTech {
@@ -59,7 +60,7 @@ inline std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
 {
     std::list<FirstPassOutput> output;
 
-    std::list<std::pair<unsigned, const std::vector<const MetaSprite::Frame*>&>> toProcess;
+    std::vector<std::pair<unsigned, std::reference_wrapper<const std::vector<const MetaSprite::Frame*>>>> toProcess;
     for (unsigned i = 0; i < smallTileGraph.size(); i++) {
         if (!smallTileGraph.at(i).empty()) {
             toProcess.emplace_back(i, smallTileGraph.at(i));
@@ -67,9 +68,10 @@ inline std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
     }
 
     // sort the list by popularity
-    toProcess.sort([](const auto& a, const auto& b) {
-        return a.second.size() > b.second.size();
-    });
+    std::stable_sort(toProcess.begin(), toProcess.end(),
+                     [](const auto& a, const auto& b) {
+                         return a.second.get().size() > b.second.get().size();
+                     });
 
     while (!toProcess.empty()) {
         auto mostPopular = toProcess.begin();
@@ -94,14 +96,14 @@ inline std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
         auto& o = output.back();
 
         o.firstTile = mostPopular->first;
-        for (const auto& f : mostPopular->second) {
+        for (const auto& f : mostPopular->second.get()) {
             o.frames.insert(f);
         }
 
         if (bestMatch != toProcess.end()) {
             o.secondTile = bestMatch->first;
 
-            for (const auto& f : bestMatch->second) {
+            for (const auto& f : bestMatch->second.get()) {
                 o.frames.insert(f);
             }
 
