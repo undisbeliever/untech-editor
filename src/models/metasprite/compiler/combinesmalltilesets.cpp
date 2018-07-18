@@ -5,7 +5,6 @@
  */
 
 #include "combinesmalltilesets.h"
-#include "models/common/vectorset.h"
 #include <algorithm>
 #include <climits>
 #include <functional>
@@ -22,35 +21,23 @@ namespace CombineSmallTilesets {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-// Graph of tileId => list of frames that use that tile
+// Graph of tileId => frames that use that tile.
+// frames may be repeated if the same tile is used multiple times in the same frame (including flipped frames).
 typedef std::vector<std::vector<const MetaSprite::Frame*>> TileGraph_t;
 
 struct FirstPassOutput {
     unsigned firstTile = UINT_MAX;
     unsigned secondTile = UINT_MAX;
-    vectorset<const MS::Frame*> frames;
+    std::vector<const MS::Frame*> frames;
 };
 
-static int scoreTiles(const std::vector<const MS::Frame*>& a, const vectorset<const MS::Frame*>& b)
+static int scoreTiles(const std::vector<const MS::Frame*>& a, const std::vector<const MS::Frame*>& b)
 {
     int score = 0;
     for (const auto& f : a) {
-        if (b.contains(f)) {
-            score += 3;
-        }
-        else {
-            score -= 1;
-        }
-    }
-    return score;
-}
-
-static int scoreTiles(const vectorset<const MS::Frame*>& a, const vectorset<const MS::Frame*>& b)
-{
-    int score = 0;
-    for (const auto& f : a) {
-        if (b.contains(f)) {
-            score += 3;
+        int count = std::count(b.begin(), b.end(), f);
+        if (count > 0) {
+            score += 3 * count;
         }
         else {
             score -= 1;
@@ -88,7 +75,7 @@ static std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
         }
     }
 
-    // sort the list by popularity
+    // sort toProcess by popularity
     std::stable_sort(toProcess.begin(), toProcess.end(),
                      [](const auto& a, const auto& b) {
                          return a.second.get().size() > b.second.get().size();
@@ -99,7 +86,7 @@ static std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
 
         auto bestMatch = toProcess.end();
         {
-            const vectorset<const MetaSprite::Frame*> cmp(mostPopular->second);
+            const std::vector<const MetaSprite::Frame*>& cmp(mostPopular->second);
 
             int bestScore = INT_MIN;
             auto it = toProcess.begin();
@@ -117,16 +104,13 @@ static std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
         auto& o = output.back();
 
         o.firstTile = mostPopular->first;
-        for (const auto& f : mostPopular->second.get()) {
-            o.frames.insert(f);
-        }
+        o.frames = mostPopular->second.get();
 
         if (bestMatch != toProcess.end()) {
             o.secondTile = bestMatch->first;
 
-            for (const auto& f : bestMatch->second.get()) {
-                o.frames.insert(f);
-            }
+            const auto& bmFrames = bestMatch->second.get();
+            o.frames.insert(o.frames.end(), bmFrames.begin(), bmFrames.end());
 
             toProcess.erase(bestMatch);
         }
