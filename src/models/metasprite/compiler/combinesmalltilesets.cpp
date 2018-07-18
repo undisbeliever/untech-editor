@@ -22,13 +22,16 @@ namespace CombineSmallTilesets {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
+// Graph of tileId => list of frames that use that tile
+typedef std::vector<std::vector<const MetaSprite::Frame*>> TileGraph_t;
+
 struct FirstPassOutput {
     unsigned firstTile = UINT_MAX;
     unsigned secondTile = UINT_MAX;
     vectorset<const MS::Frame*> frames;
 };
 
-int scoreTiles(const std::vector<const MS::Frame*>& a, const vectorset<const MS::Frame*>& b)
+static int scoreTiles(const std::vector<const MS::Frame*>& a, const vectorset<const MS::Frame*>& b)
 {
     int score = 0;
     for (const auto& f : a) {
@@ -42,7 +45,7 @@ int scoreTiles(const std::vector<const MS::Frame*>& a, const vectorset<const MS:
     return score;
 }
 
-int scoreTiles(const vectorset<const MS::Frame*>& a, const vectorset<const MS::Frame*>& b)
+static int scoreTiles(const vectorset<const MS::Frame*>& a, const vectorset<const MS::Frame*>& b)
 {
     int score = 0;
     for (const auto& f : a) {
@@ -56,7 +59,25 @@ int scoreTiles(const vectorset<const MS::Frame*>& a, const vectorset<const MS::F
     return score;
 }
 
-inline std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
+static TileGraph_t buildSmallTileGraph(const MetaSprite::FrameSet& frameSet,
+                                       const std::vector<FrameListEntry>& frameEntries)
+{
+    TileGraph_t smallTileGraph(frameSet.smallTileset.size());
+
+    for (const auto& fle : frameEntries) {
+        if (fle.frame != nullptr) {
+            for (const auto& obj : fle.frame->objects) {
+                if (obj.size == ObjectSize::SMALL) {
+                    smallTileGraph.at(obj.tileId).emplace_back(fle.frame);
+                }
+            }
+        }
+    }
+
+    return smallTileGraph;
+}
+
+static std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
 {
     std::list<FirstPassOutput> output;
 
@@ -116,7 +137,7 @@ inline std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
     return output;
 }
 
-inline SmallTileMap_t secondPass(std::list<FirstPassOutput> input,
+static SmallTileMap_t secondPass(std::list<FirstPassOutput> input,
                                  size_t nSmallTiles)
 {
     SmallTileMap_t output(nSmallTiles, INVALID_SMALL_TILES_ARRAY);
@@ -168,8 +189,10 @@ inline SmallTileMap_t secondPass(std::list<FirstPassOutput> input,
 }
 }
 
-SmallTileMap_t combineSmallTilesets(const TileGraph_t& smallTileGraph)
+SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
+                                 const std::vector<FrameListEntry>& frameEntries)
 {
+    auto smallTileGraph = CombineSmallTilesets::buildSmallTileGraph(frameSet, frameEntries);
     auto fp = CombineSmallTilesets::firstPass(smallTileGraph);
     return CombineSmallTilesets::secondPass(fp, smallTileGraph.size());
 }

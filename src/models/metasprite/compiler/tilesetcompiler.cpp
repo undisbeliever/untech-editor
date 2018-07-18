@@ -453,25 +453,6 @@ TilesetCompiler::fixedTilesetData(const std::vector<FrameListEntry>& frames,
     return tiles;
 }
 
-SmallTileMap_t
-TilesetCompiler::buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
-                                   const std::vector<FrameListEntry>& frameEntries)
-{
-    TileGraph_t smallTileGraph(frameSet.smallTileset.size());
-
-    for (const auto& fle : frameEntries) {
-        if (fle.frame != nullptr) {
-            for (const auto& obj : fle.frame->objects) {
-                if (obj.size == ObjectSize::SMALL) {
-                    smallTileGraph.at(obj.tileId).emplace_back(fle.frame);
-                }
-            }
-        }
-    }
-
-    return combineSmallTilesets(smallTileGraph);
-}
-
 void TilesetCompiler::validateExportList(const FrameSetExportList& exportList)
 {
     const MS::FrameSet& frameSet = exportList.frameSet();

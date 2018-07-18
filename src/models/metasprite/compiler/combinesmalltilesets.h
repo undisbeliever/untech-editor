@@ -6,13 +6,20 @@
 
 #pragma once
 
-#include "tilesetcompiler.h"
+#include "framesetexportlist.h"
 
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
-SmallTileMap_t combineSmallTilesets(const TileGraph_t& smallTileGraph);
+constexpr uint16_t INVALID_SMALL_TILE = 0xffff;
+constexpr std::array<uint16_t, 4> INVALID_SMALL_TILES_ARRAY = { 0xffff, 0xffff, 0xffff, 0xffff };
+
+// Mapping of small tileId => The four small tiles that combine to form a Tile16.
+typedef std::vector<std::array<uint16_t, 4>> SmallTileMap_t;
+
+SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
+                                 const std::vector<FrameListEntry>& frameEntries);
 }
 }
 }
