@@ -124,14 +124,14 @@ struct TilesetCompiler::Tile16 {
 };
 
 struct TilesetCompiler::FrameTilesetData {
-    vectorset<const MetaSprite::Frame*> frames;
+    std::vector<const MetaSprite::Frame*> frames;
     vectorset<Tile16> tiles;
 
     FrameTilesetData(const MetaSprite::Frame* frame, vectorset<Tile16>&& tiles)
         : frames()
         , tiles(tiles)
     {
-        frames.insert(frame);
+        frames.push_back(frame);
     }
 
     FrameTilesetData(const std::vector<FrameListEntry>& frameEntries,
@@ -139,8 +139,9 @@ struct TilesetCompiler::FrameTilesetData {
         : frames()
         , tiles(tiles)
     {
+        frames.reserve(frameEntries.size());
         for (const auto& entry : frameEntries) {
-            frames.insert(entry.frame);
+            frames.push_back(entry.frame);
         }
     }
 };
@@ -424,7 +425,7 @@ TilesetCompiler::dynamicTilesetData(const std::vector<FrameListEntry>& frameEntr
             ftVector.emplace_back(entry.frame, std::move(tiles));
         }
         else {
-            it->frames.insert(entry.frame);
+            it->frames.push_back(entry.frame);
         }
     }
 
