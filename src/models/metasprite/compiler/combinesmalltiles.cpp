@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "combinesmalltilesets.h"
+#include "combinesmalltiles.h"
 #include <algorithm>
 #include <climits>
 #include <functional>
@@ -13,7 +13,7 @@
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
-namespace CombineSmallTilesets {
+namespace CombineSmallTiles {
 
 // This is a simple packing algorithm
 // It just pairs off the most common small tiles,
@@ -176,9 +176,9 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput> input,
 SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
                                  const std::vector<FrameListEntry>& frameEntries)
 {
-    auto smallTileGraph = CombineSmallTilesets::buildSmallTileGraph(frameSet, frameEntries);
-    auto fp = CombineSmallTilesets::firstPass(smallTileGraph);
-    return CombineSmallTilesets::secondPass(fp, smallTileGraph.size());
+    auto smallTileGraph = CombineSmallTiles::buildSmallTileGraph(frameSet, frameEntries);
+    auto fp = CombineSmallTiles::firstPass(smallTileGraph);
+    return CombineSmallTiles::secondPass(fp, smallTileGraph.size());
 }
 }
 }

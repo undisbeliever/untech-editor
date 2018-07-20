@@ -5,7 +5,7 @@
  */
 
 #include "tilesetcompiler.h"
-#include "combinesmalltilesets.h"
+#include "combinesmalltiles.h"
 #include <climits>
 
 using namespace UnTech;

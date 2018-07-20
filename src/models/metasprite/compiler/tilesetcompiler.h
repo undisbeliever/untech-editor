@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "combinesmalltilesets.h"
+#include "combinesmalltiles.h"
 #include "framesetexportlist.h"
 #include "romtiledata.h"
 #include "../errorlist.h"
