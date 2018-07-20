@@ -41,24 +41,45 @@ struct TileGraphItem {
 };
 
 struct FirstPassOutput {
-    unsigned firstTile = UINT_MAX;
-    unsigned secondTile = UINT_MAX;
-    std::vector<const MS::Frame*> frames;
+    const TileGraphItem& firstTile;
+    const TileGraphItem& secondTile;
+
+    FirstPassOutput(const TileGraphItem& first, const TileGraphItem& second)
+        : firstTile(first)
+        , secondTile(second)
+    {
+    }
+
+    size_t nFrames() const { return firstTile.frames.size() + secondTile.frames.size(); }
 };
 
-static int scoreTiles(const std::vector<const MS::Frame*>& a, const std::vector<const MS::Frame*>& b)
+static int scoreTilesVec(const std::vector<const MetaSprite::Frame*>& a, const std::vector<const MetaSprite::Frame*>& b)
 {
     int score = 0;
     for (const auto& f : a) {
         int count = std::count(b.begin(), b.end(), f);
         if (count > 0) {
-            score += 3 * count;
+            score += count;
         }
         else {
-            score -= 1;
+            score -= 3;
         }
     }
     return score;
+}
+
+static int scoreTiles(const TileGraphItem& a, const TileGraphItem& b)
+{
+    return scoreTilesVec(a.frames, b.frames)
+           + scoreTilesVec(b.frames, a.frames);
+}
+
+static int scoreTiles(const FirstPassOutput& a, const FirstPassOutput& b)
+{
+    return scoreTiles(a.firstTile, b.firstTile)
+           + scoreTiles(a.secondTile, b.firstTile)
+           + scoreTiles(b.firstTile, a.secondTile)
+           + scoreTiles(a.secondTile, b.secondTile);
 }
 
 // To improve packing the size of the output is always a multiple of four (4).
@@ -114,14 +135,12 @@ static std::list<FirstPassOutput> firstPass(const std::vector<TileGraphItem>& sm
         assert(toProcess.size() % 2 == 0);
 
         auto mostPopularIt = toProcess.begin();
-        const TileGraphItem& mostPopular = *mostPopularIt;
 
         auto bestMatchIt = toProcess.end();
         {
             int bestScore = INT_MIN;
             for (auto it = mostPopularIt + 1; it != toProcess.end(); ++it) {
-                const TileGraphItem& tgi = *it;
-                int score = scoreTiles(tgi.frames, mostPopular.frames);
+                int score = scoreTiles(*it, *mostPopularIt);
 
                 if (score > bestScore) {
                     bestMatchIt = it;
@@ -129,18 +148,9 @@ static std::list<FirstPassOutput> firstPass(const std::vector<TileGraphItem>& sm
                 }
             }
         }
-
         assert(bestMatchIt != toProcess.end());
-        const TileGraphItem& bestMatch = *bestMatchIt;
 
-        output.emplace_back();
-        auto& o = output.back();
-
-        o.firstTile = mostPopular.tileId;
-        o.secondTile = bestMatch.tileId;
-
-        o.frames = mostPopular.frames;
-        o.frames.insert(o.frames.end(), bestMatch.frames.begin(), bestMatch.frames.end());
+        output.emplace_back(*mostPopularIt, *bestMatchIt);
 
         toProcess.erase(bestMatchIt);
         toProcess.erase(mostPopularIt);
@@ -159,7 +169,7 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput>& input,
     // sort the input by popularity
     // should be mostly sorted anyways
     input.sort([](const FirstPassOutput& a, const FirstPassOutput& b) {
-        return a.frames.size() > b.frames.size();
+        return a.nFrames() > b.nFrames();
     });
 
     while (!input.empty()) {
@@ -170,7 +180,7 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput>& input,
             int bestScore = INT_MIN;
             auto it = mostPopular;
             for (++it; it != input.end(); ++it) {
-                int score = scoreTiles(mostPopular->frames, it->frames);
+                int score = scoreTiles(*mostPopular, *it);
 
                 if (score > bestScore) {
                     bestMatch = it;
@@ -183,10 +193,10 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput>& input,
 
         std::array<uint16_t, 4> combined;
 
-        combined[0] = mostPopular->firstTile;
-        combined[1] = mostPopular->secondTile;
-        combined[2] = bestMatch->firstTile;
-        combined[3] = bestMatch->secondTile;
+        combined[0] = mostPopular->firstTile.tileId;
+        combined[1] = mostPopular->secondTile.tileId;
+        combined[2] = bestMatch->firstTile.tileId;
+        combined[3] = bestMatch->secondTile.tileId;
 
         input.erase(bestMatch);
         input.erase(mostPopular);
