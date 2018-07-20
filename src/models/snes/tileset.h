@@ -42,6 +42,7 @@ public:
 
     // expose vector
     size_t size() const { return _tiles.size(); }
+    bool empty() const { return _tiles.empty(); }
     auto begin() { return _tiles.begin(); }
     auto begin() const { return _tiles.begin(); }
     auto end() { return _tiles.begin(); }

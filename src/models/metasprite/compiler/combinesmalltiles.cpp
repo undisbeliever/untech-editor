@@ -21,9 +21,24 @@ namespace CombineSmallTiles {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-// Graph of tileId => frames that use that tile.
-// frames may be repeated if the same tile is used multiple times in the same frame (including flipped frames).
-typedef std::vector<std::vector<const MetaSprite::Frame*>> TileGraph_t;
+struct TileGraphItem {
+    // Graph of tileId => frames that use that tile.
+    // frames may be repeated if the same tile is used multiple times in the same frame (including flipped frames).
+
+    const unsigned tileId;
+    const std::vector<const MetaSprite::Frame*> frames;
+
+    TileGraphItem()
+        : tileId(INVALID_SMALL_TILE)
+        , frames()
+    {
+    }
+    TileGraphItem(unsigned t, std::vector<const MetaSprite::Frame*>&& f)
+        : tileId(t)
+        , frames(std::move(f))
+    {
+    }
+};
 
 struct FirstPassOutput {
     unsigned firstTile = UINT_MAX;
@@ -46,84 +61,99 @@ static int scoreTiles(const std::vector<const MS::Frame*>& a, const std::vector<
     return score;
 }
 
-static TileGraph_t buildSmallTileGraph(const MetaSprite::FrameSet& frameSet,
-                                       const std::vector<FrameListEntry>& frameEntries)
+// To improve packing the size of the output is always a multiple of four (4).
+static std::vector<TileGraphItem> buildSmallTileGraph(const MetaSprite::FrameSet& frameSet,
+                                                      const std::vector<FrameListEntry>& frameEntries)
 {
-    TileGraph_t smallTileGraph(frameSet.smallTileset.size());
-
+    std::vector<std::vector<const MetaSprite::Frame*>> tileFrames(frameSet.smallTileset.size());
     for (const auto& fle : frameEntries) {
         if (fle.frame != nullptr) {
             for (const auto& obj : fle.frame->objects) {
                 if (obj.size == ObjectSize::SMALL) {
-                    smallTileGraph.at(obj.tileId).emplace_back(fle.frame);
+                    tileFrames.at(obj.tileId).emplace_back(fle.frame);
                 }
             }
         }
+    }
+
+    std::vector<TileGraphItem> smallTileGraph;
+    smallTileGraph.reserve(int((frameSet.smallTileset.size() + 3) / 4) * 4);
+
+    for (unsigned i = 0; i < tileFrames.size(); i++) {
+        if (not tileFrames.at(i).empty()) {
+            smallTileGraph.emplace_back(i, std::move(tileFrames.at(i)));
+        }
+    }
+
+    while (smallTileGraph.size() % 4 != 0) {
+        smallTileGraph.emplace_back();
     }
 
     return smallTileGraph;
 }
 
-static std::list<FirstPassOutput> firstPass(const TileGraph_t& smallTileGraph)
+static std::list<FirstPassOutput> firstPass(const std::vector<TileGraphItem>& smallTileGraph)
 {
+    assert(!smallTileGraph.empty() && smallTileGraph.size() % 4 == 0);
+
     std::list<FirstPassOutput> output;
 
-    std::vector<std::pair<unsigned, std::reference_wrapper<const std::vector<const MetaSprite::Frame*>>>> toProcess;
-    for (unsigned i = 0; i < smallTileGraph.size(); i++) {
-        if (!smallTileGraph.at(i).empty()) {
-            toProcess.emplace_back(i, smallTileGraph.at(i));
-        }
+    std::vector<std::reference_wrapper<const TileGraphItem>> toProcess;
+    toProcess.reserve(smallTileGraph.size());
+    for (const TileGraphItem& it : smallTileGraph) {
+        toProcess.emplace_back(it);
     }
 
     // sort toProcess by popularity
     std::stable_sort(toProcess.begin(), toProcess.end(),
-                     [](const auto& a, const auto& b) {
-                         return a.second.get().size() > b.second.get().size();
+                     [](const TileGraphItem& a, const TileGraphItem& b) {
+                         return a.frames.size() > b.frames.size();
                      });
 
     while (!toProcess.empty()) {
-        auto mostPopular = toProcess.begin();
+        assert(toProcess.size() % 2 == 0);
 
-        auto bestMatch = toProcess.end();
+        auto mostPopularIt = toProcess.begin();
+        const TileGraphItem& mostPopular = *mostPopularIt;
+
+        auto bestMatchIt = toProcess.end();
         {
-            const std::vector<const MetaSprite::Frame*>& cmp(mostPopular->second);
-
             int bestScore = INT_MIN;
-            auto it = toProcess.begin();
-            for (++it; it != toProcess.end(); ++it) {
-                int score = scoreTiles(it->second, cmp);
+            for (auto it = mostPopularIt + 1; it != toProcess.end(); ++it) {
+                const TileGraphItem& tgi = *it;
+                int score = scoreTiles(tgi.frames, mostPopular.frames);
 
                 if (score > bestScore) {
-                    bestMatch = it;
+                    bestMatchIt = it;
                     bestScore = score;
                 }
             }
         }
 
+        assert(bestMatchIt != toProcess.end());
+        const TileGraphItem& bestMatch = *bestMatchIt;
+
         output.emplace_back();
         auto& o = output.back();
 
-        o.firstTile = mostPopular->first;
-        o.frames = mostPopular->second.get();
+        o.firstTile = mostPopular.tileId;
+        o.secondTile = bestMatch.tileId;
 
-        if (bestMatch != toProcess.end()) {
-            o.secondTile = bestMatch->first;
+        o.frames = mostPopular.frames;
+        o.frames.insert(o.frames.end(), bestMatch.frames.begin(), bestMatch.frames.end());
 
-            const auto& bmFrames = bestMatch->second.get();
-            o.frames.insert(o.frames.end(), bmFrames.begin(), bmFrames.end());
-
-            toProcess.erase(bestMatch);
-        }
-
-        toProcess.erase(mostPopular);
+        toProcess.erase(bestMatchIt);
+        toProcess.erase(mostPopularIt);
     }
 
     return output;
 }
 
-static SmallTileMap_t secondPass(std::list<FirstPassOutput> input,
-                                 size_t nSmallTiles)
+static SmallTileMap_t secondPass(std::list<FirstPassOutput>& input,
+                                 const size_t nSmallTiles)
 {
+    assert(!input.empty() && input.size() % 2 == 0);
+
     SmallTileMap_t output(nSmallTiles, INVALID_SMALL_TILES_ARRAY);
 
     // sort the input by popularity
@@ -149,17 +179,16 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput> input,
             }
         }
 
-        std::array<uint16_t, 4> combined = INVALID_SMALL_TILES_ARRAY;
+        assert(bestMatch != input.end());
+
+        std::array<uint16_t, 4> combined;
 
         combined[0] = mostPopular->firstTile;
         combined[1] = mostPopular->secondTile;
+        combined[2] = bestMatch->firstTile;
+        combined[3] = bestMatch->secondTile;
 
-        if (bestMatch != input.end()) {
-            combined[2] = bestMatch->firstTile;
-            combined[3] = bestMatch->secondTile;
-
-            input.erase(bestMatch);
-        }
+        input.erase(bestMatch);
         input.erase(mostPopular);
 
         for (auto tId : combined) {
@@ -176,9 +205,13 @@ static SmallTileMap_t secondPass(std::list<FirstPassOutput> input,
 SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
                                  const std::vector<FrameListEntry>& frameEntries)
 {
+    if (frameSet.smallTileset.empty()) {
+        return SmallTileMap_t();
+    }
+
     auto smallTileGraph = CombineSmallTiles::buildSmallTileGraph(frameSet, frameEntries);
     auto fp = CombineSmallTiles::firstPass(smallTileGraph);
-    return CombineSmallTiles::secondPass(fp, smallTileGraph.size());
+    return CombineSmallTiles::secondPass(fp, frameSet.smallTileset.size());
 }
 }
 }
