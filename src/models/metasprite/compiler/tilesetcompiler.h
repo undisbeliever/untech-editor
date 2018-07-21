@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "combinesmalltiles.h"
 #include "framesetexportlist.h"
 #include "romtiledata.h"
 #include "../errorlist.h"
@@ -14,25 +15,28 @@
 #include <array>
 #include <cstdint>
 #include <list>
-#include <unordered_map>
 #include <vector>
 
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
-typedef std::unordered_map<unsigned, std::vector<const MetaSprite::Frame*>> TileGraph_t;
-typedef std::unordered_map<unsigned, std::array<uint16_t, 4>> SmallTileMap_t;
-
 struct FrameListEntry;
 struct AnimationListEntry;
 
 struct FrameTileset {
+    static const uint16_t NULL_CHAR_ATTR;
+
+    FrameTileset(const MetaSprite::FrameSet& fs);
+
+    void merge(const FrameTileset& ft);
+    uint16_t charAttr(ObjectSize objSize, unsigned tileId) const;
+
     RomOffsetPtr tilesetOffset;
 
-    // the uint16_t matches the charattr bits of the frameobject data.
-    std::unordered_map<unsigned, uint16_t> smallTilesetMap;
-    std::unordered_map<unsigned, uint16_t> largeTilesetMap;
+    // Mapping of tileId => Objects::charAttr bits
+    std::vector<uint16_t> smallTilesCharAttr;
+    std::vector<uint16_t> largeTilesCharAttr;
 };
 
 struct FrameSetTilesets {
@@ -63,8 +67,6 @@ public:
 
 private:
     void validateExportList(const FrameSetExportList& exportList);
-
-    SmallTileMap_t buildSmallTileMap(const std::vector<FrameListEntry>& frameEntries);
 
     vectorset<Tile16> fixedTilesetData(const std::vector<FrameListEntry>& frameEntries,
                                        const SmallTileMap_t& smallTileMap) const;

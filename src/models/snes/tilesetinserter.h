@@ -66,25 +66,33 @@ public:
 
         const uint8_t* underTileData = underTile.rawData();
 
-        for (const auto& it : _map) {
-            const uint8_t* other = it.first.rawData();
+        // Using _tileset instead of _map to ensure the tiles are tested in a deterministic order.
+        for (unsigned tileId = 0; tileId < _tileset.size(); tileId++) {
+            for (unsigned flip = 0; flip < 4; flip++) {
+                bool hFlip = flip & 1;
+                bool vFlip = flip & 2;
 
-            unsigned score = 0;
-            bool found = true;
+                const TileT toTest = tileId == 0 ? _tileset.at(tileId)
+                                                 : _tileset.at(tileId).flip(hFlip, vFlip);
+                const uint8_t* toTestData = toTest.rawData();
 
-            for (unsigned i = 0; i < TileT::TILE_ARRAY_SIZE; i++) {
-                if (underTileData[i] == other[i]) {
-                    score++;
+                unsigned score = 0;
+                bool found = true;
+
+                for (unsigned i = 0; i < TileT::TILE_ARRAY_SIZE; i++) {
+                    if (underTileData[i] == toTestData[i]) {
+                        score++;
+                    }
+                    else if (overlaps[i] == false) {
+                        found = false;
+                        break;
+                    }
                 }
-                else if (overlaps[i] == false) {
-                    found = false;
-                    break;
-                }
-            }
 
-            if (found && score > bestScore) {
-                bestScore = score;
-                ret = it.second;
+                if (found && score > bestScore) {
+                    bestScore = score;
+                    ret = { tileId, hFlip, vFlip };
+                }
             }
         }
 
