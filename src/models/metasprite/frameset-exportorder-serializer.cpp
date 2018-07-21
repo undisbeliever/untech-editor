@@ -7,6 +7,7 @@
 #include "frameset-exportorder.h"
 
 #include "models/common/atomicofstream.h"
+#include "models/common/externalfilelist.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include <cassert>
@@ -17,10 +18,17 @@ using namespace UnTech::Xml;
 
 namespace MS = UnTech::MetaSprite;
 
-const std::string MS::FrameSetExportOrder::FILE_EXTENSION = "utfseo";
-
 namespace UnTech {
+
+template <>
+void ExternalFileItem<MetaSprite::FrameSetExportOrder>::loadFile()
+{
+    value = MetaSprite::loadFrameSetExportOrder(filename);
+}
+
 namespace MetaSprite {
+
+const std::string MS::FrameSetExportOrder::FILE_EXTENSION = "utfseo";
 
 struct FrameSetExportOrderReader {
     FrameSetExportOrderReader(FrameSetExportOrder& exportOrder, XmlReader& xml)

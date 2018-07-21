@@ -5,18 +5,11 @@
  */
 
 #include "frameset-exportorder.h"
-#include "models/common/externalfilelist.h"
 #include "models/common/validateunique.h"
 #include "models/resources/error-list.h"
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
-
-template <>
-void UnTech::ExternalFileItem<FrameSetExportOrder>::loadFile()
-{
-    value = loadFrameSetExportOrder(filename);
-}
 
 static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
                                        const std::string& typeName,
