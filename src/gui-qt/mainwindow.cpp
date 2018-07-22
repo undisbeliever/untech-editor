@@ -10,6 +10,7 @@
 #include "resourcevalidationworker.h"
 #include "gui-qt/common/aboutdialog.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
+#include "gui-qt/common/graphics/zoomsettingsui.h"
 #include "gui-qt/mainwindow.ui.h"
 
 #include "errorlistdock.h"
@@ -55,6 +56,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _propertiesDock(new QDockWidget(_projectWindow))
     , _propertiesStackedWidget(new QStackedWidget(_propertiesDock))
     , _centralStackedWidget(new QStackedWidget(_projectWindow))
+    , _zoomSettingsUi(new ZoomSettingsUi(this))
     , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
     , _undoGroup(new QUndoGroup(this))
     , _editors({
@@ -114,13 +116,9 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Status Bar
     {
-        QComboBox* aspectRatioComboBox = new QComboBox(this);
-        _zoomSettings->setAspectRatioComboBox(aspectRatioComboBox);
-        statusBar()->addPermanentWidget(aspectRatioComboBox);
-
-        QComboBox* zoomComboBox = new QComboBox(this);
-        _zoomSettings->setZoomComboBox(zoomComboBox);
-        statusBar()->addPermanentWidget(zoomComboBox);
+        _zoomSettingsUi->setZoomSettings(_zoomSettings);
+        statusBar()->addPermanentWidget(_zoomSettingsUi->aspectRatioComboBox());
+        statusBar()->addPermanentWidget(_zoomSettingsUi->zoomComboBox());
     }
 
     // Default (blank) widgets are always index 0
@@ -378,7 +376,7 @@ void MainWindow::updateEditViewMenus()
     _ui->menu_Edit->addAction(undoAction);
     _ui->menu_Edit->addAction(redoAction);
 
-    _zoomSettings->populateMenu(_ui->menu_View);
+    _zoomSettingsUi->populateMenu(_ui->menu_View);
 
     if (_currentEditor) {
         _currentEditor->populateMenu(_ui->menu_Edit, _ui->menu_View);

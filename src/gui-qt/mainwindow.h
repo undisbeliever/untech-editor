@@ -17,6 +17,7 @@ namespace Ui {
 class MainWindow;
 }
 class ZoomSettings;
+class ZoomSettingsUi;
 class OpenRecentMenu;
 class AbstractEditor;
 class AbstractProject;
@@ -84,6 +85,8 @@ private:
 
     QStackedWidget* const _propertiesStackedWidget;
     QStackedWidget* const _centralStackedWidget;
+
+    ZoomSettingsUi* const _zoomSettingsUi;
 
     ZoomSettings* const _zoomSettings;
     QUndoGroup* const _undoGroup;
