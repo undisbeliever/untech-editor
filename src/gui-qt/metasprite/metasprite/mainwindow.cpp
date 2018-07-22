@@ -15,7 +15,7 @@
 #include "tilesetdock.h"
 #include "tilesetpixmaps.h"
 #include "gui-qt/common/graphics/zoomablegraphicsview.h"
-#include "gui-qt/common/graphics/zoomsettings.h"
+#include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
 #include "gui-qt/metasprite/animation/animationpreview.h"
 #include "gui-qt/metasprite/layersettings.h"
@@ -26,7 +26,7 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
+MainWindow::MainWindow(ZoomSettingsManager* zoomManager, QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
     , _layerSettings(new LayerSettings(this))
@@ -59,13 +59,13 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     _frameDock->populateMenu(_graphicsScene->contextMenu());
 
     _graphicsView->setMinimumSize(256, 256);
-    _graphicsView->setZoomSettings(zoomSettings);
+    _graphicsView->setZoomSettings(zoomManager->get("metasprite"));
     _graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
     _graphicsView->setScene(_graphicsScene);
     _tabWidget->addTab(_graphicsView, tr("Frame"));
 
-    _animationPreview->setZoomSettings(zoomSettings);
+    _animationPreview->setZoomSettings(zoomManager->get("metasprite-preview"));
     _animationPreview->setItemFactory(_animationPreviewItemFactory);
     _tabWidget->addTab(_animationPreview, tr("Animation Preview"));
 
@@ -83,13 +83,21 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
     setDocument(nullptr);
 
     _frameSetDock->raise();
+
+    connect(_tabWidget, &QTabWidget::currentChanged,
+            this, &MainWindow::currentTabChanged);
 }
 
 MainWindow::~MainWindow() = default;
 
 ZoomSettings* MainWindow::zoomSettings() const
 {
-    return _graphicsView->zoomSettings();
+    if (_tabWidget->currentWidget() == _graphicsView) {
+        return _graphicsView->zoomSettings();
+    }
+    else {
+        return _animationPreview->zoomSettings();
+    }
 }
 
 void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)

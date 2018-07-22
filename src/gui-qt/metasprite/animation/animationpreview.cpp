@@ -76,6 +76,11 @@ AnimationPreview::AnimationPreview(AnimationDock* animationDock, QWidget* parent
 
 AnimationPreview::~AnimationPreview() = default;
 
+ZoomSettings* AnimationPreview::zoomSettings() const
+{
+    return _ui->graphicsView->zoomSettings();
+}
+
 void AnimationPreview::setItemFactory(AnimationPreviewItemFactory* itemFactory)
 {
     Q_ASSERT(itemFactory != nullptr);

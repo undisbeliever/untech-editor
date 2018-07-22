@@ -53,6 +53,8 @@ private:
     bool unsavedChangesDialog();
 
 private slots:
+    void onEditorZoomSettingsChanged();
+
     void onMenuNew(QAction* action);
     void onMenuOpen();
     void onMenuOpenRecent(QString filename);

@@ -19,10 +19,12 @@ class SiFrameSetEditor : public AbstractEditor {
     Q_OBJECT
 
 public:
-    SiFrameSetEditor(QWidget* parent, ZoomSettings* zoomSettings)
+    SiFrameSetEditor(QWidget* parent, ZoomSettingsManager* zoomSettingsManager)
         : AbstractEditor(parent)
-        , _editorWidget(new MainWindow(zoomSettings, parent))
+        , _editorWidget(new MainWindow(zoomSettingsManager, parent))
     {
+        connect(_editorWidget, &MainWindow::currentTabChanged,
+                this, &SiFrameSetEditor::zoomSettingsChanged);
     }
     ~SiFrameSetEditor() = default;
 

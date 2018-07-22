@@ -64,8 +64,8 @@ MainWindow::MainWindow(QWidget* parent)
           new Resources::PaletteEditor(this),
           new MetaSprite::ExportOrderEditor(this),
           new Resources::MtTilesetEditor(this, _zoomSettingsManager->get("metatiles")),
-          new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettingsManager->get("spriteimporter")),
-          new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettingsManager->get("metasprite")),
+          new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettingsManager),
+          new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettingsManager),
       })
     , _projectLoaders({ new Resources::ResourceProjectLoader(this),
                         new MetaSprite::MetaSpriteProjectLoader(this) })
@@ -105,6 +105,7 @@ MainWindow::MainWindow(QWidget* parent)
         _zoomSettingsManager->set("metatiles", 3, ZoomSettings::NTSC);
         _zoomSettingsManager->set("spriteimporter", 3, ZoomSettings::NTSC);
         _zoomSettingsManager->set("metasprite", 6, ZoomSettings::NTSC);
+        _zoomSettingsManager->set("metasprite-preview", 6, ZoomSettings::NTSC);
     }
 
     // Shrink errorListDock
@@ -334,6 +335,8 @@ void MainWindow::setEditor(AbstractEditor* editor)
     }
 
     if (_currentEditor) {
+        _currentEditor->disconnect(this);
+
         if (QWidget* sw = _currentEditor->statusBarWidget()) {
             statusBar()->removeWidget(sw);
         }
@@ -343,8 +346,8 @@ void MainWindow::setEditor(AbstractEditor* editor)
     bool showPropertiesDock = false;
 
     if (editor) {
-        _centralStackedWidget->setCurrentWidget(editor->editorWidget());
         _zoomSettingsUi->setZoomSettings(editor->zoomSettings());
+        _centralStackedWidget->setCurrentWidget(editor->editorWidget());
 
         if (QWidget* pw = editor->propertyWidget()) {
             showPropertiesDock = true;
@@ -358,6 +361,9 @@ void MainWindow::setEditor(AbstractEditor* editor)
             statusBar()->insertPermanentWidget(0, sw);
             sw->show();
         }
+
+        connect(_currentEditor, &AbstractEditor::zoomSettingsChanged,
+                this, &MainWindow::onEditorZoomSettingsChanged);
     }
     else {
         _zoomSettingsUi->setZoomSettings(nullptr);
@@ -369,6 +375,13 @@ void MainWindow::setEditor(AbstractEditor* editor)
     _propertiesDock->setEnabled(showPropertiesDock);
 
     updateEditViewMenus();
+}
+
+void MainWindow::onEditorZoomSettingsChanged()
+{
+    Q_ASSERT(_currentEditor);
+
+    _zoomSettingsUi->setZoomSettings(_currentEditor->zoomSettings());
 }
 
 void MainWindow::updateEditViewMenus()

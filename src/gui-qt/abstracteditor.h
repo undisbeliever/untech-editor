@@ -37,6 +37,9 @@ public:
     virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu);
     virtual QWidget* statusBarWidget() const;
 
+signals:
+    void zoomSettingsChanged();
+
 private:
     QWidget* const _parentWindow;
 };
