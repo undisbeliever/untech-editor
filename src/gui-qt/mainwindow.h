@@ -16,7 +16,7 @@ namespace GuiQt {
 namespace Ui {
 class MainWindow;
 }
-class ZoomSettings;
+class ZoomSettingsManager;
 class ZoomSettingsUi;
 class OpenRecentMenu;
 class AbstractEditor;
@@ -86,9 +86,9 @@ private:
     QStackedWidget* const _propertiesStackedWidget;
     QStackedWidget* const _centralStackedWidget;
 
+    ZoomSettingsManager* const _zoomSettingsManager;
     ZoomSettingsUi* const _zoomSettingsUi;
 
-    ZoomSettings* const _zoomSettings;
     QUndoGroup* const _undoGroup;
 
     QList<AbstractEditor*> const _editors;

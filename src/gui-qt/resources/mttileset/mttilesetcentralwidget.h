@@ -35,6 +35,8 @@ public:
                            ZoomSettings* ZoomSettings);
     ~MtTilesetCentralWidget();
 
+    ZoomSettings* zoomSettings() const;
+
     void setResourceItem(MtTilesetResourceItem* item);
 
 private:

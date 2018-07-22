@@ -9,7 +9,7 @@
 #include "common.h"
 #include "resourcevalidationworker.h"
 #include "gui-qt/common/aboutdialog.h"
-#include "gui-qt/common/graphics/zoomsettings.h"
+#include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/common/graphics/zoomsettingsui.h"
 #include "gui-qt/mainwindow.ui.h"
 
@@ -56,16 +56,16 @@ MainWindow::MainWindow(QWidget* parent)
     , _propertiesDock(new QDockWidget(_projectWindow))
     , _propertiesStackedWidget(new QStackedWidget(_propertiesDock))
     , _centralStackedWidget(new QStackedWidget(_projectWindow))
+    , _zoomSettingsManager(new ZoomSettingsManager(this))
     , _zoomSettingsUi(new ZoomSettingsUi(this))
-    , _zoomSettings(new ZoomSettings(3.0, ZoomSettings::NTSC, this))
     , _undoGroup(new QUndoGroup(this))
     , _editors({
           new Resources::ResourceFileEditor(this),
           new Resources::PaletteEditor(this),
           new MetaSprite::ExportOrderEditor(this),
-          new Resources::MtTilesetEditor(this, _zoomSettings),
-          new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettings),
-          new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettings),
+          new Resources::MtTilesetEditor(this, _zoomSettingsManager->get("metatiles")),
+          new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettingsManager->get("spriteimporter")),
+          new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettingsManager->get("metasprite")),
       })
     , _projectLoaders({ new Resources::ResourceProjectLoader(this),
                         new MetaSprite::MetaSpriteProjectLoader(this) })
@@ -100,6 +100,13 @@ MainWindow::MainWindow(QWidget* parent)
     _projectWindow->setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
     _projectWindow->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
+    // Set Initial Zoom values
+    {
+        _zoomSettingsManager->set("metatiles", 3, ZoomSettings::NTSC);
+        _zoomSettingsManager->set("spriteimporter", 3, ZoomSettings::NTSC);
+        _zoomSettingsManager->set("metasprite", 6, ZoomSettings::NTSC);
+    }
+
     // Shrink errorListDock
     _projectWindow->resizeDocks({ _errorListDock }, { 10 }, Qt::Vertical);
 
@@ -116,7 +123,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Status Bar
     {
-        _zoomSettingsUi->setZoomSettings(_zoomSettings);
+        _zoomSettingsUi->setZoomSettings(nullptr);
         statusBar()->addPermanentWidget(_zoomSettingsUi->aspectRatioComboBox());
         statusBar()->addPermanentWidget(_zoomSettingsUi->zoomComboBox());
     }
@@ -337,6 +344,7 @@ void MainWindow::setEditor(AbstractEditor* editor)
 
     if (editor) {
         _centralStackedWidget->setCurrentWidget(editor->editorWidget());
+        _zoomSettingsUi->setZoomSettings(editor->zoomSettings());
 
         if (QWidget* pw = editor->propertyWidget()) {
             showPropertiesDock = true;
@@ -352,6 +360,7 @@ void MainWindow::setEditor(AbstractEditor* editor)
         }
     }
     else {
+        _zoomSettingsUi->setZoomSettings(nullptr);
         _centralStackedWidget->setCurrentIndex(0);
         _propertiesStackedWidget->setCurrentIndex(0);
     }

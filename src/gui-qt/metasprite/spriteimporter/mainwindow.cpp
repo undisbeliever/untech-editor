@@ -77,6 +77,11 @@ MainWindow::MainWindow(ZoomSettings* zoomSettings, QWidget* parent)
 
 MainWindow::~MainWindow() = default;
 
+ZoomSettings* MainWindow::zoomSettings() const
+{
+    return _graphicsView->zoomSettings();
+}
+
 void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
     editMenu->addSeparator();

@@ -43,6 +43,7 @@ public:
     ~MainWindow();
 
     QPushButton* layersButton() { return _layersButton; }
+    ZoomSettings* zoomSettings() const;
 
     void populateMenu(QMenu* editMenu, QMenu* viewMenu);
 

@@ -37,6 +37,8 @@ public:
     virtual QWidget* editorWidget() const final { return _editorWidget; }
     virtual QWidget* propertyWidget() const final { return nullptr; }
 
+    virtual ZoomSettings* zoomSettings() const final { return _editorWidget->zoomSettings(); }
+
     virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu) final
     {
         _editorWidget->populateMenu(editMenu, viewMenu);
