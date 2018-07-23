@@ -21,9 +21,9 @@ class ZoomSettings : public QObject {
 
 public:
     enum AspectRatio {
-        SQUARE,
-        NTSC,
-        PAL
+        SQUARE = 0,
+        NTSC = 1,
+        PAL = 2,
     };
 
     const static QRegExp ZOOM_REGEXP;
@@ -45,7 +45,9 @@ public:
     QString zoomString() const;
 
     void setAspectRatio(AspectRatio aspectRatio);
+    void setAspectRatioInt(int aspectRatioId);
     AspectRatio aspectRatio() const { return _aspectRatio; }
+    int aspectRatioInt() const { return int(_aspectRatio); }
 
 private:
     void updateTransform();

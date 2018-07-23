@@ -9,6 +9,7 @@
 #include "zoomsettings.h"
 #include <QMap>
 #include <QObject>
+#include <QSettings>
 
 namespace UnTech {
 namespace GuiQt {
@@ -23,6 +24,11 @@ public:
     // These functions will create a new ZoomSetting if it doesn't already exist
     ZoomSettings* get(const QString& name);
     void set(const QString& name, qreal zoom, ZoomSettings::AspectRatio aspect);
+
+    // All ZoomSettings MUST be created before using these functions.
+    // settings will be saved to the zoom group
+    void readSettings(QSettings& settings);
+    void saveSettings(QSettings& settings);
 
 signals:
     void currentChanged();

@@ -128,3 +128,18 @@ void ZoomSettings::setAspectRatio(AspectRatio aspectRatio)
         emit aspectRatioChanged();
     }
 }
+
+void ZoomSettings::setAspectRatioInt(int aspectRatioId)
+{
+    switch (AspectRatio(aspectRatioId)) {
+    case AspectRatio::SQUARE:
+        setAspectRatio(AspectRatio::SQUARE);
+        break;
+    case AspectRatio::NTSC:
+        setAspectRatio(AspectRatio::NTSC);
+        break;
+    case AspectRatio::PAL:
+        setAspectRatio(AspectRatio::PAL);
+        break;
+    }
+}

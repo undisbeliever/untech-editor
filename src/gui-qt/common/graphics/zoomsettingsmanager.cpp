@@ -34,3 +34,27 @@ void ZoomSettingsManager::set(const QString& name, qreal zoom, ZoomSettings::Asp
     z->setZoom(zoom);
     z->setAspectRatio(aspect);
 }
+
+void ZoomSettingsManager::readSettings(QSettings& settings)
+{
+    settings.beginGroup(QLatin1Literal("zoom"));
+    for (auto it = _map.begin(); it != _map.end(); it++) {
+        QVariantList vl = settings.value(it.key()).toList();
+        if (vl.size() == 2) {
+            it.value()->setZoom(vl.at(0).toReal());
+            it.value()->setAspectRatioInt(vl.at(1).toInt());
+        }
+    }
+    settings.endGroup();
+}
+
+void ZoomSettingsManager::saveSettings(QSettings& settings)
+{
+    settings.beginGroup(QLatin1Literal("zoom"));
+    for (auto it = _map.begin(); it != _map.end(); it++) {
+        settings.setValue(it.key(),
+                          QVariantList({ it.value()->zoom(),
+                                         it.value()->aspectRatioInt() }));
+    }
+    settings.endGroup();
+}

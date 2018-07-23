@@ -610,6 +610,8 @@ void MainWindow::readSettings()
 {
     QSettings settings;
 
+    _zoomSettingsManager->readSettings(settings);
+
     restoreGeometry(settings.value("geometry").toByteArray());
 
     const auto& snList = settingsStateNameWindowList();
@@ -634,6 +636,8 @@ void MainWindow::readSettings()
 void MainWindow::saveSettings()
 {
     QSettings settings;
+
+    _zoomSettingsManager->saveSettings(settings);
 
     settings.setValue("geometry", saveGeometry());
 
