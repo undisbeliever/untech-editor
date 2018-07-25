@@ -19,10 +19,12 @@ class MsFrameSetEditor : public AbstractEditor {
     Q_OBJECT
 
 public:
-    MsFrameSetEditor(QWidget* parent, ZoomSettings* zoomSettings)
+    MsFrameSetEditor(QWidget* parent, ZoomSettingsManager* zoomSettingsManager)
         : AbstractEditor(parent)
-        , _editorWidget(new MainWindow(zoomSettings, parent))
+        , _editorWidget(new MainWindow(zoomSettingsManager, parent))
     {
+        connect(_editorWidget, &MainWindow::currentTabChanged,
+                this, &MsFrameSetEditor::zoomSettingsChanged);
     }
     ~MsFrameSetEditor() = default;
 
@@ -36,6 +38,8 @@ public:
 
     virtual QWidget* editorWidget() const final { return _editorWidget; }
     virtual QWidget* propertyWidget() const final { return nullptr; }
+
+    virtual ZoomSettings* zoomSettings() const final { return _editorWidget->zoomSettings(); }
 
     virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu) final
     {

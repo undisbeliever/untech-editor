@@ -42,6 +42,8 @@ public:
     virtual QWidget* editorWidget() const final { return _editorWidget; }
     virtual QWidget* propertyWidget() const final { return _propertyWidget; }
 
+    virtual ZoomSettings* zoomSettings() const final { return _editorWidget->zoomSettings(); }
+
 private:
     MtTilesetCentralWidget* const _editorWidget;
     GenericPropertiesWidget* const _propertyWidget;

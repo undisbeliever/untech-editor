@@ -16,6 +16,7 @@
 namespace UnTech {
 namespace GuiQt {
 class ZoomSettings;
+class ZoomSettingsManager;
 class ZoomableGraphicsView;
 
 namespace MetaSprite {
@@ -38,14 +39,18 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(ZoomSettings* zoomSettings, QWidget* parent = nullptr);
+    MainWindow(ZoomSettingsManager* zoomManager, QWidget* parent = nullptr);
     ~MainWindow();
 
     QPushButton* layersButton() { return _layersButton; }
+    ZoomSettings* zoomSettings() const;
 
     void populateMenu(QMenu* editMenu, QMenu* viewMenu);
 
     void setDocument(Document* document);
+
+signals:
+    void currentTabChanged();
 
 private slots:
     void populateWidgets();

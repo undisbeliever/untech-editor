@@ -41,6 +41,11 @@ MtTilesetCentralWidget::MtTilesetCentralWidget(QWidget* parent,
             this, &MtTilesetCentralWidget::onNextClicked);
 }
 
+UnTech::GuiQt::ZoomSettings* MtTilesetCentralWidget::zoomSettings() const
+{
+    return _ui->graphicsView->zoomSettings();
+}
+
 MtTilesetCentralWidget::~MtTilesetCentralWidget() = default;
 
 void MtTilesetCentralWidget::setResourceItem(MtTilesetResourceItem* item)

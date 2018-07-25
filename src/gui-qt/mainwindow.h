@@ -16,7 +16,8 @@ namespace GuiQt {
 namespace Ui {
 class MainWindow;
 }
-class ZoomSettings;
+class ZoomSettingsManager;
+class ZoomSettingsUi;
 class OpenRecentMenu;
 class AbstractEditor;
 class AbstractProject;
@@ -52,6 +53,8 @@ private:
     bool unsavedChangesDialog();
 
 private slots:
+    void onEditorZoomSettingsChanged();
+
     void onMenuNew(QAction* action);
     void onMenuOpen();
     void onMenuOpenRecent(QString filename);
@@ -85,7 +88,9 @@ private:
     QStackedWidget* const _propertiesStackedWidget;
     QStackedWidget* const _centralStackedWidget;
 
-    ZoomSettings* const _zoomSettings;
+    ZoomSettingsManager* const _zoomSettingsManager;
+    ZoomSettingsUi* const _zoomSettingsUi;
+
     QUndoGroup* const _undoGroup;
 
     QList<AbstractEditor*> const _editors;

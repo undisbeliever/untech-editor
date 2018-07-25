@@ -21,9 +21,9 @@ class ZoomSettings : public QObject {
 
 public:
     enum AspectRatio {
-        SQUARE,
-        NTSC,
-        PAL
+        SQUARE = 0,
+        NTSC = 1,
+        PAL = 2,
     };
 
     const static QRegExp ZOOM_REGEXP;
@@ -40,19 +40,14 @@ public:
     const QTransform& transform() const { return _transform; }
 
     void setZoom(qreal z);
+    void setZoom(const QString& string);
     qreal zoom() const { return _zoom; }
     QString zoomString() const;
 
     void setAspectRatio(AspectRatio aspectRatio);
+    void setAspectRatioInt(int aspectRatioId);
     AspectRatio aspectRatio() const { return _aspectRatio; }
-
-    void populateMenu(QMenu* menu);
-
-    void setZoomComboBox(QComboBox* comboBox);
-    QComboBox* zoomComboBox() const { return _zoomComboBox; }
-
-    void setAspectRatioComboBox(QComboBox* comboBox);
-    QComboBox* aspectComboBox() const { return _aspectRatioComboBox; }
+    int aspectRatioInt() const { return int(_aspectRatio); }
 
 private:
     void updateTransform();
@@ -61,16 +56,6 @@ public slots:
     void zoomIn();
     void zoomOut();
     void resetZoom();
-
-private slots:
-    void updateZoomComboBox();
-    void updateAspectRatioComboBox();
-
-    void onZoomComboBoxActivated(int index);
-    void onZoomComboBoxEdited();
-    void onZoomMenuTriggered(QAction* action);
-    void onAspectRatioComboBoxActivated(int index);
-    void onAspectRatioMenuTriggered(QAction* action);
 
 signals:
     void zoomChanged();
@@ -81,14 +66,6 @@ private:
     qreal _zoom;
     AspectRatio _aspectRatio;
     QTransform _transform;
-
-    QMenu* _aspectRatioMenu;
-    QMenu* _zoomMenu;
-
-    QRegExpValidator* _zoomValidator;
-
-    QComboBox* _zoomComboBox;
-    QComboBox* _aspectRatioComboBox;
 };
 }
 }

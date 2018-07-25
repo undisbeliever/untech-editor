@@ -11,6 +11,7 @@
 
 namespace UnTech {
 namespace GuiQt {
+class ZoomSettings;
 class AbstractProject;
 class AbstractResourceItem;
 
@@ -31,9 +32,13 @@ public:
 
     virtual QWidget* editorWidget() const = 0;
     virtual QWidget* propertyWidget() const;
+    virtual ZoomSettings* zoomSettings() const;
 
     virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu);
     virtual QWidget* statusBarWidget() const;
+
+signals:
+    void zoomSettingsChanged();
 
 private:
     QWidget* const _parentWindow;

@@ -20,14 +20,21 @@ public:
     ZoomableGraphicsView(QGraphicsScene* scene, QWidget* parent = nullptr);
     ~ZoomableGraphicsView() = default;
 
+    void setEnableZoomWithMouseWheel(bool enableZoomWithMouseWheel);
+    bool enableZoomWithMouseWheel() const { return _enableZoomWithMouseWheel; }
+
     void setZoomSettings(ZoomSettings* zoomSettings);
     ZoomSettings* zoomSettings() const { return _zoomSettings; }
+
+protected:
+    virtual void wheelEvent(QWheelEvent* event) override;
 
 private slots:
     void onZoomSettingsChanged();
 
 private:
     ZoomSettings* _zoomSettings;
+    bool _enableZoomWithMouseWheel;
 };
 }
 }

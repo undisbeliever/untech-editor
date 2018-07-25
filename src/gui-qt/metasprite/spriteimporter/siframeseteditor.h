@@ -19,10 +19,12 @@ class SiFrameSetEditor : public AbstractEditor {
     Q_OBJECT
 
 public:
-    SiFrameSetEditor(QWidget* parent, ZoomSettings* zoomSettings)
+    SiFrameSetEditor(QWidget* parent, ZoomSettingsManager* zoomSettingsManager)
         : AbstractEditor(parent)
-        , _editorWidget(new MainWindow(zoomSettings, parent))
+        , _editorWidget(new MainWindow(zoomSettingsManager, parent))
     {
+        connect(_editorWidget, &MainWindow::currentTabChanged,
+                this, &SiFrameSetEditor::zoomSettingsChanged);
     }
     ~SiFrameSetEditor() = default;
 
@@ -36,6 +38,8 @@ public:
 
     virtual QWidget* editorWidget() const final { return _editorWidget; }
     virtual QWidget* propertyWidget() const final { return nullptr; }
+
+    virtual ZoomSettings* zoomSettings() const final { return _editorWidget->zoomSettings(); }
 
     virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu) final
     {

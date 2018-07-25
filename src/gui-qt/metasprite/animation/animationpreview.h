@@ -37,6 +37,8 @@ public:
     explicit AnimationPreview(AnimationDock* animationDock, QWidget* parent = nullptr);
     ~AnimationPreview();
 
+    ZoomSettings* zoomSettings() const;
+
     void setItemFactory(AnimationPreviewItemFactory* itemFactory);
     void setZoomSettings(ZoomSettings* zoomSettings);
     void setDocument(AbstractMsDocument* document);

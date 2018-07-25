@@ -15,6 +15,11 @@ QWidget* AbstractEditor::propertyWidget() const
     return nullptr;
 }
 
+ZoomSettings* AbstractEditor::zoomSettings() const
+{
+    return nullptr;
+}
+
 QWidget* AbstractEditor::statusBarWidget() const
 {
     return nullptr;
