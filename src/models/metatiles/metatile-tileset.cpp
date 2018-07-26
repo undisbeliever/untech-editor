@@ -12,6 +12,10 @@
 #include <cassert>
 
 namespace UnTech {
+
+// test grid template class compiles
+template class grid<uint16_t>;
+
 namespace MetaTiles {
 
 bool MetaTileTilesetInput::validate(Resources::ErrorList& err) const

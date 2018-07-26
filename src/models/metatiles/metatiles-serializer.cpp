@@ -6,6 +6,7 @@
 
 #include "metatiles-serializer.h"
 #include "models/common/atomicofstream.h"
+#include "models/common/bytevectorhelper.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/resources/resources-serializer.h"
@@ -34,6 +35,52 @@ void readEngineSettings(EngineSettings& settings, const XmlTag* tag)
     settings.nMetaTiles = tag->getAttributeUnsigned("n-metatiles");
 }
 
+static grid<uint16_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
+{
+    grid<uint16_t> mtGrid(tag->getAttributeUnsigned("width", 1),
+                          tag->getAttributeUnsigned("height", 1));
+
+    const auto data = xml.parseBase64();
+
+    if (data.size() != mtGrid.gridSize() * 2) {
+        const std::string msg = "Invalid data size. Got " + std::to_string(data.size())
+                                + " bytes, expected " + std::to_string(mtGrid.gridSize() * 2) + ".";
+        throw xml_error(*tag, msg.c_str());
+    }
+
+    auto dataIt = data.begin();
+    for (auto& t : mtGrid) {
+        uint8_t b1 = *dataIt++;
+        uint8_t b2 = *dataIt++;
+
+        t = b1 | (b2 << 8);
+    }
+    assert(dataIt == data.end());
+
+    return mtGrid;
+}
+
+static void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const grid<uint16_t>& mtGrid)
+{
+    if (mtGrid.empty()) {
+        return;
+    }
+
+    std::vector<uint8_t> data;
+    data.reserve(mtGrid.gridSize() * 2);
+
+    for (const auto t : mtGrid) {
+        writeUint16(data, t);
+    }
+    assert(data.size() == mtGrid.gridSize() * 2);
+
+    xml.writeTag(tagName);
+    xml.writeTagAttribute("width", mtGrid.width());
+    xml.writeTagAttribute("height", mtGrid.height());
+    xml.writeBase64(data);
+    xml.writeCloseTag();
+}
+
 static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml, const XmlTag* tag)
 {
     if (tag == nullptr || tag->name != "metatile-tileset") {
@@ -57,6 +104,9 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
             readAnimationFramesTag = true;
 
             Resources::readAnimationFramesInput(tilesetInput->animationFrames, xml, childTag.get());
+        }
+        else if (childTag->name == "scratchpad") {
+            tilesetInput->scratchpad = readMetaTileGrid(xml, childTag.get());
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -89,6 +139,8 @@ void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input
     }
 
     Resources::writeAnimationFramesInput(xml, input.animationFrames);
+
+    writeMetaTileGrid(xml, "scratchpad", input.scratchpad);
 
     xml.writeCloseTag();
 }

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "common.h"
+#include "models/common/grid.h"
 #include "models/common/idstring.h"
 #include "models/resources/animated-tileset.h"
 #include "models/resources/animation-frames-input.h"
@@ -33,6 +34,8 @@ struct MetaTileTilesetInput {
     std::vector<idstring> palettes;
 
     Resources::AnimationFramesInput animationFrames;
+
+    grid<uint16_t> scratchpad;
 
     bool validate(Resources::ErrorList& err) const;
 
