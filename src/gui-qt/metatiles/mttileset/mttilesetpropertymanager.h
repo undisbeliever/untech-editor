@@ -10,7 +10,7 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
+namespace MetaTiles {
 
 class MtTilesetResourceItem;
 

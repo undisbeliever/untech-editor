@@ -5,8 +5,8 @@
  */
 
 #include "resourceproject.h"
+#include "gui-qt/metatiles/mttileset/mttilesetresourcelist.h"
 #include "models/resources/resources-serializer.h"
-#include "mttileset/mttilesetresourcelist.h"
 #include "palette/paletteresourcelist.h"
 
 using namespace UnTech::GuiQt::Resources;
@@ -17,7 +17,7 @@ ResourceProject::ResourceProject(QObject* parent)
 {
     initResourceLists({
         new PaletteResourceList(this),
-        new MtTilesetResourceList(this),
+        new MetaTiles::MtTilesetResourceList(this),
     });
 
     Q_ASSERT(paletteResourceList());

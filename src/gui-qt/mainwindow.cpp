@@ -25,7 +25,7 @@
 #include "gui-qt/metasprite/exportorder/exportordereditor.h"
 #include "gui-qt/metasprite/metasprite/msframeseteditor.h"
 #include "gui-qt/metasprite/spriteimporter/siframeseteditor.h"
-#include "resources/mttileset/mttileseteditor.h"
+#include "gui-qt/metatiles/mttileset/mttileseteditor.h"
 #include "resources/palette/paletteeditor.h"
 #include "resources/resourcefile/resourcefileeditor.h"
 
@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget* parent)
           new Resources::ResourceFileEditor(this),
           new Resources::PaletteEditor(this),
           new MetaSprite::ExportOrderEditor(this),
-          new Resources::MtTilesetEditor(this, _zoomSettingsManager->get("metatiles")),
+          new MetaTiles::MtTilesetEditor(this, _zoomSettingsManager->get("metatiles")),
           new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettingsManager),
           new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettingsManager),
       })

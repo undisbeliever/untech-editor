@@ -10,7 +10,7 @@
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::MetaTiles;
 
 using TilesetUndoHelper = UnTech::GuiQt::Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
 

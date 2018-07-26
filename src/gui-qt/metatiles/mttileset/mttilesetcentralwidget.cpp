@@ -8,9 +8,9 @@
 #include "mttilesetresourceitem.h"
 #include "gui-qt/common/graphics/qpenhelper.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
-#include "gui-qt/resources/mttileset/mttilesetcentralwidget.ui.h"
+#include "gui-qt/metatiles/mttileset/mttilesetcentralwidget.ui.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::MetaTiles;
 
 const QColor MtTilesetGraphicsItem::GRID_COLOR = QColor(200, 200, 255, 128);
 const QColor MtTilesetGraphicsItem::ERROR_COLOR = QColor(255, 0, 50, 128);
@@ -33,7 +33,7 @@ MtTilesetCentralWidget::MtTilesetCentralWidget(QWidget* parent,
 
     setEnabled(false);
 
-    connect(&_animationTimer, &AnimationTimer::animationFrameAdvance,
+    connect(&_animationTimer, &Resources::AnimationTimer::animationFrameAdvance,
             this, &MtTilesetCentralWidget::onAnimationFrameAdvance);
     connect(_ui->previousButton, &QAbstractButton::clicked,
             this, &MtTilesetCentralWidget::onPreviousClicked);

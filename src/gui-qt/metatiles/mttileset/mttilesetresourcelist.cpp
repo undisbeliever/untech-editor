@@ -12,9 +12,9 @@
 #include <QFileInfo>
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::MetaTiles;
 
-MtTilesetResourceList::MtTilesetResourceList(ResourceProject* project)
+MtTilesetResourceList::MtTilesetResourceList(Resources::ResourceProject* project)
     : AbstractResourceList(project, ResourceTypeIndex::MT_TILESET)
 {
 }

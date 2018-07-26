@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../animationtimer.h"
+#include "gui-qt/resources/animationtimer.h"
 #include "models/resources/error-list.h"
 #include <QGraphicsObject>
 #include <QGraphicsScene>
@@ -18,7 +18,7 @@ namespace UnTech {
 namespace GuiQt {
 class ZoomSettings;
 
-namespace Resources {
+namespace MetaTiles {
 namespace Ui {
 class MtTilesetCentralWidget;
 }
@@ -57,7 +57,7 @@ private:
     MtTilesetResourceItem* _tileset;
     MtTilesetGraphicsItem* _graphicsItem;
 
-    AnimationTimer _animationTimer;
+    Resources::AnimationTimer _animationTimer;
 };
 
 class MtTilesetGraphicsItem : public QGraphicsObject {

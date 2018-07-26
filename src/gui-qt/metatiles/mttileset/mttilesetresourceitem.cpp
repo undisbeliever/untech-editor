@@ -9,7 +9,7 @@
 #include "gui-qt/common/helpers.h"
 #include "models/metatiles/metatiles-serializer.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::MetaTiles;
 
 MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
@@ -98,6 +98,6 @@ bool MtTilesetResourceItem::compileResource(RES::ErrorList& err)
     const auto& res = project()->resourcesFile();
     Q_ASSERT(res);
 
-    const auto mtd = MetaTiles::convertTileset(*tileset, *res, err);
+    const auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *res, err);
     return mtd && mtd->validate(res->metaTileEngineSettings, err);
 }

@@ -13,16 +13,16 @@
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
+namespace MetaTiles {
 
 class MtTilesetResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    MtTilesetResourceList(ResourceProject* project);
+    MtTilesetResourceList(Resources::ResourceProject* project);
     ~MtTilesetResourceList() = default;
 
-    ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
+    Resources::ResourceProject* project() const { return static_cast<Resources::ResourceProject*>(_project); }
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
