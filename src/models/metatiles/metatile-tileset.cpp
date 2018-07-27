@@ -50,6 +50,11 @@ bool MetaTileTilesetInput::validate(Resources::ErrorList& err) const
         valid &= animationFrames.validate(err);
     }
 
+    if (scratchpad.width() > MAX_GRID_WIDTH || scratchpad.height() > MAX_GRID_HEIGHT) {
+        err.addError("Scratchpad too large (maximum allowed size is " + std::to_string(MAX_GRID_WIDTH)
+                     + "x" + std::to_string(MAX_GRID_HEIGHT) + ".");
+    }
+
     return valid;
 }
 

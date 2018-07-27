@@ -37,8 +37,8 @@ void readEngineSettings(EngineSettings& settings, const XmlTag* tag)
 
 static grid<uint16_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
 {
-    grid<uint16_t> mtGrid(tag->getAttributeUnsigned("width", 1),
-                          tag->getAttributeUnsigned("height", 1));
+    grid<uint16_t> mtGrid(tag->getAttributeUnsigned("width", 1, MAX_GRID_WIDTH),
+                          tag->getAttributeUnsigned("height", 1, MAX_GRID_HEIGHT));
 
     const auto data = xml.parseBase64();
 
