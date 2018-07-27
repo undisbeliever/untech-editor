@@ -40,11 +40,6 @@ bool AnimatedTilesetData::validate(ErrorList& err) const
 {
     bool valid = true;
 
-    if (mapHeight * mapWidth != tileMap.size()) {
-        err.addError("Invalid tileMap");
-        valid = false;
-    }
-
     for (const auto& at : animatedTiles) {
         if (at.size() != nAnimatedTiles()
             || at.bitDepth() != staticTiles.bitDepth()) {

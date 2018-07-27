@@ -40,6 +40,11 @@ public:
     {
     }
 
+    grid(const usize& size, const T& def = T())
+        : grid(size.width, size.height, def)
+    {
+    }
+
     ~grid() = default;
     grid(const grid&) = default;
     grid(grid&&) = default;

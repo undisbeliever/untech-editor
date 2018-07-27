@@ -108,13 +108,13 @@ bool MetaTileTilesetData::validate(const EngineSettings& settings, Resources::Er
             valid = false;
         }
     };
-    validateMax(tileMap.size() / 4, settings.nMetaTiles, "Too many MetaTiles");
+    validateMax(tileMap.gridSize() / 4, settings.nMetaTiles, "Too many MetaTiles");
 
-    if (animatedTileset->mapWidth % 2 != 0) {
+    if (animatedTileset->tileMap.width() % 2 != 0) {
         err.addError("Tileset image width must be a multiple of 16");
         valid = false;
     }
-    if (animatedTileset->mapHeight % 2 != 0) {
+    if (animatedTileset->tileMap.height() % 2 != 0) {
         err.addError("Tileset image height must be a multiple of 16");
         valid = false;
     }
@@ -126,29 +126,22 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap(const EngineSettings& s
 {
     std::vector<uint8_t> out(settings.nMetaTiles * 2 * 4, 0);
 
-    const unsigned& mapWidth = animatedTileset->mapWidth;
-    const unsigned& mapHeight = animatedTileset->mapHeight;
+    const unsigned& mapWidth = animatedTileset->tileMap.width();
+    const unsigned& mapHeight = animatedTileset->tileMap.height();
 
     assert(mapWidth % 2 == 0);
     assert(mapHeight % 2 == 0);
-    assert(animatedTileset->tileMap.size() == mapWidth * mapHeight);
-    assert(animatedTileset->tileMap.size() <= out.size() / 2);
+    assert(animatedTileset->tileMap.gridSize() == mapWidth * mapHeight);
+    assert(animatedTileset->tileMap.gridSize() <= out.size() / 2);
 
     for (unsigned q = 0; q < 4; q++) {
-        unsigned start = 0;
-        if (q & 1) {
-            start += 1;
-        }
-        if (q & 2) {
-            start += mapWidth;
-        }
+        const unsigned xOffset = (q & 1) ? 1 : 0;
+        const unsigned yOffset = (q & 2) ? 1 : 0;
 
         auto outIt = out.begin() + settings.nMetaTiles * q * 2;
         for (unsigned y = 0; y < mapHeight / 2; y++) {
-            unsigned lineStart = start + y * mapWidth * 2;
-
             for (unsigned x = 0; x < mapWidth / 2; x++) {
-                auto& tmCell = animatedTileset->tileMap.at(lineStart + x * 2);
+                auto& tmCell = animatedTileset->tileMap.at(x * 2 + xOffset, y * 2 + yOffset);
 
                 *outIt++ = tmCell.data & 0xff;
                 *outIt++ = (tmCell.data >> 8) & 0xff;
