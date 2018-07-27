@@ -196,7 +196,7 @@ static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vect
 static void buildTilesetAndTilemap(AnimatedTilesetData& aniTileset, const usize& mapSize, const AnimatedTilesetIntermediate& input)
 {
     aniTileset.tileMap = grid<Snes::TilemapEntry>(mapSize);
-    assert(aniTileset.tileMap.gridSize() == input.tileMap.size());
+    assert(aniTileset.tileMap.cellCount() == input.tileMap.size());
 
     {
         Snes::TilesetInserter8px staticTilesetInserter(aniTileset.staticTiles);

@@ -108,7 +108,7 @@ bool MetaTileTilesetData::validate(const EngineSettings& settings, Resources::Er
             valid = false;
         }
     };
-    validateMax(tileMap.gridSize() / 4, settings.nMetaTiles, "Too many MetaTiles");
+    validateMax(tileMap.cellCount() / 4, settings.nMetaTiles, "Too many MetaTiles");
 
     if (animatedTileset->tileMap.width() % 2 != 0) {
         err.addError("Tileset image width must be a multiple of 16");
@@ -131,8 +131,8 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap(const EngineSettings& s
 
     assert(mapWidth % 2 == 0);
     assert(mapHeight % 2 == 0);
-    assert(animatedTileset->tileMap.gridSize() == mapWidth * mapHeight);
-    assert(animatedTileset->tileMap.gridSize() <= out.size() / 2);
+    assert(animatedTileset->tileMap.cellCount() == mapWidth * mapHeight);
+    assert(animatedTileset->tileMap.cellCount() <= out.size() / 2);
 
     for (unsigned q = 0; q < 4; q++) {
         const unsigned xOffset = (q & 1) ? 1 : 0;

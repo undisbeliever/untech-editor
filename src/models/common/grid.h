@@ -55,7 +55,7 @@ public:
 
     unsigned width() const { return _width; }
     unsigned height() const { return _height; }
-    unsigned gridSize() const { return _grid.size(); }
+    unsigned cellCount() const { return _grid.size(); }
 
     usize size() const { return usize(_width, _height); }
 

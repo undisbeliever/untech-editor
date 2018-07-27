@@ -42,9 +42,9 @@ static grid<uint16_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
 
     const auto data = xml.parseBase64();
 
-    if (data.size() != mtGrid.gridSize() * 2) {
+    if (data.size() != mtGrid.cellCount() * 2) {
         const std::string msg = "Invalid data size. Got " + std::to_string(data.size())
-                                + " bytes, expected " + std::to_string(mtGrid.gridSize() * 2) + ".";
+                                + " bytes, expected " + std::to_string(mtGrid.cellCount() * 2) + ".";
         throw xml_error(*tag, msg.c_str());
     }
 
@@ -67,12 +67,12 @@ static void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const 
     }
 
     std::vector<uint8_t> data;
-    data.reserve(mtGrid.gridSize() * 2);
+    data.reserve(mtGrid.cellCount() * 2);
 
     for (const auto t : mtGrid) {
         writeUint16(data, t);
     }
-    assert(data.size() == mtGrid.gridSize() * 2);
+    assert(data.size() == mtGrid.cellCount() * 2);
 
     xml.writeTag(tagName);
     xml.writeTagAttribute("width", mtGrid.width());
