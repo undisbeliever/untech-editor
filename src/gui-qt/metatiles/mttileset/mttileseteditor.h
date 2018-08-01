@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "mttilesetcentralwidget.h"
 #include "mttilesetpropertymanager.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/abstracteditor.h"
 #include "gui-qt/genericpropertieswidget.h"
+#include "gui-qt/resources/animated-tileset/animationframesinputwidget.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -22,7 +22,7 @@ class MtTilesetEditor : public AbstractEditor {
 public:
     MtTilesetEditor(QWidget* parent, ZoomSettings* zoomSettings)
         : AbstractEditor(parent)
-        , _editorWidget(new MtTilesetCentralWidget(parent, zoomSettings))
+        , _editorWidget(new Resources::AnimationFramesInputWidget(parent, zoomSettings))
         , _propertyWidget(new GenericPropertiesWidget(
               new MtTilesetPropertyManager(parent),
               parent))
@@ -45,7 +45,7 @@ public:
     virtual ZoomSettings* zoomSettings() const final { return _editorWidget->zoomSettings(); }
 
 private:
-    MtTilesetCentralWidget* const _editorWidget;
+    Resources::AnimationFramesInputWidget* const _editorWidget;
     GenericPropertiesWidget* const _propertyWidget;
 };
 }

@@ -17,27 +17,27 @@
 namespace UnTech {
 namespace GuiQt {
 class ZoomSettings;
+class AbstractResourceItem;
 
-namespace MetaTiles {
+namespace Resources {
 namespace Ui {
-class MtTilesetCentralWidget;
+class AnimationFramesInputWidget;
 }
-class MtTilesetResourceItem;
-class MtTilesetGraphicsItem;
+class AnimationFramesInputGraphicsItem;
+class AnimationFramesInputWidget;
 
 namespace RES = UnTech::Resources;
 
-class MtTilesetCentralWidget : public QWidget {
+class AnimationFramesInputWidget : public QWidget {
     Q_OBJECT
 
 public:
-    MtTilesetCentralWidget(QWidget* parent,
-                           ZoomSettings* ZoomSettings);
-    ~MtTilesetCentralWidget();
+    AnimationFramesInputWidget(QWidget* parent, ZoomSettings* ZoomSettings);
+    ~AnimationFramesInputWidget();
 
     ZoomSettings* zoomSettings() const;
 
-    void setResourceItem(MtTilesetResourceItem* item);
+    void setResourceItem(AbstractResourceItem* item);
 
 private:
     void updateFrameLabel();
@@ -51,16 +51,16 @@ private slots:
     void onNextClicked();
 
 private:
-    std::unique_ptr<Ui::MtTilesetCentralWidget> const _ui;
+    std::unique_ptr<Ui::AnimationFramesInputWidget> const _ui;
     QGraphicsScene* const _graphicsScene;
 
-    MtTilesetResourceItem* _tileset;
-    MtTilesetGraphicsItem* _graphicsItem;
+    AbstractResourceItem* _tileset;
+    AnimationFramesInputGraphicsItem* _graphicsItem;
 
     Resources::AnimationTimer _animationTimer;
 };
 
-class MtTilesetGraphicsItem : public QGraphicsObject {
+class AnimationFramesInputGraphicsItem : public QGraphicsObject {
     Q_OBJECT
 
 public:
@@ -68,8 +68,8 @@ public:
     static const QColor ERROR_COLOR;
 
 public:
-    MtTilesetGraphicsItem(MtTilesetResourceItem* item);
-    ~MtTilesetGraphicsItem() = default;
+    AnimationFramesInputGraphicsItem(AbstractResourceItem* item);
+    ~AnimationFramesInputGraphicsItem() = default;
 
     void reloadAnimationFrame() { setAnimationFrameIndex(_animationFrameIndex); }
 
@@ -94,7 +94,8 @@ private slots:
     void loadPixmaps();
 
 private:
-    MtTilesetResourceItem* const _tileset;
+    AbstractResourceItem* const _resourceItem;
+    const unsigned _gridSize;
 
     QGraphicsItem* _commonErrors;
     QList<QGraphicsItem*> _frameErrors;
