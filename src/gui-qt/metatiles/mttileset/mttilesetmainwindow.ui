@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UnTech::GuiQt::MetaTiles::MtTilesetMainWindow</class>
+ <widget class="QMainWindow" name="UnTech::GuiQt::MetaTiles::MtTilesetMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>640</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QStackedWidget" name="stackedWidget">
+   <property name="currentIndex">
+    <number>1</number>
+   </property>
+   <widget class="UnTech::GuiQt::Resources::AnimationFramesInputWidget" name="animationFramesInputWidget"/>
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="tabPosition">
+     <enum>QTabWidget::South</enum>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="ZoomableGraphicsView" name="centralTilesetGraphicsView">
+     <attribute name="title">
+      <string>Tileset</string>
+     </attribute>
+    </widget>
+    <widget class="ZoomableGraphicsView" name="centralScratchpadGraphicsView">
+     <attribute name="title">
+      <string>Scratchpad</string>
+     </attribute>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="propertiesDock">
+   <property name="features">
+    <set>QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="windowTitle">
+    <string>Properties</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="propertyContents">
+    <layout class="QVBoxLayout" name="propertyLayout">
+     <item>
+      <widget class="PropertyListView" name="propertyView">
+       <property name="minimumSize">
+        <size>
+         <width>300</width>
+         <height>150</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="minimapDock">
+   <property name="minimumSize">
+    <size>
+     <width>150</width>
+     <height>150</height>
+    </size>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="windowTitle">
+    <string>MetaTiles</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="ZoomableGraphicsView" name="dockedTilesetGraphicsView"/>
+  </widget>
+  <widget class="QDockWidget" name="scratchpadDock">
+   <property name="minimumSize">
+    <size>
+     <width>150</width>
+     <height>150</height>
+    </size>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="windowTitle">
+    <string>Scratchpad</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="ZoomableGraphicsView" name="dockedScratchpadGraphicsView"/>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PropertyListView</class>
+   <extends>QTreeView</extends>
+   <header>gui-qt/common/properties/propertylistview.h</header>
+  </customwidget>
+  <customwidget>
+   <class>UnTech::GuiQt::Resources::AnimationFramesInputWidget</class>
+   <extends>QWidget</extends>
+   <header>gui-qt/resources/animated-tileset/animationframesinputwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ZoomableGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>gui-qt/common/graphics/zoomablegraphicsview.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

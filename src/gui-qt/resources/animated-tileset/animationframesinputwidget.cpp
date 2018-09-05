@@ -55,7 +55,7 @@ AnimationFramesInputWidget::AnimationFramesInputWidget(QWidget* parent, ZoomSett
     , _graphicsItem(nullptr)
 {
     _ui->setupUi(this);
-    _ui->graphicsView->setZoomSettings(zoomSettings);
+    setZoomSettings(zoomSettings);
 
     _animationTimer.setRegionCombo(_ui->region);
     _animationTimer.setPlayButton(_ui->playButton);
@@ -75,6 +75,11 @@ AnimationFramesInputWidget::AnimationFramesInputWidget(QWidget* parent, ZoomSett
 UnTech::GuiQt::ZoomSettings* AnimationFramesInputWidget::zoomSettings() const
 {
     return _ui->graphicsView->zoomSettings();
+}
+
+void AnimationFramesInputWidget::setZoomSettings(ZoomSettings* zoomSettings)
+{
+    _ui->graphicsView->setZoomSettings(zoomSettings);
 }
 
 AnimationFramesInputWidget::~AnimationFramesInputWidget() = default;

@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget* parent)
           new Resources::ResourceFileEditor(this),
           new Resources::PaletteEditor(this),
           new MetaSprite::ExportOrderEditor(this),
-          new MetaTiles::MtTilesetEditor(this, _zoomSettingsManager->get("metatiles")),
+          new MetaTiles::MtTilesetEditor(this, _zoomSettingsManager),
           new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettingsManager),
           new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettingsManager),
       })

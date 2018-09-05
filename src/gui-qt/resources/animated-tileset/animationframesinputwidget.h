@@ -32,10 +32,11 @@ class AnimationFramesInputWidget : public QWidget {
     Q_OBJECT
 
 public:
-    AnimationFramesInputWidget(QWidget* parent, ZoomSettings* ZoomSettings);
+    AnimationFramesInputWidget(QWidget* parent = nullptr, ZoomSettings* ZoomSettings = nullptr);
     ~AnimationFramesInputWidget();
 
     ZoomSettings* zoomSettings() const;
+    void setZoomSettings(ZoomSettings* zoomSettings);
 
     void setResourceItem(AbstractResourceItem* item);
 
