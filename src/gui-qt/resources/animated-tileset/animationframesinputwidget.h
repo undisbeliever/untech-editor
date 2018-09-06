@@ -6,12 +6,12 @@
 
 #pragma once
 
-#include "gui-qt/resources/animationtimer.h"
 #include "models/resources/error-list.h"
 #include <QGraphicsObject>
 #include <QGraphicsScene>
 #include <QPixmap>
 #include <QVector>
+#include <QWidget>
 #include <memory>
 
 namespace UnTech {
@@ -25,6 +25,7 @@ class AnimationFramesInputWidget;
 }
 class AnimationFramesInputGraphicsItem;
 class AnimationFramesInputWidget;
+class AnimationTimer;
 
 namespace RES = UnTech::Resources;
 
@@ -53,12 +54,11 @@ private slots:
 
 private:
     std::unique_ptr<Ui::AnimationFramesInputWidget> const _ui;
+    AnimationTimer* const _animationTimer;
     QGraphicsScene* const _graphicsScene;
 
     AbstractResourceItem* _tileset;
     AnimationFramesInputGraphicsItem* _graphicsItem;
-
-    Resources::AnimationTimer _animationTimer;
 };
 
 class AnimationFramesInputGraphicsItem : public QGraphicsObject {

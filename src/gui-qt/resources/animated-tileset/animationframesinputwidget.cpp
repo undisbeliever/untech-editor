@@ -9,6 +9,7 @@
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metatiles/mttileset/mttilesetresourceitem.h"
 #include "gui-qt/resources/animated-tileset/animationframesinputwidget.ui.h"
+#include "gui-qt/resources/animationtimer.h"
 #include "models/resources/animation-frames-input.h"
 
 using namespace UnTech::GuiQt;
@@ -50,6 +51,7 @@ static unsigned getGridSize(const AbstractResourceItem* item)
 AnimationFramesInputWidget::AnimationFramesInputWidget(QWidget* parent, ZoomSettings* zoomSettings)
     : QWidget(parent)
     , _ui(new Ui::AnimationFramesInputWidget)
+    , _animationTimer(new AnimationTimer(this))
     , _graphicsScene(new QGraphicsScene(this))
     , _tileset(nullptr)
     , _graphicsItem(nullptr)
@@ -57,14 +59,14 @@ AnimationFramesInputWidget::AnimationFramesInputWidget(QWidget* parent, ZoomSett
     _ui->setupUi(this);
     setZoomSettings(zoomSettings);
 
-    _animationTimer.setRegionCombo(_ui->region);
-    _animationTimer.setPlayButton(_ui->playButton);
+    _animationTimer->setRegionCombo(_ui->region);
+    _animationTimer->setPlayButton(_ui->playButton);
 
     _ui->graphicsView->setScene(_graphicsScene);
 
     setEnabled(false);
 
-    connect(&_animationTimer, &Resources::AnimationTimer::animationFrameAdvance,
+    connect(_animationTimer, &Resources::AnimationTimer::animationFrameAdvance,
             this, &AnimationFramesInputWidget::onAnimationFrameAdvance);
     connect(_ui->previousButton, &QAbstractButton::clicked,
             this, &AnimationFramesInputWidget::onPreviousClicked);
@@ -86,7 +88,7 @@ AnimationFramesInputWidget::~AnimationFramesInputWidget() = default;
 
 void AnimationFramesInputWidget::setResourceItem(AbstractResourceItem* item)
 {
-    _animationTimer.stopTimer();
+    _animationTimer->stopTimer();
 
     if (_tileset == item) {
         return;
@@ -132,7 +134,7 @@ void AnimationFramesInputWidget::updateFrameLabel()
 
 void AnimationFramesInputWidget::clearGui()
 {
-    _animationTimer.setEnabled(false);
+    _animationTimer->setEnabled(false);
     _ui->animationFrameLabel->clear();
 }
 
@@ -141,10 +143,10 @@ void AnimationFramesInputWidget::onMtTilesetDataChanged()
     Q_ASSERT(_tileset);
 
     auto* animationFrames = getAnimationFramesInput(_tileset);
-    _animationTimer.setEnabled(animationFrames != nullptr);
+    _animationTimer->setEnabled(animationFrames != nullptr);
 
     if (animationFrames) {
-        _animationTimer.setAnimationDelay(animationFrames->animationDelay);
+        _animationTimer->setAnimationDelay(animationFrames->animationDelay);
     }
 
     _graphicsItem->reloadAnimationFrame();
@@ -162,14 +164,14 @@ void AnimationFramesInputWidget::onAnimationFrameAdvance()
 
 void AnimationFramesInputWidget::onPreviousClicked()
 {
-    _animationTimer.stopTimer();
+    _animationTimer->stopTimer();
     _graphicsItem->prevAnimationFrame();
     updateFrameLabel();
 }
 
 void AnimationFramesInputWidget::onNextClicked()
 {
-    _animationTimer.stopTimer();
+    _animationTimer->stopTimer();
     _graphicsItem->nextAnimationFrame();
     updateFrameLabel();
 }

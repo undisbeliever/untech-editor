@@ -22,7 +22,7 @@ class AnimationTimer : public QObject {
     static constexpr unsigned TICKS_PER_SECOND = 300;
 
 public:
-    AnimationTimer();
+    AnimationTimer(QObject* parent = nullptr);
     ~AnimationTimer() = default;
 
     virtual void timerEvent(QTimerEvent* event) final;
