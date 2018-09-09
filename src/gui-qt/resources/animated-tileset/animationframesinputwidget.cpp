@@ -118,6 +118,11 @@ void AnimationFramesInputWidget::setResourceItem(AbstractResourceItem* item)
     setEnabled(item != nullptr);
 }
 
+void AnimationFramesInputWidget::stopAnimations()
+{
+    _animationTimer->stopTimer();
+}
+
 void AnimationFramesInputWidget::updateFrameLabel()
 {
     Q_ASSERT(_tileset);

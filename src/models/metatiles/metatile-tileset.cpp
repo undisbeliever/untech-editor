@@ -91,6 +91,30 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     return ret;
 }
 
+usize MetaTileTilesetData::sourceTileSize() const
+{
+    if (animatedTileset) {
+        return usize(
+            animatedTileset->tileMap.width() / 2,
+            animatedTileset->tileMap.height() / 2);
+    }
+    else {
+        return usize(0, 0);
+    }
+}
+
+unsigned MetaTileTilesetData::nMetaTiles() const
+{
+    if (animatedTileset) {
+        unsigned w = animatedTileset->tileMap.width() / 2;
+        unsigned h = animatedTileset->tileMap.height() / 2;
+        return w * h;
+    }
+    else {
+        return 0;
+    }
+}
+
 bool MetaTileTilesetData::validate(const EngineSettings& settings, Resources::ErrorList& err) const
 {
     bool valid = animatedTileset->validate(err);

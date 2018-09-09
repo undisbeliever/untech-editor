@@ -35,6 +35,8 @@ struct AnimatedTilesetData {
 
     grid<Snes::TilemapEntry> tileMap;
 
+    unsigned nAnimatedFrames() const;
+
     unsigned nAnimatedTiles() const;
     unsigned animatedTilesFrameSize() const;
     unsigned animatedTilesBlockSize() const;

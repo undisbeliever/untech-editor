@@ -9,6 +9,8 @@
 #include <QMainWindow>
 #include <memory>
 
+class QGraphicsScene;
+
 namespace UnTech {
 namespace GuiQt {
 class ZoomSettings;
@@ -20,6 +22,9 @@ class MtTilesetMainWindow;
 }
 class MtTilesetPropertyManager;
 class MtTilesetResourceItem;
+class MtTilesetRenderer;
+class MtTilesetGraphicsItem;
+class MtTilesetScratchpadGraphicsItem;
 
 class MtTilesetMainWindow : public QMainWindow {
     Q_OBJECT
@@ -45,9 +50,17 @@ public:
 private slots:
     void onTilesetStateChanged();
 
+    void onTilesetPalettesChanged();
+    void onPaletteComboActivated(const QString& paletteId);
+
 private:
     std::unique_ptr<Ui::MtTilesetMainWindow> const _ui;
     MtTilesetPropertyManager* const _propertyManager;
+    MtTilesetRenderer* const _renderer;
+    QGraphicsScene* const _tilesetScene;
+    QGraphicsScene* const _scratchpadScene;
+    MtTilesetGraphicsItem* const _tilesetGraphicsItem;
+    MtTilesetScratchpadGraphicsItem* const _scratchpadGraphicsItem;
 
     MtTilesetResourceItem* _tileset;
 };

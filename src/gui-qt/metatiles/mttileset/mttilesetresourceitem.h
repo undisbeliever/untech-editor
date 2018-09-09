@@ -39,6 +39,13 @@ public:
     }
     const MT::MetaTileTilesetInput* tilesetInput() const { return data(); }
 
+    // returns nullptr if the MetaTileTilesetData is invalid
+    const MT::MetaTileTilesetData* compiledData() const { return _compiledData.get(); }
+
+signals:
+    void palettesChanged();
+    void animationDelayChanged();
+
 protected:
     friend class Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
     void setData(const MT::MetaTileTilesetInput& data);
@@ -60,6 +67,9 @@ private:
     {
         return project()->resourcesFile()->metaTileTilesets.item(index());
     }
+
+private:
+    std::unique_ptr<MT::MetaTileTilesetData> _compiledData;
 };
 }
 }

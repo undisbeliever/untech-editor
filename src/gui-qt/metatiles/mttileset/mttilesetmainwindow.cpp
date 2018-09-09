@@ -5,10 +5,14 @@
  */
 
 #include "mttilesetmainwindow.h"
+#include "mtgridgraphicsitem.h"
 #include "mttilesetpropertymanager.h"
+#include "mttilesetrenderer.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
+#include "gui-qt/common/helpers.h"
 #include "gui-qt/metatiles/mttileset/mttilesetmainwindow.ui.h"
+#include "gui-qt/resources/palette/paletteresourcelist.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
@@ -17,11 +21,19 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
     : QMainWindow(parent)
     , _ui(new Ui::MtTilesetMainWindow)
     , _propertyManager(new MtTilesetPropertyManager(this))
+    , _renderer(new MtTilesetRenderer(this))
+    , _tilesetScene(new QGraphicsScene(this))
+    , _scratchpadScene(new QGraphicsScene(this))
+    , _tilesetGraphicsItem(new MtTilesetGraphicsItem(_renderer))
+    , _scratchpadGraphicsItem(new MtTilesetScratchpadGraphicsItem(_renderer))
     , _tileset(nullptr)
 {
     Q_ASSERT(zoomManager);
 
     _ui->setupUi(this);
+
+    _renderer->setPlayButton(_ui->playButton);
+    _renderer->setRegionCombo(_ui->region);
 
     _ui->propertyView->setPropertyManager(_propertyManager);
 
@@ -34,9 +46,20 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
     _ui->dockedTilesetGraphicsView->setZoomSettings(dockedZoomSettings);
     _ui->dockedScratchpadGraphicsView->setZoomSettings(dockedZoomSettings);
 
+    _tilesetScene->addItem(_tilesetGraphicsItem);
+    _scratchpadScene->addItem(_scratchpadGraphicsItem);
+
+    _ui->centralTilesetGraphicsView->setScene(_tilesetScene);
+    _ui->dockedTilesetGraphicsView->setScene(_tilesetScene);
+    _ui->centralScratchpadGraphicsView->setScene(_scratchpadScene);
+    _ui->dockedScratchpadGraphicsView->setScene(_scratchpadScene);
+
     tabifyDockWidget(_ui->minimapDock, _ui->scratchpadDock);
     resizeDocks({ _ui->minimapDock }, { 1 }, Qt::Vertical);
     _ui->minimapDock->raise();
+
+    connect(_ui->palette, qOverload<const QString&>(&QComboBox::activated),
+            this, &MtTilesetMainWindow::onPaletteComboActivated);
 }
 
 MtTilesetMainWindow::~MtTilesetMainWindow() = default;
@@ -57,13 +80,22 @@ void MtTilesetMainWindow::setResourceItem(MtTilesetResourceItem* item)
     }
     _tileset = item;
 
+    _renderer->setTilesetItem(item);
+
     _propertyManager->setResourceItem(item);
     _ui->animationFramesInputWidget->setResourceItem(item);
+
+    onTilesetPalettesChanged();
 
     if (_tileset) {
         onTilesetStateChanged();
         connect(_tileset, &MtTilesetResourceItem::stateChanged,
                 this, &MtTilesetMainWindow::onTilesetStateChanged);
+        connect(_tileset, &MtTilesetResourceItem::palettesChanged,
+                this, &MtTilesetMainWindow::onTilesetPalettesChanged);
+    }
+    else {
+        _ui->playButton->setChecked(false);
     }
 
     setEnabled(item != nullptr);
@@ -74,14 +106,61 @@ void MtTilesetMainWindow::onTilesetStateChanged()
     // ::TODO only show ANIMATION_FRAMES_INPUT_WIDGET when there is an error in the animationFramesInput::
 
     if (_tileset == nullptr) {
+        _ui->playButton->setChecked(false);
         _ui->stackedWidget->setCurrentIndex(StackIndex::ANIMATION_FRAMES_INPUT_WIDGET);
         return;
     }
 
-    if (_tileset->state() != ResourceState::VALID) {
+    if (_tileset->state() == ResourceState::ERROR) {
+        _ui->playButton->setChecked(false);
         _ui->stackedWidget->setCurrentIndex(StackIndex::ANIMATION_FRAMES_INPUT_WIDGET);
     }
-    else {
+    else if (_tileset->state() == ResourceState::VALID) {
+        _ui->animationFramesInputWidget->stopAnimations();
         _ui->stackedWidget->setCurrentIndex(StackIndex::METATILES_CENTRAL_WIDGET);
     }
+}
+
+void MtTilesetMainWindow::onTilesetPalettesChanged()
+{
+    QStringList pals;
+
+    if (_tileset) {
+        if (const auto* data = _tileset->data()) {
+            pals = convertStringList(data->palettes);
+        }
+    }
+
+    auto* currentPaletteItem = _renderer->paletteItem();
+    const QString currentPaletteName = currentPaletteItem ? currentPaletteItem->name() : QString();
+
+    _ui->palette->clear();
+    _ui->palette->addItems(pals);
+
+    int currentPaletteIndex = pals.indexOf(currentPaletteName);
+
+    if (currentPaletteIndex > 0) {
+        _ui->palette->setCurrentIndex(currentPaletteIndex);
+    }
+    else {
+        if (pals.isEmpty()) {
+            _renderer->setPaletteItem(nullptr);
+        }
+        else {
+            _ui->palette->setCurrentIndex(0);
+            onPaletteComboActivated(pals.first());
+        }
+    }
+}
+
+void MtTilesetMainWindow::onPaletteComboActivated(const QString& paletteId)
+{
+    if (_tileset == nullptr) {
+        return;
+    }
+
+    auto* pal = qobject_cast<Resources::PaletteResourceItem*>(
+        _tileset->project()->paletteResourceList()->findResource(paletteId));
+
+    _renderer->setPaletteItem(pal);
 }

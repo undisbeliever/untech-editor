@@ -41,6 +41,8 @@ public:
 
     void setResourceItem(AbstractResourceItem* item);
 
+    void stopAnimations();
+
 private:
     void updateFrameLabel();
     void clearGui();

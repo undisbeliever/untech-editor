@@ -16,6 +16,16 @@
 namespace UnTech {
 namespace Resources {
 
+unsigned AnimatedTilesetData::nAnimatedFrames() const
+{
+    if (!animatedTiles.empty()) {
+        return animatedTiles.size();
+    }
+    else {
+        return 1;
+    }
+}
+
 unsigned AnimatedTilesetData::nAnimatedTiles() const
 {
     if (!animatedTiles.empty()) {

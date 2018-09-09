@@ -13,6 +13,7 @@ using namespace UnTech::GuiQt::MetaTiles;
 
 MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _compiledData(nullptr)
 {
     Q_ASSERT(index < mtTilesetList().size());
 
@@ -25,6 +26,7 @@ void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
     Q_ASSERT(tileset);
 
     bool nameChange = tileset->name != data.name;
+    bool animationDelayChanged = tileset->animationFrames.animationDelay != data.animationFrames.animationDelay;
     bool imagesChange = tileset->animationFrames.frameImageFilenames != data.animationFrames.frameImageFilenames;
     bool palettesChanged = tileset->palettes != data.palettes;
 
@@ -34,11 +36,15 @@ void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
     if (nameChange) {
         setName(QString::fromStdString(data.name));
     }
+    if (animationDelayChanged) {
+        emit this->animationDelayChanged();
+    }
     if (imagesChange) {
         setExternalFiles(convertStringList(data.animationFrames.frameImageFilenames));
     }
     if (palettesChanged) {
         updateDependencies();
+        emit this->palettesChanged();
     }
 }
 
@@ -98,6 +104,15 @@ bool MtTilesetResourceItem::compileResource(RES::ErrorList& err)
     const auto& res = project()->resourcesFile();
     Q_ASSERT(res);
 
-    const auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *res, err);
-    return mtd && mtd->validate(res->metaTileEngineSettings, err);
+    auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *res, err);
+    bool valid = mtd && mtd->validate(res->metaTileEngineSettings, err);
+
+    if (valid) {
+        _compiledData = std::move(mtd);
+        return true;
+    }
+    else {
+        _compiledData.release();
+        return false;
+    }
 }

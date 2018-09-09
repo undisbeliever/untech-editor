@@ -55,6 +55,10 @@ struct MetaTileTilesetData {
     std::vector<idstring> palettes;
     std::unique_ptr<Resources::AnimatedTilesetData> animatedTileset;
 
+    usize sourceTileSize() const;
+
+    unsigned nMetaTiles() const;
+
     bool validate(const EngineSettings& settings, Resources::ErrorList& err) const;
 
     std::vector<uint8_t> exportMetaTileTileset(const EngineSettings& settings) const;

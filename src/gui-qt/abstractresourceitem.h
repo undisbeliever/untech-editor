@@ -119,6 +119,7 @@ signals:
     void nameChanged();
     void stateChanged();
     void errorListChanged();
+    void resourceComplied();
 
 protected:
     AbstractResourceList* const _list;

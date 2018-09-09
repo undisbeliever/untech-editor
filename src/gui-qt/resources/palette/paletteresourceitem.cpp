@@ -11,6 +11,7 @@ using namespace UnTech::GuiQt::Resources;
 
 PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t index)
     : AbstractInternalResourceItem(parent, index)
+    , _compiledData(nullptr)
 {
     Q_ASSERT(index < palettesData().size());
 
@@ -53,6 +54,15 @@ bool PaletteResourceItem::compileResource(RES::ErrorList& err)
     const RES::PaletteInput* pal = paletteData();
     Q_ASSERT(pal);
 
-    const auto palData = RES::convertPalette(*pal, err);
-    return palData && palData->validate(err);
+    auto palData = RES::convertPalette(*pal, err);
+    bool valid = palData && palData->validate(err);
+
+    if (valid) {
+        _compiledData = std::move(palData);
+        return true;
+    }
+    else {
+        _compiledData.release();
+        return false;
+    }
 }
