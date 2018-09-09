@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
-    <height>480</height>
+    <width>700</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,23 +18,69 @@
     <number>1</number>
    </property>
    <widget class="UnTech::GuiQt::Resources::AnimationFramesInputWidget" name="animationFramesInputWidget"/>
-   <widget class="QTabWidget" name="tabWidget">
-    <property name="tabPosition">
-     <enum>QTabWidget::South</enum>
-    </property>
-    <property name="currentIndex">
-     <number>0</number>
-    </property>
-    <widget class="ZoomableGraphicsView" name="centralTilesetGraphicsView">
-     <attribute name="title">
-      <string>Tileset</string>
-     </attribute>
-    </widget>
-    <widget class="ZoomableGraphicsView" name="centralScratchpadGraphicsView">
-     <attribute name="title">
-      <string>Scratchpad</string>
-     </attribute>
-    </widget>
+   <widget class="QWidget" name="centralContents">
+    <layout class="QVBoxLayout" name="centralLayout">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QToolButton" name="playButton">
+         <property name="toolTip">
+          <string>Play Animation</string>
+         </property>
+         <property name="text">
+          <string>Play</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../../resources/resources.qrc">
+           <normaloff>:/icons/animation-play.svg</normaloff>:/icons/animation-play.svg</iconset>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QComboBox" name="palette"/>
+       </item>
+       <item>
+        <widget class="QComboBox" name="region"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="tabPosition">
+        <enum>QTabWidget::South</enum>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="ZoomableGraphicsView" name="centralTilesetGraphicsView">
+        <attribute name="title">
+         <string>Tileset</string>
+        </attribute>
+       </widget>
+       <widget class="ZoomableGraphicsView" name="centralScratchpadGraphicsView">
+        <attribute name="title">
+         <string>Scratchpad</string>
+        </attribute>
+       </widget>
+      </widget>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="propertiesDock">
@@ -117,6 +163,8 @@
    <header>gui-qt/common/graphics/zoomablegraphicsview.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../../../resources/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
