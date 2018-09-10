@@ -5,6 +5,7 @@
  */
 
 #include "mtgridgraphicsitem.h"
+#include "mtgraphicsscenes.h"
 #include "mttilesetrenderer.h"
 #include "mttilesetresourceitem.h"
 #include "models/metatiles/metatile-tileset.h"
@@ -12,35 +13,20 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 
-MtGridGraphicsItem::MtGridGraphicsItem(MtTilesetRenderer* renderer)
+MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
     : QGraphicsObject()
-    , _renderer(renderer)
-    , _tilesetItem(nullptr)
+    , _scene(scene)
     , _boundingRect()
 {
-    connect(renderer, &MtTilesetRenderer::tilesetItemChanged,
-            this, &MtGridGraphicsItem::onRendererTilesetItemChanged);
+    Q_ASSERT(scene);
 
-    connect(renderer, &MtTilesetRenderer::pixmapChanged,
-            this, &MtGridGraphicsItem::onPixmapChanged);
-}
+    connect(scene, &MtGraphicsScene::gridChanged,
+            this, &MtGridGraphicsItem::updateAll);
+    connect(scene, &MtGraphicsScene::gridResized,
+            this, &MtGridGraphicsItem::onGridResized);
 
-void MtGridGraphicsItem::onRendererTilesetItemChanged()
-{
-    auto* ti = _renderer->tilesetItem();
-    if (_tilesetItem != ti) {
-        if (_tilesetItem) {
-            _tilesetItem->disconnect(this);
-        }
-        _tilesetItem = ti;
-
-        tilesetItemChanged();
-    }
-}
-
-void MtGridGraphicsItem::onPixmapChanged()
-{
-    update(_boundingRect);
+    connect(scene->renderer(), &MtTilesetRenderer::pixmapChanged,
+            this, &MtGridGraphicsItem::updateAll);
 }
 
 QRectF MtGridGraphicsItem::boundingRect() const
@@ -51,73 +37,21 @@ QRectF MtGridGraphicsItem::boundingRect() const
 void MtGridGraphicsItem::paint(QPainter* painter,
                                const QStyleOptionGraphicsItem*, QWidget*)
 {
-    _renderer->drawGridTiles(painter, _grid);
+    _scene->renderer()->drawGridTiles(painter, _scene->grid());
 }
 
-void MtGridGraphicsItem::setGrid(UnTech::grid<uint16_t>&& grid)
+void MtGridGraphicsItem::updateAll()
 {
-    usize oldSize = _grid.size();
-
-    _grid = std::move(grid);
-
-    if (_grid.size() != oldSize) {
-        _boundingRect.setWidth(_grid.width() * 16);
-        _boundingRect.setHeight(_grid.height() * 16);
-
-        prepareGeometryChange();
-    }
     update();
 }
 
-MtTilesetGraphicsItem::MtTilesetGraphicsItem(MtTilesetRenderer* renderer)
-    : MtGridGraphicsItem(renderer)
+void MtGridGraphicsItem::onGridResized()
 {
-}
+    const auto& grid = _scene->grid();
 
-void MtTilesetGraphicsItem::tilesetItemChanged()
-{
-    if (auto* ti = tilesetItem()) {
-        connect(ti, &MtTilesetResourceItem::resourceComplied,
-                this, &MtTilesetGraphicsItem::onTilesetCompiled);
-    }
+    _boundingRect.setWidth(grid.width() * 16);
+    _boundingRect.setHeight(grid.height() * 16);
 
-    onTilesetCompiled();
-}
-
-void MtTilesetGraphicsItem::onTilesetCompiled()
-{
-    usize gSize(0, 0);
-    if (auto* ti = tilesetItem()) {
-        if (auto* cd = ti->compiledData()) {
-            gSize = cd->sourceTileSize();
-        }
-    }
-
-    if (grid().size() != gSize) {
-        UnTech::grid<uint16_t> grid(gSize);
-
-        uint16_t i = 0;
-        for (uint16_t& cell : grid) {
-            cell = i++;
-        }
-
-        setGrid(std::move(grid));
-    }
-}
-
-MtTilesetScratchpadGraphicsItem::MtTilesetScratchpadGraphicsItem(MtTilesetRenderer* renderer)
-    : MtGridGraphicsItem(renderer)
-{
-}
-
-void MtTilesetScratchpadGraphicsItem::tilesetItemChanged()
-{
-    if (const auto* ti = tilesetItem()) {
-        if (const auto* data = ti->data()) {
-            setGrid(grid_t(data->scratchpad));
-            return;
-        }
-    }
-
-    setGrid(grid_t());
+    prepareGeometryChange();
+    updateAll();
 }

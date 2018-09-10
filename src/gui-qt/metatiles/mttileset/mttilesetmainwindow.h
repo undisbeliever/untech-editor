@@ -23,8 +23,8 @@ class MtTilesetMainWindow;
 class MtTilesetPropertyManager;
 class MtTilesetResourceItem;
 class MtTilesetRenderer;
-class MtTilesetGraphicsItem;
-class MtTilesetScratchpadGraphicsItem;
+class MtTilesetGraphicsScene;
+class MtScratchpadGraphicsScene;
 
 class MtTilesetMainWindow : public QMainWindow {
     Q_OBJECT
@@ -57,10 +57,8 @@ private:
     std::unique_ptr<Ui::MtTilesetMainWindow> const _ui;
     MtTilesetPropertyManager* const _propertyManager;
     MtTilesetRenderer* const _renderer;
-    QGraphicsScene* const _tilesetScene;
-    QGraphicsScene* const _scratchpadScene;
-    MtTilesetGraphicsItem* const _tilesetGraphicsItem;
-    MtTilesetScratchpadGraphicsItem* const _scratchpadGraphicsItem;
+    MtTilesetGraphicsScene* const _tilesetScene;
+    MtScratchpadGraphicsScene* const _scratchpadScene;
 
     MtTilesetResourceItem* _tileset;
 };

@@ -5,6 +5,7 @@
  */
 
 #include "mttilesetmainwindow.h"
+#include "mtgraphicsscenes.h"
 #include "mtgridgraphicsitem.h"
 #include "mttilesetpropertymanager.h"
 #include "mttilesetrenderer.h"
@@ -22,10 +23,8 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
     , _ui(new Ui::MtTilesetMainWindow)
     , _propertyManager(new MtTilesetPropertyManager(this))
     , _renderer(new MtTilesetRenderer(this))
-    , _tilesetScene(new QGraphicsScene(this))
-    , _scratchpadScene(new QGraphicsScene(this))
-    , _tilesetGraphicsItem(new MtTilesetGraphicsItem(_renderer))
-    , _scratchpadGraphicsItem(new MtTilesetScratchpadGraphicsItem(_renderer))
+    , _tilesetScene(new MtTilesetGraphicsScene(_renderer, this))
+    , _scratchpadScene(new MtScratchpadGraphicsScene(_renderer, this))
     , _tileset(nullptr)
 {
     Q_ASSERT(zoomManager);
@@ -45,9 +44,6 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
     _ui->centralScratchpadGraphicsView->setZoomSettings(centralZoomSettings);
     _ui->dockedTilesetGraphicsView->setZoomSettings(dockedZoomSettings);
     _ui->dockedScratchpadGraphicsView->setZoomSettings(dockedZoomSettings);
-
-    _tilesetScene->addItem(_tilesetGraphicsItem);
-    _scratchpadScene->addItem(_scratchpadGraphicsItem);
 
     _ui->centralTilesetGraphicsView->setScene(_tilesetScene);
     _ui->dockedTilesetGraphicsView->setScene(_tilesetScene);
