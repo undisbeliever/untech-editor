@@ -69,6 +69,26 @@ void DualAnimationTimer::timerEvent(QTimerEvent* event)
     }
 }
 
+void DualAnimationTimer::pauseAndIncrementFirstFrameCount()
+{
+    stopTimer();
+
+    _animationFrameCount.first++;
+    _animationTicksCurrent.first = 0;
+
+    emit animationFrameCountChanged();
+}
+
+void DualAnimationTimer::pauseAndIncrementSecondFrameCount()
+{
+    stopTimer();
+
+    _animationFrameCount.second++;
+    _animationTicksCurrent.second = 0;
+
+    emit animationFrameCountChanged();
+}
+
 void DualAnimationTimer::setAnimationDelays(unsigned delay0, unsigned delay1)
 {
     _animationDelay.first = delay0;

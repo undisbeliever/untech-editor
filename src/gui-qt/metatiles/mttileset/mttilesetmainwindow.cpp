@@ -58,6 +58,13 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
     resizeDocks({ _ui->minimapDock }, { 1 }, Qt::Vertical);
     _ui->minimapDock->raise();
 
+    connect(_ui->resetAnimationButton, &QToolButton::clicked,
+            _renderer, &MtTilesetRenderer::resetAnimations);
+    connect(_ui->nextTilesetFrameButton, &QToolButton::clicked,
+            _renderer, &MtTilesetRenderer::pauseAndAdvanceTilesetFrame);
+    connect(_ui->nextPaletteFrameButton, &QToolButton::clicked,
+            _renderer, &MtTilesetRenderer::pauseAndAdvancePaletteFrame);
+
     connect(_ui->palette, qOverload<const QString&>(&QComboBox::activated),
             this, &MtTilesetMainWindow::onPaletteComboActivated);
 }

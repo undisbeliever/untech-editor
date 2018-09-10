@@ -23,6 +23,20 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
+        <widget class="QToolButton" name="resetAnimationButton">
+         <property name="toolTip">
+          <string>Reset Animation</string>
+         </property>
+         <property name="text">
+          <string>Reset Animation</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../../resources/resources.qrc">
+           <normaloff>:/icons/animation-reset.svg</normaloff>:/icons/animation-reset.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="playButton">
          <property name="toolTip">
           <string>Play Animation</string>
@@ -36,6 +50,34 @@
          </property>
          <property name="checkable">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="nextTilesetFrameButton">
+         <property name="toolTip">
+          <string>Next Tileset Frame</string>
+         </property>
+         <property name="text">
+          <string>Next Tileset Frame</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../../resources/resources.qrc">
+           <normaloff>:/icons/animation-skip.svg</normaloff>:/icons/animation-skip.svg</iconset>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="nextPaletteFrameButton">
+         <property name="toolTip">
+          <string>Next Palette Frame</string>
+         </property>
+         <property name="text">
+          <string>Next Palette Frame</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../../../../resources/resources.qrc">
+           <normaloff>:/icons/animation-skip.svg</normaloff>:/icons/animation-skip.svg</iconset>
          </property>
         </widget>
        </item>

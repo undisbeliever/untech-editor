@@ -46,6 +46,9 @@ public slots:
     void resetTimer();
     void resetAnimationFrameCount();
 
+    void pauseAndIncrementFirstFrameCount();
+    void pauseAndIncrementSecondFrameCount();
+
 private slots:
     void onPlayButtonClicked();
     void onRegionChanged();

@@ -42,8 +42,6 @@ public:
     void setPlayButton(QAbstractButton* button);
     void setRegionCombo(QComboBox* comboBox);
 
-    Resources::DualAnimationTimer* animationTimer() const { return _animationTimer; }
-
     Resources::PaletteResourceItem* paletteItem() const { return _paletteItem; }
     void setPaletteItem(Resources::PaletteResourceItem* item);
 
@@ -61,6 +59,10 @@ signals:
     void tilesetItemChanged();
 
 public slots:
+    void resetAnimations();
+    void pauseAndAdvancePaletteFrame();
+    void pauseAndAdvanceTilesetFrame();
+
     void onAnimationDelaysChanged();
     void resetPixmaps();
 

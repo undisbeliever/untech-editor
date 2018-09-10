@@ -42,6 +42,21 @@ void MtTilesetRenderer::setRegionCombo(QComboBox* comboBox)
     _animationTimer->setRegionCombo(comboBox);
 }
 
+void MtTilesetRenderer::resetAnimations()
+{
+    _animationTimer->resetTimer();
+}
+
+void MtTilesetRenderer::pauseAndAdvancePaletteFrame()
+{
+    _animationTimer->pauseAndIncrementFirstFrameCount();
+}
+
+void MtTilesetRenderer::pauseAndAdvanceTilesetFrame()
+{
+    _animationTimer->pauseAndIncrementSecondFrameCount();
+}
+
 void MtTilesetRenderer::setPaletteItem(Resources::PaletteResourceItem* item)
 {
     if (_paletteItem != item) {
