@@ -48,13 +48,16 @@ public:
     MtTilesetResourceItem* tilesetItem() const { return _tilesetItem; }
     void setTilesetItem(MtTilesetResourceItem* item);
 
+    unsigned nPalettes() const { return _nPalettes; }
+    unsigned nTilesets() const { return _nTilesets; }
+    unsigned nMetaTiles() const { return _nMetaTiles; }
+
     const QPixmap& pixmap();
     const QPixmap& pixmap(unsigned paletteId, unsigned tilesetId);
 
-    void drawGridTiles(QPainter* painter, const grid<uint16_t>& grid);
-
 signals:
     void pixmapChanged();
+    void nMetaTilesChanged();
     void paletteItemChanged();
     void tilesetItemChanged();
 
@@ -81,9 +84,21 @@ private:
     unsigned _nPalettes;
     unsigned _nTilesets;
     unsigned _nMetaTiles;
+};
 
-    // This is a class member to reduce the number of memory allocation
+class MtTilesetGridPainter {
+public:
+    MtTilesetGridPainter();
+
+    // MUST be called when grid changed or on `MtTilesetRenderer::nMetaTilesChanged` signal.
+    void updateFragments(MtTilesetRenderer* renderer, const grid<uint16_t>& grid);
+
+    // NOTE: will not paint fragments if _nMetaTiles > renderer->nMetaTiles() to prevent glitches.
+    void paint(QPainter* painter, MtTilesetRenderer* renderer);
+
+private:
     std::vector<QPainter::PixmapFragment> _fragments;
+    unsigned _nMetaTiles = 0;
 };
 }
 }

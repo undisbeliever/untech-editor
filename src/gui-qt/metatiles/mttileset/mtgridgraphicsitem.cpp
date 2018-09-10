@@ -17,13 +17,17 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
     : QGraphicsObject()
     , _scene(scene)
     , _boundingRect()
+    , _tileGridPainter()
 {
     Q_ASSERT(scene);
 
-    connect(scene, &MtGraphicsScene::gridChanged,
-            this, &MtGridGraphicsItem::updateAll);
     connect(scene, &MtGraphicsScene::gridResized,
             this, &MtGridGraphicsItem::onGridResized);
+
+    connect(scene, &MtGraphicsScene::gridChanged,
+            this, &MtGridGraphicsItem::updateTileGridFragments);
+    connect(scene->renderer(), &MtTilesetRenderer::nMetaTilesChanged,
+            this, &MtGridGraphicsItem::updateTileGridFragments);
 
     connect(scene->renderer(), &MtTilesetRenderer::pixmapChanged,
             this, &MtGridGraphicsItem::updateAll);
@@ -32,12 +36,6 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
 QRectF MtGridGraphicsItem::boundingRect() const
 {
     return _boundingRect;
-}
-
-void MtGridGraphicsItem::paint(QPainter* painter,
-                               const QStyleOptionGraphicsItem*, QWidget*)
-{
-    _scene->renderer()->drawGridTiles(painter, _scene->grid());
 }
 
 void MtGridGraphicsItem::updateAll()
@@ -53,5 +51,17 @@ void MtGridGraphicsItem::onGridResized()
     _boundingRect.setHeight(grid.height() * 16);
 
     prepareGeometryChange();
+    updateTileGridFragments();
+}
+
+void MtGridGraphicsItem::updateTileGridFragments()
+{
+    _tileGridPainter.updateFragments(_scene->renderer(), _scene->grid());
     updateAll();
+}
+
+void MtGridGraphicsItem::paint(QPainter* painter,
+                               const QStyleOptionGraphicsItem*, QWidget*)
+{
+    _tileGridPainter.paint(painter, _scene->renderer());
 }

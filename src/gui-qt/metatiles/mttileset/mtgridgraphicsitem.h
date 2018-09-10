@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "mttilesetrenderer.h"
 #include "models/common/grid.h"
 #include <QGraphicsObject>
 #include <cstdint>
@@ -35,9 +36,13 @@ public slots:
     void updateAll();
     void onGridResized();
 
+    void updateTileGridFragments();
+
 private:
     MtGraphicsScene* const _scene;
     QRectF _boundingRect;
+
+    MtTilesetGridPainter _tileGridPainter;
 };
 }
 }
