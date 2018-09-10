@@ -52,7 +52,7 @@ private slots:
 
 signals:
     void animationStarted();
-    void animationFrameAdvance();
+    void animationFrameCountChanged();
     void animationStopped();
 
 private:

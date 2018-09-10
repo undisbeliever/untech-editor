@@ -62,9 +62,9 @@ void DualAnimationTimer::timerEvent(QTimerEvent* event)
             }
         };
 
-        bool frameAdvance = process(0) | process(1);
-        if (frameAdvance) {
-            animationFrameAdvance();
+        bool frameCountChanged = process(0) | process(1);
+        if (frameCountChanged) {
+            emit animationFrameCountChanged();
         }
     }
 }
@@ -157,6 +157,8 @@ void DualAnimationTimer::resetTimer()
 void DualAnimationTimer::resetAnimationFrameCount()
 {
     _animationFrameCount = { 0, 0 };
+
+    emit animationFrameCountChanged();
 }
 
 void DualAnimationTimer::onPlayButtonClicked()

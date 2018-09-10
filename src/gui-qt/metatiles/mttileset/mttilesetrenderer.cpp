@@ -28,7 +28,7 @@ MtTilesetRenderer::MtTilesetRenderer(QObject* parent)
     , _nTilesets(0)
     , _nMetaTiles(0)
 {
-    connect(_animationTimer, &Resources::DualAnimationTimer::animationFrameAdvance,
+    connect(_animationTimer, &Resources::DualAnimationTimer::animationFrameCountChanged,
             this, &MtTilesetRenderer::pixmapChanged);
 }
 
