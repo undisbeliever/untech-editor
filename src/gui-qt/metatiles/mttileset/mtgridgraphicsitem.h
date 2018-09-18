@@ -8,6 +8,7 @@
 
 #include "mttilesetrenderer.h"
 #include "models/common/grid.h"
+#include "models/common/vectorset-upoint.h"
 #include <QGraphicsObject>
 #include <cstdint>
 
@@ -51,6 +52,9 @@ private:
     QRectF _boundingRect;
 
     MtTilesetGridPainter _tileGridPainter;
+
+    upoint _previouslyClickedCell;
+    upoint_vectorset _gridSelectionBeforeShiftClick;
 
     bool _enableMouseSelection;
 };
