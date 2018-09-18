@@ -6,13 +6,16 @@
 
 #include "mtgraphicsscenes.h"
 #include "mtgridgraphicsitem.h"
+#include "mttilesetaccessors.h"
 #include "mttilesetrenderer.h"
 #include "mttilesetresourceitem.h"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 
 const MtGraphicsScene::grid_t MtGraphicsScene::BLANK_GRID;
+const upoint_vectorset MtGraphicsScene::BLANK_GRID_SELECTION;
 
 MtGraphicsScene::MtGraphicsScene(MtTilesetRenderer* renderer, QObject* parent)
     : QGraphicsScene(parent)
@@ -30,22 +33,21 @@ MtGraphicsScene::MtGraphicsScene(MtTilesetRenderer* renderer, QObject* parent)
 
 void MtGraphicsScene::onRendererTilesetItemChanged()
 {
+    MtTilesetResourceItem* oldItem = _tilesetItem;
+
     if (_tilesetItem) {
         _tilesetItem->disconnect(this);
     }
     _tilesetItem = _renderer->tilesetItem();
 
-    emit tilesetItemChanged();
+    tilesetItemChanged(_tilesetItem, oldItem);
 }
 
 MtTilesetGraphicsScene::MtTilesetGraphicsScene(MtTilesetRenderer* renderer, QObject* parent)
     : MtGraphicsScene(renderer, parent)
     , _grid()
+    , _gridSelection()
 {
-    onTilesetItemChanged();
-
-    connect(this, &MtGraphicsScene::tilesetItemChanged,
-            this, &MtTilesetGraphicsScene::onTilesetItemChanged);
 }
 
 const MtGraphicsScene::grid_t& MtTilesetGraphicsScene::grid() const
@@ -53,13 +55,51 @@ const MtGraphicsScene::grid_t& MtTilesetGraphicsScene::grid() const
     return _grid;
 }
 
-void MtTilesetGraphicsScene::onTilesetItemChanged()
+const upoint_vectorset& MtTilesetGraphicsScene::gridSelection() const
+{
+    return _gridSelection;
+}
+
+void MtTilesetGraphicsScene::setGridSelection(upoint_vectorset&& selectedCells)
+{
+    auto* tilesetItem = this->tilesetItem();
+    if (tilesetItem != nullptr && !_grid.empty()) {
+        vectorset<uint16_t> selectedTiles;
+        selectedTiles.reserve(selectedCells.size());
+
+        for (auto& p : selectedCells) {
+            unsigned tileId = p.y * _grid.width() + p.x;
+            if (tileId < renderer()->nMetaTiles()) {
+                selectedTiles.insert(tileId);
+            }
+        }
+        tilesetItem->tileParameters()->setSelectedIndexes(std::move(selectedTiles));
+
+        tilesetItem->scratchpadGrid()->clearSelection();
+    }
+    else {
+        if (!_gridSelection.empty()) {
+            _gridSelection.clear();
+            emit gridSelectionChanged();
+        }
+    }
+}
+
+void MtTilesetGraphicsScene::tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset)
 {
     onTilesetCompiled();
+    onSelectedTileParametersChanged();
 
-    if (auto* ti = tilesetItem()) {
-        connect(ti, &MtTilesetResourceItem::resourceComplied,
+    if (oldTileset) {
+        oldTileset->tileParameters()->disconnect();
+    }
+
+    if (newTileset) {
+        connect(newTileset, &MtTilesetResourceItem::resourceComplied,
                 this, &MtTilesetGraphicsScene::onTilesetCompiled);
+
+        connect(newTileset->tileParameters(), &MtTilesetTileParameters::selectedIndexesChanged,
+                this, &MtTilesetGraphicsScene::onSelectedTileParametersChanged);
     }
 }
 
@@ -84,13 +124,25 @@ void MtTilesetGraphicsScene::onTilesetCompiled()
     }
 }
 
+void MtTilesetGraphicsScene::onSelectedTileParametersChanged()
+{
+    _gridSelection.clear();
+
+    if (auto* ti = tilesetItem()) {
+        const auto* tileParameters = ti->tileParameters();
+        const unsigned gridWidth = _grid.width();
+
+        for (const auto& t : tileParameters->selectedIndexes()) {
+            _gridSelection.insert(upoint(t % gridWidth, t / gridWidth));
+        }
+    }
+
+    emit gridSelectionChanged();
+}
+
 MtScratchpadGraphicsScene::MtScratchpadGraphicsScene(MtTilesetRenderer* renderer, QObject* parent)
     : MtGraphicsScene(renderer, parent)
 {
-    onTilesetItemChanged();
-
-    connect(this, &MtGraphicsScene::tilesetItemChanged,
-            this, &MtScratchpadGraphicsScene::onTilesetItemChanged);
 }
 
 const MtGraphicsScene::grid_t& MtScratchpadGraphicsScene::grid() const
@@ -104,14 +156,39 @@ const MtGraphicsScene::grid_t& MtScratchpadGraphicsScene::grid() const
     return BLANK_GRID;
 }
 
-void MtScratchpadGraphicsScene::onTilesetItemChanged()
+const upoint_vectorset& MtScratchpadGraphicsScene::gridSelection() const
 {
-    emit gridResized();
-
     if (auto* ti = tilesetItem()) {
-        // ::TODO scratchpad changed signal::
+        return ti->scratchpadGrid()->selectedCells();
+    }
 
-        connect(ti, &MtTilesetResourceItem::resourceLoaded,
+    return BLANK_GRID_SELECTION;
+}
+
+void MtScratchpadGraphicsScene::setGridSelection(upoint_vectorset&& selectedCells)
+{
+    if (auto* ti = tilesetItem()) {
+        return ti->scratchpadGrid()->setSelectedCells(std::move(selectedCells));
+    }
+}
+
+void MtScratchpadGraphicsScene::tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset)
+{
+    if (oldTileset) {
+        oldTileset->scratchpadGrid()->disconnect(this);
+    }
+
+    emit gridResized();
+    emit gridSelectionChanged();
+
+    if (newTileset) {
+        connect(newTileset->scratchpadGrid(), &MtTilesetScratchpadGrid::gridChanged,
+                this, &MtScratchpadGraphicsScene::gridChanged);
+
+        connect(newTileset->scratchpadGrid(), &MtTilesetScratchpadGrid::gridResized,
                 this, &MtScratchpadGraphicsScene::gridResized);
+
+        connect(newTileset->scratchpadGrid(), &MtTilesetScratchpadGrid::selectedCellsChanged,
+                this, &MtScratchpadGraphicsScene::gridSelectionChanged);
     }
 }

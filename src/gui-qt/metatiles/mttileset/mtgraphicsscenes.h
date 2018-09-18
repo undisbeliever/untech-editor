@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/grid.h"
+#include "models/common/vectorset-upoint.h"
 #include <QGraphicsScene>
 #include <cstdint>
 
@@ -24,6 +25,8 @@ public:
     using grid_t = UnTech::grid<uint16_t>;
     const static grid_t BLANK_GRID;
 
+    const static upoint_vectorset BLANK_GRID_SELECTION;
+
 public:
     MtGraphicsScene(MtTilesetRenderer* renderer, QObject* parent);
     ~MtGraphicsScene() = default;
@@ -32,6 +35,12 @@ public:
     MtTilesetResourceItem* tilesetItem() const { return _tilesetItem; }
 
     virtual const grid_t& grid() const = 0;
+    virtual const upoint_vectorset& gridSelection() const = 0;
+
+    virtual void setGridSelection(upoint_vectorset&& selectedCells) = 0;
+
+protected:
+    virtual void tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset) = 0;
 
 signals:
     // MUST be emitted by the subclass when the grid changed
@@ -39,8 +48,8 @@ signals:
     // MUST be emitted by the subclass when the grid is resized
     void gridResized();
 
-    // emitted by this class when the tileset item changes
-    void tilesetItemChanged();
+    // MUST be emitted by the subclass when the grid selection changes
+    void gridSelectionChanged();
 
 private slots:
     void onRendererTilesetItemChanged();
@@ -60,13 +69,20 @@ public:
     ~MtTilesetGraphicsScene() = default;
 
     virtual const grid_t& grid() const final;
+    virtual const upoint_vectorset& gridSelection() const final;
+
+    virtual void setGridSelection(upoint_vectorset&& selectedCells) final;
+
+protected:
+    void tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset) final;
 
 private slots:
-    void onTilesetItemChanged();
     void onTilesetCompiled();
+    void onSelectedTileParametersChanged();
 
 private:
     grid_t _grid;
+    upoint_vectorset _gridSelection;
 };
 
 class MtScratchpadGraphicsScene : public MtGraphicsScene {
@@ -77,9 +93,12 @@ public:
     ~MtScratchpadGraphicsScene() = default;
 
     virtual const grid_t& grid() const final;
+    virtual const upoint_vectorset& gridSelection() const final;
 
-private slots:
-    void onTilesetItemChanged();
+    virtual void setGridSelection(upoint_vectorset&& selectedCells) final;
+
+protected:
+    void tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset) final;
 };
 }
 }

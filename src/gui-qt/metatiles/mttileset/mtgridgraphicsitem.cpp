@@ -10,6 +10,9 @@
 #include "mttilesetresourceitem.h"
 #include "models/metatiles/metatile-tileset.h"
 
+#include <QGraphicsSceneMouseEvent>
+
+using namespace UnTech;
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 
@@ -18,6 +21,7 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
     , _scene(scene)
     , _boundingRect()
     , _tileGridPainter()
+    , _enableMouseSelection(true)
 {
     Q_ASSERT(scene);
 
@@ -28,6 +32,9 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
             this, &MtGridGraphicsItem::updateTileGridFragments);
     connect(scene->renderer(), &MtTilesetRenderer::nMetaTilesChanged,
             this, &MtGridGraphicsItem::updateTileGridFragments);
+
+    connect(scene, &MtGraphicsScene::gridSelectionChanged,
+            this, &MtGridGraphicsItem::updateAll);
 
     connect(scene->renderer(), &MtTilesetRenderer::pixmapChanged,
             this, &MtGridGraphicsItem::updateAll);
@@ -64,4 +71,58 @@ void MtGridGraphicsItem::paint(QPainter* painter,
                                const QStyleOptionGraphicsItem*, QWidget*)
 {
     _tileGridPainter.paint(painter, _scene->renderer());
+
+    const auto& sel = _scene->gridSelection();
+    if (!sel.empty()) {
+        painter->save();
+
+        // ::TODO add style class::
+        QPen pen(QColor(0, 0, 255, 255), 1);
+        pen.setCosmetic(true);
+        painter->setPen(pen);
+
+        painter->setBrush(QColor(0, 0, 128, 128));
+
+        for (const upoint& p : sel) {
+            painter->drawRect(p.x * 16, p.y * 16, 16, 16);
+        }
+
+        painter->restore();
+    }
+}
+
+upoint MtGridGraphicsItem::positionToGridCell(const QPointF& pos)
+{
+    return upoint(pos.x() / 16, pos.y() / 16);
+}
+
+void MtGridGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    if (_enableMouseSelection == false) {
+        return;
+    }
+
+    if (event->button() == Qt::LeftButton) {
+        upoint cell = positionToGridCell(event->pos());
+
+        if (event->modifiers() == Qt::ControlModifier) {
+            // When control clicked, toggle cell selection
+
+            upoint_vectorset sel = _scene->gridSelection();
+            auto it = sel.find(cell);
+            if (it == sel.end()) {
+                sel.insert(cell);
+            }
+            else {
+                sel.erase(it);
+            }
+            _scene->setGridSelection(std::move(sel));
+        }
+        else {
+            // No Modifiers
+
+            upoint_vectorset sel = { cell };
+            _scene->setGridSelection(std::move(sel));
+        }
+    }
 }
