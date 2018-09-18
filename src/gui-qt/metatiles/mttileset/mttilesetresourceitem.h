@@ -16,6 +16,8 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaTiles {
 class MtTilesetResourceList;
+class MtTilesetTileParameters;
+class MtTilesetScratchpadGrid;
 
 namespace MT = UnTech::MetaTiles;
 
@@ -30,6 +32,9 @@ public:
     ~MtTilesetResourceItem() = default;
 
     Resources::ResourceProject* project() const { return static_cast<Resources::ResourceProject*>(_project); }
+
+    MtTilesetTileParameters* tileParameters() const { return _tileParameters; }
+    MtTilesetScratchpadGrid* scratchpadGrid() const { return _scratchpadGrid; }
 
 public:
     // may be nullptr
@@ -46,17 +51,6 @@ signals:
     void palettesChanged();
     void animationDelayChanged();
 
-protected:
-    friend class Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
-    void setData(const MT::MetaTileTilesetInput& data);
-
-    void updateDependencies();
-
-protected:
-    virtual void saveResourceData(const std::string& filename) const final;
-    virtual bool loadResourceData(RES::ErrorList& err) final;
-    virtual bool compileResource(RES::ErrorList& err) final;
-
 private:
     inline const auto& mtTilesetList() const
     {
@@ -68,7 +62,24 @@ private:
         return project()->resourcesFile()->metaTileTilesets.item(index());
     }
 
+protected:
+    friend class Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
+    void setData(const MT::MetaTileTilesetInput& data);
+
+    friend class MtTilesetScratchpadGrid;
+    MT::MetaTileTilesetInput* dataEditable() { return tilesetInputItem().value.get(); }
+
+    void updateDependencies();
+
+protected:
+    virtual void saveResourceData(const std::string& filename) const final;
+    virtual bool loadResourceData(RES::ErrorList& err) final;
+    virtual bool compileResource(RES::ErrorList& err) final;
+
 private:
+    MtTilesetTileParameters* const _tileParameters;
+    MtTilesetScratchpadGrid* const _scratchpadGrid;
+
     std::unique_ptr<MT::MetaTileTilesetData> _compiledData;
 };
 }

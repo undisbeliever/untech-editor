@@ -5,6 +5,7 @@
  */
 
 #include "mttilesetresourceitem.h"
+#include "mttilesetaccessors.h"
 #include "mttilesetresourcelist.h"
 #include "gui-qt/common/helpers.h"
 #include "models/metatiles/metatiles-serializer.h"
@@ -13,6 +14,8 @@ using namespace UnTech::GuiQt::MetaTiles;
 
 MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _tileParameters(new MtTilesetTileParameters(this))
+    , _scratchpadGrid(new MtTilesetScratchpadGrid(this))
     , _compiledData(nullptr)
 {
     Q_ASSERT(index < mtTilesetList().size());
