@@ -21,9 +21,11 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
     , _scene(scene)
     , _boundingRect()
     , _tileGridPainter()
-    , _previouslyClickedCell(0, 0)
-    , _gridSelectionBeforeShiftClick()
+    , _previousMouseCell(0, 0)
+    , _firstCellOfRectangularSelection(0, 0)
+    , _gridSelectionBeforeRectangularSelection()
     , _enableMouseSelection(true)
+    , _inRectangularSelection(false)
 {
     Q_ASSERT(scene);
 
@@ -36,7 +38,7 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
             this, &MtGridGraphicsItem::updateTileGridFragments);
 
     connect(scene, &MtGraphicsScene::gridSelectionChanged,
-            this, &MtGridGraphicsItem::updateAll);
+            this, &MtGridGraphicsItem::onGridSelectionChanged);
 
     connect(scene->renderer(), &MtTilesetRenderer::pixmapChanged,
             this, &MtGridGraphicsItem::updateAll);
@@ -59,15 +61,29 @@ void MtGridGraphicsItem::onGridResized()
     _boundingRect.setWidth(grid.width() * 16);
     _boundingRect.setHeight(grid.height() * 16);
 
-    if (_previouslyClickedCell.x >= grid.width()
-        || _previouslyClickedCell.y >= grid.height()) {
+    if (_firstCellOfRectangularSelection.x >= grid.width()
+        || _firstCellOfRectangularSelection.y >= grid.height()) {
 
-        _previouslyClickedCell = upoint(0, 0);
-        _gridSelectionBeforeShiftClick = _scene->gridSelection();
+        _firstCellOfRectangularSelection = upoint(0, 0);
+        _gridSelectionBeforeRectangularSelection = _scene->gridSelection();
     }
 
     prepareGeometryChange();
     updateTileGridFragments();
+}
+
+void MtGridGraphicsItem::onGridSelectionChanged()
+{
+    if (_inRectangularSelection == false) {
+        // Multiple shift clicks will resize the rectangle.
+        //
+        // Therefore we need to remember the state of the selection before
+        // the initial rectangle is selected.
+
+        _gridSelectionBeforeRectangularSelection = _scene->gridSelection();
+    }
+
+    update();
 }
 
 void MtGridGraphicsItem::updateTileGridFragments()
@@ -113,28 +129,13 @@ void MtGridGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
     if (event->button() == Qt::LeftButton) {
         upoint cell = positionToGridCell(event->pos());
+        _previousMouseCell = cell;
 
         if (event->modifiers() & Qt::ShiftModifier) {
             // When shift clicked, select a rectangle.
             // Multiple shift-clicks will resize the rectangle.
 
-            unsigned minX = qMin(_previouslyClickedCell.x, cell.x);
-            unsigned maxX = qMax(_previouslyClickedCell.x, cell.x);
-            unsigned minY = qMin(_previouslyClickedCell.y, cell.y);
-            unsigned maxY = qMax(_previouslyClickedCell.y, cell.y);
-
-            unsigned nCells = (maxX - minX + 1) * (maxY - minY + 1);
-
-            upoint_vectorset sel = _gridSelectionBeforeShiftClick;
-            sel.reserve(sel.size() + nCells);
-
-            for (unsigned y = minY; y <= maxY; y++) {
-                for (unsigned x = minX; x <= maxX; x++) {
-                    sel.insert(upoint(x, y));
-                }
-            }
-
-            _scene->setGridSelection(std::move(sel));
+            processRenctangularSelection(cell);
         }
         else if (event->modifiers() == Qt::ControlModifier) {
             // When control clicked, toggle cell selection
@@ -157,13 +158,49 @@ void MtGridGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
         }
 
         if ((event->modifiers() & Qt::ShiftModifier) == false) {
-            // Multiple shift clicks will resize the rectangle.
-            //
-            // Therefore we need to remember the state of the selection before
-            // the initial rectangle is selected.
-
-            _previouslyClickedCell = cell;
-            _gridSelectionBeforeShiftClick = _scene->gridSelection();
+            _firstCellOfRectangularSelection = cell;
         }
     }
+}
+
+void MtGridGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    if (event->buttons() == Qt::LeftButton) {
+        QPointF pos = event->pos();
+
+        if (_boundingRect.contains(pos)) {
+            upoint cell = positionToGridCell(pos);
+
+            if (cell != _previousMouseCell) {
+                processRenctangularSelection(cell);
+
+                _previousMouseCell = cell;
+            }
+        }
+    }
+}
+
+void MtGridGraphicsItem::processRenctangularSelection(const upoint& cell)
+{
+    _inRectangularSelection = true;
+
+    unsigned minX = qMin(_firstCellOfRectangularSelection.x, cell.x);
+    unsigned maxX = qMax(_firstCellOfRectangularSelection.x, cell.x);
+    unsigned minY = qMin(_firstCellOfRectangularSelection.y, cell.y);
+    unsigned maxY = qMax(_firstCellOfRectangularSelection.y, cell.y);
+
+    unsigned nCells = (maxX - minX + 1) * (maxY - minY + 1);
+
+    upoint_vectorset sel = _gridSelectionBeforeRectangularSelection;
+    sel.reserve(sel.size() + nCells);
+
+    for (unsigned y = minY; y <= maxY; y++) {
+        for (unsigned x = minX; x <= maxX; x++) {
+            sel.insert(upoint(x, y));
+        }
+    }
+
+    _scene->setGridSelection(std::move(sel));
+
+    _inRectangularSelection = false;
 }

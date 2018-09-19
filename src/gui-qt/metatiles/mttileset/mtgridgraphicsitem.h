@@ -36,14 +36,19 @@ public:
                        const QStyleOptionGraphicsItem* option,
                        QWidget* widget = nullptr) final;
 
+protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) final;
+    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final;
 
 private:
     upoint positionToGridCell(const QPointF& pos);
 
+    void processRenctangularSelection(const upoint& cell);
+
 public slots:
     void updateAll();
     void onGridResized();
+    void onGridSelectionChanged();
 
     void updateTileGridFragments();
 
@@ -53,10 +58,12 @@ private:
 
     MtTilesetGridPainter _tileGridPainter;
 
-    upoint _previouslyClickedCell;
-    upoint_vectorset _gridSelectionBeforeShiftClick;
+    upoint _previousMouseCell;
+    upoint _firstCellOfRectangularSelection;
+    upoint_vectorset _gridSelectionBeforeRectangularSelection;
 
     bool _enableMouseSelection;
+    bool _inRectangularSelection;
 };
 }
 }
