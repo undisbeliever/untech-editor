@@ -74,6 +74,14 @@ ZoomSettings* MtTilesetMainWindow::zoomSettings() const
     return _ui->centralTilesetGraphicsView->zoomSettings();
 }
 
+void MtTilesetMainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
+{
+    Q_UNUSED(editMenu);
+
+    viewMenu->addSeparator();
+    viewMenu->addAction(_style->showGridAction());
+}
+
 void MtTilesetMainWindow::setResourceItem(MtTilesetResourceItem* item)
 {
     if (_tileset == item) {

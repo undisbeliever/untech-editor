@@ -47,6 +47,7 @@ public:
     void setResourceItem(MtTilesetResourceItem* item);
 
     ZoomSettings* zoomSettings() const;
+    void populateMenu(QMenu* editMenu, QMenu* viewMenu);
 
 private slots:
     void onTilesetStateChanged();

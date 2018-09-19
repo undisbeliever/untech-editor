@@ -5,6 +5,7 @@
  */
 
 #include "style.h"
+#include <QAction>
 #include <QBrush>
 #include <QPen>
 
@@ -19,15 +20,24 @@ const QColor Style::GRID_SELECTION_BRUSH_COLOR(0, 0, 128, 128);
 Style::Style(QWidget* parent)
     : QObject(parent)
     , _widget(parent)
+    , _showGridAction(new QAction(tr("Show Grid"), this))
     , _showGrid(true)
 {
     Q_ASSERT(_widget != nullptr);
+
+    _showGridAction->setCheckable(true);
+    _showGridAction->setChecked(_showGrid);
+    _showGridAction->setShortcut(Qt::CTRL + Qt::Key_G);
+
+    connect(_showGridAction, &QAction::toggled,
+            this, &Style::setShowGrid);
 }
 
 void Style::setShowGrid(bool showGrid)
 {
     if (_showGrid != showGrid) {
         _showGrid = showGrid;
+        _showGridAction->setChecked(showGrid);
 
         emit showGridChanged();
     }

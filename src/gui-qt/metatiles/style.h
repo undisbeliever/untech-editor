@@ -26,12 +26,15 @@ public:
     ~Style() = default;
 
     bool showGrid() const { return _showGrid; }
-    void setShowGrid(bool showGrid);
+    QAction* showGridAction() const { return _showGridAction; }
 
     QPen gridPen() const;
 
     QPen gridSelectionPen() const;
     QBrush gridSelectionBrush() const;
+
+public slots:
+    void setShowGrid(bool showGrid);
 
 signals:
     void showGridChanged();
@@ -41,6 +44,7 @@ private:
 
 private:
     QWidget* const _widget;
+    QAction* const _showGridAction;
 
     bool _showGrid;
 };
