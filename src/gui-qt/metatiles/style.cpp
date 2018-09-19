@@ -11,14 +11,31 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 
+const QColor Style::GRID_PEN_COLOR(128, 128, 128, 128);
+
 const QColor Style::GRID_SELECTION_PEN_COLOR(0, 0, 255, 255);
 const QColor Style::GRID_SELECTION_BRUSH_COLOR(0, 0, 128, 128);
 
 Style::Style(QWidget* parent)
     : QObject(parent)
     , _widget(parent)
+    , _showGrid(true)
 {
     Q_ASSERT(_widget != nullptr);
+}
+
+void Style::setShowGrid(bool showGrid)
+{
+    if (_showGrid != showGrid) {
+        _showGrid = showGrid;
+
+        emit showGridChanged();
+    }
+}
+
+QPen Style::gridPen() const
+{
+    return createCosmeticPen(GRID_PEN_COLOR);
 }
 
 QPen Style::gridSelectionPen() const

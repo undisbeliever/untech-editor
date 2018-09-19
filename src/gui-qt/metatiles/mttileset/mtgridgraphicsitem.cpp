@@ -43,6 +43,9 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
 
     connect(scene->renderer(), &MtTilesetRenderer::pixmapChanged,
             this, &MtGridGraphicsItem::updateAll);
+
+    connect(scene->style(), &Style::showGridChanged,
+            this, &MtGridGraphicsItem::updateAll);
 }
 
 QRectF MtGridGraphicsItem::boundingRect() const
@@ -98,11 +101,30 @@ void MtGridGraphicsItem::paint(QPainter* painter,
 {
     _tileGridPainter.paint(painter, _scene->renderer());
 
+    auto* style = _scene->style();
+
+    if (style->showGrid()) {
+        painter->save();
+
+        painter->setPen(style->gridPen());
+        painter->setBrush(QBrush());
+
+        int width = _boundingRect.width();
+        int height = _boundingRect.height();
+
+        for (int x = 0; x <= width; x += 16) {
+            painter->drawLine(x, 0, x, height);
+        }
+        for (int y = 0; y <= height; y += 16) {
+            painter->drawLine(0, y, width, y);
+        }
+
+        painter->restore();
+    }
+
     const auto& sel = _scene->gridSelection();
     if (!sel.empty()) {
         painter->save();
-
-        auto* style = _scene->style();
 
         painter->setPen(style->gridSelectionPen());
         painter->setBrush(style->gridSelectionBrush());
