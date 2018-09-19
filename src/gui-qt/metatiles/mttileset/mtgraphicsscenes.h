@@ -14,6 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaTiles {
+class Style;
 class MtTilesetRenderer;
 class MtTilesetResourceItem;
 class MtGridGraphicsItem;
@@ -28,9 +29,10 @@ public:
     const static upoint_vectorset BLANK_GRID_SELECTION;
 
 public:
-    MtGraphicsScene(MtTilesetRenderer* renderer, QObject* parent);
+    MtGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent);
     ~MtGraphicsScene() = default;
 
+    Style* style() const { return _style; }
     MtTilesetRenderer* renderer() const { return _renderer; }
     MtTilesetResourceItem* tilesetItem() const { return _tilesetItem; }
 
@@ -55,6 +57,7 @@ private slots:
     void onRendererTilesetItemChanged();
 
 private:
+    Style* const _style;
     MtTilesetRenderer* const _renderer;
     MtGridGraphicsItem* const _gridGraphicsItem;
 
@@ -65,7 +68,7 @@ class MtTilesetGraphicsScene : public MtGraphicsScene {
     Q_OBJECT
 
 public:
-    MtTilesetGraphicsScene(MtTilesetRenderer* renderer, QObject* parent);
+    MtTilesetGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent);
     ~MtTilesetGraphicsScene() = default;
 
     virtual const grid_t& grid() const final;
@@ -89,7 +92,7 @@ class MtScratchpadGraphicsScene : public MtGraphicsScene {
     Q_OBJECT
 
 public:
-    MtScratchpadGraphicsScene(MtTilesetRenderer* renderer, QObject* parent);
+    MtScratchpadGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent);
     ~MtScratchpadGraphicsScene() = default;
 
     virtual const grid_t& grid() const final;

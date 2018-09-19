@@ -17,12 +17,14 @@ using namespace UnTech::GuiQt::MetaTiles;
 const MtGraphicsScene::grid_t MtGraphicsScene::BLANK_GRID;
 const upoint_vectorset MtGraphicsScene::BLANK_GRID_SELECTION;
 
-MtGraphicsScene::MtGraphicsScene(MtTilesetRenderer* renderer, QObject* parent)
+MtGraphicsScene::MtGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent)
     : QGraphicsScene(parent)
+    , _style(style)
     , _renderer(renderer)
     , _gridGraphicsItem(new MtGridGraphicsItem(this))
     , _tilesetItem(nullptr)
 {
+    Q_ASSERT(style);
     Q_ASSERT(renderer);
 
     this->addItem(_gridGraphicsItem);
@@ -43,8 +45,8 @@ void MtGraphicsScene::onRendererTilesetItemChanged()
     tilesetItemChanged(_tilesetItem, oldItem);
 }
 
-MtTilesetGraphicsScene::MtTilesetGraphicsScene(MtTilesetRenderer* renderer, QObject* parent)
-    : MtGraphicsScene(renderer, parent)
+MtTilesetGraphicsScene::MtTilesetGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent)
+    : MtGraphicsScene(style, renderer, parent)
     , _grid()
     , _gridSelection()
 {
@@ -140,8 +142,8 @@ void MtTilesetGraphicsScene::onSelectedTileParametersChanged()
     emit gridSelectionChanged();
 }
 
-MtScratchpadGraphicsScene::MtScratchpadGraphicsScene(MtTilesetRenderer* renderer, QObject* parent)
-    : MtGraphicsScene(renderer, parent)
+MtScratchpadGraphicsScene::MtScratchpadGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent)
+    : MtGraphicsScene(style, renderer, parent)
 {
 }
 

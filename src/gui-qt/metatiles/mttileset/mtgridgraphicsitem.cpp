@@ -8,6 +8,7 @@
 #include "mtgraphicsscenes.h"
 #include "mttilesetrenderer.h"
 #include "mttilesetresourceitem.h"
+#include "gui-qt/metatiles/style.h"
 #include "models/metatiles/metatile-tileset.h"
 
 #include <QGraphicsSceneMouseEvent>
@@ -101,12 +102,10 @@ void MtGridGraphicsItem::paint(QPainter* painter,
     if (!sel.empty()) {
         painter->save();
 
-        // ::TODO add style class::
-        QPen pen(QColor(0, 0, 255, 255), 1);
-        pen.setCosmetic(true);
-        painter->setPen(pen);
+        auto* style = _scene->style();
 
-        painter->setBrush(QColor(0, 0, 128, 128));
+        painter->setPen(style->gridSelectionPen());
+        painter->setBrush(style->gridSelectionBrush());
 
         for (const upoint& p : sel) {
             painter->drawRect(p.x * 16, p.y * 16, 16, 16);

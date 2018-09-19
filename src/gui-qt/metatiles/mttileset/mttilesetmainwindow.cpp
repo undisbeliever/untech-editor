@@ -13,6 +13,7 @@
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metatiles/mttileset/mttilesetmainwindow.ui.h"
+#include "gui-qt/metatiles/style.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
 
 using namespace UnTech::GuiQt;
@@ -21,10 +22,11 @@ using namespace UnTech::GuiQt::MetaTiles;
 MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* zoomManager)
     : QMainWindow(parent)
     , _ui(new Ui::MtTilesetMainWindow)
+    , _style(new Style(this))
     , _propertyManager(new MtTilesetPropertyManager(this))
     , _renderer(new MtTilesetRenderer(this))
-    , _tilesetScene(new MtTilesetGraphicsScene(_renderer, this))
-    , _scratchpadScene(new MtScratchpadGraphicsScene(_renderer, this))
+    , _tilesetScene(new MtTilesetGraphicsScene(_style, _renderer, this))
+    , _scratchpadScene(new MtScratchpadGraphicsScene(_style, _renderer, this))
     , _tileset(nullptr)
 {
     Q_ASSERT(zoomManager);

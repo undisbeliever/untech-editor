@@ -20,6 +20,7 @@ namespace MetaTiles {
 namespace Ui {
 class MtTilesetMainWindow;
 }
+class Style;
 class MtTilesetPropertyManager;
 class MtTilesetResourceItem;
 class MtTilesetRenderer;
@@ -55,6 +56,7 @@ private slots:
 
 private:
     std::unique_ptr<Ui::MtTilesetMainWindow> const _ui;
+    Style* const _style;
     MtTilesetPropertyManager* const _propertyManager;
     MtTilesetRenderer* const _renderer;
     MtTilesetGraphicsScene* const _tilesetScene;
