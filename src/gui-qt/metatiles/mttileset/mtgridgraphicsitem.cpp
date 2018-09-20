@@ -186,6 +186,10 @@ void MtGridGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void MtGridGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
+    if (_enableMouseSelection == false) {
+        return;
+    }
+
     if (event->buttons() == Qt::LeftButton) {
         QPointF pos = event->pos();
 
@@ -203,6 +207,10 @@ void MtGridGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void MtGridGraphicsItem::processRenctangularSelection(const upoint& cell)
 {
+    if (_enableMouseSelection == false) {
+        return;
+    }
+
     _inRectangularSelection = true;
 
     unsigned minX = qMin(_firstCellOfRectangularSelection.x, cell.x);
