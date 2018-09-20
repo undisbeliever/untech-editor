@@ -169,13 +169,13 @@ void MtGridGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
             else {
                 sel.erase(it);
             }
-            _scene->setGridSelection(std::move(sel));
+            _scene->editGridSelection(std::move(sel));
         }
         else {
             // No Modifiers, replace selection with clicked cell
 
             upoint_vectorset sel = { cell };
-            _scene->setGridSelection(std::move(sel));
+            _scene->editGridSelection(std::move(sel));
         }
 
         if ((event->modifiers() & Qt::ShiftModifier) == false) {
@@ -229,7 +229,7 @@ void MtGridGraphicsItem::processRenctangularSelection(const upoint& cell)
         }
     }
 
-    _scene->setGridSelection(std::move(sel));
+    _scene->editGridSelection(std::move(sel));
 
     _inRectangularSelection = false;
 }

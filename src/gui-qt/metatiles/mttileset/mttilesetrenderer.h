@@ -52,6 +52,9 @@ public:
     unsigned nTilesets() const { return _nTilesets; }
     unsigned nMetaTiles() const { return _nMetaTiles; }
 
+    QColor backgroundColor();
+    QColor backgroundColor(unsigned paletteId);
+
     const QPixmap& pixmap();
     const QPixmap& pixmap(unsigned paletteId, unsigned tilesetId);
 

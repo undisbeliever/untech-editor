@@ -25,6 +25,7 @@ class MtTilesetPropertyManager;
 class MtTilesetResourceItem;
 class MtTilesetRenderer;
 class MtTilesetGraphicsScene;
+class MtEditableScratchpadGraphicsScene;
 class MtScratchpadGraphicsScene;
 
 class MtTilesetMainWindow : public QMainWindow {
@@ -62,6 +63,7 @@ private:
     MtTilesetRenderer* const _renderer;
     MtTilesetGraphicsScene* const _tilesetScene;
     MtScratchpadGraphicsScene* const _scratchpadScene;
+    MtEditableScratchpadGraphicsScene* const _editableScratchpadScene;
 
     MtTilesetResourceItem* _tileset;
 };

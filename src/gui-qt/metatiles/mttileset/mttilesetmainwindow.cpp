@@ -27,6 +27,7 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
     , _renderer(new MtTilesetRenderer(this))
     , _tilesetScene(new MtTilesetGraphicsScene(_style, _renderer, this))
     , _scratchpadScene(new MtScratchpadGraphicsScene(_style, _renderer, this))
+    , _editableScratchpadScene(new MtEditableScratchpadGraphicsScene(_style, _renderer, this))
     , _tileset(nullptr)
 {
     Q_ASSERT(zoomManager);
@@ -35,6 +36,9 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
 
     _renderer->setPlayButton(_ui->playButton);
     _renderer->setRegionCombo(_ui->region);
+
+    _editableScratchpadScene->addGridSelectionSource(_scratchpadScene);
+    _editableScratchpadScene->addGridSelectionSource(_tilesetScene);
 
     _ui->propertyView->setPropertyManager(_propertyManager);
 
@@ -48,8 +52,9 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
     _ui->dockedScratchpadGraphicsView->setZoomSettings(dockedZoomSettings);
 
     _ui->centralTilesetGraphicsView->setScene(_tilesetScene);
+    _ui->centralScratchpadGraphicsView->setScene(_editableScratchpadScene);
+
     _ui->dockedTilesetGraphicsView->setScene(_tilesetScene);
-    _ui->centralScratchpadGraphicsView->setScene(_scratchpadScene);
     _ui->dockedScratchpadGraphicsView->setScene(_scratchpadScene);
 
     tabifyDockWidget(_ui->minimapDock, _ui->scratchpadDock);
@@ -99,6 +104,8 @@ void MtTilesetMainWindow::setResourceItem(MtTilesetResourceItem* item)
     _ui->animationFramesInputWidget->setResourceItem(item);
 
     onTilesetPalettesChanged();
+
+    _editableScratchpadScene->createStampCursor();
 
     if (_tileset) {
         onTilesetStateChanged();

@@ -111,6 +111,16 @@ void MtTilesetRenderer::setTilesetItem(MtTilesetResourceItem* item)
     }
 }
 
+QColor MtTilesetRenderer::backgroundColor()
+{
+    if (_nPalettes == 0) {
+        return QColor();
+    }
+
+    const auto& afc = _animationTimer->animationFrameCount();
+    return backgroundColor(afc.first % _nPalettes);
+}
+
 const QPixmap& MtTilesetRenderer::pixmap()
 {
     if (_nPalettes == 0 || _nTilesets == 0 || _nMetaTiles == 0) {
@@ -121,6 +131,19 @@ const QPixmap& MtTilesetRenderer::pixmap()
 
     const auto& afc = _animationTimer->animationFrameCount();
     return pixmap(afc.first % _nPalettes, afc.second % _nTilesets);
+}
+
+QColor MtTilesetRenderer::backgroundColor(unsigned paletteId)
+{
+    if (paletteId >= _nPalettes) {
+        return QColor();
+    }
+
+    const RES::PaletteData* palData = _paletteItem ? _paletteItem->compiledData() : nullptr;
+    Q_ASSERT(palData);
+
+    const auto& bgColor = palData->paletteFrames.at(paletteId).at(0);
+    return QColor(bgColor.rgb().red, bgColor.rgb().green, bgColor.rgb().blue);
 }
 
 const QPixmap& MtTilesetRenderer::pixmap(unsigned paletteId, unsigned tilesetId)
