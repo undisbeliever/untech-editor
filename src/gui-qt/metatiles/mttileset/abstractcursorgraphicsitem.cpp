@@ -29,7 +29,7 @@ void AbstractCursorGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     bool moved = processMouseScenePosition(event->scenePos());
 
-    if (moved && _enableClickDrag && event->button() == Qt::LeftButton) {
+    if (moved && _enableClickDrag && event->buttons() == Qt::LeftButton) {
         processClick();
     }
 }
