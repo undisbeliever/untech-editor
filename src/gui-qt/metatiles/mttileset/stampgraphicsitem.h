@@ -34,6 +34,8 @@ public:
     const grid_t& grid() const { return _grid; }
     void setGrid(grid_t&& grid);
 
+    QRect validCellsRect() const;
+
     virtual QRectF boundingRect() const override;
 
     virtual bool processMouseScenePosition(const QPointF& scenePos) final;

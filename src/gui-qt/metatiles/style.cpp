@@ -17,6 +17,11 @@ const QColor Style::GRID_PEN_COLOR(128, 128, 128, 128);
 const QColor Style::GRID_SELECTION_PEN_COLOR(0, 0, 255, 255);
 const QColor Style::GRID_SELECTION_BRUSH_COLOR(0, 0, 128, 128);
 
+const QColor Style::VALID_CURSOR_PEN_COLOR(0, 255, 0, 255);
+const QColor Style::VALID_CURSOR_BRUSH_COLOR(0, 128, 0, 128);
+const QColor Style::INVALID_CURSOR_PEN_COLOR(255, 0, 0, 255);
+const QColor Style::INVALID_CURSOR_BRUSH_COLOR(128, 0, 0, 128);
+
 Style::Style(QWidget* parent)
     : QObject(parent)
     , _widget(parent)
@@ -56,6 +61,26 @@ QPen Style::gridSelectionPen() const
 QBrush Style::gridSelectionBrush() const
 {
     return QBrush(GRID_SELECTION_BRUSH_COLOR);
+}
+
+QPen Style::validCursorPen() const
+{
+    return createCosmeticPen(VALID_CURSOR_PEN_COLOR);
+}
+
+QBrush Style::validCursorBrush() const
+{
+    return QBrush(VALID_CURSOR_BRUSH_COLOR);
+}
+
+QPen Style::invalidCursorPen() const
+{
+    return createCosmeticPen(INVALID_CURSOR_PEN_COLOR);
+}
+
+QBrush Style::invalidCursorBrush() const
+{
+    return QBrush(INVALID_CURSOR_BRUSH_COLOR);
 }
 
 QPen Style::createCosmeticPen(const QColor& color) const

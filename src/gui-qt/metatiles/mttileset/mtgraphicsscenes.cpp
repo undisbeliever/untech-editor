@@ -103,6 +103,7 @@ MtEditableGraphicsScene::MtEditableGraphicsScene(Style* style, MtTilesetRenderer
     : MtGraphicsScene(style, renderer, parent)
     , _gridSelectionSources()
     , _cursorItem(nullptr)
+    , _cursorRect()
 {
     gridGraphicsItem()->setEnableMouseSelection(false);
 
@@ -112,6 +113,14 @@ MtEditableGraphicsScene::MtEditableGraphicsScene(Style* style, MtTilesetRenderer
             this, &MtEditableGraphicsScene::onGridResized);
 }
 
+void MtEditableGraphicsScene::setCursorRect(const QRect& r)
+{
+    if (_cursorRect != r) {
+        _cursorRect = r;
+        emit cursorRectChanged();
+    }
+}
+
 void MtEditableGraphicsScene::onGridResized()
 {
     // Ensure the cursor does not enlarge the scene rect
@@ -119,6 +128,8 @@ void MtEditableGraphicsScene::onGridResized()
     const auto& grid = this->grid();
 
     setSceneRect(0, 0, grid.width() * 16, grid.height() * 16);
+
+    _cursorRect.setRect(0, 0, grid.width() * 16, grid.height() * 16);
 }
 
 void MtEditableGraphicsScene::setCursor(AbstractCursorGraphicsItem* cursor)

@@ -21,6 +21,11 @@ private:
     static const QColor GRID_SELECTION_PEN_COLOR;
     static const QColor GRID_SELECTION_BRUSH_COLOR;
 
+    static const QColor VALID_CURSOR_PEN_COLOR;
+    static const QColor VALID_CURSOR_BRUSH_COLOR;
+    static const QColor INVALID_CURSOR_PEN_COLOR;
+    static const QColor INVALID_CURSOR_BRUSH_COLOR;
+
 public:
     Style(QWidget* parent);
     ~Style() = default;
@@ -32,6 +37,12 @@ public:
 
     QPen gridSelectionPen() const;
     QBrush gridSelectionBrush() const;
+
+    QPen validCursorPen() const;
+    QBrush validCursorBrush() const;
+
+    QPen invalidCursorPen() const;
+    QBrush invalidCursorBrush() const;
 
 public slots:
     void setShowGrid(bool showGrid);

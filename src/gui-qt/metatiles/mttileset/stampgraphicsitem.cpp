@@ -30,6 +30,9 @@ StampGraphicsItem::StampGraphicsItem(MtEditableGraphicsScene* scene)
 
     setEnableClickDrag(true);
 
+    connect(scene, &MtEditableGraphicsScene::cursorRectChanged,
+            this, &StampGraphicsItem::updateAll);
+
     connect(scene->renderer(), &MtTilesetRenderer::nMetaTilesChanged,
             this, &StampGraphicsItem::updateTileGridFragments);
 
@@ -55,6 +58,14 @@ void StampGraphicsItem::setGrid(grid_t&& grid)
 
         updateTileGridFragments();
     }
+}
+
+QRect StampGraphicsItem::validCellsRect() const
+{
+    const QRect& cr = _scene->cursorRect();
+
+    return QRect(cr.x() / METATILE_SIZE, cr.y() / METATILE_SIZE,
+                 cr.width() / METATILE_SIZE, cr.height() / METATILE_SIZE);
 }
 
 QRectF StampGraphicsItem::boundingRect() const
@@ -93,19 +104,33 @@ bool StampGraphicsItem::processMouseScenePosition(const QPointF& scenePos)
 
 void StampGraphicsItem::processClick()
 {
-    _scene->placeTiles(_grid, _tilePosition);
+    const int gridWidth = _grid.width();
+    const int gridHeight = _grid.height();
+    QRect validCells = validCellsRect();
+
+    if (_tilePosition.x <= validCells.right()
+        && _tilePosition.x + gridWidth - 1 >= validCells.left()
+        && _tilePosition.y <= validCells.bottom()
+        && _tilePosition.y + gridHeight - 1 >= validCells.top()) {
+
+        _scene->placeTiles(_grid, _tilePosition);
+    }
 }
 
 void StampGraphicsItem::paint(QPainter* painter,
                               const QStyleOptionGraphicsItem*, QWidget*)
 {
+    painter->save();
+
     auto* renderer = _scene->renderer();
-    unsigned nMetaTiles = renderer->nMetaTiles();
-    QColor backgroundColor = renderer->backgroundColor();
+    const unsigned nMetaTiles = renderer->nMetaTiles();
+    const QColor backgroundColor = renderer->backgroundColor();
+    const int gridWidth = _grid.width();
+    const int gridHeight = _grid.height();
 
     auto gridIt = _grid.cbegin();
-    for (unsigned y = 0; y < _grid.height(); y++) {
-        for (unsigned x = 0; x < _grid.width(); x++) {
+    for (int y = 0; y < gridHeight; y++) {
+        for (int x = 0; x < gridWidth; x++) {
             const auto& tile = *gridIt++;
 
             if (tile < nMetaTiles) {
@@ -121,22 +146,46 @@ void StampGraphicsItem::paint(QPainter* painter,
 
     _tileGridPainter.paint(painter, renderer);
 
-    if (style->showGrid()) {
-        painter->save();
+    QRect validCells = validCellsRect();
+    if (_tilePosition.x < validCells.left()
+        || _tilePosition.x + gridWidth - 1 > validCells.right()
+        || _tilePosition.y < validCells.top()
+        || _tilePosition.y + gridHeight - 1 > validCells.bottom()) {
 
-        painter->setPen(style->gridPen());
-        painter->setBrush(QBrush());
+        painter->setPen(style->invalidCursorPen());
+        painter->setBrush(style->invalidCursorBrush());
 
-        int width = _boundingRect.width();
-        int height = _boundingRect.height();
+        for (int y = 0; y < gridHeight; y++) {
+            for (int x = 0; x < gridWidth; x++) {
+                if (validCells.contains(x + _tilePosition.x, y + _tilePosition.y) == false
+                    && _grid.at(x, y) < nMetaTiles) {
 
-        for (int x = 0; x <= width; x += 16) {
-            painter->drawLine(x, 0, x, height);
+                    painter->drawRect(x * METATILE_SIZE, y * METATILE_SIZE,
+                                      METATILE_SIZE, METATILE_SIZE);
+                }
+            }
         }
-        for (int y = 0; y <= height; y += 16) {
-            painter->drawLine(0, y, width, y);
-        }
-
-        painter->restore();
     }
+
+    if (_tilePosition.x <= validCells.right()
+        && _tilePosition.x + gridWidth - 1 >= validCells.left()
+        && _tilePosition.y <= validCells.bottom()
+        && _tilePosition.y + gridHeight - 1 >= validCells.top()) {
+
+        painter->setPen(style->validCursorPen());
+        painter->setBrush(style->validCursorBrush());
+
+        for (int y = 0; y < gridHeight; y++) {
+            for (int x = 0; x < gridWidth; x++) {
+                if (validCells.contains(x + _tilePosition.x, y + _tilePosition.y)
+                    && _grid.at(x, y) < nMetaTiles) {
+
+                    painter->drawRect(x * METATILE_SIZE, y * METATILE_SIZE,
+                                      METATILE_SIZE, METATILE_SIZE);
+                }
+            }
+        }
+    }
+
+    painter->restore();
 }

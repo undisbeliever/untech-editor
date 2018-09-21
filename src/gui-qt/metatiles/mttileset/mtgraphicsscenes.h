@@ -87,6 +87,14 @@ public:
     MtEditableGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent);
     ~MtEditableGraphicsScene() = default;
 
+    // The boundary in which a curosr is valid.
+    // NOTE: This class does not preform any validity checks, that is the responsibility
+    // of the cursor and subclass.
+    //
+    // NOTE: This value is set to the grid's size when the grid size is changed.
+    const QRect& cursorRect() const { return _cursorRect; }
+    void setCursorRect(const QRect& r);
+
     AbstractCursorGraphicsItem* cursorItem() const { return _cursorItem; }
     void removeCursor();
 
@@ -112,6 +120,9 @@ protected:
 
     virtual bool event(QEvent* event) override;
 
+signals:
+    void cursorRectChanged();
+
 private slots:
     void onGridResized();
     void onGridSelectionEdited();
@@ -119,6 +130,7 @@ private slots:
 private:
     QList<MtGraphicsScene*> _gridSelectionSources;
     AbstractCursorGraphicsItem* _cursorItem;
+    QRect _cursorRect;
 };
 }
 }
