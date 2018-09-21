@@ -5,8 +5,8 @@
  */
 
 #include "mttilesetmainwindow.h"
-#include "mtgraphicsscenes.h"
 #include "mtgridgraphicsitem.h"
+#include "mttilesetgraphicsscenes.h"
 #include "mttilesetpropertymanager.h"
 #include "mttilesetrenderer.h"
 #include "mttilesetresourceitem.h"
