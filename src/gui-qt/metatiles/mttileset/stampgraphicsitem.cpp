@@ -12,6 +12,7 @@
 #include "models/metatiles/metatile-tileset.h"
 
 #include <QGraphicsSceneMouseEvent>
+#include <QKeyEvent>
 #include <QtMath>
 
 using namespace UnTech;
@@ -21,12 +22,18 @@ using namespace UnTech::GuiQt::MetaTiles;
 StampGraphicsItem::StampGraphicsItem(MtEditableGraphicsScene* scene)
     : AbstractCursorGraphicsItem()
     , _scene(scene)
+    , _tileGridPainter()
+    , _drawState(DrawState::STAMP)
     , _tilePosition()
     , _boundingRect()
-    , _grid()
-    , _tileGridPainter()
+    , _mouseScenePosition()
+    , _sourceGrid()
+    , _boxGrid()
+    , _startBoxPosition()
 {
     Q_ASSERT(scene);
+
+    setFlag(QGraphicsItem::ItemIsFocusable, true);
 
     setEnableClickDrag(true);
 
@@ -43,20 +50,35 @@ StampGraphicsItem::StampGraphicsItem(MtEditableGraphicsScene* scene)
             this, &StampGraphicsItem::updateAll);
 }
 
-void StampGraphicsItem::setGrid(grid_t&& grid)
+bool StampGraphicsItem::setTilePosition(const point& tilePosition)
 {
-    if (_grid != grid) {
-        const auto oldSize = _grid.size();
+    if (_tilePosition != tilePosition) {
+        _tilePosition = tilePosition;
+        setPos(_tilePosition.x * METATILE_SIZE, _tilePosition.y * METATILE_SIZE);
+        return true;
+    }
 
-        _grid = grid;
-        if (grid.size() != oldSize) {
-            _boundingRect.setWidth(_grid.width() * 16);
-            _boundingRect.setHeight(_grid.height() * 16);
+    return false;
+}
 
-            prepareGeometryChange();
-        }
+void StampGraphicsItem::setSourceGrid(grid_t&& grid)
+{
+    if (_sourceGrid != grid) {
+        _sourceGrid = grid;
+        resetDrawState();
 
+        updateBoundingBox();
         updateTileGridFragments();
+    }
+}
+
+const StampGraphicsItem::grid_t& StampGraphicsItem::activeGrid() const
+{
+    if (_drawState == DrawState::STAMP) {
+        return _sourceGrid;
+    }
+    else {
+        return _boxGrid;
     }
 }
 
@@ -66,6 +88,21 @@ QRect StampGraphicsItem::validCellsRect() const
 
     return QRect(cr.x() / METATILE_SIZE, cr.y() / METATILE_SIZE,
                  cr.width() / METATILE_SIZE, cr.height() / METATILE_SIZE);
+}
+
+void StampGraphicsItem::updateBoundingBox()
+{
+    const grid_t& grid = activeGrid();
+
+    int w = grid.width() * METATILE_SIZE;
+    int h = grid.height() * METATILE_SIZE;
+
+    if (int(_boundingRect.width()) != w || int(_boundingRect.height()) != h) {
+        _boundingRect.setWidth(w);
+        _boundingRect.setHeight(h);
+
+        prepareGeometryChange();
+    }
 }
 
 QRectF StampGraphicsItem::boundingRect() const
@@ -80,41 +117,8 @@ void StampGraphicsItem::updateAll()
 
 void StampGraphicsItem::updateTileGridFragments()
 {
-    _tileGridPainter.updateFragments(_scene->renderer(), _grid);
+    _tileGridPainter.updateFragments(_scene->renderer(), activeGrid());
     updateAll();
-}
-
-bool StampGraphicsItem::processMouseScenePosition(const QPointF& scenePos)
-{
-    QPointF center(scenePos.x() - (_grid.width() - 1) * METATILE_SIZE / 2,
-                   scenePos.y() - (_grid.height() - 1) * METATILE_SIZE / 2);
-
-    point tilePos(qFloor(center.x() / METATILE_SIZE),
-                  qFloor(center.y() / METATILE_SIZE));
-
-    if (_tilePosition != tilePos) {
-        _tilePosition = tilePos;
-        setPos(_tilePosition.x * METATILE_SIZE, _tilePosition.y * METATILE_SIZE);
-
-        return true;
-    }
-
-    return false;
-}
-
-void StampGraphicsItem::processClick()
-{
-    const int gridWidth = _grid.width();
-    const int gridHeight = _grid.height();
-    QRect validCells = validCellsRect();
-
-    if (_tilePosition.x <= validCells.right()
-        && _tilePosition.x + gridWidth - 1 >= validCells.left()
-        && _tilePosition.y <= validCells.bottom()
-        && _tilePosition.y + gridHeight - 1 >= validCells.top()) {
-
-        _scene->placeTiles(_grid, _tilePosition);
-    }
 }
 
 void StampGraphicsItem::paint(QPainter* painter,
@@ -125,10 +129,12 @@ void StampGraphicsItem::paint(QPainter* painter,
     auto* renderer = _scene->renderer();
     const unsigned nMetaTiles = renderer->nMetaTiles();
     const QColor backgroundColor = renderer->backgroundColor();
-    const int gridWidth = _grid.width();
-    const int gridHeight = _grid.height();
 
-    auto gridIt = _grid.cbegin();
+    const grid_t& grid = activeGrid();
+    const int gridWidth = grid.width();
+    const int gridHeight = grid.height();
+
+    auto gridIt = grid.cbegin();
     for (int y = 0; y < gridHeight; y++) {
         for (int x = 0; x < gridWidth; x++) {
             const auto& tile = *gridIt++;
@@ -140,7 +146,7 @@ void StampGraphicsItem::paint(QPainter* painter,
             }
         }
     }
-    Q_ASSERT(gridIt == _grid.cend());
+    Q_ASSERT(gridIt == grid.cend());
 
     auto* style = _scene->style();
 
@@ -158,7 +164,7 @@ void StampGraphicsItem::paint(QPainter* painter,
         for (int y = 0; y < gridHeight; y++) {
             for (int x = 0; x < gridWidth; x++) {
                 if (validCells.contains(x + _tilePosition.x, y + _tilePosition.y) == false
-                    && _grid.at(x, y) < nMetaTiles) {
+                    && grid.at(x, y) < nMetaTiles) {
 
                     painter->drawRect(x * METATILE_SIZE, y * METATILE_SIZE,
                                       METATILE_SIZE, METATILE_SIZE);
@@ -178,7 +184,7 @@ void StampGraphicsItem::paint(QPainter* painter,
         for (int y = 0; y < gridHeight; y++) {
             for (int x = 0; x < gridWidth; x++) {
                 if (validCells.contains(x + _tilePosition.x, y + _tilePosition.y)
-                    && _grid.at(x, y) < nMetaTiles) {
+                    && grid.at(x, y) < nMetaTiles) {
 
                     painter->drawRect(x * METATILE_SIZE, y * METATILE_SIZE,
                                       METATILE_SIZE, METATILE_SIZE);
@@ -188,4 +194,296 @@ void StampGraphicsItem::paint(QPainter* painter,
     }
 
     painter->restore();
+}
+
+bool StampGraphicsItem::processMouseScenePosition(const QPointF& scenePos)
+{
+    _mouseScenePosition = scenePos;
+
+    switch (_drawState) {
+    case DrawState::STAMP:
+    case DrawState::DRAW_BOX:
+        return processNormalMousePosition(scenePos);
+
+    case DrawState::DRAW_BOX_FIRST_CLICK:
+    case DrawState::DRAW_BOX_SECOND_CLICK:
+    case DrawState::DRAW_BOX_DRAGING:
+        return processDrawBoxMousePosition(scenePos);
+    }
+
+    return false;
+}
+
+bool StampGraphicsItem::processNormalMousePosition(const QPointF& scenePos)
+{
+    const auto& grid = activeGrid();
+
+    QPointF center(scenePos.x() - (grid.width() - 1) * METATILE_SIZE / 2,
+                   scenePos.y() - (grid.height() - 1) * METATILE_SIZE / 2);
+
+    point tilePos(qFloor(center.x() / METATILE_SIZE),
+                  qFloor(center.y() / METATILE_SIZE));
+
+    return setTilePosition(tilePos);
+}
+
+bool StampGraphicsItem::processDrawBoxMousePosition(const QPointF& scenePos)
+{
+    point mousePosition(qFloor(scenePos.x()) / METATILE_SIZE,
+                        qFloor(scenePos.y()) / METATILE_SIZE);
+
+    switch (_drawState) {
+    case DrawState::STAMP:
+    case DrawState::DRAW_BOX:
+        return setTilePosition(mousePosition);
+
+    case DrawState::DRAW_BOX_FIRST_CLICK:
+    case DrawState::DRAW_BOX_SECOND_CLICK:
+    case DrawState::DRAW_BOX_DRAGING: {
+        // In the middle of drawing the box
+        point topLeft(qMin(mousePosition.x, _startBoxPosition.x),
+                      qMin(mousePosition.y, _startBoxPosition.y));
+
+        unsigned width = qMax(mousePosition.x, _startBoxPosition.x) - topLeft.x + 1;
+        unsigned height = qMax(mousePosition.y, _startBoxPosition.y) - topLeft.y + 1;
+
+        bool changed = setTilePosition(topLeft);
+
+        if (_boxGrid.width() != width || _boxGrid.height() != height) {
+            createBoxGrid(width, height);
+            setPos(_tilePosition.x * METATILE_SIZE, _tilePosition.y * METATILE_SIZE);
+
+            changed = true;
+        }
+        return changed;
+    }
+    }
+
+    return false;
+}
+
+void StampGraphicsItem::resetDrawState()
+{
+    if (_drawState != DrawState::STAMP) {
+        _drawState = DrawState::STAMP;
+
+        processNormalMousePosition(_mouseScenePosition);
+
+        updateBoundingBox();
+        updateTileGridFragments();
+    }
+}
+
+void StampGraphicsItem::updateDrawState(Qt::KeyboardModifiers modifiers)
+{
+    if (modifiers & Qt::ShiftModifier) {
+        // shift pressed
+        if (_drawState == DrawState::STAMP) {
+            _drawState = DrawState::DRAW_BOX;
+            createBoxGrid(1, 1);
+
+            processNormalMousePosition(_mouseScenePosition);
+        }
+    }
+    else {
+        // shift not pressed
+        if (_drawState == DrawState::DRAW_BOX) {
+            resetDrawState();
+
+            processNormalMousePosition(_mouseScenePosition);
+        }
+    }
+}
+
+void StampGraphicsItem::keyPressEvent(QKeyEvent* event)
+{
+    if (event->key() == Qt::Key_Escape) {
+        resetDrawState();
+    }
+
+    updateDrawState(event->modifiers());
+}
+
+void StampGraphicsItem::keyReleaseEvent(QKeyEvent* event)
+{
+    updateDrawState(event->modifiers());
+}
+
+void StampGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+    updateDrawState(event->modifiers());
+
+    bool moved = processMouseScenePosition(event->scenePos());
+
+    switch (_drawState) {
+    case DrawState::STAMP:
+        if (moved && enableClickDrag() && event->buttons() == Qt::LeftButton) {
+            processClick();
+        }
+        break;
+
+    case DrawState::DRAW_BOX_FIRST_CLICK:
+        if (moved) {
+            _drawState = DrawState::DRAW_BOX_DRAGING;
+        }
+        break;
+
+    case DrawState::DRAW_BOX:
+    case DrawState::DRAW_BOX_SECOND_CLICK:
+    case DrawState::DRAW_BOX_DRAGING:
+        break;
+    }
+}
+
+void StampGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+    updateDrawState(event->modifiers());
+
+    processMouseScenePosition(event->scenePos());
+
+    if (event->button() & Qt::LeftButton) {
+        switch (_drawState) {
+        case DrawState::STAMP:
+            processClick();
+            break;
+
+        case DrawState::DRAW_BOX:
+            _startBoxPosition = _tilePosition;
+            _drawState = DrawState::DRAW_BOX_FIRST_CLICK;
+            break;
+
+        case DrawState::DRAW_BOX_FIRST_CLICK:
+            _drawState = DrawState::DRAW_BOX_SECOND_CLICK;
+            break;
+
+        case DrawState::DRAW_BOX_SECOND_CLICK:
+            processClick();
+            _drawState = DrawState::DRAW_BOX;
+            createBoxGrid(1, 1);
+            processMouseScenePosition(_mouseScenePosition);
+            break;
+
+        case DrawState::DRAW_BOX_DRAGING:
+            break;
+        }
+    }
+}
+
+void StampGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    updateDrawState(event->modifiers());
+
+    processMouseScenePosition(event->scenePos());
+
+    if (event->button() & Qt::LeftButton) {
+        switch (_drawState) {
+        case DrawState::STAMP:
+        case DrawState::DRAW_BOX:
+        case DrawState::DRAW_BOX_FIRST_CLICK:
+        case DrawState::DRAW_BOX_SECOND_CLICK:
+            break;
+
+        case DrawState::DRAW_BOX_DRAGING:
+            processClick();
+            _drawState = DrawState::DRAW_BOX;
+            createBoxGrid(1, 1);
+            processMouseScenePosition(_mouseScenePosition);
+            break;
+        }
+    }
+}
+
+void StampGraphicsItem::processClick()
+{
+    const QRect validCells = validCellsRect();
+    const grid_t& grid = activeGrid();
+    const int gridWidth = grid.width();
+    const int gridHeight = grid.height();
+
+    if (_tilePosition.x <= validCells.right()
+        && _tilePosition.x + gridWidth - 1 >= validCells.left()
+        && _tilePosition.y <= validCells.bottom()
+        && _tilePosition.y + gridHeight - 1 >= validCells.top()) {
+
+        _scene->placeTiles(grid, _tilePosition);
+    }
+}
+
+void StampGraphicsItem::createBoxGrid(unsigned width, unsigned height)
+{
+    Q_ASSERT(_drawState != DrawState::STAMP);
+
+    Q_ASSERT(width > 0);
+    Q_ASSERT(height > 0);
+    Q_ASSERT(_sourceGrid.empty() == false);
+
+    const grid_t& sGrid = _sourceGrid;
+    const unsigned sgLastX = sGrid.width() - 1;
+    const unsigned sgLastY = sGrid.height() - 1;
+
+    if (_boxGrid.width() != width || _boxGrid.height() != height) {
+        _boxGrid = grid_t(width, height);
+    }
+
+    // set four corners
+    _boxGrid.set(width - 1, height - 1, sGrid.at(sgLastX, sgLastY));
+    _boxGrid.set(width - 1, 0, sGrid.at(sgLastX, 0));
+    _boxGrid.set(0, height - 1, sGrid.at(0, sgLastY));
+    _boxGrid.set(0, 0, sGrid.at(0, 0));
+
+    unsigned sgX;
+    auto resetSgX = [&]() { sgX = qMin(1U, sgLastX); };
+    auto incSgX = [&]() {
+        sgX++;
+        if (sgX >= sgLastX) {
+            sgX = qMin(1U, sgLastX);
+        }
+    };
+
+    unsigned sgY;
+    auto resetSgY = [&]() { sgY = qMin(1U, sgLastY); };
+    auto incSgY = [&]() {
+        sgY++;
+        if (sgY >= sgLastY) {
+            sgY = qMin(1U, sgLastY);
+        }
+    };
+
+    // draw top/bottom row
+    resetSgX();
+    for (unsigned x = 1; x < width - 1; x++) {
+        if (height > 1) {
+            _boxGrid.set(x, height - 1, sGrid.at(sgX, sgLastY));
+        }
+        _boxGrid.set(x, 0, sGrid.at(sgX, 0));
+
+        incSgX();
+    }
+
+    // draw left/right columns
+    resetSgY();
+    for (unsigned y = 1; y < height - 1; y++) {
+        if (width > 1) {
+            _boxGrid.set(width - 1, y, sGrid.at(sgLastX, sgY));
+        }
+        _boxGrid.set(0, y, sGrid.at(0, sgY));
+
+        incSgY();
+    }
+
+    // draw middle
+    if (width >= 3 && height >= 3) {
+        resetSgX();
+        resetSgY();
+        for (unsigned y = 1; y < height - 1; y++) {
+            for (unsigned x = 1; x < width - 1; x++) {
+                _boxGrid.set(x, y, sGrid.at(sgX, sgY));
+                incSgX();
+            }
+            incSgY();
+        }
+    }
+
+    updateBoundingBox();
+    updateTileGridFragments();
 }

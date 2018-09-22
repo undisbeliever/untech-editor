@@ -28,8 +28,8 @@ public:
     virtual void processClick() = 0;
 
 protected:
-    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final;
-    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) final;
+    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
     bool _enableClickDrag;

@@ -160,6 +160,7 @@ void MtEditableGraphicsScene::setCursor(AbstractCursorGraphicsItem* cursor)
         _cursorItem->setVisible(underMouse);
 
         if (underMouse) {
+            _cursorItem->setFocus();
             _cursorItem->grabMouse();
         }
     }
@@ -173,6 +174,7 @@ bool MtEditableGraphicsScene::event(QEvent* event)
         }
         else if (event->type() == QEvent::Enter) {
             _cursorItem->setVisible(true);
+            _cursorItem->setFocus();
             _cursorItem->grabMouse();
         }
     }
@@ -201,7 +203,7 @@ void MtEditableGraphicsScene::createStampCursor(MtGraphicsScene::grid_t&& grid)
             stamp = new StampGraphicsItem(this);
         }
 
-        stamp->setGrid(std::move(grid));
+        stamp->setSourceGrid(std::move(grid));
         setCursor(stamp);
     }
 }

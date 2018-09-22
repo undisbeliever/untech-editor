@@ -20,6 +20,14 @@ class MtEditableGraphicsScene;
 class StampGraphicsItem : public AbstractCursorGraphicsItem {
     Q_OBJECT
 
+    enum class DrawState {
+        STAMP,
+        DRAW_BOX,
+        DRAW_BOX_FIRST_CLICK,
+        DRAW_BOX_SECOND_CLICK,
+        DRAW_BOX_DRAGING,
+    };
+
 public:
     using grid_t = UnTech::grid<uint16_t>;
     constexpr static int METATILE_SIZE = 16;
@@ -29,25 +37,43 @@ public:
     ~StampGraphicsItem() = default;
 
     const point& tilePosition() const { return _tilePosition; }
-    void setTilePosition(const point& tilePosition);
+    bool setTilePosition(const point& tilePosition);
 
-    const grid_t& grid() const { return _grid; }
-    void setGrid(grid_t&& grid);
+    const grid_t& sourceGrid() const { return _sourceGrid; }
+    void setSourceGrid(grid_t&& sourceGrid);
+
+    const grid_t& activeGrid() const;
 
     QRect validCellsRect() const;
 
     virtual QRectF boundingRect() const override;
 
-    virtual bool processMouseScenePosition(const QPointF& scenePos) final;
-
-    virtual void processClick();
-
     virtual void paint(QPainter* painter,
                        const QStyleOptionGraphicsItem* option,
                        QWidget* widget = nullptr) final;
 
+    virtual bool processMouseScenePosition(const QPointF& scenePos) final;
+
+    virtual void processClick() override;
+
+protected:
+    virtual void keyPressEvent(QKeyEvent* event) final;
+    virtual void keyReleaseEvent(QKeyEvent* event) final;
+
+    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final;
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) final;
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final;
+
 private:
-    point scenePositionToTilePosition(const QPointF& scenePos);
+    void resetDrawState();
+    void updateBoundingBox();
+
+    void updateDrawState(Qt::KeyboardModifiers modifiers);
+
+    bool processNormalMousePosition(const QPointF& scenePos);
+    bool processDrawBoxMousePosition(const QPointF& scenePos);
+
+    void createBoxGrid(unsigned width, unsigned height);
 
 public slots:
     void updateAll();
@@ -56,12 +82,18 @@ public slots:
 
 private:
     MtEditableGraphicsScene* const _scene;
+    MtTilesetGridPainter _tileGridPainter;
+
+    DrawState _drawState;
 
     point _tilePosition;
     QRectF _boundingRect;
+    QPointF _mouseScenePosition;
 
-    grid_t _grid;
-    MtTilesetGridPainter _tileGridPainter;
+    grid_t _sourceGrid;
+
+    grid_t _boxGrid;
+    point _startBoxPosition;
 };
 }
 }
