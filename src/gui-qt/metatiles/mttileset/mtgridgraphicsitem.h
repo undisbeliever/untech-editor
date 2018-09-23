@@ -30,6 +30,9 @@ public:
     bool showBackgroundColor() const { return _showBackgroundColor; }
     void setShowBackgroundColor(bool showBackgroundColor);
 
+    bool showGridSelection() const { return _showGridSelection; }
+    void setShowGridSelection(bool showGridSelection);
+
     bool enableMouseSelection() const { return _enableMouseSelection; }
     void setEnableMouseSelection(bool e) { _enableMouseSelection = e; }
 
@@ -66,6 +69,7 @@ private:
     upoint_vectorset _gridSelectionBeforeRectangularSelection;
 
     bool _showBackgroundColor;
+    bool _showGridSelection;
     bool _enableMouseSelection;
     bool _inRectangularSelection;
 };

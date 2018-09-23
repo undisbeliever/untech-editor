@@ -164,6 +164,8 @@ void MtEditableGraphicsScene::setCursor(AbstractCursorGraphicsItem* cursor)
             _cursorItem->grabMouse();
         }
     }
+
+    gridGraphicsItem()->setShowGridSelection(false);
 }
 
 bool MtEditableGraphicsScene::event(QEvent* event)
@@ -190,6 +192,8 @@ void MtEditableGraphicsScene::removeCursor()
         delete _cursorItem;
         _cursorItem = nullptr;
     }
+
+    gridGraphicsItem()->setShowGridSelection(true);
 }
 
 void MtEditableGraphicsScene::createStampCursor(MtGraphicsScene::grid_t&& grid)

@@ -26,6 +26,7 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
     , _firstCellOfRectangularSelection(0, 0)
     , _gridSelectionBeforeRectangularSelection()
     , _showBackgroundColor(true)
+    , _showGridSelection(true)
     , _enableMouseSelection(true)
     , _inRectangularSelection(false)
 {
@@ -53,6 +54,14 @@ void MtGridGraphicsItem::setShowBackgroundColor(bool showBackgroundColor)
 {
     if (_showBackgroundColor != showBackgroundColor) {
         _showBackgroundColor = showBackgroundColor;
+        update();
+    }
+}
+
+void MtGridGraphicsItem::setShowGridSelection(bool showGridSelection)
+{
+    if (_showGridSelection != showGridSelection) {
+        _showGridSelection = showGridSelection;
         update();
     }
 }
@@ -138,7 +147,7 @@ void MtGridGraphicsItem::paint(QPainter* painter,
     }
 
     const auto& sel = _scene->gridSelection();
-    if (!sel.empty()) {
+    if (_showGridSelection && !sel.empty()) {
         painter->save();
 
         painter->setPen(style->gridSelectionPen());
