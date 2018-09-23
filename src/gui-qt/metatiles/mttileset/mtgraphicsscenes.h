@@ -73,6 +73,7 @@ signals:
 
 private slots:
     void onRendererTilesetItemChanged();
+    void onGridResized();
 
 private:
     Style* const _style;

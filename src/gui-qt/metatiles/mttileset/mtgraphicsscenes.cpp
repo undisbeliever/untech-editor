@@ -35,6 +35,9 @@ MtGraphicsScene::MtGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObj
 
     connect(_renderer, &MtTilesetRenderer::tilesetItemChanged,
             this, &MtGraphicsScene::onRendererTilesetItemChanged);
+
+    connect(this, &MtGraphicsScene::gridResized,
+            this, &MtGraphicsScene::onGridResized);
 }
 
 MtGraphicsScene::grid_t MtGraphicsScene::gridSelectionGrid() const
@@ -98,6 +101,16 @@ void MtGraphicsScene::onRendererTilesetItemChanged()
     _tilesetItem = _renderer->tilesetItem();
 
     tilesetItemChanged(_tilesetItem, oldItem);
+
+    onGridResized();
+}
+
+void MtGraphicsScene::onGridResized()
+{
+    // resize scene so it wll end up in the centre of the GraphicsView
+
+    const auto& grid = this->grid();
+    setSceneRect(0, 0, grid.width() * 16, grid.height() * 16);
 }
 
 void MtGraphicsScene::keyPressEvent(QKeyEvent* keyEvent)
@@ -137,12 +150,7 @@ void MtEditableGraphicsScene::setCursorRect(const QRect& r)
 
 void MtEditableGraphicsScene::onGridResized()
 {
-    // Ensure the cursor does not enlarge the scene rect
-
-    const auto& grid = this->grid();
-
-    setSceneRect(0, 0, grid.width() * 16, grid.height() * 16);
-
+    auto& grid = this->grid();
     _cursorRect.setRect(0, 0, grid.width() * 16, grid.height() * 16);
 }
 
