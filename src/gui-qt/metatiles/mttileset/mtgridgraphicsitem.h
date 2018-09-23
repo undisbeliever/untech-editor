@@ -27,6 +27,9 @@ public:
     MtGridGraphicsItem(MtGraphicsScene* scene);
     ~MtGridGraphicsItem() = default;
 
+    bool showBackgroundColor() const { return _showBackgroundColor; }
+    void setShowBackgroundColor(bool showBackgroundColor);
+
     bool enableMouseSelection() const { return _enableMouseSelection; }
     void setEnableMouseSelection(bool e) { _enableMouseSelection = e; }
 
@@ -62,6 +65,7 @@ private:
     upoint _firstCellOfRectangularSelection;
     upoint_vectorset _gridSelectionBeforeRectangularSelection;
 
+    bool _showBackgroundColor;
     bool _enableMouseSelection;
     bool _inRectangularSelection;
 };

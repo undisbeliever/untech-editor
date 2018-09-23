@@ -25,6 +25,7 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
     , _previousMouseCell(0, 0)
     , _firstCellOfRectangularSelection(0, 0)
     , _gridSelectionBeforeRectangularSelection()
+    , _showBackgroundColor(true)
     , _enableMouseSelection(true)
     , _inRectangularSelection(false)
 {
@@ -46,6 +47,14 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
 
     connect(scene->style(), &Style::showGridChanged,
             this, &MtGridGraphicsItem::updateAll);
+}
+
+void MtGridGraphicsItem::setShowBackgroundColor(bool showBackgroundColor)
+{
+    if (_showBackgroundColor != showBackgroundColor) {
+        _showBackgroundColor = showBackgroundColor;
+        update();
+    }
 }
 
 QRectF MtGridGraphicsItem::boundingRect() const
@@ -99,7 +108,13 @@ void MtGridGraphicsItem::updateTileGridFragments()
 void MtGridGraphicsItem::paint(QPainter* painter,
                                const QStyleOptionGraphicsItem*, QWidget*)
 {
-    _tileGridPainter.paint(painter, _scene->renderer());
+    auto* renderer = _scene->renderer();
+
+    if (_showBackgroundColor) {
+        painter->fillRect(_boundingRect, renderer->backgroundColor());
+    }
+
+    _tileGridPainter.paint(painter, renderer);
 
     auto* style = _scene->style();
 
