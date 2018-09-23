@@ -295,12 +295,27 @@ void StampGraphicsItem::updateDrawState(Qt::KeyboardModifiers modifiers)
     }
 }
 
+bool StampGraphicsItem::processEscape()
+{
+    // If in the middle of drawing a box using two clicks, them stop drawing
+    // the box, otherwise remove cursor.
+
+    switch (_drawState) {
+    case DrawState::STAMP:
+    case DrawState::DRAW_BOX:
+    case DrawState::DRAW_BOX_DRAGING:
+        return true;
+
+    case DrawState::DRAW_BOX_FIRST_CLICK:
+    case DrawState::DRAW_BOX_SECOND_CLICK:
+        resetDrawState();
+        return false;
+    }
+    return true;
+}
+
 void StampGraphicsItem::keyPressEvent(QKeyEvent* event)
 {
-    if (event->key() == Qt::Key_Escape) {
-        resetDrawState();
-    }
-
     updateDrawState(event->modifiers());
 }
 

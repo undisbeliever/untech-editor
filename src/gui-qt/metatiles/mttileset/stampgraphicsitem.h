@@ -54,7 +54,8 @@ public:
 
     virtual bool processMouseScenePosition(const QPointF& scenePos) final;
 
-    virtual void processClick() override;
+    virtual void processClick() final;
+    virtual bool processEscape() final;
 
 protected:
     virtual void keyPressEvent(QKeyEvent* event) final;

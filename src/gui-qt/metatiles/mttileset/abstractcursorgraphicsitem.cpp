@@ -25,6 +25,11 @@ AbstractCursorGraphicsItem::AbstractCursorGraphicsItem()
     setAcceptHoverEvents(true);
 }
 
+bool AbstractCursorGraphicsItem::processEscape()
+{
+    return true;
+}
+
 void AbstractCursorGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     bool moved = processMouseScenePosition(event->scenePos());

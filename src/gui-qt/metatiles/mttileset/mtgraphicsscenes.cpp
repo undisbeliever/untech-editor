@@ -12,6 +12,7 @@
 
 #include <QEvent>
 #include <QGraphicsView>
+#include <QKeyEvent>
 
 using namespace UnTech;
 using namespace UnTech::GuiQt;
@@ -99,6 +100,19 @@ void MtGraphicsScene::onRendererTilesetItemChanged()
     tilesetItemChanged(_tilesetItem, oldItem);
 }
 
+void MtGraphicsScene::keyPressEvent(QKeyEvent* keyEvent)
+{
+    if (keyEvent->key() == Qt::Key_Escape) {
+        // clear selection when escape presssed
+        if (gridSelection().empty() == false) {
+            setGridSelection(upoint_vectorset());
+            return;
+        }
+    }
+
+    QGraphicsScene::keyPressEvent(keyEvent);
+}
+
 MtEditableGraphicsScene::MtEditableGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent)
     : MtGraphicsScene(style, renderer, parent)
     , _gridSelectionSources()
@@ -184,10 +198,24 @@ bool MtEditableGraphicsScene::event(QEvent* event)
     return MtGraphicsScene::event(event);
 }
 
+void MtEditableGraphicsScene::keyPressEvent(QKeyEvent* keyEvent)
+{
+    if (_cursorItem
+        && keyEvent->key() == Qt::Key_Escape) {
+
+        bool rc = _cursorItem->processEscape();
+        if (rc) {
+            removeCursor();
+        }
+    }
+
+    MtGraphicsScene::keyPressEvent(keyEvent);
+}
+
 void MtEditableGraphicsScene::removeCursor()
 {
     if (_cursorItem) {
-        removeItem(_cursorItem);
+        // cannot call `removeItem(removeItem)` here as it causes a `pure virtual method called` error.
 
         delete _cursorItem;
         _cursorItem = nullptr;

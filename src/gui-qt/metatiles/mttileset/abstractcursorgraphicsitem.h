@@ -27,6 +27,12 @@ public:
 
     virtual void processClick() = 0;
 
+    // Handles the user pressing escape in the MtEditableGraphicsScene.
+    // Return true if the cursor is to be removed.
+    // This function MUST NOT DELETE this class instance.
+    // The default implementation always returns true, indicating the cursor is to be removed.
+    virtual bool processEscape();
+
 protected:
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

@@ -57,6 +57,8 @@ protected:
 
     MtGridGraphicsItem* gridGraphicsItem() const { return _gridGraphicsItem; }
 
+    virtual void keyPressEvent(QKeyEvent* keyEvent) override;
+
 signals:
     // MUST be emitted by the subclass when the grid changed
     void gridChanged();
@@ -119,6 +121,7 @@ protected:
     void setCursor(AbstractCursorGraphicsItem* cursor);
 
     virtual bool event(QEvent* event) override;
+    virtual void keyPressEvent(QKeyEvent* keyEvent) override;
 
 signals:
     void cursorRectChanged();
