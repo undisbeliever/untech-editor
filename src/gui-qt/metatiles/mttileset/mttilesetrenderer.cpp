@@ -93,6 +93,8 @@ void MtTilesetRenderer::setTilesetItem(MtTilesetResourceItem* item)
 
         _tilesetItem = item;
 
+        _animationTimer->stopTimer();
+
         resetPixmaps();
         onAnimationDelaysChanged();
 
