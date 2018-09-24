@@ -106,10 +106,11 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
 
     MT::MetaTileTilesetInput newData = *_tileset->data();
 
+    TilesetUndoHelper undoHelper(_tileset);
+
     switch ((PropertyId)id) {
     case NAME:
-        newData.name = value.toString().toStdString();
-        break;
+        return undoHelper.editName(value.toString().toStdString());
 
     case PALETTES:
         newData.palettes = toIdstringVector(value.toStringList());
@@ -132,6 +133,5 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
         break;
     }
 
-    return TilesetUndoHelper(_tileset)
-        .edit(newData, tr("Edit %1").arg(propertyTitle(id)));
+    return undoHelper.edit(newData, tr("Edit %1").arg(propertyTitle(id)));
 }
