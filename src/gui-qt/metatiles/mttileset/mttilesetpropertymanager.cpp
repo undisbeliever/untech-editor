@@ -104,8 +104,6 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
     Q_ASSERT(_tileset);
     Q_ASSERT(_tileset->data());
 
-    MT::MetaTileTilesetInput newData = *_tileset->data();
-
     TilesetUndoHelper undoHelper(_tileset);
 
     switch ((PropertyId)id) {
@@ -113,25 +111,32 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
         return undoHelper.editName(value.toString().toStdString());
 
     case PALETTES:
-        newData.palettes = toIdstringVector(value.toStringList());
-        break;
+        return undoHelper.editField(toIdstringVector(value.toStringList()),
+                                    tr("Edit Palette List"),
+                                    [](MT::MetaTileTilesetInput& ti) -> std::vector<idstring>& { return ti.palettes; },
+                                    [](MtTilesetResourceItem& item) { emit item.palettesChanged();
+                                                                      item.updateDependencies(); });
 
     case FRAME_IMAGES:
-        newData.animationFrames.frameImageFilenames = toStringVector(value.toStringList());
-        break;
+        return undoHelper.editField(toStringVector(value.toStringList()),
+                                    tr("Edit Frame Image List"),
+                                    [](MT::MetaTileTilesetInput& ti) -> std::vector<std::string>& { return ti.animationFrames.frameImageFilenames; },
+                                    [](MtTilesetResourceItem& item) { item.updateExternalFiles(); });
 
     case ANIMATION_DELAY:
-        newData.animationFrames.animationDelay = value.toUInt();
-        break;
+        return undoHelper.editField(value.toUInt(),
+                                    tr("Edit Animation Delay"),
+                                    [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.animationDelay; },
+                                    [](MtTilesetResourceItem& item) { emit item.animationDelayChanged(); });
 
     case BIT_DEPTH:
-        newData.animationFrames.bitDepth = value.toUInt();
-        break;
+        return undoHelper.editField(value.toUInt(),
+                                    tr("Edit Bit Depth"),
+                                    [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.bitDepth; });
 
     case ADD_TRANSPARENT_TILE:
-        newData.animationFrames.addTransparentTile = value.toBool();
-        break;
+        return undoHelper.editField(value.toBool(),
+                                    tr("Edit Add Transparent Tile"),
+                                    [](MT::MetaTileTilesetInput& ti) -> bool& { return ti.animationFrames.addTransparentTile; });
     }
-
-    return undoHelper.edit(newData, tr("Edit %1").arg(propertyTitle(id)));
 }

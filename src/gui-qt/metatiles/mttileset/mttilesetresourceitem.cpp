@@ -23,32 +23,14 @@ MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size
     setFilename(QString::fromStdString(tilesetInputItem().filename));
 }
 
-void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
+void MtTilesetResourceItem::updateExternalFiles()
 {
-    std::unique_ptr<DataT>& tileset = tilesetInputItem().value;
-    Q_ASSERT(tileset);
+    QStringList files;
+    if (auto* d = data()) {
+        files = convertStringList(d->animationFrames.frameImageFilenames);
+    }
 
-    bool nameChange = tileset->name != data.name;
-    bool animationDelayChanged = tileset->animationFrames.animationDelay != data.animationFrames.animationDelay;
-    bool imagesChange = tileset->animationFrames.frameImageFilenames != data.animationFrames.frameImageFilenames;
-    bool palettesChanged = tileset->palettes != data.palettes;
-
-    *tileset = data;
-    emit dataChanged();
-
-    if (nameChange) {
-        setName(QString::fromStdString(data.name));
-    }
-    if (animationDelayChanged) {
-        emit this->animationDelayChanged();
-    }
-    if (imagesChange) {
-        setExternalFiles(convertStringList(data.animationFrames.frameImageFilenames));
-    }
-    if (palettesChanged) {
-        updateDependencies();
-        emit this->palettesChanged();
-    }
+    setExternalFiles(files);
 }
 
 void MtTilesetResourceItem::updateDependencies()
@@ -84,7 +66,7 @@ bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
     try {
         tilesetItem.loadFile();
         setName(QString::fromStdString(tilesetInput()->name));
-        setExternalFiles(convertStringList(tilesetInput()->animationFrames.frameImageFilenames));
+        updateExternalFiles();
         updateDependencies();
         return true;
     }

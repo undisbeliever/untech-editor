@@ -64,11 +64,11 @@ private:
 
 protected:
     friend class Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
-    void setData(const MT::MetaTileTilesetInput& data);
-
     friend class MtTilesetScratchpadGrid;
     MT::MetaTileTilesetInput* dataEditable() { return tilesetInputItem().value.get(); }
 
+    friend class MtTilesetPropertyManager;
+    void updateExternalFiles();
     void updateDependencies();
 
 protected:
