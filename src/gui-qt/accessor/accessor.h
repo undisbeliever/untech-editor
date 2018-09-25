@@ -40,6 +40,9 @@ class IdmapUndoHelper;
 
 template <class T>
 class IdmapAndSelectionUndoHelper;
+
+template <class T>
+class GridUndoHelper;
 }
 }
 }

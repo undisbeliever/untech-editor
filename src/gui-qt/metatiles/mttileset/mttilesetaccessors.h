@@ -36,7 +36,7 @@ public:
     MtTilesetTileParameters(MtTilesetResourceItem* tileset);
     ~MtTilesetTileParameters() = default;
 
-    MtTilesetResourceItem* tileset() const { return _tileset; }
+    MtTilesetResourceItem* resourceItem() const { return _tileset; }
 
     const vectorset<index_type>& selectedIndexes() const { return _selectedIndexes; }
     void setSelectedIndexes(const vectorset<index_type>& selected);
@@ -63,6 +63,8 @@ public:
     using selection_type = upoint_vectorset;
     using ArgsT = std::tuple<>;
 
+    static const usize max_size;
+
 private:
     MtTilesetResourceItem* const _tileset;
     upoint_vectorset _selectedCells;
@@ -71,7 +73,7 @@ public:
     MtTilesetScratchpadGrid(MtTilesetResourceItem* tileset);
     ~MtTilesetScratchpadGrid() = default;
 
-    MtTilesetResourceItem* tileset() const { return _tileset; }
+    MtTilesetResourceItem* resourceItem() const { return _tileset; }
 
     const upoint_vectorset& selectedCells() const { return _selectedCells; }
     void setSelectedCells(const upoint_vectorset& selected);
@@ -79,6 +81,7 @@ public:
     void clearSelection();
 
 protected:
+    friend class Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
     GridT* getGrid()
     {
         if (auto* data = _tileset->dataEditable()) {
@@ -95,11 +98,13 @@ private slots:
 signals:
     void gridChanged();
 
-    void gridAboutToChange();
+    void gridAboutToChangeSize();
     void gridResized();
 
     void selectedCellsChanged();
 };
+
+using MtTilesetScratchpadGridUndoHelper = Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
 }
 }
 }

@@ -1,0 +1,297 @@
+/*
+ * This file is part of the UnTech Editor Suite.
+ * Copyright (c) 2016 - 2018, Marcus Rowe <undisbeliever@gmail.com>.
+ * Distributed under The MIT License: https://opensource.org/licenses/MIT
+ */
+
+#pragma once
+
+#include "models/common/call.h"
+#include "models/common/grid.h"
+#include "models/common/vectorset-upoint.h"
+#include <QCoreApplication>
+#include <QUndoCommand>
+#include <functional>
+#include <memory>
+
+namespace UnTech {
+namespace GuiQt {
+namespace Accessor {
+
+template <class AccessorT>
+class GridUndoHelper {
+
+public:
+    using DataT = typename AccessorT::DataT;
+    using GridT = typename AccessorT::GridT;
+    using index_type = typename AccessorT::index_type;
+    using selection_type = typename AccessorT::selection_type;
+    using ArgsT = typename AccessorT::ArgsT;
+
+    static constexpr const usize& max_size = AccessorT::max_size;
+
+    static_assert(std::is_same<GridT, grid<DataT>>::value, "Unexpected GridT type");
+    static_assert(std::is_same<index_type, upoint>::value, "Unexpected index_type type");
+    static_assert(std::is_same<selection_type, upoint_vectorset>::value, "Unexpected selection_type type");
+
+private:
+    static inline QString tr(const char* s)
+    {
+        return QCoreApplication::tr(s);
+    }
+
+    class BaseCommand : public QUndoCommand {
+    protected:
+        AccessorT* _accessor;
+        const ArgsT _args;
+
+    public:
+        BaseCommand(AccessorT* accessor, const ArgsT& args,
+                    const QString& text)
+            : QUndoCommand(text)
+            , _accessor(accessor)
+            , _args(args)
+        {
+        }
+        ~BaseCommand() = default;
+
+    protected:
+        inline GridT* getGrid()
+        {
+            auto f = std::mem_fn(&AccessorT::getGrid);
+            return mem_fn_call(f, _accessor, _args);
+        }
+
+        inline void emitGridChanged()
+        {
+            auto f = std::mem_fn(&AccessorT::gridChanged);
+            mem_fn_call(f, _accessor, _args);
+
+            _accessor->resourceItem()->dataChanged();
+        }
+
+        // When this signal is emitted you MUST close all editors
+        // accessing the list to prevent data corruption
+        inline void gridAboutToChangeSize()
+        {
+            auto f = std::mem_fn(&AccessorT::gridAboutToChangeSize);
+            mem_fn_call(f, _accessor, _args);
+        }
+
+        inline void emitGridResized()
+        {
+            auto f = std::mem_fn(&AccessorT::gridResized);
+            mem_fn_call(f, _accessor, _args);
+        }
+    };
+
+    class EditCellsCommand : public BaseCommand {
+    private:
+        const upoint _position;
+        const GridT _oldCells;
+        const GridT _newCells;
+
+    public:
+        EditCellsCommand(AccessorT* accessor, const ArgsT& args, const upoint& position,
+                         grid<DataT>&& oldCells, const grid<DataT>& newCells,
+                         const QString& text)
+            : BaseCommand(accessor, args, text)
+            , _position(position)
+            , _oldCells(std::move(oldCells))
+            , _newCells(newCells)
+        {
+        }
+        EditCellsCommand(AccessorT* accessor, const ArgsT& args, const upoint& position,
+                         grid<DataT>&& oldCells, grid<DataT>&& newCells,
+                         const QString& text)
+            : BaseCommand(accessor, args, text)
+            , _position(position)
+            , _oldCells(std::move(oldCells))
+            , _newCells(std::move(newCells))
+        {
+        }
+        ~EditCellsCommand() = default;
+
+        virtual void undo() final
+        {
+            setGridCells(_oldCells);
+        }
+
+        virtual void redo() final
+        {
+            setGridCells(_newCells);
+        }
+
+        void setGridCells(const GridT& cells)
+        {
+            GridT* grid = this->getGrid();
+            Q_ASSERT(grid);
+            Q_ASSERT(_position.x >= 0 && _position.x + cells.width() <= grid->width());
+            Q_ASSERT(_position.y >= 0 && _position.y + cells.height() <= grid->height());
+
+            auto it = cells.cbegin();
+            for (unsigned y = 0; y < cells.height(); y++) {
+                for (unsigned x = 0; x < cells.width(); x++) {
+                    grid->set(_position.x + x, _position.y + y, *it++);
+                }
+            }
+            Q_ASSERT(it == cells.cend());
+
+            this->emitGridChanged();
+        }
+    };
+
+private:
+    AccessorT* const _accessor;
+
+public:
+    GridUndoHelper(AccessorT* accessor)
+        : _accessor(accessor)
+    {
+    }
+
+private:
+    inline ArgsT selectedGridTuple()
+    {
+        return _accessor->selectedGridTuple();
+    }
+
+    inline GridT* getGrid(const ArgsT& gridArgs)
+    {
+        auto f = std::mem_fn(&AccessorT::getGrid);
+        return mem_fn_call(f, _accessor, gridArgs);
+    }
+
+public:
+    // will return nullptr if cells could not be accessed or is equal to newCells
+    QUndoCommand* editCellsCommand(const ArgsT& gridArgs, const upoint& pos, const GridT& newCells,
+                                   const QString& text)
+    {
+        if (newCells.empty()) {
+            return nullptr;
+        }
+
+        GridT* grid = getGrid(gridArgs);
+        if (grid == nullptr) {
+            return nullptr;
+        }
+        if (grid->empty()
+            || pos.x >= grid->width()
+            || pos.y >= grid->height()
+            || pos.x + newCells.width() >= grid->width()
+            || pos.y + newCells.height() >= grid->height()) {
+
+            return nullptr;
+        }
+        GridT oldCells = grid->subGrid(pos, newCells.size());
+
+        if (newCells == oldCells) {
+            return nullptr;
+        }
+        return new EditCellsCommand(_accessor, gridArgs, pos, std::move(oldCells), newCells, text);
+    }
+
+    bool editCells(const ArgsT& gridArgs, const upoint& pos, const GridT& newCells,
+                   const QString& text)
+    {
+        QUndoCommand* e = editCellsCommand(gridArgs, pos, newCells, text);
+        if (e) {
+            _accessor->resourceItem()->undoStack()->push(e);
+        }
+        return e != nullptr;
+    }
+
+    bool editCellsInSelectedGrid(const upoint& pos, const GridT& newCells, const QString& text)
+    {
+        const ArgsT gridArgs = _accessor->selectedGridTuple();
+
+        return editCells(gridArgs, pos, newCells, text);
+    }
+
+    // will return nullptr if cells could not be accessed or is equal to newCells
+    template <typename UnaryFunction>
+    QUndoCommand* editCellsWithCroppingAndCellTestCommand(const ArgsT& gridArgs,
+                                                          const point& pos, const GridT& newCells,
+                                                          const QString& text,
+                                                          UnaryFunction validCellTest)
+    {
+        if (newCells.empty()
+            || pos.x < -int(newCells.width())
+            || pos.y < -int(newCells.height())) {
+
+            return nullptr;
+        }
+
+        GridT* grid = getGrid(gridArgs);
+        if (grid == nullptr) {
+            return nullptr;
+        }
+
+        if (grid->empty()
+            || pos.x >= int(grid->width())
+            || pos.y >= int(grid->height())) {
+
+            return nullptr;
+        }
+
+        // crop newCells to fit grid
+        const upoint croppedPos(std::max(0, pos.x),
+                                std::max(0, pos.y));
+        const upoint croppedOffset(croppedPos.x - pos.x,
+                                   croppedPos.y - pos.y);
+        const usize croppedSize(std::min(newCells.width() - croppedOffset.x, grid->width() - croppedPos.x),
+                                std::min(newCells.height() - croppedOffset.y, grid->height() - croppedPos.y));
+
+        GridT croppedCells = newCells.subGrid(croppedOffset, croppedSize);
+        GridT oldCells = grid->subGrid(croppedPos, croppedSize);
+
+        Q_ASSERT(croppedCells.empty() == false);
+        Q_ASSERT(oldCells.empty() == false);
+
+        // apply the validCellTest function to each of the grid cells
+        auto croppedIt = croppedCells.begin();
+        auto oldIt = oldCells.cbegin();
+        while (croppedIt != croppedCells.end()) {
+            bool ok = validCellTest(const_cast<const DataT&>(*croppedIt));
+            if (!ok) {
+                *croppedIt = *oldIt;
+            }
+
+            croppedIt++;
+            oldIt++;
+        }
+        Q_ASSERT(oldIt == oldCells.cend());
+
+        if (croppedCells == oldCells) {
+            return nullptr;
+        }
+        return new EditCellsCommand(_accessor, gridArgs, croppedPos,
+                                    std::move(oldCells), std::move(croppedCells), text);
+    }
+
+    template <typename UnaryFunction>
+    bool editCellsWithCroppingAndCellTest(const ArgsT& gridArgs,
+                                          const point& pos, const GridT& newCells,
+                                          const QString& text,
+                                          UnaryFunction validCellTest)
+    {
+        QUndoCommand* e = editCellsWithCroppingAndCellTestCommand(gridArgs, pos, newCells, text, validCellTest);
+        if (e) {
+            _accessor->resourceItem()->undoStack()->push(e);
+        }
+        return e != nullptr;
+    }
+
+    template <typename UnaryFunction>
+    bool editCellsInSelectedGridWithCroppingAndCellTest(const point& pos,
+                                                        const GridT& newCells, const QString& text,
+                                                        UnaryFunction validCellTest)
+    {
+        const ArgsT gridArgs = _accessor->selectedGridTuple();
+
+        return editCellsWithCroppingAndCellTest(gridArgs, pos, newCells, text, validCellTest);
+    }
+};
+}
+}
+}

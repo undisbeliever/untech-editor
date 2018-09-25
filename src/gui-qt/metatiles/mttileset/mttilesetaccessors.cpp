@@ -5,9 +5,12 @@
  */
 
 #include "mttilesetaccessors.h"
+#include "gui-qt/accessor/gridundohelper.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
+
+template class Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
 
 MtTilesetTileParameters::MtTilesetTileParameters(MtTilesetResourceItem* tileset)
     : QObject(tileset)
@@ -43,6 +46,8 @@ void MtTilesetTileParameters::clearSelection()
         emit selectedIndexesChanged();
     }
 }
+
+const UnTech::usize MtTilesetScratchpadGrid::max_size(255, 255);
 
 MtTilesetScratchpadGrid::MtTilesetScratchpadGrid(MtTilesetResourceItem* tileset)
     : QObject(tileset)

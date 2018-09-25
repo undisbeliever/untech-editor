@@ -7,6 +7,7 @@
 #pragma once
 
 #include "aabb.h"
+#include <cassert>
 #include <stdexcept>
 #include <vector>
 
@@ -80,6 +81,32 @@ public:
     }
     inline void set(const upoint& p, const T& value) { set(p.x, p.y, value); }
 
+    grid subGrid(unsigned xPos, unsigned yPos, unsigned sgWidth, unsigned sgHeight) const
+    {
+        _rangeCheck(xPos, yPos, sgWidth, sgHeight);
+
+        grid ret(sgWidth, sgHeight);
+        if (ret.empty()) {
+            return ret;
+        }
+
+        const auto startIt = _grid.cbegin() + yPos * _width + xPos;
+        auto retIt = ret.begin();
+        for (unsigned y = 0; y < sgHeight; y++) {
+            auto gridIt = startIt + _width * y;
+            for (unsigned x = 0; x < sgWidth; x++) {
+                *retIt++ = *gridIt++;
+            }
+        }
+        assert(retIt == ret.end());
+
+        return ret;
+    }
+    inline grid subGrid(const upoint& pos, const usize& size) const
+    {
+        return subGrid(pos.x, pos.y, size.width, size.height);
+    }
+
     iterator begin() { return _grid.begin(); }
     iterator end() { return _grid.end(); }
     reverse_iterator rbegin() { return _grid.rbegin(); }
@@ -111,6 +138,16 @@ private:
         }
         if (y >= _height) {
             throw std::range_error("grid: y (" + std::to_string(y) + ") >= height (" + std::to_string(_height) + ")");
+        }
+    }
+    void _rangeCheck(unsigned x, unsigned y, unsigned width, unsigned height) const
+    {
+        _rangeCheck(x, y);
+        if (x + width > _width) {
+            throw std::range_error("grid: x + width (" + std::to_string(x + width) + ") > width (" + std::to_string(_width) + ")");
+        }
+        if (y + height > _height) {
+            throw std::range_error("grid: y + height(" + std::to_string(y + height) + ") > height (" + std::to_string(_height) + ")");
         }
     }
 };

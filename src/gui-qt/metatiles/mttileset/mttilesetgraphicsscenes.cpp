@@ -8,6 +8,7 @@
 #include "mttilesetaccessors.h"
 #include "mttilesetrenderer.h"
 #include "mttilesetresourceitem.h"
+#include "gui-qt/accessor/gridundohelper.h"
 
 using namespace UnTech;
 using namespace UnTech::GuiQt;
@@ -195,11 +196,13 @@ void MtEditableScratchpadGraphicsScene::setGridSelection(upoint_vectorset&& sele
     }
 }
 
-#include <QDebug>
-
 void MtEditableScratchpadGraphicsScene::placeTiles(const MtGraphicsScene::grid_t& tiles, point location)
 {
-    qDebug() << "PLACE" << tiles.cellCount() << "TILES AT" << location.x << "," << location.y;
+    const unsigned nMetaTiles = renderer()->nMetaTiles();
+
+    MtTilesetScratchpadGridUndoHelper undoHelper(tilesetItem()->scratchpadGrid());
+    undoHelper.editCellsInSelectedGridWithCroppingAndCellTest(location, tiles, tr("Place Tiles"),
+                                                              [&](const uint16_t& t) { return t < nMetaTiles; });
 }
 
 void MtEditableScratchpadGraphicsScene::tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset)
