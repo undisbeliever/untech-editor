@@ -107,6 +107,34 @@ public:
         return subGrid(pos.x, pos.y, size.width, size.height);
     }
 
+    // Returns a NEW grid, resized to newSize with all new cells containing value
+    grid resized(const unsigned newWidth, const unsigned newHeight, const T& value) const
+    {
+        if (_width == newWidth && _height == newHeight) {
+            return *this;
+        }
+
+        grid ret(newWidth, newHeight, value);
+
+        unsigned widthToCopy = std::min(newWidth, _width);
+        unsigned heightToCopy = std::min(newHeight, _height);
+
+        for (unsigned y = 0; y < heightToCopy; y++) {
+            auto gridIt = this->_grid.cbegin() + this->_width * y;
+            auto retIt = ret._grid.begin() + ret._width * y;
+
+            for (unsigned x = 0; x < widthToCopy; x++) {
+                *retIt++ = *gridIt++;
+            }
+        }
+
+        return ret;
+    }
+    inline grid resized(const usize& newSize, const T& value) const
+    {
+        return resized(newSize.width, newSize.height, value);
+    }
+
     iterator begin() { return _grid.begin(); }
     iterator end() { return _grid.end(); }
     reverse_iterator rbegin() { return _grid.rbegin(); }

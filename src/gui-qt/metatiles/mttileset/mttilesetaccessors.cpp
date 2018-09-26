@@ -62,6 +62,9 @@ MtTilesetScratchpadGrid::MtTilesetScratchpadGrid(MtTilesetResourceItem* tileset)
     connect(tileset, &MtTilesetResourceItem::resourceLoaded,
             this, &MtTilesetScratchpadGrid::clearSelection);
 
+    connect(this, &MtTilesetScratchpadGrid::gridAboutToBeResized,
+            this, &MtTilesetScratchpadGrid::clearSelection);
+
     connect(this, &MtTilesetScratchpadGrid::gridChanged,
             this, &MtTilesetScratchpadGrid::updateSelectedTileParameters);
 }

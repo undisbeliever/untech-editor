@@ -5,7 +5,9 @@
  */
 
 #include "mttilesetpropertymanager.h"
+#include "mttilesetaccessors.h"
 #include "mttilesetresourceitem.h"
+#include "gui-qt/accessor/gridundohelper.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
@@ -21,6 +23,7 @@ MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     using Type = UnTech::GuiQt::PropertyType;
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
+    addProperty(tr("Scratchpad Size"), SCRATCHPAD_SIZE, Type::SIZE, QSize(0, 0), QSize(255, 255));
     addProperty(tr("Palettes"), PALETTES, Type::IDSTRING_LIST);
     addPropertyGroup(tr("Animation Frames:"));
     addProperty(tr("Frame Images"), FRAME_IMAGES, Type::FILENAME_LIST,
@@ -80,6 +83,9 @@ QVariant MtTilesetPropertyManager::data(int id) const
     case NAME:
         return QString::fromStdString(ti->name);
 
+    case SCRATCHPAD_SIZE:
+        return fromUsize(ti->scratchpad.size());
+
     case PALETTES:
         return convertStringList(ti->palettes);
 
@@ -109,6 +115,11 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
     switch ((PropertyId)id) {
     case NAME:
         return undoHelper.editName(value.toString().toStdString());
+
+    case SCRATCHPAD_SIZE:
+        return MtTilesetScratchpadGridUndoHelper(_tileset->scratchpadGrid())
+            .resizeSelectedGrid(toUsize(value.toSize()), 0,
+                                tr("Resize scratchpad"));
 
     case PALETTES:
         return undoHelper.editField(toIdstringVector(value.toStringList()),

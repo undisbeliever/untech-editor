@@ -98,7 +98,7 @@ private slots:
 signals:
     void gridChanged();
 
-    void gridAboutToChangeSize();
+    void gridAboutToBeResized();
     void gridResized();
 
     void selectedCellsChanged();

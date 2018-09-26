@@ -72,9 +72,9 @@ private:
 
         // When this signal is emitted you MUST close all editors
         // accessing the list to prevent data corruption
-        inline void gridAboutToChangeSize()
+        inline void emitGridAboutToBeResized()
         {
-            auto f = std::mem_fn(&AccessorT::gridAboutToChangeSize);
+            auto f = std::mem_fn(&AccessorT::gridAboutToBeResized);
             mem_fn_call(f, _accessor, _args);
         }
 
@@ -82,6 +82,62 @@ private:
         {
             auto f = std::mem_fn(&AccessorT::gridResized);
             mem_fn_call(f, _accessor, _args);
+        }
+    };
+
+    class EditGridCommand : public BaseCommand {
+    private:
+        const GridT _oldGrid;
+        const GridT _newGrid;
+
+    public:
+        EditGridCommand(AccessorT* accessor, const ArgsT& args,
+                        const grid<DataT>& oldGrid, const grid<DataT>& newGrid,
+                        const QString& text)
+            : BaseCommand(accessor, args, text)
+            , _oldGrid(oldGrid)
+            , _newGrid(newGrid)
+        {
+        }
+
+        EditGridCommand(AccessorT* accessor, const ArgsT& args,
+                        const grid<DataT>& oldGrid, grid<DataT>&& newGrid,
+                        const QString& text)
+            : BaseCommand(accessor, args, text)
+            , _oldGrid(oldGrid)
+            , _newGrid(std::move(newGrid))
+        {
+        }
+        ~EditGridCommand() = default;
+
+        virtual void undo() final
+        {
+            setGrid(_oldGrid);
+        }
+
+        virtual void redo() final
+        {
+            setGrid(_newGrid);
+        }
+
+        inline void setGrid(const GridT& toReplace)
+        {
+            GridT* grid = this->getGrid();
+            Q_ASSERT(grid);
+
+            bool gridResized = grid->size() != toReplace.size();
+
+            if (gridResized) {
+                this->emitGridAboutToBeResized();
+            }
+
+            *grid = toReplace;
+
+            if (gridResized) {
+                this->emitGridResized();
+            }
+
+            this->emitGridChanged();
         }
     };
 
@@ -163,6 +219,72 @@ private:
     }
 
 public:
+    // will return nullptr if grid could not be accessed or is equal to newGrid
+    QUndoCommand* editGridCommand(const ArgsT& gridArgs, const GridT& newGrid, const QString& text)
+    {
+        GridT* oldGrid = getGrid(gridArgs);
+        if (oldGrid == nullptr) {
+            return nullptr;
+        }
+
+        if (*oldGrid == newGrid) {
+            return nullptr;
+        }
+        return new EditGridCommand(_accessor, gridArgs, *oldGrid, newGrid, text);
+    }
+
+    bool editGrid(const ArgsT& gridArgs, const GridT& newGrid, const QString& text)
+    {
+        QUndoCommand* e = editGridCommand(gridArgs, newGrid, text);
+        if (e) {
+            _accessor->resourceItem()->undoStack()->push(e);
+        }
+        return e != nullptr;
+    }
+
+    bool editSelectedGrid(const GridT& newGrid, const QString& text)
+    {
+        const ArgsT gridArgs = _accessor->selectedGridTuple();
+
+        return editGrid(gridArgs, newGrid, text);
+    }
+
+    // will return nullptr if grid could not be accessed or has a size equal to newSize
+    QUndoCommand* resizeGridCommand(const ArgsT& gridArgs, const usize& newSize, const DataT& defaultValue,
+                                    const QString& text)
+    {
+        GridT* grid = getGrid(gridArgs);
+        if (grid == nullptr) {
+            return nullptr;
+        }
+
+        if (grid->size() == newSize) {
+            return nullptr;
+        }
+
+        GridT resizedGrid = grid->resized(newSize, defaultValue);
+
+        return new EditGridCommand(_accessor, gridArgs, *grid, resizedGrid, text);
+    }
+
+    bool resizeGrid(const ArgsT& gridArgs, const usize& newSize, const DataT& defaultValue,
+                    const QString& text)
+    {
+        QUndoCommand* e = resizeGridCommand(gridArgs, newSize, defaultValue, text);
+        if (e) {
+            _accessor->resourceItem()->undoStack()->push(e);
+        }
+        return e != nullptr;
+    }
+
+    bool resizeSelectedGrid(const usize& newSize, const DataT& defaultValue,
+                            const QString& text)
+    {
+        const ArgsT gridArgs = _accessor->selectedGridTuple();
+
+        return resizeGrid(gridArgs, newSize, defaultValue, text);
+    }
+
     // will return nullptr if cells could not be accessed or is equal to newCells
     QUndoCommand* editCellsCommand(const ArgsT& gridArgs, const upoint& pos, const GridT& newCells,
                                    const QString& text)
