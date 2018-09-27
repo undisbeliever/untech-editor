@@ -5,13 +5,13 @@
  */
 
 #include "mttilesetmainwindow.h"
-#include "mtgridgraphicsitem.h"
 #include "mttilesetgraphicsscenes.h"
 #include "mttilesetpropertymanager.h"
 #include "mttilesetrenderer.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/metatiles/mtgridgraphicsitem.h"
 #include "gui-qt/metatiles/mttileset/mttilesetmainwindow.ui.h"
 #include "gui-qt/metatiles/style.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"

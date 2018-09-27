@@ -8,7 +8,7 @@
 
 #include "abstractcursorgraphicsitem.h"
 #include "mtgraphicsscenes.h"
-#include "mttilesetrenderer.h"
+#include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
 #include "models/common/grid.h"
 #include <cstdint>
 

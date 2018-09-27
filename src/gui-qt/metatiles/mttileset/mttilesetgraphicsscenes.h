@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "mtgraphicsscenes.h"
+#include "gui-qt/metatiles/mtgraphicsscenes.h"
 
 namespace UnTech {
 namespace GuiQt {

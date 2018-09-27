@@ -6,9 +6,9 @@
 
 #include "mtgraphicsscenes.h"
 #include "mtgridgraphicsitem.h"
-#include "mttilesetrenderer.h"
-#include "mttilesetresourceitem.h"
 #include "stampgraphicsitem.h"
+#include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
+#include "gui-qt/metatiles/mttileset/mttilesetresourceitem.h"
 
 #include <QEvent>
 #include <QGraphicsView>

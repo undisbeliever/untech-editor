@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "mttilesetrenderer.h"
+#include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
 #include "models/common/grid.h"
 #include "models/common/vectorset-upoint.h"
 #include <QGraphicsObject>
