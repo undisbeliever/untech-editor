@@ -150,4 +150,6 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
                                     tr("Edit Add Transparent Tile"),
                                     [](MT::MetaTileTilesetInput& ti) -> bool& { return ti.animationFrames.addTransparentTile; });
     }
+
+    return false;
 }
