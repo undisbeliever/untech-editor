@@ -2,14 +2,6 @@
 <ui version="4.0">
  <class>UnTech::GuiQt::MetaTiles::MtTilesetMainWindow</class>
  <widget class="QMainWindow" name="UnTech::GuiQt::MetaTiles::MtTilesetMainWindow">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>700</width>
-    <height>500</height>
-   </rect>
-  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -119,6 +111,59 @@
         <attribute name="title">
          <string>Scratchpad</string>
         </attribute>
+       </widget>
+       <widget class="QScrollArea" name="usageScrollArea">
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOn</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QAbstractScrollArea::AdjustToContents</enum>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <attribute name="title">
+         <string>Tileset</string>
+        </attribute>
+        <widget class="QLabel" name="usageLabel">
+         <property name="text">
+          <string>&lt;h1&gt;MetaTile Tileset Editor&lt;/h1&gt;
+&lt;h2&gt;The Tileset&lt;/h2&gt;
+&lt;p&gt;The MetaTile Tileset editor converts a series of PNG images and a palette into an animated set of 16x16 pixel MetaTiles, which in turn, are made up of 8x8 pixel SNES tiles.&lt;/p&gt;
+
+&lt;p&gt;Tilesets are allowed to contain multiple palettes and they may be reused across different tilesets. When multiple palettes are available the tileset compiler will use the first palette to convert the frame images into SNES tiles.&lt;/p&gt;
+&lt;p&gt;Please be aware that only one palette can be active at any given time and that colors 128-255 of the palette are reserved by the game engine for sprites.&lt;br/&gt;&lt;/p&gt;
+
+&lt;h2&gt;The Scratchpad&lt;/h2&gt;
+&lt;p&gt;The scratchpad provides as a place to experiment and store tile combinations. The scratchpad will be accessible in the map editor to allow easy reuse of tile blocks across multiple maps.&lt;br/&gt;&lt;p&gt;
+
+&lt;h3&gt;Tile cursor&lt;/h3&gt;
+&lt;p&gt;Selecting one or more tiles in the tileset grid or scratchpad minimap will enable the tile cursor on the scratchpad. Use the mouse to move the tile cursor and click the mouse to place the tiles onto the scratchpad.&lt;br/&gt;&lt;/p&gt;
+
+&lt;h3&gt;Box drawing&lt;/h3&gt;
+Holding &lt;code&gt;&lt;strong&gt;Shift&lt;/strong&gt;&lt;/code&gt; while clicking any two points (or &lt;code&gt;&lt;strong&gt;Shift&lt;/strong&gt;&lt;/code&gt; click and drag) will cause the cursor to draw a box. The drawn box's corner, borders and centre will match the corner, borders and centre of the cursor's grid.&lt;/p&gt;
+&lt;p&gt;When box-drawing, it is recommended that the cursor is 3x3 tiles or greater in size.&lt;br/&gt;&lt;/p&gt;
+</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::RichText</enum>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="margin">
+          <number>12</number>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::NoTextInteraction</set>
+         </property>
+        </widget>
        </widget>
       </widget>
      </item>
