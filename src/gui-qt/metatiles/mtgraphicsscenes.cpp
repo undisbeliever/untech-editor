@@ -160,9 +160,10 @@ void MtEditableGraphicsScene::setCursor(AbstractCursorGraphicsItem* cursor)
         removeCursor();
         _cursorItem = cursor;
 
-        cursor->setZValue(99999);
-
-        addItem(cursor);
+        if (cursor) {
+            cursor->setZValue(99999);
+            addItem(cursor);
+        }
     }
 
     // Move cursor to mouse position and grab the mouse
@@ -187,7 +188,7 @@ void MtEditableGraphicsScene::setCursor(AbstractCursorGraphicsItem* cursor)
         }
     }
 
-    gridGraphicsItem()->setShowGridSelection(false);
+    gridGraphicsItem()->setShowGridSelection(_cursorItem != nullptr);
 }
 
 bool MtEditableGraphicsScene::event(QEvent* event)
