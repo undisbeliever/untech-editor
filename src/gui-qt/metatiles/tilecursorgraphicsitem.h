@@ -17,7 +17,7 @@ namespace GuiQt {
 namespace MetaTiles {
 class MtEditableGraphicsScene;
 
-class StampGraphicsItem : public AbstractCursorGraphicsItem {
+class TileCursorGraphicsItem : public AbstractCursorGraphicsItem {
     Q_OBJECT
 
     enum class DrawState {
@@ -33,8 +33,8 @@ public:
     constexpr static int METATILE_SIZE = 16;
 
 public:
-    StampGraphicsItem(MtEditableGraphicsScene* scene);
-    ~StampGraphicsItem() = default;
+    TileCursorGraphicsItem(MtEditableGraphicsScene* scene);
+    ~TileCursorGraphicsItem() = default;
 
     const point& tilePosition() const { return _tilePosition; }
     bool setTilePosition(const point& tilePosition);

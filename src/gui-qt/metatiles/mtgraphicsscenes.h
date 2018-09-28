@@ -101,18 +101,18 @@ public:
     AbstractCursorGraphicsItem* cursorItem() const { return _cursorItem; }
     void removeCursor();
 
-    void createStampCursor(grid_t&& grid);
-    // Create a stamp cursor using the selection of a MetaTile graphics scene
+    void createTileCursor(grid_t&& grid);
+    // Create a tile cursor using the `gridSelectionGrid` of a MetaTile graphics scene
     // Returns true of the scene has a valid selection.
-    void createStampCursor(MtGraphicsScene* scene);
-    // Creates a stamp cursor using the selection of the first valid gridSelection
+    void createTileCursor(MtGraphicsScene* scene);
+    // Creates a tile cursor using the `gridSelectionGrid` of the first valid gridSelection
     // in the GridSelectionSources list.
     //
     // This SHOULD BE called when the Resource Item changes and AFTER the
     // gridSelectionSources and their renderer's have had their resource items set.
-    void createStampCursor();
+    void createTileCursor();
 
-    // Connects the scene's gridSelection to the stamp cursor
+    // Connects the scene's gridSelection to the tile cursor
     void addGridSelectionSource(MtGraphicsScene* scene);
 
     // Be aware location may be outside the grid.

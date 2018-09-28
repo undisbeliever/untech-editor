@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "stampgraphicsitem.h"
+#include "tilecursorgraphicsitem.h"
 #include "mtgraphicsscenes.h"
 #include "style.h"
 #include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
@@ -19,7 +19,7 @@ using namespace UnTech;
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 
-StampGraphicsItem::StampGraphicsItem(MtEditableGraphicsScene* scene)
+TileCursorGraphicsItem::TileCursorGraphicsItem(MtEditableGraphicsScene* scene)
     : AbstractCursorGraphicsItem()
     , _scene(scene)
     , _tileGridPainter()
@@ -38,19 +38,19 @@ StampGraphicsItem::StampGraphicsItem(MtEditableGraphicsScene* scene)
     setEnableClickDrag(true);
 
     connect(scene, &MtEditableGraphicsScene::cursorRectChanged,
-            this, &StampGraphicsItem::updateAll);
+            this, &TileCursorGraphicsItem::updateAll);
 
     connect(scene->renderer(), &MtTilesetRenderer::nMetaTilesChanged,
-            this, &StampGraphicsItem::updateTileGridFragments);
+            this, &TileCursorGraphicsItem::updateTileGridFragments);
 
     connect(scene->renderer(), &MtTilesetRenderer::pixmapChanged,
-            this, &StampGraphicsItem::updateAll);
+            this, &TileCursorGraphicsItem::updateAll);
 
     connect(scene->style(), &Style::showGridChanged,
-            this, &StampGraphicsItem::updateAll);
+            this, &TileCursorGraphicsItem::updateAll);
 }
 
-bool StampGraphicsItem::setTilePosition(const point& tilePosition)
+bool TileCursorGraphicsItem::setTilePosition(const point& tilePosition)
 {
     if (_tilePosition != tilePosition) {
         _tilePosition = tilePosition;
@@ -61,7 +61,7 @@ bool StampGraphicsItem::setTilePosition(const point& tilePosition)
     return false;
 }
 
-void StampGraphicsItem::setSourceGrid(grid_t&& grid)
+void TileCursorGraphicsItem::setSourceGrid(grid_t&& grid)
 {
     if (_sourceGrid != grid) {
         _sourceGrid = grid;
@@ -72,7 +72,7 @@ void StampGraphicsItem::setSourceGrid(grid_t&& grid)
     }
 }
 
-const StampGraphicsItem::grid_t& StampGraphicsItem::activeGrid() const
+const TileCursorGraphicsItem::grid_t& TileCursorGraphicsItem::activeGrid() const
 {
     if (_drawState == DrawState::STAMP) {
         return _sourceGrid;
@@ -82,7 +82,7 @@ const StampGraphicsItem::grid_t& StampGraphicsItem::activeGrid() const
     }
 }
 
-QRect StampGraphicsItem::validCellsRect() const
+QRect TileCursorGraphicsItem::validCellsRect() const
 {
     const QRect& cr = _scene->cursorRect();
 
@@ -90,7 +90,7 @@ QRect StampGraphicsItem::validCellsRect() const
                  cr.width() / METATILE_SIZE, cr.height() / METATILE_SIZE);
 }
 
-void StampGraphicsItem::updateBoundingBox()
+void TileCursorGraphicsItem::updateBoundingBox()
 {
     const grid_t& grid = activeGrid();
 
@@ -105,24 +105,24 @@ void StampGraphicsItem::updateBoundingBox()
     }
 }
 
-QRectF StampGraphicsItem::boundingRect() const
+QRectF TileCursorGraphicsItem::boundingRect() const
 {
     return _boundingRect;
 }
 
-void StampGraphicsItem::updateAll()
+void TileCursorGraphicsItem::updateAll()
 {
     update();
 }
 
-void StampGraphicsItem::updateTileGridFragments()
+void TileCursorGraphicsItem::updateTileGridFragments()
 {
     _tileGridPainter.updateFragments(_scene->renderer(), activeGrid());
     updateAll();
 }
 
-void StampGraphicsItem::paint(QPainter* painter,
-                              const QStyleOptionGraphicsItem*, QWidget*)
+void TileCursorGraphicsItem::paint(QPainter* painter,
+                                   const QStyleOptionGraphicsItem*, QWidget*)
 {
     painter->save();
 
@@ -196,7 +196,7 @@ void StampGraphicsItem::paint(QPainter* painter,
     painter->restore();
 }
 
-bool StampGraphicsItem::processMouseScenePosition(const QPointF& scenePos)
+bool TileCursorGraphicsItem::processMouseScenePosition(const QPointF& scenePos)
 {
     _mouseScenePosition = scenePos;
 
@@ -214,7 +214,7 @@ bool StampGraphicsItem::processMouseScenePosition(const QPointF& scenePos)
     return false;
 }
 
-bool StampGraphicsItem::processNormalMousePosition(const QPointF& scenePos)
+bool TileCursorGraphicsItem::processNormalMousePosition(const QPointF& scenePos)
 {
     const auto& grid = activeGrid();
 
@@ -227,7 +227,7 @@ bool StampGraphicsItem::processNormalMousePosition(const QPointF& scenePos)
     return setTilePosition(tilePos);
 }
 
-bool StampGraphicsItem::processDrawBoxMousePosition(const QPointF& scenePos)
+bool TileCursorGraphicsItem::processDrawBoxMousePosition(const QPointF& scenePos)
 {
     point mousePosition(qFloor(scenePos.x()) / METATILE_SIZE,
                         qFloor(scenePos.y()) / METATILE_SIZE);
@@ -262,7 +262,7 @@ bool StampGraphicsItem::processDrawBoxMousePosition(const QPointF& scenePos)
     return false;
 }
 
-void StampGraphicsItem::resetDrawState()
+void TileCursorGraphicsItem::resetDrawState()
 {
     if (_drawState != DrawState::STAMP) {
         _drawState = DrawState::STAMP;
@@ -274,7 +274,7 @@ void StampGraphicsItem::resetDrawState()
     }
 }
 
-void StampGraphicsItem::updateDrawState(Qt::KeyboardModifiers modifiers)
+void TileCursorGraphicsItem::updateDrawState(Qt::KeyboardModifiers modifiers)
 {
     if (modifiers & Qt::ShiftModifier) {
         // shift pressed
@@ -295,7 +295,7 @@ void StampGraphicsItem::updateDrawState(Qt::KeyboardModifiers modifiers)
     }
 }
 
-bool StampGraphicsItem::processEscape()
+bool TileCursorGraphicsItem::processEscape()
 {
     // If in the middle of drawing a box using two clicks, them stop drawing
     // the box, otherwise remove cursor.
@@ -314,17 +314,17 @@ bool StampGraphicsItem::processEscape()
     return true;
 }
 
-void StampGraphicsItem::keyPressEvent(QKeyEvent* event)
+void TileCursorGraphicsItem::keyPressEvent(QKeyEvent* event)
 {
     updateDrawState(event->modifiers());
 }
 
-void StampGraphicsItem::keyReleaseEvent(QKeyEvent* event)
+void TileCursorGraphicsItem::keyReleaseEvent(QKeyEvent* event)
 {
     updateDrawState(event->modifiers());
 }
 
-void StampGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void TileCursorGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
     updateDrawState(event->modifiers());
 
@@ -350,7 +350,7 @@ void StampGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     }
 }
 
-void StampGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void TileCursorGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     updateDrawState(event->modifiers());
 
@@ -384,7 +384,7 @@ void StampGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     }
 }
 
-void StampGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void TileCursorGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
     updateDrawState(event->modifiers());
 
@@ -408,7 +408,7 @@ void StampGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     }
 }
 
-void StampGraphicsItem::processClick()
+void TileCursorGraphicsItem::processClick()
 {
     const QRect validCells = validCellsRect();
     const grid_t& grid = activeGrid();
@@ -424,7 +424,7 @@ void StampGraphicsItem::processClick()
     }
 }
 
-void StampGraphicsItem::createBoxGrid(unsigned width, unsigned height)
+void TileCursorGraphicsItem::createBoxGrid(unsigned width, unsigned height)
 {
     Q_ASSERT(_drawState != DrawState::STAMP);
 

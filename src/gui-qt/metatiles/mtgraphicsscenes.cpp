@@ -6,7 +6,7 @@
 
 #include "mtgraphicsscenes.h"
 #include "mtgridgraphicsitem.h"
-#include "stampgraphicsitem.h"
+#include "tilecursorgraphicsitem.h"
 #include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
 #include "gui-qt/metatiles/mttileset/mttilesetresourceitem.h"
 
@@ -233,34 +233,34 @@ void MtEditableGraphicsScene::removeCursor()
     gridGraphicsItem()->setShowGridSelection(true);
 }
 
-void MtEditableGraphicsScene::createStampCursor(MtGraphicsScene::grid_t&& grid)
+void MtEditableGraphicsScene::createTileCursor(MtGraphicsScene::grid_t&& grid)
 {
     if (grid.empty()) {
         removeCursor();
     }
     else {
-        StampGraphicsItem* stamp = qobject_cast<StampGraphicsItem*>(_cursorItem);
-        if (stamp == nullptr) {
-            stamp = new StampGraphicsItem(this);
+        TileCursorGraphicsItem* cursor = qobject_cast<TileCursorGraphicsItem*>(_cursorItem);
+        if (cursor == nullptr) {
+            cursor = new TileCursorGraphicsItem(this);
         }
 
-        stamp->setSourceGrid(std::move(grid));
-        setCursor(stamp);
+        cursor->setSourceGrid(std::move(grid));
+        setCursor(cursor);
     }
 }
 
-void MtEditableGraphicsScene::createStampCursor(MtGraphicsScene* scene)
+void MtEditableGraphicsScene::createTileCursor(MtGraphicsScene* scene)
 {
     Q_ASSERT(scene);
-    createStampCursor(scene->gridSelectionGrid());
+    createTileCursor(scene->gridSelectionGrid());
 }
 
-void MtEditableGraphicsScene::createStampCursor()
+void MtEditableGraphicsScene::createTileCursor()
 {
     auto process = [this](MtGraphicsScene* s) {
         grid_t g = s->gridSelectionGrid();
         if (g.empty() == false) {
-            createStampCursor(std::move(g));
+            createTileCursor(std::move(g));
             return true;
         }
         return false;
@@ -294,6 +294,6 @@ void MtEditableGraphicsScene::onGridSelectionEdited()
 {
     MtGraphicsScene* obj = qobject_cast<MtGraphicsScene*>(sender());
     if (obj) {
-        createStampCursor(obj);
+        createTileCursor(obj);
     }
 }

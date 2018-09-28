@@ -5,8 +5,8 @@
  */
 
 #include "mtgraphicsscenes.h"
-#include "stampgraphicsitem.h"
 #include "style.h"
+#include "tilecursorgraphicsitem.h"
 #include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
 #include "gui-qt/metatiles/mttileset/mttilesetresourceitem.h"
 #include "models/metatiles/metatile-tileset.h"

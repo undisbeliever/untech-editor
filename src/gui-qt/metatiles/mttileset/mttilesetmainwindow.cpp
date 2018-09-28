@@ -105,7 +105,7 @@ void MtTilesetMainWindow::setResourceItem(MtTilesetResourceItem* item)
 
     onTilesetPalettesChanged();
 
-    _editableScratchpadScene->createStampCursor();
+    _editableScratchpadScene->createTileCursor();
 
     if (_tileset) {
         onTilesetStateChanged();
