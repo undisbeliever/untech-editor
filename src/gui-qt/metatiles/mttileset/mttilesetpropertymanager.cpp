@@ -5,7 +5,9 @@
  */
 
 #include "mttilesetpropertymanager.h"
+#include "mttilesetaccessors.h"
 #include "mttilesetresourceitem.h"
+#include "gui-qt/accessor/gridundohelper.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
@@ -21,6 +23,7 @@ MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     using Type = UnTech::GuiQt::PropertyType;
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
+    addProperty(tr("Scratchpad Size"), SCRATCHPAD_SIZE, Type::SIZE, QSize(0, 0), QSize(255, 255));
     addProperty(tr("Palettes"), PALETTES, Type::IDSTRING_LIST);
     addPropertyGroup(tr("Animation Frames:"));
     addProperty(tr("Frame Images"), FRAME_IMAGES, Type::FILENAME_LIST,
@@ -80,6 +83,9 @@ QVariant MtTilesetPropertyManager::data(int id) const
     case NAME:
         return QString::fromStdString(ti->name);
 
+    case SCRATCHPAD_SIZE:
+        return fromUsize(ti->scratchpad.size());
+
     case PALETTES:
         return convertStringList(ti->palettes);
 
@@ -104,34 +110,46 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
     Q_ASSERT(_tileset);
     Q_ASSERT(_tileset->data());
 
-    MT::MetaTileTilesetInput newData = *_tileset->data();
+    TilesetUndoHelper undoHelper(_tileset);
 
     switch ((PropertyId)id) {
     case NAME:
-        newData.name = value.toString().toStdString();
-        break;
+        return undoHelper.editName(value.toString().toStdString());
+
+    case SCRATCHPAD_SIZE:
+        return MtTilesetScratchpadGridUndoHelper(_tileset->scratchpadGrid())
+            .resizeSelectedGrid(toUsize(value.toSize()), MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE,
+                                tr("Resize scratchpad"));
 
     case PALETTES:
-        newData.palettes = toIdstringVector(value.toStringList());
-        break;
+        return undoHelper.editField(toIdstringVector(value.toStringList()),
+                                    tr("Edit Palette List"),
+                                    [](MT::MetaTileTilesetInput& ti) -> std::vector<idstring>& { return ti.palettes; },
+                                    [](MtTilesetResourceItem& item) { emit item.palettesChanged();
+                                                                      item.updateDependencies(); });
 
     case FRAME_IMAGES:
-        newData.animationFrames.frameImageFilenames = toStringVector(value.toStringList());
-        break;
+        return undoHelper.editField(toStringVector(value.toStringList()),
+                                    tr("Edit Frame Image List"),
+                                    [](MT::MetaTileTilesetInput& ti) -> std::vector<std::string>& { return ti.animationFrames.frameImageFilenames; },
+                                    [](MtTilesetResourceItem& item) { item.updateExternalFiles(); });
 
     case ANIMATION_DELAY:
-        newData.animationFrames.animationDelay = value.toUInt();
-        break;
+        return undoHelper.editField(value.toUInt(),
+                                    tr("Edit Animation Delay"),
+                                    [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.animationDelay; },
+                                    [](MtTilesetResourceItem& item) { emit item.animationDelayChanged(); });
 
     case BIT_DEPTH:
-        newData.animationFrames.bitDepth = value.toUInt();
-        break;
+        return undoHelper.editField(value.toUInt(),
+                                    tr("Edit Bit Depth"),
+                                    [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.bitDepth; });
 
     case ADD_TRANSPARENT_TILE:
-        newData.animationFrames.addTransparentTile = value.toBool();
-        break;
+        return undoHelper.editField(value.toBool(),
+                                    tr("Edit Add Transparent Tile"),
+                                    [](MT::MetaTileTilesetInput& ti) -> bool& { return ti.animationFrames.addTransparentTile; });
     }
 
-    return TilesetUndoHelper(_tileset)
-        .edit(newData, tr("Edit %1").arg(propertyTitle(id)));
+    return false;
 }

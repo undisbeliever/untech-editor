@@ -193,25 +193,28 @@ static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vect
     return ret;
 }
 
-static void buildTilesetAndTilemap(AnimatedTilesetData& aniTileset, const AnimatedTilesetIntermediate& input)
+static void buildTilesetAndTilemap(AnimatedTilesetData& aniTileset, const usize& mapSize, const AnimatedTilesetIntermediate& input)
 {
-    auto& tileMap = aniTileset.tileMap;
-    tileMap.resize(input.tileMap.size());
+    aniTileset.tileMap = grid<Snes::TilemapEntry>(mapSize);
+    assert(aniTileset.tileMap.cellCount() == input.tileMap.size());
 
-    Snes::TilesetInserter8px staticTilesetInserter(aniTileset.staticTiles);
-    for (unsigned t = 0; t < tileMap.size(); t++) {
-        const auto& tm = input.tileMap.at(t);
-        auto& tmEntry = tileMap.at(t);
+    {
+        Snes::TilesetInserter8px staticTilesetInserter(aniTileset.staticTiles);
+        auto tmIt = input.tileMap.begin();
+        for (auto& tmEntry : aniTileset.tileMap) {
+            const auto& tm = *tmIt++;
 
-        if (tm.isAnimated == false) {
-            const auto& tile = input.staticTiles.at(tm.tile);
-            auto to = staticTilesetInserter.getOrInsert(tile);
+            if (tm.isAnimated == false) {
+                const auto& tile = input.staticTiles.at(tm.tile);
+                auto to = staticTilesetInserter.getOrInsert(tile);
 
-            tmEntry.setCharacter(to.tileId);
-            tmEntry.setPalette(tm.palette);
-            tmEntry.setHFlip(to.hFlip);
-            tmEntry.setVFlip(to.vFlip);
+                tmEntry.setCharacter(to.tileId);
+                tmEntry.setPalette(tm.palette);
+                tmEntry.setHFlip(to.hFlip);
+                tmEntry.setVFlip(to.vFlip);
+            }
         }
+        assert(tmIt == input.tileMap.end());
     }
 
     if (!input.animatedTiles.empty()) {
@@ -223,9 +226,9 @@ static void buildTilesetAndTilemap(AnimatedTilesetData& aniTileset, const Animat
         unsigned aniTileOffset = aniTileset.staticTiles.size();
 
         Snes::AnimatedTilesetInserter<Snes::Tileset8px> aniTilesetInserter(aniTileset.animatedTiles);
-        for (unsigned t = 0; t < tileMap.size(); t++) {
-            const auto& tm = input.tileMap.at(t);
-            auto& tmEntry = tileMap.at(t);
+        auto tmIt = input.tileMap.begin();
+        for (auto& tmEntry : aniTileset.tileMap) {
+            const auto& tm = *tmIt++;
 
             if (tm.isAnimated == true) {
                 const auto& tiles = input.animatedTiles.at(tm.tile);
@@ -237,6 +240,7 @@ static void buildTilesetAndTilemap(AnimatedTilesetData& aniTileset, const Animat
                 tmEntry.setVFlip(to.vFlip);
             }
         }
+        assert(tmIt == input.tileMap.end());
     }
 }
 
@@ -301,10 +305,9 @@ convertAnimationFrames(const AnimationFramesInput& input, const PaletteInput& pa
     const auto& imgSize = ImageCache::loadPngImage(firstImageFilename)->size();
 
     auto ret = std::make_unique<AnimatedTilesetData>(input.bitDepth);
-
     ret->animationDelay = input.animationDelay;
-    ret->mapWidth = imgSize.width / 8;
-    ret->mapHeight = imgSize.height / 8;
+
+    const usize mapSize(imgSize.width / 8, imgSize.height / 8);
 
     const auto palette = extractFirstPalette(paletteInput, input.bitDepth, err);
     if (palette.empty()) {
@@ -315,13 +318,13 @@ convertAnimationFrames(const AnimationFramesInput& input, const PaletteInput& pa
     if (initialErrorCount != err.errorCount()) {
         return nullptr;
     }
-    const auto tilesetIntermediate = combineFrameTiles(frameTiles, ret->mapWidth, err);
+    const auto tilesetIntermediate = combineFrameTiles(frameTiles, mapSize.width, err);
 
     if (input.addTransparentTile) {
         ret->staticTiles.addTile();
     }
 
-    buildTilesetAndTilemap(*ret, tilesetIntermediate);
+    buildTilesetAndTilemap(*ret, mapSize, tilesetIntermediate);
 
     if (initialErrorCount != err.errorCount()) {
         return nullptr;

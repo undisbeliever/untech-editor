@@ -9,6 +9,9 @@
 namespace UnTech {
 namespace MetaTiles {
 
+constexpr unsigned MAX_GRID_WIDTH = 255;
+constexpr unsigned MAX_GRID_HEIGHT = 255;
+
 struct EngineSettings {
     unsigned maxMapSize;
     unsigned nMetaTiles;

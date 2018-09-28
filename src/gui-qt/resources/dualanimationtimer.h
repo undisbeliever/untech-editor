@@ -16,22 +16,23 @@ namespace UnTech {
 namespace GuiQt {
 namespace Resources {
 
-class AnimationTimer : public QObject {
+class DualAnimationTimer : public QObject {
     Q_OBJECT
 
     static constexpr unsigned TICKS_PER_SECOND = 300;
 
 public:
-    AnimationTimer(QObject* parent = nullptr);
-    ~AnimationTimer() = default;
+    DualAnimationTimer(QObject* parent = nullptr);
+    ~DualAnimationTimer() = default;
 
     virtual void timerEvent(QTimerEvent* event) final;
 
     unsigned ticksPerFrame() const { return _ticksPerFrame; }
     unsigned nsPerFrame() const { return _nsPerFrame; }
 
-    unsigned animationDelay() const { return _animationDelay; }
-    void setAnimationDelay(unsigned animationDelay) { _animationDelay = animationDelay; }
+    void setAnimationDelays(unsigned delay0, unsigned delay1);
+
+    const auto& animationFrameCount() const { return _animationFrameCount; }
 
     bool isEnabled() const { return _enabled; }
     void setEnabled(bool enabled);
@@ -42,6 +43,11 @@ public:
 public slots:
     void startTimer();
     void stopTimer();
+    void resetTimer();
+    void resetAnimationFrameCount();
+
+    void pauseAndIncrementFirstFrameCount();
+    void pauseAndIncrementSecondFrameCount();
 
 private slots:
     void onPlayButtonClicked();
@@ -49,7 +55,7 @@ private slots:
 
 signals:
     void animationStarted();
-    void animationFrameAdvance();
+    void animationFrameCountChanged();
     void animationStopped();
 
 private:
@@ -59,9 +65,10 @@ private:
 
     unsigned _nsPerFrame;
     unsigned _ticksPerFrame;
-    unsigned _animationDelay;
 
-    unsigned _animationTicksCurrent;
+    std::pair<unsigned, unsigned> _animationDelay;
+    std::pair<unsigned, unsigned> _animationTicksCurrent;
+    std::pair<unsigned, unsigned> _animationFrameCount;
 
     QAbstractButton* _playButton;
     QComboBox* _regionCombo;

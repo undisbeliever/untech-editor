@@ -6,38 +6,42 @@
 
 #pragma once
 
-#include "gui-qt/resources/animationtimer.h"
 #include "models/resources/error-list.h"
 #include <QGraphicsObject>
 #include <QGraphicsScene>
 #include <QPixmap>
 #include <QVector>
+#include <QWidget>
 #include <memory>
 
 namespace UnTech {
 namespace GuiQt {
 class ZoomSettings;
+class AbstractResourceItem;
 
-namespace MetaTiles {
+namespace Resources {
 namespace Ui {
-class MtTilesetCentralWidget;
+class AnimationFramesInputWidget;
 }
-class MtTilesetResourceItem;
-class MtTilesetGraphicsItem;
+class AnimationFramesInputGraphicsItem;
+class AnimationFramesInputWidget;
+class AnimationTimer;
 
 namespace RES = UnTech::Resources;
 
-class MtTilesetCentralWidget : public QWidget {
+class AnimationFramesInputWidget : public QWidget {
     Q_OBJECT
 
 public:
-    MtTilesetCentralWidget(QWidget* parent,
-                           ZoomSettings* ZoomSettings);
-    ~MtTilesetCentralWidget();
+    AnimationFramesInputWidget(QWidget* parent = nullptr, ZoomSettings* ZoomSettings = nullptr);
+    ~AnimationFramesInputWidget();
 
     ZoomSettings* zoomSettings() const;
+    void setZoomSettings(ZoomSettings* zoomSettings);
 
-    void setResourceItem(MtTilesetResourceItem* item);
+    void setResourceItem(AbstractResourceItem* item);
+
+    void stopAnimations();
 
 private:
     void updateFrameLabel();
@@ -51,16 +55,15 @@ private slots:
     void onNextClicked();
 
 private:
-    std::unique_ptr<Ui::MtTilesetCentralWidget> const _ui;
+    std::unique_ptr<Ui::AnimationFramesInputWidget> const _ui;
+    AnimationTimer* const _animationTimer;
     QGraphicsScene* const _graphicsScene;
 
-    MtTilesetResourceItem* _tileset;
-    MtTilesetGraphicsItem* _graphicsItem;
-
-    Resources::AnimationTimer _animationTimer;
+    AbstractResourceItem* _tileset;
+    AnimationFramesInputGraphicsItem* _graphicsItem;
 };
 
-class MtTilesetGraphicsItem : public QGraphicsObject {
+class AnimationFramesInputGraphicsItem : public QGraphicsObject {
     Q_OBJECT
 
 public:
@@ -68,8 +71,8 @@ public:
     static const QColor ERROR_COLOR;
 
 public:
-    MtTilesetGraphicsItem(MtTilesetResourceItem* item);
-    ~MtTilesetGraphicsItem() = default;
+    AnimationFramesInputGraphicsItem(AbstractResourceItem* item);
+    ~AnimationFramesInputGraphicsItem() = default;
 
     void reloadAnimationFrame() { setAnimationFrameIndex(_animationFrameIndex); }
 
@@ -94,7 +97,8 @@ private slots:
     void loadPixmaps();
 
 private:
-    MtTilesetResourceItem* const _tileset;
+    AbstractResourceItem* const _resourceItem;
+    const unsigned _gridSize;
 
     QGraphicsItem* _commonErrors;
     QList<QGraphicsItem*> _frameErrors;

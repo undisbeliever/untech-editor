@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "models/common/idstring.h"
+#include <QCoreApplication>
 #include <QUndoCommand>
 
 namespace UnTech {
@@ -19,6 +21,11 @@ public:
     using DataT = typename ResourceItemT::DataT;
 
 private:
+    static inline QString tr(const char* s)
+    {
+        return QCoreApplication::tr(s);
+    }
+
     class EditCommand : public QUndoCommand {
     protected:
         ResourceItemT* const _item;
@@ -101,6 +108,47 @@ private:
         }
     };
 
+    class EditNameCommand : public QUndoCommand {
+    protected:
+        ResourceItemT* const _item;
+        const idstring _oldName;
+        const idstring _newName;
+
+    public:
+        EditNameCommand(ResourceItemT* item,
+                        const idstring& oldName, const idstring& newName)
+            : QUndoCommand(tr("Edit Name"))
+            , _item(item)
+            , _oldName(oldName)
+            , _newName(newName)
+        {
+        }
+        ~EditNameCommand() = default;
+
+        virtual void undo() final
+        {
+            setName(_oldName);
+        }
+
+        virtual void redo() final
+        {
+            setName(_newName);
+        }
+
+    private:
+        inline void setName(const idstring& name)
+        {
+            Q_ASSERT(_item);
+            DataT* d = _item->dataEditable();
+            Q_ASSERT(d);
+
+            d->name = name;
+
+            _item->setName(QString::fromStdString(d->name));
+            emit _item->dataChanged();
+        }
+    };
+
 private:
     ResourceItemT* const _resourceItem;
 
@@ -175,6 +223,29 @@ public:
                    UnaryFunction getter)
     {
         return editField(newValue, text, getter, EmptySignalFunction());
+    }
+
+    QUndoCommand* editNameCommand(const idstring& newName)
+    {
+        DataT* data = _resourceItem->dataEditable();
+        if (data == nullptr) {
+            return nullptr;
+        }
+        const idstring& oldName = data->name;
+
+        if (oldName == newName) {
+            return nullptr;
+        }
+        return new EditNameCommand(_resourceItem, oldName, newName);
+    }
+
+    bool editName(const idstring& newName)
+    {
+        QUndoCommand* c = editNameCommand(newName);
+        if (c) {
+            _resourceItem->undoStack()->push(c);
+        }
+        return c != nullptr;
     }
 };
 }

@@ -4,53 +4,91 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "mttilesetcentralwidget.h"
-#include "mttilesetresourceitem.h"
+#include "animationframesinputwidget.h"
 #include "gui-qt/common/graphics/qpenhelper.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
-#include "gui-qt/metatiles/mttileset/mttilesetcentralwidget.ui.h"
+#include "gui-qt/metatiles/mttileset/mttilesetresourceitem.h"
+#include "gui-qt/resources/animated-tileset/animationframesinputwidget.ui.h"
+#include "gui-qt/resources/animationtimer.h"
+#include "models/resources/animation-frames-input.h"
 
-using namespace UnTech::GuiQt::MetaTiles;
+using namespace UnTech::GuiQt;
+using namespace UnTech::GuiQt::Resources;
 
-const QColor MtTilesetGraphicsItem::GRID_COLOR = QColor(200, 200, 255, 128);
-const QColor MtTilesetGraphicsItem::ERROR_COLOR = QColor(255, 0, 50, 128);
+const QColor AnimationFramesInputGraphicsItem::GRID_COLOR = QColor(200, 200, 255, 128);
+const QColor AnimationFramesInputGraphicsItem::ERROR_COLOR = QColor(255, 0, 50, 128);
 
-MtTilesetCentralWidget::MtTilesetCentralWidget(QWidget* parent,
-                                               ZoomSettings* zoomSettings)
+static const RES::AnimationFramesInput* getAnimationFramesInput(AbstractResourceItem* item)
+{
+    if (item == nullptr) {
+        return nullptr;
+    }
+
+    if (const auto* tileset = qobject_cast<MetaTiles::MtTilesetResourceItem*>(item)) {
+        if (const auto* ti = tileset->tilesetInput()) {
+            return &ti->animationFrames;
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    throw std::invalid_argument("Cannot retrieve AnimationFramesInput from AbstractResourceItem");
+}
+
+static unsigned getGridSize(const AbstractResourceItem* item)
+{
+    Q_ASSERT(item);
+
+    if (qobject_cast<const MetaTiles::MtTilesetResourceItem*>(item)) {
+        return 16;
+    }
+    else {
+        return 8;
+    }
+}
+
+AnimationFramesInputWidget::AnimationFramesInputWidget(QWidget* parent, ZoomSettings* zoomSettings)
     : QWidget(parent)
-    , _ui(new Ui::MtTilesetCentralWidget)
+    , _ui(new Ui::AnimationFramesInputWidget)
+    , _animationTimer(new AnimationTimer(this))
     , _graphicsScene(new QGraphicsScene(this))
     , _tileset(nullptr)
     , _graphicsItem(nullptr)
 {
     _ui->setupUi(this);
-    _ui->graphicsView->setZoomSettings(zoomSettings);
+    setZoomSettings(zoomSettings);
 
-    _animationTimer.setRegionCombo(_ui->region);
-    _animationTimer.setPlayButton(_ui->playButton);
+    _animationTimer->setRegionCombo(_ui->region);
+    _animationTimer->setPlayButton(_ui->playButton);
 
     _ui->graphicsView->setScene(_graphicsScene);
 
     setEnabled(false);
 
-    connect(&_animationTimer, &Resources::AnimationTimer::animationFrameAdvance,
-            this, &MtTilesetCentralWidget::onAnimationFrameAdvance);
+    connect(_animationTimer, &Resources::AnimationTimer::animationFrameAdvance,
+            this, &AnimationFramesInputWidget::onAnimationFrameAdvance);
     connect(_ui->previousButton, &QAbstractButton::clicked,
-            this, &MtTilesetCentralWidget::onPreviousClicked);
+            this, &AnimationFramesInputWidget::onPreviousClicked);
     connect(_ui->nextButton, &QAbstractButton::clicked,
-            this, &MtTilesetCentralWidget::onNextClicked);
+            this, &AnimationFramesInputWidget::onNextClicked);
 }
 
-UnTech::GuiQt::ZoomSettings* MtTilesetCentralWidget::zoomSettings() const
+UnTech::GuiQt::ZoomSettings* AnimationFramesInputWidget::zoomSettings() const
 {
     return _ui->graphicsView->zoomSettings();
 }
 
-MtTilesetCentralWidget::~MtTilesetCentralWidget() = default;
-
-void MtTilesetCentralWidget::setResourceItem(MtTilesetResourceItem* item)
+void AnimationFramesInputWidget::setZoomSettings(ZoomSettings* zoomSettings)
 {
-    _animationTimer.stopTimer();
+    _ui->graphicsView->setZoomSettings(zoomSettings);
+}
+
+AnimationFramesInputWidget::~AnimationFramesInputWidget() = default;
+
+void AnimationFramesInputWidget::setResourceItem(AbstractResourceItem* item)
+{
+    _animationTimer->stopTimer();
 
     if (_tileset == item) {
         return;
@@ -65,13 +103,13 @@ void MtTilesetCentralWidget::setResourceItem(MtTilesetResourceItem* item)
     _graphicsItem = nullptr;
 
     if (_tileset) {
-        _graphicsItem = new MtTilesetGraphicsItem(_tileset);
+        _graphicsItem = new AnimationFramesInputGraphicsItem(_tileset);
         _graphicsScene->addItem(_graphicsItem);
 
         onMtTilesetDataChanged();
 
-        connect(_tileset, &MtTilesetResourceItem::dataChanged,
-                this, &MtTilesetCentralWidget::onMtTilesetDataChanged);
+        connect(_tileset, &AbstractResourceItem::dataChanged,
+                this, &AnimationFramesInputWidget::onMtTilesetDataChanged);
     }
     else {
         _ui->animationFrameLabel->clear();
@@ -80,7 +118,12 @@ void MtTilesetCentralWidget::setResourceItem(MtTilesetResourceItem* item)
     setEnabled(item != nullptr);
 }
 
-void MtTilesetCentralWidget::updateFrameLabel()
+void AnimationFramesInputWidget::stopAnimations()
+{
+    _animationTimer->stopTimer();
+}
+
+void AnimationFramesInputWidget::updateFrameLabel()
 {
     Q_ASSERT(_tileset);
     Q_ASSERT(_graphicsItem);
@@ -94,20 +137,21 @@ void MtTilesetCentralWidget::updateFrameLabel()
     }
 }
 
-void MtTilesetCentralWidget::clearGui()
+void AnimationFramesInputWidget::clearGui()
 {
-    _animationTimer.setEnabled(false);
+    _animationTimer->setEnabled(false);
     _ui->animationFrameLabel->clear();
 }
 
-void MtTilesetCentralWidget::onMtTilesetDataChanged()
+void AnimationFramesInputWidget::onMtTilesetDataChanged()
 {
     Q_ASSERT(_tileset);
 
-    _animationTimer.setEnabled(_tileset->tilesetInput() != nullptr);
+    auto* animationFrames = getAnimationFramesInput(_tileset);
+    _animationTimer->setEnabled(animationFrames != nullptr);
 
-    if (const auto& ti = _tileset->tilesetInput()) {
-        _animationTimer.setAnimationDelay(ti->animationFrames.animationDelay);
+    if (animationFrames) {
+        _animationTimer->setAnimationDelay(animationFrames->animationDelay);
     }
 
     _graphicsItem->reloadAnimationFrame();
@@ -117,55 +161,53 @@ void MtTilesetCentralWidget::onMtTilesetDataChanged()
     _graphicsScene->setSceneRect(_graphicsItem->boundingRect());
 }
 
-void MtTilesetCentralWidget::onAnimationFrameAdvance()
+void AnimationFramesInputWidget::onAnimationFrameAdvance()
 {
     _graphicsItem->nextAnimationFrame();
     updateFrameLabel();
 }
 
-void MtTilesetCentralWidget::onPreviousClicked()
+void AnimationFramesInputWidget::onPreviousClicked()
 {
-    _animationTimer.stopTimer();
+    _animationTimer->stopTimer();
     _graphicsItem->prevAnimationFrame();
     updateFrameLabel();
 }
 
-void MtTilesetCentralWidget::onNextClicked()
+void AnimationFramesInputWidget::onNextClicked()
 {
-    _animationTimer.stopTimer();
+    _animationTimer->stopTimer();
     _graphicsItem->nextAnimationFrame();
     updateFrameLabel();
 }
 
-MtTilesetGraphicsItem::MtTilesetGraphicsItem(MtTilesetResourceItem* item)
+AnimationFramesInputGraphicsItem::AnimationFramesInputGraphicsItem(AbstractResourceItem* item)
     : QGraphicsObject()
-    , _tileset(item)
+    , _resourceItem(item)
+    , _gridSize(getGridSize(item))
     , _commonErrors(nullptr)
     , _animationFrameIndex(0)
 {
-    Q_ASSERT(_tileset);
+    Q_ASSERT(_resourceItem);
 
     loadPixmaps();
     reloadAnimationFrame();
 
     updateInvalidTiles();
 
-    connect(_tileset, &MtTilesetResourceItem::externalFilesModified,
-            this, &MtTilesetGraphicsItem::loadPixmaps);
+    connect(_resourceItem, &AbstractResourceItem::externalFilesModified,
+            this, &AnimationFramesInputGraphicsItem::loadPixmaps);
 
-    connect(_tileset, &AbstractResourceItem::errorListChanged,
-            this, &MtTilesetGraphicsItem::updateInvalidTiles);
+    connect(_resourceItem, &AbstractResourceItem::errorListChanged,
+            this, &AnimationFramesInputGraphicsItem::updateInvalidTiles);
 }
 
-void MtTilesetGraphicsItem::loadPixmaps()
+void AnimationFramesInputGraphicsItem::loadPixmaps()
 {
-    Q_ASSERT(_tileset);
-    const auto& _tilesetInput = _tileset->tilesetInput();
-
     _pixmaps.clear();
 
-    if (_tilesetInput) {
-        const auto& filenames = _tilesetInput->animationFrames.frameImageFilenames;
+    if (const auto* animationFrames = getAnimationFramesInput(_resourceItem)) {
+        const auto& filenames = animationFrames->frameImageFilenames;
         _pixmaps.reserve(filenames.size());
         for (const auto& fn : filenames) {
             _pixmaps.append(QPixmap(QString::fromStdString(fn), "PNG"));
@@ -180,9 +222,9 @@ void MtTilesetGraphicsItem::loadPixmaps()
     update();
 }
 
-void MtTilesetGraphicsItem::setAnimationFrameIndex(int index)
+void AnimationFramesInputGraphicsItem::setAnimationFrameIndex(int index)
 {
-    Q_ASSERT(_tileset);
+    Q_ASSERT(_resourceItem);
 
     if (!_pixmaps.empty()) {
         if (index < 0) {
@@ -204,7 +246,7 @@ void MtTilesetGraphicsItem::setAnimationFrameIndex(int index)
     update();
 }
 
-QRectF MtTilesetGraphicsItem::boundingRect() const
+QRectF AnimationFramesInputGraphicsItem::boundingRect() const
 {
     if (_animationFrameIndex < 0 || _animationFrameIndex >= _pixmaps.size()) {
         return QRectF();
@@ -217,8 +259,8 @@ QRectF MtTilesetGraphicsItem::boundingRect() const
     return QRectF(0, 0, w, h);
 }
 
-void MtTilesetGraphicsItem::paint(QPainter* painter,
-                                  const QStyleOptionGraphicsItem*, QWidget* widget)
+void AnimationFramesInputGraphicsItem::paint(QPainter* painter,
+                                             const QStyleOptionGraphicsItem*, QWidget* widget)
 {
     if (_animationFrameIndex < 0 || _animationFrameIndex >= _pixmaps.size()) {
         return;
@@ -228,7 +270,6 @@ void MtTilesetGraphicsItem::paint(QPainter* painter,
     painter->drawPixmap(0, 0, pixmap);
 
     // draw grid
-
     painter->save();
 
     painter->setBrush(QBrush());
@@ -239,17 +280,17 @@ void MtTilesetGraphicsItem::paint(QPainter* painter,
 
     painter->drawRect(0, 0, w, h);
 
-    for (unsigned x = 16; x < w; x += 16) {
+    for (unsigned x = _gridSize; x < w; x += _gridSize) {
         painter->drawLine(x, 0, x, h);
     }
-    for (unsigned y = 16; y < h; y += 16) {
+    for (unsigned y = _gridSize; y < h; y += _gridSize) {
         painter->drawLine(0, y, w, y);
     }
 
     painter->restore();
 }
 
-void MtTilesetGraphicsItem::updateInvalidTiles()
+void AnimationFramesInputGraphicsItem::updateInvalidTiles()
 {
     // delete all the old error items
     {
@@ -293,7 +334,7 @@ void MtTilesetGraphicsItem::updateInvalidTiles()
         QBrush errorBrush(ERROR_COLOR);
         QPen errorPen = createCosmeticPen(ERROR_COLOR, widget);
 
-        const auto& invalidTiles = _tileset->errorList().invalidImageTiles();
+        const auto& invalidTiles = _resourceItem->errorList().invalidImageTiles();
 
         for (const auto& tile : invalidTiles) {
             QRectF r(tile.x, tile.y, tile.size, tile.size);
@@ -316,7 +357,7 @@ void MtTilesetGraphicsItem::updateInvalidTiles()
     }
 }
 
-const QString& MtTilesetGraphicsItem::toolTipForType(const RES::ErrorList::InvalidTileReason& reason)
+const QString& AnimationFramesInputGraphicsItem::toolTipForType(const RES::ErrorList::InvalidTileReason& reason)
 {
     using ITR = RES::ErrorList::InvalidTileReason;
 

@@ -5,41 +5,34 @@
  */
 
 #include "mttilesetresourceitem.h"
+#include "mttilesetaccessors.h"
 #include "mttilesetresourcelist.h"
 #include "gui-qt/common/helpers.h"
 #include "models/metatiles/metatiles-serializer.h"
 
 using namespace UnTech::GuiQt::MetaTiles;
 
+constexpr uint16_t MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE;
+
 MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _tileParameters(new MtTilesetTileParameters(this))
+    , _scratchpadGrid(new MtTilesetScratchpadGrid(this))
+    , _compiledData(nullptr)
 {
     Q_ASSERT(index < mtTilesetList().size());
 
     setFilename(QString::fromStdString(tilesetInputItem().filename));
 }
 
-void MtTilesetResourceItem::setData(const MT::MetaTileTilesetInput& data)
+void MtTilesetResourceItem::updateExternalFiles()
 {
-    std::unique_ptr<DataT>& tileset = tilesetInputItem().value;
-    Q_ASSERT(tileset);
-
-    bool nameChange = tileset->name != data.name;
-    bool imagesChange = tileset->animationFrames.frameImageFilenames != data.animationFrames.frameImageFilenames;
-    bool palettesChanged = tileset->palettes != data.palettes;
-
-    *tileset = data;
-    emit dataChanged();
-
-    if (nameChange) {
-        setName(QString::fromStdString(data.name));
+    QStringList files;
+    if (auto* d = data()) {
+        files = convertStringList(d->animationFrames.frameImageFilenames);
     }
-    if (imagesChange) {
-        setExternalFiles(convertStringList(data.animationFrames.frameImageFilenames));
-    }
-    if (palettesChanged) {
-        updateDependencies();
-    }
+
+    setExternalFiles(files);
 }
 
 void MtTilesetResourceItem::updateDependencies()
@@ -75,7 +68,7 @@ bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
     try {
         tilesetItem.loadFile();
         setName(QString::fromStdString(tilesetInput()->name));
-        setExternalFiles(convertStringList(tilesetInput()->animationFrames.frameImageFilenames));
+        updateExternalFiles();
         updateDependencies();
         return true;
     }
@@ -98,6 +91,15 @@ bool MtTilesetResourceItem::compileResource(RES::ErrorList& err)
     const auto& res = project()->resourcesFile();
     Q_ASSERT(res);
 
-    const auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *res, err);
-    return mtd && mtd->validate(res->metaTileEngineSettings, err);
+    auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *res, err);
+    bool valid = mtd && mtd->validate(res->metaTileEngineSettings, err);
+
+    if (valid) {
+        _compiledData = std::move(mtd);
+        return true;
+    }
+    else {
+        _compiledData.release();
+        return false;
+    }
 }

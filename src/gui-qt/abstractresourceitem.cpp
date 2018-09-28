@@ -112,13 +112,18 @@ void AbstractResourceItem::validateItem()
             err.addError(std::string("EXCEPTION: ") + ex.what());
             setState(ResourceState::ERROR);
         }
+
+        _errorList = err;
+        emit errorListChanged();
+
+        emit resourceComplied();
     }
     else {
+        _errorList = err;
+        emit errorListChanged();
+
         setState(ResourceState::DEPENDENCY_ERROR);
     }
-
-    _errorList = err;
-    emit errorListChanged();
 
     markDependantsUnchecked();
 }

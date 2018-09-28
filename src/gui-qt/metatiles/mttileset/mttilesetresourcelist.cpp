@@ -65,6 +65,7 @@ void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& 
 
         MT::MetaTileTilesetInput tilesetInput;
         tilesetInput.name = name.toStdString();
+        tilesetInput.scratchpad = grid<uint16_t>(16, 16, MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE);
         MT::saveMetaTileTilesetInput(tilesetInput, filename);
     }
 }

@@ -6,8 +6,10 @@
 
 #pragma once
 
+#include "models/common/aabb.h"
 #include "models/common/enummap.h"
 #include "models/common/idstring.h"
+#include <QSize>
 #include <QStringList>
 #include <QVariant>
 #include <string>
@@ -80,6 +82,16 @@ QVariantList enumComboDataList(const EnumMap<EnumT>& enumMap)
     std::transform(enumMap.begin(), enumMap.end(), std::back_inserter(vl),
                    [](const auto& p) { return int(p.second); });
     return vl;
+}
+
+inline QSize fromUsize(const usize& s)
+{
+    return QSize(s.width, s.height);
+}
+
+inline usize toUsize(const QSize& s)
+{
+    return usize(s.width(), s.height());
 }
 }
 }

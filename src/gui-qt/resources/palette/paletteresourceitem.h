@@ -34,6 +34,9 @@ public:
     }
     inline const RES::PaletteInput* paletteData() const { return data(); }
 
+    // returns nullptr if the PaletteData is invalid
+    const RES::PaletteData* compiledData() const { return _compiledData.get(); }
+
 protected:
     friend class Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
     void setData(const RES::PaletteInput& data);
@@ -46,6 +49,9 @@ private:
     {
         return project()->resourcesFile()->palettes;
     }
+
+private:
+    std::unique_ptr<RES::PaletteData> _compiledData;
 };
 }
 }

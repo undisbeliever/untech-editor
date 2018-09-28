@@ -6,11 +6,10 @@
 
 #pragma once
 
-#include "mttilesetcentralwidget.h"
+#include "mttilesetmainwindow.h"
 #include "mttilesetpropertymanager.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/abstracteditor.h"
-#include "gui-qt/genericpropertieswidget.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -20,12 +19,9 @@ class MtTilesetEditor : public AbstractEditor {
     Q_OBJECT
 
 public:
-    MtTilesetEditor(QWidget* parent, ZoomSettings* zoomSettings)
+    MtTilesetEditor(QWidget* parent, ZoomSettingsManager* zoomManager)
         : AbstractEditor(parent)
-        , _editorWidget(new MtTilesetCentralWidget(parent, zoomSettings))
-        , _propertyWidget(new GenericPropertiesWidget(
-              new MtTilesetPropertyManager(parent),
-              parent))
+        , _editorWidget(new MtTilesetMainWindow(parent, zoomManager))
     {
     }
     ~MtTilesetEditor() = default;
@@ -34,19 +30,22 @@ public:
     {
         MtTilesetResourceItem* item = qobject_cast<MtTilesetResourceItem*>(aItem);
         _editorWidget->setResourceItem(item);
-        _propertyWidget->setResourceItem(item);
 
         return item != nullptr;
     }
 
     virtual QWidget* editorWidget() const final { return _editorWidget; }
-    virtual QWidget* propertyWidget() const final { return _propertyWidget; }
+    virtual QWidget* propertyWidget() const final { return nullptr; }
+
+    virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu) final
+    {
+        _editorWidget->populateMenu(editMenu, viewMenu);
+    }
 
     virtual ZoomSettings* zoomSettings() const final { return _editorWidget->zoomSettings(); }
 
 private:
-    MtTilesetCentralWidget* const _editorWidget;
-    GenericPropertiesWidget* const _propertyWidget;
+    MtTilesetMainWindow* const _editorWidget;
 };
 }
 }

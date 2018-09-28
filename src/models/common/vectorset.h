@@ -12,7 +12,7 @@
 
 namespace UnTech {
 
-template <typename T>
+template <typename T, class Compare = std::less<T>>
 class vectorset {
     using container = typename std::vector<T>;
 
@@ -22,6 +22,7 @@ class vectorset {
 
 private:
     container _vector;
+    Compare _comp;
 
 public:
     explicit vectorset() = default;
@@ -51,7 +52,7 @@ public:
 
     const_iterator find(const T& value)
     {
-        const_iterator it = std::lower_bound(_vector.cbegin(), _vector.cend(), value);
+        const_iterator it = std::lower_bound(_vector.cbegin(), _vector.cend(), value, _comp);
         if (it != _vector.end() && *it == value) {
             return it;
         }
@@ -62,12 +63,12 @@ public:
 
     bool contains(const T& value) const
     {
-        return std::binary_search(_vector.cbegin(), _vector.cend(), value);
+        return std::binary_search(_vector.cbegin(), _vector.cend(), value, _comp);
     }
 
     bool insert(const T& value)
     {
-        auto it = std::lower_bound(_vector.begin(), _vector.end(), value);
+        auto it = std::lower_bound(_vector.begin(), _vector.end(), value, _comp);
         if (it == _vector.end() || *it != value) {
             _vector.insert(it, value);
             return true;
@@ -84,7 +85,7 @@ public:
 
     bool erase(const T& value)
     {
-        auto it = std::lower_bound(_vector.begin(), _vector.end(), value);
+        auto it = std::lower_bound(_vector.begin(), _vector.end(), value, _comp);
         if (it != _vector.end() && *it == value) {
             _vector.erase(it);
             return true;
@@ -109,18 +110,14 @@ public:
     const_reverse_iterator rbegin() const { return _vector.crbegin(); }
     const_reverse_iterator rend() const { return _vector.crend(); }
 
-    bool operator==(const vectorset<T>& o) const { return _vector == o._vector; }
-    bool operator!=(const vectorset<T>& o) const { return _vector != o._vector; }
-    bool operator<(const vectorset<T>& o) const { return _vector < o._vector; }
-    bool operator<=(const vectorset<T>& o) const { return _vector <= o._vector; }
-    bool operator>(const vectorset<T>& o) const { return _vector > o._vector; }
-    bool operator>=(const vectorset<T>& o) const { return _vector >= o._vector; }
+    bool operator==(const vectorset<T, Compare>& o) const { return _vector == o._vector; }
+    bool operator!=(const vectorset<T, Compare>& o) const { return _vector != o._vector; }
 
 private:
     void sortAndRemoveDuplicates()
     {
-        if (std::is_sorted(_vector.begin(), _vector.end()) == false) {
-            std::sort(_vector.begin(), _vector.end());
+        if (std::is_sorted(_vector.begin(), _vector.end(), _comp) == false) {
+            std::sort(_vector.begin(), _vector.end(), _comp);
         }
 
         _vector.erase(std::unique(_vector.begin(), _vector.end()), _vector.end());
@@ -206,10 +203,6 @@ public:
 
     bool operator==(const vectorset<T*>& o) const { return _vector == o._vector; }
     bool operator!=(const vectorset<T*>& o) const { return _vector != o._vector; }
-    bool operator<(const vectorset<T*>& o) const { return _vector < o._vector; }
-    bool operator<=(const vectorset<T*>& o) const { return _vector <= o._vector; }
-    bool operator>(const vectorset<T*>& o) const { return _vector > o._vector; }
-    bool operator>=(const vectorset<T*>& o) const { return _vector >= o._vector; }
 
 private:
     void sortAndRemoveDuplicates()

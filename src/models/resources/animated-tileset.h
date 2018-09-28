@@ -7,6 +7,7 @@
 #pragma once
 
 #include "error-list.h"
+#include "models/common/grid.h"
 #include "models/snes/tilemap.h"
 #include "models/snes/tileset.h"
 #include <vector>
@@ -32,10 +33,9 @@ struct AnimatedTilesetData {
 
     unsigned animationDelay;
 
-    // tileMap is not interlaced and/or padded.
-    std::vector<Snes::TilemapEntry> tileMap;
-    unsigned mapWidth;
-    unsigned mapHeight;
+    grid<Snes::TilemapEntry> tileMap;
+
+    unsigned nAnimatedFrames() const;
 
     unsigned nAnimatedTiles() const;
     unsigned animatedTilesFrameSize() const;

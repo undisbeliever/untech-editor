@@ -16,6 +16,16 @@
 namespace UnTech {
 namespace Resources {
 
+unsigned AnimatedTilesetData::nAnimatedFrames() const
+{
+    if (!animatedTiles.empty()) {
+        return animatedTiles.size();
+    }
+    else {
+        return 1;
+    }
+}
+
 unsigned AnimatedTilesetData::nAnimatedTiles() const
 {
     if (!animatedTiles.empty()) {
@@ -39,11 +49,6 @@ unsigned AnimatedTilesetData::animatedTilesBlockSize() const
 bool AnimatedTilesetData::validate(ErrorList& err) const
 {
     bool valid = true;
-
-    if (mapHeight * mapWidth != tileMap.size()) {
-        err.addError("Invalid tileMap");
-        valid = false;
-    }
 
     for (const auto& at : animatedTiles) {
         if (at.size() != nAnimatedTiles()

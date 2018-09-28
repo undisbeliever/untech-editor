@@ -10,8 +10,9 @@
 
 using namespace UnTech::GuiQt::Resources;
 
-AnimationTimer::AnimationTimer()
-    : _nsPerFrame(1000000000 / 60)
+AnimationTimer::AnimationTimer(QObject* parent)
+    : QObject(parent)
+    , _nsPerFrame(1000000000 / 60)
     , _ticksPerFrame(TICKS_PER_SECOND / 60)
     , _animationDelay(0)
     , _animationTicksCurrent(0)
