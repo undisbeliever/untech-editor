@@ -118,7 +118,7 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
 
     case SCRATCHPAD_SIZE:
         return MtTilesetScratchpadGridUndoHelper(_tileset->scratchpadGrid())
-            .resizeSelectedGrid(toUsize(value.toSize()), 0,
+            .resizeSelectedGrid(toUsize(value.toSize()), MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE,
                                 tr("Resize scratchpad"));
 
     case PALETTES:

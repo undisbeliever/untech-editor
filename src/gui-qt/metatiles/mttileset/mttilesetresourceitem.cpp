@@ -12,6 +12,8 @@
 
 using namespace UnTech::GuiQt::MetaTiles;
 
+constexpr uint16_t MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE;
+
 MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
     , _tileParameters(new MtTilesetTileParameters(this))
