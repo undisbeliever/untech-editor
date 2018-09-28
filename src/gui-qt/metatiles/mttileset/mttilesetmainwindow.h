@@ -59,7 +59,7 @@ private slots:
 private:
     std::unique_ptr<Ui::MtTilesetMainWindow> const _ui;
     Style* const _style;
-    MtTilesetPropertyManager* const _propertyManager;
+    MtTilesetPropertyManager* const _tilesetPropertyManager;
     MtTilesetRenderer* const _renderer;
     MtTilesetGraphicsScene* const _tilesetScene;
     MtScratchpadGraphicsScene* const _scratchpadScene;

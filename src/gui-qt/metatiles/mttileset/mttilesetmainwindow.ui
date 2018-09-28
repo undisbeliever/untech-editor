@@ -125,20 +125,20 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="propertiesDock">
+  <widget class="QDockWidget" name="tilesetPropertiesDock">
    <property name="features">
     <set>QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="windowTitle">
-    <string>Properties</string>
+    <string>Tileset Properties</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="QWidget" name="propertyContents">
+   <widget class="QWidget" name="tilesetPropertyContents">
     <layout class="QVBoxLayout" name="propertyLayout">
      <item>
-      <widget class="PropertyListView" name="propertyView">
+      <widget class="PropertyListView" name="tilesetPropertyView">
        <property name="minimumSize">
         <size>
          <width>300</width>

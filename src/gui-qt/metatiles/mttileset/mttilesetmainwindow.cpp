@@ -23,7 +23,7 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
     : QMainWindow(parent)
     , _ui(new Ui::MtTilesetMainWindow)
     , _style(new Style(this))
-    , _propertyManager(new MtTilesetPropertyManager(this))
+    , _tilesetPropertyManager(new MtTilesetPropertyManager(this))
     , _renderer(new MtTilesetRenderer(this))
     , _tilesetScene(new MtTilesetGraphicsScene(_style, _renderer, this))
     , _scratchpadScene(new MtScratchpadGraphicsScene(_style, _renderer, this))
@@ -40,7 +40,7 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
     _editableScratchpadScene->addGridSelectionSource(_scratchpadScene);
     _editableScratchpadScene->addGridSelectionSource(_tilesetScene);
 
-    _ui->propertyView->setPropertyManager(_propertyManager);
+    _ui->tilesetPropertyView->setPropertyManager(_tilesetPropertyManager);
 
     ZoomSettings* centralZoomSettings = zoomManager->get("metatiles");
     ZoomSettings* dockedZoomSettings = zoomManager->get("metatiles-dock");
@@ -100,7 +100,7 @@ void MtTilesetMainWindow::setResourceItem(MtTilesetResourceItem* item)
 
     _renderer->setTilesetItem(item);
 
-    _propertyManager->setResourceItem(item);
+    _tilesetPropertyManager->setResourceItem(item);
     _ui->animationFramesInputWidget->setResourceItem(item);
 
     onTilesetPalettesChanged();
