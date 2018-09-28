@@ -126,7 +126,7 @@
          <bool>true</bool>
         </property>
         <attribute name="title">
-         <string>Tileset</string>
+         <string>Usage</string>
         </attribute>
         <widget class="QLabel" name="usageLabel">
          <property name="text">
