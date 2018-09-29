@@ -345,8 +345,7 @@ QVariant EntityHitboxManager::data(int index, int id) const
 
     switch ((PropertyId)id) {
     case PropertyId::AABB:
-        return QRect(eh.aabb.x, eh.aabb.y,
-                     eh.aabb.width, eh.aabb.height);
+        return fromMs8rect(eh.aabb);
 
     case PropertyId::HITBOX_TYPE:
         return int(eh.hitboxType.romValue());
@@ -369,10 +368,7 @@ bool EntityHitboxManager::setData(int index, int id, const QVariant& value)
 
     switch ((PropertyId)id) {
     case PropertyId::AABB:
-        eh.aabb.x = value.toRect().x();
-        eh.aabb.y = value.toRect().y();
-        eh.aabb.width = value.toRect().width();
-        eh.aabb.height = value.toRect().height();
+        eh.aabb = toMs8rect(value.toRect());
         break;
 
     case PropertyId::HITBOX_TYPE:

@@ -11,6 +11,7 @@
 #include "models/common/idstring.h"
 #include "models/common/ms8aabb.h"
 #include <QPoint>
+#include <QRect>
 #include <QSize>
 #include <QStringList>
 #include <QVariant>
@@ -104,6 +105,26 @@ inline QPoint fromMs8point(const ms8point& p)
 inline ms8point toMs8point(const QPoint& p)
 {
     return ms8point(p.x(), p.y());
+}
+
+inline QRect fromUrect(const urect& r)
+{
+    return QRect(r.x, r.y, r.width, r.height);
+}
+
+inline urect toUrect(const QRect& r)
+{
+    return urect(r.x(), r.y(), r.width(), r.height());
+}
+
+inline QRect fromMs8rect(const ms8rect& r)
+{
+    return QRect(r.x, r.y, r.width, r.height);
+}
+
+inline ms8rect toMs8rect(const QRect& r)
+{
+    return ms8rect(r.x(), r.y(), r.width(), r.height());
 }
 
 inline QSize fromUsize(const usize& s)
