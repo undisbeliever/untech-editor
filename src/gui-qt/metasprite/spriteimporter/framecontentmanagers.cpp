@@ -138,7 +138,7 @@ QVariant FrameObjectManager::data(int index, int id) const
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        return QPoint(obj.location.x, obj.location.y);
+        return fromUpoint(obj.location);
 
     case PropertyId::SIZE:
         return obj.size == ObjSize::LARGE;
@@ -186,8 +186,7 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        obj.location.x = value.toPoint().x();
-        obj.location.y = value.toPoint().y();
+        obj.location = toUpoint(value.toPoint());
         break;
 
     case PropertyId::SIZE:
@@ -251,7 +250,7 @@ QVariant ActionPointManager::data(int index, int id) const
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        return QPoint(ap.location.x, ap.location.y);
+        return fromUpoint(ap.location);
 
     case PropertyId::PARAMETER:
         return (int)ap.parameter;
@@ -294,8 +293,7 @@ bool ActionPointManager::setData(int index, int id, const QVariant& value)
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        ap.location.x = value.toPoint().x();
-        ap.location.y = value.toPoint().y();
+        ap.location = toUpoint(value.toPoint());
         break;
 
     case PropertyId::PARAMETER:

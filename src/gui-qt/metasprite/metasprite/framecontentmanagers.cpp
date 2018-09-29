@@ -11,6 +11,7 @@
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/common.h"
 
+using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
@@ -137,7 +138,7 @@ QVariant FrameObjectManager::data(int index, int id) const
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        return QPoint(obj.location.x, obj.location.y);
+        return fromMs8point(obj.location);
 
     case PropertyId::SIZE:
         return obj.size == ObjSize::LARGE;
@@ -197,8 +198,7 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        obj.location.x = value.toPoint().x();
-        obj.location.y = value.toPoint().y();
+        obj.location = toMs8point(value.toPoint());
         break;
 
     case PropertyId::SIZE:
@@ -265,7 +265,7 @@ QVariant ActionPointManager::data(int index, int id) const
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        return QPoint(ap.location.x, ap.location.y);
+        return fromMs8point(ap.location);
 
     case PropertyId::PARAMETER:
         return (int)ap.parameter;
@@ -286,8 +286,7 @@ bool ActionPointManager::setData(int index, int id, const QVariant& value)
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        ap.location.x = value.toPoint().x();
-        ap.location.y = value.toPoint().y();
+        ap.location = toMs8point(value.toPoint());
         break;
 
     case PropertyId::PARAMETER:
