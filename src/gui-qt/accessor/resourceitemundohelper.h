@@ -227,7 +227,7 @@ public:
 
     QUndoCommand* editNameCommand(const idstring& newName)
     {
-        DataT* data = _resourceItem->dataEditable();
+        const DataT* data = _resourceItem->data();
         if (data == nullptr) {
             return nullptr;
         }

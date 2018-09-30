@@ -38,7 +38,7 @@ private:
     }
 
     struct EmptySignalFunction {
-        void operator()(AccessorT*, const DataT*) const {}
+        inline void operator()(AccessorT*, const DataT*) const {}
     };
 
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
@@ -239,9 +239,6 @@ public:
     {
     }
 
-private:
-    inline MapT* getMap() { return _accessor->getMap(); }
-
 public:
     // will return nullptr if data cannot be accessed or is equal to newValue
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
@@ -307,7 +304,7 @@ public:
             return nullptr;
         }
 
-        MapT* map = _accessor->getMap();
+        const MapT* map = _accessor->getMap();
         if (map == nullptr) {
             return nullptr;
         }
@@ -335,7 +332,7 @@ public:
             return nullptr;
         }
 
-        MapT* map = _accessor->getMap();
+        const MapT* map = _accessor->getMap();
         if (map == nullptr) {
             return nullptr;
         }
@@ -343,7 +340,7 @@ public:
             return nullptr;
         }
 
-        DataT* item = map->getPtr(id);
+        const DataT* item = map->getPtr(id);
         if (item == nullptr) {
             return nullptr;
         }
@@ -364,7 +361,7 @@ public:
     // or id does not exist
     QUndoCommand* removeCommand(const idstring& id)
     {
-        MapT* map = _accessor->getMap();
+        const MapT* map = _accessor->getMap();
         if (map == nullptr) {
             return nullptr;
         }
@@ -393,7 +390,7 @@ public:
             return nullptr;
         }
 
-        MapT* map = _accessor->getMap();
+        const MapT* map = _accessor->getMap();
         if (map == nullptr) {
             return nullptr;
         }

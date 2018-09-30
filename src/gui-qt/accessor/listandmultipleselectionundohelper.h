@@ -376,7 +376,7 @@ public:
                                            UnaryFunction getter)
     {
         const ArgsT listArgs = this->selectedListTuple();
-        ListT* list = this->getList(listArgs);
+        ListT* list = this->getList_NO_CONST(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -439,7 +439,7 @@ public:
     {
         const ArgsT listArgs = this->selectedListTuple();
 
-        ListT* list = this->getList(listArgs);
+        const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return false;
         }
@@ -458,7 +458,8 @@ public:
         if (indexes.empty()) {
             return nullptr;
         }
-        ListT* list = this->getList(listArgs);
+
+        const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -516,7 +517,8 @@ public:
         if (indexes.empty()) {
             return nullptr;
         }
-        ListT* list = this->getList(listArgs);
+
+        const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -565,7 +567,7 @@ public:
             return nullptr;
         }
 
-        ListT* list = this->getList(listArgs);
+        const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }

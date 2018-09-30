@@ -44,7 +44,7 @@ private:
 
     class BaseCommand : public QUndoCommand {
     protected:
-        AccessorT* _accessor;
+        AccessorT* const _accessor;
         const ArgsT _args;
 
     public:
@@ -512,12 +512,19 @@ public:
     }
 
 private:
-    inline ArgsT selectedListTuple()
+    inline const ArgsT selectedListTuple()
     {
         return _accessor->selectedListTuple();
     }
 
-    inline ListT* getList(const ArgsT& listArgs)
+    inline const ListT* getList(const ArgsT& listArgs)
+    {
+        auto f = std::mem_fn(&AccessorT::getList);
+        return mem_fn_call(f, _accessor, listArgs);
+    }
+
+    // MUST ONLY this function when it's absolutely necessary
+    inline ListT* getList_NO_CONST(const ArgsT& listArgs)
     {
         auto f = std::mem_fn(&AccessorT::getList);
         return mem_fn_call(f, _accessor, listArgs);
@@ -527,7 +534,7 @@ public:
     // will return nullptr if data cannot be accessed or is equal to newValue
     QUndoCommand* editCommand(const ArgsT& listArgs, index_type index, const DataT& newValue)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -562,7 +569,7 @@ public:
     QUndoCommand* editMergeCommand(const ArgsT& listArgs, index_type index,
                                    const DataT& newValue, bool first = false)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -600,7 +607,7 @@ public:
                                    const QString& text,
                                    UnaryFunction getter)
     {
-        ListT* list = getList(listArgs);
+        ListT* list = getList_NO_CONST(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -647,7 +654,7 @@ public:
                                const QString& text,
                                UnaryFunction getter)
     {
-        ListT* list = getList(listArgs);
+        ListT* list = getList_NO_CONST(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -732,7 +739,7 @@ public:
     // index is invalid or too many items in list
     QUndoCommand* addCommand(const ArgsT& listArgs, index_type index)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -748,7 +755,7 @@ public:
 
     bool addItem(const ArgsT& listArgs)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return false;
         }
@@ -788,7 +795,7 @@ public:
     // index is invalid or too many items in list
     QUndoCommand* cloneCommand(const ArgsT& listArgs, index_type index)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -822,7 +829,7 @@ public:
     // index is invalid or too many items in list
     QUndoCommand* removeCommand(const ArgsT& listArgs, index_type index)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -853,7 +860,7 @@ public:
     QUndoCommand* moveCommand(const ArgsT& listArgs, index_type from, index_type to,
                               const QString& text)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -969,7 +976,7 @@ public:
     {
         const ArgsT listArgs = this->selectedListTuple();
 
-        ListT* list = this->getList(listArgs);
+        const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return false;
         }
@@ -1044,7 +1051,7 @@ public:
         const ArgsT listArgs = this->selectedListTuple();
         const index_type index = this->_accessor->selectedIndex();
 
-        ListT* list = this->getList(listArgs);
+        const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return false;
         }
