@@ -31,8 +31,6 @@ private:
     void showEditorForCurrentIndex();
     void closeEditor();
 
-    void addExportName(bool isFrame);
-
 private slots:
     void updateSelection();
     void updateActions();

@@ -9,7 +9,6 @@
 #include "exportordermodel.h"
 #include "exportorderresourceitem.h"
 #include "gui-qt/accessor/listactionhelper.h"
-#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/metasprite/exportorder/exportordereditorwidget.ui.h"
 
@@ -232,31 +231,25 @@ void ExportOrderEditorWidget::closeEditor()
     }
 }
 
-void ExportOrderEditorWidget::addExportName(bool isFrame)
-{
-    Q_ASSERT(_exportOrder);
-
-    _exportOrder->exportNameList()->setSelectedListIsFrame(isFrame);
-    ExportNameUndoHelper(_exportOrder->exportNameList()).addItemToSelectedList();
-
-    showEditorForCurrentIndex();
-}
-
 void ExportOrderEditorWidget::onActionAddFrame()
 {
-    addExportName(true);
+    Q_ASSERT(_exportOrder);
+    _exportOrder->exportNameList()->editList_addFrame();
+    showEditorForCurrentIndex();
 }
 
 void ExportOrderEditorWidget::onActionAddAnimation()
 {
-    addExportName(false);
+    Q_ASSERT(_exportOrder);
+    _exportOrder->exportNameList()->editList_addAnimation();
+    showEditorForCurrentIndex();
 }
 
 void ExportOrderEditorWidget::onActionAddAlternative()
 {
     Q_ASSERT(_exportOrder);
 
-    bool s = AlternativesUndoHelper(_exportOrder->alternativesList()).addItemToSelectedList();
+    bool s = _exportOrder->alternativesList()->editSelectedList_addItem();
     if (s) {
         showEditorForCurrentIndex();
     }
@@ -275,10 +268,10 @@ void ExportOrderEditorWidget::onActionCloneSelected()
         if (id.index != InternalIdFormat::NO_INDEX) {
             bool s = false;
             if (id.altIndex == InternalIdFormat::NO_INDEX) {
-                s = ExportNameUndoHelper(_exportOrder->exportNameList()).cloneSelectedItem();
+                s = _exportOrder->exportNameList()->editSelectedList_cloneSelected();
             }
             else {
-                s = AlternativesUndoHelper(_exportOrder->alternativesList()).cloneSelectedItem();
+                s = _exportOrder->alternativesList()->editSelectedList_cloneSelected();
             }
 
             if (s) {
@@ -288,27 +281,27 @@ void ExportOrderEditorWidget::onActionCloneSelected()
     }
 }
 
-#define SELECTION_ACTION(ACTION_METHOD, HELPER_METHOD)                                    \
-    void ExportOrderEditorWidget::ACTION_METHOD()                                         \
-    {                                                                                     \
-        using InternalIdFormat = ExportOrderModel::InternalIdFormat;                      \
-                                                                                          \
-        Q_ASSERT(_exportOrder);                                                           \
-                                                                                          \
-        QModelIndex index = _ui->treeView->currentIndex();                                \
-        if (index.isValid()) {                                                            \
-            InternalIdFormat id = index.internalId();                                     \
-            if (id.altIndex == InternalIdFormat::NO_INDEX) {                              \
-                ExportNameUndoHelper(_exportOrder->exportNameList()).HELPER_METHOD();     \
-            }                                                                             \
-            else {                                                                        \
-                AlternativesUndoHelper(_exportOrder->alternativesList()).HELPER_METHOD(); \
-            }                                                                             \
-        }                                                                                 \
+#define SELECTION_ACTION(ACTION_METHOD, ACCESSOR_METHOD)             \
+    void ExportOrderEditorWidget::ACTION_METHOD()                    \
+    {                                                                \
+        using InternalIdFormat = ExportOrderModel::InternalIdFormat; \
+                                                                     \
+        Q_ASSERT(_exportOrder);                                      \
+                                                                     \
+        QModelIndex index = _ui->treeView->currentIndex();           \
+        if (index.isValid()) {                                       \
+            InternalIdFormat id = index.internalId();                \
+            if (id.altIndex == InternalIdFormat::NO_INDEX) {         \
+                _exportOrder->exportNameList()->ACCESSOR_METHOD();   \
+            }                                                        \
+            else {                                                   \
+                _exportOrder->alternativesList()->ACCESSOR_METHOD(); \
+            }                                                        \
+        }                                                            \
     }
 
-SELECTION_ACTION(onActionRemoveSelected, removeSelectedItem);
-SELECTION_ACTION(onActionRaiseToTop, raiseSelectedItemToTop);
-SELECTION_ACTION(onActionRaise, raiseSelectedItem);
-SELECTION_ACTION(onActionLower, lowerSelectedItem);
-SELECTION_ACTION(onActionLowerToBottom, lowerSelectedItemToBottom);
+SELECTION_ACTION(onActionRemoveSelected, editSelectedList_removeSelected);
+SELECTION_ACTION(onActionRaiseToTop, editSelectedList_raiseSelectedToTop);
+SELECTION_ACTION(onActionRaise, editSelectedList_raiseSelected);
+SELECTION_ACTION(onActionLower, editSelectedList_lowerSelected);
+SELECTION_ACTION(onActionLowerToBottom, editSelectedList_lowerSelectedToBottom);

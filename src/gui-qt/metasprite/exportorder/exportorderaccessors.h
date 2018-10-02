@@ -50,6 +50,18 @@ public:
 
     bool isSelectedItemValid() const;
 
+    bool editList_setName(bool isFrame, index_type index, const idstring& name);
+
+    bool editList_addFrame();
+    bool editList_addAnimation();
+
+    bool editSelectedList_cloneSelected();
+    bool editSelectedList_removeSelected();
+    bool editSelectedList_raiseSelectedToTop();
+    bool editSelectedList_raiseSelected();
+    bool editSelectedList_lowerSelected();
+    bool editSelectedList_lowerSelectedToBottom();
+
 protected:
     friend class Accessor::ListUndoHelper<ExportNameList>;
     friend class Accessor::ListActionHelper;
@@ -110,6 +122,16 @@ public:
     void setSelectedIndex(index_type index);
     void unselectItem() { setSelectedIndex(INT_MAX); }
 
+    bool editList_setValue(bool isFrame, index_type exportIndex, index_type altIndex, const DataT& value);
+
+    bool editSelectedList_addItem();
+    bool editSelectedList_cloneSelected();
+    bool editSelectedList_removeSelected();
+    bool editSelectedList_raiseSelectedToTop();
+    bool editSelectedList_raiseSelected();
+    bool editSelectedList_lowerSelected();
+    bool editSelectedList_lowerSelectedToBottom();
+
 protected:
     friend class Accessor::ListUndoHelper<AlternativesList>;
     friend class Accessor::ListActionHelper;
@@ -149,9 +171,6 @@ signals:
     void selectedListChanged();
     void selectedIndexChanged();
 };
-
-using ExportNameUndoHelper = Accessor::ListAndSelectionUndoHelper<ExportNameList>;
-using AlternativesUndoHelper = Accessor::ListAndSelectionUndoHelper<AlternativesList>;
 }
 }
 }
