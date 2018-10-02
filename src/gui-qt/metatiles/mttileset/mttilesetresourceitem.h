@@ -35,6 +35,8 @@ public:
     MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index);
     ~MtTilesetResourceItem() = default;
 
+    static QString typeName() { return tr("MetaTile Tileset"); }
+
     Resources::ResourceProject* project() const { return static_cast<Resources::ResourceProject*>(_project); }
 
     MtTilesetTileParameters* tileParameters() const { return _tileParameters; }

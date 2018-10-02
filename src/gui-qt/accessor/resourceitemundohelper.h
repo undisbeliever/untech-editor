@@ -117,7 +117,7 @@ private:
     public:
         EditNameCommand(ResourceItemT* item,
                         const idstring& oldName, const idstring& newName)
-            : QUndoCommand(tr("Edit Name"))
+            : QUndoCommand(tr("Edit %1 Name").arg(ResourceItemT::typeName()))
             , _item(item)
             , _oldName(oldName)
             , _newName(newName)
