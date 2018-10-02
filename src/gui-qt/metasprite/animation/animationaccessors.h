@@ -51,6 +51,10 @@ public:
         return _document->animations();
     }
 
+    bool editSelected_setDurationFormat(MSA::DurationFormat durationFormat);
+    bool editSelected_setOneShot(bool oneShot);
+    bool editSelected_setNextAnimation(const idstring& nextAnimation);
+
 public slots:
     void setSelectedId(const idstring& id);
     void unselectItem();
@@ -101,6 +105,13 @@ public:
 
     QString typeName() const { return tr("Animation Frame"); }
 
+    bool editSelectedList_setData(index_type index, const DataT& value);
+
+    bool editSelectedList_addItem(index_type index);
+    bool editSelectedList_cloneItem(index_type index);
+    bool editSelectedList_removeItem(index_type index);
+    bool editSelectedList_moveItem(index_type from, index_type to);
+
 protected:
     friend class Accessor::ListUndoHelper<AnimationFramesList>;
     ListT* getList(MSA::Animation* ani)
@@ -127,9 +138,6 @@ signals:
 
     void selectedListChanged();
 };
-
-using AnimationUndoHelper = Accessor::IdmapAndSelectionUndoHelper<AnimationsMap>;
-using AnimationFramesUndoHelper = Accessor::ListUndoHelper<AnimationFramesList>;
 }
 }
 }
