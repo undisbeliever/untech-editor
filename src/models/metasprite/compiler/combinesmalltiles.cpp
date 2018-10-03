@@ -220,6 +220,9 @@ SmallTileMap_t buildSmallTileMap(const MetaSprite::FrameSet& frameSet,
     }
 
     auto smallTileGraph = CombineSmallTiles::buildSmallTileGraph(frameSet, frameEntries);
+    if (smallTileGraph.empty()) {
+        return SmallTileMap_t();
+    }
     auto fp = CombineSmallTiles::firstPass(smallTileGraph);
     return CombineSmallTiles::secondPass(fp, frameSet.smallTileset.size());
 }
