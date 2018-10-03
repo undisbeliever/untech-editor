@@ -32,9 +32,13 @@ class Document : public AbstractMsDocument {
 public:
     using DataT = MS::FrameSet;
 
+    using TilesetType = UnTech::MetaSprite::TilesetType;
+
 public:
     Document(FrameSetResourceList* parent, size_t index);
     ~Document() = default;
+
+    static QString typeName() { return tr("MetaSprite FrameSet"); }
 
     MS::FrameSet* frameSet() const { return _frameSet; }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
@@ -49,8 +53,13 @@ public:
     ActionPointList* actionPointList() const { return _actionPointList; }
     EntityHitboxList* entityHitboxList() const { return _entityHitboxList; }
 
+    bool editFrameSet_setName(const idstring& name);
+    bool editFrameSet_setTilesetType(TilesetType ts);
+    bool editFrameSet_setExportOrder(const idstring& exportOrder);
+
 private:
     friend class Accessor::ResourceItemUndoHelper<Document>;
+    MS::FrameSet* data() const { return _frameSet; }
     MS::FrameSet* dataEditable() { return _frameSet; }
 
 protected:
@@ -78,7 +87,6 @@ private:
     EntityHitboxList* const _entityHitboxList;
 };
 
-using FrameSetUndoHelper = Accessor::ResourceItemUndoHelper<Document>;
 }
 }
 }

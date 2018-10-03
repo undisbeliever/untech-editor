@@ -43,9 +43,6 @@ private:
     // returns -1 if more than one frame object is selected
     int selectedFrameObjectIndex() const;
 
-    void pushAddTileCommand(QUndoCommand* c, unsigned tileId, ObjectSize size);
-    void pushRemoveTileCommand(QUndoCommand* c, unsigned tileId, ObjectSize size);
-
 private:
     std::unique_ptr<Ui::TilesetDock> const _ui;
 

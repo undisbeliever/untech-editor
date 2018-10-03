@@ -42,6 +42,14 @@ public:
 
     static QString typeName() { return tr("Small Tile"); }
 
+    bool editTileset_addTile();
+    bool editTileset_addTile(unsigned index);
+    bool editTileset_cloneTile(unsigned index);
+    bool editTileset_removeTile(unsigned index);
+
+    bool editTile_setPixel(unsigned tileId, const QPoint& p, unsigned c, bool first = false);
+    bool editTile_paintPixel(unsigned tileId, const QPoint& p, bool first = false);
+
 protected:
     friend class Accessor::ListUndoHelper<SmallTileTileset>;
     ListT* getList()
@@ -88,6 +96,14 @@ public:
     Document* resourceItem() const { return _document; }
 
     static QString typeName() { return tr("Large Tile"); }
+
+    bool editTileset_addTile();
+    bool editTileset_addTile(unsigned index);
+    bool editTileset_cloneTile(unsigned index);
+    bool editTileset_removeTile(unsigned index);
+
+    bool editTile_setPixel(unsigned tileId, const QPoint& p, unsigned c, bool first = false);
+    bool editTile_paintPixel(unsigned tileId, const QPoint& p, bool first = false);
 
 protected:
     friend class Accessor::ListUndoHelper<LargeTileTileset>;
@@ -155,6 +171,14 @@ public:
     const ListT* palettes() const;
     const DataT* selectedPalette() const;
 
+    void editSelected_setColorDialog(unsigned colorIndex, QWidget* widget = nullptr);
+
+    bool editSelectedList_addItem();
+    bool editSelectedList_cloneSelected();
+    bool editSelectedList_raiseSelected();
+    bool editSelectedList_lowerSelected();
+    bool editSelectedList_removeSelected();
+
 protected:
     friend class Accessor::ListUndoHelper<PaletteList>;
     friend class Accessor::ListActionHelper;
@@ -193,6 +217,8 @@ public:
     using DataT = MS::Frame;
     using MapT = MS::Frame::map_t;
 
+    using SpriteOrderType = UnTech::MetaSprite::SpriteOrderType;
+
 private:
     Document* const _document;
 
@@ -226,6 +252,11 @@ public:
         }
         return &fs->frames;
     }
+
+    bool editSelected_setSpriteOrder(SpriteOrderType spriteOrder);
+    bool editSelected_setSolid(bool solid);
+    bool editSelected_setTileHitbox(const ms8rect& hitbox);
+    bool editSelected_toggleTileHitbox();
 
 public slots:
     void setSelectedId(const idstring& id);
@@ -313,12 +344,28 @@ public:
     using ListT = std::vector<DataT>;
     constexpr static index_type max_size = UnTech::MetaSprite::MAX_FRAME_OBJECTS;
 
+    using ObjectSize = UnTech::MetaSprite::ObjectSize;
+
 public:
     FrameObjectList(Document* document);
     ~FrameObjectList() = default;
 
     static QString typeName() { return tr("Frame Object"); }
     static QString typeNamePlural() { return tr("Frame Objects"); }
+
+    bool editSelectedList_setData(index_type index, const MS::FrameObject& data);
+
+    bool editSelected_setTileIdAndSize(unsigned tileId, ObjectSize size);
+
+    bool editSelected_toggleObjectSize();
+    bool editSelected_flipObjectHorizontally();
+    bool editSelected_flipObjectVertically();
+
+protected:
+    // shifts all tiles with a size of size and a tileId >= tileId by offset
+    friend class SmallTileTileset;
+    friend class LargeTileTileset;
+    bool editSelectedList_shiftTiles(ObjectSize size, unsigned tileId, int offset);
 
 protected:
     friend class Accessor::ListUndoHelper<FrameObjectList>;
@@ -347,6 +394,8 @@ public:
     static QString typeName() { return tr("Action Point"); }
     static QString typeNamePlural() { return tr("Action Points"); }
 
+    bool editSelectedList_setData(index_type index, const MS::ActionPoint& data);
+
 protected:
     friend class Accessor::ListUndoHelper<ActionPointList>;
     friend class Accessor::ListActionHelper;
@@ -367,12 +416,18 @@ public:
     using ListT = std::vector<DataT>;
     constexpr static index_type max_size = UnTech::MetaSprite::MAX_ENTITY_HITBOXES;
 
+    using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
+
 public:
     EntityHitboxList(Document* document);
     ~EntityHitboxList() = default;
 
     static QString typeName() { return tr("Entity Hitbox"); }
     static QString typeNamePlural() { return tr("Entity Hitboxes"); }
+
+    bool editSelectedList_setData(index_type index, const MS::EntityHitbox& data);
+
+    bool editSelected_setEntityHitboxType(EntityHitboxType type);
 
 protected:
     friend class Accessor::ListUndoHelper<EntityHitboxList>;
@@ -386,13 +441,6 @@ protected:
     }
 };
 
-using SmallTileTilesetUndoHelper = Accessor::ListUndoHelper<SmallTileTileset>;
-using LargeTileTilesetUndoHelper = Accessor::ListUndoHelper<LargeTileTileset>;
-using PaletteListUndoHelper = Accessor::ListAndSelectionUndoHelper<PaletteList>;
-using FrameMapUndoHelper = Accessor::IdmapAndSelectionUndoHelper<FrameMap>;
-using FrameObjectListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
-using ActionPointListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<ActionPointList>;
-using EntityHitboxListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<EntityHitboxList>;
 }
 }
 }
