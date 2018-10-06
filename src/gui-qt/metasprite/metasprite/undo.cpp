@@ -299,12 +299,8 @@ bool FrameMap::editSelected_setTileHitbox(const UnTech::ms8rect& hitbox)
 
 bool FrameMap::editSelected_toggleTileHitbox()
 {
-    const MS::Frame* frame = selectedFrame();
-    if (frame) {
-        return FrameMapUndoHelper(this).editSelectedItemField(
-            !frame->solid,
-            !frame->solid ? tr("Enable Tile Hitbox") : tr("Disable Tile Hitbox"),
-            [](MS::Frame& f) -> bool& { return f.solid; });
+    if (const MS::Frame* frame = selectedFrame()) {
+        return editSelected_setSolid(!frame->solid);
     }
     return false;
 }
