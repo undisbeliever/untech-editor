@@ -6,11 +6,9 @@
 
 #include "palettepropertymanager.h"
 #include "paletteresourceitem.h"
-#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "models/common/imagecache.h"
 
 using namespace UnTech::GuiQt::Resources;
-using PaletteUndoHelper = UnTech::GuiQt::Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
 
 PalettePropertyManager::PalettePropertyManager(QObject* parent)
     : AbstractPropertyManager(parent)
@@ -96,32 +94,23 @@ QVariant PalettePropertyManager::data(int id) const
 bool PalettePropertyManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_palette);
-    Q_ASSERT(_palette->data());
-
-    RES::PaletteInput newData = *_palette->data();
 
     switch ((PropertyId)id) {
     case NAME:
-        newData.name = value.toString().toStdString();
-        break;
+        return _palette->editPalette_setName(value.toString().toStdString());
 
     case IMAGE_FILENAME:
-        newData.paletteImageFilename = value.toString().toStdString();
-        break;
+        return _palette->editPalette_setImageFilename(value.toString().toStdString());
 
     case ROWS_PER_FRAME:
-        newData.rowsPerFrame = value.toUInt();
-        break;
+        return _palette->editPalette_setRowsPerFrame(value.toUInt());
 
     case ANIMATION_DELAY:
-        newData.animationDelay = value.toUInt();
-        break;
+        return _palette->editPalette_setAnimationDelay(value.toUInt());
 
     case SKIP_FIRST_FRAME:
-        newData.skipFirstFrame = value.toBool();
-        break;
+        return _palette->editPalette_setSkipFirstFrame(value.toBool());
     }
 
-    return PaletteUndoHelper(_palette)
-        .edit(newData, tr("Edit %1").arg(propertyTitle(id)));
+    return false;
 }
