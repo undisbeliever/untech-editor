@@ -309,9 +309,36 @@ using FrameObjectListUndoHelper = ListAndMultipleSelectionUndoHelper<FrameObject
 template class UnTech::GuiQt::Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
 // Remember MsGraphicsScene::commitMovedItems
 
-bool FrameObjectList::editSelectedList_setData(index_type index, const MS::FrameObject& data)
+bool FrameObjectList::editSelectedList_setLocation(unsigned index, const ms8point& location)
 {
-    return FrameObjectListUndoHelper(this).editItemInSelectedList(index, data);
+    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+        index, location,
+        tr("Edit Object Location"),
+        [](MS::FrameObject& obj) -> ms8point& { return obj.location; });
+}
+
+bool FrameObjectList::editSelectedList_setSize(unsigned index, FrameObjectList::ObjectSize size)
+{
+    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+        index, size,
+        tr("Edit Object Size"),
+        [](MS::FrameObject& obj) -> ObjectSize& { return obj.size; });
+}
+
+bool FrameObjectList::editSelectedList_setTile(unsigned index, unsigned tileId)
+{
+    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+        index, tileId,
+        tr("Edit Object Tile"),
+        [](MS::FrameObject& obj) -> unsigned& { return obj.tileId; });
+}
+
+bool FrameObjectList::editSelectedList_setFlips(unsigned index, bool hFlip, bool vFlip)
+{
+    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+        index, std::make_tuple(hFlip, vFlip),
+        tr("Edit Object Flip"),
+        [](MS::FrameObject & obj) -> auto { return std::tie(obj.hFlip, obj.vFlip); });
 }
 
 bool FrameObjectList::editSelected_setTileIdAndSize(unsigned tileId, FrameObjectList::ObjectSize size)
@@ -366,17 +393,39 @@ inline bool FrameObjectList::editSelectedList_shiftTiles(ObjectSize size, unsign
 using ActionPointListUndoHelper = ListAndMultipleSelectionUndoHelper<ActionPointList>;
 // Remember MsGraphicsScene::commitMovedItems
 
-bool ActionPointList::editSelectedList_setData(index_type index, const MS::ActionPoint& data)
+bool ActionPointList::editSelectedList_setLocation(unsigned index, const ms8point& location)
 {
-    return ActionPointListUndoHelper(this).editItemInSelectedList(index, data);
+    return ActionPointListUndoHelper(this).editFieldInSelectedList(
+        index, location,
+        tr("Edit Action Point Location"),
+        [](MS::ActionPoint& ap) -> ms8point& { return ap.location; });
+}
+
+bool ActionPointList::editSelectedList_setParameter(unsigned index, ParameterType parameter)
+{
+    return ActionPointListUndoHelper(this).editFieldInSelectedList(
+        index, parameter,
+        tr("Edit Action Point Parameter"),
+        [](MS::ActionPoint& ap) -> ParameterType& { return ap.parameter; });
 }
 
 using EntityHitboxListUndoHelper = ListAndMultipleSelectionUndoHelper<EntityHitboxList>;
 // Remember MsGraphicsScene::commitMovedItems
 
-bool EntityHitboxList::editSelectedList_setData(index_type index, const MS::EntityHitbox& data)
+bool EntityHitboxList::editSelectedList_setAabb(unsigned index, const ms8rect& aabb)
 {
-    return EntityHitboxListUndoHelper(this).editItemInSelectedList(index, data);
+    return EntityHitboxListUndoHelper(this).editFieldInSelectedList(
+        index, aabb,
+        tr("Edit Entity Hitbox AABB"),
+        [](MS::EntityHitbox& eh) -> ms8rect& { return eh.aabb; });
+}
+
+bool EntityHitboxList::editSelectedList_setEntityHitboxType(unsigned index, EntityHitboxType type)
+{
+    return EntityHitboxListUndoHelper(this).editFieldInSelectedList(
+        index, type,
+        tr("Edit Entity Hitbox Type"),
+        [](MS::EntityHitbox& eh) -> EntityHitboxType& { return eh.hitboxType; });
 }
 
 bool EntityHitboxList::editSelected_setEntityHitboxType(EntityHitboxType type)

@@ -353,7 +353,10 @@ public:
     static QString typeName() { return tr("Frame Object"); }
     static QString typeNamePlural() { return tr("Frame Objects"); }
 
-    bool editSelectedList_setData(index_type index, const MS::FrameObject& data);
+    bool editSelectedList_setLocation(unsigned index, const ms8point& location);
+    bool editSelectedList_setSize(unsigned index, ObjectSize size);
+    bool editSelectedList_setTile(unsigned index, unsigned tileId);
+    bool editSelectedList_setFlips(unsigned index, bool hFlip, bool vFlip);
 
     bool editSelected_setTileIdAndSize(unsigned tileId, ObjectSize size);
 
@@ -387,6 +390,8 @@ public:
     using ListT = std::vector<DataT>;
     constexpr static index_type max_size = UnTech::MetaSprite::MAX_ACTION_POINTS;
 
+    using ParameterType = UnTech::MetaSprite::ActionPointParameter;
+
 public:
     ActionPointList(Document* document);
     ~ActionPointList() = default;
@@ -394,7 +399,8 @@ public:
     static QString typeName() { return tr("Action Point"); }
     static QString typeNamePlural() { return tr("Action Points"); }
 
-    bool editSelectedList_setData(index_type index, const MS::ActionPoint& data);
+    bool editSelectedList_setLocation(unsigned index, const ms8point& location);
+    bool editSelectedList_setParameter(unsigned index, ParameterType parameter);
 
 protected:
     friend class Accessor::ListUndoHelper<ActionPointList>;
@@ -425,7 +431,8 @@ public:
     static QString typeName() { return tr("Entity Hitbox"); }
     static QString typeNamePlural() { return tr("Entity Hitboxes"); }
 
-    bool editSelectedList_setData(index_type index, const MS::EntityHitbox& data);
+    bool editSelectedList_setAabb(unsigned index, const ms8rect& aabb);
+    bool editSelectedList_setEntityHitboxType(unsigned index, EntityHitboxType type);
 
     bool editSelected_setEntityHitboxType(EntityHitboxType type);
 
