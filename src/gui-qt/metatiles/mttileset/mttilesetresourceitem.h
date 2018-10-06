@@ -42,6 +42,8 @@ public:
     MtTilesetTileParameters* tileParameters() const { return _tileParameters; }
     MtTilesetScratchpadGrid* scratchpadGrid() const { return _scratchpadGrid; }
 
+    unsigned nMetaTiles() const;
+
 public:
     // may be nullptr
     const MT::MetaTileTilesetInput* data() const
@@ -52,6 +54,13 @@ public:
 
     // returns nullptr if the MetaTileTilesetData is invalid
     const MT::MetaTileTilesetData* compiledData() const { return _compiledData.get(); }
+
+    bool editTileset_setName(const idstring& name);
+    bool editTileset_setPalettes(const std::vector<idstring>& palettes);
+    bool editTileset_setFrameImageFilenames(const std::vector<std::string>& images);
+    bool editTileset_setAnimationDelay(unsigned delay);
+    bool editTileset_setBitDepth(unsigned bitDepth);
+    bool editTileset_setAddTransparentTile(bool addTransparentTile);
 
 signals:
     void palettesChanged();
