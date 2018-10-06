@@ -69,7 +69,6 @@ protected:
     virtual bool compileResource(RES::ErrorList& err) final;
 
 private slots:
-    void onFrameSetNameChanged();
     void onFrameSetExportOrderChanged();
 
 private:

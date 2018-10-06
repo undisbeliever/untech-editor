@@ -29,9 +29,6 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
     resetDocumentState();
 
-    connect(this, &Document::frameSetNameChanged,
-            this, &Document::onFrameSetNameChanged);
-
     connect(this, &Document::frameSetExportOrderChanged,
             this, &Document::onFrameSetExportOrderChanged);
 }
@@ -54,7 +51,13 @@ QStringList Document::frameNames() const
 
 void Document::resetDocumentState()
 {
-    onFrameSetNameChanged();
+    if (const MS::FrameSet* fs = frameSet()) {
+        setName(QString::fromStdString(fs->name));
+    }
+    else {
+        setName(QString());
+    }
+
     onFrameSetExportOrderChanged();
 
     paletteList()->unselectItem();
@@ -104,18 +107,6 @@ bool Document::compileResource(RES::ErrorList& err)
     appendToErrorList(err, msErrorList);
 
     return msErrorList.errors.empty() == true;
-}
-
-void Document::onFrameSetNameChanged()
-{
-    const MS::FrameSet* fs = frameSet();
-
-    if (fs) {
-        setName(QString::fromStdString(fs->name));
-    }
-    else {
-        setName(QString());
-    }
 }
 
 void Document::onFrameSetExportOrderChanged()
