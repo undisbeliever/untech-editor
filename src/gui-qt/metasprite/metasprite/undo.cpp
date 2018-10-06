@@ -320,7 +320,8 @@ bool FrameObjectList::editSelectedList_setData(index_type index, const MS::Frame
 
 bool FrameObjectList::editSelected_setTileIdAndSize(unsigned tileId, FrameObjectList::ObjectSize size)
 {
-    return FrameObjectListUndoHelper(this).editSelectedCommand(
+    return FrameObjectListUndoHelper(this).editSelectedItems(
+        tr("Edit Frame Object"),
         [&](MS::FrameObject& obj, size_t) {
             obj.tileId = tileId;
             obj.size = size;
