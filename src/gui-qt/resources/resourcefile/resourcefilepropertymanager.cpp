@@ -5,15 +5,12 @@
  */
 
 #include "resourcefilepropertymanager.h"
-#include "gui-qt/accessor/projectsettingsundohelper.h"
 #include "gui-qt/resources/resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
 namespace RES = UnTech::Resources;
 namespace MT = UnTech::MetaTiles;
-
-using SettingsUndoHelper = UnTech::GuiQt::Accessor::ProjectSettingsUndoHelper<ResourceProject>;
 
 ResourceFilePropertyManager::ResourceFilePropertyManager(QObject* parent)
     : PropertyListManager(parent)
@@ -80,41 +77,18 @@ bool ResourceFilePropertyManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_project);
 
-    const RES::ResourcesFile* res = _project->resourcesFile();
-    Q_ASSERT(res);
-
-    const QString undoText = tr("Edit %1").arg(propertyTitle(id));
-
-    auto editBlock = [&](auto f) {
-        RES::BlockSettings bs = res->blockSettings;
-        f(bs);
-
-        return SettingsUndoHelper(_project)
-            .editField(bs, undoText,
-                       [](RES::ResourcesFile& rf) -> RES::BlockSettings& { return rf.blockSettings; });
-    };
-
-    auto editMetaTile = [&](auto f) {
-        MT::EngineSettings es = res->metaTileEngineSettings;
-        f(es);
-
-        return SettingsUndoHelper(_project)
-            .editField(es, undoText,
-                       [](RES::ResourcesFile& rf) -> MT::EngineSettings& { return rf.metaTileEngineSettings; });
-    };
-
     switch ((PropertyId)id) {
     case BLOCK_SIZE:
-        return editBlock([&](auto& bs) { bs.size = value.toUInt(); });
+        return _project->editBlockSettings_setSize(value.toUInt());
 
     case BLOCK_COUNT:
-        return editBlock([&](auto& bs) { bs.count = value.toUInt(); });
+        return _project->editBlockSettings_setCount(value.toUInt());
 
     case METATILE_MAX_MAP_SIZE:
-        return editMetaTile([&](auto& es) { es.maxMapSize = value.toUInt(); });
+        return _project->editMetaTileSettings_setMaxMapSize(value.toUInt());
 
     case METATILE_N_METATILES:
-        return editMetaTile([&](auto& es) { es.nMetaTiles = value.toUInt(); });
+        return _project->editMetaTileSettings_setNMetaTiles(value.toUInt());
     }
 
     return false;
