@@ -29,9 +29,13 @@ class Document : public AbstractMsDocument {
 public:
     using DataT = SI::FrameSet;
 
+    using TilesetType = UnTech::MetaSprite::TilesetType;
+
 public:
     Document(FrameSetResourceList* parent, size_t index);
     ~Document() = default;
+
+    static QString typeName() { return tr("SpriteImporter FrameSet"); }
 
     SI::FrameSet* frameSet() const { return _frameSet; }
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
@@ -43,8 +47,17 @@ public:
     ActionPointList* actionPointList() const { return _actionPointList; }
     EntityHitboxList* entityHitboxList() const { return _entityHitboxList; }
 
+    bool editFrameSet_setName(const idstring& name);
+    bool editFrameSet_setTilesetType(TilesetType ts);
+    bool editFrameSet_setExportOrder(const idstring& exportOrder);
+    bool editFrameSet_setImageFilename(const std::string& filename);
+    bool editFrameSet_setTransparentColor(const rgba& color);
+    bool editFrameSet_setGrid(const SI::FrameSetGrid& grid);
+    bool editFrameSet_setPalette(const SI::UserSuppliedPalette& palette);
+
 private:
     friend class Accessor::ResourceItemUndoHelper<Document>;
+    const SI::FrameSet* data() const { return _frameSet; }
     SI::FrameSet* dataEditable() { return _frameSet; }
 
 protected:
@@ -74,8 +87,6 @@ private:
     ActionPointList* const _actionPointList;
     EntityHitboxList* const _entityHitboxList;
 };
-
-using FrameSetUndoHelper = Accessor::ResourceItemUndoHelper<Document>;
 }
 }
 }

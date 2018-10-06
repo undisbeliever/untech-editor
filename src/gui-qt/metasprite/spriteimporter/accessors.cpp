@@ -9,12 +9,8 @@
 #include "gui-qt/accessor/selectedidmapitemhelper.h"
 #include "gui-qt/accessor/selectedindexhelper.h"
 
-#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
-
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
-
-template class UnTech::GuiQt::Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
 
 FrameMap::FrameMap(Document* document)
     : QObject(document)

@@ -8,8 +8,6 @@
 #include "accessors.h"
 #include "document.h"
 #include "siframegraphicsitem.h"
-#include "gui-qt/accessor/idmapundohelper.h"
-#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
@@ -196,66 +194,6 @@ void SiGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         }
     }
 }
-
-void SiGraphicsScene::commitMovedItems()
-{
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
-    if (frame == nullptr) {
-        return;
-    }
-
-    const SiFrameGraphicsItem* frameItem = _frameItems.value(frame);
-    if (frameItem == nullptr) {
-        return;
-    }
-
-    const auto& objects = frameItem->objects();
-    const auto& actionPoints = frameItem->actionPoints();
-    const auto& entityHitboxes = frameItem->entityHitboxes();
-
-    QList<QUndoCommand*> commands;
-    commands.reserve(4);
-
-    if (_document->frameMap()->isTileHitboxSelected()) {
-        urect hitbox = frameItem->tileHitbox()->rectUrect();
-        auto* c = FrameMapUndoHelper(_document->frameMap())
-                      .editSelectedFieldCommand(hitbox, QString(),
-                                                [](SI::Frame& f) -> urect& { return f.tileHitbox; });
-        if (c != nullptr) {
-            commands.append(c);
-        }
-    }
-
-    commands.append(
-        FrameObjectListUndoHelper(_document->frameObjectList())
-            .editSelectedCommand(
-                [&](SI::FrameObject& obj, size_t i) {
-                    obj.location = objects.at(i)->posUpoint();
-                }));
-    commands.append(
-        ActionPointListUndoHelper(_document->actionPointList())
-            .editSelectedCommand(
-                [&](SI::ActionPoint& ap, size_t i) {
-                    ap.location = actionPoints.at(i)->posUpoint();
-                }));
-    commands.append(
-        EntityHitboxListUndoHelper(_document->entityHitboxList())
-            .editSelectedCommand(
-                [&](SI::EntityHitbox& eh, size_t i) {
-                    eh.aabb = entityHitboxes.at(i)->rectUrect();
-                }));
-
-    commands.removeAll(nullptr);
-
-    if (!commands.empty()) {
-        _document->undoStack()->beginMacro(tr("Move Selected"));
-        for (QUndoCommand* c : commands) {
-            _document->undoStack()->push(c);
-        }
-        _document->undoStack()->endMacro();
-    }
-}
-
 void SiGraphicsScene::onSelectedFrameChanged()
 {
     const SI::Frame* frame = _document->frameMap()->selectedFrame();

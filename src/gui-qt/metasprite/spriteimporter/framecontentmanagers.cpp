@@ -7,7 +7,6 @@
 #include "framecontentmanagers.h"
 #include "accessors.h"
 #include "document.h"
-#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/common.h"
 
@@ -201,7 +200,7 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
         obj.location.y = _frame->location.aabb.height - obj.sizePx();
     }
 
-    return FrameObjectListUndoHelper(_document->frameObjectList()).editItemInSelectedList(index, obj);
+    return _document->frameObjectList()->editSelectedList_setData(index, obj);
 }
 
 ActionPointManager::ActionPointManager(QObject* parent)
@@ -301,7 +300,7 @@ bool ActionPointManager::setData(int index, int id, const QVariant& value)
         break;
     };
 
-    return ActionPointListUndoHelper(_document->actionPointList()).editItemInSelectedList(index, ap);
+    return _document->actionPointList()->editSelectedList_setData(index, ap);
 }
 
 EntityHitboxManager::EntityHitboxManager(QObject* parent)
@@ -404,5 +403,5 @@ bool EntityHitboxManager::setData(int index, int id, const QVariant& value)
         break;
     };
 
-    return EntityHitboxListUndoHelper(_document->entityHitboxList()).editItemInSelectedList(index, eh);
+    return _document->entityHitboxList()->editSelectedList_setData(index, eh);
 }
