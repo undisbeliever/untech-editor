@@ -369,7 +369,7 @@ protected:
     // shifts all tiles with a size of size and a tileId >= tileId by offset
     friend class SmallTileTileset;
     friend class LargeTileTileset;
-    bool editSelectedList_shiftTiles(ObjectSize size, unsigned tileId, int offset);
+    bool editAll_shiftTileIds(ObjectSize size, unsigned tileId, int offset);
 
 protected:
     friend class Accessor::ListUndoHelper<FrameObjectList>;

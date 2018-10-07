@@ -65,7 +65,7 @@ bool SmallTileTileset::editTileset_addTile(unsigned index)
     if (c) {
         _document->undoStack()->beginMacro(tr("Add Small Tile"));
         _document->undoStack()->push(c);
-        _document->frameObjectList()->editSelectedList_shiftTiles(ObjectSize::SMALL, index, 1);
+        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::SMALL, index, 1);
         _document->undoStack()->endMacro();
     }
     return c != nullptr;
@@ -77,7 +77,7 @@ bool SmallTileTileset::editTileset_cloneTile(unsigned index)
     if (c) {
         _document->undoStack()->beginMacro(tr("Clone Small Tile"));
         _document->undoStack()->push(c);
-        _document->frameObjectList()->editSelectedList_shiftTiles(ObjectSize::SMALL, index, 1);
+        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::SMALL, index, 1);
         _document->undoStack()->endMacro();
     }
     return c != nullptr;
@@ -89,7 +89,7 @@ bool SmallTileTileset::editTileset_removeTile(unsigned index)
     if (c) {
         _document->undoStack()->beginMacro(tr("Remove Small Tile"));
         _document->undoStack()->push(c);
-        _document->frameObjectList()->editSelectedList_shiftTiles(ObjectSize::SMALL, index, -1);
+        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::SMALL, index, -1);
         _document->undoStack()->endMacro();
     }
     return c != nullptr;
@@ -142,7 +142,7 @@ bool LargeTileTileset::editTileset_addTile(unsigned index)
     if (c) {
         _document->undoStack()->beginMacro(tr("Add Small Tile"));
         _document->undoStack()->push(c);
-        _document->frameObjectList()->editSelectedList_shiftTiles(ObjectSize::LARGE, index, 1);
+        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::LARGE, index, 1);
         _document->undoStack()->endMacro();
     }
     return c != nullptr;
@@ -154,7 +154,7 @@ bool LargeTileTileset::editTileset_cloneTile(unsigned index)
     if (c) {
         _document->undoStack()->beginMacro(tr("Clone Small Tile"));
         _document->undoStack()->push(c);
-        _document->frameObjectList()->editSelectedList_shiftTiles(ObjectSize::LARGE, index, 1);
+        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::LARGE, index, 1);
         _document->undoStack()->endMacro();
     }
     return c != nullptr;
@@ -166,7 +166,7 @@ bool LargeTileTileset::editTileset_removeTile(unsigned index)
     if (c) {
         _document->undoStack()->beginMacro(tr("Remove Small Tile"));
         _document->undoStack()->push(c);
-        _document->frameObjectList()->editSelectedList_shiftTiles(ObjectSize::LARGE, index, -1);
+        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::LARGE, index, -1);
         _document->undoStack()->endMacro();
     }
     return c != nullptr;
@@ -380,14 +380,43 @@ bool FrameObjectList::editSelected_flipObjectVertically()
         });
 }
 
-inline bool FrameObjectList::editSelectedList_shiftTiles(ObjectSize size, unsigned tileId, int offset)
+inline bool FrameObjectList::editAll_shiftTileIds(ObjectSize size, unsigned tileId, int offset)
 {
-    return FrameObjectListUndoHelper(this).editAllItemsInSelectedList(
-        QString(), [&](MS::FrameObject& obj, size_t) {
-            if (obj.size == size && obj.tileId >= tileId) {
-                obj.tileId += offset;
-            }
-        });
+    const MS::FrameSet* fs = _document->frameSet();
+
+    if (fs == nullptr) {
+        return false;
+    }
+
+    QList<QUndoCommand*> commands;
+    commands.reserve(fs->frames.size());
+
+    for (const auto& fIt : fs->frames) {
+        QUndoCommand* cmd = FrameObjectListUndoHelper(this).editAllItemsInListCommand(
+            std::make_tuple<MS::Frame*>(&fIt.second),
+            QString(),
+            [&](MS::FrameObject& obj, size_t) {
+                if (obj.size == size && obj.tileId >= tileId) {
+                    if (offset > 0 || obj.tileId > 0) {
+                        obj.tileId += offset;
+                    }
+                }
+            });
+
+        if (cmd != nullptr) {
+            commands.append(cmd);
+        }
+    }
+
+    if (!commands.empty()) {
+        _document->undoStack()->beginMacro(tr("Shift TileIds"));
+        for (QUndoCommand* c : commands) {
+            _document->undoStack()->push(c);
+        }
+        _document->undoStack()->endMacro();
+    }
+
+    return commands.empty() == false;
 }
 
 using ActionPointListUndoHelper = ListAndMultipleSelectionUndoHelper<ActionPointList>;
