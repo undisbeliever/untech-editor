@@ -78,12 +78,13 @@ private:
                     const rgba* p = image.scanline(ly + y) + lx;
 
                     for (unsigned x = 0; x < obj.sizePx(); x++) {
-                        colors.insert(*p++);
+                        const bool newColor = colors.insert(*p++);
+                        if (newColor) {
+                            if (colors.size() > PALETTE_COLORS) {
+                                throw std::runtime_error("Too many colors, expected a maximum of 16 colors");
+                            }
+                        }
                     }
-                }
-
-                if (colors.size() > (PALETTE_COLORS)) {
-                    throw std::runtime_error("Too many colors, expected a max of 16");
                 }
             }
         }
@@ -95,6 +96,10 @@ private:
         }
         else {
             errorList.addWarning(siFrameSet, "Transparent color is not in frame objects");
+
+            if (colors.size() > (PALETTE_COLORS - 1)) {
+                throw std::runtime_error("Too many colors, expected a maximum of 15 colors after removing transparency");
+            }
         }
 
         return colors;
@@ -180,6 +185,8 @@ private:
         const unsigned colorSize = siFrameSet.palette.colorSize;
 
         vectorset<rgba> colorSet = getColorsFromImage();
+        assert(colorSet.size() <= PALETTE_COLORS - 1);
+
         const rgba* scanline = image.scanline(image.size().height - 1);
 
         for (unsigned i = 0; i < PALETTE_COLORS; i++) {
