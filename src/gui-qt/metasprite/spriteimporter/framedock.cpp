@@ -106,6 +106,7 @@ void FrameDock::setDocument(Document* document)
     }
 
     if (_document != nullptr) {
+        _document->disconnect(this);
         _document->frameMap()->disconnect(this);
         _document->frameObjectList()->disconnect(this);
         _document->entityHitboxList()->disconnect(this);
@@ -125,6 +126,9 @@ void FrameDock::setDocument(Document* document)
             _document->frameObjectList(),
             _document->actionPointList(),
             _document->entityHitboxList());
+
+        connect(_document, &Document::frameSetGridChanged,
+                this, &FrameDock::updateGui);
 
         connect(_document->frameMap(), &FrameMap::dataChanged,
                 this, &FrameDock::onFrameDataChanged);

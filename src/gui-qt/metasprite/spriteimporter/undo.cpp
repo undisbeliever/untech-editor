@@ -72,7 +72,8 @@ bool Document::editFrameSet_setGrid(const SI::FrameSetGrid& grid)
         grid,
         tr("Edit FrameSet Grid"),
         [](SI::FrameSet& fs) -> SI::FrameSetGrid& { return fs.grid; },
-        [](Document& d) { emit d.frameSetGridChanged();
+        [](Document& d) { d.frameSet()->updateFrameLocations();
+                          emit d.frameSetGridChanged();
                           emit d.frameSetDataChanged(); });
 }
 
