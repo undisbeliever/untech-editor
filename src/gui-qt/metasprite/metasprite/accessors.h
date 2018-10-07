@@ -297,9 +297,10 @@ public:
     using ArgsT = std::tuple<MS::Frame*>;
     using SignalArgsT = std::tuple<const void*>;
 
-private:
-    Document* _document;
+protected:
+    Document* const _document;
 
+private:
     vectorset<index_type> _selectedIndexes;
 
 public:
