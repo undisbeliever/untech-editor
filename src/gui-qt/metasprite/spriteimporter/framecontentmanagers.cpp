@@ -175,32 +175,21 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    if (_frame == nullptr
-        || index < 0 || (unsigned)index >= _frame->objects.size()) {
-
+    if (_frame == nullptr) {
         return false;
     }
 
-    SI::FrameObject obj = _frame->objects.at(index);
-
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        obj.location = toUpoint(value.toPoint());
-        break;
+        return _document->frameObjectList()->editSelectedList_setLocation(
+            index, toUpoint(value.toPoint()));
 
     case PropertyId::SIZE:
-        obj.size = value.toBool() ? ObjSize::LARGE : ObjSize::SMALL;
-        break;
+        return _document->frameObjectList()->editSelectedList_setSize(
+            index, value.toBool() ? ObjSize::LARGE : ObjSize::SMALL);
     };
 
-    if (obj.bottomRight().x >= _frame->location.aabb.width) {
-        obj.location.x = _frame->location.aabb.width - obj.sizePx();
-    }
-    if (obj.bottomRight().y >= _frame->location.aabb.height) {
-        obj.location.y = _frame->location.aabb.height - obj.sizePx();
-    }
-
-    return _document->frameObjectList()->editSelectedList_setData(index, obj);
+    return false;
 }
 
 ActionPointManager::ActionPointManager(QObject* parent)
@@ -282,25 +271,21 @@ void ActionPointManager::updateParameters(int index, int id,
 
 bool ActionPointManager::setData(int index, int id, const QVariant& value)
 {
-    if (_frame == nullptr
-        || index < 0 || (unsigned)index >= _frame->actionPoints.size()) {
-
+    if (_frame == nullptr) {
         return false;
     }
 
-    SI::ActionPoint ap = _frame->actionPoints.at(index);
-
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        ap.location = toUpoint(value.toPoint());
-        break;
+        return _document->actionPointList()->editSelectedList_setLocation(
+            index, toUpoint(value.toPoint()));
 
     case PropertyId::PARAMETER:
-        ap.parameter = value.toUInt();
-        break;
+        return _document->actionPointList()->editSelectedList_setParameter(
+            index, value.toUInt());
     };
 
-    return _document->actionPointList()->editSelectedList_setData(index, ap);
+    return false;
 }
 
 EntityHitboxManager::EntityHitboxManager(QObject* parent)
@@ -385,23 +370,19 @@ bool EntityHitboxManager::setData(int index, int id, const QVariant& value)
 {
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 
-    if (_frame == nullptr
-        || index < 0 || (unsigned)index >= _frame->entityHitboxes.size()) {
-
+    if (_frame == nullptr) {
         return false;
     }
 
-    SI::EntityHitbox eh = _frame->entityHitboxes.at(index);
-
     switch ((PropertyId)id) {
     case PropertyId::AABB:
-        eh.aabb = toUrect(value.toRect());
-        break;
+        return _document->entityHitboxList()->editSelectedList_setAabb(
+            index, toUrect(value.toRect()));
 
     case PropertyId::HITBOX_TYPE:
-        eh.hitboxType = EntityHitboxType::from_romValue(value.toInt());
-        break;
+        return _document->entityHitboxList()->editSelectedList_setEntityHitboxType(
+            index, EntityHitboxType::from_romValue(value.toInt()));
     };
 
-    return _document->entityHitboxList()->editSelectedList_setData(index, eh);
+    return false;
 }

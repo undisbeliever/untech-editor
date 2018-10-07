@@ -123,6 +123,15 @@ private:
             , _newValue(newValue)
         {
         }
+        EditCommand(AccessorT* accessor, const ArgsT& args, index_type index,
+                    const DataT& oldValue, const DataT& newValue,
+                    const QString& text)
+            : BaseCommand(accessor, args, text)
+            , _index(index)
+            , _oldValue(oldValue)
+            , _newValue(newValue)
+        {
+        }
         ~EditCommand() = default;
 
         virtual void undo() final
@@ -599,6 +608,53 @@ public:
         const ArgsT listArgs = _accessor->selectedListTuple();
 
         return editMerge(listArgs, index, newValue, first);
+    }
+
+    // will return nullptr if data cannot be accessed or is unchanged
+    template <typename EditFunction>
+    QUndoCommand* editItemInListCommand(const ArgsT& listArgs, index_type index,
+                                        const QString& text,
+                                        EditFunction editFunction)
+    {
+        ListT* list = getList_NO_CONST(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+        if (index < 0 || index >= list->size()) {
+            return nullptr;
+        }
+
+        const DataT& oldValue = list->at(index);
+        DataT newValue = oldValue;
+
+        editFunction(newValue);
+
+        if (newValue == oldValue) {
+            return nullptr;
+        }
+        return new EditCommand(_accessor, listArgs, index, oldValue, newValue, text);
+    }
+
+    template <typename EditFunction>
+    bool editItemInList(const ArgsT& listArgs, index_type index,
+                        const QString& text,
+                        EditFunction editFunction)
+    {
+        QUndoCommand* e = editItemInListCommand(listArgs, index, text, editFunction);
+        if (e) {
+            _accessor->resourceItem()->undoStack()->push(e);
+        }
+        return e != nullptr;
+    }
+
+    template <typename EditFunction>
+    bool editItemInSelectedList(index_type index,
+                                const QString& text,
+                                EditFunction editFunction)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        return editItemInList(listArgs, index, text, editFunction);
     }
 
     // will return nullptr if data cannot be accessed or is equal to newValue

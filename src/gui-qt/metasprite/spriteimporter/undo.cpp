@@ -135,9 +135,34 @@ using FrameObjectListUndoHelper = ListAndMultipleSelectionUndoHelper<FrameObject
 template class UnTech::GuiQt::Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
 // Remember SiGraphicsScene::commitMovedItems
 
-bool FrameObjectList::editSelectedList_setData(index_type index, const SI::FrameObject& data)
+bool FrameObjectList::editSelectedList_setLocation(unsigned index, const upoint& location)
 {
-    return FrameObjectListUndoHelper(this).editItemInSelectedList(index, data);
+    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+        index, location,
+        tr("Edit Object Location"),
+        [](SI::FrameObject& obj) -> upoint& { return obj.location; });
+}
+
+bool FrameObjectList::editSelectedList_setSize(unsigned index, FrameObjectList::ObjectSize size)
+{
+    const SI::Frame* frame = _document->frameMap()->selectedFrame();
+    if (frame == nullptr) {
+        return false;
+    }
+
+    return FrameObjectListUndoHelper(this).editItemInSelectedList(
+        index,
+        tr("Edit Object Size"),
+        [&](SI::FrameObject& obj) {
+            obj.size = size;
+
+            if (obj.bottomRight().x >= frame->location.aabb.width) {
+                obj.location.x = frame->location.aabb.width - obj.sizePx();
+            }
+            if (obj.bottomRight().y >= frame->location.aabb.height) {
+                obj.location.y = frame->location.aabb.height - obj.sizePx();
+            }
+        });
 }
 
 bool FrameObjectList::editSelected_toggleObjectSize()
@@ -164,17 +189,39 @@ bool FrameObjectList::editSelected_toggleObjectSize()
 using ActionPointListUndoHelper = ListAndMultipleSelectionUndoHelper<ActionPointList>;
 // Remember SiGraphicsScene::commitMovedItems
 
-bool ActionPointList::editSelectedList_setData(index_type index, const SI::ActionPoint& data)
+bool ActionPointList::editSelectedList_setLocation(unsigned index, const upoint& location)
 {
-    return ActionPointListUndoHelper(this).editItemInSelectedList(index, data);
+    return ActionPointListUndoHelper(this).editFieldInSelectedList(
+        index, location,
+        tr("Edit Action Point Location"),
+        [](SI::ActionPoint& ap) -> upoint& { return ap.location; });
+}
+
+bool ActionPointList::editSelectedList_setParameter(unsigned index, ActionPointList::ParameterType parameter)
+{
+    return ActionPointListUndoHelper(this).editFieldInSelectedList(
+        index, parameter,
+        tr("Edit Action Point Parameter"),
+        [](SI::ActionPoint& ap) -> ParameterType& { return ap.parameter; });
 }
 
 using EntityHitboxListUndoHelper = ListAndMultipleSelectionUndoHelper<EntityHitboxList>;
 // Remember SiGraphicsScene::commitMovedItems
 
-bool EntityHitboxList::editSelectedList_setData(index_type index, const SI::EntityHitbox& data)
+bool EntityHitboxList::editSelectedList_setAabb(unsigned index, const urect& aabb)
 {
-    return EntityHitboxListUndoHelper(this).editItemInSelectedList(index, data);
+    return EntityHitboxListUndoHelper(this).editFieldInSelectedList(
+        index, aabb,
+        tr("Edit Entity Hitbox AABB"),
+        [](SI::EntityHitbox& eh) -> urect& { return eh.aabb; });
+}
+
+bool EntityHitboxList::editSelectedList_setEntityHitboxType(unsigned index, EntityHitboxList::EntityHitboxType type)
+{
+    return EntityHitboxListUndoHelper(this).editFieldInSelectedList(
+        index, type,
+        tr("Edit Entity Hitbox Type"),
+        [](SI::EntityHitbox& eh) -> EntityHitboxType& { return eh.hitboxType; });
 }
 
 bool EntityHitboxList::editSelected_setEntityHitboxType(EntityHitboxType type)
