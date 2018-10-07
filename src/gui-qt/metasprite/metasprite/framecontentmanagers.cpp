@@ -7,10 +7,10 @@
 #include "framecontentmanagers.h"
 #include "accessors.h"
 #include "document.h"
-#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/common.h"
 
+using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
@@ -137,7 +137,7 @@ QVariant FrameObjectManager::data(int index, int id) const
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        return QPoint(obj.location.x, obj.location.y);
+        return fromMs8point(obj.location);
 
     case PropertyId::SIZE:
         return obj.size == ObjSize::LARGE;
@@ -187,35 +187,29 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    if (_frame == nullptr
-        || index < 0 || (unsigned)index >= _frame->objects.size()) {
-
+    if (_frame == nullptr) {
         return false;
     }
 
-    MS::FrameObject obj = _frame->objects.at(index);
-
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        obj.location.x = value.toPoint().x();
-        obj.location.y = value.toPoint().y();
-        break;
+        return _document->frameObjectList()->editSelectedList_setLocation(
+            index, toMs8point(value.toPoint()));
 
     case PropertyId::SIZE:
-        obj.size = value.toBool() ? ObjSize::LARGE : ObjSize::SMALL;
-        break;
+        return _document->frameObjectList()->editSelectedList_setSize(
+            index, value.toBool() ? ObjSize::LARGE : ObjSize::SMALL);
 
     case PropertyId::TILE:
-        obj.tileId = value.toUInt();
-        break;
+        return _document->frameObjectList()->editSelectedList_setTile(
+            index, value.toUInt());
 
     case PropertyId::FLIP:
-        obj.hFlip = value.toUInt() & 1;
-        obj.vFlip = value.toUInt() & 2;
-        break;
+        return _document->frameObjectList()->editSelectedList_setFlips(
+            index, value.toUInt() & 1, value.toUInt() & 2);
     };
 
-    return FrameObjectListUndoHelper(_document->frameObjectList()).editItemInSelectedList(index, obj);
+    return false;
 }
 
 ActionPointManager::ActionPointManager(QObject* parent)
@@ -265,7 +259,7 @@ QVariant ActionPointManager::data(int index, int id) const
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        return QPoint(ap.location.x, ap.location.y);
+        return fromMs8point(ap.location);
 
     case PropertyId::PARAMETER:
         return (int)ap.parameter;
@@ -276,26 +270,21 @@ QVariant ActionPointManager::data(int index, int id) const
 
 bool ActionPointManager::setData(int index, int id, const QVariant& value)
 {
-    if (_frame == nullptr
-        || index < 0 || (unsigned)index >= _frame->actionPoints.size()) {
-
+    if (_frame == nullptr) {
         return false;
     }
 
-    MS::ActionPoint ap = _frame->actionPoints.at(index);
-
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        ap.location.x = value.toPoint().x();
-        ap.location.y = value.toPoint().y();
-        break;
+        return _document->actionPointList()->editSelectedList_setLocation(
+            index, toMs8point(value.toPoint()));
 
     case PropertyId::PARAMETER:
-        ap.parameter = value.toUInt();
-        break;
+        return _document->actionPointList()->editSelectedList_setParameter(
+            index, value.toUInt());
     };
 
-    return ActionPointListUndoHelper(_document->actionPointList()).editItemInSelectedList(index, ap);
+    return false;
 }
 
 EntityHitboxManager::EntityHitboxManager(QObject* parent)
@@ -346,8 +335,7 @@ QVariant EntityHitboxManager::data(int index, int id) const
 
     switch ((PropertyId)id) {
     case PropertyId::AABB:
-        return QRect(eh.aabb.x, eh.aabb.y,
-                     eh.aabb.width, eh.aabb.height);
+        return fromMs8rect(eh.aabb);
 
     case PropertyId::HITBOX_TYPE:
         return int(eh.hitboxType.romValue());
@@ -360,26 +348,19 @@ bool EntityHitboxManager::setData(int index, int id, const QVariant& value)
 {
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 
-    if (_frame == nullptr
-        || index < 0 || (unsigned)index >= _frame->entityHitboxes.size()) {
-
+    if (_frame == nullptr) {
         return false;
     }
 
-    MS::EntityHitbox eh = _frame->entityHitboxes.at(index);
-
     switch ((PropertyId)id) {
     case PropertyId::AABB:
-        eh.aabb.x = value.toRect().x();
-        eh.aabb.y = value.toRect().y();
-        eh.aabb.width = value.toRect().width();
-        eh.aabb.height = value.toRect().height();
-        break;
+        return _document->entityHitboxList()->editSelectedList_setAabb(
+            index, toMs8rect(value.toRect()));
 
     case PropertyId::HITBOX_TYPE:
-        eh.hitboxType = EntityHitboxType::from_romValue(value.toInt());
-        break;
+        return _document->entityHitboxList()->editSelectedList_setEntityHitboxType(
+            index, EntityHitboxType::from_romValue(value.toInt()));
     };
 
-    return EntityHitboxListUndoHelper(_document->entityHitboxList()).editItemInSelectedList(index, eh);
+    return false;
 }

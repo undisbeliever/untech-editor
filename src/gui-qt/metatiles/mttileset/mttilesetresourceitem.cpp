@@ -25,6 +25,16 @@ MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size
     setFilename(QString::fromStdString(tilesetInputItem().filename));
 }
 
+unsigned MtTilesetResourceItem::nMetaTiles() const
+{
+    if (_compiledData) {
+        return _compiledData->nMetaTiles();
+    }
+    else {
+        return 0;
+    }
+}
+
 void MtTilesetResourceItem::updateExternalFiles()
 {
     QStringList files;

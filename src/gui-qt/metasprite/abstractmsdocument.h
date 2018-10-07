@@ -63,7 +63,6 @@ protected:
 
 signals:
     void frameSetDataChanged();
-    void frameSetNameChanged();
     void frameSetExportOrderChanged();
 
 private:

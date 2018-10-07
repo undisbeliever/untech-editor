@@ -44,7 +44,7 @@ private:
 
     class BaseCommand : public QUndoCommand {
     protected:
-        AccessorT* _accessor;
+        AccessorT* const _accessor;
         const ArgsT _args;
 
     public:
@@ -118,6 +118,15 @@ private:
                     const DataT& oldValue, const DataT& newValue)
             : BaseCommand(accessor, args,
                           tr("Edit %1").arg(accessor->typeName()))
+            , _index(index)
+            , _oldValue(oldValue)
+            , _newValue(newValue)
+        {
+        }
+        EditCommand(AccessorT* accessor, const ArgsT& args, index_type index,
+                    const DataT& oldValue, const DataT& newValue,
+                    const QString& text)
+            : BaseCommand(accessor, args, text)
             , _index(index)
             , _oldValue(oldValue)
             , _newValue(newValue)
@@ -512,12 +521,19 @@ public:
     }
 
 private:
-    inline ArgsT selectedListTuple()
+    inline const ArgsT selectedListTuple()
     {
         return _accessor->selectedListTuple();
     }
 
-    inline ListT* getList(const ArgsT& listArgs)
+    inline const ListT* getList(const ArgsT& listArgs)
+    {
+        auto f = std::mem_fn(&AccessorT::getList);
+        return mem_fn_call(f, _accessor, listArgs);
+    }
+
+    // MUST ONLY this function when it's absolutely necessary
+    inline ListT* getList_NO_CONST(const ArgsT& listArgs)
     {
         auto f = std::mem_fn(&AccessorT::getList);
         return mem_fn_call(f, _accessor, listArgs);
@@ -527,7 +543,7 @@ public:
     // will return nullptr if data cannot be accessed or is equal to newValue
     QUndoCommand* editCommand(const ArgsT& listArgs, index_type index, const DataT& newValue)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -562,7 +578,7 @@ public:
     QUndoCommand* editMergeCommand(const ArgsT& listArgs, index_type index,
                                    const DataT& newValue, bool first = false)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -594,13 +610,60 @@ public:
         return editMerge(listArgs, index, newValue, first);
     }
 
+    // will return nullptr if data cannot be accessed or is unchanged
+    template <typename EditFunction>
+    QUndoCommand* editItemInListCommand(const ArgsT& listArgs, index_type index,
+                                        const QString& text,
+                                        EditFunction editFunction)
+    {
+        ListT* list = getList_NO_CONST(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+        if (index < 0 || index >= list->size()) {
+            return nullptr;
+        }
+
+        const DataT& oldValue = list->at(index);
+        DataT newValue = oldValue;
+
+        editFunction(newValue);
+
+        if (newValue == oldValue) {
+            return nullptr;
+        }
+        return new EditCommand(_accessor, listArgs, index, oldValue, newValue, text);
+    }
+
+    template <typename EditFunction>
+    bool editItemInList(const ArgsT& listArgs, index_type index,
+                        const QString& text,
+                        EditFunction editFunction)
+    {
+        QUndoCommand* e = editItemInListCommand(listArgs, index, text, editFunction);
+        if (e) {
+            _accessor->resourceItem()->undoStack()->push(e);
+        }
+        return e != nullptr;
+    }
+
+    template <typename EditFunction>
+    bool editItemInSelectedList(index_type index,
+                                const QString& text,
+                                EditFunction editFunction)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        return editItemInList(listArgs, index, text, editFunction);
+    }
+
     // will return nullptr if data cannot be accessed or is equal to newValue
     template <typename FieldT, typename UnaryFunction>
     QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
                                    const QString& text,
                                    UnaryFunction getter)
     {
-        ListT* list = getList(listArgs);
+        ListT* list = getList_NO_CONST(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -647,7 +710,7 @@ public:
                                const QString& text,
                                UnaryFunction getter)
     {
-        ListT* list = getList(listArgs);
+        ListT* list = getList_NO_CONST(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -732,7 +795,7 @@ public:
     // index is invalid or too many items in list
     QUndoCommand* addCommand(const ArgsT& listArgs, index_type index)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -748,7 +811,7 @@ public:
 
     bool addItem(const ArgsT& listArgs)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return false;
         }
@@ -788,7 +851,7 @@ public:
     // index is invalid or too many items in list
     QUndoCommand* cloneCommand(const ArgsT& listArgs, index_type index)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -822,7 +885,7 @@ public:
     // index is invalid or too many items in list
     QUndoCommand* removeCommand(const ArgsT& listArgs, index_type index)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -853,7 +916,7 @@ public:
     QUndoCommand* moveCommand(const ArgsT& listArgs, index_type from, index_type to,
                               const QString& text)
     {
-        ListT* list = getList(listArgs);
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -969,7 +1032,7 @@ public:
     {
         const ArgsT listArgs = this->selectedListTuple();
 
-        ListT* list = this->getList(listArgs);
+        const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return false;
         }
@@ -1044,7 +1107,7 @@ public:
         const ArgsT listArgs = this->selectedListTuple();
         const index_type index = this->_accessor->selectedIndex();
 
-        ListT* list = this->getList(listArgs);
+        const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return false;
         }

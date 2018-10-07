@@ -7,7 +7,6 @@
 #include "animationdock.h"
 #include "animationaccessors.h"
 #include "animationframesmanager.h"
-#include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/animation/animationdock.ui.h"
@@ -141,29 +140,18 @@ void AnimationDock::updateGui()
 
 void AnimationDock::onDurationFormatEdited()
 {
-    MSA::DurationFormat df = _ui->durationFormat->currentEnum<MSA::DurationFormat>();
-
-    AnimationUndoHelper helper(_document->animationsMap());
-    helper.editSelectedItemField(df, tr("Change Animation Duration Format"),
-                                 [](MSA::Animation& a) -> MSA::DurationFormat& { return a.durationFormat; });
+    _document->animationsMap()->editSelected_setDurationFormat(
+        _ui->durationFormat->currentEnum<MSA::DurationFormat>());
 }
 
 void AnimationDock::onOneShotEdited()
 {
-    bool oneShot = _ui->oneShot->isChecked();
-
-    QString text = oneShot ? tr("Set Animation One Shot") : tr("Clear Animation One Shot");
-
-    AnimationUndoHelper helper(_document->animationsMap());
-    helper.editSelectedItemField(oneShot, text,
-                                 [](MSA::Animation& a) -> bool& { return a.oneShot; });
+    _document->animationsMap()->editSelected_setOneShot(
+        _ui->oneShot->isChecked());
 }
 
 void AnimationDock::onNextAnimationEdited()
 {
-    idstring nextAni = _ui->nextAnimation->text().toStdString();
-
-    AnimationUndoHelper helper(_document->animationsMap());
-    helper.editSelectedItemField(nextAni, tr("Change Next Animation"),
-                                 [](MSA::Animation& a) -> idstring& { return a.nextAnimation; });
+    _document->animationsMap()->editSelected_setNextAnimation(
+        _ui->nextAnimation->text().toStdString());
 }

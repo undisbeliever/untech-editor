@@ -51,9 +51,6 @@ private slots:
     void onActionRemove();
 
 private:
-    void editColorDialog(int colorIndex);
-
-private:
     std::unique_ptr<Ui::PalettesDock> const _ui;
     PalettesModel* const _model;
 

@@ -42,7 +42,7 @@ private:
 
     class BaseCommand : public QUndoCommand {
     protected:
-        AccessorT* _accessor;
+        AccessorT* const _accessor;
         const ArgsT _args;
 
     public:
@@ -207,12 +207,12 @@ public:
     }
 
 private:
-    inline ArgsT selectedGridTuple()
+    inline const ArgsT selectedGridTuple()
     {
         return _accessor->selectedGridTuple();
     }
 
-    inline GridT* getGrid(const ArgsT& gridArgs)
+    inline const GridT* getGrid(const ArgsT& gridArgs)
     {
         auto f = std::mem_fn(&AccessorT::getGrid);
         return mem_fn_call(f, _accessor, gridArgs);
@@ -222,7 +222,7 @@ public:
     // will return nullptr if grid could not be accessed or is equal to newGrid
     QUndoCommand* editGridCommand(const ArgsT& gridArgs, const GridT& newGrid, const QString& text)
     {
-        GridT* oldGrid = getGrid(gridArgs);
+        const GridT* oldGrid = getGrid(gridArgs);
         if (oldGrid == nullptr) {
             return nullptr;
         }
@@ -253,7 +253,7 @@ public:
     QUndoCommand* resizeGridCommand(const ArgsT& gridArgs, const usize& newSize, const DataT& defaultValue,
                                     const QString& text)
     {
-        GridT* grid = getGrid(gridArgs);
+        const GridT* grid = getGrid(gridArgs);
         if (grid == nullptr) {
             return nullptr;
         }
@@ -262,9 +262,9 @@ public:
             return nullptr;
         }
 
-        GridT resizedGrid = grid->resized(newSize, defaultValue);
+        const GridT resizedGrid = grid->resized(newSize, defaultValue);
 
-        return new EditGridCommand(_accessor, gridArgs, *grid, resizedGrid, text);
+        return new EditGridCommand(_accessor, gridArgs, *grid, std::move(resizedGrid), text);
     }
 
     bool resizeGrid(const ArgsT& gridArgs, const usize& newSize, const DataT& defaultValue,
@@ -293,7 +293,7 @@ public:
             return nullptr;
         }
 
-        GridT* grid = getGrid(gridArgs);
+        const GridT* grid = getGrid(gridArgs);
         if (grid == nullptr) {
             return nullptr;
         }
@@ -344,7 +344,7 @@ public:
             return nullptr;
         }
 
-        GridT* grid = getGrid(gridArgs);
+        const GridT* grid = getGrid(gridArgs);
         if (grid == nullptr) {
             return nullptr;
         }

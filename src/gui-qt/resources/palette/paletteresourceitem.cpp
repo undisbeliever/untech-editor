@@ -13,38 +13,25 @@ PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t ind
     : AbstractInternalResourceItem(parent, index)
     , _compiledData(nullptr)
 {
-    Q_ASSERT(index < palettesData().size());
+    Q_ASSERT(index < project()->resourcesFile()->palettes.size());
 
     auto* pal = paletteData();
-
     setName(QString::fromStdString(pal->name));
 
-    if (pal->paletteImageFilename.empty() == false) {
-        setExternalFiles({ QString::fromStdString(pal->paletteImageFilename) });
-    }
+    updateExternalFiles();
 }
 
-void PaletteResourceItem::setData(const UnTech::Resources::PaletteInput& data)
+void PaletteResourceItem::updateExternalFiles()
 {
-    auto* pal = palettesData().at(index());
-    Q_ASSERT(pal);
+    QStringList filenames;
 
-    bool nameChange = pal->name != data.name;
-    bool imageChange = pal->paletteImageFilename != data.paletteImageFilename;
-
-    *pal = data;
-    emit dataChanged();
-
-    if (nameChange) {
-        setName(QString::fromStdString(data.name));
-    }
-    if (imageChange) {
-        QStringList filenames;
+    if (const auto* pal = paletteData()) {
         if (pal->paletteImageFilename.empty() == false) {
-            filenames << QString::fromStdString(pal->paletteImageFilename);
+            filenames.append(QString::fromStdString(pal->paletteImageFilename));
         }
-        setExternalFiles(filenames);
     }
+
+    setExternalFiles(filenames);
 }
 
 bool PaletteResourceItem::compileResource(RES::ErrorList& err)

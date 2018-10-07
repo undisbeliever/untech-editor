@@ -28,6 +28,8 @@ public:
     using DataT = SI::Frame;
     using MapT = SI::Frame::map_t;
 
+    using SpriteOrderType = UnTech::MetaSprite::SpriteOrderType;
+
 private:
     Document* const _document;
 
@@ -59,6 +61,12 @@ public:
         }
         return &fs->frames;
     }
+
+    bool editSelected_setSpriteOrder(SpriteOrderType spriteOrder);
+    bool editSelected_setFrameLocation(SI::FrameLocation& frameLocation);
+    bool editSelected_setSolid(bool solid);
+    bool editSelected_setTileHitbox(const urect& hitbox);
+    bool editSelected_toggleTileHitbox();
 
 public slots:
     void setSelectedId(const idstring& id);
@@ -102,9 +110,10 @@ public:
     using ArgsT = std::tuple<SI::Frame*>;
     using SignalArgsT = std::tuple<const void*>;
 
-private:
-    Document* _document;
+protected:
+    Document* const _document;
 
+private:
     vectorset<index_type> _selectedIndexes;
 
 public:
@@ -149,12 +158,19 @@ public:
     using ListT = std::vector<DataT>;
     constexpr static index_type max_size = UnTech::MetaSprite::MAX_FRAME_OBJECTS;
 
+    using ObjectSize = UnTech::MetaSprite::ObjectSize;
+
 public:
     FrameObjectList(Document* document);
     ~FrameObjectList() = default;
 
     static QString typeName() { return tr("Frame Object"); }
     static QString typeNamePlural() { return tr("Frame Objects"); }
+
+    bool editSelectedList_setLocation(unsigned index, const upoint& location);
+    bool editSelectedList_setSize(unsigned index, ObjectSize size);
+
+    bool editSelected_toggleObjectSize();
 
 protected:
     friend class Accessor::ListUndoHelper<FrameObjectList>;
@@ -176,12 +192,17 @@ public:
     using ListT = std::vector<DataT>;
     constexpr static index_type max_size = UnTech::MetaSprite::MAX_ACTION_POINTS;
 
+    using ParameterType = UnTech::MetaSprite::ActionPointParameter;
+
 public:
     ActionPointList(Document* document);
     ~ActionPointList() = default;
 
     static QString typeName() { return tr("Action Point"); }
     static QString typeNamePlural() { return tr("Action Points"); }
+
+    bool editSelectedList_setLocation(unsigned index, const upoint& location);
+    bool editSelectedList_setParameter(unsigned index, ParameterType parameter);
 
 protected:
     friend class Accessor::ListUndoHelper<ActionPointList>;
@@ -203,12 +224,19 @@ public:
     using ListT = std::vector<DataT>;
     constexpr static index_type max_size = UnTech::MetaSprite::MAX_ENTITY_HITBOXES;
 
+    using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
+
 public:
     EntityHitboxList(Document* document);
     ~EntityHitboxList() = default;
 
     static QString typeName() { return tr("Entity Hitbox"); }
     static QString typeNamePlural() { return tr("Entity Hitboxes"); }
+
+    bool editSelectedList_setAabb(unsigned index, const urect& aabb);
+    bool editSelectedList_setEntityHitboxType(unsigned index, EntityHitboxType type);
+
+    bool editSelected_setEntityHitboxType(EntityHitboxType type);
 
 protected:
     friend class Accessor::ListUndoHelper<EntityHitboxList>;
@@ -221,11 +249,6 @@ protected:
         return &frame->entityHitboxes;
     }
 };
-
-using FrameMapUndoHelper = Accessor::IdmapAndSelectionUndoHelper<FrameMap>;
-using FrameObjectListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
-using ActionPointListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<ActionPointList>;
-using EntityHitboxListUndoHelper = Accessor::ListAndMultipleSelectionUndoHelper<EntityHitboxList>;
 }
 }
 }

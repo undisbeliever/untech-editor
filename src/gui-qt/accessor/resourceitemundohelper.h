@@ -26,35 +26,6 @@ private:
         return QCoreApplication::tr(s);
     }
 
-    class EditCommand : public QUndoCommand {
-    protected:
-        ResourceItemT* const _item;
-        const DataT _oldData;
-        const DataT _newData;
-
-    public:
-        EditCommand(ResourceItemT* item,
-                    const DataT& oldData, const DataT& newData,
-                    const QString& text)
-            : QUndoCommand(text)
-            , _item(item)
-            , _oldData(oldData)
-            , _newData(newData)
-        {
-        }
-        ~EditCommand() = default;
-
-        virtual void undo() final
-        {
-            _item->setData(_oldData);
-        }
-
-        virtual void redo() final
-        {
-            _item->setData(_newData);
-        }
-    };
-
     struct EmptySignalFunction {
         void operator()(ResourceItemT&) const {}
     };
@@ -117,7 +88,7 @@ private:
     public:
         EditNameCommand(ResourceItemT* item,
                         const idstring& oldName, const idstring& newName)
-            : QUndoCommand(tr("Edit Name"))
+            : QUndoCommand(tr("Edit %1 Name").arg(ResourceItemT::typeName()))
             , _item(item)
             , _oldName(oldName)
             , _newName(newName)
@@ -160,29 +131,6 @@ public:
     }
 
 public:
-    // will return nullptr if oldData is equal to newData
-    QUndoCommand* editCommand(const DataT& newData, const QString& text)
-    {
-        const DataT* oldData = _resourceItem->data();
-        if (oldData == nullptr) {
-            return nullptr;
-        }
-
-        if (*oldData == newData) {
-            return nullptr;
-        }
-        return new EditCommand(_resourceItem, *oldData, newData, text);
-    }
-
-    bool edit(const DataT& newData, const QString& text)
-    {
-        QUndoCommand* c = editCommand(newData, text);
-        if (c) {
-            _resourceItem->undoStack()->push(c);
-        }
-        return c != nullptr;
-    }
-
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
     QUndoCommand* editFieldCommand(const FieldT& newValue, const QString& text,
                                    UnaryFunction getter, ExtraSignalsFunction extraSignals)
@@ -227,7 +175,7 @@ public:
 
     QUndoCommand* editNameCommand(const idstring& newName)
     {
-        DataT* data = _resourceItem->dataEditable();
+        const DataT* data = _resourceItem->data();
         if (data == nullptr) {
             return nullptr;
         }

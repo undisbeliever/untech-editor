@@ -8,8 +8,6 @@
 #include "accessors.h"
 #include "document.h"
 #include "tilesetpixmaps.h"
-#include "gui-qt/accessor/idmapundohelper.h"
-#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/pixmapgraphicsitem.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
@@ -184,55 +182,6 @@ void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
     if (_document && _frame) {
         _contextMenu->exec(event->screenPos());
-    }
-}
-
-void MsGraphicsScene::commitMovedItems()
-{
-    if (_frame == nullptr) {
-        return;
-    }
-
-    QList<QUndoCommand*> commands;
-    commands.reserve(4);
-
-    if (_document->frameMap()->isTileHitboxSelected()) {
-        ms8rect hitbox = _tileHitbox->rectMs8rect();
-        auto* c = FrameMapUndoHelper(_document->frameMap())
-                      .editSelectedFieldCommand(hitbox, QString(),
-                                                [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
-        if (c != nullptr) {
-            commands.append(c);
-        }
-    }
-
-    commands.append(
-        FrameObjectListUndoHelper(_document->frameObjectList())
-            .editSelectedCommand(
-                [this](MS::FrameObject& obj, size_t i) {
-                    obj.location = _objects.at(i)->posMs8point();
-                }));
-    commands.append(
-        ActionPointListUndoHelper(_document->actionPointList())
-            .editSelectedCommand(
-                [this](MS::ActionPoint& ap, size_t i) {
-                    ap.location = _actionPoints.at(i)->posMs8point();
-                }));
-    commands.append(
-        EntityHitboxListUndoHelper(_document->entityHitboxList())
-            .editSelectedCommand(
-                [this](MS::EntityHitbox& eh, size_t i) {
-                    eh.aabb = _entityHitboxes.at(i)->rectMs8rect();
-                }));
-
-    commands.removeAll(nullptr);
-
-    if (!commands.empty()) {
-        _document->undoStack()->beginMacro(tr("Move Selected"));
-        for (QUndoCommand* c : commands) {
-            _document->undoStack()->push(c);
-        }
-        _document->undoStack()->endMacro();
     }
 }
 

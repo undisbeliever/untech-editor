@@ -9,15 +9,12 @@
 #include "document.h"
 #include "palettesmodel.h"
 #include "gui-qt/accessor/listactionhelper.h"
-#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/common/widgets/colortoolbutton.h"
 #include "gui-qt/metasprite/metasprite/palettesdock.ui.h"
-#include "gui-qt/snes/snescolordialog.h"
 
 #include <QMenu>
 
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
-using namespace UnTech::GuiQt::Snes;
 using ColorToolButton = UnTech::GuiQt::ColorToolButton;
 
 static QList<ColorToolButton*> buildColorButtons(QButtonGroup* buttonGroup, PalettesDock* dock)
@@ -255,73 +252,32 @@ void PalettesDock::onColorClicked(int colorIndex)
         _document->paletteList()->setSelectedColor(colorIndex);
     }
     else {
-        editColorDialog(colorIndex);
+        _document->paletteList()->editSelected_setColorDialog(colorIndex, this);
+        uncheckColorButtons();
     }
-}
-
-void PalettesDock::editColorDialog(int colorIndex)
-{
-    using namespace UnTech::Snes;
-
-    if (colorIndex < 0 || colorIndex >= 16) {
-        return;
-    }
-
-    const Palette4bpp* palette = _document->paletteList()->selectedPalette();
-    if (palette == nullptr) {
-        return;
-    }
-    const SnesColor color = palette->color(colorIndex);
-
-    PaletteListUndoHelper helper(_document->paletteList());
-    auto command = helper.editSelectedFieldIncompleteCommand<SnesColor>(
-        tr("Edit Palette Color"),
-        [=](auto& pal) -> SnesColor& { return pal.color(colorIndex); });
-
-    Q_ASSERT(command);
-
-    SnesColorDialog dialog(this);
-    dialog.setColor(color);
-
-    connect(&dialog, &SnesColorDialog::colorChanged,
-            [&](auto& newColor) {
-                command->setValue(newColor);
-                command->redo();
-            });
-
-    dialog.exec();
-
-    if (dialog.result() == QDialog::Accepted && command->hasValueChanged()) {
-        _document->undoStack()->push(command.release());
-    }
-    else {
-        command->undo();
-    }
-
-    uncheckColorButtons();
 }
 
 void PalettesDock::onActionAdd()
 {
-    PaletteListUndoHelper(_document->paletteList()).addItemToSelectedList();
+    _document->paletteList()->editSelectedList_addItem();
 }
 
 void PalettesDock::onActionClone()
 {
-    PaletteListUndoHelper(_document->paletteList()).cloneSelectedItem();
+    _document->paletteList()->editSelectedList_cloneSelected();
 }
 
 void PalettesDock::onActionRaise()
 {
-    PaletteListUndoHelper(_document->paletteList()).raiseSelectedItem();
+    _document->paletteList()->editSelectedList_raiseSelected();
 }
 
 void PalettesDock::onActionLower()
 {
-    PaletteListUndoHelper(_document->paletteList()).lowerSelectedItem();
+    _document->paletteList()->editSelectedList_lowerSelected();
 }
 
 void PalettesDock::onActionRemove()
 {
-    PaletteListUndoHelper(_document->paletteList()).removeSelectedItem();
+    _document->paletteList()->editSelectedList_removeSelected();
 }

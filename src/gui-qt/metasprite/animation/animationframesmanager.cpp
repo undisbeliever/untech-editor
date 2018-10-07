@@ -6,7 +6,6 @@
 
 #include "animationframesmanager.h"
 #include "animationaccessors.h"
-#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
@@ -16,12 +15,6 @@ const QStringList AnimationFramesManager::FLIP_STRINGS({ QString(),
                                                          QString::fromUtf8("hFlip"),
                                                          QString::fromUtf8("vFlip"),
                                                          QString::fromUtf8("hvFlip") });
-
-inline AnimationFramesUndoHelper undoHelper(AbstractMsDocument* document)
-{
-    Q_ASSERT(document);
-    return AnimationFramesUndoHelper(document->animationFramesList());
-}
 
 AnimationFramesManager::AnimationFramesManager(QObject* parent)
     : PropertyTableManager(parent)
@@ -210,7 +203,7 @@ bool AnimationFramesManager::setData(int index, int id, const QVariant& value)
         return false;
     };
 
-    return undoHelper(_document).editItemInSelectedList(index, aFrame);
+    return _document->animationFramesList()->editSelectedList_setData(index, aFrame);
 }
 
 bool AnimationFramesManager::canInsertItem()
@@ -228,46 +221,32 @@ bool AnimationFramesManager::canCloneItem(int index)
 
 bool AnimationFramesManager::insertItem(int index)
 {
-    if (canInsertItem() == false
-        || index < 0 || (unsigned)index > _animation->frames.size()) {
-
+    if (_document == nullptr) {
         return false;
     }
-
-    return undoHelper(_document).addItemToSelectedList(index);
+    return _document->animationFramesList()->editSelectedList_addItem(index);
 }
 
 bool AnimationFramesManager::cloneItem(int index)
 {
-    if (canInsertItem() == false
-        || index < 0 || (unsigned)index > _animation->frames.size()) {
-
+    if (_document == nullptr) {
         return false;
     }
-
-    return undoHelper(_document).cloneItemInSelectedList(index);
+    return _document->animationFramesList()->editSelectedList_cloneItem(index);
 }
 
 bool AnimationFramesManager::removeItem(int index)
 {
-    if (_animation == nullptr
-        || index < 0 || (unsigned)index >= _animation->frames.size()) {
-
+    if (_document == nullptr) {
         return false;
     }
-
-    return undoHelper(_document).removeItemFromSelectedList(index);
+    return _document->animationFramesList()->editSelectedList_removeItem(index);
 }
 
 bool AnimationFramesManager::moveItem(int from, int to)
 {
-    if (_animation == nullptr
-        || from == to
-        || from < 0 || (unsigned)from >= _animation->frames.size()
-        || to < 0 || (unsigned)to >= _animation->frames.size()) {
-
+    if (_document == nullptr) {
         return false;
     }
-
-    return undoHelper(_document).moveItemInSelectedList(from, to);
+    return _document->animationFramesList()->editSelectedList_moveItem(from, to);
 }

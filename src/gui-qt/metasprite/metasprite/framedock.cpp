@@ -9,7 +9,6 @@
 #include "document.h"
 #include "framecontentmanagers.h"
 #include "gui-qt/accessor/idmaplistmodel.h"
-#include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
 #include "gui-qt/metasprite/common.h"
@@ -275,85 +274,45 @@ void FrameDock::updateEntityHitboxTypeMenu()
 
 void FrameDock::onSpriteOrderEdited()
 {
-    using SOT = UnTech::MetaSprite::SpriteOrderType;
-
-    SOT so = _ui->spriteOrder->value();
-
-    FrameMapUndoHelper h(_document->frameMap());
-    h.editSelectedItemField(so, tr("Edit Sprite Order"),
-                            [](MS::Frame& f) -> SOT& { return f.spriteOrder; });
+    _document->frameMap()->editSelected_setSpriteOrder(
+        _ui->spriteOrder->value());
 }
 
 void FrameDock::onSolidClicked()
 {
-    bool solid = _ui->solid->isChecked();
-
-    QString text = solid ? tr("Enable Tile Hitbox")
-                         : tr("Disable Tile Hitbox");
-
-    FrameMapUndoHelper h(_document->frameMap());
-    h.editSelectedItemField(solid, text,
-                            [](MS::Frame& f) -> bool& { return f.solid; });
+    _document->frameMap()->editSelected_setSolid(
+        _ui->solid->isChecked());
 }
 
 void FrameDock::onTileHitboxEdited()
 {
-    ms8rect hitbox = _ui->tileHitbox->valueMs8rect();
-
-    FrameMapUndoHelper h(_document->frameMap());
-    h.editSelectedItemField(hitbox, tr("Edit Tile Hitbox"),
-                            [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
+    _document->frameMap()->editSelected_setTileHitbox(
+        _ui->tileHitbox->valueMs8rect());
 }
 
 void FrameDock::onAddRemoveTileHitbox()
 {
-    const MS::Frame* frame = _document->frameMap()->selectedFrame();
-    if (frame) {
-        QString text = !frame->solid ? tr("Enable Tile Hitbox")
-                                     : tr("Disable Tile Hitbox");
-
-        FrameMapUndoHelper h(_document->frameMap());
-        h.editSelectedItemField(!frame->solid, text,
-                                [](MS::Frame& f) -> bool& { return f.solid; });
-    }
+    _document->frameMap()->editSelected_toggleTileHitbox();
 }
 
 void FrameDock::onToggleObjSize()
 {
-    using ObjSize = UnTech::MetaSprite::ObjectSize;
-
-    FrameObjectListUndoHelper h(_document->frameObjectList());
-    h.editSelectedItems(tr("Change Object Size"),
-                        [](MS::FrameObject& obj, size_t) {
-                            obj.size = (obj.size == ObjSize::SMALL) ? ObjSize::LARGE : ObjSize::SMALL;
-                        });
+    _document->frameObjectList()->editSelected_toggleObjectSize();
 }
 
 void FrameDock::onFlipObjHorizontally()
 {
-    FrameObjectListUndoHelper h(_document->frameObjectList());
-    h.editSelectedItems(tr("Flip Horizontally"),
-                        [](MS::FrameObject& obj, size_t) {
-                            obj.hFlip = !obj.hFlip;
-                        });
+    _document->frameObjectList()->editSelected_flipObjectHorizontally();
 }
 
 void FrameDock::onFlipObjVertically()
 {
-    FrameObjectListUndoHelper h(_document->frameObjectList());
-    h.editSelectedItems(tr("Flip Vertically"),
-                        [](MS::FrameObject& obj, size_t) {
-                            obj.vFlip = !obj.vFlip;
-                        });
+    _document->frameObjectList()->editSelected_flipObjectVertically();
 }
 
 void FrameDock::onEntityHitboxTypeMenu(QAction* action)
 {
     using EHT = UnTech::MetaSprite::EntityHitboxType;
-
-    EHT eht = EHT::from_romValue(action->data().toInt());
-
-    EntityHitboxListUndoHelper h(_document->entityHitboxList());
-    h.setSelectedFields(eht, tr("Change Entity Hitbox Type"),
-                        [](MS::EntityHitbox& eh) -> EHT& { return eh.hitboxType; });
+    _document->entityHitboxList()->editSelected_setEntityHitboxType(
+        EHT::from_romValue(action->data().toInt()));
 }

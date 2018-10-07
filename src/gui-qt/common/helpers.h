@@ -9,6 +9,9 @@
 #include "models/common/aabb.h"
 #include "models/common/enummap.h"
 #include "models/common/idstring.h"
+#include "models/common/ms8aabb.h"
+#include <QPoint>
+#include <QRect>
 #include <QSize>
 #include <QStringList>
 #include <QVariant>
@@ -82,6 +85,46 @@ QVariantList enumComboDataList(const EnumMap<EnumT>& enumMap)
     std::transform(enumMap.begin(), enumMap.end(), std::back_inserter(vl),
                    [](const auto& p) { return int(p.second); });
     return vl;
+}
+
+inline QPoint fromUpoint(const upoint& p)
+{
+    return QPoint(p.x, p.y);
+}
+
+inline upoint toUpoint(const QPoint& p)
+{
+    return upoint(p.x(), p.y());
+}
+
+inline QPoint fromMs8point(const ms8point& p)
+{
+    return QPoint(p.x, p.y);
+}
+
+inline ms8point toMs8point(const QPoint& p)
+{
+    return ms8point(p.x(), p.y());
+}
+
+inline QRect fromUrect(const urect& r)
+{
+    return QRect(r.x, r.y, r.width, r.height);
+}
+
+inline urect toUrect(const QRect& r)
+{
+    return urect(r.x(), r.y(), r.width(), r.height());
+}
+
+inline QRect fromMs8rect(const ms8rect& r)
+{
+    return QRect(r.x, r.y, r.width, r.height);
+}
+
+inline ms8rect toMs8rect(const QRect& r)
+{
+    return ms8rect(r.x(), r.y(), r.width(), r.height());
 }
 
 inline QSize fromUsize(const usize& s)

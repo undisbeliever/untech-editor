@@ -20,7 +20,7 @@ public:
 
 private:
     struct EmptySignalFunction {
-        void operator()(ProjectT&) const {}
+        inline void operator()(ProjectT&) const {}
     };
 
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>

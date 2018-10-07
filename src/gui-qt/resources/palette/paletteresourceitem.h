@@ -26,6 +26,8 @@ public:
     PaletteResourceItem(PaletteResourceList* parent, size_t index);
     ~PaletteResourceItem() = default;
 
+    static QString typeName() { return tr("Palette"); }
+
     ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
 
     inline const RES::PaletteInput* data() const
@@ -37,18 +39,23 @@ public:
     // returns nullptr if the PaletteData is invalid
     const RES::PaletteData* compiledData() const { return _compiledData.get(); }
 
-protected:
+    bool editPalette_setName(const idstring& name);
+    bool editPalette_setImageFilename(const std::string& filename);
+    bool editPalette_setRowsPerFrame(unsigned rowsPerFrame);
+    bool editPalette_setAnimationDelay(unsigned animationDelay);
+    bool editPalette_setSkipFirstFrame(bool skipFirstFrame);
+
+private:
     friend class Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
-    void setData(const RES::PaletteInput& data);
+    RES::PaletteInput* dataEditable()
+    {
+        return project()->resourcesFile()->palettes.at(index());
+    }
+
+    void updateExternalFiles();
 
 protected:
     virtual bool compileResource(RES::ErrorList& err) final;
-
-private:
-    inline auto& palettesData() const
-    {
-        return project()->resourcesFile()->palettes;
-    }
 
 private:
     std::unique_ptr<RES::PaletteData> _compiledData;

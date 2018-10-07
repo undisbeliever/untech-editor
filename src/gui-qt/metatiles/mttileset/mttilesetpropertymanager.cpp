@@ -7,14 +7,10 @@
 #include "mttilesetpropertymanager.h"
 #include "mttilesetaccessors.h"
 #include "mttilesetresourceitem.h"
-#include "gui-qt/accessor/gridundohelper.h"
-#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
 
 using namespace UnTech::GuiQt::MetaTiles;
-
-using TilesetUndoHelper = UnTech::GuiQt::Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
 
 MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     : AbstractPropertyManager(parent)
@@ -108,47 +104,31 @@ QVariant MtTilesetPropertyManager::data(int id) const
 bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_tileset);
-    Q_ASSERT(_tileset->data());
-
-    TilesetUndoHelper undoHelper(_tileset);
 
     switch ((PropertyId)id) {
     case NAME:
-        return undoHelper.editName(value.toString().toStdString());
+        return _tileset->editTileset_setName(value.toString().toStdString());
 
     case SCRATCHPAD_SIZE:
-        return MtTilesetScratchpadGridUndoHelper(_tileset->scratchpadGrid())
-            .resizeSelectedGrid(toUsize(value.toSize()), MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE,
-                                tr("Resize scratchpad"));
+        return _tileset->scratchpadGrid()->editGrid_resizeGrid(
+            toUsize(value.toSize()));
 
     case PALETTES:
-        return undoHelper.editField(toIdstringVector(value.toStringList()),
-                                    tr("Edit Palette List"),
-                                    [](MT::MetaTileTilesetInput& ti) -> std::vector<idstring>& { return ti.palettes; },
-                                    [](MtTilesetResourceItem& item) { emit item.palettesChanged();
-                                                                      item.updateDependencies(); });
+        return _tileset->editTileset_setPalettes(
+            toIdstringVector(value.toStringList()));
 
     case FRAME_IMAGES:
-        return undoHelper.editField(toStringVector(value.toStringList()),
-                                    tr("Edit Frame Image List"),
-                                    [](MT::MetaTileTilesetInput& ti) -> std::vector<std::string>& { return ti.animationFrames.frameImageFilenames; },
-                                    [](MtTilesetResourceItem& item) { item.updateExternalFiles(); });
+        return _tileset->editTileset_setFrameImageFilenames(
+            toStringVector(value.toStringList()));
 
     case ANIMATION_DELAY:
-        return undoHelper.editField(value.toUInt(),
-                                    tr("Edit Animation Delay"),
-                                    [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.animationDelay; },
-                                    [](MtTilesetResourceItem& item) { emit item.animationDelayChanged(); });
+        return _tileset->editTileset_setAnimationDelay(value.toUInt());
 
     case BIT_DEPTH:
-        return undoHelper.editField(value.toUInt(),
-                                    tr("Edit Bit Depth"),
-                                    [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.bitDepth; });
+        return _tileset->editTileset_setBitDepth(value.toUInt());
 
     case ADD_TRANSPARENT_TILE:
-        return undoHelper.editField(value.toBool(),
-                                    tr("Edit Add Transparent Tile"),
-                                    [](MT::MetaTileTilesetInput& ti) -> bool& { return ti.animationFrames.addTransparentTile; });
+        return _tileset->editTileset_setAddTransparentTile(value.toBool());
     }
 
     return false;

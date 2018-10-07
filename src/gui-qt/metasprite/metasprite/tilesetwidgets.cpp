@@ -8,7 +8,6 @@
 #include "accessors.h"
 #include "document.h"
 #include "tilesetpixmaps.h"
-#include "gui-qt/accessor/listundohelper.h"
 
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
@@ -135,32 +134,12 @@ void LargeTilesetWidget::onTilesetPixmapTileChanged(int tileId)
     setPixmap(tileId, pixmap);
 }
 
-template <class AccessorT, class TilesetT>
-static inline void doDrawPixel(Document* document, AccessorT* accessor, const TilesetT& tileset,
-                               int tileId, const QPoint& p, bool first)
-{
-    if (document->paletteList()->isSelectedColorValid()) {
-        unsigned c = document->paletteList()->selectedColor();
-        const auto& tile = tileset.tile(tileId);
-
-        if (tile.pixel(p.x(), p.y()) != c) {
-            auto newTile = tile;
-            newTile.setPixel(p.x(), p.y(), c);
-
-            ListUndoHelper<AccessorT>(accessor)
-                .editItemInSelectedListMerge(tileId, newTile, first);
-        }
-    }
-}
-
 void SmallTilesetWidget::drawPixel(int tileId, const QPoint& point, bool first)
 {
-    doDrawPixel(_document, _document->smallTileTileset(), _document->frameSet()->smallTileset,
-                tileId, point, first);
+    _document->smallTileTileset()->editTile_paintPixel(tileId, point, first);
 }
 
 void LargeTilesetWidget::drawPixel(int tileId, const QPoint& point, bool first)
 {
-    doDrawPixel(_document, _document->largeTileTileset(), _document->frameSet()->largeTileset,
-                tileId, point, first);
+    _document->largeTileTileset()->editTile_paintPixel(tileId, point, first);
 }

@@ -80,6 +80,9 @@ public:
     void setSelectedCells(upoint_vectorset&& selected);
     void clearSelection();
 
+    bool editGrid_resizeGrid(const usize& size);
+    bool editGrid_placeTiles(const point& location, const GridT& tiles);
+
 protected:
     friend class Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
     GridT* getGrid()
@@ -103,8 +106,6 @@ signals:
 
     void selectedCellsChanged();
 };
-
-using MtTilesetScratchpadGridUndoHelper = Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
 }
 }
 }
