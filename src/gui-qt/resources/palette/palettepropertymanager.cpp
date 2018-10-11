@@ -53,7 +53,7 @@ void PalettePropertyManager::updateParameters(int id, QVariant& param1, QVariant
     }
 
     if (id == ROWS_PER_FRAME) {
-        const RES::PaletteInput* pal = _palette->paletteData();
+        const RES::PaletteInput* pal = _palette->paletteInput();
         Q_ASSERT(pal);
         const auto& paletteImage = ImageCache::loadPngImage(pal->paletteImageFilename);
 
@@ -68,7 +68,7 @@ QVariant PalettePropertyManager::data(int id) const
         return QVariant();
     }
 
-    const RES::PaletteInput* pal = _palette->paletteData();
+    const RES::PaletteInput* pal = _palette->paletteInput();
     Q_ASSERT(pal);
 
     switch ((PropertyId)id) {

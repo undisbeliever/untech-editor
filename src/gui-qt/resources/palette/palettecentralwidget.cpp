@@ -81,7 +81,7 @@ void PaletteCentralWidget::updateFrameLabel()
         return;
     }
 
-    unsigned nFrames = _palette->paletteData()->nFrames();
+    unsigned nFrames = _palette->paletteInput()->nFrames();
     int fIndex = _graphicsItem->frameIndex();
 
     if (fIndex >= 0 && nFrames > 0) {
@@ -110,7 +110,7 @@ void PaletteCentralWidget::clearGui()
 void PaletteCentralWidget::onPaletteDataChanged()
 {
     Q_ASSERT(_palette);
-    const auto& pData = _palette->paletteData();
+    const auto& pData = _palette->paletteInput();
     Q_ASSERT(pData);
 
     _animationTimer.setAnimationDelay(pData->animationDelay);
@@ -160,7 +160,7 @@ void PaletteGraphicsItem::updatePixmap()
 {
     prepareGeometryChange();
 
-    const std::string& fn = _palette->paletteData()->paletteImageFilename;
+    const std::string& fn = _palette->paletteInput()->paletteImageFilename;
 
     if (!fn.empty()) {
         _pixmap.load(QString::fromStdString(fn));
@@ -187,7 +187,7 @@ void PaletteGraphicsItem::setFrameIndex(int index)
 
 QRectF PaletteGraphicsItem::boundingRect() const
 {
-    const auto& pal = _palette->paletteData();
+    const auto& pal = _palette->paletteInput();
 
     unsigned w = _pixmap.width();
     unsigned h = _pixmap.height();
@@ -203,7 +203,7 @@ QRectF PaletteGraphicsItem::boundingRect() const
 void PaletteGraphicsItem::paint(QPainter* painter,
                                 const QStyleOptionGraphicsItem*, QWidget*)
 {
-    const RES::PaletteInput* pal = _palette->paletteData();
+    const RES::PaletteInput* pal = _palette->paletteInput();
 
     if (_pixmap.isNull() || pal == nullptr) {
         return;

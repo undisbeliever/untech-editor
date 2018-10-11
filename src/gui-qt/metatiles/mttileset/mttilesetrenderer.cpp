@@ -172,7 +172,7 @@ void MtTilesetRenderer::onAnimationDelaysChanged()
     unsigned tilesetDelay = 0;
 
     if (_paletteItem) {
-        if (auto* p = _paletteItem->data()) {
+        if (auto* p = _paletteItem->paletteInput()) {
             paletteDelay = p->animationDelay;
         }
     }

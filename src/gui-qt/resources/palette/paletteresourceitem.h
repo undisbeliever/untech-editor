@@ -34,7 +34,7 @@ public:
     {
         return project()->resourcesFile()->palettes.at(index());
     }
-    inline const RES::PaletteInput* paletteData() const { return data(); }
+    inline const RES::PaletteInput* paletteInput() const { return data(); }
 
     // returns nullptr if the PaletteData is invalid
     const RES::PaletteData* compiledData() const { return _compiledData.get(); }
