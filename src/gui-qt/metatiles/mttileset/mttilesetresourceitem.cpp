@@ -24,7 +24,10 @@ MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size
 
     setFilename(QString::fromStdString(tilesetInputItem().filename));
 
-    connect(this, &AbstractResourceItem::dataChanged,
+    connect(this, &MtTilesetResourceItem::nameChanged,
+            this, &MtTilesetResourceItem::tilesetPropertiesChanged);
+
+    connect(this, &MtTilesetResourceItem::tilesetPropertiesChanged,
             this, &AbstractResourceItem::markUnchecked);
 }
 

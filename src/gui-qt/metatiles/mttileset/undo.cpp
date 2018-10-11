@@ -26,7 +26,8 @@ bool MtTilesetResourceItem::editTileset_setPalettes(const std::vector<UnTech::id
         tr("Edit Palette List"),
         [](MT::MetaTileTilesetInput& ti) -> std::vector<idstring>& { return ti.palettes; },
         [](MtTilesetResourceItem& item) { emit item.palettesChanged();
-                                                                  item.updateDependencies(); });
+                                          emit item.tilesetPropertiesChanged();
+                                          item.updateDependencies(); });
 }
 
 bool MtTilesetResourceItem::editTileset_setFrameImageFilenames(const std::vector<std::string>& images)
@@ -35,7 +36,8 @@ bool MtTilesetResourceItem::editTileset_setFrameImageFilenames(const std::vector
         images,
         tr("Edit Frame Image List"),
         [](MT::MetaTileTilesetInput& ti) -> std::vector<std::string>& { return ti.animationFrames.frameImageFilenames; },
-        [](MtTilesetResourceItem& item) { item.updateExternalFiles(); });
+        [](MtTilesetResourceItem& item) { emit item.tilesetPropertiesChanged();
+                                          item.updateExternalFiles(); });
 }
 
 bool MtTilesetResourceItem::editTileset_setAnimationDelay(unsigned delay)
@@ -44,7 +46,8 @@ bool MtTilesetResourceItem::editTileset_setAnimationDelay(unsigned delay)
         delay,
         tr("Edit Animation Delay"),
         [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.animationDelay; },
-        [](MtTilesetResourceItem& item) { emit item.animationDelayChanged(); });
+        [](MtTilesetResourceItem& item) { emit item.animationDelayChanged();
+                                          emit item.tilesetPropertiesChanged(); });
 }
 
 bool MtTilesetResourceItem::editTileset_setBitDepth(unsigned bitDepth)
@@ -52,7 +55,8 @@ bool MtTilesetResourceItem::editTileset_setBitDepth(unsigned bitDepth)
     return TilesetUndoHelper(this).editField(
         bitDepth,
         tr("Edit Bit Depth"),
-        [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.bitDepth; });
+        [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.bitDepth; },
+        [](MtTilesetResourceItem& item) { emit item.tilesetPropertiesChanged(); });
 }
 
 bool MtTilesetResourceItem::editTileset_setAddTransparentTile(bool addTransparentTile)
@@ -60,7 +64,8 @@ bool MtTilesetResourceItem::editTileset_setAddTransparentTile(bool addTransparen
     return TilesetUndoHelper(this).editField(
         addTransparentTile,
         tr("Edit Add Transparent Tile"),
-        [](MT::MetaTileTilesetInput& ti) -> bool& { return ti.animationFrames.addTransparentTile; });
+        [](MT::MetaTileTilesetInput& ti) -> bool& { return ti.animationFrames.addTransparentTile; },
+        [](MtTilesetResourceItem& item) { emit item.tilesetPropertiesChanged(); });
 }
 
 using MtTilesetScratchpadGridUndoHelper = GridUndoHelper<MtTilesetScratchpadGrid>;

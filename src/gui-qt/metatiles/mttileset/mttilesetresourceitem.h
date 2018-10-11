@@ -63,6 +63,8 @@ public:
     bool editTileset_setAddTransparentTile(bool addTransparentTile);
 
 signals:
+    void tilesetPropertiesChanged();
+
     void palettesChanged();
     void animationDelayChanged();
 
