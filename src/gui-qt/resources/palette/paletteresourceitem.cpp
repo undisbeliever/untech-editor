@@ -19,6 +19,9 @@ PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t ind
     setName(QString::fromStdString(pal->name));
 
     updateExternalFiles();
+
+    connect(this, &AbstractResourceItem::dataChanged,
+            this, &AbstractResourceItem::markUnchecked);
 }
 
 void PaletteResourceItem::updateExternalFiles()

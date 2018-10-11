@@ -19,6 +19,9 @@ AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t inde
 {
     connect(this, &AbstractMsDocument::frameSetDataChanged,
             this, &AbstractResourceItem::dataChanged);
+
+    connect(this, &AbstractResourceItem::dataChanged,
+            this, &AbstractResourceItem::markUnchecked);
 }
 
 void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,

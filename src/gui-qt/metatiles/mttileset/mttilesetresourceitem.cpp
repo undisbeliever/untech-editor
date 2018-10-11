@@ -23,6 +23,9 @@ MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size
     Q_ASSERT(index < mtTilesetList().size());
 
     setFilename(QString::fromStdString(tilesetInputItem().filename));
+
+    connect(this, &AbstractResourceItem::dataChanged,
+            this, &AbstractResourceItem::markUnchecked);
 }
 
 unsigned MtTilesetResourceItem::nMetaTiles() const

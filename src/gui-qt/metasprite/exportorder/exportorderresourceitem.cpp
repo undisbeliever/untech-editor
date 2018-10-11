@@ -25,6 +25,9 @@ ExportOrderResourceItem::ExportOrderResourceItem(ExportOrderResourceList* parent
     Q_ASSERT(index < exportOrderList().size());
 
     setFilename(QString::fromStdString(exportOrderItem().filename));
+
+    connect(this, &AbstractResourceItem::dataChanged,
+            this, &AbstractResourceItem::markUnchecked);
 }
 
 void ExportOrderResourceItem::saveResourceData(const std::string& filename) const

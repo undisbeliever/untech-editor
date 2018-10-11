@@ -44,9 +44,6 @@ public:
     {
         Q_ASSERT(parent != nullptr);
         Q_ASSERT(_project != nullptr);
-
-        connect(this, &AbstractResourceItem::dataChanged,
-                this, &AbstractResourceItem::markUnchecked);
     }
 
     ~AbstractResourceItem() = default;
@@ -71,6 +68,11 @@ public:
     void markDependantsUnchecked();
 
 public slots:
+    // Marks the current item as unchecked.
+    // Subclasses MUST invoke the `markChecked` slot when the resource item
+    // becomes stale and needs to be recompiled.
+    // This is usually done by connecting the subclass's dataChanged signal to
+    // the markUnchecked slot.
     void markUnchecked();
 
 private:
