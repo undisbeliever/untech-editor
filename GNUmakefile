@@ -62,6 +62,9 @@ ifeq ($(PROFILE),release)
   CFLAGS        += -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
   LDFLAGS       += -O2 -flto -Wl,-gc-sections
 
+  # Do not use split DWARF on release profile as it increases the build time
+  NO_SPLIT_DWARF := 1
+
 else ifeq ($(PROFILE),debug)
   OBJ_DIR       := obj/debug-$(firstword $(CXX))
   BIN_DIR       := bin/debug-$(firstword $(CXX))
@@ -140,6 +143,13 @@ else ifeq ($(PROFILE),mingw)
 
 else
   $(error unknown profile)
+endif
+
+
+ifndef NO_SPLIT_DWARF
+  CXXFLAGS      += -gsplit-dwarf
+  CFLAGS        += -gsplit-dwarf
+  LDFLAGS       += -gsplit-dwarf
 endif
 
 
