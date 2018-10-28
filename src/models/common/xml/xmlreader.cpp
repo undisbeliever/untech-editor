@@ -8,7 +8,8 @@
 #include "../base64.h"
 #include "../file.h"
 #include "../string.h"
-#include <algorithm>
+#include "../stringparser.hpp"
+#include <cassert>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
@@ -43,43 +44,56 @@ xml_error::xml_error(const XmlReader& xml, const char* message, const std::excep
 namespace UnTech {
 namespace XmlPrivate {
 
-inline bool isWhitespace(char c)
+bool string_iterator_equal(std::string::const_iterator it, const std::string::const_iterator end,
+                           const std::string& str)
 {
-    return (c == ' ' || c == '\t' || c == '\r' || c == '\n');
+    for (auto c : str) {
+        if (it == end) {
+            return false;
+        }
+        if (*it != c) {
+            return false;
+        }
+        it++;
+    }
+    return true;
 }
 
-inline std::string unescapeXmlString(const char* start, const char* end)
+std::string unescapeXmlString(const std::string::const_iterator start,
+                              const std::string::const_iterator end)
 {
     std::string ret;
-    ret.reserve(end - start);
+    auto stringSize = std::distance(start, end);
+    assert(stringSize >= 0);
+    ret.reserve(stringSize);
 
-    const char* source = start;
+    auto source = start;
 
-    while (source < end) {
+    while (source != end) {
         if (*source == '&') {
-            const char* s = source + 1;
+            auto s = source + 1;
 
-            if (memcmp(s, "lt;", 3) == 0) {
+            if (string_iterator_equal(s, end, "lt;")) {
                 source += 4;
                 ret += '<';
                 continue;
             }
-            else if (memcmp(s, "gt;", 3) == 0) {
+            else if (string_iterator_equal(s, end, "gt;")) {
                 source += 4;
                 ret += '>';
                 continue;
             }
-            else if (memcmp(s, "amp;", 4) == 0) {
+            else if (string_iterator_equal(s, end, "amp;")) {
                 source += 5;
                 ret += '&';
                 continue;
             }
-            else if (memcmp(s, "apos;", 5) == 0) {
+            else if (string_iterator_equal(s, end, "apos;")) {
                 source += 6;
                 ret += '\'';
                 continue;
             }
-            else if (memcmp(s, "quot;", 5) == 0) {
+            else if (string_iterator_equal(s, end, "quot;")) {
                 source += 6;
                 ret += '\"';
                 continue;
@@ -106,7 +120,7 @@ std::string xmlFilepart(const XmlReader* xml)
 using namespace UnTech::XmlPrivate;
 
 XmlReader::XmlReader(const std::string& xml, const std::string& filename)
-    : _inputString(xml)
+    : _input(xml)
     , _filename()
 {
     if (xml.empty()) {
@@ -133,46 +147,27 @@ std::unique_ptr<XmlReader> XmlReader::fromFile(const std::string& filename)
 
 void XmlReader::parseDocument()
 {
-    _pos = _inputString.c_str();
+    _input.reset();
     _currentTag = std::string();
     _tagStack = std::stack<std::string>();
     _inSelfClosingTag = false;
-    _lineNo = 1;
 
-    skipWhitespace();
+    _input.skipWhitespace();
 
     // ignore XML header
-    if (memcmp(_pos, "<?xml", 5) == 0) {
-        _pos += 5;
-
-        while (*_pos != '>') {
-            if (*_pos == '\0') {
-                throw xml_error(*this, "Unclosed XML header");
-            }
-            if (*_pos == '\n') {
-                _lineNo++;
-            }
-            _pos++;
+    if (_input.testAndConsume("<?xml")) {
+        if (_input.skipUntil('>') == false) {
+            throw xml_error(*this, "Unclosed XML header");
         }
-        _pos++;
     }
 
-    skipWhitespace();
+    _input.skipWhitespace();
 
     // ignore DOCTYPE
-    if (memcmp(_pos, "<!DOCTYPE", 9) == 0) {
-        _pos += 9;
-
-        while (*_pos != '>') {
-            if (*_pos == '\0') {
-                throw xml_error(*this, "Unclosed DOCTYPE header");
-            }
-            if (*_pos == '\n') {
-                _lineNo++;
-            }
-            _pos++;
+    if (_input.testAndConsume("<!DOCTYPE")) {
+        if (_input.skipUntil('>') == false) {
+            throw xml_error(*this, "Unclosed DOCTYPE header");
         }
-        _pos++;
     }
 }
 
@@ -184,77 +179,79 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
 
     // skip whitespace/text
     skipText();
-    if (_pos[0] == '<' && _pos[1] == '/') {
+    if (_input.atEnd()) {
+        throw xml_error(*this, "Unexpected end of file");
+    }
+    if (_input.cur() == '<' && _input.peek() == '/') {
         // no more tags
         return nullptr;
     }
-
-    if (*_pos == '\0') {
-        throw xml_error(*this, "Unexpected end of file");
-    }
-    if (*_pos != '<') {
+    if (_input.cur() != '<') {
         throw xml_error(*this, "Not a tag");
     }
-    _pos++;
+    _input.advance();
 
     std::string tagName = parseName();
 
     // tag must be followed by whitespace or a close tag.
-    if (!(isWhitespace(*_pos)
-          || (_pos[0] == '>')
-          || (_pos[0] == '/' || _pos[1] != '>'))) {
+    if (!(_input.isWhitespace()
+          || (_input.cur() == '>')
+          || (_input.cur() == '/' || _input.peek() != '>'))) {
         throw xml_error(*this, "Invalid tag name");
     }
 
-    auto tag = std::make_unique<XmlTag>(this, tagName, _lineNo);
+    auto tag = std::make_unique<XmlTag>(this, tagName, lineNo());
     _currentTag = tagName;
 
-    while (*_pos) {
-        skipWhitespace();
+    while (!_input.atEnd()) {
+        _input.skipWhitespace();
 
-        if (*_pos == '\0') {
+        if (_input.atEnd()) {
             throw xml_error(*this, "Unclosed tag");
         }
 
-        if (isName(*_pos)) {
+        const char c = _input.cur();
+
+        if (isName(c)) {
             // attribute
 
             std::string attributeName = parseName();
 
-            skipWhitespace();
+            _input.skipWhitespace();
 
-            if (*_pos != '=') {
+            if (_input.cur() != '=') {
                 throw xml_error(*tag, attributeName, "Missing attribute value");
             }
-            _pos++;
+            _input.advance();
 
-            skipWhitespace();
+            _input.skipWhitespace();
 
             std::string value = parseAttributeValue();
 
             tag->attributes.insert({ attributeName, value });
         }
 
-        else if (*_pos == '?' || *_pos == '/') {
+        else if (c == '?' || c == '/') {
             // end of self closing tag
-            if (_pos[1] != '>') {
+            if (_input.peek() != '>') {
                 throw xml_error(*this, "Missing `>`");
             }
-            _pos += 2;
+            _input.advance();
+            _input.advance();
 
             _inSelfClosingTag = true;
             return tag;
         }
 
-        else if (*_pos == '>') {
+        else if (c == '>') {
             // end of tag
-            _pos++;
+            _input.advance();
 
             _tagStack.push(tagName);
             return tag;
         }
         else {
-            std::string msg = std::string("Unknown character `") + *_pos + '`';
+            std::string msg = std::string("Unknown character `") + c + '`';
             throw xml_error(*this, msg.c_str());
         }
     }
@@ -270,59 +267,43 @@ std::string XmlReader::parseText()
 
     std::string text;
 
-    const char* startText = _pos;
-    while (*_pos) {
-        if (memcmp(_pos, "<!--", 4) == 0) {
-            text += unescapeXmlString(startText, _pos);
+    auto startText = _input.pos();
+    while (!_input.atEnd()) {
+        const auto oldTextPos = _input.pos();
 
-            // skip comment
-            while (memcmp(_pos, "-->", 3) != 0) {
-                if (*_pos == '\0') {
-                    throw xml_error(*this, "Unclosed comment");
-                }
-                if (*_pos == '\n') {
-                    _lineNo++;
-                }
-                _pos++;
+        if (_input.testAndConsume("<!--")) {
+            text += unescapeXmlString(startText, oldTextPos);
+
+            if (_input.skipUntil("-->") == false) {
+                throw xml_error(*this, "Unclosed comment");
             }
-            _pos += 3;
-            startText = _pos;
+
+            startText = _input.pos();
         }
 
-        else if (memcmp(_pos, "<![CDATA[", 9) == 0) {
-            text += unescapeXmlString(startText, _pos);
+        else if (_input.testAndConsume("<![CDATA[")) {
+            text += unescapeXmlString(startText, oldTextPos);
 
-            _pos += 9;
-            const char* startCData = _pos;
+            const auto startCData = _input.pos();
 
-            while (memcmp(_pos, "]]>", 3) != 0) {
-                if (*_pos == '\0') {
-                    throw xml_error(*this, "Unclosed CDATA");
-                }
-                if (*_pos == '\n') {
-                    _lineNo++;
-                }
-                _pos++;
+            if (_input.skipUntil("]]>") == false) {
+                throw xml_error(*this, "Unclosed CDATA");
             }
-            text.append(startCData, _pos - startCData);
 
-            _pos += 3;
-            startText = _pos;
+            text.append(startCData, _input.pos() - 3);
+
+            startText = _input.pos();
         }
-        else if (*_pos == '<') {
+        else if (_input.cur() == '<') {
             // start/end new tag.
             break;
         }
-        if (*_pos == '\n') {
-            _lineNo++;
-            _pos++;
-        }
         else {
-            _pos++;
+            _input.advance();
         }
     }
 
-    text += unescapeXmlString(startText, _pos);
+    text += unescapeXmlString(startText, _input.pos());
 
     return text;
 }
@@ -345,7 +326,7 @@ void XmlReader::parseCloseTag()
     }
 
     // skip all child nodes of current level
-    while (_pos[0] != '<' || _pos[1] != '/') {
+    while (_input.cur() != '<' || _input.peek() != '/') {
         // more nodes/text to parse
         parseTag();
 
@@ -357,8 +338,9 @@ void XmlReader::parseCloseTag()
             parseCloseTag();
         }
     }
+    _input.advance();
+    _input.advance();
 
-    _pos += 2;
     auto closeTagName = parseName();
     auto expectedTagName = _tagStack.top();
 
@@ -368,11 +350,12 @@ void XmlReader::parseCloseTag()
     }
     _tagStack.pop();
 
-    skipWhitespace();
+    _input.skipWhitespace();
 
-    if (*_pos != '>') {
+    if (_input.cur() != '>') {
         throw xml_error(*this, "Expected '>'");
     }
+    // MUST NOT advance here
 
     if (!_tagStack.empty()) {
         _currentTag = _tagStack.top();
@@ -382,76 +365,45 @@ void XmlReader::parseCloseTag()
     }
 }
 
-inline void XmlReader::skipWhitespace()
-{
-    while (isWhitespace(*_pos)) {
-        if (*_pos == '\n') {
-            _lineNo++;
-        }
-        _pos++;
-    }
-}
-
 void XmlReader::skipText()
 {
     if (_inSelfClosingTag) {
         return;
     }
 
-    while (*_pos) {
-        if (memcmp(_pos, "<!--", 4) == 0) {
-            // skip comment
-            while (memcmp(_pos, "-->", 3) != 0) {
-                if (*_pos == '\0') {
-                    throw xml_error(*this, "Unclosed comment");
-                }
-                if (*_pos == '\n') {
-                    _lineNo++;
-                }
-                _pos++;
+    while (!_input.atEnd()) {
+        if (_input.testAndConsume("<!--")) {
+            if (_input.skipUntil("-->") == false) {
+                throw xml_error(*this, "Unclosed comment");
             }
-            _pos += 3;
         }
-
-        else if (memcmp(_pos, "<![CDATA[", 9) == 0) {
-            _pos += 9;
-            while (memcmp(_pos, "]]>", 3) != 0) {
-                if (*_pos == '\0') {
-                    throw xml_error(*this, "Unclosed CDATA");
-                }
-                if (*_pos == '\n') {
-                    _lineNo++;
-                }
-                _pos++;
+        else if (_input.testAndConsume("<![CDATA[")) {
+            if (_input.skipUntil("]]>") == false) {
+                throw xml_error(*this, "Unclosed CDATA");
             }
-            _pos += 3;
         }
-        else if (*_pos == '<') {
+        else if (_input.cur() == '<') {
             // start/end new tag.
             break;
         }
-        if (*_pos == '\n') {
-            _lineNo++;
-            _pos++;
-        }
         else {
-            _pos++;
+            _input.advance();
         }
     }
 }
 
 inline std::string XmlReader::parseName()
 {
-    const char* nameStart = _pos;
-    while (isName(*_pos)) {
-        _pos++;
+    const auto nameStart = _input.pos();
+    while (isName(_input.cur())) {
+        _input.advance();
     }
 
-    if (nameStart == _pos) {
+    if (nameStart == _input.pos()) {
         throw xml_error(*this, "Missing identifier");
     }
 
-    std::string ret(nameStart, _pos - nameStart);
+    std::string ret(nameStart, _input.pos());
     std::transform(ret.begin(), ret.end(), ret.begin(), ::tolower);
 
     return ret;
@@ -459,26 +411,19 @@ inline std::string XmlReader::parseName()
 
 inline std::string XmlReader::parseAttributeValue()
 {
-    if (*_pos != '\'' && *_pos != '\"') {
+    const char terminator = _input.cur();
+    _input.advance();
+
+    if (terminator != '\'' && terminator != '\"') {
         throw xml_error(*this, "Attribute not quoted");
     }
 
-    const char terminator = *_pos;
-    _pos++;
-
-    const char* valueStart = _pos;
-    while (*_pos != terminator) {
-        if (*_pos == '\0') {
-            throw xml_error(*this, "Incomplete attribute value");
-        }
-        if (*_pos == '\n') {
-            _lineNo++;
-        }
-        _pos++;
+    const auto valueStart = _input.pos();
+    if (_input.skipUntil(terminator) == false) {
+        throw xml_error(*this, "Incomplete attribute value");
     }
 
-    std::string value = unescapeXmlString(valueStart, _pos);
-    _pos++;
+    std::string value = unescapeXmlString(valueStart, _input.pos() - 1);
 
     return value;
 }
@@ -504,10 +449,10 @@ std::string XmlReader::generateErrorString(const char* message) const
     std::stringstream stream;
 
     if (_currentTag.empty()) {
-        stream << _filepart << ':' << _lineNo << ": " << message;
+        stream << _filepart << ':' << lineNo() << ": " << message;
     }
     else {
-        stream << _filepart << ':' << _lineNo << " <" << _currentTag << ">: " << message;
+        stream << _filepart << ':' << lineNo() << " <" << _currentTag << ">: " << message;
     }
     return stream.str();
 }
@@ -522,7 +467,7 @@ std::string XmlReader::generateErrorString(const char* message, const std::excep
         stream << cast->what();
     }
     else {
-        stream << _filepart << ':' << _lineNo;
+        stream << _filepart << ':' << lineNo();
 
         if (_currentTag.empty()) {
             stream << ": " << ex.what();

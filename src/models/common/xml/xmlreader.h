@@ -9,6 +9,7 @@
 #include "xml.h"
 #include "../aabb.h"
 #include "../string.h"
+#include "../stringparser.h"
 #include <cstdint>
 #include <memory>
 #include <stack>
@@ -84,7 +85,7 @@ public:
     void parseCloseTag();
 
     /** the current line number of the cursor */
-    inline unsigned lineNo() const { return _lineNo; }
+    inline unsigned lineNo() const { return _input.lineNo(); }
 
     /** The filename of the XML file, may be empty */
     inline std::string filename() const { return _filename; }
@@ -100,18 +101,16 @@ public:
     std::string generateErrorString(const char* message, const std::exception& ex) const;
 
 private:
-    void skipWhitespace();
     void skipText();
     std::string parseName();
     std::string parseAttributeValue();
 
 private:
-    const std::string _inputString;
-    const char* _pos;
+    StringParser _input;
+
     std::stack<std::string> _tagStack;
     std::string _currentTag;
     bool _inSelfClosingTag;
-    unsigned _lineNo;
     std::string _filename;
     std::string _filepart;
     std::string _dirname;
