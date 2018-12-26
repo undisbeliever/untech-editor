@@ -337,14 +337,13 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
     case Type::IDSTRING_LIST: {
         QLineEdit* le = qobject_cast<QLineEdit*>(editor);
 
-        if (QCompleter* c = le->completer()) {
-            le->setCompleter(nullptr);
-            c->deleteLater();
-        };
         if (params.first.type() == QVariant::StringList) {
             QCompleter* c = new QCompleter(params.first.toStringList(), le);
             c->setCaseSensitivity(Qt::CaseInsensitive);
             le->setCompleter(c);
+        }
+        else {
+            le->setCompleter(nullptr);
         }
         le->setText(data.toString());
     } break;
