@@ -24,6 +24,8 @@ namespace Compiler {
 
 // MEMORY: Must not exist when data class is deleted.
 struct RomOffsetPtr {
+    const static RomOffsetPtr NULL_PTR;
+
     RomOffsetPtr(const std::string* label, uint32_t offset)
         : label(label)
         , offset(offset)

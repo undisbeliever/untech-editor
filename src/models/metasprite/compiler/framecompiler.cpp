@@ -35,13 +35,13 @@ void FrameCompiler::writeToIncFile(std::ostream& out) const
 
 inline RomOffsetPtr
 FrameCompiler::processFrameObjects(const MS::Frame& frame,
-                                   const FrameTileset& tileset)
+                                   const FrameTilesetData& tileMap)
 {
     const static uint16_t V_FLIP = 0x8000;
     const static uint16_t H_FLIP = 0x4000;
     const static unsigned ORDER_SHIFT = 12;
 
-    size_t nObjects = frame.objects.size();
+    const size_t nObjects = frame.objects.size();
 
     if (nObjects == 0) {
         return RomOffsetPtr();
@@ -57,7 +57,10 @@ FrameCompiler::processFrameObjects(const MS::Frame& frame,
     for (const MS::FrameObject& obj : frame.objects) {
         const ms8point loc = obj.location;
 
-        uint16_t charAttr = tileset.charAttr(obj.size, obj.tileId);
+        uint16_t charAttr = obj.size == ObjectSize::SMALL ? tileMap.smallTilesCharAttr.at(obj.tileId)
+                                                          : tileMap.largeTilesCharAttr.at(obj.tileId);
+        assert(charAttr != FrameTilesetData::NULL_CHAR_ATTR);
+
         charAttr |= frame.spriteOrder << ORDER_SHIFT;
 
         if (obj.hFlip) {
@@ -191,7 +194,7 @@ FrameCompiler::processActionPoints(const std::vector<MS::ActionPoint>& actionPoi
 }
 
 inline uint32_t
-FrameCompiler::processFrame(const MS::Frame& frame, const FrameTileset& tileset)
+FrameCompiler::processFrame(const MS::Frame& frame, const FrameTilesetData& tileset)
 {
     RomOffsetPtr frameObjects = processFrameObjects(frame, tileset);
     RomOffsetPtr enityHitbox = processEntityHitboxes(frame.entityHitboxes);
@@ -203,14 +206,20 @@ FrameCompiler::processFrame(const MS::Frame& frame, const FrameTileset& tileset)
     data.addAddr(enityHitbox);
     data.addAddr(tileHitbox);
     data.addAddr(actionPoints);
-    data.addAddr(tileset.tilesetOffset);
+
+    if (tileset.dynamicTileset) {
+        data.addAddr(tileset.romPtr);
+    }
+    else {
+        data.addAddr(RomOffsetPtr());
+    }
 
     return _frameData.addData(data).offset;
 }
 
 RomOffsetPtr
 FrameCompiler::process(const FrameSetExportList& exportList,
-                       const FrameSetTilesets& tilesets)
+                       const TilesetData& tilesetData)
 {
     const auto& frameList = exportList.frames();
 
@@ -224,11 +233,13 @@ FrameCompiler::process(const FrameSetExportList& exportList,
     std::vector<uint32_t> frameOffsets;
     frameOffsets.reserve(frameList.size());
 
-    for (const auto& fle : frameList) {
+    for (unsigned frameId = 0; frameId < frameList.size(); frameId++) {
+        const auto& fle = frameList.at(frameId);
+
         if (fle.frame != nullptr) {
             try {
+                const auto& frameTileset = tilesetData.tilesetForFrameId(frameId);
                 uint32_t fo = NULL_OFFSET;
-                const FrameTileset& frameTileset = tilesets.frameMap.at(fle.frame);
 
                 if (fle.hFlip == false && fle.vFlip == false) {
                     fo = processFrame(*fle.frame, frameTileset);

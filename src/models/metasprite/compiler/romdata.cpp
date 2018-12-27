@@ -9,6 +9,8 @@
 
 using namespace UnTech::MetaSprite::Compiler;
 
+const RomOffsetPtr RomOffsetPtr::NULL_PTR;
+
 void RomIncData::writeToIncFile(std::ostream& out) const
 {
     // Skip new line after _stream as the first char of stream is a newline

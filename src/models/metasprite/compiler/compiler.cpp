@@ -5,6 +5,8 @@
  */
 
 #include "compiler.h"
+#include "tilesetinserter.h"
+#include "tilesetlayout.h"
 #include "version.h"
 #include "models/metasprite/project.h"
 #include <algorithm>
@@ -22,8 +24,9 @@ Compiler::Compiler(const Project& project, ErrorList& errorList, unsigned tilese
     , _errorList(errorList)
     , _animationCompiler(_errorList)
     , _paletteCompiler()
-    , _tilesetCompiler(_errorList, tilesetBlockSize)
     , _frameCompiler(_errorList)
+    , _tileData("TB", "MS_TileBlock", tilesetBlockSize)
+    , _tilesetData("TS", "DMA_Tile16Data")
     , _frameSetData("FSD", "MS_FrameSetData")
     , _frameSetList("FSL", "MS_FrameSetList", "FSD")
     , _frameSetReferences()
@@ -40,11 +43,15 @@ void Compiler::writeToIncFile(std::ostream& out) const
 
     _animationCompiler.writeToIncFile(out);
     _paletteCompiler.writeToIncFile(out);
-    _tilesetCompiler.writeToIncFile(out);
+
+    _tileData.writeToIncFile(out);
+    _tilesetData.writeToIncFile(out);
+
     _frameCompiler.writeToIncFile(out);
 
     _frameSetData.writeToIncFile(out);
     _frameSetList.writeToIncFile(out);
+
     out << "constant FrameSetListCount = (pc() - FSL)/2\n";
 
     out << "}\n"
@@ -114,10 +121,11 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
     try {
         FrameSetExportList exportList(_project, frameSet);
 
-        FrameSetTilesets tilesets = _tilesetCompiler.generateTilesets(exportList);
+        const auto tilesetLayout = layoutTiles(frameSet, exportList.frames(), _errorList);
+        const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, _tileData, _tilesetData);
 
         RomOffsetPtr fsPalettes = _paletteCompiler.process(frameSet);
-        RomOffsetPtr fsFrames = _frameCompiler.process(exportList, tilesets);
+        RomOffsetPtr fsFrames = _frameCompiler.process(exportList, tilesetData);
         RomOffsetPtr fsAnimations = _animationCompiler.process(exportList);
 
         // FRAMESET DATA
@@ -126,14 +134,14 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
 
         unsigned nPalettes = frameSet.palettes.size();
 
-        frameSetItem.addIndex(fsPalettes);                                        // paletteTable
-        frameSetItem.addField(RomIncItem::BYTE, nPalettes);                       // nPalettes
-        frameSetItem.addAddr(tilesets.tilesetOffset);                             // tileset
-        frameSetItem.addField(RomIncItem::BYTE, tilesets.tilesetType.romValue()); // tilesetType
-        frameSetItem.addIndex(fsFrames);                                          // frameTable
-        frameSetItem.addField(RomIncItem::BYTE, exportList.frames().size());      // nFrames
-        frameSetItem.addIndex(fsAnimations);                                      // animationsTable
-        frameSetItem.addField(RomIncItem::BYTE, exportList.animations().size());  // nAnimations
+        frameSetItem.addIndex(fsPalettes);                                           // paletteTable
+        frameSetItem.addField(RomIncItem::BYTE, nPalettes);                          // nPalettes
+        frameSetItem.addAddr(tilesetData.staticTileset.romPtr);                      // tileset
+        frameSetItem.addField(RomIncItem::BYTE, tilesetData.tilesetType.romValue()); // tilesetType
+        frameSetItem.addIndex(fsFrames);                                             // frameTable
+        frameSetItem.addField(RomIncItem::BYTE, exportList.frames().size());         // nFrames
+        frameSetItem.addIndex(fsAnimations);                                         // animationsTable
+        frameSetItem.addField(RomIncItem::BYTE, exportList.animations().size());     // nAnimations
 
         RomOffsetPtr ptr = _frameSetData.addData(frameSetItem);
         _frameSetList.addOffset(ptr.offset);

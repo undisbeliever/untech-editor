@@ -8,7 +8,7 @@
 
 #include "framesetexportlist.h"
 #include "romdata.h"
-#include "tilesetcompiler.h"
+#include "tilesetinserter.h"
 #include "../errorlist.h"
 #include "../metasprite.h"
 #include <cstdint>
@@ -28,16 +28,16 @@ public:
     void writeToIncFile(std::ostream& out) const;
 
     RomOffsetPtr process(const FrameSetExportList& exportList,
-                         const FrameSetTilesets& tilesets);
+                         const TilesetData& tilesetData);
 
 private:
     RomOffsetPtr processFrameObjects(const MetaSprite::Frame& frame,
-                                     const FrameTileset&);
+                                     const FrameTilesetData& tileMap);
     RomOffsetPtr processEntityHitboxes(const std::vector<MS::EntityHitbox>&);
     RomOffsetPtr processTileHitbox(const MetaSprite::Frame& frame);
     RomOffsetPtr processActionPoints(const std::vector<MS::ActionPoint>&);
 
-    uint32_t processFrame(const MetaSprite::Frame&, const FrameTileset&);
+    uint32_t processFrame(const MetaSprite::Frame&, const FrameTilesetData&);
 
 private:
     ErrorList& _errorList;

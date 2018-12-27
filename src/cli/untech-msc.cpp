@@ -14,7 +14,7 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
-const unsigned TBS = Compiler::TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE;
+const unsigned TBS = Compiler::RomTileData::DEFAULT_TILE_BLOCK_SIZE;
 
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {

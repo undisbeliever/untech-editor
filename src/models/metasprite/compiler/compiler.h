@@ -10,7 +10,6 @@
 #include "framecompiler.h"
 #include "palettecompiler.h"
 #include "romdata.h"
-#include "tilesetcompiler.h"
 #include "../errorlist.h"
 #include "../metasprite.h"
 #include <vector>
@@ -25,7 +24,7 @@ public:
 
 public:
     Compiler(const Project& project, ErrorList& errorList,
-             unsigned tilesetBlockSize = TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE);
+             unsigned tilesetBlockSize = RomTileData::DEFAULT_TILE_BLOCK_SIZE);
 
     Compiler(const Compiler&) = delete;
 
@@ -44,8 +43,10 @@ private:
 
     AnimationCompiler _animationCompiler;
     PaletteCompiler _paletteCompiler;
-    TilesetCompiler _tilesetCompiler;
     FrameCompiler _frameCompiler;
+
+    RomTileData _tileData;
+    RomIncData _tilesetData;
 
     RomIncData _frameSetData;
     RomAddrTable _frameSetList;

@@ -113,6 +113,8 @@ public:
     bool operator==(const vectorset<T, Compare>& o) const { return _vector == o._vector; }
     bool operator!=(const vectorset<T, Compare>& o) const { return _vector != o._vector; }
 
+    operator const std::vector<T>&() const { return _vector; }
+
 private:
     void sortAndRemoveDuplicates()
     {
@@ -203,6 +205,8 @@ public:
 
     bool operator==(const vectorset<T*>& o) const { return _vector == o._vector; }
     bool operator!=(const vectorset<T*>& o) const { return _vector != o._vector; }
+
+    operator const std::vector<T>&() const { return _vector; }
 
 private:
     void sortAndRemoveDuplicates()
