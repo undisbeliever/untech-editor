@@ -7,9 +7,9 @@
 #pragma once
 
 #include "animationcompiler.h"
-#include "framecompiler.h"
 #include "palettecompiler.h"
 #include "romdata.h"
+#include "romtiledata.h"
 #include "../errorlist.h"
 #include "../metasprite.h"
 #include <vector>
@@ -17,6 +17,19 @@
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
+
+struct CompiledRomData {
+    RomIncData frameData;
+    RomAddrTable frameList;
+
+    RomBinData frameObjectData;
+    RomBinData tileHitboxData;
+    RomBinData entityHitboxData;
+    RomBinData actionPointData;
+
+    CompiledRomData();
+    void writeToIncFile(std::ostream& out) const;
+};
 
 class Compiler {
 public:
@@ -41,9 +54,10 @@ private:
     const Project& _project;
     ErrorList& _errorList;
 
+    CompiledRomData _compiledRomData;
+
     AnimationCompiler _animationCompiler;
     PaletteCompiler _paletteCompiler;
-    FrameCompiler _frameCompiler;
 
     RomTileData _tileData;
     RomIncData _tilesetData;

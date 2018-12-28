@@ -10,7 +10,6 @@
 #include "romdata.h"
 #include "tilesetinserter.h"
 #include "../errorlist.h"
-#include "../metasprite.h"
 #include <cstdint>
 #include <vector>
 
@@ -18,38 +17,23 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
-namespace MS = UnTech::MetaSprite::MetaSprite;
+struct CompiledRomData;
 
-class FrameCompiler {
-public:
-    FrameCompiler(ErrorList& errorList);
-    FrameCompiler(const FrameCompiler&) = delete;
-
-    void writeToIncFile(std::ostream& out) const;
-
-    RomOffsetPtr process(const FrameSetExportList& exportList,
-                         const TilesetData& tilesetData);
-
-private:
-    RomOffsetPtr processFrameObjects(const MetaSprite::Frame& frame,
-                                     const FrameTilesetData& tileMap);
-    RomOffsetPtr processEntityHitboxes(const std::vector<MS::EntityHitbox>&);
-    RomOffsetPtr processTileHitbox(const MetaSprite::Frame& frame);
-    RomOffsetPtr processActionPoints(const std::vector<MS::ActionPoint>&);
-
-    uint32_t processFrame(const MetaSprite::Frame&, const FrameTilesetData&);
-
-private:
-    ErrorList& _errorList;
-
-    RomIncData _frameData;
-    RomAddrTable _frameList;
-
-    RomBinData _frameObjectData;
-    RomBinData _tileHitboxData;
-    RomBinData _entityHitboxData;
-    RomBinData _actionPointData;
+struct FrameData {
+    std::vector<uint8_t> frameObjects;
+    std::vector<uint8_t> entityHitboxes;
+    std::vector<uint8_t> tileHitbox;
+    std::vector<uint8_t> actionPoints;
+    RomOffsetPtr tileset;
+    bool isNull;
 };
+
+std::vector<FrameData> processFrameList(const FrameSetExportList& exportList,
+                                        const TilesetData& tilesetData,
+                                        ErrorList& errorList);
+
+RomOffsetPtr saveCompiledFrames(const std::vector<FrameData>& frameData, CompiledRomData& out);
+
 }
 }
 }

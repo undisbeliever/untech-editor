@@ -5,6 +5,7 @@
  */
 
 #include "compiler.h"
+#include "framecompiler.h"
 #include "tilesetinserter.h"
 #include "tilesetlayout.h"
 #include "version.h"
@@ -13,18 +14,39 @@
 #include <climits>
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
-using Compiler = UnTech::MetaSprite::Compiler::Compiler;
+using namespace UnTech::MetaSprite::Compiler;
 
 const unsigned Compiler::METASPRITE_FORMAT_VERSION = 32;
 
 // ::TODO generate debug file - containing frame/frameset names::
 
+CompiledRomData::CompiledRomData()
+    : frameData("FD", "MS_FrameData")
+    , frameList("FL", "MS_FrameList", "FD")
+    , frameObjectData("FO", "MS_FrameObjectsData", true)
+    , tileHitboxData("TC", "MS_TileHitboxData", true)
+    , entityHitboxData("EH", "MS_EntityHitboxData", true)
+    , actionPointData("AP", "MS_ActionPointsData", true)
+{
+}
+
+void CompiledRomData::writeToIncFile(std::ostream& out) const
+{
+    frameObjectData.writeToIncFile(out);
+    tileHitboxData.writeToIncFile(out);
+    actionPointData.writeToIncFile(out);
+    entityHitboxData.writeToIncFile(out);
+
+    frameData.writeToIncFile(out);
+    frameList.writeToIncFile(out);
+}
+
 Compiler::Compiler(const Project& project, ErrorList& errorList, unsigned tilesetBlockSize)
     : _project(project)
     , _errorList(errorList)
+    , _compiledRomData()
     , _animationCompiler(_errorList)
     , _paletteCompiler()
-    , _frameCompiler(_errorList)
     , _tileData("TB", "MS_TileBlock", tilesetBlockSize)
     , _tilesetData("TS", "DMA_Tile16Data")
     , _frameSetData("FSD", "MS_FrameSetData")
@@ -47,7 +69,7 @@ void Compiler::writeToIncFile(std::ostream& out) const
     _tileData.writeToIncFile(out);
     _tilesetData.writeToIncFile(out);
 
-    _frameCompiler.writeToIncFile(out);
+    _compiledRomData.writeToIncFile(out);
 
     _frameSetData.writeToIncFile(out);
     _frameSetList.writeToIncFile(out);
@@ -125,8 +147,11 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
         const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, _tileData, _tilesetData);
 
         RomOffsetPtr fsPalettes = _paletteCompiler.process(frameSet);
-        RomOffsetPtr fsFrames = _frameCompiler.process(exportList, tilesetData);
         RomOffsetPtr fsAnimations = _animationCompiler.process(exportList);
+
+        const auto framesData = processFrameList(exportList, tilesetData, _errorList);
+
+        const auto frameTableAddr = saveCompiledFrames(framesData, _compiledRomData);
 
         // FRAMESET DATA
         // -------------
@@ -138,7 +163,7 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
         frameSetItem.addField(RomIncItem::BYTE, nPalettes);                          // nPalettes
         frameSetItem.addAddr(tilesetData.staticTileset.romPtr);                      // tileset
         frameSetItem.addField(RomIncItem::BYTE, tilesetData.tilesetType.romValue()); // tilesetType
-        frameSetItem.addIndex(fsFrames);                                             // frameTable
+        frameSetItem.addIndex(frameTableAddr);                                       // frameTable
         frameSetItem.addField(RomIncItem::BYTE, exportList.frames().size());         // nFrames
         frameSetItem.addIndex(fsAnimations);                                         // animationsTable
         frameSetItem.addField(RomIncItem::BYTE, exportList.animations().size());     // nAnimations
