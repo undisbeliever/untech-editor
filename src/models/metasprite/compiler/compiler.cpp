@@ -20,8 +20,6 @@ using namespace UnTech::MetaSprite::Compiler;
 
 const unsigned Compiler::METASPRITE_FORMAT_VERSION = 32;
 
-// ::TODO generate debug file - containing frame/frameset names::
-
 CompiledRomData::CompiledRomData()
     : paletteData("PD", "MS_PaletteData")
     , paletteList("PL", "MS_PaletteList", "PD")
@@ -61,7 +59,6 @@ Compiler::Compiler(const Project& project, ErrorList& errorList, unsigned tilese
     , _tilesetData("TS", "DMA_Tile16Data")
     , _frameSetData("FSD", "MS_FrameSetData")
     , _frameSetList("FSL", "MS_FrameSetList", "FSD")
-    , _frameSetReferences()
 {
 }
 
@@ -87,58 +84,9 @@ void Compiler::writeToIncFile(std::ostream& out) const
            "}\n";
 }
 
-void Compiler::writeToReferencesFile(std::ostream& out) const
-{
-    out << "namespace MSFS {\n";
-
-    for (unsigned i = 0; i < _frameSetReferences.size(); i++) {
-        const auto& r = _frameSetReferences[i];
-
-        if (!r.isNull) {
-            out << "\tconstant " << r.name << " = " << i << "\n";
-            out << "\tdefine " << r.name << ".type = " << r.exportOrderName << "\n";
-        }
-    }
-
-    out << "}\n"
-           "namespace MSEO {\n";
-
-    for (const auto& it : _project.exportOrders) {
-        const FrameSetExportOrder* eo = it.value.get();
-        if (eo == nullptr) {
-            throw std::runtime_error("Unable to read Export Order: " + it.filename);
-        }
-
-        out << "\tnamespace " << eo->name << " {\n";
-
-        if (eo->stillFrames.size() > 0) {
-            unsigned id = 0;
-            out << "\t\tnamespace Frames {\n";
-            for (const auto& f : eo->stillFrames) {
-                out << "\t\t\tconstant " << f.name << " = " << id << "\n";
-                id++;
-            }
-            out << "\t\t}\n";
-        }
-        if (eo->animations.size() > 0) {
-            unsigned id = 0;
-            out << "\t\tnamespace Animations {\n";
-            for (const auto& a : eo->animations) {
-                out << "\t\t\tconstant " << a.name << " = " << id << "\n";
-                id++;
-            }
-            out << "\t\t}\n";
-        }
-        out << "\t}\n";
-    }
-
-    out << "}\n";
-}
-
 void Compiler::processNullFrameSet()
 {
     _frameSetList.addNull();
-    _frameSetReferences.emplace_back();
 }
 
 void Compiler::processFrameSet(const MS::FrameSet& frameSet)
@@ -179,9 +127,6 @@ void Compiler::processFrameSet(const MS::FrameSet& frameSet)
 
         RomOffsetPtr ptr = _frameSetData.addData(frameSetItem);
         _frameSetList.addOffset(ptr.offset);
-
-        // add to references
-        _frameSetReferences.emplace_back(frameSet.name, frameSet.exportOrder);
     }
     catch (const std::exception& ex) {
         _errorList.addError(frameSet, ex.what());

@@ -48,8 +48,6 @@ public:
 
     void writeToIncFile(std::ostream& out) const;
 
-    void writeToReferencesFile(std::ostream& out) const;
-
     void processNullFrameSet();
     void processFrameSet(const MetaSprite::FrameSet& frameSet);
 
@@ -66,28 +64,6 @@ private:
 
     RomIncData _frameSetData;
     RomAddrTable _frameSetList;
-
-    struct FrameSetReference {
-        bool isNull;
-        const idstring name;
-        const idstring exportOrderName;
-
-        FrameSetReference()
-            : isNull(true)
-            , name()
-            , exportOrderName()
-        {
-        }
-
-        FrameSetReference(const idstring& name, const idstring& exportOrderName)
-            : isNull(false)
-            , name(name)
-            , exportOrderName(exportOrderName)
-        {
-        }
-    };
-
-    std::vector<FrameSetReference> _frameSetReferences;
 };
 }
 }

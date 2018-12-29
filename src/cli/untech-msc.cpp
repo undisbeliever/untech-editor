@@ -7,6 +7,7 @@
 #include "helpers/commandlineparser.h"
 #include "models/common/atomicofstream.h"
 #include "models/metasprite/compiler/compiler.h"
+#include "models/metasprite/compiler/references.h"
 #include "models/metasprite/project.h"
 #include <cstdlib>
 #include <iostream>
@@ -74,7 +75,9 @@ int compile(const CommandLine::Parser& args)
     AtomicOfStream os(args.options().at("output").string());
 
     compiler.writeToIncFile(os);
-    compiler.writeToReferencesFile(os);
+
+    Compiler::writeFrameSetReferences(*project, os);
+    Compiler::writeExportOrderReferences(*project, os);
 
     os.commit();
 
