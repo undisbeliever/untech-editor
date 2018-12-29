@@ -7,7 +7,6 @@
 #pragma once
 
 #include "animationcompiler.h"
-#include "palettecompiler.h"
 #include "romdata.h"
 #include "romtiledata.h"
 #include "../errorlist.h"
@@ -19,6 +18,9 @@ namespace MetaSprite {
 namespace Compiler {
 
 struct CompiledRomData {
+    RomBinData paletteData;
+    RomAddrTable paletteList;
+
     RomIncData frameData;
     RomAddrTable frameList;
 
@@ -57,7 +59,6 @@ private:
     CompiledRomData _compiledRomData;
 
     AnimationCompiler _animationCompiler;
-    PaletteCompiler _paletteCompiler;
 
     RomTileData _tileData;
     RomIncData _tilesetData;

@@ -5,45 +5,52 @@
  */
 
 #include "palettecompiler.h"
+#include "compiler.h"
 
-using namespace UnTech::MetaSprite;
-using namespace UnTech::MetaSprite::Compiler;
-namespace MS = UnTech::MetaSprite::MetaSprite;
+namespace UnTech {
+namespace MetaSprite {
+namespace Compiler {
 
-PaletteCompiler::PaletteCompiler()
-    : _paletteData("PD", "MS_PaletteData")
-    , _paletteList("PL", "MS_PaletteList", "PD")
+std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp>& palettes)
 {
-}
-
-void PaletteCompiler::writeToIncFile(std::ostream& out) const
-{
-    _paletteData.writeToIncFile(out);
-    _paletteList.writeToIncFile(out);
-}
-
-RomOffsetPtr PaletteCompiler::process(const MS::FrameSet& frameSet)
-{
-    // Some framesets can have the same palette, will check for duplicates
-    const auto& palettes = frameSet.palettes;
-
     assert(palettes.size() <= MAX_PALETTES);
 
     if (palettes.size() == 0) {
         throw std::runtime_error("No Palettes in Frameset");
     }
 
+    std::vector<CompiledPalette> ret;
+    ret.reserve(palettes.size());
+
+    for (const auto& palette : palettes) {
+        ret.emplace_back(30);
+        std::vector<uint8_t>& pData = ret.back();
+
+        // Color 0 is always transparent and thus not saved to ROM
+        auto pIt = pData.begin();
+        for (unsigned i = 1; i < palette.N_COLORS; i++) {
+            uint16_t cData = palette.color(i).data();
+            *pIt++ = cData & 0xff;
+            *pIt++ = cData >> 8;
+        }
+        assert(pIt == pData.end());
+    }
+
+    return ret;
+}
+
+RomOffsetPtr savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomData& out)
+{
     std::vector<uint32_t> offsets;
     offsets.reserve(palettes.size());
 
-    for (const auto& palette : palettes) {
-        std::vector<uint8_t> paletteData = palette.paletteData();
-
-        // Remove transparent color, saves 2 bytes in ROM.
-        paletteData.erase(paletteData.begin(), paletteData.begin() + 2);
-
-        offsets.emplace_back(_paletteData.addData(paletteData).offset);
+    for (const auto& pData : palettes) {
+        offsets.emplace_back(out.paletteData.addData(pData).offset);
     }
 
-    return _paletteList.getOrInsertTable(offsets);
+    return out.paletteList.getOrInsertTable(offsets);
+}
+
+}
+}
 }
