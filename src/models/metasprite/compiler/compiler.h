@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "animationcompiler.h"
 #include "romdata.h"
 #include "romtiledata.h"
 #include "../errorlist.h"
 #include "../metasprite.h"
+#include "../project.h"
 #include <vector>
 
 namespace UnTech {
@@ -20,6 +20,9 @@ namespace Compiler {
 struct CompiledRomData {
     RomBinData paletteData;
     RomAddrTable paletteList;
+
+    RomBinData animationData;
+    RomAddrTable animationList;
 
     RomIncData frameData;
     RomAddrTable frameList;
@@ -57,8 +60,6 @@ private:
     ErrorList& _errorList;
 
     CompiledRomData _compiledRomData;
-
-    AnimationCompiler _animationCompiler;
 
     RomTileData _tileData;
     RomIncData _tilesetData;
