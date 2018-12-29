@@ -6,6 +6,7 @@
 
 #include "framecompiler.h"
 #include "compiler.h"
+#include "tilesetinserter.h"
 
 namespace UnTech {
 namespace MetaSprite {

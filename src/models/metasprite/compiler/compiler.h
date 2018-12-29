@@ -11,13 +11,15 @@
 #include "../errorlist.h"
 #include "../metasprite.h"
 #include "../project.h"
-#include <vector>
 
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
 struct CompiledRomData {
+    RomTileData tileData;
+    RomIncData tilesetData;
+
     RomBinData paletteData;
     RomAddrTable paletteList;
 
@@ -32,39 +34,18 @@ struct CompiledRomData {
     RomBinData entityHitboxData;
     RomBinData actionPointData;
 
-    CompiledRomData();
+    RomIncData frameSetData;
+    RomAddrTable frameSetList;
+
+    CompiledRomData(unsigned tilesetBlockSize = RomTileData::DEFAULT_TILE_BLOCK_SIZE);
     void writeToIncFile(std::ostream& out) const;
 };
 
-class Compiler {
-public:
-    const static unsigned METASPRITE_FORMAT_VERSION;
+void processAndSaveFrameSet(const Project& project, const MetaSprite::FrameSet& frameSet,
+                            ErrorList& errorList, CompiledRomData& out);
 
-public:
-    Compiler(const Project& project, ErrorList& errorList,
-             unsigned tilesetBlockSize = RomTileData::DEFAULT_TILE_BLOCK_SIZE);
+void processProject(Project& project, ErrorList& errorList, CompiledRomData& out);
 
-    Compiler(const Compiler&) = delete;
-
-    void writeToIncFile(std::ostream& out) const;
-
-    void processNullFrameSet();
-    void processFrameSet(const MetaSprite::FrameSet& frameSet);
-
-    const ErrorList& errorList() const { return _errorList; }
-
-private:
-    const Project& _project;
-    ErrorList& _errorList;
-
-    CompiledRomData _compiledRomData;
-
-    RomTileData _tileData;
-    RomIncData _tilesetData;
-
-    RomIncData _frameSetData;
-    RomAddrTable _frameSetList;
-};
 }
 }
 }

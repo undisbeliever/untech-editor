@@ -8,7 +8,6 @@
 
 #include "framesetexportlist.h"
 #include "romdata.h"
-#include "tilesetinserter.h"
 #include "../errorlist.h"
 #include <cstdint>
 #include <vector>
@@ -18,6 +17,8 @@ namespace MetaSprite {
 namespace Compiler {
 
 struct CompiledRomData;
+
+struct TilesetData;
 
 struct FrameData {
     std::vector<uint8_t> frameObjects;

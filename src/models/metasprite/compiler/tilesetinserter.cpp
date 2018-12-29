@@ -56,7 +56,7 @@ static FrameTilesetData
 insertTiles(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
             const unsigned tileOffset, const FrameTilesetData& staticTileset, const bool dynamicTileset,
             const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
-            RomTileData& tileData, RomIncData& tilesetData)
+            CompiledRomData& out)
 {
     assert(tiles.empty() == false);
     assert(tiles.size() + tileOffset <= tilesetType.nTiles());
@@ -68,7 +68,7 @@ insertTiles(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
     tilesetTable.addField(RomIncItem::BYTE, tiles.size());
 
     auto addTile = [&](const Snes::Tile16px& tile) mutable {
-        auto a = tileData.addLargeTile(tile);
+        auto a = out.tileData.addLargeTile(tile);
         tilesetTable.addTilePtr(a.addr);
 
         return a;
@@ -132,7 +132,7 @@ insertTiles(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
     }
 
     // Store the DMA data and tileset
-    tileset.romPtr = tilesetData.addData(tilesetTable);
+    tileset.romPtr = out.tilesetData.addData(tilesetTable);
 
     return tileset;
 }
@@ -141,7 +141,7 @@ static FrameTilesetData
 insertStaticTileset(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
                     const unsigned tileOffset,
                     const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
-                    RomTileData& tileData, RomIncData& tilesetData)
+                    CompiledRomData& out)
 {
     constexpr uint16_t nullTile = FrameTilesetData::NULL_CHAR_ATTR;
 
@@ -151,7 +151,7 @@ insertStaticTileset(const std::vector<Tile16>& tiles, const TilesetType tilesetT
 
     if (tiles.empty() == false) {
         return insertTiles(tiles, tilesetType, tileOffset, blankTileset, false,
-                           largeTileset, smallTileset, tileData, tilesetData);
+                           largeTileset, smallTileset, out);
     }
     else {
         return blankTileset;
@@ -162,14 +162,14 @@ static FrameTilesetData
 insertDynamicTileset(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
                      const FrameTilesetData& staticTileset,
                      const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
-                     RomTileData& tileData, RomIncData& tilesetData)
+                     CompiledRomData& out)
 {
     return insertTiles(tiles, tilesetType, 0, staticTileset, true,
-                       largeTileset, smallTileset, tileData, tilesetData);
+                       largeTileset, smallTileset, out);
 }
 
 TilesetData insertFrameSetTiles(const MS::FrameSet& frameSet, const TilesetLayout& tilesetLayout,
-                                RomTileData& tileData, RomIncData& tilesetData)
+                                CompiledRomData& out)
 {
     TilesetData ret;
 
@@ -184,13 +184,13 @@ TilesetData insertFrameSetTiles(const MS::FrameSet& frameSet, const TilesetLayou
 
     ret.staticTileset = insertStaticTileset(tilesetLayout.staticTiles, tilesetLayout.tilesetType, staticTilesOffset,
                                             frameSet.largeTileset, frameSet.smallTileset,
-                                            tileData, tilesetData);
+                                            out);
 
     for (const auto& dynTiles : tilesetLayout.dynamicTiles) {
         ret.dynamicTilesets.push_back(
             insertDynamicTileset(dynTiles, tilesetLayout.tilesetType, ret.staticTileset,
                                  frameSet.largeTileset, frameSet.smallTileset,
-                                 tileData, tilesetData));
+                                 out));
     }
 
     return ret;

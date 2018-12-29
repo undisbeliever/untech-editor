@@ -27,12 +27,14 @@ AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t inde
 void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,
                                            UnTech::MetaSprite::ErrorList& errList)
 {
-    using Compiler = UnTech::MetaSprite::Compiler::Compiler;
+    using namespace UnTech::MetaSprite::Compiler;
 
     if (frameSet) {
         try {
-            Compiler compiler(*project()->metaSpriteProject(), errList, 8192);
-            compiler.processFrameSet(*frameSet);
+            const auto project = this->project()->metaSpriteProject();
+
+            CompiledRomData out(8192);
+            processAndSaveFrameSet(*project, *frameSet, errList, out);
         }
         catch (std::exception& ex) {
             errList.addError(*frameSet, ex.what());

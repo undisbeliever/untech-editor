@@ -45,20 +45,8 @@ int compile(const CommandLine::Parser& args)
     // validation is done here to silence export order errors in GUI
     project->validateNamesUnique(errorList);
 
-    Compiler::Compiler compiler(
-        *project, errorList,
-        args.options().at("tileblock").uint());
-
-    for (auto& fs : project->frameSets) {
-        fs.convertSpriteImporter(errorList);
-
-        if (fs.msFrameSet) {
-            compiler.processFrameSet(*fs.msFrameSet);
-        }
-        else {
-            compiler.processNullFrameSet();
-        }
-    }
+    Compiler::CompiledRomData romData(args.options().at("tileblock").uint());
+    Compiler::processProject(*project, errorList, romData);
 
     for (const auto& w : errorList.warnings) {
         std::cerr << "WARNING: " << w << '\n';
@@ -74,7 +62,7 @@ int compile(const CommandLine::Parser& args)
 
     AtomicOfStream os(args.options().at("output").string());
 
-    compiler.writeToIncFile(os);
+    romData.writeToIncFile(os);
 
     Compiler::writeFrameSetReferences(*project, os);
     Compiler::writeExportOrderReferences(*project, os);

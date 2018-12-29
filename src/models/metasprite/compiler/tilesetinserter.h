@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "romtiledata.h"
+#include "compiler.h"
 #include "../metasprite.h"
 #include <cstdint>
 #include <vector>
@@ -46,7 +46,7 @@ struct TilesetData {
 };
 
 TilesetData insertFrameSetTiles(const MetaSprite::FrameSet& frameSet, const TilesetLayout& tilesetLayout,
-                                RomTileData& tileData, RomIncData& tilesetData);
+                                CompiledRomData& out);
 }
 }
 }
