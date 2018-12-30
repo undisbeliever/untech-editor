@@ -8,7 +8,6 @@
 
 #include "framesetexportlist.h"
 #include "romdata.h"
-#include "../errorlist.h"
 #include <cstdint>
 #include <vector>
 
@@ -30,8 +29,7 @@ struct FrameData {
 };
 
 std::vector<FrameData> processFrameList(const FrameSetExportList& exportList,
-                                        const TilesetData& tilesetData,
-                                        ErrorList& errorList);
+                                        const TilesetData& tilesetData);
 
 RomOffsetPtr saveCompiledFrames(const std::vector<FrameData>& frameData, CompiledRomData& out);
 

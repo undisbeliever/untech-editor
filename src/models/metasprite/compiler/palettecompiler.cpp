@@ -14,10 +14,7 @@ namespace Compiler {
 std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp>& palettes)
 {
     assert(palettes.size() <= MAX_PALETTES);
-
-    if (palettes.size() == 0) {
-        throw std::runtime_error("No Palettes in Frameset");
-    }
+    assert(palettes.empty() == false);
 
     std::vector<CompiledPalette> ret;
     ret.reserve(palettes.size());

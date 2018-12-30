@@ -8,7 +8,6 @@
 
 #include "common.h"
 #include "entityhitboxtype.h"
-#include "frameset-exportorder.h"
 #include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/idmap.h"
@@ -96,6 +95,8 @@ struct EntityHitbox {
         , hitboxType(hitboxType)
     {
     }
+
+    bool isValid() const;
 
     bool operator==(const EntityHitbox& o) const
     {

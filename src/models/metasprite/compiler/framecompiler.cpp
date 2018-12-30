@@ -72,6 +72,12 @@ static std::vector<uint8_t> processEntityHitboxes(const std::vector<MS::EntityHi
         return romData;
     }
 
+    ms8rect outerAabb;
+    for (const MS::EntityHitbox& eh : entityHitboxes) {
+        outerAabb.extend(eh.aabb);
+    }
+    assert(outerAabb.width > 0 && outerAabb.height > 0);
+
     // count starts at -1
     unsigned count = entityHitboxes.size() - 1;
     unsigned dataSize = 5 + 5 * entityHitboxes.size();
@@ -81,18 +87,6 @@ static std::vector<uint8_t> processEntityHitboxes(const std::vector<MS::EntityHi
         dataSize = 5 + 1;
     }
     romData.reserve(dataSize);
-
-    ms8rect outerAabb;
-    {
-        // calculate outer AABB.
-        for (const MS::EntityHitbox& eh : entityHitboxes) {
-            outerAabb.extend(eh.aabb);
-        }
-
-        if (outerAabb.width == 0 || outerAabb.height == 0) {
-            throw std::runtime_error("Entity Hitbox aabb has no size");
-        }
-    }
 
     romData.push_back(count); // count
 
@@ -105,9 +99,7 @@ static std::vector<uint8_t> processEntityHitboxes(const std::vector<MS::EntityHi
         for (const MS::EntityHitbox& eh : entityHitboxes) {
             const ms8rect& innerAabb = eh.aabb;
 
-            if (innerAabb.width == 0 || innerAabb.height == 0) {
-                throw std::runtime_error("Entity Hitbox aabb has no size");
-            }
+            assert(innerAabb.width > 0 && innerAabb.height > 0);
 
             romData.push_back(eh.hitboxType.romValue()); // Inner:type
             romData.push_back(innerAabb.x.romData());    // Inner::xOffset
@@ -128,9 +120,7 @@ static std::vector<uint8_t> processTileHitbox(const MS::Frame& frame)
 {
     const ms8rect& aabb = frame.tileHitbox;
 
-    if (aabb.width == 0 || aabb.height == 0) {
-        throw std::runtime_error("Tileset Hitbox aabb has no size");
-    }
+    assert(aabb.width > 0 && aabb.height > 0);
 
     std::vector<uint8_t> romData;
     if (frame.solid == false) {
@@ -202,8 +192,7 @@ static FrameData processFrame(const FrameListEntry& fle, const FrameTilesetData&
     }
 }
 
-std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, const TilesetData& tilesetData,
-                                        ErrorList& errorList)
+std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, const TilesetData& tilesetData)
 {
     const auto& frameList = exportList.frames;
 
@@ -212,19 +201,10 @@ std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, co
 
     for (unsigned frameId = 0; frameId < frameList.size(); frameId++) {
         const auto& fle = frameList.at(frameId);
+        assert(fle.frame);
+
         const auto& frameTileset = tilesetData.tilesetForFrameId(frameId);
-
-        if (fle.frame != nullptr) {
-            try {
-                frames.push_back(processFrame(fle, frameTileset));
-            }
-            catch (const std::exception& ex) {
-                errorList.addError(exportList.frameSet, *fle.frame, ex.what());
-
-                frames.emplace_back();
-                frames.back().isNull = true;
-            }
-        }
+        frames.push_back(processFrame(fle, frameTileset));
     }
 
     return frames;

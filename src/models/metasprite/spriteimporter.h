@@ -8,7 +8,6 @@
 
 #include "common.h"
 #include "entityhitboxtype.h"
-#include "frameset-exportorder.h"
 #include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/aabb.h"
@@ -155,7 +154,9 @@ struct EntityHitbox {
 
     bool isValid(const FrameLocation& floc) const
     {
-        return floc.aabb.size().contains(aabb);
+        return floc.aabb.size().contains(aabb)
+               && aabb.width > 0
+               && aabb.height > 0;
     }
 
     bool operator==(const EntityHitbox& o) const

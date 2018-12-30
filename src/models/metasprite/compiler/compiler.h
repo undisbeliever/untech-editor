@@ -41,7 +41,7 @@ struct CompiledRomData {
     void writeToIncFile(std::ostream& out) const;
 };
 
-void processAndSaveFrameSet(const Project& project, const MetaSprite::FrameSet& frameSet,
+void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
                             ErrorList& errorList, CompiledRomData& out);
 
 void processProject(Project& project, ErrorList& errorList, CompiledRomData& out);

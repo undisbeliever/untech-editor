@@ -11,6 +11,33 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
+template <class MapT>
+static inline bool _testExists(const FrameSetExportOrder::ExportName& en, const MapT& map)
+{
+    if (map.contains(en.name)) {
+        return true;
+    }
+
+    auto it = std::find_if(en.alternatives.begin(), en.alternatives.end(),
+                           [&](auto& a) { return map.contains(a.name); });
+    return it != en.alternatives.end();
+}
+
+bool FrameSetExportOrder::ExportName::frameExists(const MetaSprite::Frame::map_t& frameMap) const
+{
+    return _testExists(*this, frameMap);
+}
+
+bool FrameSetExportOrder::ExportName::frameExists(const SpriteImporter::Frame::map_t& frameMap) const
+{
+    return _testExists(*this, frameMap);
+}
+
+bool FrameSetExportOrder::ExportName::animationExists(const Animation::Animation::map_t& animationMap) const
+{
+    return _testExists(*this, animationMap);
+}
+
 static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
                                        const std::string& typeName,
                                        const std::string& aName,
@@ -66,4 +93,36 @@ bool FrameSetExportOrder::validate(Resources::ErrorList& err) const
     }
 
     return valid;
+}
+
+template <class FrameSetT>
+static bool _testFrameSet(const FrameSetExportOrder& eo, const FrameSetT& frameSet, ErrorList& errorList)
+{
+    bool valid = true;
+
+    for (auto& en : eo.stillFrames) {
+        if (en.frameExists(frameSet.frames) == false) {
+            errorList.addError(frameSet, "Cannot find frame " + en.name);
+            valid = false;
+        }
+    }
+
+    for (auto& en : eo.animations) {
+        if (en.animationExists(frameSet.animations) == false) {
+            errorList.addError(frameSet, "Cannot find animation " + en.name);
+            valid = false;
+        }
+    }
+
+    return valid;
+}
+
+bool FrameSetExportOrder::testFrameSet(const MetaSprite::FrameSet& frameSet, ErrorList& errorList) const
+{
+    return _testFrameSet(*this, frameSet, errorList);
+}
+
+bool FrameSetExportOrder::testFrameSet(const SpriteImporter::FrameSet& frameSet, ErrorList& errorList) const
+{
+    return _testFrameSet(*this, frameSet, errorList);
 }

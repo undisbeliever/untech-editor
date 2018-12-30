@@ -7,6 +7,7 @@
 #pragma once
 
 #include "common.h"
+#include "errorlist.h"
 #include "models/common/idstring.h"
 #include <memory>
 #include <string>
@@ -24,6 +25,10 @@ struct FrameSetExportOrder {
     struct ExportName {
         idstring name;
         std::vector<NameReference> alternatives;
+
+        bool frameExists(const MetaSprite::Frame::map_t& frameMap) const;
+        bool frameExists(const SpriteImporter::Frame::map_t& frameMap) const;
+        bool animationExists(const Animation::Animation::map_t& animationMap) const;
     };
 
     idstring name;
@@ -34,6 +39,9 @@ struct FrameSetExportOrder {
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;
 
     bool validate(Resources::ErrorList& err) const;
+
+    bool testFrameSet(const MetaSprite::FrameSet& frameSet, ErrorList& errorList) const;
+    bool testFrameSet(const SpriteImporter::FrameSet& frameSet, ErrorList& errorList) const;
 };
 
 // throws exception on error

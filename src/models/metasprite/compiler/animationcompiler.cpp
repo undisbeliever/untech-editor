@@ -77,7 +77,7 @@ static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
     return data;
 }
 
-std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList, ErrorList& errorList)
+std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList)
 {
     const size_t nAnimations = exportList.animations.size();
 
@@ -87,12 +87,7 @@ std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& ex
     assert(nAnimations <= MAX_EXPORT_NAMES);
 
     for (const auto& ani : exportList.animations) {
-        try {
-            ret.push_back(processAnimation(ani, exportList));
-        }
-        catch (const std::exception& ex) {
-            errorList.addError(exportList.frameSet, *ani.animation, ex.what());
-        }
+        ret.push_back(processAnimation(ani, exportList));
     }
 
     return ret;

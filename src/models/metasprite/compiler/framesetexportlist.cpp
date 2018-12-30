@@ -38,10 +38,7 @@ processAnimations(const MS::FrameSet& frameSet, const std::vector<ExportName>& a
                     break;
                 }
             }
-
-            if (success == false) {
-                throw std::runtime_error("Cannot find animation " + en.name);
-            }
+            assert(success);
         }
     }
 
@@ -53,9 +50,7 @@ processAnimations(const MS::FrameSet& frameSet, const std::vector<ExportName>& a
             const idstring& nextAnimation = ani.animation->nextAnimation;
 
             const Animation::Animation* a = frameSet.animations.getPtr(nextAnimation);
-            if (a == nullptr) {
-                throw std::runtime_error("Cannot find animation " + nextAnimation);
-            }
+            assert(a);
 
             AnimationListEntry toAdd = { a, ani.hFlip, ani.vFlip };
 
@@ -96,10 +91,7 @@ processStillFrames(const MS::FrameSet& frameSet,
                     break;
                 }
             }
-
-            if (success == false) {
-                throw std::runtime_error("Cannot find frame " + en.name);
-            }
+            assert(success);
         }
     }
 
@@ -111,9 +103,7 @@ processStillFrames(const MS::FrameSet& frameSet,
             const auto& frameRef = aFrame.frame;
 
             const MS::Frame* frame = frameSet.frames.getPtr(frameRef.name);
-            if (frame == nullptr) {
-                throw std::runtime_error("Cannot find frame " + frameRef.name);
-            }
+            assert(frame);
 
             FrameListEntry e = { frame,
                                  static_cast<bool>(frameRef.hFlip ^ ani.hFlip),

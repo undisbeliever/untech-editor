@@ -84,7 +84,7 @@ void CompiledRomData::writeToIncFile(std::ostream& out) const
 }
 
 // assumes frameSet.validate() passes
-static FrameSetData processFrameSet(const FrameSetExportList& exportList, const TilesetData& tilesetData, ErrorList& errorList)
+static FrameSetData processFrameSet(const FrameSetExportList& exportList, const TilesetData& tilesetData)
 {
     const MS::FrameSet& frameSet = exportList.frameSet;
 
@@ -92,8 +92,8 @@ static FrameSetData processFrameSet(const FrameSetExportList& exportList, const 
         processPalettes(frameSet.palettes),
         tilesetData.staticTileset.romPtr,
         tilesetData.tilesetType,
-        processFrameList(exportList, tilesetData, errorList),
-        processAnimations(exportList, errorList),
+        processFrameList(exportList, tilesetData),
+        processAnimations(exportList),
     };
 }
 
@@ -122,29 +122,30 @@ static void saveNullFrameSet(CompiledRomData& out)
     out.frameSetList.addNull();
 }
 
-void processAndSaveFrameSet(const Project& project, const MS::FrameSet& frameSet, ErrorList& errorList, CompiledRomData& out)
+static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder, ErrorList& errorList)
 {
-    if (frameSet.validate(errorList) == false) {
+    if (exportOrder == nullptr) {
+        errorList.addError("Missing MetaSprite Export Order Document");
+    }
+
+    return frameSet.validate(errorList)
+           && exportOrder->testFrameSet(frameSet, errorList);
+}
+
+void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                            ErrorList& errorList, CompiledRomData& out)
+{
+    if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
         saveNullFrameSet(out);
         return;
     }
 
-    try {
-        const auto* exportOrder = project.exportOrders.find(frameSet.exportOrder);
-        if (exportOrder == nullptr) {
-            throw std::runtime_error("Missing MetaSprite Export Order Document");
-        }
-
-        const auto exportList = buildExportList(frameSet, *exportOrder);
-        const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
-        const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, out);
-        const auto data = processFrameSet(exportList, tilesetData, errorList);
-        saveFrameSet(data, out);
-    }
-    catch (const std::exception& ex) {
-        errorList.addError(frameSet, ex.what());
-        saveNullFrameSet(out);
-    }
+    assert(exportOrder);
+    const auto exportList = buildExportList(frameSet, *exportOrder);
+    const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
+    const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, out);
+    const auto data = processFrameSet(exportList, tilesetData);
+    saveFrameSet(data, out);
 }
 
 void processProject(Project& project, ErrorList& errorList, CompiledRomData& out)
@@ -153,7 +154,8 @@ void processProject(Project& project, ErrorList& errorList, CompiledRomData& out
         fs.convertSpriteImporter(errorList);
 
         if (fs.msFrameSet) {
-            processAndSaveFrameSet(project, *fs.msFrameSet, errorList, out);
+            const auto* exportOrder = project.exportOrders.find(fs.msFrameSet->exportOrder);
+            processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, out);
         }
         else {
             saveNullFrameSet(out);
