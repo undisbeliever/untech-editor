@@ -41,8 +41,10 @@ struct CompiledRomData {
     void writeToIncFile(std::ostream& out) const;
 };
 
-void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
-                            ErrorList& errorList, CompiledRomData& out);
+// Does not save tilesets or build frame data.
+// Should catch all errors that the compiler will catch.
+bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                                      ErrorList& errorList);
 
 void processProject(Project& project, ErrorList& errorList, CompiledRomData& out);
 

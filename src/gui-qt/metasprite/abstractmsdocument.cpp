@@ -32,10 +32,10 @@ void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,
     if (frameSet) {
         try {
             const auto project = this->project()->metaSpriteProject();
+            Q_ASSERT(project);
 
-            CompiledRomData out(8192);
             const auto* exportOrder = project->exportOrders.find(frameSet->exportOrder);
-            processAndSaveFrameSet(*frameSet, exportOrder, errList, out);
+            validateFrameSetAndBuildTilesets(*frameSet, exportOrder, errList);
         }
         catch (std::exception& ex) {
             errList.addError(*frameSet, ex.what());

@@ -132,8 +132,8 @@ static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportO
            && exportOrder->testFrameSet(frameSet, errorList);
 }
 
-void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
-                            ErrorList& errorList, CompiledRomData& out)
+static void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                                   ErrorList& errorList, CompiledRomData& out)
 {
     if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
         saveNullFrameSet(out);
@@ -146,6 +146,21 @@ void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOr
     const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, out);
     const auto data = processFrameSet(exportList, tilesetData);
     saveFrameSet(data, out);
+}
+
+bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                                      ErrorList& errorList)
+{
+    size_t oldErrorCount = errorList.errors.size();
+
+    if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
+        return false;
+    }
+
+    const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
+    layoutTiles(frameSet, exportList.frames, errorList);
+
+    return oldErrorCount == errorList.errors.size();
 }
 
 void processProject(Project& project, ErrorList& errorList, CompiledRomData& out)
