@@ -205,7 +205,7 @@ static FrameData processFrame(const FrameListEntry& fle, const FrameTilesetData&
 std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, const TilesetData& tilesetData,
                                         ErrorList& errorList)
 {
-    const auto& frameList = exportList.frames();
+    const auto& frameList = exportList.frames;
 
     std::vector<FrameData> frames;
     frames.reserve(frameList.size());
@@ -219,7 +219,7 @@ std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, co
                 frames.push_back(processFrame(fle, frameTileset));
             }
             catch (const std::exception& ex) {
-                errorList.addError(exportList.frameSet(), *fle.frame, ex.what());
+                errorList.addError(exportList.frameSet, *fle.frame, ex.what());
 
                 frames.emplace_back();
                 frames.back().isNull = true;

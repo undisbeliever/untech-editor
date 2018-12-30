@@ -86,7 +86,7 @@ void CompiledRomData::writeToIncFile(std::ostream& out) const
 // assumes frameSet.validate() passes
 static FrameSetData processFrameSet(const FrameSetExportList& exportList, const TilesetData& tilesetData, ErrorList& errorList)
 {
-    const MS::FrameSet& frameSet = exportList.frameSet();
+    const MS::FrameSet& frameSet = exportList.frameSet;
 
     return {
         processPalettes(frameSet.palettes),
@@ -130,9 +130,13 @@ void processAndSaveFrameSet(const Project& project, const MS::FrameSet& frameSet
     }
 
     try {
-        FrameSetExportList exportList(project, frameSet);
+        const auto* exportOrder = project.exportOrders.find(frameSet.exportOrder);
+        if (exportOrder == nullptr) {
+            throw std::runtime_error("Missing MetaSprite Export Order Document");
+        }
 
-        const auto tilesetLayout = layoutTiles(frameSet, exportList.frames(), errorList);
+        const auto exportList = buildExportList(frameSet, *exportOrder);
+        const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
         const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, out);
         const auto data = processFrameSet(exportList, tilesetData, errorList);
         saveFrameSet(data, out);

@@ -48,25 +48,16 @@ struct FrameListEntry {
     }
 };
 
-class FrameSetExportList {
-public:
-    FrameSetExportList(const Project& project, const MetaSprite::FrameSet& frameSet);
-    FrameSetExportList(const FrameSetExportList&) = delete;
-
-    const MetaSprite::FrameSet& frameSet() const { return _frameSet; }
-    const std::vector<AnimationListEntry>& animations() const { return _animations; }
-    const std::vector<FrameListEntry>& frames() const { return _frames; }
-
-private:
-    void buildAnimationList();
-    void buildFrameList();
-
-private:
-    const MetaSprite::FrameSet& _frameSet;
-    const FrameSetExportOrder* const _exportOrder;
-    std::vector<AnimationListEntry> _animations;
-    std::vector<FrameListEntry> _frames;
+struct FrameSetExportList {
+    const MetaSprite::FrameSet& frameSet;
+    const FrameSetExportOrder& exportOrder;
+    const std::vector<AnimationListEntry> animations;
+    const std::vector<FrameListEntry> frames;
 };
+
+FrameSetExportList buildExportList(const MetaSprite::FrameSet& frameSet,
+                                   const FrameSetExportOrder& exportOrder);
+
 }
 }
 }

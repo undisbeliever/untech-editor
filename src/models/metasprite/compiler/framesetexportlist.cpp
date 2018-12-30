@@ -6,43 +6,33 @@
 
 #include "framesetexportlist.h"
 
-using namespace UnTech::MetaSprite;
-using namespace UnTech::MetaSprite::Compiler;
+namespace UnTech {
+namespace MetaSprite {
+namespace Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-FrameSetExportList::FrameSetExportList(const Project& project,
-                                       const MetaSprite::FrameSet& frameSet)
-    : _frameSet(frameSet)
-    , _exportOrder(project.exportOrders.find(frameSet.exportOrder))
-    , _animations()
-    , _frames()
+using ExportName = FrameSetExportOrder::ExportName;
+
+static std::vector<AnimationListEntry>
+processAnimations(const MS::FrameSet& frameSet, const std::vector<ExportName>& animations)
 {
-    if (_exportOrder == nullptr) {
-        throw std::runtime_error("Missing MetaSprite Export Order Document");
-    }
+    std::vector<AnimationListEntry> ret;
+    ret.reserve(animations.size());
 
-    buildAnimationList();
-    buildFrameList();
-}
-
-inline void FrameSetExportList::buildAnimationList()
-{
-    _animations.reserve(_exportOrder->animations.size());
-
-    for (const auto& en : _exportOrder->animations) {
-        const Animation::Animation* ani = _frameSet.animations.getPtr(en.name);
+    for (const auto& en : animations) {
+        const Animation::Animation* ani = frameSet.animations.getPtr(en.name);
 
         if (ani) {
-            _animations.push_back({ ani, false, false });
+            ret.push_back({ ani, false, false });
         }
         else {
             bool success = false;
 
             for (const auto& alt : en.alternatives) {
-                const Animation::Animation* altAni = _frameSet.animations.getPtr(alt.name);
+                const Animation::Animation* altAni = frameSet.animations.getPtr(alt.name);
                 if (altAni) {
-                    _animations.push_back({ altAni, alt.hFlip, alt.vFlip });
+                    ret.push_back({ altAni, alt.hFlip, alt.vFlip });
 
                     success = true;
                     break;
@@ -56,45 +46,51 @@ inline void FrameSetExportList::buildAnimationList()
     }
 
     // Include the animations referenced in the nextAnimation field
-    for (unsigned toTestIndex = 0; toTestIndex < _animations.size(); toTestIndex++) {
-        const auto& ani = _animations[toTestIndex];
+    for (unsigned toTestIndex = 0; toTestIndex < ret.size(); toTestIndex++) {
+        const auto& ani = ret[toTestIndex];
 
         if (ani.animation->oneShot == false && ani.animation->nextAnimation.isValid()) {
             const idstring& nextAnimation = ani.animation->nextAnimation;
 
-            const Animation::Animation* a = _frameSet.animations.getPtr(nextAnimation);
+            const Animation::Animation* a = frameSet.animations.getPtr(nextAnimation);
             if (a == nullptr) {
                 throw std::runtime_error("Cannot find animation " + nextAnimation);
             }
 
             AnimationListEntry toAdd = { a, ani.hFlip, ani.vFlip };
 
-            auto it = std::find(_animations.begin(), _animations.end(), toAdd);
-            if (it == _animations.end()) {
-                _animations.push_back(toAdd);
+            auto it = std::find(ret.begin(), ret.end(), toAdd);
+            if (it == ret.end()) {
+                ret.push_back(toAdd);
             }
         }
     }
+
+    return ret;
 }
 
-inline void FrameSetExportList::buildFrameList()
+static std::vector<FrameListEntry>
+processStillFrames(const MS::FrameSet& frameSet,
+                   const std::vector<ExportName>& stillFrames,
+                   const std::vector<AnimationListEntry>& animations)
 {
-    _frames.reserve(_exportOrder->stillFrames.size());
+    std::vector<FrameListEntry> ret;
+    ret.reserve(stillFrames.size());
 
-    for (const auto& en : _exportOrder->stillFrames) {
-        const MS::Frame* frame = _frameSet.frames.getPtr(en.name);
+    for (const auto& en : stillFrames) {
+        const MS::Frame* frame = frameSet.frames.getPtr(en.name);
 
         if (frame) {
-            _frames.push_back({ frame, false, false });
+            ret.push_back({ frame, false, false });
         }
         else {
             bool success = false;
 
             for (const auto& alt : en.alternatives) {
-                const MS::Frame* altFrame = _frameSet.frames.getPtr(alt.name);
+                const MS::Frame* altFrame = frameSet.frames.getPtr(alt.name);
 
                 if (altFrame) {
-                    _frames.push_back({ altFrame, alt.hFlip, alt.vFlip });
+                    ret.push_back({ altFrame, alt.hFlip, alt.vFlip });
 
                     success = true;
                     break;
@@ -110,13 +106,11 @@ inline void FrameSetExportList::buildFrameList()
     // Add frames from animation.
     // Ensure that the frames added are unique.
 
-    assert(_animations.size() != 0 || _exportOrder->animations.size() == 0);
-
-    for (const AnimationListEntry& ani : _animations) {
+    for (const AnimationListEntry& ani : animations) {
         for (const auto& aFrame : ani.animation->frames) {
             const auto& frameRef = aFrame.frame;
 
-            const MS::Frame* frame = _frameSet.frames.getPtr(frameRef.name);
+            const MS::Frame* frame = frameSet.frames.getPtr(frameRef.name);
             if (frame == nullptr) {
                 throw std::runtime_error("Cannot find frame " + frameRef.name);
             }
@@ -125,11 +119,29 @@ inline void FrameSetExportList::buildFrameList()
                                  static_cast<bool>(frameRef.hFlip ^ ani.hFlip),
                                  static_cast<bool>(frameRef.vFlip ^ ani.vFlip) };
 
-            auto it = std::find(_frames.begin(), _frames.end(), e);
-            if (it == _frames.end()) {
+            auto it = std::find(ret.begin(), ret.end(), e);
+            if (it == ret.end()) {
                 // new entry
-                _frames.push_back(e);
+                ret.push_back(e);
             }
         }
     }
+
+    return ret;
+}
+
+FrameSetExportList buildExportList(const MS::FrameSet& frameSet, const FrameSetExportOrder& exportOrder)
+{
+    const auto animations = processAnimations(frameSet, exportOrder.animations);
+
+    return {
+        frameSet,
+        exportOrder,
+        std::move(animations),
+        processStillFrames(frameSet, exportOrder.stillFrames, animations)
+    };
+}
+
+}
+}
 }

@@ -33,9 +33,9 @@ static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
 {
     using namespace UnTech;
 
-    const auto& frameSet = exportList.frameSet();
-    const auto& frames = exportList.frames();
-    const auto& animations = exportList.animations();
+    const auto& frameSet = exportList.frameSet;
+    const auto& frames = exportList.frames;
+    const auto& animations = exportList.animations;
 
     assert(aniEntry.animation != nullptr);
     const ANI::Animation& animation = *aniEntry.animation;
@@ -79,19 +79,19 @@ static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
 
 std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList, ErrorList& errorList)
 {
-    const size_t nAnimations = exportList.animations().size();
+    const size_t nAnimations = exportList.animations.size();
 
     std::vector<std::vector<uint8_t>> ret;
     ret.reserve(nAnimations);
 
     assert(nAnimations <= MAX_EXPORT_NAMES);
 
-    for (const auto& ani : exportList.animations()) {
+    for (const auto& ani : exportList.animations) {
         try {
             ret.push_back(processAnimation(ani, exportList));
         }
         catch (const std::exception& ex) {
-            errorList.addError(exportList.frameSet(), *ani.animation, ex.what());
+            errorList.addError(exportList.frameSet, *ani.animation, ex.what());
         }
     }
 
