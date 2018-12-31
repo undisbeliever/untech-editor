@@ -28,6 +28,8 @@ public:
     const static unsigned BYTES_PER_LINE = 16;
     constexpr static unsigned SNES_TILE16_SIZE = Snes::TilesetTile16::SNES_TILE_SIZE;
 
+    constexpr static unsigned DEFAULT_TILE_BLOCK_SIZE = 8 * 1024;
+
     struct Accessor {
         Accessor(const RomOffsetPtr& addr, bool hFlip, bool vFlip)
             : addr(addr)

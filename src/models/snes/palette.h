@@ -20,7 +20,7 @@ class Palette {
 public:
     static_assert(BIT_DEPTH <= 8, "BIT_DEPTH too large");
 
-    const static size_t N_COLORS = 1 << BIT_DEPTH;
+    constexpr static size_t N_COLORS = 1 << BIT_DEPTH;
     const static unsigned PIXEL_MASK = (1 << BIT_DEPTH) - 1;
 
     typedef std::array<SnesColor, N_COLORS> palette_t;

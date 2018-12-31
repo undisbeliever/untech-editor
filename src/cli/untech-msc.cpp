@@ -7,6 +7,7 @@
 #include "helpers/commandlineparser.h"
 #include "models/common/atomicofstream.h"
 #include "models/metasprite/compiler/compiler.h"
+#include "models/metasprite/compiler/references.h"
 #include "models/metasprite/project.h"
 #include <cstdlib>
 #include <iostream>
@@ -14,7 +15,7 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
-const unsigned TBS = Compiler::TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE;
+const unsigned TBS = Compiler::RomTileData::DEFAULT_TILE_BLOCK_SIZE;
 
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
@@ -44,20 +45,8 @@ int compile(const CommandLine::Parser& args)
     // validation is done here to silence export order errors in GUI
     project->validateNamesUnique(errorList);
 
-    Compiler::Compiler compiler(
-        *project, errorList,
-        args.options().at("tileblock").uint());
-
-    for (auto& fs : project->frameSets) {
-        fs.convertSpriteImporter(errorList);
-
-        if (fs.msFrameSet) {
-            compiler.processFrameSet(*fs.msFrameSet);
-        }
-        else {
-            compiler.processNullFrameSet();
-        }
-    }
+    Compiler::CompiledRomData romData(args.options().at("tileblock").uint());
+    Compiler::processProject(*project, errorList, romData);
 
     for (const auto& w : errorList.warnings) {
         std::cerr << "WARNING: " << w << '\n';
@@ -73,8 +62,10 @@ int compile(const CommandLine::Parser& args)
 
     AtomicOfStream os(args.options().at("output").string());
 
-    compiler.writeToIncFile(os);
-    compiler.writeToReferencesFile(os);
+    romData.writeToIncFile(os);
+
+    Compiler::writeFrameSetReferences(*project, os);
+    Compiler::writeExportOrderReferences(*project, os);
 
     os.commit();
 

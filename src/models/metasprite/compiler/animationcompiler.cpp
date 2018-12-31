@@ -5,26 +5,16 @@
  */
 
 #include "animationcompiler.h"
+#include "compiler.h"
 #include <algorithm>
 #include <climits>
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite::Compiler;
+namespace UnTech {
+namespace MetaSprite {
+namespace Compiler {
+
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace ANI = UnTech::MetaSprite::Animation;
-
-AnimationCompiler::AnimationCompiler(ErrorList& errorList)
-    : _errorList(errorList)
-    , _animationData("AD", "MS_AnimationData")
-    , _animationList("AL", "MS_AnimationList", "AD")
-{
-}
-
-void AnimationCompiler::writeToIncFile(std::ostream& out) const
-{
-    _animationData.writeToIncFile(out);
-    _animationList.writeToIncFile(out);
-}
 
 template <typename T>
 static inline auto indexOf_throw(const std::vector<T>& vector, const T& item)
@@ -38,16 +28,19 @@ static inline auto indexOf_throw(const std::vector<T>& vector, const T& item)
     return std::distance(vector.begin(), it);
 }
 
-inline uint32_t
-AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
-                                    const MS::FrameSet& frameSet,
-                                    const std::vector<FrameListEntry>& frames,
-                                    const std::vector<AnimationListEntry>& animations)
+static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
+                                             const FrameSetExportList& exportList)
 {
     using namespace UnTech;
 
+    const auto& frameSet = exportList.frameSet;
+    const auto& frames = exportList.frames;
+    const auto& animations = exportList.animations;
+
     assert(aniEntry.animation != nullptr);
-    const Animation::Animation& animation = *aniEntry.animation;
+    const ANI::Animation& animation = *aniEntry.animation;
+
+    assert(animation.frames.empty() == false);
 
     uint8_t nextAnimationId = 0xff;
     {
@@ -81,38 +74,37 @@ AnimationCompiler::processAnimation(const AnimationListEntry& aniEntry,
         data.push_back(aFrame.duration); // Frames.duration
     }
 
-    return _animationData.addData(data).offset;
+    return data;
 }
 
-RomOffsetPtr
-AnimationCompiler::process(const FrameSetExportList& exportList)
+std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList)
 {
-    const size_t nAnimations = exportList.animations().size();
+    const size_t nAnimations = exportList.animations.size();
 
-    if (nAnimations > MAX_EXPORT_NAMES) {
-        _errorList.addError("Too many animations in export order");
-        return _animationList.addNull();
+    std::vector<std::vector<uint8_t>> ret;
+    ret.reserve(nAnimations);
+
+    assert(nAnimations <= MAX_EXPORT_NAMES);
+
+    for (const auto& ani : exportList.animations) {
+        ret.push_back(processAnimation(ani, exportList));
     }
 
-    std::vector<uint32_t> animationOffsets;
-    animationOffsets.reserve(nAnimations);
+    return ret;
+}
 
-    for (const auto& ani : exportList.animations()) {
-        assert(ani.animation != nullptr);
-        uint32_t ao = ~0;
+RomOffsetPtr saveAnimations(const std::vector<std::vector<uint8_t>>& animations, CompiledRomData& out)
+{
+    std::vector<uint32_t> offsets;
+    offsets.reserve(animations.size());
 
-        assert(ani.animation->isValid(exportList.frameSet()));
-
-        try {
-            ao = processAnimation(ani, exportList.frameSet(),
-                                  exportList.frames(), exportList.animations());
-        }
-        catch (const std::exception& ex) {
-            _errorList.addError(exportList.frameSet(), *ani.animation, ex.what());
-        }
-
-        animationOffsets.push_back(ao);
+    for (const auto& aData : animations) {
+        offsets.emplace_back(out.animationData.addData(aData).offset);
     }
 
-    return _animationList.getOrInsertTable(animationOffsets);
+    return out.animationList.getOrInsertTable(offsets);
+}
+
+}
+}
 }

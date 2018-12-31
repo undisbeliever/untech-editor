@@ -93,7 +93,11 @@ protected:
 
     virtual bool loadResourceData(RES::ErrorList& err) = 0;
 
-    // compiles the resource to test if valid
+    // Compiles the resource to test if it is valid.
+    //
+    // If the compiled resource is thrown away after compilation then this
+    // function is allowed the preform bare minimum required to confirm the
+    // resource will compile successfully.
     virtual bool compileResource(RES::ErrorList& err) = 0;
 
 signals:

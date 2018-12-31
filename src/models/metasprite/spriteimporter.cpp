@@ -142,6 +142,24 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs)
         addError("Frame not inside image");
     }
 
+    for (const FrameObject& obj : objects) {
+        if (obj.isValid(location) == false) {
+            addError("Frame Object not inside frame");
+        }
+    }
+
+    for (const ActionPoint& ap : actionPoints) {
+        if (ap.isValid(location) == false) {
+            addError("Action Point not inside frame");
+        }
+    }
+
+    for (const EntityHitbox& eh : entityHitboxes) {
+        if (eh.isValid(location) == false) {
+            addError("Entity Hitbox aabb invalid");
+        }
+    }
+
     return valid;
 }
 

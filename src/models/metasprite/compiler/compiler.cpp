@@ -5,32 +5,51 @@
  */
 
 #include "compiler.h"
+#include "animationcompiler.h"
+#include "framecompiler.h"
+#include "palettecompiler.h"
+#include "tilesetinserter.h"
+#include "tilesetlayout.h"
 #include "version.h"
 #include "models/metasprite/project.h"
 #include <algorithm>
 #include <climits>
 
+namespace UnTech {
+namespace MetaSprite {
+namespace Compiler {
+
 namespace MS = UnTech::MetaSprite::MetaSprite;
-using Compiler = UnTech::MetaSprite::Compiler::Compiler;
 
-const unsigned Compiler::METASPRITE_FORMAT_VERSION = 32;
+constexpr unsigned METASPRITE_FORMAT_VERSION = 32;
 
-// ::TODO generate debug file - containing frame/frameset names::
+struct FrameSetData {
+    std::vector<CompiledPalette> palettes;
+    RomOffsetPtr staticTileset;
+    TilesetType tilesetType;
+    std::vector<FrameData> frames;
+    std::vector<std::vector<uint8_t>> animations;
+};
 
-Compiler::Compiler(const Project& project, ErrorList& errorList, unsigned tilesetBlockSize)
-    : _project(project)
-    , _errorList(errorList)
-    , _animationCompiler(_errorList)
-    , _paletteCompiler()
-    , _tilesetCompiler(_errorList, tilesetBlockSize)
-    , _frameCompiler(_errorList)
-    , _frameSetData("FSD", "MS_FrameSetData")
-    , _frameSetList("FSL", "MS_FrameSetList", "FSD")
-    , _frameSetReferences()
+CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
+    : tileData("TB", "MS_TileBlock", tilesetBlockSize)
+    , tilesetData("TS", "DMA_Tile16Data")
+    , paletteData("PD", "MS_PaletteData")
+    , paletteList("PL", "MS_PaletteList", "PD")
+    , animationData("AD", "MS_AnimationData")
+    , animationList("AL", "MS_AnimationList", "AD")
+    , frameData("FD", "MS_FrameData")
+    , frameList("FL", "MS_FrameList", "FD")
+    , frameObjectData("FO", "MS_FrameObjectsData", true)
+    , tileHitboxData("TC", "MS_TileHitboxData", true)
+    , entityHitboxData("EH", "MS_EntityHitboxData", true)
+    , actionPointData("AP", "MS_ActionPointsData", true)
+    , frameSetData("FSD", "MS_FrameSetData")
+    , frameSetList("FSL", "MS_FrameSetList", "FSD")
 {
 }
 
-void Compiler::writeToIncFile(std::ostream& out) const
+void CompiledRomData::writeToIncFile(std::ostream& out) const
 {
     out << "namespace MetaSprite {\n"
            "namespace Data {\n"
@@ -38,111 +57,127 @@ void Compiler::writeToIncFile(std::ostream& out) const
         << "constant EDITOR_VERSION = " << UNTECH_VERSION_INT << "\n"
         << "constant METASPRITE_FORMAT_VERSION = " << METASPRITE_FORMAT_VERSION << "\n";
 
-    _animationCompiler.writeToIncFile(out);
-    _paletteCompiler.writeToIncFile(out);
-    _tilesetCompiler.writeToIncFile(out);
-    _frameCompiler.writeToIncFile(out);
+    tileData.writeToIncFile(out);
+    tilesetData.writeToIncFile(out);
 
-    _frameSetData.writeToIncFile(out);
-    _frameSetList.writeToIncFile(out);
+    paletteData.writeToIncFile(out);
+    paletteList.writeToIncFile(out);
+
+    animationData.writeToIncFile(out);
+    animationList.writeToIncFile(out);
+
+    frameObjectData.writeToIncFile(out);
+    tileHitboxData.writeToIncFile(out);
+    actionPointData.writeToIncFile(out);
+    entityHitboxData.writeToIncFile(out);
+
+    frameData.writeToIncFile(out);
+    frameList.writeToIncFile(out);
+
+    frameSetData.writeToIncFile(out);
+    frameSetList.writeToIncFile(out);
+
     out << "constant FrameSetListCount = (pc() - FSL)/2\n";
 
     out << "}\n"
            "}\n";
 }
 
-void Compiler::writeToReferencesFile(std::ostream& out) const
+// assumes frameSet.validate() passes
+static FrameSetData processFrameSet(const FrameSetExportList& exportList, const TilesetData& tilesetData)
 {
-    out << "namespace MSFS {\n";
+    const MS::FrameSet& frameSet = exportList.frameSet;
 
-    for (unsigned i = 0; i < _frameSetReferences.size(); i++) {
-        const auto& r = _frameSetReferences[i];
-
-        if (!r.isNull) {
-            out << "\tconstant " << r.name << " = " << i << "\n";
-            out << "\tdefine " << r.name << ".type = " << r.exportOrderName << "\n";
-        }
-    }
-
-    out << "}\n"
-           "namespace MSEO {\n";
-
-    for (const auto& it : _project.exportOrders) {
-        const FrameSetExportOrder* eo = it.value.get();
-        if (eo == nullptr) {
-            throw std::runtime_error("Unable to read Export Order: " + it.filename);
-        }
-
-        out << "\tnamespace " << eo->name << " {\n";
-
-        if (eo->stillFrames.size() > 0) {
-            unsigned id = 0;
-            out << "\t\tnamespace Frames {\n";
-            for (const auto& f : eo->stillFrames) {
-                out << "\t\t\tconstant " << f.name << " = " << id << "\n";
-                id++;
-            }
-            out << "\t\t}\n";
-        }
-        if (eo->animations.size() > 0) {
-            unsigned id = 0;
-            out << "\t\tnamespace Animations {\n";
-            for (const auto& a : eo->animations) {
-                out << "\t\t\tconstant " << a.name << " = " << id << "\n";
-                id++;
-            }
-            out << "\t\t}\n";
-        }
-        out << "\t}\n";
-    }
-
-    out << "}\n";
+    return {
+        processPalettes(frameSet.palettes),
+        tilesetData.staticTileset.romPtr,
+        tilesetData.tilesetType,
+        processFrameList(exportList, tilesetData),
+        processAnimations(exportList),
+    };
 }
 
-void Compiler::processNullFrameSet()
+static void saveFrameSet(const FrameSetData& data, CompiledRomData& out)
 {
-    _frameSetList.addNull();
-    _frameSetReferences.emplace_back();
+    const RomOffsetPtr fsPalettes = savePalettes(data.palettes, out);
+    const RomOffsetPtr fsAnimations = saveAnimations(data.animations, out);
+    const RomOffsetPtr frameTableAddr = saveCompiledFrames(data.frames, out);
+    RomIncItem frameSetItem;
+
+    frameSetItem.addIndex(fsPalettes);                                    // paletteTable
+    frameSetItem.addField(RomIncItem::BYTE, data.palettes.size());        // nPalettes
+    frameSetItem.addAddr(data.staticTileset);                             // tileset
+    frameSetItem.addField(RomIncItem::BYTE, data.tilesetType.romValue()); // tilesetType
+    frameSetItem.addIndex(frameTableAddr);                                // frameTable
+    frameSetItem.addField(RomIncItem::BYTE, data.frames.size());          // nFrames
+    frameSetItem.addIndex(fsAnimations);                                  // animationsTable
+    frameSetItem.addField(RomIncItem::BYTE, data.animations.size());      // nAnimations
+
+    RomOffsetPtr ptr = out.frameSetData.addData(frameSetItem);
+    out.frameSetList.addOffset(ptr.offset);
 }
 
-void Compiler::processFrameSet(const MS::FrameSet& frameSet)
+static void saveNullFrameSet(CompiledRomData& out)
 {
-    if (frameSet.validate(_errorList) == false) {
-        return processNullFrameSet();
+    out.frameSetList.addNull();
+}
+
+static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder, ErrorList& errorList)
+{
+    if (exportOrder == nullptr) {
+        errorList.addError("Missing MetaSprite Export Order Document");
     }
 
-    try {
-        FrameSetExportList exportList(_project, frameSet);
+    return frameSet.validate(errorList)
+           && exportOrder->testFrameSet(frameSet, errorList);
+}
 
-        FrameSetTilesets tilesets = _tilesetCompiler.generateTilesets(exportList);
-
-        RomOffsetPtr fsPalettes = _paletteCompiler.process(frameSet);
-        RomOffsetPtr fsFrames = _frameCompiler.process(exportList, tilesets);
-        RomOffsetPtr fsAnimations = _animationCompiler.process(exportList);
-
-        // FRAMESET DATA
-        // -------------
-        RomIncItem frameSetItem;
-
-        unsigned nPalettes = frameSet.palettes.size();
-
-        frameSetItem.addIndex(fsPalettes);                                        // paletteTable
-        frameSetItem.addField(RomIncItem::BYTE, nPalettes);                       // nPalettes
-        frameSetItem.addAddr(tilesets.tilesetOffset);                             // tileset
-        frameSetItem.addField(RomIncItem::BYTE, tilesets.tilesetType.romValue()); // tilesetType
-        frameSetItem.addIndex(fsFrames);                                          // frameTable
-        frameSetItem.addField(RomIncItem::BYTE, exportList.frames().size());      // nFrames
-        frameSetItem.addIndex(fsAnimations);                                      // animationsTable
-        frameSetItem.addField(RomIncItem::BYTE, exportList.animations().size());  // nAnimations
-
-        RomOffsetPtr ptr = _frameSetData.addData(frameSetItem);
-        _frameSetList.addOffset(ptr.offset);
-
-        // add to references
-        _frameSetReferences.emplace_back(frameSet.name, frameSet.exportOrder);
+static void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                                   ErrorList& errorList, CompiledRomData& out)
+{
+    if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
+        saveNullFrameSet(out);
+        return;
     }
-    catch (const std::exception& ex) {
-        _errorList.addError(frameSet, ex.what());
-        processNullFrameSet();
+
+    assert(exportOrder);
+    const auto exportList = buildExportList(frameSet, *exportOrder);
+    const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
+    const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, out);
+    const auto data = processFrameSet(exportList, tilesetData);
+    saveFrameSet(data, out);
+}
+
+bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                                      ErrorList& errorList)
+{
+    size_t oldErrorCount = errorList.errors.size();
+
+    if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
+        return false;
     }
+
+    const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
+    layoutTiles(frameSet, exportList.frames, errorList);
+
+    return oldErrorCount == errorList.errors.size();
+}
+
+void processProject(Project& project, ErrorList& errorList, CompiledRomData& out)
+{
+    for (auto& fs : project.frameSets) {
+        fs.convertSpriteImporter(errorList);
+
+        if (fs.msFrameSet) {
+            const auto* exportOrder = project.exportOrders.find(fs.msFrameSet->exportOrder);
+            processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, out);
+        }
+        else {
+            saveNullFrameSet(out);
+        }
+    }
+}
+
+}
+}
 }

@@ -9,34 +9,18 @@
 #include "framesetexportlist.h"
 #include "romdata.h"
 #include "../errorlist.h"
-#include "../metasprite.h"
+#include <vector>
 
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
-class AnimationCompiler {
-public:
-    AnimationCompiler(ErrorList& errorList);
-    AnimationCompiler(const AnimationCompiler&) = delete;
+struct CompiledRomData;
 
-    void writeToIncFile(std::ostream& out) const;
+std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList);
 
-    RomOffsetPtr process(const FrameSetExportList&);
+RomOffsetPtr saveAnimations(const std::vector<std::vector<uint8_t>>& animations, CompiledRomData& out);
 
-private:
-    // Returns the data offset in `_animationData`
-    uint32_t processAnimation(const AnimationListEntry& animation,
-                              const MetaSprite::FrameSet&,
-                              const std::vector<FrameListEntry>& frames,
-                              const std::vector<AnimationListEntry>& animations);
-
-private:
-    ErrorList& _errorList;
-
-    RomBinData _animationData;
-    RomAddrTable _animationList;
-};
 }
 }
 }

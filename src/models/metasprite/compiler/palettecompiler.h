@@ -8,24 +8,22 @@
 
 #include "romdata.h"
 #include "../metasprite.h"
+#include <array>
+#include <vector>
 
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
-class PaletteCompiler {
-public:
-    PaletteCompiler();
-    PaletteCompiler(const PaletteCompiler&) = delete;
+struct CompiledRomData;
 
-    void writeToIncFile(std::ostream& out) const;
+// ::TODO replace with std::array<uint8_t, 30>::
+using CompiledPalette = std::vector<uint8_t>;
 
-    RomOffsetPtr process(const MetaSprite::FrameSet& frameSet);
+std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp>& palettes);
 
-private:
-    RomBinData _paletteData;
-    RomAddrTable _paletteList;
-};
+RomOffsetPtr savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomData& out);
+
 }
 }
 }

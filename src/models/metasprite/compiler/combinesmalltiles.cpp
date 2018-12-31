@@ -5,6 +5,7 @@
  */
 
 #include "combinesmalltiles.h"
+#include "tilesetlayout.h"
 #include <algorithm>
 #include <climits>
 #include <functional>

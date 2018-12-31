@@ -28,6 +28,16 @@ bool FrameObject::isValid(const FrameSet& frameSet) const
 }
 
 /*
+ * ENTITY HITBOX
+ * =============
+ */
+
+bool EntityHitbox::isValid() const
+{
+    return aabb.width > 0 && aabb.height > 0;
+}
+
+/*
  * FRAME
  * =====
  */
@@ -55,6 +65,18 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
             errorList.addError("Invalid tileId in frame object");
         }
     };
+
+    for (const EntityHitbox& eh : entityHitboxes) {
+        if (eh.isValid() == false) {
+            errorList.addError("Invalid Entity Hitbox");
+        }
+    }
+
+    if (solid) {
+        if (tileHitbox.width == 0 || tileHitbox.height == 0) {
+            errorList.addError("Tile Hitbox has no size");
+        }
+    }
 
     return valid;
 }
@@ -141,6 +163,9 @@ bool FrameSet::validate(ErrorList& errorList) const
         addError("Missing exportOrder");
     }
 
+    if (palettes.empty()) {
+        addError("Expected at least one palette");
+    }
     if (palettes.size() > MAX_PALETTES) {
         addError("Too many palettes");
     }

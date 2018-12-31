@@ -6,72 +6,48 @@
 
 #pragma once
 
-#include "animationcompiler.h"
-#include "framecompiler.h"
-#include "palettecompiler.h"
 #include "romdata.h"
-#include "tilesetcompiler.h"
+#include "romtiledata.h"
 #include "../errorlist.h"
 #include "../metasprite.h"
-#include <vector>
+#include "../project.h"
 
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
-class Compiler {
-public:
-    const static unsigned METASPRITE_FORMAT_VERSION;
+struct CompiledRomData {
+    RomTileData tileData;
+    RomIncData tilesetData;
 
-public:
-    Compiler(const Project& project, ErrorList& errorList,
-             unsigned tilesetBlockSize = TilesetCompiler::DEFAULT_TILE_BLOCK_SIZE);
+    RomBinData paletteData;
+    RomAddrTable paletteList;
 
-    Compiler(const Compiler&) = delete;
+    RomBinData animationData;
+    RomAddrTable animationList;
 
+    RomIncData frameData;
+    RomAddrTable frameList;
+
+    RomBinData frameObjectData;
+    RomBinData tileHitboxData;
+    RomBinData entityHitboxData;
+    RomBinData actionPointData;
+
+    RomIncData frameSetData;
+    RomAddrTable frameSetList;
+
+    CompiledRomData(unsigned tilesetBlockSize = RomTileData::DEFAULT_TILE_BLOCK_SIZE);
     void writeToIncFile(std::ostream& out) const;
-
-    void writeToReferencesFile(std::ostream& out) const;
-
-    void processNullFrameSet();
-    void processFrameSet(const MetaSprite::FrameSet& frameSet);
-
-    const ErrorList& errorList() const { return _errorList; }
-
-private:
-    const Project& _project;
-    ErrorList& _errorList;
-
-    AnimationCompiler _animationCompiler;
-    PaletteCompiler _paletteCompiler;
-    TilesetCompiler _tilesetCompiler;
-    FrameCompiler _frameCompiler;
-
-    RomIncData _frameSetData;
-    RomAddrTable _frameSetList;
-
-    struct FrameSetReference {
-        bool isNull;
-        const idstring name;
-        const idstring exportOrderName;
-
-        FrameSetReference()
-            : isNull(true)
-            , name()
-            , exportOrderName()
-        {
-        }
-
-        FrameSetReference(const idstring& name, const idstring& exportOrderName)
-            : isNull(false)
-            , name(name)
-            , exportOrderName(exportOrderName)
-        {
-        }
-    };
-
-    std::vector<FrameSetReference> _frameSetReferences;
 };
+
+// Does not save tilesets or build frame data.
+// Should catch all errors that the compiler will catch.
+bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                                      ErrorList& errorList);
+
+void processProject(Project& project, ErrorList& errorList, CompiledRomData& out);
+
 }
 }
 }
