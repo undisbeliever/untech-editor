@@ -32,6 +32,28 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     }
 };
 
+static void printErrorList(const UnTech::MetaSprite::ErrorList& errorList)
+{
+    for (const auto& w : errorList.warnings) {
+        std::cerr << "WARNING: " << w << '\n';
+    }
+
+    for (const auto& e : errorList.errors) {
+        std::cerr << "ERROR: " << e << '\n';
+    }
+}
+
+static bool validateNamesUnique(const Project& project)
+{
+    UnTech::MetaSprite::ErrorList errorList;
+
+    project.validateNamesUnique(errorList);
+
+    printErrorList(errorList);
+
+    return errorList.errors.empty();
+}
+
 int compile(const CommandLine::Parser& args)
 {
     std::unique_ptr<Project> project = loadProject(args.filenames().front());
@@ -40,23 +62,28 @@ int compile(const CommandLine::Parser& args)
     }
     project->exportOrders.loadAllFiles();
 
-    UnTech::MetaSprite::ErrorList errorList;
-
     // validation is done here to silence export order errors in GUI
-    project->validateNamesUnique(errorList);
+    validateNamesUnique(*project);
 
+    bool valid = true;
     Compiler::CompiledRomData romData(args.options().at("tileblock").uint());
-    Compiler::processProject(*project, errorList, romData);
 
-    for (const auto& w : errorList.warnings) {
-        std::cerr << "WARNING: " << w << '\n';
+    for (auto& fs : project->frameSets) {
+        UnTech::MetaSprite::ErrorList errorList;
+
+        fs.convertSpriteImporter(errorList);
+
+        if (fs.msFrameSet) {
+            const auto* exportOrder = project->exportOrders.find(fs.msFrameSet->exportOrder);
+            processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, romData);
+        }
+
+        printErrorList(errorList);
+
+        valid &= errorList.errors.empty();
     }
 
-    for (const auto& e : errorList.errors) {
-        std::cerr << "ERROR: " << e << '\n';
-    }
-
-    if (!errorList.errors.empty()) {
+    if (!valid) {
         return EXIT_FAILURE;
     }
 

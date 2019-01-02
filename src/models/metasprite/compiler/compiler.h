@@ -46,8 +46,8 @@ struct CompiledRomData {
 bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
                                       ErrorList& errorList);
 
-void processProject(Project& project, ErrorList& errorList, CompiledRomData& out);
-
+void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                            ErrorList& errorList, CompiledRomData& out);
 }
 }
 }

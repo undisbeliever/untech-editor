@@ -132,8 +132,8 @@ static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportO
            && exportOrder->testFrameSet(frameSet, errorList);
 }
 
-static void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
-                                   ErrorList& errorList, CompiledRomData& out)
+void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                            ErrorList& errorList, CompiledRomData& out)
 {
     if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
         saveNullFrameSet(out);
@@ -161,21 +161,6 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
     layoutTiles(frameSet, exportList.frames, errorList);
 
     return oldErrorCount == errorList.errors.size();
-}
-
-void processProject(Project& project, ErrorList& errorList, CompiledRomData& out)
-{
-    for (auto& fs : project.frameSets) {
-        fs.convertSpriteImporter(errorList);
-
-        if (fs.msFrameSet) {
-            const auto* exportOrder = project.exportOrders.find(fs.msFrameSet->exportOrder);
-            processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, out);
-        }
-        else {
-            saveNullFrameSet(out);
-        }
-    }
 }
 
 }
