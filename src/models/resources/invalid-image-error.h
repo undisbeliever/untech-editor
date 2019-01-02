@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/common/errorlist.h"
 #include <cassert>
 #include <climits>
 #include <string>
@@ -14,7 +15,7 @@
 namespace UnTech {
 namespace Resources {
 
-class ErrorList {
+class InvalidImageError : public AbstractSpecializedError {
 public:
     enum InvalidTileReason : unsigned {
         NO_PALETTE_FOUND,
@@ -40,8 +41,7 @@ public:
         }
 
         InvalidImageTile(unsigned size, unsigned x, unsigned y, InvalidTileReason reason)
-            : frameId(UINT_MAX)
-            , size(size)
+            : size(size)
             , x(x)
             , y(y)
             , reason(reason)
@@ -49,38 +49,33 @@ public:
             assert(size > 0);
         }
 
-        bool showFrameId() const { return frameId <= INT_MAX; }
-
         const char* reasonString() const;
     };
 
 private:
-    std::vector<std::string> _errors;
-    std::vector<InvalidImageTile> _invalidImageTiles;
+    std::vector<InvalidImageTile> _invalidTiles;
+    unsigned _frameId;
 
 public:
-    void addError(std::string&& s)
+    InvalidImageError(unsigned frameId = UINT_MAX);
+    virtual ~InvalidImageError();
+
+    bool hasFrameId() const { return _frameId <= INT_MAX; }
+    unsigned frameId() const { return _frameId; }
+
+    void addInvalidTile(unsigned size, unsigned x, unsigned y, InvalidTileReason r)
     {
-        _errors.emplace_back(s);
+        _invalidTiles.emplace_back(size, x, y, r);
     }
 
-    void addInvalidImageTile(unsigned frameId, unsigned size, unsigned x, unsigned y, InvalidTileReason r)
-    {
-        _invalidImageTiles.emplace_back(frameId, size, x, y, r);
-    }
-    void addInvalidImageTile(unsigned size, unsigned x, unsigned y, InvalidTileReason r)
-    {
-        _invalidImageTiles.emplace_back(size, x, y, r);
-    }
+    const std::vector<InvalidImageTile>& invalidTiles() const { return _invalidTiles; }
 
-    const std::vector<std::string>& errors() const { return _errors; }
-    const std::vector<InvalidImageTile>& invalidImageTiles() const { return _invalidImageTiles; }
+    bool hasError() const { return !_invalidTiles.empty(); }
 
-    bool hasError() const { return !_errors.empty() || !_invalidImageTiles.empty(); }
+    size_t errorCount() const { return _invalidTiles.size(); }
 
-    unsigned errorCount() const { return _errors.size() + _invalidImageTiles.size(); }
-
-    void printIndented(std::ostream& out) const;
+    virtual std::string message() const final;
+    virtual void printIndented(std::ostream& out) const final;
 };
 }
 }

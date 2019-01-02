@@ -43,7 +43,7 @@ void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,
     }
 }
 
-void AbstractMsDocument::appendToErrorList(RES::ErrorList& errList,
+void AbstractMsDocument::appendToErrorList(ErrorList& errList,
                                            const UnTech::MetaSprite::ErrorList& msErrorList)
 {
     auto appendToErr = [&](const auto& list) {

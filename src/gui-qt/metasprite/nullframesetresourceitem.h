@@ -24,7 +24,7 @@ public:
     MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
 
 protected:
-    virtual bool compileResource(RES::ErrorList&) final;
+    virtual bool compileResource(ErrorList&) final;
 };
 }
 }

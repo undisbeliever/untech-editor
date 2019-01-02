@@ -6,6 +6,7 @@
 
 #include "metatile-tileset.h"
 #include "models/common/bytevectorhelper.h"
+#include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
 #include "models/resources/resources.h"
@@ -18,7 +19,7 @@ template class grid<uint16_t>;
 
 namespace MetaTiles {
 
-bool MetaTileTilesetInput::validate(Resources::ErrorList& err) const
+bool MetaTileTilesetInput::validate(ErrorList& err) const
 {
     bool valid = true;
 
@@ -60,7 +61,7 @@ bool MetaTileTilesetInput::validate(Resources::ErrorList& err) const
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
                                                     const Resources::ResourcesFile& resourcesFile,
-                                                    Resources::ErrorList& err)
+                                                    ErrorList& err)
 {
     bool valid = input.validate(err);
     if (!valid) {
@@ -115,7 +116,7 @@ unsigned MetaTileTilesetData::nMetaTiles() const
     }
 }
 
-bool MetaTileTilesetData::validate(const EngineSettings& settings, Resources::ErrorList& err) const
+bool MetaTileTilesetData::validate(const EngineSettings& settings, ErrorList& err) const
 {
     bool valid = animatedTileset->validate(err);
 

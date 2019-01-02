@@ -58,7 +58,7 @@ protected:
     void compileMsFrameset(const MS::FrameSet* frameSet,
                            UnTech::MetaSprite::ErrorList& errList);
 
-    void appendToErrorList(RES::ErrorList& errList,
+    void appendToErrorList(ErrorList& errList,
                            const UnTech::MetaSprite::ErrorList& msErrorList);
 
 signals:

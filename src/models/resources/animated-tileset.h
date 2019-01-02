@@ -6,13 +6,14 @@
 
 #pragma once
 
-#include "error-list.h"
 #include "models/common/grid.h"
 #include "models/snes/tilemap.h"
 #include "models/snes/tileset.h"
 #include <vector>
 
 namespace UnTech {
+class ErrorList;
+
 namespace Resources {
 
 struct AnimatedTilesetData {

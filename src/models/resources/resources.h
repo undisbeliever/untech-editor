@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "error-list.h"
 #include "palette.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/idstring.h"

@@ -67,7 +67,7 @@ void Document::saveResourceData(const std::string& filename) const
     SI::saveFrameSet(*_frameSet, filename);
 }
 
-bool Document::loadResourceData(RES::ErrorList& err)
+bool Document::loadResourceData(ErrorList& err)
 {
     using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
 
@@ -96,7 +96,7 @@ bool Document::loadResourceData(RES::ErrorList& err)
     return true;
 }
 
-bool Document::compileResource(RES::ErrorList& err)
+bool Document::compileResource(ErrorList& err)
 {
     using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
 

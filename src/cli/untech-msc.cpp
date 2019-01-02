@@ -40,7 +40,7 @@ int compile(const CommandLine::Parser& args)
     }
     project->exportOrders.loadAllFiles();
 
-    ErrorList errorList;
+    UnTech::MetaSprite::ErrorList errorList;
 
     // validation is done here to silence export order errors in GUI
     project->validateNamesUnique(errorList);

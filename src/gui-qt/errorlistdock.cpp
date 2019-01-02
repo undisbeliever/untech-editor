@@ -76,21 +76,12 @@ void ErrorListDock::updateErrorList()
     const auto& errorList = _currentItem->errorList();
     QStringList el;
 
-    for (const auto& e : errorList.errors()) {
-        el.append(QString::fromStdString((e)));
-    }
-
-    const auto& invalidTiles = errorList.invalidImageTiles();
-    if (!invalidTiles.empty()) {
-        el.append(tr("%1 invalid tiles:").arg(invalidTiles.size()));
-
-        for (const auto& t : invalidTiles) {
-            QString s = QString::fromLatin1("\t");
-            if (t.showFrameId()) {
-                s += tr("Frame %1, ").arg(t.frameId);
-            }
-            s += tr("Tile%1 @ %2px, %3px: %4").arg(t.size).arg(t.x).arg(t.y).arg(QString::fromUtf8(t.reasonString()));
-            el.append(s);
+    for (const auto& e : errorList.list()) {
+        if (!e.message.empty()) {
+            el.append(QString::fromStdString(e.message));
+        }
+        if (e.specialized) {
+            el.append(QString::fromStdString(e.specialized->message()));
         }
     }
 

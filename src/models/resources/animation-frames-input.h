@@ -7,11 +7,12 @@
 #pragma once
 
 #include "animated-tileset.h"
-#include "error-list.h"
 #include "palette.h"
 #include <vector>
 
 namespace UnTech {
+class ErrorList;
+
 namespace Resources {
 
 struct PaletteInput;

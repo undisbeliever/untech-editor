@@ -55,7 +55,7 @@ private:
     void updateExternalFiles();
 
 protected:
-    virtual bool compileResource(RES::ErrorList& err) final;
+    virtual bool compileResource(ErrorList& err) final;
 
 private:
     std::unique_ptr<RES::PaletteData> _compiledData;

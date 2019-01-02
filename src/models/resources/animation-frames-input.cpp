@@ -5,8 +5,10 @@
  */
 
 #include "animation-frames-input.h"
+#include "invalid-image-error.h"
 #include "resources.h"
 #include "models/common/bytevectorhelper.h"
+#include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
 #include "models/snes/animatedtilesetinserter.h"
@@ -83,9 +85,9 @@ static bool extractFrameTile(FrameTile& ft, const Image& image, const unsigned x
     return false;
 }
 
-static std::vector<FrameTile> tilesFromFrameImage(const Image& image, unsigned frameId,
+static std::vector<FrameTile> tilesFromFrameImage(const Image& image,
                                                   const std::vector<Snes::SnesColor>& palettes, unsigned colorsPerPalette,
-                                                  ErrorList& err)
+                                                  InvalidImageError& err)
 {
     const static unsigned TS = 8;
 
@@ -100,7 +102,7 @@ static std::vector<FrameTile> tilesFromFrameImage(const Image& image, unsigned f
         for (unsigned x = 0; x < iSize.width; x += TS) {
             bool s = extractFrameTile(*tileIt, image, x, y, palettes, colorsPerPalette);
             if (!s) {
-                err.addInvalidImageTile(frameId, TS, x, y, ErrorList::NO_PALETTE_FOUND);
+                err.addInvalidTile(TS, x, y, InvalidImageError::NO_PALETTE_FOUND);
             }
             tileIt++;
         }
@@ -121,9 +123,15 @@ static std::vector<std::vector<FrameTile>> tilesFromFrameImages(const AnimationF
 
     const unsigned nFrames = input.frameImageFilenames.size();
     for (unsigned frameId = 0; frameId < nFrames; frameId++) {
+        auto imageErr = std::make_unique<InvalidImageError>(frameId);
+
         const auto& image = ImageCache::loadPngImage(input.frameImageFilenames.at(frameId));
         frameTiles.emplace_back(
-            tilesFromFrameImage(*image, frameId, palettes, colorsPerPalette, err));
+            tilesFromFrameImage(*image, palettes, colorsPerPalette, *imageErr));
+
+        if (imageErr->hasError()) {
+            err.addError(std::move(imageErr));
+        }
     }
 
     return frameTiles;
@@ -147,6 +155,8 @@ static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vect
 
     const unsigned nFrames = frameTiles.size();
 
+    auto imageErr = std::make_unique<InvalidImageError>();
+
     AnimatedTilesetIntermediate ret;
     ret.animatedTiles.reserve(64);
     ret.tileMap.resize(nTiles);
@@ -159,7 +169,7 @@ static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vect
         unsigned palette = getPalette(0, tileId);
         for (unsigned frameId = 1; frameId < nFrames; frameId++) {
             if (getPalette(frameId, tileId) != palette) {
-                err.addInvalidImageTile(TS, (tileId % tileWidth) * TS, (tileId / tileWidth) * TS, ErrorList::NOT_SAME_PALETTE);
+                imageErr->addInvalidTile(TS, (tileId % tileWidth) * TS, (tileId / tileWidth) * TS, InvalidImageError::NOT_SAME_PALETTE);
                 break;
             }
         }
@@ -188,6 +198,10 @@ static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vect
                 animatedTile.at(frameId) = getTile(frameId, tileId);
             }
         }
+    }
+
+    if (imageErr->hasError()) {
+        err.addError(std::move(imageErr));
     }
 
     return ret;
@@ -313,6 +327,8 @@ convertAnimationFrames(const AnimationFramesInput& input, const PaletteInput& pa
     if (palette.empty()) {
         return nullptr;
     }
+
+    auto invalidImagesError = std::make_unique<InvalidImageError>();
 
     const auto frameTiles = tilesFromFrameImages(input, palette, err);
     if (initialErrorCount != err.errorCount()) {

@@ -63,8 +63,8 @@ private:
 protected:
     // can throw exceptions
     virtual void saveResourceData(const std::string& filename) const final;
-    virtual bool loadResourceData(RES::ErrorList& err) final;
-    virtual bool compileResource(RES::ErrorList& err) final;
+    virtual bool loadResourceData(ErrorList& err) final;
+    virtual bool compileResource(ErrorList& err) final;
 
 private slots:
     void onFrameSetExportOrderChanged();

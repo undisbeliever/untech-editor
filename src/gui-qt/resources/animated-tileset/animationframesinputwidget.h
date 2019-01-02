@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "models/resources/error-list.h"
+#include "models/resources/invalid-image-error.h"
 #include <QGraphicsObject>
 #include <QGraphicsScene>
 #include <QPixmap>
@@ -90,7 +90,7 @@ public:
                        const QStyleOptionGraphicsItem* option,
                        QWidget* widget = nullptr) final;
 
-    static const QString& toolTipForType(const RES::ErrorList::InvalidTileReason& reason);
+    static const QString& toolTipForType(const RES::InvalidImageError::InvalidTileReason& reason);
 
 private slots:
     void updateInvalidTiles();

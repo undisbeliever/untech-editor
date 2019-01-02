@@ -163,7 +163,7 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string
 }
 
 std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename,
-                                                               Resources::ErrorList& err)
+                                                               ErrorList& err)
 {
     try {
         auto xml = XmlReader::fromFile(filename);

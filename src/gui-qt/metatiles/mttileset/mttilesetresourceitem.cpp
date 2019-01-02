@@ -72,7 +72,7 @@ void MtTilesetResourceItem::saveResourceData(const std::string& filename) const
     }
 }
 
-bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
+bool MtTilesetResourceItem::loadResourceData(ErrorList& err)
 {
     auto& tilesetItem = tilesetInputItem();
 
@@ -96,7 +96,7 @@ bool MtTilesetResourceItem::loadResourceData(RES::ErrorList& err)
     }
 }
 
-bool MtTilesetResourceItem::compileResource(RES::ErrorList& err)
+bool MtTilesetResourceItem::compileResource(ErrorList& err)
 {
     auto* tileset = this->tilesetInput();
 

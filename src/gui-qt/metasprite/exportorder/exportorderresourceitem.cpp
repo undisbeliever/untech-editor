@@ -41,7 +41,7 @@ void ExportOrderResourceItem::saveResourceData(const std::string& filename) cons
     }
 }
 
-bool ExportOrderResourceItem::loadResourceData(RES::ErrorList& err)
+bool ExportOrderResourceItem::loadResourceData(ErrorList& err)
 {
     using namespace UnTech::MetaSprite;
 
@@ -65,7 +65,7 @@ bool ExportOrderResourceItem::loadResourceData(RES::ErrorList& err)
     }
 }
 
-bool ExportOrderResourceItem::compileResource(RES::ErrorList& err)
+bool ExportOrderResourceItem::compileResource(ErrorList& err)
 {
     const auto* eo = exportOrder();
 

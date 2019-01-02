@@ -64,7 +64,7 @@ const idstring& Project::FrameSetFile::name() const
 }
 
 static bool validateFrameSetNamesUnique(const std::vector<Project::FrameSetFile>& frameSets,
-                                        ErrorList& err)
+                                        UnTech::MetaSprite::ErrorList& err)
 {
     const idstring countString("count");
 
