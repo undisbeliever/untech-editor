@@ -55,11 +55,7 @@ protected:
         return project()->metaSpriteProject()->frameSets.at(index());
     }
 
-    void compileMsFrameset(const MS::FrameSet* frameSet,
-                           UnTech::MetaSprite::ErrorList& errList);
-
-    void appendToErrorList(ErrorList& errList,
-                           const UnTech::MetaSprite::ErrorList& msErrorList);
+    void compileMsFrameset(const MS::FrameSet* frameSet, ErrorList& errList);
 
 signals:
     void frameSetDataChanged();

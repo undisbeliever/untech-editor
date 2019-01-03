@@ -97,20 +97,20 @@ bool FrameSetExportOrder::validate(UnTech::ErrorList& err) const
 
 template <class FrameSetT>
 static bool _testFrameSet(const FrameSetExportOrder& eo, const FrameSetT& frameSet,
-                          UnTech::MetaSprite::ErrorList& errorList)
+                          ErrorList& errorList)
 {
     bool valid = true;
 
     for (auto& en : eo.stillFrames) {
         if (en.frameExists(frameSet.frames) == false) {
-            errorList.addError(frameSet, "Cannot find frame " + en.name);
+            errorList.addError("Cannot find frame " + en.name);
             valid = false;
         }
     }
 
     for (auto& en : eo.animations) {
         if (en.animationExists(frameSet.animations) == false) {
-            errorList.addError(frameSet, "Cannot find animation " + en.name);
+            errorList.addError("Cannot find animation " + en.name);
             valid = false;
         }
     }

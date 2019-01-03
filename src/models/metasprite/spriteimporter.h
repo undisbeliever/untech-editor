@@ -18,9 +18,9 @@
 #include <vector>
 
 namespace UnTech {
-namespace MetaSprite {
-struct ErrorList;
+class ErrorList;
 
+namespace MetaSprite {
 namespace SpriteImporter {
 
 const static unsigned MIN_FRAME_SIZE = 16;

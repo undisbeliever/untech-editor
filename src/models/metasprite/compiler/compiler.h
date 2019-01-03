@@ -8,7 +8,6 @@
 
 #include "romdata.h"
 #include "romtiledata.h"
-#include "../errorlist.h"
 #include "../metasprite.h"
 #include "../project.h"
 

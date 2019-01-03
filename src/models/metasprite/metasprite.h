@@ -18,9 +18,9 @@
 #include <string>
 
 namespace UnTech {
-namespace MetaSprite {
-struct ErrorList;
+class ErrorList;
 
+namespace MetaSprite {
 namespace MetaSprite {
 
 struct FrameSet;

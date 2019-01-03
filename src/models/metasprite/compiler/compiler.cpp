@@ -11,6 +11,7 @@
 #include "tilesetinserter.h"
 #include "tilesetlayout.h"
 #include "version.h"
+#include "models/common/errorlist.h"
 #include "models/metasprite/project.h"
 #include <algorithm>
 #include <climits>
@@ -151,7 +152,7 @@ void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOr
 bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
                                       ErrorList& errorList)
 {
-    size_t oldErrorCount = errorList.errors.size();
+    const size_t oldErrorCount = errorList.errorCount();
 
     if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
         return false;
@@ -160,7 +161,7 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
     const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
     layoutTiles(frameSet, exportList.frames, errorList);
 
-    return oldErrorCount == errorList.errors.size();
+    return errorList.errorCount() == oldErrorCount;
 }
 
 }

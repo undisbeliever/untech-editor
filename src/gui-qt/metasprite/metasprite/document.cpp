@@ -101,12 +101,9 @@ bool Document::loadResourceData(ErrorList& err)
 
 bool Document::compileResource(ErrorList& err)
 {
-    UnTech::MetaSprite::ErrorList msErrorList;
+    compileMsFrameset(_frameSet, err);
 
-    compileMsFrameset(_frameSet, msErrorList);
-    appendToErrorList(err, msErrorList);
-
-    return msErrorList.errors.empty() == true;
+    return err.hasError() == false;
 }
 
 void Document::onFrameSetExportOrderChanged()

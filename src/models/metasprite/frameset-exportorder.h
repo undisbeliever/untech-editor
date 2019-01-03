@@ -7,7 +7,8 @@
 #pragma once
 
 #include "common.h"
-#include "errorlist.h"
+#include "metasprite.h"
+#include "spriteimporter.h"
 #include "models/common/idstring.h"
 #include <memory>
 #include <string>

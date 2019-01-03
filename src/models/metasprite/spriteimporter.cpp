@@ -5,7 +5,8 @@
  */
 
 #include "spriteimporter.h"
-#include "errorlist.h"
+#include "errorlisthelpers.h"
+#include "models/common/errorlist.h"
 #include "models/common/file.h"
 #include "models/common/imagecache.h"
 #include <algorithm>
@@ -118,8 +119,8 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs)
 {
     bool valid = true;
 
-    auto addError = [&](std::string&& msg) {
-        errorList.addError(fs, *this, msg);
+    auto addError = [&](const std::string& msg) {
+        errorList.addError(frameError(fs, *this, msg));
         valid = false;
     };
 
@@ -208,7 +209,7 @@ bool FrameSet::validate(ErrorList& errorList)
 {
     bool valid = true;
     auto addError = [&](std::string&& msg) {
-        errorList.addError(*this, msg);
+        errorList.addError(msg);
         valid = false;
     };
 
@@ -262,7 +263,7 @@ bool FrameSet::validate(ErrorList& errorList)
         const auto& animation = it.second;
 
         if (animation.isValid(*this) == false) {
-            errorList.addError(*this, animation, "Invalid Animation");
+            errorList.addError(animationError(*this, animation, "Invalid Animation"));
             valid = false;
         }
     }

@@ -7,7 +7,9 @@
 #include "tilesetlayout.h"
 #include "combinesmalltiles.h"
 #include "tilesetinserter.h"
+#include "models/common/errorlist.h"
 #include "models/common/vectorset.h"
+#include "models/metasprite/errorlisthelpers.h"
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -171,13 +173,13 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
     if (tiles.size() < tilesetType.nTiles() || tilesetType.isFixed()) {
         // Fixed tileset
         if (tilesetType.isFixed() == false) {
-            errorList.addWarning(frameSet, "Tileset can be fixed, making it so.");
+            errorList.addWarning("Tileset can be fixed, making it so.");
         }
 
         if (tiles.size() <= tilesetType.nTiles()) {
             TilesetType smallestType = TilesetType::smallestFixedTileset(tiles.size());
             if (smallestType.nTiles() != tilesetType.nTiles()) {
-                errorList.addWarning(frameSet, std::string("TilesetType shrunk to ") + smallestType.string());
+                errorList.addWarning("TilesetType shrunk to " + smallestType.string());
             }
             ret.tilesetType = smallestType;
             ret.staticTiles = std::move(tiles);
@@ -187,8 +189,8 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
             ret.frameTilesets.resize(exportFrames.size(), -1);
         }
         else {
-            errorList.addError(frameSet, "Unable to fit " + std::to_string(tiles.size())
-                                             + " Tile16 tiles inside a " + tilesetType.string());
+            errorList.addError("Unable to fit " + std::to_string(tiles.size())
+                               + " Tile16 tiles inside a " + tilesetType.string());
         }
     }
     else {
@@ -212,9 +214,10 @@ TilesetLayout layoutTiles(const MS::FrameSet& frameSet,
                 }
                 else {
                     for (unsigned frameId : ft.frameIds) {
-                        errorList.addError(frameSet, *exportFrames.at(frameId).frame,
-                                           "Too many tiles in frame (" + std::to_string(nTiles) + ")"
-                                               + std::to_string(dynamicTiles.size()) + " " + std::to_string(ret.staticTiles.size()));
+                        errorList.addError(frameError(
+                            frameSet, *exportFrames.at(frameId).frame,
+                            "Too many tiles in frame (" + std::to_string(nTiles) + ")"
+                                + std::to_string(dynamicTiles.size()) + " " + std::to_string(ret.staticTiles.size())));
                     }
                 }
             }

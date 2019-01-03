@@ -6,6 +6,7 @@
 
 #include "helpers/commandlineparser.h"
 #include "models/common/atomicofstream.h"
+#include "models/common/errorlist.h"
 #include "models/metasprite/compiler/compiler.h"
 #include "models/metasprite/compiler/references.h"
 #include "models/metasprite/project.h"
@@ -32,26 +33,17 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     }
 };
 
-static void printErrorList(const UnTech::MetaSprite::ErrorList& errorList)
-{
-    for (const auto& w : errorList.warnings) {
-        std::cerr << "WARNING: " << w << '\n';
-    }
-
-    for (const auto& e : errorList.errors) {
-        std::cerr << "ERROR: " << e << '\n';
-    }
-}
-
 static bool validateNamesUnique(const Project& project)
 {
-    UnTech::MetaSprite::ErrorList errorList;
+    ErrorList errorList;
 
     project.validateNamesUnique(errorList);
 
-    printErrorList(errorList);
+    if (!errorList.empty()) {
+        errorList.printIndented(std::cerr);
+    }
 
-    return errorList.errors.empty();
+    return errorList.hasError();
 }
 
 int compile(const CommandLine::Parser& args)
@@ -69,7 +61,7 @@ int compile(const CommandLine::Parser& args)
     Compiler::CompiledRomData romData(args.options().at("tileblock").uint());
 
     for (auto& fs : project->frameSets) {
-        UnTech::MetaSprite::ErrorList errorList;
+        ErrorList errorList;
 
         fs.convertSpriteImporter(errorList);
 
@@ -78,9 +70,12 @@ int compile(const CommandLine::Parser& args)
             processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, romData);
         }
 
-        printErrorList(errorList);
+        if (!errorList.empty()) {
+            std::cerr << fs.name() << ":\n";
+            errorList.printIndented(std::cerr);
+        }
 
-        valid &= errorList.errors.empty();
+        valid &= errorList.hasError() == false;
     }
 
     if (!valid) {

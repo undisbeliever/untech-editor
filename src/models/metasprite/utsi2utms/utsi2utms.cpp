@@ -32,9 +32,9 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(SI::FrameSet& siFrameSet)
 
 std::unique_ptr<MS::FrameSet> Utsi2Utms::process(const SI::FrameSet& siFrameSet)
 {
-    size_t initialErrorCount = errorList.errors.size();
+    size_t initialErrorCount = errorList.errorCount();
     auto hasError = [initialErrorCount, this]() {
-        return initialErrorCount != errorList.errors.size();
+        return initialErrorCount != errorList.errorCount();
     };
 
     auto msFrameSet = std::make_unique<MS::FrameSet>();
@@ -42,7 +42,7 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::process(const SI::FrameSet& siFrameSet)
     auto image = ImageCache::loadPngImage(siFrameSet.imageFilename);
 
     if (image->empty()) {
-        errorList.addError(siFrameSet, "Unable to load image: " + image->errorString());
+        errorList.addError("Unable to load image: " + image->errorString());
         return nullptr;
     }
 

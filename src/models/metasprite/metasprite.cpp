@@ -5,7 +5,8 @@
  */
 
 #include "metasprite.h"
-#include "errorlist.h"
+#include "errorlisthelpers.h"
+#include "models/common/errorlist.h"
 #include <algorithm>
 
 using namespace UnTech;
@@ -45,8 +46,8 @@ bool EntityHitbox::isValid() const
 bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
 {
     bool valid = true;
-    auto addError = [&](std::string&& msg) {
-        errorList.addError(fs, *this, msg);
+    auto addError = [&](const std::string& msg) {
+        errorList.addError(frameError(fs, *this, msg));
         valid = false;
     };
 
@@ -62,13 +63,13 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
 
     for (const FrameObject& obj : objects) {
         if (obj.isValid(fs) == false) {
-            errorList.addError("Invalid tileId in frame object");
+            addError("Invalid tileId in frame object");
         }
     };
 
     for (const EntityHitbox& eh : entityHitboxes) {
         if (eh.isValid() == false) {
-            errorList.addError("Invalid Entity Hitbox");
+            addError("Invalid Entity Hitbox");
         }
     }
 
@@ -145,7 +146,7 @@ bool FrameSet::validate(ErrorList& errorList) const
     bool valid = true;
 
     auto addError = [&](std::string&& msg) {
-        errorList.addError(*this, msg);
+        errorList.addError(msg);
         valid = false;
     };
 
@@ -178,7 +179,7 @@ bool FrameSet::validate(ErrorList& errorList) const
         const auto& animation = it.second;
 
         if (animation.isValid(*this) == false) {
-            errorList.addError(*this, animation, "Invalid Animation");
+            errorList.addError(animationError(*this, animation, "Invalid Animation"));
             valid = false;
         }
     }

@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "../errorlist.h"
 #include "../metasprite.h"
 #include "../spriteimporter.h"
 #include <list>
@@ -14,6 +13,8 @@
 #include <string>
 
 namespace UnTech {
+class ErrorList;
+
 namespace MetaSprite {
 
 class Utsi2Utms {

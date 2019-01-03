@@ -5,6 +5,7 @@
  */
 
 #include "project.h"
+#include "models/common/errorlist.h"
 #include "models/common/string.h"
 #include "models/common/validateunique.h"
 #include "utsi2utms/utsi2utms.h"
@@ -33,12 +34,12 @@ void Project::FrameSetFile::setTypeFromExtension()
 bool Project::FrameSetFile::convertSpriteImporter(ErrorList& errors, bool strict)
 {
     if (type == Project::FrameSetType::SPRITE_IMPORTER && siFrameSet) {
-        size_t nOrigWarnings = errors.warnings.size();
+        const auto origListSize = errors.list().size();
 
         Utsi2Utms converter(errors);
         msFrameSet = converter.convert(*siFrameSet);
 
-        if (strict && errors.warnings.size() != nOrigWarnings) {
+        if (strict && errors.list().size() != origListSize) {
             msFrameSet = nullptr;
             return false;
         }
@@ -64,7 +65,7 @@ const idstring& Project::FrameSetFile::name() const
 }
 
 static bool validateFrameSetNamesUnique(const std::vector<Project::FrameSetFile>& frameSets,
-                                        UnTech::MetaSprite::ErrorList& err)
+                                        ErrorList& err)
 {
     const idstring countString("count");
 

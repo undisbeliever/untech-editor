@@ -8,7 +8,6 @@
 
 #include "framesetexportlist.h"
 #include "romdata.h"
-#include "../errorlist.h"
 #include <vector>
 
 namespace UnTech {
