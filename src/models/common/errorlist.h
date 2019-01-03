@@ -41,6 +41,7 @@ public:
 
 private:
     std::vector<ErrorItem> _list;
+    unsigned _errorCount;
 
 public:
     ErrorList();
@@ -48,21 +49,25 @@ public:
     const std::vector<ErrorItem>& list() const { return _list; }
 
     inline bool empty() const { return _list.empty(); }
-    size_t errorCount() const { return _list.size(); }
+    unsigned errorCount() const { return _errorCount; }
+    unsigned warningCount() const { return _list.size() - _errorCount; }
 
-    bool hasError() const;
+    bool hasError() const { return _errorCount > 0; }
 
     void addError(const std::string& s)
     {
         _list.push_back({ ErrorType::ERROR, s, nullptr });
+        _errorCount++;
     }
     void addError(std::string&& s)
     {
         _list.push_back({ ErrorType::ERROR, std::move(s), nullptr });
+        _errorCount++;
     }
     void addError(std::unique_ptr<const AbstractSpecializedError> e)
     {
         _list.push_back({ ErrorType::ERROR, {}, std::move(e) });
+        _errorCount++;
     }
 
     void addWarning(const std::string& s)

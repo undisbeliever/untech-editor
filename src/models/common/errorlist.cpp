@@ -12,13 +12,8 @@ using namespace UnTech;
 
 ErrorList::ErrorList()
     : _list()
+    , _errorCount(0)
 {
-}
-
-bool ErrorList::hasError() const
-{
-    return std::any_of(_list.begin(), _list.end(),
-                       [](const ErrorItem& i) { return i.type == ErrorType::ERROR; });
 }
 
 void ErrorList::printIndented(std::ostream& out) const
