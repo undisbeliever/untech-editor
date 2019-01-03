@@ -170,18 +170,16 @@ bool FrameSet::validate(ErrorList& errorList) const
     if (palettes.size() > MAX_PALETTES) {
         addError("Too many palettes");
     }
+    if (animations.size() > MAX_ANIMATION_FRAMES) {
+        addError("Too many animations in frameSet");
+    }
 
     for (auto&& it : frames) {
         valid &= it.second.validate(errorList, *this);
     }
 
     for (auto&& it : animations) {
-        const auto& animation = it.second;
-
-        if (animation.isValid(*this) == false) {
-            errorList.addError(animationError(*this, animation, "Invalid Animation"));
-            valid = false;
-        }
+        valid &= it.second.validate(*this, errorList);
     }
 
     return valid;

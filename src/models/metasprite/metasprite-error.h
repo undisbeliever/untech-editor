@@ -14,6 +14,7 @@ namespace MetaSprite {
 enum class MsErrorType {
     FRAME,
     ANIMATION,
+    ANIMATION_FRAME,
     FRAME_OBJECT
 };
 

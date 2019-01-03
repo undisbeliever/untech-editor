@@ -34,6 +34,8 @@ std::string MetaSpriteError::message() const
     case MsErrorType::FRAME:
         return "Frame " + _name + ": " + _errorText;
 
+    // Don't show frame in ANIMATION_FRAME error (that could confuse the user)
+    case MsErrorType::ANIMATION_FRAME:
     case MsErrorType::ANIMATION:
         return "Animation " + _name + ": " + _errorText;
 

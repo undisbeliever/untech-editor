@@ -14,6 +14,8 @@
 #include <vector>
 
 namespace UnTech {
+class ErrorList;
+
 namespace MetaSprite {
 namespace MetaSprite {
 struct FrameSet;
@@ -29,8 +31,8 @@ struct AnimationFrame {
     NameReference frame;
     uint8_t duration;
 
-    bool isValid(const MetaSprite::FrameSet&) const;
-    bool isValid(const SpriteImporter::FrameSet&) const;
+    bool testFrameValid(const MetaSprite::FrameSet&) const;
+    bool testFrameValid(const SpriteImporter::FrameSet&) const;
 
     bool operator==(const AnimationFrame& o) const
     {
@@ -52,8 +54,8 @@ struct Animation {
         return !oneShot && !nextAnimation.isValid();
     }
 
-    bool isValid(const MetaSprite::FrameSet&) const;
-    bool isValid(const SpriteImporter::FrameSet&) const;
+    bool validate(const MetaSprite::FrameSet&, ErrorList& err) const;
+    bool validate(const SpriteImporter::FrameSet&, ErrorList& err) const;
 
     bool operator==(const Animation& o) const
     {
@@ -66,7 +68,7 @@ struct Animation {
 
 private:
     template <class FrameSetT>
-    bool _isValid(const FrameSetT&) const;
+    bool _validate(const FrameSetT&, ErrorList& err) const;
 };
 }
 }
