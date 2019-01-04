@@ -143,6 +143,8 @@ void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOr
 
     assert(exportOrder);
     const auto exportList = buildExportList(frameSet, *exportOrder);
+    exportList.validate(errorList);
+
     const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
     const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, out);
     const auto data = processFrameSet(exportList, tilesetData);
@@ -159,6 +161,8 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
     }
 
     const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
+    exportList.validate(errorList);
+
     layoutTiles(frameSet, exportList.frames, errorList);
 
     return errorList.errorCount() == oldErrorCount;

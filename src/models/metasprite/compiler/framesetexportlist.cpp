@@ -5,6 +5,7 @@
  */
 
 #include "framesetexportlist.h"
+#include "models/common/errorlist.h"
 
 namespace UnTech {
 namespace MetaSprite {
@@ -130,6 +131,22 @@ FrameSetExportList buildExportList(const MS::FrameSet& frameSet, const FrameSetE
         std::move(animations),
         processStillFrames(frameSet, exportOrder.stillFrames, animations)
     };
+}
+
+bool FrameSetExportList::validate(ErrorList& err) const
+{
+    bool valid = true;
+
+    if (animations.size() > MAX_EXPORT_NAMES) {
+        err.addError("Too many animations (" + std::to_string(animations.size()) + ", max " + std::to_string(MAX_EXPORT_NAMES) + ")");
+        valid = false;
+    }
+    if (frames.size() > MAX_EXPORT_NAMES) {
+        err.addError("Too many frames (" + std::to_string(frames.size()) + ", max " + std::to_string(MAX_EXPORT_NAMES) + ")");
+        valid = false;
+    }
+
+    return valid;
 }
 
 }
