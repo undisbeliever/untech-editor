@@ -4,6 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#include "errorlist.h"
 #include "externalfilelist.h"
 #include "namedlist.h"
 #include <algorithm>
@@ -11,10 +12,10 @@
 
 namespace UnTech {
 
-template <class T, class ErrorListT>
+template <class T>
 inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
                                         const std::string& typeName,
-                                        ErrorListT& err)
+                                        ErrorList& err)
 {
     const idstring countString("count");
 
@@ -59,10 +60,10 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
     return valid;
 }
 
-template <class T, class ErrorListT>
+template <class T>
 inline bool validateNamesUnique(const NamedList<T>& list,
                                 const std::string& typeName,
-                                ErrorListT& err)
+                                ErrorList& err)
 {
     const idstring countString("count");
 
@@ -98,10 +99,10 @@ inline bool validateNamesUnique(const NamedList<T>& list,
     return valid;
 }
 
-template <class T, class ErrorListT>
+template <class T>
 inline bool validateNamesUnique(const std::vector<T>& list,
                                 const std::string& typeName,
-                                ErrorListT& err)
+                                ErrorList& err)
 {
     const idstring countString("count");
 
