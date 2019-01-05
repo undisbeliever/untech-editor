@@ -14,6 +14,8 @@ using namespace UnTech::GuiQt;
 ErrorListDock::ErrorListDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::ErrorListDock)
+    , _errorIcon(":icons/resource-error.svg")
+    , _warningIcon(":icons/resource-warning.svg")
     , _project(nullptr)
     , _currentItem(nullptr)
 {
@@ -71,25 +73,34 @@ void ErrorListDock::onSelectedResourceChanged()
 
 void ErrorListDock::updateErrorList()
 {
+    using ErrorType = ErrorList::ErrorType;
+
     Q_ASSERT(_currentItem);
 
-    const auto& errorList = _currentItem->errorList();
-    QStringList el;
+    _ui->errorList->clear();
 
-    for (const auto& e : errorList.list()) {
+    const auto& errorList = _currentItem->errorList().list();
+    for (auto& e : errorList) {
+        auto addItem = [&](const std::string& text) {
+            auto* item = new QListWidgetItem(
+                e.type == ErrorType::ERROR ? _errorIcon : _warningIcon,
+                QString::fromStdString(text),
+                _ui->errorList);
+
+            _ui->errorList->addItem(item);
+        };
+
         if (!e.message.empty()) {
-            el.append(QString::fromStdString(e.message));
+            addItem(e.message);
         }
         if (e.specialized) {
-            el.append(QString::fromStdString(e.specialized->message()));
+            addItem(e.specialized->message());
         }
     }
 
-    _ui->errorList->clear();
-    _ui->errorList->addItems(el);
-    _ui->errorList->setEnabled(!el.isEmpty());
+    _ui->errorList->setEnabled(!errorList.empty());
 
-    if (!el.isEmpty() && this->isVisible() == false) {
+    if (!errorList.empty() && this->isVisible() == false) {
         this->show();
     }
 }

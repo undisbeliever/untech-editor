@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QDockWidget>
+#include <QIcon>
 #include <memory>
 
 namespace UnTech {
@@ -33,6 +34,9 @@ private slots:
 
 private:
     std::unique_ptr<Ui::ErrorListDock> const _ui;
+
+    const QIcon _errorIcon;
+    const QIcon _warningIcon;
 
     AbstractProject* _project;
     AbstractResourceItem* _currentItem;
