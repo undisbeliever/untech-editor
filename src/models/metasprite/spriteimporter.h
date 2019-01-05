@@ -69,7 +69,7 @@ struct FrameLocation {
     {
     }
 
-    void update(const FrameSetGrid&, const Frame&);
+    void update(const FrameSetGrid&, const Frame& frame);
 
     bool isValid(const FrameSet&, const Frame&);
 
@@ -102,11 +102,6 @@ struct FrameObject {
                       location.y + sizePx());
     }
 
-    bool isValid(const FrameLocation& floc) const
-    {
-        return floc.aabb.size().contains(location, sizePx());
-    }
-
     bool operator==(const FrameObject& o) const
     {
         return this->location == o.location && this->size == o.size;
@@ -123,11 +118,6 @@ struct ActionPoint {
         : location(location)
         , parameter(parameter)
     {
-    }
-
-    bool isValid(const FrameLocation& floc) const
-    {
-        return floc.aabb.size().contains(location);
     }
 
     bool operator==(const ActionPoint& o) const
@@ -150,13 +140,6 @@ struct EntityHitbox {
         : aabb(aabb)
         , hitboxType(hitboxType)
     {
-    }
-
-    bool isValid(const FrameLocation& floc) const
-    {
-        return floc.aabb.size().contains(aabb)
-               && aabb.width > 0
-               && aabb.height > 0;
     }
 
     bool operator==(const EntityHitbox& o) const

@@ -188,6 +188,20 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
             _frameDock->raise();
             break;
 
+        case Type::ACTION_POINT:
+            _document->frameMap()->setSelectedId(e->name());
+            _document->actionPointList()->setSelectedIndexes({ e->id() });
+            showGraphicsTab();
+            _frameDock->raise();
+            break;
+
+        case Type::ENTITY_HITBOX:
+            _document->frameMap()->setSelectedId(e->name());
+            _document->entityHitboxList()->setSelectedIndexes({ e->id() });
+            showGraphicsTab();
+            _frameDock->raise();
+            break;
+
         case Type::ANIMATION:
             _document->animationsMap()->setSelectedId(e->name());
             _animationDock->raise();

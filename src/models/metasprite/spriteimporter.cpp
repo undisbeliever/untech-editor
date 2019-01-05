@@ -143,21 +143,37 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs)
         addError("Frame not inside image");
     }
 
-    for (const FrameObject& obj : objects) {
-        if (obj.isValid(location) == false) {
-            addError("Frame Object not inside frame");
+    const usize frameSize = location.aabb.size();
+
+    for (unsigned i = 0; i < objects.size(); i++) {
+        const FrameObject& obj = objects.at(i);
+
+        if (frameSize.contains(obj.location, obj.sizePx()) == false) {
+            errorList.addError(frameObjectError(fs, *this, i, "Frame Object not inside frame"));
+            valid = false;
         }
     }
 
-    for (const ActionPoint& ap : actionPoints) {
-        if (ap.isValid(location) == false) {
-            addError("Action Point not inside frame");
+    for (unsigned i = 0; i < actionPoints.size(); i++) {
+        const ActionPoint& ap = actionPoints.at(i);
+
+        if (frameSize.contains(ap.location) == false) {
+            errorList.addError(actionPointError(fs, *this, i, "location not inside frame"));
+            valid = false;
         }
     }
 
-    for (const EntityHitbox& eh : entityHitboxes) {
-        if (eh.isValid(location) == false) {
-            addError("Entity Hitbox aabb invalid");
+    for (unsigned i = 0; i < entityHitboxes.size(); i++) {
+        const EntityHitbox& eh = entityHitboxes.at(i);
+
+        if (eh.aabb.width == 0 || eh.aabb.height == 0) {
+            errorList.addError(entityHitboxError(fs, *this, i, "aabb has no size"));
+            valid = false;
+        }
+
+        if (frameSize.contains(eh.aabb) == false) {
+            errorList.addError(entityHitboxError(fs, *this, i, "aabb not inside frame"));
+            valid = false;
         }
     }
 
@@ -232,10 +248,6 @@ bool FrameSet::validate(ErrorList& errorList)
     }
     if (grid.isValid(*this) == false) {
         addError("Invalid Frame Set Grid");
-    }
-
-    if (valid == false) {
-        return false;
     }
 
     if (palette.usesUserSuppliedPalette()) {

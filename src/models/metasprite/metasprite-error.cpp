@@ -41,6 +41,12 @@ std::string MetaSpriteError::message() const
 
     case MsErrorType::FRAME_OBJECT:
         return "Frame " + _name + " (object " + std::to_string(_id) + "): " + _errorText;
+
+    case MsErrorType::ACTION_POINT:
+        return "Frame " + _name + " (action point " + std::to_string(_id) + "): " + _errorText;
+
+    case MsErrorType::ENTITY_HITBOX:
+        return "Frame " + _name + " (entity hitbox " + std::to_string(_id) + "): " + _errorText;
     }
 
     return "INVALID_ERROR_TYPE";

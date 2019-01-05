@@ -14,31 +14,6 @@ using namespace UnTech::MetaSprite;
 using namespace UnTech::MetaSprite::MetaSprite;
 
 /*
- * FRAME OBJECT
- * ============
- */
-
-bool FrameObject::isValid(const FrameSet& frameSet) const
-{
-    if (size == ObjectSize::SMALL) {
-        return tileId < frameSet.smallTileset.size();
-    }
-    else {
-        return tileId < frameSet.largeTileset.size();
-    }
-}
-
-/*
- * ENTITY HITBOX
- * =============
- */
-
-bool EntityHitbox::isValid() const
-{
-    return aabb.width > 0 && aabb.height > 0;
-}
-
-/*
  * FRAME
  * =====
  */
@@ -61,15 +36,23 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
         addError("Too many entity hitboxes");
     }
 
-    for (const FrameObject& obj : objects) {
-        if (obj.isValid(fs) == false) {
-            addError("Invalid tileId in frame object");
-        }
-    };
+    for (unsigned i = 0; i < objects.size(); i++) {
+        const FrameObject& obj = objects.at(i);
 
-    for (const EntityHitbox& eh : entityHitboxes) {
-        if (eh.isValid() == false) {
-            addError("Invalid Entity Hitbox");
+        size_t tsSize = obj.size == ObjectSize::SMALL ? fs.smallTileset.size()
+                                                      : fs.largeTileset.size();
+        if (obj.tileId > tsSize) {
+            errorList.addError(frameObjectError(fs, *this, i, "Invalid tileId"));
+            valid = false;
+        }
+    }
+
+    for (unsigned i = 0; i < entityHitboxes.size(); i++) {
+        const EntityHitbox& eh = entityHitboxes.at(i);
+
+        if (eh.aabb.width == 0 || eh.aabb.height == 0) {
+            errorList.addError(entityHitboxError(fs, *this, i, "aabb has no size"));
+            valid = false;
         }
     }
 

@@ -33,6 +33,18 @@ inline std::unique_ptr<MetaSpriteError> frameObjectError(const SpriteImporter::F
     return std::make_unique<MetaSpriteError>(MsErrorType::FRAME_OBJECT, fs.frames.getId(&frame), objectId, message);
 }
 
+inline std::unique_ptr<MetaSpriteError> actionPointError(const SpriteImporter::FrameSet& fs, const SpriteImporter::Frame& frame, unsigned apId,
+                                                         const std::string& message)
+{
+    return std::make_unique<MetaSpriteError>(MsErrorType::ACTION_POINT, fs.frames.getId(&frame), apId, message);
+}
+
+inline std::unique_ptr<MetaSpriteError> entityHitboxError(const SpriteImporter::FrameSet& fs, const SpriteImporter::Frame& frame, unsigned ehId,
+                                                          const std::string& message)
+{
+    return std::make_unique<MetaSpriteError>(MsErrorType::ENTITY_HITBOX, fs.frames.getId(&frame), ehId, message);
+}
+
 inline std::unique_ptr<MetaSpriteError> frameError(const MetaSprite::FrameSet& fs, const MetaSprite::Frame& frame, const std::string& message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::FRAME, fs.frames.getId(&frame), message);
@@ -52,6 +64,18 @@ inline std::unique_ptr<MetaSpriteError> frameObjectError(const MetaSprite::Frame
                                                          const std::string& message)
 {
     return std::make_unique<MetaSpriteError>(MsErrorType::FRAME_OBJECT, fs.frames.getId(&frame), objectId, message);
+}
+
+inline std::unique_ptr<MetaSpriteError> actionPointError(const MetaSprite::FrameSet& fs, const MetaSprite::Frame& frame, unsigned apId,
+                                                         const std::string& message)
+{
+    return std::make_unique<MetaSpriteError>(MsErrorType::ACTION_POINT, fs.frames.getId(&frame), apId, message);
+}
+
+inline std::unique_ptr<MetaSpriteError> entityHitboxError(const MetaSprite::FrameSet& fs, const MetaSprite::Frame& frame, unsigned ehId,
+                                                          const std::string& message)
+{
+    return std::make_unique<MetaSpriteError>(MsErrorType::ENTITY_HITBOX, fs.frames.getId(&frame), ehId, message);
 }
 
 }

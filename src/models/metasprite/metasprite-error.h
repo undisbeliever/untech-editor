@@ -15,7 +15,9 @@ enum class MsErrorType {
     FRAME,
     ANIMATION,
     ANIMATION_FRAME,
-    FRAME_OBJECT
+    FRAME_OBJECT,
+    ACTION_POINT,
+    ENTITY_HITBOX,
 };
 
 class MetaSpriteError : public AbstractSpecializedError {

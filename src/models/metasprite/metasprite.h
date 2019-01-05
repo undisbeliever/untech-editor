@@ -52,8 +52,6 @@ struct FrameObject {
 
     inline unsigned sizePx() const { return static_cast<unsigned>(size); }
 
-    bool isValid(const FrameSet&) const;
-
     bool operator==(const FrameObject& o) const
     {
         return this->location == o.location && this->size == o.size
@@ -95,8 +93,6 @@ struct EntityHitbox {
         , hitboxType(hitboxType)
     {
     }
-
-    bool isValid() const;
 
     bool operator==(const EntityHitbox& o) const
     {
