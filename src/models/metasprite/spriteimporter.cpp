@@ -19,7 +19,7 @@ using namespace UnTech::MetaSprite::SpriteImporter;
  * ==============
  */
 
-bool FrameSetGrid::validate(ErrorList& errorList) const
+inline bool FrameSetGrid::validate(ErrorList& errorList) const
 {
     bool valid = true;
     auto addError = [&](auto msg) {
@@ -92,7 +92,7 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     origin.y = std::min(origin.y, aabb.height);
 }
 
-bool FrameLocation::validate(ErrorList& errorList, const FrameSet& fs, const Frame& frame) const
+inline bool FrameLocation::validate(ErrorList& errorList, const FrameSet& fs, const Frame& frame) const
 {
     bool valid = true;
     auto addError = [&](const std::string& msg) {
@@ -139,7 +139,7 @@ bool FrameLocation::operator==(const FrameLocation& o) const
  * =====
  */
 
-bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
+inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs, const Image& image) const
 {
     bool valid = true;
 
@@ -160,8 +160,7 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
 
     valid &= location.validate(errorList, fs, *this);
 
-    auto image = ImageCache::loadPngImage(fs.imageFilename);
-    if (image->size().contains(location.aabb) == false) {
+    if (image.size().contains(location.aabb) == false) {
         addError("Frame not inside image");
     }
 
@@ -279,6 +278,7 @@ bool FrameSet::validate(ErrorList& errorList) const
     }
 
     const auto image = ImageCache::loadPngImage(imageFilename);
+    assert(image);
     if (image->empty()) {
         addError(image->errorString());
         return false;
@@ -304,7 +304,7 @@ bool FrameSet::validate(ErrorList& errorList) const
     }
 
     for (auto&& it : frames) {
-        valid &= it.second.validate(errorList, *this);
+        valid &= it.second.validate(errorList, *this, *image);
     }
 
     for (auto&& it : animations) {

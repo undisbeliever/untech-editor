@@ -118,8 +118,6 @@ struct Frame {
     {
     }
 
-    bool validate(ErrorList& errorList, const FrameSet& fs) const;
-
     Frame flip(bool hFlip, bool vFlip) const;
 
     void draw(Image& image, const FrameSet& frameSet, size_t paletteId,
@@ -127,6 +125,10 @@ struct Frame {
 
     bool operator==(const Frame& o) const;
     bool operator!=(const Frame& o) const { return !(*this == o); }
+
+private:
+    friend struct FrameSet;
+    bool validate(ErrorList& errorList, const FrameSet& fs) const;
 };
 
 struct FrameSet {

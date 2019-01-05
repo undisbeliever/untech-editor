@@ -45,12 +45,15 @@ struct FrameSetGrid {
     }
 
     urect cell(unsigned x, unsigned y) const;
-    bool validate(ErrorList& errorList) const;
 
     usize originRange() const;
 
     bool operator==(const FrameSetGrid& o) const;
     bool operator!=(const FrameSetGrid& o) const { return !(*this == o); }
+
+private:
+    friend struct FrameSet;
+    bool validate(ErrorList& errorList) const;
 };
 
 struct FrameLocation {
@@ -71,12 +74,14 @@ struct FrameLocation {
 
     void update(const FrameSetGrid&, const Frame& frame);
 
-    bool validate(ErrorList& errorList, const FrameSet&, const Frame& frame) const;
-
     usize originRange() const;
 
     bool operator==(const FrameLocation& o) const;
     bool operator!=(const FrameLocation& o) const { return !(*this == o); }
+
+private:
+    friend struct Frame;
+    bool validate(ErrorList& errorList, const FrameSet&, const Frame& frame) const;
 };
 
 struct FrameObject {
@@ -167,12 +172,14 @@ struct Frame {
     {
     }
 
-    bool validate(ErrorList& errorList, const FrameSet& fs) const;
-
     usize minimumViableSize() const;
 
     bool operator==(const Frame& o) const;
     bool operator!=(const Frame& o) const { return !(*this == o); }
+
+private:
+    friend struct FrameSet;
+    bool validate(ErrorList& errorList, const FrameSet& fs, const Image& image) const;
 };
 
 struct UserSuppliedPalette {

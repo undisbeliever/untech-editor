@@ -18,7 +18,7 @@ using namespace UnTech::MetaSprite::MetaSprite;
  * =====
  */
 
-bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
+inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
 {
     bool valid = true;
     auto addError = [&](const std::string& msg) {
