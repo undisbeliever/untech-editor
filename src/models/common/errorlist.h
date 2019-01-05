@@ -26,27 +26,29 @@ public:
     virtual void printIndented(std::ostream& out) const;
 };
 
-class ErrorList {
-public:
+struct ErrorListItem {
     enum class ErrorType {
         WARNING,
         ERROR
     };
 
-    struct ErrorItem {
-        ErrorType type;
-        std::string message;
-        std::unique_ptr<const AbstractSpecializedError> specialized;
-    };
+    ErrorType type;
+    std::string message;
+    std::unique_ptr<const AbstractSpecializedError> specialized;
+};
+
+class ErrorList {
+public:
+    using ErrorType = ErrorListItem::ErrorType;
 
 private:
-    std::vector<ErrorItem> _list;
+    std::vector<ErrorListItem> _list;
     unsigned _errorCount;
 
 public:
     ErrorList();
 
-    const std::vector<ErrorItem>& list() const { return _list; }
+    const std::vector<ErrorListItem>& list() const { return _list; }
 
     inline bool empty() const { return _list.empty(); }
     unsigned errorCount() const { return _errorCount; }

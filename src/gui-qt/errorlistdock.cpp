@@ -22,6 +22,9 @@ ErrorListDock::ErrorListDock(QWidget* parent)
     _ui->setupUi(this);
 
     setEnabled(false);
+
+    connect(_ui->errorList, &QListWidget::itemDoubleClicked,
+            this, &ErrorListDock::onItemDoubleClicked);
 }
 
 ErrorListDock::~ErrorListDock() = default;
@@ -71,22 +74,39 @@ void ErrorListDock::onSelectedResourceChanged()
     }
 }
 
+void ErrorListDock::onItemDoubleClicked(const QListWidgetItem* item)
+{
+    if (_currentItem == nullptr || item == nullptr) {
+        return;
+    }
+    const auto& errorList = _currentItem->errorList().list();
+
+    bool ok;
+    unsigned errorId = item->data(errorIdRole).toUInt(&ok);
+
+    if (ok && errorId < errorList.size()) {
+        emit errorDoubleClicked(errorList.at(errorId));
+    }
+}
+
 void ErrorListDock::updateErrorList()
 {
-    using ErrorType = ErrorList::ErrorType;
+    using ErrorType = ErrorListItem::ErrorType;
 
     Q_ASSERT(_currentItem);
 
     _ui->errorList->clear();
 
     const auto& errorList = _currentItem->errorList().list();
-    for (auto& e : errorList) {
+    for (unsigned errorId = 0; errorId < errorList.size(); errorId++) {
+        const auto& e = errorList.at(errorId);
+
         auto addItem = [&](const std::string& text) {
             auto* item = new QListWidgetItem(
                 e.type == ErrorType::ERROR ? _errorIcon : _warningIcon,
                 QString::fromStdString(text),
                 _ui->errorList);
-
+            item->setData(errorIdRole, errorId);
             _ui->errorList->addItem(item);
         };
 

@@ -120,6 +120,11 @@ void AnimationDock::clearGui()
     _ui->nextAnimation->clear();
 }
 
+void AnimationDock::selectAnimationFrame(unsigned index)
+{
+    _ui->animationFrames->setSelectedRow(_animationFramesManager, index);
+}
+
 void AnimationDock::updateGui()
 {
     Q_ASSERT(_document);

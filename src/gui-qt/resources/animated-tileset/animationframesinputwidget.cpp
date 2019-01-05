@@ -11,6 +11,7 @@
 #include "gui-qt/resources/animated-tileset/animationframesinputwidget.ui.h"
 #include "gui-qt/resources/animationtimer.h"
 #include "models/resources/animation-frames-input.h"
+#include "models/resources/invalid-image-error.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
@@ -121,6 +122,21 @@ void AnimationFramesInputWidget::setResourceItem(AbstractResourceItem* item)
 void AnimationFramesInputWidget::stopAnimations()
 {
     _animationTimer->stopTimer();
+}
+
+bool AnimationFramesInputWidget::onErrorDoubleClicked(const ErrorListItem& error)
+{
+    if (_tileset == nullptr || _graphicsItem == nullptr) {
+        return false;
+    }
+
+    auto* e = dynamic_cast<const RES::InvalidImageError*>(error.specialized.get());
+    if (e) {
+        if (e->hasFrameId()) {
+            _graphicsItem->setAnimationFrameIndex(e->frameId());
+        }
+    }
+    return e != nullptr;
 }
 
 void AnimationFramesInputWidget::updateFrameLabel()

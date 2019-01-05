@@ -42,6 +42,11 @@ public:
         _editorWidget->populateMenu(editMenu, viewMenu);
     }
 
+    virtual void onErrorDoubleClicked(const ErrorListItem& error) final
+    {
+        _editorWidget->onErrorDoubleClicked(error);
+    }
+
     virtual ZoomSettings* zoomSettings() const final { return _editorWidget->zoomSettings(); }
 
 private:

@@ -10,6 +10,8 @@
 #include <QWidget>
 
 namespace UnTech {
+struct ErrorListItem;
+
 namespace GuiQt {
 class ZoomSettings;
 class AbstractProject;
@@ -36,6 +38,8 @@ public:
 
     virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu);
     virtual QWidget* statusBarWidget() const;
+
+    virtual void onErrorDoubleClicked(const ErrorListItem&);
 
 signals:
     void zoomSettingsChanged();

@@ -9,6 +9,7 @@
 #include <ostream>
 
 using namespace UnTech;
+using ErrorType = ErrorListItem::ErrorType;
 
 ErrorList::ErrorList()
     : _list()

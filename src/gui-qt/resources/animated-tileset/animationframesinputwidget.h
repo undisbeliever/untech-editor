@@ -43,6 +43,8 @@ public:
 
     void stopAnimations();
 
+    bool onErrorDoubleClicked(const ErrorListItem& error);
+
 private:
     void updateFrameLabel();
     void clearGui();
@@ -76,12 +78,10 @@ public:
 
     void reloadAnimationFrame() { setAnimationFrameIndex(_animationFrameIndex); }
 
+    void setAnimationFrameIndex(int index);
     void prevAnimationFrame() { setAnimationFrameIndex(_animationFrameIndex - 1); }
     void nextAnimationFrame() { setAnimationFrameIndex(_animationFrameIndex + 1); }
     int animationFrameIndex() const { return _animationFrameIndex; }
-
-private:
-    void setAnimationFrameIndex(int index);
 
 public:
     virtual QRectF boundingRect() const override;

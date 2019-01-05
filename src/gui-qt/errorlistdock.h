@@ -10,7 +10,11 @@
 #include <QIcon>
 #include <memory>
 
+class QListWidgetItem;
+
 namespace UnTech {
+struct ErrorListItem;
+
 namespace GuiQt {
 namespace Ui {
 class ErrorListDock;
@@ -21,14 +25,21 @@ class AbstractResourceItem;
 class ErrorListDock : public QDockWidget {
     Q_OBJECT
 
+    constexpr static int errorIdRole = Qt::UserRole + 1;
+
 public:
     ErrorListDock(QWidget* parent = nullptr);
     ~ErrorListDock();
 
     void setProject(AbstractProject* project);
 
+signals:
+    void errorDoubleClicked(const ErrorListItem&);
+
 private slots:
     void onSelectedResourceChanged();
+
+    void onItemDoubleClicked(const QListWidgetItem* item);
 
     void updateErrorList();
 
