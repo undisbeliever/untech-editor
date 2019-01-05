@@ -19,17 +19,30 @@ using namespace UnTech::MetaSprite::SpriteImporter;
  * ==============
  */
 
-bool FrameSetGrid::isValid(const FrameSet& frameSet) const
+bool FrameSetGrid::validate(ErrorList& errorList) const
 {
-    usize minSize = frameSet.minimumFrameGridSize();
+    bool valid = true;
+    auto addError = [&](auto msg) {
+        errorList.addError(msg);
+        valid = false;
+    };
 
-    return frameSize.width >= minSize.width
-           && frameSize.height >= minSize.height
-           && frameSize.width <= MAX_FRAME_SIZE
-           && frameSize.height <= MAX_FRAME_SIZE
-           && origin.x <= MAX_ORIGIN
-           && origin.y <= MAX_ORIGIN
-           && frameSize.contains(origin);
+    if (frameSize.width == 0 || frameSize.height == 0) {
+        addError("grid.frameSize has no size");
+    }
+    if (frameSize.width > MAX_FRAME_SIZE || frameSize.height > MAX_FRAME_SIZE) {
+        addError("grid.frameSize is too large (max: "
+                 + std::to_string(MAX_FRAME_SIZE) + " x " + std::to_string(MAX_FRAME_SIZE) + " +)");
+    }
+    if (origin.x > MAX_ORIGIN || origin.y > MAX_ORIGIN) {
+        addError("grid.origin is too large (max: "
+                 + std::to_string(MAX_ORIGIN) + ", " + std::to_string(MAX_ORIGIN) + " +)");
+    }
+    if (frameSize.contains(origin) == false) {
+        addError("grid.origin is not inside grid.frameSize");
+    }
+
+    return valid;
 }
 
 urect FrameSetGrid::cell(unsigned x, unsigned y) const
@@ -79,19 +92,30 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     origin.y = std::min(origin.y, aabb.height);
 }
 
-bool FrameLocation::isValid(const FrameSet& frameSet, const Frame& frame)
+bool FrameLocation::validate(ErrorList& errorList, const FrameSet& fs, const Frame& frame) const
 {
-    update(frameSet.grid, frame);
+    bool valid = true;
+    auto addError = [&](const std::string& msg) {
+        errorList.addError(frameError(fs, frame, msg));
+        valid = false;
+    };
 
-    usize minSize = frame.minimumViableSize();
+    if (aabb.width == 0 || aabb.height == 0) {
+        addError("FrameLocation aabb has no size");
+    }
+    if (aabb.width > MAX_FRAME_SIZE || aabb.height > MAX_FRAME_SIZE) {
+        addError("location.aabb is too large ("
+                 + std::to_string(MAX_FRAME_SIZE) + " x " + std::to_string(MAX_FRAME_SIZE) + " +)");
+    }
+    if (origin.x > MAX_ORIGIN || origin.y > MAX_ORIGIN) {
+        addError("location.origin is too large (max: "
+                 + std::to_string(MAX_ORIGIN) + ", " + std::to_string(MAX_ORIGIN) + " +)");
+    }
+    if (aabb.size().contains(origin) == false) {
+        addError("location.origin is not inside frame");
+    }
 
-    return aabb.width >= minSize.width
-           && aabb.height >= minSize.height
-           && aabb.width <= MAX_FRAME_SIZE
-           && aabb.height <= MAX_FRAME_SIZE
-           && origin.x <= MAX_ORIGIN
-           && origin.y <= MAX_ORIGIN
-           && aabb.size().contains(origin);
+    return valid;
 }
 
 usize FrameLocation::originRange() const
@@ -115,7 +139,7 @@ bool FrameLocation::operator==(const FrameLocation& o) const
  * =====
  */
 
-bool Frame::validate(ErrorList& errorList, const FrameSet& fs)
+bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
 {
     bool valid = true;
 
@@ -134,13 +158,15 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs)
         addError("Too many entity hitboxes");
     }
 
-    if (location.isValid(fs, *this) == false) {
-        addError("Invalid Frame Size");
-    }
+    valid &= location.validate(errorList, fs, *this);
 
     auto image = ImageCache::loadPngImage(fs.imageFilename);
     if (image->size().contains(location.aabb) == false) {
         addError("Frame not inside image");
+    }
+
+    if (valid == false) {
+        return false;
     }
 
     const usize frameSize = location.aabb.size();
@@ -221,7 +247,7 @@ bool Frame::operator==(const Frame& o) const
  * =========
  */
 
-bool FrameSet::validate(ErrorList& errorList)
+bool FrameSet::validate(ErrorList& errorList) const
 {
     bool valid = true;
     auto addError = [&](std::string&& msg) {
@@ -246,8 +272,10 @@ bool FrameSet::validate(ErrorList& errorList)
     if (transparentColorValid() == false) {
         addError("Transparent color is invalid");
     }
-    if (grid.isValid(*this) == false) {
-        addError("Invalid Frame Set Grid");
+    valid &= grid.validate(errorList);
+
+    if (valid == false) {
+        return false;
     }
 
     if (palette.usesUserSuppliedPalette()) {

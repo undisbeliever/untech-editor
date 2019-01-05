@@ -45,7 +45,7 @@ struct FrameSetGrid {
     }
 
     urect cell(unsigned x, unsigned y) const;
-    bool isValid(const FrameSet& frameSet) const;
+    bool validate(ErrorList& errorList) const;
 
     usize originRange() const;
 
@@ -71,7 +71,7 @@ struct FrameLocation {
 
     void update(const FrameSetGrid&, const Frame& frame);
 
-    bool isValid(const FrameSet&, const Frame&);
+    bool validate(ErrorList& errorList, const FrameSet&, const Frame& frame) const;
 
     usize originRange() const;
 
@@ -167,8 +167,7 @@ struct Frame {
     {
     }
 
-    // NOTE: updates the frame location
-    bool validate(ErrorList& errorList, const FrameSet& fs);
+    bool validate(ErrorList& errorList, const FrameSet& fs) const;
 
     usize minimumViableSize() const;
 
@@ -219,8 +218,7 @@ struct FrameSet {
 
     FrameSet() = default;
 
-    // NOTE: updates the frame Locations
-    bool validate(ErrorList& errorList);
+    bool validate(ErrorList& errorList) const;
 
     usize minimumFrameGridSize() const;
 
