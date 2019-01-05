@@ -278,9 +278,13 @@ bool FrameSet::validate(ErrorList& errorList) const
         return false;
     }
 
-    if (palette.usesUserSuppliedPalette()) {
-        auto image = ImageCache::loadPngImage(imageFilename);
+    const auto image = ImageCache::loadPngImage(imageFilename);
+    if (image->empty()) {
+        addError(image->errorString());
+        return false;
+    }
 
+    if (palette.usesUserSuppliedPalette()) {
         auto imgSize = image->size();
         auto palSize = palette.paletteSize();
 
@@ -357,8 +361,6 @@ bool FrameSet::operator==(const FrameSet& o) const
             return true;
         }
     };
-
-    // Don't test image, imageFilename test is fine for now
 
     return name == o.name
            && tilesetType == o.tilesetType
