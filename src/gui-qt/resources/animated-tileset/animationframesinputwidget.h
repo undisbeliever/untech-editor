@@ -92,6 +92,9 @@ public:
 
     static const QString& toolTipForType(const RES::InvalidImageError::InvalidTileReason& reason);
 
+signals:
+    void animationFrameIndexChanged();
+
 private slots:
     void updateInvalidTiles();
     void loadPixmaps();

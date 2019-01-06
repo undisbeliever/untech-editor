@@ -108,9 +108,12 @@ void AnimationFramesInputWidget::setResourceItem(AbstractResourceItem* item)
         _graphicsScene->addItem(_graphicsItem);
 
         onMtTilesetDataChanged();
+        updateFrameLabel();
 
         connect(_tileset, &AbstractResourceItem::dataChanged,
                 this, &AnimationFramesInputWidget::onMtTilesetDataChanged);
+        connect(_graphicsItem, &AnimationFramesInputGraphicsItem::animationFrameIndexChanged,
+                this, &AnimationFramesInputWidget::updateFrameLabel);
     }
     else {
         _ui->animationFrameLabel->clear();
@@ -180,21 +183,18 @@ void AnimationFramesInputWidget::onMtTilesetDataChanged()
 void AnimationFramesInputWidget::onAnimationFrameAdvance()
 {
     _graphicsItem->nextAnimationFrame();
-    updateFrameLabel();
 }
 
 void AnimationFramesInputWidget::onPreviousClicked()
 {
     _animationTimer->stopTimer();
     _graphicsItem->prevAnimationFrame();
-    updateFrameLabel();
 }
 
 void AnimationFramesInputWidget::onNextClicked()
 {
     _animationTimer->stopTimer();
     _graphicsItem->nextAnimationFrame();
-    updateFrameLabel();
 }
 
 AnimationFramesInputGraphicsItem::AnimationFramesInputGraphicsItem(AbstractResourceItem* item)
@@ -249,14 +249,19 @@ void AnimationFramesInputGraphicsItem::setAnimationFrameIndex(int index)
         else if (index >= _pixmaps.size()) {
             index = 0;
         }
-        _animationFrameIndex = index;
     }
     else {
-        _animationFrameIndex = -1;
+        index = -1;
     }
 
-    for (int i = 0; i < _frameErrors.size(); i++) {
-        _frameErrors.at(i)->setVisible(i == index);
+    if (_animationFrameIndex != index) {
+        _animationFrameIndex = index;
+
+        for (int i = 0; i < _frameErrors.size(); i++) {
+            _frameErrors.at(i)->setVisible(i == index);
+        }
+
+        emit animationFrameIndexChanged();
     }
 
     update();
