@@ -15,7 +15,7 @@
 
 #include <QFileInfo>
 
-using FrameSetType = UnTech::MetaSprite::Project::FrameSetType;
+using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;
 

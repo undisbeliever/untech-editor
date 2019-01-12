@@ -6,6 +6,7 @@
 
 #include "project.h"
 
+#include "framesetfile-serializer.h"
 #include "metasprite-serializer.h"
 #include "spriteimporter-serializer.h"
 #include "models/common/atomicofstream.h"
@@ -21,17 +22,8 @@ namespace MetaSprite {
 
 const std::string Project::FILE_EXTENSION = "utmspro";
 
-const EnumMap<Project::FrameSetType> frameSetTypeMap = {
-    { "none", Project::FrameSetType::NONE },
-    { "unknown", Project::FrameSetType::UNKNOWN },
-    { "metasprite", Project::FrameSetType::METASPRITE },
-    { "spriteimporter", Project::FrameSetType::SPRITE_IMPORTER },
-};
-
 inline std::unique_ptr<Project> readProject(XmlReader& xml, const XmlTag* tag)
 {
-    using FST = Project::FrameSetType;
-
     if (tag == nullptr || tag->name != "metaspriteproject") {
         throw xml_error(xml, "Not a MetaSprite Project (expected <metaspriteproject>");
     }
@@ -45,22 +37,7 @@ inline std::unique_ptr<Project> readProject(XmlReader& xml, const XmlTag* tag)
             project->exportOrders.insert_back(childTag->getAttributeFilename("src"));
         }
         else if (childTag->name == "frameset") {
-            project->frameSets.emplace_back();
-            Project::FrameSetFile& fs = project->frameSets.back();
-
-            if (childTag->hasAttribute("src")) {
-                fs.filename = childTag->getAttributeFilename("src");
-
-                if (childTag->hasAttribute("type")) {
-                    fs.type = childTag->getAttributeEnum("type", frameSetTypeMap);
-                }
-                else {
-                    fs.setTypeFromExtension();
-                }
-            }
-            else {
-                fs.type = FST::NONE;
-            }
+            readFrameSetFile(childTag.get(), project->frameSets);
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -74,8 +51,6 @@ inline std::unique_ptr<Project> readProject(XmlReader& xml, const XmlTag* tag)
 
 inline void writeProject(XmlWriter& xml, const Project& project)
 {
-    using FST = Project::FrameSetType;
-
     xml.writeTag("metaspriteproject");
 
     for (const auto& it : project.exportOrders) {
@@ -84,14 +59,7 @@ inline void writeProject(XmlWriter& xml, const Project& project)
         xml.writeCloseTag();
     }
 
-    for (const auto& fs : project.frameSets) {
-        xml.writeTag("frameset");
-        if (fs.type != FST::NONE && !fs.filename.empty()) {
-            xml.writeTagAttributeFilename("src", fs.filename);
-            xml.writeTagAttributeEnum("type", fs.type, frameSetTypeMap);
-        }
-        xml.writeCloseTag();
-    }
+    writeFrameSetFiles(xml, project.frameSets);
 
     xml.writeCloseTag();
 }
@@ -100,33 +68,6 @@ inline void writeProject(XmlWriter& xml, const Project& project)
  * API
  * ===
  */
-
-void Project::FrameSetFile::loadFile()
-{
-    msFrameSet = nullptr;
-    siFrameSet = nullptr;
-
-    if (filename.empty()) {
-        return;
-    }
-
-    switch (type) {
-    case FrameSetType::NONE:
-        break;
-
-    case FrameSetType::METASPRITE:
-        msFrameSet = MetaSprite::loadFrameSet(filename);
-        break;
-
-    case FrameSetType::SPRITE_IMPORTER:
-        siFrameSet = SpriteImporter::loadFrameSet(filename);
-        break;
-
-    case FrameSetType::UNKNOWN:
-        throw std::runtime_error("Cannot load " + filename + ": Unknown frameset type");
-        break;
-    }
-}
 
 std::unique_ptr<Project> loadProject(const std::string& filename)
 {

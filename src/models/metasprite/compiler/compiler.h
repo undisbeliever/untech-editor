@@ -8,8 +8,8 @@
 
 #include "romdata.h"
 #include "romtiledata.h"
+#include "../frameset-exportorder.h"
 #include "../metasprite.h"
-#include "../project.h"
 
 namespace UnTech {
 namespace MetaSprite {

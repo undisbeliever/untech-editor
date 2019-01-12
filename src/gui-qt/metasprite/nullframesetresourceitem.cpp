@@ -7,7 +7,7 @@
 #include "nullframesetresourceitem.h"
 #include "framesetresourcelist.h"
 
-using FrameSetType = UnTech::MetaSprite::Project::FrameSetType;
+using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
 using namespace UnTech::GuiQt::MetaSprite;
 
 NullFrameSetResourceItem::NullFrameSetResourceItem(FrameSetResourceList* parent, size_t index)

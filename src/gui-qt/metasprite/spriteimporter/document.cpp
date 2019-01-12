@@ -8,7 +8,7 @@
 #include "accessors.h"
 #include "gui-qt/metasprite/animation/animationaccessors.h"
 
-using FrameSetType = UnTech::MetaSprite::Project::FrameSetType;
+using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 Document::Document(FrameSetResourceList* parent, size_t index)
@@ -69,7 +69,7 @@ void Document::saveResourceData(const std::string& filename) const
 
 bool Document::loadResourceData(ErrorList& err)
 {
-    using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
+    using FrameSetFile = UnTech::MetaSprite::FrameSetFile;
 
     Q_ASSERT(_frameSet == nullptr);
 
@@ -98,7 +98,7 @@ bool Document::loadResourceData(ErrorList& err)
 
 bool Document::compileResource(ErrorList& err)
 {
-    using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
+    using FrameSetFile = UnTech::MetaSprite::FrameSetFile;
 
     FrameSetFile& fsf = frameSetFile();
 

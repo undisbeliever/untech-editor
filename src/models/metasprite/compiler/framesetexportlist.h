@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "../frameset-exportorder.h"
 #include "../metasprite.h"
-#include "../project.h"
 #include <algorithm>
 #include <cstdint>
 #include <vector>
