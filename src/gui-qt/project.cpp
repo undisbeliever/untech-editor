@@ -22,20 +22,23 @@
 
 using namespace UnTech::GuiQt;
 
-Project::Project(QObject* parent)
-    : QObject(parent)
+Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
+    : QObject()
     , _resourceLists()
-    , _filename()
+    , _projectFile(std::move(projectFile))
+    , _filename(filename)
     , _undoStack(new QUndoStack(this))
     , _validationWorker(new ResourceValidationWorker(this))
     , _filesystemWatcher(new FilesystemWatcher(this))
-    , _projectFile(std::make_unique<UnTech::Project::ProjectFile>())
     , _frameSetExportOrderResourceList(new MetaSprite::ExportOrderResourceList(this))
     , _frameSetResourceList(new MetaSprite::FrameSetResourceList(this))
     , _paletteResourceList(new Resources::PaletteResourceList(this))
     , _mtTilesetResourceList(new MetaTiles::MtTilesetResourceList(this))
     , _selectedResource(nullptr)
 {
+    Q_ASSERT(_projectFile);
+    Q_ASSERT(_filename.isEmpty() == false);
+
     initResourceLists({
         _frameSetExportOrderResourceList,
         _frameSetResourceList,
@@ -64,6 +67,8 @@ void Project::initResourceLists(std::initializer_list<AbstractResourceList*> res
     _resourceLists = resourceLists;
 
     for (AbstractResourceList* rl : _resourceLists) {
+        rl->rebuildResourceItems();
+
         connect(rl, &AbstractResourceList::resourceItemCreated,
                 this, &Project::resourceItemCreated);
         connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
@@ -152,49 +157,45 @@ bool Project::saveProject(const QString& filename)
     return success;
 }
 
-bool Project::loadProject(const QString& filename)
+std::unique_ptr<Project> Project::newProject(const QString& filenmae)
+{
+    std::unique_ptr<Project> project(new Project(std::make_unique<DataT>(), filenmae));
+
+    bool s = project->saveProject(filenmae);
+    if (s) {
+        return project;
+    }
+    else {
+        return nullptr;
+    }
+}
+
+std::unique_ptr<Project> Project::loadProject(const QString& filename)
 {
     using namespace UnTech::Project;
 
     QString absFilename = QDir::toNativeSeparators(
         QFileInfo(filename).absoluteFilePath());
 
-    bool success = false;
     try {
-        auto pf = loadProjectFile(filename.toUtf8().data());
+        auto pf = loadProjectFile(absFilename.toUtf8().data());
         if (pf) {
-            _projectFile = std::move(pf);
-            success = true;
+            return std::unique_ptr<Project>(new Project(std::move(pf), absFilename));
         }
-        rebuildResourceLists();
     }
     catch (const std::exception& ex) {
         QMessageBox::critical(nullptr, tr("Error opening File"), ex.what());
-        success = false;
+        return nullptr;
     }
 
-    if (success) {
-        if (_filename != absFilename) {
-            _filename = absFilename;
-            filenameChanged();
-        }
-        _undoStack->clear();
-    }
-
-    return success;
+    QMessageBox::critical(nullptr, tr("Error opening File"), tr("Unknown error"));
+    return nullptr;
 }
 
 void Project::onSelectedResourceDestroyed(QObject* obj)
 {
     if (_selectedResource == obj) {
         setSelectedResource(nullptr);
-    }
-}
-
-void Project::rebuildResourceLists()
-{
-    for (auto* ri : _resourceLists) {
-        ri->rebuildResourceItems();
     }
 }
 

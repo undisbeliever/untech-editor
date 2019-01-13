@@ -176,8 +176,8 @@ void MainWindow::loadProject(const QString& filename)
 {
     QString ext = QFileInfo(filename).suffix();
 
-    std::unique_ptr<Project> project = std::make_unique<Project>();
-    if (project->loadProject(filename)) {
+    std::unique_ptr<Project> project = Project::loadProject(filename);
+    if (project) {
         _ui->menu_OpenRecent->addFilename(project->filename());
         setProject(std::move(project));
     }
@@ -452,10 +452,9 @@ void MainWindow::onMenuNew()
         Q_ASSERT(saveDialog.selectedFiles().size() == 1);
         QString filename = saveDialog.selectedFiles().first();
 
-        std::unique_ptr<Project> project = std::make_unique<Project>();
-        bool s = project->saveProject(filename);
-        if (s) {
-            _ui->menu_OpenRecent->addFilename(filename);
+        std::unique_ptr<Project> project = Project::newProject(filename);
+        if (project) {
+            _ui->menu_OpenRecent->addFilename(project->filename());
             setProject(std::move(project));
         }
     }

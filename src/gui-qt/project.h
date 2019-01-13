@@ -38,14 +38,17 @@ class Project : public QObject {
 public:
     using DataT = UnTech::Project::ProjectFile;
 
-public:
-    explicit Project(QObject* parent = nullptr);
-    virtual ~Project() final;
-
-protected:
+private:
+    Project(std::unique_ptr<DataT> projectFile, QString filename);
     void initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists);
 
 public:
+    virtual ~Project() final;
+
+public:
+    static std::unique_ptr<Project> newProject(const QString& filenmae);
+    static std::unique_ptr<Project> loadProject(const QString& filename);
+
     const QString& filename() const { return _filename; }
     QUndoStack* undoStack() const { return _undoStack; }
     const auto& resourceLists() const { return _resourceLists; }
@@ -66,7 +69,6 @@ public:
     AbstractResourceItem* findResourceItem(ResourceTypeIndex type, const QString& name) const;
 
     bool saveProject(const QString& filename);
-    bool loadProject(const QString& filename);
 
     QList<AbstractExternalResourceItem*> unsavedExternalResources() const;
 
@@ -76,9 +78,6 @@ public:
 protected:
     friend class Accessor::ProjectSettingsUndoHelper<Project>;
     DataT* dataEditable() const { return _projectFile.get(); }
-
-protected:
-    void rebuildResourceLists();
 
 private slots:
     void onSelectedResourceDestroyed(QObject* obj);
@@ -96,12 +95,12 @@ signals:
 private:
     QList<AbstractResourceList*> _resourceLists;
 
+    std::unique_ptr<UnTech::Project::ProjectFile> const _projectFile;
+
     QString _filename;
     QUndoStack* const _undoStack;
     ResourceValidationWorker* const _validationWorker;
     FilesystemWatcher* const _filesystemWatcher;
-
-    std::unique_ptr<UnTech::Project::ProjectFile> _projectFile;
 
     MetaSprite::ExportOrderResourceList* const _frameSetExportOrderResourceList;
     MetaSprite::FrameSetResourceList* const _frameSetResourceList;
