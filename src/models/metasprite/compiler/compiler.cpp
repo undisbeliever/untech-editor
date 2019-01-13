@@ -118,11 +118,6 @@ static void saveFrameSet(const FrameSetData& data, CompiledRomData& out)
     out.frameSetList.addOffset(ptr.offset);
 }
 
-static void saveNullFrameSet(CompiledRomData& out)
-{
-    out.frameSetList.addNull();
-}
-
 static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder, ErrorList& errorList)
 {
     if (exportOrder == nullptr) {
@@ -137,7 +132,7 @@ void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOr
                             ErrorList& errorList, CompiledRomData& out)
 {
     if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
-        saveNullFrameSet(out);
+        processNullFrameSet(out);
         return;
     }
 
@@ -166,6 +161,11 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
     layoutTiles(frameSet, exportList.frames, errorList);
 
     return errorList.errorCount() == oldErrorCount;
+}
+
+void processNullFrameSet(CompiledRomData& out)
+{
+    out.frameSetList.addNull();
 }
 
 }

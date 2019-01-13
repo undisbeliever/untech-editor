@@ -47,6 +47,8 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
 
 void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
                             ErrorList& errorList, CompiledRomData& out);
+
+void processNullFrameSet(CompiledRomData& out);
 }
 }
 }

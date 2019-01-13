@@ -69,6 +69,9 @@ int compile(const CommandLine::Parser& args)
             const auto* exportOrder = project->exportOrders.find(fs.msFrameSet->exportOrder);
             processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, romData);
         }
+        else {
+            processNullFrameSet(romData);
+        }
 
         if (!errorList.empty()) {
             std::cerr << fs.name() << ":\n";
