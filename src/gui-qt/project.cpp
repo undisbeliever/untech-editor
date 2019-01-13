@@ -24,7 +24,6 @@ using namespace UnTech::GuiQt;
 
 Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
     : QObject()
-    , _resourceLists()
     , _projectFile(std::move(projectFile))
     , _filename(filename)
     , _undoStack(new QUndoStack(this))
@@ -34,17 +33,25 @@ Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
     , _frameSetResourceList(new MetaSprite::FrameSetResourceList(this))
     , _paletteResourceList(new Resources::PaletteResourceList(this))
     , _mtTilesetResourceList(new MetaTiles::MtTilesetResourceList(this))
+    , _resourceLists({
+          _frameSetExportOrderResourceList,
+          _frameSetResourceList,
+          _paletteResourceList,
+          _mtTilesetResourceList,
+      })
     , _selectedResource(nullptr)
 {
     Q_ASSERT(_projectFile);
     Q_ASSERT(_filename.isEmpty() == false);
 
-    initResourceLists({
-        _frameSetExportOrderResourceList,
-        _frameSetResourceList,
-        _paletteResourceList,
-        _mtTilesetResourceList,
-    });
+    for (AbstractResourceList* rl : _resourceLists) {
+        rl->rebuildResourceItems();
+
+        connect(rl, &AbstractResourceList::resourceItemCreated,
+                this, &Project::resourceItemCreated);
+        connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
+                this, &Project::resourceItemAboutToBeRemoved);
+    }
 }
 
 Project::~Project()
@@ -59,20 +66,6 @@ Project::~Project()
         for (auto* item : rl->items()) {
             emit rl->resourceItemAboutToBeRemoved(item);
         }
-    }
-}
-
-void Project::initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists)
-{
-    _resourceLists = resourceLists;
-
-    for (AbstractResourceList* rl : _resourceLists) {
-        rl->rebuildResourceItems();
-
-        connect(rl, &AbstractResourceList::resourceItemCreated,
-                this, &Project::resourceItemCreated);
-        connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
-                this, &Project::resourceItemAboutToBeRemoved);
     }
 }
 

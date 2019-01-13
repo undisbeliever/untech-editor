@@ -40,7 +40,6 @@ public:
 
 private:
     Project(std::unique_ptr<DataT> projectFile, QString filename);
-    void initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists);
 
 public:
     virtual ~Project() final;
@@ -93,8 +92,6 @@ signals:
     void resourceItemAboutToBeRemoved(AbstractResourceItem*);
 
 private:
-    QList<AbstractResourceList*> _resourceLists;
-
     std::unique_ptr<UnTech::Project::ProjectFile> const _projectFile;
 
     QString _filename;
@@ -106,6 +103,8 @@ private:
     MetaSprite::FrameSetResourceList* const _frameSetResourceList;
     Resources::PaletteResourceList* const _paletteResourceList;
     MetaTiles::MtTilesetResourceList* const _mtTilesetResourceList;
+
+    const QList<AbstractResourceList*> _resourceLists;
 
     AbstractResourceItem* _selectedResource;
 };
