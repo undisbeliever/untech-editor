@@ -13,7 +13,7 @@ using namespace UnTech::GuiQt::Resources;
 
 ResourceProject::ResourceProject(QObject* parent)
     : AbstractProject(parent)
-    , _resourcesFile(std::make_unique<RES::ResourcesFile>())
+    , _resourcesFile(std::make_unique<PRO::ProjectFile>())
 {
     initResourceLists({
         new PaletteResourceList(this),
@@ -30,14 +30,14 @@ PaletteResourceList* ResourceProject::paletteResourceList() const
 
 bool ResourceProject::saveProjectFile(const QString& filename)
 {
-    RES::saveResourcesFile(*_resourcesFile, filename.toUtf8().data());
+    PRO::saveProjectFile(*_resourcesFile, filename.toUtf8().data());
 
     return true;
 }
 
 bool ResourceProject::loadProjectFile(const QString& filename)
 {
-    auto res = RES::loadResourcesFile(filename.toUtf8().data());
+    auto res = PRO::loadProjectFile(filename.toUtf8().data());
     if (res) {
         _resourcesFile = std::move(res);
         return true;

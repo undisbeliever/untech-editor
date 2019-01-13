@@ -8,6 +8,7 @@
 
 #include "gui-qt/abstractproject.h"
 #include "gui-qt/accessor/accessor.h"
+#include "models/project/project.h"
 #include "models/resources/resources.h"
 #include <memory>
 
@@ -16,6 +17,7 @@ namespace GuiQt {
 namespace Resources {
 class PaletteResourceList;
 
+namespace PRO = UnTech::Project;
 namespace RES = UnTech::Resources;
 
 class ResourceProject : public AbstractProject {
@@ -24,13 +26,13 @@ class ResourceProject : public AbstractProject {
     static constexpr int PALETTE_LIST_INDEX = 0;
 
 public:
-    using DataT = RES::ResourcesFile;
+    using DataT = PRO::ProjectFile;
 
 public:
     explicit ResourceProject(QObject* parent = nullptr);
     ~ResourceProject() = default;
 
-    RES::ResourcesFile* resourcesFile() const { return _resourcesFile.get(); }
+    PRO::ProjectFile* resourcesFile() const { return _resourcesFile.get(); }
 
     PaletteResourceList* paletteResourceList() const;
 
@@ -42,7 +44,7 @@ public:
 
 private:
     friend class Accessor::ProjectSettingsUndoHelper<ResourceProject>;
-    RES::ResourcesFile* dataEditable() const { return _resourcesFile.get(); }
+    PRO::ProjectFile* dataEditable() const { return _resourcesFile.get(); }
 
 protected:
     // can throw exceptions
@@ -50,7 +52,7 @@ protected:
     virtual bool loadProjectFile(const QString& filename) final;
 
 private:
-    std::unique_ptr<RES::ResourcesFile> _resourcesFile;
+    std::unique_ptr<PRO::ProjectFile> _resourcesFile;
 };
 }
 }

@@ -31,7 +31,7 @@ const QString ExportOrderResourceList::resourceTypeNamePlural() const
 
 size_t ExportOrderResourceList::nItems() const
 {
-    return project()->metaSpriteProject()->exportOrders.size();
+    return project()->metaSpriteProject()->frameSetExportOrders.size();
 }
 
 AbstractResourceItem* ExportOrderResourceList::buildResourceItem(size_t index)
@@ -67,13 +67,13 @@ void ExportOrderResourceList::do_addResource(int settingIndex, const std::string
         saveFrameSetExportOrder(exportOrder, filename);
     }
 
-    auto& exportOrders = project()->metaSpriteProject()->exportOrders;
+    auto& exportOrders = project()->metaSpriteProject()->frameSetExportOrders;
     exportOrders.insert_back(filename);
 }
 
 void ExportOrderResourceList::do_removeResource(unsigned index)
 {
-    auto& exportOrders = project()->metaSpriteProject()->exportOrders;
+    auto& exportOrders = project()->metaSpriteProject()->frameSetExportOrders;
 
     Q_ASSERT(index < exportOrders.size());
     exportOrders.remove(index);

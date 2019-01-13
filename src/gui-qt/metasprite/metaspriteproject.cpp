@@ -12,7 +12,7 @@ using namespace UnTech::GuiQt::MetaSprite;
 
 MetaSpriteProject::MetaSpriteProject(QObject* parent)
     : AbstractProject(parent)
-    , _metaSpriteProject(std::make_unique<UnTech::MetaSprite::Project>())
+    , _metaSpriteProject(std::make_unique<UnTech::Project::ProjectFile>())
 {
     initResourceLists({
         new ExportOrderResourceList(this),
@@ -22,14 +22,14 @@ MetaSpriteProject::MetaSpriteProject(QObject* parent)
 
 bool MetaSpriteProject::saveProjectFile(const QString& filename)
 {
-    UnTech::MetaSprite::saveProject(*_metaSpriteProject, filename.toUtf8().data());
+    UnTech::Project::saveProjectFile(*_metaSpriteProject, filename.toUtf8().data());
 
     return true;
 }
 
 bool MetaSpriteProject::loadProjectFile(const QString& filename)
 {
-    auto pro = UnTech::MetaSprite::loadProject(filename.toUtf8().data());
+    auto pro = UnTech::Project::loadProjectFile(filename.toUtf8().data());
     if (pro) {
         _metaSpriteProject = std::move(pro);
         return true;

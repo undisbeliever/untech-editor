@@ -12,7 +12,6 @@
 #include "tilesetlayout.h"
 #include "version.h"
 #include "models/common/errorlist.h"
-#include "models/metasprite/project.h"
 #include <algorithm>
 #include <climits>
 

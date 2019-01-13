@@ -10,6 +10,7 @@
 #include "models/common/errorlist.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/metatiles/metatiles-serializer.h"
+#include "models/project/project.h"
 
 namespace UnTech {
 namespace Resources {
@@ -31,7 +32,7 @@ static std::string itemNameString(const std::unique_ptr<T>& item)
 }
 
 std::unique_ptr<ResourcesOutput>
-compileResources(const ResourcesFile& input, const std::string& relativeBinFilename,
+compileResources(const Project::ProjectFile& input, const std::string& relativeBinFilename,
                  std::ostream& errorStream)
 {
     const static std::vector<RomDataWriter::Constant> FORMAT_VERSIONS = {

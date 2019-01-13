@@ -53,21 +53,21 @@ QVariant ResourceFilePropertyManager::data(int id) const
         return QVariant();
     }
 
-    const RES::ResourcesFile* res = _project->resourcesFile();
-    Q_ASSERT(res);
+    const PRO::ProjectFile* pro = _project->resourcesFile();
+    Q_ASSERT(pro);
 
     switch ((PropertyId)id) {
     case BLOCK_SIZE:
-        return res->blockSettings.size;
+        return pro->blockSettings.size;
 
     case BLOCK_COUNT:
-        return res->blockSettings.count;
+        return pro->blockSettings.count;
 
     case METATILE_MAX_MAP_SIZE:
-        return res->metaTileEngineSettings.maxMapSize;
+        return pro->metaTileEngineSettings.maxMapSize;
 
     case METATILE_N_METATILES:
-        return res->metaTileEngineSettings.nMetaTiles;
+        return pro->metaTileEngineSettings.nMetaTiles;
     }
 
     return QVariant();

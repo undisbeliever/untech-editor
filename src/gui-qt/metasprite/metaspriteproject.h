@@ -7,7 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstractproject.h"
-#include "models/metasprite/project.h"
+#include "models/project/project.h"
 #include <memory>
 
 namespace UnTech {
@@ -21,7 +21,7 @@ public:
     explicit MetaSpriteProject(QObject* parent = nullptr);
     ~MetaSpriteProject() = default;
 
-    UnTech::MetaSprite::Project* metaSpriteProject() const { return _metaSpriteProject.get(); }
+    UnTech::Project::ProjectFile* metaSpriteProject() const { return _metaSpriteProject.get(); }
 
 protected:
     // can throw exceptions
@@ -29,7 +29,7 @@ protected:
     virtual bool loadProjectFile(const QString& filename) final;
 
 private:
-    std::unique_ptr<UnTech::MetaSprite::Project> _metaSpriteProject;
+    std::unique_ptr<UnTech::Project::ProjectFile> _metaSpriteProject;
 };
 }
 }

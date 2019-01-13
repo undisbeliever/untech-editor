@@ -39,7 +39,7 @@ public:
     // may be nullptr
     const DataT* exportOrder() const
     {
-        return project()->metaSpriteProject()->exportOrders.at(index());
+        return project()->metaSpriteProject()->frameSetExportOrders.at(index());
     }
 
     const DataT::ExportName& exportName(bool isFrame, unsigned index);
@@ -56,17 +56,17 @@ protected:
     friend class ExportOrder::AlternativesList;
     DataT* exportOrderEditable()
     {
-        return project()->metaSpriteProject()->exportOrders.at(index());
+        return project()->metaSpriteProject()->frameSetExportOrders.at(index());
     }
 
 private:
     inline const auto& exportOrderList() const
     {
-        return project()->metaSpriteProject()->exportOrders;
+        return project()->metaSpriteProject()->frameSetExportOrders;
     }
     inline auto& exportOrderItem()
     {
-        return project()->metaSpriteProject()->exportOrders.item(index());
+        return project()->metaSpriteProject()->frameSetExportOrders.item(index());
     }
 
 private:

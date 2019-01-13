@@ -20,7 +20,7 @@ bool ResourceProject::editBlockSettings_setSize(unsigned blockSize)
     return SettingsUndoHelper(this).editField(
         blockSize,
         tr("Edit Block Size"),
-        [](RES::ResourcesFile& rf) -> unsigned& { return rf.blockSettings.size; });
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.size; });
 }
 
 bool ResourceProject::editBlockSettings_setCount(unsigned blockCount)
@@ -28,7 +28,7 @@ bool ResourceProject::editBlockSettings_setCount(unsigned blockCount)
     return SettingsUndoHelper(this).editField(
         blockCount,
         tr("Edit Block Count"),
-        [](RES::ResourcesFile& rf) -> unsigned& { return rf.blockSettings.count; });
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.count; });
 }
 
 bool ResourceProject::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
@@ -36,7 +36,7 @@ bool ResourceProject::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
     return SettingsUndoHelper(this).editField(
         maxMapSize,
         tr("Edit MetaTile Max Map Size"),
-        [](RES::ResourcesFile& rf) -> unsigned& { return rf.metaTileEngineSettings.maxMapSize; });
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.maxMapSize; });
 }
 
 bool ResourceProject::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
@@ -44,5 +44,5 @@ bool ResourceProject::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
     return SettingsUndoHelper(this).editField(
         nMetaTiles,
         tr("Edit Number of MetaTiles"),
-        [](RES::ResourcesFile& rf) -> unsigned& { return rf.metaTileEngineSettings.nMetaTiles; });
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.nMetaTiles; });
 }

@@ -9,22 +9,24 @@
 #include "models/common/errorlist.h"
 #include "models/metasprite/compiler/compiler.h"
 #include "models/metasprite/compiler/references.h"
-#include "models/metasprite/project.h"
+#include "models/project/project.h"
 #include <cstdlib>
 #include <iostream>
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
+using namespace UnTech::Project;
 
 const unsigned TBS = Compiler::RomTileData::DEFAULT_TILE_BLOCK_SIZE;
 
-typedef CommandLine::OptionType OT;
+using OT = CommandLine::OptionType;
+
 const CommandLine::Config COMMAND_LINE_CONFIG = {
     "UnTech MetaSprite Compiler",
     true,
     true,
     false,
-    Project::FILE_EXTENSION + " file",
+    ProjectFile::FILE_EXTENSION + " file",
     {
         { 'o', "output", OT::STRING, true, {}, "output file" },
         { 't', "tileblock", OT::UNSIGNED, false, TBS, "tileset block size" },
@@ -33,11 +35,11 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     }
 };
 
-static bool validateNamesUnique(const Project& project)
+static bool validateNamesUnique(const ProjectFile& project)
 {
-    ErrorList errorList;
+    UnTech::ErrorList errorList;
 
-    project.validateNamesUnique(errorList);
+    project.validate(errorList);
 
     if (!errorList.empty()) {
         errorList.printIndented(std::cerr);
@@ -48,11 +50,11 @@ static bool validateNamesUnique(const Project& project)
 
 int compile(const CommandLine::Parser& args)
 {
-    std::unique_ptr<Project> project = loadProject(args.filenames().front());
+    std::unique_ptr<ProjectFile> project = loadProjectFile(args.filenames().front());
     for (auto& fs : project->frameSets) {
         fs.loadFile();
     }
-    project->exportOrders.loadAllFiles();
+    project->frameSetExportOrders.loadAllFiles();
 
     // validation is done here to silence export order errors in GUI
     validateNamesUnique(*project);
@@ -61,12 +63,12 @@ int compile(const CommandLine::Parser& args)
     Compiler::CompiledRomData romData(args.options().at("tileblock").uint());
 
     for (auto& fs : project->frameSets) {
-        ErrorList errorList;
+        UnTech::ErrorList errorList;
 
         fs.convertSpriteImporter(errorList);
 
         if (fs.msFrameSet) {
-            const auto* exportOrder = project->exportOrders.find(fs.msFrameSet->exportOrder);
+            const auto* exportOrder = project->frameSetExportOrders.find(fs.msFrameSet->exportOrder);
             processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, romData);
         }
         else {

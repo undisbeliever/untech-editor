@@ -33,7 +33,7 @@ void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet, ErrorLi
             const auto project = this->project()->metaSpriteProject();
             Q_ASSERT(project);
 
-            const auto* exportOrder = project->exportOrders.find(frameSet->exportOrder);
+            const auto* exportOrder = project->frameSetExportOrders.find(frameSet->exportOrder);
             validateFrameSetAndBuildTilesets(*frameSet, exportOrder, errList);
         }
         catch (std::exception& ex) {

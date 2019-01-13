@@ -6,11 +6,13 @@
 
 #include "helpers/commandlineparser.h"
 #include "models/common/file.h"
+#include "models/project/project.h"
 #include "models/resources/resources.h"
 #include <cstdlib>
 #include <iostream>
 
 using namespace UnTech;
+using namespace UnTech::Project;
 using namespace UnTech::Resources;
 
 typedef CommandLine::OptionType OT;
@@ -19,7 +21,7 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     true,
     true,
     false,
-    ResourcesFile::FILE_EXTENSION + " file",
+    ProjectFile::FILE_EXTENSION + " file",
     {
         { 0, "output-inc", OT::STRING, true, {}, "output inc file" },
         { 0, "output-bin", OT::STRING, true, {}, "output bin file" },
@@ -30,16 +32,16 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int compile(const CommandLine::Parser& args)
 {
-    const std::string& resourcesFilename = args.filenames().front();
+    const std::string& projectFilename = args.filenames().front();
     const std::string& incFilename = args.options().at("output-inc").string();
     const std::string& binaryFilename = args.options().at("output-bin").string();
 
     const std::string relativeBinaryFilename = File::relativePath(incFilename, binaryFilename);
 
-    std::unique_ptr<ResourcesFile> resources = loadResourcesFile(resourcesFilename);
-    resources->loadAllFiles();
+    std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilename);
+    project->loadAllFiles();
 
-    std::unique_ptr<ResourcesOutput> output = compileResources(*resources, relativeBinaryFilename, std::cerr);
+    std::unique_ptr<ResourcesOutput> output = compileResources(*project, relativeBinaryFilename, std::cerr);
     if (!output) {
         std::cerr << "Unable to compile resources.\n";
         return EXIT_FAILURE;
