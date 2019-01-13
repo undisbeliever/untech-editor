@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "metaspriteproject.h"
 #include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/project.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -20,8 +20,6 @@ class NullFrameSetResourceItem : public AbstractInternalResourceItem {
 public:
     NullFrameSetResourceItem(FrameSetResourceList* parent, size_t index);
     ~NullFrameSetResourceItem() = default;
-
-    MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
 
 protected:
     virtual bool compileResource(ErrorList&) final;

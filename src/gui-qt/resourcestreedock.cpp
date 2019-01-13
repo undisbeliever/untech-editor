@@ -6,10 +6,10 @@
 
 #include "resourcestreedock.h"
 #include "resourcestreemodel.h"
-#include "gui-qt/abstractproject.h"
 #include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/abstractresourcelist.h"
 #include "gui-qt/common/idstringdialog.h"
+#include "gui-qt/project.h"
 #include "gui-qt/resourcestreedock.ui.h"
 
 #include <QDir>
@@ -78,7 +78,7 @@ void ResourcesTreeDock::setupAddResourceMenu()
 
 ResourcesTreeDock::~ResourcesTreeDock() = default;
 
-void ResourcesTreeDock::setProject(AbstractProject* project)
+void ResourcesTreeDock::setProject(Project* project)
 {
     if (_project != nullptr) {
         _project->disconnect(this);
@@ -94,7 +94,7 @@ void ResourcesTreeDock::setProject(AbstractProject* project)
 
     if (_project) {
         onSelectedResourceChanged();
-        connect(_project, &AbstractProject::selectedResourceChanged,
+        connect(_project, &Project::selectedResourceChanged,
                 this, &ResourcesTreeDock::onSelectedResourceChanged);
     }
 

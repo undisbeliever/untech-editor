@@ -6,25 +6,23 @@
 
 #pragma once
 
-#include "abstractproject.h"
+#include "project.h"
 #include <QObject>
 #include <memory>
 
 namespace UnTech {
 namespace GuiQt {
-class AbstractProject;
+class Project;
 
 class AbstractProjectLoader : public QObject {
     Q_OBJECT
 
 public:
-    AbstractProjectLoader(const QString& name, const QString& fileFilter,
-                          const QString& fileExtension,
-                          QObject* parent)
+    AbstractProjectLoader(QObject* parent)
         : QObject(parent)
-        , _name(name)
-        , _fileFilter(fileFilter)
-        , _fileExtension(fileExtension)
+        , _name(tr("Resource Project"))
+        , _fileFilter(QStringLiteral("UnTech Project File (*.utproject)"))
+        , _fileExtension(QStringLiteral("utproject"))
     {
     }
     ~AbstractProjectLoader() = default;
@@ -33,11 +31,14 @@ public:
     const QString& fileFilter() const { return _fileFilter; }
     const QString& fileExtension() const { return _fileExtension; }
 
-    virtual std::unique_ptr<AbstractProject> newProject() = 0;
-
-    std::unique_ptr<AbstractProject> loadProject(const QString& filename)
+    std::unique_ptr<Project> newProject()
     {
-        std::unique_ptr<AbstractProject> project = newProject();
+        return std::make_unique<Project>();
+    }
+
+    std::unique_ptr<Project> loadProject(const QString& filename)
+    {
+        std::unique_ptr<Project> project = newProject();
         if (project->loadProject(filename)) {
             return project;
         }

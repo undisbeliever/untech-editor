@@ -8,7 +8,7 @@
 
 #include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/accessor/accessor.h"
-#include "gui-qt/resources/resourceproject.h"
+#include "gui-qt/project.h"
 #include "models/metatiles/metatile-tileset.h"
 #include <QObject>
 
@@ -37,8 +37,6 @@ public:
 
     static QString typeName() { return tr("MetaTile Tileset"); }
 
-    Resources::ResourceProject* project() const { return static_cast<Resources::ResourceProject*>(_project); }
-
     MtTilesetTileParameters* tileParameters() const { return _tileParameters; }
     MtTilesetScratchpadGrid* scratchpadGrid() const { return _scratchpadGrid; }
 
@@ -48,7 +46,7 @@ public:
     // may be nullptr
     const MT::MetaTileTilesetInput* data() const
     {
-        return project()->resourcesFile()->metaTileTilesets.at(index());
+        return project()->projectFile()->metaTileTilesets.at(index());
     }
     const MT::MetaTileTilesetInput* tilesetInput() const { return data(); }
 
@@ -71,12 +69,12 @@ signals:
 private:
     inline const auto& mtTilesetList() const
     {
-        return project()->resourcesFile()->metaTileTilesets;
+        return project()->projectFile()->metaTileTilesets;
     }
 
     inline auto& tilesetInputItem()
     {
-        return project()->resourcesFile()->metaTileTilesets.item(index());
+        return project()->projectFile()->metaTileTilesets.item(index());
     }
 
 protected:

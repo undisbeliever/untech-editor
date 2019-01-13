@@ -5,14 +5,14 @@
  */
 
 #include "abstractresourcelist.h"
-#include "abstractproject.h"
 #include "abstractresourceitem.h"
+#include "project.h"
 
 #include <QMessageBox>
 
 using namespace UnTech::GuiQt;
 
-AbstractResourceList::AbstractResourceList(AbstractProject* project, ResourceTypeIndex typeIndex)
+AbstractResourceList::AbstractResourceList(Project* project, ResourceTypeIndex typeIndex)
     : QObject(project)
     , _project(project)
     , _resourceTypeIndex(typeIndex)

@@ -12,7 +12,7 @@
 
 namespace UnTech {
 namespace GuiQt {
-class AbstractProject;
+class Project;
 class AbstractResourceItem;
 
 class TabBar : public QWidget {
@@ -22,7 +22,7 @@ public:
     explicit TabBar(QWidget* parent = nullptr);
     ~TabBar() = default;
 
-    void setProject(AbstractProject* project);
+    void setProject(Project* project);
 
 private:
     void resetTabs();
@@ -56,7 +56,7 @@ signals:
 private:
     QTabBar* const _tabBar;
 
-    AbstractProject* _project;
+    Project* _project;
     QList<AbstractResourceItem*> _tabResources;
 };
 }

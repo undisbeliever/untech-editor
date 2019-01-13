@@ -18,9 +18,8 @@
 #include "resourcestreedock.h"
 #include "tabbar.h"
 
-#include "gui-qt/metasprite/metaspriteprojectloader.h"
-#include "gui-qt/resources/resourceproject.h"
-#include "gui-qt/resources/resourceprojectloader.h"
+#include "gui-qt/abstractprojectloader.h"
+#include "gui-qt/project.h"
 
 #include "gui-qt/metasprite/exportorder/exportordereditor.h"
 #include "gui-qt/metasprite/metasprite/msframeseteditor.h"
@@ -41,7 +40,7 @@
 using namespace UnTech::GuiQt;
 
 const QString MainWindow::ALL_FILE_FILTERS = QString::fromUtf8(
-    "UnTech Project File (*.utres *.utmspro)");
+    "UnTech Project File (*.utproject)");
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -67,8 +66,7 @@ MainWindow::MainWindow(QWidget* parent)
           new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettingsManager),
           new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettingsManager),
       })
-    , _projectLoaders({ new Resources::ResourceProjectLoader(this),
-                        new MetaSprite::MetaSpriteProjectLoader(this) })
+    , _projectLoaders({ new AbstractProjectLoader(this) })
 {
     _ui->setupUi(this);
 
@@ -195,7 +193,7 @@ void MainWindow::loadProject(const QString& filename)
                           tr("Unknown file extension %1").arg(ext));
 }
 
-void MainWindow::setProject(std::unique_ptr<AbstractProject>&& project)
+void MainWindow::setProject(std::unique_ptr<Project>&& project)
 {
     auto oldProject = std::move(_project);
 
@@ -226,10 +224,10 @@ void MainWindow::setProject(std::unique_ptr<AbstractProject>&& project)
             }
         }
 
-        connect(_project.get(), &AbstractProject::filenameChanged,
+        connect(_project.get(), &Project::filenameChanged,
                 this, &MainWindow::updateGuiFilePath);
 
-        connect(_project.get(), &AbstractProject::selectedResourceChanged,
+        connect(_project.get(), &Project::selectedResourceChanged,
                 this, &MainWindow::onSelectedResourceChanged);
     }
 
@@ -471,7 +469,7 @@ void MainWindow::onMenuNew(QAction* action)
         Q_ASSERT(saveDialog.selectedFiles().size() == 1);
         QString filename = saveDialog.selectedFiles().first();
 
-        std::unique_ptr<AbstractProject> project = loader->newProject();
+        std::unique_ptr<Project> project = loader->newProject();
         bool s = project->saveProject(filename);
         if (s) {
             _ui->menu_OpenRecent->addFilename(filename);

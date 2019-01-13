@@ -30,7 +30,7 @@ public:
     }
     ~PaletteEditor() = default;
 
-    virtual bool setResourceItem(AbstractProject*, AbstractResourceItem* aItem)
+    virtual bool setResourceItem(Project*, AbstractResourceItem* aItem)
     {
         PaletteResourceItem* item = qobject_cast<PaletteResourceItem*>(aItem);
         _editorWidget->setResourceItem(item);

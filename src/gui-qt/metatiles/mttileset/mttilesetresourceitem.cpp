@@ -104,11 +104,11 @@ bool MtTilesetResourceItem::compileResource(ErrorList& err)
         err.addError("Unable to load file");
         return false;
     }
-    const auto& res = project()->resourcesFile();
-    Q_ASSERT(res);
+    const auto& pro = project()->projectFile();
+    Q_ASSERT(pro);
 
-    auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *res, err);
-    bool valid = mtd && mtd->validate(res->metaTileEngineSettings, err);
+    auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *pro, err);
+    bool valid = mtd && mtd->validate(pro->metaTileEngineSettings, err);
 
     if (valid) {
         _compiledData = std::move(mtd);

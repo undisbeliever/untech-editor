@@ -6,14 +6,15 @@
 
 #include "resourcefilepropertymanager.h"
 #include "gui-qt/accessor/projectsettingsundohelper.h"
-#include "gui-qt/resources/resourceproject.h"
+#include "gui-qt/project.h"
+#include "models/project/project.h"
 
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Resources;
 
-namespace RES = UnTech::Resources;
+namespace PRO = UnTech::Project;
 
-using SettingsUndoHelper = ProjectSettingsUndoHelper<ResourceProject>;
+using SettingsUndoHelper = ProjectSettingsUndoHelper<UnTech::GuiQt::Project>;
 
 bool ResourceFilePropertyManager::editBlockSettings_setSize(unsigned blockSize)
 {

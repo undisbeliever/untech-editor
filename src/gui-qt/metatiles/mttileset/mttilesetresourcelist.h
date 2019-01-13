@@ -19,10 +19,8 @@ class MtTilesetResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    MtTilesetResourceList(Resources::ResourceProject* project);
+    MtTilesetResourceList(Project* project);
     ~MtTilesetResourceList() = default;
-
-    Resources::ResourceProject* project() const { return static_cast<Resources::ResourceProject*>(_project); }
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;

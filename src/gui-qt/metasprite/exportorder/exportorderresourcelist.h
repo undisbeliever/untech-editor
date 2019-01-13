@@ -7,7 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstractresourcelist.h"
-#include "gui-qt/metasprite/metaspriteproject.h"
+#include "gui-qt/project.h"
 #include <QObject>
 #include <QVector>
 
@@ -19,10 +19,8 @@ class ExportOrderResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    ExportOrderResourceList(MetaSpriteProject* project);
+    ExportOrderResourceList(Project* project);
     ~ExportOrderResourceList() = default;
-
-    MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;

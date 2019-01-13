@@ -5,8 +5,8 @@
  */
 
 #include "resourcefilecentralwidget.h"
+#include "gui-qt/project.h"
 #include "gui-qt/resources/resourcefile/resourcefilecentralwidget.ui.h"
-#include "gui-qt/resources/resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -22,7 +22,7 @@ ResourceFileCentralWidget::ResourceFileCentralWidget(QWidget* parent)
 
 ResourceFileCentralWidget::~ResourceFileCentralWidget() = default;
 
-void ResourceFileCentralWidget::setProject(ResourceProject* project)
+void ResourceFileCentralWidget::setProject(Project* project)
 {
     if (_project) {
         _project->disconnect(this);

@@ -11,11 +11,12 @@
 
 namespace UnTech {
 namespace GuiQt {
+class Project;
+
 namespace Resources {
 namespace Ui {
 class ResourceFileCentralWidget;
 }
-class ResourceProject;
 class ResourceFilePropertyManager;
 
 class ResourceFileCentralWidget : public QWidget {
@@ -25,12 +26,12 @@ public:
     ResourceFileCentralWidget(QWidget* parent = 0);
     ~ResourceFileCentralWidget();
 
-    void setProject(ResourceProject* project);
+    void setProject(Project* project);
 
 private:
     std::unique_ptr<Ui::ResourceFileCentralWidget> const _ui;
 
-    ResourceProject* _project;
+    Project* _project;
 };
 }
 }

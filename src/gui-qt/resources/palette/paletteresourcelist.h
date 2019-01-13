@@ -19,10 +19,8 @@ class PaletteResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    PaletteResourceList(ResourceProject* project);
+    PaletteResourceList(Project* project);
     ~PaletteResourceList() = default;
-
-    ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;

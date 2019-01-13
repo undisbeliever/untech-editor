@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "metaspriteproject.h"
 #include "gui-qt/abstractresourcelist.h"
+#include "gui-qt/project.h"
 #include <QObject>
 #include <QVector>
 
@@ -24,10 +24,8 @@ class FrameSetResourceList : public AbstractResourceList {
     };
 
 public:
-    FrameSetResourceList(MetaSpriteProject* project);
+    FrameSetResourceList(Project* project);
     ~FrameSetResourceList() = default;
-
-    MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;

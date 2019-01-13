@@ -4,11 +4,17 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "abstractproject.h"
+#include "project.h"
 #include "abstractresourceitem.h"
 #include "abstractresourcelist.h"
 #include "filesystemwatcher.h"
 #include "resourcevalidationworker.h"
+#include "models/project/project.h"
+
+#include "gui-qt/metasprite/exportorder/exportorderresourcelist.h"
+#include "gui-qt/metasprite/framesetresourcelist.h"
+#include "gui-qt/metatiles/mttileset/mttilesetresourcelist.h"
+#include "gui-qt/resources/palette/paletteresourcelist.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -16,18 +22,29 @@
 
 using namespace UnTech::GuiQt;
 
-AbstractProject::AbstractProject(QObject* parent)
+Project::Project(QObject* parent)
     : QObject(parent)
     , _resourceLists()
     , _filename()
     , _undoStack(new QUndoStack(this))
     , _validationWorker(new ResourceValidationWorker(this))
     , _filesystemWatcher(new FilesystemWatcher(this))
+    , _projectFile(std::make_unique<UnTech::Project::ProjectFile>())
+    , _frameSetExportOrderResourceList(new MetaSprite::ExportOrderResourceList(this))
+    , _frameSetResourceList(new MetaSprite::FrameSetResourceList(this))
+    , _paletteResourceList(new Resources::PaletteResourceList(this))
+    , _mtTilesetResourceList(new MetaTiles::MtTilesetResourceList(this))
     , _selectedResource(nullptr)
 {
+    initResourceLists({
+        _frameSetExportOrderResourceList,
+        _frameSetResourceList,
+        _paletteResourceList,
+        _mtTilesetResourceList,
+    });
 }
 
-AbstractProject::~AbstractProject()
+Project::~Project()
 {
     // Force cleanup of ResourceItems.
     // This is done is the Project instead of in ResourceList to ensure that
@@ -42,19 +59,19 @@ AbstractProject::~AbstractProject()
     }
 }
 
-void AbstractProject::initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists)
+void Project::initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists)
 {
     _resourceLists = resourceLists;
 
     for (AbstractResourceList* rl : _resourceLists) {
         connect(rl, &AbstractResourceList::resourceItemCreated,
-                this, &AbstractProject::resourceItemCreated);
+                this, &Project::resourceItemCreated);
         connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
-                this, &AbstractProject::resourceItemAboutToBeRemoved);
+                this, &Project::resourceItemAboutToBeRemoved);
     }
 }
 
-void AbstractProject::setSelectedResource(AbstractResourceItem* item)
+void Project::setSelectedResource(AbstractResourceItem* item)
 {
     if (_selectedResource != item) {
         if (_selectedResource) {
@@ -65,14 +82,14 @@ void AbstractProject::setSelectedResource(AbstractResourceItem* item)
 
         if (_selectedResource) {
             connect(_selectedResource, &QObject::destroyed,
-                    this, &AbstractProject::onSelectedResourceDestroyed);
+                    this, &Project::onSelectedResourceDestroyed);
         }
 
         emit selectedResourceChanged();
     }
 }
 
-AbstractResourceList* AbstractProject::findResourceList(ResourceTypeIndex type)
+AbstractResourceList* Project::findResourceList(ResourceTypeIndex type)
 {
     for (auto* rl : _resourceLists) {
         if (rl->resourceTypeIndex() == type) {
@@ -83,7 +100,7 @@ AbstractResourceList* AbstractProject::findResourceList(ResourceTypeIndex type)
     return nullptr;
 }
 
-AbstractResourceItem* AbstractProject::findResourceItem(ResourceTypeIndex type, const QString& name) const
+AbstractResourceItem* Project::findResourceItem(ResourceTypeIndex type, const QString& name) const
 {
     for (auto* rl : _resourceLists) {
         if (rl->resourceTypeIndex() == type) {
@@ -94,8 +111,12 @@ AbstractResourceItem* AbstractProject::findResourceItem(ResourceTypeIndex type, 
     return nullptr;
 }
 
-bool AbstractProject::saveProject(const QString& filename)
+bool Project::saveProject(const QString& filename)
 {
+    using namespace UnTech::Project;
+
+    Q_ASSERT(_projectFile);
+
     emit aboutToSaveProject();
 
     QString absFilename = QDir::toNativeSeparators(
@@ -103,7 +124,8 @@ bool AbstractProject::saveProject(const QString& filename)
 
     bool success = false;
     try {
-        success = saveProjectFile(absFilename);
+        saveProjectFile(*_projectFile, filename.toUtf8().data());
+        success = true;
     }
     catch (const std::exception& ex) {
         QMessageBox::critical(nullptr, tr("Error Saving File"), ex.what());
@@ -130,17 +152,21 @@ bool AbstractProject::saveProject(const QString& filename)
     return success;
 }
 
-bool AbstractProject::loadProject(const QString& filename)
+bool Project::loadProject(const QString& filename)
 {
+    using namespace UnTech::Project;
+
     QString absFilename = QDir::toNativeSeparators(
         QFileInfo(filename).absoluteFilePath());
 
     bool success = false;
     try {
-        success = loadProjectFile(absFilename);
-        if (success) {
-            rebuildResourceLists();
+        auto pf = loadProjectFile(filename.toUtf8().data());
+        if (pf) {
+            _projectFile = std::move(pf);
+            success = true;
         }
+        rebuildResourceLists();
     }
     catch (const std::exception& ex) {
         QMessageBox::critical(nullptr, tr("Error opening File"), ex.what());
@@ -158,21 +184,21 @@ bool AbstractProject::loadProject(const QString& filename)
     return success;
 }
 
-void AbstractProject::onSelectedResourceDestroyed(QObject* obj)
+void Project::onSelectedResourceDestroyed(QObject* obj)
 {
     if (_selectedResource == obj) {
         setSelectedResource(nullptr);
     }
 }
 
-void AbstractProject::rebuildResourceLists()
+void Project::rebuildResourceLists()
 {
     for (auto* ri : _resourceLists) {
         ri->rebuildResourceItems();
     }
 }
 
-QList<AbstractExternalResourceItem*> AbstractProject::unsavedExternalResources() const
+QList<AbstractExternalResourceItem*> Project::unsavedExternalResources() const
 {
     QList<AbstractExternalResourceItem*> items;
 
@@ -189,7 +215,7 @@ QList<AbstractExternalResourceItem*> AbstractProject::unsavedExternalResources()
     return items;
 }
 
-QStringList AbstractProject::unsavedFilenames() const
+QStringList Project::unsavedFilenames() const
 {
     QList<QString> filenames;
     bool resourceFileDirty = _undoStack->isClean() == false;

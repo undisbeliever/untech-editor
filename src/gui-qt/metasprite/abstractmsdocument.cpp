@@ -30,7 +30,7 @@ void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet, ErrorLi
 
     if (frameSet) {
         try {
-            const auto project = this->project()->metaSpriteProject();
+            const auto project = this->project()->projectFile();
             Q_ASSERT(project);
 
             const auto* exportOrder = project->frameSetExportOrders.find(frameSet->exportOrder);

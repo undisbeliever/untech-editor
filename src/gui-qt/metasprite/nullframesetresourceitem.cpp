@@ -13,9 +13,9 @@ using namespace UnTech::GuiQt::MetaSprite;
 NullFrameSetResourceItem::NullFrameSetResourceItem(FrameSetResourceList* parent, size_t index)
     : AbstractInternalResourceItem(parent, index)
 {
-    Q_ASSERT(index < project()->metaSpriteProject()->frameSets.size());
+    Q_ASSERT(index < project()->projectFile()->frameSets.size());
 
-    const auto& fs = project()->metaSpriteProject()->frameSets.at(index);
+    const auto& fs = project()->projectFile()->frameSets.at(index);
     Q_ASSERT(fs.type != FrameSetType::METASPRITE && fs.type != FrameSetType::SPRITE_IMPORTER);
 
     setName(tr("(null FrameSet)"));

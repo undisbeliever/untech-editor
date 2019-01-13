@@ -5,9 +5,9 @@
  */
 
 #include "filesystemwatcher.h"
-#include "abstractproject.h"
 #include "abstractresourceitem.h"
 #include "abstractresourcelist.h"
+#include "project.h"
 #include "models/common/imagecache.h"
 
 #include <QDebug>
@@ -18,7 +18,7 @@
 
 using namespace UnTech::GuiQt;
 
-FilesystemWatcher::FilesystemWatcher(AbstractProject* project)
+FilesystemWatcher::FilesystemWatcher(Project* project)
     : QObject(project)
     , _project(project)
     , _watcher(new QFileSystemWatcher(this))
@@ -37,19 +37,19 @@ FilesystemWatcher::FilesystemWatcher(AbstractProject* project)
     connect(_projectWatcher, &QFileSystemWatcher::fileChanged,
             this, &FilesystemWatcher::onProjectFileChanged);
 
-    connect(_project, &AbstractProject::filenameChanged,
+    connect(_project, &Project::filenameChanged,
             this, &FilesystemWatcher::watchProjectFile);
 
-    connect(_project, &AbstractProject::aboutToSaveProject,
+    connect(_project, &Project::aboutToSaveProject,
             this, &FilesystemWatcher::onAboutToSaveProject);
 
-    connect(_project, &AbstractProject::resourceItemCreated,
+    connect(_project, &Project::resourceItemCreated,
             this, &FilesystemWatcher::onResourceItemCreated);
 
-    connect(_project, &AbstractProject::selectedResourceChanged,
+    connect(_project, &Project::selectedResourceChanged,
             this, &FilesystemWatcher::onSelectedResourceChanged);
 
-    connect(_project, &AbstractProject::resourceItemAboutToBeRemoved,
+    connect(_project, &Project::resourceItemAboutToBeRemoved,
             this, &FilesystemWatcher::removeResourceItem);
 }
 

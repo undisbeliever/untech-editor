@@ -13,7 +13,7 @@ PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t ind
     : AbstractInternalResourceItem(parent, index)
     , _compiledData(nullptr)
 {
-    Q_ASSERT(index < project()->resourcesFile()->palettes.size());
+    Q_ASSERT(index < project()->projectFile()->palettes.size());
 
     auto* pal = paletteInput();
     setName(QString::fromStdString(pal->name));
@@ -39,7 +39,7 @@ void PaletteResourceItem::updateExternalFiles()
 
 bool PaletteResourceItem::compileResource(ErrorList& err)
 {
-    const auto& res = project()->resourcesFile();
+    const auto& res = project()->projectFile();
     Q_ASSERT(res);
     const RES::PaletteInput* pal = paletteInput();
     Q_ASSERT(pal);

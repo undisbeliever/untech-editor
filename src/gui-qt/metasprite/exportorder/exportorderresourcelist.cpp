@@ -14,7 +14,7 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;
 
-ExportOrderResourceList::ExportOrderResourceList(MetaSpriteProject* project)
+ExportOrderResourceList::ExportOrderResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::MS_EXPORT_ORDER)
 {
 }
@@ -31,7 +31,7 @@ const QString ExportOrderResourceList::resourceTypeNamePlural() const
 
 size_t ExportOrderResourceList::nItems() const
 {
-    return project()->metaSpriteProject()->frameSetExportOrders.size();
+    return project()->projectFile()->frameSetExportOrders.size();
 }
 
 AbstractResourceItem* ExportOrderResourceList::buildResourceItem(size_t index)
@@ -67,13 +67,13 @@ void ExportOrderResourceList::do_addResource(int settingIndex, const std::string
         saveFrameSetExportOrder(exportOrder, filename);
     }
 
-    auto& exportOrders = project()->metaSpriteProject()->frameSetExportOrders;
+    auto& exportOrders = project()->projectFile()->frameSetExportOrders;
     exportOrders.insert_back(filename);
 }
 
 void ExportOrderResourceList::do_removeResource(unsigned index)
 {
-    auto& exportOrders = project()->metaSpriteProject()->frameSetExportOrders;
+    auto& exportOrders = project()->projectFile()->frameSetExportOrders;
 
     Q_ASSERT(index < exportOrders.size());
     exportOrders.remove(index);

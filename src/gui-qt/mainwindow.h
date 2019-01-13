@@ -20,7 +20,7 @@ class ZoomSettingsManager;
 class ZoomSettingsUi;
 class OpenRecentMenu;
 class AbstractEditor;
-class AbstractProject;
+class Project;
 class AbstractProjectLoader;
 class AbstractResourceItem;
 class TabBar;
@@ -37,7 +37,7 @@ public:
     ~MainWindow();
 
     void loadProject(const QString& filename);
-    void setProject(std::unique_ptr<AbstractProject>&& project);
+    void setProject(std::unique_ptr<Project>&& project);
 
 private slots:
     // updates windowTitle, windowFilePath and action_Save->text
@@ -73,7 +73,7 @@ protected:
     QVector<QPair<QString, QMainWindow*>> settingsStateNameWindowList();
 
 private:
-    std::unique_ptr<AbstractProject> _project;
+    std::unique_ptr<Project> _project;
     AbstractResourceItem* _selectedResource;
     AbstractEditor* _currentEditor;
 

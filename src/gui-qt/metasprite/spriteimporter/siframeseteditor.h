@@ -28,7 +28,7 @@ public:
     }
     ~SiFrameSetEditor() = default;
 
-    virtual bool setResourceItem(AbstractProject*, AbstractResourceItem* aItem)
+    virtual bool setResourceItem(Project*, AbstractResourceItem* aItem)
     {
         Document* item = qobject_cast<Document*>(aItem);
         _editorWidget->setDocument(item);

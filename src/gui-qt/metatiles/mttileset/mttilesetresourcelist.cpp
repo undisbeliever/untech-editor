@@ -14,7 +14,7 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 
-MtTilesetResourceList::MtTilesetResourceList(Resources::ResourceProject* project)
+MtTilesetResourceList::MtTilesetResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::MT_TILESET)
 {
 }
@@ -31,7 +31,7 @@ const QString MtTilesetResourceList::resourceTypeNamePlural() const
 
 size_t MtTilesetResourceList::nItems() const
 {
-    return project()->resourcesFile()->metaTileTilesets.size();
+    return project()->projectFile()->metaTileTilesets.size();
 }
 
 MtTilesetResourceItem* MtTilesetResourceList::buildResourceItem(size_t index)
@@ -55,7 +55,7 @@ void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& 
 {
     Q_ASSERT(settingIndex == 0);
 
-    auto& metaTileTilesets = project()->resourcesFile()->metaTileTilesets;
+    auto& metaTileTilesets = project()->projectFile()->metaTileTilesets;
     metaTileTilesets.insert_back(filename);
 
     QFileInfo fi(QString::fromStdString(filename));
@@ -72,7 +72,7 @@ void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& 
 
 void MtTilesetResourceList::do_removeResource(unsigned index)
 {
-    auto& metaTileTilesets = project()->resourcesFile()->metaTileTilesets;
+    auto& metaTileTilesets = project()->projectFile()->metaTileTilesets;
 
     Q_ASSERT(index < metaTileTilesets.size());
     metaTileTilesets.remove(index);

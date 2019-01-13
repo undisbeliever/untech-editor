@@ -5,7 +5,7 @@
  */
 
 #include "resourcefilepropertymanager.h"
-#include "gui-qt/resources/resourceproject.h"
+#include "gui-qt/project.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -26,7 +26,7 @@ ResourceFilePropertyManager::ResourceFilePropertyManager(QObject* parent)
     addProperty(tr("N. MetaTiles"), METATILE_N_METATILES, Type::UNSIGNED, 16, 1024);
 }
 
-void ResourceFilePropertyManager::setProject(ResourceProject* project)
+void ResourceFilePropertyManager::setProject(Project* project)
 {
     if (_project == project) {
         return;
@@ -40,7 +40,7 @@ void ResourceFilePropertyManager::setProject(ResourceProject* project)
     setEnabled(_project != nullptr);
 
     if (_project) {
-        connect(_project, &ResourceProject::resourceFileSettingsChanged,
+        connect(_project, &Project::resourceFileSettingsChanged,
                 this, &ResourceFilePropertyManager::dataChanged);
     }
 
@@ -53,7 +53,7 @@ QVariant ResourceFilePropertyManager::data(int id) const
         return QVariant();
     }
 
-    const PRO::ProjectFile* pro = _project->resourcesFile();
+    const auto* pro = _project->projectFile();
     Q_ASSERT(pro);
 
     switch ((PropertyId)id) {

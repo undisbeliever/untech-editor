@@ -8,13 +8,15 @@
 
 #include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/accessor/accessor.h"
-#include "gui-qt/resources/resourceproject.h"
+#include "gui-qt/project.h"
 #include <QObject>
 
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
 class PaletteResourceList;
+
+namespace RES = UnTech::Resources;
 
 class PaletteResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
@@ -28,11 +30,9 @@ public:
 
     static QString typeName() { return tr("Palette"); }
 
-    ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
-
     inline const RES::PaletteInput* data() const
     {
-        return project()->resourcesFile()->palettes.at(index());
+        return project()->projectFile()->palettes.at(index());
     }
     inline const RES::PaletteInput* paletteInput() const { return data(); }
 
@@ -49,7 +49,7 @@ private:
     friend class Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
     RES::PaletteInput* dataEditable()
     {
-        return project()->resourcesFile()->palettes.at(index());
+        return project()->projectFile()->palettes.at(index());
     }
 
     void updateExternalFiles();

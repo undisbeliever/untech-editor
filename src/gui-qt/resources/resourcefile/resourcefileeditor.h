@@ -10,7 +10,7 @@
 #include "resourcefilepropertieswidget.h"
 #include "gui-qt/abstracteditor.h"
 #include "gui-qt/genericpropertieswidget.h"
-#include "gui-qt/resources/resourceproject.h"
+#include "gui-qt/project.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -28,10 +28,8 @@ public:
     }
     ~ResourceFileEditor() = default;
 
-    virtual bool setResourceItem(AbstractProject* aProject, AbstractResourceItem* item)
+    virtual bool setResourceItem(Project* project, AbstractResourceItem* item)
     {
-        ResourceProject* project = qobject_cast<ResourceProject*>(aProject);
-
         _editorWidget->setProject(project);
         _propertyWidget->setProject(project);
 
