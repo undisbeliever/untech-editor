@@ -21,7 +21,6 @@ class ZoomSettingsUi;
 class OpenRecentMenu;
 class AbstractEditor;
 class Project;
-class AbstractProjectLoader;
 class AbstractResourceItem;
 class TabBar;
 class ResourcesTreeDock;
@@ -30,7 +29,9 @@ class ErrorListDock;
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
-    const static QString ALL_FILE_FILTERS;
+    const static QString OPEN_PROJECT_FILTERS;
+    const static QString SAVE_PROJECT_FILTER;
+    const static QString PROJECT_EXTENSION;
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);
@@ -55,7 +56,7 @@ private:
 private slots:
     void onEditorZoomSettingsChanged();
 
-    void onMenuNew(QAction* action);
+    void onMenuNew();
     void onMenuOpen();
     void onMenuOpenRecent(QString filename);
     void onMenuSave();
@@ -94,7 +95,6 @@ private:
     QUndoGroup* const _undoGroup;
 
     QList<AbstractEditor*> const _editors;
-    QList<AbstractProjectLoader*> const _projectLoaders;
 };
 }
 }
