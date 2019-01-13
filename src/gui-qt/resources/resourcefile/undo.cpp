@@ -15,33 +15,33 @@ namespace RES = UnTech::Resources;
 
 using SettingsUndoHelper = ProjectSettingsUndoHelper<ResourceProject>;
 
-bool ResourceProject::editBlockSettings_setSize(unsigned blockSize)
+bool ResourceFilePropertyManager::editBlockSettings_setSize(unsigned blockSize)
 {
-    return SettingsUndoHelper(this).editField(
+    return SettingsUndoHelper(_project).editField(
         blockSize,
         tr("Edit Block Size"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.size; });
 }
 
-bool ResourceProject::editBlockSettings_setCount(unsigned blockCount)
+bool ResourceFilePropertyManager::editBlockSettings_setCount(unsigned blockCount)
 {
-    return SettingsUndoHelper(this).editField(
+    return SettingsUndoHelper(_project).editField(
         blockCount,
         tr("Edit Block Count"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.count; });
 }
 
-bool ResourceProject::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
+bool ResourceFilePropertyManager::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
 {
-    return SettingsUndoHelper(this).editField(
+    return SettingsUndoHelper(_project).editField(
         maxMapSize,
         tr("Edit MetaTile Max Map Size"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.maxMapSize; });
 }
 
-bool ResourceProject::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
+bool ResourceFilePropertyManager::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
 {
-    return SettingsUndoHelper(this).editField(
+    return SettingsUndoHelper(_project).editField(
         nMetaTiles,
         tr("Edit Number of MetaTiles"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.nMetaTiles; });

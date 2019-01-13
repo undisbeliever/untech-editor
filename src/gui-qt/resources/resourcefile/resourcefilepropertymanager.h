@@ -34,6 +34,13 @@ public:
     virtual bool setData(int id, const QVariant& value) final;
 
 private:
+    bool editBlockSettings_setSize(unsigned blockSize);
+    bool editBlockSettings_setCount(unsigned blockCount);
+
+    bool editMetaTileSettings_setMaxMapSize(unsigned maxMapSize);
+    bool editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles);
+
+private:
     ResourceProject* _project;
 };
 }

@@ -79,16 +79,16 @@ bool ResourceFilePropertyManager::setData(int id, const QVariant& value)
 
     switch ((PropertyId)id) {
     case BLOCK_SIZE:
-        return _project->editBlockSettings_setSize(value.toUInt());
+        return editBlockSettings_setSize(value.toUInt());
 
     case BLOCK_COUNT:
-        return _project->editBlockSettings_setCount(value.toUInt());
+        return editBlockSettings_setCount(value.toUInt());
 
     case METATILE_MAX_MAP_SIZE:
-        return _project->editMetaTileSettings_setMaxMapSize(value.toUInt());
+        return editMetaTileSettings_setMaxMapSize(value.toUInt());
 
     case METATILE_N_METATILES:
-        return _project->editMetaTileSettings_setNMetaTiles(value.toUInt());
+        return editMetaTileSettings_setNMetaTiles(value.toUInt());
     }
 
     return false;

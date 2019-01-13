@@ -36,12 +36,6 @@ public:
 
     PaletteResourceList* paletteResourceList() const;
 
-    bool editBlockSettings_setSize(unsigned blockSize);
-    bool editBlockSettings_setCount(unsigned blockCount);
-
-    bool editMetaTileSettings_setMaxMapSize(unsigned maxMapSize);
-    bool editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles);
-
 private:
     friend class Accessor::ProjectSettingsUndoHelper<ResourceProject>;
     PRO::ProjectFile* dataEditable() const { return _resourcesFile.get(); }
