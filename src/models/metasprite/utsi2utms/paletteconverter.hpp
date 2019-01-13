@@ -5,6 +5,7 @@
  */
 
 #pragma once
+#include "models/common/errorlist.h"
 #include "models/common/vectorset.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
@@ -56,7 +57,7 @@ public:
             }
         }
         catch (const std::exception& ex) {
-            errorList.addError(siFrameSet, ex.what());
+            errorList.addError(ex.what());
         }
     }
 
@@ -95,7 +96,7 @@ private:
             colors.erase(tIt);
         }
         else {
-            errorList.addWarning(siFrameSet, "Transparent color is not in frame objects");
+            errorList.addWarning("Transparent color is not in frame objects");
 
             if (colors.size() > (PALETTE_COLORS - 1)) {
                 throw std::runtime_error("Too many colors, expected a maximum of 15 colors after removing transparency");

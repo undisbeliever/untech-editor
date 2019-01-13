@@ -5,6 +5,7 @@
  */
 
 #include "animation.h"
+#include "models/metasprite/errorlisthelpers.h"
 #include "models/metasprite/metasprite.h"
 #include "models/metasprite/spriteimporter.h"
 
@@ -17,12 +18,12 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
 // AnimationFrame
 // ==============
 
-bool AnimationFrame::isValid(const SI::FrameSet& frameSet) const
+bool AnimationFrame::testFrameValid(const SI::FrameSet& frameSet) const
 {
     return frameSet.frames.contains(frame.name);
 }
 
-bool AnimationFrame::isValid(const MS::FrameSet& frameSet) const
+bool AnimationFrame::testFrameValid(const MS::FrameSet& frameSet) const
 {
     return frameSet.frames.contains(frame.name);
 }
@@ -31,37 +32,37 @@ bool AnimationFrame::isValid(const MS::FrameSet& frameSet) const
 // =========
 
 template <class FrameSetT>
-bool Animation::_isValid(const FrameSetT& frameSet) const
+bool Animation::_validate(const FrameSetT& frameSet, ErrorList& err) const
 {
-    if (frameSet.animations.size() > MAX_ANIMATION_FRAMES) {
-        return false;
-    }
+    const unsigned oldErrorCount = err.errorCount();
 
     if (oneShot == false && nextAnimation.isValid()) {
         if (frameSet.animations.contains(nextAnimation) == false) {
-            return false;
+            err.addError(animationError(frameSet, *this, "Cannot find animation " + nextAnimation));
         }
     }
 
     if (frames.size() == 0) {
-        return false;
+        err.addError(animationError(frameSet, *this, "Expected at least one animation frame"));
     }
 
-    for (const AnimationFrame& aFrame : frames) {
-        if (aFrame.isValid(frameSet) == false) {
-            return false;
+    for (unsigned i = 0; i < frames.size(); i++) {
+        const AnimationFrame& aFrame = frames.at(i);
+
+        if (aFrame.testFrameValid(frameSet) == false) {
+            err.addError(animationFrameError(frameSet, *this, i, "Cannot find frame " + aFrame.frame.name));
         }
     }
 
-    return true;
+    return err.errorCount() == oldErrorCount;
 }
 
-bool Animation::isValid(const MS::FrameSet& frameSet) const
+bool Animation::validate(const MS::FrameSet& frameSet, ErrorList& err) const
 {
-    return _isValid(frameSet);
+    return _validate(frameSet, err);
 }
 
-bool Animation::isValid(const SI::FrameSet& frameSet) const
+bool Animation::validate(const SI::FrameSet& frameSet, ErrorList& err) const
 {
-    return _isValid(frameSet);
+    return _validate(frameSet, err);
 }

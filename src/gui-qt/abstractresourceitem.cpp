@@ -24,7 +24,7 @@ void AbstractResourceItem::loadResource()
 {
     Q_ASSERT(_undoStack->count() == 0);
 
-    RES::ErrorList err;
+    ErrorList err;
 
     try {
         bool s = loadResourceData(err);
@@ -35,7 +35,7 @@ void AbstractResourceItem::loadResource()
         setState(ResourceState::FILE_ERROR);
     }
 
-    _errorList = err;
+    _errorList = std::move(err);
 
     emit resourceLoaded();
     emit errorListChanged();
@@ -78,7 +78,7 @@ void AbstractResourceItem::validateItem()
         return;
     }
 
-    RES::ErrorList err;
+    ErrorList err;
 
     // check dependencies
     bool dependenciesOk = true;
@@ -113,13 +113,13 @@ void AbstractResourceItem::validateItem()
             setState(ResourceState::ERROR);
         }
 
-        _errorList = err;
+        _errorList = std::move(err);
         emit errorListChanged();
 
         emit resourceComplied();
     }
     else {
-        _errorList = err;
+        _errorList = std::move(err);
         emit errorListChanged();
 
         setState(ResourceState::DEPENDENCY_ERROR);
@@ -174,7 +174,7 @@ QString AbstractInternalResourceItem::filename() const
     return QString();
 }
 
-bool AbstractInternalResourceItem::loadResourceData(UnTech::Resources::ErrorList&)
+bool AbstractInternalResourceItem::loadResourceData(ErrorList&)
 {
     return true;
 }

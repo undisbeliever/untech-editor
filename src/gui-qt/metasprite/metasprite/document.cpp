@@ -70,7 +70,7 @@ void Document::saveResourceData(const std::string& filename) const
     MS::saveFrameSet(*_frameSet, filename);
 }
 
-bool Document::loadResourceData(RES::ErrorList& err)
+bool Document::loadResourceData(ErrorList& err)
 {
     using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
 
@@ -99,14 +99,11 @@ bool Document::loadResourceData(RES::ErrorList& err)
     return true;
 }
 
-bool Document::compileResource(RES::ErrorList& err)
+bool Document::compileResource(ErrorList& err)
 {
-    UnTech::MetaSprite::ErrorList msErrorList;
+    compileMsFrameset(_frameSet, err);
 
-    compileMsFrameset(_frameSet, msErrorList);
-    appendToErrorList(err, msErrorList);
-
-    return msErrorList.errors.empty() == true;
+    return err.hasError() == false;
 }
 
 void Document::onFrameSetExportOrderChanged()

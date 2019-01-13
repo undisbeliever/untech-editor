@@ -14,6 +14,8 @@
 #include <memory>
 
 namespace UnTech {
+struct ErrorListItem;
+
 namespace GuiQt {
 class ZoomSettings;
 class ZoomSettingsManager;
@@ -49,6 +51,8 @@ public:
 
     void setDocument(Document* document);
 
+    void onErrorDoubleClicked(const ErrorListItem& error);
+
 signals:
     void currentTabChanged();
 
@@ -56,6 +60,9 @@ private slots:
     void populateWidgets();
 
     void onSelectedFrameChanged();
+
+private:
+    void showGraphicsTab();
 
 private:
     Document* _document;

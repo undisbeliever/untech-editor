@@ -6,6 +6,7 @@
 
 #include "helpers/commandlineparser.h"
 #include "models/common/atomicofstream.h"
+#include "models/common/errorlist.h"
 #include "models/metasprite/compiler/compiler.h"
 #include "models/metasprite/compiler/references.h"
 #include "models/metasprite/project.h"
@@ -32,6 +33,19 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
     }
 };
 
+static bool validateNamesUnique(const Project& project)
+{
+    ErrorList errorList;
+
+    project.validateNamesUnique(errorList);
+
+    if (!errorList.empty()) {
+        errorList.printIndented(std::cerr);
+    }
+
+    return errorList.hasError();
+}
+
 int compile(const CommandLine::Parser& args)
 {
     std::unique_ptr<Project> project = loadProject(args.filenames().front());
@@ -40,23 +54,34 @@ int compile(const CommandLine::Parser& args)
     }
     project->exportOrders.loadAllFiles();
 
-    ErrorList errorList;
-
     // validation is done here to silence export order errors in GUI
-    project->validateNamesUnique(errorList);
+    validateNamesUnique(*project);
 
+    bool valid = true;
     Compiler::CompiledRomData romData(args.options().at("tileblock").uint());
-    Compiler::processProject(*project, errorList, romData);
 
-    for (const auto& w : errorList.warnings) {
-        std::cerr << "WARNING: " << w << '\n';
+    for (auto& fs : project->frameSets) {
+        ErrorList errorList;
+
+        fs.convertSpriteImporter(errorList);
+
+        if (fs.msFrameSet) {
+            const auto* exportOrder = project->exportOrders.find(fs.msFrameSet->exportOrder);
+            processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, romData);
+        }
+        else {
+            processNullFrameSet(romData);
+        }
+
+        if (!errorList.empty()) {
+            std::cerr << fs.name() << ":\n";
+            errorList.printIndented(std::cerr);
+        }
+
+        valid &= errorList.hasError() == false;
     }
 
-    for (const auto& e : errorList.errors) {
-        std::cerr << "ERROR: " << e << '\n';
-    }
-
-    if (!errorList.errors.empty()) {
+    if (!valid) {
         return EXIT_FAILURE;
     }
 

@@ -28,3 +28,7 @@ QWidget* AbstractEditor::statusBarWidget() const
 void AbstractEditor::populateMenu(QMenu*, QMenu*)
 {
 }
+
+void AbstractEditor::onErrorDoubleClicked(const UnTech::ErrorListItem&)
+{
+}

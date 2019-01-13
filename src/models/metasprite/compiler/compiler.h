@@ -8,7 +8,6 @@
 
 #include "romdata.h"
 #include "romtiledata.h"
-#include "../errorlist.h"
 #include "../metasprite.h"
 #include "../project.h"
 
@@ -46,8 +45,10 @@ struct CompiledRomData {
 bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
                                       ErrorList& errorList);
 
-void processProject(Project& project, ErrorList& errorList, CompiledRomData& out);
+void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                            ErrorList& errorList, CompiledRomData& out);
 
+void processNullFrameSet(CompiledRomData& out);
 }
 }
 }

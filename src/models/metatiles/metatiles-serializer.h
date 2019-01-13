@@ -8,15 +8,15 @@
 
 #include "common.h"
 #include "metatile-tileset.h"
+#include "models/common/errorlist.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
-#include "models/resources/error-list.h"
 
 namespace UnTech {
 namespace MetaTiles {
 
 // returns nullptr on error
-std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename, Resources::ErrorList& err);
+std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename, ErrorList& err);
 
 // raises an exception on error
 std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename);

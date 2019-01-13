@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "error-list.h"
 #include "models/common/idstring.h"
 #include "models/snes/palette.h"
 #include <memory>
@@ -14,6 +13,8 @@
 #include <vector>
 
 namespace UnTech {
+class ErrorList;
+
 namespace Resources {
 
 struct PaletteInput {

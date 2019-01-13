@@ -336,6 +336,7 @@ void MainWindow::setEditor(AbstractEditor* editor)
 
     if (_currentEditor) {
         _currentEditor->disconnect(this);
+        _errorListDock->disconnect(_currentEditor);
 
         if (QWidget* sw = _currentEditor->statusBarWidget()) {
             statusBar()->removeWidget(sw);
@@ -364,6 +365,9 @@ void MainWindow::setEditor(AbstractEditor* editor)
 
         connect(_currentEditor, &AbstractEditor::zoomSettingsChanged,
                 this, &MainWindow::onEditorZoomSettingsChanged);
+
+        connect(_errorListDock, &ErrorListDock::errorDoubleClicked,
+                editor, &AbstractEditor::onErrorDoubleClicked);
     }
     else {
         _zoomSettingsUi->setZoomSettings(nullptr);

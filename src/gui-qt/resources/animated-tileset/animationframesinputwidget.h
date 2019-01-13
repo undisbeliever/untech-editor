@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "models/resources/error-list.h"
+#include "models/resources/invalid-image-error.h"
 #include <QGraphicsObject>
 #include <QGraphicsScene>
 #include <QPixmap>
@@ -43,6 +43,8 @@ public:
 
     void stopAnimations();
 
+    bool onErrorDoubleClicked(const ErrorListItem& error);
+
 private:
     void updateFrameLabel();
     void clearGui();
@@ -76,12 +78,10 @@ public:
 
     void reloadAnimationFrame() { setAnimationFrameIndex(_animationFrameIndex); }
 
+    void setAnimationFrameIndex(int index);
     void prevAnimationFrame() { setAnimationFrameIndex(_animationFrameIndex - 1); }
     void nextAnimationFrame() { setAnimationFrameIndex(_animationFrameIndex + 1); }
     int animationFrameIndex() const { return _animationFrameIndex; }
-
-private:
-    void setAnimationFrameIndex(int index);
 
 public:
     virtual QRectF boundingRect() const override;
@@ -90,7 +90,7 @@ public:
                        const QStyleOptionGraphicsItem* option,
                        QWidget* widget = nullptr) final;
 
-    static const QString& toolTipForType(const RES::ErrorList::InvalidTileReason& reason);
+    static const QString& toolTipForType(const RES::InvalidImageError::InvalidTileReason& reason);
 
 private slots:
     void updateInvalidTiles();

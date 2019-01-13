@@ -67,7 +67,7 @@ void Document::saveResourceData(const std::string& filename) const
     SI::saveFrameSet(*_frameSet, filename);
 }
 
-bool Document::loadResourceData(RES::ErrorList& err)
+bool Document::loadResourceData(ErrorList& err)
 {
     using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
 
@@ -96,18 +96,16 @@ bool Document::loadResourceData(RES::ErrorList& err)
     return true;
 }
 
-bool Document::compileResource(RES::ErrorList& err)
+bool Document::compileResource(ErrorList& err)
 {
     using FrameSetFile = UnTech::MetaSprite::Project::FrameSetFile;
 
     FrameSetFile& fsf = frameSetFile();
-    UnTech::MetaSprite::ErrorList msErrorList;
 
-    fsf.convertSpriteImporter(msErrorList);
-    compileMsFrameset(fsf.msFrameSet.get(), msErrorList);
-    appendToErrorList(err, msErrorList);
+    fsf.convertSpriteImporter(err);
+    compileMsFrameset(fsf.msFrameSet.get(), err);
 
-    return msErrorList.errors.empty() == true;
+    return err.hasError() == false;
 }
 
 void Document::onFrameSetExportOrderChanged()

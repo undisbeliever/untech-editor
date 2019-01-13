@@ -7,7 +7,7 @@
 #pragma once
 
 #include "abstractresourcelist.h"
-#include "models/resources/error-list.h"
+#include "models/common/errorlist.h"
 #include <QObject>
 #include <QUndoStack>
 
@@ -15,8 +15,6 @@ namespace UnTech {
 namespace GuiQt {
 class AbstractProject;
 class AbstractResourceList;
-
-namespace RES = UnTech::Resources;
 
 class AbstractResourceItem : public QObject {
     Q_OBJECT
@@ -54,7 +52,7 @@ public:
     inline int index() const { return _index; }
     const QString& name() const { return _name; }
     const ResourceState& state() const { return _state; }
-    const RES::ErrorList& errorList() const { return _errorList; }
+    const ErrorList& errorList() const { return _errorList; }
     const QVector<Dependency>& dependencies() const { return _dependencies; }
     const QStringList& externalFiles() const { return _externalFiles; }
 
@@ -91,14 +89,14 @@ protected:
     // MUST be called when
     void setExternalFiles(const QStringList&);
 
-    virtual bool loadResourceData(RES::ErrorList& err) = 0;
+    virtual bool loadResourceData(ErrorList& err) = 0;
 
     // Compiles the resource to test if it is valid.
     //
     // If the compiled resource is thrown away after compilation then this
     // function is allowed the preform bare minimum required to confirm the
     // resource will compile successfully.
-    virtual bool compileResource(RES::ErrorList& err) = 0;
+    virtual bool compileResource(ErrorList& err) = 0;
 
 signals:
     void externalFilesChanged();
@@ -137,7 +135,7 @@ private:
     unsigned _index;
     QString _name;
     ResourceState _state;
-    RES::ErrorList _errorList;
+    ErrorList _errorList;
     QVector<Dependency> _dependencies;
     QStringList _externalFiles;
 };
@@ -151,7 +149,7 @@ public:
     virtual QString filename() const final;
 
 protected:
-    virtual bool loadResourceData(RES::ErrorList&) final;
+    virtual bool loadResourceData(ErrorList&) final;
 };
 
 class AbstractExternalResourceItem : public AbstractResourceItem {

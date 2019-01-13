@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "errorlist.h"
 #include "frameset-exportorder.h"
 #include "metasprite.h"
 #include "spriteimporter.h"

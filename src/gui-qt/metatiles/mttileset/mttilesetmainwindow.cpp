@@ -184,3 +184,15 @@ void MtTilesetMainWindow::onPaletteComboActivated(const QString& paletteId)
 
     _renderer->setPaletteItem(pal);
 }
+
+void MtTilesetMainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
+{
+    if (_tileset == nullptr) {
+        return;
+    }
+
+    _ui->animationFramesInputWidget->onErrorDoubleClicked(error);
+
+    // The scratchpad can never generate an error
+    _ui->tabWidget->setCurrentWidget(_ui->animationFramesInputWidget);
+}

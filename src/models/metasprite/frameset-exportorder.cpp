@@ -5,8 +5,8 @@
  */
 
 #include "frameset-exportorder.h"
+#include "models/common/errorlist.h"
 #include "models/common/validateunique.h"
-#include "models/resources/error-list.h"
 
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
@@ -41,7 +41,7 @@ bool FrameSetExportOrder::ExportName::animationExists(const Animation::Animation
 static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
                                        const std::string& typeName,
                                        const std::string& aName,
-                                       Resources::ErrorList& err)
+                                       UnTech::ErrorList& err)
 {
     bool valid = true;
 
@@ -58,7 +58,7 @@ static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
     return valid;
 }
 
-bool FrameSetExportOrder::validate(Resources::ErrorList& err) const
+bool FrameSetExportOrder::validate(UnTech::ErrorList& err) const
 {
     bool valid = true;
 
@@ -96,20 +96,21 @@ bool FrameSetExportOrder::validate(Resources::ErrorList& err) const
 }
 
 template <class FrameSetT>
-static bool _testFrameSet(const FrameSetExportOrder& eo, const FrameSetT& frameSet, ErrorList& errorList)
+static bool _testFrameSet(const FrameSetExportOrder& eo, const FrameSetT& frameSet,
+                          ErrorList& errorList)
 {
     bool valid = true;
 
     for (auto& en : eo.stillFrames) {
         if (en.frameExists(frameSet.frames) == false) {
-            errorList.addError(frameSet, "Cannot find frame " + en.name);
+            errorList.addError("Cannot find frame " + en.name);
             valid = false;
         }
     }
 
     for (auto& en : eo.animations) {
         if (en.animationExists(frameSet.animations) == false) {
-            errorList.addError(frameSet, "Cannot find animation " + en.name);
+            errorList.addError("Cannot find animation " + en.name);
             valid = false;
         }
     }

@@ -24,8 +24,7 @@ AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t inde
             this, &AbstractResourceItem::markUnchecked);
 }
 
-void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,
-                                           UnTech::MetaSprite::ErrorList& errList)
+void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet, ErrorList& errList)
 {
     using namespace UnTech::MetaSprite::Compiler;
 
@@ -38,22 +37,7 @@ void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet,
             validateFrameSetAndBuildTilesets(*frameSet, exportOrder, errList);
         }
         catch (std::exception& ex) {
-            errList.addError(*frameSet, ex.what());
+            errList.addError(ex.what());
         }
     }
-}
-
-void AbstractMsDocument::appendToErrorList(RES::ErrorList& errList,
-                                           const UnTech::MetaSprite::ErrorList& msErrorList)
-{
-    auto appendToErr = [&](const auto& list) {
-        for (auto& e : list) {
-            std::stringstream ss;
-            ss << e;
-            errList.addError(ss.str());
-        }
-    };
-
-    appendToErr(msErrorList.errors);
-    appendToErr(msErrorList.warnings);
 }

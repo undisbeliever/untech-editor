@@ -5,7 +5,8 @@
  */
 
 #include "spriteimporter.h"
-#include "errorlist.h"
+#include "errorlisthelpers.h"
+#include "models/common/errorlist.h"
 #include "models/common/file.h"
 #include "models/common/imagecache.h"
 #include <algorithm>
@@ -18,17 +19,30 @@ using namespace UnTech::MetaSprite::SpriteImporter;
  * ==============
  */
 
-bool FrameSetGrid::isValid(const FrameSet& frameSet) const
+inline bool FrameSetGrid::validate(ErrorList& errorList) const
 {
-    usize minSize = frameSet.minimumFrameGridSize();
+    bool valid = true;
+    auto addError = [&](auto msg) {
+        errorList.addError(msg);
+        valid = false;
+    };
 
-    return frameSize.width >= minSize.width
-           && frameSize.height >= minSize.height
-           && frameSize.width <= MAX_FRAME_SIZE
-           && frameSize.height <= MAX_FRAME_SIZE
-           && origin.x <= MAX_ORIGIN
-           && origin.y <= MAX_ORIGIN
-           && frameSize.contains(origin);
+    if (frameSize.width == 0 || frameSize.height == 0) {
+        addError("grid.frameSize has no size");
+    }
+    if (frameSize.width > MAX_FRAME_SIZE || frameSize.height > MAX_FRAME_SIZE) {
+        addError("grid.frameSize is too large (max: "
+                 + std::to_string(MAX_FRAME_SIZE) + " x " + std::to_string(MAX_FRAME_SIZE) + " +)");
+    }
+    if (origin.x > MAX_ORIGIN || origin.y > MAX_ORIGIN) {
+        addError("grid.origin is too large (max: "
+                 + std::to_string(MAX_ORIGIN) + ", " + std::to_string(MAX_ORIGIN) + " +)");
+    }
+    if (frameSize.contains(origin) == false) {
+        addError("grid.origin is not inside grid.frameSize");
+    }
+
+    return valid;
 }
 
 urect FrameSetGrid::cell(unsigned x, unsigned y) const
@@ -78,19 +92,30 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     origin.y = std::min(origin.y, aabb.height);
 }
 
-bool FrameLocation::isValid(const FrameSet& frameSet, const Frame& frame)
+inline bool FrameLocation::validate(ErrorList& errorList, const FrameSet& fs, const Frame& frame) const
 {
-    update(frameSet.grid, frame);
+    bool valid = true;
+    auto addError = [&](const std::string& msg) {
+        errorList.addError(frameError(fs, frame, msg));
+        valid = false;
+    };
 
-    usize minSize = frame.minimumViableSize();
+    if (aabb.width == 0 || aabb.height == 0) {
+        addError("FrameLocation aabb has no size");
+    }
+    if (aabb.width > MAX_FRAME_SIZE || aabb.height > MAX_FRAME_SIZE) {
+        addError("location.aabb is too large ("
+                 + std::to_string(MAX_FRAME_SIZE) + " x " + std::to_string(MAX_FRAME_SIZE) + " +)");
+    }
+    if (origin.x > MAX_ORIGIN || origin.y > MAX_ORIGIN) {
+        addError("location.origin is too large (max: "
+                 + std::to_string(MAX_ORIGIN) + ", " + std::to_string(MAX_ORIGIN) + " +)");
+    }
+    if (aabb.size().contains(origin) == false) {
+        addError("location.origin is not inside frame");
+    }
 
-    return aabb.width >= minSize.width
-           && aabb.height >= minSize.height
-           && aabb.width <= MAX_FRAME_SIZE
-           && aabb.height <= MAX_FRAME_SIZE
-           && origin.x <= MAX_ORIGIN
-           && origin.y <= MAX_ORIGIN
-           && aabb.size().contains(origin);
+    return valid;
 }
 
 usize FrameLocation::originRange() const
@@ -114,12 +139,12 @@ bool FrameLocation::operator==(const FrameLocation& o) const
  * =====
  */
 
-bool Frame::validate(ErrorList& errorList, const FrameSet& fs)
+inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs, const Image& image) const
 {
     bool valid = true;
 
-    auto addError = [&](std::string&& msg) {
-        errorList.addError(fs, *this, msg);
+    auto addError = [&](const std::string& msg) {
+        errorList.addError(frameError(fs, *this, msg));
         valid = false;
     };
 
@@ -133,30 +158,47 @@ bool Frame::validate(ErrorList& errorList, const FrameSet& fs)
         addError("Too many entity hitboxes");
     }
 
-    if (location.isValid(fs, *this) == false) {
-        addError("Invalid Frame Size");
-    }
+    valid &= location.validate(errorList, fs, *this);
 
-    auto image = ImageCache::loadPngImage(fs.imageFilename);
-    if (image->size().contains(location.aabb) == false) {
+    if (image.size().contains(location.aabb) == false) {
         addError("Frame not inside image");
     }
 
-    for (const FrameObject& obj : objects) {
-        if (obj.isValid(location) == false) {
-            addError("Frame Object not inside frame");
+    if (valid == false) {
+        return false;
+    }
+
+    const usize frameSize = location.aabb.size();
+
+    for (unsigned i = 0; i < objects.size(); i++) {
+        const FrameObject& obj = objects.at(i);
+
+        if (frameSize.contains(obj.location, obj.sizePx()) == false) {
+            errorList.addError(frameObjectError(fs, *this, i, "Frame Object not inside frame"));
+            valid = false;
         }
     }
 
-    for (const ActionPoint& ap : actionPoints) {
-        if (ap.isValid(location) == false) {
-            addError("Action Point not inside frame");
+    for (unsigned i = 0; i < actionPoints.size(); i++) {
+        const ActionPoint& ap = actionPoints.at(i);
+
+        if (frameSize.contains(ap.location) == false) {
+            errorList.addError(actionPointError(fs, *this, i, "location not inside frame"));
+            valid = false;
         }
     }
 
-    for (const EntityHitbox& eh : entityHitboxes) {
-        if (eh.isValid(location) == false) {
-            addError("Entity Hitbox aabb invalid");
+    for (unsigned i = 0; i < entityHitboxes.size(); i++) {
+        const EntityHitbox& eh = entityHitboxes.at(i);
+
+        if (eh.aabb.width == 0 || eh.aabb.height == 0) {
+            errorList.addError(entityHitboxError(fs, *this, i, "aabb has no size"));
+            valid = false;
+        }
+
+        if (frameSize.contains(eh.aabb) == false) {
+            errorList.addError(entityHitboxError(fs, *this, i, "aabb not inside frame"));
+            valid = false;
         }
     }
 
@@ -204,11 +246,11 @@ bool Frame::operator==(const Frame& o) const
  * =========
  */
 
-bool FrameSet::validate(ErrorList& errorList)
+bool FrameSet::validate(ErrorList& errorList) const
 {
     bool valid = true;
     auto addError = [&](std::string&& msg) {
-        errorList.addError(*this, msg);
+        errorList.addError(msg);
         valid = false;
     };
 
@@ -229,17 +271,20 @@ bool FrameSet::validate(ErrorList& errorList)
     if (transparentColorValid() == false) {
         addError("Transparent color is invalid");
     }
-    if (grid.isValid(*this) == false) {
-        addError("Invalid Frame Set Grid");
-    }
+    valid &= grid.validate(errorList);
 
     if (valid == false) {
         return false;
     }
 
-    if (palette.usesUserSuppliedPalette()) {
-        auto image = ImageCache::loadPngImage(imageFilename);
+    const auto image = ImageCache::loadPngImage(imageFilename);
+    assert(image);
+    if (image->empty()) {
+        addError(image->errorString());
+        return false;
+    }
 
+    if (palette.usesUserSuppliedPalette()) {
         auto imgSize = image->size();
         auto palSize = palette.paletteSize();
 
@@ -254,17 +299,16 @@ bool FrameSet::validate(ErrorList& errorList)
         }
     }
 
+    if (animations.size() > MAX_ANIMATION_FRAMES) {
+        addError("Too many animations in frameSet");
+    }
+
     for (auto&& it : frames) {
-        valid &= it.second.validate(errorList, *this);
+        valid &= it.second.validate(errorList, *this, *image);
     }
 
     for (auto&& it : animations) {
-        const auto& animation = it.second;
-
-        if (animation.isValid(*this) == false) {
-            errorList.addError(*this, animation, "Invalid Animation");
-            valid = false;
-        }
+        valid &= it.second.validate(*this, errorList);
     }
 
     return valid;
@@ -317,8 +361,6 @@ bool FrameSet::operator==(const FrameSet& o) const
             return true;
         }
     };
-
-    // Don't test image, imageFilename test is fine for now
 
     return name == o.name
            && tilesetType == o.tilesetType

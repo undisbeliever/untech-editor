@@ -5,6 +5,7 @@
  */
 
 #include "helpers/commandlineparser.h"
+#include "models/common/errorlist.h"
 #include "models/common/file.h"
 #include "models/metasprite/utsi2utms/utsi2utms.h"
 #include <cstdlib>
@@ -30,26 +31,21 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int convert(const std::string& infilename, const std::string& outfilename)
 {
-    MetaSprite::ErrorList errorList;
+    ErrorList errorList;
     MetaSprite::Utsi2Utms converter(errorList);
 
     auto siFrameSet = SI::loadFrameSet(infilename);
     auto msFrameSet = converter.convert(*siFrameSet);
 
-    for (const auto& w : errorList.warnings) {
-        std::cerr << "warning: " << w << '\n';
-    }
-
-    for (const auto& e : errorList.errors) {
-        std::cerr << "error: " << e << '\n';
-    }
+    std::cerr << infilename << ":\n";
+    errorList.printIndented(std::cerr);
 
     if (msFrameSet == nullptr) {
         std::cerr << "Error processing frameset.\n";
         return EXIT_FAILURE;
     }
 
-    if (!errorList.errors.empty()) {
+    if (errorList.hasError()) {
         return EXIT_FAILURE;
     }
 

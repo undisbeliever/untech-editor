@@ -37,7 +37,7 @@ void PaletteResourceItem::updateExternalFiles()
     setExternalFiles(filenames);
 }
 
-bool PaletteResourceItem::compileResource(RES::ErrorList& err)
+bool PaletteResourceItem::compileResource(ErrorList& err)
 {
     const auto& res = project()->resourcesFile();
     Q_ASSERT(res);

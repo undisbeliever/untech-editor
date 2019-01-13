@@ -51,6 +51,11 @@ public:
         return _editorWidget->layersButton();
     }
 
+    virtual void onErrorDoubleClicked(const ErrorListItem& error) final
+    {
+        _editorWidget->onErrorDoubleClicked(error);
+    }
+
 private:
     MainWindow* const _editorWidget;
 };

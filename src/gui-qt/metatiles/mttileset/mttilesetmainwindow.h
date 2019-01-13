@@ -12,6 +12,8 @@
 class QGraphicsScene;
 
 namespace UnTech {
+struct ErrorListItem;
+
 namespace GuiQt {
 class ZoomSettings;
 class ZoomSettingsManager;
@@ -49,6 +51,8 @@ public:
 
     ZoomSettings* zoomSettings() const;
     void populateMenu(QMenu* editMenu, QMenu* viewMenu);
+
+    void onErrorDoubleClicked(const ErrorListItem& error);
 
 private slots:
     void onTilesetStateChanged();

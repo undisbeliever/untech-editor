@@ -16,9 +16,9 @@
 #include <vector>
 
 namespace UnTech {
+class ErrorList;
 namespace Resources {
 struct ResourcesFile;
-class ErrorList;
 }
 
 namespace MetaTiles {
@@ -37,7 +37,7 @@ struct MetaTileTilesetInput {
 
     grid<uint16_t> scratchpad;
 
-    bool validate(Resources::ErrorList& err) const;
+    bool validate(ErrorList& err) const;
 
     bool operator==(const MetaTileTilesetInput& o) const
     {
@@ -59,7 +59,7 @@ struct MetaTileTilesetData {
 
     unsigned nMetaTiles() const;
 
-    bool validate(const EngineSettings& settings, Resources::ErrorList& err) const;
+    bool validate(const EngineSettings& settings, ErrorList& err) const;
 
     std::vector<uint8_t> exportMetaTileTileset(const EngineSettings& settings) const;
 
@@ -69,6 +69,6 @@ private:
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
                                                     const Resources::ResourcesFile& resourcesFile,
-                                                    Resources::ErrorList& err);
+                                                    ErrorList& err);
 }
 }

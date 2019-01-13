@@ -18,9 +18,9 @@
 #include <string>
 
 namespace UnTech {
-namespace MetaSprite {
-struct ErrorList;
+class ErrorList;
 
+namespace MetaSprite {
 namespace MetaSprite {
 
 struct FrameSet;
@@ -51,8 +51,6 @@ struct FrameObject {
     }
 
     inline unsigned sizePx() const { return static_cast<unsigned>(size); }
-
-    bool isValid(const FrameSet&) const;
 
     bool operator==(const FrameObject& o) const
     {
@@ -96,8 +94,6 @@ struct EntityHitbox {
     {
     }
 
-    bool isValid() const;
-
     bool operator==(const EntityHitbox& o) const
     {
         return this->aabb == o.aabb && this->hitboxType == o.hitboxType;
@@ -122,8 +118,6 @@ struct Frame {
     {
     }
 
-    bool validate(ErrorList& errorList, const FrameSet& fs) const;
-
     Frame flip(bool hFlip, bool vFlip) const;
 
     void draw(Image& image, const FrameSet& frameSet, size_t paletteId,
@@ -131,6 +125,10 @@ struct Frame {
 
     bool operator==(const Frame& o) const;
     bool operator!=(const Frame& o) const { return !(*this == o); }
+
+private:
+    friend struct FrameSet;
+    bool validate(ErrorList& errorList, const FrameSet& fs) const;
 };
 
 struct FrameSet {

@@ -16,9 +16,11 @@
 #include "tilesetpixmaps.h"
 #include "gui-qt/common/graphics/zoomablegraphicsview.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
+#include "gui-qt/metasprite/animation/animationaccessors.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
 #include "gui-qt/metasprite/animation/animationpreview.h"
 #include "gui-qt/metasprite/layersettings.h"
+#include "models/metasprite/metasprite-error.h"
 
 #include <QPushButton>
 #include <QStatusBar>
@@ -156,4 +158,65 @@ void MainWindow::onSelectedFrameChanged()
     else {
         _graphicsView->setDragMode(QGraphicsView::NoDrag);
     }
+}
+
+void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
+{
+
+    using MetaSpriteError = UnTech::MetaSprite::MetaSpriteError;
+    using Type = UnTech::MetaSprite::MsErrorType;
+
+    if (_document == nullptr) {
+        return;
+    }
+
+    if (error.specialized == nullptr) {
+        _frameSetDock->raise();
+    }
+    else if (const auto* e = dynamic_cast<const MetaSpriteError*>(error.specialized.get())) {
+        switch (e->type()) {
+        case Type::FRAME:
+            _document->frameMap()->setSelectedId(e->name());
+            showGraphicsTab();
+            _frameDock->raise();
+            break;
+
+        case Type::FRAME_OBJECT:
+            _document->frameMap()->setSelectedId(e->name());
+            _document->frameObjectList()->setSelectedIndexes({ e->id() });
+            showGraphicsTab();
+            _frameDock->raise();
+            break;
+
+        case Type::ACTION_POINT:
+            _document->frameMap()->setSelectedId(e->name());
+            _document->actionPointList()->setSelectedIndexes({ e->id() });
+            showGraphicsTab();
+            _frameDock->raise();
+            break;
+
+        case Type::ENTITY_HITBOX:
+            _document->frameMap()->setSelectedId(e->name());
+            _document->entityHitboxList()->setSelectedIndexes({ e->id() });
+            showGraphicsTab();
+            _frameDock->raise();
+            break;
+
+        case Type::ANIMATION:
+            _document->animationsMap()->setSelectedId(e->name());
+            _animationDock->raise();
+            break;
+
+        case Type::ANIMATION_FRAME:
+            _document->animationsMap()->setSelectedId(e->name());
+            _animationDock->selectAnimationFrame(e->id());
+            _animationDock->raise();
+            break;
+        }
+    }
+}
+
+void MainWindow::showGraphicsTab()
+{
+    _tabWidget->setCurrentWidget(_graphicsView);
 }

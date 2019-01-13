@@ -7,16 +7,16 @@
 #pragma once
 
 #include "common.h"
-#include "errorlist.h"
+#include "metasprite.h"
+#include "spriteimporter.h"
 #include "models/common/idstring.h"
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace UnTech {
-namespace Resources {
 class ErrorList;
-}
+
 namespace MetaSprite {
 
 struct FrameSetExportOrder {
@@ -38,7 +38,7 @@ struct FrameSetExportOrder {
     FrameSetExportOrder() = default;
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;
 
-    bool validate(Resources::ErrorList& err) const;
+    bool validate(UnTech::ErrorList& err) const;
 
     bool testFrameSet(const MetaSprite::FrameSet& frameSet, ErrorList& errorList) const;
     bool testFrameSet(const SpriteImporter::FrameSet& frameSet, ErrorList& errorList) const;

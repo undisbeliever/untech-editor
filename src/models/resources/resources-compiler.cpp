@@ -7,6 +7,7 @@
 #include "resources.h"
 #include "rom-data-writer.hpp"
 #include "version.h"
+#include "models/common/errorlist.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/metatiles/metatiles-serializer.h"
 
@@ -65,10 +66,10 @@ compileResources(const ResourcesFile& input, const std::string& relativeBinFilen
 
             compile_fn(item, errorList);
 
-            if (errorList.hasError()) {
-                errorStream << "ERROR compiling " << typeName << " `" << itemNameString(item) << "`:\n";
+            if (!errorList.empty()) {
+                errorStream << typeName << " `" << itemNameString(item) << "`:\n";
                 errorList.printIndented(errorStream);
-                valid = false;
+                valid &= errorList.hasError();
             }
         }
     };

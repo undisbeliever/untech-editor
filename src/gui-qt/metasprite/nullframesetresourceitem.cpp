@@ -21,7 +21,7 @@ NullFrameSetResourceItem::NullFrameSetResourceItem(FrameSetResourceList* parent,
     setName(tr("(null FrameSet)"));
 }
 
-bool NullFrameSetResourceItem::compileResource(RES::ErrorList&)
+bool NullFrameSetResourceItem::compileResource(ErrorList&)
 {
     return true;
 }

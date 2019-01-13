@@ -27,7 +27,7 @@ PropertyTableView::PropertyTableView(QWidget* parent)
 
     setDragDropMode(QTreeView::InternalMove);
 
-    setEditTriggers(QAbstractItemView::AllEditTriggers);
+    setEditTriggers(EditTriggers(AllEditTriggers).setFlag(CurrentChanged, false));
     setAlternatingRowColors(true);
 
     header()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -92,6 +92,11 @@ void PropertyTableView::setPropertyManager(PropertyTableManager* manager)
     else {
         setPropertyModel(new PropertyTableModel(manager, this));
     }
+}
+
+void PropertyTableView::setSelectedRow(PropertyTableManager* manager, int index)
+{
+    setCurrentIndex(_model->toModelIndex(manager, index));
 }
 
 void PropertyTableView::setPropertyModel(PropertyTableModel* model)

@@ -32,6 +32,8 @@ public:
     void setPropertyManagers(const QList<PropertyTableManager*>& managers, const QStringList& columns);
     void setPropertyManager(PropertyTableManager* manager);
 
+    void setSelectedRow(PropertyTableManager* manager, int row);
+
     // MUST NOT call this method
     virtual void setModel(QAbstractItemModel*) final;
 

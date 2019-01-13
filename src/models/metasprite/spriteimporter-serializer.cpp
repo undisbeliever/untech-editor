@@ -148,9 +148,7 @@ private:
         std::unique_ptr<XmlTag> childTag = xml.parseTag();
         if (childTag) {
             if (childTag->name == "location") {
-                static const usize minSize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
-
-                frame.location.aabb = childTag->getAttributeUrect(minSize);
+                frame.location.aabb = childTag->getAttributeUrect();
                 frame.location.useGridLocation = false;
             }
             else if (childTag->name == "gridlocation") {
@@ -172,7 +170,6 @@ private:
 
         frame.location.useGridOrigin = true;
         frame.location.update(frameSet.grid, frame);
-        const urect frameLocation = frame.location.aabb;
 
         frame.solid = false;
 
@@ -191,7 +188,7 @@ private:
                     throw xml_error(*childTag, "Unknown object size");
                 }
 
-                obj.location = childTag->getAttributeUpointInside(frameLocation, obj.sizePx());
+                obj.location = childTag->getAttributeUpoint();
 
                 frame.objects.push_back(obj);
             }
@@ -199,7 +196,7 @@ private:
             else if (childTag->name == "actionpoint") {
                 ActionPoint ap;
 
-                ap.location = childTag->getAttributeUpointInside(frameLocation);
+                ap.location = childTag->getAttributeUpoint();
                 ap.parameter = childTag->getAttributeClamped<ActionPointParameter>("parameter");
 
                 frame.actionPoints.push_back(ap);
@@ -208,7 +205,7 @@ private:
             else if (childTag->name == "entityhitbox") {
                 EntityHitbox eh;
 
-                eh.aabb = childTag->getAttributeUrectInside(frameLocation);
+                eh.aabb = childTag->getAttributeUrect();
                 eh.hitboxType = EntityHitboxType::from_string(childTag->getAttribute("type"));
 
                 frame.entityHitboxes.push_back(eh);
@@ -218,7 +215,7 @@ private:
                 if (frame.solid) {
                     throw xml_error(*childTag, "Can only have one tilehitbox per frame");
                 }
-                frame.tileHitbox = childTag->getAttributeUrectInside(frameLocation);
+                frame.tileHitbox = childTag->getAttributeUrect();
                 frame.solid = true;
             }
 
@@ -227,7 +224,7 @@ private:
                     throw xml_error(*childTag, "Can only have one origin per frame");
                 }
                 frame.location.useGridOrigin = false;
-                frame.location.origin = childTag->getAttributeUpointInside(frameLocation);
+                frame.location.origin = childTag->getAttributeUpoint();
             }
             else {
                 throw unknown_tag_error(*childTag);

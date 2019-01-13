@@ -18,9 +18,9 @@
 #include <vector>
 
 namespace UnTech {
-namespace MetaSprite {
-struct ErrorList;
+class ErrorList;
 
+namespace MetaSprite {
 namespace SpriteImporter {
 
 const static unsigned MIN_FRAME_SIZE = 16;
@@ -45,12 +45,15 @@ struct FrameSetGrid {
     }
 
     urect cell(unsigned x, unsigned y) const;
-    bool isValid(const FrameSet& frameSet) const;
 
     usize originRange() const;
 
     bool operator==(const FrameSetGrid& o) const;
     bool operator!=(const FrameSetGrid& o) const { return !(*this == o); }
+
+private:
+    friend struct FrameSet;
+    bool validate(ErrorList& errorList) const;
 };
 
 struct FrameLocation {
@@ -69,14 +72,16 @@ struct FrameLocation {
     {
     }
 
-    void update(const FrameSetGrid&, const Frame&);
-
-    bool isValid(const FrameSet&, const Frame&);
+    void update(const FrameSetGrid&, const Frame& frame);
 
     usize originRange() const;
 
     bool operator==(const FrameLocation& o) const;
     bool operator!=(const FrameLocation& o) const { return !(*this == o); }
+
+private:
+    friend struct Frame;
+    bool validate(ErrorList& errorList, const FrameSet&, const Frame& frame) const;
 };
 
 struct FrameObject {
@@ -102,11 +107,6 @@ struct FrameObject {
                       location.y + sizePx());
     }
 
-    bool isValid(const FrameLocation& floc) const
-    {
-        return floc.aabb.size().contains(location, sizePx());
-    }
-
     bool operator==(const FrameObject& o) const
     {
         return this->location == o.location && this->size == o.size;
@@ -123,11 +123,6 @@ struct ActionPoint {
         : location(location)
         , parameter(parameter)
     {
-    }
-
-    bool isValid(const FrameLocation& floc) const
-    {
-        return floc.aabb.size().contains(location);
     }
 
     bool operator==(const ActionPoint& o) const
@@ -150,13 +145,6 @@ struct EntityHitbox {
         : aabb(aabb)
         , hitboxType(hitboxType)
     {
-    }
-
-    bool isValid(const FrameLocation& floc) const
-    {
-        return floc.aabb.size().contains(aabb)
-               && aabb.width > 0
-               && aabb.height > 0;
     }
 
     bool operator==(const EntityHitbox& o) const
@@ -184,13 +172,14 @@ struct Frame {
     {
     }
 
-    // NOTE: updates the frame location
-    bool validate(ErrorList& errorList, const FrameSet& fs);
-
     usize minimumViableSize() const;
 
     bool operator==(const Frame& o) const;
     bool operator!=(const Frame& o) const { return !(*this == o); }
+
+private:
+    friend struct FrameSet;
+    bool validate(ErrorList& errorList, const FrameSet& fs, const Image& image) const;
 };
 
 struct UserSuppliedPalette {
@@ -236,8 +225,7 @@ struct FrameSet {
 
     FrameSet() = default;
 
-    // NOTE: updates the frame Locations
-    bool validate(ErrorList& errorList);
+    bool validate(ErrorList& errorList) const;
 
     usize minimumFrameGridSize() const;
 

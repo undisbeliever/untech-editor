@@ -18,6 +18,8 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 
+namespace RES = UnTech::Resources;
+
 MtTilesetRenderer::MtTilesetRenderer(QObject* parent)
     : QObject(parent)
     , _animationTimer(new Resources::DualAnimationTimer(this))

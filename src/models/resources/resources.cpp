@@ -5,6 +5,7 @@
  */
 
 #include "resources.h"
+#include "models/common/errorlist.h"
 #include "models/common/validateunique.h"
 #include <cassert>
 

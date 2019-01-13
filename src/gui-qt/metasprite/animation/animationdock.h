@@ -40,6 +40,8 @@ public:
 
     void clearGui();
 
+    void selectAnimationFrame(unsigned index);
+
 private slots:
     void onAnimationDataChanged(const void* animation);
 

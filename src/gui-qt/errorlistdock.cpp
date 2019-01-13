@@ -14,12 +14,17 @@ using namespace UnTech::GuiQt;
 ErrorListDock::ErrorListDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::ErrorListDock)
+    , _errorIcon(":icons/resource-error.svg")
+    , _warningIcon(":icons/resource-warning.svg")
     , _project(nullptr)
     , _currentItem(nullptr)
 {
     _ui->setupUi(this);
 
     setEnabled(false);
+
+    connect(_ui->errorList, &QListWidget::itemDoubleClicked,
+            this, &ErrorListDock::onItemDoubleClicked);
 }
 
 ErrorListDock::~ErrorListDock() = default;
@@ -69,36 +74,53 @@ void ErrorListDock::onSelectedResourceChanged()
     }
 }
 
+void ErrorListDock::onItemDoubleClicked(const QListWidgetItem* item)
+{
+    if (_currentItem == nullptr || item == nullptr) {
+        return;
+    }
+    const auto& errorList = _currentItem->errorList().list();
+
+    bool ok;
+    unsigned errorId = item->data(errorIdRole).toUInt(&ok);
+
+    if (ok && errorId < errorList.size()) {
+        emit errorDoubleClicked(errorList.at(errorId));
+    }
+}
+
 void ErrorListDock::updateErrorList()
 {
+    using ErrorType = ErrorListItem::ErrorType;
+
     Q_ASSERT(_currentItem);
 
-    const auto& errorList = _currentItem->errorList();
-    QStringList el;
+    _ui->errorList->clear();
 
-    for (const auto& e : errorList.errors()) {
-        el.append(QString::fromStdString((e)));
-    }
+    const auto& errorList = _currentItem->errorList().list();
+    for (unsigned errorId = 0; errorId < errorList.size(); errorId++) {
+        const auto& e = errorList.at(errorId);
 
-    const auto& invalidTiles = errorList.invalidImageTiles();
-    if (!invalidTiles.empty()) {
-        el.append(tr("%1 invalid tiles:").arg(invalidTiles.size()));
+        auto addItem = [&](const std::string& text) {
+            auto* item = new QListWidgetItem(
+                e.type == ErrorType::ERROR ? _errorIcon : _warningIcon,
+                QString::fromStdString(text),
+                _ui->errorList);
+            item->setData(errorIdRole, errorId);
+            _ui->errorList->addItem(item);
+        };
 
-        for (const auto& t : invalidTiles) {
-            QString s = QString::fromLatin1("\t");
-            if (t.showFrameId()) {
-                s += tr("Frame %1, ").arg(t.frameId);
-            }
-            s += tr("Tile%1 @ %2px, %3px: %4").arg(t.size).arg(t.x).arg(t.y).arg(QString::fromUtf8(t.reasonString()));
-            el.append(s);
+        if (!e.message.empty()) {
+            addItem(e.message);
+        }
+        if (e.specialized) {
+            addItem(e.specialized->message());
         }
     }
 
-    _ui->errorList->clear();
-    _ui->errorList->addItems(el);
-    _ui->errorList->setEnabled(!el.isEmpty());
+    _ui->errorList->setEnabled(!errorList.empty());
 
-    if (!el.isEmpty() && this->isVisible() == false) {
+    if (!errorList.empty() && this->isVisible() == false) {
         this->show();
     }
 }
