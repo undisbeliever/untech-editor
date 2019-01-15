@@ -8,6 +8,7 @@
 #include "mttilesetaccessors.h"
 #include "mttilesetresourcelist.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/project.h"
 #include "models/metatiles/metatiles-serializer.h"
 
 using namespace UnTech::GuiQt::MetaTiles;
@@ -16,6 +17,7 @@ constexpr uint16_t MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE;
 
 MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _metaTileTilesets(parent->metaTileTilesets())
     , _tileParameters(new MtTilesetTileParameters(this))
     , _scratchpadGrid(new MtTilesetScratchpadGrid(this))
     , _compiledData(nullptr)

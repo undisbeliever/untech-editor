@@ -14,6 +14,7 @@
 #include "gui-qt/metatiles/mtgridgraphicsitem.h"
 #include "gui-qt/metatiles/mttileset/mttilesetmainwindow.ui.h"
 #include "gui-qt/metatiles/style.h"
+#include "gui-qt/project.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
 
 using namespace UnTech::GuiQt;

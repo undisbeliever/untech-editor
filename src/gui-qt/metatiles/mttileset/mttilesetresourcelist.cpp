@@ -7,6 +7,7 @@
 #include "mttilesetresourcelist.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/common/idstringvalidator.h"
+#include "gui-qt/project.h"
 #include "models/metatiles/metatiles-serializer.h"
 
 #include <QFileInfo>
@@ -17,6 +18,11 @@ using namespace UnTech::GuiQt::MetaTiles;
 MtTilesetResourceList::MtTilesetResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::MT_TILESET)
 {
+}
+
+UnTech::ExternalFileList<UnTech::MetaTiles::MetaTileTilesetInput>& MtTilesetResourceList::metaTileTilesets() const
+{
+    return project()->projectFile()->metaTileTilesets;
 }
 
 const QString MtTilesetResourceList::resourceTypeNameSingle() const
@@ -31,7 +37,7 @@ const QString MtTilesetResourceList::resourceTypeNamePlural() const
 
 size_t MtTilesetResourceList::nItems() const
 {
-    return project()->projectFile()->metaTileTilesets.size();
+    return metaTileTilesets().size();
 }
 
 MtTilesetResourceItem* MtTilesetResourceList::buildResourceItem(size_t index)
@@ -55,7 +61,7 @@ void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& 
 {
     Q_ASSERT(settingIndex == 0);
 
-    auto& metaTileTilesets = project()->projectFile()->metaTileTilesets;
+    auto& metaTileTilesets = this->metaTileTilesets();
     metaTileTilesets.insert_back(filename);
 
     QFileInfo fi(QString::fromStdString(filename));
@@ -72,7 +78,7 @@ void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& 
 
 void MtTilesetResourceList::do_removeResource(unsigned index)
 {
-    auto& metaTileTilesets = project()->projectFile()->metaTileTilesets;
+    auto& metaTileTilesets = this->metaTileTilesets();
 
     Q_ASSERT(index < metaTileTilesets.size());
     metaTileTilesets.remove(index);

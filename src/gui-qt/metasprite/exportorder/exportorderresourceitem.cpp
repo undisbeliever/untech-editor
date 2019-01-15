@@ -19,10 +19,11 @@ using FrameSetExportOrder = UnTech::MetaSprite::FrameSetExportOrder;
 
 ExportOrderResourceItem::ExportOrderResourceItem(ExportOrderResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _exportOrders(parent->exportOrders())
     , _exportNameList(new ExportOrder::ExportNameList(this))
     , _alternativesList(new ExportOrder::AlternativesList(this))
 {
-    Q_ASSERT(index < exportOrderList().size());
+    Q_ASSERT(index < _exportOrders.size());
 
     setFilename(QString::fromStdString(exportOrderItem().filename));
 

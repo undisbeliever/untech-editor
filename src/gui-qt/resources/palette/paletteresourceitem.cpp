@@ -11,9 +11,10 @@ using namespace UnTech::GuiQt::Resources;
 
 PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t index)
     : AbstractInternalResourceItem(parent, index)
+    , _palettes(parent->palettes())
     , _compiledData(nullptr)
 {
-    Q_ASSERT(index < project()->projectFile()->palettes.size());
+    Q_ASSERT(index < _palettes.size());
 
     auto* pal = paletteInput();
     setName(QString::fromStdString(pal->name));
@@ -39,8 +40,6 @@ void PaletteResourceItem::updateExternalFiles()
 
 bool PaletteResourceItem::compileResource(ErrorList& err)
 {
-    const auto& res = project()->projectFile();
-    Q_ASSERT(res);
     const RES::PaletteInput* pal = paletteInput();
     Q_ASSERT(pal);
 

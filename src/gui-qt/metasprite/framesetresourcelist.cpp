@@ -27,6 +27,11 @@ FrameSetResourceList::FrameSetResourceList(Project* project)
 {
 }
 
+std::vector<UnTech::MetaSprite::FrameSetFile>& FrameSetResourceList::frameSetFiles() const
+{
+    return project()->projectFile()->frameSets;
+}
+
 const QString FrameSetResourceList::resourceTypeNameSingle() const
 {
     return tr("Frameset");
@@ -39,12 +44,12 @@ const QString FrameSetResourceList::resourceTypeNamePlural() const
 
 size_t FrameSetResourceList::nItems() const
 {
-    return project()->projectFile()->frameSets.size();
+    return frameSetFiles().size();
 }
 
 AbstractResourceItem* FrameSetResourceList::buildResourceItem(size_t index)
 {
-    auto& frameSets = project()->projectFile()->frameSets;
+    auto& frameSets = frameSetFiles();
 
     Q_ASSERT(index < frameSets.size());
     auto& frameSet = frameSets.at(index);
@@ -82,7 +87,7 @@ const QList<AbstractResourceList::AddResourceSettings>& FrameSetResourceList::ad
 
 void FrameSetResourceList::do_addResource(int settingIndex, const std::string& filename)
 {
-    auto& frameSets = project()->projectFile()->frameSets;
+    auto& frameSets = frameSetFiles();
 
     frameSets.emplace_back();
     auto& frameSet = frameSets.back();
@@ -124,7 +129,7 @@ void FrameSetResourceList::do_addResource(int settingIndex, const std::string& f
 
 void FrameSetResourceList::do_removeResource(unsigned index)
 {
-    auto& frameSets = project()->projectFile()->frameSets;
+    auto& frameSets = frameSetFiles();
 
     Q_ASSERT(index < frameSets.size());
     frameSets.erase(frameSets.begin() + index);

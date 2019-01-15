@@ -7,7 +7,6 @@
 #pragma once
 
 #include "gui-qt/abstractresourceitem.h"
-#include "gui-qt/project.h"
 
 namespace UnTech {
 namespace GuiQt {

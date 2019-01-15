@@ -7,7 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstractresourceitem.h"
-#include "gui-qt/project.h"
+#include "models/common/externalfilelist.h"
 #include "models/metasprite/frameset-exportorder.h"
 #include <QObject>
 
@@ -35,10 +35,7 @@ public:
 
 public:
     // may be nullptr
-    const DataT* exportOrder() const
-    {
-        return project()->projectFile()->frameSetExportOrders.at(index());
-    }
+    const DataT* exportOrder() const { return _exportOrders.at(index()); }
 
     const DataT::ExportName& exportName(bool isFrame, unsigned index);
 
@@ -52,22 +49,14 @@ protected:
 
     friend class ExportOrder::ExportNameList;
     friend class ExportOrder::AlternativesList;
-    DataT* exportOrderEditable()
-    {
-        return project()->projectFile()->frameSetExportOrders.at(index());
-    }
+    DataT* exportOrderEditable() { return _exportOrders.at(index()); }
 
 private:
-    inline const auto& exportOrderList() const
-    {
-        return project()->projectFile()->frameSetExportOrders;
-    }
-    inline auto& exportOrderItem()
-    {
-        return project()->projectFile()->frameSetExportOrders.item(index());
-    }
+    inline auto& exportOrderItem() { return _exportOrders.item(index()); }
 
 private:
+    ExternalFileList<DataT>& _exportOrders;
+
     ExportOrder::ExportNameList* const _exportNameList;
     ExportOrder::AlternativesList* const _alternativesList;
 };

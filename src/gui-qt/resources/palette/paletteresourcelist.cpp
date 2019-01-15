@@ -7,6 +7,7 @@
 #include "paletteresourcelist.h"
 #include "paletteresourceitem.h"
 #include "gui-qt/common/idstringvalidator.h"
+#include "gui-qt/project.h"
 #include "models/common/imagecache.h"
 
 #include <QFileInfo>
@@ -17,6 +18,11 @@ using namespace UnTech::GuiQt::Resources;
 PaletteResourceList::PaletteResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::PALETTE)
 {
+}
+
+UnTech::NamedList<RES::PaletteInput>& PaletteResourceList::palettes() const
+{
+    return project()->projectFile()->palettes;
 }
 
 const QString PaletteResourceList::resourceTypeNameSingle() const
@@ -55,7 +61,7 @@ void PaletteResourceList::do_addResource(int settingIndex, const std::string& fi
 {
     Q_ASSERT(settingIndex == 0);
 
-    auto& palettes = project()->projectFile()->palettes;
+    auto& palettes = this->palettes();
 
     palettes.insert_back();
     auto* pal = palettes.back();
@@ -73,7 +79,7 @@ void PaletteResourceList::do_addResource(int settingIndex, const std::string& fi
 
 void PaletteResourceList::do_removeResource(unsigned index)
 {
-    auto& palettes = project()->projectFile()->palettes;
+    auto& palettes = this->palettes();
 
     Q_ASSERT(index < palettes.size());
     palettes.remove(index);

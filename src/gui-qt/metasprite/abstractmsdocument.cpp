@@ -8,12 +8,14 @@
 #include "framesetresourcelist.h"
 #include "animation/animationaccessors.h"
 #include "animation/animationframesmanager.h"
+#include "gui-qt/project.h"
 #include "models/metasprite/compiler/compiler.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 
 AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _frameSetFiles(parent->frameSetFiles())
     , _animationsMap(new Animation::AnimationsMap(this))
     , _animationFramesList(new Animation::AnimationFramesList(this))
 {

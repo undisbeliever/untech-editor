@@ -7,9 +7,9 @@
 #pragma once
 
 #include "gui-qt/abstractresourceitem.h"
-#include "gui-qt/project.h"
 #include "models/common/idstring.h"
 #include "models/metasprite/animation/animation.h"
+#include "models/metasprite/framesetfile.h"
 #include <QObject>
 #include <QUndoStack>
 #include <set>
@@ -45,12 +45,12 @@ public:
 protected:
     inline const auto& frameSetList() const
     {
-        return project()->projectFile()->frameSets;
+        return _frameSetFiles;
     }
 
     inline auto& frameSetFile() const
     {
-        return project()->projectFile()->frameSets.at(index());
+        return _frameSetFiles.at(index());
     }
 
     void compileMsFrameset(const MS::FrameSet* frameSet, ErrorList& errList);
@@ -60,6 +60,8 @@ signals:
     void frameSetExportOrderChanged();
 
 private:
+    std::vector<UnTech::MetaSprite::FrameSetFile>& _frameSetFiles;
+
     Animation::AnimationsMap* const _animationsMap;
     Animation::AnimationFramesList* const _animationFramesList;
 };

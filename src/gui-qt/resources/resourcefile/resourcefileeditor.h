@@ -10,7 +10,6 @@
 #include "resourcefilepropertieswidget.h"
 #include "gui-qt/abstracteditor.h"
 #include "gui-qt/genericpropertieswidget.h"
-#include "gui-qt/project.h"
 
 namespace UnTech {
 namespace GuiQt {
