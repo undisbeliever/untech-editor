@@ -44,6 +44,23 @@ static void writeBlockSettings(XmlWriter& xml, const BlockSettings& settings)
     xml.writeCloseTag();
 }
 
+template <class T>
+static void readExternalFileList(const XmlTag* tag, ExternalFileList<T>& list)
+{
+    list.insert_back(tag->getAttributeFilename("src"));
+}
+
+template <class T>
+static void writeExternalFileList(XmlWriter& xml, const std::string& tagName,
+                                  const ExternalFileList<T>& list)
+{
+    for (const auto& it : list) {
+        xml.writeTag(tagName);
+        xml.writeTagAttributeFilename("src", it.filename);
+        xml.writeCloseTag();
+    }
+}
+
 std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
 {
     std::unique_ptr<XmlTag> tag = xml.parseTag();
@@ -60,8 +77,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
 
     while ((childTag = xml.parseTag())) {
         if (childTag->name == "exportorder") {
-            project->frameSetExportOrders.insert_back(
-                childTag->getAttributeFilename("src"));
+            readExternalFileList(childTag.get(), project->frameSetExportOrders);
         }
         else if (childTag->name == "frameset") {
             MetaSprite::readFrameSetFile(childTag.get(), project->frameSets);
@@ -70,8 +86,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
             project->palettes.insert_back(Resources::readPalette(childTag.get()));
         }
         else if (childTag->name == "metatile-tileset") {
-            project->metaTileTilesets.insert_back(
-                childTag->getAttributeFilename("src"));
+            readExternalFileList(childTag.get(), project->metaTileTilesets);
         }
         else if (childTag->name == "block-settings") {
             if (readBlockSettingsTag) {
@@ -105,21 +120,10 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
     Project::writeBlockSettings(xml, project.blockSettings);
     MetaTiles::writeEngineSettings(xml, project.metaTileEngineSettings);
 
-    for (const auto& it : project.frameSetExportOrders) {
-        xml.writeTag("exportorder");
-        xml.writeTagAttributeFilename("src", it.filename);
-        xml.writeCloseTag();
-    }
-
+    writeExternalFileList(xml, "exportorder", project.frameSetExportOrders);
     MetaSprite::writeFrameSetFiles(xml, project.frameSets);
-
     Resources::writePalettes(xml, project.palettes);
-
-    for (const auto& mt : project.metaTileTilesets) {
-        xml.writeTag("metatile-tileset");
-        xml.writeTagAttributeFilename("src", mt.filename);
-        xml.writeCloseTag();
-    }
+    writeExternalFileList(xml, "metatile-tileset", project.metaTileTilesets);
 
     xml.writeCloseTag();
 }
