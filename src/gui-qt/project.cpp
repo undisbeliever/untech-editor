@@ -45,12 +45,12 @@ Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
     Q_ASSERT(_filename.isEmpty() == false);
 
     for (AbstractResourceList* rl : _resourceLists) {
-        rl->rebuildResourceItems();
-
         connect(rl, &AbstractResourceList::resourceItemCreated,
                 this, &Project::resourceItemCreated);
         connect(rl, &AbstractResourceList::resourceItemAboutToBeRemoved,
                 this, &Project::resourceItemAboutToBeRemoved);
+
+        rl->rebuildResourceItems();
     }
 }
 
