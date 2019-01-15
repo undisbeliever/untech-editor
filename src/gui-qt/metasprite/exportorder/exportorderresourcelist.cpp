@@ -9,6 +9,7 @@
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/project.h"
 #include "models/metasprite/frameset-exportorder.h"
+#include "models/project/project.h"
 
 #include <QFileInfo>
 

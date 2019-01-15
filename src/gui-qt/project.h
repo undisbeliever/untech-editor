@@ -8,12 +8,15 @@
 
 #include "common.h"
 #include "gui-qt/accessor/accessor.h"
-#include "models/project/project.h"
 #include <QObject>
 #include <QUndoStack>
 #include <memory>
 
 namespace UnTech {
+namespace Project {
+struct ProjectFile;
+}
+
 namespace GuiQt {
 class AbstractResourceList;
 class AbstractResourceItem;

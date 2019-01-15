@@ -9,6 +9,7 @@
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/project.h"
 #include "models/common/imagecache.h"
+#include "models/project/project.h"
 
 #include <QFileInfo>
 

@@ -10,6 +10,7 @@
 #include "animation/animationframesmanager.h"
 #include "gui-qt/project.h"
 #include "models/metasprite/compiler/compiler.h"
+#include "models/project/project.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 

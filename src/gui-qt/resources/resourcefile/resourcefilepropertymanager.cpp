@@ -6,6 +6,7 @@
 
 #include "resourcefilepropertymanager.h"
 #include "gui-qt/project.h"
+#include "models/project/project.h"
 
 using namespace UnTech::GuiQt::Resources;
 

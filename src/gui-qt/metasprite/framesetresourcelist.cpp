@@ -12,6 +12,7 @@
 #include "gui-qt/project.h"
 #include "models/metasprite/metasprite-serializer.h"
 #include "models/metasprite/spriteimporter-serializer.h"
+#include "models/project/project.h"
 
 #include <QFileInfo>
 

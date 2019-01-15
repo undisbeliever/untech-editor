@@ -10,6 +10,7 @@
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/project.h"
 #include "models/metatiles/metatiles-serializer.h"
+#include "models/project/project.h"
 
 using namespace UnTech::GuiQt::MetaTiles;
 
