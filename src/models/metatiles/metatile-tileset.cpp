@@ -10,7 +10,6 @@
 #include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
 #include "models/project/project.h"
-#include "models/resources/resources.h"
 #include <cassert>
 
 namespace UnTech {

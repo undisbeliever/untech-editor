@@ -6,7 +6,6 @@
 
 #include "animation-frames-input.h"
 #include "invalid-image-error.h"
-#include "resources.h"
 #include "models/common/bytevectorhelper.h"
 #include "models/common/errorlist.h"
 #include "models/common/imagecache.h"

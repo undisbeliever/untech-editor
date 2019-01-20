@@ -7,7 +7,7 @@
 #pragma once
 
 #include "animation-frames-input.h"
-#include "resources.h"
+#include "models/common/namedlist.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 

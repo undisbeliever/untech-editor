@@ -6,8 +6,8 @@
 
 #include "helpers/commandlineparser.h"
 #include "models/common/file.h"
+#include "models/project/project-compiler.h"
 #include "models/project/project.h"
-#include "models/resources/resources.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -41,7 +41,7 @@ int compile(const CommandLine::Parser& args)
     std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilename);
     project->loadAllFiles();
 
-    std::unique_ptr<ResourcesOutput> output = compileResources(*project, relativeBinaryFilename, std::cerr);
+    std::unique_ptr<ProjectOutput> output = compileResources(*project, relativeBinaryFilename, std::cerr);
     if (!output) {
         std::cerr << "Unable to compile resources.\n";
         return EXIT_FAILURE;

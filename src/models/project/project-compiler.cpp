@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "resources.h"
+#include "project-compiler.h"
 #include "rom-data-writer.hpp"
 #include "version.h"
 #include "models/common/errorlist.h"
@@ -13,7 +13,7 @@
 #include "models/project/project.h"
 
 namespace UnTech {
-namespace Resources {
+namespace Project {
 
 template <class T>
 static std::string itemNameString(const T& item)
@@ -31,14 +31,14 @@ static std::string itemNameString(const std::unique_ptr<T>& item)
     return item->name;
 }
 
-std::unique_ptr<ResourcesOutput>
+std::unique_ptr<ProjectOutput>
 compileResources(const Project::ProjectFile& input, const std::string& relativeBinFilename,
                  std::ostream& errorStream)
 {
     const static std::vector<RomDataWriter::Constant> FORMAT_VERSIONS = {
         { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
-        { "Resources.PALETTE_FORMAT_VERSION", PaletteData::PALETTE_FORMAT_VERSION },
-        { "Resources.ANIMATED_TILESET_FORMAT_VERSION", AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
+        { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
+        { "Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
         { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION }
     };
     enum TypeId : unsigned {
@@ -80,7 +80,7 @@ compileResources(const Project::ProjectFile& input, const std::string& relativeB
                          FORMAT_VERSIONS, TYPE_NAMES);
 
     compileList(input.palettes, "Palette",
-                [&](const std::unique_ptr<PaletteInput>& p, ErrorList& err) {
+                [&](const std::unique_ptr<Resources::PaletteInput>& p, ErrorList& err) {
                     assert(p != nullptr);
                     const auto palData = convertPalette(*p, err);
                     if (palData) {
@@ -107,7 +107,7 @@ compileResources(const Project::ProjectFile& input, const std::string& relativeB
         return nullptr;
     }
 
-    auto ret = std::make_unique<ResourcesOutput>();
+    auto ret = std::make_unique<ProjectOutput>();
     ret->incData = writer.writeIncData(relativeBinFilename);
     ret->binaryData = writer.writeBinaryData();
     return ret;

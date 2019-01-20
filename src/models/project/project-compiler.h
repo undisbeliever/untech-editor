@@ -6,12 +6,6 @@
 
 #pragma once
 
-#include "palette.h"
-#include "models/common/externalfilelist.h"
-#include "models/common/idstring.h"
-#include "models/common/namedlist.h"
-#include "models/metatiles/common.h"
-#include "models/metatiles/metatile-tileset.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -19,16 +13,14 @@
 namespace UnTech {
 namespace Project {
 struct ProjectFile;
-}
-namespace Resources {
 
-struct ResourcesOutput {
+struct ProjectOutput {
     std::string incData;
     std::vector<uint8_t> binaryData;
 };
 
 // may raise an exception
-std::unique_ptr<ResourcesOutput>
+std::unique_ptr<ProjectOutput>
 compileResources(const Project::ProjectFile& input, const std::string& relativeBinaryFilename,
                  std::ostream& errorStream);
 }

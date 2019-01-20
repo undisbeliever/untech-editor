@@ -6,9 +6,10 @@
 
 #include <cassert>
 #include <sstream>
+#include <vector>
 
 namespace UnTech {
-namespace Resources {
+namespace Project {
 
 class RomDataWriter {
 public:
