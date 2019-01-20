@@ -12,6 +12,8 @@
 #include "tilesetlayout.h"
 #include "version.h"
 #include "models/common/errorlist.h"
+#include "models/metasprite/utsi2utms/utsi2utms.h"
+#include "models/project/project.h"
 #include <algorithm>
 #include <climits>
 
@@ -46,6 +48,7 @@ CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
     , actionPointData("AP", "MS_ActionPointsData", true)
     , frameSetData("FSD", "MS_FrameSetData")
     , frameSetList("FSL", "MS_FrameSetList", "FSD")
+    , valid(true)
 {
 }
 
@@ -121,6 +124,7 @@ static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportO
 {
     if (exportOrder == nullptr) {
         errorList.addError("Missing MetaSprite Export Order Document");
+        return false;
     }
 
     return frameSet.validate(errorList)
@@ -165,6 +169,49 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
 void processNullFrameSet(CompiledRomData& out)
 {
     out.frameSetList.addNull();
+}
+
+std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& project, std::ostream& errorStream)
+{
+    bool valid = true;
+    auto romData = std::make_unique<CompiledRomData>(project.blockSettings.size);
+
+    for (auto& fs : project.frameSets) {
+        UnTech::ErrorList errorList;
+
+        if (fs.msFrameSet) {
+            const auto* exportOrder = project.frameSetExportOrders.find(fs.msFrameSet->exportOrder);
+            processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, *romData);
+        }
+        else if (fs.siFrameSet) {
+            Utsi2Utms converter(errorList);
+            auto msFrameSet = converter.convert(*fs.siFrameSet);
+            if (msFrameSet) {
+                const auto* exportOrder = project.frameSetExportOrders.find(msFrameSet->exportOrder);
+                processAndSaveFrameSet(*msFrameSet, exportOrder, errorList, *romData);
+            }
+            else {
+                valid = false;
+                processNullFrameSet(*romData);
+            }
+        }
+        else {
+            processNullFrameSet(*romData);
+        }
+
+        if (!errorList.empty()) {
+            errorStream << fs.name() << ":\n";
+            errorList.printIndented(errorStream);
+        }
+
+        valid &= errorList.hasError() == false;
+    }
+
+    if (valid == false) {
+        romData = nullptr;
+    }
+
+    return romData;
 }
 
 }

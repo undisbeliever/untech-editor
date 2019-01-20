@@ -79,10 +79,8 @@ public:
                                  + " bytes of data, increase block size/count.");
     }
 
-    std::string writeIncData(const std::string& relativeBinFilename) const
+    void writeIncData(std::stringstream& incData, const std::string& relativeBinFilename) const
     {
-        std::stringstream incData;
-
         for (const Constant& c : _constants) {
             incData << "constant " << c.name << " = " << c.value << '\n';
         }
@@ -126,8 +124,6 @@ public:
                 incData << "  dl " << _blockName << ".Data" << di.blockId << " + " << di.offset << '\n';
             }
         }
-
-        return incData.str();
     }
 
     std::vector<uint8_t> writeBinaryData() const

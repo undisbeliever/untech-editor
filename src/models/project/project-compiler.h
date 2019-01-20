@@ -7,7 +7,7 @@
 #pragma once
 
 #include <memory>
-#include <string>
+#include <sstream>
 #include <vector>
 
 namespace UnTech {
@@ -15,13 +15,13 @@ namespace Project {
 struct ProjectFile;
 
 struct ProjectOutput {
-    std::string incData;
+    std::stringstream incData;
     std::vector<uint8_t> binaryData;
 };
 
 // may raise an exception
 std::unique_ptr<ProjectOutput>
-compileResources(const Project::ProjectFile& input, const std::string& relativeBinaryFilename,
-                 std::ostream& errorStream);
+compileProject(const ProjectFile& input, const std::string& relativeBinaryFilename,
+               std::ostream& errorStream);
 }
 }

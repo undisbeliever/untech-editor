@@ -8,6 +8,8 @@
 #include "rom-data-writer.hpp"
 #include "version.h"
 #include "models/common/errorlist.h"
+#include "models/metasprite/compiler/compiler.h"
+#include "models/metasprite/compiler/references.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/project/project.h"
@@ -32,8 +34,8 @@ static std::string itemNameString(const std::unique_ptr<T>& item)
 }
 
 std::unique_ptr<ProjectOutput>
-compileResources(const Project::ProjectFile& input, const std::string& relativeBinFilename,
-                 std::ostream& errorStream)
+compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
+               std::ostream& errorStream)
 {
     const static std::vector<RomDataWriter::Constant> FORMAT_VERSIONS = {
         { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
@@ -79,6 +81,9 @@ compileResources(const Project::ProjectFile& input, const std::string& relativeB
                          "__resc__", "RES_Lists", "RES_Block",
                          FORMAT_VERSIONS, TYPE_NAMES);
 
+    auto metaSpriteData = MetaSprite::Compiler::compileMetaSprites(input, errorStream);
+    valid &= metaSpriteData != nullptr;
+
     compileList(input.palettes, "Palette",
                 [&](const std::unique_ptr<Resources::PaletteInput>& p, ErrorList& err) {
                     assert(p != nullptr);
@@ -108,8 +113,14 @@ compileResources(const Project::ProjectFile& input, const std::string& relativeB
     }
 
     auto ret = std::make_unique<ProjectOutput>();
-    ret->incData = writer.writeIncData(relativeBinFilename);
     ret->binaryData = writer.writeBinaryData();
+
+    writer.writeIncData(ret->incData, relativeBinFilename);
+
+    MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);
+    MetaSprite::Compiler::writeExportOrderReferences(input, ret->incData);
+    metaSpriteData->writeToIncFile(ret->incData);
+
     return ret;
 }
 }

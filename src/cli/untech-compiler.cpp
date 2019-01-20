@@ -13,11 +13,10 @@
 
 using namespace UnTech;
 using namespace UnTech::Project;
-using namespace UnTech::Resources;
 
 typedef CommandLine::OptionType OT;
 const CommandLine::Config COMMAND_LINE_CONFIG = {
-    "UnTech Resource Compiler",
+    "UnTech Compiler",
     true,
     true,
     false,
@@ -41,13 +40,13 @@ int compile(const CommandLine::Parser& args)
     std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilename);
     project->loadAllFiles();
 
-    std::unique_ptr<ProjectOutput> output = compileResources(*project, relativeBinaryFilename, std::cerr);
+    std::unique_ptr<ProjectOutput> output = compileProject(*project, relativeBinaryFilename, std::cerr);
     if (!output) {
-        std::cerr << "Unable to compile resources.\n";
+        std::cerr << "Unable to compile project.\n";
         return EXIT_FAILURE;
     }
 
-    File::atomicWrite(incFilename, output->incData);
+    File::atomicWrite(incFilename, output->incData.str());
     File::atomicWrite(binaryFilename, output->binaryData);
 
     return EXIT_SUCCESS;

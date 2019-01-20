@@ -15,6 +15,7 @@ namespace Project {
 void ProjectFile::loadAllFiles()
 {
     metaTileTilesets.loadAllFiles();
+    frameSetExportOrders.loadAllFiles();
 
     for (auto& fs : frameSets) {
         fs.loadFile();
