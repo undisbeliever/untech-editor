@@ -15,7 +15,6 @@ namespace MetaSprite {
 
 struct FrameSetFile {
     enum class FrameSetType {
-        NONE = 0,
         UNKNOWN,
         METASPRITE,
         SPRITE_IMPORTER
@@ -23,7 +22,7 @@ struct FrameSetFile {
 
     std::string filename;
 
-    FrameSetType type = FrameSetType::NONE;
+    FrameSetType type = FrameSetType::UNKNOWN;
     std::unique_ptr<MetaSprite::FrameSet> msFrameSet;
     std::unique_ptr<SpriteImporter::FrameSet> siFrameSet;
 
@@ -34,8 +33,11 @@ struct FrameSetFile {
     // throws an exception on error
     void loadFile();
 
-    // returns and empty idstring if no frameSet exists
+    // returns an empty idstring if no frameSet exists
     const idstring& name() const;
+
+    // returns the filename is no frameSet exists
+    const std::string& displayName() const;
 
     FrameSetFile() = default;
 };

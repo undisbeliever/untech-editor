@@ -21,13 +21,6 @@ const std::string ProjectFile::FILE_EXTENSION = "utproject";
 
 using FrameSetFile = UnTech::MetaSprite::FrameSetFile;
 
-const EnumMap<FrameSetFile::FrameSetType> frameSetTypeMap = {
-    { "none", FrameSetFile::FrameSetType::NONE },
-    { "unknown", FrameSetFile::FrameSetType::UNKNOWN },
-    { "metasprite", FrameSetFile::FrameSetType::METASPRITE },
-    { "spriteimporter", FrameSetFile::FrameSetType::SPRITE_IMPORTER },
-};
-
 static void readBlockSettings(const XmlTag* tag, BlockSettings& settings)
 {
     assert(tag->name == "block-settings");

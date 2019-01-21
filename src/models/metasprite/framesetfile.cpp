@@ -16,7 +16,7 @@ using namespace UnTech::MetaSprite;
 void FrameSetFile::setTypeFromExtension()
 {
     if (filename.empty()) {
-        type = FrameSetType::NONE;
+        type = FrameSetType::UNKNOWN;
         return;
     }
 
@@ -61,9 +61,6 @@ void FrameSetFile::loadFile()
     }
 
     switch (type) {
-    case FrameSetType::NONE:
-        break;
-
     case FrameSetType::METASPRITE:
         msFrameSet = MetaSprite::loadFrameSet(filename);
         break;
@@ -91,6 +88,17 @@ const idstring& FrameSetFile::name() const
     return empty;
 }
 
+const std::string& FrameSetFile::displayName() const
+{
+    if (msFrameSet) {
+        return msFrameSet->name;
+    }
+    if (siFrameSet) {
+        return siFrameSet->name;
+    }
+    return filename;
+}
+
 bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetFile>& frameSets,
                                                      ErrorList& err)
 {
@@ -99,10 +107,6 @@ bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetF
     bool valid = true;
 
     for (auto it = frameSets.begin(); it != frameSets.end(); it++) {
-        if (it->type == FrameSetFile::FrameSetType::NONE) {
-            continue;
-        }
-
         const std::string& filename = it->filename;
         bool dupFn = std::any_of(it + 1, frameSets.end(),
                                  [&](const auto& i) { return i.filename == filename; });

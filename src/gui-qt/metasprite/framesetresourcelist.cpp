@@ -56,7 +56,6 @@ AbstractResourceItem* FrameSetResourceList::buildResourceItem(size_t index)
     auto& frameSet = frameSets.at(index);
 
     switch (frameSet.type) {
-    case FrameSetType::NONE:
     case FrameSetType::UNKNOWN:
         return new NullFrameSetResourceItem(this, index);
 
@@ -93,7 +92,6 @@ void FrameSetResourceList::do_addResource(int settingIndex, const std::string& f
     frameSets.emplace_back();
     auto& frameSet = frameSets.back();
     frameSet.filename = filename;
-    frameSet.type = FrameSetType::NONE;
 
     switch ((SettingIndexes)settingIndex) {
     case METASPRITE_ITEM:

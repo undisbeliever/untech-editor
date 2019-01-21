@@ -135,7 +135,6 @@ void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOr
                             ErrorList& errorList, CompiledRomData& out)
 {
     if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
-        processNullFrameSet(out);
         return;
     }
 
@@ -166,11 +165,6 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
     return errorList.errorCount() == oldErrorCount;
 }
 
-void processNullFrameSet(CompiledRomData& out)
-{
-    out.frameSetList.addNull();
-}
-
 std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& project, std::ostream& errorStream)
 {
     bool valid = true;
@@ -190,17 +184,13 @@ std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& 
                 const auto* exportOrder = project.frameSetExportOrders.find(msFrameSet->exportOrder);
                 processAndSaveFrameSet(*msFrameSet, exportOrder, errorList, *romData);
             }
-            else {
-                valid = false;
-                processNullFrameSet(*romData);
-            }
         }
         else {
-            processNullFrameSet(*romData);
+            errorList.addWarning("Missing FrameSet");
         }
 
         if (!errorList.empty()) {
-            errorStream << fs.name() << ":\n";
+            errorStream << fs.displayName() << ":\n";
             errorList.printIndented(errorStream);
         }
 

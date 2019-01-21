@@ -13,7 +13,6 @@ namespace UnTech {
 namespace MetaSprite {
 
 const EnumMap<FrameSetFile::FrameSetType> frameSetTypeMap = {
-    { "none", FrameSetFile::FrameSetType::NONE },
     { "unknown", FrameSetFile::FrameSetType::UNKNOWN },
     { "metasprite", FrameSetFile::FrameSetType::METASPRITE },
     { "spriteimporter", FrameSetFile::FrameSetType::SPRITE_IMPORTER },
@@ -26,31 +25,23 @@ void readFrameSetFile(const XmlTag* tag, std::vector<FrameSetFile>& frameSets)
     frameSets.emplace_back();
     FrameSetFile& fs = frameSets.back();
 
-    if (tag->hasAttribute("src")) {
-        fs.filename = tag->getAttributeFilename("src");
+    fs.filename = tag->getAttributeFilename("src");
 
-        if (tag->hasAttribute("type")) {
-            fs.type = tag->getAttributeEnum("type", frameSetTypeMap);
-        }
-        else {
-            fs.setTypeFromExtension();
-        }
+    if (tag->hasAttribute("type")) {
+        fs.type = tag->getAttributeEnum("type", frameSetTypeMap);
     }
     else {
-        fs.type = FrameSetFile::FrameSetType::NONE;
+        fs.setTypeFromExtension();
     }
 }
 
 void writeFrameSetFiles(XmlWriter& xml, const std::vector<FrameSetFile>& frameSets)
 {
-    using FST = FrameSetFile::FrameSetType;
-
     for (const auto& fs : frameSets) {
         xml.writeTag("frameset");
-        if (fs.type != FST::NONE && !fs.filename.empty()) {
-            xml.writeTagAttributeFilename("src", fs.filename);
-            xml.writeTagAttributeEnum("type", fs.type, frameSetTypeMap);
-        }
+        xml.writeTagAttributeFilename("src", fs.filename);
+        xml.writeTagAttributeEnum("type", fs.type, frameSetTypeMap);
+
         xml.writeCloseTag();
     }
 }
