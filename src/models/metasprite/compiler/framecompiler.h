@@ -25,7 +25,6 @@ struct FrameData {
     std::vector<uint8_t> tileHitbox;
     std::vector<uint8_t> actionPoints;
     RomOffsetPtr tileset;
-    bool isNull;
 };
 
 std::vector<FrameData> processFrameList(const FrameSetExportList& exportList,

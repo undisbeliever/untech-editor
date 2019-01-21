@@ -14,8 +14,6 @@ namespace Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-constexpr uint32_t NULL_OFFSET = ~0;
-
 static std::vector<uint8_t> processFrameObjects(const MS::Frame& frame,
                                                 const FrameTilesetData& tileMap)
 {
@@ -177,7 +175,6 @@ static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& fr
         .tileHitbox = processTileHitbox(frame),
         .actionPoints = processActionPoints(frame.actionPoints),
         .tileset = tilesetAddr,
-        .isNull = false,
     };
 }
 
@@ -212,10 +209,6 @@ std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, co
 
 static uint32_t saveCompiledFrame(const FrameData& frameData, CompiledRomData& out)
 {
-    if (frameData.isNull) {
-        return NULL_OFFSET;
-    }
-
     RomIncItem data;
 
     data.addAddr(out.frameObjectData.addData(frameData.frameObjects));
