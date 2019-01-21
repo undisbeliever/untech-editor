@@ -6,43 +6,44 @@
 
 #include "resourcefilepropertymanager.h"
 #include "gui-qt/accessor/projectsettingsundohelper.h"
-#include "gui-qt/resources/resourceproject.h"
+#include "gui-qt/project.h"
+#include "models/project/project.h"
 
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Resources;
 
-namespace RES = UnTech::Resources;
+namespace PRO = UnTech::Project;
 
-using SettingsUndoHelper = ProjectSettingsUndoHelper<ResourceProject>;
+using SettingsUndoHelper = ProjectSettingsUndoHelper<UnTech::GuiQt::Project>;
 
-bool ResourceProject::editBlockSettings_setSize(unsigned blockSize)
+bool ResourceFilePropertyManager::editBlockSettings_setSize(unsigned blockSize)
 {
-    return SettingsUndoHelper(this).editField(
+    return SettingsUndoHelper(_project).editField(
         blockSize,
         tr("Edit Block Size"),
-        [](RES::ResourcesFile& rf) -> unsigned& { return rf.blockSettings.size; });
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.size; });
 }
 
-bool ResourceProject::editBlockSettings_setCount(unsigned blockCount)
+bool ResourceFilePropertyManager::editBlockSettings_setCount(unsigned blockCount)
 {
-    return SettingsUndoHelper(this).editField(
+    return SettingsUndoHelper(_project).editField(
         blockCount,
         tr("Edit Block Count"),
-        [](RES::ResourcesFile& rf) -> unsigned& { return rf.blockSettings.count; });
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.count; });
 }
 
-bool ResourceProject::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
+bool ResourceFilePropertyManager::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
 {
-    return SettingsUndoHelper(this).editField(
+    return SettingsUndoHelper(_project).editField(
         maxMapSize,
         tr("Edit MetaTile Max Map Size"),
-        [](RES::ResourcesFile& rf) -> unsigned& { return rf.metaTileEngineSettings.maxMapSize; });
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.maxMapSize; });
 }
 
-bool ResourceProject::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
+bool ResourceFilePropertyManager::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
 {
-    return SettingsUndoHelper(this).editField(
+    return SettingsUndoHelper(_project).editField(
         nMetaTiles,
         tr("Edit Number of MetaTiles"),
-        [](RES::ResourcesFile& rf) -> unsigned& { return rf.metaTileEngineSettings.nMetaTiles; });
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.nMetaTiles; });
 }

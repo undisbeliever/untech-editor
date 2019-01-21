@@ -5,8 +5,8 @@
  */
 
 #include "tabbar.h"
-#include "gui-qt/abstractproject.h"
 #include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/project.h"
 
 #include <QMessageBox>
 #include <QVBoxLayout>
@@ -38,7 +38,7 @@ TabBar::TabBar(QWidget* parent)
             this, &TabBar::onTabCloseRequested);
 }
 
-void TabBar::setProject(AbstractProject* project)
+void TabBar::setProject(Project* project)
 {
     if (_project == project) {
         return;
@@ -52,10 +52,10 @@ void TabBar::setProject(AbstractProject* project)
     resetTabs();
 
     if (_project) {
-        connect(_project, &AbstractProject::selectedResourceChanged,
+        connect(_project, &Project::selectedResourceChanged,
                 this, &TabBar::onSelectedResourceChanged);
 
-        connect(_project, &AbstractProject::resourceItemAboutToBeRemoved,
+        connect(_project, &Project::resourceItemAboutToBeRemoved,
                 this, &TabBar::onResourceItemAboutToBeRemoved);
     }
 }

@@ -15,7 +15,7 @@ namespace GuiQt {
 namespace Ui {
 class ResourcesTreeDock;
 }
-class AbstractProject;
+class Project;
 class AbstractResourceList;
 class ResourcesTreeModel;
 
@@ -26,7 +26,7 @@ public:
     ResourcesTreeDock(QWidget* parent = nullptr);
     ~ResourcesTreeDock();
 
-    void setProject(AbstractProject* project);
+    void setProject(Project* project);
 
     QMenu* addResourceMenu() const { return _addResourceMenu; }
 
@@ -45,7 +45,7 @@ private:
     ResourcesTreeModel* const _model;
     QMenu* const _addResourceMenu;
 
-    AbstractProject* _project;
+    Project* _project;
 };
 }
 }

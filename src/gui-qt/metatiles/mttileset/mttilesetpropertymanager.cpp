@@ -8,6 +8,7 @@
 #include "mttilesetaccessors.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/project.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
 
 using namespace UnTech::GuiQt::MetaTiles;

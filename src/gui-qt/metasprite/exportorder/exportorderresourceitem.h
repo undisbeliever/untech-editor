@@ -7,7 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstractresourceitem.h"
-#include "gui-qt/metasprite/metaspriteproject.h"
+#include "models/common/externalfilelist.h"
 #include "models/metasprite/frameset-exportorder.h"
 #include <QObject>
 
@@ -33,14 +33,9 @@ public:
     ExportOrderResourceItem(ExportOrderResourceList* parent, size_t index);
     ~ExportOrderResourceItem() = default;
 
-    MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
-
 public:
     // may be nullptr
-    const DataT* exportOrder() const
-    {
-        return project()->metaSpriteProject()->exportOrders.at(index());
-    }
+    const DataT* exportOrder() const { return _exportOrders.at(index()); }
 
     const DataT::ExportName& exportName(bool isFrame, unsigned index);
 
@@ -54,22 +49,14 @@ protected:
 
     friend class ExportOrder::ExportNameList;
     friend class ExportOrder::AlternativesList;
-    DataT* exportOrderEditable()
-    {
-        return project()->metaSpriteProject()->exportOrders.at(index());
-    }
+    DataT* exportOrderEditable() { return _exportOrders.at(index()); }
 
 private:
-    inline const auto& exportOrderList() const
-    {
-        return project()->metaSpriteProject()->exportOrders;
-    }
-    inline auto& exportOrderItem()
-    {
-        return project()->metaSpriteProject()->exportOrders.item(index());
-    }
+    inline auto& exportOrderItem() { return _exportOrders.item(index()); }
 
 private:
+    ExternalFileList<DataT>& _exportOrders;
+
     ExportOrder::ExportNameList* const _exportNameList;
     ExportOrder::AlternativesList* const _alternativesList;
 };

@@ -6,22 +6,24 @@
 
 #pragma once
 
-#include "palette.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
+#include "models/metasprite/frameset-exportorder.h"
+#include "models/metasprite/framesetfile.h"
 #include "models/metatiles/common.h"
 #include "models/metatiles/metatile-tileset.h"
+#include "models/resources/palette.h"
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace UnTech {
-namespace Resources {
+namespace Project {
 
 struct BlockSettings {
-    unsigned size;
-    unsigned count;
+    unsigned size = 8192;
+    unsigned count = 1;
 
     bool operator==(const BlockSettings& o) const
     {
@@ -31,40 +33,34 @@ struct BlockSettings {
     bool operator!=(const BlockSettings& o) const { return !(*this == o); }
 };
 
-struct ResourcesFile {
+struct ProjectFile {
     const static std::string FILE_EXTENSION;
 
     BlockSettings blockSettings;
     MetaTiles::EngineSettings metaTileEngineSettings;
 
-    NamedList<PaletteInput> palettes;
+    NamedList<Resources::PaletteInput> palettes;
     ExternalFileList<MetaTiles::MetaTileTilesetInput> metaTileTilesets;
+
+    std::vector<MetaSprite::FrameSetFile> frameSets;
+    ExternalFileList<MetaSprite::FrameSetExportOrder> frameSetExportOrders;
 
     void loadAllFiles();
 
     bool validate(ErrorList& err) const;
 
-    bool operator==(const ResourcesFile& o) const
+    bool operator==(const ProjectFile& o) const
     {
         return blockSettings == o.blockSettings
                && metaTileEngineSettings == o.metaTileEngineSettings
                && palettes == o.palettes
                && metaTileTilesets == o.metaTileTilesets;
     }
-    bool operator!=(const ResourcesFile& o) const { return !(*this == o); }
+    bool operator!=(const ProjectFile& o) const { return !(*this == o); }
 };
 
-struct ResourcesOutput {
-    std::string incData;
-    std::vector<uint8_t> binaryData;
-};
+std::unique_ptr<ProjectFile> loadProjectFile(const std::string& filename);
+void saveProjectFile(const ProjectFile& project, const std::string& filename);
 
-// raises exception on error
-std::unique_ptr<ResourcesFile> loadResourcesFile(const std::string& filename);
-
-// may raise an exception
-std::unique_ptr<ResourcesOutput>
-compileResources(const ResourcesFile& input, const std::string& relativeBinaryFilename,
-                 std::ostream& errorStream);
 }
 }

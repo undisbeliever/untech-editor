@@ -9,7 +9,7 @@
 #include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
-#include "models/resources/resources.h"
+#include "models/project/project.h"
 #include <cassert>
 
 namespace UnTech {
@@ -60,7 +60,7 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
 }
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
-                                                    const Resources::ResourcesFile& resourcesFile,
+                                                    const Project::ProjectFile& projectFile,
                                                     ErrorList& err)
 {
     bool valid = input.validate(err);
@@ -69,7 +69,7 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     }
 
     const idstring& paletteName = input.palettes.front();
-    const auto* palette = resourcesFile.palettes.find(paletteName);
+    const auto* palette = projectFile.palettes.find(paletteName);
     if (palette == nullptr) {
         err.addError("Cannot find palette: " + paletteName);
         return nullptr;
@@ -85,7 +85,7 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     ret->palettes = input.palettes;
     ret->animatedTileset = std::move(aniFrames);
 
-    valid = ret->validate(resourcesFile.metaTileEngineSettings, err);
+    valid = ret->validate(projectFile.metaTileEngineSettings, err);
     if (!valid) {
         return nullptr;
     }

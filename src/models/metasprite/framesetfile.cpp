@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "project.h"
+#include "framesetfile.h"
 #include "models/common/errorlist.h"
 #include "models/common/string.h"
 #include "models/common/validateunique.h"
@@ -13,7 +13,7 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
-void Project::FrameSetFile::setTypeFromExtension()
+void FrameSetFile::setTypeFromExtension()
 {
     if (filename.empty()) {
         type = FrameSetType::NONE;
@@ -31,9 +31,9 @@ void Project::FrameSetFile::setTypeFromExtension()
     }
 }
 
-bool Project::FrameSetFile::convertSpriteImporter(ErrorList& errors, bool strict)
+bool FrameSetFile::convertSpriteImporter(ErrorList& errors, bool strict)
 {
-    if (type == Project::FrameSetType::SPRITE_IMPORTER && siFrameSet) {
+    if (type == FrameSetType::SPRITE_IMPORTER && siFrameSet) {
         const auto origListSize = errors.list().size();
 
         Utsi2Utms converter(errors);
@@ -51,7 +51,34 @@ bool Project::FrameSetFile::convertSpriteImporter(ErrorList& errors, bool strict
     }
 }
 
-const idstring& Project::FrameSetFile::name() const
+void FrameSetFile::loadFile()
+{
+    msFrameSet = nullptr;
+    siFrameSet = nullptr;
+
+    if (filename.empty()) {
+        return;
+    }
+
+    switch (type) {
+    case FrameSetType::NONE:
+        break;
+
+    case FrameSetType::METASPRITE:
+        msFrameSet = MetaSprite::loadFrameSet(filename);
+        break;
+
+    case FrameSetType::SPRITE_IMPORTER:
+        siFrameSet = SpriteImporter::loadFrameSet(filename);
+        break;
+
+    case FrameSetType::UNKNOWN:
+        throw std::runtime_error("Cannot load " + filename + ": Unknown frameset type");
+        break;
+    }
+}
+
+const idstring& FrameSetFile::name() const
 {
     static const idstring empty;
 
@@ -64,15 +91,15 @@ const idstring& Project::FrameSetFile::name() const
     return empty;
 }
 
-static bool validateFrameSetNamesUnique(const std::vector<Project::FrameSetFile>& frameSets,
-                                        ErrorList& err)
+bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetFile>& frameSets,
+                                                     ErrorList& err)
 {
     const idstring countString("count");
 
     bool valid = true;
 
     for (auto it = frameSets.begin(); it != frameSets.end(); it++) {
-        if (it->type == Project::FrameSetType::NONE) {
+        if (it->type == FrameSetFile::FrameSetType::NONE) {
             continue;
         }
 
@@ -107,20 +134,6 @@ static bool validateFrameSetNamesUnique(const std::vector<Project::FrameSetFile>
             valid = false;
         }
     }
-
-    return valid;
-}
-
-bool Project::validateNamesUnique(ErrorList& errors) const
-{
-    bool valid = true;
-
-    if (frameSets.size() > MAX_FRAMESETS) {
-        errors.addError("Too many frameSets");
-    }
-
-    valid &= validateFrameSetNamesUnique(frameSets, errors);
-    valid &= validateFilesAndNamesUnique(exportOrders, "export order", errors);
 
     return valid;
 }

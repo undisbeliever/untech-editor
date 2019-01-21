@@ -7,7 +7,8 @@
 #pragma once
 
 #include "gui-qt/abstractresourcelist.h"
-#include "gui-qt/metasprite/metaspriteproject.h"
+#include "models/common/externalfilelist.h"
+#include "models/metasprite/frameset-exportorder.h"
 #include <QObject>
 #include <QVector>
 
@@ -19,10 +20,8 @@ class ExportOrderResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    ExportOrderResourceList(MetaSpriteProject* project);
+    ExportOrderResourceList(Project* project);
     ~ExportOrderResourceList() = default;
-
-    MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
@@ -35,6 +34,10 @@ protected:
 
     virtual void do_addResource(int settingIndex, const std::string& filename) final;
     virtual void do_removeResource(unsigned index) final;
+
+    // Will always return the same instance
+    friend class ExportOrderResourceItem;
+    ExternalFileList<UnTech::MetaSprite::FrameSetExportOrder>& exportOrders() const;
 };
 }
 }

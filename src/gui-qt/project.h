@@ -7,10 +7,16 @@
 #pragma once
 
 #include "common.h"
+#include "gui-qt/accessor/accessor.h"
 #include <QObject>
 #include <QUndoStack>
+#include <memory>
 
 namespace UnTech {
+namespace Project {
+struct ProjectFile;
+}
+
 namespace GuiQt {
 class AbstractResourceList;
 class AbstractResourceItem;
@@ -18,22 +24,45 @@ class AbstractExternalResourceItem;
 class ResourceValidationWorker;
 class FilesystemWatcher;
 
-class AbstractProject : public QObject {
+namespace MetaSprite {
+class ExportOrderResourceList;
+class FrameSetResourceList;
+}
+namespace MetaTiles {
+class MtTilesetResourceList;
+}
+namespace Resources {
+class PaletteResourceList;
+}
+
+class Project : public QObject {
     Q_OBJECT
 
 public:
-    explicit AbstractProject(QObject* parent = nullptr);
-    virtual ~AbstractProject();
+    using DataT = UnTech::Project::ProjectFile;
 
-protected:
-    void initResourceLists(std::initializer_list<AbstractResourceList*> resourceLists);
+private:
+    Project(std::unique_ptr<DataT> projectFile, QString filename);
 
 public:
+    virtual ~Project() final;
+
+public:
+    static std::unique_ptr<Project> newProject(const QString& filenmae);
+    static std::unique_ptr<Project> loadProject(const QString& filename);
+
     const QString& filename() const { return _filename; }
     QUndoStack* undoStack() const { return _undoStack; }
     const auto& resourceLists() const { return _resourceLists; }
     ResourceValidationWorker* validationWorker() const { return _validationWorker; }
     FilesystemWatcher* filesystemWatcher() const { return _filesystemWatcher; }
+
+    UnTech::Project::ProjectFile* projectFile() const { return _projectFile.get(); }
+
+    MetaSprite::ExportOrderResourceList* frameSetExportOrderResourceList() const { return _frameSetExportOrderResourceList; }
+    MetaSprite::FrameSetResourceList* frameSetResourceList() const { return _frameSetResourceList; }
+    Resources::PaletteResourceList* paletteResourceList() const { return _paletteResourceList; }
+    MetaTiles::MtTilesetResourceList* mtTilesetResourceList() const { return _mtTilesetResourceList; }
 
     void setSelectedResource(AbstractResourceItem* item);
     AbstractResourceItem* selectedResource() const { return _selectedResource; }
@@ -42,7 +71,6 @@ public:
     AbstractResourceItem* findResourceItem(ResourceTypeIndex type, const QString& name) const;
 
     bool saveProject(const QString& filename);
-    bool loadProject(const QString& filename);
 
     QList<AbstractExternalResourceItem*> unsavedExternalResources() const;
 
@@ -50,12 +78,8 @@ public:
     QStringList unsavedFilenames() const;
 
 protected:
-    // can throw exceptions
-    virtual bool saveProjectFile(const QString& filename) = 0;
-    virtual bool loadProjectFile(const QString& filename) = 0;
-
-protected:
-    void rebuildResourceLists();
+    friend class Accessor::ProjectSettingsUndoHelper<Project>;
+    DataT* dataEditable() const { return _projectFile.get(); }
 
 private slots:
     void onSelectedResourceDestroyed(QObject* obj);
@@ -71,12 +95,19 @@ signals:
     void resourceItemAboutToBeRemoved(AbstractResourceItem*);
 
 private:
-    QList<AbstractResourceList*> _resourceLists;
+    std::unique_ptr<UnTech::Project::ProjectFile> const _projectFile;
 
     QString _filename;
     QUndoStack* const _undoStack;
     ResourceValidationWorker* const _validationWorker;
     FilesystemWatcher* const _filesystemWatcher;
+
+    MetaSprite::ExportOrderResourceList* const _frameSetExportOrderResourceList;
+    MetaSprite::FrameSetResourceList* const _frameSetResourceList;
+    Resources::PaletteResourceList* const _paletteResourceList;
+    MetaTiles::MtTilesetResourceList* const _mtTilesetResourceList;
+
+    const QList<AbstractResourceList*> _resourceLists;
 
     AbstractResourceItem* _selectedResource;
 };

@@ -10,9 +10,11 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
+using ProjectFile = UnTech::Project::ProjectFile;
+
 // ::TODO generate debug file - containing frame/frameset names::
 
-void writeFrameSetReferences(const Project& project, std::ostream& out)
+void writeFrameSetReferences(const ProjectFile& project, std::ostream& out)
 {
     out << "namespace MSFS {\n";
 
@@ -34,11 +36,11 @@ void writeFrameSetReferences(const Project& project, std::ostream& out)
     out << "}\n";
 }
 
-void writeExportOrderReferences(const Project& project, std::ostream& out)
+void writeExportOrderReferences(const ProjectFile& project, std::ostream& out)
 {
     out << "namespace MSEO {\n";
 
-    for (const auto& it : project.exportOrders) {
+    for (const auto& it : project.frameSetExportOrders) {
         const FrameSetExportOrder* eo = it.value.get();
         if (eo == nullptr) {
             throw std::runtime_error("Unable to read Export Order: " + it.filename);

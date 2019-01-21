@@ -26,7 +26,7 @@ public:
     }
     ~ExportOrderEditor() = default;
 
-    virtual bool setResourceItem(AbstractProject*, AbstractResourceItem* aItem)
+    virtual bool setResourceItem(Project*, AbstractResourceItem* aItem)
     {
         ExportOrderResourceItem* item = qobject_cast<ExportOrderResourceItem*>(aItem);
         _propertyWidget->setExportOrderResource(item);

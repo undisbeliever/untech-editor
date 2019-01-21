@@ -6,25 +6,25 @@
 
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
-#include "models/resources/resources-serializer.h"
+#include "models/project/project-serializer.h"
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
 
 using namespace UnTech;
-namespace RES = UnTech::Resources;
+using namespace Project;
 
-std::unique_ptr<RES::ResourcesFile> readXmlString(const std::string& str)
+std::unique_ptr<ProjectFile> readXmlString(const std::string& str)
 {
     Xml::XmlReader xml(str, "STRING");
-    return RES::readResourcesFile(xml);
+    return readProjectFile(xml);
 }
 
-std::string writeXmlString(const RES::ResourcesFile& resFile)
+std::string writeXmlString(const ProjectFile& resFile)
 {
     std::stringstream stream;
     Xml::XmlWriter xml(stream, "STRING", "untech");
-    RES::writeResourcesFile(xml, resFile);
+    writeProjectFile(xml, resFile);
 
     return stream.str();
 }
@@ -37,11 +37,11 @@ int main(int argc, const char* argv[])
     }
 
     std::string filename = argv[1];
-    std::unique_ptr<RES::ResourcesFile> resFile1;
-    std::unique_ptr<RES::ResourcesFile> resFile2;
+    std::unique_ptr<ProjectFile> resFile1;
+    std::unique_ptr<ProjectFile> resFile2;
 
     try {
-        resFile1 = RES::loadResourcesFile(filename);
+        resFile1 = loadProjectFile(filename);
     }
     catch (const Xml::xml_error& ex) {
         std::cerr << "ERROR: " << ex.what() << std::endl;

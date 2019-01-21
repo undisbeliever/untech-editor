@@ -8,12 +8,15 @@
 #include "framesetresourcelist.h"
 #include "animation/animationaccessors.h"
 #include "animation/animationframesmanager.h"
+#include "gui-qt/project.h"
 #include "models/metasprite/compiler/compiler.h"
+#include "models/project/project.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 
 AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _frameSetFiles(parent->frameSetFiles())
     , _animationsMap(new Animation::AnimationsMap(this))
     , _animationFramesList(new Animation::AnimationFramesList(this))
 {
@@ -30,10 +33,10 @@ void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet, ErrorLi
 
     if (frameSet) {
         try {
-            const auto project = this->project()->metaSpriteProject();
+            const auto project = this->project()->projectFile();
             Q_ASSERT(project);
 
-            const auto* exportOrder = project->exportOrders.find(frameSet->exportOrder);
+            const auto* exportOrder = project->frameSetExportOrders.find(frameSet->exportOrder);
             validateFrameSetAndBuildTilesets(*frameSet, exportOrder, errList);
         }
         catch (std::exception& ex) {

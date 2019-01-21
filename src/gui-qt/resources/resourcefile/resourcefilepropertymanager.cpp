@@ -5,7 +5,8 @@
  */
 
 #include "resourcefilepropertymanager.h"
-#include "gui-qt/resources/resourceproject.h"
+#include "gui-qt/project.h"
+#include "models/project/project.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -26,7 +27,7 @@ ResourceFilePropertyManager::ResourceFilePropertyManager(QObject* parent)
     addProperty(tr("N. MetaTiles"), METATILE_N_METATILES, Type::UNSIGNED, 16, 1024);
 }
 
-void ResourceFilePropertyManager::setProject(ResourceProject* project)
+void ResourceFilePropertyManager::setProject(Project* project)
 {
     if (_project == project) {
         return;
@@ -40,7 +41,7 @@ void ResourceFilePropertyManager::setProject(ResourceProject* project)
     setEnabled(_project != nullptr);
 
     if (_project) {
-        connect(_project, &ResourceProject::resourceFileSettingsChanged,
+        connect(_project, &Project::resourceFileSettingsChanged,
                 this, &ResourceFilePropertyManager::dataChanged);
     }
 
@@ -53,21 +54,21 @@ QVariant ResourceFilePropertyManager::data(int id) const
         return QVariant();
     }
 
-    const RES::ResourcesFile* res = _project->resourcesFile();
-    Q_ASSERT(res);
+    const auto* pro = _project->projectFile();
+    Q_ASSERT(pro);
 
     switch ((PropertyId)id) {
     case BLOCK_SIZE:
-        return res->blockSettings.size;
+        return pro->blockSettings.size;
 
     case BLOCK_COUNT:
-        return res->blockSettings.count;
+        return pro->blockSettings.count;
 
     case METATILE_MAX_MAP_SIZE:
-        return res->metaTileEngineSettings.maxMapSize;
+        return pro->metaTileEngineSettings.maxMapSize;
 
     case METATILE_N_METATILES:
-        return res->metaTileEngineSettings.nMetaTiles;
+        return pro->metaTileEngineSettings.nMetaTiles;
     }
 
     return QVariant();
@@ -79,16 +80,16 @@ bool ResourceFilePropertyManager::setData(int id, const QVariant& value)
 
     switch ((PropertyId)id) {
     case BLOCK_SIZE:
-        return _project->editBlockSettings_setSize(value.toUInt());
+        return editBlockSettings_setSize(value.toUInt());
 
     case BLOCK_COUNT:
-        return _project->editBlockSettings_setCount(value.toUInt());
+        return editBlockSettings_setCount(value.toUInt());
 
     case METATILE_MAX_MAP_SIZE:
-        return _project->editMetaTileSettings_setMaxMapSize(value.toUInt());
+        return editMetaTileSettings_setMaxMapSize(value.toUInt());
 
     case METATILE_N_METATILES:
-        return _project->editMetaTileSettings_setNMetaTiles(value.toUInt());
+        return editMetaTileSettings_setNMetaTiles(value.toUInt());
     }
 
     return false;

@@ -19,7 +19,7 @@ namespace GuiQt {
 namespace Ui {
 class ErrorListDock;
 }
-class AbstractProject;
+class Project;
 class AbstractResourceItem;
 
 class ErrorListDock : public QDockWidget {
@@ -31,7 +31,7 @@ public:
     ErrorListDock(QWidget* parent = nullptr);
     ~ErrorListDock();
 
-    void setProject(AbstractProject* project);
+    void setProject(Project* project);
 
 signals:
     void errorDoubleClicked(const ErrorListItem&);
@@ -49,7 +49,7 @@ private:
     const QIcon _errorIcon;
     const QIcon _warningIcon;
 
-    AbstractProject* _project;
+    Project* _project;
     AbstractResourceItem* _currentItem;
 };
 }

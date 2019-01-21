@@ -10,8 +10,9 @@
 
 namespace UnTech {
 namespace GuiQt {
+class Project;
+
 namespace Resources {
-class ResourceProject;
 
 class ResourceFilePropertyManager : public PropertyListManager {
     Q_OBJECT
@@ -28,13 +29,20 @@ public:
     explicit ResourceFilePropertyManager(QObject* parent = nullptr);
     ~ResourceFilePropertyManager() = default;
 
-    virtual void setProject(ResourceProject* project) final;
+    virtual void setProject(Project* project) final;
 
     virtual QVariant data(int id) const final;
     virtual bool setData(int id, const QVariant& value) final;
 
 private:
-    ResourceProject* _project;
+    bool editBlockSettings_setSize(unsigned blockSize);
+    bool editBlockSettings_setCount(unsigned blockCount);
+
+    bool editMetaTileSettings_setMaxMapSize(unsigned maxMapSize);
+    bool editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles);
+
+private:
+    Project* _project;
 };
 }
 }

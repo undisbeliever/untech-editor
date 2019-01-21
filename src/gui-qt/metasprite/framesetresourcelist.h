@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "metaspriteproject.h"
 #include "gui-qt/abstractresourcelist.h"
+#include "models/metasprite/framesetfile.h"
 #include <QObject>
 #include <QVector>
 
@@ -24,10 +24,8 @@ class FrameSetResourceList : public AbstractResourceList {
     };
 
 public:
-    FrameSetResourceList(MetaSpriteProject* project);
+    FrameSetResourceList(Project* project);
     ~FrameSetResourceList() = default;
-
-    MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
@@ -40,6 +38,11 @@ protected:
 
     virtual void do_addResource(int settingIndex, const std::string& filename) final;
     virtual void do_removeResource(unsigned index) final;
+
+    // Will always return the same instance
+    friend class AbstractMsDocument;
+    friend class NullFrameSetResourceItem;
+    std::vector<UnTech::MetaSprite::FrameSetFile>& frameSetFiles() const;
 };
 }
 }

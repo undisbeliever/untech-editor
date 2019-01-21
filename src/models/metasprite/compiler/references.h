@@ -6,15 +6,15 @@
 
 #pragma once
 
-#include "../project.h"
+#include "models/project/project.h"
 #include <iostream>
 
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
-void writeFrameSetReferences(const Project& project, std::ostream& out);
-void writeExportOrderReferences(const Project& project, std::ostream& out);
+void writeFrameSetReferences(const Project::ProjectFile& project, std::ostream& out);
+void writeExportOrderReferences(const Project::ProjectFile& project, std::ostream& out);
 
 }
 }

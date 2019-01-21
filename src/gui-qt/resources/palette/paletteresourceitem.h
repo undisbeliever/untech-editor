@@ -8,13 +8,16 @@
 
 #include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/accessor/accessor.h"
-#include "gui-qt/resources/resourceproject.h"
+#include "models/common/namedlist.h"
+#include "models/resources/palette.h"
 #include <QObject>
 
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
 class PaletteResourceList;
+
+namespace RES = UnTech::Resources;
 
 class PaletteResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
@@ -28,13 +31,8 @@ public:
 
     static QString typeName() { return tr("Palette"); }
 
-    ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
-
-    inline const RES::PaletteInput* data() const
-    {
-        return project()->resourcesFile()->palettes.at(index());
-    }
-    inline const RES::PaletteInput* paletteInput() const { return data(); }
+    inline const RES::PaletteInput* data() const { return _palettes.at(index()); }
+    inline const RES::PaletteInput* paletteInput() const { return _palettes.at(index()); }
 
     // returns nullptr if the PaletteData is invalid
     const RES::PaletteData* compiledData() const { return _compiledData.get(); }
@@ -47,10 +45,7 @@ public:
 
 private:
     friend class Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
-    RES::PaletteInput* dataEditable()
-    {
-        return project()->resourcesFile()->palettes.at(index());
-    }
+    RES::PaletteInput* dataEditable() { return _palettes.at(index()); }
 
     void updateExternalFiles();
 
@@ -58,6 +53,8 @@ protected:
     virtual bool compileResource(ErrorList& err) final;
 
 private:
+    NamedList<RES::PaletteInput>& _palettes;
+
     std::unique_ptr<RES::PaletteData> _compiledData;
 };
 }

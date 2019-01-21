@@ -8,10 +8,14 @@
 
 #include "romdata.h"
 #include "romtiledata.h"
+#include "../frameset-exportorder.h"
 #include "../metasprite.h"
-#include "../project.h"
 
 namespace UnTech {
+namespace Project {
+struct ProjectFile;
+}
+
 namespace MetaSprite {
 namespace Compiler {
 
@@ -36,6 +40,8 @@ struct CompiledRomData {
     RomIncData frameSetData;
     RomAddrTable frameSetList;
 
+    bool valid = true;
+
     CompiledRomData(unsigned tilesetBlockSize = RomTileData::DEFAULT_TILE_BLOCK_SIZE);
     void writeToIncFile(std::ostream& out) const;
 };
@@ -49,6 +55,8 @@ void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSet
                             ErrorList& errorList, CompiledRomData& out);
 
 void processNullFrameSet(CompiledRomData& out);
+
+std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& project, std::ostream& errorStream);
 }
 }
 }

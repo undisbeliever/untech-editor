@@ -8,6 +8,8 @@
 
 #include "paletteresourceitem.h"
 #include "gui-qt/abstractresourcelist.h"
+#include "models/common/namedlist.h"
+#include "models/resources/palette.h"
 #include <QObject>
 #include <QVector>
 
@@ -19,10 +21,8 @@ class PaletteResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    PaletteResourceList(ResourceProject* project);
+    PaletteResourceList(Project* project);
     ~PaletteResourceList() = default;
-
-    ResourceProject* project() const { return static_cast<ResourceProject*>(_project); }
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
@@ -35,6 +35,10 @@ protected:
 
     virtual void do_addResource(int settingIndex, const std::string& inputString) final;
     virtual void do_removeResource(unsigned index) final;
+
+    // Will always return the same instance
+    friend class PaletteResourceItem;
+    NamedList<RES::PaletteInput>& palettes() const;
 };
 }
 }

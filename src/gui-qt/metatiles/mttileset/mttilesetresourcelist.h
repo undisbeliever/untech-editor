@@ -8,6 +8,8 @@
 
 #include "mttilesetresourceitem.h"
 #include "gui-qt/abstractresourcelist.h"
+#include "models/common/externalfilelist.h"
+#include "models/metatiles/metatile-tileset.h"
 #include <QObject>
 #include <QVector>
 
@@ -19,10 +21,8 @@ class MtTilesetResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    MtTilesetResourceList(Resources::ResourceProject* project);
+    MtTilesetResourceList(Project* project);
     ~MtTilesetResourceList() = default;
-
-    Resources::ResourceProject* project() const { return static_cast<Resources::ResourceProject*>(_project); }
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
@@ -35,6 +35,10 @@ protected:
 
     virtual void do_addResource(int settingIndex, const std::string& filename) final;
     virtual void do_removeResource(unsigned index) final;
+
+    // Will always return the same instance
+    friend class MtTilesetResourceItem;
+    ExternalFileList<MT::MetaTileTilesetInput>& metaTileTilesets() const;
 };
 }
 }

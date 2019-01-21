@@ -5,9 +5,9 @@
  */
 
 #include "resourcestreemodel.h"
-#include "gui-qt/abstractproject.h"
 #include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/abstractresourcelist.h"
+#include "gui-qt/project.h"
 
 using namespace UnTech::GuiQt;
 
@@ -23,7 +23,7 @@ ResourcesTreeModel::ResourcesTreeModel(QObject* parent)
 {
 }
 
-void ResourcesTreeModel::setProject(AbstractProject* project)
+void ResourcesTreeModel::setProject(Project* project)
 {
     if (_project) {
         _project->disconnect(this);
@@ -41,7 +41,7 @@ void ResourcesTreeModel::setProject(AbstractProject* project)
     _project = project;
 
     if (_project) {
-        connect(_project, &AbstractProject::resourceItemCreated,
+        connect(_project, &Project::resourceItemCreated,
                 this, &ResourcesTreeModel::connectResourceItemSignals);
 
         for (AbstractResourceList* rl : _project->resourceLists()) {

@@ -16,7 +16,42 @@ using namespace UnTech::Xml;
 namespace UnTech {
 namespace Resources {
 
-const std::string ResourcesFile::FILE_EXTENSION = "utres";
+std::unique_ptr<PaletteInput> readPalette(const XmlTag* tag)
+{
+    assert(tag->name == "palette");
+
+    auto palette = std::make_unique<PaletteInput>();
+
+    palette->name = tag->getAttributeId("name");
+    palette->paletteImageFilename = tag->getAttributeFilename("image");
+    palette->rowsPerFrame = tag->getAttributeUnsigned("rows-per-frame");
+    palette->skipFirstFrame = tag->getAttributeBoolean("skip-first");
+
+    if (tag->hasAttribute("animation-delay")) {
+        palette->animationDelay = tag->getAttributeUnsigned("animation-delay");
+    }
+
+    return palette;
+}
+
+void writePalettes(XmlWriter& xml, const NamedList<PaletteInput>& palettes)
+{
+    for (const auto& p : palettes) {
+        assert(p != nullptr);
+
+        xml.writeTag("palette");
+        xml.writeTagAttribute("name", p->name);
+        xml.writeTagAttributeFilename("image", p->paletteImageFilename);
+        xml.writeTagAttribute("rows-per-frame", p->rowsPerFrame);
+        xml.writeTagAttribute("skip-first", p->skipFirstFrame);
+
+        if (p->animationDelay > 0) {
+            xml.writeTagAttribute("animation-delay", p->animationDelay);
+        }
+
+        xml.writeCloseTag();
+    }
+}
 
 void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const XmlTag* tag)
 {
@@ -40,67 +75,6 @@ void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const X
     }
 }
 
-static std::unique_ptr<PaletteInput> readPalette(const XmlTag* tag)
-{
-    assert(tag->name == "palette");
-
-    auto palette = std::make_unique<PaletteInput>();
-
-    palette->name = tag->getAttributeId("name");
-    palette->paletteImageFilename = tag->getAttributeFilename("image");
-    palette->rowsPerFrame = tag->getAttributeUnsigned("rows-per-frame");
-    palette->skipFirstFrame = tag->getAttributeBoolean("skip-first");
-
-    if (tag->hasAttribute("animation-delay")) {
-        palette->animationDelay = tag->getAttributeUnsigned("animation-delay");
-    }
-
-    return palette;
-}
-
-static std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml, const XmlTag* tag)
-{
-    if (tag == nullptr || tag->name != "resources") {
-        throw xml_error(xml, "Not a Resources file (expected <resources> tag)");
-    }
-
-    bool readMetaTileEngineSettingsTag = false;
-
-    auto resources = std::make_unique<ResourcesFile>();
-
-    resources->blockSettings.size = tag->getAttributeUnsigned("block-size");
-    resources->blockSettings.count = tag->getAttributeUnsigned("block-count");
-
-    while (auto childTag = xml.parseTag()) {
-        if (childTag->name == "palette") {
-            resources->palettes.insert_back(readPalette(childTag.get()));
-        }
-        else if (childTag->name == "metatile-tileset") {
-            resources->metaTileTilesets.insert_back(
-                childTag->getAttributeFilename("src"));
-        }
-        else if (childTag->name == "metatile-engine-settings") {
-            if (readMetaTileEngineSettingsTag) {
-                throw xml_error(*childTag, "Only one <metatile-engine-settings> tag is allowed");
-            }
-            readMetaTileEngineSettingsTag = true;
-
-            MetaTiles::readEngineSettings(resources->metaTileEngineSettings, childTag.get());
-        }
-        else {
-            throw unknown_tag_error(*childTag);
-        }
-
-        xml.parseCloseTag();
-    }
-
-    if (readMetaTileEngineSettingsTag == false) {
-        throw xml_error(xml, "Expected a <metatile-engine-settings> tag");
-    }
-
-    return resources;
-}
-
 void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
 {
     xml.writeTag("animation-frames");
@@ -118,63 +92,5 @@ void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
     xml.writeCloseTag();
 }
 
-void writeResourcesFile(XmlWriter& xml, const ResourcesFile& res)
-{
-    xml.writeTag("resources");
-
-    xml.writeTagAttribute("block-size", res.blockSettings.size);
-    xml.writeTagAttribute("block-count", res.blockSettings.count);
-
-    MetaTiles::writeEngineSettings(xml, res.metaTileEngineSettings);
-
-    for (const auto& p : res.palettes) {
-        assert(p != nullptr);
-
-        xml.writeTag("palette");
-        xml.writeTagAttribute("name", p->name);
-        xml.writeTagAttributeFilename("image", p->paletteImageFilename);
-        xml.writeTagAttribute("rows-per-frame", p->rowsPerFrame);
-        xml.writeTagAttribute("skip-first", p->skipFirstFrame);
-
-        if (p->animationDelay > 0) {
-            xml.writeTagAttribute("animation-delay", p->animationDelay);
-        }
-
-        xml.writeCloseTag();
-    }
-
-    for (const auto& mt : res.metaTileTilesets) {
-        xml.writeTag("metatile-tileset");
-        xml.writeTagAttributeFilename("src", mt.filename);
-        xml.writeCloseTag();
-    }
-
-    xml.writeCloseTag();
-}
-
-std::unique_ptr<ResourcesFile> readResourcesFile(XmlReader& xml)
-{
-    try {
-        std::unique_ptr<XmlTag> tag = xml.parseTag();
-        return readResourcesFile(xml, tag.get());
-    }
-    catch (const std::exception& ex) {
-        throw xml_error(xml, "Error loading resources file", ex);
-    }
-}
-
-std::unique_ptr<ResourcesFile> loadResourcesFile(const std::string& filename)
-{
-    auto xml = XmlReader::fromFile(filename);
-    return readResourcesFile(*xml);
-}
-
-void saveResourcesFile(const ResourcesFile& res, const std::string& filename)
-{
-    AtomicOfStream file(filename);
-    XmlWriter xml(file, filename, "untech");
-    writeResourcesFile(xml, res);
-    file.commit();
-}
 }
 }

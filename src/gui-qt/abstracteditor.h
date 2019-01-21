@@ -14,7 +14,7 @@ struct ErrorListItem;
 
 namespace GuiQt {
 class ZoomSettings;
-class AbstractProject;
+class Project;
 class AbstractResourceItem;
 
 class AbstractEditor : public QObject {
@@ -30,7 +30,7 @@ public:
 
     QWidget* parentWindow() const { return _parentWindow; }
 
-    virtual bool setResourceItem(AbstractProject* project, AbstractResourceItem* item) = 0;
+    virtual bool setResourceItem(Project* project, AbstractResourceItem* item) = 0;
 
     virtual QWidget* editorWidget() const = 0;
     virtual QWidget* propertyWidget() const;

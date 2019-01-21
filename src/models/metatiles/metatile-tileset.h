@@ -17,8 +17,8 @@
 
 namespace UnTech {
 class ErrorList;
-namespace Resources {
-struct ResourcesFile;
+namespace Project {
+struct ProjectFile;
 }
 
 namespace MetaTiles {
@@ -68,7 +68,7 @@ private:
 };
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
-                                                    const Resources::ResourcesFile& resourcesFile,
+                                                    const Project::ProjectFile& projectFile,
                                                     ErrorList& err);
 }
 }

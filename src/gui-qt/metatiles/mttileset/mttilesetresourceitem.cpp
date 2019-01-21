@@ -8,7 +8,9 @@
 #include "mttilesetaccessors.h"
 #include "mttilesetresourcelist.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/project.h"
 #include "models/metatiles/metatiles-serializer.h"
+#include "models/project/project.h"
 
 using namespace UnTech::GuiQt::MetaTiles;
 
@@ -16,6 +18,7 @@ constexpr uint16_t MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE;
 
 MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
+    , _metaTileTilesets(parent->metaTileTilesets())
     , _tileParameters(new MtTilesetTileParameters(this))
     , _scratchpadGrid(new MtTilesetScratchpadGrid(this))
     , _compiledData(nullptr)
@@ -104,11 +107,11 @@ bool MtTilesetResourceItem::compileResource(ErrorList& err)
         err.addError("Unable to load file");
         return false;
     }
-    const auto& res = project()->resourcesFile();
-    Q_ASSERT(res);
+    const auto& pro = project()->projectFile();
+    Q_ASSERT(pro);
 
-    auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *res, err);
-    bool valid = mtd && mtd->validate(res->metaTileEngineSettings, err);
+    auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *pro, err);
+    bool valid = mtd && mtd->validate(pro->metaTileEngineSettings, err);
 
     if (valid) {
         _compiledData = std::move(mtd);

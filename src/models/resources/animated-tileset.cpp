@@ -5,7 +5,6 @@
  */
 
 #include "animated-tileset.h"
-#include "resources.h"
 #include "models/common/bytevectorhelper.h"
 #include "models/common/errorlist.h"
 #include "models/lz4/lz4.h"

@@ -6,8 +6,8 @@
 
 #include "resourcefilepropertieswidget.h"
 #include "resourcefilepropertymanager.h"
+#include "gui-qt/project.h"
 #include "gui-qt/resources/resourcefile/resourcefilepropertieswidget.ui.h"
-#include "gui-qt/resources/resourceproject.h"
 
 using namespace UnTech::GuiQt::Resources;
 
@@ -23,7 +23,7 @@ ResourceFilePropertiesWidget::ResourceFilePropertiesWidget(QWidget* parent)
 
 ResourceFilePropertiesWidget::~ResourceFilePropertiesWidget() = default;
 
-void ResourceFilePropertiesWidget::setProject(ResourceProject* project)
+void ResourceFilePropertiesWidget::setProject(Project* project)
 {
     _manager->setProject(project);
 }

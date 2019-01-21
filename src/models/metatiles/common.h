@@ -13,8 +13,8 @@ constexpr unsigned MAX_GRID_WIDTH = 255;
 constexpr unsigned MAX_GRID_HEIGHT = 255;
 
 struct EngineSettings {
-    unsigned maxMapSize;
-    unsigned nMetaTiles;
+    unsigned maxMapSize = 8192;
+    unsigned nMetaTiles = 512;
 
     bool operator==(const EngineSettings& o) const
     {

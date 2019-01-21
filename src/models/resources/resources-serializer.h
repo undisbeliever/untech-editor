@@ -7,7 +7,7 @@
 #pragma once
 
 #include "animation-frames-input.h"
-#include "resources.h"
+#include "models/common/namedlist.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
@@ -15,21 +15,15 @@ namespace UnTech {
 namespace Resources {
 
 // raises exception on error
-std::unique_ptr<ResourcesFile> loadResourcesFile(const std::string& filename);
+std::unique_ptr<PaletteInput> readPalette(const Xml::XmlTag* tag);
 
 // raises exception on error
-std::unique_ptr<ResourcesFile> readResourcesFile(Xml::XmlReader& xml);
+void writePalettes(Xml::XmlWriter& xml, const NamedList<PaletteInput>& palettes);
 
 // raises exception on error
 // `afi` must be empty, xml/tag points to an <animation-frames> tag
 void readAnimationFramesInput(AnimationFramesInput& afi,
                               Xml::XmlReader& xml, const Xml::XmlTag* tag);
-
-// raises exception on error
-void saveResourcesFile(const ResourcesFile& res, const std::string& filename);
-
-// raises exception on error
-void writeResourcesFile(Xml::XmlWriter& xml, const ResourcesFile& res);
 
 // raises exception on error
 void writeAnimationFramesInput(Xml::XmlWriter& xml, const AnimationFramesInput& afi);

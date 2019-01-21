@@ -7,16 +7,23 @@
 #include "exportorderresourcelist.h"
 #include "exportorderresourceitem.h"
 #include "gui-qt/common/idstringvalidator.h"
+#include "gui-qt/project.h"
 #include "models/metasprite/frameset-exportorder.h"
+#include "models/project/project.h"
 
 #include <QFileInfo>
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;
 
-ExportOrderResourceList::ExportOrderResourceList(MetaSpriteProject* project)
+ExportOrderResourceList::ExportOrderResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::MS_EXPORT_ORDER)
 {
+}
+
+UnTech::ExternalFileList<UnTech::MetaSprite::FrameSetExportOrder>& ExportOrderResourceList::exportOrders() const
+{
+    return project()->projectFile()->frameSetExportOrders;
 }
 
 const QString ExportOrderResourceList::resourceTypeNameSingle() const
@@ -31,7 +38,7 @@ const QString ExportOrderResourceList::resourceTypeNamePlural() const
 
 size_t ExportOrderResourceList::nItems() const
 {
-    return project()->metaSpriteProject()->exportOrders.size();
+    return exportOrders().size();
 }
 
 AbstractResourceItem* ExportOrderResourceList::buildResourceItem(size_t index)
@@ -67,13 +74,14 @@ void ExportOrderResourceList::do_addResource(int settingIndex, const std::string
         saveFrameSetExportOrder(exportOrder, filename);
     }
 
-    auto& exportOrders = project()->metaSpriteProject()->exportOrders;
+    auto& exportOrders = this->exportOrders();
+
     exportOrders.insert_back(filename);
 }
 
 void ExportOrderResourceList::do_removeResource(unsigned index)
 {
-    auto& exportOrders = project()->metaSpriteProject()->exportOrders;
+    auto& exportOrders = this->exportOrders();
 
     Q_ASSERT(index < exportOrders.size());
     exportOrders.remove(index);

@@ -6,10 +6,10 @@
 
 #pragma once
 
-#include "metaspriteproject.h"
 #include "gui-qt/abstractresourceitem.h"
 #include "models/common/idstring.h"
 #include "models/metasprite/animation/animation.h"
+#include "models/metasprite/framesetfile.h"
 #include <QObject>
 #include <QUndoStack>
 #include <set>
@@ -35,8 +35,6 @@ public:
     ~AbstractMsDocument() = default;
 
 public:
-    MetaSpriteProject* project() const { return static_cast<MetaSpriteProject*>(_project); }
-
     virtual MSA::Animation::map_t* animations() const = 0;
 
     virtual QStringList frameNames() const = 0;
@@ -47,12 +45,12 @@ public:
 protected:
     inline const auto& frameSetList() const
     {
-        return project()->metaSpriteProject()->frameSets;
+        return _frameSetFiles;
     }
 
     inline auto& frameSetFile() const
     {
-        return project()->metaSpriteProject()->frameSets.at(index());
+        return _frameSetFiles.at(index());
     }
 
     void compileMsFrameset(const MS::FrameSet* frameSet, ErrorList& errList);
@@ -62,6 +60,8 @@ signals:
     void frameSetExportOrderChanged();
 
 private:
+    std::vector<UnTech::MetaSprite::FrameSetFile>& _frameSetFiles;
+
     Animation::AnimationsMap* const _animationsMap;
     Animation::AnimationFramesList* const _animationFramesList;
 };

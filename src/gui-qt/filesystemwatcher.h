@@ -15,7 +15,7 @@
 
 namespace UnTech {
 namespace GuiQt {
-class AbstractProject;
+class Project;
 class AbstractResourceItem;
 class AbstractExternalResourceItem;
 
@@ -23,7 +23,7 @@ class FilesystemWatcher : public QObject {
     Q_OBJECT
 
 public:
-    FilesystemWatcher(AbstractProject* project);
+    FilesystemWatcher(Project* project);
     ~FilesystemWatcher() = default;
 
 private slots:
@@ -50,7 +50,7 @@ private:
     void showFilesChangedDialog();
 
 private:
-    AbstractProject* const _project;
+    Project* const _project;
     QFileSystemWatcher* const _watcher;
     QFileSystemWatcher* const _projectWatcher;
     bool _filesChangedDialogActive;
