@@ -164,9 +164,9 @@ static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoin
 
 static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& frameTileset)
 {
-    RomOffsetPtr tilesetAddr;
+    IndexPlusOne tilesetIndex{ 0 };
     if (frameTileset.dynamicTileset) {
-        tilesetAddr = frameTileset.romPtr;
+        tilesetIndex = frameTileset.tilesetIndex;
     }
 
     return {
@@ -174,7 +174,7 @@ static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& fr
         .entityHitboxes = processEntityHitboxes(frame.entityHitboxes),
         .tileHitbox = processTileHitbox(frame),
         .actionPoints = processActionPoints(frame.actionPoints),
-        .tileset = tilesetAddr,
+        .tileset = tilesetIndex,
     };
 }
 
@@ -207,28 +207,32 @@ std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, co
     return frames;
 }
 
-static uint32_t saveCompiledFrame(const FrameData& frameData, CompiledRomData& out)
+static uint16_t saveCompiledFrame(const FrameData& frameData, CompiledRomData& out)
 {
     RomIncItem data;
 
-    data.addAddr(out.frameObjectData.addData(frameData.frameObjects));
-    data.addAddr(out.entityHitboxData.addData(frameData.entityHitboxes));
-    data.addAddr(out.tileHitboxData.addData(frameData.tileHitbox));
-    data.addAddr(out.actionPointData.addData(frameData.actionPoints));
-    data.addAddr(frameData.tileset);
+    data.addIndexPlusOne(out.frameObjectData.addData_IndexPlusOne(frameData.frameObjects));
+    data.addIndexPlusOne(out.entityHitboxData.addData_IndexPlusOne(frameData.entityHitboxes));
+    data.addIndexPlusOne(out.tileHitboxData.addData_IndexPlusOne(frameData.tileHitbox));
+    data.addIndexPlusOne(out.actionPointData.addData_IndexPlusOne(frameData.actionPoints));
+    data.addIndexPlusOne(frameData.tileset);
 
-    return out.frameData.addData(data).offset;
+    return out.frameData.addData_Index(data);
 }
 
-RomOffsetPtr saveCompiledFrames(const std::vector<FrameData>& framesData, CompiledRomData& out)
+uint16_t saveCompiledFrames(const std::vector<FrameData>& framesData, CompiledRomData& out)
 {
-    std::vector<uint32_t> frameOffsets(framesData.size());
+    assert(framesData.size() > 0);
 
-    std::transform(framesData.begin(), framesData.end(),
-                   frameOffsets.begin(),
-                   [&](auto& fd) { return saveCompiledFrame(fd, out); });
+    WordIndexTable table(framesData.size());
 
-    return out.frameList.getOrInsertTable(frameOffsets);
+    for (unsigned i = 0; i < framesData.size(); i++) {
+        const auto& fd = framesData.at(i);
+        uint16_t index = saveCompiledFrame(fd, out);
+        table.setIndex(i, index);
+    }
+
+    return out.frameList.addData_Index(table.data());
 }
 
 }

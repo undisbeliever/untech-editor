@@ -20,7 +20,7 @@ struct TilesetLayout;
 struct FrameTilesetData {
     static constexpr uint16_t NULL_CHAR_ATTR = 0xffff;
 
-    RomOffsetPtr romPtr;
+    IndexPlusOne tilesetIndex;
     bool dynamicTileset;
 
     // Mapping of tileId => Objects::charAttr bits

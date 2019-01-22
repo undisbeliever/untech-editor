@@ -132,7 +132,7 @@ insertTiles(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
     }
 
     // Store the DMA data and tileset
-    tileset.romPtr = out.tilesetData.addData(tilesetTable);
+    tileset.tilesetIndex = out.tilesetData.addData_IndexPlusOne(tilesetTable);
 
     return tileset;
 }

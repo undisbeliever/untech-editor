@@ -22,6 +22,35 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
+struct IndexPlusOne {
+    uint16_t index;
+
+    explicit IndexPlusOne(unsigned i = 0)
+        : index(i)
+    {
+        assert(i <= UINT16_MAX);
+    }
+};
+
+class WordIndexTable {
+public:
+    WordIndexTable(size_t nEntries)
+        : _data(nEntries * 2)
+    {
+    }
+
+    void setIndex(size_t i, uint16_t data)
+    {
+        _data[i * 2] = data & 0xff;
+        _data[i * 2 + 1] = (data >> 8) & 0xff;
+    }
+
+    const std::vector<uint8_t>& data() const { return _data; }
+
+private:
+    std::vector<uint8_t> _data;
+};
+
 // MEMORY: Must not exist when data class is deleted.
 struct RomOffsetPtr {
     const static RomOffsetPtr NULL_PTR;
@@ -73,24 +102,19 @@ public:
         _size += sizeOfType(type);
     }
 
-    void addAddr(const RomOffsetPtr& data)
+    void addIndexPlusOne(IndexPlusOne data)
     {
-        writeType(RomIncItem::ADDR);
+        assert(data.index <= UINT16_MAX);
 
-        if (data.label != nullptr) {
-            _stream << *data.label << " + " << data.offset;
-        }
-        else {
-            _stream << data.offset;
-        }
-
+        writeType(RomIncItem::WORD);
+        _stream << data.index;
         _size += 2;
     }
 
-    void addIndex(const RomOffsetPtr& data)
+    void addWordIndex(uint16_t data)
     {
         writeType(RomIncItem::ADDR);
-        _stream << data.offset;
+        _stream << data;
         _size += 2;
     }
 
@@ -184,17 +208,30 @@ public:
 
     void writeToIncFile(std::ostream& out) const;
 
-    RomOffsetPtr addData(const RomIncItem& item)
+    // Does not check for duplicates
+    void addData_NoIndex(const RomIncItem& item)
+    {
+        const std::string data = item.string();
+
+        uint32_t oldSize = _size;
+
+        _stream << data;
+        _size += item.size();
+
+        _map.emplace(data, oldSize);
+    }
+
+    uint32_t addData_Index(const RomIncItem& item)
     {
         if (item.size() == 0) {
-            return RomOffsetPtr();
+            throw std::invalid_argument("item cannot be empty");
         }
 
         const std::string data = item.string();
 
         const auto it = _map.find(data);
         if (it != _map.end()) {
-            return RomOffsetPtr(&_label, it->second);
+            return it->second;
         }
         else {
             uint32_t oldSize = _size;
@@ -204,8 +241,17 @@ public:
 
             _map.emplace(data, oldSize);
 
-            return RomOffsetPtr(&_label, oldSize);
+            return oldSize;
         }
+    }
+
+    IndexPlusOne addData_IndexPlusOne(const RomIncItem& item)
+    {
+        if (item.size() == 0) {
+            return IndexPlusOne{ 0 };
+        }
+
+        return IndexPlusOne{ addData_Index(item) + 1U };
     }
 
 private:
@@ -278,10 +324,41 @@ private:
     bool _nullableType;
 };
 
-class RomBinData {
+class RomWordTable {
 public:
-    const unsigned BYTES_PER_LINE = 16;
+    RomWordTable(const std::string& label, const std::string& segmentName)
+        : _label(label)
+        , _segmentName(segmentName)
+        , _data()
+    {
+        _data.reserve(1024);
+    }
 
+    RomWordTable(const RomWordTable&) = delete;
+
+    inline const std::string& label() const { return _label; }
+
+    void writeToIncFile(std::ostream& out) const;
+
+    uint16_t addWord(uint16_t value)
+    {
+        uint16_t ret = _data.size();
+
+        _data.push_back(value & 0xff);
+        _data.push_back(value >> 8);
+
+        return ret;
+    }
+
+    uint16_t addNull() { return addWord(0); }
+
+private:
+    const std::string _label;
+    const std::string _segmentName;
+    std::vector<uint8_t> _data;
+};
+
+class RomBinData {
 public:
     RomBinData(const std::string& label, const std::string& segmentName,
                bool nullableType = false)
@@ -299,15 +376,15 @@ public:
 
     void writeToIncFile(std::ostream& out) const;
 
-    RomOffsetPtr addData(const std::vector<uint8_t>& sData)
+    uint32_t addData_Index(const std::vector<uint8_t>& sData)
     {
         if (sData.size() == 0) {
-            return RomOffsetPtr();
+            throw std::invalid_argument("Cannot add empty data");
         }
 
         const auto it = _map.find(sData);
         if (it != _map.end()) {
-            return RomOffsetPtr(&_label, it->second);
+            return it->second;
         }
         else {
             uint32_t oldSize = _size;
@@ -317,8 +394,17 @@ public:
 
             _map.emplace(sData, oldSize);
 
-            return RomOffsetPtr(&_label, oldSize);
+            return oldSize;
         }
+    }
+
+    IndexPlusOne addData_IndexPlusOne(const std::vector<uint8_t>& sData)
+    {
+        if (sData.size() == 0) {
+            return IndexPlusOne{ 0 };
+        }
+
+        return IndexPlusOne{ addData_Index(sData) + 1U };
     }
 
 private:

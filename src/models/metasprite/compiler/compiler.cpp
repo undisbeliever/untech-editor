@@ -23,11 +23,11 @@ namespace Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-constexpr unsigned METASPRITE_FORMAT_VERSION = 32;
+constexpr unsigned METASPRITE_FORMAT_VERSION = 33;
 
 struct FrameSetData {
     std::vector<CompiledPalette> palettes;
-    RomOffsetPtr staticTileset;
+    IndexPlusOne staticTileset;
     TilesetType tilesetType;
     std::vector<FrameData> frames;
     std::vector<std::vector<uint8_t>> animations;
@@ -39,7 +39,7 @@ CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
     , paletteData("PD", "MS_PaletteData")
     , paletteList("PL", "MS_PaletteList", "PD")
     , animationData("AD", "MS_AnimationData")
-    , animationList("AL", "MS_AnimationList", "AD")
+    , animationList("AL", "MS_AnimationList")
     , frameData("FD", "MS_FrameData")
     , frameList("FL", "MS_FrameList", "FD")
     , frameObjectData("FO", "MS_FrameObjectsData", true)
@@ -47,7 +47,6 @@ CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
     , entityHitboxData("EH", "MS_EntityHitboxData", true)
     , actionPointData("AP", "MS_ActionPointsData", true)
     , frameSetData("FSD", "MS_FrameSetData")
-    , frameSetList("FSL", "MS_FrameSetList", "FSD")
     , valid(true)
 {
 }
@@ -78,11 +77,10 @@ void CompiledRomData::writeToIncFile(std::ostream& out) const
     frameList.writeToIncFile(out);
 
     frameSetData.writeToIncFile(out);
-    frameSetList.writeToIncFile(out);
 
-    out << "constant FrameSetListCount = (pc() - FSL)/2\n";
-
-    out << "}\n"
+    out << "constant FrameSetListCount = " << nFrameSets
+        << "\n"
+           "}\n"
            "}\n";
 }
 
@@ -93,7 +91,7 @@ static FrameSetData processFrameSet(const FrameSetExportList& exportList, const 
 
     return {
         processPalettes(frameSet.palettes),
-        tilesetData.staticTileset.romPtr,
+        tilesetData.staticTileset.tilesetIndex,
         tilesetData.tilesetType,
         processFrameList(exportList, tilesetData),
         processAnimations(exportList),
@@ -102,22 +100,21 @@ static FrameSetData processFrameSet(const FrameSetExportList& exportList, const 
 
 static void saveFrameSet(const FrameSetData& data, CompiledRomData& out)
 {
-    const RomOffsetPtr fsPalettes = savePalettes(data.palettes, out);
-    const RomOffsetPtr fsAnimations = saveAnimations(data.animations, out);
-    const RomOffsetPtr frameTableAddr = saveCompiledFrames(data.frames, out);
+    const uint16_t fsPalettes = savePalettes(data.palettes, out);
+    const uint16_t fsAnimations = saveAnimations(data.animations, out);
+    const uint16_t frameTableAddr = saveCompiledFrames(data.frames, out);
     RomIncItem frameSetItem;
 
-    frameSetItem.addIndex(fsPalettes);                                    // paletteTable
+    frameSetItem.addWordIndex(fsPalettes);                                // paletteTable
     frameSetItem.addField(RomIncItem::BYTE, data.palettes.size());        // nPalettes
-    frameSetItem.addAddr(data.staticTileset);                             // tileset
+    frameSetItem.addIndexPlusOne(data.staticTileset);                     // tileset
     frameSetItem.addField(RomIncItem::BYTE, data.tilesetType.romValue()); // tilesetType
-    frameSetItem.addIndex(frameTableAddr);                                // frameTable
+    frameSetItem.addWordIndex(frameTableAddr);                            // frameTable
     frameSetItem.addField(RomIncItem::BYTE, data.frames.size());          // nFrames
-    frameSetItem.addIndex(fsAnimations);                                  // animationsTable
+    frameSetItem.addWordIndex(fsAnimations);                              // animationsTable
     frameSetItem.addField(RomIncItem::BYTE, data.animations.size());      // nAnimations
 
-    RomOffsetPtr ptr = out.frameSetData.addData(frameSetItem);
-    out.frameSetList.addOffset(ptr.offset);
+    out.frameSetData.addData_NoIndex(frameSetItem);
 }
 
 static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder, ErrorList& errorList)
@@ -169,6 +166,8 @@ std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& 
 {
     bool valid = true;
     auto romData = std::make_unique<CompiledRomData>(project.blockSettings.size);
+
+    romData->nFrameSets = project.frameSets.size();
 
     for (auto& fs : project.frameSets) {
         UnTech::ErrorList errorList;

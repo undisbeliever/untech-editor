@@ -24,13 +24,13 @@ struct FrameData {
     std::vector<uint8_t> entityHitboxes;
     std::vector<uint8_t> tileHitbox;
     std::vector<uint8_t> actionPoints;
-    RomOffsetPtr tileset;
+    IndexPlusOne tileset;
 };
 
 std::vector<FrameData> processFrameList(const FrameSetExportList& exportList,
                                         const TilesetData& tilesetData);
 
-RomOffsetPtr saveCompiledFrames(const std::vector<FrameData>& frameData, CompiledRomData& out);
+uint16_t saveCompiledFrames(const std::vector<FrameData>& frameData, CompiledRomData& out);
 
 }
 }

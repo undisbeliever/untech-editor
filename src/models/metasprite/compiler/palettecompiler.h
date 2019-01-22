@@ -22,7 +22,7 @@ using CompiledPalette = std::vector<uint8_t>;
 
 std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp>& palettes);
 
-RomOffsetPtr savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomData& out);
+uint16_t savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomData& out);
 
 }
 }

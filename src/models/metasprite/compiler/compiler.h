@@ -27,10 +27,10 @@ struct CompiledRomData {
     RomAddrTable paletteList;
 
     RomBinData animationData;
-    RomAddrTable animationList;
+    RomBinData animationList;
 
     RomIncData frameData;
-    RomAddrTable frameList;
+    RomBinData frameList;
 
     RomBinData frameObjectData;
     RomBinData tileHitboxData;
@@ -38,7 +38,8 @@ struct CompiledRomData {
     RomBinData actionPointData;
 
     RomIncData frameSetData;
-    RomAddrTable frameSetList;
+
+    unsigned nFrameSets;
 
     bool valid = true;
 
@@ -53,8 +54,6 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
 
 void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
                             ErrorList& errorList, CompiledRomData& out);
-
-void processNullFrameSet(CompiledRomData& out);
 
 std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& project, std::ostream& errorStream);
 }

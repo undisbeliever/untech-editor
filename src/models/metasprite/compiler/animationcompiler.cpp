@@ -93,16 +93,21 @@ std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& ex
     return ret;
 }
 
-RomOffsetPtr saveAnimations(const std::vector<std::vector<uint8_t>>& animations, CompiledRomData& out)
+uint16_t saveAnimations(const std::vector<std::vector<uint8_t>>& animations, CompiledRomData& out)
 {
-    std::vector<uint32_t> offsets;
-    offsets.reserve(animations.size());
-
-    for (const auto& aData : animations) {
-        offsets.emplace_back(out.animationData.addData(aData).offset);
+    if (animations.size() == 0) {
+        return 0;
     }
 
-    return out.animationList.getOrInsertTable(offsets);
+    WordIndexTable table(animations.size());
+
+    for (unsigned i = 0; i < animations.size(); i++) {
+        const auto& aData = animations.at(i);
+        uint16_t index = out.animationData.addData_Index(aData);
+        table.setIndex(i, index);
+    }
+
+    return out.animationList.addData_Index(table.data());
 }
 
 }
