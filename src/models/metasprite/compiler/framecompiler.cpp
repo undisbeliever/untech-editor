@@ -209,28 +209,30 @@ std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, co
 
 static uint16_t saveCompiledFrame(const FrameData& frameData, CompiledRomData& out)
 {
-    RomIncItem data;
+    DataBlock frame(5 * 2);
 
-    data.addIndexPlusOne(out.frameObjectData.addData_IndexPlusOne(frameData.frameObjects));
-    data.addIndexPlusOne(out.entityHitboxData.addData_IndexPlusOne(frameData.entityHitboxes));
-    data.addIndexPlusOne(out.tileHitboxData.addData_IndexPlusOne(frameData.tileHitbox));
-    data.addIndexPlusOne(out.actionPointData.addData_IndexPlusOne(frameData.actionPoints));
-    data.addIndexPlusOne(frameData.tileset);
+    frame.addWord(out.frameObjectData.addData_IndexPlusOne(frameData.frameObjects));
+    frame.addWord(out.entityHitboxData.addData_IndexPlusOne(frameData.entityHitboxes));
+    frame.addWord(out.tileHitboxData.addData_IndexPlusOne(frameData.tileHitbox));
+    frame.addWord(out.actionPointData.addData_IndexPlusOne(frameData.actionPoints));
+    frame.addWord(frameData.tileset);
 
-    return out.frameData.addData_Index(data);
+    assert(frame.atEnd());
+
+    return out.frameData.addData_Index(frame.data());
 }
 
 uint16_t saveCompiledFrames(const std::vector<FrameData>& framesData, CompiledRomData& out)
 {
     assert(framesData.size() > 0);
 
-    WordIndexTable table(framesData.size());
+    DataBlock table(framesData.size() * 2);
 
-    for (unsigned i = 0; i < framesData.size(); i++) {
-        const auto& fd = framesData.at(i);
-        uint16_t index = saveCompiledFrame(fd, out);
-        table.setIndex(i, index);
+    for (const auto& fd : framesData) {
+        table.addWord(saveCompiledFrame(fd, out));
     }
+
+    assert(table.atEnd());
 
     return out.frameList.addData_Index(table.data());
 }

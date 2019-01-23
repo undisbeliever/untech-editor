@@ -29,7 +29,7 @@ struct CompiledRomData {
     RomBinData animationData;
     RomBinData animationList;
 
-    RomIncData frameData;
+    RomBinData frameData;
     RomBinData frameList;
 
     RomBinData frameObjectData;
@@ -37,7 +37,7 @@ struct CompiledRomData {
     RomBinData entityHitboxData;
     RomBinData actionPointData;
 
-    RomIncData frameSetData;
+    RomBinData frameSetData;
 
     unsigned nFrameSets;
 

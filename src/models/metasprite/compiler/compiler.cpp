@@ -41,7 +41,7 @@ CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
     , animationData("AD", "MS_AnimationData")
     , animationList("AL", "MS_AnimationList")
     , frameData("FD", "MS_FrameData")
-    , frameList("FL", "MS_FrameList", "FD")
+    , frameList("FL", "MS_FrameList")
     , frameObjectData("FO", "MS_FrameObjectsData", true)
     , tileHitboxData("TC", "MS_TileHitboxData", true)
     , entityHitboxData("EH", "MS_EntityHitboxData", true)
@@ -103,18 +103,21 @@ static void saveFrameSet(const FrameSetData& data, CompiledRomData& out)
     const uint16_t fsPalettes = savePalettes(data.palettes, out);
     const uint16_t fsAnimations = saveAnimations(data.animations, out);
     const uint16_t frameTableAddr = saveCompiledFrames(data.frames, out);
-    RomIncItem frameSetItem;
 
-    frameSetItem.addWordIndex(fsPalettes);                                // paletteTable
-    frameSetItem.addField(RomIncItem::BYTE, data.palettes.size());        // nPalettes
-    frameSetItem.addIndexPlusOne(data.staticTileset);                     // tileset
-    frameSetItem.addField(RomIncItem::BYTE, data.tilesetType.romValue()); // tilesetType
-    frameSetItem.addWordIndex(frameTableAddr);                            // frameTable
-    frameSetItem.addField(RomIncItem::BYTE, data.frames.size());          // nFrames
-    frameSetItem.addWordIndex(fsAnimations);                              // animationsTable
-    frameSetItem.addField(RomIncItem::BYTE, data.animations.size());      // nAnimations
+    DataBlock fsItem(12);
 
-    out.frameSetData.addData_NoIndex(frameSetItem);
+    fsItem.addWord(fsPalettes);                  // paletteTable
+    fsItem.addByte(data.palettes.size());        // nPalettes
+    fsItem.addWord(data.staticTileset);          // tileset
+    fsItem.addByte(data.tilesetType.romValue()); // tilesetType
+    fsItem.addWord(frameTableAddr);              // frameTable
+    fsItem.addByte(data.frames.size());          // nFrames
+    fsItem.addWord(fsAnimations);                // animationsTable
+    fsItem.addByte(data.animations.size());      // nAnimations
+
+    assert(fsItem.atEnd());
+
+    out.frameSetData.addData_NoIndex(fsItem.data());
 }
 
 static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder, ErrorList& errorList)

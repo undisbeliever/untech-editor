@@ -99,12 +99,11 @@ uint16_t saveAnimations(const std::vector<std::vector<uint8_t>>& animations, Com
         return 0;
     }
 
-    WordIndexTable table(animations.size());
+    DataBlock table(animations.size() * 2);
 
-    for (unsigned i = 0; i < animations.size(); i++) {
-        const auto& aData = animations.at(i);
+    for (const auto& aData : animations) {
         uint16_t index = out.animationData.addData_Index(aData);
-        table.setIndex(i, index);
+        table.addWord(index);
     }
 
     return out.animationList.addData_Index(table.data());

@@ -11,22 +11,6 @@ using namespace UnTech::MetaSprite::Compiler;
 
 constexpr unsigned BYTES_PER_LINE = 16;
 
-const RomOffsetPtr RomOffsetPtr::NULL_PTR;
-
-void RomIncData::writeToIncFile(std::ostream& out) const
-{
-    // Skip new line after _stream as the first char of stream is a newline
-
-    out << "\nrodata(" << _segmentName << ")\n";
-
-    if (_nullableType) {
-        out << "\tassert(pc() & 0xffff != 0)\n";
-    }
-    out << _label << ":"
-        << _stream.str()
-        << '\n';
-}
-
 void RomAddrTable::writeToIncFile(std::ostream& out) const
 {
     out << "\nrodata(" << _segmentName << ")\n";
@@ -101,14 +85,6 @@ void RomBinData::writeToIncFile(std::ostream& out) const
     if (_nullableType) {
         out << "\tassert(pc() & 0xffff != 0)\n";
     }
-    out << _label << ":\n";
-
-    writeBinData(out, _data);
-}
-
-void RomWordTable::writeToIncFile(std::ostream& out) const
-{
-    out << "\nrodata(" << _segmentName << ")\n";
     out << _label << ":\n";
 
     writeBinData(out, _data);

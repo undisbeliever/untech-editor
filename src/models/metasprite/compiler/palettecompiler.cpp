@@ -45,7 +45,7 @@ uint16_t savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomD
         offsets.emplace_back(out.paletteData.addData_Index(pData));
     }
 
-    return out.paletteList.getOrInsertTable(offsets).offset;
+    return out.paletteList.getOrInsertTable(offsets);
 }
 
 }
