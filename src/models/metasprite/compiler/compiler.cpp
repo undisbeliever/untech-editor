@@ -35,7 +35,7 @@ struct FrameSetData {
 
 CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
     : tileData("TB", "MS_TileBlock", tilesetBlockSize)
-    , tilesetData("TS", "DMA_Tile16Data")
+    , tilesetData("TS", "DMA_Tile16Data", "TB")
     , paletteData("PD", "MS_PaletteData")
     , paletteList("PL", "MS_PaletteList", "PD")
     , animationData("AD", "MS_AnimationData")

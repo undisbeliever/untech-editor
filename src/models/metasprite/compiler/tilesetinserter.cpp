@@ -64,12 +64,11 @@ insertTiles(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
     FrameTilesetData tileset = staticTileset;
     tileset.dynamicTileset = dynamicTileset;
 
-    RomIncItem tilesetTable;
-    tilesetTable.addField(RomIncItem::BYTE, tiles.size());
+    RomDmaTile16Entry tilesetEntry;
 
     auto addTile = [&](const Snes::Tile16px& tile) mutable {
         auto a = out.tileData.addLargeTile(tile);
-        tilesetTable.addTilePtr(a.addr);
+        tilesetEntry.addTile(a.addr);
 
         return a;
     };
@@ -131,8 +130,7 @@ insertTiles(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
         }
     }
 
-    // Store the DMA data and tileset
-    tileset.tilesetIndex = out.tilesetData.addData_IndexPlusOne(tilesetTable);
+    tileset.tilesetIndex = out.tilesetData.addEntry(tilesetEntry);
 
     return tileset;
 }

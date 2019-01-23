@@ -10,6 +10,36 @@
 
 using namespace UnTech::MetaSprite::Compiler;
 
+inline void RomDmaTile16Entry::writeToIncFile(std::ostream& out, const std::string& tilePrefix) const
+{
+    assert(_tileCount > 0);
+
+    out << "\tdb\t" << _tileCount << "\n\tdw\t";
+
+    for (unsigned i = 0; i < _tileCount; i++) {
+        auto& t = _tiles.at(i);
+
+        out << '(' << tilePrefix << '_' << t.block
+            << " + " << t.offset << ") >> 7";
+
+        if (i + 1 < _tileCount) {
+            out << ", ";
+        }
+    }
+
+    out << '\n';
+}
+
+void RomDmaTile16Data::writeToIncFile(std::ostream& out) const
+{
+    out << "\nrodata(" << _segmentName << ")\n"
+        << _label << ":\n";
+
+    for (const auto& e : _entries) {
+        e.writeToIncFile(out, _tilePrefix);
+    }
+}
+
 void RomTileData::writeToIncFile(std::ostream& out) const
 {
     auto oldWidth = out.width();

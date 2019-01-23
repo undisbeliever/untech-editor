@@ -118,13 +118,6 @@ public:
         _size += 2;
     }
 
-    void addTilePtr(const RomOffsetPtr& data)
-    {
-        writeType(RomIncItem::ADDR);
-        _stream << "(" << *data.label << " + " << data.offset << ") >> 7";
-        _size += 2;
-    }
-
 protected:
     unsigned sizeOfType(RomIncItem::Type type)
     {

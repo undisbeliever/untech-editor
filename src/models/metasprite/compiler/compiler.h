@@ -21,7 +21,7 @@ namespace Compiler {
 
 struct CompiledRomData {
     RomTileData tileData;
-    RomIncData tilesetData;
+    RomDmaTile16Data tilesetData;
 
     RomBinData paletteData;
     RomAddrTable paletteList;

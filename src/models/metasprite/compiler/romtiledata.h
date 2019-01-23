@@ -23,6 +23,72 @@ namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
+struct TileAddress {
+    unsigned block = 0;
+    unsigned offset = 0;
+
+    bool operator==(const TileAddress& o) const
+    {
+        return block == o.block && offset == o.offset;
+    }
+};
+
+class RomDmaTile16Entry {
+    unsigned _tileCount = 0;
+    std::array<TileAddress, 16> _tiles;
+
+public:
+    unsigned dataSize() const { return _tileCount * 2 + 1; }
+
+    void addTile(const TileAddress& a)
+    {
+        _tiles.at(_tileCount) = a;
+        _tileCount++;
+    }
+
+    void writeToIncFile(std::ostream& out, const std::string& tilePrefix) const;
+
+    bool operator==(const RomDmaTile16Entry& o) const
+    {
+        return _tileCount == o._tileCount && _tiles == o._tiles;
+    }
+};
+
+class RomDmaTile16Data {
+    std::vector<RomDmaTile16Entry> _entries;
+    const std::string _label;
+    const std::string _segmentName;
+    const std::string _tilePrefix;
+
+public:
+    RomDmaTile16Data(std::string label,
+                     std::string segmentName,
+                     std::string tilePrefix)
+        : _entries()
+        , _label(std::move(label))
+        , _segmentName(std::move(segmentName))
+        , _tilePrefix(std::move(tilePrefix))
+    {
+    }
+
+    IndexPlusOne addEntry(const RomDmaTile16Entry& entry)
+    {
+        unsigned size = 0;
+
+        for (const RomDmaTile16Entry& e : _entries) {
+            if (e == entry) {
+                return IndexPlusOne{ size + 1 };
+            }
+            size += e.dataSize();
+        }
+
+        _entries.emplace_back(entry);
+        return IndexPlusOne{ size + 1 };
+    }
+
+    void writeToIncFile(std::ostream& out) const;
+};
+
 class RomTileData {
 public:
     const static unsigned BYTES_PER_LINE = 16;
@@ -31,14 +97,14 @@ public:
     constexpr static unsigned DEFAULT_TILE_BLOCK_SIZE = 8 * 1024;
 
     struct Accessor {
-        Accessor(const RomOffsetPtr& addr, bool hFlip, bool vFlip)
+        Accessor(const TileAddress& addr, bool hFlip, bool vFlip)
             : addr(addr)
             , hFlip(hFlip)
             , vFlip(vFlip)
         {
         }
 
-        RomOffsetPtr addr;
+        TileAddress addr;
         const bool hFlip;
         const bool vFlip;
     };
@@ -52,13 +118,10 @@ public:
         , _currentOffset(0)
         , _map()
         , _tiles()
-        , _blockNames()
     {
         if (blockSize < SNES_TILE16_SIZE) {
             throw std::invalid_argument("block size is too small");
         }
-
-        _blockNames.emplace_back(std::make_unique<std::string>(blockPrefix + "_0"));
     }
 
     RomTileData(const RomTileData&) = delete;
@@ -72,7 +135,7 @@ public:
             return it->second;
         }
         else {
-            RomOffsetPtr addr = insertTileData(tile);
+            TileAddress addr = insertTileData(tile);
 
             // unordered_map will ignore insert if tile pattern already exists
             // Thus symmetrical tiles will prefer the unflipped tile.
@@ -88,35 +151,28 @@ public:
     }
 
 private:
-    inline RomOffsetPtr insertTileData(const Snes::Tile16px& tile)
+    inline TileAddress insertTileData(const Snes::Tile16px& tile)
     {
-        RomOffsetPtr ret(_blockNames[_currentBlock].get(), _currentOffset);
+        if (_currentOffset >= _blockSize) {
+            _currentOffset = 0;
+            _currentBlock++;
+        }
+        unsigned offset = _currentOffset;
+        _currentOffset += SNES_TILE16_SIZE;
 
         _tiles.addTile(tile);
 
-        _currentOffset += SNES_TILE16_SIZE;
-        if (_currentOffset >= _blockSize) {
-            _currentOffset = 0;
-
-            _currentBlock++;
-            _blockNames.emplace_back(std::make_unique<std::string>(
-                _blockPrefix + '_' + std::to_string(_currentBlock)));
-        }
-
-        return ret;
+        return TileAddress{ _currentBlock, offset };
     }
 
 private:
     const std::string _blockPrefix;
     const std::string _segmentPrefix;
-    uint32_t _blockSize;
-    uint32_t _currentBlock;
-    uint32_t _currentOffset;
+    unsigned _blockSize;
+    unsigned _currentBlock;
+    unsigned _currentOffset;
     std::unordered_map<Snes::Tile16px, const Accessor> _map;
     Snes::TilesetTile16 _tiles;
-
-    // RomOffsetPtr uses string pointers
-    std::vector<std::unique_ptr<std::string>> _blockNames;
 };
 }
 }
