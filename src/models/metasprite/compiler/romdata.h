@@ -6,13 +6,12 @@
 
 #pragma once
 
-#include "models/common/hash.h"
 #include <algorithm>
 #include <cassert>
 #include <climits>
 #include <cstdint>
+#include <stdexcept>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 // uses std::string instead of idstring as
@@ -133,8 +132,6 @@ public:
                bool nullableType = false)
         : _label(label)
         , _segmentName(segmentName)
-        , _size(0)
-        , _map()
         , _data()
         , _nullableType(nullableType)
     {
@@ -148,12 +145,7 @@ public:
     // Does not check for duplicates
     void addData_NoIndex(const std::vector<uint8_t>& sData)
     {
-        uint32_t oldSize = _size;
-
         _data.insert(_data.end(), sData.cbegin(), sData.cend());
-        _size += sData.size();
-
-        _map.emplace(sData, oldSize);
     }
 
     uint32_t addData_Index(const std::vector<uint8_t>& sData)
@@ -162,17 +154,16 @@ public:
             throw std::invalid_argument("Cannot add empty data");
         }
 
-        const auto it = _map.find(sData);
-        if (it != _map.end()) {
-            return it->second;
+        auto it = std::search(_data.begin(), _data.end(),
+                              sData.begin(), sData.end());
+
+        if (it != _data.end()) {
+            return std::distance(_data.begin(), it);
         }
         else {
-            uint32_t oldSize = _size;
+            uint32_t oldSize = _data.size();
 
             _data.insert(_data.end(), sData.cbegin(), sData.cend());
-            _size += sData.size();
-
-            _map.emplace(sData, oldSize);
 
             return oldSize;
         }
@@ -190,8 +181,6 @@ public:
 private:
     const std::string _label;
     const std::string _segmentName;
-    uint32_t _size;
-    std::unordered_map<std::vector<uint8_t>, uint32_t> _map;
     std::vector<uint8_t> _data;
     bool _nullableType;
 };
