@@ -36,10 +36,9 @@ public:
     static const unsigned ADDR_PER_LINE = 8;
 
 public:
-    RomAddrTable(const std::string& label, const std::string& segmentName,
+    RomAddrTable(const std::string& label,
                  const std::string& dataLabel, bool nullableType = false)
         : _label(label)
-        , _segmentName(segmentName)
         , _dataLabel(dataLabel)
         , _offsets()
         , _nullableType(nullableType)
@@ -85,7 +84,6 @@ public:
 
 private:
     const std::string _label;
-    const std::string _segmentName;
     const std::string _dataLabel;
     std::vector<uint32_t> _offsets;
     bool _nullableType;
@@ -128,10 +126,8 @@ private:
 
 class RomBinData {
 public:
-    RomBinData(const std::string& label, const std::string& segmentName,
-               bool nullableType = false)
+    RomBinData(const std::string& label, bool nullableType = false)
         : _label(label)
-        , _segmentName(segmentName)
         , _data()
         , _nullableType(nullableType)
     {
@@ -139,8 +135,8 @@ public:
     RomBinData(const RomBinData&) = delete;
 
     const std::string& label() const { return _label; }
-
-    void writeToIncFile(std::ostream& out) const;
+    bool nullableType() const { return _nullableType; }
+    const std::vector<uint8_t>& data() const { return _data; }
 
     // Does not check for duplicates
     void addData_NoIndex(const std::vector<uint8_t>& sData)
@@ -180,7 +176,6 @@ public:
 
 private:
     const std::string _label;
-    const std::string _segmentName;
     std::vector<uint8_t> _data;
     bool _nullableType;
 };

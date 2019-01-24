@@ -9,15 +9,12 @@
 
 using namespace UnTech::MetaSprite::Compiler;
 
-constexpr unsigned BYTES_PER_LINE = 16;
-
 void RomAddrTable::writeToIncFile(std::ostream& out) const
 {
-    out << "\nrodata(" << _segmentName << ")\n";
+    out << _label << ":";
     if (_nullableType) {
         out << "\tassert(pc() & 0xffff != 0)\n";
     }
-    out << _label << ":";
 
     auto oldWidth = out.width();
     auto oldFlags = out.flags();
@@ -46,46 +43,9 @@ void RomAddrTable::writeToIncFile(std::ostream& out) const
         }
     }
 
-    out << '\n';
+    out << "\n\n";
 
     out.width(oldWidth);
     out.flags(oldFlags);
     out.fill(oldFill);
-}
-
-static void writeBinData(std::ostream& out, const std::vector<uint8_t> data)
-{
-    auto oldWidth = out.width();
-    auto oldFlags = out.flags();
-    auto oldFill = out.fill();
-
-    out << std::hex << std::setfill('0');
-
-    for (unsigned i = 0; i < data.size(); i += BYTES_PER_LINE) {
-        out << "\tdb\t$" << std::setw(2) << (short)data[i];
-
-        const unsigned end = std::min<unsigned>(i + BYTES_PER_LINE,
-                                                data.size());
-
-        for (unsigned j = i + 1; j < end; j++) {
-            out << ", $" << std::setw(2) << (short)data[j];
-        }
-
-        out << '\n';
-    }
-
-    out.width(oldWidth);
-    out.flags(oldFlags);
-    out.fill(oldFill);
-}
-
-void RomBinData::writeToIncFile(std::ostream& out) const
-{
-    out << "\nrodata(" << _segmentName << ")\n";
-    if (_nullableType) {
-        out << "\tassert(pc() & 0xffff != 0)\n";
-    }
-    out << _label << ":\n";
-
-    writeBinData(out, _data);
 }

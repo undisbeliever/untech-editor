@@ -20,6 +20,8 @@ namespace MetaSprite {
 namespace Compiler {
 
 struct CompiledRomData {
+    static const int METASPRITE_FORMAT_VERSION;
+
     RomTileData tileData;
     RomDmaTile16Data tilesetData;
 

@@ -23,7 +23,7 @@ namespace Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-constexpr unsigned METASPRITE_FORMAT_VERSION = 33;
+const int CompiledRomData::METASPRITE_FORMAT_VERSION = 34;
 
 struct FrameSetData {
     std::vector<CompiledPalette> palettes;
@@ -34,54 +34,31 @@ struct FrameSetData {
 };
 
 CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
-    : tileData("TB", "MS_TileBlock", tilesetBlockSize)
-    , tilesetData("TS", "DMA_Tile16Data", "TB")
-    , paletteData("PD", "MS_PaletteData")
-    , paletteList("PL", "MS_PaletteList", "PD")
-    , animationData("AD", "MS_AnimationData")
-    , animationList("AL", "MS_AnimationList")
-    , frameData("FD", "MS_FrameData")
-    , frameList("FL", "MS_FrameList")
-    , frameObjectData("FO", "MS_FrameObjectsData", true)
-    , tileHitboxData("TC", "MS_TileHitboxData", true)
-    , entityHitboxData("EH", "MS_EntityHitboxData", true)
-    , actionPointData("AP", "MS_ActionPointsData", true)
-    , frameSetData("FSD", "MS_FrameSetData")
+    : tileData("Project.MS_TB", tilesetBlockSize)
+    , tilesetData("Project.DMA_Tile16Data", "Project.MS_TB")
+    , paletteData("Project.MS_PaletteData")
+    , paletteList("Project.MS_PaletteList", "Project.MS_PaletteData")
+    , animationData("Project.MS_AnimationData")
+    , animationList("Project.MS_AnimationList")
+    , frameData("Project.MS_FrameData")
+    , frameList("Project.MS_FrameList")
+    , frameObjectData("Project.MS_FrameObjectsData", true)
+    , tileHitboxData("Project.MS_TileHitboxData", true)
+    , entityHitboxData("Project.MS_EntityHitboxData", true)
+    , actionPointData("Project.MS_ActionPointsData", true)
+    , frameSetData("Project.MS_FrameSetData")
     , valid(true)
 {
 }
 
 void CompiledRomData::writeToIncFile(std::ostream& out) const
 {
-    out << "namespace MetaSprite {\n"
-           "namespace Data {\n"
-           "\n"
-        << "constant EDITOR_VERSION = " << UNTECH_VERSION_INT << "\n"
-        << "constant METASPRITE_FORMAT_VERSION = " << METASPRITE_FORMAT_VERSION << "\n";
+    out << "constant Project.MS_FrameSetListCount = " << nFrameSets << "\n\n";
 
-    tileData.writeToIncFile(out);
+    tileData.writeAssertsToIncFile(out);
     tilesetData.writeToIncFile(out);
 
-    paletteData.writeToIncFile(out);
     paletteList.writeToIncFile(out);
-
-    animationData.writeToIncFile(out);
-    animationList.writeToIncFile(out);
-
-    frameObjectData.writeToIncFile(out);
-    tileHitboxData.writeToIncFile(out);
-    actionPointData.writeToIncFile(out);
-    entityHitboxData.writeToIncFile(out);
-
-    frameData.writeToIncFile(out);
-    frameList.writeToIncFile(out);
-
-    frameSetData.writeToIncFile(out);
-
-    out << "constant FrameSetListCount = " << nFrameSets
-        << "\n"
-           "}\n"
-           "}\n";
 }
 
 // assumes frameSet.validate() passes

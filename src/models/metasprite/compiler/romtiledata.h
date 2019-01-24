@@ -62,11 +62,9 @@ class RomDmaTile16Data {
 
 public:
     RomDmaTile16Data(std::string label,
-                     std::string segmentName,
                      std::string tilePrefix)
         : _entries()
         , _label(std::move(label))
-        , _segmentName(std::move(segmentName))
         , _tilePrefix(std::move(tilePrefix))
     {
     }
@@ -110,23 +108,25 @@ public:
     };
 
 public:
-    RomTileData(const std::string& blockPrefix, const std::string& segmentPrefix, unsigned blockSize)
+    RomTileData(const std::string& blockPrefix, unsigned blockSize)
         : _blockPrefix(blockPrefix)
-        , _segmentPrefix(segmentPrefix)
-        , _blockSize(blockSize)
-        , _currentBlock(0)
-        , _currentOffset(0)
+        , _tilesPerBlock(blockSize / SNES_TILE16_SIZE)
         , _map()
-        , _tiles()
+        , _tileBlocks()
     {
-        if (blockSize < SNES_TILE16_SIZE) {
+        if (_tilesPerBlock < 16) {
             throw std::invalid_argument("block size is too small");
         }
+        _tileBlocks.emplace_back();
     }
 
     RomTileData(const RomTileData&) = delete;
 
-    void writeToIncFile(std::ostream& out) const;
+    const std::string& blockPrefix() const { return _blockPrefix; }
+    unsigned nBlocks() const { return _tileBlocks.size(); }
+
+    void writeAssertsToIncFile(std::ostream& out) const;
+    std::vector<std::vector<uint8_t>> data() const;
 
     const Accessor& addLargeTile(const Snes::Tile16px& tile)
     {
@@ -153,26 +153,25 @@ public:
 private:
     inline TileAddress insertTileData(const Snes::Tile16px& tile)
     {
-        if (_currentOffset >= _blockSize) {
-            _currentOffset = 0;
-            _currentBlock++;
+        if (_tileBlocks.back().size() >= _tilesPerBlock) {
+            _tileBlocks.emplace_back();
         }
-        unsigned offset = _currentOffset;
-        _currentOffset += SNES_TILE16_SIZE;
 
-        _tiles.addTile(tile);
+        auto& tileset = _tileBlocks.back();
 
-        return TileAddress{ _currentBlock, offset };
+        unsigned block = _tileBlocks.size() - 1;
+        unsigned offset = tileset.size() * SNES_TILE16_SIZE;
+
+        _tileBlocks.back().addTile(tile);
+
+        return TileAddress{ block, offset };
     }
 
 private:
     const std::string _blockPrefix;
-    const std::string _segmentPrefix;
-    unsigned _blockSize;
-    unsigned _currentBlock;
-    unsigned _currentOffset;
+    const unsigned _tilesPerBlock;
     std::unordered_map<Snes::Tile16px, const Accessor> _map;
-    Snes::TilesetTile16 _tiles;
+    std::vector<Snes::TilesetTile16> _tileBlocks;
 };
 }
 }

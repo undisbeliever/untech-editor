@@ -30,6 +30,7 @@ private:
     const std::vector<std::string>& _typeNames;
     std::vector<std::vector<DataItem>> _dataItems; // [type][id]
     std::vector<std::vector<uint8_t>> _blocks;     // [blockId] => data
+    std::vector<DataItem> _namedData;
     const std::string _blockName;
     const std::string _listRodata;
     const std::string _blockRodata;
@@ -46,6 +47,7 @@ public:
         , _typeNames(typeNames)
         , _dataItems(_typeNames.size())
         , _blocks(blockCount)
+        , _namedData()
         , _blockName(blockName)
         , _listRodata(listRodata)
         , _blockRodata(blockRodata)
@@ -71,6 +73,29 @@ public:
 
                 _dataItems.at(typeId).push_back({ name, blockId, offset });
 
+                return;
+            }
+        }
+
+        throw std::runtime_error("Unable to store " + std::to_string(data.size())
+                                 + " bytes of data, increase block size/count.");
+    }
+
+    void addNamedData(const std::string& name, const std::vector<uint8_t>& data)
+    {
+        for (unsigned blockId = 0; blockId < _blocks.size(); blockId++) {
+            auto& block = _blocks.at(blockId);
+
+            unsigned spaceLeft = _maxBlockSize - block.size();
+            if (spaceLeft >= data.size()) {
+                unsigned offset = block.size();
+                block.insert(block.end(), data.begin(), data.end());
+
+                _namedData.push_back({
+                    name,
+                    blockId,
+                    offset,
+                });
                 return;
             }
         }
@@ -115,6 +140,12 @@ public:
         }
         incData << "}\n";
 
+        for (const auto& nd : _namedData) {
+            incData << "\nconstant " << nd.name << " = "
+                    << _blockName << ".Data" << nd.blockId << " + " << nd.offset;
+        }
+        incData << "\n\n";
+
         incData << "\nrodata(" << _listRodata << ")\n";
         for (unsigned typeId = 0; typeId < _typeNames.size(); typeId++) {
             incData << '\n'
@@ -124,6 +155,7 @@ public:
                 incData << "  dl " << _blockName << ".Data" << di.blockId << " + " << di.offset << '\n';
             }
         }
+        incData << "\n";
     }
 
     std::vector<uint8_t> writeBinaryData() const
