@@ -36,13 +36,13 @@ std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp
     return ret;
 }
 
-RomOffsetPtr savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomData& out)
+uint16_t savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomData& out)
 {
     std::vector<uint32_t> offsets;
     offsets.reserve(palettes.size());
 
     for (const auto& pData : palettes) {
-        offsets.emplace_back(out.paletteData.addData(pData).offset);
+        offsets.emplace_back(out.paletteData.addData_Index(pData));
     }
 
     return out.paletteList.getOrInsertTable(offsets);

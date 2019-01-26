@@ -18,7 +18,7 @@ struct CompiledRomData;
 
 std::vector<std::vector<uint8_t>> processAnimations(const FrameSetExportList& exportList);
 
-RomOffsetPtr saveAnimations(const std::vector<std::vector<uint8_t>>& animations, CompiledRomData& out);
+uint16_t saveAnimations(const std::vector<std::vector<uint8_t>>& animations, CompiledRomData& out);
 
 }
 }

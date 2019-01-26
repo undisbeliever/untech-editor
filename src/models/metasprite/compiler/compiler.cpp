@@ -23,67 +23,42 @@ namespace Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-constexpr unsigned METASPRITE_FORMAT_VERSION = 32;
+const int CompiledRomData::METASPRITE_FORMAT_VERSION = 34;
 
 struct FrameSetData {
     std::vector<CompiledPalette> palettes;
-    RomOffsetPtr staticTileset;
+    IndexPlusOne staticTileset;
     TilesetType tilesetType;
     std::vector<FrameData> frames;
     std::vector<std::vector<uint8_t>> animations;
 };
 
 CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
-    : tileData("TB", "MS_TileBlock", tilesetBlockSize)
-    , tilesetData("TS", "DMA_Tile16Data")
-    , paletteData("PD", "MS_PaletteData")
-    , paletteList("PL", "MS_PaletteList", "PD")
-    , animationData("AD", "MS_AnimationData")
-    , animationList("AL", "MS_AnimationList", "AD")
-    , frameData("FD", "MS_FrameData")
-    , frameList("FL", "MS_FrameList", "FD")
-    , frameObjectData("FO", "MS_FrameObjectsData", true)
-    , tileHitboxData("TC", "MS_TileHitboxData", true)
-    , entityHitboxData("EH", "MS_EntityHitboxData", true)
-    , actionPointData("AP", "MS_ActionPointsData", true)
-    , frameSetData("FSD", "MS_FrameSetData")
-    , frameSetList("FSL", "MS_FrameSetList", "FSD")
+    : tileData("Project.MS_TB", tilesetBlockSize)
+    , tilesetData("Project.DMA_Tile16Data", "Project.MS_TB")
+    , paletteData("Project.MS_PaletteData")
+    , paletteList("Project.MS_PaletteList", "Project.MS_PaletteData")
+    , animationData("Project.MS_AnimationData")
+    , animationList("Project.MS_AnimationList")
+    , frameData("Project.MS_FrameData")
+    , frameList("Project.MS_FrameList")
+    , frameObjectData("Project.MS_FrameObjectsData", true)
+    , tileHitboxData("Project.MS_TileHitboxData", true)
+    , entityHitboxData("Project.MS_EntityHitboxData", true)
+    , actionPointData("Project.MS_ActionPointsData", true)
+    , frameSetData("Project.MS_FrameSetData")
     , valid(true)
 {
 }
 
 void CompiledRomData::writeToIncFile(std::ostream& out) const
 {
-    out << "namespace MetaSprite {\n"
-           "namespace Data {\n"
-           "\n"
-        << "constant EDITOR_VERSION = " << UNTECH_VERSION_INT << "\n"
-        << "constant METASPRITE_FORMAT_VERSION = " << METASPRITE_FORMAT_VERSION << "\n";
+    out << "constant Project.MS_FrameSetListCount = " << nFrameSets << "\n\n";
 
-    tileData.writeToIncFile(out);
+    tileData.writeAssertsToIncFile(out);
     tilesetData.writeToIncFile(out);
 
-    paletteData.writeToIncFile(out);
     paletteList.writeToIncFile(out);
-
-    animationData.writeToIncFile(out);
-    animationList.writeToIncFile(out);
-
-    frameObjectData.writeToIncFile(out);
-    tileHitboxData.writeToIncFile(out);
-    actionPointData.writeToIncFile(out);
-    entityHitboxData.writeToIncFile(out);
-
-    frameData.writeToIncFile(out);
-    frameList.writeToIncFile(out);
-
-    frameSetData.writeToIncFile(out);
-    frameSetList.writeToIncFile(out);
-
-    out << "constant FrameSetListCount = (pc() - FSL)/2\n";
-
-    out << "}\n"
-           "}\n";
 }
 
 // assumes frameSet.validate() passes
@@ -93,7 +68,7 @@ static FrameSetData processFrameSet(const FrameSetExportList& exportList, const 
 
     return {
         processPalettes(frameSet.palettes),
-        tilesetData.staticTileset.romPtr,
+        tilesetData.staticTileset.tilesetIndex,
         tilesetData.tilesetType,
         processFrameList(exportList, tilesetData),
         processAnimations(exportList),
@@ -102,22 +77,24 @@ static FrameSetData processFrameSet(const FrameSetExportList& exportList, const 
 
 static void saveFrameSet(const FrameSetData& data, CompiledRomData& out)
 {
-    const RomOffsetPtr fsPalettes = savePalettes(data.palettes, out);
-    const RomOffsetPtr fsAnimations = saveAnimations(data.animations, out);
-    const RomOffsetPtr frameTableAddr = saveCompiledFrames(data.frames, out);
-    RomIncItem frameSetItem;
+    const uint16_t fsPalettes = savePalettes(data.palettes, out);
+    const uint16_t fsAnimations = saveAnimations(data.animations, out);
+    const uint16_t frameTableAddr = saveCompiledFrames(data.frames, out);
 
-    frameSetItem.addIndex(fsPalettes);                                    // paletteTable
-    frameSetItem.addField(RomIncItem::BYTE, data.palettes.size());        // nPalettes
-    frameSetItem.addAddr(data.staticTileset);                             // tileset
-    frameSetItem.addField(RomIncItem::BYTE, data.tilesetType.romValue()); // tilesetType
-    frameSetItem.addIndex(frameTableAddr);                                // frameTable
-    frameSetItem.addField(RomIncItem::BYTE, data.frames.size());          // nFrames
-    frameSetItem.addIndex(fsAnimations);                                  // animationsTable
-    frameSetItem.addField(RomIncItem::BYTE, data.animations.size());      // nAnimations
+    DataBlock fsItem(12);
 
-    RomOffsetPtr ptr = out.frameSetData.addData(frameSetItem);
-    out.frameSetList.addOffset(ptr.offset);
+    fsItem.addWord(fsPalettes);                  // paletteTable
+    fsItem.addByte(data.palettes.size());        // nPalettes
+    fsItem.addWord(data.staticTileset);          // tileset
+    fsItem.addByte(data.tilesetType.romValue()); // tilesetType
+    fsItem.addWord(frameTableAddr);              // frameTable
+    fsItem.addByte(data.frames.size());          // nFrames
+    fsItem.addWord(fsAnimations);                // animationsTable
+    fsItem.addByte(data.animations.size());      // nAnimations
+
+    assert(fsItem.atEnd());
+
+    out.frameSetData.addData_NoIndex(fsItem.data());
 }
 
 static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder, ErrorList& errorList)
@@ -169,6 +146,8 @@ std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& 
 {
     bool valid = true;
     auto romData = std::make_unique<CompiledRomData>(project.blockSettings.size);
+
+    romData->nFrameSets = project.frameSets.size();
 
     for (auto& fs : project.frameSets) {
         UnTech::ErrorList errorList;

@@ -14,8 +14,6 @@ namespace Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-constexpr uint32_t NULL_OFFSET = ~0;
-
 static std::vector<uint8_t> processFrameObjects(const MS::Frame& frame,
                                                 const FrameTilesetData& tileMap)
 {
@@ -166,9 +164,9 @@ static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoin
 
 static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& frameTileset)
 {
-    RomOffsetPtr tilesetAddr;
+    IndexPlusOne tilesetIndex{ 0 };
     if (frameTileset.dynamicTileset) {
-        tilesetAddr = frameTileset.romPtr;
+        tilesetIndex = frameTileset.tilesetIndex;
     }
 
     return {
@@ -176,8 +174,7 @@ static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& fr
         .entityHitboxes = processEntityHitboxes(frame.entityHitboxes),
         .tileHitbox = processTileHitbox(frame),
         .actionPoints = processActionPoints(frame.actionPoints),
-        .tileset = tilesetAddr,
-        .isNull = false,
+        .tileset = tilesetIndex,
     };
 }
 
@@ -210,32 +207,34 @@ std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, co
     return frames;
 }
 
-static uint32_t saveCompiledFrame(const FrameData& frameData, CompiledRomData& out)
+static uint16_t saveCompiledFrame(const FrameData& frameData, CompiledRomData& out)
 {
-    if (frameData.isNull) {
-        return NULL_OFFSET;
-    }
+    DataBlock frame(5 * 2);
 
-    RomIncItem data;
+    frame.addWord(out.frameObjectData.addData_IndexPlusOne(frameData.frameObjects));
+    frame.addWord(out.entityHitboxData.addData_IndexPlusOne(frameData.entityHitboxes));
+    frame.addWord(out.tileHitboxData.addData_IndexPlusOne(frameData.tileHitbox));
+    frame.addWord(out.actionPointData.addData_IndexPlusOne(frameData.actionPoints));
+    frame.addWord(frameData.tileset);
 
-    data.addAddr(out.frameObjectData.addData(frameData.frameObjects));
-    data.addAddr(out.entityHitboxData.addData(frameData.entityHitboxes));
-    data.addAddr(out.tileHitboxData.addData(frameData.tileHitbox));
-    data.addAddr(out.actionPointData.addData(frameData.actionPoints));
-    data.addAddr(frameData.tileset);
+    assert(frame.atEnd());
 
-    return out.frameData.addData(data).offset;
+    return out.frameData.addData_Index(frame.data());
 }
 
-RomOffsetPtr saveCompiledFrames(const std::vector<FrameData>& framesData, CompiledRomData& out)
+uint16_t saveCompiledFrames(const std::vector<FrameData>& framesData, CompiledRomData& out)
 {
-    std::vector<uint32_t> frameOffsets(framesData.size());
+    assert(framesData.size() > 0);
 
-    std::transform(framesData.begin(), framesData.end(),
-                   frameOffsets.begin(),
-                   [&](auto& fd) { return saveCompiledFrame(fd, out); });
+    DataBlock table(framesData.size() * 2);
 
-    return out.frameList.getOrInsertTable(frameOffsets);
+    for (const auto& fd : framesData) {
+        table.addWord(saveCompiledFrame(fd, out));
+    }
+
+    assert(table.atEnd());
+
+    return out.frameList.addData_Index(table.data());
 }
 
 }

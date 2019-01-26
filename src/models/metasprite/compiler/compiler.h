@@ -20,25 +20,28 @@ namespace MetaSprite {
 namespace Compiler {
 
 struct CompiledRomData {
+    static const int METASPRITE_FORMAT_VERSION;
+
     RomTileData tileData;
-    RomIncData tilesetData;
+    RomDmaTile16Data tilesetData;
 
     RomBinData paletteData;
     RomAddrTable paletteList;
 
     RomBinData animationData;
-    RomAddrTable animationList;
+    RomBinData animationList;
 
-    RomIncData frameData;
-    RomAddrTable frameList;
+    RomBinData frameData;
+    RomBinData frameList;
 
     RomBinData frameObjectData;
     RomBinData tileHitboxData;
     RomBinData entityHitboxData;
     RomBinData actionPointData;
 
-    RomIncData frameSetData;
-    RomAddrTable frameSetList;
+    RomBinData frameSetData;
+
+    unsigned nFrameSets;
 
     bool valid = true;
 
@@ -53,8 +56,6 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
 
 void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
                             ErrorList& errorList, CompiledRomData& out);
-
-void processNullFrameSet(CompiledRomData& out);
 
 std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& project, std::ostream& errorStream);
 }

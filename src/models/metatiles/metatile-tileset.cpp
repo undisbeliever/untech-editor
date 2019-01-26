@@ -178,7 +178,7 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap(const EngineSettings& s
     return out;
 }
 
-const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 1;
+const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 2;
 
 std::vector<uint8_t>
 MetaTileTilesetData::exportMetaTileTileset(const EngineSettings& settings) const

@@ -33,6 +33,33 @@ static std::string itemNameString(const std::unique_ptr<T>& item)
     return item->name;
 }
 
+static void writeMetaSpriteData(RomDataWriter& writer,
+                                const MetaSprite::Compiler::CompiledRomData& msData)
+{
+    auto writeData = [&](auto& d) {
+        writer.addNamedData(d.label(), d.data());
+    };
+
+    // Tiles are written first so they are always aligned with
+    // the start of the data
+    auto tileData = msData.tileData.data();
+    for (unsigned i = 0; i < tileData.size(); i++) {
+        writer.addNamedData(msData.tileData.blockPrefix() + std::to_string(i),
+                            tileData.at(i));
+    }
+
+    writeData(msData.frameSetData);
+    writeData(msData.frameList);
+    writeData(msData.frameData);
+    writeData(msData.frameObjectData);
+    writeData(msData.tileHitboxData);
+    writeData(msData.actionPointData);
+    writeData(msData.entityHitboxData);
+    writeData(msData.animationList);
+    writeData(msData.animationData);
+    writeData(msData.paletteData);
+}
+
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
                std::ostream& errorStream)
@@ -41,15 +68,16 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
         { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
         { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
         { "Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
-        { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION }
+        { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
+        { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
     };
     enum TypeId : unsigned {
         PALETTE,
         METATILE_TILESET
     };
     const static std::vector<std::string> TYPE_NAMES = {
-        "Resources.PaletteList",
-        "MetaTiles.TilesetList"
+        "Project.PaletteList",
+        "Project.MetaTileTilesetList"
     };
 
     bool valid = true;
@@ -81,7 +109,11 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
                          "__resc__", "RES_Lists", "RES_Block",
                          FORMAT_VERSIONS, TYPE_NAMES);
 
+    // MetaSprite data MUST be first.
     auto metaSpriteData = MetaSprite::Compiler::compileMetaSprites(input, errorStream);
+    if (metaSpriteData) {
+        writeMetaSpriteData(writer, *metaSpriteData);
+    }
     valid &= metaSpriteData != nullptr;
 
     compileList(input.palettes, "Palette",
@@ -116,10 +148,10 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
     ret->binaryData = writer.writeBinaryData();
 
     writer.writeIncData(ret->incData, relativeBinFilename);
+    metaSpriteData->writeToIncFile(ret->incData);
 
     MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);
     MetaSprite::Compiler::writeExportOrderReferences(input, ret->incData);
-    metaSpriteData->writeToIncFile(ret->incData);
 
     return ret;
 }
