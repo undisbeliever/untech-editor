@@ -76,8 +76,8 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
         METATILE_TILESET
     };
     const static std::vector<std::string> TYPE_NAMES = {
-        "Resources.PaletteList",
-        "MetaTiles.TilesetList"
+        "Project.PaletteList",
+        "Project.MetaTileTilesetList"
     };
 
     bool valid = true;

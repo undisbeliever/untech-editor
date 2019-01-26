@@ -237,7 +237,7 @@ bool PaletteData::validate(ErrorList& err) const
     return valid;
 }
 
-const int PaletteData::PALETTE_FORMAT_VERSION = 1;
+const int PaletteData::PALETTE_FORMAT_VERSION = 2;
 
 std::vector<uint8_t> PaletteData::exportPalette() const
 {
