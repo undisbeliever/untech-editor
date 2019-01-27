@@ -359,7 +359,8 @@ void SiGraphicsScene::updatePaletteOutline()
 void SiGraphicsScene::removeAllFrameItems()
 {
     for (SiFrameGraphicsItem* frameItem : _frameItems) {
-        removeItem(frameItem);
+        // cannot call `this->removeItem(frameItem);` here (despite the Qt docs
+        // recomending it) as it causes a use after free segfault.
         delete frameItem;
     }
     _frameItems.clear();
@@ -419,7 +420,8 @@ void SiGraphicsScene::onFrameAboutToBeRemoved(const idstring& frameId)
         SiFrameGraphicsItem* frameItem = it.value();
         _frameItems.erase(it);
 
-        removeItem(frameItem);
+        // cannot call `this->removeItem(frameItem);` here (despite the Qt docs
+        // recomending it) as it causes a use after free segfault.
         delete frameItem;
     }
 }
