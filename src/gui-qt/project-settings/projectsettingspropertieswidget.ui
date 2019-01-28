@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnTech::GuiQt::Resources::ResourceFilePropertiesWidget</class>
- <widget class="QWidget" name="UnTech::GuiQt::Resources::ResourceFilePropertiesWidget">
+ <class>UnTech::GuiQt::ProjectSettings::ProjectSettingsPropertiesWidget</class>
+ <widget class="QWidget" name="UnTech::GuiQt::ProjectSettings::ProjectSettingsPropertiesWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

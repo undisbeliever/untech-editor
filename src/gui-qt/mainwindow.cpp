@@ -24,8 +24,8 @@
 #include "gui-qt/metasprite/metasprite/msframeseteditor.h"
 #include "gui-qt/metasprite/spriteimporter/siframeseteditor.h"
 #include "gui-qt/metatiles/mttileset/mttileseteditor.h"
+#include "project-settings/projectsettingseditor.h"
 #include "resources/palette/paletteeditor.h"
-#include "resources/resourcefile/resourcefileeditor.h"
 
 #include <QCloseEvent>
 #include <QComboBox>
@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget* parent)
     , _zoomSettingsUi(new ZoomSettingsUi(this))
     , _undoGroup(new QUndoGroup(this))
     , _editors({
-          new Resources::ResourceFileEditor(this),
+          new ProjectSettings::ProjectSettingsEditor(this),
           new Resources::PaletteEditor(this),
           new MetaSprite::ExportOrderEditor(this),
           new MetaTiles::MtTilesetEditor(this, _zoomSettingsManager),

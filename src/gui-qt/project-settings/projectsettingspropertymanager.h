@@ -12,9 +12,9 @@ namespace UnTech {
 namespace GuiQt {
 class Project;
 
-namespace Resources {
+namespace ProjectSettings {
 
-class ResourceFilePropertyManager : public PropertyListManager {
+class ProjectSettingsPropertyManager : public PropertyListManager {
     Q_OBJECT
 
     enum PropertyId {
@@ -26,8 +26,8 @@ class ResourceFilePropertyManager : public PropertyListManager {
     };
 
 public:
-    explicit ResourceFilePropertyManager(QObject* parent = nullptr);
-    ~ResourceFilePropertyManager() = default;
+    explicit ProjectSettingsPropertyManager(QObject* parent = nullptr);
+    ~ProjectSettingsPropertyManager() = default;
 
     virtual void setProject(Project* project) final;
 

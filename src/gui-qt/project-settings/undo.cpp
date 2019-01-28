@@ -4,19 +4,19 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "resourcefilepropertymanager.h"
+#include "projectsettingspropertymanager.h"
 #include "gui-qt/accessor/projectsettingsundohelper.h"
 #include "gui-qt/project.h"
 #include "models/project/project.h"
 
 using namespace UnTech::GuiQt::Accessor;
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::ProjectSettings;
 
 namespace PRO = UnTech::Project;
 
 using SettingsUndoHelper = ProjectSettingsUndoHelper<UnTech::GuiQt::Project>;
 
-bool ResourceFilePropertyManager::editBlockSettings_setSize(unsigned blockSize)
+bool ProjectSettingsPropertyManager::editBlockSettings_setSize(unsigned blockSize)
 {
     return SettingsUndoHelper(_project).editField(
         blockSize,
@@ -24,7 +24,7 @@ bool ResourceFilePropertyManager::editBlockSettings_setSize(unsigned blockSize)
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.size; });
 }
 
-bool ResourceFilePropertyManager::editBlockSettings_setCount(unsigned blockCount)
+bool ProjectSettingsPropertyManager::editBlockSettings_setCount(unsigned blockCount)
 {
     return SettingsUndoHelper(_project).editField(
         blockCount,
@@ -32,7 +32,7 @@ bool ResourceFilePropertyManager::editBlockSettings_setCount(unsigned blockCount
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.count; });
 }
 
-bool ResourceFilePropertyManager::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
+bool ProjectSettingsPropertyManager::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
 {
     return SettingsUndoHelper(_project).editField(
         maxMapSize,
@@ -40,7 +40,7 @@ bool ResourceFilePropertyManager::editMetaTileSettings_setMaxMapSize(unsigned ma
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.maxMapSize; });
 }
 
-bool ResourceFilePropertyManager::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
+bool ProjectSettingsPropertyManager::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
 {
     return SettingsUndoHelper(_project).editField(
         nMetaTiles,

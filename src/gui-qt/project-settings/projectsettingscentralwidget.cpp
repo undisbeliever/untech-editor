@@ -4,25 +4,25 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "resourcefilecentralwidget.h"
+#include "projectsettingscentralwidget.h"
+#include "gui-qt/project-settings/projectsettingscentralwidget.ui.h"
 #include "gui-qt/project.h"
-#include "gui-qt/resources/resourcefile/resourcefilecentralwidget.ui.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::ProjectSettings;
 
 // ::TODO add some stats and total size figures in this widget::
 
-ResourceFileCentralWidget::ResourceFileCentralWidget(QWidget* parent)
+ProjectSettingsCentralWidget::ProjectSettingsCentralWidget(QWidget* parent)
     : QWidget(parent)
-    , _ui(std::make_unique<Ui::ResourceFileCentralWidget>())
+    , _ui(std::make_unique<Ui::ProjectSettingsCentralWidget>())
     , _project(nullptr)
 {
     _ui->setupUi(this);
 }
 
-ResourceFileCentralWidget::~ResourceFileCentralWidget() = default;
+ProjectSettingsCentralWidget::~ProjectSettingsCentralWidget() = default;
 
-void ResourceFileCentralWidget::setProject(Project* project)
+void ProjectSettingsCentralWidget::setProject(Project* project)
 {
     if (_project) {
         _project->disconnect(this);

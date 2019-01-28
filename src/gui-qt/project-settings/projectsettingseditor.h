@@ -6,26 +6,26 @@
 
 #pragma once
 
-#include "resourcefilecentralwidget.h"
-#include "resourcefilepropertieswidget.h"
+#include "projectsettingscentralwidget.h"
+#include "projectsettingspropertieswidget.h"
 #include "gui-qt/abstracteditor.h"
 #include "gui-qt/genericpropertieswidget.h"
 
 namespace UnTech {
 namespace GuiQt {
-namespace Resources {
+namespace ProjectSettings {
 
-class ResourceFileEditor : public AbstractEditor {
+class ProjectSettingsEditor : public AbstractEditor {
     Q_OBJECT
 
 public:
-    ResourceFileEditor(QWidget* parent)
+    ProjectSettingsEditor(QWidget* parent)
         : AbstractEditor(parent)
-        , _editorWidget(new ResourceFileCentralWidget(parent))
-        , _propertyWidget(new ResourceFilePropertiesWidget(parent))
+        , _editorWidget(new ProjectSettingsCentralWidget(parent))
+        , _propertyWidget(new ProjectSettingsPropertiesWidget(parent))
     {
     }
-    ~ResourceFileEditor() = default;
+    ~ProjectSettingsEditor() = default;
 
     virtual bool setResourceItem(Project* project, AbstractResourceItem* item)
     {
@@ -40,8 +40,8 @@ public:
     virtual QWidget* propertyWidget() const final { return _propertyWidget; }
 
 private:
-    ResourceFileCentralWidget* const _editorWidget;
-    ResourceFilePropertiesWidget* const _propertyWidget;
+    ProjectSettingsCentralWidget* const _editorWidget;
+    ProjectSettingsPropertiesWidget* const _propertyWidget;
 };
 }
 }

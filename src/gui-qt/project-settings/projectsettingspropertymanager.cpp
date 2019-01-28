@@ -4,16 +4,16 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "resourcefilepropertymanager.h"
+#include "projectsettingspropertymanager.h"
 #include "gui-qt/project.h"
 #include "models/project/project.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::ProjectSettings;
 
 namespace RES = UnTech::Resources;
 namespace MT = UnTech::MetaTiles;
 
-ResourceFilePropertyManager::ResourceFilePropertyManager(QObject* parent)
+ProjectSettingsPropertyManager::ProjectSettingsPropertyManager(QObject* parent)
     : PropertyListManager(parent)
     , _project(nullptr)
 {
@@ -27,7 +27,7 @@ ResourceFilePropertyManager::ResourceFilePropertyManager(QObject* parent)
     addProperty(tr("N. MetaTiles"), METATILE_N_METATILES, Type::UNSIGNED, 16, 1024);
 }
 
-void ResourceFilePropertyManager::setProject(Project* project)
+void ProjectSettingsPropertyManager::setProject(Project* project)
 {
     if (_project == project) {
         return;
@@ -42,13 +42,13 @@ void ResourceFilePropertyManager::setProject(Project* project)
 
     if (_project) {
         connect(_project, &Project::resourceFileSettingsChanged,
-                this, &ResourceFilePropertyManager::dataChanged);
+                this, &ProjectSettingsPropertyManager::dataChanged);
     }
 
     emit dataChanged();
 }
 
-QVariant ResourceFilePropertyManager::data(int id) const
+QVariant ProjectSettingsPropertyManager::data(int id) const
 {
     if (_project == nullptr) {
         return QVariant();
@@ -74,7 +74,7 @@ QVariant ResourceFilePropertyManager::data(int id) const
     return QVariant();
 }
 
-bool ResourceFilePropertyManager::setData(int id, const QVariant& value)
+bool ProjectSettingsPropertyManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_project);
 
