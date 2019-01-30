@@ -14,6 +14,10 @@ struct IdmapActions;
 class IdmapListView;
 class IdmapListModel;
 
+struct NamedListActions;
+class NamedListView;
+class NamedListModel;
+
 class SelectedIndexHelper;
 class MultipleSelectedIndexesHelper;
 class SelectedIdmapItemHelper;
@@ -40,6 +44,12 @@ class IdmapUndoHelper;
 
 template <class T>
 class IdmapAndSelectionUndoHelper;
+
+template <class T>
+class NamedListUndoHelper;
+
+template <class T>
+class NamedListAndSelectionUndoHelper;
 
 template <class T>
 class GridUndoHelper;

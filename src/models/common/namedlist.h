@@ -7,6 +7,7 @@
 #pragma once
 
 #include "idstring.h"
+#include "vector-helpers.h"
 #include <cassert>
 #include <memory>
 #include <string>
@@ -61,7 +62,6 @@ public:
         return nullptr;
     }
 
-    // NOTE: pointer may be null
     // pointer is valid until item is removed or replaced
     T* at(size_type index) { return _list.at(index).get(); }
     const T* at(size_type index) const { return _list.at(index).get(); }
@@ -87,10 +87,31 @@ public:
         _list.emplace_back(std::move(v));
     }
 
+    void insert(size_type index, typename std::unique_ptr<T> v)
+    {
+        assert(v != nullptr);
+        assert(index <= _list.size());
+        _list.emplace(_list.begin() + index, std::move(v));
+    }
+
     void remove(size_type index)
     {
         assert(index < _list.size());
         _list.erase(_list.begin() + index);
+    }
+
+    std::unique_ptr<T> takeFrom(size_type index)
+    {
+        assert(index < _list.size());
+        std::unique_ptr<T> ret = std::move(_list.at(index));
+        _list.erase(_list.begin() + index);
+
+        return ret;
+    }
+
+    void moveItem(size_type from, size_type to)
+    {
+        moveVectorItem(from, to, _list);
     }
 
     bool operator==(const NamedList& o) const { return _list == o._list; }

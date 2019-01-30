@@ -51,6 +51,26 @@ private:
     friend class MultipleSelectionTableView;
     void resizeAddList(int count, QObject* parent);
 };
+
+// namedlistview.cpp
+struct NamedListActions {
+    QAction* const add;
+    QAction* const clone;
+    QAction* const rename;
+    QAction* const raise;
+    QAction* const lower;
+    QAction* const remove;
+
+    explicit NamedListActions(QWidget* parent);
+
+    void populateMenu(QMenu* menu) const;
+    void populateToolbar(QToolBar* toolbar) const;
+
+private:
+    friend class NamedListView;
+    void disableAll();
+    void updateText(const QString& typeName);
+};
 }
 }
 }

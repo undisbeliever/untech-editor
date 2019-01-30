@@ -95,6 +95,48 @@ public:
     {
         buildAndConnectSlots(accessor, accessor);
     }
+
+    template <class AccessorT>
+    static void buildAndConnectSlots_NamedList(AccessorT* accessor)
+    {
+        using index_type = typename AccessorT::index_type;
+
+        QObject::connect(accessor, &AccessorT::itemAdded,
+                         accessor, [=](index_type index) {
+                             index_type sel = accessor->selectedIndex();
+
+                             if (sel >= index) {
+                                 accessor->setSelectedIndex(sel + 1);
+                             }
+                         });
+
+        QObject::connect(accessor, &AccessorT::itemAboutToBeRemoved,
+                         accessor, [=](index_type index) {
+                             index_type sel = accessor->selectedIndex();
+
+                             if (sel == index) {
+                                 accessor->unselectItem();
+                             }
+                             else if (sel > index) {
+                                 accessor->setSelectedIndex(sel - 1);
+                             }
+                         });
+
+        QObject::connect(accessor, &AccessorT::itemMoved,
+                         accessor, [=](index_type from, index_type to) {
+                             index_type sel = accessor->selectedIndex();
+
+                             if (sel == from) {
+                                 accessor->setSelectedIndex(to);
+                             }
+                             else if (sel > from && sel <= to) {
+                                 accessor->setSelectedIndex(sel - 1);
+                             }
+                             else if (sel >= to && sel < from) {
+                                 accessor->setSelectedIndex(sel + 1);
+                             }
+                         });
+    }
 };
 }
 }
