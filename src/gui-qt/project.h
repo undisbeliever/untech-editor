@@ -7,7 +7,6 @@
 #pragma once
 
 #include "common.h"
-#include "gui-qt/accessor/accessor.h"
 #include <QObject>
 #include <QUndoStack>
 #include <memory>
@@ -24,6 +23,7 @@ class AbstractExternalResourceItem;
 class ResourceValidationWorker;
 class FilesystemWatcher;
 
+class StaticResourceList;
 namespace MetaSprite {
 class ExportOrderResourceList;
 class FrameSetResourceList;
@@ -77,10 +77,6 @@ public:
     // All unsaved filenames are relative to the directory this project is saved to
     QStringList unsavedFilenames() const;
 
-protected:
-    friend class Accessor::ProjectSettingsUndoHelper<Project>;
-    DataT* dataEditable() const { return _projectFile.get(); }
-
 private slots:
     void onSelectedResourceDestroyed(QObject* obj);
 
@@ -88,7 +84,6 @@ signals:
     void aboutToSaveProject();
 
     void filenameChanged();
-    void resourceFileSettingsChanged();
 
     void selectedResourceChanged();
     void resourceItemCreated(AbstractResourceItem*);
@@ -102,6 +97,7 @@ private:
     ResourceValidationWorker* const _validationWorker;
     FilesystemWatcher* const _filesystemWatcher;
 
+    StaticResourceList* const _staticResourceList;
     MetaSprite::ExportOrderResourceList* const _frameSetExportOrderResourceList;
     MetaSprite::FrameSetResourceList* const _frameSetResourceList;
     Resources::PaletteResourceList* const _paletteResourceList;

@@ -25,6 +25,8 @@ struct BlockSettings {
     unsigned size = 8192;
     unsigned count = 1;
 
+    bool validate(ErrorList& err) const;
+
     bool operator==(const BlockSettings& o) const
     {
         return size == o.size

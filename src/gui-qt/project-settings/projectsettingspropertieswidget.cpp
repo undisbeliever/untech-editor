@@ -6,8 +6,8 @@
 
 #include "projectsettingspropertieswidget.h"
 #include "projectsettingspropertymanager.h"
+#include "projectsettingsresourceitem.h"
 #include "gui-qt/project-settings/projectsettingspropertieswidget.ui.h"
-#include "gui-qt/project.h"
 
 using namespace UnTech::GuiQt::ProjectSettings;
 
@@ -23,7 +23,7 @@ ProjectSettingsPropertiesWidget::ProjectSettingsPropertiesWidget(QWidget* parent
 
 ProjectSettingsPropertiesWidget::~ProjectSettingsPropertiesWidget() = default;
 
-void ProjectSettingsPropertiesWidget::setProject(Project* project)
+void ProjectSettingsPropertiesWidget::setResourceItem(ProjectSettingsResourceItem* item)
 {
-    _manager->setProject(project);
+    _manager->setResourceItem(item);
 }

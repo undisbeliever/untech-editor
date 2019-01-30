@@ -19,12 +19,13 @@ enum class ResourceState {
 };
 
 enum class ResourceTypeIndex {
+    STATIC,
     PALETTE,
     MT_TILESET,
     MS_FRAMESET,
     MS_EXPORT_ORDER,
 };
 
-constexpr unsigned N_RESOURCE_TYPES = 4;
+constexpr unsigned N_RESOURCE_TYPES = 5;
 }
 }

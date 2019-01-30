@@ -10,9 +10,8 @@
 
 namespace UnTech {
 namespace GuiQt {
-class Project;
-
 namespace ProjectSettings {
+class ProjectSettingsResourceItem;
 
 class ProjectSettingsPropertyManager : public PropertyListManager {
     Q_OBJECT
@@ -29,7 +28,7 @@ public:
     explicit ProjectSettingsPropertyManager(QObject* parent = nullptr);
     ~ProjectSettingsPropertyManager() = default;
 
-    virtual void setProject(Project* project) final;
+    virtual void setResourceItem(ProjectSettingsResourceItem* item) final;
 
     virtual QVariant data(int id) const final;
     virtual bool setData(int id, const QVariant& value) final;
@@ -42,7 +41,7 @@ private:
     bool editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles);
 
 private:
-    Project* _project;
+    ProjectSettingsResourceItem* _item;
 };
 }
 }

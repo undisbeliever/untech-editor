@@ -11,12 +11,11 @@
 
 namespace UnTech {
 namespace GuiQt {
-class Project;
-
 namespace ProjectSettings {
 namespace Ui {
 class ProjectSettingsPropertiesWidget;
 }
+class ProjectSettingsResourceItem;
 class ProjectSettingsPropertyManager;
 
 class ProjectSettingsPropertiesWidget : public QWidget {
@@ -26,7 +25,7 @@ public:
     ProjectSettingsPropertiesWidget(QWidget* parent = 0);
     ~ProjectSettingsPropertiesWidget();
 
-    void setProject(Project* project);
+    void setResourceItem(ProjectSettingsResourceItem* item);
 
 private:
     std::unique_ptr<Ui::ProjectSettingsPropertiesWidget> const _ui;

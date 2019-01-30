@@ -27,9 +27,6 @@ ResourceValidationWorker::ResourceValidationWorker(Project* project)
             this, &ResourceValidationWorker::onResourceItemCreated);
     connect(_project, &Project::resourceItemAboutToBeRemoved,
             this, &ResourceValidationWorker::onResourceItemAboutToBeRemoved);
-
-    connect(_project, &Project::resourceFileSettingsChanged,
-            this, &ResourceValidationWorker::validateAllResources);
 }
 
 void ResourceValidationWorker::onResourceItemCreated(AbstractResourceItem* item)

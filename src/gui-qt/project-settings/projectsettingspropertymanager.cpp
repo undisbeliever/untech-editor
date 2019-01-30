@@ -5,6 +5,7 @@
  */
 
 #include "projectsettingspropertymanager.h"
+#include "projectsettingsresourceitem.h"
 #include "gui-qt/project.h"
 #include "models/project/project.h"
 
@@ -15,7 +16,7 @@ namespace MT = UnTech::MetaTiles;
 
 ProjectSettingsPropertyManager::ProjectSettingsPropertyManager(QObject* parent)
     : PropertyListManager(parent)
-    , _project(nullptr)
+    , _item(nullptr)
 {
     using Type = UnTech::GuiQt::PropertyType;
 
@@ -27,21 +28,21 @@ ProjectSettingsPropertyManager::ProjectSettingsPropertyManager(QObject* parent)
     addProperty(tr("N. MetaTiles"), METATILE_N_METATILES, Type::UNSIGNED, 16, 1024);
 }
 
-void ProjectSettingsPropertyManager::setProject(Project* project)
+void ProjectSettingsPropertyManager::setResourceItem(ProjectSettingsResourceItem* item)
 {
-    if (_project == project) {
+    if (_item == item) {
         return;
     }
 
-    if (_project) {
-        _project->disconnect(this);
+    if (_item) {
+        _item->disconnect(this);
     }
-    _project = project;
+    _item = item;
 
-    setEnabled(_project != nullptr);
+    setEnabled(_item != nullptr);
 
-    if (_project) {
-        connect(_project, &Project::resourceFileSettingsChanged,
+    if (_item) {
+        connect(_item, &ProjectSettingsResourceItem::dataChanged,
                 this, &ProjectSettingsPropertyManager::dataChanged);
     }
 
@@ -50,11 +51,11 @@ void ProjectSettingsPropertyManager::setProject(Project* project)
 
 QVariant ProjectSettingsPropertyManager::data(int id) const
 {
-    if (_project == nullptr) {
+    if (_item == nullptr) {
         return QVariant();
     }
 
-    const auto* pro = _project->projectFile();
+    const auto* pro = _item->project()->projectFile();
     Q_ASSERT(pro);
 
     switch ((PropertyId)id) {
@@ -76,7 +77,7 @@ QVariant ProjectSettingsPropertyManager::data(int id) const
 
 bool ProjectSettingsPropertyManager::setData(int id, const QVariant& value)
 {
-    Q_ASSERT(_project);
+    Q_ASSERT(_item);
 
     switch ((PropertyId)id) {
     case BLOCK_SIZE:

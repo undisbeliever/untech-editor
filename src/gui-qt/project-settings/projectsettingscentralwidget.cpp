@@ -5,8 +5,8 @@
  */
 
 #include "projectsettingscentralwidget.h"
+#include "projectsettingsresourceitem.h"
 #include "gui-qt/project-settings/projectsettingscentralwidget.ui.h"
-#include "gui-qt/project.h"
 
 using namespace UnTech::GuiQt::ProjectSettings;
 
@@ -15,17 +15,17 @@ using namespace UnTech::GuiQt::ProjectSettings;
 ProjectSettingsCentralWidget::ProjectSettingsCentralWidget(QWidget* parent)
     : QWidget(parent)
     , _ui(std::make_unique<Ui::ProjectSettingsCentralWidget>())
-    , _project(nullptr)
+    , _item(nullptr)
 {
     _ui->setupUi(this);
 }
 
-ProjectSettingsCentralWidget::~ProjectSettingsCentralWidget() = default;
-
-void ProjectSettingsCentralWidget::setProject(Project* project)
+void ProjectSettingsCentralWidget::setResourceItem(ProjectSettingsResourceItem* item)
 {
-    if (_project) {
-        _project->disconnect(this);
+    if (_item) {
+        _item->disconnect(this);
     }
-    _project = project;
+    _item = item;
 }
+
+ProjectSettingsCentralWidget::~ProjectSettingsCentralWidget() = default;

@@ -8,6 +8,7 @@
 
 #include "projectsettingscentralwidget.h"
 #include "projectsettingspropertieswidget.h"
+#include "projectsettingsresourceitem.h"
 #include "gui-qt/abstracteditor.h"
 #include "gui-qt/genericpropertieswidget.h"
 
@@ -27,13 +28,15 @@ public:
     }
     ~ProjectSettingsEditor() = default;
 
-    virtual bool setResourceItem(Project* project, AbstractResourceItem* item)
+    virtual bool setResourceItem(Project*, AbstractResourceItem* aItem)
     {
-        _editorWidget->setProject(project);
-        _propertyWidget->setProject(project);
+        auto* item = qobject_cast<ProjectSettingsResourceItem*>(aItem);
+
+        _editorWidget->setResourceItem(item);
+        _propertyWidget->setResourceItem(item);
 
         // show this editor when no item is selected
-        return project != nullptr && item == nullptr;
+        return item != nullptr;
     }
 
     virtual QWidget* editorWidget() const final { return _editorWidget; }

@@ -22,7 +22,7 @@ void ProjectFile::loadAllFiles()
     }
 }
 
-bool ProjectFile::validate(ErrorList& err) const
+bool BlockSettings::validate(ErrorList& err) const
 {
     bool valid = true;
 
@@ -36,8 +36,17 @@ bool ProjectFile::validate(ErrorList& err) const
         }
     };
 
-    validateMinMax(blockSettings.size, 1024, 64 * 1024, "block size invalid");
-    validateMinMax(blockSettings.count, 1, 128, "block count invalid");
+    validateMinMax(size, 1024, 64 * 1024, "block size invalid");
+    validateMinMax(count, 1, 128, "block count invalid");
+
+    return valid;
+}
+
+bool ProjectFile::validate(ErrorList& err) const
+{
+    bool valid = true;
+
+    valid &= blockSettings.validate(err);
 
     if (frameSetExportOrders.size() > MetaSprite::MAX_EXPORT_NAMES) {
         err.addError("Too many MetaSprite export orders");
@@ -54,5 +63,6 @@ bool ProjectFile::validate(ErrorList& err) const
 
     return valid;
 }
+
 }
 }
