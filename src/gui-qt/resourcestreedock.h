@@ -16,6 +16,7 @@ namespace Ui {
 class ResourcesTreeDock;
 }
 class Project;
+class AbstractResourceItem;
 class AbstractResourceList;
 class ResourcesTreeModel;
 
@@ -35,6 +36,7 @@ private slots:
     void onRemoveResourceTriggered();
 
     void onSelectedResourceChanged();
+    void onSelectedIsRemovableChanged();
     void onResourcesTreeSelectionChanged();
 
 private:
@@ -46,6 +48,7 @@ private:
     QMenu* const _addResourceMenu;
 
     Project* _project;
+    AbstractResourceItem* _selectedItem;
 };
 }
 }

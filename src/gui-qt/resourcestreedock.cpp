@@ -25,6 +25,7 @@ ResourcesTreeDock::ResourcesTreeDock(QWidget* parent)
     , _model(new ResourcesTreeModel)
     , _addResourceMenu(new QMenu(this))
     , _project(nullptr)
+    , _selectedItem(nullptr)
 {
     _ui->setupUi(this);
 
@@ -217,10 +218,30 @@ void ResourcesTreeDock::onSelectedResourceChanged()
 {
     AbstractResourceItem* selected = _project->selectedResource();
 
+    if (_selectedItem) {
+        _selectedItem->disconnect(this);
+    }
+    _selectedItem = selected;
+
     QModelIndex index = _model->toModelIndex(selected);
     _ui->resourcesTree->setCurrentIndex(index);
 
-    _ui->removeResourceAction->setEnabled(selected != nullptr);
+    if (selected) {
+        connect(selected, &AbstractResourceItem::isRemovableChanged,
+                this, &ResourcesTreeDock::onSelectedIsRemovableChanged);
+
+        _ui->removeResourceAction->setEnabled(selected->isRemovable());
+    }
+    else {
+        _ui->removeResourceAction->setEnabled(false);
+    }
+}
+
+void ResourcesTreeDock::onSelectedIsRemovableChanged()
+{
+    Q_ASSERT(_selectedItem);
+
+    _ui->removeResourceAction->setEnabled(_selectedItem->isRemovable());
 }
 
 void ResourcesTreeDock::onResourcesTreeSelectionChanged()

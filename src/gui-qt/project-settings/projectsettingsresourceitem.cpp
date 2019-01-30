@@ -17,6 +17,8 @@ ProjectSettingsResourceItem::ProjectSettingsResourceItem(UnTech::GuiQt::StaticRe
 {
     setName(tr("Project Settings"));
 
+    setRemovable(false);
+
     connect(this, &ProjectSettingsResourceItem::dataChanged,
             project()->validationWorker(), &ResourceValidationWorker::validateAllResources);
 }

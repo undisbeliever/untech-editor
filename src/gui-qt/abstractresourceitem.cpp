@@ -149,6 +149,14 @@ void AbstractResourceItem::setState(ResourceState state)
     }
 }
 
+void AbstractResourceItem::setRemovable(bool removable)
+{
+    if (_isRemovable != removable) {
+        _isRemovable = removable;
+        emit isRemovableChanged();
+    }
+}
+
 void AbstractResourceItem::setExternalFiles(const QStringList& externalFiles)
 {
     if (_externalFiles != externalFiles) {

@@ -39,6 +39,7 @@ public:
         , _state(ResourceState::NOT_LOADED)
         , _dependencies()
         , _externalFiles()
+        , _isRemovable(true)
     {
         Q_ASSERT(parent != nullptr);
         Q_ASSERT(_project != nullptr);
@@ -64,6 +65,9 @@ public:
 
     void validateItem();
     void markDependantsUnchecked();
+
+    bool isRemovable() const { return _isRemovable; }
+    void setRemovable(bool removable);
 
 public slots:
     // Marks the current item as unchecked.
@@ -112,6 +116,8 @@ signals:
     // (even if loadResourceData() failed).
     void resourceLoaded();
 
+    void isRemovableChanged();
+
 private:
     friend void AbstractResourceList::removeResource(int);
     void setIndex(unsigned index);
@@ -139,6 +145,8 @@ private:
     ErrorList _errorList;
     QVector<Dependency> _dependencies;
     QStringList _externalFiles;
+
+    bool _isRemovable;
 };
 
 class AbstractInternalResourceItem : public AbstractResourceItem {

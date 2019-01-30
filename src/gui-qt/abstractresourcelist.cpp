@@ -101,16 +101,22 @@ void AbstractResourceList::removeResource(int index)
     Q_ASSERT(index >= 0);
     Q_ASSERT(index < _items.size());
 
-    if (_project->selectedResource() == _items.at(index)) {
+    AbstractResourceItem* item = _items.at(index);
+
+    if (item->isRemovable() == false) {
+        return;
+    }
+
+    if (_project->selectedResource() == item) {
         _project->setSelectedResource(nullptr);
     }
 
-    emit resourceItemAboutToBeRemoved(_items.at(index));
+    emit resourceItemAboutToBeRemoved(item);
 
     do_removeResource(index);
 
-    AbstractResourceItem* oldItem = _items.takeAt(index);
-    oldItem->deleteLater();
+    _items.removeAt(index);
+    item->deleteLater();
 
     for (int i = index; i < _items.size(); i++) {
         _items.at(i)->setIndex(i);
