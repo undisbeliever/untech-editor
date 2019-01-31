@@ -71,6 +71,7 @@ private:
     void disableAll();
     void updateText(const QString& typeName);
 };
+
 }
 }
 }

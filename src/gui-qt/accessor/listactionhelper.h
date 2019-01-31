@@ -8,6 +8,7 @@
 
 #include "models/common/call.h"
 #include "models/common/vectorset.h"
+#include <QtGlobal>
 #include <functional>
 #include <type_traits>
 
