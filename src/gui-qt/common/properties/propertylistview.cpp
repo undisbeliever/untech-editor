@@ -190,11 +190,17 @@ void PropertyListView::onInsertActionTriggered()
     if (index.isValid()) {
         Q_ASSERT(_model);
 
-        int row = index.row() + 1;
-        QModelIndex parent = index.parent();
-        if (!parent.isValid()) {
-            row = 0;
-            parent = index;
+        // Close any open editors
+        setCurrentIndex(QModelIndex());
+
+        int row;
+        QModelIndex parent = index;
+        if (_model->isListItem(index)) {
+            row = index.row() + 1;
+            parent = index.parent();
+        }
+        else {
+            row = _model->rowCount(parent);
         }
 
         bool ok = false;
