@@ -52,6 +52,8 @@ public:
     void writeTagAttribute(const std::string& name, const unsigned value);
     void writeTagAttributeHex(const std::string& name, const unsigned value, unsigned width);
 
+    void writeTagAttributeOptional(const std::string& name, const std::string& value);
+
     void writeText(const std::string& text);
     void writeBase64(const std::vector<uint8_t>& data);
 

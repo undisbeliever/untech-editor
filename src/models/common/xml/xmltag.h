@@ -62,6 +62,17 @@ struct XmlTag {
         }
     }
 
+    inline std::string getAttributeOrEmpty(const std::string& aName) const
+    {
+        auto it = attributes.find(aName);
+        if (it != attributes.end()) {
+            return it->second;
+        }
+        else {
+            return std::string();
+        }
+    }
+
     inline idstring getAttributeId(const std::string& aName) const
     {
         idstring id = getAttribute(aName);
@@ -71,6 +82,23 @@ struct XmlTag {
         }
         else {
             throw xml_error(*this, aName, "Invalid id");
+        }
+    }
+
+    inline std::string getAttributeOptionalId(const std::string& aName) const
+    {
+        auto it = attributes.find(aName);
+        if (it != attributes.end()) {
+            idstring id = it->second;
+            if (id.isValid()) {
+                return id;
+            }
+            else {
+                throw xml_error(*this, aName, "Invalid id");
+            }
+        }
+        else {
+            return idstring();
         }
     }
 

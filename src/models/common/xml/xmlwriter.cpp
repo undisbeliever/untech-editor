@@ -134,6 +134,13 @@ void XmlWriter::writeTagAttributeHex(const std::string& name, const unsigned val
           << '"';
 }
 
+void XmlWriter::writeTagAttributeOptional(const std::string& name, const std::string& value)
+{
+    if (!value.empty()) {
+        writeTagAttribute(name, value);
+    }
+}
+
 void XmlWriter::writeText(const std::string& text)
 {
     if (_inTag) {
