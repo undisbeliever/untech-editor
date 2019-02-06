@@ -74,6 +74,18 @@ PropertyTableView::PropertyTableView(QWidget* parent)
             this, &PropertyTableView::onLowerToBottomActionTriggered);
 }
 
+void PropertyTableView::populateToolBar(QToolBar* toolBar) const
+{
+    toolBar->addAction(_insertAction);
+    toolBar->addAction(_cloneAction);
+    toolBar->addAction(_raiseToTopAction);
+    toolBar->addAction(_raiseAction);
+    toolBar->addAction(_lowerAction);
+    toolBar->addAction(_lowerToBottomAction);
+    toolBar->addAction(_cloneAction);
+    toolBar->addAction(_removeAction);
+}
+
 void PropertyTableView::setPropertyManagers(const QList<PropertyTableManager*>& managers, const QStringList& columns)
 {
     if (managers.isEmpty()) {

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QAction>
+#include <QToolBar>
 #include <QTreeView>
 
 namespace UnTech {
@@ -36,6 +37,8 @@ public:
 
     // MUST NOT call this method
     virtual void setModel(QAbstractItemModel*) final;
+
+    void populateToolBar(QToolBar* toolBar) const;
 
     QAction* insertAction() const { return _insertAction; }
     QAction* cloneAction() const { return _cloneAction; }

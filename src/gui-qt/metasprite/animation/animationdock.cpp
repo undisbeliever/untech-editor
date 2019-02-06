@@ -35,16 +35,8 @@ AnimationDock::AnimationDock(QWidget* parent)
 
     _ui->animationList->idmapActions().populateToolbar(_ui->animationListButtons);
 
-    _ui->animationFramesButtons->addAction(_ui->animationFrames->insertAction());
-    _ui->animationFramesButtons->addAction(_ui->animationFrames->cloneAction());
-    _ui->animationFramesButtons->addAction(_ui->animationFrames->raiseToTopAction());
-    _ui->animationFramesButtons->addAction(_ui->animationFrames->raiseAction());
-    _ui->animationFramesButtons->addAction(_ui->animationFrames->lowerAction());
-    _ui->animationFramesButtons->addAction(_ui->animationFrames->lowerToBottomAction());
-    _ui->animationFramesButtons->addAction(_ui->animationFrames->cloneAction());
-    _ui->animationFramesButtons->addAction(_ui->animationFrames->removeAction());
-
     _ui->animationFrames->setPropertyManager(_animationFramesManager);
+    _ui->animationFrames->populateToolBar(_ui->animationFramesButtons);
 
     clearGui();
     setEnabled(false);
