@@ -36,6 +36,7 @@ public:
     NamedList& operator=(const NamedList& other) = delete;
     NamedList& operator=(NamedList&& other) = delete;
 
+    bool empty() const { return _list.empty(); }
     size_type size() const { return _list.size(); }
 
     // NOTE: pointer may be null
