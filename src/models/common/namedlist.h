@@ -114,7 +114,12 @@ public:
         moveVectorItem(from, to, _list);
     }
 
-    bool operator==(const NamedList& o) const { return _list == o._list; }
-    bool operator!=(const NamedList& o) const { return _list != o._list; }
+    bool operator==(const NamedList& o) const
+    {
+        return _list.size() == o._list.size()
+               && std::equal(_list.cbegin(), _list.cend(), o._list.cbegin(),
+                             [](const std::unique_ptr<T>& a, const std::unique_ptr<T>& b) { return *a == *b; });
+    }
+    bool operator!=(const NamedList& o) const { return !(*this == o); }
 };
 }
