@@ -49,6 +49,9 @@ protected:
 
     void addPropertyGroup(const QString& title);
 
+    // Replaces the propertyList
+    void setPropertyList(const QVector<Property> properties);
+
 signals:
     void propertyListChanged();
     void enabledChanged();

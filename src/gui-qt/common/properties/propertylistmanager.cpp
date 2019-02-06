@@ -47,6 +47,12 @@ void PropertyListManager::addPropertyGroup(const QString& title)
     emit propertyListChanged();
 }
 
+void PropertyListManager::setPropertyList(const QVector<Property> properties)
+{
+    _properties = properties;
+    emit propertyListChanged();
+}
+
 void PropertyListManager::setEnabled(bool enabled)
 {
     if (_enabled != enabled) {
