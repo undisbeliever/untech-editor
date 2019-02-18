@@ -174,9 +174,8 @@ void MtTilesetRenderer::onAnimationDelaysChanged()
     unsigned tilesetDelay = 0;
 
     if (_paletteItem) {
-        if (auto* p = _paletteItem->paletteInput()) {
-            paletteDelay = p->animationDelay;
-        }
+        const RES::PaletteInput& pal = _paletteItem->paletteInput();
+        paletteDelay = pal.animationDelay;
     }
 
     if (_tilesetItem) {

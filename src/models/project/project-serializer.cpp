@@ -76,7 +76,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
             MetaSprite::readFrameSetFile(childTag.get(), project->frameSets);
         }
         else if (childTag->name == "palette") {
-            project->palettes.insert_back(Resources::readPalette(childTag.get()));
+            Resources::readPalette(childTag.get(), project->palettes);
         }
         else if (childTag->name == "metatile-tileset") {
             readExternalFileList(childTag.get(), project->metaTileTilesets);

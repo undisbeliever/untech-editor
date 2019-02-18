@@ -65,17 +65,17 @@ void PaletteResourceList::do_addResource(int settingIndex, const std::string& fi
     auto& palettes = this->palettes();
 
     palettes.insert_back();
-    auto* pal = palettes.back();
+    RES::PaletteInput& pal = palettes.back();
 
     QFileInfo fi = QString::fromStdString(filename);
     QString name = fi.baseName();
     IdstringValidator().fixup(name);
 
-    pal->name = name.toStdString();
-    pal->paletteImageFilename = filename;
+    pal.name = name.toStdString();
+    pal.paletteImageFilename = filename;
 
     const auto& paletteImage = ImageCache::loadPngImage(filename);
-    pal->rowsPerFrame = qBound(1U, paletteImage->size().height, 16U);
+    pal.rowsPerFrame = qBound(1U, paletteImage->size().height, 16U);
 }
 
 void PaletteResourceList::do_removeResource(unsigned index)

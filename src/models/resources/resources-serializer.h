@@ -15,7 +15,7 @@ namespace UnTech {
 namespace Resources {
 
 // raises exception on error
-std::unique_ptr<PaletteInput> readPalette(const Xml::XmlTag* tag);
+void readPalette(const Xml::XmlTag* tag, NamedList<PaletteInput>& palettes);
 
 // raises exception on error
 void writePalettes(Xml::XmlWriter& xml, const NamedList<PaletteInput>& palettes);

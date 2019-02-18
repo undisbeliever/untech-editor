@@ -16,8 +16,7 @@ PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t ind
 {
     Q_ASSERT(index < _palettes.size());
 
-    auto* pal = paletteInput();
-    setName(QString::fromStdString(pal->name));
+    setName(QString::fromStdString(paletteInput().name));
 
     updateExternalFiles();
 
@@ -29,10 +28,9 @@ void PaletteResourceItem::updateExternalFiles()
 {
     QStringList filenames;
 
-    if (const auto* pal = paletteInput()) {
-        if (pal->paletteImageFilename.empty() == false) {
-            filenames.append(QString::fromStdString(pal->paletteImageFilename));
-        }
+    const RES::PaletteInput& pal = paletteInput();
+    if (!pal.paletteImageFilename.empty()) {
+        filenames.append(QString::fromStdString(pal.paletteImageFilename));
     }
 
     setExternalFiles(filenames);
@@ -40,10 +38,7 @@ void PaletteResourceItem::updateExternalFiles()
 
 bool PaletteResourceItem::compileResource(ErrorList& err)
 {
-    const RES::PaletteInput* pal = paletteInput();
-    Q_ASSERT(pal);
-
-    auto palData = RES::convertPalette(*pal, err);
+    auto palData = RES::convertPalette(paletteInput(), err);
     bool valid = palData && palData->validate(err);
 
     if (valid) {

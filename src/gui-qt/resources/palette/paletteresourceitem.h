@@ -31,8 +31,7 @@ public:
 
     static QString typeName() { return tr("Palette"); }
 
-    inline const RES::PaletteInput* data() const { return _palettes.at(index()); }
-    inline const RES::PaletteInput* paletteInput() const { return _palettes.at(index()); }
+    inline const RES::PaletteInput& paletteInput() const { return _palettes.at(index()); }
 
     // returns nullptr if the PaletteData is invalid
     const RES::PaletteData* compiledData() const { return _compiledData.get(); }
@@ -45,7 +44,8 @@ public:
 
 private:
     friend class Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
-    RES::PaletteInput* dataEditable() { return _palettes.at(index()); }
+    const RES::PaletteInput* data() const { return &_palettes.at(index()); }
+    RES::PaletteInput* dataEditable() { return &_palettes.at(index()); }
 
     void updateExternalFiles();
 

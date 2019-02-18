@@ -81,7 +81,7 @@ void PaletteCentralWidget::updateFrameLabel()
         return;
     }
 
-    unsigned nFrames = _palette->paletteInput()->nFrames();
+    unsigned nFrames = _palette->paletteInput().nFrames();
     int fIndex = _graphicsItem->frameIndex();
 
     if (fIndex >= 0 && nFrames > 0) {
@@ -110,11 +110,10 @@ void PaletteCentralWidget::clearGui()
 void PaletteCentralWidget::onPaletteDataChanged()
 {
     Q_ASSERT(_palette);
-    const auto& pData = _palette->paletteInput();
-    Q_ASSERT(pData);
+    const auto& pal = _palette->paletteInput();
 
-    _animationTimer.setAnimationDelay(pData->animationDelay);
-    _animationTimer.setEnabled(pData->nFrames() > 0);
+    _animationTimer.setAnimationDelay(pal.animationDelay);
+    _animationTimer.setEnabled(pal.nFrames() > 0);
 
     centerGraphicsItem();
 }
@@ -160,7 +159,7 @@ void PaletteGraphicsItem::updatePixmap()
 {
     prepareGeometryChange();
 
-    const std::string& fn = _palette->paletteInput()->paletteImageFilename;
+    const std::string& fn = _palette->paletteInput().paletteImageFilename;
 
     if (!fn.empty()) {
         _pixmap.load(QString::fromStdString(fn));
@@ -192,8 +191,8 @@ QRectF PaletteGraphicsItem::boundingRect() const
     unsigned w = _pixmap.width();
     unsigned h = _pixmap.height();
 
-    if (_frameIndex >= 0 && pal && pal->nFrames() > 0) {
-        h = pal->rowsPerFrame;
+    if (_frameIndex >= 0 && pal.nFrames() > 0) {
+        h = pal.rowsPerFrame;
     }
 
     return QRectF(-FRAME_OVERHANG, -FRAME_LINE_WIDTH,
@@ -203,22 +202,21 @@ QRectF PaletteGraphicsItem::boundingRect() const
 void PaletteGraphicsItem::paint(QPainter* painter,
                                 const QStyleOptionGraphicsItem*, QWidget*)
 {
-    const RES::PaletteInput* pal = _palette->paletteInput();
-
-    if (_pixmap.isNull() || pal == nullptr) {
+    if (_pixmap.isNull()) {
         return;
     }
 
     // draw image
-
     unsigned w = _pixmap.width();
     unsigned h = _pixmap.height();
     unsigned sx = 0;
     unsigned sy = 0;
 
-    if (_frameIndex >= 0 && pal->nFrames() > 0) {
-        h = pal->rowsPerFrame;
-        sy = (_frameIndex % pal->nFrames() + pal->skipFirstFrame) * pal->rowsPerFrame;
+    const RES::PaletteInput& pal = _palette->paletteInput();
+
+    if (_frameIndex >= 0 && pal.nFrames() > 0) {
+        h = pal.rowsPerFrame;
+        sy = (_frameIndex % pal.nFrames() + pal.skipFirstFrame) * pal.rowsPerFrame;
     }
 
     unsigned sw = w;
@@ -249,7 +247,7 @@ void PaletteGraphicsItem::paint(QPainter* painter,
 
     painter->setPen(QPen(FRAME_LINE_COLOR, FRAME_LINE_WIDTH));
 
-    unsigned fh = PALETTE_SCALE * pal->rowsPerFrame;
+    unsigned fh = PALETTE_SCALE * pal.rowsPerFrame;
     if (fh > 0) {
         for (unsigned y = 0; y <= h; y += fh) {
             painter->drawLine(-FRAME_OVERHANG, y, w + FRAME_OVERHANG, y);

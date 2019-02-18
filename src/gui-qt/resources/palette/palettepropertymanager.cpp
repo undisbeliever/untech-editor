@@ -53,9 +53,8 @@ void PalettePropertyManager::updateParameters(int id, QVariant& param1, QVariant
     }
 
     if (id == ROWS_PER_FRAME) {
-        const RES::PaletteInput* pal = _palette->paletteInput();
-        Q_ASSERT(pal);
-        const auto& paletteImage = ImageCache::loadPngImage(pal->paletteImageFilename);
+        const RES::PaletteInput& pal = _palette->paletteInput();
+        const auto& paletteImage = ImageCache::loadPngImage(pal.paletteImageFilename);
 
         param1 = 1;
         param2 = qMin(paletteImage->size().height, 16U);
@@ -68,24 +67,23 @@ QVariant PalettePropertyManager::data(int id) const
         return QVariant();
     }
 
-    const RES::PaletteInput* pal = _palette->paletteInput();
-    Q_ASSERT(pal);
+    const RES::PaletteInput& pal = _palette->paletteInput();
 
     switch ((PropertyId)id) {
     case NAME:
-        return QString::fromStdString(pal->name);
+        return QString::fromStdString(pal.name);
 
     case IMAGE_FILENAME:
-        return QString::fromStdString(pal->paletteImageFilename);
+        return QString::fromStdString(pal.paletteImageFilename);
 
     case ROWS_PER_FRAME:
-        return pal->rowsPerFrame;
+        return pal.rowsPerFrame;
 
     case ANIMATION_DELAY:
-        return pal->animationDelay;
+        return pal.animationDelay;
 
     case SKIP_FIRST_FRAME:
-        return pal->skipFirstFrame;
+        return pal.skipFirstFrame;
     }
 
     return QVariant();

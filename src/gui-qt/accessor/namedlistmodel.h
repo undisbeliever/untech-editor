@@ -52,7 +52,7 @@ public:
                             const ListT* list = accessor->list();
                             Q_ASSERT(list);
                             beginInsertRows(QModelIndex(), index, index);
-                            _displayList.insert(index, QString::fromStdString(list->at(index)->name));
+                            _displayList.insert(index, QString::fromStdString(list->at(index).name));
                             endInsertRows();
                         });
                 connect(accessor, &AccessorT::itemAboutToBeRemoved,
@@ -77,7 +77,7 @@ public:
                             const ListT* list = accessor->list();
                             Q_ASSERT(list);
                             Q_ASSERT(index >= 0 && index < size_t(_displayList.size()));
-                            _displayList.replace(index, QString::fromStdString(list->at(index)->name));
+                            _displayList.replace(index, QString::fromStdString(list->at(index).name));
                             QModelIndex mIndex = createIndex(index, 0);
                             emit dataChanged(mIndex, mIndex);
                         });
@@ -99,7 +99,7 @@ private:
         _displayList.clear();
 
         for (const auto& item : list) {
-            _displayList.append(QString::fromStdString(item->name));
+            _displayList.append(QString::fromStdString(item.name));
         }
 
         endResetModel();

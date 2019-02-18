@@ -70,11 +70,7 @@ inline bool validateNamesUnique(const NamedList<T>& list,
     bool valid = true;
 
     for (auto it = list.begin(); it != list.end(); it++) {
-        if (*it == nullptr) {
-            continue;
-        }
-
-        const idstring& name = (*it)->name;
+        const idstring& name = it->name;
         if (name.isValid() == false) {
             auto d = std::distance(list.begin(), it);
             err.addError("Missing name in " + typeName + ' ' + std::to_string(d));
@@ -89,7 +85,7 @@ inline bool validateNamesUnique(const NamedList<T>& list,
         }
 
         bool dup = std::any_of(it + 1, list.end(),
-                               [&](const auto& i) { return i && i->name == name; });
+                               [&](const auto& i) { return i.name == name; });
         if (dup) {
             err.addError("Duplicate " + typeName + " name detected: " + name);
             valid = false;

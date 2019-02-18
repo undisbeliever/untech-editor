@@ -117,11 +117,10 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
     valid &= metaSpriteData != nullptr;
 
     compileList(input.palettes, "Palette",
-                [&](const std::unique_ptr<Resources::PaletteInput>& p, ErrorList& err) {
-                    assert(p != nullptr);
-                    const auto palData = convertPalette(*p, err);
+                [&](const Resources::PaletteInput& p, ErrorList& err) {
+                    const auto palData = convertPalette(p, err);
                     if (palData) {
-                        writer.addData(PALETTE, p->name, palData->exportPalette());
+                        writer.addData(PALETTE, p.name, palData->exportPalette());
                     }
                 });
 

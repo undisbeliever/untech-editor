@@ -122,9 +122,8 @@ public:
                         const auto index = accessor->selectedIndex();
                         const ListT* list = accessor->list();
                         Q_ASSERT(list);
-                        const auto* item = list->at(index);
-                        Q_ASSERT(item);
-                        const idstring name = cloneIdstringDialog(item->name, accessor->typeName());
+                        const auto& item = list->at(index);
+                        const idstring name = cloneIdstringDialog(item.name, accessor->typeName());
                         if (name.isValid()) {
                             NamedListAndSelectionUndoHelper<AccessorT>(accessor).cloneSelectedItem(name);
                         }
@@ -137,9 +136,8 @@ public:
                         }
                         const ListT* list = accessor->list();
                         Q_ASSERT(list);
-                        const auto* item = list->at(accessor->selectedIndex());
-                        Q_ASSERT(item);
-                        const idstring name = renameIdstringDialog(item->name, accessor->typeName());
+                        const auto& item = list->at(accessor->selectedIndex());
+                        const idstring name = renameIdstringDialog(item.name, accessor->typeName());
                         if (name.isValid()) {
                             NamedListAndSelectionUndoHelper<AccessorT>(accessor).renameSelectedItem(name);
                         }

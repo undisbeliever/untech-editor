@@ -69,13 +69,13 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     }
 
     const idstring& paletteName = input.palettes.front();
-    const auto* palette = projectFile.palettes.find(paletteName);
-    if (palette == nullptr) {
+    const auto palette = projectFile.palettes.find(paletteName);
+    if (!palette) {
         err.addError("Cannot find palette: " + paletteName);
         return nullptr;
     }
 
-    auto aniFrames = Resources::convertAnimationFrames(input.animationFrames, *palette, err);
+    auto aniFrames = Resources::convertAnimationFrames(input.animationFrames, palette(), err);
     if (!aniFrames) {
         return nullptr;
     }

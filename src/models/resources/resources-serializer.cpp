@@ -16,37 +16,34 @@ using namespace UnTech::Xml;
 namespace UnTech {
 namespace Resources {
 
-std::unique_ptr<PaletteInput> readPalette(const XmlTag* tag)
+void readPalette(const XmlTag* tag, NamedList<PaletteInput>& palettes)
 {
     assert(tag->name == "palette");
 
-    auto palette = std::make_unique<PaletteInput>();
+    palettes.insert_back();
+    auto& palette = palettes.back();
 
-    palette->name = tag->getAttributeId("name");
-    palette->paletteImageFilename = tag->getAttributeFilename("image");
-    palette->rowsPerFrame = tag->getAttributeUnsigned("rows-per-frame");
-    palette->skipFirstFrame = tag->getAttributeBoolean("skip-first");
+    palette.name = tag->getAttributeId("name");
+    palette.paletteImageFilename = tag->getAttributeFilename("image");
+    palette.rowsPerFrame = tag->getAttributeUnsigned("rows-per-frame");
+    palette.skipFirstFrame = tag->getAttributeBoolean("skip-first");
 
     if (tag->hasAttribute("animation-delay")) {
-        palette->animationDelay = tag->getAttributeUnsigned("animation-delay");
+        palette.animationDelay = tag->getAttributeUnsigned("animation-delay");
     }
-
-    return palette;
 }
 
 void writePalettes(XmlWriter& xml, const NamedList<PaletteInput>& palettes)
 {
     for (const auto& p : palettes) {
-        assert(p != nullptr);
-
         xml.writeTag("palette");
-        xml.writeTagAttribute("name", p->name);
-        xml.writeTagAttributeFilename("image", p->paletteImageFilename);
-        xml.writeTagAttribute("rows-per-frame", p->rowsPerFrame);
-        xml.writeTagAttribute("skip-first", p->skipFirstFrame);
+        xml.writeTagAttribute("name", p.name);
+        xml.writeTagAttributeFilename("image", p.paletteImageFilename);
+        xml.writeTagAttribute("rows-per-frame", p.rowsPerFrame);
+        xml.writeTagAttribute("skip-first", p.skipFirstFrame);
 
-        if (p->animationDelay > 0) {
-            xml.writeTagAttribute("animation-delay", p->animationDelay);
+        if (p.animationDelay > 0) {
+            xml.writeTagAttribute("animation-delay", p.animationDelay);
         }
 
         xml.writeCloseTag();

@@ -76,7 +76,7 @@ private:
             Q_ASSERT(list);
             Q_ASSERT(_index >= 0 && _index < list->size());
 
-            DataT& item = *list->at(_index);
+            DataT& item = list->at(_index);
             FieldT& field = _getter(item);
             field = _oldValue;
 
@@ -92,7 +92,7 @@ private:
             Q_ASSERT(list);
             Q_ASSERT(_index >= 0 && _index < list->size());
 
-            DataT& item = *list->at(_index);
+            DataT& item = list->at(_index);
             FieldT& field = _getter(item);
             field = _newValue;
 
@@ -133,7 +133,7 @@ private:
             Q_ASSERT(list);
             Q_ASSERT(_index >= 0 && _index < list->size());
 
-            DataT& item = *list->at(_index);
+            DataT& item = list->at(_index);
             FieldT& field = _getter(item);
             field = _oldValue;
 
@@ -170,11 +170,10 @@ private:
     private:
         AccessorT* const _accessor;
         const index_type _index;
-        std::unique_ptr<DataT> _value;
+        DataT _value;
 
     protected:
-        AddRemoveCommand(AccessorT* accessor, index_type index,
-                         std::unique_ptr<DataT> value,
+        AddRemoveCommand(AccessorT* accessor, index_type index, DataT value,
                          const QString& text)
             : QUndoCommand(text)
             , _accessor(accessor)
@@ -192,8 +191,7 @@ private:
 
             emit _accessor->listAboutToChange();
 
-            Q_ASSERT(_value);
-            list->insert(_index, std::move(_value));
+            list->insert(_index, _value);
 
             emit _accessor->itemAdded(_index);
             emit _accessor->listChanged();
@@ -209,8 +207,7 @@ private:
             emit _accessor->listAboutToChange();
             emit _accessor->itemAboutToBeRemoved(_index);
 
-            Q_ASSERT(_value == nullptr);
-            _value = list->takeFrom(_index);
+            list->remove(_index);
 
             emit _accessor->listChanged();
             emit _accessor->resourceItem()->dataChanged();
@@ -219,7 +216,7 @@ private:
 
     class AddCommand : public AddRemoveCommand {
     public:
-        AddCommand(AccessorT* accessor, index_type index, std::unique_ptr<DataT> data)
+        AddCommand(AccessorT* accessor, index_type index, DataT data)
             : AddRemoveCommand(accessor, index, std::move(data),
                                tr("Add %1").arg(accessor->typeName()))
         {
@@ -239,8 +236,8 @@ private:
 
     class RemoveCommand : public AddRemoveCommand {
     public:
-        RemoveCommand(AccessorT* accessor, index_type index)
-            : AddRemoveCommand(accessor, index, nullptr,
+        RemoveCommand(AccessorT* accessor, index_type index, DataT value)
+            : AddRemoveCommand(accessor, index, std::move(value),
                                tr("Remove %1").arg(accessor->typeName()))
         {
         }
@@ -339,7 +336,7 @@ public:
         if (index < 0 || index >= list->size()) {
             return nullptr;
         }
-        DataT& item = *list->at(index);
+        DataT& item = list->at(index);
         const FieldT& oldValue = getter(item);
 
         if (oldValue == newValue) {
@@ -438,7 +435,7 @@ public:
             return nullptr;
         }
 
-        return new AddCommand(_accessor, index, std::make_unique<DataT>());
+        return new AddCommand(_accessor, index, DataT{});
     }
 
     bool addItem()
@@ -480,8 +477,8 @@ public:
             return nullptr;
         }
 
-        auto value = std::make_unique<DataT>();
-        value->name = name;
+        DataT value;
+        value.name = name;
 
         return new AddCommand(_accessor, index, std::move(value));
     }
@@ -522,7 +519,7 @@ public:
             return nullptr;
         }
 
-        return new RemoveCommand(_accessor, index);
+        return new RemoveCommand(_accessor, index, list->at(index));
     }
 
     bool removeItem(index_type index)
@@ -549,8 +546,7 @@ public:
             return nullptr;
         }
 
-        return new AddCommand(_accessor, index + 1,
-                              std::make_unique<DataT>(*list->at(index)));
+        return new AddCommand(_accessor, index + 1, list->at(index));
     }
 
     bool cloneItem(index_type index)
@@ -577,8 +573,8 @@ public:
             return nullptr;
         }
 
-        auto item = std::make_unique<DataT>(*list->at(index));
-        item->name = name;
+        DataT item = list->at(index);
+        item.name = name;
 
         return new AddCommand(_accessor, index + 1, std::move(item));
     }
