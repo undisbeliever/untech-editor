@@ -6,6 +6,7 @@
 
 #include "projectsettingspropertymanager.h"
 #include "projectsettingsresourceitem.h"
+#include "gui-qt/common/helpers.h"
 #include "gui-qt/project.h"
 #include "models/project/project.h"
 
@@ -26,6 +27,8 @@ ProjectSettingsPropertyManager::ProjectSettingsPropertyManager(QObject* parent)
     addPropertyGroup(tr("MetaTile Settings:"));
     addProperty(tr("Max Map Size"), METATILE_MAX_MAP_SIZE, Type::UNSIGNED, 16 * 14, 32 * 1024);
     addProperty(tr("N. MetaTiles"), METATILE_N_METATILES, Type::UNSIGNED, 16, 1024);
+    addPropertyGroup(tr("Entity:"));
+    addProperty(tr("EntityListIds"), ENTITY_LIST_IDS, Type::IDSTRING_LIST);
 }
 
 void ProjectSettingsPropertyManager::setResourceItem(ProjectSettingsResourceItem* item)
@@ -70,6 +73,9 @@ QVariant ProjectSettingsPropertyManager::data(int id) const
 
     case METATILE_N_METATILES:
         return pro->metaTileEngineSettings.nMetaTiles;
+
+    case ENTITY_LIST_IDS:
+        return convertStringList(pro->entityRomData.listIds);
     }
 
     return QVariant();
@@ -91,6 +97,9 @@ bool ProjectSettingsPropertyManager::setData(int id, const QVariant& value)
 
     case METATILE_N_METATILES:
         return editMetaTileSettings_setNMetaTiles(value.toUInt());
+
+    case ENTITY_LIST_IDS:
+        return editEntityRomData_setEntityListIds(toIdstringVector(value.toStringList()));
     }
 
     return false;

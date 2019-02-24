@@ -48,3 +48,12 @@ bool ProjectSettingsPropertyManager::editMetaTileSettings_setNMetaTiles(unsigned
         tr("Edit Number of MetaTiles"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.nMetaTiles; });
 }
+
+bool ProjectSettingsPropertyManager::editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds)
+{
+    return SettingsUndoHelper(_item).editField(
+        listIds,
+        tr("Edit EntityListIds"),
+        [](PRO::ProjectFile& pf) -> std::vector<idstring>& { return pf.entityRomData.listIds; },
+        [](ProjectSettingsResourceItem& item) { emit item.entityListIdsChanged(); });
+}

@@ -31,6 +31,9 @@ protected:
     friend class Accessor::ResourceItemUndoHelper<ProjectSettingsResourceItem>;
     DataT* dataEditable() const { return project()->projectFile(); }
 
+signals:
+    void entityListIdsChanged();
+
 protected:
     virtual bool compileResource(ErrorList& err) final;
 };

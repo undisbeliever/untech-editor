@@ -49,6 +49,14 @@ QStringList Document::frameNames() const
     return fl;
 }
 
+unsigned Document::nPalettes() const
+{
+    if (_frameSet == nullptr) {
+        return 1;
+    }
+    return _frameSet->palettes.size();
+}
+
 void Document::resetDocumentState()
 {
     if (const MS::FrameSet* fs = frameSet()) {

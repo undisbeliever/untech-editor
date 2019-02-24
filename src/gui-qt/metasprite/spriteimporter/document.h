@@ -41,6 +41,7 @@ public:
     virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
 
     virtual QStringList frameNames() const final;
+    virtual unsigned nPalettes() const final;
 
     FrameMap* frameMap() const { return _frameMap; }
     FrameObjectList* frameObjectList() const { return _frameObjectList; }

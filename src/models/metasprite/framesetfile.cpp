@@ -88,6 +88,19 @@ const idstring& FrameSetFile::name() const
     return empty;
 }
 
+const idstring& FrameSetFile::exportOrder() const
+{
+    static const idstring empty;
+
+    if (msFrameSet) {
+        return msFrameSet->exportOrder;
+    }
+    if (siFrameSet) {
+        return siFrameSet->exportOrder;
+    }
+    return empty;
+}
+
 const std::string& FrameSetFile::displayName() const
 {
     if (msFrameSet) {

@@ -6,6 +6,9 @@
 
 #include "staticresourcelist.h"
 #include "project.h"
+#include "entity/entity-function-tables/entityfunctiontablesresourceitem.h"
+#include "entity/entity-rom-entries/entityromentriesresourceitem.h"
+#include "entity/entity-rom-structs/entityromstructsresourceitem.h"
 #include "project-settings/projectsettingsresourceitem.h"
 
 using namespace UnTech::GuiQt;
@@ -13,6 +16,10 @@ using namespace UnTech::GuiQt;
 StaticResourceList::StaticResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::STATIC)
     , _projectSettingsResourceItem(new ProjectSettings::ProjectSettingsResourceItem(this, PROJECT_SETTINGS))
+    , _entityRomStructsResourceItem(new Entity::EntityRomStructsResourceItem(this, ENTITY_ROM_STRUCTS))
+    , _entityFunctionTablesResourceItem(new Entity::EntityFunctionTablesResourceItem(this, ENTITY_FUNCTION_TABLES))
+    , _entitiesResourceItem(new Entity::EntityRomEntriesResourceItem(this, ENTITIES, true))
+    , _projectilesResourceItem(new Entity::EntityRomEntriesResourceItem(this, PROJECTILES, false))
 {
 }
 
@@ -43,6 +50,18 @@ AbstractResourceItem* StaticResourceList::buildResourceItem(size_t index)
     switch (static_cast<Indexes>(index)) {
     case PROJECT_SETTINGS:
         return _projectSettingsResourceItem;
+
+    case ENTITY_ROM_STRUCTS:
+        return _entityRomStructsResourceItem;
+
+    case ENTITY_FUNCTION_TABLES:
+        return _entityFunctionTablesResourceItem;
+
+    case ENTITIES:
+        return _entitiesResourceItem;
+
+    case PROJECTILES:
+        return _projectilesResourceItem;
     }
 
     throw std::out_of_range("index is invalid");

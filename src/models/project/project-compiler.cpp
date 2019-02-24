@@ -60,6 +60,27 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     writeData(msData.paletteData);
 }
 
+static Entity::CompiledEntityRomData compileEntityRomData(const ProjectFile& input, std::ostream& errorStream)
+{
+    ErrorList err;
+    auto out = Entity::compileEntityRomData(input.entityRomData, input, err);
+
+    if (err.hasError()) {
+        errorStream << "Entity Rom Data:\n";
+        err.printIndented(errorStream);
+        out.valid = false;
+    }
+
+    return out;
+}
+
+static void writeEntityRomData(RomDataWriter& writer,
+                               const Entity::CompiledEntityRomData& entityData)
+{
+    writer.addNamedData(entityData.ENTITY_INDEXES_LABEL, entityData.entityIndexes);
+    writer.addNamedData(entityData.PROJECTILE_INDEXES_LABEL, entityData.projectileIndexes);
+}
+
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
                std::ostream& errorStream)
@@ -70,6 +91,7 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
         { "Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
         { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
         { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
+        { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
     };
     enum TypeId : unsigned {
         PALETTE,
@@ -116,6 +138,12 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
     }
     valid &= metaSpriteData != nullptr;
 
+    const auto entityData = compileEntityRomData(input, errorStream);
+    if (entityData.valid) {
+        writeEntityRomData(writer, entityData);
+    }
+    valid &= entityData.valid;
+
     compileList(input.palettes, "Palette",
                 [&](const Resources::PaletteInput& p, ErrorList& err) {
                     const auto palData = convertPalette(p, err);
@@ -148,9 +176,11 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
 
     writer.writeIncData(ret->incData, relativeBinFilename);
     metaSpriteData->writeToIncFile(ret->incData);
+    ret->incData << entityData.entries;
 
     MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);
     MetaSprite::Compiler::writeExportOrderReferences(input, ret->incData);
+    ret->incData << entityData.defines;
 
     return ret;
 }

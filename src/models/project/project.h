@@ -9,6 +9,7 @@
 #include "models/common/externalfilelist.h"
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
+#include "models/entity/entityromdata.h"
 #include "models/metasprite/frameset-exportorder.h"
 #include "models/metasprite/framesetfile.h"
 #include "models/metatiles/common.h"
@@ -41,6 +42,8 @@ struct ProjectFile {
     BlockSettings blockSettings;
     MetaTiles::EngineSettings metaTileEngineSettings;
 
+    Entity::EntityRomData entityRomData;
+
     NamedList<Resources::PaletteInput> palettes;
     ExternalFileList<MetaTiles::MetaTileTilesetInput> metaTileTilesets;
 
@@ -55,6 +58,7 @@ struct ProjectFile {
     {
         return blockSettings == o.blockSettings
                && metaTileEngineSettings == o.metaTileEngineSettings
+               && entityRomData == o.entityRomData
                && palettes == o.palettes
                && metaTileTilesets == o.metaTileTilesets;
     }

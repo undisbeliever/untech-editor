@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui-qt/common/properties/propertylistmanager.h"
+#include "models/common/idstring.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -22,6 +23,8 @@ class ProjectSettingsPropertyManager : public PropertyListManager {
 
         METATILE_MAX_MAP_SIZE,
         METATILE_N_METATILES,
+
+        ENTITY_LIST_IDS,
     };
 
 public:
@@ -39,6 +42,8 @@ private:
 
     bool editMetaTileSettings_setMaxMapSize(unsigned maxMapSize);
     bool editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles);
+
+    bool editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds);
 
 private:
     ProjectSettingsResourceItem* _item;

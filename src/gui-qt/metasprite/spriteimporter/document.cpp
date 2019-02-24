@@ -46,6 +46,19 @@ QStringList Document::frameNames() const
     return fl;
 }
 
+unsigned Document::nPalettes() const
+{
+    if (_frameSet == nullptr) {
+        return 1;
+    }
+
+    unsigned nPalettes = _frameSet->palette.nPalettes;
+    if (nPalettes == 0) {
+        nPalettes = 1;
+    }
+    return nPalettes;
+}
+
 void Document::resetDocumentState()
 {
     if (const SI::FrameSet* fs = frameSet()) {

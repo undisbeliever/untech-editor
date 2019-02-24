@@ -59,6 +59,7 @@ public:
 
     UnTech::Project::ProjectFile* projectFile() const { return _projectFile.get(); }
 
+    StaticResourceList* staticResourceList() const { return _staticResourceList; }
     MetaSprite::ExportOrderResourceList* frameSetExportOrderResourceList() const { return _frameSetExportOrderResourceList; }
     MetaSprite::FrameSetResourceList* frameSetResourceList() const { return _frameSetResourceList; }
     Resources::PaletteResourceList* paletteResourceList() const { return _paletteResourceList; }

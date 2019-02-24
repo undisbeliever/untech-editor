@@ -7,6 +7,7 @@
 #include "project-serializer.h"
 #include "project.h"
 #include "models/common/atomicofstream.h"
+#include "models/entity/entityromdata-serializer.h"
 #include "models/metasprite/framesetfile-serializer.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/resources/resources-serializer.h"
@@ -81,6 +82,9 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
         else if (childTag->name == "metatile-tileset") {
             readExternalFileList(childTag.get(), project->metaTileTilesets);
         }
+        else if (childTag->name == "entity-rom-data") {
+            Entity::readEntityRomData(xml, childTag.get(), project->entityRomData);
+        }
         else if (childTag->name == "block-settings") {
             if (readBlockSettingsTag) {
                 throw xml_error(*childTag, "Only one <block-settings> tag is allowed");
@@ -112,6 +116,8 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
 
     Project::writeBlockSettings(xml, project.blockSettings);
     MetaTiles::writeEngineSettings(xml, project.metaTileEngineSettings);
+
+    Entity::writeEntityRomData(xml, project.entityRomData);
 
     writeExternalFileList(xml, "exportorder", project.frameSetExportOrders);
     MetaSprite::writeFrameSetFiles(xml, project.frameSets);

@@ -31,6 +31,7 @@ bool ProjectSettingsResourceItem::compileResource(UnTech::ErrorList& err)
     bool valid = true;
 
     valid &= projectFile->blockSettings.validate(err);
+    valid &= projectFile->entityRomData.validateListIds(err);
 
     return valid;
 }

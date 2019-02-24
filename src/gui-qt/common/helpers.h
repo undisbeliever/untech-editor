@@ -10,6 +10,7 @@
 #include "models/common/enummap.h"
 #include "models/common/idstring.h"
 #include "models/common/ms8aabb.h"
+#include "models/common/namedlist.h"
 #include <QPoint>
 #include <QRect>
 #include <QSize>
@@ -44,6 +45,27 @@ QStringList convertStringList(const T& sl)
     qsl.reserve(sl.size());
     std::transform(sl.begin(), sl.end(), std::back_inserter(qsl),
                    [](const std::string& s) { return QString::fromStdString(s); });
+    return qsl;
+}
+
+template <typename T>
+QStringList convertNameList(const NamedList<T>& nl)
+{
+    QStringList qsl;
+    qsl.reserve(nl.size());
+    std::transform(nl.begin(), nl.end(), std::back_inserter(qsl),
+                   [](const auto& i) { return QString::fromStdString(i->name); });
+    return qsl;
+}
+
+template <typename T>
+QStringList convertNameListWithBlank(const NamedList<T>& nl)
+{
+    QStringList qsl;
+    qsl.reserve(nl.size() + 1);
+    qsl.append(QString());
+    std::transform(nl.begin(), nl.end(), std::back_inserter(qsl),
+                   [](const T& i) { return QString::fromStdString(i.name); });
     return qsl;
 }
 

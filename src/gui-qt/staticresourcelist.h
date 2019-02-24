@@ -14,6 +14,11 @@ namespace GuiQt {
 namespace ProjectSettings {
 class ProjectSettingsResourceItem;
 }
+namespace Entity {
+class EntityRomStructsResourceItem;
+class EntityFunctionTablesResourceItem;
+class EntityRomEntriesResourceItem;
+}
 
 class Project;
 class AbstractResourceItem;
@@ -23,8 +28,12 @@ class StaticResourceList : public AbstractResourceList {
 
     enum Indexes {
         PROJECT_SETTINGS,
+        ENTITY_ROM_STRUCTS,
+        ENTITY_FUNCTION_TABLES,
+        ENTITIES,
+        PROJECTILES,
     };
-    constexpr static size_t N_ITEMS = 1;
+    constexpr static size_t N_ITEMS = 5;
 
 public:
     StaticResourceList(Project* project);
@@ -36,6 +45,10 @@ public:
     virtual const QList<AddResourceSettings>& addResourceSettings() const final;
 
     auto* projectSettingsResourceItem() const { return _projectSettingsResourceItem; }
+    auto* entityRomStructsResourceItem() const { return _entityRomStructsResourceItem; }
+    auto* entityFunctionTablesResourceItem() const { return _entityFunctionTablesResourceItem; }
+    auto* entitiesResourceItem() const { return _entitiesResourceItem; }
+    auto* projectilesResourceItem() const { return _projectilesResourceItem; }
 
 protected:
     virtual size_t nItems() const final;
@@ -46,6 +59,10 @@ protected:
 
 private:
     ProjectSettings::ProjectSettingsResourceItem* const _projectSettingsResourceItem;
+    Entity::EntityRomStructsResourceItem* const _entityRomStructsResourceItem;
+    Entity::EntityFunctionTablesResourceItem* const _entityFunctionTablesResourceItem;
+    Entity::EntityRomEntriesResourceItem* const _entitiesResourceItem;
+    Entity::EntityRomEntriesResourceItem* const _projectilesResourceItem;
 };
 
 }

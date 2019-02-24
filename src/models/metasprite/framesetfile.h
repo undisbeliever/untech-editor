@@ -35,6 +35,7 @@ struct FrameSetFile {
 
     // returns an empty idstring if no frameSet exists
     const idstring& name() const;
+    const idstring& exportOrder() const;
 
     // returns the filename is no frameSet exists
     const std::string& displayName() const;

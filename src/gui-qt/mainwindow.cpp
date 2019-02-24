@@ -20,6 +20,9 @@
 
 #include "gui-qt/project.h"
 
+#include "gui-qt/entity/entity-function-tables/entityfunctiontablesditor.h"
+#include "gui-qt/entity/entity-rom-entries/entityromentrieseditor.h"
+#include "gui-qt/entity/entity-rom-structs/entityromstructseditor.h"
 #include "gui-qt/metasprite/exportorder/exportordereditor.h"
 #include "gui-qt/metasprite/metasprite/msframeseteditor.h"
 #include "gui-qt/metasprite/spriteimporter/siframeseteditor.h"
@@ -64,6 +67,9 @@ MainWindow::MainWindow(QWidget* parent)
     , _undoGroup(new QUndoGroup(this))
     , _editors({
           new ProjectSettings::ProjectSettingsEditor(this),
+          new Entity::EntityRomStructsEditor(this),
+          new Entity::EntityFunctionTablesEditor(this),
+          new Entity::EntityRomEntriesEditor(this),
           new Resources::PaletteEditor(this),
           new MetaSprite::ExportOrderEditor(this),
           new MetaTiles::MtTilesetEditor(this, _zoomSettingsManager),
