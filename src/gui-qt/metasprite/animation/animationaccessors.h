@@ -16,23 +16,24 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace Animation {
 
-class AnimationsMap : public QObject {
+class AnimationsList : public QObject {
     Q_OBJECT
 
 public:
     using DataT = MSA::Animation;
-    using MapT = MSA::Animation::map_t;
-    using KeyT = idstring;
+    using ListT = NamedList<MSA::Animation>;
+    using index_type = ListT::size_type;
+
+    constexpr static index_type max_size = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
 private:
     AbstractMsDocument* const _document;
 
-    idstring _selectedId;
-    MSA::Animation* _selectedItem;
+    size_t _selectedIndex;
 
 public:
-    AnimationsMap(AbstractMsDocument* document);
-    ~AnimationsMap() = default;
+    AnimationsList(AbstractMsDocument* document);
+    ~AnimationsList() = default;
 
     AbstractMsDocument* resourceItem() const { return _document; }
 
@@ -40,45 +41,39 @@ public:
 
     QStringList animationNames() const;
 
-    const idstring& selectedId() const { return _selectedId; }
-    const MSA::Animation* selectedItem() const { return _selectedItem; }
-    const MSA::Animation* selectedAnimation() const { return _selectedItem; }
+    index_type selectedIndex() const { return _selectedIndex; }
+    void setSelectedId(const idstring& id);
+    void setSelectedIndex(const index_type& index);
+    void unselectItem() { setSelectedIndex(INT_MAX); }
 
-    MSA::Animation* selectedAnimation() { return _selectedItem; }
+    bool isSelectedIndexValid() const;
 
-    const MapT* map()
-    {
-        return _document->animations();
-    }
+    const MSA::Animation* selectedAnimation() const;
 
     bool editSelected_setDurationFormat(MSA::DurationFormat durationFormat);
     bool editSelected_setOneShot(bool oneShot);
     bool editSelected_setNextAnimation(const idstring& nextAnimation);
 
-public slots:
-    void setSelectedId(const idstring& id);
-    void unselectItem();
+    const ListT* list() const { return _document->animations(); }
 
 protected:
-    friend class Accessor::IdmapUndoHelper<AnimationsMap>;
-    MapT* getMap()
-    {
-        return _document->animations();
-    }
+    friend class Accessor::NamedListUndoHelper<AnimationsList>;
+    ListT* getList() { return _document->animations(); }
 
     friend class AnimationFramesList;
-    MSA::Animation* selectedItemEditable() const { return _selectedItem; }
+    MSA::Animation* selectedItemEditable();
 
 signals:
-    void dataChanged(const MSA::Animation*);
-    void mapChanged();
+    void nameChanged(index_type index);
+    void dataChanged(index_type index);
+    void listChanged();
 
-    void mapAboutToChange();
-    void itemAdded(const idstring& id);
-    void itemAboutToBeRemoved(const idstring& id);
-    void itemRenamed(const idstring& oldId, const idstring& newId);
+    void listAboutToChange();
+    void itemAdded(index_type index);
+    void itemAboutToBeRemoved(index_type index);
+    void itemMoved(index_type from, index_type to);
 
-    void selectedItemChanged();
+    void selectedIndexChanged();
 };
 
 class AnimationFramesList : public QObject {
@@ -88,14 +83,13 @@ public:
     using DataT = MSA::AnimationFrame;
     using ListT = std::vector<DataT>;
     using index_type = ListT::size_type;
-    using ArgsT = std::tuple<MSA::Animation*>;
+    using ArgsT = std::tuple<size_t>;
 
     constexpr static index_type max_size = UnTech::MetaSprite::MAX_ANIMATION_FRAMES;
 
 private:
     AbstractMsDocument* const _document;
-
-    MSA::Animation* _animation;
+    size_t _animationIndex;
 
 public:
     AnimationFramesList(AbstractMsDocument* document);
@@ -114,27 +108,31 @@ public:
 
 protected:
     friend class Accessor::ListUndoHelper<AnimationFramesList>;
-    ListT* getList(MSA::Animation* ani)
+    ListT* getList(size_t aniIndex)
     {
-        if (ani == nullptr) {
+        auto* animations = _document->animations();
+        if (animations == nullptr) {
             return nullptr;
         }
-        return &ani->frames;
+        if (aniIndex >= animations->size()) {
+            return nullptr;
+        }
+        return &animations->at(aniIndex).frames;
     }
 
     ArgsT selectedListTuple() const
     {
-        return std::tie(_animation);
+        return std::tie(_animationIndex);
     }
 
 signals:
-    void dataChanged(const MSA::Animation*, index_type index);
-    void listChanged(const MSA::Animation*);
+    void dataChanged(size_t animationIndex, index_type index);
+    void listChanged(size_t animationIndex);
 
-    void listAboutToChange(const MSA::Animation*);
-    void itemAdded(const MSA::Animation*, index_type index);
-    void itemAboutToBeRemoved(const MSA::Animation*, index_type index);
-    void itemMoved(const MSA::Animation*, index_type from, index_type to);
+    void listAboutToChange(size_t animationIndex);
+    void itemAdded(size_t animationIndex, index_type index);
+    void itemAboutToBeRemoved(size_t animationIndex, index_type index);
+    void itemMoved(size_t animationIndex, index_type from, index_type to);
 
     void selectedListChanged();
 };

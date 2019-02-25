@@ -69,19 +69,19 @@ private slots:
 
     void onFrameSetGridChanged();
 
-    void onFrameAdded(const idstring& id);
-    void onFrameAboutToBeRemoved(const idstring& frameId);
+    void onFrameAdded(size_t frameIndex);
+    void onFrameAboutToBeRemoved(size_t frameIndex);
 
-    void onFrameLocationChanged(const void* frame);
-    void onFrameDataChanged(const void* frame);
+    void onFrameLocationChanged(size_t frameIndex);
+    void onFrameDataChanged(size_t frameIndex);
 
-    void onFrameObjectChanged(const void* frame, size_t index);
-    void onActionPointChanged(const void* frame, size_t index);
-    void onEntityHitboxChanged(const void* frame, size_t index);
+    void onFrameObjectChanged(size_t frameIndex, size_t index);
+    void onActionPointChanged(size_t frameIndex, size_t index);
+    void onEntityHitboxChanged(size_t frameIndex, size_t index);
 
-    void onFrameObjectListChanged(const void* frame);
-    void onActionPointListChanged(const void* frame);
-    void onEntityHitboxListChanged(const void* frame);
+    void onFrameObjectListChanged(size_t frameIndex);
+    void onActionPointListChanged(size_t frameIndex);
+    void onEntityHitboxListChanged(size_t frameIndex);
 
 private:
     LayerSettings* const _layerSettings;
@@ -91,7 +91,7 @@ private:
     QGraphicsPixmapItem* const _frameSetPixmap;
     QGraphicsPathItem* const _paletteOutline;
 
-    QMap<const void*, SiFrameGraphicsItem*> _frameItems;
+    QList<SiFrameGraphicsItem*> _frameItems;
 
     Document* _document;
 

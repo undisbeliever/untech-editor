@@ -8,8 +8,8 @@
 
 #include "durationformat.h"
 #include "../common.h"
-#include "models/common/idmap.h"
 #include "models/common/idstring.h"
+#include "models/common/namedlist.h"
 #include <string>
 #include <vector>
 
@@ -42,8 +42,7 @@ struct AnimationFrame {
 };
 
 struct Animation {
-    typedef idmap<Animation> map_t;
-
+    idstring name;
     std::vector<AnimationFrame> frames;
     DurationFormat durationFormat;
     idstring nextAnimation;

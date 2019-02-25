@@ -79,7 +79,7 @@ protected:
 
 private:
     std::unique_ptr<Ui::AnimationPreview> const _ui;
-    Accessor::IdmapListModel* const _animationListModel;
+    Accessor::NamedListModel* const _animationListModel;
     QGraphicsScene* const _graphicsScene;
 
     AnimationPreviewItemFactory* _itemFactory;

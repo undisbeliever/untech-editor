@@ -243,7 +243,7 @@
             <number>0</number>
            </property>
            <item>
-            <widget class="GuiQt::Accessor::IdmapListView" name="frameList">
+            <widget class="GuiQt::Accessor::NamedListView" name="frameList">
              <property name="sizePolicy">
               <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                <horstretch>0</horstretch>
@@ -292,9 +292,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>GuiQt::Accessor::IdmapListView</class>
+   <class>GuiQt::Accessor::NamedListView</class>
    <extends>QListView</extends>
-   <header>gui-qt/accessor/idmaplistview.h</header>
+   <header>gui-qt/accessor/namedlistview.h</header>
   </customwidget>
   <customwidget>
    <class>FilenameInputWidget</class>

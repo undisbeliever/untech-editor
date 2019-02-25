@@ -50,13 +50,16 @@ public:
 
     void setDocument(Document* document);
 
-    void setFrame(const UnTech::MetaSprite::MetaSprite::Frame* frame);
+    void setFrameIndex(size_t frameIndex);
 
 protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
     virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
+    bool selectedFrameValid() const;
+    const MS::Frame* selectedFrame() const;
+
     void commitMovedItems();
 
     template <class T>
@@ -65,14 +68,14 @@ private:
 
     void updateTileHitbox();
 
-    void addFrameObject();
-    void updateFrameObject(unsigned index);
+    void addFrameObject(const MS::Frame& frame);
+    void updateFrameObject(unsigned index, const MS::FrameObject& obj);
 
-    void addActionPoint();
-    void updateActionPoint(unsigned index);
+    void addActionPoint(const MS::Frame& frame);
+    void updateActionPoint(unsigned index, const MS::ActionPoint& ap);
 
-    void addEntityHitbox();
-    void updateEntityHitbox(unsigned index);
+    void addEntityHitbox(const MS::Frame& frame);
+    void updateEntityHitbox(unsigned index, const MS::EntityHitbox& eh);
 
 private slots:
     void onLayerSettingsChanged();
@@ -88,15 +91,15 @@ private slots:
 
     void onTilesetPixmapsChanged();
 
-    void onFrameDataChanged(const void* frame);
+    void onFrameDataChanged(size_t frameIndex);
 
-    void onFrameObjectChanged(const void* frame, size_t index);
-    void onActionPointChanged(const void* frame, size_t index);
-    void onEntityHitboxChanged(const void* frame, size_t index);
+    void onFrameObjectChanged(size_t frameIndex, size_t index);
+    void onActionPointChanged(size_t frameIndex, size_t index);
+    void onEntityHitboxChanged(size_t frameIndex, size_t index);
 
-    void onFrameObjectListChanged(const void* frame);
-    void onActionPointListChanged(const void* frame);
-    void onEntityHitboxListChanged(const void* frame);
+    void onFrameObjectListChanged(size_t frameIndex);
+    void onActionPointListChanged(size_t frameIndex);
+    void onEntityHitboxListChanged(size_t frameIndex);
 
 private:
     LayerSettings* const _layerSettings;
@@ -113,7 +116,7 @@ private:
     QList<ResizableAabbGraphicsItem*> _entityHitboxes;
 
     Document* _document;
-    const MS::Frame* _frame;
+    size_t _frameIndex;
 
     bool _inUpdateSelection;
     bool _inOnSceneSelectionChanged;

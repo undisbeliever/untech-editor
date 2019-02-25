@@ -60,7 +60,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="GuiQt::Accessor::IdmapListView" name="animationList">
+           <widget class="GuiQt::Accessor::NamedListView" name="animationList">
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
               <horstretch>1</horstretch>
@@ -210,14 +210,14 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>GuiQt::Accessor::NamedListView</class>
+   <extends>QListView</extends>
+   <header>gui-qt/accessor/namedlistview.h</header>
+  </customwidget>
+  <customwidget>
    <class>PropertyTableView</class>
    <extends>QTreeView</extends>
    <header>gui-qt/common/properties/propertytableview.h</header>
-  </customwidget>
-  <customwidget>
-   <class>GuiQt::Accessor::IdmapListView</class>
-   <extends>QListView</extends>
-   <header>gui-qt/accessor/idmaplistview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

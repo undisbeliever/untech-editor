@@ -33,7 +33,7 @@ AnimationDock::AnimationDock(QWidget* parent)
 
     _ui->durationFormat->populateData(MSA::DurationFormat::enumMap);
 
-    _ui->animationList->idmapActions().populateToolbar(_ui->animationListButtons);
+    _ui->animationList->namedListActions().populateToolbar(_ui->animationListButtons);
 
     _ui->animationFrames->setPropertyManager(_animationFramesManager);
     _ui->animationFrames->populateToolBar(_ui->animationFramesButtons);
@@ -51,14 +51,14 @@ AnimationDock::AnimationDock(QWidget* parent)
 
 AnimationDock::~AnimationDock() = default;
 
-const UnTech::GuiQt::Accessor::IdmapActions& AnimationDock::actions() const
+const UnTech::GuiQt::Accessor::NamedListActions& AnimationDock::actions() const
 {
-    return _ui->animationList->idmapActions();
+    return _ui->animationList->namedListActions();
 }
 
-Accessor::IdmapListModel* AnimationDock::animationListModel()
+Accessor::NamedListModel* AnimationDock::animationListModel()
 {
-    return _ui->animationList->idmapListModel();
+    return _ui->animationList->namedListModel();
 }
 
 void AnimationDock::setDocument(AbstractMsDocument* document)
@@ -69,7 +69,7 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->animationsMap()->disconnect(this);
+        _document->animationsList()->disconnect(this);
     }
     _document = document;
 
@@ -80,27 +80,27 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
     if (_document) {
         updateGui();
 
-        _ui->animationList->setAccessor(_document->animationsMap());
+        _ui->animationList->setAccessor(_document->animationsList());
 
         _ui->animationFrames->setColumnWidth(0, _ui->animationFrames->width() / 3);
         _ui->animationFrames->setColumnWidth(1, 45);
         _ui->animationFrames->setColumnWidth(2, 30);
         _ui->animationFrames->setColumnWidth(3, 0);
 
-        connect(_document->animationsMap(), &AnimationsMap::selectedItemChanged,
+        connect(_document->animationsList(), &AnimationsList::selectedIndexChanged,
                 this, &AnimationDock::updateGui);
-        connect(_document->animationsMap(), &AnimationsMap::dataChanged,
+        connect(_document->animationsList(), &AnimationsList::dataChanged,
                 this, &AnimationDock::onAnimationDataChanged);
     }
     else {
         clearGui();
-        _ui->animationList->setAccessor<AnimationsMap>(nullptr);
+        _ui->animationList->setAccessor<AnimationsList>(nullptr);
     }
 }
 
-void AnimationDock::onAnimationDataChanged(const void* animation)
+void AnimationDock::onAnimationDataChanged(size_t animationIndex)
 {
-    if (animation == _document->animationsMap()->selectedItem()) {
+    if (animationIndex == _document->animationsList()->selectedIndex()) {
         updateGui();
     }
 }
@@ -121,7 +121,7 @@ void AnimationDock::updateGui()
 {
     Q_ASSERT(_document);
 
-    const MSA::Animation* ani = _document->animationsMap()->selectedItem();
+    const MSA::Animation* ani = _document->animationsList()->selectedAnimation();
     if (ani) {
         _ui->durationFormat->setCurrentEnum(ani->durationFormat);
         _ui->oneShot->setChecked(ani->oneShot);
@@ -137,18 +137,18 @@ void AnimationDock::updateGui()
 
 void AnimationDock::onDurationFormatEdited()
 {
-    _document->animationsMap()->editSelected_setDurationFormat(
+    _document->animationsList()->editSelected_setDurationFormat(
         _ui->durationFormat->currentEnum<MSA::DurationFormat>());
 }
 
 void AnimationDock::onOneShotEdited()
 {
-    _document->animationsMap()->editSelected_setOneShot(
+    _document->animationsList()->editSelected_setOneShot(
         _ui->oneShot->isChecked());
 }
 
 void AnimationDock::onNextAnimationEdited()
 {
-    _document->animationsMap()->editSelected_setNextAnimation(
+    _document->animationsList()->editSelected_setNextAnimation(
         _ui->nextAnimation->text().toStdString());
 }

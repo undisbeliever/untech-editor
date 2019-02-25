@@ -10,10 +10,10 @@
 #include "entityhitboxtype.h"
 #include "tilesettype.h"
 #include "animation/animation.h"
-#include "models/common/idmap.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
 #include "models/common/ms8aabb.h"
+#include "models/common/namedlist.h"
 #include "models/snes/tileset.h"
 #include <string>
 
@@ -102,8 +102,7 @@ struct EntityHitbox {
 };
 
 struct Frame {
-    typedef idmap<Frame> map_t;
-
+    idstring name;
     std::vector<FrameObject> objects;
     std::vector<ActionPoint> actionPoints;
     std::vector<EntityHitbox> entityHitboxes;
@@ -137,8 +136,8 @@ struct FrameSet {
     idstring name;
     TilesetType tilesetType;
     idstring exportOrder;
-    Frame::map_t frames;
-    Animation::Animation::map_t animations;
+    NamedList<Frame> frames;
+    NamedList<Animation::Animation> animations;
 
     Snes::Tileset8px smallTileset;
     Snes::TilesetTile16 largeTileset;

@@ -19,7 +19,7 @@ namespace MetaSprite {
 class SmallTileTileset;
 class LargeTileTileset;
 class PaletteList;
-class FrameMap;
+class FrameList;
 class FrameObjectList;
 class ActionPointList;
 class EntityHitboxList;
@@ -41,7 +41,7 @@ public:
     static QString typeName() { return tr("MetaSprite FrameSet"); }
 
     MS::FrameSet* frameSet() const { return _frameSet; }
-    virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
+    virtual NamedList<MSA::Animation>* animations() const final { return &_frameSet->animations; }
 
     virtual QStringList frameNames() const final;
     virtual unsigned nPalettes() const final;
@@ -49,7 +49,7 @@ public:
     SmallTileTileset* smallTileTileset() const { return _smallTileTileset; }
     LargeTileTileset* largeTileTileset() const { return _largeTileTileset; }
     PaletteList* paletteList() const { return _paletteList; }
-    FrameMap* frameMap() const { return _frameMap; }
+    FrameList* frameList() const { return _frameList; }
     FrameObjectList* frameObjectList() const { return _frameObjectList; }
     ActionPointList* actionPointList() const { return _actionPointList; }
     EntityHitboxList* entityHitboxList() const { return _entityHitboxList; }
@@ -81,7 +81,7 @@ private:
     SmallTileTileset* const _smallTileTileset;
     LargeTileTileset* const _largeTileTileset;
     PaletteList* const _paletteList;
-    FrameMap* const _frameMap;
+    FrameList* const _frameList;
     FrameObjectList* const _frameObjectList;
     ActionPointList* const _actionPointList;
     EntityHitboxList* const _entityHitboxList;

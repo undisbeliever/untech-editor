@@ -73,7 +73,7 @@ void TilesetDock::onSelectedFrameObjectsChanged()
 
     const int index = selectedFrameObjectIndex();
     if (index >= 0) {
-        const MS::Frame* frame = _document->frameMap()->selectedFrame();
+        const MS::Frame* frame = _document->frameList()->selectedFrame();
         const MS::FrameObject& obj = frame->objects.at(index);
 
         if (obj.size == ObjectSize::SMALL) {
@@ -93,7 +93,7 @@ void TilesetDock::onSelectedFrameObjectsChanged()
 
 void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned changedIndex)
 {
-    const MS::Frame* frame = _document->frameMap()->selectedFrame();
+    const MS::Frame* frame = _document->frameList()->selectedFrame();
     if (frame == changedFrame) {
         const int index = selectedFrameObjectIndex();
 

@@ -33,19 +33,20 @@ public:
 
     virtual void setDocument(Document* document);
 
+    const SI::Frame* selectedFrame() const;
+
 protected:
     void connectSignals(AbstractFrameContentAccessor* accessor);
 
 private slots:
     void onSelectedFrameChanged();
 
-    void onFrameLocationChanged(const void* frame);
-    void onItemChanged(const void* frame, size_t index);
-    void onListChanged(const void* frame);
+    void onFrameLocationChanged(size_t frameIndex);
+    void onItemChanged(size_t frameIndex, size_t index);
+    void onListChanged(size_t frameIndex);
 
 protected:
     Document* _document;
-    const SI::Frame* _frame;
 };
 
 class FrameObjectManager : public AbstractFrameContentManager {

@@ -10,6 +10,7 @@
 #include "optional.h"
 #include "vector-helpers.h"
 #include <cassert>
+#include <climits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -20,6 +21,7 @@ template <typename T>
 class NamedList {
 public:
     using container = typename std::vector<T>;
+    using iterator = typename container::iterator;
     using const_iterator = typename container::const_iterator;
     using size_type = typename container::size_type;
 
@@ -37,6 +39,17 @@ public:
 
     bool empty() const { return _list.empty(); }
     size_type size() const { return _list.size(); }
+
+    // returns INT_MAX if name is not found
+    size_type indexOf(const idstring& name) const
+    {
+        for (size_type i = 0; i < _list.size(); i++) {
+            if (_list.at(i).name == name) {
+                return i;
+            }
+        }
+        return INT_MAX;
+    }
 
     // NOTE: pointer may be null
     // pointer is valid until item is removed or replaced
@@ -66,6 +79,8 @@ public:
     T& at(size_type index) { return _list.at(index); }
     const T& at(size_type index) const { return _list.at(index); }
 
+    iterator begin() { return _list.begin(); }
+    iterator end() { return _list.end(); }
     const_iterator begin() const { return _list.begin(); }
     const_iterator end() const { return _list.end(); }
     const_iterator cbegin() const { return _list.cbegin(); }
@@ -75,6 +90,9 @@ public:
     T& back() { return _list.back(); }
     const T& front() const { return _list.front(); }
     const T& back() const { return _list.back(); }
+
+    void resize(size_type n) { _list.resize(n); }
+    void reserve(size_type capacity) { _list.reserve(capacity); }
 
     void insert_back()
     {

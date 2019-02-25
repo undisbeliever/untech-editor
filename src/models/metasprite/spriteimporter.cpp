@@ -9,6 +9,7 @@
 #include "models/common/errorlist.h"
 #include "models/common/file.h"
 #include "models/common/imagecache.h"
+#include "models/common/validateunique.h"
 #include <algorithm>
 
 using namespace UnTech;
@@ -92,11 +93,11 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     origin.y = std::min(origin.y, aabb.height);
 }
 
-inline bool FrameLocation::validate(ErrorList& errorList, const FrameSet& fs, const Frame& frame) const
+inline bool FrameLocation::validate(ErrorList& errorList, const Frame& frame) const
 {
     bool valid = true;
     auto addError = [&](const std::string& msg) {
-        errorList.addError(frameError(fs, frame, msg));
+        errorList.addError(frameError(frame, msg));
         valid = false;
     };
 
@@ -139,15 +140,18 @@ bool FrameLocation::operator==(const FrameLocation& o) const
  * =====
  */
 
-inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs, const Image& image) const
+inline bool Frame::validate(ErrorList& errorList, const Image& image) const
 {
     bool valid = true;
 
     auto addError = [&](const std::string& msg) {
-        errorList.addError(frameError(fs, *this, msg));
+        errorList.addError(frameError(*this, msg));
         valid = false;
     };
 
+    if (!name.isValid()) {
+        addError("Missing name");
+    }
     if (objects.size() > MAX_FRAME_OBJECTS) {
         addError("Too many frame objects");
     }
@@ -158,7 +162,7 @@ inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs, const Imag
         addError("Too many entity hitboxes");
     }
 
-    valid &= location.validate(errorList, fs, *this);
+    valid &= location.validate(errorList, *this);
 
     if (image.size().contains(location.aabb) == false) {
         addError("Frame not inside image");
@@ -174,7 +178,7 @@ inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs, const Imag
         const FrameObject& obj = objects.at(i);
 
         if (frameSize.contains(obj.location, obj.sizePx()) == false) {
-            errorList.addError(frameObjectError(fs, *this, i, "Frame Object not inside frame"));
+            errorList.addError(frameObjectError(*this, i, "Frame Object not inside frame"));
             valid = false;
         }
     }
@@ -183,7 +187,7 @@ inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs, const Imag
         const ActionPoint& ap = actionPoints.at(i);
 
         if (frameSize.contains(ap.location) == false) {
-            errorList.addError(actionPointError(fs, *this, i, "location not inside frame"));
+            errorList.addError(actionPointError(*this, i, "location not inside frame"));
             valid = false;
         }
     }
@@ -192,12 +196,12 @@ inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs, const Imag
         const EntityHitbox& eh = entityHitboxes.at(i);
 
         if (eh.aabb.width == 0 || eh.aabb.height == 0) {
-            errorList.addError(entityHitboxError(fs, *this, i, "aabb has no size"));
+            errorList.addError(entityHitboxError(*this, i, "aabb has no size"));
             valid = false;
         }
 
         if (frameSize.contains(eh.aabb) == false) {
-            errorList.addError(entityHitboxError(fs, *this, i, "aabb not inside frame"));
+            errorList.addError(entityHitboxError(*this, i, "aabb not inside frame"));
             valid = false;
         }
     }
@@ -303,12 +307,15 @@ bool FrameSet::validate(ErrorList& errorList) const
         addError("Too many animations in frameSet");
     }
 
-    for (auto&& it : frames) {
-        valid &= it.second.validate(errorList, *this, *image);
+    valid &= validateNamesUnique(frames, "frame", errorList);
+    valid &= validateNamesUnique(animations, "animation", errorList);
+
+    for (auto& frame : frames) {
+        valid &= frame.validate(errorList, *image);
     }
 
-    for (auto&& it : animations) {
-        valid &= it.second.validate(*this, errorList);
+    for (auto& ani : animations) {
+        valid &= ani.validate(*this, errorList);
     }
 
     return valid;
@@ -318,9 +325,7 @@ usize FrameSet::minimumFrameGridSize() const
 {
     usize limit = usize(MIN_FRAME_SIZE, MIN_FRAME_SIZE);
 
-    for (const auto& it : frames) {
-        const Frame& frame = it.second;
-
+    for (const Frame& frame : frames) {
         if (frame.location.useGridLocation) {
             limit = limit.expand(frame.minimumViableSize());
         }
@@ -331,25 +336,13 @@ usize FrameSet::minimumFrameGridSize() const
 
 void FrameSet::updateFrameLocations()
 {
-    for (auto&& it : frames) {
-        it.second.location.update(grid, it.second);
+    for (Frame& frame : frames) {
+        frame.location.update(grid, frame);
     }
 }
 
 bool FrameSet::operator==(const FrameSet& o) const
 {
-    auto testMap = [](const auto& aMap, const auto& bMap) -> bool {
-        for (const auto& aIt : aMap) {
-            const auto* bValue = bMap.getPtr(aIt.first);
-
-            if (bValue == nullptr || aIt.second != *bValue) {
-                return false;
-            }
-        }
-
-        return true;
-    };
-
     auto testTransparentColor = [&]() -> bool {
         if (transparentColorValid() != o.transparentColorValid()) {
             return false;
@@ -369,6 +362,6 @@ bool FrameSet::operator==(const FrameSet& o) const
            && palette == o.palette
            && grid == o.grid
            && testTransparentColor()
-           && testMap(frames, o.frames)
-           && testMap(animations, o.animations);
+           && frames == o.frames
+           && animations == o.animations;
 }

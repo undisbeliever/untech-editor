@@ -12,8 +12,8 @@ using namespace UnTech;
 using namespace UnTech::MetaSprite::Animation;
 
 PreviewState::PreviewState()
-    : _animationMap(nullptr)
-    , _animationId()
+    : _animations(nullptr)
+    , _animationIndex(INT_MAX)
     , _aFrameIndex(0)
     , _frameTime(0)
     , _displayFrameCount(0)
@@ -25,10 +25,12 @@ PreviewState::PreviewState()
 
 const Animation* PreviewState::getAnimation() const
 {
-    if (_animationMap == nullptr) {
-        return nullptr;
+    if (_animations) {
+        if (_animationIndex < _animations->size()) {
+            return &_animations->at(_animationIndex);
+        }
     }
-    return _animationMap->getPtr(_animationId);
+    return nullptr;
 }
 
 const AnimationFrame* PreviewState::getAnimationFrame() const
@@ -67,9 +69,22 @@ bool PreviewState::isRunning() const
     return ani->frames.size() > 0;
 }
 
-void PreviewState::setAnimation(const idstring& aniId)
+const idstring& PreviewState::animationId() const
 {
-    _animationId = aniId;
+    const static idstring BLANK_ID;
+
+    const Animation* ani = getAnimation();
+    if (ani == nullptr) {
+        return BLANK_ID;
+    }
+    else {
+        return ani->name;
+    }
+}
+
+void PreviewState::setAnimationIndex(size_t index)
+{
+    _animationIndex = index;
     _aFrameIndex = 0;
     _frameTime = 0;
 }
@@ -120,8 +135,9 @@ void PreviewState::nextAnimationFrame()
         return;
     }
 
+    assert(_animations);
     const Animation* ani = getAnimation();
-    assert(ani != nullptr);
+    assert(ani);
 
     _frameTime = 0;
 
@@ -132,7 +148,7 @@ void PreviewState::nextAnimationFrame()
             _aFrameIndex = ani->frames.size() - 1;
         }
         else if (ani->nextAnimation.isValid()) {
-            setAnimation(ani->nextAnimation);
+            setAnimationIndex(_animations->indexOf(ani->nextAnimation));
         }
         else {
             _aFrameIndex = 0;

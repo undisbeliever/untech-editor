@@ -17,7 +17,7 @@ using namespace UnTech::GuiQt::MetaSprite;
 AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
     , _frameSetFiles(parent->frameSetFiles())
-    , _animationsMap(new Animation::AnimationsMap(this))
+    , _animationsList(new Animation::AnimationsList(this))
     , _animationFramesList(new Animation::AnimationFramesList(this))
 {
     connect(this, &AbstractMsDocument::frameSetDataChanged,

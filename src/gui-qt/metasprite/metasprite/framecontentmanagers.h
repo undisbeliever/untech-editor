@@ -33,19 +33,19 @@ public:
 
     virtual void setDocument(Document* document);
 
+    const MS::Frame* selectedFrame() const;
+
 protected:
     void connectSignals(AbstractFrameContentAccessor* accessor);
 
 private slots:
     void onSelectedFrameChanged();
 
-    void onItemChanged(const void* frame, size_t index);
-    void onListChanged(const void* frame);
+    void onItemChanged(size_t frameIndex, size_t index);
+    void onListChanged(size_t frameIndex);
 
 protected:
     Document* _document;
-
-    const MS::Frame* _frame;
 };
 
 class FrameObjectManager : public AbstractFrameContentManager {

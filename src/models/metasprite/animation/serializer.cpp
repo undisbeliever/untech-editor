@@ -17,12 +17,14 @@ namespace Animation {
 
 void readAnimationFrame(const Xml::XmlTag* tag, AnimationFrame& aFrame);
 
-void readAnimation(XmlReader& xml, const XmlTag* tag, Animation::map_t& animations)
+void readAnimation(XmlReader& xml, const XmlTag* tag, NamedList<Animation>& animations)
 {
     assert(tag->name == "animation");
 
-    idstring id = tag->getAttributeUniqueId("id", animations);
-    Animation& animation = animations.create(id);
+    animations.insert_back();
+    Animation& animation = animations.back();
+
+    animation.name = tag->getAttributeId("id");
 
     animation.durationFormat = tag->getAttributeEnum<DurationFormat>("durationformat");
 
@@ -76,16 +78,12 @@ inline void writeAnimationFrame(XmlWriter& xml, const AnimationFrame& aFrame)
     xml.writeCloseTag();
 }
 
-void writeAnimations(XmlWriter& xml, const Animation::map_t& animations)
+void writeAnimations(XmlWriter& xml, const NamedList<Animation>& animations)
 {
-    for (const auto& it : animations) {
+    for (const Animation& animation : animations) {
         xml.writeTag("animation");
 
-        const idstring& id = it.first;
-        const Animation& animation = it.second;
-
-        xml.writeTagAttribute("id", id);
-
+        xml.writeTagAttribute("id", animation.name);
         xml.writeTagAttributeEnum("durationformat", animation.durationFormat);
 
         if (animation.oneShot) {

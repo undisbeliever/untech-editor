@@ -16,17 +16,15 @@
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame,
+SiFrameGraphicsItem::SiFrameGraphicsItem(const SI::Frame& frame,
                                          QMenu* contextMenu, Style* style,
                                          QGraphicsItem* parent)
     : AabbGraphicsItem(parent)
-    , _frame(frame)
     , _contextMenu(contextMenu)
     , _style(style)
     , _showTileHitbox(true)
     , _frameSelected(false)
 {
-    Q_ASSERT(frame != nullptr);
     Q_ASSERT(contextMenu != nullptr);
     Q_ASSERT(style != nullptr);
 
@@ -47,17 +45,17 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(SI::Frame* frame,
     _verticalOrigin->setZValue(ORIGIN_ZVALUE);
     _verticalOrigin->setPen(style->originPen());
 
-    updateFrameLocation();
-    onFrameDataChanged();
+    updateFrameLocation(frame);
+    onFrameDataChanged(frame);
 
-    for (unsigned i = 0; i < frame->objects.size(); i++) {
-        addFrameObject();
+    for (unsigned i = 0; i < frame.objects.size(); i++) {
+        addFrameObject(frame);
     }
-    for (unsigned i = 0; i < frame->actionPoints.size(); i++) {
-        addActionPoint();
+    for (unsigned i = 0; i < frame.actionPoints.size(); i++) {
+        addActionPoint(frame);
     }
-    for (unsigned i = 0; i < frame->entityHitboxes.size(); i++) {
-        addEntityHitbox();
+    for (unsigned i = 0; i < frame.entityHitboxes.size(); i++) {
+        addEntityHitbox(frame);
     }
 }
 
@@ -107,10 +105,10 @@ void SiFrameGraphicsItem::updateTileHitboxSelected(bool s)
     _tileHitbox->setSelected(s);
 }
 
-void SiFrameGraphicsItem::updateFrameLocation()
+void SiFrameGraphicsItem::updateFrameLocation(const SI::Frame& frame)
 {
-    const urect& aabb = _frame->location.aabb;
-    const upoint& origin = _frame->location.origin;
+    const urect& aabb = frame.location.aabb;
+    const upoint& origin = frame.location.origin;
     const QRect itemRange(0, 0, aabb.width, aabb.height);
 
     setRect(aabb);
@@ -131,93 +129,86 @@ void SiFrameGraphicsItem::updateFrameLocation()
     }
 }
 
-void SiFrameGraphicsItem::onFrameDataChanged()
+void SiFrameGraphicsItem::onFrameDataChanged(const SI::Frame& frame)
 {
     // Do not update frame location, there is a seperate signal for that
 
-    _tileHitbox->setVisible(_showTileHitbox & _frame->solid);
-    _tileHitbox->setRect(_frame->tileHitbox);
+    _tileHitbox->setVisible(_showTileHitbox & frame.solid);
+    _tileHitbox->setRect(frame.tileHitbox);
 }
 
-void SiFrameGraphicsItem::addFrameObject()
+void SiFrameGraphicsItem::addFrameObject(const SI::Frame& frame)
 {
     size_t index = _objects.size();
-    Q_ASSERT(index < _frame->objects.size());
+    Q_ASSERT(index < frame.objects.size());
 
     auto* item = new AabbGraphicsItem(this);
     _objects.append(item);
 
     item->setZValue(FRAME_OBJECT_ZVALUE - index);
 
-    item->setRange(0, 0, _frame->location.aabb.size());
+    item->setRange(0, 0, frame.location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
     item->setFlag(QGraphicsItem::ItemIsMovable);
 
     item->setPen(_style->frameObjectPen());
 
-    updateFrameObject(index);
+    updateFrameObject(index, frame.objects.at(index));
 }
 
-void SiFrameGraphicsItem::updateFrameObject(size_t index)
+void SiFrameGraphicsItem::updateFrameObject(size_t index, const SI::FrameObject& obj)
 {
-    const SI::FrameObject& obj = _frame->objects.at(index);
     auto* item = _objects.at(index);
 
     item->setRect(obj.location, obj.sizePx());
 }
 
-void SiFrameGraphicsItem::addActionPoint()
+void SiFrameGraphicsItem::addActionPoint(const SI::Frame& frame)
 {
-    Q_ASSERT(_frame);
-
     unsigned index = _actionPoints.size();
-    Q_ASSERT(index < _frame->actionPoints.size());
+    Q_ASSERT(index < frame.actionPoints.size());
 
     auto* item = new AabbGraphicsItem(this);
     _actionPoints.append(item);
 
     item->setZValue(ACTION_POINT_ZVALUE - index);
 
-    item->setRange(0, 0, _frame->location.aabb.size());
+    item->setRange(0, 0, frame.location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
     item->setFlag(QGraphicsItem::ItemIsMovable);
 
     item->setPen(_style->actionPointPen());
     item->setBrush(_style->actionPointBrush());
 
-    updateActionPoint(index);
+    updateActionPoint(index, frame.actionPoints.at(index));
 }
 
-void SiFrameGraphicsItem::updateActionPoint(size_t index)
+void SiFrameGraphicsItem::updateActionPoint(size_t index, const SI::ActionPoint& ap)
 {
-    const SI::ActionPoint& ap = _frame->actionPoints.at(index);
     auto* item = _actionPoints.at(index);
 
     item->setPos(ap.location);
 }
 
-void SiFrameGraphicsItem::addEntityHitbox()
+void SiFrameGraphicsItem::addEntityHitbox(const SI::Frame& frame)
 {
-    Q_ASSERT(_frame);
-
     size_t index = _entityHitboxes.size();
-    Q_ASSERT(index < _frame->entityHitboxes.size());
+    Q_ASSERT(index < frame.entityHitboxes.size());
 
     auto* item = new ResizableAabbGraphicsItem(this);
     _entityHitboxes.append(item);
 
     item->setZValue(ENTITY_HITBOX_ZVALUE - index);
 
-    item->setRange(0, 0, _frame->location.aabb.size());
+    item->setRange(0, 0, frame.location.aabb.size());
     item->setFlag(QGraphicsItem::ItemIsSelectable, _frameSelected);
     item->setFlag(QGraphicsItem::ItemIsMovable);
 
-    updateEntityHitbox(index);
+    updateEntityHitbox(index, frame.entityHitboxes.at(index));
 }
 
-void SiFrameGraphicsItem::updateEntityHitbox(size_t index)
+void SiFrameGraphicsItem::updateEntityHitbox(size_t index, const UnTech::MetaSprite::SpriteImporter::EntityHitbox& eh)
 {
-    const SI::EntityHitbox& eh = _frame->entityHitboxes.at(index);
     auto* item = _entityHitboxes.at(index);
 
     item->setPen(_style->entityHitboxPen(eh.hitboxType));
@@ -227,10 +218,10 @@ void SiFrameGraphicsItem::updateEntityHitbox(size_t index)
     item->setRect(eh.aabb);
 }
 
-void SiFrameGraphicsItem::updateLayerSettings(const LayerSettings* settings)
+void SiFrameGraphicsItem::updateLayerSettings(const SI::Frame& frame, const LayerSettings* settings)
 {
     _showTileHitbox = settings->showTileHitbox();
-    _tileHitbox->setVisible(_showTileHitbox & _frame->solid);
+    _tileHitbox->setVisible(_showTileHitbox & frame.solid);
 
     _horizontalOrigin->setVisible(settings->showOrigin());
     _verticalOrigin->setVisible(settings->showOrigin());
@@ -260,9 +251,10 @@ void SiFrameGraphicsItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event
 
 #define ON_LIST_CHANGED(CLS, ITEM_LIST, FRAME_LIST)  \
                                                      \
-    void SiFrameGraphicsItem::on##CLS##ListChanged() \
+    void SiFrameGraphicsItem::on##CLS##ListChanged(  \
+        const SI::Frame& frame)                      \
     {                                                \
-        int flSize = _frame->FRAME_LIST.size();      \
+        int flSize = frame.FRAME_LIST.size();        \
                                                      \
         while (ITEM_LIST.size() > flSize) {          \
             auto* item = ITEM_LIST.takeLast();       \
@@ -270,11 +262,11 @@ void SiFrameGraphicsItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event
         }                                            \
                                                      \
         for (int i = 0; i < ITEM_LIST.size(); i++) { \
-            update##CLS(i);                          \
+            update##CLS(i, frame.FRAME_LIST.at(i));  \
         }                                            \
                                                      \
         while (ITEM_LIST.size() < flSize) {          \
-            add##CLS();                              \
+            add##CLS(frame);                         \
         }                                            \
     }
 ON_LIST_CHANGED(FrameObject, _objects, objects)

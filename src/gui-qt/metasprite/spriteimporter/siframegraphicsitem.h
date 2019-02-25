@@ -35,11 +35,9 @@ public:
     static const unsigned ORIGIN_ZVALUE = 500;
 
 public:
-    SiFrameGraphicsItem(SI::Frame* frame, QMenu* contextMenu, Style* style,
+    SiFrameGraphicsItem(const SI::Frame& frame, QMenu* contextMenu, Style* style,
                         QGraphicsItem* parent = nullptr);
     ~SiFrameGraphicsItem() = default;
-
-    const SI::Frame* frame() const { return _frame; }
 
     const auto* tileHitbox() const { return _tileHitbox; }
     const auto& objects() const { return _objects; }
@@ -55,29 +53,28 @@ public:
 
     void updateTileHitboxSelected(bool s);
 
-    void updateFrameLocation();
-    void onFrameDataChanged();
+    void updateFrameLocation(const SI::Frame& frame);
+    void onFrameDataChanged(const SI::Frame& frame);
 
-    void updateLayerSettings(const LayerSettings* settings);
+    void updateLayerSettings(const SI::Frame& frame, const LayerSettings* settings);
 
-    void updateFrameObject(size_t index);
-    void updateActionPoint(size_t index);
-    void updateEntityHitbox(size_t index);
+    void updateFrameObject(size_t index, const SI::FrameObject& obj);
+    void updateActionPoint(size_t index, const SI::ActionPoint& ap);
+    void updateEntityHitbox(size_t index, const SI::EntityHitbox& eh);
 
-    void onFrameObjectListChanged();
-    void onActionPointListChanged();
-    void onEntityHitboxListChanged();
+    void onFrameObjectListChanged(const SI::Frame& frame);
+    void onActionPointListChanged(const SI::Frame& frame);
+    void onEntityHitboxListChanged(const SI::Frame& frame);
 
 protected:
     virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
 private:
-    void addFrameObject();
-    void addActionPoint();
-    void addEntityHitbox();
+    void addFrameObject(const SI::Frame& frame);
+    void addActionPoint(const SI::Frame& frame);
+    void addEntityHitbox(const SI::Frame& frame);
 
 private:
-    const SI::Frame* _frame;
     QMenu* _contextMenu;
     Style* _style;
     bool _showTileHitbox;

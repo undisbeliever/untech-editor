@@ -48,8 +48,12 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::process(const SI::FrameSet& siFrameSet)
 
     msFrameSet->name = siFrameSet.name;
     msFrameSet->tilesetType = siFrameSet.tilesetType;
-    msFrameSet->animations = siFrameSet.animations;
     msFrameSet->exportOrder = siFrameSet.exportOrder;
+
+    msFrameSet->animations.reserve(siFrameSet.animations.size());
+    for (auto& a : siFrameSet.animations) {
+        msFrameSet->animations.insert_back(a);
+    }
 
     PaletteConverter paletteConverter(siFrameSet, *image, *msFrameSet, errorList);
     paletteConverter.process();
@@ -61,14 +65,14 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::process(const SI::FrameSet& siFrameSet)
     TileExtractor tileExtractor(siFrameSet, *image, *msFrameSet, errorList,
                                 paletteConverter.colorMap());
 
+    // Process frames
     std::list<FrameConverter> frameConverters;
 
-    // Process frames
-    for (const auto& frameIt : siFrameSet.frames) {
-        const idstring& frameName = frameIt.first;
-        const SI::Frame& siFrame = frameIt.second;
+    msFrameSet->frames.resize(siFrameSet.frames.size());
 
-        MS::Frame& msFrame = msFrameSet->frames.create(frameName);
+    for (unsigned i = 0; i < siFrameSet.frames.size(); i++) {
+        const SI::Frame& siFrame = siFrameSet.frames.at(i);
+        MS::Frame& msFrame = msFrameSet->frames.at(i);
 
         frameConverters.emplace_back(tileExtractor, siFrame, msFrame);
         frameConverters.back().process();

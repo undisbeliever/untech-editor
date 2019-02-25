@@ -33,14 +33,14 @@ public:
     ~SiAnimationPreviewItem() = default;
 
 protected:
-    virtual const void* setFrame(const idstring& frameName) final;
+    virtual size_t getFrameIndex(const idstring& frameName) final;
     virtual void drawFrame(QPainter* painter) final;
 
 private slots:
-    void onFrameObjectsChanged(const void* framePtr);
+    void onFrameObjectsChanged(size_t frameIndex);
 
 private:
-    void drawFrameObjects();
+    void drawFrameObjects(const SI::Frame& frame);
 
 private:
     LayerSettings* const _layerSettings;
@@ -48,7 +48,6 @@ private:
 
     const Document* _document;
 
-    const SI::Frame* _frame;
     QImage _frameObjects;
     bool _frameObjectsDirty;
 };

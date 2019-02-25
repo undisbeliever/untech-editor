@@ -32,7 +32,7 @@ public:
     ~MsAnimationPreviewItem() = default;
 
 protected:
-    virtual const void* setFrame(const idstring& frameName) final;
+    virtual size_t getFrameIndex(const idstring& frameName) final;
     virtual void drawFrame(QPainter* painter) final;
 
 private:
@@ -40,8 +40,6 @@ private:
     Style* const _style;
     TilesetPixmaps* const _tilesetPixmaps;
     const Document* const _document;
-
-    const MS::Frame* _frame;
 };
 
 class MsAnimationPreviewItemFactory : public QObject,

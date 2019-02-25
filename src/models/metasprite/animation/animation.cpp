@@ -20,12 +20,12 @@ namespace SI = UnTech::MetaSprite::SpriteImporter;
 
 bool AnimationFrame::testFrameValid(const SI::FrameSet& frameSet) const
 {
-    return frameSet.frames.contains(frame.name);
+    return frameSet.frames.find(frame.name).exists();
 }
 
 bool AnimationFrame::testFrameValid(const MS::FrameSet& frameSet) const
 {
-    return frameSet.frames.contains(frame.name);
+    return frameSet.frames.find(frame.name).exists();
 }
 
 // Animation
@@ -37,20 +37,20 @@ bool Animation::_validate(const FrameSetT& frameSet, ErrorList& err) const
     const unsigned oldErrorCount = err.errorCount();
 
     if (oneShot == false && nextAnimation.isValid()) {
-        if (frameSet.animations.contains(nextAnimation) == false) {
-            err.addError(animationError(frameSet, *this, "Cannot find animation " + nextAnimation));
+        if (!frameSet.animations.find(nextAnimation)) {
+            err.addError(animationError(*this, "Cannot find animation " + nextAnimation));
         }
     }
 
     if (frames.size() == 0) {
-        err.addError(animationError(frameSet, *this, "Expected at least one animation frame"));
+        err.addError(animationError(*this, "Expected at least one animation frame"));
     }
 
     for (unsigned i = 0; i < frames.size(); i++) {
         const AnimationFrame& aFrame = frames.at(i);
 
         if (aFrame.testFrameValid(frameSet) == false) {
-            err.addError(animationFrameError(frameSet, *this, i, "Cannot find frame " + aFrame.frame.name));
+            err.addError(animationFrameError(*this, i, "Cannot find frame " + aFrame.frame.name));
         }
     }
 

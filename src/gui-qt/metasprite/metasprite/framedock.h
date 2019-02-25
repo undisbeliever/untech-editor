@@ -34,7 +34,7 @@ class FrameDock : public QDockWidget {
     Q_OBJECT
 
 public:
-    FrameDock(Accessor::IdmapListModel* frameListModel,
+    FrameDock(Accessor::NamedListModel* frameListModel,
               QWidget* parent = nullptr);
     ~FrameDock();
 
@@ -49,7 +49,7 @@ private slots:
     void onSelectedFrameChanged();
     void onFrameComboBoxActivated();
 
-    void onFrameDataChanged(const void* frame);
+    void onFrameDataChanged(size_t frameIndex);
 
     void updateGui();
 
@@ -70,7 +70,7 @@ private slots:
 
 private:
     std::unique_ptr<Ui::FrameDock> const _ui;
-    Accessor::IdmapListModel* const _frameListModel;
+    Accessor::NamedListModel* const _frameListModel;
 
     Document* _document;
 

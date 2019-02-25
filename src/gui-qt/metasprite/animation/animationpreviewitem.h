@@ -29,10 +29,10 @@ public:
                                   QGraphicsItem* parent = nullptr);
     ~AnimationPreviewItem() = default;
 
-    const idstring& animationId() const { return _animationId; }
     const MSA::PreviewState& state() const { return _state; }
+    size_t frameIndex() const { return _frameIndex; }
 
-    void setAnimation(const idstring& animationId);
+    void setAnimationIndex(size_t animationIndex);
     void setVelocityFp(const point& p) { _state.setVelocityFp(p); }
     void setRegion(const Region& r) { _state.setRegion(r); }
 
@@ -56,17 +56,17 @@ protected slots:
     // document changed signals to these slots.
 
     void onFrameAdded();
-    void onFrameAboutToBeRemoved(const idstring& frameId);
-    void onFrameDataAndContentsChanged(const void* framePtr);
+    void onFrameAboutToBeRemoved(size_t frameIndex);
+    void onFrameDataAndContentsChanged(size_t frameIndex);
 
 private:
     point wrapPosition(const point& pos) const;
 
 protected:
     // Called on every `sync()`
-    // Returns a pointer to the given frame.
-    // Returns nullptr if the frame does not exist
-    virtual const void* setFrame(const idstring& frameName) = 0;
+    // Returns the index of the frame
+    // Returns INT_MAX or greater if the frame does not exist
+    virtual size_t getFrameIndex(const idstring& frameName) = 0;
 
     // Draws the frame onto the painter.
     // Will only be called on valid frames.
@@ -76,11 +76,12 @@ protected:
 private:
     const AbstractMsDocument* const _document;
 
-    idstring _animationId;
+    size_t _animationIndex;
     MSA::PreviewState _state;
 
     NameReference _prevFrame;
-    const void* _framePtr;
+
+    size_t _frameIndex;
 };
 
 class AnimationPreviewItemFactory {

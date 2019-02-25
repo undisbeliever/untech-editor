@@ -15,10 +15,10 @@ namespace MetaSprite {
 namespace Animation {
 
 void readAnimation(Xml::XmlReader& xml, const Xml::XmlTag* tag,
-                   Animation::map_t& animations);
+                   NamedList<Animation>& animations);
 
 void writeAnimations(Xml::XmlWriter& xml,
-                     const Animation::map_t& animations);
+                     const NamedList<Animation>& animations);
 }
 }
 }

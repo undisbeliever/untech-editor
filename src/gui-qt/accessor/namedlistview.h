@@ -27,7 +27,7 @@ public:
     virtual void setModel(QAbstractItemModel*) final;
 
     const NamedListActions& namedListActions() const { return _actions; }
-    NamedListModel* idmapListModel() const { return _model; }
+    NamedListModel* namedListModel() const { return _model; }
 
     QMenu* selectedContextMenu() const { return _selectedContextMenu; }
     QMenu* noSelectionContextMenu() const { return _noSelectionContextMenu; }

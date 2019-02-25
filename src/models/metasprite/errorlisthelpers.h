@@ -13,69 +13,59 @@
 namespace UnTech {
 namespace MetaSprite {
 
-inline std::unique_ptr<MetaSpriteError> frameError(const SpriteImporter::FrameSet& fs, const SpriteImporter::Frame& frame, const std::string& message)
+inline std::unique_ptr<MetaSpriteError> frameError(const SpriteImporter::Frame& frame, const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::FRAME, fs.frames.getId(&frame), message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::FRAME, frame.name, message);
 }
 
-inline std::unique_ptr<MetaSpriteError> animationError(const SpriteImporter::FrameSet& fs, const Animation::Animation& ani, const std::string& message)
+inline std::unique_ptr<MetaSpriteError> animationError(const Animation::Animation& ani, const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION, fs.animations.getId(&ani), message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION, ani.name, message);
 }
 
-inline std::unique_ptr<MetaSpriteError> animationFrameError(const SpriteImporter::FrameSet& fs, const Animation::Animation& ani, unsigned index, const std::string& message)
+inline std::unique_ptr<MetaSpriteError> frameObjectError(const SpriteImporter::Frame& frame, unsigned objectId, const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION_FRAME, fs.animations.getId(&ani), index, message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::FRAME_OBJECT, frame.name, objectId, message);
 }
 
-inline std::unique_ptr<MetaSpriteError> frameObjectError(const SpriteImporter::FrameSet& fs, const SpriteImporter::Frame& frame, unsigned objectId, const std::string& message)
-{
-    return std::make_unique<MetaSpriteError>(MsErrorType::FRAME_OBJECT, fs.frames.getId(&frame), objectId, message);
-}
-
-inline std::unique_ptr<MetaSpriteError> actionPointError(const SpriteImporter::FrameSet& fs, const SpriteImporter::Frame& frame, unsigned apId,
+inline std::unique_ptr<MetaSpriteError> actionPointError(const SpriteImporter::Frame& frame, unsigned apId,
                                                          const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::ACTION_POINT, fs.frames.getId(&frame), apId, message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::ACTION_POINT, frame.name, apId, message);
 }
 
-inline std::unique_ptr<MetaSpriteError> entityHitboxError(const SpriteImporter::FrameSet& fs, const SpriteImporter::Frame& frame, unsigned ehId,
+inline std::unique_ptr<MetaSpriteError> entityHitboxError(const SpriteImporter::Frame& frame, unsigned ehId,
                                                           const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::ENTITY_HITBOX, fs.frames.getId(&frame), ehId, message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::ENTITY_HITBOX, frame.name, ehId, message);
 }
 
-inline std::unique_ptr<MetaSpriteError> frameError(const MetaSprite::FrameSet& fs, const MetaSprite::Frame& frame, const std::string& message)
+inline std::unique_ptr<MetaSpriteError> frameError(const MetaSprite::Frame& frame, const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::FRAME, fs.frames.getId(&frame), message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::FRAME, frame.name, message);
 }
 
-inline std::unique_ptr<MetaSpriteError> animationError(const MetaSprite::FrameSet& fs, const Animation::Animation& ani, const std::string& message)
+inline std::unique_ptr<MetaSpriteError> animationFrameError(const Animation::Animation& ani, unsigned index, const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION, fs.animations.getId(&ani), message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION_FRAME, ani.name, index, message);
 }
 
-inline std::unique_ptr<MetaSpriteError> animationFrameError(const MetaSprite::FrameSet& fs, const Animation::Animation& ani, unsigned index, const std::string& message)
-{
-    return std::make_unique<MetaSpriteError>(MsErrorType::ANIMATION_FRAME, fs.animations.getId(&ani), index, message);
-}
-
-inline std::unique_ptr<MetaSpriteError> frameObjectError(const MetaSprite::FrameSet& fs, const MetaSprite::Frame& frame, unsigned objectId,
+inline std::unique_ptr<MetaSpriteError> frameObjectError(const MetaSprite::Frame& frame, unsigned objectId,
                                                          const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::FRAME_OBJECT, fs.frames.getId(&frame), objectId, message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::FRAME_OBJECT, frame.name, objectId, message);
 }
 
-inline std::unique_ptr<MetaSpriteError> actionPointError(const MetaSprite::FrameSet& fs, const MetaSprite::Frame& frame, unsigned apId,
+inline std::unique_ptr<MetaSpriteError> actionPointError(const MetaSprite::Frame& frame, unsigned apId,
                                                          const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::ACTION_POINT, fs.frames.getId(&frame), apId, message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::ACTION_POINT, frame.name, apId, message);
 }
 
-inline std::unique_ptr<MetaSpriteError> entityHitboxError(const MetaSprite::FrameSet& fs, const MetaSprite::Frame& frame, unsigned ehId,
+inline std::unique_ptr<MetaSpriteError> entityHitboxError(const MetaSprite::Frame& frame, unsigned ehId,
                                                           const std::string& message)
 {
-    return std::make_unique<MetaSpriteError>(MsErrorType::ENTITY_HITBOX, fs.frames.getId(&frame), ehId, message);
+    return std::make_unique<MetaSpriteError>(MsErrorType::ENTITY_HITBOX, frame.name, ehId, message);
 }
 
 }

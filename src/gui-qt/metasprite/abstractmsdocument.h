@@ -21,7 +21,7 @@ class FrameSetResourceList;
 
 namespace Animation {
 class AnimationFramesList;
-class AnimationsMap;
+class AnimationsList;
 }
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
@@ -35,13 +35,13 @@ public:
     ~AbstractMsDocument() = default;
 
 public:
-    virtual MSA::Animation::map_t* animations() const = 0;
+    virtual NamedList<MSA::Animation>* animations() const = 0;
 
     virtual QStringList frameNames() const = 0;
     virtual unsigned nPalettes() const = 0;
 
     Animation::AnimationFramesList* animationFramesList() const { return _animationFramesList; }
-    Animation::AnimationsMap* animationsMap() const { return _animationsMap; }
+    Animation::AnimationsList* animationsList() const { return _animationsList; }
 
 protected:
     inline const auto& frameSetList() const
@@ -63,7 +63,7 @@ signals:
 private:
     std::vector<UnTech::MetaSprite::FrameSetFile>& _frameSetFiles;
 
-    Animation::AnimationsMap* const _animationsMap;
+    Animation::AnimationsList* const _animationsList;
     Animation::AnimationFramesList* const _animationFramesList;
 };
 }

@@ -54,15 +54,17 @@ public:
 
 private slots:
     void onSelectedAnimationChanged();
-    void onAnimationDataChanged(const void* animation);
-    void onAnimationFrameChanged(const void* animation, unsigned index);
-    void onAnimationFrameAdded(const void* animation, unsigned index);
-    void onAnimationFrameAboutToBeRemoved(const void* animation, unsigned index);
-    void onAnimationFrameMoved(const void* animation, unsigned oldPos, unsigned newPos);
+    void onAnimationDataChanged(size_t animationIndex);
+    void onAnimationFrameChanged(size_t animationIndex, unsigned index);
+    void onAnimationFrameAdded(size_t animationIndex, unsigned index);
+    void onAnimationFrameAboutToBeRemoved(size_t animationIndex, unsigned index);
+    void onAnimationFrameMoved(size_t animationIndex, unsigned oldPos, unsigned newPos);
+
+private:
+    const MSA::Animation* selectedAnimation() const;
 
 private:
     AbstractMsDocument* _document;
-    const MSA::Animation* _animation;
 };
 }
 }

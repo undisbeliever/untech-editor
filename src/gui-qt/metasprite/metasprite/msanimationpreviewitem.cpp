@@ -50,7 +50,6 @@ MsAnimationPreviewItem::MsAnimationPreviewItem(LayerSettings* layerSettings,
     , _style(style)
     , _tilesetPixmaps(tilesetPixmaps)
     , _document(document)
-    , _frame(nullptr)
 {
     Q_ASSERT(layerSettings != nullptr);
     Q_ASSERT(style != nullptr);
@@ -59,12 +58,12 @@ MsAnimationPreviewItem::MsAnimationPreviewItem(LayerSettings* layerSettings,
 
     // Required connections to AnimationPreviewItem slots
 
-    connect(_document->frameMap(), &FrameMap::itemAdded,
+    connect(_document->frameList(), &FrameList::itemAdded,
             this, &MsAnimationPreviewItem::onFrameAdded);
-    connect(_document->frameMap(), &FrameMap::itemAboutToBeRemoved,
+    connect(_document->frameList(), &FrameList::itemAboutToBeRemoved,
             this, &MsAnimationPreviewItem::onFrameAboutToBeRemoved);
 
-    connect(_document->frameMap(), &FrameMap::dataChanged,
+    connect(_document->frameList(), &FrameList::dataChanged,
             this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
 
     connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
@@ -81,21 +80,24 @@ MsAnimationPreviewItem::MsAnimationPreviewItem(LayerSettings* layerSettings,
             this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
 }
 
-const void* MsAnimationPreviewItem::setFrame(const idstring& frameName)
+size_t MsAnimationPreviewItem::getFrameIndex(const idstring& frameName)
 {
-    _frame = _document->frameSet()->frames.getPtr(frameName);
-    return _frame;
+    return _document->frameSet()->frames.indexOf(frameName);
 }
 
 void MsAnimationPreviewItem::drawFrame(QPainter* painter)
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    Q_ASSERT(_frame != nullptr);
+    const auto& frames = _document->frameSet()->frames;
+    if (frameIndex() >= frames.size()) {
+        return;
+    }
+    const auto& frame = frames.at(frameIndex());
 
     if (_layerSettings->showFrameObjects()) {
-        for (int i = _frame->objects.size() - 1; i >= 0; i--) {
-            const MS::FrameObject& obj = _frame->objects.at(i);
+        for (int i = frame.objects.size() - 1; i >= 0; i--) {
+            const MS::FrameObject& obj = frame.objects.at(i);
 
             painter->save();
 
@@ -118,7 +120,7 @@ void MsAnimationPreviewItem::drawFrame(QPainter* painter)
     }
 
     if (_layerSettings->showEntityHitboxes()) {
-        const auto& hitboxes = _frame->entityHitboxes;
+        const auto& hitboxes = frame.entityHitboxes;
         for (auto it = hitboxes.crbegin(); it != hitboxes.crend(); it++) {
             const MS::EntityHitbox& eh = *it;
 
@@ -130,11 +132,11 @@ void MsAnimationPreviewItem::drawFrame(QPainter* painter)
         }
     }
 
-    if (_layerSettings->showTileHitbox() && _frame->solid) {
+    if (_layerSettings->showTileHitbox() && frame.solid) {
         painter->setPen(_style->tileHitboxPen());
         painter->setBrush(_style->tileHitboxBrush());
 
-        const auto& th = _frame->tileHitbox;
+        const auto& th = frame.tileHitbox;
         painter->drawRect(th.x, th.y, th.width, th.height);
     }
 
@@ -142,7 +144,7 @@ void MsAnimationPreviewItem::drawFrame(QPainter* painter)
         painter->setPen(_style->actionPointPen());
         painter->setBrush(_style->actionPointBrush());
 
-        const auto& points = _frame->actionPoints;
+        const auto& points = frame.actionPoints;
         for (auto it = points.crbegin(); it != points.crend(); it++) {
             const MS::ActionPoint& ap = *it;
             painter->drawRect(ap.location.x, ap.location.y, 1, 1);

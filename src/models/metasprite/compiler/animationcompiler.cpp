@@ -45,14 +45,11 @@ static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
     uint8_t nextAnimationId = 0xff;
     {
         if (animation.oneShot == false) {
-            const ANI::Animation* a = &animation;
-
             if (animation.nextAnimation.isValid()) {
-                a = frameSet.animations.getPtr(animation.nextAnimation);
-                assert(a != nullptr);
+                assert(frameSet.animations.find(animation.nextAnimation));
             }
 
-            nextAnimationId = indexOf_throw(animations, { a, aniEntry.hFlip, aniEntry.vFlip });
+            nextAnimationId = indexOf_throw(animations, { &animation, aniEntry.hFlip, aniEntry.vFlip });
         }
     }
 
@@ -66,7 +63,7 @@ static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
     for (const auto& aFrame : animation.frames) {
         const auto& frameRef = aFrame.frame;
 
-        uint8_t frameId = indexOf_throw(frames, { frameSet.frames.getPtr(frameRef.name),
+        uint8_t frameId = indexOf_throw(frames, { &*frameSet.frames.find(frameRef.name),
                                                   static_cast<bool>(frameRef.hFlip ^ aniEntry.hFlip),
                                                   static_cast<bool>(frameRef.vFlip ^ aniEntry.vFlip) });
 

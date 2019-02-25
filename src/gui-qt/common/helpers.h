@@ -54,7 +54,7 @@ QStringList convertNameList(const NamedList<T>& nl)
     QStringList qsl;
     qsl.reserve(nl.size());
     std::transform(nl.begin(), nl.end(), std::back_inserter(qsl),
-                   [](const auto& i) { return QString::fromStdString(i->name); });
+                   [](const T& i) { return QString::fromStdString(i.name); });
     return qsl;
 }
 

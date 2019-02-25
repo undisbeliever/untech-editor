@@ -20,48 +20,48 @@ AnimationPreviewItem::AnimationPreviewItem(const AbstractMsDocument* document,
                                            QGraphicsItem* parent)
     : QGraphicsObject(parent)
     , _document(document)
-    , _animationId()
+    , _animationIndex(INT_MAX)
     , _state()
     , _prevFrame()
-    , _framePtr(nullptr)
+    , _frameIndex(INT_MAX)
 {
     Q_ASSERT(document != nullptr);
 
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(ItemSendsGeometryChanges);
 
-    _state.setAnimationMap(document->animations());
+    _state.setAnimationList(document->animations());
 }
 
 void AnimationPreviewItem::onFrameAdded()
 {
-    const void* framePtr = setFrame(_state.frame().name);
-    if (framePtr != _framePtr) {
-        _framePtr = framePtr;
+    size_t frameIndex = getFrameIndex(_state.frame().name);
+    if (_frameIndex != frameIndex) {
+        _frameIndex = frameIndex;
         update();
     }
 }
 
-void AnimationPreviewItem::onFrameAboutToBeRemoved(const idstring& frameId)
+void AnimationPreviewItem::onFrameAboutToBeRemoved(size_t frameIndex)
 {
-    if (_state.frame().name == frameId) {
-        _framePtr = nullptr;
-        setFrame(idstring());
+    if (frameIndex == _frameIndex) {
+        _frameIndex = INT_MAX;
+        getFrameIndex(idstring());
         update();
     }
 }
 
-void AnimationPreviewItem::onFrameDataAndContentsChanged(const void* frame)
+void AnimationPreviewItem::onFrameDataAndContentsChanged(size_t frameIndex)
 {
-    if (_framePtr == frame) {
-        setFrame(_state.frame().name);
+    if (frameIndex == _frameIndex) {
+        getFrameIndex(_state.frame().name);
         update();
     }
 }
 
-void AnimationPreviewItem::setAnimation(const idstring& animationId)
+void AnimationPreviewItem::setAnimationIndex(size_t animationIndex)
 {
-    _animationId = animationId;
+    _animationIndex = animationIndex;
     resetAnimation();
 }
 
@@ -79,7 +79,7 @@ void AnimationPreviewItem::nextAnimationFrame()
 
 void AnimationPreviewItem::resetAnimation()
 {
-    _state.setAnimation(_animationId);
+    _state.setAnimationIndex(_animationIndex);
     _state.setPositionInt(point(0, 0));
     _state.resetFrameCount();
 
@@ -98,10 +98,10 @@ void AnimationPreviewItem::sync()
     setPos(pos.x, pos.y);
 
     const NameReference& frame = _state.frame();
-    const void* framePtr = setFrame(frame.name);
-    if (_framePtr != framePtr || _prevFrame != frame) {
+    size_t frameIndex = getFrameIndex(frame.name);
+    if (frameIndex != _frameIndex || _prevFrame != frame) {
         _prevFrame = frame;
-        _framePtr = framePtr;
+        _frameIndex = frameIndex;
         update();
     }
 }
@@ -114,7 +114,7 @@ QRectF AnimationPreviewItem::boundingRect() const
 void AnimationPreviewItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem*, QWidget*)
 {
-    if (_framePtr != nullptr) {
+    if (_frameIndex < INT_MAX) {
         painter->scale(_state.frame().hFlip ? -1 : 1,
                        _state.frame().vFlip ? -1 : 1);
 

@@ -647,6 +647,26 @@ public:
     {
     }
 
+    template <typename FieldT, typename UnaryFunction>
+    QUndoCommand* editSelectedFieldCommand(const FieldT& newValue,
+                                           const QString& text,
+                                           UnaryFunction getter)
+    {
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->editFieldCommand(index, newValue, text, getter);
+    }
+
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
+    QUndoCommand* editSelectedFieldCommand(const FieldT& newValue,
+                                           const QString& text,
+                                           UnaryFunction getter, ExtraSignalsFunction extraSignals)
+    {
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->editFieldCommand(index, newValue, text, getter, extraSignals);
+    }
+
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
     bool editSelectedItemField(const FieldT& newValue,
                                const QString& text,

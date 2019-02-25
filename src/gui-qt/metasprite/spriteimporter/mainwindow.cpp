@@ -108,7 +108,7 @@ void MainWindow::setDocument(Document* document)
 {
     if (_document) {
         _document->disconnect(this);
-        _document->frameMap()->disconnect(this);
+        _document->frameList()->disconnect(this);
     }
     _document = document;
 
@@ -118,7 +118,7 @@ void MainWindow::setDocument(Document* document)
         connect(document, &Document::resourceLoaded,
                 this, &MainWindow::populateWidgets);
 
-        connect(document->frameMap(), &FrameMap::selectedItemChanged,
+        connect(document->frameList(), &FrameList::selectedIndexChanged,
                 this, &MainWindow::onSelectedFrameChanged);
     }
 }
@@ -141,7 +141,7 @@ void MainWindow::populateWidgets()
 
 void MainWindow::onSelectedFrameChanged()
 {
-    if (_document && _document->frameMap()->selectedFrame() != nullptr) {
+    if (_document && _document->frameList()->selectedFrame() != nullptr) {
         _graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     }
     else {
@@ -164,39 +164,39 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
     else if (const auto* e = dynamic_cast<const MetaSpriteError*>(error.specialized.get())) {
         switch (e->type()) {
         case Type::FRAME:
-            _document->frameMap()->setSelectedId(e->name());
+            _document->frameList()->setSelectedId(e->name());
             showGraphicsTab();
             _frameDock->raise();
             break;
 
         case Type::FRAME_OBJECT:
-            _document->frameMap()->setSelectedId(e->name());
+            _document->frameList()->setSelectedId(e->name());
             _document->frameObjectList()->setSelectedIndexes({ e->id() });
             showGraphicsTab();
             _frameDock->raise();
             break;
 
         case Type::ACTION_POINT:
-            _document->frameMap()->setSelectedId(e->name());
+            _document->frameList()->setSelectedId(e->name());
             _document->actionPointList()->setSelectedIndexes({ e->id() });
             showGraphicsTab();
             _frameDock->raise();
             break;
 
         case Type::ENTITY_HITBOX:
-            _document->frameMap()->setSelectedId(e->name());
+            _document->frameList()->setSelectedId(e->name());
             _document->entityHitboxList()->setSelectedIndexes({ e->id() });
             showGraphicsTab();
             _frameDock->raise();
             break;
 
         case Type::ANIMATION:
-            _document->animationsMap()->setSelectedId(e->name());
+            _document->animationsList()->setSelectedId(e->name());
             _animationDock->raise();
             break;
 
         case Type::ANIMATION_FRAME:
-            _document->animationsMap()->setSelectedId(e->name());
+            _document->animationsList()->setSelectedId(e->name());
             _animationDock->selectAnimationFrame(e->id());
             _animationDock->raise();
             break;

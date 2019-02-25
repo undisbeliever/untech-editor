@@ -8,7 +8,7 @@
 #include "accessors.h"
 #include "document.h"
 #include "framecontentmanagers.h"
-#include "gui-qt/accessor/idmaplistmodel.h"
+#include "gui-qt/accessor/namedlistmodel.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
 #include "gui-qt/metasprite/common.h"
@@ -19,7 +19,7 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-FrameDock::FrameDock(Accessor::IdmapListModel* frameListModel, QWidget* parent)
+FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameDock)
     , _frameListModel(frameListModel)
@@ -103,7 +103,7 @@ void FrameDock::setDocument(Document* document)
     }
 
     if (_document != nullptr) {
-        _document->frameMap()->disconnect(this);
+        _document->frameList()->disconnect(this);
         _document->frameObjectList()->disconnect(this);
         _document->entityHitboxList()->disconnect(this);
     }
@@ -123,10 +123,10 @@ void FrameDock::setDocument(Document* document)
             _document->actionPointList(),
             _document->entityHitboxList());
 
-        connect(_document->frameMap(), &FrameMap::dataChanged,
+        connect(_document->frameList(), &FrameList::dataChanged,
                 this, &FrameDock::onFrameDataChanged);
 
-        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
+        connect(_document->frameList(), &FrameList::selectedIndexChanged,
                 this, &FrameDock::onSelectedFrameChanged);
 
         connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
@@ -161,8 +161,7 @@ void FrameDock::populateMenu(QMenu* editMenu)
 
 void FrameDock::onSelectedFrameChanged()
 {
-    const MS::Frame* frame = _document->frameMap()->selectedFrame();
-    const idstring& frameId = _document->frameMap()->selectedId();
+    const MS::Frame* frame = _document->frameList()->selectedFrame();
 
     _ui->frameWidget->setEnabled(frame != nullptr);
     _ui->frameContentsBox->setEnabled(frame != nullptr);
@@ -172,7 +171,7 @@ void FrameDock::onSelectedFrameChanged()
         _ui->frameContents->expandAll();
 
         _ui->frameComboBox->setCurrentIndex(
-            _frameListModel->toModelIndex(frameId).row());
+            _frameListModel->toModelIndex(_document->frameList()->selectedIndex()).row());
     }
     else {
         clearGui();
@@ -181,9 +180,9 @@ void FrameDock::onSelectedFrameChanged()
     updateFrameActions();
 }
 
-void FrameDock::onFrameDataChanged(const void* frame)
+void FrameDock::onFrameDataChanged(size_t frameIndex)
 {
-    if (frame == _document->frameMap()->selectedFrame()) {
+    if (frameIndex == _document->frameList()->selectedIndex()) {
         updateGui();
         updateFrameActions();
     }
@@ -194,11 +193,10 @@ void FrameDock::onFrameComboBoxActivated()
     int index = _ui->frameComboBox->currentIndex();
 
     if (index >= 0) {
-        _document->frameMap()->setSelectedId(
-            _frameListModel->toIdstring(index));
+        _document->frameList()->setSelectedIndex(index);
     }
     else {
-        _document->frameMap()->unselectItem();
+        _document->frameList()->unselectItem();
     }
 }
 
@@ -214,10 +212,10 @@ void FrameDock::clearGui()
 
 void FrameDock::updateGui()
 {
-    if (_document->frameMap()->selectedFrame() == nullptr) {
+    if (_document->frameList()->selectedFrame() == nullptr) {
         return;
     }
-    const MS::Frame& frame = *_document->frameMap()->selectedFrame();
+    const MS::Frame& frame = *_document->frameList()->selectedFrame();
 
     _ui->spriteOrder->setValue(frame.spriteOrder);
 
@@ -237,7 +235,7 @@ void FrameDock::updateFrameActions()
     bool isFrameSolid = false;
 
     if (_document) {
-        if (const auto* frame = _document->frameMap()->selectedFrame()) {
+        if (const auto* frame = _document->frameList()->selectedFrame()) {
             frameSelected = true;
             isFrameSolid = frame->solid;
         }
@@ -274,25 +272,25 @@ void FrameDock::updateEntityHitboxTypeMenu()
 
 void FrameDock::onSpriteOrderEdited()
 {
-    _document->frameMap()->editSelected_setSpriteOrder(
+    _document->frameList()->editSelected_setSpriteOrder(
         _ui->spriteOrder->value());
 }
 
 void FrameDock::onSolidClicked()
 {
-    _document->frameMap()->editSelected_setSolid(
+    _document->frameList()->editSelected_setSolid(
         _ui->solid->isChecked());
 }
 
 void FrameDock::onTileHitboxEdited()
 {
-    _document->frameMap()->editSelected_setTileHitbox(
+    _document->frameList()->editSelected_setTileHitbox(
         _ui->tileHitbox->valueMs8rect());
 }
 
 void FrameDock::onAddRemoveTileHitbox()
 {
-    _document->frameMap()->editSelected_toggleTileHitbox();
+    _document->frameList()->editSelected_toggleTileHitbox();
 }
 
 void FrameDock::onToggleObjSize()

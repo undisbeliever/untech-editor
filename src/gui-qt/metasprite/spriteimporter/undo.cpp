@@ -6,8 +6,8 @@
 
 #include "accessors.h"
 #include "sigraphicsscene.h"
-#include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/accessor/listandmultipleselectionundohelper.h"
+#include "gui-qt/accessor/namedlistundohelper.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 
@@ -87,42 +87,42 @@ bool Document::editFrameSet_setPalette(const SI::UserSuppliedPalette& palette)
                           emit d.frameSetDataChanged(); });
 }
 
-using FrameMapUndoHelper = IdmapAndSelectionUndoHelper<FrameMap>;
+using FrameListUndoHelper = NamedListAndSelectionUndoHelper<FrameList>;
 
-bool FrameMap::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
+bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 {
-    return FrameMapUndoHelper(this).editSelectedItemField(
+    return FrameListUndoHelper(this).editSelectedItemField(
         spriteOrder,
         tr("Edit Sprite Order"),
         [](SI::Frame& f) -> SpriteOrderType& { return f.spriteOrder; });
 }
 
-bool FrameMap::editSelected_setFrameLocation(SI::FrameLocation& frameLocation)
+bool FrameList::editSelected_setFrameLocation(SI::FrameLocation& frameLocation)
 {
-    return FrameMapUndoHelper(this).editSelectedItemField(
+    return FrameListUndoHelper(this).editSelectedItemField(
         frameLocation,
         tr("Edit Frame Location"),
         [](SI::Frame& f) -> SI::FrameLocation& { return f.location; },
-        [](FrameMap* frameMap, const SI::Frame* f) { emit frameMap->frameLocationChanged(f); });
+        [](FrameList* frameList, const size_t i) { emit frameList->frameLocationChanged(i); });
 }
 
-bool FrameMap::editSelected_setSolid(bool solid)
+bool FrameList::editSelected_setSolid(bool solid)
 {
-    return FrameMapUndoHelper(this).editSelectedItemField(
+    return FrameListUndoHelper(this).editSelectedItemField(
         solid,
         solid ? tr("Enable Tile Hitbox") : tr("Disable Tile Hitbox"),
         [](SI::Frame& f) -> bool& { return f.solid; });
 }
 
-bool FrameMap::editSelected_setTileHitbox(const urect& hitbox)
+bool FrameList::editSelected_setTileHitbox(const urect& hitbox)
 {
-    return FrameMapUndoHelper(this).editSelectedItemField(
+    return FrameListUndoHelper(this).editSelectedItemField(
         hitbox,
         tr("Edit Tile Hitbox"),
         [](SI::Frame& f) -> urect& { return f.tileHitbox; });
 }
 
-bool FrameMap::editSelected_toggleTileHitbox()
+bool FrameList::editSelected_toggleTileHitbox()
 {
     if (const SI::Frame* frame = selectedFrame()) {
         return editSelected_setSolid(!frame->solid);
@@ -146,7 +146,7 @@ bool FrameObjectList::editSelectedList_setLocation(unsigned index, const upoint&
 
 bool FrameObjectList::editSelectedList_setSize(unsigned index, FrameObjectList::ObjectSize size)
 {
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
+    const SI::Frame* frame = _document->frameList()->selectedFrame();
     if (frame == nullptr) {
         return false;
     }
@@ -170,7 +170,7 @@ bool FrameObjectList::editSelected_toggleObjectSize()
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
+    const SI::Frame* frame = _document->frameList()->selectedFrame();
     Q_ASSERT(frame);
 
     return FrameObjectListUndoHelper(this).editSelectedItems(
@@ -235,12 +235,8 @@ bool EntityHitboxList::editSelected_setEntityHitboxType(EntityHitboxType type)
 
 void SiGraphicsScene::commitMovedItems()
 {
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
-    if (frame == nullptr) {
-        return;
-    }
-
-    const SiFrameGraphicsItem* frameItem = _frameItems.value(frame);
+    const size_t frameIndex = _document->frameList()->selectedIndex();
+    const SiFrameGraphicsItem* frameItem = _frameItems.value(frameIndex);
     if (frameItem == nullptr) {
         return;
     }
@@ -252,9 +248,9 @@ void SiGraphicsScene::commitMovedItems()
     QList<QUndoCommand*> commands;
     commands.reserve(4);
 
-    if (_document->frameMap()->isTileHitboxSelected()) {
+    if (_document->frameList()->isTileHitboxSelected()) {
         urect hitbox = frameItem->tileHitbox()->rectUrect();
-        auto* c = FrameMapUndoHelper(_document->frameMap())
+        auto* c = FrameListUndoHelper(_document->frameList())
                       .editSelectedFieldCommand(hitbox, QString(),
                                                 [](SI::Frame& f) -> urect& { return f.tileHitbox; });
         if (c != nullptr) {

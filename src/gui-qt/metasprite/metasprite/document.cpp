@@ -6,6 +6,7 @@
 
 #include "document.h"
 #include "accessors.h"
+#include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/animation/animationaccessors.h"
 
 using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
@@ -17,7 +18,7 @@ Document::Document(FrameSetResourceList* parent, size_t index)
     , _smallTileTileset(new SmallTileTileset(this))
     , _largeTileTileset(new LargeTileTileset(this))
     , _paletteList(new PaletteList(this))
-    , _frameMap(new FrameMap(this))
+    , _frameList(new FrameList(this))
     , _frameObjectList(new FrameObjectList(this))
     , _actionPointList(new ActionPointList(this))
     , _entityHitboxList(new EntityHitboxList(this))
@@ -35,18 +36,12 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
 QStringList Document::frameNames() const
 {
-    QStringList fl;
-
     if (_frameSet) {
-        auto& frames = _frameSet->frames;
-
-        fl.reserve(frames.size());
-        for (const auto& it : frames) {
-            fl.append(QString::fromStdString(it.first));
-        }
+        return convertNameList(_frameSet->frames);
     }
-
-    return fl;
+    else {
+        return QStringList();
+    }
 }
 
 unsigned Document::nPalettes() const
@@ -69,8 +64,8 @@ void Document::resetDocumentState()
     onFrameSetExportOrderChanged();
 
     paletteList()->unselectItem();
-    frameMap()->unselectItem();
-    animationsMap()->unselectItem();
+    frameList()->unselectItem();
+    animationsList()->unselectItem();
 }
 
 void Document::saveResourceData(const std::string& filename) const

@@ -11,31 +11,31 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
-template <class MapT>
-static inline bool _testExists(const FrameSetExportOrder::ExportName& en, const MapT& map)
+template <class ListT>
+static inline bool _testExists(const FrameSetExportOrder::ExportName& en, const ListT& list)
 {
-    if (map.contains(en.name)) {
+    if (list.find(en.name)) {
         return true;
     }
 
     auto it = std::find_if(en.alternatives.begin(), en.alternatives.end(),
-                           [&](auto& a) { return map.contains(a.name); });
+                           [&](auto& a) { return list.find(a.name); });
     return it != en.alternatives.end();
 }
 
-bool FrameSetExportOrder::ExportName::frameExists(const MetaSprite::Frame::map_t& frameMap) const
+bool FrameSetExportOrder::ExportName::frameExists(const NamedList<MetaSprite::Frame>& frameList) const
 {
-    return _testExists(*this, frameMap);
+    return _testExists(*this, frameList);
 }
 
-bool FrameSetExportOrder::ExportName::frameExists(const SpriteImporter::Frame::map_t& frameMap) const
+bool FrameSetExportOrder::ExportName::frameExists(const NamedList<SpriteImporter::Frame>& frameList) const
 {
-    return _testExists(*this, frameMap);
+    return _testExists(*this, frameList);
 }
 
-bool FrameSetExportOrder::ExportName::animationExists(const Animation::Animation::map_t& animationMap) const
+bool FrameSetExportOrder::ExportName::animationExists(const NamedList<Animation::Animation>& animationList) const
 {
-    return _testExists(*this, animationMap);
+    return _testExists(*this, animationList);
 }
 
 static bool validateAlternativesUnique(const std::vector<NameReference>& alts,

@@ -25,7 +25,6 @@ const QStringList FrameObjectManager::FLIP_STRINGS({ QString(),
 AbstractFrameContentManager::AbstractFrameContentManager(QObject* parent)
     : PropertyTableManager(parent)
     , _document(nullptr)
-    , _frame(nullptr)
 {
 }
 
@@ -33,19 +32,26 @@ void AbstractFrameContentManager::setDocument(Document* document)
 {
     if (_document) {
         _document->disconnect(this);
-        _document->frameMap()->disconnect(this);
+        _document->frameList()->disconnect(this);
     }
     _document = document;
 
-    _frame = nullptr;
     emit dataReset();
 
     if (_document) {
         onSelectedFrameChanged();
 
-        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
+        connect(_document->frameList(), &FrameList::selectedIndexChanged,
                 this, &AbstractFrameContentManager::onSelectedFrameChanged);
     }
+}
+
+const MS::Frame* AbstractFrameContentManager::selectedFrame() const
+{
+    if (_document == nullptr) {
+        return nullptr;
+    }
+    return _document->frameList()->selectedFrame();
 }
 
 void AbstractFrameContentManager::connectSignals(AbstractFrameContentAccessor* accessor)
@@ -64,24 +70,25 @@ void AbstractFrameContentManager::connectSignals(AbstractFrameContentAccessor* a
 
 void AbstractFrameContentManager::onSelectedFrameChanged()
 {
-    const MS::Frame* frame = _document->frameMap()->selectedFrame();
-
-    if (_frame != frame) {
-        _frame = frame;
-        emit dataReset();
+    if (_document == nullptr) {
+        return;
     }
+
+    emit dataReset();
 }
 
-void AbstractFrameContentManager::onItemChanged(const void* frame, size_t index)
+void AbstractFrameContentManager::onItemChanged(size_t frameIndex, size_t index)
 {
-    if (frame == _frame) {
+    Q_ASSERT(_document);
+    if (frameIndex == _document->frameList()->selectedIndex()) {
         emit itemChanged(index);
     }
 }
 
-void AbstractFrameContentManager::onListChanged(const void* frame)
+void AbstractFrameContentManager::onListChanged(size_t frameIndex)
 {
-    if (frame == _frame) {
+    Q_ASSERT(_document);
+    if (frameIndex == _document->frameList()->selectedIndex()) {
         emit dataChanged();
     }
 }
@@ -115,8 +122,9 @@ void FrameObjectManager::setDocument(Document* document)
 
 int FrameObjectManager::rowCount() const
 {
-    if (_frame) {
-        return _frame->objects.size();
+    const MS::Frame* frame = selectedFrame();
+    if (frame) {
+        return frame->objects.size();
     }
     else {
         return 0;
@@ -127,13 +135,14 @@ QVariant FrameObjectManager::data(int index, int id) const
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    if (_frame == nullptr
-        || index < 0 || (unsigned)index >= _frame->objects.size()) {
+    const MS::Frame* frame = selectedFrame();
+    if (frame == nullptr
+        || index < 0 || (unsigned)index >= frame->objects.size()) {
 
         return QVariant();
     }
 
-    const MS::FrameObject& obj = _frame->objects.at(index);
+    const MS::FrameObject& obj = frame->objects.at(index);
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
@@ -157,16 +166,17 @@ void FrameObjectManager::updateParameters(int index, int id,
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    const MS::FrameSet* frameSet = _document->frameSet();
-
-    if (_frame == nullptr
-        || frameSet == nullptr
-        || index < 0 || (unsigned)index >= _frame->objects.size()) {
+    const MS::Frame* frame = selectedFrame();
+    if (frame == nullptr
+        || index < 0 || (unsigned)index >= frame->objects.size()) {
 
         return;
     }
 
-    const MS::FrameObject& obj = _frame->objects.at(index);
+    const MS::FrameSet* frameSet = _document->frameSet();
+    Q_ASSERT(frameSet);
+
+    const MS::FrameObject& obj = frame->objects.at(index);
 
     switch ((PropertyId)id) {
     case PropertyId::TILE:
@@ -187,7 +197,7 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    if (_frame == nullptr) {
+    if (_document == nullptr) {
         return false;
     }
 
@@ -239,8 +249,9 @@ void ActionPointManager::setDocument(Document* document)
 
 int ActionPointManager::rowCount() const
 {
-    if (_frame) {
-        return _frame->actionPoints.size();
+    const MS::Frame* frame = selectedFrame();
+    if (frame) {
+        return frame->actionPoints.size();
     }
     else {
         return 0;
@@ -249,13 +260,14 @@ int ActionPointManager::rowCount() const
 
 QVariant ActionPointManager::data(int index, int id) const
 {
-    if (_frame == nullptr
-        || index < 0 || (unsigned)index >= _frame->actionPoints.size()) {
+    const MS::Frame* frame = selectedFrame();
+    if (frame == nullptr
+        || index < 0 || (unsigned)index >= frame->actionPoints.size()) {
 
         return QVariant();
     }
 
-    const MS::ActionPoint& ap = _frame->actionPoints.at(index);
+    const MS::ActionPoint& ap = frame->actionPoints.at(index);
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
@@ -270,7 +282,7 @@ QVariant ActionPointManager::data(int index, int id) const
 
 bool ActionPointManager::setData(int index, int id, const QVariant& value)
 {
-    if (_frame == nullptr) {
+    if (_document == nullptr) {
         return false;
     }
 
@@ -315,8 +327,9 @@ void EntityHitboxManager::setDocument(Document* document)
 
 int EntityHitboxManager::rowCount() const
 {
-    if (_frame) {
-        return _frame->entityHitboxes.size();
+    const MS::Frame* frame = selectedFrame();
+    if (frame) {
+        return frame->entityHitboxes.size();
     }
     else {
         return 0;
@@ -325,13 +338,14 @@ int EntityHitboxManager::rowCount() const
 
 QVariant EntityHitboxManager::data(int index, int id) const
 {
-    if (_frame == nullptr
-        || index < 0 || (unsigned)index >= _frame->entityHitboxes.size()) {
+    const MS::Frame* frame = selectedFrame();
+    if (frame == nullptr
+        || index < 0 || (unsigned)index >= frame->entityHitboxes.size()) {
 
         return QVariant();
     }
 
-    const MS::EntityHitbox& eh = _frame->entityHitboxes.at(index);
+    const MS::EntityHitbox& eh = frame->entityHitboxes.at(index);
 
     switch ((PropertyId)id) {
     case PropertyId::AABB:
@@ -348,7 +362,7 @@ bool EntityHitboxManager::setData(int index, int id, const QVariant& value)
 {
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 
-    if (_frame == nullptr) {
+    if (_document == nullptr) {
         return false;
     }
 

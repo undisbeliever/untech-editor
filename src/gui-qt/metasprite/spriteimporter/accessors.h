@@ -21,39 +21,45 @@ class FrameObjectList;
 class ActionPointList;
 class EntityHitboxList;
 
-class FrameMap : public QObject {
+class FrameList : public QObject {
     Q_OBJECT
 
 public:
     using DataT = SI::Frame;
-    using MapT = SI::Frame::map_t;
+    using ListT = NamedList<SI::Frame>;
+    using index_type = ListT::size_type;
+
+    constexpr static index_type max_size = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
     using SpriteOrderType = UnTech::MetaSprite::SpriteOrderType;
 
 private:
     Document* const _document;
 
-    idstring _selectedId;
-    SI::Frame* _selectedItem;
+    index_type _selectedIndex;
 
     bool _tileHitboxSelected;
 
 public:
-    FrameMap(Document* document);
-    ~FrameMap() = default;
+    FrameList(Document* document);
+    ~FrameList() = default;
 
     Document* resourceItem() const { return _document; }
 
     static QString typeName() { return tr("Frame"); }
 
-    const idstring& selectedId() const { return _selectedId; }
-    const SI::Frame* selectedItem() const { return _selectedItem; }
-    const SI::Frame* selectedFrame() const { return _selectedItem; }
+    index_type selectedIndex() const { return _selectedIndex; }
+    void setSelectedId(const idstring& id);
+    void setSelectedIndex(index_type index);
+    void unselectItem() { setSelectedIndex(INT_MAX); }
 
-    bool isTileHitboxSelected() const { return _tileHitboxSelected && _selectedItem != nullptr; }
+    bool isFrameSelected() const;
+    const SI::Frame* selectedFrame() const;
+
+    bool isTileHitboxSelected() const { return _tileHitboxSelected && isFrameSelected(); }
     void setTileHitboxSelected(bool s);
 
-    const MapT* map()
+    const ListT* list() const
     {
         const SI::FrameSet* fs = _document->frameSet();
         if (fs == nullptr) {
@@ -68,14 +74,9 @@ public:
     bool editSelected_setTileHitbox(const urect& hitbox);
     bool editSelected_toggleTileHitbox();
 
-public slots:
-    void setSelectedId(const idstring& id);
-
-    void unselectItem();
-
 protected:
-    friend class Accessor::IdmapUndoHelper<FrameMap>;
-    MapT* getMap()
+    friend class Accessor::NamedListUndoHelper<FrameList>;
+    ListT* getList()
     {
         SI::FrameSet* fs = _document->frameSet();
         if (fs == nullptr) {
@@ -85,20 +86,21 @@ protected:
     }
 
     friend class AbstractFrameContentAccessor;
-    SI::Frame* selectedItemEditable() const { return _selectedItem; }
+    SI::Frame* selectedItemEditable();
 
 signals:
-    void dataChanged(const SI::Frame*);
-    void frameLocationChanged(const SI::Frame* frame);
+    void nameChanged(index_type index);
+    void frameLocationChanged(index_type index);
 
-    void mapChanged();
+    void dataChanged(index_type index);
+    void listChanged();
 
-    void mapAboutToChange();
-    void itemAdded(const idstring& id);
-    void itemAboutToBeRemoved(const idstring& id);
-    void itemRenamed(const idstring& oldId, const idstring& newId);
+    void listAboutToChange();
+    void itemAdded(index_type index);
+    void itemAboutToBeRemoved(index_type index);
+    void itemMoved(index_type from, index_type to);
 
-    void selectedItemChanged();
+    void selectedIndexChanged();
     void tileHitboxSelectedChanged();
 };
 
@@ -107,8 +109,8 @@ class AbstractFrameContentAccessor : public QObject {
 
 public:
     using index_type = size_t;
-    using ArgsT = std::tuple<SI::Frame*>;
-    using SignalArgsT = std::tuple<const void*>;
+    using ArgsT = std::tuple<size_t>;
+    using SignalArgsT = std::tuple<size_t>;
 
 protected:
     Document* const _document;
@@ -134,17 +136,26 @@ protected:
     friend class Accessor::MultipleSelectedIndexesHelper;
     ArgsT selectedListTuple() const
     {
-        return std::make_tuple(_document->frameMap()->selectedItemEditable());
+        return std::make_tuple(_document->frameList()->selectedIndex());
+    }
+
+    inline SI::Frame* getFrame(size_t frameIndex)
+    {
+        auto* fs = _document->frameSet();
+        if (fs == nullptr || frameIndex >= fs->frames.size()) {
+            return nullptr;
+        }
+        return &fs->frames.at(frameIndex);
     }
 
 signals:
-    void dataChanged(const void* frame, index_type index);
-    void listChanged(const void* frame);
+    void dataChanged(size_t frameIndex, index_type index);
+    void listChanged(size_t frameIndex);
 
-    void listAboutToChange(const void* frame);
-    void itemAdded(const void* frame, index_type index);
-    void itemAboutToBeRemoved(const void* frame, index_type index);
-    void itemMoved(const void* frame, index_type from, index_type to);
+    void listAboutToChange(size_t frameIndex);
+    void itemAdded(size_t frameIndex, index_type index);
+    void itemAboutToBeRemoved(size_t frameIndex, index_type index);
+    void itemMoved(size_t frameIndex, index_type from, index_type to);
 
     void selectedListChanged();
     void selectedIndexesChanged();
@@ -175,8 +186,9 @@ public:
 protected:
     friend class Accessor::ListUndoHelper<FrameObjectList>;
     friend class Accessor::ListActionHelper;
-    ListT* getList(SI::Frame* frame)
+    ListT* getList(size_t frameIndex)
     {
+        auto* frame = getFrame(frameIndex);
         if (frame == nullptr) {
             return nullptr;
         }
@@ -207,8 +219,9 @@ public:
 protected:
     friend class Accessor::ListUndoHelper<ActionPointList>;
     friend class Accessor::ListActionHelper;
-    ListT* getList(SI::Frame* frame)
+    ListT* getList(size_t frameIndex)
     {
+        auto* frame = getFrame(frameIndex);
         if (frame == nullptr) {
             return nullptr;
         }
@@ -241,8 +254,9 @@ public:
 protected:
     friend class Accessor::ListUndoHelper<EntityHitboxList>;
     friend class Accessor::ListActionHelper;
-    ListT* getList(SI::Frame* frame)
+    ListT* getList(size_t frameIndex)
     {
+        auto* frame = getFrame(frameIndex);
         if (frame == nullptr) {
             return nullptr;
         }

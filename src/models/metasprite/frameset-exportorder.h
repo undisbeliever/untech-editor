@@ -26,9 +26,9 @@ struct FrameSetExportOrder {
         idstring name;
         std::vector<NameReference> alternatives;
 
-        bool frameExists(const MetaSprite::Frame::map_t& frameMap) const;
-        bool frameExists(const SpriteImporter::Frame::map_t& frameMap) const;
-        bool animationExists(const Animation::Animation::map_t& animationMap) const;
+        bool frameExists(const NamedList<MetaSprite::Frame>& frameList) const;
+        bool frameExists(const NamedList<SpriteImporter::Frame>& frameList) const;
+        bool animationExists(const NamedList<Animation::Animation>& animationList) const;
     };
 
     idstring name;

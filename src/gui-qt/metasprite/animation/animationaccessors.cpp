@@ -5,70 +5,83 @@
  */
 
 #include "animationaccessors.h"
-#include "gui-qt/accessor/selectedidmapitemhelper.h"
 #include "gui-qt/accessor/selectedindexhelper.h"
+#include "gui-qt/common/helpers.h"
 
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
-AnimationsMap::AnimationsMap(AbstractMsDocument* document)
+AnimationsList::AnimationsList(AbstractMsDocument* document)
     : QObject(document)
     , _document(document)
-    , _selectedId()
-    , _selectedItem(nullptr)
+    , _selectedIndex()
 {
-    SelectedIdmapItemHelper::buildAndConnectSlots(this);
+    SelectedIndexHelper::buildAndConnectSlots_NamedList(this);
 }
 
-QStringList AnimationsMap::animationNames() const
+QStringList AnimationsList::animationNames() const
 {
-    QStringList al;
-
-    if (const auto* aniMap = _document->animations()) {
-        al.reserve(aniMap->size());
-        for (const auto& it : *aniMap) {
-            al.append(QString::fromStdString(it.first));
-        }
+    if (const auto* aList = _document->animations()) {
+        return convertNameList(*aList);
     }
-
-    return al;
-}
-
-void AnimationsMap::setSelectedId(const UnTech::idstring& id)
-{
-    if (_selectedId != id) {
-        MapT* map = getMap();
-        if (map == nullptr) {
-            unselectItem();
-            return;
-        }
-
-        _selectedItem = map->getPtr(id);
-        _selectedId = _selectedItem ? id : idstring();
-
-        emit selectedItemChanged();
+    else {
+        return QStringList();
     }
 }
 
-void AnimationsMap::unselectItem()
+void AnimationsList::setSelectedId(const UnTech::idstring& id)
 {
-    if (_selectedId.isValid() || _selectedItem != nullptr) {
-        _selectedId = idstring();
-        _selectedItem = nullptr;
-
-        emit selectedItemChanged();
+    if (auto* list = _document->animations()) {
+        setSelectedIndex(list->indexOf(id));
     }
+    else {
+        unselectItem();
+    }
+}
+
+void AnimationsList::setSelectedIndex(const AnimationsList::index_type& index)
+{
+    if (_selectedIndex != index) {
+        _selectedIndex = index;
+        emit selectedIndexChanged();
+    }
+}
+
+bool AnimationsList::isSelectedIndexValid() const
+{
+    auto* animations = _document->animations();
+
+    return animations
+           && _selectedIndex < animations->size();
+}
+
+const UnTech::MetaSprite::Animation::Animation* AnimationsList::selectedAnimation() const
+{
+    auto* animations = _document->animations();
+    if (_selectedIndex >= animations->size()) {
+        return nullptr;
+    }
+    return &animations->at(_selectedIndex);
+}
+
+UnTech::MetaSprite::Animation::Animation* AnimationsList::selectedItemEditable()
+{
+    auto* animations = _document->animations();
+    if (_selectedIndex >= animations->size()) {
+        return nullptr;
+    }
+    return &animations->at(_selectedIndex);
 }
 
 AnimationFramesList::AnimationFramesList(AbstractMsDocument* document)
     : QObject(document)
     , _document(document)
-    , _animation(nullptr)
+    , _animationIndex(INT_MAX)
 {
-    connect(_document->animationsMap(), &AnimationsMap::selectedItemChanged,
+    connect(_document->animationsList(), &AnimationsList::selectedIndexChanged,
             this, [this] {
-                _animation = _document->animationsMap()->selectedItemEditable();
+                _animationIndex = _document->animationsList()->selectedIndex();
                 emit selectedListChanged();
             });
 }

@@ -29,8 +29,8 @@ public:
 
     void setDocument(Document* document);
 
-    const Accessor::IdmapActions& frameActions() const;
-    Accessor::IdmapListModel* frameListModel() const;
+    const Accessor::NamedListActions& frameActions() const;
+    Accessor::NamedListModel* frameListModel() const;
 
     void populateMenu(QMenu* menu);
 

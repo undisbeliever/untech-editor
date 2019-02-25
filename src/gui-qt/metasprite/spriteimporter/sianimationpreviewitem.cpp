@@ -43,7 +43,6 @@ SiAnimationPreviewItem::SiAnimationPreviewItem(LayerSettings* layerSettings,
     , _layerSettings(layerSettings)
     , _style(style)
     , _document(document)
-    , _frame(nullptr)
     , _frameObjects(IMAGE_SIZE, IMAGE_SIZE, QImage::Format_ARGB32_Premultiplied)
     , _frameObjectsDirty(true)
 {
@@ -58,12 +57,12 @@ SiAnimationPreviewItem::SiAnimationPreviewItem(LayerSettings* layerSettings,
 
     // Required connections to AnimationPreviewItem slots
 
-    connect(_document->frameMap(), &FrameMap::itemAdded,
+    connect(_document->frameList(), &FrameList::itemAdded,
             this, &SiAnimationPreviewItem::onFrameAdded);
-    connect(_document->frameMap(), &FrameMap::itemAboutToBeRemoved,
+    connect(_document->frameList(), &FrameList::itemAboutToBeRemoved,
             this, &SiAnimationPreviewItem::onFrameAboutToBeRemoved);
 
-    connect(_document->frameMap(), &FrameMap::dataChanged,
+    connect(_document->frameList(), &FrameList::dataChanged,
             this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
 
     connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
@@ -80,31 +79,31 @@ SiAnimationPreviewItem::SiAnimationPreviewItem(LayerSettings* layerSettings,
             this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
 }
 
-void SiAnimationPreviewItem::onFrameObjectsChanged(const void* framePtr)
+void SiAnimationPreviewItem::onFrameObjectsChanged(size_t frameIndex)
 {
-    if (_frame == framePtr) {
+    if (frameIndex == this->frameIndex()) {
         _frameObjectsDirty = true;
     }
 }
 
-const void* SiAnimationPreviewItem::setFrame(const idstring& frameName)
+size_t SiAnimationPreviewItem::getFrameIndex(const idstring& frameName)
 {
-    SI::Frame* frame = _document->frameSet()->frames.getPtr(frameName);
-    _frameObjectsDirty = _frame != frame;
-    _frame = frame;
-
-    return _frame;
+    return _document->frameSet()->frames.indexOf(frameName);
 }
 
 void SiAnimationPreviewItem::drawFrame(QPainter* painter)
 {
-    Q_ASSERT(_frame != nullptr);
+    const auto& frames = _document->frameSet()->frames;
+    if (frameIndex() >= frames.size()) {
+        return;
+    }
+    const auto& frame = frames.at(frameIndex());
 
     if (_frameObjectsDirty) {
-        drawFrameObjects();
+        drawFrameObjects(frame);
     }
 
-    const upoint& origin = _frame->location.origin;
+    const upoint& origin = frame.location.origin;
     painter->translate(-int(origin.x), -int(origin.y));
 
     if (_layerSettings->showFrameObjects()) {
@@ -112,7 +111,7 @@ void SiAnimationPreviewItem::drawFrame(QPainter* painter)
     }
 
     if (_layerSettings->showEntityHitboxes()) {
-        const auto& hitboxes = _frame->entityHitboxes;
+        const auto& hitboxes = frame.entityHitboxes;
         for (auto it = hitboxes.crbegin(); it != hitboxes.crend(); it++) {
             const SI::EntityHitbox& eh = *it;
 
@@ -124,11 +123,11 @@ void SiAnimationPreviewItem::drawFrame(QPainter* painter)
         }
     }
 
-    if (_layerSettings->showTileHitbox() && _frame->solid) {
+    if (_layerSettings->showTileHitbox() && frame.solid) {
         painter->setPen(_style->tileHitboxPen());
         painter->setBrush(_style->tileHitboxBrush());
 
-        const auto& th = _frame->tileHitbox;
+        const auto& th = frame.tileHitbox;
         painter->drawRect(th.x, th.y, th.width, th.height);
     }
 
@@ -136,7 +135,7 @@ void SiAnimationPreviewItem::drawFrame(QPainter* painter)
         painter->setPen(_style->actionPointPen());
         painter->setBrush(_style->actionPointBrush());
 
-        const auto& points = _frame->actionPoints;
+        const auto& points = frame.actionPoints;
         for (auto it = points.crbegin(); it != points.crend(); it++) {
             const SI::ActionPoint& ap = *it;
             painter->drawRect(ap.location.x, ap.location.y, 1, 1);
@@ -144,10 +143,8 @@ void SiAnimationPreviewItem::drawFrame(QPainter* painter)
     }
 }
 
-void SiAnimationPreviewItem::drawFrameObjects()
+void SiAnimationPreviewItem::drawFrameObjects(const SI::Frame& frame)
 {
-    Q_ASSERT(_frame != nullptr);
-
     _frameObjects.fill(0);
 
     const SI::FrameSet& frameSet = *_document->frameSet();
@@ -156,8 +153,8 @@ void SiAnimationPreviewItem::drawFrameObjects()
 
     const auto& fsImgSize = fsImage->size();
 
-    for (int i = _frame->objects.size() - 1; i >= 0; i--) {
-        const SI::FrameObject& obj = _frame->objects.at(i);
+    for (int i = frame.objects.size() - 1; i >= 0; i--) {
+        const SI::FrameObject& obj = frame.objects.at(i);
         const upoint& oLoc = obj.location;
         unsigned tileSize = obj.sizePx();
 
@@ -165,8 +162,8 @@ void SiAnimationPreviewItem::drawFrameObjects()
             continue;
         }
 
-        const unsigned tileX = _frame->location.aabb.x + oLoc.x;
-        const unsigned tileY = _frame->location.aabb.y + oLoc.y;
+        const unsigned tileX = frame.location.aabb.x + oLoc.x;
+        const unsigned tileY = frame.location.aabb.y + oLoc.y;
 
         bool objInsideFsImage = tileX + tileSize <= fsImgSize.width
                                 && tileY + tileSize <= fsImgSize.height;

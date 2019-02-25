@@ -5,33 +5,33 @@
  */
 
 #include "animationaccessors.h"
-#include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/accessor/listundohelper.h"
+#include "gui-qt/accessor/namedlistundohelper.h"
 
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
-using AnimationMapUndoHelper = IdmapAndSelectionUndoHelper<AnimationsMap>;
+using AnimationsListUndoHelper = NamedListAndSelectionUndoHelper<AnimationsList>;
 
-bool AnimationsMap::editSelected_setDurationFormat(MSA::DurationFormat durationFormat)
+bool AnimationsList::editSelected_setDurationFormat(MSA::DurationFormat durationFormat)
 {
-    AnimationMapUndoHelper helper(this);
+    AnimationsListUndoHelper helper(this);
     return helper.editSelectedItemField(durationFormat, tr("Change Animation Duration Format"),
                                         [](MSA::Animation& a) -> MSA::DurationFormat& { return a.durationFormat; });
 }
 
-bool AnimationsMap::editSelected_setOneShot(bool oneShot)
+bool AnimationsList::editSelected_setOneShot(bool oneShot)
 {
     QString text = oneShot ? tr("Set Animation One Shot") : tr("Clear Animation One Shot");
 
-    AnimationMapUndoHelper helper(this);
+    AnimationsListUndoHelper helper(this);
     return helper.editSelectedItemField(oneShot, text,
                                         [](MSA::Animation& a) -> bool& { return a.oneShot; });
 }
 
-bool AnimationsMap::editSelected_setNextAnimation(const idstring& nextAnimation)
+bool AnimationsList::editSelected_setNextAnimation(const idstring& nextAnimation)
 {
-    AnimationMapUndoHelper helper(this);
+    AnimationsListUndoHelper helper(this);
     return helper.editSelectedItemField(nextAnimation, tr("Change Next Animation"),
                                         [](MSA::Animation& a) -> idstring& { return a.nextAnimation; });
 }

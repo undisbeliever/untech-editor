@@ -22,18 +22,15 @@ processAnimations(const MS::FrameSet& frameSet, const std::vector<ExportName>& a
     ret.reserve(animations.size());
 
     for (const auto& en : animations) {
-        const Animation::Animation* ani = frameSet.animations.getPtr(en.name);
-
-        if (ani) {
-            ret.push_back({ ani, false, false });
+        if (auto ani = frameSet.animations.find(en.name)) {
+            ret.push_back({ &*ani, false, false });
         }
         else {
             bool success = false;
 
             for (const auto& alt : en.alternatives) {
-                const Animation::Animation* altAni = frameSet.animations.getPtr(alt.name);
-                if (altAni) {
-                    ret.push_back({ altAni, alt.hFlip, alt.vFlip });
+                if (auto altAni = frameSet.animations.find(alt.name)) {
+                    ret.push_back({ &*altAni, alt.hFlip, alt.vFlip });
 
                     success = true;
                     break;
@@ -50,10 +47,10 @@ processAnimations(const MS::FrameSet& frameSet, const std::vector<ExportName>& a
         if (ani.animation->oneShot == false && ani.animation->nextAnimation.isValid()) {
             const idstring& nextAnimation = ani.animation->nextAnimation;
 
-            const Animation::Animation* a = frameSet.animations.getPtr(nextAnimation);
+            auto a = frameSet.animations.find(nextAnimation);
             assert(a);
 
-            AnimationListEntry toAdd = { a, ani.hFlip, ani.vFlip };
+            AnimationListEntry toAdd = { &*a, ani.hFlip, ani.vFlip };
 
             auto it = std::find(ret.begin(), ret.end(), toAdd);
             if (it == ret.end()) {
@@ -74,19 +71,15 @@ processStillFrames(const MS::FrameSet& frameSet,
     ret.reserve(stillFrames.size());
 
     for (const auto& en : stillFrames) {
-        const MS::Frame* frame = frameSet.frames.getPtr(en.name);
-
-        if (frame) {
-            ret.push_back({ frame, false, false });
+        if (const auto frame = frameSet.frames.find(en.name)) {
+            ret.push_back({ &*frame, false, false });
         }
         else {
             bool success = false;
 
             for (const auto& alt : en.alternatives) {
-                const MS::Frame* altFrame = frameSet.frames.getPtr(alt.name);
-
-                if (altFrame) {
-                    ret.push_back({ altFrame, alt.hFlip, alt.vFlip });
+                if (auto altFrame = frameSet.frames.find(alt.name)) {
+                    ret.push_back({ &*altFrame, alt.hFlip, alt.vFlip });
 
                     success = true;
                     break;
@@ -103,10 +96,10 @@ processStillFrames(const MS::FrameSet& frameSet,
         for (const auto& aFrame : ani.animation->frames) {
             const auto& frameRef = aFrame.frame;
 
-            const MS::Frame* frame = frameSet.frames.getPtr(frameRef.name);
+            auto frame = frameSet.frames.find(frameRef.name);
             assert(frame);
 
-            FrameListEntry e = { frame,
+            FrameListEntry e = { &*frame,
                                  static_cast<bool>(frameRef.hFlip ^ ani.hFlip),
                                  static_cast<bool>(frameRef.vFlip ^ ani.vFlip) };
 

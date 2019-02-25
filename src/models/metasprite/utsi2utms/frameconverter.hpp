@@ -53,6 +53,8 @@ public:
     {
         auto sieve = buildOverlappingObjectsSieve();
 
+        msFrame.name = siFrame.name;
+
         const auto& siFrameOrigin = siFrame.location.origin;
 
         for (unsigned objId = 0; objId < siFrame.objects.size(); objId++) {
@@ -236,12 +238,12 @@ private:
 
     inline void addError(const char* message)
     {
-        tileExtractor.errorList.addError(frameError(tileExtractor.siFrameSet, siFrame, message));
+        tileExtractor.errorList.addError(frameError(siFrame, message));
     }
 
     inline void addWarningObj(unsigned oId, const char* message)
     {
-        tileExtractor.errorList.addWarning(frameObjectError(tileExtractor.siFrameSet, siFrame, oId, message));
+        tileExtractor.errorList.addWarning(frameObjectError(siFrame, oId, message));
     }
 };
 }

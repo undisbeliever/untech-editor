@@ -39,7 +39,7 @@ FrameSetDock::FrameSetDock(QWidget* parent)
 
     _ui->tilesetType->populateData(TilesetType::enumMap);
 
-    _ui->frameList->idmapActions().populateToolbar(_ui->frameListButtons);
+    _ui->frameList->namedListActions().populateToolbar(_ui->frameListButtons);
 
     clearGui();
     setEnabled(false);
@@ -91,7 +91,7 @@ void FrameSetDock::setDocument(Document* document)
     if (_document) {
         updateGui();
 
-        _ui->frameList->setAccessor(_document->frameMap());
+        _ui->frameList->setAccessor(_document->frameList());
 
         connect(_document, &Document::nameChanged,
                 this, &FrameSetDock::updateGui);
@@ -101,23 +101,23 @@ void FrameSetDock::setDocument(Document* document)
     else {
         clearGui();
 
-        _ui->frameList->setAccessor<FrameMap>(nullptr);
+        _ui->frameList->setAccessor<FrameList>(nullptr);
     }
 }
 
-const Accessor::IdmapActions& FrameSetDock::frameActions() const
+const Accessor::NamedListActions& FrameSetDock::frameActions() const
 {
-    return _ui->frameList->idmapActions();
+    return _ui->frameList->namedListActions();
 }
 
-Accessor::IdmapListModel* FrameSetDock::frameListModel() const
+Accessor::NamedListModel* FrameSetDock::frameListModel() const
 {
-    return _ui->frameList->idmapListModel();
+    return _ui->frameList->namedListModel();
 }
 
 void FrameSetDock::populateMenu(QMenu* menu)
 {
-    _ui->frameList->idmapActions().populateMenu(menu);
+    _ui->frameList->namedListActions().populateMenu(menu);
     // :: TODO add toggle tileset hitbox here::
 }
 

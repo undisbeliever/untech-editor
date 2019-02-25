@@ -6,8 +6,8 @@
 
 #include "accessors.h"
 #include "msgraphicsscene.h"
-#include "gui-qt/accessor/idmapundohelper.h"
 #include "gui-qt/accessor/listandmultipleselectionundohelper.h"
+#include "gui-qt/accessor/namedlistundohelper.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/pixmapgraphicsitem.h"
@@ -271,33 +271,33 @@ bool PaletteList::editSelectedList_removeSelected()
     return PaletteListUndoHelper(this).removeSelectedItem();
 }
 
-using FrameMapUndoHelper = IdmapAndSelectionUndoHelper<FrameMap>;
+using FrameListUndoHelper = NamedListAndSelectionUndoHelper<FrameList>;
 
-bool FrameMap::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
+bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 {
-    return FrameMapUndoHelper(this).editSelectedItemField(
+    return FrameListUndoHelper(this).editSelectedItemField(
         spriteOrder,
         tr("Edit Sprite Order"),
         [](MS::Frame& f) -> SpriteOrderType& { return f.spriteOrder; });
 }
 
-bool FrameMap::editSelected_setSolid(bool solid)
+bool FrameList::editSelected_setSolid(bool solid)
 {
-    return FrameMapUndoHelper(this).editSelectedItemField(
+    return FrameListUndoHelper(this).editSelectedItemField(
         solid,
         solid ? tr("Enable Tile Hitbox") : tr("Disable Tile Hitbox"),
         [](MS::Frame& f) -> bool& { return f.solid; });
 }
 
-bool FrameMap::editSelected_setTileHitbox(const UnTech::ms8rect& hitbox)
+bool FrameList::editSelected_setTileHitbox(const UnTech::ms8rect& hitbox)
 {
-    return FrameMapUndoHelper(this).editSelectedItemField(
+    return FrameListUndoHelper(this).editSelectedItemField(
         hitbox,
         tr("Edit Tile Hitbox"),
         [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
 }
 
-bool FrameMap::editSelected_toggleTileHitbox()
+bool FrameList::editSelected_toggleTileHitbox()
 {
     if (const MS::Frame* frame = selectedFrame()) {
         return editSelected_setSolid(!frame->solid);
@@ -391,9 +391,9 @@ inline bool FrameObjectList::editAll_shiftTileIds(ObjectSize size, unsigned tile
     QList<QUndoCommand*> commands;
     commands.reserve(fs->frames.size());
 
-    for (const auto& fIt : fs->frames) {
+    for (size_t fIndex = 0; fIndex < fs->frames.size(); fIndex++) {
         QUndoCommand* cmd = FrameObjectListUndoHelper(this).editAllItemsInListCommand(
-            std::make_tuple<MS::Frame*>(&fIt.second),
+            std::make_tuple(fIndex),
             QString(),
             [&](MS::FrameObject& obj, size_t) {
                 if (obj.size == size && obj.tileId >= tileId) {
@@ -467,16 +467,17 @@ bool EntityHitboxList::editSelected_setEntityHitboxType(EntityHitboxType type)
 
 void MsGraphicsScene::commitMovedItems()
 {
-    if (_frame == nullptr) {
+    auto* frame = selectedFrame();
+    if (frame == nullptr) {
         return;
     }
 
     QList<QUndoCommand*> commands;
     commands.reserve(4);
 
-    if (_document->frameMap()->isTileHitboxSelected()) {
+    if (_document->frameList()->isTileHitboxSelected()) {
         ms8rect hitbox = _tileHitbox->rectMs8rect();
-        auto* c = FrameMapUndoHelper(_document->frameMap())
+        auto* c = FrameListUndoHelper(_document->frameList())
                       .editSelectedFieldCommand(hitbox, QString(),
                                                 [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
         if (c != nullptr) {

@@ -310,7 +310,7 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
                         addError("export order for frameSet " + frameSet.name + " is not " + fTable.exportOrder);
                     }
                 }
-                if (displayFrame.isValid() && !frameSet.frames.contains(displayFrame)) {
+                if (displayFrame.isValid() && !frameSet.frames.find(displayFrame)) {
                     addError("Unable to find frame " + displayFrame);
                 }
                 if (defaultPalette >= nPalettes) {

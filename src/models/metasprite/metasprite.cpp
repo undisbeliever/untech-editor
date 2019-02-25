@@ -7,6 +7,7 @@
 #include "metasprite.h"
 #include "errorlisthelpers.h"
 #include "models/common/errorlist.h"
+#include "models/common/validateunique.h"
 #include <algorithm>
 
 using namespace UnTech;
@@ -22,10 +23,13 @@ inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
 {
     bool valid = true;
     auto addError = [&](const std::string& msg) {
-        errorList.addError(frameError(fs, *this, msg));
+        errorList.addError(frameError(*this, msg));
         valid = false;
     };
 
+    if (!name.isValid()) {
+        addError("Missing name");
+    }
     if (objects.size() > MAX_FRAME_OBJECTS) {
         addError("Too many frame objects");
     }
@@ -42,7 +46,7 @@ inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
         size_t tsSize = obj.size == ObjectSize::SMALL ? fs.smallTileset.size()
                                                       : fs.largeTileset.size();
         if (obj.tileId > tsSize) {
-            errorList.addError(frameObjectError(fs, *this, i, "Invalid tileId"));
+            errorList.addError(frameObjectError(*this, i, "Invalid tileId"));
             valid = false;
         }
     }
@@ -51,7 +55,7 @@ inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
         const EntityHitbox& eh = entityHitboxes.at(i);
 
         if (eh.aabb.width == 0 || eh.aabb.height == 0) {
-            errorList.addError(entityHitboxError(fs, *this, i, "aabb has no size"));
+            errorList.addError(entityHitboxError(*this, i, "aabb has no size"));
             valid = false;
         }
     }
@@ -157,12 +161,15 @@ bool FrameSet::validate(ErrorList& errorList) const
         addError("Too many animations in frameSet");
     }
 
-    for (auto&& it : frames) {
-        valid &= it.second.validate(errorList, *this);
+    valid &= validateNamesUnique(frames, "frame", errorList);
+    valid &= validateNamesUnique(animations, "animation", errorList);
+
+    for (auto& frame : frames) {
+        valid &= frame.validate(errorList, *this);
     }
 
-    for (auto&& it : animations) {
-        valid &= it.second.validate(*this, errorList);
+    for (auto& ani : animations) {
+        valid &= ani.validate(*this, errorList);
     }
 
     return valid;
@@ -170,24 +177,12 @@ bool FrameSet::validate(ErrorList& errorList) const
 
 bool FrameSet::operator==(const FrameSet& o) const
 {
-    auto testMap = [](const auto& aMap, const auto& bMap) -> bool {
-        for (const auto& aIt : aMap) {
-            const auto* bValue = bMap.getPtr(aIt.first);
-
-            if (bValue == nullptr || aIt.second != *bValue) {
-                return false;
-            }
-        }
-
-        return true;
-    };
-
     return name == o.name
            && tilesetType == o.tilesetType
            && exportOrder == o.exportOrder
            && smallTileset == o.smallTileset
            && largeTileset == o.largeTileset
            && palettes == o.palettes
-           && testMap(frames, o.frames)
-           && testMap(animations, o.animations);
+           && frames == o.frames
+           && animations == o.animations;
 }

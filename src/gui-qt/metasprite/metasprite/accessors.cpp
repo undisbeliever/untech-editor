@@ -6,7 +6,6 @@
 
 #include "accessors.h"
 #include "gui-qt/accessor/multipleselectedindexeshelper.h"
-#include "gui-qt/accessor/selectedidmapitemhelper.h"
 #include "gui-qt/accessor/selectedindexhelper.h"
 
 using namespace UnTech::GuiQt::Accessor;
@@ -91,16 +90,16 @@ const PaletteList::DataT* PaletteList::selectedPalette() const
     return &pl->at(_selectedIndex);
 }
 
-FrameMap::FrameMap(Document* document)
+FrameList::FrameList(Document* document)
     : QObject(document)
     , _document(document)
-    , _selectedId()
-    , _selectedItem(nullptr)
+    , _selectedIndex(INT_MAX)
+    , _tileHitboxSelected(false)
 {
-    SelectedIdmapItemHelper::buildAndConnectSlots(this);
+    SelectedIndexHelper::buildAndConnectSlots_NamedList(this);
 }
 
-void FrameMap::setTileHitboxSelected(bool s)
+void FrameList::setTileHitboxSelected(bool s)
 {
     if (_tileHitboxSelected != s) {
         _tileHitboxSelected = s;
@@ -108,34 +107,40 @@ void FrameMap::setTileHitboxSelected(bool s)
     }
 }
 
-void FrameMap::setSelectedId(const UnTech::idstring& id)
+void FrameList::setSelectedId(const UnTech::idstring& id)
 {
-    if (_selectedId != id) {
-        MapT* map = getMap();
-        if (map == nullptr) {
-            unselectItem();
-            return;
-        }
-
-        setTileHitboxSelected(false);
-
-        _selectedItem = map->getPtr(id);
-        _selectedId = _selectedItem ? id : idstring();
-
-        emit selectedItemChanged();
+    if (auto* list = this->list()) {
+        setSelectedIndex(list->indexOf(id));
+    }
+    else {
+        unselectItem();
     }
 }
 
-void FrameMap::unselectItem()
+void FrameList::setSelectedIndex(index_type index)
 {
-    if (_selectedId.isValid() || _selectedItem != nullptr) {
-        setTileHitboxSelected(false);
-
-        _selectedId = idstring();
-        _selectedItem = nullptr;
-
-        emit selectedItemChanged();
+    if (_selectedIndex != index) {
+        _selectedIndex = index;
+        emit selectedIndexChanged();
     }
+}
+
+bool FrameList::isFrameSelected() const
+{
+    auto* frames = list();
+    if (frames == nullptr) {
+        return false;
+    }
+    return _selectedIndex < frames->size();
+}
+
+MS::Frame* FrameList::selectedItemEditable()
+{
+    auto* frames = getList();
+    if (_selectedIndex >= frames->size()) {
+        return nullptr;
+    }
+    return &frames->at(_selectedIndex);
 }
 
 AbstractFrameContentAccessor::AbstractFrameContentAccessor(Document* document)
@@ -145,7 +150,7 @@ AbstractFrameContentAccessor::AbstractFrameContentAccessor(Document* document)
 {
     MultipleSelectedIndexesHelper::buildAndConnectSlots(this);
 
-    connect(_document->frameMap(), &FrameMap::selectedItemChanged,
+    connect(_document->frameList(), &FrameList::selectedIndexChanged,
             this, [this]() {
                 clearSelection();
                 emit selectedListChanged();

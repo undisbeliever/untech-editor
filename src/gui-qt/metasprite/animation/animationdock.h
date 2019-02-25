@@ -33,8 +33,8 @@ public:
     explicit AnimationDock(QWidget* parent = nullptr);
     ~AnimationDock();
 
-    const Accessor::IdmapActions& actions() const;
-    Accessor::IdmapListModel* animationListModel();
+    const Accessor::NamedListActions& actions() const;
+    Accessor::NamedListModel* animationListModel();
 
     void setDocument(AbstractMsDocument* document);
 
@@ -43,7 +43,7 @@ public:
     void selectAnimationFrame(unsigned index);
 
 private slots:
-    void onAnimationDataChanged(const void* animation);
+    void onAnimationDataChanged(size_t animationIndex);
 
     void updateGui();
 

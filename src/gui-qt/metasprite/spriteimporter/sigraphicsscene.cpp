@@ -41,8 +41,6 @@ SiGraphicsScene::SiGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     _paletteOutline->setZValue(PALETTE_ZVALUE);
     addItem(_paletteOutline);
 
-    onLayerSettingsChanged();
-
     connect(this, &SiGraphicsScene::selectionChanged,
             this, &SiGraphicsScene::onSceneSelectionChanged);
 
@@ -58,7 +56,7 @@ void SiGraphicsScene::setDocument(Document* document)
 
     if (_document != nullptr) {
         _document->disconnect(this);
-        _document->frameMap()->disconnect(this);
+        _document->frameList()->disconnect(this);
         _document->frameObjectList()->disconnect(this);
         _document->actionPointList()->disconnect(this);
         _document->entityHitboxList()->disconnect(this);
@@ -83,7 +81,7 @@ void SiGraphicsScene::setDocument(Document* document)
         updateEntityHitboxSelection();
         updateTileHitboxSelection();
 
-        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
+        connect(_document->frameList(), &FrameList::selectedIndexChanged,
                 this, &SiGraphicsScene::onSelectedFrameChanged);
 
         connect(_document, &Document::externalFilesModified,
@@ -93,14 +91,14 @@ void SiGraphicsScene::setDocument(Document* document)
         connect(_document, &Document::frameSetGridChanged,
                 this, &SiGraphicsScene::onFrameSetGridChanged);
 
-        connect(_document->frameMap(), &FrameMap::itemAdded,
+        connect(_document->frameList(), &FrameList::itemAdded,
                 this, &SiGraphicsScene::onFrameAdded);
-        connect(_document->frameMap(), &FrameMap::itemAboutToBeRemoved,
+        connect(_document->frameList(), &FrameList::itemAboutToBeRemoved,
                 this, &SiGraphicsScene::onFrameAboutToBeRemoved);
 
-        connect(_document->frameMap(), &FrameMap::frameLocationChanged,
+        connect(_document->frameList(), &FrameList::frameLocationChanged,
                 this, &SiGraphicsScene::onFrameLocationChanged);
-        connect(_document->frameMap(), &FrameMap::dataChanged,
+        connect(_document->frameList(), &FrameList::dataChanged,
                 this, &SiGraphicsScene::onFrameDataChanged);
 
         connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
@@ -110,7 +108,7 @@ void SiGraphicsScene::setDocument(Document* document)
         connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
                 this, &SiGraphicsScene::updateEntityHitboxSelection);
 
-        connect(_document->frameMap(), &FrameMap::tileHitboxSelectedChanged,
+        connect(_document->frameList(), &FrameList::tileHitboxSelectedChanged,
                 this, &SiGraphicsScene::updateTileHitboxSelection);
 
         connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
@@ -137,7 +135,7 @@ void SiGraphicsScene::drawForeground(QPainter* painter, const QRectF& rect)
         return;
     }
 
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
+    const SI::Frame* frame = _document->frameList()->selectedFrame();
     if (frame != nullptr) {
         const urect& fLoc = frame->location.aabb;
 
@@ -185,21 +183,23 @@ void SiGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
         if (press == release) {
             if (press) {
-                idstring frameId = _document->frameSet()->frames.getId(press->frame());
-                _document->frameMap()->setSelectedId(frameId);
+                size_t frameIndex = _frameItems.indexOf(press);
+                _document->frameList()->setSelectedIndex(frameIndex);
             }
             else {
-                _document->frameMap()->unselectItem();
+                _document->frameList()->unselectItem();
             }
         }
     }
 }
 void SiGraphicsScene::onSelectedFrameChanged()
 {
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
+    size_t frameIndex = _document->frameList()->selectedIndex();
 
-    for (SiFrameGraphicsItem* item : _frameItems) {
-        bool s = item->frame() == frame;
+    for (int i = 0; i < _frameItems.size(); i++) {
+        SiFrameGraphicsItem* item = _frameItems.at(i);
+
+        bool s = frameIndex == unsigned(i);
         item->setFrameSelected(s);
 
         // Selected frame is always on top
@@ -220,10 +220,10 @@ void SiGraphicsScene::updateSelection(F method,
     Q_ASSERT(_inUpdateSelection == false);
     _inUpdateSelection = true;
 
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
-    SiFrameGraphicsItem* frameItem = _frameItems.value(frame);
+    const size_t frameIndex = _document->frameList()->selectedIndex();
+    SiFrameGraphicsItem* frameItem = _frameItems.value(frameIndex);
 
-    if (frameItem != nullptr) {
+    if (frameItem) {
         auto f = std::mem_fn(method);
         f(frameItem, selectedIndexes);
     }
@@ -258,10 +258,10 @@ void SiGraphicsScene::updateTileHitboxSelection()
     Q_ASSERT(_inUpdateSelection == false);
     _inUpdateSelection = true;
 
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
-    bool hbSelected = _document->frameMap()->isTileHitboxSelected();
+    const size_t frameIndex = _document->frameList()->selectedIndex();
+    bool hbSelected = _document->frameList()->isTileHitboxSelected();
 
-    SiFrameGraphicsItem* frameItem = _frameItems.value(frame);
+    SiFrameGraphicsItem* frameItem = _frameItems.value(frameIndex);
     if (frameItem) {
         frameItem->updateTileHitboxSelected(hbSelected);
     }
@@ -275,8 +275,8 @@ void SiGraphicsScene::onSceneSelectionChanged()
         return;
     }
 
-    const SI::Frame* frame = _document->frameMap()->selectedFrame();
-    const SiFrameGraphicsItem* frameItem = _frameItems.value(frame);
+    const size_t frameIndex = _document->frameList()->selectedIndex();
+    const SiFrameGraphicsItem* frameItem = _frameItems.value(frameIndex);
 
     if (frameItem == nullptr) {
         return;
@@ -305,7 +305,7 @@ void SiGraphicsScene::onSceneSelectionChanged()
     _document->actionPointList()->setSelectedIndexes(getSelected(frameItem->actionPoints()));
     _document->entityHitboxList()->setSelectedIndexes(getSelected(frameItem->entityHitboxes()));
 
-    _document->frameMap()->setTileHitboxSelected(frameItem->tileHitbox()->isSelected());
+    _document->frameList()->setTileHitboxSelected(frameItem->tileHitbox()->isSelected());
 
     _inOnSceneSelectionChanged = false;
 }
@@ -371,11 +371,9 @@ void SiGraphicsScene::buildFrameItems()
     removeAllFrameItems();
 
     if (_document) {
-        for (auto it : _document->frameSet()->frames) {
-            SI::Frame* frame = &it.second;
-
+        for (const SI::Frame& frame : _document->frameSet()->frames) {
             auto* frameItem = new SiFrameGraphicsItem(frame, _frameContextMenu.data(), _style);
-            _frameItems.insert(frame, frameItem);
+            _frameItems.append(frameItem);
             frameItem->setVisible(FRAME_ZVALUE);
             addItem(frameItem);
         }
@@ -386,83 +384,94 @@ void SiGraphicsScene::buildFrameItems()
 
 void SiGraphicsScene::onLayerSettingsChanged()
 {
-    for (SiFrameGraphicsItem* item : _frameItems) {
-        item->updateLayerSettings(_layerSettings);
+    Q_ASSERT(_document);
+    Q_ASSERT(_document->frameSet());
+    const auto& frames = _document->frameSet()->frames;
+
+    for (int i = 0; i < _frameItems.size(); i++) {
+        auto* frameItem = _frameItems.at(i);
+        auto& frame = frames.at(i);
+        frameItem->updateLayerSettings(frame, _layerSettings);
     }
 }
 
 void SiGraphicsScene::onFrameSetGridChanged()
 {
-    for (SiFrameGraphicsItem* frameItem : _frameItems) {
-        frameItem->updateFrameLocation();
+    Q_ASSERT(_document);
+    Q_ASSERT(_document->frameSet());
+    const auto& frames = _document->frameSet()->frames;
+
+    for (int i = 0; i < _frameItems.size(); i++) {
+        auto* frameItem = _frameItems.at(i);
+        auto& frame = frames.at(i);
+        frameItem->updateFrameLocation(frame);
     }
 
     setSceneRect(itemsBoundingRect());
 }
 
-void SiGraphicsScene::onFrameAdded(const idstring& id)
+void SiGraphicsScene::onFrameAdded(size_t frameIndex)
 {
-    SI::Frame* frame = _document->frameSet()->frames.getPtr(id);
-    if (frame) {
-        auto* frameItem = new SiFrameGraphicsItem(frame, _frameContextMenu.data(), _style);
-        _frameItems.insert(frame, frameItem);
-        frameItem->setVisible(FRAME_ZVALUE);
-        addItem(frameItem);
-    }
+    Q_ASSERT(_document);
+    Q_ASSERT(_document->frameSet());
+    SI::Frame& frame = _document->frameSet()->frames.at(frameIndex);
+
+    auto* frameItem = new SiFrameGraphicsItem(frame, _frameContextMenu.data(), _style);
+    _frameItems.insert(frameIndex, frameItem);
+    frameItem->setVisible(FRAME_ZVALUE);
+    addItem(frameItem);
 }
 
-void SiGraphicsScene::onFrameAboutToBeRemoved(const idstring& frameId)
+void SiGraphicsScene::onFrameAboutToBeRemoved(size_t frameIndex)
 {
-    const SI::Frame* frame = _document->frameSet()->frames.getPtr(frameId);
+    Q_ASSERT(frameIndex < unsigned(_frameItems.size()));
 
-    auto it = _frameItems.find(frame);
-    if (it != _frameItems.end()) {
-        SiFrameGraphicsItem* frameItem = it.value();
-        _frameItems.erase(it);
+    SiFrameGraphicsItem* frameItem = _frameItems.takeAt(frameIndex);
 
-        // cannot call `this->removeItem(frameItem);` here (despite the Qt docs
-        // recomending it) as it causes a use after free segfault.
-        delete frameItem;
-    }
+    // cannot call `this->removeItem(frameItem);` here (despite the Qt docs
+    // recomending it) as it causes a use after free segfault.
+    delete frameItem;
 }
 
-void SiGraphicsScene::onFrameLocationChanged(const void* framePtr)
+void SiGraphicsScene::onFrameLocationChanged(size_t frameIndex)
 {
-    auto it = _frameItems.find(framePtr);
-    if (it != _frameItems.end()) {
-        it.value()->updateFrameLocation();
-    }
+    Q_ASSERT(_document);
+    Q_ASSERT(_document->frameSet());
+    SI::Frame& frame = _document->frameSet()->frames.at(frameIndex);
+
+    _frameItems.at(frameIndex)->updateFrameLocation(frame);
 
     setSceneRect(itemsBoundingRect());
     update();
 }
 
-void SiGraphicsScene::onFrameDataChanged(const void* framePtr)
+void SiGraphicsScene::onFrameDataChanged(size_t frameIndex)
 {
-    auto it = _frameItems.find(framePtr);
-    if (it != _frameItems.end()) {
-        it.value()->onFrameDataChanged();
-    }
+    Q_ASSERT(_document);
+    Q_ASSERT(_document->frameSet());
+    SI::Frame& frame = _document->frameSet()->frames.at(frameIndex);
+
+    _frameItems.at(frameIndex)->onFrameDataChanged(frame);
 }
 
-#define FRAME_CHILDREN_SLOTS(CLS)               \
-    void SiGraphicsScene::on##CLS##Changed(     \
-        const void* framePtr, size_t index)     \
-    {                                           \
-        auto it = _frameItems.find(framePtr);   \
-        if (it != _frameItems.end()) {          \
-            it.value()->update##CLS(index);     \
-        }                                       \
-    }                                           \
-                                                \
-    void SiGraphicsScene::on##CLS##ListChanged( \
-        const void* framePtr)                   \
-    {                                           \
-        auto it = _frameItems.find(framePtr);   \
-        if (it != _frameItems.end()) {          \
-            it.value()->on##CLS##ListChanged(); \
-        }                                       \
+#define FRAME_CHILDREN_SLOTS(CLS, FRAME_LIST)                                       \
+    void SiGraphicsScene::on##CLS##Changed(                                         \
+        size_t frameIndex, size_t index)                                            \
+    {                                                                               \
+        auto* frames = _document->frameList()->list();                              \
+        Q_ASSERT(frames);                                                           \
+        const SI::Frame& frame = frames->at(frameIndex);                            \
+        _frameItems.at(frameIndex)->update##CLS(index, frame.FRAME_LIST.at(index)); \
+    }                                                                               \
+                                                                                    \
+    void SiGraphicsScene::on##CLS##ListChanged(                                     \
+        size_t frameIndex)                                                          \
+    {                                                                               \
+        auto* frames = _document->frameList()->list();                              \
+        Q_ASSERT(frames);                                                           \
+        const SI::Frame& frame = frames->at(frameIndex);                            \
+        _frameItems.at(frameIndex)->on##CLS##ListChanged(frame);                    \
     }
-FRAME_CHILDREN_SLOTS(FrameObject)
-FRAME_CHILDREN_SLOTS(ActionPoint)
-FRAME_CHILDREN_SLOTS(EntityHitbox)
+FRAME_CHILDREN_SLOTS(FrameObject, objects)
+FRAME_CHILDREN_SLOTS(ActionPoint, actionPoints)
+FRAME_CHILDREN_SLOTS(EntityHitbox, entityHitboxes)

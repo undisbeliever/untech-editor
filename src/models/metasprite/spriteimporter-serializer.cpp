@@ -138,8 +138,10 @@ private:
     {
         assert(tag->name == "frame");
 
-        std::string id = tag->getAttributeUniqueId("id", frameSet.frames);
-        Frame& frame = frameSet.frames.create(id);
+        frameSet.frames.insert_back();
+        Frame& frame = frameSet.frames.back();
+
+        frame.name = tag->getAttributeId("id");
 
         if (tag->hasAttribute("order")) {
             frame.spriteOrder = tag->getAttributeUnsigned("order", 0, frame.spriteOrder.MASK);
@@ -262,11 +264,11 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag* tag)
  * ================
  */
 
-inline void writeFrame(XmlWriter& xml, const std::string& frameName, const Frame& frame)
+inline void writeFrame(XmlWriter& xml, const Frame& frame)
 {
     xml.writeTag("frame");
 
-    xml.writeTagAttribute("id", frameName);
+    xml.writeTagAttribute("id", frame.name);
     xml.writeTagAttribute("order", frame.spriteOrder);
 
     if (frame.location.useGridLocation) {
@@ -369,8 +371,8 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
         xml.writeCloseTag();
     }
 
-    for (const auto& f : frameSet.frames) {
-        writeFrame(xml, f.first, f.second);
+    for (const auto& frame : frameSet.frames) {
+        writeFrame(xml, frame);
     }
 
     Animation::writeAnimations(xml, frameSet.animations);

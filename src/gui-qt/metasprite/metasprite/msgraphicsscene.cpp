@@ -36,7 +36,7 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings,
     , _horizontalOrigin(new QGraphicsLineItem())
     , _verticalOrigin(new QGraphicsLineItem())
     , _document(nullptr)
-    , _frame(nullptr)
+    , _frameIndex(INT_MAX)
     , _inUpdateSelection(false)
     , _inOnSceneSelectionChanged(false)
 {
@@ -82,14 +82,14 @@ void MsGraphicsScene::setDocument(Document* document)
     }
 
     if (_document != nullptr) {
-        _document->frameMap()->disconnect(this);
+        _document->frameList()->disconnect(this);
         _document->frameObjectList()->disconnect(this);
         _document->actionPointList()->disconnect(this);
         _document->entityHitboxList()->disconnect(this);
     }
     _document = document;
 
-    setFrame(nullptr);
+    setFrameIndex(INT_MAX);
 
     if (_document) {
         onSelectedFrameChanged();
@@ -98,7 +98,7 @@ void MsGraphicsScene::setDocument(Document* document)
         updateActionPointSelection();
         updateEntityHitboxSelection();
 
-        connect(_document->frameMap(), &FrameMap::selectedItemChanged,
+        connect(_document->frameList(), &FrameList::selectedIndexChanged,
                 this, &MsGraphicsScene::onSelectedFrameChanged);
 
         connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
@@ -108,10 +108,10 @@ void MsGraphicsScene::setDocument(Document* document)
         connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
                 this, &MsGraphicsScene::updateEntityHitboxSelection);
 
-        connect(_document->frameMap(), &FrameMap::tileHitboxSelectedChanged,
+        connect(_document->frameList(), &FrameList::tileHitboxSelectedChanged,
                 this, &MsGraphicsScene::updateTileHitboxSelection);
 
-        connect(_document->frameMap(), &FrameMap::dataChanged,
+        connect(_document->frameList(), &FrameList::dataChanged,
                 this, &MsGraphicsScene::onFrameDataChanged);
 
         connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
@@ -132,10 +132,12 @@ void MsGraphicsScene::setDocument(Document* document)
     }
 }
 
-void MsGraphicsScene::setFrame(const MS::Frame* frame)
+void MsGraphicsScene::setFrameIndex(size_t frameIndex)
 {
-    if (_frame != frame) {
-        _frame = frame;
+    if (_frameIndex != frameIndex) {
+        _frameIndex = frameIndex;
+
+        auto* frame = selectedFrame();
 
         _tileHitbox->setVisible(false);
         qDeleteAll(_objects);
@@ -146,20 +148,20 @@ void MsGraphicsScene::setFrame(const MS::Frame* frame)
         _actionPoints.clear();
         _entityHitboxes.clear();
 
-        bool showOrigin = _frame && _layerSettings->showOrigin();
+        bool showOrigin = frame && _layerSettings->showOrigin();
         _horizontalOrigin->setVisible(showOrigin);
         _verticalOrigin->setVisible(showOrigin);
 
-        if (_frame != nullptr) {
+        if (frame) {
             setSceneRect(int_ms8_t::MIN, int_ms8_t::MIN, 256, 256);
 
             updateTileHitbox();
             updateTileHitboxSelection();
 
             // rebuild item lists
-            onFrameObjectListChanged(frame);
-            onActionPointListChanged(frame);
-            onEntityHitboxListChanged(frame);
+            onFrameObjectListChanged(_frameIndex);
+            onActionPointListChanged(_frameIndex);
+            onEntityHitboxListChanged(_frameIndex);
         }
         else {
             setSceneRect(QRect());
@@ -167,6 +169,28 @@ void MsGraphicsScene::setFrame(const MS::Frame* frame)
 
         update();
     }
+}
+
+bool MsGraphicsScene::selectedFrameValid() const
+{
+    return _document
+           && _document->frameSet()
+           && _frameIndex < _document->frameSet()->frames.size();
+}
+
+const MS::Frame* MsGraphicsScene::selectedFrame() const
+{
+    if (_document == nullptr) {
+        return nullptr;
+    }
+    auto* fs = _document->frameSet();
+    if (fs == nullptr) {
+        return nullptr;
+    }
+    if (_frameIndex >= fs->frames.size()) {
+        return nullptr;
+    }
+    return &fs->frames.at(_frameIndex);
 }
 
 void MsGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
@@ -180,24 +204,24 @@ void MsGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void MsGraphicsScene::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-    if (_document && _frame) {
+    if (selectedFrame()) {
         _contextMenu->exec(event->screenPos());
     }
 }
 
 void MsGraphicsScene::updateTileHitbox()
 {
-    _tileHitbox->setVisible(_layerSettings->showTileHitbox() & _frame->solid);
+    auto* frame = selectedFrame();
+    Q_ASSERT(frame);
 
-    _tileHitbox->setRect(_frame->tileHitbox);
+    _tileHitbox->setVisible(_layerSettings->showTileHitbox() & frame->solid);
+    _tileHitbox->setRect(frame->tileHitbox);
 }
 
-void MsGraphicsScene::addFrameObject()
+void MsGraphicsScene::addFrameObject(const MS::Frame& frame)
 {
-    Q_ASSERT(_frame);
-
     unsigned index = _objects.size();
-    Q_ASSERT(index < _frame->objects.size());
+    Q_ASSERT(index < frame.objects.size());
 
     auto* item = new PixmapGraphicsItem();
     _objects.insert(index, item);
@@ -208,16 +232,15 @@ void MsGraphicsScene::addFrameObject()
     item->setFlag(QGraphicsItem::ItemIsSelectable);
     item->setFlag(QGraphicsItem::ItemIsMovable);
 
-    updateFrameObject(index);
+    updateFrameObject(index, frame.objects.at(index));
 
     addItem(item);
 }
 
-void MsGraphicsScene::updateFrameObject(unsigned index)
+void MsGraphicsScene::updateFrameObject(unsigned index, const UnTech::MetaSprite::MetaSprite::FrameObject& obj)
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    const MS::FrameObject& obj = _frame->objects.at(index);
     auto* item = _objects.at(index);
 
     if (obj.size == ObjSize::SMALL) {
@@ -230,12 +253,10 @@ void MsGraphicsScene::updateFrameObject(unsigned index)
     item->setPos(obj.location);
 }
 
-void MsGraphicsScene::addActionPoint()
+void MsGraphicsScene::addActionPoint(const MS::Frame& frame)
 {
-    Q_ASSERT(_frame);
-
     unsigned index = _actionPoints.size();
-    Q_ASSERT(index < _frame->actionPoints.size());
+    Q_ASSERT(index < frame.actionPoints.size());
 
     auto* item = new AabbGraphicsItem();
     _actionPoints.append(item);
@@ -249,25 +270,22 @@ void MsGraphicsScene::addActionPoint()
     item->setPen(_style->actionPointPen());
     item->setBrush(_style->actionPointBrush());
 
-    updateActionPoint(index);
+    updateActionPoint(index, frame.actionPoints.at(index));
 
     addItem(item);
 }
 
-void MsGraphicsScene::updateActionPoint(unsigned index)
+void MsGraphicsScene::updateActionPoint(unsigned index, const UnTech::MetaSprite::MetaSprite::ActionPoint& ap)
 {
-    const MS::ActionPoint& ap = _frame->actionPoints.at(index);
     auto* item = _actionPoints.at(index);
 
     item->setPos(ap.location);
 }
 
-void MsGraphicsScene::addEntityHitbox()
+void MsGraphicsScene::addEntityHitbox(const MS::Frame& frame)
 {
-    Q_ASSERT(_frame);
-
     unsigned index = _entityHitboxes.size();
-    Q_ASSERT(index < _frame->entityHitboxes.size());
+    Q_ASSERT(index < frame.entityHitboxes.size());
 
     auto* item = new ResizableAabbGraphicsItem();
     _entityHitboxes.append(item);
@@ -278,14 +296,13 @@ void MsGraphicsScene::addEntityHitbox()
     item->setFlag(QGraphicsItem::ItemIsSelectable);
     item->setFlag(QGraphicsItem::ItemIsMovable);
 
-    updateEntityHitbox(index);
+    updateEntityHitbox(index, frame.entityHitboxes.at(index));
 
     addItem(item);
 }
 
-void MsGraphicsScene::updateEntityHitbox(unsigned index)
+void MsGraphicsScene::updateEntityHitbox(unsigned index, const UnTech::MetaSprite::MetaSprite::EntityHitbox& eh)
 {
-    const MS::EntityHitbox& eh = _frame->entityHitboxes.at(index);
     auto* item = _entityHitboxes.at(index);
 
     item->setPen(_style->entityHitboxPen(eh.hitboxType));
@@ -297,10 +314,12 @@ void MsGraphicsScene::updateEntityHitbox(unsigned index)
 
 void MsGraphicsScene::onLayerSettingsChanged()
 {
-    bool solid = _frame && _frame->solid;
+    auto* frame = selectedFrame();
+
+    bool solid = frame && frame->solid;
     _tileHitbox->setVisible(_layerSettings->showTileHitbox() & solid);
 
-    bool showOrigin = _frame && _layerSettings->showOrigin();
+    bool showOrigin = frame && _layerSettings->showOrigin();
     _horizontalOrigin->setVisible(showOrigin);
     _verticalOrigin->setVisible(showOrigin);
 
@@ -319,14 +338,14 @@ void MsGraphicsScene::onLayerSettingsChanged()
 
 void MsGraphicsScene::onSelectedFrameChanged()
 {
-    setFrame(_document->frameMap()->selectedFrame());
+    setFrameIndex(_document->frameList()->selectedIndex());
 }
 
 template <class T>
 void MsGraphicsScene::updateSelection(QList<T>& items,
                                       const vectorset<size_t>& selectedIndexes)
 {
-    if (_frame == nullptr || _inOnSceneSelectionChanged) {
+    if (!selectedFrameValid() || _inOnSceneSelectionChanged) {
         return;
     }
 
@@ -358,14 +377,14 @@ void MsGraphicsScene::updateEntityHitboxSelection()
 
 void MsGraphicsScene::updateTileHitboxSelection()
 {
-    if (_frame == nullptr || _inOnSceneSelectionChanged) {
+    if (!selectedFrameValid() || _inOnSceneSelectionChanged) {
         return;
     }
 
     Q_ASSERT(_inUpdateSelection == false);
     _inUpdateSelection = true;
 
-    bool hbSelected = _document->frameMap()->isTileHitboxSelected();
+    bool hbSelected = _document->frameList()->isTileHitboxSelected();
 
     _tileHitbox->setSelected(hbSelected);
 
@@ -374,7 +393,7 @@ void MsGraphicsScene::updateTileHitboxSelection()
 
 void MsGraphicsScene::onSceneSelectionChanged()
 {
-    if (_frame == nullptr || _inUpdateSelection) {
+    if (!selectedFrameValid() || _inUpdateSelection) {
         return;
     }
 
@@ -399,54 +418,60 @@ void MsGraphicsScene::onSceneSelectionChanged()
     _document->actionPointList()->setSelectedIndexes(getSelected(_actionPoints));
     _document->entityHitboxList()->setSelectedIndexes(getSelected(_entityHitboxes));
 
-    _document->frameMap()->setTileHitboxSelected(_tileHitbox->isSelected());
+    _document->frameList()->setTileHitboxSelected(_tileHitbox->isSelected());
 
     _inOnSceneSelectionChanged = false;
 }
 
 void MsGraphicsScene::onTilesetPixmapsChanged()
 {
-    for (int i = 0; i < _objects.size(); i++) {
-        updateFrameObject(i);
+    if (auto* frame = selectedFrame()) {
+        for (int i = 0; i < _objects.size(); i++) {
+            updateFrameObject(i, frame->objects.at(i));
+        }
     }
 }
 
-void MsGraphicsScene::onFrameDataChanged(const void* framePtr)
+void MsGraphicsScene::onFrameDataChanged(size_t frameIndex)
 {
-    if (framePtr == _frame) {
+    if (_frameIndex == frameIndex) {
         updateTileHitbox();
     }
 }
 
-#define FRAME_CHILDREN_SLOTS(CLS, ITEM_LIST, FRAME_LIST)             \
-    void MsGraphicsScene::on##CLS##Changed(                          \
-        const void* framePtr, size_t index)                          \
-    {                                                                \
-        if (_frame == framePtr) {                                    \
-            update##CLS(index);                                      \
-        }                                                            \
-    }                                                                \
-                                                                     \
-    void MsGraphicsScene::on##CLS##ListChanged(const void* framePtr) \
-    {                                                                \
-        if (_frame != framePtr) {                                    \
-            return;                                                  \
-        }                                                            \
-                                                                     \
-        int flSize = _frame->FRAME_LIST.size();                      \
-                                                                     \
-        while (ITEM_LIST.size() > flSize) {                          \
-            auto* item = ITEM_LIST.takeLast();                       \
-            delete item;                                             \
-        }                                                            \
-                                                                     \
-        for (int i = 0; i < ITEM_LIST.size(); i++) {                 \
-            update##CLS(i);                                          \
-        }                                                            \
-                                                                     \
-        while (ITEM_LIST.size() < flSize) {                          \
-            add##CLS();                                              \
-        }                                                            \
+#define FRAME_CHILDREN_SLOTS(CLS, ITEM_LIST, FRAME_LIST)          \
+    void MsGraphicsScene::on##CLS##Changed(                       \
+        size_t frameIndex, size_t index)                          \
+    {                                                             \
+        if (_frameIndex == frameIndex) {                          \
+            auto* frame = selectedFrame();                        \
+            Q_ASSERT(frame);                                      \
+            update##CLS(index, frame->FRAME_LIST.at(index));      \
+        }                                                         \
+    }                                                             \
+                                                                  \
+    void MsGraphicsScene::on##CLS##ListChanged(size_t frameIndex) \
+    {                                                             \
+        if (_frameIndex != frameIndex) {                          \
+            return;                                               \
+        }                                                         \
+                                                                  \
+        auto* frame = selectedFrame();                            \
+        Q_ASSERT(frame);                                          \
+        int flSize = frame->FRAME_LIST.size();                    \
+                                                                  \
+        while (ITEM_LIST.size() > flSize) {                       \
+            auto* item = ITEM_LIST.takeLast();                    \
+            delete item;                                          \
+        }                                                         \
+                                                                  \
+        for (int i = 0; i < ITEM_LIST.size(); i++) {              \
+            update##CLS(i, frame->FRAME_LIST.at(i));              \
+        }                                                         \
+                                                                  \
+        while (ITEM_LIST.size() < flSize) {                       \
+            add##CLS(*frame);                                     \
+        }                                                         \
     }
 FRAME_CHILDREN_SLOTS(FrameObject, _objects, objects)
 FRAME_CHILDREN_SLOTS(ActionPoint, _actionPoints, actionPoints)

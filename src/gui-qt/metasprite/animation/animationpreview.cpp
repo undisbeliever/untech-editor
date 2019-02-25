@@ -8,7 +8,7 @@
 #include "animationaccessors.h"
 #include "animationdock.h"
 #include "animationpreviewitem.h"
-#include "gui-qt/accessor/idmaplistmodel.h"
+#include "gui-qt/accessor/namedlistmodel.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/animation/animationpreview.ui.h"
@@ -159,7 +159,7 @@ void AnimationPreview::createPreviewItem()
     onRegionChanged();
     onVelocityChanged();
 
-    _previewItem->setAnimation(_document->animationsMap()->selectedId());
+    _previewItem->setAnimationIndex(_document->animationsList()->selectedIndex());
 
     updateGui();
 }
@@ -218,17 +218,17 @@ void AnimationPreview::onSelectedAnimationChanged()
 {
     Q_ASSERT(_document);
 
-    const idstring& id = _document->animationsMap()->selectedId();
+    const size_t aniIndex = _document->animationsList()->selectedIndex();
 
     _ui->animation->setCurrentIndex(
-        _animationListModel->toModelIndex(id).row());
+        _animationListModel->toModelIndex(aniIndex).row());
 
-    if (id.isValid()) {
+    if (_document->animationsList()->isSelectedIndexValid()) {
         if (_previewItem == nullptr) {
             createPreviewItem();
         }
         else {
-            _previewItem->setAnimation(id);
+            _previewItem->setAnimationIndex(aniIndex);
             updateGui();
         }
     }
@@ -248,7 +248,7 @@ void AnimationPreview::onAnimationFramesChanged()
 void AnimationPreview::onAnimationComboActivated()
 {
     const idstring id = _ui->animation->currentText().toStdString();
-    _document->animationsMap()->setSelectedId(id);
+    _document->animationsList()->setSelectedId(id);
 }
 
 void AnimationPreview::onVelocityChanged()

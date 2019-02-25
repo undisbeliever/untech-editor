@@ -11,9 +11,9 @@
 #include "tilesettype.h"
 #include "animation/animation.h"
 #include "models/common/aabb.h"
-#include "models/common/idmap.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
+#include "models/common/namedlist.h"
 #include <string>
 #include <vector>
 
@@ -81,7 +81,7 @@ struct FrameLocation {
 
 private:
     friend struct Frame;
-    bool validate(ErrorList& errorList, const FrameSet&, const Frame& frame) const;
+    bool validate(ErrorList& errorList, const Frame& frame) const;
 };
 
 struct FrameObject {
@@ -155,8 +155,7 @@ struct EntityHitbox {
 };
 
 struct Frame {
-    typedef idmap<Frame> map_t;
-
+    idstring name;
     FrameLocation location;
     std::vector<FrameObject> objects;
     std::vector<ActionPoint> actionPoints;
@@ -179,7 +178,7 @@ struct Frame {
 
 private:
     friend struct FrameSet;
-    bool validate(ErrorList& errorList, const FrameSet& fs, const Image& image) const;
+    bool validate(ErrorList& errorList, const Image& image) const;
 };
 
 struct UserSuppliedPalette {
@@ -215,8 +214,8 @@ struct FrameSet {
     idstring name;
     TilesetType tilesetType;
     idstring exportOrder;
-    Frame::map_t frames;
-    Animation::Animation::map_t animations;
+    NamedList<Frame> frames;
+    NamedList<Animation::Animation> animations;
 
     std::string imageFilename;
     UnTech::rgba transparentColor;

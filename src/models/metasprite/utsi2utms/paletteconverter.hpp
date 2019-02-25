@@ -68,9 +68,7 @@ private:
 
         vectorset<rgba> colors;
 
-        for (const auto& siFrameIt : siFrameSet.frames) {
-            const SI::Frame& siFrame = siFrameIt.second;
-
+        for (const SI::Frame& siFrame : siFrameSet.frames) {
             for (const SI::FrameObject& obj : siFrame.objects) {
                 unsigned lx = siFrame.location.aabb.x + obj.location.x;
                 unsigned ly = siFrame.location.aabb.y + obj.location.y;

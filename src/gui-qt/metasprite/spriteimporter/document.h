@@ -16,7 +16,7 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace SpriteImporter {
 
-class FrameMap;
+class FrameList;
 class FrameObjectList;
 class ActionPointList;
 class EntityHitboxList;
@@ -38,12 +38,12 @@ public:
     static QString typeName() { return tr("SpriteImporter FrameSet"); }
 
     SI::FrameSet* frameSet() const { return _frameSet; }
-    virtual MSA::Animation::map_t* animations() const final { return &_frameSet->animations; }
+    virtual NamedList<MSA::Animation>* animations() const final { return &_frameSet->animations; }
 
     virtual QStringList frameNames() const final;
     virtual unsigned nPalettes() const final;
 
-    FrameMap* frameMap() const { return _frameMap; }
+    FrameList* frameList() const { return _frameList; }
     FrameObjectList* frameObjectList() const { return _frameObjectList; }
     ActionPointList* actionPointList() const { return _actionPointList; }
     EntityHitboxList* entityHitboxList() const { return _entityHitboxList; }
@@ -82,7 +82,7 @@ signals:
 private:
     SI::FrameSet* _frameSet;
 
-    FrameMap* const _frameMap;
+    FrameList* const _frameList;
     FrameObjectList* const _frameObjectList;
     ActionPointList* const _actionPointList;
     EntityHitboxList* const _entityHitboxList;

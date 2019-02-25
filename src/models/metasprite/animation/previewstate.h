@@ -25,8 +25,8 @@ public:
 public:
     PreviewState();
 
-    void setAnimationMap(const Animation::map_t* map) { _animationMap = map; }
-    void setAnimation(const idstring&);
+    void setAnimationList(const NamedList<Animation>* list) { _animations = list; }
+    void setAnimationIndex(size_t index);
 
     void setRegion(Region region) { _region = region; }
 
@@ -43,7 +43,10 @@ public:
 
     const NameReference& frame() const;
     bool isRunning() const;
-    const idstring& animationId() const { return _animationId; }
+    const idstring& animationId() const;
+
+    size_t animationIndex() const { return _animationIndex; }
+
     unsigned animationFrameIndex() const { return _aFrameIndex; }
     unsigned displayFrameCount() const { return _displayFrameCount; }
 
@@ -57,8 +60,8 @@ private:
     unsigned calcTimeToNextFrame() const;
 
 private:
-    const Animation::map_t* _animationMap;
-    idstring _animationId;
+    const NamedList<Animation>* _animations;
+    size_t _animationIndex;
     unsigned _aFrameIndex;
     unsigned _frameTime;
 
