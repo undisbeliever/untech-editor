@@ -68,7 +68,7 @@ public:
     void setSelectedResource(AbstractResourceItem* item);
     AbstractResourceItem* selectedResource() const { return _selectedResource; }
 
-    AbstractResourceList* findResourceList(ResourceTypeIndex type);
+    AbstractResourceList* findResourceList(ResourceTypeIndex type) const;
     AbstractResourceItem* findResourceItem(ResourceTypeIndex type, const QString& name) const;
 
     bool saveProject(const QString& filename);

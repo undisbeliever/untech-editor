@@ -90,26 +90,31 @@ void Project::setSelectedResource(AbstractResourceItem* item)
     }
 }
 
-AbstractResourceList* Project::findResourceList(ResourceTypeIndex type)
+AbstractResourceList* Project::findResourceList(ResourceTypeIndex type) const
 {
-    for (auto* rl : _resourceLists) {
-        if (rl->resourceTypeIndex() == type) {
-            return rl;
-        }
+    switch (type) {
+    case ResourceTypeIndex::STATIC:
+        return _staticResourceList;
+
+    case ResourceTypeIndex::PALETTE:
+        return _paletteResourceList;
+
+    case ResourceTypeIndex::MT_TILESET:
+        return _mtTilesetResourceList;
+
+    case ResourceTypeIndex::MS_FRAMESET:
+        return _frameSetResourceList;
+
+    case ResourceTypeIndex::MS_EXPORT_ORDER:
+        return _frameSetExportOrderResourceList;
     }
 
-    return nullptr;
+    qFatal("Unknown ResourceTypeIndex type");
 }
 
 AbstractResourceItem* Project::findResourceItem(ResourceTypeIndex type, const QString& name) const
 {
-    for (auto* rl : _resourceLists) {
-        if (rl->resourceTypeIndex() == type) {
-            return rl->findResource(name);
-        }
-    }
-
-    return nullptr;
+    return findResourceList(type)->findResource(name);
 }
 
 bool Project::saveProject(const QString& filename)
