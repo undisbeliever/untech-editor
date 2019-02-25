@@ -13,24 +13,6 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
-// idmaplistview.cpp
-struct IdmapActions {
-    QAction* const add;
-    QAction* const clone;
-    QAction* const rename;
-    QAction* const remove;
-
-    explicit IdmapActions(QWidget* parent);
-
-    void populateMenu(QMenu* menu) const;
-    void populateToolbar(QToolBar* toolbar) const;
-
-private:
-    friend class IdmapListView;
-    void disableAll();
-    void updateText(const QString& typeName);
-};
-
 // multipleselectiontableview.cpp
 struct MultiTableViewActions {
     QList<QAction*> add;

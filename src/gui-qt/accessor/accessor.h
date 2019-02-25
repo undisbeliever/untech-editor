@@ -10,17 +10,12 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
-struct IdmapActions;
-class IdmapListView;
-class IdmapListModel;
-
 struct NamedListActions;
 class NamedListView;
 class NamedListModel;
 
 class SelectedIndexHelper;
 class MultipleSelectedIndexesHelper;
-class SelectedIdmapItemHelper;
 
 class ListActionHelper;
 
@@ -38,12 +33,6 @@ class ListAndSelectionUndoHelper;
 
 template <class T>
 class ListAndMultipleSelectionUndoHelper;
-
-template <class T>
-class IdmapUndoHelper;
-
-template <class T>
-class IdmapAndSelectionUndoHelper;
 
 template <class T>
 class NamedListUndoHelper;
