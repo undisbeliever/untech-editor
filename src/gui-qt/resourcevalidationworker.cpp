@@ -70,10 +70,21 @@ void ResourceValidationWorker::validateAllResources()
     _timer.stop();
     QList<AbstractResourceItem*> items;
 
+    // Process unloaded resources first
     for (AbstractResourceList* rl : _project->resourceLists()) {
         for (AbstractResourceItem* item : rl->items()) {
-            item->markUnchecked();
-            items.append(item);
+            if (item->state() == ResourceState::NOT_LOADED) {
+                items.append(item);
+            }
+        }
+    }
+
+    for (AbstractResourceList* rl : _project->resourceLists()) {
+        for (AbstractResourceItem* item : rl->items()) {
+            if (item->state() != ResourceState::NOT_LOADED) {
+                item->markUnchecked();
+                items.append(item);
+            }
         }
     }
 
