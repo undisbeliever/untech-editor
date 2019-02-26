@@ -80,14 +80,16 @@ public:
                 // update fixes it.
                 viewport()->update();
 
-                bool selectionValid = selectedIndex < list->size();
-                bool canAdd = list->size() < AccessorT::max_size;
+                const auto listSize = list ? list->size() : 0U;
+
+                bool selectionValid = selectedIndex < listSize;
+                bool canAdd = listSize < AccessorT::max_size;
 
                 _actions.add->setEnabled(canAdd);
                 _actions.clone->setEnabled(selectionValid && canAdd);
                 _actions.rename->setEnabled(selectionValid);
                 _actions.raise->setEnabled(selectionValid && selectedIndex > 0);
-                _actions.lower->setEnabled(selectionValid && selectedIndex + 1 < list->size());
+                _actions.lower->setEnabled(selectionValid && selectedIndex + 1 < listSize);
                 _actions.remove->setEnabled(selectionValid);
             };
             onSelectedItemChanged();
