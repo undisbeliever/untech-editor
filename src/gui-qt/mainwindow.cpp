@@ -136,9 +136,12 @@ MainWindow::MainWindow(QWidget* parent)
 
     for (AbstractEditor* editor : _editors) {
         if (QWidget* w = editor->editorWidget()) {
+            // Prevents centralStackedWidget from expanding when widget is changed
+            w->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
             _centralStackedWidget->addWidget(w);
         }
         if (QWidget* w = editor->propertyWidget()) {
+            w->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Ignored);
             _propertiesStackedWidget->addWidget(w);
         }
     };
