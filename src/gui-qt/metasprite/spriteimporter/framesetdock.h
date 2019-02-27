@@ -19,6 +19,7 @@ namespace Ui {
 class FrameSetDock;
 }
 class Document;
+class FrameSetManager;
 
 class FrameSetDock : public QDockWidget {
     Q_OBJECT
@@ -34,23 +35,12 @@ public:
 
     void populateMenu(QMenu* menu);
 
-    void clearGui();
-
-private slots:
-    void updateGui();
-
-    void onNameEdited();
-    void onTilesetTypeEdited();
-    void onExportOrderEdited();
-    void onImageFilenameFileSelected();
-    void onTransparentColorSelected();
-    void onGridEdited();
-    void onPaletteEdited();
-
 private:
     std::unique_ptr<Ui::FrameSetDock> const _ui;
 
     Document* _document;
+
+    FrameSetManager* const _frameSetManager;
 };
 }
 }

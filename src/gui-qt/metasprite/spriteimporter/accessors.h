@@ -68,11 +68,14 @@ public:
         return &fs->frames;
     }
 
+    bool editSelected_setName(const idstring& name);
     bool editSelected_setSpriteOrder(SpriteOrderType spriteOrder);
     bool editSelected_setFrameLocation(SI::FrameLocation& frameLocation);
     bool editSelected_setSolid(bool solid);
-    bool editSelected_setTileHitbox(const urect& hitbox);
     bool editSelected_toggleTileHitbox();
+
+    // Will also edit frame.solid
+    bool editSelected_setTileHitbox(const urect& hitbox);
 
 protected:
     friend class Accessor::NamedListUndoHelper<FrameList>;

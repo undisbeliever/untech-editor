@@ -273,6 +273,11 @@ bool PaletteList::editSelectedList_removeSelected()
 
 using FrameListUndoHelper = NamedListAndSelectionUndoHelper<FrameList>;
 
+bool FrameList::editSelected_setName(const idstring& name)
+{
+    return FrameListUndoHelper(this).renameSelectedItem(name);
+}
+
 bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 {
     return FrameListUndoHelper(this).editSelectedItemField(
@@ -289,20 +294,20 @@ bool FrameList::editSelected_setSolid(bool solid)
         [](MS::Frame& f) -> bool& { return f.solid; });
 }
 
-bool FrameList::editSelected_setTileHitbox(const UnTech::ms8rect& hitbox)
-{
-    return FrameListUndoHelper(this).editSelectedItemField(
-        hitbox,
-        tr("Edit Tile Hitbox"),
-        [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
-}
-
 bool FrameList::editSelected_toggleTileHitbox()
 {
     if (const MS::Frame* frame = selectedFrame()) {
         return editSelected_setSolid(!frame->solid);
     }
     return false;
+}
+
+bool FrameList::editSelected_setTileHitbox(const ms8rect& hitbox)
+{
+    return FrameListUndoHelper(this).editSelectedItemMultipleFields(
+        std::make_tuple(true, hitbox),
+        tr("Edit Tile Hitbox"),
+        [](MS::Frame& f) { return std::tie(f.solid, f.tileHitbox); });
 }
 
 using FrameObjectListUndoHelper = ListAndMultipleSelectionUndoHelper<FrameObjectList>;

@@ -4,8 +4,9 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "animationframesmanager.h"
+#include "managers.h"
 #include "animationaccessors.h"
+#include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
@@ -15,6 +16,131 @@ const QStringList AnimationFramesManager::FLIP_STRINGS({ QString(),
                                                          QString::fromUtf8("hFlip"),
                                                          QString::fromUtf8("vFlip"),
                                                          QString::fromUtf8("hvFlip") });
+
+AnimationManager::AnimationManager(QObject* parent)
+    : PropertyListManager(parent)
+    , _animationsList(nullptr)
+{
+    using Type = UnTech::GuiQt::PropertyType;
+
+    const auto& dfMap = MSA::DurationFormat::enumMap;
+
+    addProperty(tr("Name"), NAME, Type::IDSTRING);
+    addProperty(tr("Duration Format"), DURATION_FORMAT, Type::COMBO, enumComboNames(dfMap), enumComboDataList(dfMap));
+    addProperty(tr("One Shot"), ONE_SHOT, Type::BOOLEAN);
+    addProperty(tr("Next Animation"), NEXT_ANIMATION, Type::COMBO);
+}
+
+void AnimationManager::setDocument(AbstractMsDocument* document)
+{
+    auto* animationsList = document ? document->animationsList() : nullptr;
+
+    if (_animationsList) {
+        _animationsList->disconnect(this);
+    }
+    _animationsList = animationsList;
+
+    if (_animationsList) {
+        connect(_animationsList, &AnimationsList::selectedIndexChanged,
+                this, &AnimationManager::onSelectedAnimationChanged);
+        connect(_animationsList, &AnimationsList::dataChanged,
+                this, &AnimationManager::onFrameDataChanged);
+        connect(_animationsList, &AnimationsList::listAboutToChange,
+                this, &AnimationManager::listAboutToChange);
+    }
+
+    onSelectedAnimationChanged();
+}
+
+void AnimationManager::onSelectedAnimationChanged()
+{
+    setEnabled(_animationsList && _animationsList->isSelectedIndexValid());
+    emit dataChanged();
+}
+
+void AnimationManager::onFrameDataChanged(size_t animationIndex)
+{
+    Q_ASSERT(_animationsList);
+    if (animationIndex == _animationsList->selectedIndex()) {
+        emit dataChanged();
+    }
+}
+
+QVariant AnimationManager::data(int id) const
+{
+    if (_animationsList == nullptr) {
+        return QVariant();
+    }
+
+    const MSA::Animation* animation = _animationsList->selectedAnimation();
+    if (animation == nullptr) {
+        return QVariant();
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case NAME:
+        return QString::fromStdString(animation->name);
+
+    case DURATION_FORMAT:
+        return int(animation->durationFormat.value());
+
+    case ONE_SHOT:
+        return animation->oneShot;
+
+    case NEXT_ANIMATION:
+        if (!animation->oneShot) {
+            return QString::fromStdString(animation->nextAnimation);
+        }
+        else {
+            return QVariant();
+        }
+    }
+
+    return QVariant();
+}
+
+void AnimationManager::updateParameters(int id, QVariant& param1, QVariant&) const
+{
+    if (_animationsList == nullptr) {
+        return;
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case NAME:
+    case DURATION_FORMAT:
+    case ONE_SHOT:
+        break;
+
+    case NEXT_ANIMATION:
+        if (const auto* animations = _animationsList->list()) {
+            param1 = convertNameListWithBlank(*animations);
+        }
+        break;
+    }
+}
+
+bool AnimationManager::setData(int id, const QVariant& value)
+{
+    if (_animationsList == nullptr) {
+        return false;
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case NAME:
+        return _animationsList->editSelected_setName(value.toString().toStdString());
+
+    case DURATION_FORMAT:
+        return _animationsList->editSelected_setDurationFormat(static_cast<MSA::DurationFormat::Enum>(value.toInt()));
+
+    case ONE_SHOT:
+        return _animationsList->editSelected_setOneShot(value.toBool());
+
+    case NEXT_ANIMATION:
+        return _animationsList->editSelected_setNextAnimation(value.toString().toStdString());
+    }
+
+    return false;
+}
 
 AnimationFramesManager::AnimationFramesManager(QObject* parent)
     : PropertyTableManager(parent)

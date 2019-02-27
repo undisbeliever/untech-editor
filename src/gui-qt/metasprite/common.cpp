@@ -7,9 +7,13 @@
 #include "common.h"
 #include "gui-qt/common/helpers.h"
 #include "models/metasprite/entityhitboxtype.h"
+#include "models/metasprite/tilesettype.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;
+
+const QStringList MetaSprite::TILESET_TYPE_STRINGS = enumComboNames(UnTech::MetaSprite::TilesetType::enumMap);
+const QVariantList MetaSprite::TILESET_TYPE_VALUES = enumComboDataList(UnTech::MetaSprite::TilesetType::enumMap);
 
 // If you modify this also modify EntityHitboxType::SHORT_STRING_VALUES
 // located in src/models/metasprite/entityhitboxtype.cpp

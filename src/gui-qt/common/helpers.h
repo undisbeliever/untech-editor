@@ -11,6 +11,8 @@
 #include "models/common/idstring.h"
 #include "models/common/ms8aabb.h"
 #include "models/common/namedlist.h"
+#include "models/common/rgba.h"
+#include <QColor>
 #include <QPoint>
 #include <QRect>
 #include <QSize>
@@ -157,6 +159,16 @@ inline QSize fromUsize(const usize& s)
 inline usize toUsize(const QSize& s)
 {
     return usize(s.width(), s.height());
+}
+
+inline QColor fromRgba(const rgba& c)
+{
+    return QColor(c.rgbHex());
+}
+
+inline rgba toRgba(const QColor& c)
+{
+    return rgba(c.red(), c.green(), c.blue());
 }
 }
 }

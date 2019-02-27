@@ -103,6 +103,61 @@ private:
         }
     };
 
+    template <typename UnaryFunction, typename... FieldT>
+    class EditMultipleFieldsCommand : public QUndoCommand {
+    private:
+        AccessorT* const _accessor;
+        const index_type _index;
+        const std::tuple<FieldT...> _oldValues;
+        const std::tuple<FieldT...> _newValues;
+        const UnaryFunction _getter;
+
+    public:
+        EditMultipleFieldsCommand(AccessorT* accessor, index_type index,
+                                  const std::tuple<FieldT&...> oldValues, const std::tuple<FieldT...>& newValues,
+                                  const QString& text,
+                                  UnaryFunction getter)
+            : QUndoCommand(text)
+            , _accessor(accessor)
+            , _index(index)
+            , _oldValues(oldValues)
+            , _newValues(newValues)
+            , _getter(getter)
+        {
+        }
+        ~EditMultipleFieldsCommand() = default;
+
+        virtual void undo() final
+        {
+            ListT* list = _accessor->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(_index >= 0 && _index < list->size());
+
+            DataT& item = list->at(_index);
+            std::tuple<FieldT&...> fields = _getter(item);
+            fields = _oldValues;
+
+            emit _accessor->dataChanged(_index);
+
+            emit _accessor->resourceItem()->dataChanged();
+        }
+
+        virtual void redo() final
+        {
+            ListT* list = _accessor->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(_index >= 0 && _index < list->size());
+
+            DataT& item = list->at(_index);
+            std::tuple<FieldT&...> fields = _getter(item);
+            fields = _newValues;
+
+            emit _accessor->dataChanged(_index);
+
+            emit _accessor->resourceItem()->dataChanged();
+        }
+    };
+
     template <typename FieldT, typename UnaryFunction>
     class EditFieldIncompleteCommand : public QUndoCommand {
     private:
@@ -377,6 +432,41 @@ public:
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
+    }
+
+    // will return nullptr if data cannot be accessed or is equal to newValues
+    template <typename... FieldT, typename UnaryFunction>
+    QUndoCommand* editMulitpleFieldsCommand(index_type index, const std::tuple<FieldT...>& newValues,
+                                            const QString& text,
+                                            UnaryFunction getter)
+    {
+        ListT* list = getList_NO_CONST();
+        if (list == nullptr) {
+            return nullptr;
+        }
+        if (index < 0 || index >= list->size()) {
+            return nullptr;
+        }
+        DataT& item = list->at(index);
+        const std::tuple<FieldT&...> oldValues = getter(item);
+
+        if (oldValues == newValues) {
+            return nullptr;
+        }
+        return new EditMultipleFieldsCommand<UnaryFunction, FieldT...>(
+            _accessor, index, oldValues, newValues, text, getter);
+    }
+
+    template <typename... FieldT, typename UnaryFunction>
+    bool editMultipleFields(index_type index, const std::tuple<FieldT...>& newValues,
+                            const QString& text,
+                            UnaryFunction getter)
+    {
+        QUndoCommand* c = editMulitpleFieldsCommand(index, newValues, text, getter);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
     }
 
     // The caller is responsible for setting the new value of the command and
@@ -667,6 +757,16 @@ public:
         return this->editFieldCommand(index, newValue, text, getter, extraSignals);
     }
 
+    template <typename... FieldT, typename UnaryFunction>
+    QUndoCommand* editSelectedMultipleFieldsCommand(const std::tuple<FieldT...>& newValues,
+                                                    const QString& text,
+                                                    UnaryFunction getter)
+    {
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->editMultipleFieldsCommand(index, newValues, text, getter);
+    }
+
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
     bool editSelectedItemField(const FieldT& newValue,
                                const QString& text,
@@ -685,6 +785,16 @@ public:
         const index_type index = this->_accessor->selectedIndex();
 
         return this->editField(index, newValue, text, getter);
+    }
+
+    template <typename... FieldT, typename UnaryFunction>
+    bool editSelectedItemMultipleFields(const std::tuple<FieldT...>& newValues,
+                                        const QString& text,
+                                        UnaryFunction getter)
+    {
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->editMultipleFields(index, newValues, text, getter);
     }
 
     // will return nullptr if data cannot be accessed

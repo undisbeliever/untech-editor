@@ -13,6 +13,11 @@ using namespace UnTech::GuiQt::MetaSprite::Animation;
 
 using AnimationsListUndoHelper = NamedListAndSelectionUndoHelper<AnimationsList>;
 
+bool AnimationsList::editSelected_setName(const idstring& name)
+{
+    return AnimationsListUndoHelper(this).renameSelectedItem(name);
+}
+
 bool AnimationsList::editSelected_setDurationFormat(MSA::DurationFormat durationFormat)
 {
     AnimationsListUndoHelper helper(this);
@@ -31,9 +36,10 @@ bool AnimationsList::editSelected_setOneShot(bool oneShot)
 
 bool AnimationsList::editSelected_setNextAnimation(const idstring& nextAnimation)
 {
-    AnimationsListUndoHelper helper(this);
-    return helper.editSelectedItemField(nextAnimation, tr("Change Next Animation"),
-                                        [](MSA::Animation& a) -> idstring& { return a.nextAnimation; });
+    return AnimationsListUndoHelper(this).editSelectedItemMultipleFields(
+        std::make_tuple(false, nextAnimation),
+        tr("Change Next Animation"),
+        [](MSA::Animation& a) { return std::tie(a.oneShot, a.nextAnimation); });
 }
 
 using AnimationFramesUndoHelper = ListUndoHelper<AnimationFramesList>;

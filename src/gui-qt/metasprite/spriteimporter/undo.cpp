@@ -54,6 +54,7 @@ bool Document::editFrameSet_setImageFilename(const std::string& filename)
         [](SI::FrameSet& fs) -> std::string& { return fs.imageFilename; },
         [](Document& d) {
             emit d.frameSetImageFilenameChanged();
+            emit d.frameSetDataChanged();
         });
 }
 
@@ -89,6 +90,11 @@ bool Document::editFrameSet_setPalette(const SI::UserSuppliedPalette& palette)
 
 using FrameListUndoHelper = NamedListAndSelectionUndoHelper<FrameList>;
 
+bool FrameList::editSelected_setName(const idstring& name)
+{
+    return FrameListUndoHelper(this).renameSelectedItem(name);
+}
+
 bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 {
     return FrameListUndoHelper(this).editSelectedItemField(
@@ -114,14 +120,6 @@ bool FrameList::editSelected_setSolid(bool solid)
         [](SI::Frame& f) -> bool& { return f.solid; });
 }
 
-bool FrameList::editSelected_setTileHitbox(const urect& hitbox)
-{
-    return FrameListUndoHelper(this).editSelectedItemField(
-        hitbox,
-        tr("Edit Tile Hitbox"),
-        [](SI::Frame& f) -> urect& { return f.tileHitbox; });
-}
-
 bool FrameList::editSelected_toggleTileHitbox()
 {
     if (const SI::Frame* frame = selectedFrame()) {
@@ -130,6 +128,14 @@ bool FrameList::editSelected_toggleTileHitbox()
     else {
         return false;
     }
+}
+
+bool FrameList::editSelected_setTileHitbox(const urect& hitbox)
+{
+    return FrameListUndoHelper(this).editSelectedItemMultipleFields(
+        std::make_tuple(true, hitbox),
+        tr("Edit Tile Hitbox"),
+        [](SI::Frame& f) { return std::tie(f.solid, f.tileHitbox); });
 }
 
 using FrameObjectListUndoHelper = ListAndMultipleSelectionUndoHelper<FrameObjectList>;

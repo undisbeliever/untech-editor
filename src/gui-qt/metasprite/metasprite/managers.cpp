@@ -4,15 +4,20 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "framecontentmanagers.h"
+#include "managers.h"
 #include "accessors.h"
 #include "document.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/common.h"
+#include "gui-qt/metasprite/exportorder/exportorderresourcelist.h"
+#include "gui-qt/project.h"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
+
+constexpr QRect MS8_RECT_BOUNDS(int_ms8_t::MIN, int_ms8_t::MIN, UINT8_MAX, UINT8_MAX);
 
 const QStringList FrameObjectManager::SIZE_STRINGS({ QString::fromUtf8("Small"),
                                                      QString::fromUtf8("Large") });
@@ -21,6 +26,204 @@ const QStringList FrameObjectManager::FLIP_STRINGS({ QString(),
                                                      QString::fromUtf8("hFlip"),
                                                      QString::fromUtf8("vFlip"),
                                                      QString::fromUtf8("hvFlip") });
+
+FrameSetManager::FrameSetManager(QObject* parent)
+    : PropertyListManager(parent)
+    , _document(nullptr)
+{
+    using Type = UnTech::GuiQt::PropertyType;
+
+    addProperty(tr("Name"), NAME, Type::IDSTRING);
+    addProperty(tr("Tileset Type"), TILESET_TYPE, Type::COMBO, TILESET_TYPE_STRINGS, TILESET_TYPE_VALUES);
+    addProperty(tr("Export Order"), EXPORT_ORDER, Type::COMBO);
+}
+
+void FrameSetManager::setDocument(Document* document)
+{
+    if (_document) {
+        _document->disconnect(this);
+    }
+    _document = document;
+
+    if (_document) {
+        connect(_document, &Document::nameChanged,
+                this, &FrameManager::dataChanged);
+        connect(_document, &Document::frameSetDataChanged,
+                this, &FrameManager::dataChanged);
+    }
+
+    setEnabled(_document != nullptr);
+    emit dataChanged();
+}
+
+QVariant FrameSetManager::data(int id) const
+{
+    if (_document == nullptr) {
+        return QVariant();
+    }
+
+    const MS::FrameSet* frameSet = _document->frameSet();
+    if (frameSet == nullptr) {
+        return QVariant();
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case PropertyId::NAME:
+        return QString::fromStdString(frameSet->name);
+
+    case PropertyId::TILESET_TYPE:
+        return int(frameSet->tilesetType.value());
+
+    case PropertyId::EXPORT_ORDER:
+        return QString::fromStdString(frameSet->exportOrder);
+    }
+
+    return QVariant();
+}
+
+void FrameSetManager::updateParameters(int id, QVariant& param1, QVariant&) const
+{
+    if (_document == nullptr) {
+        return;
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case PropertyId::NAME:
+    case PropertyId::TILESET_TYPE:
+        break;
+
+    case PropertyId::EXPORT_ORDER:
+        param1 = _document->project()->frameSetExportOrderResourceList()->itemNames();
+    }
+}
+
+bool FrameSetManager::setData(int id, const QVariant& value)
+{
+    using TtEnum = UnTech::MetaSprite::TilesetType::Enum;
+
+    if (_document == nullptr) {
+        return false;
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case PropertyId::NAME:
+        return _document->editFrameSet_setName(value.toString().toStdString());
+
+    case PropertyId::TILESET_TYPE:
+        return _document->editFrameSet_setTilesetType(static_cast<TtEnum>(value.toInt()));
+
+    case PropertyId::EXPORT_ORDER:
+        return _document->editFrameSet_setExportOrder(value.toString().toStdString());
+    }
+
+    return false;
+}
+
+FrameManager::FrameManager(QObject* parent)
+    : PropertyListManager(parent)
+    , _frameList(nullptr)
+{
+    using Type = UnTech::GuiQt::PropertyType;
+
+    addProperty(tr("Name"), NAME, Type::IDSTRING);
+    addProperty(tr("Sprite Order"), SPRITE_ORDER, Type::UNSIGNED, 0, 3);
+    addPropertyGroup(tr("Tile Hitbox:"));
+    addProperty(tr("Solid"), SOLID, Type::BOOLEAN);
+    addProperty(tr("AABB"), TILE_HITBOX, Type::RECT, MS8_RECT_BOUNDS);
+}
+
+void FrameManager::setDocument(Document* document)
+{
+    auto* frameList = document ? document->frameList() : nullptr;
+
+    if (_frameList) {
+        _frameList->disconnect(this);
+    }
+    _frameList = frameList;
+
+    if (_frameList) {
+        connect(_frameList, &FrameList::selectedIndexChanged,
+                this, &FrameManager::onSelectedFrameChanged);
+        connect(_frameList, &FrameList::dataChanged,
+                this, &FrameManager::onFrameDataChanged);
+        connect(_frameList, &FrameList::listAboutToChange,
+                this, &FrameManager::listAboutToChange);
+    }
+
+    onSelectedFrameChanged();
+}
+
+void FrameManager::onSelectedFrameChanged()
+{
+    setEnabled(_frameList && _frameList->isFrameSelected());
+    emit dataChanged();
+}
+
+void FrameManager::onFrameDataChanged(size_t frameIndex)
+{
+    Q_ASSERT(_frameList);
+    if (frameIndex == _frameList->selectedIndex()) {
+        emit dataChanged();
+    }
+}
+
+QVariant FrameManager::data(int id) const
+{
+    if (_frameList == nullptr) {
+        return QVariant();
+    }
+
+    const MS::Frame* frame = _frameList->selectedFrame();
+    if (frame == nullptr) {
+        return QVariant();
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case PropertyId::NAME:
+        return QString::fromStdString(frame->name);
+
+    case PropertyId::SPRITE_ORDER:
+        return unsigned(frame->spriteOrder);
+
+    case PropertyId::SOLID:
+        return frame->solid;
+
+    case PropertyId::TILE_HITBOX:
+        if (frame->solid) {
+            return fromMs8rect(frame->tileHitbox);
+        }
+    }
+
+    return QVariant();
+}
+
+bool FrameManager::setData(int id, const QVariant& value)
+{
+    if (_frameList == nullptr) {
+        return false;
+    }
+
+    const MS::Frame* frame = _frameList->selectedFrame();
+    if (frame == nullptr) {
+        return false;
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case PropertyId::NAME:
+        return _frameList->editSelected_setName(value.toString().toStdString());
+
+    case PropertyId::SPRITE_ORDER:
+        return _frameList->editSelected_setSpriteOrder(value.toUInt());
+
+    case PropertyId::SOLID:
+        return _frameList->editSelected_setSolid(value.toBool());
+
+    case PropertyId::TILE_HITBOX:
+        return _frameList->editSelected_setTileHitbox(toMs8rect(value.toRect()));
+    }
+
+    return false;
+}
 
 AbstractFrameContentManager::AbstractFrameContentManager(QObject* parent)
     : PropertyTableManager(parent)
@@ -306,8 +509,7 @@ EntityHitboxManager::EntityHitboxManager(QObject* parent)
 
     setTitle(tr("Entity Hitbox"));
 
-    addProperty(tr("AABB"), PropertyId::AABB, Type::RECT,
-                QRect(int_ms8_t::MIN, int_ms8_t::MIN, UINT8_MAX, UINT8_MAX));
+    addProperty(tr("AABB"), PropertyId::AABB, Type::RECT, MS8_RECT_BOUNDS);
     addProperty(tr("Hitbox Type"), PropertyId::HITBOX_TYPE, Type::COMBO,
                 EH_SHORT_STRING_VALUES, qVariantRange(EH_SHORT_STRING_VALUES.size()));
 }

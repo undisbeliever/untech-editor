@@ -24,6 +24,7 @@ namespace Ui {
 class FrameDock;
 }
 class Document;
+class FrameManager;
 class FrameObjectManager;
 class ActionPointManager;
 class EntityHitboxManager;
@@ -51,15 +52,9 @@ private slots:
 
     void onFrameDataChanged(size_t frameIndex);
 
-    void updateGui();
     void updateFrameActions();
     void updateFrameObjectActions();
     void updateEntityHitboxTypeMenu();
-
-    void onSpriteOrderEdited();
-    void onFrameLocationEdited();
-    void onSolidClicked();
-    void onTileHitboxEdited();
 
     void onAddRemoveTileHitbox();
     void onToggleObjSize();
@@ -72,6 +67,7 @@ private:
 
     Document* _document;
 
+    FrameManager* const _frameManager;
     FrameObjectManager* const _frameObjectManager;
     ActionPointManager* const _actionPointManager;
     EntityHitboxManager* const _entityHitboxManager;

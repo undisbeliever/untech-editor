@@ -7,6 +7,7 @@
 #include "framesetdock.h"
 #include "accessors.h"
 #include "document.h"
+#include "managers.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/metasprite/framesetdock.ui.h"
 
@@ -21,25 +22,15 @@ FrameSetDock::FrameSetDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::FrameSetDock)
     , _document(nullptr)
+    , _frameSetManager(new FrameSetManager(this))
 {
     _ui->setupUi(this);
 
-    _ui->frameSetName->setValidator(new IdstringValidator(this));
-    _ui->exportOrder->setValidator(new IdstringValidator(this));
-
-    _ui->tilesetType->populateData(TilesetType::enumMap);
+    _ui->frameSetProperties->setPropertyManager(_frameSetManager);
 
     _ui->frameList->namedListActions().populateToolbar(_ui->frameListButtons);
 
-    clearGui();
     setEnabled(false);
-
-    connect(_ui->frameSetName, &QLineEdit::editingFinished,
-            this, &FrameSetDock::onNameEdited);
-    connect(_ui->tilesetType, qOverload<int>(&EnumComboBox::activated),
-            this, &FrameSetDock::onTilesetTypeEdited);
-    connect(_ui->exportOrder, &QLineEdit::editingFinished,
-            this, &FrameSetDock::onExportOrderEdited);
 }
 
 FrameSetDock::~FrameSetDock() = default;
@@ -57,21 +48,10 @@ void FrameSetDock::setDocument(Document* document)
 
     setEnabled(_document != nullptr);
 
-    if (_document) {
-        updateGui();
+    FrameList* frameList = _document ? _document->frameList() : nullptr;
 
-        _ui->frameList->setAccessor(_document->frameList());
-
-        connect(_document, &Document::nameChanged,
-                this, &FrameSetDock::updateGui);
-        connect(_document, &Document::frameSetDataChanged,
-                this, &FrameSetDock::updateGui);
-    }
-    else {
-        clearGui();
-
-        _ui->frameList->setAccessor<FrameList>(nullptr);
-    }
+    _frameSetManager->setDocument(_document);
+    _ui->frameList->setAccessor(frameList);
 }
 
 const Accessor::NamedListActions& FrameSetDock::frameActions() const
@@ -88,39 +68,4 @@ void FrameSetDock::populateMenu(QMenu* menu)
 {
     _ui->frameList->namedListActions().populateMenu(menu);
     // :: TODO add toggle tileset hitbox here::
-}
-
-void FrameSetDock::clearGui()
-{
-    _ui->frameSetName->clear();
-    _ui->tilesetType->setCurrentIndex(-1);
-    _ui->exportOrder->clear();
-}
-
-void FrameSetDock::updateGui()
-{
-    const MS::FrameSet& fs = *_document->frameSet();
-
-    _ui->frameSetName->setText(QString::fromStdString(fs.name));
-    _ui->tilesetType->setCurrentEnum(fs.tilesetType);
-    _ui->exportOrder->setText(QString::fromStdString(fs.exportOrder));
-}
-
-void FrameSetDock::onNameEdited()
-{
-    _document->editFrameSet_setName(
-        _ui->frameSetName->text().toStdString());
-    updateGui();
-}
-
-void FrameSetDock::onTilesetTypeEdited()
-{
-    _document->editFrameSet_setTilesetType(
-        _ui->tilesetType->currentEnum<TilesetType>());
-}
-
-void FrameSetDock::onExportOrderEdited()
-{
-    _document->editFrameSet_setExportOrder(
-        _ui->exportOrder->text().toStdString());
 }

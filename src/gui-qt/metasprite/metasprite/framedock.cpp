@@ -7,7 +7,7 @@
 #include "framedock.h"
 #include "accessors.h"
 #include "document.h"
-#include "framecontentmanagers.h"
+#include "managers.h"
 #include "gui-qt/accessor/namedlistmodel.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
@@ -24,6 +24,7 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
     , _ui(new Ui::FrameDock)
     , _frameListModel(frameListModel)
     , _document(nullptr)
+    , _frameManager(new FrameManager(this))
     , _frameObjectManager(new FrameObjectManager(this))
     , _actionPointManager(new ActionPointManager(this))
     , _entityHitboxManager(new EntityHitboxManager(this))
@@ -38,6 +39,8 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
     _ui->setupUi(this);
 
     _ui->frameComboBox->setModel(_frameListModel);
+
+    _ui->frameProperties->setPropertyManager(_frameManager);
 
     _ui->frameContents->setPropertyManagers(
         { _frameObjectManager, _actionPointManager, _entityHitboxManager },
@@ -74,14 +77,6 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
     connect(_ui->frameComboBox, qOverload<int>(&QComboBox::activated),
             this, &FrameDock::onFrameComboBoxActivated);
 
-    connect(_ui->spriteOrder, &QSpinBox::editingFinished,
-            this, &FrameDock::onSpriteOrderEdited);
-
-    connect(_ui->solid, &QGroupBox::clicked,
-            this, &FrameDock::onSolidClicked);
-    connect(_ui->tileHitbox, &Ms8rectWidget::editingFinished,
-            this, &FrameDock::onTileHitboxEdited);
-
     connect(_addRemoveTileHitbox, &QAction::triggered,
             this, &FrameDock::onAddRemoveTileHitbox);
     connect(_toggleObjSize, &QAction::triggered,
@@ -109,6 +104,7 @@ void FrameDock::setDocument(Document* document)
     }
     _document = document;
 
+    _frameManager->setDocument(_document);
     _frameObjectManager->setDocument(_document);
     _actionPointManager->setDocument(_document);
     _entityHitboxManager->setDocument(_document);
@@ -163,11 +159,7 @@ void FrameDock::onSelectedFrameChanged()
 {
     const MS::Frame* frame = _document->frameList()->selectedFrame();
 
-    _ui->frameWidget->setEnabled(frame != nullptr);
-    _ui->frameContentsBox->setEnabled(frame != nullptr);
-
     if (frame) {
-        updateGui();
         _ui->frameContents->expandAll();
 
         _ui->frameComboBox->setCurrentIndex(
@@ -183,7 +175,6 @@ void FrameDock::onSelectedFrameChanged()
 void FrameDock::onFrameDataChanged(size_t frameIndex)
 {
     if (frameIndex == _document->frameList()->selectedIndex()) {
-        updateGui();
         updateFrameActions();
     }
 }
@@ -203,30 +194,6 @@ void FrameDock::onFrameComboBoxActivated()
 void FrameDock::clearGui()
 {
     _ui->frameComboBox->setCurrentIndex(-1);
-
-    _ui->spriteOrder->clear();
-
-    _ui->solid->setChecked(false);
-    _ui->tileHitbox->clear();
-}
-
-void FrameDock::updateGui()
-{
-    if (_document->frameList()->selectedFrame() == nullptr) {
-        return;
-    }
-    const MS::Frame& frame = *_document->frameList()->selectedFrame();
-
-    _ui->spriteOrder->setValue(frame.spriteOrder);
-
-    _ui->solid->setChecked(frame.solid);
-
-    if (frame.solid) {
-        _ui->tileHitbox->setValue(frame.tileHitbox);
-    }
-    else {
-        _ui->tileHitbox->clear();
-    }
 }
 
 void FrameDock::updateFrameActions()
@@ -268,24 +235,6 @@ void FrameDock::updateEntityHitboxTypeMenu()
     }
 
     _entityHitboxTypeMenu->setEnabled(ehSelected);
-}
-
-void FrameDock::onSpriteOrderEdited()
-{
-    _document->frameList()->editSelected_setSpriteOrder(
-        _ui->spriteOrder->value());
-}
-
-void FrameDock::onSolidClicked()
-{
-    _document->frameList()->editSelected_setSolid(
-        _ui->solid->isChecked());
-}
-
-void FrameDock::onTileHitboxEdited()
-{
-    _document->frameList()->editSelected_setTileHitbox(
-        _ui->tileHitbox->valueMs8rect());
 }
 
 void FrameDock::onAddRemoveTileHitbox()

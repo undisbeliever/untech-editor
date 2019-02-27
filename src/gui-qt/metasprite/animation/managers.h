@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/common/properties/propertylistmanager.h"
 #include "gui-qt/common/properties/propertytablemanager.h"
 #include "models/metasprite/animation/animation.h"
 #include <QStringList>
@@ -16,8 +17,37 @@ namespace MetaSprite {
 class AbstractMsDocument;
 
 namespace Animation {
+class AnimationsList;
 
 namespace MSA = UnTech::MetaSprite::Animation;
+
+class AnimationManager : public PropertyListManager {
+    Q_OBJECT
+
+    enum PropertyId {
+        NAME,
+        DURATION_FORMAT,
+        ONE_SHOT,
+        NEXT_ANIMATION,
+    };
+
+public:
+    explicit AnimationManager(QObject* parent = nullptr);
+    ~AnimationManager() = default;
+
+    void setDocument(AbstractMsDocument* document);
+
+    virtual QVariant data(int id) const final;
+    virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;
+    virtual bool setData(int id, const QVariant& value) final;
+
+private slots:
+    void onSelectedAnimationChanged();
+    void onFrameDataChanged(size_t animationIndex);
+
+private:
+    AnimationsList* _animationsList;
+};
 
 class AnimationFramesManager : public PropertyTableManager {
     Q_OBJECT

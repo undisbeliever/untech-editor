@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/common/properties/propertylistmanager.h"
 #include "gui-qt/common/properties/propertytablemanager.h"
 #include "models/metasprite/metasprite.h"
 #include <QStringList>
@@ -15,9 +16,60 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
 class Document;
+class FrameList;
 class AbstractFrameContentAccessor;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
+
+class FrameSetManager : public PropertyListManager {
+    Q_OBJECT
+
+    enum PropertyId {
+        NAME,
+        TILESET_TYPE,
+        EXPORT_ORDER,
+    };
+
+public:
+    explicit FrameSetManager(QObject* parent = nullptr);
+    ~FrameSetManager() = default;
+
+    void setDocument(Document* document);
+
+    virtual QVariant data(int id) const final;
+    virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;
+    virtual bool setData(int id, const QVariant& value) final;
+
+private:
+    Document* _document;
+};
+
+class FrameManager : public PropertyListManager {
+    Q_OBJECT
+
+    enum PropertyId {
+        NAME,
+        SPRITE_ORDER,
+        SOLID,
+        TILE_HITBOX,
+    };
+
+public:
+    explicit FrameManager(QObject* parent = nullptr);
+    ~FrameManager() = default;
+
+    void setDocument(Document* document);
+
+    virtual QVariant data(int id) const final;
+    virtual bool setData(int id, const QVariant& value) final;
+
+private slots:
+    void onSelectedFrameChanged();
+    void onFrameDataChanged(size_t frameIndex);
+
+private:
+    FrameList* _frameList;
+};
 
 /*
  * The Frame Content Managers are not responsible for creating/removing/moving

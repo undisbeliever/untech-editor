@@ -50,8 +50,11 @@ public:
 
     const MSA::Animation* selectedAnimation() const;
 
+    bool editSelected_setName(const idstring& name);
     bool editSelected_setDurationFormat(MSA::DurationFormat durationFormat);
     bool editSelected_setOneShot(bool oneShot);
+
+    // Also sets oneShot to false
     bool editSelected_setNextAnimation(const idstring& nextAnimation);
 
     const ListT* list() const { return _document->animations(); }

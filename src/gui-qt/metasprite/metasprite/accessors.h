@@ -259,10 +259,13 @@ public:
     bool isTileHitboxSelected() const { return _tileHitboxSelected && isFrameSelected(); }
     void setTileHitboxSelected(bool s);
 
+    bool editSelected_setName(const idstring& name);
     bool editSelected_setSpriteOrder(SpriteOrderType spriteOrder);
     bool editSelected_setSolid(bool solid);
-    bool editSelected_setTileHitbox(const ms8rect& hitbox);
     bool editSelected_toggleTileHitbox();
+
+    // Will also edit frame.solid
+    bool editSelected_setTileHitbox(const ms8rect& hitbox);
 
     const ListT* list() const
     {

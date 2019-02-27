@@ -86,6 +86,17 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
     aabb.width = std::max(aabb.width, minSize.width);
     aabb.height = std::max(aabb.height, minSize.height);
 
+    if (useGridLocation == false) {
+        // update gridLocation to match nearest grid cell
+        if (grid.frameSize.width > 0 && grid.frameSize.height > 0) {
+            unsigned x = aabb.x > grid.offset.x ? aabb.x - grid.offset.x : 0;
+            unsigned y = aabb.y > grid.offset.y ? aabb.y - grid.offset.y : 0;
+
+            gridLocation.x = x / grid.frameSize.width;
+            gridLocation.y = y / grid.frameSize.height;
+        }
+    }
+
     if (useGridOrigin) {
         origin = grid.origin;
     }

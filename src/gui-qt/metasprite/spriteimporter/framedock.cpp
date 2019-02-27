@@ -7,7 +7,7 @@
 #include "framedock.h"
 #include "accessors.h"
 #include "document.h"
-#include "framecontentmanagers.h"
+#include "managers.h"
 #include "gui-qt/accessor/namedlistmodel.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
@@ -23,6 +23,7 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
     , _ui(new Ui::FrameDock)
     , _frameListModel(frameListModel)
     , _document(nullptr)
+    , _frameManager(new FrameManager(this))
     , _frameObjectManager(new FrameObjectManager(this))
     , _actionPointManager(new ActionPointManager(this))
     , _entityHitboxManager(new EntityHitboxManager(this))
@@ -35,6 +36,8 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
     _ui->setupUi(this);
 
     _ui->frameComboBox->setModel(_frameListModel);
+
+    _ui->frameProperties->setPropertyManager(_frameManager);
 
     _ui->frameContents->setPropertyManagers(
         { _frameObjectManager, _actionPointManager, _entityHitboxManager },
@@ -69,26 +72,6 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
     connect(_ui->frameComboBox, qOverload<int>(&QComboBox::activated),
             this, &FrameDock::onFrameComboBoxActivated);
 
-    connect(_ui->spriteOrder, &QSpinBox::editingFinished,
-            this, &FrameDock::onSpriteOrderEdited);
-
-    connect(_ui->useGridLocation, &QCheckBox::clicked,
-            this, &FrameDock::onFrameLocationEdited);
-
-    connect(_ui->gridLocation, &PointWidget::editingFinished,
-            this, &FrameDock::onFrameLocationEdited);
-    connect(_ui->frameLocation, &RectWidget::editingFinished,
-            this, &FrameDock::onFrameLocationEdited);
-    connect(_ui->useCustomOrigin, &QCheckBox::clicked,
-            this, &FrameDock::onFrameLocationEdited);
-    connect(_ui->origin, &PointWidget::editingFinished,
-            this, &FrameDock::onFrameLocationEdited);
-
-    connect(_ui->solid, &QGroupBox::clicked,
-            this, &FrameDock::onSolidClicked);
-    connect(_ui->tileHitbox, &RectWidget::editingFinished,
-            this, &FrameDock::onTileHitboxEdited);
-
     connect(_addRemoveTileHitbox, &QAction::triggered,
             this, &FrameDock::onAddRemoveTileHitbox);
     connect(_toggleObjSize, &QAction::triggered,
@@ -113,6 +96,7 @@ void FrameDock::setDocument(Document* document)
     }
     _document = document;
 
+    _frameManager->setDocument(_document);
     _frameObjectManager->setDocument(_document);
     _actionPointManager->setDocument(_document);
     _entityHitboxManager->setDocument(_document);
@@ -126,9 +110,6 @@ void FrameDock::setDocument(Document* document)
             _document->frameObjectList(),
             _document->actionPointList(),
             _document->entityHitboxList());
-
-        connect(_document, &Document::frameSetGridChanged,
-                this, &FrameDock::updateGui);
 
         connect(_document->frameList(), &FrameList::dataChanged,
                 this, &FrameDock::onFrameDataChanged);
@@ -169,11 +150,7 @@ void FrameDock::onSelectedFrameChanged()
     const SI::Frame* frame = _document->frameList()->selectedFrame();
     const size_t frameIndex = _document->frameList()->selectedIndex();
 
-    _ui->frameWidget->setEnabled(frame != nullptr);
-    _ui->frameContentsBox->setEnabled(frame != nullptr);
-
     if (frame) {
-        updateGui();
         _ui->frameContents->expandAll();
 
         _ui->frameComboBox->setCurrentIndex(
@@ -189,7 +166,6 @@ void FrameDock::onSelectedFrameChanged()
 void FrameDock::onFrameDataChanged(size_t frameIndex)
 {
     if (frameIndex == _document->frameList()->selectedIndex()) {
-        updateGui();
         updateFrameActions();
     }
 }
@@ -209,53 +185,6 @@ void FrameDock::onFrameComboBoxActivated()
 void FrameDock::clearGui()
 {
     _ui->frameComboBox->setCurrentIndex(-1);
-
-    _ui->gridLocation->setEnabled(false);
-    _ui->frameLocation->setEnabled(false);
-    _ui->origin->setEnabled(false);
-
-    _ui->spriteOrder->clear();
-    _ui->useGridLocation->setChecked(false);
-    _ui->gridLocation->clear();
-    _ui->frameLocation->clear();
-    _ui->useCustomOrigin->setChecked(false);
-    _ui->origin->clear();
-    _ui->solid->setChecked(false);
-    _ui->tileHitbox->clear();
-}
-
-void FrameDock::updateGui()
-{
-    if (_document->frameList()->selectedFrame() == nullptr) {
-        return;
-    }
-    const SI::Frame& frame = *_document->frameList()->selectedFrame();
-    const SI::FrameLocation& floc = frame.location;
-
-    _ui->spriteOrder->setValue(frame.spriteOrder);
-
-    _ui->useGridLocation->setChecked(floc.useGridLocation);
-    _ui->gridLocation->setEnabled(floc.useGridLocation);
-    _ui->gridLocation->setValue(floc.gridLocation);
-
-    _ui->frameLocation->setEnabled(!floc.useGridLocation);
-    _ui->frameLocation->setMinRectSize(frame.minimumViableSize());
-    _ui->frameLocation->setValue(floc.aabb);
-
-    _ui->useCustomOrigin->setChecked(!floc.useGridOrigin);
-    _ui->origin->setEnabled(!floc.useGridOrigin);
-    _ui->origin->setMaximum(floc.originRange());
-    _ui->origin->setValue(floc.origin);
-
-    _ui->solid->setChecked(frame.solid);
-
-    if (frame.solid) {
-        _ui->tileHitbox->setRange(frame.location.aabb.size());
-        _ui->tileHitbox->setValue(frame.tileHitbox);
-    }
-    else {
-        _ui->tileHitbox->clear();
-    }
 }
 
 void FrameDock::updateFrameActions()
@@ -295,44 +224,6 @@ void FrameDock::updateEntityHitboxTypeMenu()
     }
 
     _entityHitboxTypeMenu->setEnabled(ehSelected);
-}
-
-void FrameDock::onSpriteOrderEdited()
-{
-    _document->frameList()->editSelected_setSpriteOrder(
-        _ui->spriteOrder->value());
-}
-
-void FrameDock::onFrameLocationEdited()
-{
-    const SI::FrameSet* frameSet = _document->frameSet();
-    const SI::Frame* frame = _document->frameList()->selectedFrame();
-
-    Q_ASSERT(frameSet);
-    Q_ASSERT(frame);
-
-    SI::FrameLocation floc;
-    floc.useGridLocation = _ui->useGridLocation->isChecked();
-    floc.gridLocation = _ui->gridLocation->valueUpoint();
-    floc.aabb = _ui->frameLocation->valueUrect();
-    floc.useGridOrigin = !_ui->useCustomOrigin->isChecked();
-    floc.origin = _ui->origin->valueUpoint();
-
-    floc.update(frameSet->grid, *frame);
-
-    _document->frameList()->editSelected_setFrameLocation(floc);
-}
-
-void FrameDock::onSolidClicked()
-{
-    _document->frameList()->editSelected_setSolid(
-        _ui->solid->isChecked());
-}
-
-void FrameDock::onTileHitboxEdited()
-{
-    _document->frameList()->editSelected_setTileHitbox(
-        _ui->tileHitbox->valueUrect());
 }
 
 void FrameDock::onAddRemoveTileHitbox()

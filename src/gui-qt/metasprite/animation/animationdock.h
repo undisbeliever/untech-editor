@@ -22,6 +22,7 @@ class AnimationDock;
 }
 class AnimationActions;
 class AnimationListModel;
+class AnimationManager;
 class AnimationFramesManager;
 
 namespace MSA = UnTech::MetaSprite::Animation;
@@ -38,24 +39,14 @@ public:
 
     void setDocument(AbstractMsDocument* document);
 
-    void clearGui();
-
     void selectAnimationFrame(unsigned index);
-
-private slots:
-    void onAnimationDataChanged(size_t animationIndex);
-
-    void updateGui();
-
-    void onDurationFormatEdited();
-    void onOneShotEdited();
-    void onNextAnimationEdited();
 
 private:
     std::unique_ptr<Ui::AnimationDock> const _ui;
 
     AbstractMsDocument* _document;
 
+    AnimationManager* const _animationManager;
     AnimationFramesManager* const _animationFramesManager;
 };
 }

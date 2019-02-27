@@ -6,7 +6,7 @@
 
 #include "animationdock.h"
 #include "animationaccessors.h"
-#include "animationframesmanager.h"
+#include "managers.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include "gui-qt/metasprite/animation/animationdock.ui.h"
@@ -21,32 +21,19 @@ AnimationDock::AnimationDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::AnimationDock)
     , _document(nullptr)
+    , _animationManager(new AnimationManager(this))
     , _animationFramesManager(new AnimationFramesManager(this))
 {
     _ui->setupUi(this);
 
-    QCompleter* nextAnimationCompleter = new QCompleter(_ui->animationList->model(), this);
-    nextAnimationCompleter->setCompletionRole(Qt::DisplayRole);
-    nextAnimationCompleter->setCaseSensitivity(Qt::CaseInsensitive);
-    _ui->nextAnimation->setCompleter(nextAnimationCompleter);
-    _ui->nextAnimation->setValidator(new IdstringValidator(this));
-
-    _ui->durationFormat->populateData(MSA::DurationFormat::enumMap);
-
     _ui->animationList->namedListActions().populateToolbar(_ui->animationListButtons);
+
+    _ui->animationProperties->setPropertyManager(_animationManager);
 
     _ui->animationFrames->setPropertyManager(_animationFramesManager);
     _ui->animationFrames->populateToolBar(_ui->animationFramesButtons);
 
-    clearGui();
     setEnabled(false);
-
-    connect(_ui->durationFormat, qOverload<int>(&QComboBox::activated),
-            this, &AnimationDock::onDurationFormatEdited);
-    connect(_ui->oneShot, &QCheckBox::clicked,
-            this, &AnimationDock::onOneShotEdited);
-    connect(_ui->nextAnimation, &QLineEdit::editingFinished,
-            this, &AnimationDock::onNextAnimationEdited);
 }
 
 AnimationDock::~AnimationDock() = default;
@@ -73,82 +60,23 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
     }
     _document = document;
 
-    _animationFramesManager->setDocument(document);
-
     setEnabled(_document != nullptr);
 
+    AnimationsList* animationsList = _document ? _document->animationsList() : nullptr;
+
+    _animationManager->setDocument(document);
+    _animationFramesManager->setDocument(document);
+    _ui->animationList->setAccessor(animationsList);
+
     if (_document) {
-        updateGui();
-
-        _ui->animationList->setAccessor(_document->animationsList());
-
         _ui->animationFrames->setColumnWidth(0, _ui->animationFrames->width() / 3);
         _ui->animationFrames->setColumnWidth(1, 45);
         _ui->animationFrames->setColumnWidth(2, 30);
         _ui->animationFrames->setColumnWidth(3, 0);
-
-        connect(_document->animationsList(), &AnimationsList::selectedIndexChanged,
-                this, &AnimationDock::updateGui);
-        connect(_document->animationsList(), &AnimationsList::dataChanged,
-                this, &AnimationDock::onAnimationDataChanged);
     }
-    else {
-        clearGui();
-        _ui->animationList->setAccessor<AnimationsList>(nullptr);
-    }
-}
-
-void AnimationDock::onAnimationDataChanged(size_t animationIndex)
-{
-    if (animationIndex == _document->animationsList()->selectedIndex()) {
-        updateGui();
-    }
-}
-
-void AnimationDock::clearGui()
-{
-    _ui->durationFormat->setCurrentIndex(-1);
-    _ui->oneShot->setChecked(false);
-    _ui->nextAnimation->clear();
 }
 
 void AnimationDock::selectAnimationFrame(unsigned index)
 {
     _ui->animationFrames->setSelectedRow(_animationFramesManager, index);
-}
-
-void AnimationDock::updateGui()
-{
-    Q_ASSERT(_document);
-
-    const MSA::Animation* ani = _document->animationsList()->selectedAnimation();
-    if (ani) {
-        _ui->durationFormat->setCurrentEnum(ani->durationFormat);
-        _ui->oneShot->setChecked(ani->oneShot);
-
-        _ui->nextAnimation->setEnabled(!ani->oneShot);
-        _ui->nextAnimationLabel->setEnabled(!ani->oneShot);
-        _ui->nextAnimation->setText(QString::fromStdString(ani->nextAnimation));
-    }
-    else {
-        clearGui();
-    }
-}
-
-void AnimationDock::onDurationFormatEdited()
-{
-    _document->animationsList()->editSelected_setDurationFormat(
-        _ui->durationFormat->currentEnum<MSA::DurationFormat>());
-}
-
-void AnimationDock::onOneShotEdited()
-{
-    _document->animationsList()->editSelected_setOneShot(
-        _ui->oneShot->isChecked());
-}
-
-void AnimationDock::onNextAnimationEdited()
-{
-    _document->animationsList()->editSelected_setNextAnimation(
-        _ui->nextAnimation->text().toStdString());
 }
