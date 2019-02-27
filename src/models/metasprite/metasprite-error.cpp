@@ -10,17 +10,19 @@
 namespace UnTech {
 namespace MetaSprite {
 
-MetaSpriteError::MetaSpriteError(MsErrorType type, std::string frameName, std::string errorText)
+MetaSpriteError::MetaSpriteError(MsErrorType type, const void* ptr, std::string name, std::string errorText)
     : _type(type)
-    , _name(std::move(frameName))
+    , _ptr(ptr)
+    , _name(std::move(name))
     , _id(UINT_MAX)
     , _errorText(std::move(errorText))
 {
 }
 
-MetaSpriteError::MetaSpriteError(MsErrorType type, std::string frameName, unsigned id, std::string errorText)
+MetaSpriteError::MetaSpriteError(MsErrorType type, const void* ptr, std::string name, unsigned id, std::string errorText)
     : _type(type)
-    , _name(std::move(frameName))
+    , _ptr(ptr)
+    , _name(std::move(name))
     , _id(id)
     , _errorText(std::move(errorText))
 {

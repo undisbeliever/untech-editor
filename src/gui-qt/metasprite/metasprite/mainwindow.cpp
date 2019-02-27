@@ -162,9 +162,21 @@ void MainWindow::onSelectedFrameChanged()
 
 void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
 {
-
     using MetaSpriteError = UnTech::MetaSprite::MetaSpriteError;
     using Type = UnTech::MetaSprite::MsErrorType;
+
+    auto updateSelection = [](auto* accessor, const void* ptr) {
+        const auto* list = accessor->list();
+        if (list) {
+            for (unsigned i = 0; i < list->size(); i++) {
+                if (&list->at(i) == ptr) {
+                    accessor->setSelectedIndex(i);
+                    return;
+                }
+            }
+        }
+        accessor->unselectItem();
+    };
 
     if (_document == nullptr) {
         return;
@@ -176,41 +188,48 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
     else if (const auto* e = dynamic_cast<const MetaSpriteError*>(error.specialized.get())) {
         switch (e->type()) {
         case Type::FRAME:
-            _document->frameList()->setSelectedId(e->name());
-            showGraphicsTab();
-            _frameDock->raise();
-            break;
-
         case Type::FRAME_OBJECT:
-            _document->frameList()->setSelectedId(e->name());
-            _document->frameObjectList()->setSelectedIndexes({ e->id() });
-            showGraphicsTab();
-            _frameDock->raise();
-            break;
-
         case Type::ACTION_POINT:
-            _document->frameList()->setSelectedId(e->name());
-            _document->actionPointList()->setSelectedIndexes({ e->id() });
-            showGraphicsTab();
-            _frameDock->raise();
-            break;
-
         case Type::ENTITY_HITBOX:
-            _document->frameList()->setSelectedId(e->name());
-            _document->entityHitboxList()->setSelectedIndexes({ e->id() });
+            updateSelection(_document->frameList(), e->ptr());
+            _document->frameList()->setTileHitboxSelected(false);
+            _document->frameObjectList()->clearSelection();
+            _document->actionPointList()->clearSelection();
+            _document->entityHitboxList()->clearSelection();
             showGraphicsTab();
             _frameDock->raise();
             break;
 
         case Type::ANIMATION:
-            _document->animationsList()->setSelectedId(e->name());
+        case Type::ANIMATION_FRAME:
+            updateSelection(_document->animationsList(), e->ptr());
             _animationDock->raise();
+            break;
+        }
+
+        switch (e->type()) {
+        case Type::FRAME:
+            break;
+
+        case Type::FRAME_OBJECT:
+            _document->frameObjectList()->setSelectedIndexes({ e->id() });
+            break;
+
+        case Type::ACTION_POINT:
+            _document->actionPointList()->setSelectedIndexes({ e->id() });
+            break;
+
+        case Type::ENTITY_HITBOX:
+            _document->entityHitboxList()->setSelectedIndexes({ e->id() });
+            break;
+
+        case Type::ANIMATION:
+            // clear animation frame selection
+            _animationDock->selectAnimationFrame(INT_MAX);
             break;
 
         case Type::ANIMATION_FRAME:
-            _document->animationsList()->setSelectedId(e->name());
             _animationDock->selectAnimationFrame(e->id());
-            _animationDock->raise();
             break;
         }
     }
