@@ -20,18 +20,18 @@ bool AnimationsList::editSelected_setName(const idstring& name)
 
 bool AnimationsList::editSelected_setDurationFormat(MSA::DurationFormat durationFormat)
 {
-    AnimationsListUndoHelper helper(this);
-    return helper.editSelectedItemField(durationFormat, tr("Change Animation Duration Format"),
-                                        [](MSA::Animation& a) -> MSA::DurationFormat& { return a.durationFormat; });
+    return AnimationsListUndoHelper(this).editSelectedItemField(
+        durationFormat, tr("Change Animation Duration Format"),
+        [](MSA::Animation& a) -> MSA::DurationFormat& { return a.durationFormat; });
 }
 
 bool AnimationsList::editSelected_setOneShot(bool oneShot)
 {
     QString text = oneShot ? tr("Set Animation One Shot") : tr("Clear Animation One Shot");
 
-    AnimationsListUndoHelper helper(this);
-    return helper.editSelectedItemField(oneShot, text,
-                                        [](MSA::Animation& a) -> bool& { return a.oneShot; });
+    return AnimationsListUndoHelper(this).editSelectedItemField(
+        oneShot, text,
+        [](MSA::Animation& a) -> bool& { return a.oneShot; });
 }
 
 bool AnimationsList::editSelected_setNextAnimation(const idstring& nextAnimation)
