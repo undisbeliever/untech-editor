@@ -94,19 +94,19 @@ int EntityFunctionTablesManager::rowCount() const
     if (_ftList == nullptr) {
         return 0;
     }
-    return _ftList->functionTables().size();
+    return _ftList->size();
 }
 
 QVariant EntityFunctionTablesManager::data(int index, int id) const
 {
     if (_ftList == nullptr
         || index < 0
-        || (unsigned)index >= _ftList->functionTables().size()) {
+        || (unsigned)index >= _ftList->size()) {
 
         return QVariant();
     }
 
-    const auto& ft = _ftList->functionTables().at(index);
+    const auto& ft = _ftList->list()->at(index);
 
     switch (static_cast<PropertyId>(id)) {
     case PropertyId::NAME:
@@ -132,7 +132,7 @@ bool EntityFunctionTablesManager::setData(int index, int id, const QVariant& val
 {
     if (_ftList == nullptr
         || index < 0
-        || (unsigned)index >= _ftList->functionTables().size()) {
+        || (unsigned)index >= _ftList->size()) {
 
         return false;
     }
@@ -160,13 +160,45 @@ bool EntityFunctionTablesManager::setData(int index, int id, const QVariant& val
 bool EntityFunctionTablesManager::canInsertItem()
 {
     return _ftList
-           && _ftList->functionTables().size() < _ftList->max_size;
+           && _ftList->size() < _ftList->maxSize();
 }
 
 bool EntityFunctionTablesManager::canCloneItem(int index)
 {
     return _ftList
            && index >= 0
-           && unsigned(index) < _ftList->functionTables().size()
-           && _ftList->functionTables().size() < _ftList->max_size;
+           && unsigned(index) < _ftList->size()
+           && _ftList->size() < _ftList->maxSize();
+}
+
+bool EntityFunctionTablesManager::insertItem(int index)
+{
+    if (_ftList == nullptr) {
+        return false;
+    }
+    return _ftList->addItem(index);
+}
+
+bool EntityFunctionTablesManager::cloneItem(int index)
+{
+    if (_ftList == nullptr) {
+        return false;
+    }
+    return _ftList->cloneItem(index);
+}
+
+bool EntityFunctionTablesManager::removeItem(int index)
+{
+    if (_ftList == nullptr) {
+        return false;
+    }
+    return _ftList->removeItem(index);
+}
+
+bool EntityFunctionTablesManager::moveItem(int from, int to)
+{
+    if (_ftList == nullptr) {
+        return false;
+    }
+    return _ftList->moveItem(from, to);
 }

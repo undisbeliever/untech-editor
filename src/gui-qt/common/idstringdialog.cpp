@@ -56,6 +56,16 @@ idstring IdstringDialog::getIdstring(QWidget* parent,
                                      const idstring& value,
                                      const QStringList& invalidIdstrings)
 {
+    return getIdstring(parent, title, labelText,
+                       QString::fromStdString(value),
+                       invalidIdstrings);
+}
+
+idstring IdstringDialog::getIdstring(QWidget* parent,
+                                     const QString& title, const QString& labelText,
+                                     const QString& value,
+                                     const QStringList& invalidIdstrings)
+{
     IdstringDialog dialog(title, labelText, parent);
     dialog.setInvalidIdstrings(invalidIdstrings);
     dialog.setValue(value);
@@ -96,6 +106,12 @@ void IdstringDialog::setLabelText(const QString& text)
 void IdstringDialog::setValue(const idstring& id)
 {
     _input->setText(QString::fromStdString(id));
+    _input->selectAll();
+}
+
+void IdstringDialog::setValue(const QString& id)
+{
+    _input->setText(id);
     _input->selectAll();
 }
 

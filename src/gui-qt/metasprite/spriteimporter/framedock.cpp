@@ -147,7 +147,7 @@ void FrameDock::populateMenu(QMenu* editMenu)
 
 void FrameDock::onSelectedFrameChanged()
 {
-    const SI::Frame* frame = _document->frameList()->selectedFrame();
+    const SI::Frame* frame = _document->frameList()->selectedItem();
     const size_t frameIndex = _document->frameList()->selectedIndex();
 
     if (frame) {
@@ -193,7 +193,7 @@ void FrameDock::updateFrameActions()
     bool isFrameSolid = false;
 
     if (_document) {
-        if (const auto* frame = _document->frameList()->selectedFrame()) {
+        if (const auto* frame = _document->frameList()->selectedItem()) {
             frameSelected = true;
             isFrameSolid = frame->solid;
         }

@@ -135,7 +135,7 @@ void SiGraphicsScene::drawForeground(QPainter* painter, const QRectF& rect)
         return;
     }
 
-    const SI::Frame* frame = _document->frameList()->selectedFrame();
+    const SI::Frame* frame = _document->frameList()->selectedItem();
     if (frame != nullptr) {
         const urect& fLoc = frame->location.aabb;
 

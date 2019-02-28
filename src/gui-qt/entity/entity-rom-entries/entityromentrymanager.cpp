@@ -78,7 +78,7 @@ void EntityRomEntryManager::rebuildStructFields()
     _structFields.clear();
 
     if (_item) {
-        if (auto* e = _item->entriesList()->selectedEntry()) {
+        if (auto* e = _item->entriesList()->selectedItem()) {
             const auto& entityRomData = _item->project()->projectFile()->entityRomData;
             if (auto ft = entityRomData.functionTables.find(e->functionTable)) {
                 if (auto s = entityRomData.structs.find(ft->entityStruct)) {
@@ -108,7 +108,7 @@ void EntityRomEntryManager::rebuildEntryFields()
     _entryFields.clear();
 
     if (_item) {
-        if (auto* e = _item->entriesList()->selectedEntry()) {
+        if (auto* e = _item->entriesList()->selectedItem()) {
             for (const auto& it : e->fields) {
                 if (it.second.empty() == false) {
                     _entryFields.insert(QString::fromStdString(it.first),
@@ -130,7 +130,7 @@ void EntityRomEntryManager::updateParameters(int id, QVariant& param1, QVariant&
 
     const auto* frameSetResourceList = _item->project()->frameSetResourceList();
     auto getFrameSet = [&]() -> const MetaSprite::AbstractMsDocument* {
-        if (auto* e = _item->entriesList()->selectedEntry()) {
+        if (auto* e = _item->entriesList()->selectedItem()) {
             return qobject_cast<const MetaSprite::AbstractMsDocument*>(
                 frameSetResourceList->findResource(QString::fromStdString(e->frameSetId)));
         }
@@ -144,7 +144,7 @@ void EntityRomEntryManager::updateParameters(int id, QVariant& param1, QVariant&
 
     case FRAME_SET_ID:
         // Only show frameSets that match the function table export order
-        if (auto* e = _item->entriesList()->selectedEntry()) {
+        if (auto* e = _item->entriesList()->selectedItem()) {
             auto* projectFile = _item->project()->projectFile();
             Q_ASSERT(projectFile);
             if (auto ft = projectFile->entityRomData.functionTables.find(e->functionTable)) {
@@ -183,7 +183,7 @@ QVariant EntityRomEntryManager::data(int id) const
         return QVariant();
     }
 
-    auto* entry = _item->entriesList()->selectedEntry();
+    auto* entry = _item->entriesList()->selectedItem();
     if (entry == nullptr) {
         return QVariant();
     }

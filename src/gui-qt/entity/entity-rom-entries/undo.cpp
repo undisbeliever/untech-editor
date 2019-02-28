@@ -14,11 +14,6 @@ using namespace UnTech::GuiQt::Entity;
 
 using StructListUndoHelper = NamedListAndSelectionUndoHelper<EntityRomEntriesList>;
 
-void EntityRomEntriesList::editSelected_setName(const idstring& name)
-{
-    StructListUndoHelper(this).renameSelectedItem(name);
-}
-
 void EntityRomEntriesList::editSelected_setFunctionTable(const idstring& functionTable)
 {
     StructListUndoHelper(this).editSelectedItemField(

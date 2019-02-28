@@ -16,11 +16,6 @@ template class UnTech::GuiQt::Accessor::NamedListAndSelectionUndoHelper<EntityRo
 
 using StructListUndoHelper = NamedListAndSelectionUndoHelper<EntityRomStructList>;
 
-void EntityRomStructList::editSelected_setName(const idstring& name)
-{
-    StructListUndoHelper(this).renameSelectedItem(name);
-}
-
 void EntityRomStructList::editSelected_setParent(const idstring& parent)
 {
     StructListUndoHelper(this).editSelectedItemField(

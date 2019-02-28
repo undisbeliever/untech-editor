@@ -72,7 +72,7 @@ QVariant AnimationManager::data(int id) const
         return QVariant();
     }
 
-    const MSA::Animation* animation = _animationsList->selectedAnimation();
+    const MSA::Animation* animation = _animationsList->selectedItem();
     if (animation == nullptr) {
         return QVariant();
     }
@@ -195,14 +195,14 @@ const MSA::Animation* AnimationFramesManager::selectedAnimation() const
     if (_document == nullptr) {
         return nullptr;
     }
-    return _document->animationsList()->selectedAnimation();
+    return _document->animationsList()->selectedItem();
 }
 
 void AnimationFramesManager::updateParameters(int index, int id, QVariant& param1, QVariant& param2) const
 {
     Q_UNUSED(param2);
 
-    const MSA::Animation* animation = _document->animationsList()->selectedAnimation();
+    const MSA::Animation* animation = selectedAnimation();
     if (animation == nullptr
         || index < 0
         || (unsigned)index >= animation->frames.size()) {

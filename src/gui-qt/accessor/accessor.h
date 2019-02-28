@@ -10,6 +10,9 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
+class AbstractListAccessor;
+class AbstractNamedListAccessor;
+
 struct NamedListActions;
 class NamedListView;
 class NamedListModel;

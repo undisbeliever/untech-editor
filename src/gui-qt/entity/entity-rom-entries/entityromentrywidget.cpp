@@ -95,7 +95,7 @@ void EntityRomEntryWidget::updateFunctionTableComboList()
             _ui->functionTableCombo->addItem(QString::fromStdString(ft.name));
         }
 
-        if (auto* e = _item->entriesList()->selectedEntry()) {
+        if (auto* e = _item->entriesList()->selectedItem()) {
             _ui->functionTableCombo->setCurrentText(QString::fromStdString(e->functionTable));
         }
     }
@@ -104,7 +104,7 @@ void EntityRomEntryWidget::updateFunctionTableComboList()
 void EntityRomEntryWidget::onSelectedEntryChanged()
 {
     Q_ASSERT(_item);
-    if (auto* e = _item->entriesList()->selectedEntry()) {
+    if (auto* e = _item->entriesList()->selectedItem()) {
         _ui->name->setText(QString::fromStdString(e->name));
         _ui->functionTableCombo->setCurrentText(QString::fromStdString(e->functionTable));
         _ui->comment->setText(QString::fromStdString(e->comment));
@@ -122,7 +122,7 @@ void EntityRomEntryWidget::onEntryNameChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->entriesList()->selectedIndex()) {
-        if (auto* e = _item->entriesList()->selectedEntry()) {
+        if (auto* e = _item->entriesList()->selectedItem()) {
             _ui->name->setText(QString::fromStdString(e->name));
         }
     }
@@ -132,7 +132,7 @@ void EntityRomEntryWidget::onEntryFunctionTableChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->entriesList()->selectedIndex()) {
-        if (auto* e = _item->entriesList()->selectedEntry()) {
+        if (auto* e = _item->entriesList()->selectedItem()) {
             _ui->functionTableCombo->setCurrentText(QString::fromStdString(e->functionTable));
         }
     }
@@ -142,7 +142,7 @@ void EntityRomEntryWidget::onEntryCommentChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->entriesList()->selectedIndex()) {
-        if (auto* e = _item->entriesList()->selectedEntry()) {
+        if (auto* e = _item->entriesList()->selectedItem()) {
             _ui->comment->setText(QString::fromStdString(e->comment));
         }
     }
@@ -156,7 +156,7 @@ void EntityRomEntryWidget::onNameEdited()
     if (name.isValid()) {
         _item->entriesList()->editSelected_setName(name);
     }
-    else if (auto* e = _item->entriesList()->selectedEntry()) {
+    else if (auto* e = _item->entriesList()->selectedItem()) {
         _ui->name->setText(QString::fromStdString(e->name));
     };
 }

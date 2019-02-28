@@ -7,6 +7,7 @@
 #pragma once
 
 #include "entityromstructsresourceitem.h"
+#include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/accessor/accessor.h"
 #include "gui-qt/project.h"
 #include "models/entity/entityromdata.h"
@@ -19,69 +20,23 @@ namespace Entity {
 
 namespace EN = UnTech::Entity;
 
-class EntityRomStructList : public QObject {
+class EntityRomStructList : public Accessor::NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem> {
     Q_OBJECT
 
+    friend class Accessor::NamedListUndoHelper<EntityRomStructList>;
+
 public:
-    using DataT = EN::EntityRomStruct;
-    using ListT = NamedList<DataT>;
-    using index_type = ListT::size_type;
-
-    constexpr static index_type max_size = 255;
-
     EntityRomStructList(EntityRomStructsResourceItem* resourceItem);
     ~EntityRomStructList() = default;
 
-    static QString typeName() { return tr("Entity ROM Struct"); }
+    virtual QString typeName() const final;
 
-    EntityRomStructsResourceItem* resourceItem() const { return _resourceItem; }
-
-    index_type selectedIndex() const { return _selectedIndex; }
-    void setSelectedIndex(index_type index);
-    void unselectItem() { setSelectedIndex(INT_MAX); }
-
-    bool isSelectedIndexValid() const;
-
-    const DataT* selectedStruct() const;
-
-    void editSelected_setName(const idstring& name);
     void editSelected_setParent(const idstring& parent);
     void editSelected_setComment(const std::string& comment);
 
-    const ListT* list() const
-    {
-        const auto* projectFile = _resourceItem->project()->projectFile();
-        Q_ASSERT(projectFile);
-        return &projectFile->entityRomData.structs;
-    }
-
-protected:
-    friend class Accessor::NamedListUndoHelper<EntityRomStructList>;
-    ListT* getList()
-    {
-        auto* projectFile = _resourceItem->project()->projectFile();
-        Q_ASSERT(projectFile);
-        return &projectFile->entityRomData.structs;
-    }
-
 signals:
-    void nameChanged(index_type index);
     void parentChanged(index_type);
     void commentChanged(index_type);
-
-    void dataChanged(index_type index);
-    void listChanged();
-
-    void listAboutToChange();
-    void itemAdded(index_type index);
-    void itemAboutToBeRemoved(index_type index);
-    void itemMoved(index_type from, index_type to);
-
-    void selectedIndexChanged();
-
-private:
-    EntityRomStructsResourceItem* const _resourceItem;
-    index_type _selectedIndex;
 };
 
 class EntityRomStructFieldList : public QObject {

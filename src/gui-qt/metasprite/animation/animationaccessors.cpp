@@ -5,73 +5,34 @@
  */
 
 #include "animationaccessors.h"
-#include "gui-qt/accessor/selectedindexhelper.h"
+#include "gui-qt/accessor/abstractaccessors.hpp"
 #include "gui-qt/common/helpers.h"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
+template <>
+const NamedList<MSA::Animation>* NamedListAccessor<MSA::Animation, AbstractMsDocument>::list() const
+{
+    return _resourceItem->animations();
+}
+
+template <>
+NamedList<MSA::Animation>* NamedListAccessor<MSA::Animation, AbstractMsDocument>::getList()
+{
+    return _resourceItem->animations();
+}
+
 AnimationsList::AnimationsList(AbstractMsDocument* document)
-    : QObject(document)
-    , _document(document)
-    , _selectedIndex()
+    : NamedListAccessor(document, UnTech::MetaSprite::MAX_EXPORT_NAMES)
 {
-    SelectedIndexHelper::buildAndConnectSlots_NamedList(this);
 }
 
-QStringList AnimationsList::animationNames() const
+QString AnimationsList::typeName() const
 {
-    if (const auto* aList = _document->animations()) {
-        return convertNameList(*aList);
-    }
-    else {
-        return QStringList();
-    }
-}
-
-void AnimationsList::setSelectedId(const UnTech::idstring& id)
-{
-    if (auto* list = _document->animations()) {
-        setSelectedIndex(list->indexOf(id));
-    }
-    else {
-        unselectItem();
-    }
-}
-
-void AnimationsList::setSelectedIndex(const AnimationsList::index_type& index)
-{
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
-    }
-}
-
-bool AnimationsList::isSelectedIndexValid() const
-{
-    auto* animations = _document->animations();
-
-    return animations
-           && _selectedIndex < animations->size();
-}
-
-const UnTech::MetaSprite::Animation::Animation* AnimationsList::selectedAnimation() const
-{
-    auto* animations = _document->animations();
-    if (_selectedIndex >= animations->size()) {
-        return nullptr;
-    }
-    return &animations->at(_selectedIndex);
-}
-
-UnTech::MetaSprite::Animation::Animation* AnimationsList::selectedItemEditable()
-{
-    auto* animations = _document->animations();
-    if (_selectedIndex >= animations->size()) {
-        return nullptr;
-    }
-    return &animations->at(_selectedIndex);
+    return tr("Animation");
 }
 
 AnimationFramesList::AnimationFramesList(AbstractMsDocument* document)

@@ -85,7 +85,7 @@ void StructFieldsModel::rebuildData()
     emit layoutAboutToBeChanged();
 
     if (_item) {
-        _data.rebuildDataForStruct(_item->structList()->selectedStruct());
+        _data.rebuildDataForStruct(_item->structList()->selectedItem());
     }
     else {
         _data.clear();
@@ -100,7 +100,7 @@ void StructFieldsModel::onStructFieldDataChanged(size_t structId, size_t index)
         rebuildData();
     }
     else {
-        auto* selectedStruct = _item->structList()->selectedStruct();
+        auto* selectedStruct = _item->structList()->selectedItem();
         Q_ASSERT(index < selectedStruct->fields.size());
 
         int row = _data.updateFieldInChildStruct(index, selectedStruct->fields.at(index));

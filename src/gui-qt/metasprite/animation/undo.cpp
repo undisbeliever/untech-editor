@@ -13,11 +13,6 @@ using namespace UnTech::GuiQt::MetaSprite::Animation;
 
 using AnimationsListUndoHelper = NamedListAndSelectionUndoHelper<AnimationsList>;
 
-bool AnimationsList::editSelected_setName(const idstring& name)
-{
-    return AnimationsListUndoHelper(this).renameSelectedItem(name);
-}
-
 bool AnimationsList::editSelected_setDurationFormat(MSA::DurationFormat durationFormat)
 {
     return AnimationsListUndoHelper(this).editSelectedItemField(

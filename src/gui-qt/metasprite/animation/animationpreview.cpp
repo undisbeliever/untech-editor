@@ -247,8 +247,13 @@ void AnimationPreview::onAnimationFramesChanged()
 
 void AnimationPreview::onAnimationComboActivated()
 {
-    const idstring id = _ui->animation->currentText().toStdString();
-    _document->animationsList()->setSelectedId(id);
+    int i = _ui->animation->currentIndex();
+    if (i >= 0) {
+        _document->animationsList()->setSelectedIndex(i);
+    }
+    else {
+        _document->animationsList()->unselectItem();
+    }
 }
 
 void AnimationPreview::onVelocityChanged()

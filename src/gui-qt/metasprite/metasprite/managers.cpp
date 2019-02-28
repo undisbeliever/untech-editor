@@ -155,7 +155,7 @@ void FrameManager::setDocument(Document* document)
 
 void FrameManager::onSelectedFrameChanged()
 {
-    setEnabled(_frameList && _frameList->isFrameSelected());
+    setEnabled(_frameList && _frameList->isSelectedIndexValid());
     emit dataChanged();
 }
 
@@ -173,7 +173,7 @@ QVariant FrameManager::data(int id) const
         return QVariant();
     }
 
-    const MS::Frame* frame = _frameList->selectedFrame();
+    const MS::Frame* frame = _frameList->selectedItem();
     if (frame == nullptr) {
         return QVariant();
     }
@@ -203,7 +203,7 @@ bool FrameManager::setData(int id, const QVariant& value)
         return false;
     }
 
-    const MS::Frame* frame = _frameList->selectedFrame();
+    const MS::Frame* frame = _frameList->selectedItem();
     if (frame == nullptr) {
         return false;
     }
@@ -254,7 +254,7 @@ const MS::Frame* AbstractFrameContentManager::selectedFrame() const
     if (_document == nullptr) {
         return nullptr;
     }
-    return _document->frameList()->selectedFrame();
+    return _document->frameList()->selectedItem();
 }
 
 void AbstractFrameContentManager::connectSignals(AbstractFrameContentAccessor* accessor)

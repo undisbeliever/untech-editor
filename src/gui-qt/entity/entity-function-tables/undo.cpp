@@ -15,11 +15,6 @@ using namespace UnTech::GuiQt::Entity;
 
 using FTUndoHelper = NamedListUndoHelper<EntityFunctionTableList>;
 
-bool EntityFunctionTableList::edit_setName(index_type index, const idstring& name)
-{
-    return FTUndoHelper(this).renameItem(index, name);
-}
-
 bool EntityFunctionTableList::edit_setExportOrder(EntityFunctionTableList::index_type index, const idstring& exportOrder)
 {
     return FTUndoHelper(this).editField(
@@ -50,36 +45,4 @@ bool EntityFunctionTableList::edit_setComment(index_type index, const std::strin
         index, comment,
         tr("Edit Comment"),
         [](DataT& s) -> std::string& { return s.comment; });
-}
-
-bool EntityFunctionTablesManager::insertItem(int index)
-{
-    if (_ftList == nullptr) {
-        return false;
-    }
-    return FTUndoHelper(_ftList).addItem(index);
-}
-
-bool EntityFunctionTablesManager::cloneItem(int index)
-{
-    if (_ftList == nullptr) {
-        return false;
-    }
-    return FTUndoHelper(_ftList).cloneItem(index);
-}
-
-bool EntityFunctionTablesManager::removeItem(int index)
-{
-    if (_ftList == nullptr) {
-        return false;
-    }
-    return FTUndoHelper(_ftList).removeItem(index);
-}
-
-bool EntityFunctionTablesManager::moveItem(int from, int to)
-{
-    if (_ftList == nullptr) {
-        return false;
-    }
-    return FTUndoHelper(_ftList).moveItem(from, to);
 }

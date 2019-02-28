@@ -5,39 +5,50 @@
  */
 
 #include "accessors.h"
-#include "gui-qt/accessor/selectedindexhelper.h"
+#include "gui-qt/accessor/abstractaccessors.hpp"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Entity;
 
+template <>
+const NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>::list() const
+{
+    const auto* erel = qobject_cast<const EntityRomEntriesList*>(this);
+    Q_ASSERT(erel);
+    const auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    if (erel->isEntityList()) {
+        return &projectFile->entityRomData.entities;
+    }
+    else {
+        return &projectFile->entityRomData.projectiles;
+    }
+}
+
+template <>
+NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>::getList()
+{
+    auto* erel = qobject_cast<EntityRomEntriesList*>(this);
+    Q_ASSERT(erel);
+    auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    if (erel->isEntityList()) {
+        return &projectFile->entityRomData.entities;
+    }
+    else {
+        return &projectFile->entityRomData.projectiles;
+    }
+}
+
 EntityRomEntriesList::EntityRomEntriesList(EntityRomEntriesResourceItem* resourceItem,
                                            bool entityList)
-    : QObject(resourceItem)
-    , _resourceItem(resourceItem)
+    : NamedListAccessor(resourceItem, 255)
     , _entityList(entityList)
-    , _selectedIndex(INT_MAX)
 {
-    SelectedIndexHelper::buildAndConnectSlots_NamedList(this);
 }
 
-void EntityRomEntriesList::setSelectedIndex(EntityRomEntriesList::index_type index)
+QString EntityRomEntriesList::typeName() const
 {
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
-    }
-}
-
-bool EntityRomEntriesList::isSelectedIndexValid() const
-{
-    return _selectedIndex < list()->size();
-}
-
-const EntityRomEntriesList::DataT* EntityRomEntriesList::selectedEntry() const
-{
-    const ListT* entries = list();
-    if (_selectedIndex >= entries->size()) {
-        return nullptr;
-    }
-    return &entries->at(_selectedIndex);
+    return tr("Entity ROM Struct");
 }

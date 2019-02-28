@@ -5,19 +5,40 @@
  */
 
 #include "accessors.h"
+#include "gui-qt/accessor/abstractaccessors.hpp"
 #include "gui-qt/accessor/multipleselectedindexeshelper.h"
-#include "gui-qt/accessor/selectedindexhelper.h"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
+template <>
+const NamedList<SI::Frame>* NamedListAccessor<SI::Frame, Document>::list() const
+{
+    if (const SI::FrameSet* fs = resourceItem()->frameSet()) {
+        return &fs->frames;
+    }
+    return nullptr;
+}
+
+template <>
+NamedList<SI::Frame>* NamedListAccessor<SI::Frame, Document>::getList()
+{
+    if (SI::FrameSet* fs = resourceItem()->frameSet()) {
+        return &fs->frames;
+    }
+    return nullptr;
+}
+
 FrameList::FrameList(Document* document)
-    : QObject(document)
-    , _document(document)
-    , _selectedIndex(INT_MAX)
+    : NamedListAccessor(document, UnTech::MetaSprite::MAX_EXPORT_NAMES)
     , _tileHitboxSelected(false)
 {
-    SelectedIndexHelper::buildAndConnectSlots_NamedList(this);
+}
+
+QString FrameList::typeName() const
+{
+    return tr("Frame");
 }
 
 void FrameList::setTileHitboxSelected(bool s)
@@ -28,52 +49,13 @@ void FrameList::setTileHitboxSelected(bool s)
     }
 }
 
-void FrameList::setSelectedId(const UnTech::idstring& id)
-{
-    if (auto* list = this->list()) {
-        setSelectedIndex(list->indexOf(id));
-    }
-    else {
-        unselectItem();
-    }
-}
-
-void FrameList::setSelectedIndex(FrameList::index_type index)
-{
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
-    }
-}
-
-bool FrameList::isFrameSelected() const
-{
-    auto* frames = list();
-    if (frames == nullptr) {
-        return false;
-    }
-    return _selectedIndex < frames->size();
-}
-
-const UnTech::MetaSprite::SpriteImporter::Frame* FrameList::selectedFrame() const
-{
-    auto* frames = list();
-    if (frames == nullptr) {
-        return nullptr;
-    }
-    if (_selectedIndex >= frames->size()) {
-        return nullptr;
-    }
-    return &frames->at(_selectedIndex);
-}
-
 SI::Frame* FrameList::selectedItemEditable()
 {
     auto* frames = getList();
-    if (_selectedIndex >= frames->size()) {
+    if (selectedIndex() >= frames->size()) {
         return nullptr;
     }
-    return &frames->at(_selectedIndex);
+    return &frames->at(selectedIndex());
 }
 
 AbstractFrameContentAccessor::AbstractFrameContentAccessor(Document* document)

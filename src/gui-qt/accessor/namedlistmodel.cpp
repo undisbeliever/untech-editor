@@ -5,11 +5,9 @@
  */
 
 #include "namedlistmodel.h"
+#include "abstractaccessors.h"
+#include "models/common/namedlist.h"
 
-#include <algorithm>
-#include <iterator>
-
-using UnTech::idstring;
 using namespace UnTech::GuiQt::Accessor;
 
 NamedListModel::NamedListModel(QObject* parent)
@@ -19,13 +17,86 @@ NamedListModel::NamedListModel(QObject* parent)
 {
 }
 
-void NamedListModel::clear()
+void NamedListModel::setAccessor(AbstractNamedListAccessor* accessor)
+{
+    if (_accessor == accessor) {
+        return;
+    }
+
+    if (_accessor) {
+        _accessor->disconnect(this);
+    }
+    _accessor = accessor;
+
+    resetDisplayList();
+
+    if (_accessor) {
+        connect(accessor, &AbstractNamedListAccessor::nameChanged,
+                this, &NamedListModel::onNameChanged);
+        connect(accessor, &AbstractNamedListAccessor::itemAdded,
+                this, &NamedListModel::onItemAdded);
+        connect(accessor, &AbstractNamedListAccessor::itemAboutToBeRemoved,
+                this, &NamedListModel::onItemAboutToBeRemoved);
+        connect(accessor, &AbstractNamedListAccessor::itemMoved,
+                this, &NamedListModel::onItemMoved);
+    }
+}
+
+void NamedListModel::resetDisplayList()
 {
     beginResetModel();
 
-    _displayList.clear();
+    if (_accessor) {
+        _displayList = _accessor->itemNames();
+    }
+    else {
+        _displayList.clear();
+    }
 
     endResetModel();
+}
+
+void NamedListModel::onNameChanged(size_t index)
+{
+    if (_accessor) {
+        Q_ASSERT(index < unsigned(_displayList.size()));
+
+        _displayList.replace(index, _accessor->itemName(index));
+
+        QModelIndex mIndex = createIndex(index, 0);
+        emit dataChanged(mIndex, mIndex);
+    }
+}
+
+void NamedListModel::onItemAdded(size_t index)
+{
+    if (_accessor) {
+        Q_ASSERT(index <= unsigned(_displayList.size()));
+
+        _displayList.insert(index, _accessor->itemName(index));
+        emit layoutChanged();
+    }
+}
+
+void NamedListModel::onItemAboutToBeRemoved(size_t index)
+{
+    if (_accessor) {
+        Q_ASSERT(index < unsigned(_displayList.size()));
+
+        _displayList.removeAt(index);
+        emit layoutChanged();
+    }
+}
+
+void NamedListModel::onItemMoved(size_t from, size_t to)
+{
+    if (_accessor) {
+        Q_ASSERT(from < unsigned(_displayList.size()));
+        Q_ASSERT(to < unsigned(_displayList.size()));
+
+        _displayList.move(from, to);
+        emit layoutChanged();
+    }
 }
 
 QModelIndex NamedListModel::toModelIndex(int i) const

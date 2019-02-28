@@ -7,6 +7,7 @@
 #pragma once
 
 #include "entityromentriesresourceitem.h"
+#include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/accessor/accessor.h"
 #include "gui-qt/project.h"
 #include "models/entity/entityromdata.h"
@@ -19,32 +20,22 @@ namespace Entity {
 
 namespace EN = UnTech::Entity;
 
-class EntityRomEntriesList : public QObject {
+class EntityRomEntriesList : public Accessor::NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem> {
     Q_OBJECT
 
+    friend class Accessor::NamedListUndoHelper<EntityRomEntriesList>;
+
+private:
+    const bool _entityList;
+
 public:
-    using DataT = EN::EntityRomEntry;
-    using ListT = NamedList<DataT>;
-    using index_type = ListT::size_type;
-
-    constexpr static index_type max_size = 255;
-
     EntityRomEntriesList(EntityRomEntriesResourceItem* resourceItem, bool entityList);
     ~EntityRomEntriesList() = default;
 
-    static QString typeName() { return tr("Entity ROM Struct"); }
+    virtual QString typeName() const final;
 
-    EntityRomEntriesResourceItem* resourceItem() const { return _resourceItem; }
+    bool isEntityList() const { return _entityList; }
 
-    index_type selectedIndex() const { return _selectedIndex; }
-    void setSelectedIndex(index_type index);
-    void unselectItem() { setSelectedIndex(INT_MAX); }
-
-    bool isSelectedIndexValid() const;
-
-    const DataT* selectedEntry() const;
-
-    void editSelected_setName(const idstring& name);
     void editSelected_setFunctionTable(const idstring& functionTable);
     void editSelected_setComment(const std::string& comment);
 
@@ -54,53 +45,11 @@ public:
     bool editSelected_setDefaultPalette(unsigned defaultPalette);
     bool editSelected_setField(const QString& field, const std::string& value);
 
-    const ListT* list() const
-    {
-        const auto* projectFile = _resourceItem->project()->projectFile();
-        Q_ASSERT(projectFile);
-        if (_entityList) {
-            return &projectFile->entityRomData.entities;
-        }
-        else {
-            return &projectFile->entityRomData.projectiles;
-        }
-    }
-
-protected:
-    friend class Accessor::NamedListUndoHelper<EntityRomEntriesList>;
-    ListT* getList()
-    {
-        auto* projectFile = _resourceItem->project()->projectFile();
-        Q_ASSERT(projectFile);
-        if (_entityList) {
-            return &projectFile->entityRomData.entities;
-        }
-        else {
-            return &projectFile->entityRomData.projectiles;
-        }
-    }
-
 signals:
-    void nameChanged(index_type index);
     void implementsChanged(index_type);
     void commentChanged(index_type);
-
-    void dataChanged(index_type index);
-    void listChanged();
-
-    void listAboutToChange();
-    void itemAdded(index_type index);
-    void itemAboutToBeRemoved(index_type index);
-    void itemMoved(index_type from, index_type to);
-
-    void selectedIndexChanged();
-
-private:
-    EntityRomEntriesResourceItem* const _resourceItem;
-    const bool _entityList;
-
-    index_type _selectedIndex;
 };
+
 }
 }
 }

@@ -123,7 +123,7 @@ void EntityRomStructWidget::updateParentComboList()
             _ui->parentCombo->addItem(QString::fromStdString(s.name));
         }
 
-        if (auto* s = _item->structList()->selectedStruct()) {
+        if (auto* s = _item->structList()->selectedItem()) {
             _ui->parentCombo->setCurrentText(QString::fromStdString(s->parent));
         }
     }
@@ -133,7 +133,7 @@ void EntityRomStructWidget::onSelectedStructChanged()
 {
     Q_ASSERT(_item);
 
-    if (auto* s = _item->structList()->selectedStruct()) {
+    if (auto* s = _item->structList()->selectedItem()) {
         _ui->name->setText(QString::fromStdString(s->name));
         _ui->parentCombo->setCurrentText(QString::fromStdString(s->parent));
         _ui->comment->setText(QString::fromStdString(s->comment));
@@ -181,7 +181,7 @@ void EntityRomStructWidget::onStructNameChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->structList()->selectedIndex()) {
-        if (auto* s = _item->structList()->selectedStruct()) {
+        if (auto* s = _item->structList()->selectedItem()) {
             _ui->name->setText(QString::fromStdString(s->name));
         }
     }
@@ -191,7 +191,7 @@ void EntityRomStructWidget::onStructParentChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->structList()->selectedIndex()) {
-        if (auto* s = _item->structList()->selectedStruct()) {
+        if (auto* s = _item->structList()->selectedItem()) {
             _ui->parentCombo->setCurrentText(QString::fromStdString(s->parent));
         }
     }
@@ -201,7 +201,7 @@ void EntityRomStructWidget::onStructCommentChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->structList()->selectedIndex()) {
-        if (auto* s = _item->structList()->selectedStruct()) {
+        if (auto* s = _item->structList()->selectedItem()) {
             _ui->comment->setText(QString::fromStdString(s->comment));
         }
     }
@@ -215,7 +215,7 @@ void EntityRomStructWidget::onNameEdited()
     if (name.isValid()) {
         _item->structList()->editSelected_setName(name);
     }
-    else if (auto* s = _item->structList()->selectedStruct()) {
+    else if (auto* s = _item->structList()->selectedItem()) {
         _ui->name->setText(QString::fromStdString(s->name));
     };
 }

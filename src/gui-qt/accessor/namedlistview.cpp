@@ -5,7 +5,7 @@
  */
 
 #include "namedlistview.h"
-#include "accessor.h"
+#include "abstractaccessors.h"
 #include "gui-qt/common/idstringdialog.h"
 
 #include <QContextMenuEvent>
@@ -89,11 +89,181 @@ NamedListView::NamedListView(QWidget* parent)
 
     _actions.populateMenu(_selectedContextMenu);
     _noSelectionContextMenu->addAction(_actions.add);
+
+    connect(selectionModel(), &QItemSelectionModel::selectionChanged,
+            this, &NamedListView::onViewSelectionChanged);
+
+    connect(_actions.add, &QAction::triggered,
+            this, &NamedListView::onAddTriggered);
+    connect(_actions.clone, &QAction::triggered,
+            this, &NamedListView::onCloneTriggered);
+    connect(_actions.rename, &QAction::triggered,
+            this, &NamedListView::onRenameTriggered);
+    connect(_actions.raise, &QAction::triggered,
+            this, &NamedListView::onRaiseTriggered);
+    connect(_actions.lower, &QAction::triggered,
+            this, &NamedListView::onLowerTriggered);
+    connect(_actions.remove, &QAction::triggered,
+            this, &NamedListView::onRemoveTriggered);
 }
 
 void NamedListView::setModel(QAbstractItemModel*)
 {
     qCritical("Must not call setModel in NamedListView.");
+}
+
+void NamedListView::setAccessor(AbstractNamedListAccessor* accessor)
+{
+    if (_accessor == accessor) {
+        return;
+    }
+
+    if (_accessor) {
+        _accessor->disconnect(this);
+    }
+    _accessor = accessor;
+
+    _model->setAccessor(accessor);
+
+    setEnabled(_accessor);
+    updateActions();
+
+    if (_accessor) {
+        _actions.updateText(_accessor->typeName());
+        onAccessorSelectedIndexChanged();
+
+        connect(_accessor, &AbstractNamedListAccessor::selectedIndexChanged,
+                this, &NamedListView::onAccessorSelectedIndexChanged);
+    }
+}
+
+void NamedListView::onAccessorSelectedIndexChanged()
+{
+    Q_ASSERT(_accessor);
+
+    QModelIndex index = _model->toModelIndex(_accessor->selectedIndex());
+    setCurrentIndex(index);
+
+    updateActions();
+}
+
+void NamedListView::onViewSelectionChanged()
+{
+    if (_accessor) {
+        size_t index = _model->toIndex(currentIndex());
+        _accessor->setSelectedIndex(index);
+    }
+}
+
+void NamedListView::updateActions()
+{
+    if (_accessor == nullptr) {
+        _actions.disableAll();
+        return;
+    }
+
+    const size_t selectedIndex = _accessor->selectedIndex();
+    const size_t listSize = _accessor->size();
+    const size_t maxSize = _accessor->maxSize();
+
+    const bool selectionValid = selectedIndex < listSize;
+    const bool canAdd = listSize < maxSize;
+
+    _actions.add->setEnabled(canAdd);
+    _actions.clone->setEnabled(selectionValid && canAdd);
+    _actions.rename->setEnabled(selectionValid);
+    _actions.raise->setEnabled(selectionValid && selectedIndex > 0);
+    _actions.lower->setEnabled(selectionValid && selectedIndex + 1 < listSize);
+    _actions.remove->setEnabled(selectionValid);
+}
+
+void NamedListView::onAddTriggered()
+{
+    if (_accessor == nullptr) {
+        return;
+    }
+    if (_accessor->isSelectedIndexValid() == false) {
+        return;
+    }
+
+    const QString typeName = _accessor->typeName();
+
+    idstring name = IdstringDialog::getIdstring(
+        this,
+        tr("Input %1 Name").arg(typeName),
+        tr("Input name of the new %1:").arg(QLocale().toLower(typeName)),
+        idstring(), _model->displayList());
+
+    if (name.isValid()) {
+        _accessor->addItemWithName(name);
+    }
+}
+
+void NamedListView::onCloneTriggered()
+{
+    if (_accessor == nullptr) {
+        return;
+    }
+    if (_accessor->isSelectedIndexValid() == false) {
+        return;
+    }
+
+    const QString typeName = _accessor->typeName();
+    const QString currentName = _accessor->itemName(_accessor->selectedIndex());
+
+    const idstring newName = IdstringDialog::getIdstring(
+        this,
+        tr("Input %1 Name").arg(typeName),
+        tr("Input name of the cloned %1:").arg(QLocale().toLower(typeName)),
+        currentName, _model->displayList());
+
+    if (newName.isValid()) {
+        _accessor->cloneSelectedItemWithName(newName);
+    }
+}
+
+void NamedListView::onRenameTriggered()
+{
+    if (_accessor == nullptr) {
+        return;
+    }
+    if (_accessor->isSelectedIndexValid() == false) {
+        return;
+    }
+
+    const QString typeName = _accessor->typeName();
+    const QString currentName = _accessor->itemName(_accessor->selectedIndex());
+
+    const idstring newName = IdstringDialog::getIdstring(
+        this,
+        tr("Input %1 Name").arg(typeName),
+        tr("Rename %1: to").arg(currentName),
+        currentName, _model->displayList());
+
+    if (newName.isValid()) {
+        _accessor->editSelected_setName(newName);
+    }
+}
+
+void NamedListView::onRaiseTriggered()
+{
+    if (_accessor) {
+        _accessor->raiseSelectedItem();
+    }
+}
+
+void NamedListView::onLowerTriggered()
+{
+    if (_accessor) {
+        _accessor->lowerSelectedItem();
+    }
+}
+
+void NamedListView::onRemoveTriggered()
+{
+    if (_accessor) {
+        _accessor->removeSelectedItem();
+    }
 }
 
 // Must use contextMenuEvent. Using the customContextMenuRequested signal
@@ -110,31 +280,4 @@ void NamedListView::contextMenuEvent(QContextMenuEvent* event)
     else {
         _noSelectionContextMenu->exec(event->globalPos());
     }
-}
-
-idstring NamedListView::addIdstringDialog(const QString& typeName)
-{
-    return IdstringDialog::getIdstring(
-        this,
-        tr("Input %1 Name").arg(typeName),
-        tr("Input name of the new %1:").arg(QLocale().toLower(typeName)),
-        idstring(), _model->displayList());
-}
-
-idstring NamedListView::cloneIdstringDialog(const idstring& id, const QString& typeName)
-{
-    return IdstringDialog::getIdstring(
-        this,
-        tr("Input %1 Name").arg(typeName),
-        tr("Input name of the cloned %1:").arg(QLocale().toLower(typeName)),
-        id, _model->displayList());
-}
-
-idstring NamedListView::renameIdstringDialog(const idstring& oldId, const QString& typeName)
-{
-    return IdstringDialog::getIdstring(
-        this,
-        tr("Input %1 Name").arg(typeName),
-        tr("Rename %1: to").arg(QString::fromStdString(oldId)),
-        oldId, _model->displayList());
 }

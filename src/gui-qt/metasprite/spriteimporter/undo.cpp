@@ -90,11 +90,6 @@ bool Document::editFrameSet_setPalette(const SI::UserSuppliedPalette& palette)
 
 using FrameListUndoHelper = NamedListAndSelectionUndoHelper<FrameList>;
 
-bool FrameList::editSelected_setName(const idstring& name)
-{
-    return FrameListUndoHelper(this).renameSelectedItem(name);
-}
-
 bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 {
     return FrameListUndoHelper(this).editSelectedItemField(
@@ -122,7 +117,7 @@ bool FrameList::editSelected_setSolid(bool solid)
 
 bool FrameList::editSelected_toggleTileHitbox()
 {
-    if (const SI::Frame* frame = selectedFrame()) {
+    if (const SI::Frame* frame = selectedItem()) {
         return editSelected_setSolid(!frame->solid);
     }
     else {
@@ -152,7 +147,7 @@ bool FrameObjectList::editSelectedList_setLocation(unsigned index, const upoint&
 
 bool FrameObjectList::editSelectedList_setSize(unsigned index, FrameObjectList::ObjectSize size)
 {
-    const SI::Frame* frame = _document->frameList()->selectedFrame();
+    const SI::Frame* frame = _document->frameList()->selectedItem();
     if (frame == nullptr) {
         return false;
     }
@@ -176,7 +171,7 @@ bool FrameObjectList::editSelected_toggleObjectSize()
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    const SI::Frame* frame = _document->frameList()->selectedFrame();
+    const SI::Frame* frame = _document->frameList()->selectedItem();
     Q_ASSERT(frame);
 
     return FrameObjectListUndoHelper(this).editSelectedItems(

@@ -5,39 +5,37 @@
  */
 
 #include "accessors.h"
+#include "gui-qt/accessor/abstractaccessors.hpp"
 #include "gui-qt/accessor/selectedindexhelper.h"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Entity;
 
+template <>
+const NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>::list() const
+{
+    const auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    return &projectFile->entityRomData.structs;
+}
+
+template <>
+NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>::getList()
+{
+    auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    return &projectFile->entityRomData.structs;
+}
+
 EntityRomStructList::EntityRomStructList(EntityRomStructsResourceItem* resourceItem)
-    : QObject(resourceItem)
-    , _resourceItem(resourceItem)
-    , _selectedIndex(INT_MAX)
+    : NamedListAccessor(resourceItem, 255)
 {
-    SelectedIndexHelper::buildAndConnectSlots_NamedList(this);
 }
 
-void EntityRomStructList::setSelectedIndex(EntityRomStructList::index_type index)
+QString EntityRomStructList::typeName() const
 {
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
-    }
-}
-
-bool EntityRomStructList::isSelectedIndexValid() const
-{
-    return _selectedIndex < list()->size();
-}
-
-const EntityRomStructList::DataT* EntityRomStructList::selectedStruct() const
-{
-    auto& structs = *this->list();
-    if (_selectedIndex >= structs.size()) {
-        return nullptr;
-    }
-    return &structs.at(_selectedIndex);
+    return tr("Entity ROM Struct");
 }
 
 EntityRomStructFieldList::EntityRomStructFieldList(EntityRomStructsResourceItem* resourceItem)

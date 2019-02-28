@@ -7,6 +7,7 @@
 #pragma once
 
 #include "document.h"
+#include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/accessor/accessor.h"
 #include "models/common/vectorset.h"
 #include <QObject>
@@ -21,54 +22,24 @@ class FrameObjectList;
 class ActionPointList;
 class EntityHitboxList;
 
-class FrameList : public QObject {
+class FrameList : public Accessor::NamedListAccessor<SI::Frame, Document> {
     Q_OBJECT
 
-public:
-    using DataT = SI::Frame;
-    using ListT = NamedList<SI::Frame>;
-    using index_type = ListT::size_type;
-
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_EXPORT_NAMES;
-
+    friend class Accessor::NamedListUndoHelper<FrameList>;
     using SpriteOrderType = UnTech::MetaSprite::SpriteOrderType;
 
 private:
-    Document* const _document;
-
-    index_type _selectedIndex;
-
     bool _tileHitboxSelected;
 
 public:
     FrameList(Document* document);
     ~FrameList() = default;
 
-    Document* resourceItem() const { return _document; }
+    virtual QString typeName() const final;
 
-    static QString typeName() { return tr("Frame"); }
-
-    index_type selectedIndex() const { return _selectedIndex; }
-    void setSelectedId(const idstring& id);
-    void setSelectedIndex(index_type index);
-    void unselectItem() { setSelectedIndex(INT_MAX); }
-
-    bool isFrameSelected() const;
-    const SI::Frame* selectedFrame() const;
-
-    bool isTileHitboxSelected() const { return _tileHitboxSelected && isFrameSelected(); }
+    bool isTileHitboxSelected() const { return _tileHitboxSelected && isSelectedIndexValid(); }
     void setTileHitboxSelected(bool s);
 
-    const ListT* list() const
-    {
-        const SI::FrameSet* fs = _document->frameSet();
-        if (fs == nullptr) {
-            return nullptr;
-        }
-        return &fs->frames;
-    }
-
-    bool editSelected_setName(const idstring& name);
     bool editSelected_setSpriteOrder(SpriteOrderType spriteOrder);
     bool editSelected_setFrameLocation(SI::FrameLocation& frameLocation);
     bool editSelected_setSolid(bool solid);
@@ -77,33 +48,14 @@ public:
     // Will also edit frame.solid
     bool editSelected_setTileHitbox(const urect& hitbox);
 
+    // ::TODO remove::
 protected:
-    friend class Accessor::NamedListUndoHelper<FrameList>;
-    ListT* getList()
-    {
-        SI::FrameSet* fs = _document->frameSet();
-        if (fs == nullptr) {
-            return nullptr;
-        }
-        return &fs->frames;
-    }
-
     friend class AbstractFrameContentAccessor;
     SI::Frame* selectedItemEditable();
 
 signals:
-    void nameChanged(index_type index);
     void frameLocationChanged(index_type index);
 
-    void dataChanged(index_type index);
-    void listChanged();
-
-    void listAboutToChange();
-    void itemAdded(index_type index);
-    void itemAboutToBeRemoved(index_type index);
-    void itemMoved(index_type from, index_type to);
-
-    void selectedIndexChanged();
     void tileHitboxSelectedChanged();
 };
 

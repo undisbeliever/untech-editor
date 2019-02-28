@@ -152,7 +152,7 @@ void MainWindow::populateWidgets()
 
 void MainWindow::onSelectedFrameChanged()
 {
-    if (_document && _document->frameList()->isFrameSelected()) {
+    if (_document && _document->frameList()->isSelectedIndexValid()) {
         _graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     }
     else {

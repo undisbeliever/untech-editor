@@ -273,11 +273,6 @@ bool PaletteList::editSelectedList_removeSelected()
 
 using FrameListUndoHelper = NamedListAndSelectionUndoHelper<FrameList>;
 
-bool FrameList::editSelected_setName(const idstring& name)
-{
-    return FrameListUndoHelper(this).renameSelectedItem(name);
-}
-
 bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 {
     return FrameListUndoHelper(this).editSelectedItemField(
@@ -296,7 +291,7 @@ bool FrameList::editSelected_setSolid(bool solid)
 
 bool FrameList::editSelected_toggleTileHitbox()
 {
-    if (const MS::Frame* frame = selectedFrame()) {
+    if (const MS::Frame* frame = selectedItem()) {
         return editSelected_setSolid(!frame->solid);
     }
     return false;

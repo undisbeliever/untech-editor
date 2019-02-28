@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/accessor/accessor.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 #include <QObject>
@@ -16,67 +17,22 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace Animation {
 
-class AnimationsList : public QObject {
+class AnimationsList : public Accessor::NamedListAccessor<MSA::Animation, AbstractMsDocument> {
     Q_OBJECT
 
-public:
-    using DataT = MSA::Animation;
-    using ListT = NamedList<MSA::Animation>;
-    using index_type = ListT::size_type;
-
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_EXPORT_NAMES;
-
-private:
-    AbstractMsDocument* const _document;
-
-    size_t _selectedIndex;
+    friend class Accessor::NamedListUndoHelper<AnimationsList>;
 
 public:
     AnimationsList(AbstractMsDocument* document);
     ~AnimationsList() = default;
 
-    AbstractMsDocument* resourceItem() const { return _document; }
+    virtual QString typeName() const final;
 
-    static QString typeName() { return tr("Animation"); }
-
-    QStringList animationNames() const;
-
-    index_type selectedIndex() const { return _selectedIndex; }
-    void setSelectedId(const idstring& id);
-    void setSelectedIndex(const index_type& index);
-    void unselectItem() { setSelectedIndex(INT_MAX); }
-
-    bool isSelectedIndexValid() const;
-
-    const MSA::Animation* selectedAnimation() const;
-
-    bool editSelected_setName(const idstring& name);
     bool editSelected_setDurationFormat(MSA::DurationFormat durationFormat);
     bool editSelected_setOneShot(bool oneShot);
 
     // Also sets oneShot to false
     bool editSelected_setNextAnimation(const idstring& nextAnimation);
-
-    const ListT* list() const { return _document->animations(); }
-
-protected:
-    friend class Accessor::NamedListUndoHelper<AnimationsList>;
-    ListT* getList() { return _document->animations(); }
-
-    friend class AnimationFramesList;
-    MSA::Animation* selectedItemEditable();
-
-signals:
-    void nameChanged(index_type index);
-    void dataChanged(index_type index);
-    void listChanged();
-
-    void listAboutToChange();
-    void itemAdded(index_type index);
-    void itemAboutToBeRemoved(index_type index);
-    void itemMoved(index_type from, index_type to);
-
-    void selectedIndexChanged();
 };
 
 class AnimationFramesList : public QObject {

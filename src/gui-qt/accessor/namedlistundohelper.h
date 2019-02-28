@@ -27,9 +27,6 @@ public:
     using DataT = typename AccessorT::DataT;
     using ListT = UnTech::NamedList<DataT>;
     using index_type = typename ListT::size_type;
-
-    constexpr static index_type max_size = AccessorT::max_size;
-
     static_assert(std::is_same<index_type, typename AccessorT::index_type>::value, "Invalid index_type in Accessor");
 
     friend class NamedListAndSelectionUndoHelper<AccessorT>;
@@ -521,7 +518,7 @@ public:
         if (index < 0 || index > list->size()) {
             return nullptr;
         }
-        if (list->size() >= max_size) {
+        if (list->size() >= _accessor->maxSize()) {
             return nullptr;
         }
 
@@ -563,7 +560,7 @@ public:
         if (index < 0 || index > list->size()) {
             return nullptr;
         }
-        if (list->size() >= max_size) {
+        if (list->size() >= _accessor->maxSize()) {
             return nullptr;
         }
 
@@ -632,7 +629,7 @@ public:
         if (index < 0 || index >= list->size()) {
             return nullptr;
         }
-        if (list->size() >= max_size) {
+        if (list->size() >= _accessor->maxSize()) {
             return nullptr;
         }
 
@@ -659,7 +656,7 @@ public:
         if (index < 0 || index >= list->size()) {
             return nullptr;
         }
-        if (list->size() >= max_size) {
+        if (list->size() >= _accessor->maxSize()) {
             return nullptr;
         }
 
