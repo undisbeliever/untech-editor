@@ -129,65 +129,125 @@ void FrameList::setTileHitboxSelected(bool s)
     }
 }
 
-MS::Frame* FrameList::selectedItemEditable()
+template <>
+const std::vector<MS::FrameObject>* ChildVectorMultipleSelectionAccessor<MS::FrameObject, Document>::list(size_t pIndex) const
 {
-    auto* frames = getList();
-    if (selectedIndex() >= frames->size()) {
+    const auto* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
         return nullptr;
     }
-    return &frames->at(selectedIndex());
-}
-
-AbstractFrameContentAccessor::AbstractFrameContentAccessor(Document* document)
-    : QObject(document)
-    , _document(document)
-    , _selectedIndexes()
-{
-    MultipleSelectedIndexesHelper::buildAndConnectSlots(this);
-
-    connect(_document->frameList(), &FrameList::selectedIndexChanged,
-            this, [this]() {
-                clearSelection();
-                emit selectedListChanged();
-            });
-}
-
-void AbstractFrameContentAccessor::setSelectedIndexes(const vectorset<index_type>& selected)
-{
-    if (_selectedIndexes != selected) {
-        _selectedIndexes = selected;
-        emit selectedIndexesChanged();
+    if (pIndex >= fs->frames.size()) {
+        return nullptr;
     }
+    return &fs->frames.at(pIndex).objects;
 }
 
-void AbstractFrameContentAccessor::setSelectedIndexes(vectorset<index_type>&& selected)
+template <>
+std::vector<MS::FrameObject>* ChildVectorMultipleSelectionAccessor<MS::FrameObject, Document>::getList(size_t pIndex)
 {
-    if (_selectedIndexes != selected) {
-        _selectedIndexes = std::move(selected);
-        emit selectedIndexesChanged();
+    auto* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
+        return nullptr;
     }
-}
-
-void AbstractFrameContentAccessor::clearSelection()
-{
-    if (!_selectedIndexes.empty()) {
-        _selectedIndexes.clear();
-        emit selectedIndexesChanged();
+    if (pIndex >= fs->frames.size()) {
+        return nullptr;
     }
+    return &fs->frames.at(pIndex).objects;
 }
 
 FrameObjectList::FrameObjectList(Document* document)
-    : AbstractFrameContentAccessor(document)
+    : ChildVectorMultipleSelectionAccessor(document->frameList(), document, UnTech::MetaSprite::MAX_FRAME_OBJECTS)
 {
+}
+
+QString FrameObjectList::typeName() const
+{
+    return tr("Frame Object");
+}
+
+QString FrameObjectList::typeNamePlural() const
+{
+    return tr("Frame Objects");
+}
+
+template <>
+const std::vector<MS::ActionPoint>* ChildVectorMultipleSelectionAccessor<MS::ActionPoint, Document>::list(size_t pIndex) const
+{
+    const auto* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
+        return nullptr;
+    }
+    if (pIndex >= fs->frames.size()) {
+        return nullptr;
+    }
+    return &fs->frames.at(pIndex).actionPoints;
+}
+
+template <>
+std::vector<MS::ActionPoint>* ChildVectorMultipleSelectionAccessor<MS::ActionPoint, Document>::getList(size_t pIndex)
+{
+    auto* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
+        return nullptr;
+    }
+    if (pIndex >= fs->frames.size()) {
+        return nullptr;
+    }
+    return &fs->frames.at(pIndex).actionPoints;
 }
 
 ActionPointList::ActionPointList(Document* document)
-    : AbstractFrameContentAccessor(document)
-
+    : ChildVectorMultipleSelectionAccessor(document->frameList(), document, UnTech::MetaSprite::MAX_ACTION_POINTS)
 {
 }
 
-EntityHitboxList::EntityHitboxList(Document* document)
-    : AbstractFrameContentAccessor(document)
+QString ActionPointList::typeName() const
 {
+    return tr("Action Point");
+}
+
+QString ActionPointList::typeNamePlural() const
+{
+    return tr("Action Points");
+}
+
+template <>
+const std::vector<MS::EntityHitbox>* ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, Document>::list(size_t pIndex) const
+{
+    const auto* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
+        return nullptr;
+    }
+    if (pIndex >= fs->frames.size()) {
+        return nullptr;
+    }
+    return &fs->frames.at(pIndex).entityHitboxes;
+}
+
+template <>
+std::vector<MS::EntityHitbox>* ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, Document>::getList(size_t pIndex)
+{
+    auto* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
+        return nullptr;
+    }
+    if (pIndex >= fs->frames.size()) {
+        return nullptr;
+    }
+    return &fs->frames.at(pIndex).entityHitboxes;
+}
+
+EntityHitboxList::EntityHitboxList(Document* document)
+    : ChildVectorMultipleSelectionAccessor(document->frameList(), document, UnTech::MetaSprite::MAX_ENTITY_HITBOXES)
+{
+}
+
+QString EntityHitboxList::typeName() const
+{
+    return tr("Entity Hitbox");
+}
+
+QString EntityHitboxList::typeNamePlural() const
+{
+    return tr("Entity Hitboxes");
 }

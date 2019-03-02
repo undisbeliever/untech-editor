@@ -353,7 +353,7 @@ public:
     template <typename EditFunction>
     QUndoCommand* editSelectedCommand(EditFunction editFunction)
     {
-        return editSelectedCommand(tr("Edit %1").arg(AccessorT::typeName()),
+        return editSelectedCommand(tr("Edit %1").arg(this->_accessor->typeName()),
                                    editFunction);
     }
 

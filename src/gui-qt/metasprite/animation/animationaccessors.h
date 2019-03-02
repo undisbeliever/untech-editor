@@ -35,65 +35,18 @@ public:
     bool editSelected_setNextAnimation(const idstring& nextAnimation);
 };
 
-class AnimationFramesList : public QObject {
+class AnimationFramesList : public Accessor::ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument> {
     Q_OBJECT
 
-public:
-    using DataT = MSA::AnimationFrame;
-    using ListT = std::vector<DataT>;
-    using index_type = ListT::size_type;
-    using ArgsT = std::tuple<size_t>;
-
-    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_ANIMATION_FRAMES; }
-
-private:
-    AbstractMsDocument* const _document;
-    size_t _animationIndex;
+    friend class Accessor::ListUndoHelper<AnimationFramesList>;
 
 public:
     AnimationFramesList(AbstractMsDocument* document);
     ~AnimationFramesList() = default;
 
-    AbstractMsDocument* resourceItem() const { return _document; }
-
-    QString typeName() const { return tr("Animation Frame"); }
+    virtual QString typeName() const final;
 
     bool editSelectedList_setData(index_type index, const DataT& value);
-
-    bool editSelectedList_addItem(index_type index);
-    bool editSelectedList_cloneItem(index_type index);
-    bool editSelectedList_removeItem(index_type index);
-    bool editSelectedList_moveItem(index_type from, index_type to);
-
-protected:
-    friend class Accessor::ListUndoHelper<AnimationFramesList>;
-    ListT* getList(size_t aniIndex)
-    {
-        auto* animations = _document->animations();
-        if (animations == nullptr) {
-            return nullptr;
-        }
-        if (aniIndex >= animations->size()) {
-            return nullptr;
-        }
-        return &animations->at(aniIndex).frames;
-    }
-
-    ArgsT selectedListTuple() const
-    {
-        return std::tie(_animationIndex);
-    }
-
-signals:
-    void dataChanged(size_t animationIndex, index_type index);
-    void listChanged(size_t animationIndex);
-
-    void listAboutToChange(size_t animationIndex);
-    void itemAdded(size_t animationIndex, index_type index);
-    void itemAboutToBeRemoved(size_t animationIndex, index_type index);
-    void itemMoved(size_t animationIndex, index_type from, index_type to);
-
-    void selectedListChanged();
 };
 }
 }

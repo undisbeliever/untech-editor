@@ -90,8 +90,6 @@ void EntityRomStructWidget::setResourceItem(EntityRomStructsResourceItem* item)
         connect(structList, &EntityRomStructList::commentChanged,
                 this, &EntityRomStructWidget::onStructCommentChanged);
 
-        connect(fieldList, &EntityRomStructFieldList::selectedListChanged,
-                this, &EntityRomStructWidget::onSelectedFieldChanged);
         connect(fieldList, &EntityRomStructFieldList::selectedIndexChanged,
                 this, &EntityRomStructWidget::onSelectedFieldChanged);
     }

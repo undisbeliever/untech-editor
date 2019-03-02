@@ -257,18 +257,18 @@ const MS::Frame* AbstractFrameContentManager::selectedFrame() const
     return _document->frameList()->selectedItem();
 }
 
-void AbstractFrameContentManager::connectSignals(AbstractFrameContentAccessor* accessor)
+void AbstractFrameContentManager::connectSignals(Accessor::AbstractListAccessor* accessor)
 {
-    connect(accessor, &AbstractFrameContentAccessor::dataChanged,
-            this, &EntityHitboxManager::onItemChanged);
+    connect(accessor, &Accessor::AbstractListAccessor::dataChanged,
+            this, &PropertyTableManager::itemChanged);
 
-    connect(accessor, &AbstractFrameContentAccessor::listAboutToChange,
-            this, &AbstractFrameContentManager::listAboutToChange);
+    connect(accessor, &Accessor::AbstractListAccessor::listAboutToChange,
+            this, &PropertyTableManager::listAboutToChange);
 
-    // Use listChanged instead of add/remove to prevent QItemSelectionModel
+    // Use AbstractListAccessor::listChanged instead of add/remove signals to prevent QItemSelectionModel
     // from corrupting the accessor selectedIndexes.
-    connect(accessor, &AbstractFrameContentAccessor::listChanged,
-            this, &EntityHitboxManager::onListChanged);
+    connect(accessor, &Accessor::AbstractListAccessor::listChanged,
+            this, &PropertyTableManager::dataChanged);
 }
 
 void AbstractFrameContentManager::onSelectedFrameChanged()
@@ -278,22 +278,6 @@ void AbstractFrameContentManager::onSelectedFrameChanged()
     }
 
     emit dataReset();
-}
-
-void AbstractFrameContentManager::onItemChanged(size_t frameIndex, size_t index)
-{
-    Q_ASSERT(_document);
-    if (frameIndex == _document->frameList()->selectedIndex()) {
-        emit itemChanged(index);
-    }
-}
-
-void AbstractFrameContentManager::onListChanged(size_t frameIndex)
-{
-    Q_ASSERT(_document);
-    if (frameIndex == _document->frameList()->selectedIndex()) {
-        emit dataChanged();
-    }
 }
 
 FrameObjectManager::FrameObjectManager(QObject* parent)

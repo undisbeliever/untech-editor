@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
 #include "gui-qt/common/properties/propertylistmanager.h"
 #include "gui-qt/common/properties/propertytablemanager.h"
 #include "models/metasprite/spriteimporter.h"
@@ -103,7 +104,7 @@ public:
     const SI::Frame* selectedFrame() const;
 
 protected:
-    void connectSignals(AbstractFrameContentAccessor* accessor);
+    void connectSignals(Accessor::AbstractListAccessor* accessor);
 
 private slots:
     void onSelectedFrameChanged();

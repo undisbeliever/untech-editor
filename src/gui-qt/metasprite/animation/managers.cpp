@@ -173,7 +173,7 @@ void AnimationFramesManager::setDocument(AbstractMsDocument* document)
         connect(_document->animationsList(), &AnimationsList::dataChanged,
                 this, &AnimationFramesManager::onAnimationDataChanged);
 
-        connect(_document->animationFramesList(), &AnimationFramesList::selectedListChanged,
+        connect(_document->animationFramesList(), &AnimationFramesList::listReset,
                 this, &AnimationFramesManager::onSelectedAnimationChanged);
 
         connect(_document->animationFramesList(), &AnimationFramesList::dataChanged,
@@ -364,7 +364,7 @@ bool AnimationFramesManager::insertItem(int index)
     if (_document == nullptr) {
         return false;
     }
-    return _document->animationFramesList()->editSelectedList_addItem(index);
+    return _document->animationFramesList()->addItem(index);
 }
 
 bool AnimationFramesManager::cloneItem(int index)
@@ -372,7 +372,7 @@ bool AnimationFramesManager::cloneItem(int index)
     if (_document == nullptr) {
         return false;
     }
-    return _document->animationFramesList()->editSelectedList_cloneItem(index);
+    return _document->animationFramesList()->cloneItem(index);
 }
 
 bool AnimationFramesManager::removeItem(int index)
@@ -380,7 +380,7 @@ bool AnimationFramesManager::removeItem(int index)
     if (_document == nullptr) {
         return false;
     }
-    return _document->animationFramesList()->editSelectedList_removeItem(index);
+    return _document->animationFramesList()->removeItem(index);
 }
 
 bool AnimationFramesManager::moveItem(int from, int to)
@@ -388,5 +388,5 @@ bool AnimationFramesManager::moveItem(int from, int to)
     if (_document == nullptr) {
         return false;
     }
-    return _document->animationFramesList()->editSelectedList_moveItem(from, to);
+    return _document->animationFramesList()->moveItem(from, to);
 }

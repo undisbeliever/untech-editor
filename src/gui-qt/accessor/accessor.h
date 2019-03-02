@@ -11,7 +11,11 @@ namespace GuiQt {
 namespace Accessor {
 
 class AbstractListAccessor;
+class AbstractListSingleSelectionAccessor;
+class AbstractListMultipleSelectionAccessor;
 class AbstractNamedListAccessor;
+class AbstractChildListSingleSelectionAccessor;
+class AbstractChildListMultipleSelectionAccessor;
 
 struct NamedListActions;
 class NamedListView;

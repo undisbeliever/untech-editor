@@ -35,14 +35,38 @@ QString AnimationsList::typeName() const
     return tr("Animation");
 }
 
-AnimationFramesList::AnimationFramesList(AbstractMsDocument* document)
-    : QObject(document)
-    , _document(document)
-    , _animationIndex(INT_MAX)
+template <>
+const std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>::list(size_t pIndex) const
 {
-    connect(_document->animationsList(), &AnimationsList::selectedIndexChanged,
-            this, [this] {
-                _animationIndex = _document->animationsList()->selectedIndex();
-                emit selectedListChanged();
-            });
+    const auto* animations = resourceItem()->animations();
+    if (animations == nullptr) {
+        return nullptr;
+    }
+    if (pIndex >= animations->size()) {
+        return nullptr;
+    }
+    return &animations->at(pIndex).frames;
+}
+
+template <>
+std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>::getList(size_t pIndex)
+{
+    auto* animations = resourceItem()->animations();
+    if (animations == nullptr) {
+        return nullptr;
+    }
+    if (pIndex >= animations->size()) {
+        return nullptr;
+    }
+    return &animations->at(pIndex).frames;
+}
+
+AnimationFramesList::AnimationFramesList(AbstractMsDocument* document)
+    : ChildVectorAccessor(document->animationsList(), document, UnTech::MetaSprite::MAX_ANIMATION_FRAMES)
+{
+}
+
+QString AnimationFramesList::typeName() const
+{
+    return tr("Animation Frame");
 }

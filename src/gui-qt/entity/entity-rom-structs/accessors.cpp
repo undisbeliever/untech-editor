@@ -6,7 +6,6 @@
 
 #include "accessors.h"
 #include "gui-qt/accessor/abstractaccessors.hpp"
-#include "gui-qt/accessor/selectedindexhelper.h"
 
 using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
@@ -38,22 +37,36 @@ QString EntityRomStructList::typeName() const
     return tr("Entity ROM Struct");
 }
 
-EntityRomStructFieldList::EntityRomStructFieldList(EntityRomStructsResourceItem* resourceItem)
-    : QObject(resourceItem)
-    , _resourceItem(resourceItem)
+template <>
+const std::vector<EN::StructField>* ChildVectorAccessor<EN::StructField, EntityRomStructsResourceItem>::list(size_t pIndex) const
 {
-    connect(resourceItem->structList(), &EntityRomStructList::selectedIndexChanged,
-            this, &EntityRomStructFieldList::selectedListChanged);
-    connect(resourceItem->structList(), &EntityRomStructList::selectedIndexChanged,
-            this, &EntityRomStructFieldList::unselectItem);
-
-    SelectedIndexHelper::buildAndConnectSlots(this);
+    const auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    auto& structs = projectFile->entityRomData.structs;
+    if (pIndex >= structs.size()) {
+        return nullptr;
+    }
+    return &structs.at(pIndex).fields;
 }
 
-void EntityRomStructFieldList::setSelectedIndex(size_t index)
+template <>
+std::vector<EN::StructField>* ChildVectorAccessor<EN::StructField, EntityRomStructsResourceItem>::getList(size_t pIndex)
 {
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
+    auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    auto& structs = projectFile->entityRomData.structs;
+    if (pIndex >= structs.size()) {
+        return nullptr;
     }
+    return &structs.at(pIndex).fields;
+}
+
+EntityRomStructFieldList::EntityRomStructFieldList(EntityRomStructList* structList)
+    : ChildVectorAccessor(structList, structList->resourceItem(), 24)
+{
+}
+
+QString EntityRomStructFieldList::typeName() const
+{
+    return tr("Struct Field");
 }

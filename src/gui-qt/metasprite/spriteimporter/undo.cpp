@@ -147,7 +147,7 @@ bool FrameObjectList::editSelectedList_setLocation(unsigned index, const upoint&
 
 bool FrameObjectList::editSelectedList_setSize(unsigned index, FrameObjectList::ObjectSize size)
 {
-    const SI::Frame* frame = _document->frameList()->selectedItem();
+    const SI::Frame* frame = resourceItem()->frameList()->selectedItem();
     if (frame == nullptr) {
         return false;
     }
@@ -171,7 +171,7 @@ bool FrameObjectList::editSelected_toggleObjectSize()
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    const SI::Frame* frame = _document->frameList()->selectedItem();
+    const SI::Frame* frame = resourceItem()->frameList()->selectedItem();
     Q_ASSERT(frame);
 
     return FrameObjectListUndoHelper(this).editSelectedItems(

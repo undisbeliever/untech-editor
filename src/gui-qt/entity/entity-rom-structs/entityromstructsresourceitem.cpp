@@ -16,7 +16,7 @@ using namespace UnTech::GuiQt::Entity;
 EntityRomStructsResourceItem::EntityRomStructsResourceItem(StaticResourceList* list, unsigned index)
     : AbstractInternalResourceItem(list, index)
     , _structList(new EntityRomStructList(this))
-    , _structFieldList(new EntityRomStructFieldList(this))
+    , _structFieldList(new EntityRomStructFieldList(_structList))
 {
     setName(tr("Entity Rom Structs"));
 

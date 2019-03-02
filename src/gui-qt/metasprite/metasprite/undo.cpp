@@ -382,7 +382,7 @@ bool FrameObjectList::editSelected_flipObjectVertically()
 
 inline bool FrameObjectList::editAll_shiftTileIds(ObjectSize size, unsigned tileId, int offset)
 {
-    const MS::FrameSet* fs = _document->frameSet();
+    const MS::FrameSet* fs = resourceItem()->frameSet();
 
     if (fs == nullptr) {
         return false;
@@ -409,11 +409,13 @@ inline bool FrameObjectList::editAll_shiftTileIds(ObjectSize size, unsigned tile
     }
 
     if (!commands.empty()) {
-        _document->undoStack()->beginMacro(tr("Shift TileIds"));
+        auto* undoStack = resourceItem()->undoStack();
+
+        undoStack->beginMacro(tr("Shift TileIds"));
         for (QUndoCommand* c : commands) {
-            _document->undoStack()->push(c);
+            undoStack->push(c);
         }
-        _document->undoStack()->endMacro();
+        undoStack->endMacro();
     }
 
     return commands.empty() == false;

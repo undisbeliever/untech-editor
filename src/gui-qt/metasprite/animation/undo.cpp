@@ -43,23 +43,3 @@ bool AnimationFramesList::editSelectedList_setData(AnimationFramesList::index_ty
 {
     return AnimationFramesUndoHelper(this).editItemInSelectedList(index, value);
 }
-
-bool AnimationFramesList::editSelectedList_addItem(index_type index)
-{
-    return AnimationFramesUndoHelper(this).addItemToSelectedList(index);
-}
-
-bool AnimationFramesList::editSelectedList_cloneItem(index_type index)
-{
-    return AnimationFramesUndoHelper(this).cloneItemInSelectedList(index);
-}
-
-bool AnimationFramesList::editSelectedList_removeItem(index_type index)
-{
-    return AnimationFramesUndoHelper(this).removeItemFromSelectedList(index);
-}
-
-bool AnimationFramesList::editSelectedList_moveItem(index_type from, index_type to)
-{
-    return AnimationFramesUndoHelper(this).moveItemInSelectedList(from, to);
-}

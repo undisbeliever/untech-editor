@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
 #include "gui-qt/common/properties/propertylistmanager.h"
 #include "gui-qt/common/properties/propertytablemanager.h"
 #include "models/metasprite/metasprite.h"
@@ -17,7 +18,6 @@ namespace MetaSprite {
 namespace MetaSprite {
 class Document;
 class FrameList;
-class AbstractFrameContentAccessor;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -88,13 +88,10 @@ public:
     const MS::Frame* selectedFrame() const;
 
 protected:
-    void connectSignals(AbstractFrameContentAccessor* accessor);
+    void connectSignals(Accessor::AbstractListAccessor* accessor);
 
 private slots:
     void onSelectedFrameChanged();
-
-    void onItemChanged(size_t frameIndex, size_t index);
-    void onListChanged(size_t frameIndex);
 
 protected:
     Document* _document;

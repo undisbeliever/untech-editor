@@ -77,8 +77,7 @@ public:
         }
 
         for_each_accessor_i([this](auto* a, int aId) {
-            using AT = typename std::remove_pointer<decltype(a)>::type;
-            _actions.add.at(aId)->setText(tr("Add %1").arg(AT::typeName()));
+            _actions.add.at(aId)->setText(tr("Add %1").arg(a->typeName()));
         });
 
         if (_accessors.contains(nullptr)) {
@@ -149,7 +148,7 @@ public:
 
             connect(accessor, &AT::selectedIndexesChanged,
                     this, onSelectedIndexesChanged);
-            connect(accessor, &AT::selectedListChanged,
+            connect(accessor, &AT::listReset,
                     this, onSelectedIndexesChanged);
         });
 

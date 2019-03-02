@@ -126,7 +126,7 @@ void AnimationPreview::setDocument(AbstractMsDocument* document)
         connect(_document->animationFramesList(), &AnimationFramesList::listChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
 
-        connect(_document->animationFramesList(), &AnimationFramesList::selectedListChanged,
+        connect(_document->animationFramesList(), &AnimationFramesList::listReset,
                 this, &AnimationPreview::onSelectedAnimationChanged);
     }
     else {

@@ -61,7 +61,7 @@ public:
             return;
         }
 
-        updateText(AccessorT::typeName());
+        updateText(accessor->typeName());
 
         auto updateActions = [=]() {
             ListActionStatus sel = ListActionHelper::status(accessor);
@@ -76,7 +76,7 @@ public:
 
         using UndoHelper = ListAndSelectionUndoHelper<AccessorT>;
 
-        QObject::connect(accessor, &AccessorT::selectedListChanged,
+        QObject::connect(accessor, &AccessorT::listReset,
                          reciever, updateActions);
         QObject::connect(accessor, &AccessorT::selectedIndexChanged,
                          reciever, updateActions);
