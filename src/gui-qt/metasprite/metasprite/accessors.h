@@ -18,13 +18,17 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
 
-class SmallTileTileset : public QObject {
+// SmallTileTileset and LargeTileTileset are implemented manually because their
+// container is not std::vector and the accessor edits FrameObject tileIds when
+// the tileset is modified
+
+class SmallTileTileset : public Accessor::AbstractListAccessor {
     Q_OBJECT
 
 public:
     using DataT = Snes::Tile8px;
     using ListT = Snes::Tileset8px;
-    using index_type = unsigned;
+    using index_type = size_t;
     using ArgsT = std::tuple<>;
 
     constexpr static index_type maxSize() { return 256; }
@@ -37,12 +41,16 @@ public:
 
     Document* resourceItem() const { return _document; }
 
-    static QString typeName() { return tr("Small Tile"); }
+    virtual QString typeName() const final;
 
-    bool editTileset_addTile();
-    bool editTileset_addTile(unsigned index);
-    bool editTileset_cloneTile(unsigned index);
-    bool editTileset_removeTile(unsigned index);
+    virtual bool listExists() const final;
+    virtual size_t size() const final;
+
+    bool addItem();
+    virtual bool addItem(size_t index) final;
+    virtual bool cloneItem(size_t index) final;
+    virtual bool removeItem(size_t index) final;
+    virtual bool moveItem(size_t from, size_t to) final;
 
     bool editTile_setPixel(unsigned tileId, const QPoint& p, unsigned c, bool first = false);
     bool editTile_paintPixel(unsigned tileId, const QPoint& p, bool first = false);
@@ -62,27 +70,16 @@ protected:
     {
         return std::make_tuple();
     }
-
-signals:
-    void dataChanged(index_type index);
-    void listChanged();
-
-    void listAboutToChange();
-    void itemAdded(unsigned index);
-    void itemAboutToBeRemoved(unsigned index);
-    void itemMoved(unsigned from, unsigned to);
 };
 
-class LargeTileTileset : public QObject {
+class LargeTileTileset : public Accessor::AbstractListAccessor {
     Q_OBJECT
 
 public:
     using DataT = Snes::Tile16px;
     using ListT = Snes::TilesetTile16;
-    using index_type = unsigned;
+    using index_type = size_t;
     using ArgsT = std::tuple<>;
-
-    constexpr static index_type maxSize() { return 256; }
 
 private:
     Document* const _document;
@@ -92,12 +89,16 @@ public:
 
     Document* resourceItem() const { return _document; }
 
-    static QString typeName() { return tr("Large Tile"); }
+    virtual QString typeName() const final;
 
-    bool editTileset_addTile();
-    bool editTileset_addTile(unsigned index);
-    bool editTileset_cloneTile(unsigned index);
-    bool editTileset_removeTile(unsigned index);
+    virtual bool listExists() const final;
+    virtual size_t size() const final;
+
+    bool addItem();
+    virtual bool addItem(size_t index) final;
+    virtual bool cloneItem(size_t index) final;
+    virtual bool removeItem(size_t index) final;
+    virtual bool moveItem(size_t from, size_t to) final;
 
     bool editTile_setPixel(unsigned tileId, const QPoint& p, unsigned c, bool first = false);
     bool editTile_paintPixel(unsigned tileId, const QPoint& p, bool first = false);
@@ -117,56 +118,26 @@ protected:
     {
         return std::make_tuple();
     }
-
-signals:
-    void dataChanged(index_type index);
-    void listChanged();
-
-    void listAboutToChange();
-    void itemAdded(unsigned index);
-    void itemAboutToBeRemoved(unsigned index);
-    void itemMoved(unsigned from, unsigned to);
 };
 
-class PaletteList : public QObject {
+class PaletteList : public Accessor::VectorSingleSelectionAccessor<UnTech::Snes::Palette4bpp, Document> {
     Q_OBJECT
 
-public:
-    using DataT = UnTech::Snes::Palette4bpp;
-    using ListT = std::vector<Snes::Palette4bpp>;
-    using index_type = ListT::size_type;
-    using ArgsT = std::tuple<>;
-    using SignalArgsT = ArgsT;
-
-    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_PALETTES; }
+    friend class Accessor::ListUndoHelper<PaletteList>;
 
 private:
-    Document* const _document;
-
-    index_type _selectedIndex;
     unsigned _selectedColor;
 
 public:
     PaletteList(Document* document);
 
-    Document* resourceItem() const { return _document; }
-
-    static QString typeName() { return tr("Palette"); }
-
-    index_type selectedIndex() const { return _selectedIndex; }
-    void setSelectedIndex(index_type index);
-    void unselectItem() { setSelectedIndex(INT_MAX); }
-
-    bool isSelectedIndexValid() const;
+    virtual QString typeName() const final;
 
     index_type selectedColor() const { return _selectedColor; }
     void setSelectedColor(unsigned color);
     void unselectColor() { setSelectedColor(INT_MAX); }
 
     bool isSelectedColorValid() const;
-
-    const ListT* palettes() const;
-    const DataT* selectedPalette() const;
 
     void editSelected_setColorDialog(unsigned colorIndex, QWidget* widget = nullptr);
 
@@ -176,34 +147,7 @@ public:
     bool editSelectedList_lowerSelected();
     bool editSelectedList_removeSelected();
 
-protected:
-    friend class Accessor::ListUndoHelper<PaletteList>;
-    friend class Accessor::ListActionHelper;
-    friend class Accessor::SelectedIndexHelper;
-    ListT* getList()
-    {
-        MS::FrameSet* fs = _document->frameSet();
-        if (fs == nullptr) {
-            return nullptr;
-        }
-        return &fs->palettes;
-    }
-
-    ArgsT selectedListTuple() const
-    {
-        return std::make_tuple();
-    }
-
 signals:
-    void dataChanged(index_type index);
-    void listChanged();
-
-    void listAboutToChange();
-    void itemAdded(index_type index);
-    void itemAboutToBeRemoved(index_type index);
-    void itemMoved(index_type from, index_type to);
-
-    void selectedIndexChanged();
     void selectedColorChanged();
 };
 

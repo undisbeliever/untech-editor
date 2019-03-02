@@ -51,15 +51,15 @@ bool Document::editFrameSet_setExportOrder(const UnTech::idstring& exportOrder)
 
 using SmallTileTilesetUndoHelper = ListUndoHelper<SmallTileTileset>;
 
-bool SmallTileTileset::editTileset_addTile()
+bool SmallTileTileset::addItem()
 {
     if (auto* tileset = getList()) {
-        return editTileset_addTile(tileset->size());
+        return addItem(tileset->size());
     }
     return false;
 }
 
-bool SmallTileTileset::editTileset_addTile(unsigned index)
+bool SmallTileTileset::addItem(size_t index)
 {
     QUndoCommand* c = SmallTileTilesetUndoHelper(this).addCommand(std::make_tuple(), index);
     if (c) {
@@ -71,7 +71,7 @@ bool SmallTileTileset::editTileset_addTile(unsigned index)
     return c != nullptr;
 }
 
-bool SmallTileTileset::editTileset_cloneTile(unsigned index)
+bool SmallTileTileset::cloneItem(size_t index)
 {
     QUndoCommand* c = SmallTileTilesetUndoHelper(this).cloneCommand(std::make_tuple(), index);
     if (c) {
@@ -83,7 +83,7 @@ bool SmallTileTileset::editTileset_cloneTile(unsigned index)
     return c != nullptr;
 }
 
-bool SmallTileTileset::editTileset_removeTile(unsigned index)
+bool SmallTileTileset::removeItem(size_t index)
 {
     QUndoCommand* c = SmallTileTilesetUndoHelper(this).removeCommand(std::make_tuple(), index);
     if (c) {
@@ -93,6 +93,12 @@ bool SmallTileTileset::editTileset_removeTile(unsigned index)
         _document->undoStack()->endMacro();
     }
     return c != nullptr;
+}
+
+bool SmallTileTileset::moveItem(size_t from, size_t to)
+{
+    // ::SHOULDDO adjust tileIds when a tile is moved::
+    return SmallTileTilesetUndoHelper(this).moveItem(std::make_tuple(), from, to);
 }
 
 bool SmallTileTileset::editTile_setPixel(unsigned tileId, const QPoint& p, unsigned c, bool first)
@@ -128,15 +134,15 @@ bool SmallTileTileset::editTile_paintPixel(unsigned tileId, const QPoint& p, boo
 
 using LargeTileTilesetUndoHelper = ListUndoHelper<LargeTileTileset>;
 
-bool LargeTileTileset::editTileset_addTile()
+bool LargeTileTileset::addItem()
 {
     if (auto* tileset = getList()) {
-        return editTileset_addTile(tileset->size());
+        return addItem(tileset->size());
     }
     return false;
 }
 
-bool LargeTileTileset::editTileset_addTile(unsigned index)
+bool LargeTileTileset::addItem(size_t index)
 {
     QUndoCommand* c = LargeTileTilesetUndoHelper(this).addCommand(std::make_tuple(), index);
     if (c) {
@@ -148,7 +154,7 @@ bool LargeTileTileset::editTileset_addTile(unsigned index)
     return c != nullptr;
 }
 
-bool LargeTileTileset::editTileset_cloneTile(unsigned index)
+bool LargeTileTileset::cloneItem(size_t index)
 {
     QUndoCommand* c = LargeTileTilesetUndoHelper(this).cloneCommand(std::make_tuple(), index);
     if (c) {
@@ -160,7 +166,7 @@ bool LargeTileTileset::editTileset_cloneTile(unsigned index)
     return c != nullptr;
 }
 
-bool LargeTileTileset::editTileset_removeTile(unsigned index)
+bool LargeTileTileset::removeItem(size_t index)
 {
     QUndoCommand* c = LargeTileTilesetUndoHelper(this).removeCommand(std::make_tuple(), index);
     if (c) {
@@ -170,6 +176,12 @@ bool LargeTileTileset::editTileset_removeTile(unsigned index)
         _document->undoStack()->endMacro();
     }
     return c != nullptr;
+}
+
+bool LargeTileTileset::moveItem(size_t from, size_t to)
+{
+    // ::SHOULDDO adjust tileIds when a tile is moved::
+    return LargeTileTilesetUndoHelper(this).moveItem(std::make_tuple(), from, to);
 }
 
 bool LargeTileTileset::editTile_setPixel(unsigned tileId, const QPoint& p, unsigned c, bool first)
@@ -214,13 +226,13 @@ void PaletteList::editSelected_setColorDialog(unsigned colorIndex, QWidget* widg
         return;
     }
 
-    const Palette4bpp* palette = _document->paletteList()->selectedPalette();
+    const Palette4bpp* palette = selectedItem();
     if (palette == nullptr) {
         return;
     }
     const SnesColor color = palette->color(colorIndex);
 
-    PaletteListUndoHelper helper(_document->paletteList());
+    PaletteListUndoHelper helper(this);
     auto command = helper.editSelectedFieldIncompleteCommand<SnesColor>(
         tr("Edit Palette Color"),
         [=](auto& pal) -> SnesColor& { return pal.color(colorIndex); });
@@ -239,7 +251,7 @@ void PaletteList::editSelected_setColorDialog(unsigned colorIndex, QWidget* widg
     dialog.exec();
 
     if (dialog.result() == QDialog::Accepted && command->hasValueChanged()) {
-        _document->undoStack()->push(command.release());
+        resourceItem()->undoStack()->push(command.release());
     }
     else {
         command->undo();

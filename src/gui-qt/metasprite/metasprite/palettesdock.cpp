@@ -190,7 +190,7 @@ void PalettesDock::updateSelectedPalette()
     const UnTech::Snes::Palette4bpp* palette = nullptr;
 
     if (_document) {
-        palette = _document->paletteList()->selectedPalette();
+        palette = _document->paletteList()->selectedItem();
     }
 
     if (palette) {

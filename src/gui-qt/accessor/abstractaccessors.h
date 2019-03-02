@@ -241,6 +241,54 @@ signals:
 };
 
 template <class T, class ResourceItemT>
+class VectorSingleSelectionAccessor : public AbstractListSingleSelectionAccessor {
+public:
+    using DataT = T;
+    using ListT = ::std::vector<T>;
+    using index_type = size_t;
+    using ArgsT = ::std::tuple<>;
+    using SignalArgsT = ArgsT;
+
+private:
+    ResourceItemT* const _resourceItem;
+
+public:
+    VectorSingleSelectionAccessor(ResourceItemT* resourceItem, size_t maxSize);
+    ~VectorSingleSelectionAccessor() = default;
+
+    ResourceItemT* resourceItem() const { return _resourceItem; }
+
+    virtual bool listExists() const final;
+    virtual size_t size() const final;
+
+    const std::vector<T>* list() const;
+
+    // may return nullptr
+    const T* selectedItem() const
+    {
+        if (const std::vector<T>* l = list()) {
+            if (selectedIndex() < l->size()) {
+                return &l->at(selectedIndex());
+            }
+        }
+        return nullptr;
+    }
+
+    virtual bool removeItem(size_t index) final;
+    virtual bool moveItem(size_t from, size_t to) final;
+
+protected:
+    virtual bool do_addItem(size_t index) final;
+    virtual bool do_cloneItem(size_t index) final;
+
+protected:
+    friend class ListActionHelper; // ::TODO REMOVE::
+    friend class ListUndoHelper<VectorSingleSelectionAccessor>;
+    std::vector<T>* getList();
+    ArgsT selectedListTuple() const;
+};
+
+template <class T, class ResourceItemT>
 class NamedListAccessor : public AbstractNamedListAccessor {
 public:
     using DataT = T;

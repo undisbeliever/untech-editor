@@ -16,6 +16,9 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace ExportOrder {
 
+// ExportNameList and AlternativesList are implemented manually as they
+// AlternativesList::dataChanged signal is three levels deep.
+
 class ExportNameList : public QObject {
     Q_OBJECT
 

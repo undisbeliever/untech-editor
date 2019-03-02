@@ -141,11 +141,11 @@ void PalettesModel::onPaletteAdded(size_t index)
     auto& palettes = _document->frameSet()->palettes;
     Q_ASSERT(index <= palettes.size());
 
-    beginInsertRows(QModelIndex(), index, index);
+    layoutAboutToBeChanged();
 
     _palettePixmaps.insert(index, palettePixmap(index));
 
-    endInsertRows();
+    layoutChanged();
 }
 
 void PalettesModel::onPaletteAboutToBeRemoved(size_t index)
@@ -155,11 +155,11 @@ void PalettesModel::onPaletteAboutToBeRemoved(size_t index)
     auto& palettes = _document->frameSet()->palettes;
     Q_ASSERT(index < palettes.size());
 
-    beginRemoveRows(QModelIndex(), index, index);
+    layoutAboutToBeChanged();
 
     _palettePixmaps.removeAt(index);
 
-    endRemoveRows();
+    layoutChanged();
 }
 
 void PalettesModel::onPaletteMoved(size_t fromIndex, size_t toIndex)

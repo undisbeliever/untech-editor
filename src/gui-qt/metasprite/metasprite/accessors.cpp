@@ -14,47 +14,85 @@ using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 SmallTileTileset::SmallTileTileset(Document* document)
-    : QObject(document)
+    : AbstractListAccessor(document, 255)
     , _document(document)
 {
+}
+
+QString SmallTileTileset::typeName() const
+{
+    return tr("Small Tile");
+}
+
+bool SmallTileTileset::listExists() const
+{
+    return resourceItem()->frameSet() != nullptr;
+}
+
+size_t SmallTileTileset::size() const
+{
+    MS::FrameSet* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
+        return 0;
+    }
+    return fs->smallTileset.size();
 }
 
 LargeTileTileset::LargeTileTileset(Document* document)
-    : QObject(document)
+    : AbstractListAccessor(document, 255)
     , _document(document)
 {
+}
+
+bool LargeTileTileset::listExists() const
+{
+    return resourceItem()->frameSet() != nullptr;
+}
+
+size_t LargeTileTileset::size() const
+{
+    MS::FrameSet* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
+        return 0;
+    }
+    return fs->smallTileset.size();
+}
+
+QString LargeTileTileset::typeName() const
+{
+    return tr("Large Tile");
+}
+
+template <>
+const std::vector<Snes::Palette4bpp>* VectorSingleSelectionAccessor<Snes::Palette4bpp, Document>::list() const
+{
+    const MS::FrameSet* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
+        return nullptr;
+    }
+    return &fs->palettes;
+}
+
+template <>
+std::vector<Snes::Palette4bpp>* VectorSingleSelectionAccessor<Snes::Palette4bpp, Document>::getList()
+{
+    MS::FrameSet* fs = resourceItem()->frameSet();
+    if (fs == nullptr) {
+        return nullptr;
+    }
+    return &fs->palettes;
 }
 
 PaletteList::PaletteList(Document* document)
-    : QObject(document)
-    , _document(document)
-    , _selectedIndex(0)
+    : VectorSingleSelectionAccessor(document, UnTech::MetaSprite::MAX_PALETTES)
     , _selectedColor(INT_MAX)
 {
-    SelectedIndexHelper::buildAndConnectSlots(this);
+    setSelectedIndex(0);
 }
 
-void PaletteList::setSelectedIndex(PaletteList::index_type index)
+QString PaletteList::typeName() const
 {
-    // always ensure a palette is selected
-    const auto* palettes = this->palettes();
-    if (palettes == nullptr || index >= palettes->size()) {
-        index = 0;
-    }
-
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
-    }
-}
-
-bool PaletteList::isSelectedIndexValid() const
-{
-    const MS::FrameSet* fs = _document->frameSet();
-    if (fs == nullptr) {
-        return false;
-    }
-    return _selectedIndex < fs->palettes.size();
+    return tr("Palette");
 }
 
 void PaletteList::setSelectedColor(unsigned color)
@@ -67,29 +105,7 @@ void PaletteList::setSelectedColor(unsigned color)
 
 bool PaletteList::isSelectedColorValid() const
 {
-    return isSelectedIndexValid()
-           && _selectedColor < 16;
-}
-
-const PaletteList::ListT* PaletteList::palettes() const
-{
-    MS::FrameSet* fs = _document->frameSet();
-    if (fs == nullptr) {
-        return nullptr;
-    }
-    return &fs->palettes;
-}
-
-const PaletteList::DataT* PaletteList::selectedPalette() const
-{
-    auto* pl = palettes();
-    if (pl == nullptr) {
-        return nullptr;
-    }
-    if (_selectedIndex >= pl->size()) {
-        return nullptr;
-    }
-    return &pl->at(_selectedIndex);
+    return isSelectedIndexValid() && _selectedColor < 16;
 }
 
 template <>

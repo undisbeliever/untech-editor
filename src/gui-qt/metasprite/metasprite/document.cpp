@@ -63,7 +63,7 @@ void Document::resetDocumentState()
 
     onFrameSetExportOrderChanged();
 
-    paletteList()->unselectItem();
+    paletteList()->setSelectedIndex(0);
     frameList()->unselectItem();
     animationsList()->unselectItem();
 }

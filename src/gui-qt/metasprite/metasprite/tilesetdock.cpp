@@ -157,39 +157,39 @@ void TilesetDock::onContextMenu(const QPoint& pos)
         if (index >= 0) {
             if (isSmall) {
                 addAction("Add Small Tile", [=]() {
-                    _document->smallTileTileset()->editTileset_addTile();
+                    _document->smallTileTileset()->addItem();
                 });
                 addAction("Add Small Tile Here", [=]() {
-                    _document->smallTileTileset()->editTileset_addTile(index);
+                    _document->smallTileTileset()->addItem(index);
                 });
                 addAction("Clone Small Tile Here", [=]() {
-                    _document->smallTileTileset()->editTileset_cloneTile(index);
+                    _document->smallTileTileset()->cloneItem(index);
                 });
                 addAction("Remove Small Tile", [=]() {
-                    _document->smallTileTileset()->editTileset_removeTile(index);
+                    _document->smallTileTileset()->removeItem(index);
                 });
             }
             else {
                 addAction("Add Large Tile", [=]() {
-                    _document->largeTileTileset()->editTileset_addTile();
+                    _document->largeTileTileset()->addItem();
                 });
                 addAction("Add Large Tile Here", [=]() {
-                    _document->largeTileTileset()->editTileset_addTile(index);
+                    _document->largeTileTileset()->addItem(index);
                 });
                 addAction("Clone Large Tile Here", [=]() {
-                    _document->largeTileTileset()->editTileset_cloneTile(index);
+                    _document->largeTileTileset()->cloneItem(index);
                 });
                 addAction("Remove Large Tile", [=]() {
-                    _document->largeTileTileset()->editTileset_removeTile(index);
+                    _document->largeTileTileset()->removeItem(index);
                 });
             }
         }
         else {
             addAction("Add Small Tile", [=]() {
-                _document->smallTileTileset()->editTileset_addTile();
+                _document->smallTileTileset()->addItem();
             });
             addAction("Add Large Tile", [=]() {
-                _document->largeTileTileset()->editTileset_addTile();
+                _document->largeTileTileset()->addItem();
             });
         }
 

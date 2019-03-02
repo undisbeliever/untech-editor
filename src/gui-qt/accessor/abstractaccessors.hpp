@@ -16,6 +16,58 @@ namespace GuiQt {
 namespace Accessor {
 
 template <class T, class RI>
+VectorSingleSelectionAccessor<T, RI>::VectorSingleSelectionAccessor(RI* resourceItem, size_t maxSize)
+    : AbstractListSingleSelectionAccessor(resourceItem, maxSize)
+    , _resourceItem(resourceItem)
+{
+}
+
+template <class T, class RI>
+std::tuple<> VectorSingleSelectionAccessor<T, RI>::selectedListTuple() const
+{
+    return std::make_tuple();
+}
+
+template <class T, class RI>
+bool VectorSingleSelectionAccessor<T, RI>::listExists() const
+{
+    return list() != nullptr;
+}
+
+template <class T, class RI>
+size_t VectorSingleSelectionAccessor<T, RI>::size() const
+{
+    if (const std::vector<T>* l = list()) {
+        return l->size();
+    }
+    return 0;
+}
+
+template <class T, class RI>
+bool VectorSingleSelectionAccessor<T, RI>::do_addItem(size_t index)
+{
+    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).addItemToSelectedList(index);
+}
+
+template <class T, class RI>
+bool VectorSingleSelectionAccessor<T, RI>::do_cloneItem(size_t index)
+{
+    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).cloneItemInSelectedList(index);
+}
+
+template <class T, class RI>
+bool VectorSingleSelectionAccessor<T, RI>::removeItem(size_t index)
+{
+    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).removeItemFromSelectedList(index);
+}
+
+template <class T, class RI>
+bool VectorSingleSelectionAccessor<T, RI>::moveItem(size_t from, size_t to)
+{
+    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).moveItemInSelectedList(from, to);
+}
+
+template <class T, class RI>
 NamedListAccessor<T, RI>::NamedListAccessor(RI* resourceItem, size_t maxSize)
     : AbstractNamedListAccessor(resourceItem, maxSize)
     , _resourceItem(resourceItem)
