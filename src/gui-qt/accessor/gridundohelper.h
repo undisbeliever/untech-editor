@@ -247,7 +247,7 @@ public:
         return editGrid(gridArgs, newGrid, text);
     }
 
-    // will return nullptr if grid could not be accessed or has a size equal to newSize
+    // will return nullptr if grid could not be accessed, has a size equal to newSize or newSize is larger than maxSize
     QUndoCommand* resizeGridCommand(const ArgsT& gridArgs, const usize& newSize, const DataT& defaultValue,
                                     const QString& text)
     {
@@ -257,6 +257,10 @@ public:
         }
 
         if (grid->size() == newSize) {
+            return nullptr;
+        }
+        const usize maxSize = _accessor->maxSize();
+        if (newSize.width > maxSize.width || newSize.height > maxSize.height) {
             return nullptr;
         }
 
