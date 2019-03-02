@@ -49,7 +49,7 @@ public:
     using ArgsT = std::tuple<size_t>;
     using SignalArgsT = ArgsT;
 
-    constexpr static index_type max_size = 255;
+    constexpr static index_type maxSize() { return 255; }
 
     EntityRomStructFieldList(EntityRomStructsResourceItem* resourceItem);
     ~EntityRomStructFieldList() = default;

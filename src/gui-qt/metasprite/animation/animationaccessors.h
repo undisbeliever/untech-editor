@@ -44,7 +44,7 @@ public:
     using index_type = ListT::size_type;
     using ArgsT = std::tuple<size_t>;
 
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_ANIMATION_FRAMES;
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_ANIMATION_FRAMES; }
 
 private:
     AbstractMsDocument* const _document;

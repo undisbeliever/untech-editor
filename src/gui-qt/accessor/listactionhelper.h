@@ -74,7 +74,7 @@ public:
             return false;
         }
 
-        return list->size() < AccessorT::max_size;
+        return list->size() < a->maxSize();
     }
 
     template <class AccessorT,
@@ -105,7 +105,7 @@ public:
         ListActionStatus ret;
         ret.selectionValid = index >= 0 && index < list_size;
 
-        ret.canAdd = list_size < AccessorT::max_size;
+        ret.canAdd = list_size < a->maxSize();
         ret.canClone = ret.selectionValid && ret.canAdd;
         ret.canRemove = ret.selectionValid;
 
@@ -138,14 +138,15 @@ public:
             return ListActionStatus();
         }
 
+        const index_type maxSize = a->maxSize();
         const index_type list_size = list->size();
         Q_ASSERT(list_size >= 0);
 
         ListActionStatus ret;
         ret.selectionValid = !indexes.empty() && indexes.front() >= 0 && indexes.back() < list_size;
 
-        ret.canAdd = list_size < AccessorT::max_size;
-        ret.canClone = ret.selectionValid && list_size + indexes.size() <= AccessorT::max_size;
+        ret.canAdd = list_size < maxSize;
+        ret.canClone = ret.selectionValid && list_size + indexes.size() <= maxSize;
         ret.canRemove = ret.selectionValid;
 
         ret.canRaise = ret.selectionValid && indexes.front() > 0;

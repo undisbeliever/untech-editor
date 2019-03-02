@@ -43,8 +43,6 @@ void MtTilesetTileParameters::clearSelection()
     }
 }
 
-const UnTech::usize MtTilesetScratchpadGrid::max_size(255, 255);
-
 MtTilesetScratchpadGrid::MtTilesetScratchpadGrid(MtTilesetResourceItem* tileset)
     : QObject(tileset)
     , _tileset(tileset)

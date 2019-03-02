@@ -26,7 +26,7 @@ public:
     using ArgsT = std::tuple<bool>;
     using SignalArgsT = ArgsT;
 
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_EXPORT_NAMES;
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_EXPORT_NAMES; }
 
 private:
     ExportOrderResourceItem* const _exportOrder;
@@ -103,7 +103,7 @@ public:
     using ArgsT = std::tuple<bool, index_type>;
     using SignalArgsT = ArgsT;
 
-    constexpr static index_type max_size = 256;
+    constexpr static index_type maxSize() { return 256; }
 
 private:
     ExportOrderResourceItem* const _exportOrder;

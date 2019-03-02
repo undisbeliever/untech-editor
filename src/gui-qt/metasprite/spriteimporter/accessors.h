@@ -122,7 +122,8 @@ class FrameObjectList : public AbstractFrameContentAccessor {
 public:
     using DataT = SI::FrameObject;
     using ListT = std::vector<DataT>;
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_FRAME_OBJECTS;
+
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_FRAME_OBJECTS; }
 
     using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
@@ -157,7 +158,8 @@ class ActionPointList : public AbstractFrameContentAccessor {
 public:
     using DataT = SI::ActionPoint;
     using ListT = std::vector<DataT>;
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_ACTION_POINTS;
+
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_ACTION_POINTS; }
 
     using ParameterType = UnTech::MetaSprite::ActionPointParameter;
 
@@ -190,7 +192,8 @@ class EntityHitboxList : public AbstractFrameContentAccessor {
 public:
     using DataT = SI::EntityHitbox;
     using ListT = std::vector<DataT>;
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_ENTITY_HITBOXES;
+
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_ENTITY_HITBOXES; }
 
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 

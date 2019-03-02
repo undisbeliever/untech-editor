@@ -28,8 +28,6 @@ public:
     using selection_type = typename AccessorT::selection_type;
     using ArgsT = typename AccessorT::ArgsT;
 
-    static constexpr const usize& max_size = AccessorT::max_size;
-
     static_assert(std::is_same<GridT, grid<DataT>>::value, "Unexpected GridT type");
     static_assert(std::is_same<index_type, upoint>::value, "Unexpected index_type type");
     static_assert(std::is_same<selection_type, upoint_vectorset>::value, "Unexpected selection_type type");

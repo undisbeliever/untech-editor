@@ -63,7 +63,7 @@ public:
     using selection_type = upoint_vectorset;
     using ArgsT = std::tuple<>;
 
-    static const usize max_size;
+    static UnTech::usize maxSize() { return usize(255, 255); }
 
 private:
     MtTilesetResourceItem* const _tileset;

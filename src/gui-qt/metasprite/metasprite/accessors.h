@@ -26,12 +26,12 @@ class SmallTileTileset : public QObject {
     Q_OBJECT
 
 public:
-    constexpr static unsigned max_size = 256;
-
     using DataT = Snes::Tile8px;
     using ListT = Snes::Tileset8px;
     using index_type = unsigned;
     using ArgsT = std::tuple<>;
+
+    constexpr static index_type maxSize() { return 256; }
 
 private:
     Document* const _document;
@@ -81,12 +81,12 @@ class LargeTileTileset : public QObject {
     Q_OBJECT
 
 public:
-    constexpr static unsigned max_size = 256;
-
     using DataT = Snes::Tile16px;
     using ListT = Snes::TilesetTile16;
     using index_type = unsigned;
     using ArgsT = std::tuple<>;
+
+    constexpr static index_type maxSize() { return 256; }
 
 private:
     Document* const _document;
@@ -136,13 +136,13 @@ class PaletteList : public QObject {
     Q_OBJECT
 
 public:
-    constexpr static size_t max_size = UnTech::MetaSprite::MAX_PALETTES;
-
     using DataT = UnTech::Snes::Palette4bpp;
     using ListT = std::vector<Snes::Palette4bpp>;
     using index_type = ListT::size_type;
     using ArgsT = std::tuple<>;
     using SignalArgsT = ArgsT;
+
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_PALETTES; }
 
 private:
     Document* const _document;
@@ -310,7 +310,8 @@ class FrameObjectList : public AbstractFrameContentAccessor {
 public:
     using DataT = MS::FrameObject;
     using ListT = std::vector<DataT>;
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_FRAME_OBJECTS;
+
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_FRAME_OBJECTS; }
 
     using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
@@ -357,7 +358,8 @@ class ActionPointList : public AbstractFrameContentAccessor {
 public:
     using DataT = MS::ActionPoint;
     using ListT = std::vector<DataT>;
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_ACTION_POINTS;
+
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_ACTION_POINTS; }
 
     using ParameterType = UnTech::MetaSprite::ActionPointParameter;
 
@@ -390,7 +392,8 @@ class EntityHitboxList : public AbstractFrameContentAccessor {
 public:
     using DataT = MS::EntityHitbox;
     using ListT = std::vector<DataT>;
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_ENTITY_HITBOXES;
+
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_ENTITY_HITBOXES; }
 
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 

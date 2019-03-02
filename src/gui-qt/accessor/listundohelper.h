@@ -31,8 +31,6 @@ public:
     using index_type = typename AccessorT::index_type;
     using ArgsT = typename AccessorT::ArgsT;
 
-    constexpr static index_type max_size = AccessorT::max_size;
-
     friend class ListAndSelectionUndoHelper<AccessorT>;
     friend class ListAndMultipleSelectionUndoHelper<AccessorT>;
 
@@ -802,7 +800,7 @@ public:
         if (index < 0 || index > list->size()) {
             return nullptr;
         }
-        if (list->size() >= max_size) {
+        if (list->size() >= _accessor->maxSize()) {
             return nullptr;
         }
 
@@ -858,7 +856,7 @@ public:
         if (index < 0 || index >= list->size()) {
             return nullptr;
         }
-        if (list->size() >= max_size) {
+        if (list->size() >= _accessor->maxSize()) {
             return nullptr;
         }
 

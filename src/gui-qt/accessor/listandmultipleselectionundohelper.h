@@ -22,8 +22,6 @@ public:
     using index_type = typename AccessorT::index_type;
     using ArgsT = typename AccessorT::ArgsT;
 
-    constexpr static index_type max_size = AccessorT::max_size;
-
 private:
     static inline QString tr(const char* s)
     {
@@ -466,7 +464,7 @@ public:
         if (indexes.front() < 0 || indexes.back() >= list->size()) {
             return nullptr;
         }
-        if (list->size() + indexes.size() > max_size) {
+        if (list->size() + indexes.size() > this->_accessor->maxSize()) {
             return nullptr;
         }
 
@@ -525,7 +523,7 @@ public:
         if (indexes.front() < 0 || indexes.back() >= list->size()) {
             return nullptr;
         }
-        if (list->size() + indexes.size() > max_size) {
+        if (list->size() + indexes.size() > this->_accessor->maxSize()) {
             return nullptr;
         }
 
