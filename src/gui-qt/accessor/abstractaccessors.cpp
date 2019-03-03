@@ -5,12 +5,14 @@
  */
 
 #include "abstractaccessors.h"
+#include "gui-qt/abstractresourceitem.h"
 #include "models/common/namedlist.h"
 
 using namespace UnTech::GuiQt::Accessor;
 
-AbstractListAccessor::AbstractListAccessor(QObject* parent, size_t maxSize)
-    : QObject(parent)
+AbstractListAccessor::AbstractListAccessor(AbstractResourceItem* resourceItem, size_t maxSize)
+    : QObject(resourceItem)
+    , _resourceItem(resourceItem)
     , _maxSize(maxSize)
 {
 }
@@ -20,8 +22,8 @@ bool AbstractListAccessor::addItem()
     return addItem(size());
 }
 
-AbstractListSingleSelectionAccessor::AbstractListSingleSelectionAccessor(QObject* parent, size_t maxSize)
-    : AbstractListAccessor(parent, maxSize)
+AbstractListSingleSelectionAccessor::AbstractListSingleSelectionAccessor(AbstractResourceItem* resourceItem, size_t maxSize)
+    : AbstractListAccessor(resourceItem, maxSize)
     , _selectedIndex(INT_MAX)
 {
     connect(this, &AbstractListSingleSelectionAccessor::listReset,
@@ -143,8 +145,8 @@ bool AbstractListSingleSelectionAccessor::lowerSelectedItemToBottom()
     return moveItem(_selectedIndex, s - 1);
 }
 
-AbstractListMultipleSelectionAccessor::AbstractListMultipleSelectionAccessor(QObject* parent, size_t maxSize)
-    : AbstractListAccessor(parent, maxSize)
+AbstractListMultipleSelectionAccessor::AbstractListMultipleSelectionAccessor(AbstractResourceItem* resourceItem, size_t maxSize)
+    : AbstractListAccessor(resourceItem, maxSize)
     , _selectedIndexes()
 {
     connect(this, &AbstractListMultipleSelectionAccessor::listReset,
@@ -287,8 +289,8 @@ void AbstractListMultipleSelectionAccessor::onItemMoved(size_t from, size_t to)
     setSelectedIndexes(std::move(newSel));
 }
 
-AbstractNamedListAccessor::AbstractNamedListAccessor(QObject* parent, size_t maxSize)
-    : AbstractListSingleSelectionAccessor(parent, maxSize)
+AbstractNamedListAccessor::AbstractNamedListAccessor(AbstractResourceItem* resourceItem, size_t maxSize)
+    : AbstractListSingleSelectionAccessor(resourceItem, maxSize)
 {
 }
 
@@ -326,10 +328,12 @@ bool AbstractNamedListAccessor::cloneItemWithName(size_t index, const UnTech::id
 }
 
 AbstractChildListSingleSelectionAccessor::AbstractChildListSingleSelectionAccessor(AbstractListSingleSelectionAccessor* parentAccessor, size_t maxSize)
-    : AbstractListSingleSelectionAccessor(parentAccessor, maxSize)
+    : AbstractListSingleSelectionAccessor(parentAccessor->resourceItem(), maxSize)
     , _parentAccessor(parentAccessor)
     , _parentIndex(parentAccessor->selectedIndex())
 {
+    setParent(_parentAccessor);
+
     connect(_parentAccessor, &AbstractListSingleSelectionAccessor::listReset,
             this, &AbstractChildListSingleSelectionAccessor::onParentSelectedIndexChanged);
     connect(_parentAccessor, &AbstractListSingleSelectionAccessor::selectedIndexChanged,
@@ -403,10 +407,12 @@ void AbstractChildListSingleSelectionAccessor::onItemMoved(size_t parentIndex, s
 }
 
 AbstractChildListMultipleSelectionAccessor::AbstractChildListMultipleSelectionAccessor(AbstractListSingleSelectionAccessor* parentAccessor, size_t maxSize)
-    : AbstractListMultipleSelectionAccessor(parentAccessor, maxSize)
+    : AbstractListMultipleSelectionAccessor(parentAccessor->resourceItem(), maxSize)
     , _parentAccessor(parentAccessor)
     , _parentIndex(parentAccessor->selectedIndex())
 {
+    setParent(_parentAccessor);
+
     connect(_parentAccessor, &AbstractListSingleSelectionAccessor::listReset,
             this, &AbstractChildListMultipleSelectionAccessor::onParentSelectedIndexChanged);
     connect(_parentAccessor, &AbstractListSingleSelectionAccessor::selectedIndexChanged,

@@ -70,7 +70,6 @@ bool VectorSingleSelectionAccessor<T, RI>::moveItem(size_t from, size_t to)
 template <class T, class RI>
 NamedListAccessor<T, RI>::NamedListAccessor(RI* resourceItem, size_t maxSize)
     : AbstractNamedListAccessor(resourceItem, maxSize)
-    , _resourceItem(resourceItem)
 {
 }
 
@@ -157,8 +156,8 @@ bool NamedListAccessor<T, RI>::moveItem(size_t from, size_t to)
 template <class T, class RI>
 ChildVectorAccessor<T, RI>::ChildVectorAccessor(AbstractListSingleSelectionAccessor* parentAccessor, RI* resourceItem, size_t maxSize)
     : AbstractChildListSingleSelectionAccessor(parentAccessor, maxSize)
-    , _resourceItem(resourceItem)
 {
+    Q_ASSERT(AbstractListAccessor::resourceItem() == resourceItem);
 }
 
 template <class T, class RI>
@@ -215,8 +214,8 @@ bool ChildVectorAccessor<T, RI>::moveItem(size_t from, size_t to)
 template <class T, class RI>
 ChildVectorMultipleSelectionAccessor<T, RI>::ChildVectorMultipleSelectionAccessor(AbstractListSingleSelectionAccessor* parentAccessor, RI* resourceItem, size_t maxSize)
     : AbstractChildListMultipleSelectionAccessor(parentAccessor, maxSize)
-    , _resourceItem(resourceItem)
 {
+    Q_ASSERT(AbstractListAccessor::resourceItem() == resourceItem);
 }
 
 template <class T, class RI>

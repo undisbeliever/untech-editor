@@ -15,6 +15,8 @@ template <class T>
 class NamedList;
 
 namespace GuiQt {
+class AbstractResourceItem;
+
 namespace Accessor {
 template <class T>
 class ListUndoHelper;
@@ -24,13 +26,16 @@ class NamedListUndoHelper;
 class AbstractListAccessor : public QObject {
     Q_OBJECT
 
+    AbstractResourceItem* const _resourceItem;
     const size_t _maxSize;
 
 public:
-    AbstractListAccessor(QObject* parent, size_t maxSize);
+    AbstractListAccessor(AbstractResourceItem* resourceItem, size_t maxSize);
     ~AbstractListAccessor() = default;
 
     virtual QString typeName() const = 0;
+
+    AbstractResourceItem* resourceItem() const { return _resourceItem; }
 
     virtual bool listExists() const = 0;
     virtual size_t size() const = 0;
@@ -64,7 +69,7 @@ class AbstractListSingleSelectionAccessor : public AbstractListAccessor {
     size_t _selectedIndex;
 
 public:
-    AbstractListSingleSelectionAccessor(QObject* parent, size_t maxSize);
+    AbstractListSingleSelectionAccessor(AbstractResourceItem* resourceItem, size_t maxSize);
     ~AbstractListSingleSelectionAccessor() = default;
 
     size_t selectedIndex() const { return _selectedIndex; }
@@ -105,7 +110,7 @@ class AbstractListMultipleSelectionAccessor : public AbstractListAccessor {
     vectorset<size_t> _selectedIndexes;
 
 public:
-    AbstractListMultipleSelectionAccessor(QObject* parent, size_t maxSize);
+    AbstractListMultipleSelectionAccessor(AbstractResourceItem* resourceItem, size_t maxSize);
     ~AbstractListMultipleSelectionAccessor() = default;
 
     virtual QString typeNamePlural() const = 0;
@@ -146,7 +151,7 @@ class AbstractNamedListAccessor : public AbstractListSingleSelectionAccessor {
     Q_OBJECT
 
 public:
-    AbstractNamedListAccessor(QObject* parent, size_t maxSize);
+    AbstractNamedListAccessor(AbstractResourceItem* resourceItem, size_t maxSize);
     ~AbstractNamedListAccessor() = default;
 
     virtual QStringList itemNames() const = 0;
@@ -256,7 +261,7 @@ public:
     VectorSingleSelectionAccessor(ResourceItemT* resourceItem, size_t maxSize);
     ~VectorSingleSelectionAccessor() = default;
 
-    ResourceItemT* resourceItem() const { return _resourceItem; }
+    ResourceItemT* resourceItem() const { return static_cast<ResourceItemT*>(AbstractListAccessor::resourceItem()); }
 
     virtual bool listExists() const final;
     virtual size_t size() const final;
@@ -295,14 +300,11 @@ public:
     using ListT = ::UnTech::NamedList<T>;
     using index_type = size_t;
 
-private:
-    ResourceItemT* const _resourceItem;
-
 public:
     NamedListAccessor(ResourceItemT* resourceItem, size_t maxSize);
     ~NamedListAccessor() = default;
 
-    ResourceItemT* resourceItem() const { return _resourceItem; }
+    ResourceItemT* resourceItem() const { return static_cast<ResourceItemT*>(AbstractListAccessor::resourceItem()); }
 
     virtual bool listExists() const final;
     virtual size_t size() const final;
@@ -348,14 +350,11 @@ public:
     using ArgsT = ::std::tuple<size_t>;
     using SignalArgsT = ArgsT;
 
-private:
-    ResourceItemT* const _resourceItem;
-
 public:
     ChildVectorAccessor(AbstractListSingleSelectionAccessor* parentAccessor, ResourceItemT* resourceItem, size_t maxSize);
     ~ChildVectorAccessor() = default;
 
-    ResourceItemT* resourceItem() const { return _resourceItem; }
+    ResourceItemT* resourceItem() const { return static_cast<ResourceItemT*>(AbstractListAccessor::resourceItem()); }
 
     const std::vector<T>* childList() const;
     virtual bool listExists() const final;
@@ -397,14 +396,11 @@ public:
     using ArgsT = ::std::tuple<size_t>;
     using SignalArgsT = ArgsT;
 
-private:
-    ResourceItemT* const _resourceItem;
-
 public:
     ChildVectorMultipleSelectionAccessor(AbstractListSingleSelectionAccessor* parentAccessor, ResourceItemT* resourceItem, size_t maxSize);
     ~ChildVectorMultipleSelectionAccessor() = default;
 
-    ResourceItemT* resourceItem() const { return _resourceItem; }
+    ResourceItemT* resourceItem() const { return static_cast<ResourceItemT*>(AbstractListAccessor::resourceItem()); }
 
     const std::vector<T>* childList() const;
     virtual bool listExists() const final;

@@ -16,13 +16,13 @@ using namespace UnTech::GuiQt::MetaSprite::Animation;
 template <>
 const NamedList<MSA::Animation>* NamedListAccessor<MSA::Animation, AbstractMsDocument>::list() const
 {
-    return _resourceItem->animations();
+    return resourceItem()->animations();
 }
 
 template <>
 NamedList<MSA::Animation>* NamedListAccessor<MSA::Animation, AbstractMsDocument>::getList()
 {
-    return _resourceItem->animations();
+    return resourceItem()->animations();
 }
 
 AnimationsList::AnimationsList(AbstractMsDocument* document)
