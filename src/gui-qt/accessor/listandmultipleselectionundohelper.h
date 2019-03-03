@@ -523,9 +523,6 @@ public:
         if (indexes.front() < 0 || indexes.back() >= list->size()) {
             return nullptr;
         }
-        if (list->size() + indexes.size() > this->_accessor->maxSize()) {
-            return nullptr;
-        }
 
         std::vector<DataT> values;
         values.reserve(indexes.size());
