@@ -5,6 +5,7 @@
  */
 
 #include "listactions.h"
+#include "abstractaccessors.h"
 #include "accessor.h"
 #include "gui-qt/common/idstringdialog.h"
 
@@ -16,12 +17,13 @@ using namespace UnTech::GuiQt::Accessor;
 using QCA = QCoreApplication;
 
 ListActions::ListActions(QObject* parent)
-    : _accessor(nullptr)
-    , add(new QAction(QIcon(":/icons/add.svg"), QCA::tr("Add"), parent))
-    , clone(new QAction(QIcon(":/icons/clone.svg"), QCA::tr("Clone Selected"), parent))
-    , raise(new QAction(QIcon(":/icons/raise.svg"), QCA::tr("Raise Selected"), parent))
-    , lower(new QAction(QIcon(":/icons/lower.svg"), QCA::tr("Lower Selected"), parent))
-    , remove(new QAction(QIcon(":/icons/remove.svg"), QCA::tr("Remove Selected"), parent))
+    : QObject(parent)
+    , add(new QAction(QIcon(":/icons/add.svg"), QCA::tr("Add"), this))
+    , clone(new QAction(QIcon(":/icons/clone.svg"), QCA::tr("Clone Selected"), this))
+    , raise(new QAction(QIcon(":/icons/raise.svg"), QCA::tr("Raise Selected"), this))
+    , lower(new QAction(QIcon(":/icons/lower.svg"), QCA::tr("Lower Selected"), this))
+    , remove(new QAction(QIcon(":/icons/remove.svg"), QCA::tr("Remove Selected"), this))
+    , _accessor(nullptr)
 {
     disableAll();
 }
@@ -35,6 +37,90 @@ void ListActions::updateText(const QString& typeName)
     remove->setText(QCoreApplication::tr("Remove %1").arg(typeName));
 }
 
+void ListActions::setAccessor(AbstractListSingleSelectionAccessor* accessor)
+{
+    if (_accessor == accessor) {
+        return;
+    }
+
+    if (_accessor) {
+        _accessor->disconnect(this);
+
+        add->disconnect(_accessor);
+        clone->disconnect(_accessor);
+        raise->disconnect(_accessor);
+        lower->disconnect(_accessor);
+        remove->disconnect(_accessor);
+    }
+    _accessor = accessor;
+
+    updateActions_singleSelection();
+
+    if (accessor) {
+        updateText(_accessor->typeName());
+
+        connect(accessor, &AbstractListSingleSelectionAccessor::listReset,
+                this, &ListActions::updateActions_singleSelection);
+        connect(accessor, &AbstractListSingleSelectionAccessor::selectedIndexChanged,
+                this, &ListActions::updateActions_singleSelection);
+        connect(accessor, &AbstractListSingleSelectionAccessor::listChanged,
+                this, &ListActions::updateActions_singleSelection);
+
+        connect(add, &QAction::triggered,
+                accessor, qOverload<>(&AbstractListAccessor::addItem));
+        connect(clone, &QAction::triggered,
+                accessor, &AbstractListSingleSelectionAccessor::cloneSelectedItem);
+        connect(raise, &QAction::triggered,
+                accessor, &AbstractListSingleSelectionAccessor::raiseSelectedItem);
+        connect(lower, &QAction::triggered,
+                accessor, &AbstractListSingleSelectionAccessor::lowerSelectedItem);
+        connect(remove, &QAction::triggered,
+                accessor, &AbstractListSingleSelectionAccessor::removeSelectedItem);
+    }
+}
+
+void ListActions::setAccessor(AbstractListMultipleSelectionAccessor* accessor)
+{
+    if (_accessor == accessor) {
+        return;
+    }
+
+    if (_accessor) {
+        _accessor->disconnect(this);
+
+        add->disconnect(_accessor);
+        clone->disconnect(_accessor);
+        raise->disconnect(_accessor);
+        lower->disconnect(_accessor);
+        remove->disconnect(_accessor);
+    }
+    _accessor = accessor;
+
+    updateActions_multipleSelection();
+
+    if (accessor) {
+        updateText(_accessor->typeName());
+
+        connect(accessor, &AbstractListMultipleSelectionAccessor::listReset,
+                this, &ListActions::updateActions_multipleSelection);
+        connect(accessor, &AbstractListMultipleSelectionAccessor::selectedIndexesChanged,
+                this, &ListActions::updateActions_multipleSelection);
+        connect(accessor, &AbstractListMultipleSelectionAccessor::listChanged,
+                this, &ListActions::updateActions_multipleSelection);
+
+        connect(add, &QAction::triggered,
+                accessor, qOverload<>(&AbstractListAccessor::addItem));
+        connect(clone, &QAction::triggered,
+                accessor, &AbstractListMultipleSelectionAccessor::cloneSelectedItems);
+        connect(raise, &QAction::triggered,
+                accessor, &AbstractListMultipleSelectionAccessor::raiseSelectedItems);
+        connect(lower, &QAction::triggered,
+                accessor, &AbstractListMultipleSelectionAccessor::lowerSelectedItems);
+        connect(remove, &QAction::triggered,
+                accessor, &AbstractListMultipleSelectionAccessor::removeSelectedItems);
+    }
+}
+
 void ListActions::disableAll()
 {
     add->setEnabled(false);
@@ -42,6 +128,59 @@ void ListActions::disableAll()
     raise->setEnabled(false);
     lower->setEnabled(false);
     remove->setEnabled(false);
+}
+
+void ListActions::updateActions_singleSelection()
+{
+    auto* accessor = qobject_cast<AbstractListSingleSelectionAccessor*>(_accessor);
+    if (accessor == nullptr) {
+        disableAll();
+        return;
+    }
+
+    if (accessor->listExists() == false) {
+        disableAll();
+        return;
+    }
+
+    const size_t selectedIndex = accessor->selectedIndex();
+    const size_t listSize = accessor->size();
+    const size_t maxSize = accessor->maxSize();
+
+    const bool selectionValid = selectedIndex < listSize;
+    const bool canAdd = listSize < maxSize;
+
+    add->setEnabled(canAdd);
+    clone->setEnabled(selectionValid && canAdd);
+    raise->setEnabled(selectionValid && selectedIndex > 0);
+    lower->setEnabled(selectionValid && selectedIndex + 1 < listSize);
+    remove->setEnabled(selectionValid);
+}
+
+void ListActions::updateActions_multipleSelection()
+{
+    auto* accessor = qobject_cast<AbstractListMultipleSelectionAccessor*>(_accessor);
+    if (accessor == nullptr) {
+        disableAll();
+        return;
+    }
+
+    if (accessor->listExists() == false) {
+        disableAll();
+        return;
+    }
+
+    const auto& indexes = accessor->selectedIndexes();
+    const size_t listSize = accessor->size();
+    const size_t maxSize = accessor->maxSize();
+
+    const bool selectionValid = !indexes.empty() && indexes.front() >= 0 && indexes.back() < listSize;
+
+    add->setEnabled(listSize < maxSize);
+    clone->setEnabled(selectionValid && listSize + indexes.size() <= maxSize);
+    raise->setEnabled(selectionValid && indexes.front() > 0);
+    lower->setEnabled(selectionValid && indexes.back() + 1 < listSize);
+    remove->setEnabled(selectionValid);
 }
 
 void ListActions::populateMenu(QMenu* menu) const

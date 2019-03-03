@@ -5,6 +5,7 @@
  */
 
 #include "multipleselectiontableview.h"
+#include "abstractaccessors.h"
 #include "accessor.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 
@@ -17,73 +18,9 @@
 using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 
-using QCA = QCoreApplication;
-
-MultiTableViewActions::MultiTableViewActions(QObject* parent)
-    : add()
-    , clone(new QAction(QIcon(":/icons/clone.svg"), QCA::tr("Clone Selected"), parent))
-    , raise(new QAction(QIcon(":/icons/raise.svg"), QCA::tr("Raise Selected"), parent))
-    , lower(new QAction(QIcon(":/icons/lower.svg"), QCA::tr("Lower Selected"), parent))
-    , remove(new QAction(QIcon(":/icons/remove.svg"), QCA::tr("Remove Selected"), parent))
-{
-}
-
-void MultiTableViewActions::resizeAddList(int count, QObject* parent)
-{
-    Q_ASSERT(count >= 0);
-
-    add.reserve(count);
-    while (add.size() > count) {
-        add.takeLast()->deleteLater();
-    }
-    while (add.size() < count) {
-        add.append(new QAction(QIcon(":/icons/add.svg"), QCA::tr("Add"), parent));
-    }
-}
-
-void MultiTableViewActions::disconnectAll(QObject* o)
-{
-    for (QAction* a : add) {
-        a->disconnect(o);
-    }
-    clone->disconnect(o);
-    raise->disconnect(o);
-    lower->disconnect(o);
-    remove->disconnect(o);
-}
-
-void MultiTableViewActions::populateMenu(QMenu* menu, bool addSeperator) const
-{
-    populateMenuWithAddActions(menu);
-    if (addSeperator) {
-        menu->addSeparator();
-    }
-    menu->addAction(clone);
-    menu->addAction(raise);
-    menu->addAction(lower);
-    menu->addAction(remove);
-}
-
-void MultiTableViewActions::populateMenuWithAddActions(QMenu* menu) const
-{
-    for (QAction* a : add) {
-        menu->addAction(a);
-    }
-}
-
-void MultiTableViewActions::populateToolbar(QToolBar* toolbar) const
-{
-    for (QAction* a : add) {
-        toolbar->addAction(a);
-    }
-    toolbar->addAction(clone);
-    toolbar->addAction(raise);
-    toolbar->addAction(lower);
-    toolbar->addAction(remove);
-}
-
 MultipleSelectionTableView::MultipleSelectionTableView(QWidget* parent)
-    : _actions(parent)
+    : QTreeView(parent)
+    , _actions(new MultiListActions(this))
     , _accessors()
     , _delegate(new PropertyDelegate(this))
     , _selectedContextMenu(new QMenu(this))
@@ -102,14 +39,12 @@ MultipleSelectionTableView::MultipleSelectionTableView(QWidget* parent)
 
 void MultipleSelectionTableView::disconnectAll()
 {
-    _actions.disconnectAll(this);
-
     if (auto* sm = selectionModel()) {
         sm->disconnect(this);
     }
 
     for (int i = 0; i < _accessors.size(); i++) {
-        if (QObject* a = _accessors.at(i)) {
+        if (AbstractListMultipleSelectionAccessor* a = _accessors.at(i)) {
             a->disconnect(this);
         }
         _accessors.replace(i, nullptr);
@@ -119,6 +54,8 @@ void MultipleSelectionTableView::disconnectAll()
 void MultipleSelectionTableView::setPropertyManagers(const QList<GuiQt::PropertyTableManager*>& managers, const QStringList& columns)
 {
     disconnectAll();
+
+    _actions->setNAccessors(managers.size());
 
     if (auto* sm = selectionModel()) {
         sm->deleteLater();
@@ -135,8 +72,6 @@ void MultipleSelectionTableView::setPropertyManagers(const QList<GuiQt::Property
         _model = nullptr;
     }
     QTreeView::setModel(_model);
-
-    _actions.resizeAddList(managers.size(), this);
 
     _accessors.clear();
     for (int i = 0; i < managers.size(); i++) {
@@ -156,8 +91,8 @@ void MultipleSelectionTableView::rebuildMenus()
     _selectedContextMenu->clear();
     _noSelectionContextMenu->clear();
 
-    _actions.populateMenu(_selectedContextMenu, true);
-    _actions.populateMenuWithAddActions(_noSelectionContextMenu);
+    _actions->populateMenu(_selectedContextMenu, true);
+    _actions->populateMenuWithAddActions(_noSelectionContextMenu);
 }
 
 void MultipleSelectionTableView::contextMenuEvent(QContextMenuEvent* event)
@@ -166,7 +101,7 @@ void MultipleSelectionTableView::contextMenuEvent(QContextMenuEvent* event)
         return;
     }
 
-    if (_actions.remove->isEnabled()) {
+    if (_actions->remove->isEnabled()) {
         _selectedContextMenu->exec(event->globalPos());
     }
     else {

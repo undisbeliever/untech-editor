@@ -17,14 +17,15 @@ class AbstractNamedListAccessor;
 class AbstractChildListSingleSelectionAccessor;
 class AbstractChildListMultipleSelectionAccessor;
 
+struct ListActions;
+struct MultiListActions;
 struct NamedListActions;
+
 class NamedListView;
 class NamedListModel;
 
 class SelectedIndexHelper;
 class MultipleSelectedIndexesHelper;
-
-class ListActionHelper;
 
 template <class T>
 class ResourceItemUndoHelper;

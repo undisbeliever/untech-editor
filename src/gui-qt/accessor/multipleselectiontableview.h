@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "actions.h"
 #include "listactionhelper.h"
 #include "listandmultipleselectionundohelper.h"
+#include "multilistactions.h"
 #include "gui-qt/common/properties/propertytablemanager.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
 #include <QTreeView>
@@ -24,8 +24,8 @@ class MultipleSelectionTableView : public QTreeView {
     Q_OBJECT
 
 private:
-    MultiTableViewActions _actions;
-    QList<QObject*> _accessors;
+    MultiListActions* const _actions;
+    QList<AbstractListMultipleSelectionAccessor*> _accessors;
 
     PropertyDelegate* const _delegate;
     QMenu* const _selectedContextMenu;
@@ -42,7 +42,7 @@ public:
     // MUST NOT call this method
     virtual void setModel(QAbstractItemModel*) final;
 
-    const MultiTableViewActions& viewActions() const { return _actions; }
+    const MultiListActions* viewActions() const { return _actions; }
     PropertyTableModel* propertyTableModel() const { return _model; }
 
     QMenu* selectedContextmenu() { return _selectedContextMenu; }
@@ -69,16 +69,12 @@ public:
         disconnectAll();
         _accessors = { accessors... };
 
-        if (_actions.add.size() != nAccessors
-            || _model->managers().size() != nAccessors) {
+        _actions->setAccessors(_accessors);
 
+        if (_model->managers().size() != nAccessors) {
             qWarning("Invalid number of accessors");
             return;
         }
-
-        for_each_accessor_i([this](auto* a, int aId) {
-            _actions.add.at(aId)->setText(tr("Add %1").arg(a->typeName()));
-        });
 
         if (_accessors.contains(nullptr)) {
             return;
@@ -109,7 +105,6 @@ public:
 
         auto onSelectedIndexesChanged = [=]() {
             Q_ASSERT(_model);
-            Q_ASSERT(_actions.add.size() == nAccessors);
 
             QItemSelection sel;
             for_each_accessor_i([&](auto* accessor, int aId) {
@@ -128,18 +123,6 @@ public:
 
             // BUGFIX: Sometimes the view will not hightlight the new selection
             viewport()->update();
-
-            // update action status
-            std::array<ListActionStatus, size_t(nAccessors)> status = { ListActionHelper::status(accessors)... };
-            ListActionStatus selected = ListActionStatus::mergeArray(status);
-
-            for (int i = 0; i < _actions.add.size(); i++) {
-                _actions.add.at(i)->setEnabled(status.at(i).canAdd);
-            }
-            _actions.clone->setEnabled(selected.canClone);
-            _actions.raise->setEnabled(selected.canRaise);
-            _actions.lower->setEnabled(selected.canLower);
-            _actions.remove->setEnabled(selected.canRemove);
         };
         onSelectedIndexesChanged();
 
@@ -154,84 +137,6 @@ public:
 
         connect(this->selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, onSelectionModelChanged);
-
-        for_each_accessor_i([&](auto* accessor, int aId) {
-            Q_ASSERT(accessor);
-            Q_ASSERT(aId < _accessors.size());
-            Q_ASSERT(aId < _actions.add.size());
-
-            connect(_actions.add.at(aId), &QAction::triggered,
-                    this, [=]() {
-                        for_each_accessor([](auto* a) {
-                            a->clearSelection();
-                        });
-
-                        using AT = typename std::remove_pointer<decltype(accessor)>::type;
-                        ListAndMultipleSelectionUndoHelper<AT>(accessor).addItemToSelectedList();
-                    });
-        });
-
-        connect(_actions.clone, &QAction::triggered,
-                this, [=]() {
-                    if (_actions.clone->isEnabled() == false) {
-                        return;
-                    }
-                    QUndoStack* undoStack = getUndoStack(accessors...);
-
-                    undoStack->beginMacro(tr("Clone"));
-
-                    for_each_accessor([&](auto* a) {
-                        using AT = typename std::remove_pointer<decltype(a)>::type;
-                        ListAndMultipleSelectionUndoHelper<AT>(a).cloneSelectedItems();
-                    });
-                    undoStack->endMacro();
-                });
-
-        connect(_actions.raise, &QAction::triggered,
-                this, [=]() {
-                    if (_actions.raise->isEnabled() == false) {
-                        return;
-                    }
-                    QUndoStack* undoStack = getUndoStack(accessors...);
-
-                    undoStack->beginMacro(tr("Raise"));
-
-                    for_each_accessor([&](auto* a) {
-                        using AT = typename std::remove_pointer<decltype(a)>::type;
-                        ListAndMultipleSelectionUndoHelper<AT>(a).raiseSelectedItems();
-                    });
-                    undoStack->endMacro();
-                });
-
-        connect(_actions.lower, &QAction::triggered,
-                this, [=]() {
-                    if (_actions.lower->isEnabled() == false) {
-                        return;
-                    }
-                    QUndoStack* undoStack = getUndoStack(accessors...);
-
-                    undoStack->beginMacro(tr("Lower"));
-                    for_each_accessor([&](auto* a) {
-                        using AT = typename std::remove_pointer<decltype(a)>::type;
-                        ListAndMultipleSelectionUndoHelper<AT>(a).lowerSelectedItems();
-                    });
-                    undoStack->endMacro();
-                });
-
-        connect(_actions.remove, &QAction::triggered,
-                this, [=]() {
-                    if (_actions.remove->isEnabled() == false) {
-                        return;
-                    }
-                    QUndoStack* undoStack = getUndoStack(accessors...);
-
-                    undoStack->beginMacro(tr("Remove"));
-                    for_each_accessor([&](auto* a) {
-                        using AT = typename std::remove_pointer<decltype(a)>::type;
-                        ListAndMultipleSelectionUndoHelper<AT>(a).removeSelectedItems();
-                    });
-                    undoStack->endMacro();
-                });
     }
 
 private:

@@ -8,6 +8,7 @@
 
 #include "exportorderresourceitem.h"
 #include "gui-qt/accessor/accessor.h"
+#include "gui-qt/accessor/listactionhelper.h"
 #include <QObject>
 #include <tuple>
 
