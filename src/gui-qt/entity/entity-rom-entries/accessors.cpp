@@ -52,3 +52,5 @@ QString EntityRomEntriesList::typeName() const
 {
     return tr("Entity ROM Struct");
 }
+
+template class UnTech::GuiQt::Accessor::NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>;

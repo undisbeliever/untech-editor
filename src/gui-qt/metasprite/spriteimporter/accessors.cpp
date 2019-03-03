@@ -180,3 +180,9 @@ QString EntityHitboxList::typeNamePlural() const
 {
     return tr("Entity Hitboxes");
 }
+
+using namespace UnTech::GuiQt;
+template class Accessor::NamedListAccessor<SI::Frame, Document>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<SI::FrameObject, Document>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<SI::ActionPoint, Document>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, Document>;

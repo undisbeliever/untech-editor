@@ -70,3 +70,7 @@ QString AnimationFramesList::typeName() const
 {
     return tr("Animation Frame");
 }
+
+using namespace UnTech::GuiQt;
+template class Accessor::NamedListAccessor<MSA::Animation, AbstractMsDocument>;
+template class Accessor::ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>;

@@ -36,3 +36,6 @@ QString EntityFunctionTableList::typeName() const
 {
     return tr("Entity Function Table");
 }
+
+using namespace UnTech::GuiQt;
+template class Accessor::NamedListAccessor<EN::EntityFunctionTable, EntityFunctionTablesResourceItem>;

@@ -267,3 +267,10 @@ QString EntityHitboxList::typeNamePlural() const
 {
     return tr("Entity Hitboxes");
 }
+
+using namespace UnTech::GuiQt;
+template class Accessor::VectorSingleSelectionAccessor<Snes::Palette4bpp, Document>;
+template class Accessor::NamedListAccessor<MS::Frame, Document>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<MS::FrameObject, Document>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<MS::ActionPoint, Document>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, Document>;

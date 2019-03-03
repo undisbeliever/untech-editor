@@ -70,3 +70,7 @@ QString EntityRomStructFieldList::typeName() const
 {
     return tr("Struct Field");
 }
+
+using namespace UnTech::GuiQt;
+template class Accessor::NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>;
+template class Accessor::ChildVectorAccessor<EN::StructField, EntityRomStructsResourceItem>;
