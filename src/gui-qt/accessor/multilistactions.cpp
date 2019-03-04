@@ -170,12 +170,12 @@ void MultiListActions::updateActions()
     for (int i = 0; i < _accessors.size(); i++) {
         auto* accessor = _accessors.at(i);
 
-        const auto& indexes = accessor->selectedIndexes();
+        const vectorset<size_t>& indexes = accessor->selectedIndexes();
         bool listExists = accessor->listExists();
         const size_t listSize = accessor->size();
         const size_t maxSize = accessor->maxSize();
 
-        const bool selectionValid = !indexes.empty() && indexes.front() >= 0 && indexes.back() < listSize;
+        const bool selectionValid = !indexes.empty() && indexes.back() < listSize;
 
         add.at(i)->setEnabled(listExists && listSize < maxSize);
         tooManySelectedToClone |= listSize + indexes.size() > maxSize;
