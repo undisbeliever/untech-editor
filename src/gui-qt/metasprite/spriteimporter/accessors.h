@@ -21,7 +21,7 @@ namespace SpriteImporter {
 class FrameList : public Accessor::NamedListAccessor<SI::Frame, Document> {
     Q_OBJECT
 
-    friend class Accessor::NamedListUndoHelper<FrameList>;
+    friend class Accessor::ListUndoHelper<FrameList>;
     using SpriteOrderType = UnTech::MetaSprite::SpriteOrderType;
 
 private:

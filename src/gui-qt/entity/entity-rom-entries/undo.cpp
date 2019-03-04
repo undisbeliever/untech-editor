@@ -6,13 +6,12 @@
 
 #include "accessors.h"
 #include "gui-qt/accessor/listundohelper.h"
-#include "gui-qt/accessor/namedlistundohelper.h"
 
 using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Entity;
 
-using StructListUndoHelper = NamedListAndSelectionUndoHelper<EntityRomEntriesList>;
+using StructListUndoHelper = ListAndSelectionUndoHelper<EntityRomEntriesList>;
 
 void EntityRomEntriesList::editSelected_setFunctionTable(const idstring& functionTable)
 {

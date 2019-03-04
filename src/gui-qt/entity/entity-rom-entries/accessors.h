@@ -23,7 +23,7 @@ namespace EN = UnTech::Entity;
 class EntityRomEntriesList : public Accessor::NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem> {
     Q_OBJECT
 
-    friend class Accessor::NamedListUndoHelper<EntityRomEntriesList>;
+    friend class Accessor::ListUndoHelper<EntityRomEntriesList>;
 
 private:
     const bool _entityList;

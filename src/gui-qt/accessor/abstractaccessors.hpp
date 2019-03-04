@@ -9,7 +9,6 @@
 #include "abstractaccessors.h"
 #include "listandmultipleselectionundohelper.h"
 #include "listundohelper.h"
-#include "namedlistundohelper.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -74,6 +73,12 @@ NamedListAccessor<T, RI>::NamedListAccessor(RI* resourceItem, size_t maxSize)
 }
 
 template <class T, class RI>
+std::tuple<> NamedListAccessor<T, RI>::selectedListTuple() const
+{
+    return std::make_tuple();
+}
+
+template <class T, class RI>
 bool NamedListAccessor<T, RI>::listExists() const
 {
     return list() != nullptr;
@@ -114,43 +119,57 @@ QString NamedListAccessor<T, RI>::itemName(size_t index) const
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::edit_setName(NamedListAccessor::index_type index, const UnTech::idstring& name)
 {
-    return NamedListAndSelectionUndoHelper<NamedListAccessor<T, RI>>(this).renameItem(index, name);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).editFieldInSelectedList(
+        index, name,
+        tr("Edit name"),
+        [](DataT& d) -> idstring& { return d.name; },
+        [](NamedListAccessor* a, index_type i) { emit a->nameChanged(i); });
 }
 
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::do_addItem(size_t index)
 {
-    return NamedListUndoHelper<NamedListAccessor<T, RI>>(this).addItem(index);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).addItemToSelectedList(index);
 }
 
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::do_addItemWithName(size_t index, const UnTech::idstring& name)
 {
-    return NamedListUndoHelper<NamedListAccessor<T, RI>>(this).addItem(index, name);
+    T newItem;
+    newItem.name = name;
+
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).addItemToSelectedList(index, newItem);
 }
 
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::do_cloneItem(size_t index)
 {
-    return NamedListUndoHelper<NamedListAccessor<T, RI>>(this).cloneItem(index);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).cloneItemInSelectedList(index);
 }
 
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::do_cloneItemWithName(size_t index, const idstring& name)
 {
-    return NamedListUndoHelper<NamedListAccessor<T, RI>>(this).cloneItem(index, name);
+    if (auto* item = selectedItem()) {
+        T newItem = *item;
+        newItem.name = name;
+
+        QString text = tr("Clone %1").arg(typeName());
+        return ListUndoHelper<NamedListAccessor<T, RI>>(this).addItemToSelectedList(index, newItem, text);
+    }
+    return false;
 }
 
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::removeItem(size_t index)
 {
-    return NamedListAndSelectionUndoHelper<NamedListAccessor<T, RI>>(this).removeItem(index);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).removeItemFromSelectedList(index);
 }
 
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::moveItem(size_t from, size_t to)
 {
-    return NamedListAndSelectionUndoHelper<NamedListAccessor<T, RI>>(this).moveItem(from, to);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).moveItemInSelectedList(from, to);
 }
 
 template <class T, class RI>

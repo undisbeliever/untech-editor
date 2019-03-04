@@ -7,7 +7,6 @@
 #include "accessors.h"
 #include "msgraphicsscene.h"
 #include "gui-qt/accessor/listandmultipleselectionundohelper.h"
-#include "gui-qt/accessor/namedlistundohelper.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/pixmapgraphicsitem.h"
@@ -283,7 +282,7 @@ bool PaletteList::editSelectedList_removeSelected()
     return PaletteListUndoHelper(this).removeSelectedItem();
 }
 
-using FrameListUndoHelper = NamedListAndSelectionUndoHelper<FrameList>;
+using FrameListUndoHelper = ListAndSelectionUndoHelper<FrameList>;
 
 bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 {
@@ -492,8 +491,8 @@ void MsGraphicsScene::commitMovedItems()
     if (_document->frameList()->isTileHitboxSelected()) {
         ms8rect hitbox = _tileHitbox->rectMs8rect();
         auto* c = FrameListUndoHelper(_document->frameList())
-                      .editSelectedFieldCommand(hitbox, QString(),
-                                                [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
+                      .editSelectedItemFieldCommand(hitbox, QString(),
+                                                    [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
         if (c != nullptr) {
             commands.append(c);
         }

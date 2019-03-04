@@ -7,7 +7,6 @@
 #include "accessors.h"
 #include "sigraphicsscene.h"
 #include "gui-qt/accessor/listandmultipleselectionundohelper.h"
-#include "gui-qt/accessor/namedlistundohelper.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 
@@ -88,7 +87,7 @@ bool Document::editFrameSet_setPalette(const SI::UserSuppliedPalette& palette)
                           emit d.frameSetDataChanged(); });
 }
 
-using FrameListUndoHelper = NamedListAndSelectionUndoHelper<FrameList>;
+using FrameListUndoHelper = ListAndSelectionUndoHelper<FrameList>;
 
 bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 {
@@ -252,8 +251,8 @@ void SiGraphicsScene::commitMovedItems()
     if (_document->frameList()->isTileHitboxSelected()) {
         urect hitbox = frameItem->tileHitbox()->rectUrect();
         auto* c = FrameListUndoHelper(_document->frameList())
-                      .editSelectedFieldCommand(hitbox, QString(),
-                                                [](SI::Frame& f) -> urect& { return f.tileHitbox; });
+                      .editSelectedItemFieldCommand(hitbox, QString(),
+                                                    [](SI::Frame& f) -> urect& { return f.tileHitbox; });
         if (c != nullptr) {
             commands.append(c);
         }

@@ -70,6 +70,18 @@ private:
             _accessor->resourceItem()->dataChanged();
         }
 
+        template <typename ExtraSignalsFunction>
+        inline void emitDataChanged(index_type index, ExtraSignalsFunction extraSignals)
+        {
+            auto f = std::mem_fn(&AccessorT::dataChanged);
+            mem_fn_call(f, _accessor, _args, index);
+
+            auto extraSignalsArgs = std::tuple_cat(std::make_tuple(_accessor), _args, std::make_tuple(index));
+            call(extraSignals, extraSignalsArgs);
+
+            _accessor->resourceItem()->dataChanged();
+        }
+
         inline void emitListChanged()
         {
             auto f = std::mem_fn(&AccessorT::listChanged);
@@ -223,24 +235,34 @@ private:
         }
     };
 
-    template <typename FieldT, typename UnaryFunction>
+    template <typename>
+    struct EmptySignalFunction;
+
+    template <typename... SignalArgsT>
+    struct EmptySignalFunction<std::tuple<SignalArgsT...>> {
+        inline void operator()(AccessorT*, SignalArgsT..., size_t) const {}
+    };
+
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
     class EditFieldCommand : public BaseCommand {
     private:
         const index_type _index;
         const FieldT _oldValue;
         const FieldT _newValue;
         const UnaryFunction _getter;
+        const ExtraSignalsFunction _signalEmitter;
 
     public:
         EditFieldCommand(AccessorT* accessor, const ArgsT& args, index_type index,
                          const FieldT& oldValue, const FieldT& newValue,
                          const QString& text,
-                         UnaryFunction getter)
+                         UnaryFunction getter, ExtraSignalsFunction signalEmitter)
             : BaseCommand(accessor, args, text)
             , _index(index)
             , _oldValue(oldValue)
             , _newValue(newValue)
             , _getter(getter)
+            , _signalEmitter(signalEmitter)
         {
         }
         ~EditFieldCommand() = default;
@@ -253,7 +275,7 @@ private:
 
             _getter(list->at(_index)) = _oldValue;
 
-            this->emitDataChanged(_index);
+            this->emitDataChanged(_index, _signalEmitter);
         }
 
         virtual void redo() final
@@ -263,6 +285,55 @@ private:
             Q_ASSERT(_index >= 0 && _index < list->size());
 
             _getter(list->at(_index)) = _newValue;
+
+            this->emitDataChanged(_index, _signalEmitter);
+        }
+    };
+
+    template <typename UnaryFunction, typename... FieldT>
+    class EditMultipleFieldsCommand : public BaseCommand {
+    private:
+        const index_type _index;
+        const std::tuple<FieldT...> _oldValues;
+        const std::tuple<FieldT...> _newValues;
+        const UnaryFunction _getter;
+
+    public:
+        EditMultipleFieldsCommand(AccessorT* accessor, const ArgsT& args, index_type index,
+                                  const std::tuple<FieldT&...> oldValues, const std::tuple<FieldT...>& newValues,
+                                  const QString& text,
+                                  UnaryFunction getter)
+            : BaseCommand(accessor, args, text)
+            , _index(index)
+            , _oldValues(oldValues)
+            , _newValues(newValues)
+            , _getter(getter)
+        {
+        }
+        ~EditMultipleFieldsCommand() = default;
+
+        virtual void undo() final
+        {
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(_index >= 0 && _index < list->size());
+
+            DataT& item = list->at(_index);
+            std::tuple<FieldT&...> fields = _getter(item);
+            fields = _oldValues;
+
+            this->emitDataChanged(_index);
+        }
+
+        virtual void redo() final
+        {
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(_index >= 0 && _index < list->size());
+
+            DataT& item = list->at(_index);
+            std::tuple<FieldT&...> fields = _getter(item);
+            fields = _newValues;
 
             this->emitDataChanged(_index);
         }
@@ -427,9 +498,8 @@ private:
         {
         }
 
-        AddCommand(AccessorT* accessor, const ArgsT& args, index_type index, const DataT& value)
-            : AddRemoveCommand(accessor, args, index, value,
-                               tr("Clone %1").arg(accessor->typeName()))
+        AddCommand(AccessorT* accessor, const ArgsT& args, index_type index, const DataT& value, const QString text)
+            : AddRemoveCommand(accessor, args, index, value, text)
         {
         }
         ~AddCommand() = default;
@@ -656,10 +726,10 @@ public:
     }
 
     // will return nullptr if data cannot be accessed or is equal to newValue
-    template <typename FieldT, typename UnaryFunction>
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
     QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
                                    const QString& text,
-                                   UnaryFunction getter)
+                                   UnaryFunction getter, ExtraSignalsFunction extraSignals)
     {
         ListT* list = getList_NO_CONST(listArgs);
         if (list == nullptr) {
@@ -673,8 +743,17 @@ public:
         if (oldValue == newValue) {
             return nullptr;
         }
-        return new EditFieldCommand<FieldT, UnaryFunction>(
-            _accessor, listArgs, index, oldValue, newValue, text, getter);
+        return new EditFieldCommand<FieldT, UnaryFunction, ExtraSignalsFunction>(
+            _accessor, listArgs, index, oldValue, newValue, text, getter, extraSignals);
+    }
+
+    // will return nullptr if data cannot be accessed or is equal to newValue
+    template <typename FieldT, typename UnaryFunction>
+    QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
+                                   const QString& text,
+                                   UnaryFunction getter)
+    {
+        return editFieldCommand(listArgs, index, newValue, text, getter, EmptySignalFunction<ArgsT>());
     }
 
     template <typename FieldT, typename UnaryFunction>
@@ -689,14 +768,81 @@ public:
         return e != nullptr;
     }
 
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
+    bool editField(const ArgsT& listArgs, index_type index, const FieldT& newValue,
+                   const QString& text,
+                   UnaryFunction getter, ExtraSignalsFunction extraSignals)
+    {
+        QUndoCommand* e = editFieldCommand(listArgs, index, newValue, text, getter, extraSignals);
+        if (e) {
+            _accessor->resourceItem()->undoStack()->push(e);
+        }
+        return e != nullptr;
+    }
+
     template <typename FieldT, typename UnaryFunction>
     bool editFieldInSelectedList(index_type index, const FieldT& newValue,
                                  const QString& text,
                                  UnaryFunction getter)
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
-
         return editField(listArgs, index, newValue, text, getter);
+    }
+
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
+    bool editFieldInSelectedList(index_type index, const FieldT& newValue,
+                                 const QString& text,
+                                 UnaryFunction getter,
+                                 ExtraSignalsFunction extraSignals)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        return editField(listArgs, index, newValue, text, getter, extraSignals);
+    }
+
+    // will return nullptr if data cannot be accessed or is equal to newValues
+    template <typename... FieldT, typename UnaryFunction>
+    QUndoCommand* editMulitpleFieldsCommand(const ArgsT& listArgs, index_type index,
+                                            const std::tuple<FieldT...>& newValues,
+                                            const QString& text,
+                                            UnaryFunction getter)
+    {
+        ListT* list = getList_NO_CONST(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+        if (index < 0 || index >= list->size()) {
+            return nullptr;
+        }
+        DataT& item = list->at(index);
+        const std::tuple<FieldT&...> oldValues = getter(item);
+
+        if (oldValues == newValues) {
+            return nullptr;
+        }
+        return new EditMultipleFieldsCommand<UnaryFunction, FieldT...>(
+            _accessor, listArgs, index, oldValues, newValues, text, getter);
+    }
+
+    template <typename... FieldT, typename UnaryFunction>
+    bool editMultipleFields(const ArgsT& listArgs, index_type index,
+                            const std::tuple<FieldT...>& newValues,
+                            const QString& text,
+                            UnaryFunction getter)
+    {
+        QUndoCommand* c = editMulitpleFieldsCommand(listArgs, index, newValues, text, getter);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
+    }
+
+    template <typename... FieldT, typename UnaryFunction>
+    bool editMultipleFieldsInSelectedList(index_type index, const std::tuple<FieldT...>& newValues,
+                                          const QString& text,
+                                          UnaryFunction getter)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        return editMultipleFields(listArgs, index, newValues, text, getter);
     }
 
     // The caller is responsible for setting the new value of the command and
@@ -807,6 +953,24 @@ public:
         return new AddCommand(_accessor, listArgs, index);
     }
 
+    // will return nullptr if list cannot be accessed,
+    // index is invalid or too many items in list
+    QUndoCommand* addCommand(const ArgsT& listArgs, index_type index, DataT item, const QString& text)
+    {
+        const ListT* list = getList(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+        if (index < 0 || index > list->size()) {
+            return nullptr;
+        }
+        if (list->size() >= _accessor->maxSize()) {
+            return nullptr;
+        }
+
+        return new AddCommand(_accessor, listArgs, index, item, text);
+    }
+
     bool addItem(const ArgsT& listArgs)
     {
         const ListT* list = getList(listArgs);
@@ -831,6 +995,15 @@ public:
         return c != nullptr;
     }
 
+    bool addItem(const ArgsT& listArgs, index_type index, DataT item, const QString& text)
+    {
+        QUndoCommand* c = addCommand(listArgs, index, std::move(item), text);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
+    }
+
     bool addItemToSelectedList()
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
@@ -843,6 +1016,18 @@ public:
         const ArgsT listArgs = _accessor->selectedListTuple();
 
         return addItem(listArgs, index);
+    }
+
+    bool addItemToSelectedList(index_type index, DataT item, const QString& text)
+    {
+        const ArgsT listArgs = _accessor->selectedListTuple();
+
+        return addItem(listArgs, index, std::move(item), text);
+    }
+
+    bool addItemToSelectedList(index_type index, DataT item)
+    {
+        return addItemToSelectedList(index, item, tr("Add %1").arg(_accessor->typeName()));
     }
 
     // will return nullptr if list cannot be accessed,
@@ -860,7 +1045,8 @@ public:
             return nullptr;
         }
 
-        return new AddCommand(_accessor, listArgs, index + 1, list->at(index));
+        return new AddCommand(_accessor, listArgs, index + 1, list->at(index),
+                              tr("Clone %1").arg(_accessor->typeName()));
     }
 
     bool cloneItem(const ArgsT& listArgs, index_type index)
@@ -1001,6 +1187,48 @@ public:
         const index_type index = this->_accessor->selectedIndex();
 
         return this->editField(listArgs, index, newValue, text, getter);
+    }
+
+    template <typename FieldT, typename UnaryFunction>
+    QUndoCommand* editSelectedItemFieldCommand(const FieldT& newValue,
+                                               const QString& text,
+                                               UnaryFunction getter)
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->editFieldCommand(listArgs, index, newValue, text, getter);
+    }
+
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
+    QUndoCommand* editSelectedItemFieldCommand(const FieldT& newValue,
+                                               const QString& text,
+                                               UnaryFunction getter, ExtraSignalsFunction extraSignals)
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->editFieldCommand(listArgs, index, newValue, text, getter, extraSignals);
+    }
+
+    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
+    bool editSelectedItemField(const FieldT& newValue,
+                               const QString& text,
+                               UnaryFunction getter, ExtraSignalsFunction extraSignals)
+    {
+        const ArgsT listArgs = this->selectedListTuple();
+        const index_type index = this->_accessor->selectedIndex();
+
+        return this->editField(listArgs, index, newValue, text, getter, extraSignals);
+    }
+
+    template <typename... FieldT, typename UnaryFunction>
+    bool editSelectedItemMultipleFields(const std::tuple<FieldT...>& newValues,
+                                        const QString& text,
+                                        UnaryFunction getter)
+    {
+        const index_type index = this->_accessor->selectedIndex();
+        return this->editMultipleFieldsInSelectedList(index, newValues, text, getter);
     }
 
     // will return nullptr if data cannot be accessed

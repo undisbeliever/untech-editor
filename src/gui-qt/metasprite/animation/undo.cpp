@@ -6,12 +6,11 @@
 
 #include "animationaccessors.h"
 #include "gui-qt/accessor/listundohelper.h"
-#include "gui-qt/accessor/namedlistundohelper.h"
 
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
-using AnimationsListUndoHelper = NamedListAndSelectionUndoHelper<AnimationsList>;
+using AnimationsListUndoHelper = ListAndSelectionUndoHelper<AnimationsList>;
 
 bool AnimationsList::editSelected_setDurationFormat(MSA::DurationFormat durationFormat)
 {

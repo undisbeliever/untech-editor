@@ -43,12 +43,6 @@ template <class T>
 class ListAndMultipleSelectionUndoHelper;
 
 template <class T>
-class NamedListUndoHelper;
-
-template <class T>
-class NamedListAndSelectionUndoHelper;
-
-template <class T>
 class GridUndoHelper;
 }
 }

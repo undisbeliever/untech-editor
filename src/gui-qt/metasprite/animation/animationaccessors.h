@@ -20,7 +20,7 @@ namespace Animation {
 class AnimationsList : public Accessor::NamedListAccessor<MSA::Animation, AbstractMsDocument> {
     Q_OBJECT
 
-    friend class Accessor::NamedListUndoHelper<AnimationsList>;
+    friend class Accessor::ListUndoHelper<AnimationsList>;
 
 public:
     AnimationsList(AbstractMsDocument* document);

@@ -20,8 +20,6 @@ class AbstractResourceItem;
 namespace Accessor {
 template <class T>
 class ListUndoHelper;
-template <class T>
-class NamedListUndoHelper;
 
 class AbstractListAccessor : public QObject {
     Q_OBJECT
@@ -298,6 +296,8 @@ public:
     using DataT = T;
     using ListT = ::UnTech::NamedList<T>;
     using index_type = size_t;
+    using ArgsT = ::std::tuple<>;
+    using SignalArgsT = ArgsT;
 
 public:
     NamedListAccessor(ResourceItemT* resourceItem, size_t maxSize);
@@ -336,8 +336,9 @@ protected:
     virtual bool do_cloneItemWithName(size_t index, const idstring& name) final;
 
 protected:
-    friend class Accessor::NamedListUndoHelper<NamedListAccessor>;
+    friend class Accessor::ListUndoHelper<NamedListAccessor>;
     NamedList<T>* getList();
+    ArgsT selectedListTuple() const;
 };
 
 template <class T, class ResourceItemT>
