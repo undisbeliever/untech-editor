@@ -171,12 +171,13 @@ void ListActions::updateActions_multipleSelection()
     }
 
     const vectorset<size_t>& indexes = accessor->selectedIndexes();
+    const bool listExists = accessor->listExists();
     const size_t listSize = accessor->size();
     const size_t maxSize = accessor->maxSize();
 
-    const bool selectionValid = !indexes.empty() && indexes.back() < listSize;
+    const bool selectionValid = listExists && !indexes.empty() && indexes.back() < listSize;
 
-    add->setEnabled(listSize < maxSize);
+    add->setEnabled(listExists && listSize < maxSize);
     clone->setEnabled(selectionValid && listSize + indexes.size() <= maxSize);
     raise->setEnabled(selectionValid && indexes.front() > 0);
     lower->setEnabled(selectionValid && indexes.back() + 1 < listSize);

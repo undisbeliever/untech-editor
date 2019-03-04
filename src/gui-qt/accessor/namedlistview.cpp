@@ -163,11 +163,12 @@ void NamedListView::updateActions()
     }
 
     const size_t selectedIndex = _accessor->selectedIndex();
+    const bool listExists = _accessor->listExists();
     const size_t listSize = _accessor->size();
     const size_t maxSize = _accessor->maxSize();
 
-    const bool selectionValid = selectedIndex < listSize;
-    const bool canAdd = listSize < maxSize;
+    const bool selectionValid = listExists && selectedIndex < listSize;
+    const bool canAdd = listExists && listSize < maxSize;
 
     _actions.add->setEnabled(canAdd);
     _actions.clone->setEnabled(selectionValid && canAdd);

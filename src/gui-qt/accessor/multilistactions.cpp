@@ -175,7 +175,7 @@ void MultiListActions::updateActions()
         const size_t listSize = accessor->size();
         const size_t maxSize = accessor->maxSize();
 
-        const bool selectionValid = !indexes.empty() && indexes.back() < listSize;
+        const bool selectionValid = listExists && !indexes.empty() && indexes.back() < listSize;
 
         add.at(i)->setEnabled(listExists && listSize < maxSize);
         tooManySelectedToClone |= listSize + indexes.size() > maxSize;
