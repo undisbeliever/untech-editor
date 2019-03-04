@@ -40,5 +40,5 @@ using AnimationFramesUndoHelper = ListUndoHelper<AnimationFramesList>;
 
 bool AnimationFramesList::editSelectedList_setData(AnimationFramesList::index_type index, const AnimationFramesList::DataT& value)
 {
-    return AnimationFramesUndoHelper(this).editItemInSelectedList(index, value);
+    return AnimationFramesUndoHelper(this).editItem(index, value);
 }

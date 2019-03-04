@@ -50,6 +50,7 @@ public:
 
     index_type selectedIndex() const { return _selectedIndex; }
     void setSelectedIndex(index_type index);
+    void setSelectedIndex(bool isFrame, index_type index);
     void unselectItem() { setSelectedIndex(INT_MAX); }
 
     bool isSelectedItemValid() const;

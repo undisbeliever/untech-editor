@@ -35,7 +35,7 @@ using StructFieldUndoHelper = ListUndoHelper<EntityRomStructFieldList>;
 
 bool EntityRomStructFieldList::editSelectedList_setName(size_t index, const idstring& name)
 {
-    return StructFieldUndoHelper(this).editFieldInSelectedList(
+    return StructFieldUndoHelper(this).editField(
         index, name,
         tr("Edit Field Name"),
         [](DataT& f) -> idstring& { return f.name; });
@@ -43,7 +43,7 @@ bool EntityRomStructFieldList::editSelectedList_setName(size_t index, const idst
 
 bool EntityRomStructFieldList::editSelectedList_setType(size_t index, EN::DataType type)
 {
-    return StructFieldUndoHelper(this).editFieldInSelectedList(
+    return StructFieldUndoHelper(this).editField(
         index, type,
         tr("Edit Field Type"),
         [](DataT& f) -> EN::DataType& { return f.type; });
@@ -51,7 +51,7 @@ bool EntityRomStructFieldList::editSelectedList_setType(size_t index, EN::DataTy
 
 bool EntityRomStructFieldList::editSelectedList_setDefaultValue(size_t index, const std::string& value)
 {
-    return StructFieldUndoHelper(this).editFieldInSelectedList(
+    return StructFieldUndoHelper(this).editField(
         index, value,
         tr("Edit Field Default Value"),
         [](DataT& f) -> std::string& { return f.defaultValue; });
@@ -59,7 +59,7 @@ bool EntityRomStructFieldList::editSelectedList_setDefaultValue(size_t index, co
 
 bool EntityRomStructFieldList::editSelectedList_setComment(size_t index, const std::string& comment)
 {
-    return StructFieldUndoHelper(this).editFieldInSelectedList(
+    return StructFieldUndoHelper(this).editField(
         index, comment,
         tr("Edit Field Comment"),
         [](DataT& f) -> std::string& { return f.comment; });

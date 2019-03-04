@@ -60,7 +60,7 @@ bool SmallTileTileset::addItem()
 
 bool SmallTileTileset::addItem(size_t index)
 {
-    QUndoCommand* c = SmallTileTilesetUndoHelper(this).addCommand(std::make_tuple(), index);
+    QUndoCommand* c = SmallTileTilesetUndoHelper(this).addCommand(index);
     if (c) {
         _document->undoStack()->beginMacro(tr("Add Small Tile"));
         _document->undoStack()->push(c);
@@ -72,7 +72,7 @@ bool SmallTileTileset::addItem(size_t index)
 
 bool SmallTileTileset::cloneItem(size_t index)
 {
-    QUndoCommand* c = SmallTileTilesetUndoHelper(this).cloneCommand(std::make_tuple(), index);
+    QUndoCommand* c = SmallTileTilesetUndoHelper(this).cloneCommand(index);
     if (c) {
         _document->undoStack()->beginMacro(tr("Clone Small Tile"));
         _document->undoStack()->push(c);
@@ -84,7 +84,7 @@ bool SmallTileTileset::cloneItem(size_t index)
 
 bool SmallTileTileset::removeItem(size_t index)
 {
-    QUndoCommand* c = SmallTileTilesetUndoHelper(this).removeCommand(std::make_tuple(), index);
+    QUndoCommand* c = SmallTileTilesetUndoHelper(this).removeCommand(index);
     if (c) {
         _document->undoStack()->beginMacro(tr("Remove Small Tile"));
         _document->undoStack()->push(c);
@@ -97,7 +97,7 @@ bool SmallTileTileset::removeItem(size_t index)
 bool SmallTileTileset::moveItem(size_t from, size_t to)
 {
     // ::SHOULDDO adjust tileIds when a tile is moved::
-    return SmallTileTilesetUndoHelper(this).moveItem(std::make_tuple(), from, to);
+    return SmallTileTilesetUndoHelper(this).moveItem(from, to);
 }
 
 bool SmallTileTileset::editTile_setPixel(unsigned tileId, const QPoint& p, unsigned c, bool first)
@@ -114,7 +114,7 @@ bool SmallTileTileset::editTile_setPixel(unsigned tileId, const QPoint& p, unsig
             auto newTile = tile;
             newTile.setPixel(p.x(), p.y(), c);
 
-            return SmallTileTilesetUndoHelper(this).editItemInSelectedListMerge(tileId, newTile, first);
+            return SmallTileTilesetUndoHelper(this).editMerge(tileId, newTile, first);
         }
     }
 
@@ -143,7 +143,7 @@ bool LargeTileTileset::addItem()
 
 bool LargeTileTileset::addItem(size_t index)
 {
-    QUndoCommand* c = LargeTileTilesetUndoHelper(this).addCommand(std::make_tuple(), index);
+    QUndoCommand* c = LargeTileTilesetUndoHelper(this).addCommand(index);
     if (c) {
         _document->undoStack()->beginMacro(tr("Add Small Tile"));
         _document->undoStack()->push(c);
@@ -155,7 +155,7 @@ bool LargeTileTileset::addItem(size_t index)
 
 bool LargeTileTileset::cloneItem(size_t index)
 {
-    QUndoCommand* c = LargeTileTilesetUndoHelper(this).cloneCommand(std::make_tuple(), index);
+    QUndoCommand* c = LargeTileTilesetUndoHelper(this).cloneCommand(index);
     if (c) {
         _document->undoStack()->beginMacro(tr("Clone Small Tile"));
         _document->undoStack()->push(c);
@@ -167,7 +167,7 @@ bool LargeTileTileset::cloneItem(size_t index)
 
 bool LargeTileTileset::removeItem(size_t index)
 {
-    QUndoCommand* c = LargeTileTilesetUndoHelper(this).removeCommand(std::make_tuple(), index);
+    QUndoCommand* c = LargeTileTilesetUndoHelper(this).removeCommand(index);
     if (c) {
         _document->undoStack()->beginMacro(tr("Remove Small Tile"));
         _document->undoStack()->push(c);
@@ -180,7 +180,7 @@ bool LargeTileTileset::removeItem(size_t index)
 bool LargeTileTileset::moveItem(size_t from, size_t to)
 {
     // ::SHOULDDO adjust tileIds when a tile is moved::
-    return LargeTileTilesetUndoHelper(this).moveItem(std::make_tuple(), from, to);
+    return LargeTileTilesetUndoHelper(this).moveItem(from, to);
 }
 
 bool LargeTileTileset::editTile_setPixel(unsigned tileId, const QPoint& p, unsigned c, bool first)
@@ -197,7 +197,7 @@ bool LargeTileTileset::editTile_setPixel(unsigned tileId, const QPoint& p, unsig
             auto newTile = tile;
             newTile.setPixel(p.x(), p.y(), c);
 
-            return LargeTileTilesetUndoHelper(this).editItemInSelectedListMerge(tileId, newTile, first);
+            return LargeTileTilesetUndoHelper(this).editMerge(tileId, newTile, first);
         }
     }
 
@@ -232,7 +232,7 @@ void PaletteList::editSelected_setColorDialog(unsigned colorIndex, QWidget* widg
     const SnesColor color = palette->color(colorIndex);
 
     PaletteListUndoHelper helper(this);
-    auto command = helper.editSelectedFieldIncompleteCommand<SnesColor>(
+    auto command = helper.editSelectedItemFieldIncompleteCommand<SnesColor>(
         tr("Edit Palette Color"),
         [=](auto& pal) -> SnesColor& { return pal.color(colorIndex); });
 
@@ -259,12 +259,12 @@ void PaletteList::editSelected_setColorDialog(unsigned colorIndex, QWidget* widg
 
 bool PaletteList::editSelectedList_addItem()
 {
-    return PaletteListUndoHelper(this).addItemToSelectedList();
+    return PaletteListUndoHelper(this).addItem();
 }
 
 bool PaletteList::editSelectedList_cloneSelected()
 {
-    return PaletteListUndoHelper(this).cloneSelectedItem();
+    return PaletteListUndoHelper(this).cloneItem(selectedIndex());
 }
 
 bool PaletteList::editSelectedList_raiseSelected()
@@ -279,7 +279,7 @@ bool PaletteList::editSelectedList_lowerSelected()
 
 bool PaletteList::editSelectedList_removeSelected()
 {
-    return PaletteListUndoHelper(this).removeSelectedItem();
+    return PaletteListUndoHelper(this).removeItem(selectedIndex());
 }
 
 using FrameListUndoHelper = ListAndSelectionUndoHelper<FrameList>;
@@ -322,7 +322,7 @@ template class UnTech::GuiQt::Accessor::ListAndMultipleSelectionUndoHelper<Frame
 
 bool FrameObjectList::editSelectedList_setLocation(unsigned index, const ms8point& location)
 {
-    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+    return FrameObjectListUndoHelper(this).editField(
         index, location,
         tr("Edit Object Location"),
         [](MS::FrameObject& obj) -> ms8point& { return obj.location; });
@@ -330,7 +330,7 @@ bool FrameObjectList::editSelectedList_setLocation(unsigned index, const ms8poin
 
 bool FrameObjectList::editSelectedList_setSize(unsigned index, FrameObjectList::ObjectSize size)
 {
-    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+    return FrameObjectListUndoHelper(this).editField(
         index, size,
         tr("Edit Object Size"),
         [](MS::FrameObject& obj) -> ObjectSize& { return obj.size; });
@@ -338,7 +338,7 @@ bool FrameObjectList::editSelectedList_setSize(unsigned index, FrameObjectList::
 
 bool FrameObjectList::editSelectedList_setTile(unsigned index, unsigned tileId)
 {
-    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+    return FrameObjectListUndoHelper(this).editField(
         index, tileId,
         tr("Edit Object Tile"),
         [](MS::FrameObject& obj) -> unsigned& { return obj.tileId; });
@@ -346,7 +346,7 @@ bool FrameObjectList::editSelectedList_setTile(unsigned index, unsigned tileId)
 
 bool FrameObjectList::editSelectedList_setFlips(unsigned index, bool hFlip, bool vFlip)
 {
-    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+    return FrameObjectListUndoHelper(this).editField(
         index, std::make_tuple(hFlip, vFlip),
         tr("Edit Object Flip"),
         [](MS::FrameObject & obj) -> auto { return std::tie(obj.hFlip, obj.vFlip); });
@@ -403,8 +403,7 @@ inline bool FrameObjectList::editAll_shiftTileIds(ObjectSize size, unsigned tile
     commands.reserve(fs->frames.size());
 
     for (size_t fIndex = 0; fIndex < fs->frames.size(); fIndex++) {
-        QUndoCommand* cmd = FrameObjectListUndoHelper(this).editAllItemsInListCommand(
-            std::make_tuple(fIndex),
+        QUndoCommand* cmd = FrameObjectListUndoHelper(this).editAllItemsCommand(
             QString(),
             [&](MS::FrameObject& obj, size_t) {
                 if (obj.size == size && obj.tileId >= tileId) {
@@ -437,7 +436,7 @@ using ActionPointListUndoHelper = ListAndMultipleSelectionUndoHelper<ActionPoint
 
 bool ActionPointList::editSelectedList_setLocation(unsigned index, const ms8point& location)
 {
-    return ActionPointListUndoHelper(this).editFieldInSelectedList(
+    return ActionPointListUndoHelper(this).editField(
         index, location,
         tr("Edit Action Point Location"),
         [](MS::ActionPoint& ap) -> ms8point& { return ap.location; });
@@ -445,7 +444,7 @@ bool ActionPointList::editSelectedList_setLocation(unsigned index, const ms8poin
 
 bool ActionPointList::editSelectedList_setParameter(unsigned index, ParameterType parameter)
 {
-    return ActionPointListUndoHelper(this).editFieldInSelectedList(
+    return ActionPointListUndoHelper(this).editField(
         index, parameter,
         tr("Edit Action Point Parameter"),
         [](MS::ActionPoint& ap) -> ParameterType& { return ap.parameter; });
@@ -456,7 +455,7 @@ using EntityHitboxListUndoHelper = ListAndMultipleSelectionUndoHelper<EntityHitb
 
 bool EntityHitboxList::editSelectedList_setAabb(unsigned index, const ms8rect& aabb)
 {
-    return EntityHitboxListUndoHelper(this).editFieldInSelectedList(
+    return EntityHitboxListUndoHelper(this).editField(
         index, aabb,
         tr("Edit Entity Hitbox AABB"),
         [](MS::EntityHitbox& eh) -> ms8rect& { return eh.aabb; });
@@ -464,7 +463,7 @@ bool EntityHitboxList::editSelectedList_setAabb(unsigned index, const ms8rect& a
 
 bool EntityHitboxList::editSelectedList_setEntityHitboxType(unsigned index, EntityHitboxType type)
 {
-    return EntityHitboxListUndoHelper(this).editFieldInSelectedList(
+    return EntityHitboxListUndoHelper(this).editField(
         index, type,
         tr("Edit Entity Hitbox Type"),
         [](MS::EntityHitbox& eh) -> EntityHitboxType& { return eh.hitboxType; });

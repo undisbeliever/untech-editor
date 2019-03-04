@@ -21,8 +21,9 @@ bool ExportNameList::editList_setName(bool isFrame, ExportNameList::index_type i
         return false;
     }
 
+    setSelectedListIsFrame(isFrame);
     return ExportNameUndoHelper(this).editField(
-        std::make_tuple(isFrame), index, name,
+        index, name,
         tr("Edit Export Name"),
         [](ExportName& en) -> idstring& { return en.name; });
 }
@@ -30,13 +31,13 @@ bool ExportNameList::editList_setName(bool isFrame, ExportNameList::index_type i
 bool ExportNameList::editList_addFrame()
 {
     setSelectedListIsFrame(true);
-    return ExportNameUndoHelper(this).addItemToSelectedList();
+    return ExportNameUndoHelper(this).addItem();
 }
 
 bool ExportNameList::editList_addAnimation()
 {
     setSelectedListIsFrame(false);
-    return ExportNameUndoHelper(this).addItemToSelectedList();
+    return ExportNameUndoHelper(this).addItem();
 }
 
 bool ExportNameList::editSelectedList_cloneSelected()
@@ -74,13 +75,13 @@ using AlternativesUndoHelper = ListAndSelectionUndoHelper<AlternativesList>;
 bool AlternativesList::editList_setValue(bool isFrame, index_type exportIndex, index_type altIndex,
                                          const AlternativesList::DataT& value)
 {
-    return AlternativesUndoHelper(this).edit(
-        std::make_tuple(isFrame, exportIndex), altIndex, value);
+    resourceItem()->exportNameList()->setSelectedIndex(isFrame, exportIndex);
+    return AlternativesUndoHelper(this).editItem(altIndex, value);
 }
 
 bool AlternativesList::editSelectedList_addItem()
 {
-    return AlternativesUndoHelper(this).addItemToSelectedList();
+    return AlternativesUndoHelper(this).addItem();
 }
 
 bool AlternativesList::editSelectedList_cloneSelected()

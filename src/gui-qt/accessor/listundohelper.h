@@ -609,8 +609,9 @@ private:
 
 public:
     // will return nullptr if data cannot be accessed or is equal to newValue
-    QUndoCommand* editCommand(const ArgsT& listArgs, index_type index, const DataT& newValue)
+    QUndoCommand* editItemCommand(index_type index, const DataT& newValue)
     {
+        const ArgsT listArgs = _accessor->selectedListTuple();
         const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -626,65 +627,22 @@ public:
         return new EditCommand(_accessor, listArgs, index, oldValue, newValue);
     }
 
-    bool edit(const ArgsT& listArgs, index_type index, const DataT& newValue)
+    bool editItem(index_type index, const DataT& newValue)
     {
-        QUndoCommand* e = editCommand(listArgs, index, newValue);
+        QUndoCommand* e = editItemCommand(index, newValue);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
     }
 
-    bool editItemInSelectedList(index_type index, const DataT& newValue)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-
-        return edit(listArgs, index, newValue);
-    }
-
-    // will return nullptr if data cannot be accessed or is equal to newValue
-    QUndoCommand* editMergeCommand(const ArgsT& listArgs, index_type index,
-                                   const DataT& newValue, bool first = false)
-    {
-        const ListT* list = getList(listArgs);
-        if (list == nullptr) {
-            return nullptr;
-        }
-        if (index < 0 || index >= list->size()) {
-            return nullptr;
-        }
-        const DataT& oldValue = list->at(index);
-
-        if (oldValue == newValue) {
-            return nullptr;
-        }
-
-        return new EditMergeCommand(_accessor, listArgs, index, oldValue, newValue, first);
-    }
-
-    bool editMerge(const ArgsT& listArgs, index_type index, const DataT& newValue, bool first = false)
-    {
-        QUndoCommand* c = editMergeCommand(listArgs, index, newValue, first);
-        if (c) {
-            _accessor->resourceItem()->undoStack()->push(c);
-        }
-        return c != nullptr;
-    }
-
-    bool editItemInSelectedListMerge(index_type index, const DataT& newValue, bool first = false)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-
-        return editMerge(listArgs, index, newValue, first);
-    }
-
     // will return nullptr if data cannot be accessed or is unchanged
     template <typename EditFunction>
-    QUndoCommand* editItemInListCommand(const ArgsT& listArgs, index_type index,
-                                        const QString& text,
-                                        EditFunction editFunction)
+    QUndoCommand* editItemCommand(index_type index, const QString& text,
+                                  EditFunction editFunction)
     {
-        ListT* list = getList_NO_CONST(listArgs);
+        const ArgsT listArgs = _accessor->selectedListTuple();
+        const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
         }
@@ -702,35 +660,52 @@ public:
         }
         return new EditCommand(_accessor, listArgs, index, oldValue, newValue, text);
     }
-
     template <typename EditFunction>
-    bool editItemInList(const ArgsT& listArgs, index_type index,
-                        const QString& text,
-                        EditFunction editFunction)
+    bool editItem(index_type index, const QString& text,
+                  EditFunction editFunction)
     {
-        QUndoCommand* e = editItemInListCommand(listArgs, index, text, editFunction);
+        QUndoCommand* e = editItemCommand(index, text, editFunction);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
     }
 
-    template <typename EditFunction>
-    bool editItemInSelectedList(index_type index,
-                                const QString& text,
-                                EditFunction editFunction)
+    // will return nullptr if data cannot be accessed or is equal to newValue
+    QUndoCommand* editMergeCommand(index_type index, const DataT& newValue, bool first = false)
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
+        const ListT* list = getList(listArgs);
+        if (list == nullptr) {
+            return nullptr;
+        }
+        if (index < 0 || index >= list->size()) {
+            return nullptr;
+        }
+        const DataT& oldValue = list->at(index);
 
-        return editItemInList(listArgs, index, text, editFunction);
+        if (oldValue == newValue) {
+            return nullptr;
+        }
+
+        return new EditMergeCommand(_accessor, listArgs, index, oldValue, newValue, first);
+    }
+
+    bool editMerge(index_type index, const DataT& newValue, bool first = false)
+    {
+        QUndoCommand* c = editMergeCommand(index, newValue, first);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
     }
 
     // will return nullptr if data cannot be accessed or is equal to newValue
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
-    QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
-                                   const QString& text,
+    QUndoCommand* editFieldCommand(index_type index, const FieldT& newValue, const QString& text,
                                    UnaryFunction getter, ExtraSignalsFunction extraSignals)
     {
+        const ArgsT listArgs = _accessor->selectedListTuple();
         ListT* list = getList_NO_CONST(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -749,19 +724,17 @@ public:
 
     // will return nullptr if data cannot be accessed or is equal to newValue
     template <typename FieldT, typename UnaryFunction>
-    QUndoCommand* editFieldCommand(const ArgsT& listArgs, index_type index, const FieldT& newValue,
-                                   const QString& text,
+    QUndoCommand* editFieldCommand(index_type index, const FieldT& newValue, const QString& text,
                                    UnaryFunction getter)
     {
-        return editFieldCommand(listArgs, index, newValue, text, getter, EmptySignalFunction<ArgsT>());
+        return editFieldCommand(index, newValue, text, getter, EmptySignalFunction<ArgsT>());
     }
 
     template <typename FieldT, typename UnaryFunction>
-    bool editField(const ArgsT& listArgs, index_type index, const FieldT& newValue,
-                   const QString& text,
+    bool editField(index_type index, const FieldT& newValue, const QString& text,
                    UnaryFunction getter)
     {
-        QUndoCommand* e = editFieldCommand(listArgs, index, newValue, text, getter);
+        QUndoCommand* e = editFieldCommand(index, newValue, text, getter);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
@@ -769,43 +742,23 @@ public:
     }
 
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
-    bool editField(const ArgsT& listArgs, index_type index, const FieldT& newValue,
-                   const QString& text,
+    bool editField(index_type index, const FieldT& newValue, const QString& text,
                    UnaryFunction getter, ExtraSignalsFunction extraSignals)
     {
-        QUndoCommand* e = editFieldCommand(listArgs, index, newValue, text, getter, extraSignals);
+        QUndoCommand* e = editFieldCommand(index, newValue, text, getter, extraSignals);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
-    }
-
-    template <typename FieldT, typename UnaryFunction>
-    bool editFieldInSelectedList(index_type index, const FieldT& newValue,
-                                 const QString& text,
-                                 UnaryFunction getter)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        return editField(listArgs, index, newValue, text, getter);
-    }
-
-    template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
-    bool editFieldInSelectedList(index_type index, const FieldT& newValue,
-                                 const QString& text,
-                                 UnaryFunction getter,
-                                 ExtraSignalsFunction extraSignals)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        return editField(listArgs, index, newValue, text, getter, extraSignals);
     }
 
     // will return nullptr if data cannot be accessed or is equal to newValues
     template <typename... FieldT, typename UnaryFunction>
-    QUndoCommand* editMulitpleFieldsCommand(const ArgsT& listArgs, index_type index,
-                                            const std::tuple<FieldT...>& newValues,
+    QUndoCommand* editMulitpleFieldsCommand(index_type index, const std::tuple<FieldT...>& newValues,
                                             const QString& text,
                                             UnaryFunction getter)
     {
+        const ArgsT listArgs = _accessor->selectedListTuple();
         ListT* list = getList_NO_CONST(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -824,25 +777,15 @@ public:
     }
 
     template <typename... FieldT, typename UnaryFunction>
-    bool editMultipleFields(const ArgsT& listArgs, index_type index,
-                            const std::tuple<FieldT...>& newValues,
+    bool editMultipleFields(index_type index, const std::tuple<FieldT...>& newValues,
                             const QString& text,
                             UnaryFunction getter)
     {
-        QUndoCommand* c = editMulitpleFieldsCommand(listArgs, index, newValues, text, getter);
+        QUndoCommand* c = editMulitpleFieldsCommand(index, newValues, text, getter);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
-    }
-
-    template <typename... FieldT, typename UnaryFunction>
-    bool editMultipleFieldsInSelectedList(index_type index, const std::tuple<FieldT...>& newValues,
-                                          const QString& text,
-                                          UnaryFunction getter)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        return editMultipleFields(listArgs, index, newValues, text, getter);
     }
 
     // The caller is responsible for setting the new value of the command and
@@ -850,10 +793,10 @@ public:
     // Will return nullptr if field cannot be accessed
     template <typename FieldT, typename UnaryFunction>
     std::unique_ptr<EditFieldIncompleteCommand<FieldT, UnaryFunction>>
-    editFieldIncompleteCommand(const ArgsT& listArgs, index_type index,
-                               const QString& text,
+    editFieldIncompleteCommand(index_type index, const QString& text,
                                UnaryFunction getter)
     {
+        const ArgsT listArgs = _accessor->selectedListTuple();
         ListT* list = getList_NO_CONST(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -869,9 +812,9 @@ public:
 
     // will return nullptr if data cannot be accessed or unchanged
     template <typename EditFunction>
-    QUndoCommand* editAllItemsInListCommand(const ArgsT& listArgs, const QString& text,
-                                            EditFunction editFunction)
+    QUndoCommand* editAllItemsCommand(const QString& text, EditFunction editFunction)
     {
+        const ArgsT listArgs = _accessor->selectedListTuple();
         const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -910,53 +853,20 @@ public:
     }
 
     template <typename EditFunction>
-    QUndoCommand* editAllItemsInSelectedListCommand(const QString& text, EditFunction editFunction)
+    bool editAllItems(const QString& text, EditFunction editFunction)
     {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-        return editAllItemsCommand(listArgs, text, editFunction);
-    }
-
-    template <typename EditFunction>
-    bool editAllItemsInList(const ArgsT& listArgs, const QString& text,
-                            EditFunction editFunction)
-    {
-        QUndoCommand* c = editAllItemsInListCommand(listArgs, text, editFunction);
+        QUndoCommand* c = editAllItemsCommand(text, editFunction);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
     }
 
-    template <typename EditFunction>
-    bool editAllItemsInSelectedList(const QString& text, EditFunction editFunction)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-
-        return editAllItemsInList(listArgs, text, editFunction);
-    }
-
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
-    QUndoCommand* addCommand(const ArgsT& listArgs, index_type index)
+    QUndoCommand* addCommand(index_type index, DataT item, const QString& text)
     {
-        const ListT* list = getList(listArgs);
-        if (list == nullptr) {
-            return nullptr;
-        }
-        if (index < 0 || index > list->size()) {
-            return nullptr;
-        }
-        if (list->size() >= _accessor->maxSize()) {
-            return nullptr;
-        }
-
-        return new AddCommand(_accessor, listArgs, index);
-    }
-
-    // will return nullptr if list cannot be accessed,
-    // index is invalid or too many items in list
-    QUndoCommand* addCommand(const ArgsT& listArgs, index_type index, DataT item, const QString& text)
-    {
+        const ArgsT listArgs = selectedListTuple();
         const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -971,69 +881,41 @@ public:
         return new AddCommand(_accessor, listArgs, index, item, text);
     }
 
-    bool addItem(const ArgsT& listArgs)
+    QUndoCommand* addCommand(index_type index, DataT item = DataT())
     {
-        const ListT* list = getList(listArgs);
+        return addCommand(index, std::move(item),
+                          tr("Add %1").arg(_accessor->typeName()));
+    }
+
+    bool addItem(index_type index, DataT item, const QString& text)
+    {
+        QUndoCommand* c = addCommand(index, std::move(item), text);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
+    }
+
+    bool addItem(index_type index, DataT item = DataT())
+    {
+        return addItem(index, std::move(item),
+                       tr("Add %1").arg(_accessor->typeName()));
+    }
+
+    bool addItem()
+    {
+        const ListT* list = getList(_accessor->selectedListTuple());
         if (list == nullptr) {
             return false;
         }
-        index_type index = list->size();
-
-        QUndoCommand* c = addCommand(listArgs, index);
-        if (c) {
-            _accessor->resourceItem()->undoStack()->push(c);
-        }
-        return c != nullptr;
-    }
-
-    bool addItem(const ArgsT& listArgs, index_type index)
-    {
-        QUndoCommand* c = addCommand(listArgs, index);
-        if (c) {
-            _accessor->resourceItem()->undoStack()->push(c);
-        }
-        return c != nullptr;
-    }
-
-    bool addItem(const ArgsT& listArgs, index_type index, DataT item, const QString& text)
-    {
-        QUndoCommand* c = addCommand(listArgs, index, std::move(item), text);
-        if (c) {
-            _accessor->resourceItem()->undoStack()->push(c);
-        }
-        return c != nullptr;
-    }
-
-    bool addItemToSelectedList()
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-
-        return addItem(listArgs);
-    }
-
-    bool addItemToSelectedList(index_type index)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-
-        return addItem(listArgs, index);
-    }
-
-    bool addItemToSelectedList(index_type index, DataT item, const QString& text)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-
-        return addItem(listArgs, index, std::move(item), text);
-    }
-
-    bool addItemToSelectedList(index_type index, DataT item)
-    {
-        return addItemToSelectedList(index, item, tr("Add %1").arg(_accessor->typeName()));
+        return addItem(list->size());
     }
 
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
-    QUndoCommand* cloneCommand(const ArgsT& listArgs, index_type index)
+    QUndoCommand* cloneCommand(index_type index)
     {
+        const ArgsT listArgs = _accessor->selectedListTuple();
         const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -1049,26 +931,20 @@ public:
                               tr("Clone %1").arg(_accessor->typeName()));
     }
 
-    bool cloneItem(const ArgsT& listArgs, index_type index)
+    bool cloneItem(index_type index)
     {
-        QUndoCommand* c = cloneCommand(listArgs, index);
+        QUndoCommand* c = cloneCommand(index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
     }
 
-    bool cloneItemInSelectedList(index_type index)
-    {
-        const ArgsT listArgs = _accessor->selectedListTuple();
-
-        return cloneItem(listArgs, index);
-    }
-
     // will return nullptr if list cannot be accessed,
     // index is invalid or too many items in list
-    QUndoCommand* removeCommand(const ArgsT& listArgs, index_type index)
+    QUndoCommand* removeCommand(index_type index)
     {
+        const ArgsT listArgs = _accessor->selectedListTuple();
         const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -1080,26 +956,19 @@ public:
         return new RemoveCommand(_accessor, listArgs, index, list->at(index));
     }
 
-    bool removeItem(const ArgsT& listArgs, index_type index)
+    bool removeItem(index_type index)
     {
-        QUndoCommand* c = removeCommand(listArgs, index);
+        QUndoCommand* c = removeCommand(index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
     }
 
-    bool removeItemFromSelectedList(index_type index)
+    // will return nullptr if list cannot be accessed or indexes are invalid
+    QUndoCommand* moveCommand(index_type from, index_type to, const QString& text)
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
-
-        return removeItem(listArgs, index);
-    }
-
-    // will return nullptr if list cannot be accessed or indexes are invalid
-    QUndoCommand* moveCommand(const ArgsT& listArgs, index_type from, index_type to,
-                              const QString& text)
-    {
         const ListT* list = getList(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -1117,42 +986,27 @@ public:
         return new MoveCommand(_accessor, listArgs, from, to, text);
     }
 
-    QUndoCommand* moveCommand(const ArgsT& listArgs, index_type from, index_type to)
+    QUndoCommand* moveCommand(index_type from, index_type to)
     {
-        return moveCommand(listArgs, from, to,
-                           tr("Move %1").arg(_accessor->typeName()));
+        return moveCommand(from, to, tr("Move %1").arg(_accessor->typeName()));
     }
 
-    bool moveItem(const ArgsT& listArgs, index_type from, index_type to)
+    bool moveItem(index_type from, index_type to)
     {
-        QUndoCommand* c = moveCommand(listArgs, from, to);
+        QUndoCommand* c = moveCommand(from, to);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
     }
 
-    bool moveItem(const ArgsT& listArgs, index_type from, index_type to, const QString& text)
+    bool moveItem(index_type from, index_type to, const QString& text)
     {
-        QUndoCommand* c = moveCommand(listArgs, from, to, text);
+        QUndoCommand* c = moveCommand(from, to, text);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
-    }
-
-    bool moveItemInSelectedList(index_type from, index_type to)
-    {
-        const ArgsT listArgs = this->_accessor->selectedListTuple();
-
-        return moveItem(listArgs, from, to);
-    }
-
-    bool moveItemInSelectedList(index_type from, index_type to, const QString& text)
-    {
-        const ArgsT listArgs = this->_accessor->selectedListTuple();
-
-        return moveItem(listArgs, from, to, text);
     }
 };
 
@@ -1172,180 +1026,97 @@ public:
 
     bool editSelectedItem(const DataT& newValue)
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const index_type index = this->_accessor->selectedIndex();
-
-        return this->edit(listArgs, index, newValue);
+        return this->editItem(this->_accessor->selectedIndex(), newValue);
     }
 
     template <typename FieldT, typename UnaryFunction>
-    bool editSelectedItemField(const FieldT& newValue,
-                               const QString& text,
-                               UnaryFunction getter)
-    {
-        const ArgsT listArgs = this->selectedListTuple();
-        const index_type index = this->_accessor->selectedIndex();
-
-        return this->editField(listArgs, index, newValue, text, getter);
-    }
-
-    template <typename FieldT, typename UnaryFunction>
-    QUndoCommand* editSelectedItemFieldCommand(const FieldT& newValue,
-                                               const QString& text,
+    QUndoCommand* editSelectedItemFieldCommand(const FieldT& newValue, const QString& text,
                                                UnaryFunction getter)
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const index_type index = this->_accessor->selectedIndex();
-
-        return this->editFieldCommand(listArgs, index, newValue, text, getter);
+        return this->editFieldCommand(this->_accessor->selectedIndex(), newValue, text, getter);
     }
 
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
-    QUndoCommand* editSelectedItemFieldCommand(const FieldT& newValue,
-                                               const QString& text,
+    QUndoCommand* editSelectedItemFieldCommand(const FieldT& newValue, const QString& text,
                                                UnaryFunction getter, ExtraSignalsFunction extraSignals)
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const index_type index = this->_accessor->selectedIndex();
+        return this->editFieldCommand(this->_accessor->selectedIndex(), newValue, text, getter, extraSignals);
+    }
 
-        return this->editFieldCommand(listArgs, index, newValue, text, getter, extraSignals);
+    template <typename FieldT, typename UnaryFunction>
+    bool editSelectedItemField(const FieldT& newValue, const QString& text,
+                               UnaryFunction getter)
+    {
+        return this->editField(this->_accessor->selectedIndex(), newValue, text, getter);
     }
 
     template <typename FieldT, typename UnaryFunction, typename ExtraSignalsFunction>
-    bool editSelectedItemField(const FieldT& newValue,
-                               const QString& text,
+    bool editSelectedItemField(const FieldT& newValue, const QString& text,
                                UnaryFunction getter, ExtraSignalsFunction extraSignals)
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const index_type index = this->_accessor->selectedIndex();
-
-        return this->editField(listArgs, index, newValue, text, getter, extraSignals);
+        return this->editField(this->_accessor->selectedIndex(), newValue, text, getter, extraSignals);
     }
 
     template <typename... FieldT, typename UnaryFunction>
-    bool editSelectedItemMultipleFields(const std::tuple<FieldT...>& newValues,
-                                        const QString& text,
+    bool editSelectedItemMultipleFields(const std::tuple<FieldT...>& newValues, const QString& text,
                                         UnaryFunction getter)
     {
-        const index_type index = this->_accessor->selectedIndex();
-        return this->editMultipleFieldsInSelectedList(index, newValues, text, getter);
+        return this->editMultipleFields(this->_accessor->selectedIndex(), newValues, text, getter);
     }
 
     // will return nullptr if data cannot be accessed
     template <typename FieldT, typename UnaryFunction>
-    auto editSelectedFieldIncompleteCommand(const QString& text,
-                                            UnaryFunction getter)
+    auto editSelectedItemFieldIncompleteCommand(const QString& text, UnaryFunction getter)
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const index_type index = this->_accessor->selectedIndex();
-
         return this->template editFieldIncompleteCommand<FieldT>(
-            listArgs, index, text, getter);
-    }
-
-    bool addItemToSelectedList(index_type index)
-    {
-        const ArgsT listArgs = this->selectedListTuple();
-
-        bool s = this->addItem(listArgs, index);
-        if (s) {
-            this->_accessor->setSelectedIndex(index);
-        }
-        return s;
-    }
-
-    bool addItemToSelectedList()
-    {
-        const ArgsT listArgs = this->selectedListTuple();
-
-        const ListT* list = this->getList(listArgs);
-        if (list == nullptr) {
-            return false;
-        }
-        index_type index = list->size();
-
-        bool s = this->addItem(listArgs, index);
-        if (s) {
-            this->_accessor->setSelectedIndex(index);
-        }
-        return s;
+            this->_accessor->selectedIndex(), text, getter);
     }
 
     bool cloneSelectedItem()
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const index_type index = this->_accessor->selectedIndex();
-
-        bool s = this->cloneItem(listArgs, index);
-        if (s) {
-            this->_accessor->setSelectedIndex(index + 1);
-        }
-        return s;
+        return this->cloneItem(this->_accessor->selectedIndex());
     }
 
     bool removeSelectedItem()
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const index_type index = this->_accessor->selectedIndex();
-
-        return this->removeItem(listArgs, index);
+        return this->removeItem(this->_accessor->selectedIndex());
     }
 
     bool raiseSelectedItemToTop()
     {
-        const ArgsT listArgs = this->selectedListTuple();
         const index_type index = this->_accessor->selectedIndex();
-
-        if (index > 0) {
-            return this->moveItem(listArgs, index, 0,
-                                  this->tr("Raise To Top"));
-        }
-        else {
-            return false;
-        }
+        return this->moveItem(index, 0, this->tr("Raise To Top"));
     }
 
     bool raiseSelectedItem()
     {
-        const ArgsT listArgs = this->selectedListTuple();
         const index_type index = this->_accessor->selectedIndex();
-
-        if (index > 0) {
-            return this->moveItem(listArgs, index, index - 1,
-                                  this->tr("Raise"));
-        }
-        else {
+        if (index == 0) {
             return false;
         }
+        return this->moveItem(index, index - 1, this->tr("Raise"));
     }
 
     bool lowerSelectedItem()
     {
-        const ArgsT listArgs = this->selectedListTuple();
         const index_type index = this->_accessor->selectedIndex();
-
-        return this->moveItem(listArgs, index, index + 1,
-                              this->tr("Lower"));
+        return this->moveItem(index, index + 1, this->tr("Lower"));
     }
 
     bool lowerSelectedItemToBottom()
     {
         const ArgsT listArgs = this->selectedListTuple();
-        const index_type index = this->_accessor->selectedIndex();
-
         const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return false;
         }
 
-        index_type list_size = list->size();
-        if (list_size > 1) {
-            return this->moveItem(listArgs, index, list_size - 1,
-                                  this->tr("Lower To Bottom"));
-        }
-        else {
+        const index_type index = this->_accessor->selectedIndex();
+        index_type listSize = list->size();
+        if (listSize < 2) {
             return false;
         }
+        return this->moveItem(index, listSize - 1, this->tr("Lower To Bottom"));
     }
 };
 }

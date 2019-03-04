@@ -45,25 +45,25 @@ size_t VectorSingleSelectionAccessor<T, RI>::size() const
 template <class T, class RI>
 bool VectorSingleSelectionAccessor<T, RI>::do_addItem(size_t index)
 {
-    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).addItemToSelectedList(index);
+    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).addItem(index);
 }
 
 template <class T, class RI>
 bool VectorSingleSelectionAccessor<T, RI>::do_cloneItem(size_t index)
 {
-    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).cloneItemInSelectedList(index);
+    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).cloneItem(index);
 }
 
 template <class T, class RI>
 bool VectorSingleSelectionAccessor<T, RI>::removeItem(size_t index)
 {
-    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).removeItemFromSelectedList(index);
+    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).removeItem(index);
 }
 
 template <class T, class RI>
 bool VectorSingleSelectionAccessor<T, RI>::moveItem(size_t from, size_t to)
 {
-    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).moveItemInSelectedList(from, to);
+    return ListUndoHelper<VectorSingleSelectionAccessor<T, RI>>(this).moveItem(from, to);
 }
 
 template <class T, class RI>
@@ -119,7 +119,7 @@ QString NamedListAccessor<T, RI>::itemName(size_t index) const
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::edit_setName(NamedListAccessor::index_type index, const UnTech::idstring& name)
 {
-    return ListUndoHelper<NamedListAccessor<T, RI>>(this).editFieldInSelectedList(
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).editField(
         index, name,
         tr("Edit name"),
         [](DataT& d) -> idstring& { return d.name; },
@@ -129,7 +129,7 @@ bool NamedListAccessor<T, RI>::edit_setName(NamedListAccessor::index_type index,
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::do_addItem(size_t index)
 {
-    return ListUndoHelper<NamedListAccessor<T, RI>>(this).addItemToSelectedList(index);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).addItem(index);
 }
 
 template <class T, class RI>
@@ -138,13 +138,13 @@ bool NamedListAccessor<T, RI>::do_addItemWithName(size_t index, const UnTech::id
     T newItem;
     newItem.name = name;
 
-    return ListUndoHelper<NamedListAccessor<T, RI>>(this).addItemToSelectedList(index, newItem);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).addItem(index, newItem);
 }
 
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::do_cloneItem(size_t index)
 {
-    return ListUndoHelper<NamedListAccessor<T, RI>>(this).cloneItemInSelectedList(index);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).cloneItem(index);
 }
 
 template <class T, class RI>
@@ -155,7 +155,7 @@ bool NamedListAccessor<T, RI>::do_cloneItemWithName(size_t index, const idstring
         newItem.name = name;
 
         QString text = tr("Clone %1").arg(typeName());
-        return ListUndoHelper<NamedListAccessor<T, RI>>(this).addItemToSelectedList(index, newItem, text);
+        return ListUndoHelper<NamedListAccessor<T, RI>>(this).addItem(index, newItem, text);
     }
     return false;
 }
@@ -163,13 +163,13 @@ bool NamedListAccessor<T, RI>::do_cloneItemWithName(size_t index, const idstring
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::removeItem(size_t index)
 {
-    return ListUndoHelper<NamedListAccessor<T, RI>>(this).removeItemFromSelectedList(index);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).removeItem(index);
 }
 
 template <class T, class RI>
 bool NamedListAccessor<T, RI>::moveItem(size_t from, size_t to)
 {
-    return ListUndoHelper<NamedListAccessor<T, RI>>(this).moveItemInSelectedList(from, to);
+    return ListUndoHelper<NamedListAccessor<T, RI>>(this).moveItem(from, to);
 }
 
 template <class T, class RI>
@@ -209,25 +209,25 @@ std::tuple<size_t> ChildVectorAccessor<T, RI>::selectedListTuple() const
 template <class T, class RI>
 bool ChildVectorAccessor<T, RI>::do_addItem(size_t index)
 {
-    return ListUndoHelper<ChildVectorAccessor<T, RI>>(this).addItemToSelectedList(index);
+    return ListUndoHelper<ChildVectorAccessor<T, RI>>(this).addItem(index);
 }
 
 template <class T, class RI>
 bool ChildVectorAccessor<T, RI>::do_cloneItem(size_t index)
 {
-    return ListUndoHelper<ChildVectorAccessor<T, RI>>(this).cloneItemInSelectedList(index);
+    return ListUndoHelper<ChildVectorAccessor<T, RI>>(this).cloneItem(index);
 }
 
 template <class T, class RI>
 bool ChildVectorAccessor<T, RI>::removeItem(size_t index)
 {
-    return ListUndoHelper<ChildVectorAccessor<T, RI>>(this).removeItemFromSelectedList(index);
+    return ListUndoHelper<ChildVectorAccessor<T, RI>>(this).removeItem(index);
 }
 
 template <class T, class RI>
 bool ChildVectorAccessor<T, RI>::moveItem(size_t from, size_t to)
 {
-    return ListUndoHelper<ChildVectorAccessor<T, RI>>(this).moveItemInSelectedList(from, to);
+    return ListUndoHelper<ChildVectorAccessor<T, RI>>(this).moveItem(from, to);
 }
 
 template <class T, class RI>
@@ -267,43 +267,43 @@ std::tuple<size_t> ChildVectorMultipleSelectionAccessor<T, RI>::selectedListTupl
 template <class T, class RI>
 bool ChildVectorMultipleSelectionAccessor<T, RI>::do_addItem(size_t index)
 {
-    return ListUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).addItemToSelectedList(index);
+    return ListUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).addItem(index);
 }
 
 template <class T, class RI>
 bool ChildVectorMultipleSelectionAccessor<T, RI>::do_cloneItem(size_t index)
 {
-    return ListUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).cloneItemInSelectedList(index);
+    return ListUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).cloneItem(index);
 }
 
 template <class T, class RI>
 bool ChildVectorMultipleSelectionAccessor<T, RI>::do_cloneMultipleItems(const vectorset<size_t>& indexes)
 {
-    return ListAndMultipleSelectionUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).cloneMultipleItems(std::make_tuple(parentIndex()), indexes);
+    return ListAndMultipleSelectionUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).cloneMultipleItems(indexes);
 }
 
 template <class T, class RI>
 bool ChildVectorMultipleSelectionAccessor<T, RI>::removeItem(size_t index)
 {
-    return ListUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).removeItemFromSelectedList(index);
+    return ListUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).removeItem(index);
 }
 
 template <class T, class RI>
 bool ChildVectorMultipleSelectionAccessor<T, RI>::removeMultipleItems(const vectorset<size_t>& indexes)
 {
-    return ListAndMultipleSelectionUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).removeMultipleItems(std::make_tuple(parentIndex()), indexes);
+    return ListAndMultipleSelectionUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).removeMultipleItems(indexes);
 }
 
 template <class T, class RI>
 bool ChildVectorMultipleSelectionAccessor<T, RI>::moveItem(size_t from, size_t to)
 {
-    return ListUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).moveItemInSelectedList(from, to);
+    return ListUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).moveItem(from, to);
 }
 
 template <class T, class RI>
 bool ChildVectorMultipleSelectionAccessor<T, RI>::moveMultipleItems(const vectorset<size_t>& indexes, int offset)
 {
-    return ListAndMultipleSelectionUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).moveMultipleItems(std::make_tuple(parentIndex()), indexes, offset);
+    return ListAndMultipleSelectionUndoHelper<ChildVectorMultipleSelectionAccessor<T, RI>>(this).moveMultipleItems(indexes, offset);
 }
 
 }

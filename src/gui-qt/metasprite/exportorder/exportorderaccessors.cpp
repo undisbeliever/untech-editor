@@ -38,6 +38,18 @@ void ExportNameList::setSelectedIndex(ExportNameList::index_type index)
     }
 }
 
+void ExportNameList::setSelectedIndex(bool isFrame, ExportNameList::index_type index)
+{
+    if (_selectedListIsFrame != isFrame) {
+        _selectedListIsFrame = isFrame;
+        emit selectedListChanged();
+    }
+    if (_selectedIndex != index) {
+        _selectedIndex = index;
+        emit selectedListChanged();
+    }
+}
+
 bool ExportNameList::isSelectedItemValid() const
 {
     auto* eo = _exportOrder->exportOrderEditable();

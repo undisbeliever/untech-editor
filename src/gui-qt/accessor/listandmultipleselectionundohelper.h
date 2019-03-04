@@ -422,41 +422,14 @@ public:
         return c != nullptr;
     }
 
-    bool addItemToSelectedList(index_type index)
-    {
-        const ArgsT listArgs = this->selectedListTuple();
-
-        bool s = this->addItem(listArgs, index);
-        if (s) {
-            this->_accessor->setSelectedIndexes({ index });
-        }
-        return s;
-    }
-
-    bool addItemToSelectedList()
-    {
-        const ArgsT listArgs = this->selectedListTuple();
-
-        const ListT* list = this->getList(listArgs);
-        if (list == nullptr) {
-            return false;
-        }
-        index_type index = list->size();
-
-        bool s = this->addItem(listArgs, index);
-        if (s) {
-            this->_accessor->setSelectedIndexes({ index });
-        }
-        return s;
-    }
-
     // will return nullptr if list is not accessable or indexes are invalid
-    QUndoCommand* cloneMultipleCommand(const ArgsT& listArgs, const vectorset<index_type>& indexes)
+    QUndoCommand* cloneMultipleCommand(const vectorset<index_type>& indexes)
     {
         if (indexes.empty()) {
             return nullptr;
         }
 
+        const ArgsT listArgs = this->selectedListTuple();
         const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -484,9 +457,9 @@ public:
                                       tr("Clone %1").arg(this->_accessor->typeNamePlural()));
     }
 
-    bool cloneMultipleItems(const ArgsT& listArgs, const vectorset<index_type>& indexes)
+    bool cloneMultipleItems(const vectorset<index_type>& indexes)
     {
-        QUndoCommand* c = cloneMultipleCommand(listArgs, indexes);
+        QUndoCommand* c = cloneMultipleCommand(indexes);
         if (c) {
             this->_accessor->resourceItem()->undoStack()->push(c);
         }
@@ -495,27 +468,17 @@ public:
 
     bool cloneSelectedItems()
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const vectorset<index_type>& indexes = this->_accessor->selectedIndexes();
-
-        QUndoCommand* c = cloneMultipleCommand(listArgs, indexes);
-        if (c) {
-            this->_accessor->resourceItem()->undoStack()->push(c);
-
-            auto* cc = dynamic_cast<AddRemoveMultipleCommand*>(c);
-            Q_ASSERT(cc);
-            this->_accessor->setSelectedIndexes(cc->indexes());
-        }
-        return c != nullptr;
+        return cloneMultipleItems(this->_accessor->selectedIndexes());
     }
 
     // will return nullptr if list is not accessable or indexes are invalid
-    QUndoCommand* removeMultipleCommand(const ArgsT& listArgs, const vectorset<index_type>& indexes)
+    QUndoCommand* removeMultipleCommand(const vectorset<index_type>& indexes)
     {
         if (indexes.empty()) {
             return nullptr;
         }
 
+        const ArgsT listArgs = this->selectedListTuple();
         const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -534,9 +497,9 @@ public:
                                          tr("Remove %1").arg(this->_accessor->typeNamePlural()));
     }
 
-    bool removeMultipleItems(const ArgsT& listArgs, const vectorset<index_type>& indexes)
+    bool removeMultipleItems(const vectorset<index_type>& indexes)
     {
-        QUndoCommand* c = removeMultipleCommand(listArgs, indexes);
+        QUndoCommand* c = removeMultipleCommand(indexes);
         if (c) {
             this->_accessor->resourceItem()->undoStack()->push(c);
         }
@@ -545,15 +508,11 @@ public:
 
     bool removeSelectedItems()
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const vectorset<index_type>& indexes = this->_accessor->selectedIndexes();
-
-        return this->removeMultipleItems(listArgs, indexes);
+        return this->removeMultipleItems(this->_accessor->selectedIndexes());
     }
 
     // will return nullptr if list is not accessable or indexes are invalid
-    QUndoCommand* moveMultipleCommand(const ArgsT& listArgs, const vectorset<index_type>& indexes, int offset,
-                                      const QString& text)
+    QUndoCommand* moveMultipleCommand(const vectorset<index_type>& indexes, int offset, const QString& text)
     {
         if (indexes.empty()) {
             return nullptr;
@@ -562,6 +521,7 @@ public:
             return nullptr;
         }
 
+        const ArgsT listArgs = this->selectedListTuple();
         const ListT* list = this->getList(listArgs);
         if (list == nullptr) {
             return nullptr;
@@ -579,37 +539,30 @@ public:
         return new MoveMultipleCommand(this->_accessor, listArgs, indexes, offset, text);
     }
 
-    bool moveMultipleItems(const ArgsT& listArgs, const vectorset<index_type>& indexes, int offset,
-                           const QString& text)
+    bool moveMultipleItems(const vectorset<index_type>& indexes, int offset, const QString& text)
     {
-        QUndoCommand* c = moveMultipleCommand(listArgs, indexes, offset, text);
+        QUndoCommand* c = moveMultipleCommand(indexes, offset, text);
         if (c) {
             this->_accessor->resourceItem()->undoStack()->push(c);
         }
         return c != nullptr;
     }
 
-    bool moveMultipleItems(const ArgsT& listArgs, const vectorset<index_type>& indexes, int offset)
+    bool moveMultipleItems(const vectorset<index_type>& indexes, int offset)
     {
-        return moveMultipleItems(listArgs, indexes, offset,
+        return moveMultipleItems(indexes, offset,
                                  tr("Move %1").arg(this->_accessor->typeNamePlural()));
     }
 
     bool raiseSelectedItems()
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const vectorset<index_type>& indexes = this->_accessor->selectedIndexes();
-
-        return this->moveMultipleItems(listArgs, indexes, -1,
+        return this->moveMultipleItems(this->_accessor->selectedIndexes(), -1,
                                        tr("Raise %1").arg(this->_accessor->typeNamePlural()));
     }
 
     bool lowerSelectedItems()
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const vectorset<index_type>& indexes = this->_accessor->selectedIndexes();
-
-        return this->moveMultipleItems(listArgs, indexes, +1,
+        return this->moveMultipleItems(this->_accessor->selectedIndexes(), +1,
                                        tr("Lower %1").arg(this->_accessor->typeNamePlural()));
     }
 };

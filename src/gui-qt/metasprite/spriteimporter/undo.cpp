@@ -138,7 +138,7 @@ template class UnTech::GuiQt::Accessor::ListAndMultipleSelectionUndoHelper<Frame
 
 bool FrameObjectList::editSelectedList_setLocation(unsigned index, const upoint& location)
 {
-    return FrameObjectListUndoHelper(this).editFieldInSelectedList(
+    return FrameObjectListUndoHelper(this).editField(
         index, location,
         tr("Edit Object Location"),
         [](SI::FrameObject& obj) -> upoint& { return obj.location; });
@@ -151,7 +151,7 @@ bool FrameObjectList::editSelectedList_setSize(unsigned index, FrameObjectList::
         return false;
     }
 
-    return FrameObjectListUndoHelper(this).editItemInSelectedList(
+    return FrameObjectListUndoHelper(this).editItem(
         index,
         tr("Edit Object Size"),
         [&](SI::FrameObject& obj) {
@@ -192,7 +192,7 @@ using ActionPointListUndoHelper = ListAndMultipleSelectionUndoHelper<ActionPoint
 
 bool ActionPointList::editSelectedList_setLocation(unsigned index, const upoint& location)
 {
-    return ActionPointListUndoHelper(this).editFieldInSelectedList(
+    return ActionPointListUndoHelper(this).editField(
         index, location,
         tr("Edit Action Point Location"),
         [](SI::ActionPoint& ap) -> upoint& { return ap.location; });
@@ -200,7 +200,7 @@ bool ActionPointList::editSelectedList_setLocation(unsigned index, const upoint&
 
 bool ActionPointList::editSelectedList_setParameter(unsigned index, ActionPointList::ParameterType parameter)
 {
-    return ActionPointListUndoHelper(this).editFieldInSelectedList(
+    return ActionPointListUndoHelper(this).editField(
         index, parameter,
         tr("Edit Action Point Parameter"),
         [](SI::ActionPoint& ap) -> ParameterType& { return ap.parameter; });
@@ -211,7 +211,7 @@ using EntityHitboxListUndoHelper = ListAndMultipleSelectionUndoHelper<EntityHitb
 
 bool EntityHitboxList::editSelectedList_setAabb(unsigned index, const urect& aabb)
 {
-    return EntityHitboxListUndoHelper(this).editFieldInSelectedList(
+    return EntityHitboxListUndoHelper(this).editField(
         index, aabb,
         tr("Edit Entity Hitbox AABB"),
         [](SI::EntityHitbox& eh) -> urect& { return eh.aabb; });
@@ -219,7 +219,7 @@ bool EntityHitboxList::editSelectedList_setAabb(unsigned index, const urect& aab
 
 bool EntityHitboxList::editSelectedList_setEntityHitboxType(unsigned index, EntityHitboxList::EntityHitboxType type)
 {
-    return EntityHitboxListUndoHelper(this).editFieldInSelectedList(
+    return EntityHitboxListUndoHelper(this).editField(
         index, type,
         tr("Edit Entity Hitbox Type"),
         [](SI::EntityHitbox& eh) -> EntityHitboxType& { return eh.hitboxType; });

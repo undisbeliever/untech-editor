@@ -74,7 +74,7 @@ template class UnTech::GuiQt::Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
 
 bool MtTilesetScratchpadGrid::editGrid_resizeGrid(const usize& size)
 {
-    return MtTilesetScratchpadGridUndoHelper(this).resizeSelectedGrid(
+    return MtTilesetScratchpadGridUndoHelper(this).resizeGrid(
         size, MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE,
         tr("Resize scratchpad"));
 }
@@ -87,7 +87,7 @@ bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const G
     }
     const unsigned nMetaTiles = data->nMetaTiles();
 
-    return MtTilesetScratchpadGridUndoHelper(this).editCellsInSelectedGridWithCroppingAndCellTest(
+    return MtTilesetScratchpadGridUndoHelper(this).editCellsWithCroppingAndCellTest(
         location, tiles,
         tr("Place Tiles"),
         [&](const uint16_t& t) { return t < nMetaTiles; });
