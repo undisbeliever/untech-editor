@@ -28,6 +28,7 @@ public:
     ~EntityFunctionTableList() = default;
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     bool edit_setEntityStruct(index_type index, const idstring& entityStruct);
     bool edit_setExportOrder(index_type index, const idstring& exportOrder);

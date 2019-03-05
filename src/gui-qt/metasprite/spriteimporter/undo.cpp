@@ -6,7 +6,7 @@
 
 #include "accessors.h"
 #include "sigraphicsscene.h"
-#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
+#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 
@@ -227,7 +227,7 @@ bool EntityHitboxList::editSelectedList_setEntityHitboxType(unsigned index, Enti
 
 bool EntityHitboxList::editSelected_setEntityHitboxType(EntityHitboxType type)
 {
-    return EntityHitboxListUndoHelper(this).setSelectedFields(
+    return EntityHitboxListUndoHelper(this).setFieldInSelectedItems(
         type,
         tr("Change Entity Hitbox Type"),
         [](SI::EntityHitbox& eh) -> EntityHitboxType& { return eh.hitboxType; });
@@ -260,19 +260,22 @@ void SiGraphicsScene::commitMovedItems()
 
     commands.append(
         FrameObjectListUndoHelper(_document->frameObjectList())
-            .editSelectedCommand(
+            .editSelectedItemsCommand(
+                QString(),
                 [&](SI::FrameObject& obj, size_t i) {
                     obj.location = objects.at(i)->posUpoint();
                 }));
     commands.append(
         ActionPointListUndoHelper(_document->actionPointList())
-            .editSelectedCommand(
+            .editSelectedItemsCommand(
+                QString(),
                 [&](SI::ActionPoint& ap, size_t i) {
                     ap.location = actionPoints.at(i)->posUpoint();
                 }));
     commands.append(
         EntityHitboxListUndoHelper(_document->entityHitboxList())
-            .editSelectedCommand(
+            .editSelectedItemsCommand(
+                QString(),
                 [&](SI::EntityHitbox& eh, size_t i) {
                     eh.aabb = entityHitboxes.at(i)->rectUrect();
                 }));

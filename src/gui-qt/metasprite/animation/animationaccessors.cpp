@@ -35,6 +35,11 @@ QString AnimationsList::typeName() const
     return tr("Animation");
 }
 
+QString AnimationsList::typeNamePlural() const
+{
+    return tr("Animations");
+}
+
 template <>
 const std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>::list(size_t pIndex) const
 {
@@ -69,6 +74,11 @@ AnimationFramesList::AnimationFramesList(AbstractMsDocument* document)
 QString AnimationFramesList::typeName() const
 {
     return tr("Animation Frame");
+}
+
+QString AnimationFramesList::typeNamePlural() const
+{
+    return tr("Animation Frames");
 }
 
 using namespace UnTech::GuiQt;

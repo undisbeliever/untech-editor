@@ -42,6 +42,7 @@ public:
     Document* resourceItem() const { return _document; }
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     virtual bool listExists() const final;
     virtual size_t size() const final;
@@ -90,6 +91,7 @@ public:
     Document* resourceItem() const { return _document; }
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     virtual bool listExists() const final;
     virtual size_t size() const final;
@@ -130,6 +132,7 @@ public:
     PaletteList(Document* document);
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     index_type selectedColor() const { return _selectedColor; }
     void setSelectedColor(unsigned color);
@@ -162,6 +165,7 @@ public:
     ~FrameList() = default;
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     bool isTileHitboxSelected() const { return _tileHitboxSelected && isSelectedIndexValid(); }
     void setTileHitboxSelected(bool s);

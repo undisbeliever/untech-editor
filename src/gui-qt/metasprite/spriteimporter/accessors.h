@@ -31,6 +31,7 @@ public:
     ~FrameList() = default;
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     bool isTileHitboxSelected() const { return _tileHitboxSelected && isSelectedIndexValid(); }
     void setTileHitboxSelected(bool s);

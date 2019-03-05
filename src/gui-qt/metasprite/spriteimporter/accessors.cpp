@@ -41,6 +41,11 @@ QString FrameList::typeName() const
     return tr("Frame");
 }
 
+QString FrameList::typeNamePlural() const
+{
+    return tr("Frames");
+}
+
 void FrameList::setTileHitboxSelected(bool s)
 {
     if (_tileHitboxSelected != s) {

@@ -24,6 +24,11 @@ QString SmallTileTileset::typeName() const
     return tr("Small Tile");
 }
 
+QString SmallTileTileset::typeNamePlural() const
+{
+    return tr("Small Tiles");
+}
+
 bool SmallTileTileset::listExists() const
 {
     return resourceItem()->frameSet() != nullptr;
@@ -63,6 +68,11 @@ QString LargeTileTileset::typeName() const
     return tr("Large Tile");
 }
 
+QString LargeTileTileset::typeNamePlural() const
+{
+    return tr("Large Tiles");
+}
+
 template <>
 const std::vector<Snes::Palette4bpp>* VectorSingleSelectionAccessor<Snes::Palette4bpp, Document>::list() const
 {
@@ -93,6 +103,11 @@ PaletteList::PaletteList(Document* document)
 QString PaletteList::typeName() const
 {
     return tr("Palette");
+}
+
+QString PaletteList::typeNamePlural() const
+{
+    return tr("Palettes");
 }
 
 void PaletteList::setSelectedColor(unsigned color)
@@ -135,6 +150,11 @@ FrameList::FrameList(Document* document)
 QString FrameList::typeName() const
 {
     return tr("Frame");
+}
+
+QString FrameList::typeNamePlural() const
+{
+    return tr("Frames");
 }
 
 void FrameList::setTileHitboxSelected(bool s)

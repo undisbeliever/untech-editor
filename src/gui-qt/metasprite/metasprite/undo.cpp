@@ -6,7 +6,7 @@
 
 #include "accessors.h"
 #include "msgraphicsscene.h"
-#include "gui-qt/accessor/listandmultipleselectionundohelper.h"
+#include "gui-qt/accessor/listundohelper.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/pixmapgraphicsitem.h"
@@ -471,7 +471,7 @@ bool EntityHitboxList::editSelectedList_setEntityHitboxType(unsigned index, Enti
 
 bool EntityHitboxList::editSelected_setEntityHitboxType(EntityHitboxType type)
 {
-    return EntityHitboxListUndoHelper(this).setSelectedFields(
+    return EntityHitboxListUndoHelper(this).setFieldInSelectedItems(
         type,
         tr("Change Entity Hitbox Type"),
         [](MS::EntityHitbox& eh) -> EntityHitboxType& { return eh.hitboxType; });
@@ -499,19 +499,22 @@ void MsGraphicsScene::commitMovedItems()
 
     commands.append(
         FrameObjectListUndoHelper(_document->frameObjectList())
-            .editSelectedCommand(
+            .editSelectedItemsCommand(
+                QString(),
                 [this](MS::FrameObject& obj, size_t i) {
                     obj.location = _objects.at(i)->posMs8point();
                 }));
     commands.append(
         ActionPointListUndoHelper(_document->actionPointList())
-            .editSelectedCommand(
+            .editSelectedItemsCommand(
+                QString(),
                 [this](MS::ActionPoint& ap, size_t i) {
                     ap.location = _actionPoints.at(i)->posMs8point();
                 }));
     commands.append(
         EntityHitboxListUndoHelper(_document->entityHitboxList())
-            .editSelectedCommand(
+            .editSelectedItemsCommand(
+                QString(),
                 [this](MS::EntityHitbox& eh, size_t i) {
                     eh.aabb = _entityHitboxes.at(i)->rectMs8rect();
                 }));

@@ -28,6 +28,7 @@ public:
     ~EntityRomStructList() = default;
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     void editSelected_setParent(const idstring& parent);
     void editSelected_setComment(const std::string& comment);
@@ -45,6 +46,7 @@ public:
     ~EntityRomStructFieldList() = default;
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     bool editSelectedList_setName(size_t index, const idstring& name);
     bool editSelectedList_setType(size_t index, EN::DataType type);

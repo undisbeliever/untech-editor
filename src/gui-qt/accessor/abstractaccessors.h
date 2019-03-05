@@ -32,6 +32,7 @@ public:
     ~AbstractListAccessor() = default;
 
     virtual QString typeName() const = 0;
+    virtual QString typeNamePlural() const = 0;
 
     AbstractResourceItem* resourceItem() const { return _resourceItem; }
 
@@ -110,8 +111,6 @@ class AbstractListMultipleSelectionAccessor : public AbstractListAccessor {
 public:
     AbstractListMultipleSelectionAccessor(AbstractResourceItem* resourceItem, size_t maxSize);
     ~AbstractListMultipleSelectionAccessor() = default;
-
-    virtual QString typeNamePlural() const = 0;
 
     const vectorset<size_t>& selectedIndexes() const { return _selectedIndexes; }
     void setSelectedIndexes(const vectorset<size_t>& selected);

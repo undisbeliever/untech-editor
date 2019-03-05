@@ -31,6 +31,7 @@ public:
     ~EntityRomEntriesList() = default;
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     bool isEntityList() const { return _entityList; }
 

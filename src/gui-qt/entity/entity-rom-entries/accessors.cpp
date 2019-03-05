@@ -50,7 +50,12 @@ EntityRomEntriesList::EntityRomEntriesList(EntityRomEntriesResourceItem* resourc
 
 QString EntityRomEntriesList::typeName() const
 {
-    return tr("Entity ROM Struct");
+    return tr("Entity ROM Entry");
+}
+
+QString EntityRomEntriesList::typeNamePlural() const
+{
+    return tr("Entity ROM Entries");
 }
 
 template class UnTech::GuiQt::Accessor::NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>;

@@ -37,6 +37,11 @@ QString EntityRomStructList::typeName() const
     return tr("Entity ROM Struct");
 }
 
+QString EntityRomStructList::typeNamePlural() const
+{
+    return tr("Entity ROM Structs");
+}
+
 template <>
 const std::vector<EN::StructField>* ChildVectorAccessor<EN::StructField, EntityRomStructsResourceItem>::list(size_t pIndex) const
 {
@@ -69,6 +74,11 @@ EntityRomStructFieldList::EntityRomStructFieldList(EntityRomStructList* structLi
 QString EntityRomStructFieldList::typeName() const
 {
     return tr("Struct Field");
+}
+
+QString EntityRomStructFieldList::typeNamePlural() const
+{
+    return tr("Struct Fields");
 }
 
 using namespace UnTech::GuiQt;

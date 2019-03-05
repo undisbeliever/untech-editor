@@ -7,7 +7,6 @@
 #pragma once
 
 #include "abstractaccessors.h"
-#include "listandmultipleselectionundohelper.h"
 #include "listundohelper.h"
 
 namespace UnTech {

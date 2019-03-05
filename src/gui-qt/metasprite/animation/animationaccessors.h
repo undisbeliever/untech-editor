@@ -25,6 +25,7 @@ public:
     ~AnimationsList() = default;
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     bool editSelected_setDurationFormat(MSA::DurationFormat durationFormat);
     bool editSelected_setOneShot(bool oneShot);
@@ -41,6 +42,7 @@ public:
     ~AnimationFramesList() = default;
 
     virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
     bool editSelectedList_setData(index_type index, const DataT& value);
 };

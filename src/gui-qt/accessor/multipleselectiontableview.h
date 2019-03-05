@@ -7,7 +7,6 @@
 #pragma once
 
 #include "listactionhelper.h"
-#include "listandmultipleselectionundohelper.h"
 #include "multilistactions.h"
 #include "gui-qt/common/properties/propertytablemanager.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
