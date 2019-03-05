@@ -5,7 +5,6 @@
  */
 
 #include "exportorderaccessors.h"
-#include "gui-qt/accessor/selectedindexhelper.h"
 
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite;
@@ -17,7 +16,6 @@ ExportNameList::ExportNameList(ExportOrderResourceItem* exportOrder)
     , _selectedListIsFrame(true)
     , _selectedIndex(INT_MAX)
 {
-    SelectedIndexHelper::buildAndConnectSlots(this);
 }
 
 void ExportNameList::setSelectedListIsFrame(bool isFrame)
@@ -67,8 +65,6 @@ AlternativesList::AlternativesList(ExportOrderResourceItem* exportOrder)
 {
     connect(_exportOrder->exportNameList(), &ExportNameList::selectedIndexChanged,
             this, &AlternativesList::unselectItem);
-
-    SelectedIndexHelper::buildAndConnectSlots(this);
 }
 
 void AlternativesList::setSelectedIndex(AlternativesList::index_type index)

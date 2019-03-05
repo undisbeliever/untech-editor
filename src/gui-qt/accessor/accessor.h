@@ -24,23 +24,21 @@ struct NamedListActions;
 class NamedListView;
 class NamedListModel;
 
-class SelectedIndexHelper;
-class MultipleSelectedIndexesHelper;
+template <class T, class U>
+class ListUndoHelper;
+
+template <class T>
+class ListWithNoSelectionUndoHelper;
+template <class T>
+class ListAndSelectionUndoHelper;
+template <class T>
+class ListAndMultipleSelectionUndoHelper;
 
 template <class T>
 class ResourceItemUndoHelper;
 
 template <class T>
 class ProjectSettingsUndoHelper;
-
-template <class T>
-class ListUndoHelper;
-
-template <class T>
-class ListAndSelectionUndoHelper;
-
-template <class T>
-class ListAndMultipleSelectionUndoHelper;
 
 template <class T>
 class GridUndoHelper;

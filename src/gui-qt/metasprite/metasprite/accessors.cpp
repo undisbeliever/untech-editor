@@ -6,8 +6,6 @@
 
 #include "accessors.h"
 #include "gui-qt/accessor/abstractaccessors.hpp"
-#include "gui-qt/accessor/multipleselectedindexeshelper.h"
-#include "gui-qt/accessor/selectedindexhelper.h"
 
 using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;

@@ -70,9 +70,9 @@ public:
     bool editSelectedList_lowerSelectedToBottom();
 
 protected:
-    friend class Accessor::ListUndoHelper<ExportNameList>;
+    template <class, class>
+    friend class Accessor::ListUndoHelper;
     friend class Accessor::ListActionHelper;
-    friend class Accessor::SelectedIndexHelper;
     ListT* getList(bool isFrame)
     {
         auto* eo = _exportOrder->exportOrderEditable();
@@ -142,9 +142,9 @@ public:
     bool editSelectedList_lowerSelectedToBottom();
 
 protected:
-    friend class Accessor::ListUndoHelper<AlternativesList>;
+    template <class, class>
+    friend class Accessor::ListUndoHelper;
     friend class Accessor::ListActionHelper;
-    friend class Accessor::SelectedIndexHelper;
     ListT* getList(bool isFrame, index_type index)
     {
         auto* eo = _exportOrder->exportOrderEditable();

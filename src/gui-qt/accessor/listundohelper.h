@@ -18,7 +18,129 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
-template <class AccessorT>
+/*
+ * ListUndoHelper is also responsible for managing the selection when:
+ *
+ *  * An item is added
+ *  * An item is removed, or
+ *  * An item is moved
+ *
+ * This used to be the responsibility of the accessor class but the
+ * interactions of the various signals and slots would occasionally cause other
+ * subsystems (usually QAbstractItemView) to mangle the selection.
+ *
+ * By moving the selection change into the Undo Command (after the list signals
+ * have been emitted) we ensure the same item remains selected after the
+ * QUndoCommand is invoked.
+ */
+
+template <typename AccessorT>
+struct BlankSelectionModifier {
+    using index_type = typename AccessorT::index_type;
+    using selection_type = std::tuple<>;
+
+    inline static selection_type getSelection(const AccessorT*) { return selection_type(); }
+    inline static void setSelection(AccessorT*, const selection_type&) {}
+
+    inline static void postAddCommand(AccessorT*, const index_type) {}
+    inline static void postAddCommand(AccessorT*, const std::vector<index_type>&) {}
+
+    inline static void itemAdded(selection_type&, const index_type) {}
+    inline static void itemRemoved(selection_type&, const index_type) {}
+    inline static void itemMoved(selection_type&, const index_type, const index_type) {}
+};
+
+template <typename AccessorT>
+struct SingleSelectionModifier {
+    using index_type = typename AccessorT::index_type;
+    using selection_type = index_type;
+
+    inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndex(); }
+    inline static void setSelection(AccessorT* a, const selection_type& selectedIndex) { a->setSelectedIndex(selectedIndex); }
+
+    inline static void postAddCommand(AccessorT* a, const index_type index) { a->setSelectedIndex(index); }
+    inline static void postAddCommand(AccessorT* a, const std::vector<index_type>&) { a->setSelectedIndex(INT_MAX); }
+
+    inline static void itemAdded(selection_type& selectedIndex, const index_type index)
+    {
+        if (selectedIndex >= index) {
+            selectedIndex++;
+        }
+    }
+
+    inline static void itemRemoved(selection_type& selectedIndex, const index_type index)
+    {
+        if (selectedIndex == index) {
+            selectedIndex = INT_MAX;
+        }
+        else if (selectedIndex > index) {
+            selectedIndex--;
+        }
+    }
+
+    inline static void itemMoved(selection_type& selectedIndex, const index_type from, const index_type to)
+    {
+        if (selectedIndex == from) {
+            selectedIndex = to;
+        }
+        else if (selectedIndex > from && selectedIndex <= to) {
+            selectedIndex--;
+        }
+        else if (selectedIndex >= to && selectedIndex < from) {
+            selectedIndex++;
+        }
+    }
+};
+
+template <typename AccessorT>
+struct MultipleSelectionModifier {
+    using index_type = typename AccessorT::index_type;
+    using selection_type = std::vector<index_type>;
+
+    inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndexes(); }
+    inline static void setSelection(AccessorT* a, const selection_type& selection) { a->setSelectedIndexes(selection); }
+
+    inline static void postAddCommand(AccessorT* a, const index_type index) { a->setSelectedIndexes({ index }); }
+    inline static void postAddCommand(AccessorT* a, const std::vector<index_type>& indexes) { a->setSelectedIndexes(indexes); }
+
+    inline static void itemAdded(selection_type& selection, const index_type index)
+    {
+        for (index_type& sel : selection) {
+            if (sel >= index) {
+                sel++;
+            }
+        }
+    }
+
+    inline static void itemRemoved(selection_type& selection, const index_type index)
+    {
+        selection.erase(std::remove(selection.begin(), selection.end(), index),
+                        selection.end());
+
+        for (index_type& sel : selection) {
+            if (sel > index) {
+                sel--;
+            }
+        }
+    }
+
+    inline static void itemMoved(selection_type& selection, const index_type from, const index_type to)
+    {
+        for (index_type& sel : selection) {
+            if (sel == from) {
+                sel = to;
+            }
+            else if (sel > from && sel <= to) {
+                sel--;
+            }
+            else if (sel >= to && sel < from) {
+                sel++;
+            }
+        }
+    }
+};
+
+template <class AccessorT, class SelectionModifier>
 class ListUndoHelper {
 
 public:
@@ -512,7 +634,11 @@ private:
         }
         ~AddRemoveCommand() = default;
 
-        void addItem()
+    public:
+        index_type index() const { return _index; }
+
+    private:
+        void _addItem()
         {
             ListT* list = this->getList();
             Q_ASSERT(list);
@@ -526,7 +652,7 @@ private:
             this->emitListChanged();
         }
 
-        void removeItem()
+        void _removeItem()
         {
             ListT* list = this->getList();
             Q_ASSERT(list);
@@ -538,6 +664,33 @@ private:
             list->erase(list->begin() + _index);
 
             this->emitListChanged();
+        }
+
+    protected:
+        void addItem()
+        {
+            if (this->_args == this->_accessor->selectedListTuple()) {
+                auto selection = SelectionModifier::getSelection(this->_accessor);
+                _addItem();
+                SelectionModifier::itemAdded(selection, _index);
+                SelectionModifier::setSelection(this->_accessor, selection);
+            }
+            else {
+                _addItem();
+            }
+        }
+
+        void removeItem()
+        {
+            if (this->_args == this->_accessor->selectedListTuple()) {
+                auto selection = SelectionModifier::getSelection(this->_accessor);
+                _removeItem();
+                SelectionModifier::itemRemoved(selection, _index);
+                SelectionModifier::setSelection(this->_accessor, selection);
+            }
+            else {
+                _removeItem();
+            }
         }
     };
 
@@ -615,6 +768,19 @@ private:
     private:
         void moveItem(index_type from, index_type to)
         {
+            if (this->_args == this->_accessor->selectedListTuple()) {
+                auto selection = SelectionModifier::getSelection(this->_accessor);
+                _moveItem(from, to);
+                SelectionModifier::itemMoved(selection, from, to);
+                SelectionModifier::setSelection(this->_accessor, selection);
+            }
+            else {
+                _moveItem(from, to);
+            }
+        }
+
+        void _moveItem(index_type from, index_type to)
+        {
             ListT* list = this->getList();
             Q_ASSERT(list);
             Q_ASSERT(from != to);
@@ -651,7 +817,10 @@ private:
         }
         ~AddRemoveMultipleCommand() = default;
 
-        void addItems()
+        const vectorset<index_type>& indexes() const { return _indexes; }
+
+    private:
+        void _addItems()
         {
             ListT* list = this->getList();
             Q_ASSERT(list);
@@ -674,7 +843,7 @@ private:
             this->emitListChanged();
         }
 
-        void removeItems()
+        void _removeItems()
         {
             ListT* list = this->getList();
             Q_ASSERT(list);
@@ -691,6 +860,37 @@ private:
             }
 
             this->emitListChanged();
+        }
+
+    protected:
+        void addItems()
+        {
+            if (this->_args == this->_accessor->selectedListTuple()) {
+                auto selection = SelectionModifier::getSelection(this->_accessor);
+                _addItems();
+                for (const auto& index : _indexes) {
+                    SelectionModifier::itemAdded(selection, index);
+                }
+                SelectionModifier::setSelection(this->_accessor, selection);
+            }
+            else {
+                _addItems();
+            }
+        }
+
+        void removeItems()
+        {
+            if (this->_args == this->_accessor->selectedListTuple()) {
+                auto selection = SelectionModifier::getSelection(this->_accessor);
+                _removeItems();
+                for (auto it = _indexes.rbegin(); it != _indexes.rend(); it++) {
+                    SelectionModifier::itemRemoved(selection, *it);
+                }
+                SelectionModifier::setSelection(this->_accessor, selection);
+            }
+            else {
+                _removeItems();
+            }
         }
     };
 
@@ -789,13 +989,15 @@ private:
             if (offset < 0) {
                 moveItemsUp(indexes, -offset);
             }
-            else if (offset > 0) {
+            else {
                 moveItemsDown(indexes, offset);
             }
         }
 
         void moveItemsUp(const vectorset<index_type>& indexes, unsigned offset)
         {
+            auto selection = SelectionModifier::getSelection(this->_accessor);
+
             ListT* list = this->getList();
             Q_ASSERT(list);
 
@@ -807,18 +1009,27 @@ private:
             this->emitListAboutToChange();
 
             for (auto it = indexes.begin(); it != indexes.end(); it++) {
-                const auto& index = *it;
+                const index_type& from = *it;
+                const index_type to = from - offset;
 
-                moveListItem(index, index - offset, *list);
+                moveListItem(from, to, *list);
 
-                this->emitItemMoved(index, index - offset);
+                this->emitItemMoved(from, to);
+
+                SelectionModifier::itemMoved(selection, from, to);
             }
 
             this->emitListChanged();
+
+            if (this->_args == this->_accessor->selectedListTuple()) {
+                SelectionModifier::setSelection(this->_accessor, selection);
+            }
         }
 
         void moveItemsDown(const vectorset<index_type>& indexes, unsigned offset)
         {
+            auto selection = SelectionModifier::getSelection(this->_accessor);
+
             ListT* list = this->getList();
             Q_ASSERT(list);
 
@@ -830,14 +1041,21 @@ private:
             this->emitListAboutToChange();
 
             for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
-                const auto& index = *it;
+                const index_type& from = *it;
+                const index_type to = from + offset;
 
-                moveListItem(index, index + offset, *list);
+                moveListItem(from, to, *list);
 
-                this->emitItemMoved(index, index + offset);
+                this->emitItemMoved(from, to);
+
+                SelectionModifier::itemMoved(selection, from, to);
             }
 
             this->emitListChanged();
+
+            if (this->_args == this->_accessor->selectedListTuple()) {
+                SelectionModifier::setSelection(this->_accessor, selection);
+            }
         }
     };
 
@@ -1262,6 +1480,7 @@ public:
         QUndoCommand* c = addCommand(index, std::move(item), text);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
+            SelectionModifier::postAddCommand(_accessor, static_cast<AddRemoveCommand*>(c)->index());
         }
         return c != nullptr;
     }
@@ -1302,6 +1521,7 @@ public:
         QUndoCommand* c = cloneCommand(index);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
+            SelectionModifier::postAddCommand(_accessor, static_cast<AddRemoveCommand*>(c)->index());
         }
         return c != nullptr;
     }
@@ -1372,6 +1592,7 @@ public:
         QUndoCommand* c = cloneMultipleCommand(indexes);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
+            SelectionModifier::postAddCommand(_accessor, static_cast<AddRemoveMultipleCommand*>(c)->indexes());
         }
         return c != nullptr;
     }
@@ -1512,14 +1733,24 @@ public:
 };
 
 template <class AccessorT>
-class ListAndSelectionUndoHelper : public ListUndoHelper<AccessorT> {
+class ListWithNoSelectionUndoHelper : public ListUndoHelper<AccessorT, BlankSelectionModifier<AccessorT>> {
+public:
+    ListWithNoSelectionUndoHelper(AccessorT* accessor)
+        : ListUndoHelper<AccessorT, BlankSelectionModifier<AccessorT>>(accessor)
+    {
+    }
+};
+
+template <class AccessorT>
+class ListAndSelectionUndoHelper : public ListUndoHelper<AccessorT, SingleSelectionModifier<AccessorT>> {
+
 public:
     using DataT = typename AccessorT::DataT;
     using index_type = typename AccessorT::index_type;
 
 public:
     ListAndSelectionUndoHelper(AccessorT* accessor)
-        : ListUndoHelper<AccessorT>(accessor)
+        : ListUndoHelper<AccessorT, SingleSelectionModifier<AccessorT>>(accessor)
     {
     }
 
@@ -1610,14 +1841,14 @@ public:
 };
 
 template <class AccessorT>
-class ListAndMultipleSelectionUndoHelper : public ListUndoHelper<AccessorT> {
+class ListAndMultipleSelectionUndoHelper : public ListUndoHelper<AccessorT, MultipleSelectionModifier<AccessorT>> {
 
 public:
     using index_type = typename AccessorT::index_type;
 
 public:
     ListAndMultipleSelectionUndoHelper(AccessorT* accessor)
-        : ListUndoHelper<AccessorT>(accessor)
+        : ListUndoHelper<AccessorT, MultipleSelectionModifier<AccessorT>>(accessor)
     {
     }
 

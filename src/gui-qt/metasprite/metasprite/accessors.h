@@ -31,7 +31,7 @@ public:
     using index_type = size_t;
     using ArgsT = std::tuple<>;
 
-    using UndoHelper = Accessor::ListUndoHelper<SmallTileTileset>;
+    using UndoHelper = Accessor::ListWithNoSelectionUndoHelper<SmallTileTileset>;
 
     constexpr static index_type maxSize() { return 256; }
 
@@ -59,7 +59,8 @@ public:
     bool editTile_paintPixel(unsigned tileId, const QPoint& p, bool first = false);
 
 protected:
-    friend class Accessor::ListUndoHelper<SmallTileTileset>;
+    template <class, class>
+    friend class Accessor::ListUndoHelper;
     ListT* getList()
     {
         MS::FrameSet* fs = _document->frameSet();
@@ -84,7 +85,7 @@ public:
     using index_type = size_t;
     using ArgsT = std::tuple<>;
 
-    using UndoHelper = Accessor::ListUndoHelper<LargeTileTileset>;
+    using UndoHelper = Accessor::ListWithNoSelectionUndoHelper<LargeTileTileset>;
 
 private:
     Document* const _document;
@@ -110,7 +111,8 @@ public:
     bool editTile_paintPixel(unsigned tileId, const QPoint& p, bool first = false);
 
 protected:
-    friend class Accessor::ListUndoHelper<LargeTileTileset>;
+    template <class, class>
+    friend class Accessor::ListUndoHelper;
     ListT* getList()
     {
         MS::FrameSet* fs = _document->frameSet();

@@ -19,7 +19,7 @@ AbstractListAccessor::AbstractListAccessor(AbstractResourceItem* resourceItem, s
 
 bool AbstractListAccessor::addItem()
 {
-    return addItem(size());
+    return addItem(INT_MAX);
 }
 
 AbstractListSingleSelectionAccessor::AbstractListSingleSelectionAccessor(AbstractResourceItem* resourceItem, size_t maxSize)
@@ -31,12 +31,6 @@ AbstractListSingleSelectionAccessor::AbstractListSingleSelectionAccessor(Abstrac
 
     connect(this, &AbstractListSingleSelectionAccessor::dataChanged,
             this, &AbstractListSingleSelectionAccessor::onDataChanged);
-    connect(this, &AbstractListSingleSelectionAccessor::itemAdded,
-            this, &AbstractListSingleSelectionAccessor::onItemAdded);
-    connect(this, &AbstractListSingleSelectionAccessor::itemAboutToBeRemoved,
-            this, &AbstractListSingleSelectionAccessor::onItemAboutToBeRemoved);
-    connect(this, &AbstractListSingleSelectionAccessor::itemMoved,
-            this, &AbstractListSingleSelectionAccessor::onItemMoved);
 }
 
 void AbstractListSingleSelectionAccessor::onDataChanged(size_t index)
@@ -46,66 +40,12 @@ void AbstractListSingleSelectionAccessor::onDataChanged(size_t index)
     }
 }
 
-void AbstractListSingleSelectionAccessor::onItemAdded(size_t index)
-{
-    if (_selectedIndex < size()) {
-        if (_selectedIndex >= index) {
-            setSelectedIndex(_selectedIndex + 1);
-        }
-    }
-}
-
-void AbstractListSingleSelectionAccessor::onItemAboutToBeRemoved(size_t index)
-{
-    if (_selectedIndex < size()) {
-        if (_selectedIndex == index) {
-            unselectItem();
-        }
-        else if (_selectedIndex > index) {
-            setSelectedIndex(_selectedIndex - 1);
-        }
-    }
-}
-
-void AbstractListSingleSelectionAccessor::onItemMoved(size_t from, size_t to)
-{
-    if (_selectedIndex < size()) {
-        if (_selectedIndex == from) {
-            setSelectedIndex(to);
-        }
-        else if (_selectedIndex > from && _selectedIndex <= to) {
-            setSelectedIndex(_selectedIndex - 1);
-        }
-        else if (_selectedIndex >= to && _selectedIndex < from) {
-            setSelectedIndex(_selectedIndex + 1);
-        }
-    }
-}
-
 void AbstractListSingleSelectionAccessor::setSelectedIndex(size_t index)
 {
     if (_selectedIndex != index) {
         _selectedIndex = index;
         emit selectedIndexChanged();
     }
-}
-
-bool AbstractListSingleSelectionAccessor::addItem(size_t index)
-{
-    bool s = do_addItem(index);
-    if (s) {
-        setSelectedIndex(index);
-    }
-    return s;
-}
-
-bool AbstractListSingleSelectionAccessor::cloneItem(size_t index)
-{
-    bool s = do_cloneItem(index);
-    if (s) {
-        setSelectedIndex(index + 1);
-    }
-    return s;
 }
 
 bool AbstractListSingleSelectionAccessor::cloneSelectedItem()
@@ -147,13 +87,6 @@ AbstractListMultipleSelectionAccessor::AbstractListMultipleSelectionAccessor(Abs
 {
     connect(this, &AbstractListMultipleSelectionAccessor::listReset,
             this, &AbstractListMultipleSelectionAccessor::clearSelection);
-
-    connect(this, &AbstractListMultipleSelectionAccessor::itemAdded,
-            this, &AbstractListMultipleSelectionAccessor::onItemAdded);
-    connect(this, &AbstractListMultipleSelectionAccessor::itemAboutToBeRemoved,
-            this, &AbstractListMultipleSelectionAccessor::onItemAboutToBeRemoved);
-    connect(this, &AbstractListMultipleSelectionAccessor::itemMoved,
-            this, &AbstractListMultipleSelectionAccessor::onItemMoved);
 }
 
 void AbstractListMultipleSelectionAccessor::setSelectedIndexes(const vectorset<size_t>& selected)
@@ -180,37 +113,9 @@ void AbstractListMultipleSelectionAccessor::clearSelection()
     }
 }
 
-bool AbstractListMultipleSelectionAccessor::addItem(size_t index)
-{
-    bool s = do_addItem(index);
-    if (s) {
-        setSelectedIndexes({ index });
-    }
-    return s;
-}
-
-bool AbstractListMultipleSelectionAccessor::cloneItem(size_t index)
-{
-    bool s = do_cloneItem(index);
-    if (s) {
-        setSelectedIndexes({ index + 1 });
-    }
-    return s;
-}
-
 bool AbstractListMultipleSelectionAccessor::cloneSelectedItems()
 {
-    bool s = do_cloneMultipleItems(_selectedIndexes);
-    if (s) {
-        const auto& indexes = _selectedIndexes;
-        std::vector<size_t> newIndexes;
-        newIndexes.reserve(indexes.size());
-        for (auto it = indexes.begin(); it != indexes.end(); it++) {
-            newIndexes.push_back(*it + std::distance(indexes.begin(), it) + 1);
-        }
-        setSelectedIndexes(std::move(newIndexes));
-    }
-    return s;
+    return cloneMultipleItems(_selectedIndexes);
 }
 
 bool AbstractListMultipleSelectionAccessor::removeSelectedItems()
@@ -228,63 +133,6 @@ bool AbstractListMultipleSelectionAccessor::lowerSelectedItems()
     return moveMultipleItems(_selectedIndexes, +1);
 }
 
-void AbstractListMultipleSelectionAccessor::onItemAdded(size_t index)
-{
-    std::vector<size_t> newSel;
-    newSel.reserve(_selectedIndexes.size());
-
-    for (const size_t& i : _selectedIndexes) {
-        if (i >= index) {
-            newSel.push_back(i + 1);
-        }
-        else {
-            newSel.push_back(i);
-        }
-    }
-
-    setSelectedIndexes(std::move(newSel));
-}
-
-void AbstractListMultipleSelectionAccessor::onItemAboutToBeRemoved(size_t index)
-{
-    std::vector<size_t> newSel;
-    newSel.reserve(_selectedIndexes.size());
-
-    for (const size_t& i : _selectedIndexes) {
-        if (i < index) {
-            newSel.push_back(i);
-        }
-        else if (i > index) {
-            newSel.push_back(i - 1);
-        }
-    }
-
-    setSelectedIndexes(std::move(newSel));
-}
-
-void AbstractListMultipleSelectionAccessor::onItemMoved(size_t from, size_t to)
-{
-    std::vector<size_t> newSel;
-    newSel.reserve(_selectedIndexes.size());
-
-    for (const size_t& i : _selectedIndexes) {
-        if (i == from) {
-            newSel.push_back(to);
-        }
-        else if (i > from && i <= to) {
-            newSel.push_back(i - 1);
-        }
-        else if (i >= to && i < from) {
-            newSel.push_back(i + 1);
-        }
-        else {
-            newSel.push_back(i);
-        }
-    }
-
-    setSelectedIndexes(std::move(newSel));
-}
-
 AbstractNamedListAccessor::AbstractNamedListAccessor(AbstractResourceItem* resourceItem, size_t maxSize)
     : AbstractListSingleSelectionAccessor(resourceItem, maxSize)
 {
@@ -297,30 +145,12 @@ bool AbstractNamedListAccessor::editSelected_setName(const UnTech::idstring& nam
 
 bool AbstractNamedListAccessor::addItemWithName(const UnTech::idstring& name)
 {
-    return addItemWithName(size(), name);
-}
-
-bool AbstractNamedListAccessor::addItemWithName(size_t index, const UnTech::idstring& name)
-{
-    bool s = do_addItemWithName(index, name);
-    if (s) {
-        setSelectedIndex(index);
-    }
-    return s;
+    return addItemWithName(INT_MAX, name);
 }
 
 bool AbstractNamedListAccessor::cloneSelectedItemWithName(const UnTech::idstring& name)
 {
     return cloneItemWithName(selectedIndex(), name);
-}
-
-bool AbstractNamedListAccessor::cloneItemWithName(size_t index, const UnTech::idstring& name)
-{
-    bool s = do_cloneItemWithName(index, name);
-    if (s) {
-        setSelectedIndex(index + 1);
-    }
-    return s;
 }
 
 AbstractChildListSingleSelectionAccessor::AbstractChildListSingleSelectionAccessor(AbstractListSingleSelectionAccessor* parentAccessor, size_t maxSize)

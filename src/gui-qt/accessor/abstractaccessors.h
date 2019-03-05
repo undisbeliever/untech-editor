@@ -18,8 +18,15 @@ namespace GuiQt {
 class AbstractResourceItem;
 
 namespace Accessor {
-template <class T>
+template <class T, class U>
 class ListUndoHelper;
+template <class T>
+class ListAndSelectionUndoHelper;
+template <class T>
+class ListAndMultipleSelectionUndoHelper;
+
+template <class T>
+class ListWithNoSelectionUndoHelper;
 template <class T>
 class ListAndSelectionUndoHelper;
 template <class T>
@@ -80,10 +87,6 @@ public:
     void setSelectedIndex(size_t index);
     void unselectItem() { setSelectedIndex(INT_MAX); }
 
-    // Will set selectedIndex to the new item
-    virtual bool addItem(size_t index) final;
-    virtual bool cloneItem(size_t index) final;
-
     bool cloneSelectedItem();
     bool removeSelectedItem();
 
@@ -92,15 +95,8 @@ public:
     bool lowerSelectedItem();
     bool lowerSelectedItemToBottom();
 
-protected:
-    virtual bool do_addItem(size_t index) = 0;
-    virtual bool do_cloneItem(size_t index) = 0;
-
 private:
     void onDataChanged(size_t index);
-    void onItemAdded(size_t index);
-    void onItemAboutToBeRemoved(size_t index);
-    void onItemMoved(size_t from, size_t to);
 
 signals:
     void selectedIndexChanged();
@@ -121,28 +117,15 @@ public:
     void setSelectedIndexes(vectorset<size_t>&& selected);
     void clearSelection();
 
-    // Will set selectedIndex to the new item
-    virtual bool addItem(size_t index) final;
-    virtual bool cloneItem(size_t index) final;
-
     bool cloneSelectedItems();
     bool removeSelectedItems();
 
     bool raiseSelectedItems();
     bool lowerSelectedItems();
 
+    virtual bool cloneMultipleItems(const vectorset<size_t>& indexes) = 0;
     virtual bool removeMultipleItems(const vectorset<size_t>& indexes) = 0;
     virtual bool moveMultipleItems(const vectorset<size_t>& indexes, int offset) = 0;
-
-protected:
-    virtual bool do_addItem(size_t index) = 0;
-    virtual bool do_cloneItem(size_t index) = 0;
-    virtual bool do_cloneMultipleItems(const vectorset<size_t>& indexes) = 0;
-
-private:
-    void onItemAdded(size_t index);
-    void onItemAboutToBeRemoved(size_t index);
-    void onItemMoved(size_t from, size_t to);
 
 signals:
     void selectedIndexesChanged();
@@ -164,13 +147,9 @@ public:
 
     // Will set selectedIndex to new item
     bool addItemWithName(const idstring& name);
-    bool addItemWithName(size_t index, const idstring& name);
+    virtual bool addItemWithName(size_t index, const idstring& name) = 0;
     bool cloneSelectedItemWithName(const idstring& name);
-    bool cloneItemWithName(size_t index, const idstring& name);
-
-protected:
-    virtual bool do_addItemWithName(size_t index, const idstring& name) = 0;
-    virtual bool do_cloneItemWithName(size_t index, const idstring& name) = 0;
+    virtual bool cloneItemWithName(size_t index, const idstring& name) = 0;
 
 signals:
     void nameChanged(size_t index);
@@ -282,16 +261,14 @@ public:
         return nullptr;
     }
 
+    virtual bool addItem(size_t index) final;
+    virtual bool cloneItem(size_t index) final;
     virtual bool removeItem(size_t index) final;
     virtual bool moveItem(size_t from, size_t to) final;
 
 protected:
-    virtual bool do_addItem(size_t index) final;
-    virtual bool do_cloneItem(size_t index) final;
-
-protected:
-    template <class>
-    friend class Accessor::ListUndoHelper;
+    template <class, class>
+    friend class ListUndoHelper;
     std::vector<T>* getList();
     ArgsT selectedListTuple() const;
 };
@@ -334,18 +311,16 @@ public:
         return nullptr;
     }
 
+    virtual bool addItem(size_t index) final;
+    virtual bool addItemWithName(size_t index, const idstring& name) final;
+    virtual bool cloneItem(size_t index) final;
+    virtual bool cloneItemWithName(size_t index, const idstring& name) final;
     virtual bool removeItem(size_t index) final;
     virtual bool moveItem(size_t from, size_t to) final;
 
 protected:
-    virtual bool do_addItem(size_t index) final;
-    virtual bool do_addItemWithName(size_t index, const idstring& name) final;
-    virtual bool do_cloneItem(size_t index) final;
-    virtual bool do_cloneItemWithName(size_t index, const idstring& name) final;
-
-protected:
-    template <class>
-    friend class Accessor::ListUndoHelper;
+    template <class, class>
+    friend class ListUndoHelper;
     NamedList<T>* getList();
     ArgsT selectedListTuple() const;
 };
@@ -384,16 +359,14 @@ public:
         return nullptr;
     }
 
+    virtual bool addItem(size_t index) final;
+    virtual bool cloneItem(size_t index) final;
     virtual bool removeItem(size_t index) final;
     virtual bool moveItem(size_t from, size_t to) final;
 
 protected:
-    virtual bool do_addItem(size_t index) final;
-    virtual bool do_cloneItem(size_t index) final;
-
-protected:
-    template <class>
-    friend class Accessor::ListUndoHelper;
+    template <class, class>
+    friend class ListUndoHelper;
     std::vector<T>* getList(size_t parentIndex);
     ArgsT selectedListTuple() const;
 };
@@ -421,6 +394,9 @@ public:
 
     const std::vector<T>* list(size_t parentIndex) const;
 
+    virtual bool addItem(size_t index) final;
+    virtual bool cloneItem(size_t index) final;
+    virtual bool cloneMultipleItems(const vectorset<size_t>& indexes) final;
     virtual bool removeItem(size_t index) final;
     virtual bool removeMultipleItems(const vectorset<size_t>& indexes) final;
 
@@ -428,13 +404,8 @@ public:
     virtual bool moveMultipleItems(const vectorset<size_t>& indexes, int offset) final;
 
 protected:
-    virtual bool do_addItem(size_t index) final;
-    virtual bool do_cloneItem(size_t index) final;
-    virtual bool do_cloneMultipleItems(const vectorset<size_t>& indexes) final;
-
-protected:
-    template <class>
-    friend class Accessor::ListUndoHelper;
+    template <class, class>
+    friend class ListUndoHelper;
     std::vector<T>* getList(size_t parentIndex);
     ArgsT selectedListTuple() const;
 };
