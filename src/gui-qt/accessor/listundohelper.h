@@ -27,13 +27,12 @@ public:
     using index_type = typename AccessorT::index_type;
     using ArgsT = typename AccessorT::ArgsT;
 
-protected:
+private:
     static inline QString tr(const char* s)
     {
         return QCoreApplication::tr(s);
     }
 
-private:
     class BaseCommand : public QUndoCommand {
     protected:
         AccessorT* const _accessor;
@@ -1362,8 +1361,10 @@ public:
             newValues.emplace_back(list->at(i));
         }
 
+        const QString& typeName = newIndexes.size() == 1 ? _accessor->typeName() : _accessor->typeNamePlural();
+
         return new AddMultipleCommand(_accessor, listArgs, std::move(newIndexes), std::move(newValues),
-                                      tr("Clone %1").arg(_accessor->typeNamePlural()));
+                                      tr("Clone %1").arg(typeName));
     }
 
     bool cloneMultipleItems(const vectorset<index_type>& indexes)
@@ -1397,8 +1398,10 @@ public:
             values.emplace_back(list->at(i));
         }
 
+        const QString& typeName = indexes.size() == 1 ? _accessor->typeName() : _accessor->typeNamePlural();
+
         return new RemoveMultipleCommand(_accessor, listArgs, indexes, std::move(values),
-                                         tr("Remove %1").arg(_accessor->typeNamePlural()));
+                                         tr("Remove %1").arg(typeName));
     }
 
     bool removeMultipleItems(const vectorset<index_type>& indexes)
@@ -1411,7 +1414,7 @@ public:
     }
 
     // will return nullptr if list cannot be accessed or indexes are invalid
-    QUndoCommand* moveCommand(index_type from, index_type to, const QString& text)
+    QUndoCommand* moveCommand(index_type from, index_type to)
     {
         const ArgsT listArgs = _accessor->selectedListTuple();
         const ListT* list = getList(listArgs);
@@ -1433,12 +1436,22 @@ public:
             return nullptr;
         }
 
-        return new MoveCommand(_accessor, listArgs, from, to, text);
-    }
+        const char* text = "Move %1";
+        if (to == from - 1) {
+            text = "Raise %1";
+        }
+        else if (to == 0) {
+            text = "Raise %1 To Top";
+        }
+        else if (to == from + 1) {
+            text = "Lower %1";
+        }
+        else if (to == list->size() - 1) {
+            text = "Lower %1 To Bottom";
+        }
 
-    QUndoCommand* moveCommand(index_type from, index_type to)
-    {
-        return moveCommand(from, to, tr("Move %1").arg(_accessor->typeName()));
+        return new MoveCommand(_accessor, listArgs, from, to,
+                               tr(text).arg(_accessor->typeName()));
     }
 
     bool moveItem(index_type from, index_type to)
@@ -1450,17 +1463,8 @@ public:
         return c != nullptr;
     }
 
-    bool moveItem(index_type from, index_type to, const QString& text)
-    {
-        QUndoCommand* c = moveCommand(from, to, text);
-        if (c) {
-            _accessor->resourceItem()->undoStack()->push(c);
-        }
-        return c != nullptr;
-    }
-
     // will return nullptr if list is not accessable or indexes are invalid
-    QUndoCommand* moveMultipleCommand(const vectorset<index_type>& indexes, int offset, const QString& text)
+    QUndoCommand* moveMultipleCommand(const vectorset<index_type>& indexes, int offset)
     {
         if (indexes.empty()) {
             return nullptr;
@@ -1484,22 +1488,26 @@ public:
             return nullptr;
         }
 
-        return new MoveMultipleCommand(_accessor, listArgs, indexes, offset, text);
-    }
-
-    bool moveMultipleItems(const vectorset<index_type>& indexes, int offset, const QString& text)
-    {
-        QUndoCommand* c = moveMultipleCommand(indexes, offset, text);
-        if (c) {
-            _accessor->resourceItem()->undoStack()->push(c);
+        const char* text = "Move %1";
+        if (offset == -1) {
+            text = "Raise %1";
         }
-        return c != nullptr;
+        else if (offset == +1) {
+            text = "Lower %1";
+        }
+        const QString& typeName = indexes.size() == 1 ? _accessor->typeName() : _accessor->typeNamePlural();
+
+        return new MoveMultipleCommand(_accessor, listArgs, indexes, offset,
+                                       tr(text).arg(typeName));
     }
 
     bool moveMultipleItems(const vectorset<index_type>& indexes, int offset)
     {
-        return moveMultipleItems(indexes, offset,
-                                 tr("Move %1").arg(_accessor->typeNamePlural()));
+        QUndoCommand* c = moveMultipleCommand(indexes, offset);
+        if (c) {
+            _accessor->resourceItem()->undoStack()->push(c);
+        }
+        return c != nullptr;
     }
 };
 
@@ -1576,7 +1584,7 @@ public:
     bool raiseSelectedItemToTop()
     {
         const index_type index = this->_accessor->selectedIndex();
-        return this->moveItem(index, 0, this->tr("Raise To Top"));
+        return this->moveItem(index, 0);
     }
 
     bool raiseSelectedItem()
@@ -1585,19 +1593,19 @@ public:
         if (index == 0) {
             return false;
         }
-        return this->moveItem(index, index - 1, this->tr("Raise"));
+        return this->moveItem(index, index - 1);
     }
 
     bool lowerSelectedItem()
     {
         const index_type index = this->_accessor->selectedIndex();
-        return this->moveItem(index, index + 1, this->tr("Lower"));
+        return this->moveItem(index, index + 1);
     }
 
     bool lowerSelectedItemToBottom()
     {
         const index_type index = this->_accessor->selectedIndex();
-        return this->moveItem(index, INT_MAX, this->tr("Lower To Bottom"));
+        return this->moveItem(index, INT_MAX);
     }
 };
 
@@ -1606,12 +1614,6 @@ class ListAndMultipleSelectionUndoHelper : public ListUndoHelper<AccessorT> {
 
 public:
     using index_type = typename AccessorT::index_type;
-
-private:
-    static inline QString tr(const char* s)
-    {
-        return QCoreApplication::tr(s);
-    }
 
 public:
     ListAndMultipleSelectionUndoHelper(AccessorT* accessor)
@@ -1650,14 +1652,12 @@ public:
 
     bool raiseSelectedItems()
     {
-        return this->moveMultipleItems(this->_accessor->selectedIndexes(), -1,
-                                       tr("Raise %1").arg(this->_accessor->typeNamePlural()));
+        return this->moveMultipleItems(this->_accessor->selectedIndexes(), -1);
     }
 
     bool lowerSelectedItems()
     {
-        return this->moveMultipleItems(this->_accessor->selectedIndexes(), +1,
-                                       tr("Lower %1").arg(this->_accessor->typeNamePlural()));
+        return this->moveMultipleItems(this->_accessor->selectedIndexes(), +1);
     }
 };
 }
