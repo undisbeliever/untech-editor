@@ -31,6 +31,8 @@ public:
     using index_type = size_t;
     using ArgsT = std::tuple<>;
 
+    using UndoHelper = Accessor::ListUndoHelper<SmallTileTileset>;
+
     constexpr static index_type maxSize() { return 256; }
 
 private:
@@ -81,6 +83,8 @@ public:
     using ListT = Snes::TilesetTile16;
     using index_type = size_t;
     using ArgsT = std::tuple<>;
+
+    using UndoHelper = Accessor::ListUndoHelper<LargeTileTileset>;
 
 private:
     Document* const _document;
@@ -154,6 +158,9 @@ signals:
 
 class FrameList : public Accessor::NamedListAccessor<MS::Frame, Document> {
     Q_OBJECT
+
+public:
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<FrameList>;
 
     using SpriteOrderType = UnTech::MetaSprite::SpriteOrderType;
 

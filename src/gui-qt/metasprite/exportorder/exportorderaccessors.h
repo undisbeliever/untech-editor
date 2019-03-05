@@ -30,6 +30,8 @@ public:
     using ArgsT = std::tuple<bool>;
     using SignalArgsT = ArgsT;
 
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<ExportNameList>;
+
     constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_EXPORT_NAMES; }
 
 private:
@@ -107,6 +109,8 @@ public:
     using index_type = ListT::size_type;
     using ArgsT = std::tuple<bool, index_type>;
     using SignalArgsT = ArgsT;
+
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<AlternativesList>;
 
     constexpr static index_type maxSize() { return 256; }
 

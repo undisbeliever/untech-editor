@@ -63,6 +63,8 @@ public:
     using selection_type = upoint_vectorset;
     using ArgsT = std::tuple<>;
 
+    using UndoHelper = Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
+
     static UnTech::usize maxSize() { return usize(255, 255); }
 
 private:

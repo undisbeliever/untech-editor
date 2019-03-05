@@ -10,12 +10,9 @@
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/graphics/resizableaabbgraphicsitem.h"
 
-using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 using ObjectSize = UnTech::MetaSprite::ObjectSize;
-
-using FrameSetUndoHelper = ResourceItemUndoHelper<Document>;
 
 bool Document::editFrameSet_setName(const idstring& name)
 {
@@ -23,12 +20,12 @@ bool Document::editFrameSet_setName(const idstring& name)
         return false;
     }
 
-    return FrameSetUndoHelper(this).editName(name);
+    return UndoHelper(this).editName(name);
 }
 
 bool Document::editFrameSet_setTilesetType(TilesetType ts)
 {
-    return FrameSetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         ts,
         tr("Edit Tileset Type"),
         [](SI::FrameSet& fs) -> TilesetType& { return fs.tilesetType; },
@@ -37,7 +34,7 @@ bool Document::editFrameSet_setTilesetType(TilesetType ts)
 
 bool Document::editFrameSet_setExportOrder(const UnTech::idstring& exportOrder)
 {
-    return FrameSetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         exportOrder,
         tr("Edit Export Order"),
         [](SI::FrameSet& fs) -> idstring& { return fs.exportOrder; },
@@ -47,7 +44,7 @@ bool Document::editFrameSet_setExportOrder(const UnTech::idstring& exportOrder)
 
 bool Document::editFrameSet_setImageFilename(const std::string& filename)
 {
-    return FrameSetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         filename,
         tr("Change Image"),
         [](SI::FrameSet& fs) -> std::string& { return fs.imageFilename; },
@@ -59,7 +56,7 @@ bool Document::editFrameSet_setImageFilename(const std::string& filename)
 
 bool Document::editFrameSet_setTransparentColor(const UnTech::rgba& color)
 {
-    return FrameSetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         color,
         tr("Edit Transparent Color"),
         [](SI::FrameSet& fs) -> rgba& { return fs.transparentColor; },
@@ -68,7 +65,7 @@ bool Document::editFrameSet_setTransparentColor(const UnTech::rgba& color)
 
 bool Document::editFrameSet_setGrid(const SI::FrameSetGrid& grid)
 {
-    return FrameSetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         grid,
         tr("Edit FrameSet Grid"),
         [](SI::FrameSet& fs) -> SI::FrameSetGrid& { return fs.grid; },
@@ -79,7 +76,7 @@ bool Document::editFrameSet_setGrid(const SI::FrameSetGrid& grid)
 
 bool Document::editFrameSet_setPalette(const SI::UserSuppliedPalette& palette)
 {
-    return FrameSetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         palette,
         tr("Edit FrameSet Palette"),
         [](SI::FrameSet& fs) -> SI::UserSuppliedPalette& { return fs.palette; },
@@ -87,11 +84,9 @@ bool Document::editFrameSet_setPalette(const SI::UserSuppliedPalette& palette)
                           emit d.frameSetDataChanged(); });
 }
 
-using FrameListUndoHelper = ListAndSelectionUndoHelper<FrameList>;
-
 bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 {
-    return FrameListUndoHelper(this).editSelectedItemField(
+    return UndoHelper(this).editSelectedItemField(
         spriteOrder,
         tr("Edit Sprite Order"),
         [](SI::Frame& f) -> SpriteOrderType& { return f.spriteOrder; });
@@ -99,7 +94,7 @@ bool FrameList::editSelected_setSpriteOrder(SpriteOrderType spriteOrder)
 
 bool FrameList::editSelected_setFrameLocation(SI::FrameLocation& frameLocation)
 {
-    return FrameListUndoHelper(this).editSelectedItemField(
+    return UndoHelper(this).editSelectedItemField(
         frameLocation,
         tr("Edit Frame Location"),
         [](SI::Frame& f) -> SI::FrameLocation& { return f.location; },
@@ -108,7 +103,7 @@ bool FrameList::editSelected_setFrameLocation(SI::FrameLocation& frameLocation)
 
 bool FrameList::editSelected_setSolid(bool solid)
 {
-    return FrameListUndoHelper(this).editSelectedItemField(
+    return UndoHelper(this).editSelectedItemField(
         solid,
         solid ? tr("Enable Tile Hitbox") : tr("Disable Tile Hitbox"),
         [](SI::Frame& f) -> bool& { return f.solid; });
@@ -126,19 +121,15 @@ bool FrameList::editSelected_toggleTileHitbox()
 
 bool FrameList::editSelected_setTileHitbox(const urect& hitbox)
 {
-    return FrameListUndoHelper(this).editSelectedItemMultipleFields(
+    return UndoHelper(this).editSelectedItemMultipleFields(
         std::make_tuple(true, hitbox),
         tr("Edit Tile Hitbox"),
         [](SI::Frame& f) { return std::tie(f.solid, f.tileHitbox); });
 }
 
-using FrameObjectListUndoHelper = ListAndMultipleSelectionUndoHelper<FrameObjectList>;
-template class UnTech::GuiQt::Accessor::ListAndMultipleSelectionUndoHelper<FrameObjectList>;
-// Remember SiGraphicsScene::commitMovedItems
-
 bool FrameObjectList::editSelectedList_setLocation(unsigned index, const upoint& location)
 {
-    return FrameObjectListUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         index, location,
         tr("Edit Object Location"),
         [](SI::FrameObject& obj) -> upoint& { return obj.location; });
@@ -151,7 +142,7 @@ bool FrameObjectList::editSelectedList_setSize(unsigned index, FrameObjectList::
         return false;
     }
 
-    return FrameObjectListUndoHelper(this).editItem(
+    return UndoHelper(this).editItem(
         index,
         tr("Edit Object Size"),
         [&](SI::FrameObject& obj) {
@@ -173,7 +164,7 @@ bool FrameObjectList::editSelected_toggleObjectSize()
     const SI::Frame* frame = resourceItem()->frameList()->selectedItem();
     Q_ASSERT(frame);
 
-    return FrameObjectListUndoHelper(this).editSelectedItems(
+    return UndoHelper(this).editSelectedItems(
         tr("Change Object Size"),
         [&](SI::FrameObject& obj, size_t) {
             obj.size = (obj.size == ObjSize::SMALL) ? ObjSize::LARGE : ObjSize::SMALL;
@@ -187,12 +178,9 @@ bool FrameObjectList::editSelected_toggleObjectSize()
         });
 }
 
-using ActionPointListUndoHelper = ListAndMultipleSelectionUndoHelper<ActionPointList>;
-// Remember SiGraphicsScene::commitMovedItems
-
 bool ActionPointList::editSelectedList_setLocation(unsigned index, const upoint& location)
 {
-    return ActionPointListUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         index, location,
         tr("Edit Action Point Location"),
         [](SI::ActionPoint& ap) -> upoint& { return ap.location; });
@@ -200,18 +188,15 @@ bool ActionPointList::editSelectedList_setLocation(unsigned index, const upoint&
 
 bool ActionPointList::editSelectedList_setParameter(unsigned index, ActionPointList::ParameterType parameter)
 {
-    return ActionPointListUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         index, parameter,
         tr("Edit Action Point Parameter"),
         [](SI::ActionPoint& ap) -> ParameterType& { return ap.parameter; });
 }
 
-using EntityHitboxListUndoHelper = ListAndMultipleSelectionUndoHelper<EntityHitboxList>;
-// Remember SiGraphicsScene::commitMovedItems
-
 bool EntityHitboxList::editSelectedList_setAabb(unsigned index, const urect& aabb)
 {
-    return EntityHitboxListUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         index, aabb,
         tr("Edit Entity Hitbox AABB"),
         [](SI::EntityHitbox& eh) -> urect& { return eh.aabb; });
@@ -219,7 +204,7 @@ bool EntityHitboxList::editSelectedList_setAabb(unsigned index, const urect& aab
 
 bool EntityHitboxList::editSelectedList_setEntityHitboxType(unsigned index, EntityHitboxList::EntityHitboxType type)
 {
-    return EntityHitboxListUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         index, type,
         tr("Edit Entity Hitbox Type"),
         [](SI::EntityHitbox& eh) -> EntityHitboxType& { return eh.hitboxType; });
@@ -227,7 +212,7 @@ bool EntityHitboxList::editSelectedList_setEntityHitboxType(unsigned index, Enti
 
 bool EntityHitboxList::editSelected_setEntityHitboxType(EntityHitboxType type)
 {
-    return EntityHitboxListUndoHelper(this).setFieldInSelectedItems(
+    return UndoHelper(this).setFieldInSelectedItems(
         type,
         tr("Change Entity Hitbox Type"),
         [](SI::EntityHitbox& eh) -> EntityHitboxType& { return eh.hitboxType; });
@@ -250,7 +235,7 @@ void SiGraphicsScene::commitMovedItems()
 
     if (_document->frameList()->isTileHitboxSelected()) {
         urect hitbox = frameItem->tileHitbox()->rectUrect();
-        auto* c = FrameListUndoHelper(_document->frameList())
+        auto* c = FrameList::UndoHelper(_document->frameList())
                       .editSelectedItemFieldCommand(hitbox, QString(),
                                                     [](SI::Frame& f) -> urect& { return f.tileHitbox; });
         if (c != nullptr) {
@@ -259,21 +244,21 @@ void SiGraphicsScene::commitMovedItems()
     }
 
     commands.append(
-        FrameObjectListUndoHelper(_document->frameObjectList())
+        FrameObjectList::UndoHelper(_document->frameObjectList())
             .editSelectedItemsCommand(
                 QString(),
                 [&](SI::FrameObject& obj, size_t i) {
                     obj.location = objects.at(i)->posUpoint();
                 }));
     commands.append(
-        ActionPointListUndoHelper(_document->actionPointList())
+        ActionPointList::UndoHelper(_document->actionPointList())
             .editSelectedItemsCommand(
                 QString(),
                 [&](SI::ActionPoint& ap, size_t i) {
                     ap.location = actionPoints.at(i)->posUpoint();
                 }));
     commands.append(
-        EntityHitboxListUndoHelper(_document->entityHitboxList())
+        EntityHitboxList::UndoHelper(_document->entityHitboxList())
             .editSelectedItemsCommand(
                 QString(),
                 [&](SI::EntityHitbox& eh, size_t i) {

@@ -9,19 +9,16 @@
 #include "gui-qt/accessor/gridundohelper.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 
-using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaTiles;
-
-using TilesetUndoHelper = UnTech::GuiQt::Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
 
 bool MtTilesetResourceItem::editTileset_setName(const UnTech::idstring& name)
 {
-    return TilesetUndoHelper(this).editName(name);
+    return UndoHelper(this).editName(name);
 }
 
 bool MtTilesetResourceItem::editTileset_setPalettes(const std::vector<UnTech::idstring>& palettes)
 {
-    return TilesetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         palettes,
         tr("Edit Palette List"),
         [](MT::MetaTileTilesetInput& ti) -> std::vector<idstring>& { return ti.palettes; },
@@ -32,7 +29,7 @@ bool MtTilesetResourceItem::editTileset_setPalettes(const std::vector<UnTech::id
 
 bool MtTilesetResourceItem::editTileset_setFrameImageFilenames(const std::vector<std::string>& images)
 {
-    return TilesetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         images,
         tr("Edit Frame Image List"),
         [](MT::MetaTileTilesetInput& ti) -> std::vector<std::string>& { return ti.animationFrames.frameImageFilenames; },
@@ -42,7 +39,7 @@ bool MtTilesetResourceItem::editTileset_setFrameImageFilenames(const std::vector
 
 bool MtTilesetResourceItem::editTileset_setAnimationDelay(unsigned delay)
 {
-    return TilesetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         delay,
         tr("Edit Animation Delay"),
         [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.animationDelay; },
@@ -52,7 +49,7 @@ bool MtTilesetResourceItem::editTileset_setAnimationDelay(unsigned delay)
 
 bool MtTilesetResourceItem::editTileset_setBitDepth(unsigned bitDepth)
 {
-    return TilesetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         bitDepth,
         tr("Edit Bit Depth"),
         [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.bitDepth; },
@@ -61,20 +58,16 @@ bool MtTilesetResourceItem::editTileset_setBitDepth(unsigned bitDepth)
 
 bool MtTilesetResourceItem::editTileset_setAddTransparentTile(bool addTransparentTile)
 {
-    return TilesetUndoHelper(this).editField(
+    return UndoHelper(this).editField(
         addTransparentTile,
         tr("Edit Add Transparent Tile"),
         [](MT::MetaTileTilesetInput& ti) -> bool& { return ti.animationFrames.addTransparentTile; },
         [](MtTilesetResourceItem& item) { emit item.tilesetPropertiesChanged(); });
 }
 
-using MtTilesetScratchpadGridUndoHelper = GridUndoHelper<MtTilesetScratchpadGrid>;
-
-template class UnTech::GuiQt::Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
-
 bool MtTilesetScratchpadGrid::editGrid_resizeGrid(const usize& size)
 {
-    return MtTilesetScratchpadGridUndoHelper(this).resizeGrid(
+    return UndoHelper(this).resizeGrid(
         size, MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE,
         tr("Resize scratchpad"));
 }
@@ -87,7 +80,7 @@ bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const G
     }
     const unsigned nMetaTiles = data->nMetaTiles();
 
-    return MtTilesetScratchpadGridUndoHelper(this).editCellsWithCroppingAndCellTest(
+    return UndoHelper(this).editCellsWithCroppingAndCellTest(
         location, tiles,
         tr("Place Tiles"),
         [&](const uint16_t& t) { return t < nMetaTiles; });

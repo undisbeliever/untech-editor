@@ -32,6 +32,8 @@ class Document : public AbstractMsDocument {
 public:
     using DataT = MS::FrameSet;
 
+    using UndoHelper = Accessor::ResourceItemUndoHelper<Document>;
+
     using TilesetType = UnTech::MetaSprite::TilesetType;
 
 public:

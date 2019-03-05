@@ -8,7 +8,6 @@
 
 #include "entityromentriesresourceitem.h"
 #include "gui-qt/accessor/abstractaccessors.h"
-#include "gui-qt/accessor/accessor.h"
 #include "gui-qt/project.h"
 #include "models/entity/entityromdata.h"
 #include "models/project/project.h"
@@ -22,6 +21,8 @@ namespace EN = UnTech::Entity;
 
 class EntityRomEntriesList : public Accessor::NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem> {
     Q_OBJECT
+
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<EntityRomEntriesList>;
 
 private:
     const bool _entityList;

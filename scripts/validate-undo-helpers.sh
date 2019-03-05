@@ -6,6 +6,7 @@
 #  * NOT inside a file called undo.cpp
 INVALID_UNDO_HELPERS=$(grep -i -r 'UndoHelper' src/ |
                        grep -v -E 'friend class[[:space:]][^[:space:]]+UndoHelper' |
+                       grep -v -E 'using UndoHelper =' |
                        grep -v '^src/gui-qt/accessor/' |
                        grep -v '^[^:]*/undo.cpp:' )
 

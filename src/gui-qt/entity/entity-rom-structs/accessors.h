@@ -23,6 +23,8 @@ namespace EN = UnTech::Entity;
 class EntityRomStructList : public Accessor::NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem> {
     Q_OBJECT
 
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<EntityRomStructList>;
+
 public:
     EntityRomStructList(EntityRomStructsResourceItem* resourceItem);
     ~EntityRomStructList() = default;

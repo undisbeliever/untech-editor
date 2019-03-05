@@ -10,16 +10,15 @@
 #include "gui-qt/project.h"
 #include "models/project/project.h"
 
-using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::ProjectSettings;
 
 namespace PRO = UnTech::Project;
 
-using SettingsUndoHelper = ResourceItemUndoHelper<ProjectSettingsResourceItem>;
+using UndoHelper = UnTech::GuiQt::Accessor::ResourceItemUndoHelper<ProjectSettingsResourceItem>;
 
 bool ProjectSettingsPropertyManager::editBlockSettings_setSize(unsigned blockSize)
 {
-    return SettingsUndoHelper(_item).editField(
+    return UndoHelper(_item).editField(
         blockSize,
         tr("Edit Block Size"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.size; });
@@ -27,7 +26,7 @@ bool ProjectSettingsPropertyManager::editBlockSettings_setSize(unsigned blockSiz
 
 bool ProjectSettingsPropertyManager::editBlockSettings_setCount(unsigned blockCount)
 {
-    return SettingsUndoHelper(_item).editField(
+    return UndoHelper(_item).editField(
         blockCount,
         tr("Edit Block Count"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.count; });
@@ -35,7 +34,7 @@ bool ProjectSettingsPropertyManager::editBlockSettings_setCount(unsigned blockCo
 
 bool ProjectSettingsPropertyManager::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
 {
-    return SettingsUndoHelper(_item).editField(
+    return UndoHelper(_item).editField(
         maxMapSize,
         tr("Edit MetaTile Max Map Size"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.maxMapSize; });
@@ -43,7 +42,7 @@ bool ProjectSettingsPropertyManager::editMetaTileSettings_setMaxMapSize(unsigned
 
 bool ProjectSettingsPropertyManager::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
 {
-    return SettingsUndoHelper(_item).editField(
+    return UndoHelper(_item).editField(
         nMetaTiles,
         tr("Edit Number of MetaTiles"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.nMetaTiles; });
@@ -51,7 +50,7 @@ bool ProjectSettingsPropertyManager::editMetaTileSettings_setNMetaTiles(unsigned
 
 bool ProjectSettingsPropertyManager::editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds)
 {
-    return SettingsUndoHelper(_item).editField(
+    return UndoHelper(_item).editField(
         listIds,
         tr("Edit EntityListIds"),
         [](PRO::ProjectFile& pf) -> std::vector<idstring>& { return pf.entityRomData.listIds; },

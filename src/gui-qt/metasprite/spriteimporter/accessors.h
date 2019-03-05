@@ -21,6 +21,9 @@ namespace SpriteImporter {
 class FrameList : public Accessor::NamedListAccessor<SI::Frame, Document> {
     Q_OBJECT
 
+public:
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<FrameList>;
+
     using SpriteOrderType = UnTech::MetaSprite::SpriteOrderType;
 
 private:
@@ -46,7 +49,6 @@ public:
 
     // ::TODO remove::
 protected:
-    friend class AbstractFrameContentAccessor;
     SI::Frame* selectedItemEditable();
 
 signals:

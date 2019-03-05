@@ -22,6 +22,8 @@ namespace RES = UnTech::Resources;
 class PaletteResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
 
+    using UndoHelper = Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
+
 public:
     using DataT = RES::PaletteInput;
 

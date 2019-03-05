@@ -20,6 +20,10 @@ class AbstractResourceItem;
 namespace Accessor {
 template <class T>
 class ListUndoHelper;
+template <class T>
+class ListAndSelectionUndoHelper;
+template <class T>
+class ListAndMultipleSelectionUndoHelper;
 
 class AbstractListAccessor : public QObject {
     Q_OBJECT
@@ -251,6 +255,8 @@ public:
     using ArgsT = ::std::tuple<>;
     using SignalArgsT = ArgsT;
 
+    using UndoHelper = ListAndSelectionUndoHelper<VectorSingleSelectionAccessor>;
+
 private:
     ResourceItemT* const _resourceItem;
 
@@ -298,6 +304,8 @@ public:
     using index_type = size_t;
     using ArgsT = ::std::tuple<>;
     using SignalArgsT = ArgsT;
+
+    using UndoHelper = ListAndSelectionUndoHelper<NamedListAccessor>;
 
 public:
     NamedListAccessor(ResourceItemT* resourceItem, size_t maxSize);
@@ -351,6 +359,8 @@ public:
     using ArgsT = ::std::tuple<size_t>;
     using SignalArgsT = ArgsT;
 
+    using UndoHelper = ListAndSelectionUndoHelper<ChildVectorAccessor>;
+
 public:
     ChildVectorAccessor(AbstractListSingleSelectionAccessor* parentAccessor, ResourceItemT* resourceItem, size_t maxSize);
     ~ChildVectorAccessor() = default;
@@ -396,6 +406,8 @@ public:
     using index_type = size_t;
     using ArgsT = ::std::tuple<size_t>;
     using SignalArgsT = ArgsT;
+
+    using UndoHelper = ListAndMultipleSelectionUndoHelper<ChildVectorMultipleSelectionAccessor>;
 
 public:
     ChildVectorMultipleSelectionAccessor(AbstractListSingleSelectionAccessor* parentAccessor, ResourceItemT* resourceItem, size_t maxSize);
