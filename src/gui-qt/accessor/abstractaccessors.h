@@ -285,7 +285,8 @@ protected:
     virtual bool do_cloneItem(size_t index) final;
 
 protected:
-    friend class ListUndoHelper<VectorSingleSelectionAccessor>;
+    template <class>
+    friend class Accessor::ListUndoHelper;
     std::vector<T>* getList();
     ArgsT selectedListTuple() const;
 };
@@ -336,7 +337,8 @@ protected:
     virtual bool do_cloneItemWithName(size_t index, const idstring& name) final;
 
 protected:
-    friend class Accessor::ListUndoHelper<NamedListAccessor>;
+    template <class>
+    friend class Accessor::ListUndoHelper;
     NamedList<T>* getList();
     ArgsT selectedListTuple() const;
 };
@@ -381,7 +383,8 @@ protected:
     virtual bool do_cloneItem(size_t index) final;
 
 protected:
-    friend class ListUndoHelper<ChildVectorAccessor>;
+    template <class>
+    friend class Accessor::ListUndoHelper;
     std::vector<T>* getList(size_t parentIndex);
     ArgsT selectedListTuple() const;
 };
@@ -419,7 +422,8 @@ protected:
     virtual bool do_cloneMultipleItems(const vectorset<size_t>& indexes) final;
 
 protected:
-    friend class Accessor::ListUndoHelper<ChildVectorMultipleSelectionAccessor>;
+    template <class>
+    friend class Accessor::ListUndoHelper;
     std::vector<T>* getList(size_t parentIndex);
     ArgsT selectedListTuple() const;
 };

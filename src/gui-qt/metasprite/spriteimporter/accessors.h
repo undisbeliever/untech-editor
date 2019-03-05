@@ -21,7 +21,6 @@ namespace SpriteImporter {
 class FrameList : public Accessor::NamedListAccessor<SI::Frame, Document> {
     Q_OBJECT
 
-    friend class Accessor::ListUndoHelper<FrameList>;
     using SpriteOrderType = UnTech::MetaSprite::SpriteOrderType;
 
 private:
@@ -58,8 +57,6 @@ signals:
 class FrameObjectList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::FrameObject, Document> {
     Q_OBJECT
 
-    friend class Accessor::ListUndoHelper<FrameObjectList>;
-
     using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
 public:
@@ -78,8 +75,6 @@ public:
 class ActionPointList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::ActionPoint, Document> {
     Q_OBJECT
 
-    friend class Accessor::ListUndoHelper<ActionPointList>;
-
     using ParameterType = UnTech::MetaSprite::ActionPointParameter;
 
 public:
@@ -95,8 +90,6 @@ public:
 
 class EntityHitboxList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, Document> {
     Q_OBJECT
-
-    friend class Accessor::ListUndoHelper<EntityHitboxList>;
 
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 

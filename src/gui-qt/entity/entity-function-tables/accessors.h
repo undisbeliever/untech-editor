@@ -23,8 +23,6 @@ namespace EN = UnTech::Entity;
 class EntityFunctionTableList : public Accessor::NamedListAccessor<EN::EntityFunctionTable, EntityFunctionTablesResourceItem> {
     Q_OBJECT
 
-    friend class Accessor::ListUndoHelper<EntityFunctionTableList>;
-
 public:
     EntityFunctionTableList(EntityFunctionTablesResourceItem* resourceItem);
     ~EntityFunctionTableList() = default;

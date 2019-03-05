@@ -123,8 +123,6 @@ protected:
 class PaletteList : public Accessor::VectorSingleSelectionAccessor<UnTech::Snes::Palette4bpp, Document> {
     Q_OBJECT
 
-    friend class Accessor::ListUndoHelper<PaletteList>;
-
 private:
     unsigned _selectedColor;
 
@@ -153,8 +151,6 @@ signals:
 
 class FrameList : public Accessor::NamedListAccessor<MS::Frame, Document> {
     Q_OBJECT
-
-    friend class Accessor::ListUndoHelper<FrameList>;
 
     using SpriteOrderType = UnTech::MetaSprite::SpriteOrderType;
 
@@ -186,8 +182,6 @@ signals:
 class FrameObjectList : public Accessor::ChildVectorMultipleSelectionAccessor<MS::FrameObject, Document> {
     Q_OBJECT
 
-    friend class Accessor::ListUndoHelper<FrameObjectList>;
-
     using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
 public:
@@ -218,8 +212,6 @@ protected:
 class ActionPointList : public Accessor::ChildVectorMultipleSelectionAccessor<MS::ActionPoint, Document> {
     Q_OBJECT
 
-    friend class Accessor::ListUndoHelper<ActionPointList>;
-
     using ParameterType = UnTech::MetaSprite::ActionPointParameter;
 
 public:
@@ -235,8 +227,6 @@ public:
 
 class EntityHitboxList : public Accessor::ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, Document> {
     Q_OBJECT
-
-    friend class Accessor::ListUndoHelper<EntityHitboxList>;
 
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 

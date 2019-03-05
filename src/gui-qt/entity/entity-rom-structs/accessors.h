@@ -23,8 +23,6 @@ namespace EN = UnTech::Entity;
 class EntityRomStructList : public Accessor::NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem> {
     Q_OBJECT
 
-    friend class Accessor::ListUndoHelper<EntityRomStructList>;
-
 public:
     EntityRomStructList(EntityRomStructsResourceItem* resourceItem);
     ~EntityRomStructList() = default;
@@ -41,8 +39,6 @@ signals:
 
 class EntityRomStructFieldList : public Accessor::ChildVectorAccessor<EN::StructField, EntityRomStructsResourceItem> {
     Q_OBJECT
-
-    friend class Accessor::ListUndoHelper<EntityRomStructFieldList>;
 
 public:
     EntityRomStructFieldList(EntityRomStructList* resourceItem);

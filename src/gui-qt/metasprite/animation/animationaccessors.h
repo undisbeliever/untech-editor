@@ -20,8 +20,6 @@ namespace Animation {
 class AnimationsList : public Accessor::NamedListAccessor<MSA::Animation, AbstractMsDocument> {
     Q_OBJECT
 
-    friend class Accessor::ListUndoHelper<AnimationsList>;
-
 public:
     AnimationsList(AbstractMsDocument* document);
     ~AnimationsList() = default;
@@ -37,8 +35,6 @@ public:
 
 class AnimationFramesList : public Accessor::ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument> {
     Q_OBJECT
-
-    friend class Accessor::ListUndoHelper<AnimationFramesList>;
 
 public:
     AnimationFramesList(AbstractMsDocument* document);
