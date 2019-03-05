@@ -18,11 +18,6 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
-template <class T>
-class ListAndSelectionUndoHelper;
-template <class T>
-class ListAndMultipleSelectionUndoHelper;
-
 template <class AccessorT>
 class ListUndoHelper {
 
@@ -32,15 +27,13 @@ public:
     using index_type = typename AccessorT::index_type;
     using ArgsT = typename AccessorT::ArgsT;
 
-    friend class ListAndSelectionUndoHelper<AccessorT>;
-    friend class ListAndMultipleSelectionUndoHelper<AccessorT>;
-
-private:
+protected:
     static inline QString tr(const char* s)
     {
         return QCoreApplication::tr(s);
     }
 
+private:
     class BaseCommand : public QUndoCommand {
     protected:
         AccessorT* const _accessor;
@@ -849,7 +842,7 @@ private:
         }
     };
 
-private:
+protected:
     AccessorT* const _accessor;
 
 public:
@@ -1247,11 +1240,13 @@ public:
         if (list == nullptr) {
             return nullptr;
         }
-        if (index < 0 || index > list->size()) {
+        if (index < 0
+            || list->size() >= _accessor->maxSize()) {
+
             return nullptr;
         }
-        if (list->size() >= _accessor->maxSize()) {
-            return nullptr;
+        if (index > list->size()) {
+            index = list->size();
         }
 
         return new AddCommand(_accessor, listArgs, index, item, text);
@@ -1280,11 +1275,7 @@ public:
 
     bool addItem()
     {
-        const ListT* list = getList(_accessor->selectedListTuple());
-        if (list == nullptr) {
-            return false;
-        }
-        return addItem(list->size());
+        return addItem(INT_MAX);
     }
 
     // will return nullptr if list cannot be accessed,
@@ -1427,13 +1418,18 @@ public:
         if (list == nullptr) {
             return nullptr;
         }
+        if (list->empty()
+            || from < 0
+            || to < 0) {
+            return nullptr;
+        }
+        if (from >= list->size()) {
+            from = list->size() - 1;
+        }
+        if (to >= list->size()) {
+            to = list->size() - 1;
+        }
         if (from == to) {
-            return nullptr;
-        }
-        if (from < 0 || from >= list->size()) {
-            return nullptr;
-        }
-        if (to < 0 || to >= list->size()) {
             return nullptr;
         }
 
@@ -1511,9 +1507,7 @@ template <class AccessorT>
 class ListAndSelectionUndoHelper : public ListUndoHelper<AccessorT> {
 public:
     using DataT = typename AccessorT::DataT;
-    using ListT = typename AccessorT::ListT;
     using index_type = typename AccessorT::index_type;
-    using ArgsT = typename AccessorT::ArgsT;
 
 public:
     ListAndSelectionUndoHelper(AccessorT* accessor)
@@ -1602,18 +1596,8 @@ public:
 
     bool lowerSelectedItemToBottom()
     {
-        const ArgsT listArgs = this->selectedListTuple();
-        const ListT* list = this->getList(listArgs);
-        if (list == nullptr) {
-            return false;
-        }
-
         const index_type index = this->_accessor->selectedIndex();
-        index_type listSize = list->size();
-        if (listSize < 2) {
-            return false;
-        }
-        return this->moveItem(index, listSize - 1, this->tr("Lower To Bottom"));
+        return this->moveItem(index, INT_MAX, this->tr("Lower To Bottom"));
     }
 };
 
@@ -1621,7 +1605,6 @@ template <class AccessorT>
 class ListAndMultipleSelectionUndoHelper : public ListUndoHelper<AccessorT> {
 
 public:
-    using ListT = typename AccessorT::ListT;
     using index_type = typename AccessorT::index_type;
 
 private:

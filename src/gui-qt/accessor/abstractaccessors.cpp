@@ -138,11 +138,7 @@ bool AbstractListSingleSelectionAccessor::lowerSelectedItem()
 
 bool AbstractListSingleSelectionAccessor::lowerSelectedItemToBottom()
 {
-    auto s = size();
-    if (s == 0) {
-        return false;
-    }
-    return moveItem(_selectedIndex, s - 1);
+    return moveItem(_selectedIndex, INT_MAX);
 }
 
 AbstractListMultipleSelectionAccessor::AbstractListMultipleSelectionAccessor(AbstractResourceItem* resourceItem, size_t maxSize)
