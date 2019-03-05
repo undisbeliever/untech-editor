@@ -183,7 +183,7 @@ void NamedListView::onAddTriggered()
     if (_accessor == nullptr) {
         return;
     }
-    if (_accessor->isSelectedIndexValid() == false) {
+    if (_accessor->listExists() == false) {
         return;
     }
 
