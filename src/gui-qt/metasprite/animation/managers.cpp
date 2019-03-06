@@ -143,7 +143,7 @@ bool AnimationManager::setData(int id, const QVariant& value)
 }
 
 AnimationFramesManager::AnimationFramesManager(QObject* parent)
-    : PropertyTableManager(parent)
+    : Accessor::ListAccessorTableManager(parent)
     , _document(nullptr)
 {
     using Type = PropertyType;
@@ -158,44 +158,13 @@ AnimationFramesManager::AnimationFramesManager(QObject* parent)
 
 void AnimationFramesManager::setDocument(AbstractMsDocument* document)
 {
-    if (_document) {
-        _document->disconnect(this);
-        _document->animationsList()->disconnect(this);
-        _document->animationFramesList()->disconnect(this);
-    }
     _document = document;
-
-    emit dataReset();
-
-    if (_document) {
-        onSelectedAnimationChanged();
-
-        connect(_document->animationsList(), &AnimationsList::dataChanged,
-                this, &AnimationFramesManager::onAnimationDataChanged);
-
-        connect(_document->animationFramesList(), &AnimationFramesList::listReset,
-                this, &AnimationFramesManager::onSelectedAnimationChanged);
-
-        connect(_document->animationFramesList(), &AnimationFramesList::dataChanged,
-                this, &AnimationFramesManager::onAnimationFrameChanged);
-        connect(_document->animationFramesList(), &AnimationFramesList::itemAdded,
-                this, &AnimationFramesManager::onAnimationFrameAdded);
-        connect(_document->animationFramesList(), &AnimationFramesList::itemAboutToBeRemoved,
-                this, &AnimationFramesManager::onAnimationFrameAboutToBeRemoved);
-        connect(_document->animationFramesList(), &AnimationFramesList::itemMoved,
-                this, &AnimationFramesManager::onAnimationFrameMoved);
-
-        connect(_document->animationFramesList(), &AnimationFramesList::listAboutToChange,
-                this, &AnimationFramesManager::listAboutToChange);
-    }
+    setAccessor(document ? document->animationFramesList() : nullptr);
 }
 
-const MSA::Animation* AnimationFramesManager::selectedAnimation() const
+inline const MSA::Animation* AnimationFramesManager::selectedAnimation() const
 {
-    if (_document == nullptr) {
-        return nullptr;
-    }
-    return _document->animationsList()->selectedItem();
+    return _document ? _document->animationsList()->selectedItem() : nullptr;
 }
 
 void AnimationFramesManager::updateParameters(int index, int id, QVariant& param1, QVariant& param2) const
@@ -220,62 +189,6 @@ void AnimationFramesManager::updateParameters(int index, int id, QVariant& param
     case PropertyId::DURATION_STRING:
         break;
     };
-}
-
-void AnimationFramesManager::onSelectedAnimationChanged()
-{
-    emit dataReset();
-}
-
-void AnimationFramesManager::onAnimationDataChanged(size_t animationIndex)
-{
-    Q_ASSERT(_document);
-    if (animationIndex == _document->animationsList()->selectedIndex()) {
-        emit dataChanged();
-    }
-}
-
-void AnimationFramesManager::onAnimationFrameChanged(size_t animationIndex, unsigned index)
-{
-    Q_ASSERT(_document);
-    if (animationIndex == _document->animationsList()->selectedIndex()) {
-        emit itemChanged(index);
-    }
-}
-
-void AnimationFramesManager::onAnimationFrameAdded(size_t animationIndex, unsigned index)
-{
-    Q_ASSERT(_document);
-    if (animationIndex == _document->animationsList()->selectedIndex()) {
-        emit itemAdded(index);
-    }
-}
-
-void AnimationFramesManager::onAnimationFrameAboutToBeRemoved(size_t animationIndex, unsigned index)
-{
-    Q_ASSERT(_document);
-    if (animationIndex == _document->animationsList()->selectedIndex()) {
-        emit itemRemoved(index);
-    }
-}
-
-void AnimationFramesManager::onAnimationFrameMoved(size_t animationIndex, unsigned oldPos, unsigned newPos)
-{
-    Q_ASSERT(_document);
-    if (animationIndex == _document->animationsList()->selectedIndex()) {
-        emit itemMoved(oldPos, newPos);
-    }
-}
-
-int AnimationFramesManager::rowCount() const
-{
-    const MSA::Animation* animation = selectedAnimation();
-    if (animation) {
-        return animation->frames.size();
-    }
-    else {
-        return 0;
-    }
 }
 
 QVariant AnimationFramesManager::data(int index, int id) const
@@ -340,53 +253,4 @@ bool AnimationFramesManager::setData(int index, int id, const QVariant& value)
     };
 
     return _document->animationFramesList()->editSelectedList_setData(index, aFrame);
-}
-
-bool AnimationFramesManager::canInsertItem()
-{
-    const MSA::Animation* animation = selectedAnimation();
-
-    return animation != nullptr
-           && animation->frames.size() < UnTech::MetaSprite::MAX_ANIMATION_FRAMES;
-}
-
-bool AnimationFramesManager::canCloneItem(int index)
-{
-    const MSA::Animation* animation = selectedAnimation();
-
-    return animation != nullptr
-           && animation->frames.size() < UnTech::MetaSprite::MAX_ANIMATION_FRAMES
-           && index >= 0 && (unsigned)index < animation->frames.size();
-}
-
-bool AnimationFramesManager::insertItem(int index)
-{
-    if (_document == nullptr) {
-        return false;
-    }
-    return _document->animationFramesList()->addItem(index);
-}
-
-bool AnimationFramesManager::cloneItem(int index)
-{
-    if (_document == nullptr) {
-        return false;
-    }
-    return _document->animationFramesList()->cloneItem(index);
-}
-
-bool AnimationFramesManager::removeItem(int index)
-{
-    if (_document == nullptr) {
-        return false;
-    }
-    return _document->animationFramesList()->removeItem(index);
-}
-
-bool AnimationFramesManager::moveItem(int from, int to)
-{
-    if (_document == nullptr) {
-        return false;
-    }
-    return _document->animationFramesList()->moveItem(from, to);
 }

@@ -225,63 +225,8 @@ bool FrameManager::setData(int id, const QVariant& value)
     return false;
 }
 
-AbstractFrameContentManager::AbstractFrameContentManager(QObject* parent)
-    : PropertyTableManager(parent)
-    , _document(nullptr)
-{
-}
-
-void AbstractFrameContentManager::setDocument(Document* document)
-{
-    if (_document) {
-        _document->disconnect(this);
-        _document->frameList()->disconnect(this);
-    }
-    _document = document;
-
-    emit dataReset();
-
-    if (_document) {
-        onSelectedFrameChanged();
-
-        connect(_document->frameList(), &FrameList::selectedIndexChanged,
-                this, &AbstractFrameContentManager::onSelectedFrameChanged);
-    }
-}
-
-const MS::Frame* AbstractFrameContentManager::selectedFrame() const
-{
-    if (_document == nullptr) {
-        return nullptr;
-    }
-    return _document->frameList()->selectedItem();
-}
-
-void AbstractFrameContentManager::connectSignals(Accessor::AbstractListAccessor* accessor)
-{
-    connect(accessor, &Accessor::AbstractListAccessor::dataChanged,
-            this, &PropertyTableManager::itemChanged);
-
-    connect(accessor, &Accessor::AbstractListAccessor::listAboutToChange,
-            this, &PropertyTableManager::listAboutToChange);
-
-    // Use AbstractListAccessor::listChanged instead of add/remove signals to prevent QItemSelectionModel
-    // from corrupting the accessor selectedIndexes.
-    connect(accessor, &Accessor::AbstractListAccessor::listChanged,
-            this, &PropertyTableManager::dataChanged);
-}
-
-void AbstractFrameContentManager::onSelectedFrameChanged()
-{
-    if (_document == nullptr) {
-        return;
-    }
-
-    emit dataReset();
-}
-
 FrameObjectManager::FrameObjectManager(QObject* parent)
-    : AbstractFrameContentManager(parent)
+    : ListAccessorTableManager(parent)
 {
     using Type = PropertyType;
 
@@ -296,26 +241,13 @@ FrameObjectManager::FrameObjectManager(QObject* parent)
 
 void FrameObjectManager::setDocument(Document* document)
 {
-    if (_document) {
-        _document->frameObjectList()->disconnect(this);
-    }
-
-    AbstractFrameContentManager::setDocument(document);
-
-    if (document) {
-        connectSignals(document->frameObjectList());
-    }
+    _document = document;
+    setAccessor(document ? document->frameObjectList() : nullptr);
 }
 
-int FrameObjectManager::rowCount() const
+const MS::Frame* FrameObjectManager::selectedFrame() const
 {
-    const MS::Frame* frame = selectedFrame();
-    if (frame) {
-        return frame->objects.size();
-    }
-    else {
-        return 0;
-    }
+    return _document ? _document->frameList()->selectedItem() : nullptr;
 }
 
 QVariant FrameObjectManager::data(int index, int id) const
@@ -410,7 +342,7 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
 }
 
 ActionPointManager::ActionPointManager(QObject* parent)
-    : AbstractFrameContentManager(parent)
+    : ListAccessorTableManager(parent)
 {
     using Type = PropertyType;
 
@@ -423,26 +355,13 @@ ActionPointManager::ActionPointManager(QObject* parent)
 
 void ActionPointManager::setDocument(Document* document)
 {
-    if (_document) {
-        _document->actionPointList()->disconnect(this);
-    }
-
-    AbstractFrameContentManager::setDocument(document);
-
-    if (document) {
-        connectSignals(document->actionPointList());
-    }
+    _document = document;
+    setAccessor(document ? document->actionPointList() : nullptr);
 }
 
-int ActionPointManager::rowCount() const
+const MS::Frame* ActionPointManager::selectedFrame() const
 {
-    const MS::Frame* frame = selectedFrame();
-    if (frame) {
-        return frame->actionPoints.size();
-    }
-    else {
-        return 0;
-    }
+    return _document ? _document->frameList()->selectedItem() : nullptr;
 }
 
 QVariant ActionPointManager::data(int index, int id) const
@@ -487,7 +406,7 @@ bool ActionPointManager::setData(int index, int id, const QVariant& value)
 }
 
 EntityHitboxManager::EntityHitboxManager(QObject* parent)
-    : AbstractFrameContentManager(parent)
+    : ListAccessorTableManager(parent)
 {
     using Type = PropertyType;
 
@@ -500,26 +419,13 @@ EntityHitboxManager::EntityHitboxManager(QObject* parent)
 
 void EntityHitboxManager::setDocument(Document* document)
 {
-    if (_document) {
-        _document->entityHitboxList()->disconnect(this);
-    }
-
-    AbstractFrameContentManager::setDocument(document);
-
-    if (document) {
-        connectSignals(document->entityHitboxList());
-    }
+    _document = document;
+    setAccessor(document ? document->entityHitboxList() : nullptr);
 }
 
-int EntityHitboxManager::rowCount() const
+const MS::Frame* EntityHitboxManager::selectedFrame() const
 {
-    const MS::Frame* frame = selectedFrame();
-    if (frame) {
-        return frame->entityHitboxes.size();
-    }
-    else {
-        return 0;
-    }
+    return _document ? _document->frameList()->selectedItem() : nullptr;
 }
 
 QVariant EntityHitboxManager::data(int index, int id) const
