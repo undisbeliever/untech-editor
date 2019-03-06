@@ -106,11 +106,6 @@ void FrameDock::setDocument(Document* document)
     if (_document) {
         onSelectedFrameChanged();
 
-        _ui->frameContents->setAccessors(
-            _document->frameObjectList(),
-            _document->actionPointList(),
-            _document->entityHitboxList());
-
         connect(_document->frameList(), &FrameList::dataChanged,
                 this, &FrameDock::onFrameDataChanged);
 
@@ -124,9 +119,6 @@ void FrameDock::setDocument(Document* document)
                 this, &FrameDock::updateEntityHitboxTypeMenu);
     }
     else {
-        _ui->frameContents->setAccessors<
-            FrameObjectList, ActionPointList, EntityHitboxList>(nullptr, nullptr, nullptr);
-
         clearGui();
     }
 }

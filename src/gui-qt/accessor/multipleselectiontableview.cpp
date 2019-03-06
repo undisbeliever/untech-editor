@@ -7,7 +7,9 @@
 #include "multipleselectiontableview.h"
 #include "abstractaccessors.h"
 #include "accessor.h"
+#include "listaccessortablemanager.h"
 #include "gui-qt/common/properties/propertydelegate.h"
+#include "gui-qt/common/properties/propertytablemodel.h"
 
 #include <QContextMenuEvent>
 #include <QCoreApplication>
@@ -21,11 +23,11 @@ using namespace UnTech::GuiQt::Accessor;
 MultipleSelectionTableView::MultipleSelectionTableView(QWidget* parent)
     : QTreeView(parent)
     , _actions(new MultiListActions(this))
-    , _accessors()
     , _delegate(new PropertyDelegate(this))
     , _selectedContextMenu(new QMenu(this))
     , _noSelectionContextMenu(new QMenu(this))
     , _model(nullptr)
+    , _accessors()
 {
     setItemDelegate(_delegate);
 
@@ -37,48 +39,135 @@ MultipleSelectionTableView::MultipleSelectionTableView(QWidget* parent)
     rebuildMenus();
 }
 
-void MultipleSelectionTableView::disconnectAll()
+void MultipleSelectionTableView::setPropertyManagers(const QList<ListAccessorTableManager*>& managers,
+                                                     const QStringList& columns)
 {
-    if (auto* sm = selectionModel()) {
-        sm->disconnect(this);
-    }
-
-    for (int i = 0; i < _accessors.size(); i++) {
-        if (AbstractListMultipleSelectionAccessor* a = _accessors.at(i)) {
-            a->disconnect(this);
-        }
-        _accessors.replace(i, nullptr);
-    }
-}
-
-void MultipleSelectionTableView::setPropertyManagers(const QList<GuiQt::PropertyTableManager*>& managers, const QStringList& columns)
-{
-    disconnectAll();
-
-    _actions->setNAccessors(managers.size());
-
     if (auto* sm = selectionModel()) {
         sm->deleteLater();
     }
-
     if (_model) {
         _model->deleteLater();
+
+        for (auto* m : _model->managers()) {
+            m->disconnect(this);
+        }
     }
 
     if (!managers.isEmpty()) {
-        _model = new PropertyTableModel(managers, columns, this);
+        QList<GuiQt::PropertyTableManager*> pManagers;
+        pManagers.reserve(managers.size());
+        for (auto* m : managers) {
+            pManagers.append(m);
+        }
+        _model = new PropertyTableModel(pManagers, columns, this);
     }
     else {
         _model = nullptr;
     }
     QTreeView::setModel(_model);
 
-    _accessors.clear();
-    for (int i = 0; i < managers.size(); i++) {
-        _accessors.append(nullptr);
-    }
+    _actions->setNAccessors(managers.size());
+
+    onAccessorsChanged();
 
     rebuildMenus();
+
+    if (_model) {
+        connect(this->selectionModel(), &QItemSelectionModel::selectionChanged,
+                this, &MultipleSelectionTableView::onViewSelectionChanged);
+    }
+    for (auto* manager : managers) {
+        connect(manager, &ListAccessorTableManager::accessorChanged,
+                this, &MultipleSelectionTableView::onAccessorsChanged);
+    }
+}
+
+void MultipleSelectionTableView::onAccessorsChanged()
+{
+    auto newAccessors = buildAccessorsList();
+
+    if (_accessors.empty() && newAccessors.empty()) {
+        return;
+    }
+
+    for (auto* a : _accessors) {
+        a->disconnect(this);
+    }
+    _accessors = newAccessors;
+
+    _actions->setAccessors(_accessors);
+    onAccessorSelectedIndexesChanged();
+
+    for (auto* a : newAccessors) {
+        connect(a, &AbstractListMultipleSelectionAccessor::selectedIndexesChanged,
+                this, &MultipleSelectionTableView::onAccessorSelectedIndexesChanged);
+    }
+}
+
+QList<AbstractListMultipleSelectionAccessor*> MultipleSelectionTableView::buildAccessorsList()
+{
+    QList<AbstractListMultipleSelectionAccessor*> ret;
+
+    if (_model == nullptr) {
+        return ret;
+    }
+
+    const auto& managers = _model->managers();
+    ret.reserve(managers.size());
+
+    for (auto* manager : managers) {
+        auto* laManager = qobject_cast<ListAccessorTableManager*>(manager);
+        auto* accessor = laManager ? laManager->accessor() : nullptr;
+        auto* multiSelectionAccessor = qobject_cast<AbstractListMultipleSelectionAccessor*>(accessor);
+
+        if (multiSelectionAccessor == nullptr) {
+            ret.clear();
+            break;
+        }
+        ret.append(multiSelectionAccessor);
+    }
+
+    return ret;
+}
+
+void MultipleSelectionTableView::onAccessorSelectedIndexesChanged()
+{
+    QItemSelection sel;
+
+    for (int aId = 0; aId < _accessors.size(); aId++) {
+        if (auto* accessor = _accessors.at(aId)) {
+            for (auto si : accessor->selectedIndexes()) {
+                QModelIndex index = _model->toModelIndex(aId, si);
+                if (index.isValid()) {
+                    sel.select(index, index);
+                }
+            }
+        }
+    }
+    selectionModel()->select(
+        sel, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+
+    // BUGFIX: Sometimes the view will not hightlight the new selection
+    viewport()->update();
+}
+
+void MultipleSelectionTableView::onViewSelectionChanged()
+{
+    const auto selectedRows = selectionModel()->selectedRows();
+
+    for (int aId = 0; aId < _accessors.size(); aId++) {
+        if (auto* accessor = _accessors.at(aId)) {
+            std::vector<size_t> selected;
+
+            for (const auto& index : selectedRows) {
+                auto mi = _model->toManagerIdAndIndex(index);
+                if (mi.first == aId) {
+                    selected.push_back(mi.second);
+                }
+            }
+            accessor->setSelectedIndexes(std::move(selected));
+        }
+    }
 }
 
 void MultipleSelectionTableView::setModel(QAbstractItemModel*)

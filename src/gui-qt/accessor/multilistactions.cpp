@@ -92,7 +92,7 @@ void MultiListActions::populateToolbar(QToolBar* toolbar) const
 
 void MultiListActions::setAccessors(QList<AbstractListMultipleSelectionAccessor*> accessors)
 {
-    if (accessors.size() != add.size()) {
+    if (accessors.size() > 0 && accessors.size() != add.size()) {
         qWarning("invalid size (missing setNAccessors() call?)");
         return;
     }
