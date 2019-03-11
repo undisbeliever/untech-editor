@@ -30,14 +30,9 @@ EntityRomStructWidget::EntityRomStructWidget(QWidget* parent)
     _ui->fieldsView->setModel(_fieldsModel);
     _ui->fieldsView->setItemDelegate(new PropertyDelegate(this));
 
-    _ui->fieldsView->addAction(_fieldListActions.add);
-    _ui->fieldsView->addAction(_fieldListActions.clone);
-    _ui->fieldsView->addAction(_fieldListActions.raise);
-    _ui->fieldsView->addAction(_fieldListActions.lower);
-    _ui->fieldsView->addAction(_fieldListActions.remove);
-    _ui->fieldsView->setContextMenuPolicy(Qt::ActionsContextMenu);
-
     _fieldListActions.populate(_ui->fieldsViewButtons);
+    _fieldListActions.populate(_ui->fieldsView);
+    _ui->fieldsView->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     setEnabled(false);
 
@@ -90,8 +85,8 @@ void EntityRomStructWidget::setResourceItem(EntityRomStructsResourceItem* item)
         connect(structList, &EntityRomStructList::commentChanged,
                 this, &EntityRomStructWidget::onStructCommentChanged);
 
-        connect(fieldList, &EntityRomStructFieldList::selectedIndexChanged,
-                this, &EntityRomStructWidget::onSelectedFieldChanged);
+        connect(fieldList, &EntityRomStructFieldList::selectedIndexesChanged,
+                this, &EntityRomStructWidget::onSelectedFieldsChanged);
     }
     else {
         clearGui();
@@ -145,23 +140,32 @@ void EntityRomStructWidget::onSelectedStructChanged()
     }
 }
 
-void EntityRomStructWidget::onSelectedFieldChanged()
+void EntityRomStructWidget::onSelectedFieldsChanged()
 {
     Q_ASSERT(_item);
-    const auto currentFieldIndex = _fieldsModel->toFieldIndex(_ui->fieldsView->currentIndex());
-    const auto fieldIndex = _item->structFieldList()->selectedIndex();
 
-    QModelIndex index = _fieldsModel->toModelIndex(fieldIndex);
-
-    if (index.isValid() && fieldIndex == currentFieldIndex) {
-        return;
+    const auto& selectedIndexes = _item->structFieldList()->selectedIndexes();
+    QItemSelection sel;
+    for (auto si : selectedIndexes) {
+        QModelIndex index = _fieldsModel->toModelIndex(si);
+        if (index.isValid()) {
+            sel.select(index, index);
+        }
     }
+    _ui->fieldsView->selectionModel()->select(
+        sel, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 
-    _ui->fieldsView->setCurrentIndex(index);
+    if (selectedIndexes.size() == 1) {
+        auto si = selectedIndexes.back();
+        QModelIndex index = _fieldsModel->toModelIndex(si);
 
-    // If cell is empty (ie, no name) then edit the cell
-    if (index.isValid() && index.data().toString().isEmpty()) {
-        _ui->fieldsView->edit(index);
+        // This section is required to close any existing editors
+        _ui->fieldsView->setCurrentIndex(index);
+
+        // If cell is empty (ie, no name) then edit the cell
+        if (index.isValid() && index.data().toString().isEmpty()) {
+            _ui->fieldsView->edit(index);
+        }
     }
 }
 
@@ -171,8 +175,15 @@ void EntityRomStructWidget::onFieldViewSelectionChanged()
         return;
     }
 
-    auto fieldIndex = _fieldsModel->toFieldIndex(_ui->fieldsView->currentIndex());
-    _item->structFieldList()->setSelectedIndex(fieldIndex);
+    const auto selectedRows = _ui->fieldsView->selectionModel()->selectedRows();
+
+    std::vector<size_t> selected;
+    selected.reserve(selectedRows.size());
+
+    for (const auto& index : selectedRows) {
+        selected.push_back(_fieldsModel->toFieldIndex(index));
+    }
+    _item->structFieldList()->setSelectedIndexes(std::move(selected));
 }
 
 void EntityRomStructWidget::onStructNameChanged(size_t index)

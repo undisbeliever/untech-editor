@@ -40,7 +40,7 @@ signals:
     void commentChanged(index_type);
 };
 
-class EntityRomStructFieldList : public Accessor::ChildVectorAccessor<EN::StructField, EntityRomStructsResourceItem> {
+class EntityRomStructFieldList : public Accessor::ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem> {
     Q_OBJECT
 
 public:

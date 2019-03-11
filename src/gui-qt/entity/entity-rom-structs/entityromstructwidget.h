@@ -35,7 +35,7 @@ private slots:
     void updateParentComboList();
 
     void onSelectedStructChanged();
-    void onSelectedFieldChanged();
+    void onSelectedFieldsChanged();
     void onFieldViewSelectionChanged();
 
     void onStructNameChanged(size_t index);

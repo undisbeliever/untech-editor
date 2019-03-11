@@ -43,7 +43,7 @@ QString EntityRomStructList::typeNamePlural() const
 }
 
 template <>
-const std::vector<EN::StructField>* ChildVectorAccessor<EN::StructField, EntityRomStructsResourceItem>::list(size_t pIndex) const
+const std::vector<EN::StructField>* ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem>::list(size_t pIndex) const
 {
     const auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
@@ -55,7 +55,7 @@ const std::vector<EN::StructField>* ChildVectorAccessor<EN::StructField, EntityR
 }
 
 template <>
-std::vector<EN::StructField>* ChildVectorAccessor<EN::StructField, EntityRomStructsResourceItem>::getList(size_t pIndex)
+std::vector<EN::StructField>* ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem>::getList(size_t pIndex)
 {
     auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
@@ -67,7 +67,7 @@ std::vector<EN::StructField>* ChildVectorAccessor<EN::StructField, EntityRomStru
 }
 
 EntityRomStructFieldList::EntityRomStructFieldList(EntityRomStructList* structList)
-    : ChildVectorAccessor(structList, structList->resourceItem(), 24)
+    : ChildVectorMultipleSelectionAccessor(structList, structList->resourceItem(), 24)
 {
 }
 
@@ -83,4 +83,4 @@ QString EntityRomStructFieldList::typeNamePlural() const
 
 using namespace UnTech::GuiQt;
 template class Accessor::NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>;
-template class Accessor::ChildVectorAccessor<EN::StructField, EntityRomStructsResourceItem>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem>;
