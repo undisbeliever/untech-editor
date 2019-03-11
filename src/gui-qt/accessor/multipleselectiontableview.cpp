@@ -31,7 +31,10 @@ MultipleSelectionTableView::MultipleSelectionTableView(QWidget* parent)
 {
     setItemDelegate(_delegate);
 
-    setEditTriggers(EditTrigger::AllEditTriggers);
+    setDragDropMode(QTreeView::InternalMove);
+
+    setEditTriggers(EditTriggers(AllEditTriggers).setFlag(CurrentChanged, false));
+    setAlternatingRowColors(true);
 
     setSelectionMode(SelectionMode::ExtendedSelection);
     setSelectionBehavior(SelectionBehavior::SelectRows);
