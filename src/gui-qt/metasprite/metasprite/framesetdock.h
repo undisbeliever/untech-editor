@@ -33,9 +33,7 @@ public:
     const Accessor::NamedListActions& frameActions() const;
     Accessor::NamedListModel* frameListModel() const;
 
-    void populateMenu(QMenu* menu);
-
-    void clearGui();
+    QAction* addFrameAction() const;
 
 private:
     std::unique_ptr<Ui::FrameSetDock> const _ui;

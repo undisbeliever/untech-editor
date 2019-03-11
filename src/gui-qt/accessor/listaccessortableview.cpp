@@ -38,6 +38,7 @@ ListAccessorTableView::ListAccessorTableView(QWidget* parent)
     setSelectionMode(SelectionMode::NoSelection);
     setSelectionBehavior(SelectionBehavior::SelectRows);
 
+    _actions->populate(this);
     _actions->populate(_contextMenu);
 }
 

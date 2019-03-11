@@ -6,6 +6,7 @@
 
 #include "namedlistview.h"
 #include "abstractaccessors.h"
+#include "gui-qt/common/actionhelpers.h"
 #include "gui-qt/common/idstringdialog.h"
 
 #include <QContextMenuEvent>
@@ -20,13 +21,23 @@ using namespace UnTech::GuiQt::Accessor;
 using QCA = QCoreApplication;
 
 NamedListActions::NamedListActions(QWidget* parent)
-    : add(new QAction(QIcon(":/icons/add.svg"), QCA::tr("Add"), parent))
-    , clone(new QAction(QIcon(":/icons/clone.svg"), QCA::tr("Clone"), parent))
-    , rename(new QAction(QIcon(":/icons/rename.svg"), QCA::tr("Rename"), parent))
-    , raise(new QAction(QIcon(":/icons/raise.svg"), QCA::tr("Raise Selected"), parent))
-    , lower(new QAction(QIcon(":/icons/lower.svg"), QCA::tr("Lower Selected"), parent))
-    , remove(new QAction(QIcon(":/icons/remove.svg"), QCA::tr("Remove"), parent))
+    : add(createAction(parent, ":/icons/add.svg", "Add", Qt::Key_Insert))
+    , clone(createAction(parent, ":/icons/clone.svg", "Clone Selected", Qt::CTRL + Qt::Key_D))
+    , rename(createAction(parent, ":/icons/rename.svg", "Rename Selected", 0))
+    , raise(createAction(parent, ":/icons/raise.svg", "Raise Selected", Qt::SHIFT + Qt::Key_PageUp))
+    , lower(createAction(parent, ":/icons/lower.svg", "Lower Selected", Qt::SHIFT + Qt::Key_PageDown))
+    , remove(createAction(parent, ":/icons/remove.svg", "Remove Selected", Qt::Key_Delete))
 {
+    setShortcutContext(Qt::WidgetWithChildrenShortcut);
+}
+
+void NamedListActions::setShortcutContext(Qt::ShortcutContext context)
+{
+    add->setShortcutContext(context);
+    clone->setShortcutContext(context);
+    raise->setShortcutContext(context);
+    lower->setShortcutContext(context);
+    remove->setShortcutContext(context);
 }
 
 void NamedListActions::populate(QWidget* widget) const
@@ -72,11 +83,7 @@ NamedListView::NamedListView(QWidget* parent)
     setSelectionMode(SelectionMode::SingleSelection);
     setSelectionBehavior(SelectionBehavior::SelectRows);
 
-    this->addAction(_actions.add);
-    this->addAction(_actions.clone);
-    this->addAction(_actions.rename);
-    this->addAction(_actions.remove);
-
+    _actions.populate(this);
     _actions.populate(_selectedContextMenu);
     _noSelectionContextMenu->addAction(_actions.add);
 

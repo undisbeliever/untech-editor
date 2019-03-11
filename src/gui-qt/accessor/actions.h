@@ -24,6 +24,8 @@ struct NamedListActions {
 
     explicit NamedListActions(QWidget* parent);
 
+    void setShortcutContext(Qt::ShortcutContext context);
+
     void populate(QWidget* widget) const;
 
 private:

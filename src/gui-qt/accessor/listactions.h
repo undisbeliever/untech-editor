@@ -37,6 +37,8 @@ public:
 
     AbstractListAccessor* accessor() const { return _accessor; }
 
+    void setShortcutContext(Qt::ShortcutContext context);
+
     void updateText(const QString& typeName);
 
     void disableAll();

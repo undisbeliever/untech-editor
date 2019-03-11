@@ -42,6 +42,8 @@ public:
     const QList<AbstractListMultipleSelectionAccessor*>& accessors() const { return _accessors; }
     void setAccessors(QList<AbstractListMultipleSelectionAccessor*> accessors);
 
+    void setShortcutContext(Qt::ShortcutContext context);
+
     void populateAddActions(QWidget* widget) const;
     void populate(QWidget* widget, bool addSeperator = false) const;
 

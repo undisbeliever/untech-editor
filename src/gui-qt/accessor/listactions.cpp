@@ -7,20 +7,32 @@
 #include "listactions.h"
 #include "abstractaccessors.h"
 #include "accessor.h"
+#include "gui-qt/common/actionhelpers.h"
 #include "gui-qt/common/idstringdialog.h"
 
 using namespace UnTech::GuiQt::Accessor;
 
 ListActions::ListActions(QObject* parent)
     : QObject(parent)
-    , add(new QAction(QIcon(":/icons/add.svg"), tr("Add"), this))
-    , clone(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Selected"), this))
-    , raise(new QAction(QIcon(":/icons/raise.svg"), tr("Raise Selected"), this))
-    , lower(new QAction(QIcon(":/icons/lower.svg"), tr("Lower Selected"), this))
-    , remove(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Selected"), this))
+    , add(createAction(this, ":/icons/add.svg", "Add", Qt::Key_Insert))
+    , clone(createAction(this, ":/icons/clone.svg", "Clone Selected", Qt::CTRL + Qt::Key_D))
+    , raise(createAction(this, ":/icons/raise.svg", "Raise Selected", Qt::SHIFT + Qt::Key_PageUp))
+    , lower(createAction(this, ":/icons/lower.svg", "Lower Selected", Qt::SHIFT + Qt::Key_PageDown))
+    , remove(createAction(this, ":/icons/remove.svg", "Remove Selected", Qt::Key_Delete))
     , _accessor(nullptr)
 {
+    setShortcutContext(Qt::WidgetWithChildrenShortcut);
+
     disableAll();
+}
+
+void ListActions::setShortcutContext(Qt::ShortcutContext context)
+{
+    add->setShortcutContext(context);
+    clone->setShortcutContext(context);
+    raise->setShortcutContext(context);
+    lower->setShortcutContext(context);
+    remove->setShortcutContext(context);
 }
 
 void ListActions::updateText(const QString& typeName)

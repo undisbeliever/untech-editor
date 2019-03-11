@@ -7,6 +7,7 @@
 #include "multilistactions.h"
 #include "abstractaccessors.h"
 #include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/common/actionhelpers.h"
 
 using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
@@ -14,12 +15,14 @@ using namespace UnTech::GuiQt::Accessor;
 MultiListActions::MultiListActions(QObject* parent)
     : QObject(parent)
     , add()
-    , clone(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Selected"), parent))
-    , raise(new QAction(QIcon(":/icons/raise.svg"), tr("Raise Selected"), parent))
-    , lower(new QAction(QIcon(":/icons/lower.svg"), tr("Lower Selected"), parent))
-    , remove(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Selected"), parent))
+    , clone(createAction(this, ":/icons/clone.svg", "Clone Selected", Qt::CTRL + Qt::Key_D))
+    , raise(createAction(this, ":/icons/raise.svg", "Raise Selected", Qt::SHIFT + Qt::Key_PageUp))
+    , lower(createAction(this, ":/icons/lower.svg", "Lower Selected", Qt::SHIFT + Qt::Key_PageDown))
+    , remove(createAction(this, ":/icons/remove.svg", "Remove Selected", Qt::Key_Delete))
     , _accessors()
 {
+    setShortcutContext(Qt::WidgetWithChildrenShortcut);
+
     disableAll();
 
     connect(clone, &QAction::triggered,
@@ -49,10 +52,13 @@ void MultiListActions::setNAccessors(int nAccessors)
     for (int i = 0; i < nAccessors; i++) {
         _accessors.append(nullptr);
 
-        add.append(new QAction(QIcon(":/icons/add.svg"), tr("Add"), this));
-        add.back()->setData(i);
-        connect(add.back(), &QAction::triggered,
+        auto* a = createAction(this, ":/icons/add.svg", "Add", 0);
+        a->setData(i);
+        a->setShortcutContext(clone->shortcutContext());
+        connect(a, &QAction::triggered,
                 this, &MultiListActions::onAddTriggered);
+
+        add.append(a);
     }
 
     disableAll();
@@ -132,6 +138,17 @@ void MultiListActions::setAccessors(QList<AbstractListMultipleSelectionAccessor*
     }
 
     updateActions();
+}
+
+void MultiListActions::setShortcutContext(Qt::ShortcutContext context)
+{
+    for (QAction* a : add) {
+        a->setShortcutContext(context);
+    }
+    clone->setShortcutContext(context);
+    raise->setShortcutContext(context);
+    lower->setShortcutContext(context);
+    remove->setShortcutContext(context);
 }
 
 void MultiListActions::disableAll()

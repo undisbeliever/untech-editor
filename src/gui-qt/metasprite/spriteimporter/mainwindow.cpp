@@ -49,6 +49,10 @@ MainWindow::MainWindow(ZoomSettingsManager* zoomManager, QWidget* parent)
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
 
+    _graphicsView->addAction(_frameSetDock->addFrameAction());
+    for (auto* a : _frameDock->frameContentsContextMenu()->actions()) {
+        _graphicsView->addAction(a);
+    }
     _frameDock->populateMenu(_graphicsScene->frameContextMenu());
 
     _graphicsView->setMinimumSize(256, 256);
@@ -95,10 +99,8 @@ ZoomSettings* MainWindow::zoomSettings() const
 void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
     editMenu->addSeparator();
-    _frameSetDock->populateMenu(editMenu);
-    editMenu->addSeparator();
+    editMenu->addAction(_frameSetDock->addFrameAction());
     _frameDock->populateMenu(editMenu);
-    editMenu->addSeparator();
 
     viewMenu->addSeparator();
     _layerSettings->populateMenu(viewMenu);

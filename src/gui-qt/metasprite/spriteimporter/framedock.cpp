@@ -49,8 +49,11 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
 
     auto* frameActions = _ui->frameContents->viewActions();
     frameActions->addAction(0)->setIcon(QIcon(":/icons/add-frame-object.svg"));
+    frameActions->addAction(0)->setShortcut(Qt::CTRL + Qt::Key_F);
     frameActions->addAction(1)->setIcon(QIcon(":/icons/add-action-point.svg"));
+    frameActions->addAction(1)->setShortcut(Qt::CTRL + Qt::Key_P);
     frameActions->addAction(2)->setIcon(QIcon(":/icons/add-entity-hitbox.svg"));
+    frameActions->addAction(2)->setShortcut(Qt::CTRL + Qt::Key_H);
 
     QMenu* frameContextMenu = _ui->frameContents->selectedContextmenu();
     QAction* firstAddAction = frameActions->addAction(0);
