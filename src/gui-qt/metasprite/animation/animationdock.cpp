@@ -26,7 +26,7 @@ AnimationDock::AnimationDock(QWidget* parent)
 {
     _ui->setupUi(this);
 
-    _ui->animationList->namedListActions().populate(_ui->animationListButtons);
+    _ui->animationList->namedListActions()->populate(_ui->animationListButtons);
 
     _ui->animationProperties->setPropertyManager(_animationManager);
 
@@ -38,7 +38,7 @@ AnimationDock::AnimationDock(QWidget* parent)
 
 AnimationDock::~AnimationDock() = default;
 
-const UnTech::GuiQt::Accessor::NamedListActions& AnimationDock::actions() const
+const UnTech::GuiQt::Accessor::NamedListActions* AnimationDock::actions() const
 {
     return _ui->animationList->namedListActions();
 }

@@ -28,8 +28,8 @@ FrameSetDock::FrameSetDock(QWidget* parent)
 
     _ui->frameSetProperties->setPropertyManager(_frameSetManager);
 
-    _ui->frameList->namedListActions().add->setShortcut(Qt::CTRL + Qt::Key_N);
-    _ui->frameList->namedListActions().populate(_ui->frameListButtons);
+    _ui->frameList->namedListActions()->add->setShortcut(Qt::CTRL + Qt::Key_N);
+    _ui->frameList->namedListActions()->populate(_ui->frameListButtons);
 
     setEnabled(false);
 }
@@ -55,7 +55,7 @@ void FrameSetDock::setDocument(Document* document)
     _ui->frameList->setAccessor(frameList);
 }
 
-const Accessor::NamedListActions& FrameSetDock::frameActions() const
+const Accessor::NamedListActions* FrameSetDock::frameActions() const
 {
     return _ui->frameList->namedListActions();
 }
@@ -67,5 +67,5 @@ Accessor::NamedListModel* FrameSetDock::frameListModel() const
 
 QAction* FrameSetDock::addFrameAction() const
 {
-    return _ui->frameList->namedListActions().add;
+    return _ui->frameList->namedListActions()->add;
 }

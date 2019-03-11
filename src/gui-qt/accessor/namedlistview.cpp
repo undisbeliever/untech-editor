@@ -7,70 +7,16 @@
 #include "namedlistview.h"
 #include "abstractaccessors.h"
 #include "gui-qt/common/actionhelpers.h"
-#include "gui-qt/common/idstringdialog.h"
 
 #include <QContextMenuEvent>
-#include <QCoreApplication>
-#include <QIcon>
-#include <QLocale>
 #include <QMenu>
 
 using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 
-using QCA = QCoreApplication;
-
-NamedListActions::NamedListActions(QWidget* parent)
-    : add(createAction(parent, ":/icons/add.svg", "Add", Qt::Key_Insert))
-    , clone(createAction(parent, ":/icons/clone.svg", "Clone Selected", Qt::CTRL + Qt::Key_D))
-    , rename(createAction(parent, ":/icons/rename.svg", "Rename Selected", 0))
-    , raise(createAction(parent, ":/icons/raise.svg", "Raise Selected", Qt::SHIFT + Qt::Key_PageUp))
-    , lower(createAction(parent, ":/icons/lower.svg", "Lower Selected", Qt::SHIFT + Qt::Key_PageDown))
-    , remove(createAction(parent, ":/icons/remove.svg", "Remove Selected", Qt::Key_Delete))
-{
-    setShortcutContext(Qt::WidgetWithChildrenShortcut);
-}
-
-void NamedListActions::setShortcutContext(Qt::ShortcutContext context)
-{
-    add->setShortcutContext(context);
-    clone->setShortcutContext(context);
-    raise->setShortcutContext(context);
-    lower->setShortcutContext(context);
-    remove->setShortcutContext(context);
-}
-
-void NamedListActions::populate(QWidget* widget) const
-{
-    widget->addAction(add);
-    widget->addAction(clone);
-    widget->addAction(rename);
-    widget->addAction(raise);
-    widget->addAction(lower);
-    widget->addAction(remove);
-}
-
-void NamedListActions::updateText(const QString& typeName)
-{
-    add->setText(QCoreApplication::tr("Add %1").arg(typeName));
-    clone->setText(QCoreApplication::tr("Clone %1").arg(typeName));
-    rename->setText(QCoreApplication::tr("Rename %1").arg(typeName));
-    remove->setText(QCoreApplication::tr("Remove %1").arg(typeName));
-}
-
-void NamedListActions::disableAll()
-{
-    add->setEnabled(false);
-    clone->setEnabled(false);
-    rename->setEnabled(false);
-    raise->setEnabled(false);
-    lower->setEnabled(false);
-    remove->setEnabled(false);
-}
-
 NamedListView::NamedListView(QWidget* parent)
     : QListView(parent)
-    , _actions(this)
+    , _actions(new NamedListActions(this))
     , _model(new NamedListModel(this))
     , _selectedContextMenu(new QMenu(this))
     , _noSelectionContextMenu(new QMenu(this))
@@ -83,25 +29,12 @@ NamedListView::NamedListView(QWidget* parent)
     setSelectionMode(SelectionMode::SingleSelection);
     setSelectionBehavior(SelectionBehavior::SelectRows);
 
-    _actions.populate(this);
-    _actions.populate(_selectedContextMenu);
-    _noSelectionContextMenu->addAction(_actions.add);
+    _actions->populate(this);
+    _actions->populate(_selectedContextMenu);
+    _noSelectionContextMenu->addAction(_actions->add);
 
     connect(selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &NamedListView::onViewSelectionChanged);
-
-    connect(_actions.add, &QAction::triggered,
-            this, &NamedListView::onAddTriggered);
-    connect(_actions.clone, &QAction::triggered,
-            this, &NamedListView::onCloneTriggered);
-    connect(_actions.rename, &QAction::triggered,
-            this, &NamedListView::onRenameTriggered);
-    connect(_actions.raise, &QAction::triggered,
-            this, &NamedListView::onRaiseTriggered);
-    connect(_actions.lower, &QAction::triggered,
-            this, &NamedListView::onLowerTriggered);
-    connect(_actions.remove, &QAction::triggered,
-            this, &NamedListView::onRemoveTriggered);
 }
 
 void NamedListView::setModel(QAbstractItemModel*)
@@ -120,13 +53,13 @@ void NamedListView::setAccessor(AbstractNamedListAccessor* accessor)
     }
     _accessor = accessor;
 
+    _actions->setAccessor(accessor);
+
     _model->setAccessor(accessor);
 
     setEnabled(_accessor);
-    updateActions();
 
     if (_accessor) {
-        _actions.updateText(_accessor->typeName());
         onAccessorSelectedIndexChanged();
 
         connect(_accessor, &AbstractNamedListAccessor::selectedIndexChanged,
@@ -140,8 +73,6 @@ void NamedListView::onAccessorSelectedIndexChanged()
 
     QModelIndex index = _model->toModelIndex(_accessor->selectedIndex());
     setCurrentIndex(index);
-
-    updateActions();
 }
 
 void NamedListView::onViewSelectionChanged()
@@ -152,127 +83,15 @@ void NamedListView::onViewSelectionChanged()
     }
 }
 
-void NamedListView::updateActions()
-{
-    if (_accessor == nullptr) {
-        _actions.disableAll();
-        return;
-    }
-
-    const size_t selectedIndex = _accessor->selectedIndex();
-    const bool listExists = _accessor->listExists();
-    const size_t listSize = _accessor->size();
-    const size_t maxSize = _accessor->maxSize();
-
-    const bool selectionValid = listExists && selectedIndex < listSize;
-    const bool canAdd = listExists && listSize < maxSize;
-
-    _actions.add->setEnabled(canAdd);
-    _actions.clone->setEnabled(selectionValid && canAdd);
-    _actions.rename->setEnabled(selectionValid);
-    _actions.raise->setEnabled(selectionValid && selectedIndex > 0);
-    _actions.lower->setEnabled(selectionValid && selectedIndex + 1 < listSize);
-    _actions.remove->setEnabled(selectionValid);
-}
-
-void NamedListView::onAddTriggered()
-{
-    if (_accessor == nullptr) {
-        return;
-    }
-    if (_accessor->listExists() == false) {
-        return;
-    }
-
-    const QString typeName = _accessor->typeName();
-
-    idstring name = IdstringDialog::getIdstring(
-        this,
-        tr("Input %1 Name").arg(typeName),
-        tr("Input name of the new %1:").arg(QLocale().toLower(typeName)),
-        idstring(), _model->displayList());
-
-    if (name.isValid()) {
-        _accessor->addItemWithName(name);
-    }
-}
-
-void NamedListView::onCloneTriggered()
-{
-    if (_accessor == nullptr) {
-        return;
-    }
-    if (_accessor->isSelectedIndexValid() == false) {
-        return;
-    }
-
-    const QString typeName = _accessor->typeName();
-    const QString currentName = _accessor->itemName(_accessor->selectedIndex());
-
-    const idstring newName = IdstringDialog::getIdstring(
-        this,
-        tr("Input %1 Name").arg(typeName),
-        tr("Input name of the cloned %1:").arg(QLocale().toLower(typeName)),
-        currentName, _model->displayList());
-
-    if (newName.isValid()) {
-        _accessor->cloneSelectedItemWithName(newName);
-    }
-}
-
-void NamedListView::onRenameTriggered()
-{
-    if (_accessor == nullptr) {
-        return;
-    }
-    if (_accessor->isSelectedIndexValid() == false) {
-        return;
-    }
-
-    const QString typeName = _accessor->typeName();
-    const QString currentName = _accessor->itemName(_accessor->selectedIndex());
-
-    const idstring newName = IdstringDialog::getIdstring(
-        this,
-        tr("Input %1 Name").arg(typeName),
-        tr("Rename %1: to").arg(currentName),
-        currentName, _model->displayList());
-
-    if (newName.isValid()) {
-        _accessor->editSelected_setName(newName);
-    }
-}
-
-void NamedListView::onRaiseTriggered()
-{
-    if (_accessor) {
-        _accessor->raiseSelectedItem();
-    }
-}
-
-void NamedListView::onLowerTriggered()
-{
-    if (_accessor) {
-        _accessor->lowerSelectedItem();
-    }
-}
-
-void NamedListView::onRemoveTriggered()
-{
-    if (_accessor) {
-        _accessor->removeSelectedItem();
-    }
-}
-
 // Must use contextMenuEvent. Using the customContextMenuRequested signal
 // results in the context menu's location being off by ~16 pixels
 void NamedListView::contextMenuEvent(QContextMenuEvent* event)
 {
-    if (_accessor == nullptr || _actions.add->isEnabled() == false) {
+    if (_accessor == nullptr) {
         return;
     }
 
-    if (_actions.remove->isEnabled()) {
+    if (_actions->remove->isEnabled()) {
         _selectedContextMenu->exec(event->globalPos());
     }
     else {

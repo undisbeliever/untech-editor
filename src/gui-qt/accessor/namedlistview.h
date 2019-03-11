@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "actions.h"
+#include "namedlistactions.h"
 #include "namedlistmodel.h"
 #include <QListView>
 
@@ -24,7 +24,7 @@ public:
     // MUST NOT call this method
     virtual void setModel(QAbstractItemModel*) final;
 
-    const NamedListActions& namedListActions() const { return _actions; }
+    const NamedListActions* namedListActions() const { return _actions; }
     NamedListModel* namedListModel() const { return _model; }
 
     QMenu* selectedContextMenu() const { return _selectedContextMenu; }
@@ -39,18 +39,8 @@ private slots:
     void onAccessorSelectedIndexChanged();
     void onViewSelectionChanged();
 
-    void onAddTriggered();
-    void onCloneTriggered();
-    void onRenameTriggered();
-    void onRaiseTriggered();
-    void onLowerTriggered();
-    void onRemoveTriggered();
-
 private:
-    void updateActions();
-
-private:
-    NamedListActions _actions;
+    NamedListActions* const _actions;
     NamedListModel* const _model;
     QMenu* const _selectedContextMenu;
     QMenu* const _noSelectionContextMenu;

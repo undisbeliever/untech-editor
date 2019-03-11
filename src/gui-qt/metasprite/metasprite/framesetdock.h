@@ -30,7 +30,7 @@ public:
 
     void setDocument(Document* document);
 
-    const Accessor::NamedListActions& frameActions() const;
+    const Accessor::NamedListActions* frameActions() const;
     Accessor::NamedListModel* frameListModel() const;
 
     QAction* addFrameAction() const;
