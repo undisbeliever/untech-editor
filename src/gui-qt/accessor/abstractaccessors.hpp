@@ -154,7 +154,7 @@ bool NamedListAccessor<T, RI>::cloneItemWithName(size_t index, const idstring& n
         newItem.name = name;
 
         QString text = tr("Clone %1").arg(typeName());
-        return UndoHelper(this).addItem(index, newItem, text);
+        return UndoHelper(this).addItem(index + 1, newItem, text);
     }
     return false;
 }
