@@ -214,11 +214,11 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
 
         case Type::ANIMATION:
             // clear animation frame selection
-            _animationDock->selectAnimationFrame(INT_MAX);
+            _document->animationFramesList()->setSelectedIndex(INT_MAX);
             break;
 
         case Type::ANIMATION_FRAME:
-            _animationDock->selectAnimationFrame(e->id());
+            _document->animationFramesList()->setSelectedIndex(e->id());
             break;
         }
     }

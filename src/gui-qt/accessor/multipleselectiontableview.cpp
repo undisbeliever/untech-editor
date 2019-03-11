@@ -158,6 +158,7 @@ void MultipleSelectionTableView::onViewSelectionChanged()
     for (int aId = 0; aId < _accessors.size(); aId++) {
         if (auto* accessor = _accessors.at(aId)) {
             std::vector<size_t> selected;
+            selected.reserve(selectedRows.size());
 
             for (const auto& index : selectedRows) {
                 auto mi = _model->toManagerIdAndIndex(index);

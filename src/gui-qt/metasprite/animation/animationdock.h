@@ -39,8 +39,6 @@ public:
 
     void setDocument(AbstractMsDocument* document);
 
-    void selectAnimationFrame(unsigned index);
-
 private:
     std::unique_ptr<Ui::AnimationDock> const _ui;
 

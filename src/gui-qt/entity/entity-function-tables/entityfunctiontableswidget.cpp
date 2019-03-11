@@ -23,7 +23,7 @@ EntityFunctionTablesWidget::EntityFunctionTablesWidget(QWidget* parent)
     _ui->setupUi(this);
 
     _ui->tableView->setPropertyManager(_manager);
-    _ui->tableView->populateToolBar(_ui->tableButtons);
+    _ui->tableView->viewActions()->populateToolbar(_ui->tableButtons);
 
     _ui->tableView->header()->setSectionResizeMode(QHeaderView::ResizeMode::Interactive);
     _ui->tableView->setColumnWidth(0, 180);
@@ -37,12 +37,8 @@ EntityFunctionTablesWidget::~EntityFunctionTablesWidget() = default;
 
 void EntityFunctionTablesWidget::setResourceItem(EntityFunctionTablesResourceItem* item)
 {
-    if (item) {
-        _manager->setFunctionTableList(item->functionTableList());
-    }
-    else {
-        _manager->setFunctionTableList(nullptr);
-    }
+    auto* ftList = item ? item->functionTableList() : nullptr;
+    _manager->setFunctionTableList(ftList);
 
     setEnabled(item != nullptr);
 }
