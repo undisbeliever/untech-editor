@@ -26,12 +26,12 @@ AnimationDock::AnimationDock(QWidget* parent)
 {
     _ui->setupUi(this);
 
-    _ui->animationList->namedListActions().populateToolbar(_ui->animationListButtons);
+    _ui->animationList->namedListActions().populate(_ui->animationListButtons);
 
     _ui->animationProperties->setPropertyManager(_animationManager);
 
     _ui->animationFrames->setPropertyManager(_animationFramesManager);
-    _ui->animationFrames->viewActions()->populateToolbar(_ui->animationFramesButtons);
+    _ui->animationFrames->viewActions()->populate(_ui->animationFramesButtons);
 
     setEnabled(false);
 }

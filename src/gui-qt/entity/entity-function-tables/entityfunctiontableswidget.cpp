@@ -23,7 +23,7 @@ EntityFunctionTablesWidget::EntityFunctionTablesWidget(QWidget* parent)
     _ui->setupUi(this);
 
     _ui->tableView->setPropertyManager(_manager);
-    _ui->tableView->viewActions()->populateToolbar(_ui->tableButtons);
+    _ui->tableView->viewActions()->populate(_ui->tableButtons);
 
     _ui->tableView->header()->setSectionResizeMode(QHeaderView::ResizeMode::Interactive);
     _ui->tableView->setColumnWidth(0, 180);

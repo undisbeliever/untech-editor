@@ -29,24 +29,14 @@ NamedListActions::NamedListActions(QWidget* parent)
 {
 }
 
-void NamedListActions::populateMenu(QMenu* menu) const
+void NamedListActions::populate(QWidget* widget) const
 {
-    menu->addAction(add);
-    menu->addAction(clone);
-    menu->addAction(rename);
-    menu->addAction(raise);
-    menu->addAction(lower);
-    menu->addAction(remove);
-}
-
-void NamedListActions::populateToolbar(QToolBar* toolbar) const
-{
-    toolbar->addAction(add);
-    toolbar->addAction(clone);
-    toolbar->addAction(rename);
-    toolbar->addAction(raise);
-    toolbar->addAction(lower);
-    toolbar->addAction(remove);
+    widget->addAction(add);
+    widget->addAction(clone);
+    widget->addAction(rename);
+    widget->addAction(raise);
+    widget->addAction(lower);
+    widget->addAction(remove);
 }
 
 void NamedListActions::updateText(const QString& typeName)
@@ -87,7 +77,7 @@ NamedListView::NamedListView(QWidget* parent)
     this->addAction(_actions.rename);
     this->addAction(_actions.remove);
 
-    _actions.populateMenu(_selectedContextMenu);
+    _actions.populate(_selectedContextMenu);
     _noSelectionContextMenu->addAction(_actions.add);
 
     connect(selectionModel(), &QItemSelectionModel::selectionChanged,

@@ -49,7 +49,7 @@ PalettesDock::PalettesDock(QWidget* parent)
     _ui->paletteList->setModel(_model);
     _ui->paletteList->setContextMenuPolicy(Qt::CustomContextMenu);
 
-    _listActions->populateToolbar(_ui->paletteListButtons);
+    _listActions->populate(_ui->paletteListButtons);
 
     for (unsigned i = 0; i < 16; i++) {
         auto* b = _colorButtons.at(i);
@@ -143,7 +143,7 @@ void PalettesDock::onPaletteContextMenu(const QPoint& pos)
 {
     if (_document) {
         QMenu menu;
-        _listActions->populateMenu(&menu);
+        _listActions->populate(&menu);
 
         QPoint globalPos = _ui->paletteList->mapToGlobal(pos);
         menu.exec(globalPos);

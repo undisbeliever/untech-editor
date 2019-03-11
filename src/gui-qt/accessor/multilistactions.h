@@ -42,9 +42,8 @@ public:
     const QList<AbstractListMultipleSelectionAccessor*>& accessors() const { return _accessors; }
     void setAccessors(QList<AbstractListMultipleSelectionAccessor*> accessors);
 
-    void populateMenu(QMenu* menu, bool addSeperator = true) const;
-    void populateMenuWithAddActions(QMenu* menu) const;
-    void populateToolbar(QToolBar* toolbar) const;
+    void populateAddActions(QWidget* widget) const;
+    void populate(QWidget* widget, bool addSeperator = false) const;
 
 public slots:
     void disableAll();

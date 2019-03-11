@@ -12,7 +12,6 @@
 #include "gui-qt/common/properties/propertytablemodel.h"
 
 #include <QContextMenuEvent>
-#include <QCoreApplication>
 #include <QIcon>
 #include <QLocale>
 #include <QMenu>
@@ -39,7 +38,7 @@ ListAccessorTableView::ListAccessorTableView(QWidget* parent)
     setSelectionMode(SelectionMode::NoSelection);
     setSelectionBehavior(SelectionBehavior::SelectRows);
 
-    _actions->populateMenu(_contextMenu);
+    _actions->populate(_contextMenu);
 }
 
 void ListAccessorTableView::setPropertyManager(ListAccessorTableManager* manager)

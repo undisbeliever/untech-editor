@@ -18,7 +18,7 @@ EntityRomEntryListWidget::EntityRomEntryListWidget(QWidget* parent)
 {
     _ui->setupUi(this);
 
-    _ui->listView->namedListActions().populateToolbar(_ui->buttons);
+    _ui->listView->namedListActions().populate(_ui->buttons);
 }
 
 EntityRomEntryListWidget::~EntityRomEntryListWidget() = default;

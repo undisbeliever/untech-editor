@@ -24,8 +24,7 @@ struct NamedListActions {
 
     explicit NamedListActions(QWidget* parent);
 
-    void populateMenu(QMenu* menu) const;
-    void populateToolbar(QToolBar* toolbar) const;
+    void populate(QWidget* widget) const;
 
 private:
     friend class NamedListView;

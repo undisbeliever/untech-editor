@@ -65,7 +65,7 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
 
     populateEntityHitboxTypeMenu(_entityHitboxTypeMenu);
 
-    _ui->frameContents->viewActions()->populateToolbar(_ui->frameContentsButtons);
+    _ui->frameContents->viewActions()->populate(_ui->frameContentsButtons);
 
     clearGui();
     updateFrameActions();
@@ -144,7 +144,7 @@ void FrameDock::populateMenu(QMenu* editMenu)
     editMenu->addAction(_flipObjVertically);
     editMenu->addMenu(_entityHitboxTypeMenu);
     editMenu->addSeparator();
-    _ui->frameContents->viewActions()->populateMenu(editMenu, true);
+    _ui->frameContents->viewActions()->populate(editMenu, true);
 }
 
 void FrameDock::onSelectedFrameChanged()

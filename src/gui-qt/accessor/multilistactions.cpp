@@ -8,8 +8,6 @@
 #include "abstractaccessors.h"
 #include "gui-qt/abstractresourceitem.h"
 
-#include <QMenu>
-
 using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 
@@ -60,34 +58,27 @@ void MultiListActions::setNAccessors(int nAccessors)
     disableAll();
 }
 
-void MultiListActions::populateMenu(QMenu* menu, bool addSeperator) const
+void MultiListActions::populateAddActions(QWidget* widget) const
 {
-    populateMenuWithAddActions(menu);
+    for (QAction* a : add) {
+        widget->addAction(a);
+    }
+}
+
+void MultiListActions::populate(QWidget* widget, bool addSeperator) const
+{
+    for (QAction* a : add) {
+        widget->addAction(a);
+    }
     if (addSeperator) {
-        menu->addSeparator();
+        auto* sep = new QAction(widget);
+        sep->setSeparator(true);
+        widget->addAction(sep);
     }
-    menu->addAction(clone);
-    menu->addAction(raise);
-    menu->addAction(lower);
-    menu->addAction(remove);
-}
-
-void MultiListActions::populateMenuWithAddActions(QMenu* menu) const
-{
-    for (QAction* a : add) {
-        menu->addAction(a);
-    }
-}
-
-void MultiListActions::populateToolbar(QToolBar* toolbar) const
-{
-    for (QAction* a : add) {
-        toolbar->addAction(a);
-    }
-    toolbar->addAction(clone);
-    toolbar->addAction(raise);
-    toolbar->addAction(lower);
-    toolbar->addAction(remove);
+    widget->addAction(clone);
+    widget->addAction(raise);
+    widget->addAction(lower);
+    widget->addAction(remove);
 }
 
 void MultiListActions::setAccessors(QList<AbstractListMultipleSelectionAccessor*> accessors)

@@ -30,7 +30,7 @@ FrameSetDock::FrameSetDock(QWidget* parent)
 
     _ui->frameSetProperties->setPropertyManager(_frameSetManager);
 
-    _ui->frameList->namedListActions().populateToolbar(_ui->frameListButtons);
+    _ui->frameList->namedListActions().populate(_ui->frameListButtons);
 
     setEnabled(false);
 }
@@ -70,6 +70,6 @@ Accessor::NamedListModel* FrameSetDock::frameListModel() const
 
 void FrameSetDock::populateMenu(QMenu* menu)
 {
-    _ui->frameList->namedListActions().populateMenu(menu);
+    _ui->frameList->namedListActions().populate(menu);
     // :: TODO add toggle tileset hitbox here::
 }

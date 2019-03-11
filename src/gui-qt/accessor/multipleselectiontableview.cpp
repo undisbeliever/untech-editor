@@ -184,8 +184,8 @@ void MultipleSelectionTableView::rebuildMenus()
     _selectedContextMenu->clear();
     _noSelectionContextMenu->clear();
 
-    _actions->populateMenu(_selectedContextMenu, true);
-    _actions->populateMenuWithAddActions(_noSelectionContextMenu);
+    _actions->populate(_selectedContextMenu, true);
+    _actions->populateAddActions(_noSelectionContextMenu);
 }
 
 void MultipleSelectionTableView::contextMenuEvent(QContextMenuEvent* event)

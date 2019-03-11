@@ -37,7 +37,7 @@ EntityRomStructWidget::EntityRomStructWidget(QWidget* parent)
     _ui->fieldsView->addAction(_fieldListActions.remove);
     _ui->fieldsView->setContextMenuPolicy(Qt::ActionsContextMenu);
 
-    _fieldListActions.populateToolbar(_ui->fieldsViewButtons);
+    _fieldListActions.populate(_ui->fieldsViewButtons);
 
     setEnabled(false);
 

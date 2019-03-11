@@ -41,8 +41,7 @@ public:
 
     void disableAll();
 
-    void populateMenu(QMenu* menu) const;
-    void populateToolbar(QToolBar* toolbar) const;
+    void populate(QWidget* widget) const;
 
     void setAccessor(AbstractListSingleSelectionAccessor* accessor);
     void setAccessor(AbstractListMultipleSelectionAccessor* accessor);

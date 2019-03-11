@@ -9,8 +9,6 @@
 #include "accessor.h"
 #include "gui-qt/common/idstringdialog.h"
 
-#include <QMenu>
-
 using namespace UnTech::GuiQt::Accessor;
 
 ListActions::ListActions(QObject* parent)
@@ -181,20 +179,11 @@ void ListActions::updateActions_multipleSelection()
     remove->setEnabled(selectionValid);
 }
 
-void ListActions::populateMenu(QMenu* menu) const
+void ListActions::populate(QWidget* widget) const
 {
-    menu->addAction(add);
-    menu->addAction(clone);
-    menu->addAction(raise);
-    menu->addAction(lower);
-    menu->addAction(remove);
-}
-
-void ListActions::populateToolbar(QToolBar* toolbar) const
-{
-    toolbar->addAction(add);
-    toolbar->addAction(clone);
-    toolbar->addAction(raise);
-    toolbar->addAction(lower);
-    toolbar->addAction(remove);
+    widget->addAction(add);
+    widget->addAction(clone);
+    widget->addAction(raise);
+    widget->addAction(lower);
+    widget->addAction(remove);
 }
