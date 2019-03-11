@@ -996,7 +996,10 @@ private:
 
         void moveItemsUp(const vectorset<index_type>& indexes, unsigned offset)
         {
-            auto selection = SelectionModifier::getSelection(this->_accessor);
+            const bool listIsSelected = this->_args == this->_accessor->selectedListTuple();
+
+            auto selection = listIsSelected ? SelectionModifier::getSelection(this->_accessor)
+                                            : typename SelectionModifier::selection_type();
 
             ListT* list = this->getList();
             Q_ASSERT(list);
@@ -1021,14 +1024,17 @@ private:
 
             this->emitListChanged();
 
-            if (this->_args == this->_accessor->selectedListTuple()) {
+            if (listIsSelected) {
                 SelectionModifier::setSelection(this->_accessor, selection);
             }
         }
 
         void moveItemsDown(const vectorset<index_type>& indexes, unsigned offset)
         {
-            auto selection = SelectionModifier::getSelection(this->_accessor);
+            const bool listIsSelected = this->_args == this->_accessor->selectedListTuple();
+
+            auto selection = listIsSelected ? SelectionModifier::getSelection(this->_accessor)
+                                            : typename SelectionModifier::selection_type();
 
             ListT* list = this->getList();
             Q_ASSERT(list);
@@ -1053,7 +1059,7 @@ private:
 
             this->emitListChanged();
 
-            if (this->_args == this->_accessor->selectedListTuple()) {
+            if (listIsSelected) {
                 SelectionModifier::setSelection(this->_accessor, selection);
             }
         }
