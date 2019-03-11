@@ -9,20 +9,17 @@
 #include "accessor.h"
 #include "gui-qt/common/idstringdialog.h"
 
-#include <QCoreApplication>
 #include <QMenu>
 
 using namespace UnTech::GuiQt::Accessor;
 
-using QCA = QCoreApplication;
-
 ListActions::ListActions(QObject* parent)
     : QObject(parent)
-    , add(new QAction(QIcon(":/icons/add.svg"), QCA::tr("Add"), this))
-    , clone(new QAction(QIcon(":/icons/clone.svg"), QCA::tr("Clone Selected"), this))
-    , raise(new QAction(QIcon(":/icons/raise.svg"), QCA::tr("Raise Selected"), this))
-    , lower(new QAction(QIcon(":/icons/lower.svg"), QCA::tr("Lower Selected"), this))
-    , remove(new QAction(QIcon(":/icons/remove.svg"), QCA::tr("Remove Selected"), this))
+    , add(new QAction(QIcon(":/icons/add.svg"), tr("Add"), this))
+    , clone(new QAction(QIcon(":/icons/clone.svg"), tr("Clone Selected"), this))
+    , raise(new QAction(QIcon(":/icons/raise.svg"), tr("Raise Selected"), this))
+    , lower(new QAction(QIcon(":/icons/lower.svg"), tr("Lower Selected"), this))
+    , remove(new QAction(QIcon(":/icons/remove.svg"), tr("Remove Selected"), this))
     , _accessor(nullptr)
 {
     disableAll();
@@ -30,11 +27,11 @@ ListActions::ListActions(QObject* parent)
 
 void ListActions::updateText(const QString& typeName)
 {
-    add->setText(QCoreApplication::tr("Add %1").arg(typeName));
-    clone->setText(QCoreApplication::tr("Clone %1").arg(typeName));
-    raise->setText(QCoreApplication::tr("Raise %1").arg(typeName));
-    lower->setText(QCoreApplication::tr("Lower %1").arg(typeName));
-    remove->setText(QCoreApplication::tr("Remove %1").arg(typeName));
+    add->setText(tr("Add %1").arg(typeName));
+    clone->setText(tr("Clone %1").arg(typeName));
+    raise->setText(tr("Raise %1").arg(typeName));
+    lower->setText(tr("Lower %1").arg(typeName));
+    remove->setText(tr("Remove %1").arg(typeName));
 }
 
 void ListActions::setAccessor(AbstractListSingleSelectionAccessor* accessor)
