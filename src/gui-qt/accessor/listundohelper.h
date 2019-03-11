@@ -98,7 +98,7 @@ struct MultipleSelectionModifier {
     using selection_type = std::vector<index_type>;
 
     inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndexes(); }
-    inline static void setSelection(AccessorT* a, const selection_type& selection) { a->setSelectedIndexes(selection); }
+    inline static void setSelection(AccessorT* a, selection_type&& selection) { a->setSelectedIndexes(std::move(selection)); }
 
     inline static void postAddCommand(AccessorT* a, const index_type index) { a->setSelectedIndexes({ index }); }
     inline static void postAddCommand(AccessorT* a, const std::vector<index_type>& indexes) { a->setSelectedIndexes(indexes); }
@@ -673,7 +673,7 @@ private:
                 auto selection = SelectionModifier::getSelection(this->_accessor);
                 _addItem();
                 SelectionModifier::itemAdded(selection, _index);
-                SelectionModifier::setSelection(this->_accessor, selection);
+                SelectionModifier::setSelection(this->_accessor, std::move(selection));
             }
             else {
                 _addItem();
@@ -686,7 +686,7 @@ private:
                 auto selection = SelectionModifier::getSelection(this->_accessor);
                 _removeItem();
                 SelectionModifier::itemRemoved(selection, _index);
-                SelectionModifier::setSelection(this->_accessor, selection);
+                SelectionModifier::setSelection(this->_accessor, std::move(selection));
             }
             else {
                 _removeItem();
@@ -772,7 +772,7 @@ private:
                 auto selection = SelectionModifier::getSelection(this->_accessor);
                 _moveItem(from, to);
                 SelectionModifier::itemMoved(selection, from, to);
-                SelectionModifier::setSelection(this->_accessor, selection);
+                SelectionModifier::setSelection(this->_accessor, std::move(selection));
             }
             else {
                 _moveItem(from, to);
@@ -871,7 +871,7 @@ private:
                 for (const auto& index : _indexes) {
                     SelectionModifier::itemAdded(selection, index);
                 }
-                SelectionModifier::setSelection(this->_accessor, selection);
+                SelectionModifier::setSelection(this->_accessor, std::move(selection));
             }
             else {
                 _addItems();
@@ -886,7 +886,7 @@ private:
                 for (auto it = _indexes.rbegin(); it != _indexes.rend(); it++) {
                     SelectionModifier::itemRemoved(selection, *it);
                 }
-                SelectionModifier::setSelection(this->_accessor, selection);
+                SelectionModifier::setSelection(this->_accessor, std::move(selection));
             }
             else {
                 _removeItems();
@@ -1025,7 +1025,7 @@ private:
             this->emitListChanged();
 
             if (listIsSelected) {
-                SelectionModifier::setSelection(this->_accessor, selection);
+                SelectionModifier::setSelection(this->_accessor, std::move(selection));
             }
         }
 
@@ -1060,7 +1060,7 @@ private:
             this->emitListChanged();
 
             if (listIsSelected) {
-                SelectionModifier::setSelection(this->_accessor, selection);
+                SelectionModifier::setSelection(this->_accessor, std::move(selection));
             }
         }
     };
