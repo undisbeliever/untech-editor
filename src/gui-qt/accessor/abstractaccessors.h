@@ -116,6 +116,7 @@ public:
     void setSelectedIndexes(const vectorset<size_t>& selected);
     void setSelectedIndexes(vectorset<size_t>&& selected);
     void clearSelection();
+    void selectAll();
 
     bool cloneSelectedItems();
     bool removeSelectedItems();

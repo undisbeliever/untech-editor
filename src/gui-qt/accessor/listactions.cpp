@@ -15,6 +15,7 @@ using namespace UnTech::GuiQt::Accessor;
 ListActions::ListActions(QObject* parent)
     : QObject(parent)
     , add(createAction(this, ":/icons/add.svg", "Add", Qt::Key_Insert))
+    , selectAll(createAction(this, "", "Select All", Qt::CTRL + Qt::Key_A))
     , clone(createAction(this, ":/icons/clone.svg", "Clone Selected", Qt::CTRL + Qt::Key_D))
     , raise(createAction(this, ":/icons/raise.svg", "Raise Selected", Qt::SHIFT + Qt::Key_PageUp))
     , lower(createAction(this, ":/icons/lower.svg", "Lower Selected", Qt::SHIFT + Qt::Key_PageDown))
@@ -29,6 +30,7 @@ ListActions::ListActions(QObject* parent)
 void ListActions::setShortcutContext(Qt::ShortcutContext context)
 {
     add->setShortcutContext(context);
+    selectAll->setShortcutContext(context);
     clone->setShortcutContext(context);
     raise->setShortcutContext(context);
     lower->setShortcutContext(context);
@@ -54,12 +56,16 @@ void ListActions::setAccessor(AbstractListSingleSelectionAccessor* accessor)
         _accessor->disconnect(this);
 
         add->disconnect(_accessor);
+        selectAll->disconnect(_accessor);
         clone->disconnect(_accessor);
         raise->disconnect(_accessor);
         lower->disconnect(_accessor);
         remove->disconnect(_accessor);
     }
     _accessor = accessor;
+
+    selectAll->setVisible(false);
+    selectAll->setEnabled(false);
 
     updateActions_singleSelection();
 
@@ -96,12 +102,15 @@ void ListActions::setAccessor(AbstractListMultipleSelectionAccessor* accessor)
         _accessor->disconnect(this);
 
         add->disconnect(_accessor);
+        selectAll->disconnect(_accessor);
         clone->disconnect(_accessor);
         raise->disconnect(_accessor);
         lower->disconnect(_accessor);
         remove->disconnect(_accessor);
     }
     _accessor = accessor;
+
+    selectAll->setVisible(true);
 
     updateActions_multipleSelection();
 
@@ -117,6 +126,8 @@ void ListActions::setAccessor(AbstractListMultipleSelectionAccessor* accessor)
 
         connect(add, &QAction::triggered,
                 accessor, qOverload<>(&AbstractListAccessor::addItem));
+        connect(selectAll, &QAction::triggered,
+                accessor, &AbstractListMultipleSelectionAccessor::selectAll);
         connect(clone, &QAction::triggered,
                 accessor, &AbstractListMultipleSelectionAccessor::cloneSelectedItems);
         connect(raise, &QAction::triggered,
@@ -185,6 +196,7 @@ void ListActions::updateActions_multipleSelection()
     const bool selectionValid = listExists && !indexes.empty() && indexes.back() < listSize;
 
     add->setEnabled(listExists && listSize < maxSize);
+    selectAll->setEnabled(listExists);
     clone->setEnabled(selectionValid && listSize + indexes.size() <= maxSize);
     raise->setEnabled(selectionValid && indexes.front() > 0);
     lower->setEnabled(selectionValid && indexes.back() + 1 < listSize);
@@ -194,6 +206,10 @@ void ListActions::updateActions_multipleSelection()
 void ListActions::populate(QWidget* widget) const
 {
     widget->addAction(add);
+    if (qobject_cast<QToolBar*>(widget) == nullptr) {
+        // do not add selectAll to a QToolBar
+        widget->addAction(selectAll);
+    }
     widget->addAction(clone);
     widget->addAction(raise);
     widget->addAction(lower);

@@ -23,6 +23,7 @@ struct ListActions : public QObject {
 
 public:
     QAction* const add;
+    QAction* const selectAll; // Only enabled and visible on AbstractListMultipleSelectionAccessor
     QAction* const clone;
     QAction* const raise;
     QAction* const lower;

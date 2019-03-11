@@ -22,6 +22,7 @@ private:
     QList<QAction*> add;
 
 public:
+    QAction* const selectAll;
     QAction* const clone;
     QAction* const raise;
     QAction* const lower;
@@ -53,6 +54,7 @@ public slots:
 
 private slots:
     void onAddTriggered();
+    void onSelectAllTriggered();
     void onCloneTriggered();
     void onRaiseTriggered();
     void onLowerTriggered();

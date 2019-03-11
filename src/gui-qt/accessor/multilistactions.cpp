@@ -15,6 +15,7 @@ using namespace UnTech::GuiQt::Accessor;
 MultiListActions::MultiListActions(QObject* parent)
     : QObject(parent)
     , add()
+    , selectAll(createAction(this, "", "Select All", Qt::CTRL + Qt::Key_A))
     , clone(createAction(this, ":/icons/clone.svg", "Clone Selected", Qt::CTRL + Qt::Key_D))
     , raise(createAction(this, ":/icons/raise.svg", "Raise Selected", Qt::SHIFT + Qt::Key_PageUp))
     , lower(createAction(this, ":/icons/lower.svg", "Lower Selected", Qt::SHIFT + Qt::Key_PageDown))
@@ -25,6 +26,8 @@ MultiListActions::MultiListActions(QObject* parent)
 
     disableAll();
 
+    connect(selectAll, &QAction::triggered,
+            this, &MultiListActions::onSelectAllTriggered);
     connect(clone, &QAction::triggered,
             this, &MultiListActions::onCloneTriggered);
     connect(raise, &QAction::triggered,
@@ -80,6 +83,10 @@ void MultiListActions::populate(QWidget* widget, bool addSeperator) const
         auto* sep = new QAction(widget);
         sep->setSeparator(true);
         widget->addAction(sep);
+    }
+    if (qobject_cast<QToolBar*>(widget) == nullptr) {
+        // do not add selectAll to a QToolBar
+        widget->addAction(selectAll);
     }
     widget->addAction(clone);
     widget->addAction(raise);
@@ -145,6 +152,7 @@ void MultiListActions::setShortcutContext(Qt::ShortcutContext context)
     for (QAction* a : add) {
         a->setShortcutContext(context);
     }
+    selectAll->setShortcutContext(context);
     clone->setShortcutContext(context);
     raise->setShortcutContext(context);
     lower->setShortcutContext(context);
@@ -156,6 +164,7 @@ void MultiListActions::disableAll()
     for (auto* a : add) {
         a->setEnabled(false);
     }
+    selectAll->setEnabled(false);
     clone->setEnabled(false);
     raise->setEnabled(false);
     lower->setEnabled(false);
@@ -169,6 +178,7 @@ void MultiListActions::updateActions()
         return;
     }
 
+    bool canSelectAll = false;
     bool tooManySelectedToClone = false;
     bool canClone = false;
     bool canRaise = false;
@@ -186,6 +196,8 @@ void MultiListActions::updateActions()
         const bool selectionValid = listExists && !indexes.empty() && indexes.back() < listSize;
 
         add.at(i)->setEnabled(listExists && listSize < maxSize);
+
+        canSelectAll |= listExists;
         tooManySelectedToClone |= listSize + indexes.size() > maxSize;
         canClone |= selectionValid && listSize + indexes.size() <= maxSize;
         canRaise |= selectionValid && indexes.front() > 0;
@@ -193,6 +205,7 @@ void MultiListActions::updateActions()
         canRemove |= selectionValid;
     }
 
+    selectAll->setEnabled(canSelectAll);
     clone->setEnabled(canClone & !tooManySelectedToClone);
     raise->setEnabled(canRaise);
     lower->setEnabled(canLower);
@@ -213,6 +226,13 @@ void MultiListActions::onAddTriggered()
                 }
             }
         }
+    }
+}
+
+void MultiListActions::onSelectAllTriggered()
+{
+    for (auto* a : _accessors) {
+        a->selectAll();
     }
 }
 

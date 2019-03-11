@@ -113,6 +113,19 @@ void AbstractListMultipleSelectionAccessor::clearSelection()
     }
 }
 
+void AbstractListMultipleSelectionAccessor::selectAll()
+{
+    const size_t size = this->size();
+
+    std::vector<size_t> indexes;
+    indexes.reserve(size);
+    for (size_t i = 0; i < size; i++) {
+        indexes.push_back(i);
+    }
+
+    setSelectedIndexes(std::move(indexes));
+}
+
 bool AbstractListMultipleSelectionAccessor::cloneSelectedItems()
 {
     return cloneMultipleItems(_selectedIndexes);
