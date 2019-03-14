@@ -74,7 +74,7 @@ bool MtTilesetScratchpadGrid::editGrid_resizeGrid(const usize& size)
 
 bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const GridT& tiles)
 {
-    const auto* data = _tileset->compiledData();
+    const auto* data = resourceItem()->compiledData();
     if (data == nullptr) {
         return false;
     }

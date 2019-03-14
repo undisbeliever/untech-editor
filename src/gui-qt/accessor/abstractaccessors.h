@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/common/vectorset-upoint.h"
 #include "models/common/vectorset.h"
 #include <QObject>
 
@@ -13,6 +14,8 @@ namespace UnTech {
 class idstring;
 template <class T>
 class NamedList;
+template <class T>
+class grid;
 
 namespace GuiQt {
 class AbstractResourceItem;
@@ -20,10 +23,6 @@ class AbstractResourceItem;
 namespace Accessor {
 template <class T, class U>
 class ListUndoHelper;
-template <class T>
-class ListAndSelectionUndoHelper;
-template <class T>
-class ListAndMultipleSelectionUndoHelper;
 
 template <class T>
 class ListWithNoSelectionUndoHelper;
@@ -272,6 +271,44 @@ protected:
     friend class ListUndoHelper;
     std::vector<T>* getList();
     ArgsT selectedListTuple() const;
+};
+
+class AbstractGridAccessor : public QObject {
+    Q_OBJECT
+
+public:
+    using index_type = upoint;
+    using selection_type = upoint_vectorset;
+
+private:
+    AbstractResourceItem* const _resourceItem;
+
+    upoint_vectorset _selectedCells;
+
+public:
+    AbstractGridAccessor(AbstractResourceItem* resourceItem);
+    ~AbstractGridAccessor() = default;
+
+    AbstractResourceItem* resourceItem() const { return _resourceItem; }
+
+    virtual usize size() const = 0;
+
+    const upoint_vectorset& selectedCells() const { return _selectedCells; }
+    void setSelectedCells(const upoint_vectorset& selected);
+    void setSelectedCells(upoint_vectorset&& selected);
+    void clearSelection();
+
+private:
+    bool testSelection(const upoint_vectorset& selected) const;
+
+signals:
+    void gridReset();
+    void gridChanged();
+
+    void gridAboutToBeResized();
+    void gridResized();
+
+    void selectedCellsChanged();
 };
 
 template <class T, class ResourceItemT>

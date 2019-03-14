@@ -323,3 +323,57 @@ void AbstractChildListMultipleSelectionAccessor::onItemMoved(size_t parentIndex,
         emit AbstractListAccessor::itemMoved(from, to);
     }
 }
+
+AbstractGridAccessor::AbstractGridAccessor(AbstractResourceItem* resourceItem)
+    : QObject(resourceItem)
+    , _resourceItem(resourceItem)
+    , _selectedCells()
+{
+    connect(this, &AbstractGridAccessor::gridReset,
+            this, &AbstractGridAccessor::clearSelection);
+    connect(this, &AbstractGridAccessor::gridAboutToBeResized,
+            this, &AbstractGridAccessor::clearSelection);
+}
+
+void AbstractGridAccessor::setSelectedCells(const upoint_vectorset& selection)
+{
+    if (_selectedCells != selection) {
+        if (testSelection(selection) == false) {
+            return clearSelection();
+        }
+        _selectedCells = selection;
+        emit selectedCellsChanged();
+    }
+}
+
+void AbstractGridAccessor::setSelectedCells(upoint_vectorset&& selection)
+{
+    if (_selectedCells != selection) {
+        if (testSelection(selection) == false) {
+            return clearSelection();
+        }
+        _selectedCells = std::move(selection);
+        emit selectedCellsChanged();
+    }
+}
+
+void AbstractGridAccessor::clearSelection()
+{
+    if (!_selectedCells.empty()) {
+        _selectedCells.clear();
+        emit selectedCellsChanged();
+    }
+}
+
+bool AbstractGridAccessor::testSelection(const upoint_vectorset& selection) const
+{
+    const usize gridSize = this->size();
+
+    for (const upoint& c : selection) {
+        if (c.x >= gridSize.width || c.y >= gridSize.height) {
+            return false;
+        }
+    }
+
+    return true;
+}

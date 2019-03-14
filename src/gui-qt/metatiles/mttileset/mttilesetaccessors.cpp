@@ -44,64 +44,39 @@ void MtTilesetTileParameters::clearSelection()
 }
 
 MtTilesetScratchpadGrid::MtTilesetScratchpadGrid(MtTilesetResourceItem* tileset)
-    : QObject(tileset)
-    , _tileset(tileset)
-    , _selectedCells()
+    : AbstractGridAccessor(tileset)
 {
     Q_ASSERT(tileset);
 
     connect(tileset, &MtTilesetResourceItem::resourceLoaded,
-            this, &MtTilesetScratchpadGrid::gridResized);
+            this, &MtTilesetScratchpadGrid::gridReset);
 
-    connect(tileset, &MtTilesetResourceItem::resourceLoaded,
-            this, &MtTilesetScratchpadGrid::clearSelection);
-
-    connect(this, &MtTilesetScratchpadGrid::gridAboutToBeResized,
-            this, &MtTilesetScratchpadGrid::clearSelection);
+    connect(this, &MtTilesetScratchpadGrid::selectedCellsChanged,
+            this, &MtTilesetScratchpadGrid::updateSelectedTileParameters);
 
     connect(this, &MtTilesetScratchpadGrid::gridChanged,
             this, &MtTilesetScratchpadGrid::updateSelectedTileParameters);
 }
 
-void MtTilesetScratchpadGrid::setSelectedCells(const upoint_vectorset& selected)
+UnTech::usize MtTilesetScratchpadGrid::size() const
 {
-    if (_selectedCells != selected) {
-        _selectedCells = selected;
-        emit selectedCellsChanged();
-
-        updateSelectedTileParameters();
+    if (auto* data = resourceItem()->data()) {
+        return data->scratchpad.size();
     }
-}
-
-void MtTilesetScratchpadGrid::setSelectedCells(upoint_vectorset&& selected)
-{
-    if (_selectedCells != selected) {
-        _selectedCells = std::move(selected);
-        emit selectedCellsChanged();
-
-        updateSelectedTileParameters();
-    }
-}
-
-void MtTilesetScratchpadGrid::clearSelection()
-{
-    if (!_selectedCells.empty()) {
-        _selectedCells.clear();
-        emit selectedCellsChanged();
-    }
+    return usize(0, 0);
 }
 
 void MtTilesetScratchpadGrid::updateSelectedTileParameters()
 {
-    const auto* data = _tileset->data();
-    if (data == nullptr || _selectedCells.empty()) {
+    const auto* data = resourceItem()->data();
+    if (data == nullptr || selectedCells().empty()) {
         return;
     }
 
     const auto& scratchpad = data->scratchpad;
 
     vectorset<uint16_t> tiles;
-    for (auto& p : _selectedCells) {
+    for (auto& p : selectedCells()) {
         if (p.x < scratchpad.width()
             && p.y < scratchpad.height()) {
 
@@ -109,5 +84,5 @@ void MtTilesetScratchpadGrid::updateSelectedTileParameters()
         }
     }
 
-    _tileset->tileParameters()->setSelectedIndexes(std::move(tiles));
+    resourceItem()->tileParameters()->setSelectedIndexes(std::move(tiles));
 }
