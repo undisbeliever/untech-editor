@@ -136,6 +136,11 @@ bool AbstractListMultipleSelectionAccessor::removeSelectedItems()
     return removeMultipleItems(_selectedIndexes);
 }
 
+bool AbstractListMultipleSelectionAccessor::raiseSelectedItemsToTop()
+{
+    return moveMultipleItems(_selectedIndexes, INT_MIN);
+}
+
 bool AbstractListMultipleSelectionAccessor::raiseSelectedItems()
 {
     return moveMultipleItems(_selectedIndexes, -1);
@@ -144,6 +149,11 @@ bool AbstractListMultipleSelectionAccessor::raiseSelectedItems()
 bool AbstractListMultipleSelectionAccessor::lowerSelectedItems()
 {
     return moveMultipleItems(_selectedIndexes, +1);
+}
+
+bool AbstractListMultipleSelectionAccessor::lowerSelectedItemsToBottom()
+{
+    return moveMultipleItems(_selectedIndexes, INT_MAX);
 }
 
 AbstractNamedListAccessor::AbstractNamedListAccessor(AbstractResourceItem* resourceItem, size_t maxSize)

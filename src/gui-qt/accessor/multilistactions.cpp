@@ -17,8 +17,10 @@ MultiListActions::MultiListActions(QObject* parent)
     , add()
     , selectAll(createAction(this, "", "Select All", Qt::CTRL + Qt::Key_A))
     , clone(createAction(this, ":/icons/clone.svg", "Clone Selected", Qt::CTRL + Qt::Key_D))
+    , raiseToTop(createAction(this, ":/icons/raise-to-top.svg", "Raise Selected To Top", Qt::SHIFT + Qt::Key_Home))
     , raise(createAction(this, ":/icons/raise.svg", "Raise Selected", Qt::SHIFT + Qt::Key_PageUp))
     , lower(createAction(this, ":/icons/lower.svg", "Lower Selected", Qt::SHIFT + Qt::Key_PageDown))
+    , lowerToBottom(createAction(this, ":/icons/lower-to-bottom.svg", "Lower Selected To Bottom", Qt::SHIFT + Qt::Key_End))
     , remove(createAction(this, ":/icons/remove.svg", "Remove Selected", Qt::Key_Delete))
     , _accessors()
 {
@@ -30,10 +32,14 @@ MultiListActions::MultiListActions(QObject* parent)
             this, &MultiListActions::onSelectAllTriggered);
     connect(clone, &QAction::triggered,
             this, &MultiListActions::onCloneTriggered);
+    connect(raiseToTop, &QAction::triggered,
+            this, &MultiListActions::onRaiseToTopTriggered);
     connect(raise, &QAction::triggered,
             this, &MultiListActions::onRaiseTriggered);
     connect(lower, &QAction::triggered,
             this, &MultiListActions::onLowerTriggered);
+    connect(lowerToBottom, &QAction::triggered,
+            this, &MultiListActions::onLowerToBottomTriggered);
     connect(remove, &QAction::triggered,
             this, &MultiListActions::onRemoveTriggered);
 }
@@ -89,8 +95,10 @@ void MultiListActions::populate(QWidget* widget, bool addSeperator) const
         widget->addAction(selectAll);
     }
     widget->addAction(clone);
+    widget->addAction(raiseToTop);
     widget->addAction(raise);
     widget->addAction(lower);
+    widget->addAction(lowerToBottom);
     widget->addAction(remove);
 }
 
@@ -154,8 +162,10 @@ void MultiListActions::setShortcutContext(Qt::ShortcutContext context)
     }
     selectAll->setShortcutContext(context);
     clone->setShortcutContext(context);
+    raiseToTop->setShortcutContext(context);
     raise->setShortcutContext(context);
     lower->setShortcutContext(context);
+    lowerToBottom->setShortcutContext(context);
     remove->setShortcutContext(context);
 }
 
@@ -166,8 +176,10 @@ void MultiListActions::disableAll()
     }
     selectAll->setEnabled(false);
     clone->setEnabled(false);
+    raiseToTop->setEnabled(false);
     raise->setEnabled(false);
     lower->setEnabled(false);
+    lowerToBottom->setEnabled(false);
     remove->setEnabled(false);
 }
 
@@ -181,8 +193,10 @@ void MultiListActions::updateActions()
     bool canSelectAll = false;
     bool tooManySelectedToClone = false;
     bool canClone = false;
+    bool canRaiseToTop = false;
     bool canRaise = false;
     bool canLower = false;
+    bool canLowerToBottom = false;
     bool canRemove = false;
 
     for (int i = 0; i < _accessors.size(); i++) {
@@ -200,15 +214,19 @@ void MultiListActions::updateActions()
         canSelectAll |= listExists;
         tooManySelectedToClone |= listSize + indexes.size() > maxSize;
         canClone |= selectionValid && listSize + indexes.size() <= maxSize;
+        canRaiseToTop |= selectionValid && indexes.back() >= indexes.size();
         canRaise |= selectionValid && indexes.front() > 0;
         canLower |= selectionValid && indexes.back() + 1 < listSize;
+        canLowerToBottom |= selectionValid && indexes.front() < listSize - indexes.size();
         canRemove |= selectionValid;
     }
 
     selectAll->setEnabled(canSelectAll);
     clone->setEnabled(canClone & !tooManySelectedToClone);
+    raiseToTop->setEnabled(canRaiseToTop);
     raise->setEnabled(canRaise);
     lower->setEnabled(canLower);
+    lowerToBottom->setEnabled(canLowerToBottom);
     remove->setEnabled(canRemove);
 }
 
@@ -252,6 +270,22 @@ void MultiListActions::onCloneTriggered()
     }
 }
 
+void MultiListActions::onRaiseToTopTriggered()
+{
+    if (auto* singleAccessor = onlyOneAccessorWithASelection()) {
+        singleAccessor->raiseSelectedItemsToTop();
+    }
+    else {
+        if (auto* us = undoStack()) {
+            us->beginMacro(tr("Raise Selected Items To Top"));
+            for (auto* a : _accessors) {
+                a->raiseSelectedItemsToTop();
+            }
+            us->endMacro();
+        }
+    }
+}
+
 void MultiListActions::onRaiseTriggered()
 {
     if (auto* singleAccessor = onlyOneAccessorWithASelection()) {
@@ -278,6 +312,22 @@ void MultiListActions::onLowerTriggered()
             us->beginMacro(tr("Lower Selected Items"));
             for (auto* a : _accessors) {
                 a->lowerSelectedItems();
+            }
+            us->endMacro();
+        }
+    }
+}
+
+void MultiListActions::onLowerToBottomTriggered()
+{
+    if (auto* singleAccessor = onlyOneAccessorWithASelection()) {
+        singleAccessor->lowerSelectedItemsToBottom();
+    }
+    else {
+        if (auto* us = undoStack()) {
+            us->beginMacro(tr("Lower Selected Items To Bottom"));
+            for (auto* a : _accessors) {
+                a->lowerSelectedItemsToBottom();
             }
             us->endMacro();
         }

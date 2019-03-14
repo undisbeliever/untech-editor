@@ -18,8 +18,10 @@ NamedListActions::NamedListActions(QWidget* parent)
     , add(createAction(parent, ":/icons/add.svg", "Add", Qt::Key_Insert))
     , clone(createAction(parent, ":/icons/clone.svg", "Clone Selected", Qt::CTRL + Qt::Key_D))
     , rename(createAction(parent, ":/icons/rename.svg", "Rename Selected", 0))
+    , raiseToTop(createAction(this, ":/icons/raise-to-top.svg", "Raise Selected To Top", Qt::SHIFT + Qt::Key_Home))
     , raise(createAction(parent, ":/icons/raise.svg", "Raise Selected", Qt::SHIFT + Qt::Key_PageUp))
     , lower(createAction(parent, ":/icons/lower.svg", "Lower Selected", Qt::SHIFT + Qt::Key_PageDown))
+    , lowerToBottom(createAction(this, ":/icons/lower-to-bottom.svg", "Lower Selected To Bottom", Qt::SHIFT + Qt::Key_End))
     , remove(createAction(parent, ":/icons/remove.svg", "Remove Selected", Qt::Key_Delete))
     , _widget(parent)
     , _accessor(nullptr)
@@ -32,10 +34,14 @@ NamedListActions::NamedListActions(QWidget* parent)
             this, &NamedListActions::onCloneTriggered);
     connect(rename, &QAction::triggered,
             this, &NamedListActions::onRenameTriggered);
+    connect(raiseToTop, &QAction::triggered,
+            this, &NamedListActions::onRaiseToTopTriggered);
     connect(raise, &QAction::triggered,
             this, &NamedListActions::onRaiseTriggered);
     connect(lower, &QAction::triggered,
             this, &NamedListActions::onLowerTriggered);
+    connect(lowerToBottom, &QAction::triggered,
+            this, &NamedListActions::onLowerToBottomTriggered);
     connect(remove, &QAction::triggered,
             this, &NamedListActions::onRemoveTriggered);
 }
@@ -44,8 +50,10 @@ void NamedListActions::setShortcutContext(Qt::ShortcutContext context)
 {
     add->setShortcutContext(context);
     clone->setShortcutContext(context);
+    raiseToTop->setShortcutContext(context);
     raise->setShortcutContext(context);
     lower->setShortcutContext(context);
+    lowerToBottom->setShortcutContext(context);
     remove->setShortcutContext(context);
 }
 
@@ -54,8 +62,10 @@ void NamedListActions::populate(QWidget* widget) const
     widget->addAction(add);
     widget->addAction(clone);
     widget->addAction(rename);
+    widget->addAction(raiseToTop);
     widget->addAction(raise);
     widget->addAction(lower);
+    widget->addAction(lowerToBottom);
     widget->addAction(remove);
 }
 
@@ -85,8 +95,10 @@ void NamedListActions::updateText(const QString& typeName)
     add->setText(tr("Add %1").arg(typeName));
     clone->setText(tr("Clone %1").arg(typeName));
     rename->setText(tr("Rename %1").arg(typeName));
+    raiseToTop->setText(tr("Raise %1 To Top").arg(typeName));
     raise->setText(tr("Raise %1").arg(typeName));
     lower->setText(tr("Lower %1").arg(typeName));
+    lowerToBottom->setText(tr("Lower %1 To Bottom").arg(typeName));
     remove->setText(tr("Remove %1").arg(typeName));
 }
 
@@ -95,8 +107,10 @@ void NamedListActions::disableAll()
     add->setEnabled(false);
     clone->setEnabled(false);
     rename->setEnabled(false);
+    raiseToTop->setEnabled(false);
     raise->setEnabled(false);
     lower->setEnabled(false);
+    lowerToBottom->setEnabled(false);
     remove->setEnabled(false);
 }
 
@@ -114,12 +128,16 @@ void NamedListActions::updateActions()
 
     const bool selectionValid = listExists && selectedIndex < listSize;
     const bool canAdd = listExists && listSize < maxSize;
+    const bool canRaise = selectionValid && selectedIndex > 0;
+    const bool canLower = selectionValid && selectedIndex + 1 < listSize;
 
     add->setEnabled(canAdd);
     clone->setEnabled(selectionValid && canAdd);
     rename->setEnabled(selectionValid);
-    raise->setEnabled(selectionValid && selectedIndex > 0);
-    lower->setEnabled(selectionValid && selectedIndex + 1 < listSize);
+    raiseToTop->setEnabled(canRaise);
+    raise->setEnabled(canRaise);
+    lower->setEnabled(canLower);
+    lowerToBottom->setEnabled(canLower);
     remove->setEnabled(selectionValid);
 }
 
@@ -191,6 +209,13 @@ void NamedListActions::onRenameTriggered()
     }
 }
 
+void NamedListActions::onRaiseToTopTriggered()
+{
+    if (_accessor) {
+        _accessor->raiseSelectedItemToTop();
+    }
+}
+
 void NamedListActions::onRaiseTriggered()
 {
     if (_accessor) {
@@ -202,6 +227,13 @@ void NamedListActions::onLowerTriggered()
 {
     if (_accessor) {
         _accessor->lowerSelectedItem();
+    }
+}
+
+void NamedListActions::onLowerToBottomTriggered()
+{
+    if (_accessor) {
+        _accessor->lowerSelectedItemToBottom();
     }
 }
 

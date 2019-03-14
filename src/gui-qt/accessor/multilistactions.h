@@ -24,8 +24,10 @@ private:
 public:
     QAction* const selectAll;
     QAction* const clone;
+    QAction* const raiseToTop;
     QAction* const raise;
     QAction* const lower;
+    QAction* const lowerToBottom;
     QAction* const remove;
 
 private:
@@ -56,8 +58,10 @@ private slots:
     void onAddTriggered();
     void onSelectAllTriggered();
     void onCloneTriggered();
+    void onRaiseToTopTriggered();
     void onRaiseTriggered();
     void onLowerTriggered();
+    void onLowerToBottomTriggered();
     void onRemoveTriggered();
 
 private:

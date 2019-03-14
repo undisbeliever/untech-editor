@@ -120,8 +120,10 @@ public:
     bool cloneSelectedItems();
     bool removeSelectedItems();
 
+    bool raiseSelectedItemsToTop();
     bool raiseSelectedItems();
     bool lowerSelectedItems();
+    bool lowerSelectedItemsToBottom();
 
     virtual bool cloneMultipleItems(const vectorset<size_t>& indexes) = 0;
     virtual bool removeMultipleItems(const vectorset<size_t>& indexes) = 0;

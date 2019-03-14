@@ -944,117 +944,107 @@ private:
 
     class MoveMultipleCommand : public BaseCommand {
     private:
-        const vectorset<index_type> _redoIndexes;
-        const vectorset<index_type> _undoIndexes;
-        const int _offset;
+        const std::vector<index_type> _fromIndexes;
+        const std::vector<index_type> _toIndexes;
+        const bool _moveUp;
 
-        static std::vector<index_type> moveSelectedIndexes(const vectorset<index_type>& indexes, int offset)
+        std::vector<index_type> buildToIndexes(const vectorset<index_type>& fromIndexes, int offset)
         {
-            std::vector<index_type> ret;
-            ret.reserve(indexes.size());
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+            Q_ASSERT(fromIndexes.size() < list->size());
 
-            for (const index_type& i : indexes) {
-                ret.push_back(i + offset);
+            std::vector<index_type> toIndexes;
+            toIndexes.reserve(fromIndexes.size());
+
+            Q_ASSERT(offset != 0);
+            if (offset < 0) {
+                // move up
+                const index_type absOffset = -offset;
+                index_type limit = 0;
+                for (const index_type& from : fromIndexes) {
+                    toIndexes.push_back(from > absOffset ? std::max(from - absOffset, limit) : limit);
+                    limit++;
+                }
+            }
+            else {
+                // move down
+                const index_type absOffset = offset;
+                index_type limit = list->size() - fromIndexes.size();
+                for (const index_type& from : fromIndexes) {
+                    toIndexes.push_back(std::min(from + absOffset, limit));
+                    limit++;
+                }
             }
 
-            return ret;
+            return toIndexes;
         }
 
     public:
         MoveMultipleCommand(AccessorT* accessor, const ArgsT& args,
-                            const vectorset<index_type>& indexes, int offset,
+                            const vectorset<index_type>& fromIndexes, int offset,
                             const QString& text)
             : BaseCommand(accessor, args, text)
-            , _redoIndexes(indexes)
-            , _undoIndexes(moveSelectedIndexes(indexes, offset))
-            , _offset(offset)
+            , _fromIndexes(fromIndexes)
+            , _toIndexes(buildToIndexes(fromIndexes, offset))
+            , _moveUp(offset < 0)
         {
         }
         ~MoveMultipleCommand() = default;
 
         void undo()
         {
-            moveItems(_undoIndexes, -_offset);
+            moveItems(_toIndexes, _fromIndexes, !_moveUp);
         }
 
         void redo()
         {
-            moveItems(_redoIndexes, _offset);
+            moveItems(_fromIndexes, _toIndexes, _moveUp);
         }
 
     private:
-        void moveItems(const vectorset<index_type>& indexes, int offset)
+        void moveItems(const std::vector<index_type>& from, const std::vector<index_type>& to, bool moveUp)
         {
-            Q_ASSERT(offset != 0);
-            if (offset < 0) {
-                moveItemsUp(indexes, -offset);
+            const bool listIsSelected = this->_args == this->_accessor->selectedListTuple();
+
+            auto selection = listIsSelected ? SelectionModifier::getSelection(this->_accessor)
+                                            : typename SelectionModifier::selection_type();
+
+            ListT* list = this->getList();
+            Q_ASSERT(list);
+
+            Q_ASSERT(from.empty() == false);
+            Q_ASSERT(from.size() == to.size());
+            Q_ASSERT(from.front() >= 0 && from.back() < list->size());
+            Q_ASSERT(to.front() >= 0 && to.back() < list->size());
+
+            auto doMove = [&](index_type from, index_type to) {
+                if (from != to) {
+                    moveListItem(from, to, *list);
+                    this->emitItemMoved(from, to);
+                    SelectionModifier::itemMoved(selection, from, to);
+                }
+            };
+
+            this->emitListAboutToChange();
+
+            if (moveUp) {
+                // Move items up
+                auto fromIt = from.cbegin();
+                auto toIt = to.cbegin();
+                while (fromIt != from.cend()) {
+                    doMove(*fromIt++, *toIt++);
+                }
+                assert(toIt == to.cend());
             }
             else {
-                moveItemsDown(indexes, offset);
-            }
-        }
-
-        void moveItemsUp(const vectorset<index_type>& indexes, unsigned offset)
-        {
-            const bool listIsSelected = this->_args == this->_accessor->selectedListTuple();
-
-            auto selection = listIsSelected ? SelectionModifier::getSelection(this->_accessor)
-                                            : typename SelectionModifier::selection_type();
-
-            ListT* list = this->getList();
-            Q_ASSERT(list);
-
-            Q_ASSERT(offset > 0);
-            Q_ASSERT(indexes.empty() == false);
-            Q_ASSERT(indexes.front() >= offset);
-            Q_ASSERT(indexes.back() < list->size());
-
-            this->emitListAboutToChange();
-
-            for (auto it = indexes.begin(); it != indexes.end(); it++) {
-                const index_type& from = *it;
-                const index_type to = from - offset;
-
-                moveListItem(from, to, *list);
-
-                this->emitItemMoved(from, to);
-
-                SelectionModifier::itemMoved(selection, from, to);
-            }
-
-            this->emitListChanged();
-
-            if (listIsSelected) {
-                SelectionModifier::setSelection(this->_accessor, std::move(selection));
-            }
-        }
-
-        void moveItemsDown(const vectorset<index_type>& indexes, unsigned offset)
-        {
-            const bool listIsSelected = this->_args == this->_accessor->selectedListTuple();
-
-            auto selection = listIsSelected ? SelectionModifier::getSelection(this->_accessor)
-                                            : typename SelectionModifier::selection_type();
-
-            ListT* list = this->getList();
-            Q_ASSERT(list);
-
-            Q_ASSERT(offset > 0);
-            Q_ASSERT(indexes.empty() == false);
-            Q_ASSERT(indexes.front() >= 0);
-            Q_ASSERT(indexes.back() + offset < list->size());
-
-            this->emitListAboutToChange();
-
-            for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
-                const index_type& from = *it;
-                const index_type to = from + offset;
-
-                moveListItem(from, to, *list);
-
-                this->emitItemMoved(from, to);
-
-                SelectionModifier::itemMoved(selection, from, to);
+                // Move items down
+                auto fromIt = from.crbegin();
+                auto toIt = to.crbegin();
+                while (fromIt != from.crend()) {
+                    doMove(*fromIt++, *toIt++);
+                }
+                assert(toIt == to.crend());
             }
 
             this->emitListChanged();
@@ -1708,19 +1698,32 @@ public:
         if (indexes.front() < 0 || indexes.back() >= list->size()) {
             return nullptr;
         }
-        if (offset > 0 && indexes.back() + index_type(offset) >= list->size()) {
+        if (offset == 0) {
             return nullptr;
         }
-        if (offset < 0 && indexes.front() < index_type(-offset)) {
+        if (offset < 0 && indexes.back() < indexes.size()) {
+            return nullptr;
+        }
+        if (offset > 0 && indexes.front() >= list->size() - indexes.size()) {
             return nullptr;
         }
 
         const char* text = "Move %1";
-        if (offset == -1) {
-            text = "Raise %1";
+        if (offset < 0) {
+            if (offset == -1) {
+                text = "Raise %1";
+            }
+            else if (unsigned(-offset) > list->size()) {
+                text = "Raise %1 To Top";
+            }
         }
-        else if (offset == +1) {
-            text = "Lower %1";
+        else if (offset > 0) {
+            if (offset == 1) {
+                text = "Lower %1";
+            }
+            else if (unsigned(offset) > list->size()) {
+                text = "Lower %1 To Bottom";
+            }
         }
         const QString& typeName = indexes.size() == 1 ? _accessor->typeName() : _accessor->typeNamePlural();
 

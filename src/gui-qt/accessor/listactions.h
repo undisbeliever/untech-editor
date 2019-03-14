@@ -25,8 +25,10 @@ public:
     QAction* const add;
     QAction* const selectAll; // Only enabled and visible on AbstractListMultipleSelectionAccessor
     QAction* const clone;
+    QAction* const raiseToTop;
     QAction* const raise;
     QAction* const lower;
+    QAction* const lowerToBottom;
     QAction* const remove;
 
 private:
