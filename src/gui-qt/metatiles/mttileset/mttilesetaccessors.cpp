@@ -5,6 +5,7 @@
  */
 
 #include "mttilesetaccessors.h"
+#include "gui-qt/accessor/gridundohelper.h"
 
 using namespace UnTech::GuiQt::MetaTiles;
 
@@ -85,4 +86,25 @@ void MtTilesetScratchpadGrid::updateSelectedTileParameters()
     }
 
     resourceItem()->tileParameters()->setSelectedIndexes(std::move(tiles));
+}
+
+bool MtTilesetScratchpadGrid::editGrid_resizeGrid(const usize& size)
+{
+    return UndoHelper(this).resizeGrid(
+        size, MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE,
+        tr("Resize scratchpad"));
+}
+
+bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const GridT& tiles)
+{
+    const auto* data = resourceItem()->compiledData();
+    if (data == nullptr) {
+        return false;
+    }
+    const unsigned nMetaTiles = data->nMetaTiles();
+
+    return UndoHelper(this).editCellsWithCroppingAndCellTest(
+        location, tiles,
+        tr("Place Tiles"),
+        [&](const uint16_t& t) { return t < nMetaTiles; });
 }

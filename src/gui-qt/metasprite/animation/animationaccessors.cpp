@@ -40,6 +40,30 @@ QString AnimationsList::typeNamePlural() const
     return tr("Animations");
 }
 
+bool AnimationsList::editSelected_setDurationFormat(MSA::DurationFormat durationFormat)
+{
+    return UndoHelper(this).editSelectedItemField(
+        durationFormat, tr("Change Animation Duration Format"),
+        [](MSA::Animation& a) -> MSA::DurationFormat& { return a.durationFormat; });
+}
+
+bool AnimationsList::editSelected_setOneShot(bool oneShot)
+{
+    QString text = oneShot ? tr("Set Animation One Shot") : tr("Clear Animation One Shot");
+
+    return UndoHelper(this).editSelectedItemField(
+        oneShot, text,
+        [](MSA::Animation& a) -> bool& { return a.oneShot; });
+}
+
+bool AnimationsList::editSelected_setNextAnimation(const idstring& nextAnimation)
+{
+    return UndoHelper(this).editSelectedItemMultipleFields(
+        std::make_tuple(false, nextAnimation),
+        tr("Change Next Animation"),
+        [](MSA::Animation& a) { return std::tie(a.oneShot, a.nextAnimation); });
+}
+
 template <>
 const std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>::list(size_t pIndex) const
 {
@@ -79,6 +103,11 @@ QString AnimationFramesList::typeName() const
 QString AnimationFramesList::typeNamePlural() const
 {
     return tr("Animation Frames");
+}
+
+bool AnimationFramesList::editSelectedList_setData(AnimationFramesList::index_type index, const AnimationFramesList::DataT& value)
+{
+    return UndoHelper(this).editItem(index, value);
 }
 
 using namespace UnTech::GuiQt;

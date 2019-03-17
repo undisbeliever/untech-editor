@@ -6,6 +6,7 @@
 
 #include "document.h"
 #include "accessors.h"
+#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/animation/animationaccessors.h"
 
@@ -137,4 +138,74 @@ void Document::onFrameSetImageFilenameChanged()
         filenames << QString::fromStdString(fs->imageFilename);
     }
     setExternalFiles(filenames);
+}
+
+bool Document::editFrameSet_setName(const idstring& name)
+{
+    if (name.isValid() == false) {
+        return false;
+    }
+
+    return UndoHelper(this).editName(name);
+}
+
+bool Document::editFrameSet_setTilesetType(TilesetType ts)
+{
+    return UndoHelper(this).editField(
+        ts,
+        tr("Edit Tileset Type"),
+        [](SI::FrameSet& fs) -> TilesetType& { return fs.tilesetType; },
+        [](Document& d) { emit d.frameSetDataChanged(); });
+}
+
+bool Document::editFrameSet_setExportOrder(const UnTech::idstring& exportOrder)
+{
+    return UndoHelper(this).editField(
+        exportOrder,
+        tr("Edit Export Order"),
+        [](SI::FrameSet& fs) -> idstring& { return fs.exportOrder; },
+        [](Document& d) { emit d.frameSetDataChanged();
+                          emit d.frameSetExportOrderChanged(); });
+}
+
+bool Document::editFrameSet_setImageFilename(const std::string& filename)
+{
+    return UndoHelper(this).editField(
+        filename,
+        tr("Change Image"),
+        [](SI::FrameSet& fs) -> std::string& { return fs.imageFilename; },
+        [](Document& d) {
+            emit d.frameSetImageFilenameChanged();
+            emit d.frameSetDataChanged();
+        });
+}
+
+bool Document::editFrameSet_setTransparentColor(const UnTech::rgba& color)
+{
+    return UndoHelper(this).editField(
+        color,
+        tr("Edit Transparent Color"),
+        [](SI::FrameSet& fs) -> rgba& { return fs.transparentColor; },
+        [](Document& d) { emit d.frameSetDataChanged(); });
+}
+
+bool Document::editFrameSet_setGrid(const SI::FrameSetGrid& grid)
+{
+    return UndoHelper(this).editField(
+        grid,
+        tr("Edit FrameSet Grid"),
+        [](SI::FrameSet& fs) -> SI::FrameSetGrid& { return fs.grid; },
+        [](Document& d) { d.frameSet()->updateFrameLocations();
+                          emit d.frameSetGridChanged();
+                          emit d.frameSetDataChanged(); });
+}
+
+bool Document::editFrameSet_setPalette(const SI::UserSuppliedPalette& palette)
+{
+    return UndoHelper(this).editField(
+        palette,
+        tr("Edit FrameSet Palette"),
+        [](SI::FrameSet& fs) -> SI::UserSuppliedPalette& { return fs.palette; },
+        [](Document& d) { emit d.frameSetPaletteChanged();
+                          emit d.frameSetDataChanged(); });
 }

@@ -42,5 +42,37 @@ QString EntityFunctionTableList::typeNamePlural() const
     return tr("Entity Function Tables");
 }
 
+bool EntityFunctionTableList::edit_setExportOrder(EntityFunctionTableList::index_type index, const idstring& exportOrder)
+{
+    return UndoHelper(this).editField(
+        index, exportOrder,
+        tr("Edit FrameSet Export Order"),
+        [](DataT& s) -> idstring& { return s.exportOrder; });
+}
+
+bool EntityFunctionTableList::edit_setParameterType(EntityFunctionTableList::index_type index, EN::ParameterType parameterType)
+{
+    return UndoHelper(this).editField(
+        index, parameterType,
+        tr("Edit Entity Parameter Type"),
+        [](DataT& s) -> EN::ParameterType& { return s.parameterType; });
+}
+
+bool EntityFunctionTableList::edit_setEntityStruct(index_type index, const idstring& entityStruct)
+{
+    return UndoHelper(this).editField(
+        index, entityStruct,
+        tr("Edit Entity Struct"),
+        [](DataT& s) -> idstring& { return s.entityStruct; });
+}
+
+bool EntityFunctionTableList::edit_setComment(index_type index, const std::string& comment)
+{
+    return UndoHelper(this).editField(
+        index, comment,
+        tr("Edit Comment"),
+        [](DataT& s) -> std::string& { return s.comment; });
+}
+
 using namespace UnTech::GuiQt;
 template class Accessor::NamedListAccessor<EN::EntityFunctionTable, EntityFunctionTablesResourceItem>;
