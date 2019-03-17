@@ -101,6 +101,7 @@ void StructFieldsModel::onStructFieldDataChanged(size_t structId, size_t index)
     }
     else {
         auto* selectedStruct = _item->structList()->selectedItem();
+        Q_ASSERT(selectedStruct);
         Q_ASSERT(index < selectedStruct->fields.size());
 
         int row = _data.updateFieldInChildStruct(index, selectedStruct->fields.at(index));
