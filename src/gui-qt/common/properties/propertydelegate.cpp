@@ -164,6 +164,7 @@ QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewI
 
     QWidget* editor = createEditorWidget(parent, model, index, property);
     if (editor) {
+        editor->setFocusPolicy(Qt::WheelFocus);
         connect(model, &AbstractPropertyModel::requestCloseEditors,
                 editor, [=]() {
                     // Close editor when underlying data is about to change
