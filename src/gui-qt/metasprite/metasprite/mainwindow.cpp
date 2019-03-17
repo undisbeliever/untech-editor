@@ -58,6 +58,10 @@ MainWindow::MainWindow(ZoomSettingsManager* zoomManager, QWidget* parent)
     setCentralWidget(_tabWidget);
     _tabWidget->setTabPosition(QTabWidget::West);
 
+    _graphicsView->addAction(_frameSetDock->addFrameAction());
+    for (auto* a : _frameDock->frameContentsContextMenu()->actions()) {
+        _graphicsView->addAction(a);
+    }
     _frameDock->populateMenu(_graphicsScene->contextMenu());
 
     _graphicsView->setMinimumSize(256, 256);
@@ -105,8 +109,7 @@ ZoomSettings* MainWindow::zoomSettings() const
 void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
     editMenu->addSeparator();
-    _frameSetDock->populateMenu(editMenu);
-    editMenu->addSeparator();
+    editMenu->addAction(_frameSetDock->addFrameAction());
     _frameDock->populateMenu(editMenu);
 
     viewMenu->addSeparator();
@@ -152,7 +155,7 @@ void MainWindow::populateWidgets()
 
 void MainWindow::onSelectedFrameChanged()
 {
-    if (_document && _document->frameList()->isFrameSelected()) {
+    if (_document && _document->frameList()->isSelectedIndexValid()) {
         _graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     }
     else {
@@ -225,11 +228,11 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
 
         case Type::ANIMATION:
             // clear animation frame selection
-            _animationDock->selectAnimationFrame(INT_MAX);
+            _document->animationFramesList()->setSelectedIndex(INT_MAX);
             break;
 
         case Type::ANIMATION_FRAME:
-            _animationDock->selectAnimationFrame(e->id());
+            _document->animationFramesList()->setSelectedIndex(e->id());
             break;
         }
     }

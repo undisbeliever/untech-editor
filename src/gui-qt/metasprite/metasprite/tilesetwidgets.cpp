@@ -57,7 +57,7 @@ void AbstractTilesetWidget::onPaletteChanged(unsigned index)
 
 void AbstractTilesetWidget::updateBackgroundColor()
 {
-    if (const auto* pal = _document->paletteList()->selectedPalette()) {
+    if (const auto* pal = _document->paletteList()->selectedItem()) {
         const auto& rgb = pal->color(0).rgb();
         setBackgroundColor(qRgb(rgb.red, rgb.green, rgb.blue));
     }

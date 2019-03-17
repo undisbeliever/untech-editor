@@ -50,13 +50,16 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
     _ui->frameContents->header()->setStretchLastSection(true);
     _ui->frameContents->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    auto& frameActions = _ui->frameContents->viewActions();
-    frameActions.add.at(0)->setIcon(QIcon(":/icons/add-frame-object.svg"));
-    frameActions.add.at(1)->setIcon(QIcon(":/icons/add-action-point.svg"));
-    frameActions.add.at(2)->setIcon(QIcon(":/icons/add-entity-hitbox.svg"));
+    auto* frameActions = _ui->frameContents->viewActions();
+    frameActions->addAction(0)->setIcon(QIcon(":/icons/add-frame-object.svg"));
+    frameActions->addAction(0)->setShortcut(Qt::CTRL + Qt::Key_F);
+    frameActions->addAction(1)->setIcon(QIcon(":/icons/add-action-point.svg"));
+    frameActions->addAction(1)->setShortcut(Qt::CTRL + Qt::Key_P);
+    frameActions->addAction(2)->setIcon(QIcon(":/icons/add-entity-hitbox.svg"));
+    frameActions->addAction(2)->setShortcut(Qt::CTRL + Qt::Key_H);
 
     QMenu* frameContextMenu = _ui->frameContents->selectedContextmenu();
-    QAction* firstAddAction = frameActions.add.first();
+    QAction* firstAddAction = frameActions->addAction(0);
     frameContextMenu->insertAction(firstAddAction, _toggleObjSize);
     frameContextMenu->insertAction(firstAddAction, _flipObjHorizontally);
     frameContextMenu->insertAction(firstAddAction, _flipObjVertically);
@@ -65,7 +68,7 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
 
     populateEntityHitboxTypeMenu(_entityHitboxTypeMenu);
 
-    _ui->frameContents->viewActions().populateToolbar(_ui->frameContentsButtons);
+    _ui->frameContents->viewActions()->populate(_ui->frameContentsButtons);
 
     clearGui();
     updateFrameActions();
@@ -114,11 +117,6 @@ void FrameDock::setDocument(Document* document)
     if (_document) {
         onSelectedFrameChanged();
 
-        _ui->frameContents->setAccessors(
-            _document->frameObjectList(),
-            _document->actionPointList(),
-            _document->entityHitboxList());
-
         connect(_document->frameList(), &FrameList::dataChanged,
                 this, &FrameDock::onFrameDataChanged);
 
@@ -132,9 +130,6 @@ void FrameDock::setDocument(Document* document)
                 this, &FrameDock::updateEntityHitboxTypeMenu);
     }
     else {
-        _ui->frameContents->setAccessors<
-            FrameObjectList, ActionPointList, EntityHitboxList>(nullptr, nullptr, nullptr);
-
         clearGui();
     }
 }
@@ -152,12 +147,12 @@ void FrameDock::populateMenu(QMenu* editMenu)
     editMenu->addAction(_flipObjVertically);
     editMenu->addMenu(_entityHitboxTypeMenu);
     editMenu->addSeparator();
-    _ui->frameContents->viewActions().populateMenu(editMenu, true);
+    _ui->frameContents->viewActions()->populate(editMenu, true);
 }
 
 void FrameDock::onSelectedFrameChanged()
 {
-    const MS::Frame* frame = _document->frameList()->selectedFrame();
+    const MS::Frame* frame = _document->frameList()->selectedItem();
 
     if (frame) {
         _ui->frameContents->expandAll();
@@ -202,7 +197,7 @@ void FrameDock::updateFrameActions()
     bool isFrameSolid = false;
 
     if (_document) {
-        if (const auto* frame = _document->frameList()->selectedFrame()) {
+        if (const auto* frame = _document->frameList()->selectedItem()) {
             frameSelected = true;
             isFrameSolid = frame->solid;
         }

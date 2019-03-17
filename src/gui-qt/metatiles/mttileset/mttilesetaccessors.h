@@ -7,9 +7,8 @@
 #pragma once
 
 #include "mttilesetresourceitem.h"
-#include "gui-qt/accessor/accessor.h"
+#include "gui-qt/accessor/abstractaccessors.h"
 #include "models/common/grid.h"
-#include "models/common/vectorset-upoint.h"
 #include <QObject>
 #include <cstdint>
 #include <tuple>
@@ -53,32 +52,25 @@ signals:
     void selectedIndexesChanged();
 };
 
-class MtTilesetScratchpadGrid : public QObject {
+class MtTilesetScratchpadGrid : public Accessor::AbstractGridAccessor {
     Q_OBJECT
 
 public:
     using DataT = uint16_t;
     using GridT = UnTech::grid<uint16_t>;
-    using index_type = upoint;
-    using selection_type = upoint_vectorset;
     using ArgsT = std::tuple<>;
 
-    static const usize max_size;
+    using UndoHelper = Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
 
-private:
-    MtTilesetResourceItem* const _tileset;
-    upoint_vectorset _selectedCells;
+    static UnTech::usize maxSize() { return usize(255, 255); }
 
 public:
     MtTilesetScratchpadGrid(MtTilesetResourceItem* tileset);
     ~MtTilesetScratchpadGrid() = default;
 
-    MtTilesetResourceItem* resourceItem() const { return _tileset; }
+    MtTilesetResourceItem* resourceItem() const { return static_cast<MtTilesetResourceItem*>(AbstractGridAccessor::resourceItem()); }
 
-    const upoint_vectorset& selectedCells() const { return _selectedCells; }
-    void setSelectedCells(const upoint_vectorset& selected);
-    void setSelectedCells(upoint_vectorset&& selected);
-    void clearSelection();
+    virtual usize size() const final;
 
     bool editGrid_resizeGrid(const usize& size);
     bool editGrid_placeTiles(const point& location, const GridT& tiles);
@@ -87,7 +79,7 @@ protected:
     friend class Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
     GridT* getGrid()
     {
-        if (auto* data = _tileset->dataEditable()) {
+        if (auto* data = resourceItem()->dataEditable()) {
             return &data->scratchpad;
         }
         return nullptr;

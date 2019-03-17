@@ -34,12 +34,10 @@ public:
     explicit AnimationDock(QWidget* parent = nullptr);
     ~AnimationDock();
 
-    const Accessor::NamedListActions& actions() const;
+    const Accessor::NamedListActions* actions() const;
     Accessor::NamedListModel* animationListModel();
 
     void setDocument(AbstractMsDocument* document);
-
-    void selectAnimationFrame(unsigned index);
 
 private:
     std::unique_ptr<Ui::AnimationDock> const _ui;

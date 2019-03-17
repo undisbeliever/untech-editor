@@ -5,83 +5,111 @@
  */
 
 #include "animationaccessors.h"
-#include "gui-qt/accessor/selectedindexhelper.h"
+#include "gui-qt/accessor/abstractaccessors.hpp"
 #include "gui-qt/common/helpers.h"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
+template <>
+const NamedList<MSA::Animation>* NamedListAccessor<MSA::Animation, AbstractMsDocument>::list() const
+{
+    return resourceItem()->animations();
+}
+
+template <>
+NamedList<MSA::Animation>* NamedListAccessor<MSA::Animation, AbstractMsDocument>::getList()
+{
+    return resourceItem()->animations();
+}
+
 AnimationsList::AnimationsList(AbstractMsDocument* document)
-    : QObject(document)
-    , _document(document)
-    , _selectedIndex()
+    : NamedListAccessor(document, UnTech::MetaSprite::MAX_EXPORT_NAMES)
 {
-    SelectedIndexHelper::buildAndConnectSlots_NamedList(this);
 }
 
-QStringList AnimationsList::animationNames() const
+QString AnimationsList::typeName() const
 {
-    if (const auto* aList = _document->animations()) {
-        return convertNameList(*aList);
-    }
-    else {
-        return QStringList();
-    }
+    return tr("Animation");
 }
 
-void AnimationsList::setSelectedId(const UnTech::idstring& id)
+QString AnimationsList::typeNamePlural() const
 {
-    if (auto* list = _document->animations()) {
-        setSelectedIndex(list->indexOf(id));
-    }
-    else {
-        unselectItem();
-    }
+    return tr("Animations");
 }
 
-void AnimationsList::setSelectedIndex(const AnimationsList::index_type& index)
+bool AnimationsList::editSelected_setDurationFormat(MSA::DurationFormat durationFormat)
 {
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
-    }
+    return UndoHelper(this).editSelectedItemField(
+        durationFormat, tr("Change Animation Duration Format"),
+        [](MSA::Animation& a) -> MSA::DurationFormat& { return a.durationFormat; });
 }
 
-bool AnimationsList::isSelectedIndexValid() const
+bool AnimationsList::editSelected_setOneShot(bool oneShot)
 {
-    auto* animations = _document->animations();
+    QString text = oneShot ? tr("Set Animation One Shot") : tr("Clear Animation One Shot");
 
-    return animations
-           && _selectedIndex < animations->size();
+    return UndoHelper(this).editSelectedItemField(
+        oneShot, text,
+        [](MSA::Animation& a) -> bool& { return a.oneShot; });
 }
 
-const UnTech::MetaSprite::Animation::Animation* AnimationsList::selectedAnimation() const
+bool AnimationsList::editSelected_setNextAnimation(const idstring& nextAnimation)
 {
-    auto* animations = _document->animations();
-    if (_selectedIndex >= animations->size()) {
+    return UndoHelper(this).editSelectedItemMultipleFields(
+        std::make_tuple(false, nextAnimation),
+        tr("Change Next Animation"),
+        [](MSA::Animation& a) { return std::tie(a.oneShot, a.nextAnimation); });
+}
+
+template <>
+const std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>::list(size_t pIndex) const
+{
+    const auto* animations = resourceItem()->animations();
+    if (animations == nullptr) {
         return nullptr;
     }
-    return &animations->at(_selectedIndex);
-}
-
-UnTech::MetaSprite::Animation::Animation* AnimationsList::selectedItemEditable()
-{
-    auto* animations = _document->animations();
-    if (_selectedIndex >= animations->size()) {
+    if (pIndex >= animations->size()) {
         return nullptr;
     }
-    return &animations->at(_selectedIndex);
+    return &animations->at(pIndex).frames;
+}
+
+template <>
+std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>::getList(size_t pIndex)
+{
+    auto* animations = resourceItem()->animations();
+    if (animations == nullptr) {
+        return nullptr;
+    }
+    if (pIndex >= animations->size()) {
+        return nullptr;
+    }
+    return &animations->at(pIndex).frames;
 }
 
 AnimationFramesList::AnimationFramesList(AbstractMsDocument* document)
-    : QObject(document)
-    , _document(document)
-    , _animationIndex(INT_MAX)
+    : ChildVectorAccessor(document->animationsList(), document, UnTech::MetaSprite::MAX_ANIMATION_FRAMES)
 {
-    connect(_document->animationsList(), &AnimationsList::selectedIndexChanged,
-            this, [this] {
-                _animationIndex = _document->animationsList()->selectedIndex();
-                emit selectedListChanged();
-            });
 }
+
+QString AnimationFramesList::typeName() const
+{
+    return tr("Animation Frame");
+}
+
+QString AnimationFramesList::typeNamePlural() const
+{
+    return tr("Animation Frames");
+}
+
+bool AnimationFramesList::editSelectedList_setData(AnimationFramesList::index_type index, const AnimationFramesList::DataT& value)
+{
+    return UndoHelper(this).editItem(index, value);
+}
+
+using namespace UnTech::GuiQt;
+template class Accessor::NamedListAccessor<MSA::Animation, AbstractMsDocument>;
+template class Accessor::ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>;

@@ -163,7 +163,7 @@ const UnTech::Snes::Palette4bpp& TilesetPixmaps::palette() const
         return BLANK_PALETTE;
     }
 
-    if (const auto* p = _document->paletteList()->selectedPalette()) {
+    if (const auto* p = _document->paletteList()->selectedItem()) {
         return *p;
     }
     else {

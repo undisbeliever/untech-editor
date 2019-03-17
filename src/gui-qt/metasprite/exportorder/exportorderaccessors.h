@@ -8,6 +8,7 @@
 
 #include "exportorderresourceitem.h"
 #include "gui-qt/accessor/accessor.h"
+#include "gui-qt/accessor/listactionhelper.h"
 #include <QObject>
 #include <tuple>
 
@@ -15,6 +16,9 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace ExportOrder {
+
+// ExportNameList and AlternativesList are implemented manually as they
+// AlternativesList::dataChanged signal is three levels deep.
 
 class ExportNameList : public QObject {
     Q_OBJECT
@@ -26,7 +30,9 @@ public:
     using ArgsT = std::tuple<bool>;
     using SignalArgsT = ArgsT;
 
-    constexpr static index_type max_size = UnTech::MetaSprite::MAX_EXPORT_NAMES;
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<ExportNameList>;
+
+    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_EXPORT_NAMES; }
 
 private:
     ExportOrderResourceItem* const _exportOrder;
@@ -46,6 +52,7 @@ public:
 
     index_type selectedIndex() const { return _selectedIndex; }
     void setSelectedIndex(index_type index);
+    void setSelectedIndex(bool isFrame, index_type index);
     void unselectItem() { setSelectedIndex(INT_MAX); }
 
     bool isSelectedItemValid() const;
@@ -63,9 +70,9 @@ public:
     bool editSelectedList_lowerSelectedToBottom();
 
 protected:
-    friend class Accessor::ListUndoHelper<ExportNameList>;
+    template <class, class>
+    friend class Accessor::ListUndoHelper;
     friend class Accessor::ListActionHelper;
-    friend class Accessor::SelectedIndexHelper;
     ListT* getList(bool isFrame)
     {
         auto* eo = _exportOrder->exportOrderEditable();
@@ -103,7 +110,9 @@ public:
     using ArgsT = std::tuple<bool, index_type>;
     using SignalArgsT = ArgsT;
 
-    constexpr static index_type max_size = 256;
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<AlternativesList>;
+
+    constexpr static index_type maxSize() { return 256; }
 
 private:
     ExportOrderResourceItem* const _exportOrder;
@@ -133,9 +142,9 @@ public:
     bool editSelectedList_lowerSelectedToBottom();
 
 protected:
-    friend class Accessor::ListUndoHelper<AlternativesList>;
+    template <class, class>
+    friend class Accessor::ListUndoHelper;
     friend class Accessor::ListActionHelper;
-    friend class Accessor::SelectedIndexHelper;
     ListT* getList(bool isFrame, index_type index)
     {
         auto* eo = _exportOrder->exportOrderEditable();

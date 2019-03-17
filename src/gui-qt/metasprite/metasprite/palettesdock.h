@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/accessor/accessor.h"
 #include <QButtonGroup>
 #include <QDockWidget>
 #include <QList>
@@ -33,7 +34,6 @@ public:
     void setDocument(Document* document);
 
 private slots:
-    void updateActions();
     void onSelectedPaletteChanged();
     void onPaletteListSelectionChanged();
     void onPaletteContextMenu(const QPoint& pos);
@@ -44,15 +44,10 @@ private slots:
 
     void uncheckColorButtons();
 
-    void onActionAdd();
-    void onActionClone();
-    void onActionRaise();
-    void onActionLower();
-    void onActionRemove();
-
 private:
     std::unique_ptr<Ui::PalettesDock> const _ui;
     PalettesModel* const _model;
+    Accessor::ListActions* const _listActions;
 
     Document* _document;
 

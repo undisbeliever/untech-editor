@@ -6,6 +6,7 @@
 
 #include "document.h"
 #include "accessors.h"
+#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/animation/animationaccessors.h"
 
@@ -63,7 +64,7 @@ void Document::resetDocumentState()
 
     onFrameSetExportOrderChanged();
 
-    paletteList()->unselectItem();
+    paletteList()->setSelectedIndex(0);
     frameList()->unselectItem();
     animationsList()->unselectItem();
 }
@@ -119,4 +120,32 @@ void Document::onFrameSetExportOrderChanged()
     else {
         removeDependencies();
     }
+}
+
+bool Document::editFrameSet_setName(const idstring& name)
+{
+    if (name.isValid() == false) {
+        return false;
+    }
+
+    return UndoHelper(this).editName(name);
+}
+
+bool Document::editFrameSet_setTilesetType(TilesetType ts)
+{
+    return UndoHelper(this).editField(
+        ts,
+        tr("Edit Tileset Type"),
+        [](MS::FrameSet& fs) -> TilesetType& { return fs.tilesetType; },
+        [](Document& d) { emit d.frameSetDataChanged(); });
+}
+
+bool Document::editFrameSet_setExportOrder(const UnTech::idstring& exportOrder)
+{
+    return UndoHelper(this).editField(
+        exportOrder,
+        tr("Edit Export Order"),
+        [](MS::FrameSet& fs) -> idstring& { return fs.exportOrder; },
+        [](Document& d) { emit d.frameSetDataChanged();
+                          emit d.frameSetExportOrderChanged(); });
 }

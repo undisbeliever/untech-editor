@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
 # Find all usages of undohelper or UndoHelper that is:
-#  * NOT a friend class declaration
 #  * NOT inside the accessor directory
-#  * NOT inside a file called undo.cpp
+#  * NOT inside a file named resourceitem, accessor, accessors or document
 INVALID_UNDO_HELPERS=$(grep -i -r 'UndoHelper' src/ |
-                       grep -v -E 'friend class[[:space:]][^[:space:]]+UndoHelper' |
                        grep -v '^src/gui-qt/accessor/' |
-                       grep -v '^[^:]*/undo.cpp:' )
+                       grep -v -E '^[^:]+resourceitem.(cpp|h):' |
+                       grep -v -E '^[^:]+accessors?.(cpp|h):' |
+                       grep -v -E '^[^:]+metasprite/[^:]+/document.(cpp|h):' )
 
 
 if [[ ! -z "$INVALID_UNDO_HELPERS" ]] ; then

@@ -5,39 +5,116 @@
  */
 
 #include "accessors.h"
-#include "gui-qt/accessor/selectedindexhelper.h"
+#include "gui-qt/accessor/abstractaccessors.hpp"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Entity;
 
+template <>
+const NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>::list() const
+{
+    const auto* erel = qobject_cast<const EntityRomEntriesList*>(this);
+    Q_ASSERT(erel);
+    const auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    if (erel->isEntityList()) {
+        return &projectFile->entityRomData.entities;
+    }
+    else {
+        return &projectFile->entityRomData.projectiles;
+    }
+}
+
+template <>
+NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>::getList()
+{
+    auto* erel = qobject_cast<EntityRomEntriesList*>(this);
+    Q_ASSERT(erel);
+    auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    if (erel->isEntityList()) {
+        return &projectFile->entityRomData.entities;
+    }
+    else {
+        return &projectFile->entityRomData.projectiles;
+    }
+}
+
 EntityRomEntriesList::EntityRomEntriesList(EntityRomEntriesResourceItem* resourceItem,
                                            bool entityList)
-    : QObject(resourceItem)
-    , _resourceItem(resourceItem)
+    : NamedListAccessor(resourceItem, 255)
     , _entityList(entityList)
-    , _selectedIndex(INT_MAX)
 {
-    SelectedIndexHelper::buildAndConnectSlots_NamedList(this);
 }
 
-void EntityRomEntriesList::setSelectedIndex(EntityRomEntriesList::index_type index)
+QString EntityRomEntriesList::typeName() const
 {
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
-    }
+    return tr("Entity ROM Entry");
 }
 
-bool EntityRomEntriesList::isSelectedIndexValid() const
+QString EntityRomEntriesList::typeNamePlural() const
 {
-    return _selectedIndex < list()->size();
+    return tr("Entity ROM Entries");
 }
 
-const EntityRomEntriesList::DataT* EntityRomEntriesList::selectedEntry() const
+void EntityRomEntriesList::editSelected_setFunctionTable(const idstring& functionTable)
 {
-    const ListT* entries = list();
-    if (_selectedIndex >= entries->size()) {
-        return nullptr;
-    }
-    return &entries->at(_selectedIndex);
+    UndoHelper(this).editSelectedItemField(
+        functionTable,
+        tr("Edit Function Table"),
+        [](DataT& s) -> idstring& { return s.functionTable; },
+        [](EntityRomEntriesList* a, size_t i) { emit a->implementsChanged(i); });
 }
+
+void EntityRomEntriesList::editSelected_setComment(const std::string& comment)
+{
+    UndoHelper(this).editSelectedItemField(
+        comment,
+        tr("Edit Comment"),
+        [](DataT& s) -> std::string& { return s.comment; });
+}
+
+bool EntityRomEntriesList::editSelected_setInitialListId(const idstring& initialListId)
+{
+    return UndoHelper(this).editSelectedItemField(
+        initialListId,
+        tr("Edit initialListId"),
+        [](DataT& s) -> idstring& { return s.initialListId; });
+}
+
+bool EntityRomEntriesList::editSelected_setFrameSetId(const idstring& frameSetId)
+{
+    return UndoHelper(this).editSelectedItemField(
+        frameSetId,
+        tr("Edit frameSetId"),
+        [](DataT& s) -> idstring& { return s.frameSetId; });
+}
+
+bool EntityRomEntriesList::editSelected_setDisplayFrame(const idstring& displayFrame)
+{
+    return UndoHelper(this).editSelectedItemField(
+        displayFrame,
+        tr("Edit displayFrame"),
+        [](DataT& s) -> idstring& { return s.displayFrame; });
+}
+
+bool EntityRomEntriesList::editSelected_setDefaultPalette(unsigned defaultPalette)
+{
+    return UndoHelper(this).editSelectedItemField(
+        defaultPalette,
+        tr("Edit defaultPalette"),
+        [](DataT& s) -> unsigned& { return s.defaultPalette; });
+}
+
+bool EntityRomEntriesList::editSelected_setField(const QString& field, const std::string& value)
+{
+    const idstring fieldId(field.toStdString());
+
+    return UndoHelper(this).editSelectedItemField(
+        value,
+        tr("Edit %1").arg(field),
+        [=](DataT& s) -> std::string& { return s.fields[fieldId]; });
+}
+
+template class UnTech::GuiQt::Accessor::NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>;

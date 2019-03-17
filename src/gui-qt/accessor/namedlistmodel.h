@@ -6,109 +6,67 @@
 
 #pragma once
 
-#include "models/common/namedlist.h"
 #include <QAbstractListModel>
 #include <QStringList>
 #include <QVector>
 
 namespace UnTech {
 namespace GuiQt {
+class IdstringValidator;
+
 namespace Accessor {
 
+class AbstractNamedListAccessor;
+
+// This model does not emit rows added/removed/moved signals
+// as it interferes with AbstractNamedListAccessor::selectedIndexChanged
 class NamedListModel : public QAbstractListModel {
     Q_OBJECT
 
 public:
+    struct InternalMimeData;
+
+private:
+    static IdstringValidator* const ID_STRING_VALIDATOR;
+    static const QString ITEM_MIME_TYPE;
+
+    AbstractNamedListAccessor* _accessor;
+
+    QStringList _displayList;
+
+public:
     explicit NamedListModel(QObject* parent = nullptr);
     ~NamedListModel() = default;
+
+    void setAccessor(AbstractNamedListAccessor* accessor);
 
     QModelIndex toModelIndex(int i) const;
     size_t toIndex(const QModelIndex& index) const;
 
     const QStringList& displayList() const { return _displayList; }
 
+    bool checkIndex(const QModelIndex& index) const;
+
     virtual int rowCount(const QModelIndex& parent) const final;
-    virtual QVariant data(const QModelIndex& index, int role) const override;
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const final;
+    virtual QVariant data(const QModelIndex& index, int role) const final;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
-    template <class AccessorT>
-    void setAccessor(AccessorT* accessor)
-    {
-        using DataT = typename AccessorT::DataT;
-        using ListT = UnTech::NamedList<DataT>;
-
-        if (_accessor) {
-            _accessor->disconnect(this);
-        }
-        _accessor = accessor;
-
-        if (accessor) {
-            const ListT* list = accessor->list();
-
-            if (list) {
-                buildLists(*list);
-
-                connect(accessor, &AccessorT::itemAdded,
-                        this, [=](size_t index) {
-                            const ListT* list = accessor->list();
-                            Q_ASSERT(list);
-                            beginInsertRows(QModelIndex(), index, index);
-                            _displayList.insert(index, QString::fromStdString(list->at(index).name));
-                            endInsertRows();
-                        });
-                connect(accessor, &AccessorT::itemAboutToBeRemoved,
-                        this, [=](size_t index) {
-                            Q_ASSERT(index >= 0 && index < size_t(_displayList.size()));
-
-                            beginRemoveRows(QModelIndex(), index, index);
-                            _displayList.removeAt(index);
-                            endRemoveRows();
-                        });
-                connect(accessor, &AccessorT::itemMoved,
-                        this, [=](size_t from, size_t to) {
-                            const ListT* list = accessor->list();
-                            Q_ASSERT(list);
-                            Q_ASSERT(from >= 0 && from < size_t(_displayList.size()));
-                            Q_ASSERT(to >= 0 && to < size_t(_displayList.size()));
-                            _displayList.move(from, to);
-                            emit layoutChanged();
-                        });
-                connect(accessor, &AccessorT::nameChanged,
-                        this, [=](size_t index) {
-                            const ListT* list = accessor->list();
-                            Q_ASSERT(list);
-                            Q_ASSERT(index >= 0 && index < size_t(_displayList.size()));
-                            _displayList.replace(index, QString::fromStdString(list->at(index).name));
-                            QModelIndex mIndex = createIndex(index, 0);
-                            emit dataChanged(mIndex, mIndex);
-                        });
-            }
-        }
-        else {
-            clear();
-        }
-    }
+    virtual Qt::DropActions supportedDragActions() const final;
+    virtual Qt::DropActions supportedDropActions() const final;
+    virtual QStringList mimeTypes() const final;
+    virtual QMimeData* mimeData(const QModelIndexList& indexes) const final;
+    virtual bool canDropMimeData(const QMimeData* mimeData, Qt::DropAction action,
+                                 int destRow, int column, const QModelIndex& parent) const final;
+    virtual bool dropMimeData(const QMimeData* mimeData, Qt::DropAction action,
+                              int row, int column, const QModelIndex& parent) final;
 
 private:
-    void clear();
-
-    template <class T>
-    void buildLists(const UnTech::NamedList<T>& list)
-    {
-        beginResetModel();
-
-        _displayList.clear();
-
-        for (const auto& item : list) {
-            _displayList.append(QString::fromStdString(item.name));
-        }
-
-        endResetModel();
-    }
-
-private:
-    QObject* _accessor;
-
-    QStringList _displayList;
+    void resetDisplayList();
+    void onNameChanged(size_t index);
+    void onItemAdded(size_t index);
+    void onItemAboutToBeRemoved(size_t index);
+    void onItemMoved(size_t from, size_t to);
 };
 }
 }

@@ -30,11 +30,18 @@ public:
                                 const idstring& value = idstring(),
                                 const QStringList& invalidIdstrings = QStringList());
 
+    static idstring getIdstring(QWidget* parent,
+                                const QString& title,
+                                const QString& labelText,
+                                const QString& value = QString(),
+                                const QStringList& invalidIdstrings = QStringList());
+
     void setInvalidIdstrings(const QStringList& invalidIdstrings);
 
     void setLabelText(const QString& text);
 
     void setValue(const idstring& id);
+    void setValue(const QString& id);
     idstring value() const;
 
     void setTextValue(const QString& id);

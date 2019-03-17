@@ -26,19 +26,19 @@ AnimationDock::AnimationDock(QWidget* parent)
 {
     _ui->setupUi(this);
 
-    _ui->animationList->namedListActions().populateToolbar(_ui->animationListButtons);
+    _ui->animationList->namedListActions()->populate(_ui->animationListButtons);
 
     _ui->animationProperties->setPropertyManager(_animationManager);
 
     _ui->animationFrames->setPropertyManager(_animationFramesManager);
-    _ui->animationFrames->populateToolBar(_ui->animationFramesButtons);
+    _ui->animationFrames->viewActions()->populate(_ui->animationFramesButtons);
 
     setEnabled(false);
 }
 
 AnimationDock::~AnimationDock() = default;
 
-const UnTech::GuiQt::Accessor::NamedListActions& AnimationDock::actions() const
+const UnTech::GuiQt::Accessor::NamedListActions* AnimationDock::actions() const
 {
     return _ui->animationList->namedListActions();
 }
@@ -74,9 +74,4 @@ void AnimationDock::setDocument(AbstractMsDocument* document)
         _ui->animationFrames->setColumnWidth(2, 30);
         _ui->animationFrames->setColumnWidth(3, 0);
     }
-}
-
-void AnimationDock::selectAnimationFrame(unsigned index)
-{
-    _ui->animationFrames->setSelectedRow(_animationFramesManager, index);
 }

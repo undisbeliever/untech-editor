@@ -79,6 +79,14 @@ void Project::setSelectedResource(AbstractResourceItem* item)
             _selectedResource->disconnect(this);
         }
 
+        // Unselect the current resource before selecting the new one.
+        // This is to ensure the GUI is cleared when changing items and because
+        // it prevents a qFatal in `Accessor::MultiListActions`
+        if (item != nullptr) {
+            _selectedResource = nullptr;
+            emit selectedResourceChanged();
+        }
+
         _selectedResource = item;
 
         if (_selectedResource) {

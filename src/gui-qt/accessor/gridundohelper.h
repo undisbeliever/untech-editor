@@ -28,8 +28,6 @@ public:
     using selection_type = typename AccessorT::selection_type;
     using ArgsT = typename AccessorT::ArgsT;
 
-    static constexpr const usize& max_size = AccessorT::max_size;
-
     static_assert(std::is_same<GridT, grid<DataT>>::value, "Unexpected GridT type");
     static_assert(std::is_same<index_type, upoint>::value, "Unexpected index_type type");
     static_assert(std::is_same<selection_type, upoint_vectorset>::value, "Unexpected selection_type type");
@@ -220,8 +218,9 @@ private:
 
 public:
     // will return nullptr if grid could not be accessed or is equal to newGrid
-    QUndoCommand* editGridCommand(const ArgsT& gridArgs, const GridT& newGrid, const QString& text)
+    QUndoCommand* editGridCommand(const GridT& newGrid, const QString& text)
     {
+        const ArgsT gridArgs = _accessor->selectedGridTuple();
         const GridT* oldGrid = getGrid(gridArgs);
         if (oldGrid == nullptr) {
             return nullptr;
@@ -233,26 +232,19 @@ public:
         return new EditGridCommand(_accessor, gridArgs, *oldGrid, newGrid, text);
     }
 
-    bool editGrid(const ArgsT& gridArgs, const GridT& newGrid, const QString& text)
+    bool editGrid(const GridT& newGrid, const QString& text)
     {
-        QUndoCommand* e = editGridCommand(gridArgs, newGrid, text);
+        QUndoCommand* e = editGridCommand(newGrid, text);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
     }
 
-    bool editSelectedGrid(const GridT& newGrid, const QString& text)
+    // will return nullptr if grid could not be accessed, has a size equal to newSize or newSize is larger than maxSize
+    QUndoCommand* resizeGridCommand(const usize& newSize, const DataT& defaultValue, const QString& text)
     {
         const ArgsT gridArgs = _accessor->selectedGridTuple();
-
-        return editGrid(gridArgs, newGrid, text);
-    }
-
-    // will return nullptr if grid could not be accessed or has a size equal to newSize
-    QUndoCommand* resizeGridCommand(const ArgsT& gridArgs, const usize& newSize, const DataT& defaultValue,
-                                    const QString& text)
-    {
         const GridT* grid = getGrid(gridArgs);
         if (grid == nullptr) {
             return nullptr;
@@ -261,38 +253,34 @@ public:
         if (grid->size() == newSize) {
             return nullptr;
         }
+        const usize maxSize = _accessor->maxSize();
+        if (newSize.width > maxSize.width || newSize.height > maxSize.height) {
+            return nullptr;
+        }
 
         const GridT resizedGrid = grid->resized(newSize, defaultValue);
 
         return new EditGridCommand(_accessor, gridArgs, *grid, std::move(resizedGrid), text);
     }
 
-    bool resizeGrid(const ArgsT& gridArgs, const usize& newSize, const DataT& defaultValue,
-                    const QString& text)
+    bool resizeGrid(const usize& newSize, const DataT& defaultValue, const QString& text)
     {
-        QUndoCommand* e = resizeGridCommand(gridArgs, newSize, defaultValue, text);
+        QUndoCommand* e = resizeGridCommand(newSize, defaultValue, text);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
     }
 
-    bool resizeSelectedGrid(const usize& newSize, const DataT& defaultValue,
-                            const QString& text)
-    {
-        const ArgsT gridArgs = _accessor->selectedGridTuple();
-
-        return resizeGrid(gridArgs, newSize, defaultValue, text);
-    }
-
     // will return nullptr if cells could not be accessed or is equal to newCells
-    QUndoCommand* editCellsCommand(const ArgsT& gridArgs, const upoint& pos, const GridT& newCells,
+    QUndoCommand* editCellsCommand(const upoint& pos, const GridT& newCells,
                                    const QString& text)
     {
         if (newCells.empty()) {
             return nullptr;
         }
 
+        const ArgsT gridArgs = _accessor->selectedGridTuple();
         const GridT* grid = getGrid(gridArgs);
         if (grid == nullptr) {
             return nullptr;
@@ -313,27 +301,18 @@ public:
         return new EditCellsCommand(_accessor, gridArgs, pos, std::move(oldCells), newCells, text);
     }
 
-    bool editCells(const ArgsT& gridArgs, const upoint& pos, const GridT& newCells,
-                   const QString& text)
+    bool editCells(const upoint& pos, const GridT& newCells, const QString& text)
     {
-        QUndoCommand* e = editCellsCommand(gridArgs, pos, newCells, text);
+        QUndoCommand* e = editCellsCommand(pos, newCells, text);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
     }
 
-    bool editCellsInSelectedGrid(const upoint& pos, const GridT& newCells, const QString& text)
-    {
-        const ArgsT gridArgs = _accessor->selectedGridTuple();
-
-        return editCells(gridArgs, pos, newCells, text);
-    }
-
     // will return nullptr if cells could not be accessed or is equal to newCells
     template <typename UnaryFunction>
-    QUndoCommand* editCellsWithCroppingAndCellTestCommand(const ArgsT& gridArgs,
-                                                          const point& pos, const GridT& newCells,
+    QUndoCommand* editCellsWithCroppingAndCellTestCommand(const point& pos, const GridT& newCells,
                                                           const QString& text,
                                                           UnaryFunction validCellTest)
     {
@@ -344,6 +323,7 @@ public:
             return nullptr;
         }
 
+        const ArgsT gridArgs = _accessor->selectedGridTuple();
         const GridT* grid = getGrid(gridArgs);
         if (grid == nullptr) {
             return nullptr;
@@ -392,26 +372,15 @@ public:
     }
 
     template <typename UnaryFunction>
-    bool editCellsWithCroppingAndCellTest(const ArgsT& gridArgs,
-                                          const point& pos, const GridT& newCells,
+    bool editCellsWithCroppingAndCellTest(const point& pos, const GridT& newCells,
                                           const QString& text,
                                           UnaryFunction validCellTest)
     {
-        QUndoCommand* e = editCellsWithCroppingAndCellTestCommand(gridArgs, pos, newCells, text, validCellTest);
+        QUndoCommand* e = editCellsWithCroppingAndCellTestCommand(pos, newCells, text, validCellTest);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }
         return e != nullptr;
-    }
-
-    template <typename UnaryFunction>
-    bool editCellsInSelectedGridWithCroppingAndCellTest(const point& pos,
-                                                        const GridT& newCells, const QString& text,
-                                                        UnaryFunction validCellTest)
-    {
-        const ArgsT gridArgs = _accessor->selectedGridTuple();
-
-        return editCellsWithCroppingAndCellTest(gridArgs, pos, newCells, text, validCellTest);
     }
 };
 }

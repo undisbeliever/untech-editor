@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="PropertyTableView" name="tableView"/>
+    <widget class="GuiQt::Accessor::ListAccessorTableView" name="tableView"/>
    </item>
    <item>
     <widget class="QToolBar" name="tableButtons">
@@ -37,9 +37,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>PropertyTableView</class>
+   <class>GuiQt::Accessor::ListAccessorTableView</class>
    <extends>QTreeView</extends>
-   <header>gui-qt/common/properties/propertytableview.h</header>
+   <header>gui-qt/accessor/listaccessortableview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

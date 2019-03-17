@@ -10,35 +10,35 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
+class AbstractListAccessor;
+class AbstractListSingleSelectionAccessor;
+class AbstractListMultipleSelectionAccessor;
+class AbstractNamedListAccessor;
+class AbstractChildListSingleSelectionAccessor;
+class AbstractChildListMultipleSelectionAccessor;
+
+struct ListActions;
+struct MultiListActions;
 struct NamedListActions;
+
 class NamedListView;
 class NamedListModel;
 
-class SelectedIndexHelper;
-class MultipleSelectedIndexesHelper;
+template <class T, class U>
+class ListUndoHelper;
 
-class ListActionHelper;
+template <class T>
+class ListWithNoSelectionUndoHelper;
+template <class T>
+class ListAndSelectionUndoHelper;
+template <class T>
+class ListAndMultipleSelectionUndoHelper;
 
 template <class T>
 class ResourceItemUndoHelper;
 
 template <class T>
 class ProjectSettingsUndoHelper;
-
-template <class T>
-class ListUndoHelper;
-
-template <class T>
-class ListAndSelectionUndoHelper;
-
-template <class T>
-class ListAndMultipleSelectionUndoHelper;
-
-template <class T>
-class NamedListUndoHelper;
-
-template <class T>
-class NamedListAndSelectionUndoHelper;
 
 template <class T>
 class GridUndoHelper;

@@ -22,8 +22,7 @@ const QStringList EntityFunctionTablesManager::PARAMETER_TYPE_STRINGS = {
 };
 
 EntityFunctionTablesManager::EntityFunctionTablesManager(QObject* parent)
-    : PropertyTableManager(parent)
-    , _ftList(nullptr)
+    : ListAccessorTableManager(parent)
 {
     setItemsMovable(true);
 
@@ -36,41 +35,22 @@ EntityFunctionTablesManager::EntityFunctionTablesManager(QObject* parent)
 
 void EntityFunctionTablesManager::setFunctionTableList(EntityFunctionTableList* ftList)
 {
-    if (_ftList == ftList) {
-        return;
-    }
+    setAccessor(ftList);
+}
 
-    if (_ftList) {
-        _ftList->disconnect(this);
-    }
-    _ftList = ftList;
-
-    emit dataReset();
-    setEnabled(ftList != nullptr);
-
-    if (ftList) {
-        connect(ftList, &EntityFunctionTableList::dataChanged,
-                this, &EntityFunctionTablesManager::itemChanged);
-        connect(ftList, &EntityFunctionTableList::itemAdded,
-                this, &EntityFunctionTablesManager::itemAdded);
-        connect(ftList, &EntityFunctionTableList::itemAboutToBeRemoved,
-                this, &EntityFunctionTablesManager::itemRemoved);
-        connect(ftList, &EntityFunctionTableList::itemMoved,
-                this, &EntityFunctionTablesManager::itemMoved);
-
-        // Closes all open editors
-        connect(ftList, &EntityFunctionTableList::listAboutToChange,
-                this, &EntityFunctionTablesManager::listAboutToChange);
-    }
+inline EntityFunctionTableList* EntityFunctionTablesManager::accessor() const
+{
+    return static_cast<EntityFunctionTableList*>(ListAccessorTableManager::accessor());
 }
 
 void EntityFunctionTablesManager::updateParameters(int, int id, QVariant& param1, QVariant&) const
 {
-    if (_ftList == nullptr) {
+    auto* ftList = accessor();
+    if (ftList == nullptr) {
         return;
     }
 
-    auto* project = _ftList->resourceItem()->project();
+    auto* project = ftList->resourceItem()->project();
     Q_ASSERT(project);
 
     switch (static_cast<PropertyId>(id)) {
@@ -89,24 +69,17 @@ void EntityFunctionTablesManager::updateParameters(int, int id, QVariant& param1
     }
 }
 
-int EntityFunctionTablesManager::rowCount() const
-{
-    if (_ftList == nullptr) {
-        return 0;
-    }
-    return _ftList->functionTables().size();
-}
-
 QVariant EntityFunctionTablesManager::data(int index, int id) const
 {
-    if (_ftList == nullptr
+    auto* ftList = accessor();
+    if (ftList == nullptr
         || index < 0
-        || (unsigned)index >= _ftList->functionTables().size()) {
+        || (unsigned)index >= ftList->size()) {
 
         return QVariant();
     }
 
-    const auto& ft = _ftList->functionTables().at(index);
+    const auto& ft = ftList->list()->at(index);
 
     switch (static_cast<PropertyId>(id)) {
     case PropertyId::NAME:
@@ -130,43 +103,30 @@ QVariant EntityFunctionTablesManager::data(int index, int id) const
 
 bool EntityFunctionTablesManager::setData(int index, int id, const QVariant& value)
 {
-    if (_ftList == nullptr
+    auto* ftList = accessor();
+    if (ftList == nullptr
         || index < 0
-        || (unsigned)index >= _ftList->functionTables().size()) {
+        || (unsigned)index >= ftList->size()) {
 
         return false;
     }
 
     switch (static_cast<PropertyId>(id)) {
     case PropertyId::NAME:
-        return _ftList->edit_setName(index, value.toString().toStdString());
+        return ftList->edit_setName(index, value.toString().toStdString());
 
     case PropertyId::ENTITY_STRUCT:
-        return _ftList->edit_setEntityStruct(index, value.toString().toStdString());
+        return ftList->edit_setEntityStruct(index, value.toString().toStdString());
 
     case PropertyId::EXPORT_ORDER:
-        return _ftList->edit_setExportOrder(index, value.toString().toStdString());
+        return ftList->edit_setExportOrder(index, value.toString().toStdString());
 
     case PropertyId::PARAMETER_TYPE:
-        return _ftList->edit_setParameterType(index, static_cast<EN::ParameterType>(value.toInt()));
+        return ftList->edit_setParameterType(index, static_cast<EN::ParameterType>(value.toInt()));
 
     case PropertyId::COMMENT:
-        return _ftList->edit_setComment(index, value.toString().toStdString());
+        return ftList->edit_setComment(index, value.toString().toStdString());
     }
 
     return false;
-}
-
-bool EntityFunctionTablesManager::canInsertItem()
-{
-    return _ftList
-           && _ftList->functionTables().size() < _ftList->max_size;
-}
-
-bool EntityFunctionTablesManager::canCloneItem(int index)
-{
-    return _ftList
-           && index >= 0
-           && unsigned(index) < _ftList->functionTables().size()
-           && _ftList->functionTables().size() < _ftList->max_size;
 }

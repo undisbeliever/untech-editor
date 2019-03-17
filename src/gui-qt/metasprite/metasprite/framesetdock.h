@@ -30,12 +30,10 @@ public:
 
     void setDocument(Document* document);
 
-    const Accessor::NamedListActions& frameActions() const;
+    const Accessor::NamedListActions* frameActions() const;
     Accessor::NamedListModel* frameListModel() const;
 
-    void populateMenu(QMenu* menu);
-
-    void clearGui();
+    QAction* addFrameAction() const;
 
 private:
     std::unique_ptr<Ui::FrameSetDock> const _ui;

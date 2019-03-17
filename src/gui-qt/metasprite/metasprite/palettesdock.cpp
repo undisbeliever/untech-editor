@@ -8,7 +8,7 @@
 #include "accessors.h"
 #include "document.h"
 #include "palettesmodel.h"
-#include "gui-qt/accessor/listactionhelper.h"
+#include "gui-qt/accessor/listactions.h"
 #include "gui-qt/common/widgets/colortoolbutton.h"
 #include "gui-qt/metasprite/metasprite/palettesdock.ui.h"
 
@@ -39,6 +39,7 @@ PalettesDock::PalettesDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::PalettesDock)
     , _model(new PalettesModel(this))
+    , _listActions(new Accessor::ListActions(this))
     , _document(nullptr)
     , _colorGroup(new QButtonGroup(this))
     , _colorButtons(buildColorButtons(_colorGroup, this))
@@ -47,6 +48,8 @@ PalettesDock::PalettesDock(QWidget* parent)
 
     _ui->paletteList->setModel(_model);
     _ui->paletteList->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    _listActions->populate(_ui->paletteListButtons);
 
     for (unsigned i = 0; i < 16; i++) {
         auto* b = _colorButtons.at(i);
@@ -69,17 +72,6 @@ PalettesDock::PalettesDock(QWidget* parent)
 
     connect(_ui->paletteList->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &PalettesDock::onPaletteListSelectionChanged);
-
-    connect(_ui->action_Add, &QAction::triggered,
-            this, &PalettesDock::onActionAdd);
-    connect(_ui->action_Clone, &QAction::triggered,
-            this, &PalettesDock::onActionClone);
-    connect(_ui->action_Raise, &QAction::triggered,
-            this, &PalettesDock::onActionRaise);
-    connect(_ui->action_Lower, &QAction::triggered,
-            this, &PalettesDock::onActionLower);
-    connect(_ui->action_Remove, &QAction::triggered,
-            this, &PalettesDock::onActionRemove);
 }
 
 PalettesDock::~PalettesDock() = default;
@@ -103,14 +95,16 @@ void PalettesDock::setDocument(Document* document)
     uncheckColorButtons();
     updateSelectedPalette();
 
+    PaletteList* paletteList = nullptr;
+
     if (_document) {
+        paletteList = _document->paletteList();
+
         onSelectedPaletteChanged();
         updateSelectedColor();
 
         connect(_document->paletteList(), &PaletteList::dataChanged,
                 this, &PalettesDock::updateSelectedPalette);
-        connect(_document->paletteList(), &PaletteList::listChanged,
-                this, &PalettesDock::updateActions);
         connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &PalettesDock::onSelectedPaletteChanged);
         connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
@@ -119,24 +113,7 @@ void PalettesDock::setDocument(Document* document)
                 this, &PalettesDock::updateSelectedColor);
     }
 
-    updateActions();
-}
-
-void PalettesDock::updateActions()
-{
-    using namespace UnTech::GuiQt::Accessor;
-
-    ListActionStatus status;
-
-    if (_document) {
-        status = ListActionHelper::status(_document->paletteList());
-    }
-
-    _ui->action_Add->setEnabled(status.canAdd);
-    _ui->action_Clone->setEnabled(status.canClone);
-    _ui->action_Remove->setEnabled(status.canRemove);
-    _ui->action_Raise->setEnabled(status.canRaise);
-    _ui->action_Lower->setEnabled(status.canLower);
+    _listActions->setAccessor(paletteList);
 }
 
 void PalettesDock::onSelectedPaletteChanged()
@@ -147,8 +124,6 @@ void PalettesDock::onSelectedPaletteChanged()
     QModelIndex index = _model->toModelIndex(selectedPalette);
 
     _ui->paletteList->setCurrentIndex(index);
-
-    updateActions();
 }
 
 void PalettesDock::onPaletteListSelectionChanged()
@@ -167,18 +142,8 @@ void PalettesDock::onPaletteListSelectionChanged()
 void PalettesDock::onPaletteContextMenu(const QPoint& pos)
 {
     if (_document) {
-        bool onPalette = _ui->paletteList->indexAt(pos).isValid();
-
         QMenu menu;
-        menu.addAction(_ui->action_Add);
-
-        if (onPalette) {
-            menu.addAction(_ui->action_Clone);
-            menu.addAction(_ui->action_Remove);
-            menu.addSeparator();
-            menu.addAction(_ui->action_Raise);
-            menu.addAction(_ui->action_Lower);
-        }
+        _listActions->populate(&menu);
 
         QPoint globalPos = _ui->paletteList->mapToGlobal(pos);
         menu.exec(globalPos);
@@ -190,7 +155,7 @@ void PalettesDock::updateSelectedPalette()
     const UnTech::Snes::Palette4bpp* palette = nullptr;
 
     if (_document) {
-        palette = _document->paletteList()->selectedPalette();
+        palette = _document->paletteList()->selectedItem();
     }
 
     if (palette) {
@@ -255,29 +220,4 @@ void PalettesDock::onColorClicked(int colorIndex)
         _document->paletteList()->editSelected_setColorDialog(colorIndex, this);
         uncheckColorButtons();
     }
-}
-
-void PalettesDock::onActionAdd()
-{
-    _document->paletteList()->editSelectedList_addItem();
-}
-
-void PalettesDock::onActionClone()
-{
-    _document->paletteList()->editSelectedList_cloneSelected();
-}
-
-void PalettesDock::onActionRaise()
-{
-    _document->paletteList()->editSelectedList_raiseSelected();
-}
-
-void PalettesDock::onActionLower()
-{
-    _document->paletteList()->editSelectedList_lowerSelected();
-}
-
-void PalettesDock::onActionRemove()
-{
-    _document->paletteList()->editSelectedList_removeSelected();
 }

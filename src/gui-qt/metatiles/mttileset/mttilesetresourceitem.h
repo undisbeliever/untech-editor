@@ -27,6 +27,8 @@ class MtTilesetResourceItem : public AbstractExternalResourceItem {
 public:
     using DataT = MT::MetaTileTilesetInput;
 
+    using UndoHelper = Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
+
     // The default scratchpad tile is transparent.
     // This is to simplify the placement of non-rectangular tile groups to the grid.
     constexpr static uint16_t DEFAULT_SCRATCHPAD_TILE = 0xffff;

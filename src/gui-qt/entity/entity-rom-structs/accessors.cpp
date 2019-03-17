@@ -5,57 +5,132 @@
  */
 
 #include "accessors.h"
-#include "gui-qt/accessor/selectedindexhelper.h"
+#include "gui-qt/accessor/abstractaccessors.hpp"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Entity;
 
+template <>
+const NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>::list() const
+{
+    const auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    return &projectFile->entityRomData.structs;
+}
+
+template <>
+NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>::getList()
+{
+    auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    return &projectFile->entityRomData.structs;
+}
+
 EntityRomStructList::EntityRomStructList(EntityRomStructsResourceItem* resourceItem)
-    : QObject(resourceItem)
-    , _resourceItem(resourceItem)
-    , _selectedIndex(INT_MAX)
+    : NamedListAccessor(resourceItem, 255)
 {
-    SelectedIndexHelper::buildAndConnectSlots_NamedList(this);
 }
 
-void EntityRomStructList::setSelectedIndex(EntityRomStructList::index_type index)
+QString EntityRomStructList::typeName() const
 {
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
-    }
+    return tr("Entity ROM Struct");
 }
 
-bool EntityRomStructList::isSelectedIndexValid() const
+QString EntityRomStructList::typeNamePlural() const
 {
-    return _selectedIndex < list()->size();
+    return tr("Entity ROM Structs");
 }
 
-const EntityRomStructList::DataT* EntityRomStructList::selectedStruct() const
+void EntityRomStructList::editSelected_setParent(const idstring& parent)
 {
-    auto& structs = *this->list();
-    if (_selectedIndex >= structs.size()) {
+    UndoHelper(this).editSelectedItemField(
+        parent,
+        tr("Edit Parent"),
+        [](DataT& s) -> idstring& { return s.parent; },
+        [](EntityRomStructList* a, index_type i) { emit a->parentChanged(i); });
+}
+
+void EntityRomStructList::editSelected_setComment(const std::string& comment)
+{
+    UndoHelper(this).editSelectedItemField(
+        comment,
+        tr("Edit Comment"),
+        [](DataT& s) -> std::string& { return s.comment; },
+        [](EntityRomStructList* a, index_type i) { emit a->commentChanged(i); });
+}
+
+template <>
+const std::vector<EN::StructField>* ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem>::list(size_t pIndex) const
+{
+    const auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    auto& structs = projectFile->entityRomData.structs;
+    if (pIndex >= structs.size()) {
         return nullptr;
     }
-    return &structs.at(_selectedIndex);
+    return &structs.at(pIndex).fields;
 }
 
-EntityRomStructFieldList::EntityRomStructFieldList(EntityRomStructsResourceItem* resourceItem)
-    : QObject(resourceItem)
-    , _resourceItem(resourceItem)
+template <>
+std::vector<EN::StructField>* ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem>::getList(size_t pIndex)
 {
-    connect(resourceItem->structList(), &EntityRomStructList::selectedIndexChanged,
-            this, &EntityRomStructFieldList::selectedListChanged);
-    connect(resourceItem->structList(), &EntityRomStructList::selectedIndexChanged,
-            this, &EntityRomStructFieldList::unselectItem);
-
-    SelectedIndexHelper::buildAndConnectSlots(this);
-}
-
-void EntityRomStructFieldList::setSelectedIndex(size_t index)
-{
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
+    auto* projectFile = resourceItem()->project()->projectFile();
+    Q_ASSERT(projectFile);
+    auto& structs = projectFile->entityRomData.structs;
+    if (pIndex >= structs.size()) {
+        return nullptr;
     }
+    return &structs.at(pIndex).fields;
 }
+
+EntityRomStructFieldList::EntityRomStructFieldList(EntityRomStructList* structList)
+    : ChildVectorMultipleSelectionAccessor(structList, structList->resourceItem(), 24)
+{
+}
+
+QString EntityRomStructFieldList::typeName() const
+{
+    return tr("Struct Field");
+}
+
+QString EntityRomStructFieldList::typeNamePlural() const
+{
+    return tr("Struct Fields");
+}
+
+bool EntityRomStructFieldList::editSelectedList_setName(size_t index, const idstring& name)
+{
+    return UndoHelper(this).editField(
+        index, name,
+        tr("Edit Field Name"),
+        [](DataT& f) -> idstring& { return f.name; });
+}
+
+bool EntityRomStructFieldList::editSelectedList_setType(size_t index, EN::DataType type)
+{
+    return UndoHelper(this).editField(
+        index, type,
+        tr("Edit Field Type"),
+        [](DataT& f) -> EN::DataType& { return f.type; });
+}
+
+bool EntityRomStructFieldList::editSelectedList_setDefaultValue(size_t index, const std::string& value)
+{
+    return UndoHelper(this).editField(
+        index, value,
+        tr("Edit Field Default Value"),
+        [](DataT& f) -> std::string& { return f.defaultValue; });
+}
+
+bool EntityRomStructFieldList::editSelectedList_setComment(size_t index, const std::string& comment)
+{
+    return UndoHelper(this).editField(
+        index, comment,
+        tr("Edit Field Comment"),
+        [](DataT& f) -> std::string& { return f.comment; });
+}
+
+using namespace UnTech::GuiQt;
+template class Accessor::NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem>;

@@ -126,6 +126,9 @@ public:
         moveVectorItem(from, to, _list);
     }
 
+    void insert(const_iterator it, const T& value) { _list.insert(it, value); }
+    void erase(const_iterator it) { _list.erase(it); }
+
     bool operator==(const NamedList& o) const
     {
         return _list == o._list;

@@ -157,6 +157,8 @@ void MtScratchpadGraphicsScene::tilesetItemChanged(MtTilesetResourceItem* newTil
 
         connect(newTileset->scratchpadGrid(), &MtTilesetScratchpadGrid::gridResized,
                 this, &MtScratchpadGraphicsScene::gridResized);
+        connect(newTileset->scratchpadGrid(), &MtTilesetScratchpadGrid::gridResized,
+                this, &MtEditableScratchpadGraphicsScene::gridResized);
 
         connect(newTileset->scratchpadGrid(), &MtTilesetScratchpadGrid::selectedCellsChanged,
                 this, &MtScratchpadGraphicsScene::gridSelectionChanged);
@@ -213,6 +215,8 @@ void MtEditableScratchpadGraphicsScene::tilesetItemChanged(MtTilesetResourceItem
         connect(newTileset->scratchpadGrid(), &MtTilesetScratchpadGrid::gridChanged,
                 this, &MtEditableScratchpadGraphicsScene::gridChanged);
 
+        connect(newTileset->scratchpadGrid(), &MtTilesetScratchpadGrid::gridReset,
+                this, &MtEditableScratchpadGraphicsScene::gridResized);
         connect(newTileset->scratchpadGrid(), &MtTilesetScratchpadGrid::gridResized,
                 this, &MtEditableScratchpadGraphicsScene::gridResized);
 

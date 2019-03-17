@@ -60,11 +60,6 @@
       <property name="floatable">
        <bool>false</bool>
       </property>
-      <addaction name="action_Add"/>
-      <addaction name="action_Clone"/>
-      <addaction name="action_Raise"/>
-      <addaction name="action_Lower"/>
-      <addaction name="action_Remove"/>
      </widget>
     </item>
     <item>
@@ -170,54 +165,7 @@
     </item>
    </layout>
   </widget>
-  <action name="action_Add">
-   <property name="icon">
-    <iconset resource="../../../../resources/resources.qrc">
-     <normaloff>:/icons/add.svg</normaloff>:/icons/add.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Add Palette</string>
-   </property>
-  </action>
-  <action name="action_Clone">
-   <property name="icon">
-    <iconset resource="../../../../resources/resources.qrc">
-     <normaloff>:/icons/clone.svg</normaloff>:/icons/clone.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Clone Palette</string>
-   </property>
-  </action>
-  <action name="action_Raise">
-   <property name="icon">
-    <iconset resource="../../../../resources/resources.qrc">
-     <normaloff>:/icons/raise.svg</normaloff>:/icons/raise.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Raise Palette</string>
-   </property>
-  </action>
-  <action name="action_Lower">
-   <property name="icon">
-    <iconset resource="../../../../resources/resources.qrc">
-     <normaloff>:/icons/lower.svg</normaloff>:/icons/lower.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Lower Palette</string>
-   </property>
-  </action>
-  <action name="action_Remove">
-   <property name="icon">
-    <iconset resource="../../../../resources/resources.qrc">
-     <normaloff>:/icons/remove.svg</normaloff>:/icons/remove.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Remove Palette</string>
-   </property>
-  </action>
  </widget>
- <resources>
-  <include location="../../../../resources/resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
