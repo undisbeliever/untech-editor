@@ -10,6 +10,7 @@
 #include "gui-qt/accessor/accessor.h"
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
+#include "models/common/idstring.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -23,9 +24,19 @@ class ProjectSettingsResourceItem : public AbstractInternalResourceItem {
 public:
     using DataT = UnTech::Project::ProjectFile;
 
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ProjectSettingsResourceItem>;
+
 public:
     ProjectSettingsResourceItem(StaticResourceList* list, unsigned index);
     ~ProjectSettingsResourceItem() = default;
+
+    bool editBlockSettings_setSize(unsigned blockSize);
+    bool editBlockSettings_setCount(unsigned blockCount);
+
+    bool editMetaTileSettings_setMaxMapSize(unsigned maxMapSize);
+    bool editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles);
+
+    bool editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds);
 
 protected:
     friend class Accessor::ResourceItemUndoHelper<ProjectSettingsResourceItem>;

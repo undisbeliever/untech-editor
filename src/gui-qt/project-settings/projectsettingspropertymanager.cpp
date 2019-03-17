@@ -87,19 +87,19 @@ bool ProjectSettingsPropertyManager::setData(int id, const QVariant& value)
 
     switch ((PropertyId)id) {
     case BLOCK_SIZE:
-        return editBlockSettings_setSize(value.toUInt());
+        return _item->editBlockSettings_setSize(value.toUInt());
 
     case BLOCK_COUNT:
-        return editBlockSettings_setCount(value.toUInt());
+        return _item->editBlockSettings_setCount(value.toUInt());
 
     case METATILE_MAX_MAP_SIZE:
-        return editMetaTileSettings_setMaxMapSize(value.toUInt());
+        return _item->editMetaTileSettings_setMaxMapSize(value.toUInt());
 
     case METATILE_N_METATILES:
-        return editMetaTileSettings_setNMetaTiles(value.toUInt());
+        return _item->editMetaTileSettings_setNMetaTiles(value.toUInt());
 
     case ENTITY_LIST_IDS:
-        return editEntityRomData_setEntityListIds(toIdstringVector(value.toStringList()));
+        return _item->editEntityRomData_setEntityListIds(toIdstringVector(value.toStringList()));
     }
 
     return false;

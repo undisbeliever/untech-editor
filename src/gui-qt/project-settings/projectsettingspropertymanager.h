@@ -7,7 +7,6 @@
 #pragma once
 
 #include "gui-qt/common/properties/propertylistmanager.h"
-#include "models/common/idstring.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -35,15 +34,6 @@ public:
 
     virtual QVariant data(int id) const final;
     virtual bool setData(int id, const QVariant& value) final;
-
-private:
-    bool editBlockSettings_setSize(unsigned blockSize);
-    bool editBlockSettings_setCount(unsigned blockCount);
-
-    bool editMetaTileSettings_setMaxMapSize(unsigned maxMapSize);
-    bool editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles);
-
-    bool editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds);
 
 private:
     ProjectSettingsResourceItem* _item;

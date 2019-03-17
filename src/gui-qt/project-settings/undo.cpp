@@ -14,43 +14,41 @@ using namespace UnTech::GuiQt::ProjectSettings;
 
 namespace PRO = UnTech::Project;
 
-using UndoHelper = UnTech::GuiQt::Accessor::ResourceItemUndoHelper<ProjectSettingsResourceItem>;
-
-bool ProjectSettingsPropertyManager::editBlockSettings_setSize(unsigned blockSize)
+bool ProjectSettingsResourceItem::editBlockSettings_setSize(unsigned blockSize)
 {
-    return UndoHelper(_item).editField(
+    return UndoHelper(this).editField(
         blockSize,
         tr("Edit Block Size"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.size; });
 }
 
-bool ProjectSettingsPropertyManager::editBlockSettings_setCount(unsigned blockCount)
+bool ProjectSettingsResourceItem::editBlockSettings_setCount(unsigned blockCount)
 {
-    return UndoHelper(_item).editField(
+    return UndoHelper(this).editField(
         blockCount,
         tr("Edit Block Count"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.count; });
 }
 
-bool ProjectSettingsPropertyManager::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
+bool ProjectSettingsResourceItem::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
 {
-    return UndoHelper(_item).editField(
+    return UndoHelper(this).editField(
         maxMapSize,
         tr("Edit MetaTile Max Map Size"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.maxMapSize; });
 }
 
-bool ProjectSettingsPropertyManager::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
+bool ProjectSettingsResourceItem::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
 {
-    return UndoHelper(_item).editField(
+    return UndoHelper(this).editField(
         nMetaTiles,
         tr("Edit Number of MetaTiles"),
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.nMetaTiles; });
 }
 
-bool ProjectSettingsPropertyManager::editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds)
+bool ProjectSettingsResourceItem::editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds)
 {
-    return UndoHelper(_item).editField(
+    return UndoHelper(this).editField(
         listIds,
         tr("Edit EntityListIds"),
         [](PRO::ProjectFile& pf) -> std::vector<idstring>& { return pf.entityRomData.listIds; },
