@@ -27,6 +27,8 @@ NamedListView::NamedListView(QWidget* parent)
 
     setItemDelegate(new ValidatorItemDelegate(this));
 
+    setDragDropMode(QListView::InternalMove);
+
     setSelectionMode(SelectionMode::SingleSelection);
     setSelectionBehavior(SelectionBehavior::SelectRows);
 

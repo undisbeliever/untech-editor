@@ -9,10 +9,12 @@
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/validatoritemdelegate.h"
 #include "models/common/namedlist.h"
+#include <QMimeData>
 
 using namespace UnTech::GuiQt::Accessor;
 
 UnTech::GuiQt::IdstringValidator* const NamedListModel::ID_STRING_VALIDATOR = new IdstringValidator;
+const QString NamedListModel::ITEM_MIME_TYPE = QStringLiteral("application/x-untech-namedlistmodel-row");
 
 NamedListModel::NamedListModel(QObject* parent)
     : QAbstractListModel(parent)
@@ -120,6 +122,13 @@ size_t NamedListModel::toIndex(const QModelIndex& index) const
     return row;
 }
 
+bool NamedListModel::checkIndex(const QModelIndex& index) const
+{
+    return index.model() == this
+           && index.row() >= 0 && index.row() < _displayList.size()
+           && index.column() == 0;
+}
+
 int NamedListModel::rowCount(const QModelIndex& parent) const
 {
     if (parent.isValid()) {
@@ -133,10 +142,11 @@ Qt::ItemFlags NamedListModel::flags(const QModelIndex& index) const
     if (index.row() < 0 || index.row() >= _displayList.size()
         || _accessor == nullptr) {
 
-        return Qt::ItemFlags();
+        return Qt::ItemIsDropEnabled;
     }
 
-    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemNeverHasChildren;
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemNeverHasChildren
+           | Qt::ItemIsDragEnabled;
 }
 
 QVariant NamedListModel::data(const QModelIndex& index, int role) const
@@ -175,4 +185,123 @@ bool NamedListModel::setData(const QModelIndex& index, const QVariant& value, in
     }
 
     return _accessor->edit_setName(index.row(), name);
+}
+
+Qt::DropActions NamedListModel::supportedDragActions() const
+{
+    return Qt::MoveAction;
+}
+
+Qt::DropActions NamedListModel::supportedDropActions() const
+{
+    return Qt::MoveAction;
+}
+
+QStringList NamedListModel::mimeTypes() const
+{
+    static const QStringList types = {
+        ITEM_MIME_TYPE
+    };
+
+    return types;
+}
+
+struct NamedListModel::InternalMimeData {
+    const void* accessor;
+    int row;
+};
+static QDataStream& operator<<(QDataStream& stream, const NamedListModel::InternalMimeData& data)
+{
+    static_assert(sizeof(quintptr) == sizeof(data.accessor), "Bad quintptr size");
+
+    quintptr ptr = quintptr(data.accessor);
+    stream << ptr << data.row;
+
+    return stream;
+}
+static QDataStream& operator>>(QDataStream& stream, NamedListModel::InternalMimeData& data)
+{
+    static_assert(sizeof(quintptr) == sizeof(data.accessor), "Bad quintptr size");
+
+    quintptr ptr;
+    stream >> ptr >> data.row;
+    data.accessor = (const void*)(ptr);
+
+    return stream;
+}
+
+QMimeData* NamedListModel::mimeData(const QModelIndexList& indexes) const
+{
+    if (_accessor == nullptr
+        || indexes.size() < 1
+        || checkIndex(indexes.front()) == false) {
+
+        return nullptr;
+    }
+
+    const QModelIndex& index = indexes.front();
+
+    QByteArray encodedData;
+    QDataStream stream(&encodedData, QIODevice::WriteOnly);
+    stream << InternalMimeData{ _accessor, index.row() };
+
+    QMimeData* mimeData = new QMimeData();
+    mimeData->setData(ITEM_MIME_TYPE, encodedData);
+
+    return mimeData;
+}
+
+bool NamedListModel::canDropMimeData(const QMimeData* mimeData, Qt::DropAction action, int destRow, int column, const QModelIndex& parent) const
+{
+    Q_UNUSED(column)
+
+    if (mimeData == nullptr
+        || parent.isValid()
+        || action != Qt::MoveAction
+        || destRow < 0
+        || _accessor == nullptr) {
+
+        return false;
+    }
+
+    QByteArray encodedData = mimeData->data(ITEM_MIME_TYPE);
+    QDataStream stream(&encodedData, QIODevice::ReadOnly);
+    InternalMimeData data;
+    stream >> data;
+
+    return stream.atEnd()
+           && data.accessor == _accessor
+           && data.row >= 0 && data.row < _displayList.size();
+}
+
+bool NamedListModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction action, int destRow, int column, const QModelIndex& parent)
+{
+    Q_UNUSED(column)
+
+    if (mimeData == nullptr
+        || parent.isValid()
+        || action != Qt::MoveAction
+        || destRow < 0
+        || _accessor == nullptr) {
+
+        return false;
+    }
+
+    QByteArray encodedData = mimeData->data(ITEM_MIME_TYPE);
+    QDataStream stream(&encodedData, QIODevice::ReadOnly);
+    InternalMimeData data;
+    stream >> data;
+
+    if (stream.atEnd()
+        && data.accessor == _accessor) {
+
+        if (destRow > data.row && destRow > 0) {
+            destRow--;
+        }
+
+        _accessor->moveItem(data.row, destRow);
+    }
+
+    // Return false so the View does not delete the source
+    return false;
 }
