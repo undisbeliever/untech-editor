@@ -12,6 +12,8 @@
 
 namespace UnTech {
 namespace GuiQt {
+class IdstringValidator;
+
 namespace Accessor {
 
 class AbstractNamedListAccessor;
@@ -22,6 +24,8 @@ class NamedListModel : public QAbstractListModel {
     Q_OBJECT
 
 private:
+    static IdstringValidator* const ID_STRING_VALIDATOR;
+
     AbstractNamedListAccessor* _accessor;
 
     QStringList _displayList;
@@ -36,7 +40,9 @@ public:
     const QStringList& displayList() const { return _displayList; }
 
     virtual int rowCount(const QModelIndex& parent) const final;
-    virtual QVariant data(const QModelIndex& index, int role) const override;
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const final;
+    virtual QVariant data(const QModelIndex& index, int role) const final;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
     void setAccessor(AbstractNamedListAccessor* accessor);
 

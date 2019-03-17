@@ -6,9 +6,13 @@
 
 #include "namedlistmodel.h"
 #include "abstractaccessors.h"
+#include "gui-qt/common/idstringvalidator.h"
+#include "gui-qt/common/validatoritemdelegate.h"
 #include "models/common/namedlist.h"
 
 using namespace UnTech::GuiQt::Accessor;
+
+UnTech::GuiQt::IdstringValidator* const NamedListModel::ID_STRING_VALIDATOR = new IdstringValidator;
 
 NamedListModel::NamedListModel(QObject* parent)
     : QAbstractListModel(parent)
@@ -124,15 +128,51 @@ int NamedListModel::rowCount(const QModelIndex& parent) const
     return _displayList.size();
 }
 
+Qt::ItemFlags NamedListModel::flags(const QModelIndex& index) const
+{
+    if (index.row() < 0 || index.row() >= _displayList.size()
+        || _accessor == nullptr) {
+
+        return Qt::ItemFlags();
+    }
+
+    return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable | Qt::ItemNeverHasChildren;
+}
+
 QVariant NamedListModel::data(const QModelIndex& index, int role) const
 {
-    if (index.row() < 0 || index.row() >= _displayList.size()) {
+    if (index.row() < 0 || index.row() >= _displayList.size()
+        || _accessor == nullptr) {
+
         return QVariant();
     }
 
     if (role == Qt::DisplayRole) {
         return _displayList.at(index.row());
     }
+    else if (role == Qt::EditRole) {
+        return _accessor->itemName(index.row());
+    }
+    else if (role == ValidatorItemDelegate::ValidatorRole) {
+        return QVariant::fromValue(ID_STRING_VALIDATOR);
+    }
 
     return QVariant();
+}
+
+bool NamedListModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+    if (index.row() < 0 || index.row() >= _displayList.size()
+        || _accessor == nullptr
+        || role != Qt::EditRole) {
+
+        return false;
+    }
+
+    const idstring name = value.toString().toStdString();
+    if (name.isValid() == false) {
+        return false;
+    }
+
+    return _accessor->edit_setName(index.row(), name);
 }

@@ -7,6 +7,7 @@
 #include "namedlistview.h"
 #include "abstractaccessors.h"
 #include "gui-qt/common/actionhelpers.h"
+#include "gui-qt/common/validatoritemdelegate.h"
 
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -24,7 +25,7 @@ NamedListView::NamedListView(QWidget* parent)
 {
     QListView::setModel(_model);
 
-    setEditTriggers(EditTrigger::NoEditTriggers);
+    setItemDelegate(new ValidatorItemDelegate(this));
 
     setSelectionMode(SelectionMode::SingleSelection);
     setSelectionBehavior(SelectionBehavior::SelectRows);
