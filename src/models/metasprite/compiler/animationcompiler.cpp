@@ -45,11 +45,12 @@ static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
     uint8_t nextAnimationId = 0xff;
     {
         if (animation.oneShot == false) {
+            const ANI::Animation* nextAnimation = &animation;
             if (animation.nextAnimation.isValid()) {
-                assert(frameSet.animations.find(animation.nextAnimation));
+                nextAnimation = &frameSet.animations.find(animation.nextAnimation).value();
             }
 
-            nextAnimationId = indexOf_throw(animations, { &animation, aniEntry.hFlip, aniEntry.vFlip });
+            nextAnimationId = indexOf_throw(animations, { nextAnimation, aniEntry.hFlip, aniEntry.vFlip });
         }
     }
 
