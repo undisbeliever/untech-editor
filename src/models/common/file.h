@@ -44,6 +44,15 @@ std::string readUtf8TextFile(const std::string& filename);
 std::pair<std::string, std::string> splitFilename(const std::string& filename);
 
 /**
+ * Returns the extension of a filename.
+ *
+ * NOTE: The returned value does not include the dot
+ * NOTE: The returned value only contains the rightmost extension
+ *       (for example, `extension("file.tar.gz")` returns `"gz"`)
+ */
+std::string extension(const std::string& filename);
+
+/**
  * Returns the current working directory
  */
 std::string cwd();

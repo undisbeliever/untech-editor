@@ -115,7 +115,7 @@ static void writeExportName(XmlWriter& xml, const std::string& tagName,
     xml.writeCloseTag();
 }
 
-static void writeFrameSetExportOrder(XmlWriter& xml, const FrameSetExportOrder& eo)
+void writeFrameSetExportOrder(XmlWriter& xml, const FrameSetExportOrder& eo)
 {
     xml.writeTag("fsexportorder");
 
@@ -131,25 +131,30 @@ static void writeFrameSetExportOrder(XmlWriter& xml, const FrameSetExportOrder& 
     xml.writeCloseTag();
 }
 
-std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename)
+std::unique_ptr<FrameSetExportOrder> readFrameSetExportOrder(Xml::XmlReader& xml)
 {
-    auto xml = XmlReader::fromFile(filename);
     try {
-        std::unique_ptr<XmlTag> tag = xml->parseTag();
+        std::unique_ptr<XmlTag> tag = xml.parseTag();
 
         if (tag == nullptr || tag->name != "fsexportorder") {
-            throw std::runtime_error(filename + ": Not frame set export order file");
+            throw std::runtime_error(xml.filename() + ": Not frame set export order file");
         }
 
         auto exportOrder = std::make_unique<FrameSetExportOrder>();
-        FrameSetExportOrderReader reader(*exportOrder, *xml);
+        FrameSetExportOrderReader reader(*exportOrder, xml);
         reader.readFrameSetExportOrder(tag.get());
 
         return exportOrder;
     }
     catch (const std::exception& ex) {
-        throw xml_error(*xml, "Error loading FrameSetExportOrder file", ex);
+        throw xml_error(xml, "Error loading FrameSetExportOrder file", ex);
     }
+}
+
+std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename)
+{
+    auto xml = XmlReader::fromFile(filename);
+    return readFrameSetExportOrder(*xml);
 }
 
 void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::string& filename)

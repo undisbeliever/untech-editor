@@ -320,10 +320,7 @@ $(call cli-modules, untech-png2snes,            common snes)
 $(call cli-modules, untech-utsi2utms,           common snes metasprite)
 $(call cli-modules, untech-write-sfc-checksum,  common snes)
 
-$(call test-util-modules, metasprite-serializer-test,           common snes metasprite)
-$(call test-util-modules, spriteimporter-serializer-test,       common snes metasprite)
-$(call test-util-modules, project-serializer-test,              common snes project entity resources metasprite metatiles lz4)
-$(call test-util-modules, metatiles-tileset-serializer-test,    common snes project entity resources metasprite metatiles lz4)
+$(call test-util-modules, serializer-test,      common snes project entity resources metasprite metatiles lz4)
 
 $(GUI_QT_APP): $(GUI_QT_OBJS) $(GEN_QT_OBJS) $(THIRD_PARTY_OBJS)
 

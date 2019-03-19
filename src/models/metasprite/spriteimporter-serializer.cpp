@@ -23,6 +23,8 @@ namespace SpriteImporter {
 
 const std::string FrameSet::FILE_EXTENSION = "utsi";
 
+std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag* tag);
+
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);

@@ -7,6 +7,7 @@
 #include "file.h"
 #include "string.h"
 #include <algorithm>
+#include <cassert>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -138,6 +139,30 @@ std::pair<std::string, std::string> File::splitFilename(const std::string& filen
     else {
         return { filename.substr(0, i + 1), filename.substr(i + 1) };
     }
+}
+
+std::string File::extension(const std::string& filename)
+{
+    for (auto it = filename.crbegin(); it != filename.crend(); it++) {
+        const char c = *it;
+
+#ifdef PLATFORM_WINDOWS
+        // search both types of slash in windows.
+        if (c == '\\') {
+            break;
+        }
+#endif
+        if (c == '/') {
+            break;
+        }
+        if (c == '.') {
+            auto i = std::distance(filename.crbegin(), it);
+            assert(i >= 0);
+            return filename.substr(filename.size() - i, i);
+        }
+    }
+
+    return std::string();
 }
 
 std::string File::cwd()

@@ -23,6 +23,8 @@ namespace MetaSprite {
 
 const std::string FrameSet::FILE_EXTENSION = "utms";
 
+std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag* tag);
+
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename)
 {
     auto xml = XmlReader::fromFile(filename);

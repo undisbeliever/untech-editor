@@ -29,6 +29,12 @@ struct FrameSetExportOrder {
         bool frameExists(const NamedList<MetaSprite::Frame>& frameList) const;
         bool frameExists(const NamedList<SpriteImporter::Frame>& frameList) const;
         bool animationExists(const NamedList<Animation::Animation>& animationList) const;
+
+        bool operator==(const ExportName& o) const
+        {
+            return name == o.name
+                   && alternatives == o.alternatives;
+        }
     };
 
     idstring name;
@@ -42,6 +48,13 @@ struct FrameSetExportOrder {
 
     bool testFrameSet(const MetaSprite::FrameSet& frameSet, ErrorList& errorList) const;
     bool testFrameSet(const SpriteImporter::FrameSet& frameSet, ErrorList& errorList) const;
+
+    bool operator==(const FrameSetExportOrder& o) const
+    {
+        return name == o.name
+               && stillFrames == o.stillFrames
+               && animations == o.animations;
+    }
 };
 
 // throws exception on error

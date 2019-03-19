@@ -60,7 +60,9 @@ struct ProjectFile {
                && metaTileEngineSettings == o.metaTileEngineSettings
                && entityRomData == o.entityRomData
                && palettes == o.palettes
-               && metaTileTilesets == o.metaTileTilesets;
+               && metaTileTilesets == o.metaTileTilesets
+               && frameSets == o.frameSets
+               && frameSetExportOrders == o.frameSetExportOrders;
     }
     bool operator!=(const ProjectFile& o) const { return !(*this == o); }
 };

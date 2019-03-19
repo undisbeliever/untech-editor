@@ -41,6 +41,23 @@ struct FrameSetFile {
     const std::string& displayName() const;
 
     FrameSetFile() = default;
+
+    bool operator==(const FrameSetFile& o) const
+    {
+        if (filename != o.filename
+            || type != o.type) {
+
+            return false;
+        }
+        if (siFrameSet && o.siFrameSet) {
+            return *siFrameSet == *o.siFrameSet;
+        }
+        if (msFrameSet && o.msFrameSet) {
+            return *msFrameSet == *o.msFrameSet;
+        }
+        return siFrameSet == nullptr && msFrameSet == nullptr
+               && o.siFrameSet == nullptr && o.msFrameSet == nullptr;
+    }
 };
 
 bool validateFrameSetNamesUnique(const std::vector<FrameSetFile>& frameSets,

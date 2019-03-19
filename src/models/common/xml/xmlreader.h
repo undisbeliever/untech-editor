@@ -59,7 +59,7 @@ public:
     XmlReader& operator=(const XmlReader&) = delete;
     XmlReader& operator=(XmlReader&&) = delete;
 
-    XmlReader(const std::string& xml, const std::string& filename = "");
+    XmlReader(const std::string& xml, const std::string& filename = std::string());
 
     static std::unique_ptr<XmlReader> fromFile(const std::string& filename);
 
