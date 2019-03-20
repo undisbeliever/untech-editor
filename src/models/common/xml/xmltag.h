@@ -89,12 +89,15 @@ struct XmlTag {
     {
         auto it = attributes.find(aName);
         if (it != attributes.end()) {
+            if (it->second.empty()) {
+                return idstring();
+            }
             idstring id = it->second;
             if (id.isValid()) {
                 return id;
             }
             else {
-                throw xml_error(*this, aName, "Invalid id");
+                throw xml_error(*this, aName, "Invalid idstring");
             }
         }
         else {
