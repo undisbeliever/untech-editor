@@ -35,6 +35,7 @@ public:
 
     MsErrorType type() const { return _type; }
     const void* ptr() const { return _ptr; }
+    const std::string& name() const { return _name; }
     unsigned id() const { return _id; }
 
     virtual std::string message() const final;

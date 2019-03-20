@@ -156,17 +156,32 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
     using MetaSpriteError = UnTech::MetaSprite::MetaSpriteError;
     using Type = UnTech::MetaSprite::MsErrorType;
 
-    auto updateSelection = [](auto* accessor, const void* ptr) {
+    auto updateSelection = [](auto* accessor, const MetaSpriteError& e) {
+        // Include matching name in SpriteImporter GUI
+        // as the error could be about the transformed msFrameSet
+        // and `e.ptr()` would no-longer match.
+
+        unsigned nameMatchCount = 0;
+        size_t nameMatchIndex = INT_MAX;
+
         const auto* list = accessor->list();
         if (list) {
             for (unsigned i = 0; i < list->size(); i++) {
-                if (&list->at(i) == ptr) {
+                if (&list->at(i) == e.ptr()) {
                     accessor->setSelectedIndex(i);
                     return;
                 }
+                if (list->at(i).name == e.name()) {
+                    nameMatchIndex = i;
+                    nameMatchCount++;
+                }
             }
         }
-        accessor->unselectItem();
+
+        if (nameMatchCount != 1) {
+            nameMatchIndex = INT_MAX;
+        }
+        accessor->setSelectedIndex(nameMatchIndex);
     };
 
     if (_document == nullptr) {
@@ -182,7 +197,7 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
         case Type::FRAME_OBJECT:
         case Type::ACTION_POINT:
         case Type::ENTITY_HITBOX:
-            updateSelection(_document->frameList(), e->ptr());
+            updateSelection(_document->frameList(), *e);
             _document->frameList()->setTileHitboxSelected(false);
             _document->frameObjectList()->clearSelection();
             _document->actionPointList()->clearSelection();
@@ -193,7 +208,7 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
 
         case Type::ANIMATION:
         case Type::ANIMATION_FRAME:
-            updateSelection(_document->animationsList(), e->ptr());
+            updateSelection(_document->animationsList(), *e);
             _animationDock->raise();
             break;
         }
