@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "projectsettingspropertymanager.h"
+#include "managers.h"
 #include "projectsettingsresourceitem.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/project.h"

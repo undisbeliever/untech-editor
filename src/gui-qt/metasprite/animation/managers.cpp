@@ -5,7 +5,7 @@
  */
 
 #include "managers.h"
-#include "animationaccessors.h"
+#include "accessors.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"
 

@@ -5,7 +5,7 @@
  */
 
 #include "exportordereditorwidget.h"
-#include "exportorderaccessors.h"
+#include "accessors.h"
 #include "exportordermodel.h"
 #include "exportorderresourceitem.h"
 #include "gui-qt/accessor/listactionhelper.h"

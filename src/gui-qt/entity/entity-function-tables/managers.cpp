@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "entityfunctiontablesmanager.h"
+#include "managers.h"
 #include "accessors.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"

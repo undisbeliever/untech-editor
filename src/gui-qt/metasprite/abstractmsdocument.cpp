@@ -6,7 +6,7 @@
 
 #include "abstractmsdocument.h"
 #include "framesetresourcelist.h"
-#include "animation/animationaccessors.h"
+#include "animation/accessors.h"
 #include "animation/managers.h"
 #include "gui-qt/project.h"
 #include "models/metasprite/compiler/compiler.h"

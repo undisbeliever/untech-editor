@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "mttilesetaccessors.h"
+#include "accessors.h"
 #include "gui-qt/accessor/gridundohelper.h"
 
 using namespace UnTech::GuiQt::MetaTiles;

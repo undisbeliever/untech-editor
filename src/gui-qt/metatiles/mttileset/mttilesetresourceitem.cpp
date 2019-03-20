@@ -5,7 +5,7 @@
  */
 
 #include "mttilesetresourceitem.h"
-#include "mttilesetaccessors.h"
+#include "accessors.h"
 #include "mttilesetresourcelist.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"

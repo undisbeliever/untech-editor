@@ -4,8 +4,8 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "mttilesetpropertymanager.h"
-#include "mttilesetaccessors.h"
+#include "managers.h"
+#include "accessors.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/project.h"

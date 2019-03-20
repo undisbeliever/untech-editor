@@ -5,8 +5,8 @@
  */
 
 #include "entityfunctiontableswidget.h"
-#include "entityfunctiontablesmanager.h"
 #include "entityfunctiontablesresourceitem.h"
+#include "managers.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/entity/entity-function-tables/entityfunctiontableswidget.ui.h"

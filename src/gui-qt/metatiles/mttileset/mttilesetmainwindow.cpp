@@ -5,8 +5,8 @@
  */
 
 #include "mttilesetmainwindow.h"
+#include "managers.h"
 #include "mttilesetgraphicsscenes.h"
-#include "mttilesetpropertymanager.h"
 #include "mttilesetrenderer.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"

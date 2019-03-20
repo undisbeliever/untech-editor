@@ -5,7 +5,7 @@
  */
 
 #include "projectsettingspropertieswidget.h"
-#include "projectsettingspropertymanager.h"
+#include "managers.h"
 #include "projectsettingsresourceitem.h"
 #include "gui-qt/project-settings/projectsettingspropertieswidget.ui.h"
 

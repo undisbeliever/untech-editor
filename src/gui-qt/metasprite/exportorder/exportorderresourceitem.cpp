@@ -5,7 +5,7 @@
  */
 
 #include "exportorderresourceitem.h"
-#include "exportorderaccessors.h"
+#include "accessors.h"
 #include "exportorderresourcelist.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "models/metatiles/metatiles-serializer.h"

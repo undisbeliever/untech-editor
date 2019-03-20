@@ -5,7 +5,7 @@
  */
 
 #include "exportordermodel.h"
-#include "exportorderaccessors.h"
+#include "accessors.h"
 #include "exportorderresourceitem.h"
 
 using namespace UnTech::GuiQt;

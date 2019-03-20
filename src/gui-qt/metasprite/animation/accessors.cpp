@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "animationaccessors.h"
+#include "accessors.h"
 #include "gui-qt/accessor/abstractaccessors.hpp"
 #include "gui-qt/common/helpers.h"
 

@@ -5,7 +5,7 @@
  */
 
 #include "animationdock.h"
-#include "animationaccessors.h"
+#include "accessors.h"
 #include "managers.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/metasprite/abstractmsdocument.h"

@@ -16,7 +16,7 @@
 #include "tilesetpixmaps.h"
 #include "gui-qt/common/graphics/zoomablegraphicsview.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
-#include "gui-qt/metasprite/animation/animationaccessors.h"
+#include "gui-qt/metasprite/animation/accessors.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
 #include "gui-qt/metasprite/animation/animationpreview.h"
 #include "gui-qt/metasprite/layersettings.h"

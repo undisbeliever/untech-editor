@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "entityromentrymanager.h"
+#include "managers.h"
 #include "accessors.h"
 #include "entityromentriesresourceitem.h"
 #include "gui-qt/common/helpers.h"

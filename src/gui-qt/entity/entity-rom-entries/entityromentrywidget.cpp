@@ -7,7 +7,7 @@
 #include "entityromentrywidget.h"
 #include "accessors.h"
 #include "entityromentriesresourceitem.h"
-#include "entityromentrymanager.h"
+#include "managers.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/entity/entity-rom-entries/entityromentrywidget.ui.h"

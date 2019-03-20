@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "managers.h"
 #include "mttilesetmainwindow.h"
-#include "mttilesetpropertymanager.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/abstracteditor.h"
 

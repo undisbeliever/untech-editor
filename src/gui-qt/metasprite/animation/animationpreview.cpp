@@ -5,7 +5,7 @@
  */
 
 #include "animationpreview.h"
-#include "animationaccessors.h"
+#include "accessors.h"
 #include "animationdock.h"
 #include "animationpreviewitem.h"
 #include "gui-qt/accessor/namedlistmodel.h"

@@ -5,7 +5,7 @@
  */
 
 #include "mttilesetgraphicsscenes.h"
-#include "mttilesetaccessors.h"
+#include "accessors.h"
 #include "mttilesetrenderer.h"
 #include "mttilesetresourceitem.h"
 

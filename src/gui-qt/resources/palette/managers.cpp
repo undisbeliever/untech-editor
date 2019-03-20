@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "palettepropertymanager.h"
+#include "managers.h"
 #include "paletteresourceitem.h"
 #include "models/common/imagecache.h"
 

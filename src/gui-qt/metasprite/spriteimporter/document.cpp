@@ -8,7 +8,7 @@
 #include "accessors.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
-#include "gui-qt/metasprite/animation/animationaccessors.h"
+#include "gui-qt/metasprite/animation/accessors.h"
 
 using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
