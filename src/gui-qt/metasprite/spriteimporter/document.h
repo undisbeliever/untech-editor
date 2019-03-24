@@ -44,6 +44,7 @@ public:
 
     virtual QStringList frameNames() const final;
     virtual unsigned nPalettes() const final;
+    virtual const idstring& exportOrder() const final;
 
     FrameList* frameList() const { return _frameList; }
     FrameObjectList* frameObjectList() const { return _frameObjectList; }
@@ -70,7 +71,6 @@ protected:
     virtual bool compileResource(ErrorList& err) final;
 
 private slots:
-    void onFrameSetExportOrderChanged();
     void onFrameSetImageFilenameChanged();
 
 private:

@@ -631,12 +631,12 @@ bool ActionPointList::editSelectedList_setLocation(unsigned index, const ms8poin
         [](MS::ActionPoint& ap) -> ms8point& { return ap.location; });
 }
 
-bool ActionPointList::editSelectedList_setParameter(unsigned index, ParameterType parameter)
+bool ActionPointList::editSelectedList_setType(unsigned index, idstring type)
 {
     return UndoHelper(this).editField(
-        index, parameter,
-        tr("Edit Action Point Parameter"),
-        [](MS::ActionPoint& ap) -> ParameterType& { return ap.parameter; });
+        index, type,
+        tr("Edit Action Point Type"),
+        [](MS::ActionPoint& ap) -> idstring& { return ap.type; });
 }
 
 template <>

@@ -8,9 +8,11 @@
 #include "accessors.h"
 #include "document.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/metasprite/actionpoints/actionpointsresourceitem.h"
 #include "gui-qt/metasprite/common.h"
 #include "gui-qt/metasprite/exportorder/exportorderresourcelist.h"
 #include "gui-qt/project.h"
+#include "gui-qt/staticresourcelist.h"
 
 using namespace UnTech;
 using namespace UnTech::GuiQt;
@@ -350,7 +352,7 @@ ActionPointManager::ActionPointManager(QObject* parent)
 
     addProperty(tr("Location"), PropertyId::LOCATION, Type::POINT,
                 QPoint(int_ms8_t::MIN, int_ms8_t::MIN), QPoint(int_ms8_t::MAX, int_ms8_t::MAX));
-    addProperty(tr("Parameter"), PropertyId::PARAMETER, Type::UNSIGNED, 0, 255);
+    addProperty(tr("Type"), PropertyId::TYPE, Type::COMBO);
 }
 
 void ActionPointManager::setDocument(Document* document)
@@ -379,11 +381,24 @@ QVariant ActionPointManager::data(int index, int id) const
     case PropertyId::LOCATION:
         return fromMs8point(ap.location);
 
-    case PropertyId::PARAMETER:
-        return (int)ap.parameter;
+    case PropertyId::TYPE:
+        return QString::fromStdString(ap.type);
     };
 
     return QVariant();
+}
+
+void ActionPointManager::updateParameters(int index, int id, QVariant& param1, QVariant&) const
+{
+    if (_document == nullptr) {
+        return;
+    }
+
+    Q_UNUSED(index);
+
+    if (id == PropertyId::TYPE) {
+        param1 = _document->project()->staticResourceList()->actionPointsResourceItem()->actionPointNames();
+    }
 }
 
 bool ActionPointManager::setData(int index, int id, const QVariant& value)
@@ -397,9 +412,9 @@ bool ActionPointManager::setData(int index, int id, const QVariant& value)
         return _document->actionPointList()->editSelectedList_setLocation(
             index, toMs8point(value.toPoint()));
 
-    case PropertyId::PARAMETER:
-        return _document->actionPointList()->editSelectedList_setParameter(
-            index, value.toUInt());
+    case PropertyId::TYPE:
+        return _document->actionPointList()->editSelectedList_setType(
+            index, value.toString().toStdString());
     };
 
     return false;

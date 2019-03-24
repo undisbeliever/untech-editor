@@ -116,18 +116,18 @@ struct FrameObject {
 
 struct ActionPoint {
     upoint location;
-    ActionPointParameter parameter;
+    idstring type;
 
     ActionPoint() = default;
-    ActionPoint(const upoint& location, ActionPointParameter& parameter)
+    ActionPoint(const upoint& location, idstring& type)
         : location(location)
-        , parameter(parameter)
+        , type(type)
     {
     }
 
     bool operator==(const ActionPoint& o) const
     {
-        return this->location == o.location && this->parameter == o.parameter;
+        return this->location == o.location && this->type == o.type;
     }
     bool operator!=(const ActionPoint& o) const { return !(*this == o); }
 };
@@ -178,7 +178,7 @@ struct Frame {
 
 private:
     friend struct FrameSet;
-    bool validate(ErrorList& errorList, const Image& image) const;
+    bool validate(const ActionPointMapping& actionPointMapping, const Image& image, ErrorList& errorList) const;
 };
 
 struct UserSuppliedPalette {
@@ -224,6 +224,7 @@ struct FrameSet {
 
     FrameSet() = default;
 
+    bool validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList) const;
     bool validate(ErrorList& errorList) const;
 
     usize minimumFrameGridSize() const;

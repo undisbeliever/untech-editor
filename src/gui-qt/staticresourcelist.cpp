@@ -9,6 +9,7 @@
 #include "entity/entity-function-tables/entityfunctiontablesresourceitem.h"
 #include "entity/entity-rom-entries/entityromentriesresourceitem.h"
 #include "entity/entity-rom-structs/entityromstructsresourceitem.h"
+#include "metasprite/actionpoints/actionpointsresourceitem.h"
 #include "project-settings/projectsettingsresourceitem.h"
 
 using namespace UnTech::GuiQt;
@@ -16,6 +17,7 @@ using namespace UnTech::GuiQt;
 StaticResourceList::StaticResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::STATIC)
     , _projectSettingsResourceItem(new ProjectSettings::ProjectSettingsResourceItem(this, PROJECT_SETTINGS))
+    , _actionPointsResourceItem(new MetaSprite::ActionPoints::ActionPointsResourceItem(this, ACTION_POINTS))
     , _entityRomStructsResourceItem(new Entity::EntityRomStructsResourceItem(this, ENTITY_ROM_STRUCTS))
     , _entityFunctionTablesResourceItem(new Entity::EntityFunctionTablesResourceItem(this, ENTITY_FUNCTION_TABLES))
     , _entitiesResourceItem(new Entity::EntityRomEntriesResourceItem(this, ENTITIES, true))
@@ -50,6 +52,9 @@ AbstractResourceItem* StaticResourceList::buildResourceItem(size_t index)
     switch (static_cast<Indexes>(index)) {
     case PROJECT_SETTINGS:
         return _projectSettingsResourceItem;
+
+    case ACTION_POINTS:
+        return _actionPointsResourceItem;
 
     case ENTITY_ROM_STRUCTS:
         return _entityRomStructsResourceItem;

@@ -63,18 +63,18 @@ struct FrameObject {
 
 struct ActionPoint {
     ms8point location;
-    ActionPointParameter parameter;
+    idstring type;
 
     ActionPoint() = default;
-    ActionPoint(const ms8point& location, ActionPointParameter& parameter)
+    ActionPoint(const ms8point& location, const idstring& type)
         : location(location)
-        , parameter(parameter)
+        , type(type)
     {
     }
 
     bool operator==(const ActionPoint& o) const
     {
-        return this->location == o.location && this->parameter == o.parameter;
+        return this->location == o.location && this->type == o.type;
     }
     bool operator!=(const ActionPoint& o) const { return !(*this == o); }
 };
@@ -127,7 +127,7 @@ struct Frame {
 
 private:
     friend struct FrameSet;
-    bool validate(ErrorList& errorList, const FrameSet& fs) const;
+    bool validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList, const FrameSet& fs) const;
 };
 
 struct FrameSet {
@@ -155,7 +155,7 @@ struct FrameSet {
     {
     }
 
-    bool validate(ErrorList& errorList) const;
+    bool validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList) const;
 
     bool operator==(const FrameSet& o) const;
     bool operator!=(const FrameSet& o) const { return !(*this == o); }

@@ -28,7 +28,8 @@ struct FrameData {
 };
 
 std::vector<FrameData> processFrameList(const FrameSetExportList& exportList,
-                                        const TilesetData& tilesetData);
+                                        const TilesetData& tilesetData,
+                                        const ActionPointMapping& actionPointMapping);
 
 uint16_t saveCompiledFrames(const std::vector<FrameData>& frameData, CompiledRomData& out);
 

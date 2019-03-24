@@ -23,7 +23,7 @@ namespace Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-const int CompiledRomData::METASPRITE_FORMAT_VERSION = 34;
+const int CompiledRomData::METASPRITE_FORMAT_VERSION = 35;
 
 struct FrameSetData {
     std::vector<CompiledPalette> palettes;
@@ -62,7 +62,8 @@ void CompiledRomData::writeToIncFile(std::ostream& out) const
 }
 
 // assumes frameSet.validate() passes
-static FrameSetData processFrameSet(const FrameSetExportList& exportList, const TilesetData& tilesetData)
+static FrameSetData processFrameSet(const FrameSetExportList& exportList, const TilesetData& tilesetData,
+                                    const ActionPointMapping& actionPointMapping)
 {
     const MS::FrameSet& frameSet = exportList.frameSet;
 
@@ -70,7 +71,7 @@ static FrameSetData processFrameSet(const FrameSetExportList& exportList, const 
         processPalettes(frameSet.palettes),
         tilesetData.staticTileset.tilesetIndex,
         tilesetData.tilesetType,
-        processFrameList(exportList, tilesetData),
+        processFrameList(exportList, tilesetData, actionPointMapping),
         processAnimations(exportList),
     };
 }
@@ -97,21 +98,24 @@ static void saveFrameSet(const FrameSetData& data, CompiledRomData& out)
     out.frameSetData.addData_NoIndex(fsItem.data());
 }
 
-static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder, ErrorList& errorList)
+static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                             const ActionPointMapping& actionPointMapping,
+                             ErrorList& errorList)
 {
     if (exportOrder == nullptr) {
         errorList.addError("Missing MetaSprite Export Order Document");
         return false;
     }
 
-    return frameSet.validate(errorList)
+    return frameSet.validate(actionPointMapping, errorList)
            && exportOrder->testFrameSet(frameSet, errorList);
 }
 
 void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                            const ActionPointMapping& actionPointMapping,
                             ErrorList& errorList, CompiledRomData& out)
 {
-    if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
+    if (validateFrameSet(frameSet, exportOrder, actionPointMapping, errorList) == false) {
         return;
     }
 
@@ -121,16 +125,17 @@ void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOr
 
     const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
     const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, out);
-    const auto data = processFrameSet(exportList, tilesetData);
+    const auto data = processFrameSet(exportList, tilesetData, actionPointMapping);
     saveFrameSet(data, out);
 }
 
 bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                                      const ActionPointMapping& actionPointMapping,
                                       ErrorList& errorList)
 {
     const size_t oldErrorCount = errorList.errorCount();
 
-    if (validateFrameSet(frameSet, exportOrder, errorList) == false) {
+    if (validateFrameSet(frameSet, exportOrder, actionPointMapping, errorList) == false) {
         return false;
     }
 
@@ -144,6 +149,14 @@ bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, cons
 
 std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& project, std::ostream& errorStream)
 {
+    UnTech::ErrorList apErrorList;
+    const auto actionPointMapping = generateActionPointMapping(project.actionPointFunctions, apErrorList);
+    if (!apErrorList.empty()) {
+        errorStream << "ActionPoint Functions:\n";
+        apErrorList.printIndented(errorStream);
+        return nullptr;
+    }
+
     bool valid = true;
     auto romData = std::make_unique<CompiledRomData>(project.blockSettings.size);
 
@@ -154,14 +167,14 @@ std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& 
 
         if (fs.msFrameSet) {
             const auto* exportOrder = project.frameSetExportOrders.find(fs.msFrameSet->exportOrder);
-            processAndSaveFrameSet(*fs.msFrameSet, exportOrder, errorList, *romData);
+            processAndSaveFrameSet(*fs.msFrameSet, exportOrder, actionPointMapping, errorList, *romData);
         }
         else if (fs.siFrameSet) {
             Utsi2Utms converter(errorList);
             auto msFrameSet = converter.convert(*fs.siFrameSet);
             if (msFrameSet) {
                 const auto* exportOrder = project.frameSetExportOrders.find(msFrameSet->exportOrder);
-                processAndSaveFrameSet(*msFrameSet, exportOrder, errorList, *romData);
+                processAndSaveFrameSet(*msFrameSet, exportOrder, actionPointMapping, errorList, *romData);
             }
         }
         else {

@@ -52,9 +52,11 @@ struct CompiledRomData {
 // Does not save tilesets or build frame data.
 // Should catch all errors that the compiler will catch.
 bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                                      const ActionPointMapping& actionPointMapping,
                                       ErrorList& errorList);
 
 void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
+                            const ActionPointMapping& actionPointMapping,
                             ErrorList& errorList, CompiledRomData& out);
 
 std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& project, std::ostream& errorStream);

@@ -5,7 +5,9 @@
  */
 
 #include "common.h"
+#include <cassert>
 
+using namespace UnTech;
 using namespace UnTech::MetaSprite;
 
 std::string NameReference::str() const
@@ -22,4 +24,50 @@ std::string NameReference::str() const
     else {
         return name;
     }
+}
+
+ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err)
+{
+    bool valid = true;
+    auto addError = [&](const std::string msg) {
+        err.addError(std::move(msg));
+        valid = false;
+    };
+
+    ActionPointMapping ret;
+
+    if (apFunctions.empty()) {
+        addError("Expected at least one action point function");
+        return ret;
+    }
+
+    if (apFunctions.size() > MAX_ACTION_POINT_FUNCTIONS) {
+        addError("Too many action point functions (max " + std::to_string(MAX_ACTION_POINT_FUNCTIONS) + ")");
+        return ret;
+    }
+
+    ret.reserve(apFunctions.size());
+
+    for (unsigned i = 0; i < apFunctions.size(); i++) {
+        const unsigned romValue = (i + 1) * 2;
+        assert(romValue <= 255 - 2);
+
+        const ActionPointFunction& apf = apFunctions.at(i);
+
+        if (not apf.name.isValid()) {
+            addError("Missing action point function name");
+        }
+
+        auto success = ret.emplace(apf.name, romValue);
+
+        if (success.second == false) {
+            addError("Action point function name already exists: " + apf.name);
+        }
+    }
+
+    if (not valid) {
+        ret.clear();
+    }
+
+    return ret;
 }

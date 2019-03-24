@@ -80,7 +80,7 @@ public:
             MS::ActionPoint msAp;
 
             msAp.location = ms8point::createFromOffset(siAp.location, siFrameOrigin);
-            msAp.parameter = siAp.parameter;
+            msAp.type = siAp.type;
 
             msFrame.actionPoints.push_back(msAp);
         }

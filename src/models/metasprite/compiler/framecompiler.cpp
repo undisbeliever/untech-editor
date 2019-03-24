@@ -135,7 +135,8 @@ static std::vector<uint8_t> processTileHitbox(const MS::Frame& frame)
     return romData;
 }
 
-static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoint>& actionPoints)
+static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoint>& actionPoints,
+                                                const ActionPointMapping& actionPointMapping)
 {
     assert(actionPoints.size() <= MAX_ACTION_POINTS);
 
@@ -148,13 +149,11 @@ static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoin
     romData.reserve(3 * actionPoints.size() + 1);
 
     for (const MS::ActionPoint& ap : actionPoints) {
-        assert(ap.parameter != 0);
-
         const ms8point loc = ap.location;
 
-        romData.push_back(ap.parameter);    // Point::parameter
-        romData.push_back(loc.x.romData()); // Point::xOffset
-        romData.push_back(loc.y.romData()); // Point::yOffset
+        romData.push_back(actionPointMapping.at(ap.type)); // ActionPoint::type
+        romData.push_back(loc.x.romData());                // ActionPoint::positionPair.xPos
+        romData.push_back(loc.y.romData());                // ActionPoint::positionPair.yPos
     }
 
     romData.push_back(0); // null terminator
@@ -162,7 +161,8 @@ static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoin
     return romData;
 }
 
-static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& frameTileset)
+static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& frameTileset,
+                              const ActionPointMapping& actionPointMapping)
 {
     IndexPlusOne tilesetIndex{ 0 };
     if (frameTileset.dynamicTileset) {
@@ -173,23 +173,25 @@ static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& fr
         .frameObjects = processFrameObjects(frame, frameTileset),
         .entityHitboxes = processEntityHitboxes(frame.entityHitboxes),
         .tileHitbox = processTileHitbox(frame),
-        .actionPoints = processActionPoints(frame.actionPoints),
+        .actionPoints = processActionPoints(frame.actionPoints, actionPointMapping),
         .tileset = tilesetIndex,
     };
 }
 
-static FrameData processFrame(const FrameListEntry& fle, const FrameTilesetData& frameTileset)
+static FrameData processFrame(const FrameListEntry& fle, const FrameTilesetData& frameTileset,
+                              const ActionPointMapping& actionPointMapping)
 {
     if (fle.hFlip == false && fle.vFlip == false) {
-        return processFrame(*fle.frame, frameTileset);
+        return processFrame(*fle.frame, frameTileset, actionPointMapping);
     }
     else {
         auto flippedFrame = fle.frame->flip(fle.hFlip, fle.vFlip);
-        return processFrame(flippedFrame, frameTileset);
+        return processFrame(flippedFrame, frameTileset, actionPointMapping);
     }
 }
 
-std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, const TilesetData& tilesetData)
+std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, const TilesetData& tilesetData,
+                                        const ActionPointMapping& actionPointMapping)
 {
     const auto& frameList = exportList.frames;
 
@@ -201,7 +203,7 @@ std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, co
         assert(fle.frame);
 
         const auto& frameTileset = tilesetData.tilesetForFrameId(frameId);
-        frames.push_back(processFrame(fle, frameTileset));
+        frames.push_back(processFrame(fle, frameTileset, actionPointMapping));
     }
 
     return frames;

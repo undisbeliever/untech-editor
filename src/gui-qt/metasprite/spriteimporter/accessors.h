@@ -78,8 +78,6 @@ public:
 class ActionPointList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::ActionPoint, Document> {
     Q_OBJECT
 
-    using ParameterType = UnTech::MetaSprite::ActionPointParameter;
-
 public:
     ActionPointList(Document* document);
     ~ActionPointList() = default;
@@ -88,7 +86,7 @@ public:
     virtual QString typeNamePlural() const final;
 
     bool editSelectedList_setLocation(unsigned index, const upoint& location);
-    bool editSelectedList_setParameter(unsigned index, ParameterType parameter);
+    bool editSelectedList_setType(unsigned index, idstring type);
 };
 
 class EntityHitboxList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, Document> {

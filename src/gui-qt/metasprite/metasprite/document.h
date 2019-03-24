@@ -47,6 +47,7 @@ public:
 
     virtual QStringList frameNames() const final;
     virtual unsigned nPalettes() const final;
+    virtual const idstring& exportOrder() const final;
 
     SmallTileTileset* smallTileTileset() const { return _smallTileTileset; }
     LargeTileTileset* largeTileTileset() const { return _largeTileTileset; }
@@ -70,9 +71,6 @@ protected:
     virtual void saveResourceData(const std::string& filename) const final;
     virtual bool loadResourceData(ErrorList& err) final;
     virtual bool compileResource(ErrorList& err) final;
-
-private slots:
-    void onFrameSetExportOrderChanged();
 
 private:
     void resetDocumentState();

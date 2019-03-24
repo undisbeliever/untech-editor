@@ -30,9 +30,6 @@ Document::Document(FrameSetResourceList* parent, size_t index)
     setFilename(QString::fromStdString(frameSetFile().filename));
 
     resetDocumentState();
-
-    connect(this, &Document::frameSetExportOrderChanged,
-            this, &Document::onFrameSetExportOrderChanged);
 }
 
 QStringList Document::frameNames() const
@@ -51,6 +48,18 @@ unsigned Document::nPalettes() const
         return 1;
     }
     return _frameSet->palettes.size();
+}
+
+const UnTech::idstring& Document::exportOrder() const
+{
+    static idstring BLANK;
+
+    if (auto* fs = frameSet()) {
+        return fs->exportOrder;
+    }
+    else {
+        return BLANK;
+    }
 }
 
 void Document::resetDocumentState()
@@ -108,18 +117,6 @@ bool Document::compileResource(ErrorList& err)
     compileMsFrameset(_frameSet, err);
 
     return err.hasError() == false;
-}
-
-void Document::onFrameSetExportOrderChanged()
-{
-    if (auto* fs = frameSet()) {
-        setDependencies({
-            { ResourceTypeIndex::MS_EXPORT_ORDER, QString::fromStdString(fs->exportOrder) },
-        });
-    }
-    else {
-        removeDependencies();
-    }
 }
 
 bool Document::editFrameSet_setName(const idstring& name)

@@ -39,6 +39,7 @@ public:
 
     virtual QStringList frameNames() const = 0;
     virtual unsigned nPalettes() const = 0;
+    virtual const idstring& exportOrder() const = 0;
 
     Animation::AnimationFramesList* animationFramesList() const { return _animationFramesList; }
     Animation::AnimationsList* animationsList() const { return _animationsList; }
@@ -59,6 +60,9 @@ protected:
 signals:
     void frameSetDataChanged();
     void frameSetExportOrderChanged();
+
+protected slots:
+    void onFrameSetExportOrderChanged();
 
 private:
     std::vector<UnTech::MetaSprite::FrameSetFile>& _frameSetFiles;

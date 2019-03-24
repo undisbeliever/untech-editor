@@ -107,7 +107,7 @@ class ActionPointManager : public Accessor::ListAccessorTableManager {
 public:
     enum PropertyId {
         LOCATION,
-        PARAMETER,
+        TYPE,
     };
 
 private:
@@ -120,6 +120,7 @@ public:
     void setDocument(Document* document);
 
     virtual QVariant data(int index, int id) const final;
+    virtual void updateParameters(int index, int id, QVariant& param1, QVariant& param2) const final;
     virtual bool setData(int index, int id, const QVariant& value) final;
 
 private:

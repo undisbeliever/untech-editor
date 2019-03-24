@@ -120,7 +120,7 @@ class ActionPointManager : public Accessor::ListAccessorTableManager {
 public:
     enum PropertyId {
         LOCATION,
-        PARAMETER,
+        TYPE,
     };
 
 private:

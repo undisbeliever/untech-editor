@@ -151,7 +151,11 @@ bool FrameLocation::operator==(const FrameLocation& o) const
  * =====
  */
 
-inline bool Frame::validate(ErrorList& errorList, const Image& image) const
+/*
+ * NOTE: ActionPoint::type is only tested if actionPointMapping is not empty,
+ *       which allows utsi2utms to work without specifing a project file.
+ */
+inline bool Frame::validate(const ActionPointMapping& actionPointMapping, const Image& image, ErrorList& errorList) const
 {
     bool valid = true;
 
@@ -200,6 +204,13 @@ inline bool Frame::validate(ErrorList& errorList, const Image& image) const
         if (frameSize.contains(ap.location) == false) {
             errorList.addError(actionPointError(*this, i, "location not inside frame"));
             valid = false;
+        }
+
+        if (not actionPointMapping.empty()) {
+            if (actionPointMapping.find(ap.type) == actionPointMapping.end()) {
+                errorList.addError(actionPointError(*this, i, "Unknown action point type " + ap.type));
+                valid = false;
+            }
         }
     }
 
@@ -261,7 +272,7 @@ bool Frame::operator==(const Frame& o) const
  * =========
  */
 
-bool FrameSet::validate(ErrorList& errorList) const
+bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList) const
 {
     bool valid = true;
     auto addError = [&](std::string&& msg) {
@@ -322,7 +333,7 @@ bool FrameSet::validate(ErrorList& errorList) const
     valid &= validateNamesUnique(animations, "animation", errorList);
 
     for (auto& frame : frames) {
-        valid &= frame.validate(errorList, *image);
+        valid &= frame.validate(actionPointMapping, *image, errorList);
     }
 
     for (auto& ani : animations) {
@@ -330,6 +341,12 @@ bool FrameSet::validate(ErrorList& errorList) const
     }
 
     return valid;
+}
+
+// This function exists to allows utsi2utms to work without specifing a project file
+bool FrameSet::validate(ErrorList& errorList) const
+{
+    return validate(ActionPointMapping{}, errorList);
 }
 
 usize FrameSet::minimumFrameGridSize() const

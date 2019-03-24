@@ -47,6 +47,7 @@ struct ProjectFile {
     NamedList<Resources::PaletteInput> palettes;
     ExternalFileList<MetaTiles::MetaTileTilesetInput> metaTileTilesets;
 
+    NamedList<MetaSprite::ActionPointFunction> actionPointFunctions;
     std::vector<MetaSprite::FrameSetFile> frameSets;
     ExternalFileList<MetaSprite::FrameSetExportOrder> frameSetExportOrders;
 
@@ -61,6 +62,7 @@ struct ProjectFile {
                && entityRomData == o.entityRomData
                && palettes == o.palettes
                && metaTileTilesets == o.metaTileTilesets
+               && actionPointFunctions == o.actionPointFunctions
                && frameSets == o.frameSets
                && frameSetExportOrders == o.frameSetExportOrders;
     }

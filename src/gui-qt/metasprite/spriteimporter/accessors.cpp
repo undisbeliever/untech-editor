@@ -250,12 +250,12 @@ bool ActionPointList::editSelectedList_setLocation(unsigned index, const upoint&
         [](SI::ActionPoint& ap) -> upoint& { return ap.location; });
 }
 
-bool ActionPointList::editSelectedList_setParameter(unsigned index, ActionPointList::ParameterType parameter)
+bool ActionPointList::editSelectedList_setType(unsigned index, idstring type)
 {
     return UndoHelper(this).editField(
-        index, parameter,
-        tr("Edit Action Point Parameter"),
-        [](SI::ActionPoint& ap) -> ParameterType& { return ap.parameter; });
+        index, type,
+        tr("Edit Action Point Type"),
+        [](SI::ActionPoint& ap) -> idstring& { return ap.type; });
 }
 
 template <>

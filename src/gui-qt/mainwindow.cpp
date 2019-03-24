@@ -23,6 +23,7 @@
 #include "gui-qt/entity/entity-function-tables/entityfunctiontablesditor.h"
 #include "gui-qt/entity/entity-rom-entries/entityromentrieseditor.h"
 #include "gui-qt/entity/entity-rom-structs/entityromstructseditor.h"
+#include "gui-qt/metasprite/actionpoints/actionpointseditor.h"
 #include "gui-qt/metasprite/exportorder/exportordereditor.h"
 #include "gui-qt/metasprite/metasprite/msframeseteditor.h"
 #include "gui-qt/metasprite/spriteimporter/siframeseteditor.h"
@@ -73,6 +74,7 @@ MainWindow::MainWindow(QWidget* parent)
           new Resources::PaletteEditor(this),
           new MetaSprite::ExportOrderEditor(this),
           new MetaTiles::MtTilesetEditor(this, _zoomSettingsManager),
+          new MetaSprite::ActionPoints::ActionPointsEditor(this),
           new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettingsManager),
           new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettingsManager),
       })

@@ -182,6 +182,11 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
     MetaSprite::Compiler::writeExportOrderReferences(input, ret->incData);
     ret->incData << entityData.defines;
 
+    // changes ROM BANK to code()
+    MetaSprite::Compiler::writeActionPointFunctionTables(input.actionPointFunctions, ret->incData);
+
+    ret->incData << std::endl;
+
     return ret;
 }
 }

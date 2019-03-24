@@ -19,7 +19,7 @@ using namespace UnTech::MetaSprite::MetaSprite;
  * =====
  */
 
-inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
+inline bool Frame::validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList, const FrameSet& fs) const
 {
     bool valid = true;
     auto addError = [&](const std::string& msg) {
@@ -47,6 +47,15 @@ inline bool Frame::validate(ErrorList& errorList, const FrameSet& fs) const
                                                       : fs.largeTileset.size();
         if (obj.tileId > tsSize) {
             errorList.addError(frameObjectError(*this, i, "Invalid tileId"));
+            valid = false;
+        }
+    }
+
+    for (unsigned i = 0; i < actionPoints.size(); i++) {
+        const ActionPoint& ap = actionPoints.at(i);
+
+        if (actionPointMapping.find(ap.type) == actionPointMapping.end()) {
+            errorList.addError(actionPointError(*this, i, "Unknown action point type " + ap.type));
             valid = false;
         }
     }
@@ -128,7 +137,7 @@ bool Frame::operator==(const Frame& o) const
  * =========
  */
 
-bool FrameSet::validate(ErrorList& errorList) const
+bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList) const
 {
     bool valid = true;
 
@@ -165,7 +174,7 @@ bool FrameSet::validate(ErrorList& errorList) const
     valid &= validateNamesUnique(animations, "animation", errorList);
 
     for (auto& frame : frames) {
-        valid &= frame.validate(errorList, *this);
+        valid &= frame.validate(actionPointMapping, errorList, *this);
     }
 
     for (auto& ani : animations) {

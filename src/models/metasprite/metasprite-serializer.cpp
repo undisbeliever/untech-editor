@@ -149,7 +149,7 @@ private:
                 ActionPoint ap;
 
                 ap.location = childTag->getAttributeMs8point();
-                ap.parameter = childTag->getAttributeClamped<ActionPointParameter>("parameter");
+                ap.type = childTag->getAttributeOptionalId("type");
 
                 frame.actionPoints.push_back(ap);
             }
@@ -275,7 +275,7 @@ inline void writeFrame(XmlWriter& xml, const Frame& frame)
     for (const ActionPoint& ap : frame.actionPoints) {
         xml.writeTag("actionpoint");
 
-        xml.writeTagAttribute("parameter", ap.parameter);
+        xml.writeTagAttribute("type", ap.type);
         xml.writeTagAttributeMs8point(ap.location);
 
         xml.writeCloseTag();

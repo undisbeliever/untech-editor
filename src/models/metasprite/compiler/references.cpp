@@ -72,6 +72,61 @@ void writeExportOrderReferences(const ProjectFile& project, std::ostream& out)
     out << "}\n";
 }
 
+void writeActionPointFunctionTables(const NamedList<ActionPointFunction>& actionPointFunctions, std::ostream& out)
+{
+    static constexpr unsigned WORD_SIZE = 2;
+
+    assert(actionPointFunctions.size() <= MAX_ACTION_POINT_FUNCTIONS);
+
+    out << "\n"
+           "code()\n"
+           "Project.ActionPoints:\n"
+           "namespace Project.ActionPoints {\n"
+           "\tdw ActionPoints.InvalidActionPoint\n";
+
+    bool hasManuallyInvokedFunction = false;
+    for (const ActionPointFunction& ap : actionPointFunctions) {
+        out << "\tdw ActionPoints." << ap.name << '\n';
+
+        hasManuallyInvokedFunction |= ap.manuallyInvoked;
+    }
+
+    // padding
+    const unsigned nFunctions = actionPointFunctions.size() + 1;
+    unsigned nextPowerOf2 = 1;
+    while (nextPowerOf2 < nFunctions) {
+        nextPowerOf2 <<= 1;
+    }
+    assert(nextPowerOf2 < 256 / WORD_SIZE);
+
+    for (unsigned i = nFunctions; i < nextPowerOf2; i++) {
+        out << "\tdw ActionPoints.Null\n";
+    }
+
+    // constants/defines
+    out << "\n"
+           "\tconstant MASK = "
+        << (nextPowerOf2 * WORD_SIZE - 1 - 1) << '\n';
+
+    if (hasManuallyInvokedFunction) {
+        out << "\n";
+
+        for (unsigned i = 0; i < actionPointFunctions.size(); i++) {
+            const ActionPointFunction& ap = actionPointFunctions.at(i);
+
+            if (ap.manuallyInvoked) {
+                unsigned romValue = (i + 1) * 2;
+                assert(romValue <= 255 - 2);
+
+                out << "\tdefine " << ap.name << " = " << romValue << '\n'
+                    << "\tconstant " << ap.name << " = " << romValue << '\n';
+            }
+        }
+    }
+
+    out << "}\n";
+}
+
 }
 }
 }

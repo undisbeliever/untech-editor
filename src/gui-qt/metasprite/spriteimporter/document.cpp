@@ -55,6 +55,18 @@ unsigned Document::nPalettes() const
     return nPalettes;
 }
 
+const UnTech::idstring& Document::exportOrder() const
+{
+    static idstring BLANK;
+
+    if (auto* fs = frameSet()) {
+        return fs->exportOrder;
+    }
+    else {
+        return BLANK;
+    }
+}
+
 void Document::resetDocumentState()
 {
     if (const SI::FrameSet* fs = frameSet()) {
@@ -115,18 +127,6 @@ bool Document::compileResource(ErrorList& err)
     compileMsFrameset(fsf.msFrameSet.get(), err);
 
     return err.hasError() == false;
-}
-
-void Document::onFrameSetExportOrderChanged()
-{
-    if (auto* fs = frameSet()) {
-        setDependencies({
-            { ResourceTypeIndex::MS_EXPORT_ORDER, QString::fromStdString(fs->exportOrder) },
-        });
-    }
-    else {
-        removeDependencies();
-    }
 }
 
 void Document::onFrameSetImageFilenameChanged()

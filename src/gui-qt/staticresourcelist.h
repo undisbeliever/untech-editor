@@ -19,6 +19,11 @@ class EntityRomStructsResourceItem;
 class EntityFunctionTablesResourceItem;
 class EntityRomEntriesResourceItem;
 }
+namespace MetaSprite {
+namespace ActionPoints {
+class ActionPointsResourceItem;
+}
+}
 
 class Project;
 class AbstractResourceItem;
@@ -28,12 +33,13 @@ class StaticResourceList : public AbstractResourceList {
 
     enum Indexes {
         PROJECT_SETTINGS,
+        ACTION_POINTS,
         ENTITY_ROM_STRUCTS,
         ENTITY_FUNCTION_TABLES,
         ENTITIES,
         PROJECTILES,
     };
-    constexpr static size_t N_ITEMS = 5;
+    constexpr static size_t N_ITEMS = 6;
 
 public:
     StaticResourceList(Project* project);
@@ -45,6 +51,7 @@ public:
     virtual const QList<AddResourceSettings>& addResourceSettings() const final;
 
     auto* projectSettingsResourceItem() const { return _projectSettingsResourceItem; }
+    auto* actionPointsResourceItem() const { return _actionPointsResourceItem; }
     auto* entityRomStructsResourceItem() const { return _entityRomStructsResourceItem; }
     auto* entityFunctionTablesResourceItem() const { return _entityFunctionTablesResourceItem; }
     auto* entitiesResourceItem() const { return _entitiesResourceItem; }
@@ -59,6 +66,7 @@ protected:
 
 private:
     ProjectSettings::ProjectSettingsResourceItem* const _projectSettingsResourceItem;
+    MetaSprite::ActionPoints::ActionPointsResourceItem* const _actionPointsResourceItem;
     Entity::EntityRomStructsResourceItem* const _entityRomStructsResourceItem;
     Entity::EntityFunctionTablesResourceItem* const _entityFunctionTablesResourceItem;
     Entity::EntityRomEntriesResourceItem* const _entitiesResourceItem;

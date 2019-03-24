@@ -8,6 +8,7 @@
 #include "project.h"
 #include "models/common/atomicofstream.h"
 #include "models/entity/entityromdata-serializer.h"
+#include "models/metasprite/actionpointfunctions-serializer.h"
 #include "models/metasprite/framesetfile-serializer.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/resources/resources-serializer.h"
@@ -85,6 +86,9 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
         else if (childTag->name == "entity-rom-data") {
             Entity::readEntityRomData(xml, childTag.get(), project->entityRomData);
         }
+        else if (childTag->name == "action-point-function") {
+            MetaSprite::readActionPointFunction(childTag.get(), project->actionPointFunctions);
+        }
         else if (childTag->name == "block-settings") {
             if (readBlockSettingsTag) {
                 throw xml_error(*childTag, "Only one <block-settings> tag is allowed");
@@ -119,6 +123,7 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
 
     Entity::writeEntityRomData(xml, project.entityRomData);
 
+    MetaSprite::writeActionPointFunctions(xml, project.actionPointFunctions);
     writeExternalFileList(xml, "exportorder", project.frameSetExportOrders);
     MetaSprite::writeFrameSetFiles(xml, project.frameSets);
     Resources::writePalettes(xml, project.palettes);

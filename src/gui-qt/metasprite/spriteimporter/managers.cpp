@@ -8,9 +8,11 @@
 #include "accessors.h"
 #include "document.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/metasprite/actionpoints/actionpointsresourceitem.h"
 #include "gui-qt/metasprite/common.h"
 #include "gui-qt/metasprite/exportorder/exportorderresourcelist.h"
 #include "gui-qt/project.h"
+#include "gui-qt/staticresourcelist.h"
 #include "models/common/imagecache.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
@@ -586,7 +588,7 @@ ActionPointManager::ActionPointManager(QObject* parent)
     setTitle(tr("Action Point"));
 
     addProperty(tr("Location"), PropertyId::LOCATION, Type::POINT);
-    addProperty(tr("Parameter"), PropertyId::PARAMETER, Type::UNSIGNED, 0, 255);
+    addProperty(tr("Type"), PropertyId::TYPE, Type::COMBO);
 }
 
 void ActionPointManager::setDocument(Document* document)
@@ -615,8 +617,8 @@ QVariant ActionPointManager::data(int index, int id) const
     case PropertyId::LOCATION:
         return fromUpoint(ap.location);
 
-    case PropertyId::PARAMETER:
-        return (int)ap.parameter;
+    case PropertyId::TYPE:
+        return QString::fromStdString(ap.type);
     };
 
     return QVariant();
@@ -640,7 +642,8 @@ void ActionPointManager::updateParameters(int index, int id,
         param2 = QPoint(s.width - 1, s.height - 1);
     } break;
 
-    case PropertyId::PARAMETER:
+    case PropertyId::TYPE:
+        param1 = _document->project()->staticResourceList()->actionPointsResourceItem()->actionPointNames();
         break;
     };
 }
@@ -656,9 +659,9 @@ bool ActionPointManager::setData(int index, int id, const QVariant& value)
         return _document->actionPointList()->editSelectedList_setLocation(
             index, toUpoint(value.toPoint()));
 
-    case PropertyId::PARAMETER:
-        return _document->actionPointList()->editSelectedList_setParameter(
-            index, value.toUInt());
+    case PropertyId::TYPE:
+        return _document->actionPointList()->editSelectedList_setType(
+            index, value.toString().toStdString());
     };
 
     return false;

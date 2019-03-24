@@ -5,11 +5,15 @@
  */
 
 #pragma once
-#include "models/common/clampedinteger.h"
+
+#include "models/common/errorlist.h"
 #include "models/common/idstring.h"
+#include "models/common/namedlist.h"
 #include "models/common/unsignedbits.h"
 #include <cstdint>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace UnTech {
 namespace MetaSprite {
@@ -22,6 +26,8 @@ const static size_t MAX_ACTION_POINTS = 8;
 const static size_t MAX_ENTITY_HITBOXES = 4;
 const static size_t MAX_ANIMATION_FRAMES = 126;
 
+const static size_t MAX_ACTION_POINT_FUNCTIONS = 126;
+
 const static size_t PALETTE_COLORS = 16;
 
 typedef UnsignedBits<3, uint_fast8_t> SpriteOrderType;
@@ -31,8 +37,6 @@ enum class ObjectSize {
     SMALL = 8,
     LARGE = 16
 };
-
-typedef ClampedType<uint8_t, 1, 255> ActionPointParameter;
 
 struct NameReference {
     idstring name;
@@ -53,5 +57,23 @@ struct NameReference {
         return name != o.name || hFlip != o.hFlip || vFlip != o.vFlip;
     }
 };
+
+struct ActionPointFunction {
+    idstring name;
+
+    // If true then the project-compiler will create a define & constant in the
+    // "Project.ActionPoints" namespace.
+    bool manuallyInvoked = false;
+
+    bool operator==(const ActionPointFunction& o) const
+    {
+        return name == o.name
+               && manuallyInvoked == o.manuallyInvoked;
+    }
+};
+
+using ActionPointMapping = std::unordered_map<idstring, uint8_t>;
+ActionPointMapping generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err);
+
 }
 }

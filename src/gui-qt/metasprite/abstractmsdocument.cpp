@@ -8,7 +8,9 @@
 #include "framesetresourcelist.h"
 #include "animation/accessors.h"
 #include "animation/managers.h"
+#include "gui-qt/metasprite/actionpoints/actionpointsresourceitem.h"
 #include "gui-qt/project.h"
+#include "gui-qt/staticresourcelist.h"
 #include "models/metasprite/compiler/compiler.h"
 #include "models/project/project.h"
 
@@ -25,6 +27,9 @@ AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t inde
 
     connect(this, &AbstractResourceItem::dataChanged,
             this, &AbstractResourceItem::markUnchecked);
+
+    connect(this, &AbstractMsDocument::frameSetExportOrderChanged,
+            this, &AbstractMsDocument::onFrameSetExportOrderChanged);
 }
 
 void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet, ErrorList& errList)
@@ -33,14 +38,30 @@ void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet, ErrorLi
 
     if (frameSet) {
         try {
-            const auto project = this->project()->projectFile();
-            Q_ASSERT(project);
+            const auto& actionPointMapping = project()->staticResourceList()->actionPointsResourceItem()->actionPointMapping();
 
-            const auto* exportOrder = project->frameSetExportOrders.find(frameSet->exportOrder);
-            validateFrameSetAndBuildTilesets(*frameSet, exportOrder, errList);
+            const auto projectFile = project()->projectFile();
+            Q_ASSERT(projectFile);
+
+            const auto* exportOrder = projectFile->frameSetExportOrders.find(frameSet->exportOrder);
+            validateFrameSetAndBuildTilesets(*frameSet, exportOrder, actionPointMapping, errList);
         }
         catch (std::exception& ex) {
             errList.addError(ex.what());
         }
     }
+}
+
+void AbstractMsDocument::onFrameSetExportOrderChanged()
+{
+    const idstring& exportOrder = this->exportOrder();
+
+    QVector<Dependency> dependencies;
+    dependencies.append({ ResourceTypeIndex::STATIC, project()->staticResourceList()->actionPointsResourceItem()->name() });
+
+    if (exportOrder.isValid()) {
+        dependencies.append({ ResourceTypeIndex::MS_EXPORT_ORDER, QString::fromStdString(exportOrder) });
+    }
+
+    setDependencies(dependencies);
 }
