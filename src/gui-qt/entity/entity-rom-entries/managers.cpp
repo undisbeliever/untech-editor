@@ -91,6 +91,7 @@ void EntityRomEntryManager::rebuildStructFields()
     QVector<Property> properties;
     properties.reserve(_structFields.size() + FIXED_FIELDS_SIZE);
 
+    properties.append(Property(QStringLiteral("initialProjectileId"), INITIAL_PROJECTILE_ID, PropertyType::COMBO));
     properties.append(Property(QStringLiteral("initialListId"), INTITAL_LIST_ID, PropertyType::COMBO));
     properties.append(Property(QStringLiteral("frameSetId"), FRAME_SET_ID, PropertyType::COMBO));
     properties.append(Property(QStringLiteral("defaultPalette"), DEFAULT_PALETTE, PropertyType::UNSIGNED, 0, 255));
@@ -138,6 +139,10 @@ void EntityRomEntryManager::updateParameters(int id, QVariant& param1, QVariant&
     };
 
     switch (static_cast<FixedFieldIds>(id)) {
+    case INITIAL_PROJECTILE_ID:
+        param1 = convertNameListWithBlank(_item->project()->projectFile()->entityRomData.projectiles);
+        break;
+
     case INTITAL_LIST_ID:
         param1 = convertStringList(_item->project()->projectFile()->entityRomData.listIds);
         break;
@@ -190,6 +195,9 @@ QVariant EntityRomEntryManager::data(int id) const
 
     if (id < FIXED_FIELDS_SIZE) {
         switch (static_cast<FixedFieldIds>(id)) {
+        case INITIAL_PROJECTILE_ID:
+            return QString::fromStdString(entry->initialProjectileId);
+
         case INTITAL_LIST_ID:
             return QString::fromStdString(entry->initialListId);
 
@@ -223,6 +231,10 @@ bool EntityRomEntryManager::setData(int id, const QVariant& value)
 
     if (id < FIXED_FIELDS_SIZE) {
         switch (static_cast<FixedFieldIds>(id)) {
+        case INITIAL_PROJECTILE_ID:
+            return _item->entriesList()->editSelected_setInitialProjectileId(
+                value.toString().toStdString());
+
         case INTITAL_LIST_ID:
             return _item->entriesList()->editSelected_setInitialListId(
                 value.toString().toStdString());

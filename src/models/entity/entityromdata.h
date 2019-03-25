@@ -120,6 +120,7 @@ struct EntityRomEntry {
     idstring functionTable;
     std::string comment;
 
+    idstring initialProjectileId;
     idstring initialListId;
 
     idstring frameSetId;
@@ -136,6 +137,7 @@ struct EntityRomEntry {
         return name == o.name
                && functionTable == o.functionTable
                && comment == o.comment
+               && initialProjectileId == o.initialProjectileId
                && initialListId == o.initialListId
                && frameSetId == o.frameSetId
                && displayFrame == o.displayFrame

@@ -82,6 +82,7 @@ static void readEntityRomEntry(XmlReader& xml, const XmlTag* tag, NamedList<Enti
     entry.name = tag->getAttributeOptionalId("name");
     entry.functionTable = tag->getAttributeOptionalId("function-table");
     entry.comment = tag->getAttributeOrEmpty("comment");
+    entry.initialProjectileId = tag->getAttributeOptionalId("projectileid");
     entry.initialListId = tag->getAttributeOptionalId("listid");
     entry.frameSetId = tag->getAttributeOptionalId("frameset");
     entry.displayFrame = tag->getAttributeOptionalId("frame");
@@ -161,6 +162,7 @@ void writeEntityRomEntries(XmlWriter& xml, const std::string& tagName, const Nam
         xml.writeTagAttributeOptional("name", entry.name);
         xml.writeTagAttributeOptional("function-table", entry.functionTable);
         xml.writeTagAttributeOptional("comment", entry.comment);
+        xml.writeTagAttributeOptional("projectileid", entry.initialProjectileId);
         xml.writeTagAttributeOptional("listid", entry.initialListId);
         xml.writeTagAttributeOptional("frameset", entry.frameSetId);
         xml.writeTagAttributeOptional("frame", entry.displayFrame);

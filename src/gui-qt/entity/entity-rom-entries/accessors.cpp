@@ -75,6 +75,14 @@ void EntityRomEntriesList::editSelected_setComment(const std::string& comment)
         [](DataT& s) -> std::string& { return s.comment; });
 }
 
+bool EntityRomEntriesList::editSelected_setInitialProjectileId(const idstring& initialProjectileId)
+{
+    return UndoHelper(this).editSelectedItemField(
+        initialProjectileId,
+        tr("Edit initialProjectileId"),
+        [](DataT& s) -> idstring& { return s.initialProjectileId; });
+}
+
 bool EntityRomEntriesList::editSelected_setInitialListId(const idstring& initialListId)
 {
     return UndoHelper(this).editSelectedItemField(

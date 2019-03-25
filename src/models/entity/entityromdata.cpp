@@ -14,7 +14,7 @@
 namespace UnTech {
 namespace Entity {
 
-const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 2;
+const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 3;
 
 #define BASE_ROM_STRUCT "BaseEntityRomStruct"
 #define ENTITY_ROM_STRUCT_NAMESPACE "Project.EntityRomStructs"
@@ -22,8 +22,9 @@ static const idstring baseRomStruct{ BASE_ROM_STRUCT };
 
 const std::unordered_set<idstring> INVALID_NAMES{
     idstring{ "functionTable" },
-    idstring{ "initialListId" },
     idstring{ "defaultPalette" },
+    idstring{ "initialProjectileId" },
+    idstring{ "initialListId" },
     idstring{ "frameSetId" },
     idstring{ "size" },
     idstring{ "count" },
@@ -260,6 +261,13 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
     }
     if (comment.find('\n') != std::string::npos) {
         addError("Comment must not contain a new line");
+    }
+
+    if (initialProjectileId.isValid()) {
+        const auto& projectiles = project.entityRomData.projectiles;
+        if (not projectiles.find(initialProjectileId)) {
+            addError("Unable to find projectile " + initialProjectileId);
+        }
     }
 
     if (initialListId.isValid()) {
@@ -618,19 +626,26 @@ static unsigned processEntry(std::ostream& out, const EntityRomEntry& entry,
     };
 
     const auto& frameSets = project.frameSets;
+    const auto& projectiles = project.entityRomData.projectiles;
     const auto& listIds = project.entityRomData.listIds;
 
     unsigned frameSetId = std::find_if(frameSets.begin(), frameSets.end(),
                                        [&](auto& fs) { return fs.name() == entry.frameSetId; })
                           - frameSets.begin();
 
+    unsigned initialProjectileId = std::min<unsigned>(0xff, projectiles.indexOf(entry.initialProjectileId));
     unsigned initialListId = std::find(listIds.begin(), listIds.end(), entry.initialListId) - listIds.begin();
 
+    assert(entry.defaultPalette <= UINT8_MAX);
+    assert(initialProjectileId <= UINT8_MAX);
+    assert(initialListId <= UINT8_MAX);
+    assert(frameSetId <= UINT16_MAX);
+
     out << "\tdw\tEntities." << entry.functionTable << ".FunctionTable\n"
-        << "\tdb\t" << initialListId << ", " << entry.defaultPalette << '\n'
+        << "\tdb\t" << entry.defaultPalette << ", " << initialProjectileId << ", " << initialListId << '\n'
         << "\tdw\t" << frameSetId;
 
-    unsigned size = 6;
+    unsigned size = 7;
     previousType = 'w';
 
     for (auto& field : *ftMap.at(entry.functionTable).second) {

@@ -19,12 +19,13 @@ class EntityRomEntryManager : public PropertyListManager {
     Q_OBJECT
 
     enum FixedFieldIds {
+        INITIAL_PROJECTILE_ID,
         INTITAL_LIST_ID,
         FRAME_SET_ID,
         DEFAULT_PALETTE,
         DISPLAY_FRAME,
     };
-    constexpr static int FIXED_FIELDS_SIZE = 4;
+    constexpr static int FIXED_FIELDS_SIZE = 5;
 
 public:
     explicit EntityRomEntryManager(QObject* parent = nullptr);

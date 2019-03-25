@@ -39,6 +39,7 @@ public:
     void editSelected_setFunctionTable(const idstring& functionTable);
     void editSelected_setComment(const std::string& comment);
 
+    bool editSelected_setInitialProjectileId(const idstring& initialProjectileId);
     bool editSelected_setInitialListId(const idstring& initialListId);
     bool editSelected_setFrameSetId(const idstring& frameSetId);
     bool editSelected_setDisplayFrame(const idstring& displayFrame);
