@@ -518,9 +518,13 @@ static void writeIncFile_BaseRomStruct(std::ostream& out)
         writeIncFile_StructField(out, StructField{ idstring{ name }, type, idstring{}, std::string{} });
     };
 
+    // If you make any changes to this code you MUST ALSO UPDATE the
+    // `processEntry` function.
+
     writeField("functionTable", DataType::ADDR);
-    writeField("initialListId", DataType::UINT8);
     writeField("defaultPalette", DataType::UINT8);
+    writeField("initialProjectileId", DataType::UINT8);
+    writeField("initialListId", DataType::UINT8);
     writeField("frameSetId", DataType::UINT16);
 
     out << "\tendstruct()\n"
@@ -640,6 +644,9 @@ static unsigned processEntry(std::ostream& out, const EntityRomEntry& entry,
     assert(initialProjectileId <= UINT8_MAX);
     assert(initialListId <= UINT8_MAX);
     assert(frameSetId <= UINT16_MAX);
+
+    // If you make any changes to this code you MUST ALSO UPDATE the
+    // `writeIncFile_BaseRomStruct` function.
 
     out << "\tdw\tEntities." << entry.functionTable << ".FunctionTable\n"
         << "\tdb\t" << entry.defaultPalette << ", " << initialProjectileId << ", " << initialListId << '\n'
