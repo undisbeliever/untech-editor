@@ -390,11 +390,13 @@ void FrameManager::updateParameters(int id, QVariant& param1, QVariant& param2) 
         usize imageSize = getImageSize();
         auto& fWidth = frameSet->grid.frameSize.width;
         auto& fHeight = frameSet->grid.frameSize.height;
+        auto& xOffset = frameSet->grid.offset.x;
+        auto& yOffset = frameSet->grid.offset.y;
 
         param1 = QPoint(0, 0);
-        if (imageSize.width > fWidth && imageSize.height > fHeight) {
-            param2 = QPoint(imageSize.width / fWidth - 1,
-                            imageSize.height / fHeight - 1);
+        if (imageSize.width >= fWidth + xOffset && imageSize.height >= fHeight + yOffset) {
+            param2 = QPoint((imageSize.width - xOffset) / fWidth - 1,
+                            (imageSize.height - yOffset) / fHeight - 1);
         }
     } break;
 
