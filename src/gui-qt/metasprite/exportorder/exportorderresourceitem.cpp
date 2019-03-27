@@ -7,6 +7,7 @@
 #include "exportorderresourceitem.h"
 #include "accessors.h"
 #include "exportorderresourcelist.h"
+#include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "models/metatiles/metatiles-serializer.h"
 
@@ -29,6 +30,14 @@ ExportOrderResourceItem::ExportOrderResourceItem(ExportOrderResourceList* parent
 
     connect(this, &AbstractResourceItem::dataChanged,
             this, &AbstractResourceItem::markUnchecked);
+}
+
+bool ExportOrderResourceItem::editExportOrder_setName(const UnTech::idstring& name)
+{
+    if (name.isValid() == false) {
+        return false;
+    }
+    return UndoHelper(this).editName(name);
 }
 
 void ExportOrderResourceItem::saveResourceData(const std::string& filename) const

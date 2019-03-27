@@ -51,7 +51,7 @@ void ExportNameList::setSelectedIndex(bool isFrame, ExportNameList::index_type i
 
 bool ExportNameList::isSelectedItemValid() const
 {
-    auto* eo = _exportOrder->exportOrderEditable();
+    auto* eo = _exportOrder->dataEditable();
     if (eo == nullptr) {
         return false;
     }

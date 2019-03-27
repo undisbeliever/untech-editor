@@ -75,7 +75,7 @@ protected:
     friend class Accessor::ListActionHelper;
     ListT* getList(bool isFrame)
     {
-        auto* eo = _exportOrder->exportOrderEditable();
+        auto* eo = _exportOrder->dataEditable();
         if (eo == nullptr) {
             return nullptr;
         }
@@ -147,7 +147,7 @@ protected:
     friend class Accessor::ListActionHelper;
     ListT* getList(bool isFrame, index_type index)
     {
-        auto* eo = _exportOrder->exportOrderEditable();
+        auto* eo = _exportOrder->dataEditable();
         if (eo == nullptr) {
             return nullptr;
         }

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstractresourceitem.h"
+#include "gui-qt/accessor/accessor.h"
 #include "models/common/externalfilelist.h"
 #include "models/metasprite/frameset-exportorder.h"
 #include <QObject>
@@ -26,6 +27,7 @@ class ExportOrderResourceItem : public AbstractExternalResourceItem {
 
 public:
     using DataT = UnTech::MetaSprite::FrameSetExportOrder;
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ExportOrderResourceItem>;
 
     using NameReference = UnTech::MetaSprite::NameReference;
 
@@ -33,7 +35,8 @@ public:
     ExportOrderResourceItem(ExportOrderResourceList* parent, size_t index);
     ~ExportOrderResourceItem() = default;
 
-public:
+    static QString typeName() { return tr("Export Order"); }
+
     // may be nullptr
     const DataT* exportOrder() const { return _exportOrders.at(index()); }
 
@@ -42,6 +45,8 @@ public:
     ExportOrder::ExportNameList* exportNameList() const { return _exportNameList; }
     ExportOrder::AlternativesList* alternativesList() const { return _alternativesList; }
 
+    bool editExportOrder_setName(const idstring& name);
+
 protected:
     virtual void saveResourceData(const std::string& filename) const final;
     virtual bool loadResourceData(ErrorList& err) final;
@@ -49,7 +54,9 @@ protected:
 
     friend class ExportOrder::ExportNameList;
     friend class ExportOrder::AlternativesList;
-    DataT* exportOrderEditable() { return _exportOrders.at(index()); }
+    friend class Accessor::ResourceItemUndoHelper<ExportOrderResourceItem>;
+    const DataT* data() const { return _exportOrders.at(index()); }
+    DataT* dataEditable() { return _exportOrders.at(index()); }
 
 private:
     inline auto& exportOrderItem() { return _exportOrders.item(index()); }

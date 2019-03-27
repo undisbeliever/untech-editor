@@ -9,6 +9,7 @@
 #include "exportordermodel.h"
 #include "exportorderresourceitem.h"
 #include "gui-qt/accessor/listactionhelper.h"
+#include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/metasprite/exportorder/exportordereditorwidget.ui.h"
 
@@ -25,6 +26,8 @@ ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
 {
     _ui->setupUi(this);
 
+    _ui->name->setValidator(new IdstringValidator(this));
+
     _ui->treeView->setModel(_model);
 
     _ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -40,6 +43,9 @@ ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
 
     connect(_ui->treeView, &QTreeView::customContextMenuRequested,
             this, &ExportOrderEditorWidget::onContextMenuRequested);
+
+    connect(_ui->name, &QLineEdit::editingFinished,
+            this, &ExportOrderEditorWidget::onNameEdited);
 
     connect(_ui->action_AddFrame, &QAction::triggered,
             this, &ExportOrderEditorWidget::onActionAddFrame);
@@ -81,11 +87,16 @@ void ExportOrderEditorWidget::setExportOrderResource(ExportOrderResourceItem* it
     _model->setExportOrder(item);
     _ui->treeView->expandAll();
 
+    updateGui();
+
     this->setEnabled(item != nullptr && item->exportOrder() != nullptr);
 
     if (_exportOrder) {
         updateSelection();
         updateActions();
+
+        connect(_exportOrder, &ExportOrderResourceItem::nameChanged,
+                this, &ExportOrderEditorWidget::updateGui);
 
         // prevents data corruption when the list changes and the editor is open
         connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::listAboutToChange,
@@ -213,6 +224,25 @@ void ExportOrderEditorWidget::onContextMenuRequested(const QPoint& pos)
         QPoint globalPos = _ui->treeView->mapToGlobal(pos);
         menu.exec(globalPos);
     }
+}
+
+void ExportOrderEditorWidget::updateGui()
+{
+    auto* eo = _exportOrder ? _exportOrder->exportOrder() : nullptr;
+    if (eo) {
+        _ui->name->setText(QString::fromStdString(eo->name));
+    }
+    else {
+        _ui->name->clear();
+    }
+}
+
+void ExportOrderEditorWidget::onNameEdited()
+{
+    if (_exportOrder) {
+        _exportOrder->editExportOrder_setName(_ui->name->text().toStdString());
+    }
+    updateGui();
 }
 
 void ExportOrderEditorWidget::showEditorForCurrentIndex()

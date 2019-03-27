@@ -32,11 +32,14 @@ private:
     void closeEditor();
 
 private slots:
+    void updateGui();
     void updateSelection();
     void updateActions();
     void onViewSelectionChanged();
 
     void onContextMenuRequested(const QPoint& pos);
+
+    void onNameEdited();
 
     void onActionAddFrame();
     void onActionAddAnimation();
