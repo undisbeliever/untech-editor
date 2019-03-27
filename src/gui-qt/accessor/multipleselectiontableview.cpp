@@ -73,6 +73,7 @@ void MultipleSelectionTableView::setPropertyManagers(const QList<ListAccessorTab
 
     onAccessorsChanged();
 
+    _actions->populate(this);
     rebuildMenus();
 
     if (_model) {
