@@ -144,7 +144,9 @@ void EntityRomStructWidget::onSelectedFieldsChanged()
 {
     Q_ASSERT(_item);
 
+    auto* selectionModel = _ui->fieldsView->selectionModel();
     const auto& selectedIndexes = _item->structFieldList()->selectedIndexes();
+
     QItemSelection sel;
     for (auto si : selectedIndexes) {
         QModelIndex index = _fieldsModel->toModelIndex(si);
@@ -152,15 +154,21 @@ void EntityRomStructWidget::onSelectedFieldsChanged()
             sel.select(index, index);
         }
     }
-    _ui->fieldsView->selectionModel()->select(
+
+    selectionModel->select(
         sel, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+
+    // If the currentIndex is not part of the selection then make it so.
+    if (not sel.empty()) {
+        if (sel.contains(selectionModel->currentIndex()) == false) {
+            QModelIndex index = sel.first().topLeft();
+            selectionModel->setCurrentIndex(index, QItemSelectionModel::NoUpdate);
+        }
+    }
 
     if (selectedIndexes.size() == 1) {
         auto si = selectedIndexes.back();
         QModelIndex index = _fieldsModel->toModelIndex(si);
-
-        // This section is required to close any existing editors
-        _ui->fieldsView->setCurrentIndex(index);
 
         // If cell is empty (ie, no name) then edit the cell
         if (index.isValid() && index.data().toString().isEmpty()) {

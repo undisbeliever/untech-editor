@@ -119,27 +119,42 @@ void ListAccessorTableView::onAccessorChanged()
 
 void ListAccessorTableView::onAccessorSelectionChanged()
 {
-    QItemSelection sel;
+    Q_ASSERT(_model);
 
     if (auto* sa = qobject_cast<AbstractListSingleSelectionAccessor*>(_accessor)) {
-        QModelIndex index = _model->toModelIndex(0, sa->selectedIndex());
-        if (index.isValid()) {
-            sel.select(index, index);
+        const size_t current = _model->toManagerAndIndex(currentIndex()).second;
+        if (current != sa->selectedIndex()) {
+            QModelIndex index = _model->toModelIndex(0, sa->selectedIndex());
+            setCurrentIndex(index);
         }
     }
     else if (auto* ma = qobject_cast<AbstractListMultipleSelectionAccessor*>(_accessor)) {
+        auto* selectionModel = this->selectionModel();
+
+        QItemSelection sel;
+
         for (auto si : ma->selectedIndexes()) {
             QModelIndex index = _model->toModelIndex(0, si);
             if (index.isValid()) {
                 sel.select(index, index);
             }
         }
-    }
-    selectionModel()->select(
-        sel, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 
-    // BUGFIX: Sometimes the view will not hightlight the new selection
-    viewport()->update();
+        selectionModel->select(
+            sel, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Current | QItemSelectionModel::Rows);
+
+        // If the currentIndex is not a part of the selection then make it so.
+        // This will allow the user to Clone an item (Ctrl+D) and then edit it by pressing F2.
+        if (not sel.empty()) {
+            if (selectionModel->isSelected(selectionModel->currentIndex()) == false) {
+                QModelIndex index = sel.first().topLeft();
+                selectionModel->setCurrentIndex(index, QItemSelectionModel::NoUpdate);
+            }
+        }
+
+        // BUGFIX: Sometimes the view will not hightlight the new selection
+        viewport()->update();
+    }
 }
 
 void ListAccessorTableView::onViewSelectionChanged()

@@ -135,6 +135,8 @@ QList<AbstractListMultipleSelectionAccessor*> MultipleSelectionTableView::buildA
 
 void MultipleSelectionTableView::onAccessorSelectedIndexesChanged()
 {
+    auto* selectionModel = this->selectionModel();
+
     QItemSelection sel;
 
     for (int aId = 0; aId < _accessors.size(); aId++) {
@@ -147,8 +149,18 @@ void MultipleSelectionTableView::onAccessorSelectedIndexesChanged()
             }
         }
     }
-    selectionModel()->select(
+
+    selectionModel->select(
         sel, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+
+    // If the currentIndex is not a part of the selection then make it so.
+    // This will allow the user to Clone an item (Ctrl+D) and then edit it by pressing F2.
+    if (not sel.empty()) {
+        if (selectionModel->isSelected(selectionModel->currentIndex()) == false) {
+            QModelIndex index = sel.first().topLeft();
+            selectionModel->setCurrentIndex(index, QItemSelectionModel::NoUpdate);
+        }
+    }
 
     // BUGFIX: Sometimes the view will not hightlight the new selection
     viewport()->update();
