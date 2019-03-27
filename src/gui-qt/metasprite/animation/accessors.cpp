@@ -65,7 +65,7 @@ bool AnimationsList::editSelected_setNextAnimation(const idstring& nextAnimation
 }
 
 template <>
-const std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>::list(size_t pIndex) const
+const std::vector<MSA::AnimationFrame>* ChildVectorMultipleSelectionAccessor<MSA::AnimationFrame, AbstractMsDocument>::list(size_t pIndex) const
 {
     const auto* animations = resourceItem()->animations();
     if (animations == nullptr) {
@@ -78,7 +78,7 @@ const std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame,
 }
 
 template <>
-std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>::getList(size_t pIndex)
+std::vector<MSA::AnimationFrame>* ChildVectorMultipleSelectionAccessor<MSA::AnimationFrame, AbstractMsDocument>::getList(size_t pIndex)
 {
     auto* animations = resourceItem()->animations();
     if (animations == nullptr) {
@@ -91,7 +91,7 @@ std::vector<MSA::AnimationFrame>* ChildVectorAccessor<MSA::AnimationFrame, Abstr
 }
 
 AnimationFramesList::AnimationFramesList(AbstractMsDocument* document)
-    : ChildVectorAccessor(document->animationsList(), document, UnTech::MetaSprite::MAX_ANIMATION_FRAMES)
+    : ChildVectorMultipleSelectionAccessor(document->animationsList(), document, UnTech::MetaSprite::MAX_ANIMATION_FRAMES)
 {
 }
 
@@ -112,4 +112,4 @@ bool AnimationFramesList::editSelectedList_setData(AnimationFramesList::index_ty
 
 using namespace UnTech::GuiQt;
 template class Accessor::NamedListAccessor<MSA::Animation, AbstractMsDocument>;
-template class Accessor::ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<MSA::AnimationFrame, AbstractMsDocument>;

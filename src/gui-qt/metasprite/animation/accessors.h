@@ -34,7 +34,7 @@ public:
     bool editSelected_setNextAnimation(const idstring& nextAnimation);
 };
 
-class AnimationFramesList : public Accessor::ChildVectorAccessor<MSA::AnimationFrame, AbstractMsDocument> {
+class AnimationFramesList : public Accessor::ChildVectorMultipleSelectionAccessor<MSA::AnimationFrame, AbstractMsDocument> {
     Q_OBJECT
 
 public:
