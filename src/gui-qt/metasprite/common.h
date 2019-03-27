@@ -12,9 +12,6 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 
-extern const QStringList TILESET_TYPE_STRINGS;
-extern const QVariantList TILESET_TYPE_VALUES;
-
 extern const QStringList EH_SHORT_STRING_VALUES;
 extern const QStringList EH_LONG_STRING_VALUES;
 

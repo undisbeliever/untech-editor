@@ -27,8 +27,10 @@ FrameSetManager::FrameSetManager(QObject* parent)
 {
     using Type = UnTech::GuiQt::PropertyType;
 
+    const auto& TtEnumMap = UnTech::MetaSprite::TilesetType::enumMap;
+
     addProperty(tr("Name"), NAME, Type::IDSTRING);
-    addProperty(tr("Tileset Type"), TILESET_TYPE, Type::COMBO, TILESET_TYPE_STRINGS, TILESET_TYPE_VALUES);
+    addProperty(tr("Tileset Type"), TILESET_TYPE, Type::COMBO, enumComboNames(TtEnumMap), enumComboDataList(TtEnumMap));
     addProperty(tr("Export Order"), EXPORT_ORDER, Type::COMBO);
     addPropertyGroup(tr("Image:"));
     addProperty(tr("Filename"), IMAGE_FILENAME, Type::FILENAME, QStringLiteral("PNG Image (*.png)"));
