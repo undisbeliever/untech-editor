@@ -11,6 +11,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
+namespace EntityFunctionTables {
 class EntityFunctionTableList;
 
 class EntityFunctionTablesManager : public Accessor::ListAccessorTableManager {
@@ -42,6 +43,7 @@ private:
     EntityFunctionTableList* accessor() const;
 };
 
+}
 }
 }
 }

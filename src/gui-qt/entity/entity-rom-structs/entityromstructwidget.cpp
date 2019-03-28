@@ -12,7 +12,7 @@
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/entity/entity-rom-structs/entityromstructwidget.ui.h"
 
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityRomStructs;
 
 EntityRomStructWidget::EntityRomStructWidget(QWidget* parent)
     : QWidget(parent)

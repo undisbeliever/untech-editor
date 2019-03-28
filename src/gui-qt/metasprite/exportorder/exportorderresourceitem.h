@@ -15,12 +15,10 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class ExportOrderResourceList;
-
 namespace ExportOrder {
+class ExportOrderResourceList;
 class ExportNameList;
 class AlternativesList;
-}
 
 class ExportOrderResourceItem : public AbstractExternalResourceItem {
     Q_OBJECT
@@ -52,8 +50,8 @@ protected:
     virtual bool loadResourceData(ErrorList& err) final;
     virtual bool compileResource(ErrorList& err) final;
 
-    friend class ExportOrder::ExportNameList;
-    friend class ExportOrder::AlternativesList;
+    friend class ExportNameList;
+    friend class AlternativesList;
     friend class Accessor::ResourceItemUndoHelper<ExportOrderResourceItem>;
     const DataT* data() const { return _exportOrders.at(index()); }
     DataT* dataEditable() { return _exportOrders.at(index()); }
@@ -64,9 +62,10 @@ private:
 private:
     ExternalFileList<DataT>& _exportOrders;
 
-    ExportOrder::ExportNameList* const _exportNameList;
-    ExportOrder::AlternativesList* const _alternativesList;
+    ExportNameList* const _exportNameList;
+    AlternativesList* const _alternativesList;
 };
+}
 }
 }
 }

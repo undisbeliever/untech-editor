@@ -22,10 +22,14 @@ class AbstractResourceItem;
 
 namespace Resources {
 class DualAnimationTimer;
+
+namespace Palette {
 class PaletteResourceItem;
+}
 }
 
 namespace MetaTiles {
+namespace MtTileset {
 class MtTilesetResourceItem;
 
 class MtTilesetRenderer : public QObject {
@@ -42,8 +46,8 @@ public:
     void setPlayButton(QAbstractButton* button);
     void setRegionCombo(QComboBox* comboBox);
 
-    Resources::PaletteResourceItem* paletteItem() const { return _paletteItem; }
-    void setPaletteItem(Resources::PaletteResourceItem* item);
+    Resources::Palette::PaletteResourceItem* paletteItem() const { return _paletteItem; }
+    void setPaletteItem(Resources::Palette::PaletteResourceItem* item);
 
     MtTilesetResourceItem* tilesetItem() const { return _tilesetItem; }
     void setTilesetItem(MtTilesetResourceItem* item);
@@ -80,7 +84,7 @@ private:
 private:
     Resources::DualAnimationTimer* const _animationTimer;
 
-    Resources::PaletteResourceItem* _paletteItem;
+    Resources::Palette::PaletteResourceItem* _paletteItem;
     MtTilesetResourceItem* _tilesetItem;
 
     QVector<QPixmap> _pixmaps; // [ paletteFrame * _nTilesets + tilesetFrame ]
@@ -103,6 +107,7 @@ private:
     std::vector<QPainter::PixmapFragment> _fragments;
     unsigned _nMetaTiles = 0;
 };
+}
 }
 }
 }

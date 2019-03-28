@@ -13,6 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
+namespace EntityFunctionTables {
 
 class EntityFunctionTablesEditor : public AbstractEditor {
     Q_OBJECT
@@ -41,6 +42,7 @@ private:
     EntityFunctionTablesWidget* const _editorWidget;
 };
 
+}
 }
 }
 }

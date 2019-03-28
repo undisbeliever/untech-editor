@@ -19,10 +19,12 @@ class ZoomSettings;
 class ZoomSettingsManager;
 
 namespace MetaTiles {
+class Style;
+
+namespace MtTileset {
 namespace Ui {
 class MtTilesetMainWindow;
 }
-class Style;
 class MtTilesetPropertyManager;
 class MtTilesetResourceItem;
 class MtTilesetRenderer;
@@ -71,6 +73,7 @@ private:
 
     MtTilesetResourceItem* _tileset;
 };
+}
 }
 }
 }

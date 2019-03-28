@@ -37,13 +37,13 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
 
     connect(scene, &MtGraphicsScene::gridChanged,
             this, &MtGridGraphicsItem::updateTileGridFragments);
-    connect(scene->renderer(), &MtTilesetRenderer::nMetaTilesChanged,
+    connect(scene->renderer(), &MtTileset::MtTilesetRenderer::nMetaTilesChanged,
             this, &MtGridGraphicsItem::updateTileGridFragments);
 
     connect(scene, &MtGraphicsScene::gridSelectionChanged,
             this, &MtGridGraphicsItem::onGridSelectionChanged);
 
-    connect(scene->renderer(), &MtTilesetRenderer::pixmapChanged,
+    connect(scene->renderer(), &MtTileset::MtTilesetRenderer::pixmapChanged,
             this, &MtGridGraphicsItem::updateAll);
 
     connect(scene->style(), &Style::showGridChanged,

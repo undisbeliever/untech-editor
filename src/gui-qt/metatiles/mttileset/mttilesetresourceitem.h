@@ -15,6 +15,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaTiles {
+namespace MtTileset {
 class MtTilesetResourceList;
 class MtTilesetTileParameters;
 class MtTilesetScratchpadGrid;
@@ -101,6 +102,7 @@ private:
 
     std::unique_ptr<MT::MetaTileTilesetData> _compiledData;
 };
+}
 }
 }
 }

@@ -15,9 +15,15 @@ namespace ProjectSettings {
 class ProjectSettingsResourceItem;
 }
 namespace Entity {
+namespace EntityRomStructs {
 class EntityRomStructsResourceItem;
+}
+namespace EntityFunctionTables {
 class EntityFunctionTablesResourceItem;
+}
+namespace EntityRomEntries {
 class EntityRomEntriesResourceItem;
+}
 }
 namespace MetaSprite {
 namespace ActionPoints {
@@ -67,10 +73,10 @@ protected:
 private:
     ProjectSettings::ProjectSettingsResourceItem* const _projectSettingsResourceItem;
     MetaSprite::ActionPoints::ActionPointsResourceItem* const _actionPointsResourceItem;
-    Entity::EntityRomStructsResourceItem* const _entityRomStructsResourceItem;
-    Entity::EntityFunctionTablesResourceItem* const _entityFunctionTablesResourceItem;
-    Entity::EntityRomEntriesResourceItem* const _entitiesResourceItem;
-    Entity::EntityRomEntriesResourceItem* const _projectilesResourceItem;
+    Entity::EntityRomStructs::EntityRomStructsResourceItem* const _entityRomStructsResourceItem;
+    Entity::EntityFunctionTables::EntityFunctionTablesResourceItem* const _entityFunctionTablesResourceItem;
+    Entity::EntityRomEntries::EntityRomEntriesResourceItem* const _entitiesResourceItem;
+    Entity::EntityRomEntries::EntityRomEntriesResourceItem* const _projectilesResourceItem;
 };
 
 }

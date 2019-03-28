@@ -13,7 +13,7 @@
 #include "gui-qt/project.h"
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityFunctionTables;
 
 const QStringList EntityFunctionTablesManager::PARAMETER_TYPE_STRINGS = {
     QStringLiteral("Unused"),

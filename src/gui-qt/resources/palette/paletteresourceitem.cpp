@@ -8,7 +8,7 @@
 #include "paletteresourcelist.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::Resources::Palette;
 
 PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t index)
     : AbstractInternalResourceItem(parent, index)

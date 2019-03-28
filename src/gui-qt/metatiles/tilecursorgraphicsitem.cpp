@@ -40,10 +40,10 @@ TileCursorGraphicsItem::TileCursorGraphicsItem(MtEditableGraphicsScene* scene)
     connect(scene, &MtEditableGraphicsScene::cursorRectChanged,
             this, &TileCursorGraphicsItem::updateAll);
 
-    connect(scene->renderer(), &MtTilesetRenderer::nMetaTilesChanged,
+    connect(scene->renderer(), &MtTileset::MtTilesetRenderer::nMetaTilesChanged,
             this, &TileCursorGraphicsItem::updateTileGridFragments);
 
-    connect(scene->renderer(), &MtTilesetRenderer::pixmapChanged,
+    connect(scene->renderer(), &MtTileset::MtTilesetRenderer::pixmapChanged,
             this, &TileCursorGraphicsItem::updateAll);
 
     connect(scene->style(), &Style::showGridChanged,

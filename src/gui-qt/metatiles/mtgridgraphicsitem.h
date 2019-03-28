@@ -62,7 +62,7 @@ private:
     MtGraphicsScene* const _scene;
     QRectF _boundingRect;
 
-    MtTilesetGridPainter _tileGridPainter;
+    MtTileset::MtTilesetGridPainter _tileGridPainter;
 
     upoint _previousMouseCell;
     upoint _firstCellOfRectangularSelection;

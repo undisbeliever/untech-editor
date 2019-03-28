@@ -15,6 +15,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+namespace Palette {
 class PaletteResourceList;
 
 namespace RES = UnTech::Resources;
@@ -59,6 +60,7 @@ private:
 
     std::unique_ptr<RES::PaletteData> _compiledData;
 };
+}
 }
 }
 }

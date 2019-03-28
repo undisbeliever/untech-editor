@@ -11,7 +11,7 @@
 #include "gui-qt/project.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
 
-using namespace UnTech::GuiQt::MetaTiles;
+using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
 MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     : AbstractPropertyManager(parent)

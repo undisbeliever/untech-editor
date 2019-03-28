@@ -12,6 +12,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
+namespace ExportOrder {
 namespace Ui {
 class ExportOrderEditorWidget;
 }
@@ -58,6 +59,7 @@ private:
 
     ExportOrderResourceItem* _exportOrder;
 };
+}
 }
 }
 }

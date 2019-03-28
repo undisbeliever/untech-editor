@@ -25,7 +25,7 @@ static const RES::AnimationFramesInput* getAnimationFramesInput(AbstractResource
         return nullptr;
     }
 
-    if (const auto* tileset = qobject_cast<MetaTiles::MtTilesetResourceItem*>(item)) {
+    if (const auto* tileset = qobject_cast<MetaTiles::MtTileset::MtTilesetResourceItem*>(item)) {
         if (const auto* ti = tileset->tilesetInput()) {
             return &ti->animationFrames;
         }
@@ -41,7 +41,7 @@ static unsigned getGridSize(const AbstractResourceItem* item)
 {
     Q_ASSERT(item);
 
-    if (qobject_cast<const MetaTiles::MtTilesetResourceItem*>(item)) {
+    if (qobject_cast<const MetaTiles::MtTileset::MtTilesetResourceItem*>(item)) {
         return 16;
     }
     else {

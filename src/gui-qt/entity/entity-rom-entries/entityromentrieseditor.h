@@ -14,6 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
+namespace EntityRomEntries {
 
 class EntityRomEntriesEditor : public AbstractEditor {
     Q_OBJECT
@@ -45,6 +46,7 @@ private:
     EntityRomEntryListWidget* const _propertyWidget;
 };
 
+}
 }
 }
 }

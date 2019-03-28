@@ -14,7 +14,7 @@
 #include "models/project/project.h"
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 
 EntityRomEntriesResourceItem::EntityRomEntriesResourceItem(StaticResourceList* list, unsigned index,
                                                            bool entityList)

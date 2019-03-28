@@ -15,6 +15,7 @@ namespace GuiQt {
 class StaticResourceList;
 
 namespace Entity {
+namespace EntityFunctionTables {
 class EntityFunctionTableList;
 
 class EntityFunctionTablesResourceItem : public AbstractInternalResourceItem {
@@ -38,6 +39,7 @@ private:
     EntityFunctionTableList* const _functionTableList;
 };
 
+}
 }
 }
 }

@@ -14,7 +14,7 @@
 #include <QFileInfo>
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::MetaSprite;
+using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
 using FrameSetExportOrder = UnTech::MetaSprite::FrameSetExportOrder;
 

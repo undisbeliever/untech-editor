@@ -11,6 +11,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaTiles {
+namespace MtTileset {
 
 class MtTilesetResourceItem;
 
@@ -41,6 +42,7 @@ public:
 private:
     MtTilesetResourceItem* _tileset;
 };
+}
 }
 }
 }

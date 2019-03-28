@@ -13,7 +13,7 @@
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/project/project.h"
 
-using namespace UnTech::GuiQt::MetaTiles;
+using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
 constexpr uint16_t MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE;
 

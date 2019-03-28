@@ -14,7 +14,7 @@
 #include <QFileInfo>
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::MetaTiles;
+using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
 MtTilesetResourceList::MtTilesetResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::MT_TILESET)

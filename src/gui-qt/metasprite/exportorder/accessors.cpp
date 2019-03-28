@@ -8,7 +8,6 @@
 #include "gui-qt/accessor/listundohelper.h"
 
 using namespace UnTech::GuiQt::Accessor;
-using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
 ExportNameList::ExportNameList(ExportOrderResourceItem* exportOrder)

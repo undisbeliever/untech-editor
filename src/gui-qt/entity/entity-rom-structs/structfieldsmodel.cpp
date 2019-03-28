@@ -9,7 +9,7 @@
 #include "entityromstructsresourceitem.h"
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityRomStructs;
 
 static const QStringList TYPE_STRINGS = {
     "uint8",

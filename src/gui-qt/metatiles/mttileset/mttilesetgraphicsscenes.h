@@ -11,6 +11,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaTiles {
+namespace MtTileset {
 
 class MtTilesetGraphicsScene : public MtGraphicsScene {
     Q_OBJECT
@@ -69,6 +70,7 @@ protected:
 
     void tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset) final;
 };
+}
 }
 }
 }

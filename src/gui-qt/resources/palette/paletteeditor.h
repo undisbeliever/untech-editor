@@ -15,6 +15,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+namespace Palette {
 
 class PaletteEditor : public AbstractEditor {
     Q_OBJECT
@@ -46,6 +47,7 @@ private:
     PaletteCentralWidget* const _editorWidget;
     GenericPropertiesWidget* const _propertyWidget;
 };
+}
 }
 }
 }

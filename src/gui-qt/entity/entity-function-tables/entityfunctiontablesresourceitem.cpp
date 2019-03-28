@@ -13,7 +13,7 @@
 #include "models/project/project.h"
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityFunctionTables;
 
 EntityFunctionTablesResourceItem::EntityFunctionTablesResourceItem(StaticResourceList* list, unsigned index)
     : AbstractInternalResourceItem(list, index)

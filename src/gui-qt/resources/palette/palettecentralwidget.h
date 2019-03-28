@@ -14,6 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+namespace Palette {
 
 namespace Ui {
 class PaletteCentralWidget;
@@ -90,6 +91,7 @@ private:
     // if < 0 then the whole image is shown
     int _frameIndex;
 };
+}
 }
 }
 }

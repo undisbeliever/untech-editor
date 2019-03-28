@@ -16,6 +16,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
+namespace EntityRomEntries {
 
 namespace EN = UnTech::Entity;
 
@@ -51,6 +52,7 @@ signals:
     void commentChanged(index_type);
 };
 
+}
 }
 }
 }

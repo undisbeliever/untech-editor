@@ -12,6 +12,7 @@
 using namespace UnTech;
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
+using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
 MtTilesetGraphicsScene::MtTilesetGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent)
     : MtGraphicsScene(style, renderer, parent)

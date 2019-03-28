@@ -11,6 +11,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+namespace Palette {
 
 class PaletteResourceItem;
 
@@ -39,6 +40,7 @@ public:
 private:
     PaletteResourceItem* _palette;
 };
+}
 }
 }
 }

@@ -8,7 +8,7 @@
 #include "paletteresourceitem.h"
 #include "models/common/imagecache.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::Resources::Palette;
 
 PalettePropertyManager::PalettePropertyManager(QObject* parent)
     : AbstractPropertyManager(parent)

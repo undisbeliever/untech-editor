@@ -17,9 +17,12 @@ namespace GuiQt {
 namespace MetaTiles {
 class Style;
 class AbstractCursorGraphicsItem;
+class MtGridGraphicsItem;
+
+namespace MtTileset {
 class MtTilesetRenderer;
 class MtTilesetResourceItem;
-class MtGridGraphicsItem;
+}
 
 class MtGraphicsScene : public QGraphicsScene {
     Q_OBJECT
@@ -31,12 +34,12 @@ public:
     const static upoint_vectorset BLANK_GRID_SELECTION;
 
 public:
-    MtGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent);
+    MtGraphicsScene(Style* style, MtTileset::MtTilesetRenderer* renderer, QObject* parent);
     ~MtGraphicsScene() = default;
 
     Style* style() const { return _style; }
-    MtTilesetRenderer* renderer() const { return _renderer; }
-    MtTilesetResourceItem* tilesetItem() const { return _tilesetItem; }
+    MtTileset::MtTilesetRenderer* renderer() const { return _renderer; }
+    MtTileset::MtTilesetResourceItem* tilesetItem() const { return _tilesetItem; }
 
     // converts the gridSelection vectorset into a grid of MetaTiles.
     // Empty tiles contain are 0xffff and easily identifyable.
@@ -53,7 +56,7 @@ protected:
     // returns true if the selected cells changed.
     virtual void setGridSelection(upoint_vectorset&& selectedCells) = 0;
 
-    virtual void tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset) = 0;
+    virtual void tilesetItemChanged(MtTileset::MtTilesetResourceItem* newTileset, MtTileset::MtTilesetResourceItem* oldTileset) = 0;
 
     MtGridGraphicsItem* gridGraphicsItem() const { return _gridGraphicsItem; }
 
@@ -77,17 +80,17 @@ private slots:
 
 private:
     Style* const _style;
-    MtTilesetRenderer* const _renderer;
+    MtTileset::MtTilesetRenderer* const _renderer;
     MtGridGraphicsItem* const _gridGraphicsItem;
 
-    MtTilesetResourceItem* _tilesetItem;
+    MtTileset::MtTilesetResourceItem* _tilesetItem;
 };
 
 class MtEditableGraphicsScene : public MtGraphicsScene {
     Q_OBJECT
 
 public:
-    MtEditableGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent);
+    MtEditableGraphicsScene(Style* style, MtTileset::MtTilesetRenderer* renderer, QObject* parent);
     ~MtEditableGraphicsScene() = default;
 
     // The boundary in which a curosr is valid.

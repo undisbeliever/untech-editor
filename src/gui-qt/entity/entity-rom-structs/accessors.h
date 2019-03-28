@@ -17,6 +17,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
+namespace EntityRomStructs {
 
 namespace EN = UnTech::Entity;
 
@@ -56,6 +57,7 @@ public:
     bool editSelectedList_setComment(size_t index, const std::string& comment);
 };
 
+}
 }
 }
 }

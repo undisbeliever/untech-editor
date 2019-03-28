@@ -16,6 +16,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Resources {
+namespace Palette {
 
 class PaletteResourceList : public AbstractResourceList {
     Q_OBJECT
@@ -40,6 +41,7 @@ protected:
     friend class PaletteResourceItem;
     NamedList<RES::PaletteInput>& palettes() const;
 };
+}
 }
 }
 }

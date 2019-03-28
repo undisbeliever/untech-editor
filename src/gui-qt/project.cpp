@@ -31,10 +31,10 @@ Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
     , _validationWorker(new ResourceValidationWorker(this))
     , _filesystemWatcher(new FilesystemWatcher(this))
     , _staticResourceList(new StaticResourceList(this))
-    , _frameSetExportOrderResourceList(new MetaSprite::ExportOrderResourceList(this))
+    , _frameSetExportOrderResourceList(new MetaSprite::ExportOrder::ExportOrderResourceList(this))
     , _frameSetResourceList(new MetaSprite::FrameSetResourceList(this))
-    , _paletteResourceList(new Resources::PaletteResourceList(this))
-    , _mtTilesetResourceList(new MetaTiles::MtTilesetResourceList(this))
+    , _paletteResourceList(new Resources::Palette::PaletteResourceList(this))
+    , _mtTilesetResourceList(new MetaTiles::MtTileset::MtTilesetResourceList(this))
     , _resourceLists({
           _staticResourceList,
           _frameSetExportOrderResourceList,

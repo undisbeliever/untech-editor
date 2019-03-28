@@ -13,6 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
+namespace ExportOrder {
 
 class ExportOrderEditor : public AbstractEditor {
     Q_OBJECT
@@ -38,6 +39,7 @@ public:
 private:
     ExportOrderEditorWidget* const _editorWidget;
 };
+}
 }
 }
 }

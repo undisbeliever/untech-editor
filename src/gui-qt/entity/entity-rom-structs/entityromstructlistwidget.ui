@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnTech::GuiQt::Entity::EntityRomStructListWidget</class>
- <widget class="QWidget" name="UnTech::GuiQt::Entity::EntityRomStructListWidget">
+ <class>UnTech::GuiQt::Entity::EntityRomStructs::EntityRomStructListWidget</class>
+ <widget class="QWidget" name="UnTech::GuiQt::Entity::EntityRomStructs::EntityRomStructListWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

@@ -16,6 +16,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaTiles {
+namespace MtTileset {
 
 class MtTilesetResourceList : public AbstractResourceList {
     Q_OBJECT
@@ -40,6 +41,7 @@ protected:
     friend class MtTilesetResourceItem;
     ExternalFileList<MT::MetaTileTilesetInput>& metaTileTilesets() const;
 };
+}
 }
 }
 }

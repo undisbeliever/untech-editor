@@ -12,6 +12,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
+namespace EntityRomStructs {
 namespace Ui {
 class EntityRomStructListWidget;
 }
@@ -32,6 +33,7 @@ private:
     EntityRomStructsResourceItem* _item;
 };
 
+}
 }
 }
 }

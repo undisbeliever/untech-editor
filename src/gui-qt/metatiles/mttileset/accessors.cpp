@@ -7,7 +7,7 @@
 #include "accessors.h"
 #include "gui-qt/accessor/gridundohelper.h"
 
-using namespace UnTech::GuiQt::MetaTiles;
+using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
 MtTilesetTileParameters::MtTilesetTileParameters(MtTilesetResourceItem* tileset)
     : QObject(tileset)

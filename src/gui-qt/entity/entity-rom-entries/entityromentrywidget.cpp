@@ -12,7 +12,7 @@
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/entity/entity-rom-entries/entityromentrywidget.ui.h"
 
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 
 EntityRomEntryWidget::EntityRomEntryWidget(QWidget* parent)
     : QWidget(parent)

@@ -14,7 +14,7 @@
 #include <QFileInfo>
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::Resources::Palette;
 
 PaletteResourceList::PaletteResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::PALETTE)

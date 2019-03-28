@@ -9,7 +9,7 @@
 #include "entityromentriesresourceitem.h"
 #include "gui-qt/entity/entity-rom-entries/entityromentrylistwidget.ui.h"
 
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 
 EntityRomEntryListWidget::EntityRomEntryListWidget(QWidget* parent)
     : QWidget(parent)

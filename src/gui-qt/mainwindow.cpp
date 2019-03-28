@@ -68,12 +68,12 @@ MainWindow::MainWindow(QWidget* parent)
     , _undoGroup(new QUndoGroup(this))
     , _editors({
           new ProjectSettings::ProjectSettingsEditor(this),
-          new Entity::EntityRomStructsEditor(this),
-          new Entity::EntityFunctionTablesEditor(this),
-          new Entity::EntityRomEntriesEditor(this),
-          new Resources::PaletteEditor(this),
-          new MetaSprite::ExportOrderEditor(this),
-          new MetaTiles::MtTilesetEditor(this, _zoomSettingsManager),
+          new Entity::EntityRomStructs::EntityRomStructsEditor(this),
+          new Entity::EntityFunctionTables::EntityFunctionTablesEditor(this),
+          new Entity::EntityRomEntries::EntityRomEntriesEditor(this),
+          new Resources::Palette::PaletteEditor(this),
+          new MetaSprite::ExportOrder::ExportOrderEditor(this),
+          new MetaTiles::MtTileset::MtTilesetEditor(this, _zoomSettingsManager),
           new MetaSprite::ActionPoints::ActionPointsEditor(this),
           new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettingsManager),
           new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettingsManager),

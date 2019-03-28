@@ -14,6 +14,7 @@ class idstring;
 
 namespace GuiQt {
 namespace Entity {
+namespace EntityRomEntries {
 namespace Ui {
 class EntityRomEntryWidget;
 }
@@ -51,6 +52,7 @@ private:
     EntityRomEntriesResourceItem* _item;
 };
 
+}
 }
 }
 }

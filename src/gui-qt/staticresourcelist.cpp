@@ -18,10 +18,10 @@ StaticResourceList::StaticResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::STATIC)
     , _projectSettingsResourceItem(new ProjectSettings::ProjectSettingsResourceItem(this, PROJECT_SETTINGS))
     , _actionPointsResourceItem(new MetaSprite::ActionPoints::ActionPointsResourceItem(this, ACTION_POINTS))
-    , _entityRomStructsResourceItem(new Entity::EntityRomStructsResourceItem(this, ENTITY_ROM_STRUCTS))
-    , _entityFunctionTablesResourceItem(new Entity::EntityFunctionTablesResourceItem(this, ENTITY_FUNCTION_TABLES))
-    , _entitiesResourceItem(new Entity::EntityRomEntriesResourceItem(this, ENTITIES, true))
-    , _projectilesResourceItem(new Entity::EntityRomEntriesResourceItem(this, PROJECTILES, false))
+    , _entityRomStructsResourceItem(new Entity::EntityRomStructs::EntityRomStructsResourceItem(this, ENTITY_ROM_STRUCTS))
+    , _entityFunctionTablesResourceItem(new Entity::EntityFunctionTables::EntityFunctionTablesResourceItem(this, ENTITY_FUNCTION_TABLES))
+    , _entitiesResourceItem(new Entity::EntityRomEntries::EntityRomEntriesResourceItem(this, ENTITIES, true))
+    , _projectilesResourceItem(new Entity::EntityRomEntries::EntityRomEntriesResourceItem(this, PROJECTILES, false))
 {
 }
 

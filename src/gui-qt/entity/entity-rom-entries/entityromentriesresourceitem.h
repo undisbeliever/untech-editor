@@ -15,6 +15,7 @@ namespace GuiQt {
 class StaticResourceList;
 
 namespace Entity {
+namespace EntityRomEntries {
 class EntityRomEntriesList;
 
 class EntityRomEntriesResourceItem : public AbstractInternalResourceItem {
@@ -38,6 +39,7 @@ private:
     EntityRomEntriesList* _entriesList;
 };
 
+}
 }
 }
 }

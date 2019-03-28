@@ -13,7 +13,7 @@
 #include "gui-qt/project.h"
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 
 EntityRomEntryManager::EntityRomEntryManager(QObject* parent)
     : PropertyListManager(parent)

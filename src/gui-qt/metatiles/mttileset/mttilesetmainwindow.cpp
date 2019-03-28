@@ -19,6 +19,7 @@
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
+using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
 MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* zoomManager)
     : QMainWindow(parent)
@@ -180,7 +181,7 @@ void MtTilesetMainWindow::onPaletteComboActivated(const QString& paletteId)
         return;
     }
 
-    auto* pal = qobject_cast<Resources::PaletteResourceItem*>(
+    auto* pal = qobject_cast<Resources::Palette::PaletteResourceItem*>(
         _tileset->project()->paletteResourceList()->findResource(paletteId));
 
     _renderer->setPaletteItem(pal);

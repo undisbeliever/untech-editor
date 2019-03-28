@@ -13,6 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
+namespace EntityRomEntries {
 class EntityRomEntriesResourceItem;
 
 class EntityRomEntryManager : public PropertyListManager {
@@ -53,6 +54,7 @@ private:
     EntityRomEntriesResourceItem* _item;
 };
 
+}
 }
 }
 }

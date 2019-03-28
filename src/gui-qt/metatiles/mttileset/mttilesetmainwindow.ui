@@ -1,7 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnTech::GuiQt::MetaTiles::MtTilesetMainWindow</class>
- <widget class="QMainWindow" name="UnTech::GuiQt::MetaTiles::MtTilesetMainWindow">
+ <class>UnTech::GuiQt::MetaTiles::MtTileset::MtTilesetMainWindow</class>
+ <widget class="QMainWindow" name="UnTech::GuiQt::MetaTiles::MtTileset::MtTilesetMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>989</width>
+    <height>653</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -129,6 +137,14 @@
          <string>Usage</string>
         </attribute>
         <widget class="QLabel" name="usageLabel">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>141</width>
+           <height>1493</height>
+          </rect>
+         </property>
          <property name="text">
           <string>&lt;h1&gt;MetaTile Tileset Editor&lt;/h1&gt;
 &lt;h2&gt;The Tileset&lt;/h2&gt;

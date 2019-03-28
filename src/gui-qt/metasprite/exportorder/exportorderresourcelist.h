@@ -15,6 +15,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
+namespace ExportOrder {
 
 class ExportOrderResourceList : public AbstractResourceList {
     Q_OBJECT
@@ -39,6 +40,7 @@ protected:
     friend class ExportOrderResourceItem;
     ExternalFileList<UnTech::MetaSprite::FrameSetExportOrder>& exportOrders() const;
 };
+}
 }
 }
 }

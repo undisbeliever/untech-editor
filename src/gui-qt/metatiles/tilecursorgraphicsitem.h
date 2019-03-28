@@ -83,7 +83,7 @@ public slots:
 
 private:
     MtEditableGraphicsScene* const _scene;
-    MtTilesetGridPainter _tileGridPainter;
+    MtTileset::MtTilesetGridPainter _tileGridPainter;
 
     DrawState _drawState;
 

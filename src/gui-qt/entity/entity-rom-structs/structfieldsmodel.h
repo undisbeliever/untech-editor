@@ -13,6 +13,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
+namespace EntityRomStructs {
 class EntityRomStructsResourceItem;
 
 class StructFieldsModel : public AbstractPropertyModel {
@@ -65,6 +66,7 @@ private:
     StructFields _data;
 };
 
+}
 }
 }
 }

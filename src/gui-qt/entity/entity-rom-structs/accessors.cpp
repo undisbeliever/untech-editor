@@ -9,7 +9,7 @@
 
 using namespace UnTech;
 using namespace UnTech::GuiQt::Accessor;
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityRomStructs;
 
 template <>
 const NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>::list() const

@@ -14,6 +14,7 @@ class idstring;
 
 namespace GuiQt {
 namespace Entity {
+namespace EntityFunctionTables {
 namespace Ui {
 class EntityFunctionTablesWidget;
 }
@@ -34,6 +35,7 @@ private:
     EntityFunctionTablesManager* const _manager;
 };
 
+}
 }
 }
 }

@@ -11,7 +11,7 @@
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/entity/entity-function-tables/entityfunctiontableswidget.ui.h"
 
-using namespace UnTech::GuiQt::Entity;
+using namespace UnTech::GuiQt::Entity::EntityFunctionTables;
 
 EntityFunctionTablesWidget::EntityFunctionTablesWidget(QWidget* parent)
     : QWidget(parent)

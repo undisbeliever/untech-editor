@@ -21,7 +21,7 @@ using namespace UnTech::GuiQt::MetaTiles;
 const MtGraphicsScene::grid_t MtGraphicsScene::BLANK_GRID;
 const upoint_vectorset MtGraphicsScene::BLANK_GRID_SELECTION;
 
-MtGraphicsScene::MtGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent)
+MtGraphicsScene::MtGraphicsScene(Style* style, MtTileset::MtTilesetRenderer* renderer, QObject* parent)
     : QGraphicsScene(parent)
     , _style(style)
     , _renderer(renderer)
@@ -33,7 +33,7 @@ MtGraphicsScene::MtGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObj
 
     this->addItem(_gridGraphicsItem);
 
-    connect(_renderer, &MtTilesetRenderer::tilesetItemChanged,
+    connect(_renderer, &MtTileset::MtTilesetRenderer::tilesetItemChanged,
             this, &MtGraphicsScene::onRendererTilesetItemChanged);
 
     connect(this, &MtGraphicsScene::gridResized,
@@ -93,7 +93,7 @@ void MtGraphicsScene::editGridSelection(upoint_vectorset&& selectedCells)
 
 void MtGraphicsScene::onRendererTilesetItemChanged()
 {
-    MtTilesetResourceItem* oldItem = _tilesetItem;
+    MtTileset::MtTilesetResourceItem* oldItem = _tilesetItem;
 
     if (_tilesetItem) {
         _tilesetItem->disconnect(this);
@@ -126,7 +126,7 @@ void MtGraphicsScene::keyPressEvent(QKeyEvent* keyEvent)
     QGraphicsScene::keyPressEvent(keyEvent);
 }
 
-MtEditableGraphicsScene::MtEditableGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent)
+MtEditableGraphicsScene::MtEditableGraphicsScene(Style* style, MtTileset::MtTilesetRenderer* renderer, QObject* parent)
     : MtGraphicsScene(style, renderer, parent)
     , _gridSelectionSources()
     , _cursorItem(nullptr)

@@ -12,6 +12,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
+namespace ExportOrder {
 class ExportOrderResourceItem;
 
 class ExportOrderModel : public AbstractPropertyModel {
@@ -101,6 +102,7 @@ private:
     ExportOrderResourceItem* _exportOrder;
     const QVector<Property> _properties;
 };
+}
 }
 }
 }

@@ -16,6 +16,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
+namespace EntityFunctionTables {
 class EntityFunctionTablesResourceItem;
 
 namespace EN = UnTech::Entity;
@@ -36,6 +37,7 @@ public:
     bool edit_setComment(index_type index, const std::string& comment);
 };
 
+}
 }
 }
 }

@@ -15,6 +15,7 @@ namespace GuiQt {
 class StaticResourceList;
 
 namespace Entity {
+namespace EntityRomStructs {
 class EntityRomStructList;
 class EntityRomStructFieldList;
 
@@ -48,6 +49,7 @@ private:
     StructFieldMap _structFieldMap;
 };
 
+}
 }
 }
 }

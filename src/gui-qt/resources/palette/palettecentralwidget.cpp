@@ -8,7 +8,7 @@
 #include "paletteresourceitem.h"
 #include "gui-qt/resources/palette/palettecentralwidget.ui.h"
 
-using namespace UnTech::GuiQt::Resources;
+using namespace UnTech::GuiQt::Resources::Palette;
 
 const QColor PaletteGraphicsItem::LINE_COLOR = QColor(200, 200, 255, 128);
 const QColor PaletteGraphicsItem::FRAME_LINE_COLOR = QColor(200, 100, 200, 192);

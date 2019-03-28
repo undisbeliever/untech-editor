@@ -16,7 +16,7 @@
 #include <cassert>
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::MetaTiles;
+using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
 namespace RES = UnTech::Resources;
 
@@ -59,7 +59,7 @@ void MtTilesetRenderer::pauseAndAdvanceTilesetFrame()
     _animationTimer->pauseAndIncrementSecondFrameCount();
 }
 
-void MtTilesetRenderer::setPaletteItem(Resources::PaletteResourceItem* item)
+void MtTilesetRenderer::setPaletteItem(Resources::Palette::PaletteResourceItem* item)
 {
     if (_paletteItem != item) {
         if (_paletteItem) {

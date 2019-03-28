@@ -14,6 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaTiles {
+namespace MtTileset {
 
 class MtTilesetEditor : public AbstractEditor {
     Q_OBJECT
@@ -52,6 +53,7 @@ public:
 private:
     MtTilesetMainWindow* const _editorWidget;
 };
+}
 }
 }
 }

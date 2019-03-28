@@ -16,6 +16,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaTiles {
+namespace MtTileset {
 
 class MtTilesetTileParameters : public QObject {
     Q_OBJECT
@@ -98,6 +99,7 @@ signals:
 
     void selectedCellsChanged();
 };
+}
 }
 }
 }
