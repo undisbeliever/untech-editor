@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "projectsettingscentralwidget.h"
 #include "projectsettingspropertieswidget.h"
 #include "projectsettingsresourceitem.h"
 #include "gui-qt/abstracteditor.h"
@@ -22,8 +21,7 @@ class ProjectSettingsEditor : public AbstractEditor {
 public:
     ProjectSettingsEditor(QWidget* parent)
         : AbstractEditor(parent)
-        , _editorWidget(new ProjectSettingsCentralWidget(parent))
-        , _propertyWidget(new ProjectSettingsPropertiesWidget(parent))
+        , _editorWidget(new ProjectSettingsPropertiesWidget(parent))
     {
     }
     ~ProjectSettingsEditor() = default;
@@ -33,18 +31,15 @@ public:
         auto* item = qobject_cast<ProjectSettingsResourceItem*>(aItem);
 
         _editorWidget->setResourceItem(item);
-        _propertyWidget->setResourceItem(item);
 
         // show this editor when no item is selected
         return item != nullptr;
     }
 
     virtual QWidget* editorWidget() const final { return _editorWidget; }
-    virtual QWidget* propertyWidget() const final { return _propertyWidget; }
 
 private:
-    ProjectSettingsCentralWidget* const _editorWidget;
-    ProjectSettingsPropertiesWidget* const _propertyWidget;
+    ProjectSettingsPropertiesWidget* const _editorWidget;
 };
 }
 }

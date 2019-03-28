@@ -20,8 +20,7 @@ class ExportOrderEditor : public AbstractEditor {
 public:
     ExportOrderEditor(QWidget* parent)
         : AbstractEditor(parent)
-        , _editorWidget(new QWidget(parent))
-        , _propertyWidget(new ExportOrderEditorWidget(parent))
+        , _editorWidget(new ExportOrderEditorWidget(parent))
     {
     }
     ~ExportOrderEditor() = default;
@@ -29,17 +28,15 @@ public:
     virtual bool setResourceItem(Project*, AbstractResourceItem* aItem)
     {
         ExportOrderResourceItem* item = qobject_cast<ExportOrderResourceItem*>(aItem);
-        _propertyWidget->setExportOrderResource(item);
+        _editorWidget->setExportOrderResource(item);
 
         return item != nullptr;
     }
 
     virtual QWidget* editorWidget() const final { return _editorWidget; }
-    virtual QWidget* propertyWidget() const final { return _propertyWidget; }
 
 private:
-    QWidget* const _editorWidget;
-    ExportOrderEditorWidget* const _propertyWidget;
+    ExportOrderEditorWidget* const _editorWidget;
 };
 }
 }
