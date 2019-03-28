@@ -12,6 +12,9 @@
 
 namespace UnTech {
 namespace GuiQt {
+namespace Accessor {
+class NamedListDock;
+}
 namespace Entity {
 namespace EntityRomStructs {
 namespace Ui {
@@ -19,7 +22,6 @@ class EditorWidget;
 }
 class EntityRomStructsResourceItem;
 class StructFieldsModel;
-class EntityRomStructListWidget;
 
 class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
@@ -53,8 +55,7 @@ private slots:
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
 
-    // Used by the DockWidgets
-    EntityRomStructListWidget* const _listWidget;
+    Accessor::NamedListDock* const _namedListDock;
 
     StructFieldsModel* const _fieldsModel;
     Accessor::ListActions _fieldListActions;

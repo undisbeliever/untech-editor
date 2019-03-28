@@ -23,6 +23,7 @@ struct NamedListActions;
 
 class NamedListView;
 class NamedListModel;
+class NamedListDock;
 
 template <class T, class U>
 class ListUndoHelper;

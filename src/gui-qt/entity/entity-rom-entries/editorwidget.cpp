@@ -7,8 +7,8 @@
 #include "editorwidget.h"
 #include "accessors.h"
 #include "entityromentriesresourceitem.h"
-#include "entityromentrylistwidget.h"
 #include "managers.h"
+#include "gui-qt/accessor/namedlistdock.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/entity/entity-rom-entries/editorwidget.ui.h"
@@ -18,7 +18,7 @@ using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 EditorWidget::EditorWidget(QWidget* parent)
     : AbstractEditorWidget(parent)
     , _ui(std::make_unique<Ui::EditorWidget>())
-    , _listWidget(new EntityRomEntryListWidget(this))
+    , _namedListDock(new Accessor::NamedListDock(this))
     , _manager(new EntityRomEntryManager(this))
     , _item(nullptr)
 {
@@ -44,8 +44,10 @@ EditorWidget::~EditorWidget() = default;
 
 QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow*)
 {
+    _namedListDock->setObjectName(QStringLiteral("EntityRomStructs_Dock"));
+
     return {
-        createDockWidget(_listWidget, tr("Entity Rom Entries"), QStringLiteral("EntityRomEntries_Dock")),
+        _namedListDock,
     };
 }
 
@@ -62,8 +64,8 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     }
     _item = item;
 
-    _listWidget->setResourceItem(item);
     _manager->setResourceItem(item);
+    _namedListDock->setAccessor(item ? item->entriesList() : nullptr);
 
     if (item) {
         EntityRomEntriesList* entriesList = item->entriesList();

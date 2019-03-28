@@ -6,9 +6,9 @@
 
 #include "editorwidget.h"
 #include "accessors.h"
-#include "entityromstructlistwidget.h"
 #include "entityromstructsresourceitem.h"
 #include "structfieldsmodel.h"
+#include "gui-qt/accessor/namedlistdock.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/entity/entity-rom-structs/editorwidget.ui.h"
@@ -18,7 +18,7 @@ using namespace UnTech::GuiQt::Entity::EntityRomStructs;
 EditorWidget::EditorWidget(QWidget* parent)
     : AbstractEditorWidget(parent)
     , _ui(std::make_unique<Ui::EditorWidget>())
-    , _listWidget(new EntityRomStructListWidget(this))
+    , _namedListDock(new Accessor::NamedListDock(this))
     , _fieldsModel(new StructFieldsModel(this))
     , _fieldListActions(this)
     , _item(nullptr)
@@ -53,8 +53,10 @@ EditorWidget::~EditorWidget() = default;
 
 QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow*)
 {
+    _namedListDock->setObjectName(QStringLiteral("EntityRomEntries_Dock"));
+
     return {
-        createDockWidget(_listWidget, tr("Entity Rom Structs"), QStringLiteral("EntityRomStructs_Dock")),
+        _namedListDock,
     };
 }
 
@@ -72,8 +74,8 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     }
     _item = item;
 
-    _listWidget->setResourceItem(item);
     _fieldsModel->setResourceItem(item);
+    _namedListDock->setAccessor(item ? item->structList() : nullptr);
 
     EntityRomStructFieldList* fieldList = nullptr;
     if (item) {

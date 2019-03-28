@@ -24,7 +24,7 @@ public:
     // MUST NOT call this method
     virtual void setModel(QAbstractItemModel*) final;
 
-    const NamedListActions* namedListActions() const { return _actions; }
+    NamedListActions* namedListActions() const { return _actions; }
     NamedListModel* namedListModel() const { return _model; }
 
     QMenu* selectedContextMenu() const { return _selectedContextMenu; }

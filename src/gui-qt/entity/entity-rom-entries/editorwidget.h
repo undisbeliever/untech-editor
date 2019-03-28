@@ -13,12 +13,14 @@ namespace UnTech {
 class idstring;
 
 namespace GuiQt {
+namespace Accessor {
+class NamedListDock;
+}
 namespace Entity {
 namespace EntityRomEntries {
 namespace Ui {
 class EditorWidget;
 }
-class EntityRomEntryListWidget;
 class EntityRomEntriesResourceItem;
 class EntityRomEntryManager;
 
@@ -51,8 +53,7 @@ private slots:
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
 
-    // Used by the DockWidgets
-    EntityRomEntryListWidget* const _listWidget;
+    Accessor::NamedListDock* const _namedListDock;
 
     EntityRomEntryManager* const _manager;
 
