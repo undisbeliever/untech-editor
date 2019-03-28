@@ -6,9 +6,7 @@
 
 #pragma once
 
-#include <QComboBox>
-#include <QFileSystemWatcher>
-#include <QMainWindow>
+#include "gui-qt/abstracteditorwidget.h"
 #include <QPushButton>
 #include <QTabWidget>
 #include <memory>
@@ -37,21 +35,22 @@ class SiAnimationPreviewItemFactory;
 class FrameSetDock;
 class FrameDock;
 
-class EditorWidget : public QMainWindow {
+class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
 
 public:
     EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent = nullptr);
     ~EditorWidget();
 
-    QPushButton* layersButton() { return _layersButton; }
-    ZoomSettings* zoomSettings() const;
+    virtual QList<QDockWidget*> createDockWidgets(QMainWindow* mainWindow) final;
 
-    void populateMenu(QMenu* editMenu, QMenu* viewMenu);
+    virtual QPushButton* statusBarWidget() const final;
+    virtual ZoomSettings* zoomSettings() const final;
+    virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu) final;
 
-    void setDocument(Document* document);
+    virtual bool setResourceItem(AbstractResourceItem* item) final;
 
-    void onErrorDoubleClicked(const ErrorListItem& error);
+    virtual void onErrorDoubleClicked(const ErrorListItem& error) final;
 
 signals:
     void currentTabChanged();

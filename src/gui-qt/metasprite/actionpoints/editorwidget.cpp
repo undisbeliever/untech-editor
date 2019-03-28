@@ -12,7 +12,7 @@
 using namespace UnTech::GuiQt::MetaSprite::ActionPoints;
 
 EditorWidget::EditorWidget(QWidget* parent)
-    : QWidget(parent)
+    : AbstractEditorWidget(parent)
     , _ui(std::make_unique<Ui::EditorWidget>())
     , _manager(new ActionPointFunctionsManager(this))
 {
@@ -31,10 +31,14 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-void EditorWidget::setResourceItem(ActionPointsResourceItem* item)
+bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
+    auto* item = qobject_cast<ActionPointsResourceItem*>(abstractItem);
+
     auto* ftList = item ? item->actionPointFunctionsList() : nullptr;
     _manager->setAccessor(ftList);
 
     setEnabled(item != nullptr);
+
+    return item != nullptr;
 }

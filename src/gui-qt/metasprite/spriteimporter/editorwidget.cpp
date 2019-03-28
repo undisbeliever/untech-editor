@@ -21,12 +21,13 @@
 
 #include <QPushButton>
 #include <QStatusBar>
+#include <QVBoxLayout>
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
-    : QMainWindow(parent)
+    : AbstractEditorWidget(parent)
     , _document(nullptr)
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
@@ -39,15 +40,16 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     , _animationPreview(new Animation::AnimationPreview(_animationDock, this))
     , _animationPreviewItemFactory(new SiAnimationPreviewItemFactory(_layerSettings, this))
 {
-    // Have the left and right docks take up the whole height of the documentWindow
-    setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
-    setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
-    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
-    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-
     QMenu* layerMenu = new QMenu(this);
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
+
+    auto* layout = new QVBoxLayout(this);
+    layout->setMargin(0);
+    this->setLayout(layout);
+    layout->addWidget(_tabWidget);
+
+    _tabWidget->setTabPosition(QTabWidget::West);
 
     _graphicsView->addAction(_frameSetDock->addFrameAction());
     for (auto* a : _frameDock->frameContentsContextMenu()->actions()) {
@@ -67,16 +69,8 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     _tabWidget->setTabPosition(QTabWidget::West);
     _tabWidget->addTab(_graphicsView, tr("Frame"));
     _tabWidget->addTab(_animationPreview, tr("Animation Preview"));
-    setCentralWidget(_tabWidget);
 
-    addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
-    addDockWidget(Qt::RightDockWidgetArea, _frameDock);
-    addDockWidget(Qt::RightDockWidgetArea, _animationDock);
-
-    tabifyDockWidget(_frameSetDock, _frameDock);
-    tabifyDockWidget(_frameSetDock, _animationDock);
-
-    setDocument(nullptr);
+    setResourceItem(nullptr);
 
     _frameSetDock->raise();
 
@@ -85,6 +79,31 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
 }
 
 EditorWidget::~EditorWidget() = default;
+
+QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow* mainWindow)
+{
+    _frameSetDock->setObjectName("SI_FrameSetDock");
+    _frameDock->setObjectName("SI_FrameDock");
+    _animationDock->setObjectName("SI_AnimationDock");
+
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameDock);
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _animationDock);
+
+    mainWindow->tabifyDockWidget(_frameSetDock, _frameDock);
+    mainWindow->tabifyDockWidget(_frameSetDock, _animationDock);
+
+    return {
+        _frameSetDock,
+        _frameDock,
+        _animationDock,
+    };
+}
+
+QPushButton* EditorWidget::statusBarWidget() const
+{
+    return _layersButton;
+}
 
 ZoomSettings* EditorWidget::zoomSettings() const
 {
@@ -106,8 +125,10 @@ void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
     _layerSettings->populateMenu(viewMenu);
 }
 
-void EditorWidget::setDocument(Document* document)
+bool EditorWidget::setResourceItem(AbstractResourceItem* item)
 {
+    auto* document = qobject_cast<Document*>(item);
+
     if (_document) {
         _document->disconnect(this);
         _document->frameList()->disconnect(this);
@@ -123,6 +144,8 @@ void EditorWidget::setDocument(Document* document)
         connect(document->frameList(), &FrameList::selectedIndexChanged,
                 this, &EditorWidget::onSelectedFrameChanged);
     }
+
+    return document != nullptr;
 }
 
 void EditorWidget::populateWidgets()

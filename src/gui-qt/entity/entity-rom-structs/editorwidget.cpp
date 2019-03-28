@@ -6,6 +6,7 @@
 
 #include "editorwidget.h"
 #include "accessors.h"
+#include "entityromstructlistwidget.h"
 #include "entityromstructsresourceitem.h"
 #include "structfieldsmodel.h"
 #include "gui-qt/common/idstringvalidator.h"
@@ -15,8 +16,9 @@
 using namespace UnTech::GuiQt::Entity::EntityRomStructs;
 
 EditorWidget::EditorWidget(QWidget* parent)
-    : QWidget(parent)
+    : AbstractEditorWidget(parent)
     , _ui(std::make_unique<Ui::EditorWidget>())
+    , _listWidget(new EntityRomStructListWidget(this))
     , _fieldsModel(new StructFieldsModel(this))
     , _fieldListActions(this)
     , _item(nullptr)
@@ -49,10 +51,19 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-void EditorWidget::setResourceItem(EntityRomStructsResourceItem* item)
+QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow*)
 {
+    return {
+        createDockWidget(_listWidget, tr("Entity Rom Structs"), QStringLiteral("EntityRomStructs_Dock")),
+    };
+}
+
+bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
+{
+    auto* item = qobject_cast<EntityRomStructsResourceItem*>(abstractItem);
+
     if (_item == item) {
-        return;
+        return item != nullptr;
     }
 
     if (_item) {
@@ -61,6 +72,7 @@ void EditorWidget::setResourceItem(EntityRomStructsResourceItem* item)
     }
     _item = item;
 
+    _listWidget->setResourceItem(item);
     _fieldsModel->setResourceItem(item);
 
     EntityRomStructFieldList* fieldList = nullptr;
@@ -94,6 +106,8 @@ void EditorWidget::setResourceItem(EntityRomStructsResourceItem* item)
     }
 
     _fieldListActions.setAccessor(fieldList);
+
+    return item != nullptr;
 }
 
 void EditorWidget::clearGui()

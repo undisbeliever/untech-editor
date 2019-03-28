@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <QWidget>
+#include "gui-qt/abstracteditorwidget.h"
 #include <memory>
 
 namespace UnTech {
@@ -19,14 +19,14 @@ class EditorWidget;
 class ExportOrderModel;
 class ExportOrderResourceItem;
 
-class EditorWidget : public QWidget {
+class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
 
 public:
-    EditorWidget(QWidget* parent = 0);
+    EditorWidget(QWidget* parent = nullptr);
     ~EditorWidget();
 
-    void setExportOrderResource(ExportOrderResourceItem* item);
+    virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
 private:
     void showEditorForCurrentIndex();

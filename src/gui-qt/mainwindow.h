@@ -19,7 +19,7 @@ class MainWindow;
 class ZoomSettingsManager;
 class ZoomSettingsUi;
 class OpenRecentMenu;
-class AbstractEditor;
+class AbstractEditorWidget;
 class Project;
 class AbstractResourceItem;
 class TabBar;
@@ -48,7 +48,8 @@ private slots:
     void onSelectedResourceChanged();
 
 private:
-    void setEditor(AbstractEditor* editor);
+    void setEditorIndex(int index);
+    void hideAllEditorDockWidgets();
     void updateEditViewMenus();
 
     bool unsavedChangesDialog();
@@ -69,14 +70,17 @@ private slots:
 protected:
     virtual void closeEvent(QCloseEvent* event) override;
 
+private:
     void readSettings();
     void saveSettings();
     QVector<QPair<QString, QMainWindow*>> settingsStateNameWindowList();
 
+    void assertDockWidgetObjectNamesUnique();
+
 private:
     std::unique_ptr<Project> _project;
     AbstractResourceItem* _selectedResource;
-    AbstractEditor* _currentEditor;
+    AbstractEditorWidget* _currentEditor;
 
     std::unique_ptr<Ui::MainWindow> const _ui;
 
@@ -84,9 +88,7 @@ private:
     QMainWindow* const _projectWindow;
     ResourcesTreeDock* const _resourcesTreeDock;
     ErrorListDock* const _errorListDock;
-    QDockWidget* const _propertiesDock;
 
-    QStackedWidget* const _propertiesStackedWidget;
     QStackedWidget* const _centralStackedWidget;
 
     ZoomSettingsManager* const _zoomSettingsManager;
@@ -94,7 +96,8 @@ private:
 
     QUndoGroup* const _undoGroup;
 
-    QList<AbstractEditor*> const _editors;
+    QList<AbstractEditorWidget*> const _editors;
+    QList<QList<QDockWidget*>> _editorDockWidgets;
 };
 }
 }

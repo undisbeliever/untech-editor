@@ -74,6 +74,12 @@ PropertyListView::PropertyListView(QWidget* parent)
             this, &PropertyListView::onLowerToBottomActionTriggered);
 }
 
+PropertyListView::PropertyListView(PropertyListManager* manager, QWidget* parent)
+    : PropertyListView(parent)
+{
+    setPropertyManager(manager);
+}
+
 void PropertyListView::setPropertyManager(PropertyListManager* manager)
 {
     if (_manager == manager) {

@@ -12,7 +12,7 @@
 using namespace UnTech::GuiQt::ProjectSettings;
 
 EditorWidget::EditorWidget(QWidget* parent)
-    : QWidget(parent)
+    : AbstractEditorWidget(parent)
     , _ui(std::make_unique<Ui::EditorWidget>())
     , _manager(new ProjectSettingsPropertyManager(this))
 {
@@ -23,7 +23,11 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-void EditorWidget::setResourceItem(ProjectSettingsResourceItem* item)
+bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
+    auto* item = qobject_cast<ProjectSettingsResourceItem*>(abstractItem);
+
     _manager->setResourceItem(item);
+
+    return item != nullptr;
 }

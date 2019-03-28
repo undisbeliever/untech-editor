@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <QWidget>
+#include "gui-qt/abstracteditorwidget.h"
 #include <memory>
 
 namespace UnTech {
@@ -19,14 +19,14 @@ class EditorWidget;
 class ActionPointsResourceItem;
 class ActionPointFunctionsManager;
 
-class EditorWidget : public QWidget {
+class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
 
 public:
     explicit EditorWidget(QWidget* parent);
     ~EditorWidget();
 
-    void setResourceItem(ActionPointsResourceItem* item);
+    virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;

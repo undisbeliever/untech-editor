@@ -11,7 +11,7 @@
 using namespace UnTech::GuiQt::Resources::Palette;
 
 PalettePropertyManager::PalettePropertyManager(QObject* parent)
-    : AbstractPropertyManager(parent)
+    : PropertyListManager(parent)
     , _palette(nullptr)
 {
     using Type = UnTech::GuiQt::PropertyType;
@@ -23,10 +23,8 @@ PalettePropertyManager::PalettePropertyManager(QObject* parent)
     addProperty(tr("Skip First Frame"), SKIP_FIRST_FRAME, Type::BOOLEAN);
 }
 
-void PalettePropertyManager::setResourceItem(AbstractResourceItem* abstractItem)
+void PalettePropertyManager::setResourceItem(PaletteResourceItem* item)
 {
-    PaletteResourceItem* item = qobject_cast<PaletteResourceItem*>(abstractItem);
-
     if (_palette == item) {
         return;
     }

@@ -21,6 +21,7 @@ class PropertyListView : public QTreeView {
 
 public:
     PropertyListView(QWidget* parent = nullptr);
+    PropertyListView(PropertyListManager* manager, QWidget* parent = nullptr);
 
     void setPropertyManager(PropertyListManager* manager);
     PropertyListManager* propertyManager() const { return _manager; }

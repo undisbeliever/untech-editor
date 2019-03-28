@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <QWidget>
+#include "gui-qt/abstracteditorwidget.h"
 #include <memory>
 
 namespace UnTech {
@@ -18,17 +18,20 @@ namespace EntityRomEntries {
 namespace Ui {
 class EditorWidget;
 }
+class EntityRomEntryListWidget;
 class EntityRomEntriesResourceItem;
 class EntityRomEntryManager;
 
-class EditorWidget : public QWidget {
+class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
 
 public:
     explicit EditorWidget(QWidget* parent);
     ~EditorWidget();
 
-    void setResourceItem(EntityRomEntriesResourceItem* item);
+    virtual QList<QDockWidget*> createDockWidgets(QMainWindow*) final;
+
+    virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
 private:
     void clearGui();
@@ -47,6 +50,10 @@ private slots:
 
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
+
+    // Used by the DockWidgets
+    EntityRomEntryListWidget* const _listWidget;
+
     EntityRomEntryManager* const _manager;
 
     EntityRomEntriesResourceItem* _item;

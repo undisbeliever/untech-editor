@@ -20,16 +20,16 @@
 
 #include "gui-qt/project.h"
 
-#include "gui-qt/entity/entity-function-tables/entityfunctiontablesditor.h"
-#include "gui-qt/entity/entity-rom-entries/entityromentrieseditor.h"
-#include "gui-qt/entity/entity-rom-structs/entityromstructseditor.h"
-#include "gui-qt/metasprite/actionpoints/actionpointseditor.h"
-#include "gui-qt/metasprite/exportorder/exportordereditor.h"
-#include "gui-qt/metasprite/metasprite/msframeseteditor.h"
-#include "gui-qt/metasprite/spriteimporter/siframeseteditor.h"
-#include "gui-qt/metatiles/mttileset/mttileseteditor.h"
-#include "project-settings/projectsettingseditor.h"
-#include "resources/palette/paletteeditor.h"
+#include "gui-qt/entity/entity-function-tables/editorwidget.h"
+#include "gui-qt/entity/entity-rom-entries/editorwidget.h"
+#include "gui-qt/entity/entity-rom-structs/editorwidget.h"
+#include "gui-qt/metasprite/actionpoints/editorwidget.h"
+#include "gui-qt/metasprite/exportorder/editorwidget.h"
+#include "gui-qt/metasprite/metasprite/editorwidget.h"
+#include "gui-qt/metasprite/spriteimporter/editorwidget.h"
+#include "gui-qt/metatiles/mttileset/editorwidget.h"
+#include "gui-qt/project-settings/editorwidget.h"
+#include "gui-qt/resources/palette/editorwidget.h"
 
 #include <QCloseEvent>
 #include <QComboBox>
@@ -60,24 +60,23 @@ MainWindow::MainWindow(QWidget* parent)
     , _projectWindow(new QMainWindow(this))
     , _resourcesTreeDock(new ResourcesTreeDock(_projectWindow))
     , _errorListDock(new ErrorListDock(_projectWindow))
-    , _propertiesDock(new QDockWidget(_projectWindow))
-    , _propertiesStackedWidget(new QStackedWidget(_propertiesDock))
     , _centralStackedWidget(new QStackedWidget(_projectWindow))
     , _zoomSettingsManager(new ZoomSettingsManager(this))
     , _zoomSettingsUi(new ZoomSettingsUi(this))
     , _undoGroup(new QUndoGroup(this))
     , _editors({
-          new ProjectSettings::ProjectSettingsEditor(this),
-          new Entity::EntityRomStructs::EntityRomStructsEditor(this),
-          new Entity::EntityFunctionTables::EntityFunctionTablesEditor(this),
-          new Entity::EntityRomEntries::EntityRomEntriesEditor(this),
-          new Resources::Palette::PaletteEditor(this),
-          new MetaSprite::ExportOrder::ExportOrderEditor(this),
-          new MetaTiles::MtTileset::MtTilesetEditor(this, _zoomSettingsManager),
-          new MetaSprite::ActionPoints::ActionPointsEditor(this),
-          new MetaSprite::SpriteImporter::SiFrameSetEditor(this, _zoomSettingsManager),
-          new MetaSprite::MetaSprite::MsFrameSetEditor(this, _zoomSettingsManager),
+          new ProjectSettings::EditorWidget(this),
+          new Entity::EntityRomStructs::EditorWidget(this),
+          new Entity::EntityFunctionTables::EditorWidget(this),
+          new Entity::EntityRomEntries::EditorWidget(this),
+          new Resources::Palette::EditorWidget(this),
+          new MetaSprite::ExportOrder::EditorWidget(this),
+          new MetaTiles::MtTileset::EditorWidget(_zoomSettingsManager, this),
+          new MetaSprite::ActionPoints::EditorWidget(this),
+          new MetaSprite::SpriteImporter::EditorWidget(_zoomSettingsManager, this),
+          new MetaSprite::MetaSprite::EditorWidget(_zoomSettingsManager, this),
       })
+    , _editorDockWidgets()
 {
     _ui->setupUi(this);
 
@@ -93,13 +92,7 @@ MainWindow::MainWindow(QWidget* parent)
     centralLayout->addWidget(_projectWindow);
 
     _projectWindow->addDockWidget(Qt::LeftDockWidgetArea, _resourcesTreeDock);
-    _projectWindow->addDockWidget(Qt::BottomDockWidgetArea, _errorListDock);
-
-    _propertiesDock->setObjectName(QStringLiteral("propertiesDock"));
-    _propertiesDock->setWindowTitle(tr("Properties"));
-    _propertiesDock->setFeatures(QDockWidget::DockWidgetMovable);
-    _propertiesDock->setWidget(_propertiesStackedWidget);
-    _projectWindow->addDockWidget(Qt::RightDockWidgetArea, _propertiesDock);
+    _projectWindow->addDockWidget(Qt::LeftDockWidgetArea, _errorListDock);
 
     _projectWindow->setCentralWidget(_centralStackedWidget);
 
@@ -133,22 +126,35 @@ MainWindow::MainWindow(QWidget* parent)
     }
 
     // Default (blank) widgets are always index 0
+    Q_ASSERT(_centralStackedWidget->count() == 0);
     _centralStackedWidget->addWidget(new QWidget(_centralStackedWidget));
-    _propertiesStackedWidget->addWidget(new QWidget(_propertiesStackedWidget));
 
-    for (AbstractEditor* editor : _editors) {
-        if (QWidget* w = editor->editorWidget()) {
-            // Prevents centralStackedWidget from expanding when widget is changed
-            w->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-            _centralStackedWidget->addWidget(w);
+    for (AbstractEditorWidget* editor : _editors) {
+        // Prevents centralStackedWidget from expanding when widget is changed
+        editor->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        _centralStackedWidget->addWidget(editor);
+
+        QList<QDockWidget*> dockWidgets = editor->createDockWidgets(_projectWindow);
+        for (auto* dw : dockWidgets) {
+            if (_projectWindow->dockWidgetArea(dw) == Qt::NoDockWidgetArea) {
+                _projectWindow->addDockWidget(Qt::RightDockWidgetArea, dw);
+            }
+
+            dw->setFeatures(QDockWidget::DockWidgetMovable);
+            dw->hide();
         }
-        if (QWidget* w = editor->propertyWidget()) {
-            w->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Ignored);
-            _propertiesStackedWidget->addWidget(w);
-        }
+        _editorDockWidgets.append(dockWidgets);
     };
 
     readSettings();
+    hideAllEditorDockWidgets();
+
+    // Do not show context menu on any of the docked widgets
+    for (auto* c : _projectWindow->children()) {
+        if (auto* dw = qobject_cast<QDockWidget*>(c)) {
+            dw->setContextMenuPolicy(Qt::PreventContextMenu);
+        }
+    }
 
     setProject(nullptr);
 
@@ -313,22 +319,20 @@ void MainWindow::onSelectedResourceChanged()
 
     updateGuiFilePath();
 
-    bool foundEditor = false;
-    for (AbstractEditor* editor : _editors) {
-        bool s = editor->setResourceItem(_project.get(), _selectedResource);
-        if (s && foundEditor == false) {
-            setEditor(editor);
-            foundEditor = true;
+    int editorIndex = -1;
+    for (int i = 0; i < _editors.size(); i++) {
+        bool s = _editors.at(i)->setResourceItem(_selectedResource);
+        if (s) {
+            editorIndex = i;
         }
     }
-
-    if (!foundEditor) {
-        setEditor(nullptr);
-    }
+    setEditorIndex(editorIndex);
 }
 
-void MainWindow::setEditor(AbstractEditor* editor)
+void MainWindow::setEditorIndex(int index)
 {
+    AbstractEditorWidget* editor = _editors.value(index, nullptr);
+
     if (_currentEditor == editor) {
         return;
     }
@@ -343,41 +347,44 @@ void MainWindow::setEditor(AbstractEditor* editor)
     }
     _currentEditor = editor;
 
-    bool showPropertiesDock = false;
+    // hide all docks except for the ones used by the editor
+    Q_ASSERT(_editorDockWidgets.size() == _editors.size());
+    for (int i = 0; i < _editorDockWidgets.size(); i++) {
+        for (QDockWidget* dw : _editorDockWidgets.at(i)) {
+            dw->setHidden(i != index);
+        }
+    }
 
     if (editor) {
         _zoomSettingsUi->setZoomSettings(editor->zoomSettings());
-        _centralStackedWidget->setCurrentWidget(editor->editorWidget());
-
-        if (QWidget* pw = editor->propertyWidget()) {
-            showPropertiesDock = true;
-            _propertiesStackedWidget->setCurrentWidget(pw);
-        }
-        else {
-            _propertiesStackedWidget->setCurrentIndex(0);
-        }
+        _centralStackedWidget->setCurrentIndex(index + 1);
 
         if (QWidget* sw = editor->statusBarWidget()) {
             statusBar()->insertPermanentWidget(0, sw);
             sw->show();
         }
 
-        connect(_currentEditor, &AbstractEditor::zoomSettingsChanged,
+        connect(_currentEditor, &AbstractEditorWidget::zoomSettingsChanged,
                 this, &MainWindow::onEditorZoomSettingsChanged);
 
         connect(_errorListDock, &ErrorListDock::errorDoubleClicked,
-                editor, &AbstractEditor::onErrorDoubleClicked);
+                editor, &AbstractEditorWidget::onErrorDoubleClicked);
     }
     else {
         _zoomSettingsUi->setZoomSettings(nullptr);
         _centralStackedWidget->setCurrentIndex(0);
-        _propertiesStackedWidget->setCurrentIndex(0);
     }
 
-    _propertiesDock->setVisible(showPropertiesDock);
-    _propertiesDock->setEnabled(showPropertiesDock);
-
     updateEditViewMenus();
+}
+
+void MainWindow::hideAllEditorDockWidgets()
+{
+    for (auto& dockWidgets : _editorDockWidgets) {
+        for (QDockWidget* dw : dockWidgets) {
+            dw->hide();
+        }
+    }
 }
 
 void MainWindow::onEditorZoomSettingsChanged()
@@ -601,8 +608,12 @@ void MainWindow::closeEvent(QCloseEvent* event)
     }
 }
 
+constexpr static int STATE_VERSION = 0x42;
+
 void MainWindow::readSettings()
 {
+    assertDockWidgetObjectNamesUnique();
+
     QSettings settings;
 
     _zoomSettingsManager->readSettings(settings);
@@ -624,7 +635,7 @@ void MainWindow::readSettings()
         const QString& stateName = it.first;
         QMainWindow* mw = it.second;
 
-        mw->restoreState(settings.value(stateName).toByteArray());
+        mw->restoreState(settings.value(stateName).toByteArray(), STATE_VERSION);
     }
 }
 
@@ -641,31 +652,34 @@ void MainWindow::saveSettings()
         const QString& stateName = it.first;
         QMainWindow* mw = it.second;
 
-        settings.setValue(stateName, mw->saveState());
+        settings.setValue(stateName, mw->saveState(STATE_VERSION));
     }
 }
 
 QVector<QPair<QString, QMainWindow*>> MainWindow::settingsStateNameWindowList()
 {
-    QVector<QPair<QString, QMainWindow*>> snList;
+    return {
+        qMakePair(QStringLiteral("MainWindow_state"), this),
+        qMakePair(QStringLiteral("ProjectWindow_state"), _projectWindow),
+    };
+}
 
-    snList.append(qMakePair(QStringLiteral("MainWindow_state"), this));
-    snList.append(qMakePair(QStringLiteral("ProjectWindow_state"), _projectWindow));
+void MainWindow::assertDockWidgetObjectNamesUnique()
+{
+    QSet<QString> dockWidgetNames;
 
-    for (AbstractEditor* editor : _editors) {
-        QMainWindow* mw = qobject_cast<QMainWindow*>(editor->editorWidget());
-        if (mw) {
-            const QString className = editor->metaObject()->className();
-            QString stateName = className.section("::", -1);
-            stateName += QStringLiteral("_state");
+    for (const auto& snList : settingsStateNameWindowList()) {
+        QMainWindow* mainWindow = snList.second;
 
-            auto it = std::find_if(snList.cbegin(), snList.cend(),
-                                   [&](const auto& p) { return p.first == stateName; });
-            Q_ASSERT_X(it == snList.end(), "settingsStateNameMap", "duplicate name detected");
+        for (auto* c : mainWindow->children()) {
+            if (auto* dw = qobject_cast<QDockWidget*>(c)) {
+                const QString dockName = dw->objectName();
 
-            snList.append(qMakePair(stateName, mw));
+                if (dockWidgetNames.contains(dockName)) {
+                    qFatal("QDockWidget objectNames are not unique");
+                }
+                dockWidgetNames.insert(dockName);
+            }
         }
     }
-
-    return snList;
 }

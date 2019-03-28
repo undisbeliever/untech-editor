@@ -19,7 +19,7 @@ using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
 EditorWidget::EditorWidget(QWidget* parent)
-    : QWidget(parent)
+    : AbstractEditorWidget(parent)
     , _ui(std::make_unique<Ui::EditorWidget>())
     , _model(new ExportOrderModel(this))
     , _exportOrder(nullptr)
@@ -69,10 +69,11 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-void EditorWidget::setExportOrderResource(ExportOrderResourceItem* item)
+bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
+    auto* item = qobject_cast<ExportOrderResourceItem*>(abstractItem);
     if (_exportOrder == item) {
-        return;
+        return item != nullptr;
     }
 
     if (_exportOrder) {
@@ -121,6 +122,8 @@ void EditorWidget::setExportOrderResource(ExportOrderResourceItem* item)
         connect(_ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, &EditorWidget::onViewSelectionChanged);
     }
+
+    return item != nullptr;
 }
 
 void EditorWidget::updateSelection()

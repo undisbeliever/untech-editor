@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "gui-qt/abstracteditorwidget.h"
 #include "gui-qt/accessor/listactions.h"
-#include <QWidget>
 #include <memory>
 
 namespace UnTech {
@@ -19,15 +19,18 @@ class EditorWidget;
 }
 class EntityRomStructsResourceItem;
 class StructFieldsModel;
+class EntityRomStructListWidget;
 
-class EditorWidget : public QWidget {
+class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
 
 public:
     explicit EditorWidget(QWidget* parent);
     ~EditorWidget();
 
-    void setResourceItem(EntityRomStructsResourceItem* item);
+    virtual QList<QDockWidget*> createDockWidgets(QMainWindow*) final;
+
+    virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
 private:
     void clearGui();
@@ -49,8 +52,11 @@ private slots:
 
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
-    StructFieldsModel* const _fieldsModel;
 
+    // Used by the DockWidgets
+    EntityRomStructListWidget* const _listWidget;
+
+    StructFieldsModel* const _fieldsModel;
     Accessor::ListActions _fieldListActions;
 
     EntityRomStructsResourceItem* _item;

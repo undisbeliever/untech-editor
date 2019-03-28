@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>UnTech::GuiQt::MetaTiles::MtTileset::EditorWidget</class>
- <widget class="QMainWindow" name="UnTech::GuiQt::MetaTiles::MtTileset::EditorWidget">
+ <widget class="QWidget" name="UnTech::GuiQt::MetaTiles::MtTileset::EditorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,140 +13,154 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
-  <widget class="QStackedWidget" name="stackedWidget">
-   <property name="currentIndex">
-    <number>1</number>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>0</number>
    </property>
-   <widget class="UnTech::GuiQt::Resources::AnimationFramesInputWidget" name="animationFramesInputWidget"/>
-   <widget class="QWidget" name="centralContents">
-    <layout class="QVBoxLayout" name="centralLayout">
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <widget class="UnTech::GuiQt::Resources::AnimationFramesInputWidget" name="animationFramesInputWidget"/>
+     <widget class="QWidget" name="centralContents">
+      <layout class="QVBoxLayout" name="centralLayout">
        <item>
-        <widget class="QToolButton" name="resetAnimationButton">
-         <property name="toolTip">
-          <string>Reset Animation</string>
-         </property>
-         <property name="text">
-          <string>Reset Animation</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../../../../resources/resources.qrc">
-           <normaloff>:/icons/animation-reset.svg</normaloff>:/icons/animation-reset.svg</iconset>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QToolButton" name="resetAnimationButton">
+           <property name="toolTip">
+            <string>Reset Animation</string>
+           </property>
+           <property name="text">
+            <string>Reset Animation</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../../resources/resources.qrc">
+             <normaloff>:/icons/animation-reset.svg</normaloff>:/icons/animation-reset.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="playButton">
+           <property name="toolTip">
+            <string>Play Animation</string>
+           </property>
+           <property name="text">
+            <string>Play</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../../resources/resources.qrc">
+             <normaloff>:/icons/animation-play.svg</normaloff>:/icons/animation-play.svg</iconset>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="nextTilesetFrameButton">
+           <property name="toolTip">
+            <string>Next Tileset Frame</string>
+           </property>
+           <property name="text">
+            <string>Next Tileset Frame</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../../resources/resources.qrc">
+             <normaloff>:/icons/animation-skip.svg</normaloff>:/icons/animation-skip.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="nextPaletteFrameButton">
+           <property name="toolTip">
+            <string>Next Palette Frame</string>
+           </property>
+           <property name="text">
+            <string>Next Palette Frame</string>
+           </property>
+           <property name="icon">
+            <iconset resource="../../../../resources/resources.qrc">
+             <normaloff>:/icons/animation-skip.svg</normaloff>:/icons/animation-skip.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QComboBox" name="palette"/>
+         </item>
+         <item>
+          <widget class="QComboBox" name="region"/>
+         </item>
+        </layout>
        </item>
        <item>
-        <widget class="QToolButton" name="playButton">
-         <property name="toolTip">
-          <string>Play Animation</string>
+        <widget class="QTabWidget" name="tabWidget">
+         <property name="tabPosition">
+          <enum>QTabWidget::South</enum>
          </property>
-         <property name="text">
-          <string>Play</string>
+         <property name="currentIndex">
+          <number>0</number>
          </property>
-         <property name="icon">
-          <iconset resource="../../../../resources/resources.qrc">
-           <normaloff>:/icons/animation-play.svg</normaloff>:/icons/animation-play.svg</iconset>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="nextTilesetFrameButton">
-         <property name="toolTip">
-          <string>Next Tileset Frame</string>
-         </property>
-         <property name="text">
-          <string>Next Tileset Frame</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../../../../resources/resources.qrc">
-           <normaloff>:/icons/animation-skip.svg</normaloff>:/icons/animation-skip.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="nextPaletteFrameButton">
-         <property name="toolTip">
-          <string>Next Palette Frame</string>
-         </property>
-         <property name="text">
-          <string>Next Palette Frame</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../../../../resources/resources.qrc">
-           <normaloff>:/icons/animation-skip.svg</normaloff>:/icons/animation-skip.svg</iconset>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QComboBox" name="palette"/>
-       </item>
-       <item>
-        <widget class="QComboBox" name="region"/>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QTabWidget" name="tabWidget">
-       <property name="tabPosition">
-        <enum>QTabWidget::South</enum>
-       </property>
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
-       <widget class="ZoomableGraphicsView" name="centralTilesetGraphicsView">
-        <attribute name="title">
-         <string>Tileset</string>
-        </attribute>
-       </widget>
-       <widget class="ZoomableGraphicsView" name="centralScratchpadGraphicsView">
-        <attribute name="title">
-         <string>Scratchpad</string>
-        </attribute>
-       </widget>
-       <widget class="QScrollArea" name="usageScrollArea">
-        <property name="verticalScrollBarPolicy">
-         <enum>Qt::ScrollBarAlwaysOn</enum>
-        </property>
-        <property name="horizontalScrollBarPolicy">
-         <enum>Qt::ScrollBarAlwaysOff</enum>
-        </property>
-        <property name="sizeAdjustPolicy">
-         <enum>QAbstractScrollArea::AdjustToContents</enum>
-        </property>
-        <property name="widgetResizable">
-         <bool>true</bool>
-        </property>
-        <attribute name="title">
-         <string>Usage</string>
-        </attribute>
-        <widget class="QLabel" name="usageLabel">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>141</width>
-           <height>1493</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>&lt;h1&gt;MetaTile Tileset Editor&lt;/h1&gt;
+         <widget class="ZoomableGraphicsView" name="centralTilesetGraphicsView">
+          <attribute name="title">
+           <string>Tileset</string>
+          </attribute>
+         </widget>
+         <widget class="ZoomableGraphicsView" name="centralScratchpadGraphicsView">
+          <attribute name="title">
+           <string>Scratchpad</string>
+          </attribute>
+         </widget>
+         <widget class="QScrollArea" name="usageScrollArea">
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOn</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="sizeAdjustPolicy">
+           <enum>QAbstractScrollArea::AdjustToContents</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <attribute name="title">
+           <string>Usage</string>
+          </attribute>
+          <widget class="QLabel" name="usageLabel">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>544</width>
+             <height>590</height>
+            </rect>
+           </property>
+           <property name="text">
+            <string>&lt;h1&gt;MetaTile Tileset Editor&lt;/h1&gt;
 &lt;h2&gt;The Tileset&lt;/h2&gt;
 &lt;p&gt;The MetaTile Tileset editor converts a series of PNG images and a palette into an animated set of 16x16 pixel MetaTiles, which in turn, are made up of 8x8 pixel SNES tiles.&lt;/p&gt;
 
@@ -163,97 +177,33 @@
 Holding &lt;code&gt;&lt;strong&gt;Shift&lt;/strong&gt;&lt;/code&gt; while clicking any two points (or &lt;code&gt;&lt;strong&gt;Shift&lt;/strong&gt;&lt;/code&gt; click and drag) will cause the cursor to draw a box. The drawn box's corner, borders and centre will match the corner, borders and centre of the cursor's grid.&lt;/p&gt;
 &lt;p&gt;When box-drawing, it is recommended that the cursor is 3x3 tiles or greater in size.&lt;br/&gt;&lt;/p&gt;
 </string>
-         </property>
-         <property name="textFormat">
-          <enum>Qt::RichText</enum>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-         <property name="margin">
-          <number>12</number>
-         </property>
-         <property name="textInteractionFlags">
-          <set>Qt::NoTextInteraction</set>
-         </property>
+           </property>
+           <property name="textFormat">
+            <enum>Qt::RichText</enum>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+           <property name="margin">
+            <number>12</number>
+           </property>
+           <property name="textInteractionFlags">
+            <set>Qt::NoTextInteraction</set>
+           </property>
+          </widget>
+         </widget>
         </widget>
-       </widget>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="tilesetPropertiesDock">
-   <property name="features">
-    <set>QDockWidget::DockWidgetMovable</set>
-   </property>
-   <property name="windowTitle">
-    <string>Tileset Properties</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="tilesetPropertyContents">
-    <layout class="QVBoxLayout" name="propertyLayout">
-     <item>
-      <widget class="PropertyListView" name="tilesetPropertyView">
-       <property name="minimumSize">
-        <size>
-         <width>300</width>
-         <height>150</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="minimapDock">
-   <property name="minimumSize">
-    <size>
-     <width>150</width>
-     <height>150</height>
-    </size>
-   </property>
-   <property name="features">
-    <set>QDockWidget::DockWidgetMovable</set>
-   </property>
-   <property name="windowTitle">
-    <string>MetaTiles</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="ZoomableGraphicsView" name="dockedTilesetGraphicsView"/>
-  </widget>
-  <widget class="QDockWidget" name="scratchpadDock">
-   <property name="minimumSize">
-    <size>
-     <width>150</width>
-     <height>150</height>
-    </size>
-   </property>
-   <property name="features">
-    <set>QDockWidget::DockWidgetMovable</set>
-   </property>
-   <property name="windowTitle">
-    <string>Scratchpad</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="ZoomableGraphicsView" name="dockedScratchpadGraphicsView"/>
-  </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>PropertyListView</class>
-   <extends>QTreeView</extends>
-   <header>gui-qt/common/properties/propertylistview.h</header>
-  </customwidget>
   <customwidget>
    <class>UnTech::GuiQt::Resources::AnimationFramesInputWidget</class>
    <extends>QWidget</extends>

@@ -5,7 +5,9 @@
  */
 
 #include "editorwidget.h"
+#include "managers.h"
 #include "paletteresourceitem.h"
+#include "gui-qt/common/properties/propertylistview.h"
 #include "gui-qt/resources/palette/editorwidget.ui.h"
 
 using namespace UnTech::GuiQt::Resources::Palette;
@@ -14,8 +16,9 @@ const QColor PaletteGraphicsItem::LINE_COLOR = QColor(200, 200, 255, 128);
 const QColor PaletteGraphicsItem::FRAME_LINE_COLOR = QColor(200, 100, 200, 192);
 
 EditorWidget::EditorWidget(QWidget* parent)
-    : QWidget(parent)
+    : AbstractEditorWidget(parent)
     , _ui(new Ui::EditorWidget)
+    , _propertyManager(new PalettePropertyManager(this))
     , _graphicsScene(new QGraphicsScene(this))
     , _palette(nullptr)
     , _graphicsItem(nullptr)
@@ -41,18 +44,29 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-void EditorWidget::setResourceItem(PaletteResourceItem* item)
+QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow*)
 {
+    return {
+        createDockWidget(new PropertyListView(_propertyManager), tr("Properties"), QStringLiteral("Palette_Dock")),
+    };
+}
+
+bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
+{
+    auto* item = qobject_cast<PaletteResourceItem*>(abstractItem);
+
     _animationTimer.stopTimer();
 
     if (_palette == item) {
-        return;
+        return item != nullptr;
     }
 
     if (_palette) {
         _palette->disconnect(this);
     }
     _palette = item;
+
+    _propertyManager->setResourceItem(item);
 
     _graphicsScene->clear();
     _graphicsItem = nullptr;
@@ -72,6 +86,8 @@ void EditorWidget::setResourceItem(PaletteResourceItem* item)
     }
 
     setEnabled(item != nullptr);
+
+    return item != nullptr;
 }
 
 void EditorWidget::updateFrameLabel()

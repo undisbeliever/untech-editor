@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <QMainWindow>
+#include "gui-qt/abstracteditorwidget.h"
 #include <memory>
 
 class QGraphicsScene;
@@ -17,6 +17,8 @@ struct ErrorListItem;
 namespace GuiQt {
 class ZoomSettings;
 class ZoomSettingsManager;
+class ZoomableGraphicsView;
+class PropertyListView;
 
 namespace MetaTiles {
 class Style;
@@ -32,7 +34,7 @@ class MtTilesetGraphicsScene;
 class MtEditableScratchpadGraphicsScene;
 class MtScratchpadGraphicsScene;
 
-class EditorWidget : public QMainWindow {
+class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
 
     enum StackIndex : int {
@@ -46,15 +48,17 @@ class EditorWidget : public QMainWindow {
     };
 
 public:
-    explicit EditorWidget(QWidget* parent, ZoomSettingsManager* zoomSettingsManager);
+    explicit EditorWidget(ZoomSettingsManager* zoomSettingsManager, QWidget* parent = nullptr);
     ~EditorWidget();
 
-    void setResourceItem(MtTilesetResourceItem* item);
+    virtual QList<QDockWidget*> createDockWidgets(QMainWindow* mainWindow) final;
 
-    ZoomSettings* zoomSettings() const;
-    void populateMenu(QMenu* editMenu, QMenu* viewMenu);
+    virtual ZoomSettings* zoomSettings() const final;
+    virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu) final;
 
-    void onErrorDoubleClicked(const ErrorListItem& error);
+    virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
+
+    virtual void onErrorDoubleClicked(const ErrorListItem& error) final;
 
 private slots:
     void onTilesetStateChanged();
@@ -64,6 +68,12 @@ private slots:
 
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
+
+    // Used by the DockWidgets
+    PropertyListView* const _propertyListView;
+    ZoomableGraphicsView* const _dockedTilesetView;
+    ZoomableGraphicsView* const _dockedScratchpadView;
+
     Style* const _style;
     MtTilesetPropertyManager* const _tilesetPropertyManager;
     MtTilesetRenderer* const _renderer;

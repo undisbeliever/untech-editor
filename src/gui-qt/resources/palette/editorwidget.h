@@ -7,12 +7,15 @@
 #pragma once
 
 #include "../animationtimer.h"
+#include "gui-qt/abstracteditorwidget.h"
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <memory>
 
 namespace UnTech {
 namespace GuiQt {
+class PropertyListView;
+
 namespace Resources {
 namespace Palette {
 
@@ -21,15 +24,19 @@ class EditorWidget;
 }
 class PaletteResourceItem;
 class PaletteGraphicsItem;
+class PalettePropertyManager;
 
-class EditorWidget : public QWidget {
+class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
 
 public:
     explicit EditorWidget(QWidget* parent = nullptr);
     ~EditorWidget();
 
+    virtual QList<QDockWidget*> createDockWidgets(QMainWindow*) final;
+
     void setResourceItem(PaletteResourceItem* item);
+    virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
 private:
     void updateFrameLabel();
@@ -45,10 +52,13 @@ private slots:
 
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
+
+    // Used by the DockWidgets
+    PalettePropertyManager* const _propertyManager;
+
     QGraphicsScene* const _graphicsScene;
 
     PaletteResourceItem* _palette;
-
     PaletteGraphicsItem* _graphicsItem;
 
     AnimationTimer _animationTimer;

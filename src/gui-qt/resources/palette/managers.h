@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "gui-qt/genericpropertieswidget.h"
+#include "gui-qt/common/properties/propertylistmanager.h"
 
 namespace UnTech {
 namespace GuiQt {
@@ -15,7 +15,7 @@ namespace Palette {
 
 class PaletteResourceItem;
 
-class PalettePropertyManager : public AbstractPropertyManager {
+class PalettePropertyManager : public PropertyListManager {
     Q_OBJECT
 
     enum PropertyId {
@@ -30,7 +30,7 @@ public:
     explicit PalettePropertyManager(QObject* parent = nullptr);
     ~PalettePropertyManager() = default;
 
-    virtual void setResourceItem(AbstractResourceItem* item) final;
+    void setResourceItem(PaletteResourceItem* item);
 
     virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;
 

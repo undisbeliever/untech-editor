@@ -11,6 +11,7 @@
 #include "mttilesetresourceitem.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/common/properties/propertylistview.h"
 #include "gui-qt/metatiles/mtgridgraphicsitem.h"
 #include "gui-qt/metatiles/mttileset/editorwidget.ui.h"
 #include "gui-qt/metatiles/style.h"
@@ -21,9 +22,12 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
-EditorWidget::EditorWidget(QWidget* parent, ZoomSettingsManager* zoomManager)
-    : QMainWindow(parent)
+EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
+    : AbstractEditorWidget(parent)
     , _ui(new Ui::EditorWidget)
+    , _propertyListView(new PropertyListView(this))
+    , _dockedTilesetView(new ZoomableGraphicsView(this))
+    , _dockedScratchpadView(new ZoomableGraphicsView(this))
     , _style(new Style(this))
     , _tilesetPropertyManager(new MtTilesetPropertyManager(this))
     , _renderer(new MtTilesetRenderer(this))
@@ -42,7 +46,7 @@ EditorWidget::EditorWidget(QWidget* parent, ZoomSettingsManager* zoomManager)
     _editableScratchpadScene->addGridSelectionSource(_scratchpadScene);
     _editableScratchpadScene->addGridSelectionSource(_tilesetScene);
 
-    _ui->tilesetPropertyView->setPropertyManager(_tilesetPropertyManager);
+    _propertyListView->setPropertyManager(_tilesetPropertyManager);
 
     ZoomSettings* centralZoomSettings = zoomManager->get("metatiles");
     ZoomSettings* dockedZoomSettings = zoomManager->get("metatiles-dock");
@@ -50,18 +54,18 @@ EditorWidget::EditorWidget(QWidget* parent, ZoomSettingsManager* zoomManager)
     _ui->animationFramesInputWidget->setZoomSettings(centralZoomSettings);
     _ui->centralTilesetGraphicsView->setZoomSettings(centralZoomSettings);
     _ui->centralScratchpadGraphicsView->setZoomSettings(centralZoomSettings);
-    _ui->dockedTilesetGraphicsView->setZoomSettings(dockedZoomSettings);
-    _ui->dockedScratchpadGraphicsView->setZoomSettings(dockedZoomSettings);
+
+    _dockedScratchpadView->setMinimumSize(256, 256);
+    _dockedTilesetView->setMinimumSize(256, 256);
+
+    _dockedScratchpadView->setZoomSettings(dockedZoomSettings);
+    _dockedTilesetView->setZoomSettings(dockedZoomSettings);
 
     _ui->centralTilesetGraphicsView->setScene(_tilesetScene);
     _ui->centralScratchpadGraphicsView->setScene(_editableScratchpadScene);
 
-    _ui->dockedTilesetGraphicsView->setScene(_tilesetScene);
-    _ui->dockedScratchpadGraphicsView->setScene(_scratchpadScene);
-
-    tabifyDockWidget(_ui->minimapDock, _ui->scratchpadDock);
-    resizeDocks({ _ui->minimapDock }, { 1 }, Qt::Vertical);
-    _ui->minimapDock->raise();
+    _dockedTilesetView->setScene(_tilesetScene);
+    _dockedScratchpadView->setScene(_scratchpadScene);
 
     connect(_ui->resetAnimationButton, &QToolButton::clicked,
             _renderer, &MtTilesetRenderer::resetAnimations);
@@ -76,6 +80,28 @@ EditorWidget::EditorWidget(QWidget* parent, ZoomSettingsManager* zoomManager)
 
 EditorWidget::~EditorWidget() = default;
 
+QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow* mainWindow)
+{
+    auto* propertyDock = createDockWidget(_propertyListView, tr("Properties"), QStringLiteral("MtTileset_Properties"));
+    auto* tilesetDock = createDockWidget(_dockedTilesetView, tr("MetaTiles"), QStringLiteral("MtTileset_MetaTiles"));
+    auto* scratchpadDock = createDockWidget(_dockedScratchpadView, tr("Scratchpad"), QStringLiteral("MtTileset_Scratchpad"));
+
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, propertyDock);
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, tilesetDock);
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, scratchpadDock);
+
+    mainWindow->tabifyDockWidget(tilesetDock, scratchpadDock);
+    tilesetDock->raise();
+
+    mainWindow->resizeDocks({ propertyDock, tilesetDock }, { 100, 200 }, Qt::Vertical);
+
+    return {
+        propertyDock,
+        tilesetDock,
+        scratchpadDock,
+    };
+}
+
 ZoomSettings* EditorWidget::zoomSettings() const
 {
     return _ui->centralTilesetGraphicsView->zoomSettings();
@@ -89,10 +115,11 @@ void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
     viewMenu->addAction(_style->showGridAction());
 }
 
-void EditorWidget::setResourceItem(MtTilesetResourceItem* item)
+bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
+    auto* item = qobject_cast<MtTilesetResourceItem*>(abstractItem);
     if (_tileset == item) {
-        return;
+        return item != nullptr;
     }
 
     if (_tileset) {
@@ -121,6 +148,8 @@ void EditorWidget::setResourceItem(MtTilesetResourceItem* item)
     }
 
     setEnabled(item != nullptr);
+
+    return item != nullptr;
 }
 
 void EditorWidget::onTilesetStateChanged()

@@ -14,7 +14,7 @@
 using namespace UnTech::GuiQt::Entity::EntityFunctionTables;
 
 EditorWidget::EditorWidget(QWidget* parent)
-    : QWidget(parent)
+    : AbstractEditorWidget(parent)
     , _ui(std::make_unique<Ui::EditorWidget>())
     , _manager(new EntityFunctionTablesManager(this))
 {
@@ -35,10 +35,14 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-void EditorWidget::setResourceItem(EntityFunctionTablesResourceItem* item)
+bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
+    auto* item = qobject_cast<EntityFunctionTablesResourceItem*>(abstractItem);
+
     auto* ftList = item ? item->functionTableList() : nullptr;
     _manager->setFunctionTableList(ftList);
 
     setEnabled(item != nullptr);
+
+    return item != nullptr;
 }
