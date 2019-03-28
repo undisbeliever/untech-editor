@@ -7,7 +7,7 @@
 #pragma once
 
 #include "actionpointsresourceitem.h"
-#include "actionpointswidget.h"
+#include "editorwidget.h"
 #include "gui-qt/abstracteditor.h"
 
 namespace UnTech {
@@ -21,7 +21,7 @@ class ActionPointsEditor : public AbstractEditor {
 public:
     ActionPointsEditor(QWidget* parent)
         : AbstractEditor(parent)
-        , _editorWidget(new ActionPointsWidget(parent))
+        , _editorWidget(new EditorWidget(parent))
     {
     }
     ~ActionPointsEditor() = default;
@@ -39,7 +39,7 @@ public:
     virtual QWidget* propertyWidget() const final { return nullptr; }
 
 private:
-    ActionPointsWidget* const _editorWidget;
+    EditorWidget* const _editorWidget;
 };
 
 }

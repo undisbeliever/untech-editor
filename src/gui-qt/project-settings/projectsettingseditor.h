@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "projectsettingspropertieswidget.h"
+#include "editorwidget.h"
 #include "projectsettingsresourceitem.h"
 #include "gui-qt/abstracteditor.h"
 #include "gui-qt/genericpropertieswidget.h"
@@ -21,7 +21,7 @@ class ProjectSettingsEditor : public AbstractEditor {
 public:
     ProjectSettingsEditor(QWidget* parent)
         : AbstractEditor(parent)
-        , _editorWidget(new ProjectSettingsPropertiesWidget(parent))
+        , _editorWidget(new EditorWidget(parent))
     {
     }
     ~ProjectSettingsEditor() = default;
@@ -39,7 +39,7 @@ public:
     virtual QWidget* editorWidget() const final { return _editorWidget; }
 
 private:
-    ProjectSettingsPropertiesWidget* const _editorWidget;
+    EditorWidget* const _editorWidget;
 };
 }
 }

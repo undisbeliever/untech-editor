@@ -16,22 +16,22 @@ namespace GuiQt {
 namespace Entity {
 namespace EntityFunctionTables {
 namespace Ui {
-class EntityFunctionTablesWidget;
+class EditorWidget;
 }
 class EntityFunctionTablesResourceItem;
 class EntityFunctionTablesManager;
 
-class EntityFunctionTablesWidget : public QWidget {
+class EditorWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit EntityFunctionTablesWidget(QWidget* parent);
-    ~EntityFunctionTablesWidget();
+    explicit EditorWidget(QWidget* parent);
+    ~EditorWidget();
 
     void setResourceItem(EntityFunctionTablesResourceItem* item);
 
 private:
-    std::unique_ptr<Ui::EntityFunctionTablesWidget> const _ui;
+    std::unique_ptr<Ui::EditorWidget> const _ui;
     EntityFunctionTablesManager* const _manager;
 };
 

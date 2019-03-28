@@ -4,19 +4,19 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "entityromentrywidget.h"
+#include "editorwidget.h"
 #include "accessors.h"
 #include "entityromentriesresourceitem.h"
 #include "managers.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/idstringvalidator.h"
-#include "gui-qt/entity/entity-rom-entries/entityromentrywidget.ui.h"
+#include "gui-qt/entity/entity-rom-entries/editorwidget.ui.h"
 
 using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 
-EntityRomEntryWidget::EntityRomEntryWidget(QWidget* parent)
+EditorWidget::EditorWidget(QWidget* parent)
     : QWidget(parent)
-    , _ui(std::make_unique<Ui::EntityRomEntryWidget>())
+    , _ui(std::make_unique<Ui::EditorWidget>())
     , _manager(new EntityRomEntryManager(this))
     , _item(nullptr)
 {
@@ -31,16 +31,16 @@ EntityRomEntryWidget::EntityRomEntryWidget(QWidget* parent)
     setEnabled(false);
 
     connect(_ui->name, &QLineEdit::editingFinished,
-            this, &EntityRomEntryWidget::onNameEdited);
+            this, &EditorWidget::onNameEdited);
     connect(_ui->functionTableCombo, qOverload<int>(&QComboBox::activated),
-            this, &EntityRomEntryWidget::onFunctionTableActivated);
+            this, &EditorWidget::onFunctionTableActivated);
     connect(_ui->comment, &QLineEdit::editingFinished,
-            this, &EntityRomEntryWidget::onCommentEdited);
+            this, &EditorWidget::onCommentEdited);
 }
 
-EntityRomEntryWidget::~EntityRomEntryWidget() = default;
+EditorWidget::~EditorWidget() = default;
 
-void EntityRomEntryWidget::setResourceItem(EntityRomEntriesResourceItem* item)
+void EditorWidget::setResourceItem(EntityRomEntriesResourceItem* item)
 {
     if (_item == item) {
         return;
@@ -61,13 +61,13 @@ void EntityRomEntryWidget::setResourceItem(EntityRomEntriesResourceItem* item)
         onSelectedEntryChanged();
 
         connect(entriesList, &EntityRomEntriesList::selectedIndexChanged,
-                this, &EntityRomEntryWidget::onSelectedEntryChanged);
+                this, &EditorWidget::onSelectedEntryChanged);
         connect(entriesList, &EntityRomEntriesList::nameChanged,
-                this, &EntityRomEntryWidget::onEntryNameChanged);
+                this, &EditorWidget::onEntryNameChanged);
         connect(entriesList, &EntityRomEntriesList::implementsChanged,
-                this, &EntityRomEntryWidget::onEntryFunctionTableChanged);
+                this, &EditorWidget::onEntryFunctionTableChanged);
         connect(entriesList, &EntityRomEntriesList::commentChanged,
-                this, &EntityRomEntryWidget::onEntryCommentChanged);
+                this, &EditorWidget::onEntryCommentChanged);
     }
     else {
         clearGui();
@@ -75,14 +75,14 @@ void EntityRomEntryWidget::setResourceItem(EntityRomEntriesResourceItem* item)
     }
 }
 
-void EntityRomEntryWidget::clearGui()
+void EditorWidget::clearGui()
 {
     _ui->name->clear();
     _ui->functionTableCombo->setCurrentIndex(-1);
     _ui->comment->clear();
 }
 
-void EntityRomEntryWidget::updateFunctionTableComboList()
+void EditorWidget::updateFunctionTableComboList()
 {
     _ui->functionTableCombo->clear();
 
@@ -101,7 +101,7 @@ void EntityRomEntryWidget::updateFunctionTableComboList()
     }
 }
 
-void EntityRomEntryWidget::onSelectedEntryChanged()
+void EditorWidget::onSelectedEntryChanged()
 {
     Q_ASSERT(_item);
     if (auto* e = _item->entriesList()->selectedItem()) {
@@ -118,7 +118,7 @@ void EntityRomEntryWidget::onSelectedEntryChanged()
     }
 }
 
-void EntityRomEntryWidget::onEntryNameChanged(size_t index)
+void EditorWidget::onEntryNameChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->entriesList()->selectedIndex()) {
@@ -128,7 +128,7 @@ void EntityRomEntryWidget::onEntryNameChanged(size_t index)
     }
 }
 
-void EntityRomEntryWidget::onEntryFunctionTableChanged(size_t index)
+void EditorWidget::onEntryFunctionTableChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->entriesList()->selectedIndex()) {
@@ -138,7 +138,7 @@ void EntityRomEntryWidget::onEntryFunctionTableChanged(size_t index)
     }
 }
 
-void EntityRomEntryWidget::onEntryCommentChanged(size_t index)
+void EditorWidget::onEntryCommentChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->entriesList()->selectedIndex()) {
@@ -148,7 +148,7 @@ void EntityRomEntryWidget::onEntryCommentChanged(size_t index)
     }
 }
 
-void EntityRomEntryWidget::onNameEdited()
+void EditorWidget::onNameEdited()
 {
     Q_ASSERT(_item);
     idstring name{ _ui->name->text().toStdString() };
@@ -161,14 +161,14 @@ void EntityRomEntryWidget::onNameEdited()
     };
 }
 
-void EntityRomEntryWidget::onFunctionTableActivated()
+void EditorWidget::onFunctionTableActivated()
 {
     Q_ASSERT(_item);
     _item->entriesList()->editSelected_setFunctionTable(
         _ui->functionTableCombo->currentText().toStdString());
 }
 
-void EntityRomEntryWidget::onCommentEdited()
+void EditorWidget::onCommentEdited()
 {
     Q_ASSERT(_item);
     _item->entriesList()->editSelected_setComment(

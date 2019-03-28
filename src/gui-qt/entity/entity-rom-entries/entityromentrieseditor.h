@@ -6,9 +6,9 @@
 
 #pragma once
 
+#include "editorwidget.h"
 #include "entityromentriesresourceitem.h"
 #include "entityromentrylistwidget.h"
-#include "entityromentrywidget.h"
 #include "gui-qt/abstracteditor.h"
 
 namespace UnTech {
@@ -22,7 +22,7 @@ class EntityRomEntriesEditor : public AbstractEditor {
 public:
     EntityRomEntriesEditor(QWidget* parent)
         : AbstractEditor(parent)
-        , _editorWidget(new EntityRomEntryWidget(parent))
+        , _editorWidget(new EditorWidget(parent))
         , _propertyWidget(new EntityRomEntryListWidget(parent))
     {
     }
@@ -42,7 +42,7 @@ public:
     virtual QWidget* propertyWidget() const final { return _propertyWidget; }
 
 private:
-    EntityRomEntryWidget* const _editorWidget;
+    EditorWidget* const _editorWidget;
     EntityRomEntryListWidget* const _propertyWidget;
 };
 

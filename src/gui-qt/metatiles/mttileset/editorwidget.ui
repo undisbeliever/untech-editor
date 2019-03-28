@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnTech::GuiQt::MetaTiles::MtTileset::MtTilesetMainWindow</class>
- <widget class="QMainWindow" name="UnTech::GuiQt::MetaTiles::MtTileset::MtTilesetMainWindow">
+ <class>UnTech::GuiQt::MetaTiles::MtTileset::EditorWidget</class>
+ <widget class="QMainWindow" name="UnTech::GuiQt::MetaTiles::MtTileset::EditorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

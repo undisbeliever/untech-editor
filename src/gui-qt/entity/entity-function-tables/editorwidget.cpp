@@ -4,18 +4,18 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "entityfunctiontableswidget.h"
+#include "editorwidget.h"
 #include "entityfunctiontablesresourceitem.h"
 #include "managers.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/idstringvalidator.h"
-#include "gui-qt/entity/entity-function-tables/entityfunctiontableswidget.ui.h"
+#include "gui-qt/entity/entity-function-tables/editorwidget.ui.h"
 
 using namespace UnTech::GuiQt::Entity::EntityFunctionTables;
 
-EntityFunctionTablesWidget::EntityFunctionTablesWidget(QWidget* parent)
+EditorWidget::EditorWidget(QWidget* parent)
     : QWidget(parent)
-    , _ui(std::make_unique<Ui::EntityFunctionTablesWidget>())
+    , _ui(std::make_unique<Ui::EditorWidget>())
     , _manager(new EntityFunctionTablesManager(this))
 {
     Q_ASSERT(parent);
@@ -33,9 +33,9 @@ EntityFunctionTablesWidget::EntityFunctionTablesWidget(QWidget* parent)
     setEnabled(false);
 }
 
-EntityFunctionTablesWidget::~EntityFunctionTablesWidget() = default;
+EditorWidget::~EditorWidget() = default;
 
-void EntityFunctionTablesWidget::setResourceItem(EntityFunctionTablesResourceItem* item)
+void EditorWidget::setResourceItem(EntityFunctionTablesResourceItem* item)
 {
     auto* ftList = item ? item->functionTableList() : nullptr;
     _manager->setFunctionTableList(ftList);

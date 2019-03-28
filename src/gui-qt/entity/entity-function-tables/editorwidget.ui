@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnTech::GuiQt::Entity::EntityFunctionTables::EntityFunctionTablesWidget</class>
- <widget class="QWidget" name="UnTech::GuiQt::Entity::EntityFunctionTables::EntityFunctionTablesWidget">
+ <class>UnTech::GuiQt::Entity::EntityFunctionTables::EditorWidget</class>
+ <widget class="QWidget" name="UnTech::GuiQt::Entity::EntityFunctionTables::EditorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

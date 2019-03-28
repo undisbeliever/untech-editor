@@ -4,16 +4,16 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "actionpointswidget.h"
+#include "editorwidget.h"
 #include "actionpointsresourceitem.h"
 #include "managers.h"
-#include "gui-qt/metasprite/actionpoints/actionpointswidget.ui.h"
+#include "gui-qt/metasprite/actionpoints/editorwidget.ui.h"
 
 using namespace UnTech::GuiQt::MetaSprite::ActionPoints;
 
-ActionPointsWidget::ActionPointsWidget(QWidget* parent)
+EditorWidget::EditorWidget(QWidget* parent)
     : QWidget(parent)
-    , _ui(std::make_unique<Ui::ActionPointsWidget>())
+    , _ui(std::make_unique<Ui::EditorWidget>())
     , _manager(new ActionPointFunctionsManager(this))
 {
     Q_ASSERT(parent);
@@ -29,9 +29,9 @@ ActionPointsWidget::ActionPointsWidget(QWidget* parent)
     setEnabled(false);
 }
 
-ActionPointsWidget::~ActionPointsWidget() = default;
+EditorWidget::~EditorWidget() = default;
 
-void ActionPointsWidget::setResourceItem(ActionPointsResourceItem* item)
+void EditorWidget::setResourceItem(ActionPointsResourceItem* item)
 {
     auto* ftList = item ? item->actionPointFunctionsList() : nullptr;
     _manager->setAccessor(ftList);

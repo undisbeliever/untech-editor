@@ -17,17 +17,17 @@ namespace Resources {
 namespace Palette {
 
 namespace Ui {
-class PaletteCentralWidget;
+class EditorWidget;
 }
 class PaletteResourceItem;
 class PaletteGraphicsItem;
 
-class PaletteCentralWidget : public QWidget {
+class EditorWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit PaletteCentralWidget(QWidget* parent = nullptr);
-    ~PaletteCentralWidget();
+    explicit EditorWidget(QWidget* parent = nullptr);
+    ~EditorWidget();
 
     void setResourceItem(PaletteResourceItem* item);
 
@@ -44,7 +44,7 @@ private slots:
     void onAnimationStopped();
 
 private:
-    std::unique_ptr<Ui::PaletteCentralWidget> const _ui;
+    std::unique_ptr<Ui::EditorWidget> const _ui;
     QGraphicsScene* const _graphicsScene;
 
     PaletteResourceItem* _palette;

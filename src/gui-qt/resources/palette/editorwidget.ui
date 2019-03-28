@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnTech::GuiQt::Resources::Palette::PaletteCentralWidget</class>
- <widget class="QWidget" name="UnTech::GuiQt::Resources::Palette::PaletteCentralWidget">
+ <class>UnTech::GuiQt::Resources::Palette::EditorWidget</class>
+ <widget class="QWidget" name="UnTech::GuiQt::Resources::Palette::EditorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

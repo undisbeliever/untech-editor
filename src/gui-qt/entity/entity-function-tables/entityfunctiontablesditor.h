@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "editorwidget.h"
 #include "entityfunctiontablesresourceitem.h"
-#include "entityfunctiontableswidget.h"
 #include "gui-qt/abstracteditor.h"
 
 namespace UnTech {
@@ -21,7 +21,7 @@ class EntityFunctionTablesEditor : public AbstractEditor {
 public:
     EntityFunctionTablesEditor(QWidget* parent)
         : AbstractEditor(parent)
-        , _editorWidget(new EntityFunctionTablesWidget(parent))
+        , _editorWidget(new EditorWidget(parent))
     {
     }
     ~EntityFunctionTablesEditor() = default;
@@ -39,7 +39,7 @@ public:
     virtual QWidget* propertyWidget() const final { return nullptr; }
 
 private:
-    EntityFunctionTablesWidget* const _editorWidget;
+    EditorWidget* const _editorWidget;
 };
 
 }

@@ -23,7 +23,7 @@ class Style;
 
 namespace MtTileset {
 namespace Ui {
-class MtTilesetMainWindow;
+class EditorWidget;
 }
 class MtTilesetPropertyManager;
 class MtTilesetResourceItem;
@@ -32,7 +32,7 @@ class MtTilesetGraphicsScene;
 class MtEditableScratchpadGraphicsScene;
 class MtScratchpadGraphicsScene;
 
-class MtTilesetMainWindow : public QMainWindow {
+class EditorWidget : public QMainWindow {
     Q_OBJECT
 
     enum StackIndex : int {
@@ -46,8 +46,8 @@ class MtTilesetMainWindow : public QMainWindow {
     };
 
 public:
-    explicit MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* zoomSettingsManager);
-    ~MtTilesetMainWindow();
+    explicit EditorWidget(QWidget* parent, ZoomSettingsManager* zoomSettingsManager);
+    ~EditorWidget();
 
     void setResourceItem(MtTilesetResourceItem* item);
 
@@ -63,7 +63,7 @@ private slots:
     void onPaletteComboActivated(const QString& paletteId);
 
 private:
-    std::unique_ptr<Ui::MtTilesetMainWindow> const _ui;
+    std::unique_ptr<Ui::EditorWidget> const _ui;
     Style* const _style;
     MtTilesetPropertyManager* const _tilesetPropertyManager;
     MtTilesetRenderer* const _renderer;

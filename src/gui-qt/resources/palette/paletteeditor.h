@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "editorwidget.h"
 #include "managers.h"
-#include "palettecentralwidget.h"
 #include "paletteresourceitem.h"
 #include "gui-qt/abstracteditor.h"
 #include "gui-qt/genericpropertieswidget.h"
@@ -23,7 +23,7 @@ class PaletteEditor : public AbstractEditor {
 public:
     PaletteEditor(QWidget* parent)
         : AbstractEditor(parent)
-        , _editorWidget(new PaletteCentralWidget(parent))
+        , _editorWidget(new EditorWidget(parent))
         , _propertyWidget(new GenericPropertiesWidget(
               new PalettePropertyManager(parent),
               parent))
@@ -44,7 +44,7 @@ public:
     virtual QWidget* propertyWidget() const final { return _propertyWidget; }
 
 private:
-    PaletteCentralWidget* const _editorWidget;
+    EditorWidget* const _editorWidget;
     GenericPropertiesWidget* const _propertyWidget;
 };
 }

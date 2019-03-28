@@ -7,6 +7,7 @@
 #pragma once
 
 #include <QComboBox>
+#include <QFileSystemWatcher>
 #include <QMainWindow>
 #include <QPushButton>
 #include <QTabWidget>
@@ -27,23 +28,21 @@ namespace Animation {
 class AnimationDock;
 class AnimationPreview;
 }
-namespace MetaSprite {
+namespace SpriteImporter {
 
 class Document;
 class TilesetPixmaps;
-class MsGraphicsScene;
-class MsAnimationPreviewItemFactory;
+class SiGraphicsScene;
+class SiAnimationPreviewItemFactory;
 class FrameSetDock;
 class FrameDock;
-class PalettesDock;
-class TilesetDock;
 
-class MainWindow : public QMainWindow {
+class EditorWidget : public QMainWindow {
     Q_OBJECT
 
 public:
-    explicit MainWindow(ZoomSettingsManager* zoomManager, QWidget* parent = nullptr);
-    ~MainWindow();
+    EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent = nullptr);
+    ~EditorWidget();
 
     QPushButton* layersButton() { return _layersButton; }
     ZoomSettings* zoomSettings() const;
@@ -69,22 +68,19 @@ private:
     Document* _document;
 
     LayerSettings* const _layerSettings;
-    QPushButton* const _layersButton;
 
-    TilesetPixmaps* const _tilesetPixmaps;
+    QPushButton* const _layersButton;
 
     FrameSetDock* const _frameSetDock;
     FrameDock* const _frameDock;
     Animation::AnimationDock* const _animationDock;
-    PalettesDock* const _palettesDock;
-    TilesetDock* const _tilesetDock;
 
     QTabWidget* const _tabWidget;
     ZoomableGraphicsView* const _graphicsView;
-    MsGraphicsScene* const _graphicsScene;
+    SiGraphicsScene* const _graphicsScene;
     Animation::AnimationPreview* const _animationPreview;
 
-    MsAnimationPreviewItemFactory* const _animationPreviewItemFactory;
+    SiAnimationPreviewItemFactory* const _animationPreviewItemFactory;
 };
 }
 }

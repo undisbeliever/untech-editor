@@ -4,16 +4,16 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "projectsettingspropertieswidget.h"
+#include "editorwidget.h"
 #include "managers.h"
 #include "projectsettingsresourceitem.h"
-#include "gui-qt/project-settings/projectsettingspropertieswidget.ui.h"
+#include "gui-qt/project-settings/editorwidget.ui.h"
 
 using namespace UnTech::GuiQt::ProjectSettings;
 
-ProjectSettingsPropertiesWidget::ProjectSettingsPropertiesWidget(QWidget* parent)
+EditorWidget::EditorWidget(QWidget* parent)
     : QWidget(parent)
-    , _ui(std::make_unique<Ui::ProjectSettingsPropertiesWidget>())
+    , _ui(std::make_unique<Ui::EditorWidget>())
     , _manager(new ProjectSettingsPropertyManager(this))
 {
     _ui->setupUi(this);
@@ -21,9 +21,9 @@ ProjectSettingsPropertiesWidget::ProjectSettingsPropertiesWidget(QWidget* parent
     _ui->propertyView->setPropertyManager(_manager);
 }
 
-ProjectSettingsPropertiesWidget::~ProjectSettingsPropertiesWidget() = default;
+EditorWidget::~EditorWidget() = default;
 
-void ProjectSettingsPropertiesWidget::setResourceItem(ProjectSettingsResourceItem* item)
+void EditorWidget::setResourceItem(ProjectSettingsResourceItem* item)
 {
     _manager->setResourceItem(item);
 }

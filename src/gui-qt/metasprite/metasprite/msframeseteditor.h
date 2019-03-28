@@ -7,7 +7,7 @@
 #pragma once
 
 #include "document.h"
-#include "mainwindow.h"
+#include "editorwidget.h"
 #include "gui-qt/abstracteditor.h"
 
 namespace UnTech {
@@ -21,9 +21,9 @@ class MsFrameSetEditor : public AbstractEditor {
 public:
     MsFrameSetEditor(QWidget* parent, ZoomSettingsManager* zoomSettingsManager)
         : AbstractEditor(parent)
-        , _editorWidget(new MainWindow(zoomSettingsManager, parent))
+        , _editorWidget(new EditorWidget(zoomSettingsManager, parent))
     {
-        connect(_editorWidget, &MainWindow::currentTabChanged,
+        connect(_editorWidget, &EditorWidget::currentTabChanged,
                 this, &MsFrameSetEditor::zoomSettingsChanged);
     }
     ~MsFrameSetEditor() = default;
@@ -57,7 +57,7 @@ public:
     }
 
 private:
-    MainWindow* const _editorWidget;
+    EditorWidget* const _editorWidget;
 };
 }
 }

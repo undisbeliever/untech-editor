@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "mttilesetmainwindow.h"
+#include "editorwidget.h"
 #include "managers.h"
 #include "mttilesetgraphicsscenes.h"
 #include "mttilesetrenderer.h"
@@ -12,7 +12,7 @@
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metatiles/mtgridgraphicsitem.h"
-#include "gui-qt/metatiles/mttileset/mttilesetmainwindow.ui.h"
+#include "gui-qt/metatiles/mttileset/editorwidget.ui.h"
 #include "gui-qt/metatiles/style.h"
 #include "gui-qt/project.h"
 #include "gui-qt/resources/palette/paletteresourcelist.h"
@@ -21,9 +21,9 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
-MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* zoomManager)
+EditorWidget::EditorWidget(QWidget* parent, ZoomSettingsManager* zoomManager)
     : QMainWindow(parent)
-    , _ui(new Ui::MtTilesetMainWindow)
+    , _ui(new Ui::EditorWidget)
     , _style(new Style(this))
     , _tilesetPropertyManager(new MtTilesetPropertyManager(this))
     , _renderer(new MtTilesetRenderer(this))
@@ -71,17 +71,17 @@ MtTilesetMainWindow::MtTilesetMainWindow(QWidget* parent, ZoomSettingsManager* z
             _renderer, &MtTilesetRenderer::pauseAndAdvancePaletteFrame);
 
     connect(_ui->palette, qOverload<const QString&>(&QComboBox::activated),
-            this, &MtTilesetMainWindow::onPaletteComboActivated);
+            this, &EditorWidget::onPaletteComboActivated);
 }
 
-MtTilesetMainWindow::~MtTilesetMainWindow() = default;
+EditorWidget::~EditorWidget() = default;
 
-ZoomSettings* MtTilesetMainWindow::zoomSettings() const
+ZoomSettings* EditorWidget::zoomSettings() const
 {
     return _ui->centralTilesetGraphicsView->zoomSettings();
 }
 
-void MtTilesetMainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
+void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
     Q_UNUSED(editMenu);
 
@@ -89,7 +89,7 @@ void MtTilesetMainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
     viewMenu->addAction(_style->showGridAction());
 }
 
-void MtTilesetMainWindow::setResourceItem(MtTilesetResourceItem* item)
+void EditorWidget::setResourceItem(MtTilesetResourceItem* item)
 {
     if (_tileset == item) {
         return;
@@ -112,9 +112,9 @@ void MtTilesetMainWindow::setResourceItem(MtTilesetResourceItem* item)
     if (_tileset) {
         onTilesetStateChanged();
         connect(_tileset, &MtTilesetResourceItem::stateChanged,
-                this, &MtTilesetMainWindow::onTilesetStateChanged);
+                this, &EditorWidget::onTilesetStateChanged);
         connect(_tileset, &MtTilesetResourceItem::palettesChanged,
-                this, &MtTilesetMainWindow::onTilesetPalettesChanged);
+                this, &EditorWidget::onTilesetPalettesChanged);
     }
     else {
         _ui->playButton->setChecked(false);
@@ -123,7 +123,7 @@ void MtTilesetMainWindow::setResourceItem(MtTilesetResourceItem* item)
     setEnabled(item != nullptr);
 }
 
-void MtTilesetMainWindow::onTilesetStateChanged()
+void EditorWidget::onTilesetStateChanged()
 {
     // ::TODO only show ANIMATION_FRAMES_INPUT_WIDGET when there is an error in the animationFramesInput::
 
@@ -143,7 +143,7 @@ void MtTilesetMainWindow::onTilesetStateChanged()
     }
 }
 
-void MtTilesetMainWindow::onTilesetPalettesChanged()
+void EditorWidget::onTilesetPalettesChanged()
 {
     QStringList pals;
 
@@ -175,7 +175,7 @@ void MtTilesetMainWindow::onTilesetPalettesChanged()
     }
 }
 
-void MtTilesetMainWindow::onPaletteComboActivated(const QString& paletteId)
+void EditorWidget::onPaletteComboActivated(const QString& paletteId)
 {
     if (_tileset == nullptr) {
         return;
@@ -187,7 +187,7 @@ void MtTilesetMainWindow::onPaletteComboActivated(const QString& paletteId)
     _renderer->setPaletteItem(pal);
 }
 
-void MtTilesetMainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
+void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
 {
     if (_tileset == nullptr) {
         return;

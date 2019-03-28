@@ -4,18 +4,18 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "palettecentralwidget.h"
+#include "editorwidget.h"
 #include "paletteresourceitem.h"
-#include "gui-qt/resources/palette/palettecentralwidget.ui.h"
+#include "gui-qt/resources/palette/editorwidget.ui.h"
 
 using namespace UnTech::GuiQt::Resources::Palette;
 
 const QColor PaletteGraphicsItem::LINE_COLOR = QColor(200, 200, 255, 128);
 const QColor PaletteGraphicsItem::FRAME_LINE_COLOR = QColor(200, 100, 200, 192);
 
-PaletteCentralWidget::PaletteCentralWidget(QWidget* parent)
+EditorWidget::EditorWidget(QWidget* parent)
     : QWidget(parent)
-    , _ui(new Ui::PaletteCentralWidget)
+    , _ui(new Ui::EditorWidget)
     , _graphicsScene(new QGraphicsScene(this))
     , _palette(nullptr)
     , _graphicsItem(nullptr)
@@ -32,16 +32,16 @@ PaletteCentralWidget::PaletteCentralWidget(QWidget* parent)
     updateFrameLabel();
 
     connect(&_animationTimer, &AnimationTimer::animationStarted,
-            this, &PaletteCentralWidget::onAnimationStarted);
+            this, &EditorWidget::onAnimationStarted);
     connect(&_animationTimer, &AnimationTimer::animationFrameAdvance,
-            this, &PaletteCentralWidget::onAnimationFrameAdvance);
+            this, &EditorWidget::onAnimationFrameAdvance);
     connect(&_animationTimer, &AnimationTimer::animationStopped,
-            this, &PaletteCentralWidget::onAnimationStopped);
+            this, &EditorWidget::onAnimationStopped);
 }
 
-PaletteCentralWidget::~PaletteCentralWidget() = default;
+EditorWidget::~EditorWidget() = default;
 
-void PaletteCentralWidget::setResourceItem(PaletteResourceItem* item)
+void EditorWidget::setResourceItem(PaletteResourceItem* item)
 {
     _animationTimer.stopTimer();
 
@@ -65,7 +65,7 @@ void PaletteCentralWidget::setResourceItem(PaletteResourceItem* item)
         updateFrameLabel();
 
         connect(_palette, &PaletteResourceItem::dataChanged,
-                this, &PaletteCentralWidget::onPaletteDataChanged);
+                this, &EditorWidget::onPaletteDataChanged);
     }
     else {
         clearGui();
@@ -74,7 +74,7 @@ void PaletteCentralWidget::setResourceItem(PaletteResourceItem* item)
     setEnabled(item != nullptr);
 }
 
-void PaletteCentralWidget::updateFrameLabel()
+void EditorWidget::updateFrameLabel()
 {
     if (_palette == nullptr) {
         clearGui();
@@ -93,7 +93,7 @@ void PaletteCentralWidget::updateFrameLabel()
     }
 }
 
-void PaletteCentralWidget::centerGraphicsItem()
+void EditorWidget::centerGraphicsItem()
 {
     Q_ASSERT(_graphicsItem);
 
@@ -101,13 +101,13 @@ void PaletteCentralWidget::centerGraphicsItem()
     _ui->graphicsView->viewport()->update();
 }
 
-void PaletteCentralWidget::clearGui()
+void EditorWidget::clearGui()
 {
     _animationTimer.setEnabled(false);
     _ui->animationFrameLabel->clear();
 }
 
-void PaletteCentralWidget::onPaletteDataChanged()
+void EditorWidget::onPaletteDataChanged()
 {
     Q_ASSERT(_palette);
     const auto& pal = _palette->paletteInput();
@@ -118,7 +118,7 @@ void PaletteCentralWidget::onPaletteDataChanged()
     centerGraphicsItem();
 }
 
-void PaletteCentralWidget::onAnimationStarted()
+void EditorWidget::onAnimationStarted()
 {
     if (_graphicsItem) {
         _graphicsItem->setFrameIndex(0);
@@ -127,13 +127,13 @@ void PaletteCentralWidget::onAnimationStarted()
     }
 }
 
-void PaletteCentralWidget::onAnimationFrameAdvance()
+void EditorWidget::onAnimationFrameAdvance()
 {
     _graphicsItem->nextAnimationFrame();
     updateFrameLabel();
 }
 
-void PaletteCentralWidget::onAnimationStopped()
+void EditorWidget::onAnimationStopped()
 {
     if (_graphicsItem) {
         _graphicsItem->setFrameIndex(-1);

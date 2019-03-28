@@ -4,16 +4,13 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "mainwindow.h"
+#include "editorwidget.h"
 #include "accessors.h"
 #include "document.h"
 #include "framedock.h"
 #include "framesetdock.h"
-#include "msanimationpreviewitem.h"
-#include "msgraphicsscene.h"
-#include "palettesdock.h"
-#include "tilesetdock.h"
-#include "tilesetpixmaps.h"
+#include "sianimationpreviewitem.h"
+#include "sigraphicsscene.h"
 #include "gui-qt/common/graphics/zoomablegraphicsview.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/metasprite/animation/accessors.h"
@@ -26,24 +23,21 @@
 #include <QStatusBar>
 
 using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
+using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-MainWindow::MainWindow(ZoomSettingsManager* zoomManager, QWidget* parent)
+EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     : QMainWindow(parent)
     , _document(nullptr)
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
-    , _tilesetPixmaps(new TilesetPixmaps(this))
     , _frameSetDock(new FrameSetDock(this))
     , _frameDock(new FrameDock(_frameSetDock->frameListModel(), this))
     , _animationDock(new Animation::AnimationDock(this))
-    , _palettesDock(new PalettesDock(this))
-    , _tilesetDock(new TilesetDock(_tilesetPixmaps, this))
     , _tabWidget(new QTabWidget(this))
     , _graphicsView(new ZoomableGraphicsView(this))
-    , _graphicsScene(new MsGraphicsScene(_layerSettings, _tilesetPixmaps, this))
+    , _graphicsScene(new SiGraphicsScene(_layerSettings, this))
     , _animationPreview(new Animation::AnimationPreview(_animationDock, this))
-    , _animationPreviewItemFactory(new MsAnimationPreviewItemFactory(_layerSettings, _tilesetPixmaps, this))
+    , _animationPreviewItemFactory(new SiAnimationPreviewItemFactory(_layerSettings, this))
 {
     // Have the left and right docks take up the whole height of the documentWindow
     setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
@@ -55,48 +49,44 @@ MainWindow::MainWindow(ZoomSettingsManager* zoomManager, QWidget* parent)
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
 
-    setCentralWidget(_tabWidget);
-    _tabWidget->setTabPosition(QTabWidget::West);
-
     _graphicsView->addAction(_frameSetDock->addFrameAction());
     for (auto* a : _frameDock->frameContentsContextMenu()->actions()) {
         _graphicsView->addAction(a);
     }
-    _frameDock->populateMenu(_graphicsScene->contextMenu());
+    _frameDock->populateMenu(_graphicsScene->frameContextMenu());
 
     _graphicsView->setMinimumSize(256, 256);
-    _graphicsView->setZoomSettings(zoomManager->get("metasprite"));
+    _graphicsView->setZoomSettings(zoomManager->get("spriteimporter"));
     _graphicsView->setRubberBandSelectionMode(Qt::ContainsItemShape);
     _graphicsView->setResizeAnchor(QGraphicsView::AnchorViewCenter);
     _graphicsView->setScene(_graphicsScene);
-    _tabWidget->addTab(_graphicsView, tr("Frame"));
 
     _animationPreview->setZoomSettings(zoomManager->get("metasprite-preview"));
     _animationPreview->setItemFactory(_animationPreviewItemFactory);
+
+    _tabWidget->setTabPosition(QTabWidget::West);
+    _tabWidget->addTab(_graphicsView, tr("Frame"));
     _tabWidget->addTab(_animationPreview, tr("Animation Preview"));
+    setCentralWidget(_tabWidget);
 
     addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
     addDockWidget(Qt::RightDockWidgetArea, _frameDock);
     addDockWidget(Qt::RightDockWidgetArea, _animationDock);
-    addDockWidget(Qt::BottomDockWidgetArea, _palettesDock);
-    addDockWidget(Qt::BottomDockWidgetArea, _tilesetDock);
 
     tabifyDockWidget(_frameSetDock, _frameDock);
     tabifyDockWidget(_frameSetDock, _animationDock);
-
-    resizeDocks({ _palettesDock }, { 1 }, Qt::Vertical);
 
     setDocument(nullptr);
 
     _frameSetDock->raise();
 
     connect(_tabWidget, &QTabWidget::currentChanged,
-            this, &MainWindow::currentTabChanged);
+            this, &EditorWidget::currentTabChanged);
 }
 
-MainWindow::~MainWindow() = default;
+EditorWidget::~EditorWidget() = default;
 
-ZoomSettings* MainWindow::zoomSettings() const
+ZoomSettings* EditorWidget::zoomSettings() const
 {
     if (_tabWidget->currentWidget() == _graphicsView) {
         return _graphicsView->zoomSettings();
@@ -106,7 +96,7 @@ ZoomSettings* MainWindow::zoomSettings() const
     }
 }
 
-void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
+void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
     editMenu->addSeparator();
     editMenu->addAction(_frameSetDock->addFrameAction());
@@ -116,7 +106,7 @@ void MainWindow::populateMenu(QMenu* editMenu, QMenu* viewMenu)
     _layerSettings->populateMenu(viewMenu);
 }
 
-void MainWindow::setDocument(Document* document)
+void EditorWidget::setDocument(Document* document)
 {
     if (_document) {
         _document->disconnect(this);
@@ -126,34 +116,32 @@ void MainWindow::setDocument(Document* document)
 
     populateWidgets();
 
-    if (_document) {
+    if (document != nullptr) {
         connect(document, &Document::resourceLoaded,
-                this, &MainWindow::populateWidgets);
+                this, &EditorWidget::populateWidgets);
+
         connect(document->frameList(), &FrameList::selectedIndexChanged,
-                this, &MainWindow::onSelectedFrameChanged);
+                this, &EditorWidget::onSelectedFrameChanged);
     }
 }
 
-void MainWindow::populateWidgets()
+void EditorWidget::populateWidgets()
 {
     // Widgets cannot handle a null frameSet
     Document* d = _document && _document->frameSet() ? _document : nullptr;
 
-    _tilesetPixmaps->setDocument(d);
     _graphicsScene->setDocument(d);
     _animationPreview->setDocument(d);
     _frameSetDock->setDocument(d);
     _frameDock->setDocument(d);
     _animationDock->setDocument(d);
-    _palettesDock->setDocument(d);
-    _tilesetDock->setDocument(d);
 
     _tabWidget->setEnabled(d != nullptr);
 
     onSelectedFrameChanged();
 }
 
-void MainWindow::onSelectedFrameChanged()
+void EditorWidget::onSelectedFrameChanged()
 {
     if (_document && _document->frameList()->isSelectedIndexValid()) {
         _graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
@@ -163,22 +151,37 @@ void MainWindow::onSelectedFrameChanged()
     }
 }
 
-void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
+void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
 {
     using MetaSpriteError = UnTech::MetaSprite::MetaSpriteError;
     using Type = UnTech::MetaSprite::MsErrorType;
 
-    auto updateSelection = [](auto* accessor, const void* ptr) {
+    auto updateSelection = [](auto* accessor, const MetaSpriteError& e) {
+        // Include matching name in SpriteImporter GUI
+        // as the error could be about the transformed msFrameSet
+        // and `e.ptr()` would no-longer match.
+
+        unsigned nameMatchCount = 0;
+        size_t nameMatchIndex = INT_MAX;
+
         const auto* list = accessor->list();
         if (list) {
             for (unsigned i = 0; i < list->size(); i++) {
-                if (&list->at(i) == ptr) {
+                if (&list->at(i) == e.ptr()) {
                     accessor->setSelectedIndex(i);
                     return;
                 }
+                if (list->at(i).name == e.name()) {
+                    nameMatchIndex = i;
+                    nameMatchCount++;
+                }
             }
         }
-        accessor->unselectItem();
+
+        if (nameMatchCount != 1) {
+            nameMatchIndex = INT_MAX;
+        }
+        accessor->setSelectedIndex(nameMatchIndex);
     };
 
     if (_document == nullptr) {
@@ -194,7 +197,7 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
         case Type::FRAME_OBJECT:
         case Type::ACTION_POINT:
         case Type::ENTITY_HITBOX:
-            updateSelection(_document->frameList(), e->ptr());
+            updateSelection(_document->frameList(), *e);
             _document->frameList()->setTileHitboxSelected(false);
             _document->frameObjectList()->clearSelection();
             _document->actionPointList()->clearSelection();
@@ -205,7 +208,7 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
 
         case Type::ANIMATION:
         case Type::ANIMATION_FRAME:
-            updateSelection(_document->animationsList(), e->ptr());
+            updateSelection(_document->animationsList(), *e);
             _animationDock->raise();
             break;
         }
@@ -223,12 +226,12 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
             break;
 
         case Type::ENTITY_HITBOX:
-            _document->entityHitboxList()->setSelectedIndexes({ e->id() });
+            _document->entityHitboxList()->clearSelection();
             break;
 
         case Type::ANIMATION:
             // clear animation frame selection
-            _document->animationFramesList()->clearSelection();
+            _document->animationFramesList()->setSelectedIndexes({ INT_MAX });
             break;
 
         case Type::ANIMATION_FRAME:
@@ -238,7 +241,7 @@ void MainWindow::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
     }
 }
 
-void MainWindow::showGraphicsTab()
+void EditorWidget::showGraphicsTab()
 {
     _tabWidget->setCurrentWidget(_graphicsView);
 }

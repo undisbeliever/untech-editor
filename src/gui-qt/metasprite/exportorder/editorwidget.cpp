@@ -4,23 +4,23 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "exportordereditorwidget.h"
+#include "editorwidget.h"
 #include "accessors.h"
 #include "exportordermodel.h"
 #include "exportorderresourceitem.h"
 #include "gui-qt/accessor/listactionhelper.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/properties/propertydelegate.h"
-#include "gui-qt/metasprite/exportorder/exportordereditorwidget.ui.h"
+#include "gui-qt/metasprite/exportorder/editorwidget.ui.h"
 
 #include <QMenu>
 
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
-ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
+EditorWidget::EditorWidget(QWidget* parent)
     : QWidget(parent)
-    , _ui(std::make_unique<Ui::ExportOrderEditorWidget>())
+    , _ui(std::make_unique<Ui::EditorWidget>())
     , _model(new ExportOrderModel(this))
     , _exportOrder(nullptr)
 {
@@ -42,34 +42,34 @@ ExportOrderEditorWidget::ExportOrderEditorWidget(QWidget* parent)
     _ui->treeView->header()->resizeSection(1, 65);
 
     connect(_ui->treeView, &QTreeView::customContextMenuRequested,
-            this, &ExportOrderEditorWidget::onContextMenuRequested);
+            this, &EditorWidget::onContextMenuRequested);
 
     connect(_ui->name, &QLineEdit::editingFinished,
-            this, &ExportOrderEditorWidget::onNameEdited);
+            this, &EditorWidget::onNameEdited);
 
     connect(_ui->action_AddFrame, &QAction::triggered,
-            this, &ExportOrderEditorWidget::onActionAddFrame);
+            this, &EditorWidget::onActionAddFrame);
     connect(_ui->action_AddAnimation, &QAction::triggered,
-            this, &ExportOrderEditorWidget::onActionAddAnimation);
+            this, &EditorWidget::onActionAddAnimation);
     connect(_ui->action_AddAlternative, &QAction::triggered,
-            this, &ExportOrderEditorWidget::onActionAddAlternative);
+            this, &EditorWidget::onActionAddAlternative);
     connect(_ui->action_CloneSelected, &QAction::triggered,
-            this, &ExportOrderEditorWidget::onActionCloneSelected);
+            this, &EditorWidget::onActionCloneSelected);
     connect(_ui->action_RemoveSelected, &QAction::triggered,
-            this, &ExportOrderEditorWidget::onActionRemoveSelected);
+            this, &EditorWidget::onActionRemoveSelected);
     connect(_ui->action_RaiseToTop, &QAction::triggered,
-            this, &ExportOrderEditorWidget::onActionRaiseToTop);
+            this, &EditorWidget::onActionRaiseToTop);
     connect(_ui->action_Raise, &QAction::triggered,
-            this, &ExportOrderEditorWidget::onActionRaise);
+            this, &EditorWidget::onActionRaise);
     connect(_ui->action_Lower, &QAction::triggered,
-            this, &ExportOrderEditorWidget::onActionLower);
+            this, &EditorWidget::onActionLower);
     connect(_ui->action_LowerToBottom, &QAction::triggered,
-            this, &ExportOrderEditorWidget::onActionLowerToBottom);
+            this, &EditorWidget::onActionLowerToBottom);
 }
 
-ExportOrderEditorWidget::~ExportOrderEditorWidget() = default;
+EditorWidget::~EditorWidget() = default;
 
-void ExportOrderEditorWidget::setExportOrderResource(ExportOrderResourceItem* item)
+void EditorWidget::setExportOrderResource(ExportOrderResourceItem* item)
 {
     if (_exportOrder == item) {
         return;
@@ -96,34 +96,34 @@ void ExportOrderEditorWidget::setExportOrderResource(ExportOrderResourceItem* it
         updateActions();
 
         connect(_exportOrder, &ExportOrderResourceItem::nameChanged,
-                this, &ExportOrderEditorWidget::updateGui);
+                this, &EditorWidget::updateGui);
 
         // prevents data corruption when the list changes and the editor is open
         connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::listAboutToChange,
-                this, &ExportOrderEditorWidget::closeEditor);
+                this, &EditorWidget::closeEditor);
         connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::listAboutToChange,
-                this, &ExportOrderEditorWidget::closeEditor);
+                this, &EditorWidget::closeEditor);
 
         connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::selectedIndexChanged,
-                this, &ExportOrderEditorWidget::updateSelection);
+                this, &EditorWidget::updateSelection);
         connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::selectedIndexChanged,
-                this, &ExportOrderEditorWidget::updateSelection);
+                this, &EditorWidget::updateSelection);
 
         connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::listChanged,
-                this, &ExportOrderEditorWidget::updateActions);
+                this, &EditorWidget::updateActions);
         connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::listChanged,
-                this, &ExportOrderEditorWidget::updateActions);
+                this, &EditorWidget::updateActions);
         connect(_exportOrder->exportNameList(), &ExportOrder::ExportNameList::selectedIndexChanged,
-                this, &ExportOrderEditorWidget::updateActions);
+                this, &EditorWidget::updateActions);
         connect(_exportOrder->alternativesList(), &ExportOrder::AlternativesList::selectedIndexChanged,
-                this, &ExportOrderEditorWidget::updateActions);
+                this, &EditorWidget::updateActions);
 
         connect(_ui->treeView->selectionModel(), &QItemSelectionModel::selectionChanged,
-                this, &ExportOrderEditorWidget::onViewSelectionChanged);
+                this, &EditorWidget::onViewSelectionChanged);
     }
 }
 
-void ExportOrderEditorWidget::updateSelection()
+void EditorWidget::updateSelection()
 {
     using InternalIdFormat = ExportOrderModel::InternalIdFormat;
 
@@ -147,7 +147,7 @@ void ExportOrderEditorWidget::updateSelection()
     }
 }
 
-void ExportOrderEditorWidget::updateActions()
+void EditorWidget::updateActions()
 {
     using namespace UnTech::GuiQt::Accessor;
 
@@ -172,7 +172,7 @@ void ExportOrderEditorWidget::updateActions()
     _ui->action_RemoveSelected->setEnabled(selStatus.canRemove);
 }
 
-void ExportOrderEditorWidget::onViewSelectionChanged()
+void EditorWidget::onViewSelectionChanged()
 {
     using InternalIdFormat = ExportOrderModel::InternalIdFormat;
 
@@ -192,7 +192,7 @@ void ExportOrderEditorWidget::onViewSelectionChanged()
     }
 }
 
-void ExportOrderEditorWidget::onContextMenuRequested(const QPoint& pos)
+void EditorWidget::onContextMenuRequested(const QPoint& pos)
 {
     using InternalIdFormat = ExportOrderModel::InternalIdFormat;
 
@@ -226,7 +226,7 @@ void ExportOrderEditorWidget::onContextMenuRequested(const QPoint& pos)
     }
 }
 
-void ExportOrderEditorWidget::updateGui()
+void EditorWidget::updateGui()
 {
     auto* eo = _exportOrder ? _exportOrder->exportOrder() : nullptr;
     if (eo) {
@@ -237,7 +237,7 @@ void ExportOrderEditorWidget::updateGui()
     }
 }
 
-void ExportOrderEditorWidget::onNameEdited()
+void EditorWidget::onNameEdited()
 {
     if (_exportOrder) {
         _exportOrder->editExportOrder_setName(_ui->name->text().toStdString());
@@ -245,7 +245,7 @@ void ExportOrderEditorWidget::onNameEdited()
     updateGui();
 }
 
-void ExportOrderEditorWidget::showEditorForCurrentIndex()
+void EditorWidget::showEditorForCurrentIndex()
 {
     QModelIndex index = _ui->treeView->currentIndex();
     if (index.isValid()) {
@@ -253,7 +253,7 @@ void ExportOrderEditorWidget::showEditorForCurrentIndex()
     }
 }
 
-void ExportOrderEditorWidget::closeEditor()
+void EditorWidget::closeEditor()
 {
     QModelIndex index = _ui->treeView->currentIndex();
     if (index.isValid()) {
@@ -261,21 +261,21 @@ void ExportOrderEditorWidget::closeEditor()
     }
 }
 
-void ExportOrderEditorWidget::onActionAddFrame()
+void EditorWidget::onActionAddFrame()
 {
     Q_ASSERT(_exportOrder);
     _exportOrder->exportNameList()->editList_addFrame();
     showEditorForCurrentIndex();
 }
 
-void ExportOrderEditorWidget::onActionAddAnimation()
+void EditorWidget::onActionAddAnimation()
 {
     Q_ASSERT(_exportOrder);
     _exportOrder->exportNameList()->editList_addAnimation();
     showEditorForCurrentIndex();
 }
 
-void ExportOrderEditorWidget::onActionAddAlternative()
+void EditorWidget::onActionAddAlternative()
 {
     Q_ASSERT(_exportOrder);
 
@@ -285,7 +285,7 @@ void ExportOrderEditorWidget::onActionAddAlternative()
     }
 }
 
-void ExportOrderEditorWidget::onActionCloneSelected()
+void EditorWidget::onActionCloneSelected()
 {
     using InternalIdFormat = ExportOrderModel::InternalIdFormat;
 
@@ -312,7 +312,7 @@ void ExportOrderEditorWidget::onActionCloneSelected()
 }
 
 #define SELECTION_ACTION(ACTION_METHOD, ACCESSOR_METHOD)             \
-    void ExportOrderEditorWidget::ACTION_METHOD()                    \
+    void EditorWidget::ACTION_METHOD()                               \
     {                                                                \
         using InternalIdFormat = ExportOrderModel::InternalIdFormat; \
                                                                      \

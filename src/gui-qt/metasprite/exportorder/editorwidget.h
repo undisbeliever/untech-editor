@@ -14,17 +14,17 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace ExportOrder {
 namespace Ui {
-class ExportOrderEditorWidget;
+class EditorWidget;
 }
 class ExportOrderModel;
 class ExportOrderResourceItem;
 
-class ExportOrderEditorWidget : public QWidget {
+class EditorWidget : public QWidget {
     Q_OBJECT
 
 public:
-    ExportOrderEditorWidget(QWidget* parent = 0);
-    ~ExportOrderEditorWidget();
+    EditorWidget(QWidget* parent = 0);
+    ~EditorWidget();
 
     void setExportOrderResource(ExportOrderResourceItem* item);
 
@@ -54,7 +54,7 @@ private slots:
     void onActionLowerToBottom();
 
 private:
-    std::unique_ptr<Ui::ExportOrderEditorWidget> const _ui;
+    std::unique_ptr<Ui::EditorWidget> const _ui;
     ExportOrderModel* const _model;
 
     ExportOrderResourceItem* _exportOrder;

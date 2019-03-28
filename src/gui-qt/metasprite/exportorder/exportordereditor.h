@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "exportordereditorwidget.h"
+#include "editorwidget.h"
 #include "exportorderresourceitem.h"
 #include "gui-qt/abstracteditor.h"
 
@@ -21,7 +21,7 @@ class ExportOrderEditor : public AbstractEditor {
 public:
     ExportOrderEditor(QWidget* parent)
         : AbstractEditor(parent)
-        , _editorWidget(new ExportOrderEditorWidget(parent))
+        , _editorWidget(new EditorWidget(parent))
     {
     }
     ~ExportOrderEditor() = default;
@@ -37,7 +37,7 @@ public:
     virtual QWidget* editorWidget() const final { return _editorWidget; }
 
 private:
-    ExportOrderEditorWidget* const _editorWidget;
+    EditorWidget* const _editorWidget;
 };
 }
 }

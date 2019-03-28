@@ -14,22 +14,22 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace ActionPoints {
 namespace Ui {
-class ActionPointsWidget;
+class EditorWidget;
 }
 class ActionPointsResourceItem;
 class ActionPointFunctionsManager;
 
-class ActionPointsWidget : public QWidget {
+class EditorWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ActionPointsWidget(QWidget* parent);
-    ~ActionPointsWidget();
+    explicit EditorWidget(QWidget* parent);
+    ~EditorWidget();
 
     void setResourceItem(ActionPointsResourceItem* item);
 
 private:
-    std::unique_ptr<Ui::ActionPointsWidget> const _ui;
+    std::unique_ptr<Ui::EditorWidget> const _ui;
     ActionPointFunctionsManager* const _manager;
 };
 

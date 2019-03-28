@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "editorwidget.h"
 #include "managers.h"
-#include "mttilesetmainwindow.h"
 #include "mttilesetresourceitem.h"
 #include "gui-qt/abstracteditor.h"
 
@@ -22,7 +22,7 @@ class MtTilesetEditor : public AbstractEditor {
 public:
     MtTilesetEditor(QWidget* parent, ZoomSettingsManager* zoomManager)
         : AbstractEditor(parent)
-        , _editorWidget(new MtTilesetMainWindow(parent, zoomManager))
+        , _editorWidget(new EditorWidget(parent, zoomManager))
     {
     }
     ~MtTilesetEditor() = default;
@@ -51,7 +51,7 @@ public:
     virtual ZoomSettings* zoomSettings() const final { return _editorWidget->zoomSettings(); }
 
 private:
-    MtTilesetMainWindow* const _editorWidget;
+    EditorWidget* const _editorWidget;
 };
 }
 }

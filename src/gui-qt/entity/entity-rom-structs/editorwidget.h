@@ -15,17 +15,17 @@ namespace GuiQt {
 namespace Entity {
 namespace EntityRomStructs {
 namespace Ui {
-class EntityRomStructWidget;
+class EditorWidget;
 }
 class EntityRomStructsResourceItem;
 class StructFieldsModel;
 
-class EntityRomStructWidget : public QWidget {
+class EditorWidget : public QWidget {
     Q_OBJECT
 
 public:
-    explicit EntityRomStructWidget(QWidget* parent);
-    ~EntityRomStructWidget();
+    explicit EditorWidget(QWidget* parent);
+    ~EditorWidget();
 
     void setResourceItem(EntityRomStructsResourceItem* item);
 
@@ -48,7 +48,7 @@ private slots:
     void onCommentEdited();
 
 private:
-    std::unique_ptr<Ui::EntityRomStructWidget> const _ui;
+    std::unique_ptr<Ui::EditorWidget> const _ui;
     StructFieldsModel* const _fieldsModel;
 
     Accessor::ListActions _fieldListActions;

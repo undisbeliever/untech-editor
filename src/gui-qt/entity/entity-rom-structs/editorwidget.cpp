@@ -4,19 +4,19 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "entityromstructwidget.h"
+#include "editorwidget.h"
 #include "accessors.h"
 #include "entityromstructsresourceitem.h"
 #include "structfieldsmodel.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/properties/propertydelegate.h"
-#include "gui-qt/entity/entity-rom-structs/entityromstructwidget.ui.h"
+#include "gui-qt/entity/entity-rom-structs/editorwidget.ui.h"
 
 using namespace UnTech::GuiQt::Entity::EntityRomStructs;
 
-EntityRomStructWidget::EntityRomStructWidget(QWidget* parent)
+EditorWidget::EditorWidget(QWidget* parent)
     : QWidget(parent)
-    , _ui(std::make_unique<Ui::EntityRomStructWidget>())
+    , _ui(std::make_unique<Ui::EditorWidget>())
     , _fieldsModel(new StructFieldsModel(this))
     , _fieldListActions(this)
     , _item(nullptr)
@@ -37,19 +37,19 @@ EntityRomStructWidget::EntityRomStructWidget(QWidget* parent)
     setEnabled(false);
 
     connect(_ui->name, &QLineEdit::editingFinished,
-            this, &EntityRomStructWidget::onNameEdited);
+            this, &EditorWidget::onNameEdited);
     connect(_ui->parentCombo, qOverload<int>(&QComboBox::activated),
-            this, &EntityRomStructWidget::onParentActivated);
+            this, &EditorWidget::onParentActivated);
     connect(_ui->comment, &QLineEdit::editingFinished,
-            this, &EntityRomStructWidget::onCommentEdited);
+            this, &EditorWidget::onCommentEdited);
 
     connect(_ui->fieldsView->selectionModel(), &QItemSelectionModel::selectionChanged,
-            this, &EntityRomStructWidget::onFieldViewSelectionChanged);
+            this, &EditorWidget::onFieldViewSelectionChanged);
 }
 
-EntityRomStructWidget::~EntityRomStructWidget() = default;
+EditorWidget::~EditorWidget() = default;
 
-void EntityRomStructWidget::setResourceItem(EntityRomStructsResourceItem* item)
+void EditorWidget::setResourceItem(EntityRomStructsResourceItem* item)
 {
     if (_item == item) {
         return;
@@ -72,21 +72,21 @@ void EntityRomStructWidget::setResourceItem(EntityRomStructsResourceItem* item)
         onSelectedStructChanged();
 
         connect(structList, &EntityRomStructList::listChanged,
-                this, &EntityRomStructWidget::updateParentComboList);
+                this, &EditorWidget::updateParentComboList);
         connect(structList, &EntityRomStructList::nameChanged,
-                this, &EntityRomStructWidget::updateParentComboList);
+                this, &EditorWidget::updateParentComboList);
 
         connect(structList, &EntityRomStructList::selectedIndexChanged,
-                this, &EntityRomStructWidget::onSelectedStructChanged);
+                this, &EditorWidget::onSelectedStructChanged);
         connect(structList, &EntityRomStructList::nameChanged,
-                this, &EntityRomStructWidget::onStructNameChanged);
+                this, &EditorWidget::onStructNameChanged);
         connect(structList, &EntityRomStructList::parentChanged,
-                this, &EntityRomStructWidget::onStructParentChanged);
+                this, &EditorWidget::onStructParentChanged);
         connect(structList, &EntityRomStructList::commentChanged,
-                this, &EntityRomStructWidget::onStructCommentChanged);
+                this, &EditorWidget::onStructCommentChanged);
 
         connect(fieldList, &EntityRomStructFieldList::selectedIndexesChanged,
-                this, &EntityRomStructWidget::onSelectedFieldsChanged);
+                this, &EditorWidget::onSelectedFieldsChanged);
     }
     else {
         clearGui();
@@ -96,14 +96,14 @@ void EntityRomStructWidget::setResourceItem(EntityRomStructsResourceItem* item)
     _fieldListActions.setAccessor(fieldList);
 }
 
-void EntityRomStructWidget::clearGui()
+void EditorWidget::clearGui()
 {
     _ui->name->clear();
     _ui->parentCombo->setCurrentIndex(-1);
     _ui->comment->clear();
 }
 
-void EntityRomStructWidget::updateParentComboList()
+void EditorWidget::updateParentComboList()
 {
     _ui->parentCombo->clear();
 
@@ -122,7 +122,7 @@ void EntityRomStructWidget::updateParentComboList()
     }
 }
 
-void EntityRomStructWidget::onSelectedStructChanged()
+void EditorWidget::onSelectedStructChanged()
 {
     Q_ASSERT(_item);
 
@@ -140,7 +140,7 @@ void EntityRomStructWidget::onSelectedStructChanged()
     }
 }
 
-void EntityRomStructWidget::onSelectedFieldsChanged()
+void EditorWidget::onSelectedFieldsChanged()
 {
     Q_ASSERT(_item);
 
@@ -177,7 +177,7 @@ void EntityRomStructWidget::onSelectedFieldsChanged()
     }
 }
 
-void EntityRomStructWidget::onFieldViewSelectionChanged()
+void EditorWidget::onFieldViewSelectionChanged()
 {
     if (_item == nullptr) {
         return;
@@ -194,7 +194,7 @@ void EntityRomStructWidget::onFieldViewSelectionChanged()
     _item->structFieldList()->setSelectedIndexes(std::move(selected));
 }
 
-void EntityRomStructWidget::onStructNameChanged(size_t index)
+void EditorWidget::onStructNameChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->structList()->selectedIndex()) {
@@ -204,7 +204,7 @@ void EntityRomStructWidget::onStructNameChanged(size_t index)
     }
 }
 
-void EntityRomStructWidget::onStructParentChanged(size_t index)
+void EditorWidget::onStructParentChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->structList()->selectedIndex()) {
@@ -214,7 +214,7 @@ void EntityRomStructWidget::onStructParentChanged(size_t index)
     }
 }
 
-void EntityRomStructWidget::onStructCommentChanged(size_t index)
+void EditorWidget::onStructCommentChanged(size_t index)
 {
     Q_ASSERT(_item);
     if (index == _item->structList()->selectedIndex()) {
@@ -224,7 +224,7 @@ void EntityRomStructWidget::onStructCommentChanged(size_t index)
     }
 }
 
-void EntityRomStructWidget::onNameEdited()
+void EditorWidget::onNameEdited()
 {
     Q_ASSERT(_item);
     idstring name{ _ui->name->text().toStdString() };
@@ -237,14 +237,14 @@ void EntityRomStructWidget::onNameEdited()
     };
 }
 
-void EntityRomStructWidget::onParentActivated()
+void EditorWidget::onParentActivated()
 {
     Q_ASSERT(_item);
     _item->structList()->editSelected_setParent(
         _ui->parentCombo->currentText().toStdString());
 }
 
-void EntityRomStructWidget::onCommentEdited()
+void EditorWidget::onCommentEdited()
 {
     Q_ASSERT(_item);
     _item->structList()->editSelected_setComment(
