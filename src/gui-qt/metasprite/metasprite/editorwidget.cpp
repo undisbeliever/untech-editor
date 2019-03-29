@@ -7,13 +7,14 @@
 #include "editorwidget.h"
 #include "accessors.h"
 #include "document.h"
-#include "framedock.h"
-#include "framesetdock.h"
+#include "framecontentsdock.h"
+#include "managers.h"
 #include "msanimationpreviewitem.h"
 #include "msgraphicsscene.h"
 #include "palettesdock.h"
 #include "tilesetdock.h"
 #include "tilesetpixmaps.h"
+#include "gui-qt/accessor/namedlistdock.h"
 #include "gui-qt/common/graphics/zoomablegraphicsview.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/metasprite/animation/accessors.h"
@@ -35,8 +36,12 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
     , _tilesetPixmaps(new TilesetPixmaps(this))
-    , _frameSetDock(new FrameSetDock(this))
-    , _frameDock(new FrameDock(_frameSetDock->frameListModel(), this))
+    , _frameSetManager(new FrameSetManager(this))
+    , _frameManager(new FrameManager(this))
+    , _frameListDock(new Accessor::NamedListDock(this))
+    , _frameSetDock(createPropertyDockWidget(_frameSetManager, tr("FrameSet"), "MS_FrameSetDock"))
+    , _framePropertiesDock(createPropertyDockWidget(_frameManager, tr("Frame"), "MS_FramePropertiesDock"))
+    , _frameContentsDock(new FrameContentsDock(this))
     , _animationDock(new Animation::AnimationDock(this))
     , _palettesDock(new PalettesDock(this))
     , _tilesetDock(new TilesetDock(_tilesetPixmaps, this))
@@ -55,11 +60,14 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     this->setLayout(layout);
     layout->addWidget(_tabWidget);
 
-    _graphicsView->addAction(_frameSetDock->addFrameAction());
-    for (auto* a : _frameDock->frameContentsContextMenu()->actions()) {
+    auto* frameListActions = _frameListDock->namedListActions();
+    frameListActions->add->setShortcut(Qt::CTRL + Qt::Key_N);
+
+    _graphicsView->addAction(frameListActions->add);
+    for (auto* a : _frameContentsDock->frameContentsContextMenu()->actions()) {
         _graphicsView->addAction(a);
     }
-    _frameDock->populateMenu(_graphicsScene->contextMenu());
+    _frameContentsDock->populateMenu(_graphicsScene->contextMenu());
 
     _graphicsView->setMinimumSize(256, 256);
     _graphicsView->setZoomSettings(zoomManager->get("metasprite"));
@@ -76,8 +84,6 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
 
     setResourceItem(nullptr);
 
-    _frameSetDock->raise();
-
     connect(_tabWidget, &QTabWidget::currentChanged,
             this, &EditorWidget::zoomSettingsChanged);
 }
@@ -87,30 +93,36 @@ EditorWidget::~EditorWidget() = default;
 QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow* mainWindow)
 {
     // Ensure docks have a unique name
-    _frameSetDock->setObjectName("MS_FrameSetDock");
-    _frameDock->setObjectName("MS_FrameDock");
+    _frameListDock->setObjectName("MS_FrameListDock");
+    _frameContentsDock->setObjectName("MS_FrameContentsDock");
     _animationDock->setObjectName("MS_AnimationDock");
     _palettesDock->setObjectName("MS_PalettesDock");
     _tilesetDock->setObjectName("MS_TilesetDock");
 
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameListDock);
     mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameDock);
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _framePropertiesDock);
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameContentsDock);
     mainWindow->addDockWidget(Qt::RightDockWidgetArea, _animationDock);
     mainWindow->addDockWidget(Qt::BottomDockWidgetArea, _palettesDock);
     mainWindow->addDockWidget(Qt::BottomDockWidgetArea, _tilesetDock);
 
-    mainWindow->tabifyDockWidget(_frameSetDock, _frameDock);
+    mainWindow->tabifyDockWidget(_frameSetDock, _framePropertiesDock);
+    mainWindow->tabifyDockWidget(_frameSetDock, _frameContentsDock);
     mainWindow->tabifyDockWidget(_frameSetDock, _animationDock);
 
+    mainWindow->resizeDocks({ _frameListDock, _frameSetDock }, { 1, 1000 }, Qt::Vertical);
     mainWindow->resizeDocks({ _palettesDock }, { 1 }, Qt::Vertical);
     mainWindow->resizeDocks({ _palettesDock, _tilesetDock }, { 1, 10000 }, Qt::Horizontal);
 
     return {
-        _frameSetDock,
-        _frameDock,
-        _animationDock,
-        _palettesDock,
         _tilesetDock,
+        _palettesDock,
+        _animationDock,
+        _frameContentsDock,
+        _framePropertiesDock,
+        _frameSetDock,
+        _frameListDock,
     };
 }
 
@@ -132,8 +144,8 @@ ZoomSettings* EditorWidget::zoomSettings() const
 void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
     editMenu->addSeparator();
-    editMenu->addAction(_frameSetDock->addFrameAction());
-    _frameDock->populateMenu(editMenu);
+    editMenu->addAction(_frameListDock->namedListActions()->add);
+    _frameContentsDock->populateMenu(editMenu);
 
     viewMenu->addSeparator();
     _layerSettings->populateMenu(viewMenu);
@@ -166,11 +178,14 @@ void EditorWidget::populateWidgets()
     // Widgets cannot handle a null frameSet
     Document* d = _document && _document->frameSet() ? _document : nullptr;
 
+    _frameSetManager->setDocument(d);
+    _frameManager->setDocument(d);
+
     _tilesetPixmaps->setDocument(d);
     _graphicsScene->setDocument(d);
     _animationPreview->setDocument(d);
-    _frameSetDock->setDocument(d);
-    _frameDock->setDocument(d);
+    _frameListDock->setAccessor(d ? d->frameList() : nullptr);
+    _frameContentsDock->setDocument(d);
     _animationDock->setDocument(d);
     _palettesDock->setDocument(d);
     _tilesetDock->setDocument(d);
@@ -227,39 +242,43 @@ void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
             _document->actionPointList()->clearSelection();
             _document->entityHitboxList()->clearSelection();
             showGraphicsTab();
-            _frameDock->raise();
             break;
 
         case Type::ANIMATION:
         case Type::ANIMATION_FRAME:
             updateSelection(_document->animationsList(), e->ptr());
-            _animationDock->raise();
             break;
         }
 
         switch (e->type()) {
         case Type::FRAME:
+            _framePropertiesDock->raise();
             break;
 
         case Type::FRAME_OBJECT:
             _document->frameObjectList()->setSelectedIndexes({ e->id() });
+            _frameContentsDock->raise();
             break;
 
         case Type::ACTION_POINT:
             _document->actionPointList()->setSelectedIndexes({ e->id() });
+            _frameContentsDock->raise();
             break;
 
         case Type::ENTITY_HITBOX:
             _document->entityHitboxList()->setSelectedIndexes({ e->id() });
+            _frameContentsDock->raise();
             break;
 
         case Type::ANIMATION:
             // clear animation frame selection
             _document->animationFramesList()->clearSelection();
+            _animationDock->raise();
             break;
 
         case Type::ANIMATION_FRAME:
             _document->animationFramesList()->setSelectedIndexes({ e->id() });
+            _animationDock->raise();
             break;
         }
     }

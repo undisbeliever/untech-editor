@@ -6,6 +6,7 @@
 
 #include "abstracteditorwidget.h"
 #include "abstractresourceitem.h"
+#include "gui-qt/common/properties/propertylistview.h"
 
 using namespace UnTech::GuiQt;
 
@@ -50,4 +51,9 @@ QDockWidget* AbstractEditorWidget::createDockWidget(QWidget* widget, const QStri
     dockWidget->setObjectName(objectName);
 
     return dockWidget;
+}
+
+QDockWidget* AbstractEditorWidget::createPropertyDockWidget(PropertyListManager* manager, const QString& title, const QString& objectName)
+{
+    return createDockWidget(new PropertyListView(manager), title, objectName);
 }

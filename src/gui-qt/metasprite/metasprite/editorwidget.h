@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstracteditorwidget.h"
+#include "gui-qt/accessor/accessor.h"
 #include <QComboBox>
 #include <QPushButton>
 #include <QTabWidget>
@@ -33,8 +34,9 @@ class Document;
 class TilesetPixmaps;
 class MsGraphicsScene;
 class MsAnimationPreviewItemFactory;
-class FrameSetDock;
-class FrameDock;
+class FrameSetManager;
+class FrameManager;
+class FrameContentsDock;
 class PalettesDock;
 class TilesetDock;
 
@@ -71,8 +73,14 @@ private:
 
     TilesetPixmaps* const _tilesetPixmaps;
 
-    FrameSetDock* const _frameSetDock;
-    FrameDock* const _frameDock;
+    // Used by the docks
+    FrameSetManager* const _frameSetManager;
+    FrameManager* const _frameManager;
+
+    Accessor::NamedListDock* const _frameListDock;
+    QDockWidget* const _frameSetDock;
+    QDockWidget* const _framePropertiesDock;
+    FrameContentsDock* const _frameContentsDock;
     Animation::AnimationDock* const _animationDock;
     PalettesDock* const _palettesDock;
     TilesetDock* const _tilesetDock;

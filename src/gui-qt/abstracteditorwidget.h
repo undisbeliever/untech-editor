@@ -17,6 +17,7 @@ struct ErrorListItem;
 namespace GuiQt {
 class ZoomSettings;
 class AbstractResourceItem;
+class PropertyListManager;
 
 class AbstractEditorWidget : public QWidget {
     Q_OBJECT
@@ -40,6 +41,7 @@ public:
 
 protected:
     QDockWidget* createDockWidget(QWidget* widget, const QString& title, const QString& objectName);
+    QDockWidget* createPropertyDockWidget(PropertyListManager* manager, const QString& title, const QString& objectName);
 
 signals:
     void zoomSettingsChanged();

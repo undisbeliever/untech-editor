@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "framedock.h"
+#include "framecontentsdock.h"
 #include "accessors.h"
 #include "document.h"
 #include "managers.h"
@@ -12,39 +12,28 @@
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/common/properties/propertytablemodel.h"
 #include "gui-qt/metasprite/common.h"
-#include "gui-qt/metasprite/metasprite/framedock.ui.h"
+#include "gui-qt/metasprite/spriteimporter/framecontentsdock.ui.h"
 
 #include <QMenu>
 
-using namespace UnTech::GuiQt;
-using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
+using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
+FrameContentsDock::FrameContentsDock(QWidget* parent)
     : QDockWidget(parent)
-    , _ui(new Ui::FrameDock)
-    , _frameListModel(frameListModel)
+    , _ui(new Ui::FrameContentsDock)
     , _document(nullptr)
-    , _frameManager(new FrameManager(this))
     , _frameObjectManager(new FrameObjectManager(this))
     , _actionPointManager(new ActionPointManager(this))
     , _entityHitboxManager(new EntityHitboxManager(this))
     , _addRemoveTileHitbox(new QAction(tr("Add Tile Hitbox"), this))
     , _toggleObjSize(new QAction(QIcon(":/icons/toggle-obj-size.svg"), tr("Toggle Object Size"), this))
-    , _flipObjHorizontally(new QAction(QIcon(":/icons/flip-horizontally.svg"), tr("Flip Object Horizontally"), this))
-    , _flipObjVertically(new QAction(QIcon(":/icons/flip-vertically.svg"), tr("Flip Object Vertically"), this))
     , _entityHitboxTypeMenu(new QMenu(tr("Set Entity Hitbox Type"), this))
 {
-    Q_ASSERT(frameListModel);
-
     _ui->setupUi(this);
-
-    _ui->frameComboBox->setModel(_frameListModel);
-
-    _ui->frameProperties->setPropertyManager(_frameManager);
 
     _ui->frameContents->setPropertyManagers(
         { _frameObjectManager, _actionPointManager, _entityHitboxManager },
-        { tr("Location"), tr("Param"), tr("Tile"), tr("Flip") });
+        { tr("Location"), tr("Parameter") });
 
     _ui->frameContents->setIndentation(10);
     _ui->frameContents->header()->setStretchLastSection(true);
@@ -61,8 +50,6 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
     QMenu* frameContextMenu = _ui->frameContents->selectedContextmenu();
     QAction* firstAddAction = frameActions->addAction(0);
     frameContextMenu->insertAction(firstAddAction, _toggleObjSize);
-    frameContextMenu->insertAction(firstAddAction, _flipObjHorizontally);
-    frameContextMenu->insertAction(firstAddAction, _flipObjVertically);
     frameContextMenu->insertMenu(firstAddAction, _entityHitboxTypeMenu);
     frameContextMenu->insertSeparator(firstAddAction);
 
@@ -70,44 +57,36 @@ FrameDock::FrameDock(Accessor::NamedListModel* frameListModel, QWidget* parent)
 
     _ui->frameContents->viewActions()->populate(_ui->frameContentsButtons);
 
-    clearGui();
     updateFrameActions();
     updateFrameObjectActions();
     updateEntityHitboxTypeMenu();
 
     setEnabled(false);
 
-    connect(_ui->frameComboBox, qOverload<int>(&QComboBox::activated),
-            this, &FrameDock::onFrameComboBoxActivated);
-
     connect(_addRemoveTileHitbox, &QAction::triggered,
-            this, &FrameDock::onAddRemoveTileHitbox);
+            this, &FrameContentsDock::onAddRemoveTileHitbox);
     connect(_toggleObjSize, &QAction::triggered,
-            this, &FrameDock::onToggleObjSize);
-    connect(_flipObjHorizontally, &QAction::triggered,
-            this, &FrameDock::onFlipObjHorizontally);
-    connect(_flipObjVertically, &QAction::triggered,
-            this, &FrameDock::onFlipObjVertically);
+            this, &FrameContentsDock::onToggleObjSize);
     connect(_entityHitboxTypeMenu, &QMenu::triggered,
-            this, &FrameDock::onEntityHitboxTypeMenu);
+            this, &FrameContentsDock::onEntityHitboxTypeMenu);
 }
 
-FrameDock::~FrameDock() = default;
+FrameContentsDock::~FrameContentsDock() = default;
 
-void FrameDock::setDocument(Document* document)
+void FrameContentsDock::setDocument(Document* document)
 {
     if (_document == document) {
         return;
     }
 
     if (_document != nullptr) {
+        _document->disconnect(this);
         _document->frameList()->disconnect(this);
         _document->frameObjectList()->disconnect(this);
         _document->entityHitboxList()->disconnect(this);
     }
     _document = document;
 
-    _frameManager->setDocument(_document);
     _frameObjectManager->setDocument(_document);
     _actionPointManager->setDocument(_document);
     _entityHitboxManager->setDocument(_document);
@@ -118,80 +97,52 @@ void FrameDock::setDocument(Document* document)
         onSelectedFrameChanged();
 
         connect(_document->frameList(), &FrameList::dataChanged,
-                this, &FrameDock::onFrameDataChanged);
+                this, &FrameContentsDock::onFrameDataChanged);
 
         connect(_document->frameList(), &FrameList::selectedIndexChanged,
-                this, &FrameDock::onSelectedFrameChanged);
+                this, &FrameContentsDock::onSelectedFrameChanged);
 
         connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
-                this, &FrameDock::updateFrameObjectActions);
+                this, &FrameContentsDock::updateFrameObjectActions);
 
         connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
-                this, &FrameDock::updateEntityHitboxTypeMenu);
-    }
-    else {
-        clearGui();
+                this, &FrameContentsDock::updateEntityHitboxTypeMenu);
     }
 }
 
-QMenu* FrameDock::frameContentsContextMenu() const
+QMenu* FrameContentsDock::frameContentsContextMenu() const
 {
     return _ui->frameContents->selectedContextmenu();
 }
 
-void FrameDock::populateMenu(QMenu* editMenu)
+void FrameContentsDock::populateMenu(QMenu* editMenu)
 {
     editMenu->addAction(_addRemoveTileHitbox);
     editMenu->addAction(_toggleObjSize);
-    editMenu->addAction(_flipObjHorizontally);
-    editMenu->addAction(_flipObjVertically);
     editMenu->addMenu(_entityHitboxTypeMenu);
     editMenu->addSeparator();
     _ui->frameContents->viewActions()->populate(editMenu, true);
 }
 
-void FrameDock::onSelectedFrameChanged()
+void FrameContentsDock::onSelectedFrameChanged()
 {
-    const MS::Frame* frame = _document->frameList()->selectedItem();
+    const SI::Frame* frame = _document->frameList()->selectedItem();
 
     if (frame) {
         _ui->frameContents->expandAll();
-
-        _ui->frameComboBox->setCurrentIndex(
-            _frameListModel->toModelIndex(_document->frameList()->selectedIndex()).row());
-    }
-    else {
-        clearGui();
     }
 
     updateFrameActions();
 }
 
-void FrameDock::onFrameDataChanged(size_t frameIndex)
+void FrameContentsDock::onFrameDataChanged(size_t frameIndex)
 {
     if (frameIndex == _document->frameList()->selectedIndex()) {
         updateFrameActions();
     }
 }
 
-void FrameDock::onFrameComboBoxActivated()
-{
-    int index = _ui->frameComboBox->currentIndex();
-
-    if (index >= 0) {
-        _document->frameList()->setSelectedIndex(index);
-    }
-    else {
-        _document->frameList()->unselectItem();
-    }
-}
-
-void FrameDock::clearGui()
-{
-    _ui->frameComboBox->setCurrentIndex(-1);
-}
-
-void FrameDock::updateFrameActions()
+void FrameContentsDock::updateFrameActions()
 {
     bool frameSelected = false;
     bool isFrameSolid = false;
@@ -208,7 +159,7 @@ void FrameDock::updateFrameActions()
                                                : tr("Add Tile Hitbox"));
 }
 
-void FrameDock::updateFrameObjectActions()
+void FrameContentsDock::updateFrameObjectActions()
 {
     bool objSelected = false;
 
@@ -217,11 +168,9 @@ void FrameDock::updateFrameObjectActions()
     }
 
     _toggleObjSize->setEnabled(objSelected);
-    _flipObjVertically->setEnabled(objSelected);
-    _flipObjHorizontally->setEnabled(objSelected);
 }
 
-void FrameDock::updateEntityHitboxTypeMenu()
+void FrameContentsDock::updateEntityHitboxTypeMenu()
 {
     bool ehSelected = false;
 
@@ -232,29 +181,20 @@ void FrameDock::updateEntityHitboxTypeMenu()
     _entityHitboxTypeMenu->setEnabled(ehSelected);
 }
 
-void FrameDock::onAddRemoveTileHitbox()
+void FrameContentsDock::onAddRemoveTileHitbox()
 {
     _document->frameList()->editSelected_toggleTileHitbox();
 }
 
-void FrameDock::onToggleObjSize()
+void FrameContentsDock::onToggleObjSize()
 {
     _document->frameObjectList()->editSelected_toggleObjectSize();
 }
 
-void FrameDock::onFlipObjHorizontally()
-{
-    _document->frameObjectList()->editSelected_flipObjectHorizontally();
-}
-
-void FrameDock::onFlipObjVertically()
-{
-    _document->frameObjectList()->editSelected_flipObjectVertically();
-}
-
-void FrameDock::onEntityHitboxTypeMenu(QAction* action)
+void FrameContentsDock::onEntityHitboxTypeMenu(QAction* action)
 {
     using EHT = UnTech::MetaSprite::EntityHitboxType;
+
     _document->entityHitboxList()->editSelected_setEntityHitboxType(
         EHT::from_romValue(action->data().toInt()));
 }

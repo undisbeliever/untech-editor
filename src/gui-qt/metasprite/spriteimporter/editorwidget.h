@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstracteditorwidget.h"
+#include "gui-qt/accessor/accessor.h"
 #include <QPushButton>
 #include <QTabWidget>
 #include <memory>
@@ -32,8 +33,9 @@ class Document;
 class TilesetPixmaps;
 class SiGraphicsScene;
 class SiAnimationPreviewItemFactory;
-class FrameSetDock;
-class FrameDock;
+class FrameContentsDock;
+class FrameSetManager;
+class FrameManager;
 
 class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
@@ -70,8 +72,14 @@ private:
 
     QPushButton* const _layersButton;
 
-    FrameSetDock* const _frameSetDock;
-    FrameDock* const _frameDock;
+    // Used by the docks
+    FrameSetManager* const _frameSetManager;
+    FrameManager* const _frameManager;
+
+    Accessor::NamedListDock* const _frameListDock;
+    QDockWidget* const _frameSetDock;
+    QDockWidget* const _framePropertiesDock;
+    FrameContentsDock* const _frameContentsDock;
     Animation::AnimationDock* const _animationDock;
 
     QTabWidget* const _tabWidget;

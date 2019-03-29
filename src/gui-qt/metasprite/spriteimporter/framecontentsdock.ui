@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnTech::GuiQt::MetaSprite::MetaSprite::FrameDock</class>
- <widget class="QDockWidget" name="UnTech::GuiQt::MetaSprite::MetaSprite::FrameDock">
+ <class>UnTech::GuiQt::MetaSprite::SpriteImporter::FrameContentsDock</class>
+ <widget class="QDockWidget" name="UnTech::GuiQt::MetaSprite::SpriteImporter::FrameContentsDock">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -19,24 +19,11 @@
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QComboBox" name="frameComboBox"/>
-    </item>
-    <item>
-     <widget class="PropertyListView" name="frameProperties">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
-      </property>
-     </widget>
-    </item>
-    <item>
      <widget class="GuiQt::Accessor::MultipleSelectionTableView" name="frameContents">
       <property name="sizePolicy">
        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
         <horstretch>0</horstretch>
-        <verstretch>2</verstretch>
+        <verstretch>0</verstretch>
        </sizepolicy>
       </property>
       <property name="minimumSize">
@@ -74,11 +61,6 @@
    <class>GuiQt::Accessor::MultipleSelectionTableView</class>
    <extends>QTreeView</extends>
    <header>gui-qt/accessor/multipleselectiontableview.h</header>
-  </customwidget>
-  <customwidget>
-   <class>PropertyListView</class>
-   <extends>QTreeView</extends>
-   <header>gui-qt/common/properties/propertylistview.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
