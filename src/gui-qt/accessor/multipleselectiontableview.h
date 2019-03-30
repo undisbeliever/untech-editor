@@ -39,7 +39,7 @@ public:
     // MUST NOT call this method
     virtual void setModel(QAbstractItemModel*) final;
 
-    const MultiListActions* viewActions() const { return _actions; }
+    MultiListActions* viewActions() const { return _actions; }
     PropertyTableModel* propertyTableModel() const { return _model; }
 
     QMenu* selectedContextmenu() { return _selectedContextMenu; }

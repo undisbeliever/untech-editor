@@ -6,14 +6,15 @@
 
 #include "editorwidget.h"
 #include "accessors.h"
+#include "actions.h"
 #include "document.h"
-#include "framecontentsdock.h"
 #include "managers.h"
 #include "msanimationpreviewitem.h"
 #include "msgraphicsscene.h"
 #include "palettesdock.h"
 #include "tilesetdock.h"
 #include "tilesetpixmaps.h"
+#include "gui-qt/accessor/multipleselectiontabledock.h"
 #include "gui-qt/accessor/namedlistdock.h"
 #include "gui-qt/common/graphics/zoomablegraphicsview.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
@@ -38,13 +39,23 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     , _tilesetPixmaps(new TilesetPixmaps(this))
     , _frameSetManager(new FrameSetManager(this))
     , _frameManager(new FrameManager(this))
+    , _frameObjectManager(new FrameObjectManager(this))
+    , _actionPointManager(new ActionPointManager(this))
+    , _entityHitboxManager(new EntityHitboxManager(this))
     , _frameListDock(new Accessor::NamedListDock(this))
     , _frameSetDock(createPropertyDockWidget(_frameSetManager, tr("FrameSet"), "MS_FrameSetDock"))
     , _framePropertiesDock(createPropertyDockWidget(_frameManager, tr("Frame"), "MS_FramePropertiesDock"))
-    , _frameContentsDock(new FrameContentsDock(this))
+    , _frameContentsDock(new Accessor::MultipleSelectionTableDock(
+          tr("Frame Contents"),
+          { _frameObjectManager, _actionPointManager, _entityHitboxManager },
+          { tr("Location"), tr("Parameter"), tr("Tile"), tr("Flip") },
+          this))
     , _animationDock(new Animation::AnimationDock(this))
     , _palettesDock(new PalettesDock(this))
     , _tilesetDock(new TilesetDock(_tilesetPixmaps, this))
+    , _actions(new Actions(_frameListDock->namedListActions(),
+                           _frameContentsDock->viewActions(),
+                           this))
     , _tabWidget(new QTabWidget(this))
     , _graphicsView(new ZoomableGraphicsView(this))
     , _graphicsScene(new MsGraphicsScene(_layerSettings, _tilesetPixmaps, this))
@@ -60,14 +71,9 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     this->setLayout(layout);
     layout->addWidget(_tabWidget);
 
-    auto* frameListActions = _frameListDock->namedListActions();
-    frameListActions->add->setShortcut(Qt::CTRL + Qt::Key_N);
-
-    _graphicsView->addAction(frameListActions->add);
-    for (auto* a : _frameContentsDock->frameContentsContextMenu()->actions()) {
-        _graphicsView->addAction(a);
-    }
-    _frameContentsDock->populateMenu(_graphicsScene->contextMenu());
+    _actions->populateGraphicsView(_graphicsView);
+    _actions->populateGraphicsView(_graphicsScene->contextMenu());
+    _actions->populateFrameContentsDockMenu(_frameContentsDock->selectedContextmenu());
 
     _graphicsView->setMinimumSize(256, 256);
     _graphicsView->setZoomSettings(zoomManager->get("metasprite"));
@@ -143,11 +149,8 @@ ZoomSettings* EditorWidget::zoomSettings() const
 
 void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
-    editMenu->addSeparator();
-    editMenu->addAction(_frameListDock->namedListActions()->add);
-    _frameContentsDock->populateMenu(editMenu);
+    _actions->populateEditMenu(editMenu);
 
-    viewMenu->addSeparator();
     _layerSettings->populateMenu(viewMenu);
 }
 
@@ -180,12 +183,16 @@ void EditorWidget::populateWidgets()
 
     _frameSetManager->setDocument(d);
     _frameManager->setDocument(d);
+    _frameObjectManager->setDocument(d);
+    _actionPointManager->setDocument(d);
+    _entityHitboxManager->setDocument(d);
+    _actions->setDocument(d);
 
     _tilesetPixmaps->setDocument(d);
     _graphicsScene->setDocument(d);
     _animationPreview->setDocument(d);
     _frameListDock->setAccessor(d ? d->frameList() : nullptr);
-    _frameContentsDock->setDocument(d);
+    _actions->setDocument(d);
     _animationDock->setDocument(d);
     _palettesDock->setDocument(d);
     _tilesetDock->setDocument(d);
@@ -203,6 +210,8 @@ void EditorWidget::onSelectedFrameChanged()
     else {
         _graphicsView->setDragMode(QGraphicsView::NoDrag);
     }
+
+    _frameContentsDock->expandAll();
 }
 
 void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)

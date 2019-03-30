@@ -25,6 +25,9 @@ class NamedListView;
 class NamedListModel;
 class NamedListDock;
 
+class MultipleSelectionTableView;
+class MultipleSelectionTableDock;
+
 template <class T, class U>
 class ListUndoHelper;
 

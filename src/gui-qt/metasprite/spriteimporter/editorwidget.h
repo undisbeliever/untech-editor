@@ -33,9 +33,12 @@ class Document;
 class TilesetPixmaps;
 class SiGraphicsScene;
 class SiAnimationPreviewItemFactory;
-class FrameContentsDock;
 class FrameSetManager;
 class FrameManager;
+class FrameObjectManager;
+class ActionPointManager;
+class EntityHitboxManager;
+class Actions;
 
 class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
@@ -75,12 +78,17 @@ private:
     // Used by the docks
     FrameSetManager* const _frameSetManager;
     FrameManager* const _frameManager;
+    FrameObjectManager* const _frameObjectManager;
+    ActionPointManager* const _actionPointManager;
+    EntityHitboxManager* const _entityHitboxManager;
 
     Accessor::NamedListDock* const _frameListDock;
     QDockWidget* const _frameSetDock;
     QDockWidget* const _framePropertiesDock;
-    FrameContentsDock* const _frameContentsDock;
+    Accessor::MultipleSelectionTableDock* const _frameContentsDock;
     Animation::AnimationDock* const _animationDock;
+
+    Actions* const _actions;
 
     QTabWidget* const _tabWidget;
     ZoomableGraphicsView* const _graphicsView;

@@ -48,6 +48,7 @@ public:
     void setShortcutContext(Qt::ShortcutContext context);
 
     void populateAddActions(QWidget* widget) const;
+    void populateNotAddActions(QWidget* widget) const;
     void populate(QWidget* widget, bool addSeperator = false) const;
 
 public slots:

@@ -36,7 +36,10 @@ class MsGraphicsScene;
 class MsAnimationPreviewItemFactory;
 class FrameSetManager;
 class FrameManager;
-class FrameContentsDock;
+class FrameObjectManager;
+class ActionPointManager;
+class EntityHitboxManager;
+class Actions;
 class PalettesDock;
 class TilesetDock;
 
@@ -67,7 +70,6 @@ private:
 
 private:
     Document* _document;
-
     LayerSettings* const _layerSettings;
     QPushButton* const _layersButton;
 
@@ -76,14 +78,19 @@ private:
     // Used by the docks
     FrameSetManager* const _frameSetManager;
     FrameManager* const _frameManager;
+    FrameObjectManager* const _frameObjectManager;
+    ActionPointManager* const _actionPointManager;
+    EntityHitboxManager* const _entityHitboxManager;
 
     Accessor::NamedListDock* const _frameListDock;
     QDockWidget* const _frameSetDock;
     QDockWidget* const _framePropertiesDock;
-    FrameContentsDock* const _frameContentsDock;
+    Accessor::MultipleSelectionTableDock* const _frameContentsDock;
     Animation::AnimationDock* const _animationDock;
     PalettesDock* const _palettesDock;
     TilesetDock* const _tilesetDock;
+
+    Actions* const _actions;
 
     QTabWidget* const _tabWidget;
     ZoomableGraphicsView* const _graphicsView;

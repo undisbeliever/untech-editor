@@ -80,16 +80,8 @@ void MultiListActions::populateAddActions(QWidget* widget) const
     }
 }
 
-void MultiListActions::populate(QWidget* widget, bool addSeperator) const
+void MultiListActions::populateNotAddActions(QWidget* widget) const
 {
-    for (QAction* a : add) {
-        widget->addAction(a);
-    }
-    if (addSeperator) {
-        auto* sep = new QAction(widget);
-        sep->setSeparator(true);
-        widget->addAction(sep);
-    }
     if (qobject_cast<QToolBar*>(widget) == nullptr) {
         // do not add selectAll to a QToolBar
         widget->addAction(selectAll);
@@ -100,6 +92,19 @@ void MultiListActions::populate(QWidget* widget, bool addSeperator) const
     widget->addAction(lower);
     widget->addAction(lowerToBottom);
     widget->addAction(remove);
+}
+
+void MultiListActions::populate(QWidget* widget, bool addSeperator) const
+{
+    for (QAction* a : add) {
+        widget->addAction(a);
+    }
+    if (addSeperator) {
+        auto* sep = new QAction(widget);
+        sep->setSeparator(true);
+        widget->addAction(sep);
+    }
+    populateNotAddActions(widget);
 }
 
 void MultiListActions::setAccessors(QList<AbstractListMultipleSelectionAccessor*> accessors)

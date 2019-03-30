@@ -6,11 +6,12 @@
 
 #include "editorwidget.h"
 #include "accessors.h"
+#include "actions.h"
 #include "document.h"
-#include "framecontentsdock.h"
 #include "managers.h"
 #include "sianimationpreviewitem.h"
 #include "sigraphicsscene.h"
+#include "gui-qt/accessor/multipleselectiontabledock.h"
 #include "gui-qt/accessor/namedlistdock.h"
 #include "gui-qt/common/graphics/zoomablegraphicsview.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
@@ -34,11 +35,21 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     , _layersButton(new QPushButton(tr("Layers"), this))
     , _frameSetManager(new FrameSetManager(this))
     , _frameManager(new FrameManager(this))
+    , _frameObjectManager(new FrameObjectManager(this))
+    , _actionPointManager(new ActionPointManager(this))
+    , _entityHitboxManager(new EntityHitboxManager(this))
     , _frameListDock(new Accessor::NamedListDock(this))
     , _frameSetDock(createPropertyDockWidget(_frameSetManager, tr("FrameSet"), "SI_FrameSetDock"))
     , _framePropertiesDock(createPropertyDockWidget(_frameManager, tr("Frame"), "SI_FramePropertiesDock"))
-    , _frameContentsDock(new FrameContentsDock(this))
+    , _frameContentsDock(new Accessor::MultipleSelectionTableDock(
+          tr("Frame Contents"),
+          { _frameObjectManager, _actionPointManager, _entityHitboxManager },
+          { tr("Location"), tr("Parameter") },
+          this))
     , _animationDock(new Animation::AnimationDock(this))
+    , _actions(new Actions(_frameListDock->namedListActions(),
+                           _frameContentsDock->viewActions(),
+                           this))
     , _tabWidget(new QTabWidget(this))
     , _graphicsView(new ZoomableGraphicsView(this))
     , _graphicsScene(new SiGraphicsScene(_layerSettings, this))
@@ -59,11 +70,9 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     auto* frameListActions = _frameListDock->namedListActions();
     frameListActions->add->setShortcut(Qt::CTRL + Qt::Key_N);
 
-    _graphicsView->addAction(frameListActions->add);
-    for (auto* a : _frameContentsDock->frameContentsContextMenu()->actions()) {
-        _graphicsView->addAction(a);
-    }
-    _frameContentsDock->populateMenu(_graphicsScene->frameContextMenu());
+    _actions->populateGraphicsView(_graphicsView);
+    _actions->populateGraphicsView(_graphicsScene->frameContextMenu());
+    _actions->populateFrameContentsDockMenu(_frameContentsDock->selectedContextmenu());
 
     _graphicsView->setMinimumSize(256, 256);
     _graphicsView->setZoomSettings(zoomManager->get("spriteimporter"));
@@ -132,9 +141,7 @@ ZoomSettings* EditorWidget::zoomSettings() const
 
 void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
-    editMenu->addSeparator();
-    editMenu->addAction(_frameListDock->namedListActions()->add);
-    _frameContentsDock->populateMenu(editMenu);
+    _actions->populateEditMenu(editMenu);
 
     viewMenu->addSeparator();
     _layerSettings->populateMenu(viewMenu);
@@ -170,11 +177,14 @@ void EditorWidget::populateWidgets()
 
     _frameSetManager->setDocument(d);
     _frameManager->setDocument(d);
+    _frameObjectManager->setDocument(d);
+    _actionPointManager->setDocument(d);
+    _entityHitboxManager->setDocument(d);
+    _actions->setDocument(d);
 
     _graphicsScene->setDocument(d);
     _animationPreview->setDocument(d);
     _frameListDock->setAccessor(d ? d->frameList() : nullptr);
-    _frameContentsDock->setDocument(d);
     _animationDock->setDocument(d);
 
     _tabWidget->setEnabled(d != nullptr);
@@ -190,6 +200,8 @@ void EditorWidget::onSelectedFrameChanged()
     else {
         _graphicsView->setDragMode(QGraphicsView::NoDrag);
     }
+
+    _frameContentsDock->expandAll();
 }
 
 void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
