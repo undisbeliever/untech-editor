@@ -73,6 +73,9 @@ private:
                 unsigned lx = siFrame.location.aabb.x + obj.location.x;
                 unsigned ly = siFrame.location.aabb.y + obj.location.y;
 
+                assert(lx + obj.sizePx() <= image.size().width);
+                assert(ly + obj.sizePx() <= image.size().height);
+
                 for (unsigned y = 0; y < obj.sizePx(); y++) {
                     const rgba* p = image.scanline(ly + y) + lx;
 
