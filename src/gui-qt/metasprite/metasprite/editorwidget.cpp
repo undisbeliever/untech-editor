@@ -14,6 +14,7 @@
 #include "palettesdock.h"
 #include "tilesetdock.h"
 #include "tilesetpixmaps.h"
+#include "gui-qt/accessor/listactions.h"
 #include "gui-qt/accessor/multipleselectiontabledock.h"
 #include "gui-qt/accessor/namedlistdock.h"
 #include "gui-qt/common/graphics/zoomablegraphicsview.h"
@@ -55,6 +56,7 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     , _tilesetDock(new TilesetDock(_tilesetPixmaps, this))
     , _actions(new Actions(_frameListDock->namedListActions(),
                            _frameContentsDock->viewActions(),
+                           _animationDock,
                            this))
     , _tabWidget(new QTabWidget(this))
     , _graphicsView(new ZoomableGraphicsView(this))
@@ -92,6 +94,26 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
 
     connect(_tabWidget, &QTabWidget::currentChanged,
             this, &EditorWidget::zoomSettingsChanged);
+
+    // Raise appropriate dock when adding/cloning a new item
+    connect(_actions->frameListActions->add, &QAction::triggered,
+            _framePropertiesDock, &QDockWidget::raise);
+    connect(_actions->frameListActions->clone, &QAction::triggered,
+            _framePropertiesDock, &QDockWidget::raise);
+    for (QAction* a : _actions->frameContentsActions->addActions()) {
+        connect(a, &QAction::triggered,
+                _frameContentsDock, &QDockWidget::raise);
+    }
+    connect(_actions->frameContentsActions->clone, &QAction::triggered,
+            _frameContentsDock, &QDockWidget::raise);
+    connect(_actions->animationListActions->add, &QAction::triggered,
+            _animationDock, &QDockWidget::raise);
+    connect(_actions->animationListActions->clone, &QAction::triggered,
+            _animationDock, &QDockWidget::raise);
+    connect(_actions->animationFrameActions->add, &QAction::triggered,
+            _animationDock, &QDockWidget::raise);
+    connect(_actions->animationFrameActions->clone, &QAction::triggered,
+            _animationDock, &QDockWidget::raise);
 }
 
 EditorWidget::~EditorWidget() = default;

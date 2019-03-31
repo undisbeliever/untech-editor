@@ -9,6 +9,7 @@
 #include "document.h"
 #include "gui-qt/accessor/multilistactions.h"
 #include "gui-qt/accessor/namedlistactions.h"
+#include "gui-qt/metasprite/animation/animationdock.h"
 #include "gui-qt/metasprite/common.h"
 
 using namespace UnTech::GuiQt;
@@ -16,6 +17,7 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 Actions::Actions(Accessor::NamedListActions* fListActions,
                  Accessor::MultiListActions* fContentsActions,
+                 Animation::AnimationDock* animationDock,
                  QObject* parent)
     : QObject(parent)
     , _document(nullptr)
@@ -26,6 +28,8 @@ Actions::Actions(Accessor::NamedListActions* fListActions,
     , entityHitboxTypeMenu(new QMenu(tr("Set Entity Hitbox Type")))
     , frameListActions(fListActions)
     , frameContentsActions(fContentsActions)
+    , animationListActions(animationDock->animationListActions())
+    , animationFrameActions(animationDock->animationFrameActions())
 {
     populateEntityHitboxTypeMenu(entityHitboxTypeMenu);
 

@@ -38,9 +38,14 @@ AnimationDock::AnimationDock(QWidget* parent)
 
 AnimationDock::~AnimationDock() = default;
 
-const UnTech::GuiQt::Accessor::NamedListActions* AnimationDock::actions() const
+Accessor::NamedListActions* AnimationDock::animationListActions()
 {
     return _ui->animationList->namedListActions();
+}
+
+Accessor::ListActions* AnimationDock::animationFrameActions()
+{
+    return _ui->animationFrames->viewActions();
 }
 
 Accessor::NamedListModel* AnimationDock::animationListModel()

@@ -40,6 +40,7 @@ public:
     int nAccessors() const { return add.size(); }
     void setNAccessors(int nAccessors);
 
+    const QList<QAction*>& addActions() const { return add; }
     QAction* addAction(int i) const { return add.at(i); }
 
     const QList<AbstractListMultipleSelectionAccessor*>& accessors() const { return _accessors; }

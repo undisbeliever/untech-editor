@@ -14,6 +14,10 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
+namespace Animation {
+class AnimationDock;
+}
+
 namespace SpriteImporter {
 class Document;
 
@@ -29,10 +33,13 @@ public:
     QMenu* const entityHitboxTypeMenu;
     Accessor::NamedListActions* const frameListActions;
     Accessor::MultiListActions* const frameContentsActions;
+    Accessor::NamedListActions* const animationListActions;
+    Accessor::ListActions* const animationFrameActions;
 
 public:
     Actions(Accessor::NamedListActions* frameListActions,
             Accessor::MultiListActions* frameContentsActions,
+            Animation::AnimationDock* animationDock,
             QObject* parent = nullptr);
     ~Actions();
 

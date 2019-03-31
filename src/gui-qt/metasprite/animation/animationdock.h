@@ -34,7 +34,8 @@ public:
     explicit AnimationDock(QWidget* parent = nullptr);
     ~AnimationDock();
 
-    const Accessor::NamedListActions* actions() const;
+    Accessor::NamedListActions* animationListActions();
+    Accessor::ListActions* animationFrameActions();
     Accessor::NamedListModel* animationListModel();
 
     void setDocument(AbstractMsDocument* document);
