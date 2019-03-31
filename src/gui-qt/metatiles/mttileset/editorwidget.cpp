@@ -96,9 +96,9 @@ QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow* mainWindow)
     mainWindow->resizeDocks({ propertyDock, tilesetDock }, { 100, 200 }, Qt::Vertical);
 
     return {
-        propertyDock,
-        tilesetDock,
         scratchpadDock,
+        tilesetDock,
+        propertyDock,
     };
 }
 

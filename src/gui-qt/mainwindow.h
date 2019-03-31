@@ -49,8 +49,11 @@ private slots:
 
 private:
     void setEditorIndex(int index);
-    void hideAllEditorDockWidgets();
     void updateEditViewMenus();
+
+    void hideAllEditorDockWidgets();
+    void saveDockWidgetsRaisedState();
+    void restoreDockWidgetsRaisedState();
 
     bool unsavedChangesDialog();
 
@@ -75,7 +78,7 @@ private:
     void saveSettings();
     QVector<QPair<QString, QMainWindow*>> settingsStateNameWindowList();
 
-    void assertDockWidgetObjectNamesUnique();
+    void assertDockWidgetObjectNamesValid();
 
 private:
     std::unique_ptr<Project> _project;
@@ -86,6 +89,7 @@ private:
 
     TabBar* const _tabBar;
     QMainWindow* const _projectWindow;
+
     ResourcesTreeDock* const _resourcesTreeDock;
     ErrorListDock* const _errorListDock;
 
@@ -98,6 +102,8 @@ private:
 
     QList<AbstractEditorWidget*> const _editors;
     QList<QList<QDockWidget*>> _editorDockWidgets;
+    // Mapping of dock objectName -> raised state
+    QHash<QString, bool> _dockWidgetsRaisedState;
 };
 }
 }

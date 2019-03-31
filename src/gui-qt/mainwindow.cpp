@@ -143,18 +143,22 @@ MainWindow::MainWindow(QWidget* parent)
             dw->setFeatures(QDockWidget::DockWidgetMovable);
             dw->hide();
         }
+
         _editorDockWidgets.append(dockWidgets);
     };
-
-    readSettings();
-    hideAllEditorDockWidgets();
 
     // Do not show context menu on any of the docked widgets
     for (auto* c : _projectWindow->children()) {
         if (auto* dw = qobject_cast<QDockWidget*>(c)) {
             dw->setContextMenuPolicy(Qt::PreventContextMenu);
+
+            // By default docks will be raised in reverse order.
+            _dockWidgetsRaisedState[dw->objectName()] = true;
         }
     }
+
+    readSettings();
+    hideAllEditorDockWidgets();
 
     setProject(nullptr);
 
@@ -337,6 +341,8 @@ void MainWindow::setEditorIndex(int index)
         return;
     }
 
+    saveDockWidgetsRaisedState();
+
     if (_currentEditor) {
         _currentEditor->disconnect(this);
         _errorListDock->disconnect(_currentEditor);
@@ -354,6 +360,7 @@ void MainWindow::setEditorIndex(int index)
             dw->setHidden(i != index);
         }
     }
+    restoreDockWidgetsRaisedState();
 
     if (editor) {
         _zoomSettingsUi->setZoomSettings(editor->zoomSettings());
@@ -384,6 +391,49 @@ void MainWindow::hideAllEditorDockWidgets()
         for (QDockWidget* dw : dockWidgets) {
             dw->hide();
         }
+    }
+}
+
+void MainWindow::saveDockWidgetsRaisedState()
+{
+    const int editorIndex = _editors.indexOf(_currentEditor);
+    if (editorIndex < 0) {
+        return;
+    }
+
+    auto saveState = [this](QDockWidget* dw) {
+        // KUDOS: Pavel Strakhov
+        // https://stackoverflow.com/a/22238571
+        bool isRaised = not dw->visibleRegion().isEmpty();
+        _dockWidgetsRaisedState[dw->objectName()] = isRaised;
+    };
+
+    saveState(_resourcesTreeDock);
+    saveState(_errorListDock);
+
+    for (auto* dw : _editorDockWidgets.at(editorIndex)) {
+        saveState(dw);
+    }
+}
+
+void MainWindow::restoreDockWidgetsRaisedState()
+{
+    const int editorIndex = _editors.indexOf(_currentEditor);
+    if (editorIndex < 0) {
+        return;
+    }
+
+    auto restoreState = [this](QDockWidget* dw) {
+        if (_dockWidgetsRaisedState[dw->objectName()]) {
+            dw->raise();
+        }
+    };
+
+    restoreState(_resourcesTreeDock);
+    restoreState(_errorListDock);
+
+    for (auto* dw : _editorDockWidgets.at(editorIndex)) {
+        restoreState(dw);
     }
 }
 
@@ -612,7 +662,7 @@ constexpr static int STATE_VERSION = 0x42;
 
 void MainWindow::readSettings()
 {
-    assertDockWidgetObjectNamesUnique();
+    assertDockWidgetObjectNamesValid();
 
     QSettings settings;
 
@@ -637,10 +687,21 @@ void MainWindow::readSettings()
 
         mw->restoreState(settings.value(stateName).toByteArray(), STATE_VERSION);
     }
+
+    QStringList raisedDocks = settings.value("raised_docks").toStringList();
+    if (not raisedDocks.empty()) {
+        for (auto it = _dockWidgetsRaisedState.begin(); it != _dockWidgetsRaisedState.end(); it++) {
+            it.value() = raisedDocks.contains(it.key());
+        }
+    }
+
+    restoreDockWidgetsRaisedState();
 }
 
 void MainWindow::saveSettings()
 {
+    saveDockWidgetsRaisedState();
+
     QSettings settings;
 
     _zoomSettingsManager->saveSettings(settings);
@@ -654,6 +715,14 @@ void MainWindow::saveSettings()
 
         settings.setValue(stateName, mw->saveState(STATE_VERSION));
     }
+
+    QStringList raisedDocks;
+    for (auto it = _dockWidgetsRaisedState.begin(); it != _dockWidgetsRaisedState.end(); it++) {
+        if (it.value()) {
+            raisedDocks.append(it.key());
+        }
+    }
+    settings.setValue("raised_docks", raisedDocks);
 }
 
 QVector<QPair<QString, QMainWindow*>> MainWindow::settingsStateNameWindowList()
@@ -664,7 +733,7 @@ QVector<QPair<QString, QMainWindow*>> MainWindow::settingsStateNameWindowList()
     };
 }
 
-void MainWindow::assertDockWidgetObjectNamesUnique()
+void MainWindow::assertDockWidgetObjectNamesValid()
 {
     QSet<QString> dockWidgetNames;
 
@@ -675,6 +744,9 @@ void MainWindow::assertDockWidgetObjectNamesUnique()
             if (auto* dw = qobject_cast<QDockWidget*>(c)) {
                 const QString dockName = dw->objectName();
 
+                if (dockName.isEmpty()) {
+                    qFatal("QDockWidget objectName is empty");
+                }
                 if (dockWidgetNames.contains(dockName)) {
                     qFatal("QDockWidget objectNames are not unique");
                 }
