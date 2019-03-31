@@ -28,6 +28,8 @@ public:
     PropertyDelegate(QObject* parent = nullptr);
     ~PropertyDelegate() = default;
 
+    static QString colorText(const QColor& color);
+
     virtual QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const final;
 
     virtual void paint(QPainter* painter, const QStyleOptionViewItem& option,

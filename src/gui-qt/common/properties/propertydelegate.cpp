@@ -29,9 +29,16 @@
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
+static constexpr int COLOR_ICON_SIZE = 15;
+
 PropertyDelegate::PropertyDelegate(QObject* parent)
     : QItemDelegate(parent)
 {
+}
+
+QString PropertyDelegate::colorText(const QColor& color)
+{
+    return color.alpha() != 0 ? color.name() : tr("Transparent");
 }
 
 QRect PropertyDelegate::checkBoxRect(const QStyleOptionViewItem& option) const
@@ -109,12 +116,10 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
         case Type::STRING_LIST:
         case Type::IDSTRING:
         case Type::IDSTRING_LIST:
-        case Type::COLOR:
         case Type::POINT:
         case Type::SIZE:
         case Type::RECT:
-        case Type::COMBO:
-        case Type::COLOR_COMBO: {
+        case Type::COMBO: {
             drawDisplay(painter, option, option.rect, value.toString());
         } break;
 
@@ -123,6 +128,25 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
             QStyleOptionViewItem opt = option;
             opt.textElideMode = Qt::ElideLeft;
             drawDisplay(painter, opt, option.rect, value.toString());
+        } break;
+
+        case Type::COLOR:
+        case Type::COLOR_COMBO: {
+            QColor color = value.value<QColor>();
+
+            QRect rect = option.rect;
+
+            if (color.alpha() != 0 && rect.width() > COLOR_ICON_SIZE * 2) {
+                int iconSize = std::min(rect.height() - 2, COLOR_ICON_SIZE);
+                int ySpacing = (rect.height() - COLOR_ICON_SIZE) / 2;
+
+                painter->fillRect(rect.x(), rect.y() + ySpacing, iconSize, iconSize, color);
+
+                rect.setLeft(rect.x() + iconSize);
+            }
+
+            drawDisplay(painter, option, rect, colorText(color));
+
         } break;
         }
     }
@@ -427,14 +451,13 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
 
         int colorIndex = -1;
 
-        QPixmap pixmap(15, 15);
+        QPixmap pixmap(COLOR_ICON_SIZE, COLOR_ICON_SIZE);
         for (auto& c : colorsList) {
             QColor color = c.value<QColor>();
 
             pixmap.fill(color);
-            QString text = color.alpha() != 0 ? color.name() : tr("Transparent");
 
-            cb->addItem(QIcon(pixmap), text, c);
+            cb->addItem(QIcon(pixmap), colorText(color), c);
         }
 
         cb->setCurrentIndex(cb->findData(colorIndex));
