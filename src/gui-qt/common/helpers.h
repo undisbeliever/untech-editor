@@ -163,12 +163,12 @@ inline usize toUsize(const QSize& s)
 
 inline QColor fromRgba(const rgba& c)
 {
-    return QColor(c.rgbHex());
+    return QColor(c.red, c.green, c.blue, c.alpha);
 }
 
 inline rgba toRgba(const QColor& c)
 {
-    return rgba(c.red(), c.green(), c.blue());
+    return rgba(c.red(), c.green(), c.blue(), c.alpha());
 }
 }
 }
