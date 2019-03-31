@@ -77,6 +77,9 @@ private:
     void addEntityHitbox(const MS::Frame& frame);
     void updateEntityHitbox(unsigned index, const MS::EntityHitbox& eh);
 
+signals:
+    void frameContentSelected();
+
 private slots:
     void onLayerSettingsChanged();
 

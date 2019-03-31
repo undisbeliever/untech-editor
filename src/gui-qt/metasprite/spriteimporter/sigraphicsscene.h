@@ -50,6 +50,9 @@ private:
     template <typename F>
     void updateSelection(F f, const vectorset<size_t>& selectedIndexes);
 
+signals:
+    void frameContentSelected();
+
 private slots:
     void onLayerSettingsChanged();
 

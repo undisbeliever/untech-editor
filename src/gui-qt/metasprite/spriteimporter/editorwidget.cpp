@@ -115,6 +115,9 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
             _animationDock, &QDockWidget::raise);
     connect(_actions->animationFrameActions->clone, &QAction::triggered,
             _animationDock, &QDockWidget::raise);
+
+    connect(_graphicsScene, &SiGraphicsScene::frameContentSelected,
+            _frameContentsDock, &QDockWidget::raise);
 }
 
 EditorWidget::~EditorWidget() = default;

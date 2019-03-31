@@ -288,13 +288,16 @@ void SiGraphicsScene::onSceneSelectionChanged()
     // Only the selected frame has selectable QGraphicsItems
     // No need to worry about items from different frames being selected
 
-    auto getSelected = [](const auto& items) {
+    bool contentSelected = false;
+
+    auto getSelected = [&](const auto& items) {
         std::vector<size_t> sel;
 
         for (int i = 0; i < items.size(); i++) {
             const QGraphicsItem* item = items.at(i);
             if (item->isSelected()) {
                 sel.push_back(i);
+                contentSelected = true;
             }
         }
 
@@ -306,6 +309,10 @@ void SiGraphicsScene::onSceneSelectionChanged()
     _document->entityHitboxList()->setSelectedIndexes(getSelected(frameItem->entityHitboxes()));
 
     _document->frameList()->setTileHitboxSelected(frameItem->tileHitbox()->isSelected());
+
+    if (contentSelected) {
+        emit frameContentSelected();
+    }
 
     _inOnSceneSelectionChanged = false;
 }

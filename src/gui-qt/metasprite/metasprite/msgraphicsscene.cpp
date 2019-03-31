@@ -400,7 +400,9 @@ void MsGraphicsScene::onSceneSelectionChanged()
     Q_ASSERT(_inOnSceneSelectionChanged == false);
     _inOnSceneSelectionChanged = true;
 
-    auto getSelected = [](const auto& items) {
+    bool contentSelected = false;
+
+    auto getSelected = [&](const auto& items) {
         std::vector<size_t> sel;
 
         for (int i = 0; i < items.size(); i++) {
@@ -408,6 +410,7 @@ void MsGraphicsScene::onSceneSelectionChanged()
 
             if (item->isSelected()) {
                 sel.push_back(i);
+                contentSelected = true;
             }
         }
 
@@ -419,6 +422,10 @@ void MsGraphicsScene::onSceneSelectionChanged()
     _document->entityHitboxList()->setSelectedIndexes(getSelected(_entityHitboxes));
 
     _document->frameList()->setTileHitboxSelected(_tileHitbox->isSelected());
+
+    if (contentSelected) {
+        emit frameContentSelected();
+    }
 
     _inOnSceneSelectionChanged = false;
 }
