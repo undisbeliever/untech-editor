@@ -129,6 +129,9 @@ MainWindow::MainWindow(QWidget* parent)
     Q_ASSERT(_centralStackedWidget->count() == 0);
     _centralStackedWidget->addWidget(new QWidget(_centralStackedWidget));
 
+    // Setup Dock Widgets
+    _projectWindow->setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
+
     for (AbstractEditorWidget* editor : _editors) {
         // Prevents centralStackedWidget from expanding when widget is changed
         editor->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -157,6 +160,7 @@ MainWindow::MainWindow(QWidget* parent)
         }
     }
 
+    // Restore state
     readSettings();
     hideAllEditorDockWidgets();
 
