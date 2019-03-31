@@ -77,6 +77,12 @@ void MultipleSelectionTableView::setPropertyManagers(const QList<ListAccessorTab
     rebuildMenus();
 
     if (_model) {
+        if (_model->managers().size() > 1) {
+            for (int i = 0; i < _model->managers().size(); i++) {
+                setFirstColumnSpanned(i, QModelIndex(), true);
+            }
+        }
+
         connect(this->selectionModel(), &QItemSelectionModel::selectionChanged,
                 this, &MultipleSelectionTableView::onViewSelectionChanged);
     }

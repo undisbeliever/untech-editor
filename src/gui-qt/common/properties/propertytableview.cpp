@@ -123,7 +123,13 @@ void PropertyTableView::setPropertyModel(PropertyTableModel* model)
     _model = model;
     QTreeView::setModel(model);
 
-    if (model) {
+    if (_model) {
+        if (_model->managers().size() > 1) {
+            for (int i = 0; i < _model->managers().size(); i++) {
+                setFirstColumnSpanned(i, QModelIndex(), true);
+            }
+        }
+
         connect(_model, &PropertyTableModel::modelReset,
                 this, &PropertyTableView::onSelectionChanged);
         connect(_model, &PropertyTableModel::layoutChanged,
