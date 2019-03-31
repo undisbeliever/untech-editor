@@ -14,6 +14,7 @@
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
 #include "models/common/imagecache.h"
+#include <unordered_set>
 
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
@@ -34,7 +35,7 @@ FrameSetManager::FrameSetManager(QObject* parent)
     addProperty(tr("Export Order"), EXPORT_ORDER, Type::COMBO);
     addPropertyGroup(tr("Image:"));
     addProperty(tr("Filename"), IMAGE_FILENAME, Type::FILENAME, QStringLiteral("PNG Image (*.png)"));
-    addProperty(tr("Transparent Color"), TRANSPARENT_COLOR, Type::COLOR);
+    addProperty(tr("Transparent Color"), TRANSPARENT_COLOR, Type::COLOR_COMBO);
     addPropertyGroup(tr("Grid:"));
     addProperty(tr("Frame Size"), GRID_FRAME_SIZE, Type::SIZE);
     addProperty(tr("Offset"), GRID_OFFSET, Type::POINT);
@@ -55,10 +56,15 @@ void FrameSetManager::setDocument(Document* document)
 
     if (_document) {
         connect(_document, &Document::nameChanged,
-                this, &FrameManager::dataChanged);
+                this, &FrameSetManager::dataChanged);
         connect(_document, &Document::frameSetDataChanged,
-                this, &FrameManager::dataChanged);
+                this, &FrameSetManager::dataChanged);
+
+        connect(_document, &Document::frameSetImageFilenameChanged,
+                this, &FrameSetManager::updateImageColors);
     }
+
+    updateImageColors();
 
     setEnabled(_document != nullptr);
     emit dataChanged();
@@ -141,13 +147,16 @@ void FrameSetManager::updateParameters(int id, QVariant& param1, QVariant& param
     case PropertyId::NAME:
     case PropertyId::TILESET_TYPE:
     case IMAGE_FILENAME:
-    case TRANSPARENT_COLOR:
     case GRID_FRAME_SIZE:
     case GRID_OFFSET:
     case GRID_PADDING:
     case USER_SUPPLIED_PALETTE:
     case PALETTE_N_PALLETES:
     case PALETTE_COLOR_SIZE:
+        break;
+
+    case TRANSPARENT_COLOR:
+        param1 = _imageColors;
         break;
 
     case GRID_ORIGIN:
@@ -256,6 +265,35 @@ bool FrameSetManager::setData(int id, const QVariant& value)
     }
 
     return false;
+}
+
+void FrameSetManager::updateImageColors()
+{
+    constexpr static int MAX_COLORS = 255;
+
+    _imageColors.clear();
+
+    if (_document == nullptr) {
+        return;
+    }
+
+    auto* fs = _document->frameSet();
+    Q_ASSERT(fs);
+    const auto& image = ImageCache::loadPngImage(fs->imageFilename);
+
+    std::unordered_set<uint32_t> colorSet;
+    for (size_t i = 0; i < image->dataSize(); i++) {
+        const rgba pixel = image->data()[i];
+
+        bool newColor = colorSet.insert(pixel.rgbaValue()).second;
+        if (newColor) {
+            _imageColors.append(fromRgba(pixel));
+
+            if (_imageColors.size() >= MAX_COLORS) {
+                return;
+            }
+        }
+    }
 }
 
 FrameManager::FrameManager(QObject* parent)

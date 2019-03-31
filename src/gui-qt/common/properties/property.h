@@ -24,6 +24,7 @@ enum class PropertyType {
     SIZE,          // minimum value, maximum value
     RECT,          // bounding rect, maximum size
     COMBO,         // StringList of values, (optional) data VariantList
+    COLOR_COMBO,   // QVariantList of colors
     STRING_LIST,   // no parameters
     IDSTRING_LIST, // completer values
     FILENAME_LIST  // dialog filter

@@ -51,7 +51,12 @@ public:
     virtual bool setData(int id, const QVariant& value) final;
 
 private:
+    void updateImageColors();
+
+private:
     Document* _document;
+
+    QVariantList _imageColors;
 };
 
 class FrameManager : public PropertyListManager {

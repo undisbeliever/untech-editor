@@ -113,7 +113,8 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
         case Type::POINT:
         case Type::SIZE:
         case Type::RECT:
-        case Type::COMBO: {
+        case Type::COMBO:
+        case Type::COLOR_COMBO: {
             drawDisplay(painter, option, option.rect, value.toString());
         } break;
 
@@ -271,7 +272,8 @@ QWidget* PropertyDelegate::createEditorWidget(QWidget* parent, const AbstractPro
         return rw;
     }
 
-    case Type::COMBO: {
+    case Type::COMBO:
+    case Type::COLOR_COMBO: {
         QComboBox* cb = new QComboBox(parent);
         cb->setAutoFillBackground(true);
         cb->setFrame(false);
@@ -416,6 +418,27 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
         int i = cb->findData(data);
         cb->setCurrentIndex(i);
     } break;
+
+    case Type::COLOR_COMBO: {
+        const QVariantList colorsList = params.first.toList();
+
+        QComboBox* cb = qobject_cast<QComboBox*>(editor);
+        cb->clear();
+
+        int colorIndex = -1;
+
+        QPixmap pixmap(15, 15);
+        for (auto& c : colorsList) {
+            QColor color = c.value<QColor>();
+
+            pixmap.fill(color);
+            QString text = color.alpha() != 0 ? color.name() : tr("Transparent");
+
+            cb->addItem(QIcon(pixmap), text, c);
+        }
+
+        cb->setCurrentIndex(cb->findData(colorIndex));
+    } break;
     }
 }
 
@@ -485,7 +508,8 @@ void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
         model->setData(index, rw->value(), Qt::EditRole);
     } break;
 
-    case Type::COMBO: {
+    case Type::COMBO:
+    case Type::COLOR_COMBO: {
         QComboBox* cb = qobject_cast<QComboBox*>(editor);
         model->setData(index, cb->currentData(), Qt::EditRole);
     } break;
