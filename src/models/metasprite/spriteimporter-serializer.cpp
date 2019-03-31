@@ -100,6 +100,9 @@ public:
             frameSet.transparentColor = UnTech::rgba::fromRgba(hex);
             frameSet.transparentColor.alpha = 0xFF;
         }
+        else {
+            frameSet.transparentColor = rgba(0, 0, 0, 0);
+        }
 
         std::unique_ptr<XmlTag> childTag;
         while ((childTag = xml.parseTag())) {
@@ -357,7 +360,7 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
         xml.writeTagAttributeFilename("image", frameSet.imageFilename);
     }
 
-    if (frameSet.transparentColorValid()) {
+    if (frameSet.transparentColor.alpha == 0xff) {
         static_assert(sizeof(unsigned) >= 3, "Unsigned value too small");
 
         unsigned rgb = frameSet.transparentColor.rgb();

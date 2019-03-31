@@ -294,9 +294,6 @@ bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList&
     if (imageFilename.empty()) {
         addError("No Image");
     }
-    if (transparentColorValid() == false) {
-        addError("Transparent color is invalid");
-    }
     valid &= grid.validate(errorList);
 
     if (valid == false) {
@@ -308,6 +305,10 @@ bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList&
     if (image->empty()) {
         addError(image->errorString());
         return false;
+    }
+
+    if (transparentColorValid(*image) == false) {
+        addError("Transparent color is invalid");
     }
 
     if (palette.usesUserSuppliedPalette()) {
@@ -362,6 +363,22 @@ usize FrameSet::minimumFrameGridSize() const
     return limit;
 }
 
+bool FrameSet::transparentColorValid(const Image& image) const
+{
+    if (transparentColor.alpha == 0xff) {
+        return true;
+    }
+    if (transparentColor.alpha == 0) {
+        bool hasTransparent = std::any_of(image.data(), image.data() + image.dataSize(),
+                                          [&](const rgba& c) { return c.alpha == 0; });
+
+        return hasTransparent && transparentColor == rgba(0, 0, 0, 0);
+    }
+    else {
+        return false;
+    }
+}
+
 void FrameSet::updateFrameLocations()
 {
     for (Frame& frame : frames) {
@@ -371,25 +388,13 @@ void FrameSet::updateFrameLocations()
 
 bool FrameSet::operator==(const FrameSet& o) const
 {
-    auto testTransparentColor = [&]() -> bool {
-        if (transparentColorValid() != o.transparentColorValid()) {
-            return false;
-        }
-        else if (transparentColorValid()) {
-            return transparentColor == transparentColor;
-        }
-        else {
-            return true;
-        }
-    };
-
     return name == o.name
            && tilesetType == o.tilesetType
            && exportOrder == o.exportOrder
            && imageFilename == o.imageFilename
            && palette == o.palette
            && grid == o.grid
-           && testTransparentColor()
+           && transparentColor == o.transparentColor
            && frames == o.frames
            && animations == o.animations;
 }

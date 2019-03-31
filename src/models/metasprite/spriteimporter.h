@@ -218,7 +218,7 @@ struct FrameSet {
     NamedList<Animation::Animation> animations;
 
     std::string imageFilename;
-    UnTech::rgba transparentColor;
+    UnTech::rgba transparentColor = rgba(0, 0, 0, 0);
     UserSuppliedPalette palette;
     FrameSetGrid grid;
 
@@ -229,15 +229,13 @@ struct FrameSet {
 
     usize minimumFrameGridSize() const;
 
-    bool transparentColorValid() const
-    {
-        return transparentColor.alpha == 0xFF;
-    }
-
     void updateFrameLocations();
 
     bool operator==(const FrameSet& o) const;
     bool operator!=(const FrameSet& o) const { return !(*this == o); }
+
+private:
+    bool transparentColorValid(const Image& image) const;
 };
 
 std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename);
