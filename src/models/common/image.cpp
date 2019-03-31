@@ -67,7 +67,14 @@ bool Image::loadPngImage(const std::string& filename)
         return false;
     }
 
+    assert(_imageData.size() == _size.width * _size.height * sizeof(rgba));
     assert(uintptr_t(_imageData.data()) % alignof(rgba) == 0);
+
+    if (not empty()) {
+        // Ensure all transparent pixels have the same value (`rgba(0, 0, 0, 0)`).
+        std::for_each(data(), data() + dataSize(),
+                      [](rgba& c) { if (c.alpha == 0) { c = rgba(0, 0, 0, 0); } });
+    }
 
     return true;
 }

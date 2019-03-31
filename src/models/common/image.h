@@ -41,6 +41,9 @@ public:
      *
      * This overrides the current image.
      *
+     * NOTE: This method will transform all pixels with an alpha value to 0 to
+     *       `rgba(0, 0, 0, 0)`.
+     *
      * If the image cannot be loaded then:
      *   - return false
      *   - the image is erased.
@@ -56,6 +59,11 @@ public:
     inline unsigned pixelsPerScanline() const
     {
         return _size.width;
+    }
+
+    inline size_t dataSize() const
+    {
+        return _size.width * _size.height;
     }
 
     inline rgba* data()
