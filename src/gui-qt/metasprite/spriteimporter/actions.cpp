@@ -37,6 +37,7 @@ Actions::Actions(Accessor::NamedListActions* fListActions,
     updateEntityHitboxTypeMenu();
 
     frameListActions->add->setShortcut(Qt::CTRL + Qt::Key_N);
+    frameListActions->clone->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_D);
 
     Q_ASSERT(frameContentsActions->nAccessors() == 3);
     frameContentsActions->addAction(0)->setIcon(QIcon(":/icons/add-frame-object.svg"));
@@ -99,6 +100,7 @@ void Actions::populateEditMenu(QMenu* editMenu)
     editMenu->addMenu(entityHitboxTypeMenu);
     editMenu->addSeparator();
     frameContentsActions->populateNotAddActions(editMenu);
+    editMenu->insertAction(frameContentsActions->clone, frameListActions->clone);
 }
 
 void Actions::populateFrameContentsDockMenu(QMenu* menu)
@@ -127,6 +129,7 @@ void Actions::populateGraphicsView(QWidget* widget)
 
     widget->addAction(frameListActions->add);
     frameContentsActions->populate(widget, isMenu);
+    widget->insertAction(frameContentsActions->clone, frameListActions->clone);
 }
 
 void Actions::onFrameDataChanged(size_t frameIndex)
