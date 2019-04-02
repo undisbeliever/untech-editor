@@ -12,6 +12,9 @@
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
+static_assert(PropertyListModel::LIST_ITEM_FLAG > PropertyListModel::PINDEX_MASK, "PropertyListModel::PINDEX_MASK too large");
+static_assert((PropertyListModel::LIST_ITEM_FLAG << 1) <= INT32_MAX, "PropertyListModel::LIST_ITEM_FLAG too large");
+
 const QString PropertyListModel::ITEM_MIME_TYPE = QStringLiteral("application/x-untech-propertylist-row");
 
 PropertyListModel::PropertyListModel(PropertyListManager* manager)
@@ -79,9 +82,13 @@ QPair<QVariant, QVariant> PropertyListModel::propertyParametersForIndex(const QM
 
 void PropertyListModel::onManagerPropertyListChanged()
 {
-    beginResetModel();
+    if ((_manager->propertiesList().size() + 2) >= int(PINDEX_MASK)) {
+        qFatal("Too many properties in PropertyListManager.");
+    }
 
     // Build the layout
+
+    beginResetModel();
 
     _rootIndexes.clear();
     _propertyLayout.resize(_manager->propertiesList().size());

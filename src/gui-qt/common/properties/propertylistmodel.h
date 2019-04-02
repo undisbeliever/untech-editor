@@ -19,13 +19,13 @@ class PropertyModelCache;
 class PropertyListModel : public AbstractPropertyModel {
     Q_OBJECT
 
+public:
     // Internal Id:
     //     For property Items: propertyList index
     //     For list items:     propertyList index | LIST_ITEM_FLAG
-    static constexpr unsigned LIST_ITEM_FLAG = 0x1000;
-    static constexpr unsigned PINDEX_MASK = 0x0fff;
+    static constexpr unsigned LIST_ITEM_FLAG = 0x100000;
+    static constexpr unsigned PINDEX_MASK = 0x0fffff;
 
-public:
     enum {
         PROPERTY_COLUMN,
         VALUE_COLUMN,
