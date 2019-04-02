@@ -182,11 +182,21 @@ private:
 };
 
 struct UserSuppliedPalette {
+    enum class Position {
+        TOP_LEFT,
+        TOP_RIGHT,
+        BOTTOM_LEFT,
+        BOTTOM_RIGHT,
+    };
+    static const EnumMap<Position> positionEnumMap;
+
+    Position position;
     unsigned nPalettes;
     unsigned colorSize;
 
     UserSuppliedPalette()
-        : nPalettes(0)
+        : position(Position::TOP_LEFT)
+        , nPalettes(0)
         , colorSize(4)
     {
     }
@@ -203,7 +213,9 @@ struct UserSuppliedPalette {
 
     bool operator==(const UserSuppliedPalette& o) const
     {
-        return this->nPalettes == o.nPalettes && this->colorSize == o.colorSize;
+        return this->position == o.position
+               && this->nPalettes == o.nPalettes
+               && this->colorSize == o.colorSize;
     }
     bool operator!=(const UserSuppliedPalette& o) const { return !(*this == o); }
 };

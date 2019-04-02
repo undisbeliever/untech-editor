@@ -112,23 +112,86 @@ private:
         validateUserSuppliedPalettes();
 
         const unsigned colorSize = siFrameSet.palette.colorSize;
+        const upoint uspPos = palettePosition();
+        const vectorset<rgba> colorSet = getColorsFromImage();
+
+        // This method allows the sprite-sheet palette to be different from the
+        // first palette.
+        //
+        // This is for two reasons:
+        //  1) The old palette converter used the bottom palette as the sprite
+        //     sheet palette.
+        //  2) Allow the user to easily change the order of the palettes without
+        //     changing the sprite sheet.
+
+        unsigned bestMatch = 0;
+        unsigned bestMatchCount = 0;
 
         for (unsigned pal = 0; pal < siFrameSet.palette.nPalettes; pal++) {
-            const unsigned yPos = image.size().height - pal * colorSize - 1;
-
             msFrameSet.palettes.emplace_back();
             Snes::Palette4bpp& palette = msFrameSet.palettes.back();
 
+            unsigned xPos = uspPos.x;
+            const unsigned yPos = uspPos.y + pal * colorSize;
+
+            unsigned nMatching = 0;
+
             for (unsigned i = 0; i < PALETTE_COLORS; i++) {
-                const rgba c = image.getPixel(i * colorSize, yPos);
+                const rgba c = image.getPixel(xPos, yPos);
+                xPos += colorSize;
 
                 palette.color(i).setRgb(c);
 
-                if (pal == 0) {
-                    _colorMap.insert({ c, i });
+                if (colorSet.contains(c)) {
+                    nMatching++;
                 }
             }
+
+            if (nMatching > bestMatchCount) {
+                bestMatch = pal;
+                bestMatchCount = nMatching;
+            }
         }
+
+        // build _colorMap
+        {
+            unsigned xPos = uspPos.x;
+            const unsigned yPos = uspPos.y + bestMatch * colorSize;
+
+            for (unsigned i = 0; i < PALETTE_COLORS; i++) {
+                const rgba c = image.getPixel(xPos, yPos);
+                xPos += colorSize;
+
+                _colorMap.emplace(c, i);
+            }
+        }
+
+        validateColorMap(colorSet);
+    }
+
+    // ASSUMES UserSuppliedPalette exists and is valid
+    inline upoint palettePosition() const
+    {
+        using Position = SI::UserSuppliedPalette::Position;
+
+        const usize imageSize = image.size();
+        const usize paletteSize = siFrameSet.palette.paletteSize();
+
+        switch (siFrameSet.palette.position) {
+        case Position::TOP_LEFT:
+            return upoint(0, 0);
+
+        case Position::TOP_RIGHT:
+            return upoint(imageSize.width - paletteSize.width, 0);
+
+        case Position::BOTTOM_LEFT:
+            return upoint(0, imageSize.height - paletteSize.height);
+
+        case Position::BOTTOM_RIGHT:
+            return upoint(imageSize.width - paletteSize.width, imageSize.height - paletteSize.height);
+        }
+
+        throw std::runtime_error("Invalid UserSuppliedPalette::Position");
     }
 
     inline void validateUserSuppliedPalettes() const
@@ -143,30 +206,32 @@ private:
         for (unsigned pal = 0; pal < siFrameSet.palette.nPalettes; pal++) {
             validateUserSuppliedPalette(pal);
         }
-
-        validateFirstUserSuppliedPalette();
     }
 
     inline void validateUserSuppliedPalette(unsigned pal) const
     {
         const unsigned colorSize = siFrameSet.palette.colorSize;
-        const unsigned yPos = image.size().height - pal * colorSize - 1;
+        const upoint uspPos = palettePosition();
+        const unsigned xPos = uspPos.x;
+        const unsigned yPos = uspPos.y + pal * colorSize;
 
-        const rgba* scanline = image.scanline(yPos);
+        assert(xPos + colorSize * PALETTE_COLORS <= image.size().width);
+        assert(yPos + colorSize <= image.size().height);
 
-        // ensure the scanlines of the palette equal
+        const rgba* startOfPalette = image.scanline(yPos) + xPos;
 
+        // ensure the pixel columns of the palette are equal
         for (unsigned l = 1; l < colorSize; l++) {
-            const rgba* linetoTest = image.scanline(yPos - l);
+            const rgba* imgBitstoTest = image.scanline(yPos + l) + xPos;
 
-            if (std::memcmp(scanline, linetoTest, sizeof(rgba) * colorSize * PALETTE_COLORS) != 0) {
-                throw std::runtime_error("Custom Palette is invalid A");
+            if (std::memcmp(startOfPalette, imgBitstoTest, sizeof(rgba) * colorSize * PALETTE_COLORS) != 0) {
+                throw std::runtime_error("Custom Palette is invalid");
             }
         }
 
         // ensure each of the palette colors are equally colored squares
-        for (unsigned c = 0; c < PALETTE_COLORS; c++) {
-            const rgba* imgBits = scanline + c * colorSize;
+        for (unsigned c = 0; c <= PALETTE_COLORS; c++) {
+            const rgba* imgBits = startOfPalette + c * colorSize;
 
             for (unsigned i = 1; i < colorSize; i++) {
                 if (imgBits[0] != imgBits[i]) {
@@ -176,24 +241,19 @@ private:
         }
 
         // ensure first color is transparent
-        if (scanline[0] != siFrameSet.transparentColor) {
+        if (startOfPalette[0] != siFrameSet.transparentColor) {
             throw std::runtime_error("First color of custom palette " + std::to_string(pal)
                                      + " is not the transparent color");
         }
     }
 
-    inline void validateFirstUserSuppliedPalette() const
+    // Validate colorMap contains all the colors used in the colorSet
+    inline void validateColorMap(vectorset<rgba> colorSet) const
     {
-        const unsigned colorSize = siFrameSet.palette.colorSize;
+        assert(_colorMap.at(siFrameSet.transparentColor) == 0);
 
-        vectorset<rgba> colorSet = getColorsFromImage();
-        assert(colorSet.size() <= PALETTE_COLORS - 1);
-
-        const rgba* scanline = image.scanline(image.size().height - 1);
-
-        for (unsigned i = 0; i < PALETTE_COLORS; i++) {
-            const rgba c = scanline[i * colorSize];
-            colorSet.erase(c);
+        for (auto& it : _colorMap) {
+            colorSet.erase(it.first);
         }
 
         if (colorSet.size() > 0) {

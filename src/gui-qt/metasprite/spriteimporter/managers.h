@@ -36,6 +36,7 @@ class FrameSetManager : public PropertyListManager {
         GRID_PADDING,
         GRID_ORIGIN,
         USER_SUPPLIED_PALETTE,
+        PALETTE_POSITION,
         PALETTE_N_PALLETES,
         PALETTE_COLOR_SIZE,
     };

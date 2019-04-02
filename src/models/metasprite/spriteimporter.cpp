@@ -15,6 +15,13 @@
 using namespace UnTech;
 using namespace UnTech::MetaSprite::SpriteImporter;
 
+const EnumMap<UserSuppliedPalette::Position> UserSuppliedPalette::positionEnumMap{ {
+    { "TOP_LEFT", UserSuppliedPalette::Position::TOP_LEFT },
+    { "TOP_RIGHT", UserSuppliedPalette::Position::TOP_RIGHT },
+    { "BOTTOM_LEFT", UserSuppliedPalette::Position::BOTTOM_LEFT },
+    { "BOTTOM_RIGHT", UserSuppliedPalette::Position::BOTTOM_RIGHT },
+} };
+
 /*
  * FRAME SET GRID
  * ==============

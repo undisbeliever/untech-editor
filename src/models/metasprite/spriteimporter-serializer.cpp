@@ -245,12 +245,21 @@ private:
     {
         assert(tag->name == "palette");
 
-        if (frameSet.palette.usesUserSuppliedPalette()) {
+        auto& palette = frameSet.palette;
+
+        if (palette.usesUserSuppliedPalette()) {
             throw xml_error(*tag, "Only one palette tag allowed per frameset");
         }
 
-        frameSet.palette.nPalettes = tag->getAttributeUnsigned("npalettes", 1);
-        frameSet.palette.colorSize = tag->getAttributeUnsigned("colorsize", 1);
+        if (tag->hasAttribute("position")) {
+            palette.position = tag->getAttributeEnum("position", UserSuppliedPalette::positionEnumMap);
+        }
+        else {
+            // old behaviour
+            palette.position = UserSuppliedPalette::Position::BOTTOM_LEFT;
+        }
+        palette.nPalettes = tag->getAttributeUnsigned("npalettes", 1);
+        palette.colorSize = tag->getAttributeUnsigned("colorsize", 1);
     }
 };
 
@@ -371,6 +380,7 @@ void writeFrameSet(XmlWriter& xml, const FrameSet& frameSet)
 
     if (frameSet.palette.usesUserSuppliedPalette()) {
         xml.writeTag("palette");
+        xml.writeTagAttributeEnum("position", frameSet.palette.position, UserSuppliedPalette::positionEnumMap);
         xml.writeTagAttribute("npalettes", frameSet.palette.nPalettes);
         xml.writeTagAttribute("colorsize", frameSet.palette.colorSize);
         xml.writeCloseTag();

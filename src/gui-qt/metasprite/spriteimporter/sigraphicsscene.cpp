@@ -336,6 +336,8 @@ void SiGraphicsScene::updateFrameSetPixmap()
 
 void SiGraphicsScene::updatePaletteOutline()
 {
+    using Position = SI::UserSuppliedPalette::Position;
+
     const SI::FrameSet* frameSet = _document->frameSet();
     const auto& palette = frameSet->palette;
 
@@ -352,7 +354,25 @@ void SiGraphicsScene::updatePaletteOutline()
         }
 
         _paletteOutline->setPath(path);
-        _paletteOutline->setPos(0, imageSize.height() - paletteSize.height);
+
+        switch (palette.position) {
+        case Position::TOP_LEFT:
+            _paletteOutline->setPos(0, 0);
+            break;
+
+        case Position::TOP_RIGHT:
+            _paletteOutline->setPos(imageSize.width() - paletteSize.width, 0);
+            break;
+
+        case Position::BOTTOM_LEFT:
+            _paletteOutline->setPos(0, imageSize.height() - paletteSize.height);
+            break;
+
+        case Position::BOTTOM_RIGHT:
+            _paletteOutline->setPos(imageSize.width() - paletteSize.width, imageSize.height() - paletteSize.height);
+            break;
+        }
+
         _paletteOutline->setVisible(true);
     }
     else {

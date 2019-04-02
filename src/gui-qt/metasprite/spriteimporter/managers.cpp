@@ -29,6 +29,7 @@ FrameSetManager::FrameSetManager(QObject* parent)
     using Type = UnTech::GuiQt::PropertyType;
 
     const auto& TtEnumMap = UnTech::MetaSprite::TilesetType::enumMap;
+    const auto& palPosEnumMap = SI::UserSuppliedPalette::positionEnumMap;
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
     addProperty(tr("Tileset Type"), TILESET_TYPE, Type::COMBO, enumComboNames(TtEnumMap), enumComboDataList(TtEnumMap));
@@ -43,6 +44,7 @@ FrameSetManager::FrameSetManager(QObject* parent)
     addProperty(tr("Origin"), GRID_ORIGIN, Type::POINT);
     addPropertyGroup(tr("Palette:"));
     addProperty(tr("User Supplied Palette"), USER_SUPPLIED_PALETTE, Type::BOOLEAN);
+    addProperty(tr("Palette Position"), PALETTE_POSITION, Type::COMBO, enumComboNames(palPosEnumMap), enumComboDataList(palPosEnumMap));
     addProperty(tr("No of Palettes"), PALETTE_N_PALLETES, Type::UNSIGNED, 0, unsigned(UnTech::MetaSprite::MAX_PALETTES));
     addProperty(tr("Color Size"), PALETTE_COLOR_SIZE, Type::UNSIGNED, 0, 32);
 }
@@ -112,6 +114,9 @@ QVariant FrameSetManager::data(int id) const
     case USER_SUPPLIED_PALETTE:
         return frameSet->palette.usesUserSuppliedPalette();
 
+    case PALETTE_POSITION:
+        return int(frameSet->palette.position);
+
     case PALETTE_N_PALLETES:
         if (frameSet->palette.usesUserSuppliedPalette()) {
             return frameSet->palette.nPalettes;
@@ -151,6 +156,7 @@ void FrameSetManager::updateParameters(int id, QVariant& param1, QVariant& param
     case GRID_OFFSET:
     case GRID_PADDING:
     case USER_SUPPLIED_PALETTE:
+    case PALETTE_POSITION:
     case PALETTE_N_PALLETES:
     case PALETTE_COLOR_SIZE:
         break;
@@ -229,6 +235,7 @@ bool FrameSetManager::setData(int id, const QVariant& value)
     }
 
     case USER_SUPPLIED_PALETTE:
+    case PALETTE_POSITION:
     case PALETTE_N_PALLETES:
     case PALETTE_COLOR_SIZE: {
         SI::UserSuppliedPalette palette = frameSet->palette;
@@ -249,6 +256,10 @@ bool FrameSetManager::setData(int id, const QVariant& value)
             else {
                 palette.nPalettes = 0;
             }
+            break;
+
+        case PALETTE_POSITION:
+            palette.position = static_cast<SI::UserSuppliedPalette::Position>(value.toInt());
             break;
 
         case PALETTE_N_PALLETES:
