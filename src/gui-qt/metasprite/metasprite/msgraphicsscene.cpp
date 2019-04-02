@@ -42,6 +42,7 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings,
 {
     Q_ASSERT(tilesetPixmaps != nullptr);
 
+    _tileHitbox->setToolTip(tr("Tile Hitbox"));
     _tileHitbox->setPen(_style->tileHitboxPen());
     _tileHitbox->setBrush(_style->tileHitboxBrush());
     _tileHitbox->setZValue(TILE_HITBOX_ZVALUE);
@@ -280,6 +281,7 @@ void MsGraphicsScene::updateActionPoint(unsigned index, const UnTech::MetaSprite
     auto* item = _actionPoints.at(index);
 
     item->setPos(ap.location);
+    item->setToolTip(QString::fromStdString(ap.type));
 }
 
 void MsGraphicsScene::addEntityHitbox(const MS::Frame& frame)

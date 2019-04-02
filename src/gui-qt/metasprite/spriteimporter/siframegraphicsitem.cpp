@@ -31,6 +31,7 @@ SiFrameGraphicsItem::SiFrameGraphicsItem(const SI::Frame& frame,
     setPen(style->frameOutlinePen());
 
     _tileHitbox = new ResizableAabbGraphicsItem(this);
+    _tileHitbox->setToolTip(QObject::tr("Tile Hitbox"));
     _tileHitbox->setZValue(TILE_HITBOX_ZVALUE);
     _tileHitbox->setPen(style->tileHitboxPen());
     _tileHitbox->setBrush(style->tileHitboxBrush());
@@ -188,6 +189,7 @@ void SiFrameGraphicsItem::updateActionPoint(size_t index, const SI::ActionPoint&
     auto* item = _actionPoints.at(index);
 
     item->setPos(ap.location);
+    item->setToolTip(QString::fromStdString(ap.type));
 }
 
 void SiFrameGraphicsItem::addEntityHitbox(const SI::Frame& frame)

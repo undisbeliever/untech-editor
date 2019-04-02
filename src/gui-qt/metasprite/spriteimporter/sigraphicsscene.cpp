@@ -36,6 +36,7 @@ SiGraphicsScene::SiGraphicsScene(LayerSettings* layerSettings, QWidget* parent)
     _frameSetPixmap->setZValue(PIXMAP_ZVALUE);
     addItem(_frameSetPixmap);
 
+    _paletteOutline->setToolTip(tr("User Supplied Palette"));
     _paletteOutline->setPen(_style->paletteOutlinePen());
     _paletteOutline->setVisible(false);
     _paletteOutline->setZValue(PALETTE_ZVALUE);
