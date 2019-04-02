@@ -44,8 +44,12 @@ void Image::erase()
 
 void Image::fill(const rgba& color)
 {
+    if (empty()) {
+        return;
+    }
+
     auto* ptr = data();
-    auto* ptrEnd = scanline(_size.height);
+    auto* ptrEnd = data() + _size.height * _size.width;
 
     while (ptr < ptrEnd) {
         *ptr++ = color;

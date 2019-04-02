@@ -9,6 +9,7 @@
 #include "aabb.h"
 #include "rgba.h"
 #include <cstdint>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -73,6 +74,9 @@ public:
 
     inline rgba* scanline(unsigned y)
     {
+        if (y >= _size.height) {
+            throw std::out_of_range("Image::scanline out of range");
+        }
         return data() + (y * pixelsPerScanline());
     }
 
@@ -83,11 +87,17 @@ public:
 
     inline const rgba* scanline(unsigned y) const
     {
+        if (y >= _size.height) {
+            throw std::out_of_range("Image::scanline out of range");
+        }
         return data() + (y * pixelsPerScanline());
     }
 
     inline rgba getPixel(unsigned x, unsigned y) const
     {
+        if (x >= _size.width || y >= _size.height) {
+            throw std::out_of_range("Image::getPixel out of range");
+        }
         return *(data() + x + (y * pixelsPerScanline()));
     }
 
