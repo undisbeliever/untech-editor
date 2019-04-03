@@ -59,7 +59,7 @@ void EntityFunctionTablesManager::updateParameters(int, int id, QVariant& param1
         break;
 
     case PropertyId::EXPORT_ORDER:
-        param1 = project->frameSetExportOrderResourceList()->itemNames();
+        param1 = project->frameSetExportOrders()->itemNames();
         break;
 
     case PropertyId::NAME:

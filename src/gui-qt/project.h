@@ -65,11 +65,11 @@ public:
 
     UnTech::Project::ProjectFile* projectFile() const { return _projectFile.get(); }
 
-    StaticResourceList* staticResourceList() const { return _staticResourceList; }
-    MetaSprite::ExportOrder::ResourceList* frameSetExportOrderResourceList() const { return _frameSetExportOrderResourceList; }
-    MetaSprite::FrameSetResourceList* frameSetResourceList() const { return _frameSetResourceList; }
-    Resources::Palette::ResourceList* paletteResourceList() const { return _paletteResourceList; }
-    MetaTiles::MtTileset::ResourceList* mtTilesetResourceList() const { return _mtTilesetResourceList; }
+    StaticResourceList* staticResources() const { return _staticResources; }
+    MetaSprite::ExportOrder::ResourceList* frameSetExportOrders() const { return _frameSetExportOrders; }
+    MetaSprite::FrameSetResourceList* frameSets() const { return _frameSets; }
+    Resources::Palette::ResourceList* palettes() const { return _palettes; }
+    MetaTiles::MtTileset::ResourceList* mtTilesets() const { return _mtTilesets; }
 
     void setSelectedResource(AbstractResourceItem* item);
     AbstractResourceItem* selectedResource() const { return _selectedResource; }
@@ -104,11 +104,11 @@ private:
     ResourceValidationWorker* const _validationWorker;
     FilesystemWatcher* const _filesystemWatcher;
 
-    StaticResourceList* const _staticResourceList;
-    MetaSprite::ExportOrder::ResourceList* const _frameSetExportOrderResourceList;
-    MetaSprite::FrameSetResourceList* const _frameSetResourceList;
-    Resources::Palette::ResourceList* const _paletteResourceList;
-    MetaTiles::MtTileset::ResourceList* const _mtTilesetResourceList;
+    StaticResourceList* const _staticResources;
+    MetaSprite::ExportOrder::ResourceList* const _frameSetExportOrders;
+    MetaSprite::FrameSetResourceList* const _frameSets;
+    Resources::Palette::ResourceList* const _palettes;
+    MetaTiles::MtTileset::ResourceList* const _mtTilesets;
 
     const QList<AbstractResourceList*> _resourceLists;
 

@@ -170,7 +170,7 @@ void FrameSetManager::updateParameters(int id, QVariant& param1, QVariant& param
         break;
 
     case PropertyId::EXPORT_ORDER:
-        param1 = _resourceItem->project()->frameSetExportOrderResourceList()->itemNames();
+        param1 = _resourceItem->project()->frameSetExportOrders()->itemNames();
     }
 }
 
@@ -696,7 +696,7 @@ void ActionPointManager::updateParameters(int index, int id,
     } break;
 
     case PropertyId::TYPE:
-        param1 = _resourceItem->project()->staticResourceList()->actionPoints()->actionPointNames();
+        param1 = _resourceItem->project()->staticResources()->actionPoints()->actionPointNames();
         break;
     };
 }

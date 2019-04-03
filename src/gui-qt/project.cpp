@@ -30,17 +30,17 @@ Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
     , _undoStack(new QUndoStack(this))
     , _validationWorker(new ResourceValidationWorker(this))
     , _filesystemWatcher(new FilesystemWatcher(this))
-    , _staticResourceList(new StaticResourceList(this))
-    , _frameSetExportOrderResourceList(new MetaSprite::ExportOrder::ResourceList(this))
-    , _frameSetResourceList(new MetaSprite::FrameSetResourceList(this))
-    , _paletteResourceList(new Resources::Palette::ResourceList(this))
-    , _mtTilesetResourceList(new MetaTiles::MtTileset::ResourceList(this))
+    , _staticResources(new StaticResourceList(this))
+    , _frameSetExportOrders(new MetaSprite::ExportOrder::ResourceList(this))
+    , _frameSets(new MetaSprite::FrameSetResourceList(this))
+    , _palettes(new Resources::Palette::ResourceList(this))
+    , _mtTilesets(new MetaTiles::MtTileset::ResourceList(this))
     , _resourceLists({
-          _staticResourceList,
-          _frameSetExportOrderResourceList,
-          _frameSetResourceList,
-          _paletteResourceList,
-          _mtTilesetResourceList,
+          _staticResources,
+          _frameSetExportOrders,
+          _frameSets,
+          _palettes,
+          _mtTilesets,
       })
     , _selectedResource(nullptr)
 {
@@ -102,19 +102,19 @@ AbstractResourceList* Project::findResourceList(ResourceTypeIndex type) const
 {
     switch (type) {
     case ResourceTypeIndex::STATIC:
-        return _staticResourceList;
+        return _staticResources;
 
     case ResourceTypeIndex::PALETTE:
-        return _paletteResourceList;
+        return _palettes;
 
     case ResourceTypeIndex::MT_TILESET:
-        return _mtTilesetResourceList;
+        return _mtTilesets;
 
     case ResourceTypeIndex::MS_FRAMESET:
-        return _frameSetResourceList;
+        return _frameSets;
 
     case ResourceTypeIndex::MS_EXPORT_ORDER:
-        return _frameSetExportOrderResourceList;
+        return _frameSetExportOrders;
     }
 
     qFatal("Unknown ResourceTypeIndex type");

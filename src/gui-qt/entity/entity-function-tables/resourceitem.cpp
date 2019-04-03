@@ -39,7 +39,7 @@ bool ResourceItem::compileResource(UnTech::ErrorList& err)
 
     const auto oldErrorCount = err.errorCount();
 
-    const auto& structFieldMap = project()->staticResourceList()->entityRomStructs()->structFieldMap();
+    const auto& structFieldMap = project()->staticResources()->entityRomStructs()->structFieldMap();
     generateFunctionTableFieldMap(projectFile->entityRomData.functionTables, structFieldMap, err);
 
     return oldErrorCount == err.errorCount();
