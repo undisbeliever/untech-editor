@@ -23,7 +23,7 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
     setRemovable(false);
 
     setDependencies({
-        { ResourceTypeIndex::STATIC, list->entityRomStructsResourceItem()->name() },
+        { ResourceTypeIndex::STATIC, list->entityRomStructs()->name() },
     });
 
     connect(this, &AbstractResourceItem::dataChanged,
@@ -39,7 +39,7 @@ bool ResourceItem::compileResource(UnTech::ErrorList& err)
 
     const auto oldErrorCount = err.errorCount();
 
-    const auto& structFieldMap = project()->staticResourceList()->entityRomStructsResourceItem()->structFieldMap();
+    const auto& structFieldMap = project()->staticResourceList()->entityRomStructs()->structFieldMap();
     generateFunctionTableFieldMap(projectFile->entityRomData.functionTables, structFieldMap, err);
 
     return oldErrorCount == err.errorCount();

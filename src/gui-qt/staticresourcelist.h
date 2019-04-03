@@ -56,12 +56,12 @@ public:
 
     virtual const QList<AddResourceSettings>& addResourceSettings() const final;
 
-    auto* projectSettingsResourceItem() const { return _projectSettingsResourceItem; }
-    auto* actionPointsResourceItem() const { return _actionPointsResourceItem; }
-    auto* entityRomStructsResourceItem() const { return _entityRomStructsResourceItem; }
-    auto* entityFunctionTablesResourceItem() const { return _entityFunctionTablesResourceItem; }
-    auto* entitiesResourceItem() const { return _entitiesResourceItem; }
-    auto* projectilesResourceItem() const { return _projectilesResourceItem; }
+    auto* projectSettings() const { return _projectSettings; }
+    auto* actionPoints() const { return _actionPoints; }
+    auto* entityRomStructs() const { return _entityRomStructs; }
+    auto* entityFunctionTables() const { return _entityFunctionTables; }
+    auto* entities() const { return _entities; }
+    auto* projectiles() const { return _projectiles; }
 
 protected:
     virtual size_t nItems() const final;
@@ -71,12 +71,12 @@ protected:
     virtual void do_removeResource(unsigned index) final;
 
 private:
-    ProjectSettings::ResourceItem* const _projectSettingsResourceItem;
-    MetaSprite::ActionPoints::ResourceItem* const _actionPointsResourceItem;
-    Entity::EntityRomStructs::ResourceItem* const _entityRomStructsResourceItem;
-    Entity::EntityFunctionTables::ResourceItem* const _entityFunctionTablesResourceItem;
-    Entity::EntityRomEntries::ResourceItem* const _entitiesResourceItem;
-    Entity::EntityRomEntries::ResourceItem* const _projectilesResourceItem;
+    ProjectSettings::ResourceItem* const _projectSettings;
+    MetaSprite::ActionPoints::ResourceItem* const _actionPoints;
+    Entity::EntityRomStructs::ResourceItem* const _entityRomStructs;
+    Entity::EntityFunctionTables::ResourceItem* const _entityFunctionTables;
+    Entity::EntityRomEntries::ResourceItem* const _entities;
+    Entity::EntityRomEntries::ResourceItem* const _projectiles;
 };
 
 }

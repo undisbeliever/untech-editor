@@ -30,8 +30,8 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
     setRemovable(false);
 
     setDependencies({
-        { ResourceTypeIndex::STATIC, list->projectSettingsResourceItem()->name() },
-        { ResourceTypeIndex::STATIC, list->entityFunctionTablesResourceItem()->name() },
+        { ResourceTypeIndex::STATIC, list->projectSettings()->name() },
+        { ResourceTypeIndex::STATIC, list->entityFunctionTables()->name() },
     });
 
     connect(this, &AbstractResourceItem::dataChanged,
@@ -54,7 +54,7 @@ bool ResourceItem::compileResource(UnTech::ErrorList& err)
     const auto* projectFile = project()->projectFile();
     Q_ASSERT(projectFile);
 
-    const auto& structFieldMap = project()->staticResourceList()->entityRomStructsResourceItem()->structFieldMap();
+    const auto& structFieldMap = project()->staticResourceList()->entityRomStructs()->structFieldMap();
     const auto ftFieldMap = generateFunctionTableFieldMap(projectFile->entityRomData.functionTables, structFieldMap, err);
 
     bool valid = true;

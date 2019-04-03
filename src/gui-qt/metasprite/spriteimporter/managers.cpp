@@ -696,7 +696,7 @@ void ActionPointManager::updateParameters(int index, int id,
     } break;
 
     case PropertyId::TYPE:
-        param1 = _resourceItem->project()->staticResourceList()->actionPointsResourceItem()->actionPointNames();
+        param1 = _resourceItem->project()->staticResourceList()->actionPoints()->actionPointNames();
         break;
     };
 }

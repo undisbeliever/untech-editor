@@ -38,7 +38,7 @@ void AbstractMsResourceItem::compileMsFrameset(const MS::FrameSet* frameSet, Err
 
     if (frameSet) {
         try {
-            const auto& actionPointMapping = project()->staticResourceList()->actionPointsResourceItem()->actionPointMapping();
+            const auto& actionPointMapping = project()->staticResourceList()->actionPoints()->actionPointMapping();
 
             const auto projectFile = project()->projectFile();
             Q_ASSERT(projectFile);
@@ -57,7 +57,7 @@ void AbstractMsResourceItem::onFrameSetExportOrderChanged()
     const idstring& exportOrder = this->exportOrder();
 
     QVector<Dependency> dependencies;
-    dependencies.append({ ResourceTypeIndex::STATIC, project()->staticResourceList()->actionPointsResourceItem()->name() });
+    dependencies.append({ ResourceTypeIndex::STATIC, project()->staticResourceList()->actionPoints()->name() });
 
     if (exportOrder.isValid()) {
         dependencies.append({ ResourceTypeIndex::MS_EXPORT_ORDER, QString::fromStdString(exportOrder) });

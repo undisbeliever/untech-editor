@@ -16,12 +16,12 @@ using namespace UnTech::GuiQt;
 
 StaticResourceList::StaticResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::STATIC)
-    , _projectSettingsResourceItem(new ProjectSettings::ResourceItem(this, PROJECT_SETTINGS))
-    , _actionPointsResourceItem(new MetaSprite::ActionPoints::ResourceItem(this, ACTION_POINTS))
-    , _entityRomStructsResourceItem(new Entity::EntityRomStructs::ResourceItem(this, ENTITY_ROM_STRUCTS))
-    , _entityFunctionTablesResourceItem(new Entity::EntityFunctionTables::ResourceItem(this, ENTITY_FUNCTION_TABLES))
-    , _entitiesResourceItem(new Entity::EntityRomEntries::ResourceItem(this, ENTITIES, true))
-    , _projectilesResourceItem(new Entity::EntityRomEntries::ResourceItem(this, PROJECTILES, false))
+    , _projectSettings(new ProjectSettings::ResourceItem(this, PROJECT_SETTINGS))
+    , _actionPoints(new MetaSprite::ActionPoints::ResourceItem(this, ACTION_POINTS))
+    , _entityRomStructs(new Entity::EntityRomStructs::ResourceItem(this, ENTITY_ROM_STRUCTS))
+    , _entityFunctionTables(new Entity::EntityFunctionTables::ResourceItem(this, ENTITY_FUNCTION_TABLES))
+    , _entities(new Entity::EntityRomEntries::ResourceItem(this, ENTITIES, true))
+    , _projectiles(new Entity::EntityRomEntries::ResourceItem(this, PROJECTILES, false))
 {
 }
 
@@ -51,22 +51,22 @@ AbstractResourceItem* StaticResourceList::buildResourceItem(size_t index)
     assert(index < N_ITEMS);
     switch (static_cast<Indexes>(index)) {
     case PROJECT_SETTINGS:
-        return _projectSettingsResourceItem;
+        return _projectSettings;
 
     case ACTION_POINTS:
-        return _actionPointsResourceItem;
+        return _actionPoints;
 
     case ENTITY_ROM_STRUCTS:
-        return _entityRomStructsResourceItem;
+        return _entityRomStructs;
 
     case ENTITY_FUNCTION_TABLES:
-        return _entityFunctionTablesResourceItem;
+        return _entityFunctionTables;
 
     case ENTITIES:
-        return _entitiesResourceItem;
+        return _entities;
 
     case PROJECTILES:
-        return _projectilesResourceItem;
+        return _projectiles;
     }
 
     throw std::out_of_range("index is invalid");

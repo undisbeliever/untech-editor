@@ -399,7 +399,7 @@ void ActionPointManager::updateParameters(int index, int id, QVariant& param1, Q
     Q_UNUSED(index);
 
     if (id == PropertyId::TYPE) {
-        param1 = _resourceItem->project()->staticResourceList()->actionPointsResourceItem()->actionPointNames();
+        param1 = _resourceItem->project()->staticResourceList()->actionPoints()->actionPointNames();
     }
 }
 
