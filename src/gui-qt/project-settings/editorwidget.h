@@ -15,7 +15,7 @@ namespace ProjectSettings {
 namespace Ui {
 class EditorWidget;
 }
-class ProjectSettingsResourceItem;
+class ResourceItem;
 class ProjectSettingsPropertyManager;
 
 class EditorWidget : public AbstractEditorWidget {

@@ -19,15 +19,15 @@ namespace EntityRomStructs {
 class EntityRomStructList;
 class EntityRomStructFieldList;
 
-class EntityRomStructsResourceItem : public AbstractInternalResourceItem {
+class ResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
 
     using EntityRomData = UnTech::Entity::EntityRomData;
     using StructFieldMap = UnTech::Entity::StructFieldMap;
 
 public:
-    EntityRomStructsResourceItem(StaticResourceList* list, unsigned index);
-    ~EntityRomStructsResourceItem() = default;
+    ResourceItem(StaticResourceList* list, unsigned index);
+    ~ResourceItem() = default;
 
     StaticResourceList* resourceList() const { return static_cast<StaticResourceList*>(_list); }
 

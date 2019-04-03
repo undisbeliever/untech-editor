@@ -21,7 +21,7 @@ class MtGridGraphicsItem;
 
 namespace MtTileset {
 class MtTilesetRenderer;
-class MtTilesetResourceItem;
+class ResourceItem;
 }
 
 class MtGraphicsScene : public QGraphicsScene {
@@ -39,7 +39,7 @@ public:
 
     Style* style() const { return _style; }
     MtTileset::MtTilesetRenderer* renderer() const { return _renderer; }
-    MtTileset::MtTilesetResourceItem* tilesetItem() const { return _tilesetItem; }
+    MtTileset::ResourceItem* tilesetItem() const { return _tilesetItem; }
 
     // converts the gridSelection vectorset into a grid of MetaTiles.
     // Empty tiles contain are 0xffff and easily identifyable.
@@ -56,7 +56,7 @@ protected:
     // returns true if the selected cells changed.
     virtual void setGridSelection(upoint_vectorset&& selectedCells) = 0;
 
-    virtual void tilesetItemChanged(MtTileset::MtTilesetResourceItem* newTileset, MtTileset::MtTilesetResourceItem* oldTileset) = 0;
+    virtual void tilesetItemChanged(MtTileset::ResourceItem* newTileset, MtTileset::ResourceItem* oldTileset) = 0;
 
     MtGridGraphicsItem* gridGraphicsItem() const { return _gridGraphicsItem; }
 
@@ -83,7 +83,7 @@ private:
     MtTileset::MtTilesetRenderer* const _renderer;
     MtGridGraphicsItem* const _gridGraphicsItem;
 
-    MtTileset::MtTilesetResourceItem* _tilesetItem;
+    MtTileset::ResourceItem* _tilesetItem;
 };
 
 class MtEditableGraphicsScene : public MtGraphicsScene {

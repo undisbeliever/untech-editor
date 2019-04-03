@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "entityromstructsresourceitem.h"
+#include "resourceitem.h"
 #include "accessors.h"
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
@@ -13,7 +13,7 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Entity::EntityRomStructs;
 
-EntityRomStructsResourceItem::EntityRomStructsResourceItem(StaticResourceList* list, unsigned index)
+ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
     : AbstractInternalResourceItem(list, index)
     , _structList(new EntityRomStructList(this))
     , _structFieldList(new EntityRomStructFieldList(_structList))
@@ -36,7 +36,7 @@ EntityRomStructsResourceItem::EntityRomStructsResourceItem(StaticResourceList* l
             _structList, &EntityRomStructList::setSelectedIndex);
 }
 
-bool EntityRomStructsResourceItem::compileResource(UnTech::ErrorList& err)
+bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
     using namespace UnTech::Entity;
 

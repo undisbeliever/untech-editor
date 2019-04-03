@@ -14,7 +14,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace Entity {
 namespace EntityRomStructs {
-class EntityRomStructsResourceItem;
+class ResourceItem;
 
 class StructFieldsModel : public AbstractPropertyModel {
     Q_OBJECT
@@ -31,7 +31,7 @@ public:
     explicit StructFieldsModel(QObject* parent = nullptr);
     ~StructFieldsModel() = default;
 
-    void setResourceItem(EntityRomStructsResourceItem* item);
+    void setResourceItem(ResourceItem* item);
 
     virtual const Property& propertyForIndex(const QModelIndex& index) const final;
     virtual bool isListItem(const QModelIndex&) const final;
@@ -61,7 +61,7 @@ private slots:
 private:
     const QVector<Property> _properties;
 
-    EntityRomStructsResourceItem* _item;
+    ResourceItem* _item;
 
     StructFields _data;
 };

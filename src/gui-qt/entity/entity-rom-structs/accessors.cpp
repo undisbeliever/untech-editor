@@ -12,7 +12,7 @@ using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Entity::EntityRomStructs;
 
 template <>
-const NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>::list() const
+const NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, ResourceItem>::list() const
 {
     const auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
@@ -20,14 +20,14 @@ const NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, Ent
 }
 
 template <>
-NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>::getList()
+NamedList<EN::EntityRomStruct>* NamedListAccessor<EN::EntityRomStruct, ResourceItem>::getList()
 {
     auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
     return &projectFile->entityRomData.structs;
 }
 
-EntityRomStructList::EntityRomStructList(EntityRomStructsResourceItem* resourceItem)
+EntityRomStructList::EntityRomStructList(ResourceItem* resourceItem)
     : NamedListAccessor(resourceItem, 255)
 {
 }
@@ -61,7 +61,7 @@ void EntityRomStructList::editSelected_setComment(const std::string& comment)
 }
 
 template <>
-const std::vector<EN::StructField>* ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem>::list(size_t pIndex) const
+const std::vector<EN::StructField>* ChildVectorMultipleSelectionAccessor<EN::StructField, ResourceItem>::list(size_t pIndex) const
 {
     const auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
@@ -73,7 +73,7 @@ const std::vector<EN::StructField>* ChildVectorMultipleSelectionAccessor<EN::Str
 }
 
 template <>
-std::vector<EN::StructField>* ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem>::getList(size_t pIndex)
+std::vector<EN::StructField>* ChildVectorMultipleSelectionAccessor<EN::StructField, ResourceItem>::getList(size_t pIndex)
 {
     auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
@@ -132,5 +132,5 @@ bool EntityRomStructFieldList::editSelectedList_setComment(size_t index, const s
 }
 
 using namespace UnTech::GuiQt;
-template class Accessor::NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem>;
-template class Accessor::ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem>;
+template class Accessor::NamedListAccessor<EN::EntityRomStruct, ResourceItem>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<EN::StructField, ResourceItem>;

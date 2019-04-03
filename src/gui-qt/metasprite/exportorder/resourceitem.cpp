@@ -4,9 +4,9 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "exportorderresourceitem.h"
+#include "resourceitem.h"
 #include "accessors.h"
-#include "exportorderresourcelist.h"
+#include "resourcelist.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "models/metatiles/metatiles-serializer.h"
@@ -18,7 +18,7 @@ using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
 using FrameSetExportOrder = UnTech::MetaSprite::FrameSetExportOrder;
 
-ExportOrderResourceItem::ExportOrderResourceItem(ExportOrderResourceList* parent, size_t index)
+ResourceItem::ResourceItem(ResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
     , _exportOrders(parent->exportOrders())
     , _exportNameList(new ExportOrder::ExportNameList(this))
@@ -32,7 +32,7 @@ ExportOrderResourceItem::ExportOrderResourceItem(ExportOrderResourceList* parent
             this, &AbstractResourceItem::markUnchecked);
 }
 
-bool ExportOrderResourceItem::editExportOrder_setName(const UnTech::idstring& name)
+bool ResourceItem::editExportOrder_setName(const UnTech::idstring& name)
 {
     if (name.isValid() == false) {
         return false;
@@ -40,7 +40,7 @@ bool ExportOrderResourceItem::editExportOrder_setName(const UnTech::idstring& na
     return UndoHelper(this).editName(name);
 }
 
-void ExportOrderResourceItem::saveResourceData(const std::string& filename) const
+void ResourceItem::saveResourceData(const std::string& filename) const
 {
     using namespace UnTech::MetaSprite;
 
@@ -51,7 +51,7 @@ void ExportOrderResourceItem::saveResourceData(const std::string& filename) cons
     }
 }
 
-bool ExportOrderResourceItem::loadResourceData(ErrorList& err)
+bool ResourceItem::loadResourceData(ErrorList& err)
 {
     using namespace UnTech::MetaSprite;
 
@@ -75,7 +75,7 @@ bool ExportOrderResourceItem::loadResourceData(ErrorList& err)
     }
 }
 
-bool ExportOrderResourceItem::compileResource(ErrorList& err)
+bool ResourceItem::compileResource(ErrorList& err)
 {
     const auto* eo = exportOrder();
 

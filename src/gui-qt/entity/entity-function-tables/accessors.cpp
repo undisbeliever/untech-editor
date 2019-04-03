@@ -12,7 +12,7 @@ using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Entity::EntityFunctionTables;
 
 template <>
-const NamedList<EN::EntityFunctionTable>* NamedListAccessor<EN::EntityFunctionTable, EntityFunctionTablesResourceItem>::list() const
+const NamedList<EN::EntityFunctionTable>* NamedListAccessor<EN::EntityFunctionTable, ResourceItem>::list() const
 {
     const auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
@@ -20,14 +20,14 @@ const NamedList<EN::EntityFunctionTable>* NamedListAccessor<EN::EntityFunctionTa
 }
 
 template <>
-NamedList<EN::EntityFunctionTable>* NamedListAccessor<EN::EntityFunctionTable, EntityFunctionTablesResourceItem>::getList()
+NamedList<EN::EntityFunctionTable>* NamedListAccessor<EN::EntityFunctionTable, ResourceItem>::getList()
 {
     auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
     return &projectFile->entityRomData.functionTables;
 }
 
-EntityFunctionTableList::EntityFunctionTableList(EntityFunctionTablesResourceItem* resourceItem)
+EntityFunctionTableList::EntityFunctionTableList(ResourceItem* resourceItem)
     : NamedListAccessor(resourceItem, 255)
 {
 }
@@ -75,4 +75,4 @@ bool EntityFunctionTableList::edit_setComment(index_type index, const std::strin
 }
 
 using namespace UnTech::GuiQt;
-template class Accessor::NamedListAccessor<EN::EntityFunctionTable, EntityFunctionTablesResourceItem>;
+template class Accessor::NamedListAccessor<EN::EntityFunctionTable, ResourceItem>;

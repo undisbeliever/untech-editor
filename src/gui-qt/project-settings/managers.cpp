@@ -5,7 +5,7 @@
  */
 
 #include "managers.h"
-#include "projectsettingsresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/project.h"
 #include "models/project/project.h"
@@ -31,7 +31,7 @@ ProjectSettingsPropertyManager::ProjectSettingsPropertyManager(QObject* parent)
     addProperty(tr("EntityListIds"), ENTITY_LIST_IDS, Type::IDSTRING_LIST);
 }
 
-void ProjectSettingsPropertyManager::setResourceItem(ProjectSettingsResourceItem* item)
+void ProjectSettingsPropertyManager::setResourceItem(ResourceItem* item)
 {
     if (_item == item) {
         return;
@@ -45,7 +45,7 @@ void ProjectSettingsPropertyManager::setResourceItem(ProjectSettingsResourceItem
     setEnabled(_item != nullptr);
 
     if (_item) {
-        connect(_item, &ProjectSettingsResourceItem::dataChanged,
+        connect(_item, &ResourceItem::dataChanged,
                 this, &ProjectSettingsPropertyManager::dataChanged);
     }
 

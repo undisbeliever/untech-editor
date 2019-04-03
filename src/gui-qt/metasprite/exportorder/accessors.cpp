@@ -10,7 +10,7 @@
 using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
-ExportNameList::ExportNameList(ExportOrderResourceItem* exportOrder)
+ExportNameList::ExportNameList(ResourceItem* exportOrder)
     : QObject(exportOrder)
     , _exportOrder(exportOrder)
     , _selectedListIsFrame(true)
@@ -115,7 +115,7 @@ bool ExportNameList::editSelectedList_lowerSelectedToBottom()
     return UndoHelper(this).lowerSelectedItemToBottom();
 }
 
-AlternativesList::AlternativesList(ExportOrderResourceItem* exportOrder)
+AlternativesList::AlternativesList(ResourceItem* exportOrder)
     : QObject(exportOrder)
     , _exportOrder(exportOrder)
     , _selectedIndex(INT_MAX)

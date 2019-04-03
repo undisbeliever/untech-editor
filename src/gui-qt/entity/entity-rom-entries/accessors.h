@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "entityromentriesresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/project.h"
 #include "models/entity/entityromdata.h"
@@ -20,7 +20,7 @@ namespace EntityRomEntries {
 
 namespace EN = UnTech::Entity;
 
-class EntityRomEntriesList : public Accessor::NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem> {
+class EntityRomEntriesList : public Accessor::NamedListAccessor<EN::EntityRomEntry, ResourceItem> {
     Q_OBJECT
 
     using UndoHelper = Accessor::ListAndSelectionUndoHelper<EntityRomEntriesList>;
@@ -29,7 +29,7 @@ private:
     const bool _entityList;
 
 public:
-    EntityRomEntriesList(EntityRomEntriesResourceItem* resourceItem, bool entityList);
+    EntityRomEntriesList(ResourceItem* resourceItem, bool entityList);
     ~EntityRomEntriesList() = default;
 
     virtual QString typeName() const final;

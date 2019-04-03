@@ -5,8 +5,8 @@
  */
 
 #include "editorwidget.h"
-#include "actionpointsresourceitem.h"
 #include "managers.h"
+#include "resourceitem.h"
 #include "gui-qt/metasprite/actionpoints/editorwidget.ui.h"
 
 using namespace UnTech::GuiQt::MetaSprite::ActionPoints;
@@ -33,7 +33,7 @@ EditorWidget::~EditorWidget() = default;
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
-    auto* item = qobject_cast<ActionPointsResourceItem*>(abstractItem);
+    auto* item = qobject_cast<ResourceItem*>(abstractItem);
 
     auto* ftList = item ? item->actionPointFunctionsList() : nullptr;
     _manager->setAccessor(ftList);

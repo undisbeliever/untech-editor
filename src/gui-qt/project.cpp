@@ -12,10 +12,10 @@
 #include "models/project/project.h"
 
 #include "staticresourcelist.h"
-#include "gui-qt/metasprite/exportorder/exportorderresourcelist.h"
+#include "gui-qt/metasprite/exportorder/resourcelist.h"
 #include "gui-qt/metasprite/framesetresourcelist.h"
-#include "gui-qt/metatiles/mttileset/mttilesetresourcelist.h"
-#include "gui-qt/resources/palette/paletteresourcelist.h"
+#include "gui-qt/metatiles/mttileset/resourcelist.h"
+#include "gui-qt/resources/palette/resourcelist.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -31,10 +31,10 @@ Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
     , _validationWorker(new ResourceValidationWorker(this))
     , _filesystemWatcher(new FilesystemWatcher(this))
     , _staticResourceList(new StaticResourceList(this))
-    , _frameSetExportOrderResourceList(new MetaSprite::ExportOrder::ExportOrderResourceList(this))
+    , _frameSetExportOrderResourceList(new MetaSprite::ExportOrder::ResourceList(this))
     , _frameSetResourceList(new MetaSprite::FrameSetResourceList(this))
-    , _paletteResourceList(new Resources::Palette::PaletteResourceList(this))
-    , _mtTilesetResourceList(new MetaTiles::MtTileset::MtTilesetResourceList(this))
+    , _paletteResourceList(new Resources::Palette::ResourceList(this))
+    , _mtTilesetResourceList(new MetaTiles::MtTileset::ResourceList(this))
     , _resourceLists({
           _staticResourceList,
           _frameSetExportOrderResourceList,

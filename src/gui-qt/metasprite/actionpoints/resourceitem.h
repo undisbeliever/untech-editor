@@ -18,12 +18,12 @@ namespace MetaSprite {
 namespace ActionPoints {
 class ActionPointFunctionsList;
 
-class ActionPointsResourceItem : public AbstractInternalResourceItem {
+class ResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
 
 public:
-    ActionPointsResourceItem(StaticResourceList* list, unsigned index);
-    ~ActionPointsResourceItem() = default;
+    ResourceItem(StaticResourceList* list, unsigned index);
+    ~ResourceItem() = default;
 
     StaticResourceList* resourceList() const { return static_cast<StaticResourceList*>(_list); }
 

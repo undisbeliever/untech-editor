@@ -6,22 +6,22 @@
 
 #include "staticresourcelist.h"
 #include "project.h"
-#include "entity/entity-function-tables/entityfunctiontablesresourceitem.h"
-#include "entity/entity-rom-entries/entityromentriesresourceitem.h"
-#include "entity/entity-rom-structs/entityromstructsresourceitem.h"
-#include "metasprite/actionpoints/actionpointsresourceitem.h"
-#include "project-settings/projectsettingsresourceitem.h"
+#include "entity/entity-function-tables/resourceitem.h"
+#include "entity/entity-rom-entries/resourceitem.h"
+#include "entity/entity-rom-structs/resourceitem.h"
+#include "metasprite/actionpoints/resourceitem.h"
+#include "project-settings/resourceitem.h"
 
 using namespace UnTech::GuiQt;
 
 StaticResourceList::StaticResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::STATIC)
-    , _projectSettingsResourceItem(new ProjectSettings::ProjectSettingsResourceItem(this, PROJECT_SETTINGS))
-    , _actionPointsResourceItem(new MetaSprite::ActionPoints::ActionPointsResourceItem(this, ACTION_POINTS))
-    , _entityRomStructsResourceItem(new Entity::EntityRomStructs::EntityRomStructsResourceItem(this, ENTITY_ROM_STRUCTS))
-    , _entityFunctionTablesResourceItem(new Entity::EntityFunctionTables::EntityFunctionTablesResourceItem(this, ENTITY_FUNCTION_TABLES))
-    , _entitiesResourceItem(new Entity::EntityRomEntries::EntityRomEntriesResourceItem(this, ENTITIES, true))
-    , _projectilesResourceItem(new Entity::EntityRomEntries::EntityRomEntriesResourceItem(this, PROJECTILES, false))
+    , _projectSettingsResourceItem(new ProjectSettings::ResourceItem(this, PROJECT_SETTINGS))
+    , _actionPointsResourceItem(new MetaSprite::ActionPoints::ResourceItem(this, ACTION_POINTS))
+    , _entityRomStructsResourceItem(new Entity::EntityRomStructs::ResourceItem(this, ENTITY_ROM_STRUCTS))
+    , _entityFunctionTablesResourceItem(new Entity::EntityFunctionTables::ResourceItem(this, ENTITY_FUNCTION_TABLES))
+    , _entitiesResourceItem(new Entity::EntityRomEntries::ResourceItem(this, ENTITIES, true))
+    , _projectilesResourceItem(new Entity::EntityRomEntries::ResourceItem(this, PROJECTILES, false))
 {
 }
 

@@ -16,22 +16,22 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace ExportOrder {
-class ExportOrderResourceList;
+class ResourceList;
 class ExportNameList;
 class AlternativesList;
 
-class ExportOrderResourceItem : public AbstractExternalResourceItem {
+class ResourceItem : public AbstractExternalResourceItem {
     Q_OBJECT
 
 public:
     using DataT = UnTech::MetaSprite::FrameSetExportOrder;
-    using UndoHelper = Accessor::ResourceItemUndoHelper<ExportOrderResourceItem>;
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
 
     using NameReference = UnTech::MetaSprite::NameReference;
 
 public:
-    ExportOrderResourceItem(ExportOrderResourceList* parent, size_t index);
-    ~ExportOrderResourceItem() = default;
+    ResourceItem(ResourceList* parent, size_t index);
+    ~ResourceItem() = default;
 
     static QString typeName() { return tr("Export Order"); }
 
@@ -52,7 +52,7 @@ protected:
 
     friend class ExportNameList;
     friend class AlternativesList;
-    friend class Accessor::ResourceItemUndoHelper<ExportOrderResourceItem>;
+    friend class Accessor::ResourceItemUndoHelper<ResourceItem>;
     const DataT* data() const { return _exportOrders.at(index()); }
     DataT* dataEditable() { return _exportOrders.at(index()); }
 

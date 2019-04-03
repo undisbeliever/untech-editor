@@ -6,7 +6,7 @@
 
 #include "managers.h"
 #include "accessors.h"
-#include "entityromentriesresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/abstractmsresourceitem.h"
 #include "gui-qt/metasprite/framesetresourcelist.h"
@@ -23,7 +23,7 @@ EntityRomEntryManager::EntityRomEntryManager(QObject* parent)
 {
 }
 
-void EntityRomEntryManager::setResourceItem(EntityRomEntriesResourceItem* item)
+void EntityRomEntryManager::setResourceItem(ResourceItem* item)
 {
     if (_item == item) {
         return;

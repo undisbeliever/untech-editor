@@ -12,7 +12,7 @@ using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 
 template <>
-const NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>::list() const
+const NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, ResourceItem>::list() const
 {
     const auto* erel = qobject_cast<const EntityRomEntriesList*>(this);
     Q_ASSERT(erel);
@@ -27,7 +27,7 @@ const NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, Entit
 }
 
 template <>
-NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>::getList()
+NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, ResourceItem>::getList()
 {
     auto* erel = qobject_cast<EntityRomEntriesList*>(this);
     Q_ASSERT(erel);
@@ -41,7 +41,7 @@ NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, EntityRomEn
     }
 }
 
-EntityRomEntriesList::EntityRomEntriesList(EntityRomEntriesResourceItem* resourceItem,
+EntityRomEntriesList::EntityRomEntriesList(ResourceItem* resourceItem,
                                            bool entityList)
     : NamedListAccessor(resourceItem, 255)
     , _entityList(entityList)
@@ -125,4 +125,4 @@ bool EntityRomEntriesList::editSelected_setField(const QString& field, const std
         [=](DataT& s) -> std::string& { return s.fields[fieldId]; });
 }
 
-template class UnTech::GuiQt::Accessor::NamedListAccessor<EN::EntityRomEntry, EntityRomEntriesResourceItem>;
+template class UnTech::GuiQt::Accessor::NamedListAccessor<EN::EntityRomEntry, ResourceItem>;

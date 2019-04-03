@@ -18,7 +18,7 @@ namespace EntityFunctionTables {
 namespace Ui {
 class EditorWidget;
 }
-class EntityFunctionTablesResourceItem;
+class ResourceItem;
 class EntityFunctionTablesManager;
 
 class EditorWidget : public AbstractEditorWidget {

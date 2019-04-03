@@ -4,8 +4,8 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "paletteresourcelist.h"
-#include "paletteresourceitem.h"
+#include "resourcelist.h"
+#include "resourceitem.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/project.h"
 #include "models/common/imagecache.h"
@@ -16,37 +16,37 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources::Palette;
 
-PaletteResourceList::PaletteResourceList(Project* project)
+ResourceList::ResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::PALETTE)
 {
 }
 
-UnTech::NamedList<RES::PaletteInput>& PaletteResourceList::palettes() const
+UnTech::NamedList<RES::PaletteInput>& ResourceList::palettes() const
 {
     return project()->projectFile()->palettes;
 }
 
-const QString PaletteResourceList::resourceTypeNameSingle() const
+const QString ResourceList::resourceTypeNameSingle() const
 {
     return tr("Palette");
 }
 
-const QString PaletteResourceList::resourceTypeNamePlural() const
+const QString ResourceList::resourceTypeNamePlural() const
 {
     return tr("Palettes");
 }
 
-size_t PaletteResourceList::nItems() const
+size_t ResourceList::nItems() const
 {
     return project()->projectFile()->palettes.size();
 }
 
-PaletteResourceItem* PaletteResourceList::buildResourceItem(size_t index)
+ResourceItem* ResourceList::buildResourceItem(size_t index)
 {
-    return new PaletteResourceItem(this, index);
+    return new ResourceItem(this, index);
 }
 
-const QList<AbstractResourceList::AddResourceSettings>& PaletteResourceList::addResourceSettings() const
+const QList<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
 {
     const static QList<AbstractResourceList::AddResourceSettings> filters = {
         { tr("Add Palette"),
@@ -58,7 +58,7 @@ const QList<AbstractResourceList::AddResourceSettings>& PaletteResourceList::add
     return filters;
 }
 
-void PaletteResourceList::do_addResource(int settingIndex, const std::string& filename)
+void ResourceList::do_addResource(int settingIndex, const std::string& filename)
 {
     Q_ASSERT(settingIndex == 0);
 
@@ -78,7 +78,7 @@ void PaletteResourceList::do_addResource(int settingIndex, const std::string& fi
     pal.rowsPerFrame = qBound(1U, paletteImage->size().height, 16U);
 }
 
-void PaletteResourceList::do_removeResource(unsigned index)
+void ResourceList::do_removeResource(unsigned index)
 {
     auto& palettes = this->palettes();
 

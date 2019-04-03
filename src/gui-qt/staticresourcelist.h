@@ -12,22 +12,22 @@ namespace UnTech {
 namespace GuiQt {
 
 namespace ProjectSettings {
-class ProjectSettingsResourceItem;
+class ResourceItem;
 }
 namespace Entity {
 namespace EntityRomStructs {
-class EntityRomStructsResourceItem;
+class ResourceItem;
 }
 namespace EntityFunctionTables {
-class EntityFunctionTablesResourceItem;
+class ResourceItem;
 }
 namespace EntityRomEntries {
-class EntityRomEntriesResourceItem;
+class ResourceItem;
 }
 }
 namespace MetaSprite {
 namespace ActionPoints {
-class ActionPointsResourceItem;
+class ResourceItem;
 }
 }
 
@@ -71,12 +71,12 @@ protected:
     virtual void do_removeResource(unsigned index) final;
 
 private:
-    ProjectSettings::ProjectSettingsResourceItem* const _projectSettingsResourceItem;
-    MetaSprite::ActionPoints::ActionPointsResourceItem* const _actionPointsResourceItem;
-    Entity::EntityRomStructs::EntityRomStructsResourceItem* const _entityRomStructsResourceItem;
-    Entity::EntityFunctionTables::EntityFunctionTablesResourceItem* const _entityFunctionTablesResourceItem;
-    Entity::EntityRomEntries::EntityRomEntriesResourceItem* const _entitiesResourceItem;
-    Entity::EntityRomEntries::EntityRomEntriesResourceItem* const _projectilesResourceItem;
+    ProjectSettings::ResourceItem* const _projectSettingsResourceItem;
+    MetaSprite::ActionPoints::ResourceItem* const _actionPointsResourceItem;
+    Entity::EntityRomStructs::ResourceItem* const _entityRomStructsResourceItem;
+    Entity::EntityFunctionTables::ResourceItem* const _entityFunctionTablesResourceItem;
+    Entity::EntityRomEntries::ResourceItem* const _entitiesResourceItem;
+    Entity::EntityRomEntries::ResourceItem* const _projectilesResourceItem;
 };
 
 }

@@ -26,7 +26,7 @@ public:
 protected:
     virtual void setGridSelection(upoint_vectorset&& selectedCells) final;
 
-    void tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset) final;
+    void tilesetItemChanged(ResourceItem* newTileset, ResourceItem* oldTileset) final;
 
 private slots:
     void onTilesetCompiled();
@@ -50,7 +50,7 @@ public:
 protected:
     virtual void setGridSelection(upoint_vectorset&& selectedCells) final;
 
-    void tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset) final;
+    void tilesetItemChanged(ResourceItem* newTileset, ResourceItem* oldTileset) final;
 };
 
 class MtEditableScratchpadGraphicsScene : public MtEditableGraphicsScene {
@@ -68,7 +68,7 @@ public:
 protected:
     virtual void setGridSelection(upoint_vectorset&& selectedCells) final;
 
-    void tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset) final;
+    void tilesetItemChanged(ResourceItem* newTileset, ResourceItem* oldTileset) final;
 };
 }
 }

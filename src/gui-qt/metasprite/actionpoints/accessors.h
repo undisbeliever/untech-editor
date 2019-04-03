@@ -14,15 +14,15 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace ActionPoints {
-class ActionPointsResourceItem;
+class ResourceItem;
 
 using ActionPointFunction = UnTech::MetaSprite::ActionPointFunction;
 
-class ActionPointFunctionsList : public Accessor::NamedListAccessor<ActionPointFunction, ActionPointsResourceItem> {
+class ActionPointFunctionsList : public Accessor::NamedListAccessor<ActionPointFunction, ResourceItem> {
     Q_OBJECT
 
 public:
-    ActionPointFunctionsList(ActionPointsResourceItem* resourceItem);
+    ActionPointFunctionsList(ResourceItem* resourceItem);
     ~ActionPointFunctionsList() = default;
 
     virtual QString typeName() const final;

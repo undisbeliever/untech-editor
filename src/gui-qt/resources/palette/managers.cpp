@@ -5,7 +5,7 @@
  */
 
 #include "managers.h"
-#include "paletteresourceitem.h"
+#include "resourceitem.h"
 #include "models/common/imagecache.h"
 
 using namespace UnTech::GuiQt::Resources::Palette;
@@ -23,7 +23,7 @@ PalettePropertyManager::PalettePropertyManager(QObject* parent)
     addProperty(tr("Skip First Frame"), SKIP_FIRST_FRAME, Type::BOOLEAN);
 }
 
-void PalettePropertyManager::setResourceItem(PaletteResourceItem* item)
+void PalettePropertyManager::setResourceItem(ResourceItem* item)
 {
     if (_palette == item) {
         return;
@@ -37,7 +37,7 @@ void PalettePropertyManager::setResourceItem(PaletteResourceItem* item)
     setEnabled(_palette != nullptr);
 
     if (_palette) {
-        connect(_palette, &PaletteResourceItem::dataChanged,
+        connect(_palette, &ResourceItem::dataChanged,
                 this, &PalettePropertyManager::dataChanged);
     }
 

@@ -8,7 +8,7 @@
 #include "managers.h"
 #include "mttilesetgraphicsscenes.h"
 #include "mttilesetrenderer.h"
-#include "mttilesetresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/properties/propertylistview.h"
@@ -16,7 +16,7 @@
 #include "gui-qt/metatiles/mttileset/editorwidget.ui.h"
 #include "gui-qt/metatiles/style.h"
 #include "gui-qt/project.h"
-#include "gui-qt/resources/palette/paletteresourcelist.h"
+#include "gui-qt/resources/palette/resourcelist.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
@@ -117,7 +117,7 @@ void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
-    auto* item = qobject_cast<MtTilesetResourceItem*>(abstractItem);
+    auto* item = qobject_cast<ResourceItem*>(abstractItem);
     if (_tileset == item) {
         return item != nullptr;
     }
@@ -138,9 +138,9 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 
     if (_tileset) {
         onTilesetStateChanged();
-        connect(_tileset, &MtTilesetResourceItem::stateChanged,
+        connect(_tileset, &ResourceItem::stateChanged,
                 this, &EditorWidget::onTilesetStateChanged);
-        connect(_tileset, &MtTilesetResourceItem::palettesChanged,
+        connect(_tileset, &ResourceItem::palettesChanged,
                 this, &EditorWidget::onTilesetPalettesChanged);
     }
     else {
@@ -210,7 +210,7 @@ void EditorWidget::onPaletteComboActivated(const QString& paletteId)
         return;
     }
 
-    auto* pal = qobject_cast<Resources::Palette::PaletteResourceItem*>(
+    auto* pal = qobject_cast<Resources::Palette::ResourceItem*>(
         _tileset->project()->paletteResourceList()->findResource(paletteId));
 
     _renderer->setPaletteItem(pal);

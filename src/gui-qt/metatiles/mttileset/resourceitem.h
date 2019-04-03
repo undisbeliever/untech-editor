@@ -16,27 +16,27 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaTiles {
 namespace MtTileset {
-class MtTilesetResourceList;
+class ResourceList;
 class MtTilesetTileParameters;
 class MtTilesetScratchpadGrid;
 
 namespace MT = UnTech::MetaTiles;
 
-class MtTilesetResourceItem : public AbstractExternalResourceItem {
+class ResourceItem : public AbstractExternalResourceItem {
     Q_OBJECT
 
 public:
     using DataT = MT::MetaTileTilesetInput;
 
-    using UndoHelper = Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
 
     // The default scratchpad tile is transparent.
     // This is to simplify the placement of non-rectangular tile groups to the grid.
     constexpr static uint16_t DEFAULT_SCRATCHPAD_TILE = 0xffff;
 
 public:
-    MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index);
-    ~MtTilesetResourceItem() = default;
+    ResourceItem(ResourceList* parent, size_t index);
+    ~ResourceItem() = default;
 
     static QString typeName() { return tr("MetaTile Tileset"); }
 
@@ -81,7 +81,7 @@ private:
     }
 
 protected:
-    friend class Accessor::ResourceItemUndoHelper<MtTilesetResourceItem>;
+    friend class Accessor::ResourceItemUndoHelper<ResourceItem>;
     friend class MtTilesetScratchpadGrid;
     MT::MetaTileTilesetInput* dataEditable() { return tilesetInputItem().value.get(); }
 

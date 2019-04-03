@@ -6,24 +6,23 @@
 
 #pragma once
 
-#include "mttilesetresourceitem.h"
 #include "gui-qt/abstractresourcelist.h"
 #include "models/common/externalfilelist.h"
-#include "models/metatiles/metatile-tileset.h"
+#include "models/metasprite/frameset-exportorder.h"
 #include <QObject>
 #include <QVector>
 
 namespace UnTech {
 namespace GuiQt {
-namespace MetaTiles {
-namespace MtTileset {
+namespace MetaSprite {
+namespace ExportOrder {
 
-class MtTilesetResourceList : public AbstractResourceList {
+class ResourceList : public AbstractResourceList {
     Q_OBJECT
 
 public:
-    MtTilesetResourceList(Project* project);
-    ~MtTilesetResourceList() = default;
+    ResourceList(Project* project);
+    ~ResourceList() = default;
 
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
@@ -32,14 +31,14 @@ public:
 
 protected:
     virtual size_t nItems() const final;
-    virtual MtTilesetResourceItem* buildResourceItem(size_t index) final;
+    virtual AbstractResourceItem* buildResourceItem(size_t index) final;
 
     virtual void do_addResource(int settingIndex, const std::string& filename) final;
     virtual void do_removeResource(unsigned index) final;
 
     // Will always return the same instance
-    friend class MtTilesetResourceItem;
-    ExternalFileList<MT::MetaTileTilesetInput>& metaTileTilesets() const;
+    friend class ResourceItem;
+    ExternalFileList<UnTech::MetaSprite::FrameSetExportOrder>& exportOrders() const;
 };
 }
 }

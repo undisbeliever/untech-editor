@@ -21,7 +21,7 @@ namespace EntityRomEntries {
 namespace Ui {
 class EditorWidget;
 }
-class EntityRomEntriesResourceItem;
+class ResourceItem;
 class EntityRomEntryManager;
 
 class EditorWidget : public AbstractEditorWidget {
@@ -57,7 +57,7 @@ private:
 
     EntityRomEntryManager* const _manager;
 
-    EntityRomEntriesResourceItem* _item;
+    ResourceItem* _item;
 };
 
 }

@@ -5,8 +5,8 @@
  */
 
 #include "editorwidget.h"
-#include "entityfunctiontablesresourceitem.h"
 #include "managers.h"
+#include "resourceitem.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/entity/entity-function-tables/editorwidget.ui.h"
@@ -37,7 +37,7 @@ EditorWidget::~EditorWidget() = default;
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
-    auto* item = qobject_cast<EntityFunctionTablesResourceItem*>(abstractItem);
+    auto* item = qobject_cast<ResourceItem*>(abstractItem);
 
     auto* ftList = item ? item->functionTableList() : nullptr;
     _manager->setFunctionTableList(ftList);

@@ -8,7 +8,7 @@
 #include "mtgraphicsscenes.h"
 #include "style.h"
 #include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
-#include "gui-qt/metatiles/mttileset/mttilesetresourceitem.h"
+#include "gui-qt/metatiles/mttileset/resourceitem.h"
 #include "models/metatiles/metatile-tileset.h"
 
 #include <QGraphicsSceneMouseEvent>

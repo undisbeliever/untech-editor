@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "entityromstructsresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/accessor/accessor.h"
 #include "gui-qt/project.h"
@@ -21,13 +21,13 @@ namespace EntityRomStructs {
 
 namespace EN = UnTech::Entity;
 
-class EntityRomStructList : public Accessor::NamedListAccessor<EN::EntityRomStruct, EntityRomStructsResourceItem> {
+class EntityRomStructList : public Accessor::NamedListAccessor<EN::EntityRomStruct, ResourceItem> {
     Q_OBJECT
 
     using UndoHelper = Accessor::ListAndSelectionUndoHelper<EntityRomStructList>;
 
 public:
-    EntityRomStructList(EntityRomStructsResourceItem* resourceItem);
+    EntityRomStructList(ResourceItem* resourceItem);
     ~EntityRomStructList() = default;
 
     virtual QString typeName() const final;
@@ -41,7 +41,7 @@ signals:
     void commentChanged(index_type);
 };
 
-class EntityRomStructFieldList : public Accessor::ChildVectorMultipleSelectionAccessor<EN::StructField, EntityRomStructsResourceItem> {
+class EntityRomStructFieldList : public Accessor::ChildVectorMultipleSelectionAccessor<EN::StructField, ResourceItem> {
     Q_OBJECT
 
 public:

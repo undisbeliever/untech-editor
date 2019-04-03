@@ -9,14 +9,14 @@
 
 using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
-MtTilesetTileParameters::MtTilesetTileParameters(MtTilesetResourceItem* tileset)
+MtTilesetTileParameters::MtTilesetTileParameters(ResourceItem* tileset)
     : QObject(tileset)
     , _tileset(tileset)
     , _selectedIndexes()
 {
     Q_ASSERT(tileset);
 
-    connect(tileset, &MtTilesetResourceItem::resourceLoaded,
+    connect(tileset, &ResourceItem::resourceLoaded,
             this, &MtTilesetTileParameters::clearSelection);
 }
 
@@ -44,12 +44,12 @@ void MtTilesetTileParameters::clearSelection()
     }
 }
 
-MtTilesetScratchpadGrid::MtTilesetScratchpadGrid(MtTilesetResourceItem* tileset)
+MtTilesetScratchpadGrid::MtTilesetScratchpadGrid(ResourceItem* tileset)
     : AbstractGridAccessor(tileset)
 {
     Q_ASSERT(tileset);
 
-    connect(tileset, &MtTilesetResourceItem::resourceLoaded,
+    connect(tileset, &ResourceItem::resourceLoaded,
             this, &MtTilesetScratchpadGrid::gridReset);
 
     connect(this, &MtTilesetScratchpadGrid::selectedCellsChanged,
@@ -91,7 +91,7 @@ void MtTilesetScratchpadGrid::updateSelectedTileParameters()
 bool MtTilesetScratchpadGrid::editGrid_resizeGrid(const usize& size)
 {
     return UndoHelper(this).resizeGrid(
-        size, MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE,
+        size, ResourceItem::DEFAULT_SCRATCHPAD_TILE,
         tr("Resize scratchpad"));
 }
 

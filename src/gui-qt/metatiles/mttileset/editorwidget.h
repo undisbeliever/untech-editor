@@ -28,7 +28,7 @@ namespace Ui {
 class EditorWidget;
 }
 class MtTilesetPropertyManager;
-class MtTilesetResourceItem;
+class ResourceItem;
 class MtTilesetRenderer;
 class MtTilesetGraphicsScene;
 class MtEditableScratchpadGraphicsScene;
@@ -81,7 +81,7 @@ private:
     MtScratchpadGraphicsScene* const _scratchpadScene;
     MtEditableScratchpadGraphicsScene* const _editableScratchpadScene;
 
-    MtTilesetResourceItem* _tileset;
+    ResourceItem* _tileset;
 };
 }
 }

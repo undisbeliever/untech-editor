@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "mttilesetresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/abstractaccessors.h"
 #include "models/common/grid.h"
 #include <QObject>
@@ -29,14 +29,14 @@ public:
     using ArgsT = std::tuple<>;
 
 private:
-    MtTilesetResourceItem* const _tileset;
+    ResourceItem* const _tileset;
     vectorset<uint16_t> _selectedIndexes;
 
 public:
-    MtTilesetTileParameters(MtTilesetResourceItem* tileset);
+    MtTilesetTileParameters(ResourceItem* tileset);
     ~MtTilesetTileParameters() = default;
 
-    MtTilesetResourceItem* resourceItem() const { return _tileset; }
+    ResourceItem* resourceItem() const { return _tileset; }
 
     const vectorset<index_type>& selectedIndexes() const { return _selectedIndexes; }
     void setSelectedIndexes(const vectorset<index_type>& selected);
@@ -66,10 +66,10 @@ public:
     static UnTech::usize maxSize() { return usize(255, 255); }
 
 public:
-    MtTilesetScratchpadGrid(MtTilesetResourceItem* tileset);
+    MtTilesetScratchpadGrid(ResourceItem* tileset);
     ~MtTilesetScratchpadGrid() = default;
 
-    MtTilesetResourceItem* resourceItem() const { return static_cast<MtTilesetResourceItem*>(AbstractGridAccessor::resourceItem()); }
+    ResourceItem* resourceItem() const { return static_cast<ResourceItem*>(AbstractGridAccessor::resourceItem()); }
 
     virtual usize size() const final;
 

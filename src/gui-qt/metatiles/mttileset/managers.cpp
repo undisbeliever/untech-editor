@@ -6,10 +6,10 @@
 
 #include "managers.h"
 #include "accessors.h"
-#include "mttilesetresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/project.h"
-#include "gui-qt/resources/palette/paletteresourcelist.h"
+#include "gui-qt/resources/palette/resourcelist.h"
 
 using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
@@ -32,7 +32,7 @@ MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
 
 void MtTilesetPropertyManager::setResourceItem(AbstractResourceItem* abstractItem)
 {
-    MtTilesetResourceItem* item = qobject_cast<MtTilesetResourceItem*>(abstractItem);
+    ResourceItem* item = qobject_cast<ResourceItem*>(abstractItem);
 
     if (_tileset == item) {
         return;
@@ -47,7 +47,7 @@ void MtTilesetPropertyManager::setResourceItem(AbstractResourceItem* abstractIte
     if (_tileset) {
         setEnabled(_tileset->tilesetInput() != nullptr);
 
-        connect(_tileset, &MtTilesetResourceItem::dataChanged,
+        connect(_tileset, &ResourceItem::dataChanged,
                 this, &MtTilesetPropertyManager::dataChanged);
     }
 

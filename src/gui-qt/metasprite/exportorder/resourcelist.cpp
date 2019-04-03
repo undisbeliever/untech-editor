@@ -4,8 +4,8 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "exportorderresourcelist.h"
-#include "exportorderresourceitem.h"
+#include "resourcelist.h"
+#include "resourceitem.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/project.h"
 #include "models/metasprite/frameset-exportorder.h"
@@ -16,37 +16,37 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
-ExportOrderResourceList::ExportOrderResourceList(Project* project)
+ResourceList::ResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::MS_EXPORT_ORDER)
 {
 }
 
-UnTech::ExternalFileList<UnTech::MetaSprite::FrameSetExportOrder>& ExportOrderResourceList::exportOrders() const
+UnTech::ExternalFileList<UnTech::MetaSprite::FrameSetExportOrder>& ResourceList::exportOrders() const
 {
     return project()->projectFile()->frameSetExportOrders;
 }
 
-const QString ExportOrderResourceList::resourceTypeNameSingle() const
+const QString ResourceList::resourceTypeNameSingle() const
 {
     return tr("FrameSet Export Order");
 }
 
-const QString ExportOrderResourceList::resourceTypeNamePlural() const
+const QString ResourceList::resourceTypeNamePlural() const
 {
     return tr("FrameSet Export Orders");
 }
 
-size_t ExportOrderResourceList::nItems() const
+size_t ResourceList::nItems() const
 {
     return exportOrders().size();
 }
 
-AbstractResourceItem* ExportOrderResourceList::buildResourceItem(size_t index)
+AbstractResourceItem* ResourceList::buildResourceItem(size_t index)
 {
-    return new ExportOrderResourceItem(this, index);
+    return new ResourceItem(this, index);
 }
 
-const QList<AbstractResourceList::AddResourceSettings>& ExportOrderResourceList::addResourceSettings() const
+const QList<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
 {
     const static QList<AbstractResourceList::AddResourceSettings> settings = {
         { tr("Add FrameSet Export Order"),
@@ -58,7 +58,7 @@ const QList<AbstractResourceList::AddResourceSettings>& ExportOrderResourceList:
     return settings;
 }
 
-void ExportOrderResourceList::do_addResource(int settingIndex, const std::string& filename)
+void ResourceList::do_addResource(int settingIndex, const std::string& filename)
 {
     using namespace UnTech::MetaSprite;
 
@@ -79,7 +79,7 @@ void ExportOrderResourceList::do_addResource(int settingIndex, const std::string
     exportOrders.insert_back(filename);
 }
 
-void ExportOrderResourceList::do_removeResource(unsigned index)
+void ResourceList::do_removeResource(unsigned index)
 {
     auto& exportOrders = this->exportOrders();
 

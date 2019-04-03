@@ -16,21 +16,21 @@ namespace UnTech {
 namespace GuiQt {
 namespace Resources {
 namespace Palette {
-class PaletteResourceList;
+class ResourceList;
 
 namespace RES = UnTech::Resources;
 
-class PaletteResourceItem : public AbstractInternalResourceItem {
+class ResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
 
-    using UndoHelper = Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
 
 public:
     using DataT = RES::PaletteInput;
 
 public:
-    PaletteResourceItem(PaletteResourceList* parent, size_t index);
-    ~PaletteResourceItem() = default;
+    ResourceItem(ResourceList* parent, size_t index);
+    ~ResourceItem() = default;
 
     static QString typeName() { return tr("Palette"); }
 
@@ -46,7 +46,7 @@ public:
     bool editPalette_setSkipFirstFrame(bool skipFirstFrame);
 
 private:
-    friend class Accessor::ResourceItemUndoHelper<PaletteResourceItem>;
+    friend class Accessor::ResourceItemUndoHelper<ResourceItem>;
     const RES::PaletteInput* data() const { return &_palettes.at(index()); }
     RES::PaletteInput* dataEditable() { return &_palettes.at(index()); }
 

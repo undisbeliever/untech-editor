@@ -22,7 +22,7 @@ namespace Palette {
 namespace Ui {
 class EditorWidget;
 }
-class PaletteResourceItem;
+class ResourceItem;
 class PaletteGraphicsItem;
 class PalettePropertyManager;
 
@@ -35,7 +35,7 @@ public:
 
     virtual QList<QDockWidget*> createDockWidgets(QMainWindow*) final;
 
-    void setResourceItem(PaletteResourceItem* item);
+    void setResourceItem(ResourceItem* item);
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
 private:
@@ -58,7 +58,7 @@ private:
 
     QGraphicsScene* const _graphicsScene;
 
-    PaletteResourceItem* _palette;
+    ResourceItem* _palette;
     PaletteGraphicsItem* _graphicsItem;
 
     AnimationTimer _animationTimer;
@@ -77,7 +77,7 @@ public:
     static const QColor FRAME_LINE_COLOR;
 
 public:
-    explicit PaletteGraphicsItem(PaletteResourceItem* item);
+    explicit PaletteGraphicsItem(ResourceItem* item);
     ~PaletteGraphicsItem() = default;
 
 public slots:
@@ -95,7 +95,7 @@ public:
                        QWidget* widget = nullptr) final;
 
 private:
-    PaletteResourceItem* const _palette;
+    ResourceItem* const _palette;
     QPixmap _pixmap;
 
     // if < 0 then the whole image is shown

@@ -6,7 +6,7 @@
 
 #include "editorwidget.h"
 #include "managers.h"
-#include "paletteresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/common/properties/propertylistview.h"
 #include "gui-qt/resources/palette/editorwidget.ui.h"
 
@@ -53,7 +53,7 @@ QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow*)
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
-    auto* item = qobject_cast<PaletteResourceItem*>(abstractItem);
+    auto* item = qobject_cast<ResourceItem*>(abstractItem);
 
     _animationTimer.stopTimer();
 
@@ -78,7 +78,7 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
         onPaletteDataChanged();
         updateFrameLabel();
 
-        connect(_palette, &PaletteResourceItem::dataChanged,
+        connect(_palette, &ResourceItem::dataChanged,
                 this, &EditorWidget::onPaletteDataChanged);
     }
     else {
@@ -158,7 +158,7 @@ void EditorWidget::onAnimationStopped()
     }
 }
 
-PaletteGraphicsItem::PaletteGraphicsItem(PaletteResourceItem* item)
+PaletteGraphicsItem::PaletteGraphicsItem(ResourceItem* item)
     : QGraphicsObject()
     , _palette(item)
     , _frameIndex(-1)
@@ -167,7 +167,7 @@ PaletteGraphicsItem::PaletteGraphicsItem(PaletteResourceItem* item)
 
     updatePixmap();
 
-    connect(_palette, &PaletteResourceItem::externalFilesModified,
+    connect(_palette, &ResourceItem::externalFilesModified,
             this, &PaletteGraphicsItem::updatePixmap);
 }
 

@@ -13,7 +13,7 @@ namespace GuiQt {
 namespace Resources {
 namespace Palette {
 
-class PaletteResourceItem;
+class ResourceItem;
 
 class PalettePropertyManager : public PropertyListManager {
     Q_OBJECT
@@ -30,7 +30,7 @@ public:
     explicit PalettePropertyManager(QObject* parent = nullptr);
     ~PalettePropertyManager() = default;
 
-    void setResourceItem(PaletteResourceItem* item);
+    void setResourceItem(ResourceItem* item);
 
     virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;
 
@@ -38,7 +38,7 @@ public:
     virtual bool setData(int id, const QVariant& value) final;
 
 private:
-    PaletteResourceItem* _palette;
+    ResourceItem* _palette;
 };
 }
 }

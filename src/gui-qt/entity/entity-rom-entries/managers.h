@@ -14,7 +14,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace Entity {
 namespace EntityRomEntries {
-class EntityRomEntriesResourceItem;
+class ResourceItem;
 
 class EntityRomEntryManager : public PropertyListManager {
     Q_OBJECT
@@ -32,7 +32,7 @@ public:
     explicit EntityRomEntryManager(QObject* parent = nullptr);
     ~EntityRomEntryManager() = default;
 
-    void setResourceItem(EntityRomEntriesResourceItem* item);
+    void setResourceItem(ResourceItem* item);
 
     virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;
 
@@ -51,7 +51,7 @@ private:
     StructFields _structFields;
     QHash<QString, QString> _entryFields;
 
-    EntityRomEntriesResourceItem* _item;
+    ResourceItem* _item;
 };
 
 }

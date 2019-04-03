@@ -18,17 +18,17 @@ class StaticResourceList;
 
 namespace ProjectSettings {
 
-class ProjectSettingsResourceItem : public AbstractInternalResourceItem {
+class ResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
 
 public:
     using DataT = UnTech::Project::ProjectFile;
 
-    using UndoHelper = Accessor::ResourceItemUndoHelper<ProjectSettingsResourceItem>;
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
 
 public:
-    ProjectSettingsResourceItem(StaticResourceList* list, unsigned index);
-    ~ProjectSettingsResourceItem() = default;
+    ResourceItem(StaticResourceList* list, unsigned index);
+    ~ResourceItem() = default;
 
     bool editBlockSettings_setSize(unsigned blockSize);
     bool editBlockSettings_setCount(unsigned blockCount);
@@ -39,7 +39,7 @@ public:
     bool editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds);
 
 protected:
-    friend class Accessor::ResourceItemUndoHelper<ProjectSettingsResourceItem>;
+    friend class Accessor::ResourceItemUndoHelper<ResourceItem>;
     DataT* dataEditable() const { return project()->projectFile(); }
 
 signals:

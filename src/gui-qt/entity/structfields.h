@@ -12,8 +12,6 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Entity {
-class EntityRomStructsResourceItem;
-
 namespace EN = UnTech::Entity;
 
 class StructFields {

@@ -17,7 +17,7 @@ namespace Ui {
 class EditorWidget;
 }
 class ExportOrderModel;
-class ExportOrderResourceItem;
+class ResourceItem;
 
 class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
@@ -57,7 +57,7 @@ private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
     ExportOrderModel* const _model;
 
-    ExportOrderResourceItem* _exportOrder;
+    ResourceItem* _exportOrder;
 };
 }
 }

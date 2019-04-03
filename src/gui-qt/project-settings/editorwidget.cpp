@@ -6,7 +6,7 @@
 
 #include "editorwidget.h"
 #include "managers.h"
-#include "projectsettingsresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/project-settings/editorwidget.ui.h"
 
 using namespace UnTech::GuiQt::ProjectSettings;
@@ -25,7 +25,7 @@ EditorWidget::~EditorWidget() = default;
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
-    auto* item = qobject_cast<ProjectSettingsResourceItem*>(abstractItem);
+    auto* item = qobject_cast<ResourceItem*>(abstractItem);
 
     _manager->setResourceItem(item);
 

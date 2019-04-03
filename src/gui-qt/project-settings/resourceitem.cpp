@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "projectsettingsresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/project.h"
 #include "gui-qt/resourcevalidationworker.h"
@@ -15,18 +15,18 @@ using namespace UnTech::GuiQt::ProjectSettings;
 
 namespace PRO = UnTech::Project;
 
-ProjectSettingsResourceItem::ProjectSettingsResourceItem(UnTech::GuiQt::StaticResourceList* list, unsigned index)
+ResourceItem::ResourceItem(UnTech::GuiQt::StaticResourceList* list, unsigned index)
     : AbstractInternalResourceItem(list, index)
 {
     setName(tr("Project Settings"));
 
     setRemovable(false);
 
-    connect(this, &ProjectSettingsResourceItem::dataChanged,
+    connect(this, &ResourceItem::dataChanged,
             project()->validationWorker(), &ResourceValidationWorker::validateAllResources);
 }
 
-bool ProjectSettingsResourceItem::compileResource(UnTech::ErrorList& err)
+bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
     const auto* projectFile = project()->projectFile();
     Q_ASSERT(projectFile);
@@ -39,7 +39,7 @@ bool ProjectSettingsResourceItem::compileResource(UnTech::ErrorList& err)
     return valid;
 }
 
-bool ProjectSettingsResourceItem::editBlockSettings_setSize(unsigned blockSize)
+bool ResourceItem::editBlockSettings_setSize(unsigned blockSize)
 {
     return UndoHelper(this).editField(
         blockSize,
@@ -47,7 +47,7 @@ bool ProjectSettingsResourceItem::editBlockSettings_setSize(unsigned blockSize)
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.size; });
 }
 
-bool ProjectSettingsResourceItem::editBlockSettings_setCount(unsigned blockCount)
+bool ResourceItem::editBlockSettings_setCount(unsigned blockCount)
 {
     return UndoHelper(this).editField(
         blockCount,
@@ -55,7 +55,7 @@ bool ProjectSettingsResourceItem::editBlockSettings_setCount(unsigned blockCount
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.count; });
 }
 
-bool ProjectSettingsResourceItem::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
+bool ResourceItem::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
 {
     return UndoHelper(this).editField(
         maxMapSize,
@@ -63,7 +63,7 @@ bool ProjectSettingsResourceItem::editMetaTileSettings_setMaxMapSize(unsigned ma
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.maxMapSize; });
 }
 
-bool ProjectSettingsResourceItem::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
+bool ResourceItem::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
 {
     return UndoHelper(this).editField(
         nMetaTiles,
@@ -71,11 +71,11 @@ bool ProjectSettingsResourceItem::editMetaTileSettings_setNMetaTiles(unsigned nM
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.nMetaTiles; });
 }
 
-bool ProjectSettingsResourceItem::editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds)
+bool ResourceItem::editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds)
 {
     return UndoHelper(this).editField(
         listIds,
         tr("Edit EntityListIds"),
         [](PRO::ProjectFile& pf) -> std::vector<idstring>& { return pf.entityRomData.listIds; },
-        [](ProjectSettingsResourceItem& item) { emit item.entityListIdsChanged(); });
+        [](ResourceItem& item) { emit item.entityListIdsChanged(); });
 }

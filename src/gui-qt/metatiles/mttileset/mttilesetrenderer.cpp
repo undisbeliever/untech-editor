@@ -5,9 +5,9 @@
  */
 
 #include "mttilesetrenderer.h"
-#include "mttilesetresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/resources/dualanimationtimer.h"
-#include "gui-qt/resources/palette/paletteresourceitem.h"
+#include "gui-qt/resources/palette/resourceitem.h"
 #include "gui-qt/snes/tile.hpp"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/resources/animation-frames-input.h"
@@ -59,7 +59,7 @@ void MtTilesetRenderer::pauseAndAdvanceTilesetFrame()
     _animationTimer->pauseAndIncrementSecondFrameCount();
 }
 
-void MtTilesetRenderer::setPaletteItem(Resources::Palette::PaletteResourceItem* item)
+void MtTilesetRenderer::setPaletteItem(Resources::Palette::ResourceItem* item)
 {
     if (_paletteItem != item) {
         if (_paletteItem) {
@@ -86,7 +86,7 @@ void MtTilesetRenderer::setPaletteItem(Resources::Palette::PaletteResourceItem* 
     }
 }
 
-void MtTilesetRenderer::setTilesetItem(MtTilesetResourceItem* item)
+void MtTilesetRenderer::setTilesetItem(ResourceItem* item)
 {
     if (_tilesetItem != item) {
         if (_tilesetItem) {
@@ -104,7 +104,7 @@ void MtTilesetRenderer::setTilesetItem(MtTilesetResourceItem* item)
             connect(_tilesetItem, &AbstractResourceItem::resourceComplied,
                     this, &MtTilesetRenderer::resetPixmaps);
 
-            connect(_tilesetItem, &MtTilesetResourceItem::animationDelayChanged,
+            connect(_tilesetItem, &ResourceItem::animationDelayChanged,
                     this, &MtTilesetRenderer::onAnimationDelaysChanged);
 
             connect(_tilesetItem->resourceList(), &AbstractResourceList::resourceItemAboutToBeRemoved,

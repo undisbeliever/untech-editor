@@ -8,7 +8,7 @@
 #include "framesetresourcelist.h"
 #include "animation/accessors.h"
 #include "animation/managers.h"
-#include "gui-qt/metasprite/actionpoints/actionpointsresourceitem.h"
+#include "gui-qt/metasprite/actionpoints/resourceitem.h"
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
 #include "models/metasprite/compiler/compiler.h"

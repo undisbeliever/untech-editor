@@ -15,28 +15,28 @@ namespace GuiQt {
 class StaticResourceList;
 
 namespace Entity {
-namespace EntityRomEntries {
-class EntityRomEntriesList;
+namespace EntityFunctionTables {
+class EntityFunctionTableList;
 
-class EntityRomEntriesResourceItem : public AbstractInternalResourceItem {
+class ResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
 
     using EntityRomData = UnTech::Entity::EntityRomData;
     using StructFieldMap = UnTech::Entity::StructFieldMap;
 
 public:
-    EntityRomEntriesResourceItem(StaticResourceList* list, unsigned index, bool entityList);
-    ~EntityRomEntriesResourceItem() = default;
+    ResourceItem(StaticResourceList* list, unsigned index);
+    ~ResourceItem() = default;
 
     StaticResourceList* resourceList() const { return static_cast<StaticResourceList*>(_list); }
 
-    EntityRomEntriesList* entriesList() const { return _entriesList; }
+    EntityFunctionTableList* functionTableList() const { return _functionTableList; }
 
 protected:
     virtual bool compileResource(ErrorList& err) final;
 
 private:
-    EntityRomEntriesList* _entriesList;
+    EntityFunctionTableList* const _functionTableList;
 };
 
 }

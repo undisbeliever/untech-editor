@@ -24,13 +24,13 @@ namespace Resources {
 class DualAnimationTimer;
 
 namespace Palette {
-class PaletteResourceItem;
+class ResourceItem;
 }
 }
 
 namespace MetaTiles {
 namespace MtTileset {
-class MtTilesetResourceItem;
+class ResourceItem;
 
 class MtTilesetRenderer : public QObject {
     Q_OBJECT
@@ -46,11 +46,11 @@ public:
     void setPlayButton(QAbstractButton* button);
     void setRegionCombo(QComboBox* comboBox);
 
-    Resources::Palette::PaletteResourceItem* paletteItem() const { return _paletteItem; }
-    void setPaletteItem(Resources::Palette::PaletteResourceItem* item);
+    Resources::Palette::ResourceItem* paletteItem() const { return _paletteItem; }
+    void setPaletteItem(Resources::Palette::ResourceItem* item);
 
-    MtTilesetResourceItem* tilesetItem() const { return _tilesetItem; }
-    void setTilesetItem(MtTilesetResourceItem* item);
+    ResourceItem* tilesetItem() const { return _tilesetItem; }
+    void setTilesetItem(ResourceItem* item);
 
     unsigned nPalettes() const { return _nPalettes; }
     unsigned nTilesets() const { return _nTilesets; }
@@ -84,8 +84,8 @@ private:
 private:
     Resources::DualAnimationTimer* const _animationTimer;
 
-    Resources::Palette::PaletteResourceItem* _paletteItem;
-    MtTilesetResourceItem* _tilesetItem;
+    Resources::Palette::ResourceItem* _paletteItem;
+    ResourceItem* _tilesetItem;
 
     QVector<QPixmap> _pixmaps; // [ paletteFrame * _nTilesets + tilesetFrame ]
     unsigned _nPalettes;

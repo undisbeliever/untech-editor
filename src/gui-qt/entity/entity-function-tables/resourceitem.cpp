@@ -4,10 +4,10 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "entityfunctiontablesresourceitem.h"
+#include "resourceitem.h"
 #include "accessors.h"
-#include "gui-qt/entity/entity-rom-structs/entityromstructsresourceitem.h"
-#include "gui-qt/project-settings/projectsettingsresourceitem.h"
+#include "gui-qt/entity/entity-rom-structs/resourceitem.h"
+#include "gui-qt/project-settings/resourceitem.h"
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
 #include "models/project/project.h"
@@ -15,7 +15,7 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Entity::EntityFunctionTables;
 
-EntityFunctionTablesResourceItem::EntityFunctionTablesResourceItem(StaticResourceList* list, unsigned index)
+ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
     : AbstractInternalResourceItem(list, index)
     , _functionTableList(new EntityFunctionTableList(this))
 {
@@ -30,7 +30,7 @@ EntityFunctionTablesResourceItem::EntityFunctionTablesResourceItem(StaticResourc
             this, &AbstractResourceItem::markUnchecked);
 }
 
-bool EntityFunctionTablesResourceItem::compileResource(UnTech::ErrorList& err)
+bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
     using namespace UnTech::Entity;
 

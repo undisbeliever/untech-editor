@@ -11,7 +11,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace ProjectSettings {
-class ProjectSettingsResourceItem;
+class ResourceItem;
 
 class ProjectSettingsPropertyManager : public PropertyListManager {
     Q_OBJECT
@@ -30,13 +30,13 @@ public:
     explicit ProjectSettingsPropertyManager(QObject* parent = nullptr);
     ~ProjectSettingsPropertyManager() = default;
 
-    virtual void setResourceItem(ProjectSettingsResourceItem* item) final;
+    virtual void setResourceItem(ResourceItem* item) final;
 
     virtual QVariant data(int id) const final;
     virtual bool setData(int id, const QVariant& value) final;
 
 private:
-    ProjectSettingsResourceItem* _item;
+    ResourceItem* _item;
 };
 }
 }

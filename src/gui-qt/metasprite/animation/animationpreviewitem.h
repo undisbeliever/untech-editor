@@ -53,8 +53,8 @@ public:
 
 protected slots:
     // Subclasses are responsible for connecting the
-    // FrameList, frameObjectList, actionPointList and entityHitboxList signals to these slots.
-
+    // FrameList, FrameObjectList, ActionPointList and EntityHitboxList signals
+    // to these slots.
     void onFrameAdded();
     void onFrameAboutToBeRemoved(size_t frameIndex);
     void onFrameDataAndContentsChanged(size_t frameIndex);

@@ -4,13 +4,13 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "paletteresourceitem.h"
-#include "paletteresourcelist.h"
+#include "resourceitem.h"
+#include "resourcelist.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 
 using namespace UnTech::GuiQt::Resources::Palette;
 
-PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t index)
+ResourceItem::ResourceItem(ResourceList* parent, size_t index)
     : AbstractInternalResourceItem(parent, index)
     , _palettes(parent->palettes())
     , _compiledData(nullptr)
@@ -25,7 +25,7 @@ PaletteResourceItem::PaletteResourceItem(PaletteResourceList* parent, size_t ind
             this, &AbstractResourceItem::markUnchecked);
 }
 
-void PaletteResourceItem::updateExternalFiles()
+void ResourceItem::updateExternalFiles()
 {
     QStringList filenames;
 
@@ -37,7 +37,7 @@ void PaletteResourceItem::updateExternalFiles()
     setExternalFiles(filenames);
 }
 
-bool PaletteResourceItem::compileResource(ErrorList& err)
+bool ResourceItem::compileResource(ErrorList& err)
 {
     auto palData = RES::convertPalette(paletteInput(), err);
     bool valid = palData && palData->validate(err);
@@ -52,21 +52,21 @@ bool PaletteResourceItem::compileResource(ErrorList& err)
     }
 }
 
-bool PaletteResourceItem::editPalette_setName(const idstring& name)
+bool ResourceItem::editPalette_setName(const idstring& name)
 {
     return UndoHelper(this).editName(name);
 }
 
-bool PaletteResourceItem::editPalette_setImageFilename(const std::string& filename)
+bool ResourceItem::editPalette_setImageFilename(const std::string& filename)
 {
     return UndoHelper(this).editField(
         filename,
         tr("Edit Image Filename"),
         [](RES::PaletteInput& p) -> std::string& { return p.paletteImageFilename; },
-        [](PaletteResourceItem& pal) { pal.updateExternalFiles(); });
+        [](ResourceItem& pal) { pal.updateExternalFiles(); });
 }
 
-bool PaletteResourceItem::editPalette_setRowsPerFrame(unsigned rowsPerFrame)
+bool ResourceItem::editPalette_setRowsPerFrame(unsigned rowsPerFrame)
 {
     return UndoHelper(this).editField(
         rowsPerFrame,
@@ -74,7 +74,7 @@ bool PaletteResourceItem::editPalette_setRowsPerFrame(unsigned rowsPerFrame)
         [](RES::PaletteInput& p) -> unsigned& { return p.rowsPerFrame; });
 }
 
-bool PaletteResourceItem::editPalette_setAnimationDelay(unsigned animationDelay)
+bool ResourceItem::editPalette_setAnimationDelay(unsigned animationDelay)
 {
     return UndoHelper(this).editField(
         animationDelay,
@@ -82,7 +82,7 @@ bool PaletteResourceItem::editPalette_setAnimationDelay(unsigned animationDelay)
         [](RES::PaletteInput& p) -> unsigned& { return p.animationDelay; });
 }
 
-bool PaletteResourceItem::editPalette_setSkipFirstFrame(bool skipFirstFrame)
+bool ResourceItem::editPalette_setSkipFirstFrame(bool skipFirstFrame)
 {
     return UndoHelper(this).editField(
         skipFirstFrame,

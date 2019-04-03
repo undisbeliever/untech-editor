@@ -6,7 +6,7 @@
 
 #include "editorwidget.h"
 #include "accessors.h"
-#include "entityromstructsresourceitem.h"
+#include "resourceitem.h"
 #include "structfieldsmodel.h"
 #include "gui-qt/accessor/namedlistdock.h"
 #include "gui-qt/common/idstringvalidator.h"
@@ -62,7 +62,7 @@ QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow*)
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
-    auto* item = qobject_cast<EntityRomStructsResourceItem*>(abstractItem);
+    auto* item = qobject_cast<ResourceItem*>(abstractItem);
 
     if (_item == item) {
         return item != nullptr;

@@ -6,7 +6,7 @@
 
 #include "exportordermodel.h"
 #include "accessors.h"
-#include "exportorderresourceitem.h"
+#include "resourceitem.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
@@ -39,7 +39,7 @@ ExportOrderModel::ExportOrderModel(QObject* parent)
 {
 }
 
-void ExportOrderModel::setExportOrder(ExportOrderResourceItem* exportOrder)
+void ExportOrderModel::setExportOrder(ResourceItem* exportOrder)
 {
     if (_exportOrder != exportOrder) {
         if (_exportOrder) {

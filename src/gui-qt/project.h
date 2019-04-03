@@ -27,17 +27,17 @@ class StaticResourceList;
 namespace MetaSprite {
 class FrameSetResourceList;
 namespace ExportOrder {
-class ExportOrderResourceList;
+class ResourceList;
 }
 }
 namespace MetaTiles {
 namespace MtTileset {
-class MtTilesetResourceList;
+class ResourceList;
 }
 }
 namespace Resources {
 namespace Palette {
-class PaletteResourceList;
+class ResourceList;
 }
 }
 
@@ -66,10 +66,10 @@ public:
     UnTech::Project::ProjectFile* projectFile() const { return _projectFile.get(); }
 
     StaticResourceList* staticResourceList() const { return _staticResourceList; }
-    MetaSprite::ExportOrder::ExportOrderResourceList* frameSetExportOrderResourceList() const { return _frameSetExportOrderResourceList; }
+    MetaSprite::ExportOrder::ResourceList* frameSetExportOrderResourceList() const { return _frameSetExportOrderResourceList; }
     MetaSprite::FrameSetResourceList* frameSetResourceList() const { return _frameSetResourceList; }
-    Resources::Palette::PaletteResourceList* paletteResourceList() const { return _paletteResourceList; }
-    MetaTiles::MtTileset::MtTilesetResourceList* mtTilesetResourceList() const { return _mtTilesetResourceList; }
+    Resources::Palette::ResourceList* paletteResourceList() const { return _paletteResourceList; }
+    MetaTiles::MtTileset::ResourceList* mtTilesetResourceList() const { return _mtTilesetResourceList; }
 
     void setSelectedResource(AbstractResourceItem* item);
     AbstractResourceItem* selectedResource() const { return _selectedResource; }
@@ -105,10 +105,10 @@ private:
     FilesystemWatcher* const _filesystemWatcher;
 
     StaticResourceList* const _staticResourceList;
-    MetaSprite::ExportOrder::ExportOrderResourceList* const _frameSetExportOrderResourceList;
+    MetaSprite::ExportOrder::ResourceList* const _frameSetExportOrderResourceList;
     MetaSprite::FrameSetResourceList* const _frameSetResourceList;
-    Resources::Palette::PaletteResourceList* const _paletteResourceList;
-    MetaTiles::MtTileset::MtTilesetResourceList* const _mtTilesetResourceList;
+    Resources::Palette::ResourceList* const _paletteResourceList;
+    MetaTiles::MtTileset::ResourceList* const _mtTilesetResourceList;
 
     const QList<AbstractResourceList*> _resourceLists;
 

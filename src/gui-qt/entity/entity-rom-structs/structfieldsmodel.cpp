@@ -6,7 +6,7 @@
 
 #include "structfieldsmodel.h"
 #include "accessors.h"
-#include "entityromstructsresourceitem.h"
+#include "resourceitem.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Entity::EntityRomStructs;
@@ -47,7 +47,7 @@ StructFieldsModel::StructFieldsModel(QObject* parent)
 {
 }
 
-void StructFieldsModel::setResourceItem(EntityRomStructsResourceItem* item)
+void StructFieldsModel::setResourceItem(ResourceItem* item)
 {
     if (_item == item) {
         return;

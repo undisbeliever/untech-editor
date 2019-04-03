@@ -7,7 +7,7 @@
 #include "editorwidget.h"
 #include "accessors.h"
 #include "exportordermodel.h"
-#include "exportorderresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/listactionhelper.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/properties/propertydelegate.h"
@@ -71,7 +71,7 @@ EditorWidget::~EditorWidget() = default;
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
-    auto* item = qobject_cast<ExportOrderResourceItem*>(abstractItem);
+    auto* item = qobject_cast<ResourceItem*>(abstractItem);
     if (_exportOrder == item) {
         return item != nullptr;
     }
@@ -96,7 +96,7 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
         updateSelection();
         updateActions();
 
-        connect(_exportOrder, &ExportOrderResourceItem::nameChanged,
+        connect(_exportOrder, &ResourceItem::nameChanged,
                 this, &EditorWidget::updateGui);
 
         // prevents data corruption when the list changes and the editor is open

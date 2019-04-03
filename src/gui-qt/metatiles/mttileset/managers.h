@@ -13,7 +13,7 @@ namespace GuiQt {
 namespace MetaTiles {
 namespace MtTileset {
 
-class MtTilesetResourceItem;
+class ResourceItem;
 
 class MtTilesetPropertyManager : public AbstractPropertyManager {
     Q_OBJECT
@@ -40,7 +40,7 @@ public:
     virtual bool setData(int id, const QVariant& value) final;
 
 private:
-    MtTilesetResourceItem* _tileset;
+    ResourceItem* _tileset;
 };
 }
 }

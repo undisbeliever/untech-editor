@@ -4,11 +4,11 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "entityromentriesresourceitem.h"
+#include "resourceitem.h"
 #include "accessors.h"
-#include "gui-qt/entity/entity-function-tables/entityfunctiontablesresourceitem.h"
-#include "gui-qt/entity/entity-rom-structs/entityromstructsresourceitem.h"
-#include "gui-qt/project-settings/projectsettingsresourceitem.h"
+#include "gui-qt/entity/entity-function-tables/resourceitem.h"
+#include "gui-qt/entity/entity-rom-structs/resourceitem.h"
+#include "gui-qt/project-settings/resourceitem.h"
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
 #include "models/project/project.h"
@@ -16,8 +16,8 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 
-EntityRomEntriesResourceItem::EntityRomEntriesResourceItem(StaticResourceList* list, unsigned index,
-                                                           bool entityList)
+ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
+                           bool entityList)
     : AbstractInternalResourceItem(list, index)
     , _entriesList(new EntityRomEntriesList(this, entityList))
 {
@@ -44,7 +44,7 @@ EntityRomEntriesResourceItem::EntityRomEntriesResourceItem(StaticResourceList* l
             _entriesList, &EntityRomEntriesList::setSelectedIndex);
 }
 
-bool EntityRomEntriesResourceItem::compileResource(UnTech::ErrorList& err)
+bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
     using namespace UnTech::Entity;
 

@@ -4,9 +4,9 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "mttilesetresourceitem.h"
+#include "resourceitem.h"
 #include "accessors.h"
-#include "mttilesetresourcelist.h"
+#include "resourcelist.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/project.h"
@@ -15,9 +15,9 @@
 
 using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
-constexpr uint16_t MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE;
+constexpr uint16_t ResourceItem::DEFAULT_SCRATCHPAD_TILE;
 
-MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size_t index)
+ResourceItem::ResourceItem(ResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
     , _metaTileTilesets(parent->metaTileTilesets())
     , _tileParameters(new MtTilesetTileParameters(this))
@@ -28,14 +28,14 @@ MtTilesetResourceItem::MtTilesetResourceItem(MtTilesetResourceList* parent, size
 
     setFilename(QString::fromStdString(tilesetInputItem().filename));
 
-    connect(this, &MtTilesetResourceItem::nameChanged,
-            this, &MtTilesetResourceItem::tilesetPropertiesChanged);
+    connect(this, &ResourceItem::nameChanged,
+            this, &ResourceItem::tilesetPropertiesChanged);
 
-    connect(this, &MtTilesetResourceItem::tilesetPropertiesChanged,
+    connect(this, &ResourceItem::tilesetPropertiesChanged,
             this, &AbstractResourceItem::markUnchecked);
 }
 
-unsigned MtTilesetResourceItem::nMetaTiles() const
+unsigned ResourceItem::nMetaTiles() const
 {
     if (_compiledData) {
         return _compiledData->nMetaTiles();
@@ -45,7 +45,7 @@ unsigned MtTilesetResourceItem::nMetaTiles() const
     }
 }
 
-void MtTilesetResourceItem::updateExternalFiles()
+void ResourceItem::updateExternalFiles()
 {
     QStringList files;
     if (auto* d = data()) {
@@ -55,7 +55,7 @@ void MtTilesetResourceItem::updateExternalFiles()
     setExternalFiles(files);
 }
 
-void MtTilesetResourceItem::updateDependencies()
+void ResourceItem::updateDependencies()
 {
     std::unique_ptr<DataT>& tileset = tilesetInputItem().value;
     Q_ASSERT(tileset);
@@ -67,7 +67,7 @@ void MtTilesetResourceItem::updateDependencies()
     setDependencies(deps);
 }
 
-void MtTilesetResourceItem::saveResourceData(const std::string& filename) const
+void ResourceItem::saveResourceData(const std::string& filename) const
 {
     auto* tileset = this->tilesetInput();
 
@@ -76,7 +76,7 @@ void MtTilesetResourceItem::saveResourceData(const std::string& filename) const
     }
 }
 
-bool MtTilesetResourceItem::loadResourceData(ErrorList& err)
+bool ResourceItem::loadResourceData(ErrorList& err)
 {
     auto& tilesetItem = tilesetInputItem();
 
@@ -100,7 +100,7 @@ bool MtTilesetResourceItem::loadResourceData(ErrorList& err)
     }
 }
 
-bool MtTilesetResourceItem::compileResource(ErrorList& err)
+bool ResourceItem::compileResource(ErrorList& err)
 {
     auto* tileset = this->tilesetInput();
 
@@ -124,56 +124,56 @@ bool MtTilesetResourceItem::compileResource(ErrorList& err)
     }
 }
 
-bool MtTilesetResourceItem::editTileset_setName(const UnTech::idstring& name)
+bool ResourceItem::editTileset_setName(const UnTech::idstring& name)
 {
     return UndoHelper(this).editName(name);
 }
 
-bool MtTilesetResourceItem::editTileset_setPalettes(const std::vector<UnTech::idstring>& palettes)
+bool ResourceItem::editTileset_setPalettes(const std::vector<UnTech::idstring>& palettes)
 {
     return UndoHelper(this).editField(
         palettes,
         tr("Edit Palette List"),
         [](MT::MetaTileTilesetInput& ti) -> std::vector<idstring>& { return ti.palettes; },
-        [](MtTilesetResourceItem& item) { emit item.palettesChanged();
+        [](ResourceItem& item) { emit item.palettesChanged();
                                           emit item.tilesetPropertiesChanged();
                                           item.updateDependencies(); });
 }
 
-bool MtTilesetResourceItem::editTileset_setFrameImageFilenames(const std::vector<std::string>& images)
+bool ResourceItem::editTileset_setFrameImageFilenames(const std::vector<std::string>& images)
 {
     return UndoHelper(this).editField(
         images,
         tr("Edit Frame Image List"),
         [](MT::MetaTileTilesetInput& ti) -> std::vector<std::string>& { return ti.animationFrames.frameImageFilenames; },
-        [](MtTilesetResourceItem& item) { emit item.tilesetPropertiesChanged();
+        [](ResourceItem& item) { emit item.tilesetPropertiesChanged();
                                           item.updateExternalFiles(); });
 }
 
-bool MtTilesetResourceItem::editTileset_setAnimationDelay(unsigned delay)
+bool ResourceItem::editTileset_setAnimationDelay(unsigned delay)
 {
     return UndoHelper(this).editField(
         delay,
         tr("Edit Animation Delay"),
         [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.animationDelay; },
-        [](MtTilesetResourceItem& item) { emit item.animationDelayChanged();
+        [](ResourceItem& item) { emit item.animationDelayChanged();
                                           emit item.tilesetPropertiesChanged(); });
 }
 
-bool MtTilesetResourceItem::editTileset_setBitDepth(unsigned bitDepth)
+bool ResourceItem::editTileset_setBitDepth(unsigned bitDepth)
 {
     return UndoHelper(this).editField(
         bitDepth,
         tr("Edit Bit Depth"),
         [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.bitDepth; },
-        [](MtTilesetResourceItem& item) { emit item.tilesetPropertiesChanged(); });
+        [](ResourceItem& item) { emit item.tilesetPropertiesChanged(); });
 }
 
-bool MtTilesetResourceItem::editTileset_setAddTransparentTile(bool addTransparentTile)
+bool ResourceItem::editTileset_setAddTransparentTile(bool addTransparentTile)
 {
     return UndoHelper(this).editField(
         addTransparentTile,
         tr("Edit Add Transparent Tile"),
         [](MT::MetaTileTilesetInput& ti) -> bool& { return ti.animationFrames.addTransparentTile; },
-        [](MtTilesetResourceItem& item) { emit item.tilesetPropertiesChanged(); });
+        [](ResourceItem& item) { emit item.tilesetPropertiesChanged(); });
 }

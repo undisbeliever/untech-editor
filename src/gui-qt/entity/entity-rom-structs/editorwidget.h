@@ -20,7 +20,7 @@ namespace EntityRomStructs {
 namespace Ui {
 class EditorWidget;
 }
-class EntityRomStructsResourceItem;
+class ResourceItem;
 class StructFieldsModel;
 
 class EditorWidget : public AbstractEditorWidget {
@@ -60,7 +60,7 @@ private:
     StructFieldsModel* const _fieldsModel;
     Accessor::ListActions _fieldListActions;
 
-    EntityRomStructsResourceItem* _item;
+    ResourceItem* _item;
 };
 
 }

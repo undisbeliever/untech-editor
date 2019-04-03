@@ -13,7 +13,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace ExportOrder {
-class ExportOrderResourceItem;
+class ResourceItem;
 
 class ExportOrderModel : public AbstractPropertyModel {
     Q_OBJECT
@@ -66,7 +66,7 @@ public:
     explicit ExportOrderModel(QObject* parent = nullptr);
     ~ExportOrderModel() = default;
 
-    void setExportOrder(ExportOrderResourceItem* exportOrder);
+    void setExportOrder(ResourceItem* exportOrder);
 
     virtual const Property& propertyForIndex(const QModelIndex& index) const final;
     virtual bool isListItem(const QModelIndex& index) const final;
@@ -99,7 +99,7 @@ private slots:
     void onExportNameAltChanged(bool isFrame, unsigned index, unsigned altIndex);
 
 private:
-    ExportOrderResourceItem* _exportOrder;
+    ResourceItem* _exportOrder;
     const QVector<Property> _properties;
 };
 }

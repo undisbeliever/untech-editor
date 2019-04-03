@@ -5,7 +5,7 @@
  */
 
 #include "accessors.h"
-#include "actionpointsresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/abstractaccessors.hpp"
 #include "gui-qt/project.h"
 #include "models/project/project.h"
@@ -15,7 +15,7 @@ using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::ActionPoints;
 
 template <>
-const NamedList<ActionPointFunction>* NamedListAccessor<ActionPointFunction, ActionPointsResourceItem>::list() const
+const NamedList<ActionPointFunction>* NamedListAccessor<ActionPointFunction, ResourceItem>::list() const
 {
     const auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
@@ -23,14 +23,14 @@ const NamedList<ActionPointFunction>* NamedListAccessor<ActionPointFunction, Act
 }
 
 template <>
-NamedList<ActionPointFunction>* NamedListAccessor<ActionPointFunction, ActionPointsResourceItem>::getList()
+NamedList<ActionPointFunction>* NamedListAccessor<ActionPointFunction, ResourceItem>::getList()
 {
     auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
     return &projectFile->actionPointFunctions;
 }
 
-ActionPointFunctionsList::ActionPointFunctionsList(ActionPointsResourceItem* resourceItem)
+ActionPointFunctionsList::ActionPointFunctionsList(ResourceItem* resourceItem)
     : NamedListAccessor(resourceItem, 255)
 {
 }
@@ -54,4 +54,4 @@ bool ActionPointFunctionsList::edit_setManuallyInvoked(size_t index, bool manual
 }
 
 using namespace UnTech::GuiQt;
-template class Accessor::NamedListAccessor<ActionPointFunction, ActionPointsResourceItem>;
+template class Accessor::NamedListAccessor<ActionPointFunction, ResourceItem>;

@@ -7,7 +7,7 @@
 #include "animationframesinputwidget.h"
 #include "gui-qt/common/graphics/qpenhelper.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
-#include "gui-qt/metatiles/mttileset/mttilesetresourceitem.h"
+#include "gui-qt/metatiles/mttileset/resourceitem.h"
 #include "gui-qt/resources/animated-tileset/animationframesinputwidget.ui.h"
 #include "gui-qt/resources/animationtimer.h"
 #include "models/resources/animation-frames-input.h"
@@ -25,7 +25,7 @@ static const RES::AnimationFramesInput* getAnimationFramesInput(AbstractResource
         return nullptr;
     }
 
-    if (const auto* tileset = qobject_cast<MetaTiles::MtTileset::MtTilesetResourceItem*>(item)) {
+    if (const auto* tileset = qobject_cast<MetaTiles::MtTileset::ResourceItem*>(item)) {
         if (const auto* ti = tileset->tilesetInput()) {
             return &ti->animationFrames;
         }
@@ -41,7 +41,7 @@ static unsigned getGridSize(const AbstractResourceItem* item)
 {
     Q_ASSERT(item);
 
-    if (qobject_cast<const MetaTiles::MtTileset::MtTilesetResourceItem*>(item)) {
+    if (qobject_cast<const MetaTiles::MtTileset::ResourceItem*>(item)) {
         return 16;
     }
     else {

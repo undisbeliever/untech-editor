@@ -8,7 +8,7 @@
 #include "mtgridgraphicsitem.h"
 #include "tilecursorgraphicsitem.h"
 #include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
-#include "gui-qt/metatiles/mttileset/mttilesetresourceitem.h"
+#include "gui-qt/metatiles/mttileset/resourceitem.h"
 
 #include <QEvent>
 #include <QGraphicsView>
@@ -93,7 +93,7 @@ void MtGraphicsScene::editGridSelection(upoint_vectorset&& selectedCells)
 
 void MtGraphicsScene::onRendererTilesetItemChanged()
 {
-    MtTileset::MtTilesetResourceItem* oldItem = _tilesetItem;
+    MtTileset::ResourceItem* oldItem = _tilesetItem;
 
     if (_tilesetItem) {
         _tilesetItem->disconnect(this);

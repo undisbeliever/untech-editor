@@ -7,7 +7,7 @@
 #include "mttilesetgraphicsscenes.h"
 #include "accessors.h"
 #include "mttilesetrenderer.h"
-#include "mttilesetresourceitem.h"
+#include "resourceitem.h"
 
 using namespace UnTech;
 using namespace UnTech::GuiQt;
@@ -56,7 +56,7 @@ void MtTilesetGraphicsScene::setGridSelection(upoint_vectorset&& selectedCells)
     }
 }
 
-void MtTilesetGraphicsScene::tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset)
+void MtTilesetGraphicsScene::tilesetItemChanged(ResourceItem* newTileset, ResourceItem* oldTileset)
 {
     onTilesetCompiled();
     onSelectedTileParametersChanged();
@@ -66,7 +66,7 @@ void MtTilesetGraphicsScene::tilesetItemChanged(MtTilesetResourceItem* newTilese
     }
 
     if (newTileset) {
-        connect(newTileset, &MtTilesetResourceItem::resourceComplied,
+        connect(newTileset, &ResourceItem::resourceComplied,
                 this, &MtTilesetGraphicsScene::onTilesetCompiled);
 
         connect(newTileset->tileParameters(), &MtTilesetTileParameters::selectedIndexesChanged,
@@ -143,7 +143,7 @@ void MtScratchpadGraphicsScene::setGridSelection(upoint_vectorset&& selectedCell
     }
 }
 
-void MtScratchpadGraphicsScene::tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset)
+void MtScratchpadGraphicsScene::tilesetItemChanged(ResourceItem* newTileset, ResourceItem* oldTileset)
 {
     if (oldTileset) {
         oldTileset->scratchpadGrid()->disconnect(this);
@@ -203,7 +203,7 @@ void MtEditableScratchpadGraphicsScene::placeTiles(const MtGraphicsScene::grid_t
     tilesetItem()->scratchpadGrid()->editGrid_placeTiles(location, tiles);
 }
 
-void MtEditableScratchpadGraphicsScene::tilesetItemChanged(MtTilesetResourceItem* newTileset, MtTilesetResourceItem* oldTileset)
+void MtEditableScratchpadGraphicsScene::tilesetItemChanged(ResourceItem* newTileset, ResourceItem* oldTileset)
 {
     if (oldTileset) {
         oldTileset->scratchpadGrid()->disconnect(this);

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "exportorderresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/accessor.h"
 #include "gui-qt/accessor/listactionhelper.h"
 #include <QObject>
@@ -35,15 +35,15 @@ public:
     constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_EXPORT_NAMES; }
 
 private:
-    ExportOrderResourceItem* const _exportOrder;
+    ResourceItem* const _exportOrder;
 
     bool _selectedListIsFrame;
     index_type _selectedIndex;
 
 public:
-    ExportNameList(ExportOrderResourceItem* exportOrder);
+    ExportNameList(ResourceItem* exportOrder);
 
-    ExportOrderResourceItem* resourceItem() const { return _exportOrder; }
+    ResourceItem* resourceItem() const { return _exportOrder; }
 
     QString typeName() const { return tr("Export Name"); }
 
@@ -115,14 +115,14 @@ public:
     constexpr static index_type maxSize() { return 256; }
 
 private:
-    ExportOrderResourceItem* const _exportOrder;
+    ResourceItem* const _exportOrder;
 
     index_type _selectedIndex;
 
 public:
-    AlternativesList(ExportOrderResourceItem* exportOrder);
+    AlternativesList(ResourceItem* exportOrder);
 
-    ExportOrderResourceItem* resourceItem() const { return _exportOrder; }
+    ResourceItem* resourceItem() const { return _exportOrder; }
 
     QString typeName() const { return tr("Export Name Alternative"); }
 

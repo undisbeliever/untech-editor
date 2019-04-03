@@ -4,8 +4,8 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "mttilesetresourcelist.h"
-#include "mttilesetresourceitem.h"
+#include "resourcelist.h"
+#include "resourceitem.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/project.h"
 #include "models/metatiles/metatiles-serializer.h"
@@ -16,37 +16,37 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
-MtTilesetResourceList::MtTilesetResourceList(Project* project)
+ResourceList::ResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::MT_TILESET)
 {
 }
 
-UnTech::ExternalFileList<UnTech::MetaTiles::MetaTileTilesetInput>& MtTilesetResourceList::metaTileTilesets() const
+UnTech::ExternalFileList<UnTech::MetaTiles::MetaTileTilesetInput>& ResourceList::metaTileTilesets() const
 {
     return project()->projectFile()->metaTileTilesets;
 }
 
-const QString MtTilesetResourceList::resourceTypeNameSingle() const
+const QString ResourceList::resourceTypeNameSingle() const
 {
     return tr("MetaTile Tileset");
 }
 
-const QString MtTilesetResourceList::resourceTypeNamePlural() const
+const QString ResourceList::resourceTypeNamePlural() const
 {
     return tr("MetaTile Tilesets");
 }
 
-size_t MtTilesetResourceList::nItems() const
+size_t ResourceList::nItems() const
 {
     return metaTileTilesets().size();
 }
 
-MtTilesetResourceItem* MtTilesetResourceList::buildResourceItem(size_t index)
+ResourceItem* ResourceList::buildResourceItem(size_t index)
 {
-    return new MtTilesetResourceItem(this, index);
+    return new ResourceItem(this, index);
 }
 
-const QList<AbstractResourceList::AddResourceSettings>& MtTilesetResourceList::addResourceSettings() const
+const QList<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
 {
     const static QList<AbstractResourceList::AddResourceSettings> settings = {
         { tr("Add MetaTile Tileset"),
@@ -58,7 +58,7 @@ const QList<AbstractResourceList::AddResourceSettings>& MtTilesetResourceList::a
     return settings;
 }
 
-void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& filename)
+void ResourceList::do_addResource(int settingIndex, const std::string& filename)
 {
     Q_ASSERT(settingIndex == 0);
 
@@ -72,12 +72,12 @@ void MtTilesetResourceList::do_addResource(int settingIndex, const std::string& 
 
         MT::MetaTileTilesetInput tilesetInput;
         tilesetInput.name = name.toStdString();
-        tilesetInput.scratchpad = grid<uint16_t>(16, 16, MtTilesetResourceItem::DEFAULT_SCRATCHPAD_TILE);
+        tilesetInput.scratchpad = grid<uint16_t>(16, 16, ResourceItem::DEFAULT_SCRATCHPAD_TILE);
         MT::saveMetaTileTilesetInput(tilesetInput, filename);
     }
 }
 
-void MtTilesetResourceList::do_removeResource(unsigned index)
+void ResourceList::do_removeResource(unsigned index)
 {
     auto& metaTileTilesets = this->metaTileTilesets();
 

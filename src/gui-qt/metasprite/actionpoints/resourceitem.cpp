@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "actionpointsresourceitem.h"
+#include "resourceitem.h"
 #include "accessors.h"
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
@@ -13,7 +13,7 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::ActionPoints;
 
-ActionPointsResourceItem::ActionPointsResourceItem(StaticResourceList* list, unsigned index)
+ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
     : AbstractInternalResourceItem(list, index)
     , _actionPointFunctionsList(new ActionPointFunctionsList(this))
 {
@@ -24,12 +24,12 @@ ActionPointsResourceItem::ActionPointsResourceItem(StaticResourceList* list, uns
             this, &AbstractResourceItem::markUnchecked);
 }
 
-QStringList ActionPointsResourceItem::actionPointNames() const
+QStringList ResourceItem::actionPointNames() const
 {
     return actionPointFunctionsList()->itemNames();
 }
 
-bool ActionPointsResourceItem::compileResource(UnTech::ErrorList& err)
+bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
     using namespace UnTech::MetaSprite;
 

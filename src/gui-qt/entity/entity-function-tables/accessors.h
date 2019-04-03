@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "entityfunctiontablesresourceitem.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/project.h"
 #include "models/entity/entityromdata.h"
@@ -17,15 +17,15 @@ namespace UnTech {
 namespace GuiQt {
 namespace Entity {
 namespace EntityFunctionTables {
-class EntityFunctionTablesResourceItem;
+class ResourceItem;
 
 namespace EN = UnTech::Entity;
 
-class EntityFunctionTableList : public Accessor::NamedListAccessor<EN::EntityFunctionTable, EntityFunctionTablesResourceItem> {
+class EntityFunctionTableList : public Accessor::NamedListAccessor<EN::EntityFunctionTable, ResourceItem> {
     Q_OBJECT
 
 public:
-    EntityFunctionTableList(EntityFunctionTablesResourceItem* resourceItem);
+    EntityFunctionTableList(ResourceItem* resourceItem);
     ~EntityFunctionTableList() = default;
 
     virtual QString typeName() const final;

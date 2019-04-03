@@ -16,7 +16,7 @@ namespace ActionPoints {
 namespace Ui {
 class EditorWidget;
 }
-class ActionPointsResourceItem;
+class ResourceItem;
 class ActionPointFunctionsManager;
 
 class EditorWidget : public AbstractEditorWidget {
