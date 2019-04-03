@@ -22,7 +22,7 @@ static inline QPixmap blankTile(unsigned size)
 
 TilesetPixmaps::TilesetPixmaps(QObject* parent)
     : QObject(parent)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
     , _smallTileset()
     , _largeTileset()
     , _blankSmallTile(blankTile(8))
@@ -30,35 +30,35 @@ TilesetPixmaps::TilesetPixmaps(QObject* parent)
 {
 }
 
-void TilesetPixmaps::setDocument(Document* document)
+void TilesetPixmaps::setResourceItem(ResourceItem* resourceItem)
 {
-    if (_document != nullptr) {
-        _document->disconnect(this);
-        _document->smallTileTileset()->disconnect(this);
-        _document->largeTileTileset()->disconnect(this);
-        _document->paletteList()->disconnect(this);
+    if (_resourceItem != nullptr) {
+        _resourceItem->disconnect(this);
+        _resourceItem->smallTileTileset()->disconnect(this);
+        _resourceItem->largeTileTileset()->disconnect(this);
+        _resourceItem->paletteList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
     redrawTilesets();
 
-    if (_document) {
-        connect(_document->paletteList(), &PaletteList::dataChanged,
+    if (_resourceItem) {
+        connect(_resourceItem->paletteList(), &PaletteList::dataChanged,
                 this, &TilesetPixmaps::onPaletteChanged);
 
-        connect(_document->smallTileTileset(), &SmallTileTileset::listChanged,
+        connect(_resourceItem->smallTileTileset(), &SmallTileTileset::listChanged,
                 this, &TilesetPixmaps::redrawTilesets);
 
-        connect(_document->largeTileTileset(), &LargeTileTileset::listChanged,
+        connect(_resourceItem->largeTileTileset(), &LargeTileTileset::listChanged,
                 this, &TilesetPixmaps::redrawTilesets);
 
-        connect(_document->smallTileTileset(), &SmallTileTileset::dataChanged,
+        connect(_resourceItem->smallTileTileset(), &SmallTileTileset::dataChanged,
                 this, &TilesetPixmaps::onSmallTileChanged);
 
-        connect(_document->largeTileTileset(), &LargeTileTileset::dataChanged,
+        connect(_resourceItem->largeTileTileset(), &LargeTileTileset::dataChanged,
                 this, &TilesetPixmaps::onLargeTileChanged);
 
-        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
+        connect(_resourceItem->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &TilesetPixmaps::redrawTilesets);
     }
 }
@@ -85,8 +85,8 @@ const QPixmap& TilesetPixmaps::largeTile(unsigned index) const
 
 void TilesetPixmaps::redrawTilesets()
 {
-    if (_document != nullptr) {
-        const auto* frameSet = _document->frameSet();
+    if (_resourceItem != nullptr) {
+        const auto* frameSet = _resourceItem->frameSet();
         const auto& palette = this->palette();
 
         auto update = [&palette](auto& pixmaps, const auto& tileset) -> void {
@@ -116,7 +116,7 @@ void TilesetPixmaps::redrawTilesets()
 
 void TilesetPixmaps::onPaletteChanged(unsigned index)
 {
-    if (index == _document->paletteList()->selectedIndex()) {
+    if (index == _resourceItem->paletteList()->selectedIndex()) {
         redrawTilesets();
     }
 }
@@ -125,7 +125,7 @@ void TilesetPixmaps::onSmallTileChanged(unsigned tileId)
 {
     Q_ASSERT(tileId < unsigned(_smallTileset.size()));
 
-    const auto& tile = _document->frameSet()->smallTileset.tile(tileId);
+    const auto& tile = _resourceItem->frameSet()->smallTileset.tile(tileId);
     const auto& palette = this->palette();
 
     QImage img(8, 8, QImage::Format_ARGB32_Premultiplied);
@@ -142,7 +142,7 @@ void TilesetPixmaps::onLargeTileChanged(unsigned tileId)
 {
     Q_ASSERT(tileId < unsigned(_largeTileset.size()));
 
-    const auto& tile = _document->frameSet()->largeTileset.tile(tileId);
+    const auto& tile = _resourceItem->frameSet()->largeTileset.tile(tileId);
     const auto& palette = this->palette();
 
     QImage img(16, 16, QImage::Format_ARGB32_Premultiplied);
@@ -159,11 +159,11 @@ const UnTech::Snes::Palette4bpp& TilesetPixmaps::palette() const
 {
     static const UnTech::Snes::Palette4bpp BLANK_PALETTE;
 
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return BLANK_PALETTE;
     }
 
-    if (const auto* p = _document->paletteList()->selectedItem()) {
+    if (const auto* p = _resourceItem->paletteList()->selectedItem()) {
         return *p;
     }
     else {

@@ -12,7 +12,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
-class Document;
+class ResourceItem;
 class TilesetPixmaps;
 
 class AbstractTilesetWidget : public DrawingPixmapGridWidget {
@@ -22,7 +22,7 @@ public:
     AbstractTilesetWidget(QWidget* parent = nullptr);
     ~AbstractTilesetWidget() = default;
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
 protected slots:
     void onPaletteChanged(unsigned index);
@@ -30,7 +30,7 @@ protected slots:
     void onSelectedColorChanged();
 
 protected:
-    Document* _document;
+    ResourceItem* _resourceItem;
 };
 
 class SmallTilesetWidget : public AbstractTilesetWidget {

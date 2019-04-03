@@ -14,7 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractMsDocument;
+class AbstractMsResourceItem;
 
 namespace Animation {
 namespace Ui {
@@ -38,12 +38,12 @@ public:
     Accessor::ListActions* animationFrameActions();
     Accessor::NamedListModel* animationListModel();
 
-    void setDocument(AbstractMsDocument* document);
+    void setResourceItem(AbstractMsResourceItem* resourceItem);
 
 private:
     std::unique_ptr<Ui::AnimationDock> const _ui;
 
-    AbstractMsDocument* _document;
+    AbstractMsResourceItem* _resourceItem;
 
     AnimationManager* const _animationManager;
     AnimationFramesManager* const _animationFramesManager;

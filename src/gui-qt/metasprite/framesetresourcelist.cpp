@@ -6,9 +6,9 @@
 
 #include "framesetresourcelist.h"
 #include "gui-qt/common/idstringvalidator.h"
-#include "gui-qt/metasprite/metasprite/document.h"
+#include "gui-qt/metasprite/metasprite/resourceitem.h"
 #include "gui-qt/metasprite/nullframesetresourceitem.h"
-#include "gui-qt/metasprite/spriteimporter/document.h"
+#include "gui-qt/metasprite/spriteimporter/resourceitem.h"
 #include "gui-qt/project.h"
 #include "models/metasprite/metasprite-serializer.h"
 #include "models/metasprite/spriteimporter-serializer.h"
@@ -60,10 +60,10 @@ AbstractResourceItem* FrameSetResourceList::buildResourceItem(size_t index)
         return new NullFrameSetResourceItem(this, index);
 
     case FrameSetType::METASPRITE:
-        return new MetaSprite::Document(this, index);
+        return new MetaSprite::ResourceItem(this, index);
 
     case FrameSetType::SPRITE_IMPORTER:
-        return new SpriteImporter::Document(this, index);
+        return new SpriteImporter::ResourceItem(this, index);
     }
 
     return new NullFrameSetResourceItem(this, index);

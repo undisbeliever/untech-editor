@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "abstractmsdocument.h"
+#include "abstractmsresourceitem.h"
 #include "framesetresourcelist.h"
 #include "animation/accessors.h"
 #include "animation/managers.h"
@@ -16,23 +16,23 @@
 
 using namespace UnTech::GuiQt::MetaSprite;
 
-AbstractMsDocument::AbstractMsDocument(FrameSetResourceList* parent, size_t index)
+AbstractMsResourceItem::AbstractMsResourceItem(FrameSetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
     , _frameSetFiles(parent->frameSetFiles())
     , _animationsList(new Animation::AnimationsList(this))
     , _animationFramesList(new Animation::AnimationFramesList(this))
 {
-    connect(this, &AbstractMsDocument::frameSetDataChanged,
+    connect(this, &AbstractMsResourceItem::frameSetDataChanged,
             this, &AbstractResourceItem::dataChanged);
 
     connect(this, &AbstractResourceItem::dataChanged,
             this, &AbstractResourceItem::markUnchecked);
 
-    connect(this, &AbstractMsDocument::frameSetExportOrderChanged,
-            this, &AbstractMsDocument::onFrameSetExportOrderChanged);
+    connect(this, &AbstractMsResourceItem::frameSetExportOrderChanged,
+            this, &AbstractMsResourceItem::onFrameSetExportOrderChanged);
 }
 
-void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet, ErrorList& errList)
+void AbstractMsResourceItem::compileMsFrameset(const MS::FrameSet* frameSet, ErrorList& errList)
 {
     using namespace UnTech::MetaSprite::Compiler;
 
@@ -52,7 +52,7 @@ void AbstractMsDocument::compileMsFrameset(const MS::FrameSet* frameSet, ErrorLi
     }
 }
 
-void AbstractMsDocument::onFrameSetExportOrderChanged()
+void AbstractMsResourceItem::onFrameSetExportOrderChanged()
 {
     const idstring& exportOrder = this->exportOrder();
 

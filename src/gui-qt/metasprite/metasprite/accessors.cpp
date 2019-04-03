@@ -18,9 +18,9 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
-SmallTileTileset::SmallTileTileset(Document* document)
-    : AbstractListAccessor(document, 255)
-    , _document(document)
+SmallTileTileset::SmallTileTileset(ResourceItem* resourceItem)
+    : AbstractListAccessor(resourceItem, 255)
+    , _resourceItem(resourceItem)
 {
 }
 
@@ -60,10 +60,10 @@ bool SmallTileTileset::addItem(size_t index)
 {
     QUndoCommand* c = UndoHelper(this).addCommand(index);
     if (c) {
-        _document->undoStack()->beginMacro(tr("Add Small Tile"));
-        _document->undoStack()->push(c);
-        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::SMALL, index, 1);
-        _document->undoStack()->endMacro();
+        _resourceItem->undoStack()->beginMacro(tr("Add Small Tile"));
+        _resourceItem->undoStack()->push(c);
+        _resourceItem->frameObjectList()->editAll_shiftTileIds(ObjectSize::SMALL, index, 1);
+        _resourceItem->undoStack()->endMacro();
     }
     return c != nullptr;
 }
@@ -72,10 +72,10 @@ bool SmallTileTileset::cloneItem(size_t index)
 {
     QUndoCommand* c = UndoHelper(this).cloneCommand(index);
     if (c) {
-        _document->undoStack()->beginMacro(tr("Clone Small Tile"));
-        _document->undoStack()->push(c);
-        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::SMALL, index, 1);
-        _document->undoStack()->endMacro();
+        _resourceItem->undoStack()->beginMacro(tr("Clone Small Tile"));
+        _resourceItem->undoStack()->push(c);
+        _resourceItem->frameObjectList()->editAll_shiftTileIds(ObjectSize::SMALL, index, 1);
+        _resourceItem->undoStack()->endMacro();
     }
     return c != nullptr;
 }
@@ -84,10 +84,10 @@ bool SmallTileTileset::removeItem(size_t index)
 {
     QUndoCommand* c = UndoHelper(this).removeCommand(index);
     if (c) {
-        _document->undoStack()->beginMacro(tr("Remove Small Tile"));
-        _document->undoStack()->push(c);
-        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::SMALL, index, -1);
-        _document->undoStack()->endMacro();
+        _resourceItem->undoStack()->beginMacro(tr("Remove Small Tile"));
+        _resourceItem->undoStack()->push(c);
+        _resourceItem->frameObjectList()->editAll_shiftTileIds(ObjectSize::SMALL, index, -1);
+        _resourceItem->undoStack()->endMacro();
     }
     return c != nullptr;
 }
@@ -121,17 +121,17 @@ bool SmallTileTileset::editTile_setPixel(unsigned tileId, const QPoint& p, unsig
 
 bool SmallTileTileset::editTile_paintPixel(unsigned tileId, const QPoint& p, bool first)
 {
-    if (_document->paletteList()->isSelectedColorValid()) {
-        return editTile_setPixel(tileId, p, _document->paletteList()->selectedColor(), first);
+    if (_resourceItem->paletteList()->isSelectedColorValid()) {
+        return editTile_setPixel(tileId, p, _resourceItem->paletteList()->selectedColor(), first);
     }
     else {
         return false;
     }
 }
 
-LargeTileTileset::LargeTileTileset(Document* document)
-    : AbstractListAccessor(document, 255)
-    , _document(document)
+LargeTileTileset::LargeTileTileset(ResourceItem* resourceItem)
+    : AbstractListAccessor(resourceItem, 255)
+    , _resourceItem(resourceItem)
 {
 }
 
@@ -171,10 +171,10 @@ bool LargeTileTileset::addItem(size_t index)
 {
     QUndoCommand* c = UndoHelper(this).addCommand(index);
     if (c) {
-        _document->undoStack()->beginMacro(tr("Add Small Tile"));
-        _document->undoStack()->push(c);
-        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::LARGE, index, 1);
-        _document->undoStack()->endMacro();
+        _resourceItem->undoStack()->beginMacro(tr("Add Small Tile"));
+        _resourceItem->undoStack()->push(c);
+        _resourceItem->frameObjectList()->editAll_shiftTileIds(ObjectSize::LARGE, index, 1);
+        _resourceItem->undoStack()->endMacro();
     }
     return c != nullptr;
 }
@@ -183,10 +183,10 @@ bool LargeTileTileset::cloneItem(size_t index)
 {
     QUndoCommand* c = UndoHelper(this).cloneCommand(index);
     if (c) {
-        _document->undoStack()->beginMacro(tr("Clone Small Tile"));
-        _document->undoStack()->push(c);
-        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::LARGE, index, 1);
-        _document->undoStack()->endMacro();
+        _resourceItem->undoStack()->beginMacro(tr("Clone Small Tile"));
+        _resourceItem->undoStack()->push(c);
+        _resourceItem->frameObjectList()->editAll_shiftTileIds(ObjectSize::LARGE, index, 1);
+        _resourceItem->undoStack()->endMacro();
     }
     return c != nullptr;
 }
@@ -195,10 +195,10 @@ bool LargeTileTileset::removeItem(size_t index)
 {
     QUndoCommand* c = UndoHelper(this).removeCommand(index);
     if (c) {
-        _document->undoStack()->beginMacro(tr("Remove Small Tile"));
-        _document->undoStack()->push(c);
-        _document->frameObjectList()->editAll_shiftTileIds(ObjectSize::LARGE, index, -1);
-        _document->undoStack()->endMacro();
+        _resourceItem->undoStack()->beginMacro(tr("Remove Small Tile"));
+        _resourceItem->undoStack()->push(c);
+        _resourceItem->frameObjectList()->editAll_shiftTileIds(ObjectSize::LARGE, index, -1);
+        _resourceItem->undoStack()->endMacro();
     }
     return c != nullptr;
 }
@@ -232,8 +232,8 @@ bool LargeTileTileset::editTile_setPixel(unsigned tileId, const QPoint& p, unsig
 
 bool LargeTileTileset::editTile_paintPixel(unsigned tileId, const QPoint& p, bool first)
 {
-    if (_document->paletteList()->isSelectedColorValid()) {
-        return editTile_setPixel(tileId, p, _document->paletteList()->selectedColor(), first);
+    if (_resourceItem->paletteList()->isSelectedColorValid()) {
+        return editTile_setPixel(tileId, p, _resourceItem->paletteList()->selectedColor(), first);
     }
     else {
         return false;
@@ -241,7 +241,7 @@ bool LargeTileTileset::editTile_paintPixel(unsigned tileId, const QPoint& p, boo
 }
 
 template <>
-const std::vector<Snes::Palette4bpp>* VectorSingleSelectionAccessor<Snes::Palette4bpp, Document>::list() const
+const std::vector<Snes::Palette4bpp>* VectorSingleSelectionAccessor<Snes::Palette4bpp, ResourceItem>::list() const
 {
     const MS::FrameSet* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -251,7 +251,7 @@ const std::vector<Snes::Palette4bpp>* VectorSingleSelectionAccessor<Snes::Palett
 }
 
 template <>
-std::vector<Snes::Palette4bpp>* VectorSingleSelectionAccessor<Snes::Palette4bpp, Document>::getList()
+std::vector<Snes::Palette4bpp>* VectorSingleSelectionAccessor<Snes::Palette4bpp, ResourceItem>::getList()
 {
     MS::FrameSet* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -260,8 +260,8 @@ std::vector<Snes::Palette4bpp>* VectorSingleSelectionAccessor<Snes::Palette4bpp,
     return &fs->palettes;
 }
 
-PaletteList::PaletteList(Document* document)
-    : VectorSingleSelectionAccessor(document, UnTech::MetaSprite::MAX_PALETTES)
+PaletteList::PaletteList(ResourceItem* resourceItem)
+    : VectorSingleSelectionAccessor(resourceItem, UnTech::MetaSprite::MAX_PALETTES)
     , _selectedColor(INT_MAX)
 {
     setSelectedIndex(0);
@@ -357,7 +357,7 @@ bool PaletteList::editSelectedList_removeSelected()
 }
 
 template <>
-const NamedList<MS::Frame>* NamedListAccessor<MS::Frame, Document>::list() const
+const NamedList<MS::Frame>* NamedListAccessor<MS::Frame, ResourceItem>::list() const
 {
     if (const MS::FrameSet* fs = resourceItem()->frameSet()) {
         return &fs->frames;
@@ -366,7 +366,7 @@ const NamedList<MS::Frame>* NamedListAccessor<MS::Frame, Document>::list() const
 }
 
 template <>
-NamedList<MS::Frame>* NamedListAccessor<MS::Frame, Document>::getList()
+NamedList<MS::Frame>* NamedListAccessor<MS::Frame, ResourceItem>::getList()
 {
     if (MS::FrameSet* fs = resourceItem()->frameSet()) {
         return &fs->frames;
@@ -374,8 +374,8 @@ NamedList<MS::Frame>* NamedListAccessor<MS::Frame, Document>::getList()
     return nullptr;
 }
 
-FrameList::FrameList(Document* document)
-    : NamedListAccessor(document, UnTech::MetaSprite::MAX_EXPORT_NAMES)
+FrameList::FrameList(ResourceItem* resourceItem)
+    : NamedListAccessor(resourceItem, UnTech::MetaSprite::MAX_EXPORT_NAMES)
     , _tileHitboxSelected(false)
 {
 }
@@ -431,7 +431,7 @@ bool FrameList::editSelected_setTileHitbox(const ms8rect& hitbox)
 }
 
 template <>
-const std::vector<MS::FrameObject>* ChildVectorMultipleSelectionAccessor<MS::FrameObject, Document>::list(size_t pIndex) const
+const std::vector<MS::FrameObject>* ChildVectorMultipleSelectionAccessor<MS::FrameObject, ResourceItem>::list(size_t pIndex) const
 {
     const auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -444,7 +444,7 @@ const std::vector<MS::FrameObject>* ChildVectorMultipleSelectionAccessor<MS::Fra
 }
 
 template <>
-std::vector<MS::FrameObject>* ChildVectorMultipleSelectionAccessor<MS::FrameObject, Document>::getList(size_t pIndex)
+std::vector<MS::FrameObject>* ChildVectorMultipleSelectionAccessor<MS::FrameObject, ResourceItem>::getList(size_t pIndex)
 {
     auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -456,8 +456,8 @@ std::vector<MS::FrameObject>* ChildVectorMultipleSelectionAccessor<MS::FrameObje
     return &fs->frames.at(pIndex).objects;
 }
 
-FrameObjectList::FrameObjectList(Document* document)
-    : ChildVectorMultipleSelectionAccessor(document->frameList(), document, UnTech::MetaSprite::MAX_FRAME_OBJECTS)
+FrameObjectList::FrameObjectList(ResourceItem* resourceItem)
+    : ChildVectorMultipleSelectionAccessor(resourceItem->frameList(), resourceItem, UnTech::MetaSprite::MAX_FRAME_OBJECTS)
 {
 }
 
@@ -583,7 +583,7 @@ inline bool FrameObjectList::editAll_shiftTileIds(ObjectSize size, unsigned tile
 }
 
 template <>
-const std::vector<MS::ActionPoint>* ChildVectorMultipleSelectionAccessor<MS::ActionPoint, Document>::list(size_t pIndex) const
+const std::vector<MS::ActionPoint>* ChildVectorMultipleSelectionAccessor<MS::ActionPoint, ResourceItem>::list(size_t pIndex) const
 {
     const auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -596,7 +596,7 @@ const std::vector<MS::ActionPoint>* ChildVectorMultipleSelectionAccessor<MS::Act
 }
 
 template <>
-std::vector<MS::ActionPoint>* ChildVectorMultipleSelectionAccessor<MS::ActionPoint, Document>::getList(size_t pIndex)
+std::vector<MS::ActionPoint>* ChildVectorMultipleSelectionAccessor<MS::ActionPoint, ResourceItem>::getList(size_t pIndex)
 {
     auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -608,8 +608,8 @@ std::vector<MS::ActionPoint>* ChildVectorMultipleSelectionAccessor<MS::ActionPoi
     return &fs->frames.at(pIndex).actionPoints;
 }
 
-ActionPointList::ActionPointList(Document* document)
-    : ChildVectorMultipleSelectionAccessor(document->frameList(), document, UnTech::MetaSprite::MAX_ACTION_POINTS)
+ActionPointList::ActionPointList(ResourceItem* resourceItem)
+    : ChildVectorMultipleSelectionAccessor(resourceItem->frameList(), resourceItem, UnTech::MetaSprite::MAX_ACTION_POINTS)
 {
 }
 
@@ -640,7 +640,7 @@ bool ActionPointList::editSelectedList_setType(unsigned index, idstring type)
 }
 
 template <>
-const std::vector<MS::EntityHitbox>* ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, Document>::list(size_t pIndex) const
+const std::vector<MS::EntityHitbox>* ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, ResourceItem>::list(size_t pIndex) const
 {
     const auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -653,7 +653,7 @@ const std::vector<MS::EntityHitbox>* ChildVectorMultipleSelectionAccessor<MS::En
 }
 
 template <>
-std::vector<MS::EntityHitbox>* ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, Document>::getList(size_t pIndex)
+std::vector<MS::EntityHitbox>* ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, ResourceItem>::getList(size_t pIndex)
 {
     auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -665,8 +665,8 @@ std::vector<MS::EntityHitbox>* ChildVectorMultipleSelectionAccessor<MS::EntityHi
     return &fs->frames.at(pIndex).entityHitboxes;
 }
 
-EntityHitboxList::EntityHitboxList(Document* document)
-    : ChildVectorMultipleSelectionAccessor(document->frameList(), document, UnTech::MetaSprite::MAX_ENTITY_HITBOXES)
+EntityHitboxList::EntityHitboxList(ResourceItem* resourceItem)
+    : ChildVectorMultipleSelectionAccessor(resourceItem->frameList(), resourceItem, UnTech::MetaSprite::MAX_ENTITY_HITBOXES)
 {
 }
 
@@ -714,9 +714,9 @@ void MsGraphicsScene::commitMovedItems()
     QList<QUndoCommand*> commands;
     commands.reserve(4);
 
-    if (_document->frameList()->isTileHitboxSelected()) {
+    if (_resourceItem->frameList()->isTileHitboxSelected()) {
         ms8rect hitbox = _tileHitbox->rectMs8rect();
-        auto* c = FrameList::UndoHelper(_document->frameList())
+        auto* c = FrameList::UndoHelper(_resourceItem->frameList())
                       .editSelectedItemFieldCommand(hitbox, QString(),
                                                     [](MS::Frame& f) -> ms8rect& { return f.tileHitbox; });
         if (c != nullptr) {
@@ -725,21 +725,21 @@ void MsGraphicsScene::commitMovedItems()
     }
 
     commands.append(
-        FrameObjectList::UndoHelper(_document->frameObjectList())
+        FrameObjectList::UndoHelper(_resourceItem->frameObjectList())
             .editSelectedItemsCommand(
                 QString(),
                 [this](MS::FrameObject& obj, size_t i) {
                     obj.location = _objects.at(i)->posMs8point();
                 }));
     commands.append(
-        ActionPointList::UndoHelper(_document->actionPointList())
+        ActionPointList::UndoHelper(_resourceItem->actionPointList())
             .editSelectedItemsCommand(
                 QString(),
                 [this](MS::ActionPoint& ap, size_t i) {
                     ap.location = _actionPoints.at(i)->posMs8point();
                 }));
     commands.append(
-        EntityHitboxList::UndoHelper(_document->entityHitboxList())
+        EntityHitboxList::UndoHelper(_resourceItem->entityHitboxList())
             .editSelectedItemsCommand(
                 QString(),
                 [this](MS::EntityHitbox& eh, size_t i) {
@@ -749,17 +749,17 @@ void MsGraphicsScene::commitMovedItems()
     commands.removeAll(nullptr);
 
     if (!commands.empty()) {
-        _document->undoStack()->beginMacro(tr("Move Selected"));
+        _resourceItem->undoStack()->beginMacro(tr("Move Selected"));
         for (QUndoCommand* c : commands) {
-            _document->undoStack()->push(c);
+            _resourceItem->undoStack()->push(c);
         }
-        _document->undoStack()->endMacro();
+        _resourceItem->undoStack()->endMacro();
     }
 }
 
 using namespace UnTech::GuiQt;
-template class Accessor::VectorSingleSelectionAccessor<UnTech::Snes::Palette4bpp, Document>;
-template class Accessor::NamedListAccessor<MS::Frame, Document>;
-template class Accessor::ChildVectorMultipleSelectionAccessor<MS::FrameObject, Document>;
-template class Accessor::ChildVectorMultipleSelectionAccessor<MS::ActionPoint, Document>;
-template class Accessor::ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, Document>;
+template class Accessor::VectorSingleSelectionAccessor<UnTech::Snes::Palette4bpp, ResourceItem>;
+template class Accessor::NamedListAccessor<MS::Frame, ResourceItem>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<MS::FrameObject, ResourceItem>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<MS::ActionPoint, ResourceItem>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, ResourceItem>;

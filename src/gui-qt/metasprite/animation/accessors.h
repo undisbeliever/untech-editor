@@ -8,7 +8,7 @@
 
 #include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/accessor/accessor.h"
-#include "gui-qt/metasprite/abstractmsdocument.h"
+#include "gui-qt/metasprite/abstractmsresourceitem.h"
 #include <QObject>
 #include <tuple>
 
@@ -17,11 +17,11 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace Animation {
 
-class AnimationsList : public Accessor::NamedListAccessor<MSA::Animation, AbstractMsDocument> {
+class AnimationsList : public Accessor::NamedListAccessor<MSA::Animation, AbstractMsResourceItem> {
     Q_OBJECT
 
 public:
-    AnimationsList(AbstractMsDocument* document);
+    AnimationsList(AbstractMsResourceItem* resourceItem);
     ~AnimationsList() = default;
 
     virtual QString typeName() const final;
@@ -34,11 +34,11 @@ public:
     bool editSelected_setNextAnimation(const idstring& nextAnimation);
 };
 
-class AnimationFramesList : public Accessor::ChildVectorMultipleSelectionAccessor<MSA::AnimationFrame, AbstractMsDocument> {
+class AnimationFramesList : public Accessor::ChildVectorMultipleSelectionAccessor<MSA::AnimationFrame, AbstractMsResourceItem> {
     Q_OBJECT
 
 public:
-    AnimationFramesList(AbstractMsDocument* document);
+    AnimationFramesList(AbstractMsResourceItem* resourceItem);
     ~AnimationFramesList() = default;
 
     virtual QString typeName() const final;

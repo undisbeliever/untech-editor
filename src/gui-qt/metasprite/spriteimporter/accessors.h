@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "document.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/accessor/accessor.h"
 #include "models/common/vectorset.h"
@@ -18,7 +18,7 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace SpriteImporter {
 
-class FrameList : public Accessor::NamedListAccessor<SI::Frame, Document> {
+class FrameList : public Accessor::NamedListAccessor<SI::Frame, ResourceItem> {
     Q_OBJECT
 
 public:
@@ -30,7 +30,7 @@ private:
     bool _tileHitboxSelected;
 
 public:
-    FrameList(Document* document);
+    FrameList(ResourceItem* resourceItem);
     ~FrameList() = default;
 
     virtual QString typeName() const final;
@@ -57,13 +57,13 @@ signals:
     void tileHitboxSelectedChanged();
 };
 
-class FrameObjectList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::FrameObject, Document> {
+class FrameObjectList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::FrameObject, ResourceItem> {
     Q_OBJECT
 
     using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
 public:
-    FrameObjectList(Document* document);
+    FrameObjectList(ResourceItem* resourceItem);
     ~FrameObjectList() = default;
 
     virtual QString typeName() const final;
@@ -75,11 +75,11 @@ public:
     bool editSelected_toggleObjectSize();
 };
 
-class ActionPointList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::ActionPoint, Document> {
+class ActionPointList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::ActionPoint, ResourceItem> {
     Q_OBJECT
 
 public:
-    ActionPointList(Document* document);
+    ActionPointList(ResourceItem* resourceItem);
     ~ActionPointList() = default;
 
     virtual QString typeName() const final;
@@ -89,13 +89,13 @@ public:
     bool editSelectedList_setType(unsigned index, idstring type);
 };
 
-class EntityHitboxList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, Document> {
+class EntityHitboxList : public Accessor::ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, ResourceItem> {
     Q_OBJECT
 
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 
 public:
-    EntityHitboxList(Document* document);
+    EntityHitboxList(ResourceItem* resourceItem);
     ~EntityHitboxList() = default;
 
     virtual QString typeName() const final;

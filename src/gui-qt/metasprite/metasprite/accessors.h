@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "document.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/accessor/accessor.h"
 #include "models/common/vectorset.h"
@@ -36,12 +36,12 @@ public:
     constexpr static index_type maxSize() { return 256; }
 
 private:
-    Document* const _document;
+    ResourceItem* const _resourceItem;
 
 public:
-    SmallTileTileset(Document* document);
+    SmallTileTileset(ResourceItem* resourceItem);
 
-    Document* resourceItem() const { return _document; }
+    ResourceItem* resourceItem() const { return _resourceItem; }
 
     virtual QString typeName() const final;
     virtual QString typeNamePlural() const final;
@@ -63,7 +63,7 @@ protected:
     friend class Accessor::ListUndoHelper;
     ListT* getList()
     {
-        MS::FrameSet* fs = _document->frameSet();
+        MS::FrameSet* fs = _resourceItem->frameSet();
         if (fs == nullptr) {
             return nullptr;
         }
@@ -88,12 +88,12 @@ public:
     using UndoHelper = Accessor::ListWithNoSelectionUndoHelper<LargeTileTileset>;
 
 private:
-    Document* const _document;
+    ResourceItem* const _resourceItem;
 
 public:
-    LargeTileTileset(Document* document);
+    LargeTileTileset(ResourceItem* resourceItem);
 
-    Document* resourceItem() const { return _document; }
+    ResourceItem* resourceItem() const { return _resourceItem; }
 
     virtual QString typeName() const final;
     virtual QString typeNamePlural() const final;
@@ -115,7 +115,7 @@ protected:
     friend class Accessor::ListUndoHelper;
     ListT* getList()
     {
-        MS::FrameSet* fs = _document->frameSet();
+        MS::FrameSet* fs = _resourceItem->frameSet();
         if (fs == nullptr) {
             return nullptr;
         }
@@ -128,14 +128,14 @@ protected:
     }
 };
 
-class PaletteList : public Accessor::VectorSingleSelectionAccessor<UnTech::Snes::Palette4bpp, Document> {
+class PaletteList : public Accessor::VectorSingleSelectionAccessor<UnTech::Snes::Palette4bpp, ResourceItem> {
     Q_OBJECT
 
 private:
     unsigned _selectedColor;
 
 public:
-    PaletteList(Document* document);
+    PaletteList(ResourceItem* resourceItem);
 
     virtual QString typeName() const final;
     virtual QString typeNamePlural() const final;
@@ -158,7 +158,7 @@ signals:
     void selectedColorChanged();
 };
 
-class FrameList : public Accessor::NamedListAccessor<MS::Frame, Document> {
+class FrameList : public Accessor::NamedListAccessor<MS::Frame, ResourceItem> {
     Q_OBJECT
 
 public:
@@ -170,7 +170,7 @@ private:
     bool _tileHitboxSelected;
 
 public:
-    FrameList(Document* document);
+    FrameList(ResourceItem* resourceItem);
     ~FrameList() = default;
 
     virtual QString typeName() const final;
@@ -192,13 +192,13 @@ signals:
     void tileHitboxSelectedChanged();
 };
 
-class FrameObjectList : public Accessor::ChildVectorMultipleSelectionAccessor<MS::FrameObject, Document> {
+class FrameObjectList : public Accessor::ChildVectorMultipleSelectionAccessor<MS::FrameObject, ResourceItem> {
     Q_OBJECT
 
     using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
 public:
-    FrameObjectList(Document* document);
+    FrameObjectList(ResourceItem* resourceItem);
     ~FrameObjectList() = default;
 
     virtual QString typeName() const final;
@@ -222,11 +222,11 @@ protected:
     bool editAll_shiftTileIds(ObjectSize size, unsigned tileId, int offset);
 };
 
-class ActionPointList : public Accessor::ChildVectorMultipleSelectionAccessor<MS::ActionPoint, Document> {
+class ActionPointList : public Accessor::ChildVectorMultipleSelectionAccessor<MS::ActionPoint, ResourceItem> {
     Q_OBJECT
 
 public:
-    ActionPointList(Document* document);
+    ActionPointList(ResourceItem* resourceItem);
     ~ActionPointList() = default;
 
     virtual QString typeName() const final;
@@ -236,13 +236,13 @@ public:
     bool editSelectedList_setType(unsigned index, idstring type);
 };
 
-class EntityHitboxList : public Accessor::ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, Document> {
+class EntityHitboxList : public Accessor::ChildVectorMultipleSelectionAccessor<MS::EntityHitbox, ResourceItem> {
     Q_OBJECT
 
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 
 public:
-    EntityHitboxList(Document* document);
+    EntityHitboxList(ResourceItem* resourceItem);
     ~EntityHitboxList() = default;
 
     virtual QString typeName() const final;

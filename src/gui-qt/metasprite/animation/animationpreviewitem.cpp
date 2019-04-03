@@ -5,7 +5,7 @@
  */
 
 #include "animationpreviewitem.h"
-#include "gui-qt/metasprite/abstractmsdocument.h"
+#include "gui-qt/metasprite/abstractmsresourceitem.h"
 #include "models/common/int_ms8_t.h"
 
 #include <QGraphicsScene>
@@ -16,21 +16,21 @@ using namespace UnTech;
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
 
-AnimationPreviewItem::AnimationPreviewItem(const AbstractMsDocument* document,
+AnimationPreviewItem::AnimationPreviewItem(const AbstractMsResourceItem* resourceItem,
                                            QGraphicsItem* parent)
     : QGraphicsObject(parent)
-    , _document(document)
+    , _resourceItem(resourceItem)
     , _animationIndex(INT_MAX)
     , _state()
     , _prevFrame()
     , _frameIndex(INT_MAX)
 {
-    Q_ASSERT(document != nullptr);
+    Q_ASSERT(resourceItem != nullptr);
 
     setFlag(QGraphicsItem::ItemIsMovable);
     setFlag(ItemSendsGeometryChanges);
 
-    _state.setAnimationList(document->animations());
+    _state.setAnimationList(resourceItem->animations());
 }
 
 void AnimationPreviewItem::onFrameAdded()

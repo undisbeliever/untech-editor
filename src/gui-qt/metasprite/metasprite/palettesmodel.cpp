@@ -6,7 +6,7 @@
 
 #include "palettesmodel.h"
 #include "accessors.h"
-#include "document.h"
+#include "resourceitem.h"
 
 #include <QImage>
 #include <QPixmap>
@@ -15,34 +15,34 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 PalettesModel::PalettesModel(QObject* parent)
     : QAbstractListModel(parent)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
 {
 }
 
-void PalettesModel::setDocument(Document* document)
+void PalettesModel::setResourceItem(ResourceItem* resourceItem)
 {
-    if (_document == document) {
+    if (_resourceItem == resourceItem) {
         return;
     }
 
     beginResetModel();
 
-    if (_document) {
-        _document->disconnect(this);
-        _document->paletteList()->disconnect(this);
+    if (_resourceItem) {
+        _resourceItem->disconnect(this);
+        _resourceItem->paletteList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
     updateAllPixmaps();
 
-    if (_document) {
-        connect(_document->paletteList(), &PaletteList::dataChanged,
+    if (_resourceItem) {
+        connect(_resourceItem->paletteList(), &PaletteList::dataChanged,
                 this, &PalettesModel::onPaletteChanged);
-        connect(_document->paletteList(), &PaletteList::itemAdded,
+        connect(_resourceItem->paletteList(), &PaletteList::itemAdded,
                 this, &PalettesModel::onPaletteAdded);
-        connect(_document->paletteList(), &PaletteList::itemAboutToBeRemoved,
+        connect(_resourceItem->paletteList(), &PaletteList::itemAboutToBeRemoved,
                 this, &PalettesModel::onPaletteAboutToBeRemoved);
-        connect(_document->paletteList(), &PaletteList::itemMoved,
+        connect(_resourceItem->paletteList(), &PaletteList::itemMoved,
                 this, &PalettesModel::onPaletteMoved);
     }
 
@@ -53,8 +53,8 @@ void PalettesModel::updateAllPixmaps()
 {
     _palettePixmaps.clear();
 
-    if (_document) {
-        unsigned nPalettes = _document->frameSet()->palettes.size();
+    if (_resourceItem) {
+        unsigned nPalettes = _resourceItem->frameSet()->palettes.size();
         for (unsigned i = 0; i < nPalettes; i++) {
             _palettePixmaps.append(palettePixmap(i));
         }
@@ -63,7 +63,7 @@ void PalettesModel::updateAllPixmaps()
 
 QPixmap PalettesModel::palettePixmap(unsigned index)
 {
-    const auto& palette = _document->frameSet()->palettes.at(index);
+    const auto& palette = _resourceItem->frameSet()->palettes.at(index);
 
     QImage img(palette.N_COLORS, 1, QImage::Format_RGB32);
     QRgb* imgBits = reinterpret_cast<QRgb*>(img.bits());
@@ -79,9 +79,9 @@ QPixmap PalettesModel::palettePixmap(unsigned index)
 
 QModelIndex PalettesModel::toModelIndex(unsigned index) const
 {
-    if (_document == nullptr
-        || _document->frameSet() == nullptr
-        || index >= _document->frameSet()->palettes.size()) {
+    if (_resourceItem == nullptr
+        || _resourceItem->frameSet() == nullptr
+        || index >= _resourceItem->frameSet()->palettes.size()) {
 
         return QModelIndex();
     }
@@ -91,17 +91,17 @@ QModelIndex PalettesModel::toModelIndex(unsigned index) const
 
 int PalettesModel::rowCount(const QModelIndex& parent) const
 {
-    if (_document == nullptr || parent.isValid()) {
+    if (_resourceItem == nullptr || parent.isValid()) {
         return 0;
     }
-    return _document->frameSet()->palettes.size();
+    return _resourceItem->frameSet()->palettes.size();
 }
 
 Qt::ItemFlags PalettesModel::flags(const QModelIndex& index) const
 {
-    if (_document == nullptr
+    if (_resourceItem == nullptr
         || index.row() < 0
-        || unsigned(index.row()) >= _document->frameSet()->palettes.size()) {
+        || unsigned(index.row()) >= _resourceItem->frameSet()->palettes.size()) {
         return 0;
     }
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
@@ -110,9 +110,9 @@ Qt::ItemFlags PalettesModel::flags(const QModelIndex& index) const
 QVariant PalettesModel::data(const QModelIndex& index, int role) const
 {
     if (role != Qt::DecorationRole
-        || _document == nullptr
+        || _resourceItem == nullptr
         || index.row() < 0
-        || unsigned(index.row()) >= _document->frameSet()->palettes.size()
+        || unsigned(index.row()) >= _resourceItem->frameSet()->palettes.size()
         || index.column() != 0) {
         return QVariant();
     }
@@ -122,9 +122,9 @@ QVariant PalettesModel::data(const QModelIndex& index, int role) const
 
 void PalettesModel::onPaletteChanged(size_t index)
 {
-    Q_ASSERT(_document != nullptr);
+    Q_ASSERT(_resourceItem != nullptr);
 
-    auto& palettes = _document->frameSet()->palettes;
+    auto& palettes = _resourceItem->frameSet()->palettes;
     Q_ASSERT(index < palettes.size());
 
     _palettePixmaps.replace(index, palettePixmap(index));
@@ -136,9 +136,9 @@ void PalettesModel::onPaletteChanged(size_t index)
 
 void PalettesModel::onPaletteAdded(size_t index)
 {
-    Q_ASSERT(_document != nullptr);
+    Q_ASSERT(_resourceItem != nullptr);
 
-    auto& palettes = _document->frameSet()->palettes;
+    auto& palettes = _resourceItem->frameSet()->palettes;
     Q_ASSERT(index <= palettes.size());
 
     layoutAboutToBeChanged();
@@ -150,9 +150,9 @@ void PalettesModel::onPaletteAdded(size_t index)
 
 void PalettesModel::onPaletteAboutToBeRemoved(size_t index)
 {
-    Q_ASSERT(_document != nullptr);
+    Q_ASSERT(_resourceItem != nullptr);
 
-    auto& palettes = _document->frameSet()->palettes;
+    auto& palettes = _resourceItem->frameSet()->palettes;
     Q_ASSERT(index < palettes.size());
 
     layoutAboutToBeChanged();
@@ -164,9 +164,9 @@ void PalettesModel::onPaletteAboutToBeRemoved(size_t index)
 
 void PalettesModel::onPaletteMoved(size_t fromIndex, size_t toIndex)
 {
-    Q_ASSERT(_document != nullptr);
+    Q_ASSERT(_resourceItem != nullptr);
 
-    auto& palettes = _document->frameSet()->palettes;
+    auto& palettes = _resourceItem->frameSet()->palettes;
     Q_ASSERT((int)palettes.size() == _palettePixmaps.size());
     Q_ASSERT(fromIndex < palettes.size());
     Q_ASSERT(toIndex < palettes.size());

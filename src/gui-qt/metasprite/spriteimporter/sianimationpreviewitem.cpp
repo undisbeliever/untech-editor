@@ -6,7 +6,7 @@
 
 #include "sianimationpreviewitem.h"
 #include "accessors.h"
-#include "document.h"
+#include "resourceitem.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
 #include "models/common/imagecache.h"
@@ -25,11 +25,11 @@ SiAnimationPreviewItemFactory::SiAnimationPreviewItemFactory(LayerSettings* laye
 }
 
 SiAnimationPreviewItem* SiAnimationPreviewItemFactory::createPreviewItem(
-    const AbstractMsDocument* abstractDocument)
+    const AbstractMsResourceItem* abstractResourceItem)
 {
-    const Document* document = dynamic_cast<const Document*>(abstractDocument);
-    if (document) {
-        return new SiAnimationPreviewItem(_layerSettings, _style, document);
+    auto* resourceItem = dynamic_cast<const ResourceItem*>(abstractResourceItem);
+    if (resourceItem) {
+        return new SiAnimationPreviewItem(_layerSettings, _style, resourceItem);
     }
     else {
         return nullptr;
@@ -38,44 +38,44 @@ SiAnimationPreviewItem* SiAnimationPreviewItemFactory::createPreviewItem(
 
 SiAnimationPreviewItem::SiAnimationPreviewItem(LayerSettings* layerSettings,
                                                Style* style,
-                                               const Document* document)
-    : AnimationPreviewItem(document)
+                                               const ResourceItem* resourceItem)
+    : AnimationPreviewItem(resourceItem)
     , _layerSettings(layerSettings)
     , _style(style)
-    , _document(document)
+    , _resourceItem(resourceItem)
     , _frameObjects(IMAGE_SIZE, IMAGE_SIZE, QImage::Format_ARGB32_Premultiplied)
     , _frameObjectsDirty(true)
 {
     Q_ASSERT(layerSettings != nullptr);
     Q_ASSERT(style != nullptr);
-    Q_ASSERT(document != nullptr);
+    Q_ASSERT(resourceItem != nullptr);
 
-    connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
+    connect(_resourceItem->frameObjectList(), &FrameObjectList::dataChanged,
             this, &SiAnimationPreviewItem::onFrameObjectsChanged);
-    connect(_document->frameObjectList(), &FrameObjectList::listChanged,
+    connect(_resourceItem->frameObjectList(), &FrameObjectList::listChanged,
             this, &SiAnimationPreviewItem::onFrameObjectsChanged);
 
     // Required connections to AnimationPreviewItem slots
 
-    connect(_document->frameList(), &FrameList::itemAdded,
+    connect(_resourceItem->frameList(), &FrameList::itemAdded,
             this, &SiAnimationPreviewItem::onFrameAdded);
-    connect(_document->frameList(), &FrameList::itemAboutToBeRemoved,
+    connect(_resourceItem->frameList(), &FrameList::itemAboutToBeRemoved,
             this, &SiAnimationPreviewItem::onFrameAboutToBeRemoved);
 
-    connect(_document->frameList(), &FrameList::dataChanged,
+    connect(_resourceItem->frameList(), &FrameList::dataChanged,
             this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
 
-    connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
+    connect(_resourceItem->frameObjectList(), &FrameObjectList::dataChanged,
             this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->frameObjectList(), &FrameObjectList::listChanged,
+    connect(_resourceItem->frameObjectList(), &FrameObjectList::listChanged,
             this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->actionPointList(), &ActionPointList::dataChanged,
+    connect(_resourceItem->actionPointList(), &ActionPointList::dataChanged,
             this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->actionPointList(), &ActionPointList::listChanged,
+    connect(_resourceItem->actionPointList(), &ActionPointList::listChanged,
             this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->entityHitboxList(), &EntityHitboxList::dataChanged,
+    connect(_resourceItem->entityHitboxList(), &EntityHitboxList::dataChanged,
             this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->entityHitboxList(), &EntityHitboxList::listChanged,
+    connect(_resourceItem->entityHitboxList(), &EntityHitboxList::listChanged,
             this, &SiAnimationPreviewItem::onFrameDataAndContentsChanged);
 }
 
@@ -88,12 +88,12 @@ void SiAnimationPreviewItem::onFrameObjectsChanged(size_t frameIndex)
 
 size_t SiAnimationPreviewItem::getFrameIndex(const idstring& frameName)
 {
-    return _document->frameSet()->frames.indexOf(frameName);
+    return _resourceItem->frameSet()->frames.indexOf(frameName);
 }
 
 void SiAnimationPreviewItem::drawFrame(QPainter* painter)
 {
-    const auto& frames = _document->frameSet()->frames;
+    const auto& frames = _resourceItem->frameSet()->frames;
     if (frameIndex() >= frames.size()) {
         return;
     }
@@ -147,7 +147,7 @@ void SiAnimationPreviewItem::drawFrameObjects(const SI::Frame& frame)
 {
     _frameObjects.fill(0);
 
-    const SI::FrameSet& frameSet = *_document->frameSet();
+    const SI::FrameSet& frameSet = *_resourceItem->frameSet();
     const auto fsImage = ImageCache::loadPngImage(frameSet.imageFilename);
     Q_ASSERT(fsImage);
 

@@ -12,7 +12,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractMsDocument;
+class AbstractMsResourceItem;
 
 namespace Animation {
 
@@ -25,7 +25,7 @@ class AnimationPreviewItem : public QGraphicsObject {
     using Region = MSA::PreviewState::Region;
 
 public:
-    explicit AnimationPreviewItem(const AbstractMsDocument* document,
+    explicit AnimationPreviewItem(const AbstractMsResourceItem* resourceItem,
                                   QGraphicsItem* parent = nullptr);
     ~AnimationPreviewItem() = default;
 
@@ -53,7 +53,7 @@ public:
 
 protected slots:
     // Subclasses are responsible for connecting the
-    // document changed signals to these slots.
+    // FrameList, frameObjectList, actionPointList and entityHitboxList signals to these slots.
 
     void onFrameAdded();
     void onFrameAboutToBeRemoved(size_t frameIndex);
@@ -74,7 +74,7 @@ protected:
     virtual void drawFrame(QPainter* painter) = 0;
 
 private:
-    const AbstractMsDocument* const _document;
+    const AbstractMsResourceItem* const _resourceItem;
 
     size_t _animationIndex;
     MSA::PreviewState _state;
@@ -86,7 +86,7 @@ private:
 
 class AnimationPreviewItemFactory {
 public:
-    virtual AnimationPreviewItem* createPreviewItem(const AbstractMsDocument*) = 0;
+    virtual AnimationPreviewItem* createPreviewItem(const AbstractMsResourceItem*) = 0;
 };
 }
 }

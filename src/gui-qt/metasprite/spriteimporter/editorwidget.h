@@ -29,7 +29,7 @@ class AnimationPreview;
 }
 namespace SpriteImporter {
 
-class Document;
+class ResourceItem;
 class TilesetPixmaps;
 class SiGraphicsScene;
 class SiAnimationPreviewItemFactory;
@@ -69,7 +69,7 @@ private:
     void showGraphicsTab();
 
 private:
-    Document* _document;
+    ResourceItem* _resourceItem;
 
     LayerSettings* const _layerSettings;
 

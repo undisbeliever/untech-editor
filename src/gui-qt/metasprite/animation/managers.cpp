@@ -7,7 +7,7 @@
 #include "managers.h"
 #include "accessors.h"
 #include "gui-qt/common/helpers.h"
-#include "gui-qt/metasprite/abstractmsdocument.h"
+#include "gui-qt/metasprite/abstractmsresourceitem.h"
 
 using namespace UnTech::GuiQt::MetaSprite;
 using namespace UnTech::GuiQt::MetaSprite::Animation;
@@ -31,9 +31,9 @@ AnimationManager::AnimationManager(QObject* parent)
     addProperty(tr("Next Animation"), NEXT_ANIMATION, Type::COMBO);
 }
 
-void AnimationManager::setDocument(AbstractMsDocument* document)
+void AnimationManager::setResourceItem(AbstractMsResourceItem* entityHitboxList)
 {
-    auto* animationsList = document ? document->animationsList() : nullptr;
+    auto* animationsList = entityHitboxList ? entityHitboxList->animationsList() : nullptr;
 
     if (_animationsList) {
         _animationsList->disconnect(this);
@@ -144,7 +144,7 @@ bool AnimationManager::setData(int id, const QVariant& value)
 
 AnimationFramesManager::AnimationFramesManager(QObject* parent)
     : Accessor::ListAccessorTableManager(parent)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
 {
     using Type = PropertyType;
 
@@ -156,15 +156,15 @@ AnimationFramesManager::AnimationFramesManager(QObject* parent)
     addProperty(tr("Duration"), PropertyId::DURATION_STRING, Type::STRING);
 }
 
-void AnimationFramesManager::setDocument(AbstractMsDocument* document)
+void AnimationFramesManager::setResourceItem(AbstractMsResourceItem* resourceItem)
 {
-    _document = document;
-    setAccessor(document ? document->animationFramesList() : nullptr);
+    _resourceItem = resourceItem;
+    setAccessor(resourceItem ? resourceItem->animationFramesList() : nullptr);
 }
 
 inline const MSA::Animation* AnimationFramesManager::selectedAnimation() const
 {
-    return _document ? _document->animationsList()->selectedItem() : nullptr;
+    return _resourceItem ? _resourceItem->animationsList()->selectedItem() : nullptr;
 }
 
 void AnimationFramesManager::updateParameters(int index, int id, QVariant& param1, QVariant& param2) const
@@ -181,7 +181,7 @@ void AnimationFramesManager::updateParameters(int index, int id, QVariant& param
 
     switch ((PropertyId)id) {
     case PropertyId::FRAME:
-        param1 = _document->frameNames();
+        param1 = _resourceItem->frameNames();
         break;
 
     case PropertyId::FLIP:
@@ -252,5 +252,5 @@ bool AnimationFramesManager::setData(int index, int id, const QVariant& value)
         return false;
     };
 
-    return _document->animationFramesList()->editSelectedList_setData(index, aFrame);
+    return _resourceItem->animationFramesList()->editSelectedList_setData(index, aFrame);
 }

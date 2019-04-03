@@ -40,7 +40,7 @@ protected:
     virtual void do_removeResource(unsigned index) final;
 
     // Will always return the same instance
-    friend class AbstractMsDocument;
+    friend class AbstractMsResourceItem;
     friend class NullFrameSetResourceItem;
     std::vector<UnTech::MetaSprite::FrameSetFile>& frameSetFiles() const;
 };

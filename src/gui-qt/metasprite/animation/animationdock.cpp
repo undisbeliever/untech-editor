@@ -8,7 +8,7 @@
 #include "accessors.h"
 #include "managers.h"
 #include "gui-qt/common/idstringvalidator.h"
-#include "gui-qt/metasprite/abstractmsdocument.h"
+#include "gui-qt/metasprite/abstractmsresourceitem.h"
 #include "gui-qt/metasprite/animation/animationdock.ui.h"
 
 #include <QCompleter>
@@ -20,7 +20,7 @@ using namespace UnTech::GuiQt::MetaSprite::Animation;
 AnimationDock::AnimationDock(QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::AnimationDock)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
     , _animationManager(new AnimationManager(this))
     , _animationFramesManager(new AnimationFramesManager(this))
 {
@@ -53,27 +53,27 @@ Accessor::NamedListModel* AnimationDock::animationListModel()
     return _ui->animationList->namedListModel();
 }
 
-void AnimationDock::setDocument(AbstractMsDocument* document)
+void AnimationDock::setResourceItem(AbstractMsResourceItem* resourceItem)
 {
-    if (_document == document) {
+    if (_resourceItem == resourceItem) {
         return;
     }
 
-    if (_document != nullptr) {
-        _document->disconnect(this);
-        _document->animationsList()->disconnect(this);
+    if (_resourceItem != nullptr) {
+        _resourceItem->disconnect(this);
+        _resourceItem->animationsList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
-    setEnabled(_document != nullptr);
+    setEnabled(_resourceItem != nullptr);
 
-    AnimationsList* animationsList = _document ? _document->animationsList() : nullptr;
+    AnimationsList* animationsList = _resourceItem ? _resourceItem->animationsList() : nullptr;
 
-    _animationManager->setDocument(document);
-    _animationFramesManager->setDocument(document);
+    _animationManager->setResourceItem(resourceItem);
+    _animationFramesManager->setResourceItem(resourceItem);
     _ui->animationList->setAccessor(animationsList);
 
-    if (_document) {
+    if (_resourceItem) {
         _ui->animationFrames->setColumnWidth(0, _ui->animationFrames->width() / 3);
         _ui->animationFrames->setColumnWidth(1, 45);
         _ui->animationFrames->setColumnWidth(2, 30);

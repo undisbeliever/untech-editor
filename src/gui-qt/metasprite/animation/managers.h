@@ -14,7 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
-class AbstractMsDocument;
+class AbstractMsResourceItem;
 
 namespace Animation {
 class AnimationsList;
@@ -36,7 +36,7 @@ public:
     explicit AnimationManager(QObject* parent = nullptr);
     ~AnimationManager() = default;
 
-    void setDocument(AbstractMsDocument* document);
+    void setResourceItem(AbstractMsResourceItem* entityHitboxList);
 
     virtual QVariant data(int id) const final;
     virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;
@@ -64,13 +64,13 @@ public:
     };
 
 private:
-    AbstractMsDocument* _document;
+    AbstractMsResourceItem* _resourceItem;
 
 public:
     explicit AnimationFramesManager(QObject* parent = nullptr);
     ~AnimationFramesManager() = default;
 
-    void setDocument(AbstractMsDocument* document);
+    void setResourceItem(AbstractMsResourceItem* resourceItem);
 
     virtual void updateParameters(int index, int id, QVariant& param1, QVariant& param2) const final;
 

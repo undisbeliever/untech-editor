@@ -21,7 +21,7 @@ namespace MetaSprite {
 namespace Ui {
 class PalettesDock;
 }
-class Document;
+class ResourceItem;
 class PalettesModel;
 
 class PalettesDock : public QDockWidget {
@@ -31,7 +31,7 @@ public:
     PalettesDock(QWidget* parent = nullptr);
     ~PalettesDock();
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
 private slots:
     void onSelectedPaletteChanged();
@@ -49,7 +49,7 @@ private:
     PalettesModel* const _model;
     Accessor::ListActions* const _listActions;
 
-    Document* _document;
+    ResourceItem* _resourceItem;
 
     QButtonGroup* const _colorGroup;
     QList<ColorToolButton*> const _colorButtons;

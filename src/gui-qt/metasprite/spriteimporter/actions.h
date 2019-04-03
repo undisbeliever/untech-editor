@@ -19,13 +19,13 @@ class AnimationDock;
 }
 
 namespace SpriteImporter {
-class Document;
+class ResourceItem;
 
 class Actions : public QObject {
     Q_OBJECT
 
 private:
-    Document* _document;
+    ResourceItem* _resourceItem;
 
 public:
     QAction* const addRemoveTileHitbox;
@@ -43,7 +43,7 @@ public:
             QObject* parent = nullptr);
     ~Actions();
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
     void populateEditMenu(QMenu* editMenu);
     void populateFrameContentsDockMenu(QMenu* menu);

@@ -18,7 +18,7 @@ class Style;
 class LayerSettings;
 
 namespace SpriteImporter {
-class Document;
+class ResourceItem;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
@@ -29,7 +29,7 @@ class SiAnimationPreviewItem : public Animation::AnimationPreviewItem {
 
 public:
     explicit SiAnimationPreviewItem(LayerSettings* layerSettings, Style* style,
-                                    const Document* document);
+                                    const ResourceItem* resourceItem);
     ~SiAnimationPreviewItem() = default;
 
 protected:
@@ -46,7 +46,7 @@ private:
     LayerSettings* const _layerSettings;
     Style* const _style;
 
-    const Document* _document;
+    const ResourceItem* _resourceItem;
 
     QImage _frameObjects;
     bool _frameObjectsDirty;
@@ -61,7 +61,7 @@ public:
                                   QWidget* parent = nullptr);
     ~SiAnimationPreviewItemFactory() = default;
 
-    virtual SiAnimationPreviewItem* createPreviewItem(const AbstractMsDocument* document);
+    virtual SiAnimationPreviewItem* createPreviewItem(const AbstractMsResourceItem* abstractResourceItem);
 
 private:
     LayerSettings* const _layerSettings;

@@ -8,7 +8,7 @@
 #include "accessors.h"
 #include "entityromentriesresourceitem.h"
 #include "gui-qt/common/helpers.h"
-#include "gui-qt/metasprite/abstractmsdocument.h"
+#include "gui-qt/metasprite/abstractmsresourceitem.h"
 #include "gui-qt/metasprite/framesetresourcelist.h"
 #include "gui-qt/project.h"
 
@@ -130,9 +130,9 @@ void EntityRomEntryManager::updateParameters(int id, QVariant& param1, QVariant&
     }
 
     const auto* frameSetResourceList = _item->project()->frameSetResourceList();
-    auto getFrameSet = [&]() -> const MetaSprite::AbstractMsDocument* {
+    auto getFrameSet = [&]() -> const MetaSprite::AbstractMsResourceItem* {
         if (auto* e = _item->entriesList()->selectedItem()) {
-            return qobject_cast<const MetaSprite::AbstractMsDocument*>(
+            return qobject_cast<const MetaSprite::AbstractMsResourceItem*>(
                 frameSetResourceList->findResource(QString::fromStdString(e->frameSetId)));
         }
         return nullptr;

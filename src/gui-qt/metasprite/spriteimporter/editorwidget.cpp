@@ -7,8 +7,8 @@
 #include "editorwidget.h"
 #include "accessors.h"
 #include "actions.h"
-#include "document.h"
 #include "managers.h"
+#include "resourceitem.h"
 #include "sianimationpreviewitem.h"
 #include "sigraphicsscene.h"
 #include "gui-qt/accessor/listactions.h"
@@ -31,7 +31,7 @@ using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
 EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     : AbstractEditorWidget(parent)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
     , _layerSettings(new LayerSettings(this))
     , _layersButton(new QPushButton(tr("Layers"), this))
     , _frameSetManager(new FrameSetManager(this))
@@ -174,52 +174,52 @@ void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* item)
 {
-    auto* document = qobject_cast<Document*>(item);
+    auto* resourceItem = qobject_cast<ResourceItem*>(item);
 
-    if (_document) {
-        _document->disconnect(this);
-        _document->frameList()->disconnect(this);
+    if (_resourceItem) {
+        _resourceItem->disconnect(this);
+        _resourceItem->frameList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
     populateWidgets();
 
-    if (document != nullptr) {
-        connect(document, &Document::resourceLoaded,
+    if (resourceItem != nullptr) {
+        connect(resourceItem, &ResourceItem::resourceLoaded,
                 this, &EditorWidget::populateWidgets);
 
-        connect(document->frameList(), &FrameList::selectedIndexChanged,
+        connect(resourceItem->frameList(), &FrameList::selectedIndexChanged,
                 this, &EditorWidget::onSelectedFrameChanged);
     }
 
-    return document != nullptr;
+    return resourceItem != nullptr;
 }
 
 void EditorWidget::populateWidgets()
 {
     // Widgets cannot handle a null frameSet
-    Document* d = _document && _document->frameSet() ? _document : nullptr;
+    ResourceItem* r = _resourceItem && _resourceItem->frameSet() ? _resourceItem : nullptr;
 
-    _frameSetManager->setDocument(d);
-    _frameManager->setDocument(d);
-    _frameObjectManager->setDocument(d);
-    _actionPointManager->setDocument(d);
-    _entityHitboxManager->setDocument(d);
-    _actions->setDocument(d);
+    _frameSetManager->setResourceItem(r);
+    _frameManager->setResourceItem(r);
+    _frameObjectManager->setResourceItem(r);
+    _actionPointManager->setResourceItem(r);
+    _entityHitboxManager->setResourceItem(r);
+    _actions->setResourceItem(r);
 
-    _graphicsScene->setDocument(d);
-    _animationPreview->setDocument(d);
-    _frameListDock->setAccessor(d ? d->frameList() : nullptr);
-    _animationDock->setDocument(d);
+    _graphicsScene->setResourceItem(r);
+    _animationPreview->setResourceItem(r);
+    _frameListDock->setAccessor(r ? r->frameList() : nullptr);
+    _animationDock->setResourceItem(r);
 
-    _tabWidget->setEnabled(d != nullptr);
+    _tabWidget->setEnabled(r != nullptr);
 
     onSelectedFrameChanged();
 }
 
 void EditorWidget::onSelectedFrameChanged()
 {
-    if (_document && _document->frameList()->isSelectedIndexValid()) {
+    if (_resourceItem && _resourceItem->frameList()->isSelectedIndexValid()) {
         _graphicsView->setDragMode(QGraphicsView::RubberBandDrag);
     }
     else {
@@ -262,7 +262,7 @@ void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
         accessor->setSelectedIndex(nameMatchIndex);
     };
 
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return;
     }
 
@@ -275,17 +275,17 @@ void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
         case Type::FRAME_OBJECT:
         case Type::ACTION_POINT:
         case Type::ENTITY_HITBOX:
-            updateSelection(_document->frameList(), *e);
-            _document->frameList()->setTileHitboxSelected(false);
-            _document->frameObjectList()->clearSelection();
-            _document->actionPointList()->clearSelection();
-            _document->entityHitboxList()->clearSelection();
+            updateSelection(_resourceItem->frameList(), *e);
+            _resourceItem->frameList()->setTileHitboxSelected(false);
+            _resourceItem->frameObjectList()->clearSelection();
+            _resourceItem->actionPointList()->clearSelection();
+            _resourceItem->entityHitboxList()->clearSelection();
             showGraphicsTab();
             break;
 
         case Type::ANIMATION:
         case Type::ANIMATION_FRAME:
-            updateSelection(_document->animationsList(), *e);
+            updateSelection(_resourceItem->animationsList(), *e);
             _animationDock->raise();
             break;
         }
@@ -296,28 +296,28 @@ void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
             break;
 
         case Type::FRAME_OBJECT:
-            _document->frameObjectList()->setSelectedIndexes({ e->id() });
+            _resourceItem->frameObjectList()->setSelectedIndexes({ e->id() });
             _frameContentsDock->raise();
             break;
 
         case Type::ACTION_POINT:
-            _document->actionPointList()->setSelectedIndexes({ e->id() });
+            _resourceItem->actionPointList()->setSelectedIndexes({ e->id() });
             _frameContentsDock->raise();
             break;
 
         case Type::ENTITY_HITBOX:
-            _document->entityHitboxList()->clearSelection();
+            _resourceItem->entityHitboxList()->clearSelection();
             _frameContentsDock->raise();
             break;
 
         case Type::ANIMATION:
             // clear animation frame selection
-            _document->animationFramesList()->setSelectedIndexes({ INT_MAX });
+            _resourceItem->animationFramesList()->setSelectedIndexes({ INT_MAX });
             _animationDock->raise();
             break;
 
         case Type::ANIMATION_FRAME:
-            _document->animationFramesList()->setSelectedIndexes({ e->id() });
+            _resourceItem->animationFramesList()->setSelectedIndexes({ e->id() });
             _animationDock->raise();
             break;
         }

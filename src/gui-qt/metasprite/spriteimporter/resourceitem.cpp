@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "document.h"
+#include "resourceitem.h"
 #include "accessors.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
@@ -13,8 +13,8 @@
 using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
-Document::Document(FrameSetResourceList* parent, size_t index)
-    : AbstractMsDocument(parent, index)
+ResourceItem::ResourceItem(FrameSetResourceList* parent, size_t index)
+    : AbstractMsResourceItem(parent, index)
     , _frameSet(nullptr)
     , _frameList(new FrameList(this))
     , _frameObjectList(new FrameObjectList(this))
@@ -26,13 +26,13 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
     setFilename(QString::fromStdString(frameSetFile().filename));
 
-    resetDocumentState();
+    resetState();
 
-    connect(this, &Document::frameSetImageFilenameChanged,
-            this, &Document::onFrameSetImageFilenameChanged);
+    connect(this, &ResourceItem::frameSetImageFilenameChanged,
+            this, &ResourceItem::onFrameSetImageFilenameChanged);
 }
 
-QStringList Document::frameNames() const
+QStringList ResourceItem::frameNames() const
 {
     if (_frameSet) {
         return convertNameList(_frameSet->frames);
@@ -42,7 +42,7 @@ QStringList Document::frameNames() const
     }
 }
 
-unsigned Document::nPalettes() const
+unsigned ResourceItem::nPalettes() const
 {
     if (_frameSet == nullptr) {
         return 1;
@@ -55,7 +55,7 @@ unsigned Document::nPalettes() const
     return nPalettes;
 }
 
-const UnTech::idstring& Document::exportOrder() const
+const UnTech::idstring& ResourceItem::exportOrder() const
 {
     static idstring BLANK;
 
@@ -67,7 +67,7 @@ const UnTech::idstring& Document::exportOrder() const
     }
 }
 
-void Document::resetDocumentState()
+void ResourceItem::resetState()
 {
     if (const SI::FrameSet* fs = frameSet()) {
         setName(QString::fromStdString(fs->name));
@@ -83,12 +83,12 @@ void Document::resetDocumentState()
     animationsList()->unselectItem();
 }
 
-void Document::saveResourceData(const std::string& filename) const
+void ResourceItem::saveResourceData(const std::string& filename) const
 {
     SI::saveFrameSet(*_frameSet, filename);
 }
 
-bool Document::loadResourceData(ErrorList& err)
+bool ResourceItem::loadResourceData(ErrorList& err)
 {
     using FrameSetFile = UnTech::MetaSprite::FrameSetFile;
 
@@ -112,12 +112,12 @@ bool Document::loadResourceData(ErrorList& err)
     frameSetFile().loadFile();
 
     _frameSet = fsf.siFrameSet.get();
-    resetDocumentState();
+    resetState();
 
     return true;
 }
 
-bool Document::compileResource(ErrorList& err)
+bool ResourceItem::compileResource(ErrorList& err)
 {
     using FrameSetFile = UnTech::MetaSprite::FrameSetFile;
 
@@ -129,7 +129,7 @@ bool Document::compileResource(ErrorList& err)
     return err.hasError() == false;
 }
 
-void Document::onFrameSetImageFilenameChanged()
+void ResourceItem::onFrameSetImageFilenameChanged()
 {
     const SI::FrameSet* fs = frameSet();
 
@@ -140,7 +140,7 @@ void Document::onFrameSetImageFilenameChanged()
     setExternalFiles(filenames);
 }
 
-bool Document::editFrameSet_setName(const idstring& name)
+bool ResourceItem::editFrameSet_setName(const idstring& name)
 {
     if (name.isValid() == false) {
         return false;
@@ -149,63 +149,63 @@ bool Document::editFrameSet_setName(const idstring& name)
     return UndoHelper(this).editName(name);
 }
 
-bool Document::editFrameSet_setTilesetType(TilesetType ts)
+bool ResourceItem::editFrameSet_setTilesetType(TilesetType ts)
 {
     return UndoHelper(this).editField(
         ts,
         tr("Edit Tileset Type"),
         [](SI::FrameSet& fs) -> TilesetType& { return fs.tilesetType; },
-        [](Document& d) { emit d.frameSetDataChanged(); });
+        [](ResourceItem& d) { emit d.frameSetDataChanged(); });
 }
 
-bool Document::editFrameSet_setExportOrder(const UnTech::idstring& exportOrder)
+bool ResourceItem::editFrameSet_setExportOrder(const UnTech::idstring& exportOrder)
 {
     return UndoHelper(this).editField(
         exportOrder,
         tr("Edit Export Order"),
         [](SI::FrameSet& fs) -> idstring& { return fs.exportOrder; },
-        [](Document& d) { emit d.frameSetDataChanged();
+        [](ResourceItem& d) { emit d.frameSetDataChanged();
                           emit d.frameSetExportOrderChanged(); });
 }
 
-bool Document::editFrameSet_setImageFilename(const std::string& filename)
+bool ResourceItem::editFrameSet_setImageFilename(const std::string& filename)
 {
     return UndoHelper(this).editField(
         filename,
         tr("Change Image"),
         [](SI::FrameSet& fs) -> std::string& { return fs.imageFilename; },
-        [](Document& d) {
+        [](ResourceItem& d) {
             emit d.frameSetImageFilenameChanged();
             emit d.frameSetDataChanged();
         });
 }
 
-bool Document::editFrameSet_setTransparentColor(const UnTech::rgba& color)
+bool ResourceItem::editFrameSet_setTransparentColor(const UnTech::rgba& color)
 {
     return UndoHelper(this).editField(
         color,
         tr("Edit Transparent Color"),
         [](SI::FrameSet& fs) -> rgba& { return fs.transparentColor; },
-        [](Document& d) { emit d.frameSetDataChanged(); });
+        [](ResourceItem& d) { emit d.frameSetDataChanged(); });
 }
 
-bool Document::editFrameSet_setGrid(const SI::FrameSetGrid& grid)
+bool ResourceItem::editFrameSet_setGrid(const SI::FrameSetGrid& grid)
 {
     return UndoHelper(this).editField(
         grid,
         tr("Edit FrameSet Grid"),
         [](SI::FrameSet& fs) -> SI::FrameSetGrid& { return fs.grid; },
-        [](Document& d) { d.frameSet()->updateFrameLocations();
+        [](ResourceItem& d) { d.frameSet()->updateFrameLocations();
                           emit d.frameSetGridChanged();
                           emit d.frameSetDataChanged(); });
 }
 
-bool Document::editFrameSet_setPalette(const SI::UserSuppliedPalette& palette)
+bool ResourceItem::editFrameSet_setPalette(const SI::UserSuppliedPalette& palette)
 {
     return UndoHelper(this).editField(
         palette,
         tr("Edit FrameSet Palette"),
         [](SI::FrameSet& fs) -> SI::UserSuppliedPalette& { return fs.palette; },
-        [](Document& d) { emit d.frameSetPaletteChanged();
+        [](ResourceItem& d) { emit d.frameSetPaletteChanged();
                           emit d.frameSetDataChanged(); });
 }

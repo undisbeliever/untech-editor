@@ -30,7 +30,7 @@ class AnimationPreview;
 }
 namespace MetaSprite {
 
-class Document;
+class ResourceItem;
 class TilesetPixmaps;
 class MsGraphicsScene;
 class MsAnimationPreviewItemFactory;
@@ -69,7 +69,7 @@ private:
     void showGraphicsTab();
 
 private:
-    Document* _document;
+    ResourceItem* _resourceItem;
     LayerSettings* const _layerSettings;
     QPushButton* const _layersButton;
 

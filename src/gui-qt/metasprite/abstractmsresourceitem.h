@@ -27,12 +27,12 @@ class AnimationsList;
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace MSA = UnTech::MetaSprite::Animation;
 
-class AbstractMsDocument : public AbstractExternalResourceItem {
+class AbstractMsResourceItem : public AbstractExternalResourceItem {
     Q_OBJECT
 
 public:
-    explicit AbstractMsDocument(FrameSetResourceList* parent, size_t index);
-    ~AbstractMsDocument() = default;
+    explicit AbstractMsResourceItem(FrameSetResourceList* parent, size_t index);
+    ~AbstractMsResourceItem() = default;
 
 public:
     virtual NamedList<MSA::Animation>* animations() const = 0;

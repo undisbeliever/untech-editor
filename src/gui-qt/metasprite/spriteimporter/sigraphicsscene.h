@@ -20,7 +20,7 @@ class Style;
 class LayerSettings;
 
 namespace SpriteImporter {
-class Document;
+class ResourceItem;
 
 class SiGraphicsScene : public QGraphicsScene {
     Q_OBJECT
@@ -37,7 +37,7 @@ public:
 
     QMenu* frameContextMenu() { return _frameContextMenu.data(); }
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
 protected:
     virtual void drawForeground(QPainter* painter, const QRectF& rect) override;
@@ -96,7 +96,7 @@ private:
 
     QList<SiFrameGraphicsItem*> _frameItems;
 
-    Document* _document;
+    ResourceItem* _resourceItem;
 
     bool _inUpdateSelection;
     bool _inOnSceneSelectionChanged;

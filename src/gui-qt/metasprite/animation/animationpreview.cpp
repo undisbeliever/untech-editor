@@ -10,7 +10,7 @@
 #include "animationpreviewitem.h"
 #include "gui-qt/accessor/namedlistmodel.h"
 #include "gui-qt/common/graphics/zoomsettings.h"
-#include "gui-qt/metasprite/abstractmsdocument.h"
+#include "gui-qt/metasprite/abstractmsresourceitem.h"
 #include "gui-qt/metasprite/animation/animationpreview.ui.h"
 
 using namespace UnTech::GuiQt;
@@ -23,7 +23,7 @@ AnimationPreview::AnimationPreview(AnimationDock* animationDock, QWidget* parent
     , _graphicsScene(new QGraphicsScene(this))
     , _itemFactory(nullptr)
     , _zoomSettings(nullptr)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
     , _previewItem(nullptr)
     , _timer()
     , _elapsed()
@@ -104,29 +104,29 @@ void AnimationPreview::setZoomSettings(ZoomSettings* zoomSettings)
             this, &AnimationPreview::updateSceneRect);
 }
 
-void AnimationPreview::setDocument(AbstractMsDocument* document)
+void AnimationPreview::setResourceItem(AbstractMsResourceItem* resourceItem)
 {
-    if (_document == document) {
+    if (_resourceItem == resourceItem) {
         return;
     }
 
-    if (_document != nullptr) {
-        _document->disconnect(this);
-        _document->animationFramesList()->disconnect(this);
+    if (_resourceItem != nullptr) {
+        _resourceItem->disconnect(this);
+        _resourceItem->animationFramesList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
-    setEnabled(_document != nullptr);
+    setEnabled(_resourceItem != nullptr);
 
-    if (_document) {
+    if (_resourceItem) {
         onSelectedAnimationChanged();
 
-        connect(_document->animationFramesList(), &AnimationFramesList::dataChanged,
+        connect(_resourceItem->animationFramesList(), &AnimationFramesList::dataChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
-        connect(_document->animationFramesList(), &AnimationFramesList::listChanged,
+        connect(_resourceItem->animationFramesList(), &AnimationFramesList::listChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
 
-        connect(_document->animationFramesList(), &AnimationFramesList::listReset,
+        connect(_resourceItem->animationFramesList(), &AnimationFramesList::listReset,
                 this, &AnimationPreview::onSelectedAnimationChanged);
     }
     else {
@@ -149,17 +149,17 @@ void AnimationPreview::createPreviewItem()
     if (_previewItem != nullptr) {
         return;
     }
-    if (_itemFactory == nullptr || _document == nullptr) {
+    if (_itemFactory == nullptr || _resourceItem == nullptr) {
         return;
     }
 
-    _previewItem = _itemFactory->createPreviewItem(_document);
+    _previewItem = _itemFactory->createPreviewItem(_resourceItem);
     _graphicsScene->addItem(_previewItem);
 
     onRegionChanged();
     onVelocityChanged();
 
-    _previewItem->setAnimationIndex(_document->animationsList()->selectedIndex());
+    _previewItem->setAnimationIndex(_resourceItem->animationsList()->selectedIndex());
 
     updateGui();
 }
@@ -216,14 +216,14 @@ void AnimationPreview::updateSceneRect()
 
 void AnimationPreview::onSelectedAnimationChanged()
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_resourceItem);
 
-    const size_t aniIndex = _document->animationsList()->selectedIndex();
+    const size_t aniIndex = _resourceItem->animationsList()->selectedIndex();
 
     _ui->animation->setCurrentIndex(
         _animationListModel->toModelIndex(aniIndex).row());
 
-    if (_document->animationsList()->isSelectedIndexValid()) {
+    if (_resourceItem->animationsList()->isSelectedIndexValid()) {
         if (_previewItem == nullptr) {
             createPreviewItem();
         }
@@ -249,10 +249,10 @@ void AnimationPreview::onAnimationComboActivated()
 {
     int i = _ui->animation->currentIndex();
     if (i >= 0) {
-        _document->animationsList()->setSelectedIndex(i);
+        _resourceItem->animationsList()->setSelectedIndex(i);
     }
     else {
-        _document->animationsList()->unselectItem();
+        _resourceItem->animationsList()->unselectItem();
     }
 }
 

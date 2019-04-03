@@ -6,7 +6,7 @@
 
 #include "tilesetdock.h"
 #include "accessors.h"
-#include "document.h"
+#include "resourceitem.h"
 #include "tilesetwidgets.h"
 #include "gui-qt/metasprite/metasprite/tilesetdock.ui.h"
 
@@ -17,7 +17,7 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 TilesetDock::TilesetDock(TilesetPixmaps* tilesetPixmaps, QWidget* parent)
     : QDockWidget(parent)
     , _ui(new Ui::TilesetDock)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
 {
     Q_ASSERT(tilesetPixmaps != nullptr);
 
@@ -39,29 +39,29 @@ TilesetDock::TilesetDock(TilesetPixmaps* tilesetPixmaps, QWidget* parent)
 
 TilesetDock::~TilesetDock() = default;
 
-void TilesetDock::setDocument(Document* document)
+void TilesetDock::setResourceItem(ResourceItem* resourceItem)
 {
-    if (_document == document) {
+    if (_resourceItem == resourceItem) {
         return;
     }
 
-    if (_document != nullptr) {
-        _document->frameObjectList()->disconnect(this);
+    if (_resourceItem != nullptr) {
+        _resourceItem->frameObjectList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
-    setEnabled(_document != nullptr);
+    setEnabled(_resourceItem != nullptr);
 
-    _ui->smallTileset->setDocument(_document);
-    _ui->largeTileset->setDocument(_document);
+    _ui->smallTileset->setResourceItem(_resourceItem);
+    _ui->largeTileset->setResourceItem(_resourceItem);
 
-    if (_document) {
+    if (_resourceItem) {
         onSelectedFrameObjectsChanged();
 
-        connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
+        connect(_resourceItem->frameObjectList(), &FrameObjectList::dataChanged,
                 this, &TilesetDock::onSelectedFrameObjectsChanged);
 
-        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
+        connect(_resourceItem->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
                 this, &TilesetDock::onSelectedFrameObjectsChanged);
     }
 }
@@ -73,7 +73,7 @@ void TilesetDock::onSelectedFrameObjectsChanged()
 
     const int index = selectedFrameObjectIndex();
     if (index >= 0) {
-        const MS::Frame* frame = _document->frameList()->selectedItem();
+        const MS::Frame* frame = _resourceItem->frameList()->selectedItem();
         const MS::FrameObject& obj = frame->objects.at(index);
 
         if (obj.size == ObjectSize::SMALL) {
@@ -93,7 +93,7 @@ void TilesetDock::onSelectedFrameObjectsChanged()
 
 void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned changedIndex)
 {
-    const MS::Frame* frame = _document->frameList()->selectedItem();
+    const MS::Frame* frame = _resourceItem->frameList()->selectedItem();
     if (frame == changedFrame) {
         const int index = selectedFrameObjectIndex();
 
@@ -115,14 +115,14 @@ void TilesetDock::onFrameObjectChanged(const void* changedFrame, unsigned change
 void TilesetDock::onTileClicked(ObjectSize size, int tileIndex)
 {
     // do not change tile in edit tiles mode
-    if (_document->paletteList()->isSelectedColorValid() == false) {
-        _document->frameObjectList()->editSelected_setTileIdAndSize(tileIndex, size);
+    if (_resourceItem->paletteList()->isSelectedColorValid() == false) {
+        _resourceItem->frameObjectList()->editSelected_setTileIdAndSize(tileIndex, size);
     }
 }
 
 int TilesetDock::selectedFrameObjectIndex() const
 {
-    const auto& selectedIndexes = _document->frameObjectList()->selectedIndexes();
+    const auto& selectedIndexes = _resourceItem->frameObjectList()->selectedIndexes();
     if (selectedIndexes.size() == 1) {
         return selectedIndexes.front();
     }
@@ -133,7 +133,7 @@ int TilesetDock::selectedFrameObjectIndex() const
 
 void TilesetDock::onContextMenu(const QPoint& pos)
 {
-    if (_document && _document->frameSet()) {
+    if (_resourceItem && _resourceItem->frameSet()) {
         QPoint globalPos = _ui->scrollAreaContents->mapToGlobal(pos);
 
         int index = -1;
@@ -157,39 +157,39 @@ void TilesetDock::onContextMenu(const QPoint& pos)
         if (index >= 0) {
             if (isSmall) {
                 addAction("Add Small Tile", [=]() {
-                    _document->smallTileTileset()->addItem();
+                    _resourceItem->smallTileTileset()->addItem();
                 });
                 addAction("Add Small Tile Here", [=]() {
-                    _document->smallTileTileset()->addItem(index);
+                    _resourceItem->smallTileTileset()->addItem(index);
                 });
                 addAction("Clone Small Tile Here", [=]() {
-                    _document->smallTileTileset()->cloneItem(index);
+                    _resourceItem->smallTileTileset()->cloneItem(index);
                 });
                 addAction("Remove Small Tile", [=]() {
-                    _document->smallTileTileset()->removeItem(index);
+                    _resourceItem->smallTileTileset()->removeItem(index);
                 });
             }
             else {
                 addAction("Add Large Tile", [=]() {
-                    _document->largeTileTileset()->addItem();
+                    _resourceItem->largeTileTileset()->addItem();
                 });
                 addAction("Add Large Tile Here", [=]() {
-                    _document->largeTileTileset()->addItem(index);
+                    _resourceItem->largeTileTileset()->addItem(index);
                 });
                 addAction("Clone Large Tile Here", [=]() {
-                    _document->largeTileTileset()->cloneItem(index);
+                    _resourceItem->largeTileTileset()->cloneItem(index);
                 });
                 addAction("Remove Large Tile", [=]() {
-                    _document->largeTileTileset()->removeItem(index);
+                    _resourceItem->largeTileTileset()->removeItem(index);
                 });
             }
         }
         else {
             addAction("Add Small Tile", [=]() {
-                _document->smallTileTileset()->addItem();
+                _resourceItem->smallTileTileset()->addItem();
             });
             addAction("Add Large Tile", [=]() {
-                _document->largeTileTileset()->addItem();
+                _resourceItem->largeTileTileset()->addItem();
             });
         }
 

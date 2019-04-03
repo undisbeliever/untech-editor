@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "document.h"
+#include "resourceitem.h"
 #include "models/metasprite/metasprite.h"
 #include <QPixmap>
 #include <QVector>
@@ -15,7 +15,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
-class Document;
+class ResourceItem;
 
 class TilesetPixmaps : public QObject {
     Q_OBJECT
@@ -24,8 +24,8 @@ public:
     explicit TilesetPixmaps(QObject* parent = nullptr);
     ~TilesetPixmaps() = default;
 
-    const Document* document() const { return _document; }
-    void setDocument(Document* document);
+    const ResourceItem* resourceItem() const { return _resourceItem; }
+    void setResourceItem(ResourceItem* resourceItem);
 
     const QVector<QPixmap>& smallTileset() const { return _smallTileset; }
     const QVector<QPixmap>& largeTileset() const { return _largeTileset; }
@@ -55,7 +55,7 @@ private:
     const Snes::Palette4bpp& palette() const;
 
 private:
-    Document* _document;
+    ResourceItem* _resourceItem;
 
     QVector<QPixmap> _smallTileset;
     QVector<QPixmap> _largeTileset;

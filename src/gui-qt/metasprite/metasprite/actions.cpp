@@ -6,7 +6,7 @@
 
 #include "actions.h"
 #include "accessors.h"
-#include "document.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/multilistactions.h"
 #include "gui-qt/accessor/namedlistactions.h"
 #include "gui-qt/metasprite/animation/animationdock.h"
@@ -20,7 +20,7 @@ Actions::Actions(Accessor::NamedListActions* fListActions,
                  Animation::AnimationDock* animationDock,
                  QObject* parent)
     : QObject(parent)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
     , addRemoveTileHitbox(new QAction(tr("Add Tile Hitbox"), this))
     , toggleObjSize(new QAction(QIcon(":/icons/toggle-obj-size.svg"), tr("Toggle Object Size"), this))
     , flipObjHorizontally(new QAction(QIcon(":/icons/flip-horizontally.svg"), tr("Flip Object Horizontally"), this))
@@ -62,34 +62,34 @@ Actions::Actions(Accessor::NamedListActions* fListActions,
 
 Actions::~Actions() = default;
 
-void Actions::setDocument(Document* document)
+void Actions::setResourceItem(ResourceItem* resourceItem)
 {
-    if (_document == document) {
+    if (_resourceItem == resourceItem) {
         return;
     }
 
-    if (_document != nullptr) {
-        _document->frameList()->disconnect(this);
-        _document->frameObjectList()->disconnect(this);
-        _document->entityHitboxList()->disconnect(this);
+    if (_resourceItem != nullptr) {
+        _resourceItem->frameList()->disconnect(this);
+        _resourceItem->frameObjectList()->disconnect(this);
+        _resourceItem->entityHitboxList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
     updateFrameActions();
     updateFrameObjectActions();
     updateEntityHitboxTypeMenu();
 
-    if (_document) {
-        connect(_document->frameList(), &FrameList::dataChanged,
+    if (_resourceItem) {
+        connect(_resourceItem->frameList(), &FrameList::dataChanged,
                 this, &Actions::onFrameDataChanged);
 
-        connect(_document->frameList(), &FrameList::selectedIndexChanged,
+        connect(_resourceItem->frameList(), &FrameList::selectedIndexChanged,
                 this, &Actions::updateFrameActions);
 
-        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
+        connect(_resourceItem->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
                 this, &Actions::updateFrameObjectActions);
 
-        connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
+        connect(_resourceItem->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
                 this, &Actions::updateEntityHitboxTypeMenu);
     }
 }
@@ -145,7 +145,7 @@ void Actions::populateGraphicsView(QWidget* widget)
 
 void Actions::onFrameDataChanged(size_t frameIndex)
 {
-    if (frameIndex == _document->frameList()->selectedIndex()) {
+    if (frameIndex == _resourceItem->frameList()->selectedIndex()) {
         updateFrameActions();
     }
 }
@@ -155,8 +155,8 @@ void Actions::updateFrameActions()
     bool frameSelected = false;
     bool isFrameSolid = false;
 
-    if (_document) {
-        if (const auto* frame = _document->frameList()->selectedItem()) {
+    if (_resourceItem) {
+        if (const auto* frame = _resourceItem->frameList()->selectedItem()) {
             frameSelected = true;
             isFrameSolid = frame->solid;
         }
@@ -171,8 +171,8 @@ void Actions::updateFrameObjectActions()
 {
     bool objSelected = false;
 
-    if (_document) {
-        objSelected = !_document->frameObjectList()->selectedIndexes().empty();
+    if (_resourceItem) {
+        objSelected = !_resourceItem->frameObjectList()->selectedIndexes().empty();
     }
 
     toggleObjSize->setEnabled(objSelected);
@@ -184,8 +184,8 @@ void Actions::updateEntityHitboxTypeMenu()
 {
     bool ehSelected = false;
 
-    if (_document) {
-        ehSelected = !_document->entityHitboxList()->selectedIndexes().empty();
+    if (_resourceItem) {
+        ehSelected = !_resourceItem->entityHitboxList()->selectedIndexes().empty();
     }
 
     entityHitboxTypeMenu->setEnabled(ehSelected);
@@ -193,27 +193,27 @@ void Actions::updateEntityHitboxTypeMenu()
 
 void Actions::onAddRemoveTileHitbox()
 {
-    _document->frameList()->editSelected_toggleTileHitbox();
+    _resourceItem->frameList()->editSelected_toggleTileHitbox();
 }
 
 void Actions::onToggleObjSize()
 {
-    _document->frameObjectList()->editSelected_toggleObjectSize();
+    _resourceItem->frameObjectList()->editSelected_toggleObjectSize();
 }
 
 void Actions::onFlipObjHorizontally()
 {
-    _document->frameObjectList()->editSelected_flipObjectHorizontally();
+    _resourceItem->frameObjectList()->editSelected_flipObjectHorizontally();
 }
 
 void Actions::onFlipObjVertically()
 {
-    _document->frameObjectList()->editSelected_flipObjectVertically();
+    _resourceItem->frameObjectList()->editSelected_flipObjectVertically();
 }
 
 void Actions::onEntityHitboxTypeMenu(QAction* action)
 {
     using EHT = UnTech::MetaSprite::EntityHitboxType;
-    _document->entityHitboxList()->editSelected_setEntityHitboxType(
+    _resourceItem->entityHitboxList()->editSelected_setEntityHitboxType(
         EHT::from_romValue(action->data().toInt()));
 }

@@ -16,7 +16,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace SpriteImporter {
-class Document;
+class ResourceItem;
 class FrameList;
 class AbstractFrameContentAccessor;
 
@@ -45,7 +45,7 @@ public:
     explicit FrameSetManager(QObject* parent = nullptr);
     ~FrameSetManager() = default;
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
     virtual QVariant data(int id) const final;
     virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;
@@ -55,7 +55,7 @@ private:
     void updateImageColors();
 
 private:
-    Document* _document;
+    ResourceItem* _resourceItem;
 
     QVariantList _imageColors;
 };
@@ -79,7 +79,7 @@ public:
     explicit FrameManager(QObject* parent = nullptr);
     ~FrameManager() = default;
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
     virtual QVariant data(int id) const final;
     virtual void updateParameters(int id, QVariant& param1, QVariant& param2) const final;
@@ -104,13 +104,13 @@ public:
     static const QStringList SIZE_STRINGS;
 
 private:
-    Document* _document;
+    ResourceItem* _resourceItem;
 
 public:
     explicit FrameObjectManager(QObject* parent = nullptr);
     ~FrameObjectManager() = default;
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
     virtual QVariant data(int index, int id) const final;
     virtual void updateParameters(int index, int id, QVariant& param1, QVariant& param2) const final;
@@ -130,13 +130,13 @@ public:
     };
 
 private:
-    Document* _document;
+    ResourceItem* _resourceItem;
 
 public:
     explicit ActionPointManager(QObject* parent = nullptr);
     ~ActionPointManager() = default;
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
     virtual QVariant data(int index, int id) const final;
     virtual void updateParameters(int index, int id, QVariant& param1, QVariant& param2) const final;
@@ -156,13 +156,13 @@ public:
     };
 
 private:
-    Document* _document;
+    ResourceItem* _resourceItem;
 
 public:
     explicit EntityHitboxManager(QObject* parent = nullptr);
     ~EntityHitboxManager() = default;
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
     virtual QVariant data(int index, int id) const final;
     virtual void updateParameters(int index, int id, QVariant& param1, QVariant& param2) const final;

@@ -7,7 +7,7 @@
 #pragma once
 
 #include "gui-qt/accessor/accessor.h"
-#include "gui-qt/metasprite/abstractmsdocument.h"
+#include "gui-qt/metasprite/abstractmsresourceitem.h"
 #include "models/metasprite/metasprite.h"
 #include <memory>
 
@@ -26,19 +26,19 @@ class EntityHitboxList;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-class Document : public AbstractMsDocument {
+class ResourceItem : public AbstractMsResourceItem {
     Q_OBJECT
 
 public:
     using DataT = MS::FrameSet;
 
-    using UndoHelper = Accessor::ResourceItemUndoHelper<Document>;
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
 
     using TilesetType = UnTech::MetaSprite::TilesetType;
 
 public:
-    Document(FrameSetResourceList* parent, size_t index);
-    ~Document() = default;
+    ResourceItem(FrameSetResourceList* parent, size_t index);
+    ~ResourceItem() = default;
 
     static QString typeName() { return tr("MetaSprite FrameSet"); }
 
@@ -62,7 +62,7 @@ public:
     bool editFrameSet_setExportOrder(const idstring& exportOrder);
 
 private:
-    friend class Accessor::ResourceItemUndoHelper<Document>;
+    friend class Accessor::ResourceItemUndoHelper<ResourceItem>;
     MS::FrameSet* data() const { return _frameSet; }
     MS::FrameSet* dataEditable() { return _frameSet; }
 
@@ -73,7 +73,7 @@ protected:
     virtual bool compileResource(ErrorList& err) final;
 
 private:
-    void resetDocumentState();
+    void resetState();
 
 private:
     MS::FrameSet* _frameSet;

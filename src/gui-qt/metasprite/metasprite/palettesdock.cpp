@@ -6,8 +6,8 @@
 
 #include "palettesdock.h"
 #include "accessors.h"
-#include "document.h"
 #include "palettesmodel.h"
+#include "resourceitem.h"
 #include "gui-qt/accessor/listactions.h"
 #include "gui-qt/common/widgets/colortoolbutton.h"
 #include "gui-qt/metasprite/metasprite/palettesdock.ui.h"
@@ -40,7 +40,7 @@ PalettesDock::PalettesDock(QWidget* parent)
     , _ui(new Ui::PalettesDock)
     , _model(new PalettesModel(this))
     , _listActions(new Accessor::ListActions(this))
-    , _document(nullptr)
+    , _resourceItem(nullptr)
     , _colorGroup(new QButtonGroup(this))
     , _colorButtons(buildColorButtons(_colorGroup, this))
 {
@@ -76,40 +76,40 @@ PalettesDock::PalettesDock(QWidget* parent)
 
 PalettesDock::~PalettesDock() = default;
 
-void PalettesDock::setDocument(Document* document)
+void PalettesDock::setResourceItem(ResourceItem* resourceItem)
 {
-    if (_document == document) {
+    if (_resourceItem == resourceItem) {
         return;
     }
 
-    if (_document != nullptr) {
-        _document->disconnect(this);
-        _document->paletteList()->disconnect(this);
+    if (_resourceItem != nullptr) {
+        _resourceItem->disconnect(this);
+        _resourceItem->paletteList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
-    _model->setDocument(document);
+    _model->setResourceItem(resourceItem);
 
-    setEnabled(_document != nullptr);
+    setEnabled(_resourceItem != nullptr);
 
     uncheckColorButtons();
     updateSelectedPalette();
 
     PaletteList* paletteList = nullptr;
 
-    if (_document) {
-        paletteList = _document->paletteList();
+    if (_resourceItem) {
+        paletteList = _resourceItem->paletteList();
 
         onSelectedPaletteChanged();
         updateSelectedColor();
 
-        connect(_document->paletteList(), &PaletteList::dataChanged,
+        connect(_resourceItem->paletteList(), &PaletteList::dataChanged,
                 this, &PalettesDock::updateSelectedPalette);
-        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
+        connect(_resourceItem->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &PalettesDock::onSelectedPaletteChanged);
-        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
+        connect(_resourceItem->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &PalettesDock::updateSelectedPalette);
-        connect(_document->paletteList(), &PaletteList::selectedColorChanged,
+        connect(_resourceItem->paletteList(), &PaletteList::selectedColorChanged,
                 this, &PalettesDock::updateSelectedColor);
     }
 
@@ -118,9 +118,9 @@ void PalettesDock::setDocument(Document* document)
 
 void PalettesDock::onSelectedPaletteChanged()
 {
-    Q_ASSERT(_document);
+    Q_ASSERT(_resourceItem);
 
-    unsigned selectedPalette = _document->paletteList()->selectedIndex();
+    unsigned selectedPalette = _resourceItem->paletteList()->selectedIndex();
     QModelIndex index = _model->toModelIndex(selectedPalette);
 
     _ui->paletteList->setCurrentIndex(index);
@@ -128,20 +128,20 @@ void PalettesDock::onSelectedPaletteChanged()
 
 void PalettesDock::onPaletteListSelectionChanged()
 {
-    if (_document) {
+    if (_resourceItem) {
         QModelIndex index = _ui->paletteList->currentIndex();
         if (index.isValid()) {
-            _document->paletteList()->setSelectedIndex(index.row());
+            _resourceItem->paletteList()->setSelectedIndex(index.row());
         }
         else {
-            _document->paletteList()->unselectItem();
+            _resourceItem->paletteList()->unselectItem();
         }
     }
 }
 
 void PalettesDock::onPaletteContextMenu(const QPoint& pos)
 {
-    if (_document) {
+    if (_resourceItem) {
         QMenu menu;
         _listActions->populate(&menu);
 
@@ -154,8 +154,8 @@ void PalettesDock::updateSelectedPalette()
 {
     const UnTech::Snes::Palette4bpp* palette = nullptr;
 
-    if (_document) {
-        palette = _document->paletteList()->selectedItem();
+    if (_resourceItem) {
+        palette = _resourceItem->paletteList()->selectedItem();
     }
 
     if (palette) {
@@ -176,8 +176,8 @@ void PalettesDock::updateSelectedPalette()
 
 void PalettesDock::updateSelectedColor()
 {
-    if (_document->paletteList()->isSelectedColorValid()) {
-        const unsigned c = _document->paletteList()->selectedColor();
+    if (_resourceItem->paletteList()->isSelectedColorValid()) {
+        const unsigned c = _resourceItem->paletteList()->selectedColor();
 
         _ui->selectColorButton->setChecked(true);
         _colorButtons.at(c)->setChecked(true);
@@ -199,25 +199,25 @@ void PalettesDock::uncheckColorButtons()
         _colorGroup->setExclusive(true);
     }
 
-    if (_document) {
-        _document->paletteList()->unselectColor();
+    if (_resourceItem) {
+        _resourceItem->paletteList()->unselectColor();
     }
 }
 
 void PalettesDock::onColorClicked(int colorIndex)
 {
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return;
     }
 
-    if (_document->paletteList()->isSelectedIndexValid() == false) {
+    if (_resourceItem->paletteList()->isSelectedIndexValid() == false) {
         uncheckColorButtons();
     }
     else if (_ui->selectColorButton->isChecked()) {
-        _document->paletteList()->setSelectedColor(colorIndex);
+        _resourceItem->paletteList()->setSelectedColor(colorIndex);
     }
     else {
-        _document->paletteList()->editSelected_setColorDialog(colorIndex, this);
+        _resourceItem->paletteList()->editSelected_setColorDialog(colorIndex, this);
         uncheckColorButtons();
     }
 }

@@ -4,7 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "document.h"
+#include "resourceitem.h"
 #include "accessors.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
@@ -13,8 +13,8 @@
 using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
 using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
-Document::Document(FrameSetResourceList* parent, size_t index)
-    : AbstractMsDocument(parent, index)
+ResourceItem::ResourceItem(FrameSetResourceList* parent, size_t index)
+    : AbstractMsResourceItem(parent, index)
     , _frameSet(nullptr)
     , _smallTileTileset(new SmallTileTileset(this))
     , _largeTileTileset(new LargeTileTileset(this))
@@ -29,10 +29,10 @@ Document::Document(FrameSetResourceList* parent, size_t index)
 
     setFilename(QString::fromStdString(frameSetFile().filename));
 
-    resetDocumentState();
+    resetState();
 }
 
-QStringList Document::frameNames() const
+QStringList ResourceItem::frameNames() const
 {
     if (_frameSet) {
         return convertNameList(_frameSet->frames);
@@ -42,7 +42,7 @@ QStringList Document::frameNames() const
     }
 }
 
-unsigned Document::nPalettes() const
+unsigned ResourceItem::nPalettes() const
 {
     if (_frameSet == nullptr) {
         return 1;
@@ -50,7 +50,7 @@ unsigned Document::nPalettes() const
     return _frameSet->palettes.size();
 }
 
-const UnTech::idstring& Document::exportOrder() const
+const UnTech::idstring& ResourceItem::exportOrder() const
 {
     static idstring BLANK;
 
@@ -62,7 +62,7 @@ const UnTech::idstring& Document::exportOrder() const
     }
 }
 
-void Document::resetDocumentState()
+void ResourceItem::resetState()
 {
     if (const MS::FrameSet* fs = frameSet()) {
         setName(QString::fromStdString(fs->name));
@@ -78,12 +78,12 @@ void Document::resetDocumentState()
     animationsList()->unselectItem();
 }
 
-void Document::saveResourceData(const std::string& filename) const
+void ResourceItem::saveResourceData(const std::string& filename) const
 {
     MS::saveFrameSet(*_frameSet, filename);
 }
 
-bool Document::loadResourceData(ErrorList& err)
+bool ResourceItem::loadResourceData(ErrorList& err)
 {
     using FrameSetFile = UnTech::MetaSprite::FrameSetFile;
 
@@ -107,19 +107,19 @@ bool Document::loadResourceData(ErrorList& err)
     frameSetFile().loadFile();
 
     _frameSet = fsf.msFrameSet.get();
-    resetDocumentState();
+    resetState();
 
     return true;
 }
 
-bool Document::compileResource(ErrorList& err)
+bool ResourceItem::compileResource(ErrorList& err)
 {
     compileMsFrameset(_frameSet, err);
 
     return err.hasError() == false;
 }
 
-bool Document::editFrameSet_setName(const idstring& name)
+bool ResourceItem::editFrameSet_setName(const idstring& name)
 {
     if (name.isValid() == false) {
         return false;
@@ -128,21 +128,21 @@ bool Document::editFrameSet_setName(const idstring& name)
     return UndoHelper(this).editName(name);
 }
 
-bool Document::editFrameSet_setTilesetType(TilesetType ts)
+bool ResourceItem::editFrameSet_setTilesetType(TilesetType ts)
 {
     return UndoHelper(this).editField(
         ts,
         tr("Edit Tileset Type"),
         [](MS::FrameSet& fs) -> TilesetType& { return fs.tilesetType; },
-        [](Document& d) { emit d.frameSetDataChanged(); });
+        [](ResourceItem& d) { emit d.frameSetDataChanged(); });
 }
 
-bool Document::editFrameSet_setExportOrder(const UnTech::idstring& exportOrder)
+bool ResourceItem::editFrameSet_setExportOrder(const UnTech::idstring& exportOrder)
 {
     return UndoHelper(this).editField(
         exportOrder,
         tr("Edit Export Order"),
         [](MS::FrameSet& fs) -> idstring& { return fs.exportOrder; },
-        [](Document& d) { emit d.frameSetDataChanged();
+        [](ResourceItem& d) { emit d.frameSetDataChanged();
                           emit d.frameSetExportOrderChanged(); });
 }

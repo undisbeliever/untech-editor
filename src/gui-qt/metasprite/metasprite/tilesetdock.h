@@ -19,7 +19,7 @@ namespace MetaSprite {
 namespace Ui {
 class TilesetDock;
 }
-class Document;
+class ResourceItem;
 class TilesetPixmaps;
 
 class TilesetDock : public QDockWidget {
@@ -31,7 +31,7 @@ public:
     TilesetDock(TilesetPixmaps* tilesetPixmaps, QWidget* parent = nullptr);
     ~TilesetDock();
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
 private slots:
     void onSelectedFrameObjectsChanged();
@@ -46,7 +46,7 @@ private:
 private:
     std::unique_ptr<Ui::TilesetDock> const _ui;
 
-    Document* _document;
+    ResourceItem* _resourceItem;
 };
 }
 }

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "document.h"
+#include "resourceitem.h"
 #include "models/metasprite/metasprite.h"
 #include <QAbstractListModel>
 #include <QList>
@@ -16,7 +16,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
 namespace MetaSprite {
-class Document;
+class ResourceItem;
 
 class PalettesModel : public QAbstractListModel {
     Q_OBJECT
@@ -28,7 +28,7 @@ public:
     explicit PalettesModel(QObject* parent = nullptr);
     ~PalettesModel() = default;
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
     QModelIndex toModelIndex(unsigned index) const;
 
@@ -49,7 +49,7 @@ private:
     QPixmap palettePixmap(unsigned index);
 
 private:
-    Document* _document;
+    ResourceItem* _resourceItem;
 
     QList<QPixmap> _palettePixmaps;
 };

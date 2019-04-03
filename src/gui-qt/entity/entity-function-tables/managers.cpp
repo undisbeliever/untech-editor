@@ -7,7 +7,7 @@
 #include "managers.h"
 #include "accessors.h"
 #include "gui-qt/common/helpers.h"
-#include "gui-qt/metasprite/abstractmsdocument.h"
+#include "gui-qt/metasprite/abstractmsresourceitem.h"
 #include "gui-qt/metasprite/exportorder/exportorderresourcelist.h"
 #include "gui-qt/metasprite/framesetresourcelist.h"
 #include "gui-qt/project.h"

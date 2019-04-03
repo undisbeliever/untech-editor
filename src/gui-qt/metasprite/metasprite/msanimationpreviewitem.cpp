@@ -6,7 +6,7 @@
 
 #include "msanimationpreviewitem.h"
 #include "accessors.h"
-#include "document.h"
+#include "resourceitem.h"
 #include "tilesetpixmaps.h"
 #include "gui-qt/metasprite/layersettings.h"
 #include "gui-qt/metasprite/style.h"
@@ -27,14 +27,13 @@ MsAnimationPreviewItemFactory::MsAnimationPreviewItemFactory(LayerSettings* laye
     Q_ASSERT(tilesetPixmaps != nullptr);
 }
 
-MsAnimationPreviewItem* MsAnimationPreviewItemFactory::createPreviewItem(
-    const AbstractMsDocument* abstractDocument)
+MsAnimationPreviewItem* MsAnimationPreviewItemFactory::createPreviewItem(const AbstractMsResourceItem* abstractItem)
 {
-    const Document* document = dynamic_cast<const Document*>(abstractDocument);
-    if (document) {
-        Q_ASSERT(document == _tilesetPixmaps->document());
+    const auto* resourceItem = dynamic_cast<const ResourceItem*>(abstractItem);
+    if (resourceItem) {
+        Q_ASSERT(resourceItem == _tilesetPixmaps->resourceItem());
         return new MsAnimationPreviewItem(_layerSettings, _style,
-                                          _tilesetPixmaps, document);
+                                          _tilesetPixmaps, resourceItem);
     }
     else {
         return nullptr;
@@ -44,52 +43,52 @@ MsAnimationPreviewItem* MsAnimationPreviewItemFactory::createPreviewItem(
 MsAnimationPreviewItem::MsAnimationPreviewItem(LayerSettings* layerSettings,
                                                Style* style,
                                                TilesetPixmaps* tilesetPixmaps,
-                                               const Document* document)
-    : AnimationPreviewItem(document)
+                                               const ResourceItem* resourceItem)
+    : AnimationPreviewItem(resourceItem)
     , _layerSettings(layerSettings)
     , _style(style)
     , _tilesetPixmaps(tilesetPixmaps)
-    , _document(document)
+    , _resourceItem(resourceItem)
 {
     Q_ASSERT(layerSettings != nullptr);
     Q_ASSERT(style != nullptr);
     Q_ASSERT(tilesetPixmaps != nullptr);
-    Q_ASSERT(document != nullptr);
+    Q_ASSERT(resourceItem != nullptr);
 
     // Required connections to AnimationPreviewItem slots
 
-    connect(_document->frameList(), &FrameList::itemAdded,
+    connect(_resourceItem->frameList(), &FrameList::itemAdded,
             this, &MsAnimationPreviewItem::onFrameAdded);
-    connect(_document->frameList(), &FrameList::itemAboutToBeRemoved,
+    connect(_resourceItem->frameList(), &FrameList::itemAboutToBeRemoved,
             this, &MsAnimationPreviewItem::onFrameAboutToBeRemoved);
 
-    connect(_document->frameList(), &FrameList::dataChanged,
+    connect(_resourceItem->frameList(), &FrameList::dataChanged,
             this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
 
-    connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
+    connect(_resourceItem->frameObjectList(), &FrameObjectList::dataChanged,
             this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->frameObjectList(), &FrameObjectList::listChanged,
+    connect(_resourceItem->frameObjectList(), &FrameObjectList::listChanged,
             this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->actionPointList(), &ActionPointList::dataChanged,
+    connect(_resourceItem->actionPointList(), &ActionPointList::dataChanged,
             this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->actionPointList(), &ActionPointList::listChanged,
+    connect(_resourceItem->actionPointList(), &ActionPointList::listChanged,
             this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->entityHitboxList(), &EntityHitboxList::dataChanged,
+    connect(_resourceItem->entityHitboxList(), &EntityHitboxList::dataChanged,
             this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
-    connect(_document->entityHitboxList(), &EntityHitboxList::listChanged,
+    connect(_resourceItem->entityHitboxList(), &EntityHitboxList::listChanged,
             this, &MsAnimationPreviewItem::onFrameDataAndContentsChanged);
 }
 
 size_t MsAnimationPreviewItem::getFrameIndex(const idstring& frameName)
 {
-    return _document->frameSet()->frames.indexOf(frameName);
+    return _resourceItem->frameSet()->frames.indexOf(frameName);
 }
 
 void MsAnimationPreviewItem::drawFrame(QPainter* painter)
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    const auto& frames = _document->frameSet()->frames;
+    const auto& frames = _resourceItem->frameSet()->frames;
     if (frameIndex() >= frames.size()) {
         return;
     }

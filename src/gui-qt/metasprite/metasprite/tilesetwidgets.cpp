@@ -6,7 +6,7 @@
 
 #include "tilesetwidgets.h"
 #include "accessors.h"
-#include "document.h"
+#include "resourceitem.h"
 #include "tilesetpixmaps.h"
 
 using namespace UnTech::GuiQt::Accessor;
@@ -14,33 +14,33 @@ using namespace UnTech::GuiQt::MetaSprite::MetaSprite;
 
 AbstractTilesetWidget::AbstractTilesetWidget(QWidget* parent)
     : DrawingPixmapGridWidget(parent)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
 {
 }
 
-void AbstractTilesetWidget::setDocument(Document* document)
+void AbstractTilesetWidget::setResourceItem(ResourceItem* resourceItem)
 {
-    if (_document == document) {
+    if (_resourceItem == resourceItem) {
         return;
     }
 
-    if (_document != nullptr) {
-        _document->disconnect(this);
-        _document->paletteList()->disconnect(this);
+    if (_resourceItem != nullptr) {
+        _resourceItem->disconnect(this);
+        _resourceItem->paletteList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
-    if (_document) {
+    if (_resourceItem) {
         updateBackgroundColor();
         onSelectedColorChanged();
 
-        connect(_document->paletteList(), &PaletteList::dataChanged,
+        connect(_resourceItem->paletteList(), &PaletteList::dataChanged,
                 this, &SmallTilesetWidget::onPaletteChanged);
 
-        connect(_document->paletteList(), &PaletteList::selectedIndexChanged,
+        connect(_resourceItem->paletteList(), &PaletteList::selectedIndexChanged,
                 this, &SmallTilesetWidget::updateBackgroundColor);
 
-        connect(_document->paletteList(), &PaletteList::selectedColorChanged,
+        connect(_resourceItem->paletteList(), &PaletteList::selectedColorChanged,
                 this, &SmallTilesetWidget::onSelectedColorChanged);
     }
     else {
@@ -50,14 +50,14 @@ void AbstractTilesetWidget::setDocument(Document* document)
 
 void AbstractTilesetWidget::onPaletteChanged(unsigned index)
 {
-    if (index == _document->paletteList()->selectedIndex()) {
+    if (index == _resourceItem->paletteList()->selectedIndex()) {
         updateBackgroundColor();
     }
 }
 
 void AbstractTilesetWidget::updateBackgroundColor()
 {
-    if (const auto* pal = _document->paletteList()->selectedItem()) {
+    if (const auto* pal = _resourceItem->paletteList()->selectedItem()) {
         const auto& rgb = pal->color(0).rgb();
         setBackgroundColor(qRgb(rgb.red, rgb.green, rgb.blue));
     }
@@ -65,7 +65,7 @@ void AbstractTilesetWidget::updateBackgroundColor()
 
 void AbstractTilesetWidget::onSelectedColorChanged()
 {
-    setCanDraw(_document->paletteList()->isSelectedColorValid());
+    setCanDraw(_resourceItem->paletteList()->isSelectedColorValid());
 }
 
 SmallTilesetWidget::SmallTilesetWidget(QWidget* parent)
@@ -136,10 +136,10 @@ void LargeTilesetWidget::onTilesetPixmapTileChanged(int tileId)
 
 void SmallTilesetWidget::drawPixel(int tileId, const QPoint& point, bool first)
 {
-    _document->smallTileTileset()->editTile_paintPixel(tileId, point, first);
+    _resourceItem->smallTileTileset()->editTile_paintPixel(tileId, point, first);
 }
 
 void LargeTilesetWidget::drawPixel(int tileId, const QPoint& point, bool first)
 {
-    _document->largeTileTileset()->editTile_paintPixel(tileId, point, first);
+    _resourceItem->largeTileTileset()->editTile_paintPixel(tileId, point, first);
 }

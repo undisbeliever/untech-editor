@@ -16,7 +16,7 @@ class Style;
 class LayerSettings;
 
 namespace MetaSprite {
-class Document;
+class ResourceItem;
 class TilesetPixmaps;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
@@ -28,7 +28,7 @@ public:
     explicit MsAnimationPreviewItem(LayerSettings* layerSettings,
                                     Style* style,
                                     TilesetPixmaps* _tilesetPixmaps,
-                                    const Document* document);
+                                    const ResourceItem* resourceItem);
     ~MsAnimationPreviewItem() = default;
 
 protected:
@@ -39,7 +39,7 @@ private:
     LayerSettings* const _layerSettings;
     Style* const _style;
     TilesetPixmaps* const _tilesetPixmaps;
-    const Document* const _document;
+    const ResourceItem* const _resourceItem;
 };
 
 class MsAnimationPreviewItemFactory : public QObject,
@@ -52,7 +52,7 @@ public:
                                   QWidget* parent = nullptr);
     ~MsAnimationPreviewItemFactory() = default;
 
-    virtual MsAnimationPreviewItem* createPreviewItem(const AbstractMsDocument* document);
+    virtual MsAnimationPreviewItem* createPreviewItem(const AbstractMsResourceItem* abstractItem);
 
 private:
     LayerSettings* const _layerSettings;

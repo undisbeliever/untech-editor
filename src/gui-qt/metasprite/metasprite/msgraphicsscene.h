@@ -24,7 +24,7 @@ class Style;
 class LayerSettings;
 
 namespace MetaSprite {
-class Document;
+class ResourceItem;
 class TilesetPixmaps;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
@@ -48,7 +48,7 @@ public:
 
     QMenu* contextMenu() { return _contextMenu.data(); }
 
-    void setDocument(Document* document);
+    void setResourceItem(ResourceItem* resourceItem);
 
     void setFrameIndex(size_t frameIndex);
 
@@ -118,7 +118,7 @@ private:
     QList<AabbGraphicsItem*> _actionPoints;
     QList<ResizableAabbGraphicsItem*> _entityHitboxes;
 
-    Document* _document;
+    ResourceItem* _resourceItem;
     size_t _frameIndex;
 
     bool _inUpdateSelection;

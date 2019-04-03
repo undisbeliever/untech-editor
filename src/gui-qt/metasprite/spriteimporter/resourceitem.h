@@ -7,7 +7,7 @@
 #pragma once
 
 #include "gui-qt/accessor/accessor.h"
-#include "gui-qt/metasprite/abstractmsdocument.h"
+#include "gui-qt/metasprite/abstractmsresourceitem.h"
 #include "models/metasprite/spriteimporter.h"
 #include <memory>
 
@@ -23,19 +23,19 @@ class EntityHitboxList;
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
-class Document : public AbstractMsDocument {
+class ResourceItem : public AbstractMsResourceItem {
     Q_OBJECT
 
 public:
     using DataT = SI::FrameSet;
 
-    using UndoHelper = Accessor::ResourceItemUndoHelper<Document>;
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
 
     using TilesetType = UnTech::MetaSprite::TilesetType;
 
 public:
-    Document(FrameSetResourceList* parent, size_t index);
-    ~Document() = default;
+    ResourceItem(FrameSetResourceList* parent, size_t index);
+    ~ResourceItem() = default;
 
     static QString typeName() { return tr("SpriteImporter FrameSet"); }
 
@@ -60,7 +60,7 @@ public:
     bool editFrameSet_setPalette(const SI::UserSuppliedPalette& palette);
 
 private:
-    friend class Accessor::ResourceItemUndoHelper<Document>;
+    friend class Accessor::ResourceItemUndoHelper<ResourceItem>;
     const SI::FrameSet* data() const { return _frameSet; }
     SI::FrameSet* dataEditable() { return _frameSet; }
 
@@ -74,7 +74,7 @@ private slots:
     void onFrameSetImageFilenameChanged();
 
 private:
-    void resetDocumentState();
+    void resetState();
 
 signals:
     void frameSetGridChanged();

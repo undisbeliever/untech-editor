@@ -6,7 +6,7 @@
 
 #include "managers.h"
 #include "accessors.h"
-#include "document.h"
+#include "resourceitem.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/metasprite/actionpoints/actionpointsresourceitem.h"
 #include "gui-qt/metasprite/common.h"
@@ -31,7 +31,7 @@ const QStringList FrameObjectManager::FLIP_STRINGS({ QString(),
 
 FrameSetManager::FrameSetManager(QObject* parent)
     : PropertyListManager(parent)
-    , _document(nullptr)
+    , _resourceItem(nullptr)
 {
     using Type = UnTech::GuiQt::PropertyType;
 
@@ -42,31 +42,31 @@ FrameSetManager::FrameSetManager(QObject* parent)
     addProperty(tr("Export Order"), EXPORT_ORDER, Type::COMBO);
 }
 
-void FrameSetManager::setDocument(Document* document)
+void FrameSetManager::setResourceItem(ResourceItem* resourceItem)
 {
-    if (_document) {
-        _document->disconnect(this);
+    if (_resourceItem) {
+        _resourceItem->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
-    if (_document) {
-        connect(_document, &Document::nameChanged,
+    if (_resourceItem) {
+        connect(_resourceItem, &ResourceItem::nameChanged,
                 this, &FrameManager::dataChanged);
-        connect(_document, &Document::frameSetDataChanged,
+        connect(_resourceItem, &ResourceItem::frameSetDataChanged,
                 this, &FrameManager::dataChanged);
     }
 
-    setEnabled(_document != nullptr);
+    setEnabled(_resourceItem != nullptr);
     emit dataChanged();
 }
 
 QVariant FrameSetManager::data(int id) const
 {
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return QVariant();
     }
 
-    const MS::FrameSet* frameSet = _document->frameSet();
+    const MS::FrameSet* frameSet = _resourceItem->frameSet();
     if (frameSet == nullptr) {
         return QVariant();
     }
@@ -87,7 +87,7 @@ QVariant FrameSetManager::data(int id) const
 
 void FrameSetManager::updateParameters(int id, QVariant& param1, QVariant&) const
 {
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return;
     }
 
@@ -97,7 +97,7 @@ void FrameSetManager::updateParameters(int id, QVariant& param1, QVariant&) cons
         break;
 
     case PropertyId::EXPORT_ORDER:
-        param1 = _document->project()->frameSetExportOrderResourceList()->itemNames();
+        param1 = _resourceItem->project()->frameSetExportOrderResourceList()->itemNames();
     }
 }
 
@@ -105,19 +105,19 @@ bool FrameSetManager::setData(int id, const QVariant& value)
 {
     using TtEnum = UnTech::MetaSprite::TilesetType::Enum;
 
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return false;
     }
 
     switch (static_cast<PropertyId>(id)) {
     case PropertyId::NAME:
-        return _document->editFrameSet_setName(value.toString().toStdString());
+        return _resourceItem->editFrameSet_setName(value.toString().toStdString());
 
     case PropertyId::TILESET_TYPE:
-        return _document->editFrameSet_setTilesetType(static_cast<TtEnum>(value.toInt()));
+        return _resourceItem->editFrameSet_setTilesetType(static_cast<TtEnum>(value.toInt()));
 
     case PropertyId::EXPORT_ORDER:
-        return _document->editFrameSet_setExportOrder(value.toString().toStdString());
+        return _resourceItem->editFrameSet_setExportOrder(value.toString().toStdString());
     }
 
     return false;
@@ -136,9 +136,9 @@ FrameManager::FrameManager(QObject* parent)
     addProperty(tr("AABB"), TILE_HITBOX, Type::RECT, MS8_RECT_BOUNDS);
 }
 
-void FrameManager::setDocument(Document* document)
+void FrameManager::setResourceItem(ResourceItem* resourceItem)
 {
-    auto* frameList = document ? document->frameList() : nullptr;
+    auto* frameList = resourceItem ? resourceItem->frameList() : nullptr;
 
     if (_frameList) {
         _frameList->disconnect(this);
@@ -243,15 +243,15 @@ FrameObjectManager::FrameObjectManager(QObject* parent)
     addProperty(tr("Flip"), PropertyId::FLIP, Type::COMBO, FLIP_STRINGS, QVariantList{ 0, 1, 2, 3 });
 }
 
-void FrameObjectManager::setDocument(Document* document)
+void FrameObjectManager::setResourceItem(ResourceItem* resourceItem)
 {
-    _document = document;
-    setAccessor(document ? document->frameObjectList() : nullptr);
+    _resourceItem = resourceItem;
+    setAccessor(resourceItem ? resourceItem->frameObjectList() : nullptr);
 }
 
 const MS::Frame* FrameObjectManager::selectedFrame() const
 {
-    return _document ? _document->frameList()->selectedItem() : nullptr;
+    return _resourceItem ? _resourceItem->frameList()->selectedItem() : nullptr;
 }
 
 QVariant FrameObjectManager::data(int index, int id) const
@@ -296,7 +296,7 @@ void FrameObjectManager::updateParameters(int index, int id,
         return;
     }
 
-    const MS::FrameSet* frameSet = _document->frameSet();
+    const MS::FrameSet* frameSet = _resourceItem->frameSet();
     Q_ASSERT(frameSet);
 
     const MS::FrameObject& obj = frame->objects.at(index);
@@ -320,25 +320,25 @@ bool FrameObjectManager::setData(int index, int id, const QVariant& value)
 {
     using ObjSize = UnTech::MetaSprite::ObjectSize;
 
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return false;
     }
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        return _document->frameObjectList()->editSelectedList_setLocation(
+        return _resourceItem->frameObjectList()->editSelectedList_setLocation(
             index, toMs8point(value.toPoint()));
 
     case PropertyId::SIZE:
-        return _document->frameObjectList()->editSelectedList_setSize(
+        return _resourceItem->frameObjectList()->editSelectedList_setSize(
             index, value.toBool() ? ObjSize::LARGE : ObjSize::SMALL);
 
     case PropertyId::TILE:
-        return _document->frameObjectList()->editSelectedList_setTile(
+        return _resourceItem->frameObjectList()->editSelectedList_setTile(
             index, value.toUInt());
 
     case PropertyId::FLIP:
-        return _document->frameObjectList()->editSelectedList_setFlips(
+        return _resourceItem->frameObjectList()->editSelectedList_setFlips(
             index, value.toUInt() & 1, value.toUInt() & 2);
     };
 
@@ -357,15 +357,15 @@ ActionPointManager::ActionPointManager(QObject* parent)
     addProperty(tr("Type"), PropertyId::TYPE, Type::COMBO);
 }
 
-void ActionPointManager::setDocument(Document* document)
+void ActionPointManager::setResourceItem(ResourceItem* resourceItem)
 {
-    _document = document;
-    setAccessor(document ? document->actionPointList() : nullptr);
+    _resourceItem = resourceItem;
+    setAccessor(resourceItem ? resourceItem->actionPointList() : nullptr);
 }
 
 const MS::Frame* ActionPointManager::selectedFrame() const
 {
-    return _document ? _document->frameList()->selectedItem() : nullptr;
+    return _resourceItem ? _resourceItem->frameList()->selectedItem() : nullptr;
 }
 
 QVariant ActionPointManager::data(int index, int id) const
@@ -392,30 +392,30 @@ QVariant ActionPointManager::data(int index, int id) const
 
 void ActionPointManager::updateParameters(int index, int id, QVariant& param1, QVariant&) const
 {
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return;
     }
 
     Q_UNUSED(index);
 
     if (id == PropertyId::TYPE) {
-        param1 = _document->project()->staticResourceList()->actionPointsResourceItem()->actionPointNames();
+        param1 = _resourceItem->project()->staticResourceList()->actionPointsResourceItem()->actionPointNames();
     }
 }
 
 bool ActionPointManager::setData(int index, int id, const QVariant& value)
 {
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return false;
     }
 
     switch ((PropertyId)id) {
     case PropertyId::LOCATION:
-        return _document->actionPointList()->editSelectedList_setLocation(
+        return _resourceItem->actionPointList()->editSelectedList_setLocation(
             index, toMs8point(value.toPoint()));
 
     case PropertyId::TYPE:
-        return _document->actionPointList()->editSelectedList_setType(
+        return _resourceItem->actionPointList()->editSelectedList_setType(
             index, value.toString().toStdString());
     };
 
@@ -434,15 +434,15 @@ EntityHitboxManager::EntityHitboxManager(QObject* parent)
                 EH_SHORT_STRING_VALUES, qVariantRange(EH_SHORT_STRING_VALUES.size()));
 }
 
-void EntityHitboxManager::setDocument(Document* document)
+void EntityHitboxManager::setResourceItem(ResourceItem* resourceItem)
 {
-    _document = document;
-    setAccessor(document ? document->entityHitboxList() : nullptr);
+    _resourceItem = resourceItem;
+    setAccessor(resourceItem ? resourceItem->entityHitboxList() : nullptr);
 }
 
 const MS::Frame* EntityHitboxManager::selectedFrame() const
 {
-    return _document ? _document->frameList()->selectedItem() : nullptr;
+    return _resourceItem ? _resourceItem->frameList()->selectedItem() : nullptr;
 }
 
 QVariant EntityHitboxManager::data(int index, int id) const
@@ -471,17 +471,17 @@ bool EntityHitboxManager::setData(int index, int id, const QVariant& value)
 {
     using EntityHitboxType = UnTech::MetaSprite::EntityHitboxType;
 
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return false;
     }
 
     switch ((PropertyId)id) {
     case PropertyId::AABB:
-        return _document->entityHitboxList()->editSelectedList_setAabb(
+        return _resourceItem->entityHitboxList()->editSelectedList_setAabb(
             index, toMs8rect(value.toRect()));
 
     case PropertyId::HITBOX_TYPE:
-        return _document->entityHitboxList()->editSelectedList_setEntityHitboxType(
+        return _resourceItem->entityHitboxList()->editSelectedList_setEntityHitboxType(
             index, EntityHitboxType::from_romValue(value.toInt()));
     };
 

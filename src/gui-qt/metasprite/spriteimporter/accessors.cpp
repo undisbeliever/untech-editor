@@ -16,7 +16,7 @@ using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
 template <>
-const NamedList<SI::Frame>* NamedListAccessor<SI::Frame, Document>::list() const
+const NamedList<SI::Frame>* NamedListAccessor<SI::Frame, ResourceItem>::list() const
 {
     if (const SI::FrameSet* fs = resourceItem()->frameSet()) {
         return &fs->frames;
@@ -25,7 +25,7 @@ const NamedList<SI::Frame>* NamedListAccessor<SI::Frame, Document>::list() const
 }
 
 template <>
-NamedList<SI::Frame>* NamedListAccessor<SI::Frame, Document>::getList()
+NamedList<SI::Frame>* NamedListAccessor<SI::Frame, ResourceItem>::getList()
 {
     if (SI::FrameSet* fs = resourceItem()->frameSet()) {
         return &fs->frames;
@@ -33,8 +33,8 @@ NamedList<SI::Frame>* NamedListAccessor<SI::Frame, Document>::getList()
     return nullptr;
 }
 
-FrameList::FrameList(Document* document)
-    : NamedListAccessor(document, UnTech::MetaSprite::MAX_EXPORT_NAMES)
+FrameList::FrameList(ResourceItem* resourceItem)
+    : NamedListAccessor(resourceItem, UnTech::MetaSprite::MAX_EXPORT_NAMES)
     , _tileHitboxSelected(false)
 {
 }
@@ -110,7 +110,7 @@ bool FrameList::editSelected_setTileHitbox(const urect& hitbox)
 }
 
 template <>
-const std::vector<SI::FrameObject>* ChildVectorMultipleSelectionAccessor<SI::FrameObject, Document>::list(size_t pIndex) const
+const std::vector<SI::FrameObject>* ChildVectorMultipleSelectionAccessor<SI::FrameObject, ResourceItem>::list(size_t pIndex) const
 {
     const auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -123,7 +123,7 @@ const std::vector<SI::FrameObject>* ChildVectorMultipleSelectionAccessor<SI::Fra
 }
 
 template <>
-std::vector<SI::FrameObject>* ChildVectorMultipleSelectionAccessor<SI::FrameObject, Document>::getList(size_t pIndex)
+std::vector<SI::FrameObject>* ChildVectorMultipleSelectionAccessor<SI::FrameObject, ResourceItem>::getList(size_t pIndex)
 {
     auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -135,8 +135,8 @@ std::vector<SI::FrameObject>* ChildVectorMultipleSelectionAccessor<SI::FrameObje
     return &fs->frames.at(pIndex).objects;
 }
 
-FrameObjectList::FrameObjectList(Document* document)
-    : ChildVectorMultipleSelectionAccessor(document->frameList(), document, UnTech::MetaSprite::MAX_FRAME_OBJECTS)
+FrameObjectList::FrameObjectList(ResourceItem* resourceItem)
+    : ChildVectorMultipleSelectionAccessor(resourceItem->frameList(), resourceItem, UnTech::MetaSprite::MAX_FRAME_OBJECTS)
 {
 }
 
@@ -202,7 +202,7 @@ bool FrameObjectList::editSelected_toggleObjectSize()
 }
 
 template <>
-const std::vector<SI::ActionPoint>* ChildVectorMultipleSelectionAccessor<SI::ActionPoint, Document>::list(size_t pIndex) const
+const std::vector<SI::ActionPoint>* ChildVectorMultipleSelectionAccessor<SI::ActionPoint, ResourceItem>::list(size_t pIndex) const
 {
     const auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -215,7 +215,7 @@ const std::vector<SI::ActionPoint>* ChildVectorMultipleSelectionAccessor<SI::Act
 }
 
 template <>
-std::vector<SI::ActionPoint>* ChildVectorMultipleSelectionAccessor<SI::ActionPoint, Document>::getList(size_t pIndex)
+std::vector<SI::ActionPoint>* ChildVectorMultipleSelectionAccessor<SI::ActionPoint, ResourceItem>::getList(size_t pIndex)
 {
     auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -227,8 +227,8 @@ std::vector<SI::ActionPoint>* ChildVectorMultipleSelectionAccessor<SI::ActionPoi
     return &fs->frames.at(pIndex).actionPoints;
 }
 
-ActionPointList::ActionPointList(Document* document)
-    : ChildVectorMultipleSelectionAccessor(document->frameList(), document, UnTech::MetaSprite::MAX_ACTION_POINTS)
+ActionPointList::ActionPointList(ResourceItem* resourceItem)
+    : ChildVectorMultipleSelectionAccessor(resourceItem->frameList(), resourceItem, UnTech::MetaSprite::MAX_ACTION_POINTS)
 {
 }
 
@@ -259,7 +259,7 @@ bool ActionPointList::editSelectedList_setType(unsigned index, idstring type)
 }
 
 template <>
-const std::vector<SI::EntityHitbox>* ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, Document>::list(size_t pIndex) const
+const std::vector<SI::EntityHitbox>* ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, ResourceItem>::list(size_t pIndex) const
 {
     const auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -272,7 +272,7 @@ const std::vector<SI::EntityHitbox>* ChildVectorMultipleSelectionAccessor<SI::En
 }
 
 template <>
-std::vector<SI::EntityHitbox>* ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, Document>::getList(size_t pIndex)
+std::vector<SI::EntityHitbox>* ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, ResourceItem>::getList(size_t pIndex)
 {
     auto* fs = resourceItem()->frameSet();
     if (fs == nullptr) {
@@ -284,8 +284,8 @@ std::vector<SI::EntityHitbox>* ChildVectorMultipleSelectionAccessor<SI::EntityHi
     return &fs->frames.at(pIndex).entityHitboxes;
 }
 
-EntityHitboxList::EntityHitboxList(Document* document)
-    : ChildVectorMultipleSelectionAccessor(document->frameList(), document, UnTech::MetaSprite::MAX_ENTITY_HITBOXES)
+EntityHitboxList::EntityHitboxList(ResourceItem* resourceItem)
+    : ChildVectorMultipleSelectionAccessor(resourceItem->frameList(), resourceItem, UnTech::MetaSprite::MAX_ENTITY_HITBOXES)
 {
 }
 
@@ -325,7 +325,7 @@ bool EntityHitboxList::editSelected_setEntityHitboxType(EntityHitboxType type)
 
 void SiGraphicsScene::commitMovedItems()
 {
-    const size_t frameIndex = _document->frameList()->selectedIndex();
+    const size_t frameIndex = _resourceItem->frameList()->selectedIndex();
     const SiFrameGraphicsItem* frameItem = _frameItems.value(frameIndex);
     if (frameItem == nullptr) {
         return;
@@ -338,9 +338,9 @@ void SiGraphicsScene::commitMovedItems()
     QList<QUndoCommand*> commands;
     commands.reserve(4);
 
-    if (_document->frameList()->isTileHitboxSelected()) {
+    if (_resourceItem->frameList()->isTileHitboxSelected()) {
         urect hitbox = frameItem->tileHitbox()->rectUrect();
-        auto* c = FrameList::UndoHelper(_document->frameList())
+        auto* c = FrameList::UndoHelper(_resourceItem->frameList())
                       .editSelectedItemFieldCommand(hitbox, QString(),
                                                     [](SI::Frame& f) -> urect& { return f.tileHitbox; });
         if (c != nullptr) {
@@ -349,21 +349,21 @@ void SiGraphicsScene::commitMovedItems()
     }
 
     commands.append(
-        FrameObjectList::UndoHelper(_document->frameObjectList())
+        FrameObjectList::UndoHelper(_resourceItem->frameObjectList())
             .editSelectedItemsCommand(
                 QString(),
                 [&](SI::FrameObject& obj, size_t i) {
                     obj.location = objects.at(i)->posUpoint();
                 }));
     commands.append(
-        ActionPointList::UndoHelper(_document->actionPointList())
+        ActionPointList::UndoHelper(_resourceItem->actionPointList())
             .editSelectedItemsCommand(
                 QString(),
                 [&](SI::ActionPoint& ap, size_t i) {
                     ap.location = actionPoints.at(i)->posUpoint();
                 }));
     commands.append(
-        EntityHitboxList::UndoHelper(_document->entityHitboxList())
+        EntityHitboxList::UndoHelper(_resourceItem->entityHitboxList())
             .editSelectedItemsCommand(
                 QString(),
                 [&](SI::EntityHitbox& eh, size_t i) {
@@ -373,16 +373,16 @@ void SiGraphicsScene::commitMovedItems()
     commands.removeAll(nullptr);
 
     if (!commands.empty()) {
-        _document->undoStack()->beginMacro(tr("Move Selected"));
+        _resourceItem->undoStack()->beginMacro(tr("Move Selected"));
         for (QUndoCommand* c : commands) {
-            _document->undoStack()->push(c);
+            _resourceItem->undoStack()->push(c);
         }
-        _document->undoStack()->endMacro();
+        _resourceItem->undoStack()->endMacro();
     }
 }
 
 using namespace UnTech::GuiQt;
-template class Accessor::NamedListAccessor<SI::Frame, Document>;
-template class Accessor::ChildVectorMultipleSelectionAccessor<SI::FrameObject, Document>;
-template class Accessor::ChildVectorMultipleSelectionAccessor<SI::ActionPoint, Document>;
-template class Accessor::ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, Document>;
+template class Accessor::NamedListAccessor<SI::Frame, ResourceItem>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<SI::FrameObject, ResourceItem>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<SI::ActionPoint, ResourceItem>;
+template class Accessor::ChildVectorMultipleSelectionAccessor<SI::EntityHitbox, ResourceItem>;

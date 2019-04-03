@@ -6,7 +6,7 @@
 
 #include "msgraphicsscene.h"
 #include "accessors.h"
-#include "document.h"
+#include "resourceitem.h"
 #include "tilesetpixmaps.h"
 #include "gui-qt/common/graphics/aabbgraphicsitem.h"
 #include "gui-qt/common/graphics/pixmapgraphicsitem.h"
@@ -35,7 +35,7 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings,
     , _tileHitbox(new ResizableAabbGraphicsItem())
     , _horizontalOrigin(new QGraphicsLineItem())
     , _verticalOrigin(new QGraphicsLineItem())
-    , _document(nullptr)
+    , _resourceItem(nullptr)
     , _frameIndex(INT_MAX)
     , _inUpdateSelection(false)
     , _inOnSceneSelectionChanged(false)
@@ -76,59 +76,59 @@ MsGraphicsScene::MsGraphicsScene(LayerSettings* layerSettings,
             this, &MsGraphicsScene::onTilesetPixmapsChanged);
 }
 
-void MsGraphicsScene::setDocument(Document* document)
+void MsGraphicsScene::setResourceItem(ResourceItem* resourceItem)
 {
-    if (_document == document) {
+    if (_resourceItem == resourceItem) {
         return;
     }
 
-    if (_document != nullptr) {
-        _document->frameList()->disconnect(this);
-        _document->frameObjectList()->disconnect(this);
-        _document->actionPointList()->disconnect(this);
-        _document->entityHitboxList()->disconnect(this);
+    if (_resourceItem != nullptr) {
+        _resourceItem->frameList()->disconnect(this);
+        _resourceItem->frameObjectList()->disconnect(this);
+        _resourceItem->actionPointList()->disconnect(this);
+        _resourceItem->entityHitboxList()->disconnect(this);
     }
-    _document = document;
+    _resourceItem = resourceItem;
 
     setFrameIndex(INT_MAX);
 
-    if (_document) {
+    if (_resourceItem) {
         onSelectedFrameChanged();
         updateTileHitboxSelection();
         updateFrameObjectSelection();
         updateActionPointSelection();
         updateEntityHitboxSelection();
 
-        connect(_document->frameList(), &FrameList::selectedIndexChanged,
+        connect(_resourceItem->frameList(), &FrameList::selectedIndexChanged,
                 this, &MsGraphicsScene::onSelectedFrameChanged);
 
-        connect(_document->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
+        connect(_resourceItem->frameObjectList(), &FrameObjectList::selectedIndexesChanged,
                 this, &MsGraphicsScene::updateFrameObjectSelection);
-        connect(_document->actionPointList(), &ActionPointList::selectedIndexesChanged,
+        connect(_resourceItem->actionPointList(), &ActionPointList::selectedIndexesChanged,
                 this, &MsGraphicsScene::updateActionPointSelection);
-        connect(_document->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
+        connect(_resourceItem->entityHitboxList(), &EntityHitboxList::selectedIndexesChanged,
                 this, &MsGraphicsScene::updateEntityHitboxSelection);
 
-        connect(_document->frameList(), &FrameList::tileHitboxSelectedChanged,
+        connect(_resourceItem->frameList(), &FrameList::tileHitboxSelectedChanged,
                 this, &MsGraphicsScene::updateTileHitboxSelection);
 
-        connect(_document->frameList(), &FrameList::dataChanged,
+        connect(_resourceItem->frameList(), &FrameList::dataChanged,
                 this, &MsGraphicsScene::onFrameDataChanged);
 
-        connect(_document->frameObjectList(), &FrameObjectList::dataChanged,
+        connect(_resourceItem->frameObjectList(), &FrameObjectList::dataChanged,
                 this, &MsGraphicsScene::onFrameObjectChanged);
-        connect(_document->actionPointList(), &ActionPointList::dataChanged,
+        connect(_resourceItem->actionPointList(), &ActionPointList::dataChanged,
                 this, &MsGraphicsScene::onActionPointChanged);
-        connect(_document->entityHitboxList(), &EntityHitboxList::dataChanged,
+        connect(_resourceItem->entityHitboxList(), &EntityHitboxList::dataChanged,
                 this, &MsGraphicsScene::onEntityHitboxChanged);
 
         // This class uses listChanged signal as it is more efficient when multiple items change
 
-        connect(_document->frameObjectList(), &FrameObjectList::listChanged,
+        connect(_resourceItem->frameObjectList(), &FrameObjectList::listChanged,
                 this, &MsGraphicsScene::onFrameObjectListChanged);
-        connect(_document->actionPointList(), &ActionPointList::listChanged,
+        connect(_resourceItem->actionPointList(), &ActionPointList::listChanged,
                 this, &MsGraphicsScene::onActionPointListChanged);
-        connect(_document->entityHitboxList(), &EntityHitboxList::listChanged,
+        connect(_resourceItem->entityHitboxList(), &EntityHitboxList::listChanged,
                 this, &MsGraphicsScene::onEntityHitboxListChanged);
     }
 }
@@ -174,17 +174,17 @@ void MsGraphicsScene::setFrameIndex(size_t frameIndex)
 
 bool MsGraphicsScene::selectedFrameValid() const
 {
-    return _document
-           && _document->frameSet()
-           && _frameIndex < _document->frameSet()->frames.size();
+    return _resourceItem
+           && _resourceItem->frameSet()
+           && _frameIndex < _resourceItem->frameSet()->frames.size();
 }
 
 const MS::Frame* MsGraphicsScene::selectedFrame() const
 {
-    if (_document == nullptr) {
+    if (_resourceItem == nullptr) {
         return nullptr;
     }
-    auto* fs = _document->frameSet();
+    auto* fs = _resourceItem->frameSet();
     if (fs == nullptr) {
         return nullptr;
     }
@@ -340,7 +340,7 @@ void MsGraphicsScene::onLayerSettingsChanged()
 
 void MsGraphicsScene::onSelectedFrameChanged()
 {
-    setFrameIndex(_document->frameList()->selectedIndex());
+    setFrameIndex(_resourceItem->frameList()->selectedIndex());
 }
 
 template <class T>
@@ -364,17 +364,17 @@ void MsGraphicsScene::updateSelection(QList<T>& items,
 
 void MsGraphicsScene::updateFrameObjectSelection()
 {
-    updateSelection(_objects, _document->frameObjectList()->selectedIndexes());
+    updateSelection(_objects, _resourceItem->frameObjectList()->selectedIndexes());
 }
 
 void MsGraphicsScene::updateActionPointSelection()
 {
-    updateSelection(_actionPoints, _document->actionPointList()->selectedIndexes());
+    updateSelection(_actionPoints, _resourceItem->actionPointList()->selectedIndexes());
 }
 
 void MsGraphicsScene::updateEntityHitboxSelection()
 {
-    updateSelection(_entityHitboxes, _document->entityHitboxList()->selectedIndexes());
+    updateSelection(_entityHitboxes, _resourceItem->entityHitboxList()->selectedIndexes());
 }
 
 void MsGraphicsScene::updateTileHitboxSelection()
@@ -386,7 +386,7 @@ void MsGraphicsScene::updateTileHitboxSelection()
     Q_ASSERT(_inUpdateSelection == false);
     _inUpdateSelection = true;
 
-    bool hbSelected = _document->frameList()->isTileHitboxSelected();
+    bool hbSelected = _resourceItem->frameList()->isTileHitboxSelected();
 
     _tileHitbox->setSelected(hbSelected);
 
@@ -419,11 +419,11 @@ void MsGraphicsScene::onSceneSelectionChanged()
         return std::move(sel);
     };
 
-    _document->frameObjectList()->setSelectedIndexes(getSelected(_objects));
-    _document->actionPointList()->setSelectedIndexes(getSelected(_actionPoints));
-    _document->entityHitboxList()->setSelectedIndexes(getSelected(_entityHitboxes));
+    _resourceItem->frameObjectList()->setSelectedIndexes(getSelected(_objects));
+    _resourceItem->actionPointList()->setSelectedIndexes(getSelected(_actionPoints));
+    _resourceItem->entityHitboxList()->setSelectedIndexes(getSelected(_entityHitboxes));
 
-    _document->frameList()->setTileHitboxSelected(_tileHitbox->isSelected());
+    _resourceItem->frameList()->setTileHitboxSelected(_tileHitbox->isSelected());
 
     if (contentSelected) {
         emit frameContentSelected();
