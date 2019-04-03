@@ -132,8 +132,7 @@ void EntityRomEntryManager::updateParameters(int id, QVariant& param1, QVariant&
     const auto* frameSetResourceList = _item->project()->frameSets();
     auto getFrameSet = [&]() -> const MetaSprite::AbstractMsResourceItem* {
         if (auto* e = _item->entriesList()->selectedItem()) {
-            return qobject_cast<const MetaSprite::AbstractMsResourceItem*>(
-                frameSetResourceList->findResource(QString::fromStdString(e->frameSetId)));
+            return frameSetResourceList->findResource(QString::fromStdString(e->frameSetId));
         }
         return nullptr;
     };

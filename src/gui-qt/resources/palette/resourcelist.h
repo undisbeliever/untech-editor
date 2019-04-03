@@ -17,6 +17,7 @@ namespace UnTech {
 namespace GuiQt {
 namespace Resources {
 namespace Palette {
+class ResourceItem;
 
 class ResourceList : public AbstractResourceList {
     Q_OBJECT
@@ -29,6 +30,8 @@ public:
     virtual const QString resourceTypeNamePlural() const final;
 
     virtual const QList<AddResourceSettings>& addResourceSettings() const final;
+
+    ResourceItem* findResource(const QString& name) const;
 
 protected:
     virtual size_t nItems() const final;

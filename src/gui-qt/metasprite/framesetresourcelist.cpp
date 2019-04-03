@@ -85,6 +85,11 @@ const QList<AbstractResourceList::AddResourceSettings>& FrameSetResourceList::ad
     return settings;
 }
 
+AbstractMsResourceItem* FrameSetResourceList::findResource(const QString& name) const
+{
+    return qobject_cast<AbstractMsResourceItem*>(AbstractResourceList::findResource(name));
+}
+
 void FrameSetResourceList::do_addResource(int settingIndex, const std::string& filename)
 {
     auto& frameSets = frameSetFiles();

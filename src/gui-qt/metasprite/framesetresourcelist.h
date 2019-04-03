@@ -14,6 +14,7 @@
 namespace UnTech {
 namespace GuiQt {
 namespace MetaSprite {
+class AbstractMsResourceItem;
 
 class FrameSetResourceList : public AbstractResourceList {
     Q_OBJECT
@@ -31,6 +32,8 @@ public:
     virtual const QString resourceTypeNamePlural() const final;
 
     virtual const QList<AddResourceSettings>& addResourceSettings() const final;
+
+    AbstractMsResourceItem* findResource(const QString& name) const;
 
 protected:
     virtual size_t nItems() const final;

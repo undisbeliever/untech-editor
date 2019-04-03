@@ -180,11 +180,13 @@ void ResourcesTreeDock::onAddResourceMenuTriggered(QAction* action)
             idstring(), resourceList->itemNames());
         input = QString::fromStdString(name);
 
-        if (resourceList->findResource(input) != nullptr) {
-            QMessageBox::critical(this,
-                                  tr("Error"),
-                                  tr("%1 name already exists.").arg(resourceList->resourceTypeNameSingle()));
-            return;
+        for (auto* ri : resourceList->items()) {
+            if (ri->name() == input) {
+                QMessageBox::critical(this,
+                                      tr("Error"),
+                                      tr("%1 name already exists.").arg(resourceList->resourceTypeNameSingle()));
+                return;
+            }
         }
     }
 

@@ -40,7 +40,6 @@ public:
     const ResourceState& state() const { return _state; }
 
     QStringList itemNames() const;
-    AbstractResourceItem* findResource(const QString& name) const;
 
     virtual const QString resourceTypeNameSingle() const = 0;
     virtual const QString resourceTypeNamePlural() const = 0;
@@ -56,6 +55,8 @@ public:
     AbstractResourceItem* revertResource(AbstractResourceItem* item);
 
 protected:
+    AbstractResourceItem* findResource(const QString& name) const;
+
     // number of this type of data in the project.
     virtual size_t nItems() const = 0;
 

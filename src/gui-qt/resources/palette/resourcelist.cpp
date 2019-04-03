@@ -58,6 +58,11 @@ const QList<AbstractResourceList::AddResourceSettings>& ResourceList::addResourc
     return filters;
 }
 
+ResourceItem* ResourceList::findResource(const QString& name) const
+{
+    return qobject_cast<ResourceItem*>(AbstractResourceList::findResource(name));
+}
+
 void ResourceList::do_addResource(int settingIndex, const std::string& filename)
 {
     Q_ASSERT(settingIndex == 0);

@@ -210,8 +210,7 @@ void EditorWidget::onPaletteComboActivated(const QString& paletteId)
         return;
     }
 
-    auto* pal = qobject_cast<Resources::Palette::ResourceItem*>(
-        _tileset->project()->palettes()->findResource(paletteId));
+    auto* pal = _tileset->project()->palettes()->findResource(paletteId);
 
     _renderer->setPaletteItem(pal);
 }
