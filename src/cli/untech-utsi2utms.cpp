@@ -32,10 +32,9 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 int convert(const std::string& infilename, const std::string& outfilename)
 {
     ErrorList errorList;
-    MetaSprite::Utsi2Utms converter(errorList);
 
     auto siFrameSet = SI::loadFrameSet(infilename);
-    auto msFrameSet = converter.convert(*siFrameSet);
+    auto msFrameSet = MetaSprite::utsi2utms(*siFrameSet, errorList);
 
     std::cerr << infilename << ":\n";
     errorList.printIndented(std::cerr);

@@ -36,8 +36,7 @@ bool FrameSetFile::convertSpriteImporter(ErrorList& errors, bool strict)
     if (type == FrameSetType::SPRITE_IMPORTER && siFrameSet) {
         const auto origListSize = errors.list().size();
 
-        Utsi2Utms converter(errors);
-        msFrameSet = converter.convert(*siFrameSet);
+        msFrameSet = utsi2utms(*siFrameSet, errors);
 
         if (strict && errors.list().size() != origListSize) {
             msFrameSet = nullptr;

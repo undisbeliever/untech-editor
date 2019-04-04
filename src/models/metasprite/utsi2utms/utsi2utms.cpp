@@ -9,31 +9,18 @@
 #include "paletteconverter.hpp"
 #include "tileextractor.hpp"
 #include "models/common/imagecache.h"
-#include <list>
 
-using namespace UnTech;
-using namespace UnTech::MetaSprite;
-using namespace UnTech::MetaSprite::Utsi2UtmsPrivate;
+namespace MS = UnTech::MetaSprite::MetaSprite;
+namespace SI = UnTech::MetaSprite::SpriteImporter;
 
-Utsi2Utms::Utsi2Utms(ErrorList& errorList)
-    : errorList(errorList)
-{
-}
+namespace UnTech {
+namespace MetaSprite {
+namespace Utsi2UtmsPrivate {
 
-std::unique_ptr<MS::FrameSet> Utsi2Utms::convert(SI::FrameSet& siFrameSet)
-{
-    bool valid = siFrameSet.validate(errorList);
-    if (!valid) {
-        return nullptr;
-    }
-
-    return process(siFrameSet);
-}
-
-std::unique_ptr<MS::FrameSet> Utsi2Utms::process(const SI::FrameSet& siFrameSet)
+static std::unique_ptr<MS::FrameSet> utsi2utms(const SI::FrameSet& siFrameSet, ErrorList& errorList)
 {
     size_t initialErrorCount = errorList.errorCount();
-    auto hasError = [initialErrorCount, this]() {
+    auto hasError = [&]() {
         return initialErrorCount != errorList.errorCount();
     };
 
@@ -55,41 +42,33 @@ std::unique_ptr<MS::FrameSet> Utsi2Utms::process(const SI::FrameSet& siFrameSet)
         msFrameSet->animations.insert_back(a);
     }
 
-    PaletteConverter paletteConverter(siFrameSet, *image, *msFrameSet, errorList);
-    paletteConverter.process();
+    ColorMapT colorMap;
+    std::tie(msFrameSet->palettes, colorMap) = buildPalette(siFrameSet, *image, errorList);
 
     if (hasError()) {
         return nullptr;
     }
 
-    TileExtractor tileExtractor(siFrameSet, *image, *msFrameSet, errorList,
-                                paletteConverter.colorMap());
-
-    // Process frames
-    std::list<FrameConverter> frameConverters;
-
-    msFrameSet->frames.resize(siFrameSet.frames.size());
-
-    for (unsigned i = 0; i < siFrameSet.frames.size(); i++) {
-        const SI::Frame& siFrame = siFrameSet.frames.at(i);
-        MS::Frame& msFrame = msFrameSet->frames.at(i);
-
-        frameConverters.emplace_back(tileExtractor, siFrame, msFrame);
-        frameConverters.back().process();
-    }
-
-    if (hasError()) {
-        return nullptr;
-    }
-
-    // Process overlapping tiles
-    for (auto& converter : frameConverters) {
-        converter.processOverlappingTiles();
-    }
+    TileExtractor tileExtractor(*msFrameSet, *image, colorMap);
+    processFrames(msFrameSet->frames, tileExtractor, siFrameSet.frames, errorList);
 
     if (hasError()) {
         return nullptr;
     }
 
     return msFrameSet;
+}
+}
+
+std::unique_ptr<MS::FrameSet> utsi2utms(SI::FrameSet& siFrameSet, ErrorList& errorList)
+{
+    bool valid = siFrameSet.validate(errorList);
+    if (!valid) {
+        return nullptr;
+    }
+
+    return Utsi2UtmsPrivate::utsi2utms(siFrameSet, errorList);
+}
+
+}
 }

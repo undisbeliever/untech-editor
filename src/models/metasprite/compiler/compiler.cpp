@@ -170,8 +170,7 @@ std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& 
             processAndSaveFrameSet(*fs.msFrameSet, exportOrder, actionPointMapping, errorList, *romData);
         }
         else if (fs.siFrameSet) {
-            Utsi2Utms converter(errorList);
-            auto msFrameSet = converter.convert(*fs.siFrameSet);
+            auto msFrameSet = utsi2utms(*fs.siFrameSet, errorList);
             if (msFrameSet) {
                 const auto* exportOrder = project.frameSetExportOrders.find(msFrameSet->exportOrder);
                 processAndSaveFrameSet(*msFrameSet, exportOrder, actionPointMapping, errorList, *romData);

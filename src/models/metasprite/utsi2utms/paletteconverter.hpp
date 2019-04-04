@@ -22,273 +22,258 @@ namespace Utsi2UtmsPrivate {
 namespace MS = UnTech::MetaSprite::MetaSprite;
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 
-class PaletteConverter {
-    const SI::FrameSet& siFrameSet;
-    const Image& image;
-    MS::FrameSet& msFrameSet;
-    ErrorList& errorList;
+// Faster than std::unordered_map, only contains a max of 16 elements
+using ColorMapT = std::map<rgba, unsigned>;
 
-    // Faster than std::unordered_map, only contains a max of 16 elements
-    std::map<rgba, unsigned> _colorMap;
+static vectorset<rgba> getColorsFromImage(const SI::FrameSet& siFrameSet, const Image& image, ErrorList& errorList)
+{
+    assert(image.empty() == false);
 
-public:
-    PaletteConverter(const SI::FrameSet& siFrameSet,
-                     const Image& image,
-                     MS::FrameSet& msFrameSet,
-                     ErrorList& errorList)
-        : siFrameSet(siFrameSet)
-        , image(image)
-        , msFrameSet(msFrameSet)
-        , errorList(errorList)
-        , _colorMap()
-    {
-    }
+    vectorset<rgba> colors;
 
-    const auto& colorMap() const { return _colorMap; }
+    for (const SI::Frame& siFrame : siFrameSet.frames) {
+        for (const SI::FrameObject& obj : siFrame.objects) {
+            unsigned lx = siFrame.location.aabb.x + obj.location.x;
+            unsigned ly = siFrame.location.aabb.y + obj.location.y;
 
-    void process()
-    {
-        try {
-            if (siFrameSet.palette.usesUserSuppliedPalette()) {
-                buildUserSuppliedPalettes();
-            }
-            else {
-                buildAutomaticPalette();
-            }
-        }
-        catch (const std::exception& ex) {
-            errorList.addError(ex.what());
-        }
-    }
+            assert(lx + obj.sizePx() <= image.size().width);
+            assert(ly + obj.sizePx() <= image.size().height);
 
-private:
-    vectorset<rgba> getColorsFromImage() const
-    {
-        assert(image.empty() == false);
+            for (unsigned y = 0; y < obj.sizePx(); y++) {
+                const rgba* p = image.scanline(ly + y) + lx;
 
-        vectorset<rgba> colors;
-
-        for (const SI::Frame& siFrame : siFrameSet.frames) {
-            for (const SI::FrameObject& obj : siFrame.objects) {
-                unsigned lx = siFrame.location.aabb.x + obj.location.x;
-                unsigned ly = siFrame.location.aabb.y + obj.location.y;
-
-                assert(lx + obj.sizePx() <= image.size().width);
-                assert(ly + obj.sizePx() <= image.size().height);
-
-                for (unsigned y = 0; y < obj.sizePx(); y++) {
-                    const rgba* p = image.scanline(ly + y) + lx;
-
-                    for (unsigned x = 0; x < obj.sizePx(); x++) {
-                        const bool newColor = colors.insert(*p++);
-                        if (newColor) {
-                            if (colors.size() > PALETTE_COLORS) {
-                                throw std::runtime_error("Too many colors, expected a maximum of 16 colors");
-                            }
+                for (unsigned x = 0; x < obj.sizePx(); x++) {
+                    const bool newColor = colors.insert(*p++);
+                    if (newColor) {
+                        if (colors.size() > PALETTE_COLORS) {
+                            throw std::runtime_error("Too many colors, expected a maximum of 16 colors");
                         }
                     }
                 }
             }
         }
-
-        // remove transparent from colors list
-        auto tIt = colors.find(siFrameSet.transparentColor);
-        if (tIt != colors.end()) {
-            colors.erase(tIt);
-        }
-        else {
-            errorList.addWarning("Transparent color is not in frame objects");
-
-            if (colors.size() > (PALETTE_COLORS - 1)) {
-                throw std::runtime_error("Too many colors, expected a maximum of 15 colors after removing transparency");
-            }
-        }
-
-        return colors;
     }
 
-    inline void buildUserSuppliedPalettes()
-    {
-        validateUserSuppliedPalettes();
-
-        const unsigned colorSize = siFrameSet.palette.colorSize;
-        const upoint uspPos = palettePosition();
-        const vectorset<rgba> colorSet = getColorsFromImage();
-
-        // This method allows the sprite-sheet palette to be different from the
-        // first palette.
-        //
-        // This is for two reasons:
-        //  1) The old palette converter used the bottom palette as the sprite
-        //     sheet palette.
-        //  2) Allow the user to easily change the order of the palettes without
-        //     changing the sprite sheet.
-
-        unsigned bestMatch = 0;
-        unsigned bestMatchCount = 0;
-
-        for (unsigned pal = 0; pal < siFrameSet.palette.nPalettes; pal++) {
-            msFrameSet.palettes.emplace_back();
-            Snes::Palette4bpp& palette = msFrameSet.palettes.back();
-
-            unsigned xPos = uspPos.x;
-            const unsigned yPos = uspPos.y + pal * colorSize;
-
-            unsigned nMatching = 0;
-
-            for (unsigned i = 0; i < PALETTE_COLORS; i++) {
-                const rgba c = image.getPixel(xPos, yPos);
-                xPos += colorSize;
-
-                palette.color(i).setRgb(c);
-
-                if (colorSet.contains(c)) {
-                    nMatching++;
-                }
-            }
-
-            if (nMatching > bestMatchCount) {
-                bestMatch = pal;
-                bestMatchCount = nMatching;
-            }
-        }
-
-        // build _colorMap
-        {
-            unsigned xPos = uspPos.x;
-            const unsigned yPos = uspPos.y + bestMatch * colorSize;
-
-            for (unsigned i = 0; i < PALETTE_COLORS; i++) {
-                const rgba c = image.getPixel(xPos, yPos);
-                xPos += colorSize;
-
-                _colorMap.emplace(c, i);
-            }
-        }
-
-        validateColorMap(colorSet);
+    // remove transparent from colors list
+    auto tIt = colors.find(siFrameSet.transparentColor);
+    if (tIt != colors.end()) {
+        colors.erase(tIt);
     }
+    else {
+        errorList.addWarning("Transparent color is not in frame objects");
 
-    // ASSUMES UserSuppliedPalette exists and is valid
-    inline upoint palettePosition() const
-    {
-        using Position = SI::UserSuppliedPalette::Position;
-
-        const usize imageSize = image.size();
-        const usize paletteSize = siFrameSet.palette.paletteSize();
-
-        switch (siFrameSet.palette.position) {
-        case Position::TOP_LEFT:
-            return upoint(0, 0);
-
-        case Position::TOP_RIGHT:
-            return upoint(imageSize.width - paletteSize.width, 0);
-
-        case Position::BOTTOM_LEFT:
-            return upoint(0, imageSize.height - paletteSize.height);
-
-        case Position::BOTTOM_RIGHT:
-            return upoint(imageSize.width - paletteSize.width, imageSize.height - paletteSize.height);
-        }
-
-        throw std::runtime_error("Invalid UserSuppliedPalette::Position");
-    }
-
-    inline void validateUserSuppliedPalettes() const
-    {
-        const usize imageSize = image.size();
-        const usize paletteSize = siFrameSet.palette.paletteSize();
-
-        if (imageSize.width < paletteSize.width || imageSize.height < paletteSize.height) {
-            throw std::runtime_error("Cannot load custom palette, image is too small");
-        }
-
-        for (unsigned pal = 0; pal < siFrameSet.palette.nPalettes; pal++) {
-            validateUserSuppliedPalette(pal);
+        if (colors.size() > (PALETTE_COLORS - 1)) {
+            throw std::runtime_error("Too many colors, expected a maximum of 15 colors after removing transparency");
         }
     }
 
-    inline void validateUserSuppliedPalette(unsigned pal) const
-    {
-        const unsigned colorSize = siFrameSet.palette.colorSize;
-        const upoint uspPos = palettePosition();
-        const unsigned xPos = uspPos.x;
-        const unsigned yPos = uspPos.y + pal * colorSize;
+    return colors;
+}
 
-        assert(xPos + colorSize * PALETTE_COLORS <= image.size().width);
-        assert(yPos + colorSize <= image.size().height);
+// ASSUMES UserSuppliedPalette exists and is valid
+static upoint palettePosition(const SI::UserSuppliedPalette& usp, const Image& image)
+{
+    using Position = SI::UserSuppliedPalette::Position;
 
-        const rgba* startOfPalette = image.scanline(yPos) + xPos;
+    const usize imageSize = image.size();
+    const usize paletteSize = usp.paletteSize();
 
-        // ensure the pixel columns of the palette are equal
-        for (unsigned l = 1; l < colorSize; l++) {
-            const rgba* imgBitstoTest = image.scanline(yPos + l) + xPos;
+    switch (usp.position) {
+    case Position::TOP_LEFT:
+        return upoint(0, 0);
 
-            if (std::memcmp(startOfPalette, imgBitstoTest, sizeof(rgba) * colorSize * PALETTE_COLORS) != 0) {
+    case Position::TOP_RIGHT:
+        return upoint(imageSize.width - paletteSize.width, 0);
+
+    case Position::BOTTOM_LEFT:
+        return upoint(0, imageSize.height - paletteSize.height);
+
+    case Position::BOTTOM_RIGHT:
+        return upoint(imageSize.width - paletteSize.width, imageSize.height - paletteSize.height);
+    }
+
+    throw std::runtime_error("Invalid UserSuppliedPalette::Position");
+}
+
+static void validateUserSuppliedPalette(const SI::FrameSet& siFrameSet, const Image& image, const unsigned pal)
+{
+    const unsigned colorSize = siFrameSet.palette.colorSize;
+    const upoint uspPos = palettePosition(siFrameSet.palette, image);
+    const unsigned xPos = uspPos.x;
+    const unsigned yPos = uspPos.y + pal * colorSize;
+
+    assert(xPos + colorSize * PALETTE_COLORS <= image.size().width);
+    assert(yPos + colorSize <= image.size().height);
+
+    const rgba* startOfPalette = image.scanline(yPos) + xPos;
+
+    // ensure the pixel columns of the palette are equal
+    for (unsigned l = 1; l < colorSize; l++) {
+        const rgba* imgBitstoTest = image.scanline(yPos + l) + xPos;
+
+        if (std::memcmp(startOfPalette, imgBitstoTest, sizeof(rgba) * colorSize * PALETTE_COLORS) != 0) {
+            throw std::runtime_error("Custom Palette is invalid");
+        }
+    }
+
+    // ensure each of the palette colors are equally colored squares
+    for (unsigned c = 0; c <= PALETTE_COLORS; c++) {
+        const rgba* imgBits = startOfPalette + c * colorSize;
+
+        for (unsigned i = 1; i < colorSize; i++) {
+            if (imgBits[0] != imgBits[i]) {
                 throw std::runtime_error("Custom Palette is invalid");
             }
         }
-
-        // ensure each of the palette colors are equally colored squares
-        for (unsigned c = 0; c <= PALETTE_COLORS; c++) {
-            const rgba* imgBits = startOfPalette + c * colorSize;
-
-            for (unsigned i = 1; i < colorSize; i++) {
-                if (imgBits[0] != imgBits[i]) {
-                    throw std::runtime_error("Custom Palette is invalid");
-                }
-            }
-        }
-
-        // ensure first color is transparent
-        if (startOfPalette[0] != siFrameSet.transparentColor) {
-            throw std::runtime_error("First color of custom palette " + std::to_string(pal)
-                                     + " is not the transparent color");
-        }
     }
 
-    // Validate colorMap contains all the colors used in the colorSet
-    inline void validateColorMap(vectorset<rgba> colorSet) const
-    {
-        assert(_colorMap.at(siFrameSet.transparentColor) == 0);
+    // ensure first color is transparent
+    if (startOfPalette[0] != siFrameSet.transparentColor) {
+        throw std::runtime_error("First color of custom palette " + std::to_string(pal)
+                                 + " is not the transparent color");
+    }
+}
 
-        for (auto& it : _colorMap) {
-            colorSet.erase(it.first);
-        }
+static void validateUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const Image& image)
+{
+    const usize imageSize = image.size();
+    const usize paletteSize = siFrameSet.palette.paletteSize();
 
-        if (colorSet.size() > 0) {
-            std::stringstream out;
-            out << "Palette 0 is invalid (missing";
-
-            for (const rgba& c : colorSet) {
-                out << " " << std::hex << std::setfill('0') << std::setw(6) << c.rgb();
-            }
-            out << ")";
-
-            throw std::runtime_error(out.str());
-        }
+    if (imageSize.width < paletteSize.width || imageSize.height < paletteSize.height) {
+        throw std::runtime_error("Cannot load custom palette, image is too small");
     }
 
-    inline void buildAutomaticPalette()
-    {
-        vectorset<rgba> colors = getColorsFromImage();
-        assert(colors.size() <= PALETTE_COLORS - 1);
+    for (unsigned pal = 0; pal < siFrameSet.palette.nPalettes; pal++) {
+        validateUserSuppliedPalette(siFrameSet, image, pal);
+    }
+}
 
-        // Store palette in MetaSprite
-        msFrameSet.palettes.emplace_back();
-        Snes::Palette4bpp& palette = msFrameSet.palettes.back();
+// Validate colorMap contains all the colors used in the colorSet
+static void validateColorMap(const ColorMapT& colorMap, const unsigned paletteId, vectorset<rgba>&& colorSet)
+{
+    for (auto& it : colorMap) {
+        colorSet.erase(it.first);
+    }
 
-        _colorMap.insert({ siFrameSet.transparentColor, 0 });
-        palette.color(0).setRgb(siFrameSet.transparentColor);
+    if (colorSet.size() > 0) {
+        std::stringstream out;
+        out << "Palette " << paletteId << " is invalid (missing";
 
-        int i = 1;
-        for (auto& c : colors) {
-            _colorMap.insert({ c, i });
+        for (const rgba& c : colorSet) {
+            out << " " << std::hex << std::setfill('0') << std::setw(6) << c.rgb();
+        }
+        out << ")";
+
+        throw std::runtime_error(out.str());
+    }
+}
+
+static std::pair<std::vector<Snes::Palette4bpp>, ColorMapT>
+buildUserSuppliedPalettes(const SI::FrameSet& siFrameSet, const Image& image, vectorset<rgba>&& colorsInImage)
+{
+    validateUserSuppliedPalettes(siFrameSet, image);
+
+    const unsigned colorSize = siFrameSet.palette.colorSize;
+    const upoint uspPos = palettePosition(siFrameSet.palette, image);
+
+    std::pair<std::vector<Snes::Palette4bpp>, ColorMapT> ret;
+    std::vector<Snes::Palette4bpp>& palettes = ret.first;
+    ColorMapT& colorMap = ret.second;
+
+    // This method allows the sprite-sheet palette to be different from the
+    // first palette.
+    //
+    // This is for two reasons:
+    //  1) The old palette converter used the bottom palette as the sprite
+    //     sheet palette.
+    //  2) Allow the user to easily change the order of the palettes without
+    //     changing the sprite sheet.
+
+    unsigned bestMatch = 0;
+    unsigned bestMatchCount = 0;
+
+    for (unsigned pal = 0; pal < siFrameSet.palette.nPalettes; pal++) {
+        palettes.emplace_back();
+        Snes::Palette4bpp& palette = palettes.back();
+
+        unsigned xPos = uspPos.x;
+        const unsigned yPos = uspPos.y + pal * colorSize;
+
+        unsigned nMatching = 0;
+
+        for (unsigned i = 0; i < PALETTE_COLORS; i++) {
+            const rgba c = image.getPixel(xPos, yPos);
+            xPos += colorSize;
+
             palette.color(i).setRgb(c);
-            i++;
+
+            if (colorsInImage.contains(c)) {
+                nMatching++;
+            }
+        }
+
+        if (nMatching > bestMatchCount) {
+            bestMatch = pal;
+            bestMatchCount = nMatching;
         }
     }
-};
+
+    // build _colorMap
+    {
+        unsigned xPos = uspPos.x;
+        const unsigned yPos = uspPos.y + bestMatch * colorSize;
+
+        for (unsigned i = 0; i < PALETTE_COLORS; i++) {
+            const rgba c = image.getPixel(xPos, yPos);
+            xPos += colorSize;
+
+            colorMap.emplace(c, i);
+        }
+    }
+
+    assert(colorMap.at(siFrameSet.transparentColor) == 0);
+    validateColorMap(colorMap, bestMatch, std::move(colorsInImage));
+
+    return ret;
+}
+
+static std::pair<std::vector<Snes::Palette4bpp>, ColorMapT> buildAutomaticPalette(const rgba& transparentColor,
+                                                                                  vectorset<rgba>&& colors)
+{
+    assert(colors.size() <= PALETTE_COLORS - 1);
+
+    std::pair<std::vector<Snes::Palette4bpp>, ColorMapT> ret;
+    ret.first.emplace_back();
+
+    Snes::Palette4bpp& palette = ret.first.front();
+    ColorMapT& colorMap = ret.second;
+
+    // Store palette in MetaSprite
+    colorMap.insert({ transparentColor, 0 });
+    palette.color(0).setRgb(transparentColor);
+
+    int i = 1;
+    for (auto& c : colors) {
+        colorMap.insert({ c, i });
+        palette.color(i).setRgb(c);
+        i++;
+    }
+
+    return ret;
+}
+
+static std::pair<std::vector<Snes::Palette4bpp>, ColorMapT> buildPalette(const SI::FrameSet& siFrameSet, const Image& image, ErrorList& errorList)
+{
+    auto colorSet = getColorsFromImage(siFrameSet, image, errorList);
+
+    if (siFrameSet.palette.usesUserSuppliedPalette()) {
+        return buildUserSuppliedPalettes(siFrameSet, image, std::move(colorSet));
+    }
+    else {
+        return buildAutomaticPalette(siFrameSet.transparentColor, std::move(colorSet));
+    }
+}
+
 }
 }
 }
