@@ -27,6 +27,7 @@ public:
 
     void setAnimationList(const NamedList<Animation>* list) { _animations = list; }
     void setAnimationIndex(size_t index);
+    void setNextAnimationIndex(size_t index);
 
     void setRegion(Region region) { _region = region; }
 
@@ -47,6 +48,9 @@ public:
 
     size_t animationIndex() const { return _animationIndex; }
 
+    size_t nextAnimationIndex() const { return _nextAnimationIndex; }
+    const idstring& nextAnimationId() const;
+
     unsigned animationFrameIndex() const { return _aFrameIndex; }
     unsigned displayFrameCount() const { return _displayFrameCount; }
 
@@ -55,6 +59,7 @@ public:
 
 private:
     const Animation* getAnimation() const;
+    const Animation* getAnimation(size_t index) const;
     const AnimationFrame* getAnimationFrame() const;
 
     unsigned calcTimeToNextFrame() const;
@@ -62,6 +67,7 @@ private:
 private:
     const NamedList<Animation>* _animations;
     size_t _animationIndex;
+    size_t _nextAnimationIndex;
     unsigned _aFrameIndex;
     unsigned _frameTime;
 
@@ -73,6 +79,7 @@ private:
     point _velocity;
     point _position;
 };
+
 }
 }
 }

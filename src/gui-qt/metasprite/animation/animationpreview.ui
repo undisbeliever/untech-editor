@@ -52,7 +52,7 @@
           <string>Play</string>
          </property>
          <property name="icon">
-          <iconset resource="../../../../resources/metasprite.qrc">
+          <iconset resource="../../../../resources/resources.qrc">
            <normaloff>:/icons/animation-play.svg</normaloff>:/icons/animation-play.svg</iconset>
          </property>
          <property name="checkable">
@@ -69,7 +69,7 @@
           <string>Step</string>
          </property>
          <property name="icon">
-          <iconset resource="../../../../resources/metasprite.qrc">
+          <iconset resource="../../../../resources/resources.qrc">
            <normaloff>:/icons/animation-step.svg</normaloff>:/icons/animation-step.svg</iconset>
          </property>
         </widget>
@@ -83,7 +83,7 @@
           <string>Skip</string>
          </property>
          <property name="icon">
-          <iconset resource="../../../../resources/metasprite.qrc">
+          <iconset resource="../../../../resources/resources.qrc">
            <normaloff>:/icons/animation-skip.svg</normaloff>:/icons/animation-skip.svg</iconset>
          </property>
         </widget>
@@ -97,7 +97,7 @@
           <string>Reset</string>
          </property>
          <property name="icon">
-          <iconset resource="../../../../resources/metasprite.qrc">
+          <iconset resource="../../../../resources/resources.qrc">
            <normaloff>:/icons/animation-reset.svg</normaloff>:/icons/animation-reset.svg</iconset>
          </property>
         </widget>
@@ -150,13 +150,23 @@
         <widget class="QComboBox" name="animation"/>
        </item>
        <item row="3" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Next Animation:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1" colspan="2">
+        <widget class="QComboBox" name="nextAnimationCombo"/>
+       </item>
+       <item row="4" column="0">
         <widget class="QLabel" name="xVelocityLabel">
          <property name="text">
           <string>X Velocity:</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="1">
+       <item row="4" column="1">
         <widget class="QSlider" name="xVelocity">
          <property name="minimumSize">
           <size>
@@ -187,21 +197,21 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
+       <item row="4" column="2">
         <widget class="QToolButton" name="zeroXVelocityButton">
          <property name="text">
           <string>0</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
+       <item row="5" column="0">
         <widget class="QLabel" name="yVelocityLabel">
          <property name="text">
           <string>Y Velocity:</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
+       <item row="5" column="1">
         <widget class="QSlider" name="yVelocity">
          <property name="minimum">
           <number>-384</number>
@@ -226,7 +236,7 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
+       <item row="5" column="2">
         <widget class="QToolButton" name="zeroYVelocityButton">
          <property name="text">
           <string>0</string>
@@ -269,13 +279,27 @@
         </widget>
        </item>
        <item row="2" column="0">
+        <widget class="QLabel" name="nextAnimationLabel">
+         <property name="text">
+          <string>Next Animation:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="nextAnimation">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
         <widget class="QLabel" name="metaSpriteFrameLabel">
          <property name="text">
           <string>MetaSprite Frame:</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="3" column="1">
         <widget class="QLabel" name="metaSpriteFrame">
          <property name="text">
           <string/>
@@ -296,7 +320,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../../../../resources/metasprite.qrc"/>
+  <include location="../../../../resources/resources.qrc"/>
  </resources>
  <connections/>
 </ui>

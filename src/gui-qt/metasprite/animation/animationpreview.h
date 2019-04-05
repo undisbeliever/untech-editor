@@ -54,9 +54,11 @@ public slots:
 
     void onSelectedAnimationChanged();
 
+    void onAnimationListChanged();
     void onAnimationFramesChanged();
 
     void onAnimationComboActivated();
+    void onNextAnimationComboActivated();
     void onVelocityChanged();
     void onRegionChanged();
 

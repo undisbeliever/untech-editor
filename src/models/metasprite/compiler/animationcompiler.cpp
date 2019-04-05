@@ -57,8 +57,8 @@ static std::vector<uint8_t> processAnimation(const AnimationListEntry& aniEntry,
     std::vector<uint8_t> data;
     data.reserve(3 + animation.frames.size() * 2);
 
-    data.push_back(animation.durationFormat.engineValue()); // durationFormat
     data.push_back(nextAnimationId);                        // nextAnimation
+    data.push_back(animation.durationFormat.engineValue()); // durationFormat
     data.push_back(animation.frames.size() * 2);            // frameTableSize
 
     for (const auto& aFrame : animation.frames) {

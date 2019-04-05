@@ -14,6 +14,7 @@ using namespace UnTech::MetaSprite::Animation;
 PreviewState::PreviewState()
     : _animations(nullptr)
     , _animationIndex(INT_MAX)
+    , _nextAnimationIndex(INT_MAX)
     , _aFrameIndex(0)
     , _frameTime(0)
     , _displayFrameCount(0)
@@ -23,14 +24,19 @@ PreviewState::PreviewState()
 {
 }
 
-const Animation* PreviewState::getAnimation() const
+const Animation* PreviewState::getAnimation(size_t index) const
 {
     if (_animations) {
-        if (_animationIndex < _animations->size()) {
-            return &_animations->at(_animationIndex);
+        if (index < _animations->size()) {
+            return &_animations->at(index);
         }
     }
     return nullptr;
+}
+
+const Animation* PreviewState::getAnimation() const
+{
+    return getAnimation(_animationIndex);
 }
 
 const AnimationFrame* PreviewState::getAnimationFrame() const
@@ -73,20 +79,51 @@ const idstring& PreviewState::animationId() const
 {
     const static idstring BLANK_ID;
 
-    const Animation* ani = getAnimation();
-    if (ani == nullptr) {
-        return BLANK_ID;
+    if (auto* ani = getAnimation()) {
+        return ani->name;
     }
     else {
+        return BLANK_ID;
+    }
+}
+
+const idstring& PreviewState::nextAnimationId() const
+{
+    const static idstring BLANK_ID;
+
+    if (auto* ani = getAnimation(_nextAnimationIndex)) {
         return ani->name;
+    }
+    else {
+        return BLANK_ID;
     }
 }
 
 void PreviewState::setAnimationIndex(size_t index)
 {
+    assert(_animations);
+
     _animationIndex = index;
+    _nextAnimationIndex = INT_MAX;
     _aFrameIndex = 0;
     _frameTime = 0;
+
+    if (auto* ani = getAnimation(_animationIndex)) {
+        if (ani->oneShot) {
+            _nextAnimationIndex = INT_MAX;
+        }
+        else if (ani->nextAnimation.isValid()) {
+            _nextAnimationIndex = _animations->indexOf(ani->nextAnimation);
+        }
+        else {
+            _nextAnimationIndex = _animationIndex;
+        }
+    }
+}
+
+void PreviewState::setNextAnimationIndex(size_t index)
+{
+    _nextAnimationIndex = index;
 }
 
 bool PreviewState::processDisplayFrame()
@@ -143,15 +180,13 @@ void PreviewState::nextAnimationFrame()
 
     _aFrameIndex++;
     if (_aFrameIndex >= ani->frames.size()) {
-        // goto next animation
-        if (ani->oneShot) {
-            _aFrameIndex = ani->frames.size() - 1;
-        }
-        else if (ani->nextAnimation.isValid()) {
-            setAnimationIndex(_animations->indexOf(ani->nextAnimation));
+        if (_nextAnimationIndex < _animations->size()) {
+            setAnimationIndex(_nextAnimationIndex);
         }
         else {
-            _aFrameIndex = 0;
+            // untech-engine does not do this.
+            // This is required for `frame()` to work after the animation ends.
+            _aFrameIndex = ani->frames.size() - 1;
         }
     }
 }

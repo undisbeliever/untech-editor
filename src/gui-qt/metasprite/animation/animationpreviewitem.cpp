@@ -65,6 +65,14 @@ void AnimationPreviewItem::setAnimationIndex(size_t animationIndex)
     resetAnimation();
 }
 
+void AnimationPreviewItem::setNextAnimationIndex(int nextAnimationIndex)
+{
+    _nextAnimationIndex = nextAnimationIndex;
+    if (nextAnimationIndex >= 0) {
+        _state.setNextAnimationIndex(_nextAnimationIndex);
+    }
+}
+
 void AnimationPreviewItem::processDisplayFrame()
 {
     _state.processDisplayFrame();
@@ -80,6 +88,9 @@ void AnimationPreviewItem::nextAnimationFrame()
 void AnimationPreviewItem::resetAnimation()
 {
     _state.setAnimationIndex(_animationIndex);
+    if (_nextAnimationIndex >= 0) {
+        _state.setNextAnimationIndex(_nextAnimationIndex);
+    }
     _state.setPositionInt(point(0, 0));
     _state.resetFrameCount();
 

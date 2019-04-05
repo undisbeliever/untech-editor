@@ -63,6 +63,8 @@ AnimationPreview::AnimationPreview(AnimationDock* animationDock, QWidget* parent
 
     connect(_ui->animation, qOverload<int>(&QComboBox::activated),
             this, &AnimationPreview::onAnimationComboActivated);
+    connect(_ui->nextAnimationCombo, qOverload<int>(&QComboBox::activated),
+            this, &AnimationPreview::onNextAnimationComboActivated);
     connect(_ui->xVelocity, &QSlider::valueChanged,
             this, &AnimationPreview::onVelocityChanged);
     connect(_ui->yVelocity, &QSlider::valueChanged,
@@ -118,9 +120,15 @@ void AnimationPreview::setResourceItem(AbstractMsResourceItem* resourceItem)
 
     setEnabled(_resourceItem != nullptr);
 
+    onAnimationListChanged();
+
     if (_resourceItem) {
         onSelectedAnimationChanged();
 
+        connect(_resourceItem->animationsList(), &AnimationsList::listChanged,
+                this, &AnimationPreview::onAnimationListChanged);
+        connect(_resourceItem->animationsList(), &AnimationsList::nameChanged,
+                this, &AnimationPreview::onAnimationListChanged);
         connect(_resourceItem->animationFramesList(), &AnimationFramesList::dataChanged,
                 this, &AnimationPreview::onAnimationFramesChanged);
         connect(_resourceItem->animationFramesList(), &AnimationFramesList::listChanged,
@@ -160,6 +168,7 @@ void AnimationPreview::createPreviewItem()
     onVelocityChanged();
 
     _previewItem->setAnimationIndex(_resourceItem->animationsList()->selectedIndex());
+    _previewItem->setNextAnimationIndex(_ui->nextAnimationCombo->currentIndex() - 1);
 
     updateGui();
 }
@@ -167,13 +176,15 @@ void AnimationPreview::createPreviewItem()
 void AnimationPreview::clearGui()
 {
     _ui->animation->setCurrentIndex(-1);
+    _ui->nextAnimationCombo->setCurrentIndex(-1);
 
     _ui->xVelocity->setValue(0);
     _ui->yVelocity->setValue(0);
 
-    _ui->displayFrame->setText(QString());
-    _ui->animationFrame->setText(QString());
-    _ui->metaSpriteFrame->setText(QString());
+    _ui->displayFrame->clear();
+    _ui->animationFrame->clear();
+    _ui->nextAnimation->clear();
+    _ui->metaSpriteFrame->clear();
 }
 
 void AnimationPreview::updateGui()
@@ -193,6 +204,7 @@ void AnimationPreview::updateGui()
 
     _ui->displayFrame->setNum((int)state.displayFrameCount());
     _ui->animationFrame->setText(animationFrame);
+    _ui->nextAnimation->setText(QString::fromStdString(state.nextAnimationId()));
     _ui->metaSpriteFrame->setText(QString::fromStdString(state.frame().str()));
 }
 
@@ -237,6 +249,15 @@ void AnimationPreview::onSelectedAnimationChanged()
     }
 }
 
+void AnimationPreview::onAnimationListChanged()
+{
+    _ui->nextAnimationCombo->clear();
+    if (_resourceItem) {
+        _ui->nextAnimationCombo->addItem(QString());
+        _ui->nextAnimationCombo->addItems(_resourceItem->animationsList()->itemNames());
+    }
+}
+
 void AnimationPreview::onAnimationFramesChanged()
 {
     if (_previewItem != nullptr) {
@@ -254,6 +275,12 @@ void AnimationPreview::onAnimationComboActivated()
     else {
         _resourceItem->animationsList()->unselectItem();
     }
+}
+
+void AnimationPreview::onNextAnimationComboActivated()
+{
+    _previewItem->setNextAnimationIndex(_ui->nextAnimationCombo->currentIndex() - 1);
+    updateGui();
 }
 
 void AnimationPreview::onVelocityChanged()

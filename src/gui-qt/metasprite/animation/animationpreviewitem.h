@@ -33,6 +33,7 @@ public:
     size_t frameIndex() const { return _frameIndex; }
 
     void setAnimationIndex(size_t animationIndex);
+    void setNextAnimationIndex(int nextAnimationIndex);
     void setVelocityFp(const point& p) { _state.setVelocityFp(p); }
     void setRegion(const Region& r) { _state.setRegion(r); }
 
@@ -77,6 +78,7 @@ private:
     const AbstractMsResourceItem* const _resourceItem;
 
     size_t _animationIndex;
+    int _nextAnimationIndex;
     MSA::PreviewState _state;
 
     NameReference _prevFrame;
