@@ -383,7 +383,9 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
     std::vector<const EntityRomStruct*> toProcess(structs.size());
     {
         auto it = toProcess.begin();
-        for (const auto& s : structs) {
+        for (const EntityRomStruct& s : structs) {
+            s.validate(err);
+
             *it++ = &s;
         }
         assert(it == toProcess.end());
@@ -395,8 +397,6 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
     auto processStruct = [&](const EntityRomStruct* s) -> bool {
         // returns true if the struct is to be removed from the process list
         assert(s);
-
-        s->validate(err);
 
         // Check name is unique and valid
         if (!s->name.isValid()) {
@@ -421,9 +421,9 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
                 return false;
             }
 
-            const auto& parentFields = parentIt->second;
+            // struct has a parent and the parent has already been processed
 
-            s->validate(err);
+            const auto& parentFields = parentIt->second;
 
             for (const auto& f : s->fields) {
                 bool overridesField = std::any_of(parentFields.begin(), parentFields.end(), [&](const auto& o) { return f.name == o.name; });
