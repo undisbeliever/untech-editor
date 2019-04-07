@@ -239,27 +239,10 @@ void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
         // as the error could be about the transformed msFrameSet
         // and `e.ptr()` would no-longer match.
 
-        unsigned nameMatchCount = 0;
-        size_t nameMatchIndex = INT_MAX;
-
-        const auto* list = accessor->list();
-        if (list) {
-            for (unsigned i = 0; i < list->size(); i++) {
-                if (&list->at(i) == e.ptr()) {
-                    accessor->setSelectedIndex(i);
-                    return;
-                }
-                if (list->at(i).name == e.name()) {
-                    nameMatchIndex = i;
-                    nameMatchCount++;
-                }
-            }
+        bool foundPtr = accessor->setSelected_Ptr(e.ptr());
+        if (not foundPtr) {
+            accessor->setSelected_Name(e.name());
         }
-
-        if (nameMatchCount != 1) {
-            nameMatchIndex = INT_MAX;
-        }
-        accessor->setSelectedIndex(nameMatchIndex);
     };
 
     if (_resourceItem == nullptr) {

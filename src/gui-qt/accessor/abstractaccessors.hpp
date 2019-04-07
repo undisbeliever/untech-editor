@@ -93,6 +93,40 @@ size_t NamedListAccessor<T, RI>::size() const
 }
 
 template <class T, class RI>
+bool NamedListAccessor<T, RI>::setSelected_Ptr(const void* ptr)
+{
+    const auto* list = this->list();
+    if (list) {
+        for (unsigned i = 0; i < list->size(); i++) {
+            if (&list->at(i) == ptr) {
+                setSelectedIndex(i);
+                return true;
+            }
+        }
+    }
+
+    unselectItem();
+    return false;
+}
+
+template <class T, class RI>
+bool NamedListAccessor<T, RI>::setSelected_Name(const idstring& name)
+{
+    const auto* list = this->list();
+    if (list) {
+        for (unsigned i = 0; i < list->size(); i++) {
+            if (list->at(i).name == name) {
+                setSelectedIndex(i);
+                return true;
+            }
+        }
+    }
+
+    unselectItem();
+    return false;
+}
+
+template <class T, class RI>
 QStringList NamedListAccessor<T, RI>::itemNames() const
 {
     QStringList qsl;

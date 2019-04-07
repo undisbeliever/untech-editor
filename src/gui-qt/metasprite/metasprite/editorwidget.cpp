@@ -244,19 +244,6 @@ void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
     using MetaSpriteError = UnTech::MetaSprite::MetaSpriteError;
     using Type = UnTech::MetaSprite::MsErrorType;
 
-    auto updateSelection = [](auto* accessor, const void* ptr) {
-        const auto* list = accessor->list();
-        if (list) {
-            for (unsigned i = 0; i < list->size(); i++) {
-                if (&list->at(i) == ptr) {
-                    accessor->setSelectedIndex(i);
-                    return;
-                }
-            }
-        }
-        accessor->unselectItem();
-    };
-
     if (_resourceItem == nullptr) {
         return;
     }
@@ -270,7 +257,7 @@ void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
         case Type::FRAME_OBJECT:
         case Type::ACTION_POINT:
         case Type::ENTITY_HITBOX:
-            updateSelection(_resourceItem->frameList(), e->ptr());
+            _resourceItem->frameList()->setSelected_Ptr(e->ptr());
             _resourceItem->frameList()->setTileHitboxSelected(false);
             _resourceItem->frameObjectList()->clearSelection();
             _resourceItem->actionPointList()->clearSelection();
@@ -280,7 +267,7 @@ void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
 
         case Type::ANIMATION:
         case Type::ANIMATION_FRAME:
-            updateSelection(_resourceItem->animationsList(), e->ptr());
+            _resourceItem->animationsList()->setSelected_Ptr(e->ptr());
             break;
         }
 

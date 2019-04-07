@@ -333,6 +333,12 @@ public:
     virtual bool listExists() const final;
     virtual size_t size() const final;
 
+    // Returns true if the pointer was found
+    bool setSelected_Ptr(const void* ptr);
+
+    // Retrurns true if the name was found
+    bool setSelected_Name(const idstring& name);
+
     virtual QStringList itemNames() const final;
     virtual QString itemName(size_t index) const final;
 
