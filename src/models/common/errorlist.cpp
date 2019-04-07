@@ -45,7 +45,7 @@ void AbstractSpecializedError::printIndented(std::ostream& out) const
     out << message();
 }
 
-std::string AbstractItemError::message() const
+std::string ListItemError::message() const
 {
     return _message;
 }

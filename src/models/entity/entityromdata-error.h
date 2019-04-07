@@ -48,26 +48,26 @@ public:
     virtual std::string message() const final { return _message; }
 };
 
-class EntityRomStructError : public AbstractItemError {
+class EntityRomStructError : public ListItemError {
 public:
     EntityRomStructError(const EntityRomStruct& rs, const std::string& message)
-        : AbstractItemError(&rs, "EntityRomStruct " + rs.name + ": " + message)
+        : ListItemError(&rs, "EntityRomStruct " + rs.name + ": " + message)
     {
     }
 };
 
-class EntityFunctionTableError : public AbstractItemError {
+class EntityFunctionTableError : public ListItemError {
 public:
     EntityFunctionTableError(const EntityFunctionTable& ft, const std::string& message)
-        : AbstractItemError(&ft, "EntityFunctionTable " + ft.name + ": " + message)
+        : ListItemError(&ft, "EntityFunctionTable " + ft.name + ": " + message)
     {
     }
 };
 
-class EntityRomEntryError : public AbstractItemError {
+class EntityRomEntryError : public ListItemError {
 public:
     EntityRomEntryError(const EntityRomEntry& re, const std::string& message)
-        : AbstractItemError(&re, "EntityRomEntry " + re.name + ": " + message)
+        : ListItemError(&re, "EntityRomEntry " + re.name + ": " + message)
     {
     }
 };

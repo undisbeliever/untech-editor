@@ -33,6 +33,10 @@ ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<Action
         err.addError(std::move(msg));
         valid = false;
     };
+    auto addApfError = [&](const ActionPointFunction& apf, const std::string msg) {
+        err.addError(std::make_unique<ListItemError>(&apf, std::move(msg)));
+        valid = false;
+    };
 
     ActionPointMapping ret;
 
@@ -55,13 +59,13 @@ ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<Action
         const ActionPointFunction& apf = apFunctions.at(i);
 
         if (not apf.name.isValid()) {
-            addError("Missing action point function name");
+            addApfError(apf, "Missing action point function name");
         }
 
         auto success = ret.emplace(apf.name, romValue);
 
         if (success.second == false) {
-            addError("Action point function name already exists: " + apf.name);
+            addApfError(apf, "Action point function name already exists: " + apf.name);
         }
     }
 
