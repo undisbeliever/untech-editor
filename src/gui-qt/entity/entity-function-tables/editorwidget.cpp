@@ -5,11 +5,13 @@
  */
 
 #include "editorwidget.h"
+#include "accessors.h"
 #include "managers.h"
 #include "resourceitem.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/entity/entity-function-tables/editorwidget.ui.h"
+#include "models/entity/entityromdata-error.h"
 
 using namespace UnTech::GuiQt::Entity::EntityFunctionTables;
 
@@ -17,6 +19,7 @@ EditorWidget::EditorWidget(QWidget* parent)
     : AbstractEditorWidget(parent)
     , _ui(std::make_unique<Ui::EditorWidget>())
     , _manager(new EntityFunctionTablesManager(this))
+    , _item(nullptr)
 {
     Q_ASSERT(parent);
 
@@ -39,10 +42,25 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
     auto* item = qobject_cast<ResourceItem*>(abstractItem);
 
+    _item = item;
+
     auto* ftList = item ? item->functionTableList() : nullptr;
     _manager->setFunctionTableList(ftList);
 
     setEnabled(item != nullptr);
 
     return item != nullptr;
+}
+
+void EditorWidget::onErrorDoubleClicked(const ErrorListItem& error)
+{
+    using namespace UnTech::Entity;
+
+    if (_item == nullptr) {
+        return;
+    }
+
+    if (const auto* e = dynamic_cast<const EntityFunctionTableError*>(error.specialized.get())) {
+        _item->functionTableList()->setSelected_Ptr(e->ptr());
+    }
 }

@@ -12,6 +12,7 @@
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/entity/entity-rom-entries/editorwidget.ui.h"
+#include "models/entity/entityromdata-error.h"
 
 using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 
@@ -88,6 +89,19 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     }
 
     return item != nullptr;
+}
+
+void EditorWidget::onErrorDoubleClicked(const ErrorListItem& error)
+{
+    using namespace UnTech::Entity;
+
+    if (_item == nullptr) {
+        return;
+    }
+
+    if (const auto* e = dynamic_cast<const EntityRomEntryError*>(error.specialized.get())) {
+        _item->entriesList()->setSelected_Ptr(e->ptr());
+    }
 }
 
 void EditorWidget::clearGui()

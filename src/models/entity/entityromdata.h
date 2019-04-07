@@ -39,6 +39,8 @@ enum class ParameterType {
     SIGNED_WORD,
 };
 
+struct EntityRomStruct;
+
 struct StructField {
     idstring name;
     DataType type;
@@ -47,7 +49,7 @@ struct StructField {
 
     StructField() = default;
 
-    bool validate(ErrorList& err) const;
+    bool validate(const EntityRomStruct& parent, ErrorList& err) const;
 
     bool operator==(const StructField& o) const
     {

@@ -12,6 +12,7 @@
 #include "gui-qt/common/idstringvalidator.h"
 #include "gui-qt/common/properties/propertydelegate.h"
 #include "gui-qt/entity/entity-rom-structs/editorwidget.ui.h"
+#include "models/entity/entityromdata-error.h"
 
 using namespace UnTech::GuiQt::Entity::EntityRomStructs;
 
@@ -110,6 +111,24 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     _fieldListActions.setAccessor(fieldList);
 
     return item != nullptr;
+}
+
+void EditorWidget::onErrorDoubleClicked(const ErrorListItem& error)
+{
+    using namespace UnTech::Entity;
+
+    if (_item == nullptr) {
+        return;
+    }
+
+    if (const auto* se = dynamic_cast<const EntityRomStructError*>(error.specialized.get())) {
+        _item->structList()->setSelected_Ptr(se->ptr());
+        _item->structFieldList()->clearSelection();
+    }
+    else if (const auto* fe = dynamic_cast<const StructFieldError*>(error.specialized.get())) {
+        _item->structList()->setSelected_Ptr(fe->romStruct());
+        _item->structFieldList()->setSelectedIndexes({ fe->fieldIndex() });
+    }
 }
 
 void EditorWidget::clearGui()

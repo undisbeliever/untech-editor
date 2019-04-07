@@ -26,6 +26,24 @@ public:
     virtual void printIndented(std::ostream& out) const;
 };
 
+class AbstractItemError : public AbstractSpecializedError {
+    const void* _ptr;
+    const std::string _message;
+
+protected:
+    AbstractItemError(const void* ptr, std::string message)
+        : _ptr(ptr)
+        , _message(std::move(message))
+    {
+    }
+    virtual ~AbstractItemError() = default;
+
+public:
+    virtual std::string message() const final;
+
+    const void* ptr() const { return _ptr; }
+};
+
 struct ErrorListItem {
     enum class ErrorType {
         WARNING,

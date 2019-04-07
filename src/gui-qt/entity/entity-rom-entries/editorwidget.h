@@ -35,6 +35,8 @@ public:
 
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
+    virtual void onErrorDoubleClicked(const ErrorListItem& error);
+
 private:
     void clearGui();
     void updateFunctionTableComboList();

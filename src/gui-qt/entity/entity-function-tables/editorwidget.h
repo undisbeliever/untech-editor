@@ -30,9 +30,13 @@ public:
 
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
+    virtual void onErrorDoubleClicked(const ErrorListItem& error);
+
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
     EntityFunctionTablesManager* const _manager;
+
+    ResourceItem* _item;
 };
 
 }
