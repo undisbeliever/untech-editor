@@ -303,6 +303,20 @@ void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
             break;
         }
     }
+    if (const auto* e = dynamic_cast<const ListItemError*>(error.specialized.get())) {
+        const bool isFrame = _resourceItem->frameList()->setSelected_Ptr(e->ptr());
+        const bool isAnimation = _resourceItem->animationsList()->setSelected_Ptr(e->ptr());
+        _resourceItem->frameObjectList()->clearSelection();
+        _resourceItem->actionPointList()->clearSelection();
+        _resourceItem->entityHitboxList()->clearSelection();
+
+        if (isFrame) {
+            _framePropertiesDock->raise();
+        }
+        if (isAnimation) {
+            _animationDock->raise();
+        }
+    }
 }
 
 void EditorWidget::showGraphicsTab()
