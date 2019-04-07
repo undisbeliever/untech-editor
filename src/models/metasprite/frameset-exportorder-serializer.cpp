@@ -69,7 +69,7 @@ public:
 
 private:
     inline void readExportName(const XmlTag* tag,
-                               std::vector<FrameSetExportOrder::ExportName>& exportList)
+                               NamedList<FrameSetExportOrder::ExportName>& exportList)
     {
         FrameSetExportOrder::ExportName en;
         en.name = tag->getAttributeId("id");
@@ -93,7 +93,7 @@ private:
             xml.parseCloseTag();
         }
 
-        exportList.push_back(en);
+        exportList.insert_back(en);
     }
 };
 

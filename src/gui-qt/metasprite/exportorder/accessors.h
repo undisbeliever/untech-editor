@@ -25,7 +25,7 @@ class ExportNameList : public QObject {
 
 public:
     using DataT = UnTech::MetaSprite::FrameSetExportOrder::ExportName;
-    using ListT = std::vector<DataT>;
+    using ListT = NamedList<DataT>;
     using index_type = ListT::size_type;
     using ArgsT = std::tuple<bool>;
     using SignalArgsT = ArgsT;

@@ -38,8 +38,8 @@ struct FrameSetExportOrder {
     };
 
     idstring name;
-    std::vector<ExportName> stillFrames;
-    std::vector<ExportName> animations;
+    NamedList<ExportName> stillFrames;
+    NamedList<ExportName> animations;
 
     FrameSetExportOrder() = default;
     FrameSetExportOrder(const FrameSetExportOrder&) = delete;

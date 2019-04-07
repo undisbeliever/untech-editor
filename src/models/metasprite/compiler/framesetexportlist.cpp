@@ -16,7 +16,7 @@ namespace MS = UnTech::MetaSprite::MetaSprite;
 using ExportName = FrameSetExportOrder::ExportName;
 
 static std::vector<AnimationListEntry>
-processAnimations(const MS::FrameSet& frameSet, const std::vector<ExportName>& animations)
+processAnimations(const MS::FrameSet& frameSet, const NamedList<ExportName>& animations)
 {
     std::vector<AnimationListEntry> ret;
     ret.reserve(animations.size());
@@ -64,7 +64,7 @@ processAnimations(const MS::FrameSet& frameSet, const std::vector<ExportName>& a
 
 static std::vector<FrameListEntry>
 processStillFrames(const MS::FrameSet& frameSet,
-                   const std::vector<ExportName>& stillFrames,
+                   const NamedList<ExportName>& stillFrames,
                    const std::vector<AnimationListEntry>& animations)
 {
     std::vector<FrameListEntry> ret;

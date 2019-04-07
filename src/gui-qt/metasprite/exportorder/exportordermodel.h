@@ -74,7 +74,7 @@ public:
     QModelIndex toModelIndex(const InternalIdFormat& index) const;
     InternalIdFormat toInternalFormat(const QModelIndex& index) const;
 
-    const std::vector<FrameSetExportOrder::ExportName>* toExportNameList(const InternalIdFormat& internalId) const;
+    const NamedList<FrameSetExportOrder::ExportName>* toExportNameList(const InternalIdFormat& internalId) const;
     const FrameSetExportOrder::ExportName* toExportName(const InternalIdFormat& internalId) const;
     const NameReference* toAlternative(const ExportOrderModel::InternalIdFormat& internalId) const;
 

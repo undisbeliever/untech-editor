@@ -8,6 +8,7 @@
 #include "accessors.h"
 #include "resourceitem.h"
 
+using namespace UnTech;
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
@@ -186,7 +187,7 @@ ExportOrderModel::InternalIdFormat ExportOrderModel::toInternalFormat(const QMod
     }
 }
 
-const std::vector<FrameSetExportOrder::ExportName>* ExportOrderModel::toExportNameList(const InternalIdFormat& internalId) const
+const NamedList<FrameSetExportOrder::ExportName>* ExportOrderModel::toExportNameList(const InternalIdFormat& internalId) const
 {
     if (_exportOrder == nullptr) {
         return nullptr;
