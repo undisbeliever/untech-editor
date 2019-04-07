@@ -126,6 +126,59 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     return item != nullptr;
 }
 
+void EditorWidget::onErrorDoubleClicked(const ErrorListItem& error)
+{
+    using ExportName = UnTech::MetaSprite::FrameSetExportOrder::ExportName;
+
+    if (_exportOrder == nullptr) {
+        return;
+    }
+
+    const auto* exportOrder = _exportOrder->exportOrder();
+    if (exportOrder == nullptr) {
+        return;
+    }
+
+    if (const auto* e = dynamic_cast<const ListItemError*>(error.specialized.get())) {
+        const void* const ptr = e->ptr();
+
+        auto testPtr = [&](bool selectedListIsFrame) -> bool {
+            const auto& list = selectedListIsFrame ? exportOrder->stillFrames : exportOrder->animations;
+
+            for (unsigned i = 0; i < list.size(); i++) {
+                const ExportName& en = list.at(i);
+                if (&en == ptr) {
+                    _exportOrder->exportNameList()->setSelectedListIsFrame(selectedListIsFrame);
+                    _exportOrder->exportNameList()->setSelectedIndex(i);
+                    _exportOrder->alternativesList()->unselectItem();
+                    return true;
+                }
+                else {
+                    for (unsigned a = 0; a < en.alternatives.size(); a++) {
+                        const auto& alt = en.alternatives.at(a);
+                        if (&alt == ptr) {
+                            _exportOrder->exportNameList()->setSelectedListIsFrame(selectedListIsFrame);
+                            _exportOrder->exportNameList()->setSelectedIndex(i);
+                            _exportOrder->alternativesList()->setSelectedIndex(a);
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        };
+
+        bool found = testPtr(true);
+        if (not found) {
+            found = testPtr(false);
+            if (not found) {
+                _exportOrder->exportNameList()->unselectItem();
+                _exportOrder->alternativesList()->unselectItem();
+            }
+        }
+    }
+}
+
 void EditorWidget::updateSelection()
 {
     using InternalIdFormat = ExportOrderModel::InternalIdFormat;

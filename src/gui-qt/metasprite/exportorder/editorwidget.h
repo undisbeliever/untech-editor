@@ -28,6 +28,8 @@ public:
 
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
+    virtual void onErrorDoubleClicked(const ErrorListItem& error) final;
+
 private:
     void showEditorForCurrentIndex();
     void closeEditor();

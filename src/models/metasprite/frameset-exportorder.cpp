@@ -44,14 +44,21 @@ static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
                                        UnTech::ErrorList& err)
 {
     bool valid = true;
+    auto addAltError = [&](const NameReference& alt, std::string message) {
+        err.addError(std::make_unique<ListItemError>(&alt, std::move(message)));
+        valid = false;
+    };
 
     for (auto it = alts.begin(); it != alts.end(); it++) {
         const NameReference& alt = *it;
 
-        auto jit = std::find(it + 1, alts.end(), alt);
-        if (jit != alts.end()) {
-            err.addError("Duplicate " + typeName + " alternative for " + aName + ": " + alt.str());
-            valid = false;
+        if (alt.name.isValid() == false) {
+            addAltError(alt, "Missing alternative name");
+        }
+
+        auto jit = std::find(alts.begin(), it, alt);
+        if (jit != it) {
+            addAltError(alt, "Duplicate " + typeName + " alternative for " + aName + ": " + alt.str());
         }
     }
 
@@ -61,25 +68,25 @@ static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
 bool FrameSetExportOrder::validate(UnTech::ErrorList& err) const
 {
     bool valid = true;
+    auto addError = [&](std::string message) {
+        err.addError(std::make_unique<ListItemError>(this, std::move(message)));
+        valid = false;
+    };
 
     if (name.isValid() == false) {
-        err.addError("Missing export order name");
-        valid = false;
+        addError("Missing export order name");
     }
 
     if (stillFrames.empty() && animations.empty()) {
-        err.addError("Expected at least one still frame or animation");
-        valid = false;
+        addError("Expected at least one still frame or animation");
     }
 
     if (stillFrames.size() > MAX_EXPORT_NAMES) {
-        err.addError("Too many stillFrames");
-        valid = false;
+        addError("Too many stillFrames");
     }
 
     if (animations.size() > MAX_EXPORT_NAMES) {
-        err.addError("Too many animations");
-        valid = false;
+        addError("Too many animations");
     }
 
     valid &= validateNamesUnique(stillFrames, "export frame", err);
