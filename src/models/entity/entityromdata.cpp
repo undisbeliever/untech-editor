@@ -185,6 +185,9 @@ bool EntityRomStruct::validate(ErrorList& err) const
     if (name.str() == BASE_ROM_STRUCT) {
         err.addError("Name cannot be " BASE_ROM_STRUCT);
     }
+    if (parent.isValid() && parent == name) {
+        err.addError("Parent cannot refer to self");
+    }
     if (fields.empty()) {
         addError("Expected at least one field");
     }
@@ -447,9 +450,12 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
         auto it = std::remove_if(toProcess.begin(), toProcess.end(), processStruct);
 
         if (it == toProcess.end()) {
-            for (auto* f : toProcess) {
+            for (const EntityRomStruct* s : toProcess) {
+                assert(s);
                 // ::TODO specialised error::
-                err.addError("Cannot find parent for struct " + f->name);
+                if (s->parent != s->name) {
+                    err.addError("Cannot find parent for struct " + s->name);
+                }
             }
             return fieldMap;
         }
