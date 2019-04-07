@@ -94,7 +94,7 @@ struct EntityFunctionTable {
     EntityFunctionTable() = default;
 
     // Does not validate name unique or entityStruct exists
-    bool validate(ErrorList& err) const;
+    bool validate(const Project::ProjectFile& project, ErrorList& err) const;
 
     bool operator==(const EntityFunctionTable& o) const
     {
@@ -115,6 +115,7 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
 // WARNING: only valid for the lifetime of StructFieldMap
 FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunctionTable>& functionTables,
                                                const StructFieldMap& structFieldMap,
+                                               const Project::ProjectFile& project,
                                                ErrorList& err);
 
 struct EntityRomEntry {

@@ -214,7 +214,7 @@ bool EntityRomStruct::validate(ErrorList& err) const
     return valid;
 }
 
-bool EntityFunctionTable::validate(ErrorList& err) const
+bool EntityFunctionTable::validate(const Project::ProjectFile& project, ErrorList& err) const
 {
     bool valid = true;
     auto addError = [&](const std::string& s) {
@@ -233,6 +233,12 @@ bool EntityFunctionTable::validate(ErrorList& err) const
     }
     if (comment.find('\n') != std::string::npos) {
         addError("Comment must not contain a new line");
+    }
+
+    if (exportOrder.isValid()) {
+        if (project.frameSetExportOrders.find(exportOrder) == nullptr) {
+            addError("Cannot find FrameSet Export Order " + exportOrder);
+        }
     }
 
     return valid;
@@ -466,7 +472,8 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
 }
 
 FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunctionTable>& functionTables,
-                                               const StructFieldMap& structFieldMap, ErrorList& err)
+                                               const StructFieldMap& structFieldMap,
+                                               const Project::ProjectFile& project, ErrorList& err)
 {
     auto addError = [&](const EntityFunctionTable& ft, const std::string& s) {
         err.addError(std::make_unique<EntityFunctionTableError>(ft, s));
@@ -477,7 +484,7 @@ FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunctionTab
     FunctionTableMap ftFieldMap(functionTables.size());
 
     for (const EntityFunctionTable& ft : functionTables) {
-        if (ft.validate(err) == false) {
+        if (ft.validate(project, err) == false) {
             continue;
         }
 
@@ -735,7 +742,7 @@ CompiledEntityRomData compileEntityRomData(const EntityRomData& data, const Proj
     data.validateListIds(err);
 
     const auto structFieldMap = generateStructMap(data.structs, err);
-    const auto ftMap = generateFunctionTableFieldMap(data.functionTables, structFieldMap, err);
+    const auto ftMap = generateFunctionTableFieldMap(data.functionTables, structFieldMap, project, err);
 
     for (const auto& e : data.entities) {
         e.validate(project, ftMap, err);

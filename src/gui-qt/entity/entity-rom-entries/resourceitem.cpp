@@ -55,7 +55,7 @@ bool ResourceItem::compileResource(UnTech::ErrorList& err)
     Q_ASSERT(projectFile);
 
     const auto& structFieldMap = project()->staticResources()->entityRomStructs()->structFieldMap();
-    const auto ftFieldMap = generateFunctionTableFieldMap(projectFile->entityRomData.functionTables, structFieldMap, err);
+    const auto ftFieldMap = generateFunctionTableFieldMap(projectFile->entityRomData.functionTables, structFieldMap, *projectFile, err);
 
     bool valid = true;
 

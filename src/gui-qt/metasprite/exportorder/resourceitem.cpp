@@ -9,6 +9,8 @@
 #include "resourcelist.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/idstringvalidator.h"
+#include "gui-qt/entity/entity-function-tables/resourceitem.h"
+#include "gui-qt/project.h"
 #include "models/metatiles/metatiles-serializer.h"
 
 #include <QFileInfo>
@@ -30,6 +32,9 @@ ResourceItem::ResourceItem(ResourceList* parent, size_t index)
 
     connect(this, &AbstractResourceItem::dataChanged,
             this, &AbstractResourceItem::markUnchecked);
+
+    connect(this, &AbstractResourceItem::nameChanged,
+            project()->staticResources()->entityFunctionTables(), &AbstractResourceItem::markUnchecked);
 }
 
 bool ResourceItem::editExportOrder_setName(const UnTech::idstring& name)
