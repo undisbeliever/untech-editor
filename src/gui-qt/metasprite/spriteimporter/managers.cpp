@@ -64,6 +64,8 @@ void FrameSetManager::setResourceItem(ResourceItem* resourceItem)
 
         connect(_resourceItem, &ResourceItem::frameSetImageFilenameChanged,
                 this, &FrameSetManager::updateImageColors);
+        connect(_resourceItem, &ResourceItem::externalFilesModified,
+                this, &FrameSetManager::updateImageColors);
     }
 
     updateImageColors();
