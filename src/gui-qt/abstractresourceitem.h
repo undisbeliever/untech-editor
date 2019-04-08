@@ -63,9 +63,6 @@ public:
     // empty if the resource is inline with the resource project file
     virtual QString filename() const = 0;
 
-    void validateItem();
-    void markDependantsUnchecked();
-
     bool isRemovable() const { return _isRemovable; }
     void setRemovable(bool removable);
 
@@ -81,6 +78,7 @@ private:
     friend class MainWindow;
     friend class ResourceValidationWorker;
     void loadResource();
+    void validateItem();
 
 protected:
     // MUST be called by the subclass when the resource name changes
@@ -127,6 +125,7 @@ private:
 
 signals:
     void nameChanged();
+    void nameAboutToChange();
     void stateChanged();
     void errorListChanged();
     void resourceComplied();

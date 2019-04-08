@@ -44,8 +44,12 @@ void AbstractResourceItem::loadResource()
 void AbstractResourceItem::setName(const QString& name)
 {
     if (_name != name) {
+        emit nameAboutToChange();
+
         _name = name;
+
         emit nameChanged();
+        emit dataChanged();
     }
 }
 
@@ -123,21 +127,6 @@ void AbstractResourceItem::validateItem()
         emit errorListChanged();
 
         setState(ResourceState::DEPENDENCY_ERROR);
-    }
-
-    markDependantsUnchecked();
-}
-
-void AbstractResourceItem::markDependantsUnchecked()
-{
-    const Dependency toMatch = { _list->resourceTypeIndex(), _name };
-
-    for (AbstractResourceList* rl : _project->resourceLists()) {
-        for (AbstractResourceItem* item : rl->items()) {
-            if (item->dependencies().contains(toMatch)) {
-                item->markUnchecked();
-            }
-        }
     }
 }
 

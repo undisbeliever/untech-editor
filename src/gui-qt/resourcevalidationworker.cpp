@@ -33,24 +33,50 @@ void ResourceValidationWorker::onResourceItemCreated(AbstractResourceItem* item)
 {
     checkResourceLater(item);
 
+    connect(item, &AbstractResourceItem::resourceLoaded,
+            this, &ResourceValidationWorker::onResourceItemDependantsNeedChecking);
+    connect(item, &AbstractResourceItem::resourceComplied,
+            this, &ResourceValidationWorker::onResourceItemDependantsNeedChecking);
+    connect(item, &AbstractResourceItem::nameAboutToChange,
+            this, &ResourceValidationWorker::onResourceItemDependantsNeedChecking);
+
     connect(item, &AbstractResourceItem::stateChanged,
             this, &ResourceValidationWorker::onResourceItemStateChanged);
 }
 
 void ResourceValidationWorker::onResourceItemAboutToBeRemoved(AbstractResourceItem* item)
 {
+    item->disconnect(this);
+
+    markItemDependantsUnchecked(item);
+
     _itemsToProcess.removeAll(item);
+}
+
+void ResourceValidationWorker::onResourceItemDependantsNeedChecking()
+{
+    if (auto* item = qobject_cast<AbstractResourceItem*>(sender())) {
+        markItemDependantsUnchecked(item);
+    }
 }
 
 void ResourceValidationWorker::onResourceItemStateChanged()
 {
-    auto* item = qobject_cast<AbstractResourceItem*>(sender());
-
-    if (item) {
-        if (item->state() == ResourceState::UNCHECKED
-            || item->state() == ResourceState::NOT_LOADED) {
-
+    if (auto* item = qobject_cast<AbstractResourceItem*>(sender())) {
+        switch (item->state()) {
+        case ResourceState::UNCHECKED:
+        case ResourceState::NOT_LOADED:
             checkResourceLater(item);
+            break;
+
+        case ResourceState::ERROR:
+        case ResourceState::FILE_ERROR:
+        case ResourceState::DEPENDENCY_ERROR:
+            markItemDependantsUnchecked(item);
+            break;
+
+        case ResourceState::VALID:
+            break;
         }
     }
 }
@@ -107,6 +133,7 @@ void ResourceValidationWorker::processNextResource()
 
     if (toProcess->state() == ResourceState::NOT_LOADED) {
         toProcess->loadResource();
+        markItemDependantsUnchecked(toProcess);
     }
 
     bool allDependenciesChecked = true;
@@ -125,9 +152,22 @@ void ResourceValidationWorker::processNextResource()
         toProcess->validateItem();
 
         _itemsToProcess.removeAll(toProcess);
+    }
 
-        if (!_itemsToProcess.isEmpty()) {
-            _timer.start();
+    if (!_itemsToProcess.isEmpty()) {
+        _timer.start();
+    }
+}
+
+void ResourceValidationWorker::markItemDependantsUnchecked(AbstractResourceItem* item)
+{
+    const AbstractResourceItem::Dependency toMatch = { item->resourceTypeIndex(), item->name() };
+
+    for (AbstractResourceList* rl : _project->resourceLists()) {
+        for (AbstractResourceItem* toTest : rl->items()) {
+            if (toTest->dependencies().contains(toMatch)) {
+                toTest->markUnchecked();
+            }
         }
     }
 }

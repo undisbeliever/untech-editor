@@ -37,9 +37,13 @@ public slots:
 private slots:
     void onResourceItemCreated(AbstractResourceItem* item);
     void onResourceItemAboutToBeRemoved(AbstractResourceItem* item);
+    void onResourceItemDependantsNeedChecking();
     void onResourceItemStateChanged();
 
     void processNextResource();
+
+private:
+    void markItemDependantsUnchecked(AbstractResourceItem* item);
 
 private:
     Project* const _project;
