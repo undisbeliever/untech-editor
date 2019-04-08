@@ -72,7 +72,8 @@ void EntityRomEntriesList::editSelected_setComment(const std::string& comment)
     UndoHelper(this).editSelectedItemField(
         comment,
         tr("Edit Comment"),
-        [](DataT& s) -> std::string& { return s.comment; });
+        [](DataT& s) -> std::string& { return s.comment; },
+        [](EntityRomEntriesList* a, size_t i) { emit a->commentChanged(i); });
 }
 
 bool EntityRomEntriesList::editSelected_setInitialProjectileId(const idstring& initialProjectileId)
@@ -96,7 +97,8 @@ bool EntityRomEntriesList::editSelected_setFrameSetId(const idstring& frameSetId
     return UndoHelper(this).editSelectedItemField(
         frameSetId,
         tr("Edit frameSetId"),
-        [](DataT& s) -> idstring& { return s.frameSetId; });
+        [](DataT& s) -> idstring& { return s.frameSetId; },
+        [](EntityRomEntriesList* a, size_t i) { emit a->frameSetIdChanged(i); });
 }
 
 bool EntityRomEntriesList::editSelected_setDisplayFrame(const idstring& displayFrame)

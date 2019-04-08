@@ -22,12 +22,32 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
     setName(tr("Function Tables"));
     setRemovable(false);
 
-    setDependencies({
-        { ResourceTypeIndex::STATIC, list->entityRomStructs()->name() },
-    });
+    updateDependencies();
 
     connect(this, &AbstractResourceItem::dataChanged,
             this, &AbstractResourceItem::markUnchecked);
+    connect(_functionTableList, &EntityFunctionTableList::exportOrderChanged,
+            this, &ResourceItem::updateDependencies);
+}
+
+void ResourceItem::updateDependencies()
+{
+    const auto* projectFile = project()->projectFile();
+    Q_ASSERT(projectFile);
+    const auto& functionTables = projectFile->entityRomData.functionTables;
+
+    QVector<Dependency> dependencies;
+    dependencies.reserve(functionTables.size() + 1);
+
+    dependencies.append({ ResourceTypeIndex::STATIC, resourceList()->entityRomStructs()->name() });
+
+    for (const auto& ft : functionTables) {
+        if (ft.exportOrder.isValid()) {
+            dependencies.append({ ResourceTypeIndex::MS_EXPORT_ORDER, QString::fromStdString(ft.exportOrder) });
+        }
+    }
+
+    setDependencies(dependencies);
 }
 
 bool ResourceItem::compileResource(UnTech::ErrorList& err)

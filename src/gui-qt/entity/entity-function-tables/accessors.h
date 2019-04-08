@@ -24,6 +24,8 @@ namespace EN = UnTech::Entity;
 class EntityFunctionTableList : public Accessor::NamedListAccessor<EN::EntityFunctionTable, ResourceItem> {
     Q_OBJECT
 
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<EntityFunctionTableList>;
+
 public:
     EntityFunctionTableList(ResourceItem* resourceItem);
     ~EntityFunctionTableList() = default;
@@ -35,6 +37,9 @@ public:
     bool edit_setExportOrder(index_type index, const idstring& exportOrder);
     bool edit_setParameterType(index_type index, EN::ParameterType parameterType);
     bool edit_setComment(index_type index, const std::string& comment);
+
+signals:
+    void exportOrderChanged(index_type);
 };
 
 }
