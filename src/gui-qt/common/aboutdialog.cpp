@@ -35,7 +35,7 @@ AboutDialog::AboutDialog(QWidget* parent)
             "<table cellpadding=4 style=\"margin-left: 12px; margin-right: 12px\">"
             " <tr>"
             "  <td><a href=\"http://lodev.org/lodepng/\"><b>LodePNG</b></a></td>"
-            "  <td>Copyright (c) 2005-2018 Lode Vandevenne,"
+            "  <td>Copyright (c) 2005-2019 Lode Vandevenne,"
             "   <br/><a href=\"https://opensource.org/licenses/Zlib\">zlib License</a></td>"
             " </tr>"
             " <tr>"
