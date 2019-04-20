@@ -1,6 +1,6 @@
 /*
  * This file is part of the UnTech Editor Suite.
- * Copyright (c) 2016 - 2018, Marcus Rowe <undisbeliever@gmail.com>.
+ * Copyright (c) 2016 - 2019, Marcus Rowe <undisbeliever@gmail.com>.
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
@@ -14,4 +14,4 @@ const unsigned UNTECH_VERSION_INT = 26;
 #define UNTECH_LICENSE_URL "https://opensource.org/licenses/MIT"
 #define UNTECH_DOMAIN "undisbeliever.net"
 #define UNTECH_URL "http://undisbeliever.net/untech"
-#define UNTECH_COPYRIGHT "Copyright (c) 2016 - 2018, Marcus Rowe <undisbeliever@gmail.com>"
+#define UNTECH_COPYRIGHT "Copyright (c) 2016 - 2019, Marcus Rowe <undisbeliever@gmail.com>"
