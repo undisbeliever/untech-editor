@@ -80,6 +80,8 @@ bool ResourceItem::loadResourceData(ErrorList& err)
 {
     auto& tilesetItem = tilesetInputItem();
 
+    setFilename(QString::fromStdString(tilesetItem.filename));
+
     if (tilesetItem.filename.empty()) {
         err.addError("Missing filename");
         return false;

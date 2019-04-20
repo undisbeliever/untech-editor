@@ -57,6 +57,8 @@ bool ResourceItem::loadResourceData(ErrorList& err)
 
     auto& eoItem = exportOrderItem();
 
+    setFilename(QString::fromStdString(eoItem.filename));
+
     if (eoItem.filename.empty()) {
         err.addError("Missing filename");
         return false;

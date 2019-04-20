@@ -96,10 +96,9 @@ bool ResourceItem::loadResourceData(ErrorList& err)
     _frameSet = nullptr;
     emit resourceLoaded();
 
-    const std::string& fn = filename().toStdString();
-    Q_ASSERT(fn == fsf.filename);
+    setFilename(QString::fromStdString(fsf.filename));
 
-    if (fn.empty()) {
+    if (fsf.filename.empty()) {
         err.addError("Missing filename");
         return false;
     }
