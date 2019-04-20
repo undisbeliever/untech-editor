@@ -7,8 +7,8 @@
 #pragma once
 
 #define UNTECH_NAME "UnTech"
-#define UNTECH_VERSION "0.26"
-const unsigned UNTECH_VERSION_INT = 26;
+#define UNTECH_VERSION "0.28"
+const unsigned UNTECH_VERSION_INT = 28;
 
 #define UNTECH_LICENSE "The MIT License"
 #define UNTECH_LICENSE_URL "https://opensource.org/licenses/MIT"
