@@ -77,8 +77,7 @@ void ColorInputWidget::setDialogTitle(const QString& title)
 void ColorInputWidget::showDialog()
 {
     QColor c = QColorDialog::getColor(
-        color(), this, _dialogTitle,
-        QColorDialog::DontUseNativeDialog);
+        color(), this, _dialogTitle);
 
     if (c.isValid()) {
         setColor(c);
