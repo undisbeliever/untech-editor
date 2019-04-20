@@ -17,6 +17,8 @@ namespace GuiQt {
 namespace MetaSprite {
 namespace Animation {
 
+namespace MSA = UnTech::MetaSprite::Animation;
+
 class AnimationsList : public Accessor::NamedListAccessor<MSA::Animation, AbstractMsResourceItem> {
     Q_OBJECT
 

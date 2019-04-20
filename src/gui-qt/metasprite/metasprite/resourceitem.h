@@ -25,6 +25,7 @@ class ActionPointList;
 class EntityHitboxList;
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
+namespace MSA = UnTech::MetaSprite::Animation;
 
 class ResourceItem : public AbstractMsResourceItem {
     Q_OBJECT

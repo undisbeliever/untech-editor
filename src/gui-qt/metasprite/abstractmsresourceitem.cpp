@@ -16,6 +16,8 @@
 
 using namespace UnTech::GuiQt::MetaSprite;
 
+namespace MS = UnTech::MetaSprite::MetaSprite;
+
 AbstractMsResourceItem::AbstractMsResourceItem(FrameSetResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
     , _frameSetFiles(parent->frameSetFiles())

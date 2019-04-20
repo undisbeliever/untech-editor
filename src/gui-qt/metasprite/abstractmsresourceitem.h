@@ -24,9 +24,6 @@ class AnimationFramesList;
 class AnimationsList;
 }
 
-namespace MS = UnTech::MetaSprite::MetaSprite;
-namespace MSA = UnTech::MetaSprite::Animation;
-
 class AbstractMsResourceItem : public AbstractExternalResourceItem {
     Q_OBJECT
 
@@ -35,7 +32,7 @@ public:
     ~AbstractMsResourceItem() = default;
 
 public:
-    virtual NamedList<MSA::Animation>* animations() const = 0;
+    virtual NamedList<UnTech::MetaSprite::Animation::Animation>* animations() const = 0;
 
     virtual QStringList frameNames() const = 0;
     virtual unsigned nPalettes() const = 0;
@@ -55,7 +52,7 @@ protected:
         return _frameSetFiles.at(index());
     }
 
-    void compileMsFrameset(const MS::FrameSet* frameSet, ErrorList& errList);
+    void compileMsFrameset(const UnTech::MetaSprite::MetaSprite::FrameSet* frameSet, ErrorList& errList);
 
 signals:
     void frameSetDataChanged();
