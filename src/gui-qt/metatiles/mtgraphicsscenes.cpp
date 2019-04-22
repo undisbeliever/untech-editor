@@ -188,7 +188,8 @@ void MtEditableGraphicsScene::setCursor(AbstractCursorGraphicsItem* cursor)
         }
     }
 
-    gridGraphicsItem()->setShowGridSelection(_cursorItem != nullptr);
+    // Do not show selection if cursor is active
+    gridGraphicsItem()->setShowGridSelection(_cursorItem == nullptr);
 }
 
 bool MtEditableGraphicsScene::event(QEvent* event)
