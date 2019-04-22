@@ -63,14 +63,6 @@ bool ResourceItem::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.maxMapSize; });
 }
 
-bool ResourceItem::editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles)
-{
-    return UndoHelper(this).editField(
-        nMetaTiles,
-        tr("Edit Number of MetaTiles"),
-        [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.nMetaTiles; });
-}
-
 bool ResourceItem::editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds)
 {
     return UndoHelper(this).editField(

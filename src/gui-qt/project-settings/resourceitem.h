@@ -34,7 +34,6 @@ public:
     bool editBlockSettings_setCount(unsigned blockCount);
 
     bool editMetaTileSettings_setMaxMapSize(unsigned maxMapSize);
-    bool editMetaTileSettings_setNMetaTiles(unsigned nMetaTiles);
 
     bool editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds);
 

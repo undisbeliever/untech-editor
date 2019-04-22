@@ -38,7 +38,7 @@ ResourceItem::ResourceItem(ResourceList* parent, size_t index)
 unsigned ResourceItem::nMetaTiles() const
 {
     if (_compiledData) {
-        return _compiledData->nMetaTiles();
+        return MT::N_METATILES;
     }
     else {
         return 0;
@@ -114,7 +114,7 @@ bool ResourceItem::compileResource(ErrorList& err)
     Q_ASSERT(pro);
 
     auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *pro, err);
-    bool valid = mtd && mtd->validate(pro->metaTileEngineSettings, err);
+    bool valid = mtd && mtd->validate(err);
 
     if (valid) {
         _compiledData = std::move(mtd);

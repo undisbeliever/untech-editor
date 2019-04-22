@@ -26,7 +26,6 @@ ProjectSettingsPropertyManager::ProjectSettingsPropertyManager(QObject* parent)
     addProperty(tr("Block Count"), BLOCK_COUNT, Type::UNSIGNED, 1, 128);
     addPropertyGroup(tr("MetaTile Settings:"));
     addProperty(tr("Max Map Size"), METATILE_MAX_MAP_SIZE, Type::UNSIGNED, 16 * 14, 32 * 1024);
-    addProperty(tr("N. MetaTiles"), METATILE_N_METATILES, Type::UNSIGNED, 16, 1024);
     addPropertyGroup(tr("Entity:"));
     addProperty(tr("EntityListIds"), ENTITY_LIST_IDS, Type::IDSTRING_LIST);
 }
@@ -71,9 +70,6 @@ QVariant ProjectSettingsPropertyManager::data(int id) const
     case METATILE_MAX_MAP_SIZE:
         return pro->metaTileEngineSettings.maxMapSize;
 
-    case METATILE_N_METATILES:
-        return pro->metaTileEngineSettings.nMetaTiles;
-
     case ENTITY_LIST_IDS:
         return convertStringList(pro->entityRomData.listIds);
     }
@@ -94,9 +90,6 @@ bool ProjectSettingsPropertyManager::setData(int id, const QVariant& value)
 
     case METATILE_MAX_MAP_SIZE:
         return _item->editMetaTileSettings_setMaxMapSize(value.toUInt());
-
-    case METATILE_N_METATILES:
-        return _item->editMetaTileSettings_setNMetaTiles(value.toUInt());
 
     case ENTITY_LIST_IDS:
         return _item->editEntityRomData_setEntityListIds(toIdstringVector(value.toStringList()));

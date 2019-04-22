@@ -37,12 +37,12 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
         const auto& firstImageFilename = animationFrames.frameImageFilenames.front();
         const auto& frameSize = ImageCache::loadPngImage(firstImageFilename)->size();
 
-        if (frameSize.width % METATILE_SIZE_PX != 0) {
-            err.addError("Image width must be a multiple of 16");
+        if (frameSize.width != TILESET_WIDTH * METATILE_SIZE_PX) {
+            err.addError("Image width must be " + std::to_string(TILESET_WIDTH * METATILE_SIZE_PX) + "px.");
             valid = false;
         }
-        if (frameSize.height % METATILE_SIZE_PX != 0) {
-            err.addError("Image height must be a multiple of 16");
+        if (frameSize.height != TILESET_HEIGHT * METATILE_SIZE_PX) {
+            err.addError("Image height must be " + std::to_string(TILESET_HEIGHT * METATILE_SIZE_PX) + "px.");
             valid = false;
         }
     }
@@ -85,7 +85,7 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     ret->palettes = input.palettes;
     ret->animatedTileset = std::move(aniFrames);
 
-    valid = ret->validate(projectFile.metaTileEngineSettings, err);
+    valid = ret->validate(err);
     if (!valid) {
         return nullptr;
     }
@@ -104,86 +104,65 @@ usize MetaTileTilesetData::sourceTileSize() const
     }
 }
 
-unsigned MetaTileTilesetData::nMetaTiles() const
-{
-    if (animatedTileset) {
-        unsigned w = animatedTileset->tileMap.width() / 2;
-        unsigned h = animatedTileset->tileMap.height() / 2;
-        return w * h;
-    }
-    else {
-        return 0;
-    }
-}
-
-bool MetaTileTilesetData::validate(const EngineSettings& settings, ErrorList& err) const
+bool MetaTileTilesetData::validate(ErrorList& err) const
 {
     bool valid = animatedTileset->validate(err);
 
-    const auto& tileMap = animatedTileset->tileMap;
-
-    if (tileMap.empty()) {
+    if (animatedTileset->tileMap.empty()) {
         err.addError("Expected at least one MetaTile");
         valid = false;
     }
 
-    auto validateMax = [&](unsigned v, unsigned max, const char* msg) {
-        if (v > max) {
-            err.addError(msg + std::string(" (") + std::to_string(v) + ", max: " + std::to_string(max) + ")");
-            valid = false;
-        }
-    };
-    validateMax(tileMap.cellCount() / 4, settings.nMetaTiles, "Too many MetaTiles");
-
-    if (animatedTileset->tileMap.width() % 2 != 0) {
-        err.addError("Tileset image width must be a multiple of 16");
+    const unsigned tileMapMetaTiles = animatedTileset->tileMap.cellCount() / 4;
+    if (tileMapMetaTiles != N_METATILES) {
+        err.addError("Expected " + std::to_string(N_METATILES) + " MetaTiles (got " + std::to_string(tileMapMetaTiles) + ").");
         valid = false;
     }
-    if (animatedTileset->tileMap.height() % 2 != 0) {
-        err.addError("Tileset image height must be a multiple of 16");
+
+    if (animatedTileset->tileMap.width() != TILESET_WIDTH * 2
+        || animatedTileset->tileMap.height() != TILESET_HEIGHT * 2) {
+
+        err.addError("Invalid tileset image size");
         valid = false;
     }
 
     return valid;
 }
 
-std::vector<uint8_t> MetaTileTilesetData::convertTileMap(const EngineSettings& settings) const
+std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
 {
-    std::vector<uint8_t> out(settings.nMetaTiles * 2 * 4, 0);
+    std::vector<uint8_t> out(N_METATILES * 2 * 4, 0);
 
-    const unsigned& mapWidth = animatedTileset->tileMap.width();
-    const unsigned& mapHeight = animatedTileset->tileMap.height();
-
-    assert(mapWidth % 2 == 0);
-    assert(mapHeight % 2 == 0);
-    assert(animatedTileset->tileMap.cellCount() == mapWidth * mapHeight);
-    assert(animatedTileset->tileMap.cellCount() <= out.size() / 2);
+    assert(animatedTileset->tileMap.width() == TILESET_WIDTH * 2);
+    assert(animatedTileset->tileMap.height() == TILESET_HEIGHT * 2);
+    assert(animatedTileset->tileMap.cellCount() == N_METATILES * 4);
+    assert(animatedTileset->tileMap.cellCount() == out.size() / 2);
 
     for (unsigned q = 0; q < 4; q++) {
         const unsigned xOffset = (q & 1) ? 1 : 0;
         const unsigned yOffset = (q & 2) ? 1 : 0;
 
-        auto outIt = out.begin() + settings.nMetaTiles * q * 2;
-        for (unsigned y = 0; y < mapHeight / 2; y++) {
-            for (unsigned x = 0; x < mapWidth / 2; x++) {
+        auto outIt = out.begin() + N_METATILES * q * 2;
+        for (unsigned y = 0; y < TILESET_HEIGHT; y++) {
+            for (unsigned x = 0; x < TILESET_WIDTH; x++) {
                 auto& tmCell = animatedTileset->tileMap.at(x * 2 + xOffset, y * 2 + yOffset);
 
                 *outIt++ = tmCell.data & 0xff;
                 *outIt++ = (tmCell.data >> 8) & 0xff;
             }
         }
-        assert(outIt <= out.begin() + settings.nMetaTiles * (q + 1) * 2);
+        assert(outIt <= out.begin() + N_METATILES * (q + 1) * 2);
     }
 
     return out;
 }
 
-const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 2;
+const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 3;
 
 std::vector<uint8_t>
-MetaTileTilesetData::exportMetaTileTileset(const EngineSettings& settings) const
+MetaTileTilesetData::exportMetaTileTileset() const
 {
-    std::vector<uint8_t> tmBlock = convertTileMap(settings);
+    std::vector<uint8_t> tmBlock = convertTileMap();
 
     std::vector<uint8_t> out = lz4HcCompress(tmBlock);
 

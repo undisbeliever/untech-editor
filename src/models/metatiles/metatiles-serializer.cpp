@@ -32,7 +32,6 @@ void readEngineSettings(EngineSettings& settings, const XmlTag* tag)
     assert("metatile-engine-settings");
 
     settings.maxMapSize = tag->getAttributeUnsigned("max-map-size");
-    settings.nMetaTiles = tag->getAttributeUnsigned("n-metatiles");
 }
 
 static grid<uint16_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
@@ -122,7 +121,6 @@ void writeEngineSettings(XmlWriter& xml, const EngineSettings& settings)
 {
     xml.writeTag("metatile-engine-settings");
     xml.writeTagAttribute("max-map-size", settings.maxMapSize);
-    xml.writeTagAttribute("n-metatiles", settings.nMetaTiles);
     xml.writeCloseTag();
 }
 

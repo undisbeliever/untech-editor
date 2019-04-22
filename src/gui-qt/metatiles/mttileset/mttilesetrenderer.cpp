@@ -200,7 +200,7 @@ void MtTilesetRenderer::resetPixmaps()
     if (palData && tilesetData && tilesetData->animatedTileset) {
         _nPalettes = palData->nAnimations();
         _nTilesets = tilesetData->animatedTileset->nAnimatedFrames();
-        _nMetaTiles = tilesetData->nMetaTiles();
+        _nMetaTiles = MT::N_METATILES;
 
         Q_ASSERT(_nPalettes > 0 && _nTilesets > 0 && _nMetaTiles > 0);
 

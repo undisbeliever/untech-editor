@@ -57,14 +57,12 @@ struct MetaTileTilesetData {
 
     usize sourceTileSize() const;
 
-    unsigned nMetaTiles() const;
+    bool validate(ErrorList& err) const;
 
-    bool validate(const EngineSettings& settings, ErrorList& err) const;
-
-    std::vector<uint8_t> exportMetaTileTileset(const EngineSettings& settings) const;
+    std::vector<uint8_t> exportMetaTileTileset() const;
 
 private:
-    std::vector<uint8_t> convertTileMap(const EngineSettings& settings) const;
+    std::vector<uint8_t> convertTileMap() const;
 };
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,

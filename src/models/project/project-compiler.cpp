@@ -162,7 +162,7 @@ compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
                     assert(it.value != nullptr);
                     const auto mtd = MetaTiles::convertTileset(*it.value, input, err);
                     if (mtd) {
-                        const auto data = mtd->exportMetaTileTileset(input.metaTileEngineSettings);
+                        const auto data = mtd->exportMetaTileTileset();
                         writer.addData(METATILE_TILESET, it.value->name, data);
                     }
                 });

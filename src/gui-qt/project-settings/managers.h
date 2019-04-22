@@ -21,7 +21,6 @@ class ProjectSettingsPropertyManager : public PropertyListManager {
         BLOCK_COUNT,
 
         METATILE_MAX_MAP_SIZE,
-        METATILE_N_METATILES,
 
         ENTITY_LIST_IDS,
     };

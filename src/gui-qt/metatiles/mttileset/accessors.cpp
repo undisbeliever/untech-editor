@@ -101,10 +101,9 @@ bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const G
     if (data == nullptr) {
         return false;
     }
-    const unsigned nMetaTiles = data->nMetaTiles();
 
     return UndoHelper(this).editCellsWithCroppingAndCellTest(
         location, tiles,
         tr("Place Tiles"),
-        [&](const uint16_t& t) { return t < nMetaTiles; });
+        [&](const uint16_t& t) { return t < MT::N_METATILES; });
 }
