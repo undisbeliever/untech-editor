@@ -16,6 +16,9 @@ namespace MtTileset {
 class MtTilesetGraphicsScene : public MtGraphicsScene {
     Q_OBJECT
 
+private:
+    static const grid_t _grid;
+
 public:
     MtTilesetGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent);
     ~MtTilesetGraphicsScene() = default;
@@ -29,11 +32,9 @@ protected:
     void tilesetItemChanged(ResourceItem* newTileset, ResourceItem* oldTileset) final;
 
 private slots:
-    void onTilesetCompiled();
     void onSelectedTileParametersChanged();
 
 private:
-    grid_t _grid;
     upoint_vectorset _gridSelection;
 };
 
@@ -63,7 +64,7 @@ public:
     virtual const grid_t& grid() const final;
     virtual const upoint_vectorset& gridSelection() const final;
 
-    virtual void placeTiles(const grid_t& tiles, point location) final;
+    virtual void placeTiles(const selection_grid_t& tiles, point location) final;
 
 protected:
     virtual void setGridSelection(upoint_vectorset&& selectedCells) final;

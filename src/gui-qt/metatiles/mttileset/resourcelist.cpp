@@ -72,7 +72,7 @@ void ResourceList::do_addResource(int settingIndex, const std::string& filename)
 
         MT::MetaTileTilesetInput tilesetInput;
         tilesetInput.name = name.toStdString();
-        tilesetInput.scratchpad = grid<uint16_t>(16, 16, ResourceItem::DEFAULT_SCRATCHPAD_TILE);
+        tilesetInput.scratchpad = grid<uint8_t>(16, 16, ResourceItem::DEFAULT_SCRATCHPAD_TILE);
         MT::saveMetaTileTilesetInput(tilesetInput, filename);
     }
 }

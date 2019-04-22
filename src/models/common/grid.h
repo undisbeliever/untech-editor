@@ -46,6 +46,16 @@ public:
     {
     }
 
+    grid(unsigned width, unsigned height, container&& data)
+        : _width((width > 0 && height > 0) ? width : 0)
+        , _height((width > 0 && height > 0) ? height : 0)
+        , _grid(std::move(data))
+    {
+        if (_grid.size() != _width * _height) {
+            throw std::invalid_argument("grid data size must equal width * height");
+        }
+    }
+
     ~grid() = default;
     grid(const grid&) = default;
     grid(grid&&) = default;
@@ -57,6 +67,8 @@ public:
     unsigned width() const { return _width; }
     unsigned height() const { return _height; }
     unsigned cellCount() const { return _grid.size(); }
+
+    const container& gridData() const { return _grid; }
 
     usize size() const { return usize(_width, _height); }
 

@@ -25,12 +25,12 @@ public:
     // ::TODO add class for parameters::
     //using DataT = void;
     //using ListT = std::vector<DataT>;
-    using index_type = uint16_t;
+    using index_type = uint8_t;
     using ArgsT = std::tuple<>;
 
 private:
     ResourceItem* const _tileset;
-    vectorset<uint16_t> _selectedIndexes;
+    vectorset<uint8_t> _selectedIndexes;
 
 public:
     MtTilesetTileParameters(ResourceItem* tileset);
@@ -57,8 +57,8 @@ class MtTilesetScratchpadGrid : public Accessor::AbstractGridAccessor {
     Q_OBJECT
 
 public:
-    using DataT = uint16_t;
-    using GridT = UnTech::grid<uint16_t>;
+    using DataT = uint8_t;
+    using GridT = UnTech::grid<uint8_t>;
     using ArgsT = std::tuple<>;
 
     using UndoHelper = Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
@@ -74,7 +74,7 @@ public:
     virtual usize size() const final;
 
     bool editGrid_resizeGrid(const usize& size);
-    bool editGrid_placeTiles(const point& location, const GridT& tiles);
+    bool editGrid_placeTiles(const point& location, const grid<uint16_t>& tiles);
 
 protected:
     friend class Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;

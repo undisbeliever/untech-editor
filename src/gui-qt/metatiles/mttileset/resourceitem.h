@@ -32,7 +32,7 @@ public:
 
     // The default scratchpad tile is transparent.
     // This is to simplify the placement of non-rectangular tile groups to the grid.
-    constexpr static uint16_t DEFAULT_SCRATCHPAD_TILE = 0xffff;
+    constexpr static uint16_t DEFAULT_SCRATCHPAD_TILE = 0;
 
 public:
     ResourceItem(ResourceList* parent, size_t index);
@@ -42,8 +42,6 @@ public:
 
     MtTilesetTileParameters* tileParameters() const { return _tileParameters; }
     MtTilesetScratchpadGrid* scratchpadGrid() const { return _scratchpadGrid; }
-
-    unsigned nMetaTiles() const;
 
 public:
     // may be nullptr

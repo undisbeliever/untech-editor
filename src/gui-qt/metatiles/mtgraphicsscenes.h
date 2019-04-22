@@ -28,7 +28,8 @@ class MtGraphicsScene : public QGraphicsScene {
     Q_OBJECT
 
 public:
-    using grid_t = UnTech::grid<uint16_t>;
+    using grid_t = UnTech::grid<uint8_t>;
+    using selection_grid_t = UnTech::grid<uint16_t>; // Values > N_METATILES are transparent.
     const static grid_t BLANK_GRID;
 
     const static upoint_vectorset BLANK_GRID_SELECTION;
@@ -42,8 +43,8 @@ public:
     MtTileset::ResourceItem* tilesetItem() const { return _tilesetItem; }
 
     // converts the gridSelection vectorset into a grid of MetaTiles.
-    // Empty tiles contain are 0xffff and easily identifyable.
-    grid_t gridSelectionGrid() const;
+    // Empty tiles contain values > N_METATILES.
+    selection_grid_t gridSelectionGrid() const;
 
     virtual const grid_t& grid() const = 0;
     virtual const upoint_vectorset& gridSelection() const = 0;
@@ -104,7 +105,7 @@ public:
     AbstractCursorGraphicsItem* cursorItem() const { return _cursorItem; }
     void removeCursor();
 
-    void createTileCursor(grid_t&& grid);
+    void createTileCursor(selection_grid_t&& grid);
     // Create a tile cursor using the `gridSelectionGrid` of a MetaTile graphics scene
     // Returns true of the scene has a valid selection.
     void createTileCursor(MtGraphicsScene* scene);
@@ -119,7 +120,7 @@ public:
     void addGridSelectionSource(MtGraphicsScene* scene);
 
     // Be aware location may be outside the grid.
-    virtual void placeTiles(const grid_t& tiles, point location) = 0;
+    virtual void placeTiles(const selection_grid_t& tiles, point location) = 0;
 
 protected:
     void setCursor(AbstractCursorGraphicsItem* cursor);

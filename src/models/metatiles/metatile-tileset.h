@@ -35,7 +35,7 @@ struct MetaTileTilesetInput {
 
     Resources::AnimationFramesInput animationFrames;
 
-    grid<uint16_t> scratchpad;
+    grid<uint8_t> scratchpad;
 
     bool validate(ErrorList& err) const;
 
@@ -43,7 +43,8 @@ struct MetaTileTilesetInput {
     {
         return name == o.name
                && palettes == o.palettes
-               && animationFrames == o.animationFrames;
+               && animationFrames == o.animationFrames
+               && scratchpad == o.scratchpad;
     }
     bool operator!=(const MetaTileTilesetInput& o) const { return !(*this == o); }
 };

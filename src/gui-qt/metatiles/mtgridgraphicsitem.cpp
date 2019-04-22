@@ -37,8 +37,6 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
 
     connect(scene, &MtGraphicsScene::gridChanged,
             this, &MtGridGraphicsItem::updateTileGridFragments);
-    connect(scene->renderer(), &MtTileset::MtTilesetRenderer::nMetaTilesChanged,
-            this, &MtGridGraphicsItem::updateTileGridFragments);
 
     connect(scene, &MtGraphicsScene::gridSelectionChanged,
             this, &MtGridGraphicsItem::onGridSelectionChanged);
@@ -110,7 +108,7 @@ void MtGridGraphicsItem::onGridSelectionChanged()
 
 void MtGridGraphicsItem::updateTileGridFragments()
 {
-    _tileGridPainter.updateFragments(_scene->renderer(), _scene->grid());
+    _tileGridPainter.updateFragments(_scene->grid());
     updateAll();
 }
 

@@ -21,9 +21,6 @@ class MtGridGraphicsItem : public QGraphicsObject {
     Q_OBJECT
 
 public:
-    using grid_t = UnTech::grid<uint16_t>;
-
-public:
     MtGridGraphicsItem(MtGraphicsScene* scene);
     ~MtGridGraphicsItem() = default;
 

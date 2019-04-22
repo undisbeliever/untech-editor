@@ -40,9 +40,6 @@ TileCursorGraphicsItem::TileCursorGraphicsItem(MtEditableGraphicsScene* scene)
     connect(scene, &MtEditableGraphicsScene::cursorRectChanged,
             this, &TileCursorGraphicsItem::updateAll);
 
-    connect(scene->renderer(), &MtTileset::MtTilesetRenderer::nMetaTilesChanged,
-            this, &TileCursorGraphicsItem::updateTileGridFragments);
-
     connect(scene->renderer(), &MtTileset::MtTilesetRenderer::pixmapChanged,
             this, &TileCursorGraphicsItem::updateAll);
 
@@ -61,7 +58,7 @@ bool TileCursorGraphicsItem::setTilePosition(const point& tilePosition)
     return false;
 }
 
-void TileCursorGraphicsItem::setSourceGrid(grid_t&& grid)
+void TileCursorGraphicsItem::setSourceGrid(selection_grid_t&& grid)
 {
     if (_sourceGrid != grid) {
         _sourceGrid = grid;
@@ -72,7 +69,7 @@ void TileCursorGraphicsItem::setSourceGrid(grid_t&& grid)
     }
 }
 
-const TileCursorGraphicsItem::grid_t& TileCursorGraphicsItem::activeGrid() const
+const TileCursorGraphicsItem::selection_grid_t& TileCursorGraphicsItem::activeGrid() const
 {
     if (_drawState == DrawState::STAMP) {
         return _sourceGrid;
@@ -92,7 +89,7 @@ QRect TileCursorGraphicsItem::validCellsRect() const
 
 void TileCursorGraphicsItem::updateBoundingBox()
 {
-    const grid_t& grid = activeGrid();
+    const selection_grid_t& grid = activeGrid();
 
     int w = grid.width() * METATILE_SIZE;
     int h = grid.height() * METATILE_SIZE;
@@ -117,20 +114,21 @@ void TileCursorGraphicsItem::updateAll()
 
 void TileCursorGraphicsItem::updateTileGridFragments()
 {
-    _tileGridPainter.updateFragments(_scene->renderer(), activeGrid());
+    _tileGridPainter.updateFragments(activeGrid());
     updateAll();
 }
 
 void TileCursorGraphicsItem::paint(QPainter* painter,
                                    const QStyleOptionGraphicsItem*, QWidget*)
 {
+    constexpr unsigned N_METATILES = UnTech::MetaTiles::N_METATILES;
+
     painter->save();
 
     auto* renderer = _scene->renderer();
-    const unsigned nMetaTiles = renderer->nMetaTiles();
     const QColor backgroundColor = renderer->backgroundColor();
 
-    const grid_t& grid = activeGrid();
+    const selection_grid_t& grid = activeGrid();
     const int gridWidth = grid.width();
     const int gridHeight = grid.height();
 
@@ -139,7 +137,7 @@ void TileCursorGraphicsItem::paint(QPainter* painter,
         for (int x = 0; x < gridWidth; x++) {
             const auto& tile = *gridIt++;
 
-            if (tile < nMetaTiles) {
+            if (tile < N_METATILES) {
                 painter->fillRect(x * METATILE_SIZE, y * METATILE_SIZE,
                                   METATILE_SIZE, METATILE_SIZE,
                                   backgroundColor);
@@ -164,7 +162,7 @@ void TileCursorGraphicsItem::paint(QPainter* painter,
         for (int y = 0; y < gridHeight; y++) {
             for (int x = 0; x < gridWidth; x++) {
                 if (validCells.contains(x + _tilePosition.x, y + _tilePosition.y) == false
-                    && grid.at(x, y) < nMetaTiles) {
+                    && grid.at(x, y) < N_METATILES) {
 
                     painter->drawRect(x * METATILE_SIZE, y * METATILE_SIZE,
                                       METATILE_SIZE, METATILE_SIZE);
@@ -184,7 +182,7 @@ void TileCursorGraphicsItem::paint(QPainter* painter,
         for (int y = 0; y < gridHeight; y++) {
             for (int x = 0; x < gridWidth; x++) {
                 if (validCells.contains(x + _tilePosition.x, y + _tilePosition.y)
-                    && grid.at(x, y) < nMetaTiles) {
+                    && grid.at(x, y) < N_METATILES) {
 
                     painter->drawRect(x * METATILE_SIZE, y * METATILE_SIZE,
                                       METATILE_SIZE, METATILE_SIZE);
@@ -411,7 +409,7 @@ void TileCursorGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void TileCursorGraphicsItem::processClick()
 {
     const QRect validCells = validCellsRect();
-    const grid_t& grid = activeGrid();
+    const selection_grid_t& grid = activeGrid();
     const int gridWidth = grid.width();
     const int gridHeight = grid.height();
 
@@ -432,12 +430,12 @@ void TileCursorGraphicsItem::createBoxGrid(unsigned width, unsigned height)
     Q_ASSERT(height > 0);
     Q_ASSERT(_sourceGrid.empty() == false);
 
-    const grid_t& sGrid = _sourceGrid;
+    const selection_grid_t& sGrid = _sourceGrid;
     const unsigned sgLastX = sGrid.width() - 1;
     const unsigned sgLastY = sGrid.height() - 1;
 
     if (_boxGrid.width() != width || _boxGrid.height() != height) {
-        _boxGrid = grid_t(width, height);
+        _boxGrid = selection_grid_t(width, height);
     }
 
     // set four corners

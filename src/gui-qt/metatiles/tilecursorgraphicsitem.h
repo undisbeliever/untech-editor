@@ -29,7 +29,7 @@ class TileCursorGraphicsItem : public AbstractCursorGraphicsItem {
     };
 
 public:
-    using grid_t = UnTech::grid<uint16_t>;
+    using selection_grid_t = UnTech::grid<uint16_t>;
     constexpr static int METATILE_SIZE = 16;
 
 public:
@@ -39,10 +39,10 @@ public:
     const point& tilePosition() const { return _tilePosition; }
     bool setTilePosition(const point& tilePosition);
 
-    const grid_t& sourceGrid() const { return _sourceGrid; }
-    void setSourceGrid(grid_t&& sourceGrid);
+    const selection_grid_t& sourceGrid() const { return _sourceGrid; }
+    void setSourceGrid(selection_grid_t&& sourceGrid);
 
-    const grid_t& activeGrid() const;
+    const selection_grid_t& activeGrid() const;
 
     QRect validCellsRect() const;
 
@@ -91,9 +91,9 @@ private:
     QRectF _boundingRect;
     QPointF _mouseScenePosition;
 
-    grid_t _sourceGrid;
+    selection_grid_t _sourceGrid;
 
-    grid_t _boxGrid;
+    selection_grid_t _boxGrid;
     point _startBoxPosition;
 };
 }

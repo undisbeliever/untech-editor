@@ -34,49 +34,33 @@ void readEngineSettings(EngineSettings& settings, const XmlTag* tag)
     settings.maxMapSize = tag->getAttributeUnsigned("max-map-size");
 }
 
-static grid<uint16_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
+static grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
 {
-    grid<uint16_t> mtGrid(tag->getAttributeUnsigned("width", 1, MAX_GRID_WIDTH),
-                          tag->getAttributeUnsigned("height", 1, MAX_GRID_HEIGHT));
+    const unsigned width = tag->getAttributeUnsigned("width", 1, MAX_GRID_WIDTH);
+    const unsigned height = tag->getAttributeUnsigned("height", 1, MAX_GRID_HEIGHT);
+    const unsigned expectedDataSize = width * height;
 
-    const auto data = xml.parseBase64();
+    auto data = xml.parseBase64();
 
-    if (data.size() != mtGrid.cellCount() * 2) {
+    if (data.size() != expectedDataSize) {
         const std::string msg = "Invalid data size. Got " + std::to_string(data.size())
-                                + " bytes, expected " + std::to_string(mtGrid.cellCount() * 2) + ".";
+                                + " bytes, expected " + std::to_string(expectedDataSize) + ".";
         throw xml_error(*tag, msg.c_str());
     }
 
-    auto dataIt = data.begin();
-    for (auto& t : mtGrid) {
-        uint8_t b1 = *dataIt++;
-        uint8_t b2 = *dataIt++;
-
-        t = b1 | (b2 << 8);
-    }
-    assert(dataIt == data.end());
-
-    return mtGrid;
+    return grid<uint8_t>(width, height, std::move(data));
 }
 
-static void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const grid<uint16_t>& mtGrid)
+static void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const grid<uint8_t>& mtGrid)
 {
     if (mtGrid.empty()) {
         return;
     }
 
-    std::vector<uint8_t> data;
-    data.reserve(mtGrid.cellCount() * 2);
-
-    for (const auto t : mtGrid) {
-        writeUint16(data, t);
-    }
-    assert(data.size() == mtGrid.cellCount() * 2);
-
     xml.writeTag(tagName);
     xml.writeTagAttribute("width", mtGrid.width());
     xml.writeTagAttribute("height", mtGrid.height());
-    xml.writeBase64(data);
+    xml.writeBase64(mtGrid.gridData());
     xml.writeCloseTag();
 }
 

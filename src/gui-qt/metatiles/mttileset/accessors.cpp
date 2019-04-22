@@ -76,7 +76,7 @@ void MtTilesetScratchpadGrid::updateSelectedTileParameters()
 
     const auto& scratchpad = data->scratchpad;
 
-    vectorset<uint16_t> tiles;
+    vectorset<uint8_t> tiles;
     for (auto& p : selectedCells()) {
         if (p.x < scratchpad.width()
             && p.y < scratchpad.height()) {
@@ -95,7 +95,7 @@ bool MtTilesetScratchpadGrid::editGrid_resizeGrid(const usize& size)
         tr("Resize scratchpad"));
 }
 
-bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const GridT& tiles)
+bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const grid<uint16_t>& tiles)
 {
     const auto* data = resourceItem()->compiledData();
     if (data == nullptr) {
@@ -105,5 +105,5 @@ bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const G
     return UndoHelper(this).editCellsWithCroppingAndCellTest(
         location, tiles,
         tr("Place Tiles"),
-        [&](const uint16_t& t) { return t < MT::N_METATILES; });
+        [&](const uint16_t& t) -> optional<uint8_t> { return t < MT::N_METATILES ? t : optional<uint8_t>{}; });
 }

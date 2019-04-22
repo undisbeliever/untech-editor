@@ -8,6 +8,7 @@
 
 #include "models/common/call.h"
 #include "models/common/grid.h"
+#include "models/common/optional.h"
 #include "models/common/vectorset-upoint.h"
 #include <QCoreApplication>
 #include <QUndoCommand>
@@ -310,15 +311,15 @@ public:
         return e != nullptr;
     }
 
-    // will return nullptr if cells could not be accessed or is equal to newCells
-    template <typename UnaryFunction>
-    QUndoCommand* editCellsWithCroppingAndCellTestCommand(const point& pos, const GridT& newCells,
+    // will return nullptr if old cells could not be accessed or is equal to newCells
+    template <typename NCT, typename UnaryFunction>
+    QUndoCommand* editCellsWithCroppingAndCellTestCommand(const point& pos, const UnTech::grid<NCT>& cellsToInsert,
                                                           const QString& text,
                                                           UnaryFunction validCellTest)
     {
-        if (newCells.empty()
-            || pos.x < -int(newCells.width())
-            || pos.y < -int(newCells.height())) {
+        if (cellsToInsert.empty()
+            || pos.x < -int(cellsToInsert.width())
+            || pos.y < -int(cellsToInsert.height())) {
 
             return nullptr;
         }
@@ -341,38 +342,41 @@ public:
                                 std::max(0, pos.y));
         const upoint croppedOffset(croppedPos.x - pos.x,
                                    croppedPos.y - pos.y);
-        const usize croppedSize(std::min(newCells.width() - croppedOffset.x, grid->width() - croppedPos.x),
-                                std::min(newCells.height() - croppedOffset.y, grid->height() - croppedPos.y));
+        const usize croppedSize(std::min(cellsToInsert.width() - croppedOffset.x, grid->width() - croppedPos.x),
+                                std::min(cellsToInsert.height() - croppedOffset.y, grid->height() - croppedPos.y));
 
-        GridT croppedCells = newCells.subGrid(croppedOffset, croppedSize);
-        GridT oldCells = grid->subGrid(croppedPos, croppedSize);
-
-        Q_ASSERT(croppedCells.empty() == false);
+        GridT oldCells(croppedSize);
+        GridT newCells(croppedSize);
         Q_ASSERT(oldCells.empty() == false);
 
-        // apply the validCellTest function to each of the grid cells
-        auto croppedIt = croppedCells.begin();
-        auto oldIt = oldCells.cbegin();
-        while (croppedIt != croppedCells.end()) {
-            bool ok = validCellTest(const_cast<const DataT&>(*croppedIt));
-            if (!ok) {
-                *croppedIt = *oldIt;
+        // apply the validCellTest function to each of the new grid cells
+
+        auto oldIt = oldCells.begin();
+        auto newIt = newCells.begin();
+
+        for (unsigned y = 0; y < croppedSize.height; y++) {
+            for (unsigned x = 0; x < croppedSize.width; x++) {
+                const DataT& oldCell = grid->at(croppedPos.x + x, croppedPos.y + y);
+                const NCT& cti = cellsToInsert.at(croppedOffset.x + x, croppedOffset.y + y);
+
+                const optional<DataT> nc = validCellTest(cti);
+
+                *oldIt++ = oldCell;
+                *newIt++ = nc.value_or(oldCell);
             }
-
-            croppedIt++;
-            oldIt++;
         }
-        Q_ASSERT(oldIt == oldCells.cend());
+        Q_ASSERT(oldIt == oldCells.end());
+        Q_ASSERT(newIt == newCells.end());
 
-        if (croppedCells == oldCells) {
+        if (newCells == oldCells) {
             return nullptr;
         }
         return new EditCellsCommand(_accessor, gridArgs, croppedPos,
-                                    std::move(oldCells), std::move(croppedCells), text);
+                                    std::move(oldCells), std::move(newCells), text);
     }
 
-    template <typename UnaryFunction>
-    bool editCellsWithCroppingAndCellTest(const point& pos, const GridT& newCells,
+    template <typename NCT, typename UnaryFunction>
+    bool editCellsWithCroppingAndCellTest(const point& pos, const UnTech::grid<NCT>& newCells,
                                           const QString& text,
                                           UnaryFunction validCellTest)
     {

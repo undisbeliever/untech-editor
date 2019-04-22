@@ -36,7 +36,8 @@ class MtTilesetRenderer : public QObject {
     Q_OBJECT
 
 public:
-    static constexpr int PIXMAP_WIDTH = 16;
+    static constexpr int PIXMAP_TILE_WIDTH = 16;
+    static constexpr int PIXMAP_TILE_HEIGHT = 16;
     static constexpr int METATILE_SIZE = 16;
 
 public:
@@ -54,7 +55,6 @@ public:
 
     unsigned nPalettes() const { return _nPalettes; }
     unsigned nTilesets() const { return _nTilesets; }
-    unsigned nMetaTiles() const { return _nMetaTiles; }
 
     QColor backgroundColor();
     QColor backgroundColor(unsigned paletteId);
@@ -64,7 +64,6 @@ public:
 
 signals:
     void pixmapChanged();
-    void nMetaTilesChanged();
     void paletteItemChanged();
     void tilesetItemChanged();
 
@@ -90,22 +89,25 @@ private:
     QVector<QPixmap> _pixmaps; // [ paletteFrame * _nTilesets + tilesetFrame ]
     unsigned _nPalettes;
     unsigned _nTilesets;
-    unsigned _nMetaTiles;
 };
 
 class MtTilesetGridPainter {
 public:
     MtTilesetGridPainter();
 
-    // MUST be called when grid changed or on `MtTilesetRenderer::nMetaTilesChanged` signal.
-    void updateFragments(MtTilesetRenderer* renderer, const grid<uint16_t>& grid);
+    // MUST be called when grid changed.
+    // The grid<uint16_t> updateFragments will not draw any tiles with a value >= N_METATILES
+    void updateFragments(const grid<uint8_t>& grid);
+    void updateFragments(const grid<uint16_t>& grid);
 
-    // NOTE: will not paint fragments if _nMetaTiles > renderer->nMetaTiles() to prevent glitches.
     void paint(QPainter* painter, MtTilesetRenderer* renderer);
 
 private:
+    template <typename T>
+    void _updateFragments(const grid<T>& grid);
+
+private:
     std::vector<QPainter::PixmapFragment> _fragments;
-    unsigned _nMetaTiles = 0;
 };
 }
 }

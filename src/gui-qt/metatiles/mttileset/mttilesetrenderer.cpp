@@ -28,7 +28,6 @@ MtTilesetRenderer::MtTilesetRenderer(QObject* parent)
     , _pixmaps()
     , _nPalettes(0)
     , _nTilesets(0)
-    , _nMetaTiles(0)
 {
     connect(_animationTimer, &Resources::DualAnimationTimer::animationFrameCountChanged,
             this, &MtTilesetRenderer::pixmapChanged);
@@ -127,7 +126,7 @@ QColor MtTilesetRenderer::backgroundColor()
 
 const QPixmap& MtTilesetRenderer::pixmap()
 {
-    if (_nPalettes == 0 || _nTilesets == 0 || _nMetaTiles == 0) {
+    if (_nPalettes == 0 || _nTilesets == 0) {
 
         static const QPixmap nullPixmap;
         return nullPixmap;
@@ -195,25 +194,17 @@ void MtTilesetRenderer::resetPixmaps()
     const RES::PaletteData* palData = _paletteItem ? _paletteItem->compiledData() : nullptr;
     const MT::MetaTileTilesetData* tilesetData = _tilesetItem ? _tilesetItem->compiledData() : nullptr;
 
-    const unsigned old_nMetaTiles = _nMetaTiles;
-
     if (palData && tilesetData && tilesetData->animatedTileset) {
         _nPalettes = palData->nAnimations();
         _nTilesets = tilesetData->animatedTileset->nAnimatedFrames();
-        _nMetaTiles = MT::N_METATILES;
 
-        Q_ASSERT(_nPalettes > 0 && _nTilesets > 0 && _nMetaTiles > 0);
+        Q_ASSERT(_nPalettes > 0 && _nTilesets > 0);
 
         _pixmaps.resize(_nPalettes * _nTilesets);
     }
     else {
         _nPalettes = 0;
         _nTilesets = 0;
-        _nMetaTiles = 0;
-    }
-
-    if (old_nMetaTiles != _nMetaTiles) {
-        emit nMetaTilesChanged();
     }
 
     emit pixmapChanged();
@@ -274,8 +265,7 @@ QPixmap MtTilesetRenderer::buildPixmap(unsigned paletteFrame, unsigned tilesetFr
     const MT::MetaTileTilesetData* tilesetData = _tilesetItem ? _tilesetItem->compiledData() : nullptr;
     const RES::AnimatedTilesetData* aniTilesetData = tilesetData ? tilesetData->animatedTileset.get() : nullptr;
 
-    if (_nMetaTiles <= 0
-        || palData == nullptr || tilesetData == nullptr || aniTilesetData == nullptr
+    if (palData == nullptr || tilesetData == nullptr || aniTilesetData == nullptr
         || paletteFrame >= palData->nAnimations()
         || tilesetFrame >= aniTilesetData->nAnimatedFrames()) {
 
@@ -284,15 +274,14 @@ QPixmap MtTilesetRenderer::buildPixmap(unsigned paletteFrame, unsigned tilesetFr
 
     const auto& palette = palData->paletteFrames.at(paletteFrame);
 
-    const int height = (_nMetaTiles + PIXMAP_WIDTH - 1) / PIXMAP_WIDTH;
-    QImage img(PIXMAP_WIDTH * METATILE_SIZE, height * METATILE_SIZE, QImage::Format_ARGB32_Premultiplied);
+    QImage img(PIXMAP_TILE_WIDTH * METATILE_SIZE, PIXMAP_TILE_HEIGHT * METATILE_SIZE, QImage::Format_ARGB32_Premultiplied);
     img.fill(0);
 
     unsigned tileMapXPos = 0;
     unsigned tileMapYPos = 0;
 
-    for (int tileY = 0; tileY < height; tileY++) {
-        for (int tileX = 0; tileX < PIXMAP_WIDTH; tileX++) {
+    for (int tileY = 0; tileY < PIXMAP_TILE_HEIGHT; tileY++) {
+        for (int tileX = 0; tileX < PIXMAP_TILE_WIDTH; tileX++) {
             for (int ty = 0; ty < 2; ty++) {
                 for (int tx = 0; tx < 2; tx++) {
                     drawTile(img, palette, *aniTilesetData, tilesetFrame,
@@ -321,7 +310,6 @@ EndLoop:
 
 MtTilesetGridPainter::MtTilesetGridPainter()
     : _fragments()
-    , _nMetaTiles(0)
 {
 }
 
@@ -342,14 +330,14 @@ static QPainter::PixmapFragment blankMetaTileFragment()
     return fragment;
 }
 
-void MtTilesetGridPainter::updateFragments(MtTilesetRenderer* renderer, const grid<uint16_t>& grid)
+template <typename T>
+inline void MtTilesetGridPainter::_updateFragments(const grid<T>& grid)
 {
-    constexpr int PIXMAP_WIDTH = MtTilesetRenderer::PIXMAP_WIDTH;
+    constexpr int PIXMAP_WIDTH = MtTilesetRenderer::PIXMAP_TILE_WIDTH;
     constexpr int METATILE_SIZE = MtTilesetRenderer::METATILE_SIZE;
 
     static const QPainter::PixmapFragment blankFragment = blankMetaTileFragment();
 
-    _nMetaTiles = renderer->nMetaTiles();
     _fragments.resize(grid.cellCount(), blankFragment);
     unsigned fIndex = 0;
 
@@ -358,7 +346,7 @@ void MtTilesetGridPainter::updateFragments(MtTilesetRenderer* renderer, const gr
         for (unsigned x = 0; x < grid.width(); x++) {
 
             const auto& tile = *gridIt++;
-            if (tile < _nMetaTiles) {
+            if (tile < MT::N_METATILES) {
                 auto& f = _fragments[fIndex++];
                 f.x = x * METATILE_SIZE + METATILE_SIZE / 2;
                 f.y = y * METATILE_SIZE + METATILE_SIZE / 2;
@@ -373,9 +361,17 @@ void MtTilesetGridPainter::updateFragments(MtTilesetRenderer* renderer, const gr
     _fragments.resize(fIndex);
 }
 
+void MtTilesetGridPainter::updateFragments(const grid<uint8_t>& grid)
+{
+    _updateFragments(grid);
+}
+
+void MtTilesetGridPainter::updateFragments(const grid<uint16_t>& grid)
+{
+    _updateFragments(grid);
+}
+
 void MtTilesetGridPainter::paint(QPainter* painter, MtTilesetRenderer* renderer)
 {
-    if (_nMetaTiles <= renderer->nMetaTiles()) {
-        painter->drawPixmapFragments(_fragments.data(), _fragments.size(), renderer->pixmap());
-    }
+    painter->drawPixmapFragments(_fragments.data(), _fragments.size(), renderer->pixmap());
 }

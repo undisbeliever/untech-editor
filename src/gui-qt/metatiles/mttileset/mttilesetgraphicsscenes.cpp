@@ -14,9 +14,21 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles;
 using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
+const grid<uint8_t> MtTilesetGraphicsScene::_grid = []() {
+    static_assert(MT::TILESET_WIDTH * MT::TILESET_HEIGHT == 256, "Invalid tileset size");
+
+    UnTech::grid<uint8_t> grid(MT::TILESET_WIDTH, MT::TILESET_HEIGHT);
+
+    uint8_t i = 0;
+    for (uint8_t& cell : grid) {
+        cell = i++;
+    }
+
+    return grid;
+}();
+
 MtTilesetGraphicsScene::MtTilesetGraphicsScene(Style* style, MtTilesetRenderer* renderer, QObject* parent)
     : MtGraphicsScene(style, renderer, parent)
-    , _grid()
     , _gridSelection()
 {
 }
@@ -35,12 +47,12 @@ void MtTilesetGraphicsScene::setGridSelection(upoint_vectorset&& selectedCells)
 {
     auto* tilesetItem = this->tilesetItem();
     if (tilesetItem != nullptr && !_grid.empty()) {
-        vectorset<uint16_t> selectedTiles;
+        vectorset<uint8_t> selectedTiles;
         selectedTiles.reserve(selectedCells.size());
 
         for (auto& p : selectedCells) {
             unsigned tileId = p.y * _grid.width() + p.x;
-            if (tileId < renderer()->nMetaTiles()) {
+            if (tileId < MT::N_METATILES) {
                 selectedTiles.insert(tileId);
             }
         }
@@ -58,7 +70,6 @@ void MtTilesetGraphicsScene::setGridSelection(upoint_vectorset&& selectedCells)
 
 void MtTilesetGraphicsScene::tilesetItemChanged(ResourceItem* newTileset, ResourceItem* oldTileset)
 {
-    onTilesetCompiled();
     onSelectedTileParametersChanged();
 
     if (oldTileset) {
@@ -66,32 +77,8 @@ void MtTilesetGraphicsScene::tilesetItemChanged(ResourceItem* newTileset, Resour
     }
 
     if (newTileset) {
-        connect(newTileset, &ResourceItem::resourceComplied,
-                this, &MtTilesetGraphicsScene::onTilesetCompiled);
-
         connect(newTileset->tileParameters(), &MtTilesetTileParameters::selectedIndexesChanged,
                 this, &MtTilesetGraphicsScene::onSelectedTileParametersChanged);
-    }
-}
-
-void MtTilesetGraphicsScene::onTilesetCompiled()
-{
-    usize gSize(0, 0);
-    if (auto* ti = tilesetItem()) {
-        if (auto* cd = ti->compiledData()) {
-            gSize = cd->sourceTileSize();
-        }
-    }
-
-    if (grid().size() != gSize) {
-        _grid = UnTech::grid<uint16_t>(gSize);
-
-        uint16_t i = 0;
-        for (uint16_t& cell : _grid) {
-            cell = i++;
-        }
-
-        emit gridResized();
     }
 }
 
@@ -198,7 +185,7 @@ void MtEditableScratchpadGraphicsScene::setGridSelection(upoint_vectorset&& sele
     }
 }
 
-void MtEditableScratchpadGraphicsScene::placeTiles(const MtGraphicsScene::grid_t& tiles, point location)
+void MtEditableScratchpadGraphicsScene::placeTiles(const selection_grid_t& tiles, point location)
 {
     tilesetItem()->scratchpadGrid()->editGrid_placeTiles(location, tiles);
 }

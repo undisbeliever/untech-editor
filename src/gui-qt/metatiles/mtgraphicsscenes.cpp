@@ -40,16 +40,16 @@ MtGraphicsScene::MtGraphicsScene(Style* style, MtTileset::MtTilesetRenderer* ren
             this, &MtGraphicsScene::onGridResized);
 }
 
-MtGraphicsScene::grid_t MtGraphicsScene::gridSelectionGrid() const
+MtGraphicsScene::selection_grid_t MtGraphicsScene::gridSelectionGrid() const
 {
     const auto& selection = this->gridSelection();
     if (selection.empty()) {
-        return grid_t();
+        return selection_grid_t();
     }
 
     const auto& tileGrid = this->grid();
     if (tileGrid.empty()) {
-        return grid_t();
+        return selection_grid_t();
     }
 
     unsigned minX = UINT_MAX;
@@ -72,9 +72,9 @@ MtGraphicsScene::grid_t MtGraphicsScene::gridSelectionGrid() const
         }
     }
 
-    grid_t selGrid(maxX - minX + 1,
-                   maxY - minY + 1,
-                   0xffff);
+    selection_grid_t selGrid(maxX - minX + 1,
+                             maxY - minY + 1,
+                             0xffff);
 
     for (auto& cell : selection) {
         if (cell.x < tileGrid.width() && cell.y < tileGrid.height()) {
@@ -102,7 +102,12 @@ void MtGraphicsScene::onRendererTilesetItemChanged()
 
     tilesetItemChanged(_tilesetItem, oldItem);
 
-    onGridResized();
+    if (_tilesetItem) {
+        connect(_tilesetItem, &AbstractResourceItem::resourceComplied,
+                this, &MtGraphicsScene::gridResized);
+    }
+
+    emit gridResized();
 }
 
 void MtGraphicsScene::onGridResized()
@@ -234,7 +239,7 @@ void MtEditableGraphicsScene::removeCursor()
     gridGraphicsItem()->setShowGridSelection(true);
 }
 
-void MtEditableGraphicsScene::createTileCursor(MtGraphicsScene::grid_t&& grid)
+void MtEditableGraphicsScene::createTileCursor(MtGraphicsScene::selection_grid_t&& grid)
 {
     if (grid.empty()) {
         removeCursor();
@@ -259,7 +264,7 @@ void MtEditableGraphicsScene::createTileCursor(MtGraphicsScene* scene)
 void MtEditableGraphicsScene::createTileCursor()
 {
     auto process = [this](MtGraphicsScene* s) {
-        grid_t g = s->gridSelectionGrid();
+        selection_grid_t g = s->gridSelectionGrid();
         if (g.empty() == false) {
             createTileCursor(std::move(g));
             return true;

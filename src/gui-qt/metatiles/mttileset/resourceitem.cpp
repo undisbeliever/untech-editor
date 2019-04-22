@@ -35,16 +35,6 @@ ResourceItem::ResourceItem(ResourceList* parent, size_t index)
             this, &AbstractResourceItem::markUnchecked);
 }
 
-unsigned ResourceItem::nMetaTiles() const
-{
-    if (_compiledData) {
-        return MT::N_METATILES;
-    }
-    else {
-        return 0;
-    }
-}
-
 void ResourceItem::updateExternalFiles()
 {
     QStringList files;
