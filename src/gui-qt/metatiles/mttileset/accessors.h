@@ -90,14 +90,6 @@ protected:
 
 private slots:
     void updateSelectedTileParameters();
-
-signals:
-    void gridChanged();
-
-    void gridAboutToBeResized();
-    void gridResized();
-
-    void selectedCellsChanged();
 };
 }
 }
