@@ -51,12 +51,9 @@ public:
 
     // Sets the grid selection then emits gridSelectionEdited.
     // Should only be called by MtGridGraphicsItem
-    void editGridSelection(upoint_vectorset&& selectedCells);
-
-protected:
-    // returns true if the selected cells changed.
     virtual void setGridSelection(upoint_vectorset&& selectedCells) = 0;
 
+protected:
     virtual void tilesetItemChanged(MtTileset::ResourceItem* newTileset, MtTileset::ResourceItem* oldTileset) = 0;
 
     MtGridGraphicsItem* gridGraphicsItem() const { return _gridGraphicsItem; }
@@ -72,7 +69,7 @@ signals:
     // MUST be emitted by the subclass when the grid selection changes
     void gridSelectionChanged();
 
-    // emitted when the user edits the grid selection.
+    // emitted when the user has finished editing the grid selection
     void gridSelectionEdited();
 
 private slots:

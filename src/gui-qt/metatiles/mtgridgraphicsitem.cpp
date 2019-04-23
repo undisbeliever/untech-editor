@@ -12,6 +12,7 @@
 #include "models/metatiles/metatile-tileset.h"
 
 #include <QGraphicsSceneMouseEvent>
+#include <QKeyEvent>
 
 using namespace UnTech;
 using namespace UnTech::GuiQt;
@@ -29,8 +30,11 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
     , _showGridSelection(true)
     , _enableMouseSelection(true)
     , _inRectangularSelection(false)
+    , _uncommittedSelection(false)
 {
     Q_ASSERT(scene);
+
+    _scene->installEventFilter(this);
 
     connect(scene, &MtGraphicsScene::gridResized,
             this, &MtGridGraphicsItem::onGridResized);
@@ -87,6 +91,8 @@ void MtGridGraphicsItem::onGridResized()
         _firstCellOfRectangularSelection = upoint(0, 0);
         _gridSelectionBeforeRectangularSelection = _scene->gridSelection();
     }
+
+    _uncommittedSelection = false;
 
     prepareGeometryChange();
     updateTileGridFragments();
@@ -191,18 +197,20 @@ void MtGridGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
             else {
                 sel.erase(it);
             }
-            _scene->editGridSelection(std::move(sel));
+            _scene->setGridSelection(std::move(sel));
         }
         else {
             // No Modifiers, replace selection with clicked cell
 
             upoint_vectorset sel = { cell };
-            _scene->editGridSelection(std::move(sel));
+            _scene->setGridSelection(std::move(sel));
         }
 
         if ((event->modifiers() & Qt::ShiftModifier) == false) {
             _firstCellOfRectangularSelection = cell;
         }
+
+        _uncommittedSelection = true;
     }
 }
 
@@ -251,7 +259,56 @@ void MtGridGraphicsItem::processRenctangularSelection(const upoint& cell)
         }
     }
 
-    _scene->editGridSelection(std::move(sel));
+    _scene->setGridSelection(std::move(sel));
+
+    _uncommittedSelection = true;
 
     _inRectangularSelection = false;
+}
+
+void MtGridGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+    if (_enableMouseSelection == false) {
+        return;
+    }
+
+    if (event->button() == Qt::LeftButton
+        && event->modifiers() != Qt::ControlModifier) {
+
+        _scene->gridSelectionEdited();
+        _uncommittedSelection = false;
+    }
+}
+
+bool MtGridGraphicsItem::eventFilter(QObject* watched, QEvent* event)
+{
+    // This code uses QObject::eventFilter as QGraphicsItem::sceneEvent does not catch Leave/FocusOut events.
+
+    if (watched == _scene && _uncommittedSelection) {
+        bool commitSelection = false;
+
+        if (event->type() == QEvent::Leave) {
+            // Mouse has left the scene
+            commitSelection = true;
+        }
+        if (event->type() == QEvent::FocusOut) {
+            // Focus has left the scene
+            commitSelection = true;
+        }
+        else if (event->type() == QEvent::KeyRelease) {
+            if (auto* keyEvent = dynamic_cast<QKeyEvent*>(event)) {
+                if (keyEvent->key() == Qt::Key_Control) {
+                    // Somewhere in the scene the user released control
+                    commitSelection = true;
+                }
+            }
+        }
+
+        if (commitSelection) {
+            emit _scene->gridSelectionEdited();
+            _uncommittedSelection = false;
+        }
+    }
+
+    return false;
 }

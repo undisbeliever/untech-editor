@@ -42,6 +42,9 @@ public:
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent* event) final;
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final;
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final;
+
+    virtual bool eventFilter(QObject* watched, QEvent* event) final;
 
 private:
     upoint positionToGridCell(const QPointF& pos);
@@ -69,6 +72,13 @@ private:
     bool _showGridSelection;
     bool _enableMouseSelection;
     bool _inRectangularSelection;
+
+    // If true then the user has changed the selection but
+    // `_scene->gridSelectionEdited()` has not yet been emitted.
+    //
+    // If true then `_scene->gridSelectionEdited()` will be emitted when the
+    // user releases the Control key or leaves the scene.
+    bool _uncommittedSelection;
 };
 }
 }

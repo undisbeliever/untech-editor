@@ -85,12 +85,6 @@ MtGraphicsScene::selection_grid_t MtGraphicsScene::gridSelectionGrid() const
     return selGrid;
 }
 
-void MtGraphicsScene::editGridSelection(upoint_vectorset&& selectedCells)
-{
-    setGridSelection(std::move(selectedCells));
-    emit gridSelectionEdited();
-}
-
 void MtGraphicsScene::onRendererTilesetItemChanged()
 {
     MtTileset::ResourceItem* oldItem = _tilesetItem;
@@ -137,9 +131,8 @@ MtEditableGraphicsScene::MtEditableGraphicsScene(Style* style, MtTileset::MtTile
     , _cursorItem(nullptr)
     , _cursorRect()
 {
-    gridGraphicsItem()->setEnableMouseSelection(false);
-
     installEventFilter(this);
+    addGridSelectionSource(this);
 
     connect(this, &MtGraphicsScene::gridResized,
             this, &MtEditableGraphicsScene::onGridResized);
