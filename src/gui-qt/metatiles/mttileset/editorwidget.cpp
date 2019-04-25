@@ -134,8 +134,6 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 
     onTilesetPalettesChanged();
 
-    _editableScratchpadScene->createTileCursor();
-
     if (_tileset) {
         onTilesetStateChanged();
         connect(_tileset, &ResourceItem::stateChanged,

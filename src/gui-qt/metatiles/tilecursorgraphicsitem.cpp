@@ -27,7 +27,6 @@ TileCursorGraphicsItem::TileCursorGraphicsItem(MtEditableGraphicsScene* scene)
     , _tilePosition()
     , _boundingRect()
     , _mouseScenePosition()
-    , _sourceGrid()
     , _boxGrid()
     , _startBoxPosition()
 {
@@ -37,8 +36,13 @@ TileCursorGraphicsItem::TileCursorGraphicsItem(MtEditableGraphicsScene* scene)
 
     setEnableClickDrag(true);
 
+    onTileCursorGridChanged();
+
     connect(scene, &MtEditableGraphicsScene::cursorRectChanged,
             this, &TileCursorGraphicsItem::updateAll);
+
+    connect(scene, &MtEditableGraphicsScene::tileCursorGridChanged,
+            this, &TileCursorGraphicsItem::onTileCursorGridChanged);
 
     connect(scene->renderer(), &MtTileset::MtTilesetRenderer::pixmapChanged,
             this, &TileCursorGraphicsItem::updateAll);
@@ -58,21 +62,19 @@ bool TileCursorGraphicsItem::setTilePosition(const point& tilePosition)
     return false;
 }
 
-void TileCursorGraphicsItem::setSourceGrid(selection_grid_t&& grid)
+void TileCursorGraphicsItem::onTileCursorGridChanged()
 {
-    if (_sourceGrid != grid) {
-        _sourceGrid = grid;
-        resetDrawState();
+    Q_ASSERT(_scene->tileCursorGrid().empty() == false);
 
-        updateBoundingBox();
-        updateTileGridFragments();
-    }
+    resetDrawState();
+    updateBoundingBox();
+    updateTileGridFragments();
 }
 
 const TileCursorGraphicsItem::selection_grid_t& TileCursorGraphicsItem::activeGrid() const
 {
     if (_drawState == DrawState::STAMP) {
-        return _sourceGrid;
+        return _scene->tileCursorGrid();
     }
     else {
         return _boxGrid;
@@ -426,11 +428,12 @@ void TileCursorGraphicsItem::createBoxGrid(unsigned width, unsigned height)
 {
     Q_ASSERT(_drawState != DrawState::STAMP);
 
+    const selection_grid_t& sGrid = _scene->tileCursorGrid();
+
     Q_ASSERT(width > 0);
     Q_ASSERT(height > 0);
-    Q_ASSERT(_sourceGrid.empty() == false);
+    Q_ASSERT(sGrid.empty() == false);
 
-    const selection_grid_t& sGrid = _sourceGrid;
     const unsigned sgLastX = sGrid.width() - 1;
     const unsigned sgLastY = sGrid.height() - 1;
 

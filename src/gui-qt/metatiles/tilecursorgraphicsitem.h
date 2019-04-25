@@ -39,9 +39,6 @@ public:
     const point& tilePosition() const { return _tilePosition; }
     bool setTilePosition(const point& tilePosition);
 
-    const selection_grid_t& sourceGrid() const { return _sourceGrid; }
-    void setSourceGrid(selection_grid_t&& sourceGrid);
-
     const selection_grid_t& activeGrid() const;
 
     QRect validCellsRect() const;
@@ -77,6 +74,8 @@ private:
     void createBoxGrid(unsigned width, unsigned height);
 
 public slots:
+    void onTileCursorGridChanged();
+
     void updateAll();
 
     void updateTileGridFragments();
@@ -90,8 +89,6 @@ private:
     point _tilePosition;
     QRectF _boundingRect;
     QPointF _mouseScenePosition;
-
-    selection_grid_t _sourceGrid;
 
     selection_grid_t _boxGrid;
     point _startBoxPosition;

@@ -42,12 +42,12 @@ public:
     MtTileset::MtTilesetRenderer* renderer() const { return _renderer; }
     MtTileset::ResourceItem* tilesetItem() const { return _tilesetItem; }
 
+    virtual const grid_t& grid() const = 0;
+    virtual const upoint_vectorset& gridSelection() const = 0;
+
     // converts the gridSelection vectorset into a grid of MetaTiles.
     // Empty tiles contain values > N_METATILES.
     selection_grid_t gridSelectionGrid() const;
-
-    virtual const grid_t& grid() const = 0;
-    virtual const upoint_vectorset& gridSelection() const = 0;
 
     // Sets the grid selection then emits gridSelectionEdited.
     // Should only be called by MtGridGraphicsItem
@@ -99,18 +99,14 @@ public:
     const QRect& cursorRect() const { return _cursorRect; }
     void setCursorRect(const QRect& r);
 
+    // The tile cursor grid is stored in the scene to allow the user to easily
+    // remove the tile cursor with Escape and then reenable it later.
+    const selection_grid_t& tileCursorGrid() const { return _tileCursorGrid; }
+    void setTileCursorGrid(const selection_grid_t& tileCursorGrid);
+
     AbstractCursorGraphicsItem* cursorItem() const { return _cursorItem; }
     void removeCursor();
 
-    void createTileCursor(selection_grid_t&& grid);
-    // Create a tile cursor using the `gridSelectionGrid` of a MetaTile graphics scene
-    // Returns true of the scene has a valid selection.
-    void createTileCursor(MtGraphicsScene* scene);
-    // Creates a tile cursor using the `gridSelectionGrid` of the first valid gridSelection
-    // in the GridSelectionSources list.
-    //
-    // This SHOULD BE called when the Resource Item changes and AFTER the
-    // gridSelectionSources and their renderer's have had their resource items set.
     void createTileCursor();
 
     // Connects the scene's gridSelection to the tile cursor
@@ -127,6 +123,7 @@ protected:
 
 signals:
     void cursorRectChanged();
+    void tileCursorGridChanged();
 
 private slots:
     void onGridResized();
@@ -136,6 +133,8 @@ private:
     QList<MtGraphicsScene*> _gridSelectionSources;
     AbstractCursorGraphicsItem* _cursorItem;
     QRect _cursorRect;
+
+    selection_grid_t _tileCursorGrid;
 };
 }
 }

@@ -146,10 +146,27 @@ void MtEditableGraphicsScene::setCursorRect(const QRect& r)
     }
 }
 
+void MtEditableGraphicsScene::setTileCursorGrid(const selection_grid_t& tileCursorGrid)
+{
+    if (tileCursorGrid.empty()) {
+        // Remove TileCursorGraphicsItem if tileCursorGrid is empty
+        if (qobject_cast<TileCursorGraphicsItem*>(_cursorItem)) {
+            removeCursor();
+        }
+    }
+
+    _tileCursorGrid = tileCursorGrid;
+    emit tileCursorGridChanged();
+}
+
 void MtEditableGraphicsScene::onGridResized()
 {
     auto& grid = this->grid();
     _cursorRect.setRect(0, 0, grid.width() * 16, grid.height() * 16);
+
+    if (grid.empty()) {
+        removeCursor();
+    }
 }
 
 void MtEditableGraphicsScene::setCursor(AbstractCursorGraphicsItem* cursor)
@@ -232,49 +249,12 @@ void MtEditableGraphicsScene::removeCursor()
     gridGraphicsItem()->setShowGridSelection(true);
 }
 
-void MtEditableGraphicsScene::createTileCursor(MtGraphicsScene::selection_grid_t&& grid)
-{
-    if (grid.empty()) {
-        removeCursor();
-    }
-    else {
-        TileCursorGraphicsItem* cursor = qobject_cast<TileCursorGraphicsItem*>(_cursorItem);
-        if (cursor == nullptr) {
-            cursor = new TileCursorGraphicsItem(this);
-        }
-
-        cursor->setSourceGrid(std::move(grid));
-        setCursor(cursor);
-    }
-}
-
-void MtEditableGraphicsScene::createTileCursor(MtGraphicsScene* scene)
-{
-    Q_ASSERT(scene);
-    createTileCursor(scene->gridSelectionGrid());
-}
-
 void MtEditableGraphicsScene::createTileCursor()
 {
-    auto process = [this](MtGraphicsScene* s) {
-        selection_grid_t g = s->gridSelectionGrid();
-        if (g.empty() == false) {
-            createTileCursor(std::move(g));
-            return true;
+    if (qobject_cast<TileCursorGraphicsItem*>(_cursorItem) == nullptr) {
+        if (not _tileCursorGrid.empty()) {
+            setCursor(new TileCursorGraphicsItem(this));
         }
-        return false;
-    };
-
-    for (MtGraphicsScene* scene : _gridSelectionSources) {
-        bool ok = process(scene);
-        if (ok) {
-            return;
-        }
-    }
-
-    bool ok = process(this);
-    if (!ok) {
-        removeCursor();
     }
 }
 
@@ -291,8 +271,8 @@ void MtEditableGraphicsScene::addGridSelectionSource(MtGraphicsScene* scene)
 
 void MtEditableGraphicsScene::onGridSelectionEdited()
 {
-    MtGraphicsScene* obj = qobject_cast<MtGraphicsScene*>(sender());
-    if (obj) {
-        createTileCursor(obj);
+    if (auto* scene = qobject_cast<MtGraphicsScene*>(sender())) {
+        setTileCursorGrid(scene->gridSelectionGrid());
+        createTileCursor();
     }
 }
