@@ -371,6 +371,26 @@ void MtTilesetGridPainter::updateFragments(const grid<uint16_t>& grid)
     _updateFragments(grid);
 }
 
+void MtTilesetGridPainter::generateEraseFragments(unsigned width, unsigned height)
+{
+    constexpr int METATILE_SIZE = MtTilesetRenderer::METATILE_SIZE;
+
+    static const QPainter::PixmapFragment blankFragment = blankMetaTileFragment();
+
+    _fragments.resize(width * height, blankFragment);
+
+    auto fragmentIt = _fragments.begin();
+    for (unsigned y = 0; y < height; y++) {
+        for (unsigned x = 0; x < width; x++) {
+            fragmentIt->x = x * METATILE_SIZE + METATILE_SIZE / 2;
+            fragmentIt->y = y * METATILE_SIZE + METATILE_SIZE / 2;
+
+            *fragmentIt++;
+        }
+    }
+    Q_ASSERT(fragmentIt == _fragments.end());
+}
+
 void MtTilesetGridPainter::paint(QPainter* painter, MtTilesetRenderer* renderer)
 {
     painter->drawPixmapFragments(_fragments.data(), _fragments.size(), renderer->pixmap());

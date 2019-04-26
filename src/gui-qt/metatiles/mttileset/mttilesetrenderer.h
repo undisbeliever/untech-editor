@@ -100,6 +100,8 @@ public:
     void updateFragments(const grid<uint8_t>& grid);
     void updateFragments(const grid<uint16_t>& grid);
 
+    void generateEraseFragments(unsigned width, unsigned height);
+
     void paint(QPainter* painter, MtTilesetRenderer* renderer);
 
 private:

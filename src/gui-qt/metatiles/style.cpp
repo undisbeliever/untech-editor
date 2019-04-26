@@ -19,6 +19,8 @@ const QColor Style::GRID_SELECTION_BRUSH_COLOR(0, 0, 128, 128);
 
 const QColor Style::VALID_CURSOR_PEN_COLOR(0, 255, 0, 255);
 const QColor Style::VALID_CURSOR_BRUSH_COLOR(0, 128, 0, 128);
+const QColor Style::ERASER_CURSOR_PEN_COLOR(255, 128, 0, 255);
+const QColor Style::ERASER_CURSOR_BRUSH_COLOR(128, 64, 0, 128);
 const QColor Style::INVALID_CURSOR_PEN_COLOR(255, 0, 0, 255);
 const QColor Style::INVALID_CURSOR_BRUSH_COLOR(128, 0, 0, 128);
 
@@ -71,6 +73,16 @@ QPen Style::validCursorPen() const
 QBrush Style::validCursorBrush() const
 {
     return QBrush(VALID_CURSOR_BRUSH_COLOR);
+}
+
+QPen Style::eraserCursorPen() const
+{
+    return createCosmeticPen(ERASER_CURSOR_PEN_COLOR);
+}
+
+QBrush Style::eraserCursorBrush() const
+{
+    return QBrush(ERASER_CURSOR_BRUSH_COLOR);
 }
 
 QPen Style::invalidCursorPen() const

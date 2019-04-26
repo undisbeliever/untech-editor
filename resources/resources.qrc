@@ -34,5 +34,6 @@
  <file>icons/toggle-obj-size.svg</file>
  <file>icons/mt-selection.svg</file>
  <file>icons/mt-tile-cursor.svg</file>
+ <file>icons/mt-eraser-cursor.svg</file>
 </qresource>
 </RCC>

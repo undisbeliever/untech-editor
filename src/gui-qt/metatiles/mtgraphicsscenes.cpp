@@ -5,6 +5,7 @@
  */
 
 #include "mtgraphicsscenes.h"
+#include "erasercursorgraphicsitem.h"
 #include "mtgridgraphicsitem.h"
 #include "tilecursorgraphicsitem.h"
 #include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
@@ -145,6 +146,7 @@ MtEditableGraphicsScene::MtEditableGraphicsScene(Style* style, MtTileset::MtTile
     _selectionAction->setChecked(true);
 
     addCursorFactory(new TileCursorFactory(this));
+    addCursorFactory(new EraserCursorFactory(this));
 
     connect(this, &MtGraphicsScene::gridResized,
             this, &MtEditableGraphicsScene::onGridResized);

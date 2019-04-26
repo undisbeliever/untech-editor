@@ -23,6 +23,8 @@ private:
 
     static const QColor VALID_CURSOR_PEN_COLOR;
     static const QColor VALID_CURSOR_BRUSH_COLOR;
+    static const QColor ERASER_CURSOR_PEN_COLOR;
+    static const QColor ERASER_CURSOR_BRUSH_COLOR;
     static const QColor INVALID_CURSOR_PEN_COLOR;
     static const QColor INVALID_CURSOR_BRUSH_COLOR;
 
@@ -40,6 +42,9 @@ public:
 
     QPen validCursorPen() const;
     QBrush validCursorBrush() const;
+
+    QPen eraserCursorPen() const;
+    QBrush eraserCursorBrush() const;
 
     QPen invalidCursorPen() const;
     QBrush invalidCursorBrush() const;
