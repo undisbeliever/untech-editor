@@ -66,6 +66,8 @@ private slots:
     void onTilesetPalettesChanged();
     void onPaletteComboActivated(const QString& paletteId);
 
+    void onTabChanged();
+
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
 

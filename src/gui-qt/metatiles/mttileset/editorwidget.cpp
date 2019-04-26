@@ -40,6 +40,8 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
 
     _ui->setupUi(this);
 
+    _editableScratchpadScene->populateActions(_ui->scratchpadToolBar);
+
     _renderer->setPlayButton(_ui->playButton);
     _renderer->setRegionCombo(_ui->region);
 
@@ -67,6 +69,8 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     _dockedTilesetView->setScene(_tilesetScene);
     _dockedScratchpadView->setScene(_scratchpadScene);
 
+    onTabChanged();
+
     connect(_ui->resetAnimationButton, &QToolButton::clicked,
             _renderer, &MtTilesetRenderer::resetAnimations);
     connect(_ui->nextTilesetFrameButton, &QToolButton::clicked,
@@ -76,6 +80,9 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
 
     connect(_ui->palette, qOverload<const QString&>(&QComboBox::activated),
             this, &EditorWidget::onPaletteComboActivated);
+
+    connect(_ui->tabWidget, &QTabWidget::currentChanged,
+            this, &EditorWidget::onTabChanged);
 }
 
 EditorWidget::~EditorWidget() = default;
@@ -109,7 +116,8 @@ ZoomSettings* EditorWidget::zoomSettings() const
 
 void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
 {
-    Q_UNUSED(editMenu);
+    editMenu->addSeparator();
+    _editableScratchpadScene->populateActions(editMenu);
 
     viewMenu->addSeparator();
     viewMenu->addAction(_style->showGridAction());
@@ -211,6 +219,11 @@ void EditorWidget::onPaletteComboActivated(const QString& paletteId)
     auto* pal = _tileset->project()->palettes()->findResource(paletteId);
 
     _renderer->setPaletteItem(pal);
+}
+
+void EditorWidget::onTabChanged()
+{
+    _ui->scratchpadToolBar->setEnabled(_ui->tabWidget->currentWidget() == _ui->centralScratchpadGraphicsView);
 }
 
 void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)

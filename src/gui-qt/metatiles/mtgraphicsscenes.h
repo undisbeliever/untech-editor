@@ -8,6 +8,7 @@
 
 #include "models/common/grid.h"
 #include "models/common/vectorset-upoint.h"
+#include <QAction>
 #include <QGraphicsObject>
 #include <QGraphicsScene>
 #include <cstdint>
@@ -17,6 +18,7 @@ namespace GuiQt {
 namespace MetaTiles {
 class Style;
 class AbstractCursorGraphicsItem;
+class AbstractCursorFactory;
 class MtGridGraphicsItem;
 
 namespace MtTileset {
@@ -91,6 +93,10 @@ public:
     MtEditableGraphicsScene(Style* style, MtTileset::MtTilesetRenderer* renderer, QObject* parent);
     ~MtEditableGraphicsScene() = default;
 
+    void addCursorFactory(AbstractCursorFactory* factory);
+
+    void populateActions(QWidget* widget);
+
     // The boundary in which a curosr is valid.
     // NOTE: This class does not preform any validity checks, that is the responsibility
     // of the cursor and subclass.
@@ -106,6 +112,8 @@ public:
 
     AbstractCursorGraphicsItem* cursorItem() const { return _cursorItem; }
     void removeCursor();
+    void setFactoryAndCreateCursor(int id);
+    void createCursor();
 
     void createTileCursor();
 
@@ -129,8 +137,17 @@ private slots:
     void onGridResized();
     void onGridSelectionEdited();
 
+    void onCursorDestroyed();
+
+    void onActionGroupTriggered(QAction* action);
+
 private:
+    QAction* const _selectionAction;
+    QActionGroup* const _actionGroup;
+    QList<AbstractCursorFactory*> _cursorFactories;
+
     QList<MtGraphicsScene*> _gridSelectionSources;
+    int _currentCursorFactory;
     AbstractCursorGraphicsItem* _cursorItem;
     QRect _cursorRect;
 

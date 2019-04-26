@@ -47,3 +47,11 @@ void AbstractCursorGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event
         processClick();
     }
 }
+
+AbstractCursorFactory::AbstractCursorFactory(const QIcon& icon, const QString& text, QObject* parent)
+    : QObject(parent)
+    , _action(new QAction(icon, text, this))
+{
+    _action->setCheckable(true);
+    _action->setChecked(false);
+}

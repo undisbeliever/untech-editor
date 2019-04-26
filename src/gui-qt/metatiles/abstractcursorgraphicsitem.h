@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <QAction>
 #include <QGraphicsObject>
 
 namespace UnTech {
@@ -39,6 +40,20 @@ protected:
 
 private:
     bool _enableClickDrag;
+};
+
+class AbstractCursorFactory : public QObject {
+    Q_OBJECT
+
+private:
+    QAction* const _action;
+
+public:
+    AbstractCursorFactory(const QIcon& icon, const QString& text, QObject* parent);
+
+    QAction* action() { return _action; }
+
+    virtual AbstractCursorGraphicsItem* createCursor() = 0;
 };
 }
 }

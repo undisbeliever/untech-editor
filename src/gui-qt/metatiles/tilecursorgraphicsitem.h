@@ -93,6 +93,18 @@ private:
     selection_grid_t _boxGrid;
     point _startBoxPosition;
 };
+
+class TileCursorFactory : public AbstractCursorFactory {
+    Q_OBJECT
+
+private:
+    MtEditableGraphicsScene* const _scene;
+
+public:
+    TileCursorFactory(MtEditableGraphicsScene* scene);
+
+    virtual TileCursorGraphicsItem* createCursor() final;
+};
 }
 }
 }

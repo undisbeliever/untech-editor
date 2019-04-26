@@ -127,15 +127,49 @@ void MtGraphicsScene::keyPressEvent(QKeyEvent* keyEvent)
 
 MtEditableGraphicsScene::MtEditableGraphicsScene(Style* style, MtTileset::MtTilesetRenderer* renderer, QObject* parent)
     : MtGraphicsScene(style, renderer, parent)
+    , _selectionAction(new QAction(QIcon(":/icons/mt-selection.svg"), tr("Select Tiles"), this))
+    , _actionGroup(new QActionGroup(this))
+    , _cursorFactories()
     , _gridSelectionSources()
+    , _currentCursorFactory(-1)
     , _cursorItem(nullptr)
     , _cursorRect()
 {
     installEventFilter(this);
     addGridSelectionSource(this);
 
+    _actionGroup->setExclusive(true);
+
+    _actionGroup->addAction(_selectionAction);
+    _selectionAction->setCheckable(true);
+    _selectionAction->setChecked(true);
+
+    addCursorFactory(new TileCursorFactory(this));
+
     connect(this, &MtGraphicsScene::gridResized,
             this, &MtEditableGraphicsScene::onGridResized);
+
+    connect(_actionGroup, &QActionGroup::triggered,
+            this, &MtEditableGraphicsScene::onActionGroupTriggered);
+}
+
+void MtEditableGraphicsScene::addCursorFactory(AbstractCursorFactory* factory)
+{
+    Q_ASSERT(factory);
+
+    _cursorFactories.append(factory);
+
+    factory->action()->setCheckable(true);
+    _actionGroup->addAction(factory->action());
+}
+
+void MtEditableGraphicsScene::populateActions(QWidget* widget)
+{
+    widget->addAction(_selectionAction);
+
+    for (auto* f : _cursorFactories) {
+        widget->addAction(f->action());
+    }
 }
 
 void MtEditableGraphicsScene::setCursorRect(const QRect& r)
@@ -183,28 +217,6 @@ void MtEditableGraphicsScene::setCursor(AbstractCursorGraphicsItem* cursor)
 
     // Move cursor to mouse position and grab the mouse
     // if the mouse is over the QGraphicsView.
-    if (_cursorItem) {
-        bool underMouse = false;
-        for (QGraphicsView* view : views()) {
-            if (view->underMouse()) {
-                underMouse = true;
-
-                QPointF scenePos = view->mapToScene(view->mapFromGlobal(QCursor::pos()));
-                _cursorItem->processMouseScenePosition(scenePos);
-
-                break;
-            }
-        }
-        _cursorItem->setVisible(underMouse);
-
-        if (underMouse) {
-            _cursorItem->setFocus();
-            _cursorItem->grabMouse();
-        }
-    }
-
-    // Do not show selection if cursor is active
-    gridGraphicsItem()->setShowGridSelection(_cursorItem == nullptr);
 }
 
 bool MtEditableGraphicsScene::event(QEvent* event)
@@ -243,19 +255,120 @@ void MtEditableGraphicsScene::removeCursor()
         // cannot call `removeItem(removeItem)` here as it causes a `pure virtual method called` error.
 
         delete _cursorItem;
-        _cursorItem = nullptr;
+        Q_ASSERT(_cursorItem == nullptr);
     }
 
     gridGraphicsItem()->setShowGridSelection(true);
 }
 
-void MtEditableGraphicsScene::createTileCursor()
+void MtEditableGraphicsScene::setFactoryAndCreateCursor(int id)
 {
-    if (qobject_cast<TileCursorGraphicsItem*>(_cursorItem) == nullptr) {
-        if (not _tileCursorGrid.empty()) {
-            setCursor(new TileCursorGraphicsItem(this));
+    if (id < 0 || id >= _cursorFactories.size()) {
+        id = -1;
+    }
+
+    if (_currentCursorFactory != id) {
+        removeCursor();
+
+        if (id >= 0) {
+            _cursorFactories.at(id)->action()->setChecked(true);
+        }
+        else {
+            _selectionAction->setChecked(true);
         }
     }
+    _currentCursorFactory = id;
+
+    if (_cursorItem == nullptr) {
+        createCursor();
+    }
+}
+
+void MtEditableGraphicsScene::createCursor()
+{
+    if (_cursorItem) {
+        removeCursor();
+    }
+
+    const int factoryId = _currentCursorFactory;
+    if (factoryId < 0 || factoryId >= _cursorFactories.size()) {
+        return;
+    }
+
+    Q_ASSERT(_cursorItem == nullptr);
+
+    auto* cursor = _cursorFactories.at(factoryId)->createCursor();
+
+    if (cursor) {
+        _cursorItem = cursor;
+
+        _cursorFactories.at(factoryId)->action()->setChecked(true);
+
+        cursor->setZValue(99999);
+        addItem(cursor);
+
+        bool underMouse = false;
+        for (QGraphicsView* view : views()) {
+            if (view->underMouse()) {
+                underMouse = true;
+
+                QPointF scenePos = view->mapToScene(view->mapFromGlobal(QCursor::pos()));
+                _cursorItem->processMouseScenePosition(scenePos);
+
+                break;
+            }
+        }
+        cursor->setVisible(underMouse);
+
+        if (underMouse) {
+            cursor->setFocus();
+            cursor->grabMouse();
+        }
+
+        connect(cursor, &AbstractCursorGraphicsItem::destroyed,
+                this, &MtEditableGraphicsScene::onCursorDestroyed);
+    }
+    else if (cursor == nullptr) {
+        _selectionAction->setChecked(true);
+    }
+
+    // Do not show selection if cursor is active
+    gridGraphicsItem()->setShowGridSelection(_cursorItem == nullptr);
+}
+
+void MtEditableGraphicsScene::onCursorDestroyed()
+{
+    if (sender() == _cursorItem) {
+        _cursorItem = nullptr;
+
+        _selectionAction->setChecked(true);
+    }
+}
+
+void MtEditableGraphicsScene::onActionGroupTriggered(QAction* action)
+{
+    if (action->isChecked()) {
+        for (int i = 0; i < _cursorFactories.size(); i++) {
+            if (action == _cursorFactories.at(i)->action()) {
+                setFactoryAndCreateCursor(i);
+                return;
+            }
+        }
+    }
+
+    // No cursor selected
+    setFactoryAndCreateCursor(-1);
+}
+
+void MtEditableGraphicsScene::createTileCursor()
+{
+    for (int i = 0; i < _cursorFactories.size(); i++) {
+        if (qobject_cast<TileCursorFactory*>(_cursorFactories.at(i))) {
+            setFactoryAndCreateCursor(i);
+            return;
+        }
+    }
+    removeCursor();
 }
 
 void MtEditableGraphicsScene::addGridSelectionSource(MtGraphicsScene* scene)

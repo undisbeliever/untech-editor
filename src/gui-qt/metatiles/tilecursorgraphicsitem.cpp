@@ -503,3 +503,18 @@ void TileCursorGraphicsItem::createBoxGrid(unsigned width, unsigned height)
     updateBoundingBox();
     updateTileGridFragments();
 }
+
+TileCursorFactory::TileCursorFactory(MtEditableGraphicsScene* scene)
+    : AbstractCursorFactory(QIcon(":/icons/mt-tile-cursor.svg"), tr("Place Tiles"), scene)
+    , _scene(scene)
+{
+}
+
+TileCursorGraphicsItem* TileCursorFactory::createCursor()
+{
+    if (_scene->tileCursorGrid().empty()) {
+        return nullptr;
+    }
+
+    return new TileCursorGraphicsItem(_scene);
+}
