@@ -95,7 +95,7 @@ bool MtTilesetScratchpadGrid::editGrid_resizeGrid(const usize& size)
         tr("Resize scratchpad"));
 }
 
-bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const grid<uint16_t>& tiles)
+bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const grid<uint16_t>& tiles, const QString& text)
 {
     const auto* data = resourceItem()->compiledData();
     if (data == nullptr) {
@@ -103,7 +103,6 @@ bool MtTilesetScratchpadGrid::editGrid_placeTiles(const point& location, const g
     }
 
     return UndoHelper(this).editCellsWithCroppingAndCellTest(
-        location, tiles,
-        tr("Place Tiles"),
+        location, tiles, text,
         [&](const uint16_t& t) -> optional<uint8_t> { return t < MT::N_METATILES ? t : optional<uint8_t>{}; });
 }

@@ -74,7 +74,7 @@ public:
     virtual usize size() const final;
 
     bool editGrid_resizeGrid(const usize& size);
-    bool editGrid_placeTiles(const point& location, const grid<uint16_t>& tiles);
+    bool editGrid_placeTiles(const point& location, const grid<uint16_t>& tiles, const QString& text);
 
 protected:
     friend class Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;

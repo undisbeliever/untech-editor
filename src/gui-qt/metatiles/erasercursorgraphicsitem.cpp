@@ -388,7 +388,7 @@ void EraserCursorGraphicsItem::processClick()
         && _cursorPosition.y <= validCells.bottom()
         && int(_cursorPosition.y + _cursorSize.height - 1) >= validCells.top()) {
 
-        _scene->placeTiles(UnTech::grid<uint16_t>(_cursorSize, 0), _cursorPosition);
+        _scene->placeTiles(UnTech::grid<uint16_t>(_cursorSize, 0), _cursorPosition, tr("Erase"));
     }
 }
 

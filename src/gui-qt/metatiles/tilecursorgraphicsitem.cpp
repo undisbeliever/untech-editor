@@ -420,7 +420,7 @@ void TileCursorGraphicsItem::processClick()
         && _tilePosition.y <= validCells.bottom()
         && _tilePosition.y + gridHeight - 1 >= validCells.top()) {
 
-        _scene->placeTiles(grid, _tilePosition);
+        _scene->placeTiles(grid, _tilePosition, tr("Place Tiles"));
     }
 }
 
