@@ -331,7 +331,7 @@ void TileCursorGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     switch (_drawState) {
     case DrawState::STAMP:
         if (moved && event->buttons() == Qt::LeftButton) {
-            processClick();
+            placeTiles(false);
         }
         break;
 
@@ -357,7 +357,7 @@ void TileCursorGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if (event->button() & Qt::LeftButton) {
         switch (_drawState) {
         case DrawState::STAMP:
-            processClick();
+            placeTiles(true);
             break;
 
         case DrawState::DRAW_BOX:
@@ -370,7 +370,7 @@ void TileCursorGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
             break;
 
         case DrawState::DRAW_BOX_SECOND_CLICK:
-            processClick();
+            placeTiles(true);
             _drawState = DrawState::DRAW_BOX;
             createBoxGrid(1, 1);
             processMouseScenePosition(_mouseScenePosition);
@@ -397,7 +397,7 @@ void TileCursorGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
             break;
 
         case DrawState::DRAW_BOX_DRAGING:
-            processClick();
+            placeTiles(true);
             _drawState = DrawState::DRAW_BOX;
             createBoxGrid(1, 1);
             processMouseScenePosition(_mouseScenePosition);
@@ -406,7 +406,7 @@ void TileCursorGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     }
 }
 
-void TileCursorGraphicsItem::processClick()
+void TileCursorGraphicsItem::placeTiles(bool firstClick)
 {
     const QRect validCells = validCellsRect();
     const selection_grid_t& grid = activeGrid();
@@ -418,7 +418,7 @@ void TileCursorGraphicsItem::processClick()
         && _tilePosition.y <= validCells.bottom()
         && _tilePosition.y + gridHeight - 1 >= validCells.top()) {
 
-        _scene->placeTiles(grid, _tilePosition, tr("Place Tiles"));
+        _scene->placeTiles(grid, _tilePosition, tr("Place Tiles"), firstClick);
     }
 }
 

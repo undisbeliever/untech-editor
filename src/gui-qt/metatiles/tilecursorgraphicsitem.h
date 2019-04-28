@@ -62,7 +62,7 @@ protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final;
 
 private:
-    void processClick();
+    void placeTiles(bool firstClick);
 
     void resetDrawState();
     void updateBoundingBox();

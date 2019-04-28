@@ -121,7 +121,7 @@ public:
     void addGridSelectionSource(MtGraphicsScene* scene);
 
     // Be aware location may be outside the grid.
-    virtual void placeTiles(const selection_grid_t& tiles, point location, const QString& text) = 0;
+    virtual void placeTiles(const selection_grid_t& tiles, point location, const QString& text, bool firstClick) = 0;
 
 protected:
     void setCursor(AbstractCursorGraphicsItem* cursor);

@@ -55,6 +55,12 @@ private:
         ~BaseCommand() = default;
 
     protected:
+        inline const GridT* grid() const
+        {
+            auto f = std::mem_fn(&AccessorT::getGrid);
+            return mem_fn_call(f, _accessor, _args);
+        }
+
         inline GridT* getGrid()
         {
             auto f = std::mem_fn(&AccessorT::getGrid);
@@ -196,6 +202,89 @@ private:
         }
     };
 
+    class EditMultipleCellsCommand : public BaseCommand {
+    public:
+        struct ModifiedCell {
+            size_t pos;
+            DataT oldValue;
+            DataT newValue;
+        };
+
+    private:
+        QVector<ModifiedCell> _cells;
+        const bool _first;
+
+    public:
+        EditMultipleCellsCommand(AccessorT* accessor, const ArgsT& args,
+                                 QVector<ModifiedCell>&& cells,
+                                 const QString& text, const bool first)
+            : BaseCommand(accessor, args, text)
+            , _cells(std::move(cells))
+            , _first(first)
+        {
+        }
+        ~EditMultipleCellsCommand() = default;
+
+        virtual int id() const final
+        {
+            return 0x47454d43; // GEMC
+        }
+
+        virtual void undo() final
+        {
+            GridT* grid = this->getGrid();
+            Q_ASSERT(grid);
+            const size_t cellCount = grid->cellCount();
+
+            for (const auto& mc : _cells) {
+                Q_ASSERT(mc.pos < cellCount);
+                *(grid->begin() + mc.pos) = mc.oldValue;
+            }
+
+            this->emitGridChanged();
+        }
+
+        virtual void redo() final
+        {
+            GridT* grid = this->getGrid();
+            Q_ASSERT(grid);
+            const size_t cellCount = grid->cellCount();
+
+            for (const auto& mc : _cells) {
+                Q_ASSERT(mc.pos < cellCount);
+                *(grid->begin() + mc.pos) = mc.newValue;
+            }
+
+            this->emitGridChanged();
+        }
+
+        virtual bool mergeWith(const QUndoCommand* cmd) final
+        {
+            const auto* command = dynamic_cast<const EditMultipleCellsCommand*>(cmd);
+
+            if (command
+                && command->_first == false
+                && command->_accessor == this->_accessor
+                && command->_args == this->_args
+                && command->grid() == this->grid()) {
+
+                for (const ModifiedCell& commandCell : command->_cells) {
+                    auto it = std::find_if(this->_cells.begin(), this->_cells.end(),
+                                           [&](const auto& i) { return i.pos == commandCell.pos; });
+                    if (it != this->_cells.end()) {
+                        it->newValue = commandCell.newValue;
+                    }
+                    else {
+                        this->_cells.append(commandCell);
+                    }
+                }
+                return true;
+            }
+
+            return false;
+        }
+    };
+
 private:
     AccessorT* const _accessor;
 
@@ -313,10 +402,12 @@ public:
 
     // will return nullptr if old cells could not be accessed or is equal to newCells
     template <typename NCT, typename UnaryFunction>
-    QUndoCommand* editCellsWithCroppingAndCellTestCommand(const point& pos, const UnTech::grid<NCT>& cellsToInsert,
-                                                          const QString& text,
-                                                          UnaryFunction validCellTest)
+    QUndoCommand* editCellsMergeWithCroppingAndCellTestCommand(const point& pos, const UnTech::grid<NCT>& cellsToInsert,
+                                                               const QString& text, const bool first,
+                                                               UnaryFunction validCellTest)
     {
+        using ModifiedCell = typename EditMultipleCellsCommand::ModifiedCell;
+
         if (cellsToInsert.empty()
             || pos.x < -int(cellsToInsert.width())
             || pos.y < -int(cellsToInsert.height())) {
@@ -337,50 +428,45 @@ public:
             return nullptr;
         }
 
-        // crop newCells to fit grid
-        const upoint croppedPos(std::max(0, pos.x),
-                                std::max(0, pos.y));
-        const upoint croppedOffset(croppedPos.x - pos.x,
-                                   croppedPos.y - pos.y);
-        const usize croppedSize(std::min(cellsToInsert.width() - croppedOffset.x, grid->width() - croppedPos.x),
-                                std::min(cellsToInsert.height() - croppedOffset.y, grid->height() - croppedPos.y));
-
-        GridT oldCells(croppedSize);
-        GridT newCells(croppedSize);
-        Q_ASSERT(oldCells.empty() == false);
+        const upoint gridPos(std::max(0, pos.x),
+                             std::max(0, pos.y));
+        const upoint ctiOffset(gridPos.x - pos.x,
+                               gridPos.y - pos.y);
+        const usize ctiSize(std::min(cellsToInsert.width() - ctiOffset.x, grid->width() - gridPos.x),
+                            std::min(cellsToInsert.height() - ctiOffset.y, grid->height() - gridPos.y));
 
         // apply the validCellTest function to each of the new grid cells
 
-        auto oldIt = oldCells.begin();
-        auto newIt = newCells.begin();
+        QVector<ModifiedCell> cells;
+        cells.reserve(ctiSize.width * ctiSize.height);
 
-        for (unsigned y = 0; y < croppedSize.height; y++) {
-            for (unsigned x = 0; x < croppedSize.width; x++) {
-                const DataT& oldCell = grid->at(croppedPos.x + x, croppedPos.y + y);
-                const NCT& cti = cellsToInsert.at(croppedOffset.x + x, croppedOffset.y + y);
+        for (unsigned y = 0; y < ctiSize.height; y++) {
+            for (unsigned x = 0; x < ctiSize.width; x++) {
+                const DataT& oldCell = grid->at(gridPos.x + x, gridPos.y + y);
+                const NCT& cti = cellsToInsert.at(ctiOffset.x + x, ctiOffset.y + y);
 
                 const optional<DataT> nc = validCellTest(cti);
-
-                *oldIt++ = oldCell;
-                *newIt++ = nc.value_or(oldCell);
+                if (nc) {
+                    cells.append(
+                        ModifiedCell{ grid->cellPos(gridPos.x + x, gridPos.y + y),
+                                      oldCell,
+                                      nc.value() });
+                }
             }
         }
-        Q_ASSERT(oldIt == oldCells.end());
-        Q_ASSERT(newIt == newCells.end());
 
-        if (newCells == oldCells) {
+        if (cells.empty()) {
             return nullptr;
         }
-        return new EditCellsCommand(_accessor, gridArgs, croppedPos,
-                                    std::move(oldCells), std::move(newCells), text);
+        return new EditMultipleCellsCommand(_accessor, gridArgs, std::move(cells), text, first);
     }
 
     template <typename NCT, typename UnaryFunction>
-    bool editCellsWithCroppingAndCellTest(const point& pos, const UnTech::grid<NCT>& newCells,
-                                          const QString& text,
-                                          UnaryFunction validCellTest)
+    bool editCellsMergeWithCroppingAndCellTest(const point& pos, const UnTech::grid<NCT>& newCells,
+                                               const QString& text, const bool first,
+                                               UnaryFunction validCellTest)
     {
-        QUndoCommand* e = editCellsWithCroppingAndCellTestCommand(pos, newCells, text, validCellTest);
+        QUndoCommand* e = editCellsMergeWithCroppingAndCellTestCommand(pos, newCells, text, first, validCellTest);
         if (e) {
             _accessor->resourceItem()->undoStack()->push(e);
         }

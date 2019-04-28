@@ -302,7 +302,7 @@ void EraserCursorGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     switch (_drawState) {
     case DrawState::STAMP:
         if (moved && event->buttons() == Qt::LeftButton) {
-            processClick();
+            placeTiles(false);
         }
         break;
 
@@ -328,7 +328,7 @@ void EraserCursorGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if (event->button() & Qt::LeftButton) {
         switch (_drawState) {
         case DrawState::STAMP:
-            processClick();
+            placeTiles(true);
             break;
 
         case DrawState::DRAW_BOX:
@@ -341,7 +341,7 @@ void EraserCursorGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
             break;
 
         case DrawState::DRAW_BOX_SECOND_CLICK:
-            processClick();
+            placeTiles(true);
             _drawState = DrawState::DRAW_BOX;
             setCursorSize(1, 1);
             processMouseScenePosition(_mouseScenePosition);
@@ -368,7 +368,7 @@ void EraserCursorGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event
             break;
 
         case DrawState::DRAW_BOX_DRAGING:
-            processClick();
+            placeTiles(true);
             _drawState = DrawState::DRAW_BOX;
             setCursorSize(1, 1);
             processMouseScenePosition(_mouseScenePosition);
@@ -377,7 +377,7 @@ void EraserCursorGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event
     }
 }
 
-void EraserCursorGraphicsItem::processClick()
+void EraserCursorGraphicsItem::placeTiles(bool firstClick)
 {
     const QRect validCells = validCellsRect();
 
@@ -386,7 +386,7 @@ void EraserCursorGraphicsItem::processClick()
         && _cursorPosition.y <= validCells.bottom()
         && int(_cursorPosition.y + _cursorSize.height - 1) >= validCells.top()) {
 
-        _scene->placeTiles(UnTech::grid<uint16_t>(_cursorSize, 0), _cursorPosition, tr("Erase"));
+        _scene->placeTiles(UnTech::grid<uint16_t>(_cursorSize, 0), _cursorPosition, tr("Erase"), firstClick);
     }
 }
 

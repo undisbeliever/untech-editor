@@ -86,6 +86,13 @@ public:
     }
     const T& at(const upoint& p) const { return at(p.x, p.y); }
 
+    size_t cellPos(unsigned x, unsigned y) const
+    {
+        _rangeCheck(x, y);
+        return y * _width + x;
+    }
+    size_t cellPos(const upoint& p) const { return at(p.x, p.y); }
+
     inline void set(unsigned x, unsigned y, const T& value)
     {
         _rangeCheck(x, y);

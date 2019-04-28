@@ -185,9 +185,9 @@ void MtEditableScratchpadGraphicsScene::setGridSelection(upoint_vectorset&& sele
     }
 }
 
-void MtEditableScratchpadGraphicsScene::placeTiles(const selection_grid_t& tiles, point location, const QString& text)
+void MtEditableScratchpadGraphicsScene::placeTiles(const selection_grid_t& tiles, point location, const QString& text, bool firstClick)
 {
-    tilesetItem()->scratchpadGrid()->editGrid_placeTiles(location, tiles, text);
+    tilesetItem()->scratchpadGrid()->editGrid_placeTiles(location, tiles, text, firstClick);
 }
 
 void MtEditableScratchpadGraphicsScene::tilesetItemChanged(ResourceItem* newTileset, ResourceItem* oldTileset)

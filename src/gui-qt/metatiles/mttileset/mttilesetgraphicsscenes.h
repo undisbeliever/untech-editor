@@ -64,7 +64,7 @@ public:
     virtual const grid_t& grid() const final;
     virtual const upoint_vectorset& gridSelection() const final;
 
-    virtual void placeTiles(const selection_grid_t& tiles, point location, const QString& text) final;
+    virtual void placeTiles(const selection_grid_t& tiles, point location, const QString& text, bool firstClick) final;
 
 protected:
     virtual void setGridSelection(upoint_vectorset&& selectedCells) final;
