@@ -394,6 +394,7 @@ EraserCursorFactory::EraserCursorFactory(MtEditableGraphicsScene* scene)
     : AbstractCursorFactory(QIcon(":/icons/mt-eraser-cursor.svg"), tr("Eraser"), scene)
     , _scene(scene)
 {
+    action()->setShortcut(Qt::Key_E);
 }
 
 EraserCursorGraphicsItem* EraserCursorFactory::createCursor()

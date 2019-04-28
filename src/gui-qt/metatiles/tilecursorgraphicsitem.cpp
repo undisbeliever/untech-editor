@@ -506,6 +506,7 @@ TileCursorFactory::TileCursorFactory(MtEditableGraphicsScene* scene)
     : AbstractCursorFactory(QIcon(":/icons/mt-tile-cursor.svg"), tr("Place Tiles"), scene)
     , _scene(scene)
 {
+    action()->setShortcut(Qt::Key_T);
 }
 
 TileCursorGraphicsItem* TileCursorFactory::createCursor()

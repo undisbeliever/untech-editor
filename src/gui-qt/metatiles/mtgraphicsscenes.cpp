@@ -144,6 +144,7 @@ MtEditableGraphicsScene::MtEditableGraphicsScene(Style* style, MtTileset::MtTile
     _actionGroup->addAction(_selectionAction);
     _selectionAction->setCheckable(true);
     _selectionAction->setChecked(true);
+    _selectionAction->setShortcut(Qt::Key_S);
 
     addCursorFactory(new TileCursorFactory(this));
     addCursorFactory(new EraserCursorFactory(this));
