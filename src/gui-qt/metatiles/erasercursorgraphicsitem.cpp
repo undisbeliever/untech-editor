@@ -34,8 +34,6 @@ EraserCursorGraphicsItem::EraserCursorGraphicsItem(MtEditableGraphicsScene* scen
 
     setFlag(QGraphicsItem::ItemIsFocusable, true);
 
-    setEnableClickDrag(true);
-
     updateBoundingBox();
     updateTileGridFragments();
 
@@ -303,7 +301,7 @@ void EraserCursorGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
     switch (_drawState) {
     case DrawState::STAMP:
-        if (moved && enableClickDrag() && event->buttons() == Qt::LeftButton) {
+        if (moved && event->buttons() == Qt::LeftButton) {
             processClick();
         }
         break;

@@ -19,7 +19,6 @@ using namespace UnTech::GuiQt::MetaTiles;
 
 AbstractCursorGraphicsItem::AbstractCursorGraphicsItem()
     : QGraphicsObject()
-    , _enableClickDrag(false)
 {
     setFlag(ItemSendsGeometryChanges);
     setAcceptHoverEvents(true);
@@ -28,24 +27,6 @@ AbstractCursorGraphicsItem::AbstractCursorGraphicsItem()
 bool AbstractCursorGraphicsItem::processEscape()
 {
     return true;
-}
-
-void AbstractCursorGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-    bool moved = processMouseScenePosition(event->scenePos());
-
-    if (moved && _enableClickDrag && event->buttons() == Qt::LeftButton) {
-        processClick();
-    }
-}
-
-void AbstractCursorGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-    processMouseScenePosition(event->scenePos());
-
-    if (event->button() == Qt::LeftButton) {
-        processClick();
-    }
 }
 
 AbstractCursorFactory::AbstractCursorFactory(const QIcon& icon, const QString& text, QObject* parent)

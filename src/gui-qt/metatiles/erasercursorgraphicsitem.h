@@ -50,7 +50,6 @@ public:
 
     virtual bool processMouseScenePosition(const QPointF& scenePos) final;
 
-    virtual void processClick() final;
     virtual bool processEscape() final;
 
 protected:
@@ -62,6 +61,8 @@ protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final;
 
 private:
+    void processClick();
+
     void resetDrawState();
     void updateBoundingBox();
 
