@@ -171,6 +171,12 @@ private:
         ~BaseCommand() = default;
 
     protected:
+        inline const ListT* list() const
+        {
+            auto f = std::mem_fn(&AccessorT::getList);
+            return mem_fn_call(f, _accessor, _args);
+        }
+
         inline ListT* getList()
         {
             auto f = std::mem_fn(&AccessorT::getList);
@@ -336,7 +342,9 @@ private:
 
             if (command
                 && command->_first == false
+                && command->_accessor == this->_accessor
                 && command->_args == this->_args
+                && command->list() == this->list()
                 && command->_index == this->_index
                 && command->_oldValue == this->_newValue) {
 
