@@ -7,6 +7,8 @@
 #include "structfields.h"
 #include "models/entity/entityromdata.h"
 
+#include <QList>
+
 using namespace UnTech::GuiQt::Entity;
 
 using DataType = EN::DataType;
