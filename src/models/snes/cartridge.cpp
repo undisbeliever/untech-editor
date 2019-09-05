@@ -51,8 +51,9 @@ static inline size_t checksumAddress(MemoryMap memoryMap)
 
 bool Cartridge::isHeaderValid(const std::vector<uint8_t>& rom, MemoryMap memoryMap)
 {
+    // Blank Maker Code and Game Code as my homebrew stuff is unlicensed.
     static const std::array<uint8_t, 2 + 4 + 7> EXPECTED(
-        { { 'F', 'F', 'S', 'N', 'E', 'S', 0, 0, 0, 0, 0, 0, 0 } });
+        { { ' ', ' ', ' ', ' ', ' ', ' ', 0, 0, 0, 0, 0, 0, 0 } });
 
     // addresses of blank words in the interrupt vector
     static const std::array<size_t, 6> BLANK_INTERRUPT_VECTORS(
