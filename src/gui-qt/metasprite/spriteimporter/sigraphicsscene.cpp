@@ -302,7 +302,7 @@ void SiGraphicsScene::onSceneSelectionChanged()
             }
         }
 
-        return std::move(sel);
+        return sel;
     };
 
     _resourceItem->frameObjectList()->setSelectedIndexes(getSelected(frameItem->objects()));

@@ -416,7 +416,7 @@ void MsGraphicsScene::onSceneSelectionChanged()
             }
         }
 
-        return std::move(sel);
+        return sel;
     };
 
     _resourceItem->frameObjectList()->setSelectedIndexes(getSelected(_objects));
