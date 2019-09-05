@@ -347,7 +347,7 @@ void FilesystemWatcher::showFilesChangedDialog()
         // QMessageDialog setSize methods do not work,
         // however setting the size of the label does.
 
-        QSize labelSize(dialog.fontMetrics().width('m') * 50,
+        QSize labelSize(dialog.fontMetrics().horizontalAdvance('m') * 50,
                         dialog.fontMetrics().height() * 5);
 
         for (QLabel* l : dialog.findChildren<QLabel*>()) {

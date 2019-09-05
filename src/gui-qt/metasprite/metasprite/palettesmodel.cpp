@@ -178,7 +178,7 @@ void PalettesModel::onPaletteMoved(size_t fromIndex, size_t toIndex)
 
     layoutAboutToBeChanged();
 
-    _palettePixmaps.swap(fromIndex, toIndex);
+    _palettePixmaps.swapItemsAt(fromIndex, toIndex);
 
     layoutChanged();
 }

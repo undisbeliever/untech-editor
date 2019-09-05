@@ -220,7 +220,7 @@ void PropertyListView::onInsertActionTriggered()
         }
 
         if (ok) {
-            QModelIndex newItemIndex = parent.child(row, PropertyListModel::VALUE_COLUMN);
+            QModelIndex newItemIndex = _model->index(row, PropertyListModel::VALUE_COLUMN, parent);
             setCurrentIndex(newItemIndex);
         }
     }
