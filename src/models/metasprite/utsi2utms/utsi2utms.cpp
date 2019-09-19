@@ -60,6 +60,9 @@ static std::unique_ptr<MS::FrameSet> utsi2utms(const SI::FrameSet& siFrameSet, E
 }
 }
 
+// ::TODO add a section to untech-editor-gui that allows you to see the output of utsi2utms ::
+// :::    and allows the user to save it to a file (if he/she wishes).::
+
 std::unique_ptr<MS::FrameSet> utsi2utms(SI::FrameSet& siFrameSet, ErrorList& errorList)
 {
     bool valid = siFrameSet.validate(errorList);
