@@ -6,13 +6,11 @@
 
 #pragma once
 
-#include "models/common/call.h"
 #include "models/common/grid.h"
 #include "models/common/optional.h"
 #include "models/common/vectorset-upoint.h"
 #include <QCoreApplication>
 #include <QUndoCommand>
-#include <functional>
 #include <memory>
 
 namespace UnTech {
@@ -54,23 +52,26 @@ private:
         }
         ~BaseCommand() = default;
 
+    private:
+        constexpr inline auto function_args() const
+        {
+            return std::tuple_cat(std::make_tuple(_accessor), _args);
+        }
+
     protected:
         inline const GridT* grid() const
         {
-            auto f = std::mem_fn(&AccessorT::getGrid);
-            return mem_fn_call(f, _accessor, _args);
+            return std::apply(&AccessorT::getGrid, function_args());
         }
 
         inline GridT* getGrid()
         {
-            auto f = std::mem_fn(&AccessorT::getGrid);
-            return mem_fn_call(f, _accessor, _args);
+            return std::apply(&AccessorT::getGrid, function_args());
         }
 
         inline void emitGridChanged()
         {
-            auto f = std::mem_fn(&AccessorT::gridChanged);
-            mem_fn_call(f, _accessor, _args);
+            return std::apply(&AccessorT::gridChanged, function_args());
 
             _accessor->resourceItem()->dataChanged();
         }
@@ -79,14 +80,12 @@ private:
         // accessing the list to prevent data corruption
         inline void emitGridAboutToBeResized()
         {
-            auto f = std::mem_fn(&AccessorT::gridAboutToBeResized);
-            mem_fn_call(f, _accessor, _args);
+            return std::apply(&AccessorT::gridAboutToBeResized, function_args());
         }
 
         inline void emitGridResized()
         {
-            auto f = std::mem_fn(&AccessorT::gridResized);
-            mem_fn_call(f, _accessor, _args);
+            return std::apply(&AccessorT::gridResized, function_args());
         }
     };
 
@@ -302,8 +301,8 @@ private:
 
     inline const GridT* getGrid(const ArgsT& gridArgs)
     {
-        auto f = std::mem_fn(&AccessorT::getGrid);
-        return mem_fn_call(f, _accessor, gridArgs);
+        return std::apply(&AccessorT::getGrid,
+                          std::tuple_cat(std::make_tuple(_accessor), gridArgs));
     }
 
 public:

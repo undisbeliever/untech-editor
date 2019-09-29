@@ -6,9 +6,7 @@
 
 #pragma once
 
-#include "models/common/call.h"
 #include <QtGlobal>
-#include <functional>
 #include <type_traits>
 
 namespace UnTech {
@@ -31,12 +29,10 @@ public:
     template <class AccessorT, typename... AT>
     static bool canAddToList(AccessorT* a, AT... args)
     {
-        using ArgsT = typename AccessorT::ArgsT;
         using ListT = typename AccessorT::ListT;
 
-        auto f = std::mem_fn(&AccessorT::getList);
-        const ArgsT listArgs = std::make_tuple(args...);
-        const ListT* list = mem_fn_call(f, a, listArgs);
+        const ListT* list = std::apply(&AccessorT::getList,
+                                       std::make_tuple(a, args...));
 
         if (list == nullptr) {
             return false;
@@ -48,7 +44,6 @@ public:
     template <class AccessorT>
     static ListActionStatus status(AccessorT* a)
     {
-        using ArgsT = typename AccessorT::ArgsT;
         using ListT = typename AccessorT::ListT;
         using index_type = typename AccessorT::index_type;
 
@@ -56,9 +51,8 @@ public:
             return ListActionStatus();
         }
 
-        auto f = std::mem_fn(&AccessorT::getList);
-        const ArgsT listArgs = a->selectedListTuple();
-        const ListT* list = mem_fn_call(f, a, listArgs);
+        const ListT* list = std::apply(&AccessorT::getList,
+                                       std::tuple_cat(std::make_tuple(a), a->selectedListTuple()));
 
         if (list == nullptr) {
             return ListActionStatus();

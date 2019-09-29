@@ -14,7 +14,6 @@
 
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <functional>
 
 using namespace UnTech::GuiQt::MetaSprite::SpriteImporter;
 
@@ -225,8 +224,7 @@ void SiGraphicsScene::updateSelection(F method,
     SiFrameGraphicsItem* frameItem = _frameItems.value(frameIndex);
 
     if (frameItem) {
-        auto f = std::mem_fn(method);
-        f(frameItem, selectedIndexes);
+        std::invoke(method, frameItem, selectedIndexes);
     }
 
     _inUpdateSelection = false;

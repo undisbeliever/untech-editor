@@ -6,12 +6,10 @@
 
 #pragma once
 
-#include "models/common/call.h"
 #include "models/common/vector-helpers.h"
 #include "models/common/vectorset.h"
 #include <QCoreApplication>
 #include <QUndoCommand>
-#include <functional>
 #include <memory>
 
 namespace UnTech {
@@ -170,23 +168,36 @@ private:
         }
         ~BaseCommand() = default;
 
+    private:
+        constexpr inline auto function_args() const
+        {
+            return std::tuple_cat(std::make_tuple(_accessor), _args);
+        }
+
+        constexpr inline auto function_args(index_type index) const
+        {
+            return std::tuple_cat(std::make_tuple(_accessor), _args, std::make_tuple(index));
+        }
+
+        constexpr inline auto function_args(index_type index1, index_type index2) const
+        {
+            return std::tuple_cat(std::make_tuple(_accessor), _args, std::make_tuple(index1, index2));
+        }
+
     protected:
         inline const ListT* list() const
         {
-            auto f = std::mem_fn(&AccessorT::getList);
-            return mem_fn_call(f, _accessor, _args);
+            return std::apply(&AccessorT::getList, function_args());
         }
 
         inline ListT* getList()
         {
-            auto f = std::mem_fn(&AccessorT::getList);
-            return mem_fn_call(f, _accessor, _args);
+            return std::apply(&AccessorT::getList, function_args());
         }
 
         inline void emitDataChanged(index_type index)
         {
-            auto f = std::mem_fn(&AccessorT::dataChanged);
-            mem_fn_call(f, _accessor, _args, index);
+            std::apply(&AccessorT::dataChanged, function_args(index));
 
             _accessor->resourceItem()->dataChanged();
         }
@@ -194,19 +205,16 @@ private:
         template <typename ExtraSignalsFunction>
         inline void emitDataChanged(index_type index, ExtraSignalsFunction extraSignals)
         {
-            auto f = std::mem_fn(&AccessorT::dataChanged);
-            mem_fn_call(f, _accessor, _args, index);
-
-            auto extraSignalsArgs = std::tuple_cat(std::make_tuple(_accessor), _args, std::make_tuple(index));
-            call(extraSignals, extraSignalsArgs);
+            auto args = function_args(index);
+            std::apply(&AccessorT::dataChanged, args);
+            std::apply(extraSignals, args);
 
             _accessor->resourceItem()->dataChanged();
         }
 
         inline void emitListChanged()
         {
-            auto f = std::mem_fn(&AccessorT::listChanged);
-            mem_fn_call(f, _accessor, _args);
+            std::apply(&AccessorT::listChanged, function_args());
 
             _accessor->resourceItem()->dataChanged();
         }
@@ -215,26 +223,22 @@ private:
         // accessing the list to prevent data corruption
         inline void emitListAboutToChange()
         {
-            auto f = std::mem_fn(&AccessorT::listAboutToChange);
-            mem_fn_call(f, _accessor, _args);
+            std::apply(&AccessorT::listAboutToChange, function_args());
         }
 
         inline void emitItemAdded(index_type index)
         {
-            auto f = std::mem_fn(&AccessorT::itemAdded);
-            mem_fn_call(f, _accessor, _args, index);
+            std::apply(&AccessorT::itemAdded, function_args(index));
         }
 
         inline void emitItemAboutToBeRemoved(index_type index)
         {
-            auto f = std::mem_fn(&AccessorT::itemAboutToBeRemoved);
-            mem_fn_call(f, _accessor, _args, index);
+            std::apply(&AccessorT::itemAboutToBeRemoved, function_args(index));
         }
 
         inline void emitItemMoved(index_type from, index_type to)
         {
-            auto f = std::mem_fn(&AccessorT::itemMoved);
-            mem_fn_call(f, _accessor, _args, from, to);
+            std::apply(&AccessorT::itemMoved, function_args(from, to));
         }
     };
 
@@ -1080,15 +1084,15 @@ private:
 
     inline const ListT* getList(const ArgsT& listArgs)
     {
-        auto f = std::mem_fn(&AccessorT::getList);
-        return mem_fn_call(f, _accessor, listArgs);
+        return std::apply(&AccessorT::getList,
+                          std::tuple_cat(std::make_tuple(_accessor), listArgs));
     }
 
     // MUST ONLY this function when it's absolutely necessary
     inline ListT* getList_NO_CONST(const ArgsT& listArgs)
     {
-        auto f = std::mem_fn(&AccessorT::getList);
-        return mem_fn_call(f, _accessor, listArgs);
+        return std::apply(&AccessorT::getList,
+                          std::tuple_cat(std::make_tuple(_accessor), listArgs));
     }
 
 public:

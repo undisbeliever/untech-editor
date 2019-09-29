@@ -11,7 +11,6 @@
 #include <QElapsedTimer>
 #include <QGraphicsScene>
 #include <QWidget>
-#include <functional>
 #include <memory>
 
 namespace UnTech {
