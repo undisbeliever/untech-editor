@@ -180,13 +180,20 @@ bool testSerializer<Project::ProjectFile>(const std::string& filename)
     return valid;
 }
 
-static bool testFilenameOfUnknownType(const std::string& filename)
+static bool testFilenameOfUnknownType(const std::filesystem::path& filePath)
 {
-    const std::string extension = File::extension(filename);
+    const auto extension = filePath.extension();
 
-#define TEST(CLASS)                             \
-    if (extension == CLASS::FILE_EXTENSION) {   \
-        return testSerializer<CLASS>(filename); \
+    std::string extWithoutDot = filePath.extension().u8string();
+    if (not extWithoutDot.empty() and extWithoutDot[0] == '.') {
+        extWithoutDot.erase(0, 1);
+    }
+
+#define TEST(CLASS)                                   \
+    {                                                 \
+        if (extWithoutDot == CLASS::FILE_EXTENSION) { \
+            return testSerializer<CLASS>(filePath);   \
+        }                                             \
     }
 
     TEST(MetaTiles::MetaTileTilesetInput)

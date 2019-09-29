@@ -19,25 +19,25 @@ using namespace UnTech::Xml;
 
 xml_error::xml_error(const XmlTag& tag, const char* message)
     : std::runtime_error(tag.generateErrorString(message))
-    , _filename(tag.xml->filename())
+    , _filePath(tag.xml->filePath())
 {
 }
 
 xml_error::xml_error(const XmlTag& tag, const std::string& aName, const char* message)
     : std::runtime_error(tag.generateErrorString(aName, message))
-    , _filename(tag.xml->filename())
+    , _filePath(tag.xml->filePath())
 {
 }
 
 xml_error::xml_error(const XmlReader& xml, const char* message)
     : std::runtime_error(xml.generateErrorString(message))
-    , _filename(xml.filename())
+    , _filePath(xml.filePath())
 {
 }
 
 xml_error::xml_error(const XmlReader& xml, const char* message, const std::exception& ex)
     : std::runtime_error(xml.generateErrorString(message, ex))
-    , _filename(xml.filename())
+    , _filePath(xml.filePath())
 {
 }
 
@@ -106,43 +106,36 @@ std::string unescapeXmlString(const std::string::const_iterator start,
     return ret;
 }
 
-std::string xmlFilepart(const XmlReader* xml)
-{
-    auto fp = xml->filepart();
-    if (fp.empty()) {
-        return "XML";
-    }
-    return fp;
-}
 }
 }
 
 using namespace UnTech::XmlPrivate;
 
-XmlReader::XmlReader(const std::string& xml, const std::string& filename)
-    : _input(xml)
-    , _filename()
+std::string XmlReader::filename() const
+{
+    if (_filePath.empty()) {
+        return "XML";
+    }
+    else {
+        return _filePath.filename();
+    }
+}
+
+XmlReader::XmlReader(const std::string& xml, const std::filesystem::path& filePath)
+    : _filePath(filePath)
+    , _input(xml)
 {
     if (xml.empty()) {
         throw std::runtime_error("Empty XML file");
     }
 
-    if (!filename.empty()) {
-        _filename = File::fullPath(filename);
-        std::tie(_dirname, _filepart) = File::splitFilename(_filename);
-    }
-    else {
-        _dirname = std::string();
-        _filepart = "XML";
-    }
-
     parseDocument();
 }
 
-std::unique_ptr<XmlReader> XmlReader::fromFile(const std::string& filename)
+std::unique_ptr<XmlReader> XmlReader::fromFile(const std::filesystem::path& filePath)
 {
-    std::string xml = File::readUtf8TextFile(filename);
-    return std::make_unique<XmlReader>(xml, filename);
+    std::string xml = File::readUtf8TextFile(filePath);
+    return std::make_unique<XmlReader>(xml, filePath);
 }
 
 void XmlReader::parseDocument()
@@ -432,7 +425,7 @@ std::string XmlTag::generateErrorString(const char* msg) const
 {
     std::stringstream stream;
 
-    stream << xml->filepart() << ":" << lineNo << " <" << name << ">: " << msg;
+    stream << xml->filename() << ":" << lineNo << " <" << name << ">: " << msg;
     return stream.str();
 }
 
@@ -440,7 +433,7 @@ std::string XmlTag::generateErrorString(const std::string& aName, const char* ms
 {
     std::stringstream stream;
 
-    stream << xml->filepart() << ":" << lineNo << " <" << name << " " << aName << ">: " << msg;
+    stream << xml->filename() << ":" << lineNo << " <" << name << " " << aName << ">: " << msg;
     return stream.str();
 }
 
@@ -449,10 +442,10 @@ std::string XmlReader::generateErrorString(const char* message) const
     std::stringstream stream;
 
     if (_currentTag.empty()) {
-        stream << _filepart << ':' << lineNo() << ": " << message;
+        stream << filename() << ':' << lineNo() << ": " << message;
     }
     else {
-        stream << _filepart << ':' << lineNo() << " <" << _currentTag << ">: " << message;
+        stream << filename() << ':' << lineNo() << " <" << _currentTag << ">: " << message;
     }
     return stream.str();
 }
@@ -463,11 +456,11 @@ std::string XmlReader::generateErrorString(const char* message, const std::excep
     stream << message << "\n  ";
 
     auto cast = dynamic_cast<const xml_error*>(&ex);
-    if (cast && cast->filename() == _filename) {
+    if (cast && cast->filePath() == _filePath) {
         stream << cast->what();
     }
     else {
-        stream << _filepart << ':' << lineNo();
+        stream << filename() << ':' << lineNo();
 
         if (_currentTag.empty()) {
             stream << ": " << ex.what();

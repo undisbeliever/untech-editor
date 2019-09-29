@@ -11,6 +11,7 @@
 #include "../string.h"
 #include "../stringparser.h"
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <stack>
 #include <string>
@@ -28,10 +29,10 @@ public:
     xml_error(const XmlReader& xml, const char* message);
     xml_error(const XmlReader& tag, const char* message, const std::exception& error);
 
-    const std::string& filename() const { return _filename; }
+    inline const std::filesystem::path& filePath() const { return _filePath; }
 
 private:
-    const std::string _filename;
+    const std::filesystem::path _filePath;
 };
 
 /**
@@ -59,9 +60,14 @@ public:
     XmlReader& operator=(const XmlReader&) = delete;
     XmlReader& operator=(XmlReader&&) = delete;
 
-    XmlReader(const std::string& xml, const std::string& filename = std::string());
+    XmlReader(const std::string& xml, const std::filesystem::path& filePath = std::filesystem::path());
 
-    static std::unique_ptr<XmlReader> fromFile(const std::string& filename);
+    static std::unique_ptr<XmlReader> fromFile(const std::filesystem::path& filePath);
+
+    /** The filesystem path of the XML file, may be empty */
+    inline const std::filesystem::path& filePath() const { return _filePath; }
+
+    std::string filename() const;
 
     /** restart processing from the beginning */
     void parseDocument();
@@ -87,16 +93,6 @@ public:
     /** the current line number of the cursor */
     inline unsigned lineNo() const { return _input.lineNo(); }
 
-    /** The filename of the XML file, may be empty */
-    inline std::string filename() const { return _filename; }
-
-    /** The directory part of the filename.
-     * Is either empty of ends in a slash. */
-    inline std::string dirname() const { return _dirname; }
-
-    /** the file part of the filename. */
-    inline std::string filepart() const { return _filepart; }
-
     std::string generateErrorString(const char* message) const;
     std::string generateErrorString(const char* message, const std::exception& ex) const;
 
@@ -106,14 +102,12 @@ private:
     std::string parseAttributeValue();
 
 private:
+    const std::filesystem::path _filePath;
     StringParser _input;
 
     std::stack<std::string> _tagStack;
     std::string _currentTag;
     bool _inSelfClosingTag;
-    std::string _filename;
-    std::string _filepart;
-    std::string _dirname;
 };
 }
 }

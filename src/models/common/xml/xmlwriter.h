@@ -12,6 +12,7 @@
 #include "../ms8aabb.h"
 #include "../string.h"
 #include <cstdint>
+#include <filesystem>
 #include <ostream>
 #include <stack>
 #include <string>
@@ -33,14 +34,13 @@ public:
     XmlWriter& operator=(XmlWriter&&) = delete;
 
     XmlWriter(std::ostream& output, const std::string& doctype)
-        : XmlWriter(output, "", doctype)
+        : XmlWriter(output, std::filesystem::path(), doctype)
     {
     }
-    XmlWriter(std::ostream& output, const std::string& filename, const std::string& doctype);
+    XmlWriter(std::ostream& output, const std::filesystem::path& filePath, const std::string& doctype);
     ~XmlWriter();
 
-    const std::string& filename() const { return _filename; }
-    const std::string& dirname() const { return _dirname; }
+    const std::filesystem::path& filePath() const { return _filePath; }
 
     void forceFullFilePaths() { _useRelativePaths = false; }
 
@@ -59,7 +59,7 @@ public:
 
     void writeCloseTag();
 
-    void writeTagAttributeFilename(const std::string& name, const std::string& filename);
+    void writeTagAttributeFilename(const std::string& name, const std::filesystem::path& path);
 
     inline void writeTagAttribute(const std::string& name, bool v)
     {
@@ -129,9 +129,8 @@ private:
 
 private:
     std::ostream& _file;
+    const std::filesystem::path _filePath;
     std::stack<std::string> _tagStack;
-    std::string _filename;
-    std::string _dirname;
     bool _inTag;
     bool _useRelativePaths;
 };

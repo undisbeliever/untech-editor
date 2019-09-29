@@ -14,25 +14,16 @@
 #include <iomanip>
 #include <sstream>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-#define PLATFORM_WINDOWS
-#endif
-
 using namespace UnTech;
 using namespace UnTech::Xml;
 
-XmlWriter::XmlWriter(std::ostream& output, const std::string& filename, const std::string& doctype)
+XmlWriter::XmlWriter(std::ostream& output, const std::filesystem::path& filePath, const std::string& doctype)
     : _file(output)
+    , _filePath(filePath)
     , _tagStack()
-    , _filename()
     , _inTag(false)
-    , _useRelativePaths(!filename.empty())
+    , _useRelativePaths(!filePath.empty())
 {
-    if (!filename.empty()) {
-        _filename = File::fullPath(filename);
-        _dirname = File::splitFilename(_filename).first;
-    }
-
     _file << "<?xml version=\"1.0\" encoding=\"UTF_8\"?>\n";
 
     if (!doctype.empty()) {
@@ -107,19 +98,12 @@ void XmlWriter::writeTagAttribute(const std::string& name, const unsigned value)
     _file << ' ' << name << "=\"" << value << '"';
 }
 
-void XmlWriter::writeTagAttributeFilename(const std::string& name, const std::string& filename)
+void XmlWriter::writeTagAttributeFilename(const std::string& name, const std::filesystem::path& path)
 {
-    if (_useRelativePaths) {
-        auto rel = File::relativePath(_dirname, filename);
-#ifdef PLATFORM_WINDOWS
-        std::replace(rel.begin(), rel.end(), '\\', '/');
-#endif
-        writeTagAttribute(name, rel);
-    }
-    else {
-        auto rel = File::fullPath(filename);
-        writeTagAttribute(name, rel);
-    }
+    std::filesystem::path p = _useRelativePaths ? path.lexically_relative(_filePath.parent_path())
+                                                : std::filesystem::absolute(path);
+
+    writeTagAttribute(name, p.generic_u8string());
 }
 
 void XmlWriter::writeTagAttributeHex(const std::string& name, const unsigned value, unsigned width)

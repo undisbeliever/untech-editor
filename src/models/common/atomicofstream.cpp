@@ -10,12 +10,12 @@
 
 using namespace UnTech;
 
-AtomicOfStream::AtomicOfStream(const std::string& filename, ios_base::openmode mode)
+AtomicOfStream::AtomicOfStream(const std::filesystem::path& filePath, ios_base::openmode mode)
     : std::ostringstream(mode)
-    , _filename(File::fullPath(filename))
+    , _filePath(std::filesystem::absolute(filePath))
     , _state(State::WRITING)
 {
-    if (filename.empty()) {
+    if (filePath.empty()) {
         throw std::invalid_argument("Empty filename");
     }
 }
@@ -37,7 +37,7 @@ void AtomicOfStream::commit()
     }
 
     const std::string& str = this->str();
-    File::atomicWrite(_filename, str.c_str(), str.size());
+    File::atomicWrite(_filePath, str.c_str(), str.size());
 
     _state = State::COMMITTED;
 }

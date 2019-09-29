@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include <filesystem>
 #include <sstream>
-#include <string>
 
 namespace UnTech {
 
@@ -26,7 +26,7 @@ public:
     AtomicOfStream(const AtomicOfStream&) = delete;
     AtomicOfStream(const AtomicOfStream&&) = delete;
 
-    AtomicOfStream(const std::string& filename,
+    AtomicOfStream(const std::filesystem::path& filePath,
                    ios_base::openmode mode = ios_base::out | ios_base::binary);
 
     virtual ~AtomicOfStream() {}
@@ -48,7 +48,7 @@ private:
     };
 
 private:
-    const std::string _filename;
+    const std::filesystem::path _filePath;
     State _state;
 };
 }

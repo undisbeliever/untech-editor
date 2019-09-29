@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "xmlreader.h"
 #include "../aabb.h"
 #include "../clampedinteger.h"
 #include "../enummap.h"
@@ -222,14 +223,20 @@ struct XmlTag {
         return def;
     }
 
-    inline std::string getAttributeFilename(const std::string& aName) const
+    inline std::filesystem::path getAttributeFilename(const std::string& aName) const
     {
-        auto v = getAttribute(aName);
+        const auto xmlPath = xml->filePath();
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-        std::replace(v.begin(), v.end(), '/', '\\');
-#endif
-        return File::joinPath(xml->dirname(), v);
+        if (xmlPath.empty()) {
+            throw xml_error(*this, aName, "XML file has no path");
+        }
+
+        auto path = std::filesystem::u8path(getAttribute(aName));
+        if (path.empty()) {
+            throw xml_error(*this, aName, "Expected filename");
+        }
+
+        return xmlPath.parent_path() / path.make_preferred();
     }
 
     template <typename T>

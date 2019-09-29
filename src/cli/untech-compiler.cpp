@@ -31,23 +31,23 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int compile(const CommandLine::Parser& args)
 {
-    const std::string& projectFilename = args.filenames().front();
-    const std::string& incFilename = args.options().at("output-inc").string();
-    const std::string& binaryFilename = args.options().at("output-bin").string();
+    const auto projectFilePath = std::filesystem::u8path(args.filenames().front());
+    const auto incFilePath = std::filesystem::u8path(args.options().at("output-inc").string());
+    const auto binaryFilePath = std::filesystem::u8path(args.options().at("output-bin").string());
 
-    const std::string relativeBinaryFilename = File::relativePath(incFilename, binaryFilename);
+    const auto relativeBinaryFilePath = binaryFilePath.lexically_relative(incFilePath);
 
-    std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilename);
+    std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilePath);
     project->loadAllFiles();
 
-    std::unique_ptr<ProjectOutput> output = compileProject(*project, relativeBinaryFilename, std::cerr);
+    std::unique_ptr<ProjectOutput> output = compileProject(*project, relativeBinaryFilePath.u8string(), std::cerr);
     if (!output) {
         std::cerr << "Unable to compile project.\n";
         return EXIT_FAILURE;
     }
 
-    File::atomicWrite(incFilename, output->incData.str());
-    File::atomicWrite(binaryFilename, output->binaryData);
+    File::atomicWrite(incFilePath, output->incData.str());
+    File::atomicWrite(binaryFilePath, output->binaryData);
 
     return EXIT_SUCCESS;
 }
