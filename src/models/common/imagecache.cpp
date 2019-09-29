@@ -28,7 +28,7 @@ class ImageCachePrivate {
             return it->second;
         }
         else {
-            std::shared_ptr<Image> image = std::make_unique<Image>();
+            std::shared_ptr<Image> image = std::make_shared<Image>();
             image->loadPngImage(filename);
             cache.insert({ filename, image });
 
