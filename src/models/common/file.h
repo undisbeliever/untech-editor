@@ -32,7 +32,7 @@ std::vector<uint8_t> readBinaryFile(const std::filesystem::path& filename, size_
  *
  * Raises an exception if an error occurred.
  */
-std::string readUtf8TextFile(const std::string& filename);
+std::string readUtf8TextFile(const std::filesystem::path& filePath);
 
 /**
  * Preforms an atomic file write of a block of memory.

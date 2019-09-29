@@ -54,8 +54,13 @@ std::vector<uint8_t> File::readBinaryFile(const std::filesystem::path& filePath,
     }
 
     in.seekg(0, std::ios::end);
-    size_t size = in.tellg();
+    auto pos = in.tellg();
     in.seekg(0);
+
+    if (pos < 0) {
+        throw std::runtime_error("Cannot open file: " + filePath.u8string() + " : Cannot read file size");
+    }
+    const size_t size = pos;
 
     if (size > limit) {
         throw std::runtime_error("Cannot open file : " + filePath.u8string() + " : file too large");
@@ -72,15 +77,22 @@ std::vector<uint8_t> File::readBinaryFile(const std::filesystem::path& filePath,
     return ret;
 }
 
-std::string File::readUtf8TextFile(const std::string& filename)
+std::string File::readUtf8TextFile(const std::filesystem::path& filePath)
 {
-    std::ifstream in(filename, std::ios::in | std::ios::binary);
+    std::ifstream in(filePath, std::ios::in | std::ios::binary);
     if (in) {
         uint8_t bom[3];
         in.read((char*)bom, sizeof(bom));
 
         in.seekg(0, std::ios::end);
-        size_t size = in.tellg();
+        auto size = in.tellg();
+
+        if (size < 0) {
+            throw std::runtime_error("Cannot open file: " + filePath.u8string() + " : Cannot read file size");
+        }
+        if (size > 25 * 1024 * 1024) {
+            throw std::runtime_error("Cannot open file: " + filePath.u8string() + " : too large");
+        }
 
         // check for BOM
         if (size > 3 && bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF) {
@@ -92,19 +104,21 @@ std::string File::readUtf8TextFile(const std::string& filename)
         }
 
         std::string ret;
-        ret.reserve(size + 1);
+        if (size > 0) {
+            ret.reserve(size_t(size) + 1);
 
-        ret.assign((std::istreambuf_iterator<char>(in)), (std::istreambuf_iterator<char>()));
+            ret.assign((std::istreambuf_iterator<char>(in)), (std::istreambuf_iterator<char>()));
 
-        in.close();
+            in.close();
 
-        if (!String::checkUtf8WellFormed(ret)) {
-            throw std::runtime_error("Cannot open file: " + filename + " : Not UTF-8 Well Formed");
+            if (!String::checkUtf8WellFormed(ret)) {
+                throw std::runtime_error("Cannot open file: " + filePath.u8string() + " : Not UTF-8 Well Formed");
+            }
         }
 
         return (ret);
     }
-    throw std::runtime_error("Cannot open file: " + filename);
+    throw std::runtime_error("Cannot open file: " + filePath.u8string());
 }
 
 void File::atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
