@@ -56,8 +56,8 @@ static void readSnesTile8px(Tile<8>& tile, const uint8_t* data, const unsigned b
 
             const unsigned biEnd = (b < bitDepth - 1) ? 2 : 1;
             for (unsigned bi = 0; bi < biEnd; bi++) {
-                uint_fast8_t byte = *dataPos++;
-                uint_fast8_t bits = 1 << (b + bi);
+                unsigned byte = *dataPos++;
+                unsigned bits = 1 << (b + bi);
 
                 for (unsigned x = 0; x < TILE_SIZE; x++) {
                     if (byte & 0x80) {
