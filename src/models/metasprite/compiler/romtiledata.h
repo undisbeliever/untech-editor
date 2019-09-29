@@ -128,7 +128,7 @@ public:
     void writeAssertsToIncFile(std::ostream& out) const;
     std::vector<std::vector<uint8_t>> data() const;
 
-    const Accessor& addLargeTile(const Snes::Tile16px& tile)
+    Accessor addLargeTile(const Snes::Tile16px& tile)
     {
         const auto it = _map.find(tile);
         if (it != _map.end()) {
@@ -140,13 +140,12 @@ public:
             // unordered_map will ignore insert if tile pattern already exists
             // Thus symmetrical tiles will prefer the unflipped tile.
 
-            auto ret = _map.emplace(tile, Accessor(addr, false, false));
-
+            _map.emplace(tile, Accessor(addr, false, false));
             _map.emplace(tile.hFlip(), Accessor(addr, true, false));
             _map.emplace(tile.vFlip(), Accessor(addr, false, true));
             _map.emplace(tile.hvFlip(), Accessor(addr, true, true));
 
-            return ret.first->second;
+            return { addr, false, false };
         }
     }
 
