@@ -5,6 +5,8 @@ CC          ?= gcc
 
 GUI_QT_MODULES := Qt5Core Qt5Gui Qt5Widgets Qt5Svg
 
+CXXFLAGS    += -std=c++17
+
 ifeq ($(OS),Windows_NT)
   BIN_EXT         := .exe
   RM_COMMAND       = -del /f $(subst /,\,$1)
@@ -58,7 +60,7 @@ ifeq ($(PROFILE),release)
   OBJ_DIR       := obj/release
   BIN_DIR       := bin
 
-  CXXFLAGS      += -std=c++14 -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
+  CXXFLAGS      += -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
   CFLAGS        += -O2 -flto -fdata-sections -ffunction-sections -MMD -Isrc
   LDFLAGS       += -O2 -flto -Wl,-gc-sections
 
@@ -69,7 +71,7 @@ else ifeq ($(PROFILE),debug)
   OBJ_DIR       := obj/debug-$(firstword $(CXX))
   BIN_DIR       := bin/debug-$(firstword $(CXX))
 
-  CXXFLAGS      += -std=c++14 -g -MMD -Isrc -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+  CXXFLAGS      += -g -MMD -Isrc -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
   CFLAGS        += -g -MMD -Isrc -Werror
   LDFLAGS       += -g -Werror
 
@@ -84,7 +86,7 @@ else ifeq ($(PROFILE),asan)
 
   ASAN_FLAGS    := -fsanitize=address,undefined -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(ASAN_FLAGS) -std=c++14 -O0 -MMD -Isrc
+  CXXFLAGS      += $(ASAN_FLAGS) -O0 -MMD -Isrc
   CFLAGS        += $(ASAN_FLAGS) -O0 -MMD -Isrc
   LDFLAGS       += $(ASAN_FLAGS) -O0 -Wl,-gc-sections
 
@@ -103,7 +105,7 @@ else ifeq ($(PROFILE),msan)
 
   MSAN_FLAGS    := -fsanitize=memory,undefined -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(MSAN_FLAGS) -std=c++14 -O0 -MMD -Isrc
+  CXXFLAGS      += $(MSAN_FLAGS) -O0 -MMD -Isrc
   CFLAGS        += $(MSAN_FLAGS) -O0 -MMD -Isrc
   LDFLAGS       += $(MSAN_FLAGS) -O0 -Wl,-gc-sections
 
@@ -119,7 +121,7 @@ else ifeq ($(PROFILE),ubsan)
 
   UBSAN_FLAGS    := -fsanitize=undefined,integer,nullability -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(UBSAN_FLAGS) -std=c++14 -O0 -MMD -Isrc -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+  CXXFLAGS      += $(UBSAN_FLAGS) -O0 -MMD -Isrc -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
   CFLAGS        += $(UBSAN_FLAGS) -O0 -MMD -Isrc
   LDFLAGS       += $(UBSAN_FLAGS) -O0 -Wl,-gc-sections
 
@@ -133,7 +135,7 @@ else ifeq ($(PROFILE),mingw)
   BIN_EXT	:= .exe
 
   CXX           := $(CXX_MINGW)
-  CXXFLAGS      += -std=c++14 -O2 -flto -MMD -Isrc
+  CXXFLAGS      += -O2 -flto -MMD -Isrc
   CFLAGS        += -O2 -flto -MMD -Isrc
   LDFLAGS       += -O2 -flto
   LIBS          += -lshlwapi
