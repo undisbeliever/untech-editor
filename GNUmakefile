@@ -71,9 +71,9 @@ else ifeq ($(PROFILE),debug)
   OBJ_DIR       := obj/debug-$(firstword $(CXX))
   BIN_DIR       := bin/debug-$(firstword $(CXX))
 
-  CXXFLAGS      += -g -MMD -Isrc -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
-  CFLAGS        += -g -MMD -Isrc -Werror
-  LDFLAGS       += -g -Werror
+  CXXFLAGS      += -g -Og -MMD -Isrc -Werror -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+  CFLAGS        += -g -Og -MMD -Isrc -Werror
+  LDFLAGS       += -g -Og -Werror
 
 else ifeq ($(PROFILE),asan)
   # Address sanitiser
@@ -86,9 +86,9 @@ else ifeq ($(PROFILE),asan)
 
   ASAN_FLAGS    := -fsanitize=address,undefined -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(ASAN_FLAGS) -O0 -MMD -Isrc
-  CFLAGS        += $(ASAN_FLAGS) -O0 -MMD -Isrc
-  LDFLAGS       += $(ASAN_FLAGS) -O0 -Wl,-gc-sections
+  CXXFLAGS      += $(ASAN_FLAGS) -O1 -MMD -Isrc
+  CFLAGS        += $(ASAN_FLAGS) -O1 -MMD -Isrc
+  LDFLAGS       += $(ASAN_FLAGS) -O1 -Wl,-gc-sections
 
 else ifeq ($(PROFILE),msan)
   # Memory sanitiser
@@ -105,9 +105,9 @@ else ifeq ($(PROFILE),msan)
 
   MSAN_FLAGS    := -fsanitize=memory,undefined -fsanitize-memory-track-origins -fsanitize-memory-use-after-dtor -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(MSAN_FLAGS) -O0 -MMD -Isrc
-  CFLAGS        += $(MSAN_FLAGS) -O0 -MMD -Isrc
-  LDFLAGS       += $(MSAN_FLAGS) -O0 -Wl,-gc-sections
+  CXXFLAGS      += $(MSAN_FLAGS) -O1 -MMD -Isrc
+  CFLAGS        += $(MSAN_FLAGS) -O1 -MMD -Isrc
+  LDFLAGS       += $(MSAN_FLAGS) -O1 -Wl,-gc-sections
 
 else ifeq ($(PROFILE),ubsan)
   # Undefined Behaviour Sanitizer
@@ -121,9 +121,9 @@ else ifeq ($(PROFILE),ubsan)
 
   UBSAN_FLAGS    := -fsanitize=undefined,integer,nullability -g -fno-omit-frame-pointer
 
-  CXXFLAGS      += $(UBSAN_FLAGS) -O0 -MMD -Isrc -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
-  CFLAGS        += $(UBSAN_FLAGS) -O0 -MMD -Isrc
-  LDFLAGS       += $(UBSAN_FLAGS) -O0 -Wl,-gc-sections
+  CXXFLAGS      += $(UBSAN_FLAGS) -O1 -MMD -Isrc -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+  CFLAGS        += $(UBSAN_FLAGS) -O1 -MMD -Isrc
+  LDFLAGS       += $(UBSAN_FLAGS) -O1 -Wl,-gc-sections
 
 else ifeq ($(PROFILE),mingw)
   # MinGW cross platform compiling
