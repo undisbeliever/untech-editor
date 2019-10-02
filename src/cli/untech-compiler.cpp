@@ -35,7 +35,7 @@ int compile(const CommandLine::Parser& args)
     const auto incFilePath = std::filesystem::u8path(args.options().at("output-inc").string());
     const auto binaryFilePath = std::filesystem::u8path(args.options().at("output-bin").string());
 
-    const auto relativeBinaryFilePath = binaryFilePath.lexically_relative(incFilePath);
+    const auto relativeBinaryFilePath = binaryFilePath.lexically_relative(incFilePath.parent_path());
 
     std::unique_ptr<ProjectFile> project = loadProjectFile(projectFilePath);
     project->loadAllFiles();
