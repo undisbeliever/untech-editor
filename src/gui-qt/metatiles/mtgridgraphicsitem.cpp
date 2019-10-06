@@ -132,8 +132,6 @@ void MtGridGraphicsItem::paint(QPainter* painter,
     auto* style = _scene->style();
 
     if (style->showGrid()) {
-        painter->save();
-
         painter->setPen(style->gridPen());
         painter->setBrush(QBrush());
 
@@ -146,22 +144,16 @@ void MtGridGraphicsItem::paint(QPainter* painter,
         for (int y = 0; y <= height; y += 16) {
             painter->drawLine(0, y, width, y);
         }
-
-        painter->restore();
     }
 
     const auto& sel = _scene->gridSelection();
     if (_showGridSelection && !sel.empty()) {
-        painter->save();
-
         painter->setPen(style->gridSelectionPen());
         painter->setBrush(style->gridSelectionBrush());
 
         for (const upoint& p : sel) {
             painter->drawRect(p.x * 16, p.y * 16, 16, 16);
         }
-
-        painter->restore();
     }
 }
 

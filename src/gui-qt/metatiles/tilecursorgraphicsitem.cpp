@@ -123,8 +123,6 @@ void TileCursorGraphicsItem::paint(QPainter* painter,
 {
     constexpr unsigned N_METATILES = UnTech::MetaTiles::N_METATILES;
 
-    painter->save();
-
     auto* renderer = _scene->renderer();
     const QColor backgroundColor = renderer->backgroundColor();
 
@@ -190,8 +188,6 @@ void TileCursorGraphicsItem::paint(QPainter* painter,
             }
         }
     }
-
-    painter->restore();
 }
 
 bool TileCursorGraphicsItem::processMouseScenePosition(const QPointF& scenePos)

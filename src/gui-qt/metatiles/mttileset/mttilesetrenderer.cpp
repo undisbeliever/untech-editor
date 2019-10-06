@@ -390,8 +390,3 @@ void MtTilesetGridPainter::generateEraseFragments(unsigned width, unsigned heigh
     }
     Q_ASSERT(fragmentIt == _fragments.end());
 }
-
-void MtTilesetGridPainter::paint(QPainter* painter, MtTilesetRenderer* renderer)
-{
-    painter->drawPixmapFragments(_fragments.data(), _fragments.size(), renderer->pixmap());
-}

@@ -109,8 +109,6 @@ void EraserCursorGraphicsItem::updateTileGridFragments()
 void EraserCursorGraphicsItem::paint(QPainter* painter,
                                      const QStyleOptionGraphicsItem*, QWidget*)
 {
-    painter->save();
-
     auto* renderer = _scene->renderer();
     const QColor backgroundColor = renderer->backgroundColor();
 
@@ -162,8 +160,6 @@ void EraserCursorGraphicsItem::paint(QPainter* painter,
             }
         }
     }
-
-    painter->restore();
 }
 
 bool EraserCursorGraphicsItem::processMouseScenePosition(const QPointF& scenePos)

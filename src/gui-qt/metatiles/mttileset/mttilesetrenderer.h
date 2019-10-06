@@ -102,7 +102,10 @@ public:
 
     void generateEraseFragments(unsigned width, unsigned height);
 
-    void paint(QPainter* painter, MtTilesetRenderer* renderer);
+    inline void paint(QPainter* painter, MtTilesetRenderer* renderer)
+    {
+        painter->drawPixmapFragments(_fragments.data(), _fragments.size(), renderer->pixmap());
+    }
 
 private:
     template <typename T>
