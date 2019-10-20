@@ -23,7 +23,7 @@ namespace Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-const int CompiledRomData::METASPRITE_FORMAT_VERSION = 36;
+const int CompiledRomData::METASPRITE_FORMAT_VERSION = 38;
 
 struct FrameSetData {
     std::vector<CompiledPalette> palettes;

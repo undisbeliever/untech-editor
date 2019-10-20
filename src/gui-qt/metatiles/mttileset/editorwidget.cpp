@@ -9,6 +9,7 @@
 #include "mttilesetgraphicsscenes.h"
 #include "mttilesetrenderer.h"
 #include "resourceitem.h"
+#include "tilepropertieswidget.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/common/properties/propertylistview.h"
@@ -26,6 +27,7 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     : AbstractEditorWidget(parent)
     , _ui(new Ui::EditorWidget)
     , _propertyListView(new PropertyListView(this))
+    , _tilePropertiesWidget(new TilePropertiesWidget(this))
     , _dockedTilesetView(new ZoomableGraphicsView(this))
     , _dockedScratchpadView(new ZoomableGraphicsView(this))
     , _style(new Style(this))
@@ -89,23 +91,28 @@ EditorWidget::~EditorWidget() = default;
 
 QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow* mainWindow)
 {
-    auto* propertyDock = createDockWidget(_propertyListView, tr("Properties"), QStringLiteral("MtTileset_Properties"));
+    auto* tilesetPropertyDock = createDockWidget(_propertyListView, tr("Tileset Properties"), QStringLiteral("MtTileset_Properties"));
+    auto* tilePropertiesDock = createDockWidget(_tilePropertiesWidget, tr("Tile Properties"), QStringLiteral("MtTileset_TileProperties"));
     auto* tilesetDock = createDockWidget(_dockedTilesetView, tr("MetaTiles"), QStringLiteral("MtTileset_MetaTiles"));
     auto* scratchpadDock = createDockWidget(_dockedScratchpadView, tr("Scratchpad"), QStringLiteral("MtTileset_Scratchpad"));
 
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, propertyDock);
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, tilesetPropertyDock);
+    mainWindow->addDockWidget(Qt::RightDockWidgetArea, tilePropertiesDock);
     mainWindow->addDockWidget(Qt::RightDockWidgetArea, tilesetDock);
     mainWindow->addDockWidget(Qt::RightDockWidgetArea, scratchpadDock);
 
+    // Tile and Tileset properties share a dock tab so I can easily hide the Tile Properties Dock when editing the scratchpad.
+    mainWindow->tabifyDockWidget(tilesetPropertyDock, tilePropertiesDock);
     mainWindow->tabifyDockWidget(tilesetDock, scratchpadDock);
     tilesetDock->raise();
 
-    mainWindow->resizeDocks({ propertyDock, tilesetDock }, { 100, 200 }, Qt::Vertical);
+    mainWindow->resizeDocks({ tilesetPropertyDock, tilesetDock }, { 100, 200 }, Qt::Vertical);
 
     return {
         scratchpadDock,
         tilesetDock,
-        propertyDock,
+        tilePropertiesDock,
+        tilesetPropertyDock,
     };
 }
 
@@ -120,7 +127,7 @@ void EditorWidget::populateMenu(QMenu* editMenu, QMenu* viewMenu)
     _editableScratchpadScene->populateActions(editMenu);
 
     viewMenu->addSeparator();
-    viewMenu->addAction(_style->showGridAction());
+    _style->populateActions(viewMenu);
 }
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
@@ -138,6 +145,7 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     _renderer->setTilesetItem(item);
 
     _tilesetPropertyManager->setResourceItem(item);
+    _tilePropertiesWidget->setResourceItem(item);
     _ui->animationFramesInputWidget->setResourceItem(item);
 
     onTilesetPalettesChanged();

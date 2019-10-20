@@ -5,7 +5,9 @@
  */
 
 #include "mttilesetrenderer.h"
+#include "accessors.h"
 #include "resourceitem.h"
+#include "tilecollisionpixmaps.h"
 #include "gui-qt/resources/dualanimationtimer.h"
 #include "gui-qt/resources/palette/resourceitem.h"
 #include "gui-qt/snes/tile.hpp"
@@ -97,11 +99,15 @@ void MtTilesetRenderer::setTilesetItem(ResourceItem* item)
         _animationTimer->resetTimer();
 
         resetPixmaps();
+        resetTileCollisionsBitmap();
         onAnimationDelaysChanged();
 
         if (_tilesetItem) {
             connect(_tilesetItem, &AbstractResourceItem::resourceComplied,
                     this, &MtTilesetRenderer::resetPixmaps);
+
+            connect(_tilesetItem->tileParameters(), &MtTilesetTileParameters::tileCollisionsChanged,
+                    this, &MtTilesetRenderer::resetTileCollisionsBitmap);
 
             connect(_tilesetItem, &ResourceItem::animationDelayChanged,
                     this, &MtTilesetRenderer::onAnimationDelaysChanged);
@@ -167,6 +173,15 @@ const QPixmap& MtTilesetRenderer::pixmap(unsigned paletteId, unsigned tilesetId)
     return _pixmaps.at(i);
 }
 
+const QBitmap& MtTilesetRenderer::tileCollisionsBitmap()
+{
+    if (_tileCollisionsPixmap.isNull() && _tilesetItem) {
+        _tileCollisionsPixmap = buildTileCollisionsBitmap();
+    }
+
+    return _tileCollisionsPixmap;
+}
+
 void MtTilesetRenderer::onAnimationDelaysChanged()
 {
     unsigned paletteDelay = 0;
@@ -206,6 +221,13 @@ void MtTilesetRenderer::resetPixmaps()
         _nPalettes = 0;
         _nTilesets = 0;
     }
+
+    emit pixmapChanged();
+}
+
+void MtTilesetRenderer::resetTileCollisionsBitmap()
+{
+    _tileCollisionsPixmap = QPixmap();
 
     emit pixmapChanged();
 }
@@ -389,4 +411,36 @@ void MtTilesetGridPainter::generateEraseFragments(unsigned width, unsigned heigh
         }
     }
     Q_ASSERT(fragmentIt == _fragments.end());
+}
+
+inline QBitmap MtTilesetRenderer::buildTileCollisionsBitmap()
+{
+    using Texture = TileCollisionTexture;
+
+    QVector<QPainter::PixmapFragment> fragments;
+    fragments.reserve(MT::N_METATILES);
+
+    Q_ASSERT(_tilesetItem);
+    if (auto* tilesetInput = _tilesetItem->tilesetInput()) {
+        for (unsigned i = 0; i < tilesetInput->tileCollisions.size(); i++) {
+            const auto& tc = tilesetInput->tileCollisions.at(i);
+            QPainter::PixmapFragment f = blankMetaTileFragment();
+            f.x = unsigned(i % PIXMAP_TILE_WIDTH) * METATILE_SIZE + METATILE_SIZE / 2;
+            f.y = unsigned(i / PIXMAP_TILE_HEIGHT) * METATILE_SIZE + METATILE_SIZE / 2;
+            f.sourceLeft = Texture::xOffset(tc);
+            f.sourceTop = 0;
+
+            fragments.append(f);
+        }
+    }
+
+    QBitmap bitmap(PIXMAP_TILE_WIDTH * METATILE_SIZE, PIXMAP_TILE_HEIGHT * METATILE_SIZE);
+    bitmap.fill();
+
+    if (not fragments.empty()) {
+        QPainter painter(&bitmap);
+        painter.drawPixmapFragments(fragments.data(), fragments.size(), Texture::bitmap());
+    }
+
+    return bitmap;
 }

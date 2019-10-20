@@ -235,6 +235,12 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, const 
         }
     }
 
+    if (solid) {
+        if (!tileHitbox.contains(location.origin)) {
+            addError("Frame origin must be inside the tile hitbox");
+        }
+    }
+
     return valid;
 }
 

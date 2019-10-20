@@ -22,11 +22,13 @@ class MtTilesetTileParameters : public QObject {
     Q_OBJECT
 
 public:
-    // ::TODO add class for parameters::
-    //using DataT = void;
-    //using ListT = std::vector<DataT>;
     using index_type = uint8_t;
     using ArgsT = std::tuple<>;
+
+    struct SelectedProperties {
+        MT::TileCollision tileCollision;
+        bool tileCollisionSame;
+    };
 
 private:
     ResourceItem* const _tileset;
@@ -43,14 +45,20 @@ public:
     void setSelectedIndexes(vectorset<index_type>&& selected);
     void clearSelection();
 
+    SelectedProperties selectedTileProperties() const;
+
+    void editSelectedTiles_setCollision(MT::TileCollision tc);
+
+    void editTile_setTileCollision(size_t index, const MT::TileCollision& tc);
+    void editTiles_setTileCollisions(const std::array<MT::TileCollision, MT::N_METATILES>& tileCollisions);
+
 protected:
     ArgsT selectedListTuple() const { return std::make_tuple(); }
 
 signals:
-    void dataChanged(index_type index);
-    void listChanged();
-
     void selectedIndexesChanged();
+
+    void tileCollisionsChanged();
 };
 
 class MtTilesetScratchpadGrid : public Accessor::AbstractGridAccessor {

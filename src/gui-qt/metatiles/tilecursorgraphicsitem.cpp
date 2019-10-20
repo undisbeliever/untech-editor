@@ -45,7 +45,7 @@ TileCursorGraphicsItem::TileCursorGraphicsItem(MtEditableGraphicsScene* scene)
     connect(scene->renderer(), &MtTileset::MtTilesetRenderer::pixmapChanged,
             this, &TileCursorGraphicsItem::updateAll);
 
-    connect(scene->style(), &Style::showGridChanged,
+    connect(scene->style(), &Style::showLayersChanged,
             this, &TileCursorGraphicsItem::updateAll);
 }
 
@@ -146,7 +146,7 @@ void TileCursorGraphicsItem::paint(QPainter* painter,
 
     auto* style = _scene->style();
 
-    _tileGridPainter.paint(painter, renderer);
+    _tileGridPainter.paintTiles(painter, renderer);
 
     QRect validCells = validCellsRect();
     if (_tilePosition.x < validCells.left()

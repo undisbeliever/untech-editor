@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UnTech::GuiQt::MetaTiles::MtTileset::TilePropertiesWidget</class>
+ <widget class="QWidget" name="UnTech::GuiQt::MetaTiles::MtTileset::TilePropertiesWidget">
+  <property name="windowTitle">
+   <string>Tile Properties</string>
+  </property>
+  <layout class="QFormLayout" name="formLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="tileCollisionTypeLabel">
+     <property name="text">
+      <string>Tile Collision:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <layout class="QGridLayout" name="tileCollisionTypeGrid"/>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="platformLabel">
+     <property name="text">
+      <string>Platform Type:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <layout class="QGridLayout" name="platformGrid"/>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

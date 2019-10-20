@@ -28,12 +28,22 @@ private:
     static const QColor INVALID_CURSOR_PEN_COLOR;
     static const QColor INVALID_CURSOR_BRUSH_COLOR;
 
+    static const QColor TILE_COLLISIONS_COLOR;
+
 public:
     Style(QWidget* parent);
     ~Style() = default;
 
+    void populateActions(QWidget* widget);
+
     bool showGrid() const { return _showGrid; }
     QAction* showGridAction() const { return _showGridAction; }
+
+    bool showTiles() const { return _showTiles; }
+    QAction* showTilesAction() const { return _showTilesAction; }
+
+    bool showTileCollisions() const { return _showTileCollisions; }
+    QAction* showTileCollisionsAction() const { return _showTileCollisionsAction; }
 
     QPen gridPen() const;
 
@@ -49,11 +59,15 @@ public:
     QPen invalidCursorPen() const;
     QBrush invalidCursorBrush() const;
 
+    const QColor& tileCollisionsColor() const { return TILE_COLLISIONS_COLOR; }
+
 public slots:
-    void setShowGrid(bool showGrid);
+    void setShowGrid(bool s);
+    void setShowTiles(bool s);
+    void setShowTileCollisions(bool s);
 
 signals:
-    void showGridChanged();
+    void showLayersChanged();
 
 private:
     QPen createCosmeticPen(const QColor& color) const;
@@ -61,8 +75,12 @@ private:
 private:
     QWidget* const _widget;
     QAction* const _showGridAction;
+    QAction* const _showTilesAction;
+    QAction* const _showTileCollisionsAction;
 
     bool _showGrid;
+    bool _showTiles;
+    bool _showTileCollisions;
 };
 }
 }

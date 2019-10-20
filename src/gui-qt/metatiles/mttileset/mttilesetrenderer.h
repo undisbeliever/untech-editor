@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of the UnTech Editor Suite.
  * Copyright (c) 2016 - 2019, Marcus Rowe <undisbeliever@gmail.com>.
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/grid.h"
+#include <QBitmap>
 #include <QPainter>
 #include <QPixmap>
 #include <QVector>
@@ -61,11 +62,13 @@ public:
 
     const QPixmap& pixmap();
     const QPixmap& pixmap(unsigned paletteId, unsigned tilesetId);
+    const QBitmap& tileCollisionsBitmap();
 
 signals:
-    void pixmapChanged();
+    void pixmapChanged(); // also emitted when tileCollisionsBitmap() is changed.
     void paletteItemChanged();
     void tilesetItemChanged();
+    void tileCollisionsChanged();
 
 public slots:
     void resetAnimations();
@@ -75,10 +78,13 @@ public slots:
     void onAnimationDelaysChanged();
     void resetPixmaps();
 
+    void resetTileCollisionsBitmap();
+
     void onResourceItemAboutToBeRemoved(AbstractResourceItem* item);
 
 private:
     QPixmap buildPixmap(unsigned paletteFrame, unsigned tilesetFrame);
+    QBitmap buildTileCollisionsBitmap();
 
 private:
     Resources::DualAnimationTimer* const _animationTimer;
@@ -87,6 +93,8 @@ private:
     ResourceItem* _tilesetItem;
 
     QVector<QPixmap> _pixmaps; // [ paletteFrame * _nTilesets + tilesetFrame ]
+    QBitmap _tileCollisionsPixmap;
+
     unsigned _nPalettes;
     unsigned _nTilesets;
 };
@@ -102,9 +110,15 @@ public:
 
     void generateEraseFragments(unsigned width, unsigned height);
 
-    inline void paint(QPainter* painter, MtTilesetRenderer* renderer)
+    inline void paintTiles(QPainter* painter, MtTilesetRenderer* renderer)
     {
         painter->drawPixmapFragments(_fragments.data(), _fragments.size(), renderer->pixmap());
+    }
+
+    // NOTE: you must set the QPainter pen before using this function.
+    inline void paintCollisions(QPainter* painter, MtTilesetRenderer* renderer)
+    {
+        painter->drawPixmapFragments(_fragments.data(), _fragments.size(), renderer->tileCollisionsBitmap());
     }
 
 private:

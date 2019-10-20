@@ -257,6 +257,25 @@ struct XmlTag {
         return getAttributeEnum(aName, T::enumMap);
     }
 
+    template <typename T>
+    inline T getAttributeOptionalEnum(const std::string& aName, const EnumMap<T>& enumMap, const T default_value) const
+    {
+        auto aIt = attributes.find(aName);
+        if (aIt != attributes.end()) {
+            auto eIt = enumMap.find(aIt->second);
+            if (eIt != enumMap.end()) {
+                return eIt->second;
+            }
+        }
+        return default_value;
+    }
+
+    template <class T>
+    inline T getAttributeOptionalEnum(const std::string& aName, const typename T::Enum default_value) const
+    {
+        return getAttributeEnum(aName, T::enumMap, default_value);
+    }
+
     inline unsigned getAttributeUnsignedHex(const std::string& aName) const
     {
         auto v = String::hexToUnsigned(getAttribute(aName));

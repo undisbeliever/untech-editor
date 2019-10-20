@@ -10,7 +10,7 @@
 #include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
 #include "models/project/project.h"
-#include <cassert>
+#include <climits>
 
 namespace UnTech {
 
@@ -84,6 +84,7 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     ret->name = input.name;
     ret->palettes = input.palettes;
     ret->animatedTileset = std::move(aniFrames);
+    ret->tileCollisions = input.tileCollisions;
 
     valid = ret->validate(err);
     if (!valid) {
@@ -131,13 +132,17 @@ bool MetaTileTilesetData::validate(ErrorList& err) const
 
 std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
 {
-    std::vector<uint8_t> out(N_METATILES * 2 * 4, 0);
+    constexpr size_t TILEMAP_SIZE = N_METATILES * 4 * 2;
+    constexpr size_t COLLISON_SIZE = N_METATILES;
+
+    std::vector<uint8_t> out(TILEMAP_SIZE + COLLISON_SIZE, 0);
 
     assert(animatedTileset->tileMap.width() == TILESET_WIDTH * 2);
     assert(animatedTileset->tileMap.height() == TILESET_HEIGHT * 2);
     assert(animatedTileset->tileMap.cellCount() == N_METATILES * 4);
-    assert(animatedTileset->tileMap.cellCount() == out.size() / 2);
+    assert(animatedTileset->tileMap.cellCount() == TILEMAP_SIZE / 2);
 
+    // tileset data
     for (unsigned q = 0; q < 4; q++) {
         const unsigned xOffset = (q & 1) ? 1 : 0;
         const unsigned yOffset = (q & 2) ? 1 : 0;
@@ -154,10 +159,21 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
         assert(outIt <= out.begin() + N_METATILES * (q + 1) * 2);
     }
 
+    static_assert(sizeof(TileCollision) == 1);
+    static_assert(sizeof(tileCollisions) == 256);
+
+    // tile collision data
+    auto outIt = out.begin() + TILEMAP_SIZE;
+    for (const auto& tc : tileCollisions) {
+        assert(unsigned(tc) < N_TILE_COLLISONS);
+        *outIt++ = (uint8_t(tc) & 0xf) << 4;
+    }
+    assert(outIt == out.end());
+
     return out;
 }
 
-const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 3;
+const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 6;
 
 std::vector<uint8_t>
 MetaTileTilesetData::exportMetaTileTileset() const

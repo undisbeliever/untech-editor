@@ -25,12 +25,48 @@ void UnTech::ExternalFileItem<MetaTiles::MetaTileTilesetInput>::loadFile()
 
 namespace MetaTiles {
 
+static const EnumMap<TileCollision> tileCollisonTypeEnumMap = {
+    { "", TileCollision::EMPTY },
+    { "solid", TileCollision::SOLID },
+    { "drs", TileCollision::DOWN_RIGHT_SLOPE },
+    { "dls", TileCollision::DOWN_LEFT_SLOPE },
+    { "drss", TileCollision::DOWN_RIGHT_SHORT_SLOPE },
+    { "drts", TileCollision::DOWN_RIGHT_TALL_SLOPE },
+    { "dlts", TileCollision::DOWN_LEFT_TALL_SLOPE },
+    { "dlss", TileCollision::DOWN_LEFT_SHORT_SLOPE },
+    { "dp", TileCollision::DOWN_PLATFORM },
+    { "up", TileCollision::UP_PLATFORM },
+    { "urs", TileCollision::UP_RIGHT_SLOPE },
+    { "uls", TileCollision::UP_LEFT_SLOPE },
+    { "urss", TileCollision::UP_RIGHT_SHORT_SLOPE },
+    { "urts", TileCollision::UP_RIGHT_TALL_SLOPE },
+    { "ults", TileCollision::UP_LEFT_TALL_SLOPE },
+    { "ulss", TileCollision::UP_LEFT_SHORT_SLOPE },
+
+    { "empty", TileCollision::EMPTY },
+
+    { "EMPTY", TileCollision::EMPTY },
+    { "SOLID", TileCollision::SOLID },
+    { "DOWN_RIGHT_SLOPE", TileCollision::DOWN_RIGHT_SLOPE },
+    { "DOWN_LEFT_SLOPE", TileCollision::DOWN_LEFT_SLOPE },
+    { "DOWN_RIGHT_SHORT_SLOPE", TileCollision::DOWN_RIGHT_SHORT_SLOPE },
+    { "DOWN_RIGHT_TALL_SLOPE", TileCollision::DOWN_RIGHT_TALL_SLOPE },
+    { "DOWN_LEFT_TALL_SLOPE", TileCollision::DOWN_LEFT_TALL_SLOPE },
+    { "DOWN_LEFT_SHORT_SLOPE", TileCollision::DOWN_LEFT_SHORT_SLOPE },
+    { "DOWN_PLATFORM", TileCollision::DOWN_PLATFORM },
+    { "UP_PLATFORM", TileCollision::UP_PLATFORM },
+    { "UP_RIGHT_SLOPE", TileCollision::UP_RIGHT_SLOPE },
+    { "UP_LEFT_SLOPE", TileCollision::UP_LEFT_SLOPE },
+    { "UP_RIGHT_SHORT_SLOPE", TileCollision::UP_RIGHT_SHORT_SLOPE },
+    { "UP_RIGHT_TALL_SLOPE", TileCollision::UP_RIGHT_TALL_SLOPE },
+    { "UP_LEFT_TALL_SLOPE", TileCollision::UP_LEFT_TALL_SLOPE },
+    { "UP_LEFT_SHORT_SLOPE", TileCollision::UP_LEFT_SHORT_SLOPE },
+};
+
 const std::string MetaTileTilesetInput::FILE_EXTENSION = "utmt";
 
 void readEngineSettings(EngineSettings& settings, const XmlTag* tag)
 {
-    assert("metatile-engine-settings");
-
     settings.maxMapSize = tag->getAttributeUnsigned("max-map-size");
 }
 
@@ -64,6 +100,30 @@ static void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const 
     xml.writeCloseTag();
 }
 
+static void readTileProperties(const XmlTag* tag, MetaTileTilesetInput& tilesetInput)
+{
+    // <tile> tag
+
+    unsigned i = tag->getAttributeUnsigned("t", 0, N_METATILES - 1);
+    tilesetInput.tileCollisions.at(i) = tag->getAttributeOptionalEnum("collision", tileCollisonTypeEnumMap, TileCollision::EMPTY);
+}
+
+static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tilesetInput)
+{
+    for (unsigned i = 0; i < N_METATILES; i++) {
+        const auto& tc = tilesetInput.tileCollisions.at(i);
+
+        const bool writeTag = tc != TileCollision::EMPTY;
+
+        if (writeTag) {
+            xml.writeTag("tile");
+            xml.writeTagAttribute("t", i);
+            xml.writeTagAttributeEnum("collision", tc, tileCollisonTypeEnumMap);
+            xml.writeCloseTag();
+        }
+    }
+}
+
 static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml, const XmlTag* tag)
 {
     if (tag == nullptr || tag->name != "metatile-tileset") {
@@ -87,6 +147,9 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
             readAnimationFramesTag = true;
 
             Resources::readAnimationFramesInput(tilesetInput->animationFrames, xml, childTag.get());
+        }
+        else if (childTag->name == "tile") {
+            readTileProperties(childTag.get(), *tilesetInput);
         }
         else if (childTag->name == "scratchpad") {
             tilesetInput->scratchpad = readMetaTileGrid(xml, childTag.get());
@@ -119,6 +182,8 @@ void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input
         xml.writeTagAttribute("name", pName);
         xml.writeCloseTag();
     }
+
+    writeTileProperties(xml, input);
 
     Resources::writeAnimationFramesInput(xml, input.animationFrames);
 

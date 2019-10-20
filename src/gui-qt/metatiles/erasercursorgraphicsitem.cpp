@@ -43,7 +43,7 @@ EraserCursorGraphicsItem::EraserCursorGraphicsItem(MtEditableGraphicsScene* scen
     connect(scene->renderer(), &MtTileset::MtTilesetRenderer::pixmapChanged,
             this, &EraserCursorGraphicsItem::updateAll);
 
-    connect(scene->style(), &Style::showGridChanged,
+    connect(scene->style(), &Style::showLayersChanged,
             this, &EraserCursorGraphicsItem::updateAll);
 }
 
@@ -121,7 +121,7 @@ void EraserCursorGraphicsItem::paint(QPainter* painter,
 
     auto* style = _scene->style();
 
-    _tileGridPainter.paint(painter, renderer);
+    _tileGridPainter.paintTiles(painter, renderer);
 
     QRect validCells = validCellsRect();
     if (_cursorPosition.x < validCells.left()

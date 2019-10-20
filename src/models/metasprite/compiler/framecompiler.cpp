@@ -114,27 +114,6 @@ static std::vector<uint8_t> processEntityHitboxes(const std::vector<MS::EntityHi
     return romData;
 }
 
-static std::vector<uint8_t> processTileHitbox(const MS::Frame& frame)
-{
-    const ms8rect& aabb = frame.tileHitbox;
-
-    assert(aabb.width > 0 && aabb.height > 0);
-
-    std::vector<uint8_t> romData;
-    if (frame.solid == false) {
-        return romData;
-    }
-
-    romData.reserve(4);
-
-    romData.push_back(aabb.x.romData()); // xOffset
-    romData.push_back(aabb.y.romData()); // yOffset
-    romData.push_back(aabb.width);       // width
-    romData.push_back(aabb.height);      // height
-
-    return romData;
-}
-
 static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoint>& actionPoints,
                                                 const ActionPointMapping& actionPointMapping)
 {
@@ -161,6 +140,37 @@ static std::vector<uint8_t> processActionPoints(const std::vector<MS::ActionPoin
     return romData;
 }
 
+static TileHitboxData processTileHitbox(const MS::Frame& frame)
+{
+    if (frame.solid) {
+        const ms8rect& hb = frame.tileHitbox;
+
+        const auto left = -hb.left();
+        const auto right = hb.right();
+        const auto yOffset = -hb.top();
+        const auto height = hb.height;
+
+        auto assert_bounds = [](int v) {
+            assert(v >= 1 && v <= 127);
+        };
+        assert_bounds(left);
+        assert_bounds(right);
+        assert_bounds(yOffset);
+        assert_bounds(height);
+        assert(int(height) - yOffset > 0);
+
+        return {
+            .left = uint8_t(left),
+            .right = uint8_t(right),
+            .yOffset = uint8_t((yOffset ^ 0xff) + 1),
+            .height = height,
+        };
+    }
+    else {
+        return { 0xff, 0xff, 0xff, 0xff };
+    }
+}
+
 static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& frameTileset,
                               const ActionPointMapping& actionPointMapping)
 {
@@ -172,9 +182,9 @@ static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& fr
     return {
         .frameObjects = processFrameObjects(frame, frameTileset),
         .entityHitboxes = processEntityHitboxes(frame.entityHitboxes),
-        .tileHitbox = processTileHitbox(frame),
         .actionPoints = processActionPoints(frame.actionPoints, actionPointMapping),
         .tileset = tilesetIndex,
+        .tileHitbox = processTileHitbox(frame),
     };
 }
 
@@ -211,13 +221,17 @@ std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, co
 
 static uint16_t saveCompiledFrame(const FrameData& frameData, CompiledRomData& out)
 {
-    DataBlock frame(5 * 2);
+    DataBlock frame(2 * 4 + 4);
 
     frame.addWord(out.frameObjectData.addData_IndexPlusOne(frameData.frameObjects));
     frame.addWord(out.entityHitboxData.addData_IndexPlusOne(frameData.entityHitboxes));
-    frame.addWord(out.tileHitboxData.addData_IndexPlusOne(frameData.tileHitbox));
     frame.addWord(out.actionPointData.addData_IndexPlusOne(frameData.actionPoints));
     frame.addWord(frameData.tileset);
+
+    frame.addByte(frameData.tileHitbox.left);
+    frame.addByte(frameData.tileHitbox.right);
+    frame.addByte(frameData.tileHitbox.yOffset);
+    frame.addByte(frameData.tileHitbox.height);
 
     assert(frame.atEnd());
 

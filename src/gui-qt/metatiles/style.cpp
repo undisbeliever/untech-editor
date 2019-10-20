@@ -24,11 +24,17 @@ const QColor Style::ERASER_CURSOR_BRUSH_COLOR(128, 64, 0, 128);
 const QColor Style::INVALID_CURSOR_PEN_COLOR(255, 0, 0, 255);
 const QColor Style::INVALID_CURSOR_BRUSH_COLOR(128, 0, 0, 128);
 
+const QColor Style::TILE_COLLISIONS_COLOR(192, 0, 192, 128);
+
 Style::Style(QWidget* parent)
     : QObject(parent)
     , _widget(parent)
     , _showGridAction(new QAction(tr("Show Grid"), this))
+    , _showTilesAction(new QAction(tr("Show Tiles"), this))
+    , _showTileCollisionsAction(new QAction(tr("Show Tile Collisions"), this))
     , _showGrid(true)
+    , _showTiles(true)
+    , _showTileCollisions(true)
 {
     Q_ASSERT(_widget != nullptr);
 
@@ -36,17 +42,66 @@ Style::Style(QWidget* parent)
     _showGridAction->setChecked(_showGrid);
     _showGridAction->setShortcut(Qt::CTRL + Qt::Key_G);
 
+    _showTilesAction->setCheckable(true);
+    _showTilesAction->setChecked(_showTiles);
+    _showTilesAction->setShortcut(Qt::CTRL + Qt::Key_H);
+
+    _showTileCollisionsAction->setCheckable(true);
+    _showTileCollisionsAction->setChecked(_showTileCollisions);
+    _showTileCollisionsAction->setShortcut(Qt::CTRL + Qt::Key_J);
+
     connect(_showGridAction, &QAction::toggled,
             this, &Style::setShowGrid);
+    connect(_showTilesAction, &QAction::toggled,
+            this, &Style::setShowTiles);
+    connect(_showTileCollisionsAction, &QAction::toggled,
+            this, &Style::setShowTileCollisions);
 }
 
-void Style::setShowGrid(bool showGrid)
+void Style::populateActions(QWidget* widget)
 {
-    if (_showGrid != showGrid) {
-        _showGrid = showGrid;
-        _showGridAction->setChecked(showGrid);
+    widget->addAction(_showGridAction);
+    widget->addAction(_showTilesAction);
+    widget->addAction(_showTileCollisionsAction);
+}
 
-        emit showGridChanged();
+void Style::setShowGrid(bool s)
+{
+    if (_showGrid != s) {
+        _showGrid = s;
+        _showGridAction->setChecked(s);
+
+        emit showLayersChanged();
+    }
+}
+
+void Style::setShowTiles(bool s)
+{
+    if (_showTiles != s) {
+        if (s == false) {
+            // Prevent the system from drawing a blank tileset.
+            setShowTileCollisions(true);
+        }
+
+        _showTiles = s;
+        _showTilesAction->setChecked(s);
+
+        emit showLayersChanged();
+    }
+}
+
+void Style::setShowTileCollisions(bool s)
+{
+    if (_showTileCollisions != s) {
+        if (s == false) {
+            // Prevent the system from drawing a blank tileset.
+            setShowTiles(true);
+        }
+
+        _showTileCollisions = s;
+        _showTileCollisionsAction->setChecked(s);
+
+        emit showLayersChanged();
     }
 }
 

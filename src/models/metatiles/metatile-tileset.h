@@ -23,6 +23,29 @@ struct ProjectFile;
 
 namespace MetaTiles {
 
+// ::KUDOS Christopher Hebert for the slope names::
+// ::: Reconstructing Cave Story: Slope Theory::
+// ::: https://www.youtube.com/watch?v=ny14i0GxGZw ::
+enum class TileCollision : uint8_t {
+    EMPTY,
+    SOLID,
+    UP_PLATFORM,
+    DOWN_PLATFORM,
+    DOWN_RIGHT_SLOPE, // right and down sides are the biggest, fall down to collide, walk right to ascend
+    DOWN_LEFT_SLOPE,
+    DOWN_RIGHT_SHORT_SLOPE,
+    DOWN_RIGHT_TALL_SLOPE,
+    DOWN_LEFT_TALL_SLOPE,
+    DOWN_LEFT_SHORT_SLOPE,
+    UP_RIGHT_SLOPE,
+    UP_LEFT_SLOPE,
+    UP_RIGHT_SHORT_SLOPE,
+    UP_RIGHT_TALL_SLOPE,
+    UP_LEFT_TALL_SLOPE,
+    UP_LEFT_SHORT_SLOPE,
+};
+constexpr uint8_t N_TILE_COLLISONS = 16;
+
 struct MetaTileTilesetInput {
     static const std::string FILE_EXTENSION;
 
@@ -34,6 +57,8 @@ struct MetaTileTilesetInput {
     std::vector<idstring> palettes;
 
     Resources::AnimationFramesInput animationFrames;
+
+    std::array<TileCollision, N_METATILES> tileCollisions{};
 
     grid<uint8_t> scratchpad;
 
@@ -55,6 +80,7 @@ struct MetaTileTilesetData {
     idstring name;
     std::vector<idstring> palettes;
     std::unique_ptr<Resources::AnimatedTilesetData> animatedTileset;
+    std::array<TileCollision, N_METATILES> tileCollisions;
 
     usize sourceTileSize() const;
 

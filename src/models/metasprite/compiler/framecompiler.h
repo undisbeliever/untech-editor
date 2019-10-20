@@ -19,12 +19,19 @@ struct CompiledRomData;
 
 struct TilesetData;
 
+struct TileHitboxData {
+    uint8_t left;
+    uint8_t right;
+    uint8_t yOffset;
+    uint8_t height;
+};
+
 struct FrameData {
     std::vector<uint8_t> frameObjects;
     std::vector<uint8_t> entityHitboxes;
-    std::vector<uint8_t> tileHitbox;
     std::vector<uint8_t> actionPoints;
     IndexPlusOne tileset;
+    TileHitboxData tileHitbox;
 };
 
 std::vector<FrameData> processFrameList(const FrameSetExportList& exportList,

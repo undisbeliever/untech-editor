@@ -33,6 +33,7 @@ class MtTilesetRenderer;
 class MtTilesetGraphicsScene;
 class MtEditableScratchpadGraphicsScene;
 class MtScratchpadGraphicsScene;
+class TilePropertiesWidget;
 
 class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
@@ -73,6 +74,7 @@ private:
 
     // Used by the DockWidgets
     PropertyListView* const _propertyListView;
+    TilePropertiesWidget* const _tilePropertiesWidget;
     ZoomableGraphicsView* const _dockedTilesetView;
     ZoomableGraphicsView* const _dockedScratchpadView;
 

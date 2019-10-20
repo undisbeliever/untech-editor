@@ -6,6 +6,7 @@
 
 #include "accessors.h"
 #include "gui-qt/accessor/gridundohelper.h"
+#include "gui-qt/accessor/resourceitemundohelper.h"
 
 using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
@@ -42,6 +43,76 @@ void MtTilesetTileParameters::clearSelection()
         _selectedIndexes.clear();
         emit selectedIndexesChanged();
     }
+}
+
+MtTilesetTileParameters::SelectedProperties MtTilesetTileParameters::selectedTileProperties() const
+{
+    SelectedProperties state;
+
+    assert(_tileset);
+    const MT::MetaTileTilesetInput* data = _tileset->data();
+
+    if (data == nullptr || _selectedIndexes.empty()) {
+        state.tileCollisionSame = false;
+    }
+    else {
+        state.tileCollision = data->tileCollisions.at(_selectedIndexes.front());
+        state.tileCollisionSame = true;
+
+        for (auto it = _selectedIndexes.begin() + 1; it != _selectedIndexes.end(); it++) {
+            const auto& tc = data->tileCollisions.at(*it);
+            if (tc != state.tileCollision) {
+                state.tileCollisionSame = false;
+            }
+        }
+    }
+
+    return state;
+}
+
+void MtTilesetTileParameters::editSelectedTiles_setCollision(MT::TileCollision tc)
+{
+    assert(_tileset);
+    const MT::MetaTileTilesetInput* data = _tileset->data();
+    if (data == nullptr
+        || _selectedIndexes.empty()) {
+        return;
+    }
+
+    if (_selectedIndexes.size() == 1) {
+        editTile_setTileCollision(_selectedIndexes.front(), tc);
+    }
+    else {
+        // We copy the entire tileCollisions variable as it's only 256 bytes
+        // and probably faster than creating the indexes, oldValues and newValues vectors.
+        auto tileCollisions = data->tileCollisions;
+        for (auto i : _selectedIndexes) {
+            tileCollisions.at(i) = tc;
+        }
+        editTiles_setTileCollisions(tileCollisions);
+    }
+}
+
+void MtTilesetTileParameters::editTile_setTileCollision(size_t index, const MT::TileCollision& tc)
+{
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
+
+    UndoHelper(_tileset).editField(
+        tc,
+        tr("Edit Tile Collision"),
+        [=](MT::MetaTileTilesetInput& ts) -> MT::TileCollision& { return ts.tileCollisions.at(index); },
+        [](ResourceItem& ri) { emit ri.tileParameters()->tileCollisionsChanged(); });
+}
+
+void MtTilesetTileParameters::editTiles_setTileCollisions(const std::array<MT::TileCollision, MT::N_METATILES>& tileCollisions)
+{
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
+
+    UndoHelper(_tileset).editField(
+        tileCollisions,
+        tr("Edit Tile Collisions"),
+        [=](MT::MetaTileTilesetInput & ts) -> auto& { return ts.tileCollisions; },
+        [](ResourceItem& ri) { emit ri.tileParameters()->tileCollisionsChanged(); });
 }
 
 MtTilesetScratchpadGrid::MtTilesetScratchpadGrid(ResourceItem* tileset)

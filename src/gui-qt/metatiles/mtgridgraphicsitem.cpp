@@ -48,7 +48,7 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
     connect(scene->renderer(), &MtTileset::MtTilesetRenderer::pixmapChanged,
             this, &MtGridGraphicsItem::updateAll);
 
-    connect(scene->style(), &Style::showGridChanged,
+    connect(scene->style(), &Style::showLayersChanged,
             this, &MtGridGraphicsItem::updateAll);
 }
 
@@ -127,9 +127,17 @@ void MtGridGraphicsItem::paint(QPainter* painter,
         painter->fillRect(_boundingRect, renderer->backgroundColor());
     }
 
-    _tileGridPainter.paint(painter, renderer);
-
     auto* style = _scene->style();
+
+    if (style->showTiles()) {
+        _tileGridPainter.paintTiles(painter, renderer);
+    }
+
+    if (style->showTileCollisions()) {
+        painter->setPen(QPen(style->tileCollisionsColor()));
+        painter->setBackgroundMode(Qt::TransparentMode);
+        _tileGridPainter.paintCollisions(painter, renderer);
+    }
 
     if (style->showGrid()) {
         painter->setPen(style->gridPen());

@@ -71,7 +71,16 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, ErrorL
 
     if (solid) {
         if (tileHitbox.width == 0 || tileHitbox.height == 0) {
-            errorList.addError("Tile Hitbox has no size");
+            addError("Tile Hitbox has no size");
+        }
+        else if (tileHitbox.left() >= 0 || tileHitbox.right() <= 0
+                 || tileHitbox.top() >= 0 || tileHitbox.bottom() <= 0) {
+            addError("Frame origin must be inside the tile hitbox and not touching the hitbox edges");
+        }
+
+        if (tileHitbox.left() < -127 || tileHitbox.right() > 127
+            || tileHitbox.top() < -127 || tileHitbox.height > 127) {
+            addError("Tile Hitbox is too large");
         }
     }
 
