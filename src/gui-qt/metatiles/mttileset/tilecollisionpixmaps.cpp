@@ -61,7 +61,7 @@ constexpr unsigned _lengthOfHeightTable(unsigned x)
     return bottomHeightTable.at(x) - topHeightTable.at(x);
 }
 
-constexpr unsigned TEXTURE_BYTES_PER_LINE = TEXTURE_WIDTH / 8;
+constexpr unsigned TEXTURE_BYTES_PER_LINE = unsigned((TEXTURE_WIDTH / 8 + QIMAGE_ALIGNMENT - 1) / QIMAGE_ALIGNMENT) * QIMAGE_ALIGNMENT;
 
 alignas(QIMAGE_ALIGNMENT) constexpr static std::array<uint8_t, TEXTURE_HEIGHT* TEXTURE_BYTES_PER_LINE> collisionTextureBitmap = []() {
     // std::array<bool> annoyingly does not pack bit, have to use uint8_t instead
@@ -76,6 +76,11 @@ alignas(QIMAGE_ALIGNMENT) constexpr static std::array<uint8_t, TEXTURE_HEIGHT* T
         auto setTilePixel = [&](const unsigned x, const unsigned y) {
             if (y < METATILE_SIZE_PX) {
                 bitmap.at(y * TEXTURE_BYTES_PER_LINE + (tx + x) / 8) |= uint8_t(1U << (x & 7));
+            }
+        };
+        auto drawTileVLine = [&](const unsigned y) {
+            for (unsigned x = 0; x < METATILE_SIZE_PX; x++) {
+                setTilePixel(x, y);
             }
         };
         auto drawTileHLine = [&](const unsigned x) {
@@ -124,6 +129,14 @@ alignas(QIMAGE_ALIGNMENT) constexpr static std::array<uint8_t, TEXTURE_HEIGHT* T
                     setTilePixel(x - 2, y);
                     setTilePixel(x + 2, y);
                 }
+            }
+        }
+        else if (tc == MT::TileCollision::END_SLOPE) {
+            drawTileVLine(0);
+            drawTileVLine(METATILE_SIZE_PX - 1);
+            for (unsigned y = 3; y < METATILE_SIZE_PX; y += 4) {
+                drawTileVLine(y);
+                drawTileVLine(y + 1);
             }
         }
         else {

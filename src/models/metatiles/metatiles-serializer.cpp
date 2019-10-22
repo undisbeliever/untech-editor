@@ -42,6 +42,7 @@ static const EnumMap<TileCollision> tileCollisonTypeEnumMap = {
     { "urts", TileCollision::UP_RIGHT_TALL_SLOPE },
     { "ults", TileCollision::UP_LEFT_TALL_SLOPE },
     { "ulss", TileCollision::UP_LEFT_SHORT_SLOPE },
+    { "es", TileCollision::END_SLOPE },
 
     { "empty", TileCollision::EMPTY },
 
@@ -61,6 +62,7 @@ static const EnumMap<TileCollision> tileCollisonTypeEnumMap = {
     { "UP_RIGHT_TALL_SLOPE", TileCollision::UP_RIGHT_TALL_SLOPE },
     { "UP_LEFT_TALL_SLOPE", TileCollision::UP_LEFT_TALL_SLOPE },
     { "UP_LEFT_SHORT_SLOPE", TileCollision::UP_LEFT_SHORT_SLOPE },
+    { "END_SLOPE", TileCollision::END_SLOPE },
 };
 
 const std::string MetaTileTilesetInput::FILE_EXTENSION = "utmt";

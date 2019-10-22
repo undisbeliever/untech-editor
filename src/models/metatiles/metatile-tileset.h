@@ -43,8 +43,10 @@ enum class TileCollision : uint8_t {
     UP_RIGHT_TALL_SLOPE,
     UP_LEFT_TALL_SLOPE,
     UP_LEFT_SHORT_SLOPE,
+
+    END_SLOPE,
 };
-constexpr uint8_t N_TILE_COLLISONS = 16;
+constexpr uint8_t N_TILE_COLLISONS = 17;
 
 struct MetaTileTilesetInput {
     static const std::string FILE_EXTENSION;

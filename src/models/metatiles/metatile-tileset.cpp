@@ -130,6 +130,21 @@ bool MetaTileTilesetData::validate(ErrorList& err) const
     return valid;
 }
 
+static uint8_t convertTileCollision(const TileCollision& tc)
+{
+    static_assert(N_TILE_COLLISONS == 17);
+
+    if (unsigned(tc) < 16) {
+        return (uint8_t(tc) & 0xf) << 4;
+    }
+    else if (tc == TileCollision::END_SLOPE) {
+        return (uint8_t(TileCollision::SOLID) << 4) | 0x08;
+    }
+
+    // Should never be here
+    abort();
+}
+
 std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
 {
     constexpr size_t TILEMAP_SIZE = N_METATILES * 4 * 2;
@@ -166,14 +181,14 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
     auto outIt = out.begin() + TILEMAP_SIZE;
     for (const auto& tc : tileCollisions) {
         assert(unsigned(tc) < N_TILE_COLLISONS);
-        *outIt++ = (uint8_t(tc) & 0xf) << 4;
+        *outIt++ = convertTileCollision(tc);
     }
     assert(outIt == out.end());
 
     return out;
 }
 
-const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 6;
+const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 7;
 
 std::vector<uint8_t>
 MetaTileTilesetData::exportMetaTileTileset() const

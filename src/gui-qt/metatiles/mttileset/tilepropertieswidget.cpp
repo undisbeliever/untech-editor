@@ -33,9 +33,9 @@ TilePropertiesWidget::TilePropertiesWidget(QWidget* parent)
         // Create Collision Type Buttons
         _collisionTypeButtons->setExclusive(true);
 
-        unsigned nButtons = 0;
+        unsigned cell = 0;
         auto createButton = [&](const QString& toolTip, TC tc) {
-            const static unsigned BUTTONS_PER_ROW = MT::N_TILE_COLLISONS / 2;
+            const static unsigned BUTTONS_PER_ROW = 6;
 
             auto* b = new QToolButton(this);
             b->setToolTip(toolTip);
@@ -47,20 +47,24 @@ TilePropertiesWidget::TilePropertiesWidget(QWidget* parent)
 
             _collisionTypeButtons->addButton(b, int(tc));
 
-            _ui->tileCollisionTypeGrid->addWidget(b, nButtons / BUTTONS_PER_ROW, nButtons % BUTTONS_PER_ROW);
-            nButtons++;
+            _ui->tileCollisionTypeGrid->addWidget(b, cell / BUTTONS_PER_ROW, cell % BUTTONS_PER_ROW);
+            cell++;
         };
 
         createButton(tr("No Collisions"), TC::EMPTY);
+        createButton(tr("Solid"), TC::SOLID);
         createButton(tr("Up Platform"), TC::UP_PLATFORM);
+        createButton(tr("Down Platform"), TC::DOWN_PLATFORM);
+        createButton(tr("End Slope"), TC::END_SLOPE);
+        cell++;
+
         createButton(tr("Down Right Slope"), TC::DOWN_RIGHT_SLOPE);
         createButton(tr("Down Left Slope"), TC::DOWN_LEFT_SLOPE);
         createButton(tr("Down Right Short Slope"), TC::DOWN_RIGHT_SHORT_SLOPE);
         createButton(tr("Down Right Tall Slope"), TC::DOWN_RIGHT_TALL_SLOPE);
         createButton(tr("Down Left Tall Slope"), TC::DOWN_LEFT_TALL_SLOPE);
         createButton(tr("Down Left Sort Slope"), TC::DOWN_LEFT_SHORT_SLOPE);
-        createButton(tr("Solid"), TC::SOLID);
-        createButton(tr("Down Platform"), TC::DOWN_PLATFORM);
+
         createButton(tr("Up Right Slope"), TC::UP_RIGHT_SLOPE);
         createButton(tr("Up Left Slope"), TC::UP_LEFT_SLOPE);
         createButton(tr("Up Right Short Slope"), TC::UP_RIGHT_SHORT_SLOPE);
@@ -68,7 +72,7 @@ TilePropertiesWidget::TilePropertiesWidget(QWidget* parent)
         createButton(tr("Up Left Tall Slope"), TC::UP_LEFT_TALL_SLOPE);
         createButton(tr("Up Left Short Slope"), TC::UP_LEFT_SHORT_SLOPE);
 
-        assert(nButtons == MT::N_TILE_COLLISONS);
+        assert(_ui->tileCollisionTypeGrid->count() == MT::N_TILE_COLLISONS);
     }
 
     connect(_collisionTypeButtons, qOverload<int>(&QButtonGroup::buttonClicked),
