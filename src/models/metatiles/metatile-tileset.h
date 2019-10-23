@@ -26,17 +26,19 @@ namespace MetaTiles {
 // ::KUDOS Christopher Hebert for the slope names::
 // ::: Reconstructing Cave Story: Slope Theory::
 // ::: https://www.youtube.com/watch?v=ny14i0GxGZw ::
+//
+// Order MUST MATCH untech engine.
 enum class TileCollision : uint8_t {
-    EMPTY,
     SOLID,
-    UP_PLATFORM,
-    DOWN_PLATFORM,
     DOWN_RIGHT_SLOPE, // right and down sides are the biggest, fall down to collide, walk right to ascend
     DOWN_LEFT_SLOPE,
     DOWN_RIGHT_SHORT_SLOPE,
     DOWN_RIGHT_TALL_SLOPE,
     DOWN_LEFT_TALL_SLOPE,
     DOWN_LEFT_SHORT_SLOPE,
+    UP_PLATFORM,
+    EMPTY,
+    DOWN_PLATFORM,
     UP_RIGHT_SLOPE,
     UP_LEFT_SLOPE,
     UP_RIGHT_SHORT_SLOPE,
@@ -57,13 +59,11 @@ struct MetaTileTilesetInput {
     // Will be shown in the map editor.
     // The first palette listed will be the one used to extract the animated tilesset.
     std::vector<idstring> palettes;
-
     Resources::AnimationFramesInput animationFrames;
-
-    std::array<TileCollision, N_METATILES> tileCollisions{};
-
+    std::array<TileCollision, N_METATILES> tileCollisions;
     grid<uint8_t> scratchpad;
 
+    MetaTileTilesetInput();
     bool validate(ErrorList& err) const;
 
     bool operator==(const MetaTileTilesetInput& o) const

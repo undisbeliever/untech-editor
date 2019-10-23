@@ -19,6 +19,11 @@ template class grid<uint16_t>;
 
 namespace MetaTiles {
 
+MetaTileTilesetInput::MetaTileTilesetInput()
+{
+    tileCollisions.fill(TileCollision::EMPTY);
+}
+
 bool MetaTileTilesetInput::validate(ErrorList& err) const
 {
     bool valid = true;
