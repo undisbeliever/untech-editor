@@ -28,9 +28,9 @@ struct TileCollisionTexture {
 
     // This routine returns a QPixmap.
     // If I return a QBitmap then the QToolButton icons would be inverted when the QToolButton is disabled.
-    static QPixmap createPixmap(MT::TileCollision tc, QColor color);
+    static QPixmap createPixmap(MT::TileCollisionType tc, QColor color);
 
-    inline static unsigned xOffset(MT::TileCollision ct) { return unsigned(ct) * MT::METATILE_SIZE_PX; }
+    inline static unsigned xOffset(MT::TileCollisionType ct) { return unsigned(ct) * MT::METATILE_SIZE_PX; }
 
 private:
     static QBitmap createBitmap();

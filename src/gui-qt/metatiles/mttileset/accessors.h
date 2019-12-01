@@ -26,7 +26,7 @@ public:
     using ArgsT = std::tuple<>;
 
     struct SelectedProperties {
-        MT::TileCollision tileCollision;
+        MT::TileCollisionType tileCollision;
         bool tileCollisionSame;
     };
 
@@ -47,10 +47,10 @@ public:
 
     SelectedProperties selectedTileProperties() const;
 
-    void editSelectedTiles_setCollision(MT::TileCollision tc);
+    void editSelectedTiles_setTileCollision(MT::TileCollisionType tc);
 
-    void editTile_setTileCollision(size_t index, const MT::TileCollision& tc);
-    void editTiles_setTileCollisions(const std::array<MT::TileCollision, MT::N_METATILES>& tileCollisions);
+    void editTile_setTileCollision(size_t index, const MT::TileCollisionType& tc);
+    void editTiles_setTileCollisions(const std::array<MT::TileCollisionType, MT::N_METATILES>& tileCollisions);
 
 protected:
     ArgsT selectedListTuple() const { return std::make_tuple(); }

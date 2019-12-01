@@ -25,44 +25,44 @@ void UnTech::ExternalFileItem<MetaTiles::MetaTileTilesetInput>::loadFile()
 
 namespace MetaTiles {
 
-static const EnumMap<TileCollision> tileCollisonTypeEnumMap = {
-    { "", TileCollision::EMPTY },
-    { "solid", TileCollision::SOLID },
-    { "drs", TileCollision::DOWN_RIGHT_SLOPE },
-    { "dls", TileCollision::DOWN_LEFT_SLOPE },
-    { "drss", TileCollision::DOWN_RIGHT_SHORT_SLOPE },
-    { "drts", TileCollision::DOWN_RIGHT_TALL_SLOPE },
-    { "dlts", TileCollision::DOWN_LEFT_TALL_SLOPE },
-    { "dlss", TileCollision::DOWN_LEFT_SHORT_SLOPE },
-    { "dp", TileCollision::DOWN_PLATFORM },
-    { "up", TileCollision::UP_PLATFORM },
-    { "urs", TileCollision::UP_RIGHT_SLOPE },
-    { "uls", TileCollision::UP_LEFT_SLOPE },
-    { "urss", TileCollision::UP_RIGHT_SHORT_SLOPE },
-    { "urts", TileCollision::UP_RIGHT_TALL_SLOPE },
-    { "ults", TileCollision::UP_LEFT_TALL_SLOPE },
-    { "ulss", TileCollision::UP_LEFT_SHORT_SLOPE },
-    { "es", TileCollision::END_SLOPE },
+static const EnumMap<TileCollisionType> tileCollisonTypeEnumMap = {
+    { "", TileCollisionType::EMPTY },
+    { "solid", TileCollisionType::SOLID },
+    { "drs", TileCollisionType::DOWN_RIGHT_SLOPE },
+    { "dls", TileCollisionType::DOWN_LEFT_SLOPE },
+    { "drss", TileCollisionType::DOWN_RIGHT_SHORT_SLOPE },
+    { "drts", TileCollisionType::DOWN_RIGHT_TALL_SLOPE },
+    { "dlts", TileCollisionType::DOWN_LEFT_TALL_SLOPE },
+    { "dlss", TileCollisionType::DOWN_LEFT_SHORT_SLOPE },
+    { "dp", TileCollisionType::DOWN_PLATFORM },
+    { "up", TileCollisionType::UP_PLATFORM },
+    { "urs", TileCollisionType::UP_RIGHT_SLOPE },
+    { "uls", TileCollisionType::UP_LEFT_SLOPE },
+    { "urss", TileCollisionType::UP_RIGHT_SHORT_SLOPE },
+    { "urts", TileCollisionType::UP_RIGHT_TALL_SLOPE },
+    { "ults", TileCollisionType::UP_LEFT_TALL_SLOPE },
+    { "ulss", TileCollisionType::UP_LEFT_SHORT_SLOPE },
+    { "es", TileCollisionType::END_SLOPE },
 
-    { "empty", TileCollision::EMPTY },
+    { "empty", TileCollisionType::EMPTY },
 
-    { "EMPTY", TileCollision::EMPTY },
-    { "SOLID", TileCollision::SOLID },
-    { "DOWN_RIGHT_SLOPE", TileCollision::DOWN_RIGHT_SLOPE },
-    { "DOWN_LEFT_SLOPE", TileCollision::DOWN_LEFT_SLOPE },
-    { "DOWN_RIGHT_SHORT_SLOPE", TileCollision::DOWN_RIGHT_SHORT_SLOPE },
-    { "DOWN_RIGHT_TALL_SLOPE", TileCollision::DOWN_RIGHT_TALL_SLOPE },
-    { "DOWN_LEFT_TALL_SLOPE", TileCollision::DOWN_LEFT_TALL_SLOPE },
-    { "DOWN_LEFT_SHORT_SLOPE", TileCollision::DOWN_LEFT_SHORT_SLOPE },
-    { "DOWN_PLATFORM", TileCollision::DOWN_PLATFORM },
-    { "UP_PLATFORM", TileCollision::UP_PLATFORM },
-    { "UP_RIGHT_SLOPE", TileCollision::UP_RIGHT_SLOPE },
-    { "UP_LEFT_SLOPE", TileCollision::UP_LEFT_SLOPE },
-    { "UP_RIGHT_SHORT_SLOPE", TileCollision::UP_RIGHT_SHORT_SLOPE },
-    { "UP_RIGHT_TALL_SLOPE", TileCollision::UP_RIGHT_TALL_SLOPE },
-    { "UP_LEFT_TALL_SLOPE", TileCollision::UP_LEFT_TALL_SLOPE },
-    { "UP_LEFT_SHORT_SLOPE", TileCollision::UP_LEFT_SHORT_SLOPE },
-    { "END_SLOPE", TileCollision::END_SLOPE },
+    { "EMPTY", TileCollisionType::EMPTY },
+    { "SOLID", TileCollisionType::SOLID },
+    { "DOWN_RIGHT_SLOPE", TileCollisionType::DOWN_RIGHT_SLOPE },
+    { "DOWN_LEFT_SLOPE", TileCollisionType::DOWN_LEFT_SLOPE },
+    { "DOWN_RIGHT_SHORT_SLOPE", TileCollisionType::DOWN_RIGHT_SHORT_SLOPE },
+    { "DOWN_RIGHT_TALL_SLOPE", TileCollisionType::DOWN_RIGHT_TALL_SLOPE },
+    { "DOWN_LEFT_TALL_SLOPE", TileCollisionType::DOWN_LEFT_TALL_SLOPE },
+    { "DOWN_LEFT_SHORT_SLOPE", TileCollisionType::DOWN_LEFT_SHORT_SLOPE },
+    { "DOWN_PLATFORM", TileCollisionType::DOWN_PLATFORM },
+    { "UP_PLATFORM", TileCollisionType::UP_PLATFORM },
+    { "UP_RIGHT_SLOPE", TileCollisionType::UP_RIGHT_SLOPE },
+    { "UP_LEFT_SLOPE", TileCollisionType::UP_LEFT_SLOPE },
+    { "UP_RIGHT_SHORT_SLOPE", TileCollisionType::UP_RIGHT_SHORT_SLOPE },
+    { "UP_RIGHT_TALL_SLOPE", TileCollisionType::UP_RIGHT_TALL_SLOPE },
+    { "UP_LEFT_TALL_SLOPE", TileCollisionType::UP_LEFT_TALL_SLOPE },
+    { "UP_LEFT_SHORT_SLOPE", TileCollisionType::UP_LEFT_SHORT_SLOPE },
+    { "END_SLOPE", TileCollisionType::END_SLOPE },
 };
 
 const std::string MetaTileTilesetInput::FILE_EXTENSION = "utmt";
@@ -107,7 +107,7 @@ static void readTileProperties(const XmlTag* tag, MetaTileTilesetInput& tilesetI
     // <tile> tag
 
     unsigned i = tag->getAttributeUnsigned("t", 0, N_METATILES - 1);
-    tilesetInput.tileCollisions.at(i) = tag->getAttributeOptionalEnum("collision", tileCollisonTypeEnumMap, TileCollision::EMPTY);
+    tilesetInput.tileCollisions.at(i) = tag->getAttributeOptionalEnum("collision", tileCollisonTypeEnumMap, TileCollisionType::EMPTY);
 }
 
 static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tilesetInput)
@@ -115,9 +115,7 @@ static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tile
     for (unsigned i = 0; i < N_METATILES; i++) {
         const auto& tc = tilesetInput.tileCollisions.at(i);
 
-        const bool writeTag = tc != TileCollision::EMPTY;
-
-        if (writeTag) {
+        if (tc != TileCollisionType::EMPTY) {
             xml.writeTag("tile");
             xml.writeTagAttribute("t", i);
             xml.writeTagAttributeEnum("collision", tc, tileCollisonTypeEnumMap);

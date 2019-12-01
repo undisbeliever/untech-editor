@@ -68,7 +68,7 @@ alignas(QIMAGE_ALIGNMENT) constexpr static std::array<uint8_t, TEXTURE_HEIGHT* T
     std::array<uint8_t, TEXTURE_HEIGHT * TEXTURE_BYTES_PER_LINE> bitmap{};
 
     for (unsigned tx = 0; tx < TEXTURE_WIDTH; tx += METATILE_SIZE_PX) {
-        MT::TileCollision tc = MT::TileCollision(tx / METATILE_SIZE_PX);
+        MT::TileCollisionType tc = MT::TileCollisionType(tx / METATILE_SIZE_PX);
 
         auto top = [&](const unsigned x) -> unsigned { return topHeightTable.at(tx + x) < METATILE_SIZE_PX ? topHeightTable.at(tx + x) : 0; };
         auto bottom = [&](const unsigned x) -> unsigned { return bottomHeightTable.at(tx + x) < METATILE_SIZE_PX ? bottomHeightTable.at(tx + x) : 15; };
@@ -97,17 +97,17 @@ alignas(QIMAGE_ALIGNMENT) constexpr static std::array<uint8_t, TEXTURE_HEIGHT* T
             }
         };
 
-        if (tc == MT::TileCollision::EMPTY) {
+        if (tc == MT::TileCollisionType::EMPTY) {
             continue;
         }
-        else if (tc == MT::TileCollision::SOLID) {
+        else if (tc == MT::TileCollisionType::SOLID) {
             for (unsigned y = 0; y < METATILE_SIZE_PX; y++) {
                 for (unsigned x = 0; x < METATILE_SIZE_PX; x++) {
                     setTilePixel(x, y);
                 }
             }
         }
-        else if (tc == MT::TileCollision::UP_PLATFORM) {
+        else if (tc == MT::TileCollisionType::UP_PLATFORM) {
             drawTileBox();
             for (unsigned x = 4; x < METATILE_SIZE_PX - 1; x += 7) {
                 for (unsigned y = 2; y < METATILE_SIZE_PX - 3; y += 3) {
@@ -119,7 +119,7 @@ alignas(QIMAGE_ALIGNMENT) constexpr static std::array<uint8_t, TEXTURE_HEIGHT* T
                 }
             }
         }
-        else if (tc == MT::TileCollision::DOWN_PLATFORM) {
+        else if (tc == MT::TileCollisionType::DOWN_PLATFORM) {
             drawTileBox();
             for (unsigned x = 4; x < METATILE_SIZE_PX - 1; x += 7) {
                 for (unsigned y = 2; y < METATILE_SIZE_PX - 3; y += 3) {
@@ -131,7 +131,7 @@ alignas(QIMAGE_ALIGNMENT) constexpr static std::array<uint8_t, TEXTURE_HEIGHT* T
                 }
             }
         }
-        else if (tc == MT::TileCollision::END_SLOPE) {
+        else if (tc == MT::TileCollisionType::END_SLOPE) {
             drawTileVLine(0);
             drawTileVLine(METATILE_SIZE_PX - 1);
             for (unsigned y = 3; y < METATILE_SIZE_PX; y += 4) {
@@ -153,7 +153,7 @@ alignas(QIMAGE_ALIGNMENT) constexpr static std::array<uint8_t, TEXTURE_HEIGHT* T
     return bitmap;
 }();
 
-QPixmap TileCollisionTexture::createPixmap(MT::TileCollision tc, QColor color)
+QPixmap TileCollisionTexture::createPixmap(MT::TileCollisionType tc, QColor color)
 {
     QImage image(collisionTextureBitmap.data(), TEXTURE_WIDTH, TEXTURE_HEIGHT, TEXTURE_BYTES_PER_LINE, QImage::Format_MonoLSB);
     image = image.copy(xOffset(tc), 0, METATILE_SIZE_PX, METATILE_SIZE_PX);

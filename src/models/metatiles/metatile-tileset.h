@@ -28,7 +28,7 @@ namespace MetaTiles {
 // ::: https://www.youtube.com/watch?v=ny14i0GxGZw ::
 //
 // Order MUST MATCH untech engine.
-enum class TileCollision : uint8_t {
+enum class TileCollisionType : uint8_t {
     SOLID,
     DOWN_RIGHT_SLOPE, // right and down sides are the biggest, fall down to collide, walk right to ascend
     DOWN_LEFT_SLOPE,
@@ -60,7 +60,7 @@ struct MetaTileTilesetInput {
     // The first palette listed will be the one used to extract the animated tilesset.
     std::vector<idstring> palettes;
     Resources::AnimationFramesInput animationFrames;
-    std::array<TileCollision, N_METATILES> tileCollisions;
+    std::array<TileCollisionType, N_METATILES> tileCollisions;
     grid<uint8_t> scratchpad;
 
     MetaTileTilesetInput();
@@ -82,7 +82,7 @@ struct MetaTileTilesetData {
     idstring name;
     std::vector<idstring> palettes;
     std::unique_ptr<Resources::AnimatedTilesetData> animatedTileset;
-    std::array<TileCollision, N_METATILES> tileCollisions;
+    std::array<TileCollisionType, N_METATILES> tileCollisions;
 
     usize sourceTileSize() const;
 

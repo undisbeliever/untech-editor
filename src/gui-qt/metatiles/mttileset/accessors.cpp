@@ -70,7 +70,7 @@ MtTilesetTileParameters::SelectedProperties MtTilesetTileParameters::selectedTil
     return state;
 }
 
-void MtTilesetTileParameters::editSelectedTiles_setCollision(MT::TileCollision tc)
+void MtTilesetTileParameters::editSelectedTiles_setTileCollision(MT::TileCollisionType tc)
 {
     assert(_tileset);
     const MT::MetaTileTilesetInput* data = _tileset->data();
@@ -93,18 +93,18 @@ void MtTilesetTileParameters::editSelectedTiles_setCollision(MT::TileCollision t
     }
 }
 
-void MtTilesetTileParameters::editTile_setTileCollision(size_t index, const MT::TileCollision& tc)
+void MtTilesetTileParameters::editTile_setTileCollision(size_t index, const MT::TileCollisionType& tc)
 {
     using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
 
     UndoHelper(_tileset).editField(
         tc,
         tr("Edit Tile Collision"),
-        [=](MT::MetaTileTilesetInput& ts) -> MT::TileCollision& { return ts.tileCollisions.at(index); },
+        [=](MT::MetaTileTilesetInput& ts) -> MT::TileCollisionType& { return ts.tileCollisions.at(index); },
         [](ResourceItem& ri) { emit ri.tileParameters()->tileCollisionsChanged(); });
 }
 
-void MtTilesetTileParameters::editTiles_setTileCollisions(const std::array<MT::TileCollision, MT::N_METATILES>& tileCollisions)
+void MtTilesetTileParameters::editTiles_setTileCollisions(const std::array<MT::TileCollisionType, MT::N_METATILES>& tileCollisions)
 {
     using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
 

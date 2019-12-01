@@ -23,7 +23,7 @@ TilePropertiesWidget::TilePropertiesWidget(QWidget* parent)
     , _collisionTypeButtons(new QButtonGroup(this))
     , _tileProperties(nullptr)
 {
-    using TC = MT::TileCollision;
+    using TC = MT::TileCollisionType;
 
     _ui->setupUi(this);
 
@@ -150,6 +150,6 @@ void TilePropertiesWidget::onCollisonTypeButtonClicked(int buttonIndex)
     if (_tileProperties
         && buttonIndex >= 0 && buttonIndex < MT::N_TILE_COLLISONS) {
 
-        _tileProperties->editSelectedTiles_setCollision(MT::TileCollision(buttonIndex));
+        _tileProperties->editSelectedTiles_setTileCollision(MT::TileCollisionType(buttonIndex));
     }
 }

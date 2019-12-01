@@ -21,7 +21,7 @@ namespace MetaTiles {
 
 MetaTileTilesetInput::MetaTileTilesetInput()
 {
-    tileCollisions.fill(TileCollision::EMPTY);
+    tileCollisions.fill(TileCollisionType::EMPTY);
 }
 
 bool MetaTileTilesetInput::validate(ErrorList& err) const
@@ -135,15 +135,15 @@ bool MetaTileTilesetData::validate(ErrorList& err) const
     return valid;
 }
 
-static uint8_t convertTileCollision(const TileCollision& tc)
+static uint8_t convertTileCollisionType(const TileCollisionType& tc)
 {
     static_assert(N_TILE_COLLISONS == 17);
 
     if (unsigned(tc) < 16) {
         return (uint8_t(tc) & 0xf) << 4;
     }
-    else if (tc == TileCollision::END_SLOPE) {
-        return (uint8_t(TileCollision::SOLID) << 4) | 0x08;
+    else if (tc == TileCollisionType::END_SLOPE) {
+        return (uint8_t(TileCollisionType::SOLID) << 4) | 0x08;
     }
 
     // Should never be here
@@ -179,14 +179,14 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
         assert(outIt <= out.begin() + N_METATILES * (q + 1) * 2);
     }
 
-    static_assert(sizeof(TileCollision) == 1);
+    static_assert(sizeof(TileCollisionType) == 1);
     static_assert(sizeof(tileCollisions) == 256);
 
     // tile collision data
     auto outIt = out.begin() + TILEMAP_SIZE;
     for (const auto& tc : tileCollisions) {
         assert(unsigned(tc) < N_TILE_COLLISONS);
-        *outIt++ = convertTileCollision(tc);
+        *outIt++ = convertTileCollisionType(tc);
     }
     assert(outIt == out.end());
 
