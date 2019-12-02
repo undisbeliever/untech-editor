@@ -188,11 +188,12 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
 
     const size_t BLOCK_SIZE = 4096;
 
-    int fd;
-    char tmpFilename[filename.size() + 12];
+    const std::unique_ptr<char[]> tmpFilenameBuffer(new char[filename.size() + 16]);
+    char* const tmpFilename = tmpFilenameBuffer.get();
     strncpy(tmpFilename, filename.c_str(), filename.size() + 1);
-    strncpy(tmpFilename + filename.size(), "-tmpXXXXXX", 12);
+    strncpy(tmpFilename + filename.size(), "-tmpXXXXXX", 16);
 
+    int fd;
     struct stat statbuf;
     if (stat(filename.c_str(), &statbuf) == 0) {
         if (S_ISLNK(statbuf.st_mode)) {
