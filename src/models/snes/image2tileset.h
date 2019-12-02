@@ -9,6 +9,7 @@
 #include "models/common/indexedimage.h"
 #include "models/snes/palette.h"
 #include "models/snes/tileset.h"
+#include <filesystem>
 
 namespace UnTech {
 namespace Snes {
@@ -24,14 +25,14 @@ class ImageToTileset {
 public:
     static void convertAndSave(
         const IndexedImage& image, int bitDepth,
-        const std::string& tilesetFile, const std::string& paletteFile);
+        const std::filesystem::path& tilesetFile, const std::filesystem::path& paletteFile);
 
 public:
     ImageToTileset(int bitDepth);
     ImageToTileset(const ImageToTileset&) = delete;
 
-    void writeTileset(const std::string& filename) const;
-    void writePalette(const std::string& filename) const;
+    void writeTileset(const std::filesystem::path& filename) const;
+    void writePalette(const std::filesystem::path& filename) const;
 
     auto& tileset() { return _tileset; }
     const auto& tileset() const { return _tileset; }

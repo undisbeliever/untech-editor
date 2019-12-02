@@ -15,6 +15,7 @@
 #include "models/common/ms8aabb.h"
 #include "models/common/namedlist.h"
 #include "models/snes/tileset.h"
+#include <filesystem>
 #include <string>
 
 namespace UnTech {
@@ -161,8 +162,8 @@ struct FrameSet {
     bool operator!=(const FrameSet& o) const { return !(*this == o); }
 };
 
-std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename);
-void saveFrameSet(const FrameSet& frameSet, const std::string& filename);
+std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename);
+void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename);
 }
 }
 }

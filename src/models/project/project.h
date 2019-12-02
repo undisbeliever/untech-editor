@@ -69,8 +69,8 @@ struct ProjectFile {
     bool operator!=(const ProjectFile& o) const { return !(*this == o); }
 };
 
-std::unique_ptr<ProjectFile> loadProjectFile(const std::string& filename);
-void saveProjectFile(const ProjectFile& project, const std::string& filename);
+std::unique_ptr<ProjectFile> loadProjectFile(const std::filesystem::path& filename);
+void saveProjectFile(const ProjectFile& project, const std::filesystem::path& filename);
 
 }
 }

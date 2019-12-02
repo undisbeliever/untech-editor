@@ -10,6 +10,7 @@
 #include "models/common/errorlist.h"
 #include <QObject>
 #include <QUndoStack>
+#include <filesystem>
 
 namespace UnTech {
 namespace GuiQt {
@@ -179,7 +180,7 @@ protected:
     void setFilename(const QString& filename);
 
     // may raise an exception on error
-    virtual void saveResourceData(const std::string& filename) const = 0;
+    virtual void saveResourceData(const std::filesystem::path& filename) const = 0;
 
 private slots:
     void updateRelativePath();

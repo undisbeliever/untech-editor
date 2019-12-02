@@ -33,7 +33,7 @@ protected:
     virtual size_t nItems() const final;
     virtual AbstractResourceItem* buildResourceItem(size_t index) final;
 
-    virtual void do_addResource(int settingIndex, const std::string& filename) final;
+    virtual void do_addResource(int settingIndex, const std::string& fn) final;
     virtual void do_removeResource(unsigned index) final;
 
     // Will always return the same instance

@@ -22,7 +22,7 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
     bool valid = true;
 
     for (auto it = list.begin(); it != list.end(); it++) {
-        const std::string& filename = it->filename;
+        const std::filesystem::path& filename = it->filename;
         bool dupFn = std::any_of(it + 1, list.end(),
                                  [&](const auto& i) { return i.filename == filename; });
         if (dupFn) {

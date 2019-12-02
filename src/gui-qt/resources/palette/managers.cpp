@@ -6,6 +6,7 @@
 
 #include "managers.h"
 #include "resourceitem.h"
+#include "gui-qt/common/helpers.h"
 #include "models/common/imagecache.h"
 
 using namespace UnTech::GuiQt::Resources::Palette;
@@ -72,7 +73,7 @@ QVariant PalettePropertyManager::data(int id) const
         return QString::fromStdString(pal.name);
 
     case IMAGE_FILENAME:
-        return QString::fromStdString(pal.paletteImageFilename);
+        return fromPath(pal.paletteImageFilename);
 
     case ROWS_PER_FRAME:
         return pal.rowsPerFrame;
@@ -96,7 +97,7 @@ bool PalettePropertyManager::setData(int id, const QVariant& value)
         return _palette->editPalette_setName(value.toString().toStdString());
 
     case IMAGE_FILENAME:
-        return _palette->editPalette_setImageFilename(value.toString().toStdString());
+        return _palette->editPalette_setImageFilename(toPath(value.toString()));
 
     case ROWS_PER_FRAME:
         return _palette->editPalette_setRowsPerFrame(value.toUInt());

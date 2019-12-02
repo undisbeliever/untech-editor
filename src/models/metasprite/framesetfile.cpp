@@ -69,7 +69,7 @@ void FrameSetFile::loadFile()
         break;
 
     case FrameSetType::UNKNOWN:
-        throw std::runtime_error("Cannot load " + filename + ": Unknown frameset type");
+        throw std::runtime_error("Cannot load " + filename.string() + ": Unknown frameset type");
         break;
     }
 }
@@ -100,17 +100,6 @@ const idstring& FrameSetFile::exportOrder() const
     return empty;
 }
 
-const std::string& FrameSetFile::displayName() const
-{
-    if (msFrameSet) {
-        return msFrameSet->name;
-    }
-    if (siFrameSet) {
-        return siFrameSet->name;
-    }
-    return filename;
-}
-
 bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetFile>& frameSets,
                                                      ErrorList& err)
 {
@@ -119,11 +108,11 @@ bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetF
     bool valid = true;
 
     for (auto it = frameSets.begin(); it != frameSets.end(); it++) {
-        const std::string& filename = it->filename;
+        const std::filesystem::path& filename = it->filename;
         bool dupFn = std::any_of(it + 1, frameSets.end(),
                                  [&](const auto& i) { return i.filename == filename; });
         if (dupFn) {
-            err.addError("Duplicate frameset file detected: " + filename);
+            err.addError("Duplicate frameset file detected: " + filename.string());
             valid = false;
             continue;
         }

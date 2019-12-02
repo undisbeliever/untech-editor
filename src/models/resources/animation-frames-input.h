@@ -8,6 +8,7 @@
 
 #include "animated-tileset.h"
 #include "palette.h"
+#include <filesystem>
 #include <vector>
 
 namespace UnTech {
@@ -18,7 +19,7 @@ namespace Resources {
 struct PaletteInput;
 
 struct AnimationFramesInput {
-    std::vector<std::string> frameImageFilenames;
+    std::vector<std::filesystem::path> frameImageFilenames;
 
     unsigned animationDelay = 30;
 

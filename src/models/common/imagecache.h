@@ -7,8 +7,8 @@
 #pragma once
 
 #include "image.h"
+#include <filesystem>
 #include <memory>
-#include <string>
 
 namespace UnTech {
 
@@ -30,9 +30,9 @@ private:
 
 public:
     // Will never return a nullptr
-    static const std::shared_ptr<const Image> loadPngImage(const std::string& filename);
+    static const std::shared_ptr<const Image> loadPngImage(const std::filesystem::path& filename);
 
-    static void invalidateFilename(const std::string& filename);
+    static void invalidateFilename(const std::filesystem::path& filename);
     static void invalidateImageCache();
 };
 }

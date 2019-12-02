@@ -57,12 +57,12 @@ bool ResourceItem::editPalette_setName(const idstring& name)
     return UndoHelper(this).editName(name);
 }
 
-bool ResourceItem::editPalette_setImageFilename(const std::string& filename)
+bool ResourceItem::editPalette_setImageFilename(const std::filesystem::path& filename)
 {
     return UndoHelper(this).editField(
         filename,
         tr("Edit Image Filename"),
-        [](RES::PaletteInput& p) -> std::string& { return p.paletteImageFilename; },
+        [](RES::PaletteInput& p) -> std::filesystem::path& { return p.paletteImageFilename; },
         [](ResourceItem& pal) { pal.updateExternalFiles(); });
 }
 

@@ -25,7 +25,7 @@ static size_t nFilesPassed = 0;
 static size_t nFilesFailed = 0;
 
 template <class T, typename Writer>
-static std::string writeXmlString(const T& input, const std::string& filename, Writer writer)
+static std::string writeXmlString(const T& input, const std::filesystem::path& filename, Writer writer)
 {
     std::stringstream stream;
     Xml::XmlWriter xml(stream, filename, "untech");
@@ -35,7 +35,7 @@ static std::string writeXmlString(const T& input, const std::string& filename, W
 }
 
 template <class T, typename Reader, typename Writer>
-static void validateReaderAndWriter(const std::string& filename, const T& input,
+static void validateReaderAndWriter(const std::filesystem::path& filename, const T& input,
                                     Reader readerFunction, Writer writerFunction)
 {
     const std::string xmlString1 = writeXmlString(input, filename, writerFunction);
@@ -51,18 +51,18 @@ static void validateReaderAndWriter(const std::string& filename, const T& input,
 
     assert(output);
     if ((*output == input) == false) {
-        throw std::runtime_error(filename + ": output != input");
+        throw std::runtime_error(filename.string() + ": output != input");
     }
 
     const std::string xmlString2 = writeXmlString(*output, filename, writerFunction);
 
     if (xmlString1 != xmlString2) {
-        throw std::runtime_error(filename + ": xmlString1 != xmlString2");
+        throw std::runtime_error(filename.string() + ": xmlString1 != xmlString2");
     }
 }
 
 template <typename Reader, typename Writer>
-static bool testSerializer(const std::string& filename, Reader reader, Writer writer)
+static bool testSerializer(const std::filesystem::path& filename, Reader reader, Writer writer)
 {
     try {
         auto xml = Xml::XmlReader::fromFile(filename);
@@ -84,28 +84,28 @@ static bool testSerializer(const std::string& filename, Reader reader, Writer wr
 }
 
 template <class T>
-static bool testSerializer(const std::string& filename);
+static bool testSerializer(const std::filesystem::path& filename);
 
 template <>
-bool testSerializer<MetaTiles::MetaTileTilesetInput>(const std::string& filename)
+bool testSerializer<MetaTiles::MetaTileTilesetInput>(const std::filesystem::path& filename)
 {
     return testSerializer(filename, MetaTiles::readMetaTileTilesetInput, MetaTiles::writeMetaTileTilesetInput);
 }
 
 template <>
-bool testSerializer<MetaSprite::FrameSetExportOrder>(const std::string& filename)
+bool testSerializer<MetaSprite::FrameSetExportOrder>(const std::filesystem::path& filename)
 {
     return testSerializer(filename, MetaSprite::readFrameSetExportOrder, MetaSprite::writeFrameSetExportOrder);
 }
 
 template <>
-bool testSerializer<MetaSprite::MetaSprite::FrameSet>(const std::string& filename)
+bool testSerializer<MetaSprite::MetaSprite::FrameSet>(const std::filesystem::path& filename)
 {
     return testSerializer(filename, MetaSprite::MetaSprite::readFrameSet, MetaSprite::MetaSprite::writeFrameSet);
 }
 
 template <>
-bool testSerializer<MetaSprite::SpriteImporter::FrameSet>(const std::string& filename)
+bool testSerializer<MetaSprite::SpriteImporter::FrameSet>(const std::filesystem::path& filename)
 {
     return testSerializer(filename, MetaSprite::SpriteImporter::readFrameSet, MetaSprite::SpriteImporter::writeFrameSet);
 }
@@ -126,7 +126,7 @@ static bool testFrameSetFile(const MetaSprite::FrameSetFile& f)
     }
 
     nFilesFailed++;
-    std::cerr << "ERROR: Unknown FrameSetFile type: " + f.filename;
+    std::cerr << "ERROR: Unknown FrameSetFile type: " + f.filename.string();
     return false;
 }
 
@@ -152,7 +152,7 @@ static bool testExternalFileList(const ExternalFileList<T>& list)
 }
 
 template <>
-bool testSerializer<Project::ProjectFile>(const std::string& filename)
+bool testSerializer<Project::ProjectFile>(const std::filesystem::path& filename)
 {
     std::unique_ptr<Project::ProjectFile> project;
 

@@ -87,7 +87,7 @@ QVariant MtTilesetPropertyManager::data(int id) const
         return convertStringList(ti->palettes);
 
     case FRAME_IMAGES:
-        return convertStringList(ti->animationFrames.frameImageFilenames);
+        return fromPathVector(ti->animationFrames.frameImageFilenames);
 
     case ANIMATION_DELAY:
         return ti->animationFrames.animationDelay;
@@ -119,8 +119,7 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
             toIdstringVector(value.toStringList()));
 
     case FRAME_IMAGES:
-        return _tileset->editTileset_setFrameImageFilenames(
-            toStringVector(value.toStringList()));
+        return _tileset->editTileset_setFrameImageFilenames(toPathVector(value.toStringList()));
 
     case ANIMATION_DELAY:
         return _tileset->editTileset_setAnimationDelay(value.toUInt());

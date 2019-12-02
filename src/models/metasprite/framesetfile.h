@@ -8,6 +8,7 @@
 
 #include "metasprite.h"
 #include "spriteimporter.h"
+#include <filesystem>
 #include <memory>
 
 namespace UnTech {
@@ -20,7 +21,7 @@ struct FrameSetFile {
         SPRITE_IMPORTER
     };
 
-    std::string filename;
+    std::filesystem::path filename;
 
     FrameSetType type = FrameSetType::UNKNOWN;
     std::unique_ptr<MetaSprite::FrameSet> msFrameSet;
@@ -36,9 +37,6 @@ struct FrameSetFile {
     // returns an empty idstring if no frameSet exists
     const idstring& name() const;
     const idstring& exportOrder() const;
-
-    // returns the filename is no frameSet exists
-    const std::string& displayName() const;
 
     FrameSetFile() = default;
 

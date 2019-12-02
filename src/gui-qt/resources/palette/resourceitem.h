@@ -40,7 +40,7 @@ public:
     const RES::PaletteData* compiledData() const { return _compiledData.get(); }
 
     bool editPalette_setName(const idstring& name);
-    bool editPalette_setImageFilename(const std::string& filename);
+    bool editPalette_setImageFilename(const std::filesystem::path& filename);
     bool editPalette_setRowsPerFrame(unsigned rowsPerFrame);
     bool editPalette_setAnimationDelay(unsigned animationDelay);
     bool editPalette_setSkipFirstFrame(bool skipFirstFrame);

@@ -56,7 +56,7 @@ void Image::fill(const rgba& color)
     }
 }
 
-bool Image::loadPngImage(const std::string& filename)
+bool Image::loadPngImage(const std::filesystem::path& filename)
 {
     erase();
     auto error = lodepng::decode(_imageData, _size.width, _size.height, filename);

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <sstream>
 #include <vector>
@@ -21,7 +22,7 @@ struct ProjectOutput {
 
 // may raise an exception
 std::unique_ptr<ProjectOutput>
-compileProject(const ProjectFile& input, const std::string& relativeBinaryFilename,
+compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinaryFilename,
                std::ostream& errorStream);
 }
 }

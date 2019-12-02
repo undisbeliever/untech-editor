@@ -16,10 +16,10 @@ namespace UnTech {
 namespace MetaTiles {
 
 // returns nullptr on error
-std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename, ErrorList& err);
+std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesystem::path& filename, ErrorList& err);
 
 // raises an exception on error
-std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename);
+std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesystem::path& filename);
 
 // raises an exception on error
 std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(Xml::XmlReader& xml);
@@ -28,7 +28,7 @@ std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(Xml::XmlReader& x
 void readEngineSettings(EngineSettings& settings, const Xml::XmlTag* tag);
 
 // raises an exception on error
-void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::string& filename);
+void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::filesystem::path& filename);
 
 // raises an exception on error
 void writeMetaTileTilesetInput(Xml::XmlWriter& xml, const MetaTileTilesetInput& input);

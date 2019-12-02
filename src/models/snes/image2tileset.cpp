@@ -17,9 +17,8 @@ ImageToTileset::ImageToTileset(int bitDepth)
 {
 }
 
-void ImageToTileset::convertAndSave(
-    const IndexedImage& image, int bitDepth,
-    const std::string& tilesetFile, const std::string& paletteFile)
+void ImageToTileset::convertAndSave(const IndexedImage& image, int bitDepth,
+                                    const std::filesystem::path& tilesetFile, const std::filesystem::path& paletteFile)
 {
     ImageToTileset converter(bitDepth);
     converter.process(image);
@@ -32,13 +31,13 @@ void ImageToTileset::convertAndSave(
     }
 }
 
-void ImageToTileset::writeTileset(const std::string& filename) const
+void ImageToTileset::writeTileset(const std::filesystem::path& filename) const
 {
     std::vector<uint8_t> data = _tileset.snesData();
     File::atomicWrite(filename, data);
 }
 
-void ImageToTileset::writePalette(const std::string& filename) const
+void ImageToTileset::writePalette(const std::filesystem::path& filename) const
 {
     std::vector<uint8_t> data(_palette.size() * 2);
     auto* ptr = data.data();

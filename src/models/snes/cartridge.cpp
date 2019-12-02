@@ -142,7 +142,7 @@ uint16_t Cartridge::calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap
     return checkSum & 0xffff;
 }
 
-void Cartridge::writeChecksum(const std::string& filename, uint16_t checksum, MemoryMap memoryMap)
+void Cartridge::writeChecksum(const std::filesystem::path& filename, uint16_t checksum, MemoryMap memoryMap)
 {
     unsigned checksumAddr = checksumAddress(memoryMap);
     unsigned complementAddr = checksumCompelementAddress(memoryMap);
@@ -151,7 +151,7 @@ void Cartridge::writeChecksum(const std::string& filename, uint16_t checksum, Me
 
     std::ofstream out(filename, std::ios::out | std::ios::in | std::ios::binary);
     if (!out) {
-        throw std::runtime_error("Error opening file: " + filename);
+        throw std::runtime_error("Error opening file: " + filename.string());
     }
 
     out.exceptions(std::ios::failbit | std::ios::badbit);

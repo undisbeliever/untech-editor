@@ -11,7 +11,7 @@
 namespace UnTech {
 class ImageCachePrivate {
     friend class UnTech::ImageCache;
-    using ImageCacheMap_t = std::unordered_map<std::string, const std::shared_ptr<const Image>>;
+    using ImageCacheMap_t = std::unordered_map<std::filesystem::path::string_type, const std::shared_ptr<const Image>>;
 
     static ImageCachePrivate& instance()
     {
@@ -19,28 +19,34 @@ class ImageCachePrivate {
         return i;
     }
 
-    const std::shared_ptr<const Image> loadPngImage(const std::string& filename)
+    const std::shared_ptr<const Image> loadPngImage(const std::filesystem::path& filename)
     {
         std::lock_guard<std::mutex> guard(mutex);
 
-        auto it = cache.find(filename);
+        const auto abs = std::filesystem::absolute(filename);
+        const auto& fn = abs.native();
+
+        auto it = cache.find(fn);
         if (it != cache.end()) {
             return it->second;
         }
         else {
             std::shared_ptr<Image> image = std::make_shared<Image>();
-            image->loadPngImage(filename);
-            cache.insert({ filename, image });
+            image->loadPngImage(abs);
+            cache.insert({ fn, image });
 
             return image;
         }
     }
 
-    void invalidateFilename(const std::string& filename)
+    void invalidateFilename(const std::filesystem::path& filename)
     {
         std::lock_guard<std::mutex> guard(mutex);
 
-        auto it = cache.find(filename);
+        const auto abs = std::filesystem::absolute(filename);
+        const auto& fn = abs.native();
+
+        auto it = cache.find(fn);
         if (it != cache.end()) {
             cache.erase(it);
         }
@@ -63,12 +69,12 @@ private:
 
 using namespace UnTech;
 
-const std::shared_ptr<const Image> ImageCache::loadPngImage(const std::string& filename)
+const std::shared_ptr<const Image> ImageCache::loadPngImage(const std::filesystem::path& filename)
 {
     return ImageCachePrivate::instance().loadPngImage(filename);
 }
 
-void ImageCache::invalidateFilename(const std::string& filename)
+void ImageCache::invalidateFilename(const std::filesystem::path& filename)
 {
     ImageCachePrivate::instance().invalidateFilename(filename);
 }

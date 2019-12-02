@@ -8,6 +8,7 @@
 
 #include "models/common/idstring.h"
 #include "models/snes/palette.h"
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
@@ -20,7 +21,7 @@ namespace Resources {
 struct PaletteInput {
     idstring name;
 
-    std::string paletteImageFilename;
+    std::filesystem::path paletteImageFilename;
 
     unsigned rowsPerFrame = 0;
     unsigned animationDelay = 0;

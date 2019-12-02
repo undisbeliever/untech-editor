@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -31,7 +32,7 @@ uint16_t readChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap);
 uint16_t calculateChecksum(const std::vector<uint8_t>& rom, MemoryMap memoryMap);
 
 // throws exception is unable to write to file
-void writeChecksum(const std::string& filename, uint16_t checksum, MemoryMap memoryMap);
+void writeChecksum(const std::filesystem::path& filename, uint16_t checksum, MemoryMap memoryMap);
 }
 }
 }

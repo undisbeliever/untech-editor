@@ -5,6 +5,7 @@
  */
 
 #include <cassert>
+#include <filesystem>
 #include <sstream>
 #include <vector>
 
@@ -104,7 +105,7 @@ public:
                                  + " bytes of data, increase block size/count.");
     }
 
-    void writeIncData(std::stringstream& incData, const std::string& relativeBinFilename) const
+    void writeIncData(std::stringstream& incData, const std::filesystem::path& relativeBinFilename) const
     {
         for (const Constant& c : _constants) {
             incData << "constant " << c.name << " = " << c.value << '\n';

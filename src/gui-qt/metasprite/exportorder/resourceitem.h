@@ -46,7 +46,7 @@ public:
     bool editExportOrder_setName(const idstring& name);
 
 protected:
-    virtual void saveResourceData(const std::string& filename) const final;
+    virtual void saveResourceData(const std::filesystem::path& filename) const final;
     virtual bool loadResourceData(ErrorList& err) final;
     virtual bool compileResource(ErrorList& err) final;
 

@@ -55,7 +55,7 @@ void ResourceItem::updateDependencies()
     setDependencies(deps);
 }
 
-void ResourceItem::saveResourceData(const std::string& filename) const
+void ResourceItem::saveResourceData(const std::filesystem::path& filename) const
 {
     auto* tileset = this->tilesetInput();
 
@@ -130,12 +130,12 @@ bool ResourceItem::editTileset_setPalettes(const std::vector<UnTech::idstring>& 
                                           item.updateDependencies(); });
 }
 
-bool ResourceItem::editTileset_setFrameImageFilenames(const std::vector<std::string>& images)
+bool ResourceItem::editTileset_setFrameImageFilenames(const std::vector<std::filesystem::path>& images)
 {
     return UndoHelper(this).editField(
         images,
         tr("Edit Frame Image List"),
-        [](MT::MetaTileTilesetInput& ti) -> std::vector<std::string>& { return ti.animationFrames.frameImageFilenames; },
+        [](MT::MetaTileTilesetInput& ti) -> std::vector<std::filesystem::path>& { return ti.animationFrames.frameImageFilenames; },
         [](ResourceItem& item) { emit item.tilesetPropertiesChanged();
                                           item.updateExternalFiles(); });
 }

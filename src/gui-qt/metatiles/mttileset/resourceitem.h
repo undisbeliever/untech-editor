@@ -56,7 +56,7 @@ public:
 
     bool editTileset_setName(const idstring& name);
     bool editTileset_setPalettes(const std::vector<idstring>& palettes);
-    bool editTileset_setFrameImageFilenames(const std::vector<std::string>& images);
+    bool editTileset_setFrameImageFilenames(const std::vector<std::filesystem::path>& images);
     bool editTileset_setAnimationDelay(unsigned delay);
     bool editTileset_setBitDepth(unsigned bitDepth);
     bool editTileset_setAddTransparentTile(bool addTransparentTile);
@@ -88,7 +88,7 @@ protected:
     void updateDependencies();
 
 protected:
-    virtual void saveResourceData(const std::string& filename) const final;
+    virtual void saveResourceData(const std::filesystem::path& filename) const final;
     virtual bool loadResourceData(ErrorList& err) final;
     virtual bool compileResource(ErrorList& err) final;
 

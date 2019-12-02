@@ -181,7 +181,14 @@ std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& 
         }
 
         if (!errorList.empty()) {
-            errorStream << fs.displayName() << ":\n";
+            auto& fsName = fs.name();
+            if (fsName.isValid()) {
+                errorStream << fsName;
+            }
+            else {
+                errorStream << fs.filename;
+            }
+            errorStream << ":\n";
             errorList.printIndented(errorStream);
         }
 

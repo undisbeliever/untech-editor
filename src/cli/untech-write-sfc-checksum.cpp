@@ -32,7 +32,7 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int process(const CommandLine::Parser& args)
 {
-    const std::string& filename = args.filenames().front();
+    const std::filesystem::path& filename = std::filesystem::u8path(args.filenames().front());
 
     if (String::endsWith(filename, ".sfc") == false) {
         throw std::runtime_error("Filename does not end in .sfc");

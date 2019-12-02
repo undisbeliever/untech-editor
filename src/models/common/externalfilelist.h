@@ -8,6 +8,7 @@
 
 #include "idstring.h"
 #include <cassert>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <vector>
@@ -16,7 +17,7 @@ namespace UnTech {
 
 template <typename T>
 struct ExternalFileItem {
-    std::string filename;
+    std::filesystem::path filename;
     typename std::unique_ptr<T> value;
 
     // may throw an exception
@@ -101,12 +102,12 @@ public:
     const_iterator cbegin() const { return _list.cbegin(); }
     const_iterator cend() const { return _list.cend(); }
 
-    void insert_back(const std::string& filename, typename std::unique_ptr<T> v = nullptr)
+    void insert_back(const std::filesystem::path& filename, typename std::unique_ptr<T> v = nullptr)
     {
         _list.emplace_back(Item{ filename, std::move(v) });
     }
 
-    void insert(size_type index, const std::string& filename,
+    void insert(size_type index, const std::filesystem::path& filename,
                 typename std::unique_ptr<T> v = nullptr)
     {
         assert(index < _list.size());

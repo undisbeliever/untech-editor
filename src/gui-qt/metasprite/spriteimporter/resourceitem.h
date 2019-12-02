@@ -55,7 +55,7 @@ public:
     bool editFrameSet_setName(const idstring& name);
     bool editFrameSet_setTilesetType(TilesetType ts);
     bool editFrameSet_setExportOrder(const idstring& exportOrder);
-    bool editFrameSet_setImageFilename(const std::string& filename);
+    bool editFrameSet_setImageFilename(const std::filesystem::path& filename);
     bool editFrameSet_setTransparentColor(const rgba& color);
     bool editFrameSet_setGrid(const SI::FrameSetGrid& grid);
     bool editFrameSet_setPalette(const SI::UserSuppliedPalette& palette);
@@ -67,7 +67,7 @@ private:
 
 protected:
     // can throw exceptions
-    virtual void saveResourceData(const std::string& filename) const final;
+    virtual void saveResourceData(const std::filesystem::path& filename) const final;
     virtual bool loadResourceData(ErrorList& err) final;
     virtual bool compileResource(ErrorList& err) final;
 

@@ -9,6 +9,7 @@
 #include "aabb.h"
 #include "rgba.h"
 #include <cstdint>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -53,7 +54,7 @@ public:
      *   - the image is erased.
      *   _ errorString is set.
      */
-    bool loadPngImage(const std::string& filename);
+    bool loadPngImage(const std::filesystem::path& filename);
 
     /**
      * Returns true if the image is empty.

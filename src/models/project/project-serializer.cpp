@@ -137,7 +137,7 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
  * ===
  */
 
-std::unique_ptr<ProjectFile> loadProjectFile(const std::string& filename)
+std::unique_ptr<ProjectFile> loadProjectFile(const std::filesystem::path& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     try {
@@ -149,7 +149,7 @@ std::unique_ptr<ProjectFile> loadProjectFile(const std::string& filename)
     }
 }
 
-void saveProjectFile(const ProjectFile& project, const std::string& filename)
+void saveProjectFile(const ProjectFile& project, const std::filesystem::path& filename)
 {
     AtomicOfStream file(filename);
     XmlWriter xml(file, filename, "untech");

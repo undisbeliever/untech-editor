@@ -25,7 +25,7 @@ const std::string FrameSet::FILE_EXTENSION = "utms";
 
 std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml, const XmlTag* tag);
 
-std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename)
+std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     return readFrameSet(*xml);
@@ -46,7 +46,7 @@ std::unique_ptr<FrameSet> readFrameSet(XmlReader& xml)
     }
 }
 
-void saveFrameSet(const FrameSet& frameSet, const std::string& filename)
+void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename)
 {
     AtomicOfStream file(filename);
     XmlWriter xml(file, filename, "untech");

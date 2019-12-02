@@ -151,13 +151,13 @@ std::unique_ptr<FrameSetExportOrder> readFrameSetExportOrder(Xml::XmlReader& xml
     }
 }
 
-std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename)
+std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::filesystem::path& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     return readFrameSetExportOrder(*xml);
 }
 
-void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::string& filename)
+void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::filesystem::path& filename)
 {
     AtomicOfStream file(filename);
     XmlWriter xml(file, filename, "untech");

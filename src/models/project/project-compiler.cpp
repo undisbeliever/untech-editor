@@ -82,7 +82,7 @@ static void writeEntityRomData(RomDataWriter& writer,
 }
 
 std::unique_ptr<ProjectOutput>
-compileProject(const ProjectFile& input, const std::string& relativeBinFilename,
+compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinFilename,
                std::ostream& errorStream)
 {
     const static std::vector<RomDataWriter::Constant> FORMAT_VERSIONS = {

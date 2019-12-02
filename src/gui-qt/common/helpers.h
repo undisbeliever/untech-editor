@@ -18,6 +18,7 @@
 #include <QSize>
 #include <QStringList>
 #include <QVariant>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -38,6 +39,24 @@ inline QVariantList qVariantRange(int n)
     }
 
     return list;
+}
+
+inline std::filesystem::path toPath(const QString& qs)
+{
+#ifdef Q_OS_WIN
+    return std::filesystem::path(qs.toStdWString());
+#else
+    return std::filesystem::u8path(qs.toStdString());
+#endif
+}
+
+inline QString fromPath(const std::filesystem::path& path)
+{
+#ifdef Q_OS_WIN
+    return QString::fromStdWString(path.native());
+#else
+    return QString::fromStdString(path.native());
+#endif
 }
 
 template <class T>
@@ -87,6 +106,24 @@ inline std::vector<idstring> toIdstringVector(const QStringList& qsl)
     std::transform(qsl.begin(), qsl.end(), std::back_inserter(sl),
                    [](const QString& qs) { return qs.toStdString(); });
     return sl;
+}
+
+inline std::vector<std::filesystem::path> toPathVector(const QStringList& qsl)
+{
+    std::vector<std::filesystem::path> pl;
+    pl.reserve(qsl.size());
+    std::transform(qsl.begin(), qsl.end(), std::back_inserter(pl),
+                   [](const QString& qs) { return toPath(qs); });
+    return pl;
+}
+
+inline QStringList fromPathVector(const std::vector<std::filesystem::path>& pl)
+{
+    QStringList qsl;
+    qsl.reserve(pl.size());
+    std::transform(pl.begin(), pl.end(), std::back_inserter(qsl),
+                   [](const std::filesystem::path& p) { return fromPath(p); });
+    return qsl;
 }
 
 // output is in the same order as `enumComboDataList`

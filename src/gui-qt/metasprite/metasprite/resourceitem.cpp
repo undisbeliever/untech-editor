@@ -78,7 +78,7 @@ void ResourceItem::resetState()
     animationsList()->unselectItem();
 }
 
-void ResourceItem::saveResourceData(const std::string& filename) const
+void ResourceItem::saveResourceData(const std::filesystem::path& filename) const
 {
     MS::saveFrameSet(*_frameSet, filename);
 }

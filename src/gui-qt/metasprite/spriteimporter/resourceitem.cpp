@@ -83,7 +83,7 @@ void ResourceItem::resetState()
     animationsList()->unselectItem();
 }
 
-void ResourceItem::saveResourceData(const std::string& filename) const
+void ResourceItem::saveResourceData(const std::filesystem::path& filename) const
 {
     SI::saveFrameSet(*_frameSet, filename);
 }
@@ -167,12 +167,12 @@ bool ResourceItem::editFrameSet_setExportOrder(const UnTech::idstring& exportOrd
                           emit d.frameSetExportOrderChanged(); });
 }
 
-bool ResourceItem::editFrameSet_setImageFilename(const std::string& filename)
+bool ResourceItem::editFrameSet_setImageFilename(const std::filesystem::path& filename)
 {
     return UndoHelper(this).editField(
         filename,
         tr("Change Image"),
-        [](SI::FrameSet& fs) -> std::string& { return fs.imageFilename; },
+        [](SI::FrameSet& fs) -> std::filesystem::path& { return fs.imageFilename; },
         [](ResourceItem& d) {
             emit d.frameSetImageFilenameChanged();
             emit d.frameSetDataChanged();

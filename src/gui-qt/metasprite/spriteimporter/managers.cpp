@@ -96,7 +96,7 @@ QVariant FrameSetManager::data(int id) const
         return QString::fromStdString(frameSet->exportOrder);
 
     case IMAGE_FILENAME:
-        return QString::fromStdString(frameSet->imageFilename);
+        return fromPath(frameSet->imageFilename);
 
     case TRANSPARENT_COLOR:
         return fromRgba(frameSet->transparentColor);
@@ -200,7 +200,7 @@ bool FrameSetManager::setData(int id, const QVariant& value)
         return _resourceItem->editFrameSet_setExportOrder(value.toString().toStdString());
 
     case IMAGE_FILENAME:
-        return _resourceItem->editFrameSet_setImageFilename(value.toString().toStdString());
+        return _resourceItem->editFrameSet_setImageFilename(toPath(value.toString()));
 
     case TRANSPARENT_COLOR:
         return _resourceItem->editFrameSet_setTransparentColor(toRgba(value.value<QColor>()));

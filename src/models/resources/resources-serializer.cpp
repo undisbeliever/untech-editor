@@ -61,8 +61,7 @@ void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const X
 
     while (auto childTag = xml.parseTag()) {
         if (childTag->name == "frame") {
-            const std::string filename = childTag->getAttributeFilename("image");
-            afi.frameImageFilenames.emplace_back(filename);
+            afi.frameImageFilenames.emplace_back(childTag->getAttributeFilename("image"));
         }
         else {
             throw xml_error(xml, "Expected <frame> tag");
@@ -80,7 +79,7 @@ void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
     xml.writeTagAttribute("animation-delay", afi.animationDelay);
     xml.writeTagAttribute("add-transparent-tile", afi.addTransparentTile);
 
-    for (const std::string& fiFilename : afi.frameImageFilenames) {
+    for (const std::filesystem::path& fiFilename : afi.frameImageFilenames) {
         xml.writeTag("frame");
         xml.writeTagAttributeFilename("image", fiFilename);
         xml.writeCloseTag();

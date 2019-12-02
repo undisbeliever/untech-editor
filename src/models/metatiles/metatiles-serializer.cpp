@@ -203,13 +203,13 @@ std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml)
     }
 }
 
-std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename)
+std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesystem::path& filename)
 {
     auto xml = XmlReader::fromFile(filename);
     return readMetaTileTilesetInput(*xml);
 }
 
-std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string& filename,
+std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesystem::path& filename,
                                                                ErrorList& err)
 {
     try {
@@ -222,7 +222,7 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::string
     }
 }
 
-void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::string& filename)
+void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::filesystem::path& filename)
 {
     AtomicOfStream file(filename);
     XmlWriter xml(file, filename, "untech");

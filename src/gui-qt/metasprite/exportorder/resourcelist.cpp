@@ -58,25 +58,27 @@ const QList<AbstractResourceList::AddResourceSettings>& ResourceList::addResourc
     return settings;
 }
 
-void ResourceList::do_addResource(int settingIndex, const std::string& filename)
+void ResourceList::do_addResource(int settingIndex, const std::string& fn)
 {
     using namespace UnTech::MetaSprite;
 
+    const std::filesystem::path filename(fn);
+
     Q_ASSERT(settingIndex == 0);
 
-    QFileInfo fi(QString::fromStdString(filename));
+    QFileInfo fi(QString::fromStdString(fn));
     if (!fi.exists()) {
         QString name = fi.baseName();
         IdstringValidator().fixup(name);
 
         FrameSetExportOrder exportOrder;
         exportOrder.name = name.toStdString();
-        saveFrameSetExportOrder(exportOrder, filename);
+        saveFrameSetExportOrder(exportOrder, fn);
     }
 
     auto& exportOrders = this->exportOrders();
 
-    exportOrders.insert_back(filename);
+    exportOrders.insert_back(fn);
 }
 
 void ResourceList::do_removeResource(unsigned index)

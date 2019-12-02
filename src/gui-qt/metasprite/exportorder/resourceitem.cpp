@@ -40,7 +40,7 @@ bool ResourceItem::editExportOrder_setName(const UnTech::idstring& name)
     return UndoHelper(this).editName(name);
 }
 
-void ResourceItem::saveResourceData(const std::string& filename) const
+void ResourceItem::saveResourceData(const std::filesystem::path& filename) const
 {
     using namespace UnTech::MetaSprite;
 

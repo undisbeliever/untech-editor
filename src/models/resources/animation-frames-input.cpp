@@ -285,7 +285,7 @@ bool AnimationFramesInput::validate(ErrorList& err) const
         }
 
         if (image->size().width % 8 != 0 || image->size().height % 8 != 0) {
-            err.addError("image size invalid (height and width must be a multiple of 8): " + imageFilename);
+            err.addError("image size invalid (height and width must be a multiple of 8): " + imageFilename.string());
             valid = false;
         }
     }

@@ -52,7 +52,7 @@ void IndexedImage::fill(uint8_t color)
     std::fill(_imageData.begin(), _imageData.end(), color);
 }
 
-bool IndexedImage::loadPngImage(const std::string& filename)
+bool IndexedImage::loadPngImage(const std::filesystem::path& filename)
 {
     std::vector<uint8_t> pngFile;
     lodepng::State state;
@@ -70,13 +70,13 @@ bool IndexedImage::loadPngImage(const std::string& filename)
     if (error) {
         erase();
 
-        _errorString = filename + ": " + lodepng_error_text(error);
+        _errorString = filename.string() + ": " + lodepng_error_text(error);
         return false;
     }
 
     if (state.info_png.color.colortype != LodePNGColorType::LCT_PALETTE) {
         erase();
-        _errorString = filename + ": Not a indexed png file";
+        _errorString = filename.string() + ": Not a indexed png file";
         return false;
     }
 

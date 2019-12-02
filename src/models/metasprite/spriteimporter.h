@@ -14,6 +14,7 @@
 #include "models/common/idstring.h"
 #include "models/common/image.h"
 #include "models/common/namedlist.h"
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -229,7 +230,7 @@ struct FrameSet {
     NamedList<Frame> frames;
     NamedList<Animation::Animation> animations;
 
-    std::string imageFilename;
+    std::filesystem::path imageFilename;
     UnTech::rgba transparentColor = rgba(0, 0, 0, 0);
     UserSuppliedPalette palette;
     FrameSetGrid grid;
@@ -250,8 +251,8 @@ private:
     bool transparentColorValid(const Image& image) const;
 };
 
-std::unique_ptr<FrameSet> loadFrameSet(const std::string& filename);
-void saveFrameSet(const FrameSet& frameSet, const std::string& filename);
+std::unique_ptr<FrameSet> loadFrameSet(const std::filesystem::path& filename);
+void saveFrameSet(const FrameSet& frameSet, const std::filesystem::path& filename);
 }
 }
 }

@@ -58,7 +58,7 @@ struct FrameSetExportOrder {
 };
 
 // throws exception on error
-std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::string& filename);
-void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::string& filename);
+std::unique_ptr<FrameSetExportOrder> loadFrameSetExportOrder(const std::filesystem::path& filename);
+void saveFrameSetExportOrder(const FrameSetExportOrder& eo, const std::filesystem::path& filename);
 }
 }
