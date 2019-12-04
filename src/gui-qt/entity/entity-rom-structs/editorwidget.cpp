@@ -24,8 +24,6 @@ EditorWidget::EditorWidget(QWidget* parent)
     , _fieldListActions(this)
     , _item(nullptr)
 {
-    Q_ASSERT(parent);
-
     _ui->setupUi(this);
 
     _ui->name->setValidator(new IdstringValidator(this));
@@ -37,7 +35,10 @@ EditorWidget::EditorWidget(QWidget* parent)
     _fieldListActions.populate(_ui->fieldsView);
     _ui->fieldsView->setContextMenuPolicy(Qt::ActionsContextMenu);
 
-    setEnabled(false);
+    _namedListDock->setObjectName("Dock");
+    addDockWidget(Qt::RightDockWidgetArea, _namedListDock);
+
+    _ui->centralWidget->setEnabled(false);
 
     connect(_ui->name, &QLineEdit::editingFinished,
             this, &EditorWidget::onNameEdited);
@@ -52,13 +53,9 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow*)
+QString EditorWidget::windowStateName() const
 {
-    _namedListDock->setObjectName(QStringLiteral("EntityRomEntries_Dock"));
-
-    return {
-        _namedListDock,
-    };
+    return QStringLiteral("EntityRomStructs");
 }
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
@@ -105,7 +102,7 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     }
     else {
         clearGui();
-        setEnabled(false);
+        _ui->centralWidget->setEnabled(false);
     }
 
     _fieldListActions.setAccessor(fieldList);
@@ -166,12 +163,12 @@ void EditorWidget::onSelectedStructChanged()
         _ui->parentCombo->setCurrentText(QString::fromStdString(s->parent));
         _ui->comment->setText(QString::fromStdString(s->comment));
 
-        setEnabled(true);
+        _ui->centralWidget->setEnabled(true);
     }
     else {
         clearGui();
 
-        setEnabled(false);
+        _ui->centralWidget->setEnabled(false);
     }
 }
 

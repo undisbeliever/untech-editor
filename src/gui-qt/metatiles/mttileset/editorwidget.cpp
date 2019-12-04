@@ -71,6 +71,23 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     _dockedTilesetView->setScene(_tilesetScene);
     _dockedScratchpadView->setScene(_scratchpadScene);
 
+    auto* tilesetPropertyDock = createDockWidget(_propertyListView, tr("Tileset Properties"), QStringLiteral("MtTileset_Properties"));
+    auto* tilePropertiesDock = createDockWidget(_tilePropertiesWidget, tr("Tile Properties"), QStringLiteral("MtTileset_TileProperties"));
+    auto* tilesetDock = createDockWidget(_dockedTilesetView, tr("MetaTiles"), QStringLiteral("MtTileset_MetaTiles"));
+    auto* scratchpadDock = createDockWidget(_dockedScratchpadView, tr("Scratchpad"), QStringLiteral("MtTileset_Scratchpad"));
+
+    this->addDockWidget(Qt::RightDockWidgetArea, tilesetPropertyDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, tilePropertiesDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, tilesetDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, scratchpadDock);
+
+    // Tile and Tileset properties share a dock tab so I can easily hide the Tile Properties Dock when editing the scratchpad.
+    this->tabifyDockWidget(tilesetPropertyDock, tilePropertiesDock);
+    this->tabifyDockWidget(tilesetDock, scratchpadDock);
+    tilesetDock->raise();
+
+    this->resizeDocks({ tilesetPropertyDock, tilesetDock }, { 100, 200 }, Qt::Vertical);
+
     onTabChanged();
 
     connect(_ui->resetAnimationButton, &QToolButton::clicked,
@@ -89,31 +106,9 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow* mainWindow)
+QString EditorWidget::windowStateName() const
 {
-    auto* tilesetPropertyDock = createDockWidget(_propertyListView, tr("Tileset Properties"), QStringLiteral("MtTileset_Properties"));
-    auto* tilePropertiesDock = createDockWidget(_tilePropertiesWidget, tr("Tile Properties"), QStringLiteral("MtTileset_TileProperties"));
-    auto* tilesetDock = createDockWidget(_dockedTilesetView, tr("MetaTiles"), QStringLiteral("MtTileset_MetaTiles"));
-    auto* scratchpadDock = createDockWidget(_dockedScratchpadView, tr("Scratchpad"), QStringLiteral("MtTileset_Scratchpad"));
-
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, tilesetPropertyDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, tilePropertiesDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, tilesetDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, scratchpadDock);
-
-    // Tile and Tileset properties share a dock tab so I can easily hide the Tile Properties Dock when editing the scratchpad.
-    mainWindow->tabifyDockWidget(tilesetPropertyDock, tilePropertiesDock);
-    mainWindow->tabifyDockWidget(tilesetDock, scratchpadDock);
-    tilesetDock->raise();
-
-    mainWindow->resizeDocks({ tilesetPropertyDock, tilesetDock }, { 100, 200 }, Qt::Vertical);
-
-    return {
-        scratchpadDock,
-        tilesetDock,
-        tilePropertiesDock,
-        tilesetPropertyDock,
-    };
+    return QStringLiteral("MtTileset");
 }
 
 ZoomSettings* EditorWidget::zoomSettings() const

@@ -25,6 +25,8 @@ public:
     EditorWidget(QWidget* parent = nullptr);
     ~EditorWidget();
 
+    virtual QString windowStateName() const final;
+
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
 private:

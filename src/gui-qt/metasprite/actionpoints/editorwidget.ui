@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>UnTech::GuiQt::MetaSprite::ActionPoints::EditorWidget</class>
- <widget class="QWidget" name="UnTech::GuiQt::MetaSprite::ActionPoints::EditorWidget">
+ <widget class="QMainWindow" name="UnTech::GuiQt::MetaSprite::ActionPoints::EditorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,27 +13,29 @@
   <property name="windowTitle">
    <string>Entity ROM Structs Editor</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="GuiQt::Accessor::ListAccessorTableView" name="tableView"/>
-   </item>
-   <item>
-    <widget class="QToolBar" name="tableButtons">
-     <property name="movable">
-      <bool>false</bool>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>16</width>
-       <height>16</height>
-      </size>
-     </property>
-     <property name="floatable">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-  </layout>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="GuiQt::Accessor::ListAccessorTableView" name="tableView"/>
+    </item>
+    <item>
+     <widget class="QToolBar" name="tableButtons">
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="floatable">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>

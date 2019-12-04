@@ -51,10 +51,6 @@ private:
     void setEditorIndex(int index);
     void updateEditViewMenus();
 
-    void hideAllEditorDockWidgets();
-    void saveDockWidgetsRaisedState();
-    void restoreDockWidgetsRaisedState();
-
     bool unsavedChangesDialog();
 
 private slots:
@@ -101,9 +97,6 @@ private:
     QUndoGroup* const _undoGroup;
 
     QList<AbstractEditorWidget*> const _editors;
-    QList<QList<QDockWidget*>> _editorDockWidgets;
-    // Mapping of dock objectName -> raised state
-    QHash<QString, bool> _dockWidgetsRaisedState;
 };
 }
 }

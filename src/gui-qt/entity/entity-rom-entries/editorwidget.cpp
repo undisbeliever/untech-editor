@@ -23,15 +23,16 @@ EditorWidget::EditorWidget(QWidget* parent)
     , _manager(new EntityRomEntryManager(this))
     , _item(nullptr)
 {
-    Q_ASSERT(parent);
-
     _ui->setupUi(this);
 
     _ui->name->setValidator(new IdstringValidator(this));
 
     _ui->fieldsView->setPropertyManager(_manager);
 
-    setEnabled(false);
+    _namedListDock->setObjectName("Dock");
+    addDockWidget(Qt::RightDockWidgetArea, _namedListDock);
+
+    _ui->centralWidget->setEnabled(false);
 
     connect(_ui->name, &QLineEdit::editingFinished,
             this, &EditorWidget::onNameEdited);
@@ -43,13 +44,9 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow*)
+QString EditorWidget::windowStateName() const
 {
-    _namedListDock->setObjectName(QStringLiteral("EntityRomStructs_Dock"));
-
-    return {
-        _namedListDock,
-    };
+    return QStringLiteral("EntityRomEntries");
 }
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
@@ -85,7 +82,7 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     }
     else {
         clearGui();
-        setEnabled(false);
+        _ui->centralWidget->setEnabled(false);
     }
 
     return item != nullptr;
@@ -138,12 +135,12 @@ void EditorWidget::onSelectedEntryChanged()
         _ui->functionTableCombo->setCurrentText(QString::fromStdString(e->functionTable));
         _ui->comment->setText(QString::fromStdString(e->comment));
 
-        setEnabled(true);
+        _ui->centralWidget->setEnabled(true);
     }
     else {
         clearGui();
 
-        setEnabled(false);
+        _ui->centralWidget->setEnabled(false);
     }
 }
 

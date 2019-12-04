@@ -30,6 +30,9 @@ EditorWidget::EditorWidget(QWidget* parent)
 
     _ui->graphicsView->setScene(_graphicsScene);
 
+    addDockWidget(Qt::RightDockWidgetArea,
+                  createPropertyDockWidget(_propertyManager, tr("Properties"), QStringLiteral("Palette_Dock")));
+
     setEnabled(false);
 
     updateFrameLabel();
@@ -44,11 +47,9 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow*)
+QString EditorWidget::windowStateName() const
 {
-    return {
-        createDockWidget(new PropertyListView(_propertyManager), tr("Properties"), QStringLiteral("Palette_Dock")),
-    };
+    return QStringLiteral("Palette");
 }
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)

@@ -33,7 +33,7 @@ public:
     explicit EditorWidget(QWidget* parent = nullptr);
     ~EditorWidget();
 
-    virtual QList<QDockWidget*> createDockWidgets(QMainWindow*) final;
+    virtual QString windowStateName() const final;
 
     void setResourceItem(ResourceItem* item);
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;

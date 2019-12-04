@@ -18,8 +18,6 @@ EditorWidget::EditorWidget(QWidget* parent)
     , _manager(new ActionPointFunctionsManager(this))
     , _item(nullptr)
 {
-    Q_ASSERT(parent);
-
     _ui->setupUi(this);
 
     _ui->tableView->setPropertyManager(_manager);
@@ -32,6 +30,11 @@ EditorWidget::EditorWidget(QWidget* parent)
 }
 
 EditorWidget::~EditorWidget() = default;
+
+QString EditorWidget::windowStateName() const
+{
+    return QStringLiteral("ActionPoints");
+}
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {

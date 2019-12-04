@@ -52,7 +52,7 @@ public:
     explicit EditorWidget(ZoomSettingsManager* zoomSettingsManager, QWidget* parent = nullptr);
     ~EditorWidget();
 
-    virtual QList<QDockWidget*> createDockWidgets(QMainWindow* mainWindow) final;
+    virtual QString windowStateName() const final;
 
     virtual ZoomSettings* zoomSettings() const final;
     virtual void populateMenu(QMenu* editMenu, QMenu* viewMenu) final;

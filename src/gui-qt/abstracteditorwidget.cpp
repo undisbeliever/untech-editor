@@ -11,13 +11,8 @@
 using namespace UnTech::GuiQt;
 
 AbstractEditorWidget::AbstractEditorWidget(QWidget* parent)
-    : QWidget(parent)
+    : QMainWindow(parent)
 {
-}
-
-QList<QDockWidget*> AbstractEditorWidget::createDockWidgets(QMainWindow*)
-{
-    return {};
 }
 
 ZoomSettings* AbstractEditorWidget::zoomSettings() const

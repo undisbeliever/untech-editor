@@ -69,6 +69,11 @@ EditorWidget::EditorWidget(QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
+QString EditorWidget::windowStateName() const
+{
+    return QStringLiteral("MsExportOrder");
+}
+
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 {
     auto* item = qobject_cast<ResourceItem*>(abstractItem);

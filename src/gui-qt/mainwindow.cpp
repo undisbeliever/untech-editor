@@ -65,18 +65,17 @@ MainWindow::MainWindow(QWidget* parent)
     , _zoomSettingsUi(new ZoomSettingsUi(this))
     , _undoGroup(new QUndoGroup(this))
     , _editors({
-          new ProjectSettings::EditorWidget(this),
-          new Entity::EntityRomStructs::EditorWidget(this),
-          new Entity::EntityFunctionTables::EditorWidget(this),
-          new Entity::EntityRomEntries::EditorWidget(this),
-          new Resources::Palette::EditorWidget(this),
-          new MetaSprite::ExportOrder::EditorWidget(this),
-          new MetaTiles::MtTileset::EditorWidget(_zoomSettingsManager, this),
-          new MetaSprite::ActionPoints::EditorWidget(this),
-          new MetaSprite::SpriteImporter::EditorWidget(_zoomSettingsManager, this),
-          new MetaSprite::MetaSprite::EditorWidget(_zoomSettingsManager, this),
+          new ProjectSettings::EditorWidget(),
+          new Entity::EntityRomStructs::EditorWidget(),
+          new Entity::EntityFunctionTables::EditorWidget(),
+          new Entity::EntityRomEntries::EditorWidget(),
+          new Resources::Palette::EditorWidget(),
+          new MetaSprite::ExportOrder::EditorWidget(),
+          new MetaTiles::MtTileset::EditorWidget(_zoomSettingsManager),
+          new MetaSprite::ActionPoints::EditorWidget(),
+          new MetaSprite::SpriteImporter::EditorWidget(_zoomSettingsManager),
+          new MetaSprite::MetaSprite::EditorWidget(_zoomSettingsManager),
       })
-    , _editorDockWidgets()
 {
     _ui->setupUi(this);
 
@@ -133,36 +132,36 @@ MainWindow::MainWindow(QWidget* parent)
     _projectWindow->setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
 
     for (AbstractEditorWidget* editor : _editors) {
+        editor->setDockOptions(AnimatedDocks | AllowTabbedDocks | AllowNestedDocks);
+
+        // Have the left and right docks take up the whole height of the documentWindow
+        editor->setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+        editor->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+        editor->setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+        editor->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+
         // Prevents centralStackedWidget from expanding when widget is changed
         editor->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         _centralStackedWidget->addWidget(editor);
 
-        QList<QDockWidget*> dockWidgets = editor->createDockWidgets(_projectWindow);
-        for (auto* dw : dockWidgets) {
-            if (_projectWindow->dockWidgetArea(dw) == Qt::NoDockWidgetArea) {
-                _projectWindow->addDockWidget(Qt::RightDockWidgetArea, dw);
+        for (auto* c : editor->children()) {
+            if (auto* dw = qobject_cast<QDockWidget*>(c)) {
+                dw->setFeatures(QDockWidget::DockWidgetMovable);
+                dw->setContextMenuPolicy(Qt::PreventContextMenu);
             }
-
-            dw->setFeatures(QDockWidget::DockWidgetMovable);
-            dw->hide();
         }
-
-        _editorDockWidgets.append(dockWidgets);
-    };
+    }
 
     // Do not show context menu on any of the docked widgets
     for (auto* c : _projectWindow->children()) {
         if (auto* dw = qobject_cast<QDockWidget*>(c)) {
+            dw->setFeatures(QDockWidget::DockWidgetMovable);
             dw->setContextMenuPolicy(Qt::PreventContextMenu);
-
-            // By default docks will be raised in reverse order.
-            _dockWidgetsRaisedState[dw->objectName()] = true;
         }
     }
 
     // Restore state
     readSettings();
-    hideAllEditorDockWidgets();
 
     setProject(nullptr);
 
@@ -345,8 +344,6 @@ void MainWindow::setEditorIndex(int index)
         return;
     }
 
-    saveDockWidgetsRaisedState();
-
     if (_currentEditor) {
         _currentEditor->disconnect(this);
         _errorListDock->disconnect(_currentEditor);
@@ -356,15 +353,6 @@ void MainWindow::setEditorIndex(int index)
         }
     }
     _currentEditor = editor;
-
-    // hide all docks except for the ones used by the editor
-    Q_ASSERT(_editorDockWidgets.size() == _editors.size());
-    for (int i = 0; i < _editorDockWidgets.size(); i++) {
-        for (QDockWidget* dw : _editorDockWidgets.at(i)) {
-            dw->setHidden(i != index);
-        }
-    }
-    restoreDockWidgetsRaisedState();
 
     if (editor) {
         _zoomSettingsUi->setZoomSettings(editor->zoomSettings());
@@ -387,58 +375,6 @@ void MainWindow::setEditorIndex(int index)
     }
 
     updateEditViewMenus();
-}
-
-void MainWindow::hideAllEditorDockWidgets()
-{
-    for (auto& dockWidgets : _editorDockWidgets) {
-        for (QDockWidget* dw : dockWidgets) {
-            dw->hide();
-        }
-    }
-}
-
-void MainWindow::saveDockWidgetsRaisedState()
-{
-    const int editorIndex = _editors.indexOf(_currentEditor);
-    if (editorIndex < 0) {
-        return;
-    }
-
-    auto saveState = [this](QDockWidget* dw) {
-        // KUDOS: Pavel Strakhov
-        // https://stackoverflow.com/a/22238571
-        bool isRaised = not dw->visibleRegion().isEmpty();
-        _dockWidgetsRaisedState[dw->objectName()] = isRaised;
-    };
-
-    saveState(_resourcesTreeDock);
-    saveState(_errorListDock);
-
-    for (auto* dw : _editorDockWidgets.at(editorIndex)) {
-        saveState(dw);
-    }
-}
-
-void MainWindow::restoreDockWidgetsRaisedState()
-{
-    const int editorIndex = _editors.indexOf(_currentEditor);
-    if (editorIndex < 0) {
-        return;
-    }
-
-    auto restoreState = [this](QDockWidget* dw) {
-        if (_dockWidgetsRaisedState[dw->objectName()]) {
-            dw->raise();
-        }
-    };
-
-    restoreState(_resourcesTreeDock);
-    restoreState(_errorListDock);
-
-    for (auto* dw : _editorDockWidgets.at(editorIndex)) {
-        restoreState(dw);
-    }
 }
 
 void MainWindow::onEditorZoomSettingsChanged()
@@ -662,7 +598,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
     }
 }
 
-constexpr static int STATE_VERSION = 0x42;
+constexpr static int STATE_VERSION = 0x43;
 
 void MainWindow::readSettings()
 {
@@ -674,75 +610,62 @@ void MainWindow::readSettings()
 
     restoreGeometry(settings.value("geometry").toByteArray());
 
-    const auto& snList = settingsStateNameWindowList();
-    for (const auto& it : snList) {
-        const QString& stateName = it.first;
-
-        if (settings.contains(stateName) == false) {
-            // required to prevent docks from resizing on layout change
-            saveSettings();
-            break;
-        }
+    if (settings.contains("window_state") == false) {
+        // required to prevent docks from resizing on layout change
+        saveSettings();
     }
 
-    for (const auto& it : snList) {
-        const QString& stateName = it.first;
+    const QMap<QString, QVariant> stateMap = settings.value("window_state").toMap();
+    for (const auto& it : settingsStateNameWindowList()) {
         QMainWindow* mw = it.second;
+        const QVariant state = stateMap.value(it.first);
 
-        mw->restoreState(settings.value(stateName).toByteArray(), STATE_VERSION);
-    }
-
-    QStringList raisedDocks = settings.value("raised_docks").toStringList();
-    if (not raisedDocks.empty()) {
-        for (auto it = _dockWidgetsRaisedState.begin(); it != _dockWidgetsRaisedState.end(); it++) {
-            it.value() = raisedDocks.contains(it.key());
+        if (not state.isNull()) {
+            mw->restoreState(state.toByteArray(), STATE_VERSION);
         }
     }
-
-    restoreDockWidgetsRaisedState();
 }
 
 void MainWindow::saveSettings()
 {
-    saveDockWidgetsRaisedState();
-
     QSettings settings;
 
     _zoomSettingsManager->saveSettings(settings);
 
     settings.setValue("geometry", saveGeometry());
 
-    const auto& snList = settingsStateNameWindowList();
-    for (const auto& it : snList) {
+    QMap<QString, QVariant> stateMap;
+    for (const auto& it : settingsStateNameWindowList()) {
+        const QMainWindow* mw = it.second;
         const QString& stateName = it.first;
-        QMainWindow* mw = it.second;
 
-        settings.setValue(stateName, mw->saveState(STATE_VERSION));
+        stateMap.insert(stateName, mw->saveState(STATE_VERSION));
     }
-
-    QStringList raisedDocks;
-    for (auto it = _dockWidgetsRaisedState.begin(); it != _dockWidgetsRaisedState.end(); it++) {
-        if (it.value()) {
-            raisedDocks.append(it.key());
-        }
-    }
-    settings.setValue("raised_docks", raisedDocks);
+    settings.setValue("window_state", stateMap);
 }
 
 QVector<QPair<QString, QMainWindow*>> MainWindow::settingsStateNameWindowList()
 {
-    return {
-        qMakePair(QStringLiteral("MainWindow_state"), this),
-        qMakePair(QStringLiteral("ProjectWindow_state"), _projectWindow),
-    };
+    QVector<QPair<QString, QMainWindow*>> ret;
+
+    ret.reserve(_editors.size() + 3);
+    ret.append(qMakePair(QStringLiteral("MainWindow_state"), this));
+    ret.append(qMakePair(QStringLiteral("ProjectWindow_state"), _projectWindow));
+
+    for (AbstractEditorWidget* editor : _editors) {
+        Q_ASSERT(editor->windowStateName().isEmpty() == false);
+        ret.append(qMakePair(editor->windowStateName(), editor));
+    }
+
+    return ret;
 }
 
 void MainWindow::assertDockWidgetObjectNamesValid()
 {
-    QSet<QString> dockWidgetNames;
-
     for (const auto& snList : settingsStateNameWindowList()) {
         QMainWindow* mainWindow = snList.second;
+
+        QSet<QString> dockWidgetNames;
 
         for (auto* c : mainWindow->children()) {
             if (auto* dw = qobject_cast<QDockWidget*>(c)) {

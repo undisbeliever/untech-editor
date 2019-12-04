@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>UnTech::GuiQt::ProjectSettings::EditorWidget</class>
- <widget class="QWidget" name="UnTech::GuiQt::ProjectSettings::EditorWidget">
+ <widget class="QMainWindow" name="UnTech::GuiQt::ProjectSettings::EditorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,11 +10,7 @@
     <height>480</height>
    </rect>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="PropertyListView" name="propertyView"/>
-   </item>
-  </layout>
+  <widget class="PropertyListView" name="propertyView"/>
  </widget>
  <customwidgets>
   <customwidget>

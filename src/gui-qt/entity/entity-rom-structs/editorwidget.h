@@ -27,10 +27,10 @@ class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
 
 public:
-    explicit EditorWidget(QWidget* parent);
+    explicit EditorWidget(QWidget* parent = nullptr);
     ~EditorWidget();
 
-    virtual QList<QDockWidget*> createDockWidgets(QMainWindow*) final;
+    virtual QString windowStateName() const final;
 
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 

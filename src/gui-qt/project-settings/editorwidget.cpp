@@ -21,6 +21,11 @@ EditorWidget::EditorWidget(QWidget* parent)
     _ui->propertyView->setPropertyManager(_manager);
 }
 
+QString EditorWidget::windowStateName() const
+{
+    return QStringLiteral("ProjectSettings");
+}
+
 EditorWidget::~EditorWidget() = default;
 
 bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)

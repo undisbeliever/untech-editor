@@ -23,8 +23,10 @@ class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
 
 public:
-    explicit EditorWidget(QWidget* parent);
+    explicit EditorWidget(QWidget* parent = nullptr);
     ~EditorWidget();
+
+    virtual QString windowStateName() const final;
 
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 

@@ -68,10 +68,7 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
 
-    auto* layout = new QVBoxLayout(this);
-    layout->setMargin(0);
-    this->setLayout(layout);
-    layout->addWidget(_tabWidget);
+    setCentralWidget(_tabWidget);
 
     _actions->populateGraphicsView(_graphicsView);
     _actions->populateGraphicsView(_graphicsScene->contextMenu());
@@ -89,6 +86,29 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     _tabWidget->setTabPosition(QTabWidget::West);
     _tabWidget->addTab(_graphicsView, tr("Frame"));
     _tabWidget->addTab(_animationPreview, tr("Animation Preview"));
+
+    // Ensure docks have a unique name
+    _frameListDock->setObjectName("MS_FrameListDock");
+    _frameContentsDock->setObjectName("MS_FrameContentsDock");
+    _animationDock->setObjectName("MS_AnimationDock");
+    _palettesDock->setObjectName("MS_PalettesDock");
+    _tilesetDock->setObjectName("MS_TilesetDock");
+
+    addDockWidget(Qt::RightDockWidgetArea, _frameListDock);
+    addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
+    addDockWidget(Qt::RightDockWidgetArea, _framePropertiesDock);
+    addDockWidget(Qt::RightDockWidgetArea, _frameContentsDock);
+    addDockWidget(Qt::RightDockWidgetArea, _animationDock);
+    addDockWidget(Qt::BottomDockWidgetArea, _palettesDock);
+    addDockWidget(Qt::BottomDockWidgetArea, _tilesetDock);
+
+    tabifyDockWidget(_frameSetDock, _framePropertiesDock);
+    tabifyDockWidget(_frameSetDock, _frameContentsDock);
+    tabifyDockWidget(_frameSetDock, _animationDock);
+
+    resizeDocks({ _frameListDock, _frameSetDock }, { 1, 1000 }, Qt::Vertical);
+    resizeDocks({ _palettesDock }, { 1 }, Qt::Vertical);
+    resizeDocks({ _palettesDock, _tilesetDock }, { 1, 1000 }, Qt::Horizontal);
 
     setResourceItem(nullptr);
 
@@ -121,40 +141,9 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow* mainWindow)
+QString EditorWidget::windowStateName() const
 {
-    // Ensure docks have a unique name
-    _frameListDock->setObjectName("MS_FrameListDock");
-    _frameContentsDock->setObjectName("MS_FrameContentsDock");
-    _animationDock->setObjectName("MS_AnimationDock");
-    _palettesDock->setObjectName("MS_PalettesDock");
-    _tilesetDock->setObjectName("MS_TilesetDock");
-
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameListDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _framePropertiesDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameContentsDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _animationDock);
-    mainWindow->addDockWidget(Qt::BottomDockWidgetArea, _palettesDock);
-    mainWindow->addDockWidget(Qt::BottomDockWidgetArea, _tilesetDock);
-
-    mainWindow->tabifyDockWidget(_frameSetDock, _framePropertiesDock);
-    mainWindow->tabifyDockWidget(_frameSetDock, _frameContentsDock);
-    mainWindow->tabifyDockWidget(_frameSetDock, _animationDock);
-
-    mainWindow->resizeDocks({ _frameListDock, _frameSetDock }, { 1, 1000 }, Qt::Vertical);
-    mainWindow->resizeDocks({ _palettesDock }, { 1 }, Qt::Vertical);
-    mainWindow->resizeDocks({ _palettesDock, _tilesetDock }, { 1, 10000 }, Qt::Horizontal);
-
-    return {
-        _tilesetDock,
-        _palettesDock,
-        _animationDock,
-        _frameContentsDock,
-        _framePropertiesDock,
-        _frameSetDock,
-        _frameListDock,
-    };
+    return QStringLiteral("MetaSprite");
 }
 
 QPushButton* EditorWidget::statusBarWidget() const

@@ -62,10 +62,7 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     _layerSettings->populateMenu(layerMenu);
     _layersButton->setMenu(layerMenu);
 
-    auto* layout = new QVBoxLayout(this);
-    layout->setMargin(0);
-    this->setLayout(layout);
-    layout->addWidget(_tabWidget);
+    setCentralWidget(_tabWidget);
 
     _tabWidget->setTabPosition(QTabWidget::West);
 
@@ -89,9 +86,25 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     _tabWidget->addTab(_graphicsView, tr("Frame"));
     _tabWidget->addTab(_animationPreview, tr("Animation Preview"));
 
-    setResourceItem(nullptr);
+    _frameListDock->setObjectName("SI_FrameListDock");
+    _frameContentsDock->setObjectName("SI_FrameContentsDock");
+    _animationDock->setObjectName("SI_AnimationDock");
+
+    addDockWidget(Qt::RightDockWidgetArea, _frameListDock);
+    addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
+    addDockWidget(Qt::RightDockWidgetArea, _framePropertiesDock);
+    addDockWidget(Qt::RightDockWidgetArea, _frameContentsDock);
+    addDockWidget(Qt::RightDockWidgetArea, _animationDock);
+
+    tabifyDockWidget(_frameSetDock, _framePropertiesDock);
+    tabifyDockWidget(_frameSetDock, _frameContentsDock);
+    tabifyDockWidget(_frameSetDock, _animationDock);
+
+    resizeDocks({ _frameListDock, _frameSetDock }, { 1, 1000 }, Qt::Vertical);
 
     _frameSetDock->raise();
+
+    setResourceItem(nullptr);
 
     connect(_tabWidget, &QTabWidget::currentChanged,
             this, &EditorWidget::currentTabChanged);
@@ -122,31 +135,9 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
 
 EditorWidget::~EditorWidget() = default;
 
-QList<QDockWidget*> EditorWidget::createDockWidgets(QMainWindow* mainWindow)
+QString EditorWidget::windowStateName() const
 {
-    _frameListDock->setObjectName("SI_FrameListDock");
-    _frameContentsDock->setObjectName("SI_FrameContentsDock");
-    _animationDock->setObjectName("SI_AnimationDock");
-
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameListDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameSetDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _framePropertiesDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _frameContentsDock);
-    mainWindow->addDockWidget(Qt::RightDockWidgetArea, _animationDock);
-
-    mainWindow->tabifyDockWidget(_frameSetDock, _framePropertiesDock);
-    mainWindow->tabifyDockWidget(_frameSetDock, _frameContentsDock);
-    mainWindow->tabifyDockWidget(_frameSetDock, _animationDock);
-
-    mainWindow->resizeDocks({ _frameListDock, _frameSetDock }, { 1, 1000 }, Qt::Vertical);
-
-    return {
-        _animationDock,
-        _frameContentsDock,
-        _framePropertiesDock,
-        _frameSetDock,
-        _frameListDock,
-    };
+    return QStringLiteral("SpriteImporter");
 }
 
 QPushButton* EditorWidget::statusBarWidget() const
