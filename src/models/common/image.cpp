@@ -5,9 +5,9 @@
  */
 
 #include "image.h"
+#include "stringbuilder.h"
 #include "vendor/lodepng/lodepng.h"
 #include <cassert>
-#include <sstream>
 
 using namespace UnTech;
 
@@ -64,9 +64,7 @@ bool Image::loadPngImage(const std::filesystem::path& filename)
     if (error) {
         erase();
 
-        std::stringstream msg;
-        msg << filename << ": " << lodepng_error_text(error);
-        _errorString = msg.str();
+        _errorString = stringBuilder(filename.string(), ": ", lodepng_error_text(error));
 
         return false;
     }

@@ -44,7 +44,7 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     // the start of the data
     auto tileData = msData.tileData.data();
     for (unsigned i = 0; i < tileData.size(); i++) {
-        writer.addNamedData(msData.tileData.blockPrefix() + std::to_string(i),
+        writer.addNamedData(stringBuilder(msData.tileData.blockPrefix(), i),
                             tileData.at(i));
     }
 

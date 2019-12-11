@@ -51,13 +51,13 @@ static void validateReaderAndWriter(const std::filesystem::path& filename, const
 
     assert(output);
     if ((*output == input) == false) {
-        throw std::runtime_error(filename.string() + ": output != input");
+        throw std::runtime_error(stringBuilder(filename.string(), ": output != input"));
     }
 
     const std::string xmlString2 = writeXmlString(*output, filename, writerFunction);
 
     if (xmlString1 != xmlString2) {
-        throw std::runtime_error(filename.string() + ": xmlString1 != xmlString2");
+        throw std::runtime_error(stringBuilder(filename.string(), ": xmlString1 != xmlString2"));
     }
 }
 
@@ -126,7 +126,7 @@ static bool testFrameSetFile(const MetaSprite::FrameSetFile& f)
     }
 
     nFilesFailed++;
-    std::cerr << "ERROR: Unknown FrameSetFile type: " + f.filename.string();
+    std::cerr << "ERROR: Unknown FrameSetFile type: " << f.filename.string();
     return false;
 }
 

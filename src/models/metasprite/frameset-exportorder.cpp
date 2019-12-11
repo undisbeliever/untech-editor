@@ -44,8 +44,8 @@ static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
                                        UnTech::ErrorList& err)
 {
     bool valid = true;
-    auto addAltError = [&](const NameReference& alt, std::string message) {
-        err.addError(std::make_unique<ListItemError>(&alt, std::move(message)));
+    auto addAltError = [&](const NameReference& alt, const auto... message) {
+        err.addError(std::make_unique<ListItemError>(&alt, message...));
         valid = false;
     };
 
@@ -58,7 +58,7 @@ static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
 
         auto jit = std::find(alts.begin(), it, alt);
         if (jit != it) {
-            addAltError(alt, "Duplicate " + typeName + " alternative for " + aName + ": " + alt.str());
+            addAltError(alt, "Duplicate ", typeName, " alternative for ", aName, ": ", alt.str());
         }
     }
 
@@ -68,8 +68,8 @@ static bool validateAlternativesUnique(const std::vector<NameReference>& alts,
 bool FrameSetExportOrder::validate(UnTech::ErrorList& err) const
 {
     bool valid = true;
-    auto addError = [&](std::string message) {
-        err.addError(std::make_unique<ListItemError>(this, std::move(message)));
+    auto addError = [&](const auto... message) {
+        err.addError(std::make_unique<ListItemError>(this, message...));
         valid = false;
     };
 
@@ -110,14 +110,14 @@ static bool _testFrameSet(const FrameSetExportOrder& eo, const FrameSetT& frameS
 
     for (auto& en : eo.stillFrames) {
         if (en.frameExists(frameSet.frames) == false) {
-            errorList.addError("Cannot find frame " + en.name);
+            errorList.addErrorString("Cannot find frame ", en.name);
             valid = false;
         }
     }
 
     for (auto& en : eo.animations) {
         if (en.animationExists(frameSet.animations) == false) {
-            errorList.addError("Cannot find animation " + en.name);
+            errorList.addErrorString("Cannot find animation ", en.name);
             valid = false;
         }
     }

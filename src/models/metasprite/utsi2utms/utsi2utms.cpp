@@ -29,7 +29,7 @@ static std::unique_ptr<MS::FrameSet> utsi2utms(const SI::FrameSet& siFrameSet, E
     auto image = ImageCache::loadPngImage(siFrameSet.imageFilename);
 
     if (image->empty()) {
-        errorList.addError("Unable to load image: " + image->errorString());
+        errorList.addErrorString("Unable to load image: ", image->errorString());
         return nullptr;
     }
 

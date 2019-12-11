@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "stringbuilder.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -31,9 +32,10 @@ class ListItemError : public AbstractSpecializedError {
     const std::string _message;
 
 public:
-    ListItemError(const void* ptr, std::string message)
+    template <typename... Args>
+    ListItemError(const void* ptr, Args... message)
         : _ptr(ptr)
-        , _message(std::move(message))
+        , _message(stringBuilder(message...))
     {
     }
     virtual ~ListItemError() = default;
@@ -73,33 +75,36 @@ public:
 
     bool hasError() const { return _errorCount > 0; }
 
-    void addError(const std::string& s)
-    {
-        _list.push_back({ ErrorType::ERROR, s, nullptr });
-        _errorCount++;
-    }
-    void addError(std::string&& s)
-    {
-        _list.push_back({ ErrorType::ERROR, std::move(s), nullptr });
-        _errorCount++;
-    }
     void addError(std::unique_ptr<const AbstractSpecializedError> e)
     {
         _list.push_back({ ErrorType::ERROR, {}, std::move(e) });
         _errorCount++;
     }
+    void addErrorString(const std::string& s)
+    {
+        _list.push_back({ ErrorType::ERROR, s, nullptr });
+        _errorCount++;
+    }
+    void addErrorString(std::string&& s)
+    {
+        _list.push_back({ ErrorType::ERROR, std::move(s), nullptr });
+        _errorCount++;
+    }
+    template <typename... Args>
+    void addErrorString(const Args... args)
+    {
+        _list.push_back({ ErrorType::ERROR, stringBuilder(args...), nullptr });
+        _errorCount++;
+    }
 
-    void addWarning(const std::string& s)
-    {
-        _list.push_back({ ErrorType::WARNING, s, nullptr });
-    }
-    void addWarning(std::string&& s)
-    {
-        _list.push_back({ ErrorType::WARNING, std::move(s), nullptr });
-    }
     void addWarning(std::unique_ptr<const AbstractSpecializedError> e)
     {
         _list.push_back({ ErrorType::WARNING, {}, std::move(e) });
+    }
+    template <typename... Args>
+    void addWarningString(const Args... args)
+    {
+        _list.push_back(ErrorListItem{ ErrorType::ERROR, stringBuilder(args...), nullptr });
     }
 
     void printIndented(std::ostream& out) const;

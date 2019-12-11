@@ -9,6 +9,7 @@
 #endif
 
 #include "lz4.h"
+#include "models/common/stringbuilder.h"
 #include "vendor/lz4/lib/lz4hc.h"
 #include <stdexcept>
 
@@ -46,9 +47,7 @@ UnTech::lz4HcCompress(const std::vector<uint8_t>& source, unsigned limit)
     unsigned outSize = cSize + HEADER_SIZE;
     if (outSize > limit) {
         throw std::runtime_error(
-            "Compressed data exceeds limit ("
-            + std::to_string(outSize) + " bytes, limit: "
-            + std::to_string(limit) + ")");
+            stringBuilder("Compressed data exceeds limit (", outSize, " bytes, limit: ", limit, ")"));
     }
 
     out.resize(outSize);

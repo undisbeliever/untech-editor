@@ -60,7 +60,7 @@ bool ResourceItem::loadResourceData(ErrorList& err)
     setFilename(QString::fromStdString(eoItem.filename));
 
     if (eoItem.filename.empty()) {
-        err.addError("Missing filename");
+        err.addErrorString("Missing filename");
         return false;
     }
 
@@ -72,7 +72,7 @@ bool ResourceItem::loadResourceData(ErrorList& err)
     catch (const std::exception& ex) {
         eoItem.value = nullptr;
 
-        err.addError(ex.what());
+        err.addErrorString(ex.what());
         return false;
     }
 }
@@ -82,7 +82,7 @@ bool ResourceItem::compileResource(ErrorList& err)
     const auto* eo = exportOrder();
 
     if (eo == nullptr) {
-        err.addError("Unable to load file");
+        err.addErrorString("Unable to load file");
         return false;
     }
 

@@ -26,19 +26,21 @@ class StructFieldError : public AbstractSpecializedError {
     const std::string _message;
 
 public:
-    StructFieldError(const EntityRomStruct& rs, const StructField& field, const std::string& message, bool showFieldName = false)
+    template <typename... Args>
+    StructFieldError(const EntityRomStruct& rs, const StructField& field, const Args... message)
         : _romStruct(&rs)
         , _fieldIndex(calcFieldIndex(rs, &field))
-        , _message(showFieldName && field.name.isValid()
-                       ? "EntityRomStruct " + rs.name + ", Field " + field.name + ": " + message
-                       : "EntityRomStruct " + rs.name + ", Field #" + std::to_string(_fieldIndex) + ": " + message)
+        , _message(field.name.isValid()
+                       ? stringBuilder("EntityRomStruct ", rs.name, ", Field ", field.name, ": ", message...)
+                       : stringBuilder("EntityRomStruct ", rs.name, ", Field #", _fieldIndex, ": ", message...))
     {
     }
 
-    StructFieldError(const EntityRomStruct& rs, unsigned fIndex, const std::string& message)
+    template <typename... Args>
+    StructFieldError(const EntityRomStruct& rs, unsigned fIndex, const Args... message)
         : _romStruct(&rs)
         , _fieldIndex(fIndex)
-        , _message("EntityRomStruct " + rs.name + ", Field #" + std::to_string(_fieldIndex) + ": " + message)
+        , _message(stringBuilder("EntityRomStruct ", rs.name, ", Field #", _fieldIndex, ": ", message...))
     {
     }
 
@@ -50,24 +52,27 @@ public:
 
 class EntityRomStructError : public ListItemError {
 public:
-    EntityRomStructError(const EntityRomStruct& rs, const std::string& message)
-        : ListItemError(&rs, "EntityRomStruct " + rs.name + ": " + message)
+    template <typename... Args>
+    EntityRomStructError(const EntityRomStruct& rs, const Args&... message)
+        : ListItemError(&rs, stringBuilder("EntityRomStruct ", rs.name, ": ", message...))
     {
     }
 };
 
 class EntityFunctionTableError : public ListItemError {
 public:
-    EntityFunctionTableError(const EntityFunctionTable& ft, const std::string& message)
-        : ListItemError(&ft, "EntityFunctionTable " + ft.name + ": " + message)
+    template <typename... Args>
+    EntityFunctionTableError(const EntityFunctionTable& ft, const Args... message)
+        : ListItemError(&ft, "EntityFunctionTable ", ft.name, ": ", message...)
     {
     }
 };
 
 class EntityRomEntryError : public ListItemError {
 public:
-    EntityRomEntryError(const EntityRomEntry& re, const std::string& message)
-        : ListItemError(&re, "EntityRomEntry " + re.name + ": " + message)
+    template <typename... Args>
+    EntityRomEntryError(const EntityRomEntry& re, const Args... message)
+        : ListItemError(&re, "EntityRomEntry ", re.name, ": ", message...)
     {
     }
 };

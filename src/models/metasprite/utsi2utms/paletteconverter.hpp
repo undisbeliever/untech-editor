@@ -60,7 +60,7 @@ static vectorset<rgba> getColorsFromImage(const SI::FrameSet& siFrameSet, const 
         colors.erase(tIt);
     }
     else {
-        errorList.addWarning("Transparent color is not in frame objects");
+        errorList.addWarningString("Transparent color is not in frame objects");
 
         if (colors.size() > (PALETTE_COLORS - 1)) {
             throw std::runtime_error("Too many colors, expected a maximum of 15 colors after removing transparency");
@@ -129,8 +129,7 @@ static void validateUserSuppliedPalette(const SI::FrameSet& siFrameSet, const Im
 
     // ensure first color is transparent
     if (startOfPalette[0] != siFrameSet.transparentColor) {
-        throw std::runtime_error("First color of custom palette " + std::to_string(pal)
-                                 + " is not the transparent color");
+        throw std::runtime_error(stringBuilder("First color of custom palette ", pal, " is not the transparent color"));
     }
 }
 

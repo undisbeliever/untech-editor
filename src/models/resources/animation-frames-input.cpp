@@ -262,12 +262,12 @@ bool AnimationFramesInput::validate(ErrorList& err) const
     bool valid = true;
 
     if (bitDepth != 2 && bitDepth != 4 && bitDepth != 8) {
-        err.addError("Invalid bit-depth, expected 2, 4 or 8");
+        err.addErrorString("Invalid bit-depth, expected 2, 4 or 8");
         valid = false;
     }
 
     if (frameImageFilenames.empty()) {
-        err.addError("Missing frame image");
+        err.addErrorString("Missing frame image");
         valid = false;
     }
 
@@ -279,13 +279,13 @@ bool AnimationFramesInput::validate(ErrorList& err) const
         imageSizes.at(i) = image->size();
 
         if (image->empty()) {
-            err.addError("Missing frame image: " + image->errorString());
+            err.addErrorString("Missing frame image: ", image->errorString());
             valid = false;
             break;
         }
 
         if (image->size().width % 8 != 0 || image->size().height % 8 != 0) {
-            err.addError("image size invalid (height and width must be a multiple of 8): " + imageFilename.string());
+            err.addErrorString("image size invalid (height and width must be a multiple of 8): ", imageFilename.string());
             valid = false;
         }
     }
@@ -293,7 +293,7 @@ bool AnimationFramesInput::validate(ErrorList& err) const
     if (valid) {
         for (const usize& imgSize : imageSizes) {
             if (imgSize != imageSizes.front()) {
-                err.addError("All frame images must be the same size");
+                err.addErrorString("All frame images must be the same size");
                 valid = false;
                 break;
             }

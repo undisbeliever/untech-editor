@@ -4,6 +4,7 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#include "models/common/stringbuilder.h"
 #include <cassert>
 #include <filesystem>
 #include <sstream>
@@ -78,8 +79,7 @@ public:
             }
         }
 
-        throw std::runtime_error("Unable to store " + std::to_string(data.size())
-                                 + " bytes of data, increase block size/count.");
+        throw std::runtime_error(stringBuilder("Unable to store ", data.size(), " bytes of data, increase block size/count."));
     }
 
     void addNamedData(const std::string& name, const std::vector<uint8_t>& data)
@@ -101,8 +101,7 @@ public:
             }
         }
 
-        throw std::runtime_error("Unable to store " + std::to_string(data.size())
-                                 + " bytes of data, increase block size/count.");
+        throw std::runtime_error(stringBuilder("Unable to store ", data.size(), " bytes of data, increase block size/count."));
     }
 
     void writeIncData(std::stringstream& incData, const std::filesystem::path& relativeBinFilename) const

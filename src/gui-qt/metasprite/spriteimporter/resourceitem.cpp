@@ -104,7 +104,7 @@ bool ResourceItem::loadResourceData(ErrorList& err)
     setFilename(QString::fromStdString(fsf.filename));
 
     if (fsf.filename.empty()) {
-        err.addError("Missing filename");
+        err.addErrorString("Missing filename");
         return false;
     }
 

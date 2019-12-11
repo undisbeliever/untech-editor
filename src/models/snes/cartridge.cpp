@@ -5,6 +5,7 @@
  */
 
 #include "cartridge.h"
+#include "models/common/stringbuilder.h"
 #include <array>
 #include <cassert>
 #include <climits>
@@ -151,7 +152,7 @@ void Cartridge::writeChecksum(const std::filesystem::path& filename, uint16_t ch
 
     std::ofstream out(filename, std::ios::out | std::ios::in | std::ios::binary);
     if (!out) {
-        throw std::runtime_error("Error opening file: " + filename.string());
+        throw std::runtime_error(stringBuilder("Error opening file: ", filename.string()));
     }
 
     out.exceptions(std::ios::failbit | std::ios::badbit);

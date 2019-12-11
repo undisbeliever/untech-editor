@@ -7,6 +7,7 @@
 #pragma once
 
 #include "aabb.h"
+#include "stringbuilder.h"
 #include <cassert>
 #include <stdexcept>
 #include <vector>
@@ -181,20 +182,20 @@ private:
     void _rangeCheck(unsigned x, unsigned y) const
     {
         if (x >= _width) {
-            throw std::range_error("grid: x (" + std::to_string(x) + ") >= width (" + std::to_string(_width) + ")");
+            throw std::range_error(stringBuilder("grid: x (", x, ") >= width (", _width, ")"));
         }
         if (y >= _height) {
-            throw std::range_error("grid: y (" + std::to_string(y) + ") >= height (" + std::to_string(_height) + ")");
+            throw std::range_error(stringBuilder("grid: y (", y, ") >= height (", _height, ")"));
         }
     }
     void _rangeCheck(unsigned x, unsigned y, unsigned width, unsigned height) const
     {
         _rangeCheck(x, y);
         if (x + width > _width) {
-            throw std::range_error("grid: x + width (" + std::to_string(x + width) + ") > width (" + std::to_string(_width) + ")");
+            throw std::range_error(stringBuilder("grid: x + width (", (x + width), ") > width (", _width, ")"));
         }
         if (y + height > _height) {
-            throw std::range_error("grid: y + height(" + std::to_string(y + height) + ") > height (" + std::to_string(_height) + ")");
+            throw std::range_error(stringBuilder("grid: y + height(", (y + height), ") > height (", _height, ")"));
         }
     }
 };

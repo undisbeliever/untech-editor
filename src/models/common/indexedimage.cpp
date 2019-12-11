@@ -5,6 +5,7 @@
  */
 
 #include "indexedimage.h"
+#include "models/common/stringbuilder.h"
 #include "vendor/lodepng/lodepng.h"
 #include <cassert>
 #include <stdexcept>
@@ -70,13 +71,13 @@ bool IndexedImage::loadPngImage(const std::filesystem::path& filename)
     if (error) {
         erase();
 
-        _errorString = filename.string() + ": " + lodepng_error_text(error);
+        _errorString = stringBuilder(filename.string(), ": ", lodepng_error_text(error));
         return false;
     }
 
     if (state.info_png.color.colortype != LodePNGColorType::LCT_PALETTE) {
         erase();
-        _errorString = filename.string() + ": Not a indexed png file";
+        _errorString = stringBuilder(filename.string(), ": Not a indexed png file");
         return false;
     }
 

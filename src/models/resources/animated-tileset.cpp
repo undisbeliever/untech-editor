@@ -54,19 +54,19 @@ bool AnimatedTilesetData::validate(ErrorList& err) const
         if (at.size() != nAnimatedTiles()
             || at.bitDepth() != staticTiles.bitDepth()) {
 
-            err.addError("animatedTiles is invalid");
+            err.addErrorString("animatedTiles is invalid");
             valid = false;
         }
     }
 
     if (staticTiles.size() == 0) {
-        err.addError("Expected at least one static tile");
+        err.addErrorString("Expected at least one static tile");
         valid = false;
     }
 
     auto validateMax = [&](unsigned v, unsigned max, const char* msg) {
         if (v > max) {
-            err.addError(msg + std::string(" (") + std::to_string(v) + ", max: " + std::to_string(max) + ")");
+            err.addErrorString(msg, " (", v, ", max: ", max, ")");
             valid = false;
         }
     };

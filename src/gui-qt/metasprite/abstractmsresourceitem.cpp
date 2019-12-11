@@ -49,7 +49,7 @@ void AbstractMsResourceItem::compileMsFrameset(const MS::FrameSet* frameSet, Err
             validateFrameSetAndBuildTilesets(*frameSet, exportOrder, actionPointMapping, errList);
         }
         catch (std::exception& ex) {
-            errList.addError(ex.what());
+            errList.addErrorString(ex.what());
         }
     }
 }

@@ -6,6 +6,7 @@
 
 #include "file.h"
 #include "string.h"
+#include "models/common/stringbuilder.h"
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
@@ -50,7 +51,7 @@ std::vector<uint8_t> File::readBinaryFile(const std::filesystem::path& filePath,
 {
     std::ifstream in(filePath, std::ios::in | std::ios::binary);
     if (!in) {
-        throw std::runtime_error("Cannot open file: " + filePath.u8string());
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string()));
     }
 
     in.seekg(0, std::ios::end);
@@ -58,12 +59,12 @@ std::vector<uint8_t> File::readBinaryFile(const std::filesystem::path& filePath,
     in.seekg(0);
 
     if (pos < 0) {
-        throw std::runtime_error("Cannot open file: " + filePath.u8string() + " : Cannot read file size");
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : Cannot read file size"));
     }
     const size_t size = pos;
 
     if (size > limit) {
-        throw std::runtime_error("Cannot open file : " + filePath.u8string() + " : file too large");
+        throw std::runtime_error(stringBuilder("Cannot open file : ", filePath.u8string(), " : file too large"));
     }
 
     std::vector<uint8_t> ret(size);
@@ -71,7 +72,7 @@ std::vector<uint8_t> File::readBinaryFile(const std::filesystem::path& filePath,
     in.close();
 
     if (!in) {
-        throw std::runtime_error("Error reading file: " + filePath.u8string());
+        throw std::runtime_error(stringBuilder("Error reading file: ", filePath.u8string()));
     }
 
     return ret;
@@ -88,10 +89,10 @@ std::string File::readUtf8TextFile(const std::filesystem::path& filePath)
         auto size = in.tellg();
 
         if (size < 0) {
-            throw std::runtime_error("Cannot open file: " + filePath.u8string() + " : Cannot read file size");
+            throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : Cannot read file size"));
         }
         if (size > 25 * 1024 * 1024) {
-            throw std::runtime_error("Cannot open file: " + filePath.u8string() + " : too large");
+            throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : too large"));
         }
 
         // check for BOM
@@ -112,13 +113,13 @@ std::string File::readUtf8TextFile(const std::filesystem::path& filePath)
             in.close();
 
             if (!String::checkUtf8WellFormed(ret)) {
-                throw std::runtime_error("Cannot open file: " + filePath.u8string() + " : Not UTF-8 Well Formed");
+                throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : Not UTF-8 Well Formed"));
             }
         }
 
         return (ret);
     }
-    throw std::runtime_error("Cannot open file: " + filePath.u8string());
+    throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string()));
 }
 
 void File::atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
@@ -147,10 +148,10 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
 
     if (hFile == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_FILE_EXISTS) {
-            throw std::runtime_error("Temporary file already exists: " + filename + "~");
+            throw std::runtime_error(stringBuilder("Temporary file already exists: ", filename + "~"));
         }
         else {
-            throw std::runtime_error("Cannot open temporary file " + filename + "~");
+            throw std::runtime_error(stringBuilder("Cannot open temporary file ", filename, "~"));
         }
     }
 
@@ -205,7 +206,7 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
                         || ((getgid() == statbuf.st_gid) && (statbuf.st_mode & S_IWGRP))
                         || (statbuf.st_mode & S_IWOTH);
         if (!canWrite) {
-            throw std::runtime_error("User can not write to " + filename);
+            throw std::runtime_error(stringBuilder("User can not write to ", filename));
         }
 
         fd = mkstemp(tmpFilename);

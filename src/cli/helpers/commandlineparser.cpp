@@ -145,12 +145,10 @@ void Parser::parse(int argc, const char* argv[])
     for (const auto& a : _config.arguments) {
         if (a.required && _options[a.longName] == false) {
             if (a.shortName) {
-                error(std::string("Missing ") + a.helpText
-                      + " (-" + a.shortName + " / --" + a.longName + ")");
+                error("Missing ", a.helpText, " (-", a.shortName, " / --", a.longName, ")");
             }
             else {
-                error(std::string("Missing ") + a.helpText
-                      + " (--" + a.longName + ")");
+                error("Missing ", a.helpText, " (--", a.longName, ")");
             }
         }
     }
@@ -159,16 +157,16 @@ void Parser::parse(int argc, const char* argv[])
     if (_config.usesFiles) {
         if (_config.requireFile) {
             if (_filenames.size() == 0) {
-                error("Expected " + _config.fileType);
+                error("Expected ", _config.fileType);
             }
         }
         if (!_config.multipleFiles && _filenames.size() > 1) {
-            error("Too many " + _config.fileType + " arguments");
+            error("Too many ", _config.fileType, " arguments");
         }
     }
     else {
         if (_filenames.size() != 0) {
-            error("Unexpected argument " + _filenames.front());
+            error("Unexpected argument ", _filenames.front());
         }
     }
 }
@@ -202,7 +200,7 @@ bool Parser::parseShortSwitches(const char* currentArg, const char* nextArg)
         }
 
         if (isValid == false) {
-            error(std::string("Unknown argument -") + *arg);
+            error("Unknown argument -", *arg);
         }
         arg++;
     }
@@ -218,7 +216,7 @@ bool Parser::parseLongSwitch(const char* arg, const char* nextArg)
         }
     }
 
-    error(std::string("Unknown argument --") + arg);
+    error("Unknown argument --", arg);
     return false;
 }
 
@@ -355,9 +353,14 @@ void Parser::printVersion()
                  "\n";
 }
 
-void Parser::error(const std::string& message)
+template <typename... Args>
+inline void Parser::error(const Args... message)
 {
-    std::cerr << _programExec << ": " << message << std::endl;
+    std::cerr << _programExec << ": ";
+
+    (std::cerr << ... << message);
+
+    std::cerr << std::endl;
     exit(EXIT_FAILURE);
 }
 

@@ -13,13 +13,13 @@ using namespace UnTech::MetaSprite;
 std::string NameReference::str() const
 {
     if (hFlip && vFlip) {
-        return name + " (hvFlip)";
+        return stringBuilder(name, " (hvFlip)");
     }
     else if (hFlip) {
-        return name + " (hFlip)";
+        return stringBuilder(name, " (hFlip)");
     }
     else if (vFlip) {
-        return name + " (vFlip)";
+        return stringBuilder(name, " (vFlip)");
     }
     else {
         return name;
@@ -29,12 +29,12 @@ std::string NameReference::str() const
 ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err)
 {
     bool valid = true;
-    auto addError = [&](const std::string msg) {
-        err.addError(std::move(msg));
+    auto addError = [&](const auto... msg) {
+        err.addErrorString(msg...);
         valid = false;
     };
-    auto addApfError = [&](const ActionPointFunction& apf, const std::string msg) {
-        err.addError(std::make_unique<ListItemError>(&apf, std::move(msg)));
+    auto addApfError = [&](const ActionPointFunction& apf, const auto... msg) {
+        err.addError(std::make_unique<ListItemError>(&apf, msg...));
         valid = false;
     };
 
@@ -46,7 +46,7 @@ ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<Action
     }
 
     if (apFunctions.size() > MAX_ACTION_POINT_FUNCTIONS) {
-        addError("Too many action point functions (max " + std::to_string(MAX_ACTION_POINT_FUNCTIONS) + ")");
+        addError("Too many action point functions (max ", MAX_ACTION_POINT_FUNCTIONS, ")");
         return ret;
     }
 
@@ -65,7 +65,7 @@ ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<Action
         auto success = ret.emplace(apf.name, romValue);
 
         if (success.second == false) {
-            addApfError(apf, "Action point function name already exists: " + apf.name);
+            addApfError(apf, "Action point function name already exists: ", apf.name);
         }
     }
 

@@ -26,7 +26,7 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
         bool dupFn = std::any_of(it + 1, list.end(),
                                  [&](const auto& i) { return i.filename == filename; });
         if (dupFn) {
-            err.addError("Duplicate " + typeName + " file detected: " + filename);
+            err.addErrorString("Duplicate ", typeName, " file detected: ", filename.string());
             valid = false;
             continue;
         }
@@ -38,13 +38,13 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
         const idstring& name = it->value->name;
         if (name.isValid() == false) {
             auto d = std::distance(list.begin(), it);
-            err.addError("Missing name in " + typeName + ' ' + std::to_string(d));
+            err.addErrorString("Missing name in ", typeName, " ", d);
             valid = false;
             continue;
         }
 
         if (name == countString) {
-            err.addError("Invalid " + typeName + " name: count");
+            err.addErrorString("Invalid ", typeName, " name: count");
             valid = false;
             continue;
         }
@@ -52,7 +52,7 @@ inline bool validateFilesAndNamesUnique(const ExternalFileList<T>& list,
         bool dup = std::any_of(it + 1, list.end(),
                                [&](const auto& i) { return i.value && i.value->name == name; });
         if (dup) {
-            err.addError("Duplicate " + typeName + " name detected: " + name);
+            err.addErrorString("Duplicate ", typeName, " name detected: ", name);
             valid = false;
         }
     }
@@ -68,8 +68,8 @@ inline bool validateNamesUnique(const NamedList<T>& list,
     const idstring countString("count");
 
     bool valid = true;
-    auto addError = [&](const T& item, std::string message) {
-        err.addError(std::make_unique<ListItemError>(&item, std::move(message)));
+    auto addError = [&](const T& item, const auto... message) {
+        err.addError(std::make_unique<ListItemError>(&item, message...));
         valid = false;
     };
 
@@ -78,19 +78,19 @@ inline bool validateNamesUnique(const NamedList<T>& list,
         const idstring& name = item.name;
         if (name.isValid() == false) {
             auto d = std::distance(list.begin(), it);
-            addError(item, "Missing name in " + typeName + ' ' + std::to_string(d));
+            addError(item, "Missing name in ", typeName, " ", d);
             continue;
         }
 
         if (name == countString) {
-            addError(item, "Invalid " + typeName + " name: count");
+            addError(item, "Invalid ", typeName, " name: count");
             continue;
         }
 
         bool dup = std::any_of(list.begin(), it,
                                [&](const auto& i) { return i.name == name; });
         if (dup) {
-            addError(item, "Duplicate " + typeName + " name detected: " + name);
+            addError(item, "Duplicate ", typeName, " name detected: ", name);
         }
     }
 

@@ -6,6 +6,7 @@
 
 #include "image2tileset.h"
 #include "models/common/file.h"
+#include "models/common/stringbuilder.h"
 #include <stdexcept>
 
 using namespace UnTech;
@@ -63,8 +64,7 @@ void ImageToTileset::processPalette(const IndexedImage& image)
     const unsigned nColors = _tileset.colorsPerTile();
 
     if (image.palette().size() > nColors) {
-        throw std::runtime_error("Too many colors in image, maximum allowed is "
-                                 + std::to_string(nColors));
+        throw std::runtime_error(stringBuilder("Too many colors in image, maximum allowed is ", nColors));
     }
 
     _palette.resize(nColors);
@@ -83,7 +83,7 @@ void ImageToTileset::processTileset(const IndexedImage& image)
     if (image.size().width % TILE_SIZE != 0
         || image.size().height % TILE_SIZE != 0) {
 
-        throw std::runtime_error("Image size is not a multiple of " + std::to_string(TILE_SIZE));
+        throw std::runtime_error(stringBuilder("Image size is not a multiple of ", TILE_SIZE));
     }
 
     unsigned tileWidth = image.size().width / TILE_SIZE;

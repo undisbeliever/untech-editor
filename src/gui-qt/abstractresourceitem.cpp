@@ -31,7 +31,7 @@ void AbstractResourceItem::loadResource()
         setState(s ? ResourceState::UNCHECKED : ResourceState::FILE_ERROR);
     }
     catch (const std::exception& ex) {
-        err.addError(std::string("EXCEPTION: ") + ex.what());
+        err.addErrorString("EXCEPTION: ", ex.what());
         setState(ResourceState::FILE_ERROR);
     }
 
@@ -92,16 +92,16 @@ void AbstractResourceItem::validateItem()
         if (dItem == nullptr) {
             if (auto* rl = _project->findResourceList(dep.type)) {
                 QString rtn = rl->resourceTypeNameSingle();
-                err.addError("Dependency Error: Missing " + rtn.toStdString() + u8" · " + dep.name.toStdString());
+                err.addErrorString("Dependency Error: Missing ", rtn.toStdString(), u8" · ", dep.name.toStdString());
             }
             else {
-                err.addError("Dependency Error: Missing " + dep.name.toStdString());
+                err.addErrorString("Dependency Error: Missing ", dep.name.toStdString());
             }
             dependenciesOk = false;
         }
         else if (dItem->state() != ResourceState::VALID) {
             QString rtn = dItem->resourceList()->resourceTypeNameSingle();
-            err.addError("Dependency Error: " + rtn.toStdString() + u8" · " + dep.name.toStdString());
+            err.addErrorString("Dependency Error: ", rtn.toStdString(), u8" · ", dep.name.toStdString());
 
             dependenciesOk = false;
         }
@@ -113,7 +113,7 @@ void AbstractResourceItem::validateItem()
             setState(s ? ResourceState::VALID : ResourceState::ERROR);
         }
         catch (const std::exception& ex) {
-            err.addError(std::string("EXCEPTION: ") + ex.what());
+            err.addErrorString("EXCEPTION: ", ex.what());
             setState(ResourceState::ERROR);
         }
 

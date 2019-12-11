@@ -6,7 +6,7 @@
 
 #include "image2snes.h"
 #include "tilesetinserter.h"
-
+#include "models/common/stringbuilder.h"
 #include <algorithm>
 #include <array>
 #include <vector>
@@ -59,22 +59,16 @@ public:
         , tilePaletteId()
     {
         if (maxTiles > MAX_N_TILES) {
-            throw std::invalid_argument("maxTiles is too large (expected <= "
-                                        + std::to_string(MAX_N_TILES) + ")");
+            throw std::invalid_argument(stringBuilder("maxTiles is too large (expected <= ", MAX_N_TILES, ")"));
         }
         if (tileOffset + maxTiles > MAX_N_TILES) {
-            throw std::invalid_argument("tileOffset is out of bounds "
-                                        "(tileOffset + maxTiles must be <= "
-                                        + std::to_string(MAX_N_TILES) + ")");
+            throw std::invalid_argument(stringBuilder("tileOffset is out of bounds (tileOffset + maxTiles must be <= ", MAX_N_TILES, ")"));
         }
         if (maxPalettes > MAX_N_PALETTES) {
-            throw std::invalid_argument("maxPalettes is too large (expected <= "
-                                        + std::to_string(MAX_N_PALETTES) + ")");
+            throw std::invalid_argument(stringBuilder("maxPalettes is too large (expected <= ", MAX_N_PALETTES, ")"));
         }
         if (paletteOffset + maxPalettes > MAX_N_PALETTES) {
-            throw std::invalid_argument("paletteOffset is out of bounds "
-                                        "(paletteOffset + maxPalettes must be <= "
-                                        + std::to_string(MAX_N_PALETTES) + ")");
+            throw std::invalid_argument(stringBuilder("paletteOffset is out of bounds (paletteOffset + maxPalettes must be <= ", MAX_N_PALETTES, ")"));
         }
     }
 
@@ -122,9 +116,8 @@ public:
         }
 
         if (tileset.size() > maxTiles) {
-            throw std::runtime_error("Too many tiles in the image ("
-                                     + std::to_string(tileset.size()) + " tiles required, "
-                                     + "maxTiles is " + std::to_string(maxTiles) + ")");
+            throw std::runtime_error(stringBuilder(
+                "Too many tiles in the image (", tileset.size(), " tiles required, maxTiles is ", maxTiles, ")"));
         }
 
         return tilemap;
@@ -149,7 +142,7 @@ private:
         // tiles are rearranged to match the SNES tilemap order.
 
         if (image.size().width % TILE_SIZE != 0 || image.size().height % TILE_SIZE != 0) {
-            throw std::runtime_error("Image size is not divisible by " + std::to_string(TILE_SIZE));
+            throw std::runtime_error(stringBuilder("Image size is not divisible by ", TILE_SIZE));
         }
 
         constexpr unsigned MAP_SIZE = Tilemap::MAP_SIZE;
@@ -402,9 +395,8 @@ private:
         }
 
         if (newPalette.size() > maxPalettes) {
-            throw std::runtime_error("Could not rearrange the palette ("
-                                     + std::to_string(newPalette.size()) + " palettes required, "
-                                     + "maxPalettes is " + std::to_string(maxPalettes) + ")");
+            throw std::runtime_error(stringBuilder(
+                "Could not rearrange the palette (", newPalette.size(), " palettes required, maxPalettes is ", maxPalettes, ")"));
         }
 
         return newPalette;

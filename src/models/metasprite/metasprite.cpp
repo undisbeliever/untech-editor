@@ -22,8 +22,8 @@ using namespace UnTech::MetaSprite::MetaSprite;
 inline bool Frame::validate(const ActionPointMapping& actionPointMapping, ErrorList& errorList, const FrameSet& fs) const
 {
     bool valid = true;
-    auto addError = [&](const std::string& msg) {
-        errorList.addError(frameError(*this, msg));
+    auto addError = [&](const auto... msg) {
+        errorList.addError(frameError(*this, msg...));
         valid = false;
     };
 
@@ -55,7 +55,7 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, ErrorL
         const ActionPoint& ap = actionPoints.at(i);
 
         if (actionPointMapping.find(ap.type) == actionPointMapping.end()) {
-            errorList.addError(actionPointError(*this, i, "Unknown action point type " + ap.type));
+            errorList.addError(actionPointError(*this, i, "Unknown action point type ", ap.type));
             valid = false;
         }
     }
@@ -151,7 +151,7 @@ bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList&
     bool valid = true;
 
     auto addError = [&](std::string&& msg) {
-        errorList.addError(msg);
+        errorList.addErrorString(msg);
         valid = false;
     };
 

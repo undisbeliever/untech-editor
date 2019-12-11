@@ -59,32 +59,31 @@ bool PaletteInput::validate(ErrorList& err) const
     unsigned colorsPerFrame = imgSize.width * rowsPerFrame;
 
     if (!name.isValid()) {
-        err.addError("Expected palette name");
+        err.addErrorString("Expected palette name");
         valid = false;
     }
     if (paletteImage->empty()) {
-        err.addError("Error loading palette image: " + paletteImage->errorString());
+        err.addErrorString("Error loading palette image: ", paletteImage->errorString());
         valid = false;
     }
     if (rowsPerFrame == 0) {
-        err.addError("Expected rowsPerFrame");
+        err.addErrorString("Expected rowsPerFrame");
         valid = false;
     }
     if (imgSize.width != 4 && imgSize.width != 16) {
-        err.addError("Palette image must be 4 or 16 pixels wide");
+        err.addErrorString("Palette image must be 4 or 16 pixels wide");
         valid = false;
     }
     if (imgSize.height < minImageHeight) {
-        err.addError("Palette image must be a minimum of "
-                     + std::to_string(minImageHeight) + "pixels tall");
+        err.addErrorString("Palette image must be a minimum of ", minImageHeight, "pixels tall");
         valid = false;
     }
     if (rowsPerFrame > 0 && imgSize.height % rowsPerFrame != 0) {
-        err.addError("Palette image height must be a multiple of rowsPerFrame");
+        err.addErrorString("Palette image height must be a multiple of rowsPerFrame");
         valid = false;
     }
     if (colorsPerFrame > 256) {
-        err.addError("Too many colors per palette frame");
+        err.addErrorString("Too many colors per palette frame");
         valid = false;
     }
 
@@ -137,7 +136,7 @@ Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth, Err
     bool valid = input.validate(err);
 
     if (bitDepth == 0 || bitDepth > 8) {
-        err.addError("Invalid bit-depth");
+        err.addErrorString("Invalid bit-depth");
         valid = false;
     }
 
@@ -158,8 +157,7 @@ Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth, Err
     }
 
     if (img->size().height < nRows) {
-        err.addError("Palette image must be a minimum of "
-                     + std::to_string(nRows) + "pixels tall");
+        err.addErrorString("Palette image must be a minimum of ", nRows, "pixels tall");
         valid = false;
     }
 
@@ -202,34 +200,34 @@ bool PaletteData::validate(ErrorList& err) const
     bool valid = true;
 
     if (paletteFrames.empty()) {
-        err.addError("Expected at least one palette frame");
+        err.addErrorString("Expected at least one palette frame");
         valid = false;
     }
     if (paletteFrames.size() > 255) {
-        err.addError("Too many palette animations");
+        err.addErrorString("Too many palette animations");
         valid = false;
     }
 
     unsigned blockSize = paletteFrames.size() * colorsPerFrame() * 2;
     if (blockSize > MAX_PALETTE_BLOCK_SIZE) {
-        err.addError("Animation palette too large");
+        err.addErrorString("Animation palette too large");
         valid = false;
     }
 
     if (paletteFrames.size() > 0) {
         if (animationDelay == 0) {
-            err.addError("Expected animation delay");
+            err.addErrorString("Expected animation delay");
             valid = false;
         }
         if (animationDelay > 0xffff) {
-            err.addError("Animation delay too long");
+            err.addErrorString("Animation delay too long");
             valid = false;
         }
     }
 
     for (const auto& pal : paletteFrames) {
         if (pal.size() != colorsPerFrame()) {
-            err.addError("paletteFrames must contain the same number of colors in each frame");
+            err.addErrorString("paletteFrames must contain the same number of colors in each frame");
             valid = false;
         }
     }

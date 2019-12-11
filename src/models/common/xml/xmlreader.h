@@ -24,10 +24,12 @@ class XmlReader;
 struct XmlTag;
 class xml_error : public std::runtime_error {
 public:
-    xml_error(const XmlTag& tag, const char* message);
-    xml_error(const XmlTag& tag, const std::string& attr, const char* message);
-    xml_error(const XmlReader& xml, const char* message);
-    xml_error(const XmlReader& tag, const char* message, const std::exception& error);
+    explicit xml_error(const XmlTag& tag, const char* message);
+    explicit xml_error(const XmlTag& tag, const std::string& message);
+    explicit xml_error(const XmlTag& tag, const std::string& attr, const char* message);
+    explicit xml_error(const XmlReader& xml, const char* message);
+    explicit xml_error(const XmlReader& xml, const std::string& message);
+    explicit xml_error(const XmlReader& tag, const char* message, const std::exception& error);
 
     inline const std::filesystem::path& filePath() const { return _filePath; }
 

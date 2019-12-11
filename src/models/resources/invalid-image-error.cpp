@@ -36,10 +36,10 @@ InvalidImageError::~InvalidImageError() = default;
 std::string InvalidImageError::message() const
 {
     if (hasFrameId()) {
-        return std::to_string(_invalidTiles.size()) + " invalid tiles in frame " + std::to_string(_frameId);
+        return stringBuilder(_invalidTiles.size(), " invalid tiles in frame ", _frameId);
     }
     else {
-        return std::to_string(_invalidTiles.size()) + " invalid tiles";
+        return stringBuilder(_invalidTiles.size(), " invalid tiles");
     }
 }
 

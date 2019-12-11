@@ -131,11 +131,11 @@ bool FrameSetExportList::validate(ErrorList& err) const
     bool valid = true;
 
     if (animations.size() > MAX_EXPORT_NAMES) {
-        err.addError("Too many animations (" + std::to_string(animations.size()) + ", max " + std::to_string(MAX_EXPORT_NAMES) + ")");
+        err.addErrorString("Too many animations (", animations.size(), ", max ", MAX_EXPORT_NAMES, ")");
         valid = false;
     }
     if (frames.size() > MAX_EXPORT_NAMES) {
-        err.addError("Too many frames (" + std::to_string(frames.size()) + ", max " + std::to_string(MAX_EXPORT_NAMES) + ")");
+        err.addErrorString("Too many frames (", frames.size(), ", max ", MAX_EXPORT_NAMES, ")");
         valid = false;
     }
 

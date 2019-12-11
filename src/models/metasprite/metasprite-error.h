@@ -26,19 +26,33 @@ private:
     const void* const _ptr;
     const std::string _name;
     const unsigned _id;
-    const std::string _errorText;
+    const std::string _message;
 
 public:
-    MetaSpriteError(MsErrorType type, const void* ptr, std::string name, std::string errorText);
-    MetaSpriteError(MsErrorType type, const void* ptr, std::string name, unsigned id, std::string errorText);
-    virtual ~MetaSpriteError() final;
+    MetaSpriteError(MsErrorType type, const void* ptr, std::string name, std::string message)
+        : _type(type)
+        , _ptr(ptr)
+        , _name(std::move(name))
+        , _id(UINT_MAX)
+        , _message(std::move(message))
+    {
+    }
+
+    MetaSpriteError(MsErrorType type, const void* ptr, std::string name, unsigned id, std::string message)
+        : _type(type)
+        , _ptr(ptr)
+        , _name(std::move(name))
+        , _id(id)
+        , _message(std::move(message))
+    {
+    }
 
     MsErrorType type() const { return _type; }
     const void* ptr() const { return _ptr; }
     const std::string& name() const { return _name; }
     unsigned id() const { return _id; }
 
-    virtual std::string message() const final;
+    virtual std::string message() const final { return _message; }
 };
 
 }

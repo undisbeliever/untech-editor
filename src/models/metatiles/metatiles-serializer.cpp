@@ -81,9 +81,7 @@ static grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
     auto data = xml.parseBase64();
 
     if (data.size() != expectedDataSize) {
-        const std::string msg = "Invalid data size. Got " + std::to_string(data.size())
-                                + " bytes, expected " + std::to_string(expectedDataSize) + ".";
-        throw xml_error(*tag, msg.c_str());
+        throw xml_error(*tag, stringBuilder("Invalid data size. Got ", data.size(), " bytes, expected ", expectedDataSize, "."));
     }
 
     return grid<uint8_t>(width, height, std::move(data));
@@ -217,7 +215,7 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesy
         return readMetaTileTilesetInput(*xml);
     }
     catch (const std::exception& ex) {
-        err.addError(ex.what());
+        err.addErrorString(ex.what());
         return nullptr;
     }
 }

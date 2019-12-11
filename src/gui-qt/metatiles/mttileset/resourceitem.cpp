@@ -71,7 +71,7 @@ bool ResourceItem::loadResourceData(ErrorList& err)
     setFilename(QString::fromStdString(tilesetItem.filename));
 
     if (tilesetItem.filename.empty()) {
-        err.addError("Missing filename");
+        err.addErrorString("Missing filename");
         return false;
     }
 
@@ -85,7 +85,7 @@ bool ResourceItem::loadResourceData(ErrorList& err)
     catch (const std::exception& ex) {
         tilesetItem.value = nullptr;
 
-        err.addError(ex.what());
+        err.addErrorString(ex.what());
         return false;
     }
 }
@@ -95,7 +95,7 @@ bool ResourceItem::compileResource(ErrorList& err)
     auto* tileset = this->tilesetInput();
 
     if (tileset == nullptr) {
-        err.addError("Unable to load file");
+        err.addErrorString("Unable to load file");
         return false;
     }
     const auto& pro = project()->projectFile();

@@ -103,7 +103,7 @@ static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportO
                              ErrorList& errorList)
 {
     if (exportOrder == nullptr) {
-        errorList.addError("Missing MetaSprite Export Order Document");
+        errorList.addErrorString("Missing MetaSprite Export Order Document");
         return false;
     }
 
@@ -177,7 +177,7 @@ std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& 
             }
         }
         else {
-            errorList.addWarning("Missing FrameSet");
+            errorList.addWarningString("Missing FrameSet");
         }
 
         if (!errorList.empty()) {

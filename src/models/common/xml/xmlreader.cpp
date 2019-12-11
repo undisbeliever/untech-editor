@@ -11,7 +11,6 @@
 #include "../stringparser.hpp"
 #include <cassert>
 #include <cstring>
-#include <sstream>
 #include <stdexcept>
 
 using namespace UnTech;
@@ -19,6 +18,12 @@ using namespace UnTech::Xml;
 
 xml_error::xml_error(const XmlTag& tag, const char* message)
     : std::runtime_error(tag.generateErrorString(message))
+    , _filePath(tag.xml->filePath())
+{
+}
+
+xml_error::xml_error(const XmlTag& tag, const std::string& message)
+    : std::runtime_error(tag.generateErrorString(message.c_str()))
     , _filePath(tag.xml->filePath())
 {
 }
@@ -31,6 +36,12 @@ xml_error::xml_error(const XmlTag& tag, const std::string& aName, const char* me
 
 xml_error::xml_error(const XmlReader& xml, const char* message)
     : std::runtime_error(xml.generateErrorString(message))
+    , _filePath(xml.filePath())
+{
+}
+
+xml_error::xml_error(const XmlReader& xml, const std::string& message)
+    : std::runtime_error(xml.generateErrorString(message.c_str()))
     , _filePath(xml.filePath())
 {
 }
@@ -244,8 +255,9 @@ std::unique_ptr<XmlTag> XmlReader::parseTag()
             return tag;
         }
         else {
-            std::string msg = std::string("Unknown character `") + c + '`';
-            throw xml_error(*this, msg.c_str());
+            // stringBuilder does not accept char types, have to convert to a c_string manually.
+            const char charStr[] = { '`', c, '`', '\0' };
+            throw xml_error(*this, stringBuilder("Unknown character ", charStr));
         }
     }
 
@@ -423,51 +435,36 @@ inline std::string XmlReader::parseAttributeValue()
 
 std::string XmlTag::generateErrorString(const char* msg) const
 {
-    std::stringstream stream;
-
-    stream << xml->filename() << ":" << lineNo << " <" << name << ">: " << msg;
-    return stream.str();
+    return stringBuilder(xml->filename(), ":", lineNo, " <", name, ">: ", msg);
 }
 
 std::string XmlTag::generateErrorString(const std::string& aName, const char* msg) const
 {
-    std::stringstream stream;
-
-    stream << xml->filename() << ":" << lineNo << " <" << name << " " << aName << ">: " << msg;
-    return stream.str();
+    return stringBuilder(xml->filename(), ":", lineNo, " <", name, " ", aName, ">: ", msg);
 }
 
 std::string XmlReader::generateErrorString(const char* message) const
 {
-    std::stringstream stream;
-
     if (_currentTag.empty()) {
-        stream << filename() << ':' << lineNo() << ": " << message;
+        return stringBuilder(filename(), ":", lineNo(), ": ", message);
     }
     else {
-        stream << filename() << ':' << lineNo() << " <" << _currentTag << ">: " << message;
+        return stringBuilder(filename(), ":", lineNo(), " <", _currentTag, ">: ", message);
     }
-    return stream.str();
 }
 
 std::string XmlReader::generateErrorString(const char* message, const std::exception& ex) const
 {
-    std::stringstream stream;
-    stream << message << "\n  ";
-
     auto cast = dynamic_cast<const xml_error*>(&ex);
     if (cast && cast->filePath() == _filePath) {
-        stream << cast->what();
+        return stringBuilder(message, "\n  ", cast->what());
     }
     else {
-        stream << filename() << ':' << lineNo();
-
         if (_currentTag.empty()) {
-            stream << ": " << ex.what();
+            return stringBuilder(message, "\n  ", filename(), ":", lineNo(), ": ", message);
         }
         else {
-            stream << " <" << _currentTag << ">: " << ex.what();
+            return stringBuilder(message, "\n  ", filename(), ":", lineNo(), " <", _currentTag, ">: ", message);
         }
     }
-    return stream.str();
 }

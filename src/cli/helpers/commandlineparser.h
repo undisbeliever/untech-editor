@@ -87,7 +87,8 @@ private:
     bool parseLongSwitch(const char* arg, const char* nextArg);
     bool parseSwitch(const Argument& config, bool isShort, const char* nextArg);
 
-    void error(const std::string& message);
+    template <typename... Args>
+    void error(const Args... message);
     void error(const char* message, const Argument& config, bool isShort);
 
 private:

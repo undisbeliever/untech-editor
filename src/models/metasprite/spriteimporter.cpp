@@ -30,8 +30,8 @@ const EnumMap<UserSuppliedPalette::Position> UserSuppliedPalette::positionEnumMa
 inline bool FrameSetGrid::validate(ErrorList& errorList) const
 {
     bool valid = true;
-    auto addError = [&](auto msg) {
-        errorList.addError(msg);
+    auto addError = [&](const auto&... msg) {
+        errorList.addErrorString(msg...);
         valid = false;
     };
 
@@ -39,12 +39,10 @@ inline bool FrameSetGrid::validate(ErrorList& errorList) const
         addError("grid.frameSize has no size");
     }
     if (frameSize.width > MAX_FRAME_SIZE || frameSize.height > MAX_FRAME_SIZE) {
-        addError("grid.frameSize is too large (max: "
-                 + std::to_string(MAX_FRAME_SIZE) + " x " + std::to_string(MAX_FRAME_SIZE) + " +)");
+        addError("grid.frameSize is too large (max: ", MAX_FRAME_SIZE, " x ", MAX_FRAME_SIZE, ")");
     }
     if (origin.x > MAX_ORIGIN || origin.y > MAX_ORIGIN) {
-        addError("grid.origin is too large (max: "
-                 + std::to_string(MAX_ORIGIN) + ", " + std::to_string(MAX_ORIGIN) + " +)");
+        addError("grid.origin is too large (max: ", MAX_ORIGIN, ", ", MAX_ORIGIN, ")");
     }
     if (frameSize.contains(origin) == false) {
         addError("grid.origin is not inside grid.frameSize");
@@ -114,8 +112,8 @@ void FrameLocation::update(const FrameSetGrid& grid, const Frame& frame)
 inline bool FrameLocation::validate(ErrorList& errorList, const Frame& frame) const
 {
     bool valid = true;
-    auto addError = [&](const std::string& msg) {
-        errorList.addError(frameError(frame, msg));
+    auto addError = [&](const auto&... msg) {
+        errorList.addError(frameError(frame, msg...));
         valid = false;
     };
 
@@ -123,12 +121,10 @@ inline bool FrameLocation::validate(ErrorList& errorList, const Frame& frame) co
         addError("FrameLocation aabb has no size");
     }
     if (aabb.width > MAX_FRAME_SIZE || aabb.height > MAX_FRAME_SIZE) {
-        addError("location.aabb is too large ("
-                 + std::to_string(MAX_FRAME_SIZE) + " x " + std::to_string(MAX_FRAME_SIZE) + " +)");
+        addError("location.aabb is too large (", MAX_FRAME_SIZE, " x ", MAX_FRAME_SIZE, ")");
     }
     if (origin.x > MAX_ORIGIN || origin.y > MAX_ORIGIN) {
-        addError("location.origin is too large (max: "
-                 + std::to_string(MAX_ORIGIN) + ", " + std::to_string(MAX_ORIGIN) + " +)");
+        addError("location.origin is too large (max: ", MAX_ORIGIN, ", ", MAX_ORIGIN, ")");
     }
     if (aabb.size().contains(origin) == false) {
         addError("location.origin is not inside frame");
@@ -166,8 +162,8 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, const 
 {
     bool valid = true;
 
-    auto addError = [&](const std::string& msg) {
-        errorList.addError(frameError(*this, msg));
+    auto addError = [&](const auto... msg) {
+        errorList.addError(frameError(*this, msg...));
         valid = false;
     };
 
@@ -215,7 +211,7 @@ inline bool Frame::validate(const ActionPointMapping& actionPointMapping, const 
 
         if (not actionPointMapping.empty()) {
             if (actionPointMapping.find(ap.type) == actionPointMapping.end()) {
-                errorList.addError(actionPointError(*this, i, "Unknown action point type " + ap.type));
+                errorList.addError(actionPointError(*this, i, "Unknown action point type ", ap.type));
                 valid = false;
             }
         }
@@ -289,7 +285,7 @@ bool FrameSet::validate(const ActionPointMapping& actionPointMapping, ErrorList&
 {
     bool valid = true;
     auto addError = [&](std::string&& msg) {
-        errorList.addError(msg);
+        errorList.addErrorString(msg);
         valid = false;
     };
 

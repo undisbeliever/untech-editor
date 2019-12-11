@@ -28,10 +28,7 @@ bool BlockSettings::validate(ErrorList& err) const
 
     auto validateMinMax = [&](unsigned value, unsigned min, unsigned max, const char* msg) {
         if (value < min || value > max) {
-            err.addError(msg
-                         + std::string(" (") + std::to_string(value)
-                         + ", min: " + std::to_string(min)
-                         + ", max: " + std::to_string(max) + ")");
+            err.addErrorString(msg, " (", value, ", min: ", min, ", max: ", max, ")");
             valid = false;
         }
     };
@@ -49,10 +46,10 @@ bool ProjectFile::validate(ErrorList& err) const
     valid &= blockSettings.validate(err);
 
     if (frameSetExportOrders.size() > MetaSprite::MAX_EXPORT_NAMES) {
-        err.addError("Too many MetaSprite export orders");
+        err.addErrorString("Too many MetaSprite export orders");
     }
     if (frameSets.size() > MetaSprite::MAX_FRAMESETS) {
-        err.addError("Too many MetaSprite FrameSets");
+        err.addErrorString("Too many MetaSprite FrameSets");
     }
 
     valid &= validateNamesUnique(palettes, "palettes", err);

@@ -29,12 +29,12 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
     bool valid = true;
 
     if (!name.isValid()) {
-        err.addError("Expected metaTile tileset name");
+        err.addErrorString("Expected metaTile tileset name");
         valid = false;
     }
 
     if (palettes.empty()) {
-        err.addError("Expected at least one palette");
+        err.addErrorString("Expected at least one palette");
         valid = false;
     }
 
@@ -43,11 +43,11 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
         const auto& frameSize = ImageCache::loadPngImage(firstImageFilename)->size();
 
         if (frameSize.width != TILESET_WIDTH * METATILE_SIZE_PX) {
-            err.addError("Image width must be " + std::to_string(TILESET_WIDTH * METATILE_SIZE_PX) + "px.");
+            err.addErrorString("Image width must be ", TILESET_WIDTH * METATILE_SIZE_PX, "px.");
             valid = false;
         }
         if (frameSize.height != TILESET_HEIGHT * METATILE_SIZE_PX) {
-            err.addError("Image height must be " + std::to_string(TILESET_HEIGHT * METATILE_SIZE_PX) + "px.");
+            err.addErrorString("Image height must be ", TILESET_HEIGHT * METATILE_SIZE_PX, "px.");
             valid = false;
         }
     }
@@ -57,8 +57,8 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
     }
 
     if (scratchpad.width() > MAX_GRID_WIDTH || scratchpad.height() > MAX_GRID_HEIGHT) {
-        err.addError("Scratchpad too large (maximum allowed size is " + std::to_string(MAX_GRID_WIDTH)
-                     + "x" + std::to_string(MAX_GRID_HEIGHT) + ".");
+        err.addErrorString("Scratchpad too large (maximum allowed size is ", MAX_GRID_WIDTH, "x", MAX_GRID_HEIGHT, ".");
+        valid = false;
     }
 
     return valid;
@@ -76,7 +76,7 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     const idstring& paletteName = input.palettes.front();
     const auto palette = projectFile.palettes.find(paletteName);
     if (!palette) {
-        err.addError("Cannot find palette: " + paletteName);
+        err.addErrorString("Cannot find palette: ", paletteName);
         return nullptr;
     }
 
@@ -115,20 +115,20 @@ bool MetaTileTilesetData::validate(ErrorList& err) const
     bool valid = animatedTileset->validate(err);
 
     if (animatedTileset->tileMap.empty()) {
-        err.addError("Expected at least one MetaTile");
+        err.addErrorString("Expected at least one MetaTile");
         valid = false;
     }
 
     const unsigned tileMapMetaTiles = animatedTileset->tileMap.cellCount() / 4;
     if (tileMapMetaTiles != N_METATILES) {
-        err.addError("Expected " + std::to_string(N_METATILES) + " MetaTiles (got " + std::to_string(tileMapMetaTiles) + ").");
+        err.addErrorString("Expected ", N_METATILES, " MetaTiles (got ", tileMapMetaTiles, ").");
         valid = false;
     }
 
     if (animatedTileset->tileMap.width() != TILESET_WIDTH * 2
         || animatedTileset->tileMap.height() != TILESET_HEIGHT * 2) {
 
-        err.addError("Invalid tileset image size");
+        err.addErrorString("Invalid tileset image size");
         valid = false;
     }
 

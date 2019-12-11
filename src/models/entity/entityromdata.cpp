@@ -143,16 +143,16 @@ static bool validateFieldValue(DataType type, const std::string& str)
 bool StructField::validate(const EntityRomStruct& romStruct, ErrorList& err) const
 {
     bool valid = true;
-    auto addError = [&](const std::string& s, bool showFieldName = false) {
-        err.addError(std::make_unique<StructFieldError>(romStruct, *this, s, showFieldName));
+    auto addError = [&](const auto... msg) {
+        err.addError(std::make_unique<StructFieldError>(romStruct, *this, msg...));
         valid = false;
     };
 
     if (name.isValid() == false) {
-        addError("Missing field name", false);
+        addError("Missing field name");
     }
     if (INVALID_NAMES.find(name) != INVALID_NAMES.end()) {
-        addError("Invalid field name " + name, false);
+        addError("Invalid field name ", name);
     }
     if (comment.find('\n') != std::string::npos) {
         addError("Comment must not contain a new line");
@@ -170,12 +170,12 @@ bool StructField::validate(const EntityRomStruct& romStruct, ErrorList& err) con
 bool EntityRomStruct::validate(ErrorList& err) const
 {
     bool valid = true;
-    auto addError = [&](const std::string& s) {
-        err.addError(std::make_unique<EntityRomStructError>(*this, s));
+    auto addError = [&](const auto... msg) {
+        err.addError(std::make_unique<EntityRomStructError>(*this, msg...));
         valid = false;
     };
-    auto addStructFieldError = [&](unsigned index, const std::string& s) {
-        err.addError(std::make_unique<StructFieldError>(*this, index, s));
+    auto addStructFieldError = [&](unsigned index, const auto... msg) {
+        err.addError(std::make_unique<StructFieldError>(*this, index, msg...));
         valid = false;
     };
 
@@ -183,7 +183,7 @@ bool EntityRomStruct::validate(ErrorList& err) const
         addError("Expected name");
     }
     if (INVALID_NAMES.find(name) != INVALID_NAMES.end()) {
-        addError("Invalid name " + name);
+        addError("Invalid name ", name);
     }
     if (name.str() == BASE_ROM_STRUCT) {
         addError("Name cannot be " BASE_ROM_STRUCT);
@@ -206,7 +206,7 @@ bool EntityRomStruct::validate(ErrorList& err) const
             auto dupIt = std::find_if(fields.begin(), it, [&](auto& f) { return f.name == field.name; });
             if (dupIt != it) {
                 unsigned index = std::distance(fields.cbegin(), it);
-                addStructFieldError(index, "Duplicate field name detected: " + field.name);
+                addStructFieldError(index, "Duplicate field name detected: ", field.name);
             }
         }
     }
@@ -217,8 +217,8 @@ bool EntityRomStruct::validate(ErrorList& err) const
 bool EntityFunctionTable::validate(const Project::ProjectFile& project, ErrorList& err) const
 {
     bool valid = true;
-    auto addError = [&](const std::string& s) {
-        err.addError(std::make_unique<EntityFunctionTableError>(*this, s));
+    auto addError = [&](const auto... msg) {
+        err.addError(std::make_unique<EntityFunctionTableError>(*this, msg...));
         valid = false;
     };
 
@@ -226,7 +226,7 @@ bool EntityFunctionTable::validate(const Project::ProjectFile& project, ErrorLis
         addError("Missing EntityFunctionTable name");
     }
     if (INVALID_NAMES.find(name) != INVALID_NAMES.end()) {
-        addError("Invalid EntityFunctionTable name " + name);
+        addError("Invalid EntityFunctionTable name ", name);
     }
     if (exportOrder.isValid() == false) {
         addError("Missing export order");
@@ -237,7 +237,7 @@ bool EntityFunctionTable::validate(const Project::ProjectFile& project, ErrorLis
 
     if (exportOrder.isValid()) {
         if (project.frameSetExportOrders.find(exportOrder) == nullptr) {
-            addError("Cannot find FrameSet Export Order " + exportOrder);
+            addError("Cannot find FrameSet Export Order ", exportOrder);
         }
     }
 
@@ -247,8 +247,8 @@ bool EntityFunctionTable::validate(const Project::ProjectFile& project, ErrorLis
 bool EntityRomEntry::validate(const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err) const
 {
     bool valid = true;
-    auto addError = [&](const std::string& s) {
-        err.addError(std::make_unique<EntityRomEntryError>(*this, s));
+    auto addError = [&](const auto... msg) {
+        err.addError(std::make_unique<EntityRomEntryError>(*this, msg...));
         valid = false;
     };
 
@@ -256,7 +256,7 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
         addError("Expected name");
     }
     if (INVALID_NAMES.find(name) != INVALID_NAMES.end()) {
-        addError("Invalid name " + name);
+        addError("Invalid name ", name);
     }
     if (functionTable.isValid() == false) {
         addError("Missing functionTable");
@@ -277,7 +277,7 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
     if (initialProjectileId.isValid()) {
         const auto& projectiles = project.entityRomData.projectiles;
         if (not projectiles.find(initialProjectileId)) {
-            addError("Unable to find projectile " + initialProjectileId);
+            addError("Unable to find projectile ", initialProjectileId);
         }
     }
 
@@ -285,7 +285,7 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
         auto& listIds = project.entityRomData.listIds;
         bool listIdValid = std::find(listIds.begin(), listIds.end(), initialListId) != listIds.end();
         if (!listIdValid) {
-            addError("Unable to find listId " + initialListId);
+            addError("Unable to find listId ", initialListId);
         }
     }
 
@@ -299,19 +299,19 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
                 const auto& value = fIt->second;
                 if (value.empty()) {
                     if (field.defaultValue.empty()) {
-                        addError("Missing field " + field.name);
+                        addError("Missing field ", field.name);
                     }
                 }
                 else {
                     if (validateFieldValue(field.type, value) == false) {
-                        addError("Invalid field " + field.name + ": " + value);
+                        addError("Invalid field ", field.name, ": ", value);
                     }
                 }
             }
         }
     }
     else {
-        addError("Unable to retrieve field list for functionTable " + functionTable);
+        addError("Unable to retrieve field list for functionTable ", functionTable);
     }
 
     if (frameSetId.isValid()) {
@@ -326,14 +326,14 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
                 if (fieldsIt != ftMap.end()) {
                     const EntityFunctionTable& fTable = *fieldsIt->second.first;
                     if (fTable.exportOrder != frameSet.exportOrder) {
-                        addError("export order for frameSet " + frameSet.name + " is not " + fTable.exportOrder);
+                        addError("export order for frameSet ", frameSet.name, " is not ", fTable.exportOrder);
                     }
                 }
                 if (displayFrame.isValid() && !frameSet.frames.find(displayFrame)) {
-                    addError("Unable to find frame " + displayFrame);
+                    addError("Unable to find frame ", displayFrame);
                 }
                 if (defaultPalette >= nPalettes) {
-                    addError("Invalid defaultPalette (value must be < " + std::to_string(nPalettes) + ")");
+                    addError("Invalid defaultPalette (value must be < ", nPalettes, ")");
                 }
             };
 
@@ -345,11 +345,11 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
                 testFrameSet(*fs.msFrameSet, fs.msFrameSet->palettes.size());
             }
             else {
-                addError("Unable to read frameSet " + frameSetId);
+                addError("Unable to read frameSet ", frameSetId);
             }
         }
         else {
-            addError("Unable to find frameSet " + frameSetId);
+            addError("Unable to find frameSet ", frameSetId);
         }
     }
 
@@ -359,8 +359,8 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
 bool EntityRomData::validateListIds(ErrorList& err) const
 {
     bool valid = true;
-    auto addError = [&](std::string s) {
-        err.addError(s);
+    auto addError = [&](const auto&... msg) {
+        err.addErrorString(msg...);
         valid = false;
     };
 
@@ -376,13 +376,13 @@ bool EntityRomData::validateListIds(ErrorList& err) const
             continue;
         }
         if (INVALID_NAMES.find(listId) != INVALID_NAMES.end()) {
-            addError("Invalid ListId name " + listId);
+            addError("Invalid ListId name ", listId);
             continue;
         }
 
         auto count = std::count(listIds.cbegin(), it, listId);
         if (count == 1) {
-            addError("Duplicate listId detected: " + listId);
+            addError("Duplicate listId detected: ", listId);
         }
     }
 
@@ -460,7 +460,7 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
             for (const EntityRomStruct* s : toProcess) {
                 assert(s);
                 if (s->parent != s->name) {
-                    err.addError(std::make_unique<EntityRomStructError>(*s, "Cannot find parent struct " + s->parent));
+                    err.addError(std::make_unique<EntityRomStructError>(*s, "Cannot find parent struct ", s->parent));
                 }
             }
             return fieldMap;
@@ -475,8 +475,8 @@ FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunctionTab
                                                const StructFieldMap& structFieldMap,
                                                const Project::ProjectFile& project, ErrorList& err)
 {
-    auto addError = [&](const EntityFunctionTable& ft, const std::string& s) {
-        err.addError(std::make_unique<EntityFunctionTableError>(ft, s));
+    auto addError = [&](const EntityFunctionTable& ft, const auto&... msg) {
+        err.addError(std::make_unique<EntityFunctionTableError>(ft, msg...));
     };
 
     static const FieldList blankFieldList;
@@ -490,7 +490,7 @@ FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunctionTab
 
         auto fieldsIt = structFieldMap.find(ft.entityStruct);
         if (fieldsIt == structFieldMap.end()) {
-            addError(ft, "Unable to find entity struct for functionTable " + ft.entityStruct);
+            addError(ft, "Unable to find entity struct for functionTable ", ft.entityStruct);
             continue;
         }
 

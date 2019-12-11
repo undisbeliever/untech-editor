@@ -38,7 +38,7 @@ bool Animation::_validate(const FrameSetT& frameSet, ErrorList& err) const
 
     if (oneShot == false && nextAnimation.isValid()) {
         if (!frameSet.animations.find(nextAnimation)) {
-            err.addError(animationError(*this, "Cannot find animation " + nextAnimation));
+            err.addError(animationError(*this, "Cannot find animation ", nextAnimation));
         }
     }
 
@@ -50,7 +50,7 @@ bool Animation::_validate(const FrameSetT& frameSet, ErrorList& err) const
         const AnimationFrame& aFrame = frames.at(i);
 
         if (aFrame.testFrameValid(frameSet) == false) {
-            err.addError(animationFrameError(*this, i, "Cannot find frame " + aFrame.frame.name));
+            err.addError(animationFrameError(*this, i, "Cannot find frame ", aFrame.frame.name));
         }
     }
 

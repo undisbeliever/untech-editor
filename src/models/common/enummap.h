@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/common/stringbuilder.h"
 #include <algorithm>
 #include <stdexcept>
 #include <string>
@@ -53,7 +54,7 @@ public:
     {
         auto it = find(string);
         if (it == end()) {
-            throw std::out_of_range("Cannot convert `" + string + "` to Enum");
+            throw std::out_of_range(stringBuilder("Cannot convert `", string, "` to Enum"));
         }
         return it->second;
     }

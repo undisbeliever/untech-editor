@@ -69,7 +69,7 @@ void FrameSetFile::loadFile()
         break;
 
     case FrameSetType::UNKNOWN:
-        throw std::runtime_error("Cannot load " + filename.string() + ": Unknown frameset type");
+        throw std::runtime_error(stringBuilder("Cannot load ", filename.string(), ": Unknown frameset type"));
         break;
     }
 }
@@ -112,7 +112,7 @@ bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetF
         bool dupFn = std::any_of(it + 1, frameSets.end(),
                                  [&](const auto& i) { return i.filename == filename; });
         if (dupFn) {
-            err.addError("Duplicate frameset file detected: " + filename.string());
+            err.addErrorString("Duplicate frameset file detected: ", filename.string());
             valid = false;
             continue;
         }
@@ -121,13 +121,13 @@ bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetF
 
         if (name.isValid() == false) {
             auto d = std::distance(frameSets.begin(), it);
-            err.addError("Missing name in frameset " + std::to_string(d));
+            err.addErrorString("Missing name in frameset ", d);
             valid = false;
             continue;
         }
 
         if (name == countString) {
-            err.addError("Invalid frameset name: count");
+            err.addErrorString("Invalid frameset name: count");
             valid = false;
             continue;
         }
@@ -135,7 +135,7 @@ bool UnTech::MetaSprite::validateFrameSetNamesUnique(const std::vector<FrameSetF
         bool dup = std::any_of(it + 1, frameSets.end(),
                                [&](const auto& i) { return i.name() == name; });
         if (dup) {
-            err.addError("Duplicate frameset name detected: " + name);
+            err.addErrorString("Duplicate frameset name detected: ", name);
             valid = false;
         }
     }
