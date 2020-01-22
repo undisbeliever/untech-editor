@@ -131,8 +131,9 @@ public:
             if (bSize > 0) {
                 assert(bSize <= _maxBlockSize);
 
+                // std::filesystem::path operator<< will automatically add quotes to relativeBinFilename
                 incData << "rodata(" << _blockRodata << blockId << ")\n"
-                        << "  insert Data" << blockId << ", \"" << relativeBinFilename << "\", "
+                        << "  insert Data" << blockId << ", " << relativeBinFilename << ", "
                         << offset << ", " << bSize << '\n';
 
                 offset += bSize;
