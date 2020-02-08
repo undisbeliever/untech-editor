@@ -226,10 +226,8 @@ void MtTilesetRenderer::resetPixmaps()
     const auto tilesetData = this->metaTileTilesetData();
 
     if (palData && tilesetData) {
-        Q_ASSERT(tilesetData->animatedTileset);
-
         _nPalettes = palData->nAnimations();
-        _nTilesets = tilesetData->animatedTileset->nAnimatedFrames();
+        _nTilesets = tilesetData->animatedTileset.nAnimatedFrames();
 
         Q_ASSERT(_nPalettes > 0 && _nTilesets > 0);
 
@@ -307,10 +305,9 @@ QPixmap MtTilesetRenderer::buildPixmap(unsigned paletteFrame, unsigned tilesetFr
     if (!palData || !tilesetData) {
         return QPixmap();
     }
-    Q_ASSERT(tilesetData->animatedTileset);
 
     if (paletteFrame >= palData->nAnimations()
-        || tilesetFrame >= tilesetData->animatedTileset->nAnimatedFrames()) {
+        || tilesetFrame >= tilesetData->animatedTileset.nAnimatedFrames()) {
 
         return QPixmap();
     }
@@ -327,19 +324,19 @@ QPixmap MtTilesetRenderer::buildPixmap(unsigned paletteFrame, unsigned tilesetFr
         for (int tileX = 0; tileX < PIXMAP_TILE_WIDTH; tileX++) {
             for (int ty = 0; ty < 2; ty++) {
                 for (int tx = 0; tx < 2; tx++) {
-                    drawTile(img, palette, *tilesetData->animatedTileset, tilesetFrame,
-                             tilesetData->animatedTileset->tileMap.at(tileMapXPos + tx, tileMapYPos + ty),
+                    drawTile(img, palette, tilesetData->animatedTileset, tilesetFrame,
+                             tilesetData->animatedTileset.tileMap.at(tileMapXPos + tx, tileMapYPos + ty),
                              tileX * 16 + tx * 8, tileY * 16 + ty * 8);
                 }
             }
 
             // goto next tile
             tileMapXPos += 2;
-            if (tileMapXPos >= tilesetData->animatedTileset->tileMap.width()) {
+            if (tileMapXPos >= tilesetData->animatedTileset.tileMap.width()) {
                 tileMapXPos = 0;
                 tileMapYPos += 2;
 
-                if (tileMapYPos >= tilesetData->animatedTileset->tileMap.height()) {
+                if (tileMapYPos >= tilesetData->animatedTileset.tileMap.height()) {
                     // no more tiles left.
                     goto EndLoop;
                 }

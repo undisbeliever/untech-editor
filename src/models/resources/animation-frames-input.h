@@ -46,8 +46,7 @@ struct AnimationFramesInput {
     bool operator!=(const AnimationFramesInput& o) const { return !(*this == o); }
 };
 
-// returns nullptr if AnimationFramesInput or AnimatedTilesetData is invalid
-std::unique_ptr<AnimatedTilesetData>
+std::optional<AnimatedTilesetData>
 convertAnimationFrames(const AnimationFramesInput& input,
                        const Project::DataStore<PaletteData>& projectDataStore,
                        ErrorList& err);

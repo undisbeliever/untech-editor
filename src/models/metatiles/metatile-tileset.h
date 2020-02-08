@@ -76,8 +76,11 @@ struct MetaTileTilesetData {
 
     idstring name;
     std::vector<idstring> palettes;
-    std::unique_ptr<Resources::AnimatedTilesetData> animatedTileset;
     std::array<TileCollisionType, N_METATILES> tileCollisions;
+
+    Resources::AnimatedTilesetData animatedTileset;
+
+    MetaTileTilesetData(Resources::AnimatedTilesetData&&);
 
     usize sourceTileSize() const;
 

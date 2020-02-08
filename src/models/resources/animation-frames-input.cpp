@@ -311,14 +311,14 @@ bool AnimationFramesInput::validate(ErrorList& err) const
     return valid;
 }
 
-std::unique_ptr<AnimatedTilesetData>
+std::optional<AnimatedTilesetData>
 convertAnimationFrames(const AnimationFramesInput& input,
                        const Project::DataStore<Resources::PaletteData>& projectDataStore,
                        ErrorList& err)
 {
     bool valid = input.validate(err);
     if (!valid) {
-        return nullptr;
+        return std::nullopt;
     }
 
     const unsigned initialErrorCount = err.errorCount();
@@ -326,44 +326,43 @@ convertAnimationFrames(const AnimationFramesInput& input,
     const auto& firstImageFilename = input.frameImageFilenames.front();
     const auto& imgSize = ImageCache::loadPngImage(firstImageFilename)->size();
 
-    auto ret = std::make_unique<AnimatedTilesetData>(input.bitDepth);
-    ret->animationDelay = input.animationDelay;
+    AnimatedTilesetData ret(input.bitDepth);
+    ret.animationDelay = input.animationDelay;
 
     const usize mapSize(imgSize.width / 8, imgSize.height / 8);
-
-    auto invalidImagesError = std::make_unique<InvalidImageError>();
 
     auto paletteIndex = projectDataStore.indexOf(input.conversionPalette);
     auto paletteData = projectDataStore.at(paletteIndex);
     if (!paletteData) {
         err.addErrorString("Cannot find palette: ", input.conversionPalette);
-        return nullptr;
+        return std::nullopt;
     }
 
-    ret->conversionPaletteIndex = *paletteIndex;
+    ret.conversionPaletteIndex = *paletteIndex;
 
     const auto frameTiles = tilesFromFrameImages(input, paletteData->conversionPalette, err);
     if (initialErrorCount != err.errorCount()) {
-        return nullptr;
+        return std::nullopt;
     }
     const auto tilesetIntermediate = combineFrameTiles(frameTiles, mapSize.width, err);
 
     if (input.addTransparentTile) {
-        ret->staticTiles.addTile();
+        ret.staticTiles.addTile();
     }
 
-    buildTilesetAndTilemap(*ret, mapSize, tilesetIntermediate);
+    buildTilesetAndTilemap(ret, mapSize, tilesetIntermediate);
 
     if (initialErrorCount != err.errorCount()) {
-        return nullptr;
+        return std::nullopt;
     }
 
-    valid = ret->validate(err);
+    valid = ret.validate(err);
     if (!valid) {
-        return nullptr;
+        return std::nullopt;
     }
 
     return ret;
 }
+
 }
 }
