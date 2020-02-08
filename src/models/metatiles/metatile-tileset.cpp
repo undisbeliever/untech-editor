@@ -9,7 +9,6 @@
 #include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
-#include "models/project/project-data.h"
 #include <climits>
 
 namespace UnTech {
@@ -30,11 +29,6 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
 
     if (!name.isValid()) {
         err.addErrorString("Expected metaTile tileset name");
-        valid = false;
-    }
-
-    if (palettes.empty()) {
-        err.addErrorString("Expected at least one palette");
         valid = false;
     }
 
@@ -65,7 +59,7 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
 }
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
-                                                    const Project::DataStore<Resources::PaletteData>& paletteData,
+                                                    const Project::DataStore<Resources::PaletteData>& paletteDataStore,
                                                     ErrorList& err)
 
 {
@@ -74,14 +68,7 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
         return nullptr;
     }
 
-    const idstring& paletteName = input.palettes.front();
-    const auto palette = paletteData.at(paletteName);
-    if (!palette) {
-        err.addErrorString("Cannot find palette: ", paletteName);
-        return nullptr;
-    }
-
-    auto aniFrames = Resources::convertAnimationFrames(input.animationFrames, palette(), err);
+    auto aniFrames = Resources::convertAnimationFrames(input.animationFrames, paletteDataStore, err);
     if (!aniFrames) {
         return nullptr;
     }

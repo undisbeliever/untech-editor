@@ -13,6 +13,10 @@
 
 namespace UnTech {
 class ErrorList;
+namespace Project {
+template <typename T>
+class DataStore;
+}
 
 namespace Resources {
 
@@ -20,6 +24,9 @@ struct PaletteInput;
 
 struct AnimationFramesInput {
     std::vector<std::filesystem::path> frameImageFilenames;
+
+    // Palette used in tileset convertion, may not be the palette used on screen.
+    idstring conversionPalette;
 
     unsigned animationDelay = 30;
 
@@ -31,6 +38,7 @@ struct AnimationFramesInput {
     bool operator==(const AnimationFramesInput& o) const
     {
         return frameImageFilenames == o.frameImageFilenames
+               && conversionPalette == o.conversionPalette
                && animationDelay == o.animationDelay
                && bitDepth == o.bitDepth
                && addTransparentTile == o.addTransparentTile;
@@ -40,7 +48,8 @@ struct AnimationFramesInput {
 
 // returns nullptr if AnimationFramesInput or AnimatedTilesetData is invalid
 std::unique_ptr<AnimatedTilesetData>
-convertAnimationFrames(const AnimationFramesInput& input, const PaletteData& paletteData,
+convertAnimationFrames(const AnimationFramesInput& input,
+                       const Project::DataStore<PaletteData>& projectDataStore,
                        ErrorList& err);
 }
 }

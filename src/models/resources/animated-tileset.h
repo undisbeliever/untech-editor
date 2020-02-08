@@ -32,6 +32,8 @@ struct AnimatedTilesetData {
     Snes::Tileset8px staticTiles;
     std::vector<Snes::Tileset8px> animatedTiles;
 
+    unsigned conversionPaletteIndex;
+
     unsigned animationDelay;
 
     grid<Snes::TilemapEntry> tileMap;

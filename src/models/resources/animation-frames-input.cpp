@@ -10,6 +10,7 @@
 #include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
+#include "models/project/project-data.h"
 #include "models/snes/animatedtilesetinserter.h"
 #include "models/snes/tilesetinserter.h"
 #include <algorithm>
@@ -273,6 +274,11 @@ bool AnimationFramesInput::validate(ErrorList& err) const
         valid = false;
     }
 
+    if (!conversionPalette.isValid()) {
+        err.addErrorString("Missing conversion palette name");
+        valid = false;
+    }
+
     std::vector<usize> imageSizes(frameImageFilenames.size());
 
     for (unsigned i = 0; i < frameImageFilenames.size(); i++) {
@@ -306,7 +312,8 @@ bool AnimationFramesInput::validate(ErrorList& err) const
 }
 
 std::unique_ptr<AnimatedTilesetData>
-convertAnimationFrames(const AnimationFramesInput& input, const PaletteData& paletteData,
+convertAnimationFrames(const AnimationFramesInput& input,
+                       const Project::DataStore<Resources::PaletteData>& projectDataStore,
                        ErrorList& err)
 {
     bool valid = input.validate(err);
@@ -326,7 +333,16 @@ convertAnimationFrames(const AnimationFramesInput& input, const PaletteData& pal
 
     auto invalidImagesError = std::make_unique<InvalidImageError>();
 
-    const auto frameTiles = tilesFromFrameImages(input, paletteData.conversionPalette, err);
+    auto paletteIndex = projectDataStore.indexOf(input.conversionPalette);
+    auto paletteData = projectDataStore.at(paletteIndex);
+    if (!paletteData) {
+        err.addErrorString("Cannot find palette: ", input.conversionPalette);
+        return nullptr;
+    }
+
+    ret->conversionPaletteIndex = *paletteIndex;
+
+    const auto frameTiles = tilesFromFrameImages(input, paletteData->conversionPalette, err);
     if (initialErrorCount != err.errorCount()) {
         return nullptr;
     }

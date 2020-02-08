@@ -55,6 +55,8 @@ void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const X
     assert(tag->name == "animation-frames");
     assert(afi.frameImageFilenames.empty());
 
+    afi.conversionPalette = tag->getAttributeOptionalId("palette");
+
     afi.bitDepth = tag->getAttributeUnsigned("bit-depth", 2, 8);
     afi.animationDelay = tag->getAttributeUnsigned("animation-delay");
     afi.addTransparentTile = tag->getAttributeBoolean("add-transparent-tile");
@@ -75,6 +77,7 @@ void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
 {
     xml.writeTag("animation-frames");
 
+    xml.writeTagAttribute("palette", afi.conversionPalette);
     xml.writeTagAttribute("bit-depth", afi.bitDepth);
     xml.writeTagAttribute("animation-delay", afi.animationDelay);
     xml.writeTagAttribute("add-transparent-tile", afi.addTransparentTile);

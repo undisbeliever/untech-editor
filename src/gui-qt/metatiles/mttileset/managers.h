@@ -21,8 +21,9 @@ class MtTilesetPropertyManager : public AbstractPropertyManager {
     enum PropertyId {
         NAME,
         SCRATCHPAD_SIZE,
-        PALETTES,
+        TILESET_PALETTES,
         FRAME_IMAGES,
+        CONVERSION_PALETTE,
         ANIMATION_DELAY,
         BIT_DEPTH,
         ADD_TRANSPARENT_TILE,

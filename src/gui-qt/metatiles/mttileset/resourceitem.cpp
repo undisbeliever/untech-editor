@@ -48,6 +48,7 @@ void ResourceItem::updateDependencies()
     Q_ASSERT(tileset);
 
     QVector<Dependency> deps;
+    deps.append({ ResourceTypeIndex::PALETTE, QString::fromStdString(tileset->animationFrames.conversionPalette) });
     for (auto& p : tileset->palettes) {
         deps.append({ ResourceTypeIndex::PALETTE, QString::fromStdString(p) });
     }
@@ -106,8 +107,8 @@ bool ResourceItem::editTileset_setPalettes(const std::vector<UnTech::idstring>& 
         tr("Edit Palette List"),
         [](MT::MetaTileTilesetInput& ti) -> std::vector<idstring>& { return ti.palettes; },
         [](ResourceItem& item) { emit item.palettesChanged();
-                                          emit item.tilesetPropertiesChanged();
-                                          item.updateDependencies(); });
+                                 emit item.tilesetPropertiesChanged();
+                                 item.updateDependencies(); });
 }
 
 bool ResourceItem::editTileset_setFrameImageFilenames(const std::vector<std::filesystem::path>& images)
@@ -117,7 +118,18 @@ bool ResourceItem::editTileset_setFrameImageFilenames(const std::vector<std::fil
         tr("Edit Frame Image List"),
         [](MT::MetaTileTilesetInput& ti) -> std::vector<std::filesystem::path>& { return ti.animationFrames.frameImageFilenames; },
         [](ResourceItem& item) { emit item.tilesetPropertiesChanged();
-                                          item.updateExternalFiles(); });
+                                 item.updateExternalFiles(); });
+}
+
+bool ResourceItem::editTileset_setConversionPalette(const UnTech::idstring& paletteName)
+{
+    return UndoHelper(this).editField(
+        paletteName,
+        tr("Edit Conversion Palette"),
+        [](MT::MetaTileTilesetInput& ti) -> idstring& { return ti.animationFrames.conversionPalette; },
+        [](ResourceItem& item) { emit item.animationDelayChanged();
+                                 emit item.tilesetPropertiesChanged();
+                                 item.updateDependencies(); });
 }
 
 bool ResourceItem::editTileset_setAnimationDelay(unsigned delay)
@@ -127,7 +139,7 @@ bool ResourceItem::editTileset_setAnimationDelay(unsigned delay)
         tr("Edit Animation Delay"),
         [](MT::MetaTileTilesetInput& ti) -> unsigned& { return ti.animationFrames.animationDelay; },
         [](ResourceItem& item) { emit item.animationDelayChanged();
-                                          emit item.tilesetPropertiesChanged(); });
+                                 emit item.tilesetPropertiesChanged(); });
 }
 
 bool ResourceItem::editTileset_setBitDepth(unsigned bitDepth)

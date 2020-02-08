@@ -21,10 +21,12 @@ MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
     addProperty(tr("Scratchpad Size"), SCRATCHPAD_SIZE, Type::SIZE, QSize(0, 0), QSize(255, 255));
-    addProperty(tr("Palettes"), PALETTES, Type::IDSTRING_LIST);
+    addProperty(tr("Tileset Palettes"), TILESET_PALETTES, Type::IDSTRING_LIST);
+
     addPropertyGroup(tr("Animation Frames:"));
     addProperty(tr("Frame Images"), FRAME_IMAGES, Type::FILENAME_LIST,
                 QStringLiteral("PNG Image (*.png)"));
+    addProperty(tr("Palette"), CONVERSION_PALETTE, Type::IDSTRING);
     addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED, 0, 0x10000);
     addProperty(tr("Bit Depth"), BIT_DEPTH, Type::COMBO, QStringList{ "2 bpp", "4 bpp", "8 bpp" }, QVariantList{ 2, 4, 8 });
     addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE, Type::BOOLEAN);
@@ -60,7 +62,10 @@ void MtTilesetPropertyManager::updateParameters(int id, QVariant& param1, QVaria
         return;
     }
 
-    if (id == PALETTES) {
+    if (id == TILESET_PALETTES) {
+        param1 = _tileset->project()->palettes()->itemNames();
+    }
+    else if (id == CONVERSION_PALETTE) {
         param1 = _tileset->project()->palettes()->itemNames();
     }
 }
@@ -83,11 +88,14 @@ QVariant MtTilesetPropertyManager::data(int id) const
     case SCRATCHPAD_SIZE:
         return fromUsize(ti->scratchpad.size());
 
-    case PALETTES:
+    case TILESET_PALETTES:
         return convertStringList(ti->palettes);
 
     case FRAME_IMAGES:
         return fromPathVector(ti->animationFrames.frameImageFilenames);
+
+    case CONVERSION_PALETTE:
+        return QString::fromStdString(ti->animationFrames.conversionPalette);
 
     case ANIMATION_DELAY:
         return ti->animationFrames.animationDelay;
@@ -114,12 +122,15 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
         return _tileset->scratchpadGrid()->editGrid_resizeGrid(
             toUsize(value.toSize()));
 
-    case PALETTES:
+    case TILESET_PALETTES:
         return _tileset->editTileset_setPalettes(
             toIdstringVector(value.toStringList()));
 
     case FRAME_IMAGES:
         return _tileset->editTileset_setFrameImageFilenames(toPathVector(value.toStringList()));
+
+    case CONVERSION_PALETTE:
+        return _tileset->editTileset_setConversionPalette(value.toString().toStdString());
 
     case ANIMATION_DELAY:
         return _tileset->editTileset_setAnimationDelay(value.toUInt());

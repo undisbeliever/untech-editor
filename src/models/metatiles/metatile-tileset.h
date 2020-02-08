@@ -16,12 +16,6 @@
 #include <vector>
 
 namespace UnTech {
-class ErrorList;
-namespace Project {
-template <typename T>
-class DataStore;
-}
-
 namespace MetaTiles {
 
 // ::KUDOS Christopher Hebert for the slope names::
@@ -96,7 +90,7 @@ private:
 };
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
-                                                    const Project::DataStore<Resources::PaletteData>& paletteData,
+                                                    const Project::DataStore<Resources::PaletteData>& paletteDataStore,
                                                     ErrorList& err);
 }
 }
