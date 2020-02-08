@@ -51,9 +51,6 @@ public:
     }
     const MT::MetaTileTilesetInput* tilesetInput() const { return data(); }
 
-    // returns nullptr if the MetaTileTilesetData is invalid
-    const MT::MetaTileTilesetData* compiledData() const { return _compiledData.get(); }
-
     bool editTileset_setName(const idstring& name);
     bool editTileset_setPalettes(const std::vector<idstring>& palettes);
     bool editTileset_setFrameImageFilenames(const std::vector<std::filesystem::path>& images);
@@ -97,8 +94,6 @@ private:
 
     MtTilesetTileParameters* const _tileParameters;
     MtTilesetScratchpadGrid* const _scratchpadGrid;
-
-    std::unique_ptr<MT::MetaTileTilesetData> _compiledData;
 };
 }
 }

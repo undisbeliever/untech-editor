@@ -8,10 +8,12 @@
 #include "accessors.h"
 #include "resourceitem.h"
 #include "tilecollisionpixmaps.h"
+#include "gui-qt/project.h"
 #include "gui-qt/resources/dualanimationtimer.h"
 #include "gui-qt/resources/palette/resourceitem.h"
 #include "gui-qt/snes/tile.hpp"
 #include "models/metatiles/metatile-tileset.h"
+#include "models/project/project-data.h"
 #include "models/resources/animation-frames-input.h"
 
 #include <QPainter>
@@ -120,6 +122,22 @@ void MtTilesetRenderer::setTilesetItem(ResourceItem* item)
     }
 }
 
+UnTech::optional<const RES::PaletteData&> MtTilesetRenderer::paletteData() const
+{
+    if (_paletteItem == nullptr) {
+        return {};
+    }
+    return _paletteItem->project()->projectData().palettes().at(_paletteItem->index());
+}
+
+UnTech::optional<const MT::MetaTileTilesetData&> MtTilesetRenderer::metaTileTilesetData() const
+{
+    if (_tilesetItem == nullptr) {
+        return {};
+    }
+    return _tilesetItem->project()->projectData().metaTileTilesets().at(_tilesetItem->index());
+}
+
 QColor MtTilesetRenderer::backgroundColor()
 {
     if (_nPalettes == 0) {
@@ -144,12 +162,10 @@ const QPixmap& MtTilesetRenderer::pixmap()
 
 QColor MtTilesetRenderer::backgroundColor(unsigned paletteId)
 {
-    if (paletteId >= _nPalettes) {
+    const auto palData = this->paletteData();
+    if (!palData || paletteId >= _nPalettes) {
         return QColor();
     }
-
-    const RES::PaletteData* palData = _paletteItem ? _paletteItem->compiledData() : nullptr;
-    Q_ASSERT(palData);
 
     const auto& bgColor = palData->paletteFrames.at(paletteId).at(0);
     return QColor(bgColor.rgb().red, bgColor.rgb().green, bgColor.rgb().blue);
@@ -206,10 +222,12 @@ void MtTilesetRenderer::resetPixmaps()
     // On Qt5.7+ This will not release the QVector memory
     _pixmaps.clear();
 
-    const RES::PaletteData* palData = _paletteItem ? _paletteItem->compiledData() : nullptr;
-    const MT::MetaTileTilesetData* tilesetData = _tilesetItem ? _tilesetItem->compiledData() : nullptr;
+    const auto palData = this->paletteData();
+    const auto tilesetData = this->metaTileTilesetData();
 
-    if (palData && tilesetData && tilesetData->animatedTileset) {
+    if (palData && tilesetData) {
+        Q_ASSERT(tilesetData->animatedTileset);
+
         _nPalettes = palData->nAnimations();
         _nTilesets = tilesetData->animatedTileset->nAnimatedFrames();
 
@@ -283,13 +301,16 @@ static void drawTile(QImage& image,
 
 QPixmap MtTilesetRenderer::buildPixmap(unsigned paletteFrame, unsigned tilesetFrame)
 {
-    const RES::PaletteData* palData = _paletteItem ? _paletteItem->compiledData() : nullptr;
-    const MT::MetaTileTilesetData* tilesetData = _tilesetItem ? _tilesetItem->compiledData() : nullptr;
-    const RES::AnimatedTilesetData* aniTilesetData = tilesetData ? tilesetData->animatedTileset.get() : nullptr;
+    const auto palData = this->paletteData();
+    const auto tilesetData = this->metaTileTilesetData();
 
-    if (palData == nullptr || tilesetData == nullptr || aniTilesetData == nullptr
-        || paletteFrame >= palData->nAnimations()
-        || tilesetFrame >= aniTilesetData->nAnimatedFrames()) {
+    if (!palData || !tilesetData) {
+        return QPixmap();
+    }
+    Q_ASSERT(tilesetData->animatedTileset);
+
+    if (paletteFrame >= palData->nAnimations()
+        || tilesetFrame >= tilesetData->animatedTileset->nAnimatedFrames()) {
 
         return QPixmap();
     }
@@ -306,19 +327,19 @@ QPixmap MtTilesetRenderer::buildPixmap(unsigned paletteFrame, unsigned tilesetFr
         for (int tileX = 0; tileX < PIXMAP_TILE_WIDTH; tileX++) {
             for (int ty = 0; ty < 2; ty++) {
                 for (int tx = 0; tx < 2; tx++) {
-                    drawTile(img, palette, *aniTilesetData, tilesetFrame,
-                             aniTilesetData->tileMap.at(tileMapXPos + tx, tileMapYPos + ty),
+                    drawTile(img, palette, *tilesetData->animatedTileset, tilesetFrame,
+                             tilesetData->animatedTileset->tileMap.at(tileMapXPos + tx, tileMapYPos + ty),
                              tileX * 16 + tx * 8, tileY * 16 + ty * 8);
                 }
             }
 
             // goto next tile
             tileMapXPos += 2;
-            if (tileMapXPos >= aniTilesetData->tileMap.width()) {
+            if (tileMapXPos >= tilesetData->animatedTileset->tileMap.width()) {
                 tileMapXPos = 0;
                 tileMapYPos += 2;
 
-                if (tileMapYPos >= aniTilesetData->tileMap.height()) {
+                if (tileMapYPos >= tilesetData->animatedTileset->tileMap.height()) {
                     // no more tiles left.
                     goto EndLoop;
                 }
@@ -420,6 +441,8 @@ inline QBitmap MtTilesetRenderer::buildTileCollisionsBitmap()
     QVector<QPainter::PixmapFragment> fragments;
     fragments.reserve(MT::N_METATILES);
 
+    // This routine uses tilesetInput for the tileCollisions.
+    // This allows MtTilesetRenderer to display tileCollision data in the event of a compile error in the tilesetItem.
     Q_ASSERT(_tilesetItem);
     if (auto* tilesetInput = _tilesetItem->tilesetInput()) {
         for (unsigned i = 0; i < tilesetInput->tileCollisions.size(); i++) {

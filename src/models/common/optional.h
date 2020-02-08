@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <memory>
 #include <stdexcept>
 
 namespace UnTech {
@@ -98,6 +99,11 @@ public:
 
     optional(T& v)
         : _ptr(&v)
+    {
+    }
+
+    optional(const std::unique_ptr<T>& v)
+        : _ptr(v.get())
     {
     }
 

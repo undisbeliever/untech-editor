@@ -85,6 +85,7 @@ signals:
     void stateChanged();
     void resourceItemCreated(AbstractResourceItem* item);
     void resourceItemAboutToBeRemoved(AbstractResourceItem* item);
+    void resourceItemNameAboutToChange(AbstractResourceItem* item);
 
 protected:
     Project* const _project;

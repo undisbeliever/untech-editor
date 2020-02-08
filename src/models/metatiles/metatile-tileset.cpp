@@ -9,7 +9,7 @@
 #include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
 #include "models/lz4/lz4.h"
-#include "models/project/project.h"
+#include "models/project/project-data.h"
 #include <climits>
 
 namespace UnTech {
@@ -65,8 +65,9 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
 }
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
-                                                    const Project::ProjectFile& projectFile,
+                                                    const Project::DataStore<Resources::PaletteData>& paletteData,
                                                     ErrorList& err)
+
 {
     bool valid = input.validate(err);
     if (!valid) {
@@ -74,7 +75,7 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     }
 
     const idstring& paletteName = input.palettes.front();
-    const auto palette = projectFile.palettes.find(paletteName);
+    const auto palette = paletteData.at(paletteName);
     if (!palette) {
         err.addErrorString("Cannot find palette: ", paletteName);
         return nullptr;
@@ -196,7 +197,7 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
 const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 7;
 
 std::vector<uint8_t>
-MetaTileTilesetData::exportMetaTileTileset() const
+MetaTileTilesetData::exportSnesData() const
 {
     std::vector<uint8_t> tmBlock = convertTileMap();
 
@@ -208,5 +209,6 @@ MetaTileTilesetData::exportMetaTileTileset() const
 
     return out;
 }
+
 }
 }

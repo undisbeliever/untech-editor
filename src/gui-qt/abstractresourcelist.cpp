@@ -52,6 +52,9 @@ void AbstractResourceList::connectItemSignals(AbstractResourceItem* item)
 {
     item->connect(item, &AbstractResourceItem::stateChanged,
                   this, &AbstractResourceList::updateState);
+
+    item->connect(item, &AbstractResourceItem::nameAboutToChange,
+                  [=]() { emit resourceItemNameAboutToChange(item); });
 }
 
 QStringList AbstractResourceList::itemNames() const

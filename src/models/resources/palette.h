@@ -50,6 +50,9 @@ struct PaletteData {
 
     idstring name;
 
+    // First palette in source image, even if `PaletteInput::skipFirstFrame` is set.
+    std::vector<Snes::SnesColor> conversionPalette;
+
     std::vector<std::vector<Snes::SnesColor>> paletteFrames;
     unsigned animationDelay;
 
@@ -59,17 +62,11 @@ struct PaletteData {
     bool validate(ErrorList& err) const;
 
     // PaleteData SHOULD BE valid before exporting
-    std::vector<uint8_t> exportPalette() const;
+    std::vector<uint8_t> exportSnesData() const;
 };
 
 // Will return a nullptr if PaletteInput or PaletteData is invalid
 std::unique_ptr<PaletteData> convertPalette(const PaletteInput& input, ErrorList& err);
 
-// Extracts the first palette from the palette image, even `skipFirstFrame` is set.
-//
-// The output palette will contain:
-//  * a multiple of 4, 32, or 256 colors, depending on the bitDepth argument.
-//  * contain at most 32, 128 or 256 colors, depending on the bitDepth argument.
-std::vector<Snes::SnesColor> extractFirstPalette(const PaletteInput& input, unsigned bitDepth, ErrorList& err);
 }
 }

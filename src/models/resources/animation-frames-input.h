@@ -40,7 +40,7 @@ struct AnimationFramesInput {
 
 // returns nullptr if AnimationFramesInput or AnimatedTilesetData is invalid
 std::unique_ptr<AnimatedTilesetData>
-convertAnimationFrames(const AnimationFramesInput& input, const PaletteInput& paletteInput,
+convertAnimationFrames(const AnimationFramesInput& input, const PaletteData& paletteData,
                        ErrorList& err);
 }
 }

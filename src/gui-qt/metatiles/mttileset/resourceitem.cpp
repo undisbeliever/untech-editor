@@ -11,7 +11,7 @@
 #include "gui-qt/common/helpers.h"
 #include "gui-qt/project.h"
 #include "models/metatiles/metatiles-serializer.h"
-#include "models/project/project.h"
+#include "models/project/project-data.h"
 
 using namespace UnTech::GuiQt::MetaTiles::MtTileset;
 
@@ -20,7 +20,6 @@ ResourceItem::ResourceItem(ResourceList* parent, size_t index)
     , _metaTileTilesets(parent->metaTileTilesets())
     , _tileParameters(new MtTilesetTileParameters(this))
     , _scratchpadGrid(new MtTilesetScratchpadGrid(this))
-    , _compiledData(nullptr)
 {
     Q_ASSERT(index < mtTilesetList().size());
 
@@ -92,26 +91,7 @@ bool ResourceItem::loadResourceData(ErrorList& err)
 
 bool ResourceItem::compileResource(ErrorList& err)
 {
-    auto* tileset = this->tilesetInput();
-
-    if (tileset == nullptr) {
-        err.addErrorString("Unable to load file");
-        return false;
-    }
-    const auto& pro = project()->projectFile();
-    Q_ASSERT(pro);
-
-    auto mtd = UnTech::MetaTiles::convertTileset(*tileset, *pro, err);
-    bool valid = mtd && mtd->validate(err);
-
-    if (valid) {
-        _compiledData = std::move(mtd);
-        return true;
-    }
-    else {
-        _compiledData.release();
-        return false;
-    }
+    return project()->projectData().compileMetaTiles(this->index(), err);
 }
 
 bool ResourceItem::editTileset_setName(const UnTech::idstring& name)

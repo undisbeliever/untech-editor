@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/grid.h"
+#include "models/common/optional.h"
 #include <QBitmap>
 #include <QPainter>
 #include <QPixmap>
@@ -18,6 +19,13 @@ class QAbstractButton;
 class QComboBox;
 
 namespace UnTech {
+namespace Resources {
+struct PaletteData;
+}
+namespace MetaTiles {
+struct MetaTileTilesetData;
+}
+
 namespace GuiQt {
 class AbstractResourceItem;
 
@@ -83,6 +91,9 @@ public slots:
     void onResourceItemAboutToBeRemoved(AbstractResourceItem* item);
 
 private:
+    optional<const UnTech::Resources::PaletteData&> paletteData() const;
+    optional<const UnTech::MetaTiles::MetaTileTilesetData&> metaTileTilesetData() const;
+
     QPixmap buildPixmap(unsigned paletteFrame, unsigned tilesetFrame);
     QBitmap buildTileCollisionsBitmap();
 

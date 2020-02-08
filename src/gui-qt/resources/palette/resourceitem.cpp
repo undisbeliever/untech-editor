@@ -7,13 +7,14 @@
 #include "resourceitem.h"
 #include "resourcelist.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
+#include "gui-qt/project.h"
+#include "models/project/project-data.h"
 
 using namespace UnTech::GuiQt::Resources::Palette;
 
 ResourceItem::ResourceItem(ResourceList* parent, size_t index)
     : AbstractInternalResourceItem(parent, index)
     , _palettes(parent->palettes())
-    , _compiledData(nullptr)
 {
     Q_ASSERT(index < _palettes.size());
 
@@ -39,17 +40,7 @@ void ResourceItem::updateExternalFiles()
 
 bool ResourceItem::compileResource(ErrorList& err)
 {
-    auto palData = RES::convertPalette(paletteInput(), err);
-    bool valid = palData && palData->validate(err);
-
-    if (valid) {
-        _compiledData = std::move(palData);
-        return true;
-    }
-    else {
-        _compiledData.release();
-        return false;
-    }
+    return project()->projectData().compilePalette(this->index(), err);
 }
 
 bool ResourceItem::editPalette_setName(const idstring& name)

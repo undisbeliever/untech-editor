@@ -68,10 +68,12 @@ static bool extractFrameTile(FrameTile& ft, const Image& image, const unsigned x
     const unsigned pps = image.pixelsPerScanline();
     const rgba* imgBits = image.scanline(y) + x;
 
-    for (size_t pIndex = 0, pId = 0; pIndex < palettes.size(); pIndex += colorsPerPalette, pId++) {
+    const size_t paletteSize = std::min<size_t>(8 * colorsPerPalette, palettes.size());
+
+    for (size_t pIndex = 0, pId = 0; pIndex < paletteSize; pIndex += colorsPerPalette, pId++) {
         auto pStart = palettes.begin() + pIndex;
-        auto pEnd = pIndex + colorsPerPalette < palettes.size() ? pStart + colorsPerPalette
-                                                                : palettes.end();
+        auto pEnd = pIndex + colorsPerPalette < paletteSize ? pStart + colorsPerPalette
+                                                            : palettes.begin() + paletteSize;
 
         bool s = extractTile8px(ft.tile, imgBits, pps, pStart, pEnd);
 
@@ -304,7 +306,7 @@ bool AnimationFramesInput::validate(ErrorList& err) const
 }
 
 std::unique_ptr<AnimatedTilesetData>
-convertAnimationFrames(const AnimationFramesInput& input, const PaletteInput& paletteInput,
+convertAnimationFrames(const AnimationFramesInput& input, const PaletteData& paletteData,
                        ErrorList& err)
 {
     bool valid = input.validate(err);
@@ -322,14 +324,9 @@ convertAnimationFrames(const AnimationFramesInput& input, const PaletteInput& pa
 
     const usize mapSize(imgSize.width / 8, imgSize.height / 8);
 
-    const auto palette = extractFirstPalette(paletteInput, input.bitDepth, err);
-    if (palette.empty()) {
-        return nullptr;
-    }
-
     auto invalidImagesError = std::make_unique<InvalidImageError>();
 
-    const auto frameTiles = tilesFromFrameImages(input, palette, err);
+    const auto frameTiles = tilesFromFrameImages(input, paletteData.conversionPalette, err);
     if (initialErrorCount != err.errorCount()) {
         return nullptr;
     }

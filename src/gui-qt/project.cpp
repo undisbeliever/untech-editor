@@ -8,7 +8,9 @@
 #include "abstractresourceitem.h"
 #include "abstractresourcelist.h"
 #include "filesystemwatcher.h"
+#include "project-data-slots.hpp"
 #include "resourcevalidationworker.h"
+#include "models/project/project-data.h"
 #include "models/project/project.h"
 
 #include "staticresourcelist.h"
@@ -26,6 +28,7 @@ using namespace UnTech::GuiQt;
 Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
     : QObject()
     , _projectFile(std::move(projectFile))
+    , _projectData(std::make_unique<UnTech::Project::ProjectData>(*_projectFile))
     , _filename(filename)
     , _undoStack(new QUndoStack(this))
     , _validationWorker(new ResourceValidationWorker(this))
@@ -55,6 +58,8 @@ Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
 
         rl->rebuildResourceItems();
     }
+
+    ProjectDataSlots::connect(this);
 }
 
 Project::~Project()

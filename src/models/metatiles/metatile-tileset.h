@@ -18,7 +18,8 @@
 namespace UnTech {
 class ErrorList;
 namespace Project {
-struct ProjectFile;
+template <typename T>
+class DataStore;
 }
 
 namespace MetaTiles {
@@ -88,14 +89,14 @@ struct MetaTileTilesetData {
 
     bool validate(ErrorList& err) const;
 
-    std::vector<uint8_t> exportMetaTileTileset() const;
+    std::vector<uint8_t> exportSnesData() const;
 
 private:
     std::vector<uint8_t> convertTileMap() const;
 };
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
-                                                    const Project::ProjectFile& projectFile,
+                                                    const Project::DataStore<Resources::PaletteData>& paletteData,
                                                     ErrorList& err);
 }
 }

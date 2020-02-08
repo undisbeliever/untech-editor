@@ -14,6 +14,7 @@
 namespace UnTech {
 namespace Project {
 struct ProjectFile;
+class ProjectData;
 }
 
 namespace GuiQt {
@@ -64,6 +65,7 @@ public:
     FilesystemWatcher* filesystemWatcher() const { return _filesystemWatcher; }
 
     UnTech::Project::ProjectFile* projectFile() const { return _projectFile.get(); }
+    UnTech::Project::ProjectData& projectData() const { return *_projectData; }
 
     StaticResourceList* staticResources() const { return _staticResources; }
     MetaSprite::ExportOrder::ResourceList* frameSetExportOrders() const { return _frameSetExportOrders; }
@@ -98,6 +100,7 @@ signals:
 
 private:
     std::unique_ptr<UnTech::Project::ProjectFile> const _projectFile;
+    std::unique_ptr<UnTech::Project::ProjectData> const _projectData;
 
     QString _filename;
     QUndoStack* const _undoStack;

@@ -5,6 +5,7 @@
  */
 
 #include "project-compiler.h"
+#include "project-data.h"
 #include "rom-data-writer.hpp"
 #include "version.h"
 #include "models/common/errorlist.h"
@@ -17,20 +18,17 @@
 namespace UnTech {
 namespace Project {
 
+static const idstring BLANK_IDSTRING{};
+
 template <class T>
-static std::string itemNameString(const T& item)
+static const idstring& itemNameString(const T& item)
 {
     return item.name;
 }
 template <class T>
-static std::string itemNameString(const ExternalFileItem<T>& item)
+static const idstring& itemNameString(const T* item)
 {
-    return item.value->name;
-}
-template <class T>
-static std::string itemNameString(const std::unique_ptr<T>& item)
-{
-    return item->name;
+    return item ? item->name : BLANK_IDSTRING;
 }
 
 static void writeMetaSpriteData(RomDataWriter& writer,
@@ -113,63 +111,60 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         }
     }
 
-    auto compileList = [&](const auto& inputList, const char* typeName, auto compile_fn) {
-        for (const auto& item : inputList) {
+    ProjectData projectData(input);
+
+    auto compileList = [&](const auto& sourceList, auto compile_fn, const char* typeName) {
+        for (unsigned i = 0; i < sourceList.size(); i++) {
             ErrorList errorList;
 
-            compile_fn(item, errorList);
+            valid &= std::invoke(compile_fn, projectData, i, errorList);
 
             if (!errorList.empty()) {
-                errorStream << typeName << " `" << itemNameString(item) << "`:\n";
+                errorStream << typeName << " `" << itemNameString(sourceList.at(i)) << "`:\n";
                 errorList.printIndented(errorStream);
                 valid &= errorList.hasError();
             }
         }
     };
 
+    // MetaSprite data MUST be first.
+    auto metaSpriteData = MetaSprite::Compiler::compileMetaSprites(input, errorStream);
+    if (metaSpriteData == nullptr) {
+        return nullptr;
+    }
+
+    const auto entityData = compileEntityRomData(input, errorStream);
+    if (entityData.valid == false) {
+        return nullptr;
+    }
+
+    compileList(input.palettes, &ProjectData::compilePalette, "Palette");
+    if (!valid) {
+        return nullptr;
+    }
+
+    compileList(input.metaTileTilesets, &ProjectData::compileMetaTiles, "MetaTile Tileset");
+    if (!valid) {
+        return nullptr;
+    }
+
     RomDataWriter writer(input.blockSettings.size, input.blockSettings.count,
                          "__resc__", "RES_Lists", "RES_Block",
                          FORMAT_VERSIONS, TYPE_NAMES);
 
-    // MetaSprite data MUST be first.
-    auto metaSpriteData = MetaSprite::Compiler::compileMetaSprites(input, errorStream);
-    if (metaSpriteData) {
-        writeMetaSpriteData(writer, *metaSpriteData);
-    }
-    valid &= metaSpriteData != nullptr;
+    auto writeData = [&](const TypeId typeId, const auto& list) {
+        for (unsigned i = 0; i < list.size(); i++) {
+            auto data = list.at(i);
+            assert(data);
+            writer.addData(typeId, data->name, data->exportSnesData());
+        }
+    };
 
-    const auto entityData = compileEntityRomData(input, errorStream);
-    if (entityData.valid) {
-        writeEntityRomData(writer, entityData);
-    }
-    valid &= entityData.valid;
-
-    compileList(input.palettes, "Palette",
-                [&](const Resources::PaletteInput& p, ErrorList& err) {
-                    const auto palData = convertPalette(p, err);
-                    if (palData) {
-                        writer.addData(PALETTE, p.name, palData->exportPalette());
-                    }
-                });
-
-    if (!valid) {
-        // Prevents duplicate palette errors
-        return nullptr;
-    }
-
-    compileList(input.metaTileTilesets, "MetaTile Tileset",
-                [&](const auto& it, ErrorList& err) {
-                    assert(it.value != nullptr);
-                    const auto mtd = MetaTiles::convertTileset(*it.value, input, err);
-                    if (mtd) {
-                        const auto data = mtd->exportMetaTileTileset();
-                        writer.addData(METATILE_TILESET, it.value->name, data);
-                    }
-                });
-
-    if (!valid) {
-        return nullptr;
-    }
+    // must write meta sprite data first
+    writeMetaSpriteData(writer, *metaSpriteData);
+    writeEntityRomData(writer, entityData);
+    writeData(PALETTE, projectData.palettes());
+    writeData(METATILE_TILESET, projectData.metaTileTilesets());
 
     auto ret = std::make_unique<ProjectOutput>();
     ret->binaryData = writer.writeBinaryData();

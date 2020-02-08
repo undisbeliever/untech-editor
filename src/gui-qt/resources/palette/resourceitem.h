@@ -36,9 +36,6 @@ public:
 
     inline const RES::PaletteInput& paletteInput() const { return _palettes.at(index()); }
 
-    // returns nullptr if the PaletteData is invalid
-    const RES::PaletteData* compiledData() const { return _compiledData.get(); }
-
     bool editPalette_setName(const idstring& name);
     bool editPalette_setImageFilename(const std::filesystem::path& filename);
     bool editPalette_setRowsPerFrame(unsigned rowsPerFrame);
@@ -57,8 +54,6 @@ protected:
 
 private:
     NamedList<RES::PaletteInput>& _palettes;
-
-    std::unique_ptr<RES::PaletteData> _compiledData;
 };
 }
 }

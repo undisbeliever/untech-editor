@@ -100,26 +100,39 @@ std::unique_ptr<PaletteData> Resources::convertPalette(const PaletteInput& input
     const auto& paletteImage = ImageCache::loadPngImage(input.paletteImageFilename);
     const usize& imgSize = paletteImage->size();
 
-    unsigned startingY = input.skipFirstFrame ? input.rowsPerFrame : 0;
-    unsigned colorsPerFrame = imgSize.width * input.rowsPerFrame;
+    const unsigned firstFrame = input.skipFirstFrame ? 1 : 0;
+    const unsigned nFrames = (imgSize.height - 1) / input.rowsPerFrame + 1 - firstFrame;
+    const unsigned colorsPerFrame = imgSize.width * input.rowsPerFrame;
 
     std::unique_ptr<PaletteData> ret = std::make_unique<PaletteData>();
     ret->name = input.name;
     ret->animationDelay = input.animationDelay;
 
-    for (unsigned py = startingY; py < imgSize.height; py += input.rowsPerFrame) {
-        ret->paletteFrames.emplace_back(colorsPerFrame);
-        std::vector<SnesColor>& frame = ret->paletteFrames.back();
+    auto extractPalette = [&](std::vector<SnesColor>& frame, unsigned frameId) {
+        frame.resize(colorsPerFrame);
         auto frameIt = frame.begin();
 
+        const unsigned frameYOffset = frameId * input.rowsPerFrame;
         for (unsigned fy = 0; fy < input.rowsPerFrame; fy++) {
-            const auto* imgBits = paletteImage->scanline(py + fy);
+            const auto* imgBits = paletteImage->scanline(frameYOffset + fy);
 
             for (unsigned fx = 0; fx < imgSize.width; fx++) {
                 *frameIt++ = imgBits[fx];
             }
         }
         assert(frameIt == frame.end());
+    };
+
+    ret->paletteFrames.resize(nFrames);
+    for (unsigned frameId = 0; frameId < nFrames; frameId++) {
+        extractPalette(ret->paletteFrames.at(frameId), frameId + firstFrame);
+    }
+
+    if (input.skipFirstFrame) {
+        ret->conversionPalette = ret->paletteFrames.front();
+    }
+    else {
+        extractPalette(ret->conversionPalette, 0);
     }
 
     valid = ret->validate(err);
@@ -128,58 +141,6 @@ std::unique_ptr<PaletteData> Resources::convertPalette(const PaletteInput& input
     }
 
     return ret;
-}
-
-std::vector<Snes::SnesColor>
-Resources::extractFirstPalette(const PaletteInput& input, unsigned bitDepth, ErrorList& err)
-{
-    bool valid = input.validate(err);
-
-    if (bitDepth == 0 || bitDepth > 8) {
-        err.addErrorString("Invalid bit-depth");
-        valid = false;
-    }
-
-    unsigned maxColors = 128;
-    if (bitDepth <= 2) {
-        maxColors = 32;
-    }
-    if (bitDepth > 4) {
-        maxColors = 256;
-    }
-
-    const auto& img = ImageCache::loadPngImage(input.paletteImageFilename);
-
-    unsigned nColumns = img->size().width;
-    unsigned nRows = input.rowsPerFrame;
-    if (nRows * nColumns > maxColors) {
-        nRows = maxColors / nColumns;
-    }
-
-    if (img->size().height < nRows) {
-        err.addErrorString("Palette image must be a minimum of ", nRows, "pixels tall");
-        valid = false;
-    }
-
-    if (!valid) {
-        return std::vector<SnesColor>();
-    }
-
-    std::vector<Snes::SnesColor> palette(nRows * nColumns, SnesColor::invalidColor());
-    assert(palette.size() <= maxColors);
-
-    auto pIt = palette.begin();
-
-    for (unsigned y = 0; y < nRows; y++) {
-        const rgba* scanline = img->scanline(y);
-
-        for (unsigned x = 0; x < nColumns; x++) {
-            *pIt++ = *scanline++;
-        }
-    }
-    assert(pIt == palette.end());
-
-    return palette;
 }
 
 // PaletteData
@@ -237,7 +198,7 @@ bool PaletteData::validate(ErrorList& err) const
 
 const int PaletteData::PALETTE_FORMAT_VERSION = 2;
 
-std::vector<uint8_t> PaletteData::exportPalette() const
+std::vector<uint8_t> PaletteData::exportSnesData() const
 {
     unsigned blockSize = paletteFrames.size() * colorsPerFrame() * 2;
 
