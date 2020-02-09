@@ -259,7 +259,7 @@ void MtTilesetRenderer::onResourceItemAboutToBeRemoved(AbstractResourceItem* ite
 }
 
 static void drawTile(QImage& image,
-                     const std::vector<UnTech::Snes::SnesColor> palette,
+                     const std::vector<UnTech::Snes::SnesColor>& palette,
                      const RES::AnimatedTilesetData& aniTilesetData, unsigned tilesetFrame, const UnTech::Snes::TilemapEntry& tm,
                      int xPos, int yPos)
 {

@@ -103,7 +103,7 @@ static std::vector<std::pair<Tile16, unsigned>> countTileUsage(const std::vector
     return ret;
 }
 
-static vectorset<Tile16> calculateStaticTiles(const std::vector<DynamicTileset> ftVector,
+static vectorset<Tile16> calculateStaticTiles(const std::vector<DynamicTileset>& ftVector,
                                               const TilesetType tilesetType)
 {
     auto popularTiles = countTileUsage(ftVector);
