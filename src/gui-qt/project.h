@@ -40,6 +40,9 @@ namespace Resources {
 namespace Palette {
 class ResourceList;
 }
+namespace BackgroundImage {
+class ResourceList;
+}
 }
 
 class Project : public QObject {
@@ -71,6 +74,7 @@ public:
     MetaSprite::ExportOrder::ResourceList* frameSetExportOrders() const { return _frameSetExportOrders; }
     MetaSprite::FrameSetResourceList* frameSets() const { return _frameSets; }
     Resources::Palette::ResourceList* palettes() const { return _palettes; }
+    Resources::BackgroundImage::ResourceList* backgroundImages() const { return _backgroundImages; }
     MetaTiles::MtTileset::ResourceList* mtTilesets() const { return _mtTilesets; }
 
     void setSelectedResource(AbstractResourceItem* item);
@@ -111,6 +115,7 @@ private:
     MetaSprite::ExportOrder::ResourceList* const _frameSetExportOrders;
     MetaSprite::FrameSetResourceList* const _frameSets;
     Resources::Palette::ResourceList* const _palettes;
+    Resources::BackgroundImage::ResourceList* const _backgroundImages;
     MetaTiles::MtTileset::ResourceList* const _mtTilesets;
 
     const QList<AbstractResourceList*> _resourceLists;

@@ -8,6 +8,7 @@
 
 #include "project.h"
 #include "gui-qt/metatiles/mttileset/resourcelist.h"
+#include "gui-qt/resources/background-image/resourcelist.h"
 #include "gui-qt/resources/palette/resourcelist.h"
 #include "models/project/project-data.h"
 
@@ -24,6 +25,10 @@ public:
         connectList(
             project, project->palettes(),
             [](ProjectData & pd) -> auto& { return pd._palettes; });
+
+        connectList(
+            project, project->backgroundImages(),
+            [](ProjectData & pd) -> auto& { return pd._backgroundImages; });
 
         connectList(
             project, project->mtTilesets(),

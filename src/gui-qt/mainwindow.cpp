@@ -29,6 +29,7 @@
 #include "gui-qt/metasprite/spriteimporter/editorwidget.h"
 #include "gui-qt/metatiles/mttileset/editorwidget.h"
 #include "gui-qt/project-settings/editorwidget.h"
+#include "gui-qt/resources/background-image/editorwidget.h"
 #include "gui-qt/resources/palette/editorwidget.h"
 
 #include <QCloseEvent>
@@ -70,6 +71,7 @@ MainWindow::MainWindow(QWidget* parent)
           new Entity::EntityFunctionTables::EditorWidget(),
           new Entity::EntityRomEntries::EditorWidget(),
           new Resources::Palette::EditorWidget(),
+          new Resources::BackgroundImage::EditorWidget(_zoomSettingsManager),
           new MetaSprite::ExportOrder::EditorWidget(),
           new MetaTiles::MtTileset::EditorWidget(_zoomSettingsManager),
           new MetaSprite::ActionPoints::EditorWidget(),

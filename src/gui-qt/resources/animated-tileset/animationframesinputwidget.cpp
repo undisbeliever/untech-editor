@@ -10,8 +10,8 @@
 #include "gui-qt/metatiles/mttileset/resourceitem.h"
 #include "gui-qt/resources/animated-tileset/animationframesinputwidget.ui.h"
 #include "gui-qt/resources/animationtimer.h"
+#include "gui-qt/resources/invalidimageerror.h"
 #include "models/resources/animation-frames-input.h"
-#include "models/resources/invalid-image-error.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources;
@@ -348,26 +348,10 @@ void AnimationFramesInputGraphicsItem::updateInvalidTiles()
     }
 
     // create the error items
-    {
-        Q_ASSERT(QGuiApplication::topLevelWindows().size() > 0);
-        QWindow* widget = QGuiApplication::topLevelWindows().first();
-
-        QBrush errorBrush(ERROR_COLOR);
-        QPen errorPen = createCosmeticPen(ERROR_COLOR, widget);
-
-        for (const auto& errorItem : _resourceItem->errorList().list()) {
-            if (auto* imgErr = dynamic_cast<const RES::InvalidImageError*>(errorItem.specialized.get())) {
-                QGraphicsItem* parent = imgErr->hasFrameId() ? _frameErrors.at(imgErr->frameId()) : _commonErrors;
-
-                for (const auto& tile : imgErr->invalidTiles()) {
-                    QRectF r(tile.x, tile.y, tile.size, tile.size);
-
-                    QGraphicsRectItem* tileItem = new QGraphicsRectItem(r, parent);
-                    tileItem->setBrush(errorBrush);
-                    tileItem->setPen(errorPen);
-                    tileItem->setToolTip(QString::fromLatin1("(%1, %2) %3").arg(tile.x).arg(tile.y).arg(toolTipForType(tile.reason)));
-                }
-            }
+    for (const auto& errorItem : _resourceItem->errorList().list()) {
+        if (auto* imgErr = dynamic_cast<const RES::InvalidImageError*>(errorItem.specialized.get())) {
+            QGraphicsItem* parent = imgErr->hasFrameId() ? _frameErrors.at(imgErr->frameId()) : _commonErrors;
+            createGraphicsItemsForImageError(*imgErr, parent);
         }
     }
 
@@ -375,27 +359,4 @@ void AnimationFramesInputGraphicsItem::updateInvalidTiles()
     if (_animationFrameIndex >= 0 && _animationFrameIndex < _frameErrors.size()) {
         _frameErrors.at(_animationFrameIndex)->show();
     }
-}
-
-const QString& AnimationFramesInputGraphicsItem::toolTipForType(const RES::InvalidImageError::InvalidTileReason& reason)
-{
-    using ITR = RES::InvalidImageError::InvalidTileReason;
-
-    static const QString NULL_STRING;
-    static const QString NO_PALETTE_FOUND = tr("No palette found");
-    static const QString NOT_SAME_PALETTE = tr("Must use the same palette in each frame");
-    static const QString TOO_MANY_COLORS = tr("Too many colors");
-
-    switch (reason) {
-    case ITR::NO_PALETTE_FOUND:
-        return NO_PALETTE_FOUND;
-
-    case ITR::NOT_SAME_PALETTE:
-        return NOT_SAME_PALETTE;
-
-    case ITR::TOO_MANY_COLORS:
-        return TOO_MANY_COLORS;
-    };
-
-    return NULL_STRING;
 }

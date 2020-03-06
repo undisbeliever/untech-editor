@@ -50,6 +50,37 @@ void writePalettes(XmlWriter& xml, const NamedList<PaletteInput>& palettes)
     }
 }
 
+void readBackgroundImage(const XmlTag* tag, NamedList<BackgroundImageInput>& backgroundImages)
+{
+    assert(tag->name == "background-image");
+
+    backgroundImages.insert_back();
+    auto& bi = backgroundImages.back();
+
+    bi.name = tag->getAttributeId("name");
+    bi.bitDepth = tag->getAttributeUnsigned("bit-depth");
+    bi.imageFilename = tag->getAttributeFilename("image");
+    bi.conversionPlette = tag->getAttributeOptionalId("palette");
+    bi.firstPalette = tag->getAttributeUnsigned("first-palette");
+    bi.nPalettes = tag->getAttributeUnsigned("npalettes");
+    bi.defaultOrder = tag->getAttributeUnsigned("default-order");
+}
+
+void writeBackgroundImages(XmlWriter& xml, const NamedList<BackgroundImageInput>& backgroundImages)
+{
+    for (const auto& bi : backgroundImages) {
+        xml.writeTag("background-image");
+        xml.writeTagAttribute("name", bi.name);
+        xml.writeTagAttribute("bit-depth", bi.bitDepth);
+        xml.writeTagAttributeFilename("image", bi.imageFilename);
+        xml.writeTagAttributeOptional("palette", bi.conversionPlette);
+        xml.writeTagAttribute("first-palette", bi.firstPalette);
+        xml.writeTagAttribute("npalettes", bi.nPalettes);
+        xml.writeTagAttribute("default-order", unsigned(bi.defaultOrder));
+        xml.writeCloseTag();
+    }
+}
+
 void readAnimationFramesInput(AnimationFramesInput& afi, XmlReader& xml, const XmlTag* tag)
 {
     assert(tag->name == "animation-frames");

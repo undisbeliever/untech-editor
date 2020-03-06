@@ -7,6 +7,7 @@
 #pragma once
 
 #include "animation-frames-input.h"
+#include "background-image.h"
 #include "models/common/namedlist.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
@@ -19,6 +20,12 @@ void readPalette(const Xml::XmlTag* tag, NamedList<PaletteInput>& palettes);
 
 // raises exception on error
 void writePalettes(Xml::XmlWriter& xml, const NamedList<PaletteInput>& palettes);
+
+// raises exception on error
+void readBackgroundImage(const Xml::XmlTag* tag, NamedList<BackgroundImageInput>& backgroundImages);
+
+// raises exception on error
+void writeBackgroundImages(Xml::XmlWriter& xml, const NamedList<BackgroundImageInput>& backgroundImages);
 
 // raises exception on error
 // `afi` must be empty, xml/tag points to an <animation-frames> tag

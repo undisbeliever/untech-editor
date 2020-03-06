@@ -80,6 +80,9 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
         else if (childTag->name == "palette") {
             Resources::readPalette(childTag.get(), project->palettes);
         }
+        else if (childTag->name == "background-image") {
+            Resources::readBackgroundImage(childTag.get(), project->backgroundImages);
+        }
         else if (childTag->name == "metatile-tileset") {
             readExternalFileList(childTag.get(), project->metaTileTilesets);
         }
@@ -127,6 +130,7 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
     writeExternalFileList(xml, "exportorder", project.frameSetExportOrders);
     MetaSprite::writeFrameSetFiles(xml, project.frameSets);
     Resources::writePalettes(xml, project.palettes);
+    Resources::writeBackgroundImages(xml, project.backgroundImages);
     writeExternalFileList(xml, "metatile-tileset", project.metaTileTilesets);
 
     xml.writeCloseTag();

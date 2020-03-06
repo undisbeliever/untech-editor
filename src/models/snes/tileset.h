@@ -107,6 +107,8 @@ public:
     unsigned colorsPerTile() const { return 1 << unsigned(_bitDepth); }
     unsigned snesTileSize() const { return TILE_SIZE * TILE_SIZE * unsigned(_bitDepth) / 8; }
 
+    size_t snesDataSize() const { return snesTileSize() * size(); }
+
     // fails silently
     template <size_t BD>
     void drawTile(Image& image, const Palette<BD>& palette,

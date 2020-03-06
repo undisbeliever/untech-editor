@@ -87,17 +87,20 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
         { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
         { "Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
+        { "Resources.BACKGROUND_IMAGE_FORMAT_VERSION", Resources::BackgroundImageData::BACKGROUND_IMAGE_FORMAT_VERSION },
         { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
         { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
         { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
     };
     enum TypeId : unsigned {
         PALETTE,
+        BACKGROUND_IMAGE,
         METATILE_TILESET
     };
     const static std::vector<std::string> TYPE_NAMES = {
         "Project.PaletteList",
-        "Project.MetaTileTilesetList"
+        "Project.BackgroundImageList",
+        "Project.MetaTileTilesetList",
     };
 
     bool valid = true;
@@ -143,6 +146,9 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         return nullptr;
     }
 
+    compileList(input.backgroundImages, &ProjectData::compileBackgroundImage, "Background Image");
+    // no !valid test needed, metaTileTilesets and backgroundImages are unrelated
+
     compileList(input.metaTileTilesets, &ProjectData::compileMetaTiles, "MetaTile Tileset");
     if (!valid) {
         return nullptr;
@@ -164,6 +170,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     writeMetaSpriteData(writer, *metaSpriteData);
     writeEntityRomData(writer, entityData);
     writeData(PALETTE, projectData.palettes());
+    writeData(BACKGROUND_IMAGE, projectData.backgroundImages());
     writeData(METATILE_TILESET, projectData.metaTileTilesets());
 
     auto ret = std::make_unique<ProjectOutput>();

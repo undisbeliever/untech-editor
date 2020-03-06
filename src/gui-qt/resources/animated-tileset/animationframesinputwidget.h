@@ -90,8 +90,6 @@ public:
                        const QStyleOptionGraphicsItem* option,
                        QWidget* widget = nullptr) final;
 
-    static const QString& toolTipForType(const RES::InvalidImageError::InvalidTileReason& reason);
-
 signals:
     void animationFrameIndexChanged();
 

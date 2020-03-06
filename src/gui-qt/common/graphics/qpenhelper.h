@@ -7,12 +7,13 @@
 #pragma once
 
 #include <QPen>
+#include <QWidget>
 #include <QWindow>
 
 namespace UnTech {
 namespace GuiQt {
 
-QPen createCosmeticPen(const QColor& color, const QWidget* widget)
+inline QPen createCosmeticPen(const QColor& color, const QWidget* widget)
 {
 #if QT_VERSION >= 0x050600
     qreal pixelRatio = widget->devicePixelRatioF();
@@ -25,7 +26,7 @@ QPen createCosmeticPen(const QColor& color, const QWidget* widget)
     return pen;
 }
 
-QPen createCosmeticPen(const QColor& color, const QWindow* window)
+inline QPen createCosmeticPen(const QColor& color, const QWindow* window)
 {
     qreal pixelRatio = window->devicePixelRatio();
 

@@ -14,6 +14,7 @@
 #include "models/metasprite/framesetfile.h"
 #include "models/metatiles/common.h"
 #include "models/metatiles/metatile-tileset.h"
+#include "models/resources/background-image.h"
 #include "models/resources/palette.h"
 #include <memory>
 #include <string>
@@ -45,6 +46,7 @@ struct ProjectFile {
     Entity::EntityRomData entityRomData;
 
     NamedList<Resources::PaletteInput> palettes;
+    NamedList<Resources::BackgroundImageInput> backgroundImages;
     ExternalFileList<MetaTiles::MetaTileTilesetInput> metaTileTilesets;
 
     NamedList<MetaSprite::ActionPointFunction> actionPointFunctions;
@@ -61,6 +63,7 @@ struct ProjectFile {
                && metaTileEngineSettings == o.metaTileEngineSettings
                && entityRomData == o.entityRomData
                && palettes == o.palettes
+               && backgroundImages == o.backgroundImages
                && metaTileTilesets == o.metaTileTilesets
                && actionPointFunctions == o.actionPointFunctions
                && frameSets == o.frameSets

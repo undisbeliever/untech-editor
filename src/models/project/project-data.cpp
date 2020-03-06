@@ -69,12 +69,18 @@ ProjectData::ProjectData(const ProjectFile& project)
     : _project(project)
 {
     _palettes.clearAllAndResize(_project.palettes.size());
+    _backgroundImages.clearAllAndResize(_project.backgroundImages.size());
     _metaTileTilesets.clearAllAndResize(_project.metaTileTilesets.size());
 }
 
 bool ProjectData::compilePalette(size_t index, ErrorList& err)
 {
     return compileListItem(Resources::convertPalette, _palettes, _project.palettes, index, err);
+}
+
+bool ProjectData::compileBackgroundImage(size_t index, ErrorList& err)
+{
+    return compileListItem(Resources::convertBackgroundImage, _backgroundImages, _project.backgroundImages, index, err, _palettes);
 }
 
 bool ProjectData::compileMetaTiles(size_t index, ErrorList& err)

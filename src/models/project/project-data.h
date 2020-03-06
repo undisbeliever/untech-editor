@@ -17,6 +17,7 @@ class ErrorList;
 
 namespace Resources {
 struct PaletteData;
+struct BackgroundImageData;
 }
 namespace MetaTiles {
 struct MetaTileTilesetData;
@@ -124,6 +125,7 @@ class ProjectData {
     // If I add another DataStore here, I must also update `UnTech::GuiQt::ProjectDataSlots`.
 
     DataStore<Resources::PaletteData> _palettes;
+    DataStore<Resources::BackgroundImageData> _backgroundImages;
     DataStore<MetaTiles::MetaTileTilesetData> _metaTileTilesets;
 
 public:
@@ -133,9 +135,11 @@ public:
     void resizeDataStores();
 
     const DataStore<Resources::PaletteData>& palettes() const { return _palettes; }
+    const DataStore<Resources::BackgroundImageData>& backgroundImages() const { return _backgroundImages; }
     const DataStore<MetaTiles::MetaTileTilesetData>& metaTileTilesets() const { return _metaTileTilesets; }
 
     bool compilePalette(size_t index, ErrorList& err);
+    bool compileBackgroundImage(size_t index, ErrorList& err);
     bool compileMetaTiles(size_t index, ErrorList& err);
 };
 

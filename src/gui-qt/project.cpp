@@ -17,6 +17,7 @@
 #include "gui-qt/metasprite/exportorder/resourcelist.h"
 #include "gui-qt/metasprite/framesetresourcelist.h"
 #include "gui-qt/metatiles/mttileset/resourcelist.h"
+#include "gui-qt/resources/background-image/resourcelist.h"
 #include "gui-qt/resources/palette/resourcelist.h"
 
 #include <QDir>
@@ -37,12 +38,14 @@ Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
     , _frameSetExportOrders(new MetaSprite::ExportOrder::ResourceList(this))
     , _frameSets(new MetaSprite::FrameSetResourceList(this))
     , _palettes(new Resources::Palette::ResourceList(this))
+    , _backgroundImages(new Resources::BackgroundImage::ResourceList(this))
     , _mtTilesets(new MetaTiles::MtTileset::ResourceList(this))
     , _resourceLists({
           _staticResources,
           _frameSetExportOrders,
           _frameSets,
           _palettes,
+          _backgroundImages,
           _mtTilesets,
       })
     , _selectedResource(nullptr)

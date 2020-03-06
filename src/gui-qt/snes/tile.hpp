@@ -21,7 +21,6 @@ inline void drawTile(QImage& image,
                      const int xOffset, const int yOffset,
                      const bool hFlip, bool vFlip)
 {
-    constexpr QRgb INVALID_PIXEL_COLOR = qRgb(255, 0, 255);
     const unsigned TILE_SIZE = tile.TILE_SIZE;
 
     if (image.width() < int(xOffset + TILE_SIZE)
@@ -40,14 +39,8 @@ inline void drawTile(QImage& image,
 
             auto p = *tileData & pixelMask;
             if (showTransparent || p != 0) {
-                const unsigned pIndex = paletteOffset + p;
-                if (pIndex < palette.size()) {
-                    const UnTech::rgba& rgb = palette.at(pIndex).rgb();
-                    imgBits[fx] = qRgb(rgb.red, rgb.green, rgb.blue);
-                }
-                else {
-                    imgBits[fx] = INVALID_PIXEL_COLOR;
-                }
+                const UnTech::rgba& rgb = palette.at(paletteOffset + p).rgb();
+                imgBits[fx] = qRgb(rgb.red, rgb.green, rgb.blue);
             }
             tileData++;
         }

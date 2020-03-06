@@ -16,15 +16,12 @@
 #include <algorithm>
 #include <cassert>
 
+#include "tile-extractor.hpp"
+
 namespace UnTech {
 namespace Resources {
 
 using Tile8px = Snes::Tile8px;
-
-struct FrameTile {
-    Tile8px tile;
-    unsigned palette;
-};
 
 struct AnimatedTilesetIntermediate {
     std::vector<std::vector<Tile8px>> animatedTiles; // [tileId][frameId]
@@ -38,89 +35,11 @@ struct AnimatedTilesetIntermediate {
     std::vector<TM> tileMap;
 };
 
-static bool extractTile8px(Tile8px& tile, const rgba* imgBits, unsigned pixelsPerScanline,
-                           const std::vector<Snes::SnesColor>::const_iterator pBegin,
-                           const std::vector<Snes::SnesColor>::const_iterator pEnd)
+static std::vector<std::vector<TileAndPalette>> tilesFromFrameImages(const AnimationFramesInput input,
+                                                                     const std::vector<Snes::SnesColor>& palette,
+                                                                     ErrorList& err)
 {
-    const static unsigned TS = tile.TILE_SIZE;
-
-    for (unsigned y = 0; y < TS; y++) {
-        const rgba* scanline = imgBits + y * pixelsPerScanline;
-
-        for (unsigned x = 0; x < TS; x++) {
-            const Snes::SnesColor c(scanline[x]);
-
-            auto pIt = std::find(pBegin, pEnd, c);
-            if (pIt == pEnd) {
-                // color not found in palette
-                return false;
-            }
-
-            tile.setPixel(x, y, std::distance(pBegin, pIt));
-        }
-    }
-
-    return true;
-}
-
-static bool extractFrameTile(FrameTile& ft, const Image& image, const unsigned x, const unsigned y,
-                             const std::vector<Snes::SnesColor>& palettes, unsigned colorsPerPalette)
-{
-    const unsigned pps = image.pixelsPerScanline();
-    const rgba* imgBits = image.scanline(y) + x;
-
-    const size_t paletteSize = std::min<size_t>(8 * colorsPerPalette, palettes.size());
-
-    for (size_t pIndex = 0, pId = 0; pIndex < paletteSize; pIndex += colorsPerPalette, pId++) {
-        auto pStart = palettes.begin() + pIndex;
-        auto pEnd = pIndex + colorsPerPalette < paletteSize ? pStart + colorsPerPalette
-                                                            : palettes.begin() + paletteSize;
-
-        bool s = extractTile8px(ft.tile, imgBits, pps, pStart, pEnd);
-
-        if (s) {
-            ft.palette = pId;
-            return true;
-        }
-    }
-
-    return false;
-}
-
-static std::vector<FrameTile> tilesFromFrameImage(const Image& image,
-                                                  const std::vector<Snes::SnesColor>& palettes, unsigned colorsPerPalette,
-                                                  InvalidImageError& err)
-{
-    const static unsigned TS = 8;
-
-    const usize iSize = image.size();
-
-    unsigned tw = iSize.width / TS;
-    unsigned th = iSize.height / TS;
-    std::vector<FrameTile> tiles(tw * th);
-    auto tileIt = tiles.begin();
-
-    for (unsigned y = 0; y < iSize.height; y += TS) {
-        for (unsigned x = 0; x < iSize.width; x += TS) {
-            bool s = extractFrameTile(*tileIt, image, x, y, palettes, colorsPerPalette);
-            if (!s) {
-                err.addInvalidTile(TS, x, y, InvalidImageError::NO_PALETTE_FOUND);
-            }
-            tileIt++;
-        }
-    }
-    assert(tileIt == tiles.end());
-
-    return tiles;
-}
-
-static std::vector<std::vector<FrameTile>> tilesFromFrameImages(const AnimationFramesInput input,
-                                                                const std::vector<Snes::SnesColor>& palettes,
-                                                                ErrorList& err)
-{
-    const unsigned colorsPerPalette = 1 << input.bitDepth;
-
-    std::vector<std::vector<FrameTile>> frameTiles;
+    std::vector<std::vector<TileAndPalette>> frameTiles;
     frameTiles.reserve(input.frameImageFilenames.size());
 
     const unsigned nFrames = input.frameImageFilenames.size();
@@ -129,7 +48,7 @@ static std::vector<std::vector<FrameTile>> tilesFromFrameImages(const AnimationF
 
         const auto& image = ImageCache::loadPngImage(input.frameImageFilenames.at(frameId));
         frameTiles.emplace_back(
-            tilesFromFrameImage(*image, palettes, colorsPerPalette, *imageErr));
+            tilesFromImage(*image, input.bitDepth, palette, 0, 8, *imageErr));
 
         if (imageErr->hasError()) {
             err.addError(std::move(imageErr));
@@ -139,8 +58,9 @@ static std::vector<std::vector<FrameTile>> tilesFromFrameImages(const AnimationF
     return frameTiles;
 }
 
-static AnimatedTilesetIntermediate combineFrameTiles(const std::vector<std::vector<FrameTile>>& frameTiles, unsigned tileWidth,
-                                                     ErrorList& err)
+static AnimatedTilesetIntermediate combineFrameTiles(
+    const std::vector<std::vector<TileAndPalette>>& frameTiles, unsigned tileWidth,
+    ErrorList& err)
 {
     assert(!frameTiles.empty());
     const unsigned nTiles = frameTiles.front().size();
@@ -289,7 +209,7 @@ bool AnimationFramesInput::validate(ErrorList& err) const
         if (image->empty()) {
             err.addErrorString("Missing frame image: ", image->errorString());
             valid = false;
-            break;
+            continue;
         }
 
         if (image->size().width % 8 != 0 || image->size().height % 8 != 0) {

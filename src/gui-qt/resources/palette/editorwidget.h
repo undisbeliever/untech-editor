@@ -35,7 +35,6 @@ public:
 
     virtual QString windowStateName() const final;
 
-    void setResourceItem(ResourceItem* item);
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
 private:
