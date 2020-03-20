@@ -73,7 +73,7 @@ QPair<QVariant, QVariant> PropertyListModel::propertyParametersForIndex(const QM
     auto& settings = propertyForIndex(index);
 
     auto param = qMakePair(settings.parameter1, settings.parameter2);
-    if (settings.id >= 0) {
+    if (settings.isEditable) {
         _manager->updateParameters(settings.id, param.first, param.second);
     }
 
@@ -418,7 +418,7 @@ Qt::ItemFlags PropertyListModel::flags(const QModelIndex& index) const
             flags |= Qt::ItemIsDropEnabled;
         }
         if (index.column() == VALUE_COLUMN
-            && settings.id >= 0) {
+            && settings.isEditable) {
 
             flags |= Qt::ItemIsEditable;
         }
@@ -490,7 +490,7 @@ QVariant PropertyListModel::data(const QModelIndex& index, int role) const
         }
     }
     else if (role == Qt::EditRole
-             && settings.id >= 0
+             && settings.isEditable
              && index.column() == VALUE_COLUMN) {
 
         if ((index.internalId() & LIST_ITEM_FLAG) == false) {

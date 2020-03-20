@@ -27,7 +27,9 @@ enum class PropertyType {
     COLOR_COMBO,   // QVariantList of colors
     STRING_LIST,   // no parameters
     IDSTRING_LIST, // completer values
-    FILENAME_LIST  // dialog filter
+    FILENAME_LIST, // dialog filter
+
+    NOT_EDITABLE, // property is not editable (ie. status information)
 };
 
 inline bool isListType(PropertyType& type)
@@ -46,6 +48,7 @@ struct Property {
     const QVariant parameter2;
 
     const bool isList;
+    const bool isEditable;
 
     Property(const QString& title, int id, PropertyType type,
              const QVariant& param1 = QVariant(), const QVariant& param2 = QVariant())
@@ -55,6 +58,7 @@ struct Property {
         , parameter1(param1)
         , parameter2(param2)
         , isList(isListType(type))
+        , isEditable(id >= 0 && type != PropertyType::NOT_EDITABLE)
     {
     }
 

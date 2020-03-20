@@ -224,7 +224,7 @@ QPair<QVariant, QVariant> PropertyTableModel::propertyParametersForIndex(const Q
     auto& settings = propertyForIndex(index);
 
     auto param = qMakePair(settings.parameter1, settings.parameter2);
-    if (settings.id >= 0) {
+    if (settings.isEditable) {
         _managers.at(index.internalId())->updateParameters(index.row(), settings.id, param.first, param.second);
     }
 
@@ -396,7 +396,7 @@ Qt::ItemFlags PropertyTableModel::flags(const QModelIndex& index) const
         if (manager->canMoveItems()) {
             flags |= Qt::ItemIsDragEnabled;
         }
-        if (propertyForIndex(index).id >= 0) {
+        if (propertyForIndex(index).isEditable) {
             flags |= Qt::ItemIsEditable;
         }
     }
@@ -444,7 +444,7 @@ bool PropertyTableModel::setData(const QModelIndex& index, const QVariant& value
     }
 
     const auto& settings = propertyForIndex(index);
-    if (settings.id >= 0) {
+    if (settings.isEditable) {
         auto* m = _managers.at(index.internalId());
         return m->setData(index.row(), settings.id, value);
     }

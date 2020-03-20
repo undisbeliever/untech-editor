@@ -119,7 +119,8 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
         case Type::POINT:
         case Type::SIZE:
         case Type::RECT:
-        case Type::COMBO: {
+        case Type::COMBO:
+        case Type::NOT_EDITABLE: {
             drawDisplay(painter, option, option.rect, value.toString());
         } break;
 
@@ -303,6 +304,9 @@ QWidget* PropertyDelegate::createEditorWidget(QWidget* parent, const AbstractPro
         cb->setFrame(false);
         return cb;
     }
+
+    case Type::NOT_EDITABLE:
+        return nullptr;
     }
 
     return nullptr;
@@ -462,6 +466,9 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
 
         cb->setCurrentIndex(cb->findData(colorIndex));
     } break;
+
+    case Type::NOT_EDITABLE: {
+    } break;
     }
 }
 
@@ -536,6 +543,9 @@ void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
         QComboBox* cb = qobject_cast<QComboBox*>(editor);
         model->setData(index, cb->currentData(), Qt::EditRole);
     } break;
+
+    case Type::NOT_EDITABLE: {
+    } break;
     }
 }
 
@@ -543,6 +553,10 @@ void PropertyDelegate::updateEditorGeometry(QWidget* editor,
                                             const QStyleOptionViewItem& option,
                                             const QModelIndex&) const
 {
+    if (editor == nullptr) {
+        return;
+    }
+
     QRect r = option.rect;
     if (editor->minimumHeight() > 0) {
         r.setHeight(editor->minimumHeight());
