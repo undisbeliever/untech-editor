@@ -19,7 +19,7 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
     : AbstractInternalResourceItem(list, index)
     , _functionTableList(new EntityFunctionTableList(this))
 {
-    setName(tr("Function Tables"));
+    setName(tr("Entity Function Tables"));
     setRemovable(false);
 
     updateDependencies();
