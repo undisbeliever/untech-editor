@@ -123,6 +123,9 @@ AbstractResourceList* Project::findResourceList(ResourceTypeIndex type) const
 
     case ResourceTypeIndex::MS_EXPORT_ORDER:
         return _frameSetExportOrders;
+
+    case ResourceTypeIndex::BACKGROUND_IMAGE:
+        return _backgroundImages;
     }
 
     qFatal("Unknown ResourceTypeIndex type");

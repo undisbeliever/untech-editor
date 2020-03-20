@@ -17,7 +17,7 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources::BackgroundImage;
 
 ResourceList::ResourceList(Project* project)
-    : AbstractResourceList(project, ResourceTypeIndex::PALETTE)
+    : AbstractResourceList(project, ResourceTypeIndex::BACKGROUND_IMAGE)
 {
 }
 
