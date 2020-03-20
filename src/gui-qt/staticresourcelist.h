@@ -54,7 +54,7 @@ public:
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
 
-    virtual const QList<AddResourceSettings>& addResourceSettings() const final;
+    virtual const QVector<AddResourceSettings>& addResourceSettings() const final;
 
     auto* projectSettings() const { return _projectSettings; }
     auto* actionPoints() const { return _actionPoints; }

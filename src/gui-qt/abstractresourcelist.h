@@ -45,7 +45,7 @@ public:
     virtual const QString resourceTypeNamePlural() const = 0;
 
     // MUST return the same list on every call
-    virtual const QList<AddResourceSettings>& addResourceSettings() const = 0;
+    virtual const QVector<AddResourceSettings>& addResourceSettings() const = 0;
 
     void addResource(int settingIndex, const QString& input);
     void removeResource(int index);

@@ -29,7 +29,7 @@ public:
     virtual const QString resourceTypeNameSingle() const final;
     virtual const QString resourceTypeNamePlural() const final;
 
-    virtual const QList<AddResourceSettings>& addResourceSettings() const final;
+    virtual const QVector<AddResourceSettings>& addResourceSettings() const final;
 
     ResourceItem* findResource(const QString& name) const;
 

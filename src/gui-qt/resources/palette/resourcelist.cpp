@@ -46,9 +46,9 @@ ResourceItem* ResourceList::buildResourceItem(size_t index)
     return new ResourceItem(this, index);
 }
 
-const QList<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
+const QVector<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
 {
-    const static QList<AbstractResourceList::AddResourceSettings> filters = {
+    const static QVector<AbstractResourceList::AddResourceSettings> filters = {
         { tr("Add Palette"),
           QString::fromUtf8("PNG Image (*.png)"),
           QString::fromUtf8("png"),

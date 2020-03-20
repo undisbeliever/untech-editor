@@ -35,9 +35,9 @@ const QString StaticResourceList::resourceTypeNamePlural() const
     return tr("Project");
 }
 
-const QList<AbstractResourceList::AddResourceSettings>& StaticResourceList::addResourceSettings() const
+const QVector<AbstractResourceList::AddResourceSettings>& StaticResourceList::addResourceSettings() const
 {
-    static const QList<AbstractResourceList::AddResourceSettings> emptyList;
+    static const QVector<AbstractResourceList::AddResourceSettings> emptyList;
     return emptyList;
 }
 

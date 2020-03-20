@@ -69,9 +69,9 @@ AbstractResourceItem* FrameSetResourceList::buildResourceItem(size_t index)
     return new NullFrameSetResourceItem(this, index);
 }
 
-const QList<AbstractResourceList::AddResourceSettings>& FrameSetResourceList::addResourceSettings() const
+const QVector<AbstractResourceList::AddResourceSettings>& FrameSetResourceList::addResourceSettings() const
 {
-    const static QList<AbstractResourceList::AddResourceSettings> settings = {
+    const static QVector<AbstractResourceList::AddResourceSettings> settings = {
         { tr("Add MetaSprite FrameSet"),
           QString::fromUtf8("MetaSprite FrameSet (*.utms)"),
           QString::fromUtf8("utms"),

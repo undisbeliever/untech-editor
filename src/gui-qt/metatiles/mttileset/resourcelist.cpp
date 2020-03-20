@@ -46,9 +46,9 @@ ResourceItem* ResourceList::buildResourceItem(size_t index)
     return new ResourceItem(this, index);
 }
 
-const QList<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
+const QVector<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
 {
-    const static QList<AbstractResourceList::AddResourceSettings> settings = {
+    const static QVector<AbstractResourceList::AddResourceSettings> settings = {
         { tr("Add MetaTile Tileset"),
           QString::fromUtf8("UnTech MetaTile Tileset File (*.utmt)"),
           QString::fromUtf8("utmt"),
