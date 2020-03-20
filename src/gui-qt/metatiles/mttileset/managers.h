@@ -27,6 +27,9 @@ class MtTilesetPropertyManager : public AbstractPropertyManager {
         ANIMATION_DELAY,
         BIT_DEPTH,
         ADD_TRANSPARENT_TILE,
+
+        N_STATIC_TILES,
+        N_ANIMATED_TILES,
     };
 
 public:

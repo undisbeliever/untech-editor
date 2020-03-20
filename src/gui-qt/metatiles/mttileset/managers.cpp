@@ -30,6 +30,10 @@ MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     addProperty(tr("Animation Delay"), ANIMATION_DELAY, Type::UNSIGNED, 0, 0x10000);
     addProperty(tr("Bit Depth"), BIT_DEPTH, Type::COMBO, QStringList{ "2 bpp", "4 bpp", "8 bpp" }, QVariantList{ 2, 4, 8 });
     addProperty(tr("Add Transparent Tile"), ADD_TRANSPARENT_TILE, Type::BOOLEAN);
+
+    addPropertyGroup(tr("Compiled Data"));
+    addProperty(tr("Static Tiles"), N_STATIC_TILES, Type::NOT_EDITABLE);
+    addProperty(tr("Animated Tiles"), N_ANIMATED_TILES, Type::NOT_EDITABLE);
 }
 
 void MtTilesetPropertyManager::setResourceItem(AbstractResourceItem* abstractItem)
@@ -105,6 +109,22 @@ QVariant MtTilesetPropertyManager::data(int id) const
 
     case ADD_TRANSPARENT_TILE:
         return ti->animationFrames.addTransparentTile;
+
+    case N_STATIC_TILES:
+        if (auto data = _tileset->compiledData()) {
+            return unsigned(data->animatedTileset.staticTiles.size());
+        }
+        else {
+            return QVariant();
+        }
+
+    case N_ANIMATED_TILES:
+        if (auto data = _tileset->compiledData()) {
+            return data->animatedTileset.nAnimatedTiles();
+        }
+        else {
+            return QVariant();
+        }
     }
 
     return QVariant();
@@ -140,6 +160,10 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
 
     case ADD_TRANSPARENT_TILE:
         return _tileset->editTileset_setAddTransparentTile(value.toBool());
+
+    case N_STATIC_TILES:
+    case N_ANIMATED_TILES:
+        return false;
     }
 
     return false;

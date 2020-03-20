@@ -25,7 +25,9 @@ class BackgroundImagePropertyManager : public PropertyListManager {
         CONVERSION_PALETTE,
         FIRST_PALETTE,
         N_PALETTES,
-        DEFAULT_ORDER
+        DEFAULT_ORDER,
+
+        N_TILES,
     };
 
 public:

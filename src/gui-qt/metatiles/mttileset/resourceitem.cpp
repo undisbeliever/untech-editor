@@ -95,6 +95,11 @@ bool ResourceItem::compileResource(ErrorList& err)
     return project()->projectData().compileMetaTiles(this->index(), err);
 }
 
+const UnTech::optional<const UnTech::MetaTiles::MetaTileTilesetData&> ResourceItem::compiledData() const
+{
+    return project()->projectData().metaTileTilesets().at(index());
+}
+
 bool ResourceItem::editTileset_setName(const UnTech::idstring& name)
 {
     return UndoHelper(this).editName(name);

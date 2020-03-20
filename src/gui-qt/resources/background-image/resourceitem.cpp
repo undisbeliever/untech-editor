@@ -55,6 +55,11 @@ bool ResourceItem::compileResource(ErrorList& err)
     return project()->projectData().compileBackgroundImage(this->index(), err);
 }
 
+const UnTech::optional<const RES::BackgroundImageData&> ResourceItem::compiledData() const
+{
+    return project()->projectData().backgroundImages().at(index());
+}
+
 bool ResourceItem::edit_setName(const idstring& name)
 {
     return UndoHelper(this).editName(name);

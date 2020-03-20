@@ -35,6 +35,7 @@ public:
     static QString typeName() { return tr("Background Image"); }
 
     inline const RES::BackgroundImageInput& backgroundImageInput() const { return _backgroundImages.at(index()); }
+    const optional<const RES::BackgroundImageData&> compiledData() const;
 
     bool edit_setName(const idstring& name);
     bool edit_setBitDepth(const unsigned bitDepth);

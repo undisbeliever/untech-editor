@@ -25,6 +25,9 @@ BackgroundImagePropertyManager::BackgroundImagePropertyManager(QObject* parent)
     addProperty(tr("First Palette"), FIRST_PALETTE, Type::UNSIGNED, 0, 31);
     addProperty(tr("Number of Palettes"), N_PALETTES, Type::UNSIGNED, 1, 8);
     addProperty(tr("Default Order"), DEFAULT_ORDER, Type::UNSIGNED, 0, 1);
+
+    addPropertyGroup(tr("Compiled Data"));
+    addProperty(tr("Number of Tiles"), N_TILES, Type::NOT_EDITABLE);
 }
 
 void BackgroundImagePropertyManager::setResourceItem(ResourceItem* item)
@@ -42,6 +45,8 @@ void BackgroundImagePropertyManager::setResourceItem(ResourceItem* item)
 
     if (_resourceItem) {
         connect(_resourceItem, &ResourceItem::dataChanged,
+                this, &BackgroundImagePropertyManager::dataChanged);
+        connect(_resourceItem, &ResourceItem::resourceComplied,
                 this, &BackgroundImagePropertyManager::dataChanged);
     }
 
@@ -90,6 +95,14 @@ QVariant BackgroundImagePropertyManager::data(int id) const
 
     case DEFAULT_ORDER:
         return unsigned(bi.defaultOrder);
+
+    case N_TILES:
+        if (auto data = _resourceItem->compiledData()) {
+            return unsigned(data->tiles.size());
+        }
+        else {
+            return QVariant();
+        }
     }
 
     return QVariant();
@@ -120,6 +133,9 @@ bool BackgroundImagePropertyManager::setData(int id, const QVariant& value)
 
     case DEFAULT_ORDER:
         return _resourceItem->edit_setDefaultOrder(bool(value.toUInt()));
+
+    case N_TILES:
+        return false;
     }
 
     return false;

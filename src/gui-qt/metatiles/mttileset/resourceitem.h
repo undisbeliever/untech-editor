@@ -9,6 +9,7 @@
 #include "gui-qt/abstractresourceitem.h"
 #include "gui-qt/accessor/accessor.h"
 #include "models/common/externalfilelist.h"
+#include "models/common/optional.h"
 #include "models/metatiles/metatile-tileset.h"
 #include <QObject>
 
@@ -50,6 +51,8 @@ public:
         return _metaTileTilesets.at(index());
     }
     const MT::MetaTileTilesetInput* tilesetInput() const { return data(); }
+
+    const optional<const MT::MetaTileTilesetData&> compiledData() const;
 
     bool editTileset_setName(const idstring& name);
     bool editTileset_setPalettes(const std::vector<idstring>& palettes);
