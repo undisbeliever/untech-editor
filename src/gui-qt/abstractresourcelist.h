@@ -36,7 +36,7 @@ public:
 
     Project* project() const { return _project; }
 
-    const QVector<AbstractResourceItem*>& items() const { return _items; }
+    const QList<AbstractResourceItem*>& items() const { return _items; }
     const ResourceState& state() const { return _state; }
 
     QStringList itemNames() const;
@@ -94,7 +94,7 @@ private:
     const ResourceTypeIndex _resourceTypeIndex;
 
     ResourceState _state;
-    QVector<AbstractResourceItem*> _items;
+    QList<AbstractResourceItem*> _items;
 };
 }
 }
