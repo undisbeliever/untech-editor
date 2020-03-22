@@ -79,6 +79,43 @@ static void writeEntityRomData(RomDataWriter& writer,
     writer.addNamedData(entityData.PROJECTILE_INDEXES_LABEL, entityData.projectileIndexes);
 }
 
+static Resources::SceneSettingsData compileSceneSettingsData(const ProjectFile& input, std::ostream& errorStream)
+{
+    ErrorList err;
+    auto out = Resources::compileSceneSettingsData(input.resourceScenes.settings, err);
+
+    if (err.hasError()) {
+        errorStream << "Scene Settings Data:\n";
+        err.printIndented(errorStream);
+        out.valid = false;
+    }
+
+    return out;
+}
+
+static Resources::CompiledScenesData compileSceneData(const ProjectFile& input, const Resources::SceneSettingsData& settingsData, const ProjectData& projectData,
+                                                      std::ostream& errorStream)
+{
+    ErrorList err;
+    auto out = Resources::compileScenesData(input.resourceScenes, settingsData, projectData, err);
+
+    if (err.hasError()) {
+        errorStream << "Scene Data:\n";
+        err.printIndented(errorStream);
+        out.valid = false;
+    }
+
+    return out;
+}
+
+static void writeSceneData(RomDataWriter& writer,
+                           const Resources::SceneSettingsData& settings, const Resources::CompiledScenesData& scenes)
+{
+    writer.addNamedDataWithCount(settings.DATA_LABEL, settings.sceneSettings, settings.nSceneSettings);
+    writer.addNamedDataWithCount(scenes.sceneLayouts.DATA_LABEL, scenes.sceneLayouts.sceneLayoutData(), scenes.sceneLayouts.nLayouts());
+    writer.addNamedDataWithCount(scenes.DATA_LABEL, scenes.sceneSnesData, scenes.scenes.size());
+}
+
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinFilename,
                std::ostream& errorStream)
@@ -88,6 +125,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
         { "Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
         { "Resources.BACKGROUND_IMAGE_FORMAT_VERSION", Resources::BackgroundImageData::BACKGROUND_IMAGE_FORMAT_VERSION },
+        { "Resources.SCENE_FORMAT_VERSION", Resources::CompiledScenesData::SCENE_FORMAT_VERSION },
         { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
         { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
         { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
@@ -154,6 +192,15 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         return nullptr;
     }
 
+    const auto sceneSettingsData = compileSceneSettingsData(input, errorStream);
+    if (entityData.valid == false) {
+        return nullptr;
+    }
+    const auto sceneData = compileSceneData(input, sceneSettingsData, projectData, errorStream);
+    if (entityData.valid == false) {
+        return nullptr;
+    }
+
     RomDataWriter writer(input.blockSettings.size, input.blockSettings.count,
                          "__resc__", "RES_Lists", "RES_Block",
                          FORMAT_VERSIONS, TYPE_NAMES);
@@ -169,6 +216,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     // must write meta sprite data first
     writeMetaSpriteData(writer, *metaSpriteData);
     writeEntityRomData(writer, entityData);
+    writeSceneData(writer, sceneSettingsData, sceneData);
     writeData(PALETTE, projectData.palettes());
     writeData(BACKGROUND_IMAGE, projectData.backgroundImages());
     writeData(METATILE_TILESET, projectData.metaTileTilesets());
@@ -186,6 +234,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
 
     // changes ROM BANK to code()
     MetaSprite::Compiler::writeActionPointFunctionTables(input.actionPointFunctions, ret->incData);
+    Resources::writeSceneIncData(input.resourceScenes, ret->incData);
 
     ret->incData << std::endl;
 

@@ -33,6 +33,7 @@ private:
     std::vector<std::vector<DataItem>> _dataItems; // [type][id]
     std::vector<std::vector<uint8_t>> _blocks;     // [blockId] => data
     std::vector<DataItem> _namedData;
+    std::vector<Constant> _nameDataCounts;
     const std::string _blockName;
     const std::string _listRodata;
     const std::string _blockRodata;
@@ -104,6 +105,12 @@ public:
         throw std::runtime_error(stringBuilder("Unable to store ", data.size(), " bytes of data, increase block size/count."));
     }
 
+    void addNamedDataWithCount(const std::string& name, const std::vector<uint8_t>& data, int count)
+    {
+        addNamedData(name, data);
+        _nameDataCounts.emplace_back(Constant{ name + ".count", count });
+    }
+
     void writeIncData(std::stringstream& incData, const std::filesystem::path& relativeBinFilename) const
     {
         for (const Constant& c : _constants) {
@@ -146,6 +153,13 @@ public:
                     << _blockName << ".Data" << nd.blockId << " + " << nd.offset;
         }
         incData << "\n\n";
+
+        for (auto& nc : _nameDataCounts) {
+            incData << "\nconstant " << nc.name << " = " << nc.value;
+        }
+        if (!_nameDataCounts.empty()) {
+            incData << "\n\n";
+        }
 
         incData << "\nrodata(" << _listRodata << ")\n";
         for (unsigned typeId = 0; typeId < _typeNames.size(); typeId++) {

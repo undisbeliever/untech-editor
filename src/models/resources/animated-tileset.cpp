@@ -46,6 +46,11 @@ unsigned AnimatedTilesetData::animatedTilesBlockSize() const
     return animatedTiles.size() * nAnimatedTiles() * staticTiles.snesTileSize();
 }
 
+unsigned AnimatedTilesetData::vramTileSize() const
+{
+    return (staticTiles.size() + nAnimatedTiles()) * staticTiles.snesTileSize();
+}
+
 bool AnimatedTilesetData::validate(ErrorList& err) const
 {
     bool valid = true;

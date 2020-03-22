@@ -11,6 +11,8 @@
 #include "entity/entity-rom-structs/resourceitem.h"
 #include "metasprite/actionpoints/resourceitem.h"
 #include "project-settings/resourceitem.h"
+#include "resources/scene-settings/resourceitem.h"
+#include "resources/scenes/resourceitem.h"
 
 using namespace UnTech::GuiQt;
 
@@ -22,6 +24,8 @@ StaticResourceList::StaticResourceList(Project* project)
     , _entityFunctionTables(new Entity::EntityFunctionTables::ResourceItem(this, ENTITY_FUNCTION_TABLES))
     , _entities(new Entity::EntityRomEntries::ResourceItem(this, ENTITIES, true))
     , _projectiles(new Entity::EntityRomEntries::ResourceItem(this, PROJECTILES, false))
+    , _sceneSettings(new Resources::SceneSettings::ResourceItem(this, SCENE_SETTINGS))
+    , _scenes(new Resources::Scenes::ResourceItem(this, SCENES))
 {
 }
 
@@ -67,6 +71,12 @@ AbstractResourceItem* StaticResourceList::buildResourceItem(size_t index)
 
     case PROJECTILES:
         return _projectiles;
+
+    case SCENE_SETTINGS:
+        return _sceneSettings;
+
+    case SCENES:
+        return _scenes;
     }
 
     throw std::out_of_range("index is invalid");

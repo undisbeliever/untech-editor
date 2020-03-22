@@ -16,6 +16,7 @@
 #include "models/metatiles/metatile-tileset.h"
 #include "models/resources/background-image.h"
 #include "models/resources/palette.h"
+#include "models/resources/scenes.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -44,6 +45,7 @@ struct ProjectFile {
     MetaTiles::EngineSettings metaTileEngineSettings;
 
     Entity::EntityRomData entityRomData;
+    Resources::ResourceScenes resourceScenes;
 
     NamedList<Resources::PaletteInput> palettes;
     NamedList<Resources::BackgroundImageInput> backgroundImages;
@@ -62,6 +64,7 @@ struct ProjectFile {
         return blockSettings == o.blockSettings
                && metaTileEngineSettings == o.metaTileEngineSettings
                && entityRomData == o.entityRomData
+               && resourceScenes == o.resourceScenes
                && palettes == o.palettes
                && backgroundImages == o.backgroundImages
                && metaTileTilesets == o.metaTileTilesets

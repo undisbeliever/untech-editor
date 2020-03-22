@@ -92,6 +92,12 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
         else if (childTag->name == "action-point-function") {
             MetaSprite::readActionPointFunction(childTag.get(), project->actionPointFunctions);
         }
+        else if (childTag->name == "scene-setting") {
+            Resources::readSceneSetting(childTag.get(), project->resourceScenes.settings);
+        }
+        else if (childTag->name == "scene") {
+            Resources::readScene(childTag.get(), project->resourceScenes.scenes);
+        }
         else if (childTag->name == "block-settings") {
             if (readBlockSettingsTag) {
                 throw xml_error(*childTag, "Only one <block-settings> tag is allowed");
@@ -132,6 +138,9 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
     Resources::writePalettes(xml, project.palettes);
     Resources::writeBackgroundImages(xml, project.backgroundImages);
     writeExternalFileList(xml, "metatile-tileset", project.metaTileTilesets);
+
+    Resources::writeSceneSettings(xml, project.resourceScenes.settings);
+    Resources::writeScenes(xml, project.resourceScenes.scenes);
 
     xml.writeCloseTag();
 }

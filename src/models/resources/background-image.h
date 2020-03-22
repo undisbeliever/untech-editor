@@ -78,6 +78,9 @@ struct BackgroundImageData {
     unsigned uncompressedDataSize() const;
     unsigned tilemapDataSize() const;
 
+    bool tilemapHorizontalMirroring() const { return tileMap.width() > 32; }
+    bool tilemapVerticalMirroring() const { return tileMap.height() > 32; }
+
     std::vector<uint8_t> exportSnesData() const;
 };
 

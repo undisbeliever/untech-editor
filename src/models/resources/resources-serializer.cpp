@@ -6,6 +6,7 @@
 
 #include "resources-serializer.h"
 #include "models/common/atomicofstream.h"
+#include "models/common/enummap.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include <cassert>
@@ -15,6 +16,22 @@ using namespace UnTech::Xml;
 
 namespace UnTech {
 namespace Resources {
+
+static const EnumMap<BgMode> bgModeEnumMap = {
+    { "0", BgMode::MODE_0 },
+    { "1", BgMode::MODE_1 },
+    { "1bg3", BgMode::MODE_1_BG3_PRIOTITY },
+    { "2", BgMode::MODE_2 },
+    { "3", BgMode::MODE_3 },
+    { "4", BgMode::MODE_4 },
+};
+
+static const EnumMap<LayerType> layerTypeEnumMap = {
+    { "", LayerType::None },
+    { "bg-image", LayerType::BackgroundImage },
+    { "mt-tileset", LayerType::MetaTileTileset },
+    { "text", LayerType::TextConsole },
+};
 
 void readPalette(const XmlTag* tag, NamedList<PaletteInput>& palettes)
 {
@@ -120,6 +137,70 @@ void writeAnimationFramesInput(XmlWriter& xml, const AnimationFramesInput& afi)
     }
 
     xml.writeCloseTag();
+}
+
+void readSceneSetting(const XmlTag* tag, NamedList<SceneSettingsInput>& sceneSettings)
+{
+    assert(tag->name == "scene-setting");
+
+    sceneSettings.insert_back();
+    auto& ssi = sceneSettings.back();
+
+    ssi.name = tag->getAttributeOptionalId("name");
+    ssi.bgMode = tag->getAttributeEnum("bg-mode", bgModeEnumMap);
+    ssi.layerTypes.at(0) = tag->getAttributeEnum("layer0-type", layerTypeEnumMap);
+    ssi.layerTypes.at(1) = tag->getAttributeEnum("layer1-type", layerTypeEnumMap);
+    ssi.layerTypes.at(2) = tag->getAttributeEnum("layer2-type", layerTypeEnumMap);
+    ssi.layerTypes.at(3) = tag->getAttributeEnum("layer3-type", layerTypeEnumMap);
+}
+
+void writeSceneSettings(XmlWriter& xml, const NamedList<SceneSettingsInput>& sceneSettings)
+{
+    for (const auto& ssi : sceneSettings) {
+        xml.writeTag("scene-setting");
+
+        xml.writeTagAttribute("name", ssi.name);
+        xml.writeTagAttributeEnum("bg-mode", ssi.bgMode, bgModeEnumMap);
+        xml.writeTagAttributeEnum("layer0-type", ssi.layerTypes.at(0), layerTypeEnumMap);
+        xml.writeTagAttributeEnum("layer1-type", ssi.layerTypes.at(1), layerTypeEnumMap);
+        xml.writeTagAttributeEnum("layer2-type", ssi.layerTypes.at(2), layerTypeEnumMap);
+        xml.writeTagAttributeEnum("layer3-type", ssi.layerTypes.at(3), layerTypeEnumMap);
+
+        xml.writeCloseTag();
+    }
+}
+
+void readScene(const XmlTag* tag, NamedList<SceneInput>& scenes)
+{
+    assert(tag->name == "scene");
+
+    scenes.insert_back();
+    auto& scene = scenes.back();
+
+    scene.name = tag->getAttributeOptionalId("name");
+    scene.sceneSettings = tag->getAttributeOptionalId("settings");
+    scene.palette = tag->getAttributeOptionalId("palette");
+    scene.layers.at(0) = tag->getAttributeOptionalId("layer0");
+    scene.layers.at(1) = tag->getAttributeOptionalId("layer1");
+    scene.layers.at(2) = tag->getAttributeOptionalId("layer2");
+    scene.layers.at(3) = tag->getAttributeOptionalId("layer3");
+}
+
+void writeScenes(XmlWriter& xml, const NamedList<SceneInput>& scenes)
+{
+    for (const auto& scene : scenes) {
+        xml.writeTag("scene");
+
+        xml.writeTagAttribute("name", scene.name);
+        xml.writeTagAttribute("settings", scene.sceneSettings);
+        xml.writeTagAttribute("palette", scene.palette);
+        xml.writeTagAttributeOptional("layer0", scene.layers.at(0));
+        xml.writeTagAttributeOptional("layer1", scene.layers.at(1));
+        xml.writeTagAttributeOptional("layer2", scene.layers.at(2));
+        xml.writeTagAttributeOptional("layer3", scene.layers.at(3));
+
+        xml.writeCloseTag();
+    }
 }
 
 }

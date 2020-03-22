@@ -8,6 +8,7 @@
 
 #include "animation-frames-input.h"
 #include "background-image.h"
+#include "scenes.h"
 #include "models/common/namedlist.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
@@ -34,5 +35,18 @@ void readAnimationFramesInput(AnimationFramesInput& afi,
 
 // raises exception on error
 void writeAnimationFramesInput(Xml::XmlWriter& xml, const AnimationFramesInput& afi);
+
+// raises exception on error
+void readSceneSetting(const Xml::XmlTag* tag, NamedList<SceneSettingsInput>& sceneSettings);
+
+// raises exception on error
+void writeSceneSettings(Xml::XmlWriter& xml, const NamedList<SceneSettingsInput>& sceneSettings);
+
+// raises exception on error
+void readScene(const Xml::XmlTag* tag, NamedList<SceneInput>& scenes);
+
+// raises exception on error
+void writeScenes(Xml::XmlWriter& xml, const NamedList<SceneInput>& scenes);
+
 }
 }

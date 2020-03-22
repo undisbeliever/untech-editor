@@ -46,6 +46,7 @@ void AbstractMsResourceItem::compileMsFrameset(const MS::FrameSet* frameSet, Err
             Q_ASSERT(projectFile);
 
             const auto* exportOrder = projectFile->frameSetExportOrders.find(frameSet->exportOrder);
+            // exportOrder can be null
             validateFrameSetAndBuildTilesets(*frameSet, exportOrder, actionPointMapping, errList);
         }
         catch (std::exception& ex) {

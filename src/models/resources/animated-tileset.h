@@ -44,6 +44,9 @@ struct AnimatedTilesetData {
     unsigned animatedTilesFrameSize() const;
     unsigned animatedTilesBlockSize() const;
 
+    // number of bytes of VRAM required to hold the tile data
+    unsigned vramTileSize() const;
+
     bool validate(ErrorList& err) const;
 
     // Does not export tileMap.

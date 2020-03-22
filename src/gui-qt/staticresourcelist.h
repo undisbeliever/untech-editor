@@ -30,6 +30,14 @@ namespace ActionPoints {
 class ResourceItem;
 }
 }
+namespace Resources {
+namespace SceneSettings {
+class ResourceItem;
+}
+namespace Scenes {
+class ResourceItem;
+}
+}
 
 class Project;
 class AbstractResourceItem;
@@ -44,8 +52,10 @@ class StaticResourceList : public AbstractResourceList {
         ENTITY_FUNCTION_TABLES,
         ENTITIES,
         PROJECTILES,
+        SCENE_SETTINGS,
+        SCENES,
     };
-    constexpr static size_t N_ITEMS = 6;
+    constexpr static size_t N_ITEMS = 8;
 
 public:
     StaticResourceList(Project* project);
@@ -62,6 +72,8 @@ public:
     auto* entityFunctionTables() const { return _entityFunctionTables; }
     auto* entities() const { return _entities; }
     auto* projectiles() const { return _projectiles; }
+    auto* sceneSettings() const { return _sceneSettings; }
+    auto* scenes() const { return _scenes; }
 
 protected:
     virtual size_t nItems() const final;
@@ -77,6 +89,8 @@ private:
     Entity::EntityFunctionTables::ResourceItem* const _entityFunctionTables;
     Entity::EntityRomEntries::ResourceItem* const _entities;
     Entity::EntityRomEntries::ResourceItem* const _projectiles;
+    Resources::SceneSettings::ResourceItem* const _sceneSettings;
+    Resources::Scenes::ResourceItem* const _scenes;
 };
 
 }
