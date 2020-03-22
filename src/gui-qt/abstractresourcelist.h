@@ -54,9 +54,9 @@ public:
     // Returns the newly created item
     AbstractResourceItem* revertResource(AbstractResourceItem* item);
 
-protected:
     AbstractResourceItem* findResource(const QString& name) const;
 
+protected:
     // number of this type of data in the project.
     virtual size_t nItems() const = 0;
 

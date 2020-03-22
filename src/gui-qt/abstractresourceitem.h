@@ -23,6 +23,8 @@ class AbstractResourceItem : public QObject {
 
 public:
     struct Dependency {
+        // If name is blank then the item will depend on all items within the ResourceList
+
         ResourceTypeIndex type;
         QString name;
 

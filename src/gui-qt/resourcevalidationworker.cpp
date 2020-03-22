@@ -11,6 +11,8 @@
 
 using namespace UnTech::GuiQt;
 
+// ::TODO make more efficient (especially on resource list dependencies)::
+
 ResourceValidationWorker::ResourceValidationWorker(Project* project)
     : QObject(project)
     , _project(project)
@@ -138,10 +140,22 @@ void ResourceValidationWorker::processNextResource()
 
     bool allDependenciesChecked = true;
     for (auto& dep : toProcess->dependencies()) {
-        if (auto* d = _project->findResourceItem(dep.type, dep.name)) {
-            if (d->state() == ResourceState::UNCHECKED
-                || d->state() == ResourceState::NOT_LOADED) {
+        auto* list = _project->findResourceList(dep.type);
 
+        if (dep.name.isEmpty()) {
+            // toProcess depends on a list
+            if (list->state() == ResourceState::UNCHECKED || list->state() == ResourceState::NOT_LOADED) {
+                for (auto* d : list->items()) {
+                    if (d->state() == ResourceState::UNCHECKED || d->state() == ResourceState::NOT_LOADED) {
+                        _itemsToProcess.append(d);
+                        allDependenciesChecked = false;
+                    }
+                }
+            }
+        }
+        else if (auto* d = list->findResource(dep.name)) {
+            // toProcess depends on an item
+            if (d->state() == ResourceState::UNCHECKED || d->state() == ResourceState::NOT_LOADED) {
                 _itemsToProcess.append(d);
                 allDependenciesChecked = false;
             }
@@ -162,10 +176,11 @@ void ResourceValidationWorker::processNextResource()
 void ResourceValidationWorker::markItemDependantsUnchecked(AbstractResourceItem* item)
 {
     const AbstractResourceItem::Dependency toMatch = { item->resourceTypeIndex(), item->name() };
+    const AbstractResourceItem::Dependency toMatchList = { item->resourceTypeIndex(), QString() };
 
     for (AbstractResourceList* rl : _project->resourceLists()) {
         for (AbstractResourceItem* toTest : rl->items()) {
-            if (toTest->dependencies().contains(toMatch)) {
+            if (toTest->dependencies().contains(toMatch) || toTest->dependencies().contains(toMatchList)) {
                 toTest->markUnchecked();
             }
         }

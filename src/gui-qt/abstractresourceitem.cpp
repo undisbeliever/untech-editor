@@ -87,23 +87,22 @@ void AbstractResourceItem::validateItem()
     // check dependencies
     bool dependenciesOk = true;
     for (auto& dep : _dependencies) {
-        AbstractResourceItem* dItem = _project->findResourceItem(dep.type, dep.name);
+        // Only do a dependency check if dependency has a name (is a item dependency)
+        // This allows ResourceScenes to be compiled even if an individual image/tileset has an error
+        if (dep.name.isEmpty() == false) {
+            AbstractResourceItem* dItem = _project->findResourceItem(dep.type, dep.name);
 
-        if (dItem == nullptr) {
-            if (auto* rl = _project->findResourceList(dep.type)) {
-                QString rtn = rl->resourceTypeNameSingle();
+            if (dItem == nullptr) {
+                QString rtn = dItem->resourceList()->resourceTypeNameSingle();
                 err.addErrorString("Dependency Error: Missing ", rtn.toStdString(), u8" · ", dep.name.toStdString());
+                dependenciesOk = false;
             }
-            else {
-                err.addErrorString("Dependency Error: Missing ", dep.name.toStdString());
-            }
-            dependenciesOk = false;
-        }
-        else if (dItem->state() != ResourceState::VALID) {
-            QString rtn = dItem->resourceList()->resourceTypeNameSingle();
-            err.addErrorString("Dependency Error: ", rtn.toStdString(), u8" · ", dep.name.toStdString());
+            else if (dItem->state() != ResourceState::VALID) {
+                QString rtn = dItem->resourceList()->resourceTypeNameSingle();
+                err.addErrorString("Dependency Error: ", rtn.toStdString(), u8" · ", dep.name.toStdString());
 
-            dependenciesOk = false;
+                dependenciesOk = false;
+            }
         }
     }
 
