@@ -90,15 +90,16 @@ void AbstractResourceItem::validateItem()
         // Only do a dependency check if dependency has a name (is a item dependency)
         // This allows ResourceScenes to be compiled even if an individual image/tileset has an error
         if (dep.name.isEmpty() == false) {
-            AbstractResourceItem* dItem = _project->findResourceItem(dep.type, dep.name);
+            AbstractResourceList* dList = _project->findResourceList(dep.type);
+            AbstractResourceItem* dItem = dList->findResource(dep.name);
 
             if (dItem == nullptr) {
-                QString rtn = dItem->resourceList()->resourceTypeNameSingle();
+                QString rtn = dList->resourceTypeNameSingle();
                 err.addErrorString("Dependency Error: Missing ", rtn.toStdString(), u8" · ", dep.name.toStdString());
                 dependenciesOk = false;
             }
             else if (dItem->state() != ResourceState::VALID) {
-                QString rtn = dItem->resourceList()->resourceTypeNameSingle();
+                QString rtn = dList->resourceTypeNameSingle();
                 err.addErrorString("Dependency Error: ", rtn.toStdString(), u8" · ", dep.name.toStdString());
 
                 dependenciesOk = false;
