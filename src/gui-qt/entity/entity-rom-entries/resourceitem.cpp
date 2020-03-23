@@ -29,7 +29,11 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
     }
     setRemovable(false);
 
-    updateDependencies();
+    setDependencies({
+        { ResourceTypeIndex::STATIC, resourceList()->projectSettings()->name() },
+        { ResourceTypeIndex::STATIC, resourceList()->entityFunctionTables()->name() },
+        { ResourceTypeIndex::MS_FRAMESET, QString() },
+    });
 
     connect(this, &AbstractResourceItem::dataChanged,
             this, &AbstractResourceItem::markUnchecked);
@@ -39,29 +43,6 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
             _entriesList, &EntityRomEntriesList::setSelectedIndex);
     connect(_entriesList, &EntityRomEntriesList::itemAdded,
             _entriesList, &EntityRomEntriesList::setSelectedIndex);
-
-    connect(_entriesList, &EntityRomEntriesList::frameSetIdChanged,
-            this, &ResourceItem::updateDependencies);
-}
-
-void ResourceItem::updateDependencies()
-{
-    auto* entries = _entriesList->list();
-    Q_ASSERT(entries);
-
-    QVector<Dependency> dependencies;
-    dependencies.reserve(entries->size() + 2);
-
-    dependencies.append({ ResourceTypeIndex::STATIC, resourceList()->projectSettings()->name() });
-    dependencies.append({ ResourceTypeIndex::STATIC, resourceList()->entityFunctionTables()->name() });
-
-    for (const auto& entry : *entries) {
-        if (entry.frameSetId.isValid()) {
-            dependencies.append({ ResourceTypeIndex::MS_FRAMESET, QString::fromStdString(entry.frameSetId) });
-        }
-    }
-
-    setDependencies(dependencies);
 }
 
 bool ResourceItem::compileResource(UnTech::ErrorList& err)

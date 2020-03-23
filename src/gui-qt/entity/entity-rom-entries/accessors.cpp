@@ -97,8 +97,7 @@ bool EntityRomEntriesList::editSelected_setFrameSetId(const idstring& frameSetId
     return UndoHelper(this).editSelectedItemField(
         frameSetId,
         tr("Edit frameSetId"),
-        [](DataT& s) -> idstring& { return s.frameSetId; },
-        [](EntityRomEntriesList* a, size_t i) { emit a->frameSetIdChanged(i); });
+        [](DataT& s) -> idstring& { return s.frameSetId; });
 }
 
 bool EntityRomEntriesList::editSelected_setDisplayFrame(const idstring& displayFrame)

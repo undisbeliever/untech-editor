@@ -47,8 +47,7 @@ bool EntityFunctionTableList::edit_setExportOrder(EntityFunctionTableList::index
     return UndoHelper(this).editField(
         index, exportOrder,
         tr("Edit FrameSet Export Order"),
-        [](DataT& s) -> idstring& { return s.exportOrder; },
-        [](EntityFunctionTableList* a, size_t i) { emit a->exportOrderChanged(i); });
+        [](DataT& s) -> idstring& { return s.exportOrder; });
 }
 
 bool EntityFunctionTableList::edit_setParameterType(EntityFunctionTableList::index_type index, EN::ParameterType parameterType)

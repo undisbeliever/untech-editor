@@ -37,9 +37,6 @@ public:
     bool edit_setExportOrder(index_type index, const idstring& exportOrder);
     bool edit_setParameterType(index_type index, EN::ParameterType parameterType);
     bool edit_setComment(index_type index, const std::string& comment);
-
-signals:
-    void exportOrderChanged(index_type);
 };
 
 }

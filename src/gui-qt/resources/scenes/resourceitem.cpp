@@ -21,17 +21,12 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
     setName(tr("Scenes"));
     setRemovable(false);
 
-    {
-        QVector<Dependency> dependencies;
-        dependencies.append({ ResourceTypeIndex::STATIC, list->sceneSettings()->name() });
-
-        // List dependencies
-        dependencies.append({ ResourceTypeIndex::PALETTE, QString() });
-        dependencies.append({ ResourceTypeIndex::MT_TILESET, QString() });
-        dependencies.append({ ResourceTypeIndex::BACKGROUND_IMAGE, QString() });
-
-        setDependencies(dependencies);
-    }
+    setDependencies({
+        { ResourceTypeIndex::STATIC, list->sceneSettings()->name() },
+        { ResourceTypeIndex::PALETTE, QString() },
+        { ResourceTypeIndex::MT_TILESET, QString() },
+        { ResourceTypeIndex::BACKGROUND_IMAGE, QString() },
+    });
 
     connect(this, &AbstractResourceItem::dataChanged,
             this, &AbstractResourceItem::markUnchecked);

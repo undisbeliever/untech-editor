@@ -32,9 +32,6 @@ public:
 
     EntityRomEntriesList* entriesList() const { return _entriesList; }
 
-private slots:
-    void updateDependencies();
-
 protected:
     virtual bool compileResource(ErrorList& err) final;
 

@@ -32,9 +32,6 @@ public:
 
     EntityFunctionTableList* functionTableList() const { return _functionTableList; }
 
-private slots:
-    void updateDependencies();
-
 protected:
     virtual bool compileResource(ErrorList& err) final;
 

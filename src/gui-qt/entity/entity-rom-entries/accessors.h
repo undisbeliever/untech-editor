@@ -49,7 +49,6 @@ public:
 
 signals:
     void implementsChanged(index_type);
-    void frameSetIdChanged(index_type);
     void commentChanged(index_type);
 };
 
