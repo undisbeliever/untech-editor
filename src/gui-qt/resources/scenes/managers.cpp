@@ -10,6 +10,7 @@
 #include "gui-qt/project.h"
 #include "gui-qt/resources/scene-settings/resourceitem.h"
 #include "gui-qt/staticresourcelist.h"
+#include "models/project/project-data.h"
 #include "models/project/project.h"
 #include "models/resources/scene-bgmode.hpp"
 
@@ -62,7 +63,7 @@ optional<UnTech::Resources::SceneSettingsInput> SceneTableManager::getSceneSetti
     const auto* projectFile = project->projectFile();
     Q_ASSERT(projectFile);
 
-    const auto& ssData = project->staticResources()->sceneSettings()->sceneSettingsData();
+    const auto& ssData = project->projectData().sceneSettings();
     if (!ssData) {
         return {};
     }

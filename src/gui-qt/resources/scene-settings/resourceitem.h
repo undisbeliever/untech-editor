@@ -33,15 +33,11 @@ public:
 
     SceneSettingsList* sceneSettingsList() const { return _sceneSettingsList; }
 
-    const auto& sceneSettingsData() const { return _sceneSettingsData; }
-
 protected:
     virtual bool compileResource(ErrorList& err) final;
 
 private:
     SceneSettingsList* const _sceneSettingsList;
-
-    std::optional<RES::SceneSettingsData> _sceneSettingsData;
 };
 
 }

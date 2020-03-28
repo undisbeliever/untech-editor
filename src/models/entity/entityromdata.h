@@ -182,7 +182,9 @@ struct CompiledEntityRomData {
 
     bool valid;
 };
-CompiledEntityRomData compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& project, ErrorList& err);
+
+std::unique_ptr<const CompiledEntityRomData>
+compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& project, ErrorList& err);
 
 }
 }

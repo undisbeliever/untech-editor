@@ -101,44 +101,45 @@ void writeSceneIncData(const ResourceScenes& resourceScenes, std::ostream& out)
 constexpr unsigned FUNCTION_TABLE_ELEMENT_SIZE = 6;
 constexpr unsigned SCENE_SETTINGS_DATA_ELEMENT_SIZE = 3;
 
-SceneSettingsData compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings,
-                                           ErrorList& err)
+std::unique_ptr<const SceneSettingsData>
+compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorList& err)
 {
     constexpr unsigned MAX_N_SETTINGS = 255 / std::max(FUNCTION_TABLE_ELEMENT_SIZE, SCENE_SETTINGS_DATA_ELEMENT_SIZE);
-    SceneSettingsData out;
 
-    out.valid = true;
+    auto out = std::make_unique<SceneSettingsData>();
+
+    out->valid = true;
     auto addError = [&](const SceneSettingsInput& ssi, const auto&... msg) {
         err.addError(std::make_unique<ListItemError>(&ssi, msg...));
-        out.valid = false;
+        out->valid = false;
     };
 
     if (settings.size() > MAX_N_SETTINGS) {
         err.addErrorString("Too many settings (", settings.size(), "max = ", MAX_N_SETTINGS);
-        out.valid = false;
+        out->valid = false;
     }
 
     for (const SceneSettingsInput& ssi : settings) {
-        out.valid &= ssi.validate(err);
+        out->valid &= ssi.validate(err);
     }
 
     for (unsigned id = 0; id < settings.size(); id++) {
         const SceneSettingsInput& ssi = settings.at(id);
 
         if (ssi.name.isValid()) {
-            const auto r = out.nameIndexMap.try_emplace(ssi.name, id);
+            const auto r = out->nameIndexMap.try_emplace(ssi.name, id);
             if (r.second == false) {
                 addError(ssi, "Duplicate Scene Settings name:", ssi.name);
             }
         }
     }
-    if (!out.valid) {
+    if (!out->valid) {
         return out;
     }
 
-    out.sceneSettings.resize(settings.size() * SCENE_SETTINGS_DATA_ELEMENT_SIZE);
+    out->sceneSettings.resize(settings.size() * SCENE_SETTINGS_DATA_ELEMENT_SIZE);
 
-    auto ssDataIt = out.sceneSettings.begin();
+    auto ssDataIt = out->sceneSettings.begin();
     for (const SceneSettingsInput& ssi : settings) {
         const uint8_t bgMode = bgModeByte(ssi.bgMode);
         if (bgMode >= 0xff) {
@@ -159,12 +160,12 @@ SceneSettingsData compileSceneSettingsData(const NamedList<SceneSettingsInput>& 
         *ssDataIt++ = layerTypes & 0xff;
         *ssDataIt++ = layerTypes >> 8;
     }
-    assert(ssDataIt == out.sceneSettings.end());
+    assert(ssDataIt == out->sceneSettings.end());
 
-    out.nSceneSettings = settings.size();
+    out->nSceneSettings = settings.size();
 
-    if (!out.valid) {
-        out.sceneSettings.clear();
+    if (!out->valid) {
+        out->sceneSettings.clear();
     }
 
     return out;
@@ -534,59 +535,63 @@ static SceneData readSceneData(const SceneInput& scene, const ResourceScenes& re
     return out;
 }
 
-CompiledScenesData compileScenesData(const ResourceScenes& resourceScenes,
-                                     const SceneSettingsData& sceneSettingsData,
-                                     const Project::ProjectData& projectData,
-                                     ErrorList& err)
+std::unique_ptr<const CompiledScenesData>
+compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectData& projectData, ErrorList& err)
 {
     constexpr unsigned SCENE_DATA_ENTRY_SIZE = 7;
 
     const unsigned oldErrorCount = err.errorCount();
 
-    CompiledScenesData out;
-    out.sceneLayouts.reserve(resourceScenes.scenes.size());
-    out.scenes.reserve(resourceScenes.scenes.size());
-    out.nameIndexMap.reserve(resourceScenes.scenes.size());
-    out.sceneSnesData.resize(resourceScenes.scenes.size() * SCENE_DATA_ENTRY_SIZE, 0);
+    auto sceneSettingsData = projectData.sceneSettings();
+    if (!sceneSettingsData.exists()) {
+        err.addErrorString("Missing Compiled Scene Settings Data");
+        return nullptr;
+    }
 
-    out.valid = true;
+    auto out = std::make_unique<CompiledScenesData>();
+    out->sceneLayouts.reserve(resourceScenes.scenes.size());
+    out->scenes.reserve(resourceScenes.scenes.size());
+    out->nameIndexMap.reserve(resourceScenes.scenes.size());
+    out->sceneSnesData.resize(resourceScenes.scenes.size() * SCENE_DATA_ENTRY_SIZE, 0);
+
+    out->valid = true;
     for (unsigned sceneIndex = 0; sceneIndex < resourceScenes.scenes.size(); sceneIndex++) {
         const SceneInput& scene = resourceScenes.scenes.at(sceneIndex);
 
-        out.scenes.emplace_back(
-            readSceneData(scene, resourceScenes, sceneSettingsData, projectData, err));
+        out->scenes.emplace_back(
+            readSceneData(scene, resourceScenes, *sceneSettingsData, projectData, err));
 
-        const auto r = out.nameIndexMap.try_emplace(scene.name, sceneIndex);
+        const auto r = out->nameIndexMap.try_emplace(scene.name, sceneIndex);
         if (r.second == false) {
             err.addError(std::make_unique<ListItemError>(&scene, "Duplicate scene name detected: ", scene.name));
-            out.valid = false;
+            out->valid = false;
         }
     }
 
-    out.valid &= err.errorCount() == oldErrorCount;
+    out->valid &= err.errorCount() == oldErrorCount;
 
-    if (out.valid == false) {
+    if (out->valid == false) {
         return out;
     }
 
     // Order the scenes by vram usage in descending order.
     // This will increase the probability of scene layout reuse.
     // Using stable_sort to ensure layout order is the same on different compilers/systems.
-    std::vector<unsigned> sortedSceneIndexes(out.scenes.size());
+    std::vector<unsigned> sortedSceneIndexes(out->scenes.size());
     std::iota(sortedSceneIndexes.begin(), sortedSceneIndexes.end(), 0);
     std::stable_sort(sortedSceneIndexes.begin(), sortedSceneIndexes.end(),
-                     [&](const unsigned a, const unsigned b) { return out.scenes.at(a).vramUsed > out.scenes.at(b).vramUsed; });
+                     [&](const unsigned a, const unsigned b) { return out->scenes.at(a).vramUsed > out->scenes.at(b).vramUsed; });
 
     if (sortedSceneIndexes.size() >= 2) {
         // Confirm we are sorting in the right direction
-        assert(out.scenes.at(sortedSceneIndexes.front()).vramUsed >= out.scenes.at(sortedSceneIndexes.back()).vramUsed);
+        assert(out->scenes.at(sortedSceneIndexes.front()).vramUsed >= out->scenes.at(sortedSceneIndexes.back()).vramUsed);
     }
 
     for (unsigned sceneIndex : sortedSceneIndexes) {
-        auto& scene = out.scenes.at(sceneIndex);
+        auto& scene = out->scenes.at(sceneIndex);
         const auto& sc = scene.layers;
 
-        scene.vramLayout = out.sceneLayouts.findOrAdd({ sc.at(0), sc.at(1), sc.at(2), sc.at(3) });
+        scene.vramLayout = out->sceneLayouts.findOrAdd({ sc.at(0), sc.at(1), sc.at(2), sc.at(3) });
         if (!scene.vramLayout) {
             const SceneInput& sceneInput = resourceScenes.scenes.at(sceneIndex);
             err.addError(std::make_unique<ListItemError>(&sceneInput, "Scene", sceneInput.name, ": Cannot generate VRAM layout"));
@@ -602,9 +607,9 @@ CompiledScenesData compileScenesData(const ResourceScenes& resourceScenes,
             }
 
             const unsigned dataOffset = sceneIndex * SCENE_DATA_ENTRY_SIZE;
-            assert(dataOffset + SCENE_DATA_ENTRY_SIZE <= out.sceneSnesData.size());
+            assert(dataOffset + SCENE_DATA_ENTRY_SIZE <= out->sceneSnesData.size());
 
-            const auto sDataStart = out.sceneSnesData.begin() + dataOffset;
+            const auto sDataStart = out->sceneSnesData.begin() + dataOffset;
             auto sDataIt = sDataStart;
 
             // Must update CompiledScenesData::SCENE_FORMAT_VERSION if data format changes
@@ -618,13 +623,13 @@ CompiledScenesData compileScenesData(const ResourceScenes& resourceScenes,
         }
 
         if (scene.valid == false) {
-            out.valid = false;
+            out->valid = false;
         }
     }
 
-    out.valid &= err.errorCount() == oldErrorCount;
+    out->valid &= err.errorCount() == oldErrorCount;
 
-    assert(out.scenes.size() * SCENE_DATA_ENTRY_SIZE == out.sceneSnesData.size());
+    assert(out->scenes.size() * SCENE_DATA_ENTRY_SIZE == out->sceneSnesData.size());
 
     return out;
 }
@@ -633,5 +638,6 @@ const std::string SceneSettingsData::DATA_LABEL("Project.SceneSettingsData");
 const std::string SceneSettingsData::FUNCTION_TABLE_LABEL("Project.SceneSettingsFunctionTable");
 const std::string SceneLayoutsData::DATA_LABEL("Project.SceneLayoutData");
 const std::string CompiledScenesData::DATA_LABEL("Project.SceneData");
+
 }
 }

@@ -58,54 +58,11 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     writeData(msData.paletteData);
 }
 
-static Entity::CompiledEntityRomData compileEntityRomData(const ProjectFile& input, std::ostream& errorStream)
-{
-    ErrorList err;
-    auto out = Entity::compileEntityRomData(input.entityRomData, input, err);
-
-    if (err.hasError()) {
-        errorStream << "Entity Rom Data:\n";
-        err.printIndented(errorStream);
-        out.valid = false;
-    }
-
-    return out;
-}
-
 static void writeEntityRomData(RomDataWriter& writer,
                                const Entity::CompiledEntityRomData& entityData)
 {
     writer.addNamedData(entityData.ENTITY_INDEXES_LABEL, entityData.entityIndexes);
     writer.addNamedData(entityData.PROJECTILE_INDEXES_LABEL, entityData.projectileIndexes);
-}
-
-static Resources::SceneSettingsData compileSceneSettingsData(const ProjectFile& input, std::ostream& errorStream)
-{
-    ErrorList err;
-    auto out = Resources::compileSceneSettingsData(input.resourceScenes.settings, err);
-
-    if (err.hasError()) {
-        errorStream << "Scene Settings Data:\n";
-        err.printIndented(errorStream);
-        out.valid = false;
-    }
-
-    return out;
-}
-
-static Resources::CompiledScenesData compileSceneData(const ProjectFile& input, const Resources::SceneSettingsData& settingsData, const ProjectData& projectData,
-                                                      std::ostream& errorStream)
-{
-    ErrorList err;
-    auto out = Resources::compileScenesData(input.resourceScenes, settingsData, projectData, err);
-
-    if (err.hasError()) {
-        errorStream << "Scene Data:\n";
-        err.printIndented(errorStream);
-        out.valid = false;
-    }
-
-    return out;
 }
 
 static void writeSceneData(RomDataWriter& writer,
@@ -168,16 +125,24 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         }
     };
 
+    auto compileFunction = [&](auto compile_fn, const char* typeName) {
+        ErrorList errorList;
+        valid &= std::invoke(compile_fn, projectData, errorList);
+        if (!errorList.empty()) {
+            errorStream << "Cannot compile " << typeName << "`:\n";
+            errorList.printIndented(errorStream);
+            valid &= errorList.hasError();
+        }
+    };
+
     // MetaSprite data MUST be first.
     auto metaSpriteData = MetaSprite::Compiler::compileMetaSprites(input, errorStream);
     if (metaSpriteData == nullptr) {
         return nullptr;
     }
 
-    const auto entityData = compileEntityRomData(input, errorStream);
-    if (entityData.valid == false) {
-        return nullptr;
-    }
+    compileFunction(&ProjectData::compileEntityRomData, "Entity ROM Data");
+    // no !valid test needed, unused by resources subsystem (only used in rooms)
 
     compileList(input.palettes, &ProjectData::compilePalette, "Palette");
     if (!valid) {
@@ -192,12 +157,12 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         return nullptr;
     }
 
-    const auto sceneSettingsData = compileSceneSettingsData(input, errorStream);
-    if (entityData.valid == false) {
+    compileFunction(&ProjectData::compileSceneSettings, "Scene Settings");
+    if (!valid) {
         return nullptr;
     }
-    const auto sceneData = compileSceneData(input, sceneSettingsData, projectData, errorStream);
-    if (entityData.valid == false) {
+    compileFunction(&ProjectData::compileScenes, "Scenes");
+    if (!valid) {
         return nullptr;
     }
 
@@ -215,8 +180,9 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
 
     // must write meta sprite data first
     writeMetaSpriteData(writer, *metaSpriteData);
-    writeEntityRomData(writer, entityData);
-    writeSceneData(writer, sceneSettingsData, sceneData);
+    writeEntityRomData(writer, *projectData.entityRomData());
+    writeSceneData(writer, *projectData.sceneSettings(), *projectData.scenes());
+
     writeData(PALETTE, projectData.palettes());
     writeData(BACKGROUND_IMAGE, projectData.backgroundImages());
     writeData(METATILE_TILESET, projectData.metaTileTilesets());
@@ -226,11 +192,11 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
 
     writer.writeIncData(ret->incData, relativeBinFilename);
     metaSpriteData->writeToIncFile(ret->incData);
-    ret->incData << entityData.entries;
+    ret->incData << projectData.entityRomData()->entries;
 
     MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);
     MetaSprite::Compiler::writeExportOrderReferences(input, ret->incData);
-    ret->incData << entityData.defines;
+    ret->incData << projectData.entityRomData()->defines;
 
     // changes ROM BANK to code()
     MetaSprite::Compiler::writeActionPointFunctionTables(input.actionPointFunctions, ret->incData);

@@ -9,7 +9,7 @@
 #include "gui-qt/project.h"
 #include "gui-qt/resources/scene-settings/resourceitem.h"
 #include "gui-qt/staticresourcelist.h"
-#include "models/project/project.h"
+#include "models/project/project-data.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources::Scenes;
@@ -34,23 +34,5 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
 
 bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
-    using namespace UnTech::Resources;
-
-    auto oldErrorCount = err.errorCount();
-
-    const auto* projectFile = project()->projectFile();
-    Q_ASSERT(projectFile);
-    const auto& rescourceScenes = projectFile->resourceScenes;
-    const auto& projectData = project()->projectData();
-
-    const auto& sceneSettingsData = project()->staticResources()->sceneSettings()->sceneSettingsData();
-
-    if (sceneSettingsData) {
-        _scenesData = RES::compileScenesData(rescourceScenes, *sceneSettingsData, projectData, err);
-    }
-    else {
-        _scenesData = std::nullopt;
-    }
-
-    return _scenesData && err.errorCount() == oldErrorCount;
+    return project()->projectData().compileScenes(err);
 }

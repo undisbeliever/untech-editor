@@ -11,6 +11,7 @@
 #include "gui-qt/project-settings/resourceitem.h"
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
+#include "models/project/project-data.h"
 #include "models/project/project.h"
 
 using namespace UnTech::GuiQt;
@@ -29,11 +30,21 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
     }
     setRemovable(false);
 
-    setDependencies({
-        { ResourceTypeIndex::STATIC, resourceList()->projectSettings()->name() },
-        { ResourceTypeIndex::STATIC, resourceList()->entityFunctionTables()->name() },
-        { ResourceTypeIndex::MS_FRAMESET, QString() },
-    });
+    if (entityList) {
+        setDependencies({
+            { ResourceTypeIndex::STATIC, resourceList()->projectSettings()->name() },
+            { ResourceTypeIndex::STATIC, resourceList()->entityFunctionTables()->name() },
+            { ResourceTypeIndex::STATIC, tr("Projectiles") },
+            { ResourceTypeIndex::MS_FRAMESET, QString() },
+        });
+    }
+    else {
+        setDependencies({
+            { ResourceTypeIndex::STATIC, resourceList()->projectSettings()->name() },
+            { ResourceTypeIndex::STATIC, resourceList()->entityFunctionTables()->name() },
+            { ResourceTypeIndex::MS_FRAMESET, QString() },
+        });
+    }
 
     connect(this, &AbstractResourceItem::dataChanged,
             this, &AbstractResourceItem::markUnchecked);
@@ -47,6 +58,11 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
 
 bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
+    if (_entriesList) {
+        // EntityRomData is required by the Room Subsystem
+        return project()->projectData().compileEntityRomData(err);
+    }
+
     using namespace UnTech::Entity;
 
     auto* entries = _entriesList->list();

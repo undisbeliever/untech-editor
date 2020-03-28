@@ -67,6 +67,9 @@ static bool compileExternalFileListItem(ConvertFunction convertFunction, DataSto
 
 ProjectData::ProjectData(const ProjectFile& project)
     : _project(project)
+    , _sceneSettings(nullptr)
+    , _scenes(nullptr)
+    , _entityRomData(nullptr)
 {
     _palettes.clearAllAndResize(_project.palettes.size());
     _backgroundImages.clearAllAndResize(_project.backgroundImages.size());
@@ -86,6 +89,29 @@ bool ProjectData::compileBackgroundImage(size_t index, ErrorList& err)
 bool ProjectData::compileMetaTiles(size_t index, ErrorList& err)
 {
     return compileExternalFileListItem(MetaTiles::convertTileset, _metaTileTilesets, _project.metaTileTilesets, index, err, _palettes);
+}
+
+bool ProjectData::compileSceneSettings(ErrorList& err)
+{
+    _sceneSettings = Resources::compileSceneSettingsData(_project.resourceScenes.settings, err);
+    return _sceneSettings && _sceneSettings->valid;
+}
+
+bool ProjectData::compileScenes(ErrorList& err)
+{
+    if (_sceneSettings && _sceneSettings->valid) {
+        _scenes = Resources::compileScenesData(_project.resourceScenes, *this, err);
+    }
+    else {
+        _scenes = nullptr;
+    }
+    return _scenes && _scenes->valid;
+}
+
+bool ProjectData::compileEntityRomData(ErrorList& err)
+{
+    _entityRomData = Entity::compileEntityRomData(_project.entityRomData, _project, err);
+    return _entityRomData != nullptr;
 }
 
 }

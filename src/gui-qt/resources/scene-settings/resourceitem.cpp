@@ -7,7 +7,7 @@
 #include "resourceitem.h"
 #include "accessors.h"
 #include "gui-qt/project.h"
-#include "models/project/project.h"
+#include "models/project/project-data.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Resources::SceneSettings;
@@ -25,15 +25,5 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
 
 bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
-    using namespace UnTech::Resources;
-
-    const auto* projectFile = project()->projectFile();
-    Q_ASSERT(projectFile);
-    const auto& sceneSettings = projectFile->resourceScenes.settings;
-
-    auto oldErrorCount = err.errorCount();
-
-    _sceneSettingsData = RES::compileSceneSettingsData(sceneSettings, err);
-
-    return _sceneSettingsData && err.errorCount() == oldErrorCount;
+    return project()->projectData().compileSceneSettings(err);
 }

@@ -18,9 +18,14 @@ class ErrorList;
 namespace Resources {
 struct PaletteData;
 struct BackgroundImageData;
+struct SceneSettingsData;
+struct CompiledScenesData;
 }
 namespace MetaTiles {
 struct MetaTileTilesetData;
+}
+namespace Entity {
+struct CompiledEntityRomData;
 }
 
 namespace GuiQt {
@@ -128,6 +133,10 @@ class ProjectData {
     DataStore<Resources::BackgroundImageData> _backgroundImages;
     DataStore<MetaTiles::MetaTileTilesetData> _metaTileTilesets;
 
+    std::unique_ptr<const Resources::SceneSettingsData> _sceneSettings;
+    std::unique_ptr<const Resources::CompiledScenesData> _scenes;
+    std::unique_ptr<const Entity::CompiledEntityRomData> _entityRomData;
+
 public:
     ProjectData(const ProjectFile& project);
 
@@ -138,9 +147,19 @@ public:
     const DataStore<Resources::BackgroundImageData>& backgroundImages() const { return _backgroundImages; }
     const DataStore<MetaTiles::MetaTileTilesetData>& metaTileTilesets() const { return _metaTileTilesets; }
 
+    const optional<const Resources::SceneSettingsData&> sceneSettings() const { return _sceneSettings; }
+    const optional<const Resources::CompiledScenesData&> scenes() const { return _scenes; }
+
+    const optional<const Entity::CompiledEntityRomData&> entityRomData() const { return _entityRomData; }
+
     bool compilePalette(size_t index, ErrorList& err);
     bool compileBackgroundImage(size_t index, ErrorList& err);
     bool compileMetaTiles(size_t index, ErrorList& err);
+
+    bool compileSceneSettings(ErrorList& err);
+    bool compileScenes(ErrorList& err);
+
+    bool compileEntityRomData(ErrorList& err);
 };
 
 }

@@ -733,11 +733,12 @@ static unsigned processEntries(std::ostream& out, std::vector<uint8_t>& indexes,
 const std::string CompiledEntityRomData::ENTITY_INDEXES_LABEL("Project.EntityRomDataList");
 const std::string CompiledEntityRomData::PROJECTILE_INDEXES_LABEL("Project.ProjectileRomDataList");
 
-CompiledEntityRomData compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& project, ErrorList& err)
+std::unique_ptr<const CompiledEntityRomData>
+compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& project, ErrorList& err)
 {
-    CompiledEntityRomData ret;
+    const auto oldErrorCount = err.errorCount();
 
-    auto oldErrorCount = err.errorCount();
+    auto ret = std::make_unique<CompiledEntityRomData>();
 
     data.validateListIds(err);
 
@@ -751,9 +752,9 @@ CompiledEntityRomData compileEntityRomData(const EntityRomData& data, const Proj
         e.validate(project, ftMap, err);
     }
 
-    ret.valid = oldErrorCount == err.errorCount();
-    if (!ret.valid) {
-        return ret;
+    ret->valid = oldErrorCount == err.errorCount();
+    if (!ret->valid) {
+        return nullptr;
     }
 
     std::stringstream defines;
@@ -766,12 +767,12 @@ CompiledEntityRomData compileEntityRomData(const EntityRomData& data, const Proj
     writeIncFile_FunctionTables(defines, data.functionTables);
 
     entries << "Project.EntityRomData:\n";
-    unsigned startingIndex = processEntries(entries, ret.entityIndexes, data.entities, 0, ftMap, project);
-    processEntries(entries, ret.projectileIndexes, data.projectiles, startingIndex, ftMap, project);
+    unsigned startingIndex = processEntries(entries, ret->entityIndexes, data.entities, 0, ftMap, project);
+    processEntries(entries, ret->projectileIndexes, data.projectiles, startingIndex, ftMap, project);
     entries << '\n';
 
-    ret.defines = defines.str();
-    ret.entries = entries.str();
+    ret->defines = defines.str();
+    ret->entries = entries.str();
 
     return ret;
 }

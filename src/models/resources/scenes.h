@@ -191,14 +191,12 @@ struct CompiledScenesData {
 
 void writeSceneIncData(const ResourceScenes& resourceScenes, std::ostream& out);
 
-SceneSettingsData
-compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings,
-                         ErrorList& err);
+// NOTE: May return an invalid SceneSettingsData
+std::unique_ptr<const SceneSettingsData>
+compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorList& err);
 
-CompiledScenesData
-compileScenesData(const ResourceScenes& resourceScenes,
-                  const SceneSettingsData& sceneSettingsData,
-                  const Project::ProjectData& projectData,
-                  ErrorList& err);
+// NOTE: May return an invalid CompiledScenesData
+std::unique_ptr<const CompiledScenesData>
+compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectData& projectData, ErrorList& err);
 }
 }
