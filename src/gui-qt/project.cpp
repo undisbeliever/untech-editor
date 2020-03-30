@@ -19,6 +19,7 @@
 #include "gui-qt/metatiles/mttileset/resourcelist.h"
 #include "gui-qt/resources/background-image/resourcelist.h"
 #include "gui-qt/resources/palette/resourcelist.h"
+#include "gui-qt/rooms/resourcelist.h"
 
 #include <QDir>
 #include <QFileInfo>
@@ -40,6 +41,7 @@ Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
     , _palettes(new Resources::Palette::ResourceList(this))
     , _backgroundImages(new Resources::BackgroundImage::ResourceList(this))
     , _mtTilesets(new MetaTiles::MtTileset::ResourceList(this))
+    , _rooms(new Rooms::ResourceList(this))
     , _resourceLists({
           _staticResources,
           _frameSetExportOrders,
@@ -47,11 +49,14 @@ Project::Project(std::unique_ptr<Project::DataT> projectFile, QString filename)
           _palettes,
           _backgroundImages,
           _mtTilesets,
+          _rooms,
       })
     , _selectedResource(nullptr)
 {
     Q_ASSERT(_projectFile);
     Q_ASSERT(_filename.isEmpty() == false);
+
+    Q_ASSERT(_resourceLists.size() == N_RESOURCE_TYPES);
 
     for (AbstractResourceList* rl : _resourceLists) {
         connect(rl, &AbstractResourceList::resourceItemCreated,
@@ -126,6 +131,9 @@ AbstractResourceList* Project::findResourceList(ResourceTypeIndex type) const
 
     case ResourceTypeIndex::BACKGROUND_IMAGE:
         return _backgroundImages;
+
+    case ResourceTypeIndex::ROOM:
+        return _rooms;
     }
 
     qFatal("Unknown ResourceTypeIndex type");

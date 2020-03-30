@@ -16,6 +16,7 @@ void ProjectFile::loadAllFiles()
 {
     metaTileTilesets.loadAllFiles();
     frameSetExportOrders.loadAllFiles();
+    rooms.loadAllFiles();
 
     for (auto& fs : frameSets) {
         fs.loadFile();
@@ -57,6 +58,8 @@ bool ProjectFile::validate(ErrorList& err) const
 
     valid &= MetaSprite::validateFrameSetNamesUnique(frameSets, err);
     valid &= validateFilesAndNamesUnique(frameSetExportOrders, "export order", err);
+
+    valid &= validateFilesAndNamesUnique(rooms, "Room", err);
 
     return valid;
 }

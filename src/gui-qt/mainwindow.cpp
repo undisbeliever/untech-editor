@@ -33,6 +33,7 @@
 #include "gui-qt/resources/palette/editorwidget.h"
 #include "gui-qt/resources/scene-settings/editorwidget.h"
 #include "gui-qt/resources/scenes/editorwidget.h"
+#include "gui-qt/rooms/editorwidget.h"
 
 #include <QCloseEvent>
 #include <QComboBox>
@@ -81,6 +82,7 @@ MainWindow::MainWindow(QWidget* parent)
           new MetaSprite::MetaSprite::EditorWidget(_zoomSettingsManager),
           new Resources::SceneSettings::EditorWidget(),
           new Resources::Scenes::EditorWidget(),
+          new Rooms::EditorWidget(_zoomSettingsManager),
       })
 {
     _ui->setupUi(this);

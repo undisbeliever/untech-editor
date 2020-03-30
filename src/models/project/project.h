@@ -17,6 +17,7 @@
 #include "models/resources/background-image.h"
 #include "models/resources/palette.h"
 #include "models/resources/scenes.h"
+#include "models/rooms/rooms.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -55,6 +56,8 @@ struct ProjectFile {
     std::vector<MetaSprite::FrameSetFile> frameSets;
     ExternalFileList<MetaSprite::FrameSetExportOrder> frameSetExportOrders;
 
+    ExternalFileList<Rooms::RoomInput> rooms;
+
     void loadAllFiles();
 
     bool validate(ErrorList& err) const;
@@ -70,7 +73,8 @@ struct ProjectFile {
                && metaTileTilesets == o.metaTileTilesets
                && actionPointFunctions == o.actionPointFunctions
                && frameSets == o.frameSets
-               && frameSetExportOrders == o.frameSetExportOrders;
+               && frameSetExportOrders == o.frameSetExportOrders
+               && rooms == o.rooms;
     }
     bool operator!=(const ProjectFile& o) const { return !(*this == o); }
 };

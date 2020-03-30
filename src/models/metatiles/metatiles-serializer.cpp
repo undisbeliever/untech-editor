@@ -72,7 +72,7 @@ void readEngineSettings(EngineSettings& settings, const XmlTag* tag)
     settings.maxMapSize = tag->getAttributeUnsigned("max-map-size");
 }
 
-static grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
+grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
 {
     const unsigned width = tag->getAttributeUnsigned("width", 1, MAX_GRID_WIDTH);
     const unsigned height = tag->getAttributeUnsigned("height", 1, MAX_GRID_HEIGHT);
@@ -87,7 +87,7 @@ static grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
     return grid<uint8_t>(width, height, std::move(data));
 }
 
-static void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const grid<uint8_t>& mtGrid)
+void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const grid<uint8_t>& mtGrid)
 {
     if (mtGrid.empty()) {
         return;

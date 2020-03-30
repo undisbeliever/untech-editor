@@ -86,6 +86,9 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
         else if (childTag->name == "metatile-tileset") {
             readExternalFileList(childTag.get(), project->metaTileTilesets);
         }
+        else if (childTag->name == "room-file") {
+            readExternalFileList(childTag.get(), project->rooms);
+        }
         else if (childTag->name == "entity-rom-data") {
             Entity::readEntityRomData(xml, childTag.get(), project->entityRomData);
         }
@@ -138,6 +141,7 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
     Resources::writePalettes(xml, project.palettes);
     Resources::writeBackgroundImages(xml, project.backgroundImages);
     writeExternalFileList(xml, "metatile-tileset", project.metaTileTilesets);
+    writeExternalFileList(xml, "room-file", project.rooms);
 
     Resources::writeSceneSettings(xml, project.resourceScenes.settings);
     Resources::writeScenes(xml, project.resourceScenes.scenes);

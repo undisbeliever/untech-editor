@@ -57,9 +57,7 @@ void ResourceItem::updateDependencies()
 
 void ResourceItem::saveResourceData(const std::filesystem::path& filename) const
 {
-    auto* tileset = this->tilesetInput();
-
-    if (tileset) {
+    if (auto* tileset = this->tilesetInput()) {
         MT::saveMetaTileTilesetInput(*tileset, filename);
     }
 }
@@ -77,7 +75,9 @@ bool ResourceItem::loadResourceData(ErrorList& err)
 
     try {
         tilesetItem.loadFile();
-        setName(QString::fromStdString(tilesetInput()->name));
+        Q_ASSERT(tilesetItem.value);
+
+        setName(QString::fromStdString(tilesetItem.value->name));
         updateExternalFiles();
         updateDependencies();
         return true;

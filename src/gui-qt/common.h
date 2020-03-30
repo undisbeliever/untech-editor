@@ -25,8 +25,9 @@ enum class ResourceTypeIndex {
     MS_FRAMESET,
     MS_EXPORT_ORDER,
     BACKGROUND_IMAGE,
+    ROOM,
 };
 
-constexpr unsigned N_RESOURCE_TYPES = 6;
+constexpr unsigned N_RESOURCE_TYPES = 7;
 }
 }

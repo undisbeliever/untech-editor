@@ -121,6 +121,9 @@ struct SceneData {
     std::optional<unsigned> palette;
     std::array<SceneLayerData, N_LAYERS> layers;
 
+    // Only set if scene has a metatile tileset layer
+    std::optional<unsigned> mtTileset;
+
     unsigned vramUsed;
 
     bool valid;
@@ -185,6 +188,8 @@ struct CompiledScenesData {
     std::vector<SceneData> scenes;
 
     std::unordered_map<idstring, unsigned> nameIndexMap;
+
+    optional<const SceneData&> findScene(const idstring& name) const;
 
     bool valid;
 };

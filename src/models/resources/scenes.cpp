@@ -408,6 +408,15 @@ inline void SceneLayoutsData::reserve(unsigned cap)
 // Scene
 // -----
 
+optional<const SceneData&> CompiledScenesData::findScene(const idstring& name) const
+{
+    auto it = nameIndexMap.find(name);
+    if (it == nameIndexMap.end()) {
+        return {};
+    }
+    return scenes.at(it->second);
+}
+
 static SceneLayerData getLayerSize(const unsigned layerIndex,
                                    const SceneInput& sceneInput, const SceneSettingsInput& sceneSettings,
                                    const Project::ProjectData& projectData, ErrorList& err)
@@ -521,13 +530,19 @@ static SceneData readSceneData(const SceneInput& scene, const ResourceScenes& re
         addError("Cannot find palette ", scene.palette);
     }
 
+    out.mtTileset = {};
     out.vramUsed = 0;
     for (unsigned layerId = 0; layerId < N_LAYERS; layerId++) {
         auto& layer = out.layers.at(layerId);
+        const auto& sceneLayer = sceneSettings.layerTypes.at(layerId);
 
         layer = getLayerSize(layerId, scene, sceneSettings, projectData, err);
         out.vramUsed += layer.tileSize;
         out.vramUsed += layer.tilemapSize();
+
+        if (sceneLayer == LayerType::MetaTileTileset) {
+            out.mtTileset = layer.layerIndex;
+        }
     }
 
     out.valid &= err.errorCount() == oldErrorCount;

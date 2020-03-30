@@ -44,6 +44,9 @@ namespace BackgroundImage {
 class ResourceList;
 }
 }
+namespace Rooms {
+class ResourceList;
+}
 
 class Project : public QObject {
     Q_OBJECT
@@ -76,6 +79,7 @@ public:
     Resources::Palette::ResourceList* palettes() const { return _palettes; }
     Resources::BackgroundImage::ResourceList* backgroundImages() const { return _backgroundImages; }
     MetaTiles::MtTileset::ResourceList* mtTilesets() const { return _mtTilesets; }
+    Rooms::ResourceList* rooms() const { return _rooms; }
 
     void setSelectedResource(AbstractResourceItem* item);
     AbstractResourceItem* selectedResource() const { return _selectedResource; }
@@ -117,6 +121,7 @@ private:
     Resources::Palette::ResourceList* const _palettes;
     Resources::BackgroundImage::ResourceList* const _backgroundImages;
     MetaTiles::MtTileset::ResourceList* const _mtTilesets;
+    Rooms::ResourceList* const _rooms;
 
     const QList<AbstractResourceList*> _resourceLists;
 
