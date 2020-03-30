@@ -16,7 +16,7 @@ using namespace UnTech::GuiQt::Resources::Scenes;
 
 ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
     : AbstractInternalResourceItem(list, index)
-    , _sceneSettingsList(new SceneList(this))
+    , _sceneList(new SceneList(this))
 {
     setName(tr("Scenes"));
     setRemovable(false);

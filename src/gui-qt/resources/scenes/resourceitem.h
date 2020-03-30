@@ -31,13 +31,13 @@ public:
 
     StaticResourceList* resourceList() const { return static_cast<StaticResourceList*>(_list); }
 
-    SceneList* sceneSettingsList() const { return _sceneSettingsList; }
+    SceneList* sceneList() const { return _sceneList; }
 
 protected:
     virtual bool compileResource(ErrorList& err) final;
 
 private:
-    SceneList* const _sceneSettingsList;
+    SceneList* const _sceneList;
 };
 
 }

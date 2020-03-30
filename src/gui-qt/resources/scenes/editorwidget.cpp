@@ -59,7 +59,7 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
 
     _item = item;
 
-    auto* ftList = item ? item->sceneSettingsList() : nullptr;
+    auto* ftList = item ? item->sceneList() : nullptr;
     _manager->setSceneList(ftList);
 
     setEnabled(item != nullptr);
@@ -74,6 +74,6 @@ void EditorWidget::onErrorDoubleClicked(const ErrorListItem& error)
     }
 
     if (const auto* e = dynamic_cast<const ListItemError*>(error.specialized.get())) {
-        _item->sceneSettingsList()->setSelected_Ptr(e->ptr());
+        _item->sceneList()->setSelected_Ptr(e->ptr());
     }
 }
