@@ -45,6 +45,7 @@ void MtTilesetPropertyManager::setResourceItem(AbstractResourceItem* abstractIte
     }
     if (_tileset) {
         _tileset->disconnect(this);
+        _tileset->scratchpadGrid()->disconnect(this);
     }
     _tileset = item;
 
@@ -54,6 +55,10 @@ void MtTilesetPropertyManager::setResourceItem(AbstractResourceItem* abstractIte
         setEnabled(_tileset->tilesetInput() != nullptr);
 
         connect(_tileset, &ResourceItem::dataChanged,
+                this, &MtTilesetPropertyManager::dataChanged);
+        connect(_tileset, &ResourceItem::resourceComplied,
+                this, &MtTilesetPropertyManager::dataChanged);
+        connect(_tileset->scratchpadGrid(), &MtTilesetScratchpadGrid::gridResized,
                 this, &MtTilesetPropertyManager::dataChanged);
     }
 
