@@ -148,6 +148,16 @@ QVariantList enumComboDataList(const EnumMap<EnumT>& enumMap)
     return vl;
 }
 
+inline QPoint fromPoint(const point& p)
+{
+    return QPoint(p.x, p.y);
+}
+
+inline point toPoint(const QPoint& p)
+{
+    return point(p.x(), p.y());
+}
+
 inline QPoint fromUpoint(const upoint& p)
 {
     return QPoint(p.x, p.y);

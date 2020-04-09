@@ -22,6 +22,8 @@ ResourceItem::ResourceItem(ResourceList* parent, size_t index)
     : AbstractExternalResourceItem(parent, index)
     , _rooms(parent->rooms())
     , _mapGrid(new MapGrid(this))
+    , _entityGroups(new EntityGroupList(this))
+    , _entityEntries(new EntityEntriesList(this))
 {
     Q_ASSERT(index < _rooms.size());
 

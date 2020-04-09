@@ -28,24 +28,40 @@ class NamedListDock;
 class MultipleSelectionTableView;
 class MultipleSelectionTableDock;
 
-template <class T, class U>
+template <class, class>
 class ListUndoHelper;
 
-template <class T>
+template <class>
 class ListWithNoSelectionUndoHelper;
-template <class T>
+template <class>
 class ListAndSelectionUndoHelper;
-template <class T>
+template <class>
 class ListAndMultipleSelectionUndoHelper;
 
-template <class T>
+template <class>
 class ResourceItemUndoHelper;
 
-template <class T>
+template <class>
 class ProjectSettingsUndoHelper;
 
-template <class T>
+template <class>
 class GridUndoHelper;
+
+template <class, class>
+class VectorSingleSelectionAccessor;
+
+template <class, class>
+class NamedListAccessor;
+
+template <class, class>
+class ChildVectorAccessor;
+
+template <class, class>
+class ChildVectorMultipleSelectionAccessor;
+
+template <class, class, class>
+class NestedNlvMulitpleSelectionAccessor;
+
 }
 }
 }

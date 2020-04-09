@@ -35,6 +35,7 @@ class ResourceItem;
 class RoomPropertyManager;
 class RoomGraphicsScene;
 class EditableRoomGraphicsScene;
+class RoomEntitiesDock;
 
 class EditorWidget : public AbstractEditorWidget {
     Q_OBJECT
@@ -66,6 +67,8 @@ private:
     RoomGraphicsScene* const _minimapRoomScene;
     MetaTiles::MtTileset::MtTilesetGraphicsScene* const _tilesetScene;
     MetaTiles::MtTileset::MtScratchpadGraphicsScene* const _scratchpadScene;
+
+    RoomEntitiesDock* const _roomEntitiesDock;
 
     RoomPropertyManager* const _propertyManager;
     Entity::EntityRomEntries::EntitiesWithIconsModel* const _entitiesWithIconsModel;

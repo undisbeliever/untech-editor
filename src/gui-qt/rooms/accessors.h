@@ -8,6 +8,7 @@
 
 #include "resourceitem.h"
 #include "gui-qt/accessor/abstractaccessors.h"
+#include "gui-qt/accessor/nestedlistaccessors.h"
 #include "models/common/grid.h"
 #include <QObject>
 #include <cstdint>
@@ -16,6 +17,8 @@
 namespace UnTech {
 namespace GuiQt {
 namespace Rooms {
+
+namespace RM = UnTech::Rooms;
 
 class MapGrid final : public Accessor::AbstractGridAccessor {
     Q_OBJECT
@@ -51,6 +54,39 @@ protected:
     }
 
     ArgsT selectedGridTuple() const { return std::make_tuple(); }
+};
+
+class EntityGroupList final : public Accessor::NamedListAccessor<RM::EntityGroup, ResourceItem> {
+    Q_OBJECT
+
+public:
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<EntityGroupList>;
+
+public:
+    EntityGroupList(ResourceItem* resourceItem);
+    ~EntityGroupList() = default;
+
+    virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
+};
+
+class EntityEntriesList final : public Accessor::NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem> {
+    Q_OBJECT
+
+    using UndoHelper = Accessor::NestedListAndMultipleSelectionUndoHelper<EntityEntriesList>;
+
+public:
+    EntityEntriesList(ResourceItem* item);
+
+    virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
+
+    bool edit_setName(index_type groupIndex, index_type entryIndex, const idstring& name);
+    bool edit_setEntityId(index_type groupIndex, index_type entryIndex, const idstring& entityId);
+    bool edit_setPosition(index_type groupIndex, index_type entryIndex, const point& position);
+
+private slots:
+    void onSelectedIndexesChanged();
 };
 
 }

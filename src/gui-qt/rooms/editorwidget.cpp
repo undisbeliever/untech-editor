@@ -7,6 +7,7 @@
 #include "editorwidget.h"
 #include "managers.h"
 #include "resourceitem.h"
+#include "roomentitiesdock.h"
 #include "roomgraphicsscenes.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/common/properties/propertylistview.h"
@@ -40,6 +41,7 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     , _minimapRoomScene(new RoomGraphicsScene(_style, _renderer, this))
     , _tilesetScene(new MetaTiles::MtTileset::MtTilesetGraphicsScene(_style, _renderer, this))
     , _scratchpadScene(new MetaTiles::MtTileset::MtScratchpadGraphicsScene(_style, _renderer, this))
+    , _roomEntitiesDock(new RoomEntitiesDock(this))
     , _propertyManager(new RoomPropertyManager(this))
     , _entitiesWithIconsModel(new Entity::EntityRomEntries::EntitiesWithIconsModel(this))
     , _resourceItem(nullptr)
@@ -80,16 +82,20 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     entitiesListView->setDragEnabled(true);
     auto* entitiesListDock = createDockWidget(entitiesListView, tr("Entities"), QStringLiteral("EntitiesList"));
 
+    // Simplifies MainWindow state
+    _roomEntitiesDock->setObjectName(QStringLiteral("RoomEntities"));
+
     this->addDockWidget(Qt::RightDockWidgetArea, propertyDock);
     this->addDockWidget(Qt::RightDockWidgetArea, tilesetDock);
     this->addDockWidget(Qt::RightDockWidgetArea, minimapDock);
     this->addDockWidget(Qt::RightDockWidgetArea, scratchpadDock);
     this->addDockWidget(Qt::RightDockWidgetArea, entitiesListDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, _roomEntitiesDock);
 
     this->tabifyDockWidget(minimapDock, scratchpadDock);
     scratchpadDock->raise();
 
-    this->resizeDocks({ propertyDock, tilesetDock, scratchpadDock, entitiesListDock }, { 100, 200, 200, 100 }, Qt::Vertical);
+    this->resizeDocks({ propertyDock, tilesetDock, scratchpadDock, entitiesListDock, _roomEntitiesDock }, { 100, 200, 200, 100, 100 }, Qt::Vertical);
 
     setEnabled(false);
 
@@ -138,6 +144,7 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     _propertyManager->setResourceItem(item);
     _editableRoomScene->setResourceItem(item);
     _minimapRoomScene->setResourceItem(item);
+    _roomEntitiesDock->setResourceItem(item);
 
     auto* entities = _resourceItem ? _resourceItem->project()->staticResources()->entities() : nullptr;
     _entitiesWithIconsModel->setResourceItem(entities);

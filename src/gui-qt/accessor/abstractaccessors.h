@@ -31,6 +31,8 @@ class ListAndSelectionUndoHelper;
 template <class T>
 class ListAndMultipleSelectionUndoHelper;
 
+struct ListActionStatus;
+
 class AbstractListAccessor : public QObject {
     Q_OBJECT
 
@@ -85,6 +87,8 @@ public:
     inline bool isSelectedIndexValid() const { return _selectedIndex < size(); }
     void setSelectedIndex(size_t index);
     void unselectItem() { setSelectedIndex(INT_MAX); }
+
+    ListActionStatus listActionStatus() const;
 
     bool cloneSelectedItem();
     bool removeSelectedItem();

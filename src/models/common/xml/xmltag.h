@@ -286,6 +286,14 @@ struct XmlTag {
         return v.value();
     }
 
+    inline point getAttributePoint(const std::string& xName = "x", const std::string& yName = "y") const
+    {
+        unsigned x = getAttributeInteger(xName);
+        unsigned y = getAttributeInteger(yName);
+
+        return point(x, y);
+    }
+
     inline upoint getAttributeUpoint(const std::string& xName = "x", const std::string& yName = "y") const
     {
         unsigned x = getAttributeUnsigned(xName);

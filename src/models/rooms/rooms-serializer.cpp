@@ -26,6 +26,47 @@ namespace UnTech::Rooms {
 
 const std::string RoomInput::FILE_EXTENSION = "utroom";
 
+static void readEntityGroup(XmlReader& xml, const XmlTag* tag, NamedList<EntityGroup>& entityGroups)
+{
+    assert(tag->name == "entity-group");
+
+    entityGroups.insert_back();
+    auto& eg = entityGroups.back();
+
+    eg.name = tag->getAttributeOptionalId("name");
+
+    while (auto childTag = xml.parseTag()) {
+        if (childTag->name == "entity") {
+            auto& e = eg.entities.emplace_back();
+            e.name = childTag->getAttributeOptionalId("name");
+            e.entityId = childTag->getAttributeOptionalId("entity");
+            e.position = childTag->getAttributePoint();
+        }
+        else {
+            throw unknown_tag_error(*childTag);
+        }
+        xml.parseCloseTag();
+    }
+}
+
+static void writeEntityGroup(XmlWriter& xml, const EntityGroup& entityGroup)
+{
+    xml.writeTag("entity-group");
+    xml.writeTagAttribute("name", entityGroup.name);
+
+    for (const auto& e : entityGroup.entities) {
+        xml.writeTag("entity");
+
+        xml.writeTagAttributeOptional("name", e.name);
+        xml.writeTagAttribute("entity", e.entityId);
+        xml.writeTagAttributePoint(e.position);
+
+        xml.writeCloseTag();
+    }
+
+    xml.writeCloseTag();
+}
+
 static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* tag)
 {
     if (tag == nullptr || tag->name != "room") {
@@ -40,6 +81,9 @@ static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* ta
     while (auto childTag = xml.parseTag()) {
         if (childTag->name == "map") {
             roomInput->map = MetaTiles::readMetaTileGrid(xml, childTag.get());
+        }
+        else if (childTag->name == "entity-group") {
+            readEntityGroup(xml, childTag.get(), roomInput->entityGroups);
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -59,6 +103,10 @@ static void writeRoomInput(XmlWriter& xml, const RoomInput& input)
     xml.writeTagAttributeOptional("scene", input.scene);
 
     MetaTiles::writeMetaTileGrid(xml, "map", input.map);
+
+    for (auto& eg : input.entityGroups) {
+        writeEntityGroup(xml, eg);
+    }
 
     xml.writeCloseTag();
 }

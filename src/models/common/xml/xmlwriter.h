@@ -88,6 +88,12 @@ public:
         writeTagAttribute(name, enumMap.nameOf(value));
     }
 
+    inline void writeTagAttributePoint(const point& p, const std::string& xName = "x", const std::string& yName = "y")
+    {
+        writeTagAttribute(xName, p.x);
+        writeTagAttribute(yName, p.y);
+    }
+
     inline void writeTagAttributeUpoint(const upoint& p, const std::string& xName = "x", const std::string& yName = "y")
     {
         writeTagAttribute(xName, p.x);

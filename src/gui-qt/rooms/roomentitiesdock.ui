@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UnTech::GuiQt::Rooms::RoomEntitiesDock</class>
+ <widget class="QDockWidget" name="UnTech::GuiQt::Rooms::RoomEntitiesDock">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>264</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="features">
+   <set>QDockWidget::DockWidgetMovable</set>
+  </property>
+  <property name="windowTitle">
+   <string>Room Entities</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTreeView" name="treeView">
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QToolBar" name="toolBar">
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="floatable">
+       <bool>false</bool>
+      </property>
+      <addaction name="action_AddEntityGroup"/>
+      <addaction name="action_AddEntityEntry"/>
+      <addaction name="action_RaiseToTop"/>
+      <addaction name="action_Raise"/>
+      <addaction name="action_Lower"/>
+      <addaction name="action_LowerToBottom"/>
+      <addaction name="action_CloneSelected"/>
+      <addaction name="action_RemoveSelected"/>
+     </widget>
+    </item>
+   </layout>
+   <action name="action_AddEntityGroup">
+    <property name="icon">
+     <iconset resource="../../../resources/resources.qrc">
+      <normaloff>:/icons/add.svg</normaloff>:/icons/add.svg</iconset>
+    </property>
+    <property name="text">
+     <string>Add Entity Group</string>
+    </property>
+   </action>
+   <action name="action_AddEntityEntry">
+    <property name="icon">
+     <iconset resource="../../../resources/resources.qrc">
+      <normaloff>:/icons/add.svg</normaloff>:/icons/add.svg</iconset>
+    </property>
+    <property name="text">
+     <string>Add Entity</string>
+    </property>
+   </action>
+   <action name="action_CloneSelected">
+    <property name="icon">
+     <iconset resource="../../../resources/resources.qrc">
+      <normaloff>:/icons/clone.svg</normaloff>:/icons/clone.svg</iconset>
+    </property>
+    <property name="text">
+     <string>Clone Selected</string>
+    </property>
+    <property name="toolTip">
+     <string>Clone Selected</string>
+    </property>
+    <property name="shortcut">
+     <string>Ctrl+D</string>
+    </property>
+   </action>
+   <action name="action_RemoveSelected">
+    <property name="icon">
+     <iconset resource="../../../resources/resources.qrc">
+      <normaloff>:/icons/remove.svg</normaloff>:/icons/remove.svg</iconset>
+    </property>
+    <property name="text">
+     <string>Remove Selected</string>
+    </property>
+    <property name="toolTip">
+     <string>Remove Selected</string>
+    </property>
+    <property name="shortcut">
+     <string>Del</string>
+    </property>
+   </action>
+   <action name="action_RaiseToTop">
+    <property name="icon">
+     <iconset resource="../../../resources/resources.qrc">
+      <normaloff>:/icons/raise-to-top.svg</normaloff>:/icons/raise-to-top.svg</iconset>
+    </property>
+    <property name="text">
+     <string>Raise To Top</string>
+    </property>
+    <property name="toolTip">
+     <string>Raise Selected To Top</string>
+    </property>
+    <property name="shortcut">
+     <string>Shift+PgUp</string>
+    </property>
+   </action>
+   <action name="action_Raise">
+    <property name="icon">
+     <iconset resource="../../../resources/resources.qrc">
+      <normaloff>:/icons/raise.svg</normaloff>:/icons/raise.svg</iconset>
+    </property>
+    <property name="text">
+     <string>Raise</string>
+    </property>
+    <property name="toolTip">
+     <string>Raise Selected</string>
+    </property>
+    <property name="shortcut">
+     <string>PgUp</string>
+    </property>
+   </action>
+   <action name="action_Lower">
+    <property name="icon">
+     <iconset resource="../../../resources/resources.qrc">
+      <normaloff>:/icons/lower.svg</normaloff>:/icons/lower.svg</iconset>
+    </property>
+    <property name="text">
+     <string>Lower</string>
+    </property>
+    <property name="toolTip">
+     <string>Lower Selected</string>
+    </property>
+    <property name="shortcut">
+     <string>PgDown</string>
+    </property>
+   </action>
+   <action name="action_LowerToBottom">
+    <property name="icon">
+     <iconset resource="../../../resources/resources.qrc">
+      <normaloff>:/icons/lower-to-bottom.svg</normaloff>:/icons/lower-to-bottom.svg</iconset>
+    </property>
+    <property name="text">
+     <string>Lower To Bottom</string>
+    </property>
+    <property name="toolTip">
+     <string>Lower Selected</string>
+    </property>
+    <property name="shortcut">
+     <string>Shift+PgDown</string>
+    </property>
+   </action>
+  </widget>
+  <action name="action_SelectAll">
+   <property name="text">
+    <string>Select All</string>
+   </property>
+   <property name="toolTip">
+    <string>Select All</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../../../resources/resources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

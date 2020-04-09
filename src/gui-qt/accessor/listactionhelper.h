@@ -20,6 +20,8 @@ struct ListActionStatus {
     bool canClone = false;
     bool canRemove = false;
 
+    // ::TODO add canRaiseToTop/canLowerToBottom::
+
     bool canRaise = false;
     bool canLower = false;
 };

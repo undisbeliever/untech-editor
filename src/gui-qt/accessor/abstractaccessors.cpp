@@ -5,6 +5,7 @@
  */
 
 #include "abstractaccessors.h"
+#include "listactionhelper.h"
 #include "gui-qt/abstractresourceitem.h"
 #include "models/common/namedlist.h"
 
@@ -46,6 +47,28 @@ void AbstractListSingleSelectionAccessor::setSelectedIndex(size_t index)
         _selectedIndex = index;
         emit selectedIndexChanged();
     }
+}
+
+ListActionStatus AbstractListSingleSelectionAccessor::listActionStatus() const
+{
+    if (listExists() == false) {
+        return ListActionStatus();
+    }
+
+    const size_t list_size = size();
+    const size_t index = selectedIndex();
+
+    ListActionStatus ret;
+    ret.selectionValid = index < list_size;
+
+    ret.canAdd = list_size < maxSize();
+    ret.canClone = ret.selectionValid && ret.canAdd;
+    ret.canRemove = ret.selectionValid;
+
+    ret.canRaise = ret.selectionValid && index != 0;
+    ret.canLower = ret.selectionValid && index + 1 < list_size;
+
+    return ret;
 }
 
 bool AbstractListSingleSelectionAccessor::cloneSelectedItem()

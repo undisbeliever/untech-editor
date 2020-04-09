@@ -5,8 +5,13 @@
  */
 
 #include "accessors.h"
+#include "gui-qt/accessor/abstractaccessors.hpp"
 #include "gui-qt/accessor/gridundohelper.h"
+#include "gui-qt/accessor/nestedlistaccessors.hpp"
+#include "gui-qt/project.h"
 
+using namespace UnTech;
+using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::Rooms;
 
 MapGrid::MapGrid(ResourceItem* room)
@@ -41,3 +46,138 @@ bool MapGrid::editGrid_placeTiles(const point& location, const grid<uint16_t>& t
         location, tiles, text, firstClick,
         [&](const uint16_t& t) -> optional<uint8_t> { return t < MAX ? t : optional<uint8_t>{}; });
 }
+
+template <>
+const NamedList<RM::EntityGroup>* NamedListAccessor<RM::EntityGroup, ResourceItem>::list() const
+{
+    if (auto ri = resourceItem()->roomInput()) {
+        return &ri->entityGroups;
+    }
+    else {
+        return nullptr;
+    }
+}
+
+template <>
+NamedList<RM::EntityGroup>* NamedListAccessor<RM::EntityGroup, ResourceItem>::getList()
+{
+    if (auto ri = resourceItem()->dataEditable()) {
+        return &ri->entityGroups;
+    }
+    else {
+        return nullptr;
+    }
+}
+
+EntityGroupList::EntityGroupList(ResourceItem* resourceItem)
+    : NamedListAccessor(resourceItem, RM::MAX_ENTITY_GROUPS)
+{
+}
+
+QString EntityGroupList::typeName() const
+{
+    return tr("Entity Group");
+}
+
+QString EntityGroupList::typeNamePlural() const
+{
+    return tr("Entity Groups");
+}
+
+template <>
+const NamedList<RM::EntityGroup>* NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem>::parentList() const
+{
+    if (auto ri = resourceItem()->data()) {
+        return &ri->entityGroups;
+    }
+    else {
+        return nullptr;
+    }
+}
+
+template <>
+const std::vector<RM::EntityEntry>& NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem>::childList(const RM::EntityGroup& eg)
+{
+    return eg.entities;
+}
+
+template <>
+NamedList<RM::EntityGroup>* NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem>::getParentList()
+{
+    if (auto ri = resourceItem()->dataEditable()) {
+        return &ri->entityGroups;
+    }
+    else {
+        return nullptr;
+    }
+}
+
+template <>
+std::vector<RM::EntityEntry>& NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem>::getChildList(RM::EntityGroup& eg)
+{
+    return eg.entities;
+}
+
+EntityEntriesList::EntityEntriesList(ResourceItem* item)
+    : NestedNlvMulitpleSelectionAccessor(item, RM::MAX_ENTITY_ENTRIES)
+{
+    connect(this, &EntityEntriesList::selectedIndexesChanged,
+            this, &EntityEntriesList::onSelectedIndexesChanged);
+
+    connect(item->entityGroups(), &EntityGroupList::listChanged,
+            this, &EntityEntriesList::clearSelection);
+}
+
+void EntityEntriesList::onSelectedIndexesChanged()
+{
+    auto& sel = selectedIndexes();
+    if (!sel.empty()) {
+        if (auto pi = parentIndex()) {
+            resourceItem()->entityGroups()->setSelectedIndex(*pi);
+        }
+        else {
+            resourceItem()->entityGroups()->unselectItem();
+        }
+    }
+}
+
+QString EntityEntriesList::typeName() const
+{
+    return tr("Room Entity");
+}
+
+QString EntityEntriesList::typeNamePlural() const
+{
+    return tr("Room Entities");
+}
+
+bool EntityEntriesList::edit_setName(index_type groupIndex, index_type entryIndex, const idstring& name)
+{
+    return UndoHelper(this).editField(
+        groupIndex, entryIndex,
+        name,
+        tr("Edit Room Entity Name"),
+        [](RM::EntityEntry& e) -> idstring& { return e.name; });
+}
+
+bool EntityEntriesList::edit_setEntityId(index_type groupIndex, index_type entryIndex, const idstring& entityId)
+{
+    return UndoHelper(this).editField(
+        groupIndex, entryIndex,
+        entityId,
+        tr("Edit Room Entity Name"),
+        [](RM::EntityEntry& e) -> idstring& { return e.entityId; });
+}
+
+bool EntityEntriesList::edit_setPosition(index_type groupIndex, index_type entryIndex, const point& position)
+{
+    return UndoHelper(this).editField(
+        groupIndex, entryIndex,
+        position,
+        tr("Edit Room Entity Name"),
+        [](RM::EntityEntry& e) -> point& { return e.position; });
+}
+
+using namespace UnTech::GuiQt;
+template class Accessor::VectorSingleSelectionAccessor<RM::EntityGroup, ResourceItem>;
+template class Accessor::NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem>;
