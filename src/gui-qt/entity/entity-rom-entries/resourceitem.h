@@ -10,6 +10,8 @@
 #include "gui-qt/staticresourcelist.h"
 #include "models/entity/entityromdata.h"
 
+#include <QPixmap>
+
 namespace UnTech {
 namespace GuiQt {
 class StaticResourceList;
@@ -17,6 +19,18 @@ class StaticResourceList;
 namespace Entity {
 namespace EntityRomEntries {
 class EntityRomEntriesList;
+
+struct EntityPixmap {
+    // The pixmaps have a minimum size to ensure they are centered within the
+    // `EntitiesWithIconsModel` view.
+    // It appears you cannot center icons in a View without subclassing QStyledItemDelegate,
+    // so I have decided to center it in the drawFrame function instead.
+    constexpr static int MIN_PIXMAP_SIZE = 32;
+
+    QPixmap pixmap;
+    QString name;
+    QPoint origin;
+};
 
 class ResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
@@ -32,11 +46,25 @@ public:
 
     EntityRomEntriesList* entriesList() const { return _entriesList; }
 
+    // entityPixmaps exists in ResourceItem so it can be reused across rooms/windows
+    // without rebuilding it every time the resource item changes.
+    //
+    // This is fine, as there are only two EntityRomEntries ResourceItems per project
+    const QVector<EntityPixmap>& entityPixmaps() const { return _entityPixmaps; }
+
 protected:
     virtual bool compileResource(ErrorList& err) final;
 
+signals:
+    void entityPixmapsChanged();
+
+private slots:
+    void updateEntityPixmaps();
+
 private:
     EntityRomEntriesList* _entriesList;
+
+    QVector<EntityPixmap> _entityPixmaps;
 };
 
 }

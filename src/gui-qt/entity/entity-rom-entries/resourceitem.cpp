@@ -8,6 +8,7 @@
 #include "accessors.h"
 #include "gui-qt/entity/entity-function-tables/resourceitem.h"
 #include "gui-qt/entity/entity-rom-structs/resourceitem.h"
+#include "gui-qt/metasprite/metasprite/drawframepixmap.hpp"
 #include "gui-qt/project-settings/resourceitem.h"
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
@@ -49,6 +50,9 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
     connect(this, &AbstractResourceItem::dataChanged,
             this, &AbstractResourceItem::markUnchecked);
 
+    connect(this, &AbstractResourceItem::resourceComplied,
+            this, &ResourceItem::updateEntityPixmaps);
+
     // When an item is changed (ie, by the undoStack) change selected entry
     connect(_entriesList, &EntityRomEntriesList::dataChanged,
             _entriesList, &EntityRomEntriesList::setSelectedIndex);
@@ -81,4 +85,38 @@ bool ResourceItem::compileResource(UnTech::ErrorList& err)
     }
 
     return valid;
+}
+
+void ResourceItem::updateEntityPixmaps()
+{
+    constexpr QSize MIN_PIXMAP_SIZE{ EntityPixmap::MIN_PIXMAP_SIZE, EntityPixmap::MIN_PIXMAP_SIZE };
+
+    const auto* entities = _entriesList->list();
+    Q_ASSERT(entities);
+    Q_ASSERT(project()->projectFile());
+
+    const auto& frameSets = project()->projectFile()->frameSets;
+
+    QVector<EntityPixmap> pixmaps;
+    pixmaps.reserve(entities->size());
+
+    for (const EN::EntityRomEntry& en : *entities) {
+        QPair<QPixmap, QPoint> p;
+
+        auto it = std::find_if(frameSets.begin(), frameSets.end(),
+                               [&](auto& fs) { return fs.msFrameSet && fs.msFrameSet->name == en.frameSetId; });
+        if (it != frameSets.end()) {
+            const auto& msFrameSet = *it->msFrameSet;
+            if (auto frame = msFrameSet.frames.find(en.displayFrame)) {
+                p = GuiQt::MetaSprite::MetaSprite::drawFramePixmap(msFrameSet, *frame, en.defaultPalette, MIN_PIXMAP_SIZE);
+            }
+        }
+
+        pixmaps.append({ .pixmap = std::move(p.first),
+                         .name = QString::fromStdString(en.name),
+                         .origin = p.second });
+    }
+
+    _entityPixmaps = std::move(pixmaps);
+    emit entityPixmapsChanged();
 }

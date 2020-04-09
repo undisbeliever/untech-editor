@@ -10,17 +10,21 @@
 #include "roomgraphicsscenes.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
 #include "gui-qt/common/properties/propertylistview.h"
+#include "gui-qt/entity/entity-rom-entries/entitieswithiconsmodel.h"
 #include "gui-qt/metatiles/mttileset/mttilesetgraphicsscenes.h"
 #include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
 #include "gui-qt/metatiles/mttileset/resourcelist.h"
 #include "gui-qt/metatiles/style.h"
 #include "gui-qt/project.h"
 #include "gui-qt/resources/palette/resourcelist.h"
+#include "gui-qt/staticresourcelist.h"
 #include "models/project/project-data.h"
 #include "models/resources/invalid-image-error.h"
 #include "models/resources/scenes.h"
 
 #include "gui-qt/rooms/editorwidget.ui.h"
+
+#include <QListView>
 
 using namespace UnTech::GuiQt::Rooms;
 
@@ -37,6 +41,7 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     , _tilesetScene(new MetaTiles::MtTileset::MtTilesetGraphicsScene(_style, _renderer, this))
     , _scratchpadScene(new MetaTiles::MtTileset::MtScratchpadGraphicsScene(_style, _renderer, this))
     , _propertyManager(new RoomPropertyManager(this))
+    , _entitiesWithIconsModel(new Entity::EntityRomEntries::EntitiesWithIconsModel(this))
     , _resourceItem(nullptr)
 {
     using MtTilesetRenderer = UnTech::GuiQt::MetaTiles::MtTileset::MtTilesetRenderer;
@@ -67,15 +72,24 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     auto* tilesetDock = createDockWidget(_dockedTilesetView, tr("MetaTiles"), QStringLiteral("MetaTiles"));
     auto* scratchpadDock = createDockWidget(_dockedScratchpadView, tr("Scratchpad"), QStringLiteral("Scratchpad"));
 
+    auto* entitiesListView = new QListView(this);
+    entitiesListView->setModel(_entitiesWithIconsModel);
+    entitiesListView->setViewMode(QListView::ListMode);
+    entitiesListView->setTextElideMode(Qt::ElideRight);
+    entitiesListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    entitiesListView->setDragEnabled(true);
+    auto* entitiesListDock = createDockWidget(entitiesListView, tr("Entities"), QStringLiteral("EntitiesList"));
+
     this->addDockWidget(Qt::RightDockWidgetArea, propertyDock);
     this->addDockWidget(Qt::RightDockWidgetArea, tilesetDock);
     this->addDockWidget(Qt::RightDockWidgetArea, minimapDock);
     this->addDockWidget(Qt::RightDockWidgetArea, scratchpadDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, entitiesListDock);
 
     this->tabifyDockWidget(minimapDock, scratchpadDock);
     scratchpadDock->raise();
 
-    this->resizeDocks({ propertyDock, tilesetDock, scratchpadDock }, { 100, 200, 200 }, Qt::Vertical);
+    this->resizeDocks({ propertyDock, tilesetDock, scratchpadDock, entitiesListDock }, { 100, 200, 200, 100 }, Qt::Vertical);
 
     setEnabled(false);
 
@@ -124,6 +138,9 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     _propertyManager->setResourceItem(item);
     _editableRoomScene->setResourceItem(item);
     _minimapRoomScene->setResourceItem(item);
+
+    auto* entities = _resourceItem ? _resourceItem->project()->staticResources()->entities() : nullptr;
+    _entitiesWithIconsModel->setResourceItem(entities);
 
     updateTilesetAndPalette();
 

@@ -17,12 +17,14 @@ class ZoomableGraphicsView;
 
 namespace MetaTiles {
 class Style;
-
-namespace MtTileset {
+}
+namespace MetaTiles::MtTileset {
 class MtTilesetRenderer;
 class MtTilesetGraphicsScene;
 class MtScratchpadGraphicsScene;
 }
+namespace Entity::EntityRomEntries {
+class EntitiesWithIconsModel;
 }
 
 namespace Rooms {
@@ -66,6 +68,7 @@ private:
     MetaTiles::MtTileset::MtScratchpadGraphicsScene* const _scratchpadScene;
 
     RoomPropertyManager* const _propertyManager;
+    Entity::EntityRomEntries::EntitiesWithIconsModel* const _entitiesWithIconsModel;
 
     ResourceItem* _resourceItem;
 };

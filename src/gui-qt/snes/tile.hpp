@@ -77,6 +77,39 @@ void drawTile(QImage& image,
     }
 }
 
+template <size_t TS, class PaletteT, bool showTransparent>
+void drawTile(QImage& image,
+              const UnTech::Snes::Tile<TS>& tile,
+              const PaletteT& palette,
+              unsigned xOffset, unsigned yOffset,
+              const bool hFlip, bool vFlip)
+{
+    const unsigned TILE_SIZE = tile.TILE_SIZE;
+
+    if (image.width() < int(xOffset + TILE_SIZE)
+        || image.height() < int(yOffset + TILE_SIZE)) {
+
+        return;
+    }
+
+    const uint8_t* tileData = tile.rawData();
+    for (unsigned y = 0; y < TILE_SIZE; y++) {
+        unsigned fy = (vFlip == false) ? y : TILE_SIZE - 1 - y;
+        QRgb* imgBits = reinterpret_cast<QRgb*>(image.scanLine(yOffset + fy)) + xOffset;
+
+        for (unsigned x = 0; x < TILE_SIZE; x++) {
+            unsigned fx = (hFlip == false) ? x : TILE_SIZE - 1 - x;
+
+            auto p = *tileData & palette.PIXEL_MASK;
+            if (showTransparent || p != 0) {
+                const UnTech::rgba& rgb = palette.color(p).rgb();
+                imgBits[fx] = qRgb(rgb.red, rgb.green, rgb.blue);
+            }
+            tileData++;
+        }
+    }
+}
+
 template <size_t TS, class PaletteT>
 inline void drawOpaqueTile(QImage& image,
                            const UnTech::Snes::Tile<TS>& tile,
@@ -93,6 +126,16 @@ inline void drawTransparentTile(QImage& image,
                                 unsigned xOffset, unsigned yOffset)
 {
     drawTile<TS, PaletteT, false>(image, tile, palette, xOffset, yOffset);
+}
+
+template <size_t TS, class PaletteT>
+inline void drawTransparentTile(QImage& image,
+                                const UnTech::Snes::Tile<TS>& tile,
+                                const PaletteT& palette,
+                                unsigned xOffset, unsigned yOffset,
+                                const bool hFlip, bool vFlip)
+{
+    drawTile<TS, PaletteT, false>(image, tile, palette, xOffset, yOffset, hFlip, vFlip);
 }
 
 template <size_t TS>
