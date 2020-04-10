@@ -5,6 +5,8 @@
  */
 
 #include "accessors.h"
+#include "entitygraphicsitem.h"
+#include "roomgraphicsscenes.h"
 #include "gui-qt/accessor/abstractaccessors.hpp"
 #include "gui-qt/accessor/gridundohelper.h"
 #include "gui-qt/accessor/nestedlistaccessors.hpp"
@@ -176,6 +178,24 @@ bool EntityEntriesList::edit_setPosition(index_type groupIndex, index_type entry
         position,
         tr("Edit Room Entity Name"),
         [](RM::EntityEntry& e) -> point& { return e.position; });
+}
+
+void EditableRoomGraphicsScene::commitMovedItems()
+{
+    if (_room == nullptr) {
+        return;
+    }
+
+    if (_room->entityEntries()->selectedIndexes().empty() == false) {
+        EntityEntriesList::UndoHelper(_room->entityEntries())
+            .editSelectedItems(
+                tr("Move Room Entities"),
+                [this](RM::EntityEntry& ee, size_t groupIndex, size_t childIndex) {
+                    const auto pos = _entityGroups.at(groupIndex)->at(childIndex)->pos();
+                    ee.position.x = pos.x();
+                    ee.position.y = pos.y();
+                });
+    }
 }
 
 using namespace UnTech::GuiQt;

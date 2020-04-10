@@ -7,12 +7,21 @@
 #pragma once
 
 #include "gui-qt/metatiles/mtgraphicsscenes.h"
+#include "models/rooms/rooms.h"
 #include <QObject>
 
 namespace UnTech {
 namespace GuiQt {
+
+namespace Entity::EntityRomEntries {
+class ResourceItem;
+}
+
 namespace Rooms {
 class ResourceItem;
+class EntityGroupGraphicsItem;
+
+namespace RM = UnTech::Rooms;
 
 class RoomGraphicsScene final : public MetaTiles::MtGraphicsScene {
     Q_OBJECT
@@ -52,10 +61,35 @@ public:
 protected:
     virtual void setGridSelection(upoint_vectorset&& selectedCells) final;
 
-    void tilesetItemChanged(MetaTiles::MtTileset::ResourceItem* newTileset, MetaTiles::MtTileset::ResourceItem* oldTileset) final;
+    virtual void tilesetItemChanged(MetaTiles::MtTileset::ResourceItem* newTileset, MetaTiles::MtTileset::ResourceItem* oldTileset) final;
+
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
+private slots:
+    void onSceneSelectionChanged();
+
+    void onEntityGroupAccessorSelectionChanged();
+    void onEntityEntriesAccessorSelectionChanged();
+
+    void updateAllEntities();
+    void onEntityEntriesListChanged(size_t groupIndex);
+    void onEntityEntriesDataChanged(size_t groupIndex, size_t childIndex);
+
+private:
+    optional<const RM::RoomInput&> roomInput() const;
+
+    void commitMovedItems();
 
 private:
     ResourceItem* _room;
+
+    QList<EntityGroupGraphicsItem*> _entityGroups;
+    const Entity::EntityRomEntries::ResourceItem* _entitiesResourceItem;
+
+    bool _groupSelected;
+
+    bool _inOnAccessorSelectionChanged;
+    bool _inOnSceneSelectionChanged;
 };
 
 }

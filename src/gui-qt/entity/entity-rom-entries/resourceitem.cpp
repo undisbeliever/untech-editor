@@ -100,8 +100,12 @@ void ResourceItem::updateEntityPixmaps()
     QVector<EntityPixmap> pixmaps;
     pixmaps.reserve(entities->size());
 
+    std::unordered_map<idstring, unsigned> nameMap;
+    nameMap.reserve(entities->size());
+
+    size_t index = 0;
     for (const EN::EntityRomEntry& en : *entities) {
-        QPair<QPixmap, QPoint> p;
+        std::tuple<QPixmap, QPoint, QRectF> p;
 
         auto it = std::find_if(frameSets.begin(), frameSets.end(),
                                [&](auto& fs) { return fs.msFrameSet && fs.msFrameSet->name == en.frameSetId; });
@@ -109,14 +113,19 @@ void ResourceItem::updateEntityPixmaps()
             const auto& msFrameSet = *it->msFrameSet;
             if (auto frame = msFrameSet.frames.find(en.displayFrame)) {
                 p = GuiQt::MetaSprite::MetaSprite::drawFramePixmap(msFrameSet, *frame, en.defaultPalette, MIN_PIXMAP_SIZE);
+                nameMap.emplace(en.name, index);
             }
         }
 
-        pixmaps.append({ .pixmap = std::move(p.first),
+        pixmaps.append({ .pixmap = std::move(std::get<0>(p)),
                          .name = QString::fromStdString(en.name),
-                         .origin = p.second });
+                         .origin = std::get<1>(p),
+                         .boundingBox = std::get<2>(p) });
+
+        index++;
     }
 
     _entityPixmaps = std::move(pixmaps);
+    _entityNameMap = std::move(nameMap);
     emit entityPixmapsChanged();
 }

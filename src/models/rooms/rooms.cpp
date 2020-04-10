@@ -52,7 +52,7 @@ static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, con
 
     const rect mapBounds{
         0, -ENTITY_VERTICAL_SPACING,
-        mapSize.width * MAP_TILE_SIZE, mapSize.height + MAP_TILE_SIZE + ENTITY_VERTICAL_SPACING * 2
+        mapSize.width * MAP_TILE_SIZE, mapSize.height * MAP_TILE_SIZE + ENTITY_VERTICAL_SPACING * 2
     };
 
     unsigned count = 0;

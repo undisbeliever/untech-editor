@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui-qt/common/imageboundingrect.hpp"
 #include "gui-qt/snes/tile.hpp"
 #include "models/metasprite/metasprite.h"
 #include <QPixmap>
@@ -17,7 +18,8 @@ namespace MetaSprite {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-inline QPair<QPixmap, QPoint> drawFramePixmap(const MS::FrameSet& fs, const MS::Frame& frame, unsigned paletteIndex, const QSize minSize)
+// Returns pixmap, origin, bounding box
+inline std::tuple<QPixmap, QPoint, QRectF> drawFramePixmap(const MS::FrameSet& fs, const MS::Frame& frame, unsigned paletteIndex, const QSize minSize)
 {
     using ObjectSize = UnTech::MetaSprite::ObjectSize;
     static const UnTech::Snes::Palette4bpp BLANK_PALETTE;
@@ -30,7 +32,7 @@ inline QPair<QPixmap, QPoint> drawFramePixmap(const MS::FrameSet& fs, const MS::
     int maxY = INT_MIN;
 
     if (frame.objects.empty()) {
-        return qMakePair(QPixmap(), QPoint());
+        return std::make_tuple(QPixmap(), QPoint(), QRectF());
     }
 
     for (auto& fo : frame.objects) {
@@ -79,7 +81,12 @@ inline QPair<QPixmap, QPoint> drawFramePixmap(const MS::FrameSet& fs, const MS::
         }
     }
 
-    return { QPixmap::fromImage(img), origin };
+    QRect bounds = imageBoundingRect(img);
+    bounds.translate(-origin.x(), -origin.y());
+
+    return { QPixmap::fromImage(img),
+             origin,
+             bounds };
 }
 
 }

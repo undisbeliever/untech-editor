@@ -73,6 +73,7 @@ public:
 class EntityEntriesList final : public Accessor::NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem> {
     Q_OBJECT
 
+public:
     using UndoHelper = Accessor::NestedListAndMultipleSelectionUndoHelper<EntityEntriesList>;
 
 public:

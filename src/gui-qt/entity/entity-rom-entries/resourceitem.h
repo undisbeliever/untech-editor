@@ -30,6 +30,7 @@ struct EntityPixmap {
     QPixmap pixmap;
     QString name;
     QPoint origin;
+    QRectF boundingBox;
 };
 
 class ResourceItem : public AbstractInternalResourceItem {
@@ -52,6 +53,12 @@ public:
     // This is fine, as there are only two EntityRomEntries ResourceItems per project
     const QVector<EntityPixmap>& entityPixmaps() const { return _entityPixmaps; }
 
+    optional<const EntityPixmap&> findEntityPixmap(const idstring& id) const
+    {
+        auto it = _entityNameMap.find(id);
+        return it != _entityNameMap.end() ? _entityPixmaps.at(it->second) : optional<const EntityPixmap&>{};
+    }
+
 protected:
     virtual bool compileResource(ErrorList& err) final;
 
@@ -65,6 +72,7 @@ private:
     EntityRomEntriesList* _entriesList;
 
     QVector<EntityPixmap> _entityPixmaps;
+    std::unordered_map<idstring, unsigned> _entityNameMap;
 };
 
 }
