@@ -537,8 +537,8 @@ private:
             Q_ASSERT(_indexes.size() == values.size());
 
             auto it = values.begin();
-            for (std::pair<index_type, index_type>& index : _indexes) {
-                DataT& childItem = this->getChildList(index.first, index.second);
+            for (const std::pair<index_type, index_type>& index : _indexes) {
+                DataT& childItem = this->getChildItem(index.first, index.second);
 
                 childItem = *it++;
                 this->emitDataChanged(index.first, index.second);
@@ -1544,7 +1544,7 @@ public:
                 const DataT& oldValue = childList->at(index);
                 DataT newValue = childList->at(index);
 
-                editFunction(newValue, index);
+                editFunction(newValue, parentIndex, index);
 
                 if (newValue != oldValue) {
                     indexesEdited.push_back(index);
@@ -1590,7 +1590,7 @@ public:
             if (const DataT* oldValue = getChildItem(index.first, index.second)) {
                 DataT newValue = *oldValue;
 
-                editFunction(newValue, index);
+                editFunction(newValue, index.first, index.second);
 
                 if (newValue != *oldValue) {
                     indexesEdited.emplace_back(index);
@@ -1604,7 +1604,7 @@ public:
             return nullptr;
         }
 
-        return new EditMultipleItemsSameParentCommand(_accessor, std::move(indexesEdited), std::move(oldValues), std::move(newValues), text);
+        return new EditMultipleItemsCommand(_accessor, std::move(indexesEdited), std::move(oldValues), std::move(newValues), text);
     }
 
     template <typename EditFunction>
