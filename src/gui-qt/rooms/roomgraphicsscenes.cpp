@@ -8,14 +8,19 @@
 #include "accessors.h"
 #include "entitygraphicsitem.h"
 #include "resourceitem.h"
+#include "gui-qt/common/helpers.h"
+#include "gui-qt/entity/entity-rom-entries/entitieswithiconsmodel.h"
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
 
 #include <QGraphicsSceneMouseEvent>
+#include <QMimeData>
 
 using namespace UnTech;
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Rooms;
+
+using EntitiesWithIconsModel = UnTech::GuiQt::Entity::EntityRomEntries::EntitiesWithIconsModel;
 
 RoomGraphicsScene::RoomGraphicsScene(MetaTiles::Style* style, MetaTiles::MtTileset::MtTilesetRenderer* renderer, QObject* parent)
     : MtGraphicsScene(style, renderer, parent)
@@ -88,6 +93,7 @@ void RoomGraphicsScene::tilesetItemChanged(MetaTiles::MtTileset::ResourceItem* n
 EditableRoomGraphicsScene::EditableRoomGraphicsScene(MetaTiles::Style* style, MetaTiles::MtTileset::MtTilesetRenderer* renderer, QObject* parent)
     : MtEditableGraphicsScene(style, renderer, parent)
     , _room(nullptr)
+    , _validEntityArea()
     , _entitiesResourceItem(nullptr)
     , _groupSelected(false)
     , _inOnAccessorSelectionChanged(false)
@@ -118,6 +124,7 @@ void EditableRoomGraphicsScene::setResourceItem(ResourceItem* room)
     emit gridResized();
     emit gridSelectionChanged();
 
+    updateValidEntityArea();
     updateAllEntities();
 
     if (room) {
@@ -127,6 +134,11 @@ void EditableRoomGraphicsScene::setResourceItem(ResourceItem* room)
 
         connect(room->mapGrid(), &MapGrid::gridChanged,
                 this, &EditableRoomGraphicsScene::gridChanged);
+
+        connect(room->mapGrid(), &MapGrid::gridReset,
+                this, &EditableRoomGraphicsScene::updateValidEntityArea);
+        connect(room->mapGrid(), &MapGrid::gridResized,
+                this, &EditableRoomGraphicsScene::updateValidEntityArea);
 
         connect(room->mapGrid(), &MapGrid::gridReset,
                 this, &EditableRoomGraphicsScene::gridResized);
@@ -313,6 +325,16 @@ void EditableRoomGraphicsScene::mouseReleaseEvent(QGraphicsSceneMouseEvent* even
     }
 }
 
+void EditableRoomGraphicsScene::updateValidEntityArea()
+{
+    if (auto ri = roomInput()) {
+        _validEntityArea = fromRect(ri->validEntityArea());
+    }
+    else {
+        _validEntityArea = QRect{};
+    }
+}
+
 void EditableRoomGraphicsScene::updateAllEntities()
 {
     const auto ri = roomInput();
@@ -364,4 +386,71 @@ void EditableRoomGraphicsScene::onEntityEntriesDataChanged(size_t groupIndex, si
 
     item->updateEntity(ri->entityGroups.at(groupIndex).entities.at(childIndex),
                        *_entitiesResourceItem);
+}
+
+void EditableRoomGraphicsScene::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+    const auto* mimeData = event->mimeData();
+    if (_room == nullptr
+        || mimeData == nullptr) {
+
+        event->setAccepted(false);
+        return;
+    }
+
+    bool valid = false;
+    if (EntitiesWithIconsModel::toEntityName(mimeData).has_value()) {
+        valid = _room->entityGroups()->size() > 0;
+    }
+
+    event->setAccepted(valid);
+}
+
+void EditableRoomGraphicsScene::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+    const auto* mimeData = event->mimeData();
+    if (_room == nullptr
+        || mimeData == nullptr) {
+
+        event->setAccepted(false);
+        return;
+    }
+
+    bool valid = false;
+    if (mimeData->hasFormat(EntitiesWithIconsModel::ENTITY_MIME_TYPE)) {
+        const auto scenePos = event->scenePos().toPoint();
+        valid = _validEntityArea.contains(scenePos);
+    }
+
+    event->setAccepted(valid);
+}
+
+void EditableRoomGraphicsScene::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+    const auto* mimeData = event->mimeData();
+    if (_room == nullptr
+        || mimeData == nullptr) {
+
+        event->setAccepted(false);
+        return;
+    }
+
+    if (auto entityId = EntitiesWithIconsModel::toEntityName(mimeData)) {
+        const auto scenePos = event->scenePos().toPoint();
+        if (_validEntityArea.contains(scenePos)) {
+            const size_t nGroups = _room->entityGroups()->size();
+            if (nGroups > 0) {
+                const auto& sel = _room->entityEntries()->selectedIndexes();
+
+                size_t groupIndex = sel.empty() == false ? sel.front().first : 0;
+                if (groupIndex >= nGroups) {
+                    groupIndex = 0;
+                }
+                _room->entityEntries()->addEntity(groupIndex, *entityId, toPoint(scenePos));
+
+                event->acceptProposedAction();
+                return;
+            }
+        }
+    }
 }

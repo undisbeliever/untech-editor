@@ -178,6 +178,16 @@ inline ms8point toMs8point(const QPoint& p)
     return ms8point(p.x(), p.y());
 }
 
+inline QRect fromRect(const rect& r)
+{
+    return QRect(r.x, r.y, r.width, r.height);
+}
+
+inline rect toRect(const QRect& r)
+{
+    return rect(r.x(), r.y(), r.width(), r.height());
+}
+
 inline QRect fromUrect(const urect& r)
 {
     return QRect(r.x, r.y, r.width, r.height);

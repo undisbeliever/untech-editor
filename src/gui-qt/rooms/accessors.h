@@ -82,6 +82,8 @@ public:
     virtual QString typeName() const final;
     virtual QString typeNamePlural() const final;
 
+    bool addEntity(index_type groupIndex, const idstring& entityId, const point& position);
+
     bool edit_setName(index_type groupIndex, index_type entryIndex, const idstring& name);
     bool edit_setEntityId(index_type groupIndex, index_type entryIndex, const idstring& entityId);
     bool edit_setPosition(index_type groupIndex, index_type entryIndex, const point& position);

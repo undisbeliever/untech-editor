@@ -65,7 +65,12 @@ protected:
 
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
+    virtual void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+    virtual void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
+    virtual void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+
 private slots:
+    void updateValidEntityArea();
     void onSceneSelectionChanged();
 
     void onEntityGroupAccessorSelectionChanged();
@@ -82,6 +87,8 @@ private:
 
 private:
     ResourceItem* _room;
+
+    QRect _validEntityArea;
 
     QList<EntityGroupGraphicsItem*> _entityGroups;
     const Entity::EntityRomEntries::ResourceItem* _entitiesResourceItem;

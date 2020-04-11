@@ -31,7 +31,7 @@ static_assert(Y_POSITION_MASK_LARGE < MAP_ORIGIN_Y - ENTITY_VERTICAL_SPACING);
 static_assert(Y_POSITION_MASK_SMALL < MAP_ORIGIN_Y + ENTITY_VERTICAL_SPACING);
 static_assert(Y_POSITION_MASK_LARGE < MAP_ORIGIN_Y + ENTITY_VERTICAL_SPACING);
 
-static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, const usize& mapSize, ErrorList& err)
+static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, const RoomInput& ri, ErrorList& err)
 {
     bool valid = true;
 
@@ -50,16 +50,13 @@ static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, con
         addError("Too many Entity Groups (", entityGroups.size(), ", max: ", MAX_ENTITY_GROUPS, ")");
     }
 
-    const rect mapBounds{
-        0, -ENTITY_VERTICAL_SPACING,
-        mapSize.width * MAP_TILE_SIZE, mapSize.height * MAP_TILE_SIZE + ENTITY_VERTICAL_SPACING * 2
-    };
+    const rect mapBounds = ri.validEntityArea();
 
     unsigned count = 0;
     for (auto& eg : entityGroups) {
         for (const EntityEntry& ee : eg.entities) {
             if (mapBounds.contains(ee.position) == false) {
-                addEntityError(ee, "Entity outsize of map bounds");
+                addEntityError(ee, "Entity outside of map bounds");
             }
             count++;
         }
@@ -70,6 +67,14 @@ static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, con
     }
 
     return valid;
+}
+
+rect RoomInput::validEntityArea() const
+{
+    return {
+        0, -ENTITY_VERTICAL_SPACING,
+        map.width() * MAP_TILE_SIZE, map.height() * MAP_TILE_SIZE + ENTITY_VERTICAL_SPACING * 2
+    };
 }
 
 bool RoomInput::validate(const Project::ProjectData& projectData, ErrorList& err) const
@@ -100,7 +105,7 @@ bool RoomInput::validate(const Project::ProjectData& projectData, ErrorList& err
         addError("Map is too large (maximum size is ", MAX_MAP_WIDTH, " x ", MAX_MAP_HEIGHT, ")");
     }
 
-    valid &= validateEntityGroups(entityGroups, map.size(), err);
+    valid &= validateEntityGroups(entityGroups, *this, err);
 
     return valid;
 }

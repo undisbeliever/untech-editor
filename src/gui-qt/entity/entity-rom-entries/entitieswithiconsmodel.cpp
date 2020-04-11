@@ -106,7 +106,7 @@ QVariant EntitiesWithIconsModel::data(const QModelIndex& index, int role) const
 
 Qt::DropActions EntitiesWithIconsModel::supportedDragActions() const
 {
-    return Qt::LinkAction;
+    return Qt::CopyAction;
 }
 
 QMimeData* EntitiesWithIconsModel::mimeData(const QModelIndexList& indexes) const

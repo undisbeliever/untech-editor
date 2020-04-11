@@ -18,9 +18,10 @@ class ResourceItem;
 class EntitiesWithIconsModel : public QAbstractListModel {
     Q_OBJECT
 
-private:
+public:
     static const QString ENTITY_MIME_TYPE;
 
+private:
     ResourceItem* _resourceItem;
 
 public:

@@ -73,6 +73,8 @@ struct RoomInput {
 
     NamedList<EntityGroup> entityGroups;
 
+    rect validEntityArea() const;
+
     unsigned mapRight() const { return map.width() * MAP_TILE_SIZE; }
     unsigned mapBottom() const { return map.height() * MAP_TILE_SIZE; }
 
