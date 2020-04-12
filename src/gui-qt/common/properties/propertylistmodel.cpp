@@ -5,17 +5,14 @@
  */
 
 #include "propertylistmodel.h"
+#include "internalmovepairmimedata.h"
 #include "propertylistmanager.h"
-
-#include <QMimeData>
 
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
 static_assert(PropertyListModel::LIST_ITEM_FLAG > PropertyListModel::PINDEX_MASK, "PropertyListModel::PINDEX_MASK too large");
 static_assert((PropertyListModel::LIST_ITEM_FLAG << 1) <= INT32_MAX, "PropertyListModel::LIST_ITEM_FLAG too large");
-
-const QString PropertyListModel::ITEM_MIME_TYPE = QStringLiteral("application/x-untech-propertylist-row");
 
 PropertyListModel::PropertyListModel(PropertyListManager* manager)
     : AbstractPropertyModel(manager)
@@ -734,35 +731,10 @@ Qt::DropActions PropertyListModel::supportedDropActions() const
 QStringList PropertyListModel::mimeTypes() const
 {
     static const QStringList types = {
-        ITEM_MIME_TYPE
+        InternalMovePairMimeData::MIME_TYPE
     };
 
     return types;
-}
-
-struct PropertyListModel::InternalMimeData {
-    int id;
-    int row;
-    const void* model;
-};
-QDataStream& operator<<(QDataStream& stream, const PropertyListModel::InternalMimeData& data)
-{
-    static_assert(sizeof(quintptr) == sizeof(data.model), "Bad quintptr size");
-
-    quintptr ptr = (quintptr)data.model;
-    stream << data.id << data.row << ptr;
-
-    return stream;
-}
-QDataStream& operator>>(QDataStream& stream, PropertyListModel::InternalMimeData& data)
-{
-    static_assert(sizeof(quintptr) == sizeof(data.model), "Bad quintptr size");
-
-    quintptr ptr;
-    stream >> data.id >> data.row >> ptr;
-    data.model = (const void*)ptr;
-
-    return stream;
 }
 
 // This code is a LOT simpler if only one item can be moved at a time
@@ -779,14 +751,7 @@ QMimeData* PropertyListModel::mimeData(const QModelIndexList& indexes) const
     const int pIndex = index.internalId() & PINDEX_MASK;
     const auto& settings = _manager->propertiesList().at(pIndex);
 
-    QByteArray encodedData;
-    QDataStream stream(&encodedData, QIODevice::WriteOnly);
-    stream << InternalMimeData{ settings.id, index.row(), this };
-
-    QMimeData* mimeData = new QMimeData();
-    mimeData->setData(ITEM_MIME_TYPE, encodedData);
-
-    return mimeData;
+    return InternalMovePairMimeData::toMimeData(settings.id, index.row(), this);
 }
 
 bool PropertyListModel::canDropMimeData(const QMimeData* mimeData, Qt::DropAction action,
@@ -799,6 +764,7 @@ bool PropertyListModel::canDropMimeData(const QMimeData* mimeData, Qt::DropActio
         || destRow < 0
         || (parent.internalId() & LIST_ITEM_FLAG)
         || checkIndex(parent) == false) {
+
         return false;
     }
 
@@ -806,19 +772,10 @@ bool PropertyListModel::canDropMimeData(const QMimeData* mimeData, Qt::DropActio
     const auto& settings = _manager->propertiesList().at(pIndex);
 
     if (settings.isList) {
-        if (mimeData->hasFormat(ITEM_MIME_TYPE) == false) {
-            return false;
-        }
+        const auto [sourceId, sourceRow] = InternalMovePairMimeData::fromMimeData(mimeData, this);
 
-        QByteArray encodedData = mimeData->data(ITEM_MIME_TYPE);
-        QDataStream stream(&encodedData, QIODevice::ReadOnly);
-        InternalMimeData data;
-        stream >> data;
-
-        return stream.atEnd()
-               && data.model == this
-               && data.id == settings.id
-               && data.row >= 0 && data.row < propertyListSize(pIndex);
+        return sourceId == settings.id
+               && sourceRow >= 0 && sourceRow < propertyListSize(pIndex);
     }
 
     return false;
@@ -834,6 +791,7 @@ bool PropertyListModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction a
         || destRow < 0
         || (parent.internalId() & LIST_ITEM_FLAG)
         || checkIndex(parent) == false) {
+
         return false;
     }
 
@@ -841,19 +799,11 @@ bool PropertyListModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction a
     const auto& settings = _manager->propertiesList().at(pIndex);
 
     if (settings.isList) {
-        if (mimeData->hasFormat(ITEM_MIME_TYPE) == false) {
-            return false;
-        }
+        const auto [sourceId, sourceRow] = InternalMovePairMimeData::fromMimeData(mimeData, this);
 
-        QByteArray encodedData = mimeData->data(ITEM_MIME_TYPE);
-        QDataStream stream(&encodedData, QIODevice::ReadOnly);
-        InternalMimeData data;
-        stream >> data;
-
-        if (stream.atEnd() && data.model == this && data.id == settings.id) {
-
+        if (sourceId == settings.id) {
             // uses moveRow so the the manager only sees one setData call
-            moveRow(parent, data.row, parent, destRow);
+            moveRow(parent, sourceRow, parent, destRow);
 
             // Return false so the View does not delete the source
             return false;

@@ -32,9 +32,6 @@ public:
     };
     static constexpr int N_COLUMNS = 2;
 
-    static const QString ITEM_MIME_TYPE;
-    struct InternalMimeData;
-
 public:
     PropertyListModel(PropertyListManager* manager);
     ~PropertyListModel() = default;

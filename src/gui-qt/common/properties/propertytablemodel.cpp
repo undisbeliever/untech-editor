@@ -5,15 +5,13 @@
  */
 
 #include "propertytablemodel.h"
+#include "internalmovepairmimedata.h"
 #include "propertytablemanager.h"
-
-#include <QMimeData>
 
 using namespace UnTech::GuiQt;
 using Type = PropertyType;
 
 const Property PropertyTableModel::blankProperty;
-const QString PropertyTableModel::ITEM_MIME_TYPE = QStringLiteral("application/x-untech-propertytable-row");
 
 PropertyTableModel::PropertyTableModel(PropertyTableManager* manager, QObject* parent)
     : PropertyTableModel({ manager }, manager->propertyTitles(), parent)
@@ -586,35 +584,10 @@ Qt::DropActions PropertyTableModel::supportedDropActions() const
 QStringList PropertyTableModel::mimeTypes() const
 {
     static const QStringList types = {
-        ITEM_MIME_TYPE
+        InternalMovePairMimeData::MIME_TYPE
     };
 
     return types;
-}
-
-struct PropertyTableModel::InternalMimeData {
-    int managerIndex;
-    int row;
-    const void* model;
-};
-QDataStream& operator<<(QDataStream& stream, const PropertyTableModel::InternalMimeData& data)
-{
-    static_assert(sizeof(quintptr) == sizeof(data.model), "Bad quintptr size");
-
-    quintptr ptr = (quintptr)data.model;
-    stream << data.managerIndex << data.row << ptr;
-
-    return stream;
-}
-QDataStream& operator>>(QDataStream& stream, PropertyTableModel::InternalMimeData& data)
-{
-    static_assert(sizeof(quintptr) == sizeof(data.model), "Bad quintptr size");
-
-    quintptr ptr;
-    stream >> data.managerIndex >> data.row >> ptr;
-    data.model = (const void*)ptr;
-
-    return stream;
 }
 
 // This code is a LOT simpler if only one item can be moved at a time
@@ -646,14 +619,7 @@ QMimeData* PropertyTableModel::mimeData(const QModelIndexList& indexes) const
         }
     }
 
-    QByteArray encodedData;
-    QDataStream stream(&encodedData, QIODevice::WriteOnly);
-    stream << InternalMimeData{ (int)index.internalId(), index.row(), this };
-
-    QMimeData* mimeData = new QMimeData();
-    mimeData->setData(ITEM_MIME_TYPE, encodedData);
-
-    return mimeData;
+    return InternalMovePairMimeData::toMimeData(toManagerIdAndIndex(index), this);
 }
 
 bool PropertyTableModel::canDropMimeData(const QMimeData* mimeData, Qt::DropAction action,
@@ -672,17 +638,12 @@ bool PropertyTableModel::canDropMimeData(const QMimeData* mimeData, Qt::DropActi
         return false;
     }
 
-    QByteArray encodedData = mimeData->data(ITEM_MIME_TYPE);
-    QDataStream stream(&encodedData, QIODevice::ReadOnly);
-    InternalMimeData data;
-    stream >> data;
+    auto [sourceManagerIndex, sourceRow] = InternalMovePairMimeData::fromMimeData(mimeData, this);
 
     int parentManagerIndex = _managers.size() > 1 ? parent.row() : 0;
 
-    return stream.atEnd()
-           && data.model == this
-           && data.managerIndex == parentManagerIndex
-           && data.row >= 0 && data.row < rowCountFromManager(data.managerIndex);
+    return sourceManagerIndex == parentManagerIndex
+           && sourceRow >= 0 && sourceRow < rowCountFromManager(sourceManagerIndex);
 }
 
 bool PropertyTableModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction action,
@@ -701,20 +662,15 @@ bool PropertyTableModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction 
         return false;
     }
 
-    QByteArray encodedData = mimeData->data(ITEM_MIME_TYPE);
-    QDataStream stream(&encodedData, QIODevice::ReadOnly);
-    InternalMimeData data;
-    stream >> data;
+    auto [sourceManagerIndex, sourceRow] = InternalMovePairMimeData::fromMimeData(mimeData, this);
 
     int parentManagerIndex = _managers.size() > 1 ? parent.row() : 0;
 
-    if (stream.atEnd()
-        && data.model == this
-        && data.managerIndex == parentManagerIndex
-        && data.row >= 0 && data.row < rowCountFromManager(data.managerIndex)) {
+    if (sourceManagerIndex == parentManagerIndex
+        && sourceRow >= 0 && sourceRow < rowCountFromManager(sourceManagerIndex)) {
 
         // uses moveRow so the the manager only sees one setData call
-        moveRow(parent, data.row, parent, destRow);
+        moveRow(parent, sourceRow, parent, destRow);
 
         // Return false so the View does not delete the source
         return false;

@@ -24,9 +24,6 @@ class PropertyTableModel : public AbstractPropertyModel {
 public:
     static const Property blankProperty;
 
-    static const QString ITEM_MIME_TYPE;
-    struct InternalMimeData;
-
 public:
     PropertyTableModel(PropertyTableManager* manager, QObject* parent = nullptr);
     PropertyTableModel(QList<PropertyTableManager*> managers,
