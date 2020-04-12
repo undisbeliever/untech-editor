@@ -42,7 +42,7 @@ RoomEntitiesDock::RoomEntitiesDock(QWidget* parent)
     _ui->treeView->setSelectionMode(QTreeView::SelectionMode::ExtendedSelection);
     _ui->treeView->setSelectionBehavior(QTreeView::SelectionBehavior::SelectRows);
 
-    // ::TODO add and enable drag/drop::
+    _ui->treeView->setDragDropMode(QTreeView::InternalMove);
 
     populateActions(_ui->treeView);
     _ui->treeView->setContextMenuPolicy(Qt::CustomContextMenu);

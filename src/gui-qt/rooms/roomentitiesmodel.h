@@ -57,12 +57,18 @@ public:
     virtual bool isListItem(const QModelIndex& index) const final;
     virtual QPair<QVariant, QVariant> propertyParametersForIndex(const QModelIndex& index) const final;
 
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const;
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const final;
     virtual QVariant data(const QModelIndex& index, int role) const final;
     virtual bool setData(const QModelIndex& index, const QVariant& value, int role) final;
 
-    // ::TODO drag + drop reordering::
-    // ::TODO create new entry using drag/drop from EntitiesWithIconsModel model::
+    virtual Qt::DropActions supportedDragActions() const final;
+    virtual Qt::DropActions supportedDropActions() const final;
+    virtual QStringList mimeTypes() const final;
+    virtual QMimeData* mimeData(const QModelIndexList& indexes) const final;
+    virtual bool canDropMimeData(const QMimeData* data, Qt::DropAction action,
+                                 int destRow, int column, const QModelIndex& parent) const final;
+    virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action,
+                              int row, int column, const QModelIndex& parent) final;
 
 private:
     optional<const RM::RoomInput&> roomInput() const;

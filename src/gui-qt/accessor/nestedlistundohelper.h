@@ -844,7 +844,7 @@ private:
             auto selection = SelectionModifier::getSelection(this->_accessor);
 
             if (fromParentIndex == toParentIndex) {
-                _moveSameList(fromParentIndex, toParentIndex, toChildIndex);
+                _moveSameList(fromParentIndex, fromChildIndex, toChildIndex);
             }
             else {
                 _moveDifferentList(fromParentIndex, fromChildIndex, toParentIndex, toChildIndex);
@@ -2073,6 +2073,12 @@ public:
     QUndoCommand* moveCommand(const index_type fromParentIndex, const index_type fromChildIndex,
                               const index_type toParentIndex, index_type toChildIndex)
     {
+        if (fromParentIndex == toParentIndex
+            && fromChildIndex == toChildIndex) {
+
+            return nullptr;
+        }
+
         const ChildListT* fromChildList = getChildList(fromParentIndex);
         const ChildListT* toChildList = getChildList(toParentIndex);
         if (fromChildList == nullptr
@@ -2096,9 +2102,6 @@ public:
 
         const char* text = "Move %1";
         if (fromParentIndex == toParentIndex) {
-            if (fromChildIndex == toChildIndex) {
-                return nullptr;
-            }
             if (toChildIndex == fromChildIndex - 1) {
                 text = "Raise %1";
             }

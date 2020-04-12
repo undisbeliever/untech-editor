@@ -8,6 +8,7 @@
 #include "accessors.h"
 #include "resourceitem.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/common/properties/internalmovepairmimedata.h"
 #include "gui-qt/entity/entity-rom-entries/accessors.h"
 #include "gui-qt/entity/entity-rom-entries/resourceitem.h"
 #include "gui-qt/project.h"
@@ -253,6 +254,7 @@ Qt::ItemFlags RoomEntitiesModel::flags(const QModelIndex& index) const
     auto ri = this->roomInput();
     if (ri.exists() == false
         || isIndexValid(index) == false) {
+
         return 0;
     }
 
@@ -262,10 +264,11 @@ Qt::ItemFlags RoomEntitiesModel::flags(const QModelIndex& index) const
         if (index.column() == NAME) {
             flags |= Qt::ItemIsEditable;
         }
+        flags |= Qt::ItemIsDropEnabled;
     }
     else {
         // entity entry index
-        flags |= Qt::ItemIsEditable | Qt::ItemNeverHasChildren;
+        flags |= Qt::ItemIsEditable | Qt::ItemNeverHasChildren | Qt::ItemIsDragEnabled;
     }
 
     return flags;
@@ -483,4 +486,129 @@ void RoomEntitiesModel::onEntityEntryChanged(size_t groupIndex, size_t entryInde
             }
         }
     }
+}
+
+Qt::DropActions RoomEntitiesModel::supportedDragActions() const
+{
+    return Qt::MoveAction;
+}
+
+Qt::DropActions RoomEntitiesModel::supportedDropActions() const
+{
+    return Qt::MoveAction;
+}
+
+QStringList RoomEntitiesModel::mimeTypes() const
+{
+    static const QStringList types = {
+        InternalMovePairMimeData::MIME_TYPE
+    };
+
+    return types;
+}
+
+// This code is a LOT simpler if only one item can be moved at a time
+QMimeData* RoomEntitiesModel::mimeData(const QModelIndexList& indexes) const
+{
+    // indexes contains the entire row
+
+    if (indexes.size() < 1
+        || indexes.front().internalId() == GROUP_INTERNAL_ID
+        || checkIndex(indexes.front()) == false) {
+
+        return nullptr;
+    }
+
+    const QModelIndex& index = indexes.front();
+
+    for (auto& i : indexes) {
+        // Only allow drag+drop on a single row
+        if (i.model() != this
+            || i.row() != index.row()
+            || i.internalId() != index.internalId()) {
+
+            return nullptr;
+        }
+    }
+
+    const auto source = toEntityEntryIndex(index);
+
+    return InternalMovePairMimeData::toMimeData(source.first, source.second, this);
+}
+
+bool RoomEntitiesModel::canDropMimeData(const QMimeData* mimeData, Qt::DropAction action,
+                                        int destRow, int column, const QModelIndex& parent) const
+{
+    Q_UNUSED(column)
+
+    const auto ri = this->roomInput();
+
+    if (mimeData == nullptr
+        || action != Qt::MoveAction
+        || ri.exists() == false
+        || isGroupIndex(parent) == false) {
+
+        return false;
+    }
+
+    const unsigned destGroupIndex = toEntryGroupIndex(parent);
+    if (destGroupIndex >= ri->entityGroups.size()) {
+        return false;
+    }
+
+    auto [sourceGroupIndex, sourceChildIndex] = InternalMovePairMimeData::fromMimeData(mimeData, this);
+    if (sourceGroupIndex < 0 || sourceChildIndex < 0) {
+        return false;
+    }
+
+    if (destRow < 0 && unsigned(sourceGroupIndex) == destGroupIndex) {
+        // Disallow moving a child row into its own parent.
+        return false;
+    }
+
+    return unsigned(sourceGroupIndex) < ri->entityGroups.size()
+           && unsigned(sourceChildIndex) < ri->entityGroups.at(sourceGroupIndex).entities.size();
+}
+
+bool RoomEntitiesModel::dropMimeData(const QMimeData* mimeData, Qt::DropAction action,
+                                     int destRow, int column, const QModelIndex& parent)
+{
+    Q_UNUSED(column)
+
+    const auto ri = this->roomInput();
+
+    if (mimeData == nullptr
+        || action != Qt::MoveAction
+        || ri.exists() == false
+        || !(parent.isValid() == false || isGroupIndex(parent))) {
+
+        return false;
+    }
+
+    const unsigned destGroupIndex = toEntryGroupIndex(parent);
+    if (destGroupIndex >= ri->entityGroups.size()) {
+        return false;
+    }
+
+    if (destRow < 0) {
+        destRow = ri->entityGroups.at(destGroupIndex).entities.size();
+    }
+
+    auto [sourceGroupIndex, sourceChildIndex] = InternalMovePairMimeData::fromMimeData(mimeData, this);
+    if (sourceGroupIndex < 0 || sourceChildIndex < 0) {
+        return false;
+    }
+
+    if (unsigned(sourceGroupIndex) == destGroupIndex) {
+        if (destRow > sourceChildIndex) {
+            destRow--;
+        }
+    }
+
+    // There is no need to validate the indexes, the UndoHandler will take care of it.
+    _resourceItem->entityEntries()->moveItem(sourceGroupIndex, sourceChildIndex,
+                                             destGroupIndex, destRow);
+
+    // Return false so the View does not delete the source
+    return false;
 }
