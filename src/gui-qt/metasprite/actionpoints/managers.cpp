@@ -19,8 +19,6 @@ const QStringList ActionPointFunctionsManager::PARAMETER_TYPE_STRINGS = {
 ActionPointFunctionsManager::ActionPointFunctionsManager(QObject* parent)
     : ListAccessorTableManager(parent)
 {
-    setItemsMovable(true);
-
     addProperty(tr("Name"), NAME, PropertyType::IDSTRING);
     addProperty(tr("Manually Invoked"), MANUALLY_INVOKED, PropertyType::BOOLEAN);
 }

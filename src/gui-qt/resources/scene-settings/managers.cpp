@@ -30,8 +30,6 @@ const QStringList SceneSettingsTableManager::LAYER_TYPE_STRINGS = {
 SceneSettingsTableManager::SceneSettingsTableManager(QObject* parent)
     : ListAccessorTableManager(parent)
 {
-    setItemsMovable(true);
-
     const auto layerTypeRange = qVariantRange(LAYER_TYPE_STRINGS.size());
 
     addProperty(tr("Name"), NAME, PropertyType::IDSTRING);

@@ -13,6 +13,7 @@ ListAccessorTableManager::ListAccessorTableManager(QObject* parent)
     : PropertyTableManager(parent)
     , _accessor(nullptr)
 {
+    setItemsMovable(true);
 }
 
 void ListAccessorTableManager::setAccessor(AbstractListAccessor* accessor)

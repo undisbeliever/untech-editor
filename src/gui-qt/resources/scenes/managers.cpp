@@ -28,8 +28,6 @@ const QStringList SceneTableManager::LAYER_TYPE_SHORT_STRINGS = {
 SceneTableManager::SceneTableManager(QObject* parent)
     : ListAccessorTableManager(parent)
 {
-    setItemsMovable(true);
-
     addProperty(tr("Name"), NAME, PropertyType::IDSTRING);
     addProperty(tr("Scene Settings"), SCENE_SETTINGS, PropertyType::COMBO);
     addProperty(tr("Palette"), PALETTE, PropertyType::COMBO);

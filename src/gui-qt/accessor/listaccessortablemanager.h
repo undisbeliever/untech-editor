@@ -14,6 +14,7 @@ namespace Accessor {
 
 class AbstractListAccessor;
 
+// NOTE: ListAccessorTableManager items are moveable by default
 class ListAccessorTableManager : public PropertyTableManager {
     Q_OBJECT
 
