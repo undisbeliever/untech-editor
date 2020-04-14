@@ -157,8 +157,9 @@ bool EntityEntriesList::addEntity(NestedNlvMulitpleSelectionAccessor::index_type
 {
     return UndoHelper(this).addItem(
         groupIndex, childListSize(groupIndex),
-        RM::EntityEntry({ .entityId = entityId,
-                          .position = position }),
+        RM::EntityEntry{ .name = {},
+                         .entityId = entityId,
+                         .position = position },
         tr("Add Room Entity"));
 }
 
@@ -208,5 +209,5 @@ void EditableRoomGraphicsScene::commitMovedItems()
 }
 
 using namespace UnTech::GuiQt;
-template class Accessor::VectorSingleSelectionAccessor<RM::EntityGroup, ResourceItem>;
+template class Accessor::NamedListAccessor<RM::EntityGroup, ResourceItem>;
 template class Accessor::NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem>;
