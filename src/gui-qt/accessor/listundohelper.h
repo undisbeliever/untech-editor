@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "movemultipleundohelper.h"
 #include "models/common/vector-helpers.h"
 #include "models/common/vectorset.h"
 #include <QCoreApplication>
@@ -937,83 +938,38 @@ private:
 
     class MoveMultipleCommand : public BaseCommand {
     private:
-        const std::vector<index_type> _fromIndexes;
-        const std::vector<index_type> _toIndexes;
-        const bool _moveUp;
+        const vectorset<index_type> _indexes;
+        const MoveMultipleDirection _direction;
 
-        std::vector<index_type> buildToIndexes(const vectorset<index_type>& fromIndexes, int offset)
+    public:
+        MoveMultipleCommand(AccessorT* accessor, const ArgsT& args,
+                            const vectorset<index_type>& indexes,
+                            const MoveMultipleDirection direction,
+                            const QString& text)
+            : BaseCommand(accessor, args, text)
+            , _indexes(indexes)
+            , _direction(direction)
+        {
+        }
+        ~MoveMultipleCommand() = default;
+
+        void undo()
         {
             ListT& list = this->getList();
-            Q_ASSERT(fromIndexes.size() < list.size());
 
-            std::vector<index_type> toIndexes;
-            toIndexes.reserve(fromIndexes.size());
-
-            Q_ASSERT(offset != 0);
-            if (offset < 0) {
-                // move up
-                const index_type absOffset = -offset;
-                index_type limit = 0;
-                for (const index_type& from : fromIndexes) {
-                    toIndexes.push_back(from > absOffset ? std::max(from - absOffset, limit) : limit);
-                    limit++;
-                }
-            }
-            else {
-                // move down
-                const index_type absOffset = offset;
-                index_type limit = list.size() - fromIndexes.size();
-                for (const index_type& from : fromIndexes) {
-                    toIndexes.push_back(std::min(from + absOffset, limit));
-                    limit++;
-                }
-            }
-
-            return toIndexes;
-        }
-
-        void moveItems(const std::vector<index_type>& from, const std::vector<index_type>& to, bool moveUp)
-        {
             const bool listIsSelected = this->_args == this->_accessor->selectedListTuple();
 
             auto selection = listIsSelected ? SelectionModifier::getSelection(this->_accessor)
                                             : typename SelectionModifier::selection_type();
 
-            ListT& list = this->getList();
-
-            Q_ASSERT(from.empty() == false);
-            Q_ASSERT(from.size() == to.size());
-            Q_ASSERT(from.front() >= 0 && from.back() < list.size());
-            Q_ASSERT(to.front() >= 0 && to.back() < list.size());
-
-            auto doMove = [&](index_type from, index_type to) {
-                if (from != to) {
-                    moveListItem(from, to, list);
-                    this->emitItemMoved(from, to);
-                    SelectionModifier::itemMoved(selection, from, to);
-                }
-            };
-
             this->emitListAboutToChange();
 
-            if (moveUp) {
-                // Move items up
-                auto fromIt = from.cbegin();
-                auto toIt = to.cbegin();
-                while (fromIt != from.cend()) {
-                    doMove(*fromIt++, *toIt++);
-                }
-                assert(toIt == to.cend());
-            }
-            else {
-                // Move items down
-                auto fromIt = from.crbegin();
-                auto toIt = to.crbegin();
-                while (fromIt != from.crend()) {
-                    doMove(*fromIt++, *toIt++);
-                }
-                assert(toIt == to.crend());
-            }
+            MoveMultipleUndoHelper::undo(_direction, _indexes, list.size(),
+                                         [&](index_type from, index_type to) {
+                                             moveListItem(from, to, list);
+                                             this->emitItemMoved(from, to);
+                                             SelectionModifier::itemMoved(selection, from, to);
+                                         });
 
             this->emitListChanged();
 
@@ -1022,26 +978,29 @@ private:
             }
         }
 
-    public:
-        MoveMultipleCommand(AccessorT* accessor, const ArgsT& args,
-                            const vectorset<index_type>& fromIndexes, int offset,
-                            const QString& text)
-            : BaseCommand(accessor, args, text)
-            , _fromIndexes(fromIndexes)
-            , _toIndexes(buildToIndexes(fromIndexes, offset))
-            , _moveUp(offset < 0)
-        {
-        }
-        ~MoveMultipleCommand() = default;
-
-        void undo()
-        {
-            moveItems(_toIndexes, _fromIndexes, !_moveUp);
-        }
-
         void redo()
         {
-            moveItems(_fromIndexes, _toIndexes, _moveUp);
+            ListT& list = this->getList();
+
+            const bool listIsSelected = this->_args == this->_accessor->selectedListTuple();
+
+            auto selection = listIsSelected ? SelectionModifier::getSelection(this->_accessor)
+                                            : typename SelectionModifier::selection_type();
+
+            this->emitListAboutToChange();
+
+            MoveMultipleUndoHelper::redo(_direction, _indexes, list.size(),
+                                         [&](const index_type from, const index_type to) {
+                                             moveListItem(from, to, list);
+                                             this->emitItemMoved(from, to);
+                                             SelectionModifier::itemMoved(selection, from, to);
+                                         });
+
+            this->emitListChanged();
+
+            if (listIsSelected) {
+                SelectionModifier::setSelection(this->_accessor, std::move(selection));
+            }
         }
     };
 
@@ -1679,12 +1638,9 @@ public:
     }
 
     // will return nullptr if list is not accessable or indexes are invalid
-    QUndoCommand* moveMultipleCommand(const vectorset<index_type>& indexes, int offset)
+    QUndoCommand* moveMultipleCommand(const vectorset<index_type>& indexes, const MoveMultipleDirection direction)
     {
         if (indexes.empty()) {
-            return nullptr;
-        }
-        if (offset == 0) {
             return nullptr;
         }
 
@@ -1693,45 +1649,21 @@ public:
         if (list == nullptr) {
             return nullptr;
         }
-        if (indexes.front() < 0 || indexes.back() >= list->size()) {
-            return nullptr;
-        }
-        if (offset == 0) {
-            return nullptr;
-        }
-        if (offset < 0 && indexes.back() < indexes.size()) {
-            return nullptr;
-        }
-        if (offset > 0 && indexes.front() >= list->size() - indexes.size()) {
+
+        if (MoveMultipleUndoHelper::canMove(direction, indexes, list->size()) == false) {
             return nullptr;
         }
 
-        const char* text = "Move %1";
-        if (offset < 0) {
-            if (offset == -1) {
-                text = "Raise %1";
-            }
-            else if (unsigned(-offset) > list->size()) {
-                text = "Raise %1 To Top";
-            }
-        }
-        else if (offset > 0) {
-            if (offset == 1) {
-                text = "Lower %1";
-            }
-            else if (unsigned(offset) > list->size()) {
-                text = "Lower %1 To Bottom";
-            }
-        }
+        const char* text = MoveMultipleUndoHelper::getText(direction);
         const QString& typeName = indexes.size() == 1 ? _accessor->typeName() : _accessor->typeNamePlural();
 
-        return new MoveMultipleCommand(_accessor, listArgs, indexes, offset,
+        return new MoveMultipleCommand(_accessor, listArgs, indexes, direction,
                                        tr(text).arg(typeName));
     }
 
-    bool moveMultipleItems(const vectorset<index_type>& indexes, int offset)
+    bool moveMultipleItems(const vectorset<index_type>& indexes, const MoveMultipleDirection direction)
     {
-        QUndoCommand* c = moveMultipleCommand(indexes, offset);
+        QUndoCommand* c = moveMultipleCommand(indexes, direction);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
@@ -1888,14 +1820,9 @@ public:
         return this->removeMultipleItems(this->_accessor->selectedIndexes());
     }
 
-    bool raiseSelectedItems()
+    bool moveSelectedItems(const MoveMultipleDirection direction)
     {
-        return this->moveMultipleItems(this->_accessor->selectedIndexes(), -1);
-    }
-
-    bool lowerSelectedItems()
-    {
-        return this->moveMultipleItems(this->_accessor->selectedIndexes(), +1);
+        return this->moveMultipleItems(this->_accessor->selectedIndexes(), direction);
     }
 };
 }

@@ -10,6 +10,13 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
+enum class MoveMultipleDirection {
+    Raise,
+    Lower,
+    RaiseToTop,
+    LowerToBottom
+};
+
 class AbstractListAccessor;
 class AbstractListSingleSelectionAccessor;
 class AbstractListMultipleSelectionAccessor;

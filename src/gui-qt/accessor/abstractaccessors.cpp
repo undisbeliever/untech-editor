@@ -161,22 +161,22 @@ bool AbstractListMultipleSelectionAccessor::removeSelectedItems()
 
 bool AbstractListMultipleSelectionAccessor::raiseSelectedItemsToTop()
 {
-    return moveMultipleItems(_selectedIndexes, INT_MIN);
+    return moveMultipleItems(_selectedIndexes, MoveMultipleDirection::RaiseToTop);
 }
 
 bool AbstractListMultipleSelectionAccessor::raiseSelectedItems()
 {
-    return moveMultipleItems(_selectedIndexes, -1);
+    return moveMultipleItems(_selectedIndexes, MoveMultipleDirection::Raise);
 }
 
 bool AbstractListMultipleSelectionAccessor::lowerSelectedItems()
 {
-    return moveMultipleItems(_selectedIndexes, +1);
+    return moveMultipleItems(_selectedIndexes, MoveMultipleDirection::Lower);
 }
 
 bool AbstractListMultipleSelectionAccessor::lowerSelectedItemsToBottom()
 {
-    return moveMultipleItems(_selectedIndexes, INT_MAX);
+    return moveMultipleItems(_selectedIndexes, MoveMultipleDirection::LowerToBottom);
 }
 
 AbstractNamedListAccessor::AbstractNamedListAccessor(AbstractResourceItem* resourceItem, size_t maxSize)

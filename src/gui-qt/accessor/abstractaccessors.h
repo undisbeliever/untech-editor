@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "accessor.h"
 #include "models/common/vectorset-upoint.h"
 #include "models/common/vectorset.h"
 #include <QObject>
@@ -131,7 +132,7 @@ public:
 
     virtual bool cloneMultipleItems(const vectorset<size_t>& indexes) = 0;
     virtual bool removeMultipleItems(const vectorset<size_t>& indexes) = 0;
-    virtual bool moveMultipleItems(const vectorset<size_t>& indexes, int offset) = 0;
+    virtual bool moveMultipleItems(const vectorset<size_t>& indexes, const MoveMultipleDirection direction) = 0;
 
 signals:
     void selectedIndexesChanged();
@@ -451,7 +452,7 @@ public:
     virtual bool removeMultipleItems(const vectorset<size_t>& indexes) final;
 
     virtual bool moveItem(size_t from, size_t to) final;
-    virtual bool moveMultipleItems(const vectorset<size_t>& indexes, int offset) final;
+    virtual bool moveMultipleItems(const vectorset<size_t>& indexes, const MoveMultipleDirection direction) final;
 
 protected:
     template <class, class>

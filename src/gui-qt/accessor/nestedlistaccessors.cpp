@@ -169,22 +169,22 @@ bool AbstractNestedListMultipleSelectionAccessor::removeSelectedItems()
 
 bool AbstractNestedListMultipleSelectionAccessor::raiseSelectedItemsToTop()
 {
-    return moveMultipleItems(_selectedIndexes, INT_MIN);
+    return moveMultipleItems(_selectedIndexes, MoveMultipleDirection::RaiseToTop);
 }
 
 bool AbstractNestedListMultipleSelectionAccessor::raiseSelectedItems()
 {
-    return moveMultipleItems(_selectedIndexes, -1);
+    return moveMultipleItems(_selectedIndexes, MoveMultipleDirection::Raise);
 }
 
 bool AbstractNestedListMultipleSelectionAccessor::lowerSelectedItems()
 {
-    return moveMultipleItems(_selectedIndexes, +1);
+    return moveMultipleItems(_selectedIndexes, MoveMultipleDirection::Lower);
 }
 
 bool AbstractNestedListMultipleSelectionAccessor::lowerSelectedItemsToBottom()
 {
-    return moveMultipleItems(_selectedIndexes, INT_MAX);
+    return moveMultipleItems(_selectedIndexes, MoveMultipleDirection::LowerToBottom);
 }
 
 bool AbstractNestedListMultipleSelectionAccessor::moveSelectedItemsToChildList(size_t destinationParentIndex)

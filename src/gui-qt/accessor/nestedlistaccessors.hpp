@@ -80,9 +80,9 @@ bool NestedNlvMulitpleSelectionAccessor<P, C, RI>::removeMultipleItems(const vec
 }
 
 template <class P, class C, class RI>
-bool NestedNlvMulitpleSelectionAccessor<P, C, RI>::moveMultipleItems(const vectorset<index_pair_t>& indexes, int offset)
+bool NestedNlvMulitpleSelectionAccessor<P, C, RI>::moveMultipleItems(const vectorset<index_pair_t>& indexes, const MoveMultipleDirection direction)
 {
-    return UndoHelper(this).moveMultipleItems(indexes, offset);
+    return UndoHelper(this).moveMultipleItems(indexes, direction);
 }
 
 template <class P, class C, class RI>

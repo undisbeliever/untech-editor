@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "accessor.h"
 #include "models/common/namedlist.h"
 #include "models/common/vectorset-upoint.h"
 #include "models/common/vectorset.h"
@@ -81,7 +82,7 @@ public:
 
     virtual bool cloneMultipleItems(const vectorset<index_pair_t>& indexes) = 0;
     virtual bool removeMultipleItems(const vectorset<index_pair_t>& indexes) = 0;
-    virtual bool moveMultipleItems(const vectorset<index_pair_t>& indexes, int offset) = 0;
+    virtual bool moveMultipleItems(const vectorset<index_pair_t>& indexes, const MoveMultipleDirection direction) = 0;
     virtual bool moveMultipleItemsToChildList(const vectorset<index_pair_t>& indexes, size_t destinationParentIndex) = 0;
 
 signals:
@@ -136,7 +137,7 @@ public:
 
     virtual bool cloneMultipleItems(const vectorset<index_pair_t>& indexes) final;
     virtual bool removeMultipleItems(const vectorset<index_pair_t>& indexes) final;
-    virtual bool moveMultipleItems(const vectorset<index_pair_t>& indexes, int offset) final;
+    virtual bool moveMultipleItems(const vectorset<index_pair_t>& indexes, const MoveMultipleDirection direction) final;
     virtual bool moveMultipleItemsToChildList(const vectorset<index_pair_t>& indexes, size_t targetParentIndex) final;
 
 protected:

@@ -334,9 +334,9 @@ bool ChildVectorMultipleSelectionAccessor<T, RI>::moveItem(size_t from, size_t t
 }
 
 template <class T, class RI>
-bool ChildVectorMultipleSelectionAccessor<T, RI>::moveMultipleItems(const vectorset<size_t>& indexes, int offset)
+bool ChildVectorMultipleSelectionAccessor<T, RI>::moveMultipleItems(const vectorset<size_t>& indexes, const MoveMultipleDirection direction)
 {
-    return UndoHelper(this).moveMultipleItems(indexes, offset);
+    return UndoHelper(this).moveMultipleItems(indexes, direction);
 }
 
 }

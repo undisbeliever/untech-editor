@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "accessor.h"
+#include "movemultipleundohelper.h"
 #include "models/common/vector-helpers.h"
 #include "models/common/vectorset.h"
 #include <QCoreApplication>
@@ -1032,142 +1034,84 @@ private:
     };
 
     class MoveMultipleCommand : public BaseCommand {
+    public:
         struct MoveChildItems {
-            const index_type parentIndex;
-            const std::vector<index_type> fromIndexes;
-            const std::vector<index_type> toIndexes;
+            index_type parentIndex;
+            vectorset<index_type> indexes;
         };
-        const std::vector<MoveChildItems> _childListsMoved;
-        const bool _moveUp;
 
     private:
-        std::vector<index_type> buildToIndexes(const index_type parentIndex, const vectorset<index_type>& fromIndexes, const int offset)
-        {
-            ChildListT& list = this->getChildList(parentIndex);
-            Q_ASSERT(fromIndexes.size() < list.size());
-
-            std::vector<index_type> toIndexes;
-            toIndexes.reserve(fromIndexes.size());
-
-            Q_ASSERT(offset != 0);
-            if (offset < 0) {
-                // move up
-                const index_type absOffset = -offset;
-                index_type limit = 0;
-                for (const index_type& from : fromIndexes) {
-                    toIndexes.push_back(from > absOffset ? std::max(from - absOffset, limit) : limit);
-                    limit++;
-                }
-            }
-            else {
-                // move down
-                const index_type absOffset = offset;
-                index_type limit = list.size() - fromIndexes.size();
-                for (const index_type& from : fromIndexes) {
-                    toIndexes.push_back(std::min(from + absOffset, limit));
-                    limit++;
-                }
-            }
-
-            return toIndexes;
-        }
-
-        std::vector<MoveChildItems> buildChildListsMoved(const std::vector<std::pair<index_type, vectorset<index_type>>>& indexes, int offset)
-        {
-            std::vector<MoveChildItems> out;
-            out.reserve(indexes.size());
-
-            for (const auto& input : indexes) {
-                const auto& parentIndex = input.first;
-                const auto& childIndexes = input.second;
-
-                out.emplace_back(MoveChildItems{
-                    .parentIndex = parentIndex,
-                    .fromIndexes = childIndexes,
-                    .toIndexes = buildToIndexes(parentIndex, childIndexes, offset) });
-            }
-
-            return out;
-        }
-
-        void moveItems(const index_type parentIndex, const std::vector<index_type>& from, const std::vector<index_type>& to, bool moveUp)
-        {
-            auto selection = SelectionModifier::getSelection(this->_accessor);
-
-            ChildListT& childList = this->getChildList(parentIndex);
-
-            Q_ASSERT(from.empty() == false);
-            Q_ASSERT(from.size() == to.size());
-            Q_ASSERT(from.front() >= 0 && from.back() < childList.size());
-            Q_ASSERT(to.front() >= 0 && to.back() < childList.size());
-
-            auto doMove = [&](index_type from, index_type to) {
-                if (from != to) {
-                    moveListItem(from, to, childList);
-                    this->emitItemMoved(parentIndex, from, parentIndex, to);
-                    SelectionModifier::itemMoved(selection, parentIndex, from, parentIndex, to);
-                }
-            };
-
-            this->emitListAboutToChange(parentIndex);
-
-            if (moveUp) {
-                // Move items up
-                auto fromIt = from.cbegin();
-                auto toIt = to.cbegin();
-                while (fromIt != from.cend()) {
-                    doMove(*fromIt++, *toIt++);
-                }
-                assert(toIt == to.cend());
-            }
-            else {
-                // Move items down
-                auto fromIt = from.crbegin();
-                auto toIt = to.crbegin();
-                while (fromIt != from.crend()) {
-                    doMove(*fromIt++, *toIt++);
-                }
-                assert(toIt == to.crend());
-            }
-
-            this->emitListChanged(parentIndex);
-
-            SelectionModifier::setSelection(this->_accessor, std::move(selection));
-        }
+        const std::vector<MoveChildItems> _childListsMoved;
+        const MoveMultipleDirection _direction;
 
     public:
         MoveMultipleCommand(AccessorT* accessor,
-                            const std::vector<std::pair<index_type, vectorset<index_type>>>&& indexes, int offset,
+                            const std::vector<MoveChildItems>&& indexes,
+                            const MoveMultipleDirection direction,
                             const QString& text)
             : BaseCommand(accessor, text)
-            , _childListsMoved(buildChildListsMoved(indexes, offset))
-            , _moveUp(offset < 0)
+            , _childListsMoved(std::move(indexes))
+            , _direction(direction)
         {
         }
         MoveMultipleCommand(AccessorT* accessor,
-                            const index_type parentIndex, std::vector<index_type>& indexes, int offset,
+                            const index_type parentIndex, std::vector<index_type>& indexes,
+                            const MoveMultipleDirection direction,
                             const QString& text)
             : BaseCommand(accessor, text)
             , _childListsMoved({ .parentIndex = parentIndex,
-                                 .fromIndexes = indexes,
-                                 .toIndexes = buildToIndexes(parentIndex, indexes, offset) })
-            , _moveUp(offset < 0)
+                                 .indexes = indexes })
+            , _direction(direction)
         {
         }
         ~MoveMultipleCommand() = default;
 
         void undo()
         {
-            for (auto& clm : _childListsMoved) {
-                moveItems(clm.parentIndex, clm.toIndexes, clm.fromIndexes, !_moveUp);
+            auto selection = SelectionModifier::getSelection(this->_accessor);
+
+            for (const MoveChildItems& clm : _childListsMoved) {
+                const index_type parentIndex = clm.parentIndex;
+
+                ChildListT& childList = this->getChildList(parentIndex);
+
+                this->emitListAboutToChange(parentIndex);
+
+                MoveMultipleUndoHelper::undo(_direction, clm.indexes, childList.size(),
+                                             [&](index_type from, index_type to) {
+                                                 moveListItem(from, to, childList);
+                                                 this->emitItemMoved(parentIndex, from, parentIndex, to);
+                                                 SelectionModifier::itemMoved(selection, parentIndex, from, parentIndex, to);
+                                             });
+
+                this->emitChildListChanged(parentIndex);
             }
+
+            SelectionModifier::setSelection(this->_accessor, std::move(selection));
         }
 
         void redo()
         {
-            for (auto& clm : _childListsMoved) {
-                moveItems(clm.parentIndex, clm.fromIndexes, clm.toIndexes, _moveUp);
+            auto selection = SelectionModifier::getSelection(this->_accessor);
+
+            for (const MoveChildItems& clm : _childListsMoved) {
+                const index_type parentIndex = clm.parentIndex;
+
+                ChildListT& childList = this->getChildList(parentIndex);
+
+                this->emitListAboutToChange(parentIndex);
+
+                MoveMultipleUndoHelper::redo(_direction, clm.indexes, childList.size(),
+                                             [&](index_type from, index_type to) {
+                                                 moveListItem(from, to, childList);
+                                                 this->emitItemMoved(parentIndex, from, parentIndex, to);
+                                                 SelectionModifier::itemMoved(selection, parentIndex, from, parentIndex, to);
+                                             });
+
+                this->emitChildListChanged(parentIndex);
             }
+
+            SelectionModifier::setSelection(this->_accessor, std::move(selection));
         }
     };
 
@@ -2126,12 +2070,10 @@ public:
     }
 
     // will return nullptr if list is not accessable or indexes are invalid
-    QUndoCommand* moveMultipleCommand(const index_type parentIndex, const vectorset<index_type>& childIndexes, int offset)
+    QUndoCommand* moveMultipleCommand(const index_type parentIndex, const vectorset<index_type>& childIndexes,
+                                      const MoveMultipleDirection direction)
     {
         if (childIndexes.empty()) {
-            return nullptr;
-        }
-        if (offset == 0) {
             return nullptr;
         }
 
@@ -2139,39 +2081,15 @@ public:
         if (list == nullptr) {
             return nullptr;
         }
-        if (childIndexes.front() < 0 || childIndexes.back() >= list->size()) {
-            return nullptr;
-        }
-        if (offset == 0) {
-            return nullptr;
-        }
-        if (offset < 0 && childIndexes.back() < childIndexes.size()) {
-            return nullptr;
-        }
-        if (offset > 0 && childIndexes.front() >= list->size() - childIndexes.size()) {
+
+        if (MoveMultipleUndoHelper::canMove(direction, childIndexes, list->size()) == false) {
             return nullptr;
         }
 
-        const char* text = "Move %1";
-        if (offset < 0) {
-            if (offset == -1) {
-                text = "Raise %1";
-            }
-            else if (unsigned(-offset) > list->size()) {
-                text = "Raise %1 To Top";
-            }
-        }
-        else if (offset > 0) {
-            if (offset == 1) {
-                text = "Lower %1";
-            }
-            else if (unsigned(offset) > list->size()) {
-                text = "Lower %1 To Bottom";
-            }
-        }
+        const char* text = MoveMultipleUndoHelper::getText(direction);
         const QString& typeName = childIndexes.size() == 1 ? _accessor->typeName() : _accessor->typeNamePlural();
 
-        return new MoveMultipleCommand(_accessor, parentIndex, childIndexes, offset, tr(text).arg(typeName));
+        return new MoveMultipleCommand(_accessor, parentIndex, childIndexes, direction, tr(text).arg(typeName));
     }
 
     bool moveMultipleItems(const index_type parentIndex, const vectorset<index_type>& childIndexes, int offset)
@@ -2184,29 +2102,14 @@ public:
     }
 
     // will return nullptr if list is not accessable or indexes are invalid
-    QUndoCommand* moveMultipleCommand(const vectorset<std::pair<index_type, index_type>>& indexes, int offset)
+    QUndoCommand* moveMultipleCommand(const vectorset<std::pair<index_type, index_type>>& indexes,
+                                      const MoveMultipleDirection direction)
     {
         if (indexes.empty()) {
             return nullptr;
         }
 
-        if (offset == 0) {
-            return nullptr;
-        }
-
-        const char* text = "Move %1";
-        if (offset < 0) {
-            if (offset == -1) {
-                text = "Raise %1";
-            }
-        }
-        else if (offset > 0) {
-            if (offset == 1) {
-                text = "Lower %1";
-            }
-        }
-
-        std::vector<std::pair<index_type, vectorset<index_type>>> indexesToMove;
+        std::vector<typename MoveMultipleCommand::MoveChildItems> indexesToMove;
 
         auto it = indexes.begin();
         while (it != indexes.end()) {
@@ -2217,35 +2120,31 @@ public:
                 return nullptr;
             }
 
-            vectorset<index_type> childIndexes;
+            typename MoveMultipleCommand::MoveChildItems& toMove = indexesToMove.emplace_back();
+            toMove.parentIndex = parentIndex;
+            vectorset<index_type>& childIndexes = toMove.indexes;
 
             while (it != indexes.end() && it->first == parentIndex) {
                 childIndexes.insert(it->second);
                 it++;
             }
 
-            // same tests as UndoListHelper::moveMultipleCommand(indexes, offset)
-            Q_ASSERT(childIndexes.empty() == false);
-            if (offset < 0 && childIndexes.back() < childIndexes.size()) {
+            if (MoveMultipleUndoHelper::canMove(direction, childIndexes, childList->size()) == false) {
                 return nullptr;
             }
-            if (offset > 0 && childIndexes.front() >= childList->size() - childIndexes.size()) {
-                return nullptr;
-            }
-
-            indexesToMove.emplace_back(parentIndex, std::move(childIndexes));
         }
 
         Q_ASSERT(indexesToMove.empty() == false);
 
+        const char* text = MoveMultipleUndoHelper::getText(direction);
         const QString& typeName = indexesToMove.size() == 1 ? _accessor->typeName() : _accessor->typeNamePlural();
 
-        return new MoveMultipleCommand(_accessor, std::move(indexesToMove), offset, tr(text).arg(typeName));
+        return new MoveMultipleCommand(_accessor, std::move(indexesToMove), direction, tr(text).arg(typeName));
     }
 
-    bool moveMultipleItems(const vectorset<std::pair<index_type, index_type>>& indexes, int offset)
+    bool moveMultipleItems(const vectorset<std::pair<index_type, index_type>>& indexes, const MoveMultipleDirection direction)
     {
-        QUndoCommand* c = moveMultipleCommand(indexes, offset);
+        QUndoCommand* c = moveMultipleCommand(indexes, direction);
         if (c) {
             _accessor->resourceItem()->undoStack()->push(c);
         }
