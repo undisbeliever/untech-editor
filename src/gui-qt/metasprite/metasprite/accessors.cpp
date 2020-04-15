@@ -497,7 +497,7 @@ bool FrameObjectList::editSelectedList_setTile(unsigned index, unsigned tileId)
 
 bool FrameObjectList::editSelectedList_setFlips(unsigned index, bool hFlip, bool vFlip)
 {
-    return UndoHelper(this).editField(
+    return UndoHelper(this).editMultipleFields(
         index, std::make_tuple(hFlip, vFlip),
         tr("Edit Object Flip"),
         [](MS::FrameObject & obj) -> auto { return std::tie(obj.hFlip, obj.vFlip); });

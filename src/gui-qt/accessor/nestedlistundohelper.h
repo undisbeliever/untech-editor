@@ -135,11 +135,6 @@ private:
         ~BaseCommand() = default;
 
     protected:
-        inline ParentListT* getParentList()
-        {
-            return _accessor->getParentList();
-        }
-
         inline ChildListT& getChildList(const index_type parentIndex)
         {
             ParentListT* parentList = _accessor->getParentList();
@@ -492,7 +487,7 @@ private:
             auto it = values.begin();
             for (index_type childIndex : _childIndexes) {
                 Q_ASSERT(childIndex >= 0 && childIndex < childList.size());
-                DataT& childItem = childList->at(childIndex);
+                DataT& childItem = childList.at(childIndex);
 
                 childItem = *it++;
                 this->emitDataChanged(_parentIndex, childIndex);
