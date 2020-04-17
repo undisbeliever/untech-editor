@@ -7,7 +7,7 @@
 #pragma once
 
 #include "resourceitem.h"
-#include "gui-qt/accessor/accessor.h"
+#include "gui-qt/accessor/abstractaccessors.h"
 #include "gui-qt/accessor/listactionhelper.h"
 #include <QObject>
 #include <tuple>
@@ -20,7 +20,7 @@ namespace ExportOrder {
 // ExportNameList and AlternativesList are implemented manually as they
 // AlternativesList::dataChanged signal is three levels deep.
 
-class ExportNameList : public QObject {
+class ExportNameList final : public Accessor::AbstractListSingleSelectionAccessor {
     Q_OBJECT
 
 public:
@@ -32,60 +32,42 @@ public:
 
     using UndoHelper = Accessor::ListAndSelectionUndoHelper<ExportNameList>;
 
-    constexpr static index_type maxSize() { return UnTech::MetaSprite::MAX_EXPORT_NAMES; }
-
 private:
-    ResourceItem* const _exportOrder;
-
     bool _selectedListIsFrame;
-    index_type _selectedIndex;
 
 public:
     ExportNameList(ResourceItem* exportOrder);
 
-    ResourceItem* resourceItem() const { return _exportOrder; }
+    ResourceItem* resourceItem() const { return static_cast<ResourceItem*>(AbstractListSingleSelectionAccessor::resourceItem()); }
 
-    QString typeName() const { return tr("Export Name"); }
+    virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
-    const bool& selectedListIsFrame() const { return _selectedListIsFrame; }
+    virtual bool listExists() const final;
+    virtual size_t size() const final;
+
+    bool selectedListIsFrame() const { return _selectedListIsFrame; }
     void setSelectedListIsFrame(bool isFrame);
 
-    index_type selectedIndex() const { return _selectedIndex; }
-    void setSelectedIndex(index_type index);
     void setSelectedIndex(bool isFrame, index_type index);
-    void unselectItem() { setSelectedIndex(INT_MAX); }
 
-    bool isSelectedItemValid() const;
+    inline bool addItem() { return addItem(INT_MAX); }
+
+    virtual bool addItem(size_t index) final;
+    virtual bool cloneItem(size_t index) final;
+    virtual bool removeItem(size_t index) final;
+    virtual bool moveItem(size_t from, size_t to) final;
 
     bool editList_setName(bool isFrame, index_type index, const idstring& name);
-
-    bool editList_addFrame();
-    bool editList_addAnimation();
-
-    bool editSelectedList_cloneSelected();
-    bool editSelectedList_removeSelected();
-    bool editSelectedList_raiseSelectedToTop();
-    bool editSelectedList_raiseSelected();
-    bool editSelectedList_lowerSelected();
-    bool editSelectedList_lowerSelectedToBottom();
 
 protected:
     template <class, class>
     friend class Accessor::ListUndoHelper;
     friend class Accessor::ListActionHelper;
-    ListT* getList(bool isFrame)
-    {
-        auto* eo = _exportOrder->dataEditable();
-        if (eo == nullptr) {
-            return nullptr;
-        }
-        return isFrame ? &eo->stillFrames : &eo->animations;
-    }
+    ListT* getList(bool isFrame);
+    ArgsT selectedListTuple() const;
 
-    ArgsT selectedListTuple() const
-    {
-        return std::make_tuple(_selectedListIsFrame);
-    }
+    const ListT* selectedList() const;
 
 signals:
     void dataChanged(bool isFrame, index_type index);
@@ -96,11 +78,16 @@ signals:
     void itemAboutToBeRemoved(bool isFrame, index_type index);
     void itemMoved(bool isFrame, index_type from, index_type to);
 
-    void selectedListChanged();
-    void selectedIndexChanged();
+private slots:
+    void onDataChanged(bool isFrame, size_t index);
+    void onListChanged(bool isFrame);
+    void onListAboutToChange(bool isFrame);
+    void onItemAdded(bool isFrame, size_t index);
+    void onItemAboutToBeRemoved(bool isFrame, size_t index);
+    void onItemMoved(bool isFrame, size_t from, size_t to);
 };
 
-class AlternativesList : public QObject {
+class AlternativesList final : public Accessor::AbstractListSingleSelectionAccessor {
     Q_OBJECT
 
 public:
@@ -112,61 +99,37 @@ public:
 
     using UndoHelper = Accessor::ListAndSelectionUndoHelper<AlternativesList>;
 
-    constexpr static index_type maxSize() { return 256; }
-
 private:
-    ResourceItem* const _exportOrder;
-
     index_type _selectedIndex;
 
 public:
     AlternativesList(ResourceItem* exportOrder);
 
-    ResourceItem* resourceItem() const { return _exportOrder; }
+    ResourceItem* resourceItem() const { return static_cast<ResourceItem*>(AbstractListSingleSelectionAccessor::resourceItem()); }
 
-    QString typeName() const { return tr("Export Name Alternative"); }
+    virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
 
-    index_type selectedIndex() const { return _selectedIndex; }
+    virtual bool listExists() const final;
+    virtual size_t size() const final;
 
-    void setSelectedIndex(index_type index);
-    void unselectItem() { setSelectedIndex(INT_MAX); }
+    inline bool addItem() { return addItem(INT_MAX); }
+
+    virtual bool addItem(size_t index) final;
+    virtual bool cloneItem(size_t index) final;
+    virtual bool removeItem(size_t index) final;
+    virtual bool moveItem(size_t from, size_t to) final;
 
     bool editList_setValue(bool isFrame, index_type exportIndex, index_type altIndex, const DataT& value);
-
-    bool editSelectedList_addItem();
-    bool editSelectedList_cloneSelected();
-    bool editSelectedList_removeSelected();
-    bool editSelectedList_raiseSelectedToTop();
-    bool editSelectedList_raiseSelected();
-    bool editSelectedList_lowerSelected();
-    bool editSelectedList_lowerSelectedToBottom();
 
 protected:
     template <class, class>
     friend class Accessor::ListUndoHelper;
     friend class Accessor::ListActionHelper;
-    ListT* getList(bool isFrame, index_type index)
-    {
-        auto* eo = _exportOrder->dataEditable();
-        if (eo == nullptr) {
-            return nullptr;
-        }
+    ListT* getList(bool isFrame, index_type enIndex);
+    ArgsT selectedListTuple() const;
 
-        auto& nameList = isFrame ? eo->stillFrames : eo->animations;
-
-        if (index < nameList.size()) {
-            return &nameList.at(index).alternatives;
-        }
-        else {
-            return nullptr;
-        }
-    }
-
-    ArgsT selectedListTuple() const
-    {
-        const ExportNameList* enl = _exportOrder->exportNameList();
-        return std::make_tuple(enl->selectedListIsFrame(), enl->selectedIndex());
-    }
+    const ListT* selectedList() const;
 
 signals:
     void dataChanged(bool isFrame, index_type index, index_type altIndex);
@@ -177,8 +140,14 @@ signals:
     void itemAboutToBeRemoved(bool isFrame, index_type index, index_type altIndex);
     void itemMoved(bool isFrame, index_type index, index_type from, index_type to);
 
-    void selectedListChanged();
-    void selectedIndexChanged();
+private slots:
+    void onParentSelectedIndexChanged();
+    void onDataChanged(bool isFrame, size_t parentIndex, size_t index);
+    void onListChanged(bool isFrame, size_t parentIndex);
+    void onListAboutToChange(bool isFrame, size_t parentIndex);
+    void onItemAdded(bool isFrame, size_t parentIndex, size_t index);
+    void onItemAboutToBeRemoved(bool isFrame, size_t parentIndex, size_t index);
+    void onItemMoved(bool isFrame, size_t parentIndex, size_t from, size_t to);
 };
 }
 }

@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "accessor.h"
 #include "movemultipleundohelper.h"
+#include "nestedlistaccessors.h"
 #include "models/common/vector-helpers.h"
 #include "models/common/vectorset.h"
 #include <QCoreApplication>
@@ -18,28 +18,25 @@ namespace UnTech {
 namespace GuiQt {
 namespace Accessor {
 
-template <typename AccessorT>
 struct BlankNestedSelectionModifier {
-    using index_type = typename AccessorT::index_type;
+    using index_type = size_t;
     using selection_type = std::tuple<>;
 
-    inline static selection_type getSelection(const AccessorT*) { return selection_type(); }
-    inline static void setSelection(AccessorT*, const selection_type&) {}
+    inline static selection_type getSelection(const void*) { return selection_type(); }
+    inline static void setSelection(const void*, const selection_type&) {}
 
-    inline static void postAddCommand(AccessorT*, const index_type, const index_type) {}
-    inline static void postAddCommand(AccessorT*, const selection_type&) {}
+    inline static void postAddCommand(const void*, const index_type, const index_type) {}
+    inline static void postAddCommand(const void*, const selection_type&) {}
 
     inline static void itemAdded(selection_type&, const index_type, const index_type) {}
     inline static void itemRemoved(selection_type&, const index_type, const index_type) {}
     inline static void itemMoved(selection_type&, const index_type, const index_type, const index_type, const index_type) {}
 };
 
-// ::TODO std::tuple<index_type, vectorset<index_type>> indexes selected modified::
-
-template <typename AccessorT>
 struct MultipleNestedSelectionModifier {
-    using index_type = typename AccessorT::index_type;
-    using index_pair_t = std::pair<index_type, index_type>;
+    using AccessorT = AbstractNestedListMultipleSelectionAccessor;
+    using index_type = AccessorT::index_type;
+    using index_pair_t = AccessorT::index_pair_t;
     using selection_type = std::vector<index_pair_t>;
 
     inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndexes(); }
@@ -2195,23 +2192,23 @@ public:
 };
 
 template <class AccessorT>
-class NestedListWithNoSelectionUndoHelper : public NestedListUndoHelper<AccessorT, BlankNestedSelectionModifier<AccessorT>> {
+class NestedListWithNoSelectionUndoHelper : public NestedListUndoHelper<AccessorT, BlankNestedSelectionModifier> {
 public:
     NestedListWithNoSelectionUndoHelper(AccessorT* accessor)
-        : NestedListUndoHelper<AccessorT, BlankNestedSelectionModifier<AccessorT>>(accessor)
+        : NestedListUndoHelper<AccessorT, BlankNestedSelectionModifier>(accessor)
     {
     }
 };
 
 template <class AccessorT>
-class NestedListAndMultipleSelectionUndoHelper : public NestedListUndoHelper<AccessorT, MultipleNestedSelectionModifier<AccessorT>> {
+class NestedListAndMultipleSelectionUndoHelper : public NestedListUndoHelper<AccessorT, MultipleNestedSelectionModifier> {
 
 public:
     using index_type = typename AccessorT::index_type;
 
 public:
     NestedListAndMultipleSelectionUndoHelper(AccessorT* accessor)
-        : NestedListUndoHelper<AccessorT, MultipleNestedSelectionModifier<AccessorT>>(accessor)
+        : NestedListUndoHelper<AccessorT, MultipleNestedSelectionModifier>(accessor)
     {
     }
 

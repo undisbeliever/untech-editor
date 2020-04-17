@@ -153,8 +153,7 @@ void EditorWidget::onErrorDoubleClicked(const ErrorListItem& error)
             for (unsigned i = 0; i < list.size(); i++) {
                 const ExportName& en = list.at(i);
                 if (&en == ptr) {
-                    _exportOrder->exportNameList()->setSelectedListIsFrame(selectedListIsFrame);
-                    _exportOrder->exportNameList()->setSelectedIndex(i);
+                    _exportOrder->exportNameList()->setSelectedIndex(selectedListIsFrame, i);
                     _exportOrder->alternativesList()->unselectItem();
                     return true;
                 }
@@ -162,8 +161,7 @@ void EditorWidget::onErrorDoubleClicked(const ErrorListItem& error)
                     for (unsigned a = 0; a < en.alternatives.size(); a++) {
                         const auto& alt = en.alternatives.at(a);
                         if (&alt == ptr) {
-                            _exportOrder->exportNameList()->setSelectedListIsFrame(selectedListIsFrame);
-                            _exportOrder->exportNameList()->setSelectedIndex(i);
+                            _exportOrder->exportNameList()->setSelectedIndex(selectedListIsFrame, i);
                             _exportOrder->alternativesList()->setSelectedIndex(a);
                             return true;
                         }
@@ -190,7 +188,7 @@ void EditorWidget::updateSelection()
 
     Q_ASSERT(_exportOrder);
 
-    if (_exportOrder->exportNameList()->isSelectedItemValid()) {
+    if (_exportOrder->exportNameList()->isSelectedIndexValid()) {
         InternalIdFormat id;
         id.isFrame = _exportOrder->exportNameList()->selectedListIsFrame();
         id.index = _exportOrder->exportNameList()->selectedIndex();
@@ -244,8 +242,7 @@ void EditorWidget::onViewSelectionChanged()
     QModelIndex index = _ui->treeView->currentIndex();
     if (index.isValid()) {
         InternalIdFormat id = index.internalId();
-        _exportOrder->exportNameList()->setSelectedListIsFrame(id.isFrame);
-        _exportOrder->exportNameList()->setSelectedIndex(id.index);
+        _exportOrder->exportNameList()->setSelectedIndex(id.isFrame, id.index);
         _exportOrder->alternativesList()->setSelectedIndex(id.altIndex);
     }
     else {
@@ -325,14 +322,16 @@ void EditorWidget::closeEditor()
 void EditorWidget::onActionAddFrame()
 {
     Q_ASSERT(_exportOrder);
-    _exportOrder->exportNameList()->editList_addFrame();
+    _exportOrder->exportNameList()->setSelectedListIsFrame(true);
+    _exportOrder->exportNameList()->addItem();
     showEditorForCurrentIndex();
 }
 
 void EditorWidget::onActionAddAnimation()
 {
     Q_ASSERT(_exportOrder);
-    _exportOrder->exportNameList()->editList_addAnimation();
+    _exportOrder->exportNameList()->setSelectedListIsFrame(false);
+    _exportOrder->exportNameList()->addItem();
     showEditorForCurrentIndex();
 }
 
@@ -340,7 +339,7 @@ void EditorWidget::onActionAddAlternative()
 {
     Q_ASSERT(_exportOrder);
 
-    bool s = _exportOrder->alternativesList()->editSelectedList_addItem();
+    bool s = _exportOrder->alternativesList()->addItem();
     if (s) {
         showEditorForCurrentIndex();
     }
@@ -359,10 +358,10 @@ void EditorWidget::onActionCloneSelected()
         if (id.index != InternalIdFormat::NO_INDEX) {
             bool s = false;
             if (id.altIndex == InternalIdFormat::NO_INDEX) {
-                s = _exportOrder->exportNameList()->editSelectedList_cloneSelected();
+                s = _exportOrder->exportNameList()->cloneSelectedItem();
             }
             else {
-                s = _exportOrder->alternativesList()->editSelectedList_cloneSelected();
+                s = _exportOrder->alternativesList()->cloneSelectedItem();
             }
 
             if (s) {
@@ -391,8 +390,8 @@ void EditorWidget::onActionCloneSelected()
         }                                                            \
     }
 
-SELECTION_ACTION(onActionRemoveSelected, editSelectedList_removeSelected);
-SELECTION_ACTION(onActionRaiseToTop, editSelectedList_raiseSelectedToTop);
-SELECTION_ACTION(onActionRaise, editSelectedList_raiseSelected);
-SELECTION_ACTION(onActionLower, editSelectedList_lowerSelected);
-SELECTION_ACTION(onActionLowerToBottom, editSelectedList_lowerSelectedToBottom);
+SELECTION_ACTION(onActionRemoveSelected, removeSelectedItem);
+SELECTION_ACTION(onActionRaiseToTop, raiseSelectedItemToTop);
+SELECTION_ACTION(onActionRaise, raiseSelectedItem);
+SELECTION_ACTION(onActionLower, lowerSelectedItem);
+SELECTION_ACTION(onActionLowerToBottom, lowerSelectedItemToBottom);

@@ -41,7 +41,7 @@ void AbstractListSingleSelectionAccessor::onDataChanged(size_t index)
     }
 }
 
-void AbstractListSingleSelectionAccessor::setSelectedIndex(size_t index)
+void AbstractListSingleSelectionAccessor::setSelectedIndex(index_type index)
 {
     if (_selectedIndex != index) {
         _selectedIndex = index;
@@ -112,7 +112,7 @@ AbstractListMultipleSelectionAccessor::AbstractListMultipleSelectionAccessor(Abs
             this, &AbstractListMultipleSelectionAccessor::clearSelection);
 }
 
-void AbstractListMultipleSelectionAccessor::setSelectedIndexes(const vectorset<size_t>& selected)
+void AbstractListMultipleSelectionAccessor::setSelectedIndexes(const vectorset<index_type>& selected)
 {
     if (_selectedIndexes != selected) {
         _selectedIndexes = selected;
@@ -120,7 +120,7 @@ void AbstractListMultipleSelectionAccessor::setSelectedIndexes(const vectorset<s
     }
 }
 
-void AbstractListMultipleSelectionAccessor::setSelectedIndexes(vectorset<size_t>&& selected)
+void AbstractListMultipleSelectionAccessor::setSelectedIndexes(vectorset<index_type>&& selected)
 {
     if (_selectedIndexes != selected) {
         _selectedIndexes = std::move(selected);

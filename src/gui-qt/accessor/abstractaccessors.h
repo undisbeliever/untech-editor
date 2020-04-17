@@ -78,6 +78,10 @@ signals:
 class AbstractListSingleSelectionAccessor : public AbstractListAccessor {
     Q_OBJECT
 
+public:
+    using index_type = size_t;
+
+private:
     size_t _selectedIndex;
 
 public:
@@ -86,7 +90,7 @@ public:
 
     size_t selectedIndex() const { return _selectedIndex; }
     inline bool isSelectedIndexValid() const { return _selectedIndex < size(); }
-    void setSelectedIndex(size_t index);
+    void setSelectedIndex(index_type index);
     void unselectItem() { setSelectedIndex(INT_MAX); }
 
     ListActionStatus listActionStatus() const;
@@ -110,6 +114,10 @@ signals:
 class AbstractListMultipleSelectionAccessor : public AbstractListAccessor {
     Q_OBJECT
 
+public:
+    using index_type = size_t;
+
+private:
     vectorset<size_t> _selectedIndexes;
 
 public:
@@ -117,8 +125,8 @@ public:
     ~AbstractListMultipleSelectionAccessor() = default;
 
     const vectorset<size_t>& selectedIndexes() const { return _selectedIndexes; }
-    void setSelectedIndexes(const vectorset<size_t>& selected);
-    void setSelectedIndexes(vectorset<size_t>&& selected);
+    void setSelectedIndexes(const vectorset<index_type>& selected);
+    void setSelectedIndexes(vectorset<index_type>&& selected);
     void clearSelection();
     void selectAll();
 
@@ -130,9 +138,9 @@ public:
     bool lowerSelectedItems();
     bool lowerSelectedItemsToBottom();
 
-    virtual bool cloneMultipleItems(const vectorset<size_t>& indexes) = 0;
-    virtual bool removeMultipleItems(const vectorset<size_t>& indexes) = 0;
-    virtual bool moveMultipleItems(const vectorset<size_t>& indexes, const MoveMultipleDirection direction) = 0;
+    virtual bool cloneMultipleItems(const vectorset<index_type>& indexes) = 0;
+    virtual bool removeMultipleItems(const vectorset<index_type>& indexes) = 0;
+    virtual bool moveMultipleItems(const vectorset<index_type>& indexes, const MoveMultipleDirection direction) = 0;
 
 signals:
     void selectedIndexesChanged();

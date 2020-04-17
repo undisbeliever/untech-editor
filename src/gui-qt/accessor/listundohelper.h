@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "abstractaccessors.h"
 #include "movemultipleundohelper.h"
 #include "models/common/vector-helpers.h"
 #include "models/common/vectorset.h"
@@ -33,25 +34,24 @@ namespace Accessor {
  * QUndoCommand is invoked.
  */
 
-template <typename AccessorT>
 struct BlankSelectionModifier {
-    using index_type = typename AccessorT::index_type;
+    using index_type = size_t;
     using selection_type = std::tuple<>;
 
-    inline static selection_type getSelection(const AccessorT*) { return selection_type(); }
-    inline static void setSelection(AccessorT*, const selection_type&) {}
+    inline static selection_type getSelection(const void*) { return selection_type(); }
+    inline static void setSelection(const void*, const selection_type&) {}
 
-    inline static void postAddCommand(AccessorT*, const index_type) {}
-    inline static void postAddCommand(AccessorT*, const std::vector<index_type>&) {}
+    inline static void postAddCommand(const void*, const index_type) {}
+    inline static void postAddCommand(const void*, const std::vector<index_type>&) {}
 
     inline static void itemAdded(selection_type&, const index_type) {}
     inline static void itemRemoved(selection_type&, const index_type) {}
     inline static void itemMoved(selection_type&, const index_type, const index_type) {}
 };
 
-template <typename AccessorT>
 struct SingleSelectionModifier {
-    using index_type = typename AccessorT::index_type;
+    using AccessorT = AbstractListSingleSelectionAccessor;
+    using index_type = AccessorT::index_type;
     using selection_type = index_type;
 
     inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndex(); }
@@ -60,14 +60,14 @@ struct SingleSelectionModifier {
     inline static void postAddCommand(AccessorT* a, const index_type index) { a->setSelectedIndex(index); }
     inline static void postAddCommand(AccessorT* a, const std::vector<index_type>&) { a->setSelectedIndex(INT_MAX); }
 
-    inline static void itemAdded(selection_type& selectedIndex, const index_type index)
+    static void itemAdded(selection_type& selectedIndex, const index_type index)
     {
         if (selectedIndex >= index) {
             selectedIndex++;
         }
     }
 
-    inline static void itemRemoved(selection_type& selectedIndex, const index_type index)
+    static void itemRemoved(selection_type& selectedIndex, const index_type index)
     {
         if (selectedIndex == index) {
             selectedIndex = INT_MAX;
@@ -77,7 +77,7 @@ struct SingleSelectionModifier {
         }
     }
 
-    inline static void itemMoved(selection_type& selectedIndex, const index_type from, const index_type to)
+    static void itemMoved(selection_type& selectedIndex, const index_type from, const index_type to)
     {
         if (selectedIndex == from) {
             selectedIndex = to;
@@ -91,9 +91,9 @@ struct SingleSelectionModifier {
     }
 };
 
-template <typename AccessorT>
 struct MultipleSelectionModifier {
-    using index_type = typename AccessorT::index_type;
+    using AccessorT = AbstractListMultipleSelectionAccessor;
+    using index_type = AccessorT::index_type;
     using selection_type = std::vector<index_type>;
 
     inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndexes(); }
@@ -102,7 +102,7 @@ struct MultipleSelectionModifier {
     inline static void postAddCommand(AccessorT* a, const index_type index) { a->setSelectedIndexes({ index }); }
     inline static void postAddCommand(AccessorT* a, const std::vector<index_type>& indexes) { a->setSelectedIndexes(indexes); }
 
-    inline static void itemAdded(selection_type& selection, const index_type index)
+    static void itemAdded(selection_type& selection, const index_type index)
     {
         for (index_type& sel : selection) {
             if (sel >= index) {
@@ -111,7 +111,7 @@ struct MultipleSelectionModifier {
         }
     }
 
-    inline static void itemRemoved(selection_type& selection, const index_type index)
+    static void itemRemoved(selection_type& selection, const index_type index)
     {
         selection.erase(std::remove(selection.begin(), selection.end(), index),
                         selection.end());
@@ -123,7 +123,7 @@ struct MultipleSelectionModifier {
         }
     }
 
-    inline static void itemMoved(selection_type& selection, const index_type from, const index_type to)
+    static void itemMoved(selection_type& selection, const index_type from, const index_type to)
     {
         for (index_type& sel : selection) {
             if (sel == from) {
@@ -1672,16 +1672,16 @@ public:
 };
 
 template <class AccessorT>
-class ListWithNoSelectionUndoHelper : public ListUndoHelper<AccessorT, BlankSelectionModifier<AccessorT>> {
+class ListWithNoSelectionUndoHelper : public ListUndoHelper<AccessorT, BlankSelectionModifier> {
 public:
     ListWithNoSelectionUndoHelper(AccessorT* accessor)
-        : ListUndoHelper<AccessorT, BlankSelectionModifier<AccessorT>>(accessor)
+        : ListUndoHelper<AccessorT, BlankSelectionModifier>(accessor)
     {
     }
 };
 
 template <class AccessorT>
-class ListAndSelectionUndoHelper : public ListUndoHelper<AccessorT, SingleSelectionModifier<AccessorT>> {
+class ListAndSelectionUndoHelper : public ListUndoHelper<AccessorT, SingleSelectionModifier> {
 
 public:
     using DataT = typename AccessorT::DataT;
@@ -1689,7 +1689,7 @@ public:
 
 public:
     ListAndSelectionUndoHelper(AccessorT* accessor)
-        : ListUndoHelper<AccessorT, SingleSelectionModifier<AccessorT>>(accessor)
+        : ListUndoHelper<AccessorT, SingleSelectionModifier>(accessor)
     {
     }
 
@@ -1780,14 +1780,14 @@ public:
 };
 
 template <class AccessorT>
-class ListAndMultipleSelectionUndoHelper : public ListUndoHelper<AccessorT, MultipleSelectionModifier<AccessorT>> {
+class ListAndMultipleSelectionUndoHelper : public ListUndoHelper<AccessorT, MultipleSelectionModifier> {
 
 public:
     using index_type = typename AccessorT::index_type;
 
 public:
     ListAndMultipleSelectionUndoHelper(AccessorT* accessor)
-        : ListUndoHelper<AccessorT, MultipleSelectionModifier<AccessorT>>(accessor)
+        : ListUndoHelper<AccessorT, MultipleSelectionModifier>(accessor)
     {
     }
 

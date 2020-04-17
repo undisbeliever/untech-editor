@@ -29,9 +29,11 @@ struct ListActionStatus;
 class AbstractNestedListMultipleSelectionAccessor : public QObject {
     Q_OBJECT
 
+public:
     using index_type = size_t;
     using index_pair_t = std::pair<size_t, size_t>;
 
+private:
     AbstractResourceItem* const _resourceItem;
     const size_t _maxChildListSize;
     vectorset<index_pair_t> _selectedIndexes;

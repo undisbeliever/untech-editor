@@ -11,11 +11,32 @@ using namespace UnTech::GuiQt::Accessor;
 using namespace UnTech::GuiQt::MetaSprite::ExportOrder;
 
 ExportNameList::ExportNameList(ResourceItem* exportOrder)
-    : QObject(exportOrder)
-    , _exportOrder(exportOrder)
+    : AbstractListSingleSelectionAccessor(exportOrder, UnTech::MetaSprite::MAX_EXPORT_NAMES)
     , _selectedListIsFrame(true)
-    , _selectedIndex(INT_MAX)
 {
+
+    connect(this, &ExportNameList::dataChanged,
+            this, &ExportNameList::onDataChanged);
+    connect(this, &ExportNameList::listChanged,
+            this, &ExportNameList::onListChanged);
+    connect(this, &ExportNameList::listAboutToChange,
+            this, &ExportNameList::onListAboutToChange);
+    connect(this, &ExportNameList::itemAdded,
+            this, &ExportNameList::onItemAdded);
+    connect(this, &ExportNameList::itemAboutToBeRemoved,
+            this, &ExportNameList::onItemAboutToBeRemoved);
+    connect(this, &ExportNameList::itemMoved,
+            this, &ExportNameList::onItemMoved);
+}
+
+QString ExportNameList::typeName() const
+{
+    return tr("Export Name");
+}
+
+QString ExportNameList::typeNamePlural() const
+{
+    return tr("Export Names");
 }
 
 void ExportNameList::setSelectedListIsFrame(bool isFrame)
@@ -24,38 +45,73 @@ void ExportNameList::setSelectedListIsFrame(bool isFrame)
         unselectItem();
 
         _selectedListIsFrame = isFrame;
-        emit selectedListChanged();
+        emit listReset();
     }
 }
 
-void ExportNameList::setSelectedIndex(ExportNameList::index_type index)
-{
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
-    }
-}
-
-void ExportNameList::setSelectedIndex(bool isFrame, ExportNameList::index_type index)
+void ExportNameList::setSelectedIndex(bool isFrame, index_type index)
 {
     if (_selectedListIsFrame != isFrame) {
         _selectedListIsFrame = isFrame;
-        emit selectedListChanged();
+        emit listReset();
     }
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedListChanged();
-    }
+    AbstractListSingleSelectionAccessor::setSelectedIndex(index);
 }
 
-bool ExportNameList::isSelectedItemValid() const
+ExportNameList::ListT* ExportNameList::getList(bool isFrame)
 {
-    auto* eo = _exportOrder->dataEditable();
+    auto* eo = resourceItem()->dataEditable();
     if (eo == nullptr) {
-        return false;
+        return nullptr;
     }
-    const auto& nl = _selectedListIsFrame ? &eo->stillFrames : &eo->animations;
-    return _selectedIndex < nl->size();
+    return isFrame ? &eo->stillFrames : &eo->animations;
+}
+
+ExportNameList::ArgsT ExportNameList::selectedListTuple() const
+{
+    return std::make_tuple(_selectedListIsFrame);
+}
+
+const ExportNameList::ListT* ExportNameList::selectedList() const
+{
+    auto* eo = resourceItem()->dataEditable();
+    if (eo == nullptr) {
+        return nullptr;
+    }
+    return _selectedListIsFrame ? &eo->stillFrames : &eo->animations;
+}
+
+bool ExportNameList::listExists() const
+{
+    return selectedList() != nullptr;
+}
+
+size_t ExportNameList::size() const
+{
+    if (auto* l = selectedList()) {
+        return l->size();
+    }
+    return 0;
+}
+
+bool ExportNameList::addItem(size_t index)
+{
+    return UndoHelper(this).addItem(index);
+}
+
+bool ExportNameList::cloneItem(size_t index)
+{
+    return UndoHelper(this).cloneItem(index);
+}
+
+bool ExportNameList::removeItem(size_t index)
+{
+    return UndoHelper(this).removeItem(index);
+}
+
+bool ExportNameList::moveItem(size_t from, size_t to)
+{
+    return UndoHelper(this).moveItem(from, to);
 }
 
 bool ExportNameList::editList_setName(bool isFrame, ExportNameList::index_type index, const UnTech::idstring& name)
@@ -73,63 +129,152 @@ bool ExportNameList::editList_setName(bool isFrame, ExportNameList::index_type i
         [](ExportName& en) -> idstring& { return en.name; });
 }
 
-bool ExportNameList::editList_addFrame()
+void ExportNameList::onDataChanged(bool isFrame, size_t index)
 {
-    setSelectedListIsFrame(true);
-    return UndoHelper(this).addItem();
+    if (isFrame == _selectedListIsFrame) {
+        emit AbstractListAccessor::dataChanged(index);
+    }
 }
 
-bool ExportNameList::editList_addAnimation()
+void ExportNameList::onListChanged(bool isFrame)
 {
-    setSelectedListIsFrame(false);
-    return UndoHelper(this).addItem();
+    if (isFrame == _selectedListIsFrame) {
+        emit AbstractListAccessor::listChanged();
+    }
 }
 
-bool ExportNameList::editSelectedList_cloneSelected()
+void ExportNameList::onListAboutToChange(bool isFrame)
 {
-    return UndoHelper(this).cloneSelectedItem();
+    if (isFrame == _selectedListIsFrame) {
+        emit AbstractListAccessor::listAboutToChange();
+    }
 }
 
-bool ExportNameList::editSelectedList_removeSelected()
+void ExportNameList::onItemAdded(bool isFrame, size_t index)
 {
-    return UndoHelper(this).removeSelectedItem();
+    if (isFrame == _selectedListIsFrame) {
+        emit AbstractListAccessor::itemAdded(index);
+    }
 }
 
-bool ExportNameList::editSelectedList_raiseSelectedToTop()
+void ExportNameList::onItemAboutToBeRemoved(bool isFrame, size_t index)
 {
-    return UndoHelper(this).raiseSelectedItemToTop();
+    if (isFrame == _selectedListIsFrame) {
+        emit AbstractListAccessor::itemAboutToBeRemoved(index);
+    }
 }
 
-bool ExportNameList::editSelectedList_raiseSelected()
+void ExportNameList::onItemMoved(bool isFrame, size_t from, size_t to)
 {
-    return UndoHelper(this).raiseSelectedItem();
-}
-
-bool ExportNameList::editSelectedList_lowerSelected()
-{
-    return UndoHelper(this).lowerSelectedItem();
-}
-
-bool ExportNameList::editSelectedList_lowerSelectedToBottom()
-{
-    return UndoHelper(this).lowerSelectedItemToBottom();
+    if (isFrame == _selectedListIsFrame) {
+        emit AbstractListAccessor::itemMoved(from, to);
+    }
 }
 
 AlternativesList::AlternativesList(ResourceItem* exportOrder)
-    : QObject(exportOrder)
-    , _exportOrder(exportOrder)
-    , _selectedIndex(INT_MAX)
+    : AbstractListSingleSelectionAccessor(exportOrder, INT8_MAX)
 {
-    connect(_exportOrder->exportNameList(), &ExportNameList::selectedIndexChanged,
-            this, &AlternativesList::unselectItem);
+    connect(exportOrder->exportNameList(), &ExportNameList::selectedIndexChanged,
+            this, &AlternativesList::onParentSelectedIndexChanged);
+    connect(exportOrder->exportNameList(), &ExportNameList::listReset,
+            this, &AlternativesList::onParentSelectedIndexChanged);
+
+    connect(this, &AlternativesList::dataChanged,
+            this, &AlternativesList::onDataChanged);
+    connect(this, &AlternativesList::listChanged,
+            this, &AlternativesList::onListChanged);
+    connect(this, &AlternativesList::listAboutToChange,
+            this, &AlternativesList::onListAboutToChange);
+    connect(this, &AlternativesList::itemAdded,
+            this, &AlternativesList::onItemAdded);
+    connect(this, &AlternativesList::itemAboutToBeRemoved,
+            this, &AlternativesList::onItemAboutToBeRemoved);
+    connect(this, &AlternativesList::itemMoved,
+            this, &AlternativesList::onItemMoved);
 }
 
-void AlternativesList::setSelectedIndex(AlternativesList::index_type index)
+QString AlternativesList::typeName() const
 {
-    if (_selectedIndex != index) {
-        _selectedIndex = index;
-        emit selectedIndexChanged();
+    return tr("Export Name Alternative");
+}
+
+QString AlternativesList::typeNamePlural() const
+{
+    return tr("Export Name Alternatives");
+}
+
+AlternativesList::ListT* AlternativesList::getList(bool isFrame, AlternativesList::index_type enIndex)
+{
+    auto* eo = resourceItem()->dataEditable();
+    if (eo == nullptr) {
+        return nullptr;
     }
+
+    auto& nameList = isFrame ? eo->stillFrames : eo->animations;
+
+    if (enIndex < nameList.size()) {
+        return &nameList.at(enIndex).alternatives;
+    }
+    else {
+        return nullptr;
+    }
+}
+
+AlternativesList::ArgsT AlternativesList::selectedListTuple() const
+{
+    const ExportNameList* enl = resourceItem()->exportNameList();
+    return std::make_tuple(enl->selectedListIsFrame(), enl->selectedIndex());
+}
+
+const AlternativesList::ListT* AlternativesList::selectedList() const
+{
+    auto [isFrame, enIndex] = selectedListTuple();
+    auto* eo = resourceItem()->data();
+    if (eo == nullptr) {
+        return nullptr;
+    }
+
+    auto& nameList = isFrame ? eo->stillFrames : eo->animations;
+
+    if (enIndex < nameList.size()) {
+        return &nameList.at(enIndex).alternatives;
+    }
+    else {
+        return nullptr;
+    }
+}
+
+bool AlternativesList::listExists() const
+{
+    return selectedList() != nullptr;
+}
+
+size_t AlternativesList::size() const
+{
+    if (auto* l = selectedList()) {
+        return l->size();
+    }
+    return 0;
+}
+
+bool AlternativesList::addItem(size_t index)
+{
+    return UndoHelper(this).addItem(index);
+}
+
+bool AlternativesList::cloneItem(size_t index)
+{
+    return UndoHelper(this).cloneItem(index);
+}
+
+bool AlternativesList::removeItem(size_t index)
+{
+    return UndoHelper(this).removeItem(index);
+}
+
+bool AlternativesList::moveItem(size_t from, size_t to)
+{
+    return UndoHelper(this).moveItem(from, to);
 }
 
 bool AlternativesList::editList_setValue(bool isFrame, index_type exportIndex, index_type altIndex,
@@ -139,37 +284,59 @@ bool AlternativesList::editList_setValue(bool isFrame, index_type exportIndex, i
     return UndoHelper(this).editItem(altIndex, value);
 }
 
-bool AlternativesList::editSelectedList_addItem()
+void AlternativesList::onParentSelectedIndexChanged()
 {
-    return UndoHelper(this).addItem();
+    emit AbstractListAccessor::listAboutToChange();
+    unselectItem();
+
+    emit AbstractListAccessor::listReset();
+    emit AbstractListAccessor::listChanged();
 }
 
-bool AlternativesList::editSelectedList_cloneSelected()
+void AlternativesList::onDataChanged(bool isFrame, size_t parentIndex, size_t index)
 {
-    return UndoHelper(this).cloneSelectedItem();
+    const auto [sl_isFrame, sl_parentIndex] = selectedListTuple();
+    if (isFrame == sl_isFrame && parentIndex == sl_parentIndex) {
+        emit AbstractListAccessor::dataChanged(index);
+    }
 }
 
-bool AlternativesList::editSelectedList_removeSelected()
+void AlternativesList::onListChanged(bool isFrame, size_t parentIndex)
 {
-    return UndoHelper(this).removeSelectedItem();
+    const auto [sl_isFrame, sl_parentIndex] = selectedListTuple();
+    if (isFrame == sl_isFrame && parentIndex == sl_parentIndex) {
+        emit AbstractListAccessor::listChanged();
+    }
 }
 
-bool AlternativesList::editSelectedList_raiseSelectedToTop()
+void AlternativesList::onListAboutToChange(bool isFrame, size_t parentIndex)
 {
-    return UndoHelper(this).raiseSelectedItemToTop();
+    const auto [sl_isFrame, sl_parentIndex] = selectedListTuple();
+    if (isFrame == sl_isFrame && parentIndex == sl_parentIndex) {
+        emit AbstractListAccessor::listAboutToChange();
+    }
 }
 
-bool AlternativesList::editSelectedList_raiseSelected()
+void AlternativesList::onItemAdded(bool isFrame, size_t parentIndex, size_t index)
 {
-    return UndoHelper(this).raiseSelectedItem();
+    const auto [sl_isFrame, sl_parentIndex] = selectedListTuple();
+    if (isFrame == sl_isFrame && parentIndex == sl_parentIndex) {
+        emit AbstractListAccessor::itemAdded(index);
+    }
 }
 
-bool AlternativesList::editSelectedList_lowerSelected()
+void AlternativesList::onItemAboutToBeRemoved(bool isFrame, size_t parentIndex, size_t index)
 {
-    return UndoHelper(this).lowerSelectedItem();
+    const auto [sl_isFrame, sl_parentIndex] = selectedListTuple();
+    if (isFrame == sl_isFrame && parentIndex == sl_parentIndex) {
+        emit AbstractListAccessor::itemAboutToBeRemoved(index);
+    }
 }
 
-bool AlternativesList::editSelectedList_lowerSelectedToBottom()
+void AlternativesList::onItemMoved(bool isFrame, size_t parentIndex, size_t from, size_t to)
 {
-    return UndoHelper(this).lowerSelectedItemToBottom();
+    const auto [sl_isFrame, sl_parentIndex] = selectedListTuple();
+    if (isFrame == sl_isFrame && parentIndex == sl_parentIndex) {
+        emit AbstractListAccessor::itemMoved(from, to);
+    }
 }
