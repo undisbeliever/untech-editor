@@ -49,10 +49,10 @@ AbstractResourceItem* ResourceList::buildResourceItem(size_t index)
 const QVector<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
 {
     const static QVector<AbstractResourceList::AddResourceSettings> settings = {
-        { tr("Add FrameSet Export Order"),
-          QString::fromUtf8("MetaSprite FrameSet Export Order (*.utfseo)"),
-          QString::fromUtf8("utfseo"),
-          true },
+        { .title = tr("Add FrameSet Export Order"),
+          .filter = QString::fromUtf8("MetaSprite FrameSet Export Order (*.utfseo)"),
+          .extension = QString::fromUtf8("utfseo"),
+          .canCreateFile = true },
     };
 
     return settings;

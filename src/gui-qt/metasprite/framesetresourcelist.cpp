@@ -72,14 +72,14 @@ AbstractResourceItem* FrameSetResourceList::buildResourceItem(size_t index)
 const QVector<AbstractResourceList::AddResourceSettings>& FrameSetResourceList::addResourceSettings() const
 {
     const static QVector<AbstractResourceList::AddResourceSettings> settings = {
-        { tr("Add MetaSprite FrameSet"),
-          QString::fromUtf8("MetaSprite FrameSet (*.utms)"),
-          QString::fromUtf8("utms"),
-          true },
-        { tr("Add Sprite Importer FrameSet"),
-          QString::fromUtf8("SpriteImporter FrameSet (*.utsi)"),
-          QString::fromUtf8("utsi"),
-          true },
+        { .title = tr("Add MetaSprite FrameSet"),
+          .filter = QString::fromUtf8("MetaSprite FrameSet (*.utms)"),
+          .extension = QString::fromUtf8("utms"),
+          .canCreateFile = true },
+        { .title = tr("Add Sprite Importer FrameSet"),
+          .filter = QString::fromUtf8("SpriteImporter FrameSet (*.utsi)"),
+          .extension = QString::fromUtf8("utsi"),
+          .canCreateFile = true },
     };
 
     return settings;

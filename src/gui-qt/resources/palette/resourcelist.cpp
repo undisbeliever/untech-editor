@@ -49,9 +49,9 @@ ResourceItem* ResourceList::buildResourceItem(size_t index)
 const QVector<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
 {
     const static QVector<AbstractResourceList::AddResourceSettings> filters = {
-        { tr("Add Palette"),
-          QString::fromUtf8("PNG Image (*.png)"),
-          QString::fromUtf8("png"),
+        { .title = tr("Add Palette"),
+          .filter = QString::fromUtf8("PNG Image (*.png)"),
+          .extension = QString::fromUtf8("png"),
           .canCreateFile = false }
     };
 

@@ -49,9 +49,9 @@ ResourceItem* ResourceList::buildResourceItem(size_t index)
 const QVector<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
 {
     const static QVector<AbstractResourceList::AddResourceSettings> filters = {
-        { tr("Add Room"),
-          QString::fromUtf8("UnTech Room File (*.utroom)"),
-          QString::fromUtf8("utroom"),
+        { .title = tr("Add Room"),
+          .filter = QString::fromUtf8("UnTech Room File (*.utroom)"),
+          .extension = QString::fromUtf8("utroom"),
           .canCreateFile = true }
     };
 

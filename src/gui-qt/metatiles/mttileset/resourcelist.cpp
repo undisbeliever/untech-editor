@@ -49,10 +49,10 @@ ResourceItem* ResourceList::buildResourceItem(size_t index)
 const QVector<AbstractResourceList::AddResourceSettings>& ResourceList::addResourceSettings() const
 {
     const static QVector<AbstractResourceList::AddResourceSettings> settings = {
-        { tr("Add MetaTile Tileset"),
-          QString::fromUtf8("UnTech MetaTile Tileset File (*.utmt)"),
-          QString::fromUtf8("utmt"),
-          true },
+        { .title = tr("Add MetaTile Tileset"),
+          .filter = QString::fromUtf8("UnTech MetaTile Tileset File (*.utmt)"),
+          .extension = QString::fromUtf8("utmt"),
+          .canCreateFile = true },
     };
 
     return settings;
