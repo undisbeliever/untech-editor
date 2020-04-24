@@ -5,6 +5,7 @@
  */
 
 #include "framesetexportlist.h"
+#include "models/common/vectorset.h"
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -44,7 +45,7 @@ struct Tile16 {
 };
 
 struct TilesetLayout {
-    std::vector<Tile16> staticTiles;
+    vectorset<Tile16> staticTiles;
     std::vector<std::vector<Tile16>> dynamicTiles;
     TilesetType tilesetType;
 

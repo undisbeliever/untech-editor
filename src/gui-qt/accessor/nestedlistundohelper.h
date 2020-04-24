@@ -39,7 +39,7 @@ struct MultipleNestedSelectionModifier {
     using index_pair_t = AccessorT::index_pair_t;
     using selection_type = std::vector<index_pair_t>;
 
-    inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndexes(); }
+    inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndexes().vector(); }
     inline static void setSelection(AccessorT* a, selection_type&& selection) { a->setSelectedIndexes(std::move(selection)); }
 
     inline static void postAddCommand(AccessorT* a, const index_type parentIndex, const index_type childIndex) { a->setSelectedIndex(parentIndex, childIndex); }
@@ -1993,7 +1993,7 @@ public:
 
         const QString& typeName = indexes.size() == 1 ? _accessor->typeName() : _accessor->typeNamePlural();
 
-        return new RemoveMultipleCommand(_accessor, indexes, std::move(values), tr("Remove %1").arg(typeName));
+        return new RemoveMultipleCommand(_accessor, indexes.vector(), std::move(values), tr("Remove %1").arg(typeName));
     }
 
     bool removeMultipleItems(const vectorset<std::pair<index_type, index_type>>& indexes)

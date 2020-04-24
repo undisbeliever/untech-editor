@@ -53,7 +53,7 @@ struct CharAttrPos {
 const uint16_t CharAttrPos::SMALL_TILE_OFFSETS[4] = { 0x0000, 0x0001, 0x0010, 0x0011 };
 
 static FrameTilesetData
-insertTiles(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
+insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
             const unsigned tileOffset, const FrameTilesetData& staticTileset, const bool dynamicTileset,
             const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
             CompiledRomData& out)
@@ -136,7 +136,7 @@ insertTiles(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
 }
 
 static FrameTilesetData
-insertStaticTileset(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
+insertStaticTileset(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
                     const unsigned tileOffset,
                     const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
                     CompiledRomData& out)

@@ -49,6 +49,8 @@ public:
         sortAndRemoveDuplicates();
     }
 
+    const std::vector<T>& vector() const { return _vector; }
+
     const_iterator find(const T& value)
     {
         const_iterator it = std::lower_bound(_vector.cbegin(), _vector.cend(), value, _comp);
@@ -112,8 +114,6 @@ public:
     bool operator==(const vectorset<T, Compare>& o) const { return _vector == o._vector; }
     bool operator!=(const vectorset<T, Compare>& o) const { return _vector != o._vector; }
 
-    operator const std::vector<T>&() const { return _vector; }
-
 private:
     void sortAndRemoveDuplicates()
     {
@@ -164,6 +164,8 @@ public:
         sortAndRemoveDuplicates();
     }
 
+    const std::vector<T*>& vector() const { return _vector; }
+
     bool contains(T* const value) const
     {
         return std::binary_search(_vector.cbegin(), _vector.cend(), value);
@@ -204,8 +206,6 @@ public:
 
     bool operator==(const vectorset<T*>& o) const { return _vector == o._vector; }
     bool operator!=(const vectorset<T*>& o) const { return _vector != o._vector; }
-
-    operator const std::vector<T>&() const { return _vector; }
 
 private:
     void sortAndRemoveDuplicates()

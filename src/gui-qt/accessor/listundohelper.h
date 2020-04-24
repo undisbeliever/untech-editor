@@ -42,7 +42,7 @@ struct BlankSelectionModifier {
     inline static void setSelection(const void*, const selection_type&) {}
 
     inline static void postAddCommand(const void*, const index_type) {}
-    inline static void postAddCommand(const void*, const std::vector<index_type>&) {}
+    inline static void postAddCommand(const void*, const vectorset<index_type>&) {}
 
     inline static void itemAdded(selection_type&, const index_type) {}
     inline static void itemRemoved(selection_type&, const index_type) {}
@@ -58,7 +58,7 @@ struct SingleSelectionModifier {
     inline static void setSelection(AccessorT* a, const selection_type& selectedIndex) { a->setSelectedIndex(selectedIndex); }
 
     inline static void postAddCommand(AccessorT* a, const index_type index) { a->setSelectedIndex(index); }
-    inline static void postAddCommand(AccessorT* a, const std::vector<index_type>&) { a->setSelectedIndex(INT_MAX); }
+    inline static void postAddCommand(AccessorT* a, const vectorset<index_type>&) { a->setSelectedIndex(INT_MAX); }
 
     static void itemAdded(selection_type& selectedIndex, const index_type index)
     {
@@ -96,11 +96,11 @@ struct MultipleSelectionModifier {
     using index_type = AccessorT::index_type;
     using selection_type = std::vector<index_type>;
 
-    inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndexes(); }
+    inline static selection_type getSelection(const AccessorT* a) { return a->selectedIndexes().vector(); }
     inline static void setSelection(AccessorT* a, selection_type&& selection) { a->setSelectedIndexes(std::move(selection)); }
 
     inline static void postAddCommand(AccessorT* a, const index_type index) { a->setSelectedIndexes({ index }); }
-    inline static void postAddCommand(AccessorT* a, const std::vector<index_type>& indexes) { a->setSelectedIndexes(indexes); }
+    inline static void postAddCommand(AccessorT* a, const vectorset<index_type>& indexes) { a->setSelectedIndexes(indexes); }
 
     static void itemAdded(selection_type& selection, const index_type index)
     {
