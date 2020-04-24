@@ -33,6 +33,7 @@ QString AbstractPropertyModel::displayForProperty(const QModelIndex& index, cons
     case Type::IDSTRING:
     case Type::FILENAME:
     case Type::COLOR:
+    case Type::STRING_COMBO:
     case Type::COLOR_COMBO:
     case Type::NOT_EDITABLE: {
         return value.toString();

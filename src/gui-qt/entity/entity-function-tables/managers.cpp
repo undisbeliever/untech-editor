@@ -27,8 +27,8 @@ EntityFunctionTablesManager::EntityFunctionTablesManager(QObject* parent)
     setItemsMovable(true);
 
     addProperty(tr("Name"), NAME, PropertyType::IDSTRING);
-    addProperty(tr("Entity ROM Struct"), ENTITY_STRUCT, PropertyType::COMBO);
-    addProperty(tr("FrameSet Export Order"), EXPORT_ORDER, PropertyType::COMBO);
+    addProperty(tr("Entity ROM Struct"), ENTITY_STRUCT, PropertyType::STRING_COMBO);
+    addProperty(tr("FrameSet Export Order"), EXPORT_ORDER, PropertyType::STRING_COMBO);
     addProperty(tr("Parameter Type"), PARAMETER_TYPE, PropertyType::COMBO, PARAMETER_TYPE_STRINGS, qVariantRange(PARAMETER_TYPE_STRINGS.size()));
     addProperty(tr("Comment"), COMMENT, PropertyType::STRING);
 }

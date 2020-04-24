@@ -29,16 +29,16 @@ SceneTableManager::SceneTableManager(QObject* parent)
     : ListAccessorTableManager(parent)
 {
     addProperty(tr("Name"), NAME, PropertyType::IDSTRING);
-    addProperty(tr("Scene Settings"), SCENE_SETTINGS, PropertyType::COMBO);
-    addProperty(tr("Palette"), PALETTE, PropertyType::COMBO);
+    addProperty(tr("Scene Settings"), SCENE_SETTINGS, PropertyType::STRING_COMBO);
+    addProperty(tr("Palette"), PALETTE, PropertyType::STRING_COMBO);
     addProperty(tr("BG1"), LAYER_0_TYPE, PropertyType::NOT_EDITABLE);
-    addProperty(tr("(layer 0)"), LAYER_0, PropertyType::COMBO);
+    addProperty(tr("(layer 0)"), LAYER_0, PropertyType::STRING_COMBO);
     addProperty(tr("BG2"), LAYER_1_TYPE, PropertyType::NOT_EDITABLE);
-    addProperty(tr("(layer 1)"), LAYER_1, PropertyType::COMBO);
+    addProperty(tr("(layer 1)"), LAYER_1, PropertyType::STRING_COMBO);
     addProperty(tr("BG3"), LAYER_2_TYPE, PropertyType::NOT_EDITABLE);
-    addProperty(tr("(layer 2)"), LAYER_2, PropertyType::COMBO);
+    addProperty(tr("(layer 2)"), LAYER_2, PropertyType::STRING_COMBO);
     addProperty(tr("BG4"), LAYER_3_TYPE, PropertyType::NOT_EDITABLE);
-    addProperty(tr("(layer 3)"), LAYER_3, PropertyType::COMBO);
+    addProperty(tr("(layer 3)"), LAYER_3, PropertyType::STRING_COMBO);
 }
 
 void SceneTableManager::setSceneList(SceneList* sList)

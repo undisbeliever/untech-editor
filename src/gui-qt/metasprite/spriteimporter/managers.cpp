@@ -33,7 +33,7 @@ FrameSetManager::FrameSetManager(QObject* parent)
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
     addProperty(tr("Tileset Type"), TILESET_TYPE, Type::COMBO, enumComboNames(TtEnumMap), enumComboDataList(TtEnumMap));
-    addProperty(tr("Export Order"), EXPORT_ORDER, Type::COMBO);
+    addProperty(tr("Export Order"), EXPORT_ORDER, Type::STRING_COMBO);
     addPropertyGroup(tr("Image:"));
     addProperty(tr("Filename"), IMAGE_FILENAME, Type::FILENAME, QStringLiteral("PNG Image (*.png)"));
     addProperty(tr("Transparent Color"), TRANSPARENT_COLOR, Type::COLOR_COMBO);
@@ -643,7 +643,7 @@ ActionPointManager::ActionPointManager(QObject* parent)
     setTitle(tr("Action Point"));
 
     addProperty(tr("Location"), PropertyId::LOCATION, Type::POINT);
-    addProperty(tr("Type"), PropertyId::TYPE, Type::COMBO);
+    addProperty(tr("Type"), PropertyId::TYPE, Type::STRING_COMBO);
 }
 
 void ActionPointManager::setResourceItem(ResourceItem* resourceItem)

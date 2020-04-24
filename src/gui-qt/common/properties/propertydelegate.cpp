@@ -120,6 +120,7 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
         case Type::SIZE:
         case Type::RECT:
         case Type::COMBO:
+        case Type::STRING_COMBO:
         case Type::NOT_EDITABLE: {
             drawDisplay(painter, option, option.rect, value.toString());
         } break;
@@ -298,6 +299,7 @@ QWidget* PropertyDelegate::createEditorWidget(QWidget* parent, const AbstractPro
     }
 
     case Type::COMBO:
+    case Type::STRING_COMBO:
     case Type::COLOR_COMBO: {
         QComboBox* cb = new QComboBox(parent);
         cb->setAutoFillBackground(true);
@@ -447,6 +449,17 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
         cb->setCurrentIndex(i);
     } break;
 
+    case Type::STRING_COMBO: {
+        const QStringList sList = params.first.toStringList();
+
+        QComboBox* cb = qobject_cast<QComboBox*>(editor);
+        cb->clear();
+        cb->addItems(sList);
+
+        int i = sList.indexOf(data.toString());
+        cb->setCurrentIndex(i);
+    } break;
+
     case Type::COLOR_COMBO: {
         const QVariantList colorsList = params.first.toList();
 
@@ -542,6 +555,11 @@ void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
     case Type::COLOR_COMBO: {
         QComboBox* cb = qobject_cast<QComboBox*>(editor);
         model->setData(index, cb->currentData(), Qt::EditRole);
+    } break;
+
+    case Type::STRING_COMBO: {
+        QComboBox* cb = qobject_cast<QComboBox*>(editor);
+        model->setData(index, cb->currentText(), Qt::EditRole);
     } break;
 
     case Type::NOT_EDITABLE: {

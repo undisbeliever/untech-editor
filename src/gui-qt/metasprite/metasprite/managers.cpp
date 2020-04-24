@@ -39,7 +39,7 @@ FrameSetManager::FrameSetManager(QObject* parent)
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
     addProperty(tr("Tileset Type"), TILESET_TYPE, Type::COMBO, enumComboNames(TtEnumMap), enumComboDataList(TtEnumMap));
-    addProperty(tr("Export Order"), EXPORT_ORDER, Type::COMBO);
+    addProperty(tr("Export Order"), EXPORT_ORDER, Type::STRING_COMBO);
 }
 
 void FrameSetManager::setResourceItem(ResourceItem* resourceItem)
@@ -354,7 +354,7 @@ ActionPointManager::ActionPointManager(QObject* parent)
 
     addProperty(tr("Location"), PropertyId::LOCATION, Type::POINT,
                 QPoint(int_ms8_t::MIN, int_ms8_t::MIN), QPoint(int_ms8_t::MAX, int_ms8_t::MAX));
-    addProperty(tr("Type"), PropertyId::TYPE, Type::COMBO);
+    addProperty(tr("Type"), PropertyId::TYPE, Type::STRING_COMBO);
 }
 
 void ActionPointManager::setResourceItem(ResourceItem* resourceItem)
@@ -430,7 +430,7 @@ EntityHitboxManager::EntityHitboxManager(QObject* parent)
     setTitle(tr("Entity Hitbox"));
 
     addProperty(tr("AABB"), PropertyId::AABB, Type::RECT, MS8_RECT_BOUNDS);
-    addProperty(tr("Hitbox Type"), PropertyId::HITBOX_TYPE, Type::COMBO,
+    addProperty(tr("Hitbox Type"), PropertyId::HITBOX_TYPE, Type::STRING_COMBO,
                 EH_SHORT_STRING_VALUES, qVariantRange(EH_SHORT_STRING_VALUES.size()));
 }
 

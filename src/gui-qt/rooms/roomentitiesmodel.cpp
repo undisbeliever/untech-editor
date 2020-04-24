@@ -22,7 +22,7 @@ RoomEntitiesModel::RoomEntitiesModel(QObject* parent)
     , _resourceItem(nullptr)
     , _properties({
           Property(tr("Name"), NAME, PropertyType::IDSTRING),
-          Property(tr("Entity"), ENTITY_ID, PropertyType::COMBO),
+          Property(tr("Entity"), ENTITY_ID, PropertyType::STRING_COMBO),
           Property(tr("Position"), POSITION, PropertyType::POINT),
       })
 {

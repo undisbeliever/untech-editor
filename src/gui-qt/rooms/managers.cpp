@@ -24,7 +24,7 @@ RoomPropertyManager::RoomPropertyManager(QObject* parent)
     constexpr QSize MAX_MAP_SIZE{ RoomInput::MAX_MAP_WIDTH, RoomInput::MAX_MAP_HEIGHT };
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
-    addProperty(tr("Scene"), SCENE, Type::COMBO);
+    addProperty(tr("Scene"), SCENE, Type::STRING_COMBO);
     addProperty(tr("Map Size"), MAP_SIZE, Type::SIZE, MIN_MAP_SIZE, MAX_MAP_SIZE);
 }
 

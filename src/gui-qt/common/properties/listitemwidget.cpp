@@ -76,6 +76,7 @@ void ListItemWidget::onAddButtonClicked()
     case Type::SIZE:
     case Type::RECT:
     case Type::COMBO:
+    case Type::STRING_COMBO:
     case Type::COLOR_COMBO:
     case Type::NOT_EDITABLE:
         break;

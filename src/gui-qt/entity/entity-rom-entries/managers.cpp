@@ -91,11 +91,11 @@ void EntityRomEntryManager::rebuildStructFields()
     QVector<Property> properties;
     properties.reserve(_structFields.size() + FIXED_FIELDS_SIZE);
 
-    properties.append(Property(QStringLiteral("initialProjectileId"), INITIAL_PROJECTILE_ID, PropertyType::COMBO));
-    properties.append(Property(QStringLiteral("initialListId"), INTITAL_LIST_ID, PropertyType::COMBO));
-    properties.append(Property(QStringLiteral("frameSetId"), FRAME_SET_ID, PropertyType::COMBO));
+    properties.append(Property(QStringLiteral("initialProjectileId"), INITIAL_PROJECTILE_ID, PropertyType::STRING_COMBO));
+    properties.append(Property(QStringLiteral("initialListId"), INTITAL_LIST_ID, PropertyType::STRING_COMBO));
+    properties.append(Property(QStringLiteral("frameSetId"), FRAME_SET_ID, PropertyType::STRING_COMBO));
     properties.append(Property(QStringLiteral("defaultPalette"), DEFAULT_PALETTE, PropertyType::UNSIGNED, 0, 255));
-    properties.append(Property(QStringLiteral("displayFrame"), DISPLAY_FRAME, PropertyType::COMBO));
+    properties.append(Property(QStringLiteral("displayFrame"), DISPLAY_FRAME, PropertyType::STRING_COMBO));
 
     for (int i = 0; i < _structFields.size(); i++) {
         const auto& field = _structFields.at(i);

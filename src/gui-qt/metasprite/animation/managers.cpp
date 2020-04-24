@@ -28,7 +28,7 @@ AnimationManager::AnimationManager(QObject* parent)
     addProperty(tr("Name"), NAME, Type::IDSTRING);
     addProperty(tr("Duration Format"), DURATION_FORMAT, Type::COMBO, enumComboNames(dfMap), enumComboDataList(dfMap));
     addProperty(tr("One Shot"), ONE_SHOT, Type::BOOLEAN);
-    addProperty(tr("Next Animation"), NEXT_ANIMATION, Type::COMBO);
+    addProperty(tr("Next Animation"), NEXT_ANIMATION, Type::STRING_COMBO);
 }
 
 void AnimationManager::setResourceItem(AbstractMsResourceItem* entityHitboxList)
