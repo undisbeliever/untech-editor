@@ -58,7 +58,7 @@ private:
     Project(std::unique_ptr<DataT> projectFile, QString filename);
 
 public:
-    virtual ~Project() final;
+    virtual ~Project();
 
 public:
     static std::unique_ptr<Project> newProject(const QString& filenmae);
