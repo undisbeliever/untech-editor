@@ -57,8 +57,10 @@ public:
 
     inline bool isValid() const { return !data.empty(); }
 
+    // clang-format off
     inline const std::string& str() const { return data; }
     inline operator const std::string&() const { return data; }
+    // clang-format on
 
     inline idstring& operator=(const std::string& s)
     {
