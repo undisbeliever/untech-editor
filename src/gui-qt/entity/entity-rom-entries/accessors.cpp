@@ -43,7 +43,7 @@ NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, ResourceIte
 
 EntityRomEntriesList::EntityRomEntriesList(ResourceItem* resourceItem,
                                            bool entityList)
-    : NamedListAccessor(resourceItem, 255)
+    : NamedListAccessor(resourceItem, EN::MAX_N_ENTITY_ENTRIES)
     , _entityList(entityList)
 {
 }

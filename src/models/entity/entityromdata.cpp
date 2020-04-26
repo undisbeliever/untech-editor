@@ -738,6 +738,13 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
 {
     const auto oldErrorCount = err.errorCount();
 
+    if (data.entities.size() > MAX_N_ENTITY_ENTRIES) {
+        err.addErrorString("Too many entities (", data.entities.size(), ", max: ", MAX_N_ENTITY_ENTRIES, ")");
+    }
+    if (data.projectiles.size() > MAX_N_ENTITY_ENTRIES) {
+        err.addErrorString("Too many projectiles (", data.projectiles.size(), ", max: ", MAX_N_ENTITY_ENTRIES, ")");
+    }
+
     auto ret = std::make_unique<CompiledEntityRomData>();
 
     data.validateListIds(err);

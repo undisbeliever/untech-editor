@@ -21,6 +21,8 @@ struct ProjectFile;
 
 namespace Entity {
 
+constexpr unsigned MAX_N_ENTITY_ENTRIES = 256;
+
 enum class DataType {
     UINT8,
     UINT16,
