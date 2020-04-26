@@ -327,7 +327,7 @@ QPair<QVariant, QVariant> RoomEntitiesModel::propertyParametersForIndex(const QM
         case POSITION:
             if (auto ri = roomInput()) {
                 return qMakePair(QPoint(0, -int(RM::ENTITY_VERTICAL_SPACING)),
-                                 QPoint(ri->mapRight(), ri->mapBottom() + RM::ENTITY_VERTICAL_SPACING - 1));
+                                 QPoint(ri->mapRight() - 1, ri->mapBottom() + RM::ENTITY_VERTICAL_SPACING - 1));
             }
         }
         return BLANK_PAIR;
