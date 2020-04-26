@@ -45,6 +45,8 @@ void RoomEntitiesModel::setResourceItem(ResourceItem* item)
                 this, &RoomEntitiesModel::onListChanged);
         connect(_resourceItem->entityGroups(), &EntityGroupList::listChanged,
                 this, &RoomEntitiesModel::onListChanged);
+        connect(_resourceItem->entityGroups(), &EntityGroupList::listAboutToChange,
+                this, &RoomEntitiesModel::requestCloseEditors);
         connect(_resourceItem->entityGroups(), &EntityGroupList::dataChanged,
                 this, &RoomEntitiesModel::onEntityGroupChanged);
 
@@ -52,6 +54,8 @@ void RoomEntitiesModel::setResourceItem(ResourceItem* item)
                 this, &RoomEntitiesModel::onListChanged);
         connect(_resourceItem->entityEntries(), &EntityEntriesList::listChanged,
                 this, &RoomEntitiesModel::onListChanged);
+        connect(_resourceItem->entityEntries(), &EntityEntriesList::listAboutToChange,
+                this, &RoomEntitiesModel::requestCloseEditors);
         connect(_resourceItem->entityEntries(), &EntityEntriesList::dataChanged,
                 this, &RoomEntitiesModel::onEntityEntryChanged);
     }
