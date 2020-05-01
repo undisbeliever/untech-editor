@@ -417,6 +417,15 @@ optional<const SceneData&> CompiledScenesData::findScene(const idstring& name) c
     return scenes.at(it->second);
 }
 
+std::optional<unsigned> CompiledScenesData::indexForScene(const idstring& name) const
+{
+    auto it = nameIndexMap.find(name);
+    if (it == nameIndexMap.end()) {
+        return std::nullopt;
+    }
+    return it->second;
+}
+
 static SceneLayerData getLayerSize(const unsigned layerIndex,
                                    const SceneInput& sceneInput, const SceneSettingsInput& sceneSettings,
                                    const Project::ProjectData& projectData, ErrorList& err)

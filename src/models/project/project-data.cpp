@@ -12,6 +12,18 @@
 namespace UnTech {
 namespace Project {
 
+template <typename T>
+static inline const DataStore<T>& expandPresquite(const DataStore<T>& ds)
+{
+    return ds;
+}
+template <typename T>
+static inline const T& expandPresquite(const std::unique_ptr<T>& p)
+{
+    assert(p);
+    return *p;
+}
+
 template <typename ConvertFunction, class DataT, class InputT, typename... PreresquitesT>
 static bool compileData(ConvertFunction convertFunction, DataStore<DataT>& dataStore,
                         const size_t index, const InputT& input, ErrorList& err,
@@ -20,7 +32,7 @@ static bool compileData(ConvertFunction convertFunction, DataStore<DataT>& dataS
     // Ensure dataStore is not a preresquite.
     assert(((static_cast<const void*>(&preresquites) != static_cast<const void*>(&dataStore)) && ...));
 
-    std::unique_ptr<const DataT> data = convertFunction(input, preresquites..., err);
+    std::unique_ptr<const DataT> data = convertFunction(input, expandPresquite(preresquites)..., err);
 
     bool valid = (data != nullptr);
 
@@ -74,6 +86,7 @@ ProjectData::ProjectData(const ProjectFile& project)
     _palettes.clearAllAndResize(_project.palettes.size());
     _backgroundImages.clearAllAndResize(_project.backgroundImages.size());
     _metaTileTilesets.clearAllAndResize(_project.metaTileTilesets.size());
+    _rooms.clearAllAndResize(_project.rooms.size());
 }
 
 bool ProjectData::compilePalette(size_t index, ErrorList& err)
@@ -89,6 +102,11 @@ bool ProjectData::compileBackgroundImage(size_t index, ErrorList& err)
 bool ProjectData::compileMetaTiles(size_t index, ErrorList& err)
 {
     return compileExternalFileListItem(MetaTiles::convertTileset, _metaTileTilesets, _project.metaTileTilesets, index, err, _palettes);
+}
+
+bool ProjectData::compileRoom(size_t index, ErrorList& err)
+{
+    return compileExternalFileListItem(Rooms::compileRoom, _rooms, _project.rooms, index, err, _scenes, _entityRomData);
 }
 
 bool ProjectData::compileSceneSettings(ErrorList& err)

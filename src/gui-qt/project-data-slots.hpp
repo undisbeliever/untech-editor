@@ -10,6 +10,7 @@
 #include "gui-qt/metatiles/mttileset/resourcelist.h"
 #include "gui-qt/resources/background-image/resourcelist.h"
 #include "gui-qt/resources/palette/resourcelist.h"
+#include "gui-qt/rooms/resourcelist.h"
 #include "models/project/project-data.h"
 
 namespace UnTech {
@@ -33,6 +34,10 @@ public:
         connectList(
             project, project->mtTilesets(),
             [](ProjectData & pd) -> auto& { return pd._metaTileTilesets; });
+
+        connectList(
+            project, project->rooms(),
+            [](ProjectData & pd) -> auto& { return pd._rooms; });
     }
 
 private:

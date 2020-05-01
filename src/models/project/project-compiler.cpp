@@ -86,16 +86,19 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
         { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
         { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
+        { "Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
     };
     enum TypeId : unsigned {
         PALETTE,
         BACKGROUND_IMAGE,
-        METATILE_TILESET
+        METATILE_TILESET,
+        ROOM,
     };
     const static std::vector<std::string> TYPE_NAMES = {
         "Project.PaletteList",
         "Project.BackgroundImageList",
         "Project.MetaTileTilesetList",
+        "Project.RoomList",
     };
 
     bool valid = true;
@@ -166,6 +169,11 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         return nullptr;
     }
 
+    compileList(input.rooms, &ProjectData::compileRoom, "Room");
+    if (!valid) {
+        return nullptr;
+    }
+
     RomDataWriter writer(input.blockSettings.size, input.blockSettings.count,
                          "__resc__", "RES_Lists", "RES_Block",
                          FORMAT_VERSIONS, TYPE_NAMES);
@@ -186,6 +194,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     writeData(PALETTE, projectData.palettes());
     writeData(BACKGROUND_IMAGE, projectData.backgroundImages());
     writeData(METATILE_TILESET, projectData.metaTileTilesets());
+    writeData(ROOM, projectData.rooms());
 
     auto ret = std::make_unique<ProjectOutput>();
     ret->binaryData = writer.writeBinaryData();

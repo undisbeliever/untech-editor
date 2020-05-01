@@ -13,7 +13,14 @@
 namespace UnTech {
 class ErrorList;
 namespace Project {
-class ProjectData;
+template <typename T>
+class DataStore;
+}
+namespace Entity {
+struct CompiledEntityRomData;
+}
+namespace Resources {
+struct CompiledScenesData;
 }
 
 namespace Rooms {
@@ -78,7 +85,7 @@ struct RoomInput {
     unsigned mapRight() const { return map.width() * MAP_TILE_SIZE; }
     unsigned mapBottom() const { return map.height() * MAP_TILE_SIZE; }
 
-    bool validate(const Project::ProjectData& projectData, ErrorList& err) const;
+    bool validate(const Resources::CompiledScenesData& compiledScenes, ErrorList& err) const;
 
     bool operator==(const RoomInput& o) const
     {
@@ -90,5 +97,19 @@ struct RoomInput {
     bool operator!=(const RoomInput& o) const { return !(*this == o); }
 };
 
+struct RoomData {
+    const static int ROOM_FORMAT_VERSION;
+
+    idstring name;
+    std::vector<uint8_t> data;
+
+    bool validate(ErrorList&) const { return data.empty() == false; }
+
+    std::vector<uint8_t> exportSnesData() const;
+};
+std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
+                                            const Resources::CompiledScenesData& compiledScenes,
+                                            const Entity::CompiledEntityRomData& entityRomData,
+                                            ErrorList& err);
 }
 }

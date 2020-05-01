@@ -80,13 +80,7 @@ bool ResourceItem::loadResourceData(ErrorList& err)
 
 bool ResourceItem::compileResource(ErrorList& err)
 {
-    if (auto ri = roomInput()) {
-        ri->validate(project()->projectData(), err);
-    }
-
-    // ::TODO compile Resource::
-    err.addErrorString("Compiler not implemented");
-    return false;
+    return project()->projectData().compileRoom(index(), err);
 }
 
 bool ResourceItem::edit_setName(const idstring& name)

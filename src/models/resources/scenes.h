@@ -191,6 +191,8 @@ struct CompiledScenesData {
 
     optional<const SceneData&> findScene(const idstring& name) const;
 
+    std::optional<unsigned> indexForScene(const idstring& name) const;
+
     bool valid;
 };
 

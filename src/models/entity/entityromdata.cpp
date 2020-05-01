@@ -781,6 +781,10 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     ret->defines = defines.str();
     ret->entries = entries.str();
 
+    for (unsigned i = 0; i < data.entities.size(); i++) {
+        ret->entityNameMap.emplace(data.entities.at(i).name, i);
+    }
+
     return ret;
 }
 

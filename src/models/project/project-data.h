@@ -27,6 +27,9 @@ struct MetaTileTilesetData;
 namespace Entity {
 struct CompiledEntityRomData;
 }
+namespace Rooms {
+struct RoomData;
+}
 
 namespace GuiQt {
 class ProjectDataSlots;
@@ -132,6 +135,7 @@ class ProjectData {
     DataStore<Resources::PaletteData> _palettes;
     DataStore<Resources::BackgroundImageData> _backgroundImages;
     DataStore<MetaTiles::MetaTileTilesetData> _metaTileTilesets;
+    DataStore<Rooms::RoomData> _rooms;
 
     std::unique_ptr<const Resources::SceneSettingsData> _sceneSettings;
     std::unique_ptr<const Resources::CompiledScenesData> _scenes;
@@ -140,12 +144,10 @@ class ProjectData {
 public:
     ProjectData(const ProjectFile& project);
 
-    // Must be called when item added/removed from projects
-    void resizeDataStores();
-
     const DataStore<Resources::PaletteData>& palettes() const { return _palettes; }
     const DataStore<Resources::BackgroundImageData>& backgroundImages() const { return _backgroundImages; }
     const DataStore<MetaTiles::MetaTileTilesetData>& metaTileTilesets() const { return _metaTileTilesets; }
+    const DataStore<Rooms::RoomData>& rooms() const { return _rooms; }
 
     const optional<const Resources::SceneSettingsData&> sceneSettings() const { return _sceneSettings; }
     const optional<const Resources::CompiledScenesData&> scenes() const { return _scenes; }
@@ -155,6 +157,7 @@ public:
     bool compilePalette(size_t index, ErrorList& err);
     bool compileBackgroundImage(size_t index, ErrorList& err);
     bool compileMetaTiles(size_t index, ErrorList& err);
+    bool compileRoom(size_t index, ErrorList& err);
 
     bool compileSceneSettings(ErrorList& err);
     bool compileScenes(ErrorList& err);

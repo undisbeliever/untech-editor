@@ -182,6 +182,8 @@ struct CompiledEntityRomData {
     std::string defines;
     std::string entries;
 
+    std::unordered_map<idstring, unsigned> entityNameMap;
+
     bool valid;
 };
 
