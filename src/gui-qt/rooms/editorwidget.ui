@@ -108,16 +108,16 @@
      </layout>
     </item>
     <item>
-     <widget class="ZoomableGraphicsView" name="graphicsView"/>
+     <widget class="OpenGLZoomableGraphicsView" name="graphicsView"/>
     </item>
    </layout>
   </widget>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ZoomableGraphicsView</class>
+   <class>OpenGLZoomableGraphicsView</class>
    <extends>QGraphicsView</extends>
-   <header>gui-qt/common/graphics/zoomablegraphicsview.h</header>
+   <header>gui-qt/common/graphics/openglzoomablegraphicsview.h</header>
   </customwidget>
  </customwidgets>
  <resources>

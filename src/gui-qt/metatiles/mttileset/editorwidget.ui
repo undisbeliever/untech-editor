@@ -123,12 +123,12 @@
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <widget class="ZoomableGraphicsView" name="centralTilesetGraphicsView">
+       <widget class="OpenGLZoomableGraphicsView" name="centralTilesetGraphicsView">
         <attribute name="title">
          <string>Tileset</string>
         </attribute>
        </widget>
-       <widget class="ZoomableGraphicsView" name="centralScratchpadGraphicsView">
+       <widget class="OpenGLZoomableGraphicsView" name="centralScratchpadGraphicsView">
         <attribute name="title">
          <string>Scratchpad</string>
         </attribute>
@@ -154,8 +154,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>951</width>
-           <height>573</height>
+           <width>954</width>
+           <height>577</height>
           </rect>
          </property>
          <property name="text">
@@ -202,15 +202,15 @@ Holding &lt;code&gt;&lt;strong&gt;Shift&lt;/strong&gt;&lt;/code&gt; while clicki
  </widget>
  <customwidgets>
   <customwidget>
+   <class>OpenGLZoomableGraphicsView</class>
+   <extends>QGraphicsView</extends>
+   <header>gui-qt/common/graphics/openglzoomablegraphicsview.h</header>
+  </customwidget>
+  <customwidget>
    <class>UnTech::GuiQt::Resources::AnimationFramesInputWidget</class>
    <extends>QWidget</extends>
    <header>gui-qt/resources/animated-tileset/animationframesinputwidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ZoomableGraphicsView</class>
-   <extends>QGraphicsView</extends>
-   <header>gui-qt/common/graphics/zoomablegraphicsview.h</header>
   </customwidget>
  </customwidgets>
  <resources>

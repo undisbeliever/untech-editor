@@ -17,7 +17,7 @@ struct ErrorListItem;
 namespace GuiQt {
 class ZoomSettings;
 class ZoomSettingsManager;
-class ZoomableGraphicsView;
+class OpenGLZoomableGraphicsView;
 class PropertyListView;
 
 namespace MetaTiles {
@@ -75,8 +75,8 @@ private:
     // Used by the DockWidgets
     PropertyListView* const _propertyListView;
     TilePropertiesWidget* const _tilePropertiesWidget;
-    ZoomableGraphicsView* const _dockedTilesetView;
-    ZoomableGraphicsView* const _dockedScratchpadView;
+    OpenGLZoomableGraphicsView* const _dockedTilesetView;
+    OpenGLZoomableGraphicsView* const _dockedScratchpadView;
 
     Style* const _style;
     MtTilesetPropertyManager* const _tilesetPropertyManager;

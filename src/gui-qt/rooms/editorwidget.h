@@ -13,7 +13,7 @@ namespace UnTech {
 namespace GuiQt {
 class PropertyListView;
 class ZoomSettingsManager;
-class ZoomableGraphicsView;
+class OpenGLZoomableGraphicsView;
 
 namespace MetaTiles {
 class Style;
@@ -56,9 +56,9 @@ private slots:
 private:
     std::unique_ptr<Ui::EditorWidget> const _ui;
 
-    ZoomableGraphicsView* const _dockedMinimapView;
-    ZoomableGraphicsView* const _dockedTilesetView;
-    ZoomableGraphicsView* const _dockedScratchpadView;
+    OpenGLZoomableGraphicsView* const _dockedMinimapView;
+    OpenGLZoomableGraphicsView* const _dockedTilesetView;
+    OpenGLZoomableGraphicsView* const _dockedScratchpadView;
 
     MetaTiles::Style* const _style;
     MetaTiles::MtTileset::MtTilesetRenderer* const _renderer;
