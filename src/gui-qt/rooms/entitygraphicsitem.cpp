@@ -8,6 +8,7 @@
 #include "gui-qt/entity/entity-rom-entries/resourceitem.h"
 #include <QGraphicsScene>
 #include <QPainter>
+#include <QtMath>
 
 using namespace UnTech;
 using namespace UnTech::GuiQt;
@@ -78,6 +79,13 @@ void EntityEntryGraphicsItem::updateEntity(const RM::EntityEntry& ee,
 
 QVariant EntityEntryGraphicsItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
 {
+    if (change == QGraphicsItem::ItemPositionChange) {
+        QPointF pos = value.toPointF();
+        int x = qFloor(pos.x());
+        int y = qFloor(pos.y());
+
+        return QPointF(x, y);
+    }
     if (change == ItemPositionHasChanged) {
         updateSelectionOutline();
     }
