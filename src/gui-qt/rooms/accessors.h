@@ -30,7 +30,7 @@ public:
 
     using UndoHelper = Accessor::GridUndoHelper<MapGrid>;
 
-    static UnTech::usize maxSize() { return usize(255, 128); }
+    static UnTech::usize maxSize() { return usize(RM::RoomInput::MAX_MAP_WIDTH, RM::RoomInput::MAX_MAP_HEIGHT); }
 
 public:
     MapGrid(ResourceItem* room);

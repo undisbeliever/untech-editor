@@ -71,7 +71,7 @@ public:
 
     using UndoHelper = Accessor::GridUndoHelper<MtTilesetScratchpadGrid>;
 
-    static UnTech::usize maxSize() { return usize(255, 255); }
+    static UnTech::usize maxSize() { return usize(MT::MAX_GRID_WIDTH, MT::MAX_GRID_HEIGHT); }
 
 public:
     MtTilesetScratchpadGrid(ResourceItem* tileset);

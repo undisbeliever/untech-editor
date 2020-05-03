@@ -20,7 +20,7 @@ MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     using Type = UnTech::GuiQt::PropertyType;
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
-    addProperty(tr("Scratchpad Size"), SCRATCHPAD_SIZE, Type::SIZE, QSize(0, 0), QSize(255, 255));
+    addProperty(tr("Scratchpad Size"), SCRATCHPAD_SIZE, Type::SIZE, QSize(0, 0), fromUsize(MtTilesetScratchpadGrid::maxSize()));
     addProperty(tr("Tileset Palettes"), TILESET_PALETTES, Type::IDSTRING_LIST);
 
     addPropertyGroup(tr("Animation Frames:"));

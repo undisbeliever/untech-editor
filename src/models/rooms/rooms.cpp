@@ -8,6 +8,7 @@
 #include "models/common/errorlist.h"
 #include "models/entity/entityromdata.h"
 #include "models/lz4/lz4.h"
+#include "models/metatiles/common.h"
 #include "models/project/project-data.h"
 #include "models/resources/scenes.h"
 #include <algorithm>
@@ -33,6 +34,11 @@ static_assert(Y_POSITION_MASK_SMALL < MAP_ORIGIN_Y - ENTITY_VERTICAL_SPACING);
 static_assert(Y_POSITION_MASK_LARGE < MAP_ORIGIN_Y - ENTITY_VERTICAL_SPACING);
 static_assert(Y_POSITION_MASK_SMALL < MAP_ORIGIN_Y + ENTITY_VERTICAL_SPACING);
 static_assert(Y_POSITION_MASK_LARGE < MAP_ORIGIN_Y + ENTITY_VERTICAL_SPACING);
+
+// Ensure map can be read/written safely
+static_assert(RoomInput::MAX_MAP_HEIGHT == MAP_HEIGHT_LARGE);
+static_assert(RoomInput::MAX_MAP_HEIGHT <= MetaTiles::MAX_GRID_HEIGHT);
+static_assert(RoomInput::MAX_MAP_WIDTH <= MetaTiles::MAX_GRID_WIDTH);
 
 static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, const RoomInput& ri, ErrorList& err)
 {

@@ -20,8 +20,8 @@ RoomPropertyManager::RoomPropertyManager(QObject* parent)
     using Type = UnTech::GuiQt::PropertyType;
     using RoomInput = UnTech::Rooms::RoomInput;
 
-    constexpr QSize MIN_MAP_SIZE{ RoomInput::MIN_MAP_WIDTH, RoomInput::MIN_MAP_HEIGHT };
-    constexpr QSize MAX_MAP_SIZE{ RoomInput::MAX_MAP_WIDTH, RoomInput::MAX_MAP_HEIGHT };
+    const QSize MIN_MAP_SIZE{ RoomInput::MIN_MAP_WIDTH, RoomInput::MIN_MAP_HEIGHT };
+    const QSize MAX_MAP_SIZE = fromUsize(MapGrid::maxSize());
 
     addProperty(tr("Name"), NAME, Type::IDSTRING);
     addProperty(tr("Scene"), SCENE, Type::STRING_COMBO);
