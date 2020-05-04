@@ -33,6 +33,21 @@ constexpr unsigned MAP_TILE_SIZE = 16;
 // Vertical space above/below map where entity positon is still valid
 constexpr int ENTITY_VERTICAL_SPACING = 256;
 
+struct RoomSettings {
+    constexpr static unsigned MIN_ROOM_DATA_SIZE = 1024;
+    constexpr static unsigned MAX_ROOM_DATA_SIZE = 40 * 1024;
+
+    unsigned roomDataSize = 16 * 1024;
+
+    bool validate(ErrorList& err) const;
+
+    bool operator==(const RoomSettings& o) const
+    {
+        return roomDataSize == o.roomDataSize;
+    }
+    bool operator!=(const RoomSettings& o) const { return !(*this == o); }
+};
+
 struct EntityEntry {
     idstring name; // optional (to be used by scripting)
 
@@ -110,6 +125,7 @@ struct RoomData {
 std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
                                             const Resources::CompiledScenesData& compiledScenes,
                                             const Entity::CompiledEntityRomData& entityRomData,
+                                            const RoomSettings& roomSettings,
                                             ErrorList& err);
 }
 }

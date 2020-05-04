@@ -20,7 +20,7 @@ class ProjectSettingsPropertyManager : public PropertyListManager {
         BLOCK_SIZE,
         BLOCK_COUNT,
 
-        METATILE_MAX_MAP_SIZE,
+        ROOM_DATA_SIZE,
 
         ENTITY_LIST_IDS,
     };

@@ -23,6 +23,11 @@ static inline const T& expandPresquite(const std::unique_ptr<T>& p)
     assert(p);
     return *p;
 }
+template <typename T>
+static inline const T& expandPresquite(const T& p)
+{
+    return p;
+}
 
 template <typename ConvertFunction, class DataT, class InputT, typename... PreresquitesT>
 static bool compileData(ConvertFunction convertFunction, DataStore<DataT>& dataStore,
@@ -106,7 +111,7 @@ bool ProjectData::compileMetaTiles(size_t index, ErrorList& err)
 
 bool ProjectData::compileRoom(size_t index, ErrorList& err)
 {
-    return compileExternalFileListItem(Rooms::compileRoom, _rooms, _project.rooms, index, err, _scenes, _entityRomData);
+    return compileExternalFileListItem(Rooms::compileRoom, _rooms, _project.rooms, index, err, _scenes, _entityRomData, _project.roomSettings);
 }
 
 bool ProjectData::compileSceneSettings(ErrorList& err)

@@ -25,16 +25,10 @@ std::unique_ptr<MetaTileTilesetInput> loadMetaTileTilesetInput(const std::filesy
 std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(Xml::XmlReader& xml);
 
 // raises an exception on error
-void readEngineSettings(EngineSettings& settings, const Xml::XmlTag* tag);
-
-// raises an exception on error
 void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::filesystem::path& filename);
 
 // raises an exception on error
 void writeMetaTileTilesetInput(Xml::XmlWriter& xml, const MetaTileTilesetInput& input);
-
-// raises an exception on error
-void writeEngineSettings(Xml::XmlWriter& xml, const EngineSettings& settings);
 
 grid<uint8_t> readMetaTileGrid(Xml::XmlReader& xml, const Xml::XmlTag* tag);
 void writeMetaTileGrid(Xml::XmlWriter& xml, const std::string& tagName, const grid<uint8_t>& mtGrid);

@@ -67,11 +67,6 @@ static const EnumMap<TileCollisionType> tileCollisonTypeEnumMap = {
 
 const std::string MetaTileTilesetInput::FILE_EXTENSION = "utmt";
 
-void readEngineSettings(EngineSettings& settings, const XmlTag* tag)
-{
-    settings.maxMapSize = tag->getAttributeUnsigned("max-map-size");
-}
-
 grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
 {
     const unsigned width = tag->getAttributeUnsigned("width", 1, MAX_GRID_WIDTH);
@@ -160,13 +155,6 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
     }
 
     return tilesetInput;
-}
-
-void writeEngineSettings(XmlWriter& xml, const EngineSettings& settings)
-{
-    xml.writeTag("metatile-engine-settings");
-    xml.writeTagAttribute("max-map-size", settings.maxMapSize);
-    xml.writeCloseTag();
 }
 
 void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input)

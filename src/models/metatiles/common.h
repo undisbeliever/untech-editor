@@ -16,16 +16,6 @@ constexpr unsigned N_METATILES = 256;
 constexpr unsigned MAX_GRID_WIDTH = 255;
 constexpr unsigned MAX_GRID_HEIGHT = 255;
 
-struct EngineSettings {
-    unsigned maxMapSize = 8192;
-
-    bool operator==(const EngineSettings& o) const
-    {
-        return maxMapSize == o.maxMapSize;
-    }
-    bool operator!=(const EngineSettings& o) const { return !(*this == o); }
-};
-
 constexpr static unsigned METATILE_SIZE_PX = 16;
 }
 }

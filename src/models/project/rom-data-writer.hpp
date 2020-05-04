@@ -17,7 +17,7 @@ class RomDataWriter {
 public:
     struct Constant {
         const std::string name;
-        const int value;
+        const long value;
     };
 
 private:

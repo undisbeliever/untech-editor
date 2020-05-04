@@ -33,7 +33,7 @@ public:
     bool editBlockSettings_setSize(unsigned blockSize);
     bool editBlockSettings_setCount(unsigned blockCount);
 
-    bool editMetaTileSettings_setMaxMapSize(unsigned maxMapSize);
+    bool editMetaTileSettings_setRoomDataSize(unsigned maxRoomSize);
 
     bool editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds);
 

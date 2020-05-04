@@ -9,6 +9,7 @@
 #include "resourcelist.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/entity/entity-rom-entries/resourceitem.h"
+#include "gui-qt/project-settings/resourceitem.h"
 #include "gui-qt/project.h"
 #include "gui-qt/resources/scenes/resourceitem.h"
 #include "gui-qt/staticresourcelist.h"
@@ -34,6 +35,7 @@ ResourceItem::ResourceItem(ResourceList* parent, size_t index)
     }
 
     setDependencies({
+        { ResourceTypeIndex::STATIC, project()->staticResources()->projectSettings()->name() },
         { ResourceTypeIndex::STATIC, project()->staticResources()->scenes()->name() },
         { ResourceTypeIndex::STATIC, project()->staticResources()->entities()->name() },
     });

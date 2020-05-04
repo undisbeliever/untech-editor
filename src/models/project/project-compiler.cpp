@@ -77,17 +77,6 @@ std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinFilename,
                std::ostream& errorStream)
 {
-    const static std::vector<RomDataWriter::Constant> FORMAT_VERSIONS = {
-        { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
-        { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
-        { "Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
-        { "Resources.BACKGROUND_IMAGE_FORMAT_VERSION", Resources::BackgroundImageData::BACKGROUND_IMAGE_FORMAT_VERSION },
-        { "Resources.SCENE_FORMAT_VERSION", Resources::CompiledScenesData::SCENE_FORMAT_VERSION },
-        { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
-        { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
-        { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
-        { "Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
-    };
     enum TypeId : unsigned {
         PALETTE,
         BACKGROUND_IMAGE,
@@ -99,6 +88,19 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         "Project.BackgroundImageList",
         "Project.MetaTileTilesetList",
         "Project.RoomList",
+    };
+
+    const std::vector<RomDataWriter::Constant> FORMAT_VERSIONS = {
+        { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
+        { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
+        { "Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
+        { "Resources.BACKGROUND_IMAGE_FORMAT_VERSION", Resources::BackgroundImageData::BACKGROUND_IMAGE_FORMAT_VERSION },
+        { "Resources.SCENE_FORMAT_VERSION", Resources::CompiledScenesData::SCENE_FORMAT_VERSION },
+        { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
+        { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
+        { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
+        { "Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
+        { "Project.ROOM_DATA_SIZE", input.roomSettings.roomDataSize },
     };
 
     bool valid = true;

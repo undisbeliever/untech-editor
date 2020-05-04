@@ -131,4 +131,16 @@ void saveRoomInput(const RoomInput& input, const std::filesystem::path& filename
     file.commit();
 }
 
+void readRoomSettings(RoomSettings& settings, const XmlTag* tag)
+{
+    settings.roomDataSize = tag->getAttributeUnsigned("room-data-size");
+}
+
+void writeRoomSettings(XmlWriter& xml, const RoomSettings& settings)
+{
+    xml.writeTag("room-settings");
+    xml.writeTagAttribute("room-data-size", settings.roomDataSize);
+    xml.writeCloseTag();
+}
+
 }

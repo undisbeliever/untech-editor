@@ -43,7 +43,7 @@ struct ProjectFile {
     const static std::string FILE_EXTENSION;
 
     BlockSettings blockSettings;
-    MetaTiles::EngineSettings metaTileEngineSettings;
+    Rooms::RoomSettings roomSettings;
 
     Entity::EntityRomData entityRomData;
     Resources::ResourceScenes resourceScenes;
@@ -65,7 +65,7 @@ struct ProjectFile {
     bool operator==(const ProjectFile& o) const
     {
         return blockSettings == o.blockSettings
-               && metaTileEngineSettings == o.metaTileEngineSettings
+               && roomSettings == o.roomSettings
                && entityRomData == o.entityRomData
                && resourceScenes == o.resourceScenes
                && palettes == o.palettes

@@ -45,6 +45,7 @@ bool ProjectFile::validate(ErrorList& err) const
     bool valid = true;
 
     valid &= blockSettings.validate(err);
+    valid &= roomSettings.validate(err);
 
     if (frameSetExportOrders.size() > MetaSprite::MAX_EXPORT_NAMES) {
         err.addErrorString("Too many MetaSprite export orders");

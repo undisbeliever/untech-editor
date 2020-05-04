@@ -10,8 +10,8 @@
 #include "models/entity/entityromdata-serializer.h"
 #include "models/metasprite/actionpointfunctions-serializer.h"
 #include "models/metasprite/framesetfile-serializer.h"
-#include "models/metatiles/metatiles-serializer.h"
 #include "models/resources/resources-serializer.h"
+#include "models/rooms/rooms-serializer.h"
 
 using namespace UnTech;
 using namespace UnTech::Xml;
@@ -68,7 +68,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
     std::unique_ptr<XmlTag> childTag;
 
     bool readBlockSettingsTag = false;
-    bool readMetaTileEngineSettingsTag = false;
+    bool readRoomSettingsTag = false;
 
     while ((childTag = xml.parseTag())) {
         if (childTag->name == "exportorder") {
@@ -109,12 +109,15 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
             readBlockSettingsTag = true;
         }
         else if (childTag->name == "metatile-engine-settings") {
-            if (readMetaTileEngineSettingsTag) {
-                throw xml_error(*childTag, "Only one <metatile-engine-settings> tag is allowed");
+            // metatile-engine-settings has been removed, skip
+        }
+        else if (childTag->name == "room-settings") {
+            if (readRoomSettingsTag) {
+                throw xml_error(*childTag, "Only one <room-settings> tag is allowed");
             }
-            readMetaTileEngineSettingsTag = true;
+            readRoomSettingsTag = true;
 
-            MetaTiles::readEngineSettings(project->metaTileEngineSettings, childTag.get());
+            Rooms::readRoomSettings(project->roomSettings, childTag.get());
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -131,7 +134,7 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
     xml.writeTag("project");
 
     Project::writeBlockSettings(xml, project.blockSettings);
-    MetaTiles::writeEngineSettings(xml, project.metaTileEngineSettings);
+    Rooms::writeRoomSettings(xml, project.roomSettings);
 
     Entity::writeEntityRomData(xml, project.entityRomData);
 

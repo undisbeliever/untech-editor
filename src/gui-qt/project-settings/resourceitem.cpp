@@ -34,6 +34,7 @@ bool ResourceItem::compileResource(UnTech::ErrorList& err)
     bool valid = true;
 
     valid &= projectFile->blockSettings.validate(err);
+    valid &= projectFile->roomSettings.validate(err);
     valid &= projectFile->entityRomData.validateListIds(err);
 
     return valid;
@@ -55,12 +56,12 @@ bool ResourceItem::editBlockSettings_setCount(unsigned blockCount)
         [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.count; });
 }
 
-bool ResourceItem::editMetaTileSettings_setMaxMapSize(unsigned maxMapSize)
+bool ResourceItem::editMetaTileSettings_setRoomDataSize(unsigned roomDataSize)
 {
     return UndoHelper(this).editField(
-        maxMapSize,
-        tr("Edit MetaTile Max Map Size"),
-        [](PRO::ProjectFile& pf) -> unsigned& { return pf.metaTileEngineSettings.maxMapSize; });
+        roomDataSize,
+        tr("Edit Room Data Size"),
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.roomSettings.roomDataSize; });
 }
 
 bool ResourceItem::editEntityRomData_setEntityListIds(const std::vector<idstring>& listIds)

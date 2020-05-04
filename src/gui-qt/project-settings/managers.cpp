@@ -21,11 +21,13 @@ ProjectSettingsPropertyManager::ProjectSettingsPropertyManager(QObject* parent)
 {
     using Type = UnTech::GuiQt::PropertyType;
 
+    using RS = UnTech::Rooms::RoomSettings;
+
     addPropertyGroup(tr("Block Settings:"));
     addProperty(tr("Block Size"), BLOCK_SIZE, Type::UNSIGNED, 1024, 64 * 1024);
     addProperty(tr("Block Count"), BLOCK_COUNT, Type::UNSIGNED, 1, 128);
-    addPropertyGroup(tr("MetaTile Settings:"));
-    addProperty(tr("Max Map Size"), METATILE_MAX_MAP_SIZE, Type::UNSIGNED, 16 * 14, 32 * 1024);
+    addPropertyGroup(tr("Room Settings:"));
+    addProperty(tr("Room Data Size"), ROOM_DATA_SIZE, Type::UNSIGNED, RS::MIN_ROOM_DATA_SIZE, RS::MAX_ROOM_DATA_SIZE);
     addPropertyGroup(tr("Entity:"));
     addProperty(tr("EntityListIds"), ENTITY_LIST_IDS, Type::IDSTRING_LIST);
 }
@@ -67,8 +69,8 @@ QVariant ProjectSettingsPropertyManager::data(int id) const
     case BLOCK_COUNT:
         return pro->blockSettings.count;
 
-    case METATILE_MAX_MAP_SIZE:
-        return pro->metaTileEngineSettings.maxMapSize;
+    case ROOM_DATA_SIZE:
+        return pro->roomSettings.roomDataSize;
 
     case ENTITY_LIST_IDS:
         return convertStringList(pro->entityRomData.listIds);
@@ -88,8 +90,8 @@ bool ProjectSettingsPropertyManager::setData(int id, const QVariant& value)
     case BLOCK_COUNT:
         return _item->editBlockSettings_setCount(value.toUInt());
 
-    case METATILE_MAX_MAP_SIZE:
-        return _item->editMetaTileSettings_setMaxMapSize(value.toUInt());
+    case ROOM_DATA_SIZE:
+        return _item->editMetaTileSettings_setRoomDataSize(value.toUInt());
 
     case ENTITY_LIST_IDS:
         return _item->editEntityRomData_setEntityListIds(toIdstringVector(value.toStringList()));

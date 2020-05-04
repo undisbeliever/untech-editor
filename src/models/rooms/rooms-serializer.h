@@ -8,6 +8,8 @@
 
 #include "rooms.h"
 #include "models/common/errorlist.h"
+#include "models/common/xml/xmlreader.h"
+#include "models/common/xml/xmlwriter.h"
 #include <filesystem>
 
 namespace UnTech {
@@ -18,6 +20,12 @@ std::unique_ptr<RoomInput> loadRoomInput(const std::filesystem::path& filename);
 
 // raises an exception on error
 void saveRoomInput(const RoomInput& input, const std::filesystem::path& filename);
+
+// raises an exception on error
+void readRoomSettings(RoomSettings& settings, const Xml::XmlTag* tag);
+
+// raises an exception on error
+void writeRoomSettings(Xml::XmlWriter& xml, const RoomSettings& settings);
 
 }
 }

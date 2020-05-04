@@ -40,6 +40,22 @@ static_assert(RoomInput::MAX_MAP_HEIGHT == MAP_HEIGHT_LARGE);
 static_assert(RoomInput::MAX_MAP_HEIGHT <= MetaTiles::MAX_GRID_HEIGHT);
 static_assert(RoomInput::MAX_MAP_WIDTH <= MetaTiles::MAX_GRID_WIDTH);
 
+bool RoomSettings::validate(ErrorList& err) const
+{
+    bool valid = true;
+
+    auto validateMinMax = [&](unsigned value, unsigned min, unsigned max, const char* msg) {
+        if (value < min || value > max) {
+            err.addErrorString(msg, " (", value, ", min: ", min, ", max: ", max, ")");
+            valid = false;
+        }
+    };
+
+    validateMinMax(roomDataSize, MIN_ROOM_DATA_SIZE, MAX_ROOM_DATA_SIZE, "Max Room Size invalid");
+
+    return valid;
+}
+
 static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, const RoomInput& ri, ErrorList& err)
 {
     bool valid = true;
@@ -144,6 +160,7 @@ static unsigned countEntities(const NamedList<EntityGroup>& entityGroups)
 std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
                                             const Resources::CompiledScenesData& compiledScenes,
                                             const Entity::CompiledEntityRomData& entityRomData,
+                                            const RoomSettings& roomSettings,
                                             ErrorList& err)
 {
     constexpr unsigned HEADER_SIZE = 3;
@@ -151,6 +168,10 @@ std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
 
     bool valid = input.validate(compiledScenes, err);
 
+    const auto addError = [&](const auto... msg) {
+        err.addErrorString(msg...);
+        valid = false;
+    };
     const auto addEntityGroupError = [&](const EntityGroup& eg, const auto... msg) {
         err.addError(std::make_unique<ListItemError>(&eg, msg...));
         valid = false;
@@ -205,7 +226,9 @@ std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
 
     const unsigned dataSize = HEADER_SIZE + mapDataSize + entityDataSize + FOOTER_SIZE;
 
-    // ::TODO add maximum room data size check::
+    if (dataSize > roomSettings.roomDataSize) {
+        addError("Room data size too large (", dataSize, " bytes, max: ", roomSettings.roomDataSize, ")");
+    }
 
     auto out = std::make_unique<RoomData>();
     out->name = input.name;
