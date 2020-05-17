@@ -13,6 +13,8 @@ class ImageCachePrivate {
     friend class UnTech::ImageCache;
     using ImageCacheMap_t = std::unordered_map<std::filesystem::path::string_type, const std::shared_ptr<const Image>>;
 
+    static const std::shared_ptr<const Image> BLANK_IMAGE;
+
     static ImageCachePrivate& instance()
     {
         static ImageCachePrivate i;
@@ -23,7 +25,16 @@ class ImageCachePrivate {
     {
         std::lock_guard<std::mutex> guard(mutex);
 
-        const auto abs = std::filesystem::absolute(filename);
+        if (filename.empty()) {
+            return BLANK_IMAGE;
+        }
+
+        std::error_code ec;
+        const auto abs = std::filesystem::absolute(filename, ec);
+        if (ec) {
+            return BLANK_IMAGE;
+        }
+
         const auto& fn = abs.native();
 
         auto it = cache.find(fn);
@@ -65,6 +76,8 @@ private:
     std::mutex mutex;
     ImageCacheMap_t cache;
 };
+
+const std::shared_ptr<const Image> ImageCachePrivate::BLANK_IMAGE = std::make_unique<const Image>();
 }
 
 using namespace UnTech;
