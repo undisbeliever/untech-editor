@@ -37,6 +37,9 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     auto writeData = [&](auto& d) {
         writer.addNamedData(d.label(), d.data());
     };
+    auto writeNotNullData = [&](auto& d) {
+        writer.addNotNullNamedData(d.label(), d.data());
+    };
 
     // Tiles are written first so they are always aligned with
     // the start of the data
@@ -49,13 +52,14 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     writeData(msData.frameSetData);
     writeData(msData.frameList);
     writeData(msData.frameData);
-    writeData(msData.frameObjectData);
     writeData(msData.tileHitboxData);
-    writeData(msData.actionPointData);
-    writeData(msData.entityHitboxData);
     writeData(msData.animationList);
     writeData(msData.animationData);
     writeData(msData.paletteData);
+
+    writeNotNullData(msData.frameObjectData);
+    writeNotNullData(msData.entityHitboxData);
+    writeNotNullData(msData.actionPointData);
 }
 
 static void writeEntityRomData(RomDataWriter& writer,

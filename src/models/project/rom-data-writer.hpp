@@ -105,6 +105,35 @@ public:
         throw std::runtime_error(stringBuilder("Unable to store ", data.size(), " bytes of data, increase block size/count."));
     }
 
+    // data will never be stored at the beginning of a block
+    void addNotNullNamedData(const std::string& name, const std::vector<uint8_t>& data)
+    {
+        for (unsigned blockId = 0; blockId < _blocks.size(); blockId++) {
+            auto& block = _blocks.at(blockId);
+
+            const unsigned spaceLeft = _maxBlockSize - block.size() - (block.empty() ? 1 : 0);
+
+            if (spaceLeft >= data.size()) {
+                // Add padding to ensure data does not start at the beginning of a block
+                if (block.empty()) {
+                    block.push_back(0);
+                }
+
+                unsigned offset = block.size();
+                block.insert(block.end(), data.begin(), data.end());
+
+                _namedData.push_back({
+                    name,
+                    blockId,
+                    offset,
+                });
+                return;
+            }
+        }
+
+        throw std::runtime_error(stringBuilder("Unable to store ", data.size(), " bytes of data, increase block size/count."));
+    }
+
     void addNamedDataWithCount(const std::string& name, const std::vector<uint8_t>& data, int count)
     {
         addNamedData(name, data);
@@ -178,6 +207,9 @@ public:
         std::vector<uint8_t> binData;
         binData.reserve(_maxBlockSize * _blocks.size());
         for (const std::vector<uint8_t>& block : _blocks) {
+            if (block.size() > _maxBlockSize) {
+                throw std::logic_error("Block is too large");
+            }
             if (block.size() > 0) {
                 binData.insert(binData.end(), block.begin(), block.end());
             }
