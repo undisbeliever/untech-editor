@@ -52,7 +52,6 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     writeData(msData.frameSetData);
     writeData(msData.frameList);
     writeData(msData.frameData);
-    writeData(msData.tileHitboxData);
     writeData(msData.animationList);
     writeData(msData.animationData);
     writeData(msData.paletteData);
