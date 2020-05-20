@@ -172,14 +172,15 @@ struct EntityRomData {
 
 struct CompiledEntityRomData {
     const static int ENTITY_FORMAT_VERSION;
-    const static std::string ENTITY_INDEXES_LABEL;
-    const static std::string PROJECTILE_INDEXES_LABEL;
 
-    std::vector<uint8_t> entityIndexes;
-    std::vector<uint8_t> projectileIndexes;
+    const static std::string ROM_DATA_LABEL;
+    const static std::string ROM_DATA_LIST_LABEL;
 
     std::string defines;
-    std::string entries;
+    std::string functionTableData;
+
+    std::vector<uint8_t> romDataIndexes;
+    std::vector<uint8_t> romData;
 
     std::unordered_map<idstring, unsigned> entityNameMap;
 

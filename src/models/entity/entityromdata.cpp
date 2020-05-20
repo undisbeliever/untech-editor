@@ -15,7 +15,7 @@
 namespace UnTech {
 namespace Entity {
 
-const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 3;
+const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 4;
 
 #define BASE_ROM_STRUCT "BaseEntityRomStruct"
 #define ENTITY_ROM_STRUCT_NAMESPACE "Project.EntityRomStructs"
@@ -515,7 +515,7 @@ static void writeIncFile_StructField(std::ostream& out, const StructField& f)
 static void writeIncFile_BaseRomStruct(std::ostream& out)
 {
     out << "namespace " ENTITY_ROM_STRUCT_NAMESPACE "." BASE_ROM_STRUCT " {\n"
-        << "\tbasestruct_offset(Project.EntityRomData)\n";
+        << "\tbasestruct_offset(" << CompiledEntityRomData::ROM_DATA_LABEL << ")\n";
 
     auto writeField = [&](const char* name, DataType type) {
         writeIncFile_StructField(out, StructField{ idstring{ name }, type, idstring{}, std::string{} });
@@ -523,8 +523,6 @@ static void writeIncFile_BaseRomStruct(std::ostream& out)
 
     // If you make any changes to this code you MUST ALSO UPDATE the
     // `processEntry` function.
-
-    out << "\t\tfield(functionTable, 2) // addr\n";
 
     writeField("defaultPalette", DataType::UINT8);
     writeField("initialProjectileId", DataType::UINT8);
@@ -591,7 +589,7 @@ static void writeIncFile_RomStructs(std::ostream& out, const NamedList<EntityRom
     out << "\n";
 }
 
-static void writeIncFile_FunctionTables(std::ostream& out, const NamedList<EntityFunctionTable>& functionTables)
+static void writeIncFile_FunctionTableDefines(std::ostream& out, const NamedList<EntityFunctionTable>& functionTables)
 {
     for (const auto& ft : functionTables) {
         const idstring& structName = ft.name.isValid() ? ft.entityStruct : baseRomStruct;
@@ -616,21 +614,25 @@ static void writeIncFile_EntryIds(std::ostream& out,
            "\n";
 }
 
-// assumes entries are valid
-// returns size of entry
-static unsigned processEntry(std::ostream& out, const EntityRomEntry& entry,
-                             const FunctionTableMap& ftMap, const Project::ProjectFile& project)
+static void writeIncFile_FunctionTableData(std::ostream& out, const NamedList<EntityRomEntry>& entries)
 {
-    char previousType = '\0';
-    auto writeValue = [&](const char type, const auto& value) {
-        if (type != previousType) {
-            previousType = type;
-            out << "\n\td" << type << '\t';
+    for (auto& entry : entries) {
+        out << "\tdw\tEntities." << entry.functionTable << ".FunctionTable\n";
+    }
+}
+
+// assumes entries are valid
+static void processEntry(std::vector<uint8_t>& romData, const EntityRomEntry& entry,
+                         const FunctionTableMap& ftMap, const Project::ProjectFile& project)
+{
+    auto writeValue = [&](const int64_t value, const unsigned length) {
+        // confirm int64_t is two's complement
+        static_assert(static_cast<uint64_t>(int64_t{ -1 }) == 0xffffffffffffffff);
+
+        const uint64_t v = static_cast<uint64_t>(value);
+        for (unsigned i = 0; i < length; i++) {
+            romData.push_back(v >> (i * 8));
         }
-        else {
-            out << ", ";
-        }
-        out << value;
     };
 
     const auto& frameSets = project.frameSets;
@@ -652,72 +654,57 @@ static unsigned processEntry(std::ostream& out, const EntityRomEntry& entry,
     // If you make any changes to this code you MUST ALSO UPDATE the
     // `writeIncFile_BaseRomStruct` function.
 
-    out << "\tdw\tEntities." << entry.functionTable << ".FunctionTable\n"
-        << "\tdb\t" << entry.defaultPalette << ", " << initialProjectileId << ", " << initialListId << '\n'
-        << "\tdw\t" << frameSetId;
-
-    unsigned size = 7;
-    previousType = 'w';
+    romData.push_back(entry.defaultPalette);
+    romData.push_back(initialProjectileId);
+    romData.push_back(initialListId);
+    writeValue(frameSetId, 2);
 
     for (auto& field : *ftMap.at(entry.functionTable).second) {
         auto it = entry.fields.find(field.name);
-        const std::string& value = it != entry.fields.end() ? it->second : field.defaultValue;
+        const std::string& valueStr = it != entry.fields.end() ? it->second : field.defaultValue;
+        const int64_t value = *String::toLong(valueStr);
 
         switch (field.type) {
         case DataType::UINT8:
         case DataType::SINT8:
-            writeValue('b', value);
-            size += 1;
+            writeValue(value, 1);
             break;
 
         case DataType::UINT16:
         case DataType::SINT16:
-            writeValue('w', value);
-            size += 2;
+            writeValue(value, 2);
             break;
 
         case DataType::UINT24:
         case DataType::SINT24:
-            writeValue('l', value);
-            size += 3;
+            writeValue(value, 3);
             break;
 
         case DataType::UINT32:
         case DataType::SINT32:
-            writeValue('d', value);
-            size += 4;
+            writeValue(value, 4);
             break;
         }
     }
-
-    out << '\n';
-
-    return size;
 }
 
 // assumes entries are valid
-static unsigned processEntries(std::ostream& out, std::vector<uint8_t>& indexes,
-                               const NamedList<EntityRomEntry>& entries, unsigned startingOffset,
-                               const FunctionTableMap& ftMap, const Project::ProjectFile& project)
+static void processRomData(std::vector<uint8_t>& indexes, std::vector<uint8_t>& romData,
+                           const NamedList<EntityRomEntry>& entries,
+                           const FunctionTableMap& ftMap, const Project::ProjectFile& project)
 {
-    assert(indexes.empty());
-    indexes.reserve(entries.size() * 2);
-
-    unsigned pos = startingOffset;
     for (auto& entry : entries) {
-        unsigned size = processEntry(out, entry, ftMap, project);
+        unsigned pos = romData.size();
+
+        processEntry(romData, entry, ftMap, project);
 
         indexes.push_back(pos & 0xff);
         indexes.push_back((pos >> 8) & 0xff);
-
-        pos += size;
     }
-
-    return pos;
 }
 
-const std::string CompiledEntityRomData::ENTITY_INDEXES_LABEL("Project.EntityRomDataList");
-const std::string CompiledEntityRomData::PROJECTILE_INDEXES_LABEL("Project.ProjectileRomDataList");
+const std::string CompiledEntityRomData::ROM_DATA_LIST_LABEL("Project.EntityRomDataList");
+const std::string CompiledEntityRomData::ROM_DATA_LABEL("Project.EntityRomData");
 
 std::unique_ptr<const CompiledEntityRomData>
 compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& project, ErrorList& err)
@@ -751,21 +738,30 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     }
 
     std::stringstream defines;
-    std::stringstream entries;
+    std::stringstream functionTableData;
 
     writeIncFile_ListIds(defines, data.listIds);
     writeIncFile_EntryIds(defines, "Project.EntityIds", data.entities);
     writeIncFile_EntryIds(defines, "Project.ProjectileIds", data.projectiles);
     writeIncFile_RomStructs(defines, data.structs);
-    writeIncFile_FunctionTables(defines, data.functionTables);
+    writeIncFile_FunctionTableDefines(defines, data.functionTables);
 
-    entries << "Project.EntityRomData:\n";
-    unsigned startingIndex = processEntries(entries, ret->entityIndexes, data.entities, 0, ftMap, project);
-    processEntries(entries, ret->projectileIndexes, data.projectiles, startingIndex, ftMap, project);
-    entries << '\n';
+    functionTableData << "Project.EntityFunctionTables:\n";
+    writeIncFile_FunctionTableData(functionTableData, data.entities);
+    writeIncFile_FunctionTableData(functionTableData, data.projectiles);
+    functionTableData << "constant Project.EntityFunctionTables.size = pc() - Project.EntityFunctionTables"
+                         "\n\n";
+
+    const auto indexSize = (data.entities.size() + data.projectiles.size()) * 2;
+    ret->romDataIndexes.reserve(indexSize);
+
+    processRomData(ret->romDataIndexes, ret->romData, data.entities, ftMap, project);
+    processRomData(ret->romDataIndexes, ret->romData, data.projectiles, ftMap, project);
+
+    assert(ret->romDataIndexes.size() == indexSize);
 
     ret->defines = defines.str();
-    ret->entries = entries.str();
+    ret->functionTableData = functionTableData.str();
 
     for (unsigned i = 0; i < data.entities.size(); i++) {
         ret->entityNameMap.emplace(data.entities.at(i).name, i);

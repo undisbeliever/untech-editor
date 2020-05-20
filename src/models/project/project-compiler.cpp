@@ -64,8 +64,8 @@ static void writeMetaSpriteData(RomDataWriter& writer,
 static void writeEntityRomData(RomDataWriter& writer,
                                const Entity::CompiledEntityRomData& entityData)
 {
-    writer.addNamedData(entityData.ENTITY_INDEXES_LABEL, entityData.entityIndexes);
-    writer.addNamedData(entityData.PROJECTILE_INDEXES_LABEL, entityData.projectileIndexes);
+    writer.addNamedData(entityData.ROM_DATA_LIST_LABEL, entityData.romDataIndexes);
+    writer.addNamedData(entityData.ROM_DATA_LABEL, entityData.romData);
 }
 
 static void writeSceneData(RomDataWriter& writer,
@@ -206,7 +206,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
 
     writer.writeIncData(ret->incData, relativeBinFilename);
     metaSpriteData->writeToIncFile(ret->incData);
-    ret->incData << projectData.entityRomData()->entries;
+    ret->incData << projectData.entityRomData()->functionTableData;
 
     MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);
     MetaSprite::Compiler::writeExportOrderReferences(input, ret->incData);
