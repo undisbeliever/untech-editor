@@ -42,7 +42,6 @@ static unsigned fieldSize(DataType type)
 
     case DataType::UINT16:
     case DataType::SINT16:
-    case DataType::ADDR:
         return 2;
 
     case DataType::UINT24:
@@ -84,9 +83,6 @@ static const char* fieldComment(DataType type)
 
     case DataType::SINT32:
         return "sint32";
-
-    case DataType::ADDR:
-        return "addr";
     }
 
     fputs("Invalid DataType\n", stderr);
@@ -125,18 +121,8 @@ static bool validateFieldValue(DataType type, const std::string& str)
 
     case DataType::SINT32:
         return testInteger(INT32_MIN, INT32_MAX);
-
-    case DataType::ADDR:
-        if (str.empty()) {
-            return false;
-        }
-        for (const char& c : str) {
-            if (c != '.' && !idstring::isCharValid(c)) {
-                return false;
-            }
-        }
-        return true;
     }
+
     return false;
 }
 
@@ -538,7 +524,8 @@ static void writeIncFile_BaseRomStruct(std::ostream& out)
     // If you make any changes to this code you MUST ALSO UPDATE the
     // `processEntry` function.
 
-    writeField("functionTable", DataType::ADDR);
+    out << "\t\tfield(functionTable, 2) // addr\n";
+
     writeField("defaultPalette", DataType::UINT8);
     writeField("initialProjectileId", DataType::UINT8);
     writeField("initialListId", DataType::UINT8);
@@ -685,7 +672,6 @@ static unsigned processEntry(std::ostream& out, const EntityRomEntry& entry,
 
         case DataType::UINT16:
         case DataType::SINT16:
-        case DataType::ADDR:
             writeValue('w', value);
             size += 2;
             break;

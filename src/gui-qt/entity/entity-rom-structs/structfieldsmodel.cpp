@@ -20,7 +20,6 @@ static const QStringList TYPE_STRINGS = {
     "sint16",
     "sint24",
     "sint32",
-    "addr"
 };
 static const QVariantList TYPE_VARS = {
     int(EN::DataType::UINT8),
@@ -31,7 +30,6 @@ static const QVariantList TYPE_VARS = {
     int(EN::DataType::SINT16),
     int(EN::DataType::SINT24),
     int(EN::DataType::SINT32),
-    int(EN::DataType::ADDR),
 };
 
 StructFieldsModel::StructFieldsModel(QObject* parent)

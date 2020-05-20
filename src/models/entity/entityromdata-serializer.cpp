@@ -19,7 +19,6 @@ static const EnumMap<DataType> dataTypeMap = {
     { "sint16", DataType::SINT16 },
     { "sint24", DataType::SINT24 },
     { "sint32", DataType::SINT32 },
-    { "addr", DataType::ADDR },
 };
 
 static const EnumMap<ParameterType> parameterTypeMap = {

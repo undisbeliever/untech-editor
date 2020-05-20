@@ -32,7 +32,6 @@ enum class DataType {
     SINT16,
     SINT24,
     SINT32,
-    ADDR,
 };
 
 enum class ParameterType {
