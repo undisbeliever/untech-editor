@@ -112,6 +112,7 @@ void PropertyDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opti
 
         case Type::INTEGER:
         case Type::UNSIGNED:
+        case Type::UNSIGNED_HEX:
         case Type::STRING:
         case Type::STRING_LIST:
         case Type::IDSTRING:
@@ -244,6 +245,17 @@ QWidget* PropertyDelegate::createEditorWidget(QWidget* parent, const AbstractPro
         return sb;
     }
 
+    case Type::UNSIGNED_HEX: {
+        QSpinBox* sb = new QSpinBox(parent);
+        sb->setAutoFillBackground(true);
+        sb->setFrame(false);
+        sb->setPrefix(QStringLiteral("0x"));
+        sb->setDisplayIntegerBase(16);
+        sb->setMinimum(0);
+        sb->setMaximum(INT_MAX);
+        return sb;
+    }
+
     case Type::STRING:
     case Type::STRING_LIST: {
         QLineEdit* le = new QLineEdit(parent);
@@ -349,7 +361,8 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
     } break;
 
     case Type::INTEGER:
-    case Type::UNSIGNED: {
+    case Type::UNSIGNED:
+    case Type::UNSIGNED_HEX: {
         QSpinBox* sb = qobject_cast<QSpinBox*>(editor);
         if (params.first.isValid()) {
             sb->setMinimum(params.first.toInt());
@@ -512,7 +525,8 @@ void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
     } break;
 
     case Type::INTEGER:
-    case Type::UNSIGNED: {
+    case Type::UNSIGNED:
+    case Type::UNSIGNED_HEX: {
         QSpinBox* sb = qobject_cast<QSpinBox*>(editor);
         model->setData(index, sb->value(), Qt::EditRole);
     } break;

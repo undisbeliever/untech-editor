@@ -16,6 +16,7 @@ enum class PropertyType {
     BOOLEAN,       // no parameters
     INTEGER,       // minimum value, maximum value
     UNSIGNED,      // minimum value, maximum value
+    UNSIGNED_HEX,  // minimum value, maximum value
     STRING,        // no parameters
     IDSTRING,      // completer stringlist
     FILENAME,      // dialog filter

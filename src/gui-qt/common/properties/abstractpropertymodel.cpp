@@ -39,6 +39,10 @@ QString AbstractPropertyModel::displayForProperty(const QModelIndex& index, cons
         return value.toString();
     }
 
+    case Type::UNSIGNED_HEX: {
+        return QStringLiteral("0x%1").arg(value.toUInt(), 0, 16);
+    }
+
     case Type::POINT: {
         QPoint p = value.toPoint();
         return QString("%1, %2")

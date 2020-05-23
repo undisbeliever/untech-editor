@@ -68,6 +68,7 @@ void ListItemWidget::onAddButtonClicked()
     case Type::BOOLEAN:
     case Type::INTEGER:
     case Type::UNSIGNED:
+    case Type::UNSIGNED_HEX:
     case Type::STRING:
     case Type::IDSTRING:
     case Type::FILENAME:
