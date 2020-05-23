@@ -26,7 +26,7 @@ struct CompiledRomData {
     RomDmaTile16Data tilesetData;
 
     RomBinData paletteData;
-    RomAddrTable paletteList;
+    RomBinData paletteList;
 
     RomBinData animationData;
     RomBinData animationList;

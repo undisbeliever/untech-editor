@@ -23,7 +23,7 @@ namespace Compiler {
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
-const int CompiledRomData::METASPRITE_FORMAT_VERSION = 38;
+const int CompiledRomData::METASPRITE_FORMAT_VERSION = 39;
 
 struct FrameSetData {
     std::vector<CompiledPalette> palettes;
@@ -56,8 +56,6 @@ void CompiledRomData::writeToIncFile(std::ostream& out) const
 
     tileData.writeAssertsToIncFile(out);
     tilesetData.writeToIncFile(out);
-
-    paletteList.writeToIncFile(out);
 }
 
 // assumes frameSet.validate() passes

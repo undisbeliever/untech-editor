@@ -38,14 +38,19 @@ std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp
 
 uint16_t savePalettes(const std::vector<CompiledPalette>& palettes, CompiledRomData& out)
 {
-    std::vector<uint32_t> offsets;
-    offsets.reserve(palettes.size());
+    std::vector<uint8_t> indexes(palettes.size() * 2);
+
+    auto it = indexes.begin();
 
     for (const auto& pData : palettes) {
-        offsets.emplace_back(out.paletteData.addData_Index(pData));
-    }
+        uint16_t offset = out.paletteData.addData_Index(pData);
 
-    return out.paletteList.getOrInsertTable(offsets);
+        *it++ = offset & 0xff;
+        *it++ = (offset >> 8) & 0xff;
+    }
+    assert(it == indexes.end());
+
+    return out.paletteList.addData_Index(indexes);
 }
 
 }

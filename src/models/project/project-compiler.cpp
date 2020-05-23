@@ -54,6 +54,7 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     writeData(msData.frameData);
     writeData(msData.animationList);
     writeData(msData.animationData);
+    writeData(msData.paletteList);
     writeData(msData.paletteData);
 
     writeNotNullData(msData.frameObjectData);
