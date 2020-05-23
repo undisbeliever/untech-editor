@@ -17,8 +17,7 @@ namespace Compiler {
 
 struct CompiledRomData;
 
-// ::TODO replace with std::array<uint8_t, 30>::
-using CompiledPalette = std::vector<uint8_t>;
+using CompiledPalette = std::array<uint8_t, 30>;
 
 std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp>& palettes);
 

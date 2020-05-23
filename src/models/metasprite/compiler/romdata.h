@@ -165,6 +165,24 @@ public:
         }
     }
 
+    template <size_t N>
+    uint32_t addData_Index(const std::array<uint8_t, N>& sData)
+    {
+        auto it = std::search(_data.begin(), _data.end(),
+                              sData.begin(), sData.end());
+
+        if (it != _data.end()) {
+            return std::distance(_data.begin(), it);
+        }
+        else {
+            uint32_t oldSize = _data.size();
+
+            _data.insert(_data.end(), sData.cbegin(), sData.cend());
+
+            return oldSize;
+        }
+    }
+
     IndexPlusOne addData_IndexPlusOne(const std::vector<uint8_t>& sData)
     {
         if (sData.size() == 0) {

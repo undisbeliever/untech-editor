@@ -16,12 +16,11 @@ std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp
     assert(palettes.size() <= MAX_PALETTES);
     assert(palettes.empty() == false);
 
-    std::vector<CompiledPalette> ret;
-    ret.reserve(palettes.size());
+    std::vector<CompiledPalette> ret(palettes.size());
+    auto retIt = ret.begin();
 
     for (const auto& palette : palettes) {
-        ret.emplace_back(30);
-        std::vector<uint8_t>& pData = ret.back();
+        CompiledPalette& pData = *retIt++;
 
         // Color 0 is always transparent and thus not saved to ROM
         auto pIt = pData.begin();
@@ -32,6 +31,7 @@ std::vector<CompiledPalette> processPalettes(const std::vector<Snes::Palette4bpp
         }
         assert(pIt == pData.end());
     }
+    assert(retIt == ret.end());
 
     return ret;
 }
