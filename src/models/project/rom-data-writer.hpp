@@ -4,6 +4,10 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#pragma once
+
+#include "memorymap.h"
+#include "rom-bank-data.h"
 #include "models/common/stringbuilder.h"
 #include <cassert>
 #include <filesystem>
@@ -23,115 +27,104 @@ public:
 private:
     struct DataItem {
         const std::string name;
-        const unsigned blockId;
-        const unsigned offset;
+        const unsigned address;
+
+        DataItem(const std::string& n, unsigned a)
+            : name(n)
+            , address(a)
+        {
+        }
     };
 
 private:
+    const MemoryMapSettings _memoryMap;
+    const unsigned _bankSize;
+
     const std::vector<Constant>& _constants;
     const std::vector<std::string>& _typeNames;
     std::vector<std::vector<DataItem>> _dataItems; // [type][id]
-    std::vector<std::vector<uint8_t>> _blocks;     // [blockId] => data
+    std::vector<RomBankData> _romBanks;
     std::vector<DataItem> _namedData;
     std::vector<Constant> _nameDataCounts;
     const std::string _blockName;
     const std::string _listRodata;
     const std::string _blockRodata;
-    const unsigned _maxBlockSize;
+
+    void throwOutOfRomSpaceException(size_t size)
+    {
+        throw std::runtime_error(stringBuilder("Unable to store ", size, " bytes of data, please add more banks to the Memory Map."));
+    }
 
 public:
-    RomDataWriter(unsigned blockSize, unsigned blockCount,
+    RomDataWriter(const MemoryMapSettings& memoryMap,
                   const std::string& blockName,
                   const std::string& listRodata,
                   const std::string& blockRodata,
                   const std::vector<Constant>& constants,
                   const std::vector<std::string>& typeNames)
-        : _constants(constants)
+        : _memoryMap(memoryMap)
+        , _bankSize(memoryMap.bankSize())
+        , _constants(constants)
         , _typeNames(typeNames)
         , _dataItems(_typeNames.size())
-        , _blocks(blockCount)
+        , _romBanks()
         , _namedData()
         , _blockName(blockName)
         , _listRodata(listRodata)
         , _blockRodata(blockRodata)
-        , _maxBlockSize(blockSize)
     {
         if (_typeNames.size() == 0) {
             throw std::invalid_argument("Expected at least one type name");
         }
-        for (auto& block : _blocks) {
-            block.reserve(blockSize);
+
+        _romBanks.reserve(memoryMap.nBanks);
+        for (unsigned i = 0; i < memoryMap.nBanks; i++) {
+            _romBanks.emplace_back(memoryMap.bankAddress(i), memoryMap.bankSize());
         }
     }
 
     void addData(unsigned typeId, const std::string& name, const std::vector<uint8_t>& data)
     {
-        for (unsigned blockId = 0; blockId < _blocks.size(); blockId++) {
-            auto& block = _blocks.at(blockId);
-
-            unsigned spaceLeft = _maxBlockSize - block.size();
-            if (spaceLeft >= data.size()) {
-                unsigned offset = block.size();
-                block.insert(block.end(), data.begin(), data.end());
-
-                _dataItems.at(typeId).push_back({ name, blockId, offset });
+        for (auto& bank : _romBanks) {
+            if (auto addr = bank.tryToAddData(data)) {
+                _dataItems.at(typeId).emplace_back(name, *addr);
 
                 return;
             }
         }
 
-        throw std::runtime_error(stringBuilder("Unable to store ", data.size(), " bytes of data, increase block size/count."));
+        throwOutOfRomSpaceException(data.size());
     }
 
     void addNamedData(const std::string& name, const std::vector<uint8_t>& data)
     {
-        for (unsigned blockId = 0; blockId < _blocks.size(); blockId++) {
-            auto& block = _blocks.at(blockId);
-
-            unsigned spaceLeft = _maxBlockSize - block.size();
-            if (spaceLeft >= data.size()) {
-                unsigned offset = block.size();
-                block.insert(block.end(), data.begin(), data.end());
-
-                _namedData.push_back({
-                    name,
-                    blockId,
-                    offset,
-                });
+        for (auto& bank : _romBanks) {
+            if (auto addr = bank.tryToAddData(data)) {
+                _namedData.emplace_back(name, *addr);
                 return;
             }
         }
 
-        throw std::runtime_error(stringBuilder("Unable to store ", data.size(), " bytes of data, increase block size/count."));
+        throwOutOfRomSpaceException(data.size());
     }
 
-    // data will never be stored at the beginning of a block
+    // data will never be stored at word address 0
     void addNotNullNamedData(const std::string& name, const std::vector<uint8_t>& data)
     {
-        for (unsigned blockId = 0; blockId < _blocks.size(); blockId++) {
-            auto& block = _blocks.at(blockId);
-
-            const unsigned spaceLeft = _maxBlockSize - block.size() - (block.empty() ? 1 : 0);
-
-            if (spaceLeft >= data.size()) {
-                // Add padding to ensure data does not start at the beginning of a block
-                if (block.empty()) {
-                    block.push_back(0);
-                }
-
-                unsigned offset = block.size();
-                block.insert(block.end(), data.begin(), data.end());
-
-                _namedData.push_back({
-                    name,
-                    blockId,
-                    offset,
-                });
+        for (auto& bank : _romBanks) {
+            if (auto addr = bank.tryToAddNotNullData(data)) {
+                _namedData.emplace_back(name, *addr);
+                return;
+            }
+        }
+        for (auto& bank : _romBanks) {
+            if (auto addr = bank.tryToAddDataWidthPaddingByte(data)) {
+                _namedData.emplace_back(name, *addr);
                 return;
             }
         }
 
-        throw std::runtime_error(stringBuilder("Unable to store ", data.size(), " bytes of data, increase block size/count."));
+        throwOutOfRomSpaceException(data.size());
     }
 
     void addNamedDataWithCount(const std::string& name, const std::vector<uint8_t>& data, int count)
@@ -161,27 +154,24 @@ public:
 
         incData << "\nnamespace " << _blockName << " {\n";
         unsigned offset = 0;
-        for (unsigned blockId = 0; blockId < _blocks.size(); blockId++) {
-            unsigned bSize = _blocks.at(blockId).size();
+        for (unsigned bankId = 0; bankId < _romBanks.size(); bankId++) {
+            unsigned bSize = _romBanks.at(bankId).data().size();
 
             if (bSize > 0) {
-                assert(bSize <= _maxBlockSize);
+                assert(bSize <= _bankSize);
 
                 // std::filesystem::path operator<< will automatically add quotes to relativeBinFilename
-                incData << "rodata(" << _blockRodata << blockId << ")\n"
-                        << "  insert Data" << blockId << ", " << relativeBinFilename << ", "
-                        << offset << ", " << bSize << '\n';
+                incData << "rodata(" << _blockRodata << bankId << ")\n"
+                        << "assert(pc() == 0x" << std::hex << _memoryMap.bankAddress(bankId) << ")\n"
+                        << std::dec
+                        << "  insert Data" << bankId << ", " << relativeBinFilename << ", " << offset << ", " << bSize << '\n';
 
                 offset += bSize;
             }
         }
         incData << "}\n";
 
-        for (const auto& nd : _namedData) {
-            incData << "\nconstant " << nd.name << " = "
-                    << _blockName << ".Data" << nd.blockId << " + " << nd.offset;
-        }
-        incData << "\n\n";
+        incData << std::dec;
 
         for (auto& nc : _nameDataCounts) {
             incData << "\nconstant " << nc.name << " = " << nc.value;
@@ -190,28 +180,37 @@ public:
             incData << "\n\n";
         }
 
-        incData << "\nrodata(" << _listRodata << ")\n";
+        incData << std::hex;
+
+        for (const auto& nd : _namedData) {
+            incData << "\nconstant " << nd.name << " = 0x" << nd.address;
+        }
+        incData << "\n\n";
+
+        incData << "\nrodata(" << _listRodata << ")";
         for (unsigned typeId = 0; typeId < _typeNames.size(); typeId++) {
-            incData << '\n'
-                    << _typeNames.at(typeId) << ":\n";
+            incData << "\n\n"
+                    << _typeNames.at(typeId) << ":";
 
             for (const DataItem& di : _dataItems.at(typeId)) {
-                incData << "  dl " << _blockName << ".Data" << di.blockId << " + " << di.offset << '\n';
+                incData << "\n  dl 0x" << di.address;
             }
         }
         incData << "\n";
+
+        incData << std::dec;
     }
 
     std::vector<uint8_t> writeBinaryData() const
     {
         std::vector<uint8_t> binData;
-        binData.reserve(_maxBlockSize * _blocks.size());
-        for (const std::vector<uint8_t>& block : _blocks) {
-            if (block.size() > _maxBlockSize) {
-                throw std::logic_error("Block is too large");
+        binData.reserve(_bankSize * _romBanks.size());
+        for (const RomBankData& bank : _romBanks) {
+            if (bank.valid() == false) {
+                throw std::logic_error("RomBankData is too large");
             }
-            if (block.size() > 0) {
-                binData.insert(binData.end(), block.begin(), block.end());
+            if (!bank.empty()) {
+                binData.insert(binData.end(), bank.data().begin(), bank.data().end());
             }
         }
         return binData;

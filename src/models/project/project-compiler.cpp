@@ -180,7 +180,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         return nullptr;
     }
 
-    RomDataWriter writer(input.blockSettings.size, input.blockSettings.count,
+    RomDataWriter writer(input.memoryMap,
                          "__resc__", "RES_Lists", "RES_Block",
                          FORMAT_VERSIONS, TYPE_NAMES);
 

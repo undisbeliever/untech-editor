@@ -23,19 +23,26 @@ const std::string ProjectFile::FILE_EXTENSION = "utproject";
 
 using FrameSetFile = UnTech::MetaSprite::FrameSetFile;
 
-static void readBlockSettings(const XmlTag* tag, BlockSettings& settings)
-{
-    assert(tag->name == "block-settings");
+static const EnumMap<MappingMode> mappingModeEnumMap = {
+    { "lorom", MappingMode::LOROM },
+    { "hirom", MappingMode::HIROM },
+};
 
-    settings.size = tag->getAttributeUnsigned("block-size");
-    settings.count = tag->getAttributeUnsigned("block-count");
+static void readMemoryMapSettings(const XmlTag* tag, MemoryMapSettings& mmap)
+{
+    assert(tag->name == "memory-map");
+
+    mmap.mode = tag->getAttributeEnum("mode", mappingModeEnumMap);
+    mmap.firstBank = tag->getAttributeUnsignedHex("first-bank");
+    mmap.nBanks = tag->getAttributeUnsigned("n-banks");
 }
 
-static void writeBlockSettings(XmlWriter& xml, const BlockSettings& settings)
+static void writeMemoryMapSettings(XmlWriter& xml, const MemoryMapSettings& mmap)
 {
-    xml.writeTag("block-settings");
-    xml.writeTagAttribute("block-size", settings.size);
-    xml.writeTagAttribute("block-count", settings.count);
+    xml.writeTag("memory-map");
+    xml.writeTagAttributeEnum("mode", mmap.mode, mappingModeEnumMap);
+    xml.writeTagAttributeHex("first-bank", mmap.firstBank, 2);
+    xml.writeTagAttribute("n-banks", mmap.nBanks);
     xml.writeCloseTag();
 }
 
@@ -67,7 +74,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
 
     std::unique_ptr<XmlTag> childTag;
 
-    bool readBlockSettingsTag = false;
+    bool readMemoryMapTag = false;
     bool readRoomSettingsTag = false;
 
     while ((childTag = xml.parseTag())) {
@@ -101,12 +108,15 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
         else if (childTag->name == "scene") {
             Resources::readScene(childTag.get(), project->resourceScenes.scenes);
         }
-        else if (childTag->name == "block-settings") {
-            if (readBlockSettingsTag) {
-                throw xml_error(*childTag, "Only one <block-settings> tag is allowed");
+        else if (childTag->name == "memory-map") {
+            if (readMemoryMapTag) {
+                throw xml_error(*childTag, "Only one <memory-map> tag is allowed");
             }
-            readBlockSettings(childTag.get(), project->blockSettings);
-            readBlockSettingsTag = true;
+            readMemoryMapSettings(childTag.get(), project->memoryMap);
+            readMemoryMapTag = true;
+        }
+        else if (childTag->name == "block-settings") {
+            // block-settings has been removed, skip
         }
         else if (childTag->name == "metatile-engine-settings") {
             // metatile-engine-settings has been removed, skip
@@ -133,7 +143,7 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
 {
     xml.writeTag("project");
 
-    Project::writeBlockSettings(xml, project.blockSettings);
+    Project::writeMemoryMapSettings(xml, project.memoryMap);
     Rooms::writeRoomSettings(xml, project.roomSettings);
 
     Entity::writeEntityRomData(xml, project.entityRomData);

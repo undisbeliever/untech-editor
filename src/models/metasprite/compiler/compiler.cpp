@@ -155,7 +155,7 @@ std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& 
     }
 
     bool valid = true;
-    auto romData = std::make_unique<CompiledRomData>(project.blockSettings.size);
+    auto romData = std::make_unique<CompiledRomData>(project.memoryMap.bankSize());
 
     romData->nFrameSets = project.frameSets.size();
 

@@ -11,12 +11,15 @@
 #include "gui-qt/project.h"
 #include "gui-qt/staticresourcelist.h"
 #include "models/common/idstring.h"
+#include "models/project/memorymap.h"
 
 namespace UnTech {
 namespace GuiQt {
 class StaticResourceList;
 
 namespace ProjectSettings {
+
+namespace PRO = UnTech::Project;
 
 class ResourceItem : public AbstractInternalResourceItem {
     Q_OBJECT
@@ -30,8 +33,9 @@ public:
     ResourceItem(StaticResourceList* list, unsigned index);
     ~ResourceItem() = default;
 
-    bool editBlockSettings_setSize(unsigned blockSize);
-    bool editBlockSettings_setCount(unsigned blockCount);
+    bool editMemoryMap_setMappingMode(PRO::MappingMode mode);
+    bool editBlockSettings_setFirstBank(unsigned firstBank);
+    bool editBlockSettings_setNBanks(unsigned nBanks);
 
     bool editMetaTileSettings_setRoomDataSize(unsigned maxRoomSize);
 

@@ -33,27 +33,35 @@ bool ResourceItem::compileResource(UnTech::ErrorList& err)
 
     bool valid = true;
 
-    valid &= projectFile->blockSettings.validate(err);
+    valid &= projectFile->memoryMap.validate(err);
     valid &= projectFile->roomSettings.validate(err);
     valid &= projectFile->entityRomData.validateListIds(err);
 
     return valid;
 }
 
-bool ResourceItem::editBlockSettings_setSize(unsigned blockSize)
+bool ResourceItem::editMemoryMap_setMappingMode(PRO::MappingMode mode)
 {
     return UndoHelper(this).editField(
-        blockSize,
-        tr("Edit Block Size"),
-        [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.size; });
+        mode,
+        tr("Edit Mapping Mode"),
+        [](PRO::ProjectFile& pf) -> PRO::MappingMode& { return pf.memoryMap.mode; });
 }
 
-bool ResourceItem::editBlockSettings_setCount(unsigned blockCount)
+bool ResourceItem::editBlockSettings_setFirstBank(unsigned firstBank)
 {
     return UndoHelper(this).editField(
-        blockCount,
-        tr("Edit Block Count"),
-        [](PRO::ProjectFile& pf) -> unsigned& { return pf.blockSettings.count; });
+        firstBank,
+        tr("Edit First Bank"),
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.memoryMap.firstBank; });
+}
+
+bool ResourceItem::editBlockSettings_setNBanks(unsigned int nBanks)
+{
+    return UndoHelper(this).editField(
+        nBanks,
+        tr("Edit Number of Banks"),
+        [](PRO::ProjectFile& pf) -> unsigned& { return pf.memoryMap.nBanks; });
 }
 
 bool ResourceItem::editMetaTileSettings_setRoomDataSize(unsigned roomDataSize)

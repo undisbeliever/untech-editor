@@ -16,9 +16,12 @@ class ResourceItem;
 class ProjectSettingsPropertyManager : public PropertyListManager {
     Q_OBJECT
 
+    static const QStringList LAYOUT_STRINGS;
+
     enum PropertyId {
-        BLOCK_SIZE,
-        BLOCK_COUNT,
+        MAPPING_MODE,
+        FIRST_BANK,
+        N_BANKS,
 
         ROOM_DATA_SIZE,
 

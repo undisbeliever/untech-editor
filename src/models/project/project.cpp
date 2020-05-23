@@ -23,7 +23,7 @@ void ProjectFile::loadAllFiles()
     }
 }
 
-bool BlockSettings::validate(ErrorList& err) const
+bool MemoryMapSettings::validate(ErrorList& err) const
 {
     bool valid = true;
 
@@ -34,8 +34,26 @@ bool BlockSettings::validate(ErrorList& err) const
         }
     };
 
-    validateMinMax(size, 1024, 64 * 1024, "block size invalid");
-    validateMinMax(count, 1, 128, "block count invalid");
+    validateMinMax(firstBank, 0, 255, "Invalid firstBank");
+
+    if (mode == MappingMode::HIROM) {
+        const unsigned maximumNBanks = std::min<unsigned>(64, 256 - firstBank);
+        validateMinMax(nBanks, 1, maximumNBanks, "Invalid nBanks");
+    }
+    else if (mode == MappingMode::LOROM) {
+        const unsigned maximumNBanks = std::min<unsigned>(128, 256 - firstBank);
+        validateMinMax(nBanks, 1, maximumNBanks, "Invalid nBanks");
+    }
+    else {
+        err.addErrorString("Invalid mapping mode");
+    }
+
+    const unsigned lastBank = firstBank + nBanks;
+    auto inBounds = [&](unsigned a) { return a >= firstBank && a <= lastBank; };
+
+    if (inBounds(0x7e) || inBounds(0x7f)) {
+        err.addErrorString("Invalid memory map: Work RAM inside mapping");
+    }
 
     return valid;
 }
@@ -44,7 +62,7 @@ bool ProjectFile::validate(ErrorList& err) const
 {
     bool valid = true;
 
-    valid &= blockSettings.validate(err);
+    valid &= memoryMap.validate(err);
     valid &= roomSettings.validate(err);
 
     if (frameSetExportOrders.size() > MetaSprite::MAX_EXPORT_NAMES) {

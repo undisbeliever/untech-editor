@@ -15,6 +15,9 @@ using namespace UnTech::GuiQt::ProjectSettings;
 namespace RES = UnTech::Resources;
 namespace MT = UnTech::MetaTiles;
 
+const QStringList ProjectSettingsPropertyManager::LAYOUT_STRINGS({ QString::fromUtf8("LoROM"),
+                                                                   QString::fromUtf8("HiROM") });
+
 ProjectSettingsPropertyManager::ProjectSettingsPropertyManager(QObject* parent)
     : PropertyListManager(parent)
     , _item(nullptr)
@@ -23,9 +26,10 @@ ProjectSettingsPropertyManager::ProjectSettingsPropertyManager(QObject* parent)
 
     using RS = UnTech::Rooms::RoomSettings;
 
-    addPropertyGroup(tr("Block Settings:"));
-    addProperty(tr("Block Size"), BLOCK_SIZE, Type::UNSIGNED, 1024, 64 * 1024);
-    addProperty(tr("Block Count"), BLOCK_COUNT, Type::UNSIGNED, 1, 128);
+    addPropertyGroup(tr("Memory Map:"));
+    addProperty(tr("Mapping Mode"), MAPPING_MODE, Type::COMBO, LAYOUT_STRINGS, qVariantRange(LAYOUT_STRINGS.size()));
+    addProperty(tr("First Bank"), FIRST_BANK, Type::UNSIGNED_HEX, 0, 255);
+    addProperty(tr("Number of Banks"), N_BANKS, Type::UNSIGNED, 1, 128);
     addPropertyGroup(tr("Room Settings:"));
     addProperty(tr("Room Data Size"), ROOM_DATA_SIZE, Type::UNSIGNED, RS::MIN_ROOM_DATA_SIZE, RS::MAX_ROOM_DATA_SIZE);
     addPropertyGroup(tr("Entity:"));
@@ -63,11 +67,14 @@ QVariant ProjectSettingsPropertyManager::data(int id) const
     Q_ASSERT(pro);
 
     switch ((PropertyId)id) {
-    case BLOCK_SIZE:
-        return pro->blockSettings.size;
+    case MAPPING_MODE:
+        return int(pro->memoryMap.mode);
 
-    case BLOCK_COUNT:
-        return pro->blockSettings.count;
+    case FIRST_BANK:
+        return pro->memoryMap.firstBank;
+
+    case N_BANKS:
+        return pro->memoryMap.nBanks;
 
     case ROOM_DATA_SIZE:
         return pro->roomSettings.roomDataSize;
@@ -84,11 +91,14 @@ bool ProjectSettingsPropertyManager::setData(int id, const QVariant& value)
     Q_ASSERT(_item);
 
     switch ((PropertyId)id) {
-    case BLOCK_SIZE:
-        return _item->editBlockSettings_setSize(value.toUInt());
+    case MAPPING_MODE:
+        return _item->editMemoryMap_setMappingMode(PRO::MappingMode(value.toInt()));
 
-    case BLOCK_COUNT:
-        return _item->editBlockSettings_setCount(value.toUInt());
+    case FIRST_BANK:
+        return _item->editBlockSettings_setFirstBank(value.toUInt());
+
+    case N_BANKS:
+        return _item->editBlockSettings_setNBanks(value.toUInt());
 
     case ROOM_DATA_SIZE:
         return _item->editMetaTileSettings_setRoomDataSize(value.toUInt());

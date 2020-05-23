@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "memorymap.h"
 #include "models/common/externalfilelist.h"
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
@@ -25,24 +26,10 @@
 namespace UnTech {
 namespace Project {
 
-struct BlockSettings {
-    unsigned size = 8192;
-    unsigned count = 1;
-
-    bool validate(ErrorList& err) const;
-
-    bool operator==(const BlockSettings& o) const
-    {
-        return size == o.size
-               && count == o.count;
-    }
-    bool operator!=(const BlockSettings& o) const { return !(*this == o); }
-};
-
 struct ProjectFile {
     const static std::string FILE_EXTENSION;
 
-    BlockSettings blockSettings;
+    MemoryMapSettings memoryMap;
     Rooms::RoomSettings roomSettings;
 
     Entity::EntityRomData entityRomData;
@@ -64,7 +51,7 @@ struct ProjectFile {
 
     bool operator==(const ProjectFile& o) const
     {
-        return blockSettings == o.blockSettings
+        return memoryMap == o.memoryMap
                && roomSettings == o.roomSettings
                && entityRomData == o.entityRomData
                && resourceScenes == o.resourceScenes
