@@ -17,6 +17,9 @@
 namespace UnTech {
 namespace Project {
 
+template <typename T>
+class DataStore;
+
 class RomDataWriter {
 public:
     struct Constant {
@@ -41,16 +44,13 @@ private:
     const unsigned _bankSize;
 
     const std::vector<Constant>& _constants;
-    const std::vector<std::string>& _typeNames;
-    std::vector<std::vector<DataItem>> _dataItems; // [type][id]
     std::vector<RomBankData> _romBanks;
     std::vector<DataItem> _namedData;
     std::vector<Constant> _nameDataCounts;
     const std::string _blockName;
-    const std::string _listRodata;
     const std::string _blockRodata;
 
-    void throwOutOfRomSpaceException(size_t size)
+    [[noreturn]] void throwOutOfRomSpaceException(size_t size)
     {
         throw std::runtime_error(stringBuilder("Unable to store ", size, " bytes of data, please add more banks to the Memory Map."));
     }
@@ -58,25 +58,16 @@ private:
 public:
     RomDataWriter(const MemoryMapSettings& memoryMap,
                   const std::string& blockName,
-                  const std::string& listRodata,
                   const std::string& blockRodata,
-                  const std::vector<Constant>& constants,
-                  const std::vector<std::string>& typeNames)
+                  const std::vector<Constant>& constants)
         : _memoryMap(memoryMap)
         , _bankSize(memoryMap.bankSize())
         , _constants(constants)
-        , _typeNames(typeNames)
-        , _dataItems(_typeNames.size())
         , _romBanks()
         , _namedData()
         , _blockName(blockName)
-        , _listRodata(listRodata)
         , _blockRodata(blockRodata)
     {
-        if (_typeNames.size() == 0) {
-            throw std::invalid_argument("Expected at least one type name");
-        }
-
         _romBanks.reserve(memoryMap.nBanks);
         for (unsigned i = 0; i < memoryMap.nBanks; i++) {
             _romBanks.emplace_back(memoryMap.bankAddress(i), memoryMap.bankSize());
@@ -96,13 +87,11 @@ public:
         _romBanks.at(bankId).addData(data);
     }
 
-    void addData(unsigned typeId, const std::string& name, const std::vector<uint8_t>& data)
+    unsigned addData(const std::vector<uint8_t>& data)
     {
         for (auto& bank : _romBanks) {
             if (auto addr = bank.tryToAddData(data)) {
-                _dataItems.at(typeId).emplace_back(name, *addr);
-
-                return;
+                return *addr;
             }
         }
 
@@ -146,23 +135,31 @@ public:
         _nameDataCounts.emplace_back(Constant{ name + ".count", count });
     }
 
+    // Adds all data in the data store and creates a long address table pointing to the data in the store
+    template <class T>
+    void addDataStore(const std::string& longAddressTableName, const DataStore<T>& dataStore)
+    {
+        std::vector<uint8_t> longAddressTable(dataStore.size() * 3);
+        auto it = longAddressTable.begin();
+
+        for (unsigned i = 0; i < dataStore.size(); i++) {
+            auto data = dataStore.at(i);
+            assert(data);
+            const auto addr = addData(data->exportSnesData());
+
+            *it++ = addr & 0xff;
+            *it++ = (addr >> 8) & 0xff;
+            *it++ = (addr >> 16) & 0xff;
+        }
+        assert(it == longAddressTable.end());
+
+        addNamedData(longAddressTableName, longAddressTable);
+    }
+
     void writeIncData(std::stringstream& incData, const std::filesystem::path& relativeBinFilename) const
     {
         for (const Constant& c : _constants) {
             incData << "constant " << c.name << " = " << c.value << '\n';
-        }
-
-        for (unsigned typeId = 0; typeId < _typeNames.size(); typeId++) {
-            const std::string& typeName = _typeNames.at(typeId);
-            const std::vector<DataItem>& items = _dataItems.at(typeId);
-
-            incData << "\nnamespace " << typeName << " {\n"
-                    << "  constant count = " << items.size() << "\n\n";
-
-            for (unsigned id = 0; id < items.size(); id++) {
-                incData << "  constant " << items.at(id).name << " = " << id << '\n';
-            }
-            incData << "}\n";
         }
 
         incData << "\nnamespace " << _blockName << " {\n";
@@ -199,17 +196,6 @@ public:
             incData << "\nconstant " << nd.name << " = 0x" << nd.address;
         }
         incData << "\n\n";
-
-        incData << "\nrodata(" << _listRodata << ")";
-        for (unsigned typeId = 0; typeId < _typeNames.size(); typeId++) {
-            incData << "\n\n"
-                    << _typeNames.at(typeId) << ":";
-
-            for (const DataItem& di : _dataItems.at(typeId)) {
-                incData << "\n  dl 0x" << di.address;
-            }
-        }
-        incData << "\n";
 
         incData << std::dec;
     }

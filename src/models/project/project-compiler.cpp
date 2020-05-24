@@ -76,24 +76,25 @@ static void writeSceneData(RomDataWriter& writer,
     writer.addNamedDataWithCount(scenes.DATA_LABEL, scenes.sceneSnesData, scenes.scenes.size());
 }
 
+template <typename T>
+static void writeIncList(std::stringstream& incData, const std::string& typeName, const DataStore<T>& dataStore)
+{
+    incData << "\nnamespace " << typeName << " {\n"
+            << "  constant count = " << dataStore.size() << "\n\n";
+
+    for (unsigned id = 0; id < dataStore.size(); id++) {
+        const auto& item = dataStore.at(id).value();
+        incData << "  constant " << item.name << " = " << id << '\n';
+    }
+    incData << "}\n"
+               "\n";
+}
+
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinFilename,
                std::ostream& errorStream)
 {
-    enum TypeId : unsigned {
-        PALETTE,
-        BACKGROUND_IMAGE,
-        METATILE_TILESET,
-        ROOM,
-    };
-    const static std::vector<std::string> TYPE_NAMES = {
-        "Project.PaletteList",
-        "Project.BackgroundImageList",
-        "Project.MetaTileTilesetList",
-        "Project.RoomList",
-    };
-
-    const std::vector<RomDataWriter::Constant> FORMAT_VERSIONS = {
+    const std::vector<RomDataWriter::Constant> constants = {
         { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
         { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
         { "Resources.ANIMATED_TILESET_FORMAT_VERSION", Resources::AnimatedTilesetData::ANIMATED_TILESET_FORMAT_VERSION },
@@ -181,32 +182,31 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     }
 
     RomDataWriter writer(input.memoryMap,
-                         "__resc__", "RES_Lists", "RES_Block",
-                         FORMAT_VERSIONS, TYPE_NAMES);
-
-    auto writeData = [&](const TypeId typeId, const auto& list) {
-        for (unsigned i = 0; i < list.size(); i++) {
-            auto data = list.at(i);
-            assert(data);
-            writer.addData(typeId, data->name, data->exportSnesData());
-        }
-    };
+                         "__resc__", "RES_Block",
+                         constants);
 
     // must write meta sprite data first
     writeMetaSpriteData(writer, *metaSpriteData);
     writeEntityRomData(writer, *projectData.entityRomData());
     writeSceneData(writer, *projectData.sceneSettings(), *projectData.scenes());
 
-    writeData(PALETTE, projectData.palettes());
-    writeData(BACKGROUND_IMAGE, projectData.backgroundImages());
-    writeData(METATILE_TILESET, projectData.metaTileTilesets());
-    writeData(ROOM, projectData.rooms());
+    writer.addDataStore("Project.PaletteList", projectData.palettes());
+    writer.addDataStore("Project.BackgroundImageList", projectData.backgroundImages());
+    writer.addDataStore("Project.MetaTileTilesetList", projectData.metaTileTilesets());
+    writer.addDataStore("Project.RoomList", projectData.rooms());
 
     auto ret = std::make_unique<ProjectOutput>();
     ret->binaryData = writer.writeBinaryData();
 
     writer.writeIncData(ret->incData, relativeBinFilename);
-    ret->incData << projectData.entityRomData()->functionTableData;
+
+    ret->incData << "rodata(RES_Lists)\n"
+                 << projectData.entityRomData()->functionTableData;
+
+    writeIncList(ret->incData, "Project.PaletteList", projectData.palettes());
+    writeIncList(ret->incData, "Project.BackgroundImageList", projectData.backgroundImages());
+    writeIncList(ret->incData, "Project.MetaTileTilesetList", projectData.metaTileTilesets());
+    writeIncList(ret->incData, "Project.RoomList", projectData.rooms());
 
     MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);
     MetaSprite::Compiler::writeExportOrderReferences(input, ret->incData);
