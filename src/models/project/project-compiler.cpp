@@ -43,12 +43,11 @@ static void writeMetaSpriteData(RomDataWriter& writer,
 
     // Tiles are written first so they are always aligned with
     // the start of the data
-    auto tileData = msData.tileData.data();
-    for (unsigned i = 0; i < tileData.size(); i++) {
-        writer.addNamedData(stringBuilder(msData.tileData.blockPrefix(), i),
-                            tileData.at(i));
+    for (const auto& tileBank : msData.tileData.tileBanks()) {
+        writer.addBankData(tileBank.bankId, tileBank.startingAddress, tileBank.tiles.snesData());
     }
 
+    writeData(msData.dmaTile16Data);
     writeData(msData.frameSetData);
     writeData(msData.frameList);
     writeData(msData.frameData);
@@ -105,6 +104,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
         { "Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
         { "Project.ROOM_DATA_SIZE", input.roomSettings.roomDataSize },
+        { "Project.MS_FrameSetListCount", unsigned(input.frameSets.size()) },
     };
 
     bool valid = true;
@@ -206,7 +206,6 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     ret->binaryData = writer.writeBinaryData();
 
     writer.writeIncData(ret->incData, relativeBinFilename);
-    metaSpriteData->writeToIncFile(ret->incData);
     ret->incData << projectData.entityRomData()->functionTableData;
 
     MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);

@@ -19,6 +19,7 @@ struct TilesetLayout;
 
 struct FrameTilesetData {
     static constexpr uint16_t NULL_CHAR_ATTR = 0xffff;
+    static constexpr unsigned MAX_TILES_PER_TILESET = 16;
 
     IndexPlusOne tilesetIndex;
     bool dynamicTileset;

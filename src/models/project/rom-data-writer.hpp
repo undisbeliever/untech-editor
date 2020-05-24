@@ -83,6 +83,19 @@ public:
         }
     }
 
+    void addBankData(unsigned bankId, const unsigned addr, const std::vector<uint8_t> data)
+    {
+        auto& bank = _romBanks.at(bankId);
+        if (!bank.empty() || bank.currentAddress() != addr) {
+            throw std::runtime_error("Cannot store data in Rom Bank: incorrect address");
+        }
+        if (data.size() > _bankSize) {
+            throw std::overflow_error("Cannot store data in Rom Bank: data is too large");
+        }
+
+        _romBanks.at(bankId).addData(data);
+    }
+
     void addData(unsigned typeId, const std::string& name, const std::vector<uint8_t>& data)
     {
         for (auto& bank : _romBanks) {

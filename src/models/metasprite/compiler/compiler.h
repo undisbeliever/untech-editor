@@ -23,7 +23,7 @@ struct CompiledRomData {
     static const int METASPRITE_FORMAT_VERSION;
 
     RomTileData tileData;
-    RomDmaTile16Data tilesetData;
+    RomBinData dmaTile16Data;
 
     RomBinData paletteData;
     RomBinData paletteList;
@@ -40,12 +40,9 @@ struct CompiledRomData {
 
     RomBinData frameSetData;
 
-    unsigned nFrameSets;
-
     bool valid = true;
 
-    CompiledRomData(unsigned tilesetBlockSize = RomTileData::DEFAULT_TILE_BLOCK_SIZE);
-    void writeToIncFile(std::ostream& out) const;
+    CompiledRomData(const Project::MemoryMapSettings& memoryMap);
 };
 
 // Does not save tilesets or build frame data.

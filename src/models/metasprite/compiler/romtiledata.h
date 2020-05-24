@@ -7,6 +7,7 @@
 #pragma once
 
 #include "romdata.h"
+#include "models/project/memorymap.h"
 #include "models/snes/tileset.h"
 #include <cassert>
 #include <cstdint>
@@ -16,117 +17,95 @@
 #include <unordered_map>
 #include <vector>
 
-// uses std::string instead of idstring as
-// the assembly data labels can contain dots (.)
-
 namespace UnTech {
 namespace MetaSprite {
 namespace Compiler {
 
-struct TileAddress {
-    unsigned block = 0;
-    unsigned offset = 0;
-
-    bool operator==(const TileAddress& o) const
-    {
-        return block == o.block && offset == o.offset;
-    }
-};
-
-class RomDmaTile16Entry {
-    unsigned _tileCount = 0;
-    std::array<TileAddress, 16> _tiles;
-
-public:
-    unsigned dataSize() const { return _tileCount * 2 + 1; }
-
-    void addTile(const TileAddress& a)
-    {
-        _tiles.at(_tileCount) = a;
-        _tileCount++;
-    }
-
-    void writeToIncFile(std::ostream& out, const std::string& tilePrefix) const;
-
-    bool operator==(const RomDmaTile16Entry& o) const
-    {
-        return _tileCount == o._tileCount && _tiles == o._tiles;
-    }
-};
-
-class RomDmaTile16Data {
-    std::vector<RomDmaTile16Entry> _entries;
-    const std::string _label;
-    const std::string _segmentName;
-    const std::string _tilePrefix;
-
-public:
-    RomDmaTile16Data(std::string label,
-                     std::string tilePrefix)
-        : _entries()
-        , _label(std::move(label))
-        , _tilePrefix(std::move(tilePrefix))
-    {
-    }
-
-    IndexPlusOne addEntry(const RomDmaTile16Entry& entry)
-    {
-        unsigned size = 0;
-
-        for (const RomDmaTile16Entry& e : _entries) {
-            if (e == entry) {
-                return IndexPlusOne{ size + 1 };
-            }
-            size += e.dataSize();
-        }
-
-        _entries.emplace_back(entry);
-        return IndexPlusOne{ size + 1 };
-    }
-
-    void writeToIncFile(std::ostream& out) const;
-};
+// Tile data is stored in last ROM Bank first.
 
 class RomTileData {
 public:
-    const static unsigned BYTES_PER_LINE = 16;
     constexpr static unsigned SNES_TILE16_SIZE = Snes::TilesetTile16::SNES_TILE_SIZE;
 
-    constexpr static unsigned DEFAULT_TILE_BLOCK_SIZE = 8 * 1024;
+    constexpr static unsigned TILE16_ADDR_SHIFT = 7;
+    constexpr static unsigned TILE16_ADDR_MASK = 0xffff << TILE16_ADDR_SHIFT;
+
+    static_assert(SNES_TILE16_SIZE == 1 << TILE16_ADDR_SHIFT);
+
+    struct TileBank {
+        const unsigned bankId;
+        const unsigned startingAddress;
+        const uint16_t startingTile16Addr;
+        Snes::TilesetTile16 tiles;
+
+        TileBank(unsigned bId, unsigned addr)
+            : bankId(bId)
+            , startingAddress(addr)
+            , startingTile16Addr(addr >> TILE16_ADDR_SHIFT)
+            , tiles()
+        {
+            assert(addr < 0xffffff);
+            assert((addr & TILE16_ADDR_MASK) == (addr & 0x7fffff));
+        }
+    };
 
     struct Accessor {
-        Accessor(const TileAddress& addr, bool hFlip, bool vFlip)
-            : addr(addr)
+        Accessor(const uint16_t tile16Addr, bool hFlip, bool vFlip)
+            : tile16Addr(tile16Addr)
             , hFlip(hFlip)
             , vFlip(vFlip)
         {
         }
 
-        TileAddress addr;
+        const uint16_t tile16Addr;
         const bool hFlip;
         const bool vFlip;
     };
 
-public:
-    RomTileData(const std::string& blockPrefix, unsigned blockSize)
-        : _blockPrefix(blockPrefix)
-        , _tilesPerBlock(blockSize / SNES_TILE16_SIZE)
-        , _map()
-        , _tileBlocks()
+    const Project::MemoryMapSettings _memoryMap;
+    const unsigned _tilesPerBlock;
+    std::unordered_map<Snes::Tile16px, const Accessor> _map;
+    std::vector<TileBank> _tileBanks;
+
+private:
+    void createTileBank()
     {
-        if (_tilesPerBlock < 16) {
-            throw std::invalid_argument("block size is too small");
+        if (_tileBanks.size() >= _memoryMap.nBanks) {
+            throw std::runtime_error("Cannot create Tile Data Bank: not enough ROM Banks");
         }
-        _tileBlocks.emplace_back();
+        const unsigned bankId = _memoryMap.nBanks - _tileBanks.size() - 1;
+
+        _tileBanks.emplace_back(bankId, _memoryMap.bankAddress(bankId));
+    }
+
+    inline uint16_t insertTileData(const Snes::Tile16px& tile)
+    {
+        if (_tileBanks.back().tiles.size() >= _tilesPerBlock) {
+            createTileBank();
+        }
+        auto& tileBank = _tileBanks.back();
+
+        const uint16_t tile16Addr = tileBank.startingTile16Addr + tileBank.tiles.size();
+
+        tileBank.tiles.addTile(tile);
+
+        return tile16Addr;
+    }
+
+public:
+    RomTileData(const Project::MemoryMapSettings& memoryMap)
+        : _memoryMap(memoryMap)
+        , _tilesPerBlock(memoryMap.bankSize() / SNES_TILE16_SIZE)
+        , _map()
+        , _tileBanks()
+    {
+        _tileBanks.reserve(memoryMap.nBanks);
+        createTileBank();
     }
 
     RomTileData(const RomTileData&) = delete;
 
-    const std::string& blockPrefix() const { return _blockPrefix; }
-    unsigned nBlocks() const { return _tileBlocks.size(); }
-
-    void writeAssertsToIncFile(std::ostream& out) const;
-    std::vector<std::vector<uint8_t>> data() const;
+    const std::vector<TileBank>& tileBanks() const { return _tileBanks; }
 
     Accessor addLargeTile(const Snes::Tile16px& tile)
     {
@@ -135,7 +114,7 @@ public:
             return it->second;
         }
         else {
-            TileAddress addr = insertTileData(tile);
+            const auto addr = insertTileData(tile);
 
             // unordered_map will ignore insert if tile pattern already exists
             // Thus symmetrical tiles will prefer the unflipped tile.
@@ -148,29 +127,6 @@ public:
             return { addr, false, false };
         }
     }
-
-private:
-    inline TileAddress insertTileData(const Snes::Tile16px& tile)
-    {
-        if (_tileBlocks.back().size() >= _tilesPerBlock) {
-            _tileBlocks.emplace_back();
-        }
-
-        auto& tileset = _tileBlocks.back();
-
-        unsigned block = _tileBlocks.size() - 1;
-        unsigned offset = tileset.size() * SNES_TILE16_SIZE;
-
-        _tileBlocks.back().addTile(tile);
-
-        return TileAddress{ block, offset };
-    }
-
-private:
-    const std::string _blockPrefix;
-    const unsigned _tilesPerBlock;
-    std::unordered_map<Snes::Tile16px, const Accessor> _map;
-    std::vector<Snes::TilesetTile16> _tileBlocks;
 };
 }
 }

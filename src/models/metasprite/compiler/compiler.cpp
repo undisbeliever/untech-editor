@@ -33,9 +33,9 @@ struct FrameSetData {
     std::vector<std::vector<uint8_t>> animations;
 };
 
-CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
-    : tileData("Project.MS_TB", tilesetBlockSize)
-    , tilesetData("Project.DMA_Tile16Data", "Project.MS_TB")
+CompiledRomData::CompiledRomData(const Project::MemoryMapSettings& memoryMap)
+    : tileData(memoryMap)
+    , dmaTile16Data("Project.DMA_Tile16Data")
     , paletteData("Project.MS_PaletteData")
     , paletteList("Project.MS_PaletteList", "Project.MS_PaletteData")
     , animationData("Project.MS_AnimationData")
@@ -48,14 +48,6 @@ CompiledRomData::CompiledRomData(unsigned tilesetBlockSize)
     , frameSetData("Project.MS_FrameSetData")
     , valid(true)
 {
-}
-
-void CompiledRomData::writeToIncFile(std::ostream& out) const
-{
-    out << "constant Project.MS_FrameSetListCount = " << nFrameSets << "\n\n";
-
-    tileData.writeAssertsToIncFile(out);
-    tilesetData.writeToIncFile(out);
 }
 
 // assumes frameSet.validate() passes
@@ -155,9 +147,7 @@ std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& 
     }
 
     bool valid = true;
-    auto romData = std::make_unique<CompiledRomData>(project.memoryMap.bankSize());
-
-    romData->nFrameSets = project.frameSets.size();
+    auto romData = std::make_unique<CompiledRomData>(project.memoryMap);
 
     for (auto& fs : project.frameSets) {
         UnTech::ErrorList errorList;

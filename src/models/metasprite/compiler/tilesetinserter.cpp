@@ -50,6 +50,36 @@ struct CharAttrPos {
     const uint_fast8_t charSplitPoint;
 };
 
+class RomDmaTile16Entry {
+    constexpr static unsigned MAX_TILES_PER_TILESET = 16;
+
+    std::vector<uint8_t> _data;
+    unsigned _tileCount = 0;
+
+public:
+    RomDmaTile16Entry()
+        : _data(1)
+        , _tileCount()
+    {
+    }
+
+    void addTile(const uint16_t a)
+    {
+        _data.push_back(a);
+        _data.push_back(a >> 8);
+
+        _tileCount++;
+    }
+
+    const std::vector<uint8_t>& commitData()
+    {
+        assert(_tileCount <= MAX_TILES_PER_TILESET);
+
+        _data.at(0) = _tileCount;
+        return _data;
+    }
+};
+
 const uint16_t CharAttrPos::SMALL_TILE_OFFSETS[4] = { 0x0000, 0x0001, 0x0010, 0x0011 };
 
 static FrameTilesetData
@@ -68,7 +98,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
 
     auto addTile = [&](const Snes::Tile16px& tile) mutable {
         auto a = out.tileData.addLargeTile(tile);
-        tilesetEntry.addTile(a.addr);
+        tilesetEntry.addTile(a.tile16Addr);
 
         return a;
     };
@@ -130,7 +160,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
         }
     }
 
-    tileset.tilesetIndex = out.tilesetData.addEntry(tilesetEntry);
+    tileset.tilesetIndex = out.dmaTile16Data.addData_IndexPlusOne(tilesetEntry.commitData());
 
     return tileset;
 }
