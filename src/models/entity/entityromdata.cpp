@@ -592,7 +592,7 @@ static void writeIncFile_RomStructs(std::ostream& out, const NamedList<EntityRom
 static void writeIncFile_FunctionTableDefines(std::ostream& out, const NamedList<EntityFunctionTable>& functionTables)
 {
     for (const auto& ft : functionTables) {
-        const idstring& structName = ft.name.isValid() ? ft.entityStruct : baseRomStruct;
+        const idstring& structName = ft.entityStruct.isValid() ? ft.entityStruct : baseRomStruct;
         out << "define Entities." << ft.name << ".RomStruct = " ENTITY_ROM_STRUCT_NAMESPACE "." << structName
             << "\ndefine Entities." << ft.name << ".ExportOrder = MSEO." << ft.exportOrder << '\n';
     }
