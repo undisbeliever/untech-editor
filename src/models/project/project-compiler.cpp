@@ -79,8 +79,7 @@ static void writeSceneData(RomDataWriter& writer,
 template <typename T>
 static void writeIncList(std::stringstream& incData, const std::string& typeName, const DataStore<T>& dataStore)
 {
-    incData << "\nnamespace " << typeName << " {\n"
-            << "  constant count = " << dataStore.size() << "\n\n";
+    incData << "\nnamespace " << typeName << " {\n";
 
     for (unsigned id = 0; id < dataStore.size(); id++) {
         const auto& item = dataStore.at(id).value();
@@ -200,9 +199,6 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
 
     writer.writeIncData(ret->incData, relativeBinFilename);
 
-    writeIncList(ret->incData, "Project.PaletteList", projectData.palettes());
-    writeIncList(ret->incData, "Project.BackgroundImageList", projectData.backgroundImages());
-    writeIncList(ret->incData, "Project.MetaTileTilesetList", projectData.metaTileTilesets());
     writeIncList(ret->incData, "Project.RoomList", projectData.rooms());
 
     MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);

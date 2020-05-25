@@ -153,7 +153,10 @@ public:
         }
         assert(it == longAddressTable.end());
 
+        assert(dataStore.size() < INT_MAX);
+
         addNamedData(longAddressTableName, longAddressTable);
+        _nameDataCounts.emplace_back(Constant{ longAddressTableName + ".count", unsigned(dataStore.size()) });
     }
 
     void writeIncData(std::stringstream& incData, const std::filesystem::path& relativeBinFilename) const
