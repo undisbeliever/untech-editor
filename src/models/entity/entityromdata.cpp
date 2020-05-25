@@ -746,7 +746,8 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     writeIncFile_RomStructs(defines, data.structs);
     writeIncFile_FunctionTableDefines(defines, data.functionTables);
 
-    functionTableData << "Project.EntityFunctionTables:\n";
+    functionTableData << "code()\n"
+                         "Project.EntityFunctionTables:\n";
     writeIncFile_FunctionTableData(functionTableData, data.entities);
     writeIncFile_FunctionTableData(functionTableData, data.projectiles);
     functionTableData << "constant Project.EntityFunctionTables.size = pc() - Project.EntityFunctionTables"

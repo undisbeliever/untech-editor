@@ -200,9 +200,6 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
 
     writer.writeIncData(ret->incData, relativeBinFilename);
 
-    ret->incData << "rodata(RES_Lists)\n"
-                 << projectData.entityRomData()->functionTableData;
-
     writeIncList(ret->incData, "Project.PaletteList", projectData.palettes());
     writeIncList(ret->incData, "Project.BackgroundImageList", projectData.backgroundImages());
     writeIncList(ret->incData, "Project.MetaTileTilesetList", projectData.metaTileTilesets());
@@ -215,6 +212,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     // changes ROM BANK to code()
     MetaSprite::Compiler::writeActionPointFunctionTables(input.actionPointFunctions, ret->incData);
     Resources::writeSceneIncData(input.resourceScenes, ret->incData);
+    ret->incData << projectData.entityRomData()->functionTableData;
 
     ret->incData << std::endl;
 
