@@ -9,11 +9,8 @@
 #include "models/common/stringbuilder.h"
 #include <algorithm>
 #include <cassert>
-#include <cstdio>
-#include <cstring>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -203,14 +200,13 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
 #else
 void File::atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size)
 {
+    using namespace std::string_literals;
+
     const std::string filename = filePath.u8string();
 
     const size_t BLOCK_SIZE = 4096;
 
-    const std::unique_ptr<char[]> tmpFilenameBuffer(new char[filename.size() + 16]);
-    char* const tmpFilename = tmpFilenameBuffer.get();
-    strncpy(tmpFilename, filename.c_str(), filename.size() + 1);
-    strncpy(tmpFilename + filename.size(), "-tmpXXXXXX", 16);
+    std::string tmpFilename = filePath.native() + "-tmpXXXXXX"s;
 
     int fd;
     struct stat statbuf;
@@ -227,7 +223,7 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
             throw std::runtime_error(stringBuilder("User can not write to ", filename));
         }
 
-        fd = mkstemp(tmpFilename);
+        fd = mkstemp(tmpFilename.data());
         if (fd < 0) {
             throw std::system_error(errno, std::system_category());
         }
@@ -235,14 +231,14 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
         // mkstemp sets file permission to 0600
         // Set the permissions to match filename
         int s = 0;
-        s |= chmod(tmpFilename, statbuf.st_mode);
-        s |= chown(tmpFilename, statbuf.st_uid, statbuf.st_gid);
+        s |= chmod(tmpFilename.c_str(), statbuf.st_mode);
+        s |= chown(tmpFilename.c_str(), statbuf.st_uid, statbuf.st_gid);
         if (s != 0) {
             std::cerr << "Warning: unable to change the file permissions of " << tmpFilename << std::endl;
         }
     }
     else {
-        fd = mkstemp(tmpFilename);
+        fd = mkstemp(tmpFilename.data());
         if (fd < 0) {
             throw std::system_error(errno, std::system_category());
         }
@@ -251,7 +247,7 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
         // Set the permissions what user would expect
         mode_t mask = umask(0);
         umask(mask);
-        chmod(tmpFilename, 0666 & ~mask);
+        chmod(tmpFilename.c_str(), 0666 & ~mask);
     }
 
     const uint8_t* ptr = static_cast<const uint8_t*>(data);
@@ -276,7 +272,7 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
         throw std::system_error(errno, std::system_category());
     }
 
-    r = rename(tmpFilename, filename.c_str());
+    r = rename(tmpFilename.c_str(), filename.c_str());
     if (r != 0) {
         throw std::system_error(errno, std::system_category());
     }
