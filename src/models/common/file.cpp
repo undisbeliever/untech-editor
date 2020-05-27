@@ -80,46 +80,64 @@ std::vector<uint8_t> File::readBinaryFile(const std::filesystem::path& filePath,
 
 std::string File::readUtf8TextFile(const std::filesystem::path& filePath)
 {
+    constexpr static unsigned N_BOM_CHARS = 3;
+    constexpr static std::array<uint8_t, 4> BOM{ 0xEF, 0xBB, 0xBF };
+    static_assert(BOM.size() == sizeof(uint32_t));
+
     std::ifstream in(filePath, std::ios::in | std::ios::binary);
-    if (in) {
-        uint8_t bom[3];
-        in.read((char*)bom, sizeof(bom));
-
-        in.seekg(0, std::ios::end);
-        auto size = in.tellg();
-
-        if (size < 0) {
-            throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : Cannot read file size"));
-        }
-        if (size > 25 * 1024 * 1024) {
-            throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : too large"));
-        }
-
-        // check for BOM
-        if (size > 3 && bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF) {
-            in.seekg(3, std::ios::beg);
-            size -= 3;
-        }
-        else {
-            in.seekg(0, std::ios::beg);
-        }
-
-        std::string ret;
-        if (size > 0) {
-            ret.reserve(size_t(size) + 1);
-
-            ret.assign((std::istreambuf_iterator<char>(in)), (std::istreambuf_iterator<char>()));
-
-            in.close();
-
-            if (!String::checkUtf8WellFormed(ret)) {
-                throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : Not UTF-8 Well Formed"));
-            }
-        }
-
-        return (ret);
+    if (!in) {
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string()));
     }
-    throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string()));
+
+    std::array<uint8_t, 4> header{};
+    static_assert(header.size() > N_BOM_CHARS);
+
+    in.read((char*)header.data(), N_BOM_CHARS);
+    assert(header.back() == 0);
+
+    in.seekg(0, std::ios::end);
+    auto size = in.tellg();
+
+    if (size < 0) {
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : Cannot read file size"));
+    }
+    if (size > 25 * 1024 * 1024) {
+        throw std::runtime_error(stringBuilder("Cannot open file: ", filePath.u8string(), " : too large"));
+    }
+
+    // check for BOM
+    if (size >= N_BOM_CHARS && header == BOM) {
+        in.seekg(3, std::ios::beg);
+        size -= 3;
+    }
+    else {
+        in.seekg(0, std::ios::beg);
+    }
+
+    std::string ret;
+    if (size > 0) {
+        ret.resize(size_t(size));
+
+        in.read(ret.data(), size);
+
+        const auto read = in.gcount();
+        const bool atEof = in.get() == decltype(in)::traits_type::eof();
+
+        in.close();
+
+        if (read != size) {
+            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.u8string(), " : Expected ", ptrdiff_t(size), " bytes got ", read, "."));
+        }
+        if (atEof == false) {
+            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.u8string(), " : Not at end of file"));
+        }
+
+        if (!String::checkUtf8WellFormed(ret)) {
+            throw std::runtime_error(stringBuilder("Error reading file: ", filePath.u8string(), " : Not UTF-8 Well Formed"));
+        }
+    }
+
+    return (ret);
 }
 
 void File::atomicWrite(const std::filesystem::path& filePath, const std::vector<uint8_t>& data)
