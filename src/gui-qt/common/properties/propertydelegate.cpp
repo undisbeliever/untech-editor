@@ -11,6 +11,7 @@
 #include <QApplication>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPointer>
 #include <QStyle>
 
 #include "listitemwidget.h"
@@ -193,12 +194,19 @@ QWidget* PropertyDelegate::createEditor(QWidget* parent, const QStyleOptionViewI
     QWidget* editor = createEditorWidget(parent, model, index, property);
     if (editor) {
         editor->setFocusPolicy(Qt::WheelFocus);
-        connect(model, &AbstractPropertyModel::requestCloseEditors,
-                editor, [=]() {
-                    // Close editor when underlying data is about to change
 
-                    // I know this is bad but QSignalMapper is deprecated
-                    emit const_cast<PropertyDelegate*>(this)->closeEditor(editor, EndEditHint::NoHint);
+        // Using a QPointer to prevent use-after-free if PropertyDelegate is destroyed before editor.
+        const QPointer<const PropertyDelegate> guardedThisPtr = this;
+        connect(model, &AbstractPropertyModel::requestCloseEditors,
+                editor, [editor, guardedThisPtr]() {
+                    // Close editor when underlying data is about to change.
+                    // Used to close the editors before undoing/redoing an action on the model data.
+
+                    if (guardedThisPtr) {
+                        // I know this is bad, but it should be OK as we need to pass a non-const PropertyDelegate to QAbstractItemView
+                        auto* delegate = const_cast<PropertyDelegate*>(guardedThisPtr.data());
+                        emit delegate->closeEditor(editor, EndEditHint::NoHint);
+                    }
                 });
     }
     return editor;

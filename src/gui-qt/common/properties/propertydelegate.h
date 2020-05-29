@@ -17,8 +17,10 @@ class AbstractPropertyModel;
  * NOTICE
  * ======
  *
+ * This class MUST NOT be created as a const variable.
+ *
  * All editors created PropertyDelegate MUST be closed before this object can
- * be deleted safely.
+ * be safely deleted.
  */
 
 class PropertyDelegate : public QItemDelegate {
