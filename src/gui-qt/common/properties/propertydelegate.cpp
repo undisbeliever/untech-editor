@@ -328,8 +328,9 @@ QWidget* PropertyDelegate::createEditorWidget(QWidget* parent, const AbstractPro
 
 void PropertyDelegate::commitEditor()
 {
-    QWidget* editor = qobject_cast<QWidget*>(sender());
-    emit commitData(editor);
+    if (QWidget* editor = qobject_cast<QWidget*>(sender())) {
+        emit commitData(editor);
+    }
 }
 
 void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
@@ -347,154 +348,167 @@ void PropertyDelegate::setEditorData(QWidget* editor, const QModelIndex& index) 
 
     if (property.isList && model && !model->isListItem(index)) {
         // container node of a list type
-        ListItemWidget* li = qobject_cast<ListItemWidget*>(editor);
-        li->setStringList(data.toStringList());
+        if (auto* li = qobject_cast<ListItemWidget*>(editor)) {
+            li->setStringList(data.toStringList());
+        }
         return;
     }
 
     auto params = model->propertyParametersForIndex(index);
 
     switch (property.type) {
-    case Type::BOOLEAN: {
-        QCheckBox* cb = qobject_cast<QCheckBox*>(editor);
-        cb->setChecked(data.toBool());
-    } break;
+    case Type::BOOLEAN:
+        if (auto* cb = qobject_cast<QCheckBox*>(editor)) {
+            cb->setChecked(data.toBool());
+        }
+        break;
 
     case Type::INTEGER:
     case Type::UNSIGNED:
-    case Type::UNSIGNED_HEX: {
-        QSpinBox* sb = qobject_cast<QSpinBox*>(editor);
-        if (params.first.isValid()) {
-            sb->setMinimum(params.first.toInt());
+    case Type::UNSIGNED_HEX:
+        if (auto* sb = qobject_cast<QSpinBox*>(editor)) {
+            if (params.first.isValid()) {
+                sb->setMinimum(params.first.toInt());
+            }
+            if (params.second.isValid()) {
+                sb->setMaximum(params.second.toInt());
+            }
+            sb->setValue(data.toInt());
         }
-        if (params.second.isValid()) {
-            sb->setMaximum(params.second.toInt());
-        }
-        sb->setValue(data.toInt());
-    } break;
+        break;
 
     case Type::STRING:
-    case Type::STRING_LIST: {
-        QLineEdit* le = qobject_cast<QLineEdit*>(editor);
-        le->setText(data.toString());
-    } break;
+    case Type::STRING_LIST:
+        if (auto* le = qobject_cast<QLineEdit*>(editor)) {
+            le->setText(data.toString());
+        }
+        break;
 
     case Type::IDSTRING:
-    case Type::IDSTRING_LIST: {
-        QLineEdit* le = qobject_cast<QLineEdit*>(editor);
-
-        if (params.first.type() == QVariant::StringList) {
-            QCompleter* c = new QCompleter(params.first.toStringList(), le);
-            c->setCaseSensitivity(Qt::CaseInsensitive);
-            le->setCompleter(c);
+    case Type::IDSTRING_LIST:
+        if (auto* le = qobject_cast<QLineEdit*>(editor)) {
+            if (params.first.type() == QVariant::StringList) {
+                QCompleter* c = new QCompleter(params.first.toStringList(), le);
+                c->setCaseSensitivity(Qt::CaseInsensitive);
+                le->setCompleter(c);
+            }
+            else {
+                le->setCompleter(nullptr);
+            }
+            le->setText(data.toString());
         }
-        else {
-            le->setCompleter(nullptr);
-        }
-        le->setText(data.toString());
-    } break;
+        break;
 
     case Type::FILENAME:
-    case Type::FILENAME_LIST: {
-        FilenameInputWidget* fi = qobject_cast<FilenameInputWidget*>(editor);
-        if (params.first.isValid()) {
-            fi->setDialogFilter(params.first.toString());
-        }
-        fi->setFilename(data.toString());
-    } break;
-
-    case Type::COLOR: {
-        ColorInputWidget* ci = qobject_cast<ColorInputWidget*>(editor);
-        ci->setColor(data.value<QColor>());
-    } break;
-
-    case Type::POINT: {
-        PointWidget* pw = qobject_cast<PointWidget*>(editor);
-        if (params.first.type() == QVariant::Point) {
-            pw->setMinimum(params.first.toPoint());
-        }
-        if (params.second.type() == QVariant::Point) {
-            pw->setMaximum(params.second.toPoint());
-        }
-        pw->setValue(data.toPoint());
-    } break;
-
-    case Type::SIZE: {
-        SizeWidget* sw = qobject_cast<SizeWidget*>(editor);
-        if (params.first.type() == QVariant::Size) {
-            sw->setMinimum(params.first.toSize());
-        }
-        if (params.second.type() == QVariant::Size) {
-            sw->setMaximum(params.second.toSize());
-        }
-        sw->setValue(data.toSize());
-    } break;
-
-    case Type::RECT: {
-        RectWidget* rw = qobject_cast<RectWidget*>(editor);
-        if (params.first.type() == QVariant::Rect) {
-            rw->setRange(params.first.toRect());
-        }
-        if (params.second.type() == QVariant::Size) {
-            rw->setMaxRectSize(params.second.toSize());
-        }
-        rw->setValue(data.toRect());
-    } break;
-
-    case Type::COMBO: {
-        const QStringList displayList = params.first.toStringList();
-        const QVariantList dataList = params.second.toList();
-
-        QComboBox* cb = qobject_cast<QComboBox*>(editor);
-        cb->clear();
-
-        if (displayList.size() == dataList.size()) {
-            for (int i = 0; i < displayList.size(); i++) {
-                cb->addItem(displayList.at(i), dataList.at(i));
+    case Type::FILENAME_LIST:
+        if (auto* fi = qobject_cast<FilenameInputWidget*>(editor)) {
+            if (params.first.isValid()) {
+                fi->setDialogFilter(params.first.toString());
             }
+            fi->setFilename(data.toString());
         }
-        else {
-            for (int i = 0; i < displayList.size(); i++) {
-                cb->addItem(displayList.at(i), displayList.at(i));
+        break;
+
+    case Type::COLOR:
+        if (auto* ci = qobject_cast<ColorInputWidget*>(editor)) {
+            ci->setColor(data.value<QColor>());
+        }
+        break;
+
+    case Type::POINT:
+        if (auto* pw = qobject_cast<PointWidget*>(editor)) {
+            if (params.first.type() == QVariant::Point) {
+                pw->setMinimum(params.first.toPoint());
             }
+            if (params.second.type() == QVariant::Point) {
+                pw->setMaximum(params.second.toPoint());
+            }
+            pw->setValue(data.toPoint());
         }
-        int i = cb->findData(data);
-        cb->setCurrentIndex(i);
-    } break;
+        break;
 
-    case Type::STRING_COMBO: {
-        const QStringList sList = params.first.toStringList();
-
-        QComboBox* cb = qobject_cast<QComboBox*>(editor);
-        cb->clear();
-        cb->addItems(sList);
-
-        int i = sList.indexOf(data.toString());
-        cb->setCurrentIndex(i);
-    } break;
-
-    case Type::COLOR_COMBO: {
-        const QVariantList colorsList = params.first.toList();
-
-        QComboBox* cb = qobject_cast<QComboBox*>(editor);
-        cb->clear();
-
-        int colorIndex = -1;
-
-        QPixmap pixmap(COLOR_ICON_SIZE, COLOR_ICON_SIZE);
-        for (auto& c : colorsList) {
-            QColor color = c.value<QColor>();
-
-            pixmap.fill(color);
-
-            cb->addItem(QIcon(pixmap), colorText(color), c);
+    case Type::SIZE:
+        if (auto* sw = qobject_cast<SizeWidget*>(editor)) {
+            if (params.first.type() == QVariant::Size) {
+                sw->setMinimum(params.first.toSize());
+            }
+            if (params.second.type() == QVariant::Size) {
+                sw->setMaximum(params.second.toSize());
+            }
+            sw->setValue(data.toSize());
         }
+        break;
 
-        cb->setCurrentIndex(cb->findData(colorIndex));
-    } break;
+    case Type::RECT:
+        if (auto* rw = qobject_cast<RectWidget*>(editor)) {
+            if (params.first.type() == QVariant::Rect) {
+                rw->setRange(params.first.toRect());
+            }
+            if (params.second.type() == QVariant::Size) {
+                rw->setMaxRectSize(params.second.toSize());
+            }
+            rw->setValue(data.toRect());
+        }
+        break;
 
-    case Type::NOT_EDITABLE: {
-    } break;
+    case Type::COMBO:
+        if (auto* cb = qobject_cast<QComboBox*>(editor)) {
+            cb->clear();
+
+            const QStringList displayList = params.first.toStringList();
+            const QVariantList dataList = params.second.toList();
+
+            if (displayList.size() == dataList.size()) {
+                for (int i = 0; i < displayList.size(); i++) {
+                    cb->addItem(displayList.at(i), dataList.at(i));
+                }
+            }
+            else {
+                for (int i = 0; i < displayList.size(); i++) {
+                    cb->addItem(displayList.at(i), displayList.at(i));
+                }
+            }
+            int i = cb->findData(data);
+            cb->setCurrentIndex(i);
+        }
+        break;
+
+    case Type::STRING_COMBO:
+        if (auto* cb = qobject_cast<QComboBox*>(editor)) {
+            cb->clear();
+
+            const QStringList sList = params.first.toStringList();
+
+            cb->addItems(sList);
+
+            int i = sList.indexOf(data.toString());
+            cb->setCurrentIndex(i);
+        }
+        break;
+
+    case Type::COLOR_COMBO:
+        if (auto* cb = qobject_cast<QComboBox*>(editor)) {
+            cb->clear();
+
+            const QVariantList colorsList = params.first.toList();
+
+            int colorIndex = -1;
+
+            QPixmap pixmap(COLOR_ICON_SIZE, COLOR_ICON_SIZE);
+            for (auto& c : colorsList) {
+                QColor color = c.value<QColor>();
+
+                pixmap.fill(color);
+
+                cb->addItem(QIcon(pixmap), colorText(color), c);
+            }
+
+            cb->setCurrentIndex(cb->findData(colorIndex));
+        }
+        break;
+
+    case Type::NOT_EDITABLE:
+        break;
     }
 }
 
@@ -511,73 +525,83 @@ void PropertyDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, 
 
     if (property.isList && pModel && !pModel->isListItem(index)) {
         // container node of a list type
-        ListItemWidget* li = qobject_cast<ListItemWidget*>(editor);
-        model->setData(index, li->stringList(), Qt::EditRole);
-
+        if (auto* li = qobject_cast<ListItemWidget*>(editor)) {
+            model->setData(index, li->stringList(), Qt::EditRole);
+        }
         return;
     }
 
     // leaf node
     switch (property.type) {
-    case Type::BOOLEAN: {
-        QCheckBox* cb = qobject_cast<QCheckBox*>(editor);
-        model->setData(index, cb->isChecked(), Qt::EditRole);
-    } break;
+    case Type::BOOLEAN:
+        if (auto* cb = qobject_cast<QCheckBox*>(editor)) {
+            model->setData(index, cb->isChecked(), Qt::EditRole);
+        }
+        break;
 
     case Type::INTEGER:
     case Type::UNSIGNED:
-    case Type::UNSIGNED_HEX: {
-        QSpinBox* sb = qobject_cast<QSpinBox*>(editor);
-        model->setData(index, sb->value(), Qt::EditRole);
-    } break;
+    case Type::UNSIGNED_HEX:
+        if (auto* sb = qobject_cast<QSpinBox*>(editor)) {
+            model->setData(index, sb->value(), Qt::EditRole);
+        }
+        break;
 
     case Type::STRING:
     case Type::IDSTRING:
     case Type::STRING_LIST:
-    case Type::IDSTRING_LIST: {
-        QLineEdit* le = qobject_cast<QLineEdit*>(editor);
-        model->setData(index, le->text(), Qt::EditRole);
-    } break;
+    case Type::IDSTRING_LIST:
+        if (auto* le = qobject_cast<QLineEdit*>(editor)) {
+            model->setData(index, le->text(), Qt::EditRole);
+        }
+        break;
 
     case Type::FILENAME:
-    case Type::FILENAME_LIST: {
-        FilenameInputWidget* fi = qobject_cast<FilenameInputWidget*>(editor);
-        model->setData(index, fi->filename(), Qt::EditRole);
-    } break;
+    case Type::FILENAME_LIST:
+        if (auto* fi = qobject_cast<FilenameInputWidget*>(editor)) {
+            model->setData(index, fi->filename(), Qt::EditRole);
+        }
+        break;
 
-    case Type::COLOR: {
-        ColorInputWidget* ci = qobject_cast<ColorInputWidget*>(editor);
-        model->setData(index, ci->color(), Qt::EditRole);
-    } break;
+    case Type::COLOR:
+        if (auto* ci = qobject_cast<ColorInputWidget*>(editor)) {
+            model->setData(index, ci->color(), Qt::EditRole);
+        }
+        break;
 
-    case Type::POINT: {
-        PointWidget* pw = qobject_cast<PointWidget*>(editor);
-        model->setData(index, pw->value(), Qt::EditRole);
-    } break;
+    case Type::POINT:
+        if (auto* pw = qobject_cast<PointWidget*>(editor)) {
+            model->setData(index, pw->value(), Qt::EditRole);
+        }
+        break;
 
-    case Type::SIZE: {
-        SizeWidget* sw = qobject_cast<SizeWidget*>(editor);
-        model->setData(index, sw->value(), Qt::EditRole);
-    } break;
+    case Type::SIZE:
+        if (auto* sw = qobject_cast<SizeWidget*>(editor)) {
+            model->setData(index, sw->value(), Qt::EditRole);
+        }
+        break;
 
-    case Type::RECT: {
-        RectWidget* rw = qobject_cast<RectWidget*>(editor);
-        model->setData(index, rw->value(), Qt::EditRole);
-    } break;
+    case Type::RECT:
+        if (auto* rw = qobject_cast<RectWidget*>(editor)) {
+            model->setData(index, rw->value(), Qt::EditRole);
+        }
+        break;
 
     case Type::COMBO:
-    case Type::COLOR_COMBO: {
-        QComboBox* cb = qobject_cast<QComboBox*>(editor);
-        model->setData(index, cb->currentData(), Qt::EditRole);
-    } break;
+    case Type::COLOR_COMBO:
+        if (auto* cb = qobject_cast<QComboBox*>(editor)) {
+            model->setData(index, cb->currentData(), Qt::EditRole);
+        }
+        break;
 
-    case Type::STRING_COMBO: {
-        QComboBox* cb = qobject_cast<QComboBox*>(editor);
-        model->setData(index, cb->currentText(), Qt::EditRole);
-    } break;
+    case Type::STRING_COMBO:
+        if (auto* cb = qobject_cast<QComboBox*>(editor)) {
+            model->setData(index, cb->currentText(), Qt::EditRole);
+        }
+        break;
 
-    case Type::NOT_EDITABLE: {
-    } break;
+    case Type::NOT_EDITABLE:
+        break;
     }
 }
 
@@ -594,8 +618,7 @@ void PropertyDelegate::updateEditorGeometry(QWidget* editor,
         r.setHeight(editor->minimumHeight());
     }
 
-    QWidget* parent = editor->parentWidget();
-    if (parent) {
+    if (auto* parent = editor->parentWidget()) {
         if (r.bottom() >= parent->height()) {
             r.moveBottom(parent->height() - 1);
         }
