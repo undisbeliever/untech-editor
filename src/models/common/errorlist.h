@@ -104,7 +104,7 @@ public:
     template <typename... Args>
     void addWarningString(const Args... args)
     {
-        _list.push_back(ErrorListItem{ ErrorType::ERROR, stringBuilder(args...), nullptr });
+        _list.push_back(ErrorListItem{ ErrorType::WARNING, stringBuilder(args...), nullptr });
     }
 
     void printIndented(std::ostream& out) const;
