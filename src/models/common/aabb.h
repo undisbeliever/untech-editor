@@ -145,9 +145,9 @@ struct _rect {
     }
 
     inline T left() const { return x; }
-    inline T right() const { return x + width; }
+    inline T right() const { return x + T(width); }
     inline T top() const { return y; }
-    inline T bottom() const { return y + height; }
+    inline T bottom() const { return y + T(height); }
 
     inline usize size() const { return { width, height }; }
     inline _point<T> bottomRight() const { return { bottom(), right() }; }
