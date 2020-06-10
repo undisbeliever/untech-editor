@@ -19,7 +19,7 @@ const grid<uint8_t> MtTilesetGraphicsScene::_grid = []() {
 
     UnTech::grid<uint8_t> grid(MT::TILESET_WIDTH, MT::TILESET_HEIGHT);
 
-    uint8_t i = 0;
+    unsigned i = 0;
     for (uint8_t& cell : grid) {
         cell = i++;
     }
