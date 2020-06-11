@@ -50,6 +50,59 @@ bool MapGrid::editGrid_placeTiles(const point& location, const grid<uint16_t>& t
 }
 
 template <>
+const NamedList<RM::RoomEntrance>* NamedListAccessor<RM::RoomEntrance, ResourceItem>::list() const
+{
+    if (auto ri = resourceItem()->roomInput()) {
+        return &ri->entrances;
+    }
+    else {
+        return nullptr;
+    }
+}
+
+template <>
+NamedList<RM::RoomEntrance>* NamedListAccessor<RM::RoomEntrance, ResourceItem>::getList()
+{
+    if (auto ri = resourceItem()->dataEditable()) {
+        return &ri->entrances;
+    }
+    else {
+        return nullptr;
+    }
+}
+
+RoomEntranceList::RoomEntranceList(ResourceItem* resourceItem)
+    : NamedListAccessor(resourceItem, RM::MAX_ROOM_ENTRANCES)
+{
+}
+
+QString RoomEntranceList::typeName() const
+{
+    return tr("Room Entrance");
+}
+
+QString RoomEntranceList::typeNamePlural() const
+{
+    return tr("Room Entrances");
+}
+
+bool RoomEntranceList::edit_setPosition(index_type index, const upoint& position)
+{
+    return UndoHelper(this).editField(
+        index, position,
+        tr("Edit Room Entrance Position"),
+        [](RM::RoomEntrance& e) -> upoint& { return e.position; });
+}
+
+bool RoomEntranceList::edit_setOrientation(index_type index, RM::RoomEntranceOrientation orientation)
+{
+    return UndoHelper(this).editField(
+        index, orientation,
+        tr("Edit Room Entrance Orientation"),
+        [](RM::RoomEntrance& e) -> RM::RoomEntranceOrientation& { return e.orientation; });
+}
+
+template <>
 const NamedList<RM::EntityGroup>* NamedListAccessor<RM::EntityGroup, ResourceItem>::list() const
 {
     if (auto ri = resourceItem()->roomInput()) {
@@ -210,4 +263,5 @@ void EditableRoomGraphicsScene::commitMovedItems()
 
 using namespace UnTech::GuiQt;
 template class Accessor::NamedListAccessor<RM::EntityGroup, ResourceItem>;
+template class Accessor::NamedListAccessor<RM::RoomEntrance, ResourceItem>;
 template class Accessor::NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem>;

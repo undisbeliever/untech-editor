@@ -9,8 +9,8 @@
 #include "resourceitem.h"
 #include "roomentitiesdock.h"
 #include "roomgraphicsscenes.h"
+#include "gui-qt/accessor/listaccessortabledock.h"
 #include "gui-qt/common/graphics/zoomsettingsmanager.h"
-#include "gui-qt/common/properties/propertylistview.h"
 #include "gui-qt/entity/entity-rom-entries/entitieswithiconsmodel.h"
 #include "gui-qt/metatiles/mttileset/mttilesetgraphicsscenes.h"
 #include "gui-qt/metatiles/mttileset/mttilesetrenderer.h"
@@ -43,6 +43,7 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     , _scratchpadScene(new MetaTiles::MtTileset::MtScratchpadGraphicsScene(_style, _renderer, this))
     , _roomEntitiesDock(new RoomEntitiesDock(this))
     , _propertyManager(new RoomPropertyManager(this))
+    , _roomEntranceManager(new RoomEntranceManager(this))
     , _entitiesWithIconsModel(new Entity::EntityRomEntries::EntitiesWithIconsModel(this))
     , _resourceItem(nullptr)
 {
@@ -85,15 +86,21 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     // Simplifies MainWindow state
     _roomEntitiesDock->setObjectName(QStringLiteral("RoomEntities"));
 
+    auto* roomEntrancesDock = new Accessor::ListAccessorTableDock(tr("Room Entrances"), _roomEntranceManager, this);
+    roomEntrancesDock->setObjectName(QStringLiteral("RoomEntrances"));
+
     this->addDockWidget(Qt::RightDockWidgetArea, propertyDock);
     this->addDockWidget(Qt::RightDockWidgetArea, tilesetDock);
     this->addDockWidget(Qt::RightDockWidgetArea, minimapDock);
     this->addDockWidget(Qt::RightDockWidgetArea, scratchpadDock);
     this->addDockWidget(Qt::RightDockWidgetArea, entitiesListDock);
     this->addDockWidget(Qt::RightDockWidgetArea, _roomEntitiesDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, roomEntrancesDock);
 
     this->tabifyDockWidget(minimapDock, scratchpadDock);
+    this->tabifyDockWidget(_roomEntitiesDock, roomEntrancesDock);
     scratchpadDock->raise();
+    _roomEntitiesDock->raise();
 
     this->resizeDocks({ propertyDock, tilesetDock, scratchpadDock, entitiesListDock, _roomEntitiesDock }, { 100, 200, 200, 100, 100 }, Qt::Vertical);
 
@@ -142,6 +149,7 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     _resourceItem = item;
 
     _propertyManager->setResourceItem(item);
+    _roomEntranceManager->setResourceItem(item);
     _editableRoomScene->setResourceItem(item);
     _minimapRoomScene->setResourceItem(item);
     _roomEntitiesDock->setResourceItem(item);

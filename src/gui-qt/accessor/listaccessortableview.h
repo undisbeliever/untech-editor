@@ -43,7 +43,7 @@ public:
     ListActions* viewActions() const { return _actions; }
     PropertyTableModel* propertyTableModel() const { return _model; }
 
-    QMenu* contextmenu() { return _contextMenu; }
+    QMenu* contextMenu() { return _contextMenu; }
 
 protected:
     virtual void contextMenuEvent(QContextMenuEvent* event) final;

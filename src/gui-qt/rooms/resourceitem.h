@@ -18,6 +18,7 @@ namespace GuiQt {
 namespace Rooms {
 class ResourceList;
 class MapGrid;
+class RoomEntranceList;
 class EntityGroupList;
 class EntityEntriesList;
 
@@ -52,6 +53,7 @@ public:
     }
 
     MapGrid* mapGrid() const { return _mapGrid; }
+    RoomEntranceList* roomEntrances() const { return _roomEntrances; }
     EntityGroupList* entityGroups() const { return _entityGroups; }
     EntityEntriesList* entityEntries() const { return _entityEntries; }
 
@@ -61,6 +63,7 @@ public:
 private:
     friend class MapGrid;
     friend class Accessor::ResourceItemUndoHelper<ResourceItem>;
+    friend class Accessor::NamedListAccessor<RM::RoomEntrance, ResourceItem>;
     friend class Accessor::NamedListAccessor<RM::EntityGroup, ResourceItem>;
     friend class Accessor::NestedNlvMulitpleSelectionAccessor<RM::EntityGroup, RM::EntityEntry, ResourceItem>;
     const DataT* data() const { return _rooms.at(index()); }
@@ -81,6 +84,7 @@ private:
     ExternalFileList<DataT>& _rooms;
 
     MapGrid* const _mapGrid;
+    RoomEntranceList* const _roomEntrances;
     EntityGroupList* const _entityGroups;
     EntityEntriesList* const _entityEntries;
 };

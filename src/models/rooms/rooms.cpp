@@ -6,6 +6,7 @@
 
 #include "rooms.h"
 #include "models/common/errorlist.h"
+#include "models/common/validateunique.h"
 #include "models/entity/entityromdata.h"
 #include "models/lz4/lz4.h"
 #include "models/metatiles/common.h"
@@ -52,6 +53,38 @@ bool RoomSettings::validate(ErrorList& err) const
     };
 
     validateMinMax(roomDataSize, MIN_ROOM_DATA_SIZE, MAX_ROOM_DATA_SIZE, "Max Room Size invalid");
+
+    return valid;
+}
+
+static bool validateEntrances(const NamedList<RoomEntrance>& entrances, const RoomInput& ri, ErrorList& err)
+{
+    bool valid = true;
+
+    const auto addError = [&](const auto... msg) {
+        err.addErrorString(msg...);
+        valid = false;
+    };
+    const auto addEntranceError = [&](const RoomEntrance& e, const auto... msg) {
+        err.addError(std::make_unique<ListItemError>(&e, "Entity Entrance ", e.name, ": ", msg...));
+        valid = false;
+    };
+
+    if (entrances.empty()) {
+        addError("Expected at least one Room Entrance");
+    }
+
+    if (entrances.size() > MAX_ROOM_ENTRANCES) {
+        addError("Too many Room Entrances (", entrances.size(), ", max: ", MAX_ROOM_ENTRANCES, ")");
+    }
+
+    valid &= validateNamesUnique(entrances, "Room Entrance", err);
+
+    for (auto& en : entrances) {
+        if (en.position.x >= ri.mapRight() || en.position.y >= ri.mapBottom()) {
+            addEntranceError(en, "Entrance must be inside map");
+        }
+    }
 
     return valid;
 }
@@ -142,6 +175,7 @@ bool RoomInput::validate(const Resources::CompiledScenesData& compiledScenes, Er
         addError("Map is too large (maximum size is ", MAX_MAP_WIDTH, " x ", MAX_MAP_HEIGHT, ")");
     }
 
+    valid &= validateEntrances(entrances, *this, err);
     valid &= validateEntityGroups(entityGroups, *this, err);
 
     return valid;
@@ -157,15 +191,29 @@ static unsigned countEntities(const NamedList<EntityGroup>& entityGroups)
     return count;
 }
 
+static unsigned threeBytePosition(const unsigned x, const unsigned y)
+{
+    constexpr static unsigned POSITION_MASK = 0x0fff;
+    constexpr static unsigned POSITION_SHIFT = 12;
+
+    static_assert(1 << POSITION_SHIFT == POSITION_MASK + 1);
+    static_assert(sizeof(int) > 3);
+
+    static_assert(UINT8_MAX * MAP_TILE_SIZE < POSITION_MASK);                                      // X axis
+    static_assert(MAP_HEIGHT_LARGE * MAP_TILE_SIZE + ENTITY_VERTICAL_SPACING * 2 < POSITION_MASK); // Y axis
+
+    assert(x <= POSITION_MASK);
+    assert(y <= POSITION_MASK);
+
+    return (x & POSITION_MASK) | ((y & POSITION_MASK) << POSITION_SHIFT);
+}
+
 std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
                                             const Resources::CompiledScenesData& compiledScenes,
                                             const Entity::CompiledEntityRomData& entityRomData,
                                             const RoomSettings& roomSettings,
                                             ErrorList& err)
 {
-    constexpr unsigned HEADER_SIZE = 3;
-    constexpr unsigned FOOTER_SIZE = 4;
-
     bool valid = input.validate(compiledScenes, err);
 
     const auto addError = [&](const auto... msg) {
@@ -217,14 +265,18 @@ std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
         return nullptr;
     }
 
+    constexpr unsigned HEADER_SIZE = 4;
+    constexpr unsigned FOOTER_SIZE = 4;
     const bool mapHeightBit = input.map.height() <= MAP_HEIGHT_SMALL;
     const unsigned mapHeight = mapHeightBit ? MAP_HEIGHT_SMALL : MAP_HEIGHT_LARGE;
     const unsigned mapDataSize = mapHeight * input.map.width();
 
+    const unsigned roomEntranceDataSize = 1 + 4 * input.entrances.size();
+
     assert(totalEntityCount < MAX_ENTITY_ENTRIES);
     const unsigned entityDataSize = 2 + input.entityGroups.size() + totalEntityCount * 5;
 
-    const unsigned dataSize = HEADER_SIZE + mapDataSize + entityDataSize + FOOTER_SIZE;
+    const unsigned dataSize = HEADER_SIZE + mapDataSize + roomEntranceDataSize + entityDataSize + FOOTER_SIZE;
 
     if (dataSize > roomSettings.roomDataSize) {
         addError("Room data size too large (", dataSize, " bytes, max: ", roomSettings.roomDataSize, ")");
@@ -241,10 +293,12 @@ std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
     {
         const unsigned sceneId = compiledScenes.indexForScene(input.scene).value_or(INT_MAX);
         assert(sceneId < UINT8_MAX);
+        assert(input.entrances.size() < UINT8_MAX);
 
         *it++ = input.map.width();
         *it++ = input.map.height();
         *it++ = sceneId;
+        *it++ = input.entrances.size();
 
         assert(it == data.begin() + HEADER_SIZE);
     }
@@ -266,6 +320,27 @@ std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
 
     // ::TODO add submaps::
 
+    // Room Entrance Data
+    {
+        assert(input.entrances.size() > 0);
+        assert(input.entrances.size() < MAX_ROOM_ENTRANCES);
+
+        const auto begin = it;
+
+        *it++ = 'N';
+
+        for (const RoomEntrance& en : input.entrances) {
+            const unsigned pos = threeBytePosition(en.position.x, en.position.y);
+
+            *it++ = (pos >> 0) & 0xff;
+            *it++ = (pos >> 8) & 0xff;
+            *it++ = (pos >> 16) & 0xff;
+            *it++ = uint8_t(en.orientation);
+        }
+
+        assert(it == begin + roomEntranceDataSize);
+    }
+
     // Entity Data
     {
         assert(input.entityGroups.size() < MAX_ENTITY_GROUPS);
@@ -280,23 +355,12 @@ std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
             *it++ = eg.entities.size();
 
             for (const EntityEntry& ee : eg.entities) {
-                constexpr unsigned POSITION_MASK = 0x0fff;
-                constexpr unsigned POSITION_SHIFT = 12;
-                static_assert(1 << POSITION_SHIFT == POSITION_MASK + 1);
-                static_assert(sizeof(int) > 3);
-
                 static_assert(ENTITY_VERTICAL_SPACING == 256);
-                static_assert(UINT8_MAX * MAP_TILE_SIZE < POSITION_MASK);                                      // X axis
-                static_assert(MAP_HEIGHT_LARGE * MAP_TILE_SIZE + ENTITY_VERTICAL_SPACING * 2 < POSITION_MASK); // Y axis
 
                 assert(ee.position.x >= 0);
                 assert(ee.position.y >= -ENTITY_VERTICAL_SPACING);
-                const unsigned x = ee.position.x;
-                const unsigned y = ee.position.y + ENTITY_VERTICAL_SPACING;
 
-                assert(x <= POSITION_MASK);
-                assert(y <= POSITION_MASK);
-                const unsigned pos = (x & POSITION_MASK) | ((y & POSITION_MASK) << POSITION_SHIFT);
+                const unsigned pos = threeBytePosition(ee.position.x, ee.position.y + ENTITY_VERTICAL_SPACING);
 
                 const unsigned entityId = [&]() -> unsigned {
                     auto enIt = entityRomData.entityNameMap.find(ee.entityId);
@@ -339,7 +403,7 @@ std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
     return out;
 }
 
-const int RoomData::ROOM_FORMAT_VERSION = 1;
+const int RoomData::ROOM_FORMAT_VERSION = 2;
 
 std::vector<uint8_t> RoomData::exportSnesData() const
 {

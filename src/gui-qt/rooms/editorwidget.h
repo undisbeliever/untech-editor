@@ -11,7 +11,6 @@
 
 namespace UnTech {
 namespace GuiQt {
-class PropertyListView;
 class ZoomSettingsManager;
 class OpenGLZoomableGraphicsView;
 
@@ -33,6 +32,7 @@ class EditorWidget;
 }
 class ResourceItem;
 class RoomPropertyManager;
+class RoomEntranceManager;
 class RoomGraphicsScene;
 class EditableRoomGraphicsScene;
 class RoomEntitiesDock;
@@ -71,6 +71,7 @@ private:
     RoomEntitiesDock* const _roomEntitiesDock;
 
     RoomPropertyManager* const _propertyManager;
+    RoomEntranceManager* const _roomEntranceManager;
     Entity::EntityRomEntries::EntitiesWithIconsModel* const _entitiesWithIconsModel;
 
     ResourceItem* _resourceItem;

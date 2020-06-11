@@ -25,6 +25,7 @@ struct CompiledScenesData;
 
 namespace Rooms {
 
+constexpr unsigned MAX_ROOM_ENTRANCES = 32;
 constexpr unsigned MAX_ENTITY_GROUPS = 8;
 constexpr unsigned MAX_ENTITY_ENTRIES = 96;
 
@@ -46,6 +47,27 @@ struct RoomSettings {
         return roomDataSize == o.roomDataSize;
     }
     bool operator!=(const RoomSettings& o) const { return !(*this == o); }
+};
+
+enum class RoomEntranceOrientation {
+    DOWN_RIGHT,
+    DOWN_LEFT,
+    UP_RIGHT,
+    UP_LEFT,
+};
+
+struct RoomEntrance {
+    idstring name; // optional
+    upoint position;
+    RoomEntranceOrientation orientation;
+
+    bool operator==(const RoomEntrance& o) const
+    {
+        return name == o.name
+               && position == o.position
+               && orientation == o.orientation;
+    }
+    bool operator!=(const RoomEntrance& o) const { return !(*this == o); }
 };
 
 struct EntityEntry {
@@ -93,6 +115,7 @@ struct RoomInput {
 
     grid<uint8_t> map;
 
+    NamedList<RoomEntrance> entrances;
     NamedList<EntityGroup> entityGroups;
 
     rect validEntityArea() const;
@@ -107,6 +130,7 @@ struct RoomInput {
         return name == o.name
                && scene == o.scene
                && map == o.map
+               && entrances == o.entrances
                && entityGroups == o.entityGroups;
     }
     bool operator!=(const RoomInput& o) const { return !(*this == o); }

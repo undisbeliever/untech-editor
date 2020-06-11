@@ -56,6 +56,23 @@ protected:
     ArgsT selectedGridTuple() const { return std::make_tuple(); }
 };
 
+class RoomEntranceList final : public Accessor::NamedListAccessor<RM::RoomEntrance, ResourceItem> {
+    Q_OBJECT
+
+public:
+    using UndoHelper = Accessor::ListAndSelectionUndoHelper<RoomEntranceList>;
+
+public:
+    RoomEntranceList(ResourceItem* resourceItem);
+    ~RoomEntranceList() = default;
+
+    virtual QString typeName() const final;
+    virtual QString typeNamePlural() const final;
+
+    bool edit_setPosition(index_type index, const upoint& position);
+    bool edit_setOrientation(index_type index, RM::RoomEntranceOrientation orientation);
+};
+
 class EntityGroupList final : public Accessor::NamedListAccessor<RM::EntityGroup, ResourceItem> {
     Q_OBJECT
 

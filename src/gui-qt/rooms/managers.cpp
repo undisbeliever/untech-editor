@@ -13,6 +13,13 @@
 
 using namespace UnTech::GuiQt::Rooms;
 
+const QStringList RoomEntranceManager::ENTRANCE_DIRECTION_STRINGS{
+    QStringLiteral("Down Right"),
+    QStringLiteral("Down Left"),
+    QStringLiteral("Up Right"),
+    QStringLiteral("Up Left"),
+};
+
 RoomPropertyManager::RoomPropertyManager(QObject* parent)
     : PropertyListManager(parent)
     , _resourceItem(nullptr)
@@ -110,6 +117,98 @@ bool RoomPropertyManager::setData(int id, const QVariant& value)
 
     case MAP_SIZE:
         return _resourceItem->mapGrid()->editGrid_resizeGrid(toUsize(value.toSize()));
+    }
+
+    return false;
+}
+
+RoomEntranceManager::RoomEntranceManager(QObject* parent)
+    : Accessor::ListAccessorTableManager(parent)
+{
+    addProperty(tr("Name"), NAME, PropertyType::IDSTRING);
+    addProperty(tr("Position"), POSITION, PropertyType::POINT);
+    addProperty(tr("Orientation"), ORIENTATION, PropertyType::COMBO, ENTRANCE_DIRECTION_STRINGS, qVariantRange(ENTRANCE_DIRECTION_STRINGS.size()));
+}
+
+void RoomEntranceManager::setResourceItem(ResourceItem* item)
+{
+    setAccessor(item ? item->roomEntrances() : nullptr);
+}
+
+inline RoomEntranceList* RoomEntranceManager::accessor() const
+{
+    return static_cast<RoomEntranceList*>(ListAccessorTableManager::accessor());
+}
+
+void RoomEntranceManager::updateParameters(int, int id, QVariant& param1, QVariant& param2) const
+{
+    const auto* reList = accessor();
+    if (reList == nullptr) {
+        return;
+    }
+
+    const auto ri = reList->resourceItem()->roomInput();
+    if (!ri) {
+        return;
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case PropertyId::NAME:
+    case PropertyId::ORIENTATION:
+        break;
+
+    case PropertyId::POSITION:
+        param1 = QPoint(0, 0);
+        param2 = QPoint(ri->mapRight(), ri->mapBottom());
+        break;
+    }
+}
+
+QVariant RoomEntranceManager::data(int index, int id) const
+{
+    const auto* reList = accessor();
+    if (reList == nullptr
+        || index < 0
+        || (unsigned)index >= reList->size()) {
+
+        return QVariant();
+    }
+
+    const RM::RoomEntrance& en = reList->list()->at(index);
+
+    switch (static_cast<PropertyId>(id)) {
+    case PropertyId::NAME:
+        return QString::fromStdString(en.name);
+
+    case PropertyId::POSITION:
+        return fromUpoint(en.position);
+
+    case PropertyId::ORIENTATION:
+        return static_cast<int>(en.orientation);
+    }
+
+    return QVariant();
+}
+
+bool RoomEntranceManager::setData(int index, int id, const QVariant& value)
+{
+    auto* reList = accessor();
+    if (reList == nullptr
+        || index < 0
+        || (unsigned)index >= reList->size()) {
+
+        return false;
+    }
+
+    switch (static_cast<PropertyId>(id)) {
+    case PropertyId::NAME:
+        return reList->edit_setName(index, value.toString().toStdString());
+
+    case PropertyId::POSITION:
+        return reList->edit_setPosition(index, toUpoint(value.toPoint()));
+
+    case PropertyId::ORIENTATION:
+        return reList->edit_setOrientation(index, static_cast<RM::RoomEntranceOrientation>(value.toInt()));
     }
 
     return false;

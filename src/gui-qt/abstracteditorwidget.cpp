@@ -7,6 +7,7 @@
 #include "abstracteditorwidget.h"
 #include "abstractresourceitem.h"
 #include "gui-qt/common/properties/propertylistview.h"
+#include "gui-qt/common/properties/propertytableview.h"
 
 using namespace UnTech::GuiQt;
 

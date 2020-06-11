@@ -26,6 +26,34 @@ namespace UnTech::Rooms {
 
 const std::string RoomInput::FILE_EXTENSION = "utroom";
 
+static const EnumMap<RoomEntranceOrientation> roomEntranceOrientationEnumMap = {
+    { "down-right", RoomEntranceOrientation::DOWN_RIGHT },
+    { "down-left", RoomEntranceOrientation::DOWN_LEFT },
+    { "up-right", RoomEntranceOrientation::UP_RIGHT },
+    { "up-left", RoomEntranceOrientation::UP_LEFT },
+};
+
+static void readRoomEntrance(const XmlTag* tag, NamedList<RoomEntrance>& entrances)
+{
+    assert(tag->name == "entrance");
+
+    entrances.insert_back();
+    RoomEntrance& en = entrances.back();
+
+    en.name = tag->getAttributeOptionalId("name");
+    en.position = tag->getAttributeUpoint();
+    en.orientation = tag->getAttributeEnum("orientation", roomEntranceOrientationEnumMap);
+}
+
+static void writeRoomEntrance(XmlWriter& xml, const RoomEntrance& entrance)
+{
+    xml.writeTag("entrance");
+    xml.writeTagAttribute("name", entrance.name);
+    xml.writeTagAttributeUpoint(entrance.position);
+    xml.writeTagAttributeEnum("orientation", entrance.orientation, roomEntranceOrientationEnumMap);
+    xml.writeCloseTag();
+}
+
 static void readEntityGroup(XmlReader& xml, const XmlTag* tag, NamedList<EntityGroup>& entityGroups)
 {
     assert(tag->name == "entity-group");
@@ -82,6 +110,9 @@ static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* ta
         if (childTag->name == "map") {
             roomInput->map = MetaTiles::readMetaTileGrid(xml, childTag.get());
         }
+        else if (childTag->name == "entrance") {
+            readRoomEntrance(childTag.get(), roomInput->entrances);
+        }
         else if (childTag->name == "entity-group") {
             readEntityGroup(xml, childTag.get(), roomInput->entityGroups);
         }
@@ -104,6 +135,9 @@ static void writeRoomInput(XmlWriter& xml, const RoomInput& input)
 
     MetaTiles::writeMetaTileGrid(xml, "map", input.map);
 
+    for (auto& en : input.entrances) {
+        writeRoomEntrance(xml, en);
+    }
     for (auto& eg : input.entityGroups) {
         writeEntityGroup(xml, eg);
     }
