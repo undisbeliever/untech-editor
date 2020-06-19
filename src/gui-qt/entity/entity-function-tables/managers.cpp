@@ -15,6 +15,12 @@
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Entity::EntityFunctionTables;
 
+const QStringList EntityFunctionTablesManager::ENTITY_TYPE_STRINGS = {
+    QStringLiteral("Entity"),
+    QStringLiteral("Projectile"),
+    QStringLiteral("Player"),
+};
+
 const QStringList EntityFunctionTablesManager::PARAMETER_TYPE_STRINGS = {
     QStringLiteral("Unused"),
     QStringLiteral("Word"),
@@ -27,6 +33,7 @@ EntityFunctionTablesManager::EntityFunctionTablesManager(QObject* parent)
     setItemsMovable(true);
 
     addProperty(tr("Name"), NAME, PropertyType::IDSTRING);
+    addProperty(tr("Entity Type"), ENTITY_TYPE, PropertyType::COMBO, ENTITY_TYPE_STRINGS, qVariantRange(ENTITY_TYPE_STRINGS.size()));
     addProperty(tr("Entity ROM Struct"), ENTITY_STRUCT, PropertyType::STRING_COMBO);
     addProperty(tr("FrameSet Export Order"), EXPORT_ORDER, PropertyType::STRING_COMBO);
     addProperty(tr("Parameter Type"), PARAMETER_TYPE, PropertyType::COMBO, PARAMETER_TYPE_STRINGS, qVariantRange(PARAMETER_TYPE_STRINGS.size()));
@@ -63,6 +70,7 @@ void EntityFunctionTablesManager::updateParameters(int, int id, QVariant& param1
         break;
 
     case PropertyId::NAME:
+    case PropertyId::ENTITY_TYPE:
     case PropertyId::PARAMETER_TYPE:
     case PropertyId::COMMENT:
         break;
@@ -84,6 +92,9 @@ QVariant EntityFunctionTablesManager::data(int index, int id) const
     switch (static_cast<PropertyId>(id)) {
     case PropertyId::NAME:
         return QString::fromStdString(ft.name);
+
+    case PropertyId::ENTITY_TYPE:
+        return int(ft.entityType);
 
     case PropertyId::ENTITY_STRUCT:
         return QString::fromStdString(ft.entityStruct);
@@ -114,6 +125,9 @@ bool EntityFunctionTablesManager::setData(int index, int id, const QVariant& val
     switch (static_cast<PropertyId>(id)) {
     case PropertyId::NAME:
         return ftList->edit_setName(index, value.toString().toStdString());
+
+    case PropertyId::ENTITY_TYPE:
+        return ftList->edit_setEntityType(index, static_cast<EN::EntityType>(value.toInt()));
 
     case PropertyId::ENTITY_STRUCT:
         return ftList->edit_setEntityStruct(index, value.toString().toStdString());

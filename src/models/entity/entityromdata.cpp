@@ -15,7 +15,7 @@
 namespace UnTech {
 namespace Entity {
 
-const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 5;
+const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 6;
 
 #define BASE_ROM_STRUCT "BaseEntityRomStruct"
 #define ENTITY_ROM_STRUCT_NAMESPACE "Project.EntityRomStructs"
@@ -27,11 +27,29 @@ const std::unordered_set<idstring> INVALID_NAMES{
     idstring{ "initialProjectileId" },
     idstring{ "initialListId" },
     idstring{ "frameSetId" },
+    idstring{ "Players" },
+    idstring{ "Projectiles" },
     idstring{ "size" },
     idstring{ "count" },
     idstring{ "__STRUCT__" },
     baseRomStruct,
 };
+
+static const char* entityTypeString(const EntityType entityType)
+{
+    switch (entityType) {
+    case EntityType::ENTITY:
+        return "Entity";
+
+    case EntityType::PROJECTILE:
+        return "Projectile";
+
+    case EntityType::PLAYER:
+        return "Player";
+    }
+
+    return "";
+}
 
 static unsigned fieldSize(DataType type)
 {
@@ -279,7 +297,12 @@ bool EntityRomEntry::validate(const EntityType entityType, const Project::Projec
 
     auto fieldsIt = ftMap.find(functionTable);
     if (fieldsIt != ftMap.end()) {
+        const auto& ft = *fieldsIt->second.first;
         const auto& ftFields = *fieldsIt->second.second;
+
+        if (ft.entityType != entityType) {
+            addError("Function Table is the wrong type (expected ", entityTypeString(entityType), " but ", ft.name, " is a ", entityTypeString(ft.entityType), ")");
+        }
 
         for (auto& field : ftFields) {
             auto fIt = fields.find(field.name);
@@ -591,12 +614,28 @@ static void writeIncFile_RomStructs(std::ostream& out, const NamedList<EntityRom
     out << "\n";
 }
 
+static const char* prefixForEntityType(const EntityType entityType)
+{
+    switch (entityType) {
+    case EntityType::ENTITY:
+        return "Entities.";
+
+    case EntityType::PROJECTILE:
+        return "Entities.Projectiles.";
+
+    case EntityType::PLAYER:
+        return "Entities.Players.";
+    }
+
+    abort();
+}
+
 static void writeIncFile_FunctionTableDefines(std::ostream& out, const NamedList<EntityFunctionTable>& functionTables)
 {
     for (const auto& ft : functionTables) {
         const idstring& structName = ft.entityStruct.isValid() ? ft.entityStruct : baseRomStruct;
-        out << "define Entities." << ft.name << ".RomStruct = " ENTITY_ROM_STRUCT_NAMESPACE "." << structName
-            << "\ndefine Entities." << ft.name << ".ExportOrder = MSEO." << ft.exportOrder << '\n';
+        out << "define " << prefixForEntityType(ft.entityType) << ft.name << ".RomStruct = " ENTITY_ROM_STRUCT_NAMESPACE "." << structName
+            << "\ndefine " << prefixForEntityType(ft.entityType) << ft.name << ".ExportOrder = MSEO." << ft.exportOrder << '\n';
     }
 
     out << '\n';
@@ -616,10 +655,10 @@ static void writeIncFile_EntryIds(std::ostream& out,
            "\n";
 }
 
-static void writeIncFile_FunctionTableData(std::ostream& out, const NamedList<EntityRomEntry>& entries)
+static void writeIncFile_FunctionTableData(std::ostream& out, const EntityType& entityType, const NamedList<EntityRomEntry>& entries)
 {
     for (auto& entry : entries) {
-        out << "\tdw\tEntities." << entry.functionTable << ".FunctionTable\n";
+        out << "\tdw\t" << prefixForEntityType(entityType) << entry.functionTable << ".FunctionTable\n";
     }
 }
 
@@ -754,9 +793,9 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
 
     functionTableData << "code()\n"
                          "Project.EntityFunctionTables:\n";
-    writeIncFile_FunctionTableData(functionTableData, data.entities);
-    writeIncFile_FunctionTableData(functionTableData, data.projectiles);
-    writeIncFile_FunctionTableData(functionTableData, data.players);
+    writeIncFile_FunctionTableData(functionTableData, EntityType::ENTITY, data.entities);
+    writeIncFile_FunctionTableData(functionTableData, EntityType::PROJECTILE, data.projectiles);
+    writeIncFile_FunctionTableData(functionTableData, EntityType::PLAYER, data.players);
     functionTableData << "constant Project.EntityFunctionTables.size = pc() - Project.EntityFunctionTables"
                          "\n\n";
 

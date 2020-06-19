@@ -19,13 +19,14 @@ class EntityFunctionTablesManager : public Accessor::ListAccessorTableManager {
 
     enum PropertyId {
         NAME,
+        ENTITY_TYPE,
         ENTITY_STRUCT,
         EXPORT_ORDER,
         PARAMETER_TYPE,
         COMMENT
     };
-    constexpr static int N_PROPERTIES = 4;
 
+    const static QStringList ENTITY_TYPE_STRINGS;
     const static QStringList PARAMETER_TYPE_STRINGS;
 
 public:

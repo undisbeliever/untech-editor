@@ -33,6 +33,7 @@ public:
     virtual QString typeName() const final;
     virtual QString typeNamePlural() const final;
 
+    bool edit_setEntityType(index_type index, const EN::EntityType entityType);
     bool edit_setEntityStruct(index_type index, const idstring& entityStruct);
     bool edit_setExportOrder(index_type index, const idstring& exportOrder);
     bool edit_setParameterType(index_type index, EN::ParameterType parameterType);

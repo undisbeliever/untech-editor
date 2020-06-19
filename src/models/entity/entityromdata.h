@@ -93,6 +93,7 @@ using StructFieldMap = std::unordered_map<idstring, FieldList>;
 
 struct EntityFunctionTable {
     idstring name;
+    EntityType entityType;
     idstring entityStruct;
     idstring exportOrder;
     ParameterType parameterType;
@@ -106,6 +107,7 @@ struct EntityFunctionTable {
     bool operator==(const EntityFunctionTable& o) const
     {
         return name == o.name
+               && entityType == o.entityType
                && entityStruct == o.entityStruct
                && exportOrder == o.exportOrder
                && parameterType == o.parameterType

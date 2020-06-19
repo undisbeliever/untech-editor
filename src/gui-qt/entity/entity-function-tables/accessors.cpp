@@ -42,7 +42,15 @@ QString EntityFunctionTableList::typeNamePlural() const
     return tr("Entity Function Tables");
 }
 
-bool EntityFunctionTableList::edit_setExportOrder(EntityFunctionTableList::index_type index, const idstring& exportOrder)
+bool EntityFunctionTableList::edit_setEntityType(index_type index, const EN::EntityType entityType)
+{
+    return UndoHelper(this).editField(
+        index, entityType,
+        tr("Edit Entity Type"),
+        [](DataT& s) -> EN::EntityType& { return s.entityType; });
+}
+
+bool EntityFunctionTableList::edit_setExportOrder(index_type index, const idstring& exportOrder)
 {
     return UndoHelper(this).editField(
         index, exportOrder,
@@ -50,7 +58,7 @@ bool EntityFunctionTableList::edit_setExportOrder(EntityFunctionTableList::index
         [](DataT& s) -> idstring& { return s.exportOrder; });
 }
 
-bool EntityFunctionTableList::edit_setParameterType(EntityFunctionTableList::index_type index, EN::ParameterType parameterType)
+bool EntityFunctionTableList::edit_setParameterType(index_type index, EN::ParameterType parameterType)
 {
     return UndoHelper(this).editField(
         index, parameterType,

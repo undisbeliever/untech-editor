@@ -10,6 +10,12 @@
 namespace UnTech {
 namespace Entity {
 
+static const EnumMap<EntityType> entityTypeMap = {
+    { "entity", EntityType::ENTITY },
+    { "projectile", EntityType::PROJECTILE },
+    { "player", EntityType::PLAYER },
+};
+
 static const EnumMap<DataType> dataTypeMap = {
     { "uint8", DataType::UINT8 },
     { "uint16", DataType::UINT16 },
@@ -65,6 +71,9 @@ static void readEntityFunctionTable(const XmlTag* tag, NamedList<EntityFunctionT
     EntityFunctionTable& ft = functionTables.back();
 
     ft.name = tag->getAttributeOptionalId("name");
+    if (tag->hasAttribute("type")) {
+        ft.entityType = tag->getAttributeEnum("type", entityTypeMap);
+    }
     ft.entityStruct = tag->getAttributeOptionalId("struct");
     ft.exportOrder = tag->getAttributeOptionalId("export-order");
     ft.parameterType = tag->getAttributeEnum("parameter-type", parameterTypeMap);
@@ -226,6 +235,7 @@ void writeEntityRomData(XmlWriter& xml, const EntityRomData& entityRomData)
     for (const auto& ft : entityRomData.functionTables) {
         xml.writeTag("function-table");
         xml.writeTagAttributeOptional("name", ft.name);
+        xml.writeTagAttributeEnum("type", ft.entityType, entityTypeMap);
         xml.writeTagAttributeOptional("struct", ft.entityStruct);
         xml.writeTagAttributeOptional("export-order", ft.exportOrder);
         xml.writeTagAttributeEnum("parameter-type", ft.parameterType, parameterTypeMap);

@@ -118,7 +118,9 @@ void EditorWidget::updateFunctionTableComboList()
 
         _ui->functionTableCombo->addItem(QString());
         for (const auto& ft : projectFile->entityRomData.functionTables) {
-            _ui->functionTableCombo->addItem(QString::fromStdString(ft.name));
+            if (ft.entityType == _item->entriesList()->entityType()) {
+                _ui->functionTableCombo->addItem(QString::fromStdString(ft.name));
+            }
         }
 
         if (auto* e = _item->entriesList()->selectedItem()) {
