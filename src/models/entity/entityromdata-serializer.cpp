@@ -71,7 +71,8 @@ static void readEntityFunctionTable(const XmlTag* tag, NamedList<EntityFunctionT
     ft.comment = tag->getAttributeOrEmpty("comment");
 }
 
-static void readEntityRomEntry(XmlReader& xml, const XmlTag* tag, NamedList<EntityRomEntry>& entries)
+static void readEntityRomEntry(XmlReader& xml, const XmlTag* tag, const EntityType entityType,
+                               NamedList<EntityRomEntry>& entries)
 {
     assert(tag->name == "entry");
 
@@ -82,7 +83,9 @@ static void readEntityRomEntry(XmlReader& xml, const XmlTag* tag, NamedList<Enti
     entry.functionTable = tag->getAttributeOptionalId("function-table");
     entry.comment = tag->getAttributeOrEmpty("comment");
     entry.initialProjectileId = tag->getAttributeOptionalId("projectileid");
-    entry.initialListId = tag->getAttributeOptionalId("listid");
+    if (entityType != EntityType::PLAYER) {
+        entry.initialListId = tag->getAttributeOptionalId("listid");
+    }
     entry.frameSetId = tag->getAttributeOptionalId("frameset");
     entry.displayFrame = tag->getAttributeOptionalId("frame");
     entry.defaultPalette = tag->getAttributeUnsigned("palette");
@@ -105,11 +108,12 @@ static void readEntityRomEntry(XmlReader& xml, const XmlTag* tag, NamedList<Enti
     }
 }
 
-static void readEntityRomEntries(XmlReader& xml, NamedList<EntityRomEntry>& entries)
+static void readEntityRomEntries(XmlReader& xml, const EntityType entityType,
+                                 NamedList<EntityRomEntry>& entries)
 {
     while (auto childTag = xml.parseTag()) {
         if (childTag->name == "entry") {
-            readEntityRomEntry(xml, childTag.get(), entries);
+            readEntityRomEntry(xml, childTag.get(), entityType, entries);
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -134,10 +138,13 @@ void readEntityRomData(XmlReader& xml, const XmlTag* tag, EntityRomData& entityR
             readEntityFunctionTable(childTag.get(), entityRomData.functionTables);
         }
         else if (childTag->name == "entities") {
-            readEntityRomEntries(xml, entityRomData.entities);
+            readEntityRomEntries(xml, EntityType::ENTITY, entityRomData.entities);
         }
         else if (childTag->name == "projectiles") {
-            readEntityRomEntries(xml, entityRomData.projectiles);
+            readEntityRomEntries(xml, EntityType::PROJECTILE, entityRomData.projectiles);
+        }
+        else if (childTag->name == "players") {
+            readEntityRomEntries(xml, EntityType::PLAYER, entityRomData.players);
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -147,7 +154,8 @@ void readEntityRomData(XmlReader& xml, const XmlTag* tag, EntityRomData& entityR
     }
 }
 
-void writeEntityRomEntries(XmlWriter& xml, const std::string& tagName, const NamedList<EntityRomEntry>& entries)
+void writeEntityRomEntries(XmlWriter& xml, const std::string& tagName, const EntityType entityType,
+                           const NamedList<EntityRomEntry>& entries)
 {
     if (entries.empty()) {
         return;
@@ -162,7 +170,9 @@ void writeEntityRomEntries(XmlWriter& xml, const std::string& tagName, const Nam
         xml.writeTagAttributeOptional("function-table", entry.functionTable);
         xml.writeTagAttributeOptional("comment", entry.comment);
         xml.writeTagAttributeOptional("projectileid", entry.initialProjectileId);
-        xml.writeTagAttributeOptional("listid", entry.initialListId);
+        if (entityType != EntityType::PLAYER) {
+            xml.writeTagAttributeOptional("listid", entry.initialListId);
+        }
         xml.writeTagAttributeOptional("frameset", entry.frameSetId);
         xml.writeTagAttributeOptional("frame", entry.displayFrame);
         xml.writeTagAttribute("palette", entry.defaultPalette);
@@ -223,8 +233,9 @@ void writeEntityRomData(XmlWriter& xml, const EntityRomData& entityRomData)
         xml.writeCloseTag();
     }
 
-    writeEntityRomEntries(xml, "entities", entityRomData.entities);
-    writeEntityRomEntries(xml, "projectiles", entityRomData.projectiles);
+    writeEntityRomEntries(xml, "entities", EntityType::ENTITY, entityRomData.entities);
+    writeEntityRomEntries(xml, "projectiles", EntityType::PROJECTILE, entityRomData.projectiles);
+    writeEntityRomEntries(xml, "players", EntityType::PLAYER, entityRomData.players);
 
     xml.writeCloseTag();
 }

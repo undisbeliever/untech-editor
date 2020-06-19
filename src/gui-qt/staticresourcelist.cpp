@@ -16,14 +16,17 @@
 
 using namespace UnTech::GuiQt;
 
+namespace EN = UnTech::Entity;
+
 StaticResourceList::StaticResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::STATIC)
     , _projectSettings(new ProjectSettings::ResourceItem(this, PROJECT_SETTINGS))
     , _actionPoints(new MetaSprite::ActionPoints::ResourceItem(this, ACTION_POINTS))
     , _entityRomStructs(new Entity::EntityRomStructs::ResourceItem(this, ENTITY_ROM_STRUCTS))
     , _entityFunctionTables(new Entity::EntityFunctionTables::ResourceItem(this, ENTITY_FUNCTION_TABLES))
-    , _entities(new Entity::EntityRomEntries::ResourceItem(this, ENTITIES, true))
-    , _projectiles(new Entity::EntityRomEntries::ResourceItem(this, PROJECTILES, false))
+    , _entities(new Entity::EntityRomEntries::ResourceItem(this, ENTITIES, EN::EntityType::ENTITY))
+    , _projectiles(new Entity::EntityRomEntries::ResourceItem(this, PROJECTILES, EN::EntityType::PROJECTILE))
+    , _players(new Entity::EntityRomEntries::ResourceItem(this, PLAYERS, EN::EntityType::PLAYER))
     , _sceneSettings(new Resources::SceneSettings::ResourceItem(this, SCENE_SETTINGS))
     , _scenes(new Resources::Scenes::ResourceItem(this, SCENES))
 {
@@ -71,6 +74,9 @@ AbstractResourceItem* StaticResourceList::buildResourceItem(size_t index)
 
     case PROJECTILES:
         return _projectiles;
+
+    case PLAYERS:
+        return _players;
 
     case SCENE_SETTINGS:
         return _sceneSettings;

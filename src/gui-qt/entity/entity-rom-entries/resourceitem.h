@@ -20,6 +20,8 @@ namespace Entity {
 namespace EntityRomEntries {
 class EntityRomEntriesList;
 
+namespace EN = UnTech::Entity;
+
 struct EntityPixmap {
     // The pixmaps have a minimum size to ensure they are centered within the
     // `EntitiesWithIconsModel` view.
@@ -40,7 +42,7 @@ class ResourceItem : public AbstractInternalResourceItem {
     using StructFieldMap = UnTech::Entity::StructFieldMap;
 
 public:
-    ResourceItem(StaticResourceList* list, unsigned index, bool entityList);
+    ResourceItem(StaticResourceList* list, unsigned index, EN::EntityType entityType);
     ~ResourceItem() = default;
 
     StaticResourceList* resourceList() const { return static_cast<StaticResourceList*>(_list); }

@@ -26,16 +26,16 @@ class EntityRomEntriesList : public Accessor::NamedListAccessor<EN::EntityRomEnt
     using UndoHelper = Accessor::ListAndSelectionUndoHelper<EntityRomEntriesList>;
 
 private:
-    const bool _entityList;
+    const EN::EntityType _entityType;
 
 public:
-    EntityRomEntriesList(ResourceItem* resourceItem, bool entityList);
+    EntityRomEntriesList(ResourceItem* resourceItem, const EN::EntityType entityType);
     ~EntityRomEntriesList() = default;
 
     virtual QString typeName() const final;
     virtual QString typeNamePlural() const final;
 
-    bool isEntityList() const { return _entityList; }
+    EN::EntityType entityType() const { return _entityType; }
 
     void editSelected_setFunctionTable(const idstring& functionTable);
     void editSelected_setComment(const std::string& comment);

@@ -18,12 +18,18 @@ const NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, Resou
     Q_ASSERT(erel);
     const auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
-    if (erel->isEntityList()) {
+
+    switch (erel->entityType()) {
+    case EN::EntityType::ENTITY:
         return &projectFile->entityRomData.entities;
-    }
-    else {
+
+    case EN::EntityType::PROJECTILE:
         return &projectFile->entityRomData.projectiles;
+
+    case EN::EntityType::PLAYER:
+        return &projectFile->entityRomData.players;
     }
+    return nullptr;
 }
 
 template <>
@@ -33,18 +39,24 @@ NamedList<EN::EntityRomEntry>* NamedListAccessor<EN::EntityRomEntry, ResourceIte
     Q_ASSERT(erel);
     auto* projectFile = resourceItem()->project()->projectFile();
     Q_ASSERT(projectFile);
-    if (erel->isEntityList()) {
+
+    switch (erel->entityType()) {
+    case EN::EntityType::ENTITY:
         return &projectFile->entityRomData.entities;
-    }
-    else {
+
+    case EN::EntityType::PROJECTILE:
         return &projectFile->entityRomData.projectiles;
+
+    case EN::EntityType::PLAYER:
+        return &projectFile->entityRomData.players;
     }
+    return nullptr;
 }
 
 EntityRomEntriesList::EntityRomEntriesList(ResourceItem* resourceItem,
-                                           bool entityList)
+                                           const EN::EntityType entityType)
     : NamedListAccessor(resourceItem, EN::MAX_N_ENTITY_ENTRIES)
-    , _entityList(entityList)
+    , _entityType(entityType)
 {
 }
 

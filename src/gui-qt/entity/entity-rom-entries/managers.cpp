@@ -77,7 +77,11 @@ void EntityRomEntryManager::rebuildStructFields()
 {
     _structFields.clear();
 
+    bool showInitialListId = true;
+
     if (_item) {
+        showInitialListId = _item->entriesList()->entityType() != EN::EntityType::PLAYER;
+
         if (auto* e = _item->entriesList()->selectedItem()) {
             const auto& entityRomData = _item->project()->projectFile()->entityRomData;
             if (auto ft = entityRomData.functionTables.find(e->functionTable)) {
@@ -92,7 +96,9 @@ void EntityRomEntryManager::rebuildStructFields()
     properties.reserve(_structFields.size() + FIXED_FIELDS_SIZE);
 
     properties.append(Property(QStringLiteral("initialProjectileId"), INITIAL_PROJECTILE_ID, PropertyType::STRING_COMBO));
-    properties.append(Property(QStringLiteral("initialListId"), INTITAL_LIST_ID, PropertyType::STRING_COMBO));
+    if (showInitialListId) {
+        properties.append(Property(QStringLiteral("initialListId"), INTITAL_LIST_ID, PropertyType::STRING_COMBO));
+    }
     properties.append(Property(QStringLiteral("frameSetId"), FRAME_SET_ID, PropertyType::STRING_COMBO));
     properties.append(Property(QStringLiteral("defaultPalette"), DEFAULT_PALETTE, PropertyType::UNSIGNED, 0, 255));
     properties.append(Property(QStringLiteral("displayFrame"), DISPLAY_FRAME, PropertyType::STRING_COMBO));
@@ -223,7 +229,7 @@ QVariant EntityRomEntryManager::data(int id) const
 bool EntityRomEntryManager::setData(int id, const QVariant& value)
 {
     if (_item == nullptr
-        || id < 0 || id >= propertiesList().size()) {
+        || id < 0) {
 
         return false;
     }

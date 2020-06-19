@@ -23,6 +23,12 @@ namespace Entity {
 
 constexpr unsigned MAX_N_ENTITY_ENTRIES = 256;
 
+enum class EntityType {
+    ENTITY,
+    PROJECTILE,
+    PLAYER,
+};
+
 enum class DataType {
     UINT8,
     UINT16,
@@ -134,7 +140,7 @@ struct EntityRomEntry {
 
     std::unordered_map<idstring, std::string> fields;
 
-    bool validate(const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err) const;
+    bool validate(const EntityType entityType, const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err) const;
 
     bool operator==(const EntityRomEntry& o) const
     {
@@ -157,6 +163,7 @@ struct EntityRomData {
 
     NamedList<EntityRomEntry> entities;
     NamedList<EntityRomEntry> projectiles;
+    NamedList<EntityRomEntry> players;
 
     bool validateListIds(ErrorList& err) const;
 
@@ -166,7 +173,8 @@ struct EntityRomData {
                && structs == o.structs
                && functionTables == o.functionTables
                && entities == o.entities
-               && projectiles == projectiles;
+               && projectiles == o.projectiles
+               && players == o.players;
     }
 };
 

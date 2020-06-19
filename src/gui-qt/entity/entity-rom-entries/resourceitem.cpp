@@ -19,23 +19,30 @@ using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::Entity::EntityRomEntries;
 
 ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
-                           bool entityList)
+                           EN::EntityType entityType)
     : AbstractInternalResourceItem(list, index)
-    , _entriesList(new EntityRomEntriesList(this, entityList))
+    , _entriesList(new EntityRomEntriesList(this, entityType))
 {
-    if (entityList) {
+    switch (entityType) {
+    case EN::EntityType::ENTITY:
         setName(tr("Entities"));
-    }
-    else {
+        break;
+
+    case EN::EntityType::PROJECTILE:
         setName(tr("Projectiles"));
+        break;
+
+    case EN::EntityType::PLAYER:
+        setName(tr("Players"));
+        break;
     }
+
     setRemovable(false);
 
-    if (entityList) {
+    if (entityType == EN::EntityType::PROJECTILE) {
         setDependencies({
             { ResourceTypeIndex::STATIC, resourceList()->projectSettings()->name() },
             { ResourceTypeIndex::STATIC, resourceList()->entityFunctionTables()->name() },
-            { ResourceTypeIndex::STATIC, tr("Projectiles") },
             { ResourceTypeIndex::MS_FRAMESET, QString() },
         });
     }
@@ -43,6 +50,7 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
         setDependencies({
             { ResourceTypeIndex::STATIC, resourceList()->projectSettings()->name() },
             { ResourceTypeIndex::STATIC, resourceList()->entityFunctionTables()->name() },
+            { ResourceTypeIndex::STATIC, tr("Projectiles") },
             { ResourceTypeIndex::MS_FRAMESET, QString() },
         });
     }
@@ -81,7 +89,7 @@ bool ResourceItem::compileResource(UnTech::ErrorList& err)
     bool valid = true;
 
     for (const auto& e : *entries) {
-        valid &= e.validate(*projectFile, ftFieldMap, err);
+        valid &= e.validate(_entriesList->entityType(), *projectFile, ftFieldMap, err);
     }
 
     return valid;

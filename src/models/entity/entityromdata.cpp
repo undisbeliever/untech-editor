@@ -15,7 +15,7 @@
 namespace UnTech {
 namespace Entity {
 
-const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 4;
+const int CompiledEntityRomData::ENTITY_FORMAT_VERSION = 5;
 
 #define BASE_ROM_STRUCT "BaseEntityRomStruct"
 #define ENTITY_ROM_STRUCT_NAMESPACE "Project.EntityRomStructs"
@@ -230,7 +230,7 @@ bool EntityFunctionTable::validate(const Project::ProjectFile& project, ErrorLis
     return valid;
 }
 
-bool EntityRomEntry::validate(const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err) const
+bool EntityRomEntry::validate(const EntityType entityType, const Project::ProjectFile& project, const FunctionTableMap& ftMap, ErrorList& err) const
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
@@ -247,8 +247,10 @@ bool EntityRomEntry::validate(const Project::ProjectFile& project, const Functio
     if (functionTable.isValid() == false) {
         addError("Missing functionTable");
     }
-    if (initialListId.isValid() == false) {
-        addError("Missing initialListId");
+    if (entityType != EntityType::PLAYER) {
+        if (initialListId.isValid() == false) {
+            addError("Missing initialListId");
+        }
     }
     if (frameSetId.isValid() == false) {
         addError("Missing frameSetId");
@@ -622,7 +624,8 @@ static void writeIncFile_FunctionTableData(std::ostream& out, const NamedList<En
 }
 
 // assumes entries are valid
-static void processEntry(std::vector<uint8_t>& romData, const EntityRomEntry& entry,
+static void processEntry(const EntityType entityType,
+                         std::vector<uint8_t>& romData, const EntityRomEntry& entry,
                          const FunctionTableMap& ftMap, const Project::ProjectFile& project)
 {
     auto writeValue = [&](const int64_t value, const unsigned length) {
@@ -644,7 +647,8 @@ static void processEntry(std::vector<uint8_t>& romData, const EntityRomEntry& en
                           - frameSets.begin();
 
     unsigned initialProjectileId = std::min<unsigned>(0xff, projectiles.indexOf(entry.initialProjectileId));
-    unsigned initialListId = std::find(listIds.begin(), listIds.end(), entry.initialListId) - listIds.begin();
+    unsigned initialListId = entityType != EntityType::PLAYER ? std::find(listIds.begin(), listIds.end(), entry.initialListId) - listIds.begin()
+                                                              : 0xff;
 
     assert(entry.defaultPalette <= UINT8_MAX);
     assert(initialProjectileId <= UINT8_MAX);
@@ -689,14 +693,15 @@ static void processEntry(std::vector<uint8_t>& romData, const EntityRomEntry& en
 }
 
 // assumes entries are valid
-static void processRomData(std::vector<uint8_t>& indexes, std::vector<uint8_t>& romData,
+static void processRomData(const EntityType entityType,
+                           std::vector<uint8_t>& indexes, std::vector<uint8_t>& romData,
                            const NamedList<EntityRomEntry>& entries,
                            const FunctionTableMap& ftMap, const Project::ProjectFile& project)
 {
     for (auto& entry : entries) {
         unsigned pos = romData.size();
 
-        processEntry(romData, entry, ftMap, project);
+        processEntry(entityType, romData, entry, ftMap, project);
 
         indexes.push_back(pos & 0xff);
         indexes.push_back((pos >> 8) & 0xff);
@@ -726,10 +731,10 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     const auto ftMap = generateFunctionTableFieldMap(data.functionTables, structFieldMap, project, err);
 
     for (const auto& e : data.entities) {
-        e.validate(project, ftMap, err);
+        e.validate(EntityType::ENTITY, project, ftMap, err);
     }
     for (const auto& e : data.projectiles) {
-        e.validate(project, ftMap, err);
+        e.validate(EntityType::PROJECTILE, project, ftMap, err);
     }
 
     ret->valid = oldErrorCount == err.errorCount();
@@ -743,6 +748,7 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     writeIncFile_ListIds(defines, data.listIds);
     writeIncFile_EntryIds(defines, "Project.EntityIds", data.entities);
     writeIncFile_EntryIds(defines, "Project.ProjectileIds", data.projectiles);
+    writeIncFile_EntryIds(defines, "Project.PlayerIds", data.players);
     writeIncFile_RomStructs(defines, data.structs);
     writeIncFile_FunctionTableDefines(defines, data.functionTables);
 
@@ -750,14 +756,16 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
                          "Project.EntityFunctionTables:\n";
     writeIncFile_FunctionTableData(functionTableData, data.entities);
     writeIncFile_FunctionTableData(functionTableData, data.projectiles);
+    writeIncFile_FunctionTableData(functionTableData, data.players);
     functionTableData << "constant Project.EntityFunctionTables.size = pc() - Project.EntityFunctionTables"
                          "\n\n";
 
-    const auto indexSize = (data.entities.size() + data.projectiles.size()) * 2;
+    const auto indexSize = (data.entities.size() + data.projectiles.size() + data.players.size()) * 2;
     ret->romDataIndexes.reserve(indexSize);
 
-    processRomData(ret->romDataIndexes, ret->romData, data.entities, ftMap, project);
-    processRomData(ret->romDataIndexes, ret->romData, data.projectiles, ftMap, project);
+    processRomData(EntityType::ENTITY, ret->romDataIndexes, ret->romData, data.entities, ftMap, project);
+    processRomData(EntityType::PROJECTILE, ret->romDataIndexes, ret->romData, data.projectiles, ftMap, project);
+    processRomData(EntityType::PLAYER, ret->romDataIndexes, ret->romData, data.players, ftMap, project);
 
     assert(ret->romDataIndexes.size() == indexSize);
 

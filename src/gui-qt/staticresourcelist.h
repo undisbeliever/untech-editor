@@ -52,10 +52,11 @@ class StaticResourceList : public AbstractResourceList {
         ENTITY_FUNCTION_TABLES,
         ENTITIES,
         PROJECTILES,
+        PLAYERS,
         SCENE_SETTINGS,
         SCENES,
     };
-    constexpr static size_t N_ITEMS = 8;
+    constexpr static size_t N_ITEMS = 9;
 
 public:
     StaticResourceList(Project* project);
@@ -72,6 +73,7 @@ public:
     auto* entityFunctionTables() const { return _entityFunctionTables; }
     auto* entities() const { return _entities; }
     auto* projectiles() const { return _projectiles; }
+    auto* players() const { return _players; }
     auto* sceneSettings() const { return _sceneSettings; }
     auto* scenes() const { return _scenes; }
 
@@ -89,6 +91,7 @@ private:
     Entity::EntityFunctionTables::ResourceItem* const _entityFunctionTables;
     Entity::EntityRomEntries::ResourceItem* const _entities;
     Entity::EntityRomEntries::ResourceItem* const _projectiles;
+    Entity::EntityRomEntries::ResourceItem* const _players;
     Resources::SceneSettings::ResourceItem* const _sceneSettings;
     Resources::Scenes::ResourceItem* const _scenes;
 };
