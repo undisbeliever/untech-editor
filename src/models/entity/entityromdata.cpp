@@ -482,9 +482,12 @@ StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, Erro
     return fieldMap;
 }
 
-FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunctionTable>& functionTables,
-                                               const StructFieldMap& structFieldMap,
-                                               const Project::ProjectFile& project, ErrorList& err)
+// WARNING: output contains pointers.
+// Output is only valid (and safe) so long as `functionTables` and `structFieldMap remain unchanged
+// This function is static (local-only) because of the lifetime restrictions.
+static FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunctionTable>& functionTables,
+                                                      const StructFieldMap& structFieldMap,
+                                                      const Project::ProjectFile& project, ErrorList& err)
 {
     auto addError = [&](const EntityFunctionTable& ft, const auto&... msg) {
         err.addError(std::make_unique<EntityFunctionTableError>(ft, msg...));
@@ -816,6 +819,32 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     }
 
     return ret;
+}
+
+bool validateEntityFunctionTables(const NamedList<EntityFunctionTable>& functionTables,
+                                  const StructFieldMap& structFieldMap, const Project::ProjectFile& project,
+                                  ErrorList& err)
+{
+    const auto errCount = err.errorCount();
+
+    generateFunctionTableFieldMap(functionTables, structFieldMap, project, err);
+
+    return errCount == err.errorCount();
+}
+
+bool validateEntityRomEntries(const EntityType entityType, const NamedList<EntityRomEntry>& entries,
+                              const NamedList<EntityFunctionTable>& functionTables, const StructFieldMap& structFieldMap,
+                              const Project::ProjectFile& project, ErrorList& err)
+{
+    const auto errCount = err.errorCount();
+
+    const auto ftMap = generateFunctionTableFieldMap(functionTables, structFieldMap, project, err);
+
+    for (const EntityRomEntry& e : entries) {
+        e.validate(entityType, project, ftMap, err);
+    }
+
+    return errCount == err.errorCount();
 }
 
 }

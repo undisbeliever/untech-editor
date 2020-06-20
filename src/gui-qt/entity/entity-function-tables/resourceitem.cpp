@@ -33,15 +33,10 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
 
 bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
-    using namespace UnTech::Entity;
-
     const auto* projectFile = project()->projectFile();
     Q_ASSERT(projectFile);
 
-    const auto oldErrorCount = err.errorCount();
-
     const auto& structFieldMap = project()->staticResources()->entityRomStructs()->structFieldMap();
-    generateFunctionTableFieldMap(projectFile->entityRomData.functionTables, structFieldMap, *projectFile, err);
 
-    return oldErrorCount == err.errorCount();
+    return UnTech::Entity::validateEntityFunctionTables(projectFile->entityRomData.functionTables, structFieldMap, *projectFile, err);
 }

@@ -38,15 +38,13 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index)
 
 bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
-    using namespace UnTech::Entity;
-
     const auto* projectFile = project()->projectFile();
     Q_ASSERT(projectFile);
     const auto& entityRomData = projectFile->entityRomData;
 
-    auto oldErrorCount = err.errorCount();
+    const auto oldErrorCount = err.errorCount();
 
-    _structFieldMap = generateStructMap(entityRomData.structs, err);
+    _structFieldMap = UnTech::Entity::generateStructMap(entityRomData.structs, err);
 
     return err.errorCount() == oldErrorCount;
 }

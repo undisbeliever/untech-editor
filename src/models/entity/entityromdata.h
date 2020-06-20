@@ -114,18 +114,9 @@ struct EntityFunctionTable {
                && comment == o.comment;
     }
 };
+
 using FunctionTableMap = std::unordered_map<idstring,
                                             std::pair<const EntityFunctionTable*, const FieldList*>>;
-
-// Also validates the EntityRomDataStruct entries
-StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, ErrorList& err);
-
-// Also validates functionTables
-// WARNING: only valid for the lifetime of StructFieldMap
-FunctionTableMap generateFunctionTableFieldMap(const NamedList<EntityFunctionTable>& functionTables,
-                                               const StructFieldMap& structFieldMap,
-                                               const Project::ProjectFile& project,
-                                               ErrorList& err);
 
 struct EntityRomEntry {
     idstring name;
@@ -156,6 +147,17 @@ struct EntityRomEntry {
                && fields == o.fields;
     }
 };
+
+// Also validates the EntityRomDataStruct entries
+StructFieldMap generateStructMap(const NamedList<EntityRomStruct>& structs, ErrorList& err);
+
+bool validateEntityFunctionTables(const NamedList<EntityFunctionTable>& functionTables,
+                                  const StructFieldMap& structFieldMap,
+                                  const Project::ProjectFile& project, ErrorList& err);
+
+bool validateEntityRomEntries(const EntityType entityType, const NamedList<EntityRomEntry>& entries,
+                              const NamedList<EntityFunctionTable>& functionTables, const StructFieldMap& structFieldMap,
+                              const Project::ProjectFile& project, ErrorList& err);
 
 struct EntityRomData {
     std::vector<idstring> listIds;

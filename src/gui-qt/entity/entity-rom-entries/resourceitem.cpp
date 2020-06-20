@@ -80,24 +80,15 @@ bool ResourceItem::compileResource(UnTech::ErrorList& err)
         // Players and projectiles - only check entries, don't compile entity rom data.
         // EntityRomData will be compiled by the "Entities" ResourceItem after the player and projectiles are validated.
 
-        using namespace UnTech::Entity;
-
-        auto* entries = _entriesList->list();
+        const auto* entries = _entriesList->list();
         Q_ASSERT(entries);
 
         const auto* projectFile = project()->projectFile();
         Q_ASSERT(projectFile);
 
         const auto& structFieldMap = project()->staticResources()->entityRomStructs()->structFieldMap();
-        const auto ftFieldMap = generateFunctionTableFieldMap(projectFile->entityRomData.functionTables, structFieldMap, *projectFile, err);
 
-        bool valid = true;
-
-        for (const auto& e : *entries) {
-            valid &= e.validate(_entriesList->entityType(), *projectFile, ftFieldMap, err);
-        }
-
-        return valid;
+        return UnTech::Entity::validateEntityRomEntries(_entriesList->entityType(), *entries, projectFile->entityRomData.functionTables, structFieldMap, *projectFile, err);
     }
 }
 
