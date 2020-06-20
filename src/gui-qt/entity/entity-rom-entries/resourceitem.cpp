@@ -39,10 +39,13 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
 
     setRemovable(false);
 
-    if (entityType == EN::EntityType::PROJECTILE) {
+    if (entityType == EN::EntityType::ENTITY) {
+        // Adding "Projectiles" and "Players" prevents errors from players/projectiles appearing in the entities resource item.
         setDependencies({
             { ResourceTypeIndex::STATIC, resourceList()->projectSettings()->name() },
             { ResourceTypeIndex::STATIC, resourceList()->entityFunctionTables()->name() },
+            { ResourceTypeIndex::STATIC, tr("Projectiles") },
+            { ResourceTypeIndex::STATIC, tr("Players") },
             { ResourceTypeIndex::MS_FRAMESET, QString() },
         });
     }
@@ -50,7 +53,6 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
         setDependencies({
             { ResourceTypeIndex::STATIC, resourceList()->projectSettings()->name() },
             { ResourceTypeIndex::STATIC, resourceList()->entityFunctionTables()->name() },
-            { ResourceTypeIndex::STATIC, tr("Projectiles") },
             { ResourceTypeIndex::MS_FRAMESET, QString() },
         });
     }
@@ -70,29 +72,33 @@ ResourceItem::ResourceItem(StaticResourceList* list, unsigned index,
 
 bool ResourceItem::compileResource(UnTech::ErrorList& err)
 {
-    if (_entriesList) {
-        // EntityRomData is required by the Room Subsystem
+    if (_entriesList->entityType() == EN::EntityType::ENTITY) {
+        // EntityRomData is required by the Room Subsystem.
         return project()->projectData().compileEntityRomData(err);
     }
+    else {
+        // Players and projectiles - only check entries, don't compile entity rom data.
+        // EntityRomData will be compiled by the "Entities" ResourceItem after the player and projectiles are validated.
 
-    using namespace UnTech::Entity;
+        using namespace UnTech::Entity;
 
-    auto* entries = _entriesList->list();
-    Q_ASSERT(entries);
+        auto* entries = _entriesList->list();
+        Q_ASSERT(entries);
 
-    const auto* projectFile = project()->projectFile();
-    Q_ASSERT(projectFile);
+        const auto* projectFile = project()->projectFile();
+        Q_ASSERT(projectFile);
 
-    const auto& structFieldMap = project()->staticResources()->entityRomStructs()->structFieldMap();
-    const auto ftFieldMap = generateFunctionTableFieldMap(projectFile->entityRomData.functionTables, structFieldMap, *projectFile, err);
+        const auto& structFieldMap = project()->staticResources()->entityRomStructs()->structFieldMap();
+        const auto ftFieldMap = generateFunctionTableFieldMap(projectFile->entityRomData.functionTables, structFieldMap, *projectFile, err);
 
-    bool valid = true;
+        bool valid = true;
 
-    for (const auto& e : *entries) {
-        valid &= e.validate(_entriesList->entityType(), *projectFile, ftFieldMap, err);
+        for (const auto& e : *entries) {
+            valid &= e.validate(_entriesList->entityType(), *projectFile, ftFieldMap, err);
+        }
+
+        return valid;
     }
-
-    return valid;
 }
 
 void ResourceItem::updateEntityPixmaps()

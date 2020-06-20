@@ -71,7 +71,7 @@ private slots:
     void updateEntityPixmaps();
 
 private:
-    EntityRomEntriesList* _entriesList;
+    EntityRomEntriesList* const _entriesList;
 
     QVector<EntityPixmap> _entityPixmaps;
     std::unordered_map<idstring, unsigned> _entityNameMap;
