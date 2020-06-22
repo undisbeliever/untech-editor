@@ -104,6 +104,7 @@ public:
     bool edit_setName(index_type groupIndex, index_type entryIndex, const idstring& name);
     bool edit_setEntityId(index_type groupIndex, index_type entryIndex, const idstring& entityId);
     bool edit_setPosition(index_type groupIndex, index_type entryIndex, const point& position);
+    bool edit_setParameter(index_type groupIndex, index_type entryIndex, const std::string& parameter);
 
 private slots:
     void onSelectedIndexesChanged();

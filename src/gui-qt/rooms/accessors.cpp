@@ -221,7 +221,7 @@ bool EntityEntriesList::edit_setName(index_type groupIndex, index_type entryInde
     return UndoHelper(this).editField(
         groupIndex, entryIndex,
         name,
-        tr("Edit Room Entity Name"),
+        tr("Edit Entity Name"),
         [](RM::EntityEntry& e) -> idstring& { return e.name; });
 }
 
@@ -230,7 +230,7 @@ bool EntityEntriesList::edit_setEntityId(index_type groupIndex, index_type entry
     return UndoHelper(this).editField(
         groupIndex, entryIndex,
         entityId,
-        tr("Edit Room Entity Name"),
+        tr("Edit Entity Id"),
         [](RM::EntityEntry& e) -> idstring& { return e.entityId; });
 }
 
@@ -239,8 +239,17 @@ bool EntityEntriesList::edit_setPosition(index_type groupIndex, index_type entry
     return UndoHelper(this).editField(
         groupIndex, entryIndex,
         position,
-        tr("Edit Room Entity Name"),
+        tr("Edit Entity Position"),
         [](RM::EntityEntry& e) -> point& { return e.position; });
+}
+
+bool EntityEntriesList::edit_setParameter(index_type groupIndex, index_type entryIndex, const std::string& parameter)
+{
+    return UndoHelper(this).editField(
+        groupIndex, entryIndex,
+        parameter,
+        tr("Edit Entity Parameter"),
+        [](RM::EntityEntry& e) -> std::string& { return e.parameter; });
 }
 
 void EditableRoomGraphicsScene::commitMovedItems()

@@ -69,6 +69,7 @@ static void readEntityGroup(XmlReader& xml, const XmlTag* tag, NamedList<EntityG
             e.name = childTag->getAttributeOptionalId("name");
             e.entityId = childTag->getAttributeOptionalId("entity");
             e.position = childTag->getAttributePoint();
+            e.parameter = childTag->getAttributeOrEmpty("parameter");
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -88,6 +89,7 @@ static void writeEntityGroup(XmlWriter& xml, const EntityGroup& entityGroup)
         xml.writeTagAttributeOptional("name", e.name);
         xml.writeTagAttribute("entity", e.entityId);
         xml.writeTagAttributePoint(e.position);
+        xml.writeTagAttribute("parameter", e.parameter);
 
         xml.writeCloseTag();
     }

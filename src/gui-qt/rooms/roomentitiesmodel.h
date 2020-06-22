@@ -26,9 +26,10 @@ class RoomEntitiesModel final : public AbstractPropertyModel {
     enum ColumnId {
         NAME,
         ENTITY_ID,
-        POSITION
+        POSITION,
+        PARAMETER,
     };
-    constexpr static int N_COLUMNS = 3;
+    constexpr static int N_COLUMNS = 4;
 
 public:
     explicit RoomEntitiesModel(QObject* parent = nullptr);

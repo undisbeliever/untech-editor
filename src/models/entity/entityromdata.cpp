@@ -815,7 +815,13 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
     ret->functionTableData = functionTableData.str();
 
     for (unsigned i = 0; i < data.entities.size(); i++) {
-        ret->entityNameMap.emplace(data.entities.at(i).name, i);
+        const auto& entity = data.entities.at(i);
+
+        const auto it = ftMap.find(entity.functionTable);
+        assert(it != ftMap.end());
+        const EntityFunctionTable* ft = it->second.first;
+
+        ret->entityNameMap.emplace(entity.name, std::make_pair(i, ft->parameterType));
     }
 
     return ret;

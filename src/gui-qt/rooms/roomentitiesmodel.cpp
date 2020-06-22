@@ -24,6 +24,7 @@ RoomEntitiesModel::RoomEntitiesModel(QObject* parent)
           Property(tr("Name"), NAME, PropertyType::IDSTRING),
           Property(tr("Entity"), ENTITY_ID, PropertyType::STRING_COMBO),
           Property(tr("Position"), POSITION, PropertyType::POINT),
+          Property(tr("Parameter"), PARAMETER, PropertyType::STRING),
       })
 {
 }
@@ -357,6 +358,7 @@ QVariant RoomEntitiesModel::entityGroupData(unsigned groupIndex, int column, int
 
         case ENTITY_ID:
         case POSITION:
+        case PARAMETER:
             return QVariant();
         }
     }
@@ -385,6 +387,9 @@ QVariant RoomEntitiesModel::entityEntryData(unsigned groupIndex, unsigned entryI
             else {
                 return fromPoint(entry.position);
             }
+
+        case PARAMETER:
+            return QString::fromStdString(entry.parameter);
         }
     }
 
@@ -417,6 +422,7 @@ bool RoomEntitiesModel::setEntityGroupData(unsigned groupIndex, int column, cons
 
     case ENTITY_ID:
     case POSITION:
+    case PARAMETER:
         return false;
     }
 
@@ -436,6 +442,9 @@ bool RoomEntitiesModel::setEntityEntryData(unsigned groupIndex, unsigned entryIn
 
     case POSITION:
         return _resourceItem->entityEntries()->edit_setPosition(groupIndex, entryIndex, toPoint(value.toPoint()));
+
+    case PARAMETER:
+        return _resourceItem->entityEntries()->edit_setParameter(groupIndex, entryIndex, value.toString().toStdString());
     }
 
     return false;

@@ -76,13 +76,14 @@ struct EntityEntry {
     idstring entityId;
     point position;
 
-    // ::TODO add parameter (need to figure out parameter type and conversion to word)::
+    std::string parameter;
 
     bool operator==(const EntityEntry& o) const
     {
         return name == o.name
                && entityId == o.entityId
-               && position == o.position;
+               && position == o.position
+               && parameter == o.parameter;
     }
     bool operator!=(const EntityEntry& o) const { return !(*this == o); }
 };

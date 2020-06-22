@@ -29,8 +29,7 @@ static const EnumMap<DataType> dataTypeMap = {
 
 static const EnumMap<ParameterType> parameterTypeMap = {
     { "unused", ParameterType::UNUSED },
-    { "word", ParameterType::WORD },
-    { "sword", ParameterType::SIGNED_WORD },
+    { "unsigned", ParameterType::UNSIGNED_BYTE },
 };
 
 using namespace Xml;

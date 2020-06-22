@@ -42,8 +42,7 @@ enum class DataType {
 
 enum class ParameterType {
     UNUSED,
-    WORD,
-    SIGNED_WORD,
+    UNSIGNED_BYTE,
 };
 
 struct EntityRomStruct;
@@ -194,7 +193,7 @@ struct CompiledEntityRomData {
     std::vector<uint8_t> romDataIndexes;
     std::vector<uint8_t> romData;
 
-    std::unordered_map<idstring, unsigned> entityNameMap;
+    std::unordered_map<idstring, std::pair<unsigned, ParameterType>> entityNameMap;
 
     bool valid;
 };

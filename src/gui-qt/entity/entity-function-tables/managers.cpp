@@ -23,8 +23,7 @@ const QStringList EntityFunctionTablesManager::ENTITY_TYPE_STRINGS = {
 
 const QStringList EntityFunctionTablesManager::PARAMETER_TYPE_STRINGS = {
     QStringLiteral("Unused"),
-    QStringLiteral("Word"),
-    QStringLiteral("Signed Word"),
+    QStringLiteral("Unsigned Byte"),
 };
 
 EntityFunctionTablesManager::EntityFunctionTablesManager(QObject* parent)

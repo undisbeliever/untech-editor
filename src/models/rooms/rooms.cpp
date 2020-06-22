@@ -6,6 +6,7 @@
 
 #include "rooms.h"
 #include "models/common/errorlist.h"
+#include "models/common/string.h"
 #include "models/common/validateunique.h"
 #include "models/entity/entityromdata.h"
 #include "models/lz4/lz4.h"
@@ -208,6 +209,30 @@ static unsigned threeBytePosition(const unsigned x, const unsigned y)
     return (x & POSITION_MASK) | ((y & POSITION_MASK) << POSITION_SHIFT);
 }
 
+template <typename AddErrorFunction>
+static uint8_t processEntityParameter(const std::string& parameter, const Entity::ParameterType parameterType,
+                                      AddErrorFunction addEntityError)
+{
+    switch (parameterType) {
+    case Entity::ParameterType::UNUSED: {
+        if (!parameter.empty()) {
+            addEntityError("Expected an empty parameter.");
+        }
+        return 0;
+    }
+
+    case Entity::ParameterType::UNSIGNED_BYTE: {
+        const auto v = String::toUint8(parameter);
+        if (!v.exists()) {
+            addEntityError("Invalid parameter: ", parameter);
+        }
+        return v.value_or(0);
+    }
+    }
+
+    return 0;
+}
+
 std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
                                             const Resources::CompiledScenesData& compiledScenes,
                                             const Entity::CompiledEntityRomData& entityRomData,
@@ -362,18 +387,21 @@ std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
 
                 const unsigned pos = threeBytePosition(ee.position.x, ee.position.y + ENTITY_VERTICAL_SPACING);
 
-                const unsigned entityId = [&]() -> unsigned {
-                    auto enIt = entityRomData.entityNameMap.find(ee.entityId);
-                    if (enIt == entityRomData.entityNameMap.end()) {
-                        addEntityError(ee, "Cannot find entity ", ee.entityId);
-                        return 0;
-                    }
-                    return enIt->second;
-                }();
-                assert(entityId <= UINT8_MAX);
+                unsigned entityId = 0;
+                uint8_t parameter = 0;
 
-                const unsigned parameter = 0; // ::TODO add entity parameter::
-                assert(parameter <= UINT8_MAX);
+                const auto enIt = entityRomData.entityNameMap.find(ee.entityId);
+                if (enIt != entityRomData.entityNameMap.end()) {
+                    entityId = enIt->second.first;
+
+                    const auto parameterType = enIt->second.second;
+                    parameter = processEntityParameter(ee.parameter, parameterType,
+                                                       [&](const auto&... msg) { addEntityError(ee, msg...); });
+                }
+                else {
+                    addEntityError(ee, "Cannot find entity ", ee.entityId);
+                }
+                assert(entityId <= UINT8_MAX);
 
                 *it++ = entityId;
                 *it++ = (pos >> 0) & 0xff;
