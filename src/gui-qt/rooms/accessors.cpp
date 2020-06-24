@@ -206,13 +206,14 @@ QString EntityEntriesList::typeNamePlural() const
     return tr("Room Entities");
 }
 
-bool EntityEntriesList::addEntity(NestedNlvMulitpleSelectionAccessor::index_type groupIndex, const idstring& entityId, const point& position)
+bool EntityEntriesList::addEntity(index_type groupIndex, const idstring& entityId, const point& position)
 {
     return UndoHelper(this).addItem(
         groupIndex, childListSize(groupIndex),
         RM::EntityEntry{ .name = {},
                          .entityId = entityId,
-                         .position = position },
+                         .position = position,
+                         .parameter = {} },
         tr("Add Room Entity"));
 }
 
