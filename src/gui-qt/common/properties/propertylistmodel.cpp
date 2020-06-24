@@ -393,7 +393,7 @@ Qt::ItemFlags PropertyListModel::flags(const QModelIndex& index) const
     if (checkIndex(index) == false
         || _manager->isEnabled() == false) {
 
-        return 0;
+        return Qt::NoItemFlags;
     }
 
     static_assert(N_COLUMNS == 2, "Invalid flags N_COLUMNS");

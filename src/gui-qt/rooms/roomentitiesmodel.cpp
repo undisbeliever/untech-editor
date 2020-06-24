@@ -260,7 +260,7 @@ Qt::ItemFlags RoomEntitiesModel::flags(const QModelIndex& index) const
     if (ri.exists() == false
         || isIndexValid(index) == false) {
 
-        return 0;
+        return Qt::NoItemFlags;
     }
 
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;

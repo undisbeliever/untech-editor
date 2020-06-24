@@ -74,7 +74,7 @@ int EntitiesWithIconsModel::rowCount(const QModelIndex& parent) const
 Qt::ItemFlags EntitiesWithIconsModel::flags(const QModelIndex& index) const
 {
     if (!isIndexValid(index)) {
-        return 0;
+        return Qt::NoItemFlags;
     }
 
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemNeverHasChildren | Qt::ItemIsDragEnabled;

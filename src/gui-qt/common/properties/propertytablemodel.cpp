@@ -369,12 +369,12 @@ Qt::ItemFlags PropertyTableModel::flags(const QModelIndex& index) const
             return Qt::ItemIsDropEnabled;
         }
         else {
-            return 0;
+            return Qt::NoItemFlags;
         }
     }
 
     if (checkIndex(index) == false) {
-        return 0;
+        return Qt::NoItemFlags;
     }
 
     Qt::ItemFlags flags = Qt::ItemIsEnabled;

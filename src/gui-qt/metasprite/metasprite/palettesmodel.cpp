@@ -102,8 +102,10 @@ Qt::ItemFlags PalettesModel::flags(const QModelIndex& index) const
     if (_resourceItem == nullptr
         || index.row() < 0
         || unsigned(index.row()) >= _resourceItem->frameSet()->palettes.size()) {
-        return 0;
+
+        return Qt::NoItemFlags;
     }
+
     return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 

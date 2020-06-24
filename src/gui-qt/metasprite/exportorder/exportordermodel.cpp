@@ -460,7 +460,7 @@ Qt::ItemFlags ExportOrderModel::flags(const QModelIndex& index) const
 {
     if (checkIndex(index) == false
         || _exportOrder->exportOrder() == nullptr) {
-        return 0;
+        return Qt::NoItemFlags;
     }
 
     Qt::ItemFlags flags = Qt::ItemIsEnabled | Qt::ItemIsSelectable;

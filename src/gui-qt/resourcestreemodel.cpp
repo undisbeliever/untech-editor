@@ -257,7 +257,7 @@ Qt::ItemFlags ResourcesTreeModel::flags(const QModelIndex& index) const
         || !index.isValid()
         || index.column() >= N_COLUMNS) {
 
-        return 0;
+        return Qt::NoItemFlags;
     }
 
     if (index.internalId() == ROOT_INTERNAL_ID) {
