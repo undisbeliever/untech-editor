@@ -67,8 +67,13 @@ PalettesDock::PalettesDock(QWidget* parent)
     connect(_ui->selectColorButton, &QToolButton::clicked,
             this, &PalettesDock::uncheckColorButtons);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    connect(_colorGroup, &QButtonGroup::idClicked,
+            this, &PalettesDock::onColorClicked);
+#else
     connect(_colorGroup, qOverload<int>(&QButtonGroup::buttonClicked),
             this, &PalettesDock::onColorClicked);
+#endif
 
     connect(_ui->paletteList->selectionModel(), &QItemSelectionModel::selectionChanged,
             this, &PalettesDock::onPaletteListSelectionChanged);

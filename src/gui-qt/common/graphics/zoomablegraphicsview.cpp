@@ -58,8 +58,14 @@ void ZoomableGraphicsView::wheelEvent(QWheelEvent* event)
         && _enableZoomWithMouseWheel
         && event->modifiers() & Qt::ControlModifier) {
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+        const QPoint mousePos = event->position().toPoint();
+#else
+        const QPoint mousePos = event->pos();
+#endif
+
         const qreal oldZoom = _zoomSettings->zoom();
-        const QPointF oldScenePos = mapToScene(event->pos());
+        const QPointF oldScenePos = mapToScene(mousePos);
 
         if (event->angleDelta().y() > 0) {
             _zoomSettings->zoomIn();
@@ -69,7 +75,7 @@ void ZoomableGraphicsView::wheelEvent(QWheelEvent* event)
         }
 
         if (_zoomSettings->zoom() != oldZoom) {
-            const QPoint delta = event->pos() - mapFromScene(oldScenePos);
+            const QPoint delta = mousePos - mapFromScene(oldScenePos);
 
             horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta.x());
             verticalScrollBar()->setValue(verticalScrollBar()->value() - delta.y());

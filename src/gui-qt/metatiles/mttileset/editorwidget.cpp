@@ -97,8 +97,13 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     connect(_ui->nextPaletteFrameButton, &QToolButton::clicked,
             _renderer, &MtTilesetRenderer::pauseAndAdvancePaletteFrame);
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
+    connect(_ui->palette, &QComboBox::textActivated,
+            this, &EditorWidget::onPaletteComboActivated);
+#else
     connect(_ui->palette, qOverload<const QString&>(&QComboBox::activated),
             this, &EditorWidget::onPaletteComboActivated);
+#endif
 
     connect(_ui->tabWidget, &QTabWidget::currentChanged,
             this, &EditorWidget::onTabChanged);

@@ -75,8 +75,13 @@ TilePropertiesWidget::TilePropertiesWidget(QWidget* parent)
         assert(_ui->tileCollisionTypeGrid->count() == MT::N_TILE_COLLISONS);
     }
 
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    connect(_collisionTypeButtons, &QButtonGroup::idClicked,
+            this, &TilePropertiesWidget::onCollisonTypeButtonClicked);
+#else
     connect(_collisionTypeButtons, qOverload<int>(&QButtonGroup::buttonClicked),
             this, &TilePropertiesWidget::onCollisonTypeButtonClicked);
+#endif
 }
 
 TilePropertiesWidget::~TilePropertiesWidget() = default;
