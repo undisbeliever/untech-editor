@@ -216,10 +216,6 @@ endif
 
 
 ifneq ($(findstring clang,$(CXX) $(CC)),)
-  # Prevent clang from spamming errors
-  CXXFLAGS      += -Wno-undefined-var-template
-  GUI_QT_CXXFLAGS += -Wno-deprecated
-
   # LTO on clang causes "signal not found" errors in Qt
   CXXFLAGS := $(filter-out -flto,$(CXXFLAGS))
   CFLAGS   := $(filter-out -flto,$(CFLAGS))
