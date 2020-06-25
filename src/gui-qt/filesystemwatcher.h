@@ -7,9 +7,8 @@
 #pragma once
 
 #include <QFileSystemWatcher>
+#include <QHash>
 #include <QList>
-#include <QMap>
-#include <QMessageBox>
 #include <QObject>
 #include <QPointer>
 

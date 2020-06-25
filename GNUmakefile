@@ -226,6 +226,9 @@ ifneq ($(findstring clang,$(CXX) $(CC)),)
   LDFLAGS  := $(filter-out -flto,$(LDFLAGS))
 endif
 
+# Disable all deprecated functions in Qt 5.12 and earlier
+GUI_QT_CXXFLAGS += -DQT_DISABLE_DEPRECATED_BEFORE=0x050C00
+
 
 ifeq ($(CXXWARNINGS),)
   CXXWARNINGS := -Wall -Wextra -Wdeprecated -Wvla
