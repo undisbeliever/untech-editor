@@ -37,7 +37,7 @@ void ZoomSettingsManager::set(const QString& name, qreal zoom, ZoomSettings::Asp
 
 void ZoomSettingsManager::readSettings(QSettings& settings)
 {
-    settings.beginGroup(QLatin1Literal("zoom"));
+    settings.beginGroup(QStringLiteral("zoom"));
     for (auto it = _map.begin(); it != _map.end(); it++) {
         QVariantList vl = settings.value(it.key()).toList();
         if (vl.size() == 2) {
@@ -50,7 +50,7 @@ void ZoomSettingsManager::readSettings(QSettings& settings)
 
 void ZoomSettingsManager::saveSettings(QSettings& settings)
 {
-    settings.beginGroup(QLatin1Literal("zoom"));
+    settings.beginGroup(QStringLiteral("zoom"));
     for (auto it = _map.begin(); it != _map.end(); it++) {
         settings.setValue(it.key(),
                           QVariantList({ it.value()->zoom(),
