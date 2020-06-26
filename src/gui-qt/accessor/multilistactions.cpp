@@ -241,7 +241,7 @@ void MultiListActions::onAddTriggered()
         bool ok = false;
         int index = action->data().toInt(&ok);
         if (auto* accessor = _accessors.value(index, nullptr)) {
-            accessor->addItem(accessor->size());
+            accessor->appendItem();
 
             for (auto* a : _accessors) {
                 if (a != accessor) {

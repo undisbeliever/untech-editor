@@ -88,7 +88,7 @@ void ListActions::setAccessor(AbstractListSingleSelectionAccessor* accessor)
                 this, &ListActions::updateActions_singleSelection);
 
         connect(add, &QAction::triggered,
-                accessor, qOverload<>(&AbstractListAccessor::addItem));
+                accessor, &AbstractListSingleSelectionAccessor::appendItem);
         connect(clone, &QAction::triggered,
                 accessor, &AbstractListSingleSelectionAccessor::cloneSelectedItem);
         connect(raiseToTop, &QAction::triggered,
@@ -139,7 +139,7 @@ void ListActions::setAccessor(AbstractListMultipleSelectionAccessor* accessor)
                 this, &ListActions::updateActions_multipleSelection);
 
         connect(add, &QAction::triggered,
-                accessor, qOverload<>(&AbstractListAccessor::addItem));
+                accessor, &AbstractListMultipleSelectionAccessor::appendItem);
         connect(selectAll, &QAction::triggered,
                 accessor, &AbstractListMultipleSelectionAccessor::selectAll);
         connect(clone, &QAction::triggered,

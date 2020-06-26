@@ -63,7 +63,7 @@ public:
 
     ListActionStatus listActionStatus(const index_type parentIndexForAddAction) const;
 
-    bool addItem(size_t parentIndex);
+    bool appendItemToList(size_t parentIndex);
 
     bool cloneSelectedItems();
     bool removeSelectedItems();
@@ -129,8 +129,6 @@ public:
 
     virtual size_t parentListSize() const final;
     virtual size_t childListSize(size_t parentIndex) const final;
-
-    inline bool addItem(size_t parentIndex) { return AbstractNestedListMultipleSelectionAccessor::addItem(parentIndex); }
 
     virtual bool addItem(size_t parentIndex, size_t index) final;
     virtual bool cloneItem(size_t parentIndex, size_t index) final;

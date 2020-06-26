@@ -323,7 +323,7 @@ void EditorWidget::onActionAddFrame()
 {
     Q_ASSERT(_exportOrder);
     _exportOrder->exportNameList()->setSelectedListIsFrame(true);
-    _exportOrder->exportNameList()->addItem();
+    _exportOrder->exportNameList()->appendItem();
     showEditorForCurrentIndex();
 }
 
@@ -331,7 +331,7 @@ void EditorWidget::onActionAddAnimation()
 {
     Q_ASSERT(_exportOrder);
     _exportOrder->exportNameList()->setSelectedListIsFrame(false);
-    _exportOrder->exportNameList()->addItem();
+    _exportOrder->exportNameList()->appendItem();
     showEditorForCurrentIndex();
 }
 
@@ -339,7 +339,7 @@ void EditorWidget::onActionAddAlternative()
 {
     Q_ASSERT(_exportOrder);
 
-    bool s = _exportOrder->alternativesList()->addItem();
+    bool s = _exportOrder->alternativesList()->appendItem();
     if (s) {
         showEditorForCurrentIndex();
     }

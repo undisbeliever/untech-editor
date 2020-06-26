@@ -264,7 +264,7 @@ void RoomEntitiesDock::onAddEntityGroupTriggered()
     if (_resourceItem == nullptr) {
         return;
     }
-    _resourceItem->entityGroups()->addItem(INT_MAX);
+    _resourceItem->entityGroups()->appendItem();
 }
 
 void RoomEntitiesDock::onAddEntityEntryTriggered()
@@ -272,7 +272,7 @@ void RoomEntitiesDock::onAddEntityEntryTriggered()
     if (_resourceItem == nullptr) {
         return;
     }
-    _resourceItem->entityEntries()->addItem(
+    _resourceItem->entityEntries()->appendItemToList(
         _resourceItem->entityGroups()->selectedIndex());
 }
 

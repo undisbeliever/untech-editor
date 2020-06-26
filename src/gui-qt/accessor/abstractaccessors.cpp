@@ -18,7 +18,7 @@ AbstractListAccessor::AbstractListAccessor(AbstractResourceItem* resourceItem, s
 {
 }
 
-bool AbstractListAccessor::addItem()
+bool AbstractListAccessor::appendItem()
 {
     return addItem(INT_MAX);
 }

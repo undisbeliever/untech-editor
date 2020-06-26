@@ -51,8 +51,6 @@ public:
 
     void setSelectedIndex(bool isFrame, index_type index);
 
-    inline bool addItem() { return addItem(INT_MAX); }
-
     virtual bool addItem(size_t index) final;
     virtual bool cloneItem(size_t index) final;
     virtual bool removeItem(size_t index) final;
@@ -112,8 +110,6 @@ public:
 
     virtual bool listExists() const final;
     virtual size_t size() const final;
-
-    inline bool addItem() { return addItem(INT_MAX); }
 
     virtual bool addItem(size_t index) final;
     virtual bool cloneItem(size_t index) final;

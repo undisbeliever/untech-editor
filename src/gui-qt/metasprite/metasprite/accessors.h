@@ -49,7 +49,6 @@ public:
     virtual bool listExists() const final;
     virtual size_t size() const final;
 
-    bool addItem();
     virtual bool addItem(size_t index) final;
     virtual bool cloneItem(size_t index) final;
     virtual bool removeItem(size_t index) final;
@@ -101,7 +100,6 @@ public:
     virtual bool listExists() const final;
     virtual size_t size() const final;
 
-    bool addItem();
     virtual bool addItem(size_t index) final;
     virtual bool cloneItem(size_t index) final;
     virtual bool removeItem(size_t index) final;

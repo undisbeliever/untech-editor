@@ -157,7 +157,7 @@ void TilesetDock::onContextMenu(const QPoint& pos)
         if (index >= 0) {
             if (isSmall) {
                 addAction("Add Small Tile", [=]() {
-                    _resourceItem->smallTileTileset()->addItem();
+                    _resourceItem->smallTileTileset()->appendItem();
                 });
                 addAction("Add Small Tile Here", [=]() {
                     _resourceItem->smallTileTileset()->addItem(index);
@@ -171,7 +171,7 @@ void TilesetDock::onContextMenu(const QPoint& pos)
             }
             else {
                 addAction("Add Large Tile", [=]() {
-                    _resourceItem->largeTileTileset()->addItem();
+                    _resourceItem->largeTileTileset()->appendItem();
                 });
                 addAction("Add Large Tile Here", [=]() {
                     _resourceItem->largeTileTileset()->addItem(index);
@@ -186,10 +186,10 @@ void TilesetDock::onContextMenu(const QPoint& pos)
         }
         else {
             addAction("Add Small Tile", [=]() {
-                _resourceItem->smallTileTileset()->addItem();
+                _resourceItem->smallTileTileset()->appendItem();
             });
             addAction("Add Large Tile", [=]() {
-                _resourceItem->largeTileTileset()->addItem();
+                _resourceItem->largeTileTileset()->appendItem();
             });
         }
 

@@ -53,7 +53,8 @@ public:
     virtual size_t size() const = 0;
     size_t maxSize() const { return _maxSize; }
 
-    bool addItem();
+    // Adds an item to the end of the list
+    bool appendItem();
 
     virtual bool addItem(size_t index) = 0;
     virtual bool cloneItem(size_t index) = 0;

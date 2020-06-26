@@ -192,7 +192,7 @@ bool AbstractNestedListMultipleSelectionAccessor::moveSelectedItemsToChildList(s
     return moveMultipleItemsToChildList(_selectedIndexes, destinationParentIndex);
 }
 
-bool AbstractNestedListMultipleSelectionAccessor::addItem(size_t parentIndex)
+bool AbstractNestedListMultipleSelectionAccessor::appendItemToList(size_t parentIndex)
 {
     return addItem(parentIndex, this->childListSize(parentIndex));
 }

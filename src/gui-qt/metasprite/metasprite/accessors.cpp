@@ -48,14 +48,6 @@ size_t SmallTileTileset::size() const
     return fs->smallTileset.size();
 }
 
-bool SmallTileTileset::addItem()
-{
-    if (auto* tileset = getList()) {
-        return addItem(tileset->size());
-    }
-    return false;
-}
-
 bool SmallTileTileset::addItem(size_t index)
 {
     QUndoCommand* c = UndoHelper(this).addCommand(index);
@@ -157,14 +149,6 @@ QString LargeTileTileset::typeName() const
 QString LargeTileTileset::typeNamePlural() const
 {
     return tr("Large Tiles");
-}
-
-bool LargeTileTileset::addItem()
-{
-    if (auto* tileset = getList()) {
-        return addItem(tileset->size());
-    }
-    return false;
 }
 
 bool LargeTileTileset::addItem(size_t index)
