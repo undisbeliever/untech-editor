@@ -155,7 +155,7 @@ void Cartridge::writeChecksum(const std::filesystem::path& filename, uint16_t ch
         throw std::runtime_error(stringBuilder("Error opening file: ", filename.string()));
     }
 
-    out.exceptions(std::ios::failbit | std::ios::badbit);
+    out.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
 
     out.seekp(complementAddr);
     out.put(complement & 0xff);
