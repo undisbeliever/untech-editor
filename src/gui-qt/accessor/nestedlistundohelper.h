@@ -172,7 +172,7 @@ private:
             emit _accessor->resourceItem()->dataChanged();
         }
 
-        inline void emitChildListChanged(index_type parentIndex)
+        inline void emitListChanged(index_type parentIndex)
         {
             emit _accessor->listChanged(parentIndex);
             emit _accessor->resourceItem()->dataChanged();
@@ -183,11 +183,6 @@ private:
         inline void emitListAboutToChange(index_type parentIndex)
         {
             emit _accessor->listAboutToChange(parentIndex);
-        }
-
-        inline void emitListChanged(index_type parentIndex)
-        {
-            emit _accessor->listChanged(parentIndex);
         }
 
         inline void emitItemAdded(index_type parentIndex, index_type childIndex)
@@ -931,7 +926,7 @@ private:
                     vIt++;
                 }
 
-                this->emitChildListChanged(parentIndex);
+                this->emitListChanged(parentIndex);
             }
             Q_ASSERT(vIt == _values.cend());
         }
@@ -961,7 +956,7 @@ private:
                     iIt++;
                 }
 
-                this->emitChildListChanged(parentIndex);
+                this->emitListChanged(parentIndex);
             }
         }
 
@@ -1081,7 +1076,7 @@ private:
                                                  SelectionModifier::itemMoved(selection, parentIndex, from, parentIndex, to);
                                              });
 
-                this->emitChildListChanged(parentIndex);
+                this->emitListChanged(parentIndex);
             }
 
             SelectionModifier::setSelection(this->_accessor, std::move(selection));
@@ -1105,7 +1100,7 @@ private:
                                                  SelectionModifier::itemMoved(selection, parentIndex, from, parentIndex, to);
                                              });
 
-                this->emitChildListChanged(parentIndex);
+                this->emitListChanged(parentIndex);
             }
 
             SelectionModifier::setSelection(this->_accessor, std::move(selection));
@@ -1137,7 +1132,7 @@ private:
                 childIndex++;
             }
 
-            this->emitChildListChanged(_targetParentIndex);
+            this->emitListChanged(_targetParentIndex);
 
             return firstChildIndex;
         }
@@ -1161,7 +1156,7 @@ private:
                 childList.erase(childList.begin() + childIndex);
             }
 
-            this->emitChildListChanged(_targetParentIndex);
+            this->emitListChanged(_targetParentIndex);
 
             return childList.size();
         }
