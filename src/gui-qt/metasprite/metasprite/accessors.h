@@ -146,12 +146,6 @@ public:
 
     void editSelected_setColorDialog(unsigned colorIndex, QWidget* widget = nullptr);
 
-    bool editSelectedList_addItem();
-    bool editSelectedList_cloneSelected();
-    bool editSelectedList_raiseSelected();
-    bool editSelectedList_lowerSelected();
-    bool editSelectedList_removeSelected();
-
 signals:
     void selectedColorChanged();
 };

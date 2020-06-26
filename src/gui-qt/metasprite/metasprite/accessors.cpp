@@ -315,31 +315,6 @@ void PaletteList::editSelected_setColorDialog(unsigned colorIndex, QWidget* widg
     }
 }
 
-bool PaletteList::editSelectedList_addItem()
-{
-    return UndoHelper(this).addItem();
-}
-
-bool PaletteList::editSelectedList_cloneSelected()
-{
-    return UndoHelper(this).cloneItem(selectedIndex());
-}
-
-bool PaletteList::editSelectedList_raiseSelected()
-{
-    return UndoHelper(this).raiseSelectedItem();
-}
-
-bool PaletteList::editSelectedList_lowerSelected()
-{
-    return UndoHelper(this).lowerSelectedItem();
-}
-
-bool PaletteList::editSelectedList_removeSelected()
-{
-    return UndoHelper(this).removeItem(selectedIndex());
-}
-
 template <>
 const NamedList<MS::Frame>* NamedListAccessor<MS::Frame, ResourceItem>::list() const
 {
