@@ -47,7 +47,6 @@ static void writeMetaSpriteData(RomDataWriter& writer,
         writer.addBankData(tileBank.bankId, tileBank.startingAddress, tileBank.tiles.snesData());
     }
 
-    writeData(msData.dmaTile16Data);
     writeData(msData.frameSetData);
     writeData(msData.frameList);
     writeData(msData.frameData);
@@ -56,6 +55,7 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     writeData(msData.paletteList);
     writeData(msData.paletteData);
 
+    writeNotNullData(msData.dmaTile16Data);
     writeNotNullData(msData.frameObjectData);
     writeNotNullData(msData.entityHitboxData);
     writeNotNullData(msData.actionPointData);
