@@ -140,6 +140,9 @@ public:
     virtual bool moveMultipleItems(const vectorset<index_pair_t>& indexes, const MoveMultipleDirection direction) final;
     virtual bool moveMultipleItemsToChildList(const vectorset<index_pair_t>& indexes, size_t targetParentIndex) final;
 
+    // Returns true if the pointer was found
+    bool setSelected_Ptr(const void* ptr);
+
 protected:
     template <class, class>
     friend class NestedListUndoHelper;

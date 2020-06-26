@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui-qt/abstracteditorwidget.h"
+#include <QListView>
 #include <memory>
 
 namespace UnTech {
@@ -14,6 +15,9 @@ namespace GuiQt {
 class ZoomSettingsManager;
 class OpenGLZoomableGraphicsView;
 
+namespace Accessor {
+class ListAccessorTableDock;
+}
 namespace MetaTiles {
 class Style;
 }
@@ -50,6 +54,8 @@ public:
 
     virtual bool setResourceItem(AbstractResourceItem* abstractItem) final;
 
+    virtual void onErrorDoubleClicked(const ErrorListItem& error) final;
+
 private slots:
     void updateTilesetAndPalette();
 
@@ -68,11 +74,19 @@ private:
     MetaTiles::MtTileset::MtTilesetGraphicsScene* const _tilesetScene;
     MetaTiles::MtTileset::MtScratchpadGraphicsScene* const _scratchpadScene;
 
-    RoomEntitiesDock* const _roomEntitiesDock;
-
     RoomPropertyManager* const _propertyManager;
     RoomEntranceManager* const _roomEntranceManager;
     Entity::EntityRomEntries::EntitiesWithIconsModel* const _entitiesWithIconsModel;
+
+    QListView* const _entitiesListView;
+
+    QDockWidget* const _propertyDock;
+    QDockWidget* const _minimapDock;
+    QDockWidget* const _tilesetDock;
+    QDockWidget* const _scratchpadDock;
+    QDockWidget* const _entitiesListDock;
+    RoomEntitiesDock* const _roomEntitiesDock;
+    Accessor::ListAccessorTableDock* const _roomEntrancesDock;
 
     ResourceItem* _resourceItem;
 };

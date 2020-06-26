@@ -5,6 +5,7 @@
  */
 
 #include "editorwidget.h"
+#include "accessors.h"
 #include "managers.h"
 #include "resourceitem.h"
 #include "roomentitiesdock.h"
@@ -25,8 +26,6 @@
 
 #include "gui-qt/rooms/editorwidget.ui.h"
 
-#include <QListView>
-
 using namespace UnTech::GuiQt::Rooms;
 
 EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
@@ -41,10 +40,17 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     , _minimapRoomScene(new RoomGraphicsScene(_style, _renderer, this))
     , _tilesetScene(new MetaTiles::MtTileset::MtTilesetGraphicsScene(_style, _renderer, this))
     , _scratchpadScene(new MetaTiles::MtTileset::MtScratchpadGraphicsScene(_style, _renderer, this))
-    , _roomEntitiesDock(new RoomEntitiesDock(this))
     , _propertyManager(new RoomPropertyManager(this))
     , _roomEntranceManager(new RoomEntranceManager(this))
     , _entitiesWithIconsModel(new Entity::EntityRomEntries::EntitiesWithIconsModel(this))
+    , _entitiesListView(new QListView(this))
+    , _propertyDock(createPropertyDockWidget(_propertyManager, tr("Properties"), QStringLiteral("Properties")))
+    , _minimapDock(createDockWidget(_dockedMinimapView, tr("Minimap"), QStringLiteral("Minimap")))
+    , _tilesetDock(createDockWidget(_dockedTilesetView, tr("MetaTiles"), QStringLiteral("MetaTiles")))
+    , _scratchpadDock(createDockWidget(_dockedScratchpadView, tr("Scratchpad"), QStringLiteral("Scratchpad")))
+    , _entitiesListDock(createDockWidget(_entitiesListView, tr("Entities"), QStringLiteral("EntitiesList")))
+    , _roomEntitiesDock(new RoomEntitiesDock(this))
+    , _roomEntrancesDock(new Accessor::ListAccessorTableDock(tr("Room Entrances"), _roomEntranceManager, this))
     , _resourceItem(nullptr)
 {
     using MtTilesetRenderer = UnTech::GuiQt::MetaTiles::MtTileset::MtTilesetRenderer;
@@ -70,39 +76,30 @@ EditorWidget::EditorWidget(ZoomSettingsManager* zoomManager, QWidget* parent)
     // Fit entire tileset width in view
     _dockedTilesetView->setMinimumWidth(16 * 16 + 8);
 
-    auto* propertyDock = createPropertyDockWidget(_propertyManager, tr("Properties"), QStringLiteral("Properties"));
-    auto* minimapDock = createDockWidget(_dockedMinimapView, tr("Minimap"), QStringLiteral("Minimap"));
-    auto* tilesetDock = createDockWidget(_dockedTilesetView, tr("MetaTiles"), QStringLiteral("MetaTiles"));
-    auto* scratchpadDock = createDockWidget(_dockedScratchpadView, tr("Scratchpad"), QStringLiteral("Scratchpad"));
-
-    auto* entitiesListView = new QListView(this);
-    entitiesListView->setModel(_entitiesWithIconsModel);
-    entitiesListView->setViewMode(QListView::ListMode);
-    entitiesListView->setTextElideMode(Qt::ElideRight);
-    entitiesListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    entitiesListView->setDragEnabled(true);
-    auto* entitiesListDock = createDockWidget(entitiesListView, tr("Entities"), QStringLiteral("EntitiesList"));
+    _entitiesListView->setModel(_entitiesWithIconsModel);
+    _entitiesListView->setViewMode(QListView::ListMode);
+    _entitiesListView->setTextElideMode(Qt::ElideRight);
+    _entitiesListView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    _entitiesListView->setDragEnabled(true);
 
     // Simplifies MainWindow state
     _roomEntitiesDock->setObjectName(QStringLiteral("RoomEntities"));
+    _roomEntrancesDock->setObjectName(QStringLiteral("RoomEntrances"));
 
-    auto* roomEntrancesDock = new Accessor::ListAccessorTableDock(tr("Room Entrances"), _roomEntranceManager, this);
-    roomEntrancesDock->setObjectName(QStringLiteral("RoomEntrances"));
-
-    this->addDockWidget(Qt::RightDockWidgetArea, propertyDock);
-    this->addDockWidget(Qt::RightDockWidgetArea, tilesetDock);
-    this->addDockWidget(Qt::RightDockWidgetArea, minimapDock);
-    this->addDockWidget(Qt::RightDockWidgetArea, scratchpadDock);
-    this->addDockWidget(Qt::RightDockWidgetArea, entitiesListDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, _propertyDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, _tilesetDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, _minimapDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, _scratchpadDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, _entitiesListDock);
     this->addDockWidget(Qt::RightDockWidgetArea, _roomEntitiesDock);
-    this->addDockWidget(Qt::RightDockWidgetArea, roomEntrancesDock);
+    this->addDockWidget(Qt::RightDockWidgetArea, _roomEntrancesDock);
 
-    this->tabifyDockWidget(minimapDock, scratchpadDock);
-    this->tabifyDockWidget(_roomEntitiesDock, roomEntrancesDock);
-    scratchpadDock->raise();
+    this->tabifyDockWidget(_minimapDock, _scratchpadDock);
+    this->tabifyDockWidget(_roomEntitiesDock, _roomEntrancesDock);
+    _scratchpadDock->raise();
     _roomEntitiesDock->raise();
 
-    this->resizeDocks({ propertyDock, tilesetDock, scratchpadDock, entitiesListDock, _roomEntitiesDock }, { 100, 200, 200, 100, 100 }, Qt::Vertical);
+    this->resizeDocks({ _propertyDock, _tilesetDock, _scratchpadDock, _entitiesListDock, _roomEntitiesDock }, { 100, 200, 200, 100, 100 }, Qt::Vertical);
 
     setEnabled(false);
 
@@ -167,6 +164,32 @@ bool EditorWidget::setResourceItem(AbstractResourceItem* abstractItem)
     setEnabled(item != nullptr);
 
     return item != nullptr;
+}
+
+void EditorWidget::onErrorDoubleClicked(const UnTech::ErrorListItem& error)
+{
+    if (_resourceItem == nullptr) {
+        return;
+    }
+
+    _resourceItem->clearSelection();
+
+    if (error.specialized == nullptr) {
+        _propertyDock->raise();
+    }
+    else if (const auto* e = dynamic_cast<const ListItemError*>(error.specialized.get())) {
+        const bool isRoomEntrance = _resourceItem->roomEntrances()->setSelected_Ptr(e->ptr());
+        const bool isEntityGroup = _resourceItem->entityGroups()->setSelected_Ptr(e->ptr());
+        const bool isEntityEntry = _resourceItem->entityEntries()->setSelected_Ptr(e->ptr());
+
+        if (isRoomEntrance) {
+            _roomEntrancesDock->raise();
+        }
+        else if (isEntityGroup || isEntityEntry) {
+            _roomEntitiesDock->raise();
+            _roomEntitiesDock->raise();
+        }
+    }
 }
 
 void EditorWidget::updateTilesetAndPalette()

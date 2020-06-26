@@ -91,6 +91,26 @@ bool NestedNlvMulitpleSelectionAccessor<P, C, RI>::moveMultipleItemsToChildList(
     return UndoHelper(this).moveMultipleItemsToChildList(indexes, targetParentIndex);
 }
 
+template <class P, class C, class RI>
+bool NestedNlvMulitpleSelectionAccessor<P, C, RI>::setSelected_Ptr(const void* ptr)
+{
+    if (const ParentListT* pList = parentList()) {
+        for (size_t pi = 0; pi < pList->size(); pi++) {
+            const ChildListT& cList = childList(pList->at(pi));
+
+            for (size_t ci = 0; ci < cList.size(); ci++) {
+                if (&cList.at(ci) == ptr) {
+                    setSelectedIndex(pi, ci);
+                    return true;
+                }
+            }
+        }
+    }
+
+    clearSelection();
+    return false;
+}
+
 }
 }
 }

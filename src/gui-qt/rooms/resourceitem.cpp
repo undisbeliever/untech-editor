@@ -48,6 +48,14 @@ ResourceItem::ResourceItem(ResourceList* parent, size_t index)
             this, &AbstractResourceItem::markUnchecked);
 }
 
+void ResourceItem::clearSelection()
+{
+    _mapGrid->clearSelection();
+    _roomEntrances->unselectItem();
+    _entityGroups->unselectItem();
+    _entityEntries->clearSelection();
+}
+
 void ResourceItem::saveResourceData(const std::filesystem::path& filename) const
 {
     if (auto ri = this->roomInput()) {

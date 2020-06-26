@@ -57,6 +57,8 @@ public:
     EntityGroupList* entityGroups() const { return _entityGroups; }
     EntityEntriesList* entityEntries() const { return _entityEntries; }
 
+    void clearSelection();
+
     bool edit_setName(const idstring& name);
     bool edit_setScene(const idstring& name);
 
