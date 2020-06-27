@@ -18,6 +18,8 @@ template class grid<uint16_t>;
 
 namespace MetaTiles {
 
+static_assert(sizeof(TilePriorities) == N_METATILES * 4 / 8);
+
 MetaTileTilesetInput::MetaTileTilesetInput()
 {
     tileCollisions.fill(TileCollisionType::EMPTY);
@@ -71,6 +73,19 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     auto aniFrames = Resources::convertAnimationFrames(input.animationFrames, paletteDataStore, err);
     if (!aniFrames) {
         return nullptr;
+    }
+
+    // Set tile priorities
+    {
+        auto it = aniFrames->tileMap.begin();
+        for (uint8_t tpData : input.tilePriorities.data) {
+            for (unsigned bit = 0; bit < 8; bit++) {
+                it->setOrder(tpData & 1);
+                it++;
+                tpData >>= 1;
+            }
+        }
+        assert(it == aniFrames->tileMap.end());
     }
 
     auto ret = std::make_unique<MetaTileTilesetData>(std::move(*aniFrames));

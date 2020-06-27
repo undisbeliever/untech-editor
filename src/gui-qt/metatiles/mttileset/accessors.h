@@ -46,11 +46,15 @@ public:
     void clearSelection();
 
     SelectedProperties selectedTileProperties() const;
+    std::array<Qt::CheckState, 4> selectedTilePriorities() const;
 
     void editSelectedTiles_setTileCollision(MT::TileCollisionType tc);
-
     void editTile_setTileCollision(size_t index, const MT::TileCollisionType& tc);
     void editTiles_setTileCollisions(const std::array<MT::TileCollisionType, MT::N_METATILES>& tileCollisions);
+
+    void editSelectedTiles_setTilePriority(unsigned subTile, bool value);
+    void editTiles_setTilePriority(unsigned metaTile, unsigned subTile, bool value);
+    void editTiles_setTilePriorities(const MT::TilePriorities& tilePriorities);
 
 protected:
     ArgsT selectedListTuple() const { return std::make_tuple(); }
@@ -59,6 +63,7 @@ signals:
     void selectedIndexesChanged();
 
     void tileCollisionsChanged();
+    void tilePrioritiesChanged();
 };
 
 class MtTilesetScratchpadGrid : public Accessor::AbstractGridAccessor {

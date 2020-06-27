@@ -45,6 +45,65 @@ enum class TileCollisionType : uint8_t {
 };
 constexpr uint8_t N_TILE_COLLISONS = 17;
 
+struct TilePriorities {
+    constexpr static unsigned PRIORITIES_PER_TILE = 4;
+
+    // Cannot use a std::array<bool, N> for tile priority it's not bit packed.
+    // Cannot use a std::bitset<N> as it cannot be converted to a byte array/vector for serialization.
+    // Bit order matches `MetaTileTilesetData::tileMap` order.
+    std::array<uint8_t, N_METATILES * PRIORITIES_PER_TILE / 8> data;
+
+    TilePriorities()
+        : data{}
+    {
+    }
+
+    static unsigned bitIndex(unsigned metaTile, unsigned subTile)
+    {
+        metaTile %= N_METATILES;
+
+        const bool sx = subTile & 1;
+        const bool sy = (subTile >> 1) & 1;
+
+        const unsigned x = (metaTile % TILESET_WIDTH) * 2 + sx;
+        const unsigned y = (metaTile & ~(TILESET_WIDTH - 1)) * 4 + sy * TILESET_WIDTH * 2;
+
+        return y + x;
+    }
+
+    bool getTilePriority(unsigned metaTile, unsigned subTile) const
+    {
+        const unsigned bi = bitIndex(metaTile, subTile);
+        const unsigned byteIndex = bi / 8;
+        const unsigned shift = bi % 8;
+
+        return (data.at(byteIndex) >> (shift)) & 1;
+    }
+
+    void setTilePriority(unsigned metaTile, unsigned subTile, bool v)
+    {
+        const unsigned bi = bitIndex(metaTile, subTile);
+        const unsigned byteIndex = bi / 8;
+        const unsigned shift = bi % 8;
+
+        data.at(byteIndex) = (data.at(byteIndex) & ~(1 << shift)) | (v << shift);
+    }
+
+    std::pair<unsigned, uint8_t> indexDataPairToSetTilePriority(unsigned metaTile, unsigned subTile, bool v) const
+    {
+        const unsigned bi = bitIndex(metaTile, subTile);
+        const unsigned byteIndex = bi / 8;
+        const unsigned shift = bi % 8;
+
+        return { byteIndex, (data.at(byteIndex) & ~(1 << shift)) | (v << shift) };
+    }
+
+    bool operator==(const TilePriorities& o) const
+    {
+        return data == o.data;
+    }
+};
+
 struct MetaTileTilesetInput {
     static const std::string FILE_EXTENSION;
 
@@ -56,6 +115,7 @@ struct MetaTileTilesetInput {
     std::vector<idstring> palettes;
     Resources::AnimationFramesInput animationFrames;
     std::array<TileCollisionType, N_METATILES> tileCollisions;
+    TilePriorities tilePriorities;
     grid<uint8_t> scratchpad;
 
     MetaTileTilesetInput();
@@ -66,6 +126,8 @@ struct MetaTileTilesetInput {
         return name == o.name
                && palettes == o.palettes
                && animationFrames == o.animationFrames
+               && tileCollisions == o.tileCollisions
+               && tilePriorities == o.tilePriorities
                && scratchpad == o.scratchpad;
     }
     bool operator!=(const MetaTileTilesetInput& o) const { return !(*this == o); }

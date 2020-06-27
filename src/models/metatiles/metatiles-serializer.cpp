@@ -112,6 +112,19 @@ static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tile
     }
 }
 
+static void readTilePriorities(XmlReader& xml, const XmlTag*, MetaTileTilesetInput& tilesetInput)
+{
+    // <tile-priorities> tag
+    xml.parseBase64ToByteArray(tilesetInput.tilePriorities.data);
+}
+
+static void writeTilePriorities(XmlWriter& xml, const TilePriorities& tilePriorities)
+{
+    xml.writeTag("tile-priorities");
+    xml.writeBase64(tilePriorities.data);
+    xml.writeCloseTag();
+}
+
 static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml, const XmlTag* tag)
 {
     if (tag == nullptr || tag->name != "metatile-tileset") {
@@ -119,6 +132,8 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
     }
 
     bool readAnimationFramesTag = false;
+    bool readScratchpadTag = false;
+    bool readTilePrioritiesTag = false;
 
     auto tilesetInput = std::make_unique<MetaTileTilesetInput>();
 
@@ -140,7 +155,20 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
             readTileProperties(childTag.get(), *tilesetInput);
         }
         else if (childTag->name == "scratchpad") {
+            if (readScratchpadTag) {
+                throw xml_error(*childTag, "Only one <scratchpad> tag allowed");
+            }
+            readScratchpadTag = true;
+
             tilesetInput->scratchpad = readMetaTileGrid(xml, childTag.get());
+        }
+        else if (childTag->name == "tile-priorities") {
+            if (readTilePrioritiesTag) {
+                throw xml_error(*childTag, "Only one <tile-priorities> tag allowed");
+            }
+            readTilePrioritiesTag = true;
+
+            readTilePriorities(xml, childTag.get(), *tilesetInput);
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -165,6 +193,7 @@ void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input
     }
 
     writeTileProperties(xml, input);
+    writeTilePriorities(xml, input.tilePriorities);
 
     Resources::writeAnimationFramesInput(xml, input.animationFrames);
 

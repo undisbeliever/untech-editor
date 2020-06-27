@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/metatiles/metatile-tileset.h"
+#include <QCheckBox>
 #include <QToolButton>
 #include <QWidget>
 #include <memory>
@@ -42,10 +43,13 @@ private slots:
     void updateGui();
 
     void onCollisonTypeButtonClicked(int buttonIndex);
+    void onTilePriorityClicked(int subTileIndex);
 
 private:
     std::unique_ptr<Ui::TilePropertiesWidget> const _ui;
     QButtonGroup* const _collisionTypeButtons;
+    QButtonGroup* const _tilePriorityButtonGroup;
+    std::array<QCheckBox* const, 4> _tilePriorityCheckBoxes;
 
     MtTilesetTileParameters* _tileProperties;
 };

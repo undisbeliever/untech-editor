@@ -21,6 +21,13 @@ TilePropertiesWidget::TilePropertiesWidget(QWidget* parent)
     : QWidget(parent)
     , _ui(new Ui::TilePropertiesWidget)
     , _collisionTypeButtons(new QButtonGroup(this))
+    , _tilePriorityButtonGroup(new QButtonGroup(this))
+    , _tilePriorityCheckBoxes{
+        new QCheckBox(this),
+        new QCheckBox(this),
+        new QCheckBox(this),
+        new QCheckBox(this),
+    }
     , _tileProperties(nullptr)
 {
     using TC = MT::TileCollisionType;
@@ -75,12 +82,39 @@ TilePropertiesWidget::TilePropertiesWidget(QWidget* parent)
         assert(_ui->tileCollisionTypeGrid->count() == MT::N_TILE_COLLISONS);
     }
 
+    {
+        _tilePriorityButtonGroup->setExclusive(false);
+
+        auto setupButton = [&](int id, const QString& text) {
+            auto* cb = _tilePriorityCheckBoxes.at(id);
+            cb->setText(text);
+            cb->setTristate(true);
+
+            _tilePriorityButtonGroup->addButton(cb, id);
+
+            _ui->tilePriorityGrid->addWidget(cb, id / 2, id % 2);
+        };
+
+        setupButton(0, tr("Top Left"));
+        setupButton(1, tr("Top Right"));
+        setupButton(2, tr("Bottom Left"));
+        setupButton(3, tr("Bottom Right"));
+    }
+
 #if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     connect(_collisionTypeButtons, &QButtonGroup::idClicked,
             this, &TilePropertiesWidget::onCollisonTypeButtonClicked);
 #else
     connect(_collisionTypeButtons, qOverload<int>(&QButtonGroup::buttonClicked),
             this, &TilePropertiesWidget::onCollisonTypeButtonClicked);
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+    connect(_tilePriorityButtonGroup, &QButtonGroup::idClicked,
+            this, &TilePropertiesWidget::onTilePriorityClicked);
+#else
+    connect(_tilePriorityButtonGroup, qOverload<int>(&QButtonGroup::buttonClicked),
+            this, &TilePropertiesWidget::onTilePriorityClicked);
 #endif
 }
 
@@ -103,6 +137,8 @@ void TilePropertiesWidget::setResourceItem(ResourceItem* item)
         connect(_tileProperties, &MtTilesetTileParameters::selectedIndexesChanged,
                 this, &TilePropertiesWidget::updateGui);
         connect(_tileProperties, &MtTilesetTileParameters::tileCollisionsChanged,
+                this, &TilePropertiesWidget::updateGui);
+        connect(_tileProperties, &MtTilesetTileParameters::tilePrioritiesChanged,
                 this, &TilePropertiesWidget::updateGui);
     }
 
@@ -133,6 +169,7 @@ void TilePropertiesWidget::updateGui()
         || _tileProperties->selectedIndexes().empty()) {
 
         uncheckButtonGroup(_collisionTypeButtons);
+        uncheckButtonGroup(_tilePriorityButtonGroup);
 
         setEnabled(false);
     }
@@ -146,6 +183,11 @@ void TilePropertiesWidget::updateGui()
             uncheckButtonGroup(_collisionTypeButtons);
         }
 
+        const auto tilePriorities = _tileProperties->selectedTilePriorities();
+        for (unsigned i = 0; i < tilePriorities.size(); i++) {
+            _tilePriorityCheckBoxes.at(i)->setCheckState(tilePriorities.at(i));
+        }
+
         setEnabled(true);
     }
 }
@@ -156,5 +198,15 @@ void TilePropertiesWidget::onCollisonTypeButtonClicked(int buttonIndex)
         && buttonIndex >= 0 && buttonIndex < MT::N_TILE_COLLISONS) {
 
         _tileProperties->editSelectedTiles_setTileCollision(MT::TileCollisionType(buttonIndex));
+    }
+}
+
+void TilePropertiesWidget::onTilePriorityClicked(int subTileIndex)
+{
+    if (_tileProperties
+        && subTileIndex >= 0 && subTileIndex < int(_tilePriorityCheckBoxes.size())) {
+
+        bool b = _tilePriorityCheckBoxes.at(subTileIndex)->isChecked();
+        _tileProperties->editSelectedTiles_setTilePriority(subTileIndex, b);
     }
 }
