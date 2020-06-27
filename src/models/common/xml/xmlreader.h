@@ -8,6 +8,7 @@
 
 #include "xml.h"
 #include "../aabb.h"
+#include "../base64.h"
 #include "../string.h"
 #include "../stringparser.h"
 #include <cstdint>
@@ -87,7 +88,21 @@ public:
     std::string parseText();
 
     /** returns the base64 data at the current cursor */
-    std::vector<uint8_t> parseBase64();
+    std::vector<uint8_t> parseBase64OfUnknownSize();
+
+    /** returns the base64 data at the current cursor, throws xml_error if size of data != size */
+    std::vector<uint8_t> parseBase64OfKnownSize(const size_t expectedSize);
+
+    /** reads the base64 data into a byte array, throws xml_error if size of data != size of array. */
+    template <size_t N>
+    void parseBase64ToByteArray(std::array<uint8_t, N>& data)
+    {
+        const size_t bytesDecoded = Base64::decodeToBuffer(data.data(), data.size(), parseText());
+
+        if (bytesDecoded != data.size()) {
+            throw xml_error(*this, stringBuilder("Invalid data size. Got ", bytesDecoded, " bytes, expected ", data.size(), "."));
+        }
+    }
 
     /** This method will skip over any child/sibling text/tags in order to close the current tag */
     void parseCloseTag();

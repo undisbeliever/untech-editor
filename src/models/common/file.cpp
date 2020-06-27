@@ -147,6 +147,7 @@ void File::atomicWrite(const std::filesystem::path& filePath, const std::string&
     atomicWrite(filePath, data.data(), data.size());
 }
 
+// ::TODO replace with std::span when upgrading to c++20::
 #ifdef PLATFORM_WINDOWS
 void File::atomicWrite(const std::filesystem::path& filePath, const void* data, size_t size)
 {

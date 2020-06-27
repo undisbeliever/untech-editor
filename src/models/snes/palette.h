@@ -21,16 +21,16 @@ public:
     static_assert(BIT_DEPTH <= 8, "BIT_DEPTH too large");
 
     constexpr static size_t N_COLORS = 1 << BIT_DEPTH;
-    const static unsigned PIXEL_MASK = (1 << BIT_DEPTH) - 1;
+    constexpr static unsigned PIXEL_MASK = (1 << BIT_DEPTH) - 1;
 
-    typedef std::array<SnesColor, N_COLORS> palette_t;
+    using palette_t = std::array<SnesColor, N_COLORS>;
 
 public:
     Palette() = default;
-    Palette(const std::vector<uint8_t>& data)
+    Palette(const std::array<uint8_t, N_COLORS * 2>& data)
         : _colors()
     {
-        readPalette(data);
+        readPaletteData(data);
     }
 
     inline palette_t& colors() { return _colors; }
@@ -39,18 +39,12 @@ public:
     inline SnesColor& color(size_t pos) { return _colors[pos]; }
     inline const SnesColor& color(size_t pos) const { return _colors[pos]; }
 
-    /**
-     * Returns a vector containing 32 bytes which houses the SNES
-     * data format of the palette.
-     */
-    std::vector<uint8_t> paletteData() const;
+    std::array<uint8_t, N_COLORS * 2> paletteData() const;
 
     /**
      * Reads the palette data into this palette instance.
-     *
-     * If vector does not contain 32 bytes an exception will be thrown.
      */
-    void readPalette(const std::vector<uint8_t>& data);
+    void readPaletteData(const std::array<uint8_t, N_COLORS * 2>& data);
 
     bool operator==(const Palette& o) const { return _colors == o._colors; }
     bool operator!=(const Palette& o) const { return _colors != o._colors; }

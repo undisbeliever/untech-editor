@@ -152,13 +152,18 @@ void XmlWriter::writeText(const std::string& text)
     }
 }
 
-void XmlWriter::writeBase64(const std::vector<uint8_t>& data)
+void XmlWriter::writeBase64(const uint8_t* data, const size_t size)
 {
     if (_inTag) {
         writeCloseTagHead();
     }
 
-    Base64::encode(data, _file, _tagStack.size() * 2);
+    Base64::encode(data, size, _file, _tagStack.size() * 2);
+}
+
+void XmlWriter::writeBase64(const std::vector<uint8_t>& data)
+{
+    writeBase64(data.data(), data.size());
 }
 
 void XmlWriter::writeCloseTag()

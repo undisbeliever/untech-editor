@@ -73,13 +73,8 @@ grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
     const unsigned height = tag->getAttributeUnsigned("height", 1, MAX_GRID_HEIGHT);
     const unsigned expectedDataSize = width * height;
 
-    auto data = xml.parseBase64();
-
-    if (data.size() != expectedDataSize) {
-        throw xml_error(*tag, stringBuilder("Invalid data size. Got ", data.size(), " bytes, expected ", expectedDataSize, "."));
-    }
-
-    return grid<uint8_t>(width, height, std::move(data));
+    return grid<uint8_t>(width, height,
+                         xml.parseBase64OfKnownSize(expectedDataSize));
 }
 
 void writeMetaTileGrid(XmlWriter& xml, const std::string& tagName, const grid<uint8_t>& mtGrid)

@@ -183,7 +183,7 @@ private:
     {
         assert(tag->name == "smalltileset");
 
-        const auto data = xml.parseBase64();
+        const auto data = xml.parseBase64OfUnknownSize();
 
         assert(frameSet.smallTileset.snesTileSize() == 32);
         if ((data.size() % 32) != 0) {
@@ -197,7 +197,7 @@ private:
     {
         assert(tag->name == "largetileset");
 
-        const auto data = xml.parseBase64();
+        const auto data = xml.parseBase64OfUnknownSize();
 
         static_assert(Snes::TilesetTile16::SNES_TILE_SIZE == 128, "Bad assumption");
         if ((data.size() % 128) != 0) {
@@ -209,16 +209,11 @@ private:
 
     inline void readPalette(const XmlTag* tag)
     {
-        const static unsigned N_COLORS = 16;
-
         assert(tag->name == "palette");
 
-        const auto data = xml.parseBase64();
+        std::array<uint8_t, 32> data;
 
-        static_assert(N_COLORS * 2 == 32, "Bad assumption");
-        if (data.size() != 32) {
-            throw xml_error(*tag, "Palette data must contain 32 bytes");
-        }
+        xml.parseBase64ToByteArray(data);
 
         frameSet.palettes.emplace_back(data);
     }

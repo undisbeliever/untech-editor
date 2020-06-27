@@ -5,6 +5,7 @@
  */
 
 #include "base64.h"
+#include <cassert>
 #include <sstream>
 #include <stdexcept>
 
@@ -19,7 +20,7 @@ char lookup[64] = {
     '+', '/'
 };
 
-void Base64::encode(const std::vector<uint8_t>& data, std::ostream& file, unsigned indent)
+void Base64::encode(const uint8_t* ptr, const size_t size, std::ostream& file, unsigned indent)
 {
     const unsigned CHARS_PER_LINE = 64;
     const unsigned BLOCKS_PER_LINE = CHARS_PER_LINE / 4;
@@ -28,8 +29,7 @@ void Base64::encode(const std::vector<uint8_t>& data, std::ostream& file, unsign
         file.put(' ');
     }
 
-    const uint8_t* ptr = data.data();
-    const uint8_t* endPtr = data.data() + data.size();
+    const uint8_t* const endPtr = ptr + size;
 
     uint8_t tmp0, tmp1, tmp2, tmp3;
 
@@ -94,6 +94,11 @@ void Base64::encode(const std::vector<uint8_t>& data, std::ostream& file, unsign
     }
 }
 
+void Base64::encode(const std::vector<uint8_t>& data, std::ostream& file, unsigned indent)
+{
+    encode(data.data(), data.size(), file, indent);
+}
+
 inline uint8_t get_val(const char& c)
 {
     if (c >= 'A' && c <= 'Z') {
@@ -116,25 +121,32 @@ inline uint8_t get_val(const char& c)
     }
 }
 
-std::vector<uint8_t> Base64::decode(const std::string& text)
+// ::TODO replace with std::span when upgrading to c++20::
+size_t Base64::decodeToBuffer(uint8_t* buffer, const size_t bufferSize, const std::string& text)
 {
-    std::vector<uint8_t> out;
-
     uint8_t token, tmp;
 
     const char* ptr = text.c_str();
     const char* ptrEnd = text.c_str() + text.size();
 
+    size_t bytesDecoded = 0;
+    auto writeByte = [&](const uint8_t b) {
+        if (bytesDecoded < bufferSize) {
+            buffer[bytesDecoded] = b;
+        }
+        bytesDecoded++;
+    };
+
 #define NEXT_TOKEN()                              \
     if (ptr < ptrEnd) {                           \
         while ((token = get_val(*ptr++)) >= 64) { \
             if (ptr >= ptrEnd) {                  \
-                return out;                       \
+                return bytesDecoded;              \
             }                                     \
         }                                         \
     }                                             \
     else {                                        \
-        return out;                               \
+        return bytesDecoded;                      \
     }
 
     while (ptr < ptrEnd) {
@@ -142,15 +154,28 @@ std::vector<uint8_t> Base64::decode(const std::string& text)
         tmp = token << 2;
 
         NEXT_TOKEN()
-        out.push_back(tmp | (token >> 4));
+        writeByte(tmp | (token >> 4));
         tmp = (token & 0x0F) << 4;
 
         NEXT_TOKEN()
-        out.push_back(tmp | (token >> 2));
+        writeByte(tmp | (token >> 2));
         tmp = (token & 0x03) << 6;
 
         NEXT_TOKEN()
-        out.push_back(tmp | token);
+        writeByte(tmp | token);
     }
+
+    return bytesDecoded;
+}
+
+std::vector<uint8_t> Base64::decode(const std::string& text)
+{
+    std::vector<uint8_t> out(text.size() * 6 / 8 + 16);
+
+    const size_t bytesDecoded = decodeToBuffer(out.data(), out.size(), text);
+    assert(bytesDecoded <= out.size());
+
+    out.resize(bytesDecoded);
+
     return out;
 }

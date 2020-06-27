@@ -313,9 +313,20 @@ std::string XmlReader::parseText()
     return text;
 }
 
-std::vector<uint8_t> XmlReader::parseBase64()
+std::vector<uint8_t> XmlReader::parseBase64OfUnknownSize()
 {
     return Base64::decode(parseText());
+}
+
+std::vector<uint8_t> XmlReader::parseBase64OfKnownSize(const size_t expectedSize)
+{
+    auto data = parseBase64OfUnknownSize();
+
+    if (data.size() != expectedSize) {
+        throw xml_error(*this, stringBuilder("Invalid data size. Got ", data.size(), " bytes, expected ", expectedSize, "."));
+    }
+
+    return data;
 }
 
 void XmlReader::parseCloseTag()

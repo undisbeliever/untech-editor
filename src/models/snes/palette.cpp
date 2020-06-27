@@ -5,32 +5,31 @@
  */
 
 #include "palette.h"
+#include <cassert>
 #include <stdexcept>
 
 using namespace UnTech;
 using namespace UnTech::Snes;
 
 template <size_t BIT_DEPTH>
-inline std::vector<uint8_t> Palette<BIT_DEPTH>::paletteData() const
+auto Palette<BIT_DEPTH>::paletteData() const -> std::array<uint8_t, N_COLORS * 2>
 {
-    std::vector<uint8_t> data(N_COLORS * 2);
-    auto* ptr = data.data();
+    std::array<uint8_t, std::tuple_size<palette_t>::value * 2> data;
+    auto it = data.begin();
 
     for (const auto& c : _colors) {
-        *ptr++ = c.data() & 0xFF;
-        *ptr++ = c.data() >> 8;
+        *it++ = c.data() & 0xFF;
+        *it++ = c.data() >> 8;
     }
+    assert(it == data.end());
 
     return data;
 }
 
+// ::TODO replace with std::span when upgrading to c++20::
 template <size_t BIT_DEPTH>
-inline void Palette<BIT_DEPTH>::readPalette(const std::vector<uint8_t>& data)
+void Palette<BIT_DEPTH>::readPaletteData(const std::array<uint8_t, N_COLORS * 2>& data)
 {
-    if (data.size() != N_COLORS * 2) {
-        throw std::runtime_error("Palette data must contain 32 bytes");
-    }
-
     for (unsigned i = 0; i < N_COLORS; i++) {
         _colors[i].setData((data[i * 2 + 1] << 8) | data[i * 2]);
     }
