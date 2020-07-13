@@ -14,6 +14,7 @@
 #include "models/metasprite/frameset-exportorder.h"
 #include "models/metasprite/framesetfile.h"
 #include "models/metatiles/common.h"
+#include "models/metatiles/interactive-tiles.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/resources/background-image.h"
 #include "models/resources/palette.h"
@@ -32,6 +33,7 @@ struct ProjectFile {
     MemoryMapSettings memoryMap;
     Rooms::RoomSettings roomSettings;
 
+    MetaTiles::InteractiveTiles interactiveTiles;
     Entity::EntityRomData entityRomData;
     Resources::ResourceScenes resourceScenes;
 
@@ -53,6 +55,7 @@ struct ProjectFile {
     {
         return memoryMap == o.memoryMap
                && roomSettings == o.roomSettings
+               && interactiveTiles == o.interactiveTiles
                && entityRomData == o.entityRomData
                && resourceScenes == o.resourceScenes
                && palettes == o.palettes

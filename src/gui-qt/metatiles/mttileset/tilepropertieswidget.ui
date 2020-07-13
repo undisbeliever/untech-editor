@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>200</width>
-    <height>60</height>
+    <height>84</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,15 +24,25 @@
    <item row="0" column="1">
     <layout class="QGridLayout" name="tileCollisionTypeGrid"/>
    </item>
-   <item row="2" column="1">
-    <layout class="QGridLayout" name="tilePriorityGrid"/>
-   </item>
    <item row="2" column="0">
     <widget class="QLabel" name="tilePriorityLabel">
      <property name="text">
       <string>Tile Priority:</string>
      </property>
     </widget>
+   </item>
+   <item row="2" column="1">
+    <layout class="QGridLayout" name="tilePriorityGrid"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="functionTableLabel">
+     <property name="text">
+      <string>Function Table:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="functionTableCombo"/>
    </item>
   </layout>
  </widget>

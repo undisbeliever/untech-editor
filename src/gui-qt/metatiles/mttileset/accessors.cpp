@@ -54,15 +54,24 @@ MtTilesetTileParameters::SelectedProperties MtTilesetTileParameters::selectedTil
 
     if (data == nullptr || _selectedIndexes.empty()) {
         state.tileCollisionSame = false;
+        state.functionTableSame = false;
     }
     else {
         state.tileCollision = data->tileCollisions.at(_selectedIndexes.front());
         state.tileCollisionSame = true;
 
+        state.functionTable = data->tileFunctionTables.at(_selectedIndexes.front());
+        state.functionTableSame = true;
+
         for (auto it = _selectedIndexes.begin() + 1; it != _selectedIndexes.end(); it++) {
             const auto& tc = data->tileCollisions.at(*it);
             if (tc != state.tileCollision) {
                 state.tileCollisionSame = false;
+            }
+
+            const auto& ft = data->tileFunctionTables.at(*it);
+            if (ft != state.functionTable) {
+                state.functionTableSame = false;
             }
         }
     }
@@ -139,6 +148,49 @@ void MtTilesetTileParameters::editTiles_setTileCollisions(const std::array<MT::T
         tr("Edit Tile Collisions"),
         [=](MT::MetaTileTilesetInput & ts) -> auto& { return ts.tileCollisions; },
         [](ResourceItem& ri) { emit ri.tileParameters()->tileCollisionsChanged(); });
+}
+
+void MtTilesetTileParameters::editSelectedTiles_setFunctionTable(const idstring& ft)
+{
+    assert(_tileset);
+    const MT::MetaTileTilesetInput* data = _tileset->data();
+    if (data == nullptr
+        || _selectedIndexes.empty()) {
+        return;
+    }
+
+    if (_selectedIndexes.size() == 1) {
+        editTile_setFunctionTable(_selectedIndexes.front(), ft);
+    }
+    else {
+        auto tileFunctionTables = data->tileFunctionTables;
+        for (auto i : _selectedIndexes) {
+            tileFunctionTables.at(i) = ft;
+        }
+        editTiles_setFunctionTables(tileFunctionTables);
+    }
+}
+
+void MtTilesetTileParameters::editTile_setFunctionTable(size_t index, const idstring& ft)
+{
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
+
+    UndoHelper(_tileset).editField(
+        ft,
+        tr("Edit Tile Function Table"),
+        [=](MT::MetaTileTilesetInput& ts) -> idstring& { return ts.tileFunctionTables.at(index); },
+        [](ResourceItem& ri) { emit ri.tileParameters()->tileFunctionTablesChanged(); });
+}
+
+void MtTilesetTileParameters::editTiles_setFunctionTables(const std::array<idstring, MT::N_METATILES>& tileFunctionTables)
+{
+    using UndoHelper = Accessor::ResourceItemUndoHelper<ResourceItem>;
+
+    UndoHelper(_tileset).editField(
+        tileFunctionTables,
+        tr("Edit Tile Function Tables"),
+        [=](MT::MetaTileTilesetInput & ts) -> auto& { return ts.tileFunctionTables; },
+        [](ResourceItem& ri) { emit ri.tileParameters()->tileFunctionTablesChanged(); });
 }
 
 void MtTilesetTileParameters::editSelectedTiles_setTilePriority(unsigned subTile, bool value)

@@ -5,6 +5,7 @@
  */
 
 #include "metatile-tileset.h"
+#include "interactive-tiles.h"
 #include "models/common/bytevectorhelper.h"
 #include "models/common/errorlist.h"
 #include "models/common/imagecache.h"
@@ -62,6 +63,7 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
                                                     const Project::DataStore<Resources::PaletteData>& paletteDataStore,
+                                                    const InteractiveTilesData& interactiveTilesData,
                                                     ErrorList& err)
 
 {
@@ -69,6 +71,11 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     if (!valid) {
         return nullptr;
     }
+
+    auto addError = [&](const auto& item, const auto&... msg) {
+        err.addError(std::make_unique<ListItemError>(&item, msg...));
+        valid = false;
+    };
 
     auto aniFrames = Resources::convertAnimationFrames(input.animationFrames, paletteDataStore, err);
     if (!aniFrames) {
@@ -93,7 +100,19 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     ret->palettes = input.palettes;
     ret->tileCollisions = input.tileCollisions;
 
-    valid = ret->validate(err);
+    // Set Tile Function Tables
+    for (unsigned i = 0; i < N_METATILES; i++) {
+        const auto& ft = input.tileFunctionTables.at(i);
+
+        const auto it = interactiveTilesData.tileFunctionMap.find(ft);
+        if (it == interactiveTilesData.tileFunctionMap.end()) {
+            addError(ft, "Unknown Interactive Tile Function Table ", ft);
+        }
+
+        ret->tileFunctionTables.at(i) = it->second;
+    }
+
+    valid &= ret->validate(err);
     if (!valid) {
         return nullptr;
     }
@@ -155,9 +174,8 @@ static uint8_t convertTileCollisionType(const TileCollisionType& tc)
 std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
 {
     constexpr size_t TILEMAP_SIZE = N_METATILES * 4 * 2;
-    constexpr size_t COLLISON_SIZE = N_METATILES;
 
-    std::vector<uint8_t> out(TILEMAP_SIZE + COLLISON_SIZE, 0);
+    std::vector<uint8_t> out(TILEMAP_SIZE + N_METATILES * 2, 0);
 
     assert(animatedTileset.tileMap.width() == TILESET_WIDTH * 2);
     assert(animatedTileset.tileMap.height() == TILESET_HEIGHT * 2);
@@ -190,12 +208,19 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
         assert(unsigned(tc) < N_TILE_COLLISONS);
         *outIt++ = convertTileCollisionType(tc);
     }
+
+    // Function Table data
+    for (const auto& tf : tileFunctionTables) {
+        static_assert(MAX_INTERACTIVE_TILE_FUNCTION_TABLES < UINT8_MAX / 2);
+        assert(tf < MAX_INTERACTIVE_TILE_FUNCTION_TABLES);
+        *outIt++ = tf * 2;
+    }
     assert(outIt == out.end());
 
     return out;
 }
 
-const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 7;
+const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 8;
 
 std::vector<uint8_t>
 MetaTileTilesetData::exportSnesData() const

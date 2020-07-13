@@ -86,7 +86,7 @@ struct XmlTag {
         }
     }
 
-    inline std::string getAttributeOptionalId(const std::string& aName) const
+    inline idstring getAttributeOptionalId(const std::string& aName) const
     {
         auto it = attributes.find(aName);
         if (it != attributes.end()) {

@@ -17,6 +17,9 @@ struct ErrorListItem;
 
 namespace GuiQt {
 namespace MetaTiles {
+namespace InteractiveTiles {
+class ResourceItem;
+}
 namespace MtTileset {
 namespace Ui {
 class TilePropertiesWidget;
@@ -40,10 +43,12 @@ private:
     static void checkButtonInGroup(QButtonGroup* group, int id);
 
 private slots:
+    void updateFunctionTableCombo();
     void updateGui();
 
     void onCollisonTypeButtonClicked(int buttonIndex);
     void onTilePriorityClicked(int subTileIndex);
+    void onFunctionTableComboActivated();
 
 private:
     std::unique_ptr<Ui::TilePropertiesWidget> const _ui;
@@ -52,6 +57,7 @@ private:
     std::array<QCheckBox* const, 4> _tilePriorityCheckBoxes;
 
     MtTilesetTileParameters* _tileProperties;
+    MetaTiles::InteractiveTiles::ResourceItem* _interactiveTiles;
 };
 
 }

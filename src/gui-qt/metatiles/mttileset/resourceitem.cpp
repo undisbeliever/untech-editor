@@ -9,7 +9,9 @@
 #include "resourcelist.h"
 #include "gui-qt/accessor/resourceitemundohelper.h"
 #include "gui-qt/common/helpers.h"
+#include "gui-qt/metatiles/interactive-tiles/resourceitem.h"
 #include "gui-qt/project.h"
+#include "gui-qt/staticresourcelist.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/project/project-data.h"
 
@@ -48,6 +50,7 @@ void ResourceItem::updateDependencies()
     Q_ASSERT(tileset);
 
     QVector<Dependency> deps;
+    deps.append({ ResourceTypeIndex::STATIC, project()->staticResources()->interactiveTiles()->name() });
     deps.append({ ResourceTypeIndex::PALETTE, QString::fromStdString(tileset->animationFrames.conversionPalette) });
     for (auto& p : tileset->palettes) {
         deps.append({ ResourceTypeIndex::PALETTE, QString::fromStdString(p) });

@@ -100,6 +100,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         { "Resources.BACKGROUND_IMAGE_FORMAT_VERSION", Resources::BackgroundImageData::BACKGROUND_IMAGE_FORMAT_VERSION },
         { "Resources.SCENE_FORMAT_VERSION", Resources::CompiledScenesData::SCENE_FORMAT_VERSION },
         { "MetaTiles.TILESET_FORMAT_VERSION", MetaTiles::MetaTileTilesetData::TILESET_FORMAT_VERSION },
+        { "MetaTiles.INTERACTIVE_TILES_FORMAT_VERSION", MetaTiles::INTERACTIVE_TILES_FORMAT_VERSION },
         { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
         { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
         { "Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
@@ -150,6 +151,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         return nullptr;
     }
 
+    compileFunction(&ProjectData::compileInteractiveTiles, "Interactive Tiles");
     compileFunction(&ProjectData::compileEntityRomData, "Entity ROM Data");
     // no !valid test needed, unused by resources subsystem (only used in rooms)
 
@@ -198,7 +200,6 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     ret->binaryData = writer.writeBinaryData();
 
     writer.writeIncData(ret->incData, relativeBinFilename);
-
     writeIncList(ret->incData, "Project.RoomList", projectData.rooms());
 
     MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);
@@ -209,6 +210,8 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     MetaSprite::Compiler::writeActionPointFunctionTables(input.actionPointFunctions, ret->incData);
     Resources::writeSceneIncData(input.resourceScenes, ret->incData);
     ret->incData << projectData.entityRomData()->functionTableData;
+
+    MetaTiles::writeFunctionTables(ret->incData, input.interactiveTiles);
 
     ret->incData << std::endl;
 

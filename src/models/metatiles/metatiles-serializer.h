@@ -7,6 +7,7 @@
 #pragma once
 
 #include "common.h"
+#include "interactive-tiles.h"
 #include "metatile-tileset.h"
 #include "models/common/errorlist.h"
 #include "models/common/xml/xmlreader.h"
@@ -32,6 +33,10 @@ void writeMetaTileTilesetInput(Xml::XmlWriter& xml, const MetaTileTilesetInput& 
 
 grid<uint8_t> readMetaTileGrid(Xml::XmlReader& xml, const Xml::XmlTag* tag);
 void writeMetaTileGrid(Xml::XmlWriter& xml, const std::string& tagName, const grid<uint8_t>& mtGrid);
+
+// raises an exception on error
+void readInteractiveTiles(Xml::XmlReader& xml, const Xml::XmlTag* tag, InteractiveTiles& interactiveTiles);
+void writeInteractiveTiles(Xml::XmlWriter& xml, const InteractiveTiles& interactiveTiles);
 
 }
 }

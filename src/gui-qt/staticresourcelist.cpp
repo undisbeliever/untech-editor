@@ -10,6 +10,7 @@
 #include "entity/entity-rom-entries/resourceitem.h"
 #include "entity/entity-rom-structs/resourceitem.h"
 #include "metasprite/actionpoints/resourceitem.h"
+#include "metatiles/interactive-tiles/resourceitem.h"
 #include "project-settings/resourceitem.h"
 #include "resources/scene-settings/resourceitem.h"
 #include "resources/scenes/resourceitem.h"
@@ -21,6 +22,7 @@ namespace EN = UnTech::Entity;
 StaticResourceList::StaticResourceList(Project* project)
     : AbstractResourceList(project, ResourceTypeIndex::STATIC)
     , _projectSettings(new ProjectSettings::ResourceItem(this, PROJECT_SETTINGS))
+    , _interactiveTiles(new MetaTiles::InteractiveTiles::ResourceItem(this, INTERACTIVE_TILES))
     , _actionPoints(new MetaSprite::ActionPoints::ResourceItem(this, ACTION_POINTS))
     , _entityRomStructs(new Entity::EntityRomStructs::ResourceItem(this, ENTITY_ROM_STRUCTS))
     , _entityFunctionTables(new Entity::EntityFunctionTables::ResourceItem(this, ENTITY_FUNCTION_TABLES))
@@ -59,6 +61,9 @@ AbstractResourceItem* StaticResourceList::buildResourceItem(size_t index)
     switch (static_cast<Indexes>(index)) {
     case PROJECT_SETTINGS:
         return _projectSettings;
+
+    case INTERACTIVE_TILES:
+        return _interactiveTiles;
 
     case ACTION_POINTS:
         return _actionPoints;

@@ -106,12 +106,18 @@ bool ProjectData::compileBackgroundImage(size_t index, ErrorList& err)
 
 bool ProjectData::compileMetaTiles(size_t index, ErrorList& err)
 {
-    return compileExternalFileListItem(MetaTiles::convertTileset, _metaTileTilesets, _project.metaTileTilesets, index, err, _palettes);
+    return compileExternalFileListItem(MetaTiles::convertTileset, _metaTileTilesets, _project.metaTileTilesets, index, err, _palettes, _interactiveTiles);
 }
 
 bool ProjectData::compileRoom(size_t index, ErrorList& err)
 {
     return compileExternalFileListItem(Rooms::compileRoom, _rooms, _project.rooms, index, err, _scenes, _entityRomData, _project.roomSettings);
+}
+
+bool ProjectData::compileInteractiveTiles(ErrorList& err)
+{
+    _interactiveTiles = MetaTiles::convertInteractiveTiles(_project.interactiveTiles, err);
+    return _interactiveTiles != nullptr;
 }
 
 bool ProjectData::compileSceneSettings(ErrorList& err)

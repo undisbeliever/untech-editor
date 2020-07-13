@@ -17,5 +17,8 @@ constexpr unsigned MAX_GRID_WIDTH = 255;
 constexpr unsigned MAX_GRID_HEIGHT = 255;
 
 constexpr static unsigned METATILE_SIZE_PX = 16;
+
+constexpr static unsigned MAX_INTERACTIVE_TILE_FUNCTION_TABLES = 32;
+
 }
 }

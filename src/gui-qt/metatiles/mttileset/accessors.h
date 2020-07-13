@@ -28,6 +28,9 @@ public:
     struct SelectedProperties {
         MT::TileCollisionType tileCollision;
         bool tileCollisionSame;
+
+        idstring functionTable;
+        bool functionTableSame;
     };
 
 private:
@@ -52,6 +55,10 @@ public:
     void editTile_setTileCollision(size_t index, const MT::TileCollisionType& tc);
     void editTiles_setTileCollisions(const std::array<MT::TileCollisionType, MT::N_METATILES>& tileCollisions);
 
+    void editSelectedTiles_setFunctionTable(const idstring& ft);
+    void editTile_setFunctionTable(size_t index, const idstring& ft);
+    void editTiles_setFunctionTables(const std::array<idstring, MT::N_METATILES>& tileFunctionTables);
+
     void editSelectedTiles_setTilePriority(unsigned subTile, bool value);
     void editTiles_setTilePriority(unsigned metaTile, unsigned subTile, bool value);
     void editTiles_setTilePriorities(const MT::TilePriorities& tilePriorities);
@@ -63,6 +70,7 @@ signals:
     void selectedIndexesChanged();
 
     void tileCollisionsChanged();
+    void tileFunctionTablesChanged();
     void tilePrioritiesChanged();
 };
 

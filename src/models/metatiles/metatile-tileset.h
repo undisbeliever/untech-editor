@@ -18,6 +18,8 @@
 namespace UnTech {
 namespace MetaTiles {
 
+struct InteractiveTilesData;
+
 // ::KUDOS Christopher Hebert for the slope names::
 // ::: Reconstructing Cave Story: Slope Theory::
 // ::: https://www.youtube.com/watch?v=ny14i0GxGZw ::
@@ -113,8 +115,10 @@ struct MetaTileTilesetInput {
     // Will be shown in the map editor.
     // The first palette listed will be the one used to extract the animated tilesset.
     std::vector<idstring> palettes;
+
     Resources::AnimationFramesInput animationFrames;
     std::array<TileCollisionType, N_METATILES> tileCollisions;
+    std::array<idstring, N_METATILES> tileFunctionTables;
     TilePriorities tilePriorities;
     grid<uint8_t> scratchpad;
 
@@ -127,6 +131,7 @@ struct MetaTileTilesetInput {
                && palettes == o.palettes
                && animationFrames == o.animationFrames
                && tileCollisions == o.tileCollisions
+               && tileFunctionTables == o.tileFunctionTables
                && tilePriorities == o.tilePriorities
                && scratchpad == o.scratchpad;
     }
@@ -138,6 +143,7 @@ struct MetaTileTilesetData {
 
     idstring name;
     std::vector<idstring> palettes;
+    std::array<uint8_t, N_METATILES> tileFunctionTables;
     std::array<TileCollisionType, N_METATILES> tileCollisions;
 
     Resources::AnimatedTilesetData animatedTileset;
@@ -156,6 +162,7 @@ private:
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
                                                     const Project::DataStore<Resources::PaletteData>& paletteDataStore,
+                                                    const InteractiveTilesData& interactiveTilesData,
                                                     ErrorList& err);
 }
 }

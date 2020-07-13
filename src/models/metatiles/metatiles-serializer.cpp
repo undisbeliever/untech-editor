@@ -67,6 +67,41 @@ static const EnumMap<TileCollisionType> tileCollisonTypeEnumMap = {
 
 const std::string MetaTileTilesetInput::FILE_EXTENSION = "utmt";
 
+static void readInteractiveTileFunction(const XmlTag& tag, NamedList<InteractiveTileFunctionTable>& tileFunctions)
+{
+    tileFunctions.insert_back();
+    InteractiveTileFunctionTable& ft = tileFunctions.back();
+
+    ft.name = tag.getAttributeOptionalId("name");
+}
+
+void readInteractiveTiles(XmlReader& xml, const XmlTag* tag, InteractiveTiles& interactiveTiles)
+{
+    assert(tag->name == "interactive-tiles");
+
+    while (auto childTag = xml.parseTag()) {
+        if (childTag->name == "tile-function-table") {
+            readInteractiveTileFunction(*childTag, interactiveTiles.functionTables);
+        }
+        else {
+            throw unknown_tag_error(*childTag);
+        }
+
+        xml.parseCloseTag();
+    }
+}
+
+void writeInteractiveTiles(XmlWriter& xml, const InteractiveTiles& interactiveTiles)
+{
+    xml.writeTag("interactive-tiles");
+    for (auto& ft : interactiveTiles.functionTables) {
+        xml.writeTag("tile-function-table");
+        xml.writeTagAttribute("name", ft.name);
+        xml.writeCloseTag();
+    }
+    xml.writeCloseTag();
+}
+
 grid<uint8_t> readMetaTileGrid(XmlReader& xml, const XmlTag* tag)
 {
     const unsigned width = tag->getAttributeUnsigned("width", 1, MAX_GRID_WIDTH);
@@ -96,17 +131,22 @@ static void readTileProperties(const XmlTag* tag, MetaTileTilesetInput& tilesetI
 
     unsigned i = tag->getAttributeUnsigned("t", 0, N_METATILES - 1);
     tilesetInput.tileCollisions.at(i) = tag->getAttributeOptionalEnum("collision", tileCollisonTypeEnumMap, TileCollisionType::EMPTY);
+    tilesetInput.tileFunctionTables.at(i) = tag->getAttributeOptionalId("ft");
 }
 
 static void writeTileProperties(XmlWriter& xml, const MetaTileTilesetInput& tilesetInput)
 {
     for (unsigned i = 0; i < N_METATILES; i++) {
         const auto& tc = tilesetInput.tileCollisions.at(i);
+        const auto& ft = tilesetInput.tileFunctionTables.at(i);
 
-        if (tc != TileCollisionType::EMPTY) {
+        if (tc != TileCollisionType::EMPTY || ft.isValid()) {
             xml.writeTag("tile");
             xml.writeTagAttribute("t", i);
-            xml.writeTagAttributeEnum("collision", tc, tileCollisonTypeEnumMap);
+            if (tc != TileCollisionType::EMPTY) {
+                xml.writeTagAttributeEnum("collision", tc, tileCollisonTypeEnumMap);
+            }
+            xml.writeTagAttributeOptional("ft", ft);
             xml.writeCloseTag();
         }
     }
@@ -239,5 +279,6 @@ void saveMetaTileTilesetInput(const MetaTileTilesetInput& input, const std::file
     writeMetaTileTilesetInput(xml, input);
     file.commit();
 }
+
 }
 }

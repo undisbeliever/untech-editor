@@ -10,6 +10,7 @@
 #include "models/entity/entityromdata-serializer.h"
 #include "models/metasprite/actionpointfunctions-serializer.h"
 #include "models/metasprite/framesetfile-serializer.h"
+#include "models/metatiles/metatiles-serializer.h"
 #include "models/resources/resources-serializer.h"
 #include "models/rooms/rooms-serializer.h"
 
@@ -121,6 +122,9 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
         else if (childTag->name == "metatile-engine-settings") {
             // metatile-engine-settings has been removed, skip
         }
+        else if (childTag->name == "interactive-tiles") {
+            MetaTiles::readInteractiveTiles(xml, childTag.get(), project->interactiveTiles);
+        }
         else if (childTag->name == "room-settings") {
             if (readRoomSettingsTag) {
                 throw xml_error(*childTag, "Only one <room-settings> tag is allowed");
@@ -145,6 +149,7 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
 
     Project::writeMemoryMapSettings(xml, project.memoryMap);
     Rooms::writeRoomSettings(xml, project.roomSettings);
+    MetaTiles::writeInteractiveTiles(xml, project.interactiveTiles);
 
     Entity::writeEntityRomData(xml, project.entityRomData);
 

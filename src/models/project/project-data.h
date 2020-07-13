@@ -23,6 +23,7 @@ struct CompiledScenesData;
 }
 namespace MetaTiles {
 struct MetaTileTilesetData;
+struct InteractiveTilesData;
 }
 namespace Entity {
 struct CompiledEntityRomData;
@@ -137,6 +138,7 @@ class ProjectData {
     DataStore<MetaTiles::MetaTileTilesetData> _metaTileTilesets;
     DataStore<Rooms::RoomData> _rooms;
 
+    std::unique_ptr<const MetaTiles::InteractiveTilesData> _interactiveTiles;
     std::unique_ptr<const Resources::SceneSettingsData> _sceneSettings;
     std::unique_ptr<const Resources::CompiledScenesData> _scenes;
     std::unique_ptr<const Entity::CompiledEntityRomData> _entityRomData;
@@ -149,6 +151,7 @@ public:
     const DataStore<MetaTiles::MetaTileTilesetData>& metaTileTilesets() const { return _metaTileTilesets; }
     const DataStore<Rooms::RoomData>& rooms() const { return _rooms; }
 
+    const optional<const MetaTiles::InteractiveTilesData&> interactiveTiles() const { return _interactiveTiles; }
     const optional<const Resources::SceneSettingsData&> sceneSettings() const { return _sceneSettings; }
     const optional<const Resources::CompiledScenesData&> scenes() const { return _scenes; }
 
@@ -159,6 +162,7 @@ public:
     bool compileMetaTiles(size_t index, ErrorList& err);
     bool compileRoom(size_t index, ErrorList& err);
 
+    bool compileInteractiveTiles(ErrorList& err);
     bool compileSceneSettings(ErrorList& err);
     bool compileScenes(ErrorList& err);
 

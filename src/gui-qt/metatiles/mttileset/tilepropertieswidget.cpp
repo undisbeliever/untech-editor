@@ -8,7 +8,12 @@
 #include "accessors.h"
 #include "resourceitem.h"
 #include "tilecollisionpixmaps.h"
+#include "gui-qt/metatiles/interactive-tiles/resourceitem.h"
 #include "gui-qt/metatiles/mttileset/tilepropertieswidget.ui.h"
+#include "gui-qt/project.h"
+#include "gui-qt/staticresourcelist.h"
+#include "models/metatiles/interactive-tiles.h"
+#include "models/project/project.h"
 #include <QAbstractItemView>
 #include <QButtonGroup>
 #include <QListView>
@@ -29,6 +34,7 @@ TilePropertiesWidget::TilePropertiesWidget(QWidget* parent)
         new QCheckBox(this),
     }
     , _tileProperties(nullptr)
+    , _interactiveTiles(nullptr)
 {
     using TC = MT::TileCollisionType;
 
@@ -116,6 +122,9 @@ TilePropertiesWidget::TilePropertiesWidget(QWidget* parent)
     connect(_tilePriorityButtonGroup, qOverload<int>(&QButtonGroup::buttonClicked),
             this, &TilePropertiesWidget::onTilePriorityClicked);
 #endif
+
+    connect(_ui->functionTableCombo, qOverload<int>(&QComboBox::activated),
+            this, &TilePropertiesWidget::onFunctionTableComboActivated);
 }
 
 TilePropertiesWidget::~TilePropertiesWidget() = default;
@@ -123,8 +132,10 @@ TilePropertiesWidget::~TilePropertiesWidget() = default;
 void TilePropertiesWidget::setResourceItem(ResourceItem* item)
 {
     auto* tp = item ? item->tileParameters() : nullptr;
+    auto* interactiveTiles = item ? item->project()->staticResources()->interactiveTiles() : nullptr;
 
     if (_tileProperties == tp) {
+        Q_ASSERT(interactiveTiles == _interactiveTiles);
         return;
     }
 
@@ -133,15 +144,28 @@ void TilePropertiesWidget::setResourceItem(ResourceItem* item)
     }
     _tileProperties = tp;
 
+    if (_interactiveTiles) {
+        _interactiveTiles->disconnect(this);
+    }
+    _interactiveTiles = interactiveTiles;
+
     if (_tileProperties) {
         connect(_tileProperties, &MtTilesetTileParameters::selectedIndexesChanged,
                 this, &TilePropertiesWidget::updateGui);
         connect(_tileProperties, &MtTilesetTileParameters::tileCollisionsChanged,
                 this, &TilePropertiesWidget::updateGui);
+        connect(_tileProperties, &MtTilesetTileParameters::tileFunctionTablesChanged,
+                this, &TilePropertiesWidget::updateGui);
         connect(_tileProperties, &MtTilesetTileParameters::tilePrioritiesChanged,
                 this, &TilePropertiesWidget::updateGui);
     }
 
+    if (_interactiveTiles) {
+        connect(_interactiveTiles, &InteractiveTiles::ResourceItem::dataChanged,
+                this, &TilePropertiesWidget::updateFunctionTableCombo);
+    }
+
+    updateFunctionTableCombo();
     updateGui();
 }
 
@@ -163,6 +187,27 @@ void TilePropertiesWidget::checkButtonInGroup(QButtonGroup* group, int id)
     button->setChecked(true);
 }
 
+void TilePropertiesWidget::updateFunctionTableCombo()
+{
+    const auto* project = _interactiveTiles ? _interactiveTiles->project()->projectFile() : nullptr;
+
+    if (project == nullptr) {
+        _ui->functionTableCombo->clear();
+    }
+    else {
+        auto addItems = [&](const auto& list) {
+            for (const MT::InteractiveTileFunctionTable ft : list) {
+                _ui->functionTableCombo->addItem(QString::fromStdString(ft.name));
+            }
+        };
+        addItems(project->interactiveTiles.FIXED_FUNCTION_TABLES);
+        addItems(project->interactiveTiles.functionTables);
+
+        Q_ASSERT(_ui->functionTableCombo->itemText(0) == QStringLiteral("NoTileInteraction"));
+        _ui->functionTableCombo->setItemText(0, QString());
+    }
+}
+
 void TilePropertiesWidget::updateGui()
 {
     if (_tileProperties == nullptr
@@ -170,6 +215,7 @@ void TilePropertiesWidget::updateGui()
 
         uncheckButtonGroup(_collisionTypeButtons);
         uncheckButtonGroup(_tilePriorityButtonGroup);
+        _ui->functionTableCombo->setCurrentText(QStringLiteral("---"));
 
         setEnabled(false);
     }
@@ -181,6 +227,13 @@ void TilePropertiesWidget::updateGui()
         }
         else {
             uncheckButtonGroup(_collisionTypeButtons);
+        }
+
+        if (tp.functionTableSame) {
+            _ui->functionTableCombo->setCurrentText(QString::fromStdString(tp.functionTable));
+        }
+        else {
+            _ui->functionTableCombo->setCurrentText(QStringLiteral("---"));
         }
 
         const auto tilePriorities = _tileProperties->selectedTilePriorities();
@@ -208,5 +261,12 @@ void TilePropertiesWidget::onTilePriorityClicked(int subTileIndex)
 
         bool b = _tilePriorityCheckBoxes.at(subTileIndex)->isChecked();
         _tileProperties->editSelectedTiles_setTilePriority(subTileIndex, b);
+    }
+}
+
+void TilePropertiesWidget::onFunctionTableComboActivated()
+{
+    if (_tileProperties) {
+        _tileProperties->editSelectedTiles_setFunctionTable(_ui->functionTableCombo->currentText().toStdString());
     }
 }

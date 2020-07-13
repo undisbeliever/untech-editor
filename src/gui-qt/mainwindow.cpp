@@ -27,6 +27,7 @@
 #include "gui-qt/metasprite/exportorder/editorwidget.h"
 #include "gui-qt/metasprite/metasprite/editorwidget.h"
 #include "gui-qt/metasprite/spriteimporter/editorwidget.h"
+#include "gui-qt/metatiles/interactive-tiles/editorwidget.h"
 #include "gui-qt/metatiles/mttileset/editorwidget.h"
 #include "gui-qt/project-settings/editorwidget.h"
 #include "gui-qt/resources/background-image/editorwidget.h"
@@ -82,6 +83,7 @@ MainWindow::MainWindow(QWidget* parent)
           new MetaSprite::MetaSprite::EditorWidget(_zoomSettingsManager),
           new Resources::SceneSettings::EditorWidget(),
           new Resources::Scenes::EditorWidget(),
+          new MetaTiles::InteractiveTiles::EditorWidget(),
           new Rooms::EditorWidget(_zoomSettingsManager),
       })
 {

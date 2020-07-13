@@ -30,6 +30,11 @@ namespace ActionPoints {
 class ResourceItem;
 }
 }
+namespace MetaTiles {
+namespace InteractiveTiles {
+class ResourceItem;
+}
+}
 namespace Resources {
 namespace SceneSettings {
 class ResourceItem;
@@ -47,6 +52,7 @@ class StaticResourceList : public AbstractResourceList {
 
     enum Indexes {
         PROJECT_SETTINGS,
+        INTERACTIVE_TILES,
         ACTION_POINTS,
         ENTITY_ROM_STRUCTS,
         ENTITY_FUNCTION_TABLES,
@@ -56,7 +62,7 @@ class StaticResourceList : public AbstractResourceList {
         SCENE_SETTINGS,
         SCENES,
     };
-    constexpr static size_t N_ITEMS = 9;
+    constexpr static size_t N_ITEMS = 10;
 
 public:
     StaticResourceList(Project* project);
@@ -68,6 +74,7 @@ public:
     virtual const QVector<AddResourceSettings>& addResourceSettings() const final;
 
     auto* projectSettings() const { return _projectSettings; }
+    auto* interactiveTiles() const { return _interactiveTiles; }
     auto* actionPoints() const { return _actionPoints; }
     auto* entityRomStructs() const { return _entityRomStructs; }
     auto* entityFunctionTables() const { return _entityFunctionTables; }
@@ -86,6 +93,7 @@ protected:
 
 private:
     ProjectSettings::ResourceItem* const _projectSettings;
+    MetaTiles::InteractiveTiles::ResourceItem* const _interactiveTiles;
     MetaSprite::ActionPoints::ResourceItem* const _actionPoints;
     Entity::EntityRomStructs::ResourceItem* const _entityRomStructs;
     Entity::EntityFunctionTables::ResourceItem* const _entityFunctionTables;

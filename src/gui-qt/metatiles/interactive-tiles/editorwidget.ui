@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UnTech::GuiQt::MetaTiles::InteractiveTiles::EditorWidget</class>
+ <widget class="QMainWindow" name="UnTech::GuiQt::MetaTiles::InteractiveTiles::EditorWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Interactive Tiles Editor</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="centralLayout" stretch="1,2">
+    <property name="spacing">
+     <number>12</number>
+    </property>
+    <item>
+     <widget class="QGroupBox" name="fixedFunctionsGroup">
+      <property name="title">
+       <string>Fixed Interactive Tile Function Tables:</string>
+      </property>
+      <layout class="QVBoxLayout" name="fixedFunctionsLayout">
+       <item>
+        <widget class="QTreeView" name="fixedFunctionsView"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="projectEditableGroup">
+      <property name="title">
+       <string>Project Interactive Tile Function Tables:</string>
+      </property>
+      <layout class="QVBoxLayout" name="projectEditableLayout">
+       <item>
+        <widget class="GuiQt::Accessor::ListAccessorTableView" name="tableView"/>
+       </item>
+       <item>
+        <widget class="QToolBar" name="tableButtons">
+         <property name="movable">
+          <bool>false</bool>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>16</width>
+           <height>16</height>
+          </size>
+         </property>
+         <property name="floatable">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GuiQt::Accessor::ListAccessorTableView</class>
+   <extends>QTreeView</extends>
+   <header>gui-qt/accessor/listaccessortableview.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
