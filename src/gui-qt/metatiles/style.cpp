@@ -32,9 +32,13 @@ Style::Style(QWidget* parent)
     , _showGridAction(new QAction(tr("Show Grid"), this))
     , _showTilesAction(new QAction(tr("Show Tiles"), this))
     , _showTileCollisionsAction(new QAction(tr("Show Tile Collisions"), this))
+    , _showInteractiveTilesAction(new QAction(tr("Show Interactive Tiles"), this))
+    , _showSmallInteractiveTilesAction(new QAction(tr("Show Small Interactive Tiles"), this))
     , _showGrid(true)
     , _showTiles(true)
     , _showTileCollisions(true)
+    , _showInteractiveTiles(true)
+    , _showSmallInteractiveTiles(true)
 {
     Q_ASSERT(_widget != nullptr);
 
@@ -50,12 +54,24 @@ Style::Style(QWidget* parent)
     _showTileCollisionsAction->setChecked(_showTileCollisions);
     _showTileCollisionsAction->setShortcut(Qt::CTRL + Qt::Key_J);
 
+    _showInteractiveTilesAction->setCheckable(true);
+    _showInteractiveTilesAction->setChecked(_showInteractiveTiles);
+    _showInteractiveTilesAction->setShortcut(Qt::CTRL + Qt::Key_I);
+
+    _showSmallInteractiveTilesAction->setCheckable(true);
+    _showSmallInteractiveTilesAction->setChecked(_showSmallInteractiveTiles);
+    _showSmallInteractiveTilesAction->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_I);
+
     connect(_showGridAction, &QAction::toggled,
             this, &Style::setShowGrid);
     connect(_showTilesAction, &QAction::toggled,
             this, &Style::setShowTiles);
     connect(_showTileCollisionsAction, &QAction::toggled,
             this, &Style::setShowTileCollisions);
+    connect(_showInteractiveTilesAction, &QAction::toggled,
+            this, &Style::setShowInteractiveTiles);
+    connect(_showSmallInteractiveTilesAction, &QAction::toggled,
+            this, &Style::setShowSmallInteractiveTiles);
 }
 
 void Style::populateActions(QWidget* widget)
@@ -63,6 +79,8 @@ void Style::populateActions(QWidget* widget)
     widget->addAction(_showGridAction);
     widget->addAction(_showTilesAction);
     widget->addAction(_showTileCollisionsAction);
+    widget->addAction(_showInteractiveTilesAction);
+    widget->addAction(_showSmallInteractiveTilesAction);
 }
 
 void Style::setShowGrid(bool s)
@@ -100,6 +118,26 @@ void Style::setShowTileCollisions(bool s)
 
         _showTileCollisions = s;
         _showTileCollisionsAction->setChecked(s);
+
+        emit showLayersChanged();
+    }
+}
+
+void Style::setShowInteractiveTiles(bool s)
+{
+    if (_showInteractiveTiles != s) {
+        _showInteractiveTiles = s;
+        _showInteractiveTilesAction->setChecked(s);
+
+        emit showLayersChanged();
+    }
+}
+
+void Style::setShowSmallInteractiveTiles(bool s)
+{
+    if (_showSmallInteractiveTiles != s) {
+        _showSmallInteractiveTiles = s;
+        _showSmallInteractiveTilesAction->setChecked(s);
 
         emit showLayersChanged();
     }

@@ -45,6 +45,12 @@ public:
     bool showTileCollisions() const { return _showTileCollisions; }
     QAction* showTileCollisionsAction() const { return _showTileCollisionsAction; }
 
+    bool showInteractiveTiles() const { return _showInteractiveTiles; }
+    QAction* showInteractiveTilesAction() const { return _showInteractiveTilesAction; }
+
+    bool showSmallInteractiveTiles() const { return _showSmallInteractiveTiles; }
+    QAction* showSmallInteractiveTilesAction() const { return _showSmallInteractiveTilesAction; }
+
     QPen gridPen() const;
 
     QPen gridSelectionPen() const;
@@ -65,6 +71,8 @@ public slots:
     void setShowGrid(bool s);
     void setShowTiles(bool s);
     void setShowTileCollisions(bool s);
+    void setShowInteractiveTiles(bool s);
+    void setShowSmallInteractiveTiles(bool s);
 
 signals:
     void showLayersChanged();
@@ -77,10 +85,14 @@ private:
     QAction* const _showGridAction;
     QAction* const _showTilesAction;
     QAction* const _showTileCollisionsAction;
+    QAction* const _showInteractiveTilesAction;
+    QAction* const _showSmallInteractiveTilesAction;
 
     bool _showGrid;
     bool _showTiles;
     bool _showTileCollisions;
+    bool _showInteractiveTiles;
+    bool _showSmallInteractiveTiles;
 };
 }
 }

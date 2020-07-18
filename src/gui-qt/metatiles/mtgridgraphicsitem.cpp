@@ -48,6 +48,9 @@ MtGridGraphicsItem::MtGridGraphicsItem(MtGraphicsScene* scene)
     connect(scene->renderer(), &MtTileset::MtTilesetRenderer::pixmapChanged,
             this, &MtGridGraphicsItem::updateAll);
 
+    connect(scene->renderer(), &MtTileset::MtTilesetRenderer::interactiveTilesChanged,
+            this, &MtGridGraphicsItem::updateAll);
+
     connect(scene->style(), &Style::showLayersChanged,
             this, &MtGridGraphicsItem::updateAll);
 }
@@ -115,6 +118,7 @@ void MtGridGraphicsItem::onGridSelectionChanged()
 void MtGridGraphicsItem::updateTileGridFragments()
 {
     _tileGridPainter.updateFragments(_scene->grid());
+    _tileGridPainter.updateInteractiveTileFragments(_scene->grid(), _scene);
     updateAll();
 }
 
@@ -137,6 +141,10 @@ void MtGridGraphicsItem::paint(QPainter* painter,
         painter->setPen(QPen(style->tileCollisionsColor()));
         painter->setBackgroundMode(Qt::TransparentMode);
         _tileGridPainter.paintCollisions(painter, renderer);
+    }
+
+    if (style->showInteractiveTiles()) {
+        _tileGridPainter.paintInteractiveTiles(painter, renderer, style);
     }
 
     if (style->showGrid()) {

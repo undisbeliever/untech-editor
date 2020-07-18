@@ -44,5 +44,21 @@ QString FunctionTableList::typeNamePlural() const
     return tr("Interactive Tile Function Table");
 }
 
+bool FunctionTableList::edit_setSymbol(size_t index, const std::string& symbol)
+{
+    return UndoHelper(this).editField(
+        index, symbol,
+        tr("Change Symbol"),
+        [](MT::InteractiveTileFunctionTable& itf) -> std::string& { return itf.symbol; });
+}
+
+bool FunctionTableList::edit_setSymbolColor(size_t index, const rgba& symbolColor)
+{
+    return UndoHelper(this).editField(
+        index, symbolColor,
+        tr("Change Symbol Color"),
+        [](MT::InteractiveTileFunctionTable& itf) -> rgba& { return itf.symbolColor; });
+}
+
 using namespace UnTech::GuiQt;
 template class Accessor::NamedListAccessor<MT::InteractiveTileFunctionTable, ResourceItem>;

@@ -8,6 +8,7 @@
 
 #include "models/common/grid.h"
 #include "models/common/optional.h"
+#include "models/metatiles/common.h"
 #include <QBitmap>
 #include <QPainter>
 #include <QPixmap>
@@ -24,6 +25,7 @@ struct PaletteData;
 }
 namespace MetaTiles {
 struct MetaTileTilesetData;
+struct InteractiveTiles;
 }
 
 namespace GuiQt {
@@ -38,8 +40,33 @@ class ResourceItem;
 }
 
 namespace MetaTiles {
+class MtGraphicsScene;
+class Style;
+
+namespace InteractiveTiles {
+class ResourceItem;
+}
+
 namespace MtTileset {
 class ResourceItem;
+
+namespace MT = UnTech::MetaTiles;
+
+template <unsigned TS>
+struct InteractiveTileSymbols {
+    static constexpr unsigned N_SYMBOLS = MT::MAX_INTERACTIVE_TILE_FUNCTION_TABLES;
+
+    static constexpr int TILE_SIZE = TS;
+    static constexpr int WIDTH = 16;
+    static constexpr int HEIGHT = N_SYMBOLS / WIDTH;
+
+    QPixmap pixmap;
+
+    InteractiveTileSymbols() = default;
+
+    void clearPixmap();
+    void buildPixmap(const MT::InteractiveTiles& interactiveTiles);
+};
 
 class MtTilesetRenderer : public QObject {
     Q_OBJECT
@@ -62,6 +89,8 @@ public:
     ResourceItem* tilesetItem() const { return _tilesetItem; }
     void setTilesetItem(ResourceItem* item);
 
+    InteractiveTiles::ResourceItem* interactiveTilesItem() const { return _interactiveTilesItem; }
+
     unsigned nPalettes() const { return _nPalettes; }
     unsigned nTilesets() const { return _nTilesets; }
 
@@ -72,11 +101,15 @@ public:
     const QPixmap& pixmap(unsigned paletteId, unsigned tilesetId);
     const QBitmap& tileCollisionsBitmap();
 
+    const auto& interactiveTileSymbolsSmall() const { return _interactiveTileSymbolsSmall; }
+    const auto& interactiveTileSymbolsLarge() const { return _interactiveTileSymbolsLarge; }
+
 signals:
     void pixmapChanged(); // also emitted when tileCollisionsBitmap() is changed.
     void paletteItemChanged();
     void tilesetItemChanged();
     void tileCollisionsChanged();
+    void interactiveTilesChanged();
 
 public slots:
     void resetAnimations();
@@ -88,9 +121,13 @@ public slots:
 
     void resetTileCollisionsBitmap();
 
+    void buildInteractiveTileSymbols();
+
     void onResourceItemAboutToBeRemoved(AbstractResourceItem* item);
 
 private:
+    void setInteractiveTilesItem(InteractiveTiles::ResourceItem* item);
+
     optional<const UnTech::Resources::PaletteData&> paletteData() const;
     optional<const UnTech::MetaTiles::MetaTileTilesetData&> metaTileTilesetData() const;
 
@@ -102,9 +139,13 @@ private:
 
     Resources::Palette::ResourceItem* _paletteItem;
     ResourceItem* _tilesetItem;
+    InteractiveTiles::ResourceItem* _interactiveTilesItem;
 
     QVector<QPixmap> _pixmaps; // [ paletteFrame * _nTilesets + tilesetFrame ]
     QBitmap _tileCollisionsPixmap;
+
+    InteractiveTileSymbols<16> _interactiveTileSymbolsSmall;
+    InteractiveTileSymbols<32> _interactiveTileSymbolsLarge;
 
     unsigned _nPalettes;
     unsigned _nTilesets;
@@ -112,12 +153,22 @@ private:
 
 class MtTilesetGridPainter {
 public:
+    struct InteractiveTileFragment {
+        const QPointF position;
+        const unsigned interactiveTileIndex;
+
+        InteractiveTileFragment(int x, int y, unsigned interactiveTileIndex);
+    };
+
+public:
     MtTilesetGridPainter();
 
     // MUST be called when grid changed.
     // The grid<uint16_t> updateFragments will not draw any tiles with a value >= N_METATILES
     void updateFragments(const grid<uint8_t>& grid);
     void updateFragments(const grid<uint16_t>& grid);
+
+    void updateInteractiveTileFragments(const grid<uint8_t>& grid, const MtGraphicsScene* scene);
 
     void generateEraseFragments(unsigned width, unsigned height);
 
@@ -132,12 +183,19 @@ public:
         painter->drawPixmapFragments(_fragments.data(), _fragments.size(), renderer->tileCollisionsBitmap());
     }
 
+    void paintInteractiveTiles(QPainter* painter, const MtTilesetRenderer* renderer, const Style* style);
+
 private:
     template <typename T>
     void _updateFragments(const grid<T>& grid);
+    template <typename T>
+    void _updateInteractiveTileFragments(const grid<T>& grid, const MtGraphicsScene* scene);
 
 private:
     std::vector<QPainter::PixmapFragment> _fragments;
+    std::vector<InteractiveTileFragment> _interactiveTileFragments;
+
+    std::vector<QPainter::PixmapFragment> _interactiveTilePixmapFragments;
 };
 }
 }

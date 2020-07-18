@@ -9,6 +9,7 @@
 #include "common.h"
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
+#include "models/common/rgba.h"
 #include <sstream>
 
 namespace UnTech {
@@ -18,10 +19,14 @@ namespace MetaTiles {
 
 struct InteractiveTileFunctionTable {
     idstring name;
+    std::string symbol;
+    rgba symbolColor = rgba(255, 200, 0);
 
     bool operator==(const InteractiveTileFunctionTable& o) const
     {
-        return name == o.name;
+        return name == o.name
+               && symbol == o.symbol
+               && symbolColor == o.symbolColor;
     }
 };
 

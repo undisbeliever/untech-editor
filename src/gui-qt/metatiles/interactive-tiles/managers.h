@@ -20,6 +20,8 @@ class FunctionTableManager : public Accessor::ListAccessorTableManager {
 public:
     enum PropertyId {
         NAME,
+        SYMBOL,
+        SYMBOL_COLOR,
     };
 
 public:

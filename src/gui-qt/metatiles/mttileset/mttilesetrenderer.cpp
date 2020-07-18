@@ -8,12 +8,19 @@
 #include "accessors.h"
 #include "resourceitem.h"
 #include "tilecollisionpixmaps.h"
+#include "gui-qt/common/helpers.h"
+#include "gui-qt/metatiles/interactive-tiles/resourceitem.h"
+#include "gui-qt/metatiles/mtgraphicsscenes.h"
+#include "gui-qt/metatiles/style.h"
 #include "gui-qt/project.h"
 #include "gui-qt/resources/dualanimationtimer.h"
 #include "gui-qt/resources/palette/resourceitem.h"
 #include "gui-qt/snes/tile.hpp"
+#include "gui-qt/staticresourcelist.h"
+#include "models/metatiles/interactive-tiles.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/project/project-data.h"
+#include "models/project/project.h"
 #include "models/resources/animation-frames-input.h"
 
 #include <QPainter>
@@ -29,7 +36,10 @@ MtTilesetRenderer::MtTilesetRenderer(QObject* parent)
     , _animationTimer(new Resources::DualAnimationTimer(this))
     , _paletteItem(nullptr)
     , _tilesetItem(nullptr)
+    , _interactiveTilesItem(nullptr)
     , _pixmaps()
+    , _interactiveTileSymbolsSmall()
+    , _interactiveTileSymbolsLarge()
     , _nPalettes(0)
     , _nTilesets(0)
 {
@@ -95,10 +105,11 @@ void MtTilesetRenderer::setTilesetItem(ResourceItem* item)
         if (_tilesetItem) {
             _tilesetItem->disconnect(this);
         }
-
         _tilesetItem = item;
 
         _animationTimer->resetTimer();
+
+        setInteractiveTilesItem(_tilesetItem ? _tilesetItem->project()->staticResources()->interactiveTiles() : nullptr);
 
         resetPixmaps();
         resetTileCollisionsBitmap();
@@ -119,6 +130,28 @@ void MtTilesetRenderer::setTilesetItem(ResourceItem* item)
         }
 
         tilesetItemChanged();
+    }
+}
+
+void MtTilesetRenderer::setInteractiveTilesItem(InteractiveTiles::ResourceItem* item)
+{
+    if (_interactiveTilesItem == item) {
+        return;
+    }
+
+    if (_interactiveTilesItem) {
+        _interactiveTilesItem->disconnect(this);
+    }
+    _interactiveTilesItem = item;
+
+    buildInteractiveTileSymbols();
+
+    if (_interactiveTilesItem) {
+        connect(_interactiveTilesItem, &InteractiveTiles::ResourceItem::resourceComplied,
+                this, &MtTilesetRenderer::buildInteractiveTileSymbols);
+
+        connect(_interactiveTilesItem, &InteractiveTiles::ResourceItem::resourceComplied,
+                this, &MtTilesetRenderer::interactiveTilesChanged);
     }
 }
 
@@ -256,6 +289,9 @@ void MtTilesetRenderer::onResourceItemAboutToBeRemoved(AbstractResourceItem* ite
     if (item == _tilesetItem) {
         setTilesetItem(nullptr);
     }
+    if (item == _interactiveTilesItem) {
+        setInteractiveTilesItem(nullptr);
+    }
 }
 
 static void drawTile(QImage& image,
@@ -350,18 +386,20 @@ EndLoop:
 
 MtTilesetGridPainter::MtTilesetGridPainter()
     : _fragments()
+    , _interactiveTileFragments()
+    , _interactiveTilePixmapFragments()
 {
 }
 
-static QPainter::PixmapFragment blankMetaTileFragment()
+static QPainter::PixmapFragment blankPixmapFragment(int size)
 {
     QPainter::PixmapFragment fragment;
     fragment.x = 0;
     fragment.y = 0;
     fragment.sourceLeft = 0;
     fragment.sourceTop = 0;
-    fragment.width = MtTilesetRenderer::METATILE_SIZE;
-    fragment.height = MtTilesetRenderer::METATILE_SIZE;
+    fragment.width = size;
+    fragment.height = size;
     fragment.scaleX = 1;
     fragment.scaleY = 1;
     fragment.rotation = 0;
@@ -376,7 +414,7 @@ inline void MtTilesetGridPainter::_updateFragments(const grid<T>& grid)
     constexpr int PIXMAP_WIDTH = MtTilesetRenderer::PIXMAP_TILE_WIDTH;
     constexpr int METATILE_SIZE = MtTilesetRenderer::METATILE_SIZE;
 
-    static const QPainter::PixmapFragment blankFragment = blankMetaTileFragment();
+    static const QPainter::PixmapFragment blankFragment = blankPixmapFragment(MtTilesetRenderer::METATILE_SIZE);
 
     _fragments.resize(grid.cellCount(), blankFragment);
     unsigned fIndex = 0;
@@ -401,6 +439,45 @@ inline void MtTilesetGridPainter::_updateFragments(const grid<T>& grid)
     _fragments.resize(fIndex);
 }
 
+MtTilesetGridPainter::InteractiveTileFragment::InteractiveTileFragment(int x, int y, unsigned interactiveTileIndex)
+    : position(x, y)
+    , interactiveTileIndex(interactiveTileIndex)
+{
+}
+
+template <typename T>
+void MtTilesetGridPainter::_updateInteractiveTileFragments(const grid<T>& grid, const MtGraphicsScene* scene)
+{
+    _interactiveTileFragments.clear();
+
+    Q_ASSERT(scene);
+    auto* tilesetItem = scene->tilesetItem();
+    if (tilesetItem == nullptr) {
+        return;
+    }
+    auto& compiledData = tilesetItem->compiledData();
+    if (!compiledData) {
+        return;
+    }
+
+    auto gridIt = grid.cbegin();
+    for (unsigned y = 0; y < grid.height(); y++) {
+        for (unsigned x = 0; x < grid.width(); x++) {
+            const auto& tile = *gridIt++;
+
+            if (tile < MT::N_METATILES) {
+                unsigned interactiveIndex = compiledData->tileFunctionTables.at(tile);
+                if (interactiveIndex > 0) {
+                    _interactiveTileFragments.emplace_back(
+                        x * MT::METATILE_SIZE_PX + 1, y * MT::METATILE_SIZE_PX + 1,
+                        interactiveIndex);
+                }
+            }
+        }
+    }
+    assert(gridIt == grid.cend());
+}
+
 void MtTilesetGridPainter::updateFragments(const grid<uint8_t>& grid)
 {
     _updateFragments(grid);
@@ -411,11 +488,16 @@ void MtTilesetGridPainter::updateFragments(const grid<uint16_t>& grid)
     _updateFragments(grid);
 }
 
+void MtTilesetGridPainter::updateInteractiveTileFragments(const grid<uint8_t>& grid, const MetaTiles::MtGraphicsScene* scene)
+{
+    _updateInteractiveTileFragments(grid, scene);
+}
+
 void MtTilesetGridPainter::generateEraseFragments(unsigned width, unsigned height)
 {
     constexpr int METATILE_SIZE = MtTilesetRenderer::METATILE_SIZE;
 
-    static const QPainter::PixmapFragment blankFragment = blankMetaTileFragment();
+    static const QPainter::PixmapFragment blankFragment = blankPixmapFragment(METATILE_SIZE);
 
     _fragments.resize(width * height, blankFragment);
 
@@ -429,6 +511,8 @@ void MtTilesetGridPainter::generateEraseFragments(unsigned width, unsigned heigh
         }
     }
     Q_ASSERT(fragmentIt == _fragments.end());
+
+    _interactiveTileFragments.clear();
 }
 
 inline QBitmap MtTilesetRenderer::buildTileCollisionsBitmap()
@@ -444,7 +528,7 @@ inline QBitmap MtTilesetRenderer::buildTileCollisionsBitmap()
     if (auto* tilesetInput = _tilesetItem->tilesetInput()) {
         for (unsigned i = 0; i < tilesetInput->tileCollisions.size(); i++) {
             const auto& tc = tilesetInput->tileCollisions.at(i);
-            QPainter::PixmapFragment f = blankMetaTileFragment();
+            QPainter::PixmapFragment f = blankPixmapFragment(METATILE_SIZE);
             f.x = unsigned(i % PIXMAP_TILE_WIDTH) * METATILE_SIZE + METATILE_SIZE / 2;
             f.y = unsigned(i / PIXMAP_TILE_HEIGHT) * METATILE_SIZE + METATILE_SIZE / 2;
             f.sourceLeft = Texture::xOffset(tc);
@@ -463,4 +547,157 @@ inline QBitmap MtTilesetRenderer::buildTileCollisionsBitmap()
     }
 
     return bitmap;
+}
+
+void MtTilesetRenderer::buildInteractiveTileSymbols()
+{
+    if (_interactiveTilesItem) {
+        const auto* projectFile = _interactiveTilesItem->project()->projectFile();
+        Q_ASSERT(projectFile);
+
+        _interactiveTileSymbolsSmall.buildPixmap(projectFile->interactiveTiles);
+        _interactiveTileSymbolsLarge.buildPixmap(projectFile->interactiveTiles);
+    }
+    else {
+        _interactiveTileSymbolsSmall.clearPixmap();
+        _interactiveTileSymbolsLarge.clearPixmap();
+    }
+}
+
+template <unsigned TS>
+void InteractiveTileSymbols<TS>::clearPixmap()
+{
+    pixmap = QPixmap();
+}
+
+template <unsigned TS>
+void InteractiveTileSymbols<TS>::buildPixmap(const MT::InteractiveTiles& interactiveTiles)
+{
+    static_assert(WIDTH * HEIGHT == MT::MAX_INTERACTIVE_TILE_FUNCTION_TABLES);
+
+    constexpr bool isSmall = TILE_SIZE <= 16;
+    constexpr int FONT_SIZE = isSmall ? 8 : 16;
+    constexpr int OUTLINE_WIDTH = isSmall ? 1 : 3;
+
+    QFont font(QStringLiteral("Sans"));
+    font.setStyleHint(QFont::SansSerif);
+    font.setBold(true);
+    font.setPixelSize(FONT_SIZE);
+
+    const QFontMetrics fontMetrics(font);
+    const int tx = 1;
+    const int ty = fontMetrics.ascent() + 1;
+
+    QPixmap pix(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE);
+    pix.fill(Qt::transparent);
+
+    QPainter painter(&pix);
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    int x = 0;
+    int y = 0;
+
+    auto draw = [&](const MT::InteractiveTileFunctionTable& itf) {
+        if (y >= TILE_SIZE * HEIGHT) {
+            return;
+        }
+
+        const QString str = QString::fromStdString(itf.symbol);
+
+        painter.setClipRect(x, y, TILE_SIZE, TILE_SIZE, Qt::ReplaceClip);
+
+        QPainterPath path;
+        path.addText(x + tx, y + ty, font, str);
+
+        painter.setBrush(Qt::black);
+        painter.setPen(QPen(Qt::black, OUTLINE_WIDTH));
+        painter.drawPath(path);
+
+        painter.setBrush(fromRgba(itf.symbolColor));
+        painter.setPen(Qt::NoPen);
+        painter.drawPath(path);
+
+        x += TILE_SIZE;
+        if (x >= TILE_SIZE * WIDTH) {
+            x = 0;
+            y += TILE_SIZE;
+        }
+    };
+
+    for (const auto& itf : interactiveTiles.FIXED_FUNCTION_TABLES) {
+        draw(itf);
+    }
+    for (const auto& itf : interactiveTiles.functionTables) {
+        draw(itf);
+    }
+
+    painter.end();
+
+    pixmap.swap(pix);
+}
+
+template <unsigned TILE_SIZE>
+static void drawInteractiveTiles(QPainter* painter, const QTransform transform,
+                                 const InteractiveTileSymbols<TILE_SIZE>& symbols,
+                                 const std::vector<MtTilesetGridPainter::InteractiveTileFragment>& itFragments,
+                                 std::vector<QPainter::PixmapFragment>& pixmapFragments)
+{
+    static_assert(TILE_SIZE == InteractiveTileSymbols<TILE_SIZE>::TILE_SIZE);
+    static const QPainter::PixmapFragment blankFragment = blankPixmapFragment(TILE_SIZE);
+
+    // Transform is unknown when generating `_interactiveTileFragments`, must populate pixmapFragments when drawing to painter
+    pixmapFragments.clear();
+    pixmapFragments.resize(itFragments.size(), blankFragment);
+
+    if (symbols.pixmap.isNull()) {
+        return;
+    }
+
+    unsigned fIndex = 0;
+    for (const auto& itfragment : itFragments) {
+        const unsigned i = itfragment.interactiveTileIndex;
+        if (i > 0 && i < symbols.N_SYMBOLS) {
+            const QPointF pos = transform.map(itfragment.position);
+
+            auto& pf = pixmapFragments[fIndex++];
+            pf.x = pos.x() + TILE_SIZE / 2;
+            pf.y = pos.y() + TILE_SIZE / 2;
+            pf.sourceLeft = (i % symbols.WIDTH) * TILE_SIZE;
+            pf.sourceTop = (i / symbols.WIDTH) * TILE_SIZE;
+            ;
+        }
+    }
+    assert(fIndex <= pixmapFragments.size());
+
+    if (fIndex > 0) {
+        painter->save();
+        painter->resetTransform();
+
+        painter->drawPixmapFragments(pixmapFragments.data(), fIndex, symbols.pixmap);
+
+        painter->restore();
+    }
+}
+
+void MtTilesetGridPainter::paintInteractiveTiles(QPainter* painter, const MtTilesetRenderer* renderer, const Style* style)
+{
+    if (_interactiveTileFragments.empty()) {
+        return;
+    }
+
+    const QTransform transform = painter->worldTransform();
+    const int scaledTileHeight = transform.map(QLine(0, 0, 0, MT::METATILE_SIZE_PX)).dy();
+
+    if (scaledTileHeight < renderer->interactiveTileSymbolsSmall().TILE_SIZE) {
+        return;
+    }
+
+    if (scaledTileHeight < renderer->interactiveTileSymbolsLarge().TILE_SIZE) {
+        if (style->showSmallInteractiveTiles()) {
+            drawInteractiveTiles(painter, transform, renderer->interactiveTileSymbolsSmall(), _interactiveTileFragments, _interactiveTilePixmapFragments);
+        }
+    }
+    else {
+        drawInteractiveTiles(painter, transform, renderer->interactiveTileSymbolsLarge(), _interactiveTileFragments, _interactiveTilePixmapFragments);
+    }
 }

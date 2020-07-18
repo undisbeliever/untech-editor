@@ -153,7 +153,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
 
     compileFunction(&ProjectData::compileInteractiveTiles, "Interactive Tiles");
     compileFunction(&ProjectData::compileEntityRomData, "Entity ROM Data");
-    // no !valid test needed, unused by resources subsystem (only used in rooms)
+    // no !valid test needed, unused by palette subsystem
 
     compileList(input.palettes, &ProjectData::compilePalette, "Palette");
     if (!valid) {

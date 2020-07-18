@@ -6,6 +6,7 @@
 
 #include "managers.h"
 #include "accessors.h"
+#include "gui-qt/common/helpers.h"
 
 using namespace UnTech::GuiQt;
 using namespace UnTech::GuiQt::MetaTiles::InteractiveTiles;
@@ -18,6 +19,8 @@ FunctionTableManager::FunctionTableManager(QObject* parent)
     setItemsMovable(true);
 
     addProperty(tr("Name"), NAME, PropertyType::IDSTRING);
+    addProperty(tr("Symbol"), SYMBOL, PropertyType::STRING);
+    addProperty(tr("Symbol Color"), SYMBOL_COLOR, PropertyType::COLOR);
 }
 
 void FunctionTableManager::setFunctionTableList(FunctionTableList* tileFunctionList)
@@ -45,6 +48,12 @@ QVariant FunctionTableManager::data(int index, int id) const
     switch (static_cast<PropertyId>(id)) {
     case PropertyId::NAME:
         return QString::fromStdString(ft.name);
+
+    case PropertyId::SYMBOL:
+        return QString::fromStdString(ft.symbol);
+
+    case PropertyId::SYMBOL_COLOR:
+        return fromRgba(ft.symbolColor);
     }
 
     return QVariant();
@@ -63,6 +72,12 @@ bool FunctionTableManager::setData(int index, int id, const QVariant& value)
     switch (static_cast<PropertyId>(id)) {
     case PropertyId::NAME:
         return ftList->edit_setName(index, value.toString().toStdString());
+
+    case PropertyId::SYMBOL:
+        return ftList->edit_setSymbol(index, value.toString().toStdString());
+
+    case PropertyId::SYMBOL_COLOR:
+        return ftList->edit_setSymbolColor(index, toRgba(value.value<QColor>()));
     }
 
     return false;
@@ -77,6 +92,8 @@ FixedFunctionTableManager::FixedFunctionTableManager(QObject* parent)
     setEnabled(false);
 
     addProperty(tr("Name"), PropertyId::NAME, PropertyType::IDSTRING);
+    addProperty(tr("Symbol"), PropertyId::SYMBOL, PropertyType::STRING);
+    addProperty(tr("Symbol Color"), PropertyId::SYMBOL_COLOR, PropertyType::COLOR);
 }
 
 int FixedFunctionTableManager::rowCount() const
@@ -99,6 +116,12 @@ QVariant FixedFunctionTableManager::data(int index, int id) const
     switch (static_cast<PropertyId>(id)) {
     case PropertyId::NAME:
         return QString::fromStdString(ft.name);
+
+    case PropertyId::SYMBOL:
+        return QString::fromStdString(ft.symbol);
+
+    case PropertyId::SYMBOL_COLOR:
+        return fromRgba(ft.symbolColor);
     }
 
     return QVariant();

@@ -31,6 +31,9 @@ public:
 
     virtual QString typeName() const final;
     virtual QString typeNamePlural() const final;
+
+    bool edit_setSymbol(size_t index, const std::string& symbol);
+    bool edit_setSymbolColor(size_t index, const rgba& symbolColor);
 };
 
 }
