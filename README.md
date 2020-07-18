@@ -42,7 +42,7 @@ To build the UnTech Editor the following must be installed and available
 in your $PATH:
 
  * GNU Make
- * A C++14 compiler (g++ or clang++)
+ * A C++17 compiler (g++ or clang++)
  * Qt 5.8 or higher
 
 
