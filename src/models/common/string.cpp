@@ -38,7 +38,7 @@ bool String::checkUtf8WellFormed(const std::string& str)
             c += 3;
             length += 3;
         }
-        else if ((c[0] == 0xE1 && c[0] <= 0xEC)
+        else if ((c[0] >= 0xE1 && c[0] <= 0xEC)
                  && (c[1] >= 0x80 && c[1] <= 0xBF)
                  && (c[2] >= 0x80 && c[2] <= 0xBF)) {
             c += 3;
