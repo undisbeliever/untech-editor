@@ -106,6 +106,33 @@ struct TilePriorities {
     }
 };
 
+struct CrumblingTileChain {
+    constexpr static uint16_t NO_THIRD_TRANSITION = UINT16_MAX;
+
+    uint8_t firstTileId = 0;
+    uint8_t secondTileId = 0;
+    uint8_t thirdTileId = 0;
+
+    uint16_t firstDelay = 300;
+
+    // If this value is NO_THIRD_TRANSITION then there will not be a third transition
+    uint16_t secondDelay = 900;
+
+    bool hasThirdTransition() const
+    {
+        return secondDelay != NO_THIRD_TRANSITION;
+    }
+
+    bool operator==(const CrumblingTileChain& o) const
+    {
+        return firstTileId == o.firstTileId
+               && secondTileId == o.secondTileId
+               && thirdTileId == o.thirdTileId
+               && firstDelay == o.firstDelay
+               && secondDelay == o.secondDelay;
+    }
+};
+
 struct MetaTileTilesetInput {
     static const std::string FILE_EXTENSION;
 
@@ -120,6 +147,9 @@ struct MetaTileTilesetInput {
     std::array<TileCollisionType, N_METATILES> tileCollisions;
     std::array<idstring, N_METATILES> tileFunctionTables;
     TilePriorities tilePriorities;
+
+    std::array<CrumblingTileChain, N_CRUMBLING_TILE_CHAINS> crumblingTiles;
+
     grid<uint8_t> scratchpad;
 
     MetaTileTilesetInput();
@@ -133,6 +163,7 @@ struct MetaTileTilesetInput {
                && tileCollisions == o.tileCollisions
                && tileFunctionTables == o.tileFunctionTables
                && tilePriorities == o.tilePriorities
+               && crumblingTiles == o.crumblingTiles
                && scratchpad == o.scratchpad;
     }
     bool operator!=(const MetaTileTilesetInput& o) const { return !(*this == o); }
@@ -145,6 +176,7 @@ struct MetaTileTilesetData {
     std::vector<idstring> palettes;
     std::array<uint8_t, N_METATILES> tileFunctionTables;
     std::array<TileCollisionType, N_METATILES> tileCollisions;
+    std::array<CrumblingTileChain, N_CRUMBLING_TILE_CHAINS> crumblingTiles;
 
     Resources::AnimatedTilesetData animatedTileset;
 
@@ -157,7 +189,7 @@ struct MetaTileTilesetData {
     std::vector<uint8_t> exportSnesData() const;
 
 private:
-    std::vector<uint8_t> convertTileMap() const;
+    std::vector<uint8_t> convertTileset() const;
 };
 
 std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,

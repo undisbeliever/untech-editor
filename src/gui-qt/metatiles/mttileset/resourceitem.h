@@ -62,6 +62,8 @@ public:
     bool editTileset_setBitDepth(unsigned bitDepth);
     bool editTileset_setAddTransparentTile(bool addTransparentTile);
 
+    bool editTileset_setCrumblingTileChain(unsigned chainId, const MT::CrumblingTileChain& chain);
+
 signals:
     void tilesetPropertiesChanged();
 

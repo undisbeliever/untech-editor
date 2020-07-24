@@ -167,3 +167,11 @@ bool ResourceItem::editTileset_setAddTransparentTile(bool addTransparentTile)
         [](MT::MetaTileTilesetInput& ti) -> bool& { return ti.animationFrames.addTransparentTile; },
         [](ResourceItem& item) { emit item.tilesetPropertiesChanged(); });
 }
+
+bool ResourceItem::editTileset_setCrumblingTileChain(unsigned chainId, const MT::CrumblingTileChain& chain)
+{
+    return UndoHelper(this).editField(
+        chain,
+        tr("Edit Crumbling Tile Chain"),
+        [=](MT::MetaTileTilesetInput& ti) -> MT::CrumblingTileChain& { return ti.crumblingTiles.at(chainId); });
+}

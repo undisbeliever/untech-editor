@@ -13,6 +13,8 @@ constexpr unsigned TILESET_WIDTH = 16;
 constexpr unsigned TILESET_HEIGHT = 16;
 constexpr unsigned N_METATILES = 256;
 
+constexpr unsigned N_CRUMBLING_TILE_CHAINS = 2;
+
 constexpr unsigned MAX_GRID_WIDTH = 255;
 constexpr unsigned MAX_GRID_HEIGHT = 255;
 

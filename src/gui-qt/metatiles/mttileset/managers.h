@@ -30,7 +30,15 @@ class MtTilesetPropertyManager : public AbstractPropertyManager {
 
         N_STATIC_TILES,
         N_ANIMATED_TILES,
+
+        CRUMBLING_FIRST_TILE_ID,
+        CRUMBLING_FIRST_DELAY,
+        CRUMBLING_SECOND_TILE_ID,
+        CRUMBLING_HAS_THIRD_TRANSITION,
+        CRUMBLING_SECOND_DELAY,
+        CRUMBLING_THIRD_TILE_ID,
     };
+    constexpr static int N_CRUMBLING_PROPERTIES = 6;
 
 public:
     explicit MtTilesetPropertyManager(QObject* parent = nullptr);

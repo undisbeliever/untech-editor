@@ -34,6 +34,18 @@ MtTilesetPropertyManager::MtTilesetPropertyManager(QObject* parent)
     addPropertyGroup(tr("Compiled Data"));
     addProperty(tr("Static Tiles"), N_STATIC_TILES, Type::NOT_EDITABLE);
     addProperty(tr("Animated Tiles"), N_ANIMATED_TILES, Type::NOT_EDITABLE);
+
+    int id = CRUMBLING_FIRST_TILE_ID;
+    const QStringList crumblingGroupTitles{ tr("Crumbling Tiles Chain A"), tr("Crumbling Tiles Chain B") };
+    for (const auto& groupTitle : crumblingGroupTitles) {
+        addPropertyGroup(groupTitle);
+        addProperty(tr("First Tile id"), id++, Type::UNSIGNED, 0, UINT8_MAX);
+        addProperty(tr("First Delay"), id++, Type::UNSIGNED, 0, UINT16_MAX);
+        addProperty(tr("Second Tile id"), id++, Type::UNSIGNED, 0, UINT8_MAX);
+        addProperty(tr("Third Transition"), id++, Type::BOOLEAN);
+        addProperty(tr("Second Delay"), id++, Type::UNSIGNED, 0, UINT16_MAX);
+        addProperty(tr("Third Tile id"), id++, Type::UNSIGNED, 0, UINT8_MAX);
+    }
 }
 
 void MtTilesetPropertyManager::setResourceItem(AbstractResourceItem* abstractItem)
@@ -90,6 +102,11 @@ QVariant MtTilesetPropertyManager::data(int id) const
         return QVariant();
     }
 
+    const unsigned chainId = bool(id > CRUMBLING_THIRD_TILE_ID);
+    if (id > CRUMBLING_THIRD_TILE_ID) {
+        id -= N_CRUMBLING_PROPERTIES;
+    }
+
     switch ((PropertyId)id) {
     case NAME:
         return QString::fromStdString(ti->name);
@@ -130,6 +147,24 @@ QVariant MtTilesetPropertyManager::data(int id) const
         else {
             return QVariant();
         }
+
+    case CRUMBLING_FIRST_TILE_ID:
+        return ti->crumblingTiles.at(chainId).firstTileId;
+
+    case CRUMBLING_FIRST_DELAY:
+        return ti->crumblingTiles.at(chainId).firstDelay;
+
+    case CRUMBLING_SECOND_TILE_ID:
+        return ti->crumblingTiles.at(chainId).secondTileId;
+
+    case CRUMBLING_HAS_THIRD_TRANSITION:
+        return ti->crumblingTiles.at(chainId).hasThirdTransition();
+
+    case CRUMBLING_SECOND_DELAY:
+        return ti->crumblingTiles.at(chainId).secondDelay;
+
+    case CRUMBLING_THIRD_TILE_ID:
+        return ti->crumblingTiles.at(chainId).thirdTileId;
     }
 
     return QVariant();
@@ -138,6 +173,20 @@ QVariant MtTilesetPropertyManager::data(int id) const
 bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
 {
     Q_ASSERT(_tileset);
+
+    const unsigned chainId = bool(id > CRUMBLING_THIRD_TILE_ID);
+    if (id > CRUMBLING_THIRD_TILE_ID) {
+        id -= N_CRUMBLING_PROPERTIES;
+    }
+    auto editCrumblingTileChain = [&](auto fn) -> bool {
+        const MT::MetaTileTilesetInput* ti = _tileset->tilesetInput();
+        if (ti == nullptr) {
+            return false;
+        }
+        auto chain = ti->crumblingTiles.at(chainId);
+        fn(chain);
+        return _tileset->editTileset_setCrumblingTileChain(chainId, chain);
+    };
 
     switch ((PropertyId)id) {
     case NAME:
@@ -169,6 +218,39 @@ bool MtTilesetPropertyManager::setData(int id, const QVariant& value)
     case N_STATIC_TILES:
     case N_ANIMATED_TILES:
         return false;
+
+    case CRUMBLING_FIRST_TILE_ID:
+        return editCrumblingTileChain(
+            [&](auto& d) { d.firstTileId = value.toUInt(); });
+
+    case CRUMBLING_FIRST_DELAY:
+        return editCrumblingTileChain(
+            [&](auto& d) { d.firstDelay = value.toUInt(); });
+
+    case CRUMBLING_SECOND_TILE_ID:
+        return editCrumblingTileChain(
+            [&](auto& d) { d.secondTileId = value.toUInt(); });
+
+    case CRUMBLING_HAS_THIRD_TRANSITION:
+        return editCrumblingTileChain(
+            [&](auto& d) {
+                if (value.toBool()) {
+                    if (d.secondDelay == d.NO_THIRD_TRANSITION) {
+                        d.secondDelay = 600;
+                    }
+                }
+                else {
+                    d.secondDelay = d.NO_THIRD_TRANSITION;
+                }
+            });
+
+    case CRUMBLING_SECOND_DELAY:
+        return editCrumblingTileChain(
+            [&](auto& d) { d.secondDelay = value.toUInt(); });
+
+    case CRUMBLING_THIRD_TILE_ID:
+        return editCrumblingTileChain(
+            [&](auto& d) { d.thirdTileId = value.toUInt(); });
     }
 
     return false;

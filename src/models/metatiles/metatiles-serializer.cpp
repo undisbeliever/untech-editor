@@ -172,6 +172,62 @@ static void writeTilePriorities(XmlWriter& xml, const TilePriorities& tilePriori
     xml.writeCloseTag();
 }
 
+static void readCrumblingTilesChain(const XmlTag* tag, MetaTileTilesetInput& tilesetInput)
+{
+    assert(tag->name == "crumbling-tile");
+
+    const std::string chainName = tag->getAttribute("chain");
+    if (chainName.size() != 1 || chainName.front() < 'a' || chainName.front() >= 'a' + int(N_CRUMBLING_TILE_CHAINS)) {
+        throw xml_error(*tag, "Unknown crumbling tiles chain id");
+    }
+    const unsigned chainId = chainName.front() - 'a';
+
+    CrumblingTileChain& chain = tilesetInput.crumblingTiles.at(chainId);
+
+    chain.firstTileId = tag->getAttributeUint8("first-tile");
+    chain.firstDelay = tag->getAttributeUint16("first-delay");
+
+    chain.secondTileId = tag->getAttributeUint8("second-tile");
+
+    if (tag->getAttributeBoolean("no-third-tile") == false) {
+        chain.secondDelay = tag->getAttributeUint16("second-delay");
+        chain.thirdTileId = tag->getAttributeUint8("third-tile");
+    }
+    else {
+        chain.secondDelay = 0xffff;
+        chain.thirdTileId = 0;
+    }
+}
+
+static void writeCrumblingTilesChains(XmlWriter& xml, const std::array<CrumblingTileChain, N_CRUMBLING_TILE_CHAINS>& chains)
+{
+    static_assert(N_CRUMBLING_TILE_CHAINS < 26);
+    std::string chainName{ "a" };
+
+    for (auto& chain : chains) {
+        xml.writeTag("crumbling-tile");
+
+        xml.writeTagAttribute("chain", chainName);
+
+        xml.writeTagAttribute("first-tile", chain.firstTileId);
+        xml.writeTagAttribute("first-delay", chain.firstDelay);
+
+        xml.writeTagAttribute("second-tile", chain.secondTileId);
+
+        if (chain.hasThirdTransition()) {
+            xml.writeTagAttribute("second-delay", chain.secondDelay);
+            xml.writeTagAttribute("third-tile", chain.thirdTileId);
+        }
+        else {
+            xml.writeTagAttribute("no-third-tile", true);
+        }
+
+        xml.writeCloseTag();
+
+        chainName.front() += 1;
+    }
+}
+
 static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader& xml, const XmlTag* tag)
 {
     if (tag == nullptr || tag->name != "metatile-tileset") {
@@ -217,6 +273,9 @@ static std::unique_ptr<MetaTileTilesetInput> readMetaTileTilesetInput(XmlReader&
 
             readTilePriorities(xml, childTag.get(), *tilesetInput);
         }
+        else if (childTag->name == "crumbling-tile") {
+            readCrumblingTilesChain(childTag.get(), *tilesetInput);
+        }
         else {
             throw unknown_tag_error(*childTag);
         }
@@ -239,6 +298,7 @@ void writeMetaTileTilesetInput(XmlWriter& xml, const MetaTileTilesetInput& input
         xml.writeCloseTag();
     }
 
+    writeCrumblingTilesChains(xml, input.crumblingTiles);
     writeTileProperties(xml, input);
     writeTilePriorities(xml, input.tilePriorities);
 

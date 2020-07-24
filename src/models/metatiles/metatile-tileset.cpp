@@ -100,6 +100,14 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
     ret->palettes = input.palettes;
     ret->tileCollisions = input.tileCollisions;
 
+    ret->crumblingTiles = input.crumblingTiles;
+    for (CrumblingTileChain& chain : ret->crumblingTiles) {
+        if (chain.hasThirdTransition() == false) {
+            chain.secondDelay = CrumblingTileChain::NO_THIRD_TRANSITION;
+            chain.thirdTileId = 0;
+        }
+    }
+
     // Set Tile Function Tables
     for (unsigned i = 0; i < N_METATILES; i++) {
         const auto& ft = input.tileFunctionTables.at(i);
@@ -172,11 +180,12 @@ static uint8_t convertTileCollisionType(const TileCollisionType& tc)
     abort();
 }
 
-std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
+std::vector<uint8_t> MetaTileTilesetData::convertTileset() const
 {
     constexpr size_t TILEMAP_SIZE = N_METATILES * 4 * 2;
+    constexpr size_t FOOTER_SIZE = 14;
 
-    std::vector<uint8_t> out(TILEMAP_SIZE + N_METATILES * 2, 0);
+    std::vector<uint8_t> out(TILEMAP_SIZE + N_METATILES * 2 + FOOTER_SIZE, 0);
 
     assert(animatedTileset.tileMap.width() == TILESET_WIDTH * 2);
     assert(animatedTileset.tileMap.height() == TILESET_HEIGHT * 2);
@@ -216,17 +225,32 @@ std::vector<uint8_t> MetaTileTilesetData::convertTileMap() const
         assert(tf < MAX_INTERACTIVE_TILE_FUNCTION_TABLES);
         *outIt++ = tf * 2;
     }
+
+    // Footer
+    {
+        for (auto& chain : crumblingTiles) {
+            *outIt++ = chain.firstTileId;
+            *outIt++ = chain.secondTileId;
+            *outIt++ = chain.thirdTileId;
+
+            *outIt++ = chain.firstDelay & 0xff;
+            *outIt++ = chain.firstDelay >> 8;
+
+            *outIt++ = chain.secondDelay & 0xff;
+            *outIt++ = chain.secondDelay >> 8;
+        }
+    }
     assert(outIt == out.end());
 
     return out;
 }
 
-const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 8;
+const int MetaTileTilesetData::TILESET_FORMAT_VERSION = 9;
 
 std::vector<uint8_t>
 MetaTileTilesetData::exportSnesData() const
 {
-    std::vector<uint8_t> tmBlock = convertTileMap();
+    std::vector<uint8_t> tmBlock = convertTileset();
 
     std::vector<uint8_t> out = lz4HcCompress(tmBlock);
 
