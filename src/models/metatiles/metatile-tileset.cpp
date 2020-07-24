@@ -105,11 +105,12 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
         const auto& ft = input.tileFunctionTables.at(i);
 
         const auto it = interactiveTilesData.tileFunctionMap.find(ft);
-        if (it == interactiveTilesData.tileFunctionMap.end()) {
+        if (it != interactiveTilesData.tileFunctionMap.end()) {
+            ret->tileFunctionTables.at(i) = it->second;
+        }
+        else {
             addError(ft, "Unknown Interactive Tile Function Table ", ft);
         }
-
-        ret->tileFunctionTables.at(i) = it->second;
     }
 
     valid &= ret->validate(err);
