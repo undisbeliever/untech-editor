@@ -261,9 +261,13 @@ CLI_APPS        := $(patsubst src/cli/%.cpp,$(BIN_DIR)/%$(BIN_EXT),$(CLI_SRC))
 TEST_SRC        := $(wildcard src/test-utils/*.cpp)
 TEST_UTILS      := $(patsubst src/test-utils/%.cpp,$(BIN_DIR)/test-utils/%$(BIN_EXT),$(TEST_SRC))
 
+GUI_SRC         := $(filter src/models/% src/gui/%, $(SRCS))
+GUI_OBJS        := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(GUI_SRC))
+GUI_APP         := $(BIN_DIR)/untech-editor-newgui$(BIN_EXT)
+
 GUI_QT_SRC         := $(filter src/models/% src/gui-qt/%, $(SRCS))
 GUI_QT_OBJS        := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(GUI_QT_SRC))
-GUI_QT_APP         := $(BIN_DIR)/untech-editor-gui$(BIN_EXT)
+GUI_QT_APP         := $(BIN_DIR)/untech-editor-qtgui$(BIN_EXT)
 
 GUI_QT_MOC_HEADERS := $(wildcard src/gui-qt/*.h src/gui-qt/*/*.h src/gui-qt/*/*/*.h src/gui-qt/*/*/*/*.h)
 GUI_QT_MOC_GEN     := $(patsubst src/%.h,$(GEN_DIR)/%.moc.cpp,$(GUI_QT_MOC_HEADERS))
@@ -279,6 +283,7 @@ GUI_QT_RES_OBJS    := $(patsubst resources/%.qrc,$(OBJ_DIR)/resources/%.o,$(GUI_
 
 GEN_QT_OBJS        := $(GUI_QT_UI_OBJS) $(GUI_QT_MOC_OBJS) $(GUI_QT_RES_OBJS)
 
+
 # Third party libs
 THIRD_PARTY_LODEPNG := $(OBJ_DIR)/vendor/lodepng/lodepng.o
 THIRD_PARTY_LZ4     := $(OBJ_DIR)/vendor/lz4/lib/lz4.o $(OBJ_DIR)/vendor/lz4/lib/lz4hc.o
@@ -286,8 +291,31 @@ THIRD_PARTY_LZ4     := $(OBJ_DIR)/vendor/lz4/lib/lz4.o $(OBJ_DIR)/vendor/lz4/lib
 THIRD_PARTY_OBJS := $(THIRD_PARTY_LODEPNG) $(THIRD_PARTY_LZ4)
 
 
+THIRD_PARTY_IMGUI_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, imgui.o imgui_draw.o imgui_widgets.o imgui_stdlib.o)
+IMGUI_CXXFLAGS         := -DIMGUI_IMPL_SDL_OPENGL -DIMGUI_IMPL_OPENGL_LOADER_GL3W -Isrc/vendor/imgui/examples/libs/gl3w -Isrc/vendor/imgui
+
+#::TODO make impl configurable::
+THIRD_PARTY_IMGUI_IMPL_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, gl3w.o imgui_impl_sdl.o imgui_impl_opengl3.o)
+IMGUI_IMPL_CXXFLAGS         := -Isrc/vendor/imgui/examples/libs/gl3w
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S), Linux) #LINUX
+  IMGUI_LDFLAGS   += -lGL -ldl $(shell sdl2-config --libs)
+  IMGUI_CXXFLAGS  += $(shell sdl2-config --cflags)
+endif
+ifeq ($(UNAME_S), Darwin) #APPLE
+  IMGUI_LDFLAGS   += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo $(shell sdl2-config --libs) -L/usr/local/lib -L/opt/local/lib
+  IMGUI_CXXFLAGS  += $(shell sdl2-config --cflags) -I/usr/local/include -I/opt/local/include
+endif
+ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
+  IMGUI_LDFLAGS   += -lgdi32 -lopengl32 -limm32 $(shell pkg-config --static --libs sdl2)
+  IMGUI_CXXFLAGS  += $(shell pkg-config --cflags sdl2)
+endif
+
+
 .PHONY: all
-all: cli test-utils gui-qt
+all: cli test-utils gui gui-qt
 
 .PHONY: cli
 cli: dirs $(CLI_APPS)
@@ -297,6 +325,9 @@ test-utils: dirs $(TEST_UTILS)
 
 .PHONY: gui-qt
 gui-qt: dirs $(GUI_QT_APP)
+
+.PHONY: gui
+gui: dirs $(GUI_APP)
 
 
 PERCENT = %
@@ -324,6 +355,9 @@ $(call test-util-modules, serializer-test,      common snes project entity resou
 
 $(GUI_QT_APP): $(GUI_QT_OBJS) $(GEN_QT_OBJS) $(THIRD_PARTY_OBJS)
 
+$(GUI_APP): $(GUI_OBJS) $(THIRD_PARTY_OBJS) $(THIRD_PARTY_IMGUI_OBJS) $(THIRD_PARTY_IMGUI_IMPL_OBJS)
+
+
 
 # Disable Builtin rules
 .SUFFIXES:
@@ -345,6 +379,9 @@ $(TEST_UTILS): $(BIN_DIR)/test-utils/%$(BIN_EXT): $(OBJ_DIR)/test-utils/%.o
 $(CLI_APPS): $(BIN_DIR)/%$(BIN_EXT): $(OBJ_DIR)/cli/%.o
 	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
 
+$(GUI_APP):
+	$(CXX) $(LDFLAGS) $(CXXWARNINGS) $(IMGUI_LDFLAGS) -o $@ $^ $(GUI_LIBS) $(LIBS)
+
 
 $(GUI_QT_UI_OBJS): $(OBJ_DIR)/gui-qt/%.o: src/gui-qt/%.cpp $(GEN_DIR)/gui-qt/%.ui.h
 	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(GUI_QT_CXXFLAGS) -I$(GEN_DIR) -c -o $@ $<
@@ -364,6 +401,24 @@ $(OBJ_DIR)/vendor/%.o: src/vendor/%.cpp
 
 $(OBJ_DIR)/vendor/%.o: src/vendor/%.c
 	$(CC) $(CFLAGS) $(CXXWARNINGS) -c -o $@ $<
+
+
+
+$(OBJ_DIR)/gui/%.o: src/gui/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) -c -o $@ $<
+
+
+$(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/examples/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/misc/cpp/%.cpp
+	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
+
+$(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/examples/libs/gl3w/GL/%.c
+	$(CC) $(CFLAGS) $(CXXWARNINGS) -Isrc/vendor/imgui/examples/libs/gl3w -c -o $@ $<
 
 
 $(OBJ_DIR)/%.o: src/%.cpp
