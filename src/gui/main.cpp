@@ -5,7 +5,10 @@
  */
 
 #include "imgui.h"
+#include "untech-editor.h"
 #include <iostream>
+
+#include "gui/windows/projectlist.h"
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
 #include "imgui_sdl_opengl3.hpp"
@@ -67,22 +70,53 @@ static void fpsWindow()
     ImGui::End();
 }
 
-int main()
+static void processProgramArguments(int argc, const char* argv[])
 {
+    using namespace std::string_literals;
+    using namespace UnTech::Gui;
+
+    const std::string argument = argc > 1 ? argv[1] : "";
+    if (argc > 2 || argument == "--help"s) {
+        std::cout << "Usage " << argv[0] << " <filename>";
+        exit(EXIT_SUCCESS);
+    }
+    else if (!argument.empty()) {
+        UnTechEditor::loadProject(argument);
+    }
+}
+
+int main(int argc, const char* argv[])
+{
+    using namespace UnTech::Gui;
+
+    processProgramArguments(argc, argv);
+
     ImGuiLoop imgui;
     imgui.init("UnTech Editor");
 
     ImGuiIO& io = ImGui::GetIO();
     setupGui(io);
 
+    // ::TODO add message windows
+
     while (!imgui.done) {
+        auto editor = UnTechEditor::instance();
+
         imgui.newFrame();
 
         centralDockSpace();
 
+        if (editor) {
+            editor->processGui();
+        }
+
         fpsWindow();
 
         imgui.render();
+
+        if (editor) {
+            editor->updateProjectFile();
+        }
     }
 
     imgui.cleanup();

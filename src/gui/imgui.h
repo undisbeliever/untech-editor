@@ -5,3 +5,14 @@
  */
 
 #include "vendor/imgui/imgui.h"
+#include "vendor/imgui/misc/cpp/imgui_stdlib.h"
+#include <string>
+
+namespace ImGui {
+
+inline void TextUnformatted(const std::string& text)
+{
+    TextUnformatted(text.c_str(), text.c_str() + text.size());
+}
+
+}

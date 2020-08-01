@@ -4,8 +4,15 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "imgui.h"
+#pragma once
 
-namespace ImGui {
+namespace UnTech::Gui {
+class UnTechEditor;
+
+struct ProjectListWindow {
+    static const char* windowTitle;
+
+    static void processGui(UnTechEditor& editor);
+};
 
 }
