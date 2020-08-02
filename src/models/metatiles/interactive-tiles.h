@@ -34,6 +34,8 @@ struct InteractiveTiles {
     constexpr static unsigned N_FIXED_FUNCTION_TABLES = 1;
     const static std::array<InteractiveTileFunctionTable, N_FIXED_FUNCTION_TABLES> FIXED_FUNCTION_TABLES;
 
+    constexpr static unsigned MAX_PROJECT_FUNCTION_TABLES = MAX_INTERACTIVE_TILE_FUNCTION_TABLES - N_FIXED_FUNCTION_TABLES;
+
     NamedList<InteractiveTileFunctionTable> functionTables;
 
     // Gets the function table used by the interactive tile with the id of `i`.

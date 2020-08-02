@@ -21,7 +21,7 @@ void ProjectListWindow::processGui(UnTechEditor& editor)
     if (ImGui::Begin(windowTitle)) {
         const ImGuiSelectableFlags leafFlags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick;
 
-        const auto currentIndex = editor.selectedItem();
+        const auto currentIndex = editor.selectedItemIndex();
 
         auto leaf = [&](EditorType type, unsigned index, const std::string& label) {
             bool selected = currentIndex == ItemIndex(type, index);
@@ -92,15 +92,15 @@ void ProjectListWindow::processGui(UnTechEditor& editor)
         const auto& pf = editor.projectFile();
 
         if (ImGui::TreeNodeEx("Project Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsItem::ProjectSettings),
+            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::ProjectSettings),
                  "Project Settings"s);
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsItem::InteractiveTiles),
+            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::InteractiveTiles),
                  "Interactive Tiles"s);
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsItem::ActionPoints),
+            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::ActionPoints),
                  "Action Points"s);
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsItem::EntityRomData),
+            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::EntityRomData),
                  "Entities"s);
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsItem::Scenes),
+            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::Scenes),
                  "Scenes"s);
 
             ImGui::TreePop();

@@ -192,10 +192,12 @@ void writeEntityRomEntries(XmlWriter& xml, const std::string& tagName, const Ent
                   [](const FieldValue& a, const FieldValue& b) { return a.first < b.first; });
 
         for (const auto& f : fields) {
-            xml.writeTag("entry-field");
-            xml.writeTagAttribute("for", f.get().first);
-            xml.writeTagAttribute("value", f.get().second);
-            xml.writeCloseTag();
+            if (!f.get().second.empty()) {
+                xml.writeTag("entry-field");
+                xml.writeTagAttribute("for", f.get().first);
+                xml.writeTagAttribute("value", f.get().second);
+                xml.writeCloseTag();
+            }
         }
 
         xml.writeCloseTag();

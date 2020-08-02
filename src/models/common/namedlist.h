@@ -32,10 +32,10 @@ public:
     NamedList() = default;
     ~NamedList() = default;
 
-    NamedList(const NamedList&) = delete;
-    NamedList(NamedList&&) = delete;
-    NamedList& operator=(const NamedList& other) = delete;
-    NamedList& operator=(NamedList&& other) = delete;
+    NamedList(const NamedList&) = default;
+    NamedList(NamedList&&) = default;
+    NamedList& operator=(const NamedList& other) = default;
+    NamedList& operator=(NamedList&& other) = default;
 
     bool empty() const { return _list.empty(); }
     size_type size() const { return _list.size(); }
@@ -93,6 +93,11 @@ public:
 
     void resize(size_type n) { _list.resize(n); }
     void reserve(size_type capacity) { _list.reserve(capacity); }
+
+    void emplace_back()
+    {
+        _list.emplace_back();
+    }
 
     void insert_back()
     {

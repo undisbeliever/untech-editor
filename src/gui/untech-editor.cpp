@@ -5,6 +5,7 @@
  */
 
 #include "untech-editor.h"
+#include "abstract-editor.h"
 #include "enums.h"
 #include "imgui.h"
 #include "models/project/project.h"
@@ -21,7 +22,8 @@ UnTechEditor::UnTechEditor()
 
 UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf)
     : _projectFile(std::move(pf))
-    , _selectedItem()
+    , _editors()
+    , _currentEditor(nullptr)
 {
     assert(_projectFile != nullptr);
 }
@@ -47,25 +49,81 @@ void UnTechEditor::loadProject(std::filesystem::path filename)
     }
 }
 
+std::optional<ItemIndex> UnTechEditor::selectedItemIndex() const
+{
+    if (_currentEditor) {
+        return _currentEditor->itemIndex();
+    }
+    else {
+        return std::nullopt;
+    }
+}
+
 void UnTechEditor::openEditor(EditorType type, unsigned item)
 {
-    _selectedItem = ItemIndex(type, item);
+    const ItemIndex itemIndex{ type, item };
 
-    ImGui::LogText("Open Editor %d %d", unsigned(type), item);
+    AbstractEditor* editor = nullptr;
+
+    auto it = std::find_if(_editors.cbegin(), _editors.cend(),
+                           [&](auto& e) { return e->itemIndex() == itemIndex; });
+    if (it != _editors.cend()) {
+        editor = it->get();
+    }
+
+    if (editor == nullptr) {
+        if (auto e = createEditor(itemIndex)) {
+            if (e->loadDataFromProject(*_projectFile)) {
+                // itemIndex is valid
+                editor = e.get();
+                _editors.push_back(std::move(e));
+            }
+        }
+    }
+
+    if (editor != _currentEditor) {
+        closeEditor();
+        _currentEditor = editor;
+        if (editor) {
+            editor->loadDataFromProject(*_projectFile);
+            editor->editorOpened();
+        }
+    }
 }
 
 void UnTechEditor::closeEditor()
 {
-    _selectedItem = std::nullopt;
+    if (_currentEditor) {
+        // ::TODO force update if I add multi-threading::
+        updateProjectFile();
+
+        _currentEditor->editorClosed();
+
+        _currentEditor = nullptr;
+    }
 }
 
 void UnTechEditor::processGui()
 {
     ProjectListWindow::processGui(*this);
+
+    if (_currentEditor) {
+        _currentEditor->processGui(*_projectFile);
+    }
 }
 
 void UnTechEditor::updateProjectFile()
 {
+    if (_currentEditor) {
+        if (_currentEditor->pendingChanges) {
+            // ::aquire write lock if adding multi-threading::
+            // ::include timeout::
+            assert(_projectFile);
+            _currentEditor->commitPendingChanges(*_projectFile);
+
+            _currentEditor->pendingChanges = false;
+        }
+    }
 }
 
 }

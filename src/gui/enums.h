@@ -19,7 +19,7 @@ enum class EditorType : unsigned {
 };
 constexpr unsigned N_EDITOR_TYPES = 7;
 
-enum class ProjectSettingsItem : unsigned {
+enum class ProjectSettingsIndex : unsigned {
     ProjectSettings,
     InteractiveTiles,
     ActionPoints,

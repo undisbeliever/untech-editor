@@ -10,10 +10,21 @@
 #include <string>
 
 namespace UnTech {
+class idstring;
+}
+namespace ImGui {
+bool InputIdstring(const char*, UnTech::idstring*);
+}
+
+namespace UnTech {
 
 // Will ALWAYS contain valid data.
 // Data structure fails silently
 class idstring {
+    // Allow ImGui::InputIdstring to access idstring internals.
+    friend bool ImGui::InputIdstring(const char*, idstring*);
+
+private:
     std::string data;
 
 public:

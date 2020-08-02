@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "item-index.h"
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -17,24 +18,7 @@ struct ProjectFile;
 }
 
 namespace UnTech::Gui {
-enum class EditorType : unsigned;
-
-struct ItemIndex {
-    EditorType type;
-    unsigned index;
-
-    ItemIndex(EditorType t, unsigned i)
-        : type(t)
-        , index(i)
-    {
-    }
-
-    bool operator==(const ItemIndex& o) const
-    {
-        return this->type == o.type
-               && this->index == o.index;
-    }
-};
+class AbstractEditor;
 
 class UnTechEditor {
 private:
@@ -43,7 +27,8 @@ private:
     // ::TODO put behind a mutex in a separate class::
     std::unique_ptr<UnTech::Project::ProjectFile> const _projectFile;
 
-    std::optional<ItemIndex> _selectedItem;
+    std::vector<std::unique_ptr<AbstractEditor>> _editors;
+    AbstractEditor* _currentEditor;
 
 private:
     UnTechEditor();
@@ -60,7 +45,7 @@ public:
     // ::TODO put behind a mutex::
     const UnTech::Project::ProjectFile& projectFile() const { return *_projectFile; }
 
-    std::optional<ItemIndex> selectedItem() const { return _selectedItem; }
+    std::optional<ItemIndex> selectedItemIndex() const;
 
     void openEditor(EditorType type, unsigned item);
     void closeEditor();
