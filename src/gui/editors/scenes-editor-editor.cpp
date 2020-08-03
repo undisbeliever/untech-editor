@@ -176,7 +176,7 @@ void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
     if (ImGui::Begin("Scenes")) {
         ImGui::SetWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons(&_settingsSel, &_scenes.settings, 128);
+        ListButtons(&_scenesSel, &_scenes.scenes, 128);
 
         ImGui::BeginChild("Scroll");
 
