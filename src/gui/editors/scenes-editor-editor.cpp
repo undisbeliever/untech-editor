@@ -114,8 +114,6 @@ void ScenesEditor::settingsWindow()
             ImGui::PopID();
         }
 
-        UpdateSelection(&_settingsSel);
-
         ImGui::Columns(1);
         ImGui::Separator();
 
@@ -238,8 +236,6 @@ void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
             ImGui::PopID();
         }
 
-        UpdateSelection(&_scenesSel);
-
         ImGui::Columns(1);
         ImGui::Separator();
 
@@ -252,5 +248,8 @@ void ScenesEditor::processGui(const Project::ProjectFile& projectFile)
 {
     settingsWindow();
     scenesWindow(projectFile);
+
+    UpdateSelection(&_settingsSel);
+    UpdateSelection(&_scenesSel);
 }
 }

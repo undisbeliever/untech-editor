@@ -25,6 +25,7 @@ class NamedList;
 namespace UnTech::Gui {
 struct SingleSelection;
 struct MultipleSelection;
+struct MultipleChildSelection;
 }
 
 namespace ImGui {
@@ -61,6 +62,8 @@ bool Selectable(const char* label, UnTech::Gui::SingleSelection* sel, const unsi
 bool Selectable(UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
 bool Selectable(const char* label, UnTech::Gui::MultipleSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
 bool Selectable(UnTech::Gui::MultipleSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
+bool Selectable(const char* label, UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
+bool Selectable(UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
 
 bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags = 0);
 

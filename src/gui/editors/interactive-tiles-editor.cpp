@@ -106,8 +106,6 @@ void InteractiveTilesEditor::interactiveTilesWindow()
             }
 
             ImGui::PopID();
-
-            UpdateSelection(&_sel);
         }
 
         ImGui::Columns(1);
@@ -121,6 +119,8 @@ void InteractiveTilesEditor::interactiveTilesWindow()
 void InteractiveTilesEditor::processGui(const Project::ProjectFile&)
 {
     interactiveTilesWindow();
+
+    UpdateSelection(&_sel);
 }
 
 }

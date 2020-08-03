@@ -92,8 +92,6 @@ void EntityRomDataEditor::listIdsWindow()
             }
 
             ImGui::PopID();
-
-            UpdateSelection(&_listIdsSel);
         }
 
         ImGui::Columns(1);
@@ -127,8 +125,6 @@ void EntityRomDataEditor::structsWindow()
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
         NamedListSidebar(_entityRomData.structs, &_structsSel, 1024);
-
-        UpdateChildSelection(&_structsSel, &_structFieldsSel);
 
         ImGui::SameLine();
 
@@ -236,8 +232,6 @@ void EntityRomDataEditor::structsWindow()
                         }
 
                         ImGui::PopID();
-
-                        UpdateSelection(&_structFieldsSel);
                     }
 
                     ImGui::Columns(1);
@@ -323,8 +317,6 @@ void EntityRomDataEditor::functionTablesWindow(const UnTech::Project::ProjectFil
             }
 
             ImGui::PopID();
-
-            UpdateSelection(&_functionTablesSel);
         }
 
         ImGui::Columns(1);
@@ -438,6 +430,17 @@ void EntityRomDataEditor::processGui(const Project::ProjectFile& projectFile)
     entityEntriesWindow("Entity ROM Entries", EntityType::ENTITY, _entityRomData.entities, &_entitiesSel, projectFile);
     entityEntriesWindow("Projectile ROM Entries", EntityType::PROJECTILE, _entityRomData.projectiles, &_projectilesSel, projectFile);
     entityEntriesWindow("Player ROM Entries", EntityType::PLAYER, _entityRomData.players, &_playersSel, projectFile);
+
+    UpdateSelection(&_listIdsSel);
+
+    UpdateSelection(&_structsSel);
+    UpdateSelection(&_structFieldsSel, _structsSel);
+
+    UpdateSelection(&_functionTablesSel);
+
+    UpdateSelection(&_entitiesSel);
+    UpdateSelection(&_projectilesSel);
+    UpdateSelection(&_playersSel);
 }
 
 // ::TODO replace with array_vector::

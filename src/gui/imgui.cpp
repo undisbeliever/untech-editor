@@ -86,6 +86,21 @@ bool Selectable(UnTech::Gui::MultipleSelection* sel, const unsigned i, ImGuiSele
     return Selectable(label.c_str(), sel, i, flags);
 }
 
+bool Selectable(const char* label, UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
+{
+    bool s = Selectable(label, (sel->selected & 1 << i), flags);
+    if (s) {
+        sel->clicked = i;
+    }
+    return s;
+}
+
+bool Selectable(UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
+{
+    const std::string label = std::to_string(i);
+    return Selectable(label.c_str(), sel, i, flags);
+}
+
 bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags)
 {
     return BeginCombo(label, current.c_str(), flags);

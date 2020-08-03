@@ -12,15 +12,6 @@
 
 namespace UnTech::Gui {
 
-void UpdateChildSelection(const SingleSelection* parent, MultipleChildSelection* sel)
-{
-    if (sel->parent != parent->selected) {
-        sel->parent = parent->selected;
-        sel->selected = MultipleSelection::NO_SELECTION;
-        sel->clicked = UINT_MAX;
-    }
-}
-
 void UpdateSelection(SingleSelection* sel)
 {
     if (sel->clicked < SingleSelection::MAX_SIZE) {
@@ -40,6 +31,26 @@ void UpdateSelection(MultipleSelection* sel)
         }
     }
     sel->clicked = UINT_MAX;
+}
+
+void UpdateSelection(MultipleChildSelection* sel, const SingleSelection& parent)
+{
+    if (sel->parent != parent.selected) {
+        sel->parent = parent.selected;
+        sel->selected = MultipleSelection::NO_SELECTION;
+        sel->clicked = UINT_MAX;
+    }
+    else {
+        if (sel->clicked < int(MultipleSelection::MAX_SIZE)) {
+            if (ImGui::GetIO().KeyCtrl) {
+                sel->selected ^= 1 << sel->clicked;
+            }
+            else {
+                sel->selected = 1 << sel->clicked;
+            }
+        }
+        sel->clicked = UINT_MAX;
+    }
 }
 
 }

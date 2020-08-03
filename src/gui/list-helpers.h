@@ -74,7 +74,45 @@ void ListButtons(MultipleSelection* sel, T* list, const unsigned maxSize = 64)
                 }
             }
         }
-        sel->selected = SingleSelection::NO_SELECTION;
+        sel->selected = MultipleChildSelection::NO_SELECTION;
+    }
+}
+
+// ::TODO connect with undo system::
+template <typename T>
+void ListButtons(MultipleChildSelection* sel, T* list, const unsigned maxSize = 64)
+{
+    assert(maxSize <= MultipleChildSelection::MAX_SIZE);
+
+    if (ImGui::Button("Add")) {
+        assert(list != nullptr);
+
+        if (list->size() < maxSize) {
+            list->emplace_back();
+
+            sel->selected = 1 << (list->size() - 1);
+        }
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Remove")) {
+        assert(list != nullptr);
+        const auto s = sel->selected;
+
+        if (s != 0) {
+            // ::TODO use std::bit_width when upgrading c++20::
+            const size_t last = std::min<size_t>(list->size(), maxSize);
+
+            for (size_t i = last; i > 0; i--) {
+                unsigned toRemove = i - 1;
+
+                if (s & (1 << toRemove)) {
+                    list->erase(list->begin() + toRemove);
+                }
+            }
+        }
+        sel->selected = MultipleChildSelection::NO_SELECTION;
     }
 }
 

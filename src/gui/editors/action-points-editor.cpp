@@ -82,8 +82,6 @@ void ActionPointsEditor::actionPointsWindow()
             }
 
             ImGui::PopID();
-
-            UpdateSelection(&_sel);
         }
 
         ImGui::Columns(1);
@@ -97,6 +95,8 @@ void ActionPointsEditor::actionPointsWindow()
 void ActionPointsEditor::processGui(const Project::ProjectFile&)
 {
     actionPointsWindow();
+
+    UpdateSelection(&_sel);
 }
 
 }
