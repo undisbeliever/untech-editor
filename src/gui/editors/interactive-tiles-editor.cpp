@@ -35,7 +35,7 @@ void InteractiveTilesEditor::editorClosed()
 {
 }
 
-void InteractiveTilesEditor::processGui(const Project::ProjectFile&)
+void InteractiveTilesEditor::interactiveTilesWindow()
 {
     if (ImGui::Begin("Interactive Tiles")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -116,6 +116,11 @@ void InteractiveTilesEditor::processGui(const Project::ProjectFile&)
         ImGui::EndChild();
     }
     ImGui::End();
+}
+
+void InteractiveTilesEditor::processGui(const Project::ProjectFile&)
+{
+    interactiveTilesWindow();
 }
 
 }

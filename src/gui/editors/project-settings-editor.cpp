@@ -41,7 +41,7 @@ void ProjectSettingsEditor::editorClosed()
 {
 }
 
-void ProjectSettingsEditor::processGui(const Project::ProjectFile&)
+void ProjectSettingsEditor::projectSettingsWindow()
 {
     if (ImGui::Begin("Project Settings")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -80,6 +80,11 @@ void ProjectSettingsEditor::processGui(const Project::ProjectFile&)
         }
     }
     ImGui::End();
+}
+
+void ProjectSettingsEditor::processGui(const Project::ProjectFile&)
+{
+    projectSettingsWindow();
 }
 
 }

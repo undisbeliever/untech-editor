@@ -26,6 +26,9 @@ public:
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
+
+private:
+    void projectSettingsWindow();
 };
 
 }

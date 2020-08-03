@@ -37,7 +37,7 @@ void ActionPointsEditor::editorClosed()
 {
 }
 
-void ActionPointsEditor::processGui(const Project::ProjectFile&)
+void ActionPointsEditor::actionPointsWindow()
 {
     if (ImGui::Begin("Action Points")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -92,6 +92,11 @@ void ActionPointsEditor::processGui(const Project::ProjectFile&)
         ImGui::EndChild();
     }
     ImGui::End();
+}
+
+void ActionPointsEditor::processGui(const Project::ProjectFile&)
+{
+    actionPointsWindow();
 }
 
 }
