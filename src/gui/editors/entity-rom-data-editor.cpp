@@ -54,7 +54,7 @@ void EntityRomDataEditor::editorClosed()
 {
 }
 
-void EntityRomDataEditor::listIdsGui()
+void EntityRomDataEditor::listIdsWindow()
 {
     if (ImGui::Begin("EntityListIds")) {
         ImGui::SetWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
@@ -121,7 +121,7 @@ static const char* toString(const UnTech::Entity::DataType type)
     return i < IM_ARRAYSIZE(dataTypeItems) ? dataTypeItems[i] : "";
 }
 
-void EntityRomDataEditor::structsGui()
+void EntityRomDataEditor::structsWindow()
 {
     if (ImGui::Begin("Entity Rom Structs")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -253,7 +253,7 @@ void EntityRomDataEditor::structsGui()
     ImGui::End();
 }
 
-void EntityRomDataEditor::functionTablesGui(const UnTech::Project::ProjectFile& projectFile)
+void EntityRomDataEditor::functionTablesWindow(const UnTech::Project::ProjectFile& projectFile)
 {
     if (ImGui::Begin("Entity Function Tables")) {
         ImGui::SetWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
@@ -335,9 +335,9 @@ void EntityRomDataEditor::functionTablesGui(const UnTech::Project::ProjectFile& 
     ImGui::End();
 }
 
-void EntityRomDataEditor::entriesGui(const char* name, EntityType type,
-                                     NamedList<EntityRomEntry>& entries, SingleSelection* sel,
-                                     const Project::ProjectFile& projectFile)
+void EntityRomDataEditor::entityEntriesWindow(const char* name, EntityType type,
+                                              NamedList<EntityRomEntry>& entries, SingleSelection* sel,
+                                              const Project::ProjectFile& projectFile)
 {
     if (ImGui::Begin(name)) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -432,12 +432,12 @@ void EntityRomDataEditor::entriesGui(const char* name, EntityType type,
 
 void EntityRomDataEditor::processGui(const Project::ProjectFile& projectFile)
 {
-    listIdsGui();
-    structsGui();
-    functionTablesGui(projectFile);
-    entriesGui("Entity ROM Entries", EntityType::ENTITY, _entityRomData.entities, &_entitiesSel, projectFile);
-    entriesGui("Projectile ROM Entries", EntityType::PROJECTILE, _entityRomData.projectiles, &_projectilesSel, projectFile);
-    entriesGui("Player ROM Entries", EntityType::PLAYER, _entityRomData.players, &_playersSel, projectFile);
+    listIdsWindow();
+    structsWindow();
+    functionTablesWindow(projectFile);
+    entityEntriesWindow("Entity ROM Entries", EntityType::ENTITY, _entityRomData.entities, &_entitiesSel, projectFile);
+    entityEntriesWindow("Projectile ROM Entries", EntityType::PROJECTILE, _entityRomData.projectiles, &_projectilesSel, projectFile);
+    entityEntriesWindow("Player ROM Entries", EntityType::PLAYER, _entityRomData.players, &_playersSel, projectFile);
 }
 
 // ::TODO replace with array_vector::

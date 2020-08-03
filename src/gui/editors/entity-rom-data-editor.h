@@ -43,12 +43,12 @@ public:
     virtual void processGui(const Project::ProjectFile& projectFile) final;
 
 private:
-    void listIdsGui();
-    void structsGui();
-    void functionTablesGui(const Project::ProjectFile& projectFile);
-    void entriesGui(const char* name, EntityType type,
-                    NamedList<EntityRomEntry>& entries, SingleSelection* sel,
-                    const Project::ProjectFile& projectFile);
+    void listIdsWindow();
+    void structsWindow();
+    void functionTablesWindow(const Project::ProjectFile& projectFile);
+    void entityEntriesWindow(const char* name, EntityType type,
+                             NamedList<EntityRomEntry>& entries, SingleSelection* sel,
+                             const Project::ProjectFile& projectFile);
 
     std::vector<unsigned> generateStructChain(const idstring& name) const;
 };

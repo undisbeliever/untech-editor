@@ -52,7 +52,7 @@ void ScenesEditor::editorClosed()
 {
 }
 
-void ScenesEditor::settingsGui()
+void ScenesEditor::settingsWindow()
 {
     if (ImGui::Begin("Scene Settings")) {
         ImGui::SetWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
@@ -173,7 +173,7 @@ bool ScenesEditor::sceneLayerCombo(const char* label, idstring* value,
     return false;
 }
 
-void ScenesEditor::scenesGui(const Project::ProjectFile& projectFile)
+void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
 {
     if (ImGui::Begin("Scenes")) {
         ImGui::SetWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
@@ -250,7 +250,7 @@ void ScenesEditor::scenesGui(const Project::ProjectFile& projectFile)
 
 void ScenesEditor::processGui(const Project::ProjectFile& projectFile)
 {
-    settingsGui();
-    scenesGui(projectFile);
+    settingsWindow();
+    scenesWindow(projectFile);
 }
 }

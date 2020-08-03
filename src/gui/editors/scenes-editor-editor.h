@@ -31,8 +31,8 @@ public:
     virtual void processGui(const Project::ProjectFile& projectFile) final;
 
 private:
-    void settingsGui();
-    void scenesGui(const Project::ProjectFile& projectFile);
+    void settingsWindow();
+    void scenesWindow(const Project::ProjectFile& projectFile);
 
     bool sceneLayerCombo(const char* label, idstring* value,
                          const Project::ProjectFile& projectFile, const Resources::SceneSettingsInput& sceneSettings, const unsigned layerId);
