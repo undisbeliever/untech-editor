@@ -21,6 +21,8 @@ template <typename T>
 class NamedList {
 public:
     using container = typename std::vector<T>;
+
+    using value_type = T;
     using iterator = typename container::iterator;
     using const_iterator = typename container::const_iterator;
     using size_type = typename container::size_type;

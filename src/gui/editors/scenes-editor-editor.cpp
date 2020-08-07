@@ -6,6 +6,7 @@
 
 #include "scenes-editor-editor.h"
 #include "gui/imgui.h"
+#include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 #include "models/resources/scene-bgmode.hpp"
 
@@ -27,6 +28,54 @@ const char* layerTypeItems[] = {
     "Text Console",
 };
 
+// ScenesEditor Action Policies
+struct ScenesEditor::AP {
+    struct ResourceScenes {
+        using EditorT = ScenesEditor;
+        using EditorDataT = UnTech::Resources::ResourceScenes;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor._scenes;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
+        {
+            return &projectFile.resourceScenes;
+        }
+    };
+
+    struct SceneSettings : public ResourceScenes {
+        using ListT = NamedList<Resources::SceneSettingsInput>;
+        using ListArgsT = std::tuple<>;
+        using SelectionT = SingleSelection;
+
+        constexpr static size_t MAX_SIZE = UnTech::Resources::MAX_N_SCENE_SETTINGS;
+
+        constexpr static auto SelectionPtr = &EditorT::_settingsSel;
+
+        static ListT* getList(EditorDataT& editorData)
+        {
+            return &editorData.settings;
+        }
+    };
+
+    struct Scenes : public ResourceScenes {
+        using ListT = NamedList<Resources::SceneInput>;
+        using ListArgsT = std::tuple<>;
+        using SelectionT = SingleSelection;
+
+        constexpr static size_t MAX_SIZE = 255;
+
+        constexpr static auto SelectionPtr = &EditorT::_scenesSel;
+
+        static ListT* getList(EditorDataT& editorData)
+        {
+            return &editorData.scenes;
+        }
+    };
+};
+
 ScenesEditor::ScenesEditor(ItemIndex itemIndex)
     : AbstractEditor(itemIndex)
 {
@@ -37,11 +86,6 @@ bool ScenesEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
     _scenes = projectFile.resourceScenes;
 
     return true;
-}
-
-void ScenesEditor::commitPendingChanges(Project::ProjectFile& projectFile)
-{
-    projectFile.resourceScenes = _scenes;
 }
 
 void ScenesEditor::editorOpened()
@@ -57,7 +101,7 @@ void ScenesEditor::settingsWindow()
     if (ImGui::Begin("Scene Settings")) {
         ImGui::SetWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons(&_settingsSel, &_scenes.settings, 128);
+        ListButtons<AP::SceneSettings>(this);
 
         ImGui::BeginChild("Scroll");
 
@@ -107,8 +151,7 @@ void ScenesEditor::settingsWindow()
             }
 
             if (edited) {
-                ImGui::LogText("Edited Secene Settings");
-                this->pendingChanges = true;
+                ListActions<AP::SceneSettings>::itemEdited(this, i);
             }
 
             ImGui::PopID();
@@ -176,7 +219,7 @@ void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
     if (ImGui::Begin("Scenes")) {
         ImGui::SetWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons(&_scenesSel, &_scenes.scenes, 128);
+        ListButtons<AP::Scenes>(this);
 
         ImGui::BeginChild("Scroll");
 
@@ -229,8 +272,7 @@ void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
             }
 
             if (edited) {
-                ImGui::LogText("Edited Secene");
-                this->pendingChanges = true;
+                ListActions<AP::Scenes>::itemEdited(this, i);
             }
 
             ImGui::PopID();
@@ -252,4 +294,5 @@ void ScenesEditor::processGui(const Project::ProjectFile& projectFile)
     UpdateSelection(&_settingsSel);
     UpdateSelection(&_scenesSel);
 }
+
 }

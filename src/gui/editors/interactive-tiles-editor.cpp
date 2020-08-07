@@ -6,9 +6,41 @@
 
 #include "interactive-tiles-editor.h"
 #include "gui/imgui.h"
+#include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 
 namespace UnTech::Gui {
+
+// InteractiveTilesEditor Action Policies
+struct InteractiveTilesEditor::AP {
+    struct InteractiveTiles {
+        using EditorT = InteractiveTilesEditor;
+        using EditorDataT = UnTech::MetaTiles::InteractiveTiles;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor._interactiveTiles;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
+        {
+            return &projectFile.interactiveTiles;
+        }
+    };
+
+    struct FunctionTables : public InteractiveTiles {
+        using ListT = NamedList<MetaTiles::InteractiveTileFunctionTable>;
+        using ListArgsT = std::tuple<>;
+        using SelectionT = MultipleSelection;
+
+        constexpr static size_t MAX_SIZE = UnTech::MetaTiles::MAX_INTERACTIVE_TILE_FUNCTION_TABLES
+                                           - UnTech::MetaTiles::InteractiveTiles::FIXED_FUNCTION_TABLES.size();
+
+        constexpr static auto SelectionPtr = &EditorT::_sel;
+
+        static ListT* getList(EditorDataT& editorData) { return &editorData.functionTables; }
+    };
+};
 
 InteractiveTilesEditor::InteractiveTilesEditor(ItemIndex itemIndex)
     : AbstractEditor(itemIndex)
@@ -20,11 +52,6 @@ bool InteractiveTilesEditor::loadDataFromProject(const Project::ProjectFile& pro
     _interactiveTiles = projectFile.interactiveTiles;
 
     return true;
-}
-
-void InteractiveTilesEditor::commitPendingChanges(Project::ProjectFile& projectFile)
-{
-    projectFile.interactiveTiles = _interactiveTiles;
 }
 
 void InteractiveTilesEditor::editorOpened()
@@ -40,7 +67,7 @@ void InteractiveTilesEditor::interactiveTilesWindow()
     if (ImGui::Begin("Interactive Tiles")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons(&_sel, &_interactiveTiles.functionTables, _interactiveTiles.MAX_PROJECT_FUNCTION_TABLES);
+        ListButtons<AP::FunctionTables>(this);
 
         ImGui::BeginChild("scroll");
 
@@ -101,8 +128,7 @@ void InteractiveTilesEditor::interactiveTilesWindow()
             ImGui::NextColumn();
 
             if (edited) {
-                ImGui::LogText("Edited Interactive Tiles");
-                this->pendingChanges = true;
+                ListActions<AP::FunctionTables>::itemEdited(this, i);
             }
 
             ImGui::PopID();

@@ -10,6 +10,7 @@
 #include <cassert>
 #include <climits>
 #include <cstdint>
+#include <tuple>
 
 namespace UnTech::Gui {
 
@@ -21,6 +22,8 @@ struct SingleSelection final {
 
     // The index of the `Selectable` that was pressed on this frame
     unsigned clicked = UINT_MAX;
+
+    std::tuple<> listArgs() const { return std::make_tuple(); }
 };
 
 struct MultipleSelection final {
@@ -31,6 +34,8 @@ struct MultipleSelection final {
 
     // The index of the `Selectable` that was pressed on this frame
     unsigned clicked = UINT_MAX;
+
+    std::tuple<> listArgs() const { return std::make_tuple(); }
 };
 
 // Not a child class of MultipleSelection.
@@ -44,6 +49,8 @@ struct MultipleChildSelection final {
 
     // The index of the `Selectable` that was pressed on this frame
     unsigned clicked = UINT_MAX;
+
+    std::tuple<unsigned> listArgs() const { return { parent }; }
 };
 
 // Must be called at the end of processGui(), after the windows have been processed

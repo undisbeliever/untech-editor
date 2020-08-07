@@ -97,6 +97,9 @@ void UnTechEditor::closeEditor()
         // ::TODO force update if I add multi-threading::
         updateProjectFile();
 
+        // Discard any uncommitted data
+        _currentEditor->loadDataFromProject(*_projectFile);
+
         _currentEditor->editorClosed();
 
         _currentEditor = nullptr;
@@ -110,19 +113,43 @@ void UnTechEditor::processGui()
     if (_currentEditor) {
         _currentEditor->processGui(*_projectFile);
     }
+
+    processMenu();
+}
+
+void UnTechEditor::processMenu()
+{
+    ImGui::BeginMainMenuBar();
+
+    if (ImGui::BeginMenu("File")) {
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Edit")) {
+        const bool canUndo = _currentEditor && _currentEditor->canUndo();
+        const bool canRedo = _currentEditor && _currentEditor->canRedo();
+
+        if (ImGui::MenuItem("Undo", nullptr, false, canUndo)) {
+            if (_currentEditor) {
+                _currentEditor->undo(*_projectFile);
+            }
+        }
+        if (ImGui::MenuItem("Redo", nullptr, false, canRedo)) {
+            if (_currentEditor) {
+                _currentEditor->redo(*_projectFile);
+            }
+        }
+
+        ImGui::EndMenu();
+    }
+
+    ImGui::EndMainMenuBar();
 }
 
 void UnTechEditor::updateProjectFile()
 {
     if (_currentEditor) {
-        if (_currentEditor->pendingChanges) {
-            // ::aquire write lock if adding multi-threading::
-            // ::include timeout::
-            assert(_projectFile);
-            _currentEditor->commitPendingChanges(*_projectFile);
-
-            _currentEditor->pendingChanges = false;
-        }
+        _currentEditor->processPendingActions(*_projectFile);
     }
 }
 

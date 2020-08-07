@@ -100,12 +100,11 @@ void writeSceneIncData(const ResourceScenes& resourceScenes, std::ostream& out)
 }
 constexpr unsigned FUNCTION_TABLE_ELEMENT_SIZE = 6;
 constexpr unsigned SCENE_SETTINGS_DATA_ELEMENT_SIZE = 3;
+static_assert(MAX_N_SCENE_SETTINGS == 255 / std::max(FUNCTION_TABLE_ELEMENT_SIZE, SCENE_SETTINGS_DATA_ELEMENT_SIZE));
 
 std::unique_ptr<const SceneSettingsData>
 compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorList& err)
 {
-    constexpr unsigned MAX_N_SETTINGS = 255 / std::max(FUNCTION_TABLE_ELEMENT_SIZE, SCENE_SETTINGS_DATA_ELEMENT_SIZE);
-
     auto out = std::make_unique<SceneSettingsData>();
 
     out->valid = true;
@@ -114,8 +113,8 @@ compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorLis
         out->valid = false;
     };
 
-    if (settings.size() > MAX_N_SETTINGS) {
-        err.addErrorString("Too many settings (", settings.size(), "max = ", MAX_N_SETTINGS);
+    if (settings.size() > MAX_N_SCENE_SETTINGS) {
+        err.addErrorString("Too many settings (", settings.size(), "max = ", MAX_N_SCENE_SETTINGS);
         out->valid = false;
     }
 

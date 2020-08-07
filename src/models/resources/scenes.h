@@ -23,6 +23,7 @@ class ProjectData;
 namespace Resources {
 
 constexpr unsigned N_LAYERS = 4;
+constexpr unsigned MAX_N_SCENE_SETTINGS = 42;
 
 enum class BgMode {
     MODE_0,

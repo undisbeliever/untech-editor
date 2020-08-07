@@ -18,9 +18,11 @@ public:
     using EntityRomEntry = UnTech::Entity::EntityRomEntry;
 
 private:
+    struct AP;
+
     UnTech::Entity::EntityRomData _entityRomData;
 
-    SingleSelection _listIdsSel;
+    MultipleSelection _listIdsSel;
 
     SingleSelection _structsSel;
     MultipleChildSelection _structFieldsSel;
@@ -35,7 +37,6 @@ public:
     EntityRomDataEditor(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void commitPendingChanges(Project::ProjectFile& projectFile) final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
@@ -46,8 +47,9 @@ private:
     void listIdsWindow();
     void structsWindow();
     void functionTablesWindow(const Project::ProjectFile& projectFile);
-    void entityEntriesWindow(const char* name, EntityType type,
-                             NamedList<EntityRomEntry>& entries, SingleSelection* sel,
+
+    template <typename ActionPolicy>
+    void entityEntriesWindow(const char* name,
                              const Project::ProjectFile& projectFile);
 
     std::vector<unsigned> generateStructChain(const idstring& name) const;

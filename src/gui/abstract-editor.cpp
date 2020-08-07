@@ -17,10 +17,112 @@
 
 namespace UnTech::Gui {
 
+// ::TODO replace with a circular buffer::
+void trimStack(std::vector<std::unique_ptr<EditorUndoAction>>& stack)
+{
+    while (stack.size() > AbstractEditor::N_UNDO_ACTIONS) {
+        stack.erase(stack.begin());
+    }
+}
+
 AbstractEditor::AbstractEditor(const ItemIndex itemIndex)
     : _itemIndex(itemIndex)
-    , pendingChanges(false)
+    , _pendingActions()
+    , _undoStack()
+    , _redoStack()
+    , _clean(true)
 {
+}
+
+void AbstractEditor::addAction(std::unique_ptr<EditorUndoAction>&& action)
+{
+    _pendingActions.push_back(std::move(action));
+}
+
+void AbstractEditor::processPendingActions(Project::ProjectFile& projectFile)
+{
+    const auto pendingSize = _pendingActions.size();
+
+    for (auto& pa : _pendingActions) {
+        auto action = std::move(pa);
+
+        const auto undoSize = _undoStack.size();
+        const auto redoSize = _redoStack.size();
+
+        const bool modifed = action->firstDo(projectFile);
+        _clean = false;
+
+        assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
+        assert(_redoStack.size() == redoSize && "EditorUndoAction must not modify the undo stack");
+        assert(_pendingActions.size() == pendingSize && "EditorUndoAction must not call addAction");
+
+        if (modifed) {
+            _undoStack.push_back(std::move(action));
+            _redoStack.clear();
+        }
+    }
+
+    _pendingActions.clear();
+
+    trimStack(_undoStack);
+}
+
+void AbstractEditor::undo(Project::ProjectFile& projectFile)
+{
+    if (_undoStack.empty()) {
+        return;
+    }
+    if (!_pendingActions.empty()) {
+        return;
+    }
+
+    // Discard any uncommitted changes
+    loadDataFromProject(projectFile);
+
+    auto a = std::move(_undoStack.back());
+    _undoStack.pop_back();
+
+    const auto undoSize = _undoStack.size();
+    const auto redoSize = _redoStack.size();
+
+    a->undo(projectFile);
+    _clean = false;
+
+    assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
+    assert(_redoStack.size() == redoSize && "EditorUndoAction must not modify the undo stack");
+    assert(_pendingActions.empty() && "EditorUndoAction must not call addAction");
+
+    _redoStack.push_back(std::move(a));
+    trimStack(_redoStack);
+}
+
+void AbstractEditor::redo(Project::ProjectFile& projectFile)
+{
+    if (_redoStack.empty()) {
+        return;
+    }
+    if (!_pendingActions.empty()) {
+        return;
+    }
+
+    // Discard any uncommitted changes
+    loadDataFromProject(projectFile);
+
+    auto a = std::move(_redoStack.back());
+    _redoStack.pop_back();
+
+    const auto undoSize = _undoStack.size();
+    const auto redoSize = _redoStack.size();
+
+    a->redo(projectFile);
+    _clean = false;
+
+    assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
+    assert(_redoStack.size() == redoSize && "EditorUndoAction must not modify the undo stack");
+    assert(_pendingActions.empty() && "EditorUndoAction must not call addAction");
+
+    _undoStack.push_back(std::move(a));
+    trimStack(_undoStack);
 }
 
 std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex)

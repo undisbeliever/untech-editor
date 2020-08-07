@@ -5,6 +5,7 @@
  */
 
 #include "project-settings-editor.h"
+#include "gui/editor-actions.h"
 #include "gui/imgui.h"
 
 namespace UnTech::Gui {
@@ -12,6 +13,39 @@ namespace UnTech::Gui {
 static const char* memoryMapItems[] = {
     u8"LoROM",
     u8"HiROM",
+};
+
+// ProjectSettingsEditor Action Policies
+struct ProjectSettingsEditor::AP {
+    struct MemoryMapSettings {
+        using EditorT = ProjectSettingsEditor;
+        using EditorDataT = UnTech::Project::MemoryMapSettings;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor._memoryMap;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
+        {
+            return &projectFile.memoryMap;
+        }
+    };
+
+    struct RoomSettings {
+        using EditorT = ProjectSettingsEditor;
+        using EditorDataT = UnTech::Rooms::RoomSettings;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor._roomSettings;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
+        {
+            return &projectFile.roomSettings;
+        }
+    };
 };
 
 ProjectSettingsEditor::ProjectSettingsEditor(ItemIndex itemIndex)
@@ -25,12 +59,6 @@ bool ProjectSettingsEditor::loadDataFromProject(const Project::ProjectFile& proj
     _roomSettings = projectFile.roomSettings;
 
     return true;
-}
-
-void ProjectSettingsEditor::commitPendingChanges(Project::ProjectFile& projectFile)
-{
-    projectFile.memoryMap = _memoryMap;
-    projectFile.roomSettings = _roomSettings;
 }
 
 void ProjectSettingsEditor::editorOpened()
@@ -59,8 +87,7 @@ void ProjectSettingsEditor::projectSettingsWindow()
             edited |= ImGui::IsItemDeactivatedAfterEdit();
 
             if (edited) {
-                ImGui::LogText("Edited Memory Map");
-                this->pendingChanges = true;
+                EditorActions<AP::MemoryMapSettings>::editorDataEdited(this);
             }
 
             ImGui::TreePop();
@@ -73,8 +100,7 @@ void ProjectSettingsEditor::projectSettingsWindow()
             edited |= ImGui::IsItemDeactivatedAfterEdit();
 
             if (edited) {
-                ImGui::LogText("Edited Room Settings");
-                this->pendingChanges = true;
+                EditorActions<AP::RoomSettings>::editorDataEdited(this);
             }
             ImGui::TreePop();
         }

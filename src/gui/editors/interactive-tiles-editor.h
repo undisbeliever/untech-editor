@@ -14,6 +14,8 @@ namespace UnTech::Gui {
 
 class InteractiveTilesEditor final : public AbstractEditor {
 private:
+    struct AP;
+
     UnTech::MetaTiles::InteractiveTiles _interactiveTiles;
 
     MultipleSelection _sel;
@@ -22,7 +24,6 @@ public:
     InteractiveTilesEditor(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void commitPendingChanges(Project::ProjectFile& projectFile) final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;

@@ -8,7 +8,7 @@
 
 #include "item-index.h"
 #include <memory>
-#include <string>
+#include <vector>
 
 namespace UnTech::Project {
 struct ProjectFile;
@@ -16,18 +16,33 @@ struct ProjectFile;
 
 namespace UnTech::Gui {
 
+class EditorUndoAction {
+public:
+    virtual ~EditorUndoAction() = default;
+
+    // ::TODO add text::
+
+    // Returns true if the action modified the project
+    // If false then the undo action will not be added to the stack
+    virtual bool firstDo(UnTech::Project::ProjectFile&) = 0;
+
+    virtual void undo(UnTech::Project::ProjectFile&) const = 0;
+    virtual void redo(UnTech::Project::ProjectFile&) const = 0;
+};
+
 class AbstractEditor {
+public:
+    constexpr static unsigned N_UNDO_ACTIONS = 200;
 
 private:
     ItemIndex _itemIndex;
 
-protected:
-    std::string name;
+    // Using vector so I can trim the stacks when they get too large
+    std::vector<std::unique_ptr<EditorUndoAction>> _pendingActions;
+    std::vector<std::unique_ptr<EditorUndoAction>> _undoStack;
+    std::vector<std::unique_ptr<EditorUndoAction>> _redoStack;
 
-    // ::TODO undo stack::
-
-public:
-    bool pendingChanges = false;
+    bool _clean = true;
 
 public:
     AbstractEditor(const ItemIndex itemIndex);
@@ -42,13 +57,24 @@ public:
 
     // Return false if itemIndex is invalid
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) = 0;
-    virtual void commitPendingChanges(Project::ProjectFile& projectFile) = 0;
 
     virtual void editorOpened() = 0;
     virtual void editorClosed() = 0;
 
     // This is fine - only one Editor is active at any given time.
     virtual void processGui(const Project::ProjectFile& projectFile) = 0;
+
+    // Undo functions MUST NOT be called by an EditorUndoAction instance
+    void addAction(std::unique_ptr<EditorUndoAction>&& action);
+    void processPendingActions(UnTech::Project::ProjectFile&);
+    void undo(UnTech::Project::ProjectFile&);
+    void redo(UnTech::Project::ProjectFile&);
+
+    bool canUndo() const { return !_undoStack.empty(); }
+    bool canRedo() const { return !_redoStack.empty(); }
+
+    bool isClean() const { return _clean; }
+    void markClean() { _clean = true; }
 };
 
 std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex);

@@ -14,7 +14,9 @@ namespace UnTech::Gui {
 
 class ActionPointsEditor final : public AbstractEditor {
 private:
-    NamedList<UnTech::MetaSprite::ActionPointFunction> _actionPoints;
+    struct AP;
+
+    NamedList<UnTech::MetaSprite::ActionPointFunction> _actionPointFunctions;
 
     SingleSelection _sel;
 
@@ -22,7 +24,6 @@ public:
     ActionPointsEditor(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void commitPendingChanges(Project::ProjectFile& projectFile) final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;

@@ -14,6 +14,8 @@ namespace UnTech::Gui {
 
 class ScenesEditor final : public AbstractEditor {
 private:
+    struct AP;
+
     UnTech::Resources::ResourceScenes _scenes;
 
     SingleSelection _settingsSel;
@@ -23,7 +25,6 @@ public:
     ScenesEditor(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void commitPendingChanges(Project::ProjectFile& projectFile) final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;

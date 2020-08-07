@@ -54,6 +54,9 @@ public:
 
     // called after ImGUI render
     void updateProjectFile();
+
+private:
+    void processMenu();
 };
 
 }

@@ -6,27 +6,50 @@
 
 #include "action-points-editor.h"
 #include "gui/imgui.h"
+#include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 
 namespace UnTech::Gui {
 
+// ActionPointsEditor Action Policies
+struct ActionPointsEditor::AP {
+    struct ActionPointFunctions {
+        using EditorT = ActionPointsEditor;
+        using EditorDataT = NamedList<UnTech::MetaSprite::ActionPointFunction>;
+        using ListT = NamedList<UnTech::MetaSprite::ActionPointFunction>;
+        using ListArgsT = std::tuple<>;
+        using SelectionT = SingleSelection;
+
+        constexpr static size_t MAX_SIZE = 255;
+
+        constexpr static auto SelectionPtr = &EditorT::_sel;
+
+        static EditorDataT* getEditorData(EditorT& editor)
+        {
+            return &editor._actionPointFunctions;
+        }
+
+        static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
+        {
+            return &projectFile.actionPointFunctions;
+        }
+
+        static ListT* getList(EditorDataT& editorData) { return &editorData; }
+    };
+};
+
 ActionPointsEditor::ActionPointsEditor(ItemIndex itemIndex)
     : AbstractEditor(itemIndex)
-    , _actionPoints()
+    , _actionPointFunctions()
     , _sel()
 {
 }
 
 bool ActionPointsEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
-    _actionPoints = projectFile.actionPointFunctions;
+    _actionPointFunctions = projectFile.actionPointFunctions;
 
     return true;
-}
-
-void ActionPointsEditor::commitPendingChanges(Project::ProjectFile& projectFile)
-{
-    projectFile.actionPointFunctions = _actionPoints;
 }
 
 void ActionPointsEditor::editorOpened()
@@ -42,7 +65,7 @@ void ActionPointsEditor::actionPointsWindow()
     if (ImGui::Begin("Action Points")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons(&_sel, &_actionPoints, MetaSprite::MAX_ACTION_POINT_FUNCTIONS);
+        ListButtons<AP::ActionPointFunctions>(this);
 
         ImGui::BeginChild("Scroll");
 
@@ -57,8 +80,8 @@ void ActionPointsEditor::actionPointsWindow()
         ImGui::NextColumn();
         ImGui::Separator();
 
-        for (unsigned i = 0; i < _actionPoints.size(); i++) {
-            auto& ap = _actionPoints.at(i);
+        for (unsigned i = 0; i < _actionPointFunctions.size(); i++) {
+            auto& ap = _actionPointFunctions.at(i);
 
             bool edited = false;
 
@@ -77,8 +100,7 @@ void ActionPointsEditor::actionPointsWindow()
             ImGui::NextColumn();
 
             if (edited) {
-                ImGui::LogText("Edited Interactive Tiles");
-                this->pendingChanges = true;
+                ListActions<AP::ActionPointFunctions>::itemEdited(this, i);
             }
 
             ImGui::PopID();

@@ -13,6 +13,8 @@ namespace UnTech::Gui {
 
 class ProjectSettingsEditor final : public AbstractEditor {
 private:
+    struct AP;
+
     UnTech::Project::MemoryMapSettings _memoryMap;
     UnTech::Rooms::RoomSettings _roomSettings;
 
@@ -20,7 +22,6 @@ public:
     ProjectSettingsEditor(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void commitPendingChanges(Project::ProjectFile& projectFile) final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
