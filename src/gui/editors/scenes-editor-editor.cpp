@@ -290,9 +290,12 @@ void ScenesEditor::processGui(const Project::ProjectFile& projectFile)
 {
     settingsWindow();
     scenesWindow(projectFile);
+}
 
-    UpdateSelection(&_settingsSel);
-    UpdateSelection(&_scenesSel);
+void ScenesEditor::updateSelection()
+{
+    _settingsSel.update();
+    _scenesSel.update();
 }
 
 }

@@ -112,6 +112,7 @@ void UnTechEditor::processGui()
 
     if (_currentEditor) {
         _currentEditor->processGui(*_projectFile);
+        _currentEditor->updateSelection();
     }
 
     processMenu();

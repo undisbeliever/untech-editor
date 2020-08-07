@@ -56,49 +56,47 @@ bool InputRgb(const char* label, UnTech::rgba* color, ImGuiColorEditFlags flags)
     return e;
 }
 
-bool Selectable(const char* label, UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
+template <class SelectionT>
+static bool Selectable_(const char* label, SelectionT* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
-    bool s = Selectable(label, (sel->selected == i), flags);
+    bool s = Selectable(label, sel->isSelected(i), flags);
     if (s) {
-        sel->clicked = i;
+        sel->selectionClicked(i, ImGui::GetIO().KeyCtrl);
     }
     return s;
+}
+
+bool Selectable(const char* label, UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
+{
+    return Selectable_(label, sel, i, flags);
 }
 
 bool Selectable(UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
     const std::string label = std::to_string(i);
-    return Selectable(label.c_str(), sel, i, flags);
+    return Selectable_(label.c_str(), sel, i, flags);
 }
 
 bool Selectable(const char* label, UnTech::Gui::MultipleSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
-    bool s = Selectable(label, (sel->selected & 1 << i), flags);
-    if (s) {
-        sel->clicked = i;
-    }
-    return s;
+    return Selectable_(label, sel, i, flags);
 }
 
 bool Selectable(UnTech::Gui::MultipleSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
     const std::string label = std::to_string(i);
-    return Selectable(label.c_str(), sel, i, flags);
+    return Selectable_(label.c_str(), sel, i, flags);
 }
 
 bool Selectable(const char* label, UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
-    bool s = Selectable(label, (sel->selected & 1 << i), flags);
-    if (s) {
-        sel->clicked = i;
-    }
-    return s;
+    return Selectable_(label, sel, i, flags);
 }
 
 bool Selectable(UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
     const std::string label = std::to_string(i);
-    return Selectable(label.c_str(), sel, i, flags);
+    return Selectable_(label.c_str(), sel, i, flags);
 }
 
 bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags)

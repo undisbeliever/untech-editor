@@ -65,6 +65,9 @@ void AbstractEditor::processPendingActions(Project::ProjectFile& projectFile)
     _pendingActions.clear();
 
     trimStack(_undoStack);
+
+    // action may have modified the selection
+    updateSelection();
 }
 
 void AbstractEditor::undo(Project::ProjectFile& projectFile)
@@ -94,6 +97,9 @@ void AbstractEditor::undo(Project::ProjectFile& projectFile)
 
     _redoStack.push_back(std::move(a));
     trimStack(_redoStack);
+
+    // action may have modified the selection
+    updateSelection();
 }
 
 void AbstractEditor::redo(Project::ProjectFile& projectFile)
@@ -123,6 +129,9 @@ void AbstractEditor::redo(Project::ProjectFile& projectFile)
 
     _undoStack.push_back(std::move(a));
     trimStack(_undoStack);
+
+    // action may have modified the selection
+    updateSelection();
 }
 
 std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex)

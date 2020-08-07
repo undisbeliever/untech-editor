@@ -117,8 +117,11 @@ void ActionPointsEditor::actionPointsWindow()
 void ActionPointsEditor::processGui(const Project::ProjectFile&)
 {
     actionPointsWindow();
+}
 
-    UpdateSelection(&_sel);
+void ActionPointsEditor::updateSelection()
+{
+    _sel.update();
 }
 
 }

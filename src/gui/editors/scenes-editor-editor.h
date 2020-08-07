@@ -30,6 +30,7 @@ public:
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
+    virtual void updateSelection() final;
 
 private:
     void settingsWindow();

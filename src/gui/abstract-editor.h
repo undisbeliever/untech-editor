@@ -64,6 +64,9 @@ public:
     // This is fine - only one Editor is active at any given time.
     virtual void processGui(const Project::ProjectFile& projectFile) = 0;
 
+    // Called after processGui and after an undo action has been processed.
+    virtual void updateSelection() = 0;
+
     // Undo functions MUST NOT be called by an EditorUndoAction instance
     void addAction(std::unique_ptr<EditorUndoAction>&& action);
     void processPendingActions(UnTech::Project::ProjectFile&);

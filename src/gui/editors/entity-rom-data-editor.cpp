@@ -238,8 +238,8 @@ void EntityRomDataEditor::structsWindow()
         ImGui::BeginGroup();
         ImGui::BeginChild("Item");
         {
-            if (_structsSel.selected < _entityRomData.structs.size()) {
-                auto& st = _entityRomData.structs.at(_structsSel.selected);
+            if (_structsSel.selectedIndex() < _entityRomData.structs.size()) {
+                auto& st = _entityRomData.structs.at(_structsSel.selectedIndex());
 
                 {
                     bool edited = false;
@@ -250,7 +250,7 @@ void EntityRomDataEditor::structsWindow()
                             &UnTech::Entity::EntityRomStruct::name>(this);
                     }
 
-                    edited = parentCombo("Parent", &st.parent, _entityRomData.structs, _structsSel.selected);
+                    edited = parentCombo("Parent", &st.parent, _entityRomData.structs, _structsSel.selectedIndex());
                     if (edited) {
                         ListActions<AP::Structs>::selectedFieldEdited<
                             &UnTech::Entity::EntityRomStruct::parent>(this);
@@ -456,8 +456,8 @@ void EntityRomDataEditor::entityEntriesWindow(const char* name,
         ImGui::BeginGroup();
         ImGui::BeginChild("Item");
         {
-            if (list && sel.selected < list->size()) {
-                auto& entry = list->at(sel.selected);
+            if (list && sel.selectedIndex() < list->size()) {
+                auto& entry = list->at(sel.selectedIndex());
 
                 bool edited = false;
 
@@ -547,17 +547,17 @@ void EntityRomDataEditor::processGui(const Project::ProjectFile& projectFile)
     entityEntriesWindow<AP::Projectiles>("Projectile ROM Entries", projectFile);
 
     entityEntriesWindow<AP::Players>("Player ROM Entries", projectFile);
+}
 
-    UpdateSelection(&_listIdsSel);
-
-    UpdateSelection(&_structsSel);
-    UpdateSelection(&_structFieldsSel, _structsSel);
-
-    UpdateSelection(&_functionTablesSel);
-
-    UpdateSelection(&_entitiesSel);
-    UpdateSelection(&_projectilesSel);
-    UpdateSelection(&_playersSel);
+void EntityRomDataEditor::updateSelection()
+{
+    _listIdsSel.update();
+    _structsSel.update();
+    _structFieldsSel.update(_structsSel);
+    _functionTablesSel.update();
+    _entitiesSel.update();
+    _projectilesSel.update();
+    _playersSel.update();
 }
 
 // ::TODO replace with array_vector::

@@ -145,8 +145,11 @@ void InteractiveTilesEditor::interactiveTilesWindow()
 void InteractiveTilesEditor::processGui(const Project::ProjectFile&)
 {
     interactiveTilesWindow();
+}
 
-    UpdateSelection(&_sel);
+void InteractiveTilesEditor::updateSelection()
+{
+    _sel.update();
 }
 
 }

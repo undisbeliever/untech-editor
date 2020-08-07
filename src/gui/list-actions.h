@@ -134,12 +134,11 @@ struct ListActions {
             editorList.insert(editorList.begin() + index, value);
 
             if (first) {
-                // ::TODO set selection::
-                this->selection().selected = SelectionT::NO_SELECTION;
+                this->selection().setSelected(index);
             }
             else {
                 // ::TODO update selection::
-                this->selection().selected = SelectionT::NO_SELECTION;
+                this->selection().clearSelection();
             }
         }
 
@@ -155,7 +154,7 @@ struct ListActions {
             editorList.erase(editorList.begin() + index);
 
             // ::TODO update selection::
-            this->selection().selected = SelectionT::NO_SELECTION;
+            this->selection().clearSelection();
         }
     };
 
@@ -254,11 +253,11 @@ struct ListActions {
 
             if (first) {
                 // ::TODO set selection::
-                this->selection().selected = SelectionT::NO_SELECTION;
+                this->selection().clearSelection();
             }
             else {
                 // ::TODO update selection::
-                this->selection().selected = SelectionT::NO_SELECTION;
+                this->selection().clearSelection();
             }
         }
 
@@ -278,7 +277,7 @@ struct ListActions {
             }
 
             // ::TODO update selection::
-            this->selection().selected = SelectionT::NO_SELECTION;
+            this->selection().clearSelection();
         }
     };
 
@@ -462,11 +461,9 @@ struct ListActions {
 
 private:
     static void _removeMultipleBitfieldSelection(EditorT* editor, const ListArgsT& listArgs,
-                                                 const ListT& list, const uint64_t selected)
+                                                 const ListT& list, const SelectionT& sel)
     {
-        if (selected == 0
-            || list.empty()) {
-
+        if (list.empty()) {
             return;
         }
 
@@ -474,7 +471,7 @@ private:
 
         const index_type end = std::min<index_type>(list.size(), SelectionT::MAX_SIZE);
         for (size_t i = 0; i < end; i++) {
-            if (selected & (uint64_t(1) << i)) {
+            if (sel.isSelected(i)) {
                 values.emplace_back(i, list.at(i));
             }
         }
@@ -528,9 +525,10 @@ public:
         } break;
 
         case EditListAction::REMOVE: {
-            if (sel.selected < list->size()) {
+            const index_type i = sel.selectedIndex();
+            if (i < list->size()) {
                 editor->addAction(
-                    std::make_unique<RemoveAction>(editor, listArgs, sel.selected, list->at(sel.selected)));
+                    std::make_unique<RemoveAction>(editor, listArgs, i, list->at(i)));
             }
         } break;
         }
@@ -557,7 +555,7 @@ public:
         } break;
 
         case EditListAction::REMOVE: {
-            _removeMultipleBitfieldSelection(editor, listArgs, *list, sel.selected);
+            _removeMultipleBitfieldSelection(editor, listArgs, *list, sel);
         } break;
         }
     }
@@ -583,7 +581,7 @@ public:
         } break;
 
         case EditListAction::REMOVE: {
-            _removeMultipleBitfieldSelection(editor, listArgs, *list, sel.selected);
+            _removeMultipleBitfieldSelection(editor, listArgs, *list, sel);
         } break;
         }
     }
@@ -608,7 +606,7 @@ public:
         const SingleSelection& sel = getSelection(editor);
         const std::tuple<> listArgs = sel.listArgs();
 
-        _editListItem(editor, listArgs, sel.selected);
+        _editListItem(editor, listArgs, sel.selectedIndex());
     }
 
     // Only enable if ListArgsT is not empty
@@ -643,7 +641,7 @@ public:
         const SingleSelection& sel = getSelection(editor);
         const std::tuple<> listArgs = sel.listArgs();
 
-        _editListField<FieldPtr>(editor, listArgs, sel.selected);
+        _editListField<FieldPtr>(editor, listArgs, sel.selectedIndex());
     }
 
     template <auto FieldPtr, typename LA_ = ListArgsT, typename = std::enable_if<std::is_same_v<LA_, std::tuple<unsigned>>>>

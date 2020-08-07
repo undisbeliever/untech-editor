@@ -113,4 +113,8 @@ void ProjectSettingsEditor::processGui(const Project::ProjectFile&)
     projectSettingsWindow();
 }
 
+void ProjectSettingsEditor::updateSelection()
+{
+}
+
 }

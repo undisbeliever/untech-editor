@@ -6,56 +6,139 @@
 
 #pragma once
 
-#include "imgui.h"
-#include <cassert>
 #include <climits>
 #include <cstdint>
 #include <tuple>
 
 namespace UnTech::Gui {
 
-struct SingleSelection final {
+/*
+ * Changes to the selection state are delayed until the after the GUI has been processed.
+ * This simplifies the `AbstractEditor::processGUI()` methods and prevents visual
+ * inconsistencies when the selection is changed.
+ */
+
+class SingleSelection final {
+public:
     constexpr static unsigned MAX_SIZE = UINT_MAX - 1;
     constexpr static unsigned NO_SELECTION = UINT_MAX;
 
-    unsigned selected = NO_SELECTION;
+private:
+    unsigned _selected = NO_SELECTION;
+    unsigned _pending = NO_SELECTION;
 
-    // The index of the `Selectable` that was pressed on this frame
-    unsigned clicked = UINT_MAX;
-
+public:
     std::tuple<> listArgs() const { return std::make_tuple(); }
+
+    bool isSelected(unsigned index) const { return index == _selected; }
+
+    unsigned selectedIndex() const { return _selected; }
+
+    void clearSelection() { _pending = NO_SELECTION; }
+
+    void setSelected(unsigned s) { _pending = s; }
+
+    void selectionClicked(unsigned s, bool ctrlClick)
+    {
+        if (ctrlClick) {
+            _pending = _pending != s ? s : NO_SELECTION;
+        }
+        else {
+            _pending = s;
+        }
+    }
+
+    // Must be called after the GUI has been processed.
+    void update()
+    {
+        _selected = _pending;
+    }
 };
 
-struct MultipleSelection final {
+class MultipleSelection final {
+public:
     constexpr static unsigned MAX_SIZE = 64;
     constexpr static uint64_t NO_SELECTION = 0;
 
-    uint64_t selected = NO_SELECTION;
+private:
+    uint64_t _selected = NO_SELECTION;
+    uint64_t _pending = NO_SELECTION;
 
-    // The index of the `Selectable` that was pressed on this frame
-    unsigned clicked = UINT_MAX;
-
+public:
     std::tuple<> listArgs() const { return std::make_tuple(); }
+
+    bool isSelected(unsigned index) const { return _selected & (uint64_t(1) << index); }
+
+    void clearSelection() { _pending = NO_SELECTION; }
+
+    void setSelected(unsigned s) { _pending = uint64_t(1) << s; }
+
+    void selectionClicked(unsigned s, bool ctrlClick)
+    {
+        const uint64_t b = uint64_t(1) << s;
+
+        if (ctrlClick) {
+            _pending ^= b;
+        }
+        else {
+            _pending = b;
+        }
+    }
+
+    // Must be called after the GUI has been processed.
+    void update()
+    {
+        _selected = _pending;
+    }
 };
 
 // Not a child class of MultipleSelection.
-// Forces the use of parent in `UpdateSelection` and `ListButtons`
-struct MultipleChildSelection final {
+// Forces the use of parent in `update()`.
+class MultipleChildSelection final {
+public:
     constexpr static unsigned MAX_SIZE = 64;
     constexpr static uint64_t NO_SELECTION = 0;
 
-    unsigned parent = SingleSelection::NO_SELECTION;
-    uint64_t selected = NO_SELECTION;
+private:
+    unsigned _parent = SingleSelection::NO_SELECTION;
+    uint64_t _selected = NO_SELECTION;
+    uint64_t _pending = NO_SELECTION;
 
-    // The index of the `Selectable` that was pressed on this frame
-    unsigned clicked = UINT_MAX;
+public:
+    std::tuple<unsigned> listArgs() const { return { _parent }; }
 
-    std::tuple<unsigned> listArgs() const { return { parent }; }
+    unsigned parentIndex() const { return _parent; }
+
+    bool isSelected(unsigned index) const { return _selected & (uint64_t(1) << index); }
+
+    void clearSelection() { _pending = NO_SELECTION; }
+
+    void setSelected(unsigned s) { _pending = uint64_t(1) << s; }
+
+    void selectionClicked(unsigned s, bool ctrlClick)
+    {
+        const uint64_t b = uint64_t(1) << s;
+
+        if (ctrlClick) {
+            _pending ^= b;
+        }
+        else {
+            _pending = b;
+        }
+    }
+
+    // Must be called after the GUI has been processed.
+    void update(const SingleSelection& parentSel)
+    {
+        if (_parent != parentSel.selectedIndex()) {
+            _parent = parentSel.selectedIndex();
+            _selected = NO_SELECTION;
+            _pending = NO_SELECTION;
+        }
+        else {
+            _selected = _pending;
+        }
+    }
 };
-
-// Must be called at the end of processGui(), after the windows have been processed
-void UpdateSelection(SingleSelection* sel);
-void UpdateSelection(MultipleSelection* sel);
-void UpdateSelection(MultipleChildSelection* sel, const SingleSelection& parent);
 
 }

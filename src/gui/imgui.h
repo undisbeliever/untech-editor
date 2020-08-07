@@ -23,9 +23,9 @@ class NamedList;
 }
 
 namespace UnTech::Gui {
-struct SingleSelection;
-struct MultipleSelection;
-struct MultipleChildSelection;
+class SingleSelection;
+class MultipleSelection;
+class MultipleChildSelection;
 }
 
 namespace ImGui {
