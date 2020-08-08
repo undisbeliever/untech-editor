@@ -101,6 +101,8 @@ public:
 
 private:
     unsigned _parent = SingleSelection::NO_SELECTION;
+    unsigned _pendingParent = SingleSelection::NO_SELECTION;
+
     uint64_t _selected = NO_SELECTION;
     uint64_t _pending = NO_SELECTION;
 
@@ -110,10 +112,28 @@ public:
     unsigned parentIndex() const { return _parent; }
 
     bool isSelected(unsigned index) const { return _selected & (uint64_t(1) << index); }
+    bool isSelected(unsigned parent, unsigned index) const { return parent == _parent && isSelected(index); }
 
     void clearSelection() { _pending = NO_SELECTION; }
 
     void setSelected(unsigned s) { _pending = uint64_t(1) << s; }
+
+    void selectionClicked(unsigned p, unsigned s, bool ctrlClick)
+    {
+        if (_parent != p) {
+            _pendingParent = p;
+            _pending = 0;
+        }
+
+        const uint64_t b = uint64_t(1) << s;
+
+        if (ctrlClick) {
+            _pending ^= b;
+        }
+        else {
+            _pending = b;
+        }
+    }
 
     void selectionClicked(unsigned s, bool ctrlClick)
     {
@@ -130,8 +150,11 @@ public:
     // Must be called after the GUI has been processed.
     void update(const SingleSelection& parentSel)
     {
+        _parent = _pendingParent;
+
         if (_parent != parentSel.selectedIndex()) {
             _parent = parentSel.selectedIndex();
+            _pendingParent = NO_SELECTION;
             _selected = NO_SELECTION;
             _pending = NO_SELECTION;
         }

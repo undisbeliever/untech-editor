@@ -65,6 +65,11 @@ bool Selectable(UnTech::Gui::MultipleSelection* sel, const unsigned i, ImGuiSele
 bool Selectable(const char* label, UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
 bool Selectable(UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
 
+bool Selectable(const char* label, UnTech::Gui::SingleSelection* parentSel, UnTech::Gui::MultipleChildSelection* sel,
+                const unsigned parent, const unsigned i, ImGuiSelectableFlags flags = 0);
+bool Selectable(UnTech::Gui::SingleSelection* parentSel, UnTech::Gui::MultipleChildSelection* sel,
+                const unsigned parent, const unsigned i, ImGuiSelectableFlags flags = 0);
+
 bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags = 0);
 
 bool IdStringCombo(const char* label, UnTech::idstring* value, const std::vector<UnTech::idstring>& list,

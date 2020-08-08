@@ -4,6 +4,8 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#pragma once
+
 template <class T>
 struct remove_member_pointer {
 };

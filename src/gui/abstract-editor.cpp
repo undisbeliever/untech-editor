@@ -11,6 +11,7 @@
 
 #include "gui/editors/action-points-editor.h"
 #include "gui/editors/entity-rom-data-editor.h"
+#include "gui/editors/frameset-export-order-editor.h"
 #include "gui/editors/interactive-tiles-editor.h"
 #include "gui/editors/project-settings-editor.h"
 #include "gui/editors/scenes-editor-editor.h"
@@ -157,6 +158,8 @@ std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex)
         return nullptr;
 
     case EditorType::FrameSetExportOrders:
+        return std::make_unique<FrameSetExportOrderEditor>(itemIndex);
+
     case EditorType::FrameSets:
     case EditorType::Palettes:
     case EditorType::BackgroundImages:

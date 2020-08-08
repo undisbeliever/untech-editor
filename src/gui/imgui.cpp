@@ -66,6 +66,16 @@ static bool Selectable_(const char* label, SelectionT* sel, const unsigned i, Im
     return s;
 }
 
+bool Selectable(const char* label, UnTech::Gui::SingleSelection* parentSel, UnTech::Gui::MultipleChildSelection* sel, const unsigned parent, const unsigned i, ImGuiSelectableFlags flags)
+{
+    bool s = Selectable(label, sel->isSelected(parent, i), flags);
+    if (s) {
+        parentSel->setSelected(parent);
+        sel->selectionClicked(parent, i, ImGui::GetIO().KeyCtrl);
+    }
+    return s;
+}
+
 bool Selectable(const char* label, UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
     return Selectable_(label, sel, i, flags);
@@ -97,6 +107,12 @@ bool Selectable(UnTech::Gui::MultipleChildSelection* sel, const unsigned i, ImGu
 {
     const std::string label = std::to_string(i);
     return Selectable_(label.c_str(), sel, i, flags);
+}
+
+bool Selectable(UnTech::Gui::SingleSelection* parentSel, UnTech::Gui::MultipleChildSelection* sel, const unsigned parent, const unsigned i, ImGuiSelectableFlags flags)
+{
+    const std::string label = std::to_string(i);
+    return Selectable(label.c_str(), parentSel, sel, parent, i, flags);
 }
 
 bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags)
