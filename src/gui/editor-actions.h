@@ -8,8 +8,31 @@
 
 #include "abstract-editor.h"
 #include "gui/common/type-traits.h"
+#include "models/common/namedlist.h"
 
 namespace UnTech::Gui {
+
+template <typename T>
+T* namedListItem(NamedList<T>* list, const typename NamedList<T>::size_type index)
+{
+    if (list) {
+        if (index < list->size()) {
+            return &list->at(index);
+        }
+    }
+    return nullptr;
+}
+
+template <typename T>
+const T* namedListItem(const NamedList<T>* list, const typename NamedList<T>::size_type index)
+{
+    if (list) {
+        if (index < list->size()) {
+            return &list->at(index);
+        }
+    }
+    return nullptr;
+}
 
 template <typename ActionPolicy>
 struct EditorActions {
