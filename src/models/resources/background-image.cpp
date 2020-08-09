@@ -25,6 +25,11 @@ static constexpr unsigned BG_MAP_WIDTH = 32;
 static constexpr unsigned BG_MAP_HEIGHT = 32;
 static constexpr unsigned BG_MAP_DATA_SIZE = BG_MAP_WIDTH * BG_MAP_HEIGHT * 2;
 
+bool BackgroundImageInput::isBitDepthValid() const
+{
+    return bitDepth == 2 || bitDepth == 4 || bitDepth == 8;
+}
+
 bool BackgroundImageInput::validate(ErrorList& err) const
 {
     bool valid = true;
@@ -37,7 +42,7 @@ bool BackgroundImageInput::validate(ErrorList& err) const
         addError("Expected name");
     }
 
-    if (bitDepth != 2 && bitDepth != 4 && bitDepth != 8) {
+    if (!isBitDepthValid()) {
         addError("Invalid bit-depth, expected 2, 4 or 8");
     }
 

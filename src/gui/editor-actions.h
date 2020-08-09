@@ -8,6 +8,7 @@
 
 #include "abstract-editor.h"
 #include "gui/common/type-traits.h"
+#include "models/common/externalfilelist.h"
 #include "models/common/namedlist.h"
 
 namespace UnTech::Gui {

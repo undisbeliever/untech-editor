@@ -37,6 +37,7 @@ struct BackgroundImageInput {
 
     bool defaultOrder = 0;
 
+    bool isBitDepthValid() const;
     bool validate(ErrorList& err) const;
 
     bool operator==(const BackgroundImageInput& o) const

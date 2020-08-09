@@ -23,6 +23,11 @@ bool InputUnsigned(const char* label, unsigned* v, unsigned step, unsigned step_
     return InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
 }
 
+bool InputUnsigned(const char* label, unsigned* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags)
+{
+    return InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
+}
+
 static int IdstringFilter(ImGuiInputTextCallbackData* data)
 {
     if (data->EventChar == ' ') {

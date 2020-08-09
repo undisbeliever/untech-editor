@@ -10,6 +10,7 @@
 #include "models/project/project.h"
 
 #include "gui/editors/action-points-editor.h"
+#include "gui/editors/background-image-editor.h"
 #include "gui/editors/entity-rom-data-editor.h"
 #include "gui/editors/frameset-export-order-editor.h"
 #include "gui/editors/interactive-tiles-editor.h"
@@ -168,6 +169,8 @@ std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex)
         return std::make_unique<PaletteEditor>(itemIndex);
 
     case EditorType::BackgroundImages:
+        return std::make_unique<BackgroundImageEditor>(itemIndex);
+
     case EditorType::MataTileTilesets:
     case EditorType::Rooms:
         return nullptr;

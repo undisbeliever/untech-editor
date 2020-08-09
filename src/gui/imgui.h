@@ -53,6 +53,7 @@ bool EnumCombo(const char* label, EnumT* value, const char* const items[], int i
 bool InputUnsignedFormat(const char* label, unsigned* v, const char* format, ImGuiInputTextFlags flags = 0);
 
 bool InputUnsigned(const char* label, unsigned* v, unsigned step = 1, unsigned step_fast = 16, ImGuiInputTextFlags flags = 0);
+bool InputUnsigned(const char* label, unsigned* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags = 0);
 
 bool InputIdstring(const char* label, UnTech::idstring* idstring);
 
