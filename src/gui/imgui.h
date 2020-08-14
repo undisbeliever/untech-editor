@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/common/aabb.h"
 #include "models/common/idstring.h"
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/misc/cpp/imgui_stdlib.h"
@@ -50,14 +51,27 @@ bool EnumCombo(const char* label, EnumT* value, const char* const items[], int i
     return false;
 }
 
+bool InputUsize(const char* label, UnTech::usize* usize, const UnTech::usize& maxSize);
+
 bool InputUnsignedFormat(const char* label, unsigned* v, const char* format, ImGuiInputTextFlags flags = 0);
 
 bool InputUnsigned(const char* label, unsigned* v, unsigned step = 1, unsigned step_fast = 16, ImGuiInputTextFlags flags = 0);
 bool InputUnsigned(const char* label, unsigned* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags = 0);
 
+bool InputUint8(const char* label, uint8_t* v, unsigned step = 1, unsigned step_fast = 16, ImGuiInputTextFlags flags = 0);
+bool InputUint8(const char* label, uint8_t* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags = 0);
+
+bool InputUint16(const char* label, uint16_t* v, unsigned step = 1, unsigned step_fast = 16, ImGuiInputTextFlags flags = 0);
+bool InputUint16(const char* label, uint16_t* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags = 0);
+
 bool InputIdstring(const char* label, UnTech::idstring* idstring);
 
 bool InputRgb(const char* label, UnTech::rgba* color, ImGuiColorEditFlags flags = 0);
+
+bool ToggledButton(const char* label, bool selected, const ImVec2& size = ImVec2(0, 0));
+bool ToggledImageButton(ImTextureID user_texture_id, bool selected, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
+bool ToggledButton(const char* label, bool* selected, const ImVec2& size = ImVec2(0, 0));
+bool ToggledImageButton(ImTextureID user_texture_id, bool* selected, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
 
 bool Selectable(const char* label, UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
 bool Selectable(UnTech::Gui::SingleSelection* sel, const unsigned i, ImGuiSelectableFlags flags = 0);
@@ -109,6 +123,13 @@ bool IdStringComboSelection(UnTech::idstring* value, const ListT& list, bool inc
     }
 
     return changed;
+}
+
+template <class T>
+bool IdStringComboSelection(UnTech::idstring* value, const UnTech::NamedList<T>& list, bool includeBlank)
+{
+    return IdStringComboSelection(value, list, includeBlank,
+                                  [](const T& item) { return &item.name; });
 }
 
 template <class ListT, typename UnaryFunction>

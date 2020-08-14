@@ -15,6 +15,8 @@ template <typename T, class Compare = std::less<T>>
 class vectorset {
     using container = typename std::vector<T>;
 
+public:
+    using value_type = T;
     using size_type = typename container::size_type;
     using const_iterator = typename container::const_iterator;
     using const_reverse_iterator = typename container::const_reverse_iterator;

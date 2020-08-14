@@ -49,6 +49,7 @@ public:
     using Item = ExternalFileItem<T>;
     using container = typename std::vector<ExternalFileItem<T>>;
     using const_iterator = typename container::const_iterator;
+    using value_type = T;
     using size_type = typename container::size_type;
 
 private:

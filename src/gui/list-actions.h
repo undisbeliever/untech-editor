@@ -36,6 +36,18 @@ FieldT* getListField(ListT* list, const typename ListT::size_type index,
     return nullptr;
 }
 
+template <typename ListT, typename FieldT>
+const FieldT* getListField(const ListT* list, const typename ListT::size_type index,
+                           FieldT ListT::value_type::*const ptr)
+{
+    if (list) {
+        if (index < list->size()) {
+            return &(list->at(index).*ptr);
+        }
+    }
+    return nullptr;
+}
+
 template <typename ActionPolicy>
 struct ListActions {
     using EditorT = typename ActionPolicy::EditorT;

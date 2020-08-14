@@ -102,6 +102,14 @@ public:
         return *(data() + x + (y * pixelsPerScanline()));
     }
 
+    inline void setPixel(unsigned x, unsigned y, const rgba& p)
+    {
+        if (x >= _size.width || y >= _size.height) {
+            throw std::out_of_range("Image::setPixel out of range");
+        }
+        *(data() + x + (y * pixelsPerScanline())) = p;
+    }
+
 private:
     usize _size;
     std::vector<unsigned char> _imageData;

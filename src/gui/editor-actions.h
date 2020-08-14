@@ -35,6 +35,28 @@ const T* namedListItem(const NamedList<T>* list, const typename NamedList<T>::si
     return nullptr;
 }
 
+template <typename T>
+T* fileListData(ExternalFileList<T>* list, const typename ExternalFileList<T>::size_type index)
+{
+    if (list) {
+        if (index < list->size()) {
+            return list->at(index);
+        }
+    }
+    return nullptr;
+}
+
+template <typename T>
+const T* fileListData(const ExternalFileList<T>* list, const typename ExternalFileList<T>::size_type index)
+{
+    if (list) {
+        if (index < list->size()) {
+            return list->at(index);
+        }
+    }
+    return nullptr;
+}
+
 template <typename ActionPolicy>
 struct EditorActions {
     using EditorT = typename ActionPolicy::EditorT;

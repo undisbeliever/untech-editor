@@ -33,6 +33,7 @@ struct AnimationFramesInput {
     unsigned bitDepth = 4;
     bool addTransparentTile = false;
 
+    bool isBitDepthValid() const;
     bool validate(ErrorList& err) const;
 
     bool operator==(const AnimationFramesInput& o) const

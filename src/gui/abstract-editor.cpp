@@ -14,6 +14,7 @@
 #include "gui/editors/entity-rom-data-editor.h"
 #include "gui/editors/frameset-export-order-editor.h"
 #include "gui/editors/interactive-tiles-editor.h"
+#include "gui/editors/metatile-tileset-editor.h"
 #include "gui/editors/palette-editor.h"
 #include "gui/editors/project-settings-editor.h"
 #include "gui/editors/scenes-editor-editor.h"
@@ -172,6 +173,8 @@ std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex)
         return std::make_unique<BackgroundImageEditor>(itemIndex);
 
     case EditorType::MataTileTilesets:
+        return std::make_unique<MetaTileTilesetEditor>(itemIndex);
+
     case EditorType::Rooms:
         return nullptr;
     }
