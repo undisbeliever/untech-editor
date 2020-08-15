@@ -24,7 +24,9 @@ class RomDataWriter {
 public:
     struct Constant {
         const std::string name;
-        const long value;
+
+        // Same type that bass uses for constants
+        const int64_t value;
     };
 
 private:
