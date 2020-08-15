@@ -32,10 +32,12 @@ const CommandLine::Config COMMAND_LINE_CONFIG = {
 
 int process(const CommandLine::Parser& args)
 {
+    static const std::filesystem::path sfcExtension(".sfc");
+
     const std::filesystem::path& filename = std::filesystem::u8path(args.filenames().front());
 
-    if (String::endsWith(filename, ".sfc") == false) {
-        throw std::runtime_error("Filename does not end in .sfc");
+    if (filename.extension() != sfcExtension) {
+        throw std::runtime_error("Invalid file extension, expected a .sfc file");
     }
 
     bool verbose = args.options().at("verbose").boolean();

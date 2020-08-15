@@ -29,7 +29,7 @@ public:
     AtomicOfStream(const std::filesystem::path& filePath,
                    ios_base::openmode mode = ios_base::out | ios_base::binary);
 
-    virtual ~AtomicOfStream() {}
+    virtual ~AtomicOfStream() override;
 
     /** Closes the stream and does not save to disk */
     void abort();

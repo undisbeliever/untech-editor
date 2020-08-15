@@ -29,19 +29,6 @@
 #include <unistd.h>
 #endif
 
-#ifdef PLATFORM_WINDOWS
-// This is the only module that requires windows character conversion
-// use unique_ptr to prevent memory leak with exceptions.
-inline std::unique_ptr<wchar_t[]> to_wchar(const std::string str)
-{
-    auto length = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
-    std::unique_ptr<wchar_t[]> buffer(new wchar_t[length + 1]);
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, buffer.get(), length);
-
-    return std::move(buffer);
-}
-#endif
-
 using namespace UnTech;
 
 std::vector<uint8_t> File::readBinaryFile(const std::filesystem::path& filePath, size_t limit)
@@ -153,21 +140,23 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
 {
     const size_t BLOCK_SIZE = 4096;
 
-    // atomically creating a tempfile name is hard
-    // just simplify it by using a ~ temp file instead.
-    auto tmpFilename = to_wchar(filePath.u8string() + "~");
+    // ::TODO properly test this function::
 
-    // open file normally.
-    // error out if file exists.
-    HANDLE hFile = CreateFileW(tmpFilename.get(), GENERIC_WRITE, 0, nullptr,
+    // I could not find a function to create and open a temporary file in a given directory in windows.
+    // Instead we create a `~` temp file and throw an error if tmpFilename already exists.
+    const std::filesystem::path tmpFilename = std::filesystem::path(filePath).concat(L"~");
+
+    // open a new file for writing.
+    // error if file exists.
+    HANDLE hFile = CreateFileW(tmpFilename.c_str(), GENERIC_WRITE, 0, nullptr,
                                CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
 
     if (hFile == INVALID_HANDLE_VALUE) {
         if (GetLastError() == ERROR_FILE_EXISTS) {
-            throw std::runtime_error(stringBuilder("Temporary file already exists: ", filename + "~"));
+            throw std::runtime_error(stringBuilder("Temporary file already exists: ", tmpFilename.string()));
         }
         else {
-            throw std::runtime_error(stringBuilder("Cannot open temporary file ", filename, "~"));
+            throw std::runtime_error(stringBuilder("Cannot open temporary file ", tmpFilename.string()));
         }
     }
 
@@ -191,8 +180,7 @@ void File::atomicWrite(const std::filesystem::path& filePath, const void* data, 
 
     CloseHandle(hFile);
 
-    auto wFilename = to_wchar(filename);
-    bool s = MoveFileExW(tmpFilename.get(), wFilename.get(),
+    bool s = MoveFileExW(tmpFilename.c_str(), filePath.c_str(),
                          MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED);
     if (!s) {
         throw std::runtime_error("MoveFileEx failed");

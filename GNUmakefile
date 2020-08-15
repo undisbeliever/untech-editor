@@ -128,17 +128,24 @@ else ifeq ($(PROFILE),ubsan)
 else ifeq ($(PROFILE),mingw)
   # MinGW cross platform compiling
   CXX_MINGW     ?= x86_64-w64-mingw32-g++
-  PREFIX	?= $(HOME)/.local/x86_64-w64-mingw32
+  CC_MINGW      ?= x86_64-w64-mingw32-gcc
+  PREFIX        ?= $(HOME)/.local/x86_64-w64-mingw32
+
+  OS            := Windows_NT
 
   OBJ_DIR       := obj/mingw
   BIN_DIR       := bin/mingw
   BIN_EXT	:= .exe
 
   CXX           := $(CXX_MINGW)
+  CC            := $(CC_MINGW)
   CXXFLAGS      += -O2 -flto -MMD -Isrc
   CFLAGS        += -O2 -flto -MMD -Isrc
   LDFLAGS       += -O2 -flto
   LIBS          += -lshlwapi
+
+  # Split drawf causes a "not supported on this system" error when running the binaries in wine
+  NO_SPLIT_DWARF  := 1
 
   GUI_QT_CXXFLAGS := -fPIC $(shell pkg-config --define-variable=prefix=$(PREFIX) --cflags $(GUI_QT_MODULES))
   GUI_QT_LIBS     := $(shell pkg-config --define-variable=prefix=$(PREFIX) --libs $(GUI_QT_MODULES))

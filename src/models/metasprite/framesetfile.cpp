@@ -15,15 +15,18 @@ using namespace UnTech::MetaSprite;
 
 void FrameSetFile::setTypeFromExtension()
 {
+    static const std::filesystem::path utmsExtension(".utms");
+    static const std::filesystem::path utsiExtension(".utsi");
+
     if (filename.empty()) {
         type = FrameSetType::UNKNOWN;
         return;
     }
 
-    if (String::endsWith(filename, ".utms")) {
+    if (filename.extension() == utmsExtension) {
         type = FrameSetType::METASPRITE;
     }
-    else if (String::endsWith(filename, ".utsi")) {
+    else if (filename.extension() == utsiExtension) {
         type = FrameSetType::SPRITE_IMPORTER;
     }
     else {

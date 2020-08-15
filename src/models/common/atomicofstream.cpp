@@ -20,6 +20,11 @@ AtomicOfStream::AtomicOfStream(const std::filesystem::path& filePath, ios_base::
     }
 }
 
+// Must put destructor here to prevent a
+// "multiple definition of `vtable for UnTech::AtomicOfStream'"
+// compile error with `x86_64-w64-mingw32-g++ (GCC) 10.2.0`
+AtomicOfStream::~AtomicOfStream() = default;
+
 void AtomicOfStream::abort()
 {
     this->str("");

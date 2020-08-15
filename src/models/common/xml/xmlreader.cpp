@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cstring>
 #include <stdexcept>
+#include <type_traits>
 
 using namespace UnTech;
 using namespace UnTech::Xml;
@@ -128,7 +129,7 @@ std::string XmlReader::filename() const
         return "XML";
     }
     else {
-        return _filePath.filename();
+        return _filePath.filename().string();
     }
 }
 

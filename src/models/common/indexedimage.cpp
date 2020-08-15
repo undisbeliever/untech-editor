@@ -62,7 +62,7 @@ bool IndexedImage::loadPngImage(const std::filesystem::path& filename)
     state.info_raw.colortype = LodePNGColorType::LCT_PALETTE;
     state.info_raw.bitdepth = 8;
 
-    unsigned error = lodepng::load_file(pngFile, filename);
+    unsigned error = lodepng::load_file(pngFile, filename.string());
     if (!error) {
         _imageData.clear();
         lodepng::decode(_imageData, _size.width, _size.height, state, pngFile);
