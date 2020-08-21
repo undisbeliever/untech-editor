@@ -80,6 +80,6 @@ public:
     void markClean() { _clean = true; }
 };
 
-std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex);
+std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);
 
 }

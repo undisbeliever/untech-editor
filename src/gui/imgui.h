@@ -8,6 +8,7 @@
 
 #include "models/common/aabb.h"
 #include "models/common/idstring.h"
+#include "models/common/ms8aabb.h"
 #include "vendor/imgui/imgui.h"
 #include "vendor/imgui/misc/cpp/imgui_stdlib.h"
 #include <string>
@@ -21,6 +22,10 @@ class ExternalFileList;
 
 template <typename T>
 class NamedList;
+}
+
+namespace UnTech::Snes {
+class SnesColor;
 }
 
 namespace UnTech::Gui {
@@ -53,10 +58,15 @@ bool EnumCombo(const char* label, EnumT* value, const char* const items[], int i
 
 bool InputUsize(const char* label, UnTech::usize* usize, const UnTech::usize& maxSize);
 
-bool InputUnsignedFormat(const char* label, unsigned* v, const char* format, ImGuiInputTextFlags flags = 0);
+bool InputMs8rect(const char* label, UnTech::ms8rect* rect);
 
-bool InputUnsigned(const char* label, unsigned* v, unsigned step = 1, unsigned step_fast = 16, ImGuiInputTextFlags flags = 0);
-bool InputUnsigned(const char* label, unsigned* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags = 0);
+bool InputUnsignedFormat(const char* label, uint32_t* v, const char* format, ImGuiInputTextFlags flags = 0);
+
+bool InputUnsigned(const char* label, uint32_t* v, unsigned step = 1, unsigned step_fast = 16, ImGuiInputTextFlags flags = 0);
+bool InputUnsigned(const char* label, uint32_t* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags = 0);
+
+bool InputMs8point(const char* label, UnTech::ms8point* point);
+bool InputIntMs8(const char* label, UnTech::int_ms8_t* v, unsigned step = 1, unsigned step_fast = 16, ImGuiInputTextFlags flags = 0);
 
 bool InputUint8(const char* label, uint8_t* v, unsigned step = 1, unsigned step_fast = 16, ImGuiInputTextFlags flags = 0);
 bool InputUint8(const char* label, uint8_t* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags = 0);
@@ -123,6 +133,21 @@ bool IdStringComboSelection(UnTech::idstring* value, const ListT& list, bool inc
     }
 
     return changed;
+}
+
+template <class T>
+void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, const UnTech::NamedList<T>& list, int heightInItems = -1)
+{
+    if (ImGui::ListBoxHeader(label, list.size(), heightInItems)) {
+        for (unsigned i = 0; i < list.size(); i++) {
+            const char* name = list.at(i).name.str().c_str();
+
+            ImGui::PushID(i);
+            ImGui::Selectable(name, sel, i);
+            ImGui::PopID();
+        }
+        ImGui::ListBoxFooter();
+    }
 }
 
 template <class T>

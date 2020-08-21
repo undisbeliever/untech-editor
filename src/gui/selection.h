@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/common/bit.h"
 #include <climits>
 #include <cstdint>
 #include <tuple>
@@ -30,6 +31,9 @@ private:
 public:
     std::tuple<> listArgs() const { return std::make_tuple(); }
 
+    bool hasSelection() const { return _selected != NO_SELECTION; }
+    bool hasSingleSelection() const { return _selected != NO_SELECTION; }
+
     bool isSelected(unsigned index) const { return index == _selected; }
 
     unsigned selectedIndex() const { return _selected; }
@@ -37,6 +41,7 @@ public:
     void clearSelection() { _pending = NO_SELECTION; }
 
     void setSelected(unsigned s) { _pending = s; }
+    void appendSelection(unsigned s) { _pending = s; }
 
     void selectionClicked(unsigned s, bool ctrlClick)
     {
@@ -47,6 +52,8 @@ public:
             _pending = s;
         }
     }
+
+    bool isSelectionChanging() { return _selected != _pending; }
 
     // Must be called after the GUI has been processed.
     void update()
@@ -67,11 +74,15 @@ private:
 public:
     std::tuple<> listArgs() const { return std::make_tuple(); }
 
+    bool hasSelection() const { return _selected != NO_SELECTION; }
+    bool hasSingleSelection() const { return isPowerOfTwo(_selected); }
+
     bool isSelected(unsigned index) const { return _selected & (uint64_t(1) << index); }
 
     void clearSelection() { _pending = NO_SELECTION; }
 
     void setSelected(unsigned s) { _pending = uint64_t(1) << s; }
+    void appendSelection(unsigned s) { _pending |= uint64_t(1) << s; }
 
     void selectionClicked(unsigned s, bool ctrlClick)
     {
@@ -111,12 +122,16 @@ public:
 
     unsigned parentIndex() const { return _parent; }
 
+    bool hasSelection() const { return _selected != NO_SELECTION; }
+    bool hasSingleSelection() const { return isPowerOfTwo(_selected); }
+
     bool isSelected(unsigned index) const { return _selected & (uint64_t(1) << index); }
     bool isSelected(unsigned parent, unsigned index) const { return parent == _parent && isSelected(index); }
 
     void clearSelection() { _pending = NO_SELECTION; }
 
     void setSelected(unsigned s) { _pending = uint64_t(1) << s; }
+    void appendSelection(unsigned s) { _pending |= uint64_t(1) << s; }
 
     void selectionClicked(unsigned p, unsigned s, bool ctrlClick)
     {
@@ -147,6 +162,13 @@ public:
         }
     }
 
+    bool isSelectionChanging(const SingleSelection& parentSel) const
+    {
+        return _pendingParent != _parent
+               || _parent != parentSel.selectedIndex()
+               || _pending != _selected;
+    }
+
     // Must be called after the GUI has been processed.
     void update(const SingleSelection& parentSel)
     {
@@ -161,6 +183,50 @@ public:
         else {
             _selected = _pending;
         }
+    }
+};
+
+// A simple true/false selection that uses the same API as MultipleSelection
+class ToggleSelection final {
+public:
+    constexpr static unsigned MAX_SIZE = UINT_MAX - 1;
+    constexpr static bool NO_SELECTION = false;
+
+private:
+    bool _selected = NO_SELECTION;
+    bool _pending = NO_SELECTION;
+
+public:
+    bool hasSingleSelection() const { return _selected; }
+
+    bool isSelected() const { return _selected; }
+
+    bool isSelected(bool s) const { return s && _selected; }
+
+    void clearSelection() { _pending = NO_SELECTION; }
+
+    void setSelected(bool s) { _pending = s; }
+    void appendSelection(bool s) { _pending |= s; }
+
+    void selectionClicked(unsigned)
+    {
+        _pending = true;
+    }
+
+    void selectionClicked(unsigned, bool ctrlClick)
+    {
+        if (ctrlClick) {
+            _pending = !_selected;
+        }
+        else {
+            _pending = true;
+        }
+    }
+
+    // Must be called after the GUI has been processed.
+    void update()
+    {
+        _selected = _pending;
     }
 };
 

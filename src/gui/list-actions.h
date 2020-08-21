@@ -471,6 +471,79 @@ struct ListActions {
         }
     };
 
+    class EditMultipleItemsAction final : public BaseAction {
+    private:
+        const std::vector<index_type> _indexes;
+        std::vector<value_type> _newValues;
+        std::vector<value_type> _oldValues;
+
+    private:
+        void setValues(Project::ProjectFile& projectFile, const std::vector<value_type>& values) const
+        {
+            ListT& projectList = this->getProjectList(projectFile);
+            ListT& editorList = this->getEditorList();
+
+            assert(_indexes.size() == values.size());
+
+            auto it = values.begin();
+            for (const index_type index : _indexes) {
+                const value_type value = *it++;
+
+                projectList.at(index) = value;
+                editorList.at(index) = value;
+            }
+            assert(it == values.end());
+        }
+
+    public:
+        EditMultipleItemsAction(EditorT* editor,
+                                const ListArgsT& listArgs,
+                                const std::vector<index_type>&& indexes)
+            : BaseAction(editor, listArgs)
+            , _indexes(std::move(indexes))
+        {
+        }
+        virtual ~EditMultipleItemsAction() = default;
+
+        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        {
+            ListT& projectList = this->getProjectList(projectFile);
+            ListT& editorList = this->getEditorList();
+
+            assert(_oldValues.empty());
+            assert(_newValues.empty());
+
+            _oldValues.reserve(_indexes.size());
+            _newValues.reserve(_indexes.size());
+
+            bool changed = false;
+            for (const index_type index : _indexes) {
+                value_type& projectValue = projectList.at(index);
+                const value_type& editorValue = editorList.at(index);
+
+                _oldValues.push_back(projectValue);
+                _newValues.push_back(editorValue);
+
+                if (projectValue != editorValue) {
+                    projectValue = editorValue;
+                    changed = true;
+                }
+            }
+
+            return changed;
+        }
+
+        virtual void undo(Project::ProjectFile& projectFile) const final
+        {
+            setValues(projectFile, _oldValues);
+        }
+
+        virtual void redo(Project::ProjectFile& projectFile) const final
+        {
+            setValues(projectFile, _newValues);
+        }
+    };
+
 private:
     static void _removeMultipleBitfieldSelection(EditorT* editor, const ListArgsT& listArgs,
                                                  const ListT& list, const SelectionT& sel)
@@ -629,6 +702,55 @@ public:
         const ListArgsT listArgs = sel.listArgs();
 
         _editListItem(editor, listArgs, index);
+    }
+
+    // ::TODO replace indexes with 256 bit bitfield::
+    static void selectedListItemsEdited(EditorT* editor, std::vector<index_type> indexes)
+    {
+        const SelectionT& sel = getSelection(editor);
+        const ListArgsT listArgs = sel.listArgs();
+
+        const ListT* list = getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        indexes.erase(std::remove_if(indexes.begin(), indexes.end(),
+                                     [&](auto i) { return i >= list->size(); }),
+                      indexes.end());
+
+        if (!indexes.empty()) {
+            editor->addAction(
+                std::make_unique<EditMultipleItemsAction>(editor, listArgs, std::move(indexes)));
+        }
+    }
+
+    template <typename LA_ = ListArgsT, typename = std::enable_if<std::is_same_v<LA_, std::tuple<unsigned>>>>
+    static void selectedItemsEdited(EditorT* editor)
+    {
+        const SelectionT& sel = getSelection(editor);
+        const ListArgsT listArgs = sel.listArgs();
+
+        const ListT* list = getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        const index_type end = std::min<index_type>(list->size(), SelectionT::MAX_SIZE);
+
+        std::vector<index_type> indexes;
+        indexes.reserve(end);
+
+        for (size_t i = 0; i < end; i++) {
+            if (sel.isSelected(i)) {
+                indexes.push_back(i);
+            }
+        }
+
+        if (!indexes.empty()) {
+            editor->addAction(
+                std::make_unique<EditMultipleItemsAction>(editor, listArgs, std::move(indexes)));
+        }
     }
 
     template <auto FieldPtr, typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>

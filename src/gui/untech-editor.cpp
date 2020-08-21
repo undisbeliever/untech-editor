@@ -72,7 +72,7 @@ void UnTechEditor::openEditor(EditorType type, unsigned item)
     }
 
     if (editor == nullptr) {
-        if (auto e = createEditor(itemIndex)) {
+        if (auto e = createEditor(itemIndex, *_projectFile)) {
             if (e->loadDataFromProject(*_projectFile)) {
                 // itemIndex is valid
                 editor = e.get();

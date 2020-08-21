@@ -14,6 +14,7 @@
 #include "gui/editors/entity-rom-data-editor.h"
 #include "gui/editors/frameset-export-order-editor.h"
 #include "gui/editors/interactive-tiles-editor.h"
+#include "gui/editors/metasprite-editor.h"
 #include "gui/editors/metatile-tileset-editor.h"
 #include "gui/editors/palette-editor.h"
 #include "gui/editors/project-settings-editor.h"
@@ -138,10 +139,13 @@ void AbstractEditor::redo(Project::ProjectFile& projectFile)
     updateSelection();
 }
 
-std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex)
+std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex,
+                                             const UnTech::Project::ProjectFile& projectFile)
 {
+    using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
+
     switch (itemIndex.type) {
-    case EditorType::ProjectSettings:
+    case EditorType::ProjectSettings: {
         switch (ProjectSettingsIndex(itemIndex.index)) {
         case ProjectSettingsIndex::ProjectSettings:
             return std::make_unique<ProjectSettingsEditor>(itemIndex);
@@ -159,12 +163,26 @@ std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex)
             return std::make_unique<ScenesEditor>(itemIndex);
         }
         return nullptr;
+    }
 
     case EditorType::FrameSetExportOrders:
         return std::make_unique<FrameSetExportOrderEditor>(itemIndex);
 
-    case EditorType::FrameSets:
+    case EditorType::FrameSets: {
+        if (itemIndex.index < projectFile.frameSets.size()) {
+            switch (projectFile.frameSets.at(itemIndex.index).type) {
+            case FrameSetType::UNKNOWN:
+                return nullptr;
+
+            case FrameSetType::METASPRITE:
+                return std::make_unique<MetaSpriteEditor>(itemIndex);
+
+            case FrameSetType::SPRITE_IMPORTER:
+                return nullptr;
+            }
+        }
         return nullptr;
+    }
 
     case EditorType::Palettes:
         return std::make_unique<PaletteEditor>(itemIndex);

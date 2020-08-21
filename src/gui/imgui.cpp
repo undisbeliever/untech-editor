@@ -11,6 +11,8 @@
 #include "vendor/imgui/imgui_internal.h"
 
 #include "models/common/rgba.h"
+#include "models/snes/snescolor.h"
+#include <algorithm>
 
 namespace ImGui {
 
@@ -66,20 +68,49 @@ bool InputUsize(const char* label, UnTech::usize* usize, const UnTech::usize& ma
     return edited;
 }
 
-bool InputUnsignedFormat(const char* label, unsigned* v, const char* format, ImGuiInputTextFlags flags)
+bool InputMs8point(const char* label, UnTech::ms8point* point)
+{
+    return groupedInput(
+        label,
+        [&]() { return InputIntMs8("##x", &point->x, 0, 0); },
+        [&]() { return InputIntMs8("##y", &point->y, 0, 0); });
+}
+
+bool InputMs8rect(const char* label, UnTech::ms8rect* rect)
+{
+    return groupedInput(
+        label,
+        [&]() { return InputIntMs8("##x", &rect->x, 0, 0); },
+        [&]() { return InputIntMs8("##y", &rect->y, 0, 0); },
+        [&]() { return InputUint8("##width", &rect->width, 0, 0); },
+        [&]() { return InputUint8("##height", &rect->height, 0, 0); });
+}
+
+bool InputUnsignedFormat(const char* label, uint32_t* v, const char* format, ImGuiInputTextFlags flags)
 {
     return InputScalar(label, ImGuiDataType_U32, (void*)v, NULL, NULL, format, flags);
 }
 
-bool InputUnsigned(const char* label, unsigned* v, unsigned step, unsigned step_fast, ImGuiInputTextFlags flags)
+bool InputUnsigned(const char* label, uint32_t* v, unsigned step, unsigned step_fast, ImGuiInputTextFlags flags)
 {
     const char* format = (flags & ImGuiInputTextFlags_CharsHexadecimal) ? "%08X" : "%d";
     return InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
 }
 
-bool InputUnsigned(const char* label, unsigned* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags)
+bool InputUnsigned(const char* label, uint32_t* v, unsigned step, unsigned step_fast, const char* format, ImGuiInputTextFlags flags)
 {
     return InputScalar(label, ImGuiDataType_U32, (void*)v, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), format, flags);
+}
+
+bool InputIntMs8(const char* label, UnTech::int_ms8_t* v, unsigned step, unsigned step_fast, ImGuiInputTextFlags flags)
+{
+    int32_t i = *v;
+    bool edited = InputScalar(label, ImGuiDataType_S32, &i, (void*)(step > 0 ? &step : NULL), (void*)(step_fast > 0 ? &step_fast : NULL), NULL, flags);
+
+    if (edited) {
+        *v = i;
+    }
+    return edited;
 }
 
 bool InputUint8(const char* label, uint8_t* v, unsigned step, unsigned step_fast, ImGuiInputTextFlags flags)

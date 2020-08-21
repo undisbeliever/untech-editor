@@ -21,21 +21,27 @@ template <typename ActionPolicy>
 struct ListActions;
 
 template <typename ActionPolicy>
-void ListButtons(typename ActionPolicy::EditorT* editor)
+bool ListButtons(typename ActionPolicy::EditorT* editor)
 {
     assert(editor != nullptr);
 
     // ::TODO enable/disable buttons based on selection and list status::
 
+    bool listChanged = false;
+
     if (ImGui::Button("Add")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::ADD);
+        listChanged = true;
     }
 
     ImGui::SameLine();
 
     if (ImGui::Button("Remove")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::REMOVE);
+        listChanged = true;
     }
+
+    return listChanged;
 }
 
 template <class ActionPolicy>
