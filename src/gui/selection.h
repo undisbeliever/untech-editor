@@ -176,7 +176,7 @@ public:
 
         if (_parent != parentSel.selectedIndex()) {
             _parent = parentSel.selectedIndex();
-            _pendingParent = NO_SELECTION;
+            _pendingParent = _parent;
             _selected = NO_SELECTION;
             _pending = NO_SELECTION;
         }
