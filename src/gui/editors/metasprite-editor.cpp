@@ -217,7 +217,8 @@ struct MetaSpriteEditor::AP {
         using ListArgsT = std::tuple<unsigned>;
         using SelectionT = MultipleChildSelection;
 
-        constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_FRAME_OBJECTS;
+        // ::TODO change to UnTech::MetaSprite::MAX_ANIMATION_FRAMES::
+        constexpr static size_t MAX_SIZE = 64;
 
         constexpr static auto SelectionPtr = &EditorT::_animationFramesSel;
 

@@ -67,6 +67,8 @@ public:
     // Called after processGui and after an undo action has been processed.
     virtual void updateSelection() = 0;
 
+    // ::TODO add imageFileChanged(const std::filesystem::path&); ::
+
     // Undo functions MUST NOT be called by an EditorUndoAction instance
     void addAction(std::unique_ptr<EditorUndoAction>&& action);
     void processPendingActions(UnTech::Project::ProjectFile&);

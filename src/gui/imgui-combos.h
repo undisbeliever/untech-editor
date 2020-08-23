@@ -28,6 +28,8 @@ bool EnumCombo(const char* label, UnTech::MetaSprite::Animation::DurationFormat*
 bool EnumCombo(const char* label, UnTech::MetaSprite::TilesetType* v);
 bool EnumCombo(const char* label, UnTech::MetaSprite::ObjectSize* v);
 
+bool EnumCombo(const char* label, UnTech::MetaSprite::SpriteImporter::UserSuppliedPalette::Position* v);
+
 bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxType* v);
 
 }

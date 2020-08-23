@@ -68,6 +68,100 @@ bool InputUsize(const char* label, UnTech::usize* usize, const UnTech::usize& ma
     return edited;
 }
 
+bool InputUpoint(const char* label, UnTech::upoint* upoint, const UnTech::usize& containerSize)
+{
+    return groupedInput(
+        label,
+        [&]() {
+            bool edited = InputUnsigned("##x", &upoint->x, 0, 0);
+            if (edited) {
+                if (upoint->x >= containerSize.width) {
+                    upoint->x = containerSize.width > 0 ? containerSize.width - 1 : 0;
+                }
+            }
+            return edited;
+        },
+        [&]() {
+            bool edited = InputUnsigned("##y", &upoint->y, 0, 0);
+            if (edited) {
+                if (upoint->y >= containerSize.height) {
+                    upoint->y = containerSize.height > 0 ? containerSize.height - 1 : 0;
+                }
+            }
+            return edited;
+        });
+}
+
+bool InputUpoint(const char* label, UnTech::upoint* upoint, const UnTech::usize& containerSize, const UnTech::usize& itemSize)
+{
+    return groupedInput(
+        label,
+        [&]() {
+            bool edited = InputUnsigned("##x", &upoint->x, 0, 0);
+            if (edited) {
+                if (upoint->x >= containerSize.width) {
+                    upoint->x = containerSize.width > itemSize.width ? containerSize.width - itemSize.width : 0;
+                }
+            }
+            return edited;
+        },
+        [&]() {
+            bool edited = InputUnsigned("##y", &upoint->y, 0, 0);
+            if (edited) {
+                if (upoint->y >= containerSize.height) {
+                    upoint->y = containerSize.height > itemSize.height ? containerSize.height - itemSize.height : 0;
+                }
+            }
+            return edited;
+        });
+}
+
+bool InputUrect(const char* label, UnTech::urect* urect, const UnTech::usize& containerSize)
+{
+    return groupedInput(
+        label,
+        [&]() {
+            bool edited = InputUnsigned("##x", &urect->x, 0, 0);
+            if (edited) {
+                unsigned maxX = (containerSize.width > urect->width) ? containerSize.width - urect->width : 0;
+                if (urect->x > maxX) {
+                    urect->x = maxX;
+                }
+            }
+            return edited;
+        },
+        [&]() {
+            bool edited = InputUnsigned("##y", &urect->y, 0, 0);
+            if (edited) {
+                unsigned maxY = (containerSize.height > urect->height) ? containerSize.height - urect->height : 0;
+                if (urect->y > maxY) {
+                    urect->y = maxY;
+                }
+            }
+            return edited;
+        },
+        [&]() {
+            bool edited = InputUnsigned("##width", &urect->width, 0, 0);
+            if (edited) {
+                unsigned maxWidth = (containerSize.width > urect->x) ? containerSize.width - urect->x : 0;
+                if (urect->width > maxWidth) {
+                    urect->width = maxWidth;
+                }
+            }
+            return edited;
+        },
+        [&]() {
+            bool edited = InputUnsigned("##height", &urect->height, 0, 0);
+            if (edited) {
+                unsigned maxHeight = (containerSize.height > urect->y) ? containerSize.height - urect->y : 0;
+                if (urect->height > maxHeight) {
+                    urect->height = maxHeight;
+                }
+            }
+            return edited;
+        });
+}
+
 bool InputMs8point(const char* label, UnTech::ms8point* point)
 {
     return groupedInput(

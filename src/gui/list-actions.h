@@ -544,6 +544,74 @@ struct ListActions {
         }
     };
 
+    template <auto FieldPtr>
+    class EditAllItemsInListFieldAction final : public BaseAction {
+        using FieldT = typename remove_member_pointer<decltype(FieldPtr)>::type;
+
+    private:
+        std::vector<FieldT> _newValues;
+        std::vector<FieldT> _oldValues;
+
+    private:
+        void setValues(Project::ProjectFile& projectFile, const std::vector<FieldT>& values) const
+        {
+            ListT& projectList = this->getProjectList(projectFile);
+            ListT& editorList = this->getEditorList();
+
+            assert(projectList.size() == values.size());
+            assert(editorList.size() == values.size());
+
+            auto pIt = projectList.begin();
+            auto eIt = editorList.begin();
+            for (const FieldT& value : values) {
+                (*eIt++).*FieldPtr = value;
+                (*pIt++).*FieldPtr = value;
+            }
+            assert(pIt == projectList.end());
+            assert(eIt == editorList.end());
+        }
+
+    public:
+        EditAllItemsInListFieldAction(EditorT* editor,
+                                      const ListArgsT& listArgs)
+            : BaseAction(editor, listArgs)
+        {
+        }
+        virtual ~EditAllItemsInListFieldAction() = default;
+
+        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        {
+            const ListT& projectList = this->getProjectList(projectFile);
+            const ListT& editorList = this->getEditorList();
+
+            assert(projectList.size() == editorList.size());
+            assert(_oldValues.empty());
+            assert(_newValues.empty());
+
+            _oldValues.reserve(projectList.size());
+            for (const auto& item : projectList) {
+                _oldValues.push_back(item.*FieldPtr);
+            }
+
+            _newValues.reserve(editorList.size());
+            for (const auto& item : editorList) {
+                _newValues.push_back(item.*FieldPtr);
+            }
+
+            return _oldValues != _newValues;
+        }
+
+        virtual void undo(Project::ProjectFile& projectFile) const final
+        {
+            setValues(projectFile, _oldValues);
+        }
+
+        virtual void redo(Project::ProjectFile& projectFile) const final
+        {
+            setValues(projectFile, _newValues);
+        }
+    };
+
 private:
     static void _removeMultipleBitfieldSelection(EditorT* editor, const ListArgsT& listArgs,
                                                  const ListT& list, const SelectionT& sel)
@@ -785,6 +853,24 @@ public:
         const std::tuple<unsigned> listArgs = sel.listArgs();
 
         _editListField<FieldPtr>(editor, listArgs, index);
+    }
+
+    template <auto FieldPtr>
+    static void allItemsInSelectedListFieldEdited(EditorT* editor)
+    {
+        const SelectionT& sel = getSelection(editor);
+        const ListArgsT listArgs = sel.listArgs();
+
+        const ListT* list = getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+        if (list->empty()) {
+            return;
+        }
+
+        editor->addAction(
+            std::make_unique<EditAllItemsInListFieldAction<FieldPtr>>(editor, listArgs));
     }
 };
 

@@ -95,16 +95,19 @@ private:
         Resize_BottomRight = Resize_Bottom | Resize_Right
     };
 
+private:
     std::vector<SelectedAabb> _selectedAabb;
 
     State _currentState;
 
-    TwoPointRect _bounds;
-    ImVec2 _offset;
     ImVec2 _zoom;
+    TwoPointRect _bounds;
+    ImVec2 _sceneOffset;
+    ImVec2 _offset;
 
+    point _mouseScenePos;
+    point _previousMouseScenePos;
     point _mousePos;
-    point _previousMousePos;
 
     TwoPointRect _dragSelect;
     point _dragMove;
@@ -140,23 +143,55 @@ public:
         return ImVec2((x * _zoom.x) + _offset.x, (y * _zoom.y) + _offset.y);
     }
 
+    bool inClickState() const { return _currentState == State::CLICK; }
+
     bool isHoveredAndNotEditing() const { return _isHovered && isNonInteractiveState(); }
+
+    const point mousePos() const { return _mousePos; }
+
+    upoint mousePosUpoint() const
+    {
+        if (_mousePos.x >= 0 && _mousePos.y >= 0) {
+            return upoint(_mousePos.x, _mousePos.y);
+        }
+        else {
+            return upoint(INT_MAX, INT_MAX);
+        }
+    }
 
     void resetState()
     {
         _currentState = State::NONE;
     }
 
-    void setBounds(const rect& rect)
+    void setOrigin(const int x, const int y)
     {
-        _bounds.x1 = rect.left();
-        _bounds.x2 = rect.right();
-        _bounds.y1 = rect.top();
-        _bounds.y2 = rect.bottom();
+        const auto oldMousePos = _mousePos;
+
+        _offset.x = _sceneOffset.x + x * _zoom.x;
+        _offset.y = _sceneOffset.y + y * _zoom.y;
+
+        _mousePos.x = _mouseScenePos.x - x;
+        _mousePos.y = _mouseScenePos.y - y;
+
+        // ::TODO find a way to eliminate this code::
+        // ::: _bounds and _dragSelect are only accessed in the selected SpriteImporter Frame::
+        const int deltaX = _mousePos.x - oldMousePos.x;
+        const int deltaY = _mousePos.y - oldMousePos.y;
+
+        _bounds.x1 += deltaX;
+        _bounds.x2 += deltaX;
+        _bounds.y1 += deltaY;
+        _bounds.y2 += deltaY;
+
+        _dragSelect.x1 += deltaX;
+        _dragSelect.x2 += deltaX;
+        _dragSelect.y1 += deltaY;
+        _dragSelect.y2 += deltaY;
     }
 
     template <typename... SelectionT>
-    void startLoop(const char* strId, const rect& rect, const ImVec2& zoom,
+    void startLoop(const char* strId, const rect& sceneRect, const rect& bounds, const ImVec2& zoom,
                    SelectionT*... sel)
     {
         _selectedAabb.clear();
@@ -166,18 +201,23 @@ public:
 
         _hasSingleSelection = (0 + ... + int(sel->hasSingleSelection())) == 1;
 
-        setBounds(rect);
+        _bounds.x1 = bounds.left();
+        _bounds.x2 = bounds.right();
+        _bounds.y1 = bounds.top();
+        _bounds.y2 = bounds.bottom();
 
         _zoom = zoom;
-        const ImVec2 drawSize(rect.width * zoom.x, rect.height * zoom.y);
+        const ImVec2 drawSize(sceneRect.width * zoom.x, sceneRect.height * zoom.y);
         const ImVec2 screenOffset = centreOffset(drawSize);
 
-        _offset = screenOffset - ImVec2(rect.x * zoom.x, rect.y * zoom.y);
+        _sceneOffset = screenOffset - ImVec2(sceneRect.x * zoom.x, sceneRect.y * zoom.y);
+        _offset = _sceneOffset;
 
         ImGui::SetCursorScreenPos(screenOffset);
         ImGui::InvisibleButton(strId, drawSize);
 
-        _mousePos = toPoint(ImGui::GetMousePos());
+        _mouseScenePos = toPoint(ImGui::GetMousePos());
+        _mousePos = _mouseScenePos;
 
         if (ImGui::IsItemActive() || ImGui::IsItemHovered()) {
             if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Escape))) {
@@ -203,10 +243,10 @@ public:
 
             case State::SELECT_DRAG: {
                 if (ImGui::IsMouseDown(0)) {
-                    _dragSelect.x1 = std::min(_mousePos.x, _previousMousePos.x);
-                    _dragSelect.x2 = std::max(_mousePos.x, _previousMousePos.x);
-                    _dragSelect.y1 = std::min(_mousePos.y, _previousMousePos.y);
-                    _dragSelect.y2 = std::max(_mousePos.y, _previousMousePos.y);
+                    _dragSelect.x1 = std::min(_mouseScenePos.x, _previousMouseScenePos.x);
+                    _dragSelect.x2 = std::max(_mouseScenePos.x, _previousMouseScenePos.x);
+                    _dragSelect.y1 = std::min(_mouseScenePos.y, _previousMouseScenePos.y);
+                    _dragSelect.y2 = std::max(_mouseScenePos.y, _previousMouseScenePos.y);
 
                     (..., sel->clearSelection());
                 }
@@ -218,10 +258,10 @@ public:
             case State::MOVE_DRAG:
             case State::RESIZE_DRAG: {
                 if (ImGui::IsMouseDown(0)) {
-                    if (_bounds.contains(_mousePos)) {
-                        _dragMove.x = _mousePos.x - _previousMousePos.x;
-                        _dragMove.y = _mousePos.y - _previousMousePos.y;
-                        _previousMousePos = _mousePos;
+                    if (_bounds.contains(_mouseScenePos)) {
+                        _dragMove.x = _mouseScenePos.x - _previousMouseScenePos.x;
+                        _dragMove.y = _mouseScenePos.y - _previousMouseScenePos.y;
+                        _previousMouseScenePos = _mouseScenePos;
                     }
                     else {
                         _dragMove.x = 0;
@@ -266,12 +306,30 @@ public:
         }
     }
 
+    template <typename... SelectionT>
+    void startLoop(const char* strId, const rect& sceneRect, const ImVec2& zoom,
+                   SelectionT*... sel)
+    {
+        startLoop(strId, sceneRect, sceneRect, zoom, sel...);
+    }
+
     void drawBackgroundColor(ImDrawList* drawList, const ImU32 color)
     {
         const auto pos = ImGui::GetWindowPos();
         const auto size = ImGui::GetWindowSize();
 
         drawList->AddRectFilled(pos, pos + size, color, 0.0f, ImDrawCornerFlags_None);
+    }
+
+    template <typename RectT>
+    void drawCrosshair(ImDrawList* drawList, const int x, const int y, const RectT& rect, const ImU32 color)
+    {
+        const ImVec2 p = toVec2(x, y);
+        const ImVec2 min = toVec2(rect.left(), rect.top());
+        const ImVec2 max = toVec2(rect.right(), rect.bottom());
+
+        drawList->AddLine(ImVec2(p.x, min.y), ImVec2(p.x, max.y), color);
+        drawList->AddLine(ImVec2(min.x, p.y), ImVec2(max.x, p.y), color);
     }
 
     void drawBoundedCrosshair(ImDrawList* drawList, const int x, const int y, const ImU32 color)
@@ -282,6 +340,33 @@ public:
 
         drawList->AddLine(ImVec2(p.x, min.y), ImVec2(p.x, max.y), color);
         drawList->AddLine(ImVec2(min.x, p.y), ImVec2(max.x, p.y), color);
+    }
+
+    template <typename RectT>
+    void drawAntiHighlight(ImDrawList* drawList, const RectT& rect, const ImU32 color)
+    {
+        const ImVec2 p1 = toVec2(rect.left(), rect.top());
+        const ImVec2 p2 = toVec2(rect.right(), rect.bottom());
+
+        const ImVec2 wp1 = ImGui::GetWindowPos();
+        const ImVec2 wp2 = wp1 + ImGui::GetWindowSize();
+
+        // top
+        if (wp1.y < p1.y) {
+            drawList->AddRectFilled(ImVec2(wp1.x, wp1.y), ImVec2(wp2.x, p1.y), color, 0.0f, ImDrawCornerFlags_None);
+        }
+        // bottom
+        if (wp2.y > p2.y) {
+            drawList->AddRectFilled(ImVec2(wp1.x, p2.y), ImVec2(wp2.x, wp2.y), color, 0.0f, ImDrawCornerFlags_None);
+        }
+        // left
+        if (wp1.x < p1.x && p2.y > p1.y) {
+            drawList->AddRectFilled(ImVec2(wp1.x, p1.y), ImVec2(p1.x, p2.y), color, 0.0f, ImDrawCornerFlags_None);
+        }
+        // right
+        if (wp2.x > p2.x && p2.y > p1.y) {
+            drawList->AddRectFilled(ImVec2(p2.x, p1.y), ImVec2(wp2.x, p2.y), color, 0.0f, ImDrawCornerFlags_None);
+        }
     }
 
     template <typename PointT>
@@ -433,10 +518,10 @@ public:
         bool selected = sel->isSelected(index);
 
         const TwoPointRect r{
-            rect->left(),
-            rect->right(),
-            rect->top(),
-            rect->bottom(),
+            int(rect->left()),
+            int(rect->right()),
+            int(rect->top()),
+            int(rect->bottom()),
         };
 
         _isHovered = r.contains(_mousePos);
@@ -512,6 +597,72 @@ public:
         }
 
         addRect(drawList, rect, color, selected);
+    }
+
+    template <typename PointT>
+    void addFixedSizeSquare(ImDrawList* drawList, const PointT* point, const unsigned squareSize,
+                            const ImU32 color, bool selected = false)
+    {
+        const ImVec2 pMin = toVec2(point->x, point->y);
+        const ImVec2 pMax = toVec2(point->x + squareSize, point->y + squareSize);
+
+        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, _lineThickness);
+
+        if (selected) {
+            _selectedAabb.emplace_back(pMin, pMax, color);
+        }
+    }
+
+    template <typename PointT, typename SelectionT>
+    void addFixedSizeSquare(ImDrawList* drawList, PointT* point, unsigned squareSize, const ImU32 color,
+                            SelectionT* sel, const unsigned index)
+    {
+        bool selected = sel->isSelected(index);
+
+        const TwoPointRect r{
+            int(point->x),
+            int(point->x + squareSize),
+            int(point->y),
+            int(point->y + squareSize),
+        };
+
+        _isHovered = r.contains(_mousePos);
+
+        switch (_currentState) {
+        case State::EDITING_FINISHED:
+        case State::DISABLED: {
+        } break;
+
+        case State::NONE: {
+        } break;
+
+        case State::CLICK: {
+            if (_isHovered) {
+                _lastClickedSelector = sel;
+                _selectedIndex = index;
+
+                _previouslySelectedItemClicked |= selected;
+            }
+        } break;
+
+        case State::SELECT_DRAG: {
+            if (_dragSelect.contains(r)) {
+                sel->appendSelection(index);
+            }
+        } break;
+
+        case State::MOVE_DRAG: {
+            if (selected) {
+                point->x = std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - squareSize);
+                point->y = std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - squareSize);
+            }
+        } break;
+
+        case State::RESIZE_DRAG: {
+        } break;
+        }
+
+        addFixedSizeSquare(drawList, point, squareSize, color, selected);
     }
 
     template <typename PointT>
@@ -628,9 +779,19 @@ public:
         }
     }
 
+    void drawImage(ImDrawList* drawList, const Texture& texture, const int x, const int y)
+    {
+        const ImVec2 pMin = toVec2(x, y);
+        const ImVec2 pMax = toVec2(x + texture.width(), y + texture.height());
+
+        drawList->AddImage(texture.imguiTextureId(), pMin, pMax);
+    }
+
     template <typename... SelectionT>
     void endLoop(ImDrawList* drawList, SelectionT*... selection)
     {
+        // MUST not use _mousePos, _bounds or _dragSelect in the function.
+
         for (const auto& sel : _selectedAabb) {
             drawList->AddRect(sel.pMin, sel.pMax, sel.col, 0.0f, ImDrawCornerFlags_None, _selectedLineThickness);
         }
@@ -641,7 +802,7 @@ public:
         } break;
 
         case State::CLICK: {
-            _previousMousePos = _mousePos;
+            _previousMouseScenePos = _mouseScenePos;
 
             if (_previouslySelectedItemClicked) {
                 _currentState = State::MOVE_DRAG;

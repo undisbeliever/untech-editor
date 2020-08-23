@@ -106,4 +106,15 @@ bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxTy
     return changed;
 }
 
+bool EnumCombo(const char* label, UnTech::MetaSprite::SpriteImporter::UserSuppliedPalette::Position* v)
+{
+    static constexpr const char* items[] = {
+        "Top Left",
+        "Top Right",
+        "Bottom Left",
+        "Bottom Right",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+}
+
 }

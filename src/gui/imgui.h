@@ -57,6 +57,9 @@ bool EnumCombo(const char* label, EnumT* value, const char* const items[], int i
 }
 
 bool InputUsize(const char* label, UnTech::usize* usize, const UnTech::usize& maxSize);
+bool InputUpoint(const char* label, UnTech::upoint* upoint, const UnTech::usize& containerSize);
+bool InputUpoint(const char* label, UnTech::upoint* upoint, const UnTech::usize& containerSize, const UnTech::usize& itemSize);
+bool InputUrect(const char* label, UnTech::urect* urect, const UnTech::usize& containerSize);
 
 bool InputMs8rect(const char* label, UnTech::ms8rect* rect);
 
