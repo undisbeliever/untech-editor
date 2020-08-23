@@ -479,8 +479,8 @@ public:
 
         case State::MOVE_DRAG: {
             if (selected) {
-                rect->x = std::clamp<int>(rect->x + _dragMove.x, _bounds.x1, _bounds.x2 - rect->width + 1);
-                rect->y = std::clamp<int>(rect->y + _dragMove.y, _bounds.y1, _bounds.y2 - rect->height + 1);
+                rect->x = std::clamp<int>(rect->x + _dragMove.x, _bounds.x1, _bounds.x2 - rect->width);
+                rect->y = std::clamp<int>(rect->y + _dragMove.y, _bounds.y1, _bounds.y2 - rect->height);
             }
         } break;
 
@@ -495,7 +495,7 @@ public:
                     rect->x = newX;
                 }
                 else if (_resizeNodes & Resize_Right) {
-                    rect->width = std::clamp<int>(_mousePos.x - r.x1, 1, _bounds.x2 - r.x1 + 1);
+                    rect->width = std::clamp<int>(_mousePos.x - r.x1, 1, _bounds.x2 - r.x1);
                 }
 
                 if (_resizeNodes & Resize_Top) {
@@ -505,7 +505,7 @@ public:
                     rect->y = newY;
                 }
                 else if (_resizeNodes & Resize_Bottom) {
-                    rect->height = std::clamp<int>(_mousePos.y - r.y1, 1, _bounds.y2 - r.y1 + 1);
+                    rect->height = std::clamp<int>(_mousePos.y - r.y1, 1, _bounds.y2 - r.y1);
                 }
             }
         } break;
@@ -589,8 +589,8 @@ public:
 
         case State::MOVE_DRAG: {
             if (selected) {
-                point->x = std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - imageSize + 1);
-                point->y = std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - imageSize + 1);
+                point->x = std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - imageSize);
+                point->y = std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - imageSize);
             }
         } break;
 
