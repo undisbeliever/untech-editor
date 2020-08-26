@@ -562,6 +562,7 @@ void MetaTileTilesetEditor::tilesetWindow()
 
         // ::TODO zoom::
         auto geo = tilesetGeometryAutoZoom();
+        invisibleButton("##Tileset", geo);
         drawTileset(geo);
 
         ImGui::EndChild();
@@ -583,6 +584,7 @@ void MetaTileTilesetEditor::scratchpadWindow()
 
         // ::TODO zoom::
         const auto geo = mapGeometryAutoZoom(_data.scratchpad.size());
+        invisibleButton("##Scratchpad", geo);
         drawAndEditMap(geo);
 
         ImGui::EndChild();

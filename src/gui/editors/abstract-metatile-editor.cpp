@@ -82,12 +82,6 @@ ImVec2 AbstractMetaTileEditor::Geometry::tilePosToVec2(const point pos) const
                   offset.y + tileSize.y * pos.y);
 }
 
-static void invisibleButton(const char* label, const AbstractMetaTileEditor::Geometry& geo)
-{
-    ImGui::SetCursorScreenPos(geo.offset);
-    ImGui::InvisibleButton(label, geo.mapSize);
-}
-
 template <typename SelectionT>
 class TileSelector {
 private:
@@ -382,8 +376,25 @@ void AbstractMetaTileEditor::updateSelection()
     }
 }
 
+static AbstractMetaTileEditor::Geometry blankGeometry()
+{
+    constexpr unsigned width = UnTech::Rooms::RoomInput::MIN_MAP_WIDTH;
+    constexpr unsigned height = UnTech::Rooms::RoomInput::MIN_MAP_HEIGHT;
+
+    const ImVec2 zoom(1.0f, 1.0f);
+    const ImVec2 tileSize(METATILE_SIZE_PX, METATILE_SIZE_PX);
+    const ImVec2 mapRenderSize(width * METATILE_SIZE_PX, height * METATILE_SIZE_PX);
+    const ImVec2 offset = centreOffset(mapRenderSize);
+
+    return { tileSize, mapRenderSize, offset, zoom };
+}
+
 AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::mapGeometry(const usize s, const ImVec2 zoom)
 {
+    // Prevent an ImGui::InvisibleButton assert failure
+    if (s.width == 0 || s.height == 0) {
+        return blankGeometry();
+    }
     const ImVec2 tileSize(METATILE_SIZE_PX * zoom.x, METATILE_SIZE_PX * zoom.y);
     const ImVec2 mapRenderSize(s.width * tileSize.x, s.height * tileSize.y);
     const ImVec2 offset = centreOffset(mapRenderSize);
@@ -393,6 +404,10 @@ AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::mapGeometry(const usize
 
 AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::mapGeometryAutoZoom(const usize size)
 {
+    // Prevent an ImGui::InvisibleButton assert failure
+    if (size.width == 0 || size.height == 0) {
+        return blankGeometry();
+    }
     const ImVec2 winSize = ImGui::GetWindowSize();
     const float zoom = std::max(std::floor(winSize.x / (size.width * METATILE_SIZE_PX + 8)), 1.0f);
     return mapGeometry(size, ImVec2(zoom, zoom));
@@ -406,6 +421,12 @@ AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::tilesetGeometry(const I
 AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::tilesetGeometryAutoZoom()
 {
     return mapGeometryAutoZoom(usize(TILESET_WIDTH, TILESET_HEIGHT));
+}
+
+void AbstractMetaTileEditor::invisibleButton(const char* label, const AbstractMetaTileEditor::Geometry& geo)
+{
+    ImGui::SetCursorScreenPos(geo.offset);
+    ImGui::InvisibleButton(label, geo.mapSize);
 }
 
 void AbstractMetaTileEditor::drawGrid(ImDrawList* drawList, const Geometry& geo)
@@ -456,7 +477,6 @@ void AbstractMetaTileEditor::drawTileset(const Geometry& geo)
         drawList->AddRect(pMin, pMax, selectionOutlineColor, 0.0f, ImDrawCornerFlags_None);
     }
 
-    invisibleButton("##Tileset", geo);
     const bool sc = tilesetSelector.processSelection(&_selectedTilesetTiles, geo,
                                                      usize(TILESET_WIDTH, TILESET_HEIGHT));
     if (sc) {
@@ -474,6 +494,7 @@ void AbstractMetaTileEditor::tilesetMinimapWindow(const char* label)
         ImGui::SetWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
 
         const auto geo = tilesetGeometryAutoZoom();
+        invisibleButton("##Tileset", geo);
         drawTileset(geo);
     }
     ImGui::End();
@@ -487,6 +508,7 @@ void AbstractMetaTileEditor::minimapWindow(const char* label)
         const auto& map = this->map();
         if (!map.empty()) {
             const auto geo = mapGeometryAutoZoom(map.size());
+            invisibleButton("##Map", geo);
             drawTiles(map, geo);
             drawSelection(_selectedTiles, geo);
 
@@ -548,8 +570,6 @@ void AbstractMetaTileEditor::drawTiles(const grid<uint8_t>& map, const Geometry&
 
     // ::TODO make optional (based on style)::
     drawGrid(drawList, geo);
-
-    invisibleButton("##Map", geo);
 }
 
 void AbstractMetaTileEditor::drawSelection(const upoint_vectorset& selection, const Geometry& geo)

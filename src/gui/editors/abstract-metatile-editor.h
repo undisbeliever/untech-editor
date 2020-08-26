@@ -97,9 +97,12 @@ protected:
     Geometry tilesetGeometry(const ImVec2 zoom);
     Geometry tilesetGeometryAutoZoom();
 
+    void invisibleButton(const char* label, const Geometry& geo);
+
     void tilesetMinimapWindow(const char* label);
     void minimapWindow(const char* label);
 
+    // The previous Dear ImGui item must be an invisible button that covers the entire map
     void drawTileset(const Geometry& geo);
     void drawAndEditMap(const Geometry& geo);
 
