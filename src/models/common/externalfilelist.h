@@ -8,6 +8,7 @@
 
 #include "idstring.h"
 #include <cassert>
+#include <climits>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -88,6 +89,19 @@ public:
             }
         }
         return nullptr;
+    }
+
+    // returns INT_MAX if name is not found
+    size_type indexOf(const idstring& name) const
+    {
+        for (size_type i = 0; i < _list.size(); i++) {
+            const auto& item = _list.at(i);
+
+            if (item.value && item.value->name == name) {
+                return i;
+            }
+        }
+        return INT_MAX;
     }
 
     Item& item(size_type index) { return _list.at(index); }

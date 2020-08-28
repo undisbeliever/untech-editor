@@ -117,4 +117,15 @@ bool EnumCombo(const char* label, UnTech::MetaSprite::SpriteImporter::UserSuppli
     return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
 }
 
+bool EnumCombo(const char* label, UnTech::Rooms::RoomEntranceOrientation* v)
+{
+    static constexpr const char* items[] = {
+        "Down Right",
+        "Down Left",
+        "Up Right",
+        "Up Left",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+}
+
 }

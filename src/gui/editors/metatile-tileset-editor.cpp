@@ -86,6 +86,8 @@ void MetaTileTilesetEditor::editorOpened()
 {
     AbstractMetaTileEditor::editorOpened();
 
+    setEditMode(EditMode::SelectTiles);
+
     _scratchpadSize = _data.scratchpad.size();
     resetTileProperties();
 }

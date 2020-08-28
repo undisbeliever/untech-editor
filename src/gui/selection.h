@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/bit.h"
+#include <array>
 #include <climits>
 #include <cstdint>
 #include <tuple>
@@ -187,6 +188,68 @@ public:
         }
         else {
             _selected = _pending;
+        }
+    }
+};
+
+// Only intended groups with a small MAX_SIZE value
+class GroupMultipleSelection {
+public:
+    constexpr static unsigned MAX_GROUP_SIZE = 8;
+    constexpr static unsigned MAX_SIZE = MultipleSelection::MAX_SIZE;
+
+public:
+    std::array<MultipleSelection, MAX_GROUP_SIZE> childSelections;
+
+public:
+    MultipleSelection& childSel(unsigned groupIndex) { return childSelections.at(groupIndex); }
+    const MultipleSelection& childSel(unsigned groupIndex) const { return childSelections.at(groupIndex); }
+
+    bool isSelected(unsigned groupIndex, unsigned index) const { return groupIndex < MAX_GROUP_SIZE && childSelections.at(groupIndex).isSelected(index); }
+
+    bool hasSingleSelection() const
+    {
+        int s = 0;
+        for (const MultipleSelection& g : childSelections) {
+            if (g.hasSelection()) {
+                s++;
+            }
+        }
+        return s == 1;
+    }
+
+    void clearSelection()
+    {
+        for (MultipleSelection& g : childSelections) {
+            g.clearSelection();
+        }
+    }
+
+    void setSelected(unsigned groupIndex, unsigned index)
+    {
+        clearSelection();
+        if (groupIndex < childSelections.size()) {
+            childSelections.at(groupIndex).setSelected(index);
+        }
+    }
+
+    void selectionClicked(unsigned groupIndex, unsigned index, bool ctrlClicked)
+    {
+        if (not ctrlClicked) {
+            setSelected(groupIndex, index);
+        }
+        else {
+            if (groupIndex < childSelections.size()) {
+                childSelections.at(groupIndex).selectionClicked(index, true);
+            }
+        }
+    }
+
+    // Must be called after the GUI has been processed.
+    void update()
+    {
+        for (MultipleSelection& g : childSelections) {
+            g.update();
         }
     }
 };

@@ -18,6 +18,7 @@
 #include "gui/editors/metatile-tileset-editor.h"
 #include "gui/editors/palette-editor.h"
 #include "gui/editors/project-settings-editor.h"
+#include "gui/editors/room-editor.h"
 #include "gui/editors/scenes-editor-editor.h"
 #include "gui/editors/spriteimporter-editor.h"
 
@@ -195,7 +196,7 @@ std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex,
         return std::make_unique<MetaTileTilesetEditor>(itemIndex);
 
     case EditorType::Rooms:
-        return nullptr;
+        return std::make_unique<RoomEditor>(itemIndex);
     }
 
     return nullptr;

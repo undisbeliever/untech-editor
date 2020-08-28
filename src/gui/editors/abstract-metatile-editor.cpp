@@ -148,6 +148,17 @@ public:
         _previousSelection = sel;
     }
 
+    void reset()
+    {
+        _boxSelectionStart = upoint(0, 0);
+        _previousTilePos = upoint(0, 0);
+        _mapSize = usize(0, 0);
+
+        _draging = false;
+        _previousTileSelected = true;
+        _previousSelection.clear();
+    }
+
     // Must be called after `invisibleButton()`
     bool processSelection(SelectionT* sel,
                           const AbstractMetaTileEditor::Geometry& geo, const usize& size)
@@ -271,6 +282,7 @@ uint8_t TileSelector<vectorset<uint8_t>>::toTarget(unsigned x, unsigned y)
 
 static TileSelector<vectorset<uint8_t>> tilesetSelector;
 static TileSelector<upoint_vectorset> editableTilesSelector;
+static TileSelector<upoint_vectorset> scratchpadTilesSelector;
 
 Texture& AbstractMetaTileEditor::tilesetTexture()
 {
@@ -317,11 +329,10 @@ void AbstractMetaTileEditor::setTilesetIndex(unsigned index)
         _tilesetIndex = index;
 
         resetState();
+        resetSelectorState();
 
         _cursor.tiles = grid<uint16_t>();
         setEditMode(EditMode::SelectTiles);
-
-        // ::TODO reset scratchpad tiles Selector::
 
         // ::TODO reset animation::
     }
@@ -344,10 +355,16 @@ void AbstractMetaTileEditor::resetState()
     abandonPlacedTiles();
 }
 
-void AbstractMetaTileEditor::editorOpened()
+void AbstractMetaTileEditor::resetSelectorState()
 {
     tilesetSelector.reset(_selectedTilesetTiles, usize(TILESET_WIDTH, TILESET_HEIGHT));
     editableTilesSelector.reset(_selectedTiles, map().size());
+    scratchpadTilesSelector.reset();
+}
+
+void AbstractMetaTileEditor::editorOpened()
+{
+    resetSelectorState();
 
     _cursor.mapDirty = false;
     _cursor.currentlyEditing = false;
@@ -525,6 +542,42 @@ void AbstractMetaTileEditor::minimapWindow(const char* label)
     ImGui::End();
 }
 
+bool AbstractMetaTileEditor::scratchpadMinimapWindow(const char* label, upoint_vectorset* sel, const Project::ProjectFile& projectFile)
+{
+    bool selChanged = false;
+
+    if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
+        ImGui::SetWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
+
+        const grid<uint8_t>* scratchpad = nullptr;
+        if (_tilesetIndex < projectFile.metaTileTilesets.size()) {
+            if (auto* mt = projectFile.metaTileTilesets.at(_tilesetIndex)) {
+                scratchpad = &mt->scratchpad;
+            }
+        }
+
+        if (scratchpad && !scratchpad->empty()) {
+            const auto geo = mapGeometryAutoZoom(scratchpad->size());
+            invisibleButton("##Map", geo);
+            drawTiles(*scratchpad, geo);
+            drawSelection(*sel, geo);
+
+            const bool sc = scratchpadTilesSelector.processSelection(sel, geo, scratchpad->size());
+            if (sc) {
+                selChanged = true;
+
+                createTileCursor(*scratchpad, *sel);
+                if (_currentEditMode == EditMode::SelectTiles) {
+                    setEditMode(EditMode::PlaceTiles);
+                }
+            }
+        }
+    }
+    ImGui::End();
+
+    return selChanged;
+}
+
 void AbstractMetaTileEditor::drawTiles(const grid<uint8_t>& map, const Geometry& geo)
 {
     if (map.empty()) {
@@ -596,6 +649,7 @@ void AbstractMetaTileEditor::drawAndEditMap(const Geometry& geo)
     drawTiles(map, geo);
 
     switch (_currentEditMode) {
+    case EditMode::SelectObjects:
     case EditMode::None: {
         break;
     }
@@ -639,6 +693,7 @@ void AbstractMetaTileEditor::processEditMode(const Geometry& geo)
     }
 
     switch (_currentEditMode) {
+    case EditMode::SelectObjects:
     case EditMode::SelectTiles:
     case EditMode::None: {
         break;
@@ -837,6 +892,15 @@ void AbstractMetaTileEditor::setEditMode(AbstractMetaTileEditor::EditMode mode)
 
         commitPlacedTiles();
     }
+}
+
+bool AbstractMetaTileEditor::selectObjectsButton()
+{
+    const bool clicked = ImGui::ToggledButton("Select Objects", _currentEditMode == EditMode::SelectObjects);
+    if (clicked) {
+        setEditMode(EditMode::SelectObjects);
+    }
+    return clicked;
 }
 
 void AbstractMetaTileEditor::editModeButtons()

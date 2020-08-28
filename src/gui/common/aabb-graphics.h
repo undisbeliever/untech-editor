@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "entity-graphics.h"
 #include "two-point-rect.h"
 #include "gui/imgui-drawing.h"
 #include "gui/selection.h"
@@ -24,6 +25,7 @@ private:
     // Line thickness of 1.0f is too small,
     constexpr static float _lineThickness = 2.0f;
     constexpr static float _selectedLineThickness = 4.0f;
+    constexpr static float _filledOutlineThickness = 1.0f;
 
     struct SelectedAabb {
         ImVec2 pMin;
@@ -113,7 +115,7 @@ public:
 
     bool isHoveredAndNotEditing() const { return _isHovered && isNonInteractiveState(); }
 
-    const point mousePos() const { return _mousePos; }
+    const point& mousePos() const { return _mousePos; }
 
     upoint mousePosUpoint() const
     {
@@ -154,6 +156,16 @@ public:
         _dragSelect.x2 += deltaX;
         _dragSelect.y1 += deltaY;
         _dragSelect.y2 += deltaY;
+    }
+
+    void setDisabled(bool disabled)
+    {
+        if (disabled) {
+            _currentState = State::DISABLED;
+        }
+        else if (_currentState == State::DISABLED) {
+            _currentState = State::NONE;
+        }
     }
 
     template <typename... SelectionT>
@@ -335,6 +347,19 @@ public:
         }
     }
 
+    inline void drawRectFilled(ImDrawList* drawList, const TwoPointRect& rect, const ImU32 fillCol, const ImU32 outlineCol, const bool selected = false)
+    {
+        const ImVec2 pMin = toVec2(rect.x1, rect.y1);
+        const ImVec2 pMax = toVec2(rect.x2, rect.y2);
+
+        drawList->AddRectFilled(pMin, pMax, fillCol, 0.0f, ImDrawCornerFlags_None);
+        drawList->AddRect(pMin, pMax, outlineCol, 0.0f, ImDrawCornerFlags_None, _filledOutlineThickness);
+
+        if (selected) {
+            _selectedAabb.emplace_back(pMin, pMax, outlineCol);
+        }
+    }
+
     template <typename PointT>
     inline void addPointRect(ImDrawList* drawList, const PointT* point, const ImU32 color, const bool selected = false)
     {
@@ -408,6 +433,95 @@ public:
         }
 
         addPointRect(drawList, point, color, selected);
+    }
+
+    template <typename PointT, typename SelectionT>
+    void addEntity(ImDrawList* drawList, PointT* point,
+                   ImTextureID textureId, const DrawEntitySettings& ds,
+                   const ImU32 fillCol, const ImU32 outlineCol, const ImU32 tintColor,
+                   SelectionT* sel, const unsigned index)
+    {
+        bool selected = sel->isSelected(index);
+
+        const TwoPointRect r{
+            int(point->x) + ds.hitboxRect.x1,
+            int(point->x) + ds.hitboxRect.x2,
+            int(point->y) + ds.hitboxRect.y1,
+            int(point->y) + ds.hitboxRect.y2
+        };
+
+        _isHovered = r.contains(_mousePos);
+
+        switch (_currentState) {
+        case State::EDITING_FINISHED:
+        case State::DISABLED: {
+        } break;
+
+        case State::NONE: {
+        } break;
+
+        case State::CLICK: {
+            if (_isHovered) {
+                _lastClickedSelector = sel;
+                _selectedIndex = index;
+
+                _previouslySelectedItemClicked |= selected;
+            }
+        } break;
+
+        case State::SELECT_DRAG: {
+            if (_dragSelect.contains(point->x, point->y)) {
+                sel->appendSelection(index);
+            }
+        } break;
+
+        case State::MOVE_DRAG: {
+            if (selected) {
+                if constexpr (std::is_unsigned_v<decltype(PointT::x)>) {
+                    static_assert(std::is_unsigned_v<decltype(PointT::y)>);
+                    point->x = std::max(0, std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - 1));
+                    point->y = std::max(0, std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - 1));
+                }
+                else {
+                    static_assert(std::is_signed_v<decltype(PointT::y)>);
+                    point->x = std::clamp<int>(point->x + _dragMove.x, _bounds.x1, _bounds.x2 - 1);
+                    point->y = std::clamp<int>(point->y + _dragMove.y, _bounds.y1, _bounds.y2 - 1);
+                }
+            }
+        } break;
+
+        case State::RESIZE_DRAG: {
+        } break;
+        }
+
+        const TwoPointRect ir{
+            int(point->x) + ds.imageRect.x1,
+            int(point->x) + ds.imageRect.x2,
+            int(point->y) + ds.imageRect.y1,
+            int(point->y) + ds.imageRect.y2
+        };
+
+        drawList->AddImage(textureId, toVec2(ir.x1, ir.y1), toVec2(ir.x2, ir.y2),
+                           ds.uvMin, ds.uvMax, tintColor);
+
+        if (_isHovered || selected) {
+            drawRectFilled(drawList, r, fillCol, outlineCol, selected);
+        }
+    }
+
+    template <typename PointT>
+    inline void drawEntity(ImDrawList* drawList, const PointT* point,
+                           ImTextureID textureId, const DrawEntitySettings& ds, const ImU32 tintColor)
+    {
+        const TwoPointRect r{
+            int(point->x) + ds.imageRect.x1,
+            int(point->x) + ds.imageRect.x2,
+            int(point->y) + ds.imageRect.y1,
+            int(point->y) + ds.imageRect.y2
+        };
+
+        drawList->AddImage(textureId, toVec2(r.x1, r.y1), toVec2(r.x2, r.y2),
+                           ds.uvMin, ds.uvMax, tintColor);
     }
 
     ResizeNodes setResizeMouseCursor(const TwoPointRect& r) const
@@ -775,16 +889,7 @@ public:
             }
             else if (_lastClickedSelector != nullptr) {
                 const bool ctrlClicked = ImGui::GetIO().KeyCtrl;
-
-                auto f = [&](auto* sel) {
-                    if (sel == _lastClickedSelector) {
-                        sel->selectionClicked(_selectedIndex, ctrlClicked);
-                    }
-                    else {
-                        sel->clearSelection();
-                    }
-                };
-                (..., f(selection));
+                (..., endLoop_processLastClickedSelector(selection, ctrlClicked));
 
                 _currentState = State::MOVE_DRAG;
             }
@@ -810,5 +915,45 @@ public:
     }
 
     bool isEditingFinished() { return _currentState == State::EDITING_FINISHED; }
+
+private:
+    template <typename SelectionT>
+    void endLoop_processLastClickedSelector(SelectionT* sel, bool ctrlClicked);
 };
+
+template <>
+inline void AabbGraphics::endLoop_processLastClickedSelector<GroupMultipleSelection>(GroupMultipleSelection* sel, bool ctrlClicked)
+{
+    if (not ctrlClicked) {
+        // Not a ctrl click - change all child selectors
+        for (MultipleSelection& childSel : sel->childSelections) {
+            if (&childSel == _lastClickedSelector) {
+                childSel.setSelected(_selectedIndex);
+            }
+            else {
+                childSel.clearSelection();
+            }
+        }
+    }
+    else {
+        // Ctrl click - only change the _lastClickedSelector
+        for (MultipleSelection& childSel : sel->childSelections) {
+            if (&childSel == _lastClickedSelector) {
+                childSel.selectionClicked(_selectedIndex, true);
+            }
+        }
+    }
+}
+
+template <typename SelectionT>
+void AabbGraphics::endLoop_processLastClickedSelector(SelectionT* sel, bool ctrlClicked)
+{
+    if (sel == _lastClickedSelector) {
+        sel->selectionClicked(_selectedIndex, ctrlClicked);
+    }
+    else {
+        sel->clearSelection();
+    }
+}
+
 }

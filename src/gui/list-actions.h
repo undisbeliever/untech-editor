@@ -48,6 +48,25 @@ const FieldT* getListField(const ListT* list, const typename ListT::size_type in
     return nullptr;
 }
 
+template <class ListT, class SelectionT>
+std::vector<std::pair<typename ListT::size_type, typename ListT::value_type>>
+indexesAndDataForMultipleSelection(const ListT& list, const SelectionT& sel)
+{
+    using size_type = typename ListT::size_type;
+    using value_type = typename ListT::value_type;
+
+    std::vector<std::pair<size_type, value_type>> values;
+
+    const size_type end = std::min<size_type>(list.size(), SelectionT::MAX_SIZE);
+    for (size_t i = 0; i < end; i++) {
+        if (sel.isSelected(i)) {
+            values.emplace_back(i, list.at(i));
+        }
+    }
+
+    return values;
+}
+
 template <typename ActionPolicy>
 struct ListActions {
     using EditorT = typename ActionPolicy::EditorT;
@@ -615,29 +634,122 @@ struct ListActions {
         }
     };
 
-private:
-    static void _removeMultipleBitfieldSelection(EditorT* editor, const ListArgsT& listArgs,
-                                                 const ListT& list, const SelectionT& sel)
-    {
-        if (list.empty()) {
-            return;
+    class EditMultipleNestedItems final : public EditorUndoAction {
+    public:
+        struct IndexAndValues {
+            ListArgsT listArgs;
+            std::vector<std::pair<index_type, value_type>> childIndexesAndValues;
+        };
+
+    private:
+        EditorT* const editor;
+        const std::vector<IndexAndValues> indexesAndNewValues;
+        std::vector<value_type> oldValues;
+
+    private:
+        static ListT& getList(EditorDataT* data, const ListArgsT& listArgs)
+        {
+            assert(data != nullptr);
+            ListT* list = std::apply(&ActionPolicy::getList,
+                                     std::tuple_cat(std::forward_as_tuple(*data), listArgs));
+            assert(list != nullptr);
+            return *list;
         }
 
-        std::vector<std::pair<index_type, value_type>> values;
+    public:
+        EditMultipleNestedItems(EditorT* editor,
+                                const std::vector<IndexAndValues>&& indexesAndValues)
+            : EditorUndoAction()
+            , editor(editor)
+            , indexesAndNewValues(std::move(indexesAndValues))
+        {
+        }
+        virtual ~EditMultipleNestedItems() = default;
 
-        const index_type end = std::min<index_type>(list.size(), SelectionT::MAX_SIZE);
-        for (size_t i = 0; i < end; i++) {
-            if (sel.isSelected(i)) {
-                values.emplace_back(i, list.at(i));
+        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        {
+            EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
+            EditorDataT* editorData = ActionPolicy::getEditorData(*editor);
+            assert(projectData);
+            assert(editorData);
+
+            assert(oldValues.empty());
+
+            bool changed = false;
+
+            for (const IndexAndValues& childValues : indexesAndNewValues) {
+                ListT& projectList = getList(projectData, childValues.listArgs);
+                const ListT& editorList = getList(editorData, childValues.listArgs);
+
+                assert(projectList.size() == editorList.size());
+
+                for (const auto& [index, editorValue] : childValues.childIndexesAndValues) {
+                    assert(index >= 0 && index < projectList.size());
+
+                    value_type& projectValue = projectList.at(index);
+
+                    oldValues.push_back(projectValue);
+
+                    changed |= projectValue != editorValue;
+                    projectValue = editorValue;
+                }
+            }
+
+            return changed;
+        }
+
+        virtual void undo(Project::ProjectFile& projectFile) const final
+        {
+            EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
+            EditorDataT* editorData = ActionPolicy::getEditorData(*editor);
+            assert(projectData);
+            assert(editorData);
+
+            auto it = oldValues.begin();
+
+            for (const IndexAndValues& childValues : indexesAndNewValues) {
+                ListT& projectList = getList(projectData, childValues.listArgs);
+                ListT& editorList = getList(editorData, childValues.listArgs);
+
+                assert(projectList.size() == editorList.size());
+
+                for (const auto& civ : childValues.childIndexesAndValues) {
+                    const index_type index = civ.first;
+                    assert(index >= 0 && index < projectList.size());
+
+                    const value_type& oldValue = *it++;
+
+                    projectList.at(index) = oldValue;
+                    editorList.at(index) = oldValue;
+                }
+            }
+            assert(it == oldValues.end());
+        }
+
+        virtual void redo(Project::ProjectFile& projectFile) const final
+        {
+            EditorDataT* projectData = ActionPolicy::getEditorData(projectFile, editor->itemIndex());
+            EditorDataT* editorData = ActionPolicy::getEditorData(*editor);
+            assert(projectData);
+            assert(editorData);
+
+            for (const IndexAndValues& childValues : indexesAndNewValues) {
+                ListT& projectList = getList(projectData, childValues.listArgs);
+                ListT& editorList = getList(editorData, childValues.listArgs);
+
+                assert(projectList.size() == editorList.size());
+
+                for (const auto& [index, newValue] : childValues.childIndexesAndValues) {
+                    assert(index >= 0 && index < projectList.size());
+
+                    projectList.at(index) = newValue;
+                    editorList.at(index) = newValue;
+                }
             }
         }
+    };
 
-        if (!values.empty()) {
-            editor->addAction(
-                std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
-        }
-    }
-
+private:
     static void _editListItem(EditorT* editor, const ListArgsT& listArgs, const index_type index)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -711,7 +823,11 @@ public:
         } break;
 
         case EditListAction::REMOVE: {
-            _removeMultipleBitfieldSelection(editor, listArgs, *list, sel);
+            auto values = indexesAndDataForMultipleSelection(*list, sel);
+            if (!values.empty()) {
+                editor->addAction(
+                    std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
+            }
         } break;
         }
     }
@@ -737,7 +853,50 @@ public:
         } break;
 
         case EditListAction::REMOVE: {
-            _removeMultipleBitfieldSelection(editor, listArgs, *list, sel);
+            auto values = indexesAndDataForMultipleSelection(*list, sel);
+            if (!values.empty()) {
+                editor->addAction(
+                    std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
+            }
+        } break;
+        }
+    }
+
+    template <typename T = SelectionT>
+    static std::enable_if_t<std::is_same_v<T, GroupMultipleSelection>>
+    editList(EditorT* editor, EditListAction action)
+    {
+        using ParentActionPolicy = typename ActionPolicy::ParentActionPolicy;
+
+        static_assert(ParentActionPolicy::MAX_SIZE <= GroupMultipleSelection::MAX_GROUP_SIZE);
+        static_assert(std::is_same_v<ListArgsT, std::tuple<unsigned>>);
+
+        const GroupMultipleSelection& sel = getSelection(editor);
+
+        switch (action) {
+        case EditListAction::ADD: {
+            // Can only add an item to a group if it is selected
+            const SingleSelection& parentSel = editor->*ParentActionPolicy::SelectionPtr;
+            const ListArgsT listArgs = std::make_tuple(parentSel.selectedIndex());
+            if (const ListT* list = getEditorListPtr(editor, listArgs)) {
+                editor->addAction(
+                    std::make_unique<AddAction>(editor, listArgs, list->size()));
+            }
+        } break;
+
+        case EditListAction::REMOVE: {
+            // ::TODO add action macro::
+            for (unsigned groupIndex = 0; groupIndex < sel.MAX_GROUP_SIZE; groupIndex++) {
+                const ListArgsT listArgs = std::make_tuple(groupIndex);
+                if (const ListT* list = getEditorListPtr(editor, listArgs)) {
+                    auto& childSel = sel.childSel(groupIndex);
+                    auto values = indexesAndDataForMultipleSelection(*list, childSel);
+                    if (!values.empty()) {
+                        editor->addAction(
+                            std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
+                    }
+                }
+            }
         } break;
         }
     }
@@ -796,8 +955,10 @@ public:
         }
     }
 
-    template <typename LA_ = ListArgsT, typename = std::enable_if<std::is_same_v<LA_, std::tuple<unsigned>>>>
-    static void selectedItemsEdited(EditorT* editor)
+    // ::TODO find some way to simplify this mess::
+    template <typename ST_ = SelectionT>
+    static std::enable_if_t<std::is_same_v<ST_, MultipleSelection> || std::is_same_v<ST_, MultipleChildSelection>>
+    selectedItemsEdited(EditorT* editor)
     {
         const SelectionT& sel = getSelection(editor);
         const ListArgsT listArgs = sel.listArgs();
@@ -821,6 +982,31 @@ public:
         if (!indexes.empty()) {
             editor->addAction(
                 std::make_unique<EditMultipleItemsAction>(editor, listArgs, std::move(indexes)));
+        }
+    }
+
+    template <typename ST_ = SelectionT>
+    static std::enable_if_t<std::is_same_v<ST_, GroupMultipleSelection>>
+    selectedItemsEdited(EditorT* editor)
+    {
+        const GroupMultipleSelection& sel = getSelection(editor);
+
+        std::vector<typename EditMultipleNestedItems::IndexAndValues> values;
+
+        for (unsigned groupIndex = 0; groupIndex < sel.MAX_GROUP_SIZE; groupIndex++) {
+            const ListArgsT listArgs = std::make_tuple(groupIndex);
+            if (const ListT* list = getEditorListPtr(editor, listArgs)) {
+                const auto& childSel = sel.childSel(groupIndex);
+                auto childIndexesAndValues = indexesAndDataForMultipleSelection(*list, childSel);
+
+                if (!childIndexesAndValues.empty()) {
+                    values.push_back({ groupIndex, std::move(childIndexesAndValues) });
+                }
+            }
+        }
+        if (!values.empty()) {
+            editor->addAction(
+                std::make_unique<EditMultipleNestedItems>(editor, std::move(values)));
         }
     }
 
@@ -849,7 +1035,7 @@ public:
         _editListField<FieldPtr>(editor, listArgs, sel.selectedIndex());
     }
 
-    template <auto FieldPtr, typename LA_ = ListArgsT, typename = std::enable_if<std::is_same_v<LA_, std::tuple<unsigned>>>>
+    template <auto FieldPtr, typename ST_ = SelectionT, typename = std::enable_if_t<std::is_same_v<ST_, MultipleChildSelection>>>
     static void selectedItemFieldEdited(EditorT* editor, const index_type index)
     {
         const SelectionT& sel = getSelection(editor);

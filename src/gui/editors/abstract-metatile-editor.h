@@ -23,6 +23,7 @@ public:
 
     enum class EditMode {
         None,
+        SelectObjects,
         SelectTiles,
         PlaceTiles,
         // ::TODO add eraser cursor::
@@ -80,6 +81,7 @@ protected:
     void markCollisionTextureOutOfDate();
 
     void setTilesetIndex(unsigned index);
+    void setPaletteIndex(unsigned index);
 
     // To be called at the start of `processGui`
     void updateTextures(const Project::ProjectFile& projectFile);
@@ -102,12 +104,17 @@ protected:
     void tilesetMinimapWindow(const char* label);
     void minimapWindow(const char* label);
 
+    // Returns true if sel changed
+    bool scratchpadMinimapWindow(const char* label, upoint_vectorset* sel, const Project::ProjectFile& projectFile);
+
     // The previous Dear ImGui item must be an invisible button that covers the entire map
     void drawTileset(const Geometry& geo);
     void drawAndEditMap(const Geometry& geo);
 
+    bool selectObjectsButton();
     void editModeButtons();
 
+    EditMode editMode() const { return _currentEditMode; }
     void setEditMode(EditMode mode);
 
     void setTileCursor(grid<uint16_t>&& tileCursor);
@@ -125,7 +132,7 @@ private:
     void createTileCursor(const grid<uint8_t>& map, const upoint_vectorset& selection);
     void enablePlaceTiles();
 
-    void setPaletteIndex(unsigned index);
+    void resetSelectorState();
 
     void processEditMode(const Geometry& geo);
 

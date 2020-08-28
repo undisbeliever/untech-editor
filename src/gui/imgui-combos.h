@@ -7,9 +7,44 @@
 #pragma once
 
 #include "gui/imgui.h"
+#include "gui/selection.h"
 #include "models/project/project.h"
 
 namespace ImGui {
+
+template <class ListT>
+void SingleSelectionNamedListCombo(const char* label, UnTech::Gui::SingleSelection* sel, const ListT& list, bool includeBlank)
+{
+    const char* const blankLabel = "------";
+
+    const char* previewValue = blankLabel;
+    if (sel->selectedIndex() < list.size()) {
+        previewValue = list.at(sel->selectedIndex()).name.str().c_str();
+    }
+
+    if (ImGui::BeginCombo(label, previewValue)) {
+        if (includeBlank) {
+            const bool selected = sel->selectedIndex() >= list.size();
+            if (ImGui::Selectable(blankLabel, selected)) {
+                sel->clearSelection();
+            }
+        }
+        for (unsigned i = 0; i < list.size(); i++) {
+            const char* name = list.at(i).name.str().c_str();
+
+            ImGui::PushID(i);
+
+            const bool selected = sel->isSelected(i);
+            if (ImGui::Selectable(name, selected)) {
+                sel->setSelected(i);
+            }
+
+            ImGui::PopID();
+        }
+
+        ImGui::EndCombo();
+    }
+}
 
 extern const std::array<const char*, 4> flipsComboItems;
 
@@ -29,6 +64,7 @@ bool EnumCombo(const char* label, UnTech::MetaSprite::TilesetType* v);
 bool EnumCombo(const char* label, UnTech::MetaSprite::ObjectSize* v);
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::SpriteImporter::UserSuppliedPalette::Position* v);
+bool EnumCombo(const char* label, UnTech::Rooms::RoomEntranceOrientation* v);
 
 bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxType* v);
 

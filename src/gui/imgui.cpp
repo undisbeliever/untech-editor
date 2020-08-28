@@ -162,6 +162,26 @@ bool InputUrect(const char* label, UnTech::urect* urect, const UnTech::usize& co
         });
 }
 
+bool InputPoint(const char* label, UnTech::point* point, const UnTech::rect& bounds)
+{
+    return groupedInput(
+        label,
+        [&]() {
+            bool edited = InputInt("##x", &point->x, 0, 0);
+            if (edited) {
+                point->x = std::clamp<int>(point->x, bounds.left(), bounds.right() - 1);
+            }
+            return edited;
+        },
+        [&]() {
+            bool edited = InputInt("##y", &point->y, 0, 0);
+            if (edited) {
+                point->y = std::clamp<int>(point->y, bounds.top(), bounds.bottom() - 1);
+            }
+            return edited;
+        });
+}
+
 bool InputMs8point(const char* label, UnTech::ms8point* point)
 {
     return groupedInput(
@@ -308,6 +328,19 @@ bool ToggledImageButton(ImTextureID user_texture_id, bool* selected, const ImVec
     return pressed;
 }
 
+bool TreeNodeToggleSelection(const char* label, UnTech::Gui::SingleSelection* sel, const unsigned i)
+{
+    constexpr ImGuiTreeNodeFlags baseFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+
+    const ImGuiTreeNodeFlags flags = sel->isSelected(i) == false ? baseFlags : baseFlags | ImGuiTreeNodeFlags_Selected;
+
+    const bool open = ImGui::TreeNodeEx(label, flags);
+    if (ImGui::IsItemClicked()) {
+        sel->selectionClicked(i, true);
+    }
+    return open;
+}
+
 template <class SelectionT>
 static bool Selectable_(const char* label, SelectionT* sel, const unsigned i, ImGuiSelectableFlags flags)
 {
@@ -324,6 +357,15 @@ bool Selectable(const char* label, UnTech::Gui::SingleSelection* parentSel, UnTe
     if (s) {
         parentSel->setSelected(parent);
         sel->selectionClicked(parent, i, ImGui::GetIO().KeyCtrl);
+    }
+    return s;
+}
+
+bool Selectable(const char* label, UnTech::Gui::GroupMultipleSelection* sel, const unsigned groupIndex, const unsigned i, ImGuiSelectableFlags flags)
+{
+    bool s = Selectable(label, sel->isSelected(groupIndex, i), flags);
+    if (s) {
+        sel->selectionClicked(groupIndex, i, ImGui::GetIO().KeyCtrl);
     }
     return s;
 }
