@@ -130,8 +130,13 @@ public:
 
     void clearSelection() { _pending = NO_SELECTION; }
 
-    void setSelected(unsigned s) { _pending = uint64_t(1) << s; }
     void appendSelection(unsigned s) { _pending |= uint64_t(1) << s; }
+
+    void setSelected(unsigned p, unsigned s)
+    {
+        _pendingParent = p;
+        _pending = uint64_t(1) << s;
+    }
 
     void selectionClicked(unsigned p, unsigned s, bool ctrlClick)
     {

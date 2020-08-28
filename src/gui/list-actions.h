@@ -78,6 +78,8 @@ struct ListActions {
     class BaseAction : public EditorUndoAction {
     private:
         EditorT* const editor;
+
+    protected:
         const ListArgsT listArgs;
 
     protected:
@@ -146,7 +148,8 @@ struct ListActions {
             editorList.insert(editorList.begin() + index, value);
 
             if (first) {
-                this->selection().setSelected(index);
+                std::apply(&SelectionT::setSelected,
+                           std::tuple_cat(std::forward_as_tuple(this->selection()), this->listArgs, std::make_tuple(index)));
             }
             else {
                 // ::TODO update selection::
