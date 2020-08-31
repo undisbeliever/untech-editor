@@ -8,6 +8,7 @@
 #include "abstract-editor.h"
 #include "enums.h"
 #include "imgui.h"
+#include "gui/windows/about-popup.h"
 #include "models/project/project.h"
 #include "windows/projectlist.h"
 
@@ -123,6 +124,10 @@ void UnTechEditor::processMenu()
     ImGui::BeginMainMenuBar();
 
     if (ImGui::BeginMenu("File")) {
+        if (ImGui::MenuItem("About UnTech Editor")) {
+            AboutPopup::openPopup();
+        }
+
         ImGui::EndMenu();
     }
 

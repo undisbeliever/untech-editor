@@ -6,9 +6,8 @@
 
 #include "imgui.h"
 #include "untech-editor.h"
+#include "gui/windows/about-popup.h"
 #include <iostream>
-
-#include "gui/windows/projectlist.h"
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
 #include "imgui_sdl_opengl3.hpp"
@@ -110,6 +109,7 @@ int main(int argc, const char* argv[])
             editor->processGui();
         }
 
+        AboutPopup::processGui();
         fpsWindow();
 
         imgui.render();
