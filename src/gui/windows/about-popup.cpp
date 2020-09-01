@@ -142,6 +142,13 @@ void AboutPopup::processGui()
                                "MIT License, https://github.com/ocornut/imgui/blob/master/LICENSE.txt  \n\n"s);
         ImGui::Unindent();
 
+        ImGui::TextUnformatted("imgui-filebrowser"s);
+        ImGui::Indent();
+        ImGui::TextUnformatted("https://github.com/AirGuanZ/imgui-filebrowser\n"
+                               "Copyright (c) 2019-2020 Zhuang Guan\n"
+                               "MIT License, https://github.com/AirGuanZ/imgui-filebrowser/blob/master/LICENSE  \n\n"s);
+        ImGui::Unindent();
+
         ImGui::Unindent();
         ImGui::Spacing();
         ImGui::Separator();

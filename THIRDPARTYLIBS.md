@@ -16,6 +16,10 @@ directory:
    Copyright (c) 2014-2020 Omar Cornut,
    [MIT License](https://github.com/ocornut/imgui/blob/master/LICENSE.txt).
 
+ * [imgui-filebrowser](https://github.com/AirGuanZ/imgui-filebrowser) -
+   Copyright (c) 2019-2020 Zhuang Guan,
+   [MIT License](https://github.com/AirGuanZ/imgui-filebrowser/blob/master/LICENSE)
+
 
 This project links the with the following third party libraries:
 
