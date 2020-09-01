@@ -31,7 +31,6 @@ private:
     AbstractEditor* _currentEditor;
 
 private:
-    UnTechEditor();
     UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf);
 
 public:
@@ -39,8 +38,8 @@ public:
     static std::shared_ptr<UnTechEditor> instance() { return _instance; }
 
     // Only one project can be loaded per exectable.
-    static void newProject();
-    static void loadProject(std::filesystem::path filename);
+    static void newProject(const std::filesystem::path& filename);
+    static void loadProject(const std::filesystem::path& filename);
 
     // ::TODO put behind a mutex::
     const UnTech::Project::ProjectFile& projectFile() const { return *_projectFile; }

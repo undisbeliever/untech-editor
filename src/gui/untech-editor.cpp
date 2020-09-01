@@ -16,11 +16,6 @@ namespace UnTech::Gui {
 
 std::shared_ptr<UnTechEditor> UnTechEditor::_instance = nullptr;
 
-UnTechEditor::UnTechEditor()
-    : UnTechEditor(std::make_unique<UnTech::Project::ProjectFile>())
-{
-}
-
 UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf)
     : _projectFile(std::move(pf))
     , _editors()
@@ -29,13 +24,35 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf)
     assert(_projectFile != nullptr);
 }
 
-void UnTechEditor::newProject()
+void UnTechEditor::newProject(const std::filesystem::path& filename)
 {
-    _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor());
+    if (_instance) {
+        return;
+    }
+
+    if (std::filesystem::exists(filename)) {
+        loadProject(filename);
+        return;
+    }
+
+    try {
+        auto pf = std::make_unique<UnTech::Project::ProjectFile>();
+        UnTech::Project::saveProjectFile(*pf, filename);
+
+        _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf)));
+    }
+    catch (const std::exception& ex) {
+        // ::TODO create message window
+        ImGui::LogText("Unable to create project: %s", ex.what());
+    }
 }
 
-void UnTechEditor::loadProject(std::filesystem::path filename)
+void UnTechEditor::loadProject(const std::filesystem::path& filename)
 {
+    if (_instance) {
+        return;
+    }
+
     try {
         auto pf = UnTech::Project::loadProjectFile(filename);
 

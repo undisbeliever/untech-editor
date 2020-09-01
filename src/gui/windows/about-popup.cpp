@@ -5,8 +5,10 @@
  */
 
 #include "about-popup.h"
+#include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/texture.h"
+#include "gui/untech-editor.h"
 #include "models/common/image.h"
 
 namespace UnTech::Gui {
@@ -82,11 +84,7 @@ void AboutPopup::processGui()
 
     constexpr unsigned scale = 6;
     const ImVec2 buttonSize(96, 32);
-
-    if (openOnNextFrame) {
-        ImGui::OpenPopup(windowTitle);
-        openOnNextFrame = false;
-    }
+    const float buttonSpacing = 32;
 
     if (ImGui::BeginPopupModal(windowTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
         const ImVec2 viewportSize = ImGui::GetWindowViewport()->Size;
@@ -118,7 +116,7 @@ void AboutPopup::processGui()
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
-        ImGui::TextUnformatted("Third Party Libraries:"s);
+        ImGui::TextUnformatted("\nThird Party Libraries:"s);
         ImGui::Indent();
 
         ImGui::TextUnformatted("LodePNG"s);
@@ -154,12 +152,40 @@ void AboutPopup::processGui()
         ImGui::Separator();
         ImGui::Spacing();
 
-        ImGui::SetCursorPosX((windowSize.x - buttonSize.x) / 2);
-        if (ImGui::Button("Close", buttonSize)) {
-            ImGui::CloseCurrentPopup();
+        if (UnTechEditor::instance()) {
+            ImGui::SetCursorPosX((windowSize.x - buttonSize.x) / 2);
+            if (ImGui::Button("Close", buttonSize)) {
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        else {
+            // ::TODO add recent projects list::
+
+            ImGui::SetCursorPosX((windowSize.x - buttonSize.x * 2 - buttonSpacing) / 2);
+
+            if (auto fn = saveFileDialogButton("New Project", "New Project"s, ".utproject", buttonSize)) {
+                UnTechEditor::newProject(*fn);
+            }
+
+            ImGui::SameLine(0, buttonSpacing);
+
+            if (auto fn = openFileDialogButton("Open Project", "Open Project"s, ".utproject", buttonSize)) {
+                UnTechEditor::loadProject(*fn);
+            }
+
+            // Close about popup if the system has successfully opened/created a new project
+            if (UnTechEditor::instance()) {
+                ImGui::CloseCurrentPopup();
+            }
         }
 
         ImGui::EndPopup();
+    }
+
+    // Putting this at the end allows me to call `AboutPopup::openPopup()` before the first `ImGui::NewFrame()` call
+    if (openOnNextFrame) {
+        ImGui::OpenPopup(windowTitle);
+        openOnNextFrame = false;
     }
 }
 

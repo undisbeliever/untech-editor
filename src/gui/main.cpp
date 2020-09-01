@@ -98,6 +98,10 @@ int main(int argc, const char* argv[])
 
     // ::TODO add message windows
 
+    if (UnTechEditor::instance() == nullptr) {
+        AboutPopup::openPopup();
+    }
+
     while (!imgui.done) {
         auto editor = UnTechEditor::instance();
 
