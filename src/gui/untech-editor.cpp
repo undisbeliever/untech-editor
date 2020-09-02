@@ -9,6 +9,7 @@
 #include "enums.h"
 #include "imgui.h"
 #include "gui/windows/about-popup.h"
+#include "gui/windows/message-box.h"
 #include "models/project/project.h"
 #include "windows/projectlist.h"
 
@@ -42,8 +43,7 @@ void UnTechEditor::newProject(const std::filesystem::path& filename)
         _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf)));
     }
     catch (const std::exception& ex) {
-        // ::TODO create message window
-        ImGui::LogText("Unable to create project: %s", ex.what());
+        MessageBox::showMessage("Cannot Create Project", ex.what());
     }
 }
 
@@ -62,8 +62,7 @@ void UnTechEditor::loadProject(const std::filesystem::path& filename)
         _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf)));
     }
     catch (const std::exception& ex) {
-        // ::TODO create message window
-        ImGui::LogText("Unable to load file: %s", ex.what());
+        MessageBox::showMessage("Unable to Load Project", ex.what());
     }
 }
 

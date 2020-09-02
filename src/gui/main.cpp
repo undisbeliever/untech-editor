@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "untech-editor.h"
 #include "gui/windows/about-popup.h"
+#include "gui/windows/message-box.h"
 #include <iostream>
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
@@ -96,8 +97,6 @@ int main(int argc, const char* argv[])
     ImGuiIO& io = ImGui::GetIO();
     setupGui(io);
 
-    // ::TODO add message windows
-
     if (UnTechEditor::instance() == nullptr) {
         AboutPopup::openPopup();
     }
@@ -114,6 +113,7 @@ int main(int argc, const char* argv[])
         }
 
         AboutPopup::processGui();
+        MessageBox::processGui();
         fpsWindow();
 
         imgui.render();

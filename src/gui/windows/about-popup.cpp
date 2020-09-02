@@ -5,6 +5,7 @@
  */
 
 #include "about-popup.h"
+#include "message-box.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/texture.h"
@@ -177,6 +178,9 @@ void AboutPopup::processGui()
             if (UnTechEditor::instance()) {
                 ImGui::CloseCurrentPopup();
             }
+
+            // Required if I want a MessageBox and the AboutPopop open at the same time.
+            MessageBox::processGui();
         }
 
         ImGui::EndPopup();
