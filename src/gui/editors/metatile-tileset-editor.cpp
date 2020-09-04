@@ -11,6 +11,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/texture.h"
+#include "models/metatiles/metatiles-serializer.h"
 #include <cmath>
 
 namespace UnTech::Gui {
@@ -75,11 +76,18 @@ bool MetaTileTilesetEditor::loadDataFromProject(const Project::ProjectFile& proj
     resetState();
     resetTileProperties();
 
-    const auto* mt = fileListData(&projectFile.metaTileTilesets, itemIndex().index);
-    if (mt) {
-        _data = *mt;
+    const auto [data, fn] = fileListItem(&projectFile.metaTileTilesets, itemIndex().index);
+    setFilename(fn);
+    if (data) {
+        _data = *data;
     }
-    return mt != nullptr;
+    return data != nullptr;
+}
+
+void MetaTileTilesetEditor::saveFile() const
+{
+    assert(!filename().empty());
+    UnTech::MetaTiles::saveMetaTileTilesetInput(_data, filename());
 }
 
 void MetaTileTilesetEditor::editorOpened()

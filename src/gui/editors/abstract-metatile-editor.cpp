@@ -300,7 +300,7 @@ Texture& AbstractMetaTileEditor::tilesetCollisionsTexture()
 // ::TODO draw tiles from ProjectData::
 
 AbstractMetaTileEditor::AbstractMetaTileEditor(ItemIndex itemIndex)
-    : AbstractEditor(itemIndex)
+    : AbstractExternalFileEditor(itemIndex)
     , _tilesetIndex(0)
     , _paletteIndex(0)
 {

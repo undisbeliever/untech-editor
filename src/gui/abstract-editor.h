@@ -7,6 +7,7 @@
 #pragma once
 
 #include "item-index.h"
+#include <filesystem>
 #include <memory>
 #include <vector>
 
@@ -35,7 +36,9 @@ public:
     constexpr static unsigned N_UNDO_ACTIONS = 200;
 
 private:
+    friend class AbstractExternalFileEditor;
     ItemIndex _itemIndex;
+    std::string _basename;
 
     // Using vector so I can trim the stacks when they get too large
     std::vector<std::unique_ptr<EditorUndoAction>> _pendingActions;
@@ -55,7 +58,11 @@ public:
 
     ItemIndex itemIndex() const { return _itemIndex; }
 
-    // Return false if itemIndex is invalid
+    // The returned string is empty on internal projectFile resources.
+    const std::string& basename() const { return _basename; }
+
+    // Return false if itemIndex is invalid.
+    // If this editor is an `AbstractExternalFileEditor`, then you MUST call `setFilename` in this function.
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) = 0;
 
     virtual void editorOpened() = 0;
@@ -80,6 +87,28 @@ public:
 
     bool isClean() const { return _clean; }
     void markClean() { _clean = true; }
+};
+
+class AbstractExternalFileEditor : public AbstractEditor {
+private:
+    std::filesystem::path _filename;
+
+public:
+    AbstractExternalFileEditor(ItemIndex itemIndex)
+        : AbstractEditor(itemIndex)
+        , _filename()
+    {
+    }
+
+    const std::filesystem::path& filename() const { return _filename; }
+
+    // May throw an exception
+    virtual void saveFile() const = 0;
+
+protected:
+    // To be called in `loadDataFromProject` if this editor an AbstractExternalFileEditor
+    // Must never be called on a
+    void setFilename(const std::filesystem::path& fn);
 };
 
 std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);

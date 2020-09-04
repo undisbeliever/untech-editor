@@ -17,17 +17,24 @@ namespace UnTech::Gui {
 
 std::shared_ptr<UnTechEditor> UnTechEditor::_instance = nullptr;
 
-UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf)
+UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, const std::filesystem::__cxx11::path& fn)
     : _projectFile(std::move(pf))
+    , _filename(fn)
+    , _basename(fn.filename())
     , _editors()
     , _currentEditor(nullptr)
 {
     assert(_projectFile != nullptr);
+    assert(!_filename.empty());
 }
 
 void UnTechEditor::newProject(const std::filesystem::path& filename)
 {
     if (_instance) {
+        return;
+    }
+
+    if (filename.empty()) {
         return;
     }
 
@@ -40,7 +47,7 @@ void UnTechEditor::newProject(const std::filesystem::path& filename)
         auto pf = std::make_unique<UnTech::Project::ProjectFile>();
         UnTech::Project::saveProjectFile(*pf, filename);
 
-        _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf)));
+        _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
     }
     catch (const std::exception& ex) {
         MessageBox::showMessage("Cannot Create Project", ex.what());
@@ -53,13 +60,17 @@ void UnTechEditor::loadProject(const std::filesystem::path& filename)
         return;
     }
 
+    if (filename.empty()) {
+        return;
+    }
+
     try {
         auto pf = UnTech::Project::loadProjectFile(filename);
 
         // ::TODO move into background thread::
         pf->loadAllFiles();
 
-        _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf)));
+        _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
     }
     catch (const std::exception& ex) {
         MessageBox::showMessage("Unable to Load Project", ex.what());
@@ -123,6 +134,53 @@ void UnTechEditor::closeEditor()
     }
 }
 
+void UnTechEditor::saveProjectFile()
+{
+    assert(_projectFile);
+    assert(!_filename.empty());
+
+    try {
+        UnTech::Project::saveProjectFile(*_projectFile, _filename);
+
+        for (auto& e : _editors) {
+            if (dynamic_cast<AbstractExternalFileEditor*>(_currentEditor) == nullptr) {
+                e->markClean();
+            }
+        }
+    }
+    catch (const std::exception& ex) {
+        MessageBox::showMessage("Cannot Save Project", ex.what());
+    }
+}
+
+void UnTechEditor::saveEditor(AbstractEditor* editor)
+{
+    if (auto e = dynamic_cast<AbstractExternalFileEditor*>(editor)) {
+        bool dataLoaded = e->loadDataFromProject(*_projectFile);
+        assert(dataLoaded);
+        assert(e->filename().empty() == false);
+        try {
+            e->saveFile();
+            e->markClean();
+        }
+        catch (const std::exception& ex) {
+            MessageBox::showMessage("Cannot Save Resource", ex.what());
+        }
+    }
+    else {
+        saveProjectFile();
+    }
+}
+
+void UnTechEditor::saveAll()
+{
+    for (auto& e : _editors) {
+        if (!e->isClean()) {
+            saveEditor(e.get());
+        }
+    }
+}
+
 void UnTechEditor::processGui()
 {
     ProjectListWindow::processGui(*this);
@@ -137,9 +195,30 @@ void UnTechEditor::processGui()
 
 void UnTechEditor::processMenu()
 {
+    using namespace std::string_literals;
+
     ImGui::BeginMainMenuBar();
 
     if (ImGui::BeginMenu("File")) {
+        // ::TODO add Ctrl+S shortcut::
+        if (_currentEditor) {
+            if (!_currentEditor->basename().empty()) {
+                auto s = "Save "s + _currentEditor->basename();
+                if (ImGui::MenuItem(s.c_str())) {
+                    saveEditor(_currentEditor);
+                }
+            }
+            else {
+                auto s = "Save "s + _basename;
+                if (ImGui::MenuItem(s.c_str())) {
+                    saveProjectFile();
+                }
+            }
+        }
+        if (ImGui::MenuItem("Save All")) {
+            saveAll();
+        }
+
         if (ImGui::MenuItem("About UnTech Editor")) {
             AboutPopup::openPopup();
         }

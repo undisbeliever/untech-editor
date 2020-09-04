@@ -34,6 +34,7 @@ void trimStack(std::vector<std::unique_ptr<EditorUndoAction>>& stack)
 
 AbstractEditor::AbstractEditor(const ItemIndex itemIndex)
     : _itemIndex(itemIndex)
+    , _basename()
     , _pendingActions()
     , _undoStack()
     , _redoStack()
@@ -139,6 +140,12 @@ void AbstractEditor::redo(Project::ProjectFile& projectFile)
 
     // action may have modified the selection
     updateSelection();
+}
+
+void AbstractExternalFileEditor::setFilename(const std::filesystem::path& fn)
+{
+    _filename = fn;
+    _basename = _filename.filename();
 }
 
 std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex,

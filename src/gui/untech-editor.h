@@ -26,12 +26,15 @@ private:
 
     // ::TODO put behind a mutex in a separate class::
     std::unique_ptr<UnTech::Project::ProjectFile> const _projectFile;
+    const std::filesystem::path _filename;
+    const std::string _basename;
 
     std::vector<std::unique_ptr<AbstractEditor>> _editors;
     AbstractEditor* _currentEditor;
 
 private:
-    UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf);
+    UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf,
+                 const std::filesystem::path& fn);
 
 public:
     // May be null
@@ -48,6 +51,10 @@ public:
 
     void openEditor(EditorType type, unsigned item);
     void closeEditor();
+
+    void saveProjectFile();
+    void saveEditor(AbstractEditor* editor);
+    void saveAll();
 
     void processGui();
 

@@ -12,7 +12,7 @@
 
 namespace UnTech::Gui {
 
-class FrameSetExportOrderEditor final : public AbstractEditor {
+class FrameSetExportOrderEditor final : public AbstractExternalFileEditor {
 private:
     struct AP;
 
@@ -28,6 +28,7 @@ public:
     ~FrameSetExportOrderEditor() = default;
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    virtual void saveFile() const final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;

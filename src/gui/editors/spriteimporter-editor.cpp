@@ -181,6 +181,8 @@ bool SpriteImporterEditor::loadDataFromProject(const Project::ProjectFile& proje
     const auto i = itemIndex().index;
     if (i < projectFile.frameSets.size()) {
         auto& f = projectFile.frameSets.at(i);
+
+        setFilename(f.filename);
         if (f.type == FrameSetType::SPRITE_IMPORTER) {
             if (f.siFrameSet) {
                 _data = *f.siFrameSet;
@@ -190,6 +192,12 @@ bool SpriteImporterEditor::loadDataFromProject(const Project::ProjectFile& proje
     }
 
     return false;
+}
+
+void SpriteImporterEditor::saveFile() const
+{
+    assert(!filename().empty());
+    UnTech::MetaSprite::SpriteImporter::saveFrameSet(_data, filename());
 }
 
 void SpriteImporterEditor::editorOpened()

@@ -11,13 +11,13 @@
 
 namespace UnTech::Gui {
 
-class AbstractMetaSpriteEditor : public AbstractEditor {
+class AbstractMetaSpriteEditor : public AbstractExternalFileEditor {
 protected:
     SingleSelection _animationsSel;
     MultipleChildSelection _animationFramesSel;
 
     AbstractMetaSpriteEditor(ItemIndex itemIndex)
-        : AbstractEditor(itemIndex)
+        : AbstractExternalFileEditor(itemIndex)
     {
     }
 

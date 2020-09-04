@@ -17,7 +17,7 @@ namespace UnTech::Gui {
 
 class Texture;
 
-class AbstractMetaTileEditor : public AbstractEditor {
+class AbstractMetaTileEditor : public AbstractExternalFileEditor {
 public:
     const static usize TILESET_TEXTURE_SIZE;
 

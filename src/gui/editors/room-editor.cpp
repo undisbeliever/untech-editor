@@ -11,6 +11,7 @@
 #include "gui/imgui-combos.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
+#include "models/rooms/rooms-serializer.h"
 
 namespace UnTech::Gui {
 
@@ -110,11 +111,18 @@ bool RoomEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
 
     _tilesetAndPaletteIndexValid = false;
 
-    const auto* mt = fileListData(&projectFile.rooms, itemIndex().index);
-    if (mt) {
-        _data = *mt;
+    const auto [data, fn] = fileListItem(&projectFile.rooms, itemIndex().index);
+    setFilename(fn);
+    if (data) {
+        _data = *data;
     }
-    return mt != nullptr;
+    return data != nullptr;
+}
+
+void RoomEditor::saveFile() const
+{
+    assert(!filename().empty());
+    UnTech::Rooms::saveRoomInput(_data, filename());
 }
 
 void RoomEditor::editorOpened()

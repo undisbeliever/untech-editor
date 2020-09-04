@@ -57,6 +57,19 @@ const T* fileListData(const ExternalFileList<T>* list, const typename ExternalFi
     return nullptr;
 }
 
+template <typename T>
+const std::pair<const T*, const std::filesystem::path&>
+fileListItem(const ExternalFileList<T>* list, const typename ExternalFileList<T>::size_type index)
+{
+    if (list) {
+        if (index < list->size()) {
+            auto& item = list->item(index);
+            return { item.value.get(), item.filename };
+        }
+    }
+    return { nullptr, {} };
+}
+
 template <typename ActionPolicy>
 struct EditorActions {
     using EditorT = typename ActionPolicy::EditorT;

@@ -97,22 +97,24 @@ struct FrameSetExportOrderEditor::AP {
 };
 
 FrameSetExportOrderEditor::FrameSetExportOrderEditor(ItemIndex itemIndex)
-    : AbstractEditor(itemIndex)
+    : AbstractExternalFileEditor(itemIndex)
 {
 }
 
 bool FrameSetExportOrderEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
-    const auto i = itemIndex().index;
-    if (i < projectFile.frameSetExportOrders.size()) {
-        auto* eo = projectFile.frameSetExportOrders.at(i);
-        if (eo) {
-            _data = *eo;
-            return true;
-        }
+    const auto [data, fn] = fileListItem(&projectFile.frameSetExportOrders, itemIndex().index);
+    setFilename(fn);
+    if (data) {
+        _data = *data;
     }
+    return data != nullptr;
+}
 
-    return false;
+void FrameSetExportOrderEditor::saveFile() const
+{
+    assert(!filename().empty());
+    UnTech::MetaSprite::saveFrameSetExportOrder(_data, filename());
 }
 
 void FrameSetExportOrderEditor::editorOpened()

@@ -262,6 +262,8 @@ bool MetaSpriteEditor::loadDataFromProject(const Project::ProjectFile& projectFi
     const auto i = itemIndex().index;
     if (i < projectFile.frameSets.size()) {
         auto& f = projectFile.frameSets.at(i);
+
+        setFilename(f.filename);
         if (f.type == FrameSetType::METASPRITE) {
             if (f.msFrameSet) {
                 _data = *f.msFrameSet;
@@ -269,8 +271,17 @@ bool MetaSpriteEditor::loadDataFromProject(const Project::ProjectFile& projectFi
             }
         }
     }
+    else {
+        setFilename({});
+    }
 
     return false;
+}
+
+void MetaSpriteEditor::saveFile() const
+{
+    assert(!filename().empty());
+    UnTech::MetaSprite::MetaSprite::saveFrameSet(_data, filename());
 }
 
 void MetaSpriteEditor::editorOpened()
