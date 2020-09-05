@@ -7,22 +7,22 @@
 #include "imgui-filebrowser.h"
 #include "vendor/imgui-filebrowser/imfilebrowser.h"
 
-namespace UnTech::Gui {
+namespace ImGui {
 
-std::optional<std::filesystem::path> saveFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size)
+std::optional<std::filesystem::path> SaveFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size)
 {
-    static ImGui::FileBrowser fileDialog(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CloseOnEsc);
+    static FileBrowser fileDialog(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CloseOnEsc);
 
-    ImGui::PushID(label);
+    PushID(label);
 
-    if (ImGui::Button(label, size)) {
+    if (Button(label, size)) {
         fileDialog.SetTitle(title);
         fileDialog.SetTypeFilters({ extension });
         fileDialog.Open();
     }
     fileDialog.Display();
 
-    ImGui::PopID();
+    PopID();
 
     if (fileDialog.HasSelected()) {
         auto fn = fileDialog.GetSelected();
@@ -36,20 +36,20 @@ std::optional<std::filesystem::path> saveFileDialogButton(const char* label, con
     return std::nullopt;
 }
 
-std::optional<std::filesystem::path> openFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size)
+std::optional<std::filesystem::path> OpenFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size)
 {
-    static ImGui::FileBrowser fileDialog(ImGuiFileBrowserFlags_CloseOnEsc);
+    static FileBrowser fileDialog(ImGuiFileBrowserFlags_CloseOnEsc);
 
-    ImGui::PushID(label);
+    PushID(label);
 
-    if (ImGui::Button(label, size)) {
+    if (Button(label, size)) {
         fileDialog.SetTitle(title);
         fileDialog.SetTypeFilters({ extension });
         fileDialog.Open();
     }
     fileDialog.Display();
 
-    ImGui::PopID();
+    PopID();
 
     if (fileDialog.HasSelected()) {
         auto fn = fileDialog.GetSelected();

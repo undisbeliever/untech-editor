@@ -10,9 +10,9 @@
 #include <filesystem>
 #include <optional>
 
-namespace UnTech::Gui {
+namespace ImGui {
 
-std::optional<std::filesystem::path> saveFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size = ImVec2(0, 0));
-std::optional<std::filesystem::path> openFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size = ImVec2(0, 0));
+std::optional<std::filesystem::path> SaveFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size = ImVec2(0, 0));
+std::optional<std::filesystem::path> OpenFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size = ImVec2(0, 0));
 
 }

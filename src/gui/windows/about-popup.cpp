@@ -164,13 +164,13 @@ void AboutPopup::processGui()
 
             ImGui::SetCursorPosX((windowSize.x - buttonSize.x * 2 - buttonSpacing) / 2);
 
-            if (auto fn = saveFileDialogButton("New Project", "New Project"s, ".utproject", buttonSize)) {
+            if (auto fn = ImGui::SaveFileDialogButton("New Project", "New Project"s, ".utproject", buttonSize)) {
                 UnTechEditor::newProject(*fn);
             }
 
             ImGui::SameLine(0, buttonSpacing);
 
-            if (auto fn = openFileDialogButton("Open Project", "Open Project"s, ".utproject", buttonSize)) {
+            if (auto fn = ImGui::OpenFileDialogButton("Open Project", "Open Project"s, ".utproject", buttonSize)) {
                 UnTechEditor::loadProject(*fn);
             }
 
