@@ -8,6 +8,7 @@
 #include "gui/common/aabb-graphics.h"
 #include "gui/editor-actions.h"
 #include "gui/imgui-combos.h"
+#include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
@@ -236,16 +237,12 @@ void SpriteImporterEditor::frameSetPropertiesWindow(const Project::ProjectFile& 
                     &SI::FrameSet::exportOrder>(this);
             }
 
-            // ::TODO file selector::
-            std::string fn = _data.imageFilename;
-            ImGui::InputText("Image", &fn);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                _data.imageFilename = fn;
-                _imageValid = false;
-                _transparentColorComboValid = false;
-
+            if (ImGui::InputPngImageFilename("Image", &_data.imageFilename)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
                     &SI::FrameSet::imageFilename>(this);
+
+                _imageValid = false;
+                _transparentColorComboValid = false;
             }
 
             {

@@ -15,4 +15,6 @@ namespace ImGui {
 std::optional<std::filesystem::path> SaveFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size = ImVec2(0, 0));
 std::optional<std::filesystem::path> OpenFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size = ImVec2(0, 0));
 
+bool InputPngImageFilename(const char* label, std::filesystem::path* path);
+
 }

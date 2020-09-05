@@ -6,6 +6,7 @@
 
 #include "palette-editor.h"
 #include "gui/editor-actions.h"
+#include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 
 namespace UnTech::Gui {
@@ -69,15 +70,11 @@ void PaletteEditor::paletteWindow()
                     &PaletteInput::name>(this);
             }
 
-            // ::TODO filename input::
-            std::string fn = _data.paletteImageFilename;
-            ImGui::InputText("Image", &fn);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                _data.paletteImageFilename = fn;
-
-                // ::TODO add callback - loadTexture()::
+            if (ImGui::InputPngImageFilename("Image", &_data.paletteImageFilename)) {
                 EditorActions<AP::Palette>::fieldEdited<
                     &PaletteInput::paletteImageFilename>(this);
+
+                // ::TODO mark texture out of date::
             }
 
             ImGui::InputUnsigned("Rows Per Frame", &_data.rowsPerFrame);

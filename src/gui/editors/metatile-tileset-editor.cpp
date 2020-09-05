@@ -8,6 +8,7 @@
 #include "gui/common/tilecollisionimage.h"
 #include "gui/editor-actions.h"
 #include "gui/imgui-drawing.h"
+#include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/texture.h"
@@ -210,13 +211,10 @@ void MetaTileTilesetEditor::propertiesWindow(const Project::ProjectFile& project
                 ImGui::Selectable(&_tilesetFrameSel, i);
                 ImGui::NextColumn();
 
-                // ::TODO filename input::
-                std::string fn = imageFilename;
                 ImGui::SetNextItemWidth(-1);
-                ImGui::InputText("##Image", &fn);
-                if (ImGui::IsItemDeactivatedAfterEdit()) {
-                    imageFilename = fn;
+                if (ImGui::InputPngImageFilename("##Image", &imageFilename)) {
                     ListActions<AP::FrameImages>::itemEdited(this, i);
+                    markTexturesOutOfDate();
                 }
                 ImGui::NextColumn();
 

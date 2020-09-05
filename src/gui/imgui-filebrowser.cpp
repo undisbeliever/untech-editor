@@ -5,7 +5,9 @@
  */
 
 #include "imgui-filebrowser.h"
+
 #include "vendor/imgui-filebrowser/imfilebrowser.h"
+#include "vendor/imgui/imgui_internal.h"
 
 namespace ImGui {
 
@@ -58,6 +60,62 @@ std::optional<std::filesystem::path> OpenFileDialogButton(const char* label, con
     }
 
     return std::nullopt;
+}
+
+bool InputPngImageFilename(const char* label, std::filesystem::path* path)
+{
+    static ImGuiID activeDialogId;
+    static ImGui::FileBrowser fileDialog = []() {
+        ImGui::FileBrowser d(ImGuiFileBrowserFlags_CloseOnEsc);
+        d.SetTitle("Select PNG Image");
+        d.SetTypeFilters({ ".png" });
+        return d;
+    }();
+
+    const auto innerSpacingX = ImGui::GetStyle().ItemInnerSpacing.x;
+
+    bool pathEdited = false;
+
+    const ImGuiID id = GetID(label);
+
+    BeginGroup();
+    PushID(label);
+
+    const float buttonWidth = CalcItemWidth();
+    std::string basename = path->filename().u8string();
+
+    if (Button(basename.data(), ImVec2(buttonWidth, 0))) {
+        if (!path->empty()) {
+            auto p = std::filesystem::absolute(path->parent_path()).lexically_normal();
+            fileDialog.SetPwd(p);
+        }
+        fileDialog.Open();
+        activeDialogId = id;
+    }
+
+    if (activeDialogId == id) {
+        fileDialog.Display();
+
+        if (fileDialog.HasSelected()) {
+            auto fn = std::filesystem::absolute(fileDialog.GetSelected()).lexically_normal();
+            if (*path != fn) {
+                *path = std::move(fn);
+                pathEdited = true;
+            }
+            fileDialog.ClearSelected();
+        }
+    }
+
+    const char* label_end = FindRenderedTextEnd(label);
+    if (label != label_end) {
+        SameLine(0.0f, innerSpacingX);
+        TextEx(label, label_end);
+    }
+
+    PopID();
+    EndGroup();
+
+    return pathEdited;
 }
 
 }

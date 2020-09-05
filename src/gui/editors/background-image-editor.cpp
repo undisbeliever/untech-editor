@@ -6,6 +6,7 @@
 
 #include "background-image-editor.h"
 #include "gui/editor-actions.h"
+#include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 
 namespace UnTech::Gui {
@@ -77,15 +78,11 @@ void BackgroundImageEditor::backgroundImageWindow(const Project::ProjectFile& pr
                     &BackgroundImageInput::bitDepth>(this);
             }
 
-            // ::TODO filename input::
-            std::string fn = _data.imageFilename;
-            ImGui::InputText("Image", &fn);
-            if (ImGui::IsItemDeactivatedAfterEdit()) {
-                _data.imageFilename = fn;
-
-                // ::TODO add callback - loadTexture()::
+            if (ImGui::InputPngImageFilename("Image", &_data.imageFilename)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
                     &BackgroundImageInput::imageFilename>(this);
+
+                // ::TODO mark texture out of date::
             }
 
             if (ImGui::IdStringCombo("Conversion Palette", &_data.conversionPlette, projectFile.palettes)) {
