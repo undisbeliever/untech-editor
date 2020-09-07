@@ -51,6 +51,20 @@ public:
         return true;
     }
 
+    static idstring fixup(const std::string& s)
+    {
+        idstring ret;
+
+        ret.data = s;
+        for (auto& c : ret.data) {
+            if (!isCharValid(c)) {
+                c = '_';
+            }
+        }
+
+        return ret;
+    }
+
 public:
     ~idstring() = default;
     idstring(const idstring&) = default;

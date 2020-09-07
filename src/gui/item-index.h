@@ -24,6 +24,10 @@ struct ItemIndex {
         return this->type == o.type
                && this->index == o.index;
     }
+    bool operator!=(const ItemIndex& o) const
+    {
+        return !(*this == o);
+    }
 };
 
 }

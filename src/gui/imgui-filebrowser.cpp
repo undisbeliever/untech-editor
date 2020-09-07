@@ -11,6 +11,73 @@
 
 namespace ImGui {
 
+std::pair<bool, std::optional<std::filesystem::path>> SaveFileDialog(const char* strId, const std::string& title, const char* extension)
+{
+    static ImGuiID fileDialogId = 0;
+    static FileBrowser fileDialog(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CloseOnEsc);
+
+    const ImGuiID id = GetID(strId);
+
+    if (fileDialogId != id || !fileDialog.IsOpened()) {
+        fileDialogId = id;
+
+        fileDialog.SetTitle(title);
+        fileDialog.SetTypeFilters({ extension });
+        fileDialog.Open();
+    }
+    fileDialog.Display();
+
+    if (!fileDialog.IsOpened()) {
+        if (fileDialog.HasSelected()) {
+            auto fn = fileDialog.GetSelected();
+            fileDialog.ClearSelected();
+
+            if (fn.extension().empty()) {
+                fn += extension;
+            }
+            return { true, std::filesystem::absolute(fn) };
+        }
+        else {
+            return { true, std::nullopt };
+        }
+    }
+    else {
+        return { false, std::nullopt };
+    }
+}
+
+std::pair<bool, std::optional<std::filesystem::path>> OpenFileDialog(const char* strId, const std::string& title, const char* extension)
+{
+    static ImGuiID fileDialogId = 0;
+    static FileBrowser fileDialog(ImGuiFileBrowserFlags_CloseOnEsc);
+
+    const ImGuiID id = GetID(strId);
+
+    if (fileDialogId != id || !fileDialog.IsOpened()) {
+        fileDialogId = id;
+
+        fileDialog.SetTitle(title);
+        fileDialog.SetTypeFilters({ extension });
+        fileDialog.Open();
+    }
+    fileDialog.Display();
+
+    if (!fileDialog.IsOpened()) {
+        if (fileDialog.HasSelected()) {
+            const auto fn = fileDialog.GetSelected();
+            fileDialog.ClearSelected();
+
+            return { true, std::filesystem::absolute(fn) };
+        }
+        else {
+            return { true, std::nullopt };
+        }
+    }
+    else {
+        return { false, std::nullopt };
+    }
+}
+
 std::optional<std::filesystem::path> SaveFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size)
 {
     static FileBrowser fileDialog(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CloseOnEsc);

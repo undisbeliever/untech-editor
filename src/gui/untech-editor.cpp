@@ -87,10 +87,8 @@ std::optional<ItemIndex> UnTechEditor::selectedItemIndex() const
     }
 }
 
-void UnTechEditor::openEditor(EditorType type, unsigned item)
+void UnTechEditor::openEditor(const ItemIndex itemIndex)
 {
-    const ItemIndex itemIndex{ type, item };
-
     AbstractEditor* editor = nullptr;
 
     auto it = std::find_if(_editors.cbegin(), _editors.cend(),
@@ -122,14 +120,9 @@ void UnTechEditor::openEditor(EditorType type, unsigned item)
 void UnTechEditor::closeEditor()
 {
     if (_currentEditor) {
-        // ::TODO force update if I add multi-threading::
-        updateProjectFile();
-
         // Discard any uncommitted data
         _currentEditor->loadDataFromProject(*_projectFile);
-
         _currentEditor->editorClosed();
-
         _currentEditor = nullptr;
     }
 }
@@ -181,18 +174,6 @@ void UnTechEditor::saveAll()
     }
 }
 
-void UnTechEditor::processGui()
-{
-    ProjectListWindow::processGui(*this);
-
-    if (_currentEditor) {
-        _currentEditor->processGui(*_projectFile);
-        _currentEditor->updateSelection();
-    }
-
-    processMenu();
-}
-
 void UnTechEditor::processMenu()
 {
     using namespace std::string_literals;
@@ -218,6 +199,12 @@ void UnTechEditor::processMenu()
         if (ImGui::MenuItem("Save All")) {
             saveAll();
         }
+
+        ImGui::Separator();
+
+        _projectListWindow.processMenu();
+
+        ImGui::Separator();
 
         if (ImGui::MenuItem("About UnTech Editor")) {
             AboutPopup::openPopup();
@@ -247,10 +234,41 @@ void UnTechEditor::processMenu()
     ImGui::EndMainMenuBar();
 }
 
+void UnTechEditor::processGui()
+{
+    const Project::ProjectFile& projectFile = *_projectFile;
+
+    if (_currentEditor) {
+        _currentEditor->processGui(projectFile);
+        _currentEditor->updateSelection();
+    }
+
+    _projectListWindow.processGui(projectFile);
+
+    processMenu();
+}
+
 void UnTechEditor::updateProjectFile()
 {
     if (_currentEditor) {
         _currentEditor->processPendingActions(*_projectFile);
+    }
+
+    if (_projectListWindow.hasPendingActions()) {
+        closeEditor();
+    }
+    _projectListWindow.processPendingActions(*_projectFile, _editors);
+
+    if (_projectListWindow.selectedIndex()) {
+        const auto index = *_projectListWindow.selectedIndex();
+        if (_currentEditor == nullptr || _currentEditor->itemIndex() != index) {
+            openEditor(index);
+        }
+    }
+    else {
+        if (_currentEditor != nullptr) {
+            closeEditor();
+        }
     }
 }
 

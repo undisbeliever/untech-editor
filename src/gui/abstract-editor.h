@@ -87,6 +87,10 @@ public:
 
     bool isClean() const { return _clean; }
     void markClean() { _clean = true; }
+
+private:
+    friend class ProjectListWindow;
+    void setItemIndex(const ItemIndex i) { _itemIndex = i; }
 };
 
 class AbstractExternalFileEditor : public AbstractEditor {

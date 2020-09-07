@@ -77,6 +77,9 @@ bool MetaTileTilesetEditor::loadDataFromProject(const Project::ProjectFile& proj
     resetState();
     resetTileProperties();
 
+    // itemIndex may have changed
+    setTilesetIndex(itemIndex().index);
+
     const auto [data, fn] = fileListItem(&projectFile.metaTileTilesets, itemIndex().index);
     setFilename(fn);
     if (data) {

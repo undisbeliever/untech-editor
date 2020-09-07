@@ -7,6 +7,7 @@
 #pragma once
 
 #include "item-index.h"
+#include "windows/projectlist.h"
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -32,6 +33,8 @@ private:
     std::vector<std::unique_ptr<AbstractEditor>> _editors;
     AbstractEditor* _currentEditor;
 
+    ProjectListWindow _projectListWindow;
+
 private:
     UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf,
                  const std::filesystem::path& fn);
@@ -44,17 +47,7 @@ public:
     static void newProject(const std::filesystem::path& filename);
     static void loadProject(const std::filesystem::path& filename);
 
-    // ::TODO put behind a mutex::
-    const UnTech::Project::ProjectFile& projectFile() const { return *_projectFile; }
-
     std::optional<ItemIndex> selectedItemIndex() const;
-
-    void openEditor(EditorType type, unsigned item);
-    void closeEditor();
-
-    void saveProjectFile();
-    void saveEditor(AbstractEditor* editor);
-    void saveAll();
 
     void processGui();
 
@@ -62,6 +55,13 @@ public:
     void updateProjectFile();
 
 private:
+    void openEditor(const ItemIndex itemIndex);
+    void closeEditor();
+
+    void saveProjectFile();
+    void saveEditor(AbstractEditor* editor);
+    void saveAll();
+
     void processMenu();
 };
 
