@@ -998,8 +998,16 @@ void AbstractMetaTileEditor::updateTextures(const Project::ProjectFile& projectF
         return;
     }
 
+    if (_tilesetIndex >= projectFile.metaTileTilesets.size()) {
+        setPaletteIndex(INT_MAX);
+        tilesetTexture().replaceWithMissingImageSymbol();
+        tilesetCollisionsTexture().replaceWithMissingImageSymbol();
+        return;
+    }
+
     const auto* tileset = projectFile.metaTileTilesets.at(_tilesetIndex);
     if (tileset == nullptr) {
+        setPaletteIndex(INT_MAX);
         tilesetTexture().replaceWithMissingImageSymbol();
         tilesetCollisionsTexture().replaceWithMissingImageSymbol();
         return;
