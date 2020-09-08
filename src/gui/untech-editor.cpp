@@ -189,12 +189,10 @@ void UnTechEditor::processMenu()
                     saveEditor(_currentEditor);
                 }
             }
-            else {
-                auto s = "Save "s + _basename;
-                if (ImGui::MenuItem(s.c_str())) {
-                    saveProjectFile();
-                }
-            }
+        }
+        const auto saveProjectLabel = "Save "s + _basename;
+        if (ImGui::MenuItem(saveProjectLabel.c_str())) {
+            saveProjectFile();
         }
         if (ImGui::MenuItem("Save All")) {
             saveAll();
