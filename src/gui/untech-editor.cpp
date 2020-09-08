@@ -258,8 +258,8 @@ void UnTechEditor::updateProjectFile()
 
     if (_projectListWindow.hasPendingActions()) {
         closeEditor();
+        _projectListWindow.processPendingActions(*_projectFile, _editors);
     }
-    _projectListWindow.processPendingActions(*_projectFile, _editors);
 
     if (_projectListWindow.selectedIndex()) {
         const auto index = *_projectListWindow.selectedIndex();

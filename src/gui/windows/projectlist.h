@@ -43,14 +43,16 @@ private:
 public:
     const std::optional<ItemIndex>& selectedIndex() const { return _selectedIndex; }
 
-    bool hasPendingActions() { return _state != State::SELECT_RESOURCE; }
-
     bool isClean() const { return _clean; }
     void markClean() { _clean = true; }
 
     void processMenu();
     void processGui(const UnTech::Project::ProjectFile& projectFile);
 
+    bool hasPendingActions()
+    {
+        return _state == State::ADD_RESOURCE_CONFIRMED || _state == State::REMOVE_RESOURCE_CONFIRMED;
+    }
     void processPendingActions(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditor>>& editors);
 
 private:
