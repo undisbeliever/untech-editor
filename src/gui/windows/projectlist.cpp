@@ -391,10 +391,12 @@ void ProjectListWindow::processPendingActions(Project::ProjectFile& projectFile,
 
     case State::ADD_RESOURCE_CONFIRMED:
         addResource(projectFile);
+        _clean = false;
         break;
 
     case State::REMOVE_RESOURCE_CONFIRMED:
         removeResource(projectFile, editors);
+        _clean = false;
         break;
     }
 }

@@ -140,6 +140,7 @@ void UnTechEditor::saveProjectFile()
                 e->markClean();
             }
         }
+        _projectListWindow.markClean();
     }
     catch (const std::exception& ex) {
         MessageBox::showMessage("Cannot Save Project", ex.what());
@@ -167,6 +168,9 @@ void UnTechEditor::saveEditor(AbstractEditor* editor)
 
 void UnTechEditor::saveAll()
 {
+    if (_projectListWindow.isClean() == false) {
+        saveProjectFile();
+    }
     for (auto& e : _editors) {
         if (!e->isClean()) {
             saveEditor(e.get());

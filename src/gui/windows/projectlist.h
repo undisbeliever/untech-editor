@@ -38,10 +38,15 @@ private:
     // Filename of the new resource to add
     std::filesystem::path _addResourceFilename;
 
+    bool _clean = true;
+
 public:
     const std::optional<ItemIndex>& selectedIndex() const { return _selectedIndex; }
 
     bool hasPendingActions() { return _state != State::SELECT_RESOURCE; }
+
+    bool isClean() const { return _clean; }
+    void markClean() { _clean = true; }
 
     void processMenu();
     void processGui(const UnTech::Project::ProjectFile& projectFile);
