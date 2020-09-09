@@ -101,7 +101,7 @@ int main(int argc, const char* argv[])
         AboutPopup::openPopup();
     }
 
-    while (!imgui.done) {
+    while (true) {
         auto editor = UnTechEditor::instance();
 
         imgui.newFrame();
@@ -120,6 +120,19 @@ int main(int argc, const char* argv[])
 
         if (editor) {
             editor->updateProjectFile();
+
+            if (imgui.requestExitApplication) {
+                editor->requestExitEditor();
+                imgui.requestExitApplication = false;
+            }
+            if (editor->editorExited()) {
+                break;
+            }
+        }
+        else {
+            if (imgui.requestExitApplication) {
+                break;
+            }
         }
     }
 

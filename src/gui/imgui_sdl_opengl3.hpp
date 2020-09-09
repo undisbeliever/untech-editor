@@ -45,7 +45,7 @@ class ImGuiLoop {
     SDL_GLContext gl_context = nullptr;
 
 public:
-    bool done = false;
+    bool requestExitApplication = false;
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 public:
@@ -129,10 +129,10 @@ public:
         while (SDL_PollEvent(&event)) {
             ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT) {
-                done = true;
+                requestExitApplication = true;
             }
             if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window)) {
-                done = true;
+                requestExitApplication = true;
             }
         }
 

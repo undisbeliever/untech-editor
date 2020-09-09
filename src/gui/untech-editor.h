@@ -35,6 +35,10 @@ private:
 
     ProjectListWindow _projectListWindow;
 
+    bool _openUnsavedChangesOnExitPopup;
+    bool _editorExited;
+    std::vector<std::string> _unsavedFilesList;
+
 private:
     UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf,
                  const std::filesystem::path& fn);
@@ -49,6 +53,9 @@ public:
 
     std::optional<ItemIndex> selectedItemIndex() const;
 
+    void requestExitEditor();
+    bool editorExited() const { return _editorExited; }
+
     void processGui();
 
     // called after ImGUI render
@@ -58,11 +65,13 @@ private:
     void openEditor(const ItemIndex itemIndex);
     void closeEditor();
 
-    void saveProjectFile();
-    void saveEditor(AbstractEditor* editor);
-    void saveAll();
+    bool saveProjectFile();
+    bool saveEditor(AbstractEditor* editor);
+    bool saveAll();
 
     void processMenu();
+
+    void unsavedChangesOnExitPopup();
 };
 
 }

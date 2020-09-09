@@ -17,12 +17,16 @@ namespace UnTech::Gui {
 
 std::shared_ptr<UnTechEditor> UnTechEditor::_instance = nullptr;
 
-UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, const std::filesystem::__cxx11::path& fn)
+UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, const std::filesystem::path& fn)
     : _projectFile(std::move(pf))
     , _filename(fn)
     , _basename(fn.filename())
     , _editors()
     , _currentEditor(nullptr)
+    , _projectListWindow()
+    , _openUnsavedChangesOnExitPopup(false)
+    , _editorExited(false)
+    , _unsavedFilesList()
 {
     assert(_projectFile != nullptr);
     assert(!_filename.empty());
@@ -127,7 +131,7 @@ void UnTechEditor::closeEditor()
     }
 }
 
-void UnTechEditor::saveProjectFile()
+bool UnTechEditor::saveProjectFile()
 {
     assert(_projectFile);
     assert(!_filename.empty());
@@ -141,13 +145,15 @@ void UnTechEditor::saveProjectFile()
             }
         }
         _projectListWindow.markClean();
+        return true;
     }
     catch (const std::exception& ex) {
         MessageBox::showMessage("Cannot Save Project", ex.what());
+        return false;
     }
 }
 
-void UnTechEditor::saveEditor(AbstractEditor* editor)
+bool UnTechEditor::saveEditor(AbstractEditor* editor)
 {
     if (auto e = dynamic_cast<AbstractExternalFileEditor*>(editor)) {
         bool dataLoaded = e->loadDataFromProject(*_projectFile);
@@ -156,26 +162,32 @@ void UnTechEditor::saveEditor(AbstractEditor* editor)
         try {
             e->saveFile();
             e->markClean();
+            return true;
         }
         catch (const std::exception& ex) {
             MessageBox::showMessage("Cannot Save Resource", ex.what());
+            return false;
         }
     }
     else {
-        saveProjectFile();
+        return saveProjectFile();
     }
 }
 
-void UnTechEditor::saveAll()
+bool UnTechEditor::saveAll()
 {
+    bool ok = true;
+
     if (_projectListWindow.isClean() == false) {
-        saveProjectFile();
+        ok &= saveProjectFile();
     }
     for (auto& e : _editors) {
         if (!e->isClean()) {
-            saveEditor(e.get());
+            ok &= saveEditor(e.get());
         }
     }
+
+    return ok;
 }
 
 void UnTechEditor::processMenu()
@@ -212,6 +224,12 @@ void UnTechEditor::processMenu()
             AboutPopup::openPopup();
         }
 
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("Exit")) {
+            requestExitEditor();
+        }
+
         ImGui::EndMenu();
     }
 
@@ -236,6 +254,111 @@ void UnTechEditor::processMenu()
     ImGui::EndMainMenuBar();
 }
 
+void UnTechEditor::requestExitEditor()
+{
+    const auto parentPath = _filename.parent_path();
+
+    std::vector<std::string> files;
+    files.push_back(_basename);
+
+    bool projectFileClean = _projectListWindow.isClean();
+    for (auto& e : _editors) {
+        if (!e->isClean()) {
+            if (auto* ee = dynamic_cast<AbstractExternalFileEditor*>(e.get())) {
+                files.push_back(ee->filename().lexically_relative(parentPath).u8string());
+            }
+            else {
+                projectFileClean = false;
+            }
+        }
+    }
+
+    if (projectFileClean) {
+        assert(!files.empty());
+        files.erase(files.begin());
+    }
+
+    if (files.empty()) {
+        _editorExited = true;
+    }
+    else {
+        _editorExited = false;
+        _openUnsavedChangesOnExitPopup = true;
+        _unsavedFilesList = std::move(files);
+    }
+}
+
+void UnTechEditor::unsavedChangesOnExitPopup()
+{
+    using namespace std::string_literals;
+    const char* const windowTitle = "Save Changes?###UnsavedChangesPopup";
+
+    static float buttonsWidth = 30;
+
+    if (_openUnsavedChangesOnExitPopup) {
+        _openUnsavedChangesOnExitPopup = false;
+        ImGui::OpenPopup(windowTitle);
+    }
+
+    bool open = true;
+    if (ImGui::BeginPopupModal(windowTitle, &open, ImGuiWindowFlags_NoResize)) {
+        const auto& style = ImGui::GetStyle();
+
+        if (_unsavedFilesList.size() == 1) {
+            ImGui::TextUnformatted("There is one unsaved file.");
+            ImGui::NewLine();
+            ImGui::TextUnformatted("Do you wish to save?"s);
+        }
+        else {
+            ImGui::Text("There are %d unsaved files.", int(_unsavedFilesList.size()));
+            ImGui::NewLine();
+            ImGui::TextUnformatted("Do you wish to save them all?");
+        }
+
+        ImGui::TextUnformatted("\n(Unsaved changes will be lost if you discard them)"s);
+
+        ImGui::Spacing();
+        {
+            const float posX = (ImGui::GetWindowSize().x - buttonsWidth) / 2;
+            ImGui::SetCursorPosX(posX);
+
+            if (ImGui::Button("Save All")) {
+                _editorExited = saveAll();
+            }
+            ImGui::SameLine(0, style.IndentSpacing);
+            if (ImGui::Button("Discard")) {
+                _editorExited = true;
+            }
+            ImGui::SameLine(0, style.IndentSpacing);
+            if (ImGui::Button("Cancel")) {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine(0, 0);
+            buttonsWidth = ImGui::GetCursorPosX() - posX;
+
+            ImGui::NewLine();
+        }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        ImGui::Indent();
+
+        ImGui::SetNextItemWidth(-style.IndentSpacing);
+        if (ImGui::ListBoxHeader("##UnsavedFiles", _unsavedFilesList.size(), 4)) {
+            for (const auto& f : _unsavedFilesList) {
+                ImGui::TextUnformatted(f);
+            }
+            ImGui::ListBoxFooter();
+        }
+
+        ImGui::Unindent();
+
+        ImGui::EndPopup();
+    }
+}
+
 void UnTechEditor::processGui()
 {
     const Project::ProjectFile& projectFile = *_projectFile;
@@ -248,6 +371,7 @@ void UnTechEditor::processGui()
     _projectListWindow.processGui(projectFile);
 
     processMenu();
+    unsavedChangesOnExitPopup();
 }
 
 void UnTechEditor::updateProjectFile()
