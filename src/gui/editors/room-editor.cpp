@@ -11,19 +11,12 @@
 #include "gui/imgui-combos.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
+#include "gui/style.h"
 #include "models/rooms/rooms-serializer.h"
 
 namespace UnTech::Gui {
 
 namespace RM = UnTech::Rooms;
-
-// ::TODO move to style::
-constexpr static ImU32 entityOutlineCol = IM_COL32(192, 0, 0, 240);
-constexpr static ImU32 entityFillCol = IM_COL32(192, 0, 0, 64);
-constexpr static ImU32 entranceOutlineCol = IM_COL32(0, 192, 0, 240);
-constexpr static ImU32 entranceFillCol = IM_COL32(0, 192, 0, 64);
-
-constexpr static ImU32 disabledEntityGroupTint = IM_COL32(255, 255, 255, 32);
 
 bool RoomEditor::_tilesetAndPaletteIndexValid = false;
 AabbGraphics RoomEditor::_graphics;
@@ -409,7 +402,7 @@ void RoomEditor::drawObjects(ImDrawList* drawList) const
 
             const bool groupEnabled = _entityGroupsSel.selectedIndex() > nGroups || _entityGroupsSel.selectedIndex() == groupIndex;
 
-            const ImU32 tint = groupEnabled ? IM_COL32_WHITE : disabledEntityGroupTint;
+            const ImU32 tint = groupEnabled ? IM_COL32_WHITE : Style::disabledEntityGroupTint;
 
             for (const auto& entity : group.entities) {
                 _graphics.drawEntity(drawList, &entity.position,
@@ -437,7 +430,7 @@ void RoomEditor::drawAndEditObjects(ImDrawList* drawList)
 
             _graphics.addEntity(drawList, &entrance.position,
                                 textureId, _entityGraphics->settingsForPlayer(playerId),
-                                entranceFillCol, entranceOutlineCol, IM_COL32_WHITE,
+                                Style::entranceFillColor, Style::entranceOutlineColor, IM_COL32_WHITE,
                                 &_entrancesSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
@@ -463,7 +456,7 @@ void RoomEditor::drawAndEditObjects(ImDrawList* drawList)
 
                     _graphics.addEntity(drawList, &entity.position,
                                         textureId, _entityGraphics->settingsForEntity(entity.entityId),
-                                        entityFillCol, entityOutlineCol, IM_COL32_WHITE,
+                                        Style::entityFillColor, Style::entityOutlineColor, IM_COL32_WHITE,
                                         &childSel, i);
                     if (_graphics.isHoveredAndNotEditing()) {
                         ImGui::BeginTooltip();
@@ -487,7 +480,7 @@ void RoomEditor::drawAndEditObjects(ImDrawList* drawList)
                 for (const auto& entity : group.entities) {
                     _graphics.drawEntity(drawList, &entity.position,
                                          textureId, _entityGraphics->settingsForEntity(entity.entityId),
-                                         disabledEntityGroupTint);
+                                         Style::disabledEntityGroupTint);
                 }
             }
         }

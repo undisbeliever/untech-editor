@@ -11,6 +11,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "gui/style.h"
 #include "models/common/bit.h"
 #include <algorithm>
 
@@ -22,15 +23,6 @@ enum class MetaSpriteEditor::PaletteState {
     EDIT_COLOR,
     DRAW_TILES,
 };
-
-// ::TODO move to style::
-constexpr static ImU32 frameObjectOutlineCol = IM_COL32(64, 128, 64, 240);
-constexpr static ImU32 actionPointOutlineCol = IM_COL32(192, 192, 192, 240);
-constexpr static ImU32 entityHitboxOutlineCol = IM_COL32(0, 0, 255, 240);
-constexpr static ImU32 tileHitboxOutlineCol = IM_COL32(192, 0, 0, 240);
-
-constexpr static ImU32 crosshairColor = IM_COL32(128, 128, 128, 255);
-constexpr static ImU32 tilesetGridColor = IM_COL32(128, 128, 128, 128);
 
 constexpr static unsigned SMALL_TILE_SIZE = 8;
 constexpr static unsigned LARGE_TILE_SIZE = 16;
@@ -858,13 +850,13 @@ void MetaSpriteEditor::drawTileset(const char* label, typename TilesetPolicy::Li
 
         for (unsigned x = 0; x < TILES_PER_ROW - 1; x++) {
             if (x < nFullLines) {
-                drawList->AddLine(ImVec2(xPos, startY), ImVec2(xPos, fullEndY), tilesetGridColor);
+                drawList->AddLine(ImVec2(xPos, startY), ImVec2(xPos, fullEndY), Style::gridColor);
             }
             else {
                 if (completeRows == 0) {
                     break;
                 }
-                drawList->AddLine(ImVec2(xPos, startY), ImVec2(xPos, partialEndY), tilesetGridColor);
+                drawList->AddLine(ImVec2(xPos, startY), ImVec2(xPos, partialEndY), Style::gridColor);
             }
             xPos += tileSize;
         }
@@ -876,12 +868,12 @@ void MetaSpriteEditor::drawTileset(const char* label, typename TilesetPolicy::Li
         float yPos = offset.y + tileSize;
         if (completeRows > 0) {
             for (unsigned y = 0; y < completeRows - 1; y++) {
-                drawList->AddLine(ImVec2(startX, yPos), ImVec2(endX, yPos), tilesetGridColor);
+                drawList->AddLine(ImVec2(startX, yPos), ImVec2(endX, yPos), Style::gridColor);
                 yPos += tileSize;
             }
         }
         if (remaining > 0) {
-            drawList->AddLine(ImVec2(startX, yPos), ImVec2(startX + remaining * tileSize, yPos), tilesetGridColor);
+            drawList->AddLine(ImVec2(startX, yPos), ImVec2(startX + remaining * tileSize, yPos), Style::gridColor);
         }
     }
 
@@ -1012,7 +1004,7 @@ void MetaSpriteEditor::frameEditorWindow()
                             &_tileHitboxSel, &_frameObjectsSel, &_actionPointsSel, &_entityHitboxesSel);
 
         _graphics.drawBackgroundColor(drawList, bgColor);
-        _graphics.drawBoundedCrosshair(drawList, 0, 0, crosshairColor);
+        _graphics.drawBoundedCrosshair(drawList, 0, 0, Style::metaSpriteCrosshairColor);
 
         const ImTextureID textureId = tilesetTexture().imguiTextureId();
 
@@ -1053,7 +1045,7 @@ void MetaSpriteEditor::frameEditorWindow()
                     uv1 = ImVec2(1, 1);
                 }
 
-                _graphics.addSquareImage(drawList, &obj.location, obj.sizePx(), textureId, uv0, uv1, frameObjectOutlineCol, &_frameObjectsSel, i);
+                _graphics.addSquareImage(drawList, &obj.location, obj.sizePx(), textureId, uv0, uv1, Style::frameObjectOutlineColor, &_frameObjectsSel, i);
 
                 if (_graphics.isHoveredAndNotEditing()) {
                     ImGui::BeginTooltip();
@@ -1065,7 +1057,7 @@ void MetaSpriteEditor::frameEditorWindow()
 
         if (true) {
             if (frame->solid) {
-                _graphics.addRect(drawList, &frame->tileHitbox, tileHitboxOutlineCol, &_tileHitboxSel, 1);
+                _graphics.addRect(drawList, &frame->tileHitbox, Style::tileHitboxOutlineColor, &_tileHitboxSel, 1);
                 if (_graphics.isHoveredAndNotEditing()) {
                     ImGui::BeginTooltip();
                     ImGui::TextUnformatted("Tile Hitbox");
@@ -1079,7 +1071,7 @@ void MetaSpriteEditor::frameEditorWindow()
             while (i > 0) {
                 i--;
                 auto& eh = frame->entityHitboxes.at(i);
-                _graphics.addRect(drawList, &eh.aabb, entityHitboxOutlineCol, &_entityHitboxesSel, i);
+                _graphics.addRect(drawList, &eh.aabb, Style::entityHitboxOutlineColor, &_entityHitboxesSel, i);
 
                 if (_graphics.isHoveredAndNotEditing()) {
                     ImGui::BeginTooltip();
@@ -1094,7 +1086,7 @@ void MetaSpriteEditor::frameEditorWindow()
             while (i > 0) {
                 i--;
                 auto& ap = frame->actionPoints.at(i);
-                _graphics.addPointRect(drawList, &ap.location, actionPointOutlineCol, &_actionPointsSel, i);
+                _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_actionPointsSel, i);
 
                 if (_graphics.isHoveredAndNotEditing()) {
                     ImGui::BeginTooltip();

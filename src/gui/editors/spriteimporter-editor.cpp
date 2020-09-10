@@ -12,6 +12,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
+#include "gui/style.h"
 #include "models/common/bit.h"
 #include "models/common/imagecache.h"
 #include <algorithm>
@@ -21,18 +22,6 @@ namespace UnTech::Gui {
 
 namespace SI = UnTech::MetaSprite::SpriteImporter;
 using ObjectSize = UnTech::MetaSprite::ObjectSize;
-
-// ::TODO move to style::
-constexpr static ImU32 frameOutlineCol = IM_COL32(160, 160, 160, 240);
-constexpr static ImU32 antiHighlightCol = IM_COL32(128, 128, 128, 128);
-
-constexpr static ImU32 frameObjectOutlineCol = IM_COL32(64, 128, 64, 240);
-constexpr static ImU32 actionPointOutlineCol = IM_COL32(192, 192, 192, 240);
-constexpr static ImU32 entityHitboxOutlineCol = IM_COL32(0, 0, 255, 240);
-constexpr static ImU32 tileHitboxOutlineCol = IM_COL32(192, 0, 0, 240);
-
-constexpr static ImU32 backgroundCol = IM_COL32(192, 192, 192, 255);
-constexpr static ImU32 originColor = IM_COL32(128, 128, 128, 255);
 
 constexpr static unsigned MINIMIM_FRAME_SIZE = 16;
 
@@ -621,13 +610,13 @@ void SpriteImporterEditor::drawFrame(ImDrawList* drawList, const MetaSprite::Spr
             i--;
             auto& obj = frame->objects.at(i);
 
-            _graphics.addFixedSizeSquare(drawList, &obj.location, obj.sizePx(), frameObjectOutlineCol);
+            _graphics.addFixedSizeSquare(drawList, &obj.location, obj.sizePx(), Style::frameObjectOutlineColor);
         }
     }
 
     if (true) {
         if (frame->solid) {
-            _graphics.addRect(drawList, &frame->tileHitbox, tileHitboxOutlineCol);
+            _graphics.addRect(drawList, &frame->tileHitbox, Style::tileHitboxOutlineColor);
         }
     }
 
@@ -636,7 +625,7 @@ void SpriteImporterEditor::drawFrame(ImDrawList* drawList, const MetaSprite::Spr
         while (i > 0) {
             i--;
             auto& eh = frame->entityHitboxes.at(i);
-            _graphics.addRect(drawList, &eh.aabb, entityHitboxOutlineCol);
+            _graphics.addRect(drawList, &eh.aabb, Style::entityHitboxOutlineColor);
         }
     }
 
@@ -645,7 +634,7 @@ void SpriteImporterEditor::drawFrame(ImDrawList* drawList, const MetaSprite::Spr
         while (i > 0) {
             i--;
             auto& ap = frame->actionPoints.at(i);
-            _graphics.addPointRect(drawList, &ap.location, actionPointOutlineCol);
+            _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor);
         }
     }
 }
@@ -660,7 +649,7 @@ void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* fr
             i--;
             auto& obj = frame->objects.at(i);
 
-            _graphics.addFixedSizeSquare(drawList, &obj.location, obj.sizePx(), frameObjectOutlineCol, &_frameObjectsSel, i);
+            _graphics.addFixedSizeSquare(drawList, &obj.location, obj.sizePx(), Style::frameObjectOutlineColor, &_frameObjectsSel, i);
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 ImGui::Text("Object %u", i);
@@ -671,7 +660,7 @@ void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* fr
 
     if (true) {
         if (frame->solid) {
-            _graphics.addRect(drawList, &frame->tileHitbox, tileHitboxOutlineCol, &_tileHitboxSel, 1);
+            _graphics.addRect(drawList, &frame->tileHitbox, Style::tileHitboxOutlineColor, &_tileHitboxSel, 1);
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 ImGui::TextUnformatted("Tile Hitbox");
@@ -685,7 +674,7 @@ void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* fr
         while (i > 0) {
             i--;
             auto& eh = frame->entityHitboxes.at(i);
-            _graphics.addRect(drawList, &eh.aabb, entityHitboxOutlineCol, &_entityHitboxesSel, i);
+            _graphics.addRect(drawList, &eh.aabb, Style::entityHitboxOutlineColor, &_entityHitboxesSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
@@ -700,7 +689,7 @@ void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* fr
         while (i > 0) {
             i--;
             auto& ap = frame->actionPoints.at(i);
-            _graphics.addPointRect(drawList, &ap.location, actionPointOutlineCol, &_actionPointsSel, i);
+            _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_actionPointsSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
@@ -779,7 +768,7 @@ void SpriteImporterEditor::frameEditorWindow()
             }
         }
 
-        _graphics.drawBackgroundColor(drawList, backgroundCol);
+        _graphics.drawBackgroundColor(drawList, Style::spriteImporterBackgroundColor);
 
         _graphics.drawImage(drawList, texture, 0, 0);
 
@@ -788,9 +777,9 @@ void SpriteImporterEditor::frameEditorWindow()
             const auto& origin = frame.location.origin;
 
             // Draw origin (behind frame contents)
-            _graphics.drawCrosshair(drawList, aabb.x + origin.x, aabb.y + origin.y, aabb, originColor);
+            _graphics.drawCrosshair(drawList, aabb.x + origin.x, aabb.y + origin.y, aabb, Style::spriteImporterOriginColor);
 
-            _graphics.addRect(drawList, &aabb, frameOutlineCol);
+            _graphics.addRect(drawList, &aabb, Style::frameOutlineColor);
         }
 
         for (unsigned frameIndex = 0; frameIndex < _data.frames.size(); frameIndex++) {
@@ -809,7 +798,7 @@ void SpriteImporterEditor::frameEditorWindow()
         _graphics.setOrigin(0, 0);
 
         if (selectedFrame) {
-            _graphics.drawAntiHighlight(drawList, selectedFrame->location.aabb, antiHighlightCol);
+            _graphics.drawAntiHighlight(drawList, selectedFrame->location.aabb, Style::antiHighlightColor);
         }
 
         _graphics.endLoop(drawList,

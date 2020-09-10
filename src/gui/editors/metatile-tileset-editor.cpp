@@ -11,6 +11,7 @@
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
+#include "gui/style.h"
 #include "gui/texture.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include <cmath>
@@ -424,12 +425,8 @@ void MetaTileTilesetEditor::tilePropertiesWindow(const Project::ProjectFile& pro
 
             const auto textureId = tileCollisionTypeTexture().imguiTextureId();
 
+            // Image Button background is unused (0 alpha)
             const ImVec4 bgCol = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-
-            // ::TODO move into style::
-            // ::TODO better name::
-            const ImVec4 tintCol = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
-            const ImVec4 selectedTintCol = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 
             static_assert(TILE_COLLISION_IMAGE_WIDTH == METATILE_SIZE_PX);
             const ImVec2 uvSize = ImVec2(1.0f, 1.0f / (TILE_COLLISION_IMAGE_HEIGHT / METATILE_SIZE_PX));
@@ -438,7 +435,7 @@ void MetaTileTilesetEditor::tilePropertiesWindow(const Project::ProjectFile& pro
                 const ImVec2 uv(0.0f, unsigned(tct) * uvSize.y);
 
                 const bool isSelected = _tileProperties->tileCollisionSame && _tileProperties->tileCollision == tct;
-                const auto& tint = isSelected ? selectedTintCol : tintCol;
+                const auto& tint = isSelected ? Style::tilePropertiesButtonTint : Style::tilePropertiesButtonSelectedTint;
 
                 ImGui::PushID(unsigned(tct));
 

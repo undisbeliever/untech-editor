@@ -8,6 +8,7 @@
 #include "gui/common/tilecollisionimage.h"
 #include "gui/imgui-drawing.h"
 #include "gui/imgui.h"
+#include "gui/style.h"
 #include "gui/texture.h"
 #include "models/common/imagecache.h"
 #include "models/common/vectorset-upoint.h"
@@ -22,15 +23,6 @@ static constexpr unsigned N_METATILES = MetaTiles::N_METATILES;
 static constexpr unsigned TILESET_WIDTH = MetaTiles::TILESET_WIDTH;
 static constexpr unsigned TILESET_HEIGHT = MetaTiles::TILESET_HEIGHT;
 static constexpr unsigned N_TILE_COLLISONS = MetaTiles::N_TILE_COLLISONS;
-
-// ::TODO move into style::
-static constexpr auto collisionTint = IM_COL32(192, 0, 192, 128);
-static constexpr auto selectionFillColor = IM_COL32(0, 0, 128, 128);
-static constexpr auto selectionOutlineColor = IM_COL32(0, 0, 255, 255);
-static constexpr auto cursorInBoundsTint = IM_COL32(128, 255, 128, 255);
-static constexpr auto cursorInBoundsOutline = IM_COL32(0, 128, 0, 255);
-static constexpr auto cursorOutOfBoundsTint = IM_COL32(255, 128, 128, 255);
-static constexpr auto cursorOutOfBoundsOutline = IM_COL32(128, 0, 0, 255);
 
 const usize AbstractMetaTileEditor::TILESET_TEXTURE_SIZE{
     TILESET_WIDTH * METATILE_SIZE_PX,
@@ -448,8 +440,6 @@ void AbstractMetaTileEditor::invisibleButton(const char* label, const AbstractMe
 
 void AbstractMetaTileEditor::drawGrid(ImDrawList* drawList, const Geometry& geo)
 {
-    const ImU32 gridColor = IM_COL32(128, 128, 128, 128);
-
     // ::TODO clip these to visible area::
     const float startX = geo.offset.x;
     const float startY = geo.offset.y;
@@ -459,14 +449,14 @@ void AbstractMetaTileEditor::drawGrid(ImDrawList* drawList, const Geometry& geo)
     const float maxX = endX + 1.0f;
     const float maxY = endY + 1.0f;
 
-    drawList->AddRect(ImVec2(startX, startY), ImVec2(maxX, maxY), gridColor);
+    drawList->AddRect(ImVec2(startX, startY), ImVec2(maxX, maxY), Style::gridColor);
 
     for (float x = startX + geo.tileSize.x; x < endX; x += geo.tileSize.x) {
-        drawList->AddLine(ImVec2(x, startY), ImVec2(x, maxY), gridColor);
+        drawList->AddLine(ImVec2(x, startY), ImVec2(x, maxY), Style::gridColor);
     }
 
     for (float y = startY + geo.tileSize.y; y < endY; y += geo.tileSize.y) {
-        drawList->AddLine(ImVec2(startX, y), ImVec2(maxX, y), gridColor);
+        drawList->AddLine(ImVec2(startX, y), ImVec2(maxX, y), Style::gridColor);
     }
 }
 
@@ -475,7 +465,7 @@ void AbstractMetaTileEditor::drawTileset(const Geometry& geo)
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
     drawList->AddImage(tilesetTexture().imguiTextureId(), geo.offset, geo.offset + geo.mapSize);
-    drawList->AddImage(tilesetCollisionsTexture().imguiTextureId(), geo.offset, geo.offset + geo.mapSize, ImVec2(0, 0), ImVec2(1, 1), collisionTint);
+    drawList->AddImage(tilesetCollisionsTexture().imguiTextureId(), geo.offset, geo.offset + geo.mapSize, ImVec2(0, 0), ImVec2(1, 1), Style::tileCollisionTint);
 
     // ::TODO draw tile symbols::
 
@@ -490,8 +480,8 @@ void AbstractMetaTileEditor::drawTileset(const Geometry& geo)
         const ImVec2 pMin = geo.tilePosToVec2(x, y);
         const ImVec2 pMax = pMin + geo.tileSize + ImVec2(1.0f, 1.0f);
 
-        drawList->AddRectFilled(pMin, pMax, selectionFillColor, 0.0f, ImDrawCornerFlags_None);
-        drawList->AddRect(pMin, pMax, selectionOutlineColor, 0.0f, ImDrawCornerFlags_None);
+        drawList->AddRectFilled(pMin, pMax, Style::tileSelectionFillColor, 0.0f, ImDrawCornerFlags_None);
+        drawList->AddRect(pMin, pMax, Style::tileSelectionOutlineColor, 0.0f, ImDrawCornerFlags_None);
     }
 
     const bool sc = tilesetSelector.processSelection(&_selectedTilesetTiles, geo,
@@ -617,7 +607,7 @@ void AbstractMetaTileEditor::drawTiles(const grid<uint8_t>& map, const Geometry&
     };
     // ::TODO make optional (based on style)::
     drawTiles(tilesetTexture(), IM_COL32_WHITE);
-    drawTiles(tilesetCollisionsTexture(), collisionTint);
+    drawTiles(tilesetCollisionsTexture(), Style::tileCollisionTint);
 
     // ::TODO draw symbols::
 
@@ -634,8 +624,8 @@ void AbstractMetaTileEditor::drawSelection(const upoint_vectorset& selection, co
         const ImVec2 pMin = geo.tilePosToVec2(p);
         const ImVec2 pMax = pMin + geo.tileSize + ImVec2(1.0f, 1.0f);
 
-        drawList->AddRectFilled(pMin, pMax, selectionFillColor, 0.0f, ImDrawCornerFlags_None);
-        drawList->AddRect(pMin, pMax, selectionOutlineColor, 0.0f, ImDrawCornerFlags_None);
+        drawList->AddRectFilled(pMin, pMax, Style::tileSelectionFillColor, 0.0f, ImDrawCornerFlags_None);
+        drawList->AddRect(pMin, pMax, Style::tileSelectionOutlineColor, 0.0f, ImDrawCornerFlags_None);
     }
 }
 
@@ -757,7 +747,7 @@ void AbstractMetaTileEditor::drawCursorTiles(const grid<uint16_t>& tiles, const 
                     ImVec2 uv((tileId % TILESET_WIDTH) / float(TILESET_WIDTH),
                               (tileId / TILESET_WIDTH) / float(TILESET_HEIGHT));
 
-                    const ImU32 tint = bounds.contains(point(x, y)) ? cursorInBoundsTint : cursorOutOfBoundsTint;
+                    const ImU32 tint = bounds.contains(point(x, y)) ? Style::tileCursorInBoundsTint : Style::tileCursorOutOfBoundsTint;
 
                     drawList->AddImage(textureId, p, p + geo.tileSize, uv, uv + uvSize, tint);
                 }
@@ -781,7 +771,7 @@ void AbstractMetaTileEditor::drawCursorTiles(const grid<uint16_t>& tiles, const 
                 const auto& tileId = *it++;
 
                 if (tileId < N_METATILES) {
-                    const ImU32 color = bounds.contains(point(x, y)) ? cursorInBoundsOutline : cursorOutOfBoundsOutline;
+                    const ImU32 color = bounds.contains(point(x, y)) ? Style::tileCursorInBoundsOutline : Style::tileCursorOutOfBoundsOutline;
                     const ImVec2 pMax = p + geo.tileSize + ImVec2(1.0f, 1.0f);
 
                     drawList->AddRect(p, pMax, color, 0.0f, ImDrawCornerFlags_None);
