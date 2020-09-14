@@ -491,7 +491,7 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
 
                 ImGui::Separator();
 
-                edited |= ImGui::IdStringCombo("initialProjectileId", &entry.initialListId, entityRomData.projectiles);
+                edited |= ImGui::IdStringCombo("initialProjectileId", &entry.initialProjectileId, entityRomData.projectiles);
 
                 if (ActionPolicy::entityType != EntityType::PLAYER) {
                     edited |= ImGui::IdStringCombo("initialListId", &entry.initialListId, entityRomData.listIds, false);
