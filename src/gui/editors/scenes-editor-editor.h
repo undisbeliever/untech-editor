@@ -12,25 +12,39 @@
 
 namespace UnTech::Gui {
 
-class ScenesEditor final : public AbstractEditor {
+class ScenesEditorData final : public AbstractEditorData {
 private:
+    friend class ScenesEditorGui;
     struct AP;
 
-    UnTech::Resources::ResourceScenes _scenes;
+    UnTech::Resources::ResourceScenes scenes;
 
-    SingleSelection _settingsSel;
-    SingleSelection _scenesSel;
+    SingleSelection settingsSel;
+    SingleSelection scenesSel;
 
 public:
-    ScenesEditor(ItemIndex itemIndex);
+    ScenesEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    virtual void updateSelection() final;
+};
+
+class ScenesEditorGui final : public AbstractEditorGui {
+private:
+    using AP = ScenesEditorData::AP;
+
+    ScenesEditorData* _data;
+
+public:
+    ScenesEditorGui();
+
+    virtual bool setEditorData(AbstractEditorData* data) final;
+    virtual void editorDataChanged() final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
-    virtual void updateSelection() final;
 
 private:
     void settingsWindow();

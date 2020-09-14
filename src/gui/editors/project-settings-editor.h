@@ -11,23 +11,37 @@
 
 namespace UnTech::Gui {
 
-class ProjectSettingsEditor final : public AbstractEditor {
+class ProjectSettingsEditorData final : public AbstractEditorData {
 private:
+    friend class ProjectSettingsEditorGui;
     struct AP;
 
-    UnTech::Project::MemoryMapSettings _memoryMap;
-    UnTech::Rooms::RoomSettings _roomSettings;
+    UnTech::Project::MemoryMapSettings memoryMap;
+    UnTech::Rooms::RoomSettings roomSettings;
 
 public:
-    ProjectSettingsEditor(ItemIndex itemIndex);
+    ProjectSettingsEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    virtual void updateSelection() final;
+};
+
+class ProjectSettingsEditorGui final : public AbstractEditorGui {
+private:
+    using AP = ProjectSettingsEditorData::AP;
+
+    ProjectSettingsEditorData* _data;
+
+public:
+    ProjectSettingsEditorGui();
+
+    virtual bool setEditorData(AbstractEditorData* data) final;
+    virtual void editorDataChanged() final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
-    virtual void updateSelection() final;
 
 private:
     void projectSettingsWindow();

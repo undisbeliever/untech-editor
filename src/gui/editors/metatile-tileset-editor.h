@@ -12,8 +12,32 @@
 
 namespace UnTech::Gui {
 
-class MetaTileTilesetEditor final : public AbstractMetaTileEditor {
+class MetaTileTilesetEditorData final : public AbstractMetaTileEditorData {
 private:
+    friend class MetaTileTilesetEditorGui;
+    struct AP;
+
+    UnTech::MetaTiles::MetaTileTilesetInput data;
+
+public:
+    MetaTileTilesetEditorData(ItemIndex itemIndex);
+
+    virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    virtual void saveFile() const final;
+    virtual void updateSelection() final;
+
+protected:
+    virtual grid<uint8_t>& map() final;
+    virtual void mapTilesPlaced(const urect r) final;
+
+    virtual void selectedTilesetTilesChanged() final;
+    virtual void selectedTilesChanged() final;
+};
+
+class MetaTileTilesetEditorGui final : public AbstractMetaTileEditorGui {
+private:
+    using AP = MetaTileTilesetEditorData::AP;
+
     struct TileProperties {
         MetaTiles::TileCollisionType tileCollision;
         bool tileCollisionSame;
@@ -26,33 +50,24 @@ private:
         bool functionTableSame;
     };
 
-private:
-    struct AP;
+    MetaTileTilesetEditorData* _data;
 
-    UnTech::MetaTiles::MetaTileTilesetInput _data;
     usize _scratchpadSize;
-
-    // safe - only one editor open at any given time
-    static std::optional<TileProperties> _tileProperties;
+    std::optional<TileProperties> _tileProperties;
 
 public:
-    MetaTileTilesetEditor(ItemIndex itemIndex);
+    MetaTileTilesetEditorGui();
 
-    virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void saveFile() const final;
+    virtual bool setEditorData(AbstractEditorData* data) final;
+    virtual void editorDataChanged() final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
-    virtual void updateSelection() final;
 
 protected:
-    virtual grid<uint8_t>& map() final;
-    virtual void mapTilesPlaced(const urect r) final;
-
-    virtual void selectedTilesetTilesChanged() final;
-    virtual void selectedTilesChanged() final;
+    virtual void selectionChanged() final;
 
 private:
     void resetTileProperties();

@@ -21,8 +21,10 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     : _projectFile(std::move(pf))
     , _filename(fn)
     , _basename(fn.filename())
+    , _editorGuis(createEditorGuis())
     , _editors()
     , _currentEditor(nullptr)
+    , _currentEditorGui(nullptr)
     , _projectListWindow()
     , _openUnsavedChangesOnExitPopup(false)
     , _editorExited(false)
@@ -93,7 +95,7 @@ std::optional<ItemIndex> UnTechEditor::selectedItemIndex() const
 
 void UnTechEditor::openEditor(const ItemIndex itemIndex)
 {
-    AbstractEditor* editor = nullptr;
+    AbstractEditorData* editor = nullptr;
 
     auto it = std::find_if(_editors.cbegin(), _editors.cend(),
                            [&](auto& e) { return e->itemIndex() == itemIndex; });
@@ -115,8 +117,25 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
         closeEditor();
         _currentEditor = editor;
         if (editor) {
-            editor->loadDataFromProject(*_projectFile);
-            editor->editorOpened();
+            const bool success = editor->loadDataFromProject(*_projectFile);
+            if (success) {
+                unsigned counter = 0;
+                for (auto& eg : _editorGuis) {
+                    if (eg->setEditorData(_currentEditor)) {
+                        _currentEditorGui = eg.get();
+                        counter++;
+                    }
+                }
+                assert(counter == 1);
+                assert(_currentEditorGui);
+
+                _currentEditorGui->editorDataChanged();
+                _currentEditorGui->editorOpened();
+            }
+            else {
+                _currentEditor = nullptr;
+                _currentEditorGui = nullptr;
+            }
         }
     }
 }
@@ -126,9 +145,13 @@ void UnTechEditor::closeEditor()
     if (_currentEditor) {
         // Discard any uncommitted data
         _currentEditor->loadDataFromProject(*_projectFile);
-        _currentEditor->editorClosed();
-        _currentEditor = nullptr;
     }
+    if (_currentEditorGui) {
+        _currentEditorGui->editorClosed();
+    }
+
+    _currentEditor = nullptr;
+    _currentEditorGui = nullptr;
 }
 
 bool UnTechEditor::saveProjectFile()
@@ -140,7 +163,7 @@ bool UnTechEditor::saveProjectFile()
         UnTech::Project::saveProjectFile(*_projectFile, _filename);
 
         for (auto& e : _editors) {
-            if (dynamic_cast<AbstractExternalFileEditor*>(_currentEditor) == nullptr) {
+            if (dynamic_cast<AbstractExternalFileEditorData*>(_currentEditor) == nullptr) {
                 e->markClean();
             }
         }
@@ -153,9 +176,9 @@ bool UnTechEditor::saveProjectFile()
     }
 }
 
-bool UnTechEditor::saveEditor(AbstractEditor* editor)
+bool UnTechEditor::saveEditor(AbstractEditorData* editor)
 {
-    if (auto e = dynamic_cast<AbstractExternalFileEditor*>(editor)) {
+    if (auto e = dynamic_cast<AbstractExternalFileEditorData*>(editor)) {
         bool dataLoaded = e->loadDataFromProject(*_projectFile);
         assert(dataLoaded);
         assert(e->filename().empty() == false);
@@ -239,12 +262,18 @@ void UnTechEditor::processMenu()
 
         if (ImGui::MenuItem("Undo", nullptr, false, canUndo)) {
             if (_currentEditor) {
+                assert(_currentEditorGui);
+
                 _currentEditor->undo(*_projectFile);
+                _currentEditorGui->editorDataChanged();
             }
         }
         if (ImGui::MenuItem("Redo", nullptr, false, canRedo)) {
             if (_currentEditor) {
+                assert(_currentEditorGui);
+
                 _currentEditor->redo(*_projectFile);
+                _currentEditorGui->editorDataChanged();
             }
         }
 
@@ -264,7 +293,7 @@ void UnTechEditor::requestExitEditor()
     bool projectFileClean = _projectListWindow.isClean();
     for (auto& e : _editors) {
         if (!e->isClean()) {
-            if (auto* ee = dynamic_cast<AbstractExternalFileEditor*>(e.get())) {
+            if (auto* ee = dynamic_cast<AbstractExternalFileEditorData*>(e.get())) {
                 files.push_back(ee->filename().lexically_relative(parentPath).u8string());
             }
             else {
@@ -363,8 +392,10 @@ void UnTechEditor::processGui()
 {
     const Project::ProjectFile& projectFile = *_projectFile;
 
-    if (_currentEditor) {
-        _currentEditor->processGui(projectFile);
+    if (_currentEditorGui) {
+        assert(_currentEditor);
+
+        _currentEditorGui->processGui(projectFile);
         _currentEditor->updateSelection();
     }
 

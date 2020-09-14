@@ -10,7 +10,7 @@
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
-class AbstractEditor;
+class AbstractEditorData;
 
 class ProjectListWindow {
     static const char* const windowTitle;
@@ -30,7 +30,7 @@ class ProjectListWindow {
 private:
     State _state;
     std::optional<ItemIndex> _selectedIndex;
-    std::vector<std::unique_ptr<AbstractEditor>> _removedEditors;
+    std::vector<std::unique_ptr<AbstractEditorData>> _removedEditors;
 
     // Selected index in the "Add Resource" menu
     unsigned _addMenuIndex;
@@ -53,7 +53,7 @@ public:
     {
         return _state == State::ADD_RESOURCE_CONFIRMED || _state == State::REMOVE_RESOURCE_CONFIRMED;
     }
-    void processPendingActions(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditor>>& editors);
+    void processPendingActions(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors);
 
 private:
     void projectListWindow(const UnTech::Project::ProjectFile& projectFile);
@@ -64,7 +64,7 @@ private:
     void addResource(UnTech::Project::ProjectFile& projectFile);
 
     bool canRemoveSelectedIndex() const;
-    void removeResource(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditor>>& editors);
+    void removeResource(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors);
 };
 
 }

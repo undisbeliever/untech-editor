@@ -11,22 +11,36 @@
 
 namespace UnTech::Gui {
 
-class BackgroundImageEditor final : public AbstractEditor {
+class BackgroundImageEditorData final : public AbstractEditorData {
 private:
+    friend class BackgroundImageEditorGui;
     struct AP;
 
-    UnTech::Resources::BackgroundImageInput _data;
+    UnTech::Resources::BackgroundImageInput data;
 
 public:
-    BackgroundImageEditor(ItemIndex itemIndex);
+    BackgroundImageEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    virtual void updateSelection() final;
+};
+
+class BackgroundImageEditorGui final : public AbstractEditorGui {
+private:
+    using AP = BackgroundImageEditorData::AP;
+
+    BackgroundImageEditorData* _data;
+
+public:
+    BackgroundImageEditorGui();
+
+    virtual bool setEditorData(AbstractEditorData* data) final;
+    virtual void editorDataChanged() final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
-    virtual void updateSelection() final;
 
 private:
     void backgroundImageWindow(const Project::ProjectFile& projectFile);

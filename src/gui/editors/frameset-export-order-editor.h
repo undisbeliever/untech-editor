@@ -12,29 +12,43 @@
 
 namespace UnTech::Gui {
 
-class FrameSetExportOrderEditor final : public AbstractExternalFileEditor {
+class FrameSetExportOrderEditorData final : public AbstractExternalFileEditorData {
 private:
+    friend class FrameSetExportOrderEditorGui;
     struct AP;
 
-    UnTech::MetaSprite::FrameSetExportOrder _data;
+    UnTech::MetaSprite::FrameSetExportOrder data;
 
-    SingleSelection _framesSel;
-    MultipleChildSelection _frameAlternativesSel;
-    SingleSelection _animationsSel;
-    MultipleChildSelection _animationAlternativesSel;
+    SingleSelection framesSel;
+    MultipleChildSelection frameAlternativesSel;
+    SingleSelection animationsSel;
+    MultipleChildSelection animationAlternativesSel;
 
 public:
-    FrameSetExportOrderEditor(ItemIndex itemIndex);
-    ~FrameSetExportOrderEditor() = default;
+    FrameSetExportOrderEditorData(ItemIndex itemIndex);
+    ~FrameSetExportOrderEditorData() = default;
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void saveFile() const final;
+    virtual void updateSelection() final;
+};
+
+class FrameSetExportOrderEditorGui final : public AbstractEditorGui {
+private:
+    using AP = FrameSetExportOrderEditorData::AP;
+
+    FrameSetExportOrderEditorData* _data;
+
+public:
+    FrameSetExportOrderEditorGui();
+
+    virtual bool setEditorData(AbstractEditorData* data) final;
+    virtual void editorDataChanged() final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
-    virtual void updateSelection() final;
 
 private:
     void exportOrderWindow();

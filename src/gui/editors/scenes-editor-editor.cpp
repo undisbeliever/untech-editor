@@ -29,14 +29,14 @@ const char* layerTypeItems[] = {
 };
 
 // ScenesEditor Action Policies
-struct ScenesEditor::AP {
+struct ScenesEditorData::AP {
     struct ResourceScenes {
-        using EditorT = ScenesEditor;
+        using EditorT = ScenesEditorData;
         using EditorDataT = UnTech::Resources::ResourceScenes;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._scenes;
+            return &editor.scenes;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
@@ -52,7 +52,7 @@ struct ScenesEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::Resources::MAX_N_SCENE_SETTINGS;
 
-        constexpr static auto SelectionPtr = &EditorT::_settingsSel;
+        constexpr static auto SelectionPtr = &EditorT::settingsSel;
 
         static ListT* getList(EditorDataT& editorData)
         {
@@ -67,7 +67,7 @@ struct ScenesEditor::AP {
 
         constexpr static size_t MAX_SIZE = 255;
 
-        constexpr static auto SelectionPtr = &EditorT::_scenesSel;
+        constexpr static auto SelectionPtr = &EditorT::scenesSel;
 
         static ListT* getList(EditorDataT& editorData)
         {
@@ -76,32 +76,56 @@ struct ScenesEditor::AP {
     };
 };
 
-ScenesEditor::ScenesEditor(ItemIndex itemIndex)
-    : AbstractEditor(itemIndex)
+ScenesEditorData::ScenesEditorData(ItemIndex itemIndex)
+    : AbstractEditorData(itemIndex)
 {
 }
 
-bool ScenesEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
+bool ScenesEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
-    _scenes = projectFile.resourceScenes;
+    scenes = projectFile.resourceScenes;
 
     return true;
 }
 
-void ScenesEditor::editorOpened()
+void ScenesEditorData::updateSelection()
+{
+    settingsSel.update();
+    scenesSel.update();
+}
+
+ScenesEditorGui::ScenesEditorGui()
+    : AbstractEditorGui()
+    , _data(nullptr)
 {
 }
 
-void ScenesEditor::editorClosed()
+bool ScenesEditorGui::setEditorData(AbstractEditorData* data)
+{
+    return (_data = dynamic_cast<ScenesEditorData*>(data));
+}
+
+void ScenesEditorGui::editorDataChanged()
 {
 }
 
-void ScenesEditor::settingsWindow()
+void ScenesEditorGui::editorOpened()
 {
+}
+
+void ScenesEditorGui::editorClosed()
+{
+}
+
+void ScenesEditorGui::settingsWindow()
+{
+    assert(_data);
+    auto& scenes = _data->scenes;
+
     if (ImGui::Begin("Scene Settings")) {
         ImGui::SetWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons<AP::SceneSettings>(this);
+        ListButtons<AP::SceneSettings>(_data);
 
         ImGui::BeginChild("Scroll");
 
@@ -123,14 +147,14 @@ void ScenesEditor::settingsWindow()
         ImGui::NextColumn();
         ImGui::Separator();
 
-        for (unsigned i = 0; i < _scenes.settings.size(); i++) {
-            auto& sceneSettings = _scenes.settings.at(i);
+        for (unsigned i = 0; i < scenes.settings.size(); i++) {
+            auto& sceneSettings = scenes.settings.at(i);
 
             bool edited = false;
 
             ImGui::PushID(i);
 
-            ImGui::Selectable(&_settingsSel, i);
+            ImGui::Selectable(&_data->settingsSel, i);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
@@ -151,7 +175,7 @@ void ScenesEditor::settingsWindow()
             }
 
             if (edited) {
-                ListActions<AP::SceneSettings>::itemEdited(this, i);
+                ListActions<AP::SceneSettings>::itemEdited(_data, i);
             }
 
             ImGui::PopID();
@@ -165,12 +189,13 @@ void ScenesEditor::settingsWindow()
     ImGui::End();
 }
 
-bool ScenesEditor::sceneLayerCombo(const char* label, idstring* value,
-                                   const Project::ProjectFile& projectFile, const Resources::SceneSettingsInput& sceneSettings, const unsigned layerId)
+bool ScenesEditorGui::sceneLayerCombo(const char* label, idstring* value,
+                                      const Project::ProjectFile& projectFile, const Resources::SceneSettingsInput& sceneSettings, const unsigned layerId)
 {
     using namespace std::string_literals;
-
     using LayerType = Resources::LayerType;
+
+    assert(_data);
 
     const auto layer = sceneSettings.layerTypes.at(layerId);
 
@@ -214,12 +239,15 @@ bool ScenesEditor::sceneLayerCombo(const char* label, idstring* value,
     return false;
 }
 
-void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
+void ScenesEditorGui::scenesWindow(const Project::ProjectFile& projectFile)
 {
+    assert(_data);
+    auto& scenes = _data->scenes;
+
     if (ImGui::Begin("Scenes")) {
         ImGui::SetWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons<AP::Scenes>(this);
+        ListButtons<AP::Scenes>(_data);
 
         ImGui::BeginChild("Scroll");
 
@@ -241,14 +269,14 @@ void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
         ImGui::NextColumn();
         ImGui::Separator();
 
-        for (unsigned i = 0; i < _scenes.scenes.size(); i++) {
-            auto& scene = _scenes.scenes.at(i);
+        for (unsigned i = 0; i < scenes.scenes.size(); i++) {
+            auto& scene = scenes.scenes.at(i);
 
             bool edited = false;
 
             ImGui::PushID(i);
 
-            ImGui::Selectable(&_scenesSel, i);
+            ImGui::Selectable(&_data->scenesSel, i);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
@@ -257,10 +285,10 @@ void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::IdStringCombo("##SceneSettings", &scene.sceneSettings, _scenes.settings);
+            edited |= ImGui::IdStringCombo("##SceneSettings", &scene.sceneSettings, _data->scenes.settings);
             ImGui::NextColumn();
 
-            const auto sceneSettings = _scenes.settings.find(scene.sceneSettings);
+            const auto sceneSettings = scenes.settings.find(scene.sceneSettings);
 
             static const std::array<const char*, 4> layerLabels = { "##LT0", "##LT1", "##LT2", "##LT3" };
             for (unsigned l = 0; l < scene.layers.size(); l++) {
@@ -272,7 +300,7 @@ void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
             }
 
             if (edited) {
-                ListActions<AP::Scenes>::itemEdited(this, i);
+                ListActions<AP::Scenes>::itemEdited(_data, i);
             }
 
             ImGui::PopID();
@@ -286,16 +314,14 @@ void ScenesEditor::scenesWindow(const Project::ProjectFile& projectFile)
     ImGui::End();
 }
 
-void ScenesEditor::processGui(const Project::ProjectFile& projectFile)
+void ScenesEditorGui::processGui(const Project::ProjectFile& projectFile)
 {
+    if (_data == nullptr) {
+        return;
+    }
+
     settingsWindow();
     scenesWindow(projectFile);
-}
-
-void ScenesEditor::updateSelection()
-{
-    _settingsSel.update();
-    _scenesSel.update();
 }
 
 }

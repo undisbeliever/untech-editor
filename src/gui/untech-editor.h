@@ -19,7 +19,8 @@ struct ProjectFile;
 }
 
 namespace UnTech::Gui {
-class AbstractEditor;
+class AbstractEditorData;
+class AbstractEditorGui;
 
 class UnTechEditor {
 private:
@@ -30,8 +31,11 @@ private:
     const std::filesystem::path _filename;
     const std::string _basename;
 
-    std::vector<std::unique_ptr<AbstractEditor>> _editors;
-    AbstractEditor* _currentEditor;
+    std::vector<std::unique_ptr<AbstractEditorGui>> _editorGuis;
+
+    std::vector<std::unique_ptr<AbstractEditorData>> _editors;
+    AbstractEditorData* _currentEditor;
+    AbstractEditorGui* _currentEditorGui;
 
     ProjectListWindow _projectListWindow;
 
@@ -66,7 +70,7 @@ private:
     void closeEditor();
 
     bool saveProjectFile();
-    bool saveEditor(AbstractEditor* editor);
+    bool saveEditor(AbstractEditorData* editor);
     bool saveAll();
 
     void processMenu();

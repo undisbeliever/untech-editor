@@ -5,7 +5,6 @@
  */
 
 #include "spriteimporter-editor.h"
-#include "gui/common/aabb-graphics.h"
 #include "gui/editor-actions.h"
 #include "gui/imgui-combos.h"
 #include "gui/imgui-filebrowser.h"
@@ -30,23 +29,15 @@ constexpr static int IMAGE_PADDING = 4;
 // ::TODO dynamic zoom::
 static const ImVec2 zoom(6.0f, 6.0f);
 
-// ::TODO find better name::
-AabbGraphics SpriteImporterEditor::_graphics;
-
-std::vector<std::pair<ImU32, std::string>> SpriteImporterEditor::_transparentColorCombo;
-
-bool SpriteImporterEditor::_imageValid = false;
-bool SpriteImporterEditor::_transparentColorComboValid = false;
-
 // MetaSpriteEditor Action Policies
-struct SpriteImporterEditor::AP {
+struct SpriteImporterEditorData::AP {
     struct FrameSet {
-        using EditorT = SpriteImporterEditor;
+        using EditorT = SpriteImporterEditorData;
         using EditorDataT = SI::FrameSet;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._data;
+            return &editor.data;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
@@ -70,7 +61,7 @@ struct SpriteImporterEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
-        constexpr static auto SelectionPtr = &EditorT::_framesSel;
+        constexpr static auto SelectionPtr = &EditorT::framesSel;
 
         static ListT* getList(SI::FrameSet& fs) { return &fs.frames; }
     };
@@ -82,7 +73,7 @@ struct SpriteImporterEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_FRAME_OBJECTS;
 
-        constexpr static auto SelectionPtr = &EditorT::_frameObjectsSel;
+        constexpr static auto SelectionPtr = &EditorT::frameObjectsSel;
 
         static ListT* getList(SI::FrameSet& fs, unsigned frameIndex)
         {
@@ -97,7 +88,7 @@ struct SpriteImporterEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_ACTION_POINTS;
 
-        constexpr static auto SelectionPtr = &EditorT::_actionPointsSel;
+        constexpr static auto SelectionPtr = &EditorT::actionPointsSel;
 
         static ListT* getList(SI::FrameSet& fs, unsigned frameIndex)
         {
@@ -112,7 +103,7 @@ struct SpriteImporterEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_ENTITY_HITBOXES;
 
-        constexpr static auto SelectionPtr = &EditorT::_entityHitboxesSel;
+        constexpr static auto SelectionPtr = &EditorT::entityHitboxesSel;
 
         static ListT* getList(SI::FrameSet& fs, unsigned frameIndex)
         {
@@ -127,7 +118,7 @@ struct SpriteImporterEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
-        constexpr static auto SelectionPtr = &EditorT::_animationsSel;
+        constexpr static auto SelectionPtr = &EditorT::animationsSel;
 
         static ListT* getList(SI::FrameSet& fs) { return &fs.animations; }
     };
@@ -140,7 +131,7 @@ struct SpriteImporterEditor::AP {
         // ::TODO replace with UnTech::MetaSprite::MAX_ANIMATION_FRAMES ::
         constexpr static size_t MAX_SIZE = 64;
 
-        constexpr static auto SelectionPtr = &EditorT::_animationFramesSel;
+        constexpr static auto SelectionPtr = &EditorT::animationFramesSel;
 
         static ListT* getList(SI::FrameSet& fs, unsigned frameIndex)
         {
@@ -150,23 +141,14 @@ struct SpriteImporterEditor::AP {
     };
 };
 
-Texture& SpriteImporterEditor::imageTexture()
-{
-    static Texture texture;
-    return texture;
-}
-
-SpriteImporterEditor::SpriteImporterEditor(ItemIndex itemIndex)
-    : AbstractMetaSpriteEditor(itemIndex)
+SpriteImporterEditorData::SpriteImporterEditorData(ItemIndex itemIndex)
+    : AbstractMetaSpriteEditorData(itemIndex)
 {
 }
 
-bool SpriteImporterEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
+bool SpriteImporterEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
     using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
-
-    _imageValid = false;
-    _transparentColorComboValid = false;
 
     const auto i = itemIndex().index;
     if (i < projectFile.frameSets.size()) {
@@ -175,7 +157,7 @@ bool SpriteImporterEditor::loadDataFromProject(const Project::ProjectFile& proje
         setFilename(f.filename);
         if (f.type == FrameSetType::SPRITE_IMPORTER) {
             if (f.siFrameSet) {
-                _data = *f.siFrameSet;
+                data = *f.siFrameSet;
                 return true;
             }
         }
@@ -184,51 +166,92 @@ bool SpriteImporterEditor::loadDataFromProject(const Project::ProjectFile& proje
     return false;
 }
 
-void SpriteImporterEditor::saveFile() const
+void SpriteImporterEditorData::saveFile() const
 {
     assert(!filename().empty());
-    UnTech::MetaSprite::SpriteImporter::saveFrameSet(_data, filename());
+    UnTech::MetaSprite::SpriteImporter::saveFrameSet(data, filename());
 }
 
-void SpriteImporterEditor::editorOpened()
+void SpriteImporterEditorData::updateSelection()
+{
+    AbstractMetaSpriteEditorData::updateSelection();
+
+    if (framesSel.isSelectionChanging()) {
+        tileHitboxSel.clearSelection();
+    }
+
+    framesSel.update();
+
+    tileHitboxSel.update();
+
+    frameObjectsSel.update(framesSel);
+    actionPointsSel.update(framesSel);
+    entityHitboxesSel.update(framesSel);
+}
+
+SpriteImporterEditorGui::SpriteImporterEditorGui()
+    : AbstractMetaSpriteEditorGui()
+    , _data(nullptr)
+    , _graphics()
+    , _imageTexture()
+    , _transparentColorCombo()
+    , _imageValid(false)
+    , _transparentColorComboValid(false)
+{
+}
+
+bool SpriteImporterEditorGui::setEditorData(AbstractEditorData* data)
+{
+    return (_data = dynamic_cast<SpriteImporterEditorData*>(data));
+}
+
+void SpriteImporterEditorGui::editorDataChanged()
 {
     _imageValid = false;
     _transparentColorComboValid = false;
+}
 
+void SpriteImporterEditorGui::editorOpened()
+{
+    editorDataChanged();
     _graphics.resetState();
 }
 
-void SpriteImporterEditor::editorClosed()
+void SpriteImporterEditorGui::editorClosed()
 {
+    editorOpened();
 }
 
-void SpriteImporterEditor::frameSetPropertiesWindow(const Project::ProjectFile& projectFile)
+void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& projectFile)
 {
+    assert(_data);
+    auto& fs = _data->data;
+
     if (ImGui::Begin("FrameSet##SI")) {
         ImGui::SetWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
         {
-            ImGui::InputIdstring("Name", &_data.name);
+            ImGui::InputIdstring("Name", &fs.name);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::FrameSet>::fieldEdited<
-                    &SI::FrameSet::name>(this);
+                    &SI::FrameSet::name>(_data);
             }
 
-            if (ImGui::EnumCombo("Tileset Type", &_data.tilesetType)) {
+            if (ImGui::EnumCombo("Tileset Type", &fs.tilesetType)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
-                    &SI::FrameSet::tilesetType>(this);
+                    &SI::FrameSet::tilesetType>(_data);
             }
 
-            if (ImGui::IdStringCombo("Export Order", &_data.exportOrder, projectFile.frameSetExportOrders)) {
+            if (ImGui::IdStringCombo("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
-                    &SI::FrameSet::exportOrder>(this);
+                    &SI::FrameSet::exportOrder>(_data);
             }
 
-            if (ImGui::InputPngImageFilename("Image", &_data.imageFilename)) {
+            if (ImGui::InputPngImageFilename("Image", &fs.imageFilename)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
-                    &SI::FrameSet::imageFilename>(this);
+                    &SI::FrameSet::imageFilename>(_data);
 
                 _imageValid = false;
                 _transparentColorComboValid = false;
@@ -237,10 +260,10 @@ void SpriteImporterEditor::frameSetPropertiesWindow(const Project::ProjectFile& 
             {
                 bool edited;
 
-                ImColor c(_data.transparentColor.rgb());
+                ImColor c(fs.transparentColor.rgb());
 
                 char tcString[16];
-                std::snprintf(tcString, IM_ARRAYSIZE(tcString), "#%06X", _data.transparentColor.rgbHex());
+                std::snprintf(tcString, IM_ARRAYSIZE(tcString), "#%06X", fs.transparentColor.rgbHex());
 
                 if (ImGui::BeginCombo("Transparent Color", tcString)) {
                     updateTransparentColorCombo();
@@ -249,7 +272,7 @@ void SpriteImporterEditor::frameSetPropertiesWindow(const Project::ProjectFile& 
                         ImGui::PushStyleColor(ImGuiCol_Text, col);
                         ImGui::PushStyleColor(ImGuiCol_HeaderHovered, col);
                         if (ImGui::Selectable(str.c_str())) {
-                            _data.transparentColor = rgba::fromRgba(col);
+                            fs.transparentColor = rgba::fromRgba(col);
                         }
                         ImGui::PopStyleColor(2);
 
@@ -264,42 +287,44 @@ void SpriteImporterEditor::frameSetPropertiesWindow(const Project::ProjectFile& 
                 }
 
                 if (ImGui::ColorEdit3("##ColorEdit", (float*)&c.Value)) {
-                    _data.transparentColor = rgba::fromRgba(c);
-                    _data.transparentColor.alpha = 0xff;
+                    fs.transparentColor = rgba::fromRgba(c);
+                    fs.transparentColor.alpha = 0xff;
                 }
                 edited = ImGui::IsItemDeactivatedAfterEdit();
 
                 if (edited) {
                     EditorActions<AP::FrameSet>::fieldEdited<
-                        &SI::FrameSet::transparentColor>(this);
+                        &SI::FrameSet::transparentColor>(_data);
                 }
             }
 
             if (ImGui::TreeNodeEx("Grid", ImGuiTreeNodeFlags_DefaultOpen)) {
                 bool edited = false;
 
-                ImGui::InputUsize("Frame Size", &_data.grid.frameSize, usize(SI::MAX_FRAME_SIZE, SI::MAX_FRAME_SIZE));
+                auto& grid = fs.grid;
+
+                ImGui::InputUsize("Frame Size", &grid.frameSize, usize(SI::MAX_FRAME_SIZE, SI::MAX_FRAME_SIZE));
                 edited |= ImGui::IsItemDeactivatedAfterEdit();
 
-                ImGui::InputUpoint("Offset", &_data.grid.offset, usize(511, 511));
+                ImGui::InputUpoint("Offset", &grid.offset, usize(511, 511));
                 edited |= ImGui::IsItemDeactivatedAfterEdit();
 
-                ImGui::InputUpoint("Padding", &_data.grid.padding, usize(511, 511));
+                ImGui::InputUpoint("Padding", &grid.padding, usize(511, 511));
                 edited |= ImGui::IsItemDeactivatedAfterEdit();
 
-                ImGui::InputUpoint("Origin", &_data.grid.origin, _data.grid.originRange());
+                ImGui::InputUpoint("Origin", &grid.origin, grid.originRange());
                 edited |= ImGui::IsItemDeactivatedAfterEdit();
 
                 if (edited) {
-                    for (auto& frame : _data.frames) {
-                        frame.location.update(_data.grid, frame);
+                    for (auto& frame : fs.frames) {
+                        frame.location.update(grid, frame);
                     }
 
                     // ::TODO undo macro::
                     EditorActions<AP::FrameSet>::fieldEdited<
-                        &SI::FrameSet::grid>(this);
+                        &SI::FrameSet::grid>(_data);
                     ListActions<AP::Frames>::allItemsInSelectedListFieldEdited<
-                        &SI::Frame::location>(this);
+                        &SI::Frame::location>(_data);
                 }
 
                 ImGui::TreePop();
@@ -309,34 +334,36 @@ void SpriteImporterEditor::frameSetPropertiesWindow(const Project::ProjectFile& 
                 bool changed = false;
                 bool edited = false;
 
-                bool usePalette = _data.palette.usesUserSuppliedPalette();
+                auto& palette = fs.palette;
+
+                bool usePalette = palette.usesUserSuppliedPalette();
                 edited |= ImGui::Checkbox("User Supplied Palette", &usePalette);
 
                 if (usePalette) {
-                    changed |= ImGui::EnumCombo("Position", &_data.palette.position);
+                    changed |= ImGui::EnumCombo("Position", &palette.position);
                     edited |= ImGui::IsItemDeactivatedAfterEdit();
 
-                    changed |= ImGui::InputUnsigned("No of Palettes", &_data.palette.nPalettes);
+                    changed |= ImGui::InputUnsigned("No of Palettes", &palette.nPalettes);
                     edited |= ImGui::IsItemDeactivatedAfterEdit();
 
-                    changed |= ImGui::InputUnsigned("Color Size", &_data.palette.colorSize);
+                    changed |= ImGui::InputUnsigned("Color Size", &palette.colorSize);
                     edited |= ImGui::IsItemDeactivatedAfterEdit();
                 }
 
                 if (changed || edited) {
                     if (usePalette) {
-                        _data.palette.nPalettes = std::max(1U, _data.palette.nPalettes);
-                        _data.palette.colorSize = std::max(1U, _data.palette.colorSize);
+                        palette.nPalettes = std::max(1U, palette.nPalettes);
+                        palette.colorSize = std::max(1U, palette.colorSize);
                     }
                     else {
-                        _data.palette.nPalettes = 0;
-                        _data.palette.colorSize = 0;
+                        palette.nPalettes = 0;
+                        palette.colorSize = 0;
                     }
                 }
 
                 if (edited) {
                     EditorActions<AP::FrameSet>::fieldEdited<
-                        &SI::FrameSet::palette>(this);
+                        &SI::FrameSet::palette>(_data);
                 }
 
                 ImGui::TreePop();
@@ -346,24 +373,27 @@ void SpriteImporterEditor::frameSetPropertiesWindow(const Project::ProjectFile& 
     ImGui::End();
 }
 
-void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& projectFile)
+void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& projectFile)
 {
+    assert(_data);
+    auto& fs = _data->data;
+
     if (ImGui::Begin("Frames##SI")) {
         ImGui::SetWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
-        ListButtons<AP::Frames>(this);
+        ListButtons<AP::Frames>(_data);
 
         ImGui::SetNextItemWidth(-1);
-        ImGui::NamedListListBox("##FrameList", &_framesSel, _data.frames, 8);
+        ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames, 8);
 
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
 
-        if (_framesSel.selectedIndex() < _data.frames.size()) {
-            SI::Frame& frame = _data.frames.at(_framesSel.selectedIndex());
+        if (_data->framesSel.selectedIndex() < fs.frames.size()) {
+            SI::Frame& frame = fs.frames.at(_data->framesSel.selectedIndex());
 
             const usize frameSize = frame.location.aabb.size();
 
@@ -371,7 +401,7 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
                 ImGui::InputIdstring("Name", &frame.name);
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<AP::Frames>::selectedFieldEdited<
-                        &SI::Frame::name>(this);
+                        &SI::Frame::name>(_data);
                 }
 
                 unsigned spriteOrder = frame.spriteOrder;
@@ -380,7 +410,7 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
                 }
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<AP::Frames>::selectedFieldEdited<
-                        &SI::Frame::spriteOrder>(this);
+                        &SI::Frame::spriteOrder>(_data);
                 }
 
                 if (ImGui::TreeNodeEx("Location", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -398,7 +428,7 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
                     else {
                         ImGui::LabelText("Grid Location", " ");
 
-                        const auto& imgSize = imageTexture().size();
+                        const auto& imgSize = _imageTexture.size();
                         const usize bounds = (imgSize.width != 0 && imgSize.height != 0) ? imgSize : usize(4096, 4096);
 
                         changed |= ImGui::InputUrect("AABB", &frame.location.aabb, bounds);
@@ -416,12 +446,12 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
                     }
 
                     if (edited || changed) {
-                        frame.location.update(_data.grid, frame);
+                        frame.location.update(fs.grid, frame);
                     }
 
                     if (edited) {
                         ListActions<AP::Frames>::selectedFieldEdited<
-                            &SI::Frame::location>(this);
+                            &SI::Frame::location>(_data);
                     }
 
                     ImGui::TreePop();
@@ -429,14 +459,14 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
 
                 if (ImGui::Checkbox("Solid Tile Hitbox", &frame.solid)) {
                     ListActions<AP::Frames>::selectedFieldEdited<
-                        &SI::Frame::solid>(this);
+                        &SI::Frame::solid>(_data);
                 }
                 ImGui::Indent();
                 if (frame.solid) {
                     ImGui::InputUrect("Tile Hitbox", &frame.tileHitbox, frameSize);
                     if (ImGui::IsItemDeactivatedAfterEdit()) {
                         ListActions<AP::Frames>::selectedFieldEdited<
-                            &SI::Frame::tileHitbox>(this);
+                            &SI::Frame::tileHitbox>(_data);
                     }
                 }
                 else {
@@ -451,13 +481,13 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
             {
                 // ::TODO combine these into a single row with combined remove buttons::
                 ImGui::PushID("Obj");
-                ListButtons<AP::FrameObjects>(this);
+                ListButtons<AP::FrameObjects>(_data);
                 ImGui::PopID();
                 ImGui::PushID("AP");
-                ListButtons<AP::ActionPoints>(this);
+                ListButtons<AP::ActionPoints>(_data);
                 ImGui::PopID();
                 ImGui::PushID("EH");
-                ListButtons<AP::EntityHitboxes>(this);
+                ListButtons<AP::EntityHitboxes>(_data);
                 ImGui::PopID();
 
                 ImGui::BeginChild("FC Scroll");
@@ -482,7 +512,7 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
 
                         ImGui::PushID(i);
 
-                        ImGui::Selectable(&_frameObjectsSel, i);
+                        ImGui::Selectable(&_data->frameObjectsSel, i);
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -495,7 +525,7 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
                         ImGui::NextColumn();
 
                         if (edited) {
-                            ListActions<AP::FrameObjects>::selectedListItemEdited(this, i);
+                            ListActions<AP::FrameObjects>::selectedListItemEdited(_data, i);
                         }
 
                         ImGui::PopID();
@@ -518,7 +548,7 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
 
                         ImGui::PushID(i);
 
-                        ImGui::Selectable(&_actionPointsSel, i);
+                        ImGui::Selectable(&_data->actionPointsSel, i);
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -538,7 +568,7 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
                         ImGui::NextColumn();
 
                         if (edited) {
-                            ListActions<AP::ActionPoints>::selectedListItemEdited(this, i);
+                            ListActions<AP::ActionPoints>::selectedListItemEdited(_data, i);
                         }
 
                         ImGui::PopID();
@@ -561,7 +591,7 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
 
                         ImGui::PushID(i);
 
-                        ImGui::Selectable(&_entityHitboxesSel, i);
+                        ImGui::Selectable(&_data->entityHitboxesSel, i);
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -582,7 +612,7 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
                         ImGui::NextColumn();
 
                         if (edited) {
-                            ListActions<AP::EntityHitboxes>::selectedListItemEdited(this, i);
+                            ListActions<AP::EntityHitboxes>::selectedListItemEdited(_data, i);
                         }
 
                         ImGui::PopID();
@@ -600,8 +630,10 @@ void SpriteImporterEditor::framePropertiesWindow(const Project::ProjectFile& pro
     ImGui::End();
 }
 
-void SpriteImporterEditor::drawFrame(ImDrawList* drawList, const MetaSprite::SpriteImporter::Frame* frame)
+void SpriteImporterEditorGui::drawFrame(ImDrawList* drawList, const MetaSprite::SpriteImporter::Frame* frame)
 {
+    assert(_data);
+
     // ::TODO make layers optional::
 
     if (true) {
@@ -639,8 +671,10 @@ void SpriteImporterEditor::drawFrame(ImDrawList* drawList, const MetaSprite::Spr
     }
 }
 
-void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* frame)
+void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame* frame)
 {
+    assert(_data);
+
     // ::TODO make layers optional::
 
     if (true) {
@@ -649,7 +683,7 @@ void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* fr
             i--;
             auto& obj = frame->objects.at(i);
 
-            _graphics.addFixedSizeSquare(drawList, &obj.location, obj.sizePx(), Style::frameObjectOutlineColor, &_frameObjectsSel, i);
+            _graphics.addFixedSizeSquare(drawList, &obj.location, obj.sizePx(), Style::frameObjectOutlineColor, &_data->frameObjectsSel, i);
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 ImGui::Text("Object %u", i);
@@ -660,7 +694,7 @@ void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* fr
 
     if (true) {
         if (frame->solid) {
-            _graphics.addRect(drawList, &frame->tileHitbox, Style::tileHitboxOutlineColor, &_tileHitboxSel, 1);
+            _graphics.addRect(drawList, &frame->tileHitbox, Style::tileHitboxOutlineColor, &_data->tileHitboxSel, 1);
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 ImGui::TextUnformatted("Tile Hitbox");
@@ -674,7 +708,7 @@ void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* fr
         while (i > 0) {
             i--;
             auto& eh = frame->entityHitboxes.at(i);
-            _graphics.addRect(drawList, &eh.aabb, Style::entityHitboxOutlineColor, &_entityHitboxesSel, i);
+            _graphics.addRect(drawList, &eh.aabb, Style::entityHitboxOutlineColor, &_data->entityHitboxesSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
@@ -689,7 +723,7 @@ void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* fr
         while (i > 0) {
             i--;
             auto& ap = frame->actionPoints.at(i);
-            _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_actionPointsSel, i);
+            _graphics.addPointRect(drawList, &ap.location, Style::actionPointOutlineColor, &_data->actionPointsSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
@@ -705,10 +739,12 @@ void SpriteImporterEditor::drawSelectedFrame(ImDrawList* drawList, SI::Frame* fr
     }
 }
 
-void SpriteImporterEditor::frameEditorWindow()
+void SpriteImporterEditorGui::frameEditorWindow()
 {
-    const Texture& texture = imageTexture();
-    const rect graphicsRect(-IMAGE_PADDING, -IMAGE_PADDING, texture.width() + 2 * IMAGE_PADDING, texture.height() + 2 * IMAGE_PADDING);
+    assert(_data);
+    auto& frames = _data->data.frames;
+
+    const rect graphicsRect(-IMAGE_PADDING, -IMAGE_PADDING, _imageTexture.width() + 2 * IMAGE_PADDING, _imageTexture.height() + 2 * IMAGE_PADDING);
 
     if (ImGui::Begin("Sprite Importer")) {
         ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
@@ -720,7 +756,7 @@ void SpriteImporterEditor::frameEditorWindow()
 
         auto* drawList = ImGui::GetWindowDrawList();
 
-        const SI::Frame* selectedFrame = _framesSel.selectedIndex() < _data.frames.size() ? &_data.frames.at(_framesSel.selectedIndex()) : nullptr;
+        const SI::Frame* selectedFrame = _data->framesSel.selectedIndex() < frames.size() ? &frames.at(_data->framesSel.selectedIndex()) : nullptr;
 
         // The editable area changes depending on which frame is selected
         rect bounds;
@@ -734,7 +770,7 @@ void SpriteImporterEditor::frameEditorWindow()
         }
 
         _graphics.startLoop("##Editor", graphicsRect, bounds, zoom,
-                            &_tileHitboxSel, &_frameObjectsSel, &_actionPointsSel, &_entityHitboxesSel);
+                            &_data->tileHitboxSel, &_data->frameObjectsSel, &_data->actionPointsSel, &_data->entityHitboxesSel);
 
         // Select frame with double click
         {
@@ -749,11 +785,11 @@ void SpriteImporterEditor::frameEditorWindow()
 
             if (windowHovered && not mouseOverSelectedFrame) {
                 if (mouseDoubleClicked) {
-                    _framesSel.clearSelection();
+                    _data->framesSel.clearSelection();
                 }
 
-                for (unsigned frameIndex = 0; frameIndex < _data.frames.size(); frameIndex++) {
-                    auto& frame = _data.frames.at(frameIndex);
+                for (unsigned frameIndex = 0; frameIndex < frames.size(); frameIndex++) {
+                    auto& frame = frames.at(frameIndex);
 
                     if (frame.location.aabb.contains(mousePos)) {
                         ImGui::BeginTooltip();
@@ -761,7 +797,7 @@ void SpriteImporterEditor::frameEditorWindow()
                         ImGui::EndTooltip();
 
                         if (mouseDoubleClicked) {
-                            _framesSel.setSelected(frameIndex);
+                            _data->framesSel.setSelected(frameIndex);
                         }
                     }
                 }
@@ -770,9 +806,9 @@ void SpriteImporterEditor::frameEditorWindow()
 
         _graphics.drawBackgroundColor(drawList, Style::spriteImporterBackgroundColor);
 
-        _graphics.drawImage(drawList, texture, 0, 0);
+        _graphics.drawImage(drawList, _imageTexture, 0, 0);
 
-        for (const auto& frame : _data.frames) {
+        for (const auto& frame : frames) {
             const auto& aabb = frame.location.aabb;
             const auto& origin = frame.location.origin;
 
@@ -782,12 +818,12 @@ void SpriteImporterEditor::frameEditorWindow()
             _graphics.addRect(drawList, &aabb, Style::frameOutlineColor);
         }
 
-        for (unsigned frameIndex = 0; frameIndex < _data.frames.size(); frameIndex++) {
-            auto& frame = _data.frames.at(frameIndex);
+        for (unsigned frameIndex = 0; frameIndex < frames.size(); frameIndex++) {
+            auto& frame = frames.at(frameIndex);
 
             _graphics.setOrigin(frame.location.aabb.x, frame.location.aabb.y);
 
-            if (_framesSel.selectedIndex() != frameIndex) {
+            if (_data->framesSel.selectedIndex() != frameIndex) {
                 drawFrame(drawList, &frame);
             }
             else {
@@ -802,16 +838,16 @@ void SpriteImporterEditor::frameEditorWindow()
         }
 
         _graphics.endLoop(drawList,
-                          &_tileHitboxSel, &_frameObjectsSel, &_actionPointsSel, &_entityHitboxesSel);
+                          &_data->tileHitboxSel, &_data->frameObjectsSel, &_data->actionPointsSel, &_data->entityHitboxesSel);
 
         if (_graphics.isEditingFinished()) {
             // ::TODO add action macros::
-            if (_tileHitboxSel.isSelected()) {
-                ListActions<AP::Frames>::selectedFieldEdited<&SI::Frame::tileHitbox>(this);
+            if (_data->tileHitboxSel.isSelected()) {
+                ListActions<AP::Frames>::selectedFieldEdited<&SI::Frame::tileHitbox>(_data);
             }
-            ListActions<AP::FrameObjects>::selectedItemsEdited(this);
-            ListActions<AP::ActionPoints>::selectedItemsEdited(this);
-            ListActions<AP::EntityHitboxes>::selectedItemsEdited(this);
+            ListActions<AP::FrameObjects>::selectedItemsEdited(_data);
+            ListActions<AP::ActionPoints>::selectedItemsEdited(_data);
+            ListActions<AP::EntityHitboxes>::selectedItemsEdited(_data);
         }
 
         ImGui::EndChild();
@@ -819,8 +855,12 @@ void SpriteImporterEditor::frameEditorWindow()
     ImGui::End();
 }
 
-void SpriteImporterEditor::processGui(const Project::ProjectFile& projectFile)
+void SpriteImporterEditorGui::processGui(const Project::ProjectFile& projectFile)
 {
+    if (_data == nullptr) {
+        return;
+    }
+
     updateImageTexture();
 
     frameSetPropertiesWindow(projectFile);
@@ -828,60 +868,47 @@ void SpriteImporterEditor::processGui(const Project::ProjectFile& projectFile)
 
     frameEditorWindow();
 
-    animationPropertiesWindow<AP>("Animations##SI", this, &_data);
-    animationPreviewWindow<AP>("Animation Preview##SI", this, &_data);
-    exportOrderWindow<AP>("Export Order##SI", this, &_data);
+    animationPropertiesWindow<AP>("Animations##SI", _data, &_data->data);
+    animationPreviewWindow<AP>("Animation Preview##SI", _data, &_data->data);
+    exportOrderWindow<AP>("Export Order##SI", _data, &_data->data);
 }
 
-void SpriteImporterEditor::updateSelection()
-{
-    AbstractMetaSpriteEditor::updateSelection();
-
-    if (_framesSel.isSelectionChanging()) {
-        _tileHitboxSel.clearSelection();
-    }
-
-    _framesSel.update();
-
-    _tileHitboxSel.update();
-
-    _frameObjectsSel.update(_framesSel);
-    _actionPointsSel.update(_framesSel);
-    _entityHitboxesSel.update(_framesSel);
-}
-
-void SpriteImporterEditor::updateImageTexture()
+void SpriteImporterEditorGui::updateImageTexture()
 {
     // ::TODO update the texture when the PNG file changes::
+
+    assert(_data);
+    auto& fs = _data->data;
 
     if (_imageValid) {
         return;
     }
 
-    auto image = ImageCache::loadPngImage(_data.imageFilename);
+    auto image = ImageCache::loadPngImage(fs.imageFilename);
     assert(image);
 
-    Texture& texture = imageTexture();
-
     if (image->dataSize() != 0) {
-        texture.replace(*image);
+        _imageTexture.replace(*image);
     }
     else {
-        texture.replaceWithMissingImageSymbol();
+        _imageTexture.replaceWithMissingImageSymbol();
     }
 
     _imageValid = true;
     _transparentColorComboValid = false;
 }
 
-void SpriteImporterEditor::updateTransparentColorCombo()
+void SpriteImporterEditorGui::updateTransparentColorCombo()
 {
     constexpr static int MAX_COLORS = 32;
+
+    assert(_data);
+    auto& fs = _data->data;
 
     if (_transparentColorComboValid) {
         return;
     }
-    const auto& image = ImageCache::loadPngImage(_data.imageFilename);
+    const auto& image = ImageCache::loadPngImage(fs.imageFilename);
 
     _transparentColorCombo.clear();
 

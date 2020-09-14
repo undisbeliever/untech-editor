@@ -380,7 +380,7 @@ void ProjectListWindow::processGui(const UnTech::Project::ProjectFile& projectFi
 }
 
 void ProjectListWindow::processPendingActions(Project::ProjectFile& projectFile,
-                                              std::vector<std::unique_ptr<AbstractEditor>>& editors)
+                                              std::vector<std::unique_ptr<AbstractEditorData>>& editors)
 {
     switch (_state) {
     case State::SELECT_RESOURCE:
@@ -420,7 +420,7 @@ void ProjectListWindow::addResource(Project::ProjectFile& projectFile)
     }
 }
 
-void ProjectListWindow::removeResource(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditor>>& editors)
+void ProjectListWindow::removeResource(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors)
 {
     if (_selectedIndex == std::nullopt
         || _selectedIndex->type == EditorType::ProjectSettings) {

@@ -18,22 +18,17 @@ namespace UnTech::Gui {
 
 namespace RM = UnTech::Rooms;
 
-bool RoomEditor::_tilesetAndPaletteIndexValid = false;
-AabbGraphics RoomEditor::_graphics;
-
-std::shared_ptr<const EntityGraphics> RoomEditor::_entityGraphics = nullptr;
-
 static constexpr unsigned METATILE_SIZE_PX = MetaTiles::METATILE_SIZE_PX;
 
 // RoomEditor Action Policies
-struct RoomEditor::AP {
+struct RoomEditorData::AP {
     struct Room {
-        using EditorT = RoomEditor;
+        using EditorT = RoomEditorData;
         using EditorDataT = UnTech::Rooms::RoomInput;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._data;
+            return &editor.data;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
@@ -49,7 +44,7 @@ struct RoomEditor::AP {
 
         constexpr static size_t MAX_SIZE = RM::MAX_ROOM_ENTRANCES;
 
-        constexpr static auto SelectionPtr = &EditorT::_entrancesSel;
+        constexpr static auto SelectionPtr = &EditorT::entrancesSel;
 
         static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.entrances; }
     };
@@ -61,7 +56,7 @@ struct RoomEditor::AP {
 
         constexpr static size_t MAX_SIZE = RM::MAX_ENTITY_GROUPS;
 
-        constexpr static auto SelectionPtr = &EditorT::_entityGroupsSel;
+        constexpr static auto SelectionPtr = &EditorT::entityGroupsSel;
 
         static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.entityGroups; }
     };
@@ -70,13 +65,13 @@ struct RoomEditor::AP {
         using ListT = std::vector<UnTech::Rooms::EntityEntry>;
         using ListArgsT = std::tuple<unsigned>;
         using SelectionT = GroupMultipleSelection;
-        using ParentActionPolicy = RoomEditor::AP::EntityGroups;
+        using ParentActionPolicy = RoomEditorData::AP::EntityGroups;
 
         // ::TODO increase to RM::MAX_ENTITY_ENTRIES::
         // ::: Or maybe make a maximum of 64 entites per group::
         constexpr static size_t MAX_SIZE = 64;
 
-        constexpr static auto SelectionPtr = &EditorT::_entityEntriesSel;
+        constexpr static auto SelectionPtr = &EditorT::entityEntriesSel;
 
         static ListT* getList(EditorDataT& entityRomData, unsigned groupIndex)
         {
@@ -86,93 +81,134 @@ struct RoomEditor::AP {
     };
 };
 
-Texture& RoomEditor::entityTexture()
-{
-    static Texture texture;
-    return texture;
-}
-
-RoomEditor::RoomEditor(ItemIndex itemIndex)
-    : AbstractMetaTileEditor(itemIndex)
+RoomEditorData::RoomEditorData(ItemIndex itemIndex)
+    : AbstractMetaTileEditorData(itemIndex)
 {
 }
 
-bool RoomEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
+bool RoomEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
     // This function is called before undo/redo. Invalidate data so it can recalulated next frame.
-    AbstractMetaTileEditor::resetState();
 
-    _tilesetAndPaletteIndexValid = false;
-
-    const auto [data, fn] = fileListItem(&projectFile.rooms, itemIndex().index);
+    const auto [ptr, fn] = fileListItem(&projectFile.rooms, itemIndex().index);
     setFilename(fn);
-    if (data) {
-        _data = *data;
+    if (ptr) {
+        data = *ptr;
     }
-    return data != nullptr;
+    return ptr != nullptr;
 }
 
-void RoomEditor::saveFile() const
+void RoomEditorData::saveFile() const
 {
     assert(!filename().empty());
-    UnTech::Rooms::saveRoomInput(_data, filename());
+    UnTech::Rooms::saveRoomInput(data, filename());
 }
 
-void RoomEditor::editorOpened()
+void RoomEditorData::updateSelection()
 {
-    AbstractMetaTileEditor::editorOpened();
+    AbstractMetaTileEditorData::updateSelection();
 
-    setEditMode(EditMode::SelectObjects);
+    entrancesSel.update();
+    entityGroupsSel.update();
 
-    _mapSize = _data.map.size();
+    if (entityGroupsSel.hasSelection()) {
+        // Disable entity selection if the group is not selected.
+        for (unsigned groupIndex = 0; groupIndex < entityEntriesSel.MAX_GROUP_SIZE; groupIndex++) {
+            if (groupIndex != entityGroupsSel.selectedIndex()) {
+                entityEntriesSel.childSel(groupIndex).clearSelection();
+            }
+        }
+    }
+
+    entityEntriesSel.update();
 }
 
-void RoomEditor::editorClosed()
+grid<uint8_t>& RoomEditorData::map()
 {
-    // ::TODO find a way to save scrollbar positions and restore them when the editor is opened again::
+    return data.map;
 }
 
-grid<uint8_t>& RoomEditor::map()
+void RoomEditorData::mapTilesPlaced(const urect r)
 {
-    return _data.map;
-}
-
-void RoomEditor::mapTilesPlaced(const urect r)
-{
-    assert(_data.map.size().contains(r));
+    assert(data.map.size().contains(r));
 
     // ::TODO add grid editor action::
     EditorActions<AP::Room>::fieldEdited<
         &RM::RoomInput::map>(this);
 }
 
-void RoomEditor::selectedTilesetTilesChanged()
+void RoomEditorData::selectedTilesetTilesChanged()
 {
-    _selectedTiles.clear();
-    _selectedScratchpadTiles.clear();
+    selectedTiles.clear();
+    selectedScratchpadTiles.clear();
 }
 
-void RoomEditor::selectedTilesChanged()
+void RoomEditorData::selectedTilesChanged()
 {
-    _selectedTilesetTiles.clear();
-    _selectedScratchpadTiles.clear();
+    selectedTilesetTiles.clear();
+    selectedScratchpadTiles.clear();
 }
 
-void RoomEditor::selectedScratchpadTilesChanged()
+void RoomEditorData::selectedScratchpadTilesChanged()
 {
-    _selectedTiles.clear();
-    _selectedTilesetTiles.clear();
+    selectedTiles.clear();
+    selectedTilesetTiles.clear();
 }
 
-void RoomEditor::clearSelectedTiles()
+void RoomEditorData::clearSelectedTiles()
 {
-    _selectedTilesetTiles.clear();
-    _selectedTiles.clear();
-    _selectedScratchpadTiles.clear();
+    selectedTilesetTiles.clear();
+    selectedTiles.clear();
+    selectedScratchpadTiles.clear();
 }
 
-void RoomEditor::propertiesWindow(const Project::ProjectFile& projectFile)
+RoomEditorGui::RoomEditorGui()
+    : AbstractMetaTileEditorGui()
+    , _data(nullptr)
+    , _mapSize()
+    , _graphics()
+    , _entityTexture()
+    , _entityGraphics(nullptr)
+    , _tilesetAndPaletteIndexValid(false)
 {
+}
+
+bool RoomEditorGui::setEditorData(AbstractEditorData* data)
+{
+    AbstractMetaTileEditorGui::setEditorData(data);
+    return (_data = dynamic_cast<RoomEditorData*>(data));
+}
+
+void RoomEditorGui::editorDataChanged()
+{
+    AbstractMetaTileEditorGui::resetState();
+
+    _tilesetAndPaletteIndexValid = false;
+
+    if (_data) {
+        _mapSize = _data->data.map.size();
+    }
+}
+
+void RoomEditorGui::editorOpened()
+{
+    AbstractMetaTileEditorGui::editorOpened();
+
+    setEditMode(EditMode::SelectObjects);
+}
+
+void RoomEditorGui::editorClosed()
+{
+    AbstractMetaTileEditorGui::editorClosed();
+
+    // ::TODO find a way to save scrollbar positions and restore them when the editor is opened again::
+}
+
+void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
+{
+    assert(_data);
+    auto& room = _data->data;
+
     const static usize minMapSize(RM::RoomInput::MIN_MAP_WIDTH, RM::RoomInput::MIN_MAP_HEIGHT);
     const static usize maxMapSize(RM::RoomInput::MAX_MAP_WIDTH, RM::RoomInput::MAX_MAP_HEIGHT);
 
@@ -181,17 +217,17 @@ void RoomEditor::propertiesWindow(const Project::ProjectFile& projectFile)
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
 
-        ImGui::InputIdstring("Name", &_data.name);
+        ImGui::InputIdstring("Name", &room.name);
         if (ImGui::IsItemDeactivatedAfterEdit()) {
             EditorActions<AP::Room>::fieldEdited<
-                &RM::RoomInput::name>(this);
+                &RM::RoomInput::name>(_data);
         }
 
-        if (ImGui::IdStringCombo("Scene", &_data.scene, projectFile.resourceScenes.scenes)) {
+        if (ImGui::IdStringCombo("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
             _tilesetAndPaletteIndexValid = false;
 
             EditorActions<AP::Room>::fieldEdited<
-                &RM::RoomInput::scene>(this);
+                &RM::RoomInput::scene>(_data);
         }
 
         if (ImGui::InputUsize("Map Size", &_mapSize, maxMapSize)) {
@@ -200,25 +236,28 @@ void RoomEditor::propertiesWindow(const Project::ProjectFile& projectFile)
         }
         if (ImGui::IsItemDeactivatedAfterEdit()) {
             // ::TODO use a GridAction to resize scratchpad::
-            _data.map = _data.map.resized(_mapSize, 0);
+            room.map = room.map.resized(_mapSize, 0);
             EditorActions<AP::Room>::fieldEdited<
-                &RM::RoomInput::map>(this);
+                &RM::RoomInput::map>(_data);
         }
         if (!ImGui::IsItemActive()) {
             // ::TODO use callback to update scratchpad size::
-            _mapSize = _data.map.size();
+            _mapSize = room.map.size();
         }
     }
 
     ImGui::End();
 }
 
-void RoomEditor::entrancesWindow()
+void RoomEditorGui::entrancesWindow()
 {
+    assert(_data);
+    auto& room = _data->data;
+
     if (ImGui::Begin("Entrances##Room", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
         ImGui::SetWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
 
-        ListButtons<AP::Entrances>(this);
+        ListButtons<AP::Entrances>(_data);
 
         ImGui::BeginChild("Scroll");
 
@@ -234,16 +273,16 @@ void RoomEditor::entrancesWindow()
         ImGui::NextColumn();
         ImGui::Separator();
 
-        const usize bounds(_data.mapRight(), _data.mapBottom());
+        const usize bounds(room.mapRight(), room.mapBottom());
 
-        for (unsigned i = 0; i < _data.entrances.size(); i++) {
-            auto& en = _data.entrances.at(i);
+        for (unsigned i = 0; i < room.entrances.size(); i++) {
+            auto& en = room.entrances.at(i);
 
             bool edited = false;
 
             ImGui::PushID(i);
 
-            ImGui::Selectable(&_entrancesSel, i);
+            ImGui::Selectable(&_data->entrancesSel, i);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
@@ -261,7 +300,7 @@ void RoomEditor::entrancesWindow()
             ImGui::NextColumn();
 
             if (edited) {
-                ListActions<AP::Entrances>::itemEdited(this, i);
+                ListActions<AP::Entrances>::itemEdited(_data, i);
             }
 
             ImGui::PopID();
@@ -275,7 +314,7 @@ void RoomEditor::entrancesWindow()
     ImGui::End();
 }
 
-void RoomEditor::roomEntitiesWindow(const Project::ProjectFile& projectFile)
+void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
 {
     using namespace std::string_literals;
 
@@ -294,16 +333,19 @@ void RoomEditor::roomEntitiesWindow(const Project::ProjectFile& projectFile)
         "Entity Group OUT OF BOUNDS",
     };
 
+    assert(_data);
+    auto& room = _data->data;
+
     if (ImGui::Begin("Entities##Room_Entities", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
         ImGui::SetWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
 
-        const rect bounds = _data.validEntityArea();
+        const rect bounds = room.validEntityArea();
 
         ImGui::PushID("Entity Groups");
-        ListButtons<AP::EntityGroups>(this);
+        ListButtons<AP::EntityGroups>(_data);
         ImGui::PopID();
         ImGui::PushID("Entity Entries");
-        ListButtons<AP::EntityEntries>(this);
+        ListButtons<AP::EntityEntries>(_data);
         ImGui::PopID();
 
         ImGui::BeginChild("Scroll");
@@ -314,11 +356,11 @@ void RoomEditor::roomEntitiesWindow(const Project::ProjectFile& projectFile)
 
         unsigned entityId = 0;
 
-        const unsigned nGroups = std::min(_data.entityGroups.size(), entityGroupNames.size());
+        const unsigned nGroups = std::min(room.entityGroups.size(), entityGroupNames.size());
         for (unsigned groupIndex = 0; groupIndex < nGroups; groupIndex++) {
-            auto& group = _data.entityGroups.at(groupIndex);
+            auto& group = room.entityGroups.at(groupIndex);
 
-            if (ImGui::TreeNodeToggleSelection(entityGroupNames.at(groupIndex), &_entityGroupsSel, groupIndex)) {
+            if (ImGui::TreeNodeToggleSelection(entityGroupNames.at(groupIndex), &_data->entityGroupsSel, groupIndex)) {
                 {
                     bool edited = false;
 
@@ -326,7 +368,7 @@ void RoomEditor::roomEntitiesWindow(const Project::ProjectFile& projectFile)
                     edited |= ImGui::IsItemDeactivatedAfterEdit();
 
                     if (edited) {
-                        ListActions<AP::EntityGroups>::itemEdited(this, groupIndex);
+                        ListActions<AP::EntityGroups>::itemEdited(_data, groupIndex);
                     }
                 }
                 ImGui::Spacing();
@@ -341,7 +383,7 @@ void RoomEditor::roomEntitiesWindow(const Project::ProjectFile& projectFile)
                     const std::string selLabel = "Entity "s + std::to_string(entityId);
                     entityId++;
 
-                    ImGui::Selectable(selLabel.c_str(), &_entityEntriesSel, groupIndex, i);
+                    ImGui::Selectable(selLabel.c_str(), &_data->entityEntriesSel, groupIndex, i);
 
                     ImGui::Indent();
 
@@ -357,7 +399,7 @@ void RoomEditor::roomEntitiesWindow(const Project::ProjectFile& projectFile)
                     edited |= ImGui::IsItemDeactivatedAfterEdit();
 
                     if (edited) {
-                        ListActions<AP::EntityEntries>::itemEdited(this, groupIndex, i);
+                        ListActions<AP::EntityEntries>::itemEdited(_data, groupIndex, i);
                     }
 
                     ImGui::Unindent();
@@ -374,21 +416,23 @@ void RoomEditor::roomEntitiesWindow(const Project::ProjectFile& projectFile)
     ImGui::End();
 }
 
-void RoomEditor::drawObjects(ImDrawList* drawList) const
+void RoomEditorGui::drawObjects(ImDrawList* drawList)
 {
     assert(_entityGraphics);
+    assert(_data);
+    auto& room = _data->data;
 
     // ::TODO dynamic playerIds::
     constexpr unsigned playerId = 0;
 
-    const ImTextureID textureId = entityTexture().imguiTextureId();
+    const ImTextureID textureId = _entityTexture.imguiTextureId();
 
     // NOTE: pushing a textureId to the drawlist prevents me from drawing filled rects
     drawList->PushTextureID(textureId);
 
     // ::TODO show/hide entrances::
     if (true) {
-        for (const auto& entrance : _data.entrances) {
+        for (const auto& entrance : room.entrances) {
             _graphics.drawEntity(drawList, &entrance.position,
                                  textureId, _entityGraphics->settingsForPlayer(playerId), IM_COL32_WHITE);
         }
@@ -396,11 +440,11 @@ void RoomEditor::drawObjects(ImDrawList* drawList) const
 
     // ::TODO show/hide entities::
     if (true) {
-        const unsigned nGroups = std::min<size_t>(_entityEntriesSel.MAX_GROUP_SIZE, _data.entityGroups.size());
+        const unsigned nGroups = std::min<size_t>(_data->entityEntriesSel.MAX_GROUP_SIZE, room.entityGroups.size());
         for (unsigned groupIndex = 0; groupIndex < nGroups; groupIndex++) {
-            const auto& group = _data.entityGroups.at(groupIndex);
+            const auto& group = room.entityGroups.at(groupIndex);
 
-            const bool groupEnabled = _entityGroupsSel.selectedIndex() > nGroups || _entityGroupsSel.selectedIndex() == groupIndex;
+            const bool groupEnabled = _data->entityGroupsSel.selectedIndex() > nGroups || _data->entityGroupsSel.selectedIndex() == groupIndex;
 
             const ImU32 tint = groupEnabled ? IM_COL32_WHITE : Style::disabledEntityGroupTint;
 
@@ -413,25 +457,27 @@ void RoomEditor::drawObjects(ImDrawList* drawList) const
     }
 }
 
-void RoomEditor::drawAndEditObjects(ImDrawList* drawList)
+void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
 {
-    assert(_entityGraphics != nullptr);
+    assert(_entityGraphics);
+    assert(_data);
+    auto& room = _data->data;
 
     // ::TODO dynamic playerIds::
     constexpr unsigned playerId = 0;
 
-    const ImTextureID textureId = entityTexture().imguiTextureId();
+    const ImTextureID textureId = _entityTexture.imguiTextureId();
     // NOTE: Cannot push textureId to drawList - it prevents me from drawing filled rects.
 
     // ::TODO show/hide entrances::
     if (true) {
-        for (unsigned i = 0; i < _data.entrances.size(); i++) {
-            auto& entrance = _data.entrances.at(i);
+        for (unsigned i = 0; i < room.entrances.size(); i++) {
+            auto& entrance = room.entrances.at(i);
 
             _graphics.addEntity(drawList, &entrance.position,
                                 textureId, _entityGraphics->settingsForPlayer(playerId),
                                 Style::entranceFillColor, Style::entranceOutlineColor, IM_COL32_WHITE,
-                                &_entrancesSel, i);
+                                &_data->entrancesSel, i);
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
@@ -443,12 +489,12 @@ void RoomEditor::drawAndEditObjects(ImDrawList* drawList)
 
     // ::TODO show/hide entities::
     if (true) {
-        const unsigned nGroups = std::min<size_t>(_entityEntriesSel.MAX_GROUP_SIZE, _data.entityGroups.size());
+        const unsigned nGroups = std::min<size_t>(_data->entityEntriesSel.MAX_GROUP_SIZE, room.entityGroups.size());
         for (unsigned groupIndex = 0; groupIndex < nGroups; groupIndex++) {
-            auto& group = _data.entityGroups.at(groupIndex);
-            auto& childSel = _entityEntriesSel.childSel(groupIndex);
+            auto& group = room.entityGroups.at(groupIndex);
+            auto& childSel = _data->entityEntriesSel.childSel(groupIndex);
 
-            if (_entityGroupsSel.selectedIndex() > nGroups || _entityGroupsSel.selectedIndex() == groupIndex) {
+            if (_data->entityGroupsSel.selectedIndex() > nGroups || _data->entityGroupsSel.selectedIndex() == groupIndex) {
                 // No entity groups are selected or the  groupIndex is the selected group
 
                 for (unsigned i = 0; i < group.entities.size(); i++) {
@@ -487,8 +533,11 @@ void RoomEditor::drawAndEditObjects(ImDrawList* drawList)
     }
 }
 
-void RoomEditor::editorWindow()
+void RoomEditorGui::editorWindow()
 {
+    assert(_data);
+    auto& room = _data->data;
+
     // ::TODO shrink entity vertical spacing at the top of the map::
 
     if (ImGui::Begin("Room###Room_Editor")) {
@@ -499,7 +548,7 @@ void RoomEditor::editorWindow()
         ImGui::SameLine();
 
         ImGui::SetNextItemWidth(180);
-        ImGui::SingleSelectionNamedListCombo("##EntityGroupCombo", &_entityGroupsSel, _data.entityGroups, true);
+        ImGui::SingleSelectionNamedListCombo("##EntityGroupCombo", &_data->entityGroupsSel, room.entityGroups, true);
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::TextUnformatted("Selected Entity Group");
@@ -507,7 +556,8 @@ void RoomEditor::editorWindow()
         }
 
         if (selectObjectsButton()) {
-            clearSelectedTiles();
+            _data->clearSelectedTiles();
+            selectionChanged();
         }
         ImGui::SameLine();
         editModeButtons();
@@ -516,20 +566,20 @@ void RoomEditor::editorWindow()
 
         // ::TODO zoom::
         const ImVec2 zoom(2.0f, 2.0f);
-        const rect bounds = _data.validEntityArea();
+        const rect bounds = room.validEntityArea();
 
         ImDrawList* drawList = ImGui::GetWindowDrawList();
 
         _graphics.setDisabled(editMode() != EditMode::SelectObjects);
 
         _graphics.startLoop("Room", bounds, zoom,
-                            &_entrancesSel, &_entityEntriesSel);
+                            &_data->entrancesSel, &_data->entityEntriesSel);
 
         // ::TODO set initial scroll to position top-left of map ::
 
         const Geometry geo{
             ImVec2(METATILE_SIZE_PX * zoom.x, METATILE_SIZE_PX * zoom.y),
-            ImVec2(_data.map.width() * METATILE_SIZE_PX * zoom.x, _data.map.height() * METATILE_SIZE_PX * zoom.y),
+            ImVec2(room.map.width() * METATILE_SIZE_PX * zoom.x, room.map.height() * METATILE_SIZE_PX * zoom.y),
             _graphics.toVec2(0, 0),
             zoom
         };
@@ -543,12 +593,12 @@ void RoomEditor::editorWindow()
         }
 
         _graphics.endLoop(drawList,
-                          &_entrancesSel, &_entityEntriesSel);
+                          &_data->entrancesSel, &_data->entityEntriesSel);
 
         if (_graphics.isEditingFinished()) {
             // ::TODO add action macros::
-            ListActions<AP::Entrances>::selectedItemsEdited(this);
-            ListActions<AP::EntityEntries>::selectedItemsEdited(this);
+            ListActions<AP::Entrances>::selectedItemsEdited(_data);
+            ListActions<AP::EntityEntries>::selectedItemsEdited(_data);
         }
 
         ImGui::EndChild();
@@ -556,8 +606,12 @@ void RoomEditor::editorWindow()
     ImGui::End();
 }
 
-void RoomEditor::processGui(const Project::ProjectFile& projectFile)
+void RoomEditorGui::processGui(const Project::ProjectFile& projectFile)
 {
+    if (_data == nullptr) {
+        return;
+    }
+
     updateEntityGraphics();
     updateTilesetAndPaletteIndex(projectFile);
     updateTextures(projectFile);
@@ -571,32 +625,20 @@ void RoomEditor::processGui(const Project::ProjectFile& projectFile)
     minimapWindow("Minimap##Room");
     tilesetMinimapWindow("Tileset##Room");
 
-    if (scratchpadMinimapWindow("Scratchpad##Room", &_selectedScratchpadTiles, projectFile)) {
-        selectedScratchpadTilesChanged();
+    if (scratchpadMinimapWindow("Scratchpad##Room", &_data->selectedScratchpadTiles, projectFile)) {
+        _data->selectedScratchpadTilesChanged();
+        selectionChanged();
     }
 }
 
-void RoomEditor::updateSelection()
+void RoomEditorGui::selectionChanged()
 {
-    AbstractMetaTileEditor::updateSelection();
-
-    _entrancesSel.update();
-    _entityGroupsSel.update();
-
-    if (_entityGroupsSel.hasSelection()) {
-        // Disable entity selection if the group is not selected.
-        for (unsigned groupIndex = 0; groupIndex < _entityEntriesSel.MAX_GROUP_SIZE; groupIndex++) {
-            if (groupIndex != _entityGroupsSel.selectedIndex()) {
-                _entityEntriesSel.childSel(groupIndex).clearSelection();
-            }
-        }
-    }
-
-    _entityEntriesSel.update();
 }
 
-void RoomEditor::updateEntityGraphics()
+void RoomEditorGui::updateEntityGraphics()
 {
+    assert(_data);
+
     // ::TODO retrieve _entityGraphics from ProjectData::
     if (_entityGraphics != nullptr) {
         return;
@@ -605,11 +647,14 @@ void RoomEditor::updateEntityGraphics()
     // ::TODO populate EntityGraphics data::
     _entityGraphics = std::make_shared<EntityGraphics>();
 
-    entityTexture().replace(_entityGraphics->image());
+    _entityTexture.replace(_entityGraphics->image());
 }
 
-void RoomEditor::updateTilesetAndPaletteIndex(const Project::ProjectFile& projectFile)
+void RoomEditorGui::updateTilesetAndPaletteIndex(const Project::ProjectFile& projectFile)
 {
+    assert(_data);
+    auto& room = _data->data;
+
     // ::TODO invalidate tilesetIndex when ResourceScenes is compiled::
 
     if (_tilesetAndPaletteIndexValid) {
@@ -621,7 +666,7 @@ void RoomEditor::updateTilesetAndPaletteIndex(const Project::ProjectFile& projec
 
     // ::TODO use compiled data to get MetaTile id and palette id::
 
-    if (auto scene = projectFile.resourceScenes.scenes.find(_data.scene)) {
+    if (auto scene = projectFile.resourceScenes.scenes.find(room.scene)) {
         paletteIndex = projectFile.palettes.indexOf(scene->palette);
 
         if (auto sceneSettings = projectFile.resourceScenes.settings.find(scene->sceneSettings)) {

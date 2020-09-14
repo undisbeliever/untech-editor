@@ -16,14 +16,14 @@ static const char* memoryMapItems[] = {
 };
 
 // ProjectSettingsEditor Action Policies
-struct ProjectSettingsEditor::AP {
+struct ProjectSettingsEditorData::AP {
     struct MemoryMapSettings {
-        using EditorT = ProjectSettingsEditor;
+        using EditorT = ProjectSettingsEditorData;
         using EditorDataT = UnTech::Project::MemoryMapSettings;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._memoryMap;
+            return &editor.memoryMap;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
@@ -33,12 +33,12 @@ struct ProjectSettingsEditor::AP {
     };
 
     struct RoomSettings {
-        using EditorT = ProjectSettingsEditor;
+        using EditorT = ProjectSettingsEditorData;
         using EditorDataT = UnTech::Rooms::RoomSettings;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._roomSettings;
+            return &editor.roomSettings;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
@@ -48,46 +48,69 @@ struct ProjectSettingsEditor::AP {
     };
 };
 
-ProjectSettingsEditor::ProjectSettingsEditor(ItemIndex itemIndex)
-    : AbstractEditor(itemIndex)
+ProjectSettingsEditorData::ProjectSettingsEditorData(ItemIndex itemIndex)
+    : AbstractEditorData(itemIndex)
 {
 }
 
-bool ProjectSettingsEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
+bool ProjectSettingsEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
-    _memoryMap = projectFile.memoryMap;
-    _roomSettings = projectFile.roomSettings;
+    memoryMap = projectFile.memoryMap;
+    roomSettings = projectFile.roomSettings;
 
     return true;
 }
 
-void ProjectSettingsEditor::editorOpened()
+void ProjectSettingsEditorData::updateSelection()
 {
 }
 
-void ProjectSettingsEditor::editorClosed()
+ProjectSettingsEditorGui::ProjectSettingsEditorGui()
+    : AbstractEditorGui()
+    , _data(nullptr)
 {
 }
 
-void ProjectSettingsEditor::projectSettingsWindow()
+bool ProjectSettingsEditorGui::setEditorData(AbstractEditorData* data)
 {
+    return (_data = dynamic_cast<ProjectSettingsEditorData*>(data));
+}
+
+void ProjectSettingsEditorGui::editorDataChanged()
+{
+}
+
+void ProjectSettingsEditorGui::editorOpened()
+{
+}
+
+void ProjectSettingsEditorGui::editorClosed()
+{
+}
+
+void ProjectSettingsEditorGui::projectSettingsWindow()
+{
+    assert(_data);
+    auto& memoryMap = _data->memoryMap;
+    auto& roomSettings = _data->roomSettings;
+
     if (ImGui::Begin("Project Settings")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
         if (ImGui::TreeNodeEx("Memory Map", ImGuiTreeNodeFlags_DefaultOpen)) {
             bool edited = false;
 
-            edited |= ImGui::EnumCombo("Mapping Mode", &_memoryMap.mode, memoryMapItems, IM_ARRAYSIZE(memoryMapItems));
+            edited |= ImGui::EnumCombo("Mapping Mode", &memoryMap.mode, memoryMapItems, IM_ARRAYSIZE(memoryMapItems));
             ImGui::IsItemDeactivatedAfterEdit();
 
-            ImGui::InputUnsignedFormat("First Bank", &_memoryMap.firstBank, "0x%02X", ImGuiInputTextFlags_CharsHexadecimal);
+            ImGui::InputUnsignedFormat("First Bank", &memoryMap.firstBank, "0x%02X", ImGuiInputTextFlags_CharsHexadecimal);
             edited |= ImGui::IsItemDeactivatedAfterEdit();
 
-            ImGui::InputUnsigned("Number of Banks", &_memoryMap.nBanks, 0);
+            ImGui::InputUnsigned("Number of Banks", &memoryMap.nBanks, 0);
             edited |= ImGui::IsItemDeactivatedAfterEdit();
 
             if (edited) {
-                EditorActions<AP::MemoryMapSettings>::editorDataEdited(this);
+                EditorActions<AP::MemoryMapSettings>::editorDataEdited(_data);
             }
 
             ImGui::TreePop();
@@ -96,11 +119,11 @@ void ProjectSettingsEditor::projectSettingsWindow()
         if (ImGui::TreeNodeEx("Room Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
             bool edited = false;
 
-            ImGui::InputUnsignedFormat("Max Room Data Size", &_roomSettings.roomDataSize, "%u bytes");
+            ImGui::InputUnsignedFormat("Max Room Data Size", &roomSettings.roomDataSize, "%u bytes");
             edited |= ImGui::IsItemDeactivatedAfterEdit();
 
             if (edited) {
-                EditorActions<AP::RoomSettings>::editorDataEdited(this);
+                EditorActions<AP::RoomSettings>::editorDataEdited(_data);
             }
             ImGui::TreePop();
         }
@@ -108,13 +131,13 @@ void ProjectSettingsEditor::projectSettingsWindow()
     ImGui::End();
 }
 
-void ProjectSettingsEditor::processGui(const Project::ProjectFile&)
+void ProjectSettingsEditorGui::processGui(const Project::ProjectFile&)
 {
-    projectSettingsWindow();
-}
+    if (_data == nullptr) {
+        return;
+    }
 
-void ProjectSettingsEditor::updateSelection()
-{
+    projectSettingsWindow();
 }
 
 }

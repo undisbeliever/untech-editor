@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "gui/common/aabb-graphics.h"
 #include "gui/editors/abstract-metatile-editor.h"
 #include "gui/selection.h"
 #include "models/project/project.h"
@@ -15,34 +16,24 @@ namespace UnTech::Gui {
 class AabbGraphics;
 class EntityGraphics;
 
-class RoomEditor final : public AbstractMetaTileEditor {
+class RoomEditorData final : public AbstractMetaTileEditorData {
 private:
+    friend class RoomEditorGui;
     struct AP;
 
-    UnTech::Rooms::RoomInput _data;
-    usize _mapSize;
+    UnTech::Rooms::RoomInput data;
 
-    MultipleSelection _entrancesSel;
-    SingleSelection _entityGroupsSel;
-    GroupMultipleSelection _entityEntriesSel;
+    MultipleSelection entrancesSel;
+    SingleSelection entityGroupsSel;
+    GroupMultipleSelection entityEntriesSel;
 
-    upoint_vectorset _selectedScratchpadTiles;
-
-    static bool _tilesetAndPaletteIndexValid;
-
-    static AabbGraphics _graphics;
-    static std::shared_ptr<const EntityGraphics> _entityGraphics;
+    upoint_vectorset selectedScratchpadTiles;
 
 public:
-    RoomEditor(ItemIndex itemIndex);
+    RoomEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
     virtual void saveFile() const final;
-
-    virtual void editorOpened() final;
-    virtual void editorClosed() final;
-
-    virtual void processGui(const Project::ProjectFile& projectFile) final;
     virtual void updateSelection() final;
 
 protected:
@@ -51,8 +42,38 @@ protected:
 
     virtual void selectedTilesetTilesChanged() final;
     virtual void selectedTilesChanged() final;
+
     void selectedScratchpadTilesChanged();
     void clearSelectedTiles();
+};
+
+class RoomEditorGui final : public AbstractMetaTileEditorGui {
+private:
+    using AP = RoomEditorData::AP;
+
+    RoomEditorData* _data;
+
+    usize _mapSize;
+
+    AabbGraphics _graphics;
+    Texture _entityTexture;
+    std::shared_ptr<const EntityGraphics> _entityGraphics;
+
+    bool _tilesetAndPaletteIndexValid;
+
+public:
+    RoomEditorGui();
+
+    virtual bool setEditorData(AbstractEditorData* data) final;
+    virtual void editorDataChanged() final;
+
+    virtual void editorOpened() final;
+    virtual void editorClosed() final;
+
+    virtual void processGui(const Project::ProjectFile& projectFile) final;
+
+protected:
+    virtual void selectionChanged() final;
 
 private:
     void propertiesWindow(const Project::ProjectFile& projectFile);
@@ -61,15 +82,13 @@ private:
 
     void editorWindow();
 
-    void drawObjects(ImDrawList* drawList) const;
+    void drawObjects(ImDrawList* drawList);
     void drawAndEditObjects(ImDrawList* drawList);
 
     const grid<uint8_t>& scratchpad(const Project::ProjectFile& projectFile) const;
 
     void updateEntityGraphics();
     void updateTilesetAndPaletteIndex(const Project::ProjectFile& projectFile);
-
-    static Texture& entityTexture();
 };
 
 }

@@ -9,18 +9,44 @@
 #include "gui/abstract-editor.h"
 #include "gui/imgui.h"
 #include "gui/selection.h"
+#include "gui/texture.h"
 #include "models/common/vectorset-upoint.h"
 #include "models/common/vectorset.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
 
-class Texture;
-
-class AbstractMetaTileEditor : public AbstractExternalFileEditor {
+class AbstractMetaTileEditorData : public AbstractExternalFileEditorData {
 public:
+    friend class AbstractMetaTileEditorGui;
+
+protected:
+    SingleSelection paletteSel;
+    SingleSelection tilesetFrameSel;
+
+    vectorset<uint8_t> selectedTilesetTiles;
+
+    // For MetaTile Tileset editor: selected scratchpad tiles
+    // For Room editor: selected room map tiles
+    upoint_vectorset selectedTiles;
+
+public:
+    AbstractMetaTileEditorData(ItemIndex itemIndex);
+
+protected:
+    virtual grid<uint8_t>& map() = 0;
+    virtual void mapTilesPlaced(const urect r) = 0;
+
+    virtual void updateSelection() override;
+
+    virtual void selectedTilesChanged() = 0;
+    virtual void selectedTilesetTilesChanged() = 0;
+};
+
+class AbstractMetaTileEditorGui : public AbstractEditorGui {
     const static usize TILESET_TEXTURE_SIZE;
 
+public:
     enum class EditMode {
         None,
         SelectObjects,
@@ -30,7 +56,6 @@ public:
         // ::TODO add random cursor::
         // ::TODO add slope tiles cursor::
     };
-    struct CursorState;
 
     struct Geometry {
         ImVec2 tileSize;
@@ -46,20 +71,30 @@ public:
         ImVec2 tilePosToVec2(const point pos) const;
     };
 
-protected:
-    SingleSelection _paletteSel;
-    SingleSelection _tilesetFrameSel;
+    struct CursorState {
+        // Values greater than UINT8_MAX are transparent
+        grid<uint16_t> tiles;
 
-    vectorset<uint8_t> _selectedTilesetTiles;
+        point lastTilePos;
 
-    // For MetaTile Tileset editor: selected scratchpad tiles
-    // For Room editor: selected room map tiles
-    upoint_vectorset _selectedTiles;
+        urect modifiedTiles;
+
+        // Tiles drawn by the editor but not committed yet
+        bool mapDirty = false;
+        bool currentlyEditing = false;
+    };
 
 private:
-    // safe - only one editor open at any given time
-    static EditMode _currentEditMode;
-    static CursorState _cursor;
+    AbstractMetaTileEditorData* _data;
+
+    Texture _tilesetTexture;
+    Texture _tilesetCollisionsTexture;
+
+    EditMode _currentEditMode;
+    CursorState _cursor;
+
+    unsigned _selectedTilesetFrame;
+    unsigned _selectedTilesetPalette;
 
     unsigned _tilesetIndex;
     unsigned _paletteIndex;
@@ -68,13 +103,16 @@ private:
     bool _collisionTextureOutOfDate;
 
 public:
-    AbstractMetaTileEditor(ItemIndex itemIndex);
+    AbstractMetaTileEditorGui();
+
+    virtual bool setEditorData(AbstractEditorData* data);
+    virtual void editorDataChanged();
+
+    virtual void editorOpened();
+    virtual void editorClosed();
 
 protected:
-    virtual grid<uint8_t>& map() = 0;
-    virtual void mapTilesPlaced(const urect r) = 0;
-    virtual void selectedTilesChanged() = 0;
-    virtual void selectedTilesetTilesChanged() = 0;
+    virtual void selectionChanged() = 0;
 
     void markTexturesOutOfDate();
     void markTilesetTextureOutOfDate();
@@ -88,10 +126,6 @@ protected:
 
     // To be called in `loadDataFromProject`
     void resetState();
-
-    virtual void editorOpened() override;
-    virtual void editorClosed() override;
-    virtual void updateSelection() override;
 
     // AutoZoom will zoom based on the width of the window
     Geometry mapGeometry(const usize size, const ImVec2 zoom);
@@ -141,9 +175,6 @@ private:
 
     void updateTilesetTexture(const UnTech::MetaTiles::MetaTileTilesetInput& tileset);
     void updateCollisionsTexture(const UnTech::MetaTiles::MetaTileTilesetInput& tileset);
-
-    static Texture& tilesetTexture();
-    static Texture& tilesetCollisionsTexture();
 };
 
 }

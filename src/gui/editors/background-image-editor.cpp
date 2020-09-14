@@ -12,14 +12,14 @@
 namespace UnTech::Gui {
 
 // Background Image Action Policies
-struct BackgroundImageEditor::AP {
+struct BackgroundImageEditorData::AP {
     struct BackgroundImage {
-        using EditorT = BackgroundImageEditor;
+        using EditorT = BackgroundImageEditorData;
         using EditorDataT = UnTech::Resources::BackgroundImageInput;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._data;
+            return &editor.data;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
@@ -29,83 +29,105 @@ struct BackgroundImageEditor::AP {
     };
 };
 
-BackgroundImageEditor::BackgroundImageEditor(ItemIndex itemIndex)
-    : AbstractEditor(itemIndex)
+BackgroundImageEditorData::BackgroundImageEditorData(ItemIndex itemIndex)
+    : AbstractEditorData(itemIndex)
 {
 }
 
-bool BackgroundImageEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
+bool BackgroundImageEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
     const auto* bi = namedListItem(&projectFile.backgroundImages, itemIndex().index);
     if (bi) {
-        _data = *bi;
+        data = *bi;
     }
     return bi != nullptr;
 }
 
-void BackgroundImageEditor::editorOpened()
+void BackgroundImageEditorData::updateSelection()
+{
+}
+
+BackgroundImageEditorGui::BackgroundImageEditorGui()
+    : AbstractEditorGui()
+    , _data(nullptr)
+{
+}
+
+bool BackgroundImageEditorGui::setEditorData(AbstractEditorData* data)
+{
+    return (_data = dynamic_cast<BackgroundImageEditorData*>(data));
+}
+
+void BackgroundImageEditorGui::editorDataChanged()
+{
+    // ::TODO invalidate texture::
+}
+
+void BackgroundImageEditorGui::editorOpened()
 {
     // ::TODO load texture::
 }
 
-void BackgroundImageEditor::editorClosed()
+void BackgroundImageEditorGui::editorClosed()
 {
-    // ::TODO unload texture::
 }
 
-void BackgroundImageEditor::backgroundImageWindow(const Project::ProjectFile& projectFile)
+void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile& projectFile)
 {
     using namespace std::string_literals;
     using BackgroundImageInput = UnTech::Resources::BackgroundImageInput;
+
+    assert(_data);
+    auto& bi = _data->data;
 
     if (ImGui::Begin("Background Image")) {
         ImGui::SetWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
 
         {
-            ImGui::InputIdstring("Name", &_data.name);
+            ImGui::InputIdstring("Name", &bi.name);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::name>(this);
+                    &BackgroundImageInput::name>(_data);
             }
 
-            if (ImGui::InputUnsigned("Bit Depth", &_data.bitDepth, 0, 0, "%u bpp")) {
-                if (_data.isBitDepthValid() == false) {
-                    _data.bitDepth = 4;
+            if (ImGui::InputUnsigned("Bit Depth", &bi.bitDepth, 0, 0, "%u bpp")) {
+                if (bi.isBitDepthValid() == false) {
+                    bi.bitDepth = 4;
                 }
             }
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::bitDepth>(this);
+                    &BackgroundImageInput::bitDepth>(_data);
             }
 
-            if (ImGui::InputPngImageFilename("Image", &_data.imageFilename)) {
+            if (ImGui::InputPngImageFilename("Image", &bi.imageFilename)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::imageFilename>(this);
+                    &BackgroundImageInput::imageFilename>(_data);
 
                 // ::TODO mark texture out of date::
             }
 
-            if (ImGui::IdStringCombo("Conversion Palette", &_data.conversionPlette, projectFile.palettes)) {
+            if (ImGui::IdStringCombo("Conversion Palette", &bi.conversionPlette, projectFile.palettes)) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::conversionPlette>(this);
+                    &BackgroundImageInput::conversionPlette>(_data);
             }
 
-            ImGui::InputUnsigned("First Palette", &_data.firstPalette);
+            ImGui::InputUnsigned("First Palette", &bi.firstPalette);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::firstPalette>(this);
+                    &BackgroundImageInput::firstPalette>(_data);
             }
 
-            ImGui::InputUnsigned("Number of Palettes", &_data.nPalettes);
+            ImGui::InputUnsigned("Number of Palettes", &bi.nPalettes);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::nPalettes>(this);
+                    &BackgroundImageInput::nPalettes>(_data);
             }
 
-            ImGui::Checkbox("Default Order", &_data.defaultOrder);
+            ImGui::Checkbox("Default Order", &bi.defaultOrder);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::BackgroundImage>::fieldEdited<
-                    &BackgroundImageInput::defaultOrder>(this);
+                    &BackgroundImageInput::defaultOrder>(_data);
             }
         }
         ImGui::Spacing();
@@ -133,13 +155,13 @@ void BackgroundImageEditor::backgroundImageWindow(const Project::ProjectFile& pr
     ImGui::End();
 }
 
-void BackgroundImageEditor::processGui(const Project::ProjectFile& projectFile)
+void BackgroundImageEditorGui::processGui(const Project::ProjectFile& projectFile)
 {
-    backgroundImageWindow(projectFile);
-}
+    if (_data == nullptr) {
+        return;
+    }
 
-void BackgroundImageEditor::updateSelection()
-{
+    backgroundImageWindow(projectFile);
 }
 
 }

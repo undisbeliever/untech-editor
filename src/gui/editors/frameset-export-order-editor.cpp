@@ -19,14 +19,14 @@ static const char* flipItems[] = {
     "hvFlip",
 };
 
-struct FrameSetExportOrderEditor::AP {
+struct FrameSetExportOrderEditorData::AP {
     struct ExportOrder {
-        using EditorT = FrameSetExportOrderEditor;
+        using EditorT = FrameSetExportOrderEditorData;
         using EditorDataT = UnTech::MetaSprite::FrameSetExportOrder;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._data;
+            return &editor.data;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
@@ -46,7 +46,7 @@ struct FrameSetExportOrderEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
-        constexpr static auto SelectionPtr = &EditorT::_framesSel;
+        constexpr static auto SelectionPtr = &EditorT::framesSel;
 
         static ListT* getList(EditorDataT& editorData) { return &editorData.stillFrames; }
     };
@@ -58,7 +58,7 @@ struct FrameSetExportOrderEditor::AP {
 
         constexpr static size_t MAX_SIZE = 64;
 
-        constexpr static auto SelectionPtr = &EditorT::_frameAlternativesSel;
+        constexpr static auto SelectionPtr = &EditorT::frameAlternativesSel;
 
         static ListT* getList(EditorDataT& editorData, unsigned structIndex)
         {
@@ -74,7 +74,7 @@ struct FrameSetExportOrderEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
-        constexpr static auto SelectionPtr = &EditorT::_animationsSel;
+        constexpr static auto SelectionPtr = &EditorT::animationsSel;
 
         static ListT* getList(EditorDataT& editorData) { return &editorData.animations; }
     };
@@ -86,7 +86,7 @@ struct FrameSetExportOrderEditor::AP {
 
         constexpr static size_t MAX_SIZE = 64;
 
-        constexpr static auto SelectionPtr = &EditorT::_animationAlternativesSel;
+        constexpr static auto SelectionPtr = &EditorT::animationAlternativesSel;
 
         static ListT* getList(EditorDataT& editorData, unsigned structIndex)
         {
@@ -96,37 +96,60 @@ struct FrameSetExportOrderEditor::AP {
     };
 };
 
-FrameSetExportOrderEditor::FrameSetExportOrderEditor(ItemIndex itemIndex)
-    : AbstractExternalFileEditor(itemIndex)
+FrameSetExportOrderEditorData::FrameSetExportOrderEditorData(ItemIndex itemIndex)
+    : AbstractExternalFileEditorData(itemIndex)
 {
 }
 
-bool FrameSetExportOrderEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
+bool FrameSetExportOrderEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
-    const auto [data, fn] = fileListItem(&projectFile.frameSetExportOrders, itemIndex().index);
+    const auto [ptr, fn] = fileListItem(&projectFile.frameSetExportOrders, itemIndex().index);
     setFilename(fn);
-    if (data) {
-        _data = *data;
+    if (ptr) {
+        data = *ptr;
     }
-    return data != nullptr;
+    return ptr != nullptr;
 }
 
-void FrameSetExportOrderEditor::saveFile() const
+void FrameSetExportOrderEditorData::saveFile() const
 {
     assert(!filename().empty());
-    UnTech::MetaSprite::saveFrameSetExportOrder(_data, filename());
+    UnTech::MetaSprite::saveFrameSetExportOrder(data, filename());
 }
 
-void FrameSetExportOrderEditor::editorOpened()
+void FrameSetExportOrderEditorData::updateSelection()
+{
+    framesSel.update();
+    frameAlternativesSel.update(framesSel);
+    animationsSel.update();
+    animationAlternativesSel.update(animationsSel);
+}
+
+FrameSetExportOrderEditorGui::FrameSetExportOrderEditorGui()
+    : AbstractEditorGui()
+    , _data(nullptr)
 {
 }
 
-void FrameSetExportOrderEditor::editorClosed()
+bool FrameSetExportOrderEditorGui::setEditorData(AbstractEditorData* data)
+{
+    return (_data = dynamic_cast<FrameSetExportOrderEditorData*>(data));
+}
+
+void FrameSetExportOrderEditorGui::editorDataChanged()
+{
+}
+
+void FrameSetExportOrderEditorGui::editorOpened()
+{
+}
+
+void FrameSetExportOrderEditorGui::editorClosed()
 {
 }
 
 template <typename ExportNameAP>
-void FrameSetExportOrderEditor::exportNameTree(const char* label)
+void FrameSetExportOrderEditorGui::exportNameTree(const char* label)
 {
     using ExportName = UnTech::MetaSprite::FrameSetExportOrder::ExportName;
     using NameReference = UnTech::MetaSprite::NameReference;
@@ -135,8 +158,11 @@ void FrameSetExportOrderEditor::exportNameTree(const char* label)
     using AltAP = std::conditional_t<std::is_same_v<ExportNameAP, AP::Frames>, AP::FrameAlternatives, AP::AnimationsAlternatives>;
     using OtherNameAP = std::conditional_t<!std::is_same_v<ExportNameAP, AP::Frames>, AP::Frames, AP::Animations>;
 
-    SingleSelection& sel = this->*ExportNameAP::SelectionPtr;
-    MultipleChildSelection& altSel = this->*AltAP::SelectionPtr;
+    SingleSelection& sel = _data->*ExportNameAP::SelectionPtr;
+    MultipleChildSelection& altSel = _data->*AltAP::SelectionPtr;
+
+    assert(_data);
+    auto& exportOrder = _data->data;
 
     const auto indentSpacing = ImGui::GetStyle().IndentSpacing;
 
@@ -144,7 +170,7 @@ void FrameSetExportOrderEditor::exportNameTree(const char* label)
     ImGui::Spacing();
     if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::PushID(label);
-        ListButtons<ExportNameAP>(this);
+        ListButtons<ExportNameAP>(_data);
         ImGui::PopID();
 
         // Putting this code outside the `label` scope allows me to resize
@@ -157,7 +183,7 @@ void FrameSetExportOrderEditor::exportNameTree(const char* label)
 
         ImGui::PushID(label);
 
-        auto* list = ExportNameAP::getList(_data);
+        auto* list = ExportNameAP::getList(exportOrder);
         assert(list);
 
         for (size_t i = 0; i < list->size(); i++) {
@@ -167,19 +193,19 @@ void FrameSetExportOrderEditor::exportNameTree(const char* label)
 
             if (ImGui::Selectable(&sel, i)) {
                 // unselect the other items
-                (this->*OtherNameAP::SelectionPtr).clearSelection();
+                (_data->*OtherNameAP::SelectionPtr).clearSelection();
             }
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
             ImGui::InputIdstring("##Name", &en.name);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
-                ListActions<ExportNameAP>::template fieldEdited<&ExportName::name>(this, i);
+                ListActions<ExportNameAP>::template fieldEdited<&ExportName::name>(_data, i);
             }
             ImGui::NextColumn();
 
             if (sel.isSelected(i)) {
-                ListButtons<AltAP>(this);
+                ListButtons<AltAP>(_data);
             }
             ImGui::NextColumn();
 
@@ -193,7 +219,7 @@ void FrameSetExportOrderEditor::exportNameTree(const char* label)
                 ImGui::Indent(indentSpacing / 2);
                 if (ImGui::Selectable(&sel, &altSel, i, j)) {
                     // unselect the other items
-                    (this->*OtherNameAP::SelectionPtr).clearSelection();
+                    (_data->*OtherNameAP::SelectionPtr).clearSelection();
                 }
                 ImGui::Unindent(indentSpacing / 2);
                 ImGui::NextColumn();
@@ -216,7 +242,7 @@ void FrameSetExportOrderEditor::exportNameTree(const char* label)
                 ImGui::NextColumn();
 
                 if (edited) {
-                    ListActions<AltAP>::itemEdited(this, i, j);
+                    ListActions<AltAP>::itemEdited(_data, i, j);
                 }
 
                 ImGui::PopID();
@@ -232,19 +258,22 @@ void FrameSetExportOrderEditor::exportNameTree(const char* label)
     }
 }
 
-void FrameSetExportOrderEditor::exportOrderWindow()
+void FrameSetExportOrderEditorGui::exportOrderWindow()
 {
     using namespace std::string_literals;
 
-    const std::string windowName = _data.name + " Export Order###ExportOrder";
+    assert(_data);
+    auto& exportOrder = _data->data;
+
+    const std::string windowName = exportOrder.name + " Export Order###ExportOrder";
 
     if (ImGui::Begin(windowName.c_str())) {
         ImGui::SetWindowSize(ImVec2(550, 700), ImGuiCond_FirstUseEver);
 
-        ImGui::InputIdstring("Name", &_data.name);
+        ImGui::InputIdstring("Name", &exportOrder.name);
         if (ImGui::IsItemDeactivatedAfterEdit()) {
             EditorActions<AP::ExportOrder>::fieldEdited<
-                &MetaSprite::FrameSetExportOrder::name>(this);
+                &MetaSprite::FrameSetExportOrder::name>(_data);
         }
 
         ImGui::Spacing();
@@ -257,17 +286,13 @@ void FrameSetExportOrderEditor::exportOrderWindow()
     ImGui::End();
 }
 
-void FrameSetExportOrderEditor::processGui(const Project::ProjectFile&)
+void FrameSetExportOrderEditorGui::processGui(const Project::ProjectFile&)
 {
-    exportOrderWindow();
-}
+    if (_data == nullptr) {
+        return;
+    }
 
-void FrameSetExportOrderEditor::updateSelection()
-{
-    _framesSel.update();
-    _frameAlternativesSel.update(_framesSel);
-    _animationsSel.update();
-    _animationAlternativesSel.update(_animationsSel);
+    exportOrderWindow();
 }
 
 }

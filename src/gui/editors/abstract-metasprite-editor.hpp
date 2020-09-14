@@ -16,8 +16,14 @@
 
 namespace UnTech::Gui {
 
+inline void AbstractMetaSpriteEditorData::updateSelection()
+{
+    animationsSel.update();
+    animationFramesSel.update(animationsSel);
+}
+
 template <typename AP, typename EditorT, typename FrameSetT>
-void AbstractMetaSpriteEditor::animationPropertiesWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet)
+void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet)
 {
     using MsAnimation = UnTech::MetaSprite::Animation::Animation;
 
@@ -29,14 +35,14 @@ void AbstractMetaSpriteEditor::animationPropertiesWindow(const char* windowLabel
         ListButtons<typename AP::Animations>(editor);
 
         ImGui::SetNextItemWidth(-1);
-        ImGui::NamedListListBox("##AnimationList", &_animationsSel, frameSet->animations, 8);
+        ImGui::NamedListListBox("##AnimationList", &editor->animationsSel, frameSet->animations, 8);
 
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Spacing();
 
-        if (_animationsSel.selectedIndex() < frameSet->animations.size()) {
-            MsAnimation& animation = frameSet->animations.at(_animationsSel.selectedIndex());
+        if (editor->animationsSel.selectedIndex() < frameSet->animations.size()) {
+            MsAnimation& animation = frameSet->animations.at(editor->animationsSel.selectedIndex());
 
             {
                 ImGui::InputIdstring("Name", &animation.name);
@@ -91,7 +97,7 @@ void AbstractMetaSpriteEditor::animationPropertiesWindow(const char* windowLabel
 
                     ImGui::PushID(i);
 
-                    ImGui::Selectable(&_animationFramesSel, i);
+                    ImGui::Selectable(&editor->animationFramesSel, i);
                     ImGui::NextColumn();
 
                     ImGui::SetNextItemWidth(-1);
@@ -124,7 +130,7 @@ void AbstractMetaSpriteEditor::animationPropertiesWindow(const char* windowLabel
 }
 
 template <typename AP, typename EditorT, typename FrameSetT>
-void AbstractMetaSpriteEditor::animationPreviewWindow(const char* windowLabel, EditorT*, FrameSetT*)
+void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel, EditorT*, FrameSetT*)
 {
     if (ImGui::Begin(windowLabel)) {
         ImGui::SetWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
@@ -136,7 +142,7 @@ void AbstractMetaSpriteEditor::animationPreviewWindow(const char* windowLabel, E
 }
 
 template <typename AP, typename EditorT, typename FrameSetT>
-void AbstractMetaSpriteEditor::exportOrderWindow(const char* windowLabel, EditorT*, FrameSetT*)
+void AbstractMetaSpriteEditorGui::exportOrderWindow(const char* windowLabel, EditorT*, FrameSetT*)
 {
     if (ImGui::Begin(windowLabel)) {
         ImGui::SetWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
@@ -145,12 +151,6 @@ void AbstractMetaSpriteEditor::exportOrderWindow(const char* windowLabel, Editor
         ImGui::Text("::TODO Export Order Tree::");
     }
     ImGui::End();
-}
-
-inline void AbstractMetaSpriteEditor::updateSelection()
-{
-    _animationsSel.update();
-    _animationFramesSel.update(_animationsSel);
 }
 
 }

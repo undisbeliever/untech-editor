@@ -12,37 +12,51 @@
 
 namespace UnTech::Gui {
 
-class EntityRomDataEditor final : public AbstractEditor {
+class EntityRomDataEditorData final : public AbstractEditorData {
 public:
     using EntityType = UnTech::Entity::EntityType;
     using EntityRomEntry = UnTech::Entity::EntityRomEntry;
 
 private:
+    friend class EntityRomDataEditorGui;
     struct AP;
 
-    UnTech::Entity::EntityRomData _entityRomData;
+    UnTech::Entity::EntityRomData entityRomData;
 
-    MultipleSelection _listIdsSel;
+    MultipleSelection listIdsSel;
 
-    SingleSelection _structsSel;
-    MultipleChildSelection _structFieldsSel;
+    SingleSelection structsSel;
+    MultipleChildSelection structFieldsSel;
 
-    SingleSelection _functionTablesSel;
+    SingleSelection functionTablesSel;
 
-    SingleSelection _entitiesSel;
-    SingleSelection _projectilesSel;
-    SingleSelection _playersSel;
+    SingleSelection entitiesSel;
+    SingleSelection projectilesSel;
+    SingleSelection playersSel;
 
 public:
-    EntityRomDataEditor(ItemIndex itemIndex);
+    EntityRomDataEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    virtual void updateSelection() final;
+};
+
+class EntityRomDataEditorGui final : public AbstractEditorGui {
+private:
+    using AP = EntityRomDataEditorData::AP;
+
+    EntityRomDataEditorData* _data;
+
+public:
+    EntityRomDataEditorGui();
+
+    virtual bool setEditorData(AbstractEditorData* data) final;
+    virtual void editorDataChanged() final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
-    virtual void updateSelection() final;
 
 private:
     void listIdsWindow();

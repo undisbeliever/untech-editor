@@ -12,9 +12,9 @@
 namespace UnTech::Gui {
 
 // ActionPointsEditor Action Policies
-struct ActionPointsEditor::AP {
+struct ActionPointsEditorData::AP {
     struct ActionPointFunctions {
-        using EditorT = ActionPointsEditor;
+        using EditorT = ActionPointsEditorData;
         using EditorDataT = NamedList<UnTech::MetaSprite::ActionPointFunction>;
         using ListT = NamedList<UnTech::MetaSprite::ActionPointFunction>;
         using ListArgsT = std::tuple<>;
@@ -22,11 +22,11 @@ struct ActionPointsEditor::AP {
 
         constexpr static size_t MAX_SIZE = 255;
 
-        constexpr static auto SelectionPtr = &EditorT::_sel;
+        constexpr static auto SelectionPtr = &EditorT::sel;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._actionPointFunctions;
+            return &editor.actionPointFunctions;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
@@ -38,34 +38,57 @@ struct ActionPointsEditor::AP {
     };
 };
 
-ActionPointsEditor::ActionPointsEditor(ItemIndex itemIndex)
-    : AbstractEditor(itemIndex)
-    , _actionPointFunctions()
-    , _sel()
+ActionPointsEditorData::ActionPointsEditorData(ItemIndex itemIndex)
+    : AbstractEditorData(itemIndex)
+    , actionPointFunctions()
+    , sel()
 {
 }
 
-bool ActionPointsEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
+bool ActionPointsEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
-    _actionPointFunctions = projectFile.actionPointFunctions;
+    actionPointFunctions = projectFile.actionPointFunctions;
 
     return true;
 }
 
-void ActionPointsEditor::editorOpened()
+void ActionPointsEditorData::updateSelection()
+{
+    sel.update();
+}
+
+ActionPointsEditorGui::ActionPointsEditorGui()
+    : AbstractEditorGui()
+    , _data(nullptr)
 {
 }
 
-void ActionPointsEditor::editorClosed()
+bool ActionPointsEditorGui::setEditorData(AbstractEditorData* data)
+{
+    return (_data = dynamic_cast<ActionPointsEditorData*>(data));
+}
+
+void ActionPointsEditorGui::editorDataChanged()
 {
 }
 
-void ActionPointsEditor::actionPointsWindow()
+void ActionPointsEditorGui::editorOpened()
 {
+}
+
+void ActionPointsEditorGui::editorClosed()
+{
+}
+
+void ActionPointsEditorGui::actionPointsWindow()
+{
+    assert(_data);
+    auto& actionPointFunctions = _data->actionPointFunctions;
+
     if (ImGui::Begin("Action Points")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons<AP::ActionPointFunctions>(this);
+        ListButtons<AP::ActionPointFunctions>(_data);
 
         ImGui::BeginChild("Scroll");
 
@@ -80,14 +103,14 @@ void ActionPointsEditor::actionPointsWindow()
         ImGui::NextColumn();
         ImGui::Separator();
 
-        for (unsigned i = 0; i < _actionPointFunctions.size(); i++) {
-            auto& ap = _actionPointFunctions.at(i);
+        for (unsigned i = 0; i < actionPointFunctions.size(); i++) {
+            auto& ap = actionPointFunctions.at(i);
 
             bool edited = false;
 
             ImGui::PushID(i);
 
-            ImGui::Selectable(&_sel, i);
+            ImGui::Selectable(&_data->sel, i);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
@@ -100,7 +123,7 @@ void ActionPointsEditor::actionPointsWindow()
             ImGui::NextColumn();
 
             if (edited) {
-                ListActions<AP::ActionPointFunctions>::itemEdited(this, i);
+                ListActions<AP::ActionPointFunctions>::itemEdited(_data, i);
             }
 
             ImGui::PopID();
@@ -114,14 +137,13 @@ void ActionPointsEditor::actionPointsWindow()
     ImGui::End();
 }
 
-void ActionPointsEditor::processGui(const Project::ProjectFile&)
+void ActionPointsEditorGui::processGui(const Project::ProjectFile&)
 {
-    actionPointsWindow();
-}
+    if (_data == nullptr) {
+        return;
+    }
 
-void ActionPointsEditor::updateSelection()
-{
-    _sel.update();
+    actionPointsWindow();
 }
 
 }

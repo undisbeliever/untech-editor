@@ -89,13 +89,13 @@ int main(int argc, const char* argv[])
 {
     using namespace UnTech::Gui;
 
-    processProgramArguments(argc, argv);
-
     ImGuiLoop imgui;
     imgui.init("UnTech Editor");
 
     ImGuiIO& io = ImGui::GetIO();
     setupGui(io);
+
+    processProgramArguments(argc, argv);
 
     if (UnTechEditor::instance() == nullptr) {
         AboutPopup::openPopup();

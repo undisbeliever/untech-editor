@@ -12,24 +12,38 @@
 
 namespace UnTech::Gui {
 
-class InteractiveTilesEditor final : public AbstractEditor {
+class InteractiveTilesEditorData final : public AbstractEditorData {
 private:
+    friend class InteractiveTilesEditorGui;
     struct AP;
 
-    UnTech::MetaTiles::InteractiveTiles _interactiveTiles;
+    UnTech::MetaTiles::InteractiveTiles interactiveTiles;
 
-    MultipleSelection _sel;
+    MultipleSelection sel;
 
 public:
-    InteractiveTilesEditor(ItemIndex itemIndex);
+    InteractiveTilesEditorData(ItemIndex itemIndex);
 
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    virtual void updateSelection() final;
+};
+
+class InteractiveTilesEditorGui final : public AbstractEditorGui {
+private:
+    using AP = InteractiveTilesEditorData::AP;
+
+    InteractiveTilesEditorData* _data;
+
+public:
+    InteractiveTilesEditorGui();
+
+    virtual bool setEditorData(AbstractEditorData* data) final;
+    virtual void editorDataChanged() final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
-    virtual void updateSelection() final;
 
 private:
     void interactiveTilesWindow();

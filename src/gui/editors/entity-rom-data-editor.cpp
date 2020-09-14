@@ -31,14 +31,14 @@ static const char* entityTypeItems[] = {
 using EntityRomStruct = UnTech::Entity::EntityRomStruct;
 
 // EntityRomDataEditor Action Policies
-struct EntityRomDataEditor::AP {
+struct EntityRomDataEditorData::AP {
     struct EntityRomData {
-        using EditorT = EntityRomDataEditor;
+        using EditorT = EntityRomDataEditorData;
         using EditorDataT = UnTech::Entity::EntityRomData;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._entityRomData;
+            return &editor.entityRomData;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
@@ -54,7 +54,7 @@ struct EntityRomDataEditor::AP {
 
         constexpr static size_t MAX_SIZE = 64;
 
-        constexpr static auto SelectionPtr = &EditorT::_listIdsSel;
+        constexpr static auto SelectionPtr = &EditorT::listIdsSel;
 
         static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.listIds; }
     };
@@ -66,7 +66,7 @@ struct EntityRomDataEditor::AP {
 
         constexpr static size_t MAX_SIZE = 255;
 
-        constexpr static auto SelectionPtr = &EditorT::_structsSel;
+        constexpr static auto SelectionPtr = &EditorT::structsSel;
 
         static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.structs; }
     };
@@ -78,7 +78,7 @@ struct EntityRomDataEditor::AP {
 
         constexpr static size_t MAX_SIZE = 32;
 
-        constexpr static auto SelectionPtr = &EditorT::_structFieldsSel;
+        constexpr static auto SelectionPtr = &EditorT::structFieldsSel;
 
         static ListT* getList(EditorDataT& editorData, unsigned structIndex)
         {
@@ -94,7 +94,7 @@ struct EntityRomDataEditor::AP {
 
         constexpr static size_t MAX_SIZE = 255;
 
-        constexpr static auto SelectionPtr = &EditorT::_functionTablesSel;
+        constexpr static auto SelectionPtr = &EditorT::functionTablesSel;
 
         static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.functionTables; }
     };
@@ -106,7 +106,7 @@ struct EntityRomDataEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::Entity::MAX_N_ENTITY_ENTRIES;
 
-        constexpr static auto SelectionPtr = &EditorT::_entitiesSel;
+        constexpr static auto SelectionPtr = &EditorT::entitiesSel;
 
         static constexpr EntityType entityType = EntityType::ENTITY;
 
@@ -120,7 +120,7 @@ struct EntityRomDataEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::Entity::MAX_N_ENTITY_ENTRIES;
 
-        constexpr static auto SelectionPtr = &EditorT::_projectilesSel;
+        constexpr static auto SelectionPtr = &EditorT::projectilesSel;
 
         static constexpr EntityType entityType = EntityType::PROJECTILE;
 
@@ -134,7 +134,7 @@ struct EntityRomDataEditor::AP {
 
         constexpr static size_t MAX_SIZE = UnTech::Entity::MAX_N_ENTITY_ENTRIES;
 
-        constexpr static auto SelectionPtr = &EditorT::_playersSel;
+        constexpr static auto SelectionPtr = &EditorT::playersSel;
 
         static constexpr EntityType entityType = EntityType::PLAYER;
 
@@ -142,32 +142,61 @@ struct EntityRomDataEditor::AP {
     };
 };
 
-EntityRomDataEditor::EntityRomDataEditor(ItemIndex itemIndex)
-    : AbstractEditor(itemIndex)
+EntityRomDataEditorData::EntityRomDataEditorData(ItemIndex itemIndex)
+    : AbstractEditorData(itemIndex)
 {
 }
 
-bool EntityRomDataEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
+bool EntityRomDataEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
-    _entityRomData = projectFile.entityRomData;
+    entityRomData = projectFile.entityRomData;
 
     return true;
 }
 
-void EntityRomDataEditor::editorOpened()
+void EntityRomDataEditorData::updateSelection()
+{
+    listIdsSel.update();
+    structsSel.update();
+    structFieldsSel.update(structsSel);
+    functionTablesSel.update();
+    entitiesSel.update();
+    projectilesSel.update();
+    playersSel.update();
+}
+
+EntityRomDataEditorGui::EntityRomDataEditorGui()
+    : AbstractEditorGui()
+    , _data(nullptr)
 {
 }
 
-void EntityRomDataEditor::editorClosed()
+bool EntityRomDataEditorGui::setEditorData(AbstractEditorData* data)
+{
+    return (_data = dynamic_cast<EntityRomDataEditorData*>(data));
+}
+
+void EntityRomDataEditorGui::editorDataChanged()
 {
 }
 
-void EntityRomDataEditor::listIdsWindow()
+void EntityRomDataEditorGui::editorOpened()
 {
+}
+
+void EntityRomDataEditorGui::editorClosed()
+{
+}
+
+void EntityRomDataEditorGui::listIdsWindow()
+{
+    assert(_data);
+    auto& entityRomData = _data->entityRomData;
+
     if (ImGui::Begin("EntityListIds")) {
         ImGui::SetWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons<AP::ListIds>(this);
+        ListButtons<AP::ListIds>(_data);
 
         ImGui::BeginChild("Scroll");
 
@@ -179,14 +208,14 @@ void EntityRomDataEditor::listIdsWindow()
         ImGui::Text("Name");
         ImGui::NextColumn();
 
-        for (unsigned i = 0; i < _entityRomData.listIds.size(); i++) {
-            auto& listId = _entityRomData.listIds.at(i);
+        for (unsigned i = 0; i < entityRomData.listIds.size(); i++) {
+            auto& listId = entityRomData.listIds.at(i);
 
             bool edited = false;
 
             ImGui::PushID(i);
 
-            ImGui::Selectable(&_listIdsSel, i);
+            ImGui::Selectable(&_data->listIdsSel, i);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
@@ -195,7 +224,7 @@ void EntityRomDataEditor::listIdsWindow()
             ImGui::NextColumn();
 
             if (edited) {
-                ListActions<AP::ListIds>::itemEdited(this, i);
+                ListActions<AP::ListIds>::itemEdited(_data, i);
             }
 
             ImGui::PopID();
@@ -226,20 +255,23 @@ static const char* toString(const UnTech::Entity::DataType type)
     return i < IM_ARRAYSIZE(dataTypeItems) ? dataTypeItems[i] : "";
 }
 
-void EntityRomDataEditor::structsWindow()
+void EntityRomDataEditorGui::structsWindow()
 {
+    assert(_data);
+    auto& entityRomData = _data->entityRomData;
+
     if (ImGui::Begin("Entity Rom Structs")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
-        NamedListSidebar<AP::Structs>(this);
+        NamedListSidebar<AP::Structs>(_data);
 
         ImGui::SameLine();
 
         ImGui::BeginGroup();
         ImGui::BeginChild("Item");
         {
-            if (_structsSel.selectedIndex() < _entityRomData.structs.size()) {
-                auto& st = _entityRomData.structs.at(_structsSel.selectedIndex());
+            if (_data->structsSel.selectedIndex() < entityRomData.structs.size()) {
+                auto& st = entityRomData.structs.at(_data->structsSel.selectedIndex());
 
                 {
                     bool edited = false;
@@ -247,26 +279,26 @@ void EntityRomDataEditor::structsWindow()
                     ImGui::InputIdstring("Name", &st.name);
                     if (ImGui::IsItemDeactivatedAfterEdit()) {
                         ListActions<AP::Structs>::selectedFieldEdited<
-                            &UnTech::Entity::EntityRomStruct::name>(this);
+                            &UnTech::Entity::EntityRomStruct::name>(_data);
                     }
 
-                    edited = parentCombo("Parent", &st.parent, _entityRomData.structs, _structsSel.selectedIndex());
+                    edited = parentCombo("Parent", &st.parent, entityRomData.structs, _data->structsSel.selectedIndex());
                     if (edited) {
                         ListActions<AP::Structs>::selectedFieldEdited<
-                            &UnTech::Entity::EntityRomStruct::parent>(this);
+                            &UnTech::Entity::EntityRomStruct::parent>(_data);
                     }
 
                     ImGui::InputText("Comment", &st.comment);
                     if (ImGui::IsItemDeactivatedAfterEdit()) {
                         ListActions<AP::Structs>::selectedFieldEdited<
-                            &UnTech::Entity::EntityRomStruct::name>(this);
+                            &UnTech::Entity::EntityRomStruct::name>(_data);
                     }
                 }
 
                 ImGui::Separator();
 
                 {
-                    ListButtons<AP::StructFields>(this);
+                    ListButtons<AP::StructFields>(_data);
 
                     ImGui::BeginChild("Scroll");
 
@@ -288,7 +320,7 @@ void EntityRomDataEditor::structsWindow()
 
                     for (auto it = parentChain.rbegin(); it != parentChain.rend(); it++) {
                         const unsigned parentIndex = *it;
-                        const auto& parent = _entityRomData.structs.at(parentIndex);
+                        const auto& parent = entityRomData.structs.at(parentIndex);
 
                         for (unsigned i = 0; i < parent.fields.size(); i++) {
                             auto& field = parent.fields.at(i);
@@ -316,7 +348,7 @@ void EntityRomDataEditor::structsWindow()
 
                         ImGui::PushID(i);
 
-                        ImGui::Selectable(&_structFieldsSel, i);
+                        ImGui::Selectable(&_data->structFieldsSel, i);
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -339,7 +371,7 @@ void EntityRomDataEditor::structsWindow()
                         ImGui::NextColumn();
 
                         if (edited) {
-                            ListActions<AP::StructFields>::selectedListItemEdited(this, i);
+                            ListActions<AP::StructFields>::selectedListItemEdited(_data, i);
                         }
 
                         ImGui::PopID();
@@ -358,12 +390,15 @@ void EntityRomDataEditor::structsWindow()
     ImGui::End();
 }
 
-void EntityRomDataEditor::functionTablesWindow(const UnTech::Project::ProjectFile& projectFile)
+void EntityRomDataEditorGui::functionTablesWindow(const UnTech::Project::ProjectFile& projectFile)
 {
+    assert(_data);
+    auto& entityRomData = _data->entityRomData;
+
     if (ImGui::Begin("Entity Function Tables")) {
         ImGui::SetWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
 
-        ListButtons<AP::FunctionTables>(this);
+        ListButtons<AP::FunctionTables>(_data);
 
         ImGui::BeginChild("Scroll");
 
@@ -386,14 +421,14 @@ void EntityRomDataEditor::functionTablesWindow(const UnTech::Project::ProjectFil
         ImGui::NextColumn();
         ImGui::Separator();
 
-        for (unsigned i = 0; i < _entityRomData.functionTables.size(); i++) {
-            auto& ft = _entityRomData.functionTables.at(i);
+        for (unsigned i = 0; i < entityRomData.functionTables.size(); i++) {
+            auto& ft = entityRomData.functionTables.at(i);
 
             bool edited = false;
 
             ImGui::PushID(i);
 
-            ImGui::Selectable(&_functionTablesSel, i);
+            ImGui::Selectable(&_data->functionTablesSel, i);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
@@ -406,7 +441,7 @@ void EntityRomDataEditor::functionTablesWindow(const UnTech::Project::ProjectFil
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::IdStringCombo("##EntityStruct", &ft.entityStruct, _entityRomData.structs, true);
+            edited |= ImGui::IdStringCombo("##EntityStruct", &ft.entityStruct, entityRomData.structs, true);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
@@ -423,7 +458,7 @@ void EntityRomDataEditor::functionTablesWindow(const UnTech::Project::ProjectFil
             ImGui::NextColumn();
 
             if (edited) {
-                ListActions<AP::FunctionTables>::itemEdited(this, i);
+                ListActions<AP::FunctionTables>::itemEdited(_data, i);
             }
 
             ImGui::PopID();
@@ -438,18 +473,23 @@ void EntityRomDataEditor::functionTablesWindow(const UnTech::Project::ProjectFil
 }
 
 template <typename ActionPolicy>
-void EntityRomDataEditor::entityEntriesWindow(const char* name,
-                                              const Project::ProjectFile& projectFile)
+void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
+                                                 const Project::ProjectFile& projectFile)
 {
     using SelectionT = typename ActionPolicy::SelectionT;
+    using EntityRomEntry = UnTech::Entity::EntityRomEntry;
+    using EntityType = UnTech::Entity::EntityType;
+
+    assert(_data);
+    auto& entityRomData = _data->entityRomData;
 
     if (ImGui::Begin(name)) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
-        NamedListSidebar<ActionPolicy>(this);
+        NamedListSidebar<ActionPolicy>(_data);
 
-        SelectionT& sel = this->*ActionPolicy::SelectionPtr;
-        NamedList<EntityRomEntry>* list = ActionPolicy::getList(_entityRomData);
+        SelectionT& sel = _data->*ActionPolicy::SelectionPtr;
+        NamedList<EntityRomEntry>* list = ActionPolicy::getList(entityRomData);
 
         ImGui::SameLine();
 
@@ -464,19 +504,19 @@ void EntityRomDataEditor::entityEntriesWindow(const char* name,
                 ImGui::InputIdstring("Name", &entry.name);
                 edited |= ImGui::IsItemDeactivatedAfterEdit();
 
-                edited |= ImGui::IdStringCombo("Function Table", &entry.functionTable, _entityRomData.functionTables);
+                edited |= ImGui::IdStringCombo("Function Table", &entry.functionTable, entityRomData.functionTables);
 
-                const auto functionTable = _entityRomData.functionTables.find(entry.functionTable);
+                const auto functionTable = entityRomData.functionTables.find(entry.functionTable);
 
                 ImGui::InputText("Comment", &entry.comment);
                 edited |= ImGui::IsItemDeactivatedAfterEdit();
 
                 ImGui::Separator();
 
-                edited |= ImGui::IdStringCombo("initialProjectileId", &entry.initialListId, _entityRomData.projectiles);
+                edited |= ImGui::IdStringCombo("initialProjectileId", &entry.initialListId, entityRomData.projectiles);
 
                 if (ActionPolicy::entityType != EntityType::PLAYER) {
-                    edited |= ImGui::IdStringCombo("initialListId", &entry.initialListId, _entityRomData.listIds, false);
+                    edited |= ImGui::IdStringCombo("initialListId", &entry.initialListId, entityRomData.listIds, false);
                 }
 
                 edited |= ImGui::IdStringCombo("frameSetId", &entry.frameSetId, projectFile.frameSets, false,
@@ -500,7 +540,7 @@ void EntityRomDataEditor::entityEntriesWindow(const char* name,
                     unsigned id = 0;
 
                     for (auto it = structChain.rbegin(); it != structChain.rend(); it++) {
-                        auto& st = _entityRomData.structs.at(*it);
+                        auto& st = entityRomData.structs.at(*it);
 
                         for (unsigned i = 0; i < st.fields.size(); i++) {
                             auto& field = st.fields.at(i);
@@ -526,7 +566,7 @@ void EntityRomDataEditor::entityEntriesWindow(const char* name,
                 }
 
                 if (edited) {
-                    ListActions<ActionPolicy>::selectedItemEdited(this);
+                    ListActions<ActionPolicy>::selectedItemEdited(_data);
                 }
             }
         }
@@ -536,8 +576,12 @@ void EntityRomDataEditor::entityEntriesWindow(const char* name,
     ImGui::End();
 }
 
-void EntityRomDataEditor::processGui(const Project::ProjectFile& projectFile)
+void EntityRomDataEditorGui::processGui(const Project::ProjectFile& projectFile)
 {
+    if (_data == nullptr) {
+        return;
+    }
+
     listIdsWindow();
     structsWindow();
     functionTablesWindow(projectFile);
@@ -549,25 +593,17 @@ void EntityRomDataEditor::processGui(const Project::ProjectFile& projectFile)
     entityEntriesWindow<AP::Players>("Player ROM Entries", projectFile);
 }
 
-void EntityRomDataEditor::updateSelection()
-{
-    _listIdsSel.update();
-    _structsSel.update();
-    _structFieldsSel.update(_structsSel);
-    _functionTablesSel.update();
-    _entitiesSel.update();
-    _projectilesSel.update();
-    _playersSel.update();
-}
-
 // ::TODO replace with array_vector::
-std::vector<unsigned> EntityRomDataEditor::generateStructChain(const idstring& name) const
+std::vector<unsigned> EntityRomDataEditorGui::generateStructChain(const idstring& name) const
 {
+    assert(_data);
+    const auto& entityRomData = _data->entityRomData;
+
     std::vector<unsigned> items;
     items.reserve(8);
 
-    unsigned sIndex = _entityRomData.structs.indexOf(name);
-    while (sIndex < _entityRomData.structs.size()) {
+    unsigned sIndex = entityRomData.structs.indexOf(name);
+    while (sIndex < entityRomData.structs.size()) {
         const bool containsParent = std::find(items.begin(), items.end(), sIndex) != items.end();
         if (containsParent) {
             items.clear();
@@ -576,8 +612,8 @@ std::vector<unsigned> EntityRomDataEditor::generateStructChain(const idstring& n
 
         items.push_back(sIndex);
 
-        const auto& st = _entityRomData.structs.at(sIndex);
-        sIndex = _entityRomData.structs.indexOf(st.parent);
+        const auto& st = entityRomData.structs.at(sIndex);
+        sIndex = entityRomData.structs.indexOf(st.parent);
     }
 
     return items;

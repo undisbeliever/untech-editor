@@ -8,6 +8,7 @@
 
 #include "abstract-metasprite-editor.hpp"
 #include "gui/abstract-editor.h"
+#include "gui/common/aabb-graphics.h"
 #include "gui/imgui.h"
 #include "gui/selection.h"
 #include "gui/texture.h"
@@ -18,65 +19,86 @@ namespace UnTech::Gui {
 
 class AabbGraphics;
 
-class MetaSpriteEditor final : public AbstractMetaSpriteEditor {
+class MetaSpriteEditorData final : public AbstractMetaSpriteEditorData {
 private:
+    friend class MetaSpriteEditorGui;
     struct AP;
+
+    UnTech::MetaSprite::MetaSprite::FrameSet data;
+
+    // ::TODO SingleSelection that can never be cleared::
+    SingleSelection framesSel;
+
+    ToggleSelection tileHitboxSel;
+
+    MultipleChildSelection frameObjectsSel;
+    MultipleChildSelection actionPointsSel;
+    MultipleChildSelection entityHitboxesSel;
+
+    SingleSelection smallTilesetSel;
+    SingleSelection largeTilesetSel;
+
+    SingleSelection palettesSel;
+
+    bool _tileSelectionValid;
+
+public:
+    MetaSpriteEditorData(ItemIndex itemIndex);
+
+    virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
+    virtual void saveFile() const final;
+    virtual void updateSelection() final;
+
+protected:
+    void updateTileSelection();
+};
+
+class MetaSpriteEditorGui final : public AbstractMetaSpriteEditorGui {
+private:
+    using AP = MetaSpriteEditorData::AP;
 
     enum class PaletteState;
     using ObjectSize = UnTech::MetaSprite::ObjectSize;
 
-    UnTech::MetaSprite::MetaSprite::FrameSet _data;
+    MetaSpriteEditorData* _data;
 
-    // ::TODO SingleSelection that can never be cleared::
-    SingleSelection _framesSel;
-
-    ToggleSelection _tileHitboxSel;
-
-    MultipleChildSelection _frameObjectsSel;
-    MultipleChildSelection _actionPointsSel;
-    MultipleChildSelection _entityHitboxesSel;
-
-    SingleSelection _smallTilesetSel;
-    SingleSelection _largeTilesetSel;
-
-    SingleSelection _palettesSel;
-    static unsigned _colorSel;
-    static PaletteState _paletteState;
+    unsigned _colorSel;
+    PaletteState _paletteState;
 
     // ::TODO replace with 256 bit bitfield::
-    static vectorset<size_t> _editedTiles;
+    vectorset<size_t> _editedTiles;
 
     int _selectedEditorBgColor;
 
+    AabbGraphics _graphics;
+    Texture _paletteTexture;
+    Texture _tilesetTexture;
+
+    Image _paletteImage;
+    Image _tilesetImage;
+    ImU32 _paletteBackgroundColor;
+
+    ImVec2 _paletteUvSize;
+    ImVec2 _smallTilesetUvSize;
+    ImVec2 _largeTilesetUvSize;
+    ImVec2 _smallTilesetUVmax;
+    ImVec2 _largeTilesetUVmax;
+
+    bool _paletteValid;
+    bool _tilesetValid;
+
     static const char* colorPopupStrId;
 
-    static AabbGraphics _graphics;
-
-    static Image _paletteImage;
-    static Image _tilesetImage;
-    static ImU32 _paletteBackgroundColor;
-
-    static ImVec2 _paletteUvSize;
-    static ImVec2 _smallTilesetUvSize;
-    static ImVec2 _largeTilesetUvSize;
-    static ImVec2 _smallTilesetUVmax;
-    static ImVec2 _largeTilesetUVmax;
-
-    static bool _paletteValid;
-    static bool _tilesetValid;
-    static bool _tileSelectionValid;
-
 public:
-    MetaSpriteEditor(ItemIndex itemIndex);
+    MetaSpriteEditorGui();
 
-    virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) final;
-    virtual void saveFile() const final;
+    virtual bool setEditorData(AbstractEditorData* data) final;
+    virtual void editorDataChanged() final;
 
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
-    virtual void updateSelection() final;
 
 private:
     void frameSetPropertiesWindow(const Project::ProjectFile& projectFile);
@@ -94,12 +116,9 @@ private:
 
     ImU32 selectedPaletteBackground();
 
-    Texture& paletteTexture();
-    Texture& tilesetTexture();
-
     void updatePaletteTexture();
     void updateTilesetTexture();
-    void updateTileSelection();
+    void updateSelection();
 };
 
 }

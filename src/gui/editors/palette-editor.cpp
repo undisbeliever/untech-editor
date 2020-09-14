@@ -12,14 +12,14 @@
 namespace UnTech::Gui {
 
 // PaletteEditor Action Policies
-struct PaletteEditor::AP {
+struct PaletteEditorData::AP {
     struct Palette {
-        using EditorT = PaletteEditor;
+        using EditorT = PaletteEditorData;
         using EditorDataT = UnTech::Resources::PaletteInput;
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor._data;
+            return &editor.data;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex& itemIndex)
@@ -29,70 +29,92 @@ struct PaletteEditor::AP {
     };
 };
 
-PaletteEditor::PaletteEditor(ItemIndex itemIndex)
-    : AbstractEditor(itemIndex)
+PaletteEditorData::PaletteEditorData(ItemIndex itemIndex)
+    : AbstractEditorData(itemIndex)
 {
 }
 
-bool PaletteEditor::loadDataFromProject(const Project::ProjectFile& projectFile)
+bool PaletteEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
     const auto* p = namedListItem(&projectFile.palettes, itemIndex().index);
     if (p) {
-        _data = *p;
+        data = *p;
     }
     return p != nullptr;
 }
 
-void PaletteEditor::editorOpened()
+void PaletteEditorData::updateSelection()
+{
+}
+
+PaletteEditorGui::PaletteEditorGui()
+    : AbstractEditorGui()
+    , _data(nullptr)
+{
+}
+
+bool PaletteEditorGui::setEditorData(AbstractEditorData* data)
+{
+    return (_data = dynamic_cast<PaletteEditorData*>(data));
+}
+
+void PaletteEditorGui::editorDataChanged()
+{
+    // ::TODO invalidate texture::
+}
+
+void PaletteEditorGui::editorOpened()
 {
     // ::TODO load texture::
 }
 
-void PaletteEditor::editorClosed()
+void PaletteEditorGui::editorClosed()
 {
-    // ::TODO unload texture::
 }
 
-void PaletteEditor::paletteWindow()
+void PaletteEditorGui::paletteWindow()
 {
     using namespace std::string_literals;
     using PaletteInput = UnTech::Resources::PaletteInput;
 
-    const std::string windowName = _data.name + " Palette###Palette"s;
+    assert(_data);
+    auto& palette = _data->data;
+
+    const std::string windowName = palette.name + " Palette###Palette"s;
 
     if (ImGui::Begin(windowName.c_str())) {
         ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
         {
-            ImGui::InputIdstring("Name", &_data.name);
+            ImGui::InputIdstring("Name", &palette.name);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::name>(this);
+                    &PaletteInput::name>(_data);
             }
 
-            if (ImGui::InputPngImageFilename("Image", &_data.paletteImageFilename)) {
+            if (ImGui::InputPngImageFilename("Image", &palette.paletteImageFilename)) {
                 EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::paletteImageFilename>(this);
+                    &PaletteInput::paletteImageFilename>(_data);
 
                 // ::TODO mark texture out of date::
             }
 
-            ImGui::InputUnsigned("Rows Per Frame", &_data.rowsPerFrame);
+            ImGui::InputUnsigned("Rows Per Frame", &palette.rowsPerFrame);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::rowsPerFrame>(this);
+                    &PaletteInput::rowsPerFrame>(_data);
             }
 
-            ImGui::InputUnsigned("Animation Delay", &_data.animationDelay);
+            ImGui::InputUnsigned("Animation Delay", &palette.animationDelay);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::animationDelay>(this);
+                    &PaletteInput::animationDelay>(_data);
             }
 
-            ImGui::Checkbox("Skip First Frame", &_data.skipFirstFrame);
+            ImGui::Checkbox("Skip First Frame", &palette.skipFirstFrame);
             if (ImGui::IsItemDeactivatedAfterEdit()) {
                 EditorActions<AP::Palette>::fieldEdited<
-                    &PaletteInput::skipFirstFrame>(this);
+                    &PaletteInput::skipFirstFrame>(_data);
             }
         }
 
@@ -111,13 +133,13 @@ void PaletteEditor::paletteWindow()
     ImGui::End();
 }
 
-void PaletteEditor::processGui(const Project::ProjectFile&)
+void PaletteEditorGui::processGui(const Project::ProjectFile&)
 {
-    paletteWindow();
-}
+    if (_data == nullptr) {
+        return;
+    }
 
-void PaletteEditor::updateSelection()
-{
+    paletteWindow();
 }
 
 }

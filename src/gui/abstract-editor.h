@@ -31,12 +31,12 @@ public:
     virtual void redo(UnTech::Project::ProjectFile&) const = 0;
 };
 
-class AbstractEditor {
+class AbstractEditorData {
 public:
     constexpr static unsigned N_UNDO_ACTIONS = 200;
 
 private:
-    friend class AbstractExternalFileEditor;
+    friend class AbstractExternalFileEditorData;
     ItemIndex _itemIndex;
     std::string _basename;
 
@@ -47,14 +47,15 @@ private:
 
     bool _clean = true;
 
-public:
-    AbstractEditor(const ItemIndex itemIndex);
-    virtual ~AbstractEditor() = default;
+private:
+    AbstractEditorData(const AbstractEditorData&) = delete;
+    AbstractEditorData(AbstractEditorData&&) = delete;
+    AbstractEditorData& operator=(const AbstractEditorData&) = delete;
+    AbstractEditorData& operator=(AbstractEditorData&&) = delete;
 
-    AbstractEditor(const AbstractEditor&) = delete;
-    AbstractEditor(AbstractEditor&&) = delete;
-    AbstractEditor& operator=(const AbstractEditor&) = delete;
-    AbstractEditor& operator=(AbstractEditor&&) = delete;
+public:
+    AbstractEditorData(const ItemIndex itemIndex);
+    virtual ~AbstractEditorData() = default;
 
     ItemIndex itemIndex() const { return _itemIndex; }
 
@@ -64,12 +65,6 @@ public:
     // Return false if itemIndex is invalid.
     // If this editor is an `AbstractExternalFileEditor`, then you MUST call `setFilename` in this function.
     virtual bool loadDataFromProject(const Project::ProjectFile& projectFile) = 0;
-
-    virtual void editorOpened() = 0;
-    virtual void editorClosed() = 0;
-
-    // This is fine - only one Editor is active at any given time.
-    virtual void processGui(const Project::ProjectFile& projectFile) = 0;
 
     // Called after processGui and after an undo action has been processed.
     virtual void updateSelection() = 0;
@@ -93,13 +88,13 @@ private:
     void setItemIndex(const ItemIndex i) { _itemIndex = i; }
 };
 
-class AbstractExternalFileEditor : public AbstractEditor {
+class AbstractExternalFileEditorData : public AbstractEditorData {
 private:
     std::filesystem::path _filename;
 
 public:
-    AbstractExternalFileEditor(ItemIndex itemIndex)
-        : AbstractEditor(itemIndex)
+    AbstractExternalFileEditorData(ItemIndex itemIndex)
+        : AbstractEditorData(itemIndex)
         , _filename()
     {
     }
@@ -115,6 +110,33 @@ protected:
     void setFilename(const std::filesystem::path& fn);
 };
 
-std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);
+class AbstractEditorGui {
+private:
+    AbstractEditorGui(const AbstractEditorGui&) = delete;
+    AbstractEditorGui(AbstractEditorGui&&) = delete;
+    AbstractEditorGui& operator=(const AbstractEditorGui&) = delete;
+    AbstractEditorGui& operator=(AbstractEditorGui&&) = delete;
+
+public:
+    AbstractEditorGui() = default;
+    virtual ~AbstractEditorGui() = default;
+
+    virtual bool setEditorData(AbstractEditorData* data) = 0;
+
+    // Called when the editor data is changed outside this GUI class.
+    // (Note: also called after `setEditorData`)
+    // Called after undo, redo or setEditorData
+    virtual void editorDataChanged() = 0;
+
+    virtual void editorOpened() = 0;
+    virtual void editorClosed() = 0;
+
+    // This is fine - only one Editor is active at any given time.
+    virtual void processGui(const Project::ProjectFile& projectFile) = 0;
+};
+
+std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);
+
+std::vector<std::unique_ptr<AbstractEditorGui>> createEditorGuis();
 
 }

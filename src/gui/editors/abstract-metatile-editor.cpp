@@ -24,51 +24,35 @@ static constexpr unsigned TILESET_WIDTH = MetaTiles::TILESET_WIDTH;
 static constexpr unsigned TILESET_HEIGHT = MetaTiles::TILESET_HEIGHT;
 static constexpr unsigned N_TILE_COLLISONS = MetaTiles::N_TILE_COLLISONS;
 
-const usize AbstractMetaTileEditor::TILESET_TEXTURE_SIZE{
+const usize AbstractMetaTileEditorGui::TILESET_TEXTURE_SIZE{
     TILESET_WIDTH * METATILE_SIZE_PX,
     TILESET_HEIGHT* METATILE_SIZE_PX,
 };
 
-struct AbstractMetaTileEditor::CursorState {
-    // Values greater than UINT8_MAX are transparent
-    grid<uint16_t> tiles;
-
-    point lastTilePos;
-
-    urect modifiedTiles;
-
-    // Tiles drawn by the editor but not committed yet
-    bool mapDirty = false;
-    bool currentlyEditing = false;
-};
-AbstractMetaTileEditor::CursorState AbstractMetaTileEditor::_cursor;
-
-AbstractMetaTileEditor::EditMode AbstractMetaTileEditor::_currentEditMode = AbstractMetaTileEditor::EditMode::SelectTiles;
-
-point AbstractMetaTileEditor::Geometry::toTilePos(const ImVec2 globalPos) const
+point AbstractMetaTileEditorGui::Geometry::toTilePos(const ImVec2 globalPos) const
 {
     const ImVec2 mousePos = ImVec2(globalPos.x - offset.x, globalPos.y - offset.y);
     return point(std::floor(mousePos.x / tileSize.x), std::floor(mousePos.y / tileSize.y));
 }
 
-point AbstractMetaTileEditor::Geometry::toTilePos(const ImVec2 globalPos, const usize cursorSize) const
+point AbstractMetaTileEditorGui::Geometry::toTilePos(const ImVec2 globalPos, const usize cursorSize) const
 {
     const point p = toTilePos(globalPos);
     return point(p.x - int(cursorSize.width / 2), p.y - int(cursorSize.height / 2));
 }
 
-ImVec2 AbstractMetaTileEditor::Geometry::tilePosToVec2(const unsigned x, const unsigned y) const
+ImVec2 AbstractMetaTileEditorGui::Geometry::tilePosToVec2(const unsigned x, const unsigned y) const
 {
     return ImVec2(offset.x + tileSize.x * x,
                   offset.y + tileSize.y * y);
 }
 
-ImVec2 AbstractMetaTileEditor::Geometry::tilePosToVec2(const upoint pos) const
+ImVec2 AbstractMetaTileEditorGui::Geometry::tilePosToVec2(const upoint pos) const
 {
     return tilePosToVec2(pos.x, pos.y);
 }
 
-ImVec2 AbstractMetaTileEditor::Geometry::tilePosToVec2(const point pos) const
+ImVec2 AbstractMetaTileEditorGui::Geometry::tilePosToVec2(const point pos) const
 {
     return ImVec2(offset.x + tileSize.x * pos.x,
                   offset.y + tileSize.y * pos.y);
@@ -153,7 +137,7 @@ public:
 
     // Must be called after `invisibleButton()`
     bool processSelection(SelectionT* sel,
-                          const AbstractMetaTileEditor::Geometry& geo, const usize& size)
+                          const AbstractMetaTileEditorGui::Geometry& geo, const usize& size)
     {
         if (_mapSize != size) {
             _mapSize = size;
@@ -276,46 +260,63 @@ static TileSelector<vectorset<uint8_t>> tilesetSelector;
 static TileSelector<upoint_vectorset> editableTilesSelector;
 static TileSelector<upoint_vectorset> scratchpadTilesSelector;
 
-Texture& AbstractMetaTileEditor::tilesetTexture()
-{
-    static Texture texture(TILESET_TEXTURE_SIZE);
-    return texture;
-}
-
-Texture& AbstractMetaTileEditor::tilesetCollisionsTexture()
-{
-    static Texture texture(TILESET_TEXTURE_SIZE);
-    return texture;
-}
-
 // ::TODO animation::
 // ::TODO draw tiles from ProjectData::
 
-AbstractMetaTileEditor::AbstractMetaTileEditor(ItemIndex itemIndex)
-    : AbstractExternalFileEditor(itemIndex)
-    , _tilesetIndex(0)
-    , _paletteIndex(0)
+AbstractMetaTileEditorData::AbstractMetaTileEditorData(ItemIndex itemIndex)
+    : AbstractExternalFileEditorData(itemIndex)
+{
+}
+
+void AbstractMetaTileEditorData::updateSelection()
+{
+    paletteSel.update();
+    tilesetFrameSel.update();
+}
+
+AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
+    : AbstractEditorGui()
+    , _data(nullptr)
+    , _tilesetTexture(TILESET_TEXTURE_SIZE)
+    , _tilesetCollisionsTexture(TILESET_TEXTURE_SIZE)
+    , _currentEditMode(EditMode::SelectTiles)
+    , _cursor()
+    , _selectedTilesetFrame(INT_MAX)
+    , _selectedTilesetPalette(INT_MAX)
+    , _tilesetIndex(INT_MAX)
+    , _paletteIndex(INT_MAX)
+    , _tilesetTextureOutOfDate(true)
+    , _collisionTextureOutOfDate(true)
+{
+}
+
+bool AbstractMetaTileEditorGui::setEditorData(AbstractEditorData* data)
+{
+    return (_data = dynamic_cast<AbstractMetaTileEditorData*>(data));
+}
+
+void AbstractMetaTileEditorGui::editorDataChanged()
 {
     markTexturesOutOfDate();
 }
 
-void AbstractMetaTileEditor::markTexturesOutOfDate()
+void AbstractMetaTileEditorGui::markTexturesOutOfDate()
 {
     _tilesetTextureOutOfDate = true;
     _collisionTextureOutOfDate = true;
 }
 
-void AbstractMetaTileEditor::markTilesetTextureOutOfDate()
+void AbstractMetaTileEditorGui::markTilesetTextureOutOfDate()
 {
     _tilesetTextureOutOfDate = true;
 }
 
-void AbstractMetaTileEditor::markCollisionTextureOutOfDate()
+void AbstractMetaTileEditorGui::markCollisionTextureOutOfDate()
 {
     _collisionTextureOutOfDate = true;
 }
 
-void AbstractMetaTileEditor::setTilesetIndex(unsigned index)
+void AbstractMetaTileEditorGui::setTilesetIndex(unsigned index)
 {
     if (_tilesetIndex != index) {
         _tilesetIndex = index;
@@ -330,7 +331,7 @@ void AbstractMetaTileEditor::setTilesetIndex(unsigned index)
     }
 }
 
-void AbstractMetaTileEditor::setPaletteIndex(unsigned index)
+void AbstractMetaTileEditorGui::setPaletteIndex(unsigned index)
 {
     if (_paletteIndex != index) {
         _paletteIndex = index;
@@ -341,20 +342,22 @@ void AbstractMetaTileEditor::setPaletteIndex(unsigned index)
     }
 }
 
-void AbstractMetaTileEditor::resetState()
+void AbstractMetaTileEditorGui::resetState()
 {
     markTexturesOutOfDate();
     abandonPlacedTiles();
 }
 
-void AbstractMetaTileEditor::resetSelectorState()
+void AbstractMetaTileEditorGui::resetSelectorState()
 {
-    tilesetSelector.reset(_selectedTilesetTiles, usize(TILESET_WIDTH, TILESET_HEIGHT));
-    editableTilesSelector.reset(_selectedTiles, map().size());
+    assert(_data);
+
+    tilesetSelector.reset(_data->selectedTilesetTiles, usize(TILESET_WIDTH, TILESET_HEIGHT));
+    editableTilesSelector.reset(_data->selectedTiles, _data->map().size());
     scratchpadTilesSelector.reset();
 }
 
-void AbstractMetaTileEditor::editorOpened()
+void AbstractMetaTileEditorGui::editorOpened()
 {
     resetSelectorState();
 
@@ -365,27 +368,12 @@ void AbstractMetaTileEditor::editorOpened()
     markTexturesOutOfDate();
 }
 
-void AbstractMetaTileEditor::editorClosed()
+void AbstractMetaTileEditorGui::editorClosed()
 {
     commitPlacedTiles();
 }
 
-void AbstractMetaTileEditor::updateSelection()
-{
-    const auto oldPalette = _paletteSel.selectedIndex();
-    const auto oldTileset = _tilesetFrameSel.selectedIndex();
-
-    _paletteSel.update();
-    _tilesetFrameSel.update();
-
-    if (_paletteSel.selectedIndex() != oldPalette
-        || _tilesetFrameSel.selectedIndex() != oldTileset) {
-
-        _tilesetTextureOutOfDate = true;
-    }
-}
-
-static AbstractMetaTileEditor::Geometry blankGeometry()
+static AbstractMetaTileEditorGui::Geometry blankGeometry()
 {
     constexpr unsigned width = UnTech::Rooms::RoomInput::MIN_MAP_WIDTH;
     constexpr unsigned height = UnTech::Rooms::RoomInput::MIN_MAP_HEIGHT;
@@ -398,7 +386,7 @@ static AbstractMetaTileEditor::Geometry blankGeometry()
     return { tileSize, mapRenderSize, offset, zoom };
 }
 
-AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::mapGeometry(const usize s, const ImVec2 zoom)
+AbstractMetaTileEditorGui::Geometry AbstractMetaTileEditorGui::mapGeometry(const usize s, const ImVec2 zoom)
 {
     // Prevent an ImGui::InvisibleButton assert failure
     if (s.width == 0 || s.height == 0) {
@@ -411,7 +399,7 @@ AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::mapGeometry(const usize
     return { tileSize, mapRenderSize, offset, zoom };
 }
 
-AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::mapGeometryAutoZoom(const usize size)
+AbstractMetaTileEditorGui::Geometry AbstractMetaTileEditorGui::mapGeometryAutoZoom(const usize size)
 {
     // Prevent an ImGui::InvisibleButton assert failure
     if (size.width == 0 || size.height == 0) {
@@ -422,23 +410,23 @@ AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::mapGeometryAutoZoom(con
     return mapGeometry(size, ImVec2(zoom, zoom));
 }
 
-AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::tilesetGeometry(const ImVec2 zoom)
+AbstractMetaTileEditorGui::Geometry AbstractMetaTileEditorGui::tilesetGeometry(const ImVec2 zoom)
 {
     return mapGeometry(usize(TILESET_WIDTH, TILESET_HEIGHT), zoom);
 }
 
-AbstractMetaTileEditor::Geometry AbstractMetaTileEditor::tilesetGeometryAutoZoom()
+AbstractMetaTileEditorGui::Geometry AbstractMetaTileEditorGui::tilesetGeometryAutoZoom()
 {
     return mapGeometryAutoZoom(usize(TILESET_WIDTH, TILESET_HEIGHT));
 }
 
-void AbstractMetaTileEditor::invisibleButton(const char* label, const AbstractMetaTileEditor::Geometry& geo)
+void AbstractMetaTileEditorGui::invisibleButton(const char* label, const Geometry& geo)
 {
     ImGui::SetCursorScreenPos(geo.offset);
     ImGui::InvisibleButton(label, geo.mapSize);
 }
 
-void AbstractMetaTileEditor::drawGrid(ImDrawList* drawList, const Geometry& geo)
+void AbstractMetaTileEditorGui::drawGrid(ImDrawList* drawList, const Geometry& geo)
 {
     // ::TODO clip these to visible area::
     const float startX = geo.offset.x;
@@ -460,12 +448,14 @@ void AbstractMetaTileEditor::drawGrid(ImDrawList* drawList, const Geometry& geo)
     }
 }
 
-void AbstractMetaTileEditor::drawTileset(const Geometry& geo)
+void AbstractMetaTileEditorGui::drawTileset(const Geometry& geo)
 {
+    assert(_data);
+
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    drawList->AddImage(tilesetTexture().imguiTextureId(), geo.offset, geo.offset + geo.mapSize);
-    drawList->AddImage(tilesetCollisionsTexture().imguiTextureId(), geo.offset, geo.offset + geo.mapSize, ImVec2(0, 0), ImVec2(1, 1), Style::tileCollisionTint);
+    drawList->AddImage(_tilesetTexture.imguiTextureId(), geo.offset, geo.offset + geo.mapSize);
+    drawList->AddImage(_tilesetCollisionsTexture.imguiTextureId(), geo.offset, geo.offset + geo.mapSize, ImVec2(0, 0), ImVec2(1, 1), Style::tileCollisionTint);
 
     // ::TODO draw tile symbols::
 
@@ -473,7 +463,7 @@ void AbstractMetaTileEditor::drawTileset(const Geometry& geo)
     drawGrid(drawList, geo);
 
     // Draw selection
-    for (const uint8_t& tileId : _selectedTilesetTiles) {
+    for (const uint8_t& tileId : _data->selectedTilesetTiles) {
         const unsigned x = tileId % TILESET_WIDTH;
         const unsigned y = tileId / TILESET_WIDTH;
 
@@ -484,19 +474,22 @@ void AbstractMetaTileEditor::drawTileset(const Geometry& geo)
         drawList->AddRect(pMin, pMax, Style::tileSelectionOutlineColor, 0.0f, ImDrawCornerFlags_None);
     }
 
-    const bool sc = tilesetSelector.processSelection(&_selectedTilesetTiles, geo,
+    const bool sc = tilesetSelector.processSelection(&_data->selectedTilesetTiles, geo,
                                                      usize(TILESET_WIDTH, TILESET_HEIGHT));
     if (sc) {
         createTileCursorFromTilesetSelection();
         if (_currentEditMode == EditMode::SelectTiles) {
             setEditMode(EditMode::PlaceTiles);
         }
-        selectedTilesetTilesChanged();
+        _data->selectedTilesetTilesChanged();
+        selectionChanged();
     }
 }
 
-void AbstractMetaTileEditor::tilesetMinimapWindow(const char* label)
+void AbstractMetaTileEditorGui::tilesetMinimapWindow(const char* label)
 {
+    assert(_data);
+
     if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
         ImGui::SetWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
 
@@ -507,33 +500,38 @@ void AbstractMetaTileEditor::tilesetMinimapWindow(const char* label)
     ImGui::End();
 }
 
-void AbstractMetaTileEditor::minimapWindow(const char* label)
+void AbstractMetaTileEditorGui::minimapWindow(const char* label)
 {
+    assert(_data);
+
     if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
         ImGui::SetWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
 
-        const auto& map = this->map();
+        const auto& map = _data->map();
         if (!map.empty()) {
             const auto geo = mapGeometryAutoZoom(map.size());
             invisibleButton("##Map", geo);
             drawTiles(map, geo);
-            drawSelection(_selectedTiles, geo);
+            drawSelection(_data->selectedTiles, geo);
 
-            const bool sc = editableTilesSelector.processSelection(&_selectedTiles, geo, map.size());
+            const bool sc = editableTilesSelector.processSelection(&_data->selectedTiles, geo, map.size());
             if (sc) {
-                createTileCursor(map, _selectedTiles);
+                createTileCursor(map, _data->selectedTiles);
                 if (_currentEditMode == EditMode::SelectTiles) {
                     setEditMode(EditMode::PlaceTiles);
                 }
-                selectedTilesChanged();
+                _data->selectedTilesChanged();
+                selectionChanged();
             }
         }
     }
     ImGui::End();
 }
 
-bool AbstractMetaTileEditor::scratchpadMinimapWindow(const char* label, upoint_vectorset* sel, const Project::ProjectFile& projectFile)
+bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label, upoint_vectorset* sel, const Project::ProjectFile& projectFile)
 {
+    assert(_data);
+
     bool selChanged = false;
 
     if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
@@ -568,8 +566,10 @@ bool AbstractMetaTileEditor::scratchpadMinimapWindow(const char* label, upoint_v
     return selChanged;
 }
 
-void AbstractMetaTileEditor::drawTiles(const grid<uint8_t>& map, const Geometry& geo)
+void AbstractMetaTileEditorGui::drawTiles(const grid<uint8_t>& map, const Geometry& geo)
 {
+    assert(_data);
+
     if (map.empty()) {
         return;
     }
@@ -606,8 +606,8 @@ void AbstractMetaTileEditor::drawTiles(const grid<uint8_t>& map, const Geometry&
         drawList->PopTextureID();
     };
     // ::TODO make optional (based on style)::
-    drawTiles(tilesetTexture(), IM_COL32_WHITE);
-    drawTiles(tilesetCollisionsTexture(), Style::tileCollisionTint);
+    drawTiles(_tilesetTexture, IM_COL32_WHITE);
+    drawTiles(_tilesetCollisionsTexture, Style::tileCollisionTint);
 
     // ::TODO draw symbols::
 
@@ -615,7 +615,7 @@ void AbstractMetaTileEditor::drawTiles(const grid<uint8_t>& map, const Geometry&
     drawGrid(drawList, geo);
 }
 
-void AbstractMetaTileEditor::drawSelection(const upoint_vectorset& selection, const Geometry& geo)
+void AbstractMetaTileEditorGui::drawSelection(const upoint_vectorset& selection, const Geometry& geo)
 {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
@@ -629,9 +629,11 @@ void AbstractMetaTileEditor::drawSelection(const upoint_vectorset& selection, co
     }
 }
 
-void AbstractMetaTileEditor::drawAndEditMap(const Geometry& geo)
+void AbstractMetaTileEditorGui::drawAndEditMap(const Geometry& geo)
 {
-    const auto& map = this->map();
+    assert(_data);
+
+    const auto& map = _data->map();
     if (map.empty()) {
         return;
     }
@@ -645,13 +647,14 @@ void AbstractMetaTileEditor::drawAndEditMap(const Geometry& geo)
     }
 
     case EditMode::SelectTiles: {
-        drawSelection(_selectedTiles, geo);
+        drawSelection(_data->selectedTiles, geo);
 
-        const bool sc = editableTilesSelector.processSelection(&_selectedTiles, geo, map.size());
+        const bool sc = editableTilesSelector.processSelection(&_data->selectedTiles, geo, map.size());
         if (sc) {
-            createTileCursor(map, _selectedTiles);
+            createTileCursor(map, _data->selectedTiles);
             // Do not change mode in the editor
-            selectedTilesChanged();
+            _data->selectedTilesChanged();
+            selectionChanged();
         }
         break;
     }
@@ -674,7 +677,7 @@ void AbstractMetaTileEditor::drawAndEditMap(const Geometry& geo)
     }
 }
 
-void AbstractMetaTileEditor::processEditMode(const Geometry& geo)
+void AbstractMetaTileEditorGui::processEditMode(const Geometry& geo)
 {
     // Edit window has focus or editable map item is active
 
@@ -714,9 +717,11 @@ void AbstractMetaTileEditor::processEditMode(const Geometry& geo)
     }
 }
 
-void AbstractMetaTileEditor::drawCursorTiles(const grid<uint16_t>& tiles, const point& cursorPos, const Geometry& geo)
+void AbstractMetaTileEditorGui::drawCursorTiles(const grid<uint16_t>& tiles, const point& cursorPos, const Geometry& geo)
 {
-    const auto& map = this->map();
+    assert(_data);
+
+    const auto& map = _data->map();
     if (map.empty() || tiles.empty()) {
         return;
     }
@@ -728,7 +733,7 @@ void AbstractMetaTileEditor::drawCursorTiles(const grid<uint16_t>& tiles, const 
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    const ImTextureID textureId = tilesetTexture().imguiTextureId();
+    const ImTextureID textureId = _tilesetTexture.imguiTextureId();
 
     const ImVec2 startingPos = geo.tilePosToVec2(cursorPos);
 
@@ -785,9 +790,11 @@ void AbstractMetaTileEditor::drawCursorTiles(const grid<uint16_t>& tiles, const 
     }
 }
 
-void AbstractMetaTileEditor::placeTiles(const grid<uint16_t>& tiles, const point cursorPos)
+void AbstractMetaTileEditorGui::placeTiles(const grid<uint16_t>& tiles, const point cursorPos)
 {
-    auto& map = this->map();
+    assert(_data);
+
+    auto& map = _data->map();
     if (map.empty() || tiles.empty()) {
         return;
     }
@@ -860,22 +867,24 @@ void AbstractMetaTileEditor::placeTiles(const grid<uint16_t>& tiles, const point
     }
 }
 
-void AbstractMetaTileEditor::commitPlacedTiles()
+void AbstractMetaTileEditorGui::commitPlacedTiles()
 {
+    assert(_data);
+
     if (_cursor.mapDirty) {
-        mapTilesPlaced(_cursor.modifiedTiles);
+        _data->mapTilesPlaced(_cursor.modifiedTiles);
         _cursor.mapDirty = false;
     }
     _cursor.currentlyEditing = false;
 }
 
-void AbstractMetaTileEditor::abandonPlacedTiles()
+void AbstractMetaTileEditorGui::abandonPlacedTiles()
 {
     _cursor.mapDirty = false;
     _cursor.currentlyEditing = false;
 }
 
-void AbstractMetaTileEditor::setEditMode(AbstractMetaTileEditor::EditMode mode)
+void AbstractMetaTileEditorGui::setEditMode(EditMode mode)
 {
     if (_currentEditMode != mode) {
         _currentEditMode = mode;
@@ -884,7 +893,7 @@ void AbstractMetaTileEditor::setEditMode(AbstractMetaTileEditor::EditMode mode)
     }
 }
 
-bool AbstractMetaTileEditor::selectObjectsButton()
+bool AbstractMetaTileEditorGui::selectObjectsButton()
 {
     const bool clicked = ImGui::ToggledButton("Select Objects", _currentEditMode == EditMode::SelectObjects);
     if (clicked) {
@@ -893,7 +902,7 @@ bool AbstractMetaTileEditor::selectObjectsButton()
     return clicked;
 }
 
-void AbstractMetaTileEditor::editModeButtons()
+void AbstractMetaTileEditorGui::editModeButtons()
 {
     auto b = [&](const char* label, EditMode mode) {
         if (ImGui::ToggledButton(label, _currentEditMode == mode)) {
@@ -906,7 +915,7 @@ void AbstractMetaTileEditor::editModeButtons()
     b("Place Tiles", EditMode::PlaceTiles);
 }
 
-void AbstractMetaTileEditor::setTileCursor(grid<uint16_t>&& tileCursor)
+void AbstractMetaTileEditorGui::setTileCursor(grid<uint16_t>&& tileCursor)
 {
     commitPlacedTiles();
 
@@ -966,15 +975,17 @@ static grid<uint16_t> cursorFromSelection(const SelectionT& selection, const usi
     return cursor;
 }
 
-void AbstractMetaTileEditor::createTileCursorFromTilesetSelection()
+void AbstractMetaTileEditorGui::createTileCursorFromTilesetSelection()
 {
+    assert(_data);
+
     setTileCursor(cursorFromSelection(
-        _selectedTilesetTiles, usize(TILESET_WIDTH, TILESET_HEIGHT),
+        _data->selectedTilesetTiles, usize(TILESET_WIDTH, TILESET_HEIGHT),
         [&](uint8_t tId) { return upoint(tId % TILESET_WIDTH, tId / TILESET_WIDTH); },
         [&](uint8_t tId) { return tId; }));
 }
 
-void AbstractMetaTileEditor::createTileCursor(const grid<uint8_t>& map, const upoint_vectorset& selection)
+void AbstractMetaTileEditorGui::createTileCursor(const grid<uint8_t>& map, const upoint_vectorset& selection)
 {
     setTileCursor(cursorFromSelection(
         selection, map.size(),
@@ -982,29 +993,40 @@ void AbstractMetaTileEditor::createTileCursor(const grid<uint8_t>& map, const up
         [&](upoint p) { return map.at(p); }));
 }
 
-void AbstractMetaTileEditor::updateTextures(const Project::ProjectFile& projectFile)
+void AbstractMetaTileEditorGui::updateTextures(const Project::ProjectFile& projectFile)
 {
+    assert(_data);
+
+    if (_selectedTilesetFrame != _data->tilesetFrameSel.selectedIndex()) {
+        _selectedTilesetFrame = _data->tilesetFrameSel.selectedIndex();
+        _tilesetTextureOutOfDate = true;
+    }
+    if (_selectedTilesetPalette != _data->paletteSel.selectedIndex()) {
+        _selectedTilesetPalette = _data->paletteSel.selectedIndex();
+        _tilesetTextureOutOfDate = true;
+    }
+
     if (_tilesetTextureOutOfDate == false && _collisionTextureOutOfDate == false) {
         return;
     }
 
     if (_tilesetIndex >= projectFile.metaTileTilesets.size()) {
         setPaletteIndex(INT_MAX);
-        tilesetTexture().replaceWithMissingImageSymbol();
-        tilesetCollisionsTexture().replaceWithMissingImageSymbol();
+        _tilesetTexture.replaceWithMissingImageSymbol();
+        _tilesetCollisionsTexture.replaceWithMissingImageSymbol();
         return;
     }
 
     const auto* tileset = projectFile.metaTileTilesets.at(_tilesetIndex);
     if (tileset == nullptr) {
         setPaletteIndex(INT_MAX);
-        tilesetTexture().replaceWithMissingImageSymbol();
-        tilesetCollisionsTexture().replaceWithMissingImageSymbol();
+        _tilesetTexture.replaceWithMissingImageSymbol();
+        _tilesetCollisionsTexture.replaceWithMissingImageSymbol();
         return;
     }
 
-    if (_paletteSel.selectedIndex() < tileset->palettes.size()) {
-        const auto& paletteName = tileset->palettes.at(_paletteSel.selectedIndex());
+    if (_data->paletteSel.selectedIndex() < tileset->palettes.size()) {
+        const auto& paletteName = tileset->palettes.at(_data->paletteSel.selectedIndex());
         setPaletteIndex(projectFile.palettes.indexOf(paletteName));
     }
     else {
@@ -1020,38 +1042,41 @@ void AbstractMetaTileEditor::updateTextures(const Project::ProjectFile& projectF
     }
 }
 
-void AbstractMetaTileEditor::updateTilesetTexture(const MetaTiles::MetaTileTilesetInput& tileset)
+void AbstractMetaTileEditorGui::updateTilesetTexture(const MetaTiles::MetaTileTilesetInput& tileset)
 {
+    assert(_data);
+
     if (false) {
         // ::TODO draw tileset from projectData::
     }
     else {
         const auto& filenames = tileset.animationFrames.frameImageFilenames;
 
-        unsigned i = _tilesetFrameSel.selectedIndex();
-        if (i >= filenames.size()) {
-            i = 0;
-            _tilesetFrameSel.setSelected(0);
+        if (_selectedTilesetFrame >= filenames.size()) {
+            _selectedTilesetFrame = 0;
+            _data->tilesetFrameSel.setSelected(0);
         }
 
         std::shared_ptr<const Image> image;
-        if (i < filenames.size()) {
-            image = ImageCache::loadPngImage(filenames.at(i));
+        if (_selectedTilesetFrame < filenames.size()) {
+            image = ImageCache::loadPngImage(filenames.at(_selectedTilesetFrame));
         }
 
         if (image && image->size() == TILESET_TEXTURE_SIZE) {
-            tilesetTexture().replace(*image);
+            _tilesetTexture.replace(*image);
         }
         else {
-            tilesetTexture().replaceWithMissingImageSymbol();
+            _tilesetTexture.replaceWithMissingImageSymbol();
         }
     }
 
     _tilesetTextureOutOfDate = false;
 }
 
-void AbstractMetaTileEditor::updateCollisionsTexture(const MetaTiles::MetaTileTilesetInput& tileset)
+void AbstractMetaTileEditorGui::updateCollisionsTexture(const MetaTiles::MetaTileTilesetInput& tileset)
 {
+    assert(_data);
+
     static Image img(TILESET_TEXTURE_SIZE);
 
     assert(tileCollisionImage.size().width == TILE_COLLISION_IMAGE_WIDTH);
@@ -1084,7 +1109,7 @@ void AbstractMetaTileEditor::updateCollisionsTexture(const MetaTiles::MetaTileTi
     }
     assert(it == tileset.tileCollisions.end());
 
-    tilesetCollisionsTexture().replace(img);
+    _tilesetCollisionsTexture.replace(img);
 
     _collisionTextureOutOfDate = false;
 }

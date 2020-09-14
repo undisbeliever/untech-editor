@@ -27,12 +27,12 @@ namespace UnTech::Gui {
 // ::TODO replace with a circular buffer::
 void trimStack(std::vector<std::unique_ptr<EditorUndoAction>>& stack)
 {
-    while (stack.size() > AbstractEditor::N_UNDO_ACTIONS) {
+    while (stack.size() > AbstractEditorData::N_UNDO_ACTIONS) {
         stack.erase(stack.begin());
     }
 }
 
-AbstractEditor::AbstractEditor(const ItemIndex itemIndex)
+AbstractEditorData::AbstractEditorData(const ItemIndex itemIndex)
     : _itemIndex(itemIndex)
     , _basename()
     , _pendingActions()
@@ -42,12 +42,12 @@ AbstractEditor::AbstractEditor(const ItemIndex itemIndex)
 {
 }
 
-void AbstractEditor::addAction(std::unique_ptr<EditorUndoAction>&& action)
+void AbstractEditorData::addAction(std::unique_ptr<EditorUndoAction>&& action)
 {
     _pendingActions.push_back(std::move(action));
 }
 
-void AbstractEditor::processPendingActions(Project::ProjectFile& projectFile)
+void AbstractEditorData::processPendingActions(Project::ProjectFile& projectFile)
 {
     const auto pendingSize = _pendingActions.size();
 
@@ -78,7 +78,7 @@ void AbstractEditor::processPendingActions(Project::ProjectFile& projectFile)
     updateSelection();
 }
 
-void AbstractEditor::undo(Project::ProjectFile& projectFile)
+void AbstractEditorData::undo(Project::ProjectFile& projectFile)
 {
     if (_undoStack.empty()) {
         return;
@@ -110,7 +110,7 @@ void AbstractEditor::undo(Project::ProjectFile& projectFile)
     updateSelection();
 }
 
-void AbstractEditor::redo(Project::ProjectFile& projectFile)
+void AbstractEditorData::redo(Project::ProjectFile& projectFile)
 {
     if (_redoStack.empty()) {
         return;
@@ -142,14 +142,14 @@ void AbstractEditor::redo(Project::ProjectFile& projectFile)
     updateSelection();
 }
 
-void AbstractExternalFileEditor::setFilename(const std::filesystem::path& fn)
+void AbstractExternalFileEditorData::setFilename(const std::filesystem::path& fn)
 {
     _filename = fn;
     _basename = _filename.filename();
 }
 
-std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex,
-                                             const UnTech::Project::ProjectFile& projectFile)
+std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
+                                                 const UnTech::Project::ProjectFile& projectFile)
 {
     using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
 
@@ -157,25 +157,25 @@ std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex,
     case EditorType::ProjectSettings: {
         switch (ProjectSettingsIndex(itemIndex.index)) {
         case ProjectSettingsIndex::ProjectSettings:
-            return std::make_unique<ProjectSettingsEditor>(itemIndex);
+            return std::make_unique<ProjectSettingsEditorData>(itemIndex);
 
         case ProjectSettingsIndex::InteractiveTiles:
-            return std::make_unique<InteractiveTilesEditor>(itemIndex);
+            return std::make_unique<InteractiveTilesEditorData>(itemIndex);
 
         case ProjectSettingsIndex::ActionPoints:
-            return std::make_unique<ActionPointsEditor>(itemIndex);
+            return std::make_unique<ActionPointsEditorData>(itemIndex);
 
         case ProjectSettingsIndex::EntityRomData:
-            return std::make_unique<EntityRomDataEditor>(itemIndex);
+            return std::make_unique<EntityRomDataEditorData>(itemIndex);
 
         case ProjectSettingsIndex::Scenes:
-            return std::make_unique<ScenesEditor>(itemIndex);
+            return std::make_unique<ScenesEditorData>(itemIndex);
         }
         return nullptr;
     }
 
     case EditorType::FrameSetExportOrders:
-        return std::make_unique<FrameSetExportOrderEditor>(itemIndex);
+        return std::make_unique<FrameSetExportOrderEditorData>(itemIndex);
 
     case EditorType::FrameSets: {
         if (itemIndex.index < projectFile.frameSets.size()) {
@@ -184,29 +184,54 @@ std::unique_ptr<AbstractEditor> createEditor(ItemIndex itemIndex,
                 return nullptr;
 
             case FrameSetType::METASPRITE:
-                return std::make_unique<MetaSpriteEditor>(itemIndex);
+                return std::make_unique<MetaSpriteEditorData>(itemIndex);
 
             case FrameSetType::SPRITE_IMPORTER:
-                return std::make_unique<SpriteImporterEditor>(itemIndex);
+                return std::make_unique<SpriteImporterEditorData>(itemIndex);
             }
         }
         return nullptr;
     }
 
     case EditorType::Palettes:
-        return std::make_unique<PaletteEditor>(itemIndex);
+        return std::make_unique<PaletteEditorData>(itemIndex);
 
     case EditorType::BackgroundImages:
-        return std::make_unique<BackgroundImageEditor>(itemIndex);
+        return std::make_unique<BackgroundImageEditorData>(itemIndex);
 
     case EditorType::MataTileTilesets:
-        return std::make_unique<MetaTileTilesetEditor>(itemIndex);
+        return std::make_unique<MetaTileTilesetEditorData>(itemIndex);
 
     case EditorType::Rooms:
-        return std::make_unique<RoomEditor>(itemIndex);
+        return std::make_unique<RoomEditorData>(itemIndex);
     }
 
     return nullptr;
+}
+
+std::vector<std::unique_ptr<AbstractEditorGui>> createEditorGuis()
+{
+    constexpr unsigned N_ELEMENTS = 12;
+
+    std::vector<std::unique_ptr<AbstractEditorGui>> ret;
+    ret.reserve(N_ELEMENTS);
+
+    ret.push_back(std::make_unique<ProjectSettingsEditorGui>());
+    ret.push_back(std::make_unique<InteractiveTilesEditorGui>());
+    ret.push_back(std::make_unique<ActionPointsEditorGui>());
+    ret.push_back(std::make_unique<EntityRomDataEditorGui>());
+    ret.push_back(std::make_unique<ScenesEditorGui>());
+    ret.push_back(std::make_unique<FrameSetExportOrderEditorGui>());
+    ret.push_back(std::make_unique<MetaSpriteEditorGui>());
+    ret.push_back(std::make_unique<SpriteImporterEditorGui>());
+    ret.push_back(std::make_unique<PaletteEditorGui>());
+    ret.push_back(std::make_unique<BackgroundImageEditorGui>());
+    ret.push_back(std::make_unique<MetaTileTilesetEditorGui>());
+    ret.push_back(std::make_unique<RoomEditorGui>());
+
+    assert(ret.size() == N_ELEMENTS);
+
+    return ret;
 }
 
 }

@@ -11,15 +11,24 @@
 
 namespace UnTech::Gui {
 
-class AbstractMetaSpriteEditor : public AbstractExternalFileEditor {
+class AbstractMetaSpriteEditorData : public AbstractExternalFileEditorData {
 protected:
-    SingleSelection _animationsSel;
-    MultipleChildSelection _animationFramesSel;
+    friend class AbstractMetaSpriteEditorGui;
 
-    AbstractMetaSpriteEditor(ItemIndex itemIndex)
-        : AbstractExternalFileEditor(itemIndex)
+    SingleSelection animationsSel;
+    MultipleChildSelection animationFramesSel;
+
+    AbstractMetaSpriteEditorData(ItemIndex itemIndex)
+        : AbstractExternalFileEditorData(itemIndex)
     {
     }
+
+    virtual void updateSelection() override;
+};
+
+class AbstractMetaSpriteEditorGui : public AbstractEditorGui {
+protected:
+    AbstractMetaSpriteEditorGui() = default;
 
     template <typename AP, typename EditorT, typename FrameSetT>
     void animationPropertiesWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet);
@@ -29,8 +38,6 @@ protected:
 
     template <typename AP, typename EditorT, typename FrameSetT>
     void exportOrderWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet);
-
-    virtual void updateSelection() override;
 };
 
 }
