@@ -216,4 +216,15 @@ bool EnumCombo(const char* label, UnTech::Resources::LayerType* v)
     return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
 }
 
+bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags)
+{
+    return BeginCombo(label, current.c_str(), flags);
+}
+
+bool IdStringCombo(const char* label, UnTech::idstring* value, const std::vector<UnTech::idstring>& list, bool includeBlank)
+{
+    return IdStringCombo(label, value, list, includeBlank,
+                         [](const UnTech::idstring& name) { return &name; });
+}
+
 }

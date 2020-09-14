@@ -6,6 +6,7 @@
 
 #include "background-image-editor.h"
 #include "gui/editor-actions.h"
+#include "gui/imgui-combos.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 

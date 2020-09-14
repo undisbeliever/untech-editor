@@ -12,6 +12,83 @@
 
 namespace ImGui {
 
+bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags = 0);
+
+bool IdStringCombo(const char* label, UnTech::idstring* value, const std::vector<UnTech::idstring>& list,
+                   bool includeBlank = false);
+
+template <class ListT, typename UnaryFunction>
+bool IdStringComboSelection(UnTech::idstring* value, const ListT& list, bool includeBlank, UnaryFunction getter)
+{
+    bool changed = false;
+
+    if (includeBlank) {
+        const bool selected = value->isValid() == false;
+        if (ImGui::Selectable("", selected)) {
+            if (!selected) {
+                *value = UnTech::idstring();
+                changed = true;
+            }
+        }
+    }
+    for (unsigned i = 0; i < list.size(); i++) {
+        const UnTech::idstring* name = getter(list.at(i));
+
+        if (name && name->isValid()) {
+            ImGui::PushID(i);
+
+            const bool selected = (*name == *value);
+            if (ImGui::Selectable(name->str().c_str(), selected)) {
+                if (!selected) {
+                    *value = *name;
+                    changed = true;
+                }
+            }
+
+            ImGui::PopID();
+        }
+    }
+
+    return changed;
+}
+
+template <class T>
+bool IdStringComboSelection(UnTech::idstring* value, const UnTech::NamedList<T>& list, bool includeBlank)
+{
+    return IdStringComboSelection(value, list, includeBlank,
+                                  [](const T& item) { return &item.name; });
+}
+
+template <class ListT, typename UnaryFunction>
+inline bool IdStringCombo(const char* label, UnTech::idstring* value, const ListT& list, bool includeBlank,
+                          UnaryFunction getter)
+{
+    bool changed = false;
+
+    if (ImGui::BeginCombo(label, value->str())) {
+        changed = IdStringComboSelection(value, list, includeBlank, getter);
+        ImGui::EndCombo();
+    }
+
+    return changed;
+}
+
+template <class T>
+bool IdStringCombo(const char* label, UnTech::idstring* value, const UnTech::NamedList<T>& list,
+                   bool includeBlank = false)
+{
+    return IdStringCombo(label, value, list, includeBlank,
+                         [](const T& item) { return &item.name; });
+}
+
+template <class T>
+bool IdStringCombo(const char* label, UnTech::idstring* value, const UnTech::ExternalFileList<T>& list,
+                   bool includeBlank = false)
+{
+    return IdStringCombo(label, value, list, includeBlank,
+                         [](const T* item) { return item ? &item->name : nullptr; });
+}
+
 template <class ListT>
 void SingleSelectionNamedListCombo(const char* label, UnTech::Gui::SingleSelection* sel, const ListT& list, bool includeBlank)
 {

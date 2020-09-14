@@ -409,15 +409,4 @@ bool Selectable(UnTech::Gui::SingleSelection* parentSel, UnTech::Gui::MultipleCh
     return Selectable(label.c_str(), parentSel, sel, parent, i, flags);
 }
 
-bool BeginCombo(const char* label, const std::string& current, ImGuiComboFlags flags)
-{
-    return BeginCombo(label, current.c_str(), flags);
-}
-
-bool IdStringCombo(const char* label, UnTech::idstring* value, const std::vector<UnTech::idstring>& list, bool includeBlank)
-{
-    return IdStringCombo(label, value, list, includeBlank,
-                         [](const UnTech::idstring& name) { return &name; });
-}
-
 }
