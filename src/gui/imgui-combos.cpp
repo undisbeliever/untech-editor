@@ -16,8 +16,6 @@ const std::array<const char*, 4> flipsComboItems = {
     "hvFlip"
 };
 
-// ::TODO move all enum combos to this file::
-
 // ::TODO use enumMap for serialization and EnumCombo::
 // ::TODO only allow increment by one enums in enumMap::
 
@@ -42,6 +40,21 @@ bool oldStyleEnumClassCombo(const char* label, EnumT* v)
     }
 
     return changed;
+}
+
+template <typename EnumT>
+bool EnumCombo(const char* label, EnumT* value, const char* const items[], int items_count, int height_in_items = -1)
+{
+    int v = static_cast<int>(*value);
+
+    bool c = ImGui::Combo(label, &v, items, items_count, height_in_items);
+    if (c) {
+        if (*value != static_cast<EnumT>(v)) {
+            *value = static_cast<EnumT>(v);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool EnumCombo(const char* label, UnTech::MetaSprite::Animation::DurationFormat* v)
@@ -124,6 +137,81 @@ bool EnumCombo(const char* label, UnTech::Rooms::RoomEntranceOrientation* v)
         "Down Left",
         "Up Right",
         "Up Left",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+}
+
+static const char* const dataTypeItems[] = {
+    "uint8",
+    "uint16",
+    "uint24",
+    "uint32",
+    "sint8",
+    "sint16",
+    "sint24",
+    "sint32",
+};
+
+bool EnumCombo(const char* label, UnTech::Entity::DataType* v)
+{
+    return ImGui::EnumCombo(label, v, dataTypeItems, IM_ARRAYSIZE(dataTypeItems));
+}
+
+void TextEnum(const UnTech::Entity::DataType& type)
+{
+    const unsigned i = static_cast<unsigned>(type);
+    const char* str = i < IM_ARRAYSIZE(dataTypeItems) ? dataTypeItems[i] : "";
+    TextUnformatted(str);
+}
+
+bool EnumCombo(const char* label, UnTech::Entity::EntityType* v)
+{
+    static const char* const items[] = {
+        "Entity",
+        "Projectile",
+        "Player",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+}
+
+bool EnumCombo(const char* label, UnTech::Entity::ParameterType* v)
+{
+    static const char* const items[] = {
+        "unused",
+        "unsigned byte",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+}
+
+bool EnumCombo(const char* label, UnTech::Project::MappingMode* v)
+{
+    static const char* const items[] = {
+        "LoROM",
+        "HiROM",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+}
+
+bool EnumCombo(const char* label, UnTech::Resources::BgMode* v)
+{
+    static const char* const items[] = {
+        "Mode 0",
+        "Mode 1",
+        "Mode 1 (bg3 priotity)",
+        "Mode 2",
+        "Mode 3",
+        "Mode 4",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+}
+
+bool EnumCombo(const char* label, UnTech::Resources::LayerType* v)
+{
+    static const char* const items[] = {
+        "None",
+        "Background Image",
+        "MetaTile Tileset",
+        "Text Console",
     };
     return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
 }

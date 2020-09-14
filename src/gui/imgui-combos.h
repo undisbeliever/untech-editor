@@ -66,6 +66,17 @@ bool EnumCombo(const char* label, UnTech::MetaSprite::ObjectSize* v);
 bool EnumCombo(const char* label, UnTech::MetaSprite::SpriteImporter::UserSuppliedPalette::Position* v);
 bool EnumCombo(const char* label, UnTech::Rooms::RoomEntranceOrientation* v);
 
+bool EnumCombo(const char* label, UnTech::Entity::DataType* v);
+bool EnumCombo(const char* label, UnTech::Entity::EntityType* v);
+bool EnumCombo(const char* label, UnTech::Entity::ParameterType* v);
+
+bool EnumCombo(const char* label, UnTech::Project::MappingMode* v);
+
+bool EnumCombo(const char* label, UnTech::Resources::BgMode* v);
+bool EnumCombo(const char* label, UnTech::Resources::LayerType* v);
+
 bool EntityHitboxTypeCombo(const char* label, UnTech::MetaSprite::EntityHitboxType* v);
+
+void TextEnum(const UnTech::Entity::DataType& type);
 
 }

@@ -5,28 +5,12 @@
  */
 
 #include "entity-rom-data-editor.h"
+#include "gui/imgui-combos.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 
 namespace UnTech::Gui {
-
-static const char* dataTypeItems[] = {
-    "uint8",
-    "uint16",
-    "uint24",
-    "uint32",
-    "sint8",
-    "sint16",
-    "sint24",
-    "sint32",
-};
-
-static const char* entityTypeItems[] = {
-    "Entity",
-    "Projectile",
-    "Player",
-};
 
 using EntityRomStruct = UnTech::Entity::EntityRomStruct;
 
@@ -249,12 +233,6 @@ static bool parentCombo(const char* label, idstring* value, const NamedList<Enti
                                 });
 }
 
-static const char* toString(const UnTech::Entity::DataType type)
-{
-    unsigned i = static_cast<unsigned>(type);
-    return i < IM_ARRAYSIZE(dataTypeItems) ? dataTypeItems[i] : "";
-}
-
 void EntityRomDataEditorGui::structsWindow()
 {
     assert(_data);
@@ -330,7 +308,7 @@ void EntityRomDataEditorGui::structsWindow()
                             ImGui::TextUnformatted(field.name);
                             ImGui::NextColumn();
 
-                            ImGui::TextUnformatted(toString(field.type));
+                            ImGui::TextEnum(field.type);
                             ImGui::NextColumn();
 
                             ImGui::TextUnformatted(field.defaultValue);
@@ -357,7 +335,7 @@ void EntityRomDataEditorGui::structsWindow()
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
-                        edited |= ImGui::EnumCombo("##Type", &field.type, dataTypeItems, IM_ARRAYSIZE(dataTypeItems));
+                        edited |= ImGui::EnumCombo("##Type", &field.type);
                         ImGui::NextColumn();
 
                         ImGui::SetNextItemWidth(-1);
@@ -437,7 +415,7 @@ void EntityRomDataEditorGui::functionTablesWindow(const UnTech::Project::Project
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::EnumCombo("##EntityType", &ft.entityType, entityTypeItems, IM_ARRAYSIZE(entityTypeItems));
+            edited |= ImGui::EnumCombo("##EntityType", &ft.entityType);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
@@ -449,7 +427,7 @@ void EntityRomDataEditorGui::functionTablesWindow(const UnTech::Project::Project
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::EnumCombo("##ParameterType", &ft.parameterType, dataTypeItems, IM_ARRAYSIZE(dataTypeItems));
+            edited |= ImGui::EnumCombo("##ParameterType", &ft.parameterType);
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);

@@ -5,28 +5,13 @@
  */
 
 #include "scenes-editor-editor.h"
+#include "gui/imgui-combos.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/list-helpers.h"
 #include "models/resources/scene-bgmode.hpp"
 
 namespace UnTech::Gui {
-
-const char* bgModeItems[] = {
-    "Mode 0",
-    "Mode 1",
-    "Mode 1 (bg3 priotity)",
-    "Mode 2",
-    "Mode 3",
-    "Mode 4",
-};
-
-const char* layerTypeItems[] = {
-    "None",
-    "Background Image",
-    "MetaTile Tileset",
-    "Text Console",
-};
 
 // ScenesEditor Action Policies
 struct ScenesEditorData::AP {
@@ -163,14 +148,13 @@ void ScenesEditorGui::settingsWindow()
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
-            edited |= ImGui::EnumCombo("##BgMode", &sceneSettings.bgMode, bgModeItems, IM_ARRAYSIZE(bgModeItems));
+            edited |= ImGui::EnumCombo("##BgMode", &sceneSettings.bgMode);
             ImGui::NextColumn();
 
             static const std::array<const char*, 4> layerLabels = { "##LT0", "##LT1", "##LT2", "##LT3" };
             for (unsigned l = 0; l < sceneSettings.layerTypes.size(); l++) {
                 ImGui::SetNextItemWidth(-1);
-                edited |= ImGui::EnumCombo(layerLabels.at(l), &sceneSettings.layerTypes.at(l),
-                                           layerTypeItems, IM_ARRAYSIZE(layerTypeItems));
+                edited |= ImGui::EnumCombo(layerLabels.at(l), &sceneSettings.layerTypes.at(l));
                 ImGui::NextColumn();
             }
 

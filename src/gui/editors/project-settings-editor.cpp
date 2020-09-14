@@ -6,14 +6,10 @@
 
 #include "project-settings-editor.h"
 #include "gui/editor-actions.h"
+#include "gui/imgui-combos.h"
 #include "gui/imgui.h"
 
 namespace UnTech::Gui {
-
-static const char* memoryMapItems[] = {
-    u8"LoROM",
-    u8"HiROM",
-};
 
 // ProjectSettingsEditor Action Policies
 struct ProjectSettingsEditorData::AP {
@@ -100,7 +96,7 @@ void ProjectSettingsEditorGui::projectSettingsWindow()
         if (ImGui::TreeNodeEx("Memory Map", ImGuiTreeNodeFlags_DefaultOpen)) {
             bool edited = false;
 
-            edited |= ImGui::EnumCombo("Mapping Mode", &memoryMap.mode, memoryMapItems, IM_ARRAYSIZE(memoryMapItems));
+            edited |= ImGui::EnumCombo("Mapping Mode", &memoryMap.mode);
             ImGui::IsItemDeactivatedAfterEdit();
 
             ImGui::InputUnsignedFormat("First Bank", &memoryMap.firstBank, "0x%02X", ImGuiInputTextFlags_CharsHexadecimal);

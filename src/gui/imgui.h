@@ -42,21 +42,6 @@ inline void TextUnformatted(const std::string& text)
     TextUnformatted(text.c_str(), text.c_str() + text.size());
 }
 
-template <typename EnumT>
-bool EnumCombo(const char* label, EnumT* value, const char* const items[], int items_count, int height_in_items = -1)
-{
-    int v = static_cast<int>(*value);
-
-    bool c = ImGui::Combo(label, &v, items, items_count, height_in_items);
-    if (c) {
-        if (*value != static_cast<EnumT>(v)) {
-            *value = static_cast<EnumT>(v);
-            return true;
-        }
-    }
-    return false;
-}
-
 bool InputUsize(const char* label, UnTech::usize* usize, const UnTech::usize& maxSize);
 bool InputUpoint(const char* label, UnTech::upoint* upoint, const UnTech::usize& containerSize);
 bool InputUpoint(const char* label, UnTech::upoint* upoint, const UnTech::usize& containerSize, const UnTech::usize& itemSize);
