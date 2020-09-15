@@ -46,6 +46,7 @@ private:
     std::vector<std::unique_ptr<EditorUndoAction>> _redoStack;
 
     bool _clean = true;
+    bool _inMacro;
 
 private:
     AbstractEditorData(const AbstractEditorData&) = delete;
@@ -73,6 +74,11 @@ public:
 
     // Undo functions MUST NOT be called by an EditorUndoAction instance
     void addAction(std::unique_ptr<EditorUndoAction>&& action);
+
+    // Macros allow multiple actions to be preformed at once
+    void startMacro();
+    void endMacro();
+
     void processPendingActions(UnTech::Project::ProjectFile&);
     void undo(UnTech::Project::ProjectFile&);
     void redo(UnTech::Project::ProjectFile&);

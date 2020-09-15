@@ -885,7 +885,7 @@ public:
         } break;
 
         case EditListAction::REMOVE: {
-            // ::TODO add action macro::
+            editor->startMacro();
             for (unsigned groupIndex = 0; groupIndex < sel.MAX_GROUP_SIZE; groupIndex++) {
                 const ListArgsT listArgs = std::make_tuple(groupIndex);
                 if (const ListT* list = getEditorListPtr(editor, listArgs)) {
@@ -897,6 +897,7 @@ public:
                     }
                 }
             }
+            editor->endMacro();
         } break;
         }
     }

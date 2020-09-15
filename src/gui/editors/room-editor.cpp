@@ -596,9 +596,12 @@ void RoomEditorGui::editorWindow()
                           &_data->entrancesSel, &_data->entityEntriesSel);
 
         if (_graphics.isEditingFinished()) {
-            // ::TODO add action macros::
+            _data->startMacro();
+
             ListActions<AP::Entrances>::selectedItemsEdited(_data);
             ListActions<AP::EntityEntries>::selectedItemsEdited(_data);
+
+            _data->endMacro();
         }
 
         ImGui::EndChild();

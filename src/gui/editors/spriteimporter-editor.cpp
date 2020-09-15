@@ -320,11 +320,12 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
                         frame.location.update(grid, frame);
                     }
 
-                    // ::TODO undo macro::
+                    _data->startMacro();
                     EditorActions<AP::FrameSet>::fieldEdited<
                         &SI::FrameSet::grid>(_data);
                     ListActions<AP::Frames>::allItemsInSelectedListFieldEdited<
                         &SI::Frame::location>(_data);
+                    _data->endMacro();
                 }
 
                 ImGui::TreePop();
@@ -841,13 +842,16 @@ void SpriteImporterEditorGui::frameEditorWindow()
                           &_data->tileHitboxSel, &_data->frameObjectsSel, &_data->actionPointsSel, &_data->entityHitboxesSel);
 
         if (_graphics.isEditingFinished()) {
-            // ::TODO add action macros::
+            _data->startMacro();
+
             if (_data->tileHitboxSel.isSelected()) {
                 ListActions<AP::Frames>::selectedFieldEdited<&SI::Frame::tileHitbox>(_data);
             }
             ListActions<AP::FrameObjects>::selectedItemsEdited(_data);
             ListActions<AP::ActionPoints>::selectedItemsEdited(_data);
             ListActions<AP::EntityHitboxes>::selectedItemsEdited(_data);
+
+            _data->endMacro();
         }
 
         ImGui::EndChild();

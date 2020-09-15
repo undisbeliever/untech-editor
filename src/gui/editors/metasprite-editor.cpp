@@ -859,7 +859,7 @@ void MetaSpriteEditorGui::tilesetButtons()
             }
         };
 
-        // ::TODO combine these actions into a macro::
+        _data->startMacro();
         if (_data->smallTilesetSel.hasSelection()) {
             ListActions<AP::SmallTileset>::editList(_data, EditListAction::REMOVE);
             tileRemoved(_data->smallTilesetSel.selectedIndex(), ObjectSize::SMALL);
@@ -868,6 +868,8 @@ void MetaSpriteEditorGui::tilesetButtons()
             ListActions<AP::LargeTileset>::editList(_data, EditListAction::REMOVE);
             tileRemoved(_data->largeTilesetSel.selectedIndex(), ObjectSize::LARGE);
         }
+        _data->endMacro();
+
         _tilesetValid = false;
     }
 }
@@ -1206,13 +1208,16 @@ void MetaSpriteEditorGui::frameEditorWindow()
                           &_data->tileHitboxSel, &_data->frameObjectsSel, &_data->actionPointsSel, &_data->entityHitboxesSel);
 
         if (_graphics.isEditingFinished()) {
-            // ::TODO add action macros::
+            _data->startMacro();
+
             if (_data->tileHitboxSel.isSelected()) {
                 ListActions<AP::Frames>::selectedFieldEdited<&MS::Frame::tileHitbox>(_data);
             }
             ListActions<AP::FrameObjects>::selectedItemsEdited(_data);
             ListActions<AP::ActionPoints>::selectedItemsEdited(_data);
             ListActions<AP::EntityHitboxes>::selectedItemsEdited(_data);
+
+            _data->endMacro();
         }
 
         ImGui::EndChild();

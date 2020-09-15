@@ -24,6 +24,58 @@
 
 namespace UnTech::Gui {
 
+class MacroAction final : public EditorUndoAction {
+private:
+    std::vector<std::unique_ptr<EditorUndoAction>> actions;
+
+public:
+    MacroAction()
+        : EditorUndoAction()
+    {
+    }
+    virtual ~MacroAction() = default;
+
+    void addAction(std::unique_ptr<EditorUndoAction>&& a)
+    {
+        assert(a != nullptr);
+        actions.push_back(std::move(a));
+    }
+
+    virtual bool firstDo(Project::ProjectFile& projectFile) final
+    {
+        bool changed = false;
+        for (auto& a : actions) {
+            assert(a != nullptr);
+
+            const bool c = a->firstDo(projectFile);
+            changed |= c;
+            if (!c) {
+                a = nullptr;
+            }
+        }
+        return changed;
+    }
+
+    virtual void undo(Project::ProjectFile& projectFile) const final
+    {
+        for (auto it = actions.rbegin(); it != actions.rend(); it++) {
+            auto& a = *it;
+            if (a) {
+                a->undo(projectFile);
+            }
+        }
+    }
+
+    virtual void redo(Project::ProjectFile& projectFile) const final
+    {
+        for (auto& a : actions) {
+            if (a) {
+                a->redo(projectFile);
+            }
+        }
+    }
+};
+
 // ::TODO replace with a circular buffer::
 void trimStack(std::vector<std::unique_ptr<EditorUndoAction>>& stack)
 {
@@ -39,17 +91,47 @@ AbstractEditorData::AbstractEditorData(const ItemIndex itemIndex)
     , _undoStack()
     , _redoStack()
     , _clean(true)
+    , _inMacro(false)
 {
 }
 
 void AbstractEditorData::addAction(std::unique_ptr<EditorUndoAction>&& action)
 {
-    _pendingActions.push_back(std::move(action));
+    if (_inMacro == false) {
+        _pendingActions.push_back(std::move(action));
+    }
+    else {
+        assert(!_pendingActions.empty());
+        if (!_pendingActions.empty()) {
+            auto* m = dynamic_cast<MacroAction*>(_pendingActions.back().get());
+            assert(m);
+            if (m) {
+                m->addAction(std::move(action));
+            }
+        }
+    }
+}
+
+void AbstractEditorData::startMacro()
+{
+    assert(_inMacro == false);
+    if (_inMacro == false) {
+        _pendingActions.push_back(std::make_unique<MacroAction>());
+        _inMacro = true;
+    }
+}
+
+void AbstractEditorData::endMacro()
+{
+    _inMacro = false;
 }
 
 void AbstractEditorData::processPendingActions(Project::ProjectFile& projectFile)
 {
     const auto pendingSize = _pendingActions.size();
+
+    assert(_inMacro == false);
+    _inMacro = false;
 
     for (auto& pa : _pendingActions) {
         auto action = std::move(pa);
