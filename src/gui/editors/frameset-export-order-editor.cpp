@@ -44,6 +44,7 @@ struct FrameSetExportOrderEditorData::AP {
         using ListArgsT = std::tuple<>;
         using SelectionT = SingleSelection;
 
+        static constexpr const char* name = "Frame";
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
         constexpr static auto SelectionPtr = &EditorT::framesSel;
@@ -72,6 +73,7 @@ struct FrameSetExportOrderEditorData::AP {
         using ListArgsT = std::tuple<>;
         using SelectionT = SingleSelection;
 
+        static constexpr const char* name = "Animation";
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_EXPORT_NAMES;
 
         constexpr static auto SelectionPtr = &EditorT::animationsSel;
@@ -169,10 +171,6 @@ void FrameSetExportOrderEditorGui::exportNameTree(const char* label)
     ImGui::Spacing();
     ImGui::Spacing();
     if (ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::PushID(label);
-        ListButtons<ExportNameAP>(_data);
-        ImGui::PopID();
-
         // Putting this code outside the `label` scope allows me to resize
         // both "tables" at the same time.
         ImGui::Columns(3);
@@ -278,7 +276,7 @@ void FrameSetExportOrderEditorGui::exportOrderWindow()
 
         ImGui::Spacing();
 
-        // ::TODO add combined list buttons at the top of the window::
+        CombinedListButtons<AP::Frames, AP::Animations>("List_Buttons", _data);
 
         exportNameTree<AP::Frames>("Still Frames");
         exportNameTree<AP::Animations>("Animations");

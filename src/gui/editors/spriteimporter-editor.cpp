@@ -71,6 +71,7 @@ struct SpriteImporterEditorData::AP {
         using ListArgsT = std::tuple<unsigned>;
         using SelectionT = MultipleChildSelection;
 
+        static constexpr const char* name = "Frame Object";
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_FRAME_OBJECTS;
 
         constexpr static auto SelectionPtr = &EditorT::frameObjectsSel;
@@ -86,6 +87,7 @@ struct SpriteImporterEditorData::AP {
         using ListArgsT = std::tuple<unsigned>;
         using SelectionT = MultipleChildSelection;
 
+        static constexpr const char* name = "Action Point";
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_ACTION_POINTS;
 
         constexpr static auto SelectionPtr = &EditorT::actionPointsSel;
@@ -101,6 +103,7 @@ struct SpriteImporterEditorData::AP {
         using ListArgsT = std::tuple<unsigned>;
         using SelectionT = MultipleChildSelection;
 
+        static constexpr const char* name = "Entity Hitbox";
         constexpr static size_t MAX_SIZE = UnTech::MetaSprite::MAX_ENTITY_HITBOXES;
 
         constexpr static auto SelectionPtr = &EditorT::entityHitboxesSel;
@@ -480,16 +483,7 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
             ImGui::Spacing();
 
             {
-                // ::TODO combine these into a single row with combined remove buttons::
-                ImGui::PushID("Obj");
-                ListButtons<AP::FrameObjects>(_data);
-                ImGui::PopID();
-                ImGui::PushID("AP");
-                ListButtons<AP::ActionPoints>(_data);
-                ImGui::PopID();
-                ImGui::PushID("EH");
-                ListButtons<AP::EntityHitboxes>(_data);
-                ImGui::PopID();
+                CombinedListButtons<AP::FrameObjects, AP::ActionPoints, AP::EntityHitboxes>("FC_Buttons", _data);
 
                 ImGui::BeginChild("FC Scroll");
 

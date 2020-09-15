@@ -44,6 +44,54 @@ bool ListButtons(typename ActionPolicy::EditorT* editor)
     return listChanged;
 }
 
+template <typename ActionPolicy>
+bool CombinedListButtons_AddButton(typename ActionPolicy::EditorT* editor)
+{
+    bool changed = false;
+
+    ImGui::PushID((void*)ActionPolicy::name);
+
+    if (ImGui::Button("Add")) {
+        ListActions<ActionPolicy>::editList(editor, EditListAction::ADD);
+        changed = true;
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Add %s", ActionPolicy::name);
+        ImGui::EndTooltip();
+    }
+    ImGui::PopID();
+
+    ImGui::SameLine();
+
+    return changed;
+}
+
+template <typename... ActionPolicy, typename EditorT>
+bool CombinedListButtons(const char* idStr, EditorT* editor)
+{
+    assert(editor != nullptr);
+
+    ImGui::PushID(idStr);
+
+    // ::TODO enable/disable buttons based on selection and list status::
+
+    bool listChanged = false;
+
+    listChanged = (CombinedListButtons_AddButton<ActionPolicy>(editor) | ...);
+
+    if (ImGui::Button("Remove")) {
+        editor->startMacro();
+        ((ListActions<ActionPolicy>::editList(editor, EditListAction::REMOVE)), ...);
+        editor->endMacro();
+        listChanged = true;
+    }
+
+    ImGui::PopID();
+
+    return listChanged;
+}
+
 template <class ActionPolicy>
 void NamedListSidebar(typename ActionPolicy::EditorT* editor, float width = 200)
 {
