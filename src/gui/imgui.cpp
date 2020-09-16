@@ -409,4 +409,16 @@ bool Selectable(UnTech::Gui::SingleSelection* parentSel, UnTech::Gui::MultipleCh
     return Selectable(label.c_str(), parentSel, sel, parent, i, flags);
 }
 
+bool ButtonWithTooltip(const char* label, const char* tooltip, const ImVec2& size)
+{
+    bool pressed = ImGui::Button(label, size);
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(tooltip);
+        ImGui::EndTooltip();
+    }
+
+    return pressed;
+}
+
 }

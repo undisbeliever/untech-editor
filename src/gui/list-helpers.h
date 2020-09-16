@@ -25,6 +25,8 @@ enum EditListAction {
 template <typename ActionPolicy>
 struct ListActions;
 
+// ::TODO add symbols to buttons::
+
 template <typename ActionPolicy>
 bool ListButtons(typename ActionPolicy::EditorT* editor)
 {
@@ -32,45 +34,43 @@ bool ListButtons(typename ActionPolicy::EditorT* editor)
 
     bool listChanged = false;
 
-    if (ImGui::Button("Add")) {
+    if (ImGui::ButtonWithTooltip("A", "Add")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::ADD);
         listChanged = true;
     }
     ImGui::SameLine();
 
-    // ::TODO add tooltips to buttons::
-
-    if (ImGui::Button("C")) {
+    if (ImGui::ButtonWithTooltip("C", "Clone Selected")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::CLONE);
         listChanged = true;
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("Remove")) {
+    if (ImGui::ButtonWithTooltip("R##Remove", "Remove Selected")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::REMOVE);
         listChanged = true;
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("RT")) {
+    if (ImGui::ButtonWithTooltip("RT", "Raise to Top")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE_TO_TOP);
         listChanged = true;
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("R")) {
+    if (ImGui::ButtonWithTooltip("R##Raise", "Raise")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE);
         listChanged = true;
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("L")) {
+    if (ImGui::ButtonWithTooltip("L", "Lower")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER);
         listChanged = true;
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("LB")) {
+    if (ImGui::ButtonWithTooltip("LB", "Lower to Bottom")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER_TO_BOTTOM);
         listChanged = true;
     }
@@ -85,7 +85,7 @@ bool CombinedListButtons_AddButton(typename ActionPolicy::EditorT* editor)
 
     ImGui::PushID((void*)ActionPolicy::name);
 
-    if (ImGui::Button("Add")) {
+    if (ImGui::Button("A")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::ADD);
         changed = true;
     }
@@ -108,13 +108,11 @@ bool CombinedListButtons(const char* idStr, EditorT* editor)
 
     ImGui::PushID(idStr);
 
-    // ::TODO enable/disable buttons based on selection and list status::
-
     bool listChanged = false;
 
     listChanged = (CombinedListButtons_AddButton<ActionPolicy>(editor) | ...);
 
-    if (ImGui::Button("C")) {
+    if (ImGui::ButtonWithTooltip("C", "Clone Selected")) {
         editor->startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::CLONE)), ...);
         editor->endMacro();
@@ -122,7 +120,7 @@ bool CombinedListButtons(const char* idStr, EditorT* editor)
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("Remove")) {
+    if (ImGui::ButtonWithTooltip("R##Remove", "Remove Selected")) {
         editor->startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::REMOVE)), ...);
         editor->endMacro();
@@ -130,7 +128,7 @@ bool CombinedListButtons(const char* idStr, EditorT* editor)
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("RT")) {
+    if (ImGui::ButtonWithTooltip("RT", "Raise to Top")) {
         editor->startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE_TO_TOP)), ...);
         editor->endMacro();
@@ -138,7 +136,7 @@ bool CombinedListButtons(const char* idStr, EditorT* editor)
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("R")) {
+    if (ImGui::ButtonWithTooltip("R##Raise", "Raise")) {
         editor->startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE)), ...);
         editor->endMacro();
@@ -146,7 +144,7 @@ bool CombinedListButtons(const char* idStr, EditorT* editor)
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("L")) {
+    if (ImGui::ButtonWithTooltip("L", "Lower")) {
         editor->startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER)), ...);
         editor->endMacro();
@@ -154,7 +152,7 @@ bool CombinedListButtons(const char* idStr, EditorT* editor)
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("LB")) {
+    if (ImGui::ButtonWithTooltip("LB", "Lower to Bottom")) {
         editor->startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER_TO_BOTTOM)), ...);
         editor->endMacro();
