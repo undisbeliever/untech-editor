@@ -61,6 +61,8 @@ public:
     {
         _selected = _pending;
     }
+
+    void itemMoved(unsigned from, unsigned to);
 };
 
 class MultipleSelection final {
@@ -102,6 +104,8 @@ public:
     {
         _selected = _pending;
     }
+
+    void itemMoved(unsigned from, unsigned to);
 };
 
 // Not a child class of MultipleSelection.
@@ -190,6 +194,8 @@ public:
             _selected = _pending;
         }
     }
+
+    void itemMoved(unsigned pIndex, unsigned from, unsigned to);
 };
 
 // Only intended groups with a small MAX_SIZE value
@@ -252,6 +258,8 @@ public:
             g.update();
         }
     }
+
+    void itemMoved(unsigned pIndex, unsigned from, unsigned to);
 };
 
 // A simple true/false selection that uses the same API as MultipleSelection

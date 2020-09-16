@@ -49,6 +49,22 @@ const FieldT* getListField(const ListT* list, const typename ListT::size_type in
 }
 
 template <class ListT, class SelectionT>
+std::vector<typename ListT::size_type>
+indexesForMultipleSelection(const ListT& list, const SelectionT& sel)
+{
+    using size_type = typename ListT::size_type;
+
+    std::vector<size_type> values;
+    const size_type end = std::min<size_type>(list.size(), SelectionT::MAX_SIZE);
+    for (size_t i = 0; i < end; i++) {
+        if (sel.isSelected(i)) {
+            values.emplace_back(i);
+        }
+    }
+    return values;
+}
+
+template <class ListT, class SelectionT>
 std::vector<std::pair<typename ListT::size_type, typename ListT::value_type>>
 indexesAndDataForMultipleSelection(const ListT& list, const SelectionT& sel)
 {
@@ -134,6 +150,12 @@ struct ListActions {
         SelectionT& selection() const
         {
             return editor->*ActionPolicy::SelectionPtr;
+        }
+
+        void updateSelection_itemMoved(index_type from, index_type to) const
+        {
+            std::apply(&SelectionT::itemMoved,
+                       std::tuple_cat(std::forward_as_tuple(selection()), this->listArgs, std::make_tuple(from, to)));
         }
     };
 
@@ -255,6 +277,56 @@ struct ListActions {
         }
     };
 
+    class MoveAction final : public BaseAction {
+    private:
+        const index_type fromIndex;
+        const index_type toIndex;
+
+        void moveItem(Project::ProjectFile& projectFile, index_type from, index_type to) const
+        {
+            ListT& projectList = this->getProjectList(projectFile);
+            ListT& editorList = this->getEditorList();
+
+            assert(projectList.size() == editorList.size());
+
+            assert(from < projectList.size());
+            assert(to < projectList.size());
+
+            moveListItem(from, to, projectList);
+            moveListItem(from, to, editorList);
+
+            this->updateSelection_itemMoved(from, to);
+        }
+
+    public:
+        MoveAction(EditorT* editor,
+                   const ListArgsT& listArgs,
+                   const index_type from,
+                   const index_type to)
+            : BaseAction(editor, listArgs)
+            , fromIndex(from)
+            , toIndex(to)
+        {
+        }
+        virtual ~MoveAction() = default;
+
+        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        {
+            this->moveItem(projectFile, fromIndex, toIndex);
+            return true;
+        }
+
+        virtual void undo(Project::ProjectFile& projectFile) const final
+        {
+            this->moveItem(projectFile, toIndex, fromIndex);
+        }
+
+        virtual void redo(Project::ProjectFile& projectFile) const final
+        {
+            this->moveItem(projectFile, fromIndex, toIndex);
+        }
+    };
+
     class AddRemoveMultipleAction : public BaseAction {
     private:
         const std::vector<std::pair<index_type, value_type>> _values;
@@ -368,6 +440,171 @@ struct ListActions {
         virtual void redo(Project::ProjectFile& projectFile) const final
         {
             this->removeItems(projectFile);
+        }
+    };
+
+    class MoveMultipleAction : public BaseAction {
+    private:
+        // ::TODO use vectorset::
+        const std::vector<index_type> indexes;
+        const EditListAction direction;
+
+        void moveItem(ListT& projectList, ListT& editorList, index_type from, index_type to) const
+        {
+            assert(from < projectList.size());
+            assert(to < projectList.size());
+
+            moveListItem(from, to, projectList);
+            moveListItem(from, to, editorList);
+
+            this->updateSelection_itemMoved(from, to);
+        }
+
+    public:
+        MoveMultipleAction(EditorT* editor,
+                           const ListArgsT& listArgs,
+                           const std::vector<index_type>&& indexes,
+                           const EditListAction direction)
+            : BaseAction(editor, listArgs)
+            , indexes(std::move(indexes))
+            , direction(direction)
+        {
+        }
+        virtual ~MoveMultipleAction() = default;
+
+        virtual bool firstDo(Project::ProjectFile& projectFile) final
+        {
+            this->redo(projectFile);
+            return true;
+        }
+
+        virtual void undo(Project::ProjectFile& projectFile) const final
+        {
+            ListT& projectList = this->getProjectList(projectFile);
+            ListT& editorList = this->getEditorList();
+
+            assert(projectList.size() == editorList.size());
+            const index_type listSize = projectList.size();
+
+            switch (direction) {
+            case EditListAction::ADD:
+            case EditListAction::REMOVE: {
+                abort();
+            } break;
+
+            case EditListAction::RAISE_TO_TOP: {
+                assert(indexes.front() >= 0);
+                assert(indexes.back() < listSize);
+                assert(listSize >= indexes.size());
+
+                index_type from = indexes.size() - 1;
+                for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
+                    const index_type to = *it;
+                    if (from != to) {
+                        moveItem(projectList, editorList, from, to);
+                    }
+                    from--;
+                }
+            } break;
+
+            case EditListAction::RAISE: {
+                assert(indexes.front() > 0);
+                assert(indexes.back() < listSize);
+
+                for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
+                    const index_type i = *it;
+                    moveItem(projectList, editorList, i - 1, i);
+                }
+            } break;
+
+            case EditListAction::LOWER: {
+                assert(indexes.front() >= 0);
+                assert(indexes.back() + 1 < listSize);
+
+                for (const index_type i : indexes) {
+                    moveItem(projectList, editorList, i + 1, i);
+                }
+            } break;
+
+            case EditListAction::LOWER_TO_BOTTOM: {
+                assert(indexes.front() >= 0);
+                assert(indexes.back() < listSize);
+                assert(listSize >= indexes.size());
+
+                index_type from = listSize - indexes.size();
+                for (const index_type to : indexes) {
+                    if (from != to) {
+                        moveItem(projectList, editorList, from, to);
+                    }
+                    from++;
+                }
+            } break;
+            }
+        }
+
+        virtual void redo(Project::ProjectFile& projectFile) const final
+        {
+            ListT& projectList = this->getProjectList(projectFile);
+            ListT& editorList = this->getEditorList();
+
+            assert(projectList.size() == editorList.size());
+            const index_type listSize = projectList.size();
+
+            switch (direction) {
+            case EditListAction::ADD:
+            case EditListAction::REMOVE: {
+                abort();
+            } break;
+
+            case EditListAction::RAISE_TO_TOP: {
+                assert(indexes.front() >= 0);
+                assert(indexes.back() < listSize);
+                assert(listSize >= indexes.size());
+
+                index_type to = 0;
+                for (const index_type& from : indexes) {
+                    if (from != to) {
+                        moveItem(projectList, editorList, from, to);
+                    }
+                    to++;
+                }
+            } break;
+
+            case EditListAction::RAISE: {
+                assert(indexes.front() > 0);
+                assert(indexes.back() < listSize);
+
+                for (const index_type& i : indexes) {
+                    moveItem(projectList, editorList, i, i - 1);
+                }
+            } break;
+
+            case EditListAction::LOWER: {
+                assert(indexes.front() >= 0);
+                assert(indexes.back() + 1 < listSize);
+
+                for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
+                    const index_type i = *it;
+                    moveItem(projectList, editorList, i, i + 1);
+                }
+
+            } break;
+
+            case EditListAction::LOWER_TO_BOTTOM: {
+                assert(indexes.front() >= 0);
+                assert(indexes.back() < listSize);
+                assert(listSize >= indexes.size());
+
+                index_type to = listSize - 1;
+                for (auto it = indexes.rbegin(); it != indexes.rend(); it++) {
+                    const index_type from = *it;
+                    if (from != to) {
+                        moveItem(projectList, editorList, from, to);
+                    }
+                    to--;
+                }
+            } break;
+            }
         }
     };
 
@@ -771,6 +1008,56 @@ private:
                 editor, listArgs, index));
     }
 
+    static void moveMultiple(EditorT* editor, const ListArgsT& listArgs, const std::vector<index_type>&& indexes, EditListAction action)
+    {
+        const ListT* list = getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        if (list->size() == 0
+            || indexes.empty()
+            || indexes.front() < 0
+            || indexes.back() >= list->size()) {
+
+            return;
+        }
+
+        switch (action) {
+        case EditListAction::ADD:
+        case EditListAction::REMOVE: {
+        } break;
+
+        case EditListAction::RAISE_TO_TOP: {
+            if (indexes.back() >= indexes.size()) {
+                editor->addAction(
+                    std::make_unique<MoveMultipleAction>(editor, listArgs, std::move(indexes), action));
+            }
+        } break;
+
+        case EditListAction::RAISE: {
+            if (indexes.front() > 0) {
+                editor->addAction(
+                    std::make_unique<MoveMultipleAction>(editor, listArgs, std::move(indexes), action));
+            }
+        } break;
+
+        case EditListAction::LOWER: {
+            if (indexes.back() + 1 < list->size()) {
+                editor->addAction(
+                    std::make_unique<MoveMultipleAction>(editor, listArgs, std::move(indexes), action));
+            }
+        } break;
+
+        case EditListAction::LOWER_TO_BOTTOM: {
+            if (indexes.front() < list->size() - indexes.size()) {
+                editor->addAction(
+                    std::make_unique<MoveMultipleAction>(editor, listArgs, std::move(indexes), action));
+            }
+        } break;
+        }
+    }
+
 public:
     template <typename T = SelectionT>
     static std::enable_if_t<std::is_same_v<T, SingleSelection>>
@@ -797,6 +1084,38 @@ public:
             if (i < list->size()) {
                 editor->addAction(
                     std::make_unique<RemoveAction>(editor, listArgs, i, list->at(i)));
+            }
+        } break;
+
+        case EditListAction::RAISE_TO_TOP: {
+            const index_type i = sel.selectedIndex();
+            if (i > 0 && i < list->size()) {
+                editor->addAction(
+                    std::make_unique<MoveAction>(editor, listArgs, i, 0));
+            }
+        } break;
+
+        case EditListAction::RAISE: {
+            const index_type i = sel.selectedIndex();
+            if (i > 0 && i < list->size()) {
+                editor->addAction(
+                    std::make_unique<MoveAction>(editor, listArgs, i, i - 1));
+            }
+        } break;
+
+        case EditListAction::LOWER: {
+            const index_type i = sel.selectedIndex();
+            if (i + 1 < list->size()) {
+                editor->addAction(
+                    std::make_unique<MoveAction>(editor, listArgs, i, i + 1));
+            }
+        } break;
+
+        case EditListAction::LOWER_TO_BOTTOM: {
+            const index_type i = sel.selectedIndex();
+            if (i + 1 < list->size()) {
+                editor->addAction(
+                    std::make_unique<MoveAction>(editor, listArgs, i, list->size() - 1));
             }
         } break;
         }
@@ -829,6 +1148,14 @@ public:
                     std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
             }
         } break;
+
+        case EditListAction::RAISE_TO_TOP:
+        case EditListAction::RAISE:
+        case EditListAction::LOWER:
+        case EditListAction::LOWER_TO_BOTTOM: {
+            auto indexes = indexesForMultipleSelection(*list, sel);
+            moveMultiple(editor, listArgs, std::move(indexes), action);
+        } break;
         }
     }
 
@@ -858,6 +1185,14 @@ public:
                 editor->addAction(
                     std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
             }
+        } break;
+
+        case EditListAction::RAISE_TO_TOP:
+        case EditListAction::RAISE:
+        case EditListAction::LOWER:
+        case EditListAction::LOWER_TO_BOTTOM: {
+            auto indexes = indexesForMultipleSelection(*list, sel);
+            moveMultiple(editor, listArgs, std::move(indexes), action);
         } break;
         }
     }
@@ -895,6 +1230,22 @@ public:
                         editor->addAction(
                             std::make_unique<RemoveMultipleAction>(editor, listArgs, std::move(values)));
                     }
+                }
+            }
+            editor->endMacro();
+        } break;
+
+        case EditListAction::RAISE_TO_TOP:
+        case EditListAction::RAISE:
+        case EditListAction::LOWER:
+        case EditListAction::LOWER_TO_BOTTOM: {
+            editor->startMacro();
+            for (unsigned groupIndex = 0; groupIndex < sel.MAX_GROUP_SIZE; groupIndex++) {
+                const ListArgsT listArgs = std::make_tuple(groupIndex);
+                if (const ListT* list = getEditorListPtr(editor, listArgs)) {
+                    auto& childSel = sel.childSel(groupIndex);
+                    auto indexes = indexesForMultipleSelection(*list, childSel);
+                    moveMultiple(editor, listArgs, std::move(indexes), action);
                 }
             }
             editor->endMacro();

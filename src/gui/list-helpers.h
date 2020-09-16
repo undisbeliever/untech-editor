@@ -15,6 +15,10 @@ namespace UnTech::Gui {
 enum EditListAction {
     ADD,
     REMOVE,
+    RAISE_TO_TOP,
+    RAISE,
+    LOWER,
+    LOWER_TO_BOTTOM,
 };
 
 template <typename ActionPolicy>
@@ -25,19 +29,42 @@ bool ListButtons(typename ActionPolicy::EditorT* editor)
 {
     assert(editor != nullptr);
 
-    // ::TODO enable/disable buttons based on selection and list status::
-
     bool listChanged = false;
 
     if (ImGui::Button("Add")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::ADD);
         listChanged = true;
     }
-
     ImGui::SameLine();
+
+    // ::TODO add tooltips to buttons::
 
     if (ImGui::Button("Remove")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::REMOVE);
+        listChanged = true;
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button("RT")) {
+        ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE_TO_TOP);
+        listChanged = true;
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button("R")) {
+        ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE);
+        listChanged = true;
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button("L")) {
+        ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER);
+        listChanged = true;
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button("LB")) {
+        ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER_TO_BOTTOM);
         listChanged = true;
     }
 
@@ -83,6 +110,38 @@ bool CombinedListButtons(const char* idStr, EditorT* editor)
     if (ImGui::Button("Remove")) {
         editor->startMacro();
         ((ListActions<ActionPolicy>::editList(editor, EditListAction::REMOVE)), ...);
+        editor->endMacro();
+        listChanged = true;
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button("RT")) {
+        editor->startMacro();
+        ((ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE_TO_TOP)), ...);
+        editor->endMacro();
+        listChanged = true;
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button("R")) {
+        editor->startMacro();
+        ((ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE)), ...);
+        editor->endMacro();
+        listChanged = true;
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button("L")) {
+        editor->startMacro();
+        ((ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER)), ...);
+        editor->endMacro();
+        listChanged = true;
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button("LB")) {
+        editor->startMacro();
+        ((ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER_TO_BOTTOM)), ...);
         editor->endMacro();
         listChanged = true;
     }
