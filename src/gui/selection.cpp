@@ -9,6 +9,23 @@
 
 namespace UnTech::Gui {
 
+void SingleSelection::itemAdded(unsigned index)
+{
+    if (_pending >= index) {
+        _pending++;
+    }
+}
+
+void SingleSelection::itemRemoved(unsigned index)
+{
+    if (_pending == index) {
+        clearSelection();
+    }
+    else if (_pending > index) {
+        _pending--;
+    }
+}
+
 void SingleSelection::itemMoved(unsigned from, unsigned to)
 {
     if (_pending == from) {
@@ -20,6 +37,26 @@ void SingleSelection::itemMoved(unsigned from, unsigned to)
     else if (_pending >= to && _pending < from) {
         _pending++;
     }
+}
+
+static uint64_t multipleSelectionItemAdded(const uint64_t sel, const unsigned index)
+{
+    const uint64_t mask = ~((uint64_t(1) << index) - 1);
+
+    uint64_t s = (sel & mask) << 1;
+    s |= sel & ~mask;
+    return s;
+}
+
+static uint64_t multipleSelectionItemRemoved(const uint64_t sel, const unsigned index)
+{
+    const uint64_t indexBit = uint64_t(1) << index;
+    const uint64_t shiftMask = ~((uint64_t(1) << (index + 1)) - 1);
+    const uint64_t keepMask = ~(shiftMask | indexBit);
+
+    uint64_t s = (sel & shiftMask) >> 1;
+    s |= sel & keepMask;
+    return s;
 }
 
 static uint64_t multipleSelectionItemMoved(const uint64_t sel, const unsigned from, const unsigned to)
@@ -60,15 +97,53 @@ static uint64_t multipleSelectionItemMoved(const uint64_t sel, const unsigned fr
     }
 }
 
+void MultipleSelection::itemAdded(unsigned index)
+{
+    _pending = multipleSelectionItemAdded(_pending, index);
+}
+
+void MultipleSelection::itemRemoved(unsigned index)
+{
+    _pending = multipleSelectionItemRemoved(_pending, index);
+}
+
 void MultipleSelection::itemMoved(unsigned from, unsigned to)
 {
     _pending = multipleSelectionItemMoved(_pending, from, to);
+}
+
+void MultipleChildSelection::itemAdded(unsigned pIndex, unsigned index)
+{
+    if (pIndex == _pendingParent) {
+        _pending = multipleSelectionItemAdded(_pending, index);
+    }
+}
+
+void MultipleChildSelection::itemRemoved(unsigned pIndex, unsigned index)
+{
+    if (pIndex == _pendingParent) {
+        _pending = multipleSelectionItemRemoved(_pending, index);
+    }
 }
 
 void MultipleChildSelection::itemMoved(unsigned pIndex, unsigned from, unsigned to)
 {
     if (pIndex == _pendingParent) {
         _pending = multipleSelectionItemMoved(_pending, from, to);
+    }
+}
+
+void GroupMultipleSelection::itemAdded(unsigned pIndex, unsigned index)
+{
+    if (pIndex < childSelections.size()) {
+        childSelections.at(pIndex).itemAdded(index);
+    }
+}
+
+void GroupMultipleSelection::itemRemoved(unsigned pIndex, unsigned index)
+{
+    if (pIndex < childSelections.size()) {
+        childSelections.at(pIndex).itemRemoved(index);
     }
 }
 

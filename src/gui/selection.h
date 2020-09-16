@@ -62,6 +62,8 @@ public:
         _selected = _pending;
     }
 
+    void itemAdded(unsigned index);
+    void itemRemoved(unsigned index);
     void itemMoved(unsigned from, unsigned to);
 };
 
@@ -105,6 +107,8 @@ public:
         _selected = _pending;
     }
 
+    void itemAdded(unsigned index);
+    void itemRemoved(unsigned index);
     void itemMoved(unsigned from, unsigned to);
 };
 
@@ -136,6 +140,15 @@ public:
     void clearSelection() { _pending = NO_SELECTION; }
 
     void appendSelection(unsigned s) { _pending |= uint64_t(1) << s; }
+
+    void appendSelection(unsigned p, unsigned s)
+    {
+        if (_pendingParent != p) {
+            _pendingParent = p;
+            _pending = 0;
+        }
+        _pending |= uint64_t(1) << s;
+    }
 
     void setSelected(unsigned p, unsigned s)
     {
@@ -195,6 +208,8 @@ public:
         }
     }
 
+    void itemAdded(unsigned pIndex, unsigned index);
+    void itemRemoved(unsigned pIndex, unsigned index);
     void itemMoved(unsigned pIndex, unsigned from, unsigned to);
 };
 
@@ -251,6 +266,13 @@ public:
         }
     }
 
+    void appendSelection(unsigned p, unsigned s)
+    {
+        if (p < childSelections.size()) {
+            childSelections.at(p).appendSelection(s);
+        }
+    }
+
     // Must be called after the GUI has been processed.
     void update()
     {
@@ -259,6 +281,8 @@ public:
         }
     }
 
+    void itemAdded(unsigned pIndex, unsigned index);
+    void itemRemoved(unsigned pIndex, unsigned index);
     void itemMoved(unsigned pIndex, unsigned from, unsigned to);
 };
 

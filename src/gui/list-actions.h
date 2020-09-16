@@ -117,6 +117,12 @@ struct ListActions {
     protected:
         const ListArgsT listArgs;
 
+    private:
+        SelectionT& selection() const
+        {
+            return editor->*ActionPolicy::SelectionPtr;
+        }
+
     protected:
         BaseAction(EditorT* editor,
                    const ListArgsT& listArgs)
@@ -147,9 +153,35 @@ struct ListActions {
             return *list;
         }
 
-        SelectionT& selection() const
+        void updateSelection_setSelected(index_type index) const
         {
-            return editor->*ActionPolicy::SelectionPtr;
+            std::apply(&SelectionT::setSelected,
+                       std::tuple_cat(std::forward_as_tuple(selection()), this->listArgs, std::make_tuple(index)));
+        }
+
+        void updateSelection_clearSelection() const
+        {
+            selection().clearSelection();
+        }
+
+        void updateSelection_appendSelection(index_type index) const
+        {
+            auto f = [&](auto... args) {
+                selection().appendSelection(args...);
+            };
+            std::apply(f, std::tuple_cat(this->listArgs, std::make_tuple(index)));
+        }
+
+        void updateSelection_itemAdded(index_type index) const
+        {
+            std::apply(&SelectionT::itemAdded,
+                       std::tuple_cat(std::forward_as_tuple(selection()), this->listArgs, std::make_tuple(index)));
+        }
+
+        void updateSelection_itemRemoved(index_type index) const
+        {
+            std::apply(&SelectionT::itemRemoved,
+                       std::tuple_cat(std::forward_as_tuple(selection()), this->listArgs, std::make_tuple(index)));
         }
 
         void updateSelection_itemMoved(index_type from, index_type to) const
@@ -189,12 +221,10 @@ struct ListActions {
             editorList.insert(editorList.begin() + index, value);
 
             if (first) {
-                std::apply(&SelectionT::setSelected,
-                           std::tuple_cat(std::forward_as_tuple(this->selection()), this->listArgs, std::make_tuple(index)));
+                this->updateSelection_setSelected(index);
             }
             else {
-                // ::TODO update selection::
-                this->selection().clearSelection();
+                this->updateSelection_itemAdded(index);
             }
         }
 
@@ -209,8 +239,7 @@ struct ListActions {
             projectList.erase(projectList.begin() + index);
             editorList.erase(editorList.begin() + index);
 
-            // ::TODO update selection::
-            this->selection().clearSelection();
+            this->updateSelection_itemRemoved(index);
         }
     };
 
@@ -358,12 +387,15 @@ struct ListActions {
             }
 
             if (first) {
-                // ::TODO set selection::
-                this->selection().clearSelection();
+                this->updateSelection_clearSelection();
+                for (const auto& [index, value] : _values) {
+                    this->updateSelection_appendSelection(index);
+                }
             }
             else {
-                // ::TODO update selection::
-                this->selection().clearSelection();
+                for (const auto& [index, value] : _values) {
+                    this->updateSelection_itemAdded(index);
+                }
             }
         }
 
@@ -382,8 +414,10 @@ struct ListActions {
                 editorList.erase(editorList.begin() + index);
             }
 
-            // ::TODO update selection::
-            this->selection().clearSelection();
+            for (auto it = _values.rbegin(); it != _values.rend(); it++) {
+                const index_type& index = it->first;
+                this->updateSelection_itemRemoved(index);
+            }
         }
     };
 
