@@ -14,6 +14,7 @@ namespace UnTech::Gui {
 
 enum EditListAction {
     ADD,
+    CLONE,
     REMOVE,
     RAISE_TO_TOP,
     RAISE,
@@ -38,6 +39,12 @@ bool ListButtons(typename ActionPolicy::EditorT* editor)
     ImGui::SameLine();
 
     // ::TODO add tooltips to buttons::
+
+    if (ImGui::Button("C")) {
+        ListActions<ActionPolicy>::editList(editor, EditListAction::CLONE);
+        listChanged = true;
+    }
+    ImGui::SameLine();
 
     if (ImGui::Button("Remove")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::REMOVE);
@@ -106,6 +113,14 @@ bool CombinedListButtons(const char* idStr, EditorT* editor)
     bool listChanged = false;
 
     listChanged = (CombinedListButtons_AddButton<ActionPolicy>(editor) | ...);
+
+    if (ImGui::Button("C")) {
+        editor->startMacro();
+        ((ListActions<ActionPolicy>::editList(editor, EditListAction::CLONE)), ...);
+        editor->endMacro();
+        listChanged = true;
+    }
+    ImGui::SameLine();
 
     if (ImGui::Button("Remove")) {
         editor->startMacro();

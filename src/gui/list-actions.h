@@ -522,6 +522,7 @@ struct ListActions {
 
             switch (direction) {
             case EditListAction::ADD:
+            case EditListAction::CLONE:
             case EditListAction::REMOVE: {
                 abort();
             } break;
@@ -586,6 +587,7 @@ struct ListActions {
 
             switch (direction) {
             case EditListAction::ADD:
+            case EditListAction::CLONE:
             case EditListAction::REMOVE: {
                 abort();
             } break;
@@ -1042,6 +1044,19 @@ private:
                 editor, listArgs, index));
     }
 
+    static void cloneMultiple(EditorT* editor, const ListArgsT& listArgs, const ListT& list,
+                              std::vector<std::pair<index_type, value_type>>&& values)
+    {
+        if (list.size() + values.size() < MAX_SIZE) {
+            unsigned i = list.size();
+            for (auto& [index, v] : values) {
+                index = i++;
+            }
+            editor->addAction(
+                std::make_unique<AddMultipleAction>(editor, listArgs, std::move(values)));
+        }
+    }
+
     static void moveMultiple(EditorT* editor, const ListArgsT& listArgs, const std::vector<index_type>&& indexes, EditListAction action)
     {
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -1059,6 +1074,7 @@ private:
 
         switch (action) {
         case EditListAction::ADD:
+        case EditListAction::CLONE:
         case EditListAction::REMOVE: {
         } break;
 
@@ -1110,6 +1126,17 @@ public:
             if (list->size() < MAX_SIZE) {
                 editor->addAction(
                     std::make_unique<AddAction>(editor, listArgs, list->size()));
+            }
+        } break;
+
+        case EditListAction::CLONE: {
+            const index_type i = sel.selectedIndex();
+            if (i < list->size()) {
+                if (list->size() < MAX_SIZE) {
+                    auto& item = list->at(i);
+                    editor->addAction(
+                        std::make_unique<AddAction>(editor, listArgs, i + 1, item));
+                }
             }
         } break;
 
@@ -1175,6 +1202,11 @@ public:
             }
         } break;
 
+        case EditListAction::CLONE: {
+            cloneMultiple(editor, listArgs, *list,
+                          indexesAndDataForMultipleSelection(*list, sel));
+        } break;
+
         case EditListAction::REMOVE: {
             auto values = indexesAndDataForMultipleSelection(*list, sel);
             if (!values.empty()) {
@@ -1211,6 +1243,11 @@ public:
                 editor->addAction(
                     std::make_unique<AddAction>(editor, listArgs, list->size()));
             }
+        } break;
+
+        case EditListAction::CLONE: {
+            cloneMultiple(editor, listArgs, *list,
+                          indexesAndDataForMultipleSelection(*list, sel));
         } break;
 
         case EditListAction::REMOVE: {
@@ -1251,6 +1288,19 @@ public:
                 editor->addAction(
                     std::make_unique<AddAction>(editor, listArgs, list->size()));
             }
+        } break;
+
+        case EditListAction::CLONE: {
+            editor->startMacro();
+            for (unsigned groupIndex = 0; groupIndex < sel.MAX_GROUP_SIZE; groupIndex++) {
+                const auto& childSel = sel.childSel(groupIndex);
+                const ListArgsT listArgs = std::make_tuple(groupIndex);
+                if (const ListT* list = getEditorListPtr(editor, listArgs)) {
+                    cloneMultiple(editor, listArgs, *list,
+                                  indexesAndDataForMultipleSelection(*list, childSel));
+                }
+            }
+            editor->endMacro();
         } break;
 
         case EditListAction::REMOVE: {
