@@ -7,8 +7,10 @@
 #include "background-image-editor.h"
 #include "gui/editor-actions.h"
 #include "gui/imgui-combos.h"
+#include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
+#include "models/common/imagecache.h"
 
 namespace UnTech::Gui {
 
@@ -61,12 +63,12 @@ bool BackgroundImageEditorGui::setEditorData(AbstractEditorData* data)
 
 void BackgroundImageEditorGui::editorDataChanged()
 {
-    // ::TODO invalidate texture::
+    _textureValid = false;
 }
 
 void BackgroundImageEditorGui::editorOpened()
 {
-    // ::TODO load texture::
+    _textureValid = false;
 }
 
 void BackgroundImageEditorGui::editorClosed()
@@ -105,7 +107,7 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
                 EditorActions<AP::BackgroundImage>::fieldEdited<
                     &BackgroundImageInput::imageFilename>(_data);
 
-                // ::TODO mark texture out of date::
+                _textureValid = false;
             }
 
             if (ImGui::IdStringCombo("Conversion Palette", &bi.conversionPlette, projectFile.palettes)) {
@@ -145,10 +147,25 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
         ImGui::Separator();
         ImGui::Spacing();
 
+        // ::TODO add palette animation::
+
         {
             ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
-            // ::TODO show background image::
+            // ::TODO dynamic zoom::
+            const ImVec2 zoom(2.0f, 2.0f);
+
+            const ImVec2 imageSize(_imageTexture.width() * zoom.x, _imageTexture.height() * zoom.y);
+            const ImVec2 screenOffset = centreOffset(imageSize);
+
+            ImGui::SetCursorScreenPos(screenOffset);
+            ImGui::InvisibleButton("PaletteImage", imageSize);
+
+            auto* drawList = ImGui::GetWindowDrawList();
+
+            drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize);
+
+            // ::TODO show invalid tiles from `convertBackgroundImage()`::
 
             ImGui::EndChild();
         }
@@ -162,7 +179,33 @@ void BackgroundImageEditorGui::processGui(const Project::ProjectFile& projectFil
         return;
     }
 
+    updateImageTexture();
+
     backgroundImageWindow(projectFile);
+}
+
+void BackgroundImageEditorGui::updateImageTexture()
+{
+    assert(_data);
+    auto& bi = _data->data;
+
+    if (_textureValid) {
+        return;
+    }
+
+    // ::TODO draw tileset from projectData::
+
+    auto image = ImageCache::loadPngImage(bi.imageFilename);
+    assert(image);
+
+    if (image->dataSize() != 0) {
+        _imageTexture.replace(*image);
+    }
+    else {
+        _imageTexture.replaceWithMissingImageSymbol();
+    }
+
+    _textureValid = true;
 }
 
 }

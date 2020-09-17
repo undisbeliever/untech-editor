@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui/abstract-editor.h"
+#include "gui/texture.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
@@ -31,6 +32,9 @@ private:
 
     BackgroundImageEditorData* _data;
 
+    Texture _imageTexture;
+    bool _textureValid;
+
 public:
     BackgroundImageEditorGui();
 
@@ -44,6 +48,8 @@ public:
 
 private:
     void backgroundImageWindow(const Project::ProjectFile& projectFile);
+
+    void updateImageTexture();
 };
 
 }
