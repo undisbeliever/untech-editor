@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui/abstract-editor.h"
+#include "gui/texture.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
@@ -31,6 +32,10 @@ private:
 
     PaletteEditorData* _data;
 
+    Texture _imageTexture;
+    int _frameId;
+    bool _textureValid;
+
 public:
     PaletteEditorGui();
 
@@ -44,6 +49,8 @@ public:
 
 private:
     void paletteWindow();
+
+    void updateImageTexture();
 };
 
 }

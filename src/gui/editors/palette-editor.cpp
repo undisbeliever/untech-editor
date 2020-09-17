@@ -6,8 +6,11 @@
 
 #include "palette-editor.h"
 #include "gui/editor-actions.h"
+#include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
+#include "gui/style.h"
+#include "models/common/imagecache.h"
 
 namespace UnTech::Gui {
 
@@ -50,6 +53,8 @@ void PaletteEditorData::updateSelection()
 PaletteEditorGui::PaletteEditorGui()
     : AbstractEditorGui()
     , _data(nullptr)
+    , _imageTexture()
+    , _textureValid(false)
 {
 }
 
@@ -60,12 +65,13 @@ bool PaletteEditorGui::setEditorData(AbstractEditorData* data)
 
 void PaletteEditorGui::editorDataChanged()
 {
-    // ::TODO invalidate texture::
+    _textureValid = false;
 }
 
 void PaletteEditorGui::editorOpened()
 {
-    // ::TODO load texture::
+    _textureValid = false;
+    _frameId = -1;
 }
 
 void PaletteEditorGui::editorClosed()
@@ -96,7 +102,7 @@ void PaletteEditorGui::paletteWindow()
                 EditorActions<AP::Palette>::fieldEdited<
                     &PaletteInput::paletteImageFilename>(_data);
 
-                // ::TODO mark texture out of date::
+                _textureValid = false;
             }
 
             ImGui::InputUnsigned("Rows Per Frame", &palette.rowsPerFrame);
@@ -122,10 +128,81 @@ void PaletteEditorGui::paletteWindow()
         ImGui::Separator();
         ImGui::Spacing();
 
+        // Cannot use std::clamp as palette.rowsPerFrame may be 0.
+        const unsigned rowsPerFrame = std::max<unsigned>(1, std::min<unsigned>(_imageTexture.height(), palette.rowsPerFrame));
+        const unsigned firstFrame = palette.skipFirstFrame ? 1 : 0;
+        const unsigned nFrames = std::max<unsigned>(1, _imageTexture.height() / rowsPerFrame - firstFrame);
+
+        {
+            // ::TODO add animation timer::
+
+            if (ImGui::Button("Reset")) {
+                _frameId = -1;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Next Frame")) {
+                _frameId++;
+            }
+
+            if (_frameId > 0 && unsigned(_frameId) >= nFrames) {
+                _frameId = 0;
+            }
+            ImGui::SameLine();
+            if (_frameId >= 0) {
+                ImGui::Text("Frame %d / %d", int(_frameId + 1), nFrames);
+            }
+        }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
         {
             ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
-            // ::TODO show palette image::
+            if (_frameId < 0) {
+                constexpr float lineWidth = 2.0f;
+                constexpr float zoom = 24;
+
+                const ImVec2 imageSize(_imageTexture.width() * zoom, _imageTexture.height() * zoom);
+                const ImVec2 screenOffset = centreOffset(imageSize);
+
+                ImGui::SetCursorScreenPos(screenOffset);
+                ImGui::InvisibleButton("PaletteImage", imageSize);
+
+                auto* drawList = ImGui::GetWindowDrawList();
+
+                drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize);
+
+                const float x1 = screenOffset.x - zoom;
+                const float x2 = x1 + imageSize.x + 2 * zoom;
+                float y = screenOffset.y;
+                const float yStep = rowsPerFrame * zoom;
+                for (unsigned i = 0; i < nFrames; i++) {
+                    drawList->AddLine(ImVec2(x1, y), ImVec2(x2, y), Style::paletteRowLineColor, lineWidth);
+                    y += yStep;
+                }
+                drawList->AddLine(ImVec2(x1, y), ImVec2(x2, y), Style::paletteRowLineColor, lineWidth);
+
+                if ((firstFrame + nFrames) * rowsPerFrame != _imageTexture.height()) {
+                    drawList->AddRectFilled(ImVec2(x1, y + lineWidth / 2), ImVec2(x2, screenOffset.y + imageSize.y), Style::invalidFillColor);
+                }
+            }
+            else {
+                constexpr float zoom = 48;
+
+                const ImVec2 imageSize(_imageTexture.width() * zoom, rowsPerFrame * zoom);
+                const ImVec2 screenOffset = centreOffset(imageSize);
+                ImGui::SetCursorScreenPos(screenOffset);
+                ImGui::InvisibleButton("FrameImage", imageSize);
+
+                auto* drawList = ImGui::GetWindowDrawList();
+
+                const ImVec2 uvMin(0.0f, float((_frameId + firstFrame) * rowsPerFrame) / _imageTexture.height());
+                const ImVec2 uvMax(1.0f, float((_frameId + firstFrame + 1) * rowsPerFrame) / _imageTexture.height());
+
+                drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize, uvMin, uvMax);
+            }
 
             ImGui::EndChild();
         }
@@ -139,7 +216,31 @@ void PaletteEditorGui::processGui(const Project::ProjectFile&)
         return;
     }
 
+    updateImageTexture();
+
     paletteWindow();
+}
+
+void PaletteEditorGui::updateImageTexture()
+{
+    assert(_data);
+    auto& palette = _data->data;
+
+    if (_textureValid) {
+        return;
+    }
+
+    auto image = ImageCache::loadPngImage(palette.paletteImageFilename);
+    assert(image);
+
+    if (image->dataSize() != 0) {
+        _imageTexture.replace(*image);
+    }
+    else {
+        _imageTexture.replaceWithMissingImageSymbol();
+    }
+
+    _textureValid = true;
 }
 
 }

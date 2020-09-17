@@ -47,6 +47,10 @@ struct Style {
     constexpr static ImU32 entranceFillColor = IM_COL32(0, 192, 0, 64);
 
     constexpr static ImU32 disabledEntityGroupTint = IM_COL32(255, 255, 255, 32);
+
+    // Palette
+    constexpr static ImU32 paletteRowLineColor = IM_COL32(200, 200, 255, 128);
+    constexpr static ImU32 invalidFillColor = IM_COL32(255, 0, 0, 128);
 };
 
 }
