@@ -11,134 +11,115 @@
 
 namespace ImGui {
 
-std::pair<bool, std::optional<std::filesystem::path>> SaveFileDialog(const char* strId, const std::string& title, const char* extension)
+static ImGuiID saveDialogId = 0;
+static FileBrowser saveDialog(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CloseOnEsc);
+
+static ImGuiID openDialogId = 0;
+static FileBrowser openDialog(ImGuiFileBrowserFlags_CloseOnEsc);
+
+static void openSaveDialog(const ImGuiID id, const std::string& title, const char* extension)
 {
-    static ImGuiID fileDialogId = 0;
-    static FileBrowser fileDialog(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CloseOnEsc);
+    if (saveDialogId != id || !saveDialog.IsOpened()) {
+        saveDialogId = id;
 
-    const ImGuiID id = GetID(strId);
-
-    if (fileDialogId != id || !fileDialog.IsOpened()) {
-        fileDialogId = id;
-
-        fileDialog.SetTitle(title);
-        fileDialog.SetTypeFilters({ extension });
-        fileDialog.Open();
+        saveDialog.SetTitle(title);
+        saveDialog.SetTypeFilters({ extension });
+        saveDialog.Open();
     }
-    fileDialog.Display();
+}
 
-    if (!fileDialog.IsOpened()) {
-        if (fileDialog.HasSelected()) {
-            auto fn = fileDialog.GetSelected();
-            fileDialog.ClearSelected();
+static std::pair<bool, std::optional<std::filesystem::path>> processSaveDialog(const ImGuiID id, const char* extension)
+{
+    if (saveDialogId == id) {
+        saveDialog.Display();
 
-            if (fn.extension().empty()) {
-                fn += extension;
+        if (!saveDialog.IsOpened()) {
+            if (saveDialog.HasSelected()) {
+                auto fn = saveDialog.GetSelected();
+                saveDialog.ClearSelected();
+
+                if (fn.extension().empty()) {
+                    fn += extension;
+                }
+                fn = std::filesystem::absolute(fn).lexically_normal();
+                return { true, fn };
             }
-            return { true, std::filesystem::absolute(fn) };
-        }
-        else {
             return { true, std::nullopt };
         }
     }
-    else {
-        return { false, std::nullopt };
+    return { false, std::nullopt };
+}
+
+static void openOpenDialog(const ImGuiID id, const std::string& title, const char* extension)
+{
+    if (openDialogId != id || !openDialog.IsOpened()) {
+        openDialogId = id;
+
+        openDialog.SetTitle(title);
+        openDialog.SetTypeFilters({ extension });
+        openDialog.Open();
     }
+}
+
+static std::pair<bool, std::optional<std::filesystem::path>> processOpenDialog(const ImGuiID id)
+{
+    if (openDialogId == id) {
+        openDialog.Display();
+
+        if (!openDialog.IsOpened()) {
+            if (openDialog.HasSelected()) {
+                auto fn = openDialog.GetSelected();
+                openDialog.ClearSelected();
+
+                fn = std::filesystem::absolute(fn).lexically_normal();
+                return { true, fn };
+            }
+            return { true, std::nullopt };
+        }
+    }
+    return { false, std::nullopt };
+}
+
+std::pair<bool, std::optional<std::filesystem::path>> SaveFileDialog(const char* strId, const std::string& title, const char* extension)
+{
+    const ImGuiID id = GetID(strId);
+
+    openSaveDialog(id, title, extension);
+    return processSaveDialog(id, extension);
 }
 
 std::pair<bool, std::optional<std::filesystem::path>> OpenFileDialog(const char* strId, const std::string& title, const char* extension)
 {
-    static ImGuiID fileDialogId = 0;
-    static FileBrowser fileDialog(ImGuiFileBrowserFlags_CloseOnEsc);
-
     const ImGuiID id = GetID(strId);
 
-    if (fileDialogId != id || !fileDialog.IsOpened()) {
-        fileDialogId = id;
-
-        fileDialog.SetTitle(title);
-        fileDialog.SetTypeFilters({ extension });
-        fileDialog.Open();
-    }
-    fileDialog.Display();
-
-    if (!fileDialog.IsOpened()) {
-        if (fileDialog.HasSelected()) {
-            const auto fn = fileDialog.GetSelected();
-            fileDialog.ClearSelected();
-
-            return { true, std::filesystem::absolute(fn) };
-        }
-        else {
-            return { true, std::nullopt };
-        }
-    }
-    else {
-        return { false, std::nullopt };
-    }
+    openOpenDialog(id, title, extension);
+    return processOpenDialog(id);
 }
 
 std::optional<std::filesystem::path> SaveFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size)
 {
-    static FileBrowser fileDialog(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_CloseOnEsc);
-
-    PushID(label);
+    const ImGuiID id = GetID(label);
 
     if (Button(label, size)) {
-        fileDialog.SetTitle(title);
-        fileDialog.SetTypeFilters({ extension });
-        fileDialog.Open();
+        openSaveDialog(id, title, extension);
     }
-    fileDialog.Display();
-
-    PopID();
-
-    if (fileDialog.HasSelected()) {
-        auto fn = fileDialog.GetSelected();
-        if (fn.extension().empty()) {
-            fn += extension;
-        }
-        fileDialog.ClearSelected();
-        return std::filesystem::absolute(fn);
-    }
-
-    return std::nullopt;
+    const auto [closed, fn] = processSaveDialog(id, extension);
+    return fn;
 }
 
 std::optional<std::filesystem::path> OpenFileDialogButton(const char* label, const std::string& title, const char* extension, const ImVec2& size)
 {
-    static FileBrowser fileDialog(ImGuiFileBrowserFlags_CloseOnEsc);
-
-    PushID(label);
+    const ImGuiID id = GetID(label);
 
     if (Button(label, size)) {
-        fileDialog.SetTitle(title);
-        fileDialog.SetTypeFilters({ extension });
-        fileDialog.Open();
+        openOpenDialog(id, title, extension);
     }
-    fileDialog.Display();
-
-    PopID();
-
-    if (fileDialog.HasSelected()) {
-        auto fn = fileDialog.GetSelected();
-        fileDialog.ClearSelected();
-        return std::filesystem::absolute(fn);
-    }
-
-    return std::nullopt;
+    const auto [closed, fn] = processOpenDialog(id);
+    return fn;
 }
 
 bool InputPngImageFilename(const char* label, std::filesystem::path* path)
 {
-    static ImGuiID activeDialogId;
-    static ImGui::FileBrowser fileDialog = []() {
-        ImGui::FileBrowser d(ImGuiFileBrowserFlags_CloseOnEsc);
-        d.SetTitle("Select PNG Image");
-        d.SetTypeFilters({ ".png" });
-        return d;
-    }();
-
     const auto innerSpacingX = ImGui::GetStyle().ItemInnerSpacing.x;
 
     bool pathEdited = false;
@@ -154,22 +135,16 @@ bool InputPngImageFilename(const char* label, std::filesystem::path* path)
     if (Button(basename.data(), ImVec2(buttonWidth, 0))) {
         if (!path->empty()) {
             auto p = std::filesystem::absolute(path->parent_path()).lexically_normal();
-            fileDialog.SetPwd(p);
+            openDialog.SetPwd(p);
         }
-        fileDialog.Open();
-        activeDialogId = id;
+        openOpenDialog(id, "Select PNG Image", ".png");
     }
 
-    if (activeDialogId == id) {
-        fileDialog.Display();
-
-        if (fileDialog.HasSelected()) {
-            auto fn = std::filesystem::absolute(fileDialog.GetSelected()).lexically_normal();
-            if (*path != fn) {
-                *path = std::move(fn);
-                pathEdited = true;
-            }
-            fileDialog.ClearSelected();
+    const auto [closed, fn] = processOpenDialog(id);
+    if (fn) {
+        if (*path != fn) {
+            *path = std::move(*fn);
+            pathEdited = true;
         }
     }
 
