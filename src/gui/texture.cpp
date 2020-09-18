@@ -6,6 +6,7 @@
 
 #include "texture.h"
 #include "models/common/image.h"
+#include "models/common/imagecache.h"
 
 namespace UnTech::Gui {
 
@@ -25,5 +26,18 @@ const UnTech::Image Texture::missingImageSymbol = []() {
     }
     return img;
 }();
+
+void Texture::loadPngImage(const std::filesystem::path& fn)
+{
+    auto image = ImageCache::loadPngImage(fn);
+    assert(image);
+
+    if (image->dataSize() != 0) {
+        this->replace(*image);
+    }
+    else {
+        this->replaceWithMissingImageSymbol();
+    }
+}
 
 }

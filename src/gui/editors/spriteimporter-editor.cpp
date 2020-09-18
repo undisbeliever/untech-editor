@@ -882,15 +882,7 @@ void SpriteImporterEditorGui::updateImageTexture()
         return;
     }
 
-    auto image = ImageCache::loadPngImage(fs.imageFilename);
-    assert(image);
-
-    if (image->dataSize() != 0) {
-        _imageTexture.replace(*image);
-    }
-    else {
-        _imageTexture.replaceWithMissingImageSymbol();
-    }
+    _imageTexture.loadPngImage(fs.imageFilename);
 
     _imageValid = true;
     _transparentColorComboValid = false;

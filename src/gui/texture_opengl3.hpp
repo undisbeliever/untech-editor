@@ -106,6 +106,8 @@ public:
     {
         replace(missingImageSymbol);
     }
+
+    void loadPngImage(const std::filesystem::path& filename);
 };
 
 }

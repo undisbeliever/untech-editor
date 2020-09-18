@@ -10,7 +10,6 @@
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/style.h"
-#include "models/common/imagecache.h"
 
 namespace UnTech::Gui {
 
@@ -230,15 +229,7 @@ void PaletteEditorGui::updateImageTexture()
         return;
     }
 
-    auto image = ImageCache::loadPngImage(palette.paletteImageFilename);
-    assert(image);
-
-    if (image->dataSize() != 0) {
-        _imageTexture.replace(*image);
-    }
-    else {
-        _imageTexture.replaceWithMissingImageSymbol();
-    }
+    _imageTexture.loadPngImage(palette.paletteImageFilename);
 
     _textureValid = true;
 }

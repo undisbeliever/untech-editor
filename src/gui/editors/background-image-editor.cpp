@@ -10,7 +10,6 @@
 #include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
-#include "models/common/imagecache.h"
 
 namespace UnTech::Gui {
 
@@ -195,15 +194,7 @@ void BackgroundImageEditorGui::updateImageTexture()
 
     // ::TODO draw tileset from projectData::
 
-    auto image = ImageCache::loadPngImage(bi.imageFilename);
-    assert(image);
-
-    if (image->dataSize() != 0) {
-        _imageTexture.replace(*image);
-    }
-    else {
-        _imageTexture.replaceWithMissingImageSymbol();
-    }
+    _imageTexture.loadPngImage(bi.imageFilename);
 
     _textureValid = true;
 }
