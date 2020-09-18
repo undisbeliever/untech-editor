@@ -744,8 +744,13 @@ void SpriteImporterEditorGui::frameEditorWindow()
     if (ImGui::Begin("Sprite Importer")) {
         ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
-        // ::TODO add toolbar::
-        ImGui::TextUnformatted("::TODO add toolbar::");
+        {
+            undoStackButtons();
+            ImGui::SameLine(0.0f, 12.0f);
+
+            // ::TODO add toolbar::
+            ImGui::TextUnformatted("::TODO expand toolbar::");
+        }
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 

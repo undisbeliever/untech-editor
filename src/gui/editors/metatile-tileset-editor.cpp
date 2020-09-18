@@ -665,10 +665,15 @@ void MetaTileTilesetEditorGui::scratchpadWindow()
     if (ImGui::Begin("Scratchpad")) {
         ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
-        editModeButtons();
-        // ::TODO expand toolbar::
-        ImGui::SameLine();
-        ImGui::TextUnformatted("::TODO expand toolBar::");
+        {
+            undoStackButtons();
+            ImGui::SameLine(0.0f, 12.0f);
+
+            editModeButtons();
+            // ::TODO expand toolbar::
+            ImGui::SameLine();
+            ImGui::TextUnformatted("::TODO expand toolBar::");
+        }
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 

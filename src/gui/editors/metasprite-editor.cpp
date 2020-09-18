@@ -1084,9 +1084,14 @@ void MetaSpriteEditorGui::frameEditorWindow()
             return;
         }
 
-        // ::TODO add toolbar::
-        ImGui::TextUnformatted("::TODO add toolbar::");
-        ImGui::TextUnformatted("::TODO add frame Selection Combo::");
+        {
+            undoStackButtons();
+            ImGui::SameLine(0.0f, 12.0f);
+
+            // ::TODO add toolbar::
+            ImGui::TextUnformatted("::TODO add toolbar::");
+            ImGui::TextUnformatted("::TODO add frame Selection Combo::");
+        }
 
         static_assert(backgroundColorNames.size() == backgroundColors.size());
         ImGui::Combo("Background Color", &_selectedEditorBgColor, backgroundColorNames.data(), backgroundColorNames.size());

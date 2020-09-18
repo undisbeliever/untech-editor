@@ -124,6 +124,10 @@ private:
     AbstractEditorGui& operator=(AbstractEditorGui&&) = delete;
 
 public:
+    bool undoClicked = false;
+    bool redoClicked = false;
+
+public:
     AbstractEditorGui() = default;
     virtual ~AbstractEditorGui() = default;
 
@@ -139,7 +143,12 @@ public:
 
     // This is fine - only one Editor is active at any given time.
     virtual void processGui(const Project::ProjectFile& projectFile) = 0;
+
+protected:
+    void undoStackButtons();
 };
+
+void processUndoStack(AbstractEditorGui* gui, AbstractEditorData* editor, UnTech::Project::ProjectFile&);
 
 std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);
 

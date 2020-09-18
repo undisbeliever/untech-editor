@@ -230,6 +230,33 @@ void AbstractExternalFileEditorData::setFilename(const std::filesystem::path& fn
     _basename = _filename.filename();
 }
 
+void AbstractEditorGui::undoStackButtons()
+{
+    if (ImGui::Button("Undo")) {
+        undoClicked = true;
+    }
+    ImGui::SameLine();
+
+    if (ImGui::Button("Redo")) {
+        redoClicked = true;
+    }
+}
+
+void processUndoStack(AbstractEditorGui* gui, AbstractEditorData* editor, Project::ProjectFile& pf)
+{
+    if (gui->undoClicked) {
+        editor->undo(pf);
+        gui->editorDataChanged();
+    }
+    else if (gui->redoClicked) {
+        editor->redo(pf);
+        gui->editorDataChanged();
+    }
+
+    gui->undoClicked = false;
+    gui->redoClicked = false;
+}
+
 std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
                                                  const UnTech::Project::ProjectFile& projectFile)
 {

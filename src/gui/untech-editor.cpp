@@ -129,6 +129,9 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
                 assert(counter == 1);
                 assert(_currentEditorGui);
 
+                _currentEditorGui->redoClicked = false;
+                _currentEditorGui->undoClicked = false;
+
                 _currentEditorGui->editorDataChanged();
                 _currentEditorGui->editorOpened();
             }
@@ -261,19 +264,13 @@ void UnTechEditor::processMenu()
         const bool canRedo = _currentEditor && _currentEditor->canRedo();
 
         if (ImGui::MenuItem("Undo", nullptr, false, canUndo)) {
-            if (_currentEditor) {
-                assert(_currentEditorGui);
-
-                _currentEditor->undo(*_projectFile);
-                _currentEditorGui->editorDataChanged();
+            if (_currentEditorGui) {
+                _currentEditorGui->undoClicked = true;
             }
         }
         if (ImGui::MenuItem("Redo", nullptr, false, canRedo)) {
-            if (_currentEditor) {
-                assert(_currentEditorGui);
-
-                _currentEditor->redo(*_projectFile);
-                _currentEditorGui->editorDataChanged();
+            if (_currentEditorGui) {
+                _currentEditorGui->redoClicked = true;
             }
         }
 
@@ -409,6 +406,10 @@ void UnTechEditor::updateProjectFile()
 {
     if (_currentEditor) {
         _currentEditor->processPendingActions(*_projectFile);
+
+        if (_currentEditorGui) {
+            processUndoStack(_currentEditorGui, _currentEditor, *_projectFile);
+        }
     }
 
     if (_projectListWindow.hasPendingActions()) {

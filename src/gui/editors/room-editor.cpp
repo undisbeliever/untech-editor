@@ -555,6 +555,9 @@ void RoomEditorGui::editorWindow()
             ImGui::EndTooltip();
         }
 
+        undoStackButtons();
+        ImGui::SameLine(0.0f, 12.0f);
+
         if (selectObjectsButton()) {
             _data->clearSelectedTiles();
             selectionChanged();
