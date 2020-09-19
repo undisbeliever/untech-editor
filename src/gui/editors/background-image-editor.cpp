@@ -10,6 +10,7 @@
 #include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
+#include "gui/style.h"
 
 namespace UnTech::Gui {
 
@@ -151,8 +152,7 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
         {
             ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
 
-            // ::TODO dynamic zoom::
-            const ImVec2 zoom(2.0f, 2.0f);
+            const ImVec2& zoom = Style::backgroundImageZoom.zoom();
 
             const ImVec2 imageSize(_imageTexture.width() * zoom.x, _imageTexture.height() * zoom.y);
             const ImVec2 screenOffset = centreOffset(imageSize);
@@ -164,7 +164,7 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
 
             drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize);
 
-            // ::TODO show invalid tiles from `convertBackgroundImage()`::
+            Style::backgroundImageZoom.processMouseWheel();
 
             ImGui::EndChild();
         }

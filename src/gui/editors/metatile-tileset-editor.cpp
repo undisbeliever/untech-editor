@@ -642,15 +642,21 @@ void MetaTileTilesetEditorGui::tilesetWindow()
     if (ImGui::Begin("MetaTile Tileset")) {
         ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
-        // ::TODO toolbar::
-        ImGui::TextUnformatted("::TODO ToolBar::");
+        {
+            Style::metaTileTilesetZoom.zoomCombo("##zoom");
+            ImGui::SameLine();
+
+            // ::TODO extend toolbar::
+            ImGui::TextUnformatted("::TODO extend toolbar::");
+        }
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        // ::TODO zoom::
-        auto geo = tilesetGeometryAutoZoom();
+        auto geo = tilesetGeometry(Style::metaTileTilesetZoom.zoom());
         invisibleButton("##Tileset", geo);
         drawTileset(geo);
+
+        Style::metaTileTilesetZoom.processMouseWheel();
 
         ImGui::EndChild();
     }
@@ -670,17 +676,21 @@ void MetaTileTilesetEditorGui::scratchpadWindow()
             ImGui::SameLine(0.0f, 12.0f);
 
             editModeButtons();
-            // ::TODO expand toolbar::
+            ImGui::SameLine(0.0f, 12.0f);
+
+            Style::metaTileScratchpadZoom.zoomCombo("##zoom");
             ImGui::SameLine();
+
             ImGui::TextUnformatted("::TODO expand toolBar::");
         }
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        // ::TODO zoom::
-        const auto geo = mapGeometryAutoZoom(tileset.scratchpad.size());
+        const auto geo = mapGeometry(tileset.scratchpad.size(), Style::metaTileScratchpadZoom.zoom());
         invisibleButton("##Scratchpad", geo);
         drawAndEditMap(geo);
+
+        Style::metaTileScratchpadZoom.processMouseWheel();
 
         ImGui::EndChild();
     }

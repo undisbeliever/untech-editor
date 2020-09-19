@@ -33,9 +33,6 @@ constexpr static unsigned TILESET_IMAGE_WIDTH = 16 * SMALL_TILE_SIZE;
 constexpr static unsigned SMALL_TILES_PER_ROW = TILESET_IMAGE_WIDTH / SMALL_TILE_SIZE;
 constexpr static unsigned LARGE_TILES_PER_ROW = TILESET_IMAGE_WIDTH / LARGE_TILE_SIZE;
 
-// ::TODO dynamic zoom::
-static const ImVec2 zoom(5.0f, 5.0f);
-
 const char* MetaSpriteEditorGui::colorPopupStrId = "Edit Color##MS";
 
 const static std::array<const char*, 4> backgroundColorNames = {
@@ -1088,8 +1085,10 @@ void MetaSpriteEditorGui::frameEditorWindow()
             undoStackButtons();
             ImGui::SameLine(0.0f, 12.0f);
 
+            Style::metaSpriteZoom.zoomCombo("##zoom");
+            ImGui::SameLine(0.0f, 12.0f);
+
             // ::TODO add toolbar::
-            ImGui::TextUnformatted("::TODO add toolbar::");
             ImGui::TextUnformatted("::TODO add frame Selection Combo::");
         }
 
@@ -1102,7 +1101,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
 
         auto* drawList = ImGui::GetWindowDrawList();
 
-        _graphics.startLoop("##Editor", ms8RectBounds, zoom,
+        _graphics.startLoop("##Editor", ms8RectBounds, Style::metaSpriteZoom.zoom(),
                             &_data->tileHitboxSel, &_data->frameObjectsSel, &_data->actionPointsSel, &_data->entityHitboxesSel);
 
         _graphics.drawBackgroundColor(drawList, bgColor);
@@ -1218,6 +1217,8 @@ void MetaSpriteEditorGui::frameEditorWindow()
 
             _data->endMacro();
         }
+
+        Style::metaSpriteZoom.processMouseWheel();
 
         ImGui::EndChild();
     }

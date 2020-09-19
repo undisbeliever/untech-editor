@@ -10,6 +10,27 @@
 
 namespace UnTech::Gui {
 
+class Zoom {
+private:
+    unsigned _zoomInt;
+    ImVec2 _zoom;
+    std::string _zoomString;
+
+public:
+    Zoom(unsigned z);
+
+    unsigned zoomInt() const { return _zoomInt; }
+    const ImVec2& zoom() const { return _zoom; }
+    const std::string& zoomString() const { return _zoomString; }
+
+    void setZoom(unsigned z);
+
+    void zoomCombo(const char* label);
+
+    // Should be called just before `End()` or `EndChild()` to prevent jittering.
+    void processMouseWheel();
+};
+
 struct Style {
     // Common
     constexpr static ImU32 gridColor = IM_COL32(128, 128, 128, 128);
@@ -51,6 +72,14 @@ struct Style {
     // Palette
     constexpr static ImU32 paletteRowLineColor = IM_COL32(200, 200, 255, 128);
     constexpr static ImU32 invalidFillColor = IM_COL32(255, 0, 0, 128);
+
+    // Zoom
+    static Zoom metaSpriteZoom;
+    static Zoom spriteImporterZoom;
+    static Zoom backgroundImageZoom;
+    static Zoom metaTileTilesetZoom;
+    static Zoom metaTileScratchpadZoom;
+    static Zoom roomEditorZoom;
 };
 
 }

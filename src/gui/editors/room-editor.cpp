@@ -564,11 +564,13 @@ void RoomEditorGui::editorWindow()
         }
         ImGui::SameLine();
         editModeButtons();
+        ImGui::SameLine(0.0f, 12.0f);
+
+        Style::roomEditorZoom.zoomCombo("##zoom");
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-        // ::TODO zoom::
-        const ImVec2 zoom(2.0f, 2.0f);
+        const ImVec2& zoom = Style::roomEditorZoom.zoom();
         const rect bounds = room.validEntityArea();
 
         ImDrawList* drawList = ImGui::GetWindowDrawList();
@@ -606,6 +608,8 @@ void RoomEditorGui::editorWindow()
 
             _data->endMacro();
         }
+
+        Style::roomEditorZoom.processMouseWheel();
 
         ImGui::EndChild();
     }

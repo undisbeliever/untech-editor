@@ -26,9 +26,6 @@ constexpr static unsigned MINIMIM_FRAME_SIZE = 16;
 
 constexpr static int IMAGE_PADDING = 4;
 
-// ::TODO dynamic zoom::
-static const ImVec2 zoom(6.0f, 6.0f);
-
 // MetaSpriteEditor Action Policies
 struct SpriteImporterEditorData::AP {
     struct FrameSet {
@@ -748,6 +745,9 @@ void SpriteImporterEditorGui::frameEditorWindow()
             undoStackButtons();
             ImGui::SameLine(0.0f, 12.0f);
 
+            Style::spriteImporterZoom.zoomCombo("##zoom");
+            ImGui::SameLine(0.0f, 12.0f);
+
             // ::TODO add toolbar::
             ImGui::TextUnformatted("::TODO expand toolbar::");
         }
@@ -769,7 +769,7 @@ void SpriteImporterEditorGui::frameEditorWindow()
             bounds.height = std::max(MINIMIM_FRAME_SIZE, aabb.height);
         }
 
-        _graphics.startLoop("##Editor", graphicsRect, bounds, zoom,
+        _graphics.startLoop("##Editor", graphicsRect, bounds, Style::spriteImporterZoom.zoom(),
                             &_data->tileHitboxSel, &_data->frameObjectsSel, &_data->actionPointsSel, &_data->entityHitboxesSel);
 
         // Select frame with double click
@@ -852,6 +852,8 @@ void SpriteImporterEditorGui::frameEditorWindow()
 
             _data->endMacro();
         }
+
+        Style::spriteImporterZoom.processMouseWheel();
 
         ImGui::EndChild();
     }
