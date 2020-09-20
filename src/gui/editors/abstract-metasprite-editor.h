@@ -8,6 +8,7 @@
 
 #include "gui/abstract-editor.h"
 #include "gui/selection.h"
+#include "models/common/idstring.h"
 
 namespace UnTech::Gui {
 
@@ -27,6 +28,19 @@ protected:
 };
 
 class AbstractMetaSpriteEditorGui : public AbstractEditorGui {
+public:
+    struct ExportOrderTree {
+        idstring name;
+        bool valid;
+        std::vector<idstring> alternatives;
+    };
+    std::vector<ExportOrderTree> _eoStillFrames;
+    std::vector<ExportOrderTree> _eoAnimations;
+    bool _exportOrderValid;
+
+public:
+    virtual void editorDataChanged() override;
+
 protected:
     AbstractMetaSpriteEditorGui() = default;
 
@@ -36,8 +50,16 @@ protected:
     template <typename AP, typename EditorT, typename FrameSetT>
     void animationPreviewWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet);
 
-    template <typename AP, typename EditorT, typename FrameSetT>
-    void exportOrderWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet);
+    void exportOrderWindow(const char* windowLabel);
+
+    template <typename FrameSetT>
+    void updateExportOderTree(const FrameSetT& frameSet, const Project::ProjectFile& projectFile);
+
+    // MUST be called when the frame/animation list is changed or when a frame/animation is renamed.
+    void invalidateExportOrderTree() { _exportOrderValid = false; }
+
+    virtual void addFrame(const idstring& name) = 0;
+    virtual void addAnimation(const idstring& name) = 0;
 };
 
 }

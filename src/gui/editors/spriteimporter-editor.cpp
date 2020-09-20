@@ -207,6 +207,8 @@ bool SpriteImporterEditorGui::setEditorData(AbstractEditorData* data)
 
 void SpriteImporterEditorGui::editorDataChanged()
 {
+    AbstractMetaSpriteEditorGui::editorDataChanged();
+
     _imageValid = false;
     _transparentColorComboValid = false;
 }
@@ -220,6 +222,26 @@ void SpriteImporterEditorGui::editorOpened()
 void SpriteImporterEditorGui::editorClosed()
 {
     editorOpened();
+}
+
+void SpriteImporterEditorGui::addFrame(const idstring& name)
+{
+    assert(_data);
+
+    SI::Frame frame;
+    frame.name = name;
+    ListActions<AP::Frames>::addItemToSelectedList(_data, frame);
+    invalidateExportOrderTree();
+}
+
+void SpriteImporterEditorGui::addAnimation(const idstring& name)
+{
+    assert(_data);
+
+    MetaSprite::Animation::Animation animation;
+    animation.name = name;
+    ListActions<AP::Animations>::addItemToSelectedList(_data, animation);
+    invalidateExportOrderTree();
 }
 
 void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& projectFile)
@@ -247,6 +269,8 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
             if (ImGui::IdStringCombo("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
                     &SI::FrameSet::exportOrder>(_data);
+
+                invalidateExportOrderTree();
             }
 
             if (ImGui::InputPngImageFilename("Image", &fs.imageFilename)) {
@@ -384,7 +408,9 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
-        ListButtons<AP::Frames>(_data);
+        if (ListButtons<AP::Frames>(_data)) {
+            invalidateExportOrderTree();
+        }
 
         ImGui::SetNextItemWidth(-1);
         ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames, 8);
@@ -403,6 +429,8 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<AP::Frames>::selectedFieldEdited<
                         &SI::Frame::name>(_data);
+
+                    invalidateExportOrderTree();
                 }
 
                 unsigned spriteOrder = frame.spriteOrder;
@@ -865,17 +893,19 @@ void SpriteImporterEditorGui::processGui(const Project::ProjectFile& projectFile
     if (_data == nullptr) {
         return;
     }
+    auto& fs = _data->data;
 
     updateImageTexture();
 
+    updateExportOderTree(fs, projectFile);
     frameSetPropertiesWindow(projectFile);
     framePropertiesWindow(projectFile);
 
     frameEditorWindow();
 
-    animationPropertiesWindow<AP>("Animations##SI", _data, &_data->data);
-    animationPreviewWindow<AP>("Animation Preview##SI", _data, &_data->data);
-    exportOrderWindow<AP>("Export Order##SI", _data, &_data->data);
+    animationPropertiesWindow<AP>("Animations##SI", _data, &fs);
+    animationPreviewWindow<AP>("Animation Preview##SI", _data, &fs);
+    exportOrderWindow("Export Order##SI");
 }
 
 void SpriteImporterEditorGui::updateImageTexture()

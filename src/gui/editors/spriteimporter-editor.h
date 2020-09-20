@@ -67,6 +67,10 @@ public:
 
     virtual void processGui(const Project::ProjectFile& projectFile) final;
 
+protected:
+    virtual void addFrame(const idstring& name) final;
+    virtual void addAnimation(const idstring& name) final;
+
 private:
     void frameSetPropertiesWindow(const Project::ProjectFile& projectFile);
     void framePropertiesWindow(const Project::ProjectFile& projectFile);

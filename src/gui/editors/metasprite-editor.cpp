@@ -353,6 +353,8 @@ bool MetaSpriteEditorGui::setEditorData(AbstractEditorData* data)
 
 void MetaSpriteEditorGui::editorDataChanged()
 {
+    AbstractMetaSpriteEditorGui::editorDataChanged();
+
     _paletteValid = false;
     _tilesetValid = false;
 }
@@ -369,6 +371,26 @@ void MetaSpriteEditorGui::editorOpened()
 
 void MetaSpriteEditorGui::editorClosed()
 {
+}
+
+void MetaSpriteEditorGui::addFrame(const idstring& name)
+{
+    assert(_data);
+
+    MS::Frame frame;
+    frame.name = name;
+    ListActions<AP::Frames>::addItemToSelectedList(_data, frame);
+    invalidateExportOrderTree();
+}
+
+void MetaSpriteEditorGui::addAnimation(const idstring& name)
+{
+    assert(_data);
+
+    MetaSprite::Animation::Animation animation;
+    animation.name = name;
+    ListActions<AP::Animations>::addItemToSelectedList(_data, animation);
+    invalidateExportOrderTree();
 }
 
 void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& projectFile)
@@ -399,6 +421,8 @@ void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& p
             if (ImGui::IdStringCombo("Export Order", &fs.exportOrder, projectFile.frameSetExportOrders)) {
                 EditorActions<AP::FrameSet>::fieldEdited<
                     &MS::FrameSet::exportOrder>(_data);
+
+                invalidateExportOrderTree();
             }
 
             ImGui::Unindent();
@@ -418,7 +442,9 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
 
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
 
-        ListButtons<AP::Frames>(_data);
+        if (ListButtons<AP::Frames>(_data)) {
+            invalidateExportOrderTree();
+        }
 
         ImGui::SetNextItemWidth(-1);
         ImGui::NamedListListBox("##FrameList", &_data->framesSel, fs.frames, 8);
@@ -435,6 +461,8 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<AP::Frames>::selectedFieldEdited<
                         &MS::Frame::name>(_data);
+
+                    invalidateExportOrderTree();
                 }
 
                 unsigned spriteOrder = frame.spriteOrder;
@@ -1230,7 +1258,9 @@ void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile)
     if (_data == nullptr) {
         return;
     }
+    auto& fs = _data->data;
 
+    updateExportOderTree(fs, projectFile);
     updatePaletteTexture();
     updateTilesetTexture();
 
@@ -1242,10 +1272,9 @@ void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile)
     palettesWindow();
     tilesetWindow();
 
-    auto& fs = _data->data;
     animationPropertiesWindow<AP>("Animations##MS", _data, &fs);
     animationPreviewWindow<AP>("Animation Preview##MS", _data, &fs);
-    exportOrderWindow<AP>("Export Order##MS", _data, &fs);
+    exportOrderWindow("Export Order##MS");
 
     colorPopup();
 

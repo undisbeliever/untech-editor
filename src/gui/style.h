@@ -35,6 +35,11 @@ struct Style {
     // Common
     constexpr static ImU32 gridColor = IM_COL32(128, 128, 128, 128);
 
+    static inline ImU32 successFailColor(bool s)
+    {
+        return s ? IM_COL32(0, 255, 0, 255) : IM_COL32(255, 0, 0, 255);
+    }
+
     // MetaSprite / Sprite Importer
     constexpr static ImU32 frameObjectOutlineColor = IM_COL32(64, 128, 64, 240);
     constexpr static ImU32 actionPointOutlineColor = IM_COL32(192, 192, 192, 240);

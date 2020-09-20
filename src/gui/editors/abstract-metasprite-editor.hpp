@@ -32,7 +32,9 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
 
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
 
-        ListButtons<typename AP::Animations>(editor);
+        if (ListButtons<typename AP::Animations>(editor)) {
+            invalidateExportOrderTree();
+        }
 
         ImGui::SetNextItemWidth(-1);
         ImGui::NamedListListBox("##AnimationList", &editor->animationsSel, frameSet->animations, 8);
@@ -49,6 +51,8 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
                     ListActions<typename AP::Animations>::template selectedFieldEdited<
                         &MsAnimation::name>(editor);
+
+                    invalidateExportOrderTree();
                 }
 
                 if (ImGui::EnumCombo("Duration Format", &animation.durationFormat)) {
@@ -141,16 +145,50 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
     ImGui::End();
 }
 
-template <typename AP, typename EditorT, typename FrameSetT>
-void AbstractMetaSpriteEditorGui::exportOrderWindow(const char* windowLabel, EditorT*, FrameSetT*)
+template <typename T>
+inline void buildExportOrderTree(std::vector<AbstractMetaSpriteEditorGui::ExportOrderTree>* tree,
+                                 const NamedList<UnTech::MetaSprite::FrameSetExportOrder::ExportName>& exportNames,
+                                 const NamedList<T>& data)
 {
-    if (ImGui::Begin(windowLabel)) {
-        ImGui::SetWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
+    assert(tree->empty());
 
-        // ::TODO Export Order Window::
-        ImGui::Text("::TODO Export Order Tree::");
+    for (unsigned i = 0; i < exportNames.size(); i++) {
+        const auto& en = exportNames.at(i);
+
+        bool valid = bool(data.find(en.name));
+        if (!valid) {
+            valid = std::any_of(en.alternatives.cbegin(), en.alternatives.cend(),
+                                [&](auto& alt) { return data.find(alt.name); });
+        }
+
+        std::vector<idstring> alternatives;
+        alternatives.reserve(en.alternatives.size());
+        for (auto& alt : en.alternatives) {
+            alternatives.push_back(alt.name);
+        }
+
+        tree->push_back({ en.name, valid, std::move(alternatives) });
     }
-    ImGui::End();
+}
+
+template <typename FrameSetT>
+void AbstractMetaSpriteEditorGui::updateExportOderTree(const FrameSetT& frameSet,
+                                                       const Project::ProjectFile& projectFile)
+{
+    if (_exportOrderValid) {
+        return;
+    }
+
+    _eoStillFrames.clear();
+    _eoAnimations.clear();
+
+    const UnTech::MetaSprite::FrameSetExportOrder* eo = projectFile.frameSetExportOrders.find(frameSet.exportOrder);
+    if (eo) {
+        buildExportOrderTree(&_eoStillFrames, eo->stillFrames, frameSet.frames);
+        buildExportOrderTree(&_eoAnimations, eo->animations, frameSet.animations);
+    }
+
+    _exportOrderValid = true;
 }
 
 }
