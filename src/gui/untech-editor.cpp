@@ -35,22 +35,25 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     assert(!_filename.empty());
 }
 
-void UnTechEditor::newProject(const std::filesystem::path& filename)
+void UnTechEditor::newProject(const std::filesystem::path& fn)
 {
     if (_instance) {
         return;
     }
 
-    if (filename.empty()) {
-        return;
-    }
-
-    if (std::filesystem::exists(filename)) {
-        loadProject(filename);
+    if (fn.empty()) {
         return;
     }
 
     try {
+        // no need for an std::error_code, we are inside a try/catch block
+        const auto filename = std::filesystem::absolute(fn).lexically_normal();
+
+        if (std::filesystem::exists(filename)) {
+            loadProject(filename);
+            return;
+        }
+
         auto pf = std::make_unique<UnTech::Project::ProjectFile>();
         UnTech::Project::saveProjectFile(*pf, filename);
 
@@ -63,17 +66,20 @@ void UnTechEditor::newProject(const std::filesystem::path& filename)
     }
 }
 
-void UnTechEditor::loadProject(const std::filesystem::path& filename)
+void UnTechEditor::loadProject(const std::filesystem::path& fn)
 {
     if (_instance) {
         return;
     }
 
-    if (filename.empty()) {
+    if (fn.empty()) {
         return;
     }
 
     try {
+        // no need for an std::error_code, we are inside a try/catch block
+        const auto filename = std::filesystem::absolute(fn).lexically_normal();
+
         auto pf = UnTech::Project::loadProjectFile(filename);
 
         // ::TODO move into background thread::
