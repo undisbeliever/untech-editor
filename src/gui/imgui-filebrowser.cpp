@@ -17,6 +17,18 @@ static FileBrowser saveDialog(ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFile
 static ImGuiID openDialogId = 0;
 static FileBrowser openDialog(ImGuiFileBrowserFlags_CloseOnEsc);
 
+void setFileDialogDirectory(const std::filesystem::path& dir)
+{
+    std::error_code ec;
+    auto abs = std::filesystem::absolute(dir, ec);
+    if (!ec) {
+        abs = abs.lexically_normal();
+
+        saveDialog.SetPwd(abs);
+        openDialog.SetPwd(abs);
+    }
+}
+
 static void openSaveDialog(const ImGuiID id, const std::string& title, const char* extension)
 {
     if (saveDialogId != id || !saveDialog.IsOpened()) {

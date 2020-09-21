@@ -12,6 +12,8 @@
 
 namespace ImGui {
 
+void setFileDialogDirectory(const std::filesystem::path& dir);
+
 // Return, { dialogClosed, selectedFilename }
 std::pair<bool, std::optional<std::filesystem::path>> SaveFileDialog(const char* id, const std::string& title, const char* extension);
 std::pair<bool, std::optional<std::filesystem::path>> OpenFileDialog(const char* id, const std::string& title, const char* extension);

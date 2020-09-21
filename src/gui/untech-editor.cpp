@@ -7,6 +7,7 @@
 #include "untech-editor.h"
 #include "abstract-editor.h"
 #include "enums.h"
+#include "imgui-filebrowser.h"
 #include "imgui.h"
 #include "gui/windows/about-popup.h"
 #include "gui/windows/message-box.h"
@@ -53,6 +54,8 @@ void UnTechEditor::newProject(const std::filesystem::path& filename)
         auto pf = std::make_unique<UnTech::Project::ProjectFile>();
         UnTech::Project::saveProjectFile(*pf, filename);
 
+        ImGui::setFileDialogDirectory(filename.parent_path());
+
         _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
     }
     catch (const std::exception& ex) {
@@ -75,6 +78,8 @@ void UnTechEditor::loadProject(const std::filesystem::path& filename)
 
         // ::TODO move into background thread::
         pf->loadAllFiles();
+
+        ImGui::setFileDialogDirectory(filename.parent_path());
 
         _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
     }
