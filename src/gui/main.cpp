@@ -7,6 +7,7 @@
 #include "imgui.h"
 #include "untech-editor.h"
 #include "gui/windows/about-popup.h"
+#include "gui/windows/fps-window.h"
 #include "gui/windows/message-box.h"
 #include <iostream>
 
@@ -62,14 +63,6 @@ static void centralDockSpace()
     ImGui::End();
 }
 
-static void fpsWindow()
-{
-    if (ImGui::Begin("FPS")) {
-        ImGui::Text("Average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    }
-    ImGui::End();
-}
-
 static void processProgramArguments(int argc, const char* argv[])
 {
     using namespace std::string_literals;
@@ -114,7 +107,7 @@ int main(int argc, const char* argv[])
 
         AboutPopup::processGui();
         MessageBox::processGui();
-        fpsWindow();
+        FpsWindow::processGui();
 
         imgui.render();
 
