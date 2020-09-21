@@ -41,8 +41,12 @@ static std::pair<bool, std::optional<std::filesystem::path>> processSaveDialog(c
                 if (fn.extension().empty()) {
                     fn += extension;
                 }
-                fn = std::filesystem::absolute(fn).lexically_normal();
-                return { true, fn };
+
+                std::error_code ec;
+                fn = std::filesystem::absolute(fn, ec);
+                if (!ec) {
+                    return { true, fn.lexically_normal() };
+                }
             }
             return { true, std::nullopt };
         }
@@ -71,8 +75,11 @@ static std::pair<bool, std::optional<std::filesystem::path>> processOpenDialog(c
                 auto fn = openDialog.GetSelected();
                 openDialog.ClearSelected();
 
-                fn = std::filesystem::absolute(fn).lexically_normal();
-                return { true, fn };
+                std::error_code ec;
+                fn = std::filesystem::absolute(fn, ec);
+                if (!ec) {
+                    return { true, fn.lexically_normal() };
+                }
             }
             return { true, std::nullopt };
         }
@@ -134,8 +141,11 @@ bool InputPngImageFilename(const char* label, std::filesystem::path* path)
 
     if (Button(basename.data(), ImVec2(buttonWidth, 0))) {
         if (!path->empty()) {
-            auto p = std::filesystem::absolute(path->parent_path()).lexically_normal();
-            openDialog.SetPwd(p);
+            std::error_code ec;
+            auto p = std::filesystem::absolute(path->parent_path(), ec);
+            if (!ec) {
+                openDialog.SetPwd(p.lexically_normal());
+            }
         }
         openOpenDialog(id, "Select PNG Image", ".png");
     }
