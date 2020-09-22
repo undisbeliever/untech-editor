@@ -7,6 +7,7 @@
 #include "metatile-tileset-editor.h"
 #include "gui/editor-actions.h"
 #include "gui/graphics/tilecollisionimage.h"
+#include "gui/grid-actions.h"
 #include "gui/imgui-combos.h"
 #include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"
@@ -38,6 +39,19 @@ struct MetaTileTilesetEditorData::AP {
         {
             return fileListData(&projectFile.metaTileTilesets, itemIndex.index);
         }
+    };
+
+    struct Scratchpad : public MtTileset {
+        using GridT = grid<uint8_t>;
+        using ListArgsT = std::tuple<>;
+
+        constexpr static unsigned MAX_WIDTH = 255;
+        constexpr static unsigned MAX_HEIGHT = 255;
+        constexpr static uint8_t DEFAULT_VALUE = 0;
+
+        constexpr static auto SelectionPtr = &EditorT::selectedTiles;
+
+        static GridT* getGrid(EditorDataT& editorData) { return &editorData.scratchpad; }
     };
 
     struct Palettes final : public MtTileset {
@@ -100,9 +114,7 @@ void MetaTileTilesetEditorData::mapTilesPlaced(const urect r)
 {
     assert(data.scratchpad.size().contains(r));
 
-    // ::TODO add grid editor action::
-    EditorActions<AP::MtTileset>::fieldEdited<
-        &MetaTileTilesetInput::scratchpad>(this);
+    GridActions<AP::Scratchpad>::gridTilesPlaced(this, r);
 }
 
 void MetaTileTilesetEditorData::selectedTilesetTilesChanged()
@@ -182,10 +194,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
         ImGui::InputUsize("Scratchpad Size", &_scratchpadSize, usize(255, 255));
         if (ImGui::IsItemDeactivatedAfterEdit()) {
-            // ::TODO use a GridAction to resize scratchpad::
-            tileset.scratchpad = tileset.scratchpad.resized(_scratchpadSize, 0);
-            EditorActions<AP::MtTileset>::fieldEdited<
-                &MetaTileTilesetInput::scratchpad>(_data);
+            GridActions<AP::Scratchpad>::resizeGrid(_data, _scratchpadSize);
         }
         if (!ImGui::IsItemActive()) {
             // ::TODO use callback to update scratchpad size::

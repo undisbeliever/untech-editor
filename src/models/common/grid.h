@@ -101,6 +101,25 @@ public:
     }
     inline void set(const upoint& p, const T& value) { set(p.x, p.y, value); }
 
+    void setCells(const unsigned xPos, const unsigned yPos, const grid& values)
+    {
+        _rangeCheck(xPos, yPos, values.width(), values.height());
+
+        const auto startIt = _grid.begin() + yPos * _width + xPos;
+        auto vIt = values.cbegin();
+        for (unsigned y = 0; y < values.height(); y++) {
+            auto gridIt = startIt + _width * y;
+            for (unsigned x = 0; x < values.width(); x++) {
+                *gridIt++ = *vIt++;
+            }
+        }
+        assert(vIt == values.cend());
+    }
+    inline void setCells(const upoint& pos, const grid& values)
+    {
+        return setCells(pos.x, pos.y, values);
+    }
+
     grid subGrid(unsigned xPos, unsigned yPos, unsigned sgWidth, unsigned sgHeight) const
     {
         _rangeCheck(xPos, yPos, sgWidth, sgHeight);
@@ -125,6 +144,10 @@ public:
     inline grid subGrid(const upoint& pos, const usize& size) const
     {
         return subGrid(pos.x, pos.y, size.width, size.height);
+    }
+    inline grid subGrid(const urect& r) const
+    {
+        return subGrid(r.x, r.y, r.width, r.height);
     }
 
     // Returns a NEW grid, resized to newSize with all new cells containing value

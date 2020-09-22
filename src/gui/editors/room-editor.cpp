@@ -8,6 +8,7 @@
 #include "gui/editor-actions.h"
 #include "gui/graphics/aabb-graphics.h"
 #include "gui/graphics/entity-graphics.h"
+#include "gui/grid-actions.h"
 #include "gui/imgui-combos.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
@@ -35,6 +36,19 @@ struct RoomEditorData::AP {
         {
             return fileListData(&projectFile.rooms, itemIndex.index);
         }
+    };
+
+    struct Map : public Room {
+        using GridT = grid<uint8_t>;
+        using ListArgsT = std::tuple<>;
+
+        constexpr static unsigned MAX_WIDTH = RM::RoomInput::MAX_MAP_WIDTH;
+        constexpr static unsigned MAX_HEIGHT = RM::RoomInput::MAX_MAP_HEIGHT;
+        constexpr static uint8_t DEFAULT_VALUE = 0;
+
+        constexpr static auto SelectionPtr = &EditorT::selectedTiles;
+
+        static GridT* getGrid(EditorDataT& entityRomData) { return &entityRomData.map; }
     };
 
     struct Entrances final : public Room {
@@ -132,9 +146,7 @@ void RoomEditorData::mapTilesPlaced(const urect r)
 {
     assert(data.map.size().contains(r));
 
-    // ::TODO add grid editor action::
-    EditorActions<AP::Room>::fieldEdited<
-        &RM::RoomInput::map>(this);
+    GridActions<AP::Map>::gridTilesPlaced(this, r);
 }
 
 void RoomEditorData::selectedTilesetTilesChanged()
@@ -235,10 +247,7 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
             _mapSize.height = std::max(_mapSize.height, minMapSize.height);
         }
         if (ImGui::IsItemDeactivatedAfterEdit()) {
-            // ::TODO use a GridAction to resize scratchpad::
-            room.map = room.map.resized(_mapSize, 0);
-            EditorActions<AP::Room>::fieldEdited<
-                &RM::RoomInput::map>(_data);
+            GridActions<AP::Map>::resizeGrid(_data, _mapSize);
         }
         if (!ImGui::IsItemActive()) {
             // ::TODO use callback to update scratchpad size::
