@@ -9,7 +9,7 @@
 #include "abstract-editor.h"
 #include "list-helpers.h"
 #include "selection.h"
-#include "gui/common/type-traits.h"
+#include "models/common/type-traits.h"
 
 namespace UnTech::Gui {
 
