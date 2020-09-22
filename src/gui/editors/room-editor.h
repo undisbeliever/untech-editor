@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "gui/common/aabb-graphics.h"
 #include "gui/editors/abstract-metatile-editor.h"
+#include "gui/graphics/aabb-graphics.h"
 #include "gui/selection.h"
 #include "models/project/project.h"
 

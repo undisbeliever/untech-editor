@@ -5,8 +5,8 @@
  */
 
 #include "metatile-tileset-editor.h"
-#include "gui/common/tilecollisionimage.h"
 #include "gui/editor-actions.h"
+#include "gui/graphics/tilecollisionimage.h"
 #include "gui/imgui-combos.h"
 #include "gui/imgui-drawing.h"
 #include "gui/imgui-filebrowser.h"

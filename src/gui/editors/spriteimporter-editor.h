@@ -8,7 +8,7 @@
 
 #include "abstract-metasprite-editor.hpp"
 #include "gui/abstract-editor.h"
-#include "gui/common/aabb-graphics.h"
+#include "gui/graphics/aabb-graphics.h"
 #include "gui/imgui.h"
 #include "gui/selection.h"
 #include "gui/texture.h"

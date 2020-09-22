@@ -5,9 +5,9 @@
  */
 
 #include "room-editor.h"
-#include "gui/common/aabb-graphics.h"
-#include "gui/common/entity-graphics.h"
 #include "gui/editor-actions.h"
+#include "gui/graphics/aabb-graphics.h"
+#include "gui/graphics/entity-graphics.h"
 #include "gui/imgui-combos.h"
 #include "gui/imgui.h"
 #include "gui/list-actions.h"

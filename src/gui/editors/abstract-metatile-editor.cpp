@@ -5,7 +5,7 @@
  */
 
 #include "abstract-metatile-editor.h"
-#include "gui/common/tilecollisionimage.h"
+#include "gui/graphics/tilecollisionimage.h"
 #include "gui/imgui-drawing.h"
 #include "gui/imgui.h"
 #include "gui/style.h"
