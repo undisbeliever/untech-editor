@@ -90,6 +90,47 @@ bool IdStringCombo(const char* label, UnTech::idstring* value, const UnTech::Ext
 }
 
 template <class ListT>
+bool SingleSelectionNamedListCombo(const char* label, unsigned* selectedIndexPtr, const ListT& list, bool includeBlank)
+{
+    bool entryClicked = false;
+    auto& selectedIndex = *selectedIndexPtr;
+
+    const char* const blankLabel = "------";
+
+    const char* previewValue = blankLabel;
+    if (selectedIndex < list.size()) {
+        previewValue = list.at(selectedIndex).name.str().c_str();
+    }
+
+    if (ImGui::BeginCombo(label, previewValue)) {
+        if (includeBlank) {
+            const bool selected = selectedIndex >= list.size();
+            if (ImGui::Selectable(blankLabel, selected)) {
+                selectedIndex = INT_MAX;
+                entryClicked = true;
+            }
+        }
+        for (unsigned i = 0; i < list.size(); i++) {
+            const char* name = list.at(i).name.str().c_str();
+
+            ImGui::PushID(i);
+
+            const bool selected = selectedIndex;
+            if (ImGui::Selectable(name, selected)) {
+                selectedIndex = i;
+                entryClicked = true;
+            }
+
+            ImGui::PopID();
+        }
+
+        ImGui::EndCombo();
+    }
+
+    return entryClicked;
+}
+
+template <class ListT>
 void SingleSelectionNamedListCombo(const char* label, UnTech::Gui::SingleSelection* sel, const ListT& list, bool includeBlank)
 {
     const char* const blankLabel = "------";

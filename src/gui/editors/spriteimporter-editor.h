@@ -22,6 +22,7 @@ class AabbGraphics;
 class SpriteImporterEditorData final : public AbstractMetaSpriteEditorData {
 private:
     friend class SpriteImporterEditorGui;
+    friend class AbstractMetaSpriteEditorGui;
     struct AP;
 
     UnTech::MetaSprite::SpriteImporter::FrameSet data;
@@ -77,6 +78,7 @@ private:
     void frameContentsWindow(const Project::ProjectFile& projectFile);
     void frameEditorWindow();
 
+    void drawAnimationFrame(const ImVec2& pos, ImVec2 zoom, const UnTech::MetaSprite::SpriteImporter::Frame& frame) const;
     void drawFrame(ImDrawList* drawList, const UnTech::MetaSprite::SpriteImporter::Frame* frame);
     void drawSelectedFrame(ImDrawList* drawList, UnTech::MetaSprite::SpriteImporter::Frame* frame);
 

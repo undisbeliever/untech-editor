@@ -91,6 +91,8 @@ bool Selectable(UnTech::Gui::SingleSelection* parentSel, UnTech::Gui::MultipleCh
 bool Selectable(const char* label, UnTech::Gui::GroupMultipleSelection* sel, const unsigned groupIndex, const unsigned i, ImGuiSelectableFlags flags = 0);
 
 bool ButtonWithTooltip(const char* label, const char* tooltip, const ImVec2& size = ImVec2(0, 0));
+bool ToggledButtonWithTooltip(const char* label, bool selected, const char* tooltip, const ImVec2& size = ImVec2(0, 0));
+bool ToggledButtonWithTooltip(const char* label, bool* selected, const char* tooltip, const ImVec2& size = ImVec2(0, 0));
 
 template <class T>
 void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, const UnTech::NamedList<T>& list, int heightInItems = -1)

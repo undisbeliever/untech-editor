@@ -7,8 +7,10 @@
 #pragma once
 
 #include "gui/abstract-editor.h"
+#include "gui/animation-timer.h"
 #include "gui/selection.h"
 #include "models/common/idstring.h"
+#include "models/metasprite/animation/previewstate.h"
 
 namespace UnTech::Gui {
 
@@ -36,7 +38,14 @@ public:
     };
     std::vector<ExportOrderTree> _eoStillFrames;
     std::vector<ExportOrderTree> _eoAnimations;
+
+    AnimationTimer _animationTimer;
+    UnTech::MetaSprite::Animation::PreviewState _animationState;
+    unsigned prevAnimationIndex;
+
     bool _exportOrderValid;
+    bool _animationHFlip;
+    bool _animationVFlip;
 
 public:
     virtual void editorDataChanged() override;
@@ -44,11 +53,15 @@ public:
 protected:
     AbstractMetaSpriteEditorGui() = default;
 
+    // Must be called in `setEditorData`
+    template <typename EditorDataT>
+    void setMetaSpriteData(EditorDataT* data);
+
     template <typename AP, typename EditorT, typename FrameSetT>
     void animationPropertiesWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet);
 
-    template <typename AP, typename EditorT, typename FrameSetT>
-    void animationPreviewWindow(const char* windowLabel, EditorT* editor, FrameSetT* frameSet);
+    template <typename EditorDataT, typename DrawFunction>
+    void animationPreviewWindow(const char* windowLabel, EditorDataT* data, DrawFunction drawFunction);
 
     void exportOrderWindow(const char* windowLabel);
 

@@ -22,6 +22,7 @@ class AabbGraphics;
 class MetaSpriteEditorData final : public AbstractMetaSpriteEditorData {
 private:
     friend class MetaSpriteEditorGui;
+    friend class AbstractMetaSpriteEditorGui;
     struct AP;
 
     UnTech::MetaSprite::MetaSprite::FrameSet data;
@@ -112,6 +113,8 @@ private:
     void colorPopup();
     void tilesetWindow();
     void frameEditorWindow();
+
+    void drawAnimationFrame(const ImVec2& pos, const ImVec2& zoom, const UnTech::MetaSprite::MetaSprite::Frame& frame) const;
 
     void tilesetButtons();
     void setSelectedFrameObjectsTile(const unsigned tileId, const ObjectSize objSize);

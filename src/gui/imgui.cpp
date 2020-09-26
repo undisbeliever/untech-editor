@@ -421,4 +421,28 @@ bool ButtonWithTooltip(const char* label, const char* tooltip, const ImVec2& siz
     return pressed;
 }
 
+bool ToggledButtonWithTooltip(const char* label, bool selected, const char* tooltip, const ImVec2& size)
+{
+    bool pressed = ImGui::ToggledButton(label, selected, size);
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(tooltip);
+        ImGui::EndTooltip();
+    }
+
+    return pressed;
+}
+
+bool ToggledButtonWithTooltip(const char* label, bool* selected, const char* tooltip, const ImVec2& size)
+{
+    bool pressed = ImGui::ToggledButton(label, selected, size);
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::TextUnformatted(tooltip);
+        ImGui::EndTooltip();
+    }
+
+    return pressed;
+}
+
 }

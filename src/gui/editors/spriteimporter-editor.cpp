@@ -202,7 +202,10 @@ SpriteImporterEditorGui::SpriteImporterEditorGui()
 
 bool SpriteImporterEditorGui::setEditorData(AbstractEditorData* data)
 {
-    return (_data = dynamic_cast<SpriteImporterEditorData*>(data));
+    _data = dynamic_cast<SpriteImporterEditorData*>(data);
+    setMetaSpriteData(_data);
+
+    return _data;
 }
 
 void SpriteImporterEditorGui::editorDataChanged()
@@ -650,6 +653,79 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
     ImGui::End();
 }
 
+// NOTE: zoom will be negative if the frame is flipped
+void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 zoom, const SI::Frame& frame) const
+{
+    assert(_data);
+    const auto& fs = _data->data;
+
+    const float lineThickness = AabbGraphics::lineThickness;
+
+    const ImVec2 pos(drawPos.x - frame.location.origin.x * zoom.x, drawPos.y - frame.location.origin.y * zoom.y);
+
+    auto* drawList = ImGui::GetWindowDrawList();
+
+    {
+        const ImVec2 offset = ImGui::GetWindowPos();
+        const ImVec2 size = ImGui::GetWindowSize();
+        drawList->AddRectFilled(offset, offset + size, fs.transparentColor.rgbaValue());
+    }
+
+    if (true) {
+        const auto textureId = _imageTexture.imguiTextureId();
+
+        const ImVec2 uv(1.0f / _imageTexture.width(), 1.0f / _imageTexture.height());
+
+        unsigned i = frame.objects.size();
+        while (i > 0) {
+            i--;
+            auto& obj = frame.objects.at(i);
+
+            const unsigned x = frame.location.aabb.x + obj.location.x;
+            const unsigned y = frame.location.aabb.y + obj.location.y;
+
+            const ImVec2 uv0(x * uv.x, y * uv.y);
+            const ImVec2 uv1((x + obj.sizePx()) * uv.x, (y + obj.sizePx()) * uv.y);
+
+            ImVec2 p1(pos.x + obj.location.x * zoom.x, pos.y + obj.location.y * zoom.y);
+            ImVec2 p2(p1.x + obj.sizePx() * zoom.x, p1.y + obj.sizePx() * zoom.y);
+            drawList->AddImage(textureId, p1, p2, uv0, uv1);
+        }
+    }
+
+    if (true) {
+        if (frame.solid) {
+            ImVec2 p1(pos.x + frame.tileHitbox.x * zoom.x, pos.y + frame.tileHitbox.y * zoom.y);
+            ImVec2 p2(p1.x + frame.tileHitbox.width * zoom.x, p1.y + frame.tileHitbox.height * zoom.y);
+            drawList->AddRect(p1, p2, Style::tileHitboxOutlineColor, lineThickness);
+        }
+    }
+
+    if (true) {
+        unsigned i = frame.entityHitboxes.size();
+        while (i > 0) {
+            i--;
+            auto& eh = frame.entityHitboxes.at(i);
+
+            ImVec2 p1(pos.x + eh.aabb.x * zoom.x, pos.y + eh.aabb.y * zoom.y);
+            ImVec2 p2(p1.x + eh.aabb.width * zoom.x, p1.y + eh.aabb.height * zoom.y);
+            drawList->AddRect(p1, p2, Style::entityHitboxOutlineColor, lineThickness);
+        }
+    }
+
+    if (true) {
+        unsigned i = frame.actionPoints.size();
+        while (i > 0) {
+            i--;
+            auto& ap = frame.actionPoints.at(i);
+
+            ImVec2 p1(pos.x + ap.location.x * zoom.x, pos.y + ap.location.y * zoom.y);
+            ImVec2 p2(p1.x + zoom.x, p1.y + zoom.y);
+            drawList->AddRect(p1, p2, Style::actionPointOutlineColor, lineThickness);
+        }
+    }
+}
+
 void SpriteImporterEditorGui::drawFrame(ImDrawList* drawList, const MetaSprite::SpriteImporter::Frame* frame)
 {
     assert(_data);
@@ -904,7 +980,7 @@ void SpriteImporterEditorGui::processGui(const Project::ProjectFile& projectFile
     frameEditorWindow();
 
     animationPropertiesWindow<AP>("Animations##SI", _data, &fs);
-    animationPreviewWindow<AP>("Animation Preview##SI", _data, &fs);
+    animationPreviewWindow("Animation Preview##MS", _data, [this](auto... args) { drawAnimationFrame(args...); });
     exportOrderWindow("Export Order##SI");
 }
 

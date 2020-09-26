@@ -34,10 +34,12 @@ public:
 struct Style {
     // Common
     constexpr static ImU32 gridColor = IM_COL32(128, 128, 128, 128);
+    constexpr static ImU32 successColor = IM_COL32(0, 255, 0, 255);
+    constexpr static ImU32 failColor = IM_COL32(255, 0, 0, 255);
 
     static inline ImU32 successFailColor(bool s)
     {
-        return s ? IM_COL32(0, 255, 0, 255) : IM_COL32(255, 0, 0, 255);
+        return s ? successColor : failColor;
     }
 
     // MetaSprite / Sprite Importer
@@ -79,6 +81,7 @@ struct Style {
     constexpr static ImU32 invalidFillColor = IM_COL32(255, 0, 0, 128);
 
     // Zoom
+    static Zoom metaSpriteAnimationZoom;
     static Zoom metaSpriteZoom;
     static Zoom spriteImporterZoom;
     static Zoom backgroundImageZoom;

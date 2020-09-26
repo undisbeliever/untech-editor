@@ -14,6 +14,7 @@ namespace UnTech::Gui {
 const ImVec4 Style::tilePropertiesButtonTint(0.5f, 0.5f, 0.5f, 1.0f);
 const ImVec4 Style::tilePropertiesButtonSelectedTint(1.0f, 1.0f, 1.0f, 1.0f);
 
+Zoom Style::metaSpriteAnimationZoom(600);
 Zoom Style::metaSpriteZoom(600);
 Zoom Style::spriteImporterZoom(600);
 Zoom Style::backgroundImageZoom(200);

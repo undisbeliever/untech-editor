@@ -348,7 +348,10 @@ MetaSpriteEditorGui::MetaSpriteEditorGui()
 
 bool MetaSpriteEditorGui::setEditorData(AbstractEditorData* data)
 {
-    return (_data = dynamic_cast<MetaSpriteEditorData*>(data));
+    _data = dynamic_cast<MetaSpriteEditorData*>(data);
+    setMetaSpriteData(_data);
+
+    return _data;
 }
 
 void MetaSpriteEditorGui::editorDataChanged()
@@ -1087,6 +1090,94 @@ void MetaSpriteEditorGui::tilesetWindow()
     ImGui::End();
 }
 
+// NOTE: zoom will be negative if the frame is flipped
+inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImVec2& zoom, const MS::Frame& frame) const
+{
+    assert(_data);
+    const auto& fs = _data->data;
+
+    const float lineThickness = AabbGraphics::lineThickness;
+
+    auto* drawList = ImGui::GetWindowDrawList();
+
+    // ::TODO make layers optional::
+
+    if (true) {
+        const ImTextureID textureId = _tilesetTexture.imguiTextureId();
+
+        unsigned i = frame.objects.size();
+        while (i > 0) {
+            i--;
+            auto& obj = frame.objects.at(i);
+
+            bool valid = false;
+            ImVec2 uv0, uv1;
+            if (obj.size == ObjectSize::SMALL) {
+                valid = obj.tileId < fs.smallTileset.size();
+                uv0.x = unsigned(obj.tileId % SMALL_TILES_PER_ROW) * _smallTilesetUvSize.x;
+                uv0.y = unsigned(obj.tileId / SMALL_TILES_PER_ROW) * _smallTilesetUvSize.y;
+                uv1 = uv0 + _smallTilesetUvSize;
+            }
+            else {
+                valid = obj.tileId < fs.largeTileset.size();
+                uv0.x = unsigned(obj.tileId % LARGE_TILES_PER_ROW) * _largeTilesetUvSize.x;
+                uv0.y = unsigned(obj.tileId / LARGE_TILES_PER_ROW) * _largeTilesetUvSize.y + _smallTilesetUVmax.y;
+                uv1 = uv0 + _largeTilesetUvSize;
+            }
+
+            if (valid) {
+                if (obj.hFlip) {
+                    std::swap(uv0.x, uv1.x);
+                }
+                if (obj.vFlip) {
+                    std::swap(uv0.y, uv1.y);
+                }
+            }
+            else {
+                // ::TODO add semitransparent invalid image with a checkbox pattern::
+                uv0 = ImVec2(0, 0);
+                uv1 = ImVec2(1, 1);
+            }
+
+            ImVec2 p1(pos.x + obj.location.x * zoom.x, pos.y + obj.location.y * zoom.y);
+            ImVec2 p2(p1.x + obj.sizePx() * zoom.x, p1.y + obj.sizePx() * zoom.y);
+            drawList->AddImage(textureId, p1, p2, uv0, uv1);
+        }
+    }
+
+    if (true) {
+        if (frame.solid) {
+            ImVec2 p1(pos.x + frame.tileHitbox.x * zoom.x, pos.y + frame.tileHitbox.y * zoom.y);
+            ImVec2 p2(p1.x + frame.tileHitbox.width * zoom.x, p1.y + frame.tileHitbox.height * zoom.y);
+            drawList->AddRect(p1, p2, Style::tileHitboxOutlineColor, lineThickness);
+        }
+    }
+
+    if (true) {
+        unsigned i = frame.entityHitboxes.size();
+        while (i > 0) {
+            i--;
+            auto& eh = frame.entityHitboxes.at(i);
+
+            ImVec2 p1(pos.x + eh.aabb.x * zoom.x, pos.y + eh.aabb.y * zoom.y);
+            ImVec2 p2(p1.x + eh.aabb.width * zoom.x, p1.y + eh.aabb.height * zoom.y);
+            drawList->AddRect(p1, p2, Style::entityHitboxOutlineColor, lineThickness);
+        }
+    }
+
+    if (true) {
+        unsigned i = frame.actionPoints.size();
+        while (i > 0) {
+            i--;
+            auto& ap = frame.actionPoints.at(i);
+
+            ImVec2 p1(pos.x + ap.location.x * zoom.x, pos.y + ap.location.y * zoom.y);
+            ImVec2 p2(p1.x + zoom.x, p1.y + zoom.y);
+            drawList->AddRect(p1, p2, Style::actionPointOutlineColor, lineThickness);
+        }
+    }
+}
+
 void MetaSpriteEditorGui::frameEditorWindow()
 {
     assert(_data);
@@ -1273,7 +1364,7 @@ void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile)
     tilesetWindow();
 
     animationPropertiesWindow<AP>("Animations##MS", _data, &fs);
-    animationPreviewWindow<AP>("Animation Preview##MS", _data, &fs);
+    animationPreviewWindow("Animation Preview##MS", _data, [this](auto... args) { drawAnimationFrame(args...); });
     exportOrderWindow("Export Order##MS");
 
     colorPopup();
