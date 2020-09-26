@@ -18,15 +18,16 @@
 namespace UnTech::Gui {
 
 class AabbGraphics {
-private:
+public:
     constexpr static ImU32 dragSelectCol = IM_COL32(128, 128, 128, 64);
     constexpr static ImU32 dragSelectOutline = IM_COL32(128, 128, 128, 192);
 
     // Line thickness of 1.0f is too small,
-    constexpr static float _lineThickness = 2.0f;
-    constexpr static float _selectedLineThickness = 4.0f;
-    constexpr static float _filledOutlineThickness = 1.0f;
+    constexpr static float lineThickness = 2.0f;
+    constexpr static float selectedLineThickness = 4.0f;
+    constexpr static float filledOutlineThickness = 1.0f;
 
+private:
     struct SelectedAabb {
         ImVec2 pMin;
         ImVec2 pMax;
@@ -353,7 +354,7 @@ public:
         const ImVec2 pMax = toVec2(rect.x2, rect.y2);
 
         drawList->AddRectFilled(pMin, pMax, fillCol, 0.0f, ImDrawCornerFlags_None);
-        drawList->AddRect(pMin, pMax, outlineCol, 0.0f, ImDrawCornerFlags_None, _filledOutlineThickness);
+        drawList->AddRect(pMin, pMax, outlineCol, 0.0f, ImDrawCornerFlags_None, filledOutlineThickness);
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, outlineCol);
@@ -366,7 +367,7 @@ public:
         const ImVec2 pMin = toVec2(point->x, point->y);
         const ImVec2 pMax = toVec2(point->x + 1, point->y + 1);
 
-        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, _lineThickness);
+        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, lineThickness);
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, color);
@@ -379,7 +380,7 @@ public:
         const ImVec2 pMin = toVec2(rect->left(), rect->top());
         const ImVec2 pMax = toVec2(rect->right(), rect->bottom());
 
-        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, _lineThickness);
+        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, lineThickness);
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, color);
@@ -686,7 +687,7 @@ public:
         const ImVec2 pMin = toVec2(point->x, point->y);
         const ImVec2 pMax = toVec2(point->x + squareSize, point->y + squareSize);
 
-        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, _lineThickness);
+        drawList->AddRect(pMin, pMax, color, 0.0f, ImDrawCornerFlags_None, lineThickness);
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, color);
@@ -766,7 +767,7 @@ public:
             case State::NONE:
             case State::CLICK:
             case State::SELECT_DRAG: {
-                drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, _lineThickness);
+                drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, lineThickness);
             } break;
 
             case State::MOVE_DRAG:
@@ -837,7 +838,7 @@ public:
         if (_isHovered || selected) {
 
             if (selected) {
-                drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, _lineThickness);
+                drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, lineThickness);
                 _selectedAabb.emplace_back(pMin, pMax, outlineColor);
             }
             else {
@@ -846,7 +847,7 @@ public:
                 case State::NONE:
                 case State::CLICK:
                 case State::SELECT_DRAG: {
-                    drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, _lineThickness);
+                    drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, lineThickness);
                 } break;
 
                 case State::MOVE_DRAG:
@@ -873,7 +874,7 @@ public:
         // MUST not use _mousePos, _bounds or _dragSelect in the function.
 
         for (const auto& sel : _selectedAabb) {
-            drawList->AddRect(sel.pMin, sel.pMax, sel.col, 0.0f, ImDrawCornerFlags_None, _selectedLineThickness);
+            drawList->AddRect(sel.pMin, sel.pMax, sel.col, 0.0f, ImDrawCornerFlags_None, selectedLineThickness);
         }
 
         switch (_currentState) {
