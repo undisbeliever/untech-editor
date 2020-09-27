@@ -102,6 +102,11 @@ private:
     bool _tilesetTextureOutOfDate;
     bool _collisionTextureOutOfDate;
 
+    static bool showGrid;
+    static bool showTiles;
+    static bool showTileCollisions;
+    static bool showInteractiveTiles;
+
 public:
     AbstractMetaTileEditorGui();
 
@@ -113,6 +118,8 @@ public:
 
 protected:
     virtual void selectionChanged() = 0;
+
+    void showLayerButtons() const;
 
     void markTexturesOutOfDate();
     void markTilesetTextureOutOfDate();

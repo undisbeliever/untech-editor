@@ -24,6 +24,12 @@ static constexpr unsigned TILESET_WIDTH = MetaTiles::TILESET_WIDTH;
 static constexpr unsigned TILESET_HEIGHT = MetaTiles::TILESET_HEIGHT;
 static constexpr unsigned N_TILE_COLLISONS = MetaTiles::N_TILE_COLLISONS;
 
+// ::TODO add to View Menu::
+bool AbstractMetaTileEditorGui::showGrid = true;
+bool AbstractMetaTileEditorGui::showTiles = true;
+bool AbstractMetaTileEditorGui::showTileCollisions = true;
+bool AbstractMetaTileEditorGui::showInteractiveTiles = true;
+
 const usize AbstractMetaTileEditorGui::TILESET_TEXTURE_SIZE{
     TILESET_WIDTH * METATILE_SIZE_PX,
     TILESET_HEIGHT* METATILE_SIZE_PX,
@@ -426,6 +432,18 @@ void AbstractMetaTileEditorGui::invisibleButton(const char* label, const Geometr
     ImGui::InvisibleButton(label, geo.mapSize);
 }
 
+void AbstractMetaTileEditorGui::showLayerButtons() const
+{
+    ImGui::ToggledButtonWithTooltip("G##showGrid", &showGrid, "Show Grid");
+    ImGui::SameLine();
+    ImGui::ToggledButtonWithTooltip("T##showTiles", &showTiles, "Show Tiles");
+    ImGui::SameLine();
+    ImGui::ToggledButtonWithTooltip("C##showTC", &showTileCollisions, "Show Tile Collisions");
+    ImGui::SameLine();
+    ImGui::ToggledButtonWithTooltip("I##showIT", &showInteractiveTiles, "Show Interactive Tiles");
+    ImGui::SameLine();
+}
+
 void AbstractMetaTileEditorGui::drawGrid(ImDrawList* drawList, const Geometry& geo)
 {
     // ::TODO clip these to visible area::
@@ -454,13 +472,20 @@ void AbstractMetaTileEditorGui::drawTileset(const Geometry& geo)
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
 
-    drawList->AddImage(_tilesetTexture.imguiTextureId(), geo.offset, geo.offset + geo.mapSize);
-    drawList->AddImage(_tilesetCollisionsTexture.imguiTextureId(), geo.offset, geo.offset + geo.mapSize, ImVec2(0, 0), ImVec2(1, 1), Style::tileCollisionTint);
+    if (showTiles) {
+        drawList->AddImage(_tilesetTexture.imguiTextureId(), geo.offset, geo.offset + geo.mapSize);
+    }
+    if (showTileCollisions) {
+        drawList->AddImage(_tilesetCollisionsTexture.imguiTextureId(), geo.offset, geo.offset + geo.mapSize, ImVec2(0, 0), ImVec2(1, 1), Style::tileCollisionTint);
+    }
 
-    // ::TODO draw tile symbols::
+    if (showInteractiveTiles) {
+        // ::TODO draw tile symbols::
+    }
 
-    // ::TODO make optional (based on style)::
-    drawGrid(drawList, geo);
+    if (showGrid) {
+        drawGrid(drawList, geo);
+    }
 
     // Draw selection
     for (const uint8_t& tileId : _data->selectedTilesetTiles) {
@@ -605,14 +630,21 @@ void AbstractMetaTileEditorGui::drawTiles(const grid<uint8_t>& map, const Geomet
 
         drawList->PopTextureID();
     };
-    // ::TODO make optional (based on style)::
-    drawTiles(_tilesetTexture, IM_COL32_WHITE);
-    drawTiles(_tilesetCollisionsTexture, Style::tileCollisionTint);
 
-    // ::TODO draw symbols::
+    if (showTiles) {
+        drawTiles(_tilesetTexture, IM_COL32_WHITE);
+    }
+    if (showTileCollisions) {
+        drawTiles(_tilesetCollisionsTexture, Style::tileCollisionTint);
+    }
 
-    // ::TODO make optional (based on style)::
-    drawGrid(drawList, geo);
+    if (showInteractiveTiles) {
+        // ::TODO draw symbols::
+    }
+
+    if (showGrid) {
+        drawGrid(drawList, geo);
+    }
 }
 
 void AbstractMetaTileEditorGui::drawSelection(const upoint_vectorset& selection, const Geometry& geo)

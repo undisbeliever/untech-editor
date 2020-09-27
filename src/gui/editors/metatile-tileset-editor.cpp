@@ -652,11 +652,10 @@ void MetaTileTilesetEditorGui::tilesetWindow()
         ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
         {
-            Style::metaTileTilesetZoom.zoomCombo("##zoom");
+            showLayerButtons();
             ImGui::SameLine();
 
-            // ::TODO extend toolbar::
-            ImGui::TextUnformatted("::TODO extend toolbar::");
+            Style::metaTileTilesetZoom.zoomCombo("##zoom");
         }
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
@@ -687,10 +686,10 @@ void MetaTileTilesetEditorGui::scratchpadWindow()
             editModeButtons();
             ImGui::SameLine(0.0f, 12.0f);
 
-            Style::metaTileScratchpadZoom.zoomCombo("##zoom");
+            showLayerButtons();
             ImGui::SameLine();
 
-            ImGui::TextUnformatted("::TODO expand toolBar::");
+            Style::metaTileScratchpadZoom.zoomCombo("##zoom");
         }
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);

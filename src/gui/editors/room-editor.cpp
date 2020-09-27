@@ -575,6 +575,9 @@ void RoomEditorGui::editorWindow()
         editModeButtons();
         ImGui::SameLine(0.0f, 12.0f);
 
+        showLayerButtons();
+        ImGui::SameLine();
+
         Style::roomEditorZoom.zoomCombo("##zoom");
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
