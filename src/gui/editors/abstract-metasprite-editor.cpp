@@ -10,9 +10,26 @@
 
 namespace UnTech::Gui {
 
+// ::TODO add to View Menu::
+bool AbstractMetaSpriteEditorGui::showFrameObjects = true;
+bool AbstractMetaSpriteEditorGui::showTileHitbox = true;
+bool AbstractMetaSpriteEditorGui::showEntityHitboxes = true;
+bool AbstractMetaSpriteEditorGui::showActionPoints = true;
+
 void AbstractMetaSpriteEditorGui::editorDataChanged()
 {
     invalidateExportOrderTree();
+}
+
+void AbstractMetaSpriteEditorGui::showLayerButtons() const
+{
+    ImGui::ToggledButtonWithTooltip("TH##showTH", &showTileHitbox, "Show Tile Hitbox");
+    ImGui::SameLine();
+    ImGui::ToggledButtonWithTooltip("FO##showFO", &showFrameObjects, "Show Frame Objects");
+    ImGui::SameLine();
+    ImGui::ToggledButtonWithTooltip("AP##showAP", &showActionPoints, "Show Action Points");
+    ImGui::SameLine();
+    ImGui::ToggledButtonWithTooltip("EH##showEH", &showEntityHitboxes, "Show Entity Hitboxes");
 }
 
 static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::ExportOrderTree>& tree,

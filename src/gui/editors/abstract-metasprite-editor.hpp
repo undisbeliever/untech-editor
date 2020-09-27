@@ -190,9 +190,11 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
                 _animationState.resetFrameCount();
             }
             ImGui::SameLine(0.0f, 12.0f);
-            Style::metaSpriteAnimationZoom.zoomCombo("##zoom");
 
-            // ::TODO add layers buttons::
+            showLayerButtons();
+            ImGui::SameLine();
+
+            Style::metaSpriteAnimationZoom.zoomCombo("##zoom");
         }
 
         _animationTimer.process([&]() {

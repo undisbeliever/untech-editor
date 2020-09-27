@@ -671,7 +671,7 @@ void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 z
         drawList->AddRectFilled(offset, offset + size, fs.transparentColor.rgbaValue());
     }
 
-    if (true) {
+    if (showFrameObjects) {
         const auto textureId = _imageTexture.imguiTextureId();
 
         const ImVec2 uv(1.0f / _imageTexture.width(), 1.0f / _imageTexture.height());
@@ -693,7 +693,7 @@ void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 z
         }
     }
 
-    if (true) {
+    if (showTileHitbox) {
         if (frame.solid) {
             ImVec2 p1(pos.x + frame.tileHitbox.x * zoom.x, pos.y + frame.tileHitbox.y * zoom.y);
             ImVec2 p2(p1.x + frame.tileHitbox.width * zoom.x, p1.y + frame.tileHitbox.height * zoom.y);
@@ -701,7 +701,7 @@ void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 z
         }
     }
 
-    if (true) {
+    if (showEntityHitboxes) {
         unsigned i = frame.entityHitboxes.size();
         while (i > 0) {
             i--;
@@ -713,7 +713,7 @@ void SpriteImporterEditorGui::drawAnimationFrame(const ImVec2& drawPos, ImVec2 z
         }
     }
 
-    if (true) {
+    if (showActionPoints) {
         unsigned i = frame.actionPoints.size();
         while (i > 0) {
             i--;
@@ -730,9 +730,7 @@ void SpriteImporterEditorGui::drawFrame(ImDrawList* drawList, const MetaSprite::
 {
     assert(_data);
 
-    // ::TODO make layers optional::
-
-    if (true) {
+    if (showFrameObjects) {
         unsigned i = frame->objects.size();
         while (i > 0) {
             i--;
@@ -742,13 +740,13 @@ void SpriteImporterEditorGui::drawFrame(ImDrawList* drawList, const MetaSprite::
         }
     }
 
-    if (true) {
+    if (showTileHitbox) {
         if (frame->solid) {
             _graphics.addRect(drawList, &frame->tileHitbox, Style::tileHitboxOutlineColor);
         }
     }
 
-    if (true) {
+    if (showEntityHitboxes) {
         unsigned i = frame->entityHitboxes.size();
         while (i > 0) {
             i--;
@@ -757,7 +755,7 @@ void SpriteImporterEditorGui::drawFrame(ImDrawList* drawList, const MetaSprite::
         }
     }
 
-    if (true) {
+    if (showActionPoints) {
         unsigned i = frame->actionPoints.size();
         while (i > 0) {
             i--;
@@ -771,9 +769,7 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
 {
     assert(_data);
 
-    // ::TODO make layers optional::
-
-    if (true) {
+    if (showFrameObjects) {
         unsigned i = frame->objects.size();
         while (i > 0) {
             i--;
@@ -788,7 +784,7 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
         }
     }
 
-    if (true) {
+    if (showTileHitbox) {
         if (frame->solid) {
             _graphics.addRect(drawList, &frame->tileHitbox, Style::tileHitboxOutlineColor, &_data->tileHitboxSel, 1);
             if (_graphics.isHoveredAndNotEditing()) {
@@ -799,7 +795,7 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
         }
     }
 
-    if (true) {
+    if (showEntityHitboxes) {
         unsigned i = frame->entityHitboxes.size();
         while (i > 0) {
             i--;
@@ -814,7 +810,7 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
         }
     }
 
-    if (true) {
+    if (showActionPoints) {
         unsigned i = frame->actionPoints.size();
         while (i > 0) {
             i--;
@@ -849,11 +845,10 @@ void SpriteImporterEditorGui::frameEditorWindow()
             undoStackButtons();
             ImGui::SameLine(0.0f, 12.0f);
 
-            Style::spriteImporterZoom.zoomCombo("##zoom");
-            ImGui::SameLine(0.0f, 12.0f);
+            showLayerButtons();
+            ImGui::SameLine();
 
-            // ::TODO add toolbar::
-            ImGui::TextUnformatted("::TODO expand toolbar::");
+            Style::spriteImporterZoom.zoomCombo("##zoom");
         }
 
         ImGui::BeginChild("Scroll", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);

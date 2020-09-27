@@ -1100,9 +1100,7 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
 
     auto* drawList = ImGui::GetWindowDrawList();
 
-    // ::TODO make layers optional::
-
-    if (true) {
+    if (showFrameObjects) {
         const ImTextureID textureId = _tilesetTexture.imguiTextureId();
 
         unsigned i = frame.objects.size();
@@ -1145,7 +1143,7 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
         }
     }
 
-    if (true) {
+    if (showTileHitbox) {
         if (frame.solid) {
             ImVec2 p1(pos.x + frame.tileHitbox.x * zoom.x, pos.y + frame.tileHitbox.y * zoom.y);
             ImVec2 p2(p1.x + frame.tileHitbox.width * zoom.x, p1.y + frame.tileHitbox.height * zoom.y);
@@ -1153,7 +1151,7 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
         }
     }
 
-    if (true) {
+    if (showEntityHitboxes) {
         unsigned i = frame.entityHitboxes.size();
         while (i > 0) {
             i--;
@@ -1165,7 +1163,7 @@ inline void MetaSpriteEditorGui::drawAnimationFrame(const ImVec2& pos, const ImV
         }
     }
 
-    if (true) {
+    if (showActionPoints) {
         unsigned i = frame.actionPoints.size();
         while (i > 0) {
             i--;
@@ -1204,11 +1202,10 @@ void MetaSpriteEditorGui::frameEditorWindow()
             undoStackButtons();
             ImGui::SameLine(0.0f, 12.0f);
 
-            Style::metaSpriteZoom.zoomCombo("##zoom");
-            ImGui::SameLine(0.0f, 12.0f);
+            showLayerButtons();
+            ImGui::SameLine();
 
-            // ::TODO add toolbar::
-            ImGui::TextUnformatted("::TODO add frame Selection Combo::");
+            Style::metaSpriteZoom.zoomCombo("##zoom");
         }
 
         static_assert(backgroundColorNames.size() == backgroundColors.size());
@@ -1228,9 +1225,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
 
         const ImTextureID textureId = _tilesetTexture.imguiTextureId();
 
-        // ::TODO make layers optional::
-
-        if (true) {
+        if (showFrameObjects) {
             unsigned i = frame->objects.size();
             while (i > 0) {
                 i--;
@@ -1275,7 +1270,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
             }
         }
 
-        if (true) {
+        if (showTileHitbox) {
             if (frame->solid) {
                 _graphics.addRect(drawList, &frame->tileHitbox, Style::tileHitboxOutlineColor, &_data->tileHitboxSel, 1);
                 if (_graphics.isHoveredAndNotEditing()) {
@@ -1286,7 +1281,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
             }
         }
 
-        if (true) {
+        if (showEntityHitboxes) {
             unsigned i = frame->entityHitboxes.size();
             while (i > 0) {
                 i--;
@@ -1301,7 +1296,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
             }
         }
 
-        if (true) {
+        if (showActionPoints) {
             unsigned i = frame->actionPoints.size();
             while (i > 0) {
                 i--;

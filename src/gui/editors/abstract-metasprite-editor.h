@@ -47,11 +47,18 @@ public:
     bool _animationHFlip;
     bool _animationVFlip;
 
+    static bool showFrameObjects;
+    static bool showTileHitbox;
+    static bool showEntityHitboxes;
+    static bool showActionPoints;
+
 public:
     virtual void editorDataChanged() override;
 
 protected:
     AbstractMetaSpriteEditorGui() = default;
+
+    void showLayerButtons() const;
 
     // Must be called in `setEditorData`
     template <typename EditorDataT>
