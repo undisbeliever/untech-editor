@@ -3,8 +3,6 @@ PROFILE     ?= release
 CXX         ?= g++
 CC          ?= gcc
 
-GUI_QT_MODULES := Qt5Core Qt5Gui Qt5Widgets Qt5Svg
-
 CXXFLAGS    += -std=c++17
 
 ifeq ($(OS),Windows_NT)
@@ -18,19 +16,6 @@ ifeq ($(OS),Windows_NT)
 
   VENDOR_CXXFLAGS := -Wno-deprecated
 
-  ifndef QT_PATH
-    # Find QT install dir from PATH
-    QT_PATH := $(foreach p,$(subst ;, ,$(PATH)),$(if $(wildcard $p/moc.exe),$p))
-    QT_PATH := $(patsubst %\bin,%,$(QT_PATH))
-  endif
-
-  GUI_QT_CXXFLAGS := -I$(QT_PATH)/include $(foreach l,$(GUI_QT_MODULES:Qt5%=Qt%),-I$(QT_PATH)/include/$l)
-  GUI_QT_LIBS     := -mwindows $(foreach l,$(GUI_QT_MODULES),-l$l) -L$(QT_PATH)/lib
-
-  MOC := moc
-  UIC := uic
-  RCC := rcc
-
 else
   # Linux/BSD
 
@@ -41,20 +26,9 @@ else
   LIBS :=
 
   VENDOR_CXXFLAGS := -Wno-deprecated
-
-  GUI_QT_CXXFLAGS := $(shell pkg-config --cflags $(GUI_QT_MODULES))
-  GUI_QT_LIBS     := $(shell pkg-config --libs $(GUI_QT_MODULES))
-
-  ifneq ($(filter reduce_relocations, $(shell pkg-config --variable qt_config $(GUI_QT_MODULES))),)
-    GUI_QT_CXXFLAGS := $(GUI_QT_CXXFLAGS) -fPIC
-  endif
-
-  MOC := moc-qt5
-  UIC := uic-qt5
-  RCC := rcc-qt5
 endif
 
-GEN_DIR	:= gen
+
 
 ifeq ($(PROFILE),release)
   OBJ_DIR       := obj/release
@@ -140,9 +114,6 @@ else ifeq ($(PROFILE),mingw)
   LDFLAGS       += -O2 -flto
   LIBS          += -lshlwapi
 
-  GUI_QT_CXXFLAGS := -fPIC $(shell pkg-config --define-variable=prefix=$(PREFIX) --cflags $(GUI_QT_MODULES))
-  GUI_QT_LIBS     := $(shell pkg-config --define-variable=prefix=$(PREFIX) --libs $(GUI_QT_MODULES))
-
 else
   $(error unknown profile)
 endif
@@ -222,9 +193,6 @@ ifneq ($(findstring clang,$(CXX) $(CC)),)
   LDFLAGS  := $(filter-out -flto,$(LDFLAGS))
 endif
 
-# Disable all deprecated functions in Qt 5.12 and earlier
-GUI_QT_CXXFLAGS += -DQT_DISABLE_DEPRECATED_BEFORE=0x050C00
-
 
 ifeq ($(CXXWARNINGS),)
   CXXWARNINGS := -Wall -Wextra -Wdeprecated -Wvla
@@ -265,24 +233,6 @@ GUI_SRC         := $(filter src/models/% src/gui/%, $(SRCS))
 GUI_OBJS        := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(GUI_SRC))
 GUI_APP         := $(BIN_DIR)/untech-editor-newgui$(BIN_EXT)
 
-GUI_QT_SRC         := $(filter src/models/% src/gui-qt/%, $(SRCS))
-GUI_QT_OBJS        := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(GUI_QT_SRC))
-GUI_QT_APP         := $(BIN_DIR)/untech-editor-qtgui$(BIN_EXT)
-
-GUI_QT_MOC_HEADERS := $(wildcard src/gui-qt/*.h src/gui-qt/*/*.h src/gui-qt/*/*/*.h src/gui-qt/*/*/*/*.h)
-GUI_QT_MOC_GEN     := $(patsubst src/%.h,$(GEN_DIR)/%.moc.cpp,$(GUI_QT_MOC_HEADERS))
-GUI_QT_MOC_OBJS    := $(patsubst src/%.h,$(OBJ_DIR)/%.moc.o,$(GUI_QT_MOC_HEADERS))
-
-GUI_QT_UI_SRC      := $(wildcard src/gui-qt/*.ui src/gui-qt/*/*.ui src/gui-qt/*/*/*.ui)
-GUI_QT_UI_GEN      := $(patsubst src/%.ui,$(GEN_DIR)/%.ui.h,$(GUI_QT_UI_SRC))
-GUI_QT_UI_OBJS     := $(patsubst src/%.ui,$(OBJ_DIR)/%.o,$(GUI_QT_UI_SRC))
-
-GUI_QT_RES_QRC     := $(wildcard resources/*.qrc)
-GUI_QT_RES_GEN     := $(patsubst resources/%.qrc,$(GEN_DIR)/resources/%.cpp,$(GUI_QT_RES_QRC))
-GUI_QT_RES_OBJS    := $(patsubst resources/%.qrc,$(OBJ_DIR)/resources/%.o,$(GUI_QT_RES_QRC))
-
-GEN_QT_OBJS        := $(GUI_QT_UI_OBJS) $(GUI_QT_MOC_OBJS) $(GUI_QT_RES_OBJS)
-
 
 # Third party libs
 THIRD_PARTY_LODEPNG := $(OBJ_DIR)/vendor/lodepng/lodepng.o
@@ -315,16 +265,13 @@ endif
 
 
 .PHONY: all
-all: cli test-utils gui gui-qt
+all: cli test-utils gui
 
 .PHONY: cli
 cli: dirs $(CLI_APPS)
 
 .PHONY: test-utils
 test-utils: dirs $(TEST_UTILS)
-
-.PHONY: gui-qt
-gui-qt: dirs $(GUI_QT_APP)
 
 .PHONY: gui
 gui: dirs $(GUI_APP)
@@ -353,8 +300,6 @@ $(call cli-modules, untech-write-sfc-checksum,  common snes)
 
 $(call test-util-modules, serializer-test,      common snes project entity resources metasprite metatiles rooms lz4)
 
-$(GUI_QT_APP): $(GUI_QT_OBJS) $(GEN_QT_OBJS) $(THIRD_PARTY_OBJS)
-
 $(GUI_APP): $(GUI_OBJS) $(THIRD_PARTY_OBJS) $(THIRD_PARTY_IMGUI_OBJS) $(THIRD_PARTY_IMGUI_IMPL_OBJS)
 
 
@@ -366,12 +311,8 @@ MAKEFLAGS += --no-builtin-rules
 
 
 DEPS := $(OBJS:.o=.d)
-DEPS += $(GEN_QT_OBJS:.o=.d)
 DEPS += $(THIRD_PARTY_OBJS:.o=.d)
 -include $(DEPS)
-
-$(GUI_QT_APP):
-	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(GUI_QT_LIBS) $(LIBS)
 
 $(TEST_UTILS): $(BIN_DIR)/test-utils/%$(BIN_EXT): $(OBJ_DIR)/test-utils/%.o
 	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
@@ -381,19 +322,6 @@ $(CLI_APPS): $(BIN_DIR)/%$(BIN_EXT): $(OBJ_DIR)/cli/%.o
 
 $(GUI_APP):
 	$(CXX) $(LDFLAGS) $(CXXWARNINGS) $(IMGUI_LDFLAGS) -o $@ $^ $(GUI_LIBS) $(LIBS)
-
-
-$(GUI_QT_UI_OBJS): $(OBJ_DIR)/gui-qt/%.o: src/gui-qt/%.cpp $(GEN_DIR)/gui-qt/%.ui.h
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(GUI_QT_CXXFLAGS) -I$(GEN_DIR) -c -o $@ $<
-
-$(OBJ_DIR)/gui-qt/%.o: src/gui-qt/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(GUI_QT_CXXFLAGS) -I$(GEN_DIR) -c -o $@ $<
-
-$(OBJ_DIR)/gui-qt/%.moc.o: $(GEN_DIR)/gui-qt/%.moc.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(GUI_QT_CXXFLAGS) -c -o $@ $<
-
-$(OBJ_DIR)/resources/%.o: $(GEN_DIR)/resources/%.cpp
-	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) -c -o $@ $<
 
 
 $(OBJ_DIR)/vendor/%.o: src/vendor/%.cpp
@@ -426,27 +354,10 @@ $(OBJ_DIR)/%.o: src/%.cpp
 
 
 
-.SECONDARY: $(GUI_QT_MOC_GEN)
-$(GEN_DIR)/gui-qt/%.moc.cpp: src/gui-qt/%.h
-	$(MOC) -o $@ $<
-
-.SECONDARY: $(GUI_QT_UI_GEN)
-$(GEN_DIR)/gui-qt/%.ui.h: src/gui-qt/%.ui
-	$(UIC) -o $@ $<
-
-.SECONDARY: $(GUI_QT_RES_GEN)
-$(GEN_DIR)/resources/%.cpp: resources/%.qrc
-	$(RCC) -o $@ $<
-
-$(foreach r,$(GUI_QT_RES_QRC),$(eval $(r:resources/%.qrc=$(GEN_DIR)/resources/%.cpp): $(shell $(RCC) --list $r)))
-
-
-
 .PHONY: dirs
-OBJECT_DIRS := $(sort $(dir $(OBJS) $(GEN_QT_OBJS) $(THIRD_PARTY_OBJS)))
-GEN_DIRS := $(sort $(dir $(GUI_QT_UI_GEN) $(GUI_QT_MOC_GEN) $(GUI_QT_RES_GEN)))
-dirs: $(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS)
-$(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(GEN_DIR)/ $(OBJECT_DIRS) $(GEN_DIRS):
+OBJECT_DIRS := $(sort $(dir $(OBJS) $(THIRD_PARTY_OBJS)))
+dirs: $(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(OBJECT_DIRS)
+$(BIN_DIR)/ $(BIN_DIR)/test-utils/ $(OBJECT_DIRS):
 	$(call MKDIR_P_COMMAND,$@)
 
 
@@ -456,11 +367,6 @@ clean:
 	$(call RM_COMMAND, $(DEPS))
 	$(call RM_COMMAND, $(OBJS))
 	$(call RM_COMMAND, $(THIRD_PARTY_OBJS))
-	$(call RM_COMMAND, $(GUI_QT_MOC_GEN))
-	$(call RM_COMMAND, $(GUI_QT_MOC_OBJS))
-	$(call RM_COMMAND, $(GUI_QT_UI_GEN))
-	$(call RM_COMMAND, $(GUI_QT_RES_OBJS))
-	$(call RM_COMMAND, $(GUI_QT_RES_GEN) $(GUI_QT_RES_GEN:.cpp=.d))
 
 
 
