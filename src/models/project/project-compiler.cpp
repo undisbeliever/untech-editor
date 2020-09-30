@@ -130,7 +130,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
             if (!errorList.empty()) {
                 errorStream << typeName << " `" << itemNameString(sourceList.at(i)) << "`:\n";
                 errorList.printIndented(errorStream);
-                valid &= errorList.hasError();
+                valid &= !errorList.hasError();
             }
         }
     };
@@ -141,7 +141,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         if (!errorList.empty()) {
             errorStream << "Cannot compile " << typeName << "`:\n";
             errorList.printIndented(errorStream);
-            valid &= errorList.hasError();
+            valid &= !errorList.hasError();
         }
     };
 
