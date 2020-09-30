@@ -21,7 +21,9 @@ struct FrameTilesetData {
     static constexpr uint16_t NULL_CHAR_ATTR = 0xffff;
     static constexpr unsigned MAX_TILES_PER_TILESET = 16;
 
-    IndexPlusOne tilesetIndex;
+    // index into `TilesetData::tiles` for each tile in this tileset
+    std::vector<unsigned> tiles;
+
     bool dynamicTileset;
 
     // Mapping of tileId => Objects::charAttr bits
@@ -32,22 +34,30 @@ struct FrameTilesetData {
 struct TilesetData {
     TilesetType tilesetType;
 
+    Snes::TilesetTile16 tiles;
+
     FrameTilesetData staticTileset;
     std::vector<FrameTilesetData> dynamicTilesets;
 
     // Map of exportFrames index to dyanmicTiles index
     // if -1 then there are no dynamic tiles;
+    // ::TODO change to std::optional<uint16_t>::
     std::vector<int> frameTilesets;
 
-    const FrameTilesetData& tilesetForFrameId(unsigned frameId) const
+    std::optional<unsigned> tilesetIndexForFrameId(unsigned frameId) const
     {
         int tilesetId = frameTilesets.at(frameId);
-        return tilesetId < 0 ? staticTileset : dynamicTilesets.at(unsigned(tilesetId));
+        return tilesetId >= 0 ? std::optional<int>(tilesetId) : std::nullopt;
+    }
+
+    const FrameTilesetData& getTileset(std::optional<unsigned> index) const
+    {
+        return index ? dynamicTilesets.at(*index) : staticTileset;
     }
 };
 
-TilesetData insertFrameSetTiles(const MetaSprite::FrameSet& frameSet, const TilesetLayout& tilesetLayout,
-                                CompiledRomData& out);
+TilesetData processTileset(const MetaSprite::FrameSet& frameSet, const TilesetLayout& tilesetLayout);
+
 }
 }
 }

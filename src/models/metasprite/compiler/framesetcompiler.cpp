@@ -4,9 +4,15 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
-#include "framecompiler.h"
+#include "framesetcompiler.h"
+#include "animationcompiler.h"
 #include "compiler.h"
+#include "palettecompiler.h"
 #include "tilesetinserter.h"
+#include "tilesetlayout.h"
+#include "models/common/errorlist.h"
+#include "models/metasprite/utsi2utms/utsi2utms.h"
+#include "models/project/project.h"
 
 namespace UnTech {
 namespace MetaSprite {
@@ -171,14 +177,10 @@ static TileHitboxData processTileHitbox(const MS::Frame& frame)
     }
 }
 
-static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& frameTileset,
+static FrameData processFrame(const MS::Frame& frame,
+                              const std::optional<unsigned> tilesetIndex, const FrameTilesetData& frameTileset,
                               const ActionPointMapping& actionPointMapping)
 {
-    IndexPlusOne tilesetIndex{ 0 };
-    if (frameTileset.dynamicTileset) {
-        tilesetIndex = frameTileset.tilesetIndex;
-    }
-
     return {
         .frameObjects = processFrameObjects(frame, frameTileset),
         .entityHitboxes = processEntityHitboxes(frame.entityHitboxes),
@@ -188,20 +190,21 @@ static FrameData processFrame(const MS::Frame& frame, const FrameTilesetData& fr
     };
 }
 
-static FrameData processFrame(const FrameListEntry& fle, const FrameTilesetData& frameTileset,
+static FrameData processFrame(const FrameListEntry& fle,
+                              const std::optional<unsigned> tilesetIndex, const FrameTilesetData& frameTileset,
                               const ActionPointMapping& actionPointMapping)
 {
     if (fle.hFlip == false && fle.vFlip == false) {
-        return processFrame(*fle.frame, frameTileset, actionPointMapping);
+        return processFrame(*fle.frame, tilesetIndex, frameTileset, actionPointMapping);
     }
     else {
         auto flippedFrame = fle.frame->flip(fle.hFlip, fle.vFlip);
-        return processFrame(flippedFrame, frameTileset, actionPointMapping);
+        return processFrame(flippedFrame, tilesetIndex, frameTileset, actionPointMapping);
     }
 }
 
-std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, const TilesetData& tilesetData,
-                                        const ActionPointMapping& actionPointMapping)
+static std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, const TilesetData& tilesetData,
+                                               const ActionPointMapping& actionPointMapping)
 {
     const auto& frameList = exportList.frames;
 
@@ -212,45 +215,71 @@ std::vector<FrameData> processFrameList(const FrameSetExportList& exportList, co
         const auto& fle = frameList.at(frameId);
         assert(fle.frame);
 
-        const auto& frameTileset = tilesetData.tilesetForFrameId(frameId);
-        frames.push_back(processFrame(fle, frameTileset, actionPointMapping));
+        const auto& tilesetIndex = tilesetData.tilesetIndexForFrameId(frameId);
+        const auto& frameTileset = tilesetData.getTileset(tilesetIndex);
+        frames.push_back(processFrame(fle, tilesetIndex, frameTileset, actionPointMapping));
     }
 
     return frames;
 }
 
-static uint16_t saveCompiledFrame(const FrameData& frameData, CompiledRomData& out)
+static std::unique_ptr<FrameSetData> compileFrameSet(const MetaSprite::FrameSet& frameSet,
+                                                     const Project::ProjectFile& project,
+                                                     const ActionPointMapping& actionPointMapping,
+                                                     ErrorList& errorList)
 {
-    DataBlock frame(2 * 4 + 4);
+    const size_t oldErrorCount = errorList.errorCount();
 
-    frame.addWord(out.frameObjectData.addData_IndexPlusOne(frameData.frameObjects));
-    frame.addWord(out.entityHitboxData.addData_IndexPlusOne(frameData.entityHitboxes));
-    frame.addWord(out.actionPointData.addData_IndexPlusOne(frameData.actionPoints));
-    frame.addWord(frameData.tileset);
-
-    frame.addByte(frameData.tileHitbox.left);
-    frame.addByte(frameData.tileHitbox.right);
-    frame.addByte(frameData.tileHitbox.yOffset);
-    frame.addByte(frameData.tileHitbox.height);
-
-    assert(frame.atEnd());
-
-    return out.frameData.addData_Index(frame.data());
-}
-
-uint16_t saveCompiledFrames(const std::vector<FrameData>& framesData, CompiledRomData& out)
-{
-    assert(framesData.size() > 0);
-
-    DataBlock table(framesData.size() * 2);
-
-    for (const auto& fd : framesData) {
-        table.addWord(saveCompiledFrame(fd, out));
+    const auto* exportOrder = project.frameSetExportOrders.find(frameSet.exportOrder);
+    if (exportOrder == nullptr) {
+        errorList.addErrorString("Missing MetaSprite Export Order Document");
+        return nullptr;
     }
 
-    assert(table.atEnd());
+    const bool valid = frameSet.validate(actionPointMapping, errorList)
+                       && exportOrder->testFrameSet(frameSet, errorList);
 
-    return out.frameList.addData_Index(table.data());
+    if (!valid) {
+        return nullptr;
+    }
+
+    const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
+    exportList.validate(errorList);
+
+    auto out = std::make_unique<FrameSetData>();
+    const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
+
+    out->name = frameSet.name;
+    out->tileset = processTileset(frameSet, tilesetLayout);
+    out->frames = processFrameList(exportList, out->tileset, actionPointMapping);
+    out->animations = processAnimations(exportList);
+    out->palettes = processPalettes(frameSet.palettes);
+
+    if (errorList.errorCount() != oldErrorCount) {
+        out = nullptr;
+    }
+
+    return out;
+}
+
+std::unique_ptr<FrameSetData> compileFrameSet(const FrameSetFile& fs,
+                                              const Project::ProjectFile& project,
+                                              const ActionPointMapping& actionPointMapping,
+                                              ErrorList& errorList)
+{
+    if (fs.msFrameSet) {
+        return compileFrameSet(*fs.msFrameSet, project, actionPointMapping, errorList);
+    }
+    else if (fs.siFrameSet) {
+        if (const auto msfs = utsi2utms(*fs.siFrameSet, errorList)) {
+            return compileFrameSet(*msfs, project, actionPointMapping, errorList);
+        }
+    }
+    else {
+        errorList.addErrorString("Missing FrameSet");
+    }
+
+    return nullptr;
 }
 
 }

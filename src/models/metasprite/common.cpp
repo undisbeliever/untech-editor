@@ -26,7 +26,7 @@ std::string NameReference::str() const
     }
 }
 
-ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err)
+std::optional<const ActionPointMapping> MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
@@ -38,19 +38,19 @@ ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<Action
         valid = false;
     };
 
-    ActionPointMapping ret;
-
     if (apFunctions.empty()) {
         addError("Expected at least one action point function");
-        return ret;
+        return std::nullopt;
     }
 
     if (apFunctions.size() > MAX_ACTION_POINT_FUNCTIONS) {
         addError("Too many action point functions (max ", MAX_ACTION_POINT_FUNCTIONS, ")");
-        return ret;
+        return std::nullopt;
     }
 
-    ret.reserve(apFunctions.size());
+    auto ret = std::make_optional<ActionPointMapping>();
+
+    ret->reserve(apFunctions.size());
 
     for (unsigned i = 0; i < apFunctions.size(); i++) {
         const unsigned romValue = (i + 1) * 2;
@@ -62,7 +62,7 @@ ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<Action
             addApfError(apf, "Missing action point function name");
         }
 
-        auto success = ret.emplace(apf.name, romValue);
+        auto success = ret->emplace(apf.name, romValue);
 
         if (success.second == false) {
             addApfError(apf, "Action point function name already exists: ", apf.name);
@@ -70,7 +70,7 @@ ActionPointMapping MetaSprite::generateActionPointMapping(const NamedList<Action
     }
 
     if (not valid) {
-        ret.clear();
+        ret = std::nullopt;
     }
 
     return ret;

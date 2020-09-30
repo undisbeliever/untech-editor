@@ -12,6 +12,13 @@
 #include <unordered_map>
 #include <vector>
 
+namespace UnTech::MetaSprite {
+using ActionPointMapping = std::unordered_map<idstring, uint8_t>;
+}
+namespace UnTech::MetaSprite::Compiler {
+struct FrameSetData;
+}
+
 namespace UnTech {
 class ErrorList;
 
@@ -130,14 +137,13 @@ class ProjectData {
 
     const ProjectFile& _project;
 
-    // NOTE:
-    // If I add another DataStore here, I must also update `UnTech::GuiQt::ProjectDataSlots`.
-
+    DataStore<UnTech::MetaSprite::Compiler::FrameSetData> _frameSets;
     DataStore<Resources::PaletteData> _palettes;
     DataStore<Resources::BackgroundImageData> _backgroundImages;
     DataStore<MetaTiles::MetaTileTilesetData> _metaTileTilesets;
     DataStore<Rooms::RoomData> _rooms;
 
+    std::optional<MetaSprite::ActionPointMapping> _actionPointMapping;
     std::unique_ptr<const MetaTiles::InteractiveTilesData> _interactiveTiles;
     std::unique_ptr<const Resources::SceneSettingsData> _sceneSettings;
     std::unique_ptr<const Resources::CompiledScenesData> _scenes;
@@ -146,6 +152,7 @@ class ProjectData {
 public:
     ProjectData(const ProjectFile& project);
 
+    const DataStore<UnTech::MetaSprite::Compiler::FrameSetData>& frameSets() const { return _frameSets; }
     const DataStore<Resources::PaletteData>& palettes() const { return _palettes; }
     const DataStore<Resources::BackgroundImageData>& backgroundImages() const { return _backgroundImages; }
     const DataStore<MetaTiles::MetaTileTilesetData>& metaTileTilesets() const { return _metaTileTilesets; }
@@ -157,11 +164,13 @@ public:
 
     const optional<const Entity::CompiledEntityRomData&> entityRomData() const { return _entityRomData; }
 
+    bool compileFrameSet(size_t index, ErrorList& err);
     bool compilePalette(size_t index, ErrorList& err);
     bool compileBackgroundImage(size_t index, ErrorList& err);
     bool compileMetaTiles(size_t index, ErrorList& err);
     bool compileRoom(size_t index, ErrorList& err);
 
+    bool compileActionPointFunctions(ErrorList& err);
     bool compileInteractiveTiles(ErrorList& err);
     bool compileSceneSettings(ErrorList& err);
     bool compileScenes(ErrorList& err);

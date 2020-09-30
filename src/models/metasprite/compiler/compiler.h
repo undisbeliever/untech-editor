@@ -19,6 +19,9 @@ struct ProjectFile;
 namespace MetaSprite {
 namespace Compiler {
 
+struct FrameData;
+struct FrameSetData;
+
 struct CompiledRomData {
     static const int METASPRITE_FORMAT_VERSION;
 
@@ -43,21 +46,10 @@ struct CompiledRomData {
     bool valid = true;
 
     CompiledRomData(const Project::MemoryMapSettings& memoryMap);
+
+    void addFrameSetData(const FrameSetData& fsData);
 };
 
-// Does not save tilesets or build frame data.
-// Should catch all errors that the compiler will catch.
-// exportOrder can be null
-bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
-                                      const ActionPointMapping& actionPointMapping,
-                                      ErrorList& errorList);
-
-// exportOrder can be null
-void processAndSaveFrameSet(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
-                            const ActionPointMapping& actionPointMapping,
-                            ErrorList& errorList, CompiledRomData& out);
-
-std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& project, std::ostream& errorStream);
 }
 }
 }

@@ -6,6 +6,7 @@
 
 #include "tilesetinserter.h"
 #include "tilesetlayout.h"
+#include "models/snes/tilesetinserter.h"
 
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
@@ -50,55 +51,26 @@ struct CharAttrPos {
     const uint_fast8_t charSplitPoint;
 };
 
-class RomDmaTile16Entry {
-    constexpr static unsigned MAX_TILES_PER_TILESET = 16;
-
-    std::vector<uint8_t> _data;
-    unsigned _tileCount = 0;
-
-public:
-    RomDmaTile16Entry()
-        : _data(1)
-        , _tileCount()
-    {
-    }
-
-    void addTile(const uint16_t a)
-    {
-        _data.push_back(a);
-        _data.push_back(a >> 8);
-
-        _tileCount++;
-    }
-
-    const std::vector<uint8_t>& commitData()
-    {
-        assert(_tileCount <= MAX_TILES_PER_TILESET);
-
-        _data.at(0) = _tileCount;
-        return _data;
-    }
-};
-
 const uint16_t CharAttrPos::SMALL_TILE_OFFSETS[4] = { 0x0000, 0x0001, 0x0010, 0x0011 };
 
 static FrameTilesetData
 insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
             const unsigned tileOffset, const FrameTilesetData& staticTileset, const bool dynamicTileset,
             const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
-            CompiledRomData& out)
+            Snes::TilesetInserter16px& tileInserter)
 {
     assert(tiles.empty() == false);
     assert(tiles.size() + tileOffset <= tilesetType.nTiles());
 
-    FrameTilesetData tileset = staticTileset;
+    FrameTilesetData tileset;
+    tileset.tiles.reserve(tiles.size());
+    tileset.smallTilesCharAttr = staticTileset.smallTilesCharAttr;
+    tileset.largeTilesCharAttr = staticTileset.largeTilesCharAttr;
     tileset.dynamicTileset = dynamicTileset;
 
-    RomDmaTile16Entry tilesetEntry;
-
     auto addTile = [&](const Snes::Tile16px& tile) mutable {
-        auto a = out.tileData.addLargeTile(tile);
-        tilesetEntry.addTile(a.tile16Addr);
+        auto a = tileInserter.getOrInsert(tile);
+        tileset.tiles.push_back(a.tileId);
 
         return a;
     };
@@ -110,7 +82,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
             unsigned tId = tile16.largeTileId;
             const Snes::Tile16px& tile = largeTileset.tile(tId);
 
-            RomTileData::Accessor a = addTile(tile);
+            const auto a = addTile(tile);
 
             uint16_t charAttr = charAttrPos.largeCharAttr();
             if (a.hFlip) {
@@ -136,7 +108,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
                     smallTiles[i] = smallTileset.tile(tId);
                 }
             }
-            RomTileData::Accessor a = addTile(combineSmallTiles(smallTiles));
+            const auto a = addTile(combineSmallTiles(smallTiles));
 
             for (unsigned i = 0; i < 4; i++) {
                 auto tId = tile16.smallTileIds[i];
@@ -160,7 +132,7 @@ insertTiles(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
         }
     }
 
-    tileset.tilesetIndex = out.dmaTile16Data.addData_IndexPlusOne(tilesetEntry.commitData());
+    assert(!tileset.tiles.empty());
 
     return tileset;
 }
@@ -169,7 +141,7 @@ static FrameTilesetData
 insertStaticTileset(const vectorset<Tile16>& tiles, const TilesetType tilesetType,
                     const unsigned tileOffset,
                     const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
-                    CompiledRomData& out)
+                    Snes::TilesetInserter16px& tileInserter)
 {
     constexpr uint16_t nullTile = FrameTilesetData::NULL_CHAR_ATTR;
 
@@ -179,7 +151,7 @@ insertStaticTileset(const vectorset<Tile16>& tiles, const TilesetType tilesetTyp
 
     if (tiles.empty() == false) {
         return insertTiles(tiles, tilesetType, tileOffset, blankTileset, false,
-                           largeTileset, smallTileset, out);
+                           largeTileset, smallTileset, tileInserter);
     }
     else {
         return blankTileset;
@@ -190,16 +162,17 @@ static FrameTilesetData
 insertDynamicTileset(const std::vector<Tile16>& tiles, const TilesetType tilesetType,
                      const FrameTilesetData& staticTileset,
                      const Snes::TilesetTile16& largeTileset, const Snes::Tileset8px& smallTileset,
-                     CompiledRomData& out)
+                     Snes::TilesetInserter16px& tileInserter)
 {
     return insertTiles(tiles, tilesetType, 0, staticTileset, true,
-                       largeTileset, smallTileset, out);
+                       largeTileset, smallTileset, tileInserter);
 }
 
-TilesetData insertFrameSetTiles(const MS::FrameSet& frameSet, const TilesetLayout& tilesetLayout,
-                                CompiledRomData& out)
+TilesetData processTileset(const MetaSprite::FrameSet& frameSet, const TilesetLayout& tilesetLayout)
 {
     TilesetData ret;
+
+    Snes::TilesetInserter16px tileInserter(ret.tiles);
 
     ret.tilesetType = tilesetLayout.tilesetType;
     ret.frameTilesets = tilesetLayout.frameTilesets;
@@ -212,13 +185,13 @@ TilesetData insertFrameSetTiles(const MS::FrameSet& frameSet, const TilesetLayou
 
     ret.staticTileset = insertStaticTileset(tilesetLayout.staticTiles, tilesetLayout.tilesetType, staticTilesOffset,
                                             frameSet.largeTileset, frameSet.smallTileset,
-                                            out);
+                                            tileInserter);
 
     for (const auto& dynTiles : tilesetLayout.dynamicTiles) {
         ret.dynamicTilesets.push_back(
             insertDynamicTileset(dynTiles, tilesetLayout.tilesetType, ret.staticTileset,
                                  frameSet.largeTileset, frameSet.smallTileset,
-                                 out));
+                                 tileInserter));
     }
 
     return ret;

@@ -7,6 +7,7 @@
 #include "project-data.h"
 #include "project.h"
 #include "models/common/errorlist.h"
+#include "models/metasprite/compiler/framesetcompiler.h"
 #include <cassert>
 
 namespace UnTech {
@@ -19,6 +20,12 @@ static inline const DataStore<T>& expandPresquite(const DataStore<T>& ds)
 }
 template <typename T>
 static inline const T& expandPresquite(const std::unique_ptr<T>& p)
+{
+    assert(p);
+    return *p;
+}
+template <typename T>
+static inline const T& expandPresquite(const std::optional<T>& p)
 {
     assert(p);
     return *p;
@@ -60,7 +67,7 @@ static bool compileListItem(ConvertFunction convertFunction, DataStore<DataT>& d
                             const InputListT& inputList, const size_t index, ErrorList& err,
                             const PreresquitesT&... preresquites)
 {
-    auto input = inputList.at(index);
+    const auto& input = inputList.at(index);
     return compileData(convertFunction, dataStore, index, input, err, preresquites...);
 }
 
@@ -88,10 +95,16 @@ ProjectData::ProjectData(const ProjectFile& project)
     , _scenes(nullptr)
     , _entityRomData(nullptr)
 {
+    _frameSets.clearAllAndResize(_project.frameSets.size());
     _palettes.clearAllAndResize(_project.palettes.size());
     _backgroundImages.clearAllAndResize(_project.backgroundImages.size());
     _metaTileTilesets.clearAllAndResize(_project.metaTileTilesets.size());
     _rooms.clearAllAndResize(_project.rooms.size());
+}
+
+bool ProjectData::compileFrameSet(size_t index, ErrorList& err)
+{
+    return compileListItem(MetaSprite::Compiler::compileFrameSet, _frameSets, _project.frameSets, index, err, _project, _actionPointMapping);
 }
 
 bool ProjectData::compilePalette(size_t index, ErrorList& err)
@@ -112,6 +125,12 @@ bool ProjectData::compileMetaTiles(size_t index, ErrorList& err)
 bool ProjectData::compileRoom(size_t index, ErrorList& err)
 {
     return compileExternalFileListItem(Rooms::compileRoom, _rooms, _project.rooms, index, err, _scenes, _entityRomData, _project.roomSettings);
+}
+
+bool ProjectData::compileActionPointFunctions(ErrorList& err)
+{
+    _actionPointMapping = UnTech::MetaSprite::generateActionPointMapping(_project.actionPointFunctions, err);
+    return _actionPointMapping != std::nullopt;
 }
 
 bool ProjectData::compileInteractiveTiles(ErrorList& err)

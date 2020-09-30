@@ -10,6 +10,7 @@
 #include "version.h"
 #include "models/common/errorlist.h"
 #include "models/metasprite/compiler/compiler.h"
+#include "models/metasprite/compiler/framesetcompiler.h"
 #include "models/metasprite/compiler/references.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/metatiles/metatiles-serializer.h"
@@ -30,9 +31,14 @@ static const idstring& itemNameString(const T* item)
 {
     return item ? item->name : BLANK_IDSTRING;
 }
+static const idstring& itemNameString(const MetaSprite::FrameSetFile& item)
+{
+    return item.name();
+}
 
 static void writeMetaSpriteData(RomDataWriter& writer,
-                                const MetaSprite::Compiler::CompiledRomData& msData)
+                                const Project::MemoryMapSettings& memoryMap,
+                                const DataStore<UnTech::MetaSprite::Compiler::FrameSetData>& fsData)
 {
     auto writeData = [&](auto& d) {
         writer.addNamedData(d.label(), d.data());
@@ -40,6 +46,14 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     auto writeNotNullData = [&](auto& d) {
         writer.addNotNullNamedData(d.label(), d.data());
     };
+
+    MetaSprite::Compiler::CompiledRomData msData(memoryMap);
+
+    for (unsigned i = 0; i < fsData.size(); i++) {
+        auto fs = fsData.at(i);
+        assert(fs);
+        msData.addFrameSetData(*fs);
+    }
 
     // Tiles are written first so they are always aligned with
     // the start of the data
@@ -145,11 +159,12 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         }
     };
 
-    // MetaSprite data MUST be first.
-    auto metaSpriteData = MetaSprite::Compiler::compileMetaSprites(input, errorStream);
-    if (metaSpriteData == nullptr) {
+    compileFunction(&ProjectData::compileActionPointFunctions, "Action Points");
+    if (!valid) {
         return nullptr;
     }
+
+    compileList(input.frameSets, &ProjectData::compileFrameSet, "FrameSet");
 
     compileFunction(&ProjectData::compileInteractiveTiles, "Interactive Tiles");
     compileFunction(&ProjectData::compileEntityRomData, "Entity ROM Data");
@@ -187,7 +202,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
                          constants);
 
     // must write meta sprite data first
-    writeMetaSpriteData(writer, *metaSpriteData);
+    writeMetaSpriteData(writer, input.memoryMap, projectData.frameSets());
     writeEntityRomData(writer, *projectData.entityRomData());
     writeSceneData(writer, *projectData.sceneSettings(), *projectData.scenes());
 
