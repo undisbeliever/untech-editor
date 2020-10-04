@@ -113,7 +113,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
             if (readMemoryMapTag) {
                 throw xml_error(*childTag, "Only one <memory-map> tag is allowed");
             }
-            readMemoryMapSettings(childTag.get(), project->memoryMap);
+            readMemoryMapSettings(childTag.get(), project->projectSettings.memoryMap);
             readMemoryMapTag = true;
         }
         else if (childTag->name == "block-settings") {
@@ -131,7 +131,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
             }
             readRoomSettingsTag = true;
 
-            Rooms::readRoomSettings(project->roomSettings, childTag.get());
+            Rooms::readRoomSettings(project->projectSettings.roomSettings, childTag.get());
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -147,8 +147,8 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
 {
     xml.writeTag("project");
 
-    Project::writeMemoryMapSettings(xml, project.memoryMap);
-    Rooms::writeRoomSettings(xml, project.roomSettings);
+    Project::writeMemoryMapSettings(xml, project.projectSettings.memoryMap);
+    Rooms::writeRoomSettings(xml, project.projectSettings.roomSettings);
     MetaTiles::writeInteractiveTiles(xml, project.interactiveTiles);
 
     Entity::writeEntityRomData(xml, project.entityRomData);

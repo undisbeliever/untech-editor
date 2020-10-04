@@ -27,11 +27,23 @@
 namespace UnTech {
 namespace Project {
 
+struct ProjectSettings {
+    MemoryMapSettings memoryMap;
+    Rooms::RoomSettings roomSettings;
+
+    bool validate(ErrorList& err) const;
+
+    bool operator==(const ProjectSettings& o) const
+    {
+        return memoryMap == o.memoryMap
+               && roomSettings == o.roomSettings;
+    }
+};
+
 struct ProjectFile {
     const static std::string FILE_EXTENSION;
 
-    MemoryMapSettings memoryMap;
-    Rooms::RoomSettings roomSettings;
+    ProjectSettings projectSettings;
 
     MetaTiles::InteractiveTiles interactiveTiles;
     Entity::EntityRomData entityRomData;
@@ -53,8 +65,7 @@ struct ProjectFile {
 
     bool operator==(const ProjectFile& o) const
     {
-        return memoryMap == o.memoryMap
-               && roomSettings == o.roomSettings
+        return projectSettings == o.projectSettings
                && interactiveTiles == o.interactiveTiles
                && entityRomData == o.entityRomData
                && resourceScenes == o.resourceScenes

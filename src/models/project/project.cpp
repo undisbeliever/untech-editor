@@ -62,8 +62,7 @@ bool ProjectFile::validate(ErrorList& err) const
 {
     bool valid = true;
 
-    valid &= memoryMap.validate(err);
-    valid &= roomSettings.validate(err);
+    valid &= projectSettings.validate(err);
 
     if (frameSetExportOrders.size() > MetaSprite::MAX_EXPORT_NAMES) {
         err.addErrorString("Too many MetaSprite export orders");
@@ -79,6 +78,16 @@ bool ProjectFile::validate(ErrorList& err) const
     valid &= validateFilesAndNamesUnique(frameSetExportOrders, "export order", err);
 
     valid &= validateFilesAndNamesUnique(rooms, "Room", err);
+
+    return valid;
+}
+
+bool ProjectSettings::validate(ErrorList& err) const
+{
+    bool valid = true;
+
+    valid &= memoryMap.validate(err);
+    valid &= roomSettings.validate(err);
 
     return valid;
 }

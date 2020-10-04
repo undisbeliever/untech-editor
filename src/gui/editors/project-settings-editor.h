@@ -16,8 +16,7 @@ private:
     friend class ProjectSettingsEditorGui;
     struct AP;
 
-    UnTech::Project::MemoryMapSettings memoryMap;
-    UnTech::Rooms::RoomSettings roomSettings;
+    UnTech::Project::ProjectSettings data;
 
 public:
     ProjectSettingsEditorData(ItemIndex itemIndex);

@@ -133,16 +133,16 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
         { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
         { "Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
-        { "Project.ROOM_DATA_SIZE", input.roomSettings.roomDataSize },
+        { "Project.ROOM_DATA_SIZE", input.projectSettings.roomSettings.roomDataSize },
         { "Project.MS_FrameSetListCount", unsigned(input.frameSets.size()) },
     };
 
-    RomDataWriter writer(input.memoryMap,
+    RomDataWriter writer(input.projectSettings.memoryMap,
                          "__resc__", "RES_Block",
                          constants);
 
     // must write meta sprite data first
-    writeMetaSpriteData(writer, input.memoryMap, projectData.frameSets());
+    writeMetaSpriteData(writer, input.projectSettings.memoryMap, projectData.frameSets());
     writeEntityRomData(writer, *projectData.entityRomData());
     writeSceneData(writer, *projectData.scenes());
 

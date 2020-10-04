@@ -19,12 +19,12 @@ struct ProjectSettingsEditorData::AP {
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor.memoryMap;
+            return &editor.data.memoryMap;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
         {
-            return &projectFile.memoryMap;
+            return &projectFile.projectSettings.memoryMap;
         }
     };
 
@@ -34,12 +34,12 @@ struct ProjectSettingsEditorData::AP {
 
         static EditorDataT* getEditorData(EditorT& editor)
         {
-            return &editor.roomSettings;
+            return &editor.data.roomSettings;
         }
 
         static EditorDataT* getEditorData(Project::ProjectFile& projectFile, const ItemIndex&)
         {
-            return &projectFile.roomSettings;
+            return &projectFile.projectSettings.roomSettings;
         }
     };
 };
@@ -51,8 +51,7 @@ ProjectSettingsEditorData::ProjectSettingsEditorData(ItemIndex itemIndex)
 
 bool ProjectSettingsEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
 {
-    memoryMap = projectFile.memoryMap;
-    roomSettings = projectFile.roomSettings;
+    data = projectFile.projectSettings;
 
     return true;
 }
@@ -87,8 +86,8 @@ void ProjectSettingsEditorGui::editorClosed()
 void ProjectSettingsEditorGui::projectSettingsWindow()
 {
     assert(_data);
-    auto& memoryMap = _data->memoryMap;
-    auto& roomSettings = _data->roomSettings;
+    auto& memoryMap = _data->data.memoryMap;
+    auto& roomSettings = _data->data.roomSettings;
 
     if (ImGui::Begin("Project Settings")) {
         ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);

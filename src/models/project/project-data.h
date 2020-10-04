@@ -145,8 +145,7 @@ public:
 class ProjectData {
 private:
     enum class ProjectSettingsIndex : unsigned {
-        MemoryMap,
-        RoomSettings,
+        ProjectSettings,
         InteractiveTiles,
         ActionPoints,
         EntityRomData,

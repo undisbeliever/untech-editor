@@ -339,8 +339,7 @@ ProjectData::ProjectData(const ProjectFile& project)
     };
 
     _projectSettingsStatus.resources.resize(N_PROJECT_SETTING_ITEMS);
-    setName(ProjectSettingsIndex::MemoryMap, "Memory Map");
-    setName(ProjectSettingsIndex::RoomSettings, "Room Settings");
+    setName(ProjectSettingsIndex::ProjectSettings, "Project Settings");
     setName(ProjectSettingsIndex::InteractiveTiles, "Interactive Tiles");
     setName(ProjectSettingsIndex::ActionPoints, "Action Points");
     setName(ProjectSettingsIndex::EntityRomData, "Entities");
@@ -365,11 +364,8 @@ bool ProjectData::compileAll()
 {
     bool valid = true;
 
-    valid &= storePsStatus(ProjectSettingsIndex::MemoryMap,
-                           validateFunction(&MemoryMapSettings::validate, _project.memoryMap));
-
-    valid &= storePsStatus(ProjectSettingsIndex::RoomSettings,
-                           validateFunction(&Rooms::RoomSettings::validate, _project.roomSettings));
+    valid &= storePsStatus(ProjectSettingsIndex::ProjectSettings,
+                           validateFunction(&ProjectSettings::validate, _project.projectSettings));
 
     valid &= validateList(&MetaSprite::FrameSetExportOrder::validate, _frameSetExportOrderStatus, _project.frameSetExportOrders);
 
@@ -409,7 +405,7 @@ bool ProjectData::compileAll()
         return false;
     }
 
-    valid &= compileList(Rooms::compileRoom, _rooms, _project.rooms, _scenes, _entityRomData, _project.roomSettings);
+    valid &= compileList(Rooms::compileRoom, _rooms, _project.rooms, _scenes, _entityRomData, _project.projectSettings.roomSettings);
 
     _projectSettingsStatus.updateState();
 
