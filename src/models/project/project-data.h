@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "models/common/errorlist.h"
 #include "models/common/idstring.h"
 #include "models/common/optional.h"
 #include <memory>
@@ -48,12 +49,43 @@ namespace UnTech {
 namespace Project {
 struct ProjectFile;
 
+enum class ResourceState {
+    Unchecked,
+    Valid,
+    Invalid,
+    Missing,
+};
+
+struct ResourceStatus {
+    ResourceState state = ResourceState::Unchecked;
+    std::string name;
+    ErrorList errorList;
+};
+
+struct ResourceListStatus {
+    const std::string typeNameSingle;
+    const std::string typeNamePlural;
+
+    ResourceState state;
+    std::vector<ResourceStatus> resources;
+
+    ResourceListStatus(std::string typeNameSingle, std::string typeNamePlural);
+
+    void clearAllAndResize(size_t size);
+    void updateState();
+};
+
 template <typename T>
 class DataStore {
+    ResourceListStatus _listStatus;
     std::unordered_map<idstring, size_t> _mapping;
     std::vector<std::unique_ptr<const T>> _data;
 
 public:
+    DataStore(std::string typeNameSingle, std::string typeNamePlural);
+
+    const auto& listStatus() const { return _listStatus; }
+
     inline std::optional<unsigned> indexOf(const idstring& id) const
     {
         auto it = _mapping.find(id);
@@ -96,35 +128,13 @@ public:
 
     size_t size() const { return _data.size(); }
 
-    void clear(const size_t index)
-    {
-        _data.at(index) = nullptr;
-    }
+    void store(const size_t index, ResourceStatus&& status, std::unique_ptr<const T>&& data);
 
-    void removeName(const idstring& name)
-    {
-        _mapping.erase(name);
-    }
-
-    void store(std::unique_ptr<const T>&& data, const size_t index)
-    {
-        const idstring& name = data->name;
-
-        auto it = _mapping.find(name);
-        if (it == _mapping.end()) {
-            _mapping.emplace(name, index);
-            _data.at(index) = std::move(data);
-        }
-        else {
-            if (it->second != index) {
-                throw std::logic_error("idstring/index does not match mapping");
-            }
-            _data.at(index) = std::move(data);
-        }
-    }
+    void updateState() { _listStatus.updateState(); }
 
     void clearAllAndResize(size_t size)
     {
+        _listStatus.clearAllAndResize(size);
         _mapping.clear();
         _mapping.reserve(size);
         _data.clear();
@@ -133,9 +143,22 @@ public:
 };
 
 class ProjectData {
-    friend class UnTech::GuiQt::ProjectDataSlots;
+private:
+    enum class ProjectSettingsIndex : unsigned {
+        MemoryMap,
+        RoomSettings,
+        InteractiveTiles,
+        ActionPoints,
+        EntityRomData,
+        SceneSettings,
+        Scenes,
+    };
+    constexpr static unsigned N_PROJECT_SETTING_ITEMS = 7;
 
     const ProjectFile& _project;
+
+    ResourceListStatus _projectSettingsStatus;
+    ResourceListStatus _frameSetExportOrderStatus;
 
     DataStore<UnTech::MetaSprite::Compiler::FrameSetData> _frameSets;
     DataStore<Resources::PaletteData> _palettes;
@@ -149,8 +172,17 @@ class ProjectData {
     std::unique_ptr<const Resources::CompiledScenesData> _scenes;
     std::unique_ptr<const Entity::CompiledEntityRomData> _entityRomData;
 
+private:
+    ProjectData(const ProjectData&) = delete;
+    ProjectData(ProjectData&&) = delete;
+    ProjectData& operator=(const ProjectData&) = delete;
+    ProjectData& operator=(ProjectData&&) = delete;
+
 public:
     ProjectData(const ProjectFile& project);
+
+    const auto& projectSettingsStatus() const { return _projectSettingsStatus; }
+    const auto& frameSetExportOrderStatus() const { return _frameSetExportOrderStatus; }
 
     const DataStore<UnTech::MetaSprite::Compiler::FrameSetData>& frameSets() const { return _frameSets; }
     const DataStore<Resources::PaletteData>& palettes() const { return _palettes; }
@@ -161,21 +193,12 @@ public:
     const optional<const MetaTiles::InteractiveTilesData&> interactiveTiles() const { return _interactiveTiles; }
     const optional<const Resources::SceneSettingsData&> sceneSettings() const { return _sceneSettings; }
     const optional<const Resources::CompiledScenesData&> scenes() const { return _scenes; }
-
     const optional<const Entity::CompiledEntityRomData&> entityRomData() const { return _entityRomData; }
 
-    bool compileFrameSet(size_t index, ErrorList& err);
-    bool compilePalette(size_t index, ErrorList& err);
-    bool compileBackgroundImage(size_t index, ErrorList& err);
-    bool compileMetaTiles(size_t index, ErrorList& err);
-    bool compileRoom(size_t index, ErrorList& err);
+    bool compileAll();
 
-    bool compileActionPointFunctions(ErrorList& err);
-    bool compileInteractiveTiles(ErrorList& err);
-    bool compileSceneSettings(ErrorList& err);
-    bool compileScenes(ErrorList& err);
-
-    bool compileEntityRomData(ErrorList& err);
+private:
+    bool storePsStatus(ProjectSettingsIndex index, ResourceStatus&& newStatus);
 };
 
 }

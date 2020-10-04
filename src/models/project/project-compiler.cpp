@@ -21,21 +21,6 @@ namespace Project {
 
 static const idstring BLANK_IDSTRING{};
 
-template <class T>
-static const idstring& itemNameString(const T& item)
-{
-    return item.name;
-}
-template <class T>
-static const idstring& itemNameString(const T* item)
-{
-    return item ? item->name : BLANK_IDSTRING;
-}
-static const idstring& itemNameString(const MetaSprite::FrameSetFile& item)
-{
-    return item.name();
-}
-
 static void writeMetaSpriteData(RomDataWriter& writer,
                                 const Project::MemoryMapSettings& memoryMap,
                                 const DataStore<UnTech::MetaSprite::Compiler::FrameSetData>& fsData)
@@ -103,10 +88,40 @@ static void writeIncList(std::stringstream& incData, const std::string& typeName
                "\n";
 }
 
+static void printErrors(const ProjectData& projectData, std::ostream& errorStream)
+{
+    auto print = [&](const ResourceListStatus& listStatus) {
+        for (const ResourceStatus& status : listStatus.resources) {
+            if (!status.errorList.empty()) {
+                errorStream << listStatus.typeNameSingle << " `" << status.name << "`:\n";
+                status.errorList.printIndented(errorStream);
+            }
+        }
+    };
+
+    print(projectData.projectSettingsStatus());
+    print(projectData.frameSetExportOrderStatus());
+    print(projectData.frameSets().listStatus());
+    print(projectData.palettes().listStatus());
+    print(projectData.backgroundImages().listStatus());
+    print(projectData.metaTileTilesets().listStatus());
+    print(projectData.rooms().listStatus());
+};
+
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinFilename,
                std::ostream& errorStream)
 {
+    ProjectData projectData(input);
+
+    const bool valid = projectData.compileAll();
+
+    printErrors(projectData, errorStream);
+
+    if (!valid) {
+        return nullptr;
+    }
+
     const std::vector<RomDataWriter::Constant> constants = {
         { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
         { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
@@ -121,81 +136,6 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         { "Project.ROOM_DATA_SIZE", input.roomSettings.roomDataSize },
         { "Project.MS_FrameSetListCount", unsigned(input.frameSets.size()) },
     };
-
-    bool valid = true;
-    {
-        ErrorList errorList;
-        valid = input.validate(errorList);
-        if (!valid) {
-            errorStream << "Unable to compile resources:\n";
-            errorList.printIndented(errorStream);
-            return nullptr;
-        }
-    }
-
-    ProjectData projectData(input);
-
-    auto compileList = [&](const auto& sourceList, auto compile_fn, const char* typeName) {
-        for (unsigned i = 0; i < sourceList.size(); i++) {
-            ErrorList errorList;
-
-            valid &= std::invoke(compile_fn, projectData, i, errorList);
-
-            if (!errorList.empty()) {
-                errorStream << typeName << " `" << itemNameString(sourceList.at(i)) << "`:\n";
-                errorList.printIndented(errorStream);
-                valid &= !errorList.hasError();
-            }
-        }
-    };
-
-    auto compileFunction = [&](auto compile_fn, const char* typeName) {
-        ErrorList errorList;
-        valid &= std::invoke(compile_fn, projectData, errorList);
-        if (!errorList.empty()) {
-            errorStream << "Cannot compile " << typeName << "`:\n";
-            errorList.printIndented(errorStream);
-            valid &= !errorList.hasError();
-        }
-    };
-
-    compileFunction(&ProjectData::compileActionPointFunctions, "Action Points");
-    if (!valid) {
-        return nullptr;
-    }
-
-    compileList(input.frameSets, &ProjectData::compileFrameSet, "FrameSet");
-
-    compileFunction(&ProjectData::compileInteractiveTiles, "Interactive Tiles");
-    compileFunction(&ProjectData::compileEntityRomData, "Entity ROM Data");
-    // no !valid test needed, unused by palette subsystem
-
-    compileList(input.palettes, &ProjectData::compilePalette, "Palette");
-    if (!valid) {
-        return nullptr;
-    }
-
-    compileList(input.backgroundImages, &ProjectData::compileBackgroundImage, "Background Image");
-    // no !valid test needed, metaTileTilesets and backgroundImages are unrelated
-
-    compileList(input.metaTileTilesets, &ProjectData::compileMetaTiles, "MetaTile Tileset");
-    if (!valid) {
-        return nullptr;
-    }
-
-    compileFunction(&ProjectData::compileSceneSettings, "Scene Settings");
-    if (!valid) {
-        return nullptr;
-    }
-    compileFunction(&ProjectData::compileScenes, "Scenes");
-    if (!valid) {
-        return nullptr;
-    }
-
-    compileList(input.rooms, &ProjectData::compileRoom, "Room");
-    if (!valid) {
-        return nullptr;
-    }
 
     RomDataWriter writer(input.memoryMap,
                          "__resc__", "RES_Block",
