@@ -66,7 +66,8 @@ struct PaletteData {
 };
 
 // Will return a nullptr if PaletteInput or PaletteData is invalid
-std::unique_ptr<PaletteData> convertPalette(const PaletteInput& input, ErrorList& err);
+std::shared_ptr<const PaletteData>
+convertPalette(const PaletteInput& input, ErrorList& err);
 
 }
 }

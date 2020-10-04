@@ -79,7 +79,7 @@ template <typename T>
 class DataStore {
     ResourceListStatus _listStatus;
     std::unordered_map<idstring, size_t> _mapping;
-    std::vector<std::unique_ptr<const T>> _data;
+    std::vector<std::shared_ptr<const T>> _data;
 
 public:
     DataStore(std::string typeNameSingle, std::string typeNamePlural);
@@ -97,7 +97,7 @@ public:
         }
     }
 
-    inline optional<const T&> at(unsigned index) const
+    inline std::shared_ptr<const T> at(unsigned index) const
     {
         if (index < _data.size()) {
             return _data.at(index);
@@ -106,7 +106,7 @@ public:
             return {};
         }
     }
-    inline optional<const T&> at(std::optional<unsigned> index) const
+    inline std::shared_ptr<const T> at(std::optional<unsigned> index) const
     {
         if (index) {
             return at(index.value());
@@ -115,11 +115,11 @@ public:
             return {};
         }
     }
-    inline optional<const T&> at(const idstring& id) const
+    inline std::shared_ptr<const T> at(const idstring& id) const
     {
         auto it = _mapping.find(id);
         if (it != _mapping.end()) {
-            return at(unsigned(it->second));
+            return at(it->second);
         }
         else {
             return {};
@@ -128,7 +128,7 @@ public:
 
     size_t size() const { return _data.size(); }
 
-    void store(const size_t index, ResourceStatus&& status, std::unique_ptr<const T>&& data);
+    void store(const size_t index, ResourceStatus&& status, std::shared_ptr<const T>&& data);
 
     void updateState() { _listStatus.updateState(); }
 
@@ -166,11 +166,11 @@ private:
     DataStore<MetaTiles::MetaTileTilesetData> _metaTileTilesets;
     DataStore<Rooms::RoomData> _rooms;
 
-    std::optional<MetaSprite::ActionPointMapping> _actionPointMapping;
-    std::unique_ptr<const MetaTiles::InteractiveTilesData> _interactiveTiles;
-    std::unique_ptr<const Resources::SceneSettingsData> _sceneSettings;
-    std::unique_ptr<const Resources::CompiledScenesData> _scenes;
-    std::unique_ptr<const Entity::CompiledEntityRomData> _entityRomData;
+    std::shared_ptr<const MetaSprite::ActionPointMapping> _actionPointMapping;
+    std::shared_ptr<const MetaTiles::InteractiveTilesData> _interactiveTiles;
+    std::shared_ptr<const Resources::SceneSettingsData> _sceneSettings;
+    std::shared_ptr<const Resources::CompiledScenesData> _scenes;
+    std::shared_ptr<const Entity::CompiledEntityRomData> _entityRomData;
 
 private:
     ProjectData(const ProjectData&) = delete;
@@ -190,10 +190,10 @@ public:
     const DataStore<MetaTiles::MetaTileTilesetData>& metaTileTilesets() const { return _metaTileTilesets; }
     const DataStore<Rooms::RoomData>& rooms() const { return _rooms; }
 
-    const optional<const MetaTiles::InteractiveTilesData&> interactiveTiles() const { return _interactiveTiles; }
-    const optional<const Resources::SceneSettingsData&> sceneSettings() const { return _sceneSettings; }
-    const optional<const Resources::CompiledScenesData&> scenes() const { return _scenes; }
-    const optional<const Entity::CompiledEntityRomData&> entityRomData() const { return _entityRomData; }
+    std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles() const { return _interactiveTiles; }
+    std::shared_ptr<const Resources::SceneSettingsData> sceneSettings() const { return _sceneSettings; }
+    std::shared_ptr<const Resources::CompiledScenesData> scenes() const { return _scenes; }
+    std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const { return _entityRomData; }
 
     bool compileAll();
 

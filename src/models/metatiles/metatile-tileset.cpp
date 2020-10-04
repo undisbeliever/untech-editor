@@ -61,10 +61,10 @@ bool MetaTileTilesetInput::validate(ErrorList& err) const
     return valid;
 }
 
-std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
-                                                    const Project::DataStore<Resources::PaletteData>& paletteDataStore,
-                                                    const InteractiveTilesData& interactiveTilesData,
-                                                    ErrorList& err)
+std::shared_ptr<const MetaTileTilesetData>
+convertTileset(const MetaTileTilesetInput& input,
+               const Project::DataStore<Resources::PaletteData>& paletteDataStore, const InteractiveTilesData& interactiveTilesData,
+               ErrorList& err)
 
 {
     bool valid = input.validate(err);
@@ -95,7 +95,7 @@ std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& 
         assert(it == aniFrames->tileMap.end());
     }
 
-    auto ret = std::make_unique<MetaTileTilesetData>(std::move(*aniFrames));
+    auto ret = std::make_shared<MetaTileTilesetData>(std::move(*aniFrames));
     ret->name = input.name;
     ret->palettes = input.palettes;
     ret->tileCollisions = input.tileCollisions;

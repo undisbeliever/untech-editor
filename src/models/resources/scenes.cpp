@@ -102,7 +102,7 @@ constexpr unsigned FUNCTION_TABLE_ELEMENT_SIZE = 6;
 constexpr unsigned SCENE_SETTINGS_DATA_ELEMENT_SIZE = 3;
 static_assert(MAX_N_SCENE_SETTINGS == 255 / std::max(FUNCTION_TABLE_ELEMENT_SIZE, SCENE_SETTINGS_DATA_ELEMENT_SIZE));
 
-std::unique_ptr<const SceneSettingsData>
+std::shared_ptr<const SceneSettingsData>
 compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorList& err)
 {
     auto out = std::make_unique<SceneSettingsData>();
@@ -558,15 +558,17 @@ static SceneData readSceneData(const SceneInput& scene, const ResourceScenes& re
     return out;
 }
 
-std::unique_ptr<const CompiledScenesData>
-compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectData& projectData, ErrorList& err)
+std::shared_ptr<const CompiledScenesData>
+compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectData& projectData,
+                  ErrorList& err)
+
 {
     constexpr unsigned SCENE_DATA_ENTRY_SIZE = 7;
 
     const unsigned oldErrorCount = err.errorCount();
 
     auto sceneSettingsData = projectData.sceneSettings();
-    if (!sceneSettingsData.exists()) {
+    if (!sceneSettingsData) {
         err.addErrorString("Missing Compiled Scene Settings Data");
         return nullptr;
     }

@@ -85,7 +85,7 @@ struct BackgroundImageData {
     std::vector<uint8_t> exportSnesData() const;
 };
 
-std::unique_ptr<BackgroundImageData>
+std::shared_ptr<const BackgroundImageData>
 convertBackgroundImage(const BackgroundImageInput& input,
                        const Project::DataStore<PaletteData>& projectDataStore,
                        ErrorList& err);

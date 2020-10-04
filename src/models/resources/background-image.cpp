@@ -77,7 +77,7 @@ bool BackgroundImageInput::validate(ErrorList& err) const
     return valid;
 }
 
-std::unique_ptr<BackgroundImageData>
+std::shared_ptr<const BackgroundImageData>
 convertBackgroundImage(const BackgroundImageInput& input, const Project::DataStore<PaletteData>& projectDataStore,
                        ErrorList& err)
 {
@@ -112,7 +112,7 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
         return nullptr;
     }
 
-    auto ret = std::make_unique<BackgroundImageData>(input.bitDepth);
+    auto ret = std::make_shared<BackgroundImageData>(input.bitDepth);
 
     ret->name = input.name;
     ret->conversionPaletteIndex = *paletteIndex;

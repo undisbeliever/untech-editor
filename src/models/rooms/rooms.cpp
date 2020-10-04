@@ -233,11 +233,10 @@ static uint8_t processEntityParameter(const std::string& parameter, const Entity
     return 0;
 }
 
-std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
-                                            const Resources::CompiledScenesData& compiledScenes,
-                                            const Entity::CompiledEntityRomData& entityRomData,
-                                            const RoomSettings& roomSettings,
-                                            ErrorList& err)
+std::shared_ptr<const RoomData>
+compileRoom(const RoomInput& input,
+            const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings,
+            ErrorList& err)
 {
     bool valid = input.validate(compiledScenes, err);
 
@@ -307,7 +306,7 @@ std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
         addError("Room data size too large (", dataSize, " bytes, max: ", roomSettings.roomDataSize, ")");
     }
 
-    auto out = std::make_unique<RoomData>();
+    auto out = std::make_shared<RoomData>();
     out->name = input.name;
 
     std::vector<uint8_t>& data = out->data;

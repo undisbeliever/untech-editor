@@ -17,7 +17,8 @@ const std::array<InteractiveTileFunctionTable, InteractiveTiles::N_FIXED_FUNCTIO
     InteractiveTileFunctionTable{ BLANK_TILE_FUNCTION, "" },
 } };
 
-std::unique_ptr<InteractiveTilesData> convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
+std::shared_ptr<const InteractiveTilesData>
+convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
 {
     bool valid = true;
 
@@ -30,7 +31,7 @@ std::unique_ptr<InteractiveTilesData> convertInteractiveTiles(const InteractiveT
         valid = false;
     };
 
-    auto ret = std::make_unique<InteractiveTilesData>();
+    auto ret = std::make_shared<InteractiveTilesData>();
 
     {
         const size_t numberOfFunctions = InteractiveTiles::FIXED_FUNCTION_TABLES.size() + input.functionTables.size();

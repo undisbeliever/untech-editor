@@ -73,7 +73,9 @@ struct ActionPointFunction {
 };
 
 using ActionPointMapping = std::unordered_map<idstring, uint8_t>;
-std::optional<const ActionPointMapping> generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err);
+
+std::shared_ptr<const ActionPointMapping>
+generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err);
 
 }
 }

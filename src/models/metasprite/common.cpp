@@ -26,7 +26,8 @@ std::string NameReference::str() const
     }
 }
 
-std::optional<const ActionPointMapping> MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err)
+std::shared_ptr<const ActionPointMapping>
+MetaSprite::generateActionPointMapping(const NamedList<ActionPointFunction>& apFunctions, ErrorList& err)
 {
     bool valid = true;
     auto addError = [&](const auto... msg) {
@@ -40,15 +41,15 @@ std::optional<const ActionPointMapping> MetaSprite::generateActionPointMapping(c
 
     if (apFunctions.empty()) {
         addError("Expected at least one action point function");
-        return std::nullopt;
+        return nullptr;
     }
 
     if (apFunctions.size() > MAX_ACTION_POINT_FUNCTIONS) {
         addError("Too many action point functions (max ", MAX_ACTION_POINT_FUNCTIONS, ")");
-        return std::nullopt;
+        return nullptr;
     }
 
-    auto ret = std::make_optional<ActionPointMapping>();
+    auto ret = std::make_shared<ActionPointMapping>();
 
     ret->reserve(apFunctions.size());
 
@@ -70,7 +71,7 @@ std::optional<const ActionPointMapping> MetaSprite::generateActionPointMapping(c
     }
 
     if (not valid) {
-        ret = std::nullopt;
+        ret = nullptr;
     }
 
     return ret;

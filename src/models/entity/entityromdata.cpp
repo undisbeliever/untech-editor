@@ -753,7 +753,7 @@ static void processRomData(const EntityType entityType,
 const std::string CompiledEntityRomData::ROM_DATA_LIST_LABEL("Project.EntityRomDataList");
 const std::string CompiledEntityRomData::ROM_DATA_LABEL("Project.EntityRomData");
 
-std::unique_ptr<const CompiledEntityRomData>
+std::shared_ptr<const CompiledEntityRomData>
 compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& project, ErrorList& err)
 {
     const auto oldErrorCount = err.errorCount();
@@ -765,7 +765,7 @@ compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& proj
         err.addErrorString("Too many projectiles (", data.projectiles.size(), ", max: ", MAX_N_ENTITY_ENTRIES, ")");
     }
 
-    auto ret = std::make_unique<CompiledEntityRomData>();
+    auto ret = std::make_shared<CompiledEntityRomData>();
 
     data.validateListIds(err);
 

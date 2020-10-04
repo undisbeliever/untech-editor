@@ -81,8 +81,8 @@ static void writeIncList(std::stringstream& incData, const std::string& typeName
     incData << "\nnamespace " << typeName << " {\n";
 
     for (unsigned id = 0; id < dataStore.size(); id++) {
-        const auto& item = dataStore.at(id).value();
-        incData << "  constant " << item.name << " = " << id << '\n';
+        const auto item = dataStore.at(id);
+        incData << "  constant " << item->name << " = " << id << '\n';
     }
     incData << "}\n"
                "\n";

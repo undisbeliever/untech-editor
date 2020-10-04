@@ -61,7 +61,8 @@ struct InteractiveTilesData {
 extern const int INTERACTIVE_TILES_FORMAT_VERSION;
 
 // Also validates InteractiveTiles
-std::unique_ptr<InteractiveTilesData> convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err);
+std::shared_ptr<const InteractiveTilesData>
+convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err);
 
 // Assumes InteractiveTiles is valid
 void writeFunctionTables(std::stringstream& incData, const InteractiveTiles& input);

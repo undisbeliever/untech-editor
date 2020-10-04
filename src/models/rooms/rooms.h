@@ -147,10 +147,10 @@ struct RoomData {
 
     std::vector<uint8_t> exportSnesData() const;
 };
-std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
-                                            const Resources::CompiledScenesData& compiledScenes,
-                                            const Entity::CompiledEntityRomData& entityRomData,
-                                            const RoomSettings& roomSettings,
-                                            ErrorList& err);
+
+std::shared_ptr<const RoomData>
+compileRoom(const RoomInput& input,
+            const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings,
+            ErrorList& err);
 }
 }

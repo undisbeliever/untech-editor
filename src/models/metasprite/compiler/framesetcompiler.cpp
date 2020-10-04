@@ -223,10 +223,10 @@ static std::vector<FrameData> processFrameList(const FrameSetExportList& exportL
     return frames;
 }
 
-static std::unique_ptr<FrameSetData> compileFrameSet(const MetaSprite::FrameSet& frameSet,
-                                                     const Project::ProjectFile& project,
-                                                     const ActionPointMapping& actionPointMapping,
-                                                     ErrorList& errorList)
+static std::shared_ptr<const FrameSetData>
+compileFrameSet(const MetaSprite::FrameSet& frameSet,
+                const Project::ProjectFile& project, const ActionPointMapping& actionPointMapping,
+                ErrorList& errorList)
 {
     const size_t oldErrorCount = errorList.errorCount();
 
@@ -246,7 +246,7 @@ static std::unique_ptr<FrameSetData> compileFrameSet(const MetaSprite::FrameSet&
     const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
     exportList.validate(errorList);
 
-    auto out = std::make_unique<FrameSetData>();
+    auto out = std::make_shared<FrameSetData>();
     const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
 
     out->name = frameSet.name;
@@ -262,10 +262,10 @@ static std::unique_ptr<FrameSetData> compileFrameSet(const MetaSprite::FrameSet&
     return out;
 }
 
-std::unique_ptr<FrameSetData> compileFrameSet(const FrameSetFile& fs,
-                                              const Project::ProjectFile& project,
-                                              const ActionPointMapping& actionPointMapping,
-                                              ErrorList& errorList)
+std::shared_ptr<const FrameSetData>
+compileFrameSet(const FrameSetFile& fs,
+                const Project::ProjectFile& project, const ActionPointMapping& actionPointMapping,
+                ErrorList& errorList)
 {
     if (fs.msFrameSet) {
         return compileFrameSet(*fs.msFrameSet, project, actionPointMapping, errorList);

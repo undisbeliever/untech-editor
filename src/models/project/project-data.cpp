@@ -45,7 +45,7 @@ static const idstring& itemNameString(const std::vector<MetaSprite::FrameSetFile
 }
 
 template <typename T>
-static inline bool checkPrerequisite(const std::unique_ptr<T>& p)
+static inline bool checkPrerequisite(const std::shared_ptr<T>& p)
 {
     return p != nullptr;
 }
@@ -66,7 +66,7 @@ static inline const DataStore<T>& expandPresquite(const DataStore<T>& ds)
     return ds;
 }
 template <typename T>
-static inline const T& expandPresquite(const std::unique_ptr<T>& p)
+static inline const T& expandPresquite(const std::shared_ptr<T>& p)
 {
     assert(p);
     return *p;
@@ -114,7 +114,7 @@ DataStore<T>::DataStore(std::string typeNameSingle, std::string typeNamePlural)
 }
 
 template <typename T>
-inline void DataStore<T>::store(const size_t index, ResourceStatus&& status, std::unique_ptr<const T>&& data)
+inline void DataStore<T>::store(const size_t index, ResourceStatus&& status, std::shared_ptr<const T>&& data)
 {
     // ::TODO handle renamed items::
 
@@ -150,7 +150,7 @@ static bool compileData(ConvertFunction convertFunction, DataStore<DataT>& dataS
     status.name = itemNameString(input);
 
     bool valid = false;
-    std::unique_ptr<const DataT> data = nullptr;
+    std::shared_ptr<const DataT> data = nullptr;
 
     try {
         data = convertFunction(input, expandPresquite(preresquites)..., status.errorList);
@@ -243,7 +243,7 @@ static bool compileList(ConvertFunction convertFunction, DataStore<DataT>& dataS
 }
 
 template <typename ConvertFunction, class DataT, class InputT, typename... PreresquitesT>
-static ResourceStatus compileFunction(ConvertFunction convertFunction, DataT& data,
+static ResourceStatus compileFunction(ConvertFunction convertFunction, std::shared_ptr<DataT>& data,
                                       const InputT& input, const PreresquitesT&... prerequisites)
 {
     ResourceStatus status;
@@ -261,7 +261,7 @@ static ResourceStatus compileFunction(ConvertFunction convertFunction, DataT& da
     catch (const std::exception& ex) {
         status.state = ResourceState::Invalid;
         status.errorList.addErrorString(stringBuilder("EXCEPTION: ", ex.what()));
-        data = DataT();
+        data = nullptr;
     }
 
     return status;

@@ -46,10 +46,10 @@ struct FrameSetData {
     bool validate(ErrorList&) const { return true; }
 };
 
-std::unique_ptr<FrameSetData> compileFrameSet(const UnTech::MetaSprite::FrameSetFile& fs,
-                                              const Project::ProjectFile& project,
-                                              const ActionPointMapping& actionPointMapping,
-                                              ErrorList& errorList);
+std::shared_ptr<const FrameSetData>
+compileFrameSet(const UnTech::MetaSprite::FrameSetFile& fs,
+                const Project::ProjectFile& project, const ActionPointMapping& actionPointMapping,
+                ErrorList& errorList);
 }
 }
 }
