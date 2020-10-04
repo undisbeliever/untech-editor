@@ -98,11 +98,7 @@ struct SceneSettingsData {
     const static std::string FUNCTION_TABLE_LABEL;
 
     std::vector<uint8_t> sceneSettings;
-    std::unordered_map<idstring, unsigned> nameIndexMap;
-
     unsigned nSceneSettings;
-
-    bool valid;
 };
 
 struct SceneLayerData {
@@ -183,6 +179,7 @@ struct CompiledScenesData {
     static const int SCENE_FORMAT_VERSION;
     const static std::string DATA_LABEL;
 
+    SceneSettingsData sceneSettings;
     SceneLayoutsData sceneLayouts;
     std::vector<uint8_t> sceneSnesData;
 
@@ -193,17 +190,10 @@ struct CompiledScenesData {
     optional<const SceneData&> findScene(const idstring& name) const;
 
     std::optional<unsigned> indexForScene(const idstring& name) const;
-
-    bool valid;
 };
 
 void writeSceneIncData(const ResourceScenes& resourceScenes, std::ostream& out);
 
-// NOTE: May return an invalid SceneSettingsData
-std::shared_ptr<const SceneSettingsData>
-compileSceneSettingsData(const NamedList<SceneSettingsInput>& settings, ErrorList& err);
-
-// NOTE: May return an invalid CompiledScenesData
 std::shared_ptr<const CompiledScenesData>
 compileScenesData(const ResourceScenes& resourceScenes, const Project::ProjectData& projectData, ErrorList& err);
 }

@@ -150,10 +150,9 @@ private:
         InteractiveTiles,
         ActionPoints,
         EntityRomData,
-        SceneSettings,
         Scenes,
     };
-    constexpr static unsigned N_PROJECT_SETTING_ITEMS = 7;
+    constexpr static unsigned N_PROJECT_SETTING_ITEMS = 6;
 
     const ProjectFile& _project;
 
@@ -168,7 +167,6 @@ private:
 
     std::shared_ptr<const MetaSprite::ActionPointMapping> _actionPointMapping;
     std::shared_ptr<const MetaTiles::InteractiveTilesData> _interactiveTiles;
-    std::shared_ptr<const Resources::SceneSettingsData> _sceneSettings;
     std::shared_ptr<const Resources::CompiledScenesData> _scenes;
     std::shared_ptr<const Entity::CompiledEntityRomData> _entityRomData;
 
@@ -191,7 +189,6 @@ public:
     const DataStore<Rooms::RoomData>& rooms() const { return _rooms; }
 
     std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles() const { return _interactiveTiles; }
-    std::shared_ptr<const Resources::SceneSettingsData> sceneSettings() const { return _sceneSettings; }
     std::shared_ptr<const Resources::CompiledScenesData> scenes() const { return _scenes; }
     std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const { return _entityRomData; }
 

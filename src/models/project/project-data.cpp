@@ -331,7 +331,6 @@ ProjectData::ProjectData(const ProjectFile& project)
     , _backgroundImages("Background Image", "Background Images")
     , _metaTileTilesets("MetaTile Tileset", "MetaTile Tileset")
     , _rooms("Room", "Rooms")
-    , _sceneSettings(nullptr)
     , _scenes(nullptr)
     , _entityRomData(nullptr)
 {
@@ -345,7 +344,6 @@ ProjectData::ProjectData(const ProjectFile& project)
     setName(ProjectSettingsIndex::InteractiveTiles, "Interactive Tiles");
     setName(ProjectSettingsIndex::ActionPoints, "Action Points");
     setName(ProjectSettingsIndex::EntityRomData, "Entities");
-    setName(ProjectSettingsIndex::SceneSettings, "Scene Settings");
     setName(ProjectSettingsIndex::Scenes, "Scenes");
 }
 
@@ -400,15 +398,12 @@ bool ProjectData::compileAll()
     valid &= storePsStatus(ProjectSettingsIndex::EntityRomData,
                            compileFunction(Entity::compileEntityRomData, _entityRomData, _project.entityRomData, _project));
 
-    valid &= storePsStatus(ProjectSettingsIndex::SceneSettings,
-                           compileFunction(Resources::compileSceneSettingsData, _sceneSettings, _project.resourceScenes.settings));
+    valid &= storePsStatus(ProjectSettingsIndex::Scenes,
+                           compileFunction(Resources::compileScenesData, _scenes, _project.resourceScenes, *this));
 
     if (!valid) {
         return false;
     }
-
-    valid &= storePsStatus(ProjectSettingsIndex::Scenes,
-                           compileFunction(Resources::compileScenesData, _scenes, _project.resourceScenes, *this));
 
     if (!valid) {
         return false;

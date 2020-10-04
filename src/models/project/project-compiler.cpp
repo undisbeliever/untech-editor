@@ -68,9 +68,9 @@ static void writeEntityRomData(RomDataWriter& writer,
 }
 
 static void writeSceneData(RomDataWriter& writer,
-                           const Resources::SceneSettingsData& settings, const Resources::CompiledScenesData& scenes)
+                           const Resources::CompiledScenesData& scenes)
 {
-    writer.addNamedDataWithCount(settings.DATA_LABEL, settings.sceneSettings, settings.nSceneSettings);
+    writer.addNamedDataWithCount(scenes.sceneSettings.DATA_LABEL, scenes.sceneSettings.sceneSettings, scenes.sceneSettings.nSceneSettings);
     writer.addNamedDataWithCount(scenes.sceneLayouts.DATA_LABEL, scenes.sceneLayouts.sceneLayoutData(), scenes.sceneLayouts.nLayouts());
     writer.addNamedDataWithCount(scenes.DATA_LABEL, scenes.sceneSnesData, scenes.scenes.size());
 }
@@ -144,7 +144,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     // must write meta sprite data first
     writeMetaSpriteData(writer, input.memoryMap, projectData.frameSets());
     writeEntityRomData(writer, *projectData.entityRomData());
-    writeSceneData(writer, *projectData.sceneSettings(), *projectData.scenes());
+    writeSceneData(writer, *projectData.scenes());
 
     writer.addDataStore("Project.PaletteList", projectData.palettes());
     writer.addDataStore("Project.BackgroundImageList", projectData.backgroundImages());
