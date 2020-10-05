@@ -20,6 +20,8 @@ std::shared_ptr<UnTechEditor> UnTechEditor::_instance = nullptr;
 
 UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, const std::filesystem::path& fn)
     : _projectFile(std::move(pf))
+    , _projectData()
+    , _backgroundThread(_projectFile, _projectData)
     , _filename(fn)
     , _basename(fn.filename())
     , _editorGuis(createEditorGuis())
@@ -31,8 +33,9 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     , _editorExited(false)
     , _unsavedFilesList()
 {
-    assert(_projectFile != nullptr);
-    assert(!_filename.empty());
+    if (_filename.empty()) {
+        throw std::invalid_argument("filename cannot be empty");
+    }
 }
 
 void UnTechEditor::newProject(const std::filesystem::path& fn)
@@ -94,6 +97,13 @@ void UnTechEditor::loadProject(const std::filesystem::path& fn)
     }
 }
 
+void UnTechEditor::closeProject()
+{
+    if (_instance) {
+        _instance.reset();
+    }
+}
+
 std::optional<ItemIndex> UnTechEditor::selectedItemIndex() const
 {
     if (_currentEditor) {
@@ -104,7 +114,8 @@ std::optional<ItemIndex> UnTechEditor::selectedItemIndex() const
     }
 }
 
-void UnTechEditor::openEditor(const ItemIndex itemIndex)
+// MUST ONLY be called by `updateProjectFile`
+void UnTechEditor::openEditor(const Project::ProjectFile& pf, const ItemIndex itemIndex)
 {
     AbstractEditorData* editor = nullptr;
 
@@ -115,8 +126,8 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
     }
 
     if (editor == nullptr) {
-        if (auto e = createEditor(itemIndex, *_projectFile)) {
-            if (e->loadDataFromProject(*_projectFile)) {
+        if (auto e = createEditor(itemIndex, pf)) {
+            if (e->loadDataFromProject(pf)) {
                 // itemIndex is valid
                 editor = e.get();
                 _editors.push_back(std::move(e));
@@ -125,10 +136,10 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
     }
 
     if (editor != _currentEditor) {
-        closeEditor();
+        closeEditor(pf);
         _currentEditor = editor;
         if (editor) {
-            const bool success = editor->loadDataFromProject(*_projectFile);
+            const bool success = editor->loadDataFromProject(pf);
             if (success) {
                 unsigned counter = 0;
                 for (auto& eg : _editorGuis) {
@@ -154,11 +165,12 @@ void UnTechEditor::openEditor(const ItemIndex itemIndex)
     }
 }
 
-void UnTechEditor::closeEditor()
+// MUST ONLY be called by `updateProjectFile`
+void UnTechEditor::closeEditor(const Project::ProjectFile& pf)
 {
     if (_currentEditor) {
         // Discard any uncommitted data
-        _currentEditor->loadDataFromProject(*_projectFile);
+        _currentEditor->loadDataFromProject(pf);
     }
     if (_currentEditorGui) {
         _currentEditorGui->editorClosed();
@@ -168,13 +180,12 @@ void UnTechEditor::closeEditor()
     _currentEditorGui = nullptr;
 }
 
-bool UnTechEditor::saveProjectFile()
+bool UnTechEditor::saveProjectFile(const Project::ProjectFile& pf)
 {
-    assert(_projectFile);
     assert(!_filename.empty());
 
     try {
-        UnTech::Project::saveProjectFile(*_projectFile, _filename);
+        UnTech::Project::saveProjectFile(pf, _filename);
 
         for (auto& e : _editors) {
             if (dynamic_cast<AbstractExternalFileEditorData*>(_currentEditor) == nullptr) {
@@ -190,11 +201,13 @@ bool UnTechEditor::saveProjectFile()
     }
 }
 
-bool UnTechEditor::saveEditor(AbstractEditorData* editor)
+bool UnTechEditor::saveEditor(const Project::ProjectFile& pf, AbstractEditorData* editor)
 {
     if (auto e = dynamic_cast<AbstractExternalFileEditorData*>(editor)) {
-        bool dataLoaded = e->loadDataFromProject(*_projectFile);
+
+        bool dataLoaded = e->loadDataFromProject(pf);
         assert(dataLoaded);
+
         assert(e->filename().empty() == false);
         try {
             e->saveFile();
@@ -207,27 +220,27 @@ bool UnTechEditor::saveEditor(AbstractEditorData* editor)
         }
     }
     else {
-        return saveProjectFile();
+        return saveProjectFile(pf);
     }
 }
 
-bool UnTechEditor::saveAll()
+bool UnTechEditor::saveAll(const Project::ProjectFile& pf)
 {
     bool ok = true;
 
     if (_projectListWindow.isClean() == false) {
-        ok &= saveProjectFile();
+        ok &= saveProjectFile(pf);
     }
     for (auto& e : _editors) {
         if (!e->isClean()) {
-            ok &= saveEditor(e.get());
+            ok &= saveEditor(pf, e.get());
         }
     }
 
     return ok;
 }
 
-void UnTechEditor::processMenu()
+void UnTechEditor::processMenu(const Project::ProjectFile& pf)
 {
     using namespace std::string_literals;
 
@@ -239,16 +252,16 @@ void UnTechEditor::processMenu()
             if (!_currentEditor->basename().empty()) {
                 auto s = "Save "s + _currentEditor->basename();
                 if (ImGui::MenuItem(s.c_str())) {
-                    saveEditor(_currentEditor);
+                    saveEditor(pf, _currentEditor);
                 }
             }
         }
         const auto saveProjectLabel = "Save "s + _basename;
         if (ImGui::MenuItem(saveProjectLabel.c_str())) {
-            saveProjectFile();
+            saveProjectFile(pf);
         }
         if (ImGui::MenuItem("Save All")) {
-            saveAll();
+            saveAll(pf);
         }
 
         ImGui::Separator();
@@ -325,7 +338,7 @@ void UnTechEditor::requestExitEditor()
     }
 }
 
-void UnTechEditor::unsavedChangesOnExitPopup()
+void UnTechEditor::unsavedChangesOnExitPopup(const Project::ProjectFile& pf)
 {
     using namespace std::string_literals;
     const char* const windowTitle = "Save Changes?###UnsavedChangesPopup";
@@ -360,7 +373,7 @@ void UnTechEditor::unsavedChangesOnExitPopup()
             ImGui::SetCursorPosX(posX);
 
             if (ImGui::Button("Save All")) {
-                _editorExited = saveAll();
+                _editorExited = saveAll(pf);
             }
             ImGui::SameLine(0, style.IndentSpacing);
             if (ImGui::Button("Discard")) {
@@ -398,47 +411,150 @@ void UnTechEditor::unsavedChangesOnExitPopup()
 
 void UnTechEditor::processGui()
 {
-    const Project::ProjectFile& projectFile = *_projectFile;
+    _projectFile.read([&](auto& pf) {
+        if (_currentEditorGui) {
+            assert(_currentEditor);
 
-    if (_currentEditorGui) {
-        assert(_currentEditor);
+            _currentEditorGui->processGui(pf);
+            _currentEditor->updateSelection();
+        }
 
-        _currentEditorGui->processGui(projectFile);
-        _currentEditor->updateSelection();
-    }
+        _projectListWindow.processGui(_projectData);
 
-    _projectListWindow.processGui(projectFile);
-
-    processMenu();
-    unsavedChangesOnExitPopup();
+        processMenu(pf);
+        unsavedChangesOnExitPopup(pf);
+    });
 }
 
 void UnTechEditor::updateProjectFile()
 {
-    if (_currentEditor) {
-        _currentEditor->processPendingActions(*_projectFile);
+    // ::TODO add requestStopCompiling to background thread::
 
-        if (_currentEditorGui) {
-            processUndoStack(_currentEditorGui, _currentEditor, *_projectFile);
+    _projectFile.tryWrite([&](auto& pf) {
+        if (_currentEditor) {
+            bool edited = _currentEditor->processPendingActions(pf);
+
+            if (_currentEditorGui) {
+                edited |= processUndoStack(_currentEditorGui, _currentEditor, pf);
+            }
+
+            if (edited) {
+                _backgroundThread.markResourceInvalid(_currentEditor->itemIndex());
+            }
+        }
+
+        // I am calling the closeEditor and openEditor functions inside the write mutex
+        // to ensure all pending actions in AbstractEditorData and ProjectListWindow
+        // have been processed before changing the editor.
+
+        if (_projectListWindow.hasPendingActions()) {
+            closeEditor(pf);
+            _projectListWindow.processPendingActions(pf, _editors);
+
+            _backgroundThread.markProjectListsInvalid();
+        }
+
+        if (_projectListWindow.selectedIndex()) {
+            const auto index = *_projectListWindow.selectedIndex();
+            if (_currentEditor == nullptr || _currentEditor->itemIndex() != index) {
+                openEditor(pf, index);
+            }
+        }
+        else {
+            if (_currentEditor != nullptr) {
+                closeEditor(pf);
+            }
+        }
+    });
+}
+
+void BackgroundThread::run()
+{
+    try {
+        while (threadActive) {
+            pendingAction = false;
+
+            isProcessing = true;
+
+            if (!projectDataValid.test_and_set()) {
+                // ::TODO only process resources that have changed. ::
+                // ::: Use a mutex to access changed list ::
+
+                projectFile.read([&](auto& pf) {
+                    static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
+
+                    projectData.compileAll_NoEarlyExit(pf);
+                });
+            }
+
+            isProcessing = false;
+
+            std::unique_lock lock(mutex);
+            cv.wait(lock, [&]() { return pendingAction || !threadActive; });
         }
     }
-
-    if (_projectListWindow.hasPendingActions()) {
-        closeEditor();
-        _projectListWindow.processPendingActions(*_projectFile, _editors);
+    catch (const std::exception&) {
     }
 
-    if (_projectListWindow.selectedIndex()) {
-        const auto index = *_projectListWindow.selectedIndex();
-        if (_currentEditor == nullptr || _currentEditor->itemIndex() != index) {
-            openEditor(index);
-        }
+    isProcessing = false;
+}
+
+BackgroundThread::BackgroundThread(Project::ProjectFileMutex& pf, Project::ProjectData& pd)
+    : projectFile(pf)
+    , projectData(pd)
+    , thread()
+    , mutex()
+    , cv()
+    , threadActive(true)
+    , pendingAction(false)
+    , isProcessing(false)
+    , projectDataValid(false)
+{
+    thread = std::thread(&BackgroundThread::run, this);
+}
+
+BackgroundThread::~BackgroundThread()
+{
+    // Request stop thread
+    {
+        std::lock_guard lock(mutex);
+
+        // ::TODO set requestStopCompiling flag::
+        threadActive = false;
     }
-    else {
-        if (_currentEditor != nullptr) {
-            closeEditor();
-        }
+    cv.notify_all();
+
+    if (thread.joinable()) {
+        thread.join();
     }
+
+    assert(isProcessing == false);
+}
+
+void BackgroundThread::markProjectListsInvalid()
+{
+    {
+        std::lock_guard lock(mutex);
+
+        // ::TODO add flag to mark all resources invalid and reset resourceListStaus names::
+
+        projectDataValid.clear();
+        pendingAction = true;
+    }
+    cv.notify_all();
+}
+
+void BackgroundThread::markResourceInvalid(ItemIndex)
+{
+    {
+        std::lock_guard lock(mutex);
+
+        // ::TODO add index to a queue to process later (lock list using the mutex)::
+
+        projectDataValid.clear();
+        pendingAction = true;
+    }
+    cv.notify_all();
 }
 
 }

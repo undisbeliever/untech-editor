@@ -12,6 +12,7 @@
 #include "gui/imgui.h"
 #include "gui/untech-editor.h"
 #include "models/metatiles/metatiles-serializer.h"
+#include "models/project/project.h"
 #include "models/rooms/rooms-serializer.h"
 #include <functional>
 
@@ -166,7 +167,38 @@ bool ProjectListWindow::canRemoveSelectedIndex() const
     return _selectedIndex && _selectedIndex->type != EditorType::ProjectSettings;
 }
 
-void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectFile& pf)
+static void resourceStateIcon(UnTech::Project::ResourceState state)
+{
+    using RS = UnTech::Project::ResourceState;
+
+    // ::TODO replace with icons::
+
+    switch (state) {
+    case RS::Unchecked:
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));
+        ImGui::TextUnformatted(u8"·");
+        break;
+
+    case RS::Valid:
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(0, 255, 0, 255));
+        ImGui::TextUnformatted(u8"·");
+        break;
+
+    case RS::Invalid:
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+        ImGui::TextUnformatted(u8"X");
+        break;
+
+    case RS::Missing:
+        ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 0, 0, 255));
+        ImGui::TextUnformatted(u8"M");
+        break;
+    }
+
+    ImGui::PopStyleColor();
+}
+
+void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& projectData)
 {
     using namespace std::string_literals;
 
@@ -175,111 +207,57 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectFile& pf
 
         std::optional<ItemIndex> pendingIndex = _selectedIndex;
 
-        auto leaf = [&](EditorType type, unsigned index, const std::string& label) {
-            const ItemIndex itemIndex{ type, index };
+        auto processList = [&](EditorType type, const Project::ResourceListStatus& list) {
+            list.readResourceListState([&](auto& state, auto& resources) {
+                static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
+                static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
 
-            ImGui::PushID(index);
+                assert(resources.size() < INT_MAX);
 
-            if (ImGui::Selectable("##sel", _selectedIndex == itemIndex, leafFlags)) {
-                pendingIndex = itemIndex;
-                _state = State::SELECT_RESOURCE;
-            }
-            if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1)) {
-                // Ensure item is selected when opening a context menu
-                pendingIndex = itemIndex;
-            }
+                resourceStateIcon(state);
+                ImGui::SameLine();
+                ImGui::TextUnformatted(list.typeNamePlural());
 
-            ImGui::SameLine();
-            // ::TODO replace Bullet with status symbol::
-            ImGui::Bullet();
-            ImGui::TextUnformatted(label);
+                ImGui::PushID(int(type));
+                ImGui::Indent();
 
-            ImGui::PopID();
-        };
+                for (unsigned index = 0; index < resources.size(); index++) {
+                    const ItemIndex itemIndex{ type, index };
+                    const auto& item = resources.at(index);
 
-        auto namedList = [&](EditorType type, const auto& list, const char* treeLabel) {
-            if (ImGui::TreeNodeEx(treeLabel, ImGuiTreeNodeFlags_DefaultOpen)) {
-                assert(list.size() < INT_MAX);
-                for (unsigned index = 0; index < list.size(); index++) {
-                    const auto& item = list.at(index);
-                    if (item.name.isValid()) {
-                        leaf(type, index, item.name);
+                    ImGui::PushID(index);
+
+                    if (ImGui::Selectable("##sel", _selectedIndex == itemIndex, leafFlags)) {
+                        pendingIndex = itemIndex;
+                        _state = State::SELECT_RESOURCE;
                     }
-                    else {
-                        std::string id = std::to_string(index);
-                        leaf(type, index, id);
+                    if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1)) {
+                        // Ensure item is selected when opening a context menu
+                        pendingIndex = itemIndex;
                     }
+
+                    ImGui::SameLine();
+
+                    resourceStateIcon(item.state);
+                    ImGui::SameLine();
+
+                    ImGui::TextUnformatted(item.name);
+
+                    ImGui::PopID();
                 }
-                ImGui::TreePop();
-            }
+
+                ImGui::Unindent();
+                ImGui::PopID();
+            });
         };
 
-        auto externalFileList = [&](EditorType type, const auto& list, const char* treeLabel) {
-            if (ImGui::TreeNodeEx(treeLabel, ImGuiTreeNodeFlags_DefaultOpen)) {
-                assert(list.size() < INT_MAX);
-                for (unsigned index = 0; index < list.size(); index++) {
-                    const auto& efi = list.item(index);
-                    if (efi.value && efi.value->name.isValid()) {
-                        leaf(type, index, efi.value->name);
-                    }
-                    else {
-                        leaf(type, index, efi.filename.filename());
-                    }
-                }
-                ImGui::TreePop();
-            }
-        };
-
-        auto frameSetFiles = [&](EditorType type, const auto& list, const char* treeLabel) {
-            if (ImGui::TreeNodeEx(treeLabel, ImGuiTreeNodeFlags_DefaultOpen)) {
-                assert(list.size() < INT_MAX);
-                for (unsigned index = 0; index < list.size(); index++) {
-                    const UnTech::MetaSprite::FrameSetFile& fsf = list.at(index);
-
-                    auto& name = fsf.name();
-                    if (name.isValid()) {
-                        leaf(type, index, name);
-                    }
-                    else {
-                        leaf(type, index, fsf.filename.filename());
-                    }
-                }
-                ImGui::TreePop();
-            }
-        };
-
-        if (ImGui::TreeNodeEx("Project Settings", ImGuiTreeNodeFlags_DefaultOpen)) {
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::ProjectSettings),
-                 "Project Settings"s);
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::InteractiveTiles),
-                 "Interactive Tiles"s);
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::ActionPoints),
-                 "Action Points"s);
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::EntityRomData),
-                 "Entities"s);
-            leaf(EditorType::ProjectSettings, unsigned(ProjectSettingsIndex::Scenes),
-                 "Scenes"s);
-
-            ImGui::TreePop();
-        }
-
-        externalFileList(EditorType::FrameSetExportOrders, pf.frameSetExportOrders,
-                         "FrameSet Export Orders");
-
-        frameSetFiles(EditorType::FrameSets, pf.frameSets,
-                      "FrameSets");
-
-        namedList(EditorType::Palettes, pf.palettes,
-                  "Palettes");
-
-        namedList(EditorType::BackgroundImages, pf.backgroundImages,
-                  "Background Images");
-
-        externalFileList(EditorType::MataTileTilesets, pf.metaTileTilesets,
-                         "MetaTile Tilesets");
-
-        externalFileList(EditorType::Rooms, pf.rooms,
-                         "Rooms");
+        processList(EditorType::ProjectSettings, projectData.projectSettingsStatus());
+        processList(EditorType::FrameSetExportOrders, projectData.frameSetExportOrderStatus());
+        processList(EditorType::FrameSets, projectData.frameSets());
+        processList(EditorType::Palettes, projectData.palettes());
+        processList(EditorType::BackgroundImages, projectData.backgroundImages());
+        processList(EditorType::MataTileTilesets, projectData.metaTileTilesets());
+        processList(EditorType::Rooms, projectData.rooms());
 
         _selectedIndex = pendingIndex;
 
@@ -371,9 +349,9 @@ void ProjectListWindow::confirmRemovePopup()
     }
 }
 
-void ProjectListWindow::processGui(const UnTech::Project::ProjectFile& projectFile)
+void ProjectListWindow::processGui(const UnTech::Project::ProjectData& projectData)
 {
-    projectListWindow(projectFile);
+    projectListWindow(projectData);
 
     addResourceDialog();
     confirmRemovePopup();

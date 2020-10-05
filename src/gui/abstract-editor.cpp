@@ -126,9 +126,11 @@ void AbstractEditorData::endMacro()
     _inMacro = false;
 }
 
-void AbstractEditorData::processPendingActions(Project::ProjectFile& projectFile)
+bool AbstractEditorData::processPendingActions(Project::ProjectFile& projectFile)
 {
     const auto pendingSize = _pendingActions.size();
+
+    bool edited = false;
 
     assert(_inMacro == false);
     _inMacro = false;
@@ -141,6 +143,7 @@ void AbstractEditorData::processPendingActions(Project::ProjectFile& projectFile
 
         const bool modifed = action->firstDo(projectFile);
         _clean = false;
+        edited = true;
 
         assert(_undoStack.size() == undoSize && "EditorUndoAction must not modify the undo stack");
         assert(_redoStack.size() == redoSize && "EditorUndoAction must not modify the undo stack");
@@ -158,15 +161,17 @@ void AbstractEditorData::processPendingActions(Project::ProjectFile& projectFile
 
     // action may have modified the selection
     updateSelection();
+
+    return edited;
 }
 
-void AbstractEditorData::undo(Project::ProjectFile& projectFile)
+bool AbstractEditorData::undo(Project::ProjectFile& projectFile)
 {
     if (_undoStack.empty()) {
-        return;
+        return false;
     }
     if (!_pendingActions.empty()) {
-        return;
+        return false;
     }
 
     // Discard any uncommitted changes
@@ -190,15 +195,17 @@ void AbstractEditorData::undo(Project::ProjectFile& projectFile)
 
     // action may have modified the selection
     updateSelection();
+
+    return true;
 }
 
-void AbstractEditorData::redo(Project::ProjectFile& projectFile)
+bool AbstractEditorData::redo(Project::ProjectFile& projectFile)
 {
     if (_redoStack.empty()) {
-        return;
+        return false;
     }
     if (!_pendingActions.empty()) {
-        return;
+        return false;
     }
 
     // Discard any uncommitted changes
@@ -222,6 +229,8 @@ void AbstractEditorData::redo(Project::ProjectFile& projectFile)
 
     // action may have modified the selection
     updateSelection();
+
+    return true;
 }
 
 void AbstractExternalFileEditorData::setFilename(const std::filesystem::path& fn)
@@ -242,19 +251,23 @@ void AbstractEditorGui::undoStackButtons()
     }
 }
 
-void processUndoStack(AbstractEditorGui* gui, AbstractEditorData* editor, Project::ProjectFile& pf)
+bool processUndoStack(AbstractEditorGui* gui, AbstractEditorData* editor, Project::ProjectFile& pf)
 {
+    bool edited = false;
+
     if (gui->undoClicked) {
-        editor->undo(pf);
+        edited = editor->undo(pf);
         gui->editorDataChanged();
     }
     else if (gui->redoClicked) {
-        editor->redo(pf);
+        edited = editor->redo(pf);
         gui->editorDataChanged();
     }
 
     gui->undoClicked = false;
     gui->redoClicked = false;
+
+    return edited;
 }
 
 std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,

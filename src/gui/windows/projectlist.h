@@ -7,7 +7,15 @@
 #pragma once
 
 #include "gui/item-index.h"
-#include "models/project/project.h"
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <vector>
+
+namespace UnTech::Project {
+class ProjectData;
+struct ProjectFile;
+}
 
 namespace UnTech::Gui {
 class AbstractEditorData;
@@ -47,7 +55,7 @@ public:
     void markClean() { _clean = true; }
 
     void processMenu();
-    void processGui(const UnTech::Project::ProjectFile& projectFile);
+    void processGui(const Project::ProjectData& projectData);
 
     bool hasPendingActions()
     {
@@ -56,7 +64,7 @@ public:
     void processPendingActions(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors);
 
 private:
-    void projectListWindow(const UnTech::Project::ProjectFile& projectFile);
+    void projectListWindow(const Project::ProjectData& projectData);
 
     void addResourceDialog();
     void confirmRemovePopup();

@@ -7,27 +7,60 @@
 #pragma once
 
 #include "item-index.h"
+#include "models/project/project-data.h"
+#include "models/project/project-file-mutex.h"
+#include "models/project/project.h"
 #include "windows/projectlist.h"
+#include <atomic>
 #include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
-
-namespace UnTech::Project {
-struct ProjectFile;
-}
 
 namespace UnTech::Gui {
 class AbstractEditorData;
 class AbstractEditorGui;
 
+class BackgroundThread {
+private:
+    UnTech::Project::ProjectFileMutex& projectFile;
+    UnTech::Project::ProjectData& projectData;
+
+    std::thread thread;
+
+    std::mutex mutex;
+    std::condition_variable cv;
+
+    std::atomic_bool threadActive;
+    std::atomic_bool pendingAction;
+
+    std::atomic_bool isProcessing;
+
+    std::atomic_flag projectDataValid;
+
+public:
+    BackgroundThread(UnTech::Project::ProjectFileMutex& pf,
+                     UnTech::Project::ProjectData& pd);
+    ~BackgroundThread();
+
+    void markProjectListsInvalid();
+    void markResourceInvalid(ItemIndex index);
+
+private:
+    void run();
+};
+
 class UnTechEditor {
 private:
     static std::shared_ptr<UnTechEditor> _instance;
 
-    // ::TODO put behind a mutex in a separate class::
-    std::unique_ptr<UnTech::Project::ProjectFile> const _projectFile;
+    UnTech::Project::ProjectFileMutex _projectFile;
+    UnTech::Project::ProjectData _projectData;
+
+    BackgroundThread _backgroundThread;
+
     const std::filesystem::path _filename;
     const std::string _basename;
 
@@ -54,6 +87,7 @@ public:
     // Only one project can be loaded per exectable.
     static void newProject(const std::filesystem::path& filename);
     static void loadProject(const std::filesystem::path& filename);
+    static void closeProject();
 
     std::optional<ItemIndex> selectedItemIndex() const;
 
@@ -66,16 +100,16 @@ public:
     void updateProjectFile();
 
 private:
-    void openEditor(const ItemIndex itemIndex);
-    void closeEditor();
+    void openEditor(const Project::ProjectFile& pf, const ItemIndex itemIndex);
+    void closeEditor(const Project::ProjectFile& pf);
 
-    bool saveProjectFile();
-    bool saveEditor(AbstractEditorData* editor);
-    bool saveAll();
+    bool saveProjectFile(const Project::ProjectFile& pf);
+    bool saveEditor(const Project::ProjectFile& pf, AbstractEditorData* editor);
+    bool saveAll(const Project::ProjectFile& pf);
 
-    void processMenu();
+    void processMenu(const Project::ProjectFile& pf);
 
-    void unsavedChangesOnExitPopup();
+    void unsavedChangesOnExitPopup(const Project::ProjectFile& pf);
 };
 
 }

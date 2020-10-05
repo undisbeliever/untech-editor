@@ -7,11 +7,23 @@
 #include "project-data.h"
 #include "project.h"
 #include "models/common/errorlist.h"
+#include "models/common/type-traits.h"
 #include "models/metasprite/compiler/framesetcompiler.h"
 #include <cassert>
 
 namespace UnTech {
 namespace Project {
+
+static std::array<std::string, 5> projectSettingNames{
+    "Project Settings",
+    "Interactive Tiles",
+    "Action Points",
+    "Entities",
+    "Scenes",
+};
+
+// Template Magic
+// ==============
 
 template <class T>
 static const idstring& itemNameString(const T& item)
@@ -38,6 +50,11 @@ static std::string itemNameString(const ExternalFileList<T>& list, unsigned inde
     else {
         return item.filename.filename().string();
     }
+}
+template <size_t N>
+static const std::string& itemNameString(const std::array<std::string, N>& list, unsigned index)
+{
+    return list.at(index);
 }
 static const idstring& itemNameString(const std::vector<MetaSprite::FrameSetFile>& list, unsigned index)
 {
@@ -83,39 +100,93 @@ static inline const T& expandPresquite(const T& p)
     return p;
 }
 
+// Status/Data methods
+// ==================
+// All "write" methods MUST be implemented in the .cpp file and protected with a `std::unqiue_lock` or `std::lock_guard`
+
 ResourceListStatus::ResourceListStatus(std::string tnSingle, std::string tnPlural)
-    : typeNameSingle(tnSingle)
-    , typeNamePlural(tnPlural)
-    , state()
-    , resources()
+    : _typeNameSingle(tnSingle)
+    , _typeNamePlural(tnPlural)
+    , _state()
+    , _resources()
 {
 }
 
 void ResourceListStatus::clearAllAndResize(size_t size)
 {
-    resources.clear();
-    resources.resize(size);
+    std::lock_guard lock(_mutex);
+
+    _resources.clear();
+    _resources.resize(size);
+}
+
+void ResourceListStatus::setStatus(unsigned index, ResourceStatus&& status)
+{
+    std::lock_guard lock(_mutex);
+
+    _resources.at(index) = std::move(status);
+}
+
+void ResourceListStatus::setStatusKeepName(unsigned index, ResourceStatus&& status)
+{
+    std::lock_guard lock(_mutex);
+
+    auto& s = _resources.at(index);
+
+    s.state = status.state;
+    s.errorList = std::move(status.errorList);
 }
 
 void ResourceListStatus::updateState()
 {
-    bool valid = std::all_of(resources.cbegin(), resources.cend(),
+    std::lock_guard lock(_mutex);
+
+    bool valid = std::all_of(_resources.cbegin(), _resources.cend(),
                              [](const auto& rs) { return rs.state == ResourceState::Valid; });
 
-    state = valid ? ResourceState::Valid : ResourceState::Invalid;
+    _state = valid ? ResourceState::Valid : ResourceState::Invalid;
+}
+
+template <typename ListT>
+void ResourceListStatus::clearAllAndPopulateNames(const ListT& list)
+{
+    std::lock_guard lock(_mutex);
+
+    _resources.clear();
+    _resources.resize(list.size());
+
+    for (unsigned i = 0; i < list.size(); i++) {
+        _resources.at(i).name = itemNameString(list, i);
+    }
 }
 
 template <typename T>
 DataStore<T>::DataStore(std::string typeNameSingle, std::string typeNamePlural)
-    : _listStatus(std::move(typeNameSingle), std::move(typeNamePlural))
+    : ResourceListStatus(std::move(typeNameSingle), std::move(typeNamePlural))
     , _mapping()
     , _data()
 {
 }
 
 template <typename T>
+void DataStore<T>::clearAllAndResize(size_t size)
+{
+    std::lock_guard lock(_mutex);
+
+    _resources.clear();
+    _resources.resize(size);
+
+    _mapping.clear();
+    _mapping.reserve(size);
+    _data.clear();
+    _data.resize(size);
+}
+
+template <typename T>
 inline void DataStore<T>::store(const size_t index, ResourceStatus&& status, std::shared_ptr<const T>&& data)
 {
+    std::lock_guard lock(_mutex);
+
     // ::TODO handle renamed items::
 
     _data.at(index) = std::move(data);
@@ -135,8 +206,39 @@ inline void DataStore<T>::store(const size_t index, ResourceStatus&& status, std
         }
     }
 
-    _listStatus.resources.at(index) = std::move(status);
+    _resources.at(index) = std::move(status);
 }
+
+void ProjectSettingsData::store(std::shared_ptr<const MetaSprite::ActionPointMapping>&& data)
+{
+    std::lock_guard lock(_mutex);
+
+    _actionPointMapping = std::move(data);
+}
+
+void ProjectSettingsData::store(std::shared_ptr<const MetaTiles::InteractiveTilesData>&& data)
+{
+    std::lock_guard lock(_mutex);
+
+    _interactiveTiles = std::move(data);
+}
+
+void ProjectSettingsData::store(std::shared_ptr<const Resources::CompiledScenesData>&& data)
+{
+    std::lock_guard lock(_mutex);
+
+    _scenes = std::move(data);
+}
+
+void ProjectSettingsData::store(std::shared_ptr<const Entity::CompiledEntityRomData>&& data)
+{
+    std::lock_guard lock(_mutex);
+
+    _entityRomData = std::move(data);
+}
+
+// Compiling Functions
+// ===================
 
 template <typename ConvertFunction, class DataT, class InputT, typename... PreresquitesT>
 static bool compileData(ConvertFunction convertFunction, DataStore<DataT>& dataStore,
@@ -242,8 +344,8 @@ static bool compileList(ConvertFunction convertFunction, DataStore<DataT>& dataS
     return valid;
 }
 
-template <typename ConvertFunction, class DataT, class InputT, typename... PreresquitesT>
-static ResourceStatus compileFunction(ConvertFunction convertFunction, std::shared_ptr<DataT>& data,
+template <typename DataT, typename ConvertFunction, class InputT, typename... PreresquitesT>
+static ResourceStatus compileFunction(ConvertFunction convertFunction, ProjectSettingsData& projectSettingsData,
                                       const InputT& input, const PreresquitesT&... prerequisites)
 {
     ResourceStatus status;
@@ -254,15 +356,19 @@ static ResourceStatus compileFunction(ConvertFunction convertFunction, std::shar
         return status;
     }
 
+    std::shared_ptr<const DataT> data;
+
     try {
         data = convertFunction(input, expandPresquite(prerequisites)..., status.errorList);
         status.state = data ? ResourceState::Valid : ResourceState::Invalid;
     }
     catch (const std::exception& ex) {
+        data = nullptr;
         status.state = ResourceState::Invalid;
         status.errorList.addErrorString(stringBuilder("EXCEPTION: ", ex.what()));
-        data = nullptr;
     }
+
+    projectSettingsData.store(std::move(data));
 
     return status;
 }
@@ -288,9 +394,7 @@ template <typename ValidateFunction, class InputT>
 static bool validateList(const ValidateFunction validateFunction, ResourceListStatus& statusList,
                          const ExternalFileList<InputT>& inputList)
 {
-    if (statusList.resources.size() != inputList.size()) {
-        statusList.clearAllAndResize(inputList.size());
-    }
+    statusList.clearAllAndResize(inputList.size());
 
     bool valid = true;
 
@@ -314,7 +418,7 @@ static bool validateList(const ValidateFunction validateFunction, ResourceListSt
             valid = false;
         }
 
-        statusList.resources.at(index) = std::move(status);
+        statusList.setStatus(index, std::move(status));
     }
 
     statusList.updateState();
@@ -322,28 +426,16 @@ static bool validateList(const ValidateFunction validateFunction, ResourceListSt
     return valid;
 }
 
-ProjectData::ProjectData(const ProjectFile& project)
-    : _project(project)
-    , _projectSettingsStatus("", "Project Settings")
+ProjectData::ProjectData()
+    : _projectSettingsStatus("", "Project Settings")
     , _frameSetExportOrderStatus("FrameSet Export Order", "FrameSet Export Orders")
     , _frameSets("FrameSet", "FrameSets")
     , _palettes("Palette", "Palettes")
     , _backgroundImages("Background Image", "Background Images")
     , _metaTileTilesets("MetaTile Tileset", "MetaTile Tileset")
     , _rooms("Room", "Rooms")
-    , _scenes(nullptr)
-    , _entityRomData(nullptr)
 {
-    auto setName = [&](ProjectSettingsIndex index, const char* string) {
-        _projectSettingsStatus.resources.at(static_cast<unsigned>(index)).name = string;
-    };
-
-    _projectSettingsStatus.resources.resize(N_PROJECT_SETTING_ITEMS);
-    setName(ProjectSettingsIndex::ProjectSettings, "Project Settings");
-    setName(ProjectSettingsIndex::InteractiveTiles, "Interactive Tiles");
-    setName(ProjectSettingsIndex::ActionPoints, "Action Points");
-    setName(ProjectSettingsIndex::EntityRomData, "Entities");
-    setName(ProjectSettingsIndex::Scenes, "Scenes");
+    _projectSettingsStatus.clearAllAndPopulateNames(projectSettingNames);
 }
 
 bool ProjectData::storePsStatus(ProjectSettingsIndex indexEnum, ResourceStatus&& newStatus)
@@ -352,60 +444,53 @@ bool ProjectData::storePsStatus(ProjectSettingsIndex indexEnum, ResourceStatus&&
 
     const bool valid = newStatus.state == ResourceState::Valid;
 
-    auto& status = _projectSettingsStatus.resources.at(index);
-
-    status.state = newStatus.state;
-    status.errorList = std::move(newStatus.errorList);
+    _projectSettingsStatus.setStatusKeepName(index, std::move(newStatus));
 
     return valid;
 }
 
-bool ProjectData::compileAll()
+bool ProjectData::compileAll(const ProjectFile& project, const bool earlyExit)
 {
     bool valid = true;
 
     valid &= storePsStatus(ProjectSettingsIndex::ProjectSettings,
-                           validateFunction(&ProjectSettings::validate, _project.projectSettings));
+                           validateFunction(&ProjectSettings::validate, project.projectSettings));
 
-    valid &= validateList(&MetaSprite::FrameSetExportOrder::validate, _frameSetExportOrderStatus, _project.frameSetExportOrders);
+    valid &= validateList(&MetaSprite::FrameSetExportOrder::validate, _frameSetExportOrderStatus, project.frameSetExportOrders);
 
-    valid &= compileList(Resources::convertPalette, _palettes, _project.palettes);
+    valid &= compileList(Resources::convertPalette, _palettes, project.palettes);
 
     valid &= storePsStatus(ProjectSettingsIndex::ActionPoints,
-                           compileFunction(MetaSprite::generateActionPointMapping, _actionPointMapping, _project.actionPointFunctions));
+                           compileFunction<MetaSprite::ActionPointMapping>(MetaSprite::generateActionPointMapping, _projectSettingsData, project.actionPointFunctions));
 
     valid &= storePsStatus(ProjectSettingsIndex::InteractiveTiles,
-                           compileFunction(MetaTiles::convertInteractiveTiles, _interactiveTiles, _project.interactiveTiles));
+                           compileFunction<MetaTiles::InteractiveTilesData>(MetaTiles::convertInteractiveTiles, _projectSettingsData, project.interactiveTiles));
 
-    if (!valid) {
+    if (earlyExit && !valid) {
         return false;
     }
 
-    valid &= compileList(MetaSprite::Compiler::compileFrameSet, _frameSets, _project.frameSets, _project, _actionPointMapping);
+    valid &= compileList(MetaSprite::Compiler::compileFrameSet, _frameSets, project.frameSets, project, _projectSettingsData.actionPointMapping());
 
-    valid &= compileList(Resources::convertBackgroundImage, _backgroundImages, _project.backgroundImages, _palettes);
+    valid &= compileList(Resources::convertBackgroundImage, _backgroundImages, project.backgroundImages, _palettes);
 
-    valid &= compileList(MetaTiles::convertTileset, _metaTileTilesets, _project.metaTileTilesets, _palettes, _interactiveTiles);
+    valid &= compileList(MetaTiles::convertTileset, _metaTileTilesets, project.metaTileTilesets, _palettes, _projectSettingsData.interactiveTiles());
 
-    if (!valid) {
+    if (earlyExit && !valid) {
         return false;
     }
 
     valid &= storePsStatus(ProjectSettingsIndex::EntityRomData,
-                           compileFunction(Entity::compileEntityRomData, _entityRomData, _project.entityRomData, _project));
+                           compileFunction<Entity::CompiledEntityRomData>(Entity::compileEntityRomData, _projectSettingsData, project.entityRomData, project));
 
     valid &= storePsStatus(ProjectSettingsIndex::Scenes,
-                           compileFunction(Resources::compileScenesData, _scenes, _project.resourceScenes, *this));
+                           compileFunction<Resources::CompiledScenesData>(Resources::compileScenesData, _projectSettingsData, project.resourceScenes, *this));
 
-    if (!valid) {
+    if (earlyExit && !valid) {
         return false;
     }
 
-    if (!valid) {
-        return false;
-    }
-
-    valid &= compileList(Rooms::compileRoom, _rooms, _project.rooms, _scenes, _entityRomData, _project.projectSettings.roomSettings);
+    valid &= compileList(Rooms::compileRoom, _rooms, project.rooms, _projectSettingsData.scenes(), _projectSettingsData.entityRomData(), project.projectSettings.roomSettings);
 
     _projectSettingsStatus.updateState();
 

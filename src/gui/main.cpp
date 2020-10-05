@@ -129,6 +129,9 @@ int main(int argc, const char* argv[])
         }
     }
 
+    // Close the project and stop the background thread to prevent a potential use-after-free error on cleanup.
+    UnTechEditor::closeProject();
+
     imgui.cleanup();
 
     return EXIT_SUCCESS;

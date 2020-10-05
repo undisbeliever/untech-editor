@@ -79,9 +79,10 @@ public:
     void startMacro();
     void endMacro();
 
-    void processPendingActions(UnTech::Project::ProjectFile&);
-    void undo(UnTech::Project::ProjectFile&);
-    void redo(UnTech::Project::ProjectFile&);
+    // Returns true if the editor data changed.
+    bool processPendingActions(UnTech::Project::ProjectFile&);
+    bool undo(UnTech::Project::ProjectFile&);
+    bool redo(UnTech::Project::ProjectFile&);
 
     bool canUndo() const { return !_undoStack.empty(); }
     bool canRedo() const { return !_redoStack.empty(); }
@@ -148,7 +149,8 @@ protected:
     void undoStackButtons();
 };
 
-void processUndoStack(AbstractEditorGui* gui, AbstractEditorData* editor, UnTech::Project::ProjectFile&);
+// Returns true if the editor data was changed.
+bool processUndoStack(AbstractEditorGui* gui, AbstractEditorData* editor, UnTech::Project::ProjectFile&);
 
 std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex, const UnTech::Project::ProjectFile&);
 

@@ -91,30 +91,35 @@ static void writeIncList(std::stringstream& incData, const std::string& typeName
 static void printErrors(const ProjectData& projectData, std::ostream& errorStream)
 {
     auto print = [&](const ResourceListStatus& listStatus) {
-        for (const ResourceStatus& status : listStatus.resources) {
-            if (!status.errorList.empty()) {
-                errorStream << listStatus.typeNameSingle << " `" << status.name << "`:\n";
-                status.errorList.printIndented(errorStream);
+        listStatus.readResourceListState([&](auto& state, auto& resources) {
+            static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
+            static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
+
+            for (const ResourceStatus& status : resources) {
+                if (!status.errorList.empty()) {
+                    errorStream << listStatus.typeNameSingle() << " `" << status.name << "`:\n";
+                    status.errorList.printIndented(errorStream);
+                }
             }
-        }
+        });
     };
 
     print(projectData.projectSettingsStatus());
     print(projectData.frameSetExportOrderStatus());
-    print(projectData.frameSets().listStatus());
-    print(projectData.palettes().listStatus());
-    print(projectData.backgroundImages().listStatus());
-    print(projectData.metaTileTilesets().listStatus());
-    print(projectData.rooms().listStatus());
+    print(projectData.frameSets());
+    print(projectData.palettes());
+    print(projectData.backgroundImages());
+    print(projectData.metaTileTilesets());
+    print(projectData.rooms());
 };
 
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinFilename,
                std::ostream& errorStream)
 {
-    ProjectData projectData(input);
+    ProjectData projectData;
 
-    const bool valid = projectData.compileAll();
+    const bool valid = projectData.compileAll_EarlyExit(input);
 
     printErrors(projectData, errorStream);
 
