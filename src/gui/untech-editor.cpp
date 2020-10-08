@@ -6,7 +6,6 @@
 
 #include "untech-editor.h"
 #include "abstract-editor.h"
-#include "enums.h"
 #include "imgui-filebrowser.h"
 #include "imgui.h"
 #include "gui/windows/about-popup.h"

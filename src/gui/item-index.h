@@ -6,14 +6,17 @@
 
 #pragma once
 
+namespace UnTech {
+enum class ResourceType : unsigned;
+}
+
 namespace UnTech::Gui {
-enum class EditorType : unsigned;
 
 struct ItemIndex {
-    EditorType type;
+    ResourceType type;
     unsigned index;
 
-    ItemIndex(EditorType t, unsigned i)
+    ItemIndex(ResourceType t, unsigned i)
         : type(t)
         , index(i)
     {

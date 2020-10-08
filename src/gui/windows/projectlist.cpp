@@ -7,10 +7,10 @@
 #include "projectlist.h"
 #include "message-box.h"
 #include "gui/abstract-editor.h"
-#include "gui/enums.h"
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/untech-editor.h"
+#include "models/enums.h"
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/project/project.h"
 #include "models/rooms/rooms-serializer.h"
@@ -115,7 +115,7 @@ struct AddResourceSettings {
     const char* const dialogTitle;
     const char* const extension;
     bool createFile;
-    EditorType editorType;
+    ResourceType editorType;
 
     // Return value is the index of the newly created item
     // Allowed to throw an exception
@@ -125,37 +125,37 @@ struct AddResourceSettings {
 static const std::array<AddResourceSettings, 7> addResourceSettings{
     {
         { "Add FrameSet Export Order", "New FrameSet Export Order", ".utfseo", true,
-          EditorType::FrameSetExportOrders,
+          ResourceType::FrameSetExportOrders,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addExternalFile(pf.frameSetExportOrders, fn, &UnTech::MetaSprite::saveFrameSetExportOrder);
           } },
         { "Add MetaSprite FrameSet", "New MetaSprite FrameSet", ".utms", true,
-          EditorType::FrameSets,
+          ResourceType::FrameSets,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addFrameSet<MS::FrameSet, &MS::saveFrameSet>(pf.frameSets, fn);
           } },
         { "Add Sprite Importer FrameSet", "New Sprite Importer FrameSet", ".utsi", true,
-          EditorType::FrameSets,
+          ResourceType::FrameSets,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addFrameSet<SI::FrameSet, &SI::saveFrameSet>(pf.frameSets, fn);
           } },
         { "Add Palette", "Select Palette Image", ".png", false,
-          EditorType::Palettes,
+          ResourceType::Palettes,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addPalette(pf.palettes, fn);
           } },
         { "Add Background Image", "Select Background Image", ".png", false,
-          EditorType::BackgroundImages,
+          ResourceType::BackgroundImages,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addBackgroundImage(pf.backgroundImages, fn);
           } },
         { "Add MetaTile Tileset", "New MetaTile Tileset", ".utmt", true,
-          EditorType::MataTileTilesets,
+          ResourceType::MataTileTilesets,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addExternalFile(pf.metaTileTilesets, fn, &UnTech::MetaTiles::saveMetaTileTilesetInput);
           } },
         { "Add Room", "New Room", ".utroom", true,
-          EditorType::Rooms,
+          ResourceType::Rooms,
           [](Project::ProjectFile& pf, const std::filesystem::path& fn) {
               return addExternalFile(pf.rooms, fn, &UnTech::Rooms::saveRoomInput);
           } },
@@ -164,7 +164,7 @@ static const std::array<AddResourceSettings, 7> addResourceSettings{
 
 bool ProjectListWindow::canRemoveSelectedIndex() const
 {
-    return _selectedIndex && _selectedIndex->type != EditorType::ProjectSettings;
+    return _selectedIndex && _selectedIndex->type != ResourceType::ProjectSettings;
 }
 
 static void resourceStateIcon(UnTech::Project::ResourceState state)
@@ -207,7 +207,7 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
 
         std::optional<ItemIndex> pendingIndex = _selectedIndex;
 
-        auto processList = [&](EditorType type, const Project::ResourceListStatus& list) {
+        auto processList = [&](ResourceType type, const Project::ResourceListStatus& list) {
             list.readResourceListState([&](auto& state, auto& resources) {
                 static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
                 static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
@@ -251,13 +251,13 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
             });
         };
 
-        processList(EditorType::ProjectSettings, projectData.projectSettingsStatus());
-        processList(EditorType::FrameSetExportOrders, projectData.frameSetExportOrderStatus());
-        processList(EditorType::FrameSets, projectData.frameSets());
-        processList(EditorType::Palettes, projectData.palettes());
-        processList(EditorType::BackgroundImages, projectData.backgroundImages());
-        processList(EditorType::MataTileTilesets, projectData.metaTileTilesets());
-        processList(EditorType::Rooms, projectData.rooms());
+        processList(ResourceType::ProjectSettings, projectData.projectSettingsStatus());
+        processList(ResourceType::FrameSetExportOrders, projectData.frameSetExportOrderStatus());
+        processList(ResourceType::FrameSets, projectData.frameSets());
+        processList(ResourceType::Palettes, projectData.palettes());
+        processList(ResourceType::BackgroundImages, projectData.backgroundImages());
+        processList(ResourceType::MataTileTilesets, projectData.metaTileTilesets());
+        processList(ResourceType::Rooms, projectData.rooms());
 
         _selectedIndex = pendingIndex;
 
@@ -401,7 +401,7 @@ void ProjectListWindow::addResource(Project::ProjectFile& projectFile)
 void ProjectListWindow::removeResource(Project::ProjectFile& projectFile, std::vector<std::unique_ptr<AbstractEditorData>>& editors)
 {
     if (_selectedIndex == std::nullopt
-        || _selectedIndex->type == EditorType::ProjectSettings) {
+        || _selectedIndex->type == ResourceType::ProjectSettings) {
 
         _state = State::SELECT_RESOURCE;
         return;
@@ -436,32 +436,32 @@ void ProjectListWindow::removeResource(Project::ProjectFile& projectFile, std::v
         };
 
         switch (_selectedIndex->type) {
-        case EditorType::ProjectSettings:
+        case ResourceType::ProjectSettings:
             // Not allowed to delete project settings
             abort();
             break;
 
-        case EditorType::FrameSetExportOrders:
+        case ResourceType::FrameSetExportOrders:
             removeExternalFile(projectFile.frameSetExportOrders);
             break;
 
-        case EditorType::FrameSets:
+        case ResourceType::FrameSets:
             remove(projectFile.frameSets);
             break;
 
-        case EditorType::Palettes:
+        case ResourceType::Palettes:
             remove(projectFile.palettes);
             break;
 
-        case EditorType::BackgroundImages:
+        case ResourceType::BackgroundImages:
             remove(projectFile.backgroundImages);
             break;
 
-        case EditorType::MataTileTilesets:
+        case ResourceType::MataTileTilesets:
             removeExternalFile(projectFile.metaTileTilesets);
             break;
 
-        case EditorType::Rooms:
+        case ResourceType::Rooms:
             removeExternalFile(projectFile.rooms);
             break;
         }

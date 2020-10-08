@@ -5,8 +5,8 @@
  */
 
 #include "abstract-editor.h"
-#include "enums.h"
 #include "imgui.h"
+#include "models/enums.h"
 #include "models/project/project.h"
 
 #include "gui/editors/action-points-editor.h"
@@ -276,7 +276,7 @@ std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
     using FrameSetType = UnTech::MetaSprite::FrameSetFile::FrameSetType;
 
     switch (itemIndex.type) {
-    case EditorType::ProjectSettings: {
+    case ResourceType::ProjectSettings: {
         switch (ProjectSettingsIndex(itemIndex.index)) {
         case ProjectSettingsIndex::ProjectSettings:
             return std::make_unique<ProjectSettingsEditorData>(itemIndex);
@@ -296,10 +296,10 @@ std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
         return nullptr;
     }
 
-    case EditorType::FrameSetExportOrders:
+    case ResourceType::FrameSetExportOrders:
         return std::make_unique<FrameSetExportOrderEditorData>(itemIndex);
 
-    case EditorType::FrameSets: {
+    case ResourceType::FrameSets: {
         if (itemIndex.index < projectFile.frameSets.size()) {
             switch (projectFile.frameSets.at(itemIndex.index).type) {
             case FrameSetType::UNKNOWN:
@@ -315,16 +315,16 @@ std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
         return nullptr;
     }
 
-    case EditorType::Palettes:
+    case ResourceType::Palettes:
         return std::make_unique<PaletteEditorData>(itemIndex);
 
-    case EditorType::BackgroundImages:
+    case ResourceType::BackgroundImages:
         return std::make_unique<BackgroundImageEditorData>(itemIndex);
 
-    case EditorType::MataTileTilesets:
+    case ResourceType::MataTileTilesets:
         return std::make_unique<MetaTileTilesetEditorData>(itemIndex);
 
-    case EditorType::Rooms:
+    case ResourceType::Rooms:
         return std::make_unique<RoomEditorData>(itemIndex);
     }
 

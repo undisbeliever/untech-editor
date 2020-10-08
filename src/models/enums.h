@@ -6,9 +6,9 @@
 
 #pragma once
 
-namespace UnTech::Gui {
+namespace UnTech {
 
-enum class EditorType : unsigned {
+enum class ResourceType : unsigned {
     ProjectSettings,
     FrameSetExportOrders,
     FrameSets,
@@ -17,7 +17,7 @@ enum class EditorType : unsigned {
     MataTileTilesets,
     Rooms,
 };
-constexpr unsigned N_EDITOR_TYPES = 7;
+constexpr unsigned N_RESOURCE_TYPES = 7;
 
 enum class ProjectSettingsIndex : unsigned {
     ProjectSettings,
