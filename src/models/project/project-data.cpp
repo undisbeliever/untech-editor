@@ -434,6 +434,15 @@ ProjectData::ProjectData()
     , _backgroundImages("Background Image", "Background Images")
     , _metaTileTilesets("MetaTile Tileset", "MetaTile Tileset")
     , _rooms("Room", "Rooms")
+    , _resourceListStatuses{
+        _projectSettingsStatus,
+        _frameSetExportOrderStatus,
+        _frameSets,
+        _palettes,
+        _backgroundImages,
+        _metaTileTilesets,
+        _rooms,
+    }
 {
     _projectSettingsStatus.clearAllAndPopulateNames(projectSettingNames);
 }

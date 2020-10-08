@@ -207,7 +207,10 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
 
         std::optional<ItemIndex> pendingIndex = _selectedIndex;
 
-        auto processList = [&](ResourceType type, const Project::ResourceListStatus& list) {
+        for (unsigned rtIndex = 0; rtIndex < N_RESOURCE_TYPES; rtIndex++) {
+            const ResourceType type = static_cast<ResourceType>(rtIndex);
+            const Project::ResourceListStatus& list = projectData.resourceListStatus(type);
+
             list.readResourceListState([&](auto& state, auto& resources) {
                 static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
                 static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
@@ -249,15 +252,7 @@ void ProjectListWindow::projectListWindow(const UnTech::Project::ProjectData& pr
                 ImGui::Unindent();
                 ImGui::PopID();
             });
-        };
-
-        processList(ResourceType::ProjectSettings, projectData.projectSettingsStatus());
-        processList(ResourceType::FrameSetExportOrders, projectData.frameSetExportOrderStatus());
-        processList(ResourceType::FrameSets, projectData.frameSets());
-        processList(ResourceType::Palettes, projectData.palettes());
-        processList(ResourceType::BackgroundImages, projectData.backgroundImages());
-        processList(ResourceType::MataTileTilesets, projectData.metaTileTilesets());
-        processList(ResourceType::Rooms, projectData.rooms());
+        }
 
         _selectedIndex = pendingIndex;
 

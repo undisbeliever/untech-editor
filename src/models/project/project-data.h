@@ -9,6 +9,7 @@
 #include "models/common/errorlist.h"
 #include "models/common/idstring.h"
 #include "models/common/optional.h"
+#include "models/enums.h"
 #include <memory>
 #include <shared_mutex>
 #include <unordered_map>
@@ -223,15 +224,6 @@ public:
 
 class ProjectData {
 private:
-    enum class ProjectSettingsIndex : unsigned {
-        ProjectSettings,
-        InteractiveTiles,
-        ActionPoints,
-        EntityRomData,
-        Scenes,
-    };
-    constexpr static unsigned N_PROJECT_SETTING_ITEMS = 6;
-
     ResourceListStatus _projectSettingsStatus;
     ResourceListStatus _frameSetExportOrderStatus;
 
@@ -242,6 +234,8 @@ private:
     DataStore<Resources::BackgroundImageData> _backgroundImages;
     DataStore<MetaTiles::MetaTileTilesetData> _metaTileTilesets;
     DataStore<Rooms::RoomData> _rooms;
+
+    std::array<std::reference_wrapper<const ResourceListStatus>, N_RESOURCE_TYPES> _resourceListStatuses;
 
 private:
     ProjectData(const ProjectData&) = delete;
@@ -264,6 +258,8 @@ public:
     std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles() const { return _projectSettingsData.interactiveTiles(); }
     std::shared_ptr<const Resources::CompiledScenesData> scenes() const { return _projectSettingsData.scenes(); }
     std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const { return _projectSettingsData.entityRomData(); }
+
+    const auto& resourceListStatus(const ResourceType type) const { return _resourceListStatuses.at(static_cast<unsigned>(type)); }
 
     bool compileAll_EarlyExit(const ProjectFile& project) { return compileAll(project, true); }
     bool compileAll_NoEarlyExit(const ProjectFile& project) { return compileAll(project, false); }
