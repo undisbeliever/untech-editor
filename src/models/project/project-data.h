@@ -62,6 +62,10 @@ struct ResourceStatus {
     ResourceState state = ResourceState::Unchecked;
     std::string name;
     ErrorList errorList;
+
+    // Increases every time the resource has been compiled.
+    // 0 if the resource state is UnChecked.
+    unsigned compileId = 0;
 };
 
 class ResourceListStatus {
@@ -70,6 +74,8 @@ protected:
 
     const std::string _typeNameSingle;
     const std::string _typeNamePlural;
+
+    unsigned _currentCompileId;
 
     ResourceState _state;
     std::vector<ResourceStatus> _resources;
@@ -104,6 +110,16 @@ public:
 
         f(const_cast<const ResourceState&>(_state),
           const_cast<const std::vector<ResourceStatus>&>(_resources));
+    }
+
+    template <typename Function>
+    void readResourceState(unsigned index, Function f) const
+    {
+        std::shared_lock lock(_mutex);
+
+        if (index < _resources.size()) {
+            f(const_cast<const ResourceStatus&>(_resources.at(index)));
+        }
     }
 };
 

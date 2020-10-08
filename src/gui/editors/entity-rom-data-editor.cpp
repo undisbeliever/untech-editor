@@ -554,7 +554,7 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
     ImGui::End();
 }
 
-void EntityRomDataEditorGui::processGui(const Project::ProjectFile& projectFile)
+void EntityRomDataEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

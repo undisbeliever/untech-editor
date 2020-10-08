@@ -126,7 +126,7 @@ void ProjectSettingsEditorGui::projectSettingsWindow()
     ImGui::End();
 }
 
-void ProjectSettingsEditorGui::processGui(const Project::ProjectFile&)
+void ProjectSettingsEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

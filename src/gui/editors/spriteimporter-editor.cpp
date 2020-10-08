@@ -959,7 +959,7 @@ void SpriteImporterEditorGui::frameEditorWindow()
     ImGui::End();
 }
 
-void SpriteImporterEditorGui::processGui(const Project::ProjectFile& projectFile)
+void SpriteImporterEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

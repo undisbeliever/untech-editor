@@ -107,6 +107,7 @@ static inline const T& expandPresquite(const T& p)
 ResourceListStatus::ResourceListStatus(std::string tnSingle, std::string tnPlural)
     : _typeNameSingle(tnSingle)
     , _typeNamePlural(tnPlural)
+    , _currentCompileId(1)
     , _state()
     , _resources()
 {
@@ -123,6 +124,8 @@ void ResourceListStatus::clearAllAndResize(size_t size)
 void ResourceListStatus::setStatus(unsigned index, ResourceStatus&& status)
 {
     std::lock_guard lock(_mutex);
+
+    status.compileId = _currentCompileId++;
 
     _resources.at(index) = std::move(status);
 }
@@ -188,6 +191,8 @@ inline void DataStore<T>::store(const size_t index, ResourceStatus&& status, std
     std::lock_guard lock(_mutex);
 
     // ::TODO handle renamed items::
+
+    status.compileId = _currentCompileId++;
 
     _data.at(index) = std::move(data);
 

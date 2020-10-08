@@ -13,6 +13,7 @@
 
 namespace UnTech::Project {
 struct ProjectFile;
+class ProjectData;
 }
 
 namespace UnTech::Gui {
@@ -142,8 +143,7 @@ public:
     virtual void editorOpened() = 0;
     virtual void editorClosed() = 0;
 
-    // This is fine - only one Editor is active at any given time.
-    virtual void processGui(const Project::ProjectFile& projectFile) = 0;
+    virtual void processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData) = 0;
 
 protected:
     void undoStackButtons();

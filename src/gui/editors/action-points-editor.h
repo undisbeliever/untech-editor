@@ -43,7 +43,8 @@ public:
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
-    virtual void processGui(const Project::ProjectFile& projectFile) final;
+    virtual void processGui(const Project::ProjectFile& projectFile,
+                            const Project::ProjectData& projectData) final;
 
 private:
     void actionPointsWindow();

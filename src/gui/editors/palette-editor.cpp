@@ -209,7 +209,7 @@ void PaletteEditorGui::paletteWindow()
     ImGui::End();
 }
 
-void PaletteEditorGui::processGui(const Project::ProjectFile&)
+void PaletteEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

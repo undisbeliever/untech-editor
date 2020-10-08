@@ -165,7 +165,7 @@ void InteractiveTilesEditorGui::interactiveTilesWindow()
     ImGui::End();
 }
 
-void InteractiveTilesEditorGui::processGui(const Project::ProjectFile&)
+void InteractiveTilesEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

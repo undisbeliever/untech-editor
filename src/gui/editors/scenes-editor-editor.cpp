@@ -298,7 +298,7 @@ void ScenesEditorGui::scenesWindow(const Project::ProjectFile& projectFile)
     ImGui::End();
 }
 
-void ScenesEditorGui::processGui(const Project::ProjectFile& projectFile)
+void ScenesEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

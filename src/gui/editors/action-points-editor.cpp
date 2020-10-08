@@ -137,7 +137,7 @@ void ActionPointsEditorGui::actionPointsWindow()
     ImGui::End();
 }
 
-void ActionPointsEditorGui::processGui(const Project::ProjectFile&)
+void ActionPointsEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

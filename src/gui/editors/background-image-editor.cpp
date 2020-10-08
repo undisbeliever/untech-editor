@@ -11,6 +11,7 @@
 #include "gui/imgui-filebrowser.h"
 #include "gui/imgui.h"
 #include "gui/style.h"
+#include "models/project/project-data.h"
 
 namespace UnTech::Gui {
 
@@ -69,6 +70,7 @@ void BackgroundImageEditorGui::editorDataChanged()
 void BackgroundImageEditorGui::editorOpened()
 {
     _textureValid = false;
+    _invalidTilesCompileId = 0;
 }
 
 void BackgroundImageEditorGui::editorClosed()
@@ -163,6 +165,7 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
             auto* drawList = ImGui::GetWindowDrawList();
 
             drawList->AddImage(_imageTexture.imguiTextureId(), screenOffset, screenOffset + imageSize);
+            _invalidTiles.draw(drawList, zoom, screenOffset);
 
             Style::backgroundImageZoom.processMouseWheel();
 
@@ -172,13 +175,14 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
     ImGui::End();
 }
 
-void BackgroundImageEditorGui::processGui(const Project::ProjectFile& projectFile)
+void BackgroundImageEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
 {
     if (_data == nullptr) {
         return;
     }
 
     updateImageTexture();
+    updateInvalidTileList(projectData);
 
     backgroundImageWindow(projectFile);
 }
@@ -197,6 +201,27 @@ void BackgroundImageEditorGui::updateImageTexture()
     _imageTexture.loadPngImage(bi.imageFilename);
 
     _textureValid = true;
+}
+
+void BackgroundImageEditorGui::updateInvalidTileList(const Project::ProjectData& projectData)
+{
+    using InvalidImageError = UnTech::Resources::InvalidImageError;
+
+    assert(_data);
+
+    projectData.backgroundImages().readResourceState(
+        _data->itemIndex().index, [&](const Project::ResourceStatus& status) {
+            if (status.compileId != _invalidTilesCompileId) {
+                _invalidTilesCompileId = status.compileId;
+                _invalidTiles.clear();
+
+                for (const auto& errorItem : status.errorList.list()) {
+                    if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.specialized.get())) {
+                        _invalidTiles.append(*imgErr);
+                    }
+                }
+            }
+        });
 }
 
 }

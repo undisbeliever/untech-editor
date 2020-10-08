@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui/abstract-editor.h"
+#include "gui/graphics/invalid-image-error-graphics.h"
 #include "gui/texture.h"
 #include "models/project/project.h"
 
@@ -32,6 +33,9 @@ private:
 
     BackgroundImageEditorData* _data;
 
+    InvalidImageErrorGraphics _invalidTiles;
+    unsigned _invalidTilesCompileId;
+
     Texture _imageTexture;
     bool _textureValid;
 
@@ -44,12 +48,15 @@ public:
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
-    virtual void processGui(const Project::ProjectFile& projectFile) final;
+    virtual void processGui(const Project::ProjectFile& projectFile,
+                            const Project::ProjectData& projectData) final;
 
 private:
     void backgroundImageWindow(const Project::ProjectFile& projectFile);
 
     void updateImageTexture();
+
+    void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 
 }

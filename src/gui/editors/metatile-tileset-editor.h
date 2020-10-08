@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui/editors/abstract-metatile-editor.h"
+#include "gui/graphics/invalid-image-error-graphics.h"
 #include "gui/selection.h"
 #include "models/project/project.h"
 
@@ -55,6 +56,10 @@ private:
     usize _scratchpadSize;
     std::optional<TileProperties> _tileProperties;
 
+    InvalidImageErrorGraphics _invalidTilesCommon;
+    std::vector<InvalidImageErrorGraphics> _invalidTilesFrame;
+    unsigned _invalidTilesCompileId;
+
 public:
     MetaTileTilesetEditorGui();
 
@@ -64,7 +69,8 @@ public:
     virtual void editorOpened() final;
     virtual void editorClosed() final;
 
-    virtual void processGui(const Project::ProjectFile& projectFile) final;
+    virtual void processGui(const Project::ProjectFile& projectFile,
+                            const Project::ProjectData& projectData) final;
 
 protected:
     virtual void selectionChanged() final;
@@ -81,6 +87,8 @@ private:
 
     void tilesetWindow();
     void scratchpadWindow();
+
+    void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 
 }

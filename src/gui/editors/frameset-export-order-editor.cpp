@@ -284,7 +284,7 @@ void FrameSetExportOrderEditorGui::exportOrderWindow()
     ImGui::End();
 }
 
-void FrameSetExportOrderEditorGui::processGui(const Project::ProjectFile&)
+void FrameSetExportOrderEditorGui::processGui(const Project::ProjectFile&, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

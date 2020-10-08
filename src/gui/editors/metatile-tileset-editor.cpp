@@ -16,6 +16,7 @@
 #include "gui/style.h"
 #include "gui/texture.h"
 #include "models/metatiles/metatiles-serializer.h"
+#include "models/project/project-data.h"
 #include <cmath>
 
 namespace UnTech::Gui {
@@ -169,6 +170,8 @@ void MetaTileTilesetEditorGui::editorOpened()
     editorDataChanged();
 
     setEditMode(EditMode::SelectTiles);
+
+    _invalidTilesCompileId = 0;
 }
 
 void MetaTileTilesetEditorGui::editorClosed()
@@ -664,6 +667,15 @@ void MetaTileTilesetEditorGui::tilesetWindow()
         invisibleButton("##Tileset", geo);
         drawTileset(geo);
 
+        {
+            auto* drawList = ImGui::GetWindowDrawList();
+
+            _invalidTilesCommon.draw(drawList, geo.zoom, geo.offset);
+            if (_data->tilesetFrameSel.selectedIndex() < _invalidTilesFrame.size()) {
+                _invalidTilesFrame.at(_data->tilesetFrameSel.selectedIndex()).draw(drawList, geo.zoom, geo.offset);
+            }
+        }
+
         Style::metaTileTilesetZoom.processMouseWheel();
 
         ImGui::EndChild();
@@ -705,13 +717,14 @@ void MetaTileTilesetEditorGui::scratchpadWindow()
     ImGui::End();
 }
 
-void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFile)
+void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
 {
     if (_data == nullptr) {
         return;
     }
 
     updateTextures(projectFile);
+    updateInvalidTileList(projectData);
 
     propertiesWindow(projectFile);
     tilePropertiesWindow(projectFile);
@@ -721,6 +734,39 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
 
     tilesetMinimapWindow("Minimap###Tileset_MiniMap");
     minimapWindow("Scratchpad Minimap###Tileset_Scratchpad_MiniMap");
+}
+
+void MetaTileTilesetEditorGui::updateInvalidTileList(const Project::ProjectData& projectData)
+{
+    using InvalidImageError = UnTech::Resources::InvalidImageError;
+
+    assert(_data);
+    const auto& mtTileset = _data->data;
+
+    projectData.metaTileTilesets().readResourceState(
+        _data->itemIndex().index, [&](const Project::ResourceStatus& status) {
+            if (status.compileId != _invalidTilesCompileId) {
+                _invalidTilesCompileId = status.compileId;
+                _invalidTilesCommon.clear();
+                _invalidTilesFrame.resize(mtTileset.animationFrames.frameImageFilenames.size());
+                for (auto& invalidTiles : _invalidTilesFrame) {
+                    invalidTiles.clear();
+                }
+
+                for (const auto& errorItem : status.errorList.list()) {
+                    if (auto* imgErr = dynamic_cast<const InvalidImageError*>(errorItem.specialized.get())) {
+                        if (imgErr->hasFrameId()) {
+                            if (imgErr->frameId() < _invalidTilesFrame.size()) {
+                                _invalidTilesFrame.at(imgErr->frameId()).append(*imgErr);
+                            }
+                        }
+                        else {
+                            _invalidTilesCommon.append(*imgErr);
+                        }
+                    }
+                }
+            }
+        });
 }
 
 }

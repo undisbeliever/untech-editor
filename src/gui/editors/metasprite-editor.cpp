@@ -1339,7 +1339,7 @@ void MetaSpriteEditorGui::frameEditorWindow()
     ImGui::End();
 }
 
-void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile)
+void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

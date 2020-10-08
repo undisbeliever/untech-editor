@@ -79,7 +79,10 @@ struct Style {
 
     // Palette
     constexpr static ImU32 paletteRowLineColor = IM_COL32(200, 200, 255, 128);
+
+    // Palette / BackgroundImage MetaTiles
     constexpr static ImU32 invalidFillColor = IM_COL32(255, 0, 0, 128);
+    constexpr static ImU32 invalidOutlineColor = IM_COL32(255, 0, 50, 128);
 
     // Zoom
     static Zoom metaSpriteAnimationZoom;

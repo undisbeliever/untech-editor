@@ -628,7 +628,7 @@ void RoomEditorGui::editorWindow()
     ImGui::End();
 }
 
-void RoomEditorGui::processGui(const Project::ProjectFile& projectFile)
+void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
 {
     if (_data == nullptr) {
         return;

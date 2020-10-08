@@ -415,7 +415,7 @@ void UnTechEditor::processGui()
         if (_currentEditorGui) {
             assert(_currentEditor);
 
-            _currentEditorGui->processGui(pf);
+            _currentEditorGui->processGui(pf, _projectData);
             _currentEditor->updateSelection();
 
             processErrorListWindow(_projectData, _currentEditor);
