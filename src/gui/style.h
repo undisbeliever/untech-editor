@@ -36,6 +36,7 @@ struct Style {
     constexpr static ImU32 gridColor = IM_COL32(128, 128, 128, 128);
     constexpr static ImU32 successColor = IM_COL32(0, 255, 0, 255);
     constexpr static ImU32 failColor = IM_COL32(255, 0, 0, 255);
+    constexpr static ImU32 warningColor = IM_COL32(255, 255, 0, 255);
 
     static inline ImU32 successFailColor(bool s)
     {

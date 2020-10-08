@@ -9,9 +9,10 @@
 #include "imgui-filebrowser.h"
 #include "imgui.h"
 #include "gui/windows/about-popup.h"
+#include "gui/windows/error-list-window.h"
 #include "gui/windows/message-box.h"
+#include "gui/windows/projectlist.h"
 #include "models/project/project.h"
-#include "windows/projectlist.h"
 
 namespace UnTech::Gui {
 
@@ -416,6 +417,8 @@ void UnTechEditor::processGui()
 
             _currentEditorGui->processGui(pf);
             _currentEditor->updateSelection();
+
+            processErrorListWindow(_projectData, _currentEditor);
         }
 
         _projectListWindow.processGui(_projectData);

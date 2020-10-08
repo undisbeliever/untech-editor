@@ -259,7 +259,7 @@ public:
     std::shared_ptr<const Resources::CompiledScenesData> scenes() const { return _projectSettingsData.scenes(); }
     std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const { return _projectSettingsData.entityRomData(); }
 
-    const auto& resourceListStatus(const ResourceType type) const { return _resourceListStatuses.at(static_cast<unsigned>(type)); }
+    const ResourceListStatus& resourceListStatus(const ResourceType type) const { return _resourceListStatuses.at(static_cast<unsigned>(type)); }
 
     bool compileAll_EarlyExit(const ProjectFile& project) { return compileAll(project, true); }
     bool compileAll_NoEarlyExit(const ProjectFile& project) { return compileAll(project, false); }
