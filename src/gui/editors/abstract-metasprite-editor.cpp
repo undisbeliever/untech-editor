@@ -51,8 +51,9 @@ static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::Expor
         ImGui::TextUnformatted(eo.name.str());
 
         if (!eo.valid) {
-            if (ImGui::OpenPopupContextItem("context", ImGuiPopupFlags_MouseButtonRight)) {
+            if (ImGui::IsMouseReleased(ImGuiMouseButton_Right) && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
                 contextMenuIndex = i;
+                ImGui::OpenPopup("context");
             }
         }
     }
