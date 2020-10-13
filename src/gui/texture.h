@@ -7,5 +7,5 @@
 #pragma once
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
-#include "texture_opengl3.hpp"
+#include "opengl/texture_opengl3.hpp"
 #endif
