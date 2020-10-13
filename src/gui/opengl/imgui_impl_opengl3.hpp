@@ -371,9 +371,23 @@ void    ImGui_ImplOpenGL3_RenderDrawData(ImDrawData* draw_data)
                 // User callback, registered via ImDrawList::AddCallback()
                 // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
                 if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+                {
                     ImGui_ImplOpenGL3_SetupRenderState(draw_data, fb_width, fb_height, vertex_array_object);
+                }
                 else
+                {
+                    // Project scissor/clipping rectangles into framebuffer space
+                    ImVec4 clip_rect;
+                    clip_rect.x = (pcmd->ClipRect.x - clip_off.x) * clip_scale.x;
+                    clip_rect.y = (pcmd->ClipRect.y - clip_off.y) * clip_scale.y;
+                    clip_rect.z = (pcmd->ClipRect.z - clip_off.x) * clip_scale.x;
+                    clip_rect.w = (pcmd->ClipRect.w - clip_off.y) * clip_scale.y;
+
+                    // Apply scissor/clipping rectangle
+                    glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
+
                     pcmd->UserCallback(cmd_list, pcmd);
+                }
             }
             else
             {
