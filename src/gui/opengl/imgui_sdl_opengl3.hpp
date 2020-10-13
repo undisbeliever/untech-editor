@@ -5,6 +5,8 @@
  */
 
 // This file is based on `imgui/examples/example_sdl_opengl3/main.cpp`
+// from the Dear ImGui library.
+// https://github.com/ocornut/imgui
 // Licensed under the MIT License (MIT)
 // Copyright (c) 2014-2020 Omar Cornut
 

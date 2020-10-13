@@ -1,3 +1,16 @@
+
+// This file is based on `imgui_impl_opengl3.cpp` from the Dear ImGui library.
+// https://github.com/ocornut/imgui
+// Licensed under the MIT License (MIT)
+// Copyright (c) 2014-2020 Omar Cornut
+// https://github.com/ocornut/imgui/blob/master/LICENSE.txt
+//
+
+// Changes made to this file include:
+//   * Exposing the Projectile Matrix variable
+//   * Applying clipping rectangle before executing ImDrawCallback
+//
+
 // dear imgui: Renderer for modern OpenGL with shaders / programmatic pipeline
 // - Desktop GL: 2.x 3.x 4.x
 // - Embedded GL: ES 2.0 (WebGL 1.0), ES 3.0 (WebGL 2.0)
