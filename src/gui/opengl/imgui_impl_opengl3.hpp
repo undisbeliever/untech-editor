@@ -146,6 +146,8 @@ static GLint        g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;       
 static GLuint       g_AttribLocationVtxPos = 0, g_AttribLocationVtxUV = 0, g_AttribLocationVtxColor = 0; // Vertex attributes location
 static unsigned int g_VboHandle = 0, g_ElementsHandle = 0;
 
+std::array<float, 16> ImGui_Projection_Matrix;
+
 // Forward Declarations
 static void ImGui_ImplOpenGL3_InitPlatformInterface();
 static void ImGui_ImplOpenGL3_ShutdownPlatformInterface();
@@ -269,17 +271,16 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
     float T = draw_data->DisplayPos.y;
     float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
     if (!clip_origin_lower_left) { float tmp = T; T = B; B = tmp; } // Swap top and bottom if origin is upper left
-    const float ortho_projection[4][4] =
-    {
-        { 2.0f/(R-L),   0.0f,         0.0f,   0.0f },
-        { 0.0f,         2.0f/(T-B),   0.0f,   0.0f },
-        { 0.0f,         0.0f,        -1.0f,   0.0f },
-        { (R+L)/(L-R),  (T+B)/(B-T),  0.0f,   1.0f },
+    ImGui_Projection_Matrix = {
+        2.0f/(R-L),   0.0f,         0.0f,   0.0f,
+        0.0f,         2.0f/(T-B),   0.0f,   0.0f,
+        0.0f,         0.0f,        -1.0f,   0.0f,
+        (R+L)/(L-R),  (T+B)/(B-T),  0.0f,   1.0f,
     };
     glUseProgram(g_ShaderHandle);
     glUniform1i(g_AttribLocationTex, 0);
-    glUniformMatrix4fv(g_AttribLocationProjMtx, 1, GL_FALSE, &ortho_projection[0][0]);
-    
+    glUniformMatrix4fv(g_AttribLocationProjMtx, 1, GL_FALSE, ImGui_Projection_Matrix.data());
+
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_BIND_SAMPLER
     if (g_GlVersion >= 330)
         glBindSampler(0, 0); // We use combined texture/sampler state. Applications using GL 3.3 may set that otherwise.

@@ -27,6 +27,12 @@
 #pragma once
 #include "imgui.h"      // IMGUI_IMPL_API
 
+#include <array>
+
+// Projection Matrix
+// Set by ImGui_ImplOpenGL3_RenderDrawData()
+extern std::array<float, 16> ImGui_Projection_Matrix;
+
 // Backend API
 IMGUI_IMPL_API bool     ImGui_ImplOpenGL3_Init(const char* glsl_version = NULL);
 IMGUI_IMPL_API void     ImGui_ImplOpenGL3_Shutdown();
