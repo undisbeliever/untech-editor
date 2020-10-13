@@ -8,7 +8,7 @@
 // Licensed under the MIT License (MIT)
 // Copyright (c) 2014-2020 Omar Cornut
 
-#include "vendor/imgui/examples/imgui_impl_opengl3.h"
+#include "imgui_impl_opengl3.h"
 #include "vendor/imgui/examples/imgui_impl_sdl.h"
 #include "vendor/imgui/imgui.h"
 #include <SDL.h>

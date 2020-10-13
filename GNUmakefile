@@ -242,10 +242,10 @@ THIRD_PARTY_OBJS := $(THIRD_PARTY_LODEPNG) $(THIRD_PARTY_LZ4)
 
 
 THIRD_PARTY_IMGUI_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, imgui.o imgui_draw.o imgui_widgets.o imgui_stdlib.o)
-IMGUI_CXXFLAGS         := -DIMGUI_IMPL_SDL_OPENGL -DIMGUI_IMPL_OPENGL_LOADER_GL3W -Isrc/vendor/imgui/examples/libs/gl3w -Isrc/vendor/imgui
 
 #::TODO make impl configurable::
-THIRD_PARTY_IMGUI_IMPL_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, gl3w.o imgui_impl_sdl.o imgui_impl_opengl3.o)
+THIRD_PARTY_IMGUI_IMPL_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, gl3w.o imgui_impl_sdl.o)
+IMGUI_CXXFLAGS              := -DIMGUI_IMPL_SDL_OPENGL -DIMGUI_IMPL_OPENGL_LOADER_GL3W -Isrc/vendor/imgui/examples/libs/gl3w -Isrc/vendor/imgui
 IMGUI_IMPL_CXXFLAGS         := -Isrc/vendor/imgui/examples/libs/gl3w
 
 UNAME_S := $(shell uname -s)
