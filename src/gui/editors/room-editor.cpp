@@ -177,10 +177,13 @@ void RoomEditorData::clearSelectedTiles()
 RoomEditorGui::RoomEditorGui()
     : AbstractMetaTileEditorGui()
     , _data(nullptr)
+    , _scratchpadTilemap()
+    , _scratchpadRenderData()
     , _mapSize()
     , _graphics()
     , _entityTexture()
     , _entityGraphics(nullptr)
+    , _scratchpadTilemapValid(false)
     , _tilesetAndPaletteIndexValid(false)
 {
 }
@@ -195,6 +198,7 @@ void RoomEditorGui::editorDataChanged()
 {
     AbstractMetaTileEditorGui::resetState();
 
+    _scratchpadTilemapValid = false;
     _tilesetAndPaletteIndexValid = false;
 
     if (_data) {
@@ -248,6 +252,7 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
         }
         if (ImGui::IsItemDeactivatedAfterEdit()) {
             GridActions<AP::Map>::resizeGrid(_data, _mapSize);
+            markTilemapOutOfDate();
         }
         if (!ImGui::IsItemActive()) {
             // ::TODO use callback to update scratchpad size::
@@ -636,7 +641,16 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
     updateEntityGraphics();
     updateTilesetAndPaletteIndex(projectFile);
-    updateTextures(projectFile);
+    updateTilemapAndTextures(projectFile);
+
+    const grid<uint8_t>* scratchpad = nullptr;
+    if (tilesetIndex() < projectFile.metaTileTilesets.size()) {
+        if (auto* mt = projectFile.metaTileTilesets.at(tilesetIndex())) {
+            scratchpad = &mt->scratchpad;
+
+            updateScratchpadTilemap(*scratchpad);
+        }
+    }
 
     propertiesWindow(projectFile);
     entrancesWindow();
@@ -644,10 +658,11 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
     editorWindow();
 
-    minimapWindow("Minimap##Room");
     tilesetMinimapWindow("Tileset##Room");
 
-    if (scratchpadMinimapWindow("Scratchpad##Room", &_data->selectedScratchpadTiles, projectFile)) {
+    minimapWindow("Minimap##Room");
+
+    if (scratchpadMinimapWindow("Scratchpad##Room", &_scratchpadRenderData, _scratchpadTilemap, scratchpad, &_data->selectedScratchpadTiles)) {
         _data->selectedScratchpadTilesChanged();
         selectionChanged();
     }
@@ -704,10 +719,25 @@ void RoomEditorGui::updateTilesetAndPaletteIndex(const Project::ProjectFile& pro
         }
     }
 
+    _scratchpadTilemapValid = false;
+
     setTilesetIndex(tilesetIndex);
     setPaletteIndex(paletteIndex);
 
     _tilesetAndPaletteIndexValid = true;
+}
+
+void RoomEditorGui::updateScratchpadTilemap(const grid<uint8_t>& scratchpad)
+{
+    assert(_data);
+
+    if (_scratchpadTilemapValid) {
+        return;
+    }
+
+    _scratchpadTilemap.setMapData(scratchpad);
+
+    _scratchpadTilemapValid = true;
 }
 
 }

@@ -4,6 +4,8 @@
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
+#pragma once
+
 #include "models/common/image.h"
 #include "vendor/imgui/imgui.h"
 

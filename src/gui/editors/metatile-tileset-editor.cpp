@@ -198,6 +198,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
         ImGui::InputUsize("Scratchpad Size", &_scratchpadSize, usize(255, 255));
         if (ImGui::IsItemDeactivatedAfterEdit()) {
             GridActions<AP::Scratchpad>::resizeGrid(_data, _scratchpadSize);
+            markTilemapOutOfDate();
         }
         if (!ImGui::IsItemActive()) {
             // ::TODO use callback to update scratchpad size::
@@ -723,7 +724,7 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
         return;
     }
 
-    updateTextures(projectFile);
+    updateTilemapAndTextures(projectFile);
     updateInvalidTileList(projectData);
 
     propertiesWindow(projectFile);

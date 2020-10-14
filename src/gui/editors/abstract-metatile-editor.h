@@ -9,6 +9,7 @@
 #include "gui/abstract-editor.h"
 #include "gui/imgui.h"
 #include "gui/selection.h"
+#include "gui/shaders.h"
 #include "gui/texture.h"
 #include "models/common/vectorset-upoint.h"
 #include "models/common/vectorset.h"
@@ -87,7 +88,12 @@ public:
 private:
     AbstractMetaTileEditorData* _data;
 
-    Texture _tilesetTexture;
+    Shaders::MtTileset _tilesetShader;
+
+    Shaders::MtTilemap _tilemap;
+    Shaders::MtTilemapRenderData _mapRenderData;
+    Shaders::MtTilemapRenderData _minimapRenderData;
+
     Texture _tilesetCollisionsTexture;
 
     EditMode _currentEditMode;
@@ -98,6 +104,8 @@ private:
 
     unsigned _tilesetIndex;
     unsigned _paletteIndex;
+
+    bool _tilemapOutOfDate;
 
     bool _tilesetTextureOutOfDate;
     bool _collisionTextureOutOfDate;
@@ -121,15 +129,19 @@ protected:
 
     void showLayerButtons() const;
 
+    void markTilemapOutOfDate();
     void markTexturesOutOfDate();
     void markTilesetTextureOutOfDate();
     void markCollisionTextureOutOfDate();
+
+    unsigned tilesetIndex() const { return _tilesetIndex; }
+    unsigned paletteIndex() const { return _paletteIndex; }
 
     void setTilesetIndex(unsigned index);
     void setPaletteIndex(unsigned index);
 
     // To be called at the start of `processGui`
-    void updateTextures(const Project::ProjectFile& projectFile);
+    void updateTilemapAndTextures(const Project::ProjectFile& projectFile);
 
     // To be called in `loadDataFromProject`
     void resetState();
@@ -143,10 +155,13 @@ protected:
     void invisibleButton(const char* label, const Geometry& geo);
 
     void tilesetMinimapWindow(const char* label);
+
     void minimapWindow(const char* label);
 
     // Returns true if sel changed
-    bool scratchpadMinimapWindow(const char* label, upoint_vectorset* sel, const Project::ProjectFile& projectFile);
+    bool scratchpadMinimapWindow(const char* label,
+                                 Shaders::MtTilemapRenderData* rendererData, const Shaders::MtTilemap& tilemap,
+                                 const grid<uint8_t>* mapData, upoint_vectorset* sel);
 
     // The previous Dear ImGui item must be an invisible button that covers the entire map
     void drawTileset(const Geometry& geo);
@@ -165,7 +180,7 @@ protected:
     void abandonPlacedTiles();
 
 private:
-    void drawTiles(const grid<uint8_t>& map, const Geometry& geo);
+    void drawTilemap(Shaders::MtTilemapRenderData* renderData, const Shaders::MtTilemap& tilemap, const Geometry& geo);
     void drawSelection(const upoint_vectorset& selection, const Geometry& geo);
     void drawGrid(ImDrawList* drawList, const Geometry& geo);
 

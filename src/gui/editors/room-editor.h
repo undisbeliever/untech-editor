@@ -53,12 +53,16 @@ private:
 
     RoomEditorData* _data;
 
+    Shaders::MtTilemap _scratchpadTilemap;
+    Shaders::MtTilemapRenderData _scratchpadRenderData;
+
     usize _mapSize;
 
     AabbGraphics _graphics;
     Texture _entityTexture;
     std::shared_ptr<const EntityGraphics> _entityGraphics;
 
+    bool _scratchpadTilemapValid;
     bool _tilesetAndPaletteIndexValid;
 
 public:
@@ -90,6 +94,7 @@ private:
 
     void updateEntityGraphics();
     void updateTilesetAndPaletteIndex(const Project::ProjectFile& projectFile);
+    void updateScratchpadTilemap(const grid<uint8_t>& scratchpad);
 };
 
 }

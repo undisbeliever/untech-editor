@@ -14,6 +14,7 @@
 #if defined(IMGUI_IMPL_SDL_OPENGL)
 #include "opengl/imgui_impl_opengl3.hpp"
 #include "opengl/imgui_sdl_opengl3.hpp"
+#include "opengl/shaders_opengl3.hpp"
 #endif
 
 static void setupGui(ImGuiIO& io)
@@ -89,6 +90,8 @@ int main(int argc, const char* argv[])
     ImGuiIO& io = ImGui::GetIO();
     setupGui(io);
 
+    Shaders::initialize();
+
     processProgramArguments(argc, argv);
 
     if (UnTechEditor::instance() == nullptr) {
@@ -133,6 +136,7 @@ int main(int argc, const char* argv[])
     // Close the project and stop the background thread to prevent a potential use-after-free error on cleanup.
     UnTechEditor::closeProject();
 
+    Shaders::cleanup();
     imgui.cleanup();
 
     return EXIT_SUCCESS;
