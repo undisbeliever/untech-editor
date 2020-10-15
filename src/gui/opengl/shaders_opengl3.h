@@ -7,6 +7,7 @@
 #pragma once
 
 #include "opengl3.h"
+#include "texture8_opengl3.h"
 #include "texture_opengl3.hpp"
 #include "models/common/grid.h"
 
@@ -54,66 +55,36 @@ private:
     MtTilemap& operator=(MtTilemap&&) = delete;
 
 private:
-    GLuint _textureId;
-    usize _gridSize;
+    Texture8 _texture;
     ImVec2 _mapSize;
     bool _empty;
 
 public:
     MtTilemap()
-        : _textureId(0)
-        , _gridSize(0, 0)
+        : _texture()
         , _mapSize(0, 0)
         , _empty(true)
     {
-        GLuint oldTexture;
-        glGetIntegerv(GL_TEXTURE_BINDING_2D, (GLint*)&oldTexture);
-
-        glGenTextures(1, &_textureId);
-        glBindTexture(GL_TEXTURE_2D, _textureId);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-        glBindTexture(GL_TEXTURE_2D, oldTexture);
     }
 
-    ~MtTilemap()
-    {
-        glDeleteTextures(1, &_textureId);
-    }
+    ~MtTilemap() = default;
 
-    GLuint textureId() const { return _textureId; }
-    const usize gridSize() const { return _gridSize; }
+    const Texture8& texture() const { return _texture; }
+
+    const usize& gridSize() const { return _texture.size(); }
     const ImVec2& mapSize() const { return _mapSize; }
 
     bool empty() const { return _empty; }
 
     void setMapData(const grid<uint8_t>& data)
     {
-        const bool sameSize = _gridSize == data.size();
-
         _empty = data.empty();
-
-        _gridSize = data.size();
 
         _mapSize.x = data.width() * 16;
         _mapSize.y = data.height() * 16;
 
         if (!data.empty()) {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-            glBindTexture(GL_TEXTURE_2D, _textureId);
-
-            if (sameSize) {
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data.width(), data.height(),
-                                GL_RED_INTEGER, GL_UNSIGNED_BYTE, data.gridData().data());
-            }
-            else {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, data.width(), data.height(), 0,
-                             GL_RED_INTEGER, GL_UNSIGNED_BYTE, data.gridData().data());
-            }
-
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+            _texture.setData(data);
         }
     }
 };
@@ -139,7 +110,7 @@ public:
                     const MtTileset& tileset, const MtTilemap& tilemap)
     {
         tilesetTextureId = tileset.texture().openGLTextureId();
-        mapTextureId = tilemap.textureId();
+        mapTextureId = tilemap.texture().openGLTextureId();
         mapSize = tilemap.mapSize();
 
         x1 = pos.x;
