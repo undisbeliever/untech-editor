@@ -6,31 +6,9 @@
 
 #pragma once
 
+#include "opengl3.h"
 #include "models/common/image.h"
 #include "vendor/imgui/imgui.h"
-
-// Taken from `imgui/examples/example_sdl_opengl3/main.cpp`
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-#include <GL/gl3w.h> // Initialize with gl3wInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h> // Initialize with glewInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-#include <glad/glad.h> // Initialize with gladLoadGL()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD2)
-#include <glad/gl.h> // Initialize with gladLoadGL(...) or gladLoaderLoadGL()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING2)
-#define GLFW_INCLUDE_NONE      // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
-#include <glbinding/Binding.h> // Initialize with glbinding::Binding::initialize()
-#include <glbinding/gl/gl.h>
-using namespace gl;
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING3)
-#define GLFW_INCLUDE_NONE // GLFW including OpenGL headers causes ambiguity or multiple definition errors.
-#include <glbinding/gl/gl.h>
-#include <glbinding/glbinding.h> // Initialize with glbinding::initialize()
-using namespace gl;
-#else
-#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
-#endif
 
 namespace UnTech::Gui {
 
