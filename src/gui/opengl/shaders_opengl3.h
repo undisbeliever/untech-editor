@@ -37,20 +37,17 @@ private:
     Texture _tilesTexture;
     Texture8 _tileCollisionsData;
 
+    GLuint _textureFrameBuffer = 0;
+
     bool _showTiles;
     bool _showTileCollisions;
 
 public:
-    MtTileset()
-        : _texture(TEXTURE_SIZE, TEXTURE_SIZE)
-        , _tilesTexture(TEXTURE_SIZE, TEXTURE_SIZE)
-        , _tileCollisionsData(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE)
-        , _showTiles(true)
-        , _showTileCollisions(true)
-    {
-    }
-
+    MtTileset();
     ~MtTileset();
+
+    // Must only be called by `processOffscreenRendering()`
+    void drawTextures_openGL();
 
     bool showTiles() const { return _showTiles; }
     bool showTileCollisions() const { return _showTileCollisions; }

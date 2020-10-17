@@ -18,21 +18,7 @@ namespace UnTech::Gui::Shaders {
 
 static bool g_initialized = false;
 
-static GLuint g_tilesetFramebuffer = 0;
-
 static MtTileset* mtTilesetUpdateRequested = nullptr;
-
-MtTileset::~MtTileset()
-{
-    if (mtTilesetUpdateRequested == this) {
-        mtTilesetUpdateRequested = nullptr;
-    }
-}
-
-void MtTileset::requestUpdate()
-{
-    mtTilesetUpdateRequested = this;
-}
 
 static void CheckShader(GLuint handle, const char* name)
 {
@@ -380,8 +366,6 @@ void initialize()
 
     mtTilesetUpdateRequested = nullptr;
 
-    glGenFramebuffers(1, &g_tilesetFramebuffer);
-
     MtTilesetVertexShader::initialize();
     TileCollisions::initialize();
     Tilemap::initialize();
@@ -390,8 +374,6 @@ void initialize()
 void cleanup()
 {
     mtTilesetUpdateRequested = nullptr;
-
-    glDeleteFramebuffers(1, &g_tilesetFramebuffer);
 
     MtTilesetVertexShader::cleanup();
     TileCollisions::cleanup();
@@ -444,6 +426,79 @@ void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd)
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
+MtTileset::MtTileset()
+    : _texture(TEXTURE_SIZE, TEXTURE_SIZE)
+    , _tilesTexture(TEXTURE_SIZE, TEXTURE_SIZE)
+    , _tileCollisionsData(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE)
+    , _textureFrameBuffer(0)
+    , _showTiles(true)
+    , _showTileCollisions(true)
+{
+    glGenFramebuffers(1, &_textureFrameBuffer);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);
+
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                           _texture.openGLTextureId(), 0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+                           _tilesTexture.openGLTextureId(), 0);
+    glReadBuffer(GL_COLOR_ATTACHMENT1);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+MtTileset::~MtTileset()
+{
+    if (mtTilesetUpdateRequested == this) {
+        mtTilesetUpdateRequested = nullptr;
+    }
+
+    glDeleteFramebuffers(1, &_textureFrameBuffer);
+}
+
+void MtTileset::requestUpdate()
+{
+    mtTilesetUpdateRequested = this;
+}
+
+void MtTileset::drawTextures_openGL()
+{
+    glEnable(GL_BLEND);
+    glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_DEPTH_TEST);
+
+    glDepthMask(GL_FALSE);
+
+    glViewport(0, 0, _texture.width(), _texture.height());
+
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);
+
+    if (_showTiles) {
+        // Copy tilesTexture to tileset texture
+
+        glBlitFramebuffer(0, 0, _tilesTexture.width(), _tilesTexture.height(),
+                          0, 0, _texture.width(), _texture.height(),
+                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    }
+    else {
+        // Clear buffer
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    // Draw Tile Collisions
+    if (_showTileCollisions) {
+        TileCollisions::draw(_tileCollisionsData);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void MtTilemap::addToDrawList(ImDrawList* drawList, const ImVec2& pos, const ImVec2& size,
                               const MtTileset& tileset) const
 {
@@ -470,58 +525,6 @@ void MtTilemap::addToDrawList(ImDrawList* drawList, const ImVec2& pos, const ImV
     drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 }
 
-static void updateMtTileset(const MtTileset& tileset)
-{
-    const auto& texture = tileset.texture();
-
-    glEnable(GL_BLEND);
-    glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_DEPTH_TEST);
-
-    glDepthMask(GL_FALSE);
-
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    glViewport(0, 0, texture.width(), texture.height());
-
-    glBindFramebuffer(GL_FRAMEBUFFER, g_tilesetFramebuffer);
-
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           texture.openGLTextureId(), 0);
-
-    if (tileset.showTiles()) {
-        // Copy tilesTexture to tileset texture
-
-        const auto& tilesTexture = tileset.tilesTexture();
-
-        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
-                               tilesTexture.openGLTextureId(), 0);
-        glReadBuffer(GL_COLOR_ATTACHMENT1);
-
-        glBlitFramebuffer(0, 0, tilesTexture.width(), tilesTexture.height(),
-                          0, 0, texture.width(), texture.height(),
-                          GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-        glReadBuffer(GL_COLOR_ATTACHMENT0);
-    }
-    else {
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
-
-    // Draw Tile Collisions
-    if (tileset.showTileCollisions()) {
-        using namespace TileCollisions;
-
-        TileCollisions::draw(tileset.tileCollisionsData());
-    }
-
-    assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 void newFrame()
 {
     Tilemap::renderDataCount = 0;
@@ -530,9 +533,9 @@ void newFrame()
 void processOffscreenRendering()
 {
     if (mtTilesetUpdateRequested) {
-        updateMtTileset(*mtTilesetUpdateRequested);
+        mtTilesetUpdateRequested->drawTextures_openGL();
 
-        //mtTilesetUpdateRequested = nullptr;
+        mtTilesetUpdateRequested = nullptr;
     }
 }
 
