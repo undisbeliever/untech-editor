@@ -173,7 +173,7 @@ static Image generateTileCollisionImage()
 
 const Image tileCollisionImage = generateTileCollisionImage();
 
-Texture& tileCollisionTypeTexture()
+const Texture& tileCollisionTypeTexture()
 {
     static Texture texture = Texture::createFromImage(tileCollisionImage);
     return texture;

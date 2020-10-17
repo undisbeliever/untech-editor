@@ -10,7 +10,6 @@
 #include "gui/imgui.h"
 #include "gui/selection.h"
 #include "gui/shaders.h"
-#include "gui/texture.h"
 #include "models/common/vectorset-upoint.h"
 #include "models/common/vectorset.h"
 #include "models/project/project.h"
@@ -94,8 +93,6 @@ private:
     Shaders::MtTilemapRenderData _mapRenderData;
     Shaders::MtTilemapRenderData _minimapRenderData;
 
-    Texture _tilesetCollisionsTexture;
-
     EditMode _currentEditMode;
     CursorState _cursor;
 
@@ -127,7 +124,7 @@ public:
 protected:
     virtual void selectionChanged() = 0;
 
-    void showLayerButtons() const;
+    void showLayerButtons();
 
     void markTilemapOutOfDate();
     void markTexturesOutOfDate();

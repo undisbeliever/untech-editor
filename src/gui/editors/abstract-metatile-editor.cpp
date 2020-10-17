@@ -22,7 +22,6 @@ static constexpr unsigned METATILE_SIZE_PX = MetaTiles::METATILE_SIZE_PX;
 static constexpr unsigned N_METATILES = MetaTiles::N_METATILES;
 static constexpr unsigned TILESET_WIDTH = MetaTiles::TILESET_WIDTH;
 static constexpr unsigned TILESET_HEIGHT = MetaTiles::TILESET_HEIGHT;
-static constexpr unsigned N_TILE_COLLISONS = MetaTiles::N_TILE_COLLISONS;
 
 // ::TODO add to View Menu::
 bool AbstractMetaTileEditorGui::showGrid = true;
@@ -287,7 +286,6 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
     , _tilemap()
     , _mapRenderData()
     , _minimapRenderData()
-    , _tilesetCollisionsTexture(TILESET_TEXTURE_SIZE)
     , _currentEditMode(EditMode::SelectTiles)
     , _cursor()
     , _selectedTilesetFrame(INT_MAX)
@@ -378,6 +376,9 @@ void AbstractMetaTileEditorGui::editorOpened()
 {
     resetSelectorState();
 
+    _tilesetShader.setShowTiles(showTiles);
+    _tilesetShader.setShowTileCollisions(showTileCollisions);
+
     _cursor.mapDirty = false;
     _cursor.currentlyEditing = false;
     // Do not change cursor
@@ -443,13 +444,17 @@ void AbstractMetaTileEditorGui::invisibleButton(const char* label, const Geometr
     ImGui::InvisibleButton(label, geo.mapSize);
 }
 
-void AbstractMetaTileEditorGui::showLayerButtons() const
+void AbstractMetaTileEditorGui::showLayerButtons()
 {
     ImGui::ToggledButtonWithTooltip("G##showGrid", &showGrid, "Show Grid");
     ImGui::SameLine();
-    ImGui::ToggledButtonWithTooltip("T##showTiles", &showTiles, "Show Tiles");
+    if (ImGui::ToggledButtonWithTooltip("T##showTiles", &showTiles, "Show Tiles")) {
+        _tilesetShader.setShowTiles(showTiles);
+    }
     ImGui::SameLine();
-    ImGui::ToggledButtonWithTooltip("C##showTC", &showTileCollisions, "Show Tile Collisions");
+    if (ImGui::ToggledButtonWithTooltip("C##showTC", &showTileCollisions, "Show Tile Collisions")) {
+        _tilesetShader.setShowTileCollisions(showTileCollisions);
+    }
     ImGui::SameLine();
     ImGui::ToggledButtonWithTooltip("I##showIT", &showInteractiveTiles, "Show Interactive Tiles");
     ImGui::SameLine();
@@ -485,10 +490,6 @@ void AbstractMetaTileEditorGui::drawTileset(const Geometry& geo)
 
     if (showTiles) {
         drawList->AddImage(_tilesetShader.texture().imguiTextureId(), geo.offset, geo.offset + geo.mapSize);
-    }
-    if (showTileCollisions) {
-        // ::TODO move into _tilesetShader::
-        drawList->AddImage(_tilesetCollisionsTexture.imguiTextureId(), geo.offset, geo.offset + geo.mapSize, ImVec2(0, 0), ImVec2(1, 1), Style::tileCollisionTint);
     }
 
     if (showInteractiveTiles) {
@@ -610,11 +611,8 @@ void AbstractMetaTileEditorGui::drawTilemap(Shaders::MtTilemapRenderData* render
 
     auto* drawList = ImGui::GetWindowDrawList();
 
-    if (showTiles) {
+    if (showTiles || showTileCollisions) {
         renderData->addDrawCmd(drawList, geo.offset, geo.mapSize, _tilesetShader, tilemap);
-    }
-    if (showTileCollisions) {
-        // ::TODO draw tile collisions::
     }
 
     if (showInteractiveTiles) {
@@ -1034,7 +1032,6 @@ void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectF
     if (_tilesetIndex >= projectFile.metaTileTilesets.size()) {
         setPaletteIndex(INT_MAX);
         _tilesetShader.reset();
-        _tilesetCollisionsTexture.replaceWithMissingImageSymbol();
         return;
     }
 
@@ -1042,7 +1039,6 @@ void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectF
     if (tileset == nullptr) {
         setPaletteIndex(INT_MAX);
         _tilesetShader.reset();
-        _tilesetCollisionsTexture.replaceWithMissingImageSymbol();
         return;
     }
 
@@ -1093,39 +1089,7 @@ void AbstractMetaTileEditorGui::updateCollisionsTexture(const MetaTiles::MetaTil
 {
     assert(_data);
 
-    static Image img(TILESET_TEXTURE_SIZE);
-
-    assert(tileCollisionImage.size().width == TILE_COLLISION_IMAGE_WIDTH);
-    assert(tileCollisionImage.size().height == TILE_COLLISION_IMAGE_HEIGHT);
-    static_assert(TILE_COLLISION_IMAGE_HEIGHT / METATILE_SIZE_PX >= N_TILE_COLLISONS);
-
-    // ::TODO run through valgrind, msan and asan::
-    // ::MAYDO find a safer way to do this::
-
-    auto it = tileset.tileCollisions.begin();
-    for (unsigned y = 0; y < TILESET_TEXTURE_SIZE.height; y += METATILE_SIZE_PX) {
-        rgba* imgBits = img.scanline(y);
-
-        for (unsigned x = 0; x < TILESET_TEXTURE_SIZE.width; x += METATILE_SIZE_PX) {
-            const unsigned tileCollisionType = unsigned(*it++);
-            if (tileCollisionType < N_TILE_COLLISONS) {
-                const unsigned tcYoffset = tileCollisionType * METATILE_SIZE_PX;
-
-                for (unsigned ty = 0; ty < METATILE_SIZE_PX; ty++) {
-                    const rgba* tcBits = tileCollisionImage.scanline(tcYoffset + ty);
-                    rgba* imgTcBits = imgBits + ty * TILESET_TEXTURE_SIZE.width;
-
-                    std::copy(tcBits, tcBits + METATILE_SIZE_PX, imgTcBits);
-                }
-            }
-
-            imgBits += METATILE_SIZE_PX;
-            assert(imgBits + (METATILE_SIZE_PX - 1) * TILESET_TEXTURE_SIZE.width <= img.data() + img.dataSize());
-        }
-    }
-    assert(it == tileset.tileCollisions.end());
-
-    _tilesetCollisionsTexture.replace(img);
+    _tilesetShader.setTileCollisions(tileset.tileCollisions);
 
     _collisionTextureOutOfDate = false;
 }

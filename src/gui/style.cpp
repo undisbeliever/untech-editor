@@ -11,6 +11,7 @@
 
 namespace UnTech::Gui {
 
+const ImVec4 Style::tileCollisionTint(0.75f, 0, 0.75f, 0.5);
 const ImVec4 Style::tilePropertiesButtonTint(0.5f, 0.5f, 0.5f, 1.0f);
 const ImVec4 Style::tilePropertiesButtonSelectedTint(1.0f, 1.0f, 1.0f, 1.0f);
 

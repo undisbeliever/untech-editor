@@ -64,27 +64,30 @@ public:
     unsigned width() const { return _size.width; }
     unsigned height() const { return _size.height; }
 
-    void setData(const grid<uint8_t>& data)
+    void setData(const usize& size, const uint8_t* data)
     {
-        const bool sameSize = _size == data.size();
-        _size = data.size();
+        const bool sameSize = _size == size;
+        _size = size;
 
-        if (!data.empty()) {
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-            glBindTexture(GL_TEXTURE_2D, _textureId);
+        glBindTexture(GL_TEXTURE_2D, _textureId);
 
-            if (sameSize) {
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data.width(), data.height(),
-                                GL_RED_INTEGER, GL_UNSIGNED_BYTE, data.gridData().data());
-            }
-            else {
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, data.width(), data.height(), 0,
-                             GL_RED_INTEGER, GL_UNSIGNED_BYTE, data.gridData().data());
-            }
-
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        if (sameSize) {
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size.width, size.height,
+                            GL_RED_INTEGER, GL_UNSIGNED_BYTE, data);
         }
+        else {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R8UI, size.width, size.height, 0,
+                         GL_RED_INTEGER, GL_UNSIGNED_BYTE, data);
+        }
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    }
+
+    inline void setData(const grid<uint8_t>& data)
+    {
+        setData(data.size(), data.gridData().data());
     }
 };
 

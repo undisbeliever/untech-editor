@@ -11,6 +11,10 @@
 #include "texture_opengl3.hpp"
 #include "models/common/grid.h"
 
+namespace UnTech::MetaTiles {
+enum class TileCollisionType : uint8_t;
+}
+
 namespace UnTech::Gui::Shaders {
 
 void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd);
@@ -23,17 +27,45 @@ private:
     MtTileset& operator=(MtTileset&&) = delete;
 
 private:
-    Texture _tilesTexture;
+    constexpr static unsigned TEXTURE_SIZE = 256;
+    constexpr static unsigned TC_TEXTURE_SIZE = 16;
+    constexpr static unsigned N_METATILES = 256;
+    using TileCollisionData = std::array<MetaTiles::TileCollisionType, N_METATILES>;
 
-    // ::TODO combine tileset collision texture with tiles texture::
+private:
+    Texture _texture;
+    Texture _tilesTexture;
+    Texture8 _tileCollisionsData;
+
+    bool _showTiles;
+    bool _showTileCollisions;
 
 public:
-    MtTileset() = default;
+    MtTileset()
+        : _texture(TEXTURE_SIZE, TEXTURE_SIZE)
+        , _tilesTexture(TEXTURE_SIZE, TEXTURE_SIZE)
+        , _tileCollisionsData(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE)
+        , _showTiles(true)
+        , _showTileCollisions(true)
+    {
+    }
 
-    const Texture& texture() const { return _tilesTexture; }
+    ~MtTileset();
+
+    bool showTiles() const { return _showTiles; }
+    bool showTileCollisions() const { return _showTileCollisions; }
+
+    const Texture& texture() const { return _texture; }
     const Texture& tilesTexture() const { return _tilesTexture; }
 
-    void reset() { _tilesTexture.replaceWithMissingImageSymbol(); }
+    const Texture8& tileCollisionsData() const { return _tileCollisionsData; }
+
+    void reset()
+    {
+        _tilesTexture.replaceWithMissingImageSymbol();
+
+        requestUpdate();
+    }
 
     // ::TODO move updateTilesetTexture into this class::
     void setTextureImage(const Image* image)
@@ -44,6 +76,33 @@ public:
         else {
             _tilesTexture.replaceWithMissingImageSymbol();
         }
+
+        requestUpdate();
+    }
+
+    void setTileCollisions(const TileCollisionData& tileCollisions)
+    {
+        static_assert(sizeof(MetaTiles::TileCollisionType) == 1);
+        static_assert(sizeof(TileCollisionData) == TC_TEXTURE_SIZE * TC_TEXTURE_SIZE);
+
+        _tileCollisionsData.setData(usize(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE),
+                                    reinterpret_cast<const uint8_t*>(tileCollisions.data()));
+
+        requestUpdate();
+    }
+
+    void requestUpdate();
+
+    void setShowTiles(bool s)
+    {
+        _showTiles = s;
+        requestUpdate();
+    }
+
+    void setShowTileCollisions(bool s)
+    {
+        _showTileCollisions = s;
+        requestUpdate();
     }
 };
 

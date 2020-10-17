@@ -57,7 +57,7 @@ struct Style {
     constexpr static ImU32 spriteImporterOriginColor = IM_COL32(128, 128, 128, 255);
 
     // MetaTiles
-    constexpr static ImU32 tileCollisionTint = IM_COL32(192, 0, 192, 128);
+    static const ImVec4 tileCollisionTint;
     constexpr static ImU32 tileSelectionFillColor = IM_COL32(0, 0, 128, 128);
     constexpr static ImU32 tileSelectionOutlineColor = IM_COL32(0, 0, 255, 255);
     constexpr static ImU32 tileCursorInBoundsTint = IM_COL32(128, 255, 128, 255);

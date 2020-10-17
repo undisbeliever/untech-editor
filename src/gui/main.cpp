@@ -113,6 +113,7 @@ int main(int argc, const char* argv[])
         MessageBox::processGui();
         FpsWindow::processGui();
 
+        Shaders::processOffscreenRendering();
         imgui.render();
 
         if (editor) {
