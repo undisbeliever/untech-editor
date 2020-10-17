@@ -178,7 +178,6 @@ RoomEditorGui::RoomEditorGui()
     : AbstractMetaTileEditorGui()
     , _data(nullptr)
     , _scratchpadTilemap()
-    , _scratchpadRenderData()
     , _mapSize()
     , _graphics()
     , _entityTexture()
@@ -662,7 +661,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
     minimapWindow("Minimap##Room");
 
-    if (scratchpadMinimapWindow("Scratchpad##Room", &_scratchpadRenderData, _scratchpadTilemap, scratchpad, &_data->selectedScratchpadTiles)) {
+    if (scratchpadMinimapWindow("Scratchpad##Room", _scratchpadTilemap, scratchpad, &_data->selectedScratchpadTiles)) {
         _data->selectedScratchpadTilesChanged();
         selectionChanged();
     }

@@ -88,10 +88,7 @@ private:
     AbstractMetaTileEditorData* _data;
 
     Shaders::MtTileset _tilesetShader;
-
     Shaders::MtTilemap _tilemap;
-    Shaders::MtTilemapRenderData _mapRenderData;
-    Shaders::MtTilemapRenderData _minimapRenderData;
 
     EditMode _currentEditMode;
     CursorState _cursor;
@@ -156,8 +153,7 @@ protected:
     void minimapWindow(const char* label);
 
     // Returns true if sel changed
-    bool scratchpadMinimapWindow(const char* label,
-                                 Shaders::MtTilemapRenderData* rendererData, const Shaders::MtTilemap& tilemap,
+    bool scratchpadMinimapWindow(const char* label, const Shaders::MtTilemap& tilemap,
                                  const grid<uint8_t>* mapData, upoint_vectorset* sel);
 
     // The previous Dear ImGui item must be an invisible button that covers the entire map
@@ -177,7 +173,7 @@ protected:
     void abandonPlacedTiles();
 
 private:
-    void drawTilemap(Shaders::MtTilemapRenderData* renderData, const Shaders::MtTilemap& tilemap, const Geometry& geo);
+    void drawTilemap(const Shaders::MtTilemap& tilemap, const Geometry& geo);
     void drawSelection(const upoint_vectorset& selection, const Geometry& geo);
     void drawGrid(ImDrawList* drawList, const Geometry& geo);
 

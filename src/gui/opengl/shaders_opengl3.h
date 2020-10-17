@@ -146,40 +146,8 @@ public:
             _texture.setData(data);
         }
     }
-};
 
-// Memory safety: This struct MUST exist when draw data is being rendered.
-struct MtTilemapRenderData {
-private:
-    MtTilemapRenderData(const MtTilemapRenderData&) = delete;
-    MtTilemapRenderData(MtTilemapRenderData&&) = delete;
-    MtTilemapRenderData& operator=(const MtTilemapRenderData&) = delete;
-    MtTilemapRenderData& operator=(MtTilemapRenderData&&) = delete;
-
-public:
-    GLuint tilesetTextureId;
-    GLuint mapTextureId;
-
-    ImVec2 mapSize;
-    float x1, y1, x2, y2;
-
-    MtTilemapRenderData() = default;
-
-    void addDrawCmd(ImDrawList* drawList, const ImVec2& pos, const ImVec2& size,
-                    const MtTileset& tileset, const MtTilemap& tilemap)
-    {
-        tilesetTextureId = tileset.texture().openGLTextureId();
-        mapTextureId = tilemap.texture().openGLTextureId();
-        mapSize = tilemap.mapSize();
-
-        x1 = pos.x;
-        y1 = pos.y;
-        x2 = pos.x + size.x;
-        y2 = pos.y + size.y;
-
-        drawList->AddCallback(&drawMtTilemap, this);
-        drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
-    }
+    void addToDrawList(ImDrawList* drawList, const ImVec2& pos, const ImVec2& size, const MtTileset& tileset) const;
 };
 
 }

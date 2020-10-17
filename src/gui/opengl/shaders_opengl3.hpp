@@ -292,6 +292,26 @@ void main()
 }
 )glsl";
 
+// Memory safety: This struct MUST exist when draw data is being rendered.
+struct RenderData {
+private:
+    RenderData(const RenderData&) = delete;
+    RenderData(RenderData&&) = delete;
+    RenderData& operator=(const RenderData&) = delete;
+    RenderData& operator=(RenderData&&) = delete;
+
+public:
+    GLuint tilesetTextureId;
+    GLuint mapTextureId;
+
+    ImVec2 mapSize;
+    float x1, y1, x2, y2;
+
+    RenderData() = default;
+};
+static std::array<RenderData, 8> renderDataBuffer;
+static unsigned renderDataCount = 0;
+
 static GLuint g_shaderHandle = 0;
 static GLint g_uniformProjMtx = 0;
 static GLint g_uniformTileset = 0;
@@ -384,7 +404,7 @@ void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd)
 {
     using namespace Gui::Shaders::Tilemap;
 
-    const MtTilemapRenderData* data = static_cast<MtTilemapRenderData*>(pcmd->UserCallbackData);
+    const RenderData* data = static_cast<RenderData*>(pcmd->UserCallbackData);
 
     glUseProgram(g_shaderHandle);
 
@@ -422,6 +442,32 @@ void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd)
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void MtTilemap::addToDrawList(ImDrawList* drawList, const ImVec2& pos, const ImVec2& size,
+                              const MtTileset& tileset) const
+{
+    using namespace Tilemap;
+
+    if (renderDataCount >= renderDataBuffer.size()) {
+        std::cerr << "Too many MtTilemap draw calls per frame" << std::endl;
+        return;
+    }
+
+    RenderData& rd = renderDataBuffer.at(renderDataCount);
+    renderDataCount++;
+
+    rd.tilesetTextureId = tileset.texture().openGLTextureId();
+    rd.mapTextureId = _texture.openGLTextureId();
+    rd.mapSize = _mapSize;
+
+    rd.x1 = pos.x;
+    rd.y1 = pos.y;
+    rd.x2 = pos.x + size.x;
+    rd.y2 = pos.y + size.y;
+
+    drawList->AddCallback(&drawMtTilemap, &rd);
+    drawList->AddCallback(ImDrawCallback_ResetRenderState, nullptr);
 }
 
 static void updateMtTileset(const MtTileset& tileset)
@@ -474,6 +520,11 @@ static void updateMtTileset(const MtTileset& tileset)
     assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void newFrame()
+{
+    Tilemap::renderDataCount = 0;
 }
 
 void processOffscreenRendering()

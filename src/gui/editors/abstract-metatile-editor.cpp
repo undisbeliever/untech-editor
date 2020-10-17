@@ -284,8 +284,6 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
     , _data(nullptr)
     , _tilesetShader()
     , _tilemap()
-    , _mapRenderData()
-    , _minimapRenderData()
     , _currentEditMode(EditMode::SelectTiles)
     , _cursor()
     , _selectedTilesetFrame(INT_MAX)
@@ -548,7 +546,7 @@ void AbstractMetaTileEditorGui::minimapWindow(const char* label)
         if (!_tilemap.empty()) {
             const auto geo = mapGeometryAutoZoom(_tilemap.gridSize());
             invisibleButton("##Map", geo);
-            drawTilemap(&_minimapRenderData, _tilemap, geo);
+            drawTilemap(_tilemap, geo);
             drawSelection(_data->selectedTiles, geo);
 
             const bool sc = editableTilesSelector.processSelection(&_data->selectedTiles, geo, _tilemap.gridSize());
@@ -567,8 +565,7 @@ void AbstractMetaTileEditorGui::minimapWindow(const char* label)
     ImGui::End();
 }
 
-bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label,
-                                                        Shaders::MtTilemapRenderData* rendererData, const Shaders::MtTilemap& tilemap,
+bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label, const Shaders::MtTilemap& tilemap,
                                                         const grid<uint8_t>* mapData, upoint_vectorset* sel)
 {
     assert(_data);
@@ -581,7 +578,7 @@ bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label,
         if (!tilemap.empty()) {
             const auto geo = mapGeometryAutoZoom(tilemap.gridSize());
             invisibleButton("##Map", geo);
-            drawTilemap(rendererData, tilemap, geo);
+            drawTilemap(tilemap, geo);
             drawSelection(*sel, geo);
 
             const bool sc = scratchpadTilesSelector.processSelection(sel, geo, tilemap.gridSize());
@@ -600,7 +597,7 @@ bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label,
     return selChanged;
 }
 
-void AbstractMetaTileEditorGui::drawTilemap(Shaders::MtTilemapRenderData* renderData, const Shaders::MtTilemap& tilemap,
+void AbstractMetaTileEditorGui::drawTilemap(const Shaders::MtTilemap& tilemap,
                                             const Geometry& geo)
 {
     assert(_data);
@@ -612,7 +609,7 @@ void AbstractMetaTileEditorGui::drawTilemap(Shaders::MtTilemapRenderData* render
     auto* drawList = ImGui::GetWindowDrawList();
 
     if (showTiles || showTileCollisions) {
-        renderData->addDrawCmd(drawList, geo.offset, geo.mapSize, _tilesetShader, tilemap);
+        tilemap.addToDrawList(drawList, geo.offset, geo.mapSize, _tilesetShader);
     }
 
     if (showInteractiveTiles) {
@@ -646,7 +643,7 @@ void AbstractMetaTileEditorGui::drawAndEditMap(const Geometry& geo)
         return;
     }
 
-    drawTilemap(&_mapRenderData, _tilemap, geo);
+    drawTilemap(_tilemap, geo);
 
     switch (_currentEditMode) {
     case EditMode::SelectObjects:

@@ -101,6 +101,7 @@ int main(int argc, const char* argv[])
     while (true) {
         auto editor = UnTechEditor::instance();
 
+        Shaders::newFrame();
         imgui.newFrame();
 
         centralDockSpace();

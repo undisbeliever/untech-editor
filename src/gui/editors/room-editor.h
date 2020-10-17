@@ -54,7 +54,6 @@ private:
     RoomEditorData* _data;
 
     Shaders::MtTilemap _scratchpadTilemap;
-    Shaders::MtTilemapRenderData _scratchpadRenderData;
 
     usize _mapSize;
 
