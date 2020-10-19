@@ -103,7 +103,8 @@ void MetaTileTilesetEditorData::saveFile() const
 
 void MetaTileTilesetEditorData::updateSelection()
 {
-    AbstractMetaTileEditorData::updateSelection();
+    tilesetFrameSel.update();
+    paletteSel.update();
 }
 
 grid<uint8_t>& MetaTileTilesetEditorData::map()
@@ -724,8 +725,13 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
         return;
     }
 
+    setTilesetFrame(_data->tilesetFrameSel.selectedIndex());
+
+    updatePaletteIndex(projectFile);
     updateTilemapAndTextures(projectFile);
     updateInvalidTileList(projectData);
+
+    _data->tilesetFrameSel.setSelected(tilesetFrame());
 
     propertiesWindow(projectFile);
     tilePropertiesWindow(projectFile);
@@ -735,6 +741,20 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
 
     tilesetMinimapWindow("Minimap###Tileset_MiniMap");
     minimapWindow("Scratchpad Minimap###Tileset_Scratchpad_MiniMap");
+}
+
+void MetaTileTilesetEditorGui::updatePaletteIndex(const Project::ProjectFile& projectFile)
+{
+    assert(_data);
+    auto& mtTileset = _data->data;
+
+    if (_data->paletteSel.selectedIndex() < mtTileset.palettes.size()) {
+        const auto& paletteName = mtTileset.palettes.at(_data->paletteSel.selectedIndex());
+        setPaletteIndex(projectFile.palettes.indexOf(paletteName));
+    }
+    else {
+        setPaletteIndex(INT_MAX);
+    }
 }
 
 void MetaTileTilesetEditorGui::updateInvalidTileList(const Project::ProjectData& projectData)

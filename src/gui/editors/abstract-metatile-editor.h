@@ -21,9 +21,6 @@ public:
     friend class AbstractMetaTileEditorGui;
 
 protected:
-    SingleSelection paletteSel;
-    SingleSelection tilesetFrameSel;
-
     vectorset<uint8_t> selectedTilesetTiles;
 
     // For MetaTile Tileset editor: selected scratchpad tiles
@@ -36,8 +33,6 @@ public:
 protected:
     virtual grid<uint8_t>& map() = 0;
     virtual void mapTilesPlaced(const urect r) = 0;
-
-    virtual void updateSelection() override;
 
     virtual void selectedTilesChanged() = 0;
     virtual void selectedTilesetTilesChanged() = 0;
@@ -93,11 +88,10 @@ private:
     EditMode _currentEditMode;
     CursorState _cursor;
 
-    unsigned _selectedTilesetFrame;
-    unsigned _selectedTilesetPalette;
-
     unsigned _tilesetIndex;
     unsigned _paletteIndex;
+
+    unsigned _tilesetFrame;
 
     bool _tilemapOutOfDate;
 
@@ -133,6 +127,9 @@ protected:
 
     void setTilesetIndex(unsigned index);
     void setPaletteIndex(unsigned index);
+
+    unsigned tilesetFrame() const { return _tilesetFrame; }
+    void setTilesetFrame(unsigned f);
 
     // To be called at the start of `processGui`
     void updateTilemapAndTextures(const Project::ProjectFile& projectFile);

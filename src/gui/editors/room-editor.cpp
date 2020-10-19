@@ -120,8 +120,6 @@ void RoomEditorData::saveFile() const
 
 void RoomEditorData::updateSelection()
 {
-    AbstractMetaTileEditorData::updateSelection();
-
     entrancesSel.update();
     entityGroupsSel.update();
 

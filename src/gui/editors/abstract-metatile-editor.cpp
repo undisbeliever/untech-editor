@@ -273,12 +273,6 @@ AbstractMetaTileEditorData::AbstractMetaTileEditorData(ItemIndex itemIndex)
 {
 }
 
-void AbstractMetaTileEditorData::updateSelection()
-{
-    paletteSel.update();
-    tilesetFrameSel.update();
-}
-
 AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
     : AbstractEditorGui()
     , _data(nullptr)
@@ -286,8 +280,7 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
     , _tilemap()
     , _currentEditMode(EditMode::SelectTiles)
     , _cursor()
-    , _selectedTilesetFrame(INT_MAX)
-    , _selectedTilesetPalette(INT_MAX)
+    , _tilesetFrame(INT_MAX)
     , _tilesetIndex(INT_MAX)
     , _paletteIndex(INT_MAX)
     , _tilemapOutOfDate(true)
@@ -349,6 +342,15 @@ void AbstractMetaTileEditorGui::setPaletteIndex(unsigned index)
         _paletteIndex = index;
 
         // ::TODO reset animation::
+
+        _tilesetTextureOutOfDate = true;
+    }
+}
+
+void AbstractMetaTileEditorGui::setTilesetFrame(unsigned f)
+{
+    if (_tilesetFrame != f) {
+        _tilesetFrame = f;
 
         _tilesetTextureOutOfDate = true;
     }
@@ -1013,46 +1015,24 @@ void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectF
         _tilemapOutOfDate = false;
     }
 
-    if (_selectedTilesetFrame != _data->tilesetFrameSel.selectedIndex()) {
-        _selectedTilesetFrame = _data->tilesetFrameSel.selectedIndex();
-        _tilesetTextureOutOfDate = true;
-    }
-    if (_selectedTilesetPalette != _data->paletteSel.selectedIndex()) {
-        _selectedTilesetPalette = _data->paletteSel.selectedIndex();
-        _tilesetTextureOutOfDate = true;
-    }
+    const auto* tileset = _tilesetIndex < projectFile.metaTileTilesets.size()
+                              ? projectFile.metaTileTilesets.at(_tilesetIndex)
+                              : nullptr;
 
-    if (_tilesetTextureOutOfDate == false && _collisionTextureOutOfDate == false) {
-        return;
-    }
+    if (tileset) {
+        if (_collisionTextureOutOfDate) {
+            updateCollisionsTexture(*tileset);
+        }
 
-    if (_tilesetIndex >= projectFile.metaTileTilesets.size()) {
-        setPaletteIndex(INT_MAX);
-        _tilesetShader.reset();
-        return;
-    }
-
-    const auto* tileset = projectFile.metaTileTilesets.at(_tilesetIndex);
-    if (tileset == nullptr) {
-        setPaletteIndex(INT_MAX);
-        _tilesetShader.reset();
-        return;
-    }
-
-    if (_data->paletteSel.selectedIndex() < tileset->palettes.size()) {
-        const auto& paletteName = tileset->palettes.at(_data->paletteSel.selectedIndex());
-        setPaletteIndex(projectFile.palettes.indexOf(paletteName));
+        if (_tilesetTextureOutOfDate) {
+            updateTilesetTexture(*tileset);
+        }
     }
     else {
         setPaletteIndex(INT_MAX);
-    }
-
-    if (_tilesetTextureOutOfDate) {
-        updateTilesetTexture(*tileset);
-    }
-
-    if (_collisionTextureOutOfDate) {
-        updateCollisionsTexture(*tileset);
+        _tilesetShader.reset();
+        _tilesetTextureOutOfDate = true;
+        _collisionTextureOutOfDate = true;
     }
 }
 
@@ -1060,24 +1040,18 @@ void AbstractMetaTileEditorGui::updateTilesetTexture(const MetaTiles::MetaTileTi
 {
     assert(_data);
 
-    if (false) {
-        // ::TODO draw tileset from projectData::
+    const auto& filenames = tileset.animationFrames.frameImageFilenames;
+
+    if (_tilesetFrame >= filenames.size()) {
+        _tilesetFrame = 0;
     }
-    else {
-        const auto& filenames = tileset.animationFrames.frameImageFilenames;
 
-        if (_selectedTilesetFrame >= filenames.size()) {
-            _selectedTilesetFrame = 0;
-            _data->tilesetFrameSel.setSelected(0);
-        }
-
-        std::shared_ptr<const Image> image;
-        if (_selectedTilesetFrame < filenames.size()) {
-            image = ImageCache::loadPngImage(filenames.at(_selectedTilesetFrame));
-        }
-
-        _tilesetShader.setTextureImage(image.get());
+    std::shared_ptr<const Image> image;
+    if (_tilesetFrame < filenames.size()) {
+        image = ImageCache::loadPngImage(filenames.at(_tilesetFrame));
     }
+
+    _tilesetShader.setTextureImage(image.get());
 
     _tilesetTextureOutOfDate = false;
 }

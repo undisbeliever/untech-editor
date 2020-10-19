@@ -20,6 +20,9 @@ private:
 
     UnTech::MetaTiles::MetaTileTilesetInput data;
 
+    SingleSelection tilesetFrameSel;
+    SingleSelection paletteSel;
+
 public:
     MetaTileTilesetEditorData(ItemIndex itemIndex);
 
@@ -88,6 +91,7 @@ private:
     void tilesetWindow();
     void scratchpadWindow();
 
+    void updatePaletteIndex(const Project::ProjectFile& projectFile);
     void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 
