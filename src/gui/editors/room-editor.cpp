@@ -630,7 +630,7 @@ void RoomEditorGui::editorWindow()
     ImGui::End();
 }
 
-void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData&)
+void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
 {
     if (_data == nullptr) {
         return;
@@ -638,7 +638,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
     updateEntityGraphics();
     updateTilesetAndPaletteIndex(projectFile);
-    updateTilemapAndTextures(projectFile);
+    updateTilemapAndTextures(projectFile, projectData);
 
     const grid<uint8_t>* scratchpad = nullptr;
     if (tilesetIndex() < projectFile.metaTileTilesets.size()) {

@@ -37,7 +37,17 @@ private:
     Texture _tilesTexture;
     Texture8 _tileCollisionsData;
 
+    Texture _palette;
+    unsigned _paletteFrame;
+
+    std::array<Texture8, 32> _tilesetFrames;
+    unsigned _nTilesetFrames;
+    unsigned _tilesetFrame;
+
     GLuint _textureFrameBuffer = 0;
+    GLuint _tilesTextureFrameBuffer = 0;
+
+    bool _tilesTextureValid;
 
     bool _showTiles;
     bool _showTileCollisions;
@@ -64,19 +74,6 @@ public:
         requestUpdate();
     }
 
-    // ::TODO move updateTilesetTexture into this class::
-    void setTextureImage(const Image* image)
-    {
-        if (image && image->size() == usize(256, 256)) {
-            _tilesTexture.replace(*image);
-        }
-        else {
-            _tilesTexture.replaceWithMissingImageSymbol();
-        }
-
-        requestUpdate();
-    }
-
     void setTileCollisions(const TileCollisionData& tileCollisions)
     {
         static_assert(sizeof(MetaTiles::TileCollisionType) == 1);
@@ -90,6 +87,12 @@ public:
 
     void requestUpdate();
 
+    inline unsigned nPaletteFrames() const { return _palette.height(); }
+    inline unsigned nTilesetFrames() const { return _nTilesetFrames; }
+
+    inline unsigned paletteFrame() const { return _paletteFrame; }
+    inline unsigned tilesetFrame() const { return _tilesetFrame; }
+
     void setShowTiles(bool s)
     {
         _showTiles = s;
@@ -99,6 +102,92 @@ public:
     void setShowTileCollisions(bool s)
     {
         _showTileCollisions = s;
+        requestUpdate();
+    }
+
+    void setPaletteFrame(unsigned n)
+    {
+        n = (nPaletteFrames() > 1) ? n % nPaletteFrames() : 0;
+
+        if (n != _paletteFrame) {
+            _paletteFrame = n;
+
+            _tilesTextureValid = false;
+            requestUpdate();
+        }
+    }
+
+    void nextPaletteFrame()
+    {
+        setPaletteFrame(_paletteFrame + 1);
+    }
+
+    void setPaletteImage(const Image& pal)
+    {
+        const bool sizeChanged = _palette.size() != pal.size();
+
+        _palette.replace(pal);
+
+        assert(pal.size().height == 0 || pal.size().width == UINT8_MAX);
+
+        if (sizeChanged) {
+            setPaletteFrame(0);
+        }
+
+        _tilesTextureValid = false;
+        requestUpdate();
+    }
+
+    void setTilesetFrame(unsigned n)
+    {
+        n = (_nTilesetFrames > 1) ? n % _nTilesetFrames : 0;
+
+        if (n != _tilesetFrame) {
+            _tilesetFrame = n;
+
+            _tilesTextureValid = false;
+            requestUpdate();
+        }
+    }
+
+    void nextTilesetFrame()
+    {
+        setTilesetFrame(_tilesetFrame + 1);
+    }
+
+    void setNTilesetFrames(unsigned n)
+    {
+        n = std::min<unsigned>(n, _tilesetFrames.size());
+
+        if (_nTilesetFrames != n) {
+            _nTilesetFrames = n;
+            if (_tilesetFrame >= _nTilesetFrames) {
+                _tilesetFrame = 0;
+            }
+            _tilesTextureValid = false;
+        }
+    }
+
+    void setTilesetFrame(unsigned n, grid<uint8_t>& tiles)
+    {
+        assert(tiles.size() == usize(TEXTURE_SIZE, TEXTURE_SIZE));
+
+        _tilesetFrames.at(n).setData(tiles);
+
+        _tilesTextureValid = false;
+        requestUpdate();
+    }
+
+    void setTextureImage(const Image* image)
+    {
+        if (image && image->size() == usize(256, 256)) {
+            _tilesTexture.replace(*image);
+        }
+        else {
+            _tilesTexture.replaceWithMissingImageSymbol();
+        }
+
+        _tilesTextureValid = true;
         requestUpdate();
     }
 };

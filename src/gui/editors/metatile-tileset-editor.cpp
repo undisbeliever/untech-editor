@@ -83,6 +83,8 @@ struct MetaTileTilesetEditorData::AP {
 MetaTileTilesetEditorData::MetaTileTilesetEditorData(ItemIndex itemIndex)
     : AbstractMetaTileEditorData(itemIndex)
 {
+    tilesetFrameSel.setSelected(0);
+    paletteSel.setSelected(0);
 }
 
 bool MetaTileTilesetEditorData::loadDataFromProject(const Project::ProjectFile& projectFile)
@@ -728,7 +730,7 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
     setTilesetFrame(_data->tilesetFrameSel.selectedIndex());
 
     updatePaletteIndex(projectFile);
-    updateTilemapAndTextures(projectFile);
+    updateTilemapAndTextures(projectFile, projectData);
     updateInvalidTileList(projectData);
 
     _data->tilesetFrameSel.setSelected(tilesetFrame());

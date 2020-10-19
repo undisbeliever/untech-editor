@@ -142,6 +142,95 @@ static void draw(const GLint attribPosition, const GLint attribUV)
 
 }
 
+namespace MtTilesetTilesShader {
+
+const GLchar* fragment_shader = R"glsl(
+#version 130
+
+uniform usampler2D Texture;
+uniform sampler2D Palette;
+uniform int PalFrame;
+
+in vec2 Frag_UV;
+
+void main()
+{
+    int c = int(texture(Texture, Frag_UV.st).x);
+
+    gl_FragColor = texelFetch(Palette, ivec2(c, PalFrame), 0);
+}
+)glsl";
+
+static const usize TCT_TEXTURE_SIZE(16, 32 * 16);
+
+static GLuint g_shaderHandle = 0;
+static GLint g_uniformTexture = 0;
+static GLint g_uniformPalette = 0;
+static GLint g_uniformPalFrame = 0;
+static GLint g_attribPosition = 0;
+static GLint g_attribUV = 0;
+
+static void initialize()
+{
+    if (g_initialized) {
+        return;
+    }
+
+    // Create the TileCollisionType texture if it doesn't already exist
+    tileCollisionTypeTexture();
+
+    GLuint fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragHandle, 1, &fragment_shader, 0);
+    glCompileShader(fragHandle);
+    CheckShader(fragHandle, "MtTileset Tiles fragment shader");
+
+    g_shaderHandle = glCreateProgram();
+    glAttachShader(g_shaderHandle, MtTilesetVertexShader::g_vertexHangle);
+    glAttachShader(g_shaderHandle, fragHandle);
+    glLinkProgram(g_shaderHandle);
+    CheckProgram(g_shaderHandle, "MtTileset Tiles shader program");
+
+    g_uniformTexture = glGetUniformLocation(g_shaderHandle, "Texture");
+    g_uniformPalette = glGetUniformLocation(g_shaderHandle, "Palette");
+    g_uniformPalFrame = glGetUniformLocation(g_shaderHandle, "PalFrame");
+
+    g_attribPosition = glGetAttribLocation(g_shaderHandle, "Position");
+    g_attribUV = glGetAttribLocation(g_shaderHandle, "UV");
+
+    glDeleteShader(fragHandle);
+}
+
+static void cleanup()
+{
+    if (g_shaderHandle) {
+        glDeleteProgram(g_shaderHandle);
+        g_shaderHandle = 0;
+    }
+}
+
+static void draw(const Texture8& image, const Texture& palette, unsigned paletteFrame)
+{
+    const auto& tctTexture = tileCollisionTypeTexture();
+    assert(tctTexture.size() == TCT_TEXTURE_SIZE);
+
+    glUseProgram(g_shaderHandle);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, image.openGLTextureId());
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, palette.openGLTextureId());
+
+    glUniform1i(g_uniformTexture, 1);
+    glUniform1i(g_uniformPalette, 0);
+
+    glUniform1i(g_uniformPalFrame, paletteFrame);
+
+    MtTilesetVertexShader::draw(g_attribPosition, g_attribUV);
+}
+
+}
+
 namespace TileCollisions {
 
 const GLchar* tc_fragment_shader = R"glsl(
@@ -200,8 +289,6 @@ static void initialize()
 
     g_attribPosition = glGetAttribLocation(g_shaderHandle, "Position");
     g_attribUV = glGetAttribLocation(g_shaderHandle, "UV");
-
-    assert(g_attribUV >= 0);
 
     glDeleteShader(fragHandle);
 }
@@ -367,8 +454,11 @@ void initialize()
     mtTilesetUpdateRequested = nullptr;
 
     MtTilesetVertexShader::initialize();
+    MtTilesetTilesShader::initialize();
     TileCollisions::initialize();
     Tilemap::initialize();
+
+    g_initialized = true;
 }
 
 void cleanup()
@@ -376,6 +466,7 @@ void cleanup()
     mtTilesetUpdateRequested = nullptr;
 
     MtTilesetVertexShader::cleanup();
+    MtTilesetTilesShader::cleanup();
     TileCollisions::cleanup();
     Tilemap::cleanup();
 
@@ -430,21 +521,42 @@ MtTileset::MtTileset()
     : _texture(TEXTURE_SIZE, TEXTURE_SIZE)
     , _tilesTexture(TEXTURE_SIZE, TEXTURE_SIZE)
     , _tileCollisionsData(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE)
+    , _palette()
+    , _paletteFrame(0)
+    , _tilesetFrames()
+    , _nTilesetFrames(0)
+    , _tilesetFrame(0)
     , _textureFrameBuffer(0)
+    , _tilesTextureFrameBuffer(0)
+    , _tilesTextureValid(true)
     , _showTiles(true)
     , _showTileCollisions(true)
 {
-    glGenFramebuffers(1, &_textureFrameBuffer);
+    // Setup _texture FBO
+    {
+        glGenFramebuffers(1, &_textureFrameBuffer);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);
 
-    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                           _texture.openGLTextureId(), 0);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                               _texture.openGLTextureId(), 0);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-    glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
-                           _tilesTexture.openGLTextureId(), 0);
-    glReadBuffer(GL_COLOR_ATTACHMENT1);
+        glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+                               _tilesTexture.openGLTextureId(), 0);
+        glReadBuffer(GL_COLOR_ATTACHMENT1);
+    }
+
+    // Setup _tilesTexture FBO
+    {
+        glGenFramebuffers(1, &_tilesTextureFrameBuffer);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, _tilesTextureFrameBuffer);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                               _tilesTexture.openGLTextureId(), 0);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -456,6 +568,7 @@ MtTileset::~MtTileset()
     }
 
     glDeleteFramebuffers(1, &_textureFrameBuffer);
+    glDeleteFramebuffers(1, &_tilesTextureFrameBuffer);
 }
 
 void MtTileset::requestUpdate()
@@ -465,7 +578,6 @@ void MtTileset::requestUpdate()
 
 void MtTileset::drawTextures_openGL()
 {
-    glEnable(GL_BLEND);
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
 
@@ -473,6 +585,23 @@ void MtTileset::drawTextures_openGL()
 
     glViewport(0, 0, _texture.width(), _texture.height());
 
+    if (!_tilesTextureValid) {
+        glDisable(GL_BLEND);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, _tilesTextureFrameBuffer);
+
+        if (_tilesetFrame < _tilesetFrames.size() && _paletteFrame < nPaletteFrames()) {
+            MtTilesetTilesShader::draw(_tilesetFrames.at(_tilesetFrame), _palette, _paletteFrame);
+        }
+        else {
+            glClearColor(0.25, 0.0f, 0.25f, 0.5f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+
+        _tilesTextureValid = true;
+    }
+
+    glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

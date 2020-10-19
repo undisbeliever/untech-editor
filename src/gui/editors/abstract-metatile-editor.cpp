@@ -12,6 +12,7 @@
 #include "gui/texture.h"
 #include "models/common/imagecache.h"
 #include "models/common/vectorset-upoint.h"
+#include "models/project/project-data.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -266,7 +267,6 @@ static TileSelector<upoint_vectorset> editableTilesSelector;
 static TileSelector<upoint_vectorset> scratchpadTilesSelector;
 
 // ::TODO animation::
-// ::TODO draw tiles from ProjectData::
 
 AbstractMetaTileEditorData::AbstractMetaTileEditorData(ItemIndex itemIndex)
     : AbstractExternalFileEditorData(itemIndex)
@@ -280,11 +280,12 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
     , _tilemap()
     , _currentEditMode(EditMode::SelectTiles)
     , _cursor()
-    , _tilesetFrame(INT_MAX)
     , _tilesetIndex(INT_MAX)
     , _paletteIndex(INT_MAX)
+    , _tilesetData(nullptr)
+    , _paletteData(nullptr)
     , _tilemapOutOfDate(true)
-    , _tilesetTextureOutOfDate(true)
+    , _tilesetOutOfDate(true)
     , _collisionTextureOutOfDate(true)
 {
 }
@@ -307,13 +308,13 @@ void AbstractMetaTileEditorGui::markTilemapOutOfDate()
 
 void AbstractMetaTileEditorGui::markTexturesOutOfDate()
 {
-    _tilesetTextureOutOfDate = true;
+    _tilesetOutOfDate = true;
     _collisionTextureOutOfDate = true;
 }
 
-void AbstractMetaTileEditorGui::markTilesetTextureOutOfDate()
+void AbstractMetaTileEditorGui::markTilesetOutOfDate()
 {
-    _tilesetTextureOutOfDate = true;
+    _tilesetOutOfDate = true;
 }
 
 void AbstractMetaTileEditorGui::markCollisionTextureOutOfDate()
@@ -333,6 +334,8 @@ void AbstractMetaTileEditorGui::setTilesetIndex(unsigned index)
         setEditMode(EditMode::SelectTiles);
 
         // ::TODO reset animation::
+
+        _tilesetOutOfDate = true;
     }
 }
 
@@ -343,16 +346,7 @@ void AbstractMetaTileEditorGui::setPaletteIndex(unsigned index)
 
         // ::TODO reset animation::
 
-        _tilesetTextureOutOfDate = true;
-    }
-}
-
-void AbstractMetaTileEditorGui::setTilesetFrame(unsigned f)
-{
-    if (_tilesetFrame != f) {
-        _tilesetFrame = f;
-
-        _tilesetTextureOutOfDate = true;
+        _tilesetOutOfDate = true;
     }
 }
 
@@ -378,6 +372,9 @@ void AbstractMetaTileEditorGui::editorOpened()
 
     _tilesetShader.setShowTiles(showTiles);
     _tilesetShader.setShowTileCollisions(showTileCollisions);
+
+    _tilesetData = nullptr;
+    _paletteData = nullptr;
 
     _cursor.mapDirty = false;
     _cursor.currentlyEditing = false;
@@ -1005,7 +1002,8 @@ void AbstractMetaTileEditorGui::createTileCursor(const grid<uint8_t>& map, const
         [&](upoint p) { return map.at(p); }));
 }
 
-void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectFile& projectFile)
+void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectFile& projectFile,
+                                                         const Project::ProjectData& projectData)
 {
     assert(_data);
 
@@ -1024,36 +1022,166 @@ void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectF
             updateCollisionsTexture(*tileset);
         }
 
-        if (_tilesetTextureOutOfDate) {
-            updateTilesetTexture(*tileset);
+        const auto mtData = projectData.metaTileTilesets().at(_tilesetIndex);
+        if (mtData != _tilesetData) {
+            if (_tilesetData == nullptr) {
+                _tilemapOutOfDate = true;
+            }
+
+            if (mtData == nullptr) {
+                _paletteData = nullptr;
+                _tilesetOutOfDate = true;
+            }
+
+            _tilesetData = mtData;
+        }
+
+        if (_tilesetData) {
+            const auto palData = projectData.palettes().at(_paletteIndex);
+            if (_paletteData != palData) {
+                _paletteData = palData;
+                if (_paletteData) {
+                    updateTilesetPaletteData(*palData);
+                    _tilesetOutOfDate = true;
+                }
+            }
+        }
+
+        if (_tilesetOutOfDate) {
+            if (_tilesetData) {
+                updateTilesetFrames(*_tilesetData);
+            }
+            if (_tilesetData == nullptr || _paletteData == nullptr) {
+                loadTilesetFrameImage(*tileset);
+            }
+
+            _tilesetOutOfDate = false;
         }
     }
     else {
         setPaletteIndex(INT_MAX);
         _tilesetShader.reset();
-        _tilesetTextureOutOfDate = true;
+        _tilesetOutOfDate = true;
         _collisionTextureOutOfDate = true;
     }
 }
 
-void AbstractMetaTileEditorGui::updateTilesetTexture(const MetaTiles::MetaTileTilesetInput& tileset)
+void AbstractMetaTileEditorGui::loadTilesetFrameImage(const MetaTiles::MetaTileTilesetInput& tileset)
 {
     assert(_data);
 
     const auto& filenames = tileset.animationFrames.frameImageFilenames;
 
-    if (_tilesetFrame >= filenames.size()) {
-        _tilesetFrame = 0;
-    }
+    _tilesetShader.setNTilesetFrames(filenames.size());
+
+    const unsigned fIndex = _tilesetShader.tilesetFrame();
 
     std::shared_ptr<const Image> image;
-    if (_tilesetFrame < filenames.size()) {
-        image = ImageCache::loadPngImage(filenames.at(_tilesetFrame));
+    if (fIndex < filenames.size()) {
+        image = ImageCache::loadPngImage(filenames.at(fIndex));
     }
 
     _tilesetShader.setTextureImage(image.get());
 
-    _tilesetTextureOutOfDate = false;
+    _tilesetOutOfDate = false;
+}
+
+void AbstractMetaTileEditorGui::updateTilesetFrames(const MetaTiles::MetaTileTilesetData& tileset)
+{
+    const unsigned nFrames = tileset.animatedTileset.nAnimatedFrames();
+
+    _tilesetShader.setNTilesetFrames(nFrames);
+
+    for (unsigned i = 0; i < nFrames; i++) {
+        updateTilesetFrame(tileset, i);
+    }
+}
+
+void AbstractMetaTileEditorGui::updateTilesetFrame(const MetaTiles::MetaTileTilesetData& tileset, unsigned frameIndex)
+{
+    constexpr unsigned TILE_SIZE = Snes::Tile8px::TILE_SIZE;
+    constexpr unsigned IMAGE_HEIGHT = TILESET_HEIGHT * METATILE_SIZE_PX;
+    constexpr unsigned IMAGE_WIDTH = TILESET_WIDTH * METATILE_SIZE_PX;
+
+    const static Snes::Tile8px blankTile{};
+    const static std::vector<Snes::SnesColor> blankPalette;
+
+    static grid<uint8_t> image(IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    static_assert(METATILE_SIZE_PX == TILE_SIZE * 2);
+    assert(tileset.animatedTileset.tileMap.size() == usize(TILESET_WIDTH * 2, TILESET_HEIGHT * 2));
+
+    const auto& animatedTilesFrames = tileset.animatedTileset.animatedTiles;
+
+    const auto& staticTiles = tileset.animatedTileset.staticTiles;
+    const auto& animatedTiles = frameIndex < animatedTilesFrames.size() ? animatedTilesFrames.at(frameIndex) : tileset.animatedTileset.staticTiles;
+    const auto& map = tileset.animatedTileset.tileMap;
+    const unsigned nPaletteColors = 1 << tileset.animatedTileset.staticTiles.bitDepthInt();
+    const unsigned pixelMask = staticTiles.pixelMask();
+
+    auto mapIt = map.cbegin();
+
+    for (unsigned y = 0; y < IMAGE_HEIGHT; y += TILE_SIZE) {
+        auto imageScanline = image.begin() + y * IMAGE_WIDTH;
+
+        for (unsigned x = 0; x < IMAGE_WIDTH; x += TILE_SIZE) {
+            Snes::TilemapEntry tm = *mapIt++;
+
+            const Snes::Tile8px& tile = [&]() {
+                const auto c = tm.character();
+                if (c < staticTiles.size()) {
+                    return staticTiles.at(c);
+                }
+                else if (c < staticTiles.size() + animatedTiles.size()) {
+                    return animatedTiles.at(c - staticTiles.size());
+                }
+                return blankTile;
+            }();
+
+            const uint8_t palOffset = tm.palette() * nPaletteColors;
+            auto tileIt = tile.data().begin();
+
+            for (unsigned ty = 0; ty < tile.TILE_SIZE; ty++) {
+                unsigned fty = (tm.vFlip() == false) ? ty : TILE_SIZE - 1 - ty;
+
+                auto imageBits = imageScanline + fty * IMAGE_WIDTH;
+
+                for (unsigned tx = 0; tx < tile.TILE_SIZE; tx++) {
+                    unsigned ftx = (tm.hFlip() == false) ? tx : TILE_SIZE - 1 - tx;
+
+                    const auto tc = *tileIt & pixelMask;
+                    imageBits[ftx] = tc != 0 ? (tc + palOffset) & 0xff : 0;
+
+                    tileIt++;
+                }
+            }
+            assert(tileIt == tile.data().end());
+
+            imageScanline += TILE_SIZE;
+        }
+    }
+    assert(mapIt == map.cend());
+
+    _tilesetShader.setTilesetFrame(frameIndex, image);
+}
+
+void AbstractMetaTileEditorGui::updateTilesetPaletteData(const Resources::PaletteData& palette)
+{
+    Image image(UINT8_MAX, palette.paletteFrames.size());
+    image.fill(rgba(255, 0, 255, 255));
+
+    for (unsigned palIndex = 0; palIndex < palette.paletteFrames.size(); palIndex++) {
+        const auto& palFrame = palette.paletteFrames.at(palIndex);
+        const unsigned nColors = std::min<unsigned>(palFrame.size(), UINT8_MAX);
+
+        rgba* imgBits = image.scanline(palIndex);
+        for (unsigned c = 0; c < nColors; c++) {
+            imgBits[c] = palFrame.at(c).rgb();
+        }
+        assert(imgBits <= image.data() + image.dataSize());
+    }
+
+    _tilesetShader.setPaletteImage(image);
 }
 
 void AbstractMetaTileEditorGui::updateCollisionsTexture(const MetaTiles::MetaTileTilesetInput& tileset)

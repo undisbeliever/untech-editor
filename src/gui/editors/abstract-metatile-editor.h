@@ -91,11 +91,11 @@ private:
     unsigned _tilesetIndex;
     unsigned _paletteIndex;
 
-    unsigned _tilesetFrame;
+    std::shared_ptr<const MetaTiles::MetaTileTilesetData> _tilesetData;
+    std::shared_ptr<const Resources::PaletteData> _paletteData;
 
     bool _tilemapOutOfDate;
-
-    bool _tilesetTextureOutOfDate;
+    bool _tilesetOutOfDate;
     bool _collisionTextureOutOfDate;
 
     static bool showGrid;
@@ -119,7 +119,7 @@ protected:
 
     void markTilemapOutOfDate();
     void markTexturesOutOfDate();
-    void markTilesetTextureOutOfDate();
+    void markTilesetOutOfDate();
     void markCollisionTextureOutOfDate();
 
     unsigned tilesetIndex() const { return _tilesetIndex; }
@@ -128,11 +128,11 @@ protected:
     void setTilesetIndex(unsigned index);
     void setPaletteIndex(unsigned index);
 
-    unsigned tilesetFrame() const { return _tilesetFrame; }
-    void setTilesetFrame(unsigned f);
+    unsigned tilesetFrame() const { return _tilesetShader.tilesetFrame(); }
+    void setTilesetFrame(unsigned f) { _tilesetShader.setTilesetFrame(f); }
 
     // To be called at the start of `processGui`
-    void updateTilemapAndTextures(const Project::ProjectFile& projectFile);
+    void updateTilemapAndTextures(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
     // To be called in `loadDataFromProject`
     void resetState();
@@ -185,7 +185,12 @@ private:
     void drawCursorTiles(const grid<uint16_t>& tiles, const point& cursorPos, const Geometry& geo);
     void placeTiles(const grid<uint16_t>& tiles, const point cursorPos);
 
-    void updateTilesetTexture(const UnTech::MetaTiles::MetaTileTilesetInput& tileset);
+    void loadTilesetFrameImage(const UnTech::MetaTiles::MetaTileTilesetInput& tileset);
+
+    void updateTilesetFrames(const UnTech::MetaTiles::MetaTileTilesetData& tileset);
+    void updateTilesetFrame(const UnTech::MetaTiles::MetaTileTilesetData& tileset, unsigned frameId);
+    void updateTilesetPaletteData(const UnTech::Resources::PaletteData& palette);
+
     void updateCollisionsTexture(const UnTech::MetaTiles::MetaTileTilesetInput& tileset);
 };
 
