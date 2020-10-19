@@ -131,6 +131,8 @@ protected:
     void setTilesetIndex(unsigned index);
     void setPaletteIndex(unsigned index);
 
+    const auto& tilesetData() const { return _tilesetData; }
+
     unsigned tilesetFrame() const { return _tilesetShader.tilesetFrame(); }
     void setTilesetFrame(unsigned f) { _tilesetShader.setTilesetFrame(f); }
 

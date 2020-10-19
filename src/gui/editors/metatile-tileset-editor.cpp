@@ -361,9 +361,21 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
                     &MetaTileTilesetInput::crumblingTiles>(_data);
             }
         }
-    }
 
-    // ::TODO number of static and animated tiles in compiled data::
+        ImGui::Spacing();
+        {
+            ImGui::TextUnformatted("Compiled Data:");
+
+            ImGui::Indent();
+
+            if (const auto& td = tilesetData()) {
+                ImGui::LabelText("Static Tiles", "%u", unsigned(td->animatedTileset.staticTiles.size()));
+                ImGui::LabelText("Animated Tiles", "%u", unsigned(td->animatedTileset.nAnimatedTiles()));
+            }
+
+            ImGui::Unindent();
+        }
+    }
 
     ImGui::End();
 }
