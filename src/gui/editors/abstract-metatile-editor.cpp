@@ -24,6 +24,7 @@ static constexpr unsigned N_METATILES = MetaTiles::N_METATILES;
 static constexpr unsigned TILESET_WIDTH = MetaTiles::TILESET_WIDTH;
 static constexpr unsigned TILESET_HEIGHT = MetaTiles::TILESET_HEIGHT;
 
+// ::TODO add animation region to view menu::
 // ::TODO add to View Menu::
 bool AbstractMetaTileEditorGui::showGrid = true;
 bool AbstractMetaTileEditorGui::showTiles = true;
@@ -266,8 +267,6 @@ static TileSelector<vectorset<uint8_t>> tilesetSelector;
 static TileSelector<upoint_vectorset> editableTilesSelector;
 static TileSelector<upoint_vectorset> scratchpadTilesSelector;
 
-// ::TODO animation::
-
 AbstractMetaTileEditorData::AbstractMetaTileEditorData(ItemIndex itemIndex)
     : AbstractExternalFileEditorData(itemIndex)
 {
@@ -280,6 +279,7 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
     , _tilemap()
     , _currentEditMode(EditMode::SelectTiles)
     , _cursor()
+    , _animationTimer()
     , _tilesetIndex(INT_MAX)
     , _paletteIndex(INT_MAX)
     , _tilesetData(nullptr)
@@ -333,7 +333,7 @@ void AbstractMetaTileEditorGui::setTilesetIndex(unsigned index)
         _cursor.tiles = grid<uint16_t>();
         setEditMode(EditMode::SelectTiles);
 
-        // ::TODO reset animation::
+        _animationTimer.reset();
 
         _tilesetOutOfDate = true;
     }
@@ -344,7 +344,7 @@ void AbstractMetaTileEditorGui::setPaletteIndex(unsigned index)
     if (_paletteIndex != index) {
         _paletteIndex = index;
 
-        // ::TODO reset animation::
+        _animationTimer.reset();
 
         _tilesetOutOfDate = true;
     }
@@ -369,6 +369,8 @@ void AbstractMetaTileEditorGui::resetSelectorState()
 void AbstractMetaTileEditorGui::editorOpened()
 {
     resetSelectorState();
+
+    _animationTimer.reset();
 
     _tilesetShader.setShowTiles(showTiles);
     _tilesetShader.setShowTileCollisions(showTileCollisions);
@@ -902,6 +904,34 @@ void AbstractMetaTileEditorGui::setEditMode(EditMode mode)
     }
 }
 
+void AbstractMetaTileEditorGui::animationButtons()
+{
+    if (ImGui::ToggledButton("Play", _animationTimer.isActive())) {
+        if (_tilesetData && _paletteData) {
+            _animationTimer.playPause();
+        }
+    }
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Tileset Frame: %u", unsigned(_tilesetShader.tilesetFrame()));
+        ImGui::Text("Palette Frame: %u", unsigned(_tilesetShader.paletteFrame()));
+        ImGui::EndTooltip();
+    }
+    ImGui::SameLine();
+
+    if (ImGui::ButtonWithTooltip("NT##NextTileset", "Next Tileset Frame")) {
+        _animationTimer.stop();
+        _tilesetShader.nextTilesetFrame();
+    }
+    ImGui::SameLine();
+
+    if (ImGui::ButtonWithTooltip("NP##NextPalette", "Next Palette Frame")) {
+        _animationTimer.stop();
+        _tilesetShader.nextPaletteFrame();
+    }
+    ImGui::SameLine();
+}
+
 bool AbstractMetaTileEditorGui::selectObjectsButton()
 {
     const bool clicked = ImGui::ToggledButton("Select Objects", _currentEditMode == EditMode::SelectObjects);
@@ -1045,6 +1075,15 @@ void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectF
                     _tilesetOutOfDate = true;
                 }
             }
+        }
+
+        if (_tilesetData && _paletteData) {
+            _animationTimer.process(
+                _tilesetData->animatedTileset.animationDelay, [&] { _tilesetShader.nextTilesetFrame(); },
+                _paletteData->animationDelay, [&] { _tilesetShader.nextPaletteFrame(); });
+        }
+        else {
+            _animationTimer.stop();
         }
 
         if (_tilesetOutOfDate) {

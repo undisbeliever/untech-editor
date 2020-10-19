@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui/abstract-editor.h"
+#include "gui/animation-timer.h"
 #include "gui/imgui.h"
 #include "gui/selection.h"
 #include "gui/shaders.h"
@@ -88,6 +89,8 @@ private:
     EditMode _currentEditMode;
     CursorState _cursor;
 
+    DualAnimationTimer _animationTimer;
+
     unsigned _tilesetIndex;
     unsigned _paletteIndex;
 
@@ -157,6 +160,7 @@ protected:
     void drawTileset(const Geometry& geo);
     void drawAndEditMap(const Geometry& geo);
 
+    void animationButtons();
     bool selectObjectsButton();
     void editModeButtons();
 

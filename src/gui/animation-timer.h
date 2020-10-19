@@ -67,4 +67,69 @@ public:
     }
 };
 
+class DualAnimationTimer {
+private:
+    static constexpr unsigned TICKS_PER_SECOND = 300;
+    static constexpr unsigned TICKS_PER_NTSC_FRAME = TICKS_PER_SECOND / 60;
+    static constexpr unsigned TICKS_PER_PAL_FRAME = TICKS_PER_SECOND / 50;
+
+private:
+    AnimationTimer _frameTimer;
+    unsigned _frameCounter;
+    unsigned _firstCounter;
+    unsigned _secondCounter;
+
+public:
+    DualAnimationTimer()
+        : _frameTimer()
+        , _frameCounter(0)
+        , _firstCounter(0)
+        , _secondCounter(0)
+    {
+    }
+
+    bool isActive() const { return _frameTimer.active; }
+
+    void reset()
+    {
+        _frameTimer.reset();
+        _frameCounter = 0;
+        _firstCounter = 0;
+        _secondCounter = 0;
+    }
+
+    void start()
+    {
+        reset();
+        _frameTimer.start();
+    }
+
+    void stop() { _frameTimer.stop(); }
+    void playPause() { _frameTimer.playPause(); }
+
+    template <typename FirstFunction, typename SecondFunction>
+    void process(unsigned firstAnimationDelay, FirstFunction firstFunction,
+                 unsigned secondAnimationDelay, SecondFunction secondFunction)
+    {
+
+        _frameTimer.process([&] {
+            _frameCounter++;
+
+            const unsigned nTicks = _frameTimer.ntscRegion ? TICKS_PER_NTSC_FRAME : TICKS_PER_PAL_FRAME;
+
+            _firstCounter += nTicks;
+            if (_firstCounter >= firstAnimationDelay) {
+                _firstCounter = 0;
+                firstFunction();
+            }
+
+            _secondCounter += nTicks;
+            if (_secondCounter >= secondAnimationDelay) {
+                _secondCounter = 0;
+                secondFunction();
+            }
+        });
+    }
+};
+
 }

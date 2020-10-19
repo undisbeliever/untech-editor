@@ -554,9 +554,8 @@ void RoomEditorGui::editorWindow()
     if (ImGui::Begin("Room###Room_Editor")) {
         ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
-        // ::TODO expand toolbar::
-        ImGui::TextUnformatted("::TODO expand toolBar::");
-        ImGui::SameLine();
+        animationButtons();
+        ImGui::SameLine(0.0f, 12.0f);
 
         ImGui::SetNextItemWidth(180);
         ImGui::SingleSelectionNamedListCombo("##EntityGroupCombo", &_data->entityGroupsSel, room.entityGroups, true);

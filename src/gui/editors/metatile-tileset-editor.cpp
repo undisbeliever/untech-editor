@@ -696,6 +696,9 @@ void MetaTileTilesetEditorGui::scratchpadWindow()
         ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
         {
+            animationButtons();
+            ImGui::SameLine(0.0f, 12.0f);
+
             undoStackButtons();
             ImGui::SameLine(0.0f, 12.0f);
 
@@ -733,8 +736,6 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
     updateTilemapAndTextures(projectFile, projectData);
     updateInvalidTileList(projectData);
 
-    _data->tilesetFrameSel.setSelected(tilesetFrame());
-
     propertiesWindow(projectFile);
     tilePropertiesWindow(projectFile);
 
@@ -743,6 +744,10 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
 
     tilesetMinimapWindow("Minimap###Tileset_MiniMap");
     minimapWindow("Scratchpad Minimap###Tileset_Scratchpad_MiniMap");
+
+    if (!_data->tilesetFrameSel.isSelectionChanging()) {
+        _data->tilesetFrameSel.setSelected(tilesetFrame());
+    }
 }
 
 void MetaTileTilesetEditorGui::updatePaletteIndex(const Project::ProjectFile& projectFile)
