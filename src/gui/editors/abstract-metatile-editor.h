@@ -94,9 +94,6 @@ private:
     unsigned _tilesetIndex;
     unsigned _paletteIndex;
 
-    std::shared_ptr<const MetaTiles::MetaTileTilesetData> _tilesetData;
-    std::shared_ptr<const Resources::PaletteData> _paletteData;
-
     bool _tilemapOutOfDate;
     bool _tilesetOutOfDate;
     bool _collisionTextureOutOfDate;
@@ -131,7 +128,7 @@ protected:
     void setTilesetIndex(unsigned index);
     void setPaletteIndex(unsigned index);
 
-    const auto& tilesetData() const { return _tilesetData; }
+    const auto& tilesetData() const { return _tilesetShader.tilesetData(); }
 
     unsigned tilesetFrame() const { return _tilesetShader.tilesetFrame(); }
     void setTilesetFrame(unsigned f) { _tilesetShader.setTilesetFrame(f); }
@@ -190,12 +187,6 @@ private:
 
     void drawCursorTiles(const grid<uint16_t>& tiles, const point& cursorPos, const Geometry& geo);
     void placeTiles(const grid<uint16_t>& tiles, const point cursorPos);
-
-    void loadTilesetFrameImage(const UnTech::MetaTiles::MetaTileTilesetInput& tileset);
-
-    void updateTilesetFrames(const UnTech::MetaTiles::MetaTileTilesetData& tileset);
-    void updateTilesetFrame(const UnTech::MetaTiles::MetaTileTilesetData& tileset, unsigned frameId);
-    void updateTilesetPaletteData(const UnTech::Resources::PaletteData& palette);
 
     void updateCollisionsTexture(const UnTech::MetaTiles::MetaTileTilesetInput& tileset);
 };

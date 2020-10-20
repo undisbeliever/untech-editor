@@ -11,6 +11,7 @@
 #include "gui/graphics/tilecollisionimage.h"
 #include "gui/style.h"
 #include "gui/windows/message-box.h"
+#include "models/common/imagecache.h"
 #include "models/common/optional.h"
 #include <iostream>
 
@@ -593,12 +594,26 @@ inline void MtTileset::drawTextures_openGL()
 
         glBindFramebuffer(GL_FRAMEBUFFER, _tilesTextureFrameBuffer);
 
-        if (_tilesetFrame < _tilesetFrames.size() && _paletteFrame < nPaletteFrames()) {
+        bool valid = _tilesetData && _paletteData
+                     && _tilesetFrame < _tilesetFrames.size()
+                     && _paletteFrame < _palette.height();
+
+        if (valid) {
             MtTilesetTilesShader::draw(_tilesetFrames.at(_tilesetFrame), _palette, _paletteFrame);
         }
         else {
-            glClearColor(0.25, 0.0f, 0.25f, 0.5f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            std::shared_ptr<const Image> image;
+            if (_tilesetFrame < _tilesetImageFilenames.size()) {
+                image = ImageCache::loadPngImage(_tilesetImageFilenames.at(_tilesetFrame));
+            }
+
+            if (image && image->size() == usize(TEXTURE_SIZE, TEXTURE_SIZE)) {
+                _tilesTexture.replace(*image);
+            }
+            else {
+                glClearColor(0.75f, 0.75f, 0.75f, 0.5f);
+                glClear(GL_COLOR_BUFFER_BIT);
+            }
         }
 
         _tilesTextureValid = true;

@@ -5,6 +5,7 @@
  */
 
 #include "imgui.h"
+#include "shaders.h"
 #include "untech-editor.h"
 #include "gui/windows/about-popup.h"
 #include "gui/windows/fps-window.h"
@@ -14,7 +15,6 @@
 #if defined(IMGUI_IMPL_SDL_OPENGL)
 #include "opengl/imgui_impl_opengl3.hpp"
 #include "opengl/imgui_sdl_opengl3.hpp"
-#include "opengl/shaders_opengl3.hpp"
 #endif
 
 static void setupGui(ImGuiIO& io)

@@ -13,6 +13,13 @@
 
 namespace UnTech::MetaTiles {
 enum class TileCollisionType : uint8_t;
+
+struct MetaTileTilesetInput;
+struct MetaTileTilesetData;
+}
+
+namespace UnTech::Resources {
+struct PaletteData;
 }
 
 namespace UnTech::Gui::Shaders {
@@ -33,12 +40,17 @@ private:
     using TileCollisionData = std::array<MetaTiles::TileCollisionType, N_METATILES>;
 
 private:
+    std::shared_ptr<const MetaTiles::MetaTileTilesetData> _tilesetData;
+    std::shared_ptr<const Resources::PaletteData> _paletteData;
+    std::vector<std::filesystem::path> _tilesetImageFilenames;
+
     Texture _texture;
     Texture _tilesTexture;
     Texture8 _tileCollisionsData;
 
     Texture _palette;
     unsigned _paletteFrame;
+    unsigned _nPaletteFrames;
 
     std::array<Texture8, 32> _tilesetFrames;
     unsigned _nTilesetFrames;
@@ -68,10 +80,14 @@ public:
 
     const Texture8& tileCollisionsData() const { return _tileCollisionsData; }
 
-    void reset()
-    {
-        _tilesTextureValid = false;
-    }
+    const auto& tilesetData() const { return _tilesetData; }
+    const auto& paletteData() const { return _paletteData; }
+
+    void reset();
+
+    void setPaletteData(const std::shared_ptr<const Resources::PaletteData>& paletteData);
+    void setTilesetData(const MetaTiles::MetaTileTilesetInput& input,
+                        const std::shared_ptr<const MetaTiles::MetaTileTilesetData>& tilesetData);
 
     void setTileCollisions(const TileCollisionData& tileCollisions)
     {
@@ -86,7 +102,7 @@ public:
         }
     }
 
-    inline unsigned nPaletteFrames() const { return _palette.height(); }
+    inline unsigned nPaletteFrames() const { return _nPaletteFrames; }
     inline unsigned nTilesetFrames() const { return _nTilesetFrames; }
 
     inline unsigned paletteFrame() const { return _paletteFrame; }
@@ -120,21 +136,6 @@ public:
     void nextPaletteFrame()
     {
         setPaletteFrame(_paletteFrame + 1);
-    }
-
-    void setPaletteImage(const Image& pal)
-    {
-        const bool sizeChanged = _palette.size() != pal.size();
-
-        _palette.replace(pal);
-
-        assert(pal.size().height == 0 || pal.size().width == UINT8_MAX);
-
-        if (sizeChanged) {
-            setPaletteFrame(0);
-        }
-
-        _tilesTextureValid = false;
     }
 
     void setTilesetFrame(unsigned n)
@@ -175,18 +176,6 @@ public:
 
             _tilesTextureValid = false;
         }
-    }
-
-    void setTextureImage(const Image* image)
-    {
-        if (image && image->size() == usize(256, 256)) {
-            _tilesTexture.replace(*image);
-        }
-        else {
-            _tilesTexture.replaceWithMissingImageSymbol();
-        }
-
-        _tilesTextureValid = true;
     }
 };
 
@@ -233,5 +222,11 @@ public:
 
     void addToDrawList(ImDrawList* drawList, const ImVec2& pos, const ImVec2& size, const MtTileset& tileset) const;
 };
+
+void initialize();
+void cleanup();
+
+void newFrame();
+void processOffscreenRendering();
 
 }

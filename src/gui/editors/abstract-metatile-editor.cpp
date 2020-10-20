@@ -10,7 +10,6 @@
 #include "gui/imgui.h"
 #include "gui/style.h"
 #include "gui/texture.h"
-#include "models/common/imagecache.h"
 #include "models/common/vectorset-upoint.h"
 #include "models/project/project-data.h"
 #include <algorithm>
@@ -280,10 +279,6 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
     , _currentEditMode(EditMode::SelectTiles)
     , _cursor()
     , _animationTimer()
-    , _tilesetIndex(INT_MAX)
-    , _paletteIndex(INT_MAX)
-    , _tilesetData(nullptr)
-    , _paletteData(nullptr)
     , _tilemapOutOfDate(true)
     , _tilesetOutOfDate(true)
     , _collisionTextureOutOfDate(true)
@@ -372,11 +367,9 @@ void AbstractMetaTileEditorGui::editorOpened()
 
     _animationTimer.reset();
 
+    _tilesetShader.reset();
     _tilesetShader.setShowTiles(showTiles);
     _tilesetShader.setShowTileCollisions(showTileCollisions);
-
-    _tilesetData = nullptr;
-    _paletteData = nullptr;
 
     _cursor.mapDirty = false;
     _cursor.currentlyEditing = false;
@@ -907,9 +900,7 @@ void AbstractMetaTileEditorGui::setEditMode(EditMode mode)
 void AbstractMetaTileEditorGui::animationButtons()
 {
     if (ImGui::ToggledButton("Play", _animationTimer.isActive())) {
-        if (_tilesetData && _paletteData) {
-            _animationTimer.playPause();
-        }
+        _animationTimer.playPause();
     }
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
@@ -1053,48 +1044,18 @@ void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectF
         }
 
         const auto mtData = projectData.metaTileTilesets().at(_tilesetIndex);
-        if (mtData != _tilesetData) {
-            if (_tilesetData == nullptr) {
-                _tilemapOutOfDate = true;
-            }
+        _tilesetShader.setTilesetData(*tileset, mtData);
 
-            if (mtData == nullptr) {
-                _paletteData = nullptr;
-                _tilesetOutOfDate = true;
-            }
+        const auto palData = projectData.palettes().at(_paletteIndex);
+        _tilesetShader.setPaletteData(palData);
 
-            _tilesetData = mtData;
-        }
-
-        if (_tilesetData) {
-            const auto palData = projectData.palettes().at(_paletteIndex);
-            if (_paletteData != palData) {
-                _paletteData = palData;
-                if (_paletteData) {
-                    updateTilesetPaletteData(*palData);
-                    _tilesetOutOfDate = true;
-                }
-            }
-        }
-
-        if (_tilesetData && _paletteData) {
+        if (mtData && palData) {
             _animationTimer.process(
-                _tilesetData->animatedTileset.animationDelay, [&] { _tilesetShader.nextTilesetFrame(); },
-                _paletteData->animationDelay, [&] { _tilesetShader.nextPaletteFrame(); });
+                mtData->animatedTileset.animationDelay, [&] { _tilesetShader.nextTilesetFrame(); },
+                palData->animationDelay, [&] { _tilesetShader.nextPaletteFrame(); });
         }
         else {
             _animationTimer.stop();
-        }
-
-        if (_tilesetOutOfDate) {
-            if (_tilesetData) {
-                updateTilesetFrames(*_tilesetData);
-            }
-            if (_tilesetData == nullptr || _paletteData == nullptr) {
-                loadTilesetFrameImage(*tileset);
-            }
-
-            _tilesetOutOfDate = false;
         }
     }
     else {
@@ -1103,124 +1064,6 @@ void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectF
         _tilesetOutOfDate = true;
         _collisionTextureOutOfDate = true;
     }
-}
-
-void AbstractMetaTileEditorGui::loadTilesetFrameImage(const MetaTiles::MetaTileTilesetInput& tileset)
-{
-    assert(_data);
-
-    const auto& filenames = tileset.animationFrames.frameImageFilenames;
-
-    _tilesetShader.setNTilesetFrames(filenames.size());
-
-    const unsigned fIndex = _tilesetShader.tilesetFrame();
-
-    std::shared_ptr<const Image> image;
-    if (fIndex < filenames.size()) {
-        image = ImageCache::loadPngImage(filenames.at(fIndex));
-    }
-
-    _tilesetShader.setTextureImage(image.get());
-
-    _tilesetOutOfDate = false;
-}
-
-void AbstractMetaTileEditorGui::updateTilesetFrames(const MetaTiles::MetaTileTilesetData& tileset)
-{
-    const unsigned nFrames = tileset.animatedTileset.nAnimatedFrames();
-
-    _tilesetShader.setNTilesetFrames(nFrames);
-
-    for (unsigned i = 0; i < nFrames; i++) {
-        updateTilesetFrame(tileset, i);
-    }
-}
-
-void AbstractMetaTileEditorGui::updateTilesetFrame(const MetaTiles::MetaTileTilesetData& tileset, unsigned frameIndex)
-{
-    constexpr unsigned TILE_SIZE = Snes::Tile8px::TILE_SIZE;
-    constexpr unsigned IMAGE_HEIGHT = TILESET_HEIGHT * METATILE_SIZE_PX;
-    constexpr unsigned IMAGE_WIDTH = TILESET_WIDTH * METATILE_SIZE_PX;
-
-    const static Snes::Tile8px blankTile{};
-    const static std::vector<Snes::SnesColor> blankPalette;
-
-    static grid<uint8_t> image(IMAGE_WIDTH, IMAGE_HEIGHT);
-
-    static_assert(METATILE_SIZE_PX == TILE_SIZE * 2);
-    assert(tileset.animatedTileset.tileMap.size() == usize(TILESET_WIDTH * 2, TILESET_HEIGHT * 2));
-
-    const auto& animatedTilesFrames = tileset.animatedTileset.animatedTiles;
-
-    const auto& staticTiles = tileset.animatedTileset.staticTiles;
-    const auto& animatedTiles = frameIndex < animatedTilesFrames.size() ? animatedTilesFrames.at(frameIndex) : tileset.animatedTileset.staticTiles;
-    const auto& map = tileset.animatedTileset.tileMap;
-    const unsigned nPaletteColors = 1 << tileset.animatedTileset.staticTiles.bitDepthInt();
-    const unsigned pixelMask = staticTiles.pixelMask();
-
-    auto mapIt = map.cbegin();
-
-    for (unsigned y = 0; y < IMAGE_HEIGHT; y += TILE_SIZE) {
-        auto imageScanline = image.begin() + y * IMAGE_WIDTH;
-
-        for (unsigned x = 0; x < IMAGE_WIDTH; x += TILE_SIZE) {
-            Snes::TilemapEntry tm = *mapIt++;
-
-            const Snes::Tile8px& tile = [&]() {
-                const auto c = tm.character();
-                if (c < staticTiles.size()) {
-                    return staticTiles.at(c);
-                }
-                else if (c < staticTiles.size() + animatedTiles.size()) {
-                    return animatedTiles.at(c - staticTiles.size());
-                }
-                return blankTile;
-            }();
-
-            const uint8_t palOffset = tm.palette() * nPaletteColors;
-            auto tileIt = tile.data().begin();
-
-            for (unsigned ty = 0; ty < tile.TILE_SIZE; ty++) {
-                unsigned fty = (tm.vFlip() == false) ? ty : TILE_SIZE - 1 - ty;
-
-                auto imageBits = imageScanline + fty * IMAGE_WIDTH;
-
-                for (unsigned tx = 0; tx < tile.TILE_SIZE; tx++) {
-                    unsigned ftx = (tm.hFlip() == false) ? tx : TILE_SIZE - 1 - tx;
-
-                    const auto tc = *tileIt & pixelMask;
-                    imageBits[ftx] = tc != 0 ? (tc + palOffset) & 0xff : 0;
-
-                    tileIt++;
-                }
-            }
-            assert(tileIt == tile.data().end());
-
-            imageScanline += TILE_SIZE;
-        }
-    }
-    assert(mapIt == map.cend());
-
-    _tilesetShader.setTilesetFrame(frameIndex, image);
-}
-
-void AbstractMetaTileEditorGui::updateTilesetPaletteData(const Resources::PaletteData& palette)
-{
-    Image image(UINT8_MAX, palette.paletteFrames.size());
-    image.fill(rgba(255, 0, 255, 255));
-
-    for (unsigned palIndex = 0; palIndex < palette.paletteFrames.size(); palIndex++) {
-        const auto& palFrame = palette.paletteFrames.at(palIndex);
-        const unsigned nColors = std::min<unsigned>(palFrame.size(), UINT8_MAX);
-
-        rgba* imgBits = image.scanline(palIndex);
-        for (unsigned c = 0; c < nColors; c++) {
-            imgBits[c] = palFrame.at(c).rgb();
-        }
-        assert(imgBits <= image.data() + image.dataSize());
-    }
-
-    _tilesetShader.setPaletteImage(image);
 }
 
 void AbstractMetaTileEditorGui::updateCollisionsTexture(const MetaTiles::MetaTileTilesetInput& tileset)
