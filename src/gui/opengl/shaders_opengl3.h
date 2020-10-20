@@ -47,6 +47,7 @@ private:
     GLuint _textureFrameBuffer = 0;
     GLuint _tilesTextureFrameBuffer = 0;
 
+    bool _textureValid;
     bool _tilesTextureValid;
 
     bool _showTiles;
@@ -69,9 +70,7 @@ public:
 
     void reset()
     {
-        _tilesTexture.replaceWithMissingImageSymbol();
-
-        requestUpdate();
+        _tilesTextureValid = false;
     }
 
     void setTileCollisions(const TileCollisionData& tileCollisions)
@@ -82,10 +81,10 @@ public:
         _tileCollisionsData.setData(usize(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE),
                                     reinterpret_cast<const uint8_t*>(tileCollisions.data()));
 
-        requestUpdate();
+        if (_showTileCollisions) {
+            _textureValid = false;
+        }
     }
-
-    void requestUpdate();
 
     inline unsigned nPaletteFrames() const { return _palette.height(); }
     inline unsigned nTilesetFrames() const { return _nTilesetFrames; }
@@ -96,13 +95,15 @@ public:
     void setShowTiles(bool s)
     {
         _showTiles = s;
-        requestUpdate();
+
+        _textureValid = false;
     }
 
     void setShowTileCollisions(bool s)
     {
         _showTileCollisions = s;
-        requestUpdate();
+
+        _textureValid = false;
     }
 
     void setPaletteFrame(unsigned n)
@@ -113,7 +114,6 @@ public:
             _paletteFrame = n;
 
             _tilesTextureValid = false;
-            requestUpdate();
         }
     }
 
@@ -135,7 +135,6 @@ public:
         }
 
         _tilesTextureValid = false;
-        requestUpdate();
     }
 
     void setTilesetFrame(unsigned n)
@@ -146,7 +145,6 @@ public:
             _tilesetFrame = n;
 
             _tilesTextureValid = false;
-            requestUpdate();
         }
     }
 
@@ -163,8 +161,8 @@ public:
             _nTilesetFrames = n;
             if (_tilesetFrame >= _nTilesetFrames) {
                 _tilesetFrame = 0;
+                _tilesTextureValid = false;
             }
-            _tilesTextureValid = false;
         }
     }
 
@@ -176,7 +174,6 @@ public:
             _tilesetFrames.at(n).setData(tiles);
 
             _tilesTextureValid = false;
-            requestUpdate();
         }
     }
 
@@ -190,7 +187,6 @@ public:
         }
 
         _tilesTextureValid = true;
-        requestUpdate();
     }
 };
 

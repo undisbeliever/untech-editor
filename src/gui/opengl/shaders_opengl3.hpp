@@ -18,7 +18,7 @@ namespace UnTech::Gui::Shaders {
 
 static bool g_initialized = false;
 
-static MtTileset* mtTilesetUpdateRequested = nullptr;
+static std::vector<MtTileset*> mtTilesetInstances;
 
 static void CheckShader(GLuint handle, const char* name)
 {
@@ -451,8 +451,6 @@ void initialize()
         return;
     }
 
-    mtTilesetUpdateRequested = nullptr;
-
     MtTilesetVertexShader::initialize();
     MtTilesetTilesShader::initialize();
     TileCollisions::initialize();
@@ -463,7 +461,8 @@ void initialize()
 
 void cleanup()
 {
-    mtTilesetUpdateRequested = nullptr;
+    // all MtTileset instances should be destroyed before calling cleanup().
+    assert(mtTilesetInstances.empty());
 
     MtTilesetVertexShader::cleanup();
     MtTilesetTilesShader::cleanup();
@@ -528,10 +527,14 @@ MtTileset::MtTileset()
     , _tilesetFrame(0)
     , _textureFrameBuffer(0)
     , _tilesTextureFrameBuffer(0)
+    , _textureValid(true)
     , _tilesTextureValid(true)
     , _showTiles(true)
     , _showTileCollisions(true)
 {
+    // Add to list of MtTileset instances
+    mtTilesetInstances.push_back(this);
+
     // Setup _texture FBO
     {
         glGenFramebuffers(1, &_textureFrameBuffer);
@@ -563,21 +566,21 @@ MtTileset::MtTileset()
 
 MtTileset::~MtTileset()
 {
-    if (mtTilesetUpdateRequested == this) {
-        mtTilesetUpdateRequested = nullptr;
-    }
+    // Remove from list of MtTileset instances
+    auto it = std::find(mtTilesetInstances.begin(), mtTilesetInstances.end(), this);
+    assert(it != mtTilesetInstances.end());
+    mtTilesetInstances.erase(it);
 
     glDeleteFramebuffers(1, &_textureFrameBuffer);
     glDeleteFramebuffers(1, &_tilesTextureFrameBuffer);
 }
 
-void MtTileset::requestUpdate()
+inline void MtTileset::drawTextures_openGL()
 {
-    mtTilesetUpdateRequested = this;
-}
+    if (_tilesTextureValid && _textureValid) {
+        return;
+    }
 
-void MtTileset::drawTextures_openGL()
-{
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
 
@@ -625,6 +628,8 @@ void MtTileset::drawTextures_openGL()
         TileCollisions::draw(_tileCollisionsData);
     }
 
+    _textureValid = true;
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -661,10 +666,8 @@ void newFrame()
 
 void processOffscreenRendering()
 {
-    if (mtTilesetUpdateRequested) {
-        mtTilesetUpdateRequested->drawTextures_openGL();
-
-        mtTilesetUpdateRequested = nullptr;
+    for (auto* mt : mtTilesetInstances) {
+        mt->drawTextures_openGL();
     }
 }
 
