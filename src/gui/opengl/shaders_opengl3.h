@@ -172,10 +172,12 @@ public:
     {
         assert(tiles.size() == usize(TEXTURE_SIZE, TEXTURE_SIZE));
 
-        _tilesetFrames.at(n).setData(tiles);
+        if (n < _tilesetFrames.size()) {
+            _tilesetFrames.at(n).setData(tiles);
 
-        _tilesTextureValid = false;
-        requestUpdate();
+            _tilesTextureValid = false;
+            requestUpdate();
+        }
     }
 
     void setTextureImage(const Image* image)
