@@ -61,8 +61,9 @@ private:
     Texture _entityTexture;
     std::shared_ptr<const EntityGraphics> _entityGraphics;
 
-    bool _scratchpadTilemapValid;
-    bool _tilesetAndPaletteIndexValid;
+    grid<uint8_t> _scratchpad;
+
+    bool _mtTilesetValid;
 
 public:
     RoomEditorGui();
@@ -89,11 +90,9 @@ private:
     void drawObjects(ImDrawList* drawList);
     void drawAndEditObjects(ImDrawList* drawList);
 
-    const grid<uint8_t>& scratchpad(const Project::ProjectFile& projectFile) const;
-
     void updateEntityGraphics();
-    void updateTilesetAndPaletteIndex(const Project::ProjectFile& projectFile);
-    void updateScratchpadTilemap(const grid<uint8_t>& scratchpad);
+    void updateTilesetData(const Project::ProjectFile& projectFile,
+                           const Project::ProjectData& projectData);
 };
 
 }

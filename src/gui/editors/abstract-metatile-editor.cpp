@@ -280,8 +280,6 @@ AbstractMetaTileEditorGui::AbstractMetaTileEditorGui()
     , _cursor()
     , _animationTimer()
     , _tilemapOutOfDate(true)
-    , _tilesetOutOfDate(true)
-    , _collisionTextureOutOfDate(true)
 {
 }
 
@@ -293,7 +291,6 @@ bool AbstractMetaTileEditorGui::setEditorData(AbstractEditorData* data)
 void AbstractMetaTileEditorGui::editorDataChanged()
 {
     markTilemapOutOfDate();
-    markTexturesOutOfDate();
 }
 
 void AbstractMetaTileEditorGui::markTilemapOutOfDate()
@@ -301,54 +298,9 @@ void AbstractMetaTileEditorGui::markTilemapOutOfDate()
     _tilemapOutOfDate = true;
 }
 
-void AbstractMetaTileEditorGui::markTexturesOutOfDate()
-{
-    _tilesetOutOfDate = true;
-    _collisionTextureOutOfDate = true;
-}
-
-void AbstractMetaTileEditorGui::markTilesetOutOfDate()
-{
-    _tilesetOutOfDate = true;
-}
-
-void AbstractMetaTileEditorGui::markCollisionTextureOutOfDate()
-{
-    _collisionTextureOutOfDate = true;
-}
-
-void AbstractMetaTileEditorGui::setTilesetIndex(unsigned index)
-{
-    if (_tilesetIndex != index) {
-        _tilesetIndex = index;
-
-        resetState();
-        resetSelectorState();
-
-        _cursor.tiles = grid<uint16_t>();
-        setEditMode(EditMode::SelectTiles);
-
-        _animationTimer.reset();
-
-        _tilesetOutOfDate = true;
-    }
-}
-
-void AbstractMetaTileEditorGui::setPaletteIndex(unsigned index)
-{
-    if (_paletteIndex != index) {
-        _paletteIndex = index;
-
-        _animationTimer.reset();
-
-        _tilesetOutOfDate = true;
-    }
-}
-
 void AbstractMetaTileEditorGui::resetState()
 {
     markTilemapOutOfDate();
-    markTexturesOutOfDate();
     abandonPlacedTiles();
 }
 
@@ -375,7 +327,7 @@ void AbstractMetaTileEditorGui::editorOpened()
     _cursor.currentlyEditing = false;
     // Do not change cursor
 
-    markTexturesOutOfDate();
+    markTilemapOutOfDate();
 }
 
 void AbstractMetaTileEditorGui::editorClosed()
@@ -560,7 +512,7 @@ void AbstractMetaTileEditorGui::minimapWindow(const char* label)
 }
 
 bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label, const Shaders::MtTilemap& tilemap,
-                                                        const grid<uint8_t>* mapData, upoint_vectorset* sel)
+                                                        const grid<uint8_t>& mapData, upoint_vectorset* sel)
 {
     assert(_data);
 
@@ -576,10 +528,10 @@ bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label, const
             drawSelection(*sel, geo);
 
             const bool sc = scratchpadTilesSelector.processSelection(sel, geo, tilemap.gridSize());
-            if (sc && mapData) {
+            if (sc) {
                 selChanged = true;
 
-                createTileCursor(*mapData, *sel);
+                createTileCursor(mapData, *sel);
                 if (_currentEditMode == EditMode::SelectTiles) {
                     setEditMode(EditMode::PlaceTiles);
                 }
@@ -1023,56 +975,25 @@ void AbstractMetaTileEditorGui::createTileCursor(const grid<uint8_t>& map, const
         [&](upoint p) { return map.at(p); }));
 }
 
-void AbstractMetaTileEditorGui::updateTilemapAndTextures(const Project::ProjectFile& projectFile,
-                                                         const Project::ProjectData& projectData)
+void AbstractMetaTileEditorGui::updateMapAndProcessAnimations()
 {
-    assert(_data);
-
     if (_tilemapOutOfDate) {
         _tilemap.setMapData(_data->map());
 
         _tilemapOutOfDate = false;
     }
 
-    const auto* tileset = _tilesetIndex < projectFile.metaTileTilesets.size()
-                              ? projectFile.metaTileTilesets.at(_tilesetIndex)
-                              : nullptr;
+    auto& mtData = _tilesetShader.tilesetData();
+    auto& palData = _tilesetShader.paletteData();
 
-    if (tileset) {
-        if (_collisionTextureOutOfDate) {
-            updateCollisionsTexture(*tileset);
-        }
-
-        const auto mtData = projectData.metaTileTilesets().at(_tilesetIndex);
-        _tilesetShader.setTilesetData(*tileset, mtData);
-
-        const auto palData = projectData.palettes().at(_paletteIndex);
-        _tilesetShader.setPaletteData(palData);
-
-        if (mtData && palData) {
-            _animationTimer.process(
-                mtData->animatedTileset.animationDelay, [&] { _tilesetShader.nextTilesetFrame(); },
-                palData->animationDelay, [&] { _tilesetShader.nextPaletteFrame(); });
-        }
-        else {
-            _animationTimer.stop();
-        }
+    if (mtData && palData) {
+        _animationTimer.process(
+            mtData->animatedTileset.animationDelay, [&] { _tilesetShader.nextTilesetFrame(); },
+            palData->animationDelay, [&] { _tilesetShader.nextPaletteFrame(); });
     }
     else {
-        setPaletteIndex(INT_MAX);
-        _tilesetShader.reset();
-        _tilesetOutOfDate = true;
-        _collisionTextureOutOfDate = true;
+        _animationTimer.stop();
     }
-}
-
-void AbstractMetaTileEditorGui::updateCollisionsTexture(const MetaTiles::MetaTileTilesetInput& tileset)
-{
-    assert(_data);
-
-    _tilesetShader.setTileCollisions(tileset.tileCollisions);
-
-    _collisionTextureOutOfDate = false;
 }
 
 }

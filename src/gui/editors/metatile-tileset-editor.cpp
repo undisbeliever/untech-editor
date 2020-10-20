@@ -21,6 +21,8 @@
 
 namespace UnTech::Gui {
 
+// ::TODO do not recompile tileset if scratchpad changes::
+
 static constexpr unsigned METATILE_SIZE_PX = MetaTiles::METATILE_SIZE_PX;
 
 using MetaTileTilesetInput = UnTech::MetaTiles::MetaTileTilesetInput;
@@ -144,6 +146,8 @@ MetaTileTilesetEditorGui::MetaTileTilesetEditorGui()
     , _data(nullptr)
     , _scratchpadSize()
     , _tileProperties(std::nullopt)
+    , _tilesetShaderImageFilenamesValid(false)
+    , _tileCollisionsValid(false)
 {
 }
 
@@ -158,10 +162,10 @@ void MetaTileTilesetEditorGui::editorDataChanged()
     resetState();
     resetTileProperties();
 
-    if (_data) {
-        // itemIndex may have changed
-        setTilesetIndex(_data->itemIndex().index);
+    _tilesetShaderImageFilenamesValid = false;
+    _tileCollisionsValid = false;
 
+    if (_data) {
         _scratchpadSize = _data->data.scratchpad.size();
     }
 }
@@ -175,6 +179,7 @@ void MetaTileTilesetEditorGui::editorOpened()
     setEditMode(EditMode::SelectTiles);
 
     _invalidTilesCompileId = 0;
+    _tileCollisionsValid = false;
 }
 
 void MetaTileTilesetEditorGui::editorClosed()
@@ -291,8 +296,9 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
                 ImGui::SetNextItemWidth(-1);
                 if (ImGui::InputPngImageFilename("##Image", &imageFilename)) {
+                    _tilesetShaderImageFilenamesValid = false;
+
                     ListActions<AP::FrameImages>::itemEdited(_data, i);
-                    markTexturesOutOfDate();
                 }
                 ImGui::NextColumn();
 
@@ -368,7 +374,7 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
 
             ImGui::Indent();
 
-            if (const auto& td = tilesetData()) {
+            if (const auto& td = _tilesetShader.tilesetData()) {
                 ImGui::LabelText("Static Tiles", "%u", unsigned(td->animatedTileset.staticTiles.size()));
                 ImGui::LabelText("Animated Tiles", "%u", unsigned(td->animatedTileset.nAnimatedTiles()));
             }
@@ -459,7 +465,7 @@ void MetaTileTilesetEditorGui::tileCollisionClicked(const MetaTiles::TileCollisi
     EditorActions<AP::MtTileset>::fieldEdited<
         &MetaTileTilesetInput::tileCollisions>(_data);
 
-    markCollisionTextureOutOfDate();
+    _tileCollisionsValid = true;
 }
 
 void MetaTileTilesetEditorGui::tilePriorityClicked(const unsigned subTile, const bool v)
@@ -742,10 +748,10 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
         return;
     }
 
-    setTilesetFrame(_data->tilesetFrameSel.selectedIndex());
+    _tilesetShader.setTilesetFrame(_data->tilesetFrameSel.selectedIndex());
 
-    updatePaletteIndex(projectFile);
-    updateTilemapAndTextures(projectFile, projectData);
+    updateMtTilesetShader(projectData);
+    updateMapAndProcessAnimations();
     updateInvalidTileList(projectData);
 
     propertiesWindow(projectFile);
@@ -758,21 +764,37 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
     minimapWindow("Scratchpad Minimap###Tileset_Scratchpad_MiniMap");
 
     if (!_data->tilesetFrameSel.isSelectionChanging()) {
-        _data->tilesetFrameSel.setSelected(tilesetFrame());
+        // Number of frames in the compiled data might not equal frameImageFilenames.size()
+        if (_data->data.animationFrames.frameImageFilenames.size() == _tilesetShader.nTilesetFrames()) {
+            _data->tilesetFrameSel.setSelected(_tilesetShader.tilesetFrame());
+        }
     }
 }
 
-void MetaTileTilesetEditorGui::updatePaletteIndex(const Project::ProjectFile& projectFile)
+void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectData& projectData)
 {
     assert(_data);
     auto& mtTileset = _data->data;
 
     if (_data->paletteSel.selectedIndex() < mtTileset.palettes.size()) {
-        const auto& paletteName = mtTileset.palettes.at(_data->paletteSel.selectedIndex());
-        setPaletteIndex(projectFile.palettes.indexOf(paletteName));
+        auto& paletteName = mtTileset.palettes.at(_data->paletteSel.selectedIndex());
+
+        const auto palData = projectData.palettes().at(paletteName);
+        if (palData != _tilesetShader.paletteData()) {
+            _tilesetShader.setPaletteData(palData);
+        }
     }
-    else {
-        setPaletteIndex(INT_MAX);
+
+    const auto mtData = projectData.metaTileTilesets().at(_data->itemIndex().index);
+    if (mtData != _tilesetShader.tilesetData() || !_tilesetShaderImageFilenamesValid) {
+        _tilesetShader.setTilesetData(mtTileset, mtData);
+        _tilesetShaderImageFilenamesValid = true;
+    }
+
+    if (!_tileCollisionsValid) {
+        _tilesetShader.setTileCollisions(mtTileset.tileCollisions);
+
+        _tileCollisionsValid = true;
     }
 }
 

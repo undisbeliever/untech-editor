@@ -63,6 +63,9 @@ private:
     std::vector<InvalidImageErrorGraphics> _invalidTilesFrame;
     unsigned _invalidTilesCompileId;
 
+    bool _tilesetShaderImageFilenamesValid;
+    bool _tileCollisionsValid;
+
 public:
     MetaTileTilesetEditorGui();
 
@@ -91,7 +94,7 @@ private:
     void tilesetWindow();
     void scratchpadWindow();
 
-    void updatePaletteIndex(const Project::ProjectFile& projectFile);
+    void updateMtTilesetShader(const Project::ProjectData& projectData);
     void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 

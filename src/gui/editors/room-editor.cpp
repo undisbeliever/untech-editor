@@ -13,6 +13,7 @@
 #include "gui/imgui.h"
 #include "gui/list-actions.h"
 #include "gui/style.h"
+#include "models/project/project-data.h"
 #include "models/rooms/rooms-serializer.h"
 
 namespace UnTech::Gui {
@@ -180,8 +181,7 @@ RoomEditorGui::RoomEditorGui()
     , _graphics()
     , _entityTexture()
     , _entityGraphics(nullptr)
-    , _scratchpadTilemapValid(false)
-    , _tilesetAndPaletteIndexValid(false)
+    , _mtTilesetValid(false)
 {
 }
 
@@ -195,8 +195,7 @@ void RoomEditorGui::editorDataChanged()
 {
     AbstractMetaTileEditorGui::resetState();
 
-    _scratchpadTilemapValid = false;
-    _tilesetAndPaletteIndexValid = false;
+    _mtTilesetValid = false;
 
     if (_data) {
         _mapSize = _data->data.map.size();
@@ -237,7 +236,7 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
         }
 
         if (ImGui::IdStringCombo("Scene", &room.scene, projectFile.resourceScenes.scenes)) {
-            _tilesetAndPaletteIndexValid = false;
+            _mtTilesetValid = false;
 
             EditorActions<AP::Room>::fieldEdited<
                 &RM::RoomInput::scene>(_data);
@@ -635,18 +634,9 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
         return;
     }
 
+    updateMapAndProcessAnimations();
     updateEntityGraphics();
-    updateTilesetAndPaletteIndex(projectFile);
-    updateTilemapAndTextures(projectFile, projectData);
-
-    const grid<uint8_t>* scratchpad = nullptr;
-    if (tilesetIndex() < projectFile.metaTileTilesets.size()) {
-        if (auto* mt = projectFile.metaTileTilesets.at(tilesetIndex())) {
-            scratchpad = &mt->scratchpad;
-
-            updateScratchpadTilemap(*scratchpad);
-        }
-    }
+    updateTilesetData(projectFile, projectData);
 
     propertiesWindow(projectFile);
     entrancesWindow();
@@ -658,7 +648,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
     minimapWindow("Minimap##Room");
 
-    if (scratchpadMinimapWindow("Scratchpad##Room", _scratchpadTilemap, scratchpad, &_data->selectedScratchpadTiles)) {
+    if (scratchpadMinimapWindow("Scratchpad##Room", _scratchpadTilemap, _scratchpad, &_data->selectedScratchpadTiles)) {
         _data->selectedScratchpadTilesChanged();
         selectionChanged();
     }
@@ -683,14 +673,15 @@ void RoomEditorGui::updateEntityGraphics()
     _entityTexture.replace(_entityGraphics->image());
 }
 
-void RoomEditorGui::updateTilesetAndPaletteIndex(const Project::ProjectFile& projectFile)
+void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
+                                      const Project::ProjectData& projectData)
 {
     assert(_data);
     auto& room = _data->data;
 
     // ::TODO invalidate tilesetIndex when ResourceScenes is compiled::
 
-    if (_tilesetAndPaletteIndexValid) {
+    if (_mtTilesetValid) {
         return;
     }
 
@@ -715,25 +706,21 @@ void RoomEditorGui::updateTilesetAndPaletteIndex(const Project::ProjectFile& pro
         }
     }
 
-    _scratchpadTilemapValid = false;
+    _scratchpad = grid<uint8_t>(0, 0);
 
-    setTilesetIndex(tilesetIndex);
-    setPaletteIndex(paletteIndex);
+    _tilesetShader.setPaletteData(projectData.palettes().at(paletteIndex));
 
-    _tilesetAndPaletteIndexValid = true;
-}
-
-void RoomEditorGui::updateScratchpadTilemap(const grid<uint8_t>& scratchpad)
-{
-    assert(_data);
-
-    if (_scratchpadTilemapValid) {
-        return;
+    if (tilesetIndex < projectFile.metaTileTilesets.size()) {
+        if (auto* tileset = projectFile.metaTileTilesets.at(tilesetIndex)) {
+            _scratchpad = tileset->scratchpad;
+            _tilesetShader.setTilesetData(*tileset, projectData.metaTileTilesets().at(tilesetIndex));
+            _tilesetShader.setTileCollisions(tileset->tileCollisions);
+        }
     }
 
-    _scratchpadTilemap.setMapData(scratchpad);
+    _scratchpadTilemap.setMapData(_scratchpad);
 
-    _scratchpadTilemapValid = true;
+    _mtTilesetValid = true;
 }
 
 }

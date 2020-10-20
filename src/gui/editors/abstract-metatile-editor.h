@@ -83,7 +83,10 @@ public:
 private:
     AbstractMetaTileEditorData* _data;
 
+protected:
     Shaders::MtTileset _tilesetShader;
+
+private:
     Shaders::MtTilemap _tilemap;
 
     EditMode _currentEditMode;
@@ -91,12 +94,7 @@ private:
 
     DualAnimationTimer _animationTimer;
 
-    unsigned _tilesetIndex;
-    unsigned _paletteIndex;
-
     bool _tilemapOutOfDate;
-    bool _tilesetOutOfDate;
-    bool _collisionTextureOutOfDate;
 
     static bool showGrid;
     static bool showTiles;
@@ -118,26 +116,12 @@ protected:
     void showLayerButtons();
 
     void markTilemapOutOfDate();
-    void markTexturesOutOfDate();
-    void markTilesetOutOfDate();
-    void markCollisionTextureOutOfDate();
-
-    unsigned tilesetIndex() const { return _tilesetIndex; }
-    unsigned paletteIndex() const { return _paletteIndex; }
-
-    void setTilesetIndex(unsigned index);
-    void setPaletteIndex(unsigned index);
-
-    const auto& tilesetData() const { return _tilesetShader.tilesetData(); }
-
-    unsigned tilesetFrame() const { return _tilesetShader.tilesetFrame(); }
-    void setTilesetFrame(unsigned f) { _tilesetShader.setTilesetFrame(f); }
-
-    // To be called at the start of `processGui`
-    void updateTilemapAndTextures(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
     // To be called in `loadDataFromProject`
     void resetState();
+
+    // To be called at the start of `processGui`
+    void updateMapAndProcessAnimations();
 
     // AutoZoom will zoom based on the width of the window
     Geometry mapGeometry(const usize size, const ImVec2 zoom);
@@ -153,7 +137,7 @@ protected:
 
     // Returns true if sel changed
     bool scratchpadMinimapWindow(const char* label, const Shaders::MtTilemap& tilemap,
-                                 const grid<uint8_t>* mapData, upoint_vectorset* sel);
+                                 const grid<uint8_t>& mapData, upoint_vectorset* sel);
 
     // The previous Dear ImGui item must be an invisible button that covers the entire map
     void drawTileset(const Geometry& geo);
@@ -187,8 +171,6 @@ private:
 
     void drawCursorTiles(const grid<uint16_t>& tiles, const point& cursorPos, const Geometry& geo);
     void placeTiles(const grid<uint16_t>& tiles, const point cursorPos);
-
-    void updateCollisionsTexture(const UnTech::MetaTiles::MetaTileTilesetInput& tileset);
 };
 
 }
