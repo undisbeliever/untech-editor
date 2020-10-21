@@ -181,6 +181,7 @@ RoomEditorGui::RoomEditorGui()
     , _graphics()
     , _entityTexture()
     , _entityGraphics(nullptr)
+    , _scenesData(nullptr)
     , _mtTilesetValid(false)
 {
 }
@@ -196,6 +197,7 @@ void RoomEditorGui::editorDataChanged()
     AbstractMetaTileEditorGui::resetState();
 
     _mtTilesetValid = false;
+    _scenesData = nullptr;
 
     if (_data) {
         _mapSize = _data->data.map.size();
@@ -679,7 +681,11 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     assert(_data);
     auto& room = _data->data;
 
-    // ::TODO invalidate tilesetIndex when ResourceScenes is compiled::
+    const auto scenes = projectData.scenes();
+    if (_scenesData != scenes) {
+        _scenesData = scenes;
+        _mtTilesetValid = false;
+    }
 
     if (_mtTilesetValid) {
         return;
@@ -688,37 +694,56 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     unsigned tilesetIndex = INT_MAX;
     unsigned paletteIndex = INT_MAX;
 
-    // ::TODO use compiled data to get MetaTile id and palette id::
+    if (scenes) {
+        if (auto s = scenes->findScene(room.scene)) {
+            tilesetIndex = s->mtTileset.value_or(INT_MAX);
+            paletteIndex = s->palette.value_or(INT_MAX);
+        }
+    }
+    else {
+        if (auto scene = projectFile.resourceScenes.scenes.find(room.scene)) {
+            paletteIndex = projectFile.palettes.indexOf(scene->palette);
 
-    if (auto scene = projectFile.resourceScenes.scenes.find(room.scene)) {
-        paletteIndex = projectFile.palettes.indexOf(scene->palette);
-
-        if (auto sceneSettings = projectFile.resourceScenes.settings.find(scene->sceneSettings)) {
-            for (unsigned layerId = 0; layerId < sceneSettings->layerTypes.size(); layerId++) {
-                if (sceneSettings->layerTypes.at(layerId) == UnTech::Resources::LayerType::MetaTileTileset) {
-                    const auto& mt = scene->layers.at(layerId);
-                    if (mt.isValid()) {
-                        tilesetIndex = projectFile.metaTileTilesets.indexOf(mt);
-                        break;
+            if (auto sceneSettings = projectFile.resourceScenes.settings.find(scene->sceneSettings)) {
+                for (unsigned layerId = 0; layerId < sceneSettings->layerTypes.size(); layerId++) {
+                    if (sceneSettings->layerTypes.at(layerId) == UnTech::Resources::LayerType::MetaTileTileset) {
+                        const auto& mt = scene->layers.at(layerId);
+                        if (mt.isValid()) {
+                            tilesetIndex = projectFile.metaTileTilesets.indexOf(mt);
+                            break;
+                        }
                     }
                 }
             }
         }
     }
 
-    _scratchpad = grid<uint8_t>(0, 0);
-
     _tilesetShader.setPaletteData(projectData.palettes().at(paletteIndex));
 
-    if (tilesetIndex < projectFile.metaTileTilesets.size()) {
-        if (auto* tileset = projectFile.metaTileTilesets.at(tilesetIndex)) {
+    const auto mtData = projectData.metaTileTilesets().at(tilesetIndex);
+    const bool mtDataChanged = mtData != _tilesetShader.tilesetData();
+
+    if (mtDataChanged || !mtData) {
+        const auto* tileset = tilesetIndex < projectFile.metaTileTilesets.size()
+                                  ? projectFile.metaTileTilesets.at(tilesetIndex)
+                                  : nullptr;
+
+        if (tileset) {
             _scratchpad = tileset->scratchpad;
-            _tilesetShader.setTilesetData(*tileset, projectData.metaTileTilesets().at(tilesetIndex));
+        }
+        else {
+            _scratchpad = grid<uint8_t>(0, 0);
+        }
+        _scratchpadTilemap.setMapData(_scratchpad);
+
+        if (tileset) {
+            _tilesetShader.setTilesetData(*tileset, mtData);
             _tilesetShader.setTileCollisions(tileset->tileCollisions);
         }
+        else {
+            _tilesetShader.reset();
+        }
     }
-
-    _scratchpadTilemap.setMapData(_scratchpad);
 
     _mtTilesetValid = true;
 }

@@ -61,6 +61,9 @@ private:
     Texture _entityTexture;
     std::shared_ptr<const EntityGraphics> _entityGraphics;
 
+    // Used to determine if the compiled scenes data has changed.
+    std::shared_ptr<const Resources::CompiledScenesData> _scenesData;
+
     grid<uint8_t> _scratchpad;
 
     bool _mtTilesetValid;
