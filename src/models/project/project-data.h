@@ -25,6 +25,9 @@ struct FrameSetData;
 namespace UnTech {
 class ErrorList;
 
+template <typename T>
+class ExternalFileList;
+
 namespace Resources {
 struct PaletteData;
 struct BackgroundImageData;
@@ -50,6 +53,7 @@ class ProjectDataSlots;
 namespace UnTech {
 namespace Project {
 struct ProjectFile;
+class ProjectData;
 
 enum class ResourceState {
     Unchecked,
@@ -96,12 +100,22 @@ public:
     // MUST NOT add a write functions in the header file
 
     void clearAllAndResize(size_t size);
-    void setStatus(unsigned index, ResourceStatus&& status);
+
+    // Returns the old name and current name of the resource
+    std::pair<std::string, std::string> setStatus(unsigned index, ResourceStatus&& status);
+
     void setStatusKeepName(unsigned index, ResourceStatus&& status);
     void updateState();
 
+    void markAllUnchecked();
+    void markUnchecked(unsigned index);
+
     template <typename ListT>
     void clearAllAndPopulateNames(const ListT& list);
+
+    std::string name(unsigned index) const;
+    ResourceState state(unsigned index) const;
+    ResourceState listState() const;
 
     template <typename Function>
     void readResourceListState(Function f) const
@@ -192,7 +206,9 @@ public:
     }
 
     void clearAllAndResize(size_t size);
-    void store(const size_t index, ResourceStatus&& status, std::shared_ptr<const T>&& data);
+
+    // Returns the old name and current name of the resource
+    std::pair<std::string, std::string> store(const size_t index, ResourceStatus&& status, std::shared_ptr<const T>&& data);
 };
 
 class ProjectSettingsData {
@@ -238,8 +254,39 @@ public:
     void store(std::shared_ptr<const Entity::CompiledEntityRomData>&& data);
 };
 
+class ProjectDependencies {
+private:
+    struct Mappings {
+        std::vector<idstring> preresquite;
+
+        // Mapping of resource name -> indexes of items that depend on the name
+        std::unordered_multimap<std::string, unsigned> dependants;
+    };
+
+private:
+    mutable std::shared_mutex _mutex;
+
+    Mappings _exportOrder_frameSet;
+
+    Mappings _palette_backgroundImage;
+    Mappings _palette_metaTileTilesets;
+
+public:
+    ProjectDependencies() = default;
+
+    void createDependencyGraph(const ProjectFile& project);
+    void updateDependencyGraph(const ProjectFile& project, const ResourceType type, const unsigned index);
+
+    void markProjectSettingsDepenantsUnchecked(ProjectData& projectData, ProjectSettingsIndex index);
+    void markDependantsUnchecked(ProjectData& projectData, const ResourceType type, const std::string& oldName, const std::string& name);
+};
+
 class ProjectData {
 private:
+    friend class ProjectDependencies;
+
+    ProjectDependencies _dependencies;
+
     ResourceListStatus _projectSettingsStatus;
     ResourceListStatus _frameSetExportOrderStatus;
 
@@ -251,7 +298,7 @@ private:
     DataStore<MetaTiles::MetaTileTilesetData> _metaTileTilesets;
     DataStore<Rooms::RoomData> _rooms;
 
-    std::array<std::reference_wrapper<const ResourceListStatus>, N_RESOURCE_TYPES> _resourceListStatuses;
+    std::array<std::reference_wrapper<ResourceListStatus>, N_RESOURCE_TYPES> _resourceListStatuses;
 
 private:
     ProjectData(const ProjectData&) = delete;
@@ -277,13 +324,33 @@ public:
 
     const ResourceListStatus& resourceListStatus(const ResourceType type) const { return _resourceListStatuses.at(static_cast<unsigned>(type)); }
 
+    // To be called when the resource list changes
+    void clearAndPopulateNamesAndDependencies(const ProjectFile& project);
+
+    void updateDependencyGraph(const ProjectFile& project, const ResourceType type, const unsigned index);
+
+    void markResourceInvalid(const ResourceType type, const unsigned index);
+
     bool compileAll_EarlyExit(const ProjectFile& project) { return compileAll(project, true); }
     bool compileAll_NoEarlyExit(const ProjectFile& project) { return compileAll(project, false); }
 
 private:
     bool compileAll(const ProjectFile& project, const bool earlyExit);
 
-    bool storePsStatus(ProjectSettingsIndex index, ResourceStatus&& newStatus);
+    template <typename DataT, typename ConvertFunction, class InputT, typename... PreresquitesT>
+    bool compilePs(const ProjectSettingsIndex indexEnum, ConvertFunction convertFunction, const InputT& input, const PreresquitesT&... prerequisites);
+
+    template <typename ValidateFunction, class InputT>
+    bool validatePs(const ProjectSettingsIndex indexEnum, const ValidateFunction validateFunction, const InputT& input);
+
+    template <typename ValidateFunction, class InputT>
+    bool validateList(const ValidateFunction validateFunction, ResourceListStatus& statusList, const ResourceType type,
+                      const ExternalFileList<InputT>& inputList);
+
+    template <typename DataT, typename ConvertFunction, class InputListT, typename... PreresquitesT>
+    bool compileList(ConvertFunction convertFunction, DataStore<DataT>& dataStore, const ResourceType type,
+                     const InputListT& inputList,
+                     const PreresquitesT&... prerequisites);
 };
 
 }

@@ -478,6 +478,36 @@ void BackgroundThread::run()
 
             isProcessing = true;
 
+            {
+                std::unique_lock lock(mutex);
+
+                if (markAllResourcesInvalidFlag) {
+                    projectFile.read([&](auto& pf) {
+                        static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
+
+                        projectData.clearAndPopulateNamesAndDependencies(pf);
+                    });
+
+                    markResourceInvalidQueue.clear();
+                    markAllResourcesInvalidFlag = false;
+                }
+
+                if (!markResourceInvalidQueue.empty()) {
+                    for (auto& r : markResourceInvalidQueue) {
+                        projectData.markResourceInvalid(r.type, r.index);
+
+                        // ::TODO add separate quque for updating dependencies::
+                        // ::: and add flag in EditorUndoAction to mark when dependencies changes::
+                        projectFile.read([&](auto& pf) {
+                            static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
+                            projectData.updateDependencyGraph(pf, r.type, r.index);
+                        });
+                    }
+
+                    markResourceInvalidQueue.clear();
+                }
+            }
+
             if (!projectDataValid.test_and_set()) {
                 // ::TODO only process resources that have changed. ::
                 // ::: Use a mutex to access changed list ::
@@ -511,6 +541,8 @@ BackgroundThread::BackgroundThread(Project::ProjectFileMutex& pf, Project::Proje
     , pendingAction(false)
     , isProcessing(false)
     , projectDataValid(false)
+    , markAllResourcesInvalidFlag(true)
+    , markResourceInvalidQueue()
 {
     thread = std::thread(&BackgroundThread::run, this);
 }
@@ -538,7 +570,7 @@ void BackgroundThread::markProjectListsInvalid()
     {
         std::lock_guard lock(mutex);
 
-        // ::TODO add flag to mark all resources invalid and reset resourceListStaus names::
+        markAllResourcesInvalidFlag = true;
 
         projectDataValid.clear();
         pendingAction = true;
@@ -546,12 +578,12 @@ void BackgroundThread::markProjectListsInvalid()
     cv.notify_all();
 }
 
-void BackgroundThread::markResourceInvalid(ItemIndex)
+void BackgroundThread::markResourceInvalid(const ItemIndex index)
 {
     {
         std::lock_guard lock(mutex);
 
-        // ::TODO add index to a queue to process later (lock list using the mutex)::
+        markResourceInvalidQueue.push_back(index);
 
         projectDataValid.clear();
         pendingAction = true;

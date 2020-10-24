@@ -40,6 +40,9 @@ private:
 
     std::atomic_flag projectDataValid;
 
+    std::atomic_bool markAllResourcesInvalidFlag;
+    std::vector<ItemIndex> markResourceInvalidQueue;
+
 public:
     BackgroundThread(UnTech::Project::ProjectFileMutex& pf,
                      UnTech::Project::ProjectData& pd);
