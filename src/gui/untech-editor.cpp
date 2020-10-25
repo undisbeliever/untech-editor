@@ -540,7 +540,12 @@ void BackgroundThread::run()
             cv.wait(lock, [&]() { return pendingAction || !threadActive; });
         }
     }
-    catch (const std::exception&) {
+    catch (const std::exception& ex) {
+        MessageBox::showMessage("An exception occurred when compiling a resource",
+                                stringBuilder(ex.what(), "\n\n\nThis should not happen."
+                                                         "\n\nThe resource compiler is now disabled."));
+
+        projectData.markAllResourcesInvalid();
     }
 
     isProcessing = false;

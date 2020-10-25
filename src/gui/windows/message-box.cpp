@@ -7,10 +7,13 @@
 #include "message-box.h"
 #include "gui/imgui.h"
 #include <cmath>
+#include <mutex>
 
 namespace UnTech::Gui::MessageBox {
 
 static const std::string dialogSuffix = "###MessageBox";
+
+static std::mutex mutex;
 
 static std::string title;
 static std::string message;
@@ -18,6 +21,8 @@ static bool toOpen = false;
 
 void showMessage(const std::string& t, const std::string& m)
 {
+    std::lock_guard lock(mutex);
+
     title = t + dialogSuffix;
     message = m;
     toOpen = true;
@@ -25,6 +30,8 @@ void showMessage(const std::string& t, const std::string& m)
 
 void showMessage(const std::string& t, const char* m)
 {
+    std::lock_guard lock(mutex);
+
     title = t + dialogSuffix;
     message = m;
     toOpen = true;
@@ -32,6 +39,8 @@ void showMessage(const std::string& t, const char* m)
 
 void processGui()
 {
+    std::lock_guard lock(mutex);
+
     if (toOpen) {
         ImGui::OpenPopup(dialogSuffix.c_str());
         toOpen = false;

@@ -791,6 +791,13 @@ void ProjectData::updateDependencyGraph(const ProjectFile& project, const Resour
     _dependencies.updateDependencyGraph(project, type, index);
 }
 
+void ProjectData::markAllResourcesInvalid()
+{
+    for (auto& r : _resourceListStatuses) {
+        r.get().markAllUnchecked();
+    }
+}
+
 void ProjectData::markResourceInvalid(const ResourceType type, const unsigned index)
 {
     _resourceListStatuses.at(static_cast<unsigned>(type)).get().markUnchecked(index);

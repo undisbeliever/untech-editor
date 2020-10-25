@@ -329,6 +329,7 @@ public:
 
     void updateDependencyGraph(const ProjectFile& project, const ResourceType type, const unsigned index);
 
+    void markAllResourcesInvalid();
     void markResourceInvalid(const ResourceType type, const unsigned index);
 
     bool compileAll_EarlyExit(const ProjectFile& project) { return compileAll(project, true); }
