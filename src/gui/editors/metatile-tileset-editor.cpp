@@ -48,8 +48,7 @@ struct MetaTileTilesetEditorData::AP {
         using GridT = grid<uint8_t>;
         using ListArgsT = std::tuple<>;
 
-        constexpr static unsigned MAX_WIDTH = 255;
-        constexpr static unsigned MAX_HEIGHT = 255;
+        const static usize MAX_SIZE;
         constexpr static uint8_t DEFAULT_VALUE = 0;
 
         constexpr static auto SelectionPtr = &EditorT::selectedTiles;
@@ -81,6 +80,8 @@ struct MetaTileTilesetEditorData::AP {
         static ListT* getList(EditorDataT& editorData) { return &editorData.animationFrames.frameImageFilenames; }
     };
 };
+
+const usize MetaTileTilesetEditorData::AP::Scratchpad::MAX_SIZE(UINT8_MAX, UINT8_MAX);
 
 MetaTileTilesetEditorData::MetaTileTilesetEditorData(ItemIndex itemIndex)
     : AbstractMetaTileEditorData(itemIndex)
@@ -203,14 +204,10 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
                 &MetaTileTilesetInput::name>(_data);
         }
 
-        ImGui::InputUsize("Scratchpad Size", &_scratchpadSize, usize(255, 255));
+        ImGui::InputUsize("Scratchpad Size", &_scratchpadSize, AP::Scratchpad::MAX_SIZE);
         if (ImGui::IsItemDeactivatedAfterEdit()) {
             GridActions<AP::Scratchpad>::resizeGrid(_data, _scratchpadSize);
             markTilemapOutOfDate();
-        }
-        if (!ImGui::IsItemActive()) {
-            // ::TODO use callback to update scratchpad size::
-            _scratchpadSize = tileset.scratchpad.size();
         }
 
         {

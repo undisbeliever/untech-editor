@@ -43,8 +43,8 @@ struct RoomEditorData::AP {
         using GridT = grid<uint8_t>;
         using ListArgsT = std::tuple<>;
 
-        constexpr static unsigned MAX_WIDTH = RM::RoomInput::MAX_MAP_WIDTH;
-        constexpr static unsigned MAX_HEIGHT = RM::RoomInput::MAX_MAP_HEIGHT;
+        const static usize MIN_SIZE;
+        const static usize MAX_SIZE;
         constexpr static uint8_t DEFAULT_VALUE = 0;
 
         constexpr static auto SelectionPtr = &EditorT::selectedTiles;
@@ -95,6 +95,9 @@ struct RoomEditorData::AP {
         }
     };
 };
+
+const usize RoomEditorData::AP::Map::MIN_SIZE(RM::RoomInput::MIN_MAP_WIDTH, RM::RoomInput::MIN_MAP_HEIGHT);
+const usize RoomEditorData::AP::Map::MAX_SIZE(RM::RoomInput::MAX_MAP_WIDTH, RM::RoomInput::MAX_MAP_HEIGHT);
 
 RoomEditorData::RoomEditorData(ItemIndex itemIndex)
     : AbstractMetaTileEditorData(itemIndex)
@@ -223,9 +226,6 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
     assert(_data);
     auto& room = _data->data;
 
-    const static usize minMapSize(RM::RoomInput::MIN_MAP_WIDTH, RM::RoomInput::MIN_MAP_HEIGHT);
-    const static usize maxMapSize(RM::RoomInput::MAX_MAP_WIDTH, RM::RoomInput::MAX_MAP_HEIGHT);
-
     ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Room Properties")) {
 
@@ -244,17 +244,13 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
                 &RM::RoomInput::scene>(_data);
         }
 
-        if (ImGui::InputUsize("Map Size", &_mapSize, maxMapSize)) {
-            _mapSize.width = std::max(_mapSize.width, minMapSize.width);
-            _mapSize.height = std::max(_mapSize.height, minMapSize.height);
+        if (ImGui::InputUsize("Map Size", &_mapSize, AP::Map::MAX_SIZE)) {
+            _mapSize.width = std::max(_mapSize.width, AP::Map::MIN_SIZE.width);
+            _mapSize.height = std::max(_mapSize.height, AP::Map::MIN_SIZE.height);
         }
         if (ImGui::IsItemDeactivatedAfterEdit()) {
             GridActions<AP::Map>::resizeGrid(_data, _mapSize);
             markTilemapOutOfDate();
-        }
-        if (!ImGui::IsItemActive()) {
-            // ::TODO use callback to update scratchpad size::
-            _mapSize = room.map.size();
         }
     }
 

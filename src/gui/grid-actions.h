@@ -207,8 +207,8 @@ struct GridActions {
 
         if (newSize.width < 1
             || newSize.height < 1
-            || newSize.width > ActionPolicy::MAX_WIDTH
-            || newSize.height > ActionPolicy::MAX_HEIGHT) {
+            || newSize.width > ActionPolicy::MAX_SIZE.width
+            || newSize.height > ActionPolicy::MAX_SIZE.height) {
 
             return;
         }
