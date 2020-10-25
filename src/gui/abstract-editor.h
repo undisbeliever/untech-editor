@@ -71,8 +71,6 @@ public:
     // Called after processGui and after an undo action has been processed.
     virtual void updateSelection() = 0;
 
-    // ::TODO add imageFileChanged(const std::filesystem::path&); ::
-
     // Undo functions MUST NOT be called by an EditorUndoAction instance
     void addAction(std::unique_ptr<EditorUndoAction>&& action);
 
@@ -137,7 +135,7 @@ public:
 
     // Called when the editor data is changed outside this GUI class.
     // (Note: also called after `setEditorData`)
-    // Called after undo, redo or setEditorData
+    // Called after undo, redo, ImageCache invalidation or setEditorData
     virtual void editorDataChanged() = 0;
 
     virtual void editorOpened() = 0;

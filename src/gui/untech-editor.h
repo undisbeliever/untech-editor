@@ -48,7 +48,7 @@ public:
                      UnTech::Project::ProjectData& pd);
     ~BackgroundThread();
 
-    void markProjectListsInvalid();
+    void markAllResourcesInvalid();
     void markResourceInvalid(ItemIndex index);
 
 private:
@@ -109,6 +109,8 @@ private:
     bool saveProjectFile(const Project::ProjectFile& pf);
     bool saveEditor(const Project::ProjectFile& pf, AbstractEditorData* editor);
     bool saveAll(const Project::ProjectFile& pf);
+
+    void invalidateImageCache();
 
     void processMenu(const Project::ProjectFile& pf);
 

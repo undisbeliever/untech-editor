@@ -12,6 +12,7 @@
 #include "gui/windows/error-list-window.h"
 #include "gui/windows/message-box.h"
 #include "gui/windows/projectlist.h"
+#include "models/common/imagecache.h"
 #include "models/project/project.h"
 
 namespace UnTech::Gui {
@@ -240,6 +241,15 @@ bool UnTechEditor::saveAll(const Project::ProjectFile& pf)
     return ok;
 }
 
+void UnTechEditor::invalidateImageCache()
+{
+    ImageCache::invalidateImageCache();
+    _backgroundThread.markAllResourcesInvalid();
+    if (_currentEditorGui) {
+        _currentEditorGui->editorDataChanged();
+    }
+}
+
 void UnTechEditor::processMenu(const Project::ProjectFile& pf)
 {
     using namespace std::string_literals;
@@ -267,6 +277,11 @@ void UnTechEditor::processMenu(const Project::ProjectFile& pf)
         ImGui::Separator();
 
         _projectListWindow.processMenu();
+
+        ImGui::Separator();
+        if (ImGui::MenuItem("Invalidate ImageCache and Recompile Everything")) {
+            invalidateImageCache();
+        }
 
         ImGui::Separator();
 
@@ -453,7 +468,7 @@ void UnTechEditor::updateProjectFile()
             closeEditor(pf);
             _projectListWindow.processPendingActions(pf, _editors);
 
-            _backgroundThread.markProjectListsInvalid();
+            _backgroundThread.markAllResourcesInvalid();
         }
 
         if (_projectListWindow.selectedIndex()) {
@@ -565,7 +580,7 @@ BackgroundThread::~BackgroundThread()
     assert(isProcessing == false);
 }
 
-void BackgroundThread::markProjectListsInvalid()
+void BackgroundThread::markAllResourcesInvalid()
 {
     {
         std::lock_guard lock(mutex);
