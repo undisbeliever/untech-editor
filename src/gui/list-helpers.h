@@ -52,7 +52,7 @@ bool ListButtons(typename ActionPolicy::EditorT* editor)
     }
     ImGui::SameLine();
 
-    if (ImGui::ButtonWithTooltip("RT", "Raise to Top")) {
+    if (ImGui::ButtonWithTooltip("Rt", "Raise to Top")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::RAISE_TO_TOP);
         listChanged = true;
     }
@@ -70,7 +70,7 @@ bool ListButtons(typename ActionPolicy::EditorT* editor)
     }
     ImGui::SameLine();
 
-    if (ImGui::ButtonWithTooltip("LB", "Lower to Bottom")) {
+    if (ImGui::ButtonWithTooltip("Lb", "Lower to Bottom")) {
         ListActions<ActionPolicy>::editList(editor, EditListAction::LOWER_TO_BOTTOM);
         listChanged = true;
     }

@@ -166,8 +166,6 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
         ImGui::SetWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
 
         {
-            // ::TODO add icons::
-
             ImGui::ToggledButtonWithTooltip("P##Play", &_animationTimer.active, "Play");
             ImGui::SameLine();
 
@@ -177,7 +175,7 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
             }
             ImGui::SameLine();
 
-            if (ImGui::ButtonWithTooltip("N##Skip", "Skip Animation Frame")) {
+            if (ImGui::ButtonWithTooltip("S##Skip", "Skip Animation Frame")) {
                 _animationTimer.stop();
                 _animationState.nextAnimationFrame();
             }

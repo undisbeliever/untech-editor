@@ -851,24 +851,25 @@ void AbstractMetaTileEditorGui::setEditMode(EditMode mode)
 
 void AbstractMetaTileEditorGui::animationButtons()
 {
-    if (ImGui::ToggledButton("Play", _animationTimer.isActive())) {
+    if (ImGui::ToggledButton("P##Play", _animationTimer.isActive())) {
         _animationTimer.playPause();
     }
     if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
+        ImGui::TextUnformatted("Pause/Play Animations");
         ImGui::Text("Tileset Frame: %u", unsigned(_tilesetShader.tilesetFrame()));
         ImGui::Text("Palette Frame: %u", unsigned(_tilesetShader.paletteFrame()));
         ImGui::EndTooltip();
     }
     ImGui::SameLine();
 
-    if (ImGui::ButtonWithTooltip("NT##NextTileset", "Next Tileset Frame")) {
+    if (ImGui::ButtonWithTooltip("N##NextTileset", "Next Tileset Frame")) {
         _animationTimer.stop();
         _tilesetShader.nextTilesetFrame();
     }
     ImGui::SameLine();
 
-    if (ImGui::ButtonWithTooltip("NP##NextPalette", "Next Palette Frame")) {
+    if (ImGui::ButtonWithTooltip("N##NextPalette", "Next Palette Frame")) {
         _animationTimer.stop();
         _tilesetShader.nextPaletteFrame();
     }
