@@ -10,19 +10,12 @@ namespace UnTech::Gui {
 
 class Texture;
 
-struct AboutPopup {
-    static const char* const windowTitle;
-    static bool openOnNextFrame;
+namespace AboutPopup {
 
-    static void openPopup()
-    {
-        openOnNextFrame = true;
-    }
+void openPopup();
 
-    static void processGui();
+void processGui();
 
-private:
-    static const Texture& logoTexture();
-};
+}
 
 }

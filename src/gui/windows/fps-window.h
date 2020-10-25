@@ -8,14 +8,10 @@
 
 namespace UnTech::Gui {
 
-struct FpsWindow {
-    static const char* const windowTitle;
-    static bool _open;
+namespace FpsWindow {
 
-    static bool isOpen() { return _open; }
-    static void open() { _open = true; }
+void processGui();
 
-    static void processGui();
-};
+}
 
 }

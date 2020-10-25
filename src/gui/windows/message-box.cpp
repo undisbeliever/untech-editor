@@ -8,29 +8,29 @@
 #include "gui/imgui.h"
 #include <cmath>
 
-namespace UnTech::Gui {
+namespace UnTech::Gui::MessageBox {
 
 static const std::string dialogSuffix = "###MessageBox";
 
-std::string MessageBox::title;
-std::string MessageBox::message;
-bool MessageBox::toOpen = false;
+static std::string title;
+static std::string message;
+static bool toOpen = false;
 
-void MessageBox::showMessage(const std::string& t, const std::string& m)
+void showMessage(const std::string& t, const std::string& m)
 {
     title = t + dialogSuffix;
     message = m;
     toOpen = true;
 }
 
-void MessageBox::showMessage(const std::string& t, const char* m)
+void showMessage(const std::string& t, const char* m)
 {
     title = t + dialogSuffix;
     message = m;
     toOpen = true;
 }
 
-void MessageBox::processGui()
+void processGui()
 {
     if (toOpen) {
         ImGui::OpenPopup(dialogSuffix.c_str());

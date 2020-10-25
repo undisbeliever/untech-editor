@@ -7,18 +7,18 @@
 #include "fps-window.h"
 #include "gui/imgui.h"
 
-namespace UnTech::Gui {
+namespace UnTech::Gui::FpsWindow {
 
 // ::TODO add show FPS Window to View menu::
-bool FpsWindow::_open = true;
+static bool open = true;
 
-void FpsWindow::processGui()
+void processGui()
 {
-    if (!_open) {
+    if (!open) {
         return;
     }
 
-    if (ImGui::Begin("FPS", &_open)) {
+    if (ImGui::Begin("FPS", &open)) {
         const auto& io = ImGui::GetIO();
 
         ImGui::Text("%.3f ms/frame (%.1f FPS)", float(io.DeltaTime * 1000.0f), float(1.0f / io.DeltaTime));

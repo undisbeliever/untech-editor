@@ -12,10 +12,10 @@
 #include "gui/untech-editor.h"
 #include "models/common/image.h"
 
-namespace UnTech::Gui {
+namespace UnTech::Gui::AboutPopup {
 
-const char* const AboutPopup::windowTitle = "About UnTech Editor";
-bool AboutPopup::openOnNextFrame = false;
+static const char* const windowTitle = "About UnTech Editor";
+static bool openOnNextFrame = false;
 
 static Image logoImage()
 {
@@ -73,13 +73,18 @@ static Image logoImage()
     return image;
 }
 
-const Texture& AboutPopup::logoTexture()
+static const Texture& logoTexture()
 {
     static const Texture tex = Texture::createFromImage(logoImage());
     return tex;
 }
 
-void AboutPopup::processGui()
+void openPopup()
+{
+    openOnNextFrame = true;
+}
+
+void processGui()
 {
     using namespace std::string_literals;
 
