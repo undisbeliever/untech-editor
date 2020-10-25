@@ -80,10 +80,17 @@ static void writeIncList(std::stringstream& incData, const std::string& typeName
 {
     incData << "\nnamespace " << typeName << " {\n";
 
-    for (unsigned id = 0; id < dataStore.size(); id++) {
-        const auto item = dataStore.at(id);
-        incData << "  constant " << item->name << " = " << id << '\n';
-    }
+    dataStore.readResourceListState([&](auto state, const auto& resources) {
+        static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
+
+        assert(state == ResourceState::Valid);
+
+        for (unsigned id = 0; id < resources.size(); id++) {
+            const auto& s = resources.at(id);
+            assert(s.state == ResourceState::Valid);
+            incData << "  constant " << s.name << " = " << id << '\n';
+        }
+    });
     incData << "}\n"
                "\n";
 }

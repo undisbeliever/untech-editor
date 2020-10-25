@@ -249,7 +249,6 @@ compileFrameSet(const MetaSprite::FrameSet& frameSet,
     auto out = std::make_shared<FrameSetData>();
     const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
 
-    out->name = frameSet.name;
     out->tileset = processTileset(frameSet, tilesetLayout);
     out->frames = processFrameList(exportList, out->tileset, actionPointMapping);
     out->animations = processAnimations(exportList);

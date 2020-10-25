@@ -96,7 +96,6 @@ convertTileset(const MetaTileTilesetInput& input,
     }
 
     auto ret = std::make_shared<MetaTileTilesetData>(std::move(*aniFrames));
-    ret->name = input.name;
     ret->palettes = input.palettes;
     ret->tileCollisions = input.tileCollisions;
 

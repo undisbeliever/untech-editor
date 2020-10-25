@@ -34,8 +34,6 @@ struct FrameData {
 };
 
 struct FrameSetData {
-    idstring name;
-
     TilesetData tileset;
 
     std::vector<FrameData> frames;

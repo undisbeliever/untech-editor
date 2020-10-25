@@ -172,7 +172,6 @@ struct MetaTileTilesetInput {
 struct MetaTileTilesetData {
     static const int TILESET_FORMAT_VERSION;
 
-    idstring name;
     std::vector<idstring> palettes;
     std::array<uint8_t, N_METATILES> tileFunctionTables;
     std::array<TileCollisionType, N_METATILES> tileCollisions;

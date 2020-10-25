@@ -307,7 +307,6 @@ compileRoom(const RoomInput& input,
     }
 
     auto out = std::make_shared<RoomData>();
-    out->name = input.name;
 
     std::vector<uint8_t>& data = out->data;
     data.resize(dataSize);

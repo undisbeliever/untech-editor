@@ -140,7 +140,6 @@ struct RoomInput {
 struct RoomData {
     const static int ROOM_FORMAT_VERSION;
 
-    idstring name;
     std::vector<uint8_t> data;
 
     bool validate(ErrorList&) const { return data.empty() == false; }

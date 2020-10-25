@@ -60,8 +60,6 @@ struct BackgroundImageData {
 
     const static int BACKGROUND_IMAGE_FORMAT_VERSION;
 
-    idstring name;
-
     unsigned conversionPaletteIndex;
 
     Snes::Tileset8px tiles;

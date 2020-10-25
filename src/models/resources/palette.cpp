@@ -106,7 +106,6 @@ Resources::convertPalette(const PaletteInput& input, ErrorList& err)
     const unsigned colorsPerFrame = imgSize.width * input.rowsPerFrame;
 
     auto ret = std::make_shared<PaletteData>();
-    ret->name = input.name;
     ret->animationDelay = input.animationDelay;
 
     auto extractPalette = [&](std::vector<SnesColor>& frame, unsigned frameId) {

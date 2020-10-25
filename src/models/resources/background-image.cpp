@@ -114,7 +114,6 @@ convertBackgroundImage(const BackgroundImageInput& input, const Project::DataSto
 
     auto ret = std::make_shared<BackgroundImageData>(input.bitDepth);
 
-    ret->name = input.name;
     ret->conversionPaletteIndex = *paletteIndex;
 
     Snes::TilesetInserter8px staticTilesetInserter(ret->tiles);
