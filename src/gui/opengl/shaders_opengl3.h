@@ -26,6 +26,7 @@ namespace UnTech::Gui::Shaders {
 
 void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd);
 
+// NOTE: This class is NOT thread safe.
 struct MtTileset {
 private:
     MtTileset(const MtTileset&) = delete;
@@ -80,14 +81,15 @@ public:
 
     const Texture8& tileCollisionsData() const { return _tileCollisionsData; }
 
-    const auto& tilesetData() const { return _tilesetData; }
-    const auto& paletteData() const { return _paletteData; }
+    const std::shared_ptr<const MetaTiles::MetaTileTilesetData>& tilesetData() const { return _tilesetData; }
+    const std::shared_ptr<const Resources::PaletteData>& paletteData() const { return _paletteData; }
 
     void reset();
 
-    void setPaletteData(const std::shared_ptr<const Resources::PaletteData>& paletteData);
+    void setPaletteData(std::shared_ptr<const Resources::PaletteData> pd);
+
     void setTilesetData(const MetaTiles::MetaTileTilesetInput& input,
-                        const std::shared_ptr<const MetaTiles::MetaTileTilesetData>& tilesetData);
+                        std::shared_ptr<const MetaTiles::MetaTileTilesetData> tilesetData);
 
     void setTileCollisions(const TileCollisionData& tileCollisions)
     {

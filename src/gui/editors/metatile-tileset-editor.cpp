@@ -779,15 +779,12 @@ void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectData&
     if (_data->paletteSel.selectedIndex() < mtTileset.palettes.size()) {
         auto& paletteName = mtTileset.palettes.at(_data->paletteSel.selectedIndex());
 
-        const auto palData = projectData.palettes().at(paletteName);
-        if (palData != _tilesetShader.paletteData()) {
-            _tilesetShader.setPaletteData(palData);
-        }
+        _tilesetShader.setPaletteData(projectData.palettes().at(paletteName));
     }
 
     const auto mtData = projectData.metaTileTilesets().at(_data->itemIndex().index);
     if (mtData != _tilesetShader.tilesetData() || !_tilesetShaderImageFilenamesValid) {
-        _tilesetShader.setTilesetData(mtTileset, mtData);
+        _tilesetShader.setTilesetData(mtTileset, std::move(mtData));
         _tilesetShaderImageFilenamesValid = true;
     }
 

@@ -105,10 +105,10 @@ void MtTileset::reset()
     _tilesTextureValid = false;
 }
 
-void MtTileset::setPaletteData(const std::shared_ptr<const Resources::PaletteData>& paletteData)
+void MtTileset::setPaletteData(std::shared_ptr<const UnTech::Resources::PaletteData> pd)
 {
-    if (_paletteData != paletteData) {
-        _paletteData = paletteData;
+    if (_paletteData != pd) {
+        _paletteData = std::move(pd);
 
         if (_paletteData) {
             const Image pal = drawPaletteImage(*_paletteData);
@@ -127,12 +127,12 @@ void MtTileset::setPaletteData(const std::shared_ptr<const Resources::PaletteDat
 }
 
 void MtTileset::setTilesetData(const MetaTiles::MetaTileTilesetInput& input,
-                               const std::shared_ptr<const MetaTiles::MetaTileTilesetData>& tilesetData)
+                               std::shared_ptr<const MetaTiles::MetaTileTilesetData> td)
 {
     _tilesetImageFilenames = input.animationFrames.frameImageFilenames;
 
-    if (_tilesetData != tilesetData) {
-        _tilesetData = tilesetData;
+    if (_tilesetData != td) {
+        _tilesetData = std::move(td);
 
         if (_tilesetData) {
             static grid<uint8_t> image(METATILE_SIZE_PX * TILESET_WIDTH, METATILE_SIZE_PX * TILESET_HEIGHT);

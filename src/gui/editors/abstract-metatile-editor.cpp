@@ -983,8 +983,8 @@ void AbstractMetaTileEditorGui::updateMapAndProcessAnimations()
         _tilemapOutOfDate = false;
     }
 
-    auto& mtData = _tilesetShader.tilesetData();
-    auto& palData = _tilesetShader.paletteData();
+    const auto& mtData = _tilesetShader.tilesetData();
+    const auto& palData = _tilesetShader.paletteData();
 
     if (mtData && palData) {
         _animationTimer.process(
