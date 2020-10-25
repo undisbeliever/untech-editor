@@ -252,11 +252,12 @@ inline std::pair<std::string, std::string> DataStore<T>::store(const size_t inde
 {
     std::lock_guard lock(_mutex);
 
-    // ::TODO handle renamed items::
-
     status.compileId = _currentCompileId++;
 
     _data.at(index) = std::move(data);
+
+    const std::string oldName = _resources.at(index).name;
+    const std::string newName = status.name;
 
     const idstring name = status.name;
 
@@ -271,10 +272,17 @@ inline std::pair<std::string, std::string> DataStore<T>::store(const size_t inde
                 status.errorList.addErrorString("Duplicated name detected");
             }
         }
-    }
 
-    std::string oldName = _resources.at(index).name;
-    std::string newName = status.name;
+        // Remove old mapping if the item has been renamed
+        if (oldName != newName) {
+            const auto oldIt = _mapping.find(oldName);
+            if (oldIt != _mapping.end()) {
+                if (oldIt->second == index) {
+                    _mapping.erase(oldIt);
+                }
+            }
+        }
+    }
 
     _resources.at(index) = std::move(status);
 
