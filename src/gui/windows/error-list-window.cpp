@@ -20,8 +20,8 @@ void processErrorListWindow(const Project::ResourceStatus& status)
         return;
     }
 
+    ImGui::SetNextWindowSize(ImVec2(600, 200), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Error List")) {
-        ImGui::SetWindowSize(ImVec2(600, 200), ImGuiCond_FirstUseEver);
 
         for (const auto& item : status.errorList.list()) {
             switch (item.type) {

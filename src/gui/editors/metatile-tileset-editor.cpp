@@ -192,8 +192,8 @@ void MetaTileTilesetEditorGui::propertiesWindow(const Project::ProjectFile& proj
     assert(_data);
     auto& tileset = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(350, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("MetaTile Tileset Properties")) {
-        ImGui::SetWindowSize(ImVec2(350, 650), ImGuiCond_FirstUseEver);
 
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.5f);
 
@@ -509,8 +509,8 @@ void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& 
 
     static const ImVec2 buttonSize = ImVec2(32.0f, 32.0f);
 
+    ImGui::SetNextWindowSize(ImVec2(350, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Tile Properties")) {
-        ImGui::SetWindowSize(ImVec2(350, 650), ImGuiCond_FirstUseEver);
 
         if (_data->selectedTilesetTiles.empty()) {
             ImGui::End();
@@ -673,8 +673,8 @@ void MetaTileTilesetEditorGui::tilesetWindow()
 {
     assert(_data);
 
+    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("MetaTile Tileset")) {
-        ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
         {
             showLayerButtons();
@@ -710,8 +710,8 @@ void MetaTileTilesetEditorGui::scratchpadWindow()
     assert(_data);
     auto& tileset = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Scratchpad")) {
-        ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
         {
             animationButtons();

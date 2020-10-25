@@ -226,8 +226,8 @@ void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
     const static usize minMapSize(RM::RoomInput::MIN_MAP_WIDTH, RM::RoomInput::MIN_MAP_HEIGHT);
     const static usize maxMapSize(RM::RoomInput::MAX_MAP_WIDTH, RM::RoomInput::MAX_MAP_HEIGHT);
 
+    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Room Properties")) {
-        ImGui::SetWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
 
@@ -266,8 +266,8 @@ void RoomEditorGui::entrancesWindow()
     assert(_data);
     auto& room = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Entrances##Room", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-        ImGui::SetWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
 
         ListButtons<AP::Entrances>(_data);
 
@@ -348,8 +348,8 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
     assert(_data);
     auto& room = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Entities##Room_Entities", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-        ImGui::SetWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
 
         const rect bounds = room.validEntityArea();
 
@@ -552,8 +552,8 @@ void RoomEditorGui::editorWindow()
 
     // ::TODO shrink entity vertical spacing at the top of the map::
 
+    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Room###Room_Editor")) {
-        ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
         animationButtons();
         ImGui::SameLine(0.0f, 12.0f);

@@ -87,8 +87,8 @@ void InteractiveTilesEditorGui::interactiveTilesWindow()
     assert(_data);
     auto& interactiveTiles = _data->interactiveTiles;
 
+    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Interactive Tiles")) {
-        ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
         ListButtons<AP::FunctionTables>(_data);
 

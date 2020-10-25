@@ -87,8 +87,8 @@ void PaletteEditorGui::paletteWindow()
 
     const std::string windowName = palette.name + " Palette###Palette"s;
 
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(windowName.c_str())) {
-        ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
         {
             ImGui::InputIdstring("Name", &palette.name);

@@ -107,8 +107,8 @@ void ScenesEditorGui::settingsWindow()
     assert(_data);
     auto& scenes = _data->scenes;
 
+    ImGui::SetNextWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Scene Settings")) {
-        ImGui::SetWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
 
         ListButtons<AP::SceneSettings>(_data);
 
@@ -228,8 +228,8 @@ void ScenesEditorGui::scenesWindow(const Project::ProjectFile& projectFile)
     assert(_data);
     auto& scenes = _data->scenes;
 
+    ImGui::SetNextWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Scenes")) {
-        ImGui::SetWindowSize(ImVec2(1000, 400), ImGuiCond_FirstUseEver);
 
         ListButtons<AP::Scenes>(_data);
 

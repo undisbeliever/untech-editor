@@ -177,8 +177,8 @@ void EntityRomDataEditorGui::listIdsWindow()
     assert(_data);
     auto& entityRomData = _data->entityRomData;
 
+    ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("EntityListIds")) {
-        ImGui::SetWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
 
         ListButtons<AP::ListIds>(_data);
 
@@ -238,8 +238,8 @@ void EntityRomDataEditorGui::structsWindow()
     assert(_data);
     auto& entityRomData = _data->entityRomData;
 
+    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Entity Rom Structs")) {
-        ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
         NamedListSidebar<AP::Structs>(_data);
 
@@ -373,8 +373,8 @@ void EntityRomDataEditorGui::functionTablesWindow(const UnTech::Project::Project
     assert(_data);
     auto& entityRomData = _data->entityRomData;
 
+    ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Entity Function Tables")) {
-        ImGui::SetWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
 
         ListButtons<AP::FunctionTables>(_data);
 
@@ -461,8 +461,8 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
     assert(_data);
     auto& entityRomData = _data->entityRomData;
 
+    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(name)) {
-        ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
         NamedListSidebar<ActionPolicy>(_data);
 

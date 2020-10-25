@@ -401,8 +401,8 @@ void MetaSpriteEditorGui::frameSetPropertiesWindow(const Project::ProjectFile& p
     assert(_data);
     auto& fs = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("FrameSet##MS")) {
-        ImGui::SetWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
 
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
 
@@ -440,8 +440,8 @@ void MetaSpriteEditorGui::framePropertiesWindow(const Project::ProjectFile& proj
     assert(_data);
     auto& fs = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Frames##MS")) {
-        ImGui::SetWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
 
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
 
@@ -665,8 +665,8 @@ void MetaSpriteEditorGui::palettesWindow()
 
     bool colorSelected = false;
 
+    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Palettes##MS")) {
-        ImGui::SetWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
 
         {
             if (ListButtons<AP::Palettes>(_data)) {
@@ -1063,8 +1063,8 @@ void MetaSpriteEditorGui::tilesetWindow()
     assert(_data);
     auto& fs = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(600, 300), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Tileset##MS")) {
-        ImGui::SetWindowSize(ImVec2(600, 300), ImGuiCond_FirstUseEver);
 
         tilesetButtons();
 
@@ -1191,8 +1191,9 @@ void MetaSpriteEditorGui::frameEditorWindow()
 
     const std::string windowTitle = frame ? frame->name + windowSuffix : windowSuffix;
 
+    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(windowTitle.c_str())) {
-        ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
+
         if (frame == nullptr) {
             ImGui::End();
             return;

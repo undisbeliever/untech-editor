@@ -85,8 +85,8 @@ void BackgroundImageEditorGui::backgroundImageWindow(const Project::ProjectFile&
     assert(_data);
     auto& bi = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Background Image")) {
-        ImGui::SetWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
 
         {
             ImGui::InputIdstring("Name", &bi.name);

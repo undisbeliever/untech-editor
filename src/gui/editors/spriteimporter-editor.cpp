@@ -252,8 +252,8 @@ void SpriteImporterEditorGui::frameSetPropertiesWindow(const Project::ProjectFil
     assert(_data);
     auto& fs = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("FrameSet##SI")) {
-        ImGui::SetWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
@@ -406,8 +406,8 @@ void SpriteImporterEditorGui::framePropertiesWindow(const Project::ProjectFile& 
     assert(_data);
     auto& fs = _data->data;
 
+    ImGui::SetNextWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Frames##SI")) {
-        ImGui::SetWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
 
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.6f);
 
@@ -838,8 +838,8 @@ void SpriteImporterEditorGui::frameEditorWindow()
 
     const rect graphicsRect(-IMAGE_PADDING, -IMAGE_PADDING, _imageTexture.width() + 2 * IMAGE_PADDING, _imageTexture.height() + 2 * IMAGE_PADDING);
 
+    ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Sprite Importer")) {
-        ImGui::SetWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
 
         {
             undoStackButtons();

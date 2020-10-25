@@ -85,8 +85,8 @@ void ActionPointsEditorGui::actionPointsWindow()
     assert(_data);
     auto& actionPointFunctions = _data->actionPointFunctions;
 
+    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Action Points")) {
-        ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
         ListButtons<AP::ActionPointFunctions>(_data);
 

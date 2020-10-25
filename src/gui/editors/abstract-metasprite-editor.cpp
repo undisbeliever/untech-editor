@@ -85,8 +85,8 @@ void AbstractMetaSpriteEditorGui::exportOrderWindow(const char* windowLabel)
 {
     using namespace std::string_literals;
 
+    ImGui::SetNextWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(windowLabel)) {
-        ImGui::SetWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
 
         if (!_eoStillFrames.empty() || !_eoAnimations.empty()) {
             if (ImGui::TreeNodeEx("Still Frames", ImGuiTreeNodeFlags_DefaultOpen)) {

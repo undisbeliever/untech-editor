@@ -30,8 +30,8 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
 {
     using MsAnimation = UnTech::MetaSprite::Animation::Animation;
 
+    ImGui::SetNextWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(windowLabel)) {
-        ImGui::SetWindowSize(ImVec2(325, 650), ImGuiCond_FirstUseEver);
 
         ImGui::PushItemWidth(-ImGui::GetWindowWidth() * 0.4f);
 
@@ -162,8 +162,8 @@ void AbstractMetaSpriteEditorGui::animationPreviewWindow(const char* windowLabel
         _animationState.setAnimationIndex(prevAnimationIndex);
     }
 
+    ImGui::SetNextWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(windowLabel)) {
-        ImGui::SetWindowSize(ImVec2(650, 650), ImGuiCond_FirstUseEver);
 
         {
             ImGui::ToggledButtonWithTooltip("P##Play", &_animationTimer.active, "Play");

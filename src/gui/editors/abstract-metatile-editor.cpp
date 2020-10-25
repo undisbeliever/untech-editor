@@ -472,8 +472,8 @@ void AbstractMetaTileEditorGui::tilesetMinimapWindow(const char* label)
 {
     assert(_data);
 
+    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-        ImGui::SetWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
 
         const auto geo = tilesetGeometryAutoZoom();
         invisibleButton("##Tileset", geo);
@@ -486,8 +486,8 @@ void AbstractMetaTileEditorGui::minimapWindow(const char* label)
 {
     assert(_data);
 
+    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-        ImGui::SetWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
 
         if (!_tilemap.empty()) {
             const auto geo = mapGeometryAutoZoom(_tilemap.gridSize());
@@ -518,8 +518,8 @@ bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label, const
 
     bool selChanged = false;
 
+    ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-        ImGui::SetWindowSize(ImVec2(300, 300), ImGuiCond_FirstUseEver);
 
         if (!tilemap.empty()) {
             const auto geo = mapGeometryAutoZoom(tilemap.gridSize());

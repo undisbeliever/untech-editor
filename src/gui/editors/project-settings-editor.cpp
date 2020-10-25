@@ -89,8 +89,8 @@ void ProjectSettingsEditorGui::projectSettingsWindow()
     auto& memoryMap = _data->data.memoryMap;
     auto& roomSettings = _data->data.roomSettings;
 
+    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Project Settings")) {
-        ImGui::SetWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
 
         if (ImGui::TreeNodeEx("Memory Map", ImGuiTreeNodeFlags_DefaultOpen)) {
             bool edited = false;
