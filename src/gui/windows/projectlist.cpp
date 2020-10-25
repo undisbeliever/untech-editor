@@ -171,8 +171,6 @@ static void resourceStateIcon(UnTech::Project::ResourceState state)
 {
     using RS = UnTech::Project::ResourceState;
 
-    // ::TODO replace with icons::
-
     switch (state) {
     case RS::Unchecked:
         ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 255, 0, 255));

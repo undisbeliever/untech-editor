@@ -42,7 +42,6 @@ static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::Expor
     for (unsigned i = 0; i < tree.size(); i++) {
         auto& eo = tree.at(i);
 
-        // ::TODO replace with icons::
         ImGui::PushStyleColor(ImGuiCol_Text, Style::successFailColor(eo.valid));
         ImGui::TextUnformatted(eo.valid ? u8"·" : u8"X");
         ImGui::PopStyleColor();
