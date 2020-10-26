@@ -74,20 +74,21 @@ private:
     upoint _boxSelectionStart;
     bool _previousTileSelected = false;
     bool _draging = false;
+    bool _clickedPosValid = false;
 
     upoint clampPoint(const point& p)
     {
         return upoint{
-            std::clamp<unsigned>(p.x, 0, _mapSize.width - 1),
-            std::clamp<unsigned>(p.y, 0, _mapSize.height - 1)
+            unsigned(std::clamp<int>(p.x, 0, _mapSize.width - 1)),
+            unsigned(std::clamp<int>(p.y, 0, _mapSize.height - 1))
         };
     }
 
     upoint clampPoint(const upoint& p)
     {
         return upoint{
-            std::clamp<unsigned>(p.x, 0, _mapSize.width - 1),
-            std::clamp<unsigned>(p.y, 0, _mapSize.height - 1)
+            std::min<unsigned>(p.x, _mapSize.width - 1),
+            std::min<unsigned>(p.y, _mapSize.height - 1)
         };
     }
 
@@ -137,6 +138,7 @@ public:
         _mapSize = usize(0, 0);
 
         _draging = false;
+        _clickedPosValid = false;
         _previousTileSelected = true;
         _previousSelection.clear();
     }
@@ -153,6 +155,7 @@ public:
             sel->clear();
             _previousSelection.clear();
             _draging = false;
+            _clickedPosValid = false;
             _boxSelectionStart = upoint(0, 0);
             _previousTilePos = upoint(0, 0);
         }
@@ -160,6 +163,7 @@ public:
         if (ImGui::IsMouseDown(0) == false && _draging) {
             _previousSelection = *sel;
             _draging = false;
+            _clickedPosValid = false;
         }
 
         if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
@@ -168,6 +172,8 @@ public:
 
                 sel->clear();
                 _previousSelection.clear();
+                _draging = false;
+                _clickedPosValid = false;
 
                 return notEmpty;
             }
@@ -176,9 +182,12 @@ public:
                 const auto& io = ImGui::GetIO();
                 const point sp = geo.toTilePos(io.MousePos);
 
-                if (sp.x < 0 || sp.x >= int(_mapSize.width)
-                    || sp.y < 0 || sp.y >= int(_mapSize.height)) {
+                _draging = false;
 
+                _clickedPosValid = sp.x >= 0 && sp.x < int(_mapSize.width)
+                                   && sp.y >= 0 && sp.y < int(_mapSize.height);
+
+                if (!_clickedPosValid) {
                     return false;
                 }
 
@@ -216,11 +225,10 @@ public:
                     _previousSelection = *sel;
                     _boxSelectionStart = p;
                 }
-                _draging = false;
 
                 return true;
             }
-            if (ImGui::IsMouseDragging(0)) {
+            if (_clickedPosValid && ImGui::IsMouseDragging(0)) {
                 const auto& io = ImGui::GetIO();
                 const upoint p = clampPoint(geo.toTilePos(io.MousePos));
 
