@@ -218,6 +218,18 @@ ResourceState ResourceListStatus::state(unsigned index) const
     }
 }
 
+unsigned ResourceListStatus::compileId(unsigned index) const
+{
+    std::shared_lock lock(_mutex);
+
+    if (index < _resources.size()) {
+        return _resources.at(index).compileId;
+    }
+    else {
+        return UINT_MAX;
+    }
+}
+
 ResourceState ResourceListStatus::listState() const
 {
     std::shared_lock lock(_mutex);

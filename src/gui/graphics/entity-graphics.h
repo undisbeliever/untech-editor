@@ -10,6 +10,13 @@
 #include "gui/imgui-drawing.h"
 #include "models/common/idstring.h"
 #include "models/common/image.h"
+#include <mutex>
+#include <unordered_map>
+
+namespace UnTech::Project {
+struct ProjectFile;
+class ProjectData;
+}
 
 namespace UnTech::Gui {
 
@@ -20,25 +27,63 @@ struct DrawEntitySettings {
     ImVec2 uvMax;
 };
 
-class EntityGraphics {
-private:
-    Image _image;
-    DrawEntitySettings _nullSetting;
+struct EntityGraphics {
+    Image image;
+    DrawEntitySettings nullSetting;
+    std::unordered_map<idstring, DrawEntitySettings> entities;
+    std::vector<DrawEntitySettings> players;
 
-public:
-    EntityGraphics();
-
-    const Image& image() const { return _image; }
-
-    const DrawEntitySettings& settingsForPlayer(unsigned /* playerId */) const
+    const DrawEntitySettings& settingsForPlayer(unsigned playerId) const
     {
-        return _nullSetting;
+        if (playerId < players.size()) {
+            return players.at(playerId);
+        }
+        return nullSetting;
     }
 
-    const DrawEntitySettings& settingsForEntity(const idstring&) const
+    const DrawEntitySettings& settingsForEntity(const idstring& name) const
     {
-        return _nullSetting;
+        auto it = entities.find(name);
+        if (it != entities.end()) {
+            return it->second;
+        }
+        return nullSetting;
     }
 };
 
+class EntityGraphicsStore {
+private:
+    std::mutex _mutex;
+    std::shared_ptr<const EntityGraphics> _data;
+    unsigned _entityRomDataCompileId;
+
+public:
+    EntityGraphicsStore();
+
+    std::shared_ptr<const EntityGraphics> get()
+    {
+        std::lock_guard lock(_mutex);
+
+        return _data;
+    }
+
+    void set(std::shared_ptr<const EntityGraphics> d, unsigned erdCompileId)
+    {
+        std::lock_guard lock(_mutex);
+
+        _data = d;
+        _entityRomDataCompileId = erdCompileId;
+    }
+
+    unsigned getEntityRomDataCompileId()
+    {
+        std::lock_guard lock(_mutex);
+
+        return _entityRomDataCompileId;
+    }
+};
+extern EntityGraphicsStore entityGraphicsStore;
+
+void processEntityGraphics(const Project::ProjectFile& projectFile,
+                           const Project::ProjectData& projectData);
 }

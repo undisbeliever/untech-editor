@@ -7,6 +7,7 @@
 #pragma once
 
 #include "item-index.h"
+#include "gui/graphics/entity-graphics.h"
 #include "models/project/project-data.h"
 #include "models/project/project-file-mutex.h"
 #include "models/project/project.h"

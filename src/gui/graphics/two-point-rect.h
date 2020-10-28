@@ -7,6 +7,7 @@
 #pragma once
 
 #include "models/common/aabb.h"
+#include "models/common/ms8aabb.h"
 
 namespace UnTech::Gui {
 
@@ -18,11 +19,16 @@ struct TwoPointRect {
 
     TwoPointRect() = default;
 
-    TwoPointRect(int x1_, int x2_, int y1_, int y2_)
+    constexpr TwoPointRect(int x1_, int x2_, int y1_, int y2_)
         : x1(x1_)
         , x2(x2_)
         , y1(y1_)
         , y2(y2_)
+    {
+    }
+
+    TwoPointRect(const ms8rect& r)
+        : TwoPointRect(r.x, r.x + r.width, r.y, r.y + r.height)
     {
     }
 

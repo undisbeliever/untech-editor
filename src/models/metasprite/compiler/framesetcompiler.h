@@ -40,6 +40,9 @@ struct FrameSetData {
     std::vector<std::vector<uint8_t>> animations;
     std::vector<std::array<uint8_t, 30>> palettes;
 
+    // Only set on SpriteImporter FrameSets
+    std::unique_ptr<const UnTech::MetaSprite::MetaSprite::FrameSet> msFrameSet;
+
     // Required for ProjectData::DataStore
     bool validate(ErrorList&) const { return true; }
 };

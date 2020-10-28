@@ -186,6 +186,7 @@ RoomEditorGui::RoomEditorGui()
     , _entityGraphics(nullptr)
     , _scenesData(nullptr)
     , _mtTilesetValid(false)
+    , _entityTextureWindowOpen(false)
 {
 }
 
@@ -424,6 +425,25 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
     ImGui::End();
 }
 
+void RoomEditorGui::entityTextureWindow()
+{
+    // ::TODO add "show entity texture" to View menu::
+
+    if (!_entityTextureWindowOpen) {
+        return;
+    }
+
+    if (ImGui::Begin("Entity Texture##Room", &_entityTextureWindowOpen)) {
+        ImGui::Text("Entity Texture (%u x %u pixels)", _entityTexture.width(), _entityTexture.height());
+
+        const ImVec2 size(_entityTexture.width() * 2, _entityTexture.height() * 2);
+
+        ImGui::Image(_entityTexture.imguiTextureId(), size);
+
+        ImGui::End();
+    }
+}
+
 void RoomEditorGui::drawObjects(ImDrawList* drawList)
 {
     assert(_entityGraphics);
@@ -650,6 +670,8 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
         _data->selectedScratchpadTilesChanged();
         selectionChanged();
     }
+
+    entityTextureWindow();
 }
 
 void RoomEditorGui::selectionChanged()
@@ -660,15 +682,15 @@ void RoomEditorGui::updateEntityGraphics()
 {
     assert(_data);
 
-    // ::TODO retrieve _entityGraphics from ProjectData::
-    if (_entityGraphics != nullptr) {
-        return;
+    auto eg = entityGraphicsStore.get();
+
+    if (_entityGraphics != eg) {
+        assert(eg != nullptr);
+
+        _entityTexture.replace(eg->image);
+
+        _entityGraphics = std::move(eg);
     }
-
-    // ::TODO populate EntityGraphics data::
-    _entityGraphics = std::make_shared<EntityGraphics>();
-
-    _entityTexture.replace(_entityGraphics->image());
 }
 
 void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,

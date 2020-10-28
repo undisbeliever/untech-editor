@@ -223,7 +223,7 @@ static std::vector<FrameData> processFrameList(const FrameSetExportList& exportL
     return frames;
 }
 
-static std::shared_ptr<const FrameSetData>
+static std::shared_ptr<FrameSetData>
 compileFrameSet(const MetaSprite::FrameSet& frameSet,
                 const Project::ProjectFile& project, const ActionPointMapping& actionPointMapping,
                 ErrorList& errorList)
@@ -270,8 +270,10 @@ compileFrameSet(const FrameSetFile& fs,
         return compileFrameSet(*fs.msFrameSet, project, actionPointMapping, errorList);
     }
     else if (fs.siFrameSet) {
-        if (const auto msfs = utsi2utms(*fs.siFrameSet, errorList)) {
-            return compileFrameSet(*msfs, project, actionPointMapping, errorList);
+        if (auto msfs = utsi2utms(*fs.siFrameSet, errorList)) {
+            auto fsData = compileFrameSet(*msfs, project, actionPointMapping, errorList);
+            fsData->msFrameSet = std::move(msfs);
+            return fsData;
         }
     }
     else {

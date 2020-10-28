@@ -531,6 +531,8 @@ void BackgroundThread::run()
                     static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
 
                     projectData.compileAll_NoEarlyExit(pf);
+
+                    processEntityGraphics(pf, projectData);
                 });
             }
 

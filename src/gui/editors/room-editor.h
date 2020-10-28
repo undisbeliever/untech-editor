@@ -14,7 +14,7 @@
 namespace UnTech::Gui {
 
 class AabbGraphics;
-class EntityGraphics;
+struct EntityGraphics;
 
 class RoomEditorData final : public AbstractMetaTileEditorData {
 private:
@@ -68,6 +68,8 @@ private:
 
     bool _mtTilesetValid;
 
+    bool _entityTextureWindowOpen;
+
 public:
     RoomEditorGui();
 
@@ -87,6 +89,8 @@ private:
     void propertiesWindow(const Project::ProjectFile& projectFile);
     void entrancesWindow();
     void roomEntitiesWindow(const Project::ProjectFile& projectFile);
+
+    void entityTextureWindow();
 
     void editorWindow();
 

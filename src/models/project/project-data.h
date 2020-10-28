@@ -115,6 +115,8 @@ public:
 
     std::string name(unsigned index) const;
     ResourceState state(unsigned index) const;
+    unsigned compileId(unsigned index) const;
+
     ResourceState listState() const;
 
     template <typename Function>
