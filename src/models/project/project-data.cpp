@@ -145,6 +145,8 @@ void ResourceListStatus::setStatusKeepName(unsigned index, ResourceStatus&& stat
 
     auto& s = _resources.at(index);
 
+    s.compileId = _currentCompileId++;
+
     s.state = status.state;
     s.errorList = std::move(status.errorList);
 }
