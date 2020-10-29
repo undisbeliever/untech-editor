@@ -357,20 +357,24 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
         drawInvalidSymbol(eg->image, node.x, node.y, node.width, node.height);
     }
 
+    eg->entities.resize(projectFile.entityRomData.entities.size(), eg->nullSetting);
     eg->players.resize(projectFile.entityRomData.players.size(), eg->nullSetting);
 
     for (const auto& node : packingNodes) {
-        DrawEntitySettings ds;
-        ds.imageRect.x1 = node.originX;
-        ds.imageRect.x2 = node.originX + int(node.width);
-        ds.imageRect.y1 = node.originY;
-        ds.imageRect.y2 = node.originY + int(node.height);
-
-        ds.uvMin = ImVec2(node.x * uvX, node.y * uvY);
-        ds.uvMax = ImVec2((node.x + node.width) * uvX, (node.y + node.height) * uvY);
-
         if (node.entityFrameId < entityFrames.size()) {
             const auto& ef = entityFrames.at(node.entityFrameId);
+
+            DrawEntitySettings ds;
+
+            ds.name = ef.name;
+
+            ds.imageRect.x1 = node.originX;
+            ds.imageRect.x2 = node.originX + int(node.width);
+            ds.imageRect.y1 = node.originY;
+            ds.imageRect.y2 = node.originY + int(node.height);
+
+            ds.uvMin = ImVec2(node.x * uvX, node.y * uvY);
+            ds.uvMax = ImVec2((node.x + node.width) * uvX, (node.y + node.height) * uvY);
 
             if (ef.frame.solid) {
                 ds.hitboxRect = TwoPointRect(ef.frame.tileHitbox);
@@ -382,7 +386,8 @@ void processEntityGraphics(const Project::ProjectFile& projectFile,
             ef.frame.draw(eg->image, ef.frameSet, ef.palette, node.x - node.originX, node.y - node.originY);
 
             if (ef.isEntity) {
-                eg->entities.emplace(ef.name, ds);
+                eg->entityNameMap.emplace(ds.name, ef.entityIndex);
+                eg->entities.at(ef.entityIndex) = ds;
             }
             else {
                 eg->players.at(ef.entityIndex) = ds;

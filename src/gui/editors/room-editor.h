@@ -92,6 +92,9 @@ private:
 
     void entityTextureWindow();
 
+    void entitiesWindow();
+    void entityDropTarget(ImDrawList* drawList);
+
     void editorWindow();
 
     void drawObjects(ImDrawList* drawList);

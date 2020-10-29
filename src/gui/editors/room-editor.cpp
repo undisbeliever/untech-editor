@@ -20,6 +20,9 @@ namespace UnTech::Gui {
 
 namespace RM = UnTech::Rooms;
 
+// DragDrop Payload: unsigned int - index in _entityGraphics.entities
+static const char* const entityDragDropId = "DND_Entity";
+
 static constexpr unsigned METATILE_SIZE_PX = MetaTiles::METATILE_SIZE_PX;
 
 // RoomEditor Action Policies
@@ -444,6 +447,108 @@ void RoomEditorGui::entityTextureWindow()
     }
 }
 
+void RoomEditorGui::entitiesWindow()
+{
+    assert(_entityGraphics);
+    assert(_data);
+
+    static ImGuiTextFilter filter;
+
+    constexpr float buttonSize = 64.0f;
+
+    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Entities##Room")) {
+
+        const auto& style = ImGui::GetStyle();
+
+        const auto textureId = _entityTexture.imguiTextureId();
+
+        filter.Draw("Filter");
+
+        ImGui::BeginChild("Scroll");
+
+        const unsigned nColumns = std::floor((ImGui::GetContentRegionAvail().x - style.ItemSpacing.x * 2) / (buttonSize + style.ItemSpacing.x));
+        const ImVec2 size{ buttonSize, buttonSize };
+
+        unsigned counter = 0;
+        for (unsigned i = 0; i < _entityGraphics->entities.size(); i++) {
+            const auto& eg = _entityGraphics->entities.at(i);
+
+            if (filter.PassFilter(eg.name.str().c_str())) {
+                ImGui::PushID(i);
+
+                ImGui::ImageButton(textureId, size, eg.uvMin, eg.uvMax);
+                if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+                    ImGui::SetDragDropPayload(entityDragDropId, &i, sizeof(decltype(i)));
+
+                    ImGui::TextUnformatted(eg.name);
+                    ImGui::EndDragDropSource();
+                }
+
+                if (ImGui::IsItemHovered()) {
+                    ImGui::BeginTooltip();
+                    ImGui::TextUnformatted(eg.name);
+                    ImGui::EndTooltip();
+                }
+
+                ImGui::PopID();
+
+                if ((++counter) != nColumns) {
+                    ImGui::SameLine();
+                }
+                else {
+                    counter = 0;
+                }
+            }
+        }
+
+        ImGui::EndChild();
+
+        ImGui::End();
+    }
+}
+
+void RoomEditorGui::entityDropTarget(ImDrawList* drawList)
+{
+    assert(_entityGraphics);
+    assert(_data);
+    const auto& room = _data->data;
+
+    if (room.entityGroups.empty()) {
+        return;
+    }
+
+    if (ImGui::BeginDragDropTarget()) {
+        const auto flags = ImGuiDragDropFlags_AcceptNoDrawDefaultRect | ImGuiDragDropFlags_AcceptBeforeDelivery;
+
+        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(entityDragDropId, flags)) {
+            IM_ASSERT(payload->DataSize == sizeof(unsigned));
+
+            unsigned entityIndex = *(const unsigned*)payload->Data;
+
+            if (entityIndex < _entityGraphics->entities.size()) {
+                const auto& ds = _entityGraphics->entities.at(entityIndex);
+
+                const auto pos = _graphics.mousePos();
+
+                _graphics.drawEntity(drawList, &pos, _entityTexture.imguiTextureId(), ds, IM_COL32_WHITE);
+
+                if (payload->IsDelivery()) {
+                    const unsigned groupIndex = _data->entityGroupsSel.hasSelection() ? _data->entityGroupsSel.selectedIndex() : 0;
+
+                    UnTech::Rooms::EntityEntry entry;
+                    entry.entityId = ds.name;
+                    entry.position = pos;
+
+                    ListActions<AP::EntityEntries>::addItem(_data, groupIndex, entry);
+                }
+            }
+        }
+
+        ImGui::EndDragDropTarget();
+    }
+}
+
 void RoomEditorGui::drawObjects(ImDrawList* drawList)
 {
     assert(_entityGraphics);
@@ -630,6 +735,9 @@ void RoomEditorGui::editorWindow()
         _graphics.endLoop(drawList,
                           &_data->entrancesSel, &_data->entityEntriesSel);
 
+        // Draw drag+drop entity on top of selected entity outlines
+        entityDropTarget(drawList);
+
         if (_graphics.isEditingFinished()) {
             _data->startMacro();
 
@@ -658,6 +766,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
     propertiesWindow(projectFile);
     entrancesWindow();
+    entitiesWindow();
     roomEntitiesWindow(projectFile);
 
     editorWindow();

@@ -32,6 +32,9 @@ struct TwoPointRect {
     {
     }
 
+    int width() const { return x2 - x1; }
+    int height() const { return y2 - y1; }
+
     bool contains(int x, int y) const
     {
         return x >= this->x1 && x < this->x2

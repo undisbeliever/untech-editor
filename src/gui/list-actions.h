@@ -1354,6 +1354,38 @@ public:
     }
 
     template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>
+    static void addItem(EditorT* editor, const value_type& value)
+    {
+        const ListArgsT listArgs = std::make_tuple();
+
+        const ListT* list = getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        if (list->size() < MAX_SIZE) {
+            editor->addAction(
+                std::make_unique<AddAction>(editor, listArgs, list->size(), value));
+        }
+    }
+
+    template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<unsigned>>>>
+    static void addItem(EditorT* editor, const index_type parentIndex, const value_type& value)
+    {
+        const ListArgsT listArgs = std::make_tuple(parentIndex);
+
+        const ListT* list = getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        if (list->size() < MAX_SIZE) {
+            editor->addAction(
+                std::make_unique<AddAction>(editor, listArgs, list->size(), value));
+        }
+    }
+
+    template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>
     static void itemEdited(EditorT* editor, const index_type index)
     {
         const std::tuple<> listArgs = std::make_tuple();

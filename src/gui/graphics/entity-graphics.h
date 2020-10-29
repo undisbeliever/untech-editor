@@ -21,6 +21,7 @@ class ProjectData;
 namespace UnTech::Gui {
 
 struct DrawEntitySettings {
+    idstring name;
     TwoPointRect hitboxRect;
     TwoPointRect imageRect;
     ImVec2 uvMin;
@@ -30,7 +31,8 @@ struct DrawEntitySettings {
 struct EntityGraphics {
     Image image;
     DrawEntitySettings nullSetting;
-    std::unordered_map<idstring, DrawEntitySettings> entities;
+    std::unordered_map<idstring, unsigned> entityNameMap;
+    std::vector<DrawEntitySettings> entities;
     std::vector<DrawEntitySettings> players;
 
     const DrawEntitySettings& settingsForPlayer(unsigned playerId) const
@@ -43,9 +45,9 @@ struct EntityGraphics {
 
     const DrawEntitySettings& settingsForEntity(const idstring& name) const
     {
-        auto it = entities.find(name);
-        if (it != entities.end()) {
-            return it->second;
+        auto it = entityNameMap.find(name);
+        if (it != entityNameMap.end()) {
+            return entities.at(it->second);
         }
         return nullSetting;
     }
