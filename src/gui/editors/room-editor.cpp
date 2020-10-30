@@ -183,6 +183,7 @@ RoomEditorGui::RoomEditorGui()
     : AbstractMetaTileEditorGui()
     , _data(nullptr)
     , _scratchpadTilemap()
+    , _tileFunctionTables()
     , _mapSize()
     , _graphics()
     , _entityTexture()
@@ -787,6 +788,11 @@ void RoomEditorGui::selectionChanged()
 {
 }
 
+const std::array<idstring, 256>& RoomEditorGui::tileFunctionTables() const
+{
+    return _tileFunctionTables;
+}
+
 void RoomEditorGui::updateEntityGraphics()
 {
     assert(_data);
@@ -866,9 +872,15 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
         if (tileset) {
             _tilesetShader.setTilesetData(*tileset, std::move(mtData));
             _tilesetShader.setTileCollisions(tileset->tileCollisions);
+
+            _tileFunctionTables = tileset->tileFunctionTables;
         }
         else {
             _tilesetShader.reset();
+
+            for (auto& tft : _tileFunctionTables) {
+                tft.clear();
+            }
         }
     }
 

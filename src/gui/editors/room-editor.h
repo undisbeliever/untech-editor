@@ -55,6 +55,8 @@ private:
 
     Shaders::MtTilemap _scratchpadTilemap;
 
+    std::array<idstring, 256> _tileFunctionTables;
+
     usize _mapSize;
 
     AabbGraphics _graphics;
@@ -84,6 +86,8 @@ public:
 
 protected:
     virtual void selectionChanged() final;
+
+    virtual const std::array<idstring, 256>& tileFunctionTables() const final;
 
 private:
     void propertiesWindow(const Project::ProjectFile& projectFile);

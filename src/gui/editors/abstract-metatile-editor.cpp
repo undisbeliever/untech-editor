@@ -434,11 +434,53 @@ void AbstractMetaTileEditorGui::drawGrid(ImDrawList* drawList, const Geometry& g
     }
 }
 
+void AbstractMetaTileEditorGui::tilesetInteractiveTilesTooltip(const AbstractMetaTileEditorGui::Geometry& geo)
+{
+    if (ImGui::IsItemHovered()) {
+        const auto pos = geo.toTilePos(ImGui::GetMousePos());
+
+        if (pos.x >= 0 && unsigned(pos.x) < TILESET_WIDTH
+            && pos.y >= 0 && unsigned(pos.y) < TILESET_HEIGHT) {
+
+            const uint8_t tileId = pos.y * TILESET_WIDTH + pos.x;
+
+            const auto& iTile = tileFunctionTables().at(tileId);
+            if (iTile.isValid()) {
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted(iTile);
+                ImGui::EndTooltip();
+            }
+        }
+    }
+}
+
+void AbstractMetaTileEditorGui::interactiveTilesTooltip(const grid<uint8_t>& mapData, const Geometry& geo)
+{
+    if (ImGui::IsItemHovered()) {
+        const auto pos = geo.toTilePos(ImGui::GetMousePos());
+
+        if (pos.x >= 0 && unsigned(pos.x) < mapData.width()
+            && pos.y >= 0 && unsigned(pos.y) < mapData.height()) {
+
+            const uint8_t tileId = mapData.at(pos.x, pos.y);
+
+            const auto& iTile = tileFunctionTables().at(tileId);
+            if (iTile.isValid()) {
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted(iTile);
+                ImGui::EndTooltip();
+            }
+        }
+    }
+}
+
 void AbstractMetaTileEditorGui::drawTileset(const Geometry& geo)
 {
     assert(_data);
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+    tilesetInteractiveTilesTooltip(geo);
 
     if (showTiles) {
         drawList->AddImage(_tilesetShader.texture().imguiTextureId(), geo.offset, geo.offset + geo.mapSize);
@@ -498,10 +540,15 @@ void AbstractMetaTileEditorGui::minimapWindow(const char* label)
     if (ImGui::Begin(label, nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
 
         if (!_tilemap.empty()) {
+            const auto& mapData = _data->map();
+
             const auto geo = mapGeometryAutoZoom(_tilemap.gridSize());
+
             invisibleButton("##Map", geo);
             drawTilemap(_tilemap, geo);
             drawSelection(_data->selectedTiles, geo);
+
+            interactiveTilesTooltip(mapData, geo);
 
             const bool sc = editableTilesSelector.processSelection(&_data->selectedTiles, geo, _tilemap.gridSize());
             if (sc) {
@@ -534,6 +581,8 @@ bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label, const
             invisibleButton("##Map", geo);
             drawTilemap(tilemap, geo);
             drawSelection(*sel, geo);
+
+            interactiveTilesTooltip(mapData, geo);
 
             const bool sc = scratchpadTilesSelector.processSelection(sel, geo, tilemap.gridSize());
             if (sc) {
@@ -597,7 +646,13 @@ void AbstractMetaTileEditorGui::drawAndEditMap(const Geometry& geo)
         return;
     }
 
+    const auto& mapData = _data->map();
+
     drawTilemap(_tilemap, geo);
+
+    if (_currentEditMode != EditMode::PlaceTiles) {
+        interactiveTilesTooltip(mapData, geo);
+    }
 
     switch (_currentEditMode) {
     case EditMode::SelectObjects:

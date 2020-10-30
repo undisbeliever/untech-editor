@@ -112,6 +112,7 @@ public:
 
 protected:
     virtual void selectionChanged() = 0;
+    virtual const std::array<idstring, 256>& tileFunctionTables() const = 0;
 
     void showLayerButtons();
 
@@ -160,6 +161,9 @@ private:
     void drawTilemap(const Shaders::MtTilemap& tilemap, const Geometry& geo);
     void drawSelection(const upoint_vectorset& selection, const Geometry& geo);
     void drawGrid(ImDrawList* drawList, const Geometry& geo);
+
+    void tilesetInteractiveTilesTooltip(const Geometry& geo);
+    void interactiveTilesTooltip(const grid<uint8_t>& mapData, const Geometry& geo);
 
     void createTileCursorFromTilesetSelection();
     void createTileCursor(const grid<uint8_t>& map, const upoint_vectorset& selection);

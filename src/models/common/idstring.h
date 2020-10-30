@@ -87,6 +87,8 @@ public:
     inline operator const std::string&() const { return data; }
     // clang-format on
 
+    void clear() { data.clear(); }
+
     inline idstring& operator=(const std::string& s)
     {
         if (isValid(s)) {

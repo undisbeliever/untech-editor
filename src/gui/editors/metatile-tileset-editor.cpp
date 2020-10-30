@@ -388,6 +388,12 @@ void MetaTileTilesetEditorGui::selectionChanged()
     resetTileProperties();
 }
 
+const std::array<idstring, 256>& MetaTileTilesetEditorGui::tileFunctionTables() const
+{
+    assert(_data);
+    return _data->data.tileFunctionTables;
+}
+
 void MetaTileTilesetEditorGui::resetTileProperties()
 {
     // Update _tileProperties on next `tilePropertiesWindow` call.
