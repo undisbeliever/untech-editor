@@ -55,6 +55,8 @@ public:
 public:
     virtual void editorDataChanged() override;
 
+    virtual void viewMenu() override;
+
 protected:
     AbstractMetaSpriteEditorGui() = default;
 

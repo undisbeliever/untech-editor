@@ -784,6 +784,15 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
     entityTextureWindow();
 }
 
+void RoomEditorGui::viewMenu()
+{
+    AbstractMetaTileEditorGui::viewMenu();
+
+    ImGui::Separator();
+
+    ImGui::MenuItem("Show Entity Texture", nullptr, &_entityTextureWindowOpen);
+}
+
 void RoomEditorGui::selectionChanged()
 {
 }

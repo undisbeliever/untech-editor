@@ -102,6 +102,8 @@ public:
     virtual void processGui(const Project::ProjectFile& projectFile,
                             const Project::ProjectData& projectData) final;
 
+    virtual void viewMenu() final;
+
 protected:
     virtual void addFrame(const idstring& name) final;
     virtual void addAnimation(const idstring& name) final;

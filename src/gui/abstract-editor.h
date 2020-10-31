@@ -143,6 +143,8 @@ public:
 
     virtual void processGui(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData) = 0;
 
+    virtual void viewMenu();
+
 protected:
     void undoStackButtons();
 };

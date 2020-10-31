@@ -418,6 +418,23 @@ void AbstractMetaTileEditorGui::showLayerButtons()
     ImGui::SameLine();
 }
 
+void AbstractMetaTileEditorGui::viewMenu()
+{
+    ImGui::MenuItem("Show Grid", nullptr, &showGrid);
+
+    if (ImGui::MenuItem("Show Tiles", nullptr, &showTiles)) {
+        _tilesetShader.setShowTiles(showTiles);
+    }
+
+    if (ImGui::MenuItem("Show Tile Collisions", nullptr, &showTileCollisions)) {
+        _tilesetShader.setShowTileCollisions(showTileCollisions);
+    }
+
+    if (ImGui::MenuItem("Show Interactive Tiles", nullptr, &showInteractiveTiles)) {
+        _tilesetShader.setShowTileCollisions(showInteractiveTiles);
+    }
+}
+
 void AbstractMetaTileEditorGui::drawGrid(ImDrawList* drawList, const Geometry& geo)
 {
     // ::TODO clip these to visible area::

@@ -21,6 +21,14 @@ void AbstractMetaSpriteEditorGui::editorDataChanged()
     invalidateExportOrderTree();
 }
 
+void AbstractMetaSpriteEditorGui::viewMenu()
+{
+    ImGui::MenuItem("Show Tile Hitbox", nullptr, &showTileHitbox);
+    ImGui::MenuItem("Show Frame Objects", nullptr, &showFrameObjects);
+    ImGui::MenuItem("Show Action Points", nullptr, &showActionPoints);
+    ImGui::MenuItem("Show Entity Hitboxes", nullptr, &showEntityHitboxes);
+}
+
 void AbstractMetaSpriteEditorGui::showLayerButtons() const
 {
     ImGui::ToggledButtonWithTooltip("TH##showTH", &showTileHitbox, "Show Tile Hitbox");

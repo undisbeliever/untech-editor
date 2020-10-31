@@ -239,6 +239,10 @@ void AbstractExternalFileEditorData::setFilename(const std::filesystem::path& fn
     _basename = _filename.filename();
 }
 
+void AbstractEditorGui::viewMenu()
+{
+}
+
 void AbstractEditorGui::undoStackButtons()
 {
     if (ImGui::Button("Undo")) {

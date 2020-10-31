@@ -84,6 +84,8 @@ public:
     virtual void processGui(const Project::ProjectFile& projectFile,
                             const Project::ProjectData& projectData) final;
 
+    virtual void viewMenu() final;
+
 protected:
     virtual void selectionChanged() final;
 

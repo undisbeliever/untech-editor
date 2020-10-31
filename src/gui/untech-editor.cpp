@@ -331,6 +331,12 @@ void UnTechEditor::processMenu(const Project::ProjectFile& pf)
             ImGui::EndMenu();
         }
 
+        ImGui::Separator();
+
+        if (_currentEditorGui) {
+            _currentEditorGui->viewMenu();
+        }
+
         ImGui::EndMenu();
     }
 

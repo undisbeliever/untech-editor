@@ -1368,6 +1368,23 @@ void MetaSpriteEditorGui::processGui(const Project::ProjectFile& projectFile, co
     updateSelection();
 }
 
+void MetaSpriteEditorGui::viewMenu()
+{
+    AbstractMetaSpriteEditorGui::viewMenu();
+
+    ImGui::Separator();
+
+    if (ImGui::BeginMenu("Background Color")) {
+        for (unsigned i = 0; i < backgroundColorNames.size(); i++) {
+            if (ImGui::MenuItem(backgroundColorNames.at(i), nullptr, _selectedEditorBgColor == int(i))) {
+                _selectedEditorBgColor = i;
+            }
+        }
+
+        ImGui::EndMenu();
+    }
+}
+
 void MetaSpriteEditorGui::updateSelection()
 {
     assert(_data);

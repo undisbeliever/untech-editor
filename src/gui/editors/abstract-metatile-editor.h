@@ -104,11 +104,13 @@ private:
 public:
     AbstractMetaTileEditorGui();
 
-    virtual bool setEditorData(AbstractEditorData* data);
-    virtual void editorDataChanged();
+    virtual bool setEditorData(AbstractEditorData* data) override;
+    virtual void editorDataChanged() override;
 
-    virtual void editorOpened();
-    virtual void editorClosed();
+    virtual void editorOpened() override;
+    virtual void editorClosed() override;
+
+    virtual void viewMenu() override;
 
 protected:
     virtual void selectionChanged() = 0;
