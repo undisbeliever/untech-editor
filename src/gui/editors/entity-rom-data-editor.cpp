@@ -501,13 +501,23 @@ void EntityRomDataEditorGui::entityEntriesWindow(const char* name,
                                                [](auto& fsf) { return &fsf.name(); });
 
                 if (ImGui::BeginCombo("displayFrame", entry.displayFrame)) {
-                    if (functionTable) {
-                        if (auto* exportOrder = projectFile.frameSetExportOrders.find(functionTable->exportOrder)) {
-                            edited |= ImGui::IdStringComboSelection(&entry.displayFrame, exportOrder->stillFrames, false,
+                    auto frameSetIt = std::find_if(projectFile.frameSets.begin(), projectFile.frameSets.end(),
+                                                   [&](auto& fs) { return fs.name() == entry.frameSetId; });
+
+                    if (frameSetIt != projectFile.frameSets.end()) {
+                        auto& fs = *frameSetIt;
+
+                        if (fs.siFrameSet) {
+                            edited |= ImGui::IdStringComboSelection(&entry.displayFrame, fs.siFrameSet->frames, false,
+                                                                    [](auto& f) { return &f.name; });
+                        }
+                        else if (fs.msFrameSet) {
+                            edited |= ImGui::IdStringComboSelection(&entry.displayFrame, fs.msFrameSet->frames, false,
                                                                     [](auto& f) { return &f.name; });
                         }
                     }
-                    ImGui::End();
+
+                    ImGui::EndCombo();
                 }
 
                 if (functionTable) {
