@@ -23,6 +23,8 @@ Zoom Style::metaTileTilesetZoom(300);
 Zoom Style::metaTileScratchpadZoom(300);
 Zoom Style::roomEditorZoom(300);
 
+ZoomAspectRatio Style::aspectRatio = ZoomAspectRatio::Ntsc;
+
 const std::array<std::pair<unsigned, const char*>, 19> zoomComboItems{ {
     { 25, "25%" },
     { 50, "50%" },
@@ -57,8 +59,33 @@ void Zoom::setZoom(unsigned z)
     z = std::clamp<unsigned>(z, 5, 1800);
 
     _zoomInt = z;
-    _zoom.x = z / 100.0f;
-    _zoom.y = z / 100.0f;
+
+    update();
+}
+
+static float aspectRatioScale(const ZoomAspectRatio ar)
+{
+    // Values taken from bsnes-plus
+    switch (ar) {
+    case ZoomAspectRatio::Ntsc:
+        return 54.0f / 47.0f;
+
+    case ZoomAspectRatio::Pal:
+        return 32.0f / 23.0f;
+
+    case ZoomAspectRatio::Square:
+        return 1.0f;
+    }
+
+    return 1.0f;
+}
+
+void Zoom::update()
+{
+    const float scale = aspectRatioScale(Style::aspectRatio);
+
+    _zoom.x = _zoomInt / 100.0f * scale;
+    _zoom.y = _zoomInt / 100.0f;
 
     _zoomString = stringBuilder(_zoomInt, "%");
 }
@@ -124,6 +151,19 @@ void Zoom::processMouseWheel()
             }
         }
     }
+}
+
+void Style::setAspectRatio(ZoomAspectRatio ar)
+{
+    aspectRatio = ar;
+
+    metaSpriteAnimationZoom.update();
+    metaSpriteZoom.update();
+    spriteImporterZoom.update();
+    backgroundImageZoom.update();
+    metaTileTilesetZoom.update();
+    metaTileScratchpadZoom.update();
+    roomEditorZoom.update();
 }
 
 }

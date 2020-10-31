@@ -8,6 +8,7 @@
 #include "abstract-editor.h"
 #include "imgui-filebrowser.h"
 #include "imgui.h"
+#include "gui/style.h"
 #include "gui/windows/about-popup.h"
 #include "gui/windows/error-list-window.h"
 #include "gui/windows/message-box.h"
@@ -311,6 +312,23 @@ void UnTechEditor::processMenu(const Project::ProjectFile& pf)
             if (_currentEditorGui) {
                 _currentEditorGui->redoClicked = true;
             }
+        }
+
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("View")) {
+        if (ImGui::BeginMenu("Aspect Ratio")) {
+            auto apMenuItem = [](const char* name, const ZoomAspectRatio ap) {
+                if (ImGui::MenuItem(name, nullptr, Style::aspectRatio == ap)) {
+                    Style::setAspectRatio(ap);
+                }
+            };
+            apMenuItem("Ntsc", ZoomAspectRatio::Ntsc);
+            apMenuItem("Pal", ZoomAspectRatio::Pal);
+            apMenuItem("Square", ZoomAspectRatio::Square);
+
+            ImGui::EndMenu();
         }
 
         ImGui::EndMenu();

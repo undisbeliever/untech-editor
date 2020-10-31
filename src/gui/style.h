@@ -10,6 +10,12 @@
 
 namespace UnTech::Gui {
 
+enum class ZoomAspectRatio {
+    Square,
+    Ntsc,
+    Pal,
+};
+
 class Zoom {
 private:
     unsigned _zoomInt;
@@ -22,6 +28,8 @@ public:
     unsigned zoomInt() const { return _zoomInt; }
     const ImVec2& zoom() const { return _zoom; }
     const std::string& zoomString() const { return _zoomString; }
+
+    void update();
 
     void setZoom(unsigned z);
 
@@ -92,6 +100,9 @@ struct Style {
     static Zoom metaTileTilesetZoom;
     static Zoom metaTileScratchpadZoom;
     static Zoom roomEditorZoom;
+
+    static ZoomAspectRatio aspectRatio;
+    static void setAspectRatio(ZoomAspectRatio ar);
 };
 
 }
