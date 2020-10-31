@@ -8,6 +8,7 @@
 #include "abstract-editor.h"
 #include "imgui-filebrowser.h"
 #include "imgui.h"
+#include "key-id.h"
 #include "gui/style.h"
 #include "gui/windows/about-popup.h"
 #include "gui/windows/error-list-window.h"
@@ -258,7 +259,6 @@ void UnTechEditor::processMenu(const Project::ProjectFile& pf)
     ImGui::BeginMainMenuBar();
 
     if (ImGui::BeginMenu("File")) {
-        // ::TODO add Ctrl+S shortcut::
         if (_currentEditor) {
             if (!_currentEditor->basename().empty()) {
                 auto s = "Save "s + _currentEditor->basename();
@@ -268,10 +268,10 @@ void UnTechEditor::processMenu(const Project::ProjectFile& pf)
             }
         }
         const auto saveProjectLabel = "Save "s + _basename;
-        if (ImGui::MenuItem(saveProjectLabel.c_str())) {
+        if (ImGui::MenuItem(saveProjectLabel.c_str(), "Ctrl+S")) {
             saveProjectFile(pf);
         }
-        if (ImGui::MenuItem("Save All")) {
+        if (ImGui::MenuItem("Save All", "Ctrl+Shift+S")) {
             saveAll(pf);
         }
 
@@ -280,7 +280,7 @@ void UnTechEditor::processMenu(const Project::ProjectFile& pf)
         _projectListWindow.processMenu();
 
         ImGui::Separator();
-        if (ImGui::MenuItem("Invalidate ImageCache and Recompile Everything")) {
+        if (ImGui::MenuItem("Invalidate ImageCache and Recompile Everything", "Ctrl+`")) {
             invalidateImageCache();
         }
 
@@ -303,12 +303,12 @@ void UnTechEditor::processMenu(const Project::ProjectFile& pf)
         const bool canUndo = _currentEditor && _currentEditor->canUndo();
         const bool canRedo = _currentEditor && _currentEditor->canRedo();
 
-        if (ImGui::MenuItem("Undo", nullptr, false, canUndo)) {
+        if (ImGui::MenuItem("Undo", "Ctrl+Z", false, canUndo)) {
             if (_currentEditorGui) {
                 _currentEditorGui->undoClicked = true;
             }
         }
-        if (ImGui::MenuItem("Redo", nullptr, false, canRedo)) {
+        if (ImGui::MenuItem("Redo", "Ctrl+Y / Ctrl+Shift+Z", false, canRedo)) {
             if (_currentEditorGui) {
                 _currentEditorGui->redoClicked = true;
             }
@@ -341,6 +341,42 @@ void UnTechEditor::processMenu(const Project::ProjectFile& pf)
     }
 
     ImGui::EndMainMenuBar();
+}
+
+void UnTechEditor::processKeyboardShortcuts(const Project::ProjectFile& pf)
+{
+    const auto& io = ImGui::GetIO();
+
+    if (io.KeyCtrl) {
+        if (ImGui::IsKeyPressed(KeyId_S, false)) {
+            if (io.KeyShift) {
+                saveAll(pf);
+            }
+            else {
+                if (_currentEditor) {
+                    saveEditor(pf, _currentEditor);
+                }
+            }
+        }
+
+        if (_currentEditorGui && ImGui::IsAnyItemActive() == false) {
+            if (ImGui::IsKeyPressed(KeyId_Z, false)) {
+                if (io.KeyShift) {
+                    _currentEditorGui->redoClicked = true;
+                }
+                else {
+                    _currentEditorGui->undoClicked = true;
+                }
+            }
+            if (ImGui::IsKeyPressed(KeyId_Y, false)) {
+                _currentEditorGui->redoClicked = true;
+            }
+        }
+
+        if (ImGui::IsKeyPressed(KeyId_Grave, false)) {
+            invalidateImageCache();
+        }
+    }
 }
 
 void UnTechEditor::requestExitEditor()
@@ -463,6 +499,7 @@ void UnTechEditor::processGui()
         _projectListWindow.processGui(_projectData);
 
         processMenu(pf);
+        processKeyboardShortcuts(pf);
         unsavedChangesOnExitPopup(pf);
     });
 }

@@ -114,6 +114,7 @@ private:
     void invalidateImageCache();
 
     void processMenu(const Project::ProjectFile& pf);
+    void processKeyboardShortcuts(const Project::ProjectFile& pf);
 
     void unsavedChangesOnExitPopup(const Project::ProjectFile& pf);
 };

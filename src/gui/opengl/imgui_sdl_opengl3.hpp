@@ -17,6 +17,13 @@
 #include <SDL.h>
 #include <stdio.h>
 
+namespace UnTech::Gui {
+extern const int KeyId_S = SDL_SCANCODE_S;
+extern const int KeyId_Y = SDL_SCANCODE_Y;
+extern const int KeyId_Z = SDL_SCANCODE_Z;
+extern const int KeyId_Grave = SDL_SCANCODE_GRAVE;
+}
+
 class ImGuiLoop {
     SDL_Window* window = nullptr;
     SDL_GLContext gl_context = nullptr;
