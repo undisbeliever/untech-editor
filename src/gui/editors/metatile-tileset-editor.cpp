@@ -149,6 +149,7 @@ MetaTileTilesetEditorGui::MetaTileTilesetEditorGui()
     , _tileProperties(std::nullopt)
     , _tilesetShaderImageFilenamesValid(false)
     , _tileCollisionsValid(false)
+    , _interactiveTilesValid(false)
 {
 }
 
@@ -165,6 +166,7 @@ void MetaTileTilesetEditorGui::editorDataChanged()
 
     _tilesetShaderImageFilenamesValid = false;
     _tileCollisionsValid = false;
+    _interactiveTilesValid = false;
 
     if (_data) {
         _scratchpadSize = _data->data.scratchpad.size();
@@ -180,7 +182,9 @@ void MetaTileTilesetEditorGui::editorOpened()
     setEditMode(EditMode::SelectTiles);
 
     _invalidTilesCompileId = 0;
+    _tilesetShaderImageFilenamesValid = false;
     _tileCollisionsValid = false;
+    _interactiveTilesValid = false;
 }
 
 void MetaTileTilesetEditorGui::editorClosed()
@@ -501,6 +505,8 @@ void MetaTileTilesetEditorGui::tileFunctionTableSelected(const idstring& ft)
         tileFunctionTables.at(i) = ft;
     }
 
+    _interactiveTilesValid = false;
+
     // ::TODO add set field array items action::
     EditorActions<AP::MtTileset>::fieldEdited<
         &MetaTileTilesetInput::tileCollisions>(_data);
@@ -753,7 +759,7 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
 
     _tilesetShader.setTilesetFrame(_data->tilesetFrameSel.selectedIndex());
 
-    updateMtTilesetShader(projectData);
+    updateMtTilesetShader(projectFile, projectData);
     updateMapAndProcessAnimations();
     updateInvalidTileList(projectData);
 
@@ -774,7 +780,8 @@ void MetaTileTilesetEditorGui::processGui(const Project::ProjectFile& projectFil
     }
 }
 
-void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectData& projectData)
+void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectFile& projectFile,
+                                                     const Project::ProjectData& projectData)
 {
     assert(_data);
     auto& mtTileset = _data->data;
@@ -795,6 +802,12 @@ void MetaTileTilesetEditorGui::updateMtTilesetShader(const Project::ProjectData&
         _tilesetShader.setTileCollisions(mtTileset.tileCollisions);
 
         _tileCollisionsValid = true;
+    }
+
+    if (!_interactiveTilesValid) {
+        _tilesetShader.setInteractiveTilesData(mtTileset, projectFile, projectData);
+
+        _interactiveTilesValid = true;
     }
 }
 

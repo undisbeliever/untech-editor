@@ -22,6 +22,11 @@ namespace UnTech::Resources {
 struct PaletteData;
 }
 
+namespace UnTech::Project {
+struct ProjectFile;
+class ProjectData;
+}
+
 namespace UnTech::Gui::Shaders {
 
 void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd);
@@ -47,6 +52,7 @@ private:
 
     Texture _texture;
     Texture _tilesTexture;
+    Texture _interactiveTilesTexture;
     Texture8 _tileCollisionsData;
 
     Texture _palette;
@@ -63,7 +69,10 @@ private:
     bool _textureValid;
     bool _tilesTextureValid;
 
+    bool _interactiveTilesDataValid;
+
     bool _showTiles;
+    bool _showInteractiveTiles;
     bool _showTileCollisions;
 
 public:
@@ -104,6 +113,11 @@ public:
         }
     }
 
+    void setInteractiveTilesData(const MetaTiles::MetaTileTilesetInput& tileset,
+                                 const Project::ProjectFile& projectFile,
+                                 const Project::ProjectData& projectData);
+    void clearInteractiveTilesData();
+
     inline unsigned nPaletteFrames() const { return _nPaletteFrames; }
     inline unsigned nTilesetFrames() const { return _nTilesetFrames; }
 
@@ -120,6 +134,13 @@ public:
     void setShowTileCollisions(bool s)
     {
         _showTileCollisions = s;
+
+        _textureValid = false;
+    }
+
+    void setShowInteractiveTiles(bool s)
+    {
+        _showInteractiveTiles = s;
 
         _textureValid = false;
     }

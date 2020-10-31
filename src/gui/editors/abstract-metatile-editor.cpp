@@ -330,6 +330,7 @@ void AbstractMetaTileEditorGui::editorOpened()
     _tilesetShader.reset();
     _tilesetShader.setShowTiles(showTiles);
     _tilesetShader.setShowTileCollisions(showTileCollisions);
+    _tilesetShader.setShowInteractiveTiles(showInteractiveTiles);
 
     _cursor.mapDirty = false;
     _cursor.currentlyEditing = false;
@@ -400,15 +401,20 @@ void AbstractMetaTileEditorGui::showLayerButtons()
 {
     ImGui::ToggledButtonWithTooltip("G##showGrid", &showGrid, "Show Grid");
     ImGui::SameLine();
+
     if (ImGui::ToggledButtonWithTooltip("T##showTiles", &showTiles, "Show Tiles")) {
         _tilesetShader.setShowTiles(showTiles);
     }
     ImGui::SameLine();
+
     if (ImGui::ToggledButtonWithTooltip("C##showTC", &showTileCollisions, "Show Tile Collisions")) {
         _tilesetShader.setShowTileCollisions(showTileCollisions);
     }
     ImGui::SameLine();
-    ImGui::ToggledButtonWithTooltip("I##showIT", &showInteractiveTiles, "Show Interactive Tiles");
+
+    if (ImGui::ToggledButtonWithTooltip("I##showIT", &showInteractiveTiles, "Show Interactive Tiles")) {
+        _tilesetShader.setShowInteractiveTiles(showInteractiveTiles);
+    }
     ImGui::SameLine();
 }
 
@@ -482,12 +488,8 @@ void AbstractMetaTileEditorGui::drawTileset(const Geometry& geo)
 
     tilesetInteractiveTilesTooltip(geo);
 
-    if (showTiles) {
+    if (showTiles || showTileCollisions || showInteractiveTiles) {
         drawList->AddImage(_tilesetShader.texture().imguiTextureId(), geo.offset, geo.offset + geo.mapSize);
-    }
-
-    if (showInteractiveTiles) {
-        // ::TODO draw tile symbols::
     }
 
     if (showGrid) {
@@ -611,12 +613,8 @@ void AbstractMetaTileEditorGui::drawTilemap(const Shaders::MtTilemap& tilemap,
 
     auto* drawList = ImGui::GetWindowDrawList();
 
-    if (showTiles || showTileCollisions) {
+    if (showTiles || showTileCollisions || showInteractiveTiles) {
         tilemap.addToDrawList(drawList, geo.offset, geo.mapSize, _tilesetShader);
-    }
-
-    if (showInteractiveTiles) {
-        // ::TODO draw symbols::
     }
 
     if (showGrid) {

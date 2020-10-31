@@ -87,23 +87,21 @@ void InteractiveTilesEditorGui::interactiveTilesWindow()
     assert(_data);
     auto& interactiveTiles = _data->interactiveTiles;
 
-    ImGui::SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Interactive Tiles")) {
 
         ListButtons<AP::FunctionTables>(_data);
 
         ImGui::BeginChild("scroll");
 
-        ImGui::Columns(4);
+        ImGui::Columns(3);
         ImGui::SetColumnWidth(0, 40);
 
         ImGui::Separator();
         ImGui::NextColumn();
         ImGui::Text("Name");
         ImGui::NextColumn();
-        ImGui::Text("Symbol");
-        ImGui::NextColumn();
-        ImGui::Text("Symbol Color");
+        ImGui::Text("Tint");
         ImGui::NextColumn();
         ImGui::Separator();
 
@@ -114,10 +112,7 @@ void InteractiveTilesEditorGui::interactiveTilesWindow()
             ImGui::TextUnformatted(ft.name);
             ImGui::NextColumn();
 
-            ImGui::TextUnformatted(ft.symbol);
-            ImGui::NextColumn();
-
-            ImGui::Text("%06X", ft.symbolColor.rgbHex());
+            ImGui::Text("%06X", ft.tint.rgbHex());
             // ::TODO add color square::
             ImGui::NextColumn();
         }
@@ -141,12 +136,7 @@ void InteractiveTilesEditorGui::interactiveTilesWindow()
             ImGui::NextColumn();
 
             ImGui::SetNextItemWidth(-1);
-            ImGui::InputText("##Symbol", &ft.symbol);
-            edited |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::NextColumn();
-
-            ImGui::SetNextItemWidth(-1);
-            ImGui::InputRgb("##Color", &ft.symbolColor);
+            ImGui::InputRgb("##Tint", &ft.tint);
             edited |= ImGui::IsItemDeactivatedAfterEdit();
             ImGui::NextColumn();
 

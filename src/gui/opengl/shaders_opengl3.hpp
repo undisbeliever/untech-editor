@@ -232,6 +232,78 @@ static void draw(const Texture8& image, const Texture& palette, unsigned palette
 
 }
 
+namespace InteractiveTiles {
+
+const GLchar* tc_fragment_shader = R"glsl(
+#version 130
+
+uniform sampler2D Texture;
+
+in vec2 Frag_UV;
+
+void main()
+{
+    gl_FragColor = texture(Texture, Frag_UV);
+}
+)glsl";
+
+static const usize TCT_TEXTURE_SIZE(16, 32 * 16);
+
+static GLuint g_shaderHandle = 0;
+static GLint g_uniformTexture = 0;
+static GLint g_attribPosition = 0;
+static GLint g_attribUV = 0;
+
+static void initialize()
+{
+    if (g_initialized) {
+        return;
+    }
+
+    // Create the TileCollisionType texture if it doesn't already exist
+    tileCollisionTypeTexture();
+
+    GLuint fragHandle = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragHandle, 1, &tc_fragment_shader, 0);
+    glCompileShader(fragHandle);
+    CheckShader(fragHandle, "Interactive Tiles fragment shader");
+
+    g_shaderHandle = glCreateProgram();
+    glAttachShader(g_shaderHandle, MtTilesetVertexShader::g_vertexHangle);
+    glAttachShader(g_shaderHandle, fragHandle);
+    glLinkProgram(g_shaderHandle);
+    CheckProgram(g_shaderHandle, "Interactive Tiles shader program");
+
+    g_uniformTexture = glGetUniformLocation(g_shaderHandle, "Texture");
+
+    g_attribPosition = glGetAttribLocation(g_shaderHandle, "Position");
+    g_attribUV = glGetAttribLocation(g_shaderHandle, "UV");
+
+    glDeleteShader(fragHandle);
+}
+
+static void cleanup()
+{
+    if (g_shaderHandle) {
+        glDeleteProgram(g_shaderHandle);
+        g_shaderHandle = 0;
+    }
+}
+
+static void draw(const Texture& interactiveTilesTexture)
+{
+    glUseProgram(g_shaderHandle);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, interactiveTilesTexture.openGLTextureId());
+
+    glUniform1i(g_uniformTexture, 0);
+
+    MtTilesetVertexShader::draw(g_attribPosition, g_attribUV);
+}
+
+}
+
 namespace TileCollisions {
 
 const GLchar* tc_fragment_shader = R"glsl(
@@ -454,6 +526,7 @@ void initialize()
 
     MtTilesetVertexShader::initialize();
     MtTilesetTilesShader::initialize();
+    InteractiveTiles::initialize();
     TileCollisions::initialize();
     Tilemap::initialize();
 
@@ -467,6 +540,7 @@ void cleanup()
 
     MtTilesetVertexShader::cleanup();
     MtTilesetTilesShader::cleanup();
+    InteractiveTiles::cleanup();
     TileCollisions::cleanup();
     Tilemap::cleanup();
 
@@ -520,6 +594,7 @@ void drawMtTilemap(const ImDrawList*, const ImDrawCmd* pcmd)
 MtTileset::MtTileset()
     : _texture(TEXTURE_SIZE, TEXTURE_SIZE)
     , _tilesTexture(TEXTURE_SIZE, TEXTURE_SIZE)
+    , _interactiveTilesTexture(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE)
     , _tileCollisionsData(TC_TEXTURE_SIZE, TC_TEXTURE_SIZE)
     , _palette()
     , _paletteFrame(0)
@@ -530,7 +605,9 @@ MtTileset::MtTileset()
     , _tilesTextureFrameBuffer(0)
     , _textureValid(true)
     , _tilesTextureValid(true)
+    , _interactiveTilesDataValid(false)
     , _showTiles(true)
+    , _showInteractiveTiles(true)
     , _showTileCollisions(true)
 {
     // Add to list of MtTileset instances
@@ -636,6 +713,10 @@ inline void MtTileset::drawTextures_openGL()
         // Clear buffer
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    if (_showInteractiveTiles && _interactiveTilesDataValid) {
+        InteractiveTiles::draw(_interactiveTilesTexture);
     }
 
     // Draw Tile Collisions

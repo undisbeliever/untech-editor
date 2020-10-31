@@ -19,14 +19,12 @@ namespace MetaTiles {
 
 struct InteractiveTileFunctionTable {
     idstring name;
-    std::string symbol;
-    rgba symbolColor = rgba(255, 200, 0);
+    rgba tint = rgba(255, 200, 0);
 
     bool operator==(const InteractiveTileFunctionTable& o) const
     {
         return name == o.name
-               && symbol == o.symbol
-               && symbolColor == o.symbolColor;
+               && tint == o.tint;
     }
 };
 

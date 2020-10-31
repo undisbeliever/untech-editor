@@ -65,6 +65,7 @@ private:
 
     bool _tilesetShaderImageFilenamesValid;
     bool _tileCollisionsValid;
+    bool _interactiveTilesValid;
 
 public:
     MetaTileTilesetEditorGui();
@@ -95,7 +96,8 @@ private:
     void tilesetWindow();
     void scratchpadWindow();
 
-    void updateMtTilesetShader(const Project::ProjectData& projectData);
+    void updateMtTilesetShader(const Project::ProjectFile& projectFile,
+                               const Project::ProjectData& projectData);
     void updateInvalidTileList(const Project::ProjectData& projectData);
 };
 

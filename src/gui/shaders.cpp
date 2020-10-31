@@ -5,7 +5,10 @@
  */
 
 #include "shaders.h"
+#include "models/metatiles/interactive-tiles.h"
 #include "models/metatiles/metatile-tileset.h"
+#include "models/project/project-data.h"
+#include "models/project/project.h"
 #include <cassert>
 
 #if defined(IMGUI_IMPL_SDL_OPENGL)
@@ -103,6 +106,8 @@ void MtTileset::reset()
     _tilesetData = nullptr;
     _paletteData = nullptr;
     _tilesTextureValid = false;
+    _textureValid = false;
+    _interactiveTilesDataValid = false;
 }
 
 void MtTileset::setPaletteData(std::shared_ptr<const UnTech::Resources::PaletteData> pd)
@@ -159,6 +164,43 @@ void MtTileset::setTilesetData(const MetaTiles::MetaTileTilesetInput& input,
     }
 
     _tilesTextureValid = false;
+}
+
+void MtTileset::setInteractiveTilesData(const MetaTiles::MetaTileTilesetInput& tileset,
+                                        const Project::ProjectFile& projectFile,
+                                        const Project::ProjectData& projectData)
+{
+    static Image image(TILESET_WIDTH, TILESET_HEIGHT);
+
+    _textureValid = false;
+
+    const auto interactiveTiles = projectData.interactiveTiles();
+
+    if (!interactiveTiles) {
+        _interactiveTilesDataValid = false;
+        return;
+    }
+
+    image.fill(rgba(0, 0, 0, 0));
+
+    auto* imgIt = image.data();
+    for (const auto& ftName : tileset.tileFunctionTables) {
+        if (ftName.isValid()) {
+            auto it = interactiveTiles->tileFunctionMap.find(ftName);
+            if (it != interactiveTiles->tileFunctionMap.end()) {
+                const auto& itf = projectFile.interactiveTiles.getFunctionTable(it->second);
+
+                *imgIt = itf.tint;
+                imgIt->alpha = 64;
+            }
+        }
+
+        imgIt++;
+    }
+    assert(imgIt == image.data() + image.dataSize());
+
+    _interactiveTilesTexture.replace(image);
+    _interactiveTilesDataValid = true;
 }
 
 }
