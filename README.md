@@ -51,7 +51,8 @@ in your $PATH:
 
  * GNU Make
  * A C++17 compiler (g++ or clang++)
- * Qt 5.8 or higher
+ * SDL 2
+ * OpenGL 3
 
 
 License
