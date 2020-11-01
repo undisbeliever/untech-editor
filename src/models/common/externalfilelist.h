@@ -49,6 +49,7 @@ class ExternalFileList {
 public:
     using Item = ExternalFileItem<T>;
     using container = typename std::vector<ExternalFileItem<T>>;
+    using iterator = typename container::iterator;
     using const_iterator = typename container::const_iterator;
     using value_type = T;
     using size_type = typename container::size_type;
@@ -112,6 +113,8 @@ public:
     T* at(size_type index) { return _list.at(index).value.get(); }
     const T* at(size_type index) const { return _list.at(index).value.get(); }
 
+    iterator begin() { return _list.begin(); }
+    iterator end() { return _list.end(); }
     const_iterator begin() const { return _list.begin(); }
     const_iterator end() const { return _list.end(); }
     const_iterator cbegin() const { return _list.cbegin(); }

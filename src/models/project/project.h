@@ -61,6 +61,8 @@ struct ProjectFile {
 
     void loadAllFiles();
 
+    void loadAllFilesIgnoringErrors();
+
     bool validate(ErrorList& err) const;
 
     bool operator==(const ProjectFile& o) const

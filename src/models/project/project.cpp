@@ -23,6 +23,25 @@ void ProjectFile::loadAllFiles()
     }
 }
 
+void ProjectFile::loadAllFilesIgnoringErrors()
+{
+    auto loadFiles = [](auto& list) {
+        for (auto& item : list) {
+            try {
+                item.loadFile();
+            }
+            catch (std::exception& ex) {
+                // ignore error
+            }
+        }
+    };
+
+    loadFiles(metaTileTilesets);
+    loadFiles(frameSetExportOrders);
+    loadFiles(rooms);
+    loadFiles(frameSets);
+}
+
 bool MemoryMapSettings::validate(ErrorList& err) const
 {
     bool valid = true;

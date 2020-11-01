@@ -88,8 +88,7 @@ void UnTechEditor::loadProject(const std::filesystem::path& fn)
 
         auto pf = UnTech::Project::loadProjectFile(filename);
 
-        // ::TODO move into background thread::
-        pf->loadAllFiles();
+        pf->loadAllFilesIgnoringErrors();
 
         ImGui::setFileDialogDirectory(filename.parent_path());
 
