@@ -509,7 +509,7 @@ void MetaTileTilesetEditorGui::tileFunctionTableSelected(const idstring& ft)
 
     // ::TODO add set field array items action::
     EditorActions<AP::MtTileset>::fieldEdited<
-        &MetaTileTilesetInput::tileCollisions>(_data);
+        &MetaTileTilesetInput::tileFunctionTables>(_data);
 }
 
 void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& projectFile)
