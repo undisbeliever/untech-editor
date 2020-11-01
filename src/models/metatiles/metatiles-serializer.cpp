@@ -73,10 +73,12 @@ static void readInteractiveTileFunction(const XmlTag& tag, NamedList<Interactive
     InteractiveTileFunctionTable& ft = tileFunctions.back();
 
     ft.name = tag.getAttributeOptionalId("name");
-    ft.symbol = tag.getAttributeOrEmpty("symbol");
 
+    if (tag.hasAttribute("tint")) {
+        ft.tint = UnTech::rgba::fromRgbHex(tag.getAttributeUnsignedHex("tint"));
+    }
     if (tag.hasAttribute("color")) {
-        ft.symbolColor = UnTech::rgba::fromRgbHex(tag.getAttributeUnsignedHex("color"));
+        ft.tint = UnTech::rgba::fromRgbHex(tag.getAttributeUnsignedHex("color"));
     }
 }
 
@@ -102,8 +104,7 @@ void writeInteractiveTiles(XmlWriter& xml, const InteractiveTiles& interactiveTi
     for (auto& ft : interactiveTiles.functionTables) {
         xml.writeTag("tile-function-table");
         xml.writeTagAttribute("name", ft.name);
-        xml.writeTagAttribute("symbol", ft.symbol);
-        xml.writeTagAttributeHex("color", ft.symbolColor.rgbHex(), 6);
+        xml.writeTagAttributeHex("tint", ft.tint.rgbHex(), 6);
         xml.writeCloseTag();
     }
     xml.writeCloseTag();

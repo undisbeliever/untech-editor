@@ -49,22 +49,9 @@ public:
         }
     };
 
-    struct Accessor {
-        Accessor(const uint16_t tile16Addr, bool hFlip, bool vFlip)
-            : tile16Addr(tile16Addr)
-            , hFlip(hFlip)
-            , vFlip(vFlip)
-        {
-        }
-
-        const uint16_t tile16Addr;
-        const bool hFlip;
-        const bool vFlip;
-    };
-
     const Project::MemoryMapSettings _memoryMap;
     const unsigned _tilesPerBlock;
-    std::unordered_map<Snes::Tile16px, const Accessor> _map;
+    std::unordered_map<Snes::Tile16px, const uint16_t> _map;
     std::vector<TileBank> _tileBanks;
 
 private:
@@ -107,24 +94,14 @@ public:
 
     const std::vector<TileBank>& tileBanks() const { return _tileBanks; }
 
-    Accessor addLargeTile(const Snes::Tile16px& tile)
+    uint16_t addLargeTile(const Snes::Tile16px& tile)
     {
         const auto it = _map.find(tile);
         if (it != _map.end()) {
             return it->second;
         }
         else {
-            const auto addr = insertTileData(tile);
-
-            // unordered_map will ignore insert if tile pattern already exists
-            // Thus symmetrical tiles will prefer the unflipped tile.
-
-            _map.emplace(tile, Accessor(addr, false, false));
-            _map.emplace(tile.hFlip(), Accessor(addr, true, false));
-            _map.emplace(tile.vFlip(), Accessor(addr, false, true));
-            _map.emplace(tile.hvFlip(), Accessor(addr, true, true));
-
-            return { addr, false, false };
+            return insertTileData(tile);
         }
     }
 };

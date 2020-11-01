@@ -90,7 +90,8 @@ bool PaletteInput::validate(ErrorList& err) const
     return valid;
 }
 
-std::unique_ptr<PaletteData> Resources::convertPalette(const PaletteInput& input, ErrorList& err)
+std::shared_ptr<const PaletteData>
+Resources::convertPalette(const PaletteInput& input, ErrorList& err)
 {
     bool valid = input.validate(err);
     if (!valid) {
@@ -104,8 +105,7 @@ std::unique_ptr<PaletteData> Resources::convertPalette(const PaletteInput& input
     const unsigned nFrames = (imgSize.height - 1) / input.rowsPerFrame + 1 - firstFrame;
     const unsigned colorsPerFrame = imgSize.width * input.rowsPerFrame;
 
-    std::unique_ptr<PaletteData> ret = std::make_unique<PaletteData>();
-    ret->name = input.name;
+    auto ret = std::make_shared<PaletteData>();
     ret->animationDelay = input.animationDelay;
 
     auto extractPalette = [&](std::vector<SnesColor>& frame, unsigned frameId) {

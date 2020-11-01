@@ -54,7 +54,12 @@ class ImageCachePrivate {
     {
         std::lock_guard<std::mutex> guard(mutex);
 
-        const auto abs = std::filesystem::absolute(filename);
+        std::error_code ec;
+        const auto abs = std::filesystem::absolute(filename, ec);
+        if (ec) {
+            return;
+        }
+
         const auto& fn = abs.native();
 
         auto it = cache.find(fn);

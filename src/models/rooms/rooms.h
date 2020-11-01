@@ -140,17 +140,16 @@ struct RoomInput {
 struct RoomData {
     const static int ROOM_FORMAT_VERSION;
 
-    idstring name;
     std::vector<uint8_t> data;
 
     bool validate(ErrorList&) const { return data.empty() == false; }
 
     std::vector<uint8_t> exportSnesData() const;
 };
-std::unique_ptr<const RoomData> compileRoom(const RoomInput& input,
-                                            const Resources::CompiledScenesData& compiledScenes,
-                                            const Entity::CompiledEntityRomData& entityRomData,
-                                            const RoomSettings& roomSettings,
-                                            ErrorList& err);
+
+std::shared_ptr<const RoomData>
+compileRoom(const RoomInput& input,
+            const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings,
+            ErrorList& err);
 }
 }

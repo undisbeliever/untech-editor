@@ -77,7 +77,7 @@ public:
 
     void addError(std::unique_ptr<const AbstractSpecializedError> e)
     {
-        _list.push_back({ ErrorType::ERROR, {}, std::move(e) });
+        _list.push_back({ ErrorType::ERROR, e->message(), std::move(e) });
         _errorCount++;
     }
     void addErrorString(const std::string& s)
@@ -99,7 +99,7 @@ public:
 
     void addWarning(std::unique_ptr<const AbstractSpecializedError> e)
     {
-        _list.push_back({ ErrorType::WARNING, {}, std::move(e) });
+        _list.push_back({ ErrorType::WARNING, e->message(), std::move(e) });
     }
     template <typename... Args>
     void addWarningString(const Args... args)

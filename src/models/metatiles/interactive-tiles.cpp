@@ -14,10 +14,11 @@ namespace MetaTiles {
 static const idstring BLANK_TILE_FUNCTION{ "NoTileInteraction" };
 
 const std::array<InteractiveTileFunctionTable, InteractiveTiles::N_FIXED_FUNCTION_TABLES> InteractiveTiles::FIXED_FUNCTION_TABLES{ {
-    InteractiveTileFunctionTable{ BLANK_TILE_FUNCTION, "" },
+    InteractiveTileFunctionTable{ BLANK_TILE_FUNCTION, rgba(0, 0, 0, 0) },
 } };
 
-std::unique_ptr<InteractiveTilesData> convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
+std::shared_ptr<const InteractiveTilesData>
+convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err)
 {
     bool valid = true;
 
@@ -30,7 +31,7 @@ std::unique_ptr<InteractiveTilesData> convertInteractiveTiles(const InteractiveT
         valid = false;
     };
 
-    auto ret = std::make_unique<InteractiveTilesData>();
+    auto ret = std::make_shared<InteractiveTilesData>();
 
     {
         const size_t numberOfFunctions = InteractiveTiles::FIXED_FUNCTION_TABLES.size() + input.functionTables.size();
@@ -51,13 +52,6 @@ std::unique_ptr<InteractiveTilesData> convertInteractiveTiles(const InteractiveT
         for (const auto& ft : input.functionTables) {
             if (ft.name.isValid() == false) {
                 addFunctionError(ft, "Missing name");
-            }
-
-            if (ft.symbol.empty()) {
-                addFunctionError(ft, "Missing symbol");
-            }
-            else if (ft.symbol.size() > 4) {
-                addFunctionError(ft, "Symbol is too large");
             }
 
             const auto [it, added] = ret->tileFunctionMap.emplace(ft.name, index);

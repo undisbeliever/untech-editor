@@ -9,7 +9,7 @@
 
 using namespace UnTech::Resources;
 
-const char* InvalidImageError::InvalidImageTile::reasonString() const
+const char* InvalidImageError::reasonString(const InvalidImageError::InvalidTileReason reason)
 {
     switch (reason) {
     case NO_PALETTE_FOUND:
@@ -57,7 +57,7 @@ void InvalidImageError::printIndented(std::ostream& out) const
             out << ':';
 
             for (const auto& t : _invalidTiles) {
-                out << "\n      Tile" << t.size << " @ " << t.x << "px, " << t.y << "px: " << t.reasonString();
+                out << "\n      Tile" << t.size << " @ " << t.x << "px, " << t.y << "px: " << reasonString(t.reason);
             }
         }
     }

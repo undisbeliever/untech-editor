@@ -54,6 +54,7 @@ public:
     unsigned animationFrameIndex() const { return _aFrameIndex; }
     unsigned displayFrameCount() const { return _displayFrameCount; }
 
+    const point& velocityFp() const { return _velocity; }
     const point& positionFp() const { return _position; }
     point positionInt() const { return point(_position.x >> FP_SHIFT, _position.y >> FP_SHIFT); }
 

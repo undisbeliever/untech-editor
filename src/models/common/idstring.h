@@ -10,10 +10,21 @@
 #include <string>
 
 namespace UnTech {
+class idstring;
+}
+namespace ImGui {
+bool InputIdstring(const char*, UnTech::idstring*);
+}
+
+namespace UnTech {
 
 // Will ALWAYS contain valid data.
 // Data structure fails silently
 class idstring {
+    // Allow ImGui::InputIdstring to access idstring internals.
+    friend bool ImGui::InputIdstring(const char*, idstring*);
+
+private:
     std::string data;
 
 public:
@@ -40,6 +51,20 @@ public:
         return true;
     }
 
+    static idstring fixup(const std::string& s)
+    {
+        idstring ret;
+
+        ret.data = s;
+        for (auto& c : ret.data) {
+            if (!isCharValid(c)) {
+                c = '_';
+            }
+        }
+
+        return ret;
+    }
+
 public:
     ~idstring() = default;
     idstring(const idstring&) = default;
@@ -61,6 +86,8 @@ public:
     inline const std::string& str() const { return data; }
     inline operator const std::string&() const { return data; }
     // clang-format on
+
+    void clear() { data.clear(); }
 
     inline idstring& operator=(const std::string& s)
     {

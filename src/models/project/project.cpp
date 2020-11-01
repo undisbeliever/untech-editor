@@ -23,6 +23,25 @@ void ProjectFile::loadAllFiles()
     }
 }
 
+void ProjectFile::loadAllFilesIgnoringErrors()
+{
+    auto loadFiles = [](auto& list) {
+        for (auto& item : list) {
+            try {
+                item.loadFile();
+            }
+            catch (std::exception& ex) {
+                // ignore error
+            }
+        }
+    };
+
+    loadFiles(metaTileTilesets);
+    loadFiles(frameSetExportOrders);
+    loadFiles(rooms);
+    loadFiles(frameSets);
+}
+
 bool MemoryMapSettings::validate(ErrorList& err) const
 {
     bool valid = true;
@@ -62,8 +81,7 @@ bool ProjectFile::validate(ErrorList& err) const
 {
     bool valid = true;
 
-    valid &= memoryMap.validate(err);
-    valid &= roomSettings.validate(err);
+    valid &= projectSettings.validate(err);
 
     if (frameSetExportOrders.size() > MetaSprite::MAX_EXPORT_NAMES) {
         err.addErrorString("Too many MetaSprite export orders");
@@ -79,6 +97,16 @@ bool ProjectFile::validate(ErrorList& err) const
     valid &= validateFilesAndNamesUnique(frameSetExportOrders, "export order", err);
 
     valid &= validateFilesAndNamesUnique(rooms, "Room", err);
+
+    return valid;
+}
+
+bool ProjectSettings::validate(ErrorList& err) const
+{
+    bool valid = true;
+
+    valid &= memoryMap.validate(err);
+    valid &= roomSettings.validate(err);
 
     return valid;
 }

@@ -48,9 +48,9 @@ public:
         {
             assert(size > 0);
         }
-
-        const char* reasonString() const;
     };
+
+    static const char* reasonString(const InvalidTileReason reason);
 
 private:
     std::vector<InvalidImageTile> _invalidTiles;

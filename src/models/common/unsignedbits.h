@@ -26,7 +26,7 @@ private:
     }
 
 public:
-    const static unsigned MASK = (1 << BITS) - 1;
+    constexpr static unsigned MASK = (1 << BITS) - 1;
 
     ~UnsignedBits() = default;
     UnsignedBits(const UnsignedBits&) = default;

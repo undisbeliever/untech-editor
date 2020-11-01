@@ -198,7 +198,7 @@ struct CompiledEntityRomData {
     bool valid;
 };
 
-std::unique_ptr<const CompiledEntityRomData>
+std::shared_ptr<const CompiledEntityRomData>
 compileEntityRomData(const EntityRomData& data, const Project::ProjectFile& project, ErrorList& err);
 
 }

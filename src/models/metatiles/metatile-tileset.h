@@ -172,7 +172,6 @@ struct MetaTileTilesetInput {
 struct MetaTileTilesetData {
     static const int TILESET_FORMAT_VERSION;
 
-    idstring name;
     std::vector<idstring> palettes;
     std::array<uint8_t, N_METATILES> tileFunctionTables;
     std::array<TileCollisionType, N_METATILES> tileCollisions;
@@ -192,9 +191,10 @@ private:
     std::vector<uint8_t> convertTileset() const;
 };
 
-std::unique_ptr<MetaTileTilesetData> convertTileset(const MetaTileTilesetInput& input,
-                                                    const Project::DataStore<Resources::PaletteData>& paletteDataStore,
-                                                    const InteractiveTilesData& interactiveTilesData,
-                                                    ErrorList& err);
+std::shared_ptr<const MetaTileTilesetData>
+convertTileset(const MetaTileTilesetInput& input,
+               const Project::DataStore<Resources::PaletteData>& paletteDataStore,
+               const InteractiveTilesData& interactiveTilesData,
+               ErrorList& err);
 }
 }

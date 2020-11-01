@@ -10,6 +10,7 @@
 #include "version.h"
 #include "models/common/errorlist.h"
 #include "models/metasprite/compiler/compiler.h"
+#include "models/metasprite/compiler/framesetcompiler.h"
 #include "models/metasprite/compiler/references.h"
 #include "models/metatiles/metatile-tileset.h"
 #include "models/metatiles/metatiles-serializer.h"
@@ -20,19 +21,9 @@ namespace Project {
 
 static const idstring BLANK_IDSTRING{};
 
-template <class T>
-static const idstring& itemNameString(const T& item)
-{
-    return item.name;
-}
-template <class T>
-static const idstring& itemNameString(const T* item)
-{
-    return item ? item->name : BLANK_IDSTRING;
-}
-
 static void writeMetaSpriteData(RomDataWriter& writer,
-                                const MetaSprite::Compiler::CompiledRomData& msData)
+                                const Project::MemoryMapSettings& memoryMap,
+                                const DataStore<UnTech::MetaSprite::Compiler::FrameSetData>& fsData)
 {
     auto writeData = [&](auto& d) {
         writer.addNamedData(d.label(), d.data());
@@ -40,6 +31,14 @@ static void writeMetaSpriteData(RomDataWriter& writer,
     auto writeNotNullData = [&](auto& d) {
         writer.addNotNullNamedData(d.label(), d.data());
     };
+
+    MetaSprite::Compiler::CompiledRomData msData(memoryMap);
+
+    for (unsigned i = 0; i < fsData.size(); i++) {
+        auto fs = fsData.at(i);
+        assert(fs);
+        msData.addFrameSetData(*fs);
+    }
 
     // Tiles are written first so they are always aligned with
     // the start of the data
@@ -69,9 +68,9 @@ static void writeEntityRomData(RomDataWriter& writer,
 }
 
 static void writeSceneData(RomDataWriter& writer,
-                           const Resources::SceneSettingsData& settings, const Resources::CompiledScenesData& scenes)
+                           const Resources::CompiledScenesData& scenes)
 {
-    writer.addNamedDataWithCount(settings.DATA_LABEL, settings.sceneSettings, settings.nSceneSettings);
+    writer.addNamedDataWithCount(scenes.sceneSettings.DATA_LABEL, scenes.sceneSettings.sceneSettings, scenes.sceneSettings.nSceneSettings);
     writer.addNamedDataWithCount(scenes.sceneLayouts.DATA_LABEL, scenes.sceneLayouts.sceneLayoutData(), scenes.sceneLayouts.nLayouts());
     writer.addNamedDataWithCount(scenes.DATA_LABEL, scenes.sceneSnesData, scenes.scenes.size());
 }
@@ -81,18 +80,60 @@ static void writeIncList(std::stringstream& incData, const std::string& typeName
 {
     incData << "\nnamespace " << typeName << " {\n";
 
-    for (unsigned id = 0; id < dataStore.size(); id++) {
-        const auto& item = dataStore.at(id).value();
-        incData << "  constant " << item.name << " = " << id << '\n';
-    }
+    dataStore.readResourceListState([&](auto state, const auto& resources) {
+        static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
+
+        assert(state == ResourceState::Valid);
+
+        for (unsigned id = 0; id < resources.size(); id++) {
+            const auto& s = resources.at(id);
+            assert(s.state == ResourceState::Valid);
+            incData << "  constant " << s.name << " = " << id << '\n';
+        }
+    });
     incData << "}\n"
                "\n";
 }
+
+static void printErrors(const ProjectData& projectData, std::ostream& errorStream)
+{
+    auto print = [&](const ResourceListStatus& listStatus) {
+        listStatus.readResourceListState([&](auto& state, auto& resources) {
+            static_assert(std::is_const_v<std::remove_reference_t<decltype(state)>>);
+            static_assert(std::is_const_v<std::remove_reference_t<decltype(resources)>>);
+
+            for (const ResourceStatus& status : resources) {
+                if (!status.errorList.empty()) {
+                    errorStream << listStatus.typeNameSingle() << " `" << status.name << "`:\n";
+                    status.errorList.printIndented(errorStream);
+                }
+            }
+        });
+    };
+
+    print(projectData.projectSettingsStatus());
+    print(projectData.frameSetExportOrderStatus());
+    print(projectData.frameSets());
+    print(projectData.palettes());
+    print(projectData.backgroundImages());
+    print(projectData.metaTileTilesets());
+    print(projectData.rooms());
+};
 
 std::unique_ptr<ProjectOutput>
 compileProject(const ProjectFile& input, const std::filesystem::path& relativeBinFilename,
                std::ostream& errorStream)
 {
+    ProjectData projectData;
+
+    const bool valid = projectData.compileAll_EarlyExit(input);
+
+    printErrors(projectData, errorStream);
+
+    if (!valid) {
+        return nullptr;
+    }
+
     const std::vector<RomDataWriter::Constant> constants = {
         { "__resc__.EDITOR_VERSION", UNTECH_VERSION_INT },
         { "Resources.PALETTE_FORMAT_VERSION", Resources::PaletteData::PALETTE_FORMAT_VERSION },
@@ -104,92 +145,18 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
         { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
         { "Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
-        { "Project.ROOM_DATA_SIZE", input.roomSettings.roomDataSize },
+        { "Project.ROOM_DATA_SIZE", input.projectSettings.roomSettings.roomDataSize },
         { "Project.MS_FrameSetListCount", unsigned(input.frameSets.size()) },
     };
 
-    bool valid = true;
-    {
-        ErrorList errorList;
-        valid = input.validate(errorList);
-        if (!valid) {
-            errorStream << "Unable to compile resources:\n";
-            errorList.printIndented(errorStream);
-            return nullptr;
-        }
-    }
-
-    ProjectData projectData(input);
-
-    auto compileList = [&](const auto& sourceList, auto compile_fn, const char* typeName) {
-        for (unsigned i = 0; i < sourceList.size(); i++) {
-            ErrorList errorList;
-
-            valid &= std::invoke(compile_fn, projectData, i, errorList);
-
-            if (!errorList.empty()) {
-                errorStream << typeName << " `" << itemNameString(sourceList.at(i)) << "`:\n";
-                errorList.printIndented(errorStream);
-                valid &= errorList.hasError();
-            }
-        }
-    };
-
-    auto compileFunction = [&](auto compile_fn, const char* typeName) {
-        ErrorList errorList;
-        valid &= std::invoke(compile_fn, projectData, errorList);
-        if (!errorList.empty()) {
-            errorStream << "Cannot compile " << typeName << "`:\n";
-            errorList.printIndented(errorStream);
-            valid &= errorList.hasError();
-        }
-    };
-
-    // MetaSprite data MUST be first.
-    auto metaSpriteData = MetaSprite::Compiler::compileMetaSprites(input, errorStream);
-    if (metaSpriteData == nullptr) {
-        return nullptr;
-    }
-
-    compileFunction(&ProjectData::compileInteractiveTiles, "Interactive Tiles");
-    compileFunction(&ProjectData::compileEntityRomData, "Entity ROM Data");
-    // no !valid test needed, unused by palette subsystem
-
-    compileList(input.palettes, &ProjectData::compilePalette, "Palette");
-    if (!valid) {
-        return nullptr;
-    }
-
-    compileList(input.backgroundImages, &ProjectData::compileBackgroundImage, "Background Image");
-    // no !valid test needed, metaTileTilesets and backgroundImages are unrelated
-
-    compileList(input.metaTileTilesets, &ProjectData::compileMetaTiles, "MetaTile Tileset");
-    if (!valid) {
-        return nullptr;
-    }
-
-    compileFunction(&ProjectData::compileSceneSettings, "Scene Settings");
-    if (!valid) {
-        return nullptr;
-    }
-    compileFunction(&ProjectData::compileScenes, "Scenes");
-    if (!valid) {
-        return nullptr;
-    }
-
-    compileList(input.rooms, &ProjectData::compileRoom, "Room");
-    if (!valid) {
-        return nullptr;
-    }
-
-    RomDataWriter writer(input.memoryMap,
+    RomDataWriter writer(input.projectSettings.memoryMap,
                          "__resc__", "RES_Block",
                          constants);
 
     // must write meta sprite data first
-    writeMetaSpriteData(writer, *metaSpriteData);
+    writeMetaSpriteData(writer, input.projectSettings.memoryMap, projectData.frameSets());
     writeEntityRomData(writer, *projectData.entityRomData());
-    writeSceneData(writer, *projectData.sceneSettings(), *projectData.scenes());
+    writeSceneData(writer, *projectData.scenes());
 
     writer.addDataStore("Project.PaletteList", projectData.palettes());
     writer.addDataStore("Project.BackgroundImageList", projectData.backgroundImages());

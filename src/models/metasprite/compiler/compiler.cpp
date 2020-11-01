@@ -6,16 +6,8 @@
 
 #include "compiler.h"
 #include "animationcompiler.h"
-#include "framecompiler.h"
+#include "framesetcompiler.h"
 #include "palettecompiler.h"
-#include "tilesetinserter.h"
-#include "tilesetlayout.h"
-#include "version.h"
-#include "models/common/errorlist.h"
-#include "models/metasprite/utsi2utms/utsi2utms.h"
-#include "models/project/project.h"
-#include <algorithm>
-#include <climits>
 
 namespace UnTech {
 namespace MetaSprite {
@@ -24,14 +16,6 @@ namespace Compiler {
 namespace MS = UnTech::MetaSprite::MetaSprite;
 
 const int CompiledRomData::METASPRITE_FORMAT_VERSION = 39;
-
-struct FrameSetData {
-    std::vector<CompiledPalette> palettes;
-    IndexPlusOne staticTileset;
-    TilesetType tilesetType;
-    std::vector<FrameData> frames;
-    std::vector<std::vector<uint8_t>> animations;
-};
 
 CompiledRomData::CompiledRomData(const Project::MemoryMapSettings& memoryMap)
     : tileData(memoryMap)
@@ -50,143 +34,109 @@ CompiledRomData::CompiledRomData(const Project::MemoryMapSettings& memoryMap)
 {
 }
 
-// assumes frameSet.validate() passes
-static FrameSetData processFrameSet(const FrameSetExportList& exportList, const TilesetData& tilesetData,
-                                    const ActionPointMapping& actionPointMapping)
+static IndexPlusOne
+saveFrameTilesetData(const FrameTilesetData& tileset, const std::vector<uint16_t>& tiles,
+                     CompiledRomData& out)
 {
-    const MS::FrameSet& frameSet = exportList.frameSet;
+    assert(!tileset.tiles.empty());
 
-    return {
-        processPalettes(frameSet.palettes),
-        tilesetData.staticTileset.tilesetIndex,
-        tilesetData.tilesetType,
-        processFrameList(exportList, tilesetData, actionPointMapping),
-        processAnimations(exportList),
-    };
+    DataBlock data(1 + tileset.tiles.size() * 2);
+
+    data.addByte(tileset.tiles.size()); // Tile16.count
+    for (auto& t : tileset.tiles) {
+        data.addWord(tiles.at(t)); // Tile16.addr
+    }
+    assert(data.atEnd());
+
+    return out.dmaTile16Data.addData_IndexPlusOne(data.data());
 }
 
-static void saveFrameSet(const FrameSetData& data, CompiledRomData& out)
+static std::pair<IndexPlusOne, std::vector<IndexPlusOne>>
+saveTilesetData(const TilesetData& tileset, CompiledRomData& out)
 {
-    const uint16_t fsPalettes = savePalettes(data.palettes, out);
-    const uint16_t fsAnimations = saveAnimations(data.animations, out);
-    const uint16_t frameTableAddr = saveCompiledFrames(data.frames, out);
+    assert(!tileset.tiles.empty());
+
+    std::vector<uint16_t> tiles;
+    for (unsigned i = 0; i < tileset.tiles.size(); i++) {
+        const auto& t = tileset.tiles.at(i);
+        tiles.push_back(out.tileData.addLargeTile(t));
+    }
+
+    std::pair<IndexPlusOne, std::vector<IndexPlusOne>> ret;
+
+    if (!tileset.staticTileset.tiles.empty()) {
+        ret.first = saveFrameTilesetData(tileset.staticTileset, tiles, out);
+    }
+
+    for (auto& t : tileset.dynamicTilesets) {
+        ret.second.push_back(saveFrameTilesetData(t, tiles, out));
+    }
+
+    return ret;
+}
+
+static uint16_t saveCompiledFrame(const FrameData& frameData,
+                                  const std::vector<IndexPlusOne>& dynamicTilesets,
+                                  CompiledRomData& out)
+{
+    const IndexPlusOne tilesetIndex = frameData.tileset ? dynamicTilesets.at(*frameData.tileset) : IndexPlusOne{ 0 };
+
+    DataBlock frame(2 * 4 + 4);
+
+    frame.addWord(out.frameObjectData.addData_IndexPlusOne(frameData.frameObjects));
+    frame.addWord(out.entityHitboxData.addData_IndexPlusOne(frameData.entityHitboxes));
+    frame.addWord(out.actionPointData.addData_IndexPlusOne(frameData.actionPoints));
+    frame.addWord(tilesetIndex);
+
+    frame.addByte(frameData.tileHitbox.left);
+    frame.addByte(frameData.tileHitbox.right);
+    frame.addByte(frameData.tileHitbox.yOffset);
+    frame.addByte(frameData.tileHitbox.height);
+
+    assert(frame.atEnd());
+
+    return out.frameData.addData_Index(frame.data());
+}
+
+static uint16_t saveCompiledFrames(const std::vector<FrameData>& frames,
+                                   const std::vector<IndexPlusOne>& dynamicTilesets,
+                                   CompiledRomData& out)
+{
+    assert(frames.size() > 0);
+
+    DataBlock table(frames.size() * 2);
+
+    for (const auto& fd : frames) {
+        table.addWord(saveCompiledFrame(fd, dynamicTilesets, out));
+    }
+
+    assert(table.atEnd());
+
+    return out.frameList.addData_Index(table.data());
+}
+
+void CompiledRomData::addFrameSetData(const FrameSetData& data)
+{
+    const auto [staticTileset, dynamicTilesets] = saveTilesetData(data.tileset, *this);
+
+    const uint16_t fsPalettes = savePalettes(data.palettes, *this);
+    const uint16_t fsAnimations = saveAnimations(data.animations, *this);
+    const uint16_t frameTableAddr = saveCompiledFrames(data.frames, dynamicTilesets, *this);
 
     DataBlock fsItem(12);
 
-    fsItem.addWord(fsPalettes);                  // paletteTable
-    fsItem.addByte(data.palettes.size());        // nPalettes
-    fsItem.addWord(data.staticTileset);          // tileset
-    fsItem.addByte(data.tilesetType.romValue()); // tilesetType
-    fsItem.addWord(frameTableAddr);              // frameTable
-    fsItem.addByte(data.frames.size());          // nFrames
-    fsItem.addWord(fsAnimations);                // animationsTable
-    fsItem.addByte(data.animations.size());      // nAnimations
+    fsItem.addWord(fsPalettes);                          // paletteTable
+    fsItem.addByte(data.palettes.size());                // nPalettes
+    fsItem.addWord(staticTileset);                       // tileset
+    fsItem.addByte(data.tileset.tilesetType.romValue()); // tilesetType
+    fsItem.addWord(frameTableAddr);                      // frameTable
+    fsItem.addByte(data.frames.size());                  // nFrames
+    fsItem.addWord(fsAnimations);                        // animationsTable
+    fsItem.addByte(data.animations.size());              // nAnimations
 
     assert(fsItem.atEnd());
 
-    out.frameSetData.addData_NoIndex(fsItem.data());
-}
-
-static bool validateFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
-                             const ActionPointMapping& actionPointMapping,
-                             ErrorList& errorList)
-{
-    if (exportOrder == nullptr) {
-        errorList.addErrorString("Missing MetaSprite Export Order Document");
-        return false;
-    }
-
-    return frameSet.validate(actionPointMapping, errorList)
-           && exportOrder->testFrameSet(frameSet, errorList);
-}
-
-void processAndSaveFrameSet(const MS::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
-                            const ActionPointMapping& actionPointMapping,
-                            ErrorList& errorList, CompiledRomData& out)
-{
-    if (validateFrameSet(frameSet, exportOrder, actionPointMapping, errorList) == false) {
-        return;
-    }
-
-    assert(exportOrder);
-    const auto exportList = buildExportList(frameSet, *exportOrder);
-    exportList.validate(errorList);
-
-    const auto tilesetLayout = layoutTiles(frameSet, exportList.frames, errorList);
-    const auto tilesetData = insertFrameSetTiles(frameSet, tilesetLayout, out);
-    const auto data = processFrameSet(exportList, tilesetData, actionPointMapping);
-    saveFrameSet(data, out);
-}
-
-bool validateFrameSetAndBuildTilesets(const MetaSprite::FrameSet& frameSet, const FrameSetExportOrder* exportOrder,
-                                      const ActionPointMapping& actionPointMapping,
-                                      ErrorList& errorList)
-{
-    const size_t oldErrorCount = errorList.errorCount();
-
-    if (validateFrameSet(frameSet, exportOrder, actionPointMapping, errorList) == false) {
-        return false;
-    }
-
-    const FrameSetExportList exportList = buildExportList(frameSet, *exportOrder);
-    exportList.validate(errorList);
-
-    layoutTiles(frameSet, exportList.frames, errorList);
-
-    return errorList.errorCount() == oldErrorCount;
-}
-
-std::unique_ptr<CompiledRomData> compileMetaSprites(const Project::ProjectFile& project, std::ostream& errorStream)
-{
-    UnTech::ErrorList apErrorList;
-    const auto actionPointMapping = generateActionPointMapping(project.actionPointFunctions, apErrorList);
-    if (!apErrorList.empty()) {
-        errorStream << "ActionPoint Functions:\n";
-        apErrorList.printIndented(errorStream);
-        return nullptr;
-    }
-
-    bool valid = true;
-    auto romData = std::make_unique<CompiledRomData>(project.memoryMap);
-
-    for (auto& fs : project.frameSets) {
-        UnTech::ErrorList errorList;
-
-        if (fs.msFrameSet) {
-            const auto* exportOrder = project.frameSetExportOrders.find(fs.msFrameSet->exportOrder);
-            processAndSaveFrameSet(*fs.msFrameSet, exportOrder, actionPointMapping, errorList, *romData);
-        }
-        else if (fs.siFrameSet) {
-            auto msFrameSet = utsi2utms(*fs.siFrameSet, errorList);
-            if (msFrameSet) {
-                const auto* exportOrder = project.frameSetExportOrders.find(msFrameSet->exportOrder);
-                processAndSaveFrameSet(*msFrameSet, exportOrder, actionPointMapping, errorList, *romData);
-            }
-        }
-        else {
-            errorList.addWarningString("Missing FrameSet");
-        }
-
-        if (!errorList.empty()) {
-            auto& fsName = fs.name();
-            if (fsName.isValid()) {
-                errorStream << fsName;
-            }
-            else {
-                errorStream << fs.filename;
-            }
-            errorStream << ":\n";
-            errorList.printIndented(errorStream);
-        }
-
-        valid &= errorList.hasError() == false;
-    }
-
-    if (valid == false) {
-        romData = nullptr;
-    }
-
-    return romData;
+    frameSetData.addData_NoIndex(fsItem.data());
 }
 
 }

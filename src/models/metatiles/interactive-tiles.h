@@ -19,20 +19,20 @@ namespace MetaTiles {
 
 struct InteractiveTileFunctionTable {
     idstring name;
-    std::string symbol;
-    rgba symbolColor = rgba(255, 200, 0);
+    rgba tint = rgba(255, 200, 0);
 
     bool operator==(const InteractiveTileFunctionTable& o) const
     {
         return name == o.name
-               && symbol == o.symbol
-               && symbolColor == o.symbolColor;
+               && tint == o.tint;
     }
 };
 
 struct InteractiveTiles {
     constexpr static unsigned N_FIXED_FUNCTION_TABLES = 1;
     const static std::array<InteractiveTileFunctionTable, N_FIXED_FUNCTION_TABLES> FIXED_FUNCTION_TABLES;
+
+    constexpr static unsigned MAX_PROJECT_FUNCTION_TABLES = MAX_INTERACTIVE_TILE_FUNCTION_TABLES - N_FIXED_FUNCTION_TABLES;
 
     NamedList<InteractiveTileFunctionTable> functionTables;
 
@@ -59,7 +59,8 @@ struct InteractiveTilesData {
 extern const int INTERACTIVE_TILES_FORMAT_VERSION;
 
 // Also validates InteractiveTiles
-std::unique_ptr<InteractiveTilesData> convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err);
+std::shared_ptr<const InteractiveTilesData>
+convertInteractiveTiles(const InteractiveTiles& input, ErrorList& err);
 
 // Assumes InteractiveTiles is valid
 void writeFunctionTables(std::stringstream& incData, const InteractiveTiles& input);

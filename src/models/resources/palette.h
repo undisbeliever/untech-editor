@@ -48,8 +48,6 @@ struct PaletteData {
     static constexpr unsigned MAX_PALETTE_BLOCK_SIZE = 32 * 128 * 2;
     static const int PALETTE_FORMAT_VERSION;
 
-    idstring name;
-
     // First palette in source image, even if `PaletteInput::skipFirstFrame` is set.
     std::vector<Snes::SnesColor> conversionPalette;
 
@@ -66,7 +64,8 @@ struct PaletteData {
 };
 
 // Will return a nullptr if PaletteInput or PaletteData is invalid
-std::unique_ptr<PaletteData> convertPalette(const PaletteInput& input, ErrorList& err);
+std::shared_ptr<const PaletteData>
+convertPalette(const PaletteInput& input, ErrorList& err);
 
 }
 }

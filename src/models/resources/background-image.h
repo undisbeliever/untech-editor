@@ -37,6 +37,7 @@ struct BackgroundImageInput {
 
     bool defaultOrder = 0;
 
+    bool isBitDepthValid() const;
     bool validate(ErrorList& err) const;
 
     bool operator==(const BackgroundImageInput& o) const
@@ -58,8 +59,6 @@ struct BackgroundImageData {
     constexpr static unsigned MAX_UNCOMPRESSED_DATA_SIZE = 48 * 1024;
 
     const static int BACKGROUND_IMAGE_FORMAT_VERSION;
-
-    idstring name;
 
     unsigned conversionPaletteIndex;
 
@@ -84,7 +83,7 @@ struct BackgroundImageData {
     std::vector<uint8_t> exportSnesData() const;
 };
 
-std::unique_ptr<BackgroundImageData>
+std::shared_ptr<const BackgroundImageData>
 convertBackgroundImage(const BackgroundImageInput& input,
                        const Project::DataStore<PaletteData>& projectDataStore,
                        ErrorList& err);

@@ -20,6 +20,8 @@ template <size_t TS>
 class BaseTileset {
 public:
     using TileT = Tile<TS>;
+    using value_type = TileT;
+    using size_type = typename std::vector<TileT>::size_type;
     using iterator = typename std::vector<TileT>::iterator;
 
 public:
