@@ -17,6 +17,63 @@
 #include "opengl/imgui_sdl_opengl3.hpp"
 #endif
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+#define PLATFORM_WINDOWS
+#endif
+
+#ifdef PLATFORM_WINDOWS
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
+static std::filesystem::path executablePath()
+{
+#if defined(PLATFORM_WINDOWS)
+    wchar_t path[MAX_PATH] = L"";
+    const auto s = GetModuleFileNameW(nullptr, path, MAX_PATH);
+    if (s == 0) {
+        return {};
+    }
+
+    std::filesystem::path p(path);
+#else
+    Dl_info info;
+    const auto r = dladdr((void*)&executablePath, &info);
+    if (r == 0) {
+        return {};
+    }
+
+    std::filesystem::path p(info.dli_fname);
+#endif
+
+    std::error_code ec;
+    p = std::filesystem::canonical(p, ec);
+
+    if (ec) {
+        return {};
+    }
+    return p;
+}
+
+static void setIniFilename(ImGuiIO& io)
+{
+    static std::string iniFilename;
+
+    io.IniFilename = nullptr;
+
+    const auto p = executablePath();
+
+    // Confirm we have the correct path
+    if (p.filename().stem() == "untech-editor-gui") {
+        const auto dir = p.parent_path();
+
+        iniFilename = (dir / "untech-editor-gui.ini").string();
+
+        io.IniFilename = iniFilename.c_str();
+    }
+}
+
 static void setupGui(ImGuiIO& io)
 {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -27,9 +84,7 @@ static void setupGui(ImGuiIO& io)
 
     ImGui::StyleColorsDark();
 
-    // Disable window state ini loading/saving
-    // ::TODO re-enable this in the future (maybe?)::
-    io.IniFilename = NULL;
+    setIniFilename(io);
 
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         // Tweak window style so platform and regular windows looks the same
