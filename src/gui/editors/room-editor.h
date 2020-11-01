@@ -72,6 +72,8 @@ private:
 
     bool _entityTextureWindowOpen;
 
+    static unsigned playerId;
+
 public:
     RoomEditorGui();
 

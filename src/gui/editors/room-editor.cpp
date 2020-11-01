@@ -25,6 +25,8 @@ static const char* const entityDragDropId = "DND_Entity";
 
 static constexpr unsigned METATILE_SIZE_PX = MetaTiles::METATILE_SIZE_PX;
 
+unsigned RoomEditorGui::playerId = 0;
+
 // RoomEditor Action Policies
 struct RoomEditorData::AP {
     struct Room {
@@ -550,9 +552,6 @@ void RoomEditorGui::drawObjects(ImDrawList* drawList)
     assert(_data);
     auto& room = _data->data;
 
-    // ::TODO dynamic playerIds::
-    constexpr unsigned playerId = 0;
-
     const ImTextureID textureId = _entityTexture.imguiTextureId();
 
     // NOTE: pushing a textureId to the drawlist prevents me from drawing filled rects
@@ -590,9 +589,6 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
     assert(_entityGraphics);
     assert(_data);
     auto& room = _data->data;
-
-    // ::TODO dynamic playerIds::
-    constexpr unsigned playerId = 0;
 
     const ImTextureID textureId = _entityTexture.imguiTextureId();
     // NOTE: Cannot push textureId to drawList - it prevents me from drawing filled rects.
@@ -663,6 +659,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
 
 void RoomEditorGui::editorWindow()
 {
+    assert(_entityGraphics);
     assert(_data);
     auto& room = _data->data;
 
@@ -677,6 +674,15 @@ void RoomEditorGui::editorWindow()
         if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             ImGui::TextUnformatted("Selected Entity Group");
+            ImGui::EndTooltip();
+        }
+        ImGui::SameLine(0.0f, 12.0f);
+
+        ImGui::SetNextItemWidth(180);
+        ImGui::SingleSelectionNamedListCombo("##PlayerId", &playerId, _entityGraphics->players, false);
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::TextUnformatted("Player Entity");
             ImGui::EndTooltip();
         }
 
@@ -806,6 +812,10 @@ void RoomEditorGui::updateEntityGraphics()
         _entityTexture.replace(eg->image);
 
         _entityGraphics = std::move(eg);
+
+        if (playerId >= _entityGraphics->players.size()) {
+            playerId = 0;
+        }
     }
 }
 
