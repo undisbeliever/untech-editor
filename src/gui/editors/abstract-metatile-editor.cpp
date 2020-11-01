@@ -607,7 +607,8 @@ bool AbstractMetaTileEditorGui::scratchpadMinimapWindow(const char* label, const
             if (sc) {
                 selChanged = true;
 
-                createTileCursor(mapData, *sel);
+                createTileCursorFromScratchpad(mapData, *sel);
+
                 if (_currentEditMode == EditMode::SelectTiles) {
                     setEditMode(EditMode::PlaceTiles);
                 }
@@ -1024,13 +1025,23 @@ static grid<uint16_t> cursorFromSelection(const SelectionT& selection, const usi
                           maxY - minY + 1,
                           0xffff);
 
+    bool drawableTile = false;
+
     for (const auto& s : selection) {
         const upoint p = getCell(s);
-        const uint8_t tileId = getTileId(s);
+        const uint16_t tileId = getTileId(s);
 
         if (p.x < mapSize.width && p.y < mapSize.height) {
             cursor.set(p.x - minX, p.y - minY, tileId);
+
+            if (tileId <= UINT8_MAX) {
+                drawableTile = true;
+            }
         }
+    }
+
+    if (!drawableTile) {
+        return grid<uint16_t>();
     }
 
     return cursor;
@@ -1052,6 +1063,20 @@ void AbstractMetaTileEditorGui::createTileCursor(const grid<uint8_t>& map, const
         selection, map.size(),
         [&](upoint p) { return p; },
         [&](upoint p) { return map.at(p); }));
+}
+
+void AbstractMetaTileEditorGui::createTileCursorFromScratchpad(const grid<uint8_t>& map, const upoint_vectorset& selection)
+{
+    setTileCursor(cursorFromSelection(
+        selection, map.size(),
+        [&](upoint p) -> upoint { return p; },
+        [&](upoint p) -> uint16_t {
+            const auto t = map.at(p);
+            if (t == 0) {
+                return 0xffff;
+            }
+            return t;
+        }));
 }
 
 void AbstractMetaTileEditorGui::updateMapAndProcessAnimations()

@@ -169,6 +169,7 @@ private:
 
     void createTileCursorFromTilesetSelection();
     void createTileCursor(const grid<uint8_t>& map, const upoint_vectorset& selection);
+    void createTileCursorFromScratchpad(const grid<uint8_t>& map, const upoint_vectorset& selection);
     void enablePlaceTiles();
 
     void resetSelectorState();
