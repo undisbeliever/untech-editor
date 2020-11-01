@@ -15,16 +15,25 @@ static const std::string dialogSuffix = "###MessageBox";
 
 static std::mutex mutex;
 
-static std::string title;
-static std::string message;
+struct Message {
+    std::string title;
+    std::string message;
+
+    Message(std::string t, std::string m)
+        : title(std::move(t))
+        , message(std::move(m))
+    {
+    }
+};
+
+static std::vector<Message> messages;
 static bool toOpen = false;
 
 void showMessage(const std::string& t, const std::string& m)
 {
     std::lock_guard lock(mutex);
 
-    title = t + dialogSuffix;
-    message = m;
+    messages.emplace_back(t + dialogSuffix, m);
     toOpen = true;
 }
 
@@ -32,8 +41,7 @@ void showMessage(const std::string& t, const char* m)
 {
     std::lock_guard lock(mutex);
 
-    title = t + dialogSuffix;
-    message = m;
+    messages.emplace_back(t + dialogSuffix, m);
     toOpen = true;
 }
 
@@ -41,22 +49,23 @@ void processGui()
 {
     std::lock_guard lock(mutex);
 
-    if (toOpen) {
-        ImGui::OpenPopup(dialogSuffix.c_str());
-        toOpen = false;
+    if (messages.empty()) {
+        return;
     }
+
+    const auto& msg = messages.front();
 
     constexpr float maxTextWidth = 600;
     constexpr auto flags = ImGuiWindowFlags_NoResize;
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 8));
 
-    if (ImGui::BeginPopupModal(title.c_str(), nullptr, flags)) {
+    if (ImGui::BeginPopupModal(msg.title.c_str(), nullptr, flags)) {
         const ImVec2 buttonSize(48, 24);
         const ImVec2 windowSize = ImGui::GetWindowSize();
 
         ImGui::PushTextWrapPos(maxTextWidth);
-        ImGui::TextUnformatted(message);
+        ImGui::TextUnformatted(msg.message);
         ImGui::PopTextWrapPos();
 
         ImGui::Spacing();
@@ -64,10 +73,19 @@ void processGui()
 
         ImGui::SetCursorPosX(std::ceil((windowSize.x - buttonSize.x) / 2));
         if (ImGui::Button("OK", buttonSize)) {
-            ImGui::CloseCurrentPopup();
+            messages.erase(messages.begin());
+
+            if (messages.empty()) {
+                ImGui::CloseCurrentPopup();
+            }
         }
 
         ImGui::EndPopup();
+    }
+
+    if (toOpen) {
+        ImGui::OpenPopup(dialogSuffix.c_str());
+        toOpen = false;
     }
 
     ImGui::PopStyleVar();
