@@ -44,10 +44,6 @@ struct CompiledEntityRomData;
 namespace Rooms {
 struct RoomData;
 }
-
-namespace GuiQt {
-class ProjectDataSlots;
-}
 }
 
 namespace UnTech {
