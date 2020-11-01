@@ -231,7 +231,7 @@ TEST_UTILS      := $(patsubst src/test-utils/%.cpp,$(BIN_DIR)/test-utils/%$(BIN_
 
 GUI_SRC         := $(filter src/models/% src/gui/%, $(SRCS))
 GUI_OBJS        := $(patsubst src/%.cpp,$(OBJ_DIR)/%.o,$(GUI_SRC))
-GUI_APP         := $(BIN_DIR)/untech-editor-newgui$(BIN_EXT)
+GUI_APP         := $(BIN_DIR)/untech-editor-gui$(BIN_EXT)
 
 
 # Third party libs
