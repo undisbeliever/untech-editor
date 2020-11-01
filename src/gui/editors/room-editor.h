@@ -74,6 +74,9 @@ private:
 
     static unsigned playerId;
 
+    static bool showEntrances;
+    static bool showEntities;
+
 public:
     RoomEditorGui();
 

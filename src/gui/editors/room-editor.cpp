@@ -27,6 +27,9 @@ static constexpr unsigned METATILE_SIZE_PX = MetaTiles::METATILE_SIZE_PX;
 
 unsigned RoomEditorGui::playerId = 0;
 
+bool RoomEditorGui::showEntrances = true;
+bool RoomEditorGui::showEntities = true;
+
 // RoomEditor Action Policies
 struct RoomEditorData::AP {
     struct Room {
@@ -538,6 +541,8 @@ void RoomEditorGui::entityDropTarget(ImDrawList* drawList)
                     entry.position = pos;
 
                     ListActions<AP::EntityEntries>::addItem(_data, groupIndex, entry);
+
+                    showEntities = true;
                 }
             }
         }
@@ -557,16 +562,14 @@ void RoomEditorGui::drawObjects(ImDrawList* drawList)
     // NOTE: pushing a textureId to the drawlist prevents me from drawing filled rects
     drawList->PushTextureID(textureId);
 
-    // ::TODO show/hide entrances::
-    if (true) {
+    if (showEntrances) {
         for (const auto& entrance : room.entrances) {
             _graphics.drawEntity(drawList, &entrance.position,
                                  textureId, _entityGraphics->settingsForPlayer(playerId), IM_COL32_WHITE);
         }
     }
 
-    // ::TODO show/hide entities::
-    if (true) {
+    if (showEntities) {
         const unsigned nGroups = std::min<size_t>(_data->entityEntriesSel.MAX_GROUP_SIZE, room.entityGroups.size());
         for (unsigned groupIndex = 0; groupIndex < nGroups; groupIndex++) {
             const auto& group = room.entityGroups.at(groupIndex);
@@ -593,8 +596,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
     const ImTextureID textureId = _entityTexture.imguiTextureId();
     // NOTE: Cannot push textureId to drawList - it prevents me from drawing filled rects.
 
-    // ::TODO show/hide entrances::
-    if (true) {
+    if (showEntrances) {
         for (unsigned i = 0; i < room.entrances.size(); i++) {
             auto& entrance = room.entrances.at(i);
 
@@ -611,8 +613,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
         }
     }
 
-    // ::TODO show/hide entities::
-    if (true) {
+    if (showEntities) {
         const unsigned nGroups = std::min<size_t>(_data->entityEntriesSel.MAX_GROUP_SIZE, room.entityGroups.size());
         for (unsigned groupIndex = 0; groupIndex < nGroups; groupIndex++) {
             auto& group = room.entityGroups.at(groupIndex);
@@ -698,6 +699,10 @@ void RoomEditorGui::editorWindow()
         ImGui::SameLine(0.0f, 12.0f);
 
         showLayerButtons();
+        ImGui::SameLine();
+        ImGui::ToggledButtonWithTooltip("E##showEntities", &showEntities, "Show Entities");
+        ImGui::SameLine();
+        ImGui::ToggledButtonWithTooltip("P##showEntrances", &showEntrances, "Show Player Entrances");
         ImGui::SameLine();
 
         Style::roomEditorZoom.zoomCombo("##zoom");
@@ -785,6 +790,9 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 void RoomEditorGui::viewMenu()
 {
     AbstractMetaTileEditorGui::viewMenu();
+
+    ImGui::MenuItem("Show Entities", nullptr, &showEntities);
+    ImGui::MenuItem("Show Player Entrances", nullptr, &showEntrances);
 
     ImGui::Separator();
 
