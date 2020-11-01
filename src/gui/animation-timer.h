@@ -67,6 +67,60 @@ public:
     }
 };
 
+class SingleAnimationTimer {
+private:
+    static constexpr unsigned TICKS_PER_SECOND = 300;
+    static constexpr unsigned TICKS_PER_NTSC_FRAME = TICKS_PER_SECOND / 60;
+    static constexpr unsigned TICKS_PER_PAL_FRAME = TICKS_PER_SECOND / 50;
+
+private:
+    AnimationTimer _frameTimer;
+    unsigned _frameCounter;
+    unsigned _tickCounter;
+
+public:
+    SingleAnimationTimer()
+        : _frameTimer()
+        , _frameCounter(0)
+        , _tickCounter(0)
+    {
+    }
+
+    bool isActive() const { return _frameTimer.active; }
+
+    void reset()
+    {
+        _frameTimer.reset();
+        _frameCounter = 0;
+        _tickCounter = 0;
+    }
+
+    void start()
+    {
+        reset();
+        _frameTimer.start();
+    }
+
+    void stop() { _frameTimer.stop(); }
+    void playPause() { _frameTimer.playPause(); }
+
+    template <typename Function>
+    void process(unsigned animationDelay, Function onNextFrame)
+    {
+        _frameTimer.process([&] {
+            _frameCounter++;
+
+            const unsigned nTicks = _frameTimer.ntscRegion ? TICKS_PER_NTSC_FRAME : TICKS_PER_PAL_FRAME;
+
+            _tickCounter += nTicks;
+            if (_tickCounter >= animationDelay) {
+                _tickCounter = 0;
+                onNextFrame();
+            }
+        });
+    }
+};
+
 class DualAnimationTimer {
 private:
     static constexpr unsigned TICKS_PER_SECOND = 300;

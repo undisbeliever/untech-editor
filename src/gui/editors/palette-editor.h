@@ -7,6 +7,7 @@
 #pragma once
 
 #include "gui/abstract-editor.h"
+#include "gui/animation-timer.h"
 #include "gui/texture.h"
 #include "models/project/project.h"
 
@@ -31,6 +32,8 @@ private:
     using AP = PaletteEditorData::AP;
 
     PaletteEditorData* _data;
+
+    SingleAnimationTimer _animationTimer;
 
     Texture _imageTexture;
     int _frameId;

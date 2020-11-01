@@ -52,6 +52,7 @@ void PaletteEditorData::updateSelection()
 PaletteEditorGui::PaletteEditorGui()
     : AbstractEditorGui()
     , _data(nullptr)
+    , _animationTimer()
     , _imageTexture()
     , _textureValid(false)
 {
@@ -69,6 +70,7 @@ void PaletteEditorGui::editorDataChanged()
 
 void PaletteEditorGui::editorOpened()
 {
+    _animationTimer.reset();
     _textureValid = false;
     _frameId = -1;
 }
@@ -133,17 +135,27 @@ void PaletteEditorGui::paletteWindow()
         const unsigned nFrames = std::max<unsigned>(1, _imageTexture.height() / rowsPerFrame - firstFrame);
 
         {
-            // ::TODO add animation timer::
+            if (ImGui::ToggledButton("Play", _animationTimer.isActive())) {
+                _animationTimer.playPause();
+                if (_frameId < 0) {
+                    _frameId = 0;
+                }
+            }
 
+            ImGui::SameLine();
             if (ImGui::Button("Reset")) {
+                _animationTimer.reset();
                 _frameId = -1;
             }
             ImGui::SameLine();
             if (ImGui::Button("Next Frame")) {
+                _animationTimer.stop();
                 _frameId++;
             }
 
-            if (_frameId > 0 && unsigned(_frameId) >= nFrames) {
+            _animationTimer.process(palette.animationDelay, [&]() { _frameId++; });
+
+            if (_frameId >= 0 && unsigned(_frameId) >= nFrames) {
                 _frameId = 0;
             }
             ImGui::SameLine();
