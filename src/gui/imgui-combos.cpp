@@ -16,9 +16,7 @@ const std::array<const char*, 4> flipsComboItems = {
     "hvFlip"
 };
 
-// ::TODO use enumMap for serialization and EnumCombo::
 // ::TODO only allow increment by one enums in enumMap::
-
 // ::TODO remove enumMap enums::
 template <typename EnumT>
 bool oldStyleEnumClassCombo(const char* label, EnumT* v)

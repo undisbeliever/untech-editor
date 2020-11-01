@@ -585,9 +585,6 @@ void BackgroundThread::run()
             }
 
             if (!projectDataValid.test_and_set()) {
-                // ::TODO only process resources that have changed. ::
-                // ::: Use a mutex to access changed list ::
-
                 projectFile.read([&](auto& pf) {
                     static_assert(std::is_const_v<std::remove_reference_t<decltype(pf)>>);
 

@@ -10,7 +10,6 @@
 
 namespace UnTech::Gui {
 
-// ::TODO add to View Menu::
 bool AbstractMetaSpriteEditorGui::showFrameObjects = true;
 bool AbstractMetaSpriteEditorGui::showTileHitbox = true;
 bool AbstractMetaSpriteEditorGui::showEntityHitboxes = true;

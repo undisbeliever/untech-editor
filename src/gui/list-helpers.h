@@ -25,8 +25,6 @@ enum EditListAction {
 template <typename ActionPolicy>
 struct ListActions;
 
-// ::TODO add symbols to buttons::
-
 template <typename ActionPolicy>
 bool ListButtons(typename ActionPolicy::EditorT* editor)
 {

@@ -76,7 +76,6 @@ public:
     }
 };
 
-// ::TODO replace with a circular buffer::
 void trimStack(std::vector<std::unique_ptr<EditorUndoAction>>& stack)
 {
     while (stack.size() > AbstractEditorData::N_UNDO_ACTIONS) {

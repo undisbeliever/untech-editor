@@ -27,7 +27,6 @@ private:
 
     UnTech::MetaSprite::MetaSprite::FrameSet data;
 
-    // ::TODO SingleSelection that can never be cleared::
     SingleSelection framesSel;
 
     ToggleSelection tileHitboxSel;
@@ -66,7 +65,6 @@ private:
     unsigned _colorSel;
     PaletteState _paletteState;
 
-    // ::TODO replace with 256 bit bitfield::
     vectorset<size_t> _editedTiles;
 
     int _selectedEditorBgColor;

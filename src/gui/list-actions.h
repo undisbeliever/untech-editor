@@ -479,7 +479,6 @@ struct ListActions {
 
     class MoveMultipleAction : public BaseAction {
     private:
-        // ::TODO use vectorset::
         const std::vector<index_type> indexes;
         const EditListAction direction;
 
@@ -1418,7 +1417,6 @@ public:
         _editListItem(editor, listArgs, index);
     }
 
-    // ::TODO replace indexes with 256 bit bitfield::
     static void selectedListItemsEdited(EditorT* editor, std::vector<index_type> indexes)
     {
         const SelectionT& sel = getSelection(editor);
@@ -1439,7 +1437,6 @@ public:
         }
     }
 
-    // ::TODO find some way to simplify this mess::
     template <typename ST_ = SelectionT>
     static std::enable_if_t<std::is_same_v<ST_, MultipleSelection> || std::is_same_v<ST_, MultipleChildSelection>>
     selectedItemsEdited(EditorT* editor)

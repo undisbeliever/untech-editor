@@ -981,8 +981,6 @@ void SpriteImporterEditorGui::processGui(const Project::ProjectFile& projectFile
 
 void SpriteImporterEditorGui::updateImageTexture()
 {
-    // ::TODO update the texture when the PNG file changes::
-
     assert(_data);
     auto& fs = _data->data;
 

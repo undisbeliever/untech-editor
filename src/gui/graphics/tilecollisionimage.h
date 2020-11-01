@@ -14,7 +14,6 @@ namespace UnTech::Gui {
 constexpr static unsigned TILE_COLLISION_IMAGE_WIDTH = 16;
 constexpr static unsigned TILE_COLLISION_IMAGE_HEIGHT = 32 * 16;
 
-// ::TODO see if I can use a 1bpp or 8bpp image for tileCollisionImage::
 extern const Image tileCollisionImage;
 
 const Texture& tileCollisionTypeTexture();

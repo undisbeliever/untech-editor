@@ -468,7 +468,6 @@ void MetaTileTilesetEditorGui::tileCollisionClicked(const MetaTiles::TileCollisi
         tileCollisions.at(i) = tct;
     }
 
-    // ::TODO add set field array items action::
     EditorActions<AP::MtTileset>::fieldEdited<
         &MetaTileTilesetInput::tileCollisions>(_data);
 

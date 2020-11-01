@@ -1477,7 +1477,6 @@ void MetaSpriteEditorGui::updateTilesetTexture()
     unsigned x = 0;
     unsigned y = 0;
     auto drawTiles = [&](const auto& tileset) {
-        // ::TODO find out why using foreach loop here does not work::
         for (unsigned i = 0; i < tileset.size(); i++) {
             const auto& tile = tileset.at(i);
             tile.draw(_tilesetImage, palette, x, y);

@@ -19,7 +19,6 @@ static bool openOnNextFrame = false;
 
 static Image logoImage()
 {
-    // ::TODO find a way to embed images into the source code::
     constexpr unsigned width = 68;
     constexpr unsigned height = 31;
     constexpr static const char pixels[]
@@ -165,8 +164,6 @@ void processGui()
             }
         }
         else {
-            // ::TODO add recent projects list::
-
             ImGui::SetCursorPosX((windowSize.x - buttonSize.x * 2 - buttonSpacing) / 2);
 
             if (auto fn = ImGui::SaveFileDialogButton("New Project", "New Project"s, ".utproject", buttonSize)) {

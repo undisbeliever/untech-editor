@@ -54,8 +54,6 @@ Zoom::Zoom(unsigned z)
 
 void Zoom::setZoom(unsigned z)
 {
-    // ::TODO add aspect ratio::
-
     z = std::clamp<unsigned>(z, 5, 1800);
 
     _zoomInt = z;

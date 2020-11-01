@@ -23,8 +23,6 @@ static constexpr unsigned N_METATILES = MetaTiles::N_METATILES;
 static constexpr unsigned TILESET_WIDTH = MetaTiles::TILESET_WIDTH;
 static constexpr unsigned TILESET_HEIGHT = MetaTiles::TILESET_HEIGHT;
 
-// ::TODO add animation region to view menu::
-// ::TODO add to View Menu::
 bool AbstractMetaTileEditorGui::showGrid = true;
 bool AbstractMetaTileEditorGui::showTiles = true;
 bool AbstractMetaTileEditorGui::showTileCollisions = true;
@@ -759,7 +757,6 @@ void AbstractMetaTileEditorGui::drawCursorTiles(const grid<uint16_t>& tiles, con
 
     const auto& mapSize = _tilemap.gridSize();
 
-    // ::TODO add cursor bounds::
     const rect bounds(-cursorPos.x, -cursorPos.y, mapSize.width, mapSize.height);
 
     const ImVec2 uvSize(1.0f / TILESET_WIDTH, 1.0f / TILESET_HEIGHT);
@@ -834,7 +831,6 @@ void AbstractMetaTileEditorGui::placeTiles(const grid<uint16_t>& tiles, const po
 
     assert(tiles.width() < INT_MAX && tiles.height() < INT_MAX);
 
-    // ::TODO add cursor bounds::
     const rect mapBounds(0, 0, map.width(), map.height());
 
     // Get draw tile cursor boundary

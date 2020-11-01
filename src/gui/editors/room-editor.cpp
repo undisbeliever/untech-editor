@@ -222,8 +222,6 @@ void RoomEditorGui::editorOpened()
 void RoomEditorGui::editorClosed()
 {
     AbstractMetaTileEditorGui::editorClosed();
-
-    // ::TODO find a way to save scrollbar positions and restore them when the editor is opened again::
 }
 
 void RoomEditorGui::propertiesWindow(const Project::ProjectFile& projectFile)
@@ -363,8 +361,6 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
 
         ImGui::BeginChild("Scroll");
 
-        // ::TODO scroll to selected entity/group when selection changes::
-
         ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.5f);
 
         unsigned entityId = 0;
@@ -431,8 +427,6 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
 
 void RoomEditorGui::entityTextureWindow()
 {
-    // ::TODO add "show entity texture" to View menu::
-
     if (!_entityTextureWindowOpen) {
         return;
     }
@@ -671,8 +665,6 @@ void RoomEditorGui::editorWindow()
 {
     assert(_data);
     auto& room = _data->data;
-
-    // ::TODO shrink entity vertical spacing at the top of the map::
 
     ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Room###Room_Editor")) {

@@ -22,8 +22,6 @@ class EditorUndoAction {
 public:
     virtual ~EditorUndoAction() = default;
 
-    // ::TODO add text::
-
     // Returns true if the action modified the project
     // If false then the undo action will not be added to the stack
     virtual bool firstDo(UnTech::Project::ProjectFile&) = 0;

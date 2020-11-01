@@ -86,7 +86,6 @@ void AbstractMetaSpriteEditorGui::animationPropertiesWindow(const char* windowLa
 
                 ImGui::BeginChild("Scroll");
 
-                // ::TODO shrink first column::
                 ImGui::Columns(3);
 
                 ImGui::Separator();

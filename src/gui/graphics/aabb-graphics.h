@@ -143,8 +143,6 @@ public:
         _mousePos.x = _mouseScenePos.x - x;
         _mousePos.y = _mouseScenePos.y - y;
 
-        // ::TODO find a way to eliminate this code::
-        // ::: _bounds and _dragSelect are only accessed in the selected SpriteImporter Frame::
         const int deltaX = _mousePos.x - oldMousePos.x;
         const int deltaY = _mousePos.y - oldMousePos.y;
 

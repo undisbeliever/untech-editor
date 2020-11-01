@@ -9,7 +9,6 @@
 
 namespace UnTech::Gui::FpsWindow {
 
-// ::TODO add show FPS Window to View menu::
 static bool open = true;
 
 void processGui()
