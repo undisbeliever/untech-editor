@@ -660,13 +660,21 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
 
 void RoomEditorGui::editorWindow()
 {
+    static constexpr const char* windowTitle = "Room###Room_Editor";
+
     assert(_entityGraphics);
     assert(_data);
     auto& room = _data->data;
 
     ImGui::SetNextWindowSize(ImVec2(600, 600), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Room###Room_Editor")) {
 
+    if (room.map.empty()) {
+        ImGui::Begin(windowTitle);
+        ImGui::End();
+        return;
+    }
+
+    if (ImGui::Begin(windowTitle)) {
         animationButtons();
         ImGui::SameLine(0.0f, 12.0f);
 
