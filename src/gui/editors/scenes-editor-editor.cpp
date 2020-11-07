@@ -235,13 +235,15 @@ void ScenesEditorGui::scenesWindow(const Project::ProjectFile& projectFile)
 
         ImGui::BeginChild("Scroll");
 
-        ImGui::Columns(7);
+        ImGui::Columns(8);
 
         ImGui::Separator();
         ImGui::NextColumn();
         ImGui::Text("Name");
         ImGui::NextColumn();
         ImGui::Text("Scene Settings");
+        ImGui::NextColumn();
+        ImGui::Text("Palette");
         ImGui::NextColumn();
         ImGui::Text("Layer 0");
         ImGui::NextColumn();
@@ -270,6 +272,10 @@ void ScenesEditorGui::scenesWindow(const Project::ProjectFile& projectFile)
 
             ImGui::SetNextItemWidth(-1);
             edited |= ImGui::IdStringCombo("##SceneSettings", &scene.sceneSettings, _data->scenes.settings);
+            ImGui::NextColumn();
+
+            ImGui::SetNextItemWidth(-1);
+            edited |= ImGui::IdStringCombo("##Palette", &scene.palette, projectFile.palettes);
             ImGui::NextColumn();
 
             const auto sceneSettings = scenes.settings.find(scene.sceneSettings);
