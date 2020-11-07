@@ -142,8 +142,8 @@ struct GridActions {
             GridT& editorGrid = this->getEditorGrid();
 
             assert(projectGrid.size() == editorGrid.size());
-            assert(position.x + newValues.width() < projectGrid.width());
-            assert(position.y + newValues.height() < projectGrid.height());
+            assert(position.x + newValues.width() <= projectGrid.width());
+            assert(position.y + newValues.height() <= projectGrid.height());
 
             oldValues = projectGrid.subGrid(position, newValues.size());
 
@@ -159,8 +159,8 @@ struct GridActions {
             GridT& editorGrid = this->getEditorGrid();
 
             assert(projectGrid.size() == editorGrid.size());
-            assert(position.x + values.width() < projectGrid.width());
-            assert(position.y + values.height() < projectGrid.height());
+            assert(position.x + values.width() <= projectGrid.width());
+            assert(position.y + values.height() <= projectGrid.height());
 
             projectGrid.setCells(position, values);
             editorGrid.setCells(position, values);
@@ -187,7 +187,7 @@ struct GridActions {
         }
 
         if (r.width < 1 || r.height < 1
-            || r.right() >= grid->width() || r.bottom() >= grid->height()) {
+            || r.right() > grid->width() || r.bottom() > grid->height()) {
 
             return;
         }
