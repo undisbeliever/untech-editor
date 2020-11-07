@@ -471,7 +471,7 @@ void MetaTileTilesetEditorGui::tileCollisionClicked(const MetaTiles::TileCollisi
     EditorActions<AP::MtTileset>::fieldEdited<
         &MetaTileTilesetInput::tileCollisions>(_data);
 
-    _tileCollisionsValid = true;
+    _tileCollisionsValid = false;
 }
 
 void MetaTileTilesetEditorGui::tilePriorityClicked(const unsigned subTile, const bool v)
