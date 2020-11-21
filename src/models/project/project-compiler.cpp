@@ -145,6 +145,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
         { "MetaSprite.Data.METASPRITE_FORMAT_VERSION", MetaSprite::Compiler::CompiledRomData::METASPRITE_FORMAT_VERSION },
         { "Entity.Data.ENTITY_FORMAT_VERSION", Entity::CompiledEntityRomData::ENTITY_FORMAT_VERSION },
         { "Room.ROOM_FORMAT_VERSION", Rooms::RoomData::ROOM_FORMAT_VERSION },
+        { "Scripting.GAME_STATE_FORMAT_VERSION", Scripting::GameStateData::GAME_STATE_FORMAT_VERSION },
         { "Project.ROOM_DATA_SIZE", input.projectSettings.roomSettings.roomDataSize },
         { "Project.MS_FrameSetListCount", unsigned(input.frameSets.size()) },
     };
@@ -153,10 +154,15 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
                          "__resc__", "RES_Block",
                          constants);
 
+    const auto gameStateData = projectData.gameState();
+    assert(gameStateData);
+
     // must write meta sprite data first
     writeMetaSpriteData(writer, input.projectSettings.memoryMap, projectData.frameSets());
     writeEntityRomData(writer, *projectData.entityRomData());
     writeSceneData(writer, *projectData.scenes());
+
+    writer.addNamedData("Project.InitialGameState", gameStateData->exportSnesData());
 
     writer.addDataStore("Project.PaletteList", projectData.palettes());
     writer.addDataStore("Project.BackgroundImageList", projectData.backgroundImages());
@@ -169,6 +175,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     writer.writeIncData(ret->incData, relativeBinFilename);
     writeIncList(ret->incData, "Project.RoomList", projectData.rooms());
 
+    Scripting::writeGameStateConstants(input.gameState, *gameStateData, ret->incData);
     MetaSprite::Compiler::writeFrameSetReferences(input, ret->incData);
     MetaSprite::Compiler::writeExportOrderReferences(input, ret->incData);
     ret->incData << projectData.entityRomData()->defines;

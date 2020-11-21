@@ -28,6 +28,9 @@ class ErrorList;
 template <typename T>
 class ExternalFileList;
 
+namespace Scripting {
+struct GameStateData;
+}
 namespace Resources {
 struct PaletteData;
 struct BackgroundImageData;
@@ -213,6 +216,7 @@ class ProjectSettingsData {
 private:
     mutable std::shared_mutex _mutex;
 
+    std::shared_ptr<const Scripting::GameStateData> _gameState;
     std::shared_ptr<const MetaSprite::ActionPointMapping> _actionPointMapping;
     std::shared_ptr<const MetaTiles::InteractiveTilesData> _interactiveTiles;
     std::shared_ptr<const Resources::CompiledScenesData> _scenes;
@@ -221,6 +225,12 @@ private:
 public:
     // MUST include a lock in each function
     // MUST NOT implement a write functions in the header file
+
+    std::shared_ptr<const Scripting::GameStateData> gameState() const
+    {
+        std::shared_lock lock(_mutex);
+        return _gameState;
+    }
 
     std::shared_ptr<const MetaSprite::ActionPointMapping> actionPointMapping() const
     {
@@ -246,6 +256,7 @@ public:
         return _entityRomData;
     }
 
+    void store(std::shared_ptr<const Scripting::GameStateData>&& data);
     void store(std::shared_ptr<const MetaSprite::ActionPointMapping>&& data);
     void store(std::shared_ptr<const MetaTiles::InteractiveTilesData>&& data);
     void store(std::shared_ptr<const Resources::CompiledScenesData>&& data);
@@ -316,6 +327,7 @@ public:
     const DataStore<MetaTiles::MetaTileTilesetData>& metaTileTilesets() const { return _metaTileTilesets; }
     const DataStore<Rooms::RoomData>& rooms() const { return _rooms; }
 
+    std::shared_ptr<const Scripting::GameStateData> gameState() const { return _projectSettingsData.gameState(); }
     std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles() const { return _projectSettingsData.interactiveTiles(); }
     std::shared_ptr<const Resources::CompiledScenesData> scenes() const { return _projectSettingsData.scenes(); }
     std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const { return _projectSettingsData.entityRomData(); }

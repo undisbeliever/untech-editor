@@ -301,13 +301,13 @@ endef
 
 
 # Select the modules used by the apps
-$(call cli-modules, untech-compiler,            common snes project entity resources metasprite metatiles rooms lz4)
+$(call cli-modules, untech-compiler,            common snes project entity resources metasprite metatiles rooms scripting lz4)
 $(call cli-modules, untech-lz4c,                common lz4)
 $(call cli-modules, untech-png2tileset,         common snes)
 $(call cli-modules, untech-png2snes,            common snes)
 $(call cli-modules, untech-write-sfc-checksum,  common snes)
 
-$(call test-util-modules, serializer-test,      common snes project entity resources metasprite metatiles rooms lz4)
+$(call test-util-modules, serializer-test,      common snes project entity resources metasprite metatiles rooms scripting lz4)
 
 $(GUI_APP): $(GUI_OBJS) $(THIRD_PARTY_OBJS) $(THIRD_PARTY_IMGUI_OBJS) $(THIRD_PARTY_IMGUI_IMPL_OBJS)
 

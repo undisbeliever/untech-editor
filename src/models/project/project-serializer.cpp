@@ -13,6 +13,7 @@
 #include "models/metatiles/metatiles-serializer.h"
 #include "models/resources/resources-serializer.h"
 #include "models/rooms/rooms-serializer.h"
+#include "models/scripting/scripting-serializer.h"
 
 using namespace UnTech;
 using namespace UnTech::Xml;
@@ -76,6 +77,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
     std::unique_ptr<XmlTag> childTag;
 
     bool readMemoryMapTag = false;
+    bool readGameStateTag = false;
     bool readRoomSettingsTag = false;
 
     while ((childTag = xml.parseTag())) {
@@ -122,6 +124,14 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
         else if (childTag->name == "metatile-engine-settings") {
             // metatile-engine-settings has been removed, skip
         }
+        else if (childTag->name == "game-state") {
+            if (readGameStateTag) {
+                throw xml_error(*childTag, "Only one <game-state> tag is allowed");
+            }
+            readGameStateTag = true;
+
+            Scripting::readGameState(project->gameState, xml, childTag.get());
+        }
         else if (childTag->name == "interactive-tiles") {
             MetaTiles::readInteractiveTiles(xml, childTag.get(), project->interactiveTiles);
         }
@@ -149,6 +159,8 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
 
     Project::writeMemoryMapSettings(xml, project.projectSettings.memoryMap);
     Rooms::writeRoomSettings(xml, project.projectSettings.roomSettings);
+    Scripting::writeGameState(xml, project.gameState);
+
     MetaTiles::writeInteractiveTiles(xml, project.interactiveTiles);
 
     Entity::writeEntityRomData(xml, project.entityRomData);
