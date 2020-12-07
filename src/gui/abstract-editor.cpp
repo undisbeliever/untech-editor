@@ -11,6 +11,7 @@
 
 #include "gui/editors/action-points-editor.h"
 #include "gui/editors/background-image-editor.h"
+#include "gui/editors/bytecode-editor.h"
 #include "gui/editors/entity-rom-data-editor.h"
 #include "gui/editors/frameset-export-order-editor.h"
 #include "gui/editors/game-state-editor.h"
@@ -288,6 +289,9 @@ std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
         case ProjectSettingsIndex::GameState:
             return std::make_unique<GameStateEditorData>(itemIndex);
 
+        case ProjectSettingsIndex::Bytecode:
+            return std::make_unique<BytecodeEditorData>(itemIndex);
+
         case ProjectSettingsIndex::InteractiveTiles:
             return std::make_unique<InteractiveTilesEditorData>(itemIndex);
 
@@ -340,13 +344,14 @@ std::unique_ptr<AbstractEditorData> createEditor(ItemIndex itemIndex,
 
 std::vector<std::unique_ptr<AbstractEditorGui>> createEditorGuis()
 {
-    constexpr unsigned N_ELEMENTS = 13;
+    constexpr unsigned N_ELEMENTS = 14;
 
     std::vector<std::unique_ptr<AbstractEditorGui>> ret;
     ret.reserve(N_ELEMENTS);
 
     ret.push_back(std::make_unique<ProjectSettingsEditorGui>());
     ret.push_back(std::make_unique<GameStateEditorGui>());
+    ret.push_back(std::make_unique<BytecodeEditorGui>());
     ret.push_back(std::make_unique<InteractiveTilesEditorGui>());
     ret.push_back(std::make_unique<ActionPointsEditorGui>());
     ret.push_back(std::make_unique<EntityRomDataEditorGui>());

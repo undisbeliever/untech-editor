@@ -30,6 +30,7 @@ class ExternalFileList;
 
 namespace Scripting {
 struct GameStateData;
+struct BytecodeMapping;
 }
 namespace Resources {
 struct PaletteData;
@@ -217,6 +218,7 @@ private:
     mutable std::shared_mutex _mutex;
 
     std::shared_ptr<const Scripting::GameStateData> _gameState;
+    std::shared_ptr<const Scripting::BytecodeMapping> _bytecode;
     std::shared_ptr<const MetaSprite::ActionPointMapping> _actionPointMapping;
     std::shared_ptr<const MetaTiles::InteractiveTilesData> _interactiveTiles;
     std::shared_ptr<const Resources::CompiledScenesData> _scenes;
@@ -230,6 +232,12 @@ public:
     {
         std::shared_lock lock(_mutex);
         return _gameState;
+    }
+
+    std::shared_ptr<const Scripting::BytecodeMapping> bytecode() const
+    {
+        std::shared_lock lock(_mutex);
+        return _bytecode;
     }
 
     std::shared_ptr<const MetaSprite::ActionPointMapping> actionPointMapping() const
@@ -257,6 +265,7 @@ public:
     }
 
     void store(std::shared_ptr<const Scripting::GameStateData>&& data);
+    void store(std::shared_ptr<const Scripting::BytecodeMapping>&& data);
     void store(std::shared_ptr<const MetaSprite::ActionPointMapping>&& data);
     void store(std::shared_ptr<const MetaTiles::InteractiveTilesData>&& data);
     void store(std::shared_ptr<const Resources::CompiledScenesData>&& data);

@@ -5,8 +5,16 @@
  */
 
 #include "scripting-serializer.h"
+#include "models/common/enummap.h"
 
 namespace UnTech::Scripting {
+
+static const EnumMap<ArgumentType> argumentTypeEnumMap = {
+    { "unused", ArgumentType::Unused },
+    { "flag", ArgumentType::Flag },
+    { "word", ArgumentType::Word },
+    { "immediate-u16", ArgumentType::ImmediateU16 },
+};
 
 void readGameState(GameState& gameState, Xml::XmlReader& xml, const Xml::XmlTag* tag)
 {
@@ -82,6 +90,57 @@ void writeGameState(Xml::XmlWriter& xml, const GameState& gameState)
             xml.writeTagAttribute("value", w.initialValue);
             xml.writeCloseTag();
         }
+    }
+
+    xml.writeCloseTag();
+}
+
+void readBytecode(BytecodeInput& bytecode, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+{
+    assert(tag->name == "bytecode");
+    assert(bytecode.instructions.empty());
+
+    while (auto childTag = xml.parseTag()) {
+        if (childTag->name == "instruction") {
+            Instruction& inst = bytecode.instructions.emplace_back();
+
+            inst.name = childTag->getAttributeOptionalId("name");
+
+            auto readArg = [&](const std::string& name) {
+                return childTag->getAttributeOptionalEnum(name, argumentTypeEnumMap, ArgumentType::Unused);
+            };
+            inst.arguments.at(0) = readArg("arg1");
+            inst.arguments.at(1) = readArg("arg2");
+            assert(inst.arguments.size() == 2);
+        }
+        else {
+            throw Xml::unknown_tag_error(*childTag);
+        }
+
+        xml.parseCloseTag();
+    }
+}
+
+void writeBytecode(Xml::XmlWriter& xml, const BytecodeInput& bytecode)
+{
+    using namespace std::string_literals;
+
+    xml.writeTag("bytecode");
+
+    for (const auto& inst : bytecode.instructions) {
+        xml.writeTag("instruction");
+        xml.writeTagAttributeOptional("name", inst.name);
+
+        auto writeArg = [&](const std::string& name, ArgumentType arg) {
+            if (arg != ArgumentType::Unused) {
+                xml.writeTagAttributeEnum(name, arg, argumentTypeEnumMap);
+            }
+        };
+        writeArg("arg1"s, inst.arguments.at(0));
+        writeArg("arg2"s, inst.arguments.at(1));
+        assert(inst.arguments.size() == 2);
+
+        xml.writeCloseTag();
     }
 
     xml.writeCloseTag();

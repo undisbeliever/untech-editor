@@ -78,6 +78,7 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
 
     bool readMemoryMapTag = false;
     bool readGameStateTag = false;
+    bool readBytecodeTag = false;
     bool readRoomSettingsTag = false;
 
     while ((childTag = xml.parseTag())) {
@@ -132,6 +133,14 @@ std::unique_ptr<ProjectFile> readProjectFile(XmlReader& xml)
 
             Scripting::readGameState(project->gameState, xml, childTag.get());
         }
+        else if (childTag->name == "bytecode") {
+            if (readBytecodeTag) {
+                throw xml_error(*childTag, "Only one <bytecode> tag is allowed");
+            }
+            readBytecodeTag = true;
+
+            Scripting::readBytecode(project->bytecode, xml, childTag.get());
+        }
         else if (childTag->name == "interactive-tiles") {
             MetaTiles::readInteractiveTiles(xml, childTag.get(), project->interactiveTiles);
         }
@@ -159,7 +168,9 @@ void writeProjectFile(XmlWriter& xml, const ProjectFile& project)
 
     Project::writeMemoryMapSettings(xml, project.projectSettings.memoryMap);
     Rooms::writeRoomSettings(xml, project.projectSettings.roomSettings);
+
     Scripting::writeGameState(xml, project.gameState);
+    Scripting::writeBytecode(xml, project.bytecode);
 
     MetaTiles::writeInteractiveTiles(xml, project.interactiveTiles);
 

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "bytecode.h"
 #include "game-state.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
@@ -17,5 +18,11 @@ namespace UnTech::Scripting {
 void readGameState(GameState& gameState, Xml::XmlReader& xml, const Xml::XmlTag* tag);
 
 void writeGameState(Xml::XmlWriter& xml, const GameState& gameState);
+
+// raises exception on error
+// `gameState` must be empty, xml/tag points to a <bytecode> tag
+void readBytecode(Scripting::BytecodeInput& bytecode, Xml::XmlReader& xml, const Xml::XmlTag* tag);
+
+void writeBytecode(Xml::XmlWriter& xml, const Scripting::BytecodeInput& bytecode);
 
 }

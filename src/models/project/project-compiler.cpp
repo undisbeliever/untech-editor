@@ -181,6 +181,7 @@ compileProject(const ProjectFile& input, const std::filesystem::path& relativeBi
     ret->incData << projectData.entityRomData()->defines;
 
     // changes ROM BANK to code()
+    Scripting::writeBytecodeFunctionTable(input.bytecode, ret->incData);
     MetaSprite::Compiler::writeActionPointFunctionTables(input.actionPointFunctions, ret->incData);
     Resources::writeSceneIncData(input.resourceScenes, ret->incData);
     ret->incData << projectData.entityRomData()->functionTableData;

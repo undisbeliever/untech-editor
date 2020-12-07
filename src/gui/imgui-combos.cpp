@@ -162,6 +162,25 @@ void TextEnum(const UnTech::Entity::DataType& type)
     TextUnformatted(str);
 }
 
+static const char* const argumentTypeItems[] = {
+    "",
+    "Flag",
+    "Word",
+    "Immediate u16",
+};
+
+bool EnumCombo(const char* label, UnTech::Scripting::ArgumentType* v)
+{
+    return ImGui::EnumCombo(label, v, argumentTypeItems, IM_ARRAYSIZE(argumentTypeItems));
+}
+
+void TextEnum(const UnTech::Scripting::ArgumentType& v)
+{
+    const unsigned i = static_cast<unsigned>(v);
+    const char* str = i < IM_ARRAYSIZE(argumentTypeItems) ? argumentTypeItems[i] : "";
+    TextUnformatted(str);
+}
+
 bool EnumCombo(const char* label, UnTech::Entity::EntityType* v)
 {
     static const char* const items[] = {

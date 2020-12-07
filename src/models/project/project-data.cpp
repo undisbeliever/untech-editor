@@ -16,9 +16,10 @@ namespace Project {
 
 static const idstring BLANK_ID{};
 
-static std::array<std::string, 6> projectSettingNames{
+static std::array<std::string, 7> projectSettingNames{
     "Project Settings",
     "Game State",
+    "Bytecode",
     "Interactive Tiles",
     "Action Points",
     "Entities",
@@ -311,6 +312,13 @@ void ProjectSettingsData::store(std::shared_ptr<const Scripting::GameStateData>&
     _gameState = std::move(data);
 }
 
+void ProjectSettingsData::store(std::shared_ptr<const Scripting::BytecodeMapping>&& data)
+{
+    std::lock_guard lock(_mutex);
+
+    _bytecode = std::move(data);
+}
+
 void ProjectSettingsData::store(std::shared_ptr<const MetaSprite::ActionPointMapping>&& data)
 {
     std::lock_guard lock(_mutex);
@@ -457,6 +465,10 @@ void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& pro
         break;
 
     case ProjectSettingsIndex::GameState:
+        projectData._rooms.markAllUnchecked();
+        break;
+
+    case ProjectSettingsIndex::Bytecode:
         projectData._rooms.markAllUnchecked();
         break;
 
@@ -838,6 +850,9 @@ bool ProjectData::compileAll(const ProjectFile& project, const bool earlyExit)
 
     valid &= validatePs(ProjectSettingsIndex::ProjectSettings,
                         &ProjectSettings::validate, project.projectSettings);
+
+    valid &= compilePs<Scripting::BytecodeMapping>(ProjectSettingsIndex::Bytecode,
+                                                   Scripting::compileBytecode, project.bytecode);
 
     valid &= validateList(&MetaSprite::FrameSetExportOrder::validate, _frameSetExportOrderStatus,
                           ResourceType::FrameSetExportOrders, project.frameSetExportOrders);
