@@ -563,10 +563,20 @@ compileData(ConvertFunction convertFunction, const InputT& input, const Preresqu
     return { std::move(status), std::move(data) };
 }
 
-template <typename DataT, typename ConvertFunction, class InputListT, typename... PreresquitesT>
+template <typename DataT, typename ConvertFunction, class InputT, typename... PreresquitesT>
 static std::pair<ResourceStatus, std::shared_ptr<const DataT>>
 compileListItem(ConvertFunction convertFunction,
-                const InputListT& inputList, const unsigned index,
+                const std::vector<InputT>& inputList, const unsigned index,
+                const PreresquitesT&... preresquites)
+{
+    const auto& input = inputList.at(index);
+    return compileData<DataT>(convertFunction, input, preresquites...);
+}
+
+template <typename DataT, typename ConvertFunction, class InputT, typename... PreresquitesT>
+static std::pair<ResourceStatus, std::shared_ptr<const DataT>>
+compileListItem(ConvertFunction convertFunction,
+                const NamedList<InputT>& inputList, const unsigned index,
                 const PreresquitesT&... preresquites)
 {
     const auto& input = inputList.at(index);
