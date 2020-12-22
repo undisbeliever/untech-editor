@@ -4,6 +4,7 @@ CXX         ?= g++
 CC          ?= gcc
 
 CXXFLAGS    += -std=c++17
+LDFLAGS     += -std=c++17
 
 ifeq ($(OS),Windows_NT)
   BIN_EXT         := .exe
@@ -254,6 +255,9 @@ THIRD_PARTY_IMGUI_IMPL_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, gl3w.o imgu
 IMGUI_CXXFLAGS              := -DIMGUI_IMPL_SDL_OPENGL -DIMGUI_IMPL_OPENGL_LOADER_GL3W -Isrc/vendor/imgui/examples/libs/gl3w
 IMGUI_IMPL_CXXFLAGS         := -Isrc/vendor/imgui -Isrc/vendor/imgui/examples/libs/gl3w
 
+# Required to compile editor GUI in ubuntu. On ubuntu `sdl2-config --libs` does output `-pthread`
+IMGUI_LDFLAGS               := -pthread
+
 $(OBJ_DIR)/gui/main.o: IMGUI_CXXFLAGS += -Isrc/vendor/imgui
 
 
@@ -330,7 +334,7 @@ $(CLI_APPS): $(BIN_DIR)/%$(BIN_EXT): $(OBJ_DIR)/cli/%.o
 	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(LIBS)
 
 $(GUI_APP):
-	$(CXX) $(LDFLAGS) $(CXXWARNINGS) $(IMGUI_LDFLAGS) -o $@ $^ $(GUI_LIBS) $(LIBS)
+	$(CXX) $(LDFLAGS) $(CXXWARNINGS) -o $@ $^ $(GUI_LIBS) $(LIBS) $(IMGUI_LDFLAGS)
 
 
 $(OBJ_DIR)/vendor/%.o: src/vendor/%.cpp
