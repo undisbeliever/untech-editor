@@ -13,6 +13,7 @@
 #include "gui/list-helpers.h"
 #include "gui/style.h"
 #include "models/common/bit.h"
+#include "models/snes/tile.hpp"
 #include <algorithm>
 
 namespace UnTech::Gui {
