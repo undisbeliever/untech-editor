@@ -10,6 +10,7 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include "models/metatiles/metatiles-serializer.h"
+#include "models/scripting/scripting-serializer.h"
 
 using namespace UnTech;
 using namespace UnTech::Xml;
@@ -118,6 +119,9 @@ static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* ta
         else if (childTag->name == "entity-group") {
             readEntityGroup(xml, childTag.get(), roomInput->entityGroups);
         }
+        else if (childTag->name == "script") {
+            Scripting::readScript(roomInput->scripts, xml, childTag.get());
+        }
         else {
             throw unknown_tag_error(*childTag);
         }
@@ -143,6 +147,8 @@ static void writeRoomInput(XmlWriter& xml, const RoomInput& input)
     for (auto& eg : input.entityGroups) {
         writeEntityGroup(xml, eg);
     }
+
+    Scripting::writeScripts(xml, input.scripts);
 
     xml.writeCloseTag();
 }

@@ -100,8 +100,26 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
     }
 
     if (!valid) {
-        out = nullptr;
+        return nullptr;
     }
+
+    // populate instructionNames
+    {
+        out->instructionNames.resize(input.BASE_INSTRUCTIONS.size() + input.instructions.size());
+
+        auto it = std::transform(input.BASE_INSTRUCTIONS.begin(), input.BASE_INSTRUCTIONS.end(),
+                                 out->instructionNames.begin(), [](auto& inst) { return inst.name; });
+
+        it = std::transform(input.instructions.begin(), input.instructions.end(),
+                            it, [](auto& inst) { return inst.name; });
+
+        assert(it == out->instructionNames.end());
+
+        std::sort(out->instructionNames.begin(), out->instructionNames.end());
+    }
+
+    assert(valid);
+
     return out;
 }
 
@@ -133,7 +151,7 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
             const bool hasFlagArgument = std::any_of(inst.arguments.begin(), inst.arguments.end(),
                                                      [](auto a) { return a == ArgumentType::Flag; });
 
-            for (auto flagName : FLAG_ARGUMENT_SUFFIXES) {
+            for (auto& flagName : FLAG_ARGUMENT_SUFFIXES) {
                 out << "  dw Scripting.Bytecode." << inst.name;
 
                 if (hasArgument) {

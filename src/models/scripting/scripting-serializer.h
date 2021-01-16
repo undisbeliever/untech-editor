@@ -8,6 +8,7 @@
 
 #include "bytecode.h"
 #include "game-state.h"
+#include "script.h"
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 
@@ -25,4 +26,9 @@ void readBytecode(Scripting::BytecodeInput& bytecode, Xml::XmlReader& xml, const
 
 void writeBytecode(Xml::XmlWriter& xml, const Scripting::BytecodeInput& bytecode);
 
+// raises exception on error
+// xml/tag points to a <script> tag
+void readScript(NamedList<Scripting::Script>& scripts, Xml::XmlReader& xml, const Xml::XmlTag* tag);
+
+void writeScripts(Xml::XmlWriter& xml, const NamedList<Scripting::Script>& scripts);
 }

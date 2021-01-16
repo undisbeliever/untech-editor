@@ -340,6 +340,7 @@ public:
     std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles() const { return _projectSettingsData.interactiveTiles(); }
     std::shared_ptr<const Resources::CompiledScenesData> scenes() const { return _projectSettingsData.scenes(); }
     std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const { return _projectSettingsData.entityRomData(); }
+    std::shared_ptr<const Scripting::BytecodeMapping> bytecodeData() const { return _projectSettingsData.bytecode(); }
 
     const ResourceListStatus& resourceListStatus(const ResourceType type) const { return _resourceListStatuses.at(static_cast<unsigned>(type)); }
 

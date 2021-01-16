@@ -34,6 +34,8 @@ struct Instruction {
 struct BytecodeInput {
     static const std::vector<Instruction> BASE_INSTRUCTIONS;
 
+    constexpr static uint8_t END_SCRIPT_OPCODE = 0;
+
     std::vector<Instruction> instructions;
 
     bool operator==(const BytecodeInput& o) const
@@ -52,6 +54,8 @@ struct InstructionData {
 
 struct BytecodeMapping {
     std::unordered_map<idstring, InstructionData> instructions;
+
+    std::vector<idstring> instructionNames;
 };
 
 std::shared_ptr<const BytecodeMapping>

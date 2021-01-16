@@ -102,6 +102,37 @@ struct RoomEditorData::AP {
                                 &RM::EntityGroup::entities);
         }
     };
+
+    struct Scripts final : public Room {
+        using ListT = NamedList<Scripting::Script>;
+        using ListArgsT = std::tuple<>;
+        using SelectionT = SingleSelection;
+
+        constexpr static size_t MAX_SIZE = UnTech::Rooms::MAX_N_SCRIPTS;
+
+        constexpr static auto SelectionPtr = &EditorT::scriptsSel;
+
+        static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.scripts; }
+    };
+
+    struct ScriptStatements final : public Room {
+        using ListT = std::vector<Scripting::ScriptNode>;
+        using ListArgsT = std::tuple<unsigned>;
+        using SelectionT = MultipleChildSelection;
+        using ParentActionPolicy = RoomEditorData::AP::Scripts;
+
+        // ::TODO increase to 256::
+        // ::: Or maybe make a maximum of 64 entites per group::
+        constexpr static size_t MAX_SIZE = 64;
+
+        constexpr static auto SelectionPtr = &EditorT::scriptStatementsSel;
+
+        static ListT* getList(EditorDataT& data, unsigned scriptId)
+        {
+            return getListField(Scripts::getList(data), scriptId,
+                                &Scripting::Script::statements);
+        }
+    };
 };
 
 const usize RoomEditorData::AP::Map::MIN_SIZE(RM::RoomInput::MIN_MAP_WIDTH, RM::RoomInput::MIN_MAP_HEIGHT);
@@ -145,6 +176,9 @@ void RoomEditorData::updateSelection()
     }
 
     entityEntriesSel.update();
+
+    scriptsSel.update();
+    scriptStatementsSel.update(scriptsSel);
 }
 
 grid<uint8_t>& RoomEditorData::map()
@@ -787,6 +821,8 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
     minimapWindow("Minimap##Room");
 
+    scriptsWindow(projectData);
+
     if (scratchpadMinimapWindow("Scratchpad##Room", _scratchpadTilemap, _scratchpad, &_data->selectedScratchpadTiles)) {
         _data->selectedScratchpadTilesChanged();
         selectionChanged();
@@ -913,6 +949,222 @@ void RoomEditorGui::updateTilesetData(const Project::ProjectFile& projectFile,
     }
 
     _mtTilesetValid = true;
+}
+
+// Room Scripts
+// ============
+
+class RoomScriptGuiVisitor {
+    using AP = RoomEditorData::AP;
+
+private:
+    RoomEditorData* const data;
+    const Scripting::BytecodeMapping& bcMapping;
+
+    unsigned depth;
+
+    const unsigned scriptId;
+
+    // ::TODO add std::array<uint16_t, 12> parentIndex;::
+    unsigned index;
+
+    constexpr static std::array<const char*, 2> argLabels = { "##Arg1", "##Arg2" };
+
+public:
+    RoomScriptGuiVisitor(RoomEditorData* d,
+                         const Scripting::BytecodeMapping& mapping)
+        : data(d)
+        , bcMapping(mapping)
+        , depth(0)
+        , scriptId(data->scriptsSel.selectedIndex())
+        , index(0)
+    {
+        assert(data != nullptr);
+    }
+
+    void processGui(Scripting::Script& script)
+    {
+        ImGui::PushItemWidth((ImGui::GetWindowWidth() - 30) / 4);
+
+        processStatements(script.statements);
+
+        ImGui::PopItemWidth();
+
+        processAddMenu();
+
+        assert(depth == 0);
+    }
+
+    bool statementArgument(const char* label, const Scripting::ArgumentType& type, std::string* value)
+    {
+        using Type = Scripting::ArgumentType;
+
+        bool edited = false;
+
+        switch (type) {
+        case Type::Unused: {
+        } break;
+
+        case Type::Flag:
+        case Type::Word:
+        case Type::ImmediateU16: {
+            ImGui::SameLine();
+            ImGui::InputText(label, value);
+            edited = ImGui::IsItemDeactivatedAfterEdit();
+
+            if (ImGui::IsItemHovered()) {
+                ImGui::BeginTooltip();
+
+                switch (type) {
+                case Type::Unused:
+                    break;
+
+                case Type::Flag:
+                    ImGui::TextUnformatted("Flag");
+                    break;
+
+                case Type::Word:
+                    ImGui::TextUnformatted("Word");
+                    break;
+
+                case Type::ImmediateU16:
+                    ImGui::TextUnformatted("Immediate U16");
+                    break;
+                }
+
+                ImGui::EndTooltip();
+            }
+        }
+        }
+
+        return edited;
+    }
+
+    void operator()(Scripting::Statement& statement)
+    {
+        bool edited = false;
+
+        edited |= ImGui::IdStringCombo("##Name", &statement.opcode, bcMapping.instructionNames);
+
+        auto it = bcMapping.instructions.find(statement.opcode);
+        if (it != bcMapping.instructions.end()) {
+            const auto& bc = it->second;
+
+            assert(bc.arguments.size() == statement.arguments.size());
+            for (unsigned i = 0; i < statement.arguments.size(); i++) {
+                edited |= statementArgument(argLabels.at(i), bc.arguments.at(i), &statement.arguments.at(i));
+            }
+        }
+
+        if (edited) {
+            ListActions<AP::ScriptStatements>::itemEdited(data, scriptId, index);
+        }
+    }
+
+private:
+    void openProcessMenu()
+    {
+        ImGui::OpenPopup("Add To Script Menu");
+    }
+
+    // ::TODO use menu to add statements anywhere::
+    void processAddMenu()
+    {
+        if (ImGui::BeginPopup("Add To Script Menu")) {
+            bool menuPressed = false;
+            Scripting::Statement newStatement;
+
+            for (auto& i : bcMapping.instructionNames) {
+                if (ImGui::MenuItem(i.str().c_str())) {
+                    newStatement.opcode = i;
+                    menuPressed = true;
+                }
+            }
+
+            if (menuPressed) {
+                ListActions<AP::ScriptStatements>::addItem(data, scriptId, newStatement);
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
+    void processStatements(std::vector<Scripting::ScriptNode>& statements)
+    {
+        depth++;
+
+        for (index = 0; index < statements.size(); index++) {
+            auto& s = statements.at(index);
+
+            ImGui::PushID(index);
+
+            ImGui::Selectable(&data->scriptStatementsSel, index, ImGuiSelectableFlags_AllowItemOverlap);
+
+            ImGui::SameLine(30);
+            std::visit(*this, s);
+
+            ImGui::PopID();
+        }
+
+        if (ImGui::Button("Add")) {
+            openProcessMenu();
+        }
+
+        depth--;
+    }
+};
+
+void RoomEditorGui::scriptsWindow(const Project::ProjectData& projectData)
+{
+    assert(_data);
+    auto& roomScripts = _data->data.scripts;
+
+    ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Room Scripts", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
+        NamedListSidebar<AP::Scripts>(_data);
+
+        ImGui::SameLine();
+
+        ImGui::BeginGroup();
+        ImGui::BeginChild("Script");
+        if (_data->scriptsSel.selectedIndex() < roomScripts.size()) {
+            auto& script = roomScripts.at(_data->scriptsSel.selectedIndex());
+
+            {
+                ImGui::InputIdstring("Name", &script.name);
+                if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    ListActions<AP::Scripts>::selectedFieldEdited<
+                        &Scripting::Script::name>(_data);
+                }
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                const auto bcMapping = projectData.bytecodeData();
+
+                if (bcMapping) {
+                    ListButtons<AP::ScriptStatements>(_data);
+                    ImGui::Spacing();
+
+                    ImGui::BeginChild("Scroll");
+
+                    RoomScriptGuiVisitor sgVisitor(_data, *bcMapping);
+                    sgVisitor.processGui(script);
+
+                    ImGui::EndChild();
+                }
+                else {
+                    ImGui::TextUnformatted("\n\n"
+                                           "ERROR: Cannot view script: Missing bytecode data.");
+                }
+            }
+        }
+
+        ImGui::EndChild();
+        ImGui::EndGroup();
+    }
+    ImGui::End();
 }
 
 }

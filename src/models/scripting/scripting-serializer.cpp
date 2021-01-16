@@ -9,6 +9,8 @@
 
 namespace UnTech::Scripting {
 
+using namespace std::string_literals;
+
 static const EnumMap<ArgumentType> argumentTypeEnumMap = {
     { "unused", ArgumentType::Unused },
     { "flag", ArgumentType::Flag },
@@ -144,6 +146,80 @@ void writeBytecode(Xml::XmlWriter& xml, const BytecodeInput& bytecode)
     }
 
     xml.writeCloseTag();
+}
+
+static const std::array<std::string, 2> attributeTagNames = {
+    "arg1"s,
+    "arg2"s,
+};
+
+static void readScriptNodes(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml)
+{
+    while (auto tag = xml.parseTag()) {
+        if (tag->name == "statement"s) {
+            auto& s = std::get<Statement>(nodes.emplace_back(Statement{}));
+
+            s.opcode = tag->getAttributeOptionalId("opcode"s);
+            for (unsigned i = 0; i < s.arguments.size(); i++) {
+                s.arguments.at(i) = tag->getAttributeOrEmpty(attributeTagNames.at(i));
+            }
+        }
+        else {
+            throw Xml::unknown_tag_error(*tag);
+        }
+
+        xml.parseCloseTag();
+    }
+}
+
+void readScript(NamedList<Script>& scripts, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+{
+    assert(tag->name == "script"s);
+
+    scripts.emplace_back();
+    auto& script = scripts.back();
+
+    script.name = tag->getAttributeOptionalId("name"s);
+
+    readScriptNodes(script.statements, xml);
+}
+
+class ScriptNodeWriter {
+private:
+    Xml::XmlWriter& xml;
+
+public:
+    ScriptNodeWriter(Xml::XmlWriter& x)
+        : xml(x){};
+
+    void operator()(const Statement& s)
+    {
+        xml.writeTag("statement"s);
+        xml.writeTagAttribute("opcode"s, s.opcode);
+        for (unsigned i = 0; i < s.arguments.size(); i++) {
+            auto& arg = s.arguments.at(i);
+            if (!arg.empty()) {
+                xml.writeTagAttribute(attributeTagNames.at(i), s.arguments.at(i));
+            }
+        }
+        xml.writeCloseTag();
+    }
+};
+
+void writeScripts(Xml::XmlWriter& xml, const NamedList<Script>& scripts)
+{
+    ScriptNodeWriter snWriter(xml);
+
+    for (auto& script : scripts) {
+        xml.writeTag("script"s);
+        xml.writeTagAttribute("name"s, script.name);
+
+        for (auto& sn : script.statements) {
+            std::visit(snWriter, sn);
+        }
+
+        xml.writeCloseTag();
+    }
 }
 
 }

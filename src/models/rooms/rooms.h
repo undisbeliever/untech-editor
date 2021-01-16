@@ -9,6 +9,7 @@
 #include "models/common/grid.h"
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
+#include "models/scripting/script.h"
 
 namespace UnTech {
 class ErrorList;
@@ -28,6 +29,7 @@ namespace Rooms {
 constexpr unsigned MAX_ROOM_ENTRANCES = 32;
 constexpr unsigned MAX_ENTITY_GROUPS = 8;
 constexpr unsigned MAX_ENTITY_ENTRIES = 96;
+constexpr static unsigned MAX_N_SCRIPTS = 16;
 
 constexpr unsigned MAP_TILE_SIZE = 16;
 
@@ -119,6 +121,8 @@ struct RoomInput {
     NamedList<RoomEntrance> entrances;
     NamedList<EntityGroup> entityGroups;
 
+    NamedList<Scripting::Script> scripts;
+
     rect validEntityArea() const;
 
     unsigned mapRight() const { return map.width() * MAP_TILE_SIZE; }
@@ -132,7 +136,8 @@ struct RoomInput {
                && scene == o.scene
                && map == o.map
                && entrances == o.entrances
-               && entityGroups == o.entityGroups;
+               && entityGroups == o.entityGroups
+               && scripts == o.scripts;
     }
     bool operator!=(const RoomInput& o) const { return !(*this == o); }
 };
@@ -150,6 +155,7 @@ struct RoomData {
 std::shared_ptr<const RoomData>
 compileRoom(const RoomInput& input,
             const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings,
+            const Scripting::GameStateData& gameStateData, const Scripting::BytecodeMapping& bytecodeData,
             ErrorList& err);
 }
 }
