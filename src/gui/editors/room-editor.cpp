@@ -11,6 +11,7 @@
 #include "gui/grid-actions.h"
 #include "gui/imgui-combos.h"
 #include "gui/imgui.h"
+#include "gui/list-actions-variant.h"
 #include "gui/list-actions.h"
 #include "gui/style.h"
 #include "models/project/project-data.h"
@@ -1099,8 +1100,7 @@ public:
     {
         const bool edited = condition(&s.condition);
         if (edited) {
-            // ::TODO add variant specific itemFieldEdited::
-            ListActions<AP::ScriptStatements>::itemEdited(data, parentIndex, index);
+            ListActionsVariant<AP::ScriptStatements>::variantFieldEdited<&Scripting::IfStatement::condition>(data, parentIndex, index);
         }
 
         processStatements_ifChildren(s.thenStatements, s.elseStatements);
