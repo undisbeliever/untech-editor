@@ -18,6 +18,20 @@ static const EnumMap<ArgumentType> argumentTypeEnumMap = {
     { "immediate-u16", ArgumentType::ImmediateU16 },
 };
 
+static const EnumMap<ConditionalType> conditionalTypeMap = {
+    { "word", ConditionalType::Word },
+    { "flag", ConditionalType::Flag },
+};
+
+static const EnumMap<ComparisonType> comparisonTypeMap = {
+    { "==", ComparisonType::Equal },
+    { "!=", ComparisonType::NotEqual },
+    { "<", ComparisonType::LessThan },
+    { ">=", ComparisonType::GreaterThanEqual },
+    { "set", ComparisonType::Set },
+    { "clear", ComparisonType::Clear },
+};
+
 void readGameState(GameState& gameState, Xml::XmlReader& xml, const Xml::XmlTag* tag)
 {
     assert(tag->name == "game-state");
@@ -153,22 +167,95 @@ static const std::array<std::string, 2> attributeTagNames = {
     "arg2"s,
 };
 
+static void readIfTag(IfStatement& s, Xml::XmlReader& xml);
+static void readElseTag(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml);
+
+static void readScriptNode(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+{
+    if (tag->name == "statement"s) {
+        auto& s = std::get<Statement>(nodes.emplace_back(Statement{}));
+
+        s.opcode = tag->getAttributeOptionalId("opcode"s);
+        for (unsigned i = 0; i < s.arguments.size(); i++) {
+            s.arguments.at(i) = tag->getAttributeOrEmpty(attributeTagNames.at(i));
+        }
+    }
+    else if (tag->name == "if"s) {
+        auto& s = std::get<IfStatement>(nodes.emplace_back(IfStatement{}));
+        readIfTag(s, xml);
+    }
+    else if (tag->name == "else"s) {
+        readElseTag(nodes, xml);
+    }
+    else if (tag->name == "condition") {
+        throw Xml::xml_error(*tag, "<condition> tag not allowed here");
+    }
+    else {
+        throw Xml::unknown_tag_error(*tag);
+    }
+}
+
 static void readScriptNodes(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml)
 {
     while (auto tag = xml.parseTag()) {
-        if (tag->name == "statement"s) {
-            auto& s = std::get<Statement>(nodes.emplace_back(Statement{}));
+        readScriptNode(nodes, xml, tag.get());
+        xml.parseCloseTag();
+    }
+}
 
-            s.opcode = tag->getAttributeOptionalId("opcode"s);
-            for (unsigned i = 0; i < s.arguments.size(); i++) {
-                s.arguments.at(i) = tag->getAttributeOrEmpty(attributeTagNames.at(i));
-            }
+static void readConditionTag(Conditional& c, const Xml::XmlTag* tag)
+{
+    assert(tag->name == "condition");
+
+    c.type = tag->getAttributeOptionalEnum("type", conditionalTypeMap, ConditionalType::Flag);
+    c.variable = tag->getAttributeOptionalId("var");
+    c.comparison = tag->getAttributeOptionalEnum("comp", comparisonTypeMap, ComparisonType::Set);
+    c.value = tag->getAttributeOrEmpty("value");
+}
+
+static void readIfTag(IfStatement& s, Xml::XmlReader& xml)
+{
+    // The first tag should be a condition tag
+    if (auto tag = xml.parseTag()) {
+        if (tag->name == "condition") {
+            readConditionTag(s.condition, tag.get());
         }
         else {
-            throw Xml::unknown_tag_error(*tag);
+            readScriptNode(s.thenStatements, xml, tag.get());
         }
 
         xml.parseCloseTag();
+    }
+
+    readScriptNodes(s.thenStatements, xml);
+}
+
+static void readElseTag(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml)
+{
+    struct V {
+        Xml::XmlReader& xml;
+
+        V(Xml::XmlReader& x)
+            : xml(x)
+        {
+        }
+
+        void operator()(IfStatement& s)
+        {
+            readScriptNodes(s.elseStatements, xml);
+        }
+
+        void operator()(Statement&)
+        {
+            throw Xml::xml_error(xml, "<else> tag is not allowed here");
+        }
+    };
+
+    if (!nodes.empty()) {
+        std::visit(V(xml), nodes.back());
+    }
+    else {
+        throw Xml::xml_error(xml, "<else> tag is not allowed here");
     }
 }
 
@@ -192,6 +279,23 @@ public:
     ScriptNodeWriter(Xml::XmlWriter& x)
         : xml(x){};
 
+    void writeStatements(const std::vector<ScriptNode>& statements)
+    {
+        for (auto& s : statements) {
+            std::visit(*this, s);
+        }
+    }
+
+    void writeConditionTag(const Conditional& c)
+    {
+        xml.writeTag("condition");
+        xml.writeTagAttributeEnum("type", c.type, conditionalTypeMap);
+        xml.writeTagAttributeOptional("var", c.variable);
+        xml.writeTagAttributeEnum("comp", c.comparison, comparisonTypeMap);
+        xml.writeTagAttributeOptional("value", c.value);
+        xml.writeCloseTag();
+    }
+
     void operator()(const Statement& s)
     {
         xml.writeTag("statement"s);
@@ -204,6 +308,21 @@ public:
         }
         xml.writeCloseTag();
     }
+
+    void operator()(const IfStatement& s)
+    {
+        xml.writeTag("if"s);
+        writeConditionTag(s.condition);
+        writeStatements(s.thenStatements);
+
+        xml.writeCloseTag();
+
+        if (!s.elseStatements.empty()) {
+            xml.writeTag("else");
+            writeStatements(s.elseStatements);
+            xml.writeCloseTag();
+        }
+    }
 };
 
 void writeScripts(Xml::XmlWriter& xml, const NamedList<Script>& scripts)
@@ -214,9 +333,7 @@ void writeScripts(Xml::XmlWriter& xml, const NamedList<Script>& scripts)
         xml.writeTag("script"s);
         xml.writeTagAttribute("name"s, script.name);
 
-        for (auto& sn : script.statements) {
-            std::visit(snWriter, sn);
-        }
+        snWriter.writeStatements(script.statements);
 
         xml.writeCloseTag();
     }

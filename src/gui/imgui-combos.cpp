@@ -181,6 +181,61 @@ void TextEnum(const UnTech::Scripting::ArgumentType& v)
     TextUnformatted(str);
 }
 
+bool EnumCombo(const char* label, UnTech::Scripting::ConditionalType* v)
+{
+    static const char* const items[] = {
+        "word",
+        "flag",
+    };
+    return ImGui::EnumCombo(label, v, items, IM_ARRAYSIZE(items));
+}
+
+bool EnumCombo(const char* label, UnTech::Scripting::ComparisonType* v, UnTech::Scripting::ConditionalType t)
+{
+    using CT = UnTech::Scripting::ConditionalType;
+
+    static const char* const items[] = {
+        "==",
+        "!=",
+        "<",
+        ">=",
+        "set",
+        "clear"
+    };
+
+    bool edited = false;
+
+    const unsigned index = unsigned(*v);
+
+    auto sel = [&](const unsigned start, const unsigned end) {
+        assert(start < end);
+        assert(end <= IM_ARRAYSIZE(items));
+
+        for (unsigned i = start; i < end; i++) {
+            if (ImGui::Selectable(items[i], i == index)) {
+                *v = UnTech::Scripting::ComparisonType(i);
+                edited = true;
+            }
+        }
+    };
+
+    const char* text = index < IM_ARRAYSIZE(items) ? items[index] : "";
+
+    if (ImGui::BeginCombo(label, text)) {
+        switch (t) {
+        case CT::Word: {
+            sel(0, 4);
+        } break;
+
+        case CT::Flag: {
+            sel(4, 6);
+        } break;
+        }
+        ImGui::EndCombo();
+    }
+    return edited;
+}
+
 bool EnumCombo(const char* label, UnTech::Entity::EntityType* v)
 {
     static const char* const items[] = {

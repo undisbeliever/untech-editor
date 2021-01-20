@@ -31,7 +31,7 @@ private:
     GroupMultipleSelection entityEntriesSel;
 
     SingleSelection scriptsSel;
-    MultipleChildSelection scriptStatementsSel;
+    NodeSelection scriptStatementsSel;
 
     upoint_vectorset selectedScratchpadTiles;
 

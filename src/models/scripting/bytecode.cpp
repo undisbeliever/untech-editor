@@ -57,43 +57,57 @@ std::shared_ptr<const BytecodeMapping> compileBytecode(const BytecodeInput& inpu
     auto out = std::make_shared<BytecodeMapping>();
 
     unsigned currentOpcode = 0;
+    auto addInstruction = [&](const Instruction& inst) {
+        InstructionData iData;
 
-    auto addInstructions = [&](const std::vector<Instruction>& instructions) {
-        for (const auto& inst : instructions) {
-            InstructionData iData;
+        iData.opcode = currentOpcode;
+        iData.arguments = inst.arguments;
 
-            iData.opcode = currentOpcode;
-            iData.arguments = inst.arguments;
+        iData.instructionSize = 0;
+        iData.nArguments = 0;
+        for (auto arg : inst.arguments) {
+            iData.instructionSize += argumentSize(arg);
 
-            iData.instructionSize = 0;
-            iData.nArguments = 0;
-            for (auto arg : inst.arguments) {
-                iData.instructionSize += argumentSize(arg);
-
-                if (arg != ArgumentType::Unused) {
-                    iData.nArguments++;
-                }
+            if (arg != ArgumentType::Unused) {
+                iData.nArguments++;
             }
-
-            const auto [it, created] = out->instructions.emplace(inst.name, iData);
-
-            if (!inst.name.isValid()) {
-                addInstructionError(inst, "Missing instruction name");
-            }
-            else if (!created) {
-                addInstructionError(inst, "Duplicate name detected");
-            }
-
-            const unsigned nFlags = std::count(inst.arguments.begin(), inst.arguments.end(), ArgumentType::Flag);
-            if (nFlags > 1) {
-                addInstructionError(inst, "Too many flag arguments (only allowed 1)");
-            }
-
-            currentOpcode += nFlags == 0 ? 1 : N_FLAG_INSTRUCTIONS;
         }
+
+        const auto [it, created] = out->instructions.emplace(inst.name, iData);
+
+        if (!inst.name.isValid()) {
+            addInstructionError(inst, "Missing instruction name");
+        }
+        else if (!created) {
+            addInstructionError(inst, "Duplicate instruction name detected");
+        }
+
+        const unsigned nFlags = std::count(inst.arguments.begin(), inst.arguments.end(), ArgumentType::Flag);
+        if (nFlags > 1) {
+            addInstructionError(inst, "Too many flag arguments (only allowed 1)");
+        }
+
+        currentOpcode += nFlags == 0 ? 1 : N_FLAG_INSTRUCTIONS;
     };
-    addInstructions(BytecodeInput::BASE_INSTRUCTIONS);
-    addInstructions(input.instructions);
+
+    // The first bytecode instruction is hard coded to use opcode 0
+    assert(input.BASE_INSTRUCTIONS.at(0).name.str() == "End_Script");
+    assert(out->endScriptOpcode == currentOpcode);
+    addInstruction(input.BASE_INSTRUCTIONS.at(0));
+
+    // Setup branch/conditional opcodes
+    out->branchIfFlagClearOpcode = out->branchIfFlagSetOpcode + N_FLAG_INSTRUCTIONS;
+    currentOpcode = out->branchIfFlagClearOpcode + N_FLAG_INSTRUCTIONS;
+
+    // Add the rest of the base instructions
+    for (auto it = input.BASE_INSTRUCTIONS.begin() + 1; it != input.BASE_INSTRUCTIONS.end(); it++) {
+        addInstruction(*it);
+    }
+
+    // Add custom instructions
+    for (auto& inst : input.instructions) {
+        addInstruction(inst);
+    }
 
     if (currentOpcode > MAX_OPCODES) {
         addError("Too many opcodes (", currentOpcode, ", max: ", MAX_OPCODES, ")");
@@ -143,41 +157,74 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
 
     unsigned currentOpcode = 0;
 
-    auto writeInstructions = [&](const std::vector<Instruction>& instructions) {
-        for (const auto& inst : instructions) {
-            const bool hasArgument = std::any_of(inst.arguments.begin(), inst.arguments.end(),
-                                                 [](auto a) { return a != ArgumentType::Unused; });
+    auto writeInstruction = [&](const Instruction& inst) {
+        const bool hasArgument = std::any_of(inst.arguments.begin(), inst.arguments.end(),
+                                             [](auto a) { return a != ArgumentType::Unused; });
 
-            const bool hasFlagArgument = std::any_of(inst.arguments.begin(), inst.arguments.end(),
-                                                     [](auto a) { return a == ArgumentType::Flag; });
+        const bool hasFlagArgument = std::any_of(inst.arguments.begin(), inst.arguments.end(),
+                                                 [](auto a) { return a == ArgumentType::Flag; });
 
-            for (auto& flagName : FLAG_ARGUMENT_SUFFIXES) {
-                out << "  dw Scripting.Bytecode." << inst.name;
+        for (auto& flagName : FLAG_ARGUMENT_SUFFIXES) {
+            out << "  dw Scripting.Bytecode." << inst.name;
 
-                if (hasArgument) {
-                    out << "__";
+            if (hasArgument) {
+                out << "__";
+            }
+
+            for (auto arg : inst.arguments) {
+                if (arg == ArgumentType::Flag) {
+                    out << flagName;
                 }
-
-                for (auto arg : inst.arguments) {
-                    if (arg == ArgumentType::Flag) {
-                        out << flagName;
-                    }
-                    else {
-                        out << ARGUMENT_SUFFIXES.at(unsigned(arg));
-                    }
+                else {
+                    out << ARGUMENT_SUFFIXES.at(unsigned(arg));
                 }
-                out << '\n';
+            }
+            out << '\n';
 
-                currentOpcode++;
+            currentOpcode++;
 
-                if (hasFlagArgument == false) {
-                    break;
-                }
+            if (hasFlagArgument == false) {
+                break;
             }
         }
     };
-    writeInstructions(BytecodeInput::BASE_INSTRUCTIONS);
-    writeInstructions(input.instructions);
+
+    auto writeHardCodedOpcode = [&](const std::string& name, const uint8_t opcode) {
+        assert(currentOpcode == opcode);
+        out << "  dw Scripting.Bytecode." << name << '\n';
+        currentOpcode++;
+    };
+
+    auto writeFlagBranchOpcode = [&](const std::string& name) {
+        for (auto& arg : FLAG_ARGUMENT_SUFFIXES) {
+            out << "  dw Scripting.Bytecode." << name << arg << "_PC\n";
+            currentOpcode++;
+        }
+    };
+
+    // Write branch/conditional opcodes
+    writeHardCodedOpcode("End_Script", BytecodeMapping::endScriptOpcode);
+    writeHardCodedOpcode("Goto___PC", BytecodeMapping::gotoOpcode);
+    writeHardCodedOpcode("BranchIfWordEqual___Word_ImmU16_PC", BytecodeMapping::branchIfWordEqualOpcode);
+    writeHardCodedOpcode("BranchIfWordNotEqual___Word_ImmU16_PC", BytecodeMapping::branchIfWordNotEqualOpcode);
+    writeHardCodedOpcode("BranchIfWordLessThan___Word_ImmU16_PC", BytecodeMapping::branchIfWordLessThanOpcode);
+    writeHardCodedOpcode("BranchIfWordGreaterThanEqual___Word_ImmU16_PC", BytecodeMapping::branchIfWordGreaterThanEqualOpcode);
+
+    assert(currentOpcode == BytecodeMapping::branchIfFlagSetOpcode);
+    writeFlagBranchOpcode("BranchIfFlagSet__");
+    writeFlagBranchOpcode("BranchIfFlagClear__");
+    assert(currentOpcode == BytecodeMapping::branchIfFlagSetOpcode + 2 * N_FLAG_INSTRUCTIONS);
+
+    // Add the rest of the base instructions
+    // (The End_Script instruction is harded with opcode 0)
+    for (auto it = input.BASE_INSTRUCTIONS.begin() + 1; it != input.BASE_INSTRUCTIONS.end(); it++) {
+        writeInstruction(*it);
+    }
+
+    // Add custom instructions
+    for (auto& inst : input.instructions) {
+        writeInstruction(inst);
+    }
 
     for (unsigned i = currentOpcode; i < MAX_OPCODES; i++) {
         out << "  dw Scripting.Bytecode.InvalidOpcode\n";

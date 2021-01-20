@@ -34,8 +34,6 @@ struct Instruction {
 struct BytecodeInput {
     static const std::vector<Instruction> BASE_INSTRUCTIONS;
 
-    constexpr static uint8_t END_SCRIPT_OPCODE = 0;
-
     std::vector<Instruction> instructions;
 
     bool operator==(const BytecodeInput& o) const
@@ -53,6 +51,16 @@ struct InstructionData {
 };
 
 struct BytecodeMapping {
+    constexpr static uint8_t endScriptOpcode = 0;
+    constexpr static uint8_t gotoOpcode = 1;
+    constexpr static uint8_t branchIfWordEqualOpcode = 2;
+    constexpr static uint8_t branchIfWordNotEqualOpcode = 3;
+    constexpr static uint8_t branchIfWordLessThanOpcode = 4;
+    constexpr static uint8_t branchIfWordGreaterThanEqualOpcode = 5;
+
+    constexpr static uint8_t branchIfFlagSetOpcode = 6;
+    uint8_t branchIfFlagClearOpcode;
+
     std::unordered_map<idstring, InstructionData> instructions;
 
     std::vector<idstring> instructionNames;

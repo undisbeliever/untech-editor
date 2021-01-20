@@ -1096,10 +1096,10 @@ private:
 
 public:
     template <typename T = SelectionT>
-    static std::enable_if_t<std::is_same_v<T, SingleSelection>>
+    static std::enable_if_t<std::is_same_v<T, SingleSelection> | std::is_same_v<T, NodeSelection>>
     editList(EditorT* editor, EditListAction action)
     {
-        const SingleSelection& sel = getSelection(editor);
+        const auto& sel = getSelection(editor);
         const ListArgsT listArgs = sel.listArgs();
 
         const ListT* list = getEditorListPtr(editor, listArgs);

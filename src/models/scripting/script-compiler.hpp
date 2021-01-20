@@ -55,7 +55,7 @@ public:
 
         compileStatements(script.statements);
 
-        data.push_back(BytecodeInput::END_SCRIPT_OPCODE);
+        data.push_back(bytecode.endScriptOpcode);
 
         assert(depth == 0);
 
@@ -69,6 +69,15 @@ private:
         // ::TODO include line number in the error::
 
         err.addErrorString("Error compiling script `", scriptName, "`: ", msg...);
+        valid = false;
+    }
+
+    template <typename... T>
+    void addWarning(T... msg)
+    {
+        // ::TODO include line number in the error::
+
+        err.addWarningString("Script `", scriptName, "`: ", msg...);
         valid = false;
     }
 
@@ -155,6 +164,86 @@ private:
         }
     }
 
+    // Returns the position of the branch argument in the conditional statement
+    unsigned conditional(const Conditional& conditional)
+    {
+        switch (conditional.type) {
+        case ConditionalType::Word: {
+            uint8_t opcode = bytecode.endScriptOpcode;
+            const uint8_t wordId = getWordId(conditional.variable);
+            const uint16_t value = getImmediateU16(conditional.value);
+
+            switch (conditional.comparison) {
+            case ComparisonType::Equal:
+                opcode = bytecode.branchIfWordNotEqualOpcode;
+                break;
+
+            case ComparisonType::NotEqual:
+                opcode = bytecode.branchIfWordEqualOpcode;
+                break;
+
+            case ComparisonType::LessThan:
+                opcode = bytecode.branchIfWordGreaterThanEqualOpcode;
+                break;
+
+            case ComparisonType::GreaterThanEqual:
+                opcode = bytecode.branchIfWordLessThanOpcode;
+                break;
+
+            case ComparisonType::Set:
+            case ComparisonType::Clear: {
+                addError("Invalid comparison type for word variable");
+                break;
+            }
+            }
+
+            data.push_back(opcode);
+            data.push_back(wordId);
+            data.push_back(value & 0xff);
+            data.push_back(value >> 8);
+            data.push_back(0);
+            data.push_back(0);
+            return data.size() - 2;
+        }
+
+        case ConditionalType::Flag: {
+            uint8_t opcode = bytecode.endScriptOpcode;
+            const unsigned flagId = getFlagId(conditional.variable);
+
+            switch (conditional.comparison) {
+            case ComparisonType::Set:
+                opcode = bytecode.branchIfFlagClearOpcode + (flagId / 0x100);
+                break;
+
+            case ComparisonType::Clear:
+                opcode = bytecode.branchIfFlagSetOpcode + (flagId / 0x100);
+                break;
+
+            case ComparisonType::Equal:
+            case ComparisonType::NotEqual:
+            case ComparisonType::LessThan:
+            case ComparisonType::GreaterThanEqual:
+                addError("Invalid comparison type for flag variable");
+                break;
+            }
+
+            data.push_back(opcode);
+            data.push_back(flagId & 0xff);
+            data.push_back(0);
+            data.push_back(0);
+            return data.size() - 2;
+        }
+        }
+
+        throw std::invalid_argument("Invalid ConditionalType");
+    }
+
+    void writeWordAt(unsigned i, uint16_t word)
+    {
+        data.at(i) = word & 0xff;
+        data.at(i + 1) = word >> 8;
+    }
+
 public:
     void operator()(const Statement& statement)
     {
@@ -174,6 +263,33 @@ public:
             statementArgument(bc.arguments.at(i), statement.arguments.at(i), bytecodePos);
         }
     }
-};
 
+    void operator()(const IfStatement& ifStatement)
+    {
+        const unsigned branchPos = conditional(ifStatement.condition);
+
+        if (ifStatement.thenStatements.empty()) {
+            addWarning("Empty body in an if statement");
+        }
+
+        compileStatements(ifStatement.thenStatements);
+
+        if (ifStatement.elseStatements.empty()) {
+            // write PC to conditional branch instruction
+            writeWordAt(branchPos, data.size());
+        }
+        else {
+            const unsigned endIfGotoPos = data.size() + 1;
+            data.push_back(bytecode.gotoOpcode);
+            data.push_back(0);
+            data.push_back(0);
+
+            writeWordAt(branchPos, data.size());
+
+            compileStatements(ifStatement.elseStatements);
+
+            writeWordAt(endIfGotoPos, data.size());
+        }
+    }
+};
 }

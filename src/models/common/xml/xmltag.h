@@ -26,7 +26,7 @@ namespace Xml {
 
 class unknown_tag_error : public xml_error {
 public:
-    unknown_tag_error(XmlTag& tag)
+    unknown_tag_error(const XmlTag& tag)
         : xml_error(tag, "Unknown tag")
     {
     }

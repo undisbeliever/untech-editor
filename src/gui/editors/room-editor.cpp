@@ -117,20 +117,40 @@ struct RoomEditorData::AP {
 
     struct ScriptStatements final : public Room {
         using ListT = std::vector<Scripting::ScriptNode>;
-        using ListArgsT = std::tuple<unsigned>;
-        using SelectionT = MultipleChildSelection;
+        using ListArgsT = std::tuple<NodeSelection::ParentIndexT>;
+        using SelectionT = NodeSelection;
         using ParentActionPolicy = RoomEditorData::AP::Scripts;
 
-        // ::TODO increase to 256::
-        // ::: Or maybe make a maximum of 64 entites per group::
-        constexpr static size_t MAX_SIZE = 64;
+        constexpr static size_t MAX_SIZE = NodeSelection::MAX_SIZE;
 
         constexpr static auto SelectionPtr = &EditorT::scriptStatementsSel;
 
-        static ListT* getList(EditorDataT& data, unsigned scriptId)
+        static ListT* getList(EditorDataT& data, const NodeSelection::ParentIndexT& parentIndex)
         {
-            return getListField(Scripts::getList(data), scriptId,
-                                &Scripting::Script::statements);
+            auto* parent = getListField(Scripts::getList(data), parentIndex.front(), &Scripting::Script::statements);
+
+            for (auto it = parentIndex.cbegin() + 1; it < parentIndex.cend(); it++) {
+                if (parent == nullptr) {
+                    return nullptr;
+                }
+
+                const unsigned i = *it & 0x7fff;
+                const bool elseFlag = *it & 0x8000;
+
+                if (i >= parent->size()) {
+                    return parent;
+                }
+                Scripting::ScriptNode& statement = parent->at(i);
+
+                if (std::get_if<UnTech::Scripting::Statement>(&statement)) {
+                    return parent;
+                }
+                if (auto* s = std::get_if<UnTech::Scripting::IfStatement>(&statement)) {
+                    parent = !elseFlag ? &s->thenStatements : &s->elseStatements;
+                }
+            }
+
+            return parent;
         }
     };
 };
@@ -178,7 +198,15 @@ void RoomEditorData::updateSelection()
     entityEntriesSel.update();
 
     scriptsSel.update();
-    scriptStatementsSel.update(scriptsSel);
+
+    if (scriptStatementsSel.parentIndex().front() != scriptsSel.selectedIndex()) {
+        NodeSelection::ParentIndexT pIndex;
+        pIndex.fill(NodeSelection::NO_SELECTION);
+        pIndex.at(0) = scriptsSel.selectedIndex() & UINT16_MAX;
+
+        scriptStatementsSel.setParentIndex(pIndex);
+    }
+    scriptStatementsSel.update();
 }
 
 grid<uint8_t>& RoomEditorData::map()
@@ -963,12 +991,16 @@ private:
 
     unsigned depth;
 
-    const unsigned scriptId;
-
-    // ::TODO add std::array<uint16_t, 12> parentIndex;::
+    std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> parentIndex;
     unsigned index;
 
     constexpr static std::array<const char*, 2> argLabels = { "##Arg1", "##Arg2" };
+
+    bool openAddMenu;
+    static std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> addMenuParentIndex;
+
+    const ImVec4 disabledColor;
+    constexpr static float INDENT_SPACING = 30;
 
 public:
     RoomScriptGuiVisitor(RoomEditorData* d,
@@ -976,17 +1008,19 @@ public:
         : data(d)
         , bcMapping(mapping)
         , depth(0)
-        , scriptId(data->scriptsSel.selectedIndex())
+        , parentIndex()
         , index(0)
+        , openAddMenu(false)
+        , disabledColor(ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled))
     {
         assert(data != nullptr);
     }
 
-    void processGui(Scripting::Script& script)
+    void processGui(Scripting::Script& script, const unsigned scriptId)
     {
         ImGui::PushItemWidth((ImGui::GetWindowWidth() - 30) / 4);
 
-        processStatements(script.statements);
+        processStatements_root(script.statements, scriptId);
 
         ImGui::PopItemWidth();
 
@@ -1057,62 +1091,226 @@ public:
         }
 
         if (edited) {
-            ListActions<AP::ScriptStatements>::itemEdited(data, scriptId, index);
+            ListActions<AP::ScriptStatements>::itemEdited(data, parentIndex, index);
         }
     }
 
+    void operator()(Scripting::IfStatement& s)
+    {
+        const bool edited = condition(&s.condition);
+        if (edited) {
+            // ::TODO add variant specific itemFieldEdited::
+            ListActions<AP::ScriptStatements>::itemEdited(data, parentIndex, index);
+        }
+
+        processStatements_ifChildren(s.thenStatements, s.elseStatements);
+    }
+
 private:
+    bool condition(Scripting::Conditional* c)
+    {
+        bool edited = false;
+
+        ImGui::TextUnformatted("if ");
+
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(75);
+        edited |= ImGui::EnumCombo("##type", &c->type);
+        if (edited) {
+            switch (c->type) {
+            case Scripting::ConditionalType::Flag:
+                c->comparison = Scripting::ComparisonType::Set;
+                c->value.clear();
+                break;
+
+            case Scripting::ConditionalType::Word:
+                c->comparison = Scripting::ComparisonType::Equal;
+                break;
+            }
+        }
+
+        ImGui::SameLine();
+        edited |= ImGui::InputIdstring("##var", &c->variable);
+
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(75);
+        edited |= ImGui::EnumCombo("##comp", &c->comparison, c->type);
+
+        switch (c->type) {
+        case Scripting::ConditionalType::Flag:
+            break;
+
+        case Scripting::ConditionalType::Word:
+            ImGui::SameLine();
+            edited |= ImGui::InputText("##value", &c->value);
+            break;
+        }
+
+        return edited;
+    }
+
     void openProcessMenu()
     {
-        ImGui::OpenPopup("Add To Script Menu");
+        addMenuParentIndex = parentIndex;
+        openAddMenu = true;
     }
 
     // ::TODO use menu to add statements anywhere::
     void processAddMenu()
     {
-        if (ImGui::BeginPopup("Add To Script Menu")) {
-            bool menuPressed = false;
-            Scripting::Statement newStatement;
+        using namespace UnTech::Scripting;
 
-            for (auto& i : bcMapping.instructionNames) {
-                if (ImGui::MenuItem(i.str().c_str())) {
-                    newStatement.opcode = i;
-                    menuPressed = true;
+        if (openAddMenu) {
+            ImGui::OpenPopup("Add To Script Menu");
+        }
+
+        if (ImGui::BeginPopup("Add To Script Menu")) {
+            if (ImGui::BeginMenu("Statement")) {
+                bool menuPressed = false;
+                Scripting::Statement newStatement;
+
+                for (auto& i : bcMapping.instructionNames) {
+                    if (ImGui::MenuItem(i.str().c_str())) {
+                        newStatement.opcode = i;
+                        menuPressed = true;
+                    }
                 }
+
+                if (menuPressed) {
+                    ListActions<AP::ScriptStatements>::addItem(data, addMenuParentIndex, newStatement);
+                }
+
+                ImGui::EndMenu();
             }
 
-            if (menuPressed) {
-                ListActions<AP::ScriptStatements>::addItem(data, scriptId, newStatement);
+            if (addMenuParentIndex.back() == UINT16_MAX) {
+                // addMenuParentIndex is not at the maximum depth
+
+                if (ImGui::BeginMenu("If")) {
+                    auto addIfStatement = [&](const ConditionalType type, const ComparisonType comp) {
+                        IfStatement newStatement;
+                        newStatement.condition.type = type;
+                        newStatement.condition.comparison = comp;
+                        ListActions<AP::ScriptStatements>::addItem(data, addMenuParentIndex, newStatement);
+                    };
+
+                    if (ImGui::MenuItem("If flag set")) {
+                        addIfStatement(ConditionalType::Flag, ComparisonType::Set);
+                    }
+                    if (ImGui::MenuItem("If flag clear")) {
+                        addIfStatement(ConditionalType::Flag, ComparisonType::Clear);
+                    }
+                    if (ImGui::MenuItem("If word ==")) {
+                        addIfStatement(ConditionalType::Word, ComparisonType::Equal);
+                    }
+                    if (ImGui::MenuItem("If word !=")) {
+                        addIfStatement(ConditionalType::Word, ComparisonType::NotEqual);
+                    }
+                    if (ImGui::MenuItem("If word <")) {
+                        addIfStatement(ConditionalType::Word, ComparisonType::LessThan);
+                    }
+                    if (ImGui::MenuItem("If word >=")) {
+                        addIfStatement(ConditionalType::Word, ComparisonType::GreaterThanEqual);
+                    }
+
+                    ImGui::EndMenu();
+                }
             }
 
             ImGui::EndPopup();
         }
     }
 
-    void processStatements(std::vector<Scripting::ScriptNode>& statements)
+    void processStatements__afterParentIndexUpdated(std::vector<Scripting::ScriptNode>& statements)
     {
-        depth++;
+        auto& sel = data->scriptStatementsSel;
+
+        const bool isParentSelected = parentIndex == sel.parentIndex();
+
+        // Save index - prevents an infinite loop
+        const unsigned oldIndex = index;
+
+        const float selSpacing = ImGui::GetCursorPosX() + INDENT_SPACING;
 
         for (index = 0; index < statements.size(); index++) {
             auto& s = statements.at(index);
 
             ImGui::PushID(index);
 
-            ImGui::Selectable(&data->scriptStatementsSel, index, ImGuiSelectableFlags_AllowItemOverlap);
+            ImGui::PushStyleColor(ImGuiCol_Text, disabledColor);
+            const std::string label = std::to_string(index);
+            if (ImGui::Selectable(label.c_str(), isParentSelected && index == sel.selectedIndex(), ImGuiSelectableFlags_AllowItemOverlap)) {
+                sel.setSelected(parentIndex, index);
+            }
+            ImGui::PopStyleColor();
 
-            ImGui::SameLine(30);
+            ImGui::SameLine(selSpacing);
             std::visit(*this, s);
 
             ImGui::PopID();
         }
 
+        // restore index
+        index = oldIndex;
+    }
+
+    void processStatements_root(std::vector<Scripting::ScriptNode>& statements, const unsigned scriptId)
+    {
+        depth = 0;
+        parentIndex.fill(0xffff);
+        parentIndex.front() = scriptId;
+        index = scriptId;
+
+        processStatements__afterParentIndexUpdated(statements);
+
+        if (ImGui::Button("Add")) {
+            openProcessMenu();
+        }
+    }
+
+    void processStatements_ifChildren(std::vector<Scripting::ScriptNode>& thenStatements, std::vector<Scripting::ScriptNode>& elseStatements)
+    {
+        if (depth + 1 >= parentIndex.size()) {
+            ImGui::TextUnformatted("ERROR: MAXIMUM DEPTH REACHED");
+            return;
+        }
+        depth++;
+        parentIndex.at(depth) = index & 0x7fff;
+
+        ImGui::Indent(INDENT_SPACING);
+
+        processStatements__afterParentIndexUpdated(thenStatements);
+
         if (ImGui::Button("Add")) {
             openProcessMenu();
         }
 
+        // set else flag in parentIndex.
+        parentIndex.at(depth) |= 0x8000;
+
+        if (!elseStatements.empty()) {
+            ImGui::TextUnformatted("else");
+
+            processStatements__afterParentIndexUpdated(elseStatements);
+
+            if (ImGui::Button("Add##Else")) {
+                openProcessMenu();
+            }
+        }
+        else {
+            if (ImGui::Button("Add Else")) {
+                openProcessMenu();
+            }
+        }
+
+        ImGui::Unindent(INDENT_SPACING);
+
+        parentIndex.at(depth) = NodeSelection::NO_SELECTION;
         depth--;
     }
 };
+
+std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGuiVisitor::addMenuParentIndex;
 
 void RoomEditorGui::scriptsWindow(const Project::ProjectData& projectData)
 {
@@ -1128,7 +1326,8 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectData& projectData)
         ImGui::BeginGroup();
         ImGui::BeginChild("Script");
         if (_data->scriptsSel.selectedIndex() < roomScripts.size()) {
-            auto& script = roomScripts.at(_data->scriptsSel.selectedIndex());
+            const unsigned scriptId = _data->scriptsSel.selectedIndex();
+            auto& script = roomScripts.at(scriptId);
 
             {
                 ImGui::InputIdstring("Name", &script.name);
@@ -1150,7 +1349,7 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectData& projectData)
                     ImGui::BeginChild("Scroll");
 
                     RoomScriptGuiVisitor sgVisitor(_data, *bcMapping);
-                    sgVisitor.processGui(script);
+                    sgVisitor.processGui(script, scriptId);
 
                     ImGui::EndChild();
                 }
