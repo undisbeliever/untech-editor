@@ -24,10 +24,13 @@ struct Instruction {
 
     std::array<ArgumentType, 2> arguments;
 
+    bool yields = false;
+
     bool operator==(const Instruction& o) const
     {
         return name == o.name
-               && arguments == o.arguments;
+               && arguments == o.arguments
+               && yields == o.yields;
     }
 };
 
@@ -48,6 +51,7 @@ struct InstructionData {
 
     uint8_t opcode;
     std::array<ArgumentType, 2> arguments;
+    bool yields;
 };
 
 struct BytecodeMapping {

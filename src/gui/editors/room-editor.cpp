@@ -1130,7 +1130,8 @@ private:
         }
 
         ImGui::SameLine();
-        edited |= ImGui::InputIdstring("##var", &c->variable);
+        ImGui::InputIdstring("##var", &c->variable);
+        edited |= ImGui::IsItemDeactivatedAfterEdit();
 
         ImGui::SameLine();
         ImGui::SetNextItemWidth(75);
@@ -1142,7 +1143,8 @@ private:
 
         case Scripting::ConditionalType::Word:
             ImGui::SameLine();
-            edited |= ImGui::InputText("##value", &c->value);
+            ImGui::InputText("##value", &c->value);
+            edited |= ImGui::IsItemDeactivatedAfterEdit();
             break;
         }
 

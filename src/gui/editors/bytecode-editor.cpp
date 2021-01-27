@@ -99,7 +99,7 @@ void BytecodeEditorGui::instructionsWindow()
 
         ImGui::BeginChild("Scroll");
 
-        ImGui::Columns(4);
+        ImGui::Columns(5);
         ImGui::SetColumnWidth(0, 40);
 
         ImGui::Separator();
@@ -109,6 +109,8 @@ void BytecodeEditorGui::instructionsWindow()
         ImGui::Text("Argument 1");
         ImGui::NextColumn();
         ImGui::Text("Argument 2");
+        ImGui::NextColumn();
+        ImGui::Text("Yields");
         ImGui::NextColumn();
         ImGui::Separator();
 
@@ -122,7 +124,13 @@ void BytecodeEditorGui::instructionsWindow()
                 ImGui::TextEnum(a);
                 ImGui::NextColumn();
             }
+
+            bool yields = inst.yields;
+            ImGui::Checkbox("Yields", &yields);
+            ImGui::NextColumn();
         }
+
+        ImGui::Separator();
 
         for (unsigned i = 0; i < bytecode.instructions.size(); i++) {
             auto& inst = bytecode.instructions.at(i);
@@ -143,6 +151,9 @@ void BytecodeEditorGui::instructionsWindow()
             ImGui::NextColumn();
 
             edited |= ImGui::EnumCombo("##Arg2", &inst.arguments.at(1));
+            ImGui::NextColumn();
+
+            edited |= ImGui::Checkbox("Yields", &inst.yields);
             ImGui::NextColumn();
 
             if (edited) {

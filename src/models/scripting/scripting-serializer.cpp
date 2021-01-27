@@ -128,6 +128,8 @@ void readBytecode(BytecodeInput& bytecode, Xml::XmlReader& xml, const Xml::XmlTa
             inst.arguments.at(0) = readArg("arg1");
             inst.arguments.at(1) = readArg("arg2");
             assert(inst.arguments.size() == 2);
+
+            inst.yields = childTag->getAttributeBoolean("yields");
         }
         else {
             throw Xml::unknown_tag_error(*childTag);
@@ -155,6 +157,8 @@ void writeBytecode(Xml::XmlWriter& xml, const BytecodeInput& bytecode)
         writeArg("arg1"s, inst.arguments.at(0));
         writeArg("arg2"s, inst.arguments.at(1));
         assert(inst.arguments.size() == 2);
+
+        xml.writeTagAttribute("yields", inst.yields);
 
         xml.writeCloseTag();
     }
