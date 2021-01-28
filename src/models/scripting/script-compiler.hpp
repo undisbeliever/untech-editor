@@ -292,6 +292,41 @@ public:
         }
     }
 
+    void operator()(const WhileStatement& whileStatement)
+    {
+        const unsigned loopPos = data.size();
+        const unsigned branchPos = conditional(whileStatement.condition);
+
+        if (whileStatement.statements.empty()) {
+            addError("Empty body in an while statement");
+        }
+
+        compileStatements(whileStatement.statements);
+
+        bool hasYieldInstruction = std::any_of(
+            whileStatement.statements.begin(), whileStatement.statements.end(),
+            [&](const ScriptNode& node) {
+                if (auto* s = std::get_if<Statement>(&node)) {
+                    auto it = bytecode.instructions.find(s->opcode);
+                    if (it != bytecode.instructions.end()) {
+                        return it->second.yields;
+                    }
+                }
+                return false;
+            });
+
+        if (!hasYieldInstruction) {
+            addWarning("while loop does not contain a yielding instruction, it may infiniately loop.");
+        }
+
+        // Loop back to start of while statement
+        data.push_back(bytecode.gotoOpcode);
+        data.push_back(loopPos);
+        data.push_back(loopPos >> 8);
+
+        writeWordAt(branchPos, data.size());
+    }
+
     void operator()(const Comment&)
     {
         // Ignore comments

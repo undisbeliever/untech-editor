@@ -149,6 +149,9 @@ struct RoomEditorData::AP {
                 if (auto* s = std::get_if<UnTech::Scripting::IfStatement>(&statement)) {
                     parent = !elseFlag ? &s->thenStatements : &s->elseStatements;
                 }
+                if (auto* s = std::get_if<UnTech::Scripting::WhileStatement>(&statement)) {
+                    parent = &s->statements;
+                }
             }
 
             return parent;
@@ -1099,12 +1102,28 @@ public:
 
     void operator()(Scripting::IfStatement& s)
     {
+        ImGui::TextUnformatted("if ");
+        ImGui::SameLine();
+
         const bool edited = condition(&s.condition);
         if (edited) {
             ListActionsVariant<AP::ScriptStatements>::variantFieldEdited<&Scripting::IfStatement::condition>(data, parentIndex, index);
         }
 
-        processStatements_ifChildren(s.thenStatements, s.elseStatements);
+        processChildStatements(s.thenStatements, s.elseStatements);
+    }
+
+    void operator()(Scripting::WhileStatement& s)
+    {
+        ImGui::TextUnformatted("while ");
+        ImGui::SameLine();
+
+        const bool edited = condition(&s.condition);
+        if (edited) {
+            ListActionsVariant<AP::ScriptStatements>::variantFieldEdited<&Scripting::WhileStatement::condition>(data, parentIndex, index);
+        }
+
+        processChildStatements(s.statements);
     }
 
     void operator()(Scripting::Comment& comment)
@@ -1132,9 +1151,6 @@ private:
     {
         bool edited = false;
 
-        ImGui::TextUnformatted("if ");
-
-        ImGui::SameLine();
         ImGui::SetNextItemWidth(75);
         edited |= ImGui::EnumCombo("##type", &c->type);
         if (edited) {
@@ -1238,6 +1254,36 @@ private:
 
                     ImGui::EndMenu();
                 }
+
+                if (ImGui::BeginMenu("While")) {
+                    auto addWhileStatement = [&](const ConditionalType type, const ComparisonType comp) {
+                        WhileStatement newStatement;
+                        newStatement.condition.type = type;
+                        newStatement.condition.comparison = comp;
+                        ListActions<AP::ScriptStatements>::addItem(data, addMenuParentIndex, newStatement);
+                    };
+
+                    if (ImGui::MenuItem("While flag set")) {
+                        addWhileStatement(ConditionalType::Flag, ComparisonType::Set);
+                    }
+                    if (ImGui::MenuItem("While flag clear")) {
+                        addWhileStatement(ConditionalType::Flag, ComparisonType::Clear);
+                    }
+                    if (ImGui::MenuItem("While word ==")) {
+                        addWhileStatement(ConditionalType::Word, ComparisonType::Equal);
+                    }
+                    if (ImGui::MenuItem("While word !=")) {
+                        addWhileStatement(ConditionalType::Word, ComparisonType::NotEqual);
+                    }
+                    if (ImGui::MenuItem("While word <")) {
+                        addWhileStatement(ConditionalType::Word, ComparisonType::LessThan);
+                    }
+                    if (ImGui::MenuItem("While word >=")) {
+                        addWhileStatement(ConditionalType::Word, ComparisonType::GreaterThanEqual);
+                    }
+
+                    ImGui::EndMenu();
+                }
             }
 
             if (ImGui::MenuItem("Comment")) {
@@ -1295,7 +1341,30 @@ private:
         }
     }
 
-    void processStatements_ifChildren(std::vector<Scripting::ScriptNode>& thenStatements, std::vector<Scripting::ScriptNode>& elseStatements)
+    void processChildStatements(std::vector<Scripting::ScriptNode>& statements)
+    {
+        if (depth + 1 >= parentIndex.size()) {
+            ImGui::TextUnformatted("ERROR: MAXIMUM DEPTH REACHED");
+            return;
+        }
+        depth++;
+        parentIndex.at(depth) = index & 0x7fff;
+
+        ImGui::Indent(INDENT_SPACING);
+
+        processStatements__afterParentIndexUpdated(statements);
+
+        if (ImGui::Button("Add")) {
+            openProcessMenu();
+        }
+
+        ImGui::Unindent(INDENT_SPACING);
+
+        parentIndex.at(depth) = NodeSelection::NO_SELECTION;
+        depth--;
+    }
+
+    void processChildStatements(std::vector<Scripting::ScriptNode>& thenStatements, std::vector<Scripting::ScriptNode>& elseStatements)
     {
         if (depth + 1 >= parentIndex.size()) {
             ImGui::TextUnformatted("ERROR: MAXIMUM DEPTH REACHED");

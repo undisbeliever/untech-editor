@@ -171,6 +171,7 @@ static const std::array<std::string, 2> attributeTagNames = {
     "arg2"s,
 };
 
+static void readWhileTag(WhileStatement& s, Xml::XmlReader& xml);
 static void readIfTag(IfStatement& s, Xml::XmlReader& xml);
 static void readElseTag(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml);
 
@@ -190,6 +191,10 @@ static void readScriptNode(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml, 
     }
     else if (tag->name == "else"s) {
         readElseTag(nodes, xml);
+    }
+    else if (tag->name == "while"s) {
+        auto& s = std::get<WhileStatement>(nodes.emplace_back(WhileStatement{}));
+        readWhileTag(s, xml);
     }
     else if (tag->name == "comment") {
         auto& c = std::get<Comment>(nodes.emplace_back(Comment{}));
@@ -221,6 +226,23 @@ static void readConditionTag(Conditional& c, const Xml::XmlTag* tag)
     c.value = tag->getAttributeOrEmpty("value");
 }
 
+static void readWhileTag(WhileStatement& s, Xml::XmlReader& xml)
+{
+    // The first tag should be a condition tag
+    if (auto tag = xml.parseTag()) {
+        if (tag->name == "condition") {
+            readConditionTag(s.condition, tag.get());
+        }
+        else {
+            readScriptNode(s.statements, xml, tag.get());
+        }
+
+        xml.parseCloseTag();
+    }
+
+    readScriptNodes(s.statements, xml);
+}
+
 static void readIfTag(IfStatement& s, Xml::XmlReader& xml)
 {
     // The first tag should be a condition tag
@@ -248,20 +270,19 @@ static void readElseTag(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml)
         {
         }
 
+        void throwError()
+        {
+            throw Xml::xml_error(xml, "<else> tag is not allowed here");
+        }
+
         void operator()(IfStatement& s)
         {
             readScriptNodes(s.elseStatements, xml);
         }
 
-        void operator()(Statement&)
-        {
-            throw Xml::xml_error(xml, "<else> tag is not allowed here");
-        }
-
-        void operator()(Comment&)
-        {
-            throw Xml::xml_error(xml, "<else> tag is not allowed here");
-        }
+        void operator()(WhileStatement&) { throwError(); }
+        void operator()(Statement&) { throwError(); }
+        void operator()(Comment&) { throwError(); }
     };
 
     if (!nodes.empty()) {
@@ -335,6 +356,15 @@ public:
             writeStatements(s.elseStatements);
             xml.writeCloseTag();
         }
+    }
+
+    void operator()(const WhileStatement& s)
+    {
+        xml.writeTag("while"s);
+        writeConditionTag(s.condition);
+        writeStatements(s.statements);
+
+        xml.writeCloseTag();
     }
 
     void operator()(const Comment& c)

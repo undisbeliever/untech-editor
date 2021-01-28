@@ -18,11 +18,12 @@ struct GameStateData;
 
 struct Statement;
 struct IfStatement;
+struct WhileStatement;
 struct Comment;
 
-// ::TODO add WhileStatement and CustomIfStatement ::
+// ::TODO add CustomIfStatement ::
 // NOTE: If I change ScriptNode then I must also update UnTech::Gui::RoomEditorData::AP::ScriptStatements::getList();
-using ScriptNode = std::variant<Statement, IfStatement, Comment>;
+using ScriptNode = std::variant<Statement, IfStatement, WhileStatement, Comment>;
 
 enum class ConditionalType {
     Word,
@@ -79,12 +80,14 @@ struct IfStatement {
     std::vector<ScriptNode> thenStatements;
     std::vector<ScriptNode> elseStatements;
 
-    bool operator==(const IfStatement& o) const
-    {
-        return condition == o.condition
-               && thenStatements == o.thenStatements
-               && elseStatements == o.elseStatements;
-    }
+    bool operator==(const IfStatement& o) const;
+};
+
+struct WhileStatement {
+    Conditional condition;
+    std::vector<ScriptNode> statements;
+
+    bool operator==(const WhileStatement& o) const;
 };
 
 struct Script {
@@ -95,11 +98,26 @@ struct Script {
 
     std::vector<ScriptNode> statements;
 
-    bool operator==(const Script& o) const
-    {
-        return name == o.name
-               && statements == o.statements;
-    }
+    bool operator==(const Script& o) const;
 };
+
+inline bool IfStatement::operator==(const IfStatement& o) const
+{
+    return condition == o.condition
+           && thenStatements == o.thenStatements
+           && elseStatements == o.elseStatements;
+}
+
+inline bool WhileStatement::operator==(const WhileStatement& o) const
+{
+    return condition == o.condition
+           && statements == o.statements;
+}
+
+inline bool Script::operator==(const Script& o) const
+{
+    return name == o.name
+           && statements == o.statements;
+}
 
 }
