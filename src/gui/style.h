@@ -85,6 +85,11 @@ struct Style {
 
     constexpr static ImU32 disabledEntityGroupTint = IM_COL32(255, 255, 255, 32);
 
+    // Room scripts
+    static const ImVec4 commentColorLight;
+    static const ImVec4 commentColorDark;
+    static const ImVec4& commentColor();
+
     // Palette
     constexpr static ImU32 paletteRowLineColor = IM_COL32(200, 200, 255, 128);
 

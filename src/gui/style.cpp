@@ -15,6 +15,9 @@ const ImVec4 Style::tileCollisionTint(0.75f, 0, 0.75f, 0.5);
 const ImVec4 Style::tilePropertiesButtonTint(0.5f, 0.5f, 0.5f, 1.0f);
 const ImVec4 Style::tilePropertiesButtonSelectedTint(1.0f, 1.0f, 1.0f, 1.0f);
 
+const ImVec4 Style::commentColorDark = { 0.25f, 1.0f, 0.25f, 1.0f };
+const ImVec4 Style::commentColorLight = { 0.0f, 0.45f, 0.0f, 1.0f };
+
 Zoom Style::metaSpriteAnimationZoom(600);
 Zoom Style::metaSpriteZoom(600);
 Zoom Style::spriteImporterZoom(600);
@@ -149,6 +152,12 @@ void Zoom::processMouseWheel()
             }
         }
     }
+}
+
+const ImVec4& Style::commentColor()
+{
+    const bool isDark = ImGui::GetStyleColorVec4(ImGuiCol_Text).x > 0.5f;
+    return isDark ? commentColorDark : commentColorLight;
 }
 
 void Style::setAspectRatio(ZoomAspectRatio ar)

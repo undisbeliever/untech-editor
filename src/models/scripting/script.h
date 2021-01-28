@@ -18,10 +18,11 @@ struct GameStateData;
 
 struct Statement;
 struct IfStatement;
+struct Comment;
 
 // ::TODO add WhileStatement and CustomIfStatement ::
 // NOTE: If I change ScriptNode then I must also update UnTech::Gui::RoomEditorData::AP::ScriptStatements::getList();
-using ScriptNode = std::variant<Statement, IfStatement>;
+using ScriptNode = std::variant<Statement, IfStatement, Comment>;
 
 enum class ConditionalType {
     Word,
@@ -61,6 +62,15 @@ struct Statement {
     {
         return opcode == o.opcode
                && arguments == o.arguments;
+    }
+};
+
+struct Comment {
+    std::string text;
+
+    bool operator==(const Comment& o) const
+    {
+        return text == o.text;
     }
 };
 

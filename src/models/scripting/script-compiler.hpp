@@ -291,5 +291,10 @@ public:
             writeWordAt(endIfGotoPos, data.size());
         }
     }
+
+    void operator()(const Comment&)
+    {
+        // Ignore comments
+    }
 };
 }

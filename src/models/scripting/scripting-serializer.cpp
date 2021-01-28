@@ -191,6 +191,10 @@ static void readScriptNode(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml, 
     else if (tag->name == "else"s) {
         readElseTag(nodes, xml);
     }
+    else if (tag->name == "comment") {
+        auto& c = std::get<Comment>(nodes.emplace_back(Comment{}));
+        c.text = tag->getAttributeOrEmpty("c");
+    }
     else if (tag->name == "condition") {
         throw Xml::xml_error(*tag, "<condition> tag not allowed here");
     }
@@ -250,6 +254,11 @@ static void readElseTag(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml)
         }
 
         void operator()(Statement&)
+        {
+            throw Xml::xml_error(xml, "<else> tag is not allowed here");
+        }
+
+        void operator()(Comment&)
         {
             throw Xml::xml_error(xml, "<else> tag is not allowed here");
         }
@@ -326,6 +335,13 @@ public:
             writeStatements(s.elseStatements);
             xml.writeCloseTag();
         }
+    }
+
+    void operator()(const Comment& c)
+    {
+        xml.writeTag("comment");
+        xml.writeTagAttribute("c", c.text);
+        xml.writeCloseTag();
     }
 };
 

@@ -1001,6 +1001,7 @@ private:
     static std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> addMenuParentIndex;
 
     const ImVec4 disabledColor;
+
     constexpr static float INDENT_SPACING = 30;
 
 public:
@@ -1104,6 +1105,26 @@ public:
         }
 
         processStatements_ifChildren(s.thenStatements, s.elseStatements);
+    }
+
+    void operator()(Scripting::Comment& comment)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, Style::commentColor());
+
+        bool edited = false;
+
+        ImGui::TextUnformatted("//");
+        ImGui::SameLine();
+
+        ImGui::SetNextItemWidth(-1);
+        ImGui::InputText("##Text", &comment.text);
+        edited |= ImGui::IsItemDeactivatedAfterEdit();
+
+        if (edited) {
+            ListActions<AP::ScriptStatements>::itemEdited(data, parentIndex, index);
+        }
+
+        ImGui::PopStyleColor();
     }
 
 private:
@@ -1217,6 +1238,10 @@ private:
 
                     ImGui::EndMenu();
                 }
+            }
+
+            if (ImGui::MenuItem("Comment")) {
+                ListActions<AP::ScriptStatements>::addItem(data, addMenuParentIndex, Scripting::Comment{});
             }
 
             ImGui::EndPopup();
