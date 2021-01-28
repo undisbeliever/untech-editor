@@ -165,15 +165,15 @@ private:
     }
 
     // Returns the position of the branch argument in the conditional statement
-    unsigned conditional(const Conditional& conditional)
+    unsigned conditional(const Conditional& condition)
     {
-        switch (conditional.type) {
+        switch (condition.type) {
         case ConditionalType::Word: {
             uint8_t opcode = bytecode.endScriptOpcode;
-            const uint8_t wordId = getWordId(conditional.variable);
-            const uint16_t value = getImmediateU16(conditional.value);
+            const uint8_t wordId = getWordId(condition.variable);
+            const uint16_t value = getImmediateU16(condition.value);
 
-            switch (conditional.comparison) {
+            switch (condition.comparison) {
             case ComparisonType::Equal:
                 opcode = bytecode.branchIfWordNotEqualOpcode;
                 break;
@@ -208,9 +208,9 @@ private:
 
         case ConditionalType::Flag: {
             uint8_t opcode = bytecode.endScriptOpcode;
-            const unsigned flagId = getFlagId(conditional.variable);
+            const unsigned flagId = getFlagId(condition.variable);
 
-            switch (conditional.comparison) {
+            switch (condition.comparison) {
             case ComparisonType::Set:
                 opcode = bytecode.branchIfFlagClearOpcode + (flagId / 0x100);
                 break;
