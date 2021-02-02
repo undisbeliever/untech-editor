@@ -9,6 +9,7 @@
 
 namespace UnTech::Scripting {
 
+constexpr unsigned N_SPECIAL_RESUME_OPCODES = 6;
 constexpr unsigned N_FLAG_INSTRUCTIONS = GameState::MAX_FLAGS / 256;
 constexpr unsigned MAX_OPCODES = 256 / 2;
 
@@ -251,15 +252,12 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
 
     const char* const blankResumeLine = "  dw Scripting.Bytecode.End_Script___Resume\n";
 
-    static_assert(BytecodeMapping::endScriptOpcode == 0);
-    out << blankResumeLine;
+    for (unsigned i = 0; i < N_SPECIAL_RESUME_OPCODES; i++) {
+        out << "  dw Scripting.Bytecode._Special___Resume_" << i * 2 << '\n';
+    }
 
-    // Special resume yield that resumes normal script exeution
-    static_assert(BytecodeMapping::gotoOpcode == 1);
-    out << "  dw Scripting.Bytecode._Process_Script___Resume\n";
-
-    currentOpcode = 2;
-    for (currentOpcode = 2; currentOpcode < startOfStatementInstructions; currentOpcode++) {
+    assert(N_SPECIAL_RESUME_OPCODES < startOfStatementInstructions);
+    for (currentOpcode = N_SPECIAL_RESUME_OPCODES; currentOpcode < startOfStatementInstructions; currentOpcode++) {
         out << blankResumeLine;
     }
 
@@ -298,8 +296,8 @@ void writeBytecodeFunctionTable(const BytecodeInput& input, std::ostream& out)
            "\n"
            "// indexes into Project.BytecodeResumeFunctionTable\n"
            "namespace Project.BytecodeOpcodes.Yielding {\n"
-           "  constant End_Script = 0\n"
-           "  constant Process_Script = 2\n";
+           "  constant N_SPECIAL_RESUME_OPCODES = "
+        << N_SPECIAL_RESUME_OPCODES << '\n';
 
     currentOpcode = startOfStatementInstructions;
 
