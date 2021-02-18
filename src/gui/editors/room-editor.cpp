@@ -113,7 +113,7 @@ struct RoomEditorData::AP {
 
         constexpr static auto SelectionPtr = &EditorT::scriptsSel;
 
-        static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.scripts; }
+        static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.roomScripts.scripts; }
     };
 
     struct ScriptStatements final : public Room {
@@ -1411,7 +1411,7 @@ std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGuiVisitor::add
 void RoomEditorGui::scriptsWindow(const Project::ProjectData& projectData)
 {
     assert(_data);
-    auto& roomScripts = _data->data.scripts;
+    auto& roomScripts = _data->data.roomScripts.scripts;
 
     ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Room Scripts", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {

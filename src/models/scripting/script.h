@@ -94,11 +94,21 @@ struct Script {
     constexpr static unsigned MAX_DEPTH = 8;
 
     idstring name;
-    // ::TODO add local flags and words::
 
     std::vector<ScriptNode> statements;
 
     bool operator==(const Script& o) const;
+};
+
+struct RoomScripts {
+    // ::TODO add local flags and words::
+
+    NamedList<Scripting::Script> scripts;
+
+    bool operator==(const RoomScripts& o) const
+    {
+        return scripts == o.scripts;
+    }
 };
 
 inline bool IfStatement::operator==(const IfStatement& o) const

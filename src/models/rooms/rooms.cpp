@@ -435,14 +435,14 @@ compileRoom(const RoomInput& input,
 
         Scripting::ScriptCompiler compiler(data, input.name, bytecodeData, gameStateData, err);
 
-        if (input.scripts.size() > MAX_N_SCRIPTS) {
+        if (input.roomScripts.scripts.size() > MAX_N_SCRIPTS) {
             addError("Too many scripts");
         }
 
         auto headerIt = data.begin() + HEADER_SCRIPT_ARRAY;
 
-        for (unsigned i = 0; i < input.scripts.size(); i++) {
-            const auto& s = input.scripts.at(i);
+        for (unsigned i = 0; i < input.roomScripts.scripts.size(); i++) {
+            const auto& s = input.roomScripts.scripts.at(i);
 
             const unsigned scriptPos = compiler.compileScript(s);
 
@@ -454,7 +454,7 @@ compileRoom(const RoomInput& input,
         }
 
         // Set unused script indexes to NULL
-        for (unsigned i = input.scripts.size(); i < MAX_N_SCRIPTS; i++) {
+        for (unsigned i = input.roomScripts.scripts.size(); i < MAX_N_SCRIPTS; i++) {
             *headerIt++ = 0;
             *headerIt++ = 0;
         }

@@ -121,7 +121,7 @@ struct RoomInput {
     NamedList<RoomEntrance> entrances;
     NamedList<EntityGroup> entityGroups;
 
-    NamedList<Scripting::Script> scripts;
+    Scripting::RoomScripts roomScripts;
 
     rect validEntityArea() const;
 
@@ -137,7 +137,7 @@ struct RoomInput {
                && map == o.map
                && entrances == o.entrances
                && entityGroups == o.entityGroups
-               && scripts == o.scripts;
+               && roomScripts == o.roomScripts;
     }
     bool operator!=(const RoomInput& o) const { return !(*this == o); }
 };
