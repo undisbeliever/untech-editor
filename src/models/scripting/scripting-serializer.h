@@ -28,7 +28,8 @@ void writeBytecode(Xml::XmlWriter& xml, const Scripting::BytecodeInput& bytecode
 
 // raises exception on error
 // xml/tag points to a <script> tag
-void readScript(NamedList<Scripting::Script>& scripts, Xml::XmlReader& xml, const Xml::XmlTag* tag);
+void readScript(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag* tag);
 
-void writeScripts(Xml::XmlWriter& xml, const NamedList<Scripting::Script>& scripts);
+void writeRoomScripts(Xml::XmlWriter& xml, const RoomScripts& roomScripts);
+
 }

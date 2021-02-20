@@ -120,7 +120,7 @@ static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* ta
             readEntityGroup(xml, childTag.get(), roomInput->entityGroups);
         }
         else if (childTag->name == "script") {
-            Scripting::readScript(roomInput->roomScripts.scripts, xml, childTag.get());
+            Scripting::readScript(roomInput->roomScripts, xml, childTag.get());
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -148,7 +148,7 @@ static void writeRoomInput(XmlWriter& xml, const RoomInput& input)
         writeEntityGroup(xml, eg);
     }
 
-    Scripting::writeScripts(xml, input.roomScripts.scripts);
+    Scripting::writeRoomScripts(xml, input.roomScripts);
 
     xml.writeCloseTag();
 }

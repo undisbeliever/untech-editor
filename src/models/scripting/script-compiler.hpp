@@ -52,7 +52,11 @@ public:
 
         scriptName = script.name;
 
-        // ::TODO load script variables::
+        if (script.name == STARTUP_SCRIPT_NAME) {
+            if (&script != &room.roomScripts.startupScript) {
+                addError("Invalid script name");
+            }
+        }
 
         compileStatements(script.statements);
 

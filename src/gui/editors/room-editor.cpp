@@ -128,13 +128,16 @@ struct RoomEditorData::AP {
 
         static ListT* getList(EditorDataT& data, const NodeSelection::ParentIndexT& parentIndex)
         {
-            auto* parent = getListField(Scripts::getList(data), parentIndex.front(), &Scripting::Script::statements);
+            ListT* parent = nullptr;
+
+            if (parentIndex.front() < data.roomScripts.scripts.size()) {
+                parent = &data.roomScripts.scripts.at(parentIndex.front()).statements;
+            }
+            else {
+                parent = &data.roomScripts.startupScript.statements;
+            }
 
             for (auto it = parentIndex.cbegin() + 1; it < parentIndex.cend(); it++) {
-                if (parent == nullptr) {
-                    return nullptr;
-                }
-
                 const unsigned i = *it & 0x7fff;
                 const bool elseFlag = *it & 0x8000;
 
@@ -203,10 +206,11 @@ void RoomEditorData::updateSelection()
 
     scriptsSel.update();
 
-    if (scriptStatementsSel.parentIndex().front() != scriptsSel.selectedIndex()) {
+    const unsigned selectedScriptIndex = std::min(scriptsSel.selectedIndex(), NodeSelection::NO_SELECTION);
+    if (scriptStatementsSel.parentIndex().front() != selectedScriptIndex) {
         NodeSelection::ParentIndexT pIndex;
         pIndex.fill(NodeSelection::NO_SELECTION);
-        pIndex.at(0) = scriptsSel.selectedIndex() & UINT16_MAX;
+        pIndex.at(0) = selectedScriptIndex;
 
         scriptStatementsSel.setParentIndex(pIndex);
     }
@@ -1416,49 +1420,83 @@ std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGuiVisitor::add
 void RoomEditorGui::scriptsWindow(const Project::ProjectData& projectData)
 {
     assert(_data);
-    auto& roomScripts = _data->data.roomScripts.scripts;
+    auto& roomScripts = _data->data.roomScripts;
 
     ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Room Scripts", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
-        NamedListSidebar<AP::Scripts>(_data);
+
+        ImGui::BeginChild("Sidebar", ImVec2(200, 0), true);
+        {
+            auto& sel = _data->scriptsSel;
+
+            ListButtons<AP::Scripts>(_data);
+
+            ImGui::BeginChild("struct-list");
+
+            if (ImGui::Selectable("##Startup_Script", !sel.hasSelection(), ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick)) {
+                sel.clearSelection();
+            }
+            ImGui::SameLine();
+            ImGui::TextUnformatted("Startup Script");
+
+            for (unsigned i = 0; i < roomScripts.scripts.size(); i++) {
+                const auto& item = roomScripts.scripts.at(i);
+
+                ImGui::PushID(i);
+
+                ImGui::Selectable("##sel", &sel, i, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowDoubleClick);
+                ImGui::SameLine();
+                ImGui::TextUnformatted(item.name);
+
+                ImGui::PopID();
+            }
+            ImGui::EndChild();
+        }
+        ImGui::EndChild();
 
         ImGui::SameLine();
 
         ImGui::BeginGroup();
         ImGui::BeginChild("Script");
-        if (_data->scriptsSel.selectedIndex() < roomScripts.size()) {
-            const unsigned scriptId = _data->scriptsSel.selectedIndex();
-            auto& script = roomScripts.at(scriptId);
 
-            {
+        const auto bcMapping = projectData.bytecodeData();
+        if (bcMapping) {
+            const bool isStartupScript = _data->scriptsSel.selectedIndex() >= roomScripts.scripts.size();
+            const unsigned scriptId = !isStartupScript ? _data->scriptsSel.selectedIndex() : NodeSelection::NO_SELECTION;
+            Scripting::Script& script = !isStartupScript ? roomScripts.scripts.at(scriptId) : roomScripts.startupScript;
+
+            if (!isStartupScript) {
                 ImGui::InputIdstring("Name", &script.name);
                 if (ImGui::IsItemDeactivatedAfterEdit()) {
+                    // NOTE: Cannot edit the startup script using the AP::Scripts Action Policy.
                     ListActions<AP::Scripts>::selectedFieldEdited<
                         &Scripting::Script::name>(_data);
                 }
-
-                ImGui::Spacing();
-                ImGui::Separator();
-                ImGui::Spacing();
-
-                const auto bcMapping = projectData.bytecodeData();
-
-                if (bcMapping) {
-                    ListButtons<AP::ScriptStatements>(_data);
-                    ImGui::Spacing();
-
-                    ImGui::BeginChild("Scroll");
-
-                    RoomScriptGuiVisitor sgVisitor(_data, *bcMapping);
-                    sgVisitor.processGui(script, scriptId);
-
-                    ImGui::EndChild();
-                }
-                else {
-                    ImGui::TextUnformatted("\n\n"
-                                           "ERROR: Cannot view script: Missing bytecode data.");
-                }
             }
+            else {
+                ImGui::TextUnformatted("Startup Script.\n"
+                                       "This script will be started automatically on room load.\n"
+                                       "The gameloop will not start until this script has finished execution.\n"
+                                       "Start_Script will not activate a script until after the startup script ends.");
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+
+            ListButtons<AP::ScriptStatements>(_data);
+            ImGui::Spacing();
+
+            ImGui::BeginChild("Scroll");
+
+            RoomScriptGuiVisitor sgVisitor(_data, *bcMapping);
+            sgVisitor.processGui(script, scriptId);
+
+            ImGui::EndChild();
+        }
+        else {
+            ImGui::TextUnformatted("\n\n"
+                                   "ERROR: Cannot view script: Missing bytecode data.");
         }
 
         ImGui::EndChild();

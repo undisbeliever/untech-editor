@@ -291,7 +291,8 @@ compileRoom(const RoomInput& input,
         return nullptr;
     }
 
-    constexpr unsigned HEADER_SIZE = 4 + MAX_N_SCRIPTS * 2;
+    constexpr unsigned SCRIPT_HEADER_SIZE = (MAX_N_SCRIPTS + 1) * 2;
+    constexpr unsigned HEADER_SIZE = 4 + SCRIPT_HEADER_SIZE;
     constexpr unsigned HEADER_SCRIPT_ARRAY = 4;
     const bool mapHeightBit = input.map.height() <= MAP_HEIGHT_SMALL;
     const unsigned mapHeight = mapHeightBit ? MAP_HEIGHT_SMALL : MAP_HEIGHT_LARGE;
@@ -324,8 +325,8 @@ compileRoom(const RoomInput& input,
         *it++ = sceneId;
         *it++ = input.entrances.size();
 
-        // Skip Header.scripts
-        it += MAX_N_SCRIPTS * 2;
+        // Skip Header.startupScript and Header.scripts
+        it += SCRIPT_HEADER_SIZE;
 
         assert(it == data.begin() + HEADER_SIZE);
     }
@@ -441,6 +442,14 @@ compileRoom(const RoomInput& input,
 
         auto headerIt = data.begin() + HEADER_SCRIPT_ARRAY;
 
+        // Startup Script
+        {
+            const unsigned scriptPos = compiler.compileScript(input.roomScripts.startupScript);
+
+            *headerIt++ = scriptPos & 0xff;
+            *headerIt++ = (scriptPos >> 8) & 0xff;
+        }
+
         for (unsigned i = 0; i < input.roomScripts.scripts.size(); i++) {
             const auto& s = input.roomScripts.scripts.at(i);
 
@@ -458,7 +467,7 @@ compileRoom(const RoomInput& input,
             *headerIt++ = 0;
             *headerIt++ = 0;
         }
-        assert(headerIt == data.begin() + HEADER_SCRIPT_ARRAY + MAX_N_SCRIPTS * 2);
+        assert(headerIt == data.begin() + HEADER_SCRIPT_ARRAY + SCRIPT_HEADER_SIZE);
 
         // Store size of script block
         const unsigned blockSize = data.size() - blockSizePos - 2;
@@ -486,7 +495,7 @@ compileRoom(const RoomInput& input,
     return out;
 }
 
-const int RoomData::ROOM_FORMAT_VERSION = 3;
+const int RoomData::ROOM_FORMAT_VERSION = 4;
 
 std::vector<uint8_t> RoomData::exportSnesData() const
 {

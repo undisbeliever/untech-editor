@@ -103,6 +103,10 @@ struct Script {
 struct RoomScripts {
     // ::TODO add local flags and words::
 
+    RoomScripts();
+
+    Scripting::Script startupScript;
+
     NamedList<Scripting::Script> scripts;
 
     bool operator==(const RoomScripts& o) const
@@ -110,6 +114,8 @@ struct RoomScripts {
         return scripts == o.scripts;
     }
 };
+
+extern const idstring STARTUP_SCRIPT_NAME;
 
 inline bool IfStatement::operator==(const IfStatement& o) const
 {

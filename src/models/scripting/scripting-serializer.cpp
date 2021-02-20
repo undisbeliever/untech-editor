@@ -294,16 +294,21 @@ static void readElseTag(std::vector<ScriptNode>& nodes, Xml::XmlReader& xml)
     }
 }
 
-void readScript(NamedList<Script>& scripts, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+void readScript(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag* tag)
 {
     assert(tag->name == "script"s);
 
-    scripts.emplace_back();
-    auto& script = scripts.back();
+    Script script;
 
     script.name = tag->getAttributeOptionalId("name"s);
-
     readScriptNodes(script.statements, xml);
+
+    if (script.name != STARTUP_SCRIPT_NAME) {
+        roomScripts.scripts.insert_back(std::move(script));
+    }
+    else {
+        roomScripts.startupScript = std::move(script);
+    }
 }
 
 class ScriptNodeWriter {
@@ -376,17 +381,26 @@ public:
     }
 };
 
-void writeScripts(Xml::XmlWriter& xml, const NamedList<Script>& scripts)
+void writeRoomScripts(Xml::XmlWriter& xml, const RoomScripts& roomScripts)
 {
     ScriptNodeWriter snWriter(xml);
 
-    for (auto& script : scripts) {
+    auto writeScript = [&](const Script& script, const idstring& name) {
         xml.writeTag("script"s);
-        xml.writeTagAttribute("name"s, script.name);
-
+        xml.writeTagAttribute("name"s, name);
         snWriter.writeStatements(script.statements);
-
         xml.writeCloseTag();
+    };
+
+    writeScript(roomScripts.startupScript, STARTUP_SCRIPT_NAME);
+
+    for (const auto& script : roomScripts.scripts) {
+        if (script.name != STARTUP_SCRIPT_NAME) {
+            writeScript(script, script.name);
+        }
+        else {
+            writeScript(script, idstring{});
+        }
     }
 }
 
