@@ -425,6 +425,8 @@ compileRoom(const RoomInput& input,
     // Start of data with unknown size
     // --------------------------------
 
+    // MUST NOT USE it beyond this point.
+
     // Room Scripts
     {
         data.push_back('S');
@@ -440,34 +442,33 @@ compileRoom(const RoomInput& input,
             addError("Too many scripts");
         }
 
-        auto headerIt = data.begin() + HEADER_SCRIPT_ARRAY;
+        unsigned headerPos = HEADER_SCRIPT_ARRAY;
+        constexpr unsigned headerPosEnd = HEADER_SCRIPT_ARRAY + SCRIPT_HEADER_SIZE;
 
         // Startup Script
         {
             const unsigned scriptPos = compiler.compileScript(input.roomScripts.startupScript);
 
-            *headerIt++ = scriptPos & 0xff;
-            *headerIt++ = (scriptPos >> 8) & 0xff;
+            data.at(headerPos++) = scriptPos & 0xff;
+            data.at(headerPos++) = (scriptPos >> 8) & 0xff;
         }
 
-        for (unsigned i = 0; i < input.roomScripts.scripts.size(); i++) {
-            const auto& s = input.roomScripts.scripts.at(i);
-
+        for (const auto& s : input.roomScripts.scripts) {
             const unsigned scriptPos = compiler.compileScript(s);
 
             // Populate scriptPos in the room header
-            if (i < MAX_N_SCRIPTS) {
-                *headerIt++ = scriptPos & 0xff;
-                *headerIt++ = (scriptPos >> 8) & 0xff;
+            if (headerPos < headerPosEnd) {
+                data.at(headerPos++) = scriptPos & 0xff;
+                data.at(headerPos++) = (scriptPos >> 8) & 0xff;
             }
         }
 
         // Set unused script indexes to NULL
-        for (unsigned i = input.roomScripts.scripts.size(); i < MAX_N_SCRIPTS; i++) {
-            *headerIt++ = 0;
-            *headerIt++ = 0;
+        while (headerPos < headerPosEnd) {
+            data.at(headerPos++) = 0;
+            data.at(headerPos++) = 0;
         }
-        assert(headerIt == data.begin() + HEADER_SCRIPT_ARRAY + SCRIPT_HEADER_SIZE);
+        assert(headerPos == headerPosEnd);
 
         // Store size of script block
         const unsigned blockSize = data.size() - blockSizePos - 2;
