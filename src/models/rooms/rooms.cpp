@@ -433,7 +433,7 @@ compileRoom(const RoomInput& input,
         data.push_back(0);
         data.push_back(0);
 
-        Scripting::ScriptCompiler compiler(data, input.name, bytecodeData, gameStateData, err);
+        Scripting::ScriptCompiler compiler(data, input, bytecodeData, gameStateData, err);
 
         if (input.roomScripts.scripts.size() > MAX_N_SCRIPTS) {
             addError("Too many scripts");

@@ -23,6 +23,7 @@ const std::vector<Instruction> BytecodeInput::BASE_INSTRUCTIONS{
     { idstring{ "Increment_Word" }, { ArgumentType::Word }, false },
     { idstring{ "Decrement_Word" }, { ArgumentType::Word }, false },
     { idstring{ "Sleep_AnimationTicks" }, { ArgumentType::ImmediateU16 }, true },
+    { idstring{ "Start_Script" }, { ArgumentType::RoomScript } },
 };
 
 static unsigned argumentSize(const ArgumentType type)
@@ -39,6 +40,9 @@ static unsigned argumentSize(const ArgumentType type)
 
     case ArgumentType::ImmediateU16:
         return 2;
+
+    case ArgumentType::RoomScript:
+        return 1;
     }
 
     throw std::invalid_argument("Unknown ArgumentType");
@@ -156,11 +160,12 @@ static std::array<std::string, N_FLAG_INSTRUCTIONS> FLAG_ARGUMENT_SUFFIXES{
     "_Flag1",
 };
 
-static std::array<std::string, 4> ARGUMENT_SUFFIXES{
+static std::array<std::string, 5> ARGUMENT_SUFFIXES{
     "",
     "_ ERROR _", // Flag
     "_Word",
     "_ImmU16",
+    "_RoomScript",
 };
 
 // Assumes BytecodeInput is valid

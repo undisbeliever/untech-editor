@@ -17,6 +17,8 @@ enum class ArgumentType {
     Flag,
     Word,
     ImmediateU16,
+
+    RoomScript,
 };
 
 struct Instruction {

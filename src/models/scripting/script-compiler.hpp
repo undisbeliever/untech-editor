@@ -10,6 +10,7 @@
 #include "game-state.h"
 #include "script.h"
 #include "models/common/string.h"
+#include "models/rooms/rooms.h"
 
 namespace UnTech::Scripting {
 
@@ -18,7 +19,7 @@ class ScriptCompiler {
 private:
     const BytecodeMapping& bytecode;
     const GameStateData& gameState;
-    const idstring roomId;
+    const Rooms::RoomInput& room;
 
     std::vector<uint8_t>& data;
 
@@ -29,12 +30,12 @@ private:
     bool valid;
 
 public:
-    ScriptCompiler(std::vector<uint8_t>& data, const idstring& roomId,
+    ScriptCompiler(std::vector<uint8_t>& data, const Rooms::RoomInput& room,
                    const BytecodeMapping& bytecode, const GameStateData& gameState,
                    ErrorList& e)
         : bytecode(bytecode)
         , gameState(gameState)
-        , roomId(roomId)
+        , room(room)
         , data(data)
         , depth(0)
         , err(e)
@@ -100,8 +101,8 @@ private:
     {
         auto it = gameState.flags.find(name);
         if (it != gameState.flags.end()) {
-            if (!it->second.allowedInRoom(roomId)) {
-                addError("Invalid flag `", name, "` (it is private and belongs to room `", roomId, "`)");
+            if (!it->second.allowedInRoom(room.name)) {
+                addError("Invalid flag `", name, "` (it is private and belongs to room `", room.name, "`)");
             }
             return it->second.index;
         }
@@ -114,8 +115,8 @@ private:
     {
         auto it = gameState.words.find(name);
         if (it != gameState.words.end()) {
-            if (!it->second.allowedInRoom(roomId)) {
-                addError("Invalid word `", name, "` (it is private and belongs to room `", roomId, "`)");
+            if (!it->second.allowedInRoom(room.name)) {
+                addError("Invalid word `", name, "` (it is private and belongs to room `", room.name, "`)");
             }
             return it->second.index;
         }
@@ -135,6 +136,18 @@ private:
             addError("Invalid argument: ", value);
             return 0;
         }
+    }
+
+    unsigned getRoomScriptId(const std::string& name)
+    {
+        const auto s = room.roomScripts.scripts.indexOf(name);
+
+        if (s > room.roomScripts.scripts.size()) {
+            addError("Unknown script: ", name);
+            return 0;
+        }
+
+        return s;
     }
 
     void statementArgument(const ArgumentType& type, const std::string& value, const size_t bytecodePos)
@@ -160,6 +173,11 @@ private:
 
             data.push_back(i & 0xff);
             data.push_back(i >> 8);
+        } break;
+
+        case ArgumentType::RoomScript: {
+            const unsigned s = getRoomScriptId(value);
+            data.push_back(s);
         } break;
         }
     }

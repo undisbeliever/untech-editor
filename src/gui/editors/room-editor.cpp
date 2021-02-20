@@ -1046,7 +1046,8 @@ public:
 
         case Type::Flag:
         case Type::Word:
-        case Type::ImmediateU16: {
+        case Type::ImmediateU16:
+        case Type::RoomScript: {
             ImGui::SameLine();
             ImGui::InputText(label, value);
             edited = ImGui::IsItemDeactivatedAfterEdit();
@@ -1068,6 +1069,10 @@ public:
 
                 case Type::ImmediateU16:
                     ImGui::TextUnformatted("Immediate U16");
+                    break;
+
+                case Type::RoomScript:
+                    ImGui::TextUnformatted("Room Script");
                     break;
                 }
 
