@@ -19,6 +19,7 @@ enum class ArgumentType {
     ImmediateU16,
 
     RoomScript,
+    EntityGroup,
 };
 
 struct Instruction {

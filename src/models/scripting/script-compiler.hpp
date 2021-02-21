@@ -154,6 +154,18 @@ private:
         return s;
     }
 
+    unsigned getEntityGroupId(const std::string& name)
+    {
+        const auto s = room.entityGroups.indexOf(name);
+
+        if (s > room.entityGroups.size()) {
+            addError("Unknown entity group: ", name);
+            return 0;
+        }
+
+        return s;
+    }
+
     void statementArgument(const ArgumentType& type, const std::string& value, const size_t bytecodePos)
     {
         switch (type) {
@@ -182,6 +194,11 @@ private:
         case ArgumentType::RoomScript: {
             const unsigned s = getRoomScriptId(value);
             data.push_back(s);
+        } break;
+
+        case ArgumentType::EntityGroup: {
+            const unsigned g = getEntityGroupId(value);
+            data.push_back(g);
         } break;
         }
     }

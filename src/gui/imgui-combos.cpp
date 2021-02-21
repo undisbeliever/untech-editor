@@ -167,7 +167,8 @@ static const char* const argumentTypeItems[] = {
     "Flag",
     "Word",
     "Immediate u16",
-    "Room Script"
+    "Room Script",
+    "Entity Group",
 };
 
 bool EnumCombo(const char* label, UnTech::Scripting::ArgumentType* v)

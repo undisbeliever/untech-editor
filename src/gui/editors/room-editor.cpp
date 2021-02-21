@@ -1051,7 +1051,8 @@ public:
         case Type::Flag:
         case Type::Word:
         case Type::ImmediateU16:
-        case Type::RoomScript: {
+        case Type::RoomScript:
+        case Type::EntityGroup: {
             ImGui::SameLine();
             ImGui::InputText(label, value);
             edited = ImGui::IsItemDeactivatedAfterEdit();
@@ -1077,6 +1078,10 @@ public:
 
                 case Type::RoomScript:
                     ImGui::TextUnformatted("Room Script");
+                    break;
+
+                case Type::EntityGroup:
+                    ImGui::TextUnformatted("Entity Group");
                     break;
                 }
 

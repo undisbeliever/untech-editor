@@ -17,6 +17,7 @@ static const EnumMap<ArgumentType> argumentTypeEnumMap = {
     { "word", ArgumentType::Word },
     { "immediate-u16", ArgumentType::ImmediateU16 },
     { "room-script", ArgumentType::RoomScript },
+    { "entity-group", ArgumentType::EntityGroup },
 };
 
 static const EnumMap<ConditionalType> conditionalTypeMap = {
