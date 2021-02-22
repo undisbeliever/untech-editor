@@ -292,8 +292,9 @@ compileRoom(const RoomInput& input,
     }
 
     constexpr unsigned SCRIPT_HEADER_SIZE = (MAX_N_SCRIPTS + 1) * 2;
-    constexpr unsigned HEADER_SIZE = 4 + SCRIPT_HEADER_SIZE;
+    constexpr unsigned HEADER_SIZE = 4 + SCRIPT_HEADER_SIZE + MAX_ENTITY_GROUPS;
     constexpr unsigned HEADER_SCRIPT_ARRAY = 4;
+
     const bool mapHeightBit = input.map.height() <= MAP_HEIGHT_SMALL;
     const unsigned mapHeight = mapHeightBit ? MAP_HEIGHT_SMALL : MAP_HEIGHT_LARGE;
     const unsigned mapDataSize = mapHeight * input.map.width();
@@ -301,7 +302,8 @@ compileRoom(const RoomInput& input,
     const unsigned roomEntranceDataSize = 1 + 4 * input.entrances.size();
 
     assert(totalEntityCount < MAX_ENTITY_ENTRIES);
-    const unsigned entityDataSize = 2 + input.entityGroups.size() + totalEntityCount * 5;
+    static_assert(MAX_ENTITY_ENTRIES <= UINT8_MAX / 2);
+    const unsigned entityDataSize = 1 + totalEntityCount * 5;
 
     auto out = std::make_shared<RoomData>();
 
@@ -327,6 +329,19 @@ compileRoom(const RoomInput& input,
 
         // Skip Header.startupScript and Header.scripts
         it += SCRIPT_HEADER_SIZE;
+
+        // entityGroups array
+        unsigned egPos = 0;
+        for (unsigned eg = 0; eg < MAX_ENTITY_GROUPS; eg++) {
+            if (eg < input.entityGroups.size()) {
+                egPos += input.entityGroups.at(eg).entities.size();
+                *it++ = egPos;
+            }
+            else {
+                *it++ = 0;
+            }
+        }
+        assert(egPos == totalEntityCount);
 
         assert(it == data.begin() + HEADER_SIZE);
     }
@@ -369,7 +384,7 @@ compileRoom(const RoomInput& input,
         assert(it == begin + roomEntranceDataSize);
     }
 
-    // Entity Data
+    // RoomEntity Data
     {
         assert(input.entityGroups.size() < MAX_ENTITY_GROUPS);
 
@@ -379,8 +394,6 @@ compileRoom(const RoomInput& input,
 
         for (const EntityGroup& eg : input.entityGroups) {
             assert(eg.entities.size() > 0);
-
-            *it++ = eg.entities.size();
 
             for (const EntityEntry& ee : eg.entities) {
                 static_assert(ENTITY_VERTICAL_SPACING == 256);
@@ -413,8 +426,6 @@ compileRoom(const RoomInput& input,
                 *it++ = parameter;
             }
         }
-
-        *it++ = 0;
 
         assert(it == begin + entityDataSize);
     }
@@ -496,7 +507,7 @@ compileRoom(const RoomInput& input,
     return out;
 }
 
-const int RoomData::ROOM_FORMAT_VERSION = 4;
+const int RoomData::ROOM_FORMAT_VERSION = 5;
 
 std::vector<uint8_t> RoomData::exportSnesData() const
 {
