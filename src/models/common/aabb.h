@@ -151,7 +151,7 @@ struct _rect {
 
     inline usize size() const { return { width, height }; }
     inline _point<T> topLeft() const { return { x, y }; }
-    inline _point<T> bottomRight() const { return { bottom(), right() }; }
+    inline _point<T> bottomRight() const { return { right(), bottom() }; }
 
     inline bool contains(const _point<T>& p) const
     {
