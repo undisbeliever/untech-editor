@@ -818,7 +818,8 @@ struct ListActions {
                 _oldValues.push_back(projectValue);
                 _newValues.push_back(editorValue);
 
-                if (projectValue != editorValue) {
+                // operator!= may not implemented in a few of my structs
+                if (!(projectValue == editorValue)) {
                     projectValue = editorValue;
                     changed = true;
                 }
