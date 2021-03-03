@@ -153,6 +153,9 @@ struct _rect {
     inline _point<T> topLeft() const { return { x, y }; }
     inline _point<T> bottomRight() const { return { right(), bottom() }; }
 
+    // Returns the bottom-right-most point inside the rect
+    inline _point<T> internalBottomRight() const { return { x + T(width) - 1, y + T(height) - 1 }; }
+
     inline bool contains(const _point<T>& p) const
     {
         return p.x >= left() && p.x < right()

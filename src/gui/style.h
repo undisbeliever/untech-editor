@@ -83,6 +83,9 @@ struct Style {
     constexpr static ImU32 entranceOutlineColor = IM_COL32(0, 192, 0, 240);
     constexpr static ImU32 entranceFillColor = IM_COL32(0, 192, 0, 64);
 
+    constexpr static ImU32 scriptTriggerFillColor = IM_COL32(0, 192, 128, 64);
+    constexpr static ImU32 scriptTriggerOutlineColor = IM_COL32(0, 192, 128, 240);
+
     constexpr static ImU32 disabledEntityGroupTint = IM_COL32(255, 255, 255, 32);
 
     // Room scripts

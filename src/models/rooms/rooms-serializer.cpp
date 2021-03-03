@@ -98,6 +98,24 @@ static void writeEntityGroup(XmlWriter& xml, const EntityGroup& entityGroup)
     xml.writeCloseTag();
 }
 
+static void readScriptTrigger(const XmlTag* tag, std::vector<ScriptTrigger>& scriptTriggers)
+{
+    assert(tag->name == "script-trigger");
+
+    ScriptTrigger& st = scriptTriggers.emplace_back();
+
+    st.script = tag->getAttributeOptionalId("script");
+    st.aabb = tag->getAttributeUrect();
+}
+
+static void writeScriptTrigger(XmlWriter& xml, const ScriptTrigger& st)
+{
+    xml.writeTag("script-trigger");
+    xml.writeTagAttribute("script", st.script);
+    xml.writeTagAttributeUrect(st.aabb);
+    xml.writeCloseTag();
+}
+
 static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* tag)
 {
     if (tag == nullptr || tag->name != "room") {
@@ -121,6 +139,9 @@ static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* ta
         }
         else if (childTag->name == "script") {
             Scripting::readScript(roomInput->roomScripts, xml, childTag.get());
+        }
+        else if (childTag->name == "script-trigger") {
+            readScriptTrigger(childTag.get(), roomInput->scriptTriggers);
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -149,6 +170,10 @@ static void writeRoomInput(XmlWriter& xml, const RoomInput& input)
     }
 
     Scripting::writeRoomScripts(xml, input.roomScripts);
+
+    for (auto& st : input.scriptTriggers) {
+        writeScriptTrigger(xml, st);
+    }
 
     xml.writeCloseTag();
 }

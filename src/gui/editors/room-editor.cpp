@@ -30,6 +30,7 @@ unsigned RoomEditorGui::playerId = 0;
 
 bool RoomEditorGui::showEntrances = true;
 bool RoomEditorGui::showEntities = true;
+bool RoomEditorGui::showScriptTriggers = true;
 
 // RoomEditor Action Policies
 struct RoomEditorData::AP {
@@ -114,6 +115,18 @@ struct RoomEditorData::AP {
         constexpr static auto SelectionPtr = &EditorT::scriptsSel;
 
         static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.roomScripts.scripts; }
+    };
+
+    struct ScriptTriggers final : public Room {
+        using ListT = std::vector<UnTech::Rooms::ScriptTrigger>;
+        using ListArgsT = std::tuple<>;
+        using SelectionT = MultipleSelection;
+
+        constexpr static size_t MAX_SIZE = RM::MAX_SCRIPT_TRIGGERS;
+
+        constexpr static auto SelectionPtr = &EditorT::scriptTriggersSel;
+
+        static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.scriptTriggers; }
     };
 
     struct ScriptStatements final : public Room {
@@ -203,6 +216,8 @@ void RoomEditorData::updateSelection()
     }
 
     entityEntriesSel.update();
+
+    scriptTriggersSel.update();
 
     scriptsSel.update();
 
@@ -500,6 +515,60 @@ void RoomEditorGui::roomEntitiesWindow(const Project::ProjectFile& projectFile)
     ImGui::End();
 }
 
+void RoomEditorGui::scriptTriggersWindow()
+{
+    assert(_data);
+    auto& room = _data->data;
+
+    ImGui::SetNextWindowSize(ImVec2(325, 500), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Script Triggers##Room", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
+        ListButtons<AP::ScriptTriggers>(_data);
+
+        ImGui::BeginChild("Scroll");
+
+        ImGui::Columns(3);
+
+        ImGui::Separator();
+        ImGui::NextColumn();
+        ImGui::Text("Script");
+        ImGui::NextColumn();
+        ImGui::Text("AABB");
+        ImGui::NextColumn();
+        ImGui::Separator();
+
+        const usize bounds(room.mapRight(), room.mapBottom());
+
+        for (unsigned i = 0; i < room.scriptTriggers.size(); i++) {
+            auto& st = room.scriptTriggers.at(i);
+
+            bool edited = false;
+
+            ImGui::PushID(i);
+
+            ImGui::Selectable(&_data->scriptTriggersSel, i);
+            ImGui::NextColumn();
+
+            ImGui::SetNextItemWidth(-1);
+            edited |= ImGui::IdStringCombo("##script", &st.script, room.roomScripts.scripts);
+            ImGui::NextColumn();
+
+            ImGui::SetNextItemWidth(-1);
+            ImGui::InputUrect("##aabb", &st.aabb, bounds);
+            edited |= ImGui::IsItemDeactivatedAfterEdit();
+            ImGui::NextColumn();
+
+            if (edited) {
+                ListActions<AP::ScriptTriggers>::itemEdited(_data, i);
+            }
+
+            ImGui::PopID();
+        }
+
+        ImGui::EndChild();
+    }
+    ImGui::End();
+}
+
 void RoomEditorGui::entityTextureWindow()
 {
     if (!_entityTextureWindowOpen) {
@@ -655,6 +724,20 @@ void RoomEditorGui::drawObjects(ImDrawList* drawList)
             }
         }
     }
+
+    drawList->PopTextureID();
+
+    if (showScriptTriggers) {
+        for (const auto& st : room.scriptTriggers) {
+            TwoPointRect r(st.aabb);
+            r.x1 *= METATILE_SIZE_PX;
+            r.x2 *= METATILE_SIZE_PX;
+            r.y1 *= METATILE_SIZE_PX;
+            r.y2 *= METATILE_SIZE_PX;
+
+            _graphics.drawRectFilled(drawList, r, Style::scriptTriggerFillColor, Style::scriptTriggerOutlineColor);
+        }
+    }
 }
 
 void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
@@ -726,6 +809,24 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
             }
         }
     }
+
+    if (showScriptTriggers) {
+        const TwoPointRect bounds(0, room.map.width() * METATILE_SIZE_PX, 0, room.map.height() * METATILE_SIZE_PX);
+
+        for (unsigned i = 0; i < room.scriptTriggers.size(); i++) {
+            auto& st = room.scriptTriggers.at(i);
+
+            _graphics.addScriptTriggerRect(drawList, &st.aabb, bounds,
+                                           Style::scriptTriggerFillColor, Style::scriptTriggerOutlineColor,
+                                           &_data->scriptTriggersSel, i);
+
+            if (_graphics.isHoveredAndNotEditing()) {
+                ImGui::BeginTooltip();
+                ImGui::Text("Script Trigger %u: %s", i, st.script.str().c_str());
+                ImGui::EndTooltip();
+            }
+        }
+    }
 }
 
 void RoomEditorGui::editorWindow()
@@ -782,6 +883,8 @@ void RoomEditorGui::editorWindow()
         ImGui::SameLine();
         ImGui::ToggledButtonWithTooltip("P##showEntrances", &showEntrances, "Show Player Entrances");
         ImGui::SameLine();
+        ImGui::ToggledButtonWithTooltip("S##showScriptTriggers", &showScriptTriggers, "Show Script Triggers");
+        ImGui::SameLine();
 
         Style::roomEditorZoom.zoomCombo("##zoom");
 
@@ -795,7 +898,7 @@ void RoomEditorGui::editorWindow()
         _graphics.setDisabled(editMode() != EditMode::SelectObjects);
 
         _graphics.startLoop("Room", bounds, zoom,
-                            &_data->entrancesSel, &_data->entityEntriesSel);
+                            &_data->entrancesSel, &_data->entityEntriesSel, &_data->scriptTriggersSel);
 
         // ::TODO set initial scroll to position top-left of map ::
 
@@ -815,7 +918,7 @@ void RoomEditorGui::editorWindow()
         }
 
         _graphics.endLoop(drawList,
-                          &_data->entrancesSel, &_data->entityEntriesSel);
+                          &_data->entrancesSel, &_data->entityEntriesSel, &_data->scriptTriggersSel);
 
         // Draw drag+drop entity on top of selected entity outlines
         entityDropTarget(drawList);
@@ -825,6 +928,7 @@ void RoomEditorGui::editorWindow()
 
             ListActions<AP::Entrances>::selectedItemsEdited(_data);
             ListActions<AP::EntityEntries>::selectedItemsEdited(_data);
+            ListActions<AP::ScriptTriggers>::selectedItemsEdited(_data);
 
             _data->endMacro();
         }
@@ -850,6 +954,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
     entrancesWindow();
     entitiesWindow();
     roomEntitiesWindow(projectFile);
+    scriptTriggersWindow();
 
     editorWindow();
 
@@ -873,6 +978,7 @@ void RoomEditorGui::viewMenu()
 
     ImGui::MenuItem("Show Entities", nullptr, &showEntities);
     ImGui::MenuItem("Show Player Entrances", nullptr, &showEntrances);
+    ImGui::MenuItem("Show Script Triggers", nullptr, &showScriptTriggers);
 
     ImGui::Separator();
 

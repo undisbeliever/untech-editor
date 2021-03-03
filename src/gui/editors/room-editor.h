@@ -29,6 +29,7 @@ private:
     MultipleSelection entrancesSel;
     SingleSelection entityGroupsSel;
     GroupMultipleSelection entityEntriesSel;
+    MultipleSelection scriptTriggersSel;
 
     SingleSelection scriptsSel;
     NodeSelection scriptStatementsSel;
@@ -82,6 +83,7 @@ private:
 
     static bool showEntrances;
     static bool showEntities;
+    static bool showScriptTriggers;
 
 public:
     RoomEditorGui();
@@ -106,6 +108,7 @@ private:
     void propertiesWindow(const Project::ProjectFile& projectFile);
     void entrancesWindow();
     void roomEntitiesWindow(const Project::ProjectFile& projectFile);
+    void scriptTriggersWindow();
 
     void entityTextureWindow();
 

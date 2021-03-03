@@ -29,7 +29,8 @@ namespace Rooms {
 constexpr unsigned MAX_ROOM_ENTRANCES = 32;
 constexpr unsigned MAX_ENTITY_GROUPS = 8;
 constexpr unsigned MAX_ENTITY_ENTRIES = 96;
-constexpr static unsigned MAX_N_SCRIPTS = 16;
+constexpr unsigned MAX_N_SCRIPTS = 16;
+constexpr unsigned MAX_SCRIPT_TRIGGERS = 16;
 
 constexpr unsigned MAP_TILE_SIZE = 16;
 
@@ -103,6 +104,19 @@ struct EntityGroup {
     bool operator!=(const EntityGroup& o) const { return !(*this == o); }
 };
 
+struct ScriptTrigger {
+    idstring script;
+    urect aabb;
+
+    // ::TODO add script trigger flags::
+
+    bool operator==(const ScriptTrigger& o) const
+    {
+        return script == o.script
+               && aabb == o.aabb;
+    }
+};
+
 struct RoomInput {
     constexpr static unsigned MIN_MAP_WIDTH = 16;
     constexpr static unsigned MIN_MAP_HEIGHT = 14;
@@ -122,11 +136,14 @@ struct RoomInput {
     NamedList<EntityGroup> entityGroups;
 
     Scripting::RoomScripts roomScripts;
+    std::vector<ScriptTrigger> scriptTriggers;
 
     rect validEntityArea() const;
 
     unsigned mapRight() const { return map.width() * MAP_TILE_SIZE; }
     unsigned mapBottom() const { return map.height() * MAP_TILE_SIZE; }
+
+    unsigned tileIndex(const upoint& p) const;
 
     bool validate(const Resources::CompiledScenesData& compiledScenes, ErrorList& err) const;
 
@@ -137,7 +154,8 @@ struct RoomInput {
                && map == o.map
                && entrances == o.entrances
                && entityGroups == o.entityGroups
-               && roomScripts == o.roomScripts;
+               && roomScripts == o.roomScripts
+               && scriptTriggers == o.scriptTriggers;
     }
     bool operator!=(const RoomInput& o) const { return !(*this == o); }
 };
