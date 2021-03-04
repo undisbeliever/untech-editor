@@ -400,6 +400,7 @@ compileRoom(const RoomInput& input,
 
         // Script triggers
         {
+            constexpr unsigned ONCE_FLAG = 0x80;
             constexpr unsigned soaSize = 2 * MAX_SCRIPT_TRIGGERS;
 
             assert(input.scriptTriggers.size() <= MAX_SCRIPT_TRIGGERS);
@@ -425,6 +426,10 @@ compileRoom(const RoomInput& input,
             buildArray([&](auto& st) -> uint16_t {
                 auto scriptId = input.roomScripts.scripts.indexOf(st.script);
                 assert(scriptId < input.roomScripts.scripts.size());
+
+                if (st.once) {
+                    scriptId |= ONCE_FLAG;
+                }
                 return scriptId;
             });
         }

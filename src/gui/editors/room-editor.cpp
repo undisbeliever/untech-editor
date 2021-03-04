@@ -526,13 +526,15 @@ void RoomEditorGui::scriptTriggersWindow()
 
         ImGui::BeginChild("Scroll");
 
-        ImGui::Columns(3);
+        ImGui::Columns(4);
 
         ImGui::Separator();
         ImGui::NextColumn();
         ImGui::Text("Script");
         ImGui::NextColumn();
         ImGui::Text("AABB");
+        ImGui::NextColumn();
+        ImGui::Text("Once");
         ImGui::NextColumn();
         ImGui::Separator();
 
@@ -555,6 +557,10 @@ void RoomEditorGui::scriptTriggersWindow()
             ImGui::SetNextItemWidth(-1);
             ImGui::InputUrect("##aabb", &st.aabb, bounds);
             edited |= ImGui::IsItemDeactivatedAfterEdit();
+            ImGui::NextColumn();
+
+            ImGui::SetNextItemWidth(-1);
+            edited |= ImGui::Checkbox("Once", &st.once);
             ImGui::NextColumn();
 
             if (edited) {
@@ -822,7 +828,12 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
-                ImGui::Text("Script Trigger %u: %s", i, st.script.str().c_str());
+                if (!st.once) {
+                    ImGui::Text("Script Trigger %u: %s", i, st.script.str().c_str());
+                }
+                else {
+                    ImGui::Text("Script Trigger %u: %s (once)", i, st.script.str().c_str());
+                }
                 ImGui::EndTooltip();
             }
         }

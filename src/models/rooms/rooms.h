@@ -108,12 +108,13 @@ struct ScriptTrigger {
     idstring script;
     urect aabb;
 
-    // ::TODO add script trigger flags::
+    bool once;
 
     bool operator==(const ScriptTrigger& o) const
     {
         return script == o.script
-               && aabb == o.aabb;
+               && aabb == o.aabb
+               && once == o.once;
     }
 };
 

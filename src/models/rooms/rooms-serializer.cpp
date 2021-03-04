@@ -106,6 +106,7 @@ static void readScriptTrigger(const XmlTag* tag, std::vector<ScriptTrigger>& scr
 
     st.script = tag->getAttributeOptionalId("script");
     st.aabb = tag->getAttributeUrect();
+    st.once = tag->getAttributeBoolean("once");
 }
 
 static void writeScriptTrigger(XmlWriter& xml, const ScriptTrigger& st)
@@ -113,6 +114,7 @@ static void writeScriptTrigger(XmlWriter& xml, const ScriptTrigger& st)
     xml.writeTag("script-trigger");
     xml.writeTagAttribute("script", st.script);
     xml.writeTagAttributeUrect(st.aabb);
+    xml.writeTagAttribute("once", st.once);
     xml.writeCloseTag();
 }
 
