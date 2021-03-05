@@ -25,6 +25,7 @@ const std::vector<Instruction> BytecodeInput::BASE_INSTRUCTIONS{
     { idstring{ "Sleep_AnimationTicks" }, { ArgumentType::ImmediateU16 }, true },
     { idstring{ "Start_Script" }, { ArgumentType::RoomScript }, false },
     { idstring{ "Spawn_Entity_Group" }, { ArgumentType::EntityGroup }, false },
+    { idstring{ "Load_Room" }, { ArgumentType::Room, ArgumentType::RoomEntrance }, false },
 };
 
 static unsigned argumentSize(const ArgumentType type)
@@ -46,6 +47,12 @@ static unsigned argumentSize(const ArgumentType type)
         return 1;
 
     case ArgumentType::EntityGroup:
+        return 1;
+
+    case ArgumentType::Room:
+        return 1;
+
+    case ArgumentType::RoomEntrance:
         return 1;
     }
 
@@ -164,13 +171,15 @@ static std::array<std::string, N_FLAG_INSTRUCTIONS> FLAG_ARGUMENT_SUFFIXES{
     "_Flag1",
 };
 
-static std::array<std::string, 6> ARGUMENT_SUFFIXES{
+static std::array<std::string, 8> ARGUMENT_SUFFIXES{
     "",
     "_ ERROR _", // Flag
     "_Word",
     "_ImmU16",
     "_RoomScript",
     "_EntityGroup",
+    "_Room",
+    "_RoomEntrance",
 };
 
 // Assumes BytecodeInput is valid

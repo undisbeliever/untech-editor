@@ -289,7 +289,7 @@ static uint8_t processEntityParameter(const std::string& parameter, const Entity
 }
 
 std::shared_ptr<const RoomData>
-compileRoom(const RoomInput& input,
+compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& roomsList,
             const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings, const Scripting::GameStateData& gameStateData,
             const Scripting::BytecodeMapping& bytecodeData,
             ErrorList& err)
@@ -538,7 +538,7 @@ compileRoom(const RoomInput& input,
         data.push_back(0);
         data.push_back(0);
 
-        Scripting::ScriptCompiler compiler(data, input, bytecodeData, gameStateData, err);
+        Scripting::ScriptCompiler compiler(data, input, roomsList, bytecodeData, gameStateData, err);
 
         if (input.roomScripts.scripts.size() > MAX_N_SCRIPTS) {
             addError("Too many scripts");

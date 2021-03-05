@@ -9,6 +9,7 @@
 #include "bytecode.h"
 #include "game-state.h"
 #include "script.h"
+#include "models/common/externalfilelist.h"
 #include "models/common/string.h"
 #include "models/rooms/rooms.h"
 
@@ -20,6 +21,7 @@ private:
     const BytecodeMapping& bytecode;
     const GameStateData& gameState;
     const Rooms::RoomInput& room;
+    const ExternalFileList<Rooms::RoomInput>& roomsList;
 
     std::vector<uint8_t>& data;
 
@@ -31,11 +33,13 @@ private:
 
 public:
     ScriptCompiler(std::vector<uint8_t>& data, const Rooms::RoomInput& room,
+                   const ExternalFileList<Rooms::RoomInput>& roomsList,
                    const BytecodeMapping& bytecode, const GameStateData& gameState,
                    ErrorList& e)
         : bytecode(bytecode)
         , gameState(gameState)
         , room(room)
+        , roomsList(roomsList)
         , data(data)
         , depth(0)
         , err(e)
@@ -166,6 +170,30 @@ private:
         return s;
     }
 
+    unsigned getRoomId(const std::string& name)
+    {
+        const auto s = roomsList.indexOf(name);
+
+        if (s > roomsList.size()) {
+            addError("Unknown room: ", name);
+            return 0;
+        }
+
+        return s;
+    }
+
+    unsigned getRoomEntranceId(const std::string& name, const Rooms::RoomInput& r)
+    {
+        const auto s = r.entrances.indexOf(name);
+
+        if (s > r.entrances.size()) {
+            addError("Unknown room entrance: ", name);
+            return 0;
+        }
+
+        return s;
+    }
+
     void statementArgument(const ArgumentType& type, const std::string& value, const size_t bytecodePos)
     {
         switch (type) {
@@ -200,6 +228,46 @@ private:
             const unsigned g = getEntityGroupId(value);
             data.push_back(g);
         } break;
+
+        case ArgumentType::Room: {
+            const unsigned g = getRoomId(value);
+            data.push_back(g);
+        } break;
+
+        case ArgumentType::RoomEntrance: {
+            const unsigned g = getRoomEntranceId(value, room);
+            data.push_back(g);
+        } break;
+        }
+    }
+
+    void roomAndRoomEntraceArguments(const std::array<std::string, 2>& arguments)
+    {
+        const unsigned roomId = getRoomId(arguments.at(0));
+        unsigned entranceId = 0;
+
+        if (roomId < roomsList.size()) {
+            if (const auto* r = roomsList.at(roomId)) {
+                entranceId = getRoomEntranceId(arguments.at(1), *r);
+            }
+        }
+
+        data.push_back(roomId);
+        data.push_back(entranceId);
+    }
+
+    void scriptArguments(const InstructionData& bc, const std::array<std::string, 2>& arguments, const size_t bytecodePos)
+    {
+        constexpr std::array<ArgumentType, 2> loadRoomArgs = { ArgumentType::Room, ArgumentType::RoomEntrance };
+
+        if (bc.arguments == loadRoomArgs) {
+            roomAndRoomEntraceArguments(arguments);
+        }
+        else {
+            assert(bc.arguments.size() == arguments.size());
+            for (unsigned i = 0; i < bc.arguments.size(); i++) {
+                statementArgument(bc.arguments.at(i), arguments.at(i), bytecodePos);
+            }
         }
     }
 
@@ -297,10 +365,7 @@ public:
 
         data.push_back(bc.opcode);
 
-        assert(bc.arguments.size() == statement.arguments.size());
-        for (unsigned i = 0; i < bc.arguments.size(); i++) {
-            statementArgument(bc.arguments.at(i), statement.arguments.at(i), bytecodePos);
-        }
+        scriptArguments(bc, statement.arguments, bytecodePos);
     }
 
     void operator()(const IfStatement& ifStatement)

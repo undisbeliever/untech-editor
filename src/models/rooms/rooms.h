@@ -13,6 +13,10 @@
 
 namespace UnTech {
 class ErrorList;
+
+template <typename T>
+class ExternalFileList;
+
 namespace Project {
 template <typename T>
 class DataStore;
@@ -172,7 +176,7 @@ struct RoomData {
 };
 
 std::shared_ptr<const RoomData>
-compileRoom(const RoomInput& input,
+compileRoom(const RoomInput& input, const ExternalFileList<RoomInput>& roomsList,
             const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings,
             const Scripting::GameStateData& gameStateData, const Scripting::BytecodeMapping& bytecodeData,
             ErrorList& err);

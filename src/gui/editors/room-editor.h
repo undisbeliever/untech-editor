@@ -116,7 +116,7 @@ private:
     void entityDropTarget(ImDrawList* drawList);
 
     void editorWindow();
-    void scriptsWindow(const Project::ProjectData& projectData);
+    void scriptsWindow(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
     void drawObjects(ImDrawList* drawList);
     void drawAndEditObjects(ImDrawList* drawList);

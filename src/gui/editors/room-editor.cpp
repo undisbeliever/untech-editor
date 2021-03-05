@@ -973,7 +973,7 @@ void RoomEditorGui::processGui(const Project::ProjectFile& projectFile, const Pr
 
     minimapWindow("Minimap##Room");
 
-    scriptsWindow(projectData);
+    scriptsWindow(projectFile, projectData);
 
     if (scratchpadMinimapWindow("Scratchpad##Room", _scratchpadTilemap, _scratchpad, &_data->selectedScratchpadTiles)) {
         _data->selectedScratchpadTilesChanged();
@@ -1113,6 +1113,7 @@ class RoomScriptGuiVisitor {
 private:
     RoomEditorData* const data;
     const Scripting::BytecodeMapping& bcMapping;
+    const Project::ProjectFile& projectFile;
 
     unsigned depth;
 
@@ -1130,9 +1131,11 @@ private:
 
 public:
     RoomScriptGuiVisitor(RoomEditorData* d,
-                         const Scripting::BytecodeMapping& mapping)
+                         const Scripting::BytecodeMapping& mapping,
+                         const Project::ProjectFile& projectFile)
         : data(d)
         , bcMapping(mapping)
+        , projectFile(projectFile)
         , depth(0)
         , parentIndex()
         , index(0)
@@ -1153,6 +1156,62 @@ public:
         processAddMenu();
 
         assert(depth == 0);
+    }
+
+    bool roomArgument(const char* label, std::string* value)
+    {
+        bool edited = false;
+
+        if (ImGui::BeginCombo(label, *value)) {
+            for (auto& item : projectFile.rooms) {
+                if (item.value && item.value->name.isValid()) {
+                    const auto& roomName = item.value->name;
+                    if (ImGui::Selectable(roomName.str().c_str(), roomName == *value)) {
+                        *value = roomName;
+                        edited = true;
+                    }
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("Room");
+            ImGui::EndTooltip();
+        }
+
+        return edited;
+    }
+
+    template <typename F>
+    bool roomEntranceArgument(const char* label, std::string* value, F roomGetter)
+    {
+        bool edited = false;
+
+        if (ImGui::BeginCombo(label, *value)) {
+            if (const auto r = roomGetter()) {
+                for (const auto& en : r->entrances) {
+                    if (en.name.isValid()) {
+                        if (ImGui::Selectable(en.name.str().c_str(), en.name == *value)) {
+                            *value = en.name;
+                            edited = true;
+                        }
+                    }
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        if (ImGui::IsItemHovered()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("Room Entrance");
+            ImGui::EndTooltip();
+        }
+
+        return edited;
     }
 
     bool statementArgument(const char* label, const Scripting::ArgumentType& type, std::string* value)
@@ -1200,14 +1259,64 @@ public:
                 case Type::EntityGroup:
                     ImGui::TextUnformatted("Entity Group");
                     break;
+
+                case Type::Room:
+                    ImGui::TextUnformatted("Room");
+                    break;
+
+                case Type::RoomEntrance:
+                    ImGui::TextUnformatted("Room Entrance");
+                    break;
                 }
 
                 ImGui::EndTooltip();
             }
-        }
+        } break;
+
+        case Type::Room: {
+            edited = roomArgument(label, value);
+        } break;
+
+        case Type::RoomEntrance: {
+            edited = roomEntranceArgument(label, value,
+                                          [this]() { return &data->data; });
+        } break;
         }
 
         return edited;
+    }
+
+    bool roomAndRoomEntraceArguments(std::array<std::string, 2>& arguments)
+    {
+        bool edited = false;
+
+        ImGui::SameLine();
+        edited |= roomArgument(argLabels.at(0), &arguments.at(0));
+
+        ImGui::SameLine();
+        edited |= roomEntranceArgument(argLabels.at(1), &arguments.at(1),
+                                       [&]() { return projectFile.rooms.find(arguments.at(0)); });
+
+        return edited;
+    }
+
+    bool scriptArguments(const Scripting::InstructionData& bc, std::array<std::string, 2>& arguments)
+    {
+        constexpr std::array<Scripting::ArgumentType, 2> loadRoomArgs = { Scripting::ArgumentType::Room, Scripting::ArgumentType::RoomEntrance };
+
+        if (bc.arguments == loadRoomArgs) {
+            return roomAndRoomEntraceArguments(arguments);
+        }
+        else {
+            bool edited = false;
+
+            assert(bc.arguments.size() == arguments.size());
+            for (unsigned i = 0; i < arguments.size(); i++) {
+                edited |= statementArgument(argLabels.at(i), bc.arguments.at(i), &arguments.at(i));
+            }
+
+            return edited;
+        }
     }
 
     void operator()(Scripting::Statement& statement)
@@ -1220,10 +1329,7 @@ public:
         if (it != bcMapping.instructions.end()) {
             const auto& bc = it->second;
 
-            assert(bc.arguments.size() == statement.arguments.size());
-            for (unsigned i = 0; i < statement.arguments.size(); i++) {
-                edited |= statementArgument(argLabels.at(i), bc.arguments.at(i), &statement.arguments.at(i));
-            }
+            edited |= scriptArguments(bc, statement.arguments);
         }
 
         if (edited) {
@@ -1539,7 +1645,7 @@ private:
 
 std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGuiVisitor::addMenuParentIndex;
 
-void RoomEditorGui::scriptsWindow(const Project::ProjectData& projectData)
+void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
 {
     assert(_data);
     auto& roomScripts = _data->data.roomScripts;
@@ -1611,7 +1717,7 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectData& projectData)
 
             ImGui::BeginChild("Scroll");
 
-            RoomScriptGuiVisitor sgVisitor(_data, *bcMapping);
+            RoomScriptGuiVisitor sgVisitor(_data, *bcMapping, projectFile);
             sgVisitor.processGui(script, scriptId);
 
             ImGui::EndChild();

@@ -20,6 +20,8 @@ enum class ArgumentType {
 
     RoomScript,
     EntityGroup,
+    Room,
+    RoomEntrance,
 };
 
 struct Instruction {
