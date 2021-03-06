@@ -31,6 +31,9 @@ private:
     GroupMultipleSelection entityEntriesSel;
     MultipleSelection scriptTriggersSel;
 
+    MultipleSelection tempScriptFlagsSel;
+    MultipleSelection tempScriptWordsSel;
+
     SingleSelection scriptsSel;
     NodeSelection scriptStatementsSel;
 

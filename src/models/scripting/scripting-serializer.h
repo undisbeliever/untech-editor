@@ -30,6 +30,10 @@ void writeBytecode(Xml::XmlWriter& xml, const Scripting::BytecodeInput& bytecode
 // xml/tag points to a <script> tag
 void readScript(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag* tag);
 
+// raises exception on error
+// xml/tag points to a <temp-script-variables> tag
+void readTempScriptVariables(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag* tag);
+
 void writeRoomScripts(Xml::XmlWriter& xml, const RoomScripts& roomScripts);
 
 }

@@ -15,6 +15,50 @@
 
 namespace UnTech::Scripting {
 
+using GameStateDataValueMap = std::unordered_map<idstring, const GameStateData::Value>;
+
+static inline std::unordered_map<idstring, unsigned>
+setupTempVariables(const std::vector<idstring> tempVars, const char* typeName,
+                   const GameStateDataValueMap& gameStateVars, const unsigned nGameStateVars, const unsigned maxVars,
+                   ErrorList& err)
+{
+    auto addError = [&](const auto... msg) {
+        err.addErrorString("Invalid temporary script ", typeName, ": ", msg...);
+    };
+
+    std::unordered_map<idstring, unsigned> map;
+    map.reserve(tempVars.size());
+
+    long varId = maxVars;
+
+    for (auto& varName : tempVars) {
+        varId--;
+
+        if (!varName.isValid()) {
+            addError("Missing name");
+        }
+        else if (gameStateVars.find(varName) != gameStateVars.end()) {
+            addError("Name exists in GameState: ", varName);
+        }
+        else {
+            const auto [it, inserted] = map.emplace(varName, varId);
+            if (!inserted) {
+                err.addErrorString("Duplicate temporary script ", typeName, " detected: ", varName);
+            }
+        }
+    }
+
+    if (tempVars.size() + nGameStateVars > maxVars) {
+        addError("Too many temporary script ", typeName, " variables");
+        map.clear();
+    }
+    else {
+        assert(varId > 0 && unsigned(varId) >= nGameStateVars);
+    }
+
+    return map;
+}
+
 class ScriptCompiler {
 
 private:
@@ -22,6 +66,10 @@ private:
     const GameStateData& gameState;
     const Rooms::RoomInput& room;
     const ExternalFileList<Rooms::RoomInput>& roomsList;
+
+    // temporary room script variables
+    const std::unordered_map<idstring, unsigned> tempFlags;
+    const std::unordered_map<idstring, unsigned> tempWords;
 
     std::vector<uint8_t>& data;
 
@@ -40,12 +88,15 @@ public:
         , gameState(gameState)
         , room(room)
         , roomsList(roomsList)
+        , tempFlags(setupTempVariables(room.roomScripts.tempFlags, "flag", gameState.flags, gameState.nFlags, GameState::MAX_FLAGS, e))
+        , tempWords(setupTempVariables(room.roomScripts.tempWords, "word", gameState.words, gameState.nWords, GameState::MAX_WORDS, e))
         , data(data)
         , depth(0)
         , err(e)
         , valid(true)
     {
-        // ::TODO load room variables::
+        valid &= tempFlags.size() == room.roomScripts.tempFlags.size();
+        valid &= tempWords.size() == room.roomScripts.tempWords.size();
     }
 
     bool isValid() const { return valid; }
@@ -107,6 +158,11 @@ private:
 
     unsigned getFlagId(const std::string& name)
     {
+        auto localIt = tempFlags.find(name);
+        if (localIt != tempFlags.end()) {
+            return localIt->second;
+        }
+
         auto it = gameState.flags.find(name);
         if (it != gameState.flags.end()) {
             if (!it->second.allowedInRoom(room.name)) {
@@ -121,6 +177,11 @@ private:
 
     unsigned getWordId(const std::string& name)
     {
+        auto localIt = tempWords.find(name);
+        if (localIt != tempWords.end()) {
+            return localIt->second;
+        }
+
         auto it = gameState.words.find(name);
         if (it != gameState.words.end()) {
             if (!it->second.allowedInRoom(room.name)) {

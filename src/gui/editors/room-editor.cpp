@@ -105,6 +105,30 @@ struct RoomEditorData::AP {
         }
     };
 
+    struct TempScriptFlags final : public Room {
+        using ListT = std::vector<idstring>;
+        using ListArgsT = std::tuple<>;
+        using SelectionT = MultipleSelection;
+
+        constexpr static size_t MAX_SIZE = MultipleSelection::MAX_SIZE;
+
+        constexpr static auto SelectionPtr = &EditorT::tempScriptFlagsSel;
+
+        static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.roomScripts.tempFlags; }
+    };
+
+    struct TempScriptWords final : public Room {
+        using ListT = std::vector<idstring>;
+        using ListArgsT = std::tuple<>;
+        using SelectionT = MultipleSelection;
+
+        constexpr static size_t MAX_SIZE = MultipleSelection::MAX_SIZE;
+
+        constexpr static auto SelectionPtr = &EditorT::tempScriptWordsSel;
+
+        static ListT* getList(EditorDataT& entityRomData) { return &entityRomData.roomScripts.tempWords; }
+    };
+
     struct Scripts final : public Room {
         using ListT = NamedList<Scripting::Script>;
         using ListArgsT = std::tuple<>;
@@ -218,6 +242,9 @@ void RoomEditorData::updateSelection()
     entityEntriesSel.update();
 
     scriptTriggersSel.update();
+
+    tempScriptFlagsSel.update();
+    tempScriptWordsSel.update();
 
     scriptsSel.update();
 
@@ -1645,6 +1672,44 @@ private:
 
 std::array<uint16_t, Scripting::Script::MAX_DEPTH + 1> RoomScriptGuiVisitor::addMenuParentIndex;
 
+template <typename AP>
+static void tempVariableList(RoomEditorData* data)
+{
+    assert(data);
+    std::vector<idstring>* list = AP::getList(data->data);
+    assert(list);
+
+    ListButtons<AP>(data);
+
+    ImGui::Separator();
+
+    auto& sel = data->*AP::SelectionPtr;
+
+    for (unsigned i = 0; i < list->size(); i++) {
+        auto& name = list->at(i);
+
+        bool edited = false;
+
+        ImGui::PushID(i);
+
+        ImGui::Selectable("##Sel", &sel, i, ImGuiSelectableFlags_AllowItemOverlap);
+        ImGui::SameLine(30);
+
+        ImGui::SetNextItemWidth(-1);
+        ImGui::InputIdstring("##Name", &name);
+        edited |= ImGui::IsItemDeactivatedAfterEdit();
+        ImGui::NextColumn();
+
+        if (edited) {
+            ListActions<AP>::itemEdited(data, i);
+        }
+
+        ImGui::PopID();
+    }
+
+    ImGui::Separator();
+}
+
 void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData)
 {
     assert(_data);
@@ -1652,6 +1717,30 @@ void RoomEditorGui::scriptsWindow(const Project::ProjectFile& projectFile, const
 
     ImGui::SetNextWindowSize(ImVec2(500, 500), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Room Scripts", nullptr, ImGuiWindowFlags_HorizontalScrollbar)) {
+
+        ImGui::BeginChild("Temp-Vars", ImVec2(200, 0), true);
+        {
+            ImGui::PushID("Flags");
+
+            ImGui::TextUnformatted("Temporary Flags:\n"
+                                   "(cleared on room load)");
+            tempVariableList<AP::TempScriptFlags>(_data);
+
+            ImGui::PopID();
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+
+            ImGui::PushID("Words");
+
+            ImGui::TextUnformatted("Temporary Words:\n"
+                                   "(reset to 0 on room load)");
+            tempVariableList<AP::TempScriptWords>(_data);
+
+            ImGui::PopID();
+        }
+        ImGui::EndChild();
+        ImGui::SameLine();
 
         ImGui::BeginChild("Sidebar", ImVec2(200, 0), true);
         {

@@ -142,6 +142,9 @@ static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* ta
         else if (childTag->name == "script") {
             Scripting::readScript(roomInput->roomScripts, xml, childTag.get());
         }
+        else if (childTag->name == "temp-script-variables") {
+            Scripting::readTempScriptVariables(roomInput->roomScripts, xml, childTag.get());
+        }
         else if (childTag->name == "script-trigger") {
             readScriptTrigger(childTag.get(), roomInput->scriptTriggers);
         }

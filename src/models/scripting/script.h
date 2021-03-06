@@ -101,9 +101,10 @@ struct Script {
 };
 
 struct RoomScripts {
-    // ::TODO add local flags and words::
-
     RoomScripts();
+
+    std::vector<idstring> tempFlags;
+    std::vector<idstring> tempWords;
 
     Scripting::Script startupScript;
 
@@ -111,7 +112,10 @@ struct RoomScripts {
 
     bool operator==(const RoomScripts& o) const
     {
-        return scripts == o.scripts;
+        return tempFlags == o.tempFlags
+               && tempWords == o.tempWords
+               && startupScript == o.startupScript
+               && scripts == o.scripts;
     }
 };
 

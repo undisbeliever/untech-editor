@@ -314,6 +314,48 @@ void readScript(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag
     }
 }
 
+void readTempScriptVariables(RoomScripts& roomScripts, Xml::XmlReader& xml, const Xml::XmlTag* tag)
+{
+    assert(tag->name == "temp-script-variables"s);
+
+    while (auto childTag = xml.parseTag()) {
+        if (childTag->name == "flag") {
+            roomScripts.tempFlags.push_back(childTag->getAttributeId("name"));
+        }
+        else if (childTag->name == "word") {
+            roomScripts.tempWords.push_back(childTag->getAttributeId("name"));
+        }
+        else {
+            throw Xml::unknown_tag_error(*childTag);
+        }
+
+        xml.parseCloseTag();
+    }
+}
+
+static void writeTempScriptVariablesVector(Xml::XmlWriter& xml, const std::string& tagName, const std::vector<idstring>& list)
+{
+    for (const auto& v : list) {
+        if (v.isValid()) {
+            xml.writeTag(tagName);
+            xml.writeTagAttribute("name", v);
+            xml.writeCloseTag();
+        }
+    }
+}
+
+static void writeTempScriptVariablesVector(Xml::XmlWriter& xml, const RoomScripts& roomScripts)
+{
+    if (roomScripts.tempFlags.empty() || roomScripts.tempWords.empty()) {
+        return;
+    }
+
+    xml.writeTag("temp-script-variables");
+    writeTempScriptVariablesVector(xml, "flag"s, roomScripts.tempFlags);
+    writeTempScriptVariablesVector(xml, "word"s, roomScripts.tempWords);
+    xml.writeCloseTag();
+}
+
 class ScriptNodeWriter {
 private:
     Xml::XmlWriter& xml;
@@ -394,6 +436,8 @@ void writeRoomScripts(Xml::XmlWriter& xml, const RoomScripts& roomScripts)
         snWriter.writeStatements(script.statements);
         xml.writeCloseTag();
     };
+
+    writeTempScriptVariablesVector(xml, roomScripts);
 
     writeScript(roomScripts.startupScript, STARTUP_SCRIPT_NAME);
 
