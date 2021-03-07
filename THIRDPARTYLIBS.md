@@ -9,8 +9,8 @@ directory:
    [zlib License](https://github.com/lvandeve/lodepng/blob/master/LICENSE).
 
  * [LZ4 Library](https://lz4.github.io/lz4/) -
-   Copyright (c) 2011-2018, Yann Collet,
-   [BSD 2-Clause License](https://github.com/lz4/lz4/blob/master/lib/LICENSE).
+   Copyright (c) 2011-2020, Yann Collet,
+   [BSD 2-Clause license](https://github.com/lz4/lz4/blob/dev/lib/LICENSE).
 
  * [Dear ImGui](https://github.com/ocornut/imgui) -
    Copyright (c) 2014-2020 Omar Cornut,

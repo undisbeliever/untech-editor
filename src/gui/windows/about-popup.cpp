@@ -134,8 +134,8 @@ void processGui()
         ImGui::TextUnformatted("LZ4 Library"s);
         ImGui::Indent();
         ImGui::TextUnformatted("https://lz4.github.io/lz4/\n"
-                               "Copyright (c) 2011-2018, Yann Collet\n"
-                               "BSD 2-Clause License, https://github.com/lz4/lz4/blob/master/lib/LICENSE  \n\n"s);
+                               "Copyright (c) 2011-2020, Yann Collet\n"
+                               "BSD 2-Clause License, https://github.com/lz4/lz4/blob/dev/lib/LICENSE  \n\n"s);
         ImGui::Unindent();
 
         ImGui::TextUnformatted("Dear ImGui"s);
