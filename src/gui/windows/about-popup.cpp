@@ -1,6 +1,6 @@
 /*
  * This file is part of the UnTech Editor Suite.
- * Copyright (c) 2016 - 2020, Marcus Rowe <undisbeliever@gmail.com>.
+ * Copyright (c) 2016 - 2021, Marcus Rowe <undisbeliever@gmail.com>.
  * Distributed under The MIT License: https://opensource.org/licenses/MIT
  */
 
@@ -112,7 +112,7 @@ void processGui()
         ImGui::Spacing();
 
         ImGui::Indent();
-        ImGui::TextUnformatted("Copyright (c) 2016 - 2020, Marcus Rowe\n"
+        ImGui::TextUnformatted("Copyright (c) 2016 - 2021, Marcus Rowe\n"
                                "\n"
                                "Licensed under The MIT License\n"
                                "https://github.com/undisbeliever/untech-editor/blob/master/LICENSE  \n\n"s);
