@@ -9,7 +9,9 @@
 #include <cmath>
 #include <mutex>
 
-namespace UnTech::Gui::MessageBox {
+// ::ANNOY cannot use MessageBox in mingw ::
+// ::: "src/gui/windows/about-popup.cpp:185:13: error: ‘MessageBoxA’ is not a class, namespace, or enumeration" ::
+namespace UnTech::Gui::MsgBox {
 
 static const std::string dialogSuffix = "###MessageBox";
 

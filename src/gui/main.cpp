@@ -166,7 +166,7 @@ int main(int argc, const char* argv[])
         }
 
         AboutPopup::processGui();
-        MessageBox::processGui();
+        MsgBox::processGui();
         FpsWindow::processGui();
 
         Shaders::processOffscreenRendering();

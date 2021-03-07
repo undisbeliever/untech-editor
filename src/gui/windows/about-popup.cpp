@@ -182,7 +182,7 @@ void processGui()
             }
 
             // Required if I want a MessageBox and the AboutPopop open at the same time.
-            MessageBox::processGui();
+            MsgBox::processGui();
         }
 
         ImGui::EndPopup();

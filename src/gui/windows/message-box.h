@@ -11,7 +11,7 @@
 namespace UnTech::Gui {
 
 // MessageBox is thread safe
-namespace MessageBox {
+namespace MsgBox {
 
 void showMessage(const std::string& title, const std::string& message);
 void showMessage(const std::string& title, const char* message);

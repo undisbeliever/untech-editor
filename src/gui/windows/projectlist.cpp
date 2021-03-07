@@ -386,7 +386,7 @@ void ProjectListWindow::addResource(Project::ProjectFile& projectFile)
             _selectedIndex = ItemIndex{ settings.editorType, i };
         }
         catch (const std::exception& ex) {
-            MessageBox::showMessage("Cannot Create Resource", ex.what());
+            MsgBox::showMessage("Cannot Create Resource", ex.what());
         }
     }
 }

@@ -68,7 +68,7 @@ void UnTechEditor::newProject(const std::filesystem::path& fn)
         _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
     }
     catch (const std::exception& ex) {
-        MessageBox::showMessage("Cannot Create Project", ex.what());
+        MsgBox::showMessage("Cannot Create Project", ex.what());
     }
 }
 
@@ -95,7 +95,7 @@ void UnTechEditor::loadProject(const std::filesystem::path& fn)
         _instance = std::shared_ptr<UnTechEditor>(new UnTechEditor(std::move(pf), filename));
     }
     catch (const std::exception& ex) {
-        MessageBox::showMessage("Unable to Load Project", ex.what());
+        MsgBox::showMessage("Unable to Load Project", ex.what());
     }
 }
 
@@ -198,7 +198,7 @@ bool UnTechEditor::saveProjectFile(const Project::ProjectFile& pf)
         return true;
     }
     catch (const std::exception& ex) {
-        MessageBox::showMessage("Cannot Save Project", ex.what());
+        MsgBox::showMessage("Cannot Save Project", ex.what());
         return false;
     }
 }
@@ -217,7 +217,7 @@ bool UnTechEditor::saveEditor(const Project::ProjectFile& pf, AbstractEditorData
             return true;
         }
         catch (const std::exception& ex) {
-            MessageBox::showMessage("Cannot Save Resource", ex.what());
+            MsgBox::showMessage("Cannot Save Resource", ex.what());
             return false;
         }
     }
@@ -600,9 +600,9 @@ void BackgroundThread::run()
         }
     }
     catch (const std::exception& ex) {
-        MessageBox::showMessage("An exception occurred when compiling a resource",
-                                stringBuilder(ex.what(), "\n\n\nThis should not happen."
-                                                         "\n\nThe resource compiler is now disabled."));
+        MsgBox::showMessage("An exception occurred when compiling a resource",
+                            stringBuilder(ex.what(), "\n\n\nThis should not happen."
+                                                     "\n\nThe resource compiler is now disabled."));
 
         projectData.markAllResourcesInvalid();
     }
