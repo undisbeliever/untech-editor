@@ -8,7 +8,7 @@
 // from the Dear ImGui library.
 // https://github.com/ocornut/imgui
 // Licensed under the MIT License (MIT)
-// Copyright (c) 2014-2020 Omar Cornut
+// Copyright (c) 2014-2021 Omar Cornut
 
 #include "imgui_impl_opengl3.h"
 #include "opengl3.h"
@@ -44,7 +44,7 @@ public:
         }
 
         // Decide GL+GLSL versions
-#if __APPLE__
+#ifdef __APPLE__
         // GL 3.2 Core + GLSL 150
         const char* glsl_version = "#version 150";
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
