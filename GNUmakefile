@@ -104,7 +104,15 @@ else ifeq ($(PROFILE),mingw)
   # MinGW cross platform compiling
   CXX_MINGW     ?= x86_64-w64-mingw32-g++
   CC_MINGW      ?= x86_64-w64-mingw32-gcc
-  PREFIX        ?= $(HOME)/.local/x86_64-w64-mingw32
+
+  # Location of the `x86_64-w64-mingw32` directory inside the SDL 2 (MinGW 32/64-bit) folder
+  # This variable cannot contain spaces
+  SDL_DIR       ?= $(HOME)/.local/x86_64-w64-mingw32
+
+  ifneq (1, $(words $(SDL_DIR)))
+    $(error "SDL_DIR cannot contain a space")
+  endif
+
 
   OS            := Windows_NT
 
@@ -263,18 +271,31 @@ $(OBJ_DIR)/gui/main.o: IMGUI_CXXFLAGS += -Isrc/vendor/imgui
 
 UNAME_S := $(shell uname -s)
 
-ifeq ($(UNAME_S), Linux) #LINUX
+ifeq ($(PROFILE), mingw) # Cross compiling windows
+  IMGUI_LDFLAGS   += -lgdi32 -lopengl32 -limm32
+  IMGUI_LDFLAGS   += $(shell PKG_CONFIG_LIBDIR="$(SDL_DIR)/lib/pkgconfig" pkg-config --define-prefix --libs sdl2)
+  IMGUI_CXXFLAGS  += $(shell PKG_CONFIG_LIBDIR="$(SDL_DIR)/lib/pkgconfig" pkg-config --define-prefix --cflags sdl2)
+
+  ifneq ($(.SHELLSTATUS), 0)
+    $(error Cannot find the sdl2 library, please set the `SDL_DIR` variable)
+  endif
+
+else ifeq ($(UNAME_S), Linux) #LINUX
   IMGUI_LDFLAGS   += -lGL -ldl $(shell sdl2-config --libs)
   IMGUI_CXXFLAGS  += $(shell sdl2-config --cflags)
-endif
-ifeq ($(UNAME_S), Darwin) #APPLE
+
+else ifeq ($(UNAME_S), Darwin) #APPLE
   IMGUI_LDFLAGS   += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo $(shell sdl2-config --libs) -L/usr/local/lib -L/opt/local/lib
   IMGUI_CXXFLAGS  += $(shell sdl2-config --cflags) -I/usr/local/include -I/opt/local/include
-endif
-ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
-  IMGUI_LDFLAGS   += -lgdi32 -lopengl32 -limm32 $(shell pkg-config --static --libs sdl2)
+
+else ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
+  IMGUI_LDFLAGS   += -lgdi32 -lopengl32 -limm32 $(shell pkg-config --libs sdl2)
   IMGUI_CXXFLAGS  += $(shell pkg-config --cflags sdl2)
+
+else
+  $(error Unknown system)
 endif
+
 
 
 .PHONY: all

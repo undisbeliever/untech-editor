@@ -120,7 +120,7 @@ static void centralDockSpace()
     ImGui::End();
 }
 
-static void processProgramArguments(int argc, const char* argv[])
+static void processProgramArguments(int argc, const char* const argv[])
 {
     using namespace std::string_literals;
     using namespace UnTech::Gui;
@@ -135,7 +135,7 @@ static void processProgramArguments(int argc, const char* argv[])
     }
 }
 
-int main(int argc, const char* argv[])
+int main(int argc, char* argv[])
 {
     using namespace UnTech::Gui;
 
