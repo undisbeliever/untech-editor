@@ -141,7 +141,7 @@ void processGui()
         ImGui::TextUnformatted("Dear ImGui"s);
         ImGui::Indent();
         ImGui::TextUnformatted("https://github.com/ocornut/imgui\n"
-                               "Copyright (c) 2014-2020 Omar Cornut\n"
+                               "Copyright (c) 2014-2021 Omar Cornut\n"
                                "MIT License, https://github.com/ocornut/imgui/blob/master/LICENSE.txt  \n\n"s);
         ImGui::Unindent();
 

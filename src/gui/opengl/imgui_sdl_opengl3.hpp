@@ -12,7 +12,7 @@
 
 #include "imgui_impl_opengl3.h"
 #include "opengl3.h"
-#include "vendor/imgui/examples/imgui_impl_sdl.h"
+#include "vendor/imgui/backends/imgui_impl_sdl.h"
 #include "vendor/imgui/imgui.h"
 #include <SDL.h>
 #include <stdio.h>

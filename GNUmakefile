@@ -249,7 +249,7 @@ THIRD_PARTY_LZ4     := $(OBJ_DIR)/vendor/lz4/lib/lz4.o $(OBJ_DIR)/vendor/lz4/lib
 THIRD_PARTY_OBJS := $(THIRD_PARTY_LODEPNG) $(THIRD_PARTY_LZ4)
 
 
-THIRD_PARTY_IMGUI_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, imgui.o imgui_draw.o imgui_widgets.o imgui_stdlib.o)
+THIRD_PARTY_IMGUI_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, imgui.o imgui_draw.o imgui_tables.o imgui_widgets.o imgui_stdlib.o)
 
 THIRD_PARTY_IMGUI_IMPL_OBJS := $(addprefix $(OBJ_DIR)/vendor/imgui/, gl3w.o imgui_impl_sdl.o)
 IMGUI_CXXFLAGS              := -DIMGUI_IMPL_SDL_OPENGL -DIMGUI_IMPL_OPENGL_LOADER_GL3W -Isrc/vendor/imgui/examples/libs/gl3w
@@ -352,7 +352,7 @@ $(OBJ_DIR)/gui/%.o: src/gui/%.cpp
 $(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/%.cpp
 	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
 
-$(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/examples/%.cpp
+$(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/backends/%.cpp
 	$(CXX) $(CXXFLAGS) $(CXXWARNINGS) $(IMGUI_CXXFLAGS) $(IMGUI_IMPL_CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR)/vendor/imgui/%.o: src/vendor/imgui/misc/cpp/%.cpp
