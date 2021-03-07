@@ -46,20 +46,12 @@ public:
 };
 
 struct ErrorListItem {
-    enum class ErrorType {
-        WARNING,
-        ERROR
-    };
-
-    ErrorType type;
     std::string message;
     std::unique_ptr<const AbstractSpecializedError> specialized;
+    bool isWarning;
 };
 
 class ErrorList {
-public:
-    using ErrorType = ErrorListItem::ErrorType;
-
 private:
     std::vector<ErrorListItem> _list;
     unsigned _errorCount;
@@ -77,34 +69,34 @@ public:
 
     void addError(std::unique_ptr<const AbstractSpecializedError> e)
     {
-        _list.push_back({ ErrorType::ERROR, e->message(), std::move(e) });
+        _list.push_back({ e->message(), std::move(e), false });
         _errorCount++;
     }
     void addErrorString(const std::string& s)
     {
-        _list.push_back({ ErrorType::ERROR, s, nullptr });
+        _list.push_back({ s, nullptr, false });
         _errorCount++;
     }
     void addErrorString(std::string&& s)
     {
-        _list.push_back({ ErrorType::ERROR, std::move(s), nullptr });
+        _list.push_back({ std::move(s), nullptr, false });
         _errorCount++;
     }
     template <typename... Args>
     void addErrorString(const Args... args)
     {
-        _list.push_back({ ErrorType::ERROR, stringBuilder(args...), nullptr });
+        _list.push_back({ stringBuilder(args...), nullptr, false });
         _errorCount++;
     }
 
     void addWarning(std::unique_ptr<const AbstractSpecializedError> e)
     {
-        _list.push_back({ ErrorType::WARNING, e->message(), std::move(e) });
+        _list.push_back({ e->message(), std::move(e), true });
     }
     template <typename... Args>
     void addWarningString(const Args... args)
     {
-        _list.push_back(ErrorListItem{ ErrorType::WARNING, stringBuilder(args...), nullptr });
+        _list.push_back(ErrorListItem{ stringBuilder(args...), nullptr, true });
     }
 
     void printIndented(std::ostream& out) const;

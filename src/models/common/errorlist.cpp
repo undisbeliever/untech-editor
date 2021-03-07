@@ -9,7 +9,6 @@
 #include <ostream>
 
 using namespace UnTech;
-using ErrorType = ErrorListItem::ErrorType;
 
 ErrorList::ErrorList()
     : _list()
@@ -20,14 +19,11 @@ ErrorList::ErrorList()
 void ErrorList::printIndented(std::ostream& out) const
 {
     for (const auto& item : _list) {
-        switch (item.type) {
-        case ErrorType::ERROR:
+        if (!item.isWarning) {
             out << "    ERROR: ";
-            break;
-
-        case ErrorType::WARNING:
+        }
+        else {
             out << "    Warning: ";
-            break;
         }
 
         if (item.specialized) {

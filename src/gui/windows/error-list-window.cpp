@@ -14,8 +14,6 @@ namespace UnTech::Gui {
 
 void processErrorListWindow(const Project::ResourceStatus& status)
 {
-    using ErrorType = ErrorList::ErrorType;
-
     if (status.errorList.empty()) {
         return;
     }
@@ -24,14 +22,11 @@ void processErrorListWindow(const Project::ResourceStatus& status)
     if (ImGui::Begin("Error List")) {
 
         for (const auto& item : status.errorList.list()) {
-            switch (item.type) {
-            case ErrorType::ERROR:
+            if (!item.isWarning) {
                 ImGui::PushStyleColor(ImGuiCol_Text, Style::failColor);
-                break;
-
-            case ErrorType::WARNING:
+            }
+            else {
                 ImGui::PushStyleColor(ImGuiCol_Text, Style::warningColor);
-                break;
             }
 
             // ::TODO add double click on error to select bad item::
