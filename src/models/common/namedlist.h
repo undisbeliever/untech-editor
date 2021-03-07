@@ -113,7 +113,7 @@ public:
 
     void insert_back(T&& v)
     {
-        _list.push_back(v);
+        _list.push_back(std::move(v));
     }
 
     void insert(size_type index, const T& v)

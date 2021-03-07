@@ -818,7 +818,8 @@ struct ListActions {
                 _oldValues.push_back(projectValue);
                 _newValues.push_back(editorValue);
 
-                if (projectValue != editorValue) {
+                // operator!= may not implemented in a few of my structs
+                if (!(projectValue == editorValue)) {
                     projectValue = editorValue;
                     changed = true;
                 }
@@ -1022,19 +1023,6 @@ struct ListActions {
     };
 
 private:
-    static void _editListItem(EditorT* editor, const ListArgsT& listArgs, const index_type index)
-    {
-        const ListT* list = getEditorListPtr(editor, listArgs);
-        if (list == nullptr) {
-            return;
-        }
-
-        if (index < list->size()) {
-            editor->addAction(
-                std::make_unique<EditItemAction>(editor, listArgs, index));
-        }
-    }
-
     template <auto FieldPtr>
     static void _editListField(EditorT* editor, const ListArgsT& listArgs, const index_type index)
     {
@@ -1109,10 +1097,10 @@ private:
 
 public:
     template <typename T = SelectionT>
-    static std::enable_if_t<std::is_same_v<T, SingleSelection>>
+    static std::enable_if_t<std::is_same_v<T, SingleSelection> | std::is_same_v<T, NodeSelection>>
     editList(EditorT* editor, EditListAction action)
     {
-        const SingleSelection& sel = getSelection(editor);
+        const auto& sel = getSelection(editor);
         const ListArgsT listArgs = sel.listArgs();
 
         const ListT* list = getEditorListPtr(editor, listArgs);
@@ -1352,11 +1340,8 @@ public:
         }
     }
 
-    template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>
-    static void addItem(EditorT* editor, const value_type& value)
+    static void addItem(EditorT* editor, const ListArgsT& listArgs, const value_type& value)
     {
-        const ListArgsT listArgs = std::make_tuple();
-
         const ListT* list = getEditorListPtr(editor, listArgs);
         if (list == nullptr) {
             return;
@@ -1368,34 +1353,36 @@ public:
         }
     }
 
+    template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>
+    static void addItem(EditorT* editor, const value_type& value)
+    {
+        addItem(editor, std::make_tuple(), value);
+    }
+
     template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<unsigned>>>>
     static void addItem(EditorT* editor, const index_type parentIndex, const value_type& value)
     {
-        const ListArgsT listArgs = std::make_tuple(parentIndex);
-
-        const ListT* list = getEditorListPtr(editor, listArgs);
-        if (list == nullptr) {
-            return;
-        }
-
-        if (list->size() < MAX_SIZE) {
-            editor->addAction(
-                std::make_unique<AddAction>(editor, listArgs, list->size(), value));
-        }
+        addItem(editor, std::make_tuple(parentIndex), value);
     }
 
     template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<>>>>
     static void itemEdited(EditorT* editor, const index_type index)
     {
         const std::tuple<> listArgs = std::make_tuple();
-        _editListItem(editor, listArgs, index);
+        itemEdited(editor, listArgs, index);
     }
 
-    template <typename LA_ = ListArgsT, typename = std::enable_if_t<std::is_same_v<LA_, std::tuple<unsigned>>>>
-    static void itemEdited(EditorT* editor, const unsigned parentIndex, const index_type index)
+    static void itemEdited(EditorT* editor, const ListArgsT& listArgs, const index_type index)
     {
-        const std::tuple<unsigned> listArgs = std::make_tuple(parentIndex);
-        _editListItem(editor, listArgs, index);
+        const ListT* list = getEditorListPtr(editor, listArgs);
+        if (list == nullptr) {
+            return;
+        }
+
+        if (index < list->size()) {
+            editor->addAction(
+                std::make_unique<EditItemAction>(editor, listArgs, index));
+        }
     }
 
     template <typename ST_ = SelectionT, typename = std::enable_if_t<std::is_same_v<ST_, SingleSelection>>>
@@ -1404,17 +1391,15 @@ public:
         const SingleSelection& sel = getSelection(editor);
         const std::tuple<> listArgs = sel.listArgs();
 
-        _editListItem(editor, listArgs, sel.selectedIndex());
+        itemEdited(editor, listArgs, sel.selectedIndex());
     }
 
-    // Only enable if ListArgsT is not empty
-    template <typename LA_ = ListArgsT, typename = std::enable_if_t<!std::is_same_v<LA_, std::tuple<>>>>
     static void selectedListItemEdited(EditorT* editor, const index_type index)
     {
         const SelectionT& sel = getSelection(editor);
         const ListArgsT listArgs = sel.listArgs();
 
-        _editListItem(editor, listArgs, index);
+        itemEdited(editor, listArgs, index);
     }
 
     static void selectedListItemsEdited(EditorT* editor, std::vector<index_type> indexes)

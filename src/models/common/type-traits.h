@@ -14,3 +14,12 @@ template <typename T, class C>
 struct remove_member_pointer<T C::*> {
     using type = T;
 };
+
+template <class T>
+struct member_class {
+};
+
+template <typename T, class C>
+struct member_class<T C::*> {
+    using type = C;
+};

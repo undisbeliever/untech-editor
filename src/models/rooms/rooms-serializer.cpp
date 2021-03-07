@@ -10,6 +10,7 @@
 #include "models/common/xml/xmlreader.h"
 #include "models/common/xml/xmlwriter.h"
 #include "models/metatiles/metatiles-serializer.h"
+#include "models/scripting/scripting-serializer.h"
 
 using namespace UnTech;
 using namespace UnTech::Xml;
@@ -97,6 +98,26 @@ static void writeEntityGroup(XmlWriter& xml, const EntityGroup& entityGroup)
     xml.writeCloseTag();
 }
 
+static void readScriptTrigger(const XmlTag* tag, std::vector<ScriptTrigger>& scriptTriggers)
+{
+    assert(tag->name == "script-trigger");
+
+    ScriptTrigger& st = scriptTriggers.emplace_back();
+
+    st.script = tag->getAttributeOptionalId("script");
+    st.aabb = tag->getAttributeUrect();
+    st.once = tag->getAttributeBoolean("once");
+}
+
+static void writeScriptTrigger(XmlWriter& xml, const ScriptTrigger& st)
+{
+    xml.writeTag("script-trigger");
+    xml.writeTagAttribute("script", st.script);
+    xml.writeTagAttributeUrect(st.aabb);
+    xml.writeTagAttribute("once", st.once);
+    xml.writeCloseTag();
+}
+
 static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* tag)
 {
     if (tag == nullptr || tag->name != "room") {
@@ -117,6 +138,15 @@ static std::unique_ptr<RoomInput> readRoomInput(XmlReader& xml, const XmlTag* ta
         }
         else if (childTag->name == "entity-group") {
             readEntityGroup(xml, childTag.get(), roomInput->entityGroups);
+        }
+        else if (childTag->name == "script") {
+            Scripting::readScript(roomInput->roomScripts, xml, childTag.get());
+        }
+        else if (childTag->name == "temp-script-variables") {
+            Scripting::readTempScriptVariables(roomInput->roomScripts, xml, childTag.get());
+        }
+        else if (childTag->name == "script-trigger") {
+            readScriptTrigger(childTag.get(), roomInput->scriptTriggers);
         }
         else {
             throw unknown_tag_error(*childTag);
@@ -142,6 +172,12 @@ static void writeRoomInput(XmlWriter& xml, const RoomInput& input)
     }
     for (auto& eg : input.entityGroups) {
         writeEntityGroup(xml, eg);
+    }
+
+    Scripting::writeRoomScripts(xml, input.roomScripts);
+
+    for (auto& st : input.scriptTriggers) {
+        writeScriptTrigger(xml, st);
     }
 
     xml.writeCloseTag();

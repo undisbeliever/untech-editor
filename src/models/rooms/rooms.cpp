@@ -13,6 +13,7 @@
 #include "models/metatiles/common.h"
 #include "models/project/project-data.h"
 #include "models/resources/scenes.h"
+#include "models/scripting/script-compiler.hpp"
 #include <algorithm>
 
 namespace UnTech::Rooms {
@@ -140,12 +141,65 @@ static bool validateEntityGroups(const NamedList<EntityGroup>& entityGroups, con
     return valid;
 }
 
+static bool validateScriptTriggers(const std::vector<ScriptTrigger>& scriptTriggers, const RoomInput& room, ErrorList& err)
+{
+    bool valid = true;
+
+    // EntityGroup/EntityEntry names are checked for uniqueness in the compiler
+
+    const auto addError = [&](const auto... msg) {
+        err.addErrorString(msg...);
+        valid = false;
+    };
+
+    if (scriptTriggers.size() > MAX_SCRIPT_TRIGGERS) {
+        addError("Too many Entity Groups (", scriptTriggers.size(), ", max: ", MAX_SCRIPT_TRIGGERS, ")");
+    }
+
+    for (unsigned i = 0; i < scriptTriggers.size(); i++) {
+        const auto& st = scriptTriggers.at(i);
+
+        const auto addStError = [&](const ScriptTrigger& st, const auto... msg) {
+            err.addError(std::make_unique<ListItemError>(&st, "Script Trigger ", i, ": ", msg...));
+            valid = false;
+        };
+
+        if (st.script.isValid()) {
+            if (!room.roomScripts.scripts.find(st.script)) {
+                addStError(st, "Cannot find script: ", st.script);
+            }
+        }
+        else {
+            addStError(st, "Expected script");
+        }
+
+        if (st.aabb.width <= 0 || st.aabb.height <= 0) {
+            addStError(st, "Invalid AABB");
+        }
+        if (!room.map.size().contains(st.aabb)) {
+            addStError(st, "AABB must be inside the room");
+        }
+    }
+
+    return valid;
+}
+
 rect RoomInput::validEntityArea() const
 {
     return {
         0, -ENTITY_VERTICAL_SPACING,
         map.width() * MAP_TILE_SIZE, map.height() * MAP_TILE_SIZE + ENTITY_VERTICAL_SPACING * 2
     };
+}
+
+unsigned RoomInput::tileIndex(const upoint& p) const
+{
+    if (map.height() <= MAP_HEIGHT_SMALL) {
+        return p.x * MAP_HEIGHT_SMALL + p.y;
+    }
+    else {
+        return p.x * MAP_HEIGHT_LARGE + p.y;
+    }
 }
 
 bool RoomInput::validate(const Resources::CompiledScenesData& compiledScenes, ErrorList& err) const
@@ -178,6 +232,7 @@ bool RoomInput::validate(const Resources::CompiledScenesData& compiledScenes, Er
 
     valid &= validateEntrances(entrances, *this, err);
     valid &= validateEntityGroups(entityGroups, *this, err);
+    valid &= validateScriptTriggers(scriptTriggers, *this, err);
 
     return valid;
 }
@@ -234,8 +289,9 @@ static uint8_t processEntityParameter(const std::string& parameter, const Entity
 }
 
 std::shared_ptr<const RoomData>
-compileRoom(const RoomInput& input,
-            const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings,
+compileRoom(const RoomInput& input, const ExternalFileList<Rooms::RoomInput>& roomsList,
+            const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings, const Scripting::GameStateData& gameStateData,
+            const Scripting::BytecodeMapping& bytecodeData,
             ErrorList& err)
 {
     bool valid = input.validate(compiledScenes, err);
@@ -289,8 +345,11 @@ compileRoom(const RoomInput& input,
         return nullptr;
     }
 
-    constexpr unsigned HEADER_SIZE = 4;
-    constexpr unsigned FOOTER_SIZE = 4;
+    constexpr unsigned SCRIPT_HEADER_SIZE = (MAX_N_SCRIPTS + 1) * 2;
+    constexpr unsigned SCRIPT_TRIGGERS_SIZE = MAX_SCRIPT_TRIGGERS * 6;
+    constexpr unsigned HEADER_SIZE = 4 + SCRIPT_HEADER_SIZE + MAX_ENTITY_GROUPS + SCRIPT_TRIGGERS_SIZE;
+    constexpr unsigned HEADER_SCRIPT_ARRAY = 4;
+
     const bool mapHeightBit = input.map.height() <= MAP_HEIGHT_SMALL;
     const unsigned mapHeight = mapHeightBit ? MAP_HEIGHT_SMALL : MAP_HEIGHT_LARGE;
     const unsigned mapDataSize = mapHeight * input.map.width();
@@ -298,18 +357,18 @@ compileRoom(const RoomInput& input,
     const unsigned roomEntranceDataSize = 1 + 4 * input.entrances.size();
 
     assert(totalEntityCount < MAX_ENTITY_ENTRIES);
-    const unsigned entityDataSize = 2 + input.entityGroups.size() + totalEntityCount * 5;
-
-    const unsigned dataSize = HEADER_SIZE + mapDataSize + roomEntranceDataSize + entityDataSize + FOOTER_SIZE;
-
-    if (dataSize > roomSettings.roomDataSize) {
-        addError("Room data size too large (", dataSize, " bytes, max: ", roomSettings.roomDataSize, ")");
-    }
+    static_assert(MAX_ENTITY_ENTRIES <= UINT8_MAX / 2);
+    const unsigned entityDataSize = 1 + totalEntityCount * 5;
 
     auto out = std::make_shared<RoomData>();
 
     std::vector<uint8_t>& data = out->data;
-    data.resize(dataSize);
+    data.reserve(roomSettings.roomDataSize);
+
+    // Start of data with known size
+    // -----------------------------
+
+    data.resize(HEADER_SIZE + mapDataSize + roomEntranceDataSize + entityDataSize);
     auto it = data.begin();
 
     // Header
@@ -322,6 +381,58 @@ compileRoom(const RoomInput& input,
         *it++ = input.map.height();
         *it++ = sceneId;
         *it++ = input.entrances.size();
+
+        // Skip Header.startupScript and Header.scripts
+        it += SCRIPT_HEADER_SIZE;
+
+        // entityGroups array
+        unsigned egPos = 0;
+        for (unsigned eg = 0; eg < MAX_ENTITY_GROUPS; eg++) {
+            if (eg < input.entityGroups.size()) {
+                egPos += input.entityGroups.at(eg).entities.size();
+                *it++ = egPos;
+            }
+            else {
+                *it++ = 0;
+            }
+        }
+        assert(egPos == totalEntityCount);
+
+        // Script triggers
+        {
+            constexpr unsigned ONCE_FLAG = 0x80;
+            constexpr unsigned soaSize = 2 * MAX_SCRIPT_TRIGGERS;
+
+            assert(input.scriptTriggers.size() <= MAX_SCRIPT_TRIGGERS);
+
+            auto buildArray = [&](auto f) {
+                auto endIt = it + soaSize;
+
+                for (auto& st : input.scriptTriggers) {
+                    const uint16_t v = f(st);
+                    *it++ = v;
+                    *it++ = v >> 8;
+                }
+                assert(it <= endIt);
+
+                while (it < endIt) {
+                    *it++ = 0xff;
+                }
+            };
+
+            buildArray([&](auto& st) { return input.tileIndex(st.aabb.topLeft()); });
+            buildArray([&](auto& st) { return input.tileIndex(st.aabb.internalBottomRight()) + 1; });
+
+            buildArray([&](auto& st) -> uint16_t {
+                auto scriptId = input.roomScripts.scripts.indexOf(st.script);
+                assert(scriptId < input.roomScripts.scripts.size());
+
+                if (st.once) {
+                    scriptId |= ONCE_FLAG;
+                }
+                return scriptId;
+            });
+        }
 
         assert(it == data.begin() + HEADER_SIZE);
     }
@@ -364,7 +475,7 @@ compileRoom(const RoomInput& input,
         assert(it == begin + roomEntranceDataSize);
     }
 
-    // Entity Data
+    // RoomEntity Data
     {
         assert(input.entityGroups.size() < MAX_ENTITY_GROUPS);
 
@@ -374,8 +485,6 @@ compileRoom(const RoomInput& input,
 
         for (const EntityGroup& eg : input.entityGroups) {
             assert(eg.entities.size() > 0);
-
-            *it++ = eg.entities.size();
 
             for (const EntityEntry& ee : eg.entities) {
                 static_assert(ENTITY_VERTICAL_SPACING == 256);
@@ -409,18 +518,78 @@ compileRoom(const RoomInput& input,
             }
         }
 
-        *it++ = 0;
-
         assert(it == begin + entityDataSize);
     }
-
-    // End
-    *it++ = 'E';
-    *it++ = 'N';
-    *it++ = 'D';
-    *it++ = '!';
-
     assert(it == data.end());
+
+    // End of data with known size
+
+    // Start of data with unknown size
+    // --------------------------------
+
+    // MUST NOT USE it beyond this point.
+
+    // Room Scripts
+    {
+        data.push_back('S');
+
+        // size of script block (unknown)
+        const unsigned blockSizePos = data.size();
+        data.push_back(0);
+        data.push_back(0);
+
+        Scripting::ScriptCompiler compiler(data, input, roomsList, bytecodeData, gameStateData, err);
+
+        if (input.roomScripts.scripts.size() > MAX_N_SCRIPTS) {
+            addError("Too many scripts");
+        }
+
+        unsigned headerPos = HEADER_SCRIPT_ARRAY;
+        constexpr unsigned headerPosEnd = HEADER_SCRIPT_ARRAY + SCRIPT_HEADER_SIZE;
+
+        // Startup Script
+        {
+            const unsigned scriptPos = compiler.compileScript(input.roomScripts.startupScript);
+
+            data.at(headerPos++) = scriptPos & 0xff;
+            data.at(headerPos++) = (scriptPos >> 8) & 0xff;
+        }
+
+        for (const auto& s : input.roomScripts.scripts) {
+            const unsigned scriptPos = compiler.compileScript(s);
+
+            // Populate scriptPos in the room header
+            if (headerPos < headerPosEnd) {
+                data.at(headerPos++) = scriptPos & 0xff;
+                data.at(headerPos++) = (scriptPos >> 8) & 0xff;
+            }
+        }
+
+        // Set unused script indexes to NULL
+        while (headerPos < headerPosEnd) {
+            data.at(headerPos++) = 0;
+            data.at(headerPos++) = 0;
+        }
+        assert(headerPos == headerPosEnd);
+
+        // Store size of script block
+        const unsigned blockSize = data.size() - blockSizePos - 2;
+        data.at(blockSizePos) = blockSize & 0xff;
+        data.at(blockSizePos + 1) = (blockSize >> 8) & 0xff;
+
+        valid &= compiler.isValid();
+    }
+
+    // End marker
+    {
+        constexpr static std::array<uint8_t, 4> endMarker = { 'E', 'N', 'D', '!' };
+
+        data.insert(data.end(), endMarker.begin(), endMarker.end());
+    }
+
+    if (data.size() > roomSettings.roomDataSize) {
+        addError("Room data size too large (", data.size(), " bytes, max: ", roomSettings.roomDataSize, ")");
+    }
 
     if (!valid) {
         out = nullptr;
@@ -429,7 +598,7 @@ compileRoom(const RoomInput& input,
     return out;
 }
 
-const int RoomData::ROOM_FORMAT_VERSION = 2;
+const int RoomData::ROOM_FORMAT_VERSION = 6;
 
 std::vector<uint8_t> RoomData::exportSnesData() const
 {

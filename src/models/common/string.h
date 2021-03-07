@@ -102,6 +102,24 @@ static inline optional<uint8_t> toUint8(const std::string& s)
     return (uint8_t)ret;
 }
 
+/* Convert a string to an uint16.
+ * String may be encased in spaces.
+ */
+static inline optional<uint16_t> toUint16(const std::string& s)
+{
+    const char* cstr = s.c_str();
+    const char* last = cstr + s.find_last_not_of(" \t\n\r", s.npos, 4);
+    char* parseEnd;
+
+    long ret = strtol(cstr, &parseEnd, 0);
+
+    if (parseEnd == cstr || parseEnd != last + 1
+        || ret < 0 || ret > UINT16_MAX) {
+        return optional<uint16_t>();
+    }
+    return (uint16_t)ret;
+}
+
 /* Convert a string to an integer.
  * Returns a default value if given invalid input.
  * String may be encased in spaces.

@@ -20,6 +20,8 @@
 #include "models/resources/palette.h"
 #include "models/resources/scenes.h"
 #include "models/rooms/rooms.h"
+#include "models/scripting/bytecode.h"
+#include "models/scripting/game-state.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -45,6 +47,9 @@ struct ProjectFile {
 
     ProjectSettings projectSettings;
 
+    Scripting::GameState gameState;
+    Scripting::BytecodeInput bytecode;
+
     MetaTiles::InteractiveTiles interactiveTiles;
     Entity::EntityRomData entityRomData;
     Resources::ResourceScenes resourceScenes;
@@ -68,6 +73,8 @@ struct ProjectFile {
     bool operator==(const ProjectFile& o) const
     {
         return projectSettings == o.projectSettings
+               && gameState == o.gameState
+               && bytecode == o.bytecode
                && interactiveTiles == o.interactiveTiles
                && entityRomData == o.entityRomData
                && resourceScenes == o.resourceScenes

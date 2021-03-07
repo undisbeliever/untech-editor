@@ -330,4 +330,66 @@ public:
     }
 };
 
+class NodeSelection final {
+public:
+    using index_type = uint16_t;
+    using ParentIndexT = std::array<index_type, 9>;
+
+    constexpr static unsigned MAX_SIZE = UINT16_MAX - 1;
+    constexpr static unsigned NO_SELECTION = UINT16_MAX;
+
+private:
+    // Optimisation - allows listArgs() to return a reference.
+    std::tuple<ParentIndexT> _parentIndex;
+    index_type _selected;
+
+    ParentIndexT _pendingParent;
+    index_type _pending;
+
+public:
+    NodeSelection()
+    {
+        std::get<0>(_parentIndex).fill(NO_SELECTION);
+        _selected = NO_SELECTION;
+        _pending = NO_SELECTION;
+    }
+
+    const std::tuple<ParentIndexT>& listArgs() const { return _parentIndex; }
+
+    bool hasSelection() const { return _selected != NO_SELECTION; }
+    bool hasSingleSelection() const { return _selected != NO_SELECTION; }
+
+    unsigned selectedIndex() const { return _selected; }
+    const ParentIndexT& parentIndex() const { return std::get<0>(_parentIndex); }
+
+    void clearSelection()
+    {
+        _pendingParent.fill(NO_SELECTION);
+        _pending = NO_SELECTION;
+    }
+
+    void setSelected(const ParentIndexT& p, index_type s)
+    {
+        _pendingParent = p;
+        _pending = s;
+    }
+
+    void setParentIndex(const ParentIndexT& p)
+    {
+        _pendingParent = p;
+        _pending = NO_SELECTION;
+    }
+
+    // Must be called after the GUI has been processed.
+    void update()
+    {
+        std::get<0>(_parentIndex) = _pendingParent;
+        _selected = _pending;
+    }
+
+    void itemAdded(const ParentIndexT& pIndex, index_type index);
+    void itemRemoved(const ParentIndexT& pIndex, index_type index);
+    void itemMoved(const ParentIndexT& pIndex, index_type from, index_type to);
+};
+
 }

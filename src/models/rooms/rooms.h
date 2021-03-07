@@ -9,9 +9,14 @@
 #include "models/common/grid.h"
 #include "models/common/idstring.h"
 #include "models/common/namedlist.h"
+#include "models/scripting/script.h"
 
 namespace UnTech {
 class ErrorList;
+
+template <typename T>
+class ExternalFileList;
+
 namespace Project {
 template <typename T>
 class DataStore;
@@ -28,6 +33,8 @@ namespace Rooms {
 constexpr unsigned MAX_ROOM_ENTRANCES = 32;
 constexpr unsigned MAX_ENTITY_GROUPS = 8;
 constexpr unsigned MAX_ENTITY_ENTRIES = 96;
+constexpr unsigned MAX_N_SCRIPTS = 16;
+constexpr unsigned MAX_SCRIPT_TRIGGERS = 16;
 
 constexpr unsigned MAP_TILE_SIZE = 16;
 
@@ -101,6 +108,20 @@ struct EntityGroup {
     bool operator!=(const EntityGroup& o) const { return !(*this == o); }
 };
 
+struct ScriptTrigger {
+    idstring script;
+    urect aabb;
+
+    bool once;
+
+    bool operator==(const ScriptTrigger& o) const
+    {
+        return script == o.script
+               && aabb == o.aabb
+               && once == o.once;
+    }
+};
+
 struct RoomInput {
     constexpr static unsigned MIN_MAP_WIDTH = 16;
     constexpr static unsigned MIN_MAP_HEIGHT = 14;
@@ -119,10 +140,15 @@ struct RoomInput {
     NamedList<RoomEntrance> entrances;
     NamedList<EntityGroup> entityGroups;
 
+    Scripting::RoomScripts roomScripts;
+    std::vector<ScriptTrigger> scriptTriggers;
+
     rect validEntityArea() const;
 
     unsigned mapRight() const { return map.width() * MAP_TILE_SIZE; }
     unsigned mapBottom() const { return map.height() * MAP_TILE_SIZE; }
+
+    unsigned tileIndex(const upoint& p) const;
 
     bool validate(const Resources::CompiledScenesData& compiledScenes, ErrorList& err) const;
 
@@ -132,7 +158,9 @@ struct RoomInput {
                && scene == o.scene
                && map == o.map
                && entrances == o.entrances
-               && entityGroups == o.entityGroups;
+               && entityGroups == o.entityGroups
+               && roomScripts == o.roomScripts
+               && scriptTriggers == o.scriptTriggers;
     }
     bool operator!=(const RoomInput& o) const { return !(*this == o); }
 };
@@ -148,8 +176,9 @@ struct RoomData {
 };
 
 std::shared_ptr<const RoomData>
-compileRoom(const RoomInput& input,
+compileRoom(const RoomInput& input, const ExternalFileList<RoomInput>& roomsList,
             const Resources::CompiledScenesData& compiledScenes, const Entity::CompiledEntityRomData& entityRomData, const RoomSettings& roomSettings,
+            const Scripting::GameStateData& gameStateData, const Scripting::BytecodeMapping& bytecodeData,
             ErrorList& err);
 }
 }

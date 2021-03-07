@@ -21,11 +21,13 @@ constexpr unsigned N_RESOURCE_TYPES = 7;
 
 enum class ProjectSettingsIndex : unsigned {
     ProjectSettings,
+    GameState,
+    Bytecode,
     InteractiveTiles,
     ActionPoints,
     EntityRomData,
     Scenes,
 };
-constexpr unsigned N_PROJECT_SETTING_ITEMS = 5;
+constexpr unsigned N_PROJECT_SETTING_ITEMS = 7;
 
 }

@@ -28,6 +28,10 @@ class ErrorList;
 template <typename T>
 class ExternalFileList;
 
+namespace Scripting {
+struct GameStateData;
+struct BytecodeMapping;
+}
 namespace Resources {
 struct PaletteData;
 struct BackgroundImageData;
@@ -213,6 +217,8 @@ class ProjectSettingsData {
 private:
     mutable std::shared_mutex _mutex;
 
+    std::shared_ptr<const Scripting::GameStateData> _gameState;
+    std::shared_ptr<const Scripting::BytecodeMapping> _bytecode;
     std::shared_ptr<const MetaSprite::ActionPointMapping> _actionPointMapping;
     std::shared_ptr<const MetaTiles::InteractiveTilesData> _interactiveTiles;
     std::shared_ptr<const Resources::CompiledScenesData> _scenes;
@@ -221,6 +227,18 @@ private:
 public:
     // MUST include a lock in each function
     // MUST NOT implement a write functions in the header file
+
+    std::shared_ptr<const Scripting::GameStateData> gameState() const
+    {
+        std::shared_lock lock(_mutex);
+        return _gameState;
+    }
+
+    std::shared_ptr<const Scripting::BytecodeMapping> bytecode() const
+    {
+        std::shared_lock lock(_mutex);
+        return _bytecode;
+    }
 
     std::shared_ptr<const MetaSprite::ActionPointMapping> actionPointMapping() const
     {
@@ -246,6 +264,8 @@ public:
         return _entityRomData;
     }
 
+    void store(std::shared_ptr<const Scripting::GameStateData>&& data);
+    void store(std::shared_ptr<const Scripting::BytecodeMapping>&& data);
     void store(std::shared_ptr<const MetaSprite::ActionPointMapping>&& data);
     void store(std::shared_ptr<const MetaTiles::InteractiveTilesData>&& data);
     void store(std::shared_ptr<const Resources::CompiledScenesData>&& data);
@@ -316,9 +336,11 @@ public:
     const DataStore<MetaTiles::MetaTileTilesetData>& metaTileTilesets() const { return _metaTileTilesets; }
     const DataStore<Rooms::RoomData>& rooms() const { return _rooms; }
 
+    std::shared_ptr<const Scripting::GameStateData> gameState() const { return _projectSettingsData.gameState(); }
     std::shared_ptr<const MetaTiles::InteractiveTilesData> interactiveTiles() const { return _projectSettingsData.interactiveTiles(); }
     std::shared_ptr<const Resources::CompiledScenesData> scenes() const { return _projectSettingsData.scenes(); }
     std::shared_ptr<const Entity::CompiledEntityRomData> entityRomData() const { return _projectSettingsData.entityRomData(); }
+    std::shared_ptr<const Scripting::BytecodeMapping> bytecodeData() const { return _projectSettingsData.bytecode(); }
 
     const ResourceListStatus& resourceListStatus(const ResourceType type) const { return _resourceListStatuses.at(static_cast<unsigned>(type)); }
 

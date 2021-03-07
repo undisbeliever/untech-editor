@@ -6,37 +6,56 @@
 
 #include "selection.h"
 #include <cassert>
+#include <limits>
 
 namespace UnTech::Gui {
 
+template <typename index_type>
+static inline void singleSelectionItemAdded(index_type& pending, const index_type index)
+{
+    if (pending >= index) {
+        pending++;
+    }
+}
+
+template <typename index_type>
+static inline void singleSelectionItemRemoved(index_type& pending, const index_type index)
+{
+    if (pending == index) {
+        pending = std::numeric_limits<index_type>::max();
+    }
+    else if (pending > index) {
+        pending--;
+    }
+}
+
+template <typename index_type>
+static inline void singleSelectionItemMoved(index_type& pending, const index_type from, const index_type to)
+{
+    if (pending == from) {
+        pending = to;
+    }
+    else if (pending > from && pending <= to) {
+        pending--;
+    }
+    else if (pending >= to && pending < from) {
+        pending++;
+    }
+}
+
 void SingleSelection::itemAdded(unsigned index)
 {
-    if (_pending >= index) {
-        _pending++;
-    }
+    singleSelectionItemAdded(_pending, index);
 }
 
 void SingleSelection::itemRemoved(unsigned index)
 {
-    if (_pending == index) {
-        clearSelection();
-    }
-    else if (_pending > index) {
-        _pending--;
-    }
+    singleSelectionItemRemoved(_pending, index);
 }
 
 void SingleSelection::itemMoved(unsigned from, unsigned to)
 {
-    if (_pending == from) {
-        _pending = to;
-    }
-    else if (_pending > from && _pending <= to) {
-        _pending--;
-    }
-    else if (_pending >= to && _pending < from) {
-        _pending++;
-    }
+    singleSelectionItemMoved(_pending, from, to);
 }
 
 static uint64_t multipleSelectionItemAdded(const uint64_t sel, const unsigned index)
@@ -151,6 +170,27 @@ void GroupMultipleSelection::itemMoved(unsigned pIndex, unsigned from, unsigned 
 {
     if (pIndex < childSelections.size()) {
         childSelections.at(pIndex).itemMoved(from, to);
+    }
+}
+
+void NodeSelection::itemAdded(const ParentIndexT& pIndex, index_type index)
+{
+    if (pIndex == _pendingParent) {
+        singleSelectionItemAdded(_pending, index);
+    }
+}
+
+void NodeSelection::itemRemoved(const ParentIndexT& pIndex, index_type index)
+{
+    if (pIndex == _pendingParent) {
+        singleSelectionItemRemoved(_pending, index);
+    }
+}
+
+void NodeSelection::itemMoved(const ParentIndexT& pIndex, index_type from, index_type to)
+{
+    if (pIndex == _pendingParent) {
+        singleSelectionItemMoved(_pending, from, to);
     }
 }
 

@@ -16,8 +16,10 @@ namespace Project {
 
 static const idstring BLANK_ID{};
 
-static std::array<std::string, 5> projectSettingNames{
+static std::array<std::string, 7> projectSettingNames{
     "Project Settings",
+    "Game State",
+    "Bytecode",
     "Interactive Tiles",
     "Action Points",
     "Entities",
@@ -303,6 +305,20 @@ inline std::pair<std::string, std::string> DataStore<T>::store(const size_t inde
     return { oldName, newName };
 }
 
+void ProjectSettingsData::store(std::shared_ptr<const Scripting::GameStateData>&& data)
+{
+    std::lock_guard lock(_mutex);
+
+    _gameState = std::move(data);
+}
+
+void ProjectSettingsData::store(std::shared_ptr<const Scripting::BytecodeMapping>&& data)
+{
+    std::lock_guard lock(_mutex);
+
+    _bytecode = std::move(data);
+}
+
 void ProjectSettingsData::store(std::shared_ptr<const MetaSprite::ActionPointMapping>&& data)
 {
     std::lock_guard lock(_mutex);
@@ -448,6 +464,14 @@ void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& pro
     case ProjectSettingsIndex::ProjectSettings:
         break;
 
+    case ProjectSettingsIndex::GameState:
+        projectData._rooms.markAllUnchecked();
+        break;
+
+    case ProjectSettingsIndex::Bytecode:
+        projectData._rooms.markAllUnchecked();
+        break;
+
     case ProjectSettingsIndex::InteractiveTiles:
         projectData._metaTileTilesets.markAllUnchecked();
         break;
@@ -458,6 +482,7 @@ void ProjectDependencies::markProjectSettingsDepenantsUnchecked(ProjectData& pro
 
     case ProjectSettingsIndex::EntityRomData:
         projectData._rooms.markAllUnchecked();
+        projectData._projectSettingsStatus.markUnchecked(int(ProjectSettingsIndex::GameState));
         break;
 
     case ProjectSettingsIndex::Scenes:
@@ -831,8 +856,13 @@ bool ProjectData::compileAll(const ProjectFile& project, const bool earlyExit)
 {
     bool valid = true;
 
+    // ::TODO mark GameState unchecked if room name changes::
+
     valid &= validatePs(ProjectSettingsIndex::ProjectSettings,
                         &ProjectSettings::validate, project.projectSettings);
+
+    valid &= compilePs<Scripting::BytecodeMapping>(ProjectSettingsIndex::Bytecode,
+                                                   Scripting::compileBytecode, project.bytecode);
 
     valid &= validateList(&MetaSprite::FrameSetExportOrder::validate, _frameSetExportOrderStatus,
                           ResourceType::FrameSetExportOrders, project.frameSetExportOrders);
@@ -865,6 +895,9 @@ bool ProjectData::compileAll(const ProjectFile& project, const bool earlyExit)
     valid &= compilePs<Entity::CompiledEntityRomData>(ProjectSettingsIndex::EntityRomData,
                                                       Entity::compileEntityRomData, project.entityRomData, project);
 
+    valid &= compilePs<Scripting::GameStateData>(ProjectSettingsIndex::GameState,
+                                                 Scripting::compileGameState, project.gameState, project.rooms, project.entityRomData);
+
     valid &= compilePs<Resources::CompiledScenesData>(ProjectSettingsIndex::Scenes,
                                                       Resources::compileScenesData, project.resourceScenes, *this);
 
@@ -873,7 +906,8 @@ bool ProjectData::compileAll(const ProjectFile& project, const bool earlyExit)
     }
 
     valid &= compileList(Rooms::compileRoom, _rooms, ResourceType::Rooms,
-                         project.rooms, _projectSettingsData.scenes(), _projectSettingsData.entityRomData(), project.projectSettings.roomSettings);
+                         project.rooms, project.rooms, _projectSettingsData.scenes(), _projectSettingsData.entityRomData(), project.projectSettings.roomSettings,
+                         _projectSettingsData.gameState(), _projectSettingsData.bytecode());
 
     _projectSettingsStatus.updateState();
 

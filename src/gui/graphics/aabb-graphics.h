@@ -27,6 +27,8 @@ public:
     constexpr static float selectedLineThickness = 4.0f;
     constexpr static float filledOutlineThickness = 1.0f;
 
+    constexpr static int TILE_SIZE = 16;
+
 private:
     struct SelectedAabb {
         ImVec2 pMin;
@@ -81,6 +83,9 @@ private:
     TwoPointRect _dragSelect;
     point _dragMove;
     ResizeNodes _resizeNodes;
+
+    point _tileDragMove;
+    point _previousTileMouseScenePos;
 
     const void* _lastClickedSelector;
     unsigned _selectedIndex;
@@ -239,10 +244,16 @@ public:
                         _dragMove.x = _mouseScenePos.x - _previousMouseScenePos.x;
                         _dragMove.y = _mouseScenePos.y - _previousMouseScenePos.y;
                         _previousMouseScenePos = _mouseScenePos;
+
+                        _tileDragMove.x = (_mouseScenePos.x / TILE_SIZE - _previousTileMouseScenePos.x) * TILE_SIZE;
+                        _tileDragMove.y = (_mouseScenePos.y / TILE_SIZE - _previousTileMouseScenePos.y) * TILE_SIZE;
+                        _previousTileMouseScenePos = point(_mouseScenePos.x / TILE_SIZE, _mouseScenePos.y / TILE_SIZE);
                     }
                     else {
                         _dragMove.x = 0;
                         _dragMove.y = 0;
+                        _tileDragMove.x = 0;
+                        _tileDragMove.y = 0;
                     }
                 }
                 else {
@@ -382,6 +393,21 @@ public:
 
         if (selected) {
             _selectedAabb.emplace_back(pMin, pMax, color);
+        }
+    }
+
+    inline void addFilledRect(ImDrawList* drawList, const TwoPointRect& rect,
+                              const ImU32 fillColor, const ImU32 outlineColor,
+                              const bool selected = false)
+    {
+        const ImVec2 pMin = toVec2(rect.x1, rect.y1);
+        const ImVec2 pMax = toVec2(rect.x2, rect.y2);
+
+        drawList->AddRectFilled(pMin, pMax, fillColor, 0.0f, ImDrawCornerFlags_None);
+        drawList->AddRect(pMin, pMax, outlineColor, 0.0f, ImDrawCornerFlags_None, lineThickness);
+
+        if (selected) {
+            _selectedAabb.emplace_back(pMin, pMax, outlineColor);
         }
     }
 
@@ -588,6 +614,96 @@ public:
             ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNESW);
             break;
         }
+    }
+
+    // This is the hackiest code I've written in a long time.
+    template <typename RectT, typename SelectionT>
+    void addScriptTriggerRect(ImDrawList* drawList, RectT* rect, const TwoPointRect& bounds,
+                              const ImU32 fillColor, const ImU32 outlineColor,
+                              SelectionT* sel, const unsigned index)
+    {
+        bool selected = sel->isSelected(index);
+
+        const TwoPointRect r{
+            int(rect->left()) * TILE_SIZE,
+            int(rect->right()) * TILE_SIZE,
+            int(rect->top()) * TILE_SIZE,
+            int(rect->bottom()) * TILE_SIZE,
+        };
+
+        _isHovered = r.contains(_mousePos);
+
+        switch (_currentState) {
+        case State::EDITING_FINISHED:
+        case State::DISABLED: {
+        } break;
+
+        case State::NONE: {
+            if (selected && _hasSingleSelection) {
+                const auto rn = setResizeMouseCursor(r);
+                setResizeNodeMouseCursor(rn);
+            }
+        } break;
+
+        case State::CLICK: {
+            if (selected && _hasSingleSelection) {
+                auto rn = setResizeMouseCursor(r);
+                if (rn != Resize_None) {
+                    _resizeNodes = rn;
+                    setResizeNodeMouseCursor(_resizeNodes);
+                    _currentState = State::RESIZE_DRAG;
+                }
+            }
+            if (_isHovered && _currentState == State::CLICK) {
+                _lastClickedSelector = sel;
+                _selectedIndex = index;
+
+                _previouslySelectedItemClicked |= selected;
+            }
+        } break;
+
+        case State::SELECT_DRAG: {
+            if (_dragSelect.contains(r)) {
+                sel->appendSelection(index);
+                selected = true;
+            }
+        } break;
+
+        case State::MOVE_DRAG: {
+            if (selected) {
+                rect->x = std::clamp<int>(r.x1 + _tileDragMove.x, bounds.x1, bounds.x2 - rect->width * TILE_SIZE) / TILE_SIZE;
+                rect->y = std::clamp<int>(r.y1 + _tileDragMove.y, bounds.y1, bounds.y2 - rect->height * TILE_SIZE) / TILE_SIZE;
+            }
+        } break;
+
+        case State::RESIZE_DRAG: {
+            if (selected) {
+                setResizeNodeMouseCursor(_resizeNodes);
+
+                if (_resizeNodes & Resize_Left) {
+                    int newX = std::clamp<int>(_mousePos.x, bounds.x1, r.x2 - 1);
+                    assert(newX < r.x2);
+                    rect->width = ((r.x2 - newX) + TILE_SIZE - 1) / TILE_SIZE;
+                    rect->x = newX / TILE_SIZE;
+                }
+                else if (_resizeNodes & Resize_Right) {
+                    rect->width = std::clamp<int>(_mousePos.x - r.x1, TILE_SIZE, bounds.x2 - r.x1) / TILE_SIZE;
+                }
+
+                if (_resizeNodes & Resize_Top) {
+                    int newY = std::clamp<int>(_mousePos.y, bounds.y1, r.y2 - 1);
+                    assert(newY < r.y2);
+                    rect->height = ((r.y2 - newY) + TILE_SIZE - 1) / TILE_SIZE;
+                    rect->y = newY / TILE_SIZE;
+                }
+                else if (_resizeNodes & Resize_Bottom) {
+                    rect->height = std::clamp<int>(_mousePos.y - r.y1, TILE_SIZE, bounds.y2 - r.y1) / TILE_SIZE;
+                }
+            }
+        } break;
+        }
+
+        addFilledRect(drawList, r, fillColor, outlineColor, selected);
     }
 
     template <typename RectT, typename SelectionT>
@@ -882,6 +998,7 @@ public:
 
         case State::CLICK: {
             _previousMouseScenePos = _mouseScenePos;
+            _previousTileMouseScenePos = point(_mouseScenePos.x / TILE_SIZE, _mouseScenePos.y / TILE_SIZE);
 
             if (_previouslySelectedItemClicked) {
                 _currentState = State::MOVE_DRAG;

@@ -19,13 +19,23 @@ struct EntityGraphics;
 class RoomEditorData final : public AbstractMetaTileEditorData {
 private:
     friend class RoomEditorGui;
+    friend class RoomScriptGuiVisitor;
     struct AP;
 
+public:
     UnTech::Rooms::RoomInput data;
 
+private:
     MultipleSelection entrancesSel;
     SingleSelection entityGroupsSel;
     GroupMultipleSelection entityEntriesSel;
+    MultipleSelection scriptTriggersSel;
+
+    MultipleSelection tempScriptFlagsSel;
+    MultipleSelection tempScriptWordsSel;
+
+    SingleSelection scriptsSel;
+    NodeSelection scriptStatementsSel;
 
     upoint_vectorset selectedScratchpadTiles;
 
@@ -76,6 +86,7 @@ private:
 
     static bool showEntrances;
     static bool showEntities;
+    static bool showScriptTriggers;
 
 public:
     RoomEditorGui();
@@ -100,6 +111,7 @@ private:
     void propertiesWindow(const Project::ProjectFile& projectFile);
     void entrancesWindow();
     void roomEntitiesWindow(const Project::ProjectFile& projectFile);
+    void scriptTriggersWindow();
 
     void entityTextureWindow();
 
@@ -107,6 +119,7 @@ private:
     void entityDropTarget(ImDrawList* drawList);
 
     void editorWindow();
+    void scriptsWindow(const Project::ProjectFile& projectFile, const Project::ProjectData& projectData);
 
     void drawObjects(ImDrawList* drawList);
     void drawAndEditObjects(ImDrawList* drawList);

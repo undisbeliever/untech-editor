@@ -32,6 +32,16 @@ struct TwoPointRect {
     {
     }
 
+    TwoPointRect(const urect& r)
+        : TwoPointRect(r.x, r.x + r.width, r.y, r.y + r.height)
+    {
+    }
+
+    TwoPointRect(const rect& r)
+        : TwoPointRect(r.x, r.x + r.width, r.y, r.y + r.height)
+    {
+    }
+
     int width() const { return x2 - x1; }
     int height() const { return y2 - y1; }
 
