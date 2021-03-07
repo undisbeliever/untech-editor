@@ -237,7 +237,7 @@ bool AbstractEditorData::redo(Project::ProjectFile& projectFile)
 void AbstractExternalFileEditorData::setFilename(const std::filesystem::path& fn)
 {
     _filename = fn;
-    _basename = _filename.filename();
+    _basename = _filename.filename().string();
 }
 
 void AbstractEditorGui::viewMenu()

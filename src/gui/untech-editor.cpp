@@ -26,7 +26,7 @@ UnTechEditor::UnTechEditor(std::unique_ptr<UnTech::Project::ProjectFile>&& pf, c
     , _projectData()
     , _backgroundThread(_projectFile, _projectData)
     , _filename(fn)
-    , _basename(fn.filename())
+    , _basename(fn.filename().string())
     , _editorGuis(createEditorGuis())
     , _editors()
     , _currentEditor(nullptr)
