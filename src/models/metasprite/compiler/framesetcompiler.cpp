@@ -272,7 +272,9 @@ compileFrameSet(const FrameSetFile& fs,
     else if (fs.siFrameSet) {
         if (auto msfs = utsi2utms(*fs.siFrameSet, errorList)) {
             auto fsData = compileFrameSet(*msfs, project, actionPointMapping, errorList);
-            fsData->msFrameSet = std::move(msfs);
+            if (fsData) {
+                fsData->msFrameSet = std::move(msfs);
+            }
             return fsData;
         }
     }
