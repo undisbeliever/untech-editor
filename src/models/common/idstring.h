@@ -96,6 +96,7 @@ public:
 
     // clang-format off
     inline const std::string& str() const { return data; }
+    inline const char* c_str() const { return data.c_str(); }
     inline operator const std::string&() const { return data; }
     // clang-format on
 

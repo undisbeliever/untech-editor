@@ -38,7 +38,7 @@ bool IdStringComboSelection(UnTech::idstring* value, const ListT& list, bool inc
             ImGui::PushID(i);
 
             const bool selected = (*name == *value);
-            if (ImGui::Selectable(name->str().c_str(), selected)) {
+            if (ImGui::Selectable(name->c_str(), selected)) {
                 if (!selected) {
                     *value = *name;
                     changed = true;
@@ -65,7 +65,7 @@ inline bool IdStringCombo(const char* label, UnTech::idstring* value, const List
 {
     bool changed = false;
 
-    if (ImGui::BeginCombo(label, value->str())) {
+    if (ImGui::BeginCombo(label, value->c_str())) {
         changed = IdStringComboSelection(value, list, includeBlank, getter);
         ImGui::EndCombo();
     }
@@ -99,7 +99,7 @@ bool SingleSelectionNamedListCombo(const char* label, unsigned* selectedIndexPtr
 
     const char* previewValue = blankLabel;
     if (selectedIndex < list.size()) {
-        previewValue = list.at(selectedIndex).name.str().c_str();
+        previewValue = list.at(selectedIndex).name.c_str();
     }
 
     if (ImGui::BeginCombo(label, previewValue)) {
@@ -111,7 +111,7 @@ bool SingleSelectionNamedListCombo(const char* label, unsigned* selectedIndexPtr
             }
         }
         for (unsigned i = 0; i < list.size(); i++) {
-            const char* name = list.at(i).name.str().c_str();
+            const char* name = list.at(i).name.c_str();
 
             ImGui::PushID(i);
 
@@ -137,7 +137,7 @@ void SingleSelectionNamedListCombo(const char* label, UnTech::Gui::SingleSelecti
 
     const char* previewValue = blankLabel;
     if (sel->selectedIndex() < list.size()) {
-        previewValue = list.at(sel->selectedIndex()).name.str().c_str();
+        previewValue = list.at(sel->selectedIndex()).name.c_str();
     }
 
     if (ImGui::BeginCombo(label, previewValue)) {
@@ -148,7 +148,7 @@ void SingleSelectionNamedListCombo(const char* label, UnTech::Gui::SingleSelecti
             }
         }
         for (unsigned i = 0; i < list.size(); i++) {
-            const char* name = list.at(i).name.str().c_str();
+            const char* name = list.at(i).name.c_str();
 
             ImGui::PushID(i);
 

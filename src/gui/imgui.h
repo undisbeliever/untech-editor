@@ -42,6 +42,11 @@ inline void TextUnformatted(const std::string& text)
     TextUnformatted(text.c_str(), text.c_str() + text.size());
 }
 
+inline void TextUnformatted(const UnTech::idstring& text)
+{
+    TextUnformatted(text.str());
+}
+
 bool InputUsize(const char* label, UnTech::usize* usize, const UnTech::usize& maxSize);
 bool InputUpoint(const char* label, UnTech::upoint* upoint, const UnTech::usize& containerSize);
 bool InputUpoint(const char* label, UnTech::upoint* upoint, const UnTech::usize& containerSize, const UnTech::usize& itemSize);
@@ -99,7 +104,7 @@ void NamedListListBox(const char* label, UnTech::Gui::SingleSelection* sel, cons
 {
     if (ImGui::ListBoxHeader(label, list.size(), heightInItems)) {
         for (unsigned i = 0; i < list.size(); i++) {
-            const char* name = list.at(i).name.str().c_str();
+            const char* name = list.at(i).name.c_str();
 
             ImGui::PushID(i);
             ImGui::Selectable(name, sel, i);

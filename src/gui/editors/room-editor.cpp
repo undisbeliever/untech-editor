@@ -646,7 +646,7 @@ void RoomEditorGui::entitiesWindow()
         for (unsigned i = 0; i < _entityGraphics->entities.size(); i++) {
             const auto& eg = _entityGraphics->entities.at(i);
 
-            if (filter.PassFilter(eg.name.str().c_str())) {
+            if (filter.PassFilter(eg.name.c_str())) {
                 ImGui::PushID(i);
 
                 ImGui::ImageButton(textureId, size, eg.uvMin, eg.uvMax);
@@ -793,7 +793,7 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
 
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
-                ImGui::Text("Extrance %u %s", i, entrance.name.str().c_str());
+                ImGui::Text("Extrance %u %s", i, entrance.name.c_str());
                 ImGui::EndTooltip();
             }
         }
@@ -817,12 +817,12 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
                                         &childSel, i);
                     if (_graphics.isHoveredAndNotEditing()) {
                         ImGui::BeginTooltip();
-                        ImGui::Text("Entity %u (%s)", i, entity.entityId.str().c_str());
+                        ImGui::Text("Entity %u (%s)", i, entity.entityId.c_str());
                         ImGui::Indent();
                         if (entity.name.isValid()) {
-                            ImGui::Text("Name: %s", entity.name.str().c_str());
+                            ImGui::Text("Name: %s", entity.name.c_str());
                         }
-                        ImGui::Text("Group: %u (%s)", groupIndex, group.name.str().c_str());
+                        ImGui::Text("Group: %u (%s)", groupIndex, group.name.c_str());
                         if (!entity.parameter.empty()) {
                             ImGui::Text("Parameter: %s", entity.parameter.c_str());
                         }
@@ -856,10 +856,10 @@ void RoomEditorGui::drawAndEditObjects(ImDrawList* drawList)
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 if (!st.once) {
-                    ImGui::Text("Script Trigger %u: %s", i, st.script.str().c_str());
+                    ImGui::Text("Script Trigger %u: %s", i, st.script.c_str());
                 }
                 else {
-                    ImGui::Text("Script Trigger %u: %s (once)", i, st.script.str().c_str());
+                    ImGui::Text("Script Trigger %u: %s (once)", i, st.script.c_str());
                 }
                 ImGui::EndTooltip();
             }
@@ -1193,7 +1193,7 @@ public:
             for (auto& item : projectFile.rooms) {
                 if (item.value && item.value->name.isValid()) {
                     const auto& roomName = item.value->name;
-                    if (ImGui::Selectable(roomName.str().c_str(), roomName == *value)) {
+                    if (ImGui::Selectable(roomName.c_str(), roomName == *value)) {
                         *value = roomName;
                         edited = true;
                     }
@@ -1221,7 +1221,7 @@ public:
             if (const auto r = roomGetter()) {
                 for (const auto& en : r->entrances) {
                     if (en.name.isValid()) {
-                        if (ImGui::Selectable(en.name.str().c_str(), en.name == *value)) {
+                        if (ImGui::Selectable(en.name.c_str(), en.name == *value)) {
                             *value = en.name;
                             edited = true;
                         }
@@ -1473,7 +1473,7 @@ private:
                 Scripting::Statement newStatement;
 
                 for (auto& i : bcMapping.instructionNames) {
-                    if (ImGui::MenuItem(i.str().c_str())) {
+                    if (ImGui::MenuItem(i.c_str())) {
                         newStatement.opcode = i;
                         menuPressed = true;
                     }

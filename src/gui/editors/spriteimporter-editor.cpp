@@ -820,7 +820,7 @@ void SpriteImporterEditorGui::drawSelectedFrame(ImDrawList* drawList, SI::Frame*
             if (_graphics.isHoveredAndNotEditing()) {
                 ImGui::BeginTooltip();
                 if (ap.type.isValid()) {
-                    ImGui::Text("Action Point %u (%s)", i, ap.type.str().c_str());
+                    ImGui::Text("Action Point %u (%s)", i, ap.type.c_str());
                 }
                 else {
                     ImGui::Text("Action Point %u", i);

@@ -54,7 +54,7 @@ static void exportOrderTree(const std::vector<AbstractMetaSpriteEditorGui::Expor
         ImGui::PopStyleColor();
 
         ImGui::SameLine();
-        ImGui::TextUnformatted(eo.name.str());
+        ImGui::TextUnformatted(eo.name);
 
         if (!eo.valid) {
             if (ImGui::IsMouseReleased(ImGuiMouseButton_Right) && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {

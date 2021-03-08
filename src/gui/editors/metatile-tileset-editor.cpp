@@ -655,7 +655,7 @@ void MetaTileTilesetEditorGui::tilePropertiesWindow(const Project::ProjectFile& 
             ImGui::Indent();
 
             // Use a different label if the selected tiles have different functions
-            const char* comboText = _tileProperties->functionTableSame ? _tileProperties->functionTable.str().c_str() : "------------";
+            const char* comboText = _tileProperties->functionTableSame ? _tileProperties->functionTable.c_str() : "------------";
 
             ImGui::SetNextItemWidth(tileCollisionButtonsWidth);
             if (ImGui::BeginCombo("##ITFT", comboText)) {
