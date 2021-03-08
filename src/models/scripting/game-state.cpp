@@ -27,7 +27,7 @@ compileGameState(const GameState& input,
         addError("Too many flags (", input.flags.size(), ", max: ", GameState::MAX_FLAGS, ")");
     }
     if (input.words.size() > GameState::MAX_WORDS) {
-        err.addErrorString("Too many words (", input.words.size(), ", max: ", GameState::MAX_WORDS, ")");
+        addError("Too many words (", input.words.size(), ", max: ", GameState::MAX_WORDS, ")");
     }
 
     const auto roomId = rooms.indexOf(input.startingRoom);
@@ -95,7 +95,7 @@ compileGameState(const GameState& input,
             *it++ = w.initialValue & 0xff;
             *it++ = (w.initialValue >> 8) & 0xff;
         }
-        assert(it < ret->initialGameState.begin() + 2 * GameState::MAX_WORDS);
+        assert(it <= ret->initialGameState.begin() + 2 * GameState::MAX_WORDS);
 
         it = ret->initialGameState.begin() + 2 * GameState::MAX_WORDS;
 
