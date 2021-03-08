@@ -73,10 +73,22 @@ public:
     idstring& operator=(idstring&&) = default;
 
     idstring() = default;
-    idstring(const std::string& s)
+
+    // fails silently
+    explicit idstring(const std::string& s)
+        : data()
     {
         if (isValid(s)) {
             data = s;
+        }
+    }
+
+    // fails silently
+    explicit idstring(std::string&& s)
+        : data(std::move(s))
+    {
+        if (!isValid(data)) {
+            data.clear();
         }
     }
 
@@ -89,17 +101,12 @@ public:
 
     void clear() { data.clear(); }
 
-    inline idstring& operator=(const std::string& s)
-    {
-        if (isValid(s)) {
-            data = s;
-        }
-        return *this;
-    }
-
     inline bool operator==(const idstring& o) const { return data == o.data; }
     inline bool operator!=(const idstring& o) const { return data != o.data; }
     inline bool operator<(const idstring& o) const { return data < o.data; }
+
+    inline bool operator==(const std::string& o) const { return data == o; }
+    inline bool operator!=(const std::string& o) const { return data != o; }
 };
 
 // useful in generating user messages

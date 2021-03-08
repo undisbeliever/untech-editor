@@ -141,7 +141,7 @@ public:
 
 template <typename T>
 class DataStore final : public ResourceListStatus {
-    std::unordered_map<idstring, size_t> _mapping;
+    std::unordered_map<std::string, size_t> _mapping;
     std::vector<std::shared_ptr<const T>> _data;
 
 public:

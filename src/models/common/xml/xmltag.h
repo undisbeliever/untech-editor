@@ -76,7 +76,7 @@ struct XmlTag {
 
     inline idstring getAttributeId(const std::string& aName) const
     {
-        idstring id = getAttribute(aName);
+        const idstring id(getAttribute(aName));
 
         if (id.isValid()) {
             return id;
@@ -93,7 +93,8 @@ struct XmlTag {
             if (it->second.empty()) {
                 return idstring();
             }
-            idstring id = it->second;
+            const idstring id(it->second);
+
             if (id.isValid()) {
                 return id;
             }
@@ -110,7 +111,7 @@ struct XmlTag {
     inline idstring getAttributeUniqueId(const std::string& aName,
                                          const MapT& map) const
     {
-        std::string id = getAttributeId(aName);
+        const idstring id(getAttribute(aName));
 
         if (map.contains(id)) {
             throw xml_error(*this, aName, "id already exists");

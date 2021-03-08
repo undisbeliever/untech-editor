@@ -85,8 +85,8 @@ struct GameStateData {
         }
     };
 
-    std::unordered_map<idstring, const Value> flags;
-    std::unordered_map<idstring, const Value> words;
+    std::unordered_map<std::string, const Value> flags;
+    std::unordered_map<std::string, const Value> words;
 
     // Equal to the "last flag/word id" + 1.
     unsigned nFlags;

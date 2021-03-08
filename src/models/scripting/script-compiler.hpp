@@ -15,9 +15,9 @@
 
 namespace UnTech::Scripting {
 
-using GameStateDataValueMap = std::unordered_map<idstring, const GameStateData::Value>;
+using GameStateDataValueMap = std::unordered_map<std::string, const GameStateData::Value>;
 
-static inline std::unordered_map<idstring, unsigned>
+static inline std::unordered_map<std::string, unsigned>
 setupTempVariables(const std::vector<idstring> tempVars, const char* typeName,
                    const GameStateDataValueMap& gameStateVars, const unsigned nGameStateVars, const unsigned maxVars,
                    ErrorList& err)
@@ -26,7 +26,7 @@ setupTempVariables(const std::vector<idstring> tempVars, const char* typeName,
         err.addErrorString("Invalid temporary script ", typeName, ": ", msg...);
     };
 
-    std::unordered_map<idstring, unsigned> map;
+    std::unordered_map<std::string, unsigned> map;
     map.reserve(tempVars.size());
 
     long varId = maxVars;
@@ -68,8 +68,8 @@ private:
     const ExternalFileList<Rooms::RoomInput>& roomsList;
 
     // temporary room script variables
-    const std::unordered_map<idstring, unsigned> tempFlags;
-    const std::unordered_map<idstring, unsigned> tempWords;
+    const std::unordered_map<std::string, unsigned> tempFlags;
+    const std::unordered_map<std::string, unsigned> tempWords;
 
     std::vector<uint8_t>& data;
 

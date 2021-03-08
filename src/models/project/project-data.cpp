@@ -273,14 +273,12 @@ inline std::pair<std::string, std::string> DataStore<T>::store(const size_t inde
     _data.at(index) = std::move(data);
 
     const std::string oldName = _resources.at(index).name;
-    const std::string newName = status.name;
+    const std::string& newName = status.name;
 
-    const idstring name = status.name;
-
-    if (name.isValid()) {
-        auto it = _mapping.find(name);
+    if (idstring::isValid(newName)) {
+        auto it = _mapping.find(newName);
         if (it == _mapping.end()) {
-            _mapping.emplace(name, index);
+            _mapping.emplace(newName, index);
         }
         else {
             if (it->second != index) {
@@ -500,7 +498,7 @@ void ProjectDependencies::markDependantsUnchecked(ProjectData& projectData, cons
         projectData._projectSettingsStatus.markUnchecked(unsigned(psi));
     };
 
-    auto markNameUnchecked = [](const Mappings& mappings, ResourceListStatus& rls, const idstring& n) {
+    auto markNameUnchecked = [](const Mappings& mappings, ResourceListStatus& rls, const std::string& n) {
         const auto range = mappings.dependants.equal_range(n);
         for (auto it = range.first; it != range.second; ++it) {
             rls.markUnchecked(it->second);

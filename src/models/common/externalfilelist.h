@@ -70,7 +70,7 @@ public:
 
     // NOTE: pointer may be null
     // pointer is valid until item removed or reloaded
-    T* find(const idstring& name)
+    T* find(const std::string& name)
     {
         for (const Item& item : _list) {
             if (item.value && item.value->name == name) {
@@ -82,7 +82,7 @@ public:
 
     // NOTE: pointer may be null
     // pointer is valid until item removed or reloaded
-    const T* find(const idstring& name) const
+    const T* find(const std::string& name) const
     {
         for (const Item& item : _list) {
             if (item.value && item.value->name == name) {
@@ -93,7 +93,7 @@ public:
     }
 
     // returns INT_MAX if name is not found
-    size_type indexOf(const idstring& name) const
+    size_type indexOf(const std::string& name) const
     {
         for (size_type i = 0; i < _list.size(); i++) {
             const auto& item = _list.at(i);
