@@ -23,6 +23,7 @@ public:
     using value_type = TileT;
     using size_type = typename std::vector<TileT>::size_type;
     using iterator = typename std::vector<TileT>::iterator;
+    using const_iterator = typename std::vector<TileT>::const_iterator;
 
 public:
     constexpr static unsigned TILE_SIZE = TS;
@@ -45,10 +46,13 @@ public:
     // expose vector
     size_t size() const { return _tiles.size(); }
     bool empty() const { return _tiles.empty(); }
-    auto begin() { return _tiles.begin(); }
-    auto begin() const { return _tiles.begin(); }
-    auto end() { return _tiles.begin(); }
-    auto end() const { return _tiles.begin(); }
+
+    iterator begin() { return _tiles.begin(); }
+    const_iterator begin() const { return _tiles.cbegin(); }
+    const_iterator cbegin() const { return _tiles.cbegin(); }
+    iterator end() { return _tiles.end(); }
+    const_iterator end() const { return _tiles.cend(); }
+    const_iterator cend() const { return _tiles.cend(); }
 
     // Remove tile
     void removeLastTile()
